@@ -3,20 +3,22 @@ uses when its credential is not a static API key.
 
 An `AuthProvider` owns one provider's login (`authorize_url` + `exchange`), token
 `refresh`, and request-time `runtime_auth` (bearer + headers + base_url). Providers
-register by name; `resolve_auth` is the request-time entry point the (future) native
+register by name; `resolve_auth` is the request-time entry point a native
 model calls — it loads the stored credential, refreshes it if within the expiry skew,
 persists any rotation, and returns the `RuntimeAuth` for the call. The interactive login
-UX (browser + local redirect capture) is wired later in the CLI phase; this is the core.
+UX supplies the authorization code; this module owns the provider protocol.
 """
 
 from __future__ import annotations
 
 import abc
+import asyncio
 import base64
 import hashlib
 import json
 import secrets
 import time
+import weakref
 from dataclasses import dataclass, field
 
 import httpx
@@ -109,6 +111,7 @@ class AuthProvider(abc.ABC):
 
 
 _PROVIDERS: dict[str, AuthProvider] = {}
+_REFRESH_LOCKS: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
 
 
 def register_auth_provider(provider: AuthProvider) -> None:
@@ -131,14 +134,30 @@ async def resolve_auth(
 ) -> RuntimeAuth:
 	"""Request-time entry point: load -> refresh-if-stale -> persist -> RuntimeAuth."""
 	provider = get_auth_provider(name)
-	credential = store.get(name)
+	credential = store.get_oauth(name)
 	if credential is None:
 		raise NotAuthenticated(f"Not logged in to {name!r}; run login first.")
 	now = now_ms if now_ms is not None else _now_ms()
-	if now >= credential.expires - TOKEN_REFRESH_SKEW_MS:
-		credential = await provider.refresh(credential, client=client)
-		store.set(name, credential)
+	if now < credential.expires - TOKEN_REFRESH_SKEW_MS:
+		return provider.runtime_auth(credential)
+
+	# Several sessions can notice the same stale token at once. Re-read under a
+	# provider lock so only one refresh consumes a rotating refresh token.
+	async with _refresh_lock(name):
+		credential = store.get_oauth(name)
+		if credential is None:
+			raise NotAuthenticated(f"Not logged in to {name!r}; run login first.")
+		now = now_ms if now_ms is not None else _now_ms()
+		if now >= credential.expires - TOKEN_REFRESH_SKEW_MS:
+			credential = await provider.refresh(credential, client=client)
+			store.set_oauth(name, credential)
 	return provider.runtime_auth(credential)
+
+
+def _refresh_lock(name: str) -> asyncio.Lock:
+	loop = asyncio.get_running_loop()
+	locks = _REFRESH_LOCKS.setdefault(loop, {})
+	return locks.setdefault(name, asyncio.Lock())
 
 
 # --- shared token-endpoint call -------------------------------------------

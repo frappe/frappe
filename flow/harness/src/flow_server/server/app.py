@@ -13,10 +13,11 @@ from __future__ import annotations
 
 import asyncio
 import json
+import secrets
 from collections.abc import AsyncIterator
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
 from flow_server import agent
@@ -28,6 +29,7 @@ class RunRequest(BaseModel):
 	# a turn may switch the session's model (and, since a different provider needs its own
 	# auth, its credentials); persisted so the choice sticks for later turns.
 	model: str | None = None
+	credential_id: str | None = None
 	api_key: str | None = None
 	api_base: str | None = None
 
@@ -36,8 +38,18 @@ class ResumeRequest(BaseModel):
 	answers: dict[str, str]  # pending tool_call_id -> "Approve" | "Deny" | free text
 
 
-def create_app(store: SessionStore) -> FastAPI:
+def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI:
 	app = FastAPI(title="flow_server", version="0.1.0")
+
+	if auth_token:
+		@app.middleware("http")
+		async def authenticate(request: Request, call_next):
+			if request.url.path == "/healthz":
+				return await call_next(request)
+			scheme, _, supplied = request.headers.get("Authorization", "").partition(" ")
+			if scheme.lower() != "bearer" or not secrets.compare_digest(supplied, auth_token):
+				return JSONResponse({"detail": "unauthorized"}, status_code=401)
+			return await call_next(request)
 
 	def _get(sid: str) -> Session:
 		try:
@@ -115,11 +127,19 @@ def _apply_overrides(store: SessionStore, session: Session, req: RunRequest) -> 
 	model on a turn sticks for later turns (like Flow keeps a session's chosen model). Takes
 	effect on the next turn; a model can't be swapped mid-generation."""
 	changed = False
-	for field in ("model", "api_key", "api_base"):
+	identity_changed = False
+	for field in ("model", "credential_id", "api_base"):
 		value = getattr(req, field)
 		if value is not None and value != getattr(session.config, field):
 			setattr(session.config, field, value)
 			changed = True
+			identity_changed = identity_changed or field in {"model", "credential_id"}
+	if req.api_key is not None:
+		# Compatibility path for clients that inject a key. It stays in memory and is
+		# deliberately excluded from session metadata.
+		session.config.api_key = req.api_key
+	elif identity_changed:
+		session.config.api_key = None
 	if changed:
 		store.save_meta(session)
 

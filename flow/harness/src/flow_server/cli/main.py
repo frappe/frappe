@@ -1,11 +1,14 @@
-"""flow_server CLI. `flowd serve` runs the daemon. (The `chat` terminal client and
-`login` for native-provider OAuth arrive in Phase 7.)"""
+"""flow_server command line entry point."""
 
 from __future__ import annotations
 
 import argparse
+import ipaddress
+import sys
 
 from flow_server import config
+from flow_server.model.auth import AuthError
+from flow_server.model.credentials import CredentialStore, CredentialStoreError
 
 GREEN = "\033[32m"
 DIM = "\033[2m"
@@ -21,9 +24,32 @@ def main() -> None:
 	p_serve.add_argument("--port", type=int, default=config.PORT)
 	p_serve.add_argument("--data-dir", default=config.DATA_DIR)
 
+	p_login = sub.add_parser("login", help="save an API key or sign in with OAuth")
+	p_login.add_argument("provider", nargs="?")
+	p_login.add_argument(
+		"--manual",
+		action="store_true",
+		help="print the OAuth URL and accept a pasted callback URL",
+	)
+
+	sub.add_parser("providers", help="show provider authentication status")
+
+	p_logout = sub.add_parser("logout", help="remove a saved provider credential")
+	p_logout.add_argument("provider")
+
 	args = parser.parse_args()
-	if args.cmd == "serve":
-		_serve(args)
+	try:
+		if args.cmd == "serve":
+			_serve(args)
+		elif args.cmd == "login":
+			_login(args)
+		elif args.cmd == "providers":
+			_providers()
+		elif args.cmd == "logout":
+			_logout(args)
+	except (AuthError, CredentialStoreError) as e:
+		print(f"flowd: {e}", file=sys.stderr)
+		raise SystemExit(1) from None
 
 
 def _serve(args) -> None:
@@ -33,13 +59,49 @@ def _serve(args) -> None:
 	from flow_server.session.store import SessionStore
 
 	sink = _redis_sink()
-	app = create_app(SessionStore(args.data_dir, event_sink=sink))
+	if not _is_loopback(args.host) and not config.AUTH_TOKEN:
+		raise AuthError(
+			"Refusing to expose an unauthenticated daemon. Set FLOW_SERVER_AUTH_TOKEN "
+			"or bind to a loopback host."
+		)
+	app = create_app(
+		SessionStore(args.data_dir, event_sink=sink),
+		auth_token=config.AUTH_TOKEN,
+	)
 	rinfo = f" · redis: {config.REDIS_URL}" if sink else ""
+	ainfo = " · auth: bearer" if config.AUTH_TOKEN else ""
 	print(
 		f"{GREEN}flow_server daemon{RESET} on http://{args.host}:{args.port}  "
-		f"{DIM}(data: {args.data_dir}{rinfo}){RESET}"
+		f"{DIM}(data: {args.data_dir}{rinfo}{ainfo}){RESET}"
 	)
 	uvicorn.run(app, host=args.host, port=args.port, log_level="warning")
+
+
+def _is_loopback(host: str) -> bool:
+	if host.lower() == "localhost":
+		return True
+	try:
+		return ipaddress.ip_address(host).is_loopback
+	except ValueError:
+		return False
+
+
+def _login(args) -> None:
+	from flow_server.cli.auth import login
+
+	login(CredentialStore(config.CREDENTIALS_PATH), args.provider, manual=args.manual)
+
+
+def _providers() -> None:
+	from flow_server.cli.auth import show_providers
+
+	show_providers(CredentialStore(config.CREDENTIALS_PATH))
+
+
+def _logout(args) -> None:
+	from flow_server.cli.auth import logout
+
+	logout(CredentialStore(config.CREDENTIALS_PATH), args.provider)
 
 
 def _redis_sink():

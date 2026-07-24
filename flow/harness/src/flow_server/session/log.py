@@ -33,8 +33,10 @@ class SessionLog:
 		"""Assign the next seq, persist the event, return the seq."""
 		self._seq += 1
 		event.seq = self._seq
-		os.makedirs(os.path.dirname(self.path), exist_ok=True)
-		with open(self.path, "a", encoding="utf-8") as f:
+		os.makedirs(os.path.dirname(self.path), mode=0o700, exist_ok=True)
+		fd = os.open(self.path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+		os.chmod(self.path, 0o600)
+		with os.fdopen(fd, "a", encoding="utf-8") as f:
 			f.write(event.model_dump_json() + "\n")
 			f.flush()
 			os.fsync(f.fileno())

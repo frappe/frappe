@@ -46,6 +46,9 @@ class AssistantMessage(_Event):
 	type: Literal["assistant_message"] = "assistant_message"
 	text: str = ""
 	tool_calls: list[ToolCall] = Field(default_factory=list)
+	# Opaque provider continuation state (for example encrypted Codex reasoning).
+	# Durable so a tool turn can continue after reconnect/restart.
+	provider_data: dict = Field(default_factory=dict)
 
 
 class ToolResult(_Event):

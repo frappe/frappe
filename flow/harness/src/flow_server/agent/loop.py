@@ -43,6 +43,7 @@ from flow_server.events import (
 	UserMessage,
 )
 from flow_server.model import Model, get_model
+from flow_server.model.resolver import resolve_model_auth
 from flow_server.session.store import Session
 from flow_server.tools import BUILTIN_TOOLS, Tool, ToolContext
 
@@ -123,7 +124,22 @@ async def _loop(
 	after_tool_call: AfterHook | None,
 ) -> None:
 	cfg = session.config
-	model = model or get_model(cfg.model, api_key=cfg.api_key, api_base=cfg.api_base)
+	if model is None:
+		auth = await resolve_model_auth(
+			cfg.model,
+			session.credentials,
+			explicit_api_key=cfg.api_key,
+			credential_id=cfg.credential_id,
+		)
+		# OAuth providers own their endpoint. Allowing a session-level api_base to
+		# override it could send a bearer token to an attacker-controlled host.
+		api_base = auth.base_url if auth.is_oauth else cfg.api_base or auth.base_url
+		model = get_model(
+			cfg.model,
+			api_key=auth.api_key,
+			api_base=api_base,
+			headers=auth.headers,
+		)
 	server_tools = _server_tools(session)
 	tool_schemas = [t.to_schema() for t in server_tools.values()] + cfg.client_tools
 	ctx = _make_ctx(session)
@@ -366,6 +382,8 @@ def _drain_steering(session: Session) -> None:
 
 def _assistant_msg(msg: AssistantMessage) -> dict:
 	out: dict = {"role": "assistant", "content": msg.text or None}
+	if msg.provider_data:
+		out["provider_data"] = msg.provider_data
 	if msg.tool_calls:
 		out["tool_calls"] = [
 			{

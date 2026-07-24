@@ -26,7 +26,7 @@ Every interaction is a typed event. Two families:
 |---|---|---|
 | `RunStarted` | ✓ | a turn began (`run_id`) |
 | `UserMessage` | ✓ | user input added to the transcript |
-| `AssistantMessage` | ✓ | assembled assistant turn (`text` + `tool_calls`) |
+| `AssistantMessage` | ✓ | assembled turn (`text`, tool calls, provider continuation data) |
 | `ToolResult` | ✓ | a tool's outcome (`content` seen by the model; `details` for rendering; `is_error`) |
 | `Usage` | ✓ | token/cost accounting for a turn |
 | `ApprovalRequired` | ✓ | the run paused; `calls` = `PendingCall`s awaiting a decision |
@@ -63,11 +63,16 @@ state from disk). Durability lives here and nowhere else.
 `TextDelta` + `ToolCallStarted`, and every turn ends with a terminal `AssistantMessage`
 then a `Usage`. The loop consumes exactly this, whatever the provider underneath.
 
-`get_model(name)` dispatches on the name's prefix: a registered native provider (the
-keyless `mock`, or a Phase-3 OAuth provider) wins; everything else falls through to
-`LiteLLMModel` (the broad API-key path). Auth for native OAuth providers
-(`auth.py`/`credentials.py`/`providers/`) is an orthogonal branch — it only matters when
-such a model runs.
+Before model construction, `resolve_model_auth()` applies one consistent precedence:
+an ephemeral request key, then a stored provider credential, then the provider's
+standard environment variable. `get_model(name)` then dispatches on the model prefix:
+the keyless `mock` and native subscription `codex` providers have dedicated models;
+everything else falls through to `LiteLLMModel`.
+
+The credential store is user-global and type-tagged (`api_key` or `oauth`). Session
+metadata contains only an optional `credential_id`; raw request keys are memory-only.
+OAuth endpoints and headers override session `api_base`, preventing a bearer token from
+being redirected to a client-supplied host.
 
 ## The agent loop (`agent/loop.py`) — the heart
 
@@ -115,7 +120,10 @@ and returns a Flow-like terminal summary). `GET /stream?since=N` = replay-then-l
 - **`session_id`** must match `^[A-Za-z0-9_-]{1,64}$` — the id lands in on-disk
   filenames, so an unvalidated `../../etc/x` would be an arbitrary-file-write hole.
 
-The daemon binds `127.0.0.1` by default and has no auth yet (loopback/dev only).
+The daemon binds `127.0.0.1` by default. When `FLOW_SERVER_AUTH_TOKEN` is set, all
+endpoints except `/healthz` require a matching bearer token. `flowd serve` refuses to
+bind a non-loopback host without that token. Session metadata and logs are written
+`0600`; provider credentials use an atomic, locked `0600` store.
 
 ## End-to-end trace (one HTTP run)
 

@@ -15,6 +15,30 @@ def test_healthz(tmp_path):
 	assert _client(tmp_path).get("/healthz").json() == {"ok": True}
 
 
+def test_daemon_bearer_auth(tmp_path):
+	store = SessionStore(str(tmp_path / "data"))
+	c = TestClient(create_app(store, auth_token="daemon-secret"))
+
+	assert c.get("/healthz").status_code == 200
+	assert c.post("/sessions", json={"cwd": str(tmp_path)}).status_code == 401
+	assert (
+		c.post(
+			"/sessions",
+			json={"cwd": str(tmp_path)},
+			headers={"Authorization": "Bearer wrong"},
+		).status_code
+		== 401
+	)
+	assert (
+		c.post(
+			"/sessions",
+			json={"cwd": str(tmp_path)},
+			headers={"Authorization": "Bearer daemon-secret"},
+		).status_code
+		== 200
+	)
+
+
 def test_create_prompt_wait_and_entries(tmp_path):
 	c = _client(tmp_path)
 	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
@@ -43,6 +67,29 @@ def test_run_persists_model_override(tmp_path):
 	cfg = c.get(f"/sessions/{sid}").json()["config"]
 	assert cfg["model"] == "mock/v2"
 	assert cfg["api_base"] == "http://provider"
+
+
+def test_api_key_override_is_never_persisted(tmp_path):
+	data_dir = tmp_path / "data"
+	store = SessionStore(str(data_dir))
+	c = TestClient(create_app(store))
+	response = c.post(
+		"/sessions",
+		json={"model": "mock", "cwd": str(tmp_path), "api_key": "session-secret"},
+	)
+	sid = response.json()["session_id"]
+
+	assert "api_key" not in response.json()["config"]
+	meta = data_dir / "sessions" / f"{sid}.meta.json"
+	assert "session-secret" not in meta.read_text()
+	assert oct(meta.stat().st_mode & 0o777) == "0o600"
+
+	c.post(
+		f"/sessions/{sid}/run",
+		params={"wait": "true"},
+		json={"message": "hello", "api_key": "run-secret"},
+	)
+	assert "run-secret" not in meta.read_text()
 
 
 def test_unknown_session_404(tmp_path):

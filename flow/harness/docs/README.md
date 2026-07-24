@@ -58,6 +58,8 @@ Then talk HTTP (create a session, `POST /sessions/{id}/run`, `GET .../stream`). 
   log, the agent loop, and an end-to-end execution trace. Start here.
 - **[api.md](api.md)** — the in-process `Agent` API and the HTTP API reference, with
   examples.
+- **[authentication.md](authentication.md)** — provider login, credential resolution,
+  and daemon security.
 - **[tools.md](tools.md)** — the tool model, writing a new tool, the builtins, and how
   confirmation works.
 - **[development.md](development.md)** — setup, tests, the ruff clean bar, conventions,

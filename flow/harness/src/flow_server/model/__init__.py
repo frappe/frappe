@@ -1,7 +1,7 @@
 """Provider registry + the `get_model` factory.
 
 `get_model` dispatches on the model name's prefix: a registered native provider (the
-mock, or a Phase 3 OAuth provider) wins; everything else falls through to
+mock or Codex subscription provider) wins; everything else falls through to
 `LiteLLMModel`, the broad API-key path. Native providers call `register_provider` at
 import time to claim a prefix.
 """
@@ -28,19 +28,30 @@ def get_model(
 	*,
 	api_key: str | None = None,
 	api_base: str | None = None,
+	headers: dict[str, str] | None = None,
 	params: dict[str, Any] | None = None,
 ) -> Model:
 	factory = _REGISTRY.get(name.split("/", 1)[0])
 	if factory is not None:
-		return factory(name, api_key=api_key, api_base=api_base, params=params)
-	return LiteLLMModel(name, api_key=api_key, api_base=api_base, params=params)
+		return factory(
+			name,
+			api_key=api_key,
+			api_base=api_base,
+			headers=headers,
+			params=params,
+		)
+	return LiteLLMModel(
+		name,
+		api_key=api_key,
+		api_base=api_base,
+		headers=headers,
+		params=params,
+	)
 
 
 register_provider("mock", lambda name, **kwargs: MockModel())
 
-# Import native providers for their registration side effects (Codex auth provider).
-# No `get_model` prefix yet — the Codex model (Responses-API wire) is deferred to the
-# login phase so it can be tested end-to-end; only its auth provider registers here.
+# Import native providers for their registration side effects.
 from flow_server.model.providers import codex as _codex  # noqa: E402, F401
 
 __all__ = ["Model", "LiteLLMModel", "MockModel", "get_model", "register_provider"]
