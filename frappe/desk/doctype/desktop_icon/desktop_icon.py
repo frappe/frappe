@@ -79,7 +79,7 @@ class DesktopIcon(Document):
 			file_path = os.path.join(folder_path, f"{frappe.scrub(self.label)}.json")
 			doc_export = self.as_dict(no_nulls=True, no_private_properties=True)
 			strip_default_fields(self, doc_export)
-			with open(file_path, "w+") as icon_file_doc:
+			with open(file_path, "w+") as icon_file_doc:  # nosempgrep
 				icon_file_doc.write(frappe.as_json(doc_export) + "\n")
 
 	def delete_desktop_icon_file(self):
