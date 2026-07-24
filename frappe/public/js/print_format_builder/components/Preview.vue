@@ -1,6 +1,6 @@
 <template>
 	<Teleport to="body">
-		<div class="pfb-preview-backdrop" @pointerdown.self="$emit('close')">
+		<div class="pfb-preview-backdrop" @click.self="$emit('close')">
 			<div class="pfb-preview-modal" :class="{ 'pfb-preview-modal--max': maximized }">
 				<div class="pfb-preview-head">
 					<span class="pfb-preview-title">{{ __("Preview") }}</span>
@@ -337,8 +337,10 @@ onUnmounted(() => {
 }
 
 .pfb-preview-modal--max {
-	width: 100vw;
-	height: 100vh;
+	position: fixed;
+	inset: 0;
+	width: auto;
+	height: auto;
 	border-radius: 0;
 }
 
