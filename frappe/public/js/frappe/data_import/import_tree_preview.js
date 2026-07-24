@@ -37,9 +37,11 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		this.wrapper.html(`
 			<div class="import-tree-preview-panel">
 				${this.get_status_banner_html(tree_preview)}
-				<div class="import-tree-header">
-					<div class="import-tree-title">
-						<span class="import-tree-doctype-label">${frappe.utils.escape_html(root_label)}</span>
+				<div class="import-tree-header flex items-center justify-between gap-4 mb-2">
+					<div class="import-tree-title inline-flex items-center gap-2 min-w-0">
+						<span class="import-tree-doctype-label text-base-semibold">${frappe.utils.escape_html(
+							root_label
+						)}</span>
 					</div>
 					<div class="inline-flex items-center gap-1 shrink-0">
 						${frappe.ui.button.html({
@@ -55,16 +57,16 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 					</div>
 				</div>
 				<div class="mb-2">
-					<label class="diw-tree-filter-input flex items-center gap-2 w-full">
+					<label class="diw-tree-filter-input flex items-center gap-2 w-full border rounded px-2 bg-surface-base">
 						<span class="diw-tree-filter-icon inline-flex text-muted">${this.icon_set.search}</span>
 						<input type="search" class="form-control input-sm" placeholder="${__(
 							"Filter nodes"
 						)}" autocomplete="off" />
 					</label>
 				</div>
-				<div class="import-tree-box">
-					<div class="import-tree-body"></div>
-					<div class="diw-tree-preview-footer flex items-center shrink-0 border-t text-sm text-muted">
+				<div class="import-tree-box flex flex-col border rounded overflow-hidden bg-surface-base">
+					<div class="import-tree-body overflow-auto"></div>
+					<div class="diw-tree-preview-footer flex items-center shrink-0 border-t text-sm text-muted px-3 py-2 bg-surface-gray-1">
 						<span class="whitespace-nowrap">${footer}</span>
 					</div>
 				</div>
@@ -117,7 +119,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 			title,
 			description,
 			theme,
-			css_class: "import-tree-status-alert",
+			css_class: "import-tree-status-alert mb-2",
 		});
 	}
 
@@ -155,11 +157,13 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 			$li.addClass("opened");
 		}
 
-		const $row = $('<div class="diw-tree-row flex items-center gap-2 cursor-pointer">')
+		const $row = $(
+			'<div class="diw-tree-row relative flex items-center gap-2 w-full cursor-pointer rounded-sm px-2 py-1">'
+		)
 			.attr("data-row-number", node.row_number)
 			.appendTo($li);
 		const $main = $(
-			'<span class="tree-link diw-tree-row-main flex items-center gap-1 flex-1 min-w-0">'
+			'<span class="tree-link diw-tree-row-main flex items-center gap-1 flex-1 min-w-0 text-sm">'
 		).appendTo($row);
 
 		// Expandable: chevron only. Leaves: same-width spacer so labels line up with siblings.

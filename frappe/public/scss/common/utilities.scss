@@ -83,6 +83,10 @@
 	align-items: baseline;
 }
 
+.self-start {
+	align-self: flex-start;
+}
+
 .self-end {
 	align-self: flex-end;
 }
@@ -245,7 +249,7 @@ $spacing-steps: (
 /* size-<n> sets width AND height together (Tailwind's size-*), reusing the
    spacing scale (1 step = 0.25rem) — for square boxes like icon wells and
    avatars. Add steps to the list as call sites need them. */
-$size-steps: 4, 5, 6, 8, 9, 10, 11, 12, 14, 16;
+$size-steps: 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16;
 
 @each $n in $size-steps {
 	.size-#{$n} {
@@ -259,8 +263,29 @@ $size-steps: 4, 5, 6, 8, 9, 10, 11, 12, 14, 16;
 	max-width: 20rem;
 }
 
+.max-w-sm {
+	max-width: 24rem;
+}
+
 .max-w-lg {
 	max-width: 32rem;
+}
+
+.max-w-4xl {
+	max-width: 56rem;
+}
+
+.max-w-6xl {
+	max-width: 72rem;
+}
+
+/* 1px height — stepper connectors, hairlines */
+.h-px {
+	height: 1px;
+}
+
+.min-w-2 {
+	min-width: spacing-step(2);
 }
 
 /* min-height steps (Tailwind's min-h-*, on the spacing scale) — e.g. giving
@@ -295,9 +320,18 @@ $min-h-steps: 24, 32, 40, 48, 64, 80, 96;
 	white-space: nowrap;
 }
 
-/* ---- cursor ---- */
+/* ---- lists ---- */
+.list-none {
+	list-style: none;
+}
+
+/* ---- cursor / interaction ---- */
 .cursor-pointer {
 	cursor: pointer;
+}
+
+.pointer-events-none {
+	pointer-events: none;
 }
 
 /* ---- text alignment ---- */
@@ -532,6 +566,41 @@ $radius-sizes: (
 @media (min-width: 576px) {
 	.sm\:flex {
 		display: flex;
+	}
+}
+
+/* below md (phones + narrow tablets) — matches wizard mobile at 768px */
+@media (max-width: 767.98px) {
+	.max-md\:hidden {
+		display: none;
+	}
+
+	.max-md\:flex-col {
+		flex-direction: column;
+	}
+
+	.max-md\:w-full {
+		width: 100%;
+	}
+
+	.max-md\:gap-2 {
+		gap: spacing-step(2);
+	}
+
+	.max-md\:gap-4 {
+		gap: spacing-step(4);
+	}
+
+	.max-md\:ms-0 {
+		margin-inline-start: 0;
+	}
+
+	.max-md\:text-left {
+		text-align: left;
+	}
+
+	.max-md\:whitespace-normal {
+		white-space: normal;
 	}
 }
 

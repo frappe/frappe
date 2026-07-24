@@ -41,9 +41,9 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				<div class="diw-table-preview min-w-0 w-full">
 					<div class="diw-preview-toolbar flex items-center justify-between gap-2 mb-2">
 						<div class="table-actions inline-flex items-center shrink-0"></div>
-						<div class="diw-preview-toolbar-meta table-message"></div>
+						<div class="diw-preview-toolbar-meta table-message text-base text-muted ms-auto text-right whitespace-nowrap max-md:w-full max-md:ms-0 max-md:text-left max-md:whitespace-normal"></div>
 					</div>
-					<div class="table-preview min-w-0 w-full border rounded-md overflow-hidden"></div>
+					<div class="table-preview min-w-0 w-full border rounded-md overflow-hidden bg-surface-base"></div>
 				</div>
 			`);
 			$preview = this.wrapper.find(".diw-table-preview");
@@ -81,9 +81,9 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				const title =
 					frappe.utils.escape_html(col.header_title) ||
 					`<i>${__("Untitled Column")}</i>`;
-				let column_title = `<span class="diw-preview-col-header diw-preview-col-header--skipped">
-					<span class="diw-preview-col-dot diw-preview-col-dot--skipped" aria-hidden="true"></span>
-					<span class="diw-preview-col-title">${title}</span>
+				let column_title = `<span class="diw-preview-col-header diw-preview-col-header--skipped inline-flex items-center gap-2 min-w-0">
+					<span class="diw-preview-col-dot diw-preview-col-dot--skipped shrink-0 size-2 rounded-full" aria-hidden="true"></span>
+					<span class="diw-preview-col-title truncate">${title}</span>
 				</span>`;
 				return {
 					id: `skipped-${i}`,
@@ -112,12 +112,16 @@ frappe.data_import.ImportPreview = class ImportPreview {
 						.replace("%b", "Mon")
 				: null;
 
-			let column_title = `<span class="diw-preview-col-header">
-				<span class="diw-preview-col-dot diw-preview-col-dot--mapped" aria-hidden="true"></span>
-				<span class="diw-preview-col-title">${
+			let column_title = `<span class="diw-preview-col-header inline-flex items-center gap-2 min-w-0">
+				<span class="diw-preview-col-dot diw-preview-col-dot--mapped shrink-0 size-2 rounded-full" aria-hidden="true"></span>
+				<span class="diw-preview-col-title truncate">${
 					frappe.utils.escape_html(col.header_title) || df.label
 				}</span>
-				${date_format ? `<span class="diw-preview-col-format text-muted">(${date_format})</span>` : ""}
+				${
+					date_format
+						? `<span class="diw-preview-col-format shrink-0 text-xs text-muted">(${date_format})</span>`
+						: ""
+				}
 			</span>`;
 
 			return {

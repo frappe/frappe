@@ -150,7 +150,7 @@ function render_import_file_card(control, frm, $mount) {
 	const is_read_only = control.df?.read_only || control.disp_status === "Read";
 
 	$mount.html(`
-		<div class="diw-import-file-card flex items-center justify-between gap-3 w-full border rounded-lg mt-4 text-sm bg-surface-base">
+		<div class="diw-import-file-card flex items-center justify-between gap-3 w-full border rounded-lg mt-4 px-4 py-3 text-sm bg-surface-base">
 			<div class="flex items-center gap-2 min-w-0 flex-1">
 				<div class="diw-card-icon-well flex items-center justify-center shrink-0 size-10 rounded bg-surface-gray-2 text-ink-gray-7">${frappe.utils.icon(
 					"file-spreadsheet",
@@ -161,7 +161,7 @@ function render_import_file_card(control, frm, $mount) {
 					true
 				)}</div>
 				<div class="min-w-0">
-					<a class="diw-import-file-card-name truncate" href="${safe_href}" target="_blank" rel="noopener noreferrer" title="${safe_name}">${safe_name}</a>
+					<a class="diw-import-file-card-name truncate text-base-semibold" href="${safe_href}" target="_blank" rel="noopener noreferrer" title="${safe_name}">${safe_name}</a>
 					<div class="text-sm text-muted">${frappe.utils.escape_html(meta_text)}</div>
 				</div>
 			</div>
@@ -187,7 +187,7 @@ function render_google_sheet_card(control, frm, $mount) {
 	const safe_url = frappe.utils.escape_html(url);
 	const is_read_only = control.df?.read_only || control.disp_status === "Read";
 	$mount.html(`
-		<div class="diw-google-sheet-card flex items-center justify-between gap-2 w-full rounded text-sm bg-surface-gray-2">
+		<div class="diw-google-sheet-card flex items-center justify-between gap-2 w-full rounded p-2 text-sm bg-surface-gray-2">
 			<div class="flex items-center gap-2 min-w-0 flex-1">
 				<span class="inline-flex shrink-0 text-muted">${frappe.utils.icon(
 					"link",
@@ -235,8 +235,8 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 	build() {
 		this.$root = $(`
 			<div class="data-import-custom-ui flex justify-center w-full">
-				<div class="diw-shell flex flex-col w-full min-w-0">
-					<div class="diw-stepper-wrap shrink-0 w-full"><nav class="diw-stepper flex items-start w-full" aria-label="${__(
+				<div class="diw-shell flex flex-col w-full min-w-0 gap-5 max-md:gap-4">
+					<div class="diw-stepper-wrap shrink-0 w-full max-md:hidden"><nav class="diw-stepper flex items-start w-full" aria-label="${__(
 						"Import steps"
 					)}"></nav></div>
 					<div class="diw-card flex flex-col w-full min-w-0 overflow-hidden rounded-lg shadow-sm border bg-surface-base">
@@ -399,7 +399,9 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 			if (index > 0) {
 				const completed = index - 1 < current;
 				this.$stepper.append(
-					`<div class="diw-step-connector${completed ? " is-completed" : ""}"></div>`
+					`<div class="diw-step-connector flex-1 self-start h-px min-w-2 w-0 bg-surface-gray-2${
+						completed ? " is-completed" : ""
+					}"></div>`
 				);
 			}
 
@@ -412,14 +414,14 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 				}${is_completed ? " completed" : ""}${
 				is_locked ? " is-locked" : ""
 			}" aria-disabled="${is_locked}">
-					<span class="diw-step-marker shrink-0">
-						${
-							is_completed
-								? `<span class="diw-step-check">${step_icon("check", "xs")}</span>`
-								: `<span class="diw-step-icon">${step_icon(step.icon)}</span>`
-						}
-					</span>
-					<span class="diw-step-label truncate w-full">${frappe.utils.escape_html(step.label)}</span>
+					<span class="diw-step-marker shrink-0 size-7 rounded-full border">${
+						is_completed
+							? `<span class="diw-step-check">${step_icon("check", "xs")}</span>`
+							: `<span class="diw-step-icon">${step_icon(step.icon)}</span>`
+					}</span>
+					<span class="diw-step-label truncate w-full text-xs-medium text-ink-gray-5">${frappe.utils.escape_html(
+						step.label
+					)}</span>
 				</button>
 			`);
 			$btn.on("click", () => this.on_step_click(index));
@@ -490,13 +492,13 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		// container purposely does NOT use the frappe `section-body` class (whose flex
 		// rules would override display:grid and collapse the columns).
 		const $settings = $(`
-			<div class="diw-config-section">
-				<div class="diw-config-head mb-4"><span class="diw-section-head-title">${__(
+			<div class="diw-config-section m-0 p-0 border-0">
+				<div class="diw-config-head m-0 p-0 border-0 mb-4"><span class="diw-section-head-title text-base-semibold">${__(
 					"Import settings"
 				)}</span></div>
-				<div class="diw-config-grid w-full">
-					<div class="diw-config-column diw-config-main w-full min-w-0"></div>
-					<div class="diw-config-column diw-config-options w-full min-w-0"></div>
+				<div class="diw-config-grid w-full gap-5 max-md:gap-4">
+					<div class="diw-config-column diw-config-main w-full min-w-0 m-0 p-0"></div>
+					<div class="diw-config-column diw-config-options w-full min-w-0 m-0 p-0"></div>
 				</div>
 			</div>
 		`);
@@ -516,7 +518,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		const $upload = $(`
 			<div class="diw-upload-section mt-4 pt-4 border-t">
 				<div class="flex items-center justify-between gap-4 mb-2">
-					<span class="diw-section-head-title">${__("Upload file")}</span>
+					<span class="diw-section-head-title text-base-semibold">${__("Upload file")}</span>
 					<span class="diw-upload-header-action"></span>
 				</div>
 			</div>
@@ -706,7 +708,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		control._diw_dropzone_enhanced = true;
 
 		const $ui = $(`
-			<div class="diw-file-dropzone-ui flex flex-col items-center text-center gap-1" aria-hidden="true">
+			<div class="diw-file-dropzone-ui flex flex-col items-center text-center gap-1 pointer-events-none" aria-hidden="true">
 				<div class="diw-file-dropzone-icon text-muted">${frappe.utils.icon(
 					"cloud-upload",
 					"md",
@@ -715,7 +717,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 					"",
 					true
 				)}</div>
-				<div class="diw-file-dropzone-text text-sm text-muted">${__(
+				<div class="diw-file-dropzone-text text-sm text-muted max-w-sm">${__(
 					"Drag a CSV or Excel file here, or click to browse"
 				)}</div>
 				${get_dropzone_hint_html()}
@@ -1040,7 +1042,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 				</div>
 			`;
 			$empty.append(`
-				<div class="diw-fix-empty-stats flex w-full border rounded-lg overflow-hidden bg-surface-base mt-2" role="list" aria-label="${frappe.utils.escape_html(
+				<div class="diw-fix-empty-stats flex max-md:flex-col w-full max-w-4xl border rounded-lg overflow-hidden bg-surface-base mt-2" role="list" aria-label="${frappe.utils.escape_html(
 					__("Fix issues summary")
 				)}">
 					${stat(rows_checked, __("Rows checked"))}

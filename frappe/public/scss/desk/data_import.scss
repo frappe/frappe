@@ -1,4 +1,7 @@
 // Data Import
+// Layout/spacing/border utilities live on the markup (utilities.scss).
+// Keep only component-specific rules: form overrides, indicators, and tree chrome.
+
 .map-columns .form-section {
 	padding: 0 7px 7px;
 	border-top: none;
@@ -14,8 +17,6 @@
 
 .table-preview {
 	margin-top: 12px;
-	overflow-x: auto;
-	width: 100%;
 
 	.datatable {
 		width: max-content;
@@ -35,101 +36,29 @@
 	}
 }
 
-// Column header with mapped/skipped indicator dots (matches data-import-new-ui)
-.diw-preview-col-header {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	min-width: 0;
-}
-
+// Column header status dots (mapped / skipped)
 .diw-preview-col-dot {
-	display: inline-block;
-	flex-shrink: 0;
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-
-	// Green dot — column is mapped to a valid DocType field
 	&--mapped {
 		background-color: var(--green-500, #39a84b);
 	}
 
-	// Gray/muted dot — column is skipped or has no mapping
 	&--skipped {
 		background-color: var(--gray-400, #c0c5cc);
 	}
 }
 
-.diw-preview-col-title {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.diw-preview-col-format {
-	flex-shrink: 0;
-	font-size: var(--text-xs);
-}
-
-// Skipped column header text is muted
 .diw-preview-col-header--skipped .diw-preview-col-title {
 	color: var(--text-muted);
 }
 
-.import-tree-status-alert {
-	margin-bottom: var(--margin-sm);
-}
-
 .import-tree-preview-panel {
-	.import-tree-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: var(--margin-md);
-		margin-bottom: var(--margin-xs);
-	}
-
-	.import-tree-title {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--margin-sm);
-		min-width: 0;
-	}
-
-	.import-tree-doctype-label {
-		font-size: var(--text-lg);
-		font-weight: 600;
-		color: var(--text-color);
-		line-height: 1.4;
-	}
-
-	.import-tree-box {
-		display: flex;
-		flex-direction: column;
-		border: 1px solid var(--border-color);
-		border-radius: var(--border-radius);
-		overflow: hidden;
-	}
-
 	.import-tree-body {
 		max-height: 380px;
-		overflow: auto;
 		border: none;
 
 		.tree {
 			padding: var(--padding-sm);
 		}
-	}
-
-	.diw-tree-row {
-		display: flex;
-		align-items: center;
-		width: 100%;
-	}
-
-	.diw-tree-row-meta {
-		margin-left: auto;
 	}
 
 	.import-tree-row-number {
