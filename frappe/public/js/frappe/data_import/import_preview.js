@@ -39,7 +39,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		if (!$preview.length) {
 			this.wrapper.html(`
 				<div class="diw-table-preview min-w-0 w-full">
-					<div class="diw-preview-toolbar flex items-center justify-between gap-2 mb-2">
+					<div class="diw-preview-toolbar flex items-center justify-between gap-2 mb-2 max-md:flex-wrap">
 						<div class="table-actions inline-flex items-center shrink-0"></div>
 						<div class="diw-preview-toolbar-meta table-message text-base text-muted ms-auto text-right whitespace-nowrap max-md:w-full max-md:ms-0 max-md:text-left max-md:whitespace-normal"></div>
 					</div>

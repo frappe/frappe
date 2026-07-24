@@ -461,6 +461,19 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(status["success"], 2)
 		self.assertEqual(status["total_records"], 2)
 
+		from frappe.core.doctype.data_import.data_import import get_import_log_count, get_import_logs
+
+		all_logs = get_import_logs(data_import.name, status="all")
+		success_logs = get_import_logs(data_import.name, status="success")
+		failed_logs = get_import_logs(data_import.name, status="failed")
+		self.assertEqual(len(all_logs), 2)
+		self.assertEqual(len(success_logs), 2)
+		self.assertEqual(len(failed_logs), 0)
+		self.assertTrue(all(log.success for log in success_logs))
+		self.assertEqual(get_import_log_count(data_import.name, status="success"), 2)
+		self.assertEqual(get_import_log_count(data_import.name, status="failed"), 0)
+		self.assertEqual(get_import_log_count(data_import.name, status="all"), 2)
+
 	def test_mapped_select_still_shows_warning_but_unmapped_blocks_import(self):
 		from frappe.core.doctype.data_import.value_mapping import (
 			build_lookup_from_mappings,
@@ -892,7 +905,8 @@ class TestTreeDataImport(IntegrationTestCase):
 		meta = frappe.get_meta(self.doctype_name)
 		parent_field = meta.nsm_parent_field
 
-		for name in ("Root", "Division", "Leaf"):
+		# Delete leaves before parents — NestedSet blocks deleting a node with children.
+		for name in ("Leaf", "Division", "Root"):
 			frappe.delete_doc_if_exists(self.doctype_name, name)
 		frappe.db.commit()  # ensure deletions are flushed to DB before import; # nosemgrep
 
@@ -905,6 +919,11 @@ class TestTreeDataImport(IntegrationTestCase):
 		Importer(self.doctype_name, data_import=data_import).import_data()
 
 		self.assertEqual(frappe.db.get_value(self.doctype_name, "Leaf", parent_field), "Division")
+
+		# Same child-first order for teardown after the import.
+		for name in ("Leaf", "Division", "Root"):
+			frappe.delete_doc_if_exists(self.doctype_name, name)
+		frappe.db.commit()  # nosemgrep
 
 	def test_field_autoname_tree_skips_alias_mode(self):
 		self.assertFalse(uses_tree_alias_references(self.doctype_name))

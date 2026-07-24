@@ -57,7 +57,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 					</div>
 				</div>
 				<div class="mb-2">
-					<label class="diw-tree-filter-input flex items-center gap-2 w-full border rounded px-2 bg-surface-base">
+					<label class="diw-tree-filter-input flex items-center gap-2 w-full min-h-8 border rounded px-2 bg-surface-base">
 						<span class="diw-tree-filter-icon inline-flex text-muted">${this.icon_set.search}</span>
 						<input type="search" class="form-control input-sm" placeholder="${__(
 							"Filter nodes"
@@ -65,7 +65,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 					</label>
 				</div>
 				<div class="import-tree-box flex flex-col border rounded overflow-hidden bg-surface-base">
-					<div class="import-tree-body overflow-auto"></div>
+					<div class="import-tree-body flex-1 overflow-auto bg-transparent"></div>
 					<div class="diw-tree-preview-footer flex items-center shrink-0 border-t text-sm text-muted px-3 py-2 bg-surface-gray-1">
 						<span class="whitespace-nowrap">${footer}</span>
 					</div>
@@ -150,7 +150,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 	render_node(node, $parent, children_by_parent) {
 		const children = children_by_parent[node.id] || [];
 		const expandable = cint(node.is_group) || children.length > 0;
-		const $li = $('<li class="tree-node">').appendTo($parent);
+		const $li = $('<li class="tree-node block w-full list-none m-0">').appendTo($parent);
 		const is_open = expandable && children.length > 0;
 
 		if (is_open) {
@@ -175,7 +175,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 				.appendTo($main);
 		} else {
 			$(
-				'<span class="diw-tree-chevron diw-tree-chevron--spacer inline-flex size-4" aria-hidden="true">'
+				'<span class="diw-tree-chevron diw-tree-chevron--spacer invisible pointer-events-none inline-flex size-4" aria-hidden="true">'
 			).appendTo($main);
 		}
 
@@ -290,11 +290,11 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		const $nodes = $tree.find(".tree-node");
 
 		if (!query) {
-			$nodes.removeClass("diw-tree-node-hidden");
+			$nodes.removeClass("hidden");
 			return;
 		}
 
-		$nodes.addClass("diw-tree-node-hidden");
+		$nodes.addClass("hidden");
 
 		$nodes.each((_, el) => {
 			const $li = $(el);
@@ -305,15 +305,15 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 			const matches = label.includes(query) || (row_query && row_number.includes(row_query));
 
 			if (matches) {
-				$li.removeClass("diw-tree-node-hidden");
-				$li.parents(".tree-node").removeClass("diw-tree-node-hidden");
+				$li.removeClass("hidden");
+				$li.parents(".tree-node").removeClass("hidden");
 			}
 		});
 
 		// Expand branches that contain visible nodes.
-		$tree.find(".tree-node:not(.diw-tree-node-hidden)").each((_, el) => {
+		$tree.find(".tree-node:not(.hidden)").each((_, el) => {
 			const $li = $(el);
-			if ($li.find(".tree-children .tree-node:not(.diw-tree-node-hidden)").length) {
+			if ($li.find(".tree-children .tree-node:not(.hidden)").length) {
 				$li.addClass("opened");
 				$li.children(".tree-children").show();
 				this._sync_row_icons(

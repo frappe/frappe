@@ -33,6 +33,14 @@
 	display: inline-flex;
 }
 
+.grid {
+	display: grid;
+}
+
+.block {
+	display: block;
+}
+
 .hidden {
 	display: none;
 }
@@ -81,6 +89,10 @@
 
 .items-baseline {
 	align-items: baseline;
+}
+
+.items-stretch {
+	align-items: stretch;
 }
 
 .self-start {
@@ -290,7 +302,7 @@ $size-steps: 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16;
 
 /* min-height steps (Tailwind's min-h-*, on the spacing scale) — e.g. giving
    an empty state room to breathe. Bootstrap has no min-h-*, so no collision. */
-$min-h-steps: 24, 32, 40, 48, 64, 80, 96;
+$min-h-steps: 8, 24, 32, 40, 48, 64, 80, 96;
 
 @each $n in $min-h-steps {
 	.min-h-#{$n} {
@@ -334,9 +346,17 @@ $min-h-steps: 24, 32, 40, 48, 64, 80, 96;
 	pointer-events: none;
 }
 
-/* ---- text alignment ---- */
+.invisible {
+	visibility: hidden;
+}
+
+/* ---- text ---- */
 .text-center {
 	text-align: center;
+}
+
+.align-top {
+	vertical-align: top;
 }
 
 /* ---- borders (1px, outline-gray-2 by default; add a border-outline-*
@@ -421,6 +441,10 @@ $color-families: (
 	background-color: var(--surface-base);
 }
 
+.bg-transparent {
+	background-color: transparent;
+}
+
 @for $i from 1 through 3 {
 	.bg-surface-elevation-#{$i} {
 		background-color: var(--surface-elevation-#{$i});
@@ -456,6 +480,10 @@ $color-families: (
 
 .shadow-xl {
 	box-shadow: var(--elevation-xl);
+}
+
+.shadow-none {
+	box-shadow: none;
 }
 
 /* ---- focus rings ----
@@ -579,6 +607,10 @@ $radius-sizes: (
 		flex-direction: column;
 	}
 
+	.max-md\:flex-wrap {
+		flex-wrap: wrap;
+	}
+
 	.max-md\:w-full {
 		width: 100%;
 	}
@@ -601,6 +633,14 @@ $radius-sizes: (
 
 	.max-md\:whitespace-normal {
 		white-space: normal;
+	}
+
+	.max-md\:border-s-0 {
+		border-inline-start: none !important;
+	}
+
+	.max-md\:border-t {
+		border-top: 1px solid var(--outline-gray-2);
 	}
 }
 

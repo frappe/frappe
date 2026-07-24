@@ -27,9 +27,6 @@ body[data-route^="data-import"] {
 	}
 
 	&.layout-main-section {
-		display: flex;
-		flex-direction: column;
-		flex: 1;
 		min-height: calc(100vh - var(--navbar-height));
 		padding: var(--padding-lg);
 		background: var(--bg-light-gray);
@@ -48,7 +45,7 @@ body[data-route^="data-import"] {
 
 // ---- stepper ----
 .diw-step {
-	// Equal-width flex children + button reset
+	// Equal-width flex children + native button reset
 	width: 0;
 	padding: 0;
 	background: none;
@@ -95,26 +92,28 @@ body[data-route^="data-import"] {
 	}
 }
 
-.diw-step-marker {
-	display: grid;
-	place-items: center;
-	background: var(--card-bg);
-	border-color: var(--ink-gray-3, var(--border-color));
-	color: var(--ink-gray-4, var(--text-muted));
+.diw-step-icon,
+.diw-step-check,
+.diw-file-dropzone-icon,
+.diw-tree-filter-icon,
+.diw-tree-chevron,
+.diw-tree-warning-icon,
+.diw-tree-legend-icon,
+.diw-card-icon-well {
 	line-height: 0;
 }
 
-.diw-step-icon,
-.diw-step-check {
-	grid-area: 1 / 1;
-	line-height: 0;
+.diw-step-icon .icon,
+.diw-step-check .icon {
+	display: block;
+	margin: 0;
+	width: 15px;
+	height: 15px;
+}
 
-	.icon {
-		display: block;
-		margin: 0;
-		width: 15px;
-		height: 15px;
-	}
+.diw-card-icon-well .icon {
+	width: 20px;
+	height: 20px;
 }
 
 // ---- panels / chrome (responsive padding — Bootstrap p-* uses !important) ----
@@ -144,20 +143,8 @@ body[data-route^="data-import"] {
 }
 
 // ---- config step ----
-.diw-config-section,
-.diw-config-head {
-	box-shadow: none;
-	background: transparent;
-}
-
 .diw-config-grid {
-	display: grid;
 	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-	align-items: start;
-}
-
-.diw-config-column {
-	float: none;
 }
 
 .diw-config-main,
@@ -237,20 +224,6 @@ body[data-route^="data-import"] {
 	}
 }
 
-.diw-file-dropzone-icon,
-.diw-tree-filter-icon,
-.diw-tree-chevron,
-.diw-tree-warning-icon,
-.diw-tree-legend-icon,
-.diw-card-icon-well {
-	line-height: 0;
-}
-
-.diw-card-icon-well .icon {
-	width: 20px;
-	height: 20px;
-}
-
 .diw-import-file-card-name,
 .diw-google-sheet-card-url {
 	text-decoration: none;
@@ -261,7 +234,6 @@ body[data-route^="data-import"] {
 }
 
 .diw-import-file-card-name {
-	display: block;
 	color: var(--heading-color);
 	line-height: 1.35;
 }
@@ -318,12 +290,6 @@ body[data-route^="data-import"] {
 	}
 }
 
-.diw-fix-empty-stats {
-	> [role="listitem"] + [role="listitem"] {
-		border-inline-start: 1px solid var(--outline-gray-2);
-	}
-}
-
 // ---- fix issues step ----
 .diw-step-panel[data-step="2"] {
 	.form-section:not(.form-in-grid *) {
@@ -334,48 +300,15 @@ body[data-route^="data-import"] {
 		overflow: visible;
 
 		.section-head:not(.form-in-grid *) {
-			padding: 0 0 12px;
-			margin: 0;
 			border-bottom: none;
-			font-size: var(--text-lg);
-			font-weight: 600;
 			color: var(--heading-color);
-		}
-
-		.section-body:not(.form-in-grid *) {
-			padding: 0;
 		}
 	}
 
 	.warnings {
-		width: 100%;
-		max-width: 100%;
-		padding: 0;
-
 		.warning {
-			margin: 0;
-			padding: 0;
-			border: none;
-			border-radius: 0;
-			background: transparent;
-
-			+ .warning {
-				margin-top: 14px;
-				border-top: none !important;
-			}
-
-			h5,
-			.warning-row-header,
-			.warning-col-header {
-				padding: 0;
-				border-left: none !important;
-				text-transform: none;
-				color: var(--heading-color);
-			}
-
 			&[data-col],
 			&[data-row] {
-				position: relative;
 				padding-left: 14px;
 				border-left: none !important;
 
@@ -396,17 +329,16 @@ body[data-route^="data-import"] {
 			}
 
 			.body {
-				padding-left: 0;
 				color: var(--text-color);
 				line-height: 1.5;
+			}
 
-				ul {
-					list-style: none;
-
-					li + li {
-						margin-top: 4px;
-					}
-				}
+			h5,
+			.warning-row-header,
+			.warning-col-header {
+				border-left: none !important;
+				text-transform: none;
+				color: var(--heading-color);
 			}
 		}
 	}
@@ -442,23 +374,9 @@ body[data-route^="data-import"] {
 }
 
 // ---- import log + progress ----
-.diw-import-log-metrics,
-.diw-import-progress-stats {
-	display: grid;
-	align-items: stretch;
-}
-
 .diw-import-log-metrics {
 	grid-template-columns: repeat(var(--diw-import-log-metric-count, 4), minmax(0, 1fr));
 	margin-bottom: var(--padding-lg);
-}
-
-.diw-import-log-metric {
-	min-height: 84px;
-
-	+ .diw-import-log-metric {
-		border-left: 1px solid var(--border-color);
-	}
 }
 
 .diw-import-progress-standard {
@@ -476,22 +394,6 @@ body[data-route^="data-import"] {
 
 .diw-import-progress-stats {
 	grid-template-columns: repeat(var(--diw-import-progress-stat-count, 3), minmax(0, 1fr));
-}
-
-.diw-import-progress-stat .value {
-	line-height: 1.1;
-	// Colour comes from the text-ink-* utility on each value (green / orange / red);
-	// don't set color here or its higher specificity would flatten them all to one.
-}
-
-.diw-import-log-table {
-	tbody td {
-		vertical-align: top;
-	}
-}
-
-.diw-import-log-cell-row {
-	width: 72px;
 }
 
 .diw-import-log-message a {
@@ -516,30 +418,17 @@ body[data-route^="data-import"] {
 // ---- wizard tree preview overrides ----
 .diw-preview-step .import-tree-preview-panel {
 	.import-tree-body {
-		flex: 1 1 auto;
 		height: min(360px, 48vh);
 		min-height: min(360px, 48vh);
 		max-height: min(360px, 48vh);
-		background: transparent;
 
 		.tree {
 			padding: var(--padding-sm) var(--padding-md);
 		}
 	}
 
-	.tree-node {
-		display: block;
-		width: 100%;
-		list-style: none;
-		margin: 0;
-
-		&.hover-active > .diw-tree-row {
-			background: var(--fg-hover-color, var(--highlight-color));
-		}
-
-		&.diw-tree-node-hidden {
-			display: none;
-		}
+	.tree-node.hover-active > .diw-tree-row {
+		background: var(--fg-hover-color, var(--highlight-color));
 	}
 
 	// File-tree guide lines: nested rows indent and connect to the parent
@@ -604,12 +493,7 @@ body[data-route^="data-import"] {
 	max-height: none;
 }
 
-.diw-tree-row-meta {
-	font-weight: 400;
-}
-
 .diw-tree-filter-input {
-	min-height: 32px;
 	box-sizing: border-box;
 
 	input,
@@ -633,11 +517,6 @@ body[data-route^="data-import"] {
 	}
 }
 
-.diw-tree-chevron--spacer {
-	visibility: hidden;
-	pointer-events: none;
-}
-
 // ---- mobile ----
 @media (max-width: 768px) {
 	.data-import-custom-page.layout-main-section {
@@ -654,15 +533,6 @@ body[data-route^="data-import"] {
 
 	.diw-config-grid {
 		grid-template-columns: 1fr;
-	}
-
-	.diw-fix-empty-stats > [role="listitem"] + [role="listitem"] {
-		border-inline-start: none;
-		border-top: 1px solid var(--outline-gray-2);
-	}
-
-	.diw-table-preview .diw-preview-toolbar {
-		flex-wrap: wrap;
 	}
 
 	.diw-step-content,

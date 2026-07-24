@@ -7,6 +7,15 @@ const IMPORT_ACTION_INSERT = "Insert";
 const IMPORT_ACTION_UPDATE = "Update";
 const IMPORT_LOG_PREVIEW_LIMIT = 1000;
 
+/** Tab badge text: `1000 of 5000` when truncated, else plain count. */
+function format_import_log_tab_count(total) {
+	const n = cint(total);
+	if (n > IMPORT_LOG_PREVIEW_LIMIT) {
+		return __("{0} of {1}", [IMPORT_LOG_PREVIEW_LIMIT, n]);
+	}
+	return String(n);
+}
+
 const WIZARD_STEP_COUNT = 4;
 
 /** Import step fields reparented by the wizard (Config / Preview / Fix Issues have dedicated mounts). */
@@ -238,9 +247,13 @@ function mount_fix_issues_step(frm, container) {
 		if (!section.show) continue;
 
 		const $shell = $(`
-			<div class="form-section diw-fix-issues-section" data-fieldname="${section.section_name}">
-				<div class="section-head">${frappe.utils.escape_html(section.label)}</div>
-				<div class="section-body"></div>
+			<div class="form-section diw-fix-issues-section border-0 m-0 p-0 bg-transparent shadow-none" data-fieldname="${
+				section.section_name
+			}">
+				<div class="section-head text-lg-semibold pb-3 m-0">${frappe.utils.escape_html(
+					section.label
+				)}</div>
+				<div class="section-body m-0 p-0"></div>
 			</div>
 		`);
 		const $body = $shell.find(".section-body");
@@ -511,7 +524,7 @@ function get_import_log_skeleton_html() {
 			${[0, 0, 0]
 				.map(
 					() =>
-						`<div class="diw-import-log-metric flex flex-col items-center justify-center text-center gap-1 min-w-0 px-3 py-3">${sk(
+						`<div class="diw-import-log-metric flex flex-col items-center justify-center text-center gap-1 min-w-0 min-h-20 px-3 py-3">${sk(
 							"48px",
 							"28px"
 						)}${sk("72px", "13px")}</div>`
@@ -944,7 +957,7 @@ frappe.ui.form.on("Data Import", {
 		if (!frm.page?.main?.length) return;
 
 		const $main = frm.page.main;
-		$main.addClass("data-import-custom-page");
+		$main.addClass("data-import-custom-page flex flex-col flex-1");
 		$main.closest(".layout-main-section-wrapper").addClass("data-import-custom-wrapper");
 
 		const hide_std_form = () => {
@@ -2245,12 +2258,14 @@ frappe.ui.form.on("Data Import", {
 					attrs: { "data-row": String(row_number) },
 				});
 				return `
-				<div class="warning${is_skipped ? " skipped" : ""}" data-row="${row_number}">
+				<div class="warning relative m-0 p-0 border-0 bg-transparent${
+					is_skipped ? " skipped" : ""
+				}" data-row="${row_number}">
 					<h5 class="warning-row-header flex items-center gap-3 mb-1 text-base-semibold">
 						<span>${__("Row {0}", [row_number])}</span>
 						${skip_btn}
 					</h5>
-					<div class="body"><ul class="m-0 p-0">${message}</ul></div>
+					<div class="body"><ul class="list-none m-0 p-0 flex flex-col gap-1">${message}</ul></div>
 				</div>
 			`;
 			})
@@ -2276,7 +2291,7 @@ frappe.ui.form.on("Data Import", {
 					}
 				}
 				return `
-					<div class="warning" data-col="${warning.col}">
+					<div class="warning relative m-0 p-0 border-0 bg-transparent" data-col="${warning.col}">
 						<h5 class="warning-row-header warning-col-header flex items-center gap-3 mb-1 text-base-semibold">
 							<span>${header}</span>
 							${map_columns_btn}
@@ -2290,7 +2305,7 @@ frappe.ui.form.on("Data Import", {
 		let generic_issue_html = generic_warnings
 			.map(
 				(warning) => `
-					<div class="warning warning-generic" data-col="generic">
+					<div class="warning warning-generic m-0 p-0 border-0 bg-transparent" data-col="generic">
 						<div class="body">${warning.message}</div>
 					</div>
 				`
@@ -2321,7 +2336,9 @@ frappe.ui.form.on("Data Import", {
 		}
 
 		if (warnings.length) {
-			frm.get_field("import_warnings").$wrapper.html(`<div class="warnings">${html}</div>`);
+			frm.get_field("import_warnings").$wrapper.html(
+				`<div class="warnings w-full m-0 p-0 flex flex-col gap-3">${html}</div>`
+			);
 			update_section_count(
 				frm,
 				"import_warnings_section",
@@ -2409,12 +2426,12 @@ frappe.ui.form.on("Data Import", {
 		const is_upsert = is_upsert_import_type(frm.doc.import_type);
 		const normalize_import_log_text = (value) =>
 			(value || "").replace(/\s+/g, " ").trim().toLowerCase();
+		const active_filter = frm._import_log_filter || "all";
 
 		// Renders even with zero logs (e.g. every row skipped => Success with no log rows);
 		// returning early here would leave the loading skeleton on screen forever.
 		const render_logs = (logs, status_summary = {}) => {
 			frm.events.toggle_import_log_ui(frm, true);
-			const active_filter = frm._import_log_filter || "all";
 
 			const parse_row_indexes = (log) => {
 				try {
@@ -2434,19 +2451,6 @@ frappe.ui.form.on("Data Import", {
 			};
 
 			const get_row_count = (log) => Math.max(parse_row_indexes(log).length, 1);
-			const total_rows_from_logs = logs.reduce((acc, log) => acc + get_row_count(log), 0);
-			const skipped_rows_count = (frm.doc.skipped_rows || []).length;
-			const total_log_entries = cint(frm._import_log_total_count || logs.length);
-			const is_truncated = total_log_entries > logs.length;
-			const shown_count = Math.min(logs.length, IMPORT_LOG_PREVIEW_LIMIT);
-			const failed_rows_from_logs = logs.reduce(
-				(acc, log) => acc + (log.success ? 0 : get_row_count(log)),
-				0
-			);
-			const success_rows_from_logs = Math.max(
-				total_rows_from_logs - failed_rows_from_logs,
-				0
-			);
 
 			const status_total_rows = cint(status_summary.total_records);
 			const status_success_rows = cint(status_summary.success);
@@ -2454,14 +2458,26 @@ frappe.ui.form.on("Data Import", {
 			const has_status_counts =
 				status_total_rows > 0 || status_success_rows > 0 || status_failed_rows > 0;
 
-			const success_rows = has_status_counts ? status_success_rows : success_rows_from_logs;
-			const failed_rows = has_status_counts ? status_failed_rows : failed_rows_from_logs;
+			const success_rows = has_status_counts
+				? status_success_rows
+				: logs.reduce((acc, log) => acc + (log.success ? get_row_count(log) : 0), 0);
+			const failed_rows = has_status_counts
+				? status_failed_rows
+				: logs.reduce((acc, log) => acc + (log.success ? 0 : get_row_count(log)), 0);
 			const total_rows = has_status_counts
 				? status_success_rows + status_failed_rows
-				: total_rows_from_logs;
+				: success_rows + failed_rows;
+			const skipped_rows_count = (frm.doc.skipped_rows || []).length;
 			const total_rows_in_file = has_status_counts
 				? Math.max(status_total_rows, total_rows + skipped_rows_count)
-				: total_rows_from_logs + skipped_rows_count;
+				: total_rows + skipped_rows_count;
+
+			// Banner is overall (not tab-specific); export when any bucket is capped.
+			const is_truncated = total_rows > IMPORT_LOG_PREVIEW_LIMIT;
+			const show_export =
+				is_truncated ||
+				success_rows > IMPORT_LOG_PREVIEW_LIMIT ||
+				failed_rows > IMPORT_LOG_PREVIEW_LIMIT;
 
 			let inserted_rows = cint(status_summary.inserted);
 			let updated_rows = cint(status_summary.updated);
@@ -2481,12 +2497,8 @@ frappe.ui.form.on("Data Import", {
 				}, 0);
 			}
 
+			// Server already filtered by tab — do not re-filter client-side.
 			let rows = logs
-				.filter((log) => {
-					if (active_filter === "success") return Boolean(log.success);
-					if (active_filter === "failed") return !log.success;
-					return true;
-				})
 				.map((log) => {
 					let html = "";
 					let row_indexes = parse_row_indexes(log);
@@ -2594,9 +2606,9 @@ frappe.ui.form.on("Data Import", {
 					});
 
 					return `<tr>
-							<td class="diw-import-log-cell-row whitespace-nowrap text-sm border-b py-2 px-4">${row_number_label}</td>
-							<td class="text-sm border-b py-2 px-4">${status_badge}</td>
-							<td class="text-sm border-b py-2 px-4">
+							<td class="diw-import-log-cell-row whitespace-nowrap text-sm align-top border-b py-2 px-4" style="width:72px">${row_number_label}</td>
+							<td class="text-sm align-top border-b py-2 px-4">${status_badge}</td>
+							<td class="text-sm align-top border-b py-2 px-4">
 								${html}
 							</td>
 						</tr>`;
@@ -2604,60 +2616,84 @@ frappe.ui.form.on("Data Import", {
 				.join("");
 
 			if (!rows) {
-				rows = `<tr><td class="text-center text-muted" colspan=3>
-						${logs.length === 0 ? __("No rows were imported") : __("No logs for the selected filter")}
-					</td></tr>`;
+				const empty_message =
+					active_filter === "failed"
+						? __("No failed log entries")
+						: active_filter === "success"
+						? __("No successful log entries")
+						: __("No rows were imported");
+				rows = `<tr><td class="text-center text-muted" colspan=3>${empty_message}</td></tr>`;
 			}
 
 			const metric_html = [];
+			const metric_card = (value_html, label) =>
+				`<div class="diw-import-log-metric flex flex-col items-center justify-center text-center gap-1 min-w-0 min-h-20 px-3 py-3" role="listitem">${value_html}<div class="diw-import-log-metric-label text-muted">${label}</div></div>`;
 			metric_html.push(
-				`<div class="diw-import-log-metric flex flex-col items-center justify-center text-center gap-1 min-w-0 px-3 py-3" role="listitem"><div class="diw-import-log-metric-value text-2xl-bold">${total_rows_in_file}</div><div class="diw-import-log-metric-label text-muted">${__(
-					"Total rows"
-				)}</div></div>`
+				metric_card(
+					`<div class="diw-import-log-metric-value text-2xl-bold">${total_rows_in_file}</div>`,
+					__("Total rows")
+				)
 			);
 
 			if (skipped_rows_count) {
 				metric_html.push(
-					`<div class="diw-import-log-metric flex flex-col items-center justify-center text-center gap-1 min-w-0 px-3 py-3" role="listitem"><div class="diw-import-log-metric-value text-2xl-bold text-warning">${skipped_rows_count}</div><div class="diw-import-log-metric-label text-muted">${__(
-						"Skipped"
-					)}</div></div>`
+					metric_card(
+						`<div class="diw-import-log-metric-value text-2xl-bold text-warning">${skipped_rows_count}</div>`,
+						__("Skipped")
+					)
 				);
 			}
 
 			if (is_upsert || frm.doc.import_type === "Insert New Records") {
 				metric_html.push(
-					`<div class="diw-import-log-metric flex flex-col items-center justify-center text-center gap-1 min-w-0 px-3 py-3" role="listitem"><div class="diw-import-log-metric-value text-2xl-bold text-success">${inserted_rows}</div><div class="diw-import-log-metric-label text-muted">${__(
-						"Inserted"
-					)}</div></div>`
+					metric_card(
+						`<div class="diw-import-log-metric-value text-2xl-bold text-success">${inserted_rows}</div>`,
+						__("Inserted")
+					)
 				);
 			}
 
 			if (is_upsert || frm.doc.import_type === "Update Existing Records") {
 				metric_html.push(
-					`<div class="diw-import-log-metric flex flex-col items-center justify-center text-center gap-1 min-w-0 px-3 py-3" role="listitem"><div class="diw-import-log-metric-value text-2xl-bold text-primary">${updated_rows}</div><div class="diw-import-log-metric-label text-muted">${__(
-						"Updated"
-					)}</div></div>`
+					metric_card(
+						`<div class="diw-import-log-metric-value text-2xl-bold text-primary">${updated_rows}</div>`,
+						__("Updated")
+					)
 				);
 			}
 
 			metric_html.push(
-				`<div class="diw-import-log-metric flex flex-col items-center justify-center text-center gap-1 min-w-0 px-3 py-3" role="listitem"><div class="diw-import-log-metric-value text-2xl-bold text-danger">${failed_rows}</div><div class="diw-import-log-metric-label text-muted">${__(
-					"Failed"
-				)}</div></div>`
+				metric_card(
+					`<div class="diw-import-log-metric-value text-2xl-bold text-danger">${failed_rows}</div>`,
+					__("Failed")
+				)
+			);
+
+			// Dividers between metric cards (skip the first).
+			const metrics_with_dividers = metric_html.map((html, i) =>
+				i === 0
+					? html
+					: html.replace(
+							"diw-import-log-metric flex",
+							"diw-import-log-metric border-s flex"
+					  )
 			);
 
 			const wrapper = frm.get_field("import_log_preview").$wrapper;
 			wrapper.html(`
-				<div class="diw-import-log-metrics w-full border rounded-md overflow-hidden bg-surface-base" role="list" aria-label="${frappe.utils.escape_html(
+				<div class="diw-import-log-metrics grid items-stretch w-full border rounded-md overflow-hidden bg-surface-base" role="list" aria-label="${frappe.utils.escape_html(
 					__("Import metrics")
-				)}" style="--diw-import-log-metric-count: ${Math.max(metric_html.length, 1)};">
-					${metric_html.join("")}
+				)}" style="--diw-import-log-metric-count: ${Math.max(
+				metrics_with_dividers.length,
+				1
+			)};">
+					${metrics_with_dividers.join("")}
 				</div>
 				${
 					is_truncated
 						? `<div class="text-muted text-sm mb-2">${__(
-								"Showing first {0} out of {1} log entries.",
-								[shown_count, total_log_entries]
+								"Showing {0} of {1} log entries.",
+								[IMPORT_LOG_PREVIEW_LIMIT, total_rows]
 						  )}</div>`
 						: ""
 				}
@@ -2683,9 +2719,18 @@ frappe.ui.form.on("Data Import", {
 				label: __("Filter import log"),
 				value: active_filter,
 				options: [
-					{ label: __("All ({0})", [total_rows]), value: "all" },
-					{ label: __("Success ({0})", [success_rows]), value: "success" },
-					{ label: __("Failed ({0})", [failed_rows]), value: "failed" },
+					{
+						label: __("All ({0})", [format_import_log_tab_count(total_rows)]),
+						value: "all",
+					},
+					{
+						label: __("Success ({0})", [format_import_log_tab_count(success_rows)]),
+						value: "success",
+					},
+					{
+						label: __("Failed ({0})", [format_import_log_tab_count(failed_rows)]),
+						value: "failed",
+					},
 				],
 				on_change: (value) => {
 					if (frm._import_log_filter === value) return;
@@ -2695,7 +2740,7 @@ frappe.ui.form.on("Data Import", {
 			});
 			wrapper.find(".diw-import-log-filter-tabs").empty().append(log_filter.el);
 
-			if (is_truncated) {
+			if (show_export) {
 				const export_button = frappe.ui.button({
 					label: __("Export Import Log"),
 					variant: "outline",
@@ -2712,9 +2757,10 @@ frappe.ui.form.on("Data Import", {
 				method: "frappe.core.doctype.data_import.data_import.get_import_logs",
 				args: {
 					data_import: frm.doc.name,
+					status: active_filter,
 				},
 				callback: function (r) {
-					render_logs(r.message, status_summary);
+					render_logs(r.message || [], status_summary);
 				},
 			});
 		};
@@ -2726,16 +2772,19 @@ frappe.ui.form.on("Data Import", {
 			},
 			callback: function (r) {
 				const m = r.message || {};
-				fetch_logs({
+				frm._import_log_status_summary = {
 					total_records: cint(m.total_records),
 					success: cint(m.success),
 					failed: cint(m.failed),
 					inserted: cint(m.inserted),
 					updated: cint(m.updated),
-				});
+				};
+				frm._import_log_total_count =
+					cint(m.success) + cint(m.failed) || frm._import_log_total_count;
+				fetch_logs(frm._import_log_status_summary);
 			},
 			error: function () {
-				fetch_logs();
+				fetch_logs(frm._import_log_status_summary || {});
 			},
 		});
 	},
@@ -2860,7 +2909,7 @@ frappe.ui.form.on("Data Import", {
 						: ""
 				}
 
-				<div class="diw-import-progress-stats w-full gap-5 max-md:gap-2" role="list" aria-label="${frappe.utils.escape_html(
+				<div class="diw-import-progress-stats grid items-stretch w-full gap-5 max-md:gap-2" role="list" aria-label="${frappe.utils.escape_html(
 					__("Progress summary")
 				)}" style="--diw-import-progress-stat-count: ${Math.max(stat_cards.length, 1)};">
 					${stat_cards.join("")}
@@ -2948,18 +2997,7 @@ frappe.ui.form.on("Data Import", {
 		frm.events.toggle_import_log_ui(frm, true);
 		frm.events.set_import_log_heading(frm, __("Import log"), true);
 		frm.get_field("import_log_preview")?.$wrapper?.html(get_import_log_skeleton_html());
-
-		frappe.call({
-			method: "frappe.core.doctype.data_import.data_import.get_import_log_count",
-			type: "GET",
-			args: {
-				data_import: frm.doc.name,
-			},
-			callback: function (r) {
-				frm._import_log_total_count = cint(r.message);
-				frm.trigger("render_import_log");
-			},
-		});
+		frm.trigger("render_import_log");
 	},
 });
 

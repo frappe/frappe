@@ -161,7 +161,7 @@ function render_import_file_card(control, frm, $mount) {
 					true
 				)}</div>
 				<div class="min-w-0">
-					<a class="diw-import-file-card-name truncate text-base-semibold" href="${safe_href}" target="_blank" rel="noopener noreferrer" title="${safe_name}">${safe_name}</a>
+					<a class="diw-import-file-card-name block truncate text-base-semibold" href="${safe_href}" target="_blank" rel="noopener noreferrer" title="${safe_name}">${safe_name}</a>
 					<div class="text-sm text-muted">${frappe.utils.escape_html(meta_text)}</div>
 				</div>
 			</div>
@@ -414,7 +414,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 				}${is_completed ? " completed" : ""}${
 				is_locked ? " is-locked" : ""
 			}" aria-disabled="${is_locked}">
-					<span class="diw-step-marker shrink-0 size-7 rounded-full border">${
+					<span class="diw-step-marker shrink-0 flex items-center justify-center size-7 rounded-full border bg-surface-base text-ink-gray-4">${
 						is_completed
 							? `<span class="diw-step-check">${step_icon("check", "xs")}</span>`
 							: `<span class="diw-step-icon">${step_icon(step.icon)}</span>`
@@ -492,11 +492,11 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		// container purposely does NOT use the frappe `section-body` class (whose flex
 		// rules would override display:grid and collapse the columns).
 		const $settings = $(`
-			<div class="diw-config-section m-0 p-0 border-0">
-				<div class="diw-config-head m-0 p-0 border-0 mb-4"><span class="diw-section-head-title text-base-semibold">${__(
+			<div class="diw-config-section m-0 p-0 border-0 shadow-none bg-transparent">
+				<div class="diw-config-head m-0 p-0 border-0 shadow-none bg-transparent mb-4"><span class="diw-section-head-title text-base-semibold">${__(
 					"Import settings"
 				)}</span></div>
-				<div class="diw-config-grid w-full gap-5 max-md:gap-4">
+				<div class="diw-config-grid grid items-start w-full gap-5 max-md:gap-4">
 					<div class="diw-config-column diw-config-main w-full min-w-0 m-0 p-0"></div>
 					<div class="diw-config-column diw-config-options w-full min-w-0 m-0 p-0"></div>
 				</div>
@@ -1033,8 +1033,10 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		});
 
 		if (frm.has_import_file?.()) {
-			const stat = (value, label, css_class = "") => `
-				<div class="flex flex-col items-center justify-center flex-1 gap-1 p-4" role="listitem">
+			const stat = (value, label, css_class = "", divider = false) => `
+				<div class="flex flex-col items-center justify-center flex-1 gap-1 p-4${
+					divider ? " border-s max-md:border-s-0 max-md:border-t" : ""
+				}" role="listitem">
 					<div class="text-2xl-semibold text-ink-gray-8 ${css_class}">${frappe.utils.escape_html(
 				String(value)
 			)}</div>
@@ -1046,8 +1048,8 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 					__("Fix issues summary")
 				)}">
 					${stat(rows_checked, __("Rows checked"))}
-					${stat(columns_matched, __("Columns matched"))}
-					${stat(rows_skipped, __("Rows skipped"), "text-ink-green-8")}
+					${stat(columns_matched, __("Columns matched"), "", true)}
+					${stat(rows_skipped, __("Rows skipped"), "text-ink-green-8", true)}
 				</div>
 			`);
 		}

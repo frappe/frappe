@@ -395,23 +395,50 @@ def get_import_status(data_import_name: str):
 
 @frappe.whitelist(methods=["GET"])
 @frappe.read_only()
-def get_import_log_count(data_import: str):
+def get_import_log_count(data_import: str, status: str | None = None):
+	"""Count Data Import Log rows for a document.
+
+	:param status: Optional ``"success"`` / ``"failed"`` filter. ``None`` / ``"all"`` = all rows.
+	"""
 	doc = frappe.get_doc("Data Import", data_import)
 	doc.check_permission("read")
 
-	return frappe.db.count("Data Import Log", {"data_import": data_import})
+	filters: dict[str, Any] = {"data_import": data_import}
+	status_key = (status or "all").lower()
+	if status_key == "success":
+		filters["success"] = 1
+	elif status_key == "failed":
+		filters["success"] = 0
+
+	return frappe.db.count("Data Import Log", filters)
 
 
 @frappe.whitelist()
-def get_import_logs(data_import: str):
+def get_import_logs(data_import: str, status: str | None = None):
+	"""Return up to 1000 import log rows for the UI preview.
+
+	Tabs:
+	- ``all`` (default): first 1000 by ``log_index`` (mixed success/failure)
+	- ``success``: up to 1000 successful rows
+	- ``failed``: up to 1000 failed rows
+
+	Totals for "Showing N of M" come from ``get_import_status`` / ``get_import_log_count``.
+	"""
 	doc = frappe.get_doc("Data Import", data_import)
 	doc.check_permission("read")
+
+	filters: dict[str, Any] = {"data_import": data_import}
+	status_key = (status or "all").lower()
+	if status_key == "success":
+		filters["success"] = 1
+	elif status_key == "failed":
+		filters["success"] = 0
 
 	return frappe.get_all(
 		"Data Import Log",
 		fields=["success", "docname", "messages", "exception", "row_indexes", "import_action"],
-		filters={"data_import": data_import},
-		limit_page_length=1000,
+		filters=filters,
+		limit=1000,
 		order_by="log_index",
 	)
 
