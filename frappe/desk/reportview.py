@@ -539,9 +539,6 @@ def get_field_info(fields, doctype):
 	return field_info
 
 
-<<<<<<< HEAD
-def handle_duration_fieldtype_values(doctype, data, fields):
-=======
 def resolve_link_titles(data, fields, parent_doctype):
 	"""Resolve Link values to the titles shown in Report View."""
 	title_map_by_column = {}
@@ -586,8 +583,7 @@ def resolve_link_titles(data, fields, parent_doctype):
 	]
 
 
-def handle_duration_fieldtype_values(parent_doctype, data, fields):
->>>>>>> f39dd988b8 (fix: export Link titles in Report View)
+def handle_duration_fieldtype_values(doctype, data, fields):
 	for field in fields:
 		try:
 			parenttype, fieldname = parse_field(field)
