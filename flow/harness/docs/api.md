@@ -16,7 +16,7 @@ Agent(config: SessionConfig | None = None, *, data_dir=".flow-data", **overrides
 ```
 
 - Pass a `SessionConfig`, or pass its fields as keyword `**overrides`.
-- `model=` accepts a **name string** (resolved via `get_model`, e.g. `"gpt-4o"`,
+- `model=` accepts a **name string** (resolved via `get_model`, e.g. `"openai/gpt-4o"`,
   `"mock"`) or a pre-built **`Model` instance** (injected directly — used by tests and
   embedders).
 - `data_dir` is where the durable log is written.
@@ -36,7 +36,7 @@ Iteration ends when a `run_ended` event is yielded.
 Streaming a turn:
 
 ```python
-agent = Agent(model="gpt-4o", system_prompt="You are a coding agent.",
+agent = Agent(model="openai/gpt-4o", system_prompt="You are a coding agent.",
               tools=["bash", "read_file", "write", "edit", "grep"], cwd="/proj")
 
 async for e in agent.run("Summarize the biggest Python file."):
@@ -48,7 +48,7 @@ async for e in agent.run("Summarize the biggest Python file."):
 Approval pause → resume:
 
 ```python
-agent = Agent(model="gpt-4o", cwd=".", confirm_tools=["bash", "edit"])
+agent = Agent(model="openai/gpt-4o", cwd=".", confirm_tools=["bash", "edit"])
 
 pending = []
 async for e in agent.run("delete the build dir"):
@@ -62,7 +62,9 @@ async for e in agent.resume(answers):
 
 ## HTTP API
 
-Start the daemon: `flowd serve --port 8787`. All routes are JSON unless noted.
+Start the daemon: `flowd serve --port 8787`. All routes are JSON unless noted. When
+`FLOW_SERVER_AUTH_TOKEN` is configured, send `Authorization: Bearer <token>` on every
+request except `GET /healthz`.
 
 ### `GET /healthz`
 `→ {"ok": true}`
@@ -134,7 +136,9 @@ print(res["output"], res["reason"], res["usage"])
 | `client_tools` | `[]` | schemas for tools the client runs (see [tools.md](tools.md)) |
 | `callback_url` / `callback_token` | none | where/how client tools are dispatched |
 | `user_context` | `{}` | opaque data echoed on callbacks |
-| `api_key` / `api_base` | none | per-session model credentials |
+| `credential_id` | inferred | named credential selected for the model |
+| `api_key` | none | ephemeral compatibility override; never persisted |
+| `api_base` | none | non-secret per-session model endpoint |
 | `confirm_tools` | `[]` | tools that pause for approval (overrides tool defaults) |
 | `auto_approve` | `false` | unattended runs skip approval |
 | `cwd` | `"."` | tool working dir (fenced by `ALLOWED_ROOTS`) |

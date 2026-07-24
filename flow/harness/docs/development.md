@@ -55,11 +55,12 @@ docs/                  you are here
 |---|---|---|
 | `FLOW_SERVER_HOST` | `127.0.0.1` | daemon bind host |
 | `FLOW_SERVER_PORT` | `8787` | daemon bind port |
+| `FLOW_SERVER_AUTH_TOKEN` | none | API bearer; required for non-loopback binds |
 | `FLOW_SERVER_DATA_DIR` | `./.flow-server-data` | session logs + metadata |
 | `FLOW_SERVER_MODEL` | `mock` | default model name |
 | `FLOW_SERVER_REDIS_URL` | none | if set, every event is also published to `harness:<sid>` |
 | `FLOW_SERVER_ALLOWED_ROOTS` | empty | `os.pathsep`-separated cwd fence (empty = unrestricted) |
-| `FLOW_SERVER_CREDENTIALS_PATH` | `~/.flow-server/credentials.json` | OAuth token store (0600) |
+| `FLOW_SERVER_CREDENTIALS_PATH` | `~/.flow-server/credentials.json` | API-key/OAuth store (0600) |
 
 Cross-repo wire identifiers are intentionally kept as `harness:*` (Redis channel,
 `X-Harness-Token` header) — they're a contract shared with Flow's bridge.
@@ -69,8 +70,8 @@ Cross-repo wire identifiers are intentionally kept as `harness:*` (Redis channel
 **Part 1 — the daemon (done):** durable event substrate → model layer → auth foundation
 → tools → agent loop → uniform HTTP API + `flowd`.
 
-**Part 2 — client UIs:** a TUI (`flowd chat`, dogfooding the HTTP/SSE API) + `flowd
-login` for native-provider OAuth; a shared transport-agnostic conversation core; a
+**Part 2 — client UIs:** a TUI (`flowd chat`, dogfooding the HTTP/SSE API); a shared
+transport-agnostic conversation core; a
 standalone Vue web shell. End of Part 2 = a usable standalone coding-agent product.
 
 **Part 3 — Flow integration:** Flow adopts the daemon as a client (Frappe proxy
