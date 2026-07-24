@@ -1,8 +1,8 @@
 {
  "actions": [],
  "allow_bulk_edit": 1,
- "autoname": "format:{reference_doctype} Import on {creation}",
- "creation": "2019-08-04 14:16:08.318714",
+ "autoname": "{reference_doctype} Import-.#####",
+ "creation": "2026-07-23 16:17:23.695585",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -245,11 +245,11 @@
  ],
  "hide_toolbar": 1,
  "links": [],
- "modified": "2026-07-23 16:14:50.412092",
+ "modified": "2026-07-24 14:36:39.136121",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

@@ -520,7 +520,7 @@ function get_import_log_skeleton_html() {
 	return `<div class="flex flex-col gap-3 w-full" aria-busy="true" aria-label="${frappe.utils.escape_html(
 		__("Loading import log")
 	)}">
-		<div class="diw-import-log-metrics w-full border rounded-md overflow-hidden bg-surface-base" role="list" style="--diw-import-log-metric-count: 3;">
+		<div class="diw-import-log-metrics w-full border rounded-md overflow-hidden bg-surface-base" role="list">
 			${[0, 0, 0]
 				.map(
 					() =>
@@ -2547,9 +2547,15 @@ frappe.ui.form.on("Data Import", {
 							})
 							.join("");
 						const detail_list = message_details ? `<div>${message_details}</div>` : "";
-						const has_traceback = Boolean((log.exception || "").trim());
-						const is_expandable = Boolean(detail_list || has_traceback);
+						const traceback = (log.exception || "").trim();
+						const traceback_html = traceback
+							? `<pre class="diw-import-log-error-trace m-0 mt-2 p-2 overflow-auto text-sm">${frappe.utils.escape_html(
+									traceback
+							  )}</pre>`
+							: "";
+						const is_expandable = Boolean(detail_list || traceback_html);
 						let id = frappe.dom.get_unique_id();
+						// Chevron expands extra messages + traceback directly.
 						html = `<div class="diw-import-log-message">
 							<div class="flex items-start justify-between gap-2">
 								<div>${summary}</div>
@@ -2575,26 +2581,7 @@ frappe.ui.form.on("Data Import", {
 								is_expandable
 									? `<div class="collapse diw-import-log-details mt-1" id="${id}">
 										${detail_list}
-										${
-											has_traceback
-												? `${frappe.ui.button.html({
-														label: __("Show traceback"),
-														size: "xs",
-														variant: "outline",
-														attrs: {
-															"data-toggle": "collapse",
-															"data-target": `#${id}-trace`,
-															"aria-expanded": "false",
-															"aria-controls": `${id}-trace`,
-														},
-												  })}
-												<div class="collapse" id="${id}-trace">
-													<div class="well mt-2 p-2 overflow-auto"><pre class="m-0">${frappe.utils.escape_html(
-														log.exception || ""
-													)}</pre></div>
-												</div>`
-												: ""
-										}
+										${traceback_html}
 									</div>`
 									: ""
 							}
@@ -2626,23 +2613,24 @@ frappe.ui.form.on("Data Import", {
 			}
 
 			const metric_html = [];
-			const metric_card = (value_html, label) =>
-				`<div class="diw-import-log-metric flex flex-col items-center justify-center text-center gap-1 min-w-0 min-h-20 px-3 py-3" role="listitem">${value_html}<div class="diw-import-log-metric-label text-muted">${label}</div></div>`;
+			const metric_card = (value_html, label, first = false) =>
+				`<div class="diw-import-log-metric flex flex-col flex-1 gap-1 px-4 py-3${
+					first ? "" : " max-md:border-t"
+				}" role="listitem"><div class="diw-import-log-metric-label text-sm text-muted">${label}</div>${value_html}</div>`;
 			metric_html.push(
 				metric_card(
 					`<div class="diw-import-log-metric-value text-2xl-bold">${total_rows_in_file}</div>`,
-					__("Total rows")
+					__("Total rows"),
+					true
 				)
 			);
 
-			if (skipped_rows_count) {
-				metric_html.push(
-					metric_card(
-						`<div class="diw-import-log-metric-value text-2xl-bold text-warning">${skipped_rows_count}</div>`,
-						__("Skipped")
-					)
-				);
-			}
+			metric_html.push(
+				metric_card(
+					`<div class="diw-import-log-metric-value text-2xl-bold">${skipped_rows_count}</div>`,
+					__("Skipped")
+				)
+			);
 
 			if (is_upsert || frm.doc.import_type === "Insert New Records") {
 				metric_html.push(
@@ -2669,25 +2657,19 @@ frappe.ui.form.on("Data Import", {
 				)
 			);
 
-			// Dividers between metric cards (skip the first).
-			const metrics_with_dividers = metric_html.map((html, i) =>
-				i === 0
-					? html
-					: html.replace(
-							"diw-import-log-metric flex",
-							"diw-import-log-metric border-s flex"
-					  )
-			);
+			// Vertical es-divider between metric columns on desktop; stacked on mobile.
+			const metric_separator = frappe.ui.divider.html({
+				orientation: "vertical",
+				flex_item: true,
+				css_class: "max-md:hidden",
+			});
 
 			const wrapper = frm.get_field("import_log_preview").$wrapper;
 			wrapper.html(`
-				<div class="diw-import-log-metrics grid items-stretch w-full border rounded-md overflow-hidden bg-surface-base" role="list" aria-label="${frappe.utils.escape_html(
+				<div class="diw-import-log-metrics flex max-md:flex-col w-full" role="list" aria-label="${frappe.utils.escape_html(
 					__("Import metrics")
-				)}" style="--diw-import-log-metric-count: ${Math.max(
-				metrics_with_dividers.length,
-				1
-			)};">
-					${metrics_with_dividers.join("")}
+				)}">
+					${metric_html.join(metric_separator)}
 				</div>
 				${
 					is_truncated

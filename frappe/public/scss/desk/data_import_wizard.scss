@@ -98,7 +98,6 @@ body[data-route^="data-import"] {
 .diw-tree-filter-icon,
 .diw-tree-chevron,
 .diw-tree-warning-icon,
-.diw-tree-legend-icon,
 .diw-card-icon-well {
 	line-height: 0;
 }
@@ -375,7 +374,6 @@ body[data-route^="data-import"] {
 
 // ---- import log + progress ----
 .diw-import-log-metrics {
-	grid-template-columns: repeat(var(--diw-import-log-metric-count, 4), minmax(0, 1fr));
 	margin-bottom: var(--padding-lg);
 }
 
@@ -405,11 +403,8 @@ body[data-route^="data-import"] {
 }
 
 .diw-import-log-details {
-	.well {
-		max-height: 220px;
-	}
-
-	pre {
+	.diw-import-log-error-trace {
+		max-height: 14rem;
 		white-space: pre-wrap;
 		word-break: break-word;
 	}

@@ -1049,7 +1049,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 				)}">
 					${stat(rows_checked, __("Rows checked"))}
 					${stat(columns_matched, __("Columns matched"), "", true)}
-					${stat(rows_skipped, __("Rows skipped"), "text-ink-green-8", true)}
+					${stat(rows_skipped, __("Rows skipped"), "", true)}
 				</div>
 			`);
 		}
