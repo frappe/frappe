@@ -63,9 +63,8 @@
 				<component :is="PrintFormat" v-else />
 			</div>
 		</div>
-		<!-- the right rail is either the inspector or the preview, never both -->
+		<FieldInspector />
 		<Preview v-if="show_preview" @close="show_preview = false" />
-		<FieldInspector v-else />
 	</div>
 </template>
 
