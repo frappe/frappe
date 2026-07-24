@@ -136,12 +136,6 @@ Quill.register(CustomColor, true);
 frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.form.ControlCode {
 	make_wrapper() {
 		super.make_wrapper();
-		const disp_area = this.$wrapper.find(".like-disabled-input");
-		if (this.df.max_height) {
-			disp_area.css({ "max-height": this.df.max_height, overflow: "auto" });
-		} else {
-			disp_area.css({ "max-height": "400px", overflow: "auto" });
-		}
 	}
 
 	make_input() {
