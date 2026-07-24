@@ -391,7 +391,7 @@ body.apps-page .desktop-wrapper[data-mode=Edit] .edit-mode-buttons {
     --desktop-icon-container: 100px;
   }
   body.apps-page .desktop-container > .icons-container > .icons .folder-icon > .icons {
-    grid-template-columns: repeat(2, 1fr) I !important;
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }
 @media screen and (max-width: 570px) {
@@ -425,7 +425,7 @@ body.apps-page .desktop-wrapper[data-mode=Edit] .edit-mode-buttons {
     --desktop-icon-container: 100px;
   }
   body.apps-page .desktop-modal-body > .icons-container > .icons .folder-icon > .icons {
-    grid-template-columns: repeat(2, 1fr) I !important;
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }
 @media screen and (max-width: 570px) {
@@ -911,7 +911,7 @@ body.desktop-icons-page .desktop-wrapper[data-mode=Edit] .edit-mode-buttons {
     --desktop-icon-container: 100px;
   }
   body.desktop-icons-page .desktop-container > .icons-container > .icons .folder-icon > .icons {
-    grid-template-columns: repeat(2, 1fr) I !important;
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }
 @media screen and (max-width: 570px) {
@@ -945,7 +945,7 @@ body.desktop-icons-page .desktop-wrapper[data-mode=Edit] .edit-mode-buttons {
     --desktop-icon-container: 100px;
   }
   body.desktop-icons-page .desktop-modal-body > .icons-container > .icons .folder-icon > .icons {
-    grid-template-columns: repeat(2, 1fr) I !important;
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }
 @media screen and (max-width: 570px) {
@@ -1026,7 +1026,7 @@ body.desktop-icons-page .title-input-label {
   color: var(--neutral-white);
   line-height: 22px;
   z-index: 1;
-  pointers-events: none;
+  pointer-events: none;
   width: 100%;
   text-align: center;
 }
