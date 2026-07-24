@@ -13,11 +13,13 @@ import json
 import os
 import re
 import uuid
+from tempfile import mkstemp
 
 from pydantic import BaseModel, Field
 
-from flow_server import config
+from flow_server import config as server_config
 from flow_server.events import _Event, parse_event
+from flow_server.model.credentials import CredentialStore
 from flow_server.session.log import SessionLog
 
 # client-provided session ids land in on-disk filenames — keep them to a safe slug so a
@@ -38,7 +40,8 @@ class SessionConfig(BaseModel):
 		callback_url: Where client tools are dispatched.
 		callback_token: Bearer sent to the client on callbacks (shared secret).
 		user_context: Opaque context passed back on callbacks.
-		api_key: Provider key for the model (client-resolved).
+		credential_id: Named user-global credential; inferred from model prefix when absent.
+		api_key: Ephemeral provider key override. Accepted for compatibility, never persisted.
 		api_base: Provider base URL.
 		confirm_tools: Tools that pause for approval.
 		auto_approve: Unattended runs (triggers) skip approval.
@@ -56,7 +59,8 @@ class SessionConfig(BaseModel):
 	callback_url: str | None = None
 	callback_token: str | None = None
 	user_context: dict = Field(default_factory=dict)
-	api_key: str | None = None
+	credential_id: str | None = None
+	api_key: str | None = Field(default=None, exclude=True)
 	api_base: str | None = None
 	confirm_tools: list[str] = Field(default_factory=list)
 	auto_approve: bool = False
@@ -67,18 +71,26 @@ class SessionConfig(BaseModel):
 
 	def redacted(self) -> dict:
 		data = self.model_dump()
-		for secret in ("api_key", "callback_token"):
+		for secret in ("callback_token",):
 			if data.get(secret):
 				data[secret] = "***"
 		return data
 
 
 class Session:
-	def __init__(self, sid: str, config: SessionConfig, log: SessionLog, event_sink=None):
+	def __init__(
+		self,
+		sid: str,
+		config: SessionConfig,
+		log: SessionLog,
+		event_sink=None,
+		credentials: CredentialStore | None = None,
+	):
 		self.id = sid
 		self.config = config
 		self.log = log
 		self.event_sink = event_sink  # optional (session_id, event_dict) callback, e.g. Redis
+		self.credentials = credentials or CredentialStore(server_config.CREDENTIALS_PATH)
 		self.messages: list[dict] = _rebuild_messages(log)
 		self._subscribers: set[asyncio.Queue] = set()
 		self.run_task: asyncio.Task | None = None
@@ -116,12 +128,21 @@ class Session:
 
 
 class SessionStore:
-	def __init__(self, data_dir: str, event_sink=None, allowed_roots: list[str] | None = None):
+	def __init__(
+		self,
+		data_dir: str,
+		event_sink=None,
+		allowed_roots: list[str] | None = None,
+		credential_store: CredentialStore | None = None,
+	):
 		self.data_dir = data_dir
 		self.sessions_dir = os.path.join(data_dir, "sessions")
 		os.makedirs(self.sessions_dir, exist_ok=True)
 		self.event_sink = event_sink
-		self.allowed_roots = allowed_roots if allowed_roots is not None else config.ALLOWED_ROOTS
+		self.allowed_roots = (
+			allowed_roots if allowed_roots is not None else server_config.ALLOWED_ROOTS
+		)
+		self.credentials = credential_store or CredentialStore(server_config.CREDENTIALS_PATH)
 		self._cache: dict[str, Session] = {}
 
 	def _log_path(self, sid: str) -> str:
@@ -135,7 +156,13 @@ class SessionStore:
 		sid = config.session_id or uuid.uuid4().hex[:16]
 		if not _SID_RE.match(sid):
 			raise ValueError(f"invalid session_id {sid!r} (allowed: letters, digits, - _)")
-		session = Session(sid, config, SessionLog(self._log_path(sid)), self.event_sink)
+		session = Session(
+			sid,
+			config,
+			SessionLog(self._log_path(sid)),
+			self.event_sink,
+			self.credentials,
+		)
 		self.save_meta(session)
 		self._cache[sid] = session
 		return session
@@ -143,8 +170,18 @@ class SessionStore:
 	def save_meta(self, session: Session) -> None:
 		"""Persist a session's config so config changes (e.g. a model override on a later
 		turn) survive a restart."""
-		with open(self._meta_path(session.id), "w", encoding="utf-8") as f:
-			json.dump(session.config.model_dump(), f)
+		path = self._meta_path(session.id)
+		fd, tmp = mkstemp(prefix=f".{os.path.basename(path)}.", dir=self.sessions_dir)
+		try:
+			os.chmod(tmp, 0o600)
+			with os.fdopen(fd, "w", encoding="utf-8") as f:
+				json.dump(session.config.model_dump(), f)
+				f.flush()
+				os.fsync(f.fileno())
+			os.replace(tmp, path)
+		finally:
+			if os.path.exists(tmp):
+				os.unlink(tmp)
 
 	def _validate_cwd(self, cwd: str) -> None:
 		"""Fence a session's cwd to `allowed_roots` (realpath-resolved, so symlink/`..`
@@ -166,7 +203,13 @@ class SessionStore:
 			raise KeyError(sid)
 		with open(meta_path, encoding="utf-8") as f:
 			config = SessionConfig.model_validate(json.load(f))
-		session = Session(sid, config, SessionLog(self._log_path(sid)), self.event_sink)
+		session = Session(
+			sid,
+			config,
+			SessionLog(self._log_path(sid)),
+			self.event_sink,
+			self.credentials,
+		)
 		self._cache[sid] = session
 		return session
 
@@ -184,6 +227,8 @@ def _rebuild_messages(log: SessionLog) -> list[dict]:
 			messages.append({"role": "user", "content": ev.content})
 		elif t == "assistant_message":
 			msg: dict = {"role": "assistant", "content": ev.text or None}
+			if ev.provider_data:
+				msg["provider_data"] = ev.provider_data
 			if ev.tool_calls:
 				msg["tool_calls"] = [
 					{

@@ -45,11 +45,13 @@ class LiteLLMModel(Model):
 		*,
 		api_key: str | None = None,
 		api_base: str | None = None,
+		headers: dict[str, str] | None = None,
 		params: dict[str, Any] | None = None,
 	):
 		self.name = name
 		self._api_key = api_key
 		self._api_base = api_base
+		self._headers = headers or {}
 		self._params = params or {}
 
 	async def run(
@@ -66,6 +68,8 @@ class LiteLLMModel(Model):
 			kwargs["api_key"] = self._api_key
 		if self._api_base:
 			kwargs["api_base"] = self._api_base
+		if self._headers:
+			kwargs["extra_headers"] = self._headers
 		if tools:
 			kwargs["tools"] = tools
 
