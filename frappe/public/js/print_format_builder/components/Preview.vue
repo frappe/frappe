@@ -1,93 +1,82 @@
 <template>
-	<div
-		class="pfb-preview-dock"
-		:class="{ 'pfb-preview-dock--max': maximized }"
-		:style="maximized ? {} : { width: dock_width + 'px' }"
-	>
-		<div
-			v-if="!maximized"
-			class="pfb-preview-resizer"
-			:title="__('Drag to resize')"
-			@pointerdown.prevent="start_resize"
-		></div>
-		<div class="pfb-preview-head">
-			<span class="pfb-preview-title">{{ __("Preview") }}</span>
-			<select class="pfb-preview-type" v-model="type">
-				<option value="HTML">{{ __("Flow") }}</option>
-				<option value="PDF">{{ __("Pages") }}</option>
-			</select>
-			<button
-				class="pfb-preview-btn"
-				:title="__('Refresh')"
-				@click="refresh"
-				v-html="frappe.utils.icon('refresh-cw', 'xs')"
-			></button>
-			<button
-				class="pfb-preview-btn"
-				:title="maximized ? __('Exit full screen') : __('Full screen')"
-				@click="maximized = !maximized"
-				v-html="frappe.utils.icon(maximized ? 'shrink' : 'expand', 'xs')"
-			></button>
-			<a
-				v-if="url"
-				class="pfb-preview-btn"
-				target="_blank"
-				:href="url"
-				:title="__('Open in a new tab')"
-				v-html="frappe.utils.icon('external-link', 'xs')"
-			></a>
-			<button
-				class="pfb-preview-btn"
-				:title="__('Close preview')"
-				:aria-label="__('Close preview')"
-				@click="$emit('close')"
-				v-html="frappe.utils.icon('x', 'xs')"
-			></button>
-		</div>
+	<Teleport to="body">
+		<div class="pfb-preview-backdrop" @click.self="$emit('close')">
+			<div class="pfb-preview-modal" :class="{ 'pfb-preview-modal--max': maximized }">
+				<div class="pfb-preview-head">
+					<span class="pfb-preview-title">{{ __("Preview") }}</span>
+					<select class="pfb-preview-type" v-model="type">
+						<option value="HTML">{{ __("Flow") }}</option>
+						<option value="PDF">{{ __("Pages") }}</option>
+					</select>
+					<button
+						class="pfb-preview-btn"
+						:title="__('Refresh')"
+						@click="refresh"
+						v-html="frappe.utils.icon('refresh-cw', 'xs')"
+					></button>
+					<button
+						class="pfb-preview-btn"
+						:title="maximized ? __('Exit full screen') : __('Full screen')"
+						@click="maximized = !maximized"
+						v-html="frappe.utils.icon(maximized ? 'shrink' : 'expand', 'xs')"
+					></button>
+					<a
+						v-if="url"
+						class="pfb-preview-btn"
+						target="_blank"
+						:href="url"
+						:title="__('Open in a new tab')"
+						v-html="frappe.utils.icon('external-link', 'xs')"
+					></a>
+					<button
+						class="pfb-preview-btn"
+						:title="__('Close preview')"
+						:aria-label="__('Close preview')"
+						@click="$emit('close')"
+						v-html="frappe.utils.icon('x', 'xs')"
+					></button>
+				</div>
 
-		<div v-if="!docname" class="pfb-preview-empty">
-			{{ __("Pick a record in the toolbar above to preview it.") }}
-		</div>
-		<div v-else-if="unprintable_reason === 'cancelled'" class="pfb-preview-empty">
-			{{ __("This document is cancelled and cannot be printed.") }}
-		</div>
-		<div v-else-if="unprintable_reason === 'draft'" class="pfb-preview-empty">
-			{{ __("This document is a draft and cannot be printed.") }}
-		</div>
-		<div v-else-if="!preview_loaded" class="pfb-preview-empty">
-			{{ __("Generating preview...") }}
-		</div>
-		<div
-			ref="viewport"
-			class="pfb-preview-viewport"
-			v-show="docname && preview_loaded && !unprintable_reason"
-		>
-			<!-- the page renders at its true width and is scaled down to fit the rail -->
-			<div class="pfb-preview-stage" :style="stage_style">
-				<iframe
-					ref="iframe"
-					:key="type"
-					:src="type === 'PDF' ? pdf_url : undefined"
-					:scrolling="type === 'PDF' ? 'auto' : 'no'"
-					class="pfb-preview-iframe"
-					:style="frame_style"
-				></iframe>
+				<div v-if="!docname" class="pfb-preview-empty">
+					{{ __("Pick a record in the toolbar above to preview it.") }}
+				</div>
+				<div v-else-if="unprintable_reason === 'cancelled'" class="pfb-preview-empty">
+					{{ __("This document is cancelled and cannot be printed.") }}
+				</div>
+				<div v-else-if="unprintable_reason === 'draft'" class="pfb-preview-empty">
+					{{ __("This document is a draft and cannot be printed.") }}
+				</div>
+				<div v-else-if="!preview_loaded" class="pfb-preview-empty">
+					{{ __("Generating preview...") }}
+				</div>
+				<div
+					ref="viewport"
+					class="pfb-preview-viewport"
+					v-show="docname && preview_loaded && !unprintable_reason"
+				>
+					<div class="pfb-preview-stage" :style="stage_style">
+						<iframe
+							ref="iframe"
+							:key="type"
+							:src="type === 'PDF' ? pdf_url : undefined"
+							:scrolling="type === 'PDF' ? 'auto' : 'no'"
+							class="pfb-preview-iframe"
+							:style="frame_style"
+						></iframe>
+					</div>
+				</div>
 			</div>
 		</div>
-	</div>
+	</Teleport>
 </template>
 
 <script setup>
 import { useStore } from "../stores";
 import { ref, computed, nextTick, onMounted, onUnmounted, watch } from "vue";
 
-defineEmits(["close"]);
+const emit = defineEmits(["close"]);
 
 let { print_format, layout, store } = useStore();
-
-const DOCK_KEY = "pfb_preview_width";
-const DOCK_MIN = 320;
-const DOCK_MAX = 1100;
 
 let type = ref("HTML");
 let maximized = ref(false);
@@ -97,13 +86,8 @@ let viewport = ref(null);
 let pdf_url = ref(null);
 let render_seq = 0;
 
-let dock_width = ref(clamp_width(parseInt(localStorage.getItem(DOCK_KEY)) || 520));
 let page = ref({ w: 0, h: 0 });
 let scale = ref(1);
-
-function clamp_width(w) {
-	return Math.min(DOCK_MAX, Math.max(DOCK_MIN, w));
-}
 
 // The PDF viewer does its own fitting; only the HTML render needs scaling.
 let is_scaled = computed(() => type.value === "HTML" && page.value.w > 0);
@@ -153,9 +137,6 @@ function fit_preview() {
 let resize_observer = null;
 let frame_observer = null;
 
-// Images and webfonts land after the first measure, so the page grows past the
-// height we sized the frame to — and the frame sprouts its own scrollbar next to
-// the dock's. Track the rendered body instead of measuring once.
 function observe_frame_body() {
 	frame_observer?.disconnect();
 	const body = iframe.value?.contentDocument?.body;
@@ -164,31 +145,6 @@ function observe_frame_body() {
 	frame_observer.observe(body);
 }
 
-// Pointer capture, not document listeners: the drag crosses the preview iframe,
-// and a mouseup over an iframe is delivered to that frame's document, never ours —
-// so the drag would carry on with the button released.
-function start_resize(e) {
-	const handle = e.currentTarget;
-	const start_x = e.clientX;
-	const start_w = dock_width.value;
-	handle.setPointerCapture(e.pointerId);
-
-	const on_move = (ev) => {
-		// the dock is on the right, so dragging left widens it
-		dock_width.value = clamp_width(start_w + (start_x - ev.clientX));
-	};
-	const on_up = () => {
-		handle.removeEventListener("pointermove", on_move);
-		handle.removeEventListener("pointerup", on_up);
-		handle.removeEventListener("pointercancel", on_up);
-		localStorage.setItem(DOCK_KEY, dock_width.value);
-	};
-	handle.addEventListener("pointermove", on_move);
-	handle.addEventListener("pointerup", on_up);
-	handle.addEventListener("pointercancel", on_up);
-}
-
-// the canvas toolbar owns the record picker; the dock just follows it
 let docname = computed(() => store.value.preview_doc_name);
 
 let doctype = computed(() => print_format.value.doc_type);
@@ -324,8 +280,6 @@ function refresh() {
 	render();
 }
 
-// Editing beside the preview is the whole point of the dock, but every render is a
-// server round trip — so coalesce bursts of edits, and never auto-fire a PDF render.
 const auto_render = frappe.utils.debounce(() => {
 	if (type.value === "HTML") render();
 }, 1000);
@@ -336,10 +290,11 @@ watch(() => layout.value, auto_render, { deep: true });
 watch([docname, type, () => store.value.preview_doc?.docstatus], render, { flush: "post" });
 
 function on_keydown(e) {
-	if (e.key !== "Escape" || !maximized.value) return;
+	if (e.key !== "Escape") return;
 	// an open dialog owns Escape — one keypress dismisses one layer
 	if (window.cur_dialog?.display) return;
-	maximized.value = false;
+	if (maximized.value) maximized.value = false;
+	else emit("close");
 }
 
 onMounted(() => {
@@ -359,39 +314,34 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.pfb-preview-dock {
-	position: relative;
+.pfb-preview-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 1035;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 32px;
+	background: rgba(0, 0, 0, 0.4);
+}
+
+.pfb-preview-modal {
 	display: flex;
 	flex-direction: column;
-	flex-shrink: 0;
-	/* pin to the viewport like the inspector, so the dock scrolls and the page doesn't */
-	height: calc(100vh - var(--pfb-chrome-offset, 95px));
-	border-left: 1px solid var(--border-color);
+	width: min(900px, 92vw);
+	height: min(90vh, 1100px);
 	background: var(--fg-color);
+	border-radius: var(--radius-lg, 8px);
+	box-shadow: var(--shadow-lg);
 	overflow: hidden;
 }
 
-/* full screen: same dock, same iframe — only the frame around it grows */
-.pfb-preview-dock--max {
+.pfb-preview-modal--max {
 	position: fixed;
 	inset: 0;
-	z-index: 1040;
-	height: 100vh;
-	border-left: none;
-}
-
-.pfb-preview-resizer {
-	position: absolute;
-	top: 0;
-	left: -3px;
-	width: 6px;
-	height: 100%;
-	cursor: col-resize;
-	z-index: 1;
-}
-
-.pfb-preview-resizer:hover {
-	background: var(--gray-200);
+	width: auto;
+	height: auto;
+	border-radius: 0;
 }
 
 .pfb-preview-head {
