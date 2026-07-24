@@ -1,3 +1,5 @@
+import os
+
 from flow_server.events import AssistantMessage, ToolCall, ToolResult, UserMessage
 from flow_server.session.log import SessionLog
 from flow_server.session.store import SessionConfig, SessionStore, _rebuild_messages
@@ -30,13 +32,20 @@ def test_rebuild_messages_roundtrip(tmp_path):
 	log = SessionLog(str(tmp_path / "s.jsonl"))
 	log.append(UserMessage(content="do it"))
 	call = ToolCall(id="c1", name="bash", args={"command": "ls"})
-	log.append(AssistantMessage(text="", tool_calls=[call]))
+	log.append(
+		AssistantMessage(
+			text="",
+			tool_calls=[call],
+			provider_data={"codex_reasoning": [{"type": "reasoning", "id": "r1"}]},
+		)
+	)
 	log.append(ToolResult(tool_call_id="c1", name="bash", content="file.txt"))
 
 	msgs = _rebuild_messages(log)
 	assert msgs[0] == {"role": "user", "content": "do it"}
 	assert msgs[1]["role"] == "assistant"
 	assert msgs[1]["tool_calls"][0]["function"]["name"] == "bash"
+	assert msgs[1]["provider_data"]["codex_reasoning"][0]["id"] == "r1"
 	assert msgs[2] == {"role": "tool", "tool_call_id": "c1", "content": "file.txt"}
 
 
@@ -49,3 +58,4 @@ def test_store_create_and_reload(tmp_path):
 	reloaded = fresh.get(session.id)
 	assert reloaded.config.model == "mock"
 	assert reloaded.messages[0]["content"] == "remember me"
+	assert oct(os.stat(reloaded.log.path).st_mode & 0o777) == "0o600"
