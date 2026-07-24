@@ -2,11 +2,102 @@
 # License: MIT. See LICENSE
 
 import frappe
+<<<<<<< HEAD
 from frappe.desk.reportview import export_query, extract_fieldnames
+=======
+from frappe.desk.reportview import (
+	_reorder_by_visible_names,
+	export_query,
+	extract_fieldnames,
+	get,
+	get_field_info,
+	get_filter_dashboard_data,
+	get_stats,
+	resolve_link_titles,
+)
+>>>>>>> f39dd988b8 (fix: export Link titles in Report View)
 from frappe.tests import IntegrationTestCase
 
 
 class TestReportview(IntegrationTestCase):
+<<<<<<< HEAD
+=======
+	def test_get_field_info_translates_field_labels(self):
+		doctype = "Translation"
+		translations = {
+			"Created On": "Translated Created On",
+			"Translated Text": "Translated Field Label",
+		}
+		for source, translated in translations.items():
+			frappe.get_doc(
+				{
+					"doctype": "Translation",
+					"language": "de",
+					"source_text": source,
+					"translated_text": translated,
+					"context": doctype,
+				}
+			).insert()
+
+		frappe.local.lang = "de"
+		try:
+			field_info = get_field_info(["creation", "translated_text"], doctype)
+		finally:
+			frappe.local.lang = "en"
+
+		self.assertEqual(
+			[field["label"] for field in field_info],
+			["Translated Created On", "Translated Field Label"],
+		)
+
+	def test_get_accepts_native_filters_and_fields(self):
+		# native dict/list payloads (JSON request body) instead of JSON strings
+		frappe.local.form_dict = frappe._dict(
+			doctype="ToDo",
+			filters={"status": "Open"},
+			fields=["name", "status"],
+		)
+		result = get()
+		self.assertIn("keys", result)
+		self.assertIn("values", result)
+
+	def test_get_stats_accepts_native(self):
+		# stats as native list (L738) and filters as native list (L740)
+		out = get_stats(stats=["_user_tags"], doctype="ToDo", filters=[["ToDo", "status", "=", "Open"]])
+		self.assertIsInstance(out, dict)
+
+	def test_get_filter_dashboard_data_accepts_native(self):
+		out = get_filter_dashboard_data(
+			stats=[{"name": "status", "type": "Select"}], doctype="ToDo", filters=[]
+		)
+		self.assertIsInstance(out, dict)
+
+	def test_export_query_with_totals_and_translate(self):
+		frappe.local.form_dict = frappe._dict(
+			doctype="DocType",
+			file_format_type="CSV",
+			fields=("name", "module", "issingle"),
+			filters={"issingle": 1, "module": "Core"},
+			add_totals_row=1,
+			translate_values=1,
+		)
+		export_query()
+		self.assertTrue(frappe.response["filename"].endswith(".csv"))
+		self.assertEqual(frappe.response["type"], "binary")
+
+	def test_resolve_link_titles_for_export(self):
+		language_name = frappe.db.get_value("Language", "en", "language_name")
+
+		self.assertEqual(
+			resolve_link_titles(
+				[("en", "System Manager"), ("missing-language", None), ("", "")],
+				["language", "role_profile_name"],
+				"User",
+			),
+			[[language_name, "System Manager"], ["missing-language", None], ["", ""]],
+		)
+
+>>>>>>> f39dd988b8 (fix: export Link titles in Report View)
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
 		from io import StringIO

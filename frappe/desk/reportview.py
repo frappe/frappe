@@ -460,6 +460,8 @@ def _export_query(form_params, csv_params, populate_response=True):
 		else:
 			raise frappe.PermissionError(_("You are not allowed to export {} doctype").format(doctype))
 
+	ret = resolve_link_titles(ret, db_query.fields, doctype)
+
 	if add_totals_row:
 		ret = append_totals_row(ret)
 
@@ -610,6 +612,50 @@ def get_field_info(fields, parent_doctype):
 		)
 
 	return field_info
+
+
+def resolve_link_titles(data, fields, parent_doctype):
+	"""Resolve Link values to the titles shown in Report View."""
+	title_map_by_column = {}
+
+	for index, field in enumerate(fields):
+		try:
+			doctype, fieldname = parse_field(field)
+		except ValueError:
+			continue
+
+		doctype = doctype or parent_doctype
+		df = frappe.get_meta(doctype).get_field(fieldname)
+		if not df or df.fieldtype != "Link" or not df.options:
+			continue
+
+		link_meta = frappe.get_meta(df.options)
+		if not (link_meta.show_title_field_in_link and link_meta.title_field):
+			continue
+
+		names = {row[index] for row in data if row[index]}
+		if not names:
+			continue
+
+		titles = frappe.get_all(
+			df.options,
+			filters={"name": ("in", names)},
+			fields=["name", link_meta.title_field],
+			as_list=True,
+			order_by=None,
+		)
+		title_map_by_column[index] = {name: title for name, title in titles if title}
+
+	if not title_map_by_column:
+		return data
+
+	return [
+		[
+			title_map_by_column[index].get(value, value) if index in title_map_by_column else value
+			for index, value in enumerate(row)
+		]
+		for row in data
+	]
 
 
 def handle_duration_fieldtype_values(parent_doctype, data, fields):
