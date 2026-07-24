@@ -150,8 +150,15 @@ export function getStore(print_format_name) {
 			],
 		};
 	}
+	// count, not a flag — autosave and a manual save can overlap
+	let saving_count = ref(0);
+	let save_failed = ref(false);
+	let save_status = computed(() =>
+		save_failed.value ? "failed" : saving_count.value > 0 ? "saving" : "saved"
+	);
 	function save_changes() {
-		frappe.dom.freeze(__("Saving..."));
+		frappe.dom.freeze(__("Saving…"));
+		saving_count.value++;
 
 		serialize_layout(layout.value);
 		print_format.value.format_data = JSON.stringify(layout.value);
@@ -172,19 +179,16 @@ export function getStore(print_format_name) {
 			.then(() => fetch())
 			.then(() => {
 				autosave_stopped = false;
+				save_failed.value = false;
 				frappe.show_alert({ message: __("Saved"), indicator: "green" });
 			})
+			.catch(() => (save_failed.value = true))
 			.always(() => {
+				saving_count.value--;
 				frappe.dom.unfreeze();
 			});
 	}
-	function reset_changes() {
-		fetch();
-	}
-	// Silent, debounced background save: no freeze, no toast, no refetch — the
-	// canvas keeps its selection and undo history. Stops after a failure (e.g.
-	// a timestamp conflict) so the error dialog doesn't loop; a successful
-	// manual save re-arms it.
+	// stops after a failure so the error dialog doesn't loop; a manual save re-arms it
 	let autosave_stopped = false;
 	function autosave_changes() {
 		if (!dirty.value || autosave_stopped) return;
@@ -193,13 +197,14 @@ export function getStore(print_format_name) {
 			return;
 		}
 		dirty.value = false;
+		saving_count.value++;
 		frappe
 			.call({
 				method: "frappe.printing.doctype.print_format.print_format.autosave",
 				args: { doc: get_preview_format_doc() },
 			})
 			.then((r) => {
-				// only the stamp — the user may have kept editing during the request
+				// sync only the stamp — the user may have kept editing mid-request
 				const was_dirty = dirty.value;
 				print_format.value.modified = r.message.modified;
 				if (!was_dirty) nextTick(() => (dirty.value = false));
@@ -212,10 +217,13 @@ export function getStore(print_format_name) {
 						});
 				}
 			})
+			.then(() => (save_failed.value = false))
 			.catch(() => {
 				autosave_stopped = true;
 				dirty.value = true;
-			});
+				save_failed.value = true;
+			})
+			.always(() => saving_count.value--);
 	}
 	const autosave = frappe.utils.debounce(autosave_changes, 3000);
 	function get_preview_format_doc() {
@@ -333,7 +341,7 @@ export function getStore(print_format_name) {
 		persisted_preview_doc_name,
 		fetch,
 		save_changes,
-		reset_changes,
+		save_status,
 		get_preview_format_doc,
 		select_field,
 		select_section,

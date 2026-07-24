@@ -136,10 +136,6 @@ context("Print Format Builder — create flow", () => {
 			.trigger("change")
 			.blur();
 
-		cy.get('[data-testid="page-status"]', { timeout: 5000 })
-			.should("be.visible")
-			.and("contain", "Not Saved");
-
 		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
 		cy.wait("@save").then((interception) => {
 			expect(interception.response.statusCode).to.equal(200);
@@ -277,10 +273,6 @@ context("Print Format Builder — create flow", () => {
 			.type("#c0392b")
 			.trigger("change")
 			.blur();
-
-		cy.get('[data-testid="page-status"]', { timeout: 5000 })
-			.should("be.visible")
-			.and("contain", "Not Saved");
 
 		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
 		cy.wait("@save").then((interception) => {

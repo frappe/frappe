@@ -24,9 +24,6 @@ class PrintFormatBuilder {
 			description: __("Save Print Format"),
 			page: this.page,
 		});
-		let $reset_changes_btn = this.page.add_button(__("Reset Changes"), () =>
-			this.$component.$store.reset_changes()
-		);
 		let $preview_btn = this.page.add_action_icon(
 			"eye",
 			() => this.$component.toggle_preview(),
@@ -54,18 +51,16 @@ class PrintFormatBuilder {
 		this.app = app;
 		this.$component = app.mount(this.$wrapper.get(0));
 
+		// quiet when saved; only "Saving…" transiently or a sticky "Save failed"
 		watch(
-			() => this.$component.$store.dirty,
-			(dirty) => {
-				if (dirty.value) {
-					this.page.set_indicator(__("Not Saved"), "orange");
-					$reset_changes_btn.show();
-				} else {
-					this.page.clear_indicator();
-					$reset_changes_btn.hide();
-				}
+			() => this.$component.$store.save_status,
+			(status) => {
+				if (status.value === "saving") this.page.set_indicator(__("Saving…"), "gray");
+				else if (status.value === "failed")
+					this.page.set_indicator(__("Save failed"), "red");
+				else this.page.clear_indicator();
 			},
-			{ deep: true }
+			{ deep: true, immediate: true }
 		);
 
 		watch(
