@@ -1,7 +1,7 @@
 """Provider registry + the `get_model` factory.
 
 `get_model` dispatches on the model name's prefix: a registered native provider (the
-mock or Codex subscription provider) wins; everything else falls through to
+mock, Codex, or OpenCode Go provider) wins; everything else falls through to
 `LiteLLMModel`, the broad API-key path. Native providers call `register_provider` at
 import time to claim a prefix.
 """
@@ -53,5 +53,6 @@ register_provider("mock", lambda name, **kwargs: MockModel())
 
 # Import native providers for their registration side effects.
 from flow_server.model.providers import codex as _codex  # noqa: E402, F401
+from flow_server.model.providers import opencode as _opencode  # noqa: E402, F401
 
 __all__ = ["Model", "LiteLLMModel", "MockModel", "get_model", "register_provider"]

@@ -19,8 +19,9 @@ on `127.0.0.1:1455`. For a headless environment, use `flowd login codex --manual
 paste the full callback URL.
 
 Built-in API-key providers are `openai`, `anthropic`, `gemini`, `openrouter`, `xai`,
-`groq`, `deepseek`, `mistral`, and `cerebras`. `codex` is the native ChatGPT
-subscription provider; use a model name such as `codex/gpt-5.4`.
+`groq`, `deepseek`, `mistral`, `cerebras`, and `opencode-go`. `codex` is the native
+ChatGPT subscription provider; use a model name such as `codex/gpt-5.4`.
+
 
 ## Resolution
 

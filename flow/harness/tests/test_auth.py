@@ -267,6 +267,19 @@ async def test_model_auth_missing_known_provider_has_clear_error(tmp_path, monke
 		await resolve_model_auth("openai/gpt-4.1", store)
 
 
+async def test_opencode_go_resolves_from_stored_key_and_env(tmp_path, monkeypatch):
+	store = CredentialStore(str(tmp_path / "c.json"))
+	monkeypatch.setenv("OPENCODE_API_KEY", "ambient-go")
+
+	store.set_api_key("opencode-go", "stored-go")
+	stored = await resolve_model_auth("opencode-go/grok-4.5", store)
+	store.delete("opencode-go")
+	ambient = await resolve_model_auth("opencode-go/grok-4.5", store)
+
+	assert (stored.api_key, stored.provider_id) == ("stored-go", "opencode-go")
+	assert (ambient.api_key, ambient.source) == ("ambient-go", "OPENCODE_API_KEY")
+
+
 async def test_explicit_credential_id_supports_custom_key(tmp_path):
 	store = CredentialStore(str(tmp_path / "c.json"))
 	store.set_api_key("my-proxy", "proxy-key")

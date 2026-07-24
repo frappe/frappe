@@ -1,3 +1,5 @@
+import pytest
+
 from flow_server.events import AssistantMessage, ToolCall
 from flow_server.model import (
 	_REGISTRY,
@@ -57,6 +59,46 @@ def test_get_model_falls_through_to_litellm():
 	assert model.name == "anthropic/claude-3-5-sonnet"
 	assert model._api_key == "sk-test"
 	assert model._api_base == "https://x"
+
+
+def test_opencode_go_routes_openai_family_to_chat_completions():
+	model = get_model("opencode-go/grok-4.5", api_key="sk-go")
+	assert isinstance(model, LiteLLMModel)
+	assert model.name == "openai/grok-4.5"
+	assert model._api_base == "https://opencode.ai/zen/go/v1"
+	assert model._api_key == "sk-go"
+
+
+def test_opencode_go_routes_anthropic_family_to_messages():
+	for name, expected in (
+		("opencode-go/minimax-m3", "anthropic/minimax-m3"),
+		("opencode-go/qwen3.7-max", "anthropic/qwen3.7-max"),
+	):
+		model = get_model(name, api_key="sk-go")
+		assert isinstance(model, LiteLLMModel)
+		assert model.name == expected
+		assert model._api_base == "https://opencode.ai/zen/go/v1/messages"
+
+
+def _api_base(name: str, api_base: str) -> str | None:
+	model = get_model(name, api_base=api_base)
+	assert isinstance(model, LiteLLMModel)
+	return model._api_base
+
+
+def test_opencode_go_honours_api_base_override():
+	assert _api_base("opencode-go/kimi-k3", "https://proxy.test/v1") == "https://proxy.test/v1"
+	assert (
+		_api_base("opencode-go/minimax-m3", "https://proxy.test/v1")
+		== "https://proxy.test/v1/messages"
+	)
+	# litellm appends /v1/messages itself when the base is not a versioned root.
+	assert _api_base("opencode-go/minimax-m3", "https://proxy.test") == "https://proxy.test"
+
+
+def test_opencode_go_rejects_bare_prefix():
+	with pytest.raises(ValueError, match="opencode-go/<model-id>"):
+		get_model("opencode-go")
 
 
 def test_register_provider_dispatch():

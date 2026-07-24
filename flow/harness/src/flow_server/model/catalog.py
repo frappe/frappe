@@ -33,6 +33,12 @@ PROVIDERS = (
 	ProviderSpec("mistral", "Mistral", ("mistral",), ("MISTRAL_API_KEY",)),
 	ProviderSpec("cerebras", "Cerebras", ("cerebras",), ("CEREBRAS_API_KEY",)),
 	ProviderSpec("codex", "OpenAI Codex subscription", ("codex",), auth_methods=("oauth",)),
+	ProviderSpec(
+		"opencode-go",
+		"OpenCode Go subscription",
+		("opencode-go",),
+		("OPENCODE_API_KEY",),
+	),
 )
 
 _BY_ID = {provider.id: provider for provider in PROVIDERS}
