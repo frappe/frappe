@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-19 10:02+0000\n"
-"PO-Revision-Date: 2026-07-21 13:55\n"
+"PO-Revision-Date: 2026-07-25 14:43\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -21210,7 +21210,7 @@ msgstr "فقط برای"
 #: frappe/core/doctype/role/role.js:357
 #: frappe/public/js/frappe/ui/permission_dialog.js:288
 msgid "Only if Creator"
-msgstr ""
+msgstr "فقط اگر ایجاد کننده"
 
 #: frappe/core/doctype/data_export/exporter.py:193
 msgid "Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish."
