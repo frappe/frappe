@@ -15,7 +15,7 @@ import re
 import uuid
 from tempfile import mkstemp
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from flow_server import config as server_config
 from flow_server.events import _Event, parse_event
@@ -41,8 +41,6 @@ class SessionConfig(BaseModel):
 		callback_token: Bearer sent to the client on callbacks (shared secret).
 		user_context: Opaque context passed back on callbacks.
 		credential_id: Named user-global credential; inferred from model prefix when absent.
-		api_key: Ephemeral provider key override. Accepted for compatibility, never persisted.
-		api_base: Provider base URL.
 		confirm_tools: Tools that pause for approval.
 		auto_approve: Unattended runs (triggers) skip approval.
 		cwd: Current working directory.
@@ -50,6 +48,8 @@ class SessionConfig(BaseModel):
 		max_output_tokens: Simple spend cap on output tokens.
 		stream: Consume the model as a token stream (vs a single response).
 	"""
+
+	model_config = ConfigDict(extra="forbid")
 
 	session_id: str | None = None
 	model: str = "mock"
@@ -60,8 +60,6 @@ class SessionConfig(BaseModel):
 	callback_token: str | None = None
 	user_context: dict = Field(default_factory=dict)
 	credential_id: str | None = None
-	api_key: str | None = Field(default=None, exclude=True)
-	api_base: str | None = None
 	confirm_tools: list[str] = Field(default_factory=list)
 	auto_approve: bool = False
 	cwd: str = "."
@@ -202,7 +200,10 @@ class SessionStore:
 		if not os.path.isfile(meta_path):
 			raise KeyError(sid)
 		with open(meta_path, encoding="utf-8") as f:
-			config = SessionConfig.model_validate(json.load(f))
+			raw_config = json.load(f)
+		raw_config.pop("api_key", None)
+		raw_config.pop("api_base", None)
+		config = SessionConfig.model_validate(raw_config)
 		session = Session(
 			sid,
 			config,

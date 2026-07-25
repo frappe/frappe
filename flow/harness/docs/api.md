@@ -78,7 +78,10 @@ Body: a `SessionConfig` (all fields optional; see below).
 `→ {"session_id", "running", "latest_seq", "config"}`. `404` if unknown.
 
 ### `POST /sessions/{sid}/run?wait=<bool>`
-Body: `{"message": "..."}`.
+Body: `{"message": "...", "model": "provider/model", "credential_id": "optional-name"}`.
+`model` and `credential_id` are optional; when supplied they become the session defaults
+for later turns. Provider keys, OAuth tokens, headers, and base URLs are not accepted by
+this endpoint and are resolved inside flow_server.
 - default (`wait` false): starts the run as a background task → `{"status": "started"}`.
   If a run is already active, the message is queued as steering → `{"status": "steered"}`.
 - `?wait=true`: blocks until the run ends → `{"reason", "output", "usage", "pending"}`
@@ -137,8 +140,6 @@ print(res["output"], res["reason"], res["usage"])
 | `callback_url` / `callback_token` | none | where/how client tools are dispatched |
 | `user_context` | `{}` | opaque data echoed on callbacks |
 | `credential_id` | inferred | named credential selected for the model |
-| `api_key` | none | ephemeral compatibility override; never persisted |
-| `api_base` | none | non-secret per-session model endpoint |
 | `confirm_tools` | `[]` | tools that pause for approval (overrides tool defaults) |
 | `auto_approve` | `false` | unattended runs skip approval |
 | `cwd` | `"."` | tool working dir (fenced by `ALLOWED_ROOTS`) |

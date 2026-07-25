@@ -128,16 +128,12 @@ async def _loop(
 		auth = await resolve_model_auth(
 			cfg.model,
 			session.credentials,
-			explicit_api_key=cfg.api_key,
 			credential_id=cfg.credential_id,
 		)
-		# OAuth providers own their endpoint. Allowing a session-level api_base to
-		# override it could send a bearer token to an attacker-controlled host.
-		api_base = auth.base_url if auth.is_oauth else cfg.api_base or auth.base_url
 		model = get_model(
 			cfg.model,
 			api_key=auth.api_key,
-			api_base=api_base,
+			api_base=auth.base_url,
 			headers=auth.headers,
 		)
 	server_tools = _server_tools(session)

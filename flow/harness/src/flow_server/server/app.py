@@ -18,23 +18,25 @@ from collections.abc import AsyncIterator
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from flow_server import agent
 from flow_server.session.store import Session, SessionConfig, SessionStore
 
 
 class RunRequest(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
 	message: str
-	# a turn may switch the session's model (and, since a different provider needs its own
-	# auth, its credentials); persisted so the choice sticks for later turns.
+	# A turn may switch the model or select another stored credential. Provider secrets
+	# and endpoints are resolved inside flow_server and are never run inputs.
 	model: str | None = None
 	credential_id: str | None = None
-	api_key: str | None = None
-	api_base: str | None = None
 
 
 class ResumeRequest(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
 	answers: dict[str, str]  # pending tool_call_id -> "Approve" | "Deny" | free text
 
 
@@ -127,19 +129,11 @@ def _apply_overrides(store: SessionStore, session: Session, req: RunRequest) -> 
 	model on a turn sticks for later turns (like Flow keeps a session's chosen model). Takes
 	effect on the next turn; a model can't be swapped mid-generation."""
 	changed = False
-	identity_changed = False
-	for field in ("model", "credential_id", "api_base"):
+	for field in ("model", "credential_id"):
 		value = getattr(req, field)
 		if value is not None and value != getattr(session.config, field):
 			setattr(session.config, field, value)
 			changed = True
-			identity_changed = identity_changed or field in {"model", "credential_id"}
-	if req.api_key is not None:
-		# Compatibility path for clients that inject a key. It stays in memory and is
-		# deliberately excluded from session metadata.
-		session.config.api_key = req.api_key
-	elif identity_changed:
-		session.config.api_key = None
 	if changed:
 		store.save_meta(session)
 

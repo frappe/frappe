@@ -1,3 +1,4 @@
+import json
 import os
 
 from flow_server.events import AssistantMessage, ToolCall, ToolResult, UserMessage
@@ -59,3 +60,18 @@ def test_store_create_and_reload(tmp_path):
 	assert reloaded.config.model == "mock"
 	assert reloaded.messages[0]["content"] == "remember me"
 	assert oct(os.stat(reloaded.log.path).st_mode & 0o777) == "0o600"
+
+
+def test_reload_discards_legacy_client_provider_auth(tmp_path):
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(model="mock"))
+	meta = tmp_path / "sessions" / f"{session.id}.meta.json"
+	config = json.loads(meta.read_text())
+	config["api_key"] = "legacy-secret"
+	config["api_base"] = "https://attacker.test"
+	meta.write_text(json.dumps(config))
+
+	reloaded = SessionStore(str(tmp_path)).get(session.id)
+
+	assert not hasattr(reloaded.config, "api_key")
+	assert not hasattr(reloaded.config, "api_base")

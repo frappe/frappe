@@ -63,16 +63,15 @@ state from disk). Durability lives here and nowhere else.
 `TextDelta` + `ToolCallStarted`, and every turn ends with a terminal `AssistantMessage`
 then a `Usage`. The loop consumes exactly this, whatever the provider underneath.
 
-Before model construction, `resolve_model_auth()` applies one consistent precedence:
-an ephemeral request key, then a stored provider credential, then the provider's
-standard environment variable. `get_model(name)` then dispatches on the model prefix:
+Before model construction, `resolve_model_auth()` selects a stored provider credential,
+falling back to the provider's standard environment variable. `get_model(name)` then
+dispatches on the model prefix:
 the keyless `mock` and native subscription `codex` providers have dedicated models;
 everything else falls through to `LiteLLMModel`.
 
 The credential store is user-global and type-tagged (`api_key` or `oauth`). Session
-metadata contains only an optional `credential_id`; raw request keys are memory-only.
-OAuth endpoints and headers override session `api_base`, preventing a bearer token from
-being redirected to a client-supplied host.
+metadata contains only an optional `credential_id`. Provider secrets, headers, and base
+URLs are resolved internally and cannot be supplied through session or run payloads.
 
 ## The agent loop (`agent/loop.py`) — the heart
 
