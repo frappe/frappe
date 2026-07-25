@@ -12,6 +12,7 @@ import asyncio
 from collections.abc import AsyncIterator, Callable, Coroutine
 from typing import Any
 
+from flow_server import config as server_config
 from flow_server.agent.loop import resume as _resume
 from flow_server.agent.loop import run as _run
 from flow_server.events import _Event
@@ -24,7 +25,7 @@ class Agent:
 		self,
 		config: SessionConfig | None = None,
 		*,
-		data_dir: str = ".flow-data",
+		data_dir: str = server_config.DATA_DIR,
 		**overrides: Any,
 	):
 		# `model=` may be a name string (goes to config, resolved via get_model) or a

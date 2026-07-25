@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import os
 
-DATA_DIR = os.environ.get("FLOW_SERVER_DATA_DIR", os.path.join(os.getcwd(), ".flow-server-data"))
+FLOW_HOME = os.path.expanduser("~/.flow")
+DEFAULT_DATA_DIR = os.path.join(FLOW_HOME, "server")
+DEFAULT_CREDENTIALS_PATH = os.path.join(FLOW_HOME, "credentials.json")
+DATA_DIR = os.path.expanduser(os.environ.get("FLOW_SERVER_DATA_DIR", DEFAULT_DATA_DIR))
 DEFAULT_MODEL = os.environ.get("FLOW_SERVER_MODEL", "mock")
 HOST = os.environ.get("FLOW_SERVER_HOST", "127.0.0.1")
 PORT = int(os.environ.get("FLOW_SERVER_PORT", "8787"))
@@ -19,8 +22,11 @@ REDIS_URL = os.environ.get("FLOW_SERVER_REDIS_URL") or None
 # may operate under. Empty (the default) = unrestricted (single-user dev). Enforced in
 # SessionStore.create so every session-creation path (HTTP, embedded, Flow) is fenced.
 ALLOWED_ROOTS = [p for p in os.environ.get("FLOW_SERVER_ALLOWED_ROOTS", "").split(os.pathsep) if p]
-# OAuth/subscription tokens (e.g. Codex). User-global, not per-project, so it lives in the
-# home dir rather than under DATA_DIR (which defaults to cwd). Written 0600.
-CREDENTIALS_PATH = os.environ.get(
-	"FLOW_SERVER_CREDENTIALS_PATH", os.path.expanduser("~/.flow-server/credentials.json")
+# API-key and OAuth credentials are user-global but independent of disposable daemon
+# session data. Deployments can move either path separately.
+CREDENTIALS_PATH = os.path.expanduser(
+	os.environ.get(
+		"FLOW_SERVER_CREDENTIALS_PATH",
+		DEFAULT_CREDENTIALS_PATH,
+	)
 )

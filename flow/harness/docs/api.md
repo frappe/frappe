@@ -12,14 +12,15 @@ from flow_server.agent import Agent
 ### Constructor
 
 ```python
-Agent(config: SessionConfig | None = None, *, data_dir=".flow-data", **overrides)
+Agent(config: SessionConfig | None = None, *, data_dir="~/.flow/server", **overrides)
 ```
 
 - Pass a `SessionConfig`, or pass its fields as keyword `**overrides`.
 - `model=` accepts a **name string** (resolved via `get_model`, e.g. `"openai/gpt-4o"`,
   `"mock"`) or a pre-built **`Model` instance** (injected directly — used by tests and
   embedders).
-- `data_dir` is where the durable log is written.
+- `data_dir` is where the durable log is written. It defaults to the user-global
+  `~/.flow/server`; pass an explicit path for isolated embedded instances.
 
 ### Methods — both are async generators yielding events
 

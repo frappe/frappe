@@ -62,6 +62,14 @@ def test_store_create_and_reload(tmp_path):
 	assert oct(os.stat(reloaded.log.path).st_mode & 0o777) == "0o600"
 
 
+def test_store_creates_private_state_directories(tmp_path):
+	data_dir = tmp_path / "state"
+	store = SessionStore(str(data_dir))
+
+	assert oct(os.stat(data_dir).st_mode & 0o777) == "0o700"
+	assert oct(os.stat(store.sessions_dir).st_mode & 0o777) == "0o700"
+
+
 def test_reload_discards_legacy_client_provider_auth(tmp_path):
 	store = SessionStore(str(tmp_path))
 	session = store.create(SessionConfig(model="mock"))
