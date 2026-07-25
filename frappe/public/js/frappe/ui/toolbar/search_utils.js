@@ -733,9 +733,9 @@ function hide_navbar_search_modal() {
 frappe.search.open_global_search_from_navbar_shortcut = function (e) {
 	const from_bar = ($("#navbar-search").val() || "").trim();
 	const dlg = frappe.searchdialog?.search;
-	if (dlg?.open_global_search_dialog) {
+	if (dlg?.toggle_global_search_dialog) {
 		hide_navbar_search_modal();
-		dlg.open_global_search_dialog(from_bar);
+		dlg.toggle_global_search_dialog(from_bar);
 	}
 	if (e) {
 		e.preventDefault();
