@@ -110,8 +110,8 @@ import httpx, json
 c = httpx.Client(base_url="http://127.0.0.1:8787", timeout=None)
 
 sid = c.post("/sessions", json={
-    "model": "gpt-4o", "tools": ["bash", "read_file", "edit", "grep"],
-    "cwd": "/proj", "confirm_tools": ["bash", "edit"],
+    "model": "gpt-4o", "tools": ["bash", "read_file", "write", "edit", "grep"],
+    "cwd": "/proj", "confirm_tools": ["bash", "write", "edit"],
 }).json()["session_id"]
 
 # fire-and-forget + stream (survives disconnect)
@@ -136,7 +136,7 @@ print(res["output"], res["reason"], res["usage"])
 | `session_id` | generated | client-provided id (must be `[A-Za-z0-9_-]{1,64}`) |
 | `model` | `"mock"` | name string; prefix selects the provider |
 | `system_prompt` | `"You are a helpful agent."` | |
-| `tools` | `["bash","read_file","edit","grep"]` | builtin tool names |
+| `tools` | `["bash","read_file","write","edit","grep"]` | builtin tool names |
 | `client_tools` | `[]` | schemas for tools the client runs (see [tools.md](tools.md)) |
 | `callback_url` / `callback_token` | none | where/how client tools are dispatched |
 | `user_context` | `{}` | opaque data echoed on callbacks |

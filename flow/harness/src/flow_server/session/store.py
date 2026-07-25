@@ -54,7 +54,7 @@ class SessionConfig(BaseModel):
 	session_id: str | None = None
 	model: str = "mock"
 	system_prompt: str = "You are a helpful agent."
-	tools: list[str] = Field(default_factory=lambda: ["bash", "read_file", "edit", "grep"])
+	tools: list[str] = Field(default_factory=lambda: ["bash", "read_file", "write", "edit", "grep"])
 	client_tools: list[dict] = Field(default_factory=list)
 	callback_url: str | None = None
 	callback_token: str | None = None
