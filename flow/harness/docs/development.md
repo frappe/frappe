@@ -60,7 +60,7 @@ docs/                  you are here
 | `FLOW_SERVER_MODEL` | `mock` | default model name |
 | `FLOW_SERVER_REDIS_URL` | none | if set, every event is also published to `harness:<sid>` |
 | `FLOW_SERVER_ALLOWED_ROOTS` | empty | `os.pathsep`-separated cwd fence (empty = unrestricted) |
-| `FLOW_SERVER_CREDENTIALS_PATH` | `~/.flow/credentials.json` | API-key/OAuth store (0600) |
+| `FLOW_SERVER_CREDENTIALS_PATH` | `~/.flow/server/credentials.json` | API-key/OAuth store (0600) |
 
 Cross-repo wire identifiers are intentionally kept as `harness:*` (Redis channel,
 `X-Harness-Token` header) — they're a contract shared with Flow's bridge.

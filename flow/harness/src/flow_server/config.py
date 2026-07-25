@@ -6,7 +6,7 @@ import os
 
 FLOW_HOME = os.path.expanduser("~/.flow")
 DEFAULT_DATA_DIR = os.path.join(FLOW_HOME, "server")
-DEFAULT_CREDENTIALS_PATH = os.path.join(FLOW_HOME, "credentials.json")
+DEFAULT_CREDENTIALS_PATH = os.path.join(DEFAULT_DATA_DIR, "credentials.json")
 DATA_DIR = os.path.expanduser(os.environ.get("FLOW_SERVER_DATA_DIR", DEFAULT_DATA_DIR))
 DEFAULT_MODEL = os.environ.get("FLOW_SERVER_MODEL", "mock")
 HOST = os.environ.get("FLOW_SERVER_HOST", "127.0.0.1")
@@ -22,8 +22,8 @@ REDIS_URL = os.environ.get("FLOW_SERVER_REDIS_URL") or None
 # may operate under. Empty (the default) = unrestricted (single-user dev). Enforced in
 # SessionStore.create so every session-creation path (HTTP, embedded, Flow) is fenced.
 ALLOWED_ROOTS = [p for p in os.environ.get("FLOW_SERVER_ALLOWED_ROOTS", "").split(os.pathsep) if p]
-# API-key and OAuth credentials are user-global but independent of disposable daemon
-# session data. Deployments can move either path separately.
+# API-key and OAuth credentials live beside the durable session directory. Deployments
+# can still use FLOW_SERVER_CREDENTIALS_PATH to place them elsewhere.
 CREDENTIALS_PATH = os.path.expanduser(
 	os.environ.get(
 		"FLOW_SERVER_CREDENTIALS_PATH",
