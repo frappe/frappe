@@ -6,6 +6,10 @@ from flow_server.session.log import SessionLog
 from flow_server.session.store import SessionConfig, SessionStore, _rebuild_messages
 
 
+def test_session_config_includes_all_builtin_tools_by_default():
+	assert SessionConfig().tools == ["bash", "read_file", "write", "edit", "grep"]
+
+
 def test_log_seq_and_replay(tmp_path):
 	log = SessionLog(str(tmp_path / "s.jsonl"))
 	assert log.append(UserMessage(content="hi")) == 1
