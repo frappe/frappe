@@ -1,7 +1,8 @@
 # Authentication
 
 flow_server owns user-global provider credentials. Clients select a model and may select
-a named credential, but do not need to transport a provider secret on every session.
+a named credential; provider secrets and endpoints never belong in session or run
+payloads.
 
 ## CLI
 
@@ -27,18 +28,17 @@ ChatGPT subscription provider; use a model name such as `codex/gpt-5.4`.
 
 For every run, authentication resolves in this order:
 
-1. An explicit request `api_key` (compatibility/ephemeral override).
-2. A stored provider credential (`api_key` or `oauth`).
-3. The provider's standard environment variable.
+1. A stored provider credential (`api_key` or `oauth`).
+2. The provider's standard environment variable.
 
 The provider is inferred from the model prefix. Set `credential_id` on a session to use
 a differently named credential, such as a key for a custom proxy. A stored credential
 owns that provider: refresh or type errors are surfaced and never silently fall back to
 another account.
 
-Explicit request keys are held in memory only. They are excluded from session metadata
-and disappear when the daemon restarts. Persistent credentials must go through
-`flowd login`.
+Clients send only `model` and, when needed, `credential_id`. API keys must go through
+`flowd login`; Codex tokens come from its OAuth flow. `api_key` and `api_base` are
+rejected on both session creation and run requests.
 
 ## Storage security
 

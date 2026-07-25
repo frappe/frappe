@@ -6,7 +6,8 @@ back to a client over HTTP. Frappe/Flow is just one client among many; the CLI i
 another; an embedding Python app is a third.
 
 The daemon is deliberately **client-neutral** — no host-specific logic leaks in. The
-only extensibility seam is `SessionConfig`, which each client sends per session.
+main extensibility seam is `SessionConfig`, while provider credentials and endpoints
+remain server-owned.
 
 ## Why a daemon with a durable log?
 
