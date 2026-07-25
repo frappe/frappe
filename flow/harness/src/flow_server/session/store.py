@@ -135,7 +135,14 @@ class SessionStore:
 	):
 		self.data_dir = data_dir
 		self.sessions_dir = os.path.join(data_dir, "sessions")
-		os.makedirs(self.sessions_dir, exist_ok=True)
+		data_dir_existed = os.path.isdir(self.data_dir)
+		os.makedirs(self.data_dir, mode=0o700, exist_ok=True)
+		if not data_dir_existed:
+			os.chmod(self.data_dir, 0o700)
+		sessions_dir_existed = os.path.isdir(self.sessions_dir)
+		os.makedirs(self.sessions_dir, mode=0o700, exist_ok=True)
+		if not sessions_dir_existed:
+			os.chmod(self.sessions_dir, 0o700)
 		self.event_sink = event_sink
 		self.allowed_roots = (
 			allowed_roots if allowed_roots is not None else server_config.ALLOWED_ROOTS

@@ -15,7 +15,7 @@ flowd logout openai
 ```
 
 API-key login prompts without echo and stores the key in
-`~/.flow-server/credentials.json`. Codex login uses OAuth PKCE and captures the redirect
+`~/.flow/server/credentials.json`. Codex login uses OAuth PKCE and captures the redirect
 on `127.0.0.1:1455`. For a headless environment, use `flowd login codex --manual` and
 paste the full callback URL.
 

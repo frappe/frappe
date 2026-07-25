@@ -51,7 +51,8 @@ flowd serve --port 8787
 ```
 
 Then talk HTTP (create a session, `POST /sessions/{id}/run`, `GET .../stream`). See
-[api.md](api.md).
+[api.md](api.md). Durable state defaults to `~/.flow/server`, independent of the
+directory where `flowd` is started.
 
 ## Documentation
 
