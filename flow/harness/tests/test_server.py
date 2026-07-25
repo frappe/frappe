@@ -2,11 +2,16 @@ import json
 
 from fastapi.testclient import TestClient
 
+from flow_server.model.credentials import CredentialStore
 from flow_server.server import create_app
 from flow_server.session.store import SessionStore
 
 
 def _client(tmp_path, **store_kw):
+	store_kw.setdefault(
+		"credential_store",
+		CredentialStore(str(tmp_path / "credentials.json")),
+	)
 	store = SessionStore(str(tmp_path / "data"), **store_kw)
 	return TestClient(create_app(store))
 
@@ -57,39 +62,34 @@ def test_create_prompt_wait_and_entries(tmp_path):
 def test_run_persists_model_override(tmp_path):
 	c = _client(tmp_path)
 	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
-	# a run may switch model (+ creds); both mock names stay offline via the mock provider
+	# A run may switch model and select a stored credential; both mock names stay offline.
 	r = c.post(
 		f"/sessions/{sid}/run",
 		params={"wait": "true"},
-		json={"message": "hi", "model": "mock/v2", "api_base": "http://provider"},
+		json={"message": "hi", "model": "mock/v2", "credential_id": "mock-profile"},
 	)
 	assert r.json()["reason"] == "done"
 	cfg = c.get(f"/sessions/{sid}").json()["config"]
 	assert cfg["model"] == "mock/v2"
-	assert cfg["api_base"] == "http://provider"
+	assert cfg["credential_id"] == "mock-profile"
 
 
-def test_api_key_override_is_never_persisted(tmp_path):
-	data_dir = tmp_path / "data"
-	store = SessionStore(str(data_dir))
-	c = TestClient(create_app(store))
-	response = c.post(
-		"/sessions",
-		json={"model": "mock", "cwd": str(tmp_path), "api_key": "session-secret"},
-	)
-	sid = response.json()["session_id"]
+def test_provider_secrets_and_endpoints_are_not_client_inputs(tmp_path):
+	c = _client(tmp_path)
+	for field, value in (("api_key", "secret"), ("api_base", "https://attacker.test")):
+		response = c.post(
+			"/sessions",
+			json={"model": "mock", "cwd": str(tmp_path), field: value},
+		)
+		assert response.status_code == 422
 
-	assert "api_key" not in response.json()["config"]
-	meta = data_dir / "sessions" / f"{sid}.meta.json"
-	assert "session-secret" not in meta.read_text()
-	assert oct(meta.stat().st_mode & 0o777) == "0o600"
-
-	c.post(
-		f"/sessions/{sid}/run",
-		params={"wait": "true"},
-		json={"message": "hello", "api_key": "run-secret"},
-	)
-	assert "run-secret" not in meta.read_text()
+	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
+	for field, value in (("api_key", "secret"), ("api_base", "https://attacker.test")):
+		response = c.post(
+			f"/sessions/{sid}/run",
+			json={"message": "hello", field: value},
+		)
+		assert response.status_code == 422
 
 
 def test_unknown_session_404(tmp_path):

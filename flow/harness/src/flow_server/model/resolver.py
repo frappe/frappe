@@ -17,28 +17,17 @@ class ResolvedModelAuth:
 	headers: dict[str, str] = field(default_factory=dict)
 	source: str | None = None
 	provider_id: str | None = None
-	is_oauth: bool = False
 
 
 async def resolve_model_auth(
 	model: str,
 	store: CredentialStore,
 	*,
-	explicit_api_key: str | None = None,
 	credential_id: str | None = None,
 ) -> ResolvedModelAuth:
-	"""Apply precedence: explicit key -> stored credential -> provider environment."""
+	"""Resolve a stored credential first, then the provider's environment."""
 	spec = get_provider(credential_id) if credential_id else provider_for_model(model)
 	provider_id = credential_id or (spec.id if spec else None)
-
-	if explicit_api_key:
-		if spec and "api_key" not in spec.auth_methods:
-			raise AuthError(f"Provider {spec.id!r} does not support API-key authentication")
-		return ResolvedModelAuth(
-			api_key=explicit_api_key,
-			source="request",
-			provider_id=provider_id,
-		)
 
 	if provider_id:
 		credential = store.get(provider_id)
@@ -60,7 +49,6 @@ async def resolve_model_auth(
 				headers=runtime.headers,
 				source="OAuth",
 				provider_id=provider_id,
-				is_oauth=True,
 			)
 
 	if spec:

@@ -242,19 +242,15 @@ def test_codex_runtime_auth_requires_account_id():
 
 # --- model auth resolution ------------------------------------------------
 
-async def test_model_auth_precedence(tmp_path, monkeypatch):
+async def test_model_auth_prefers_stored_key_over_environment(tmp_path, monkeypatch):
 	store = CredentialStore(str(tmp_path / "c.json"))
 	store.set_api_key("anthropic", "stored")
 	monkeypatch.setenv("ANTHROPIC_API_KEY", "ambient")
 
-	explicit = await resolve_model_auth(
-		"anthropic/claude-sonnet", store, explicit_api_key="request"
-	)
 	stored = await resolve_model_auth("anthropic/claude-sonnet", store)
 	store.delete("anthropic")
 	ambient = await resolve_model_auth("anthropic/claude-sonnet", store)
 
-	assert (explicit.api_key, explicit.source) == ("request", "request")
 	assert (stored.api_key, stored.source) == ("stored", "stored API key")
 	assert (ambient.api_key, ambient.source) == ("ambient", "ANTHROPIC_API_KEY")
 
