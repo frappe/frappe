@@ -76,7 +76,7 @@ jobs:
           git diff --exit-code yarn.lock
 
       - name: Cache cypress binary
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/Cypress
           key: ${{ runner.os }}-cypress
