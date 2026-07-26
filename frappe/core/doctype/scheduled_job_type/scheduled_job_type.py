@@ -165,7 +165,14 @@ class ScheduledJobType(Document):
 	def log_status(self, status):
 		# log file
 		frappe.logger("scheduler").info(f"Scheduled Job {status}: {self.method} for {frappe.local.site}")
-		self.update_scheduler_log(status)
+		try:
+			self.update_scheduler_log(status)
+		except Exception:
+			# never fail the job over its own logging
+			frappe.db.rollback()
+			frappe.logger("scheduler").error(
+				f"Could not update Scheduled Job Log for {self.method}", exc_info=True
+			)
 
 	def update_scheduler_log(self, status):
 		if not self.create_log:
@@ -173,6 +180,10 @@ class ScheduledJobType(Document):
 			self.db_set("last_execution", now_datetime(), update_modified=False)
 			frappe.db.commit()
 			return
+		if status == "Start":
+			# commit before logging, its hooks can fail and leave the job due forever
+			self.db_set("last_execution", now_datetime(), update_modified=False, commit=True)
+
 		if not self.scheduler_log:
 			self.scheduler_log = frappe.get_doc(
 				doctype="Scheduled Job Log", scheduled_job_type=self.name
@@ -182,8 +193,6 @@ class ScheduledJobType(Document):
 			self.scheduler_log.db_set("debug_log", "\n".join(frappe.debug_log))
 		if status == "Failed":
 			self.scheduler_log.db_set("details", frappe.get_traceback(with_context=True))
-		if status == "Start":
-			self.db_set("last_execution", now_datetime(), update_modified=False)
 		frappe.db.commit()
 
 	def get_queue_name(self):
