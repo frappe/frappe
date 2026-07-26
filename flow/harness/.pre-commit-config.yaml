@@ -1,4 +1,4 @@
-exclude: '.git'
+exclude: '^\.git/'
 default_stages: [pre-commit]
 default_install_hook_types: [pre-commit, commit-msg]
 fail_fast: false
