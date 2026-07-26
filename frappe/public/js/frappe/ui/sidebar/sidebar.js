@@ -1226,6 +1226,7 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	entity_from_route(route) {
+		if (route[0] && frappe.boot.page_info?.[route[0]]) return route[0];
 		switch (route.length) {
 			case 1:
 				return route[0];
