@@ -1,25 +1,24 @@
-// "My Workspaces" picker -- lets the user curate which workspaces appear in their workspace
-// selector, across apps. Two draggable areas: the left is a preview of the selector (their
-// chosen workspaces, reorderable); the right is the full pool of permitted workspaces, browsable
-// app-by-app, plus a group for the workspaces that aren't in any app. All data comes from
-// `frappe.boot`; only the selection is saved.
-
-// Sentinel app value for workspaces with no app. They're in no app's sidebar, so this group is
-// the only place the picker can offer them. Private and public ones sit together: once a
-// workspace is placed in an app, that's what decides where it shows up -- not whether it's
-// private -- so "in an app or not" is the split that matters here.
-const UNMOUNTED_GROUP = "__unmounted__";
-
-frappe.ui.WorkspacePicker = class WorkspacePicker {
+// Dock manager -- lets the user curate the workspace dock (rail) for the app they're currently
+// in: which of that app's workspaces appear on it, and in what order. Two draggable areas: the
+// left is a preview of the dock (their chosen workspaces, reorderable); the right is the rest of
+// the app's workspaces, ready to drag in.
+//
+// Scoped to one app on purpose -- a dock belongs to an app, so there's nothing to choose between
+// here and no app switcher. Workspaces in other apps are managed from those apps' docks;
+// workspaces in no app at all appear on no dock, and are placed from Manage Workspaces.
+//
+// All data comes from `frappe.boot`; only the selection is saved.
+frappe.ui.DockManager = class DockManager {
 	constructor() {
 		this.make();
 	}
 
 	make() {
+		this.app = frappe.current_app;
 		this.selection = this.initial_selection();
 
 		this.dialog = new frappe.ui.Dialog({
-			title: __("Workspaces"),
+			title: this.app ? __("Manage {0} Dock", [__(this.app.app_title)]) : __("Manage Dock"),
 			size: "extra-large",
 			fields: [{ fieldtype: "HTML", fieldname: "picker" }],
 			primary_action_label: __("Save"),
@@ -31,14 +30,21 @@ frappe.ui.WorkspacePicker = class WorkspacePicker {
 		this.dialog.show();
 	}
 
-	// Start from the user's saved selection; if they have none, seed it with the current app's
-	// workspaces (what the selector shows by default) so they can trim from there.
+	// Every workspace this app's dock can show, in the server's order.
+	app_workspaces() {
+		return ((this.app && this.app.workspaces) || []).filter((name) => this.has_meta(name));
+	}
+
+	// The user's curated picks for this app, in their order. `User.workspaces` is a single flat
+	// list across every app, so this app's picks are the ones naming its workspaces. Nothing
+	// curated for this app yet -> start from everything it offers (what the dock shows by
+	// default), so the user trims rather than builds from scratch.
 	initial_selection() {
-		let sel = (frappe.boot.user_workspaces || []).slice();
-		if (!sel.length) {
-			sel = ((frappe.current_app && frappe.current_app.workspaces) || []).slice();
-		}
-		return sel.filter((name) => this.has_meta(name));
+		const app_workspaces = this.app_workspaces();
+		const curated = (frappe.boot.user_workspaces || []).filter((name) =>
+			app_workspaces.includes(name)
+		);
+		return curated.length ? curated : app_workspaces;
 	}
 
 	has_meta(name) {
@@ -51,18 +57,18 @@ frappe.ui.WorkspacePicker = class WorkspacePicker {
 
 	render() {
 		this.$body.html(`
-			<div class="workspace-picker">
+			<div class="dock-manager">
 				<div class="ws-pane ws-pane-selection">
 					<div class="ws-pane-head">
-						<span>${__("Your workspaces")}</span>
-						<button class="ws-clear-all btn btn-ghost">${__("Clear")}</button>
+						<span>${__("On the dock")}</span>
+						<button class="ws-clear-all btn btn-ghost">${__("Reset")}</button>
 					</div>
-											<div class="ws-pane-sub">${__("Workspaces shown in your sidebar switcher. Drag to reorder.")}</div>
+					<div class="ws-pane-sub">${__("Drag to reorder. Reset brings all of them back.")}</div>
 					<div class="ws-list ws-selection"></div>
 				</div>
 				<div class="ws-pane ws-pane-pool">
-					<div class="ws-pane-head">${__("All workspaces")}</div>
-					<div class="ws-app-picker"></div>
+					<div class="ws-pane-head">${__("Not on the dock")}</div>
+					<div class="ws-pane-sub">${__("Drag one over to add it.")}</div>
 					<div class="ws-list ws-pool"></div>
 				</div>
 			</div>
@@ -73,58 +79,19 @@ frappe.ui.WorkspacePicker = class WorkspacePicker {
 
 		this.$body.find(".ws-clear-all").on("click", () => this.clear_all());
 
-		this.render_app_picker();
 		this.render_selection();
 		this.render_pool();
 		this.setup_selection_sortable();
 		this.setup_pool_sortable();
 	}
 
+	// An empty selection isn't stored as "an empty dock": the dock falls back to the app's full
+	// list when the user has curated nothing for it, so clearing is a reset to default.
 	clear_all() {
 		if (!this.selection.length) return;
 		this.selection = [];
 		this.render_selection();
 		this.render_pool();
-	}
-
-	render_app_picker() {
-		// only apps that expose workspaces are worth listing
-		this.apps = (frappe.boot.app_data || []).filter((a) => (a.workspaces || []).length);
-		this.current_app_name =
-			(frappe.current_app && frappe.current_app.app_name) ||
-			(this.apps[0] && this.apps[0].app_name);
-
-		let options = this.apps
-			.map(
-				(a) =>
-					`<option value="${frappe.utils.escape_html(a.app_name)}" ${
-						a.app_name === this.current_app_name ? "selected" : ""
-					}>${frappe.utils.escape_html(a.app_title)}</option>`
-			)
-			.join("");
-
-		// offer the workspaces that aren't in any app as their own group
-		if (this.get_unmounted_workspaces().length) {
-			options += `<option value="${UNMOUNTED_GROUP}" ${
-				this.current_app_name === UNMOUNTED_GROUP ? "selected" : ""
-			}>${__("Not in any app")}</option>`;
-		}
-
-		let $picker = this.$body.find(".ws-app-picker");
-		$picker.html(`<select class="form-control">${options}</select>`);
-		$picker.find("select").on("change", (e) => {
-			this.current_app_name = e.target.value;
-			this.render_pool();
-			this.setup_pool_sortable();
-		});
-	}
-
-	// workspaces (private or public) that aren't in any app, by name -- the ones no app's
-	// sidebar lists
-	get_unmounted_workspaces() {
-		return Object.values(frappe.workspaces || {})
-			.filter((ws) => !ws.app && !ws.standard)
-			.map((ws) => ws.name);
 	}
 
 	render_selection() {
@@ -138,18 +105,19 @@ frappe.ui.WorkspacePicker = class WorkspacePicker {
 		this.selection.forEach((name) => this.$selection.append(this.selection_item(name)));
 	}
 
+	// The pool is the app's workspaces that aren't on the dock yet -- everything droppable in one
+	// place, with nothing to filter between.
 	render_pool() {
-		let names;
-		if (this.current_app_name === UNMOUNTED_GROUP) {
-			names = this.get_unmounted_workspaces();
-		} else {
-			let app = this.apps.find((a) => a.app_name === this.current_app_name);
-			names = (app && app.workspaces) || [];
-		}
+		const names = this.app_workspaces().filter((name) => !this.selection.includes(name));
+
 		this.$pool.empty();
-		names
-			.filter((name) => this.has_meta(name))
-			.forEach((name) => this.$pool.append(this.pool_item(name)));
+		if (!names.length) {
+			this.$pool.append(
+				`<div class="ws-empty text-muted">${__("Everything is on the dock")}</div>`
+			);
+			return;
+		}
+		names.forEach((name) => this.$pool.append(this.pool_item(name)));
 	}
 
 	item(name, cls) {
@@ -182,9 +150,7 @@ frappe.ui.WorkspacePicker = class WorkspacePicker {
 	}
 
 	pool_item(name) {
-		// already-chosen workspaces are shown disabled (can't be added twice)
-		let selected = this.selection.includes(name);
-		return this.item(name, "ws-pool-item" + (selected ? " is-selected" : ""));
+		return this.item(name, "ws-pool-item");
 	}
 
 	setup_selection_sortable() {
@@ -212,7 +178,6 @@ frappe.ui.WorkspacePicker = class WorkspacePicker {
 			group: { name: "ws", pull: "clone", put: false },
 			sort: false,
 			animation: 150,
-			filter: ".is-selected",
 		});
 	}
 
@@ -228,12 +193,20 @@ frappe.ui.WorkspacePicker = class WorkspacePicker {
 
 	async save() {
 		this.sync_order();
+
+		// `User.workspaces` is one flat list across every app, but a dock belongs to an app --
+		// so replace only this app's entries and leave every other app's curation untouched.
+		const app_workspaces = new Set(this.app_workspaces());
+		const other_apps = (frappe.boot.user_workspaces || []).filter(
+			(name) => !app_workspaces.has(name)
+		);
+
 		await frappe.xcall("frappe.desk.desktop.save_workspace_preferences", {
-			workspaces: JSON.stringify(this.selection),
+			workspaces: JSON.stringify([...other_apps, ...this.selection]),
 		});
 		this.dialog.hide();
-		frappe.show_alert({ message: __("Workspaces updated"), indicator: "green" });
-		// reload so the sidebar selector reflects the new preference
+		frappe.show_alert({ message: __("Dock updated"), indicator: "green" });
+		// reload so the dock reflects the new preference
 		setTimeout(() => location.reload(), 600);
 	}
 };

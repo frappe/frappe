@@ -548,10 +548,10 @@ frappe.ui.Sidebar = class Sidebar {
 				},
 				{
 					name: "workspace-selector",
-					label: __("Manage Workspaces"),
+					label: __("Manage Dock"),
 					icon: "monitor",
 					onClick: function () {
-						new frappe.ui.WorkspacePicker();
+						new frappe.ui.DockManager();
 					},
 				},
 				...frappe.boot.navbar_settings.settings_dropdown.map((item) => ({
