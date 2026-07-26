@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: 24
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.14'
       - name: Set up bench and build assets
