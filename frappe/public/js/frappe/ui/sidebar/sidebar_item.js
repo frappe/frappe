@@ -102,6 +102,7 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		);
 		$(this.container).append(this.wrapper);
 <<<<<<< HEAD
+<<<<<<< HEAD
 		this.setup_editing_controls();
 =======
 
@@ -113,6 +114,18 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 			});
 		}
 >>>>>>> e5d5a4290c (fix(mobile): close sidebar overlay when a link item is selected)
+=======
+		this.setup_click();
+	}
+
+	setup_click() {
+		if (!this.path) return;
+		this.wrapper.find(".item-anchor").on("click", () => {
+			if (frappe.is_mobile()) {
+				frappe.app.sidebar.close();
+			}
+		});
+>>>>>>> e8d0009972 (fix(sidebar): close mobile sidebar on link click, fix duplicate click bindings)
 	}
 	set_suffix() {
 		if (this.item.suffix) {
@@ -372,9 +385,9 @@ frappe.ui.sidebar_item.TypeSidebarItemGroup = class SpacerItem extends (
 	constructor(item, items) {
 		super(item);
 		this.title = frappe.app.sidebar.workspace_title;
-		this.setup_click();
 	}
 
+	// overrides TypeLink.setup_click(), invoked once via the base class's make()
 	setup_click() {
 		const me = this;
 		this.wrapper.on("click", function () {
@@ -424,9 +437,9 @@ frappe.ui.sidebar_item.TypeButton = class SidebarButton extends frappe.ui.sideba
 		this.item.id && this.wrapper.attr("id", this.item.id);
 		this.item.class && this.wrapper.attr("class", this.item.class);
 		this.wrapper.attr("title", this.item.label);
-		this.setup_click();
 	}
 
+	// overrides TypeLink.setup_click(), invoked once via the base class's make()
 	setup_click() {
 		const me = this;
 		if (this.item.onClick) {
