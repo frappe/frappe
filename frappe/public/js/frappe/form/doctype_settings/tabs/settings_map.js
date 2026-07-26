@@ -134,6 +134,7 @@ function render_input($control, group, field) {
 		control.df.read_only = locked ? 1 : 0;
 		control.refresh();
 	};
+	control.tooltip && control.tooltip.remove();
 	control.set_value(field.value);
 	control.refresh();
 }
