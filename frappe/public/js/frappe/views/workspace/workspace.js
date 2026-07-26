@@ -69,6 +69,25 @@ frappe.views.Workspace = class Workspace {
 			this.sidebar.setup(this._page.name);
 		}
 	}
+
+	// The apps a workspace can be mounted to (see `get_mountable_apps`), memoised for the life of
+	// the view -- the New Workspace dialog, the Manage Workspaces panel and the "not on any dock"
+	// prompt all need the same list, and the installed apps don't change under us.
+	get_mountable_apps() {
+		if (!this._mountable_apps) {
+			this._mountable_apps = frappe
+				.xcall("frappe.desk.doctype.workspace.workspace.get_mountable_apps")
+				.then((apps) => apps || []);
+		}
+		return this._mountable_apps;
+	}
+
+	// `app` is stored as the app's name ("erpnext") but should read as its title ("ERPNext"), so
+	// the Select gets {value, label} options rather than bare strings.
+	app_select_options(apps) {
+		return apps.map((app) => ({ value: app.app_name, label: app.app_title }));
+	}
+
 	prepare_container() {
 		this.body = this.wrapper.find(".layout-main-section");
 		this.$page = $(`<div class="editor-js-container"></div>`).appendTo(this.body);
@@ -258,6 +277,7 @@ frappe.views.Workspace = class Workspace {
 			this.content = current_page.content;
 			this.content && this.add_custom_cards_in_content();
 			this.content && this.add_hidden_notice_in_content(current_page);
+			this.add_mount_notice(current_page);
 
 			$(".item-anchor").addClass("disable-click");
 
@@ -362,6 +382,81 @@ frappe.views.Workspace = class Workspace {
 		});
 	}
 
+	// A workspace with no `app` is mounted to no dock, so it appears in no app's sidebar and is
+	// only reachable through global search or Manage Workspaces. Prompt whoever lands on it --
+	// with the action if they can mount it themselves, otherwise with who to ask.
+	//
+	// Rendered as a banner above the editor rather than as a content block (the route
+	// add_hidden_notice_in_content takes) because it carries an action button, and because it
+	// must never be mistaken for part of the workspace's saved content.
+	add_mount_notice(page) {
+		this.body.find(".workspace-mount-notice").remove();
+
+		// standard workspaces are mounted by the app that ships them, via their module
+		if (!page || page.app || page.standard || page.type !== "Workspace") return;
+
+		// mirrors `can_edit_workspace` on the server: a Workspace Manager may mount anything,
+		// anyone may mount their own private workspace
+		const can_mount =
+			this.has_access || (!page.public && page.for_user === frappe.session.user);
+
+		const $notice = frappe.ui.alert({
+			theme: "amber",
+			css_class: "workspace-mount-notice",
+			title: __("This workspace isn't in any app's sidebar"),
+			description: can_mount
+				? __("Add it to an app so it shows up in the sidebar and is easy to get back to.")
+				: __(
+						"It can only be found through search. Ask a Workspace Manager to add it to an app."
+				  ),
+			footer: can_mount
+				? () =>
+						$(
+							`<button class="btn btn-secondary btn-sm">${__("Add to app")}</button>`
+						).on("click", () => this.prompt_mount_workspace(page))
+				: undefined,
+		});
+
+		$notice.insertBefore(this.body.find(".editor-js-container"));
+	}
+
+	// Ask which app to mount `page` to, then mount it and refresh the desk in place.
+	async prompt_mount_workspace(page) {
+		const apps = await this.get_mountable_apps();
+		const d = new frappe.ui.Dialog({
+			title: __("Add {0} to an app", [__(page.title)]),
+			fields: [
+				{
+					label: __("App"),
+					fieldtype: "Select",
+					fieldname: "app",
+					reqd: 1,
+					options: this.app_select_options(apps),
+					default: frappe.current_app && frappe.current_app.app_name,
+					description: __("Which app's sidebar this workspace appears in"),
+				},
+			],
+			primary_action_label: __("Add"),
+			primary_action: (values) => {
+				d.hide();
+				frappe.call({
+					method: "frappe.desk.doctype.workspace.workspace.mount_workspace",
+					args: { name: page.name, app: values.app },
+					freeze: true,
+					callback: (r) => {
+						if (!r.message) return;
+						this.apply_manager_changes(r.message);
+						frappe.show_alert({
+							message: __("Added {0} to {1}", [__(page.title), __(values.app)]),
+							indicator: "green",
+						});
+					},
+				});
+			},
+		});
+		d.show();
+	}
+
 	open_workspace_manager(current_page) {
 		// Two-pane manager: the list of workspaces the user can manage on the left, the
 		// selected workspace's access / appearance settings on the right. Replaces the
@@ -378,12 +473,18 @@ frappe.views.Workspace = class Workspace {
 				const manageable = r.message || [];
 				if (!manageable.length) return;
 
-				// Standard = public app-shipped, Custom = public but user-created,
-				// Private = per-user workspaces.
+				// "Not in any app" first -- those workspaces are on no dock, so this is the
+				// list to triage. Then Standard = public app-shipped, Custom = public but
+				// user-created, Private = per-user workspaces.
+				const unmounted = (p) => !p.app && !p.standard;
 				const groups = [
+					{ label: __("Not in any app"), filter: unmounted },
 					{ label: __("Standard"), filter: (p) => p.public && p.standard },
-					{ label: __("Custom"), filter: (p) => p.public && !p.standard },
-					{ label: __("Private"), filter: (p) => !p.public },
+					{
+						label: __("Custom"),
+						filter: (p) => p.public && !p.standard && !unmounted(p),
+					},
+					{ label: __("Private"), filter: (p) => !p.public && !unmounted(p) },
 				];
 				const tabs = [];
 				groups.forEach(({ label, filter }) => {
@@ -420,47 +521,45 @@ frappe.views.Workspace = class Workspace {
 		};
 	}
 
-	render_workspace_manager_panel(panel, page) {
+	async render_workspace_manager_panel(panel, page) {
 		panel.set_header({ title: __(page.title) });
 		panel.body.html(`<div class="text-muted">${__("Loading...")}</div>`);
 
-		frappe
-			.call({
-				method: "frappe.desk.doctype.workspace.workspace.get_workspace_settings",
-				args: { name: page.name },
-			})
-			.then((r) => {
-				const settings = r.message;
-				if (!settings) return;
+		const [settings, apps] = await Promise.all([
+			frappe.xcall("frappe.desk.doctype.workspace.workspace.get_workspace_settings", {
+				name: page.name,
+			}),
+			this.get_mountable_apps(),
+		]);
+		if (!settings) return;
 
-				const actions = [];
-				if (!settings.standard) {
-					actions.push({
-						label: __("Delete"),
-						class: "btn-danger",
-						click: () => this.delete_workspace_from_manager(page),
-					});
-				}
-				actions.push({
-					label: __("Save"),
-					primary: true,
-					click: (p) => this.save_workspace_from_manager(p, settings),
-				});
-
-				panel.set_view({
-					title: __(settings.title),
-					description: settings.standard
-						? __(
-								"A standard workspace is shipped by the app; changes are saved as customizations."
-						  )
-						: __("Control who can see this workspace and how it appears."),
-					actions,
-					fields: this.workspace_manager_fields(settings),
-				});
+		const actions = [];
+		if (!settings.standard) {
+			actions.push({
+				label: __("Delete"),
+				class: "btn-danger",
+				click: () => this.delete_workspace_from_manager(page),
 			});
+		}
+		actions.push({
+			label: __("Save"),
+			primary: true,
+			click: (p) => this.save_workspace_from_manager(p, settings),
+		});
+
+		panel.set_view({
+			title: __(settings.title),
+			description: settings.standard
+				? __(
+						"A standard workspace is shipped by the app; changes are saved as customizations."
+				  )
+				: __("Control who can see this workspace and how it appears."),
+			actions,
+			fields: this.workspace_manager_fields(settings, apps),
+		});
 	}
 
-	workspace_manager_fields(settings) {
+	workspace_manager_fields(settings, apps) {
 		const access_to_label = {
 			private: ACCESS_PRIVATE,
 			group: ACCESS_GROUP,
@@ -491,6 +590,19 @@ frappe.views.Workspace = class Workspace {
 				description: settings.standard
 					? __("The title of a standard workspace is managed by the app.")
 					: "",
+			},
+			{
+				label: __("App"),
+				fieldname: "app",
+				fieldtype: "Select",
+				options: this.app_select_options(apps || []),
+				default: settings.app,
+				// a standard workspace's app follows its module, and there's no per-site
+				// override to record a different one in
+				read_only: settings.standard ? 1 : 0,
+				description: settings.standard
+					? __("A standard workspace stays in the app that ships it.")
+					: __("Which app's sidebar this workspace appears in"),
 			},
 			{
 				label: __("Icon"),
@@ -550,6 +662,8 @@ frappe.views.Workspace = class Workspace {
 				icon: values.icon,
 				access,
 				roles,
+				// read-only for standard workspaces, so this only ever moves a custom one
+				app: values.app,
 			},
 			freeze: true,
 			callback: (r) => {
@@ -589,11 +703,16 @@ frappe.views.Workspace = class Workspace {
 		this.workspaces = frappe.boot.workspaces.pages;
 		this.setup_pages(frappe.boot.workspaces.pages);
 		frappe.boot.workspace_sidebar_item = message.sidebar_items;
+		// The dock is app-scoped: it lists `app_data[app].workspaces`. A workspace that just
+		// changed app (or gained one) only moves docks once this mapping is swapped in.
+		if (message.app_data) frappe.boot.app_data = message.app_data;
 		this.reload();
 		// reload() re-derives the current page synchronously; re-render its sidebar so a rename
 		// or visibility change is reflected in the shell.
 		if (frappe.app.sidebar && this._page) {
 			frappe.app.sidebar.setup(this._page.name);
+			// ...and re-resolve the app context + dock, which `setup` leaves alone
+			frappe.app.sidebar.refresh();
 		}
 	}
 
@@ -703,9 +822,12 @@ frappe.views.Workspace = class Workspace {
 		);
 	}
 
-	initialize_new_page() {
+	async initialize_new_page() {
 		var me = this;
 		this.get_parent_pages();
+		// A workspace with no app lands on no dock, so ask for it up front rather than let the
+		// workspace be created stranded and rely on the "not on any dock" prompt to rescue it.
+		const apps = await this.get_mountable_apps();
 		const d = new frappe.ui.Dialog({
 			title: __("New Workspace"),
 			fields: [
@@ -774,6 +896,15 @@ frappe.views.Workspace = class Workspace {
 					},
 				},
 				{
+					label: __("App"),
+					fieldtype: "Select",
+					fieldname: "app",
+					reqd: 1,
+					options: this.app_select_options(apps),
+					default: frappe.current_app && frappe.current_app.app_name,
+					description: __("Which app's sidebar this workspace appears in"),
+				},
+				{
 					label: __("Icon"),
 					fieldtype: "Icon",
 					fieldname: "icon",
@@ -837,6 +968,8 @@ frappe.views.Workspace = class Workspace {
 					icon: values.icon,
 					roles: values.access === ACCESS_GROUP ? values.roles || [] : [],
 					parent_page: values.parent || "",
+					// the app whose dock lists this workspace
+					app: values.app,
 					is_editable: true,
 					selected: true,
 					type: values.type,

@@ -1,14 +1,14 @@
 // "My Workspaces" picker -- lets the user curate which workspaces appear in their workspace
 // selector, across apps. Two draggable areas: the left is a preview of the selector (their
 // chosen workspaces, reorderable); the right is the full pool of permitted workspaces, browsable
-// app-by-app (plus a "Private" group for the user's own workspaces and a "Custom" group for
-// public workspaces that belong to no app). All data comes from `frappe.boot`; only the
-// selection is saved.
+// app-by-app, plus a group for the workspaces that aren't in any app. All data comes from
+// `frappe.boot`; only the selection is saved.
 
-// sentinel app value for the user's private (`for_user`) workspaces in the pool dropdown
-const PRIVATE_GROUP = "__private__";
-// sentinel app value for public custom workspaces that belong to no app
-const CUSTOM_GROUP = "__custom__";
+// Sentinel app value for workspaces with no app. They're in no app's sidebar, so this group is
+// the only place the picker can offer them. Private and public ones sit together: once a
+// workspace is placed in an app, that's what decides where it shows up -- not whether it's
+// private -- so "in an app or not" is the split that matters here.
+const UNMOUNTED_GROUP = "__unmounted__";
 
 frappe.ui.WorkspacePicker = class WorkspacePicker {
 	constructor() {
@@ -103,18 +103,11 @@ frappe.ui.WorkspacePicker = class WorkspacePicker {
 			)
 			.join("");
 
-		// offer public app-less custom workspaces as their own group
-		if (this.get_custom_workspaces().length) {
-			options += `<option value="${CUSTOM_GROUP}" ${
-				this.current_app_name === CUSTOM_GROUP ? "selected" : ""
-			}>${__("Custom")}</option>`;
-		}
-
-		// offer the user's private workspaces as their own group
-		if (this.get_private_workspaces().length) {
-			options += `<option value="${PRIVATE_GROUP}" ${
-				this.current_app_name === PRIVATE_GROUP ? "selected" : ""
-			}>${__("Private")}</option>`;
+		// offer the workspaces that aren't in any app as their own group
+		if (this.get_unmounted_workspaces().length) {
+			options += `<option value="${UNMOUNTED_GROUP}" ${
+				this.current_app_name === UNMOUNTED_GROUP ? "selected" : ""
+			}>${__("Not in any app")}</option>`;
 		}
 
 		let $picker = this.$body.find(".ws-app-picker");
@@ -126,17 +119,11 @@ frappe.ui.WorkspacePicker = class WorkspacePicker {
 		});
 	}
 
-	// the user's own private (`for_user`) workspaces, by name
-	get_private_workspaces() {
+	// workspaces (private or public) that aren't in any app, by name -- the ones no app's
+	// sidebar lists
+	get_unmounted_workspaces() {
 		return Object.values(frappe.workspaces || {})
-			.filter((ws) => !ws.public && ws.for_user === frappe.session.user)
-			.map((ws) => ws.name);
-	}
-
-	// public custom (user-created, non-standard) workspaces that belong to no app, by name
-	get_custom_workspaces() {
-		return Object.values(frappe.workspaces || {})
-			.filter((ws) => ws.public && !ws.standard && !ws.app)
+			.filter((ws) => !ws.app && !ws.standard)
 			.map((ws) => ws.name);
 	}
 
@@ -153,10 +140,8 @@ frappe.ui.WorkspacePicker = class WorkspacePicker {
 
 	render_pool() {
 		let names;
-		if (this.current_app_name === PRIVATE_GROUP) {
-			names = this.get_private_workspaces();
-		} else if (this.current_app_name === CUSTOM_GROUP) {
-			names = this.get_custom_workspaces();
+		if (this.current_app_name === UNMOUNTED_GROUP) {
+			names = this.get_unmounted_workspaces();
 		} else {
 			let app = this.apps.find((a) => a.app_name === this.current_app_name);
 			names = (app && app.workspaces) || [];

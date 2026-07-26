@@ -241,12 +241,9 @@ DEFAULT_APP_SEQUENCE_ID = 100
 def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_user_workspaces
 
-	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
-	# Companion apps pin their workspaces into a host app's dock (rail) via `add_to_workspace_dock`,
-	# instead of taking an apps-screen slot of their own. Resolved once, merged per host app below.
-	rail_map = get_app_rail_map()
-	# ...and their own workspaces resolve their app context (dock + header) to that host app, so a
-	# companion app appears to live inside the host's rail rather than flipping to a shell of its own.
+	# A companion app's workspaces resolve their app context (dock + header) to the host app they
+	# were pinned into via `add_to_workspace_dock`, so the companion appears to live inside the
+	# host's rail rather than flipping the desk to a shell of its own.
 	bootinfo.app_rail_host = get_app_rail_host_map()
 	# The user's curated workspace selection (`User.workspaces`), ordered. Kept separate from
 	# `bootinfo.workspaces` (which holds every permitted workspace link) so the workspace selector
@@ -255,7 +252,26 @@ def load_desktop_data(bootinfo):
 	bootinfo.workspace_sidebar_item = get_sidebar_items()
 	bootinfo.default_workspace_map = build_default_workspace_map(bootinfo.workspace_sidebar_item)
 	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()
-	bootinfo.app_data = []
+	bootinfo.app_data = get_app_data([d.name for d in bootinfo.workspaces.get("pages")])
+
+
+def get_app_data(allowed_pages: list[str]) -> list[dict]:
+	"""The apps the desk knows about, each with the workspaces that belong to it.
+
+	This is what backs the apps (desktop) screen and the workspace dock: the dock lists
+	`app_data[app].workspaces` for whichever app is in context. Kept as its own function so
+	anything that re-mounts a workspace can hand the client a fresh copy without duplicating
+	the grouping rules (see `mount_workspace`).
+
+	`allowed_pages` is the set of workspace names the user may see -- `bootinfo.workspaces.pages`,
+	i.e. every public workspace they're permitted plus their own private ones.
+	"""
+	app_data = []
+
+	# Companion apps pin their workspaces into a host app's dock (rail) via `add_to_workspace_dock`,
+	# instead of taking an apps-screen slot of their own. Resolved once, merged per host app below.
+	rail_map = get_app_rail_map()
+	app_rail_host = get_app_rail_host_map()
 
 	Workspace = frappe.qb.DocType("Workspace")
 	Module = frappe.qb.DocType("Module Def")
@@ -274,7 +290,7 @@ def load_desktop_data(bootinfo):
 				# labelled (e.g. the sidebar header subtitle) instead of falling back to the user's
 				# name. on_apps_screen stays False so it never shows on the apps screen, and an
 				# empty `workspaces` keeps the desk-side lookups from breaking.
-				bootinfo.app_data.append(
+				app_data.append(
 					dict(
 						on_apps_screen=False,
 						sequence_id=app_info.get("sequence_id") or DEFAULT_APP_SEQUENCE_ID,
@@ -294,9 +310,14 @@ def load_desktop_data(bootinfo):
 
 		# A workspace belongs to this app if its module is the app's (standard, app-shipped
 		# workspaces) or its `app` field points at it (custom workspaces have no module). Use a
-		# left join so module-less custom workspaces aren't dropped, and keep only public ones --
-		# private workspaces are surfaced separately by the selector's private listing. Ordered by
-		# `sequence_id` so the dock lists them in the workspace record's configured order.
+		# left join so module-less custom workspaces aren't dropped. Ordered by `sequence_id` so
+		# the dock lists them in the workspace record's configured order.
+		#
+		# Private workspaces are included on the same footing as public ones: a private workspace
+		# mounted to an app belongs on that app's dock, and nowhere else. Restricting to the
+		# session user is belt-and-braces -- `allowed_pages` already covers it, since
+		# `get_workspaces()` only ever extends its page list with the user's *own* private
+		# workspaces -- but it keeps the query honest on its own terms.
 		workspaces = [
 			r[0]
 			for r in (
@@ -305,7 +326,8 @@ def load_desktop_data(bootinfo):
 				.on(Workspace.module == Module.name)
 				.select(Workspace.name)
 				.where(
-					((Module.app_name == app_name) | (Workspace.app == app_name)) & (Workspace.public == 1)
+					((Module.app_name == app_name) | (Workspace.app == app_name))
+					& ((Workspace.public == 1) | (Workspace.for_user == frappe.session.user))
 				)
 				.orderby(Workspace.sequence_id)
 				.run()
@@ -320,12 +342,12 @@ def load_desktop_data(bootinfo):
 			if rail_workspace in allowed_pages and rail_workspace not in workspaces:
 				workspaces.append(rail_workspace)
 
-		bootinfo.app_data.append(
+		app_data.append(
 			dict(
 				# whether the app opts into the apps screen via the add_to_apps_screen hook. An app
 				# that pins into a host app's dock never takes a slot of its own, even if it still
 				# declares add_to_apps_screen from before the dock existed -- the dock hook wins.
-				on_apps_screen=bool(apps) and app_name not in bootinfo.app_rail_host,
+				on_apps_screen=bool(apps) and app_name not in app_rail_host,
 				# Sort order for the apps (desktop) screen; lower shows first, Framework is pinned
 				# last (sequence_id 1000). Apps that don't declare one fall to a middle default.
 				sequence_id=app_info.get("sequence_id") or DEFAULT_APP_SEQUENCE_ID,
@@ -355,6 +377,8 @@ def load_desktop_data(bootinfo):
 				workspaces=workspaces,
 			)
 		)
+
+	return app_data
 
 
 def load_translations(bootinfo):
