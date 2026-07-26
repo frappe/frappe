@@ -1407,6 +1407,9 @@ class TestQuery(IntegrationTestCase):
 				}
 			}
 		):
+			# Registered before switching so an assertion failure can't leak the user
+			# (and the roles granting it access) into subsequent tests.
+			self.addCleanup(lambda: frappe.set_user("Administrator"))
 			frappe.set_user(test_user)
 			result = frappe.qb.get_query(
 				source_dt_name,
