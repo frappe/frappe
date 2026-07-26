@@ -133,7 +133,7 @@ class FlowModel(Document):
 		from flow.lib.model import resolve_provider_credentials
 
 		provider_creds = resolve_provider_credentials(self.model_id)
-		api_key = self.get_password("api_key", raise_exception=False) or provider_creds.get("api_key") or ""
+		api_key = self.get_password("api_key", raise_exception=False) or provider_creds.get("api_key") or None
 		base_url = self.base_url or provider_creds.get("base_url")
 
 		kwargs = {

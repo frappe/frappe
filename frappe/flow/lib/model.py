@@ -73,7 +73,7 @@ class Model:
 			params = {**provider_creds["extra_params"], **(params or {})}
 
 		self.model_id = model_id
-		self._api_key = api_key or ""
+		self._api_key = api_key or None
 		self.base_url = base_url
 		self.params = params or {}
 		self.timeout = timeout
@@ -129,7 +129,7 @@ def resolve_provider_credentials(model_id: str) -> dict[str, Any]:
 		return {}
 
 	return {
-		"api_key": doc.get_password("api_key", raise_exception=False) or "",
+		"api_key": doc.get_password("api_key", raise_exception=False) or None,
 		"base_url": doc.base_url or None,
 		"extra_params": json.loads(doc.extra_params) if doc.extra_params else {},
 	}
