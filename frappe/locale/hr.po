@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-19 10:02+0000\n"
-"PO-Revision-Date: 2026-07-24 14:39\n"
+"PO-Revision-Date: 2026-07-26 14:41\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -5868,7 +5868,7 @@ msgstr "Tip Sadržaja"
 
 #: frappe/desk/doctype/workspace/workspace.py:89
 msgid "Content data shoud be a list"
-msgstr "Podaci o sadržaju trebaju biti lista"
+msgstr "Podaci o sadržaju trebaju biti popis"
 
 #: frappe/website/doctype/web_page/web_page.js:91
 msgid "Content type for building the page"
@@ -10826,11 +10826,11 @@ msgstr "Polja `file_name` ili `file_url` moraju biti postavljena za datoteku"
 
 #: frappe/model/db_query.py:167
 msgid "Fields must be a list or tuple when as_list is enabled"
-msgstr "Polja moraju biti lista ili tuple kada je as_list omogućen"
+msgstr "Polja moraju biti popis ili tuple kada je as_list omogućen"
 
 #: frappe/database/query.py:1124
 msgid "Fields must be a string, list, tuple, pypika Field, or pypika Function"
-msgstr "Polja moraju biti niz, lista, torka, pypika Polje ili pypika Funkcija"
+msgstr "Polja moraju biti niz, popis, torka, pypika Polje ili pypika Funkcija"
 
 #. Description of the 'Search Fields' (Data) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
@@ -13256,7 +13256,7 @@ msgstr "Ako vam ove upute nisu pomogle, dodajte svoje prijedloge o GitHub proble
 #. Success message of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json
 msgid "If this email is registered with us, a download link will be sent to it."
-msgstr ""
+msgstr "Ako je ova e-pošta registrirana kod nas, poveznica za preuzimanje bit će joj poslana."
 
 #: frappe/core/doctype/user/user.py:1180
 msgid "If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
@@ -14371,7 +14371,7 @@ msgstr "Nevažeći put datoteke: {0}"
 
 #: frappe/database/query.py:741
 msgid "Invalid filter condition: {0}. Expected a list or tuple."
-msgstr "Nevažeći uvjet filtera: {0}. Očekivana je lista ili torka."
+msgstr "Nevažeći uvjet filtera: {0}. Očekivana je popis ili torka."
 
 #: frappe/database/query.py:847
 msgid "Invalid filter field format: {0}. Use 'fieldname' or 'link_fieldname.target_fieldname'."
@@ -14444,7 +14444,7 @@ msgstr "Nevažeći format jednostavnog filtra: {0}"
 
 #: frappe/database/query.py:718
 msgid "Invalid start for filter condition: {0}. Expected a list or tuple."
-msgstr "Nevažeći početak za uvjet filtera: {0}. Očekivana je lista ili torka."
+msgstr "Nevažeći početak za uvjet filtera: {0}. Očekivana je popis ili torka."
 
 #: frappe/core/doctype/data_import/importer.py:445
 msgid "Invalid template file for import"
@@ -15951,7 +15951,7 @@ msgstr "Lista / Postavke Pretrage"
 #. Label of the list_columns (Table) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "List Columns"
-msgstr "Izlistaj Kolone"
+msgstr "Prikaži Kolone"
 
 #. Name of a DocType
 #: frappe/desk/doctype/list_filter/list_filter.json
@@ -15987,7 +15987,7 @@ msgstr "Postavke Prikaza Liste"
 #: frappe/website/doctype/web_form/web_form.json
 #: frappe/website/doctype/web_page/web_page.json
 msgid "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]"
-msgstr "Izlistaj kao [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]"
+msgstr "Prikaži kao [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]"
 
 #. Description of the 'Send Notification to' (Small Text) field in DocType
 #. 'Email Account'
@@ -30504,7 +30504,7 @@ msgstr "Vrijednost za polje {0} je predugačka u {1}. Dužina bi trebala biti ma
 
 #: frappe/model/base_document.py:549
 msgid "Value for {0} cannot be a list"
-msgstr "Vrijednost za {0} ne može biti lista"
+msgstr "Vrijednost za {0} ne može biti popis"
 
 #. Description of the 'Due Date Based On' (Select) field in DocType 'Assignment
 #. Rule'
@@ -32851,7 +32851,7 @@ msgstr "ispiši"
 #. Label of the processlist (HTML) field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
 msgid "processlist"
-msgstr "lista procesa"
+msgstr "popis procesa"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
