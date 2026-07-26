@@ -4,8 +4,5 @@
     ],
     "venvPath": ".",
     "venv": ".venv",
-    "pythonVersion": "3.14",
-    "extraPaths": [
-        "src"
-    ]
+    "pythonVersion": "3.14"
 }

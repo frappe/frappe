@@ -32,8 +32,8 @@ repos:
 
   # pyright runs through uv so it resolves against the locked project + typed deps
   # (fastapi, httpx, pydantic…). An isolated pre-commit env wouldn't see them and
-  # would drown in false import errors. It reads its config (include = src, tests)
-  # from pyrightconfig.json, so it types the whole project regardless of staged files.
+  # would drown in false import errors. It reads its config (include = src) from
+  # pyrightconfig.json, so it types the whole package regardless of staged files.
   - repo: local
     hooks:
       - id: pyright

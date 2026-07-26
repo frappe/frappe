@@ -1,10 +1,4 @@
 {
     "python.languageServer": "Pylance",
-    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
-    "python.analysis.autoSearchPaths": true,
-    "python.analysis.indexing": true,
-    "python.analysis.useLibraryCodeForTypes": true,
-    "python.analysis.extraPaths": [
-        "${workspaceFolder}/src"
-    ]
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python"
 }
