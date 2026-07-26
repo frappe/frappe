@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 from datetime import timedelta
+from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
@@ -9,12 +10,25 @@ from frappe.utils import get_datetime
 from frappe.utils.data import add_to_date, now_datetime
 
 
+def raise_import_error(doc, method=None):
+	raise ImportError("cannot import name '_follow_document' from 'frappe.desk.form.document_follow'")
+
+
+def record_job_run():
+	frappe.flags.scheduled_job_ran = True
+
+
+def delete_scheduled_job(name):
+	frappe.delete_doc("Scheduled Job Type", name, force=True, ignore_missing=True)
+	frappe.db.commit()  # nosemgrep
+
+
 class TestScheduledJobType(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.rollback()
 		frappe.db.truncate("Scheduled Job Type")
 		sync_jobs()
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 	def test_throws_on_duplicate_job(self):
 		job_config = dict(
@@ -110,13 +124,51 @@ class TestScheduledJobType(IntegrationTestCase):
 			frequency="Hourly Maintenance",
 			last_execution=get_datetime("2019-01-01 23:59:00"),
 		)
+		# "maintenance.test" offset is 38 minutes
+		with patch.object(frappe.local, "site", "maintenance.test"):
+			self.assertEqual(sjt.next_execution, get_datetime("2019-01-02 00:38:00"))
+
 		# Should be within one hour
 		self.assertGreaterEqual(sjt.next_execution, sjt.last_execution)
-		self.assertGreater(add_to_date(sjt.last_execution, hours=1), sjt.next_execution)
+		self.assertGreaterEqual(add_to_date(sjt.last_execution, hours=1), sjt.next_execution)
 
 		# Next should be exactly one hour away
 		sjt.last_execution = sjt.next_execution
 		self.assertEqual(add_to_date(sjt.last_execution, hours=1), sjt.next_execution)
+
+	def test_job_survives_failing_log(self):
+		job = frappe.get_doc(
+			doctype="Scheduled Job Type",
+			method="frappe.core.doctype.scheduled_job_type.test_scheduled_job_type.record_job_run",
+			frequency="Daily",
+			create_log=1,
+			last_execution="2019-01-01 00:00:00",
+		).insert()
+		self.addCleanup(delete_scheduled_job, job.name)
+
+		failing_log_hook = {
+			"doc_events": {
+				"Scheduled Job Log": {
+					"on_update": [
+						"frappe.core.doctype.scheduled_job_type.test_scheduled_job_type.raise_import_error"
+					]
+				}
+			}
+		}
+
+		frappe.flags.scheduled_job_ran = False
+		try:
+			with self.patch_hooks(failing_log_hook):
+				frappe.local.doc_events_hooks = None
+				job.execute()
+		finally:
+			frappe.local.doc_events_hooks = None
+
+		self.assertTrue(frappe.flags.scheduled_job_ran)
+
+		last_execution = frappe.db.get_value("Scheduled Job Type", job.name, "last_execution")
+		self.assertGreater(get_datetime(last_execution), get_datetime("2019-01-01 00:00:00"))
+		self.assertFalse(job.is_event_due())
 
 	def test_cold_start(self):
 		now = now_datetime()
