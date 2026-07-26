@@ -17,7 +17,7 @@ import types
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Literal, Union, get_args, get_origin, get_type_hints
+from typing import Any, Literal, Union, get_args, get_origin, get_type_hints, overload
 
 from pydantic import BaseModel, ConfigDict, validate_call
 
@@ -65,6 +65,20 @@ class Tool:
 				"parameters": self.parameters,
 			},
 		}
+
+
+@overload
+def tool(func: Callable[..., Awaitable[ToolResult]], /) -> Tool: ...
+
+
+@overload
+def tool(
+	*,
+	name: str | None = None,
+	description: str | None = None,
+	requires_confirmation: bool = False,
+	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
+) -> Callable[[Callable[..., Awaitable[ToolResult]]], Tool]: ...
 
 
 def tool(

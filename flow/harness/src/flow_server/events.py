@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, TypeAdapter
 
 
 class ToolCall(BaseModel):
@@ -29,6 +29,7 @@ class _Event(BaseModel):
 
 
 # --- durable events -------------------------------------------------------
+
 
 class RunStarted(_Event):
 	type: Literal["run_started"] = "run_started"
@@ -77,7 +78,7 @@ class PendingCall(BaseModel):
 
 class ApprovalRequired(_Event):
 	"""The model called one or more confirmation-gated tools; the run pauses here until
-    a `resume` supplies a decision (Approve / Deny / free-text redirect) per call."""
+	a `resume` supplies a decision (Approve / Deny / free-text redirect) per call."""
 
 	type: Literal["approval_required"] = "approval_required"
 	calls: list[PendingCall] = Field(default_factory=list)
@@ -95,6 +96,7 @@ class RunError(_Event):
 
 # --- live-only events -----------------------------------------------------
 
+
 class TextDelta(_Event):
 	type: Literal["text_delta"] = "text_delta"
 	text: str
@@ -108,7 +110,7 @@ class ToolCallStarted(_Event):
 	durable: bool = Field(default=False, exclude=True)
 
 
-Event = Annotated[
+AnyEvent = (
 	RunStarted
 	| UserMessage
 	| AssistantMessage
@@ -118,24 +120,14 @@ Event = Annotated[
 	| RunEnded
 	| RunError
 	| TextDelta
-	| ToolCallStarted,
-	Field(discriminator="type"),
-]
+	| ToolCallStarted
+)
 
-_TYPES = {
-	"run_started": RunStarted,
-	"user_message": UserMessage,
-	"assistant_message": AssistantMessage,
-	"tool_result": ToolResult,
-	"usage": Usage,
-	"approval_required": ApprovalRequired,
-	"run_ended": RunEnded,
-	"run_error": RunError,
-	"text_delta": TextDelta,
-	"tool_call_started": ToolCallStarted,
-}
+Event = Annotated[AnyEvent, Field(discriminator="type")]
+
+_ADAPTER: TypeAdapter[AnyEvent] = TypeAdapter(Event)
 
 
-def parse_event(data: dict) -> _Event:
+def parse_event(data: dict) -> AnyEvent:
 	"""Rebuild a typed event from a persisted/log dict."""
-	return _TYPES[data["type"]].model_validate(data)
+	return _ADAPTER.validate_python(data)

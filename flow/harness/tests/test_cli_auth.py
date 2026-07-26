@@ -18,9 +18,7 @@ def test_api_key_login_status_and_logout(tmp_path, monkeypatch, capsys):
 	assert store.get("openai") is None
 
 
-def test_provider_status_uses_environment_without_revealing_value(
-	tmp_path, monkeypatch, capsys
-):
+def test_provider_status_uses_environment_without_revealing_value(tmp_path, monkeypatch, capsys):
 	store = CredentialStore(str(tmp_path / "credentials.json"))
 	monkeypatch.setenv("ANTHROPIC_API_KEY", "do-not-print")
 

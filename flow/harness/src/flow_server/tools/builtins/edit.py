@@ -27,7 +27,7 @@ async def edit(path: str, edits: list[Replacement], *, ctx: ToolContext) -> Tool
 	with open(full, encoding="utf-8", newline="") as f:
 		raw = f.read()
 	bom = "\ufeff" if raw.startswith("\ufeff") else ""
-	content = raw[len(bom):]
+	content = raw[len(bom) :]
 	ending = detect_ending(content)
 	norm = to_lf(content)
 

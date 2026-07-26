@@ -17,6 +17,7 @@ dev = [
     "pytest>=8.3",
     "pytest-asyncio>=0.24",
     "ruff>=0.9",
+    "pyright>=1.1.390",
 ]
 
 [project.scripts]
@@ -39,3 +40,6 @@ src = ["src"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.format]
+indent-style = "tab"

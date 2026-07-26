@@ -38,6 +38,7 @@ class NotAuthenticated(AuthError):
 
 # --- PKCE + JWT helpers ---------------------------------------------------
 
+
 @dataclass
 class Pkce:
 	verifier: str
@@ -68,6 +69,7 @@ def decode_jwt_claims(token: str) -> dict:
 
 
 # --- runtime auth + provider interface ------------------------------------
+
 
 @dataclass
 class RuntimeAuth:
@@ -161,6 +163,7 @@ def _refresh_lock(name: str) -> asyncio.Lock:
 
 
 # --- shared token-endpoint call -------------------------------------------
+
 
 async def post_token(url: str, data: dict, client: httpx.AsyncClient | None = None) -> dict:
 	"""POST a form-encoded body to an OAuth token endpoint and return the JSON."""

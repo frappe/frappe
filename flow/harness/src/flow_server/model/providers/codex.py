@@ -189,9 +189,7 @@ class _ToolBuilder:
 		return _tool_call(self.id, self.name, self.arguments)
 
 
-async def _codex_events(
-	response: httpx.Response, *, emit_deltas: bool
-) -> AsyncIterator[_Event]:
+async def _codex_events(response: httpx.Response, *, emit_deltas: bool) -> AsyncIterator[_Event]:
 	text_parts: list[str] = []
 	builders: dict[str, _ToolBuilder] = {}
 	completed: set[str] = set()
@@ -243,11 +241,7 @@ async def _codex_events(
 				if builder.id not in completed:
 					tool_calls.append(builder.build())
 					completed.add(builder.id)
-			elif (
-				isinstance(item, Mapping)
-				and item.get("type") == "message"
-				and not text_parts
-			):
+			elif isinstance(item, Mapping) and item.get("type") == "message" and not text_parts:
 				text = _done_text(item)
 				if text:
 					text_parts.append(text)

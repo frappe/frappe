@@ -92,6 +92,7 @@ def test_ctx_and_varargs_skipped():
 
 # --- @tool decorator + Tool --------------------------------------------------
 
+
 def test_tool_decorator_derives_name_and_description():
 	@tool
 	async def do_thing(x: int, *, ctx: ToolContext) -> str:

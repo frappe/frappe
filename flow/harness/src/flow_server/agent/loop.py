@@ -325,6 +325,9 @@ async def _confirm_prompt(session: Session, tc: ToolCall, server_tools: dict[str
 async def _call_client(session: Session, tc: ToolCall, mode: str) -> dict:
 	"""Dispatch to the client callback. mode="execute" runs a client-side tool;
 	mode="confirm" asks the client for its approval prompt without running it."""
+	url = session.config.callback_url
+	if not url:
+		raise RuntimeError(f"no callback_url configured; cannot dispatch client tool {tc.name!r}")
 	payload = {
 		"session_id": session.id,
 		"tool": tc.name,
@@ -336,7 +339,7 @@ async def _call_client(session: Session, tc: ToolCall, mode: str) -> dict:
 	if session.config.callback_token:
 		headers["X-Harness-Token"] = session.config.callback_token
 	async with httpx.AsyncClient(timeout=120) as client:
-		resp = await client.post(session.config.callback_url, json=payload, headers=headers)
+		resp = await client.post(url, json=payload, headers=headers)
 		resp.raise_for_status()
 		body = resp.json()
 		# a client may wrap its return in an envelope (Frappe uses {"message": ...})
@@ -346,6 +349,7 @@ async def _call_client(session: Session, tc: ToolCall, mode: str) -> dict:
 
 
 # --- transcript / helpers -------------------------------------------------
+
 
 def _pending_calls(session: Session) -> list[PendingCall]:
 	"""The current unresolved approval batch, read from the durable log (survives restart,
@@ -357,7 +361,7 @@ def _pending_calls(session: Session) -> list[PendingCall]:
 		if t == "approval_required":
 			pending = ApprovalRequired.model_validate(raw).calls
 		elif t == "tool_result":
-			resolved.add(raw.get("tool_call_id"))
+			resolved.add(str(raw.get("tool_call_id")))
 	return [c for c in pending if c.id not in resolved]
 
 

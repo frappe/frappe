@@ -35,6 +35,7 @@ def _mock_client(handler):
 
 # --- credential store -----------------------------------------------------
 
+
 def test_credential_store_roundtrip(tmp_path):
 	store = CredentialStore(str(tmp_path / "creds.json"))
 	assert store.get("codex") is None
@@ -75,6 +76,7 @@ def test_credential_store_repairs_file_permissions(tmp_path):
 
 # --- pkce + jwt -----------------------------------------------------------
 
+
 def test_generate_pkce_is_s256():
 	pkce = generate_pkce()
 	expected = base64.urlsafe_b64encode(hashlib.sha256(pkce.verifier.encode()).digest())
@@ -100,6 +102,7 @@ def test_account_id_extraction_variants():
 
 
 # --- codex auth provider --------------------------------------------------
+
 
 def test_codex_authorize_url():
 	url = get_auth_provider("codex").authorize_url(challenge="CH", state="ST")
@@ -164,6 +167,7 @@ def test_codex_runtime_auth_headers():
 
 
 # --- resolver (refresh-with-skew) -----------------------------------------
+
 
 async def test_resolve_auth_requires_login(tmp_path):
 	store = CredentialStore(str(tmp_path / "c.json"))
@@ -242,6 +246,7 @@ def test_codex_runtime_auth_requires_account_id():
 
 # --- model auth resolution ------------------------------------------------
 
+
 async def test_model_auth_prefers_stored_key_over_environment(tmp_path, monkeypatch):
 	store = CredentialStore(str(tmp_path / "c.json"))
 	store.set_api_key("anthropic", "stored")
@@ -280,8 +285,6 @@ async def test_explicit_credential_id_supports_custom_key(tmp_path):
 	store = CredentialStore(str(tmp_path / "c.json"))
 	store.set_api_key("my-proxy", "proxy-key")
 
-	resolved = await resolve_model_auth(
-		"openai-compatible/custom", store, credential_id="my-proxy"
-	)
+	resolved = await resolve_model_auth("openai-compatible/custom", store, credential_id="my-proxy")
 	assert resolved.api_key == "proxy-key"
 	assert resolved.provider_id == "my-proxy"

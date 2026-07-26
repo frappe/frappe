@@ -44,6 +44,7 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 	app = FastAPI(title="flow_server", version="0.1.0")
 
 	if auth_token:
+
 		@app.middleware("http")
 		async def authenticate(request: Request, call_next):
 			if request.url.path == "/healthz":

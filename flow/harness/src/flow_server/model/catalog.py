@@ -42,9 +42,7 @@ PROVIDERS = (
 )
 
 _BY_ID = {provider.id: provider for provider in PROVIDERS}
-_BY_PREFIX = {
-	prefix: provider for provider in PROVIDERS for prefix in provider.model_prefixes
-}
+_BY_PREFIX = {prefix: provider for provider in PROVIDERS for prefix in provider.model_prefixes}
 
 
 def get_provider(provider_id: str) -> ProviderSpec | None:

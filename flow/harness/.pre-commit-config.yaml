@@ -1,0 +1,54 @@
+exclude: '.git'
+default_stages: [pre-commit]
+default_install_hook_types: [pre-commit, commit-msg]
+fail_fast: false
+
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ".*json$|.*txt$|.*csv|.*md|.*svg"
+      - id: check-merge-conflict
+      - id: check-ast
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
+      - id: debug-statements
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.10
+    hooks:
+      - id: ruff
+        name: "Run ruff import sorter"
+        args: ["--select=I", "--fix"]
+
+      - id: ruff
+        name: "Run ruff linter"
+
+      - id: ruff-format
+        name: "Run ruff formatter"
+
+  # pyright runs through uv so it resolves against the locked project + typed deps
+  # (fastapi, httpx, pydantic…). An isolated pre-commit env wouldn't see them and
+  # would drown in false import errors. It reads its config (include = src, tests)
+  # from pyrightconfig.json, so it types the whole project regardless of staged files.
+  - repo: local
+    hooks:
+      - id: pyright
+        name: "Run pyright"
+        entry: uv run --extra dev pyright
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: true
+
+
+ci:
+    autoupdate_schedule: weekly
+    # `uv` isn't available on the hosted pre-commit.ci runners, so the local
+    # pyright hook can't run there. It still runs locally, which is where the
+    # check actually gates commits.
+    skip: [pyright]
+    submodules: false

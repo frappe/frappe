@@ -16,7 +16,7 @@ from __future__ import annotations
 import abc
 import json
 from collections.abc import AsyncIterator
-from typing import Any
+from typing import Any, cast
 
 from flow_server.events import AssistantMessage, TextDelta, ToolCall, ToolCallStarted, Usage, _Event
 
@@ -92,7 +92,9 @@ class LiteLLMModel(Model):
 		usage_obj: Any = None
 		cost = 0.0
 
-		stream_iter = await litellm.acompletion(**kwargs)
+		# `stream=True` lives in kwargs, so litellm's overloads still resolve to the
+		# non-streaming ModelResponse; the runtime object is an async chunk iterator.
+		stream_iter = cast(AsyncIterator[Any], await litellm.acompletion(**kwargs))
 		async for chunk in stream_iter:
 			choices = _attr(chunk, "choices") or []
 			if choices:
@@ -119,6 +121,7 @@ class LiteLLMModel(Model):
 
 
 # --- litellm response helpers ---------------------------------------------
+
 
 def _attr(obj: Any, key: str, default: Any = None) -> Any:
 	"""Read a field whether the litellm object exposes it as an attribute or a dict."""

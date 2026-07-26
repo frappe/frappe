@@ -28,9 +28,7 @@ async def test_mock_streaming_sequence():
 
 
 async def test_mock_non_streaming_has_no_deltas():
-	events = await _collect(
-		MockModel().run([{"role": "user", "content": "hi"}], stream=False)
-	)
+	events = await _collect(MockModel().run([{"role": "user", "content": "hi"}], stream=False))
 	assert [e.type for e in events] == ["assistant_message", "usage"]
 
 

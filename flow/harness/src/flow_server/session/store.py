@@ -230,10 +230,9 @@ def _rebuild_messages(log: SessionLog) -> list[dict]:
 	messages: list[dict] = []
 	for raw in log.read_since(0):
 		ev = parse_event(raw)
-		t = ev.type
-		if t == "user_message":
+		if ev.type == "user_message":
 			messages.append({"role": "user", "content": ev.content})
-		elif t == "assistant_message":
+		elif ev.type == "assistant_message":
 			msg: dict = {"role": "assistant", "content": ev.text or None}
 			if ev.provider_data:
 				msg["provider_data"] = ev.provider_data
@@ -247,7 +246,7 @@ def _rebuild_messages(log: SessionLog) -> list[dict]:
 					for tc in ev.tool_calls
 				]
 			messages.append(msg)
-		elif t == "tool_result":
+		elif ev.type == "tool_result":
 			messages.append(
 				{"role": "tool", "tool_call_id": ev.tool_call_id, "content": ev.content}
 			)

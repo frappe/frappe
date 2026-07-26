@@ -1,7 +1,6 @@
 {
     "include": [
-        "src",
-        "tests"
+        "src"
     ],
     "venvPath": ".",
     "venv": ".venv",
