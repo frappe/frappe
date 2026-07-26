@@ -17,7 +17,7 @@ RESET = "\033[0m"
 
 def main() -> None:
 	parser = argparse.ArgumentParser(prog="flowd")
-	sub = parser.add_subparsers(dest="cmd", required=True)
+	sub = parser.add_subparsers(dest="cmd")
 
 	p_serve = sub.add_parser("serve", help="run the daemon")
 	p_serve.add_argument("--host", default=config.HOST)
@@ -37,7 +37,7 @@ def main() -> None:
 	p_logout = sub.add_parser("logout", help="remove a saved provider credential")
 	p_logout.add_argument("provider")
 
-	args = parser.parse_args()
+	args = parser.parse_args(_with_default_command(sys.argv[1:], set(sub.choices)))
 	try:
 		if args.cmd == "serve":
 			_serve(args)
@@ -50,6 +50,13 @@ def main() -> None:
 	except (AuthError, CredentialStoreError) as e:
 		print(f"flowd: {e}", file=sys.stderr)
 		raise SystemExit(1) from None
+
+
+def _with_default_command(argv: list[str], commands: set[str]) -> list[str]:
+	"""`flowd` and `flowd --port 9000` mean `flowd serve ...`, so the common case needs no verb."""
+	if argv and (argv[0] in commands or argv[0] in ("-h", "--help")):
+		return argv
+	return ["serve", *argv]
 
 
 def _serve(args) -> None:

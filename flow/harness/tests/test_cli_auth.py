@@ -1,5 +1,5 @@
 from flow_server.cli.auth import _parse_callback, login, logout, show_providers
-from flow_server.cli.main import _is_loopback
+from flow_server.cli.main import _is_loopback, _with_default_command
 from flow_server.model.credentials import CredentialStore
 
 
@@ -40,3 +40,11 @@ def test_loopback_detection():
 	assert _is_loopback("::1")
 	assert not _is_loopback("0.0.0.0")
 	assert not _is_loopback("example.com")
+
+
+def test_bare_invocation_defaults_to_serve():
+	commands = {"serve", "login", "providers", "logout"}
+	assert _with_default_command([], commands) == ["serve"]
+	assert _with_default_command(["--port", "9001"], commands) == ["serve", "--port", "9001"]
+	assert _with_default_command(["login", "openai"], commands) == ["login", "openai"]
+	assert _with_default_command(["--help"], commands) == ["--help"]
