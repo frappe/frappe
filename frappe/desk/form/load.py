@@ -3,7 +3,7 @@
 
 import json
 import typing
-from urllib.parse import quote_plus
+from urllib.parse import quote
 
 import frappe
 import frappe.defaults
@@ -403,7 +403,7 @@ def get_document_email(doctype, name):
 		return None
 
 	email = email.split("@")
-	return f"{email[0]}+{quote_plus(doctype)}={quote_plus(cstr(name))}@{email[1]}"
+	return f"{email[0]}+{quote(doctype, safe='')}={quote(cstr(name), safe='')}@{email[1]}"
 
 
 def get_additional_timeline_content(doctype, docname):
