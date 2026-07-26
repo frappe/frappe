@@ -116,6 +116,14 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 			})
 		);
 		$(this.container).append(this.wrapper);
+
+		if (this.path) {
+			this.wrapper.find(".item-anchor").on("click", () => {
+				if (frappe.is_mobile()) {
+					frappe.app.sidebar.close();
+				}
+			});
+		}
 	}
 	set_suffix() {
 		if (this.item.suffix) {
