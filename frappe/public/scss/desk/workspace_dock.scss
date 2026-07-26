@@ -170,7 +170,7 @@
 		}
 
 		// unread indicator — a small dot on the bell's top-right corner (mirrors <RailItemBadge> dot)
-		.sidebar-notification-count {
+		.notification-count {
 			position: absolute;
 			top: 5px;
 			right: 5px;
@@ -188,15 +188,6 @@
 			&.hidden {
 				display: none;
 			}
-		}
-
-		// re-place the shared unseen dot on the bell's top-right corner for the 16px icon
-		.sidebar-item-icon.indicator::before {
-			top: -1px;
-			right: -1px;
-			height: 8px;
-			width: 8px;
-			border-radius: 50%;
 		}
 	}
 
