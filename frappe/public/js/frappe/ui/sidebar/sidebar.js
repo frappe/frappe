@@ -404,13 +404,13 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	// The workspace dock is always on. Apps can no longer opt out; only page-level opt-outs
-	// (page_hides_dock, e.g. the desktop/apps screen) still suppress it.
+	// (page_allows_dock, e.g. the desktop/apps screen) still suppress it.
 	workspace_dock_enabled() {
 		return true;
 	}
 
 	// (Re)render the workspace dock to match the current app context. Created lazily on first
-	// refresh; the dock hides itself on page-level opt-outs (see page_hides_dock).
+	// refresh; the dock stays hidden unless the page allows it (see page_allows_dock).
 	refresh_dock() {
 		if (!this.workspace_dock) {
 			this.workspace_dock = new frappe.ui.WorkspaceDock(this);
@@ -423,12 +423,8 @@ frappe.ui.Sidebar = class Sidebar {
 	// set_workspace_sidebar is idempotent, so re-running it here is a no-op
 	// unless the route actually warrants a different sidebar.
 	refresh() {
-		if (!frappe.container.page.page) return;
-		if (frappe.container.page.page.hide_sidebar) {
-			this.wrapper.hide();
-			return;
-		}
-		this.wrapper.show();
+		this.apply_page_visibility();
+		if (!this.page_allows_sidebar()) return;
 		// Re-resolve the app context now that the routed doctype's meta is loaded. On a cold/direct
 		// load the router `change` handler ran before the meta was available, so set_current_app()
 		// couldn't derive the app (leaving current_app -- and thus the dock -- unresolved). This
@@ -438,23 +434,49 @@ frappe.ui.Sidebar = class Sidebar {
 		this.refresh_header();
 		this.refresh_dock();
 	}
-	toggle(hide) {
-		if (hide) {
-			this.wrapper.hide();
-		} else {
-			this.wrapper.show();
-		}
-		// re-evaluate the dock against the now-current page (toggle is driven per page by
-		// container.toggle_sidebar), so page-level opt-outs like the desktop screen take effect
+
+	// -------------------------------------------------------------------------------------------
+	// Visibility. Both shells -- the body sidebar and the workspace dock -- are hidden by default
+	// (see make_dom and WorkspaceDock.make) and are only displayed once the page on screen says it
+	// allows them. Defaulting to hidden means a page that suppresses them (the desktop/apps screen,
+	// the setup wizard) never flashes them first, and a page that has not rendered yet -- so
+	// nothing is known about its options -- shows nothing rather than guessing.
+	// -------------------------------------------------------------------------------------------
+
+	// The frappe.ui.Page on screen, or undefined before one has rendered.
+	current_page() {
+		return frappe.container && frappe.container.page && frappe.container.page.page;
+	}
+
+	// The body sidebar is displayed unless the page opts out via the standard `hide_sidebar` option.
+	page_allows_sidebar() {
+		const page = this.current_page();
+		return !!page && !page.hide_sidebar;
+	}
+
+	// The dock is displayed unless the page hides the whole sidebar (`hide_sidebar`, e.g. the
+	// desktop/apps screen) or opts out of just the dock with `hide_workspace_dock` -- both are
+	// standard frappe.ui.Page options, so this is configurable per page.
+	page_allows_dock() {
+		const page = this.current_page();
+		return !!page && !page.hide_sidebar && !page.hide_workspace_dock;
+	}
+
+	// Resolve both shells against the current page's options. This is the one place that turns
+	// either of them on; it's driven per page by container.toggle_sidebar, so every page change
+	// re-evaluates them.
+	apply_page_visibility() {
+		if (!this.wrapper) return;
+		this.wrapper.toggle(this.page_allows_sidebar());
 		this.refresh_dock();
 	}
 
-	// Page-level opt-out for the dock. A page hides the dock when it hides the whole sidebar
-	// (`hide_sidebar`, e.g. the desktop/apps screen) or sets the dedicated `hide_workspace_dock`
-	// option -- both are standard frappe.ui.Page options, so this is configurable per page.
-	page_hides_dock() {
-		const page = frappe.container && frappe.container.page && frappe.container.page.page;
-		return !!(page && (page.hide_sidebar || page.hide_workspace_dock));
+	// Explicit override for callers that want the body sidebar hidden/shown irrespective of the
+	// page. The dock keeps following the page's options.
+	toggle(hide) {
+		if (!this.wrapper) return;
+		this.wrapper.toggle(!hide);
+		this.refresh_dock();
 	}
 	make_dom() {
 		this.load_sidebar_state();
@@ -464,7 +486,12 @@ frappe.ui.Sidebar = class Sidebar {
 				avatar: frappe.avatar(frappe.session.user, "avatar-medium-2"),
 				navbar_settings: frappe.boot.navbar_settings,
 			})
-		).prependTo("body");
+		)
+			// Starts hidden; only a page that allows it turns it on (see apply_page_visibility).
+			// Hiding before it enters the document means a page that hides the sidebar never
+			// flashes it first.
+			.hide()
+			.prependTo("body");
 		this.$sidebar = this.wrapper.find(".sidebar-items");
 
 		this.wrapper.find(".body-sidebar .sidebar-resize-handle").on("click", () => {
@@ -1056,30 +1083,36 @@ frappe.ui.Sidebar = class Sidebar {
 	// Precedence:
 	//   1. an item flagged `default_workspace` names the entity's owning workspace outright — the
 	//      one authored signal that beats every heuristic below
-	//   2. the entity's own module — the module's autogenerated sidebar, else the sidebar belonging
-	//      to that module. A deep link lands in the shell the entity actually lives in, rather than
-	//      in whichever unrelated workspace happens to link it.
-	//   3. only then the sidebars that link the entity: keep the last selected sidebar if it is one
-	//      of them, else the first that contains it. A link is a weak signal — an entity can be
-	//      curated into any number of foreign sidebars — so it decides nothing until the module has
-	//      had its say.
-	//   4. otherwise keep the last selected sidebar (the route belongs to no sidebar at all)
-	//   5. the first available sidebar
+	//   2. the last selected sidebar, if it links the entity. Continuity outranks the module: on a
+	//      reload or a deep link you stay in the shell you were working in instead of being
+	//      relocated to the entity's home module. Gated on the link so it can only hold you
+	//      somewhere the entity is actually reachable — an unrelated shell is never kept.
+	//   3. the entity's own module — the module's autogenerated sidebar, else the sidebar belonging
+	//      to that module. With no prior selection worth honouring, a deep link lands in the shell
+	//      the entity actually lives in, rather than in whichever unrelated workspace links it.
+	//   4. only then the remaining sidebars that link the entity: the first that contains it. A link
+	//      is a weak signal — an entity can be curated into any number of foreign sidebars — so it
+	//      decides nothing until the module has had its say.
+	//   5. otherwise keep the last selected sidebar (the route belongs to no sidebar at all)
+	//   6. the first available sidebar
 	// User.default_workspace is intentionally NOT consulted here: it made the sidebar sticky to
 	// one workspace regardless of route, which broke the illusion that each entity lives in its
 	// own app shell.
 	//
-	// Steps 1-2 need the routed doctype's meta, which is NOT loaded on the first pass of a cold
+	// Only step 3 needs the routed doctype's meta, which is NOT loaded on the first pass of a cold
 	// load (the router fires before the page's meta arrives). When the module can't be read yet the
-	// result is flagged `provisional`: it is the best guess from link data alone, and
+	// results below it are flagged `provisional`: they are the best guess from link data alone, and
 	// set_workspace_sidebar re-resolves once the meta lands. Without that second pass a cold entry
-	// would permanently keep the step-3 answer and the module would never get a look in.
+	// would permanently keep the step-4 answer and the module would never get a look in. Steps 1-2
+	// read boot data only, so they are final on the first pass.
 	resolve_initial_sidebar(route) {
 		const all = frappe.boot.workspace_sidebar_item || {};
 		const exists = (name) => (name && all[name.toLowerCase()] ? name : null);
 
 		const entity = this.entity_from_route(route);
 		const persisted = exists(localStorage.getItem("selected_sidebar"));
+		// resolved up front (rather than at step 4) because step 2 tests the last selection against it
+		const candidates = this.get_workspace_sidebars(entity);
 
 		// 1. the entity is explicitly owned by a workspace
 		const owner = exists(this.default_workspace_for(entity));
@@ -1091,7 +1124,16 @@ frappe.ui.Sidebar = class Sidebar {
 			};
 		}
 
-		// 2. the entity's module decides, before any link-based match
+		// 2. the last selected sidebar, when it can actually show the entity
+		if (persisted && candidates.some((c) => c.toLowerCase() === persisted.toLowerCase())) {
+			return {
+				sidebar: persisted,
+				reason: `last selected sidebar "${persisted}" — route entity "${entity}" is linked in it, so the selection is kept over the entity's module`,
+				provisional: false,
+			};
+		}
+
+		// 3. the entity's module decides, before any remaining link-based match
 		const module_sidebar = this.sidebar_from_module(entity);
 		if (module_sidebar) {
 			return {
@@ -1107,16 +1149,9 @@ frappe.ui.Sidebar = class Sidebar {
 		// for routes that have no meta to wait for (a workspace, a report).
 		const provisional = !!entity && !frappe.get_meta(entity)?.module;
 
-		// 3. the entity is linked in one or more sidebars
-		const candidates = this.get_workspace_sidebars(entity);
+		// 4. the entity is linked in one or more sidebars — the last selected one is not among them,
+		//    step 2 would have taken it
 		if (candidates.length) {
-			if (persisted && candidates.some((c) => c.toLowerCase() === persisted.toLowerCase())) {
-				return {
-					sidebar: persisted,
-					reason: `last selected sidebar "${persisted}" — route entity "${entity}" is linked in it`,
-					provisional,
-				};
-			}
 			return {
 				sidebar: candidates[0],
 				reason: `route entity "${entity}" has no owning module sidebar; it is linked in: ${candidates.join(
@@ -1126,7 +1161,7 @@ frappe.ui.Sidebar = class Sidebar {
 			};
 		}
 
-		// 4. nothing ties the route to a sidebar -> keep the last selection
+		// 5. nothing ties the route to a sidebar -> keep the last selection
 		if (persisted) {
 			return {
 				sidebar: persisted,
@@ -1135,7 +1170,7 @@ frappe.ui.Sidebar = class Sidebar {
 			};
 		}
 
-		// 5. first available
+		// 6. first available
 		const first = Object.values(all)[0];
 		return {
 			sidebar: first && first.label,
@@ -1191,6 +1226,7 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	entity_from_route(route) {
+		if (route[0] && frappe.boot.page_info?.[route[0]]) return route[0];
 		switch (route.length) {
 			case 1:
 				return route[0];
