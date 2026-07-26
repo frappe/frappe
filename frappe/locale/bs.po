@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-19 10:02+0000\n"
-"PO-Revision-Date: 2026-07-23 14:34\n"
+"PO-Revision-Date: 2026-07-26 14:42\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -14341,7 +14341,7 @@ msgstr "Ikona će se pojaviti na dugmetu"
 
 #: frappe/core/page/component_explorer/component_explorer.js:609
 msgid "Icon-only pills (label becomes the accessible name)"
-msgstr "Pilule samo s ikonama (oznaka postaje pristupačno ime)"
+msgstr "Strelice samo s ikonama (oznaka postaje pristupačno ime)"
 
 #: frappe/core/page/component_explorer/component_explorer.js:1084
 msgid "Icons"
@@ -14541,7 +14541,7 @@ msgstr "Ako vam ove upute nisu pomogle, dodajte svoje prijedloge o GitHub proble
 #. Success message of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json
 msgid "If this email is registered with us, a download link will be sent to it."
-msgstr "Ako je ova e-mail adresa registrovana kod nas, link za preuzimanje će biti poslan na nju."
+msgstr "Ako je ova adresa e-pošte registrovana kod nas, link za preuzimanje će biti poslan na nju."
 
 #: frappe/core/doctype/user/user.py:1202
 msgid "If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
@@ -17462,7 +17462,7 @@ msgstr "Lista / Postavke Pretrage"
 #. Label of the list_columns (Table) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "List Columns"
-msgstr "Izlistaj Kolone"
+msgstr "Prikaži Kolone"
 
 #. Name of a DocType
 #: frappe/desk/doctype/list_filter/list_filter.json
@@ -17498,7 +17498,7 @@ msgstr "Postavke Prikaza Liste"
 #: frappe/website/doctype/web_form/web_form.json
 #: frappe/website/doctype/web_page/web_page.json
 msgid "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]"
-msgstr "Izlistaj kao [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]"
+msgstr "Prikaži kao [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]"
 
 #. Description of the 'Send Notification to' (Small Text) field in DocType
 #. 'Email Account'
@@ -17775,7 +17775,7 @@ msgstr "Token je obavezan za prijavu"
 
 #: frappe/www/login.html:66
 msgid "Login with Email Link"
-msgstr "Prijavi se putem e-mail veze"
+msgstr "Prijavi se putem veze e-pošte"
 
 #: frappe/www/login.html:61
 msgid "Login with LDAP"
@@ -19231,7 +19231,7 @@ msgstr "Serija Imenovanja ažurirana"
 
 #: frappe/core/page/component_explorer/component_explorer.js:419
 msgid "Narrow down the list."
-msgstr "Sužite listu."
+msgstr "Suži listu."
 
 #. Option for the 'Type' (Select) field in DocType 'Web Template'
 #. Label of the top_bar (Section Break) field in DocType 'Website Settings'
@@ -21522,7 +21522,7 @@ msgstr "Opcije"
 
 #: frappe/core/doctype/doctype/doctype.py:1477
 msgid "Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"
-msgstr "Opcije Vrsta polja 'Dinamička veza' mora upućivati na drugo polje veze s opcijama kao 'DocType'"
+msgstr "Opcije Tip polja 'Dinamička veza' mora upućivati na drugo polje veze s opcijama kao 'DocType'"
 
 #. Label of the options_help (HTML) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
