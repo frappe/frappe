@@ -5,6 +5,11 @@ import Undo from "editorjs-undo";
 // rendered for Workspace Managers but stripped before the content is saved.
 const HIDDEN_NOTICE_MARKER = "workspace-hidden-notice";
 
+// The framework's fallback workspace, shown only when a user has no other workspace at all
+// (see get_workspaces). It's special-cased out of workspace listings across the codebase; here
+// it's kept out of the "not in any app" triage list, since it isn't a workspace anyone mounts.
+const WELCOME_WORKSPACE = "Welcome Workspace";
+
 // "Access" options in the New Workspace dialog -- a virtual field that maps to the
 // underlying `public` / `for_user` / `roles` fields:
 //   private -> personal (public=0, for_user=current user)
@@ -476,7 +481,7 @@ frappe.views.Workspace = class Workspace {
 				// "Not in any app" first -- those workspaces are on no dock, so this is the
 				// list to triage. Then Standard = public app-shipped, Custom = public but
 				// user-created, Private = per-user workspaces.
-				const unmounted = (p) => !p.app && !p.standard;
+				const unmounted = (p) => !p.app && !p.standard && p.title !== WELCOME_WORKSPACE;
 				const groups = [
 					{ label: __("Not in any app"), filter: unmounted },
 					{ label: __("Standard"), filter: (p) => p.public && p.standard },
