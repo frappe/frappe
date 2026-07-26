@@ -122,6 +122,16 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 			})
 		);
 		$(this.container).append(this.wrapper);
+		this.setup_click();
+	}
+
+	setup_click() {
+		if (!this.path) return;
+		this.wrapper.find(".item-anchor").on("click", () => {
+			if (frappe.is_mobile()) {
+				frappe.app.sidebar.close();
+			}
+		});
 	}
 	set_suffix() {
 		if (this.item.suffix) {
@@ -292,6 +302,7 @@ frappe.ui.sidebar_item.TypeButton = class SidebarButton extends frappe.ui.sideba
 		this.item.class && this.wrapper.attr("class", this.item.class);
 	}
 
+	// overrides TypeLink.setup_click(), invoked once via the base class's make()
 	setup_click() {
 		const me = this;
 		if (this.item.onClick) {
