@@ -235,9 +235,6 @@ class NotificationsView extends BaseNotificationsView {
 			this.dropdown_items = r.message.notification_logs;
 			frappe.update_user_info(r.message.user_info);
 			this.render_notifications_dropdown();
-			if (this.settings.seen == 0 && this.dropdown_items.length > 0) {
-				this.toggle_notification_icon(false);
-			}
 		});
 	}
 
@@ -399,31 +396,21 @@ class NotificationsView extends BaseNotificationsView {
 		return form_link;
 	}
 
-	// The bell icon(s) that carry the unseen indicator. Re-queried each call so they cover every
-	// bell (sidebar and/or workspace dock, the latter created after this view). Falls back to the
-	// mobile navbar icon when there's no sidebar bell.
-	get_bell_icons() {
-		let $icons = this.parent.find(".desktop-notification-icon");
-		return $icons.length ? $icons : $(".sidebar-notification .sidebar-item-icon");
-	}
-
-	toggle_notification_icon(seen) {
-		this.get_bell_icons().toggleClass("indicator blue", !seen);
-	}
-
 	update_count_badge(count) {
 		this.unread_count = count;
-		// update the count on every bell (sidebar and/or workspace dock)
-		const $suffix = $(".sidebar-notification .sidebar-notification-count");
-		if (!$suffix?.length) return;
+		// the unread count is the only unread affordance any bell gets -- update it wherever a bell
+		// lives (sidebar, workspace dock, desktop navbar). Re-queried each call so it also covers
+		// bells created after this view (the dock).
+		const $count = $(".notification-count");
+		if (!$count.length) return;
 
 		if (count > 0) {
-			$suffix
+			$count
 				.text(count > 99 ? "99+" : count)
 				.attr("aria-label", __("{0} unread notifications", [count]))
 				.removeClass("hidden");
 		} else {
-			$suffix.removeAttr("aria-label").addClass("hidden");
+			$count.removeAttr("aria-label").addClass("hidden");
 		}
 	}
 
@@ -440,20 +427,19 @@ class NotificationsView extends BaseNotificationsView {
 	setup_notification_listeners() {
 		frappe.realtime.on("notification", () => {
 			this.settings.seen = 0;
-			this.toggle_notification_icon(false);
 			this.update_count_badge(this.unread_count + 1);
 			this.update_dropdown();
 		});
 
 		frappe.realtime.on("indicator_hide", () => {
 			this.settings.seen = 1;
-			this.toggle_notification_icon(true);
 		});
 
 		this.parent.on("show.bs.dropdown", () => {
 			this.toggle_seen(true);
-			if (this.get_bell_icons().hasClass("indicator")) {
-				this.toggle_notification_icon(true);
+			// opening the panel counts as seeing what's in it -- let the other sessions know
+			if (this.settings?.seen == 0) {
+				this.settings.seen = 1;
 				frappe.call(
 					"frappe.desk.doctype.notification_log.notification_log.trigger_indicator_hide"
 				);
