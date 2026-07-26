@@ -72,9 +72,7 @@ async def test_edit_preserves_crlf(tmp_path):
 	p = tmp_path / "w.txt"
 	p.write_bytes(b"one\r\ntwo\r\nthree\r\n")
 	# model sends LF oldText; it must still match against the CRLF file
-	res = await edit(
-		path="w.txt", edits=[{"old": "two\nthree", "new": "TWO\nTHREE"}], ctx=_ctx(tmp_path)
-	)
+	res = await edit(path="w.txt", edits=[{"old": "two\nthree", "new": "TWO\nTHREE"}], ctx=_ctx(tmp_path))
 	assert "edited" in res.content
 	assert p.read_bytes() == b"one\r\nTWO\r\nTHREE\r\n"
 

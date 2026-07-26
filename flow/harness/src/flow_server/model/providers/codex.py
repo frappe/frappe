@@ -287,9 +287,7 @@ def _responses_input(messages: list[dict[str, Any]]) -> tuple[str, list[dict]]:
 		if role == "system":
 			instructions = str(content)
 		elif role == "user":
-			items.append(
-				{"role": "user", "content": [{"type": "input_text", "text": str(content)}]}
-			)
+			items.append({"role": "user", "content": [{"type": "input_text", "text": str(content)}]})
 		elif role == "assistant":
 			provider_data = message.get("provider_data")
 			if isinstance(provider_data, dict):

@@ -115,7 +115,7 @@ def _browser_callback(url: str) -> tuple[str | None, str | None]:
 	result: dict[str, str | None] = {"code": None, "state": None, "error": None}
 
 	class CallbackHandler(BaseHTTPRequestHandler):
-		def do_GET(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API
+		def do_GET(self) -> None:  # BaseHTTPRequestHandler API
 			parsed = urlparse(self.path)
 			if parsed.path != redirect.path:
 				self.send_error(404)

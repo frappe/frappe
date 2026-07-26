@@ -35,9 +35,7 @@ async def edit(path: str, edits: list[Replacement], *, ctx: ToolContext) -> Tool
 	if error:
 		return ToolResult(content=f"[edit failed: {error}]", is_error=True)
 	diff = "".join(
-		difflib.unified_diff(
-			norm.splitlines(keepends=True), updated.splitlines(keepends=True), full, full
-		)
+		difflib.unified_diff(norm.splitlines(keepends=True), updated.splitlines(keepends=True), full, full)
 	)
 	result = updated.replace("\n", "\r\n") if ending == "\r\n" else updated
 	with open(full, "w", encoding="utf-8", newline="") as f:

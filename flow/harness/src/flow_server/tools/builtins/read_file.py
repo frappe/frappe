@@ -38,9 +38,7 @@ async def read_file(
 	lines = text.split("\n")
 	start = (offset or 1) - 1
 	if start >= len(lines):
-		return ToolResult(
-			content=f"[offset {offset} is beyond end of file ({total} lines)]", is_error=True
-		)
+		return ToolResult(content=f"[offset {offset} is beyond end of file ({total} lines)]", is_error=True)
 	end = min(start + limit, len(lines)) if limit is not None else len(lines)
 	body, trunc = truncate("\n".join(lines[start:end]), keep="head")
 	limited_end = end if end < len(lines) else None

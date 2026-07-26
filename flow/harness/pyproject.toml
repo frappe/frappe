@@ -35,11 +35,33 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 
 [tool.ruff]
-line-length = 100
+line-length = 110
 src = ["src"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B"]
+select = [
+	"F",
+	"E",
+	"W",
+	"I",
+	"UP",
+	"B",
+	"RUF",
+]
+ignore = [
+	"B017", # assertRaises(Exception) - should be more specific
+	"B018", # useless expression, not assigned to anything
+	"B023", # function doesn't bind loop variable - will have last iteration's value
+	"B904", # raise inside except without from
+	"E101", # indentation contains mixed spaces and tabs
+	"E501", # line too long
+	"E741", # ambiguous variable name
+	"W191", # indentation contains tabs
+	"UP037", # quoted annotations
+	"UP040", # Use type aliases instead of type annotations
+]
 
 [tool.ruff.format]
+quote-style = "double"
 indent-style = "tab"
+docstring-code-format = true

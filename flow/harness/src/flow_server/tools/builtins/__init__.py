@@ -7,4 +7,4 @@ from flow_server.tools.tool import Tool
 
 BUILTIN_TOOLS: dict[str, Tool] = {t.name: t for t in (bash, read_file, write, edit, grep)}
 
-__all__ = ["BUILTIN_TOOLS", "bash", "read_file", "write", "edit", "grep"]
+__all__ = ["BUILTIN_TOOLS", "bash", "edit", "grep", "read_file", "write"]

@@ -55,4 +55,4 @@ register_provider("mock", lambda name, **kwargs: MockModel())
 from flow_server.model.providers import codex as _codex  # noqa: E402, F401
 from flow_server.model.providers import opencode as _opencode  # noqa: E402, F401
 
-__all__ = ["Model", "LiteLLMModel", "MockModel", "get_model", "register_provider"]
+__all__ = ["LiteLLMModel", "MockModel", "Model", "get_model", "register_provider"]

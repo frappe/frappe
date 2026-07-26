@@ -239,9 +239,7 @@ async def test_concurrent_resolve_refreshes_once(tmp_path):
 
 def test_codex_runtime_auth_requires_account_id():
 	with pytest.raises(AuthError, match="account id"):
-		get_auth_provider("codex").runtime_auth(
-			OAuthCredential(access="tok", refresh="r", expires=1)
-		)
+		get_auth_provider("codex").runtime_auth(OAuthCredential(access="tok", refresh="r", expires=1))
 
 
 # --- model auth resolution ------------------------------------------------

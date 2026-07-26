@@ -51,9 +51,7 @@ class Agent:
 		"""Continue a paused run; yields the event stream of the continuation."""
 		return self._drive(lambda: _resume(self._session, answers, model=self._model, **hooks))
 
-	async def _drive(
-		self, make_coro: Callable[[], Coroutine[Any, Any, None]]
-	) -> AsyncIterator[_Event]:
+	async def _drive(self, make_coro: Callable[[], Coroutine[Any, Any, None]]) -> AsyncIterator[_Event]:
 		q = self._session.subscribe()  # subscribe before the run starts so no event is missed
 		task = asyncio.create_task(make_coro())
 		try:

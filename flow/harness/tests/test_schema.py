@@ -54,9 +54,7 @@ def test_union_anyof():
 	def f(x: int | str):
 		pass
 
-	assert build_schema(f)["properties"]["x"] == {
-		"anyOf": [{"type": "integer"}, {"type": "string"}]
-	}
+	assert build_schema(f)["properties"]["x"] == {"anyOf": [{"type": "integer"}, {"type": "string"}]}
 
 
 def test_pydantic_model_inlined():

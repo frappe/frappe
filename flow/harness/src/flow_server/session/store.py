@@ -117,7 +117,7 @@ class Session:
 		if self.event_sink is not None:
 			try:
 				self.event_sink(self.id, event.model_dump())
-			except Exception:  # noqa: BLE001 — streaming is best-effort; the log heals gaps
+			except Exception:  # streaming is best-effort; the log heals gaps
 				pass
 
 	@property
@@ -144,9 +144,7 @@ class SessionStore:
 		if not sessions_dir_existed:
 			os.chmod(self.sessions_dir, 0o700)
 		self.event_sink = event_sink
-		self.allowed_roots = (
-			allowed_roots if allowed_roots is not None else server_config.ALLOWED_ROOTS
-		)
+		self.allowed_roots = allowed_roots if allowed_roots is not None else server_config.ALLOWED_ROOTS
 		self.credentials = credential_store or CredentialStore(server_config.CREDENTIALS_PATH)
 		self._cache: dict[str, Session] = {}
 
@@ -247,7 +245,5 @@ def _rebuild_messages(log: SessionLog) -> list[dict]:
 				]
 			messages.append(msg)
 		elif ev.type == "tool_result":
-			messages.append(
-				{"role": "tool", "tool_call_id": ev.tool_call_id, "content": ev.content}
-			)
+			messages.append({"role": "tool", "tool_call_id": ev.tool_call_id, "content": ev.content})
 	return messages

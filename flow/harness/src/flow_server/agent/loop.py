@@ -161,9 +161,7 @@ async def _loop(
 
 			pending: list[PendingCall] = []
 			for tc in assistant.tool_calls:
-				await _handle_call(
-					session, tc, server_tools, ctx, before_tool_call, after_tool_call, pending
-				)
+				await _handle_call(session, tc, server_tools, ctx, before_tool_call, after_tool_call, pending)
 			if pending:  # non-gated tools already ran; now wait for approval
 				session.publish(ApprovalRequired(calls=pending))
 				reason = "paused"
@@ -175,7 +173,7 @@ async def _loop(
 			if session.abort.is_set():
 				reason = "aborted"
 				break
-	except Exception as e:  # noqa: BLE001 — surface any loop failure as an event, never crash the daemon
+	except Exception as e:  # surface any loop failure as an event, never crash the daemon
 		session.publish(RunError(message=f"{type(e).__name__}: {e}"))
 		session.publish(RunEnded(reason="error"))
 		return
@@ -219,7 +217,7 @@ async def _model_call(
 	session: Session, model: Model, tool_schemas: list[dict]
 ) -> tuple[AssistantMessage | None, int]:
 	cfg = session.config
-	messages = [{"role": "system", "content": cfg.system_prompt}] + session.messages
+	messages = [{"role": "system", "content": cfg.system_prompt}, *session.messages]
 	assistant: AssistantMessage | None = None
 	output_tokens = 0
 	async for ev in model.run(messages, tool_schemas, stream=cfg.stream):
@@ -247,9 +245,7 @@ def _redirect(feedback: str) -> str:
 	)
 
 
-def _result(
-	tc: ToolCall, content: str, *, is_error: bool = False, details: dict | None = None
-) -> ToolResult:
+def _result(tc: ToolCall, content: str, *, is_error: bool = False, details: dict | None = None) -> ToolResult:
 	return ToolResult(
 		tool_call_id=tc.id, name=tc.name, content=content, is_error=is_error, details=details or {}
 	)
@@ -299,7 +295,7 @@ async def _dispatch(
 			resp = await _call_client(session, tc, "execute")  # mode can be "execute" or "confirm"
 			return _result(tc, resp.get("content", ""), is_error=bool(resp.get("is_error", False)))
 		return _result(tc, f"[unknown tool: {tc.name}]", is_error=True)
-	except Exception as e:  # noqa: BLE001 — tool errors go back to the model, not the floor
+	except Exception as e:  # tool errors go back to the model, not the floor
 		return _result(tc, f"[tool error: {e}]", is_error=True)
 
 
@@ -310,14 +306,14 @@ async def _confirm_prompt(session: Session, tc: ToolCall, server_tools: dict[str
 	if tool is not None and tool.confirm_prompt is not None:
 		try:
 			return tool.confirm_prompt(tc.args)
-		except Exception:  # noqa: BLE001
+		except Exception:
 			pass
 	if session.config.callback_url and tc.name not in server_tools:
 		try:
 			resp = await _call_client(session, tc, "confirm")
 			if resp.get("prompt"):
 				return resp["prompt"]
-		except Exception:  # noqa: BLE001
+		except Exception:
 			pass
 	return f"Approve `{tc.name}`?\n\n" + json.dumps(tc.args, indent=2, default=str)
 

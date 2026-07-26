@@ -34,9 +34,7 @@ async def test_mock_non_streaming_has_no_deltas():
 
 async def test_mock_scripted_replies_multi_turn():
 	call = ToolCall(id="c1", name="bash", args={"command": "ls"})
-	model = MockModel(
-		replies=[AssistantMessage(text="", tool_calls=[call]), AssistantMessage(text="done")]
-	)
+	model = MockModel(replies=[AssistantMessage(text="", tool_calls=[call]), AssistantMessage(text="done")])
 
 	first = await _collect(model.run([{"role": "user", "content": "go"}]))
 	assert [e.type for e in first] == ["tool_call_started", "assistant_message", "usage"]
@@ -86,10 +84,7 @@ def _api_base(name: str, api_base: str) -> str | None:
 
 def test_opencode_go_honours_api_base_override():
 	assert _api_base("opencode-go/kimi-k3", "https://proxy.test/v1") == "https://proxy.test/v1"
-	assert (
-		_api_base("opencode-go/minimax-m3", "https://proxy.test/v1")
-		== "https://proxy.test/v1/messages"
-	)
+	assert _api_base("opencode-go/minimax-m3", "https://proxy.test/v1") == "https://proxy.test/v1/messages"
 	# litellm appends /v1/messages itself when the base is not a versioned root.
 	assert _api_base("opencode-go/minimax-m3", "https://proxy.test") == "https://proxy.test"
 
