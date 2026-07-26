@@ -101,7 +101,18 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 			})
 		);
 		$(this.container).append(this.wrapper);
+<<<<<<< HEAD
 		this.setup_editing_controls();
+=======
+
+		if (this.path) {
+			this.wrapper.find(".item-anchor").on("click", () => {
+				if (frappe.is_mobile()) {
+					frappe.app.sidebar.close();
+				}
+			});
+		}
+>>>>>>> e5d5a4290c (fix(mobile): close sidebar overlay when a link item is selected)
 	}
 	set_suffix() {
 		if (this.item.suffix) {
