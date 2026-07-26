@@ -76,11 +76,11 @@ class TestProviderCredentialResolution(IntegrationTestCase):
 	def test_disabled_provider_not_used(self):
 		frappe.get_doc(_provider(api_key="sk-from-provider", enabled=0)).insert()
 		m = frappe.get_doc(_model()).insert()
-		self.assertEqual(Model(m.name)._api_key, "")
+		self.assertIsNone(Model(m.name)._api_key)
 
 	def test_no_provider_row_leaves_key_empty(self):
 		m = frappe.get_doc(_model()).insert()
-		self.assertEqual(Model(m.name)._api_key, "")
+		self.assertIsNone(Model(m.name)._api_key)
 
 	def test_provider_base_url_used_when_model_has_none(self):
 		frappe.get_doc(_provider(base_url="http://gateway.local")).insert()
