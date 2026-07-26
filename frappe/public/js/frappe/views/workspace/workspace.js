@@ -387,50 +387,56 @@ frappe.views.Workspace = class Workspace {
 		});
 	}
 
-	// A workspace with no `app` is mounted to no dock, so it appears in no app's sidebar and is
-	// only reachable through global search or Manage Workspaces. Prompt whoever lands on it --
-	// with the action if they can mount it themselves, otherwise with who to ask.
-	//
-	// Rendered as a banner above the editor rather than as a content block (the route
-	// add_hidden_notice_in_content takes) because it carries an action button, and because it
-	// must never be mistaken for part of the workspace's saved content.
-	add_mount_notice(page) {
-		this.body.find(".workspace-mount-notice").remove();
-
+	// A workspace with no `app` is in no app's sidebar, so it's only reachable through global
+	// search or Manage Workspaces. Prompt whoever lands on it: a dialog offering to place it for
+	// anyone who can, and an explanation for anyone who can't. Both are dismissible -- being
+	// unmounted is worth raising, but not worth trapping someone over.
+	async add_mount_notice(page) {
 		// standard workspaces are mounted by the app that ships them, via their module
 		if (!page || page.app || page.standard || page.type !== "Workspace") return;
+		// show_page runs on every navigation -- don't stack dialogs on the same workspace
+		if (this.mount_dialog && this.mount_dialog.page_name === page.name) return;
+		// ...and once it's been waved off, leave it alone for the rest of the session rather
+		// than re-asking every time the workspace is opened
+		if (this.dismissed_mount_prompts?.has(page.name)) return;
 
 		// mirrors `can_edit_workspace` on the server: a Workspace Manager may mount anything,
 		// anyone may mount their own private workspace
 		const can_mount =
 			this.has_access || (!page.public && page.for_user === frappe.session.user);
 
-		const $notice = frappe.ui.alert({
-			theme: "amber",
-			css_class: "workspace-mount-notice",
-			title: __("This workspace isn't in any app's sidebar"),
-			description: can_mount
-				? __("Add it to an app so it shows up in the sidebar and is easy to get back to.")
-				: __(
-						"It can only be found through search. Ask a Workspace Manager to add it to an app."
-				  ),
-			footer: can_mount
-				? () =>
-						$(
-							`<button class="btn btn-secondary btn-sm">${__("Add to app")}</button>`
-						).on("click", () => this.prompt_mount_workspace(page))
-				: undefined,
-		});
+		if (!can_mount) {
+			// there's nothing for them to act on, so say it once and don't raise it again
+			this.dismissed_mount_prompts = this.dismissed_mount_prompts || new Set();
+			this.dismissed_mount_prompts.add(page.name);
+			frappe.msgprint({
+				title: __("Not in any app"),
+				indicator: "orange",
+				message: __(
+					"This workspace isn't in any app's sidebar, so it can only be found through search. Ask a Workspace Manager to add it to an app."
+				),
+			});
+			return;
+		}
 
-		$notice.insertBefore(this.body.find(".editor-js-container"));
+		await this.prompt_mount_workspace(page);
 	}
 
-	// Ask which app to mount `page` to, then mount it and refresh the desk in place.
+	// Ask which app to mount `page` to, then mount it and refresh the desk in place. Closing the
+	// dialog without choosing is fine -- it just won't ask again this session.
 	async prompt_mount_workspace(page) {
 		const apps = await this.get_mountable_apps();
+		let mounted = false;
 		const d = new frappe.ui.Dialog({
 			title: __("Add {0} to an app", [__(page.title)]),
 			fields: [
+				{
+					fieldtype: "HTML",
+					fieldname: "why",
+					options: `<p class="text-muted">${__(
+						"This workspace isn't in any app's sidebar yet, so there's no way to navigate to it. Pick the app it belongs to."
+					)}</p>`,
+				},
 				{
 					label: __("App"),
 					fieldtype: "Select",
@@ -443,6 +449,7 @@ frappe.views.Workspace = class Workspace {
 			],
 			primary_action_label: __("Add"),
 			primary_action: (values) => {
+				mounted = true;
 				d.hide();
 				frappe.call({
 					method: "frappe.desk.doctype.workspace.workspace.mount_workspace",
@@ -459,6 +466,19 @@ frappe.views.Workspace = class Workspace {
 				});
 			},
 		});
+
+		// tracked so a re-render of the same workspace doesn't stack a second copy on top
+		d.page_name = page.name;
+		this.mount_dialog = d;
+		d.$wrapper.on("hidden.bs.modal", () => {
+			if (this.mount_dialog === d) this.mount_dialog = null;
+			// closed without picking an app -> take the hint and stop asking for this session
+			if (!mounted) {
+				this.dismissed_mount_prompts = this.dismissed_mount_prompts || new Set();
+				this.dismissed_mount_prompts.add(page.name);
+			}
+		});
+
 		d.show();
 	}
 
