@@ -140,7 +140,7 @@ class ScheduledJobType(Document):
 		next_execution = parse_cron(self.cron_format).get_next(datetime, start_time=last_execution)
 		if self.frequency in ("Hourly Maintenance", "Daily Maintenance"):
 			next_execution += timedelta(minutes=maintenance_offset)
-		return parse_cron(self.cron_format).get_next(datetime, start_time=last_execution)
+		return next_execution
 
 	def execute(self):
 		if frappe.job:
