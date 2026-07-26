@@ -504,7 +504,13 @@ frappe.request.cleanup = function (opts, r) {
 		if (messages && !opts.silent) {
 			// show server messages if no handlers exist
 			if (handlers.length === 0) {
-				frappe.hide_msgprint();
+				const opens_dialog = messages.some((m) => {
+					const message = typeof m === "string" ? JSON.parse(m) : m;
+					return !(message.alert || message.toast);
+				});
+				if (opens_dialog) {
+					frappe.hide_msgprint();
+				}
 				frappe.msgprint(messages);
 			}
 		}
