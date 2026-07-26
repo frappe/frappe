@@ -404,13 +404,13 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	// The workspace dock is always on. Apps can no longer opt out; only page-level opt-outs
-	// (page_hides_dock, e.g. the desktop/apps screen) still suppress it.
+	// (page_allows_dock, e.g. the desktop/apps screen) still suppress it.
 	workspace_dock_enabled() {
 		return true;
 	}
 
 	// (Re)render the workspace dock to match the current app context. Created lazily on first
-	// refresh; the dock hides itself on page-level opt-outs (see page_hides_dock).
+	// refresh; the dock stays hidden unless the page allows it (see page_allows_dock).
 	refresh_dock() {
 		if (!this.workspace_dock) {
 			this.workspace_dock = new frappe.ui.WorkspaceDock(this);
@@ -423,12 +423,8 @@ frappe.ui.Sidebar = class Sidebar {
 	// set_workspace_sidebar is idempotent, so re-running it here is a no-op
 	// unless the route actually warrants a different sidebar.
 	refresh() {
-		if (!frappe.container.page.page) return;
-		if (frappe.container.page.page.hide_sidebar) {
-			this.wrapper.hide();
-			return;
-		}
-		this.wrapper.show();
+		this.apply_page_visibility();
+		if (!this.page_allows_sidebar()) return;
 		// Re-resolve the app context now that the routed doctype's meta is loaded. On a cold/direct
 		// load the router `change` handler ran before the meta was available, so set_current_app()
 		// couldn't derive the app (leaving current_app -- and thus the dock -- unresolved). This
@@ -438,23 +434,49 @@ frappe.ui.Sidebar = class Sidebar {
 		this.refresh_header();
 		this.refresh_dock();
 	}
-	toggle(hide) {
-		if (hide) {
-			this.wrapper.hide();
-		} else {
-			this.wrapper.show();
-		}
-		// re-evaluate the dock against the now-current page (toggle is driven per page by
-		// container.toggle_sidebar), so page-level opt-outs like the desktop screen take effect
+
+	// -------------------------------------------------------------------------------------------
+	// Visibility. Both shells -- the body sidebar and the workspace dock -- are hidden by default
+	// (see make_dom and WorkspaceDock.make) and are only displayed once the page on screen says it
+	// allows them. Defaulting to hidden means a page that suppresses them (the desktop/apps screen,
+	// the setup wizard) never flashes them first, and a page that has not rendered yet -- so
+	// nothing is known about its options -- shows nothing rather than guessing.
+	// -------------------------------------------------------------------------------------------
+
+	// The frappe.ui.Page on screen, or undefined before one has rendered.
+	current_page() {
+		return frappe.container && frappe.container.page && frappe.container.page.page;
+	}
+
+	// The body sidebar is displayed unless the page opts out via the standard `hide_sidebar` option.
+	page_allows_sidebar() {
+		const page = this.current_page();
+		return !!page && !page.hide_sidebar;
+	}
+
+	// The dock is displayed unless the page hides the whole sidebar (`hide_sidebar`, e.g. the
+	// desktop/apps screen) or opts out of just the dock with `hide_workspace_dock` -- both are
+	// standard frappe.ui.Page options, so this is configurable per page.
+	page_allows_dock() {
+		const page = this.current_page();
+		return !!page && !page.hide_sidebar && !page.hide_workspace_dock;
+	}
+
+	// Resolve both shells against the current page's options. This is the one place that turns
+	// either of them on; it's driven per page by container.toggle_sidebar, so every page change
+	// re-evaluates them.
+	apply_page_visibility() {
+		if (!this.wrapper) return;
+		this.wrapper.toggle(this.page_allows_sidebar());
 		this.refresh_dock();
 	}
 
-	// Page-level opt-out for the dock. A page hides the dock when it hides the whole sidebar
-	// (`hide_sidebar`, e.g. the desktop/apps screen) or sets the dedicated `hide_workspace_dock`
-	// option -- both are standard frappe.ui.Page options, so this is configurable per page.
-	page_hides_dock() {
-		const page = frappe.container && frappe.container.page && frappe.container.page.page;
-		return !!(page && (page.hide_sidebar || page.hide_workspace_dock));
+	// Explicit override for callers that want the body sidebar hidden/shown irrespective of the
+	// page. The dock keeps following the page's options.
+	toggle(hide) {
+		if (!this.wrapper) return;
+		this.wrapper.toggle(!hide);
+		this.refresh_dock();
 	}
 	make_dom() {
 		this.load_sidebar_state();
@@ -464,7 +486,12 @@ frappe.ui.Sidebar = class Sidebar {
 				avatar: frappe.avatar(frappe.session.user, "avatar-medium-2"),
 				navbar_settings: frappe.boot.navbar_settings,
 			})
-		).prependTo("body");
+		)
+			// Starts hidden; only a page that allows it turns it on (see apply_page_visibility).
+			// Hiding before it enters the document means a page that hides the sidebar never
+			// flashes it first.
+			.hide()
+			.prependTo("body");
 		this.$sidebar = this.wrapper.find(".sidebar-items");
 
 		this.wrapper.find(".body-sidebar .sidebar-resize-handle").on("click", () => {
