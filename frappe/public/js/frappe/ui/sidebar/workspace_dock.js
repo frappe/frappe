@@ -86,11 +86,11 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 				name: "notifications",
 				icon: "bell",
 				label: __("Notifications"),
-				// the Notifications view keeps the unread count and unseen dot in sync off these
-				// classes (see notifications.js), and toggles the same dropdown the sidebar bell does.
+				// the Notifications view keeps the unread count in sync off these classes (see
+				// notifications.js), and toggles the same dropdown the sidebar bell does.
 				css_class: "sidebar-notification",
 				condition: () => frappe.boot.desk_settings.notifications,
-				badge: `<span class="sidebar-notification-count hidden" aria-live="polite"></span>`,
+				badge: `<span class="notification-count hidden" aria-live="polite"></span>`,
 				on_click: () => this.toggle_notifications(),
 				setup: ($item) => {
 					// seed the badge from boot; the Notifications view keeps it live from here on
@@ -98,12 +98,6 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 						$item,
 						frappe.boot.notification_unread_count || 0
 					);
-					if (
-						frappe.boot.notification_settings &&
-						frappe.boot.notification_settings.seen == 0
-					) {
-						$item.find(".sidebar-item-icon").addClass("indicator blue");
-					}
 				},
 			},
 		];
@@ -147,7 +141,7 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 
 	// The dock shows unread as a small dot, not a number -- just toggle it on whether any exist.
 	sync_notification_count($bell, count) {
-		$bell.find(".sidebar-notification-count").toggleClass("hidden", count <= 0);
+		$bell.find(".notification-count").toggleClass("hidden", count <= 0);
 	}
 
 	// Toggle the shared notifications panel (lives in the sidebar), mirroring the sidebar bell.
