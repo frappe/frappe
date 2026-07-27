@@ -228,7 +228,7 @@
    "options": "green\ncyan\nblue\norange\nyellow\ngray\ngrey\nred\npink\ndarkgrey\npurple\nlight-blue"
   },
   {
-   "depends_on": "eval: doc.standard",
+   "description": "The app this workspace is mounted to. Decides which app's dock (workspace rail) lists it. A standard workspace inherits this from its module; a custom one must be mounted explicitly, or it appears on no dock at all.",
    "fieldname": "app",
    "fieldtype": "Data",
    "label": "App"
@@ -291,7 +291,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2026-07-06 23:20:00.000000",
+ "modified": "2026-07-26 19:50:45.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",

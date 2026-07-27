@@ -53,15 +53,13 @@ frappe.ui.Sidebar = class Sidebar {
 		const route = frappe.get_route();
 		if (route[0] === "Workspaces") {
 			// a workspace route names its workspace -> the app comes from the workspace itself.
-			// Custom (user-created, non-standard) workspaces belong to no app, so they never carry
-			// an app context -- even if an older one has a stale `app` value.
+			// `app` is the mount point for every kind of workspace: standard ones inherit it from
+			// their module, custom and private ones are mounted explicitly. Only a workspace that
+			// has never been mounted resolves to no app.
 			const name = route[route.length - 1];
 			const workspace = frappe.workspaces[frappe.router.slug(name)];
 			const sidebar = frappe.boot.workspace_sidebar_item[name.toLowerCase()];
-			const app_name =
-				workspace && !workspace.standard
-					? null
-					: (workspace && workspace.app) || (sidebar && sidebar.app);
+			const app_name = (workspace && workspace.app) || (sidebar && sidebar.app);
 			const app =
 				app_name &&
 				frappe.boot.app_data.find((a) => a.app_name === this.rail_host_app(app_name));
@@ -70,8 +68,8 @@ frappe.ui.Sidebar = class Sidebar {
 				this.header_subtitle = app.app_title;
 				this.app_logo_url = app.app_logo_url;
 			} else {
-				// no owning app (a custom workspace) -> clear the app context so the header/selector
-				// don't keep showing the app you came from
+				// unmounted workspace -> clear the app context so the header/selector don't keep
+				// showing the app you came from
 				frappe.current_app = null;
 				this.header_subtitle = frappe.session.user;
 			}
@@ -388,16 +386,13 @@ frappe.ui.Sidebar = class Sidebar {
 	// dock belongs to whichever app's sidebar is shown, so it follows this rather than the
 	// route-derived `frappe.current_app` (the two can diverge -- e.g. a sidebar that curates a
 	// cross-app link keeps its own app while the route entity belongs to another). Resolved from the
-	// shown workspace's `app` (module sidebars carry it on the boot payload); custom (non-standard)
-	// workspaces belong to no app.
+	// shown workspace's `app` (module sidebars carry it on the boot payload). A workspace that
+	// isn't mounted to any app resolves to null.
 	get_sidebar_app() {
 		if (!this.sidebar_title) return null;
 		const workspace = frappe.workspaces[frappe.router.slug(this.sidebar_title)];
 		const sidebar = frappe.boot.workspace_sidebar_item[this.sidebar_title.toLowerCase()];
-		const app_name =
-			workspace && !workspace.standard
-				? null
-				: (workspace && workspace.app) || (sidebar && sidebar.app);
+		const app_name = (workspace && workspace.app) || (sidebar && sidebar.app);
 		return app_name
 			? frappe.boot.app_data.find((a) => a.app_name === this.rail_host_app(app_name))
 			: null;
@@ -553,10 +548,10 @@ frappe.ui.Sidebar = class Sidebar {
 				},
 				{
 					name: "workspace-selector",
-					label: __("Manage Workspaces"),
+					label: __("Manage Dock"),
 					icon: "monitor",
 					onClick: function () {
-						new frappe.ui.WorkspacePicker();
+						new frappe.ui.DockManager();
 					},
 				},
 				...frappe.boot.navbar_settings.settings_dropdown.map((item) => ({
@@ -976,9 +971,16 @@ frappe.ui.Sidebar = class Sidebar {
 		let route = this.get_first_sidebar_route(name);
 		if (route) {
 			frappe.set_route(route);
-		} else {
-			frappe.set_route("Workspaces", frappe.router.slug(name));
+			return;
 		}
+
+		// No sidebar items to land on -> the workspace's own page. Route by path (as the workspace
+		// view itself does) rather than as a ["Workspaces", slug] standard route: the path form is
+		// what carries a private workspace's `private/` prefix and lets the router resolve the slug
+		// back to the workspace's real name.
+		let workspace = frappe.workspaces[frappe.router.slug(name)];
+		let is_public = workspace ? workspace.public : true;
+		frappe.set_route(frappe.router.slug(is_public ? name : "private/" + name));
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -986,46 +988,33 @@ frappe.ui.Sidebar = class Sidebar {
 	// workspace dock, so the two always offer the same workspaces.
 	// ---------------------------------------------------------------------------------------------
 
-	// The public workspaces the selector offers, as Workspace objects in display order.
-	// `frappe.boot.user_workspaces` is the user's personal selector preference (`User.workspaces`).
-	// When set, it is authoritative and may include private workspaces too. Otherwise fall back to
-	// `app`'s workspaces plus any public custom (user-created, non-standard) workspaces -- those
-	// don't belong to an app's list (a "true custom" workspace has no app), so they'd otherwise
-	// never appear. `app` defaults to the route's current app (used by the header dropdown); the
-	// dock passes the shown sidebar's app so it lists that app's workspaces.
-	get_public_workspaces(app = frappe.current_app) {
-		let user_workspaces = frappe.boot.user_workspaces || [];
-		let source;
-		if (user_workspaces.length) {
-			source = user_workspaces;
-		} else {
-			let app_workspaces = (app && app.workspaces) || [];
-			let appless_custom = Object.values(frappe.workspaces || {})
-				.filter((workspace) => workspace.public && !workspace.standard && !workspace.app)
-				.map((workspace) => workspace.name);
-			source = [...new Set([...app_workspaces, ...appless_custom])];
-		}
-
-		return source.map((name) => frappe.workspaces[frappe.router.slug(name)]).filter(Boolean);
-	}
-
-	// The user's private workspaces, as Workspace objects. When the user has curated a selection,
-	// any private workspaces they want are already part of it (via get_public_workspaces), so
-	// don't auto-append them again.
-	get_private_workspaces() {
-		if ((frappe.boot.user_workspaces || []).length) return [];
-
-		return Object.values(frappe.workspaces || {}).filter(
-			(workspace) => !workspace.public && workspace.for_user === frappe.session.user
-		);
-	}
-
-	// Full ordered set of workspaces the selector covers (public then private), including the
+	// Full ordered set of workspaces the selector covers, as Workspace objects, including the
 	// active one. The dock renders this whole set (highlighting the active); the header dropdown
 	// drops the active one (see get_workspace_selector_items) since you can't switch to it.
-	// `app` scopes the public workspaces (defaults to the route's current app).
-	collect_selector_workspaces(app) {
-		return [...this.get_public_workspaces(app), ...this.get_private_workspaces()];
+	//
+	// The set is exactly the app's own workspaces -- `app_data[].workspaces`, which the server
+	// builds from each workspace's module or its `app` mount, public and private alike. A
+	// workspace that isn't mounted to any app is deliberately on no dock; it stays reachable
+	// through global search and Manage Workspaces until someone mounts it.
+	//
+	// `app` defaults to the route's current app (used by the header dropdown); the dock passes the
+	// shown sidebar's app so it lists that app's workspaces.
+	collect_selector_workspaces(app = frappe.current_app) {
+		let names = (app && app.workspaces) || [];
+
+		// `frappe.boot.user_workspaces` (`User.workspaces`) is the user's curated selector
+		// preference. Apply it *within* the app's set rather than as a replacement for it --
+		// as a replacement it would put the same list on every app's dock, which is the
+		// belongs-to-every-app problem the app mount exists to fix. If the user curated a
+		// selection that names none of this app's workspaces, fall back to the app's full set
+		// rather than rendering an empty rail.
+		let selection = frappe.boot.user_workspaces || [];
+		if (selection.length) {
+			let scoped = selection.filter((name) => names.includes(name));
+			if (scoped.length) names = scoped;
+		}
+
+		return names.map((name) => frappe.workspaces[frappe.router.slug(name)]).filter(Boolean);
 	}
 
 	// Menu items for the header dropdown selector: every selector workspace except the active one.
