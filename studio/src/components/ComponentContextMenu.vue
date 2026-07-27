@@ -1,13 +1,6 @@
 <template>
 	<div>
-		<ContextMenu
-			v-if="contextMenuVisible"
-			:pos-x="posX"
-			:pos-y="posY"
-			:options="contextMenuOptions"
-			@select="handleContextMenuSelect"
-			@close="contextMenuVisible = false"
-		/>
+		<ContextMenu ref="contextMenuRef" :options="contextMenuOptions" @select="handleContextMenuSelect" />
 		<FormDialog v-if="block" v-model:showDialog="showFormDialog" :block="block" />
 	</div>
 </template>
@@ -33,9 +26,7 @@ import LucideBox from "~icons/lucide/box"
 const canvasStore = useCanvasStore()
 const store = useStudioStore()
 
-const contextMenuVisible = ref(false)
-const posX = ref(0)
-const posY = ref(0)
+const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null)
 
 const block = ref(null) as unknown as Ref<Block>
 const showFormDialog = ref(false)
@@ -47,16 +38,13 @@ const showContextMenu = (e: MouseEvent, refBlock: Block) => {
 	// remember the right-clicked slot so "Add Component" drops into it
 	const slot = canvasStore.activeCanvas?.selectedSlot
 	selectedSlot.value = slot && slot.parentBlockId === refBlock.componentId ? slot.slotName : null
-	contextMenuVisible.value = true
-	posX.value = e.pageX
-	posY.value = e.pageY
 	e.preventDefault()
 	e.stopPropagation()
+	contextMenuRef.value?.show(e.pageX, e.pageY)
 }
 
 const handleContextMenuSelect = (action: CallableFunction) => {
 	action()
-	contextMenuVisible.value = false
 }
 
 const addComponent = (
@@ -82,7 +70,7 @@ const componentSubmenu = computed<ContextMenuGroup[]>(() => {
 		})),
 	}))
 
-	if (store.customVueComponents.length) {
+	if (store.customVueComponents?.length) {
 		groups.push({
 			label: "Vue Components",
 			options: store.customVueComponents.map((component) => ({
@@ -93,7 +81,7 @@ const componentSubmenu = computed<ContextMenuGroup[]>(() => {
 		})
 	}
 
-	if (studioComponents.data.length) {
+	if (studioComponents.data?.length) {
 		groups.push({
 			label: "Studio Components",
 			options: studioComponents.data.map((component: StudioComponent) => ({

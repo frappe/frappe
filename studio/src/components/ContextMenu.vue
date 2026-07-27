@@ -26,9 +26,9 @@
 								:side-offset="4"
 								:align-offset="-4"
 								avoid-collisions
-								@open-auto-focus="onSubContentOpen"
+								@open-auto-focus="focusSearchInput"
 							>
-								<div class="js-submenu-search px-1.5 pb-1.5" @mousedown.stop @click.stop>
+								<div class="px-1.5 pb-1.5" data-submenu-search @mousedown.stop @click.stop>
 									<TextInput
 										v-model="submenuSearch"
 										size="sm"
@@ -104,27 +104,31 @@ import {
 	DropdownMenuLabel,
 } from "reka-ui"
 import { TextInput } from "frappe-ui"
-import { ref, nextTick, onMounted, watch } from "vue"
+import { ref, nextTick } from "vue"
 import type { ContextMenuOption, ContextMenuGroup } from "@/types"
 import LucideChevronRight from "~icons/lucide/chevron-right"
 
-const props = defineProps<{
-	posX: number
-	posY: number
+defineProps<{
 	options: ContextMenuOption[]
 }>()
 
 const emit = defineEmits<{
 	select: [action: CallableFunction]
-	close: []
 }>()
 
-// open on mount (once the anchor exists) so reka positions against it; closing bubbles up as `close`
+// stays mounted; parent calls show()/hide() imperatively (like Builder's ContextMenu)
 const open = ref(false)
-onMounted(() => (open.value = true))
-watch(open, (value) => {
-	if (!value) emit("close")
-})
+const posX = ref(0)
+const posY = ref(0)
+
+const show = (x: number, y: number) => {
+	posX.value = x
+	posY.value = y
+	open.value = true
+}
+const hide = () => {
+	open.value = false
+}
 
 const submenuSearch = ref("")
 
@@ -139,12 +143,11 @@ const filterGroups = (groups: ContextMenuGroup[]): ContextMenuGroup[] => {
 		.filter((group) => group.options.length)
 }
 
-// focus the search box instead of the first item so typing filters right away
-const onSubContentOpen = (event: Event) => {
+const focusSearchInput = (event: Event) => {
 	event.preventDefault()
 	submenuSearch.value = ""
 	nextTick(() => {
-		document.querySelector<HTMLInputElement>(".js-submenu-search input")?.focus()
+		document.querySelector<HTMLInputElement>("[data-submenu-search] input")?.focus()
 	})
 }
 
@@ -156,10 +159,12 @@ const onListKeydown = (event: KeyboardEvent) => {
 	if (!items.length || document.activeElement !== items[0]) return
 	event.preventDefault()
 	event.stopPropagation()
-	list.parentElement?.querySelector<HTMLInputElement>(".js-submenu-search input")?.focus()
+	list.parentElement?.querySelector<HTMLInputElement>("[data-submenu-search] input")?.focus()
 }
 
 const handleClick = (action: CallableFunction) => {
 	emit("select", action)
 }
+
+defineExpose({ show, hide })
 </script>

@@ -132,14 +132,7 @@
 	</Dialog>
 
 	<Teleport to="body">
-		<ContextMenu
-			v-if="contextMenuVisible"
-			:pos-x="contextMenuPos.x"
-			:pos-y="contextMenuPos.y"
-			:options="contextMenuOptions"
-			@select="onContextMenuSelect"
-			@close="closeContextMenu"
-		/>
+		<ContextMenu ref="contextMenuRef" :options="contextMenuOptions" @select="onContextMenuSelect" />
 	</Teleport>
 
 	<CodeEditorDock
@@ -461,8 +454,7 @@ async function createEntry() {
 }
 
 // -- Context menu --
-const contextMenuVisible = ref(false)
-const contextMenuPos = ref({ x: 0, y: 0 })
+const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null)
 const contextMenuNode = ref<StudioFileNode | null>(null)
 
 const contextMenuOptions = computed<ContextMenuOption[]>(() => {
@@ -486,12 +478,11 @@ function openContextMenu(event: MouseEvent, node: StudioFileNode) {
 	selectedNode.value = node
 	contextMenuNode.value = node
 	if (!contextMenuOptions.value.length) return // read-only file: nothing to offer
-	contextMenuPos.value = { x: event.pageX, y: event.pageY }
-	contextMenuVisible.value = true
+	contextMenuRef.value?.show(event.pageX, event.pageY)
 }
 
 function closeContextMenu() {
-	contextMenuVisible.value = false
+	contextMenuRef.value?.hide()
 }
 
 function onContextMenuSelect(action: CallableFunction) {
