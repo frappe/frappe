@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 frappe.desktop_utils = {};
 frappe.desktop_grids = [];
 frappe.desktop_icons_objects = [];
@@ -19,12 +19,9 @@ $.extend(frappe.desktop_utils, {
 		}
 	},
 });
-=======
-// avatar menu items are sorted by `order` (lower first); anything added via
-// `add_menu_item()` without one lands after the built-ins but before Logout.
+
 const DEFAULT_MENU_ITEM_ORDER = 50;
 
->>>>>>> 73008dc4d0 (fix: add order to desktop menu item)
 frappe.pages["desktop"].on_page_load = function (wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
