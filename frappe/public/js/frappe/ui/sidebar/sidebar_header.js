@@ -35,7 +35,9 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			return {
 				name: app.app_name,
 				label: app.app_title,
-				url: app.app_route,
+				// an app that ships no workspaces has no declared route either -- it lands on its
+				// first module sidebar instead (see app_landing_route)
+				url: this.sidebar.app_landing_route(app),
 				icon_url: logo,
 				// no logo declared -> render an alphabet icon, matching the desktop apps screen
 				icon_html: logo

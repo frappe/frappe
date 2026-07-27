@@ -48,8 +48,16 @@ class DesktopPage {
 		// surfaced as `frappe.boot.app_data`; show one icon per opted-in app.
 		// Order by the hook's `sequence_id` (lower first); Framework declares 1000 so it
 		// always trails. Ties keep installed-apps order since sort() is stable.
+		// An app that ships no workspaces declares no route either; it opens on its first module
+		// sidebar instead (see app_landing_route), so resolve the destination before filtering out
+		// the apps that have nowhere to go.
 		const apps = (frappe.boot.app_data || [])
-			.filter((app) => app.on_apps_screen && app.app_route)
+			.filter((app) => app.on_apps_screen)
+			.map((app) => ({
+				...app,
+				route: frappe.app.sidebar?.app_landing_route(app) || app.app_route,
+			}))
+			.filter((app) => app.route)
 			.sort((a, b) => (a.sequence_id ?? 100) - (b.sequence_id ?? 100));
 
 		const $container = $(`<div class="icons-container"></div>`).appendTo(this.wrapper);
@@ -66,10 +74,10 @@ class DesktopPage {
 				logo_url: app.app_logo_url,
 			};
 			const $icon = $(frappe.render_template("desktop_icon", { icon: icon_data }));
-			if (app.app_route.startsWith("http")) {
+			if (app.route.startsWith("http")) {
 				$icon.attr("target", "_blank");
 			}
-			$icon.attr("href", app.app_route);
+			$icon.attr("href", app.route);
 			$grid.append($icon);
 		});
 
