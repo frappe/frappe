@@ -51,6 +51,7 @@ import "./frappe/roles_editor.js";
 import "./frappe/module_editor.js";
 import "./frappe/microtemplate.js";
 
+import "./frappe/ui/site_banners.js";
 import "./frappe/ui/page.html";
 import "./frappe/ui/page.js";
 import "./frappe/ui/slides.js";
