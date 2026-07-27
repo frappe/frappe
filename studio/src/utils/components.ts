@@ -377,6 +377,8 @@ function resolveProperty(
 		if (enums) {
 			inputType = "select"
 			options = enums
+		} else if (propName === "color") {
+			inputType = "color"
 		}
 	}
 
