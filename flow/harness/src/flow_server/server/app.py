@@ -21,7 +21,13 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict
 
 from flow_server import agent
-from flow_server.session.store import Session, SessionConfig, SessionStore
+from flow_server.session.store import (
+	Session,
+	SessionConfig,
+	SessionState,
+	SessionStore,
+	pending_approval,
+)
 
 
 class RunRequest(BaseModel):
@@ -37,6 +43,7 @@ class RunRequest(BaseModel):
 class ResumeRequest(BaseModel):
 	model_config = ConfigDict(extra="forbid")
 
+	approval_seq: int
 	answers: dict[str, str]  # pending tool_call_id -> "Approve" | "Deny" | free text
 
 
@@ -77,6 +84,7 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 		session = _get(sid)
 		return {
 			"session_id": session.id,
+			"state": session.state,
 			"running": session.is_running,
 			"latest_seq": session.log.latest_seq,
 			"config": session.config.redacted(),
@@ -85,24 +93,46 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 	@app.post("/sessions/{sid}/run")
 	async def run(sid: str, req: RunRequest, wait: bool = False):
 		session = _get(sid)
-		_apply_overrides(store, session, req)
-		if session.is_running:
-			session.steer(req.message)
-			return {"status": "steered"}
-		return await _launch(session, agent.run(session, req.message), wait)
+		async with session.operation_lock:
+			if session.state is SessionState.PAUSED:
+				raise HTTPException(
+					status_code=409,
+					detail="run is paused for approval; resolve it with /resume",
+				)
+			_apply_overrides(store, session, req)
+			if session.state is SessionState.RUNNING:
+				session.steer(req.message)
+				return {"status": "steered"}
+			from_seq = session.log.latest_seq
+			task = session._start_operation(agent.run(session, req.message))
+		return await _launch(session, task, from_seq, wait)
 
 	@app.post("/sessions/{sid}/resume")
 	async def resume(sid: str, req: ResumeRequest, wait: bool = False):
 		session = _get(sid)
-		if session.is_running:
-			raise HTTPException(status_code=409, detail="run is not paused")
-		return await _launch(session, agent.resume(session, req.answers), wait)
+		async with session.operation_lock:
+			if session.state is not SessionState.PAUSED:
+				raise HTTPException(status_code=409, detail="run is not paused")
+			approval = pending_approval(session.log)
+			try:
+				agent.validate_resume(approval, req.approval_seq, req.answers)
+			except agent.ResumeError as e:
+				raise HTTPException(status_code=409, detail=str(e)) from None
+			from_seq = session.log.latest_seq
+			task = session._start_operation(
+				agent.resume(
+					session,
+					req.answers,
+					approval_seq=req.approval_seq,
+				)
+			)
+		return await _launch(session, task, from_seq, wait)
 
 	@app.post("/sessions/{sid}/abort")
 	async def abort(sid: str):
 		session = _get(sid)
 		session.abort.set()
-		return {"status": "aborting" if session.is_running else "idle"}
+		return {"status": "aborting" if session.is_running else session.state}
 
 	@app.get("/sessions/{sid}/entries")
 	async def entries(sid: str, since: int = 0):
@@ -110,6 +140,7 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 		return {
 			"entries": session.log.read_since(since),
 			"latest_seq": session.log.latest_seq,
+			"state": session.state,
 			"running": session.is_running,
 		}
 
@@ -139,13 +170,16 @@ def _apply_overrides(store: SessionStore, session: Session, req: RunRequest) -> 
 		store.save_meta(session)
 
 
-async def _launch(session: Session, coro, wait: bool) -> dict:
-	"""Fire-and-forget by default; with `wait`, run to completion and return a summary."""
-	from_seq = session.log.latest_seq
+async def _launch(
+	session: Session,
+	task: asyncio.Task[None],
+	from_seq: int,
+	wait: bool,
+) -> dict:
+	"""Return immediately or wait on the already-registered session operation."""
 	if wait:
-		await coro
+		await task
 		return _summary(session, from_seq)
-	session.run_task = asyncio.create_task(coro)
 	return {"status": "started"}
 
 
@@ -153,6 +187,7 @@ def _summary(session: Session, from_seq: int) -> dict:
 	"""Distil this turn's durable entries into a Flow-like result: reason, final text,
 	usage totals, and any pending approval calls."""
 	text, reason, pending = "", "done", []
+	approval_seq = None
 	input_tokens = output_tokens = 0
 	for row in session.log.read_since(from_seq):
 		t = row["type"]
@@ -163,6 +198,7 @@ def _summary(session: Session, from_seq: int) -> dict:
 			output_tokens += row.get("output_tokens", 0)
 		elif t == "approval_required":
 			pending = row.get("calls", [])
+			approval_seq = row.get("seq")
 		elif t == "run_ended":
 			reason = row.get("reason", "done")
 	return {
@@ -170,6 +206,7 @@ def _summary(session: Session, from_seq: int) -> dict:
 		"output": text,
 		"usage": {"input_tokens": input_tokens, "output_tokens": output_tokens},
 		"pending": pending,
+		"approval_seq": approval_seq,
 	}
 
 

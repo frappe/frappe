@@ -1,4 +1,6 @@
-from flow_server.agent import HookDecision, resume, run
+import pytest
+
+from flow_server.agent import HookDecision, ResumeError, resume, run
 from flow_server.events import AssistantMessage, ToolCall
 from flow_server.model.mock import MockModel
 from flow_server.session.store import SessionConfig, SessionStore
@@ -135,6 +137,42 @@ async def test_resume_deny_stops_run(tmp_path):
 	assert "denied" in tr["content"]
 	assert _of(events, "run_ended")[-1]["reason"] == "done"
 	assert mock._turn == 1  # the model was NOT called again after denial
+
+
+async def test_resume_rejects_non_exact_answers_without_mutating_log(tmp_path):
+	(tmp_path / "a.txt").write_text("SECRET")
+	session, events = _session(tmp_path, confirm_tools=["read_file"])
+	mock = MockModel(
+		replies=[
+			AssistantMessage(
+				tool_calls=[
+					ToolCall(id="c1", name="read_file", args={"path": "a.txt"}),
+					ToolCall(id="c2", name="read_file", args={"path": "a.txt"}),
+				]
+			)
+		]
+	)
+	await run(session, "read", model=mock)
+	approval_seq = _of(events, "approval_required")[0]["seq"]
+	latest_seq = session.log.latest_seq
+
+	with pytest.raises(ResumeError, match="missing answers for: c2"):
+		await resume(
+			session,
+			{"c1": "Approve"},
+			approval_seq=approval_seq,
+			model=mock,
+		)
+	with pytest.raises(ResumeError, match="stale"):
+		await resume(
+			session,
+			{"c1": "Approve", "c2": "Approve"},
+			approval_seq=approval_seq - 1,
+			model=mock,
+		)
+
+	assert session.log.latest_seq == latest_seq
+	assert _of(events, "tool_result") == []
 
 
 async def test_non_streaming_run(tmp_path):
