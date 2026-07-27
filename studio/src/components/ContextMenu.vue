@@ -1,5 +1,4 @@
-<!-- reka-ui based context menu (see Builder's ContextMenu). A zero-size fixed anchor at the
-     cursor lets reka position + collision-handle the menu while we keep imperative control. -->
+<!-- Extracted from Builder, modified later -->
 <template>
 	<DropdownMenuRoot v-model:open="open" :modal="false">
 		<DropdownMenuTrigger as-child>
@@ -73,7 +72,12 @@
 					<!-- standard action option -->
 					<DropdownMenuItem
 						v-else-if="!option.submenu && (!option.condition || option.condition())"
-						class="cursor-pointer rounded px-3 py-1.5 text-ink-gray-8 outline-none data-[disabled]:cursor-default data-[highlighted]:bg-surface-gray-3 data-[disabled]:text-ink-gray-3"
+						class="cursor-pointer rounded px-3 py-1.5 outline-none data-[disabled]:cursor-default data-[disabled]:text-ink-gray-3"
+						:class="
+							option.theme === 'red'
+								? 'text-ink-red-6 data-[highlighted]:bg-surface-red-3'
+								: 'text-ink-gray-8 data-[highlighted]:bg-surface-gray-3'
+						"
 						:disabled="option.disabled && option.disabled()"
 						@select="option.action && handleClick(option.action)"
 					>

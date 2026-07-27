@@ -171,15 +171,6 @@ const contextMenuOptions: ContextMenuOption[] = [
 		action: () => block.value.duplicateBlock(),
 	},
 	{
-		label: "Delete",
-		action: () => {
-			block.value.deleteBlock()
-		},
-		condition: () => {
-			return !block.value.isRoot() && Boolean(block.value.getParentBlock())
-		},
-	},
-	{
 		label: "Save as Component",
 		action: () => {
 			useComponentEditorStore().promptNewComponent({
@@ -209,6 +200,16 @@ const contextMenuOptions: ContextMenuOption[] = [
 		disabled: () => !block.value?.hasOverrides(canvasStore.activeCanvas?.activeBreakpoint || "desktop"),
 		action: () => {
 			block.value.resetOverrides(canvasStore.activeCanvas?.activeBreakpoint || "desktop")
+		},
+	},
+	{
+		label: "Delete",
+		theme: "red",
+		action: () => {
+			block.value.deleteBlock()
+		},
+		condition: () => {
+			return !block.value.isRoot() && Boolean(block.value.getParentBlock())
 		},
 	},
 ]

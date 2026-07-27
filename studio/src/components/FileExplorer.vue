@@ -473,7 +473,7 @@ const contextMenuOptions = computed<ContextMenuOption[]>(() => {
 		? []
 		: [
 				{ label: "Rename", action: () => startRename(node) },
-				{ label: "Delete", action: () => deleteNode(node) },
+				{ label: "Delete", action: () => deleteNode(node), theme: "red" },
 			]
 	if (!node.is_folder && node.path.endsWith(".vue")) {
 		const componentName = node.label.replace(/\.vue$/i, "")

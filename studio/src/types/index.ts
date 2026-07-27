@@ -59,6 +59,7 @@ export interface ContextMenuOption {
 	condition?: () => boolean
 	disabled?: () => boolean
 	icon?: any
+	theme?: "gray" | "red"
 	// when present, the option expands into a nested (grouped) submenu on hover
 	submenu?: ContextMenuGroup[]
 }
