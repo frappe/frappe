@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 frappe.desktop_utils = {};
 frappe.desktop_grids = [];
 frappe.desktop_icons_objects = [];
@@ -18,6 +19,12 @@ $.extend(frappe.desktop_utils, {
 		}
 	},
 });
+=======
+// avatar menu items are sorted by `order` (lower first); anything added via
+// `add_menu_item()` without one lands after the built-ins but before Logout.
+const DEFAULT_MENU_ITEM_ORDER = 50;
+
+>>>>>>> 73008dc4d0 (fix: add order to desktop menu item)
 frappe.pages["desktop"].on_page_load = function (wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
@@ -440,6 +447,7 @@ class DesktopPage {
 				icon: "edit",
 				label: "Edit Profile",
 				url: `/desk/user/${frappe.session.user}`,
+				order: 10,
 			},
 			{
 				icon: is_dark ? "sun" : "moon",
@@ -447,6 +455,7 @@ class DesktopPage {
 				onClick: function () {
 					new frappe.ui.ThemeSwitcher().show();
 				},
+				order: 20,
 			},
 			{
 				icon: "info",
@@ -454,6 +463,7 @@ class DesktopPage {
 				onClick: function () {
 					return frappe.ui.toolbar.show_about();
 				},
+				order: 30,
 			},
 			{
 				icon: "support",
@@ -461,6 +471,7 @@ class DesktopPage {
 				onClick: function () {
 					window.open("https://support.frappe.io/help", "_blank");
 				},
+<<<<<<< HEAD
 			},
 			{
 				icon: "rotate-ccw",
@@ -476,10 +487,23 @@ class DesktopPage {
 				onClick: function () {
 					frappe.app.logout();
 				},
+=======
+				order: 40,
+>>>>>>> 73008dc4d0 (fix: add order to desktop menu item)
 			},
 		];
-		if (this.desktop_menu_items && this.desktop_menu_items.length)
-			menu_items = [...menu_items, ...this.desktop_menu_items];
+		// sort() is stable, so items sharing an `order` keep the order they were added in.
+		menu_items = [...menu_items, ...this.desktop_menu_items].sort(
+			(a, b) => (a.order ?? DEFAULT_MENU_ITEM_ORDER) - (b.order ?? DEFAULT_MENU_ITEM_ORDER)
+		);
+		// Logout is appended after sorting so it stays last whatever `order` apps pass in.
+		menu_items.push({
+			icon: "log-out",
+			label: "Logout",
+			onClick: function () {
+				frappe.app.logout();
+			},
+		});
 		frappe.ui.create_menu({
 			parent: $(".desktop-avatar"),
 			menu_items: menu_items,
@@ -488,9 +512,11 @@ class DesktopPage {
 			open_on_left: !frappe.utils.is_rtl(),
 		});
 	}
+	// `item.order` is optional; lower sorts higher up the menu. Built-ins occupy
+	// 10-40, so omitting it drops the item below them (see DEFAULT_MENU_ITEM_ORDER).
+	// Logout is always last and can't be displaced.
 	add_menu_item(item) {
-		if (this.desktop_menu_items && this.desktop_menu_items.find((i) => i.label === item.label))
-			return;
+		if (this.desktop_menu_items.find((i) => i.label === item.label)) return;
 		this.desktop_menu_items.push(item);
 	}
 	setup_navbar() {
