@@ -1,4 +1,4 @@
-.workspace-picker {
+.dock-manager {
 	display: flex;
 	gap: var(--margin-lg);
 
@@ -34,10 +34,6 @@
 		font-size: var(--text-sm);
 		color: var(--text-muted);
 		margin-top: calc(-1 * var(--margin-xs));
-	}
-
-	.ws-app-picker .form-control {
-		width: 100%;
 	}
 
 	.ws-list {
@@ -124,11 +120,6 @@
 
 		&:active {
 			cursor: grabbing;
-		}
-
-		&.is-selected {
-			opacity: 0.45;
-			cursor: not-allowed;
 		}
 	}
 

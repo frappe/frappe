@@ -19,9 +19,9 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		if (apps_section) items.push(apps_section);
 		items.push({
 			name: "workspace-selector",
-			label: __("Workspaces"),
+			label: __("Manage Dock"),
 			icon: "monitor",
-			onClick: () => new frappe.ui.WorkspacePicker(),
+			onClick: () => new frappe.ui.DockManager(),
 		});
 
 		return items;
