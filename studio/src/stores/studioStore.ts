@@ -53,7 +53,6 @@ const useStudioStore = defineStore("store", () => {
 	const componentContextMenu = ref<InstanceType<typeof ComponentContextMenu> | null>(null)
 
 	// dialogs
-	const showSlotEditorDialog = ref(false)
 	const showSearchBlock = ref(false)
 	const showStudioSettingsDialog = ref(false)
 	const showPageOptions = ref(false)
@@ -609,7 +608,6 @@ const useStudioStore = defineStore("store", () => {
 		mode,
 		componentContextMenu,
 		// dialogs
-		showSlotEditorDialog,
 		showSearchBlock,
 		showStudioSettingsDialog,
 		showPageOptions,

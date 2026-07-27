@@ -74,24 +74,6 @@ class TestStudioAppBuilder(FrappeTestCase):
 		self.assertIn("Dialog", builder.components)
 		self.assertIn("TextInput", builder.components)
 
-	def test_handles_string_slot_content(self):
-		"""String slot content should be gracefully skipped without errors."""
-		app = make_studio_app(app_title="Str Slot App", app_name="str-slot-app")
-		blocks = json.dumps(
-			[
-				{
-					"componentName": "Tooltip",
-					"children": [],
-					"componentSlots": {"default": {"slotContent": "Some plain text"}},
-				}
-			]
-		)
-		make_studio_page(app.name, page_title="Str Slot Page", blocks=blocks, published=1)
-
-		builder = StudioAppBuilder(app.name, is_standard=False)
-		builder.get_app_components()
-		self.assertIn("Tooltip", builder.components)
-
 	def test_extracts_h_function_components(self):
 		"""h(ComponentName, ...) calls in blocks string should be extracted."""
 		app = make_studio_app(app_title="H Func App", app_name="h-func-app")

@@ -164,9 +164,10 @@ class StudioPage(Document):
 
 			if slots := block.get("componentSlots"):
 				for slot in slots.values():
-					if isinstance(slot.get("slotContent"), str):
+					content = slot.get("slotContent")
+					if not isinstance(content, list):
 						continue
-					for slot_child in slot.get("slotContent"):
+					for slot_child in content:
 						add_component(slot_child)
 
 		def get_root_block(blocks):

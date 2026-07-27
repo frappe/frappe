@@ -42,7 +42,7 @@ export type StudioMode = "select" | "container"
 export interface Slot {
 	slotId: string
 	slotName: string
-	slotContent: string | Block[]
+	slotContent: Block[]
 	parentBlockId: string
 }
 
@@ -55,9 +55,18 @@ export interface SlotConfig {
 
 export interface ContextMenuOption {
 	label: string
-	action: CallableFunction
+	action?: CallableFunction
 	condition?: () => boolean
 	disabled?: () => boolean
+	icon?: any
+	theme?: "gray" | "red"
+	// when present, the option expands into a nested (grouped) submenu on hover
+	submenu?: ContextMenuGroup[]
+}
+
+export interface ContextMenuGroup {
+	label?: string
+	options: ContextMenuOption[]
 }
 
 export type ComponentProp = {
@@ -158,12 +167,8 @@ export type HashString = `#${string}`
 
 export type RGBString = `rgb(${number}, ${number}, ${number})`
 
-// repeater
-export type RepeaterContext = {
-	dataItem: Record<string, any>
-	dataIndex: number
-	dataKey?: string
-}
+// scoped slots
+export type SlotScope = Record<string, any>
 
 // completions
 export type CompletionSource = {

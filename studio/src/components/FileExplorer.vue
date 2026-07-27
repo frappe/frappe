@@ -132,14 +132,7 @@
 	</Dialog>
 
 	<Teleport to="body">
-		<ContextMenu
-			v-if="contextMenuVisible"
-			v-on-click-outside="closeContextMenu"
-			:pos-x="contextMenuPos.x"
-			:pos-y="contextMenuPos.y"
-			:options="contextMenuOptions"
-			@select="onContextMenuSelect"
-		/>
+		<ContextMenu ref="contextMenuRef" :options="contextMenuOptions" @select="onContextMenuSelect" />
 	</Teleport>
 
 	<CodeEditorDock
@@ -184,7 +177,6 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue"
-import { vOnClickOutside } from "@vueuse/components"
 import { useStorage } from "@vueuse/core"
 import { Button, Dialog, ErrorMessage, FormControl, Tree, toast, Tooltip } from "frappe-ui"
 import CodeEditorDock from "@/components/CodeEditorDock.vue"
@@ -462,8 +454,7 @@ async function createEntry() {
 }
 
 // -- Context menu --
-const contextMenuVisible = ref(false)
-const contextMenuPos = ref({ x: 0, y: 0 })
+const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null)
 const contextMenuNode = ref<StudioFileNode | null>(null)
 
 const contextMenuOptions = computed<ContextMenuOption[]>(() => {
@@ -474,7 +465,7 @@ const contextMenuOptions = computed<ContextMenuOption[]>(() => {
 		? []
 		: [
 				{ label: "Rename", action: () => startRename(node) },
-				{ label: "Delete", action: () => deleteNode(node) },
+				{ label: "Delete", action: () => deleteNode(node), theme: "red" },
 			]
 	if (!node.is_folder && node.path.endsWith(".vue")) {
 		const componentName = node.label.replace(/\.vue$/i, "")
@@ -487,12 +478,11 @@ function openContextMenu(event: MouseEvent, node: StudioFileNode) {
 	selectedNode.value = node
 	contextMenuNode.value = node
 	if (!contextMenuOptions.value.length) return // read-only file: nothing to offer
-	contextMenuPos.value = { x: event.pageX, y: event.pageY }
-	contextMenuVisible.value = true
+	contextMenuRef.value?.show(event.pageX, event.pageY)
 }
 
 function closeContextMenu() {
-	contextMenuVisible.value = false
+	contextMenuRef.value?.hide()
 }
 
 function onContextMenuSelect(action: CallableFunction) {

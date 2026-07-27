@@ -11,7 +11,7 @@ from collections.abc import Iterator
 
 def child_blocks(block: dict) -> Iterator[dict]:
 	"""A block's direct child blocks: its `children` PLUS blocks nested in named slots
-	(componentSlots[<name>].slotContent when that content is a block list). Slotted blocks
+	(componentSlots[<name>].slotContent). Slotted blocks
 	are real children of the block — walking only `children` makes them unreachable for
 	selection and ref-validation."""
 	for child in block.get("children") or []:

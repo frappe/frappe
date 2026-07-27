@@ -300,14 +300,16 @@ async function fetchCustomComponentTemplate(componentName: string): Promise<stri
 }
 
 function parseSlotsFromTemplate(template: string) {
-	const slotRegex = /<slot\s*(?:name=["']([^"']*)?["'])?(?:\s*\/>|\s*>(.*?)<\/slot>)?/gi
 	const slots = new Map<string, { name: string; type: "named" | "default" }>()
-	let match
 
-	while ((match = slotRegex.exec(template)) !== null) {
-		const name = match[1] || "default"
+	for (const [, attributes] of template.matchAll(/<slot\b([^>]*)>/gi)) {
+		// `<slot :name="…">` is a dynamic forwarder (e.g. Link → Combobox), not a real
+		// default slot — skip it rather than misreading the missing static name as "default"
+		if (/:name\s*=/i.test(attributes)) continue
+		const named = attributes.match(/(?:^|\s)name\s*=\s*["']([^"']*)["']/i)
+		const name = named?.[1] || "default"
 		if (!slots.has(name)) {
-			slots.set(name, { name, type: match[1] ? "named" : "default" })
+			slots.set(name, { name, type: named ? "named" : "default" })
 		}
 	}
 	return [...slots.values()]
@@ -375,6 +377,8 @@ function resolveProperty(
 		if (enums) {
 			inputType = "select"
 			options = enums
+		} else if (propName === "color") {
+			inputType = "color"
 		}
 	}
 

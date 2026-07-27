@@ -21,7 +21,7 @@
 				v-else
 				:icon="LucideCirclePlus"
 				label="Click to set dynamic value"
-				placement="bottom"
+				placement="left"
 				class="mr-1"
 				size="sm"
 				:tabIndex="-1"
@@ -53,6 +53,7 @@ import useComponentEditorStore from "@/stores/componentEditorStore"
 import Block from "@/utils/block"
 import type { VariableOption } from "@/types/Studio/StudioPageVariable"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
+import type { SlotScope } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
 import { getBindingType } from "@/utils/parseCode"
 import useCodeStore from "@/stores/codeStore"
@@ -104,6 +105,16 @@ const dynamicValueOptions = computed(() => {
 				items: store.variableOptions,
 			})
 		}
+
+		// Scoped slot props exposed by the enclosing component (Repeater's dataItem, List's item, ...)
+		const slotScopeOptions = getSlotScopeOptions(props.block?.slotScope)
+		if (slotScopeOptions.length) {
+			groups.push({
+				group: props.block?.isRepeated() ? "Repeater Scope" : "Slot Scope",
+				items: slotScopeOptions,
+			})
+		}
+
 		// Data Sources group
 		const dataSourceOptions = Object.keys(codeStore.resources).map((resourceName) => {
 			const completion =
@@ -141,20 +152,19 @@ const dynamicValueOptions = computed(() => {
 		}
 	}
 
-	// Repeater Data Item group
-	const repeaterContext = props.block?.repeaterDataItem
-	if (!isObjectEmpty(repeaterContext)) {
-		const repeaterOptions = Object.keys(repeaterContext!).map((key) => ({
-			value: `dataItem.${key}`,
-			label: `dataItem.${key}`,
-			type: typeof repeaterContext![key],
-		}))
-		groups.push({
-			group: "Repeater",
-			items: repeaterOptions,
-		})
-	}
-
 	return groups
 })
+
+function getSlotScopeOptions(slotScope?: SlotScope | null): VariableOption[] {
+	return Object.entries(slotScope || {}).flatMap(([name, value]) => {
+		if (value && typeof value === "object" && !Array.isArray(value)) {
+			return Object.keys(value).map((key) => ({
+				value: `${name}.${key}`,
+				label: `${name}.${key}`,
+				type: typeof value[key],
+			}))
+		}
+		return [{ value: name, label: name, type: typeof value }]
+	})
+}
 </script>

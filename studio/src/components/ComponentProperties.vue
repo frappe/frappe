@@ -12,8 +12,11 @@
 			<SectionContainer title="Slots" v-show="filteredSections.includes('slots') && !multipleBlocksSelected">
 				<template #actions>
 					<Combobox
-						:options="availableSlots"
-						@update:modelValue="(slot: string) => block?.addSlot(slot)"
+						:key="Object.keys(block?.componentSlots || {}).length"
+						:options="availableSlotOptions"
+						:allowCustomValue="true"
+						placeholder="Search or add a slot"
+						@update:modelValue="(slotName: string) => addSlot(slotName)"
 						align="end"
 					>
 						<template #trigger="{ togglePopover }">
@@ -22,31 +25,38 @@
 					</Combobox>
 				</template>
 
-				<div class="flex flex-col gap-3" v-if="!isObjectEmpty(block?.componentSlots)">
+				<div v-if="!isObjectEmpty(block?.componentSlots)" class="flex flex-col gap-1">
 					<div
-						v-for="(slot, name) in block?.componentSlots"
-						:key="name"
-						class="flex w-full flex-row justify-between"
+						v-for="(slot, slotName) in block?.componentSlots"
+						:key="slotName"
+						class="flex w-full cursor-pointer items-center justify-between gap-1 rounded py-0.5"
+						@click="selectSlot(slotName)"
 					>
-						<div class="flex w-full cursor-pointer items-center justify-between gap-2">
-							<div class="relative w-full">
-								<InlineInput
-									:label="name"
-									type="textarea"
-									:modelValue="getSlotContent(slot)"
-									@update:modelValue="(slotContent) => block?.updateSlot(name, slotContent)"
-									:disabled="Array.isArray(slot.slotContent)"
-								/>
-								<Badge
-									v-if="Array.isArray(slot.slotContent)"
-									variant="subtle"
-									theme="blue"
-									class="absolute left-2 top-8"
-								>
-									Component Tree
-								</Badge>
-							</div>
-							<Button variant="subtle" size="sm" icon="lucide-x" @click="block?.removeSlot(name)" />
+						<div class="flex min-w-0 items-center gap-1.5">
+							<Tooltip
+								placement="left"
+								:hoverDelay="0"
+								:text="isDynamicSlot(slotName) ? 'Dynamic slot' : 'Standard slot'"
+							>
+								<span class="inline-flex shrink-0">
+									<component
+										:is="isDynamicSlot(slotName) ? LucideZap : LucideHash"
+										class="size-3 text-ink-gray-4"
+									/>
+								</span>
+							</Tooltip>
+							<span class="truncate text-sm text-ink-gray-5">{{ slotName }}</span>
+						</div>
+						<div class="flex shrink-0 items-center gap-2">
+							<Badge
+								theme="gray"
+								variant="outline"
+								class="text-sm text-ink-gray-5"
+								v-if="getSlotSummary(slotName)"
+							>
+								{{ getSlotSummary(slotName) }}
+							</Badge>
+							<Button variant="ghost" size="sm" icon="lucide-x" @click.stop="removeSlot(slotName)" />
 						</div>
 					</div>
 				</div>
@@ -99,27 +109,28 @@
 
 <script setup lang="ts">
 import { ref, computed, watchEffect } from "vue"
-import { Combobox } from "frappe-ui"
 import Block from "@/utils/block"
-
 import { getComponentSlots } from "@/utils/components"
 import PropsEditor from "@/components/PropsEditor.vue"
 import ObjectEditor from "@/components/ObjectEditor.vue"
-import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
-import type { Slot } from "@/types"
-import { isObjectEmpty } from "@/utils/helpers"
+import { confirm, isObjectEmpty } from "@/utils/helpers"
 import Code from "@/components/Code.vue"
 import blockController from "@/utils/blockController"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
 import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
+
+import LucideZap from "~icons/lucide/zap"
+import LucideHash from "~icons/lucide/hash"
 
 const props = defineProps<{
 	block?: Block
 }>()
 const getCompletions = useStudioCompletions()
 const studioStore = useStudioStore()
+const canvasStore = useCanvasStore()
 
 const multipleBlocksSelected = computed(() => blockController.multipleBlocksSelected())
 const mixedTypeSelection = computed(
@@ -129,24 +140,54 @@ const mixedTypeSelection = computed(
 const attributesEditor = ref<InstanceType<typeof ObjectEditor> | null>(null)
 const propsEditor = ref<InstanceType<typeof PropsEditor> | null>(null)
 
-const componentSlots = ref<string[]>([])
-const availableSlots = computed(() => {
-	return componentSlots.value?.filter((slot) => !(slot in (props.block?.componentSlots || {})))
-})
+const declaredSlots = ref<string[]>([])
+
 watchEffect(async () => {
 	if (!props.block || props.block.isRoot() || props.block.isContainer()) {
-		componentSlots.value = []
+		declaredSlots.value = []
 		return
 	}
 	const slots = await getComponentSlots(props.block.componentName, props.block.isCustomVueComponent)
-	componentSlots.value = slots.map((slot) => slot.name)
+	declaredSlots.value = slots.map((slot) => slot.name)
 })
 
-const getSlotContent = (slot: Slot) => {
-	if (!slot.slotContent) return ""
-	else if (typeof slot.slotContent === "string") return slot.slotContent
-	// hack to show the clear button for slot blocks
-	return " "
+type SlotOption = { label: string; value: string }
+const availableSlotOptions = computed<SlotOption[]>(() =>
+	declaredSlots.value
+		.filter((name) => !props.block?.getSlot(name))
+		.map((name) => ({ label: name, value: name })),
+)
+
+const addSlot = (slotName: string) => {
+	if (!slotName) return
+	slotName = slotName?.trim()
+	if (slotName && !props.block?.getSlot(slotName)) {
+		props.block?.addSlot(slotName)
+	}
+}
+
+const isDynamicSlot = (slotName: string) => !declaredSlots.value.includes(slotName)
+
+const getSlotSummary = (slotName: string) => {
+	const count = props.block?.getSlot(slotName)?.slotContent.length
+	if (!count) return ""
+	return count === 1 ? "1 block" : `${count} blocks`
+}
+
+const removeSlot = async (slotName: string) => {
+	const count = props.block?.getSlot(slotName)?.slotContent.length || 0
+	if (
+		count &&
+		!(await confirm(`${slotName} slot has ${count === 1 ? "1 block" : `${count} blocks`}. Remove it?`))
+	) {
+		return
+	}
+	props.block?.removeSlot(slotName)
+}
+
+const selectSlot = (slotName: string) => {
+	const slot = props.block?.getSlot(slotName)
+	if (slot) canvasStore.activeCanvas?.selectSlot(slot)
 }
 
 const sections: Record<string, { condition?: any; collapsed?: any; searchKeyWords: string }> = {
@@ -155,7 +196,7 @@ const sections: Record<string, { condition?: any; collapsed?: any; searchKeyWord
 		searchKeyWords: "Props, Properties, Inputs",
 	},
 	slots: {
-		condition: computed(() => !isObjectEmpty(componentSlots.value)),
+		condition: computed(() => declaredSlots.value.length > 0 || !isObjectEmpty(props.block?.componentSlots)),
 		searchKeyWords: "Slots, Slot, Component Slots, Component Slot, Customize Template",
 	},
 	visibility: {

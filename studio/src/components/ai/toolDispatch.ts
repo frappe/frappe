@@ -131,15 +131,11 @@ export class ToolDispatcher {
 		newParent.addChild(options, typeof args.index === "number" ? args.index : null)
 	}
 
-	/** Fill a named slot of an existing block. `html` sets a raw-string slot; `blocks`
-	 * replaces the slot with expanded child blocks (their ids are assigned on the canvas). */
+	/** Fill a named slot of an existing block, replacing it with expanded child blocks
+	 * (their ids are assigned on the canvas). */
 	private setSlot(args: Record<string, any>) {
 		const block = this.ctx.getCanvas()?.findBlock(args.component_id)
 		if (!block || !args.slot_name) return
-		if (typeof args.html === "string") {
-			block.updateSlot(args.slot_name, args.html)
-			return
-		}
 		if (Array.isArray(args.blocks)) {
 			if (!block.getSlot(args.slot_name)) block.addSlot(args.slot_name)
 			block.getSlot(args.slot_name).slotContent = []

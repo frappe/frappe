@@ -37,40 +37,26 @@
 				:key="slotName"
 				v-slot:[slotName]="slotProps"
 			>
-				<template v-if="Array.isArray(slot.slotContent)">
+				<SlotScopeProvider v-if="slot.slotContent.length" :scope="slotProps">
 					<StudioComponent
-						v-for="slotBlock in slot?.slotContent"
+						v-for="slotBlock in slot.slotContent"
 						:key="slotBlock.componentId"
 						:block="slotBlock"
 						:class="slotClasses"
 						:data-slot-id="slot.slotId"
 						:data-slot-name="slotName"
 						:data-component-id="block.componentId"
-						v-bind="slotProps"
 					/>
-				</template>
-				<template v-else-if="isHTML(slot.slotContent)">
-					<component
-						v-memo="[slot.slotContent]"
-						:is="{ template: slot.slotContent }"
-						:class="slotClasses"
-						:data-slot-id="slot.slotId"
-						:data-slot-name="slotName"
-						:data-component-id="block.componentId"
-						v-bind="slotProps"
-					/>
-				</template>
-				<template v-else>
-					<div
-						:class="[slotClasses, !slot.slotContent ? 'min-h-5 w-full' : '']"
-						:data-slot-id="slot.slotId"
-						:data-slot-name="slotName"
-						:data-component-id="block.componentId"
-						v-bind="slotProps"
-					>
-						{{ slot.slotContent }}
-					</div>
-				</template>
+				</SlotScopeProvider>
+				<!-- drop target for an empty slot: fill the slot's available space so the
+				     overlay spans it (w-full for width; grow/self-stretch fill flex slot areas) -->
+				<div
+					v-else
+					:class="[slotClasses, 'min-h-5 w-full grow self-stretch']"
+					:data-slot-id="slot.slotId"
+					:data-slot-name="slotName"
+					:data-component-id="block.componentId"
+				/>
 			</template>
 
 			<StudioComponent
@@ -117,16 +103,17 @@
 import { computed, ref, watch, useAttrs, inject, ComputedRef, onErrorCaptured, h } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import StudioComponentWrapper from "@/components/StudioComponentWrapper.vue"
+import SlotScopeProvider from "@/components/SlotScopeProvider.vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 import { customVueComponentsRegistry } from "@/globals"
 
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
-import { getComponentRoot, isHTML, isObjectEmpty } from "@/utils/helpers"
+import { getComponentRoot, isObjectEmpty } from "@/utils/helpers"
 import { isDynamicValue } from "@/utils/code"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
-import type { RepeaterContext } from "@/types"
+import type { SlotScope } from "@/types"
 import type HTML from "@/components/AppLayout/HTML.vue"
 import MissingComponent from "@/components/MissingComponent.vue"
 import useCodeStore from "@/stores/codeStore"
@@ -189,11 +176,11 @@ const componentName = computed(() => {
 	return name
 })
 
-const repeaterContext = inject<ComputedRef<RepeaterContext> | null>("repeaterContext", null)
+const slotScope = inject<ComputedRef<SlotScope> | null>("slotScope", null)
 const componentContext = inject<ComputedRef | null>("componentContext", null)
 const evaluationContext = computed(() => {
 	return {
-		...repeaterContext?.value,
+		...slotScope?.value,
 		...componentContext?.value,
 	}
 })
@@ -307,8 +294,8 @@ const handleClick = (e: MouseEvent) => {
 	const domEvent = e instanceof Event ? e : null
 	const block = (domEvent && getClickedComponent(domEvent)) || props.block
 	canvasStore.activeCanvas?.selectBlock(block, domEvent)
-	if (repeaterContext?.value) {
-		block.setRepeaterDataItem((repeaterContext.value as RepeaterContext).dataItem)
+	if (slotScope?.value) {
+		block.setSlotScope(slotScope.value)
 	}
 
 	if (!domEvent) return

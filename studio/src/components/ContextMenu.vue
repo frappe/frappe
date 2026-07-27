@@ -1,71 +1,170 @@
-<!-- Extracted from Builder -->
+<!-- Extracted from Builder, modified later -->
 <template>
-	<Menu
-		class="dark:bg-zinc-900 fixed z-50 h-fit w-fit min-w-[120px] rounded-lg bg-surface-base p-1 shadow-xl"
-		:style="{ top: y + 'px', left: x + 'px' }"
-		ref="menu"
-	>
-		<MenuItems static class="text-sm">
-			<MenuItem
-				v-slot="{ active, disabled }"
-				class="dark:text-zinc-50 block cursor-pointer rounded-md px-3 py-1"
-				v-for="(option, index) in options"
-				:disabled="option.disabled && option.disabled()"
-				v-show="!option.condition || option.condition()"
+	<DropdownMenuRoot v-model:open="open" :modal="false">
+		<DropdownMenuTrigger as-child>
+			<span class="fixed size-0" :style="{ top: posY + 'px', left: posX + 'px' }" />
+		</DropdownMenuTrigger>
+		<DropdownMenuPortal>
+			<DropdownMenuContent
+				class="z-50 min-w-[150px] rounded-lg bg-surface-base p-1.5 text-sm shadow-2xl"
+				:side-offset="0"
+				align="start"
+				avoid-collisions
 			>
-				<div
-					@click.prevent.stop="(!option.condition || option.condition()) && handleClick(option.action)"
-					:class="{
-						'text-ink-gray-8': !disabled,
-						'dark:bg-zinc-700 bg-surface-gray-3': active,
-						'dark:text-zinc-500 text-ink-gray-3': disabled,
-					}"
-				>
-					{{ option.label }}
-				</div>
-			</MenuItem>
-		</MenuItems>
-	</Menu>
+				<template v-for="(option, index) in options" :key="index">
+					<!-- option with a nested submenu (Add Component) -->
+					<DropdownMenuSub v-if="option.submenu && (!option.condition || option.condition())">
+						<DropdownMenuSubTrigger
+							class="flex w-full cursor-pointer items-center gap-2 rounded px-3 py-1.5 text-ink-gray-8 outline-none data-[highlighted]:bg-surface-gray-3 data-[state=open]:bg-surface-gray-3"
+						>
+							<span class="flex-1 truncate">{{ option.label }}</span>
+							<LucideChevronRight class="size-4 shrink-0 text-ink-gray-5" />
+						</DropdownMenuSubTrigger>
+						<DropdownMenuPortal>
+							<DropdownMenuSubContent
+								class="z-50 flex w-max min-w-[200px] flex-col rounded-lg bg-surface-base py-1.5 text-sm shadow-2xl"
+								:side-offset="4"
+								:align-offset="-4"
+								avoid-collisions
+								@open-auto-focus="focusSearchInput"
+							>
+								<div class="px-1.5 pb-1.5" data-submenu-search @mousedown.stop @click.stop>
+									<TextInput
+										v-model="submenuSearch"
+										size="sm"
+										placeholder="Search components"
+										class="[&_input]:text-sm"
+									/>
+								</div>
+								<div class="max-h-80 overflow-y-auto" @keydown.capture="onListKeydown">
+									<template v-for="(group, groupIndex) in filterGroups(option.submenu)" :key="groupIndex">
+										<DropdownMenuSeparator v-if="groupIndex > 0" class="my-1 h-px bg-surface-gray-3" />
+										<DropdownMenuGroup class="px-1.5">
+											<DropdownMenuLabel
+												v-if="group.label"
+												class="px-3 pb-1 pt-1.5 text-xs font-medium text-ink-gray-5"
+											>
+												{{ group.label }}
+											</DropdownMenuLabel>
+											<DropdownMenuItem
+												v-for="(child, childIndex) in group.options"
+												:key="childIndex"
+												class="flex cursor-pointer items-center gap-2 rounded px-3 py-1.5 text-ink-gray-8 outline-none data-[highlighted]:bg-surface-gray-3"
+												@select="child.action && handleClick(child.action)"
+											>
+												<component
+													:is="child.icon"
+													v-if="child.icon"
+													class="size-4 shrink-0 text-ink-gray-6"
+												/>
+												<span class="truncate">{{ child.label }}</span>
+											</DropdownMenuItem>
+										</DropdownMenuGroup>
+									</template>
+									<div v-if="!filterGroups(option.submenu).length" class="px-3 py-1.5 text-ink-gray-4">
+										No components found
+									</div>
+								</div>
+							</DropdownMenuSubContent>
+						</DropdownMenuPortal>
+					</DropdownMenuSub>
+
+					<!-- standard action option -->
+					<DropdownMenuItem
+						v-else-if="!option.submenu && (!option.condition || option.condition())"
+						class="cursor-pointer rounded px-3 py-1.5 outline-none data-[disabled]:cursor-default data-[disabled]:text-ink-gray-3"
+						:class="
+							option.theme === 'red'
+								? 'text-ink-red-6 data-[highlighted]:bg-surface-red-3'
+								: 'text-ink-gray-8 data-[highlighted]:bg-surface-gray-3'
+						"
+						:disabled="option.disabled && option.disabled()"
+						@select="option.action && handleClick(option.action)"
+					>
+						{{ option.label }}
+					</DropdownMenuItem>
+				</template>
+			</DropdownMenuContent>
+		</DropdownMenuPortal>
+	</DropdownMenuRoot>
 </template>
 
 <script setup lang="ts">
-import { Menu, MenuItem, MenuItems } from "@headlessui/vue"
-import { computed, ref } from "vue"
-import type { ContextMenuOption } from "@/types"
+import {
+	DropdownMenuRoot,
+	DropdownMenuTrigger,
+	DropdownMenuPortal,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSub,
+	DropdownMenuSubTrigger,
+	DropdownMenuSubContent,
+	DropdownMenuSeparator,
+	DropdownMenuGroup,
+	DropdownMenuLabel,
+} from "reka-ui"
+import { TextInput } from "frappe-ui"
+import { ref, nextTick } from "vue"
+import type { ContextMenuOption, ContextMenuGroup } from "@/types"
+import LucideChevronRight from "~icons/lucide/chevron-right"
 
-const menu = ref(null) as unknown as typeof Menu
-
-const props = defineProps<{
-	posX: number
-	posY: number
+defineProps<{
 	options: ContextMenuOption[]
 }>()
 
-const x = computed(() => {
-	const menuWidth = menu.value?.$el.clientWidth
-	const windowWidth = window.innerWidth
-	const diff = windowWidth - (props.posX + menuWidth)
-	if (diff < 0) {
-		return props.posX + diff - 10
-	}
-	return props.posX
-})
+const emit = defineEmits<{
+	select: [action: CallableFunction]
+}>()
 
-const y = computed(() => {
-	const menuHeight = menu.value?.$el.clientHeight
-	const windowHeight = window.innerHeight
-	const diff = windowHeight - (props.posY + menuHeight)
-	if (diff < 0) {
-		return props.posY + diff - 10
-	}
-	return props.posY
-})
+// stays mounted; parent calls show()/hide() imperatively (like Builder's ContextMenu)
+const open = ref(false)
+const posX = ref(0)
+const posY = ref(0)
 
-const emit = defineEmits({
-	select: (action: CallableFunction) => action,
-})
+const show = (x: number, y: number) => {
+	posX.value = x
+	posY.value = y
+	open.value = true
+}
+const hide = () => {
+	open.value = false
+}
+
+const submenuSearch = ref("")
+
+const filterGroups = (groups: ContextMenuGroup[]): ContextMenuGroup[] => {
+	const query = submenuSearch.value.toLowerCase().trim()
+	if (!query) return groups
+	return groups
+		.map((group) => ({
+			...group,
+			options: group.options.filter((o) => o.label.toLowerCase().includes(query)),
+		}))
+		.filter((group) => group.options.length)
+}
+
+const focusSearchInput = (event: Event) => {
+	event.preventDefault()
+	submenuSearch.value = ""
+	nextTick(() => {
+		document.querySelector<HTMLInputElement>("[data-submenu-search] input")?.focus()
+	})
+}
+
+// ArrowUp on the first result jumps back to the search box (reka's nav only walks the list)
+const onListKeydown = (event: KeyboardEvent) => {
+	if (event.key !== "ArrowUp") return
+	const list = event.currentTarget as HTMLElement
+	const items = list.querySelectorAll<HTMLElement>("[data-reka-collection-item]:not([data-disabled])")
+	if (!items.length || document.activeElement !== items[0]) return
+	event.preventDefault()
+	event.stopPropagation()
+	list.parentElement?.querySelector<HTMLInputElement>("[data-submenu-search] input")?.focus()
+}
 
 const handleClick = (action: CallableFunction) => {
 	emit("select", action)
 }
+
+defineExpose({ show, hide })
 </script>

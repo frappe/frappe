@@ -1221,6 +1221,19 @@ function isFrameworkUIAvailable() {
 	return typeof __FRAMEWORK_UI_AVAILABLE__ === "undefined" || __FRAMEWORK_UI_AVAILABLE__
 }
 
+function getComponentGroups(list: FrappeUIComponent[]) {
+	const inFrappe = (name: string) => isFrappeUIComponent(name)
+	const inFramework = (name: string) => isFrameworkUIComponent(name)
+	const groups = [
+		{ label: "Core", components: list.filter((c) => !inFrappe(c.name) && !inFramework(c.name)) },
+		{ label: "Frappe UI", components: list.filter((c) => inFrappe(c.name)) },
+	]
+	if (isFrameworkUIAvailable()) {
+		groups.push({ label: "Framework UI", components: list.filter((c) => inFramework(c.name)) })
+	}
+	return groups.filter((group) => group.components.length)
+}
+
 function getProxyComponent(name: string) {
 	return proxyComponentMap.get(name)
 }
@@ -1237,6 +1250,7 @@ export default {
 	isFrappeUIComponent,
 	isFrameworkUIComponent,
 	isFrameworkUIAvailable,
+	getComponentGroups,
 	get,
 }
 

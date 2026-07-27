@@ -46,9 +46,8 @@
 				class="pointer-events-none fixed ring-2 ring-inset ring-outline-purple-5"
 				:class="isSlotSelected(slot.slotId) ? 'opacity-100' : 'opacity-65'"
 				:style="{
-					// set min height and width so that slots without content are visible
-					minWidth: `calc(${12}px * ${canvasProps.scale})`,
-					minHeight: `calc(${12}px * ${canvasProps.scale})`,
+					minWidth: `calc(${20}px * ${canvasProps.scale})`,
+					minHeight: `calc(${20}px * ${canvasProps.scale})`,
 				}"
 			>
 				<span
@@ -60,39 +59,13 @@
 			</div>
 		</template>
 	</div>
-
-	<Dialog
-		v-if="canvasStore.activeCanvas?.selectedSlot?.slotId"
-		v-model="store.showSlotEditorDialog"
-		class="overscroll-none"
-		:title="`Edit #${canvasStore.activeCanvas?.selectedSlot?.slotName} slot for ${block.componentName}`"
-		size="3xl"
-	>
-		<template #default>
-			<Code
-				:modelValue="block.getSlotContent(canvasStore.activeCanvas?.selectedSlot?.slotName) || ''"
-				language="html"
-				height="60vh"
-				:showSaveButton="true"
-				@save="
-					(val) => {
-						if (!canvasStore.activeCanvas?.selectedSlot) return
-						props.block.updateSlot(canvasStore.activeCanvas?.selectedSlot?.slotName, val)
-						store.showSlotEditorDialog = false
-					}
-				"
-			/>
-		</template>
-	</Dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, Ref, watchEffect, nextTick, inject, watch } from "vue"
-import { Dialog } from "frappe-ui"
 import BoxResizer from "@/components/BoxResizer.vue"
 import PaddingHandler from "@/components/PaddingHandler.vue"
 import MarginHandler from "@/components/MarginHandler.vue"
-import Code from "@/components/Code.vue"
 import LucideRepeat from "~icons/lucide/repeat"
 
 import Block from "@/utils/block"

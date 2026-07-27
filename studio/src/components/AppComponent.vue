@@ -21,20 +21,13 @@
 				:key="slotName"
 				v-slot:[slotName]="slotProps"
 			>
-				<template v-if="Array.isArray(slot.slotContent)">
+				<SlotScopeProvider :scope="slotProps">
 					<AppComponent
 						v-for="slotBlock in slot.slotContent"
 						:block="slotBlock"
 						:key="slotBlock.componentId"
-						v-bind="slotProps"
 					/>
-				</template>
-				<template v-else-if="isHTML(slot.slotContent)">
-					<component :is="{ template: slot.slotContent }" v-bind="slotProps" />
-				</template>
-				<template v-else v-bind="slotProps">
-					{{ slot.slotContent }}
-				</template>
+				</SlotScopeProvider>
 			</template>
 
 			<AppComponent v-for="child in block?.children" :key="child.componentId" :block="child" />
@@ -61,7 +54,7 @@ import Block from "@/utils/block"
 import { computed, onMounted, ref, useAttrs, inject, type ComputedRef, h } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import { createResource } from "frappe-ui"
-import { getComponentRoot, isHTML, isObjectEmpty } from "@/utils/helpers"
+import { getComponentRoot, isObjectEmpty } from "@/utils/helpers"
 import { useScreenSize } from "@/utils/useScreenSize"
 import { isDynamicValue } from "@/utils/code"
 import { resolveEventListener } from "@/utils/eventModifiers"
@@ -69,11 +62,12 @@ import useComponentInstance from "@/utils/useComponentInstance"
 
 import useCodeStore from "@/stores/codeStore"
 import { toast } from "frappe-ui"
-import type { RepeaterContext } from "@/types"
+import type { SlotScope } from "@/types"
 import type { Field } from "@/types/ComponentEvent"
 import type { DataResult } from "@/types/Studio/StudioResource"
 
 import StudioComponentRenderer from "@/components/StudioComponentRenderer.vue"
+import SlotScopeProvider from "@/components/SlotScopeProvider.vue"
 import { customVueComponentsRegistry } from "@/globals"
 import MissingComponent from "@/components/MissingComponent.vue"
 
@@ -110,12 +104,12 @@ const classes = computed(() => {
 })
 
 const codeStore = useCodeStore()
-const repeaterContext = inject<ComputedRef<RepeaterContext> | null>("repeaterContext", null)
+const slotScope = inject<ComputedRef<SlotScope> | null>("slotScope", null)
 const componentContext = inject<ComputedRef | null>("componentContext", null)
 
 const evaluationContext = computed(() => {
 	return {
-		...repeaterContext?.value,
+		...slotScope?.value,
 		...componentContext?.value,
 	}
 })
@@ -204,7 +198,7 @@ function getEventHandler(event: any): Listener | undefined {
 		}
 	} else if (event.action === "Run Script") {
 		return (...eventArgs: any[]) => {
-			codeStore.executeUserScript(event.script, repeaterContext?.value, componentContext?.value, eventArgs)
+			codeStore.executeUserScript(event.script, slotScope?.value, componentContext?.value, eventArgs)
 		}
 	}
 }
@@ -237,7 +231,7 @@ const handleSuccess = (event: any) => (data: DataResult) => {
 		return codeStore.handleSuccess(
 			event.on_success_script,
 			data,
-			repeaterContext?.value,
+			slotScope?.value,
 			componentContext?.value,
 			event.eventArgs,
 		)
@@ -253,7 +247,7 @@ const handleError = (event: any) => (error: any) => {
 		return codeStore.handleError(
 			event.on_error_script,
 			error,
-			repeaterContext?.value,
+			slotScope?.value,
 			componentContext?.value,
 			event.eventArgs,
 		)

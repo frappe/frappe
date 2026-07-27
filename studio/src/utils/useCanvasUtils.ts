@@ -85,10 +85,8 @@ export function useCanvasUtils(
 
 			if (block.componentSlots) {
 				for (const slot of Object.values(block.componentSlots)) {
-					if (Array.isArray(slot.slotContent)) {
-						const found = findBlock(componentId, slot.slotContent)
-						if (found) return found
-					}
+					const found = findBlock(componentId, slot.slotContent)
+					if (found) return found
 				}
 			}
 		}

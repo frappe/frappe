@@ -62,9 +62,9 @@ class BlockCodec:
 
 	@staticmethod
 	def _compress_slots(slots: dict, depth: int) -> dict:
-		"""Compact componentSlots to {slotName: [compact blocks] | "html string"}. Slot
-		children use the SAME compact shape as `c` (recurse), and the derived slotId/
-		parentBlockId are dropped (the client regenerates them). Empty slots are omitted."""
+		"""Compact componentSlots to {slotName: [compact blocks]}. Slot children use the SAME
+		compact shape as `c` (recurse), and the derived slotId/parentBlockId are dropped (the
+		client regenerates them). Empty slots are omitted."""
 		out = {}
 		for name, slot in slots.items():
 			if not isinstance(slot, dict):
@@ -74,24 +74,19 @@ class BlockCodec:
 				blocks = [BlockCodec.compress(b, depth + 1) for b in content if isinstance(b, dict)]
 				if blocks:
 					out[name] = blocks
-			elif isinstance(content, str) and content.strip():
-				out[name] = content
 		return out
 
 	@staticmethod
 	def _expand_slots(slots: dict) -> dict:
-		"""Expand compact slots ({slotName: [blocks] | "html"}) into componentSlots. slotId/
+		"""Expand compact slots ({slotName: [blocks]}) into componentSlots. slotId/
 		parentBlockId are backfilled by the frontend Block constructor (initializeSlots)."""
 		out = {}
 		if not isinstance(slots, dict):
 			return out
 		for name, content in slots.items():
-			if isinstance(content, list):
-				slot_content = [BlockCodec.expand(b) for b in content if isinstance(b, dict)]
-			elif isinstance(content, str):
-				slot_content = content
-			else:
+			if not isinstance(content, list):
 				continue
+			slot_content = [BlockCodec.expand(b) for b in content if isinstance(b, dict)]
 			out[name] = {"slotName": name, "slotContent": slot_content}
 		return out
 
