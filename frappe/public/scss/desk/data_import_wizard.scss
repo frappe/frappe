@@ -513,7 +513,8 @@ body[data-route^="data-import"] {
 	}
 }
 
-// ---- mobile ----
+// ---- mobile (phones + narrow tablets) ----
+// Layout shifts that are specific to the wizard — keep them here, not in utilities.scss.
 @media (max-width: 768px) {
 	.data-import-custom-page.layout-main-section {
 		padding: var(--padding-sm);
@@ -521,6 +522,11 @@ body[data-route^="data-import"] {
 
 	.diw-shell {
 		max-width: 100%;
+		gap: var(--padding-md);
+	}
+
+	.diw-stepper-wrap {
+		display: none;
 	}
 
 	.diw-mobile-step-header {
@@ -529,6 +535,7 @@ body[data-route^="data-import"] {
 
 	.diw-config-grid {
 		grid-template-columns: 1fr;
+		gap: var(--padding-md);
 	}
 
 	.diw-step-content,
@@ -536,6 +543,42 @@ body[data-route^="data-import"] {
 	.diw-footer {
 		padding-left: var(--padding-md);
 		padding-right: var(--padding-md);
+	}
+
+	.diw-preview-toolbar {
+		flex-wrap: wrap;
+	}
+
+	.diw-preview-toolbar-meta {
+		width: 100%;
+		margin-inline-start: 0;
+		text-align: left;
+		white-space: normal;
+	}
+
+	.diw-fix-empty-stats {
+		flex-direction: column;
+
+		.diw-fix-empty-stat--divided {
+			border-inline-start: none !important;
+			border-top: 1px solid var(--outline-gray-2);
+		}
+	}
+
+	.diw-import-log-metrics {
+		flex-direction: column;
+	}
+
+	.diw-import-log-metric:not(:first-child) {
+		border-top: 1px solid var(--outline-gray-2);
+	}
+
+	.diw-metric-separator {
+		display: none;
+	}
+
+	.diw-import-progress-stats {
+		gap: var(--padding-xs, 8px);
 	}
 
 	.diw-import-progress-stat .value {

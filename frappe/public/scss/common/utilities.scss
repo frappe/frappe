@@ -597,53 +597,6 @@ $radius-sizes: (
 	}
 }
 
-/* below md (phones + narrow tablets) — matches wizard mobile at 768px */
-@media (max-width: 767.98px) {
-	.max-md\:hidden {
-		display: none;
-	}
-
-	.max-md\:flex-col {
-		flex-direction: column;
-	}
-
-	.max-md\:flex-wrap {
-		flex-wrap: wrap;
-	}
-
-	.max-md\:w-full {
-		width: 100%;
-	}
-
-	.max-md\:gap-2 {
-		gap: spacing-step(2);
-	}
-
-	.max-md\:gap-4 {
-		gap: spacing-step(4);
-	}
-
-	.max-md\:ms-0 {
-		margin-inline-start: 0;
-	}
-
-	.max-md\:text-left {
-		text-align: left;
-	}
-
-	.max-md\:whitespace-normal {
-		white-space: normal;
-	}
-
-	.max-md\:border-s-0 {
-		border-inline-start: none !important;
-	}
-
-	.max-md\:border-t {
-		border-top: 1px solid var(--outline-gray-2);
-	}
-}
-
 /* below lg (phones + tablets) */
 @media (max-width: 991.98px) {
 	.max-lg\:hidden {

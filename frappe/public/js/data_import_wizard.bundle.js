@@ -235,8 +235,8 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 	build() {
 		this.$root = $(`
 			<div class="data-import-custom-ui flex justify-center w-full">
-				<div class="diw-shell flex flex-col w-full min-w-0 gap-5 max-md:gap-4">
-					<div class="diw-stepper-wrap shrink-0 w-full max-md:hidden"><nav class="diw-stepper flex items-start w-full" aria-label="${__(
+				<div class="diw-shell flex flex-col w-full min-w-0 gap-5">
+					<div class="diw-stepper-wrap shrink-0 w-full"><nav class="diw-stepper flex items-start w-full" aria-label="${__(
 						"Import steps"
 					)}"></nav></div>
 					<div class="diw-card flex flex-col w-full min-w-0 overflow-hidden rounded-lg shadow-sm border bg-surface-base">
@@ -496,7 +496,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 				<div class="diw-config-head m-0 p-0 border-0 shadow-none bg-transparent mb-4"><span class="diw-section-head-title text-base-semibold">${__(
 					"Import settings"
 				)}</span></div>
-				<div class="diw-config-grid grid items-start w-full gap-5 max-md:gap-4">
+				<div class="diw-config-grid grid items-start w-full gap-5">
 					<div class="diw-config-column diw-config-main w-full min-w-0 m-0 p-0"></div>
 					<div class="diw-config-column diw-config-options w-full min-w-0 m-0 p-0"></div>
 				</div>
@@ -1035,7 +1035,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		if (frm.has_import_file?.()) {
 			const stat = (value, label, css_class = "", divider = false) => `
 				<div class="flex flex-col items-center justify-center flex-1 gap-1 p-4${
-					divider ? " border-s max-md:border-s-0 max-md:border-t" : ""
+					divider ? " diw-fix-empty-stat--divided border-s" : ""
 				}" role="listitem">
 					<div class="text-2xl-semibold text-ink-gray-8 ${css_class}">${frappe.utils.escape_html(
 				String(value)
@@ -1044,7 +1044,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 				</div>
 			`;
 			$empty.append(`
-				<div class="diw-fix-empty-stats flex max-md:flex-col w-full max-w-4xl border rounded-lg overflow-hidden bg-surface-base mt-2" role="list" aria-label="${frappe.utils.escape_html(
+				<div class="diw-fix-empty-stats flex w-full max-w-4xl border rounded-lg overflow-hidden bg-surface-base mt-2" role="list" aria-label="${frappe.utils.escape_html(
 					__("Fix issues summary")
 				)}">
 					${stat(rows_checked, __("Rows checked"))}

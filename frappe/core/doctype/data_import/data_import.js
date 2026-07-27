@@ -580,7 +580,7 @@ function get_import_log_skeleton_html() {
 	return `<div class="flex flex-col gap-3 w-full" aria-busy="true" aria-label="${frappe.utils.escape_html(
 		__("Loading import log")
 	)}">
-		<div class="diw-import-log-metrics mb-3 mb-md-4 w-full border rounded-md overflow-hidden bg-surface-base" role="list">
+		<div class="diw-import-log-metrics mb-3 w-full border rounded-md overflow-hidden bg-surface-base" role="list">
 			${[0, 0, 0]
 				.map(
 					() =>
@@ -2685,10 +2685,8 @@ frappe.ui.form.on("Data Import", {
 			// A metric may carry one action, mounted (as a ghost icon-button) into the
 			// label row after the markup is set — see mount_metric_action below. Only
 			// Failed keeps a colour (red); Inserted/Updated are neutral.
-			const metric_card = (value_html, label, { action = "", first = false } = {}) =>
-				`<div class="diw-import-log-metric flex flex-col flex-1 gap-1 px-4 py-3${
-					first ? "" : " max-md:border-t"
-				}" role="listitem">
+			const metric_card = (value_html, label, { action = "" } = {}) =>
+				`<div class="diw-import-log-metric flex flex-col flex-1 gap-1 px-4 py-3" role="listitem">
 					<div class="diw-import-log-metric-head flex items-center justify-between gap-2">
 						<div class="diw-import-log-metric-label text-sm text-muted">${label}</div>
 						${
@@ -2701,7 +2699,7 @@ frappe.ui.form.on("Data Import", {
 				metric_card(
 					`<div class="diw-import-log-metric-value text-2xl-bold">${total_rows_in_file}</div>`,
 					__("Total rows"),
-					{ action: is_import_complete(frm.doc.status) ? "go_to_list" : "", first: true }
+					{ action: is_import_complete(frm.doc.status) ? "go_to_list" : "" }
 				)
 			);
 
@@ -2739,16 +2737,17 @@ frappe.ui.form.on("Data Import", {
 				)
 			);
 
-			// Vertical es-divider between metric columns on desktop; stacked on mobile.
+			// Vertical es-divider between metric columns on desktop; hidden on mobile
+			// via .diw-metric-separator in data_import_wizard.scss.
 			const metric_separator = frappe.ui.divider.html({
 				orientation: "vertical",
 				flex_item: true,
-				css_class: "max-md:hidden",
+				css_class: "diw-metric-separator",
 			});
 
 			const wrapper = frm.get_field("import_log_preview").$wrapper;
 			wrapper.html(`
-				<div class="diw-import-log-metrics mb-3 mb-md-4 flex max-md:flex-col w-full" role="list" aria-label="${frappe.utils.escape_html(
+				<div class="diw-import-log-metrics mb-3 flex w-full" role="list" aria-label="${frappe.utils.escape_html(
 					__("Import metrics")
 				)}">
 					${metric_html.join(metric_separator)}
@@ -3003,7 +3002,7 @@ frappe.ui.form.on("Data Import", {
 						: ""
 				}
 
-				<div class="diw-import-progress-stats grid items-stretch w-full gap-5 max-md:gap-2" role="list" aria-label="${frappe.utils.escape_html(
+				<div class="diw-import-progress-stats grid items-stretch w-full gap-5" role="list" aria-label="${frappe.utils.escape_html(
 					__("Progress summary")
 				)}" style="--diw-import-progress-stat-count: ${Math.max(stat_cards.length, 1)};">
 					${stat_cards.join("")}
