@@ -63,6 +63,26 @@ const SUBMENU_OFFSET = 4;
 const SUBMENU_OPEN_DELAY = 150;
 const EXIT_MS = 140;
 const TYPEAHEAD_RESET_MS = 1000;
+// how long the safe-triangle grace lasts after leaving a submenu row —
+// enough to cross the menu diagonally, short enough that a change of mind
+// (parking on a sibling) recovers quickly. Same value radix uses.
+const GRACE_MS = 300;
+// widen the triangle a little around the exit point and the panel corners so
+// pointer paths that hug an edge stay inside it
+const GRACE_PAD = 5;
+
+// ray-casting point-in-polygon; polygon is [[x, y], ...]
+function point_in_polygon(x, y, polygon) {
+	let inside = false;
+	for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+		const [xi, yi] = polygon[i];
+		const [xj, yj] = polygon[j];
+		if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
+			inside = !inside;
+		}
+	}
+	return inside;
+}
 
 function is_group(entry) {
 	return entry && typeof entry === "object" && "group" in entry && Array.isArray(entry.options);
@@ -331,6 +351,10 @@ export class MenuTree {
 		// pending promise (see get_submenu_items)
 		this.submenu_cache = new Map();
 		this.submenu_timer = null;
+		// the safe triangle: while the pointer travels from a submenu row
+		// toward its open panel, sibling rows must not steal the highlight or
+		// close the panel. { polygon, expiry } or null.
+		this.grace = null;
 		this.typeahead_buffer = "";
 		this.typeahead_timer = null;
 		this.mnemonics_visible = false; // Alt held → underlines showing
@@ -370,6 +394,11 @@ export class MenuTree {
 		this.onreposition = () => this.reposition();
 		window.addEventListener("resize", this.onreposition);
 		document.addEventListener("scroll", this.onreposition, { capture: true, passive: true });
+
+		// the safe triangle is judged on every pointer move (cheap: a null
+		// check when no grace is active)
+		this.ongracemove = (e) => this.handle_grace_move(e);
+		document.addEventListener("pointermove", this.ongracemove, true);
 
 		if (this.lock_scroll) {
 			// context menus freeze the page: a stray trackpad flick shouldn't
@@ -440,6 +469,15 @@ export class MenuTree {
 	bind_panel(entry) {
 		this.bind_rows(entry);
 
+		// reaching any panel surface — including its padding and group labels,
+		// not just a row — means the pointer arrived at a menu: a close
+		// pending from a previously hovered row must not fire under the
+		// cursor, and any safe-triangle journey is complete
+		entry.panel.addEventListener("pointerenter", () => {
+			clearTimeout(this.submenu_timer);
+			this.grace = null;
+		});
+
 		// whichever row has focus carries the highlight — this is the only
 		// place data-highlighted is ever set. Reads entry.rows live (not a
 		// captured copy) so an async fill's new rows are covered too.
@@ -478,11 +516,78 @@ export class MenuTree {
 			});
 
 			// the highlight follows the pointer; focus follows so keyboard
-			// navigation continues from where the mouse was
-			row.el.addEventListener("pointerenter", () => {
+			// navigation continues from where the mouse was. While the safe
+			// triangle is active the pointer is on its way to an open
+			// submenu — siblings crossed en route must not steal the
+			// highlight or schedule anything.
+			row.el.addEventListener("pointerenter", (e) => {
+				if (this.in_grace(e)) return;
 				row.el.focus({ preventScroll: true });
 				this.schedule_submenu(entry, row);
 			});
+
+			// leaving a row whose submenu is open starts the safe triangle:
+			// exit point + the panel's near corners
+			row.el.addEventListener("pointerleave", (e) => {
+				this.start_grace(entry, row, e);
+			});
+		}
+	}
+
+	// ---- the safe triangle (hover grace toward an open submenu) ----
+
+	start_grace(entry, row, e) {
+		const depth = this.panels.indexOf(entry);
+		const child = this.panels[depth + 1];
+		// only when THIS row's submenu is open
+		if (!child || child.parent_row !== row.el) return;
+
+		const rect = child.panel.getBoundingClientRect();
+		// the triangle spans from the exit point (nudged back so edge-hugging
+		// paths stay inside) to the panel's near edge, padded top and bottom
+		const opens_left = rect.left < e.clientX;
+		const near_x = opens_left ? rect.right : rect.left;
+		const origin_x = e.clientX + (opens_left ? GRACE_PAD : -GRACE_PAD);
+		this.grace = {
+			polygon: [
+				[origin_x, e.clientY],
+				[near_x, rect.top - GRACE_PAD],
+				[near_x, rect.bottom + GRACE_PAD],
+			],
+			expiry: Date.now() + GRACE_MS,
+		};
+	}
+
+	in_grace(e) {
+		if (!this.grace) return false;
+		if (Date.now() > this.grace.expiry) {
+			this.grace = null;
+			return false;
+		}
+		return point_in_polygon(e.clientX, e.clientY, this.grace.polygon);
+	}
+
+	// once the pointer leaves the triangle (or the grace expires), hand
+	// control back to whatever row it is actually on — pointerenter already
+	// fired and was suppressed, so it won't fire again without this
+	handle_grace_move(e) {
+		if (!this.grace) return;
+		if (
+			Date.now() <= this.grace.expiry &&
+			point_in_polygon(e.clientX, e.clientY, this.grace.polygon)
+		) {
+			return;
+		}
+		this.grace = null;
+		const row_el = e.target instanceof Element && e.target.closest(".es-menu__item");
+		if (!row_el) return;
+		for (const entry of this.panels) {
+			const row = entry.rows.find((r) => r.el === row_el);
+			if (row) {
+				row.el.focus({ preventScroll: true });
+				this.schedule_submenu(entry, row);
+				return;
+			}
 		}
 	}
 
@@ -831,6 +936,8 @@ export class MenuTree {
 		document.removeEventListener("pointerdown", this.onpointerdown, true);
 		window.removeEventListener("resize", this.onreposition);
 		document.removeEventListener("scroll", this.onreposition, { capture: true });
+		document.removeEventListener("pointermove", this.ongracemove, true);
+		this.grace = null;
 		if (this.onwheel) {
 			window.removeEventListener("wheel", this.onwheel, { capture: true });
 			window.removeEventListener("touchmove", this.onwheel, { capture: true });
