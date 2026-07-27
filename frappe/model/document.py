@@ -1119,10 +1119,18 @@ class Document(BaseDocument):
 		- Submit (1) > Cancel (2)
 
 		"""
+		if self.flags.skip_docstatus_validation:
+			return
+
 		if to_docstatus == DocStatus.DRAFT:
 			if self.docstatus.is_draft():
 				self._action = "save"
 			elif self.docstatus.is_submitted():
+				if not getattr(self.meta, "is_submittable", False):
+					frappe.throw(
+						_("Cannot change docstatus of non submittable doctype {0}").format(self.doctype),
+						frappe.DocstatusTransitionError,
+					)
 				self._action = "submit"
 				self.check_permission("submit")
 			elif self.docstatus.is_cancelled():
