@@ -238,6 +238,21 @@
     color: var(--ink-gray-5);
 }
 
+/* ---- loading state (async options/submenu, swapped out by fill()) ---- */
+.es-menu__loading {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+    padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+    font-size: var(--text-base);
+    color: var(--ink-gray-5);
+}
+
+.es-menu__loading > .es-spinner {
+    width: calc(var(--spacing) * 3.5);
+    height: calc(var(--spacing) * 3.5);
+}
+
 /* ---- motion: scale in from the trigger corner (per the frappe-ui spec:
    enter 180ms / exit 140ms, keyboard opens skip the scale and only get a
    short fade that masks the position-settle frame) ---- */
