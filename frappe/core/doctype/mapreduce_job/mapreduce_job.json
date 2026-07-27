@@ -1,0 +1,75 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-07-27 12:25:53.403303",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_ruuv",
+  "map",
+  "reduce",
+  "data",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_ruuv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "MapReduce Job",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "map",
+   "fieldtype": "Data",
+   "label": "Map Function"
+  },
+  {
+   "fieldname": "reduce",
+   "fieldtype": "Data",
+   "label": "Reduce Function"
+  },
+  {
+   "fieldname": "data",
+   "fieldtype": "JSON",
+   "label": "Data"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-07-28 12:17:25.037319",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "MapReduce Job",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
