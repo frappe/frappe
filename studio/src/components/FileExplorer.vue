@@ -134,11 +134,11 @@
 	<Teleport to="body">
 		<ContextMenu
 			v-if="contextMenuVisible"
-			v-on-click-outside="closeContextMenu"
 			:pos-x="contextMenuPos.x"
 			:pos-y="contextMenuPos.y"
 			:options="contextMenuOptions"
 			@select="onContextMenuSelect"
+			@close="closeContextMenu"
 		/>
 	</Teleport>
 
@@ -184,7 +184,6 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue"
-import { vOnClickOutside } from "@vueuse/components"
 import { useStorage } from "@vueuse/core"
 import { Button, Dialog, ErrorMessage, FormControl, Tree, toast, Tooltip } from "frappe-ui"
 import CodeEditorDock from "@/components/CodeEditorDock.vue"

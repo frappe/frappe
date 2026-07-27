@@ -2,11 +2,11 @@
 	<div>
 		<ContextMenu
 			v-if="contextMenuVisible"
-			v-on-click-outside="() => (contextMenuVisible = false)"
 			:pos-x="posX"
 			:pos-y="posY"
 			:options="contextMenuOptions"
 			@select="handleContextMenuSelect"
+			@close="contextMenuVisible = false"
 		/>
 		<FormDialog v-if="block" v-model:showDialog="showFormDialog" :block="block" />
 	</div>
@@ -14,7 +14,6 @@
 
 <script setup lang="ts">
 import { ref, Ref } from "vue"
-import { vOnClickOutside } from "@vueuse/components"
 import ContextMenu from "@/components/ContextMenu.vue"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
