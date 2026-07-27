@@ -272,11 +272,16 @@ async function remove_series(doctype, series, refresh) {
 // frappe.call({ doc }) (which reads the doc from locals by name) can drive its
 // whitelisted instance methods. Calls reuse one doc and must stay sequential.
 function load_settings() {
-	return new Promise((resolve) =>
-		frappe.model.with_doc(NAMING_SETTINGS, NAMING_SETTINGS, () =>
-			resolve(frappe.get_doc(NAMING_SETTINGS, NAMING_SETTINGS))
-		)
-	);
+	const cached = frappe.get_doc(NAMING_SETTINGS, NAMING_SETTINGS);
+	if (cached) return Promise.resolve(cached);
+
+	return frappe
+		.call({
+			method: "frappe.desk.form.load.getdoc",
+			type: "GET",
+			args: { doctype: NAMING_SETTINGS, name: NAMING_SETTINGS },
+		})
+		.then(() => frappe.get_doc(NAMING_SETTINGS, NAMING_SETTINGS));
 }
 
 function settings_call(doc, method) {
