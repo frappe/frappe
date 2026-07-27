@@ -29,7 +29,7 @@
 								avoid-collisions
 								@open-auto-focus="onSubContentOpen"
 							>
-								<div class="js-submenu-search px-1.5 pb-1.5" @keydown.stop @mousedown.stop @click.stop>
+								<div class="js-submenu-search px-1.5 pb-1.5" @mousedown.stop @click.stop>
 									<TextInput
 										v-model="submenuSearch"
 										size="sm"
@@ -37,7 +37,7 @@
 										class="[&_input]:text-sm"
 									/>
 								</div>
-								<div class="max-h-80 overflow-y-auto">
+								<div class="max-h-80 overflow-y-auto" @keydown.capture="onListKeydown">
 									<template v-for="(group, groupIndex) in filterGroups(option.submenu)" :key="groupIndex">
 										<DropdownMenuSeparator v-if="groupIndex > 0" class="my-1 h-px bg-surface-gray-3" />
 										<DropdownMenuGroup class="px-1.5">
@@ -142,6 +142,17 @@ const onSubContentOpen = (event: Event) => {
 	nextTick(() => {
 		document.querySelector<HTMLInputElement>(".js-submenu-search input")?.focus()
 	})
+}
+
+// ArrowUp on the first result jumps back to the search box (reka's nav only walks the list)
+const onListKeydown = (event: KeyboardEvent) => {
+	if (event.key !== "ArrowUp") return
+	const list = event.currentTarget as HTMLElement
+	const items = list.querySelectorAll<HTMLElement>("[data-reka-collection-item]:not([data-disabled])")
+	if (!items.length || document.activeElement !== items[0]) return
+	event.preventDefault()
+	event.stopPropagation()
+	list.parentElement?.querySelector<HTMLInputElement>(".js-submenu-search input")?.focus()
 }
 
 const handleClick = (action: CallableFunction) => {
