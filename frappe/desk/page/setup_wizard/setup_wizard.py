@@ -33,7 +33,7 @@ def get_setup_wizard_url() -> str:
 	return "/app/setup-wizard"
 
 
-def get_setup_stages(args):  # nosemgrep
+def get_setup_stages(args, include_app_input_stages=True):  # nosemgrep
 	# App setup stage functions should not include frappe.db.commit
 	# That is done by frappe after successful completion of all stages
 	stages = [
@@ -51,7 +51,9 @@ def get_setup_stages(args):  # nosemgrep
 		}
 	]
 
-	stages += get_stages_hooks(args) + get_setup_complete_hooks(args)
+	if include_app_input_stages:
+		stages += get_stages_hooks(args)
+	stages += get_setup_complete_hooks(args)
 
 	stages.append(
 		{
@@ -78,6 +80,27 @@ def setup_complete(args: str | dict[str, Any]):
 
 			kwargs = parse_args(sanitize_input(args))
 			stages = get_setup_stages(kwargs)
+			return process_setup_stages(stages, kwargs)
+	except LockTimeoutError:
+		# Duplicate request
+		return {"status": "ok"}
+
+
+@frappe.whitelist()
+def complete_setup(args: str | dict[str, Any] | None = None):
+	"""Complete setup for an app-provided wizard: the setup engine minus the desk-input stages."""
+	frappe.only_for("System Manager")
+
+	if site_requires_builtin_wizard():
+		frappe.throw(_("This site's setup must run through the built-in wizard."))
+
+	try:
+		with filelock("setup_wizard", timeout=0.5):
+			if frappe.is_setup_complete():
+				return {"status": "ok"}
+
+			kwargs = parse_args(sanitize_input(args or {}))
+			stages = get_setup_stages(kwargs, include_app_input_stages=False)
 			return process_setup_stages(stages, kwargs)
 	except LockTimeoutError:
 		# Duplicate request
