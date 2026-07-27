@@ -5,7 +5,7 @@ LAYOUT:
 - container: layout wrapper (renders as a div). No componentProps. Use baseStyles: display, flexDirection, gap, padding, width, height, flexWrap, alignItems, justifyContent, flexShrink, flex, etc.
 
 TEXT & DISPLAY:
-- TextBlock: {text: "string", tag: "p|h1|h2|h3|h4|h5|h6|span", fontSize: "text-2xs(11px)|text-xs(12px)|text-sm(13px)|text-base(14px)|text-lg(16px)|text-xl(17px)|text-2xl(18px)|text-3xl(20px)|text-p-2xs|text-p-xs|text-p-sm|text-p-base|text-p-lg|text-p-xl|text-p-2xl|text-p-3xl"}
+- TextBlock: {text: "string", tag: "p|h1|h2|h3|h4|h5|h6|span", fontSize: "text-2xs(11px)|text-xs(12px)|text-sm(13px)|text-base(14px)|text-md(15px)|text-lg(16px)|text-xl(17px)|text-2xl(18px)|text-3xl(20px)|text-4xl(24px)|text-5xl(26px)|text-6xl(28px)|text-7xl(32px)|text-8xl(40px)|text-9xl(44px)|text-10xl(48px)|text-11xl(52px)|text-12xl(56px)|text-p-xs|text-p-sm|text-p-base|text-p-md|text-p-lg|text-p-xl"}
   # LINE-HEIGHT — pick the right family: use text-p-* for ANY paragraph / body copy / description / caption / multi-line sentence (relaxed line-height, more readable). Use plain text-* ONLY for headings and short UI labels (tight line-height). Default to text-p-* whenever the text is a sentence — e.g. a body paragraph → text-p-sm, NOT text-sm.
 - Badge: {variant: "subtle|solid|outline", theme: "green|red|orange|blue|gray", size: "sm|md|lg", label: "string"} # slots: prefix, suffix
 - Pill: {label: "string", variant: "default|outline|underline", size: "sm|md", icon: "lucide-icon-name", iconLeft: "lucide-icon-name", iconRight: "lucide-icon-name"} # slots: prefix, suffix
