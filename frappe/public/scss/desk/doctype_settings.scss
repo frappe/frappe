@@ -4,12 +4,19 @@
 // grid, the print-format card grid, and the shared empty state.
 
 // ── Global Search tab: inclusion toggle + searchable-field checkbox grid ──
-// Selector carries `.switch-control` too, to beat `label.switch-control`'s padding /
-// margin-bottom from controls.scss (otherwise the divider hugs the search bar).
-.switch-control.dts-gs-switch {
+// The inclusion row is a plain flex container (layout via utilities); only the switch
+// itself is a `.switch-control` label, so clicking the row's empty space does nothing.
+.dts-gs-switch {
 	padding-bottom: var(--padding-md);
 	margin-bottom: var(--padding-md);
 	border-bottom: 1px solid var(--border-color);
+}
+
+// Bare toggle: neutralise label.switch-control's full-width/padding so it hugs its
+// switch instead of stretching across the row (same as .dts-setting-toggle).
+.dts-gs-toggle.switch-control {
+	width: auto;
+	padding: 0;
 }
 
 .dts-gs-search {

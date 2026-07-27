@@ -72,17 +72,12 @@ function draw(panel, doctype, state) {
 	$body.append(
 		make_switch(
 			__("Include {0} in global search", [doctype]),
+			__("{0} documents become searchable for everyone in this site", [doctype]),
 			state.included,
 			(checked, input) => {
-				// Membership affects global search for everyone — confirm either way, revert on cancel.
-				const message = checked
-					? __("Add {0} to global search?", [doctype])
-					: __("Remove {0} from global search?", [doctype]);
-				frappe.confirm(
-					message,
-					() => set_included(doctype, checked).then(() => load(panel, doctype)),
-					() => (input.checked = !checked)
-				);
+				set_included(doctype, checked)
+					.then(() => load(panel, doctype))
+					.catch(() => (input.checked = !checked));
 			}
 		)
 	);
@@ -152,17 +147,27 @@ function save(panel, doctype, state) {
 	});
 }
 
-function make_switch(label, checked, onchange) {
-	const $el = $(`<label class="switch-control dts-gs-switch">
-			<span class="switch-text"><span class="label-area"></span></span>
+function make_switch(label, description, checked, onchange) {
+	const id = frappe.dom.get_unique_id();
+	const $row = $('<div class="dts-gs-switch flex items-center justify-between gap-8"></div>');
+	const $text = $('<div class="min-w-0"></div>').appendTo($row);
+	$('<label class="text-base text-ink-gray-7 cursor-pointer"></label>')
+		.attr("for", id)
+		.text(label)
+		.appendTo($text);
+	if (description) {
+		$('<div class="text-p-sm text-ink-gray-5"></div>').text(description).appendTo($text);
+	}
+	const $toggle = $(`<label class="switch-control dts-gs-toggle">
 			<span class="input-area"><input type="checkbox" role="switch" /></span>
 			<span class="switch-visual" aria-hidden="true"><span class="switch-thumb"></span></span>
-		</label>`);
-	$el.find(".label-area").text(label);
-	$el.find("input")
+		</label>`).appendTo($row);
+	$toggle
+		.find("input")
+		.attr("id", id)
 		.prop("checked", checked)
 		.on("change", (e) => onchange(e.target.checked, e.target));
-	return $el;
+	return $row;
 }
 
 function make_check(label, checked, onchange) {
