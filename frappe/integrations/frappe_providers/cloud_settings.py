@@ -97,6 +97,31 @@ def _safe_context() -> dict:
 		"site_name": frappe.local.site,
 		"server_url": frappe.conf.get("cloud_server_url") or frappe.conf.get("pilot_endpoint"),
 		"account_url": frappe.conf.get("cloud_account_url"),
+		# URLs the desk browser loads the pilot-hosted Vue bundle from on demand.
+		# Empty when unconfigured, in which case desk keeps the icon hidden.
+		"bundle": _embed_bundle(),
+	}
+
+
+def _embed_bundle() -> dict:
+	"""Browser-reachable URLs for pilot's Cloud Settings embed bundle.
+
+	Pilot builds and serves this bundle from its admin backend; the framework only
+	points at it. By default we load it from `pilot_endpoint` — the admin's public
+	URL the site already talks to, which also serves `/embed/cloud-settings/`. Set
+	`cloud_settings_embed_url` only to override that (e.g. a CDN). `embed_version`
+	busts the browser cache when pilot ships an update."""
+	base = (
+		frappe.conf.get("cloud_settings_embed_url") or frappe.conf.get("pilot_endpoint") or ""
+	).rstrip("/")
+	if not base:
+		return {}
+	version = frappe.conf.get("cloud_settings_embed_version")
+	query = f"?v={quote(str(version), safe='')}" if version else ""
+	root = f"{base}/embed/cloud-settings"
+	return {
+		"js": f"{root}/cloud-settings.js{query}",
+		"css": f"{root}/cloud-settings.css{query}",
 	}
 
 

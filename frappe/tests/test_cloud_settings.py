@@ -41,6 +41,40 @@ class TestCloudSettings(TestCase):
 		self.assertEqual(context["server_url"], "https://pilot.example.com")
 		self.assertNotIn("pilot_auth_token", context)
 
+	def test_bundle_defaults_to_pilot_endpoint(self):
+		"""With no explicit embed URL, the bundle loads from the admin backend the
+		site already talks to (pilot_endpoint)."""
+		with (
+			patch.dict(frappe.conf, PILOT_CONF),
+			patch("frappe.get_roles", return_value=["System Manager"]),
+		):
+			bundle = get_boot_context()["bundle"]
+
+		self.assertEqual(
+			bundle["js"], "https://pilot.example.com/embed/cloud-settings/cloud-settings.js"
+		)
+
+	def test_bundle_embed_url_overrides_with_version(self):
+		conf = {
+			**PILOT_CONF,
+			"cloud_settings_embed_url": "https://cdn.example.com/",
+			"cloud_settings_embed_version": "16.0.1",
+		}
+		with (
+			patch.dict(frappe.conf, conf),
+			patch("frappe.get_roles", return_value=["System Manager"]),
+		):
+			bundle = get_boot_context()["bundle"]
+
+		self.assertEqual(
+			bundle["js"],
+			"https://cdn.example.com/embed/cloud-settings/cloud-settings.js?v=16.0.1",
+		)
+		self.assertEqual(
+			bundle["css"],
+			"https://cdn.example.com/embed/cloud-settings/cloud-settings.css?v=16.0.1",
+		)
+
 	def test_disabled_without_system_manager_role(self):
 		with (
 			patch.dict(frappe.conf, PILOT_CONF),

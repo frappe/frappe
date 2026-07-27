@@ -291,17 +291,87 @@ class DesktopPage {
 
 	setup_cloud_settings() {
 		const $button = $(".desktop-cloud-settings");
-		if (!frappe.boot.cloud_settings?.enabled) {
+		const settings = frappe.boot.cloud_settings;
+		// The bundle is hosted by pilot; without its URL there's nothing to open.
+		if (!settings?.enabled || !settings.bundle?.js) {
 			$button.addClass("hidden");
 			return;
 		}
 
 		$button.removeClass("hidden");
-		$button.off("click.cloud-settings").on("click.cloud-settings", () => {
-			frappe.require(["cloud_settings.bundle.css", "cloud_settings.bundle.js"], () => {
-				frappe.ui.CloudSettings.show();
-			});
+
+		// Warm the cache on hover so the first click feels instant.
+		$button.off("mouseenter.cloud-settings").on("mouseenter.cloud-settings", () => {
+			this.prefetch_cloud_settings_bundle(settings.bundle);
 		});
+
+		$button.off("click.cloud-settings").on("click.cloud-settings", () => {
+			this.open_cloud_settings(settings);
+		});
+	}
+
+	prefetch_cloud_settings_bundle(bundle) {
+		if (this._cloud_settings_prefetched) return;
+		this._cloud_settings_prefetched = true;
+		for (const url of [bundle.js, bundle.css]) {
+			if (!url) continue;
+			const link = document.createElement("link");
+			link.rel = "prefetch";
+			link.href = url;
+			document.head.appendChild(link);
+		}
+	}
+
+	async open_cloud_settings(settings) {
+		try {
+			await this.load_cloud_settings_bundle(settings.bundle);
+		} catch (error) {
+			// Pilot may be unreachable or the origin blocked; let the user retry.
+			console.error("Cloud settings bundle failed to load", error); // eslint-disable-line no-console
+			frappe.show_alert({
+				message: __("Couldn't open Cloud settings. Please try again."),
+				indicator: "red",
+			});
+			return;
+		}
+		// The bundle registers this global (pilot owns the Vue app).
+		frappe.cloudSettings?.show(settings);
+	}
+
+	// Load pilot's cross-origin bundle once. It's a classic-script IIFE, so no CORS
+	// is involved. The stylesheet is best-effort (a missing stylesheet degrades
+	// styling but not function); a failed script rejects and clears the cache so a
+	// later click can retry.
+	load_cloud_settings_bundle(bundle) {
+		if (this._cloud_settings_loaded) return this._cloud_settings_loaded;
+
+		const assets = [];
+		if (bundle.css) {
+			assets.push(
+				new Promise((resolve) => {
+					const link = document.createElement("link");
+					link.rel = "stylesheet";
+					link.href = bundle.css;
+					link.onload = link.onerror = resolve;
+					document.head.appendChild(link);
+				})
+			);
+		}
+		assets.push(
+			new Promise((resolve, reject) => {
+				const script = document.createElement("script");
+				script.src = bundle.js;
+				script.onload = resolve;
+				script.onerror = () => reject(new Error(`Failed to load ${bundle.js}`));
+				document.head.appendChild(script);
+			})
+		);
+
+		this._cloud_settings_loaded = Promise.all(assets).catch((error) => {
+			this._cloud_settings_loaded = null;
+			throw error;
+		});
+		return this._cloud_settings_loaded;
 	}
 	setup_edit_button() {
 		if (this.edit_mode || frappe.is_mobile()) return;
