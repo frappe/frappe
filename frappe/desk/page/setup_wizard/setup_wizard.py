@@ -86,7 +86,7 @@ def setup_complete(args: str | dict[str, Any]):
 		return {"status": "ok"}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def complete_setup(args: str | dict[str, Any] | None = None):
 	"""Complete setup for an app-provided wizard: the setup engine minus the desk-input stages."""
 	frappe.only_for("System Manager")
