@@ -1004,11 +1004,7 @@ frappe.ui.form.on("Data Import", {
 
 		frm.trigger("show_report_error_button");
 
-		if (frm.doc.status.includes("Success")) {
-			frm.add_custom_button(__("Go to {0} List", [__(frm.doc.reference_doctype)]), () =>
-				frappe.set_route("List", frm.doc.reference_doctype)
-			);
-		}
+		// "Go to List" moved onto the Total rows metric in the import log (see render_import_log).
 
 		frm.events.setup_preview_section_collapse_handler(frm);
 		frm.trigger("render_custom_ui");
@@ -1026,6 +1022,10 @@ frappe.ui.form.on("Data Import", {
 
 		const $main = frm.page.main;
 		$main.addClass("data-import-custom-page flex flex-col flex-1");
+		// Tag the page shell (which also holds .page-actions) so the SCSS can hide the
+		// standard navbar Save button here — every action lives in the wizard footer /
+		// import-log metrics, and Ctrl/Cmd+S still saves via page.save_action.
+		frm.page.wrapper?.addClass?.("data-import-custom-shell");
 		$main.closest(".layout-main-section-wrapper").addClass("data-import-custom-wrapper");
 
 		const hide_std_form = () => {
@@ -1393,70 +1393,32 @@ frappe.ui.form.on("Data Import", {
 	},
 
 	update_primary_action(frm) {
-		const wizard_step = cint(frm.wizard_step);
-
-		// Config step: Save should only persist changes, not navigate.
-		if (wizard_step === 0) {
-			frm.enable_save();
-			frm.page.set_primary_action(__("Save"), () => {
-				frm.save();
-			});
-			frm.events.refresh_wizard_ui?.(frm);
-			return;
-		}
-
-		if (frm.is_dirty()) {
-			frm.enable_save();
-			frm.page.set_primary_action(__("Save"), () => {
+		// The navbar stays clean (only Search). Every action lives in the wizard footer
+		// (Back / Next / Save / Import / Cancel / Retry / Report Error) or on the import-log
+		// metrics. We only keep Ctrl/Cmd+S saving by routing frappe.app's primary-action
+		// shortcut to a Save handler via page.save_action (btn_primary is intentionally
+		// cleared, so trigger_primary_action falls through to save_action).
+		frm.page.clear_primary_action();
+		// Ctrl/Cmd+S → frappe.app.trigger_primary_action(), which (with no visible primary
+		// button) falls back to `frappe.container.page.save_action`. That property lives on
+		// the page DOM element — NOT frm.page (the frappe.ui.Page instance) — so set it there.
+		if (frappe.container?.page) {
+			frappe.container.page.save_action = () =>
 				frm.save().then(() => {
-					if (frm.has_import_file()) {
+					// Re-fetch the preview only while still editing (before the import starts).
+					if (frm.has_import_file?.() && !has_import_started(frm)) {
 						frm.trigger("import_file");
 					}
 				});
-			});
-			frm.events.refresh_wizard_ui?.(frm);
-			return;
 		}
 
-		const on_fix_issues =
-			frm.wizard_step === 2 && frm.has_import_file?.() && frm.doc.status !== "Success";
-
-		if (frm.doc.status !== "Success") {
-			const on_last_step = frm.wizard_step === 3;
-			const show_save_action =
-				on_fix_issues || frm.is_new() || !frm.has_import_file?.() || !on_last_step;
-
-			if (show_save_action) {
-				frm.enable_save();
-				frm.page.set_primary_action(__("Save"), () => {
-					frm.save().then(() => {
-						if (frm.has_import_file()) {
-							frm.trigger("import_file");
-						}
-					});
-				});
-				frm.events.refresh_wizard_ui?.(frm);
-				return;
-			}
-
+		const importing = frm.doc.status === "In Progress" || frm.import_in_progress;
+		if (importing || frm.doc.status === "Success") {
 			frm.disable_save();
-			if (!frm.is_new() && frm.has_import_file() && on_last_step) {
-				// Client doc.status stays Pending until reload — import_in_progress is the
-				// live signal while the worker runs.
-				if (frm.doc.status === "In Progress" || frm.import_in_progress) {
-					frm.page.clear_primary_action();
-					frm.events.refresh_wizard_ui?.(frm);
-					return;
-				}
-
-				let label = frm.doc.status === "Pending" ? __("Start Import") : __("Retry");
-				frm.page.set_primary_action(label, () => {
-					frm.events.begin_import(frm);
-				});
-			} else {
-				frm.page.set_primary_action(__("Save"), () => frm.save());
-			}
+		} else {
+			frm.enable_save();
 		}
+
 		frm.events.refresh_wizard_ui?.(frm);
 	},
 
@@ -1492,26 +1454,22 @@ frappe.ui.form.on("Data Import", {
 					total_records
 				);
 
+				// Export Errored / Download Skipped now live on the Failed / Skipped metrics
+				// in the import log (see render_import_log), not on the navbar.
 				if (failed_records > 0) {
 					message +=
 						"<br/>" +
 						__(
-							"Please click on 'Export Errored Rows', fix the errors and import again."
+							"Use 'Export Errored Rows' on the Failed metric, fix the errors and import again."
 						);
-					frm.add_custom_button(__("Export Errored Rows"), () =>
-						frm.trigger("export_errored_rows")
-					);
 				}
 
 				if ((frm.doc.skipped_rows || []).length) {
 					message +=
 						"<br/>" +
 						__(
-							"Please click on 'Download Skipped Rows' to export rows that were skipped during import."
+							"Use 'Download Skipped Rows' on the Skipped metric to export the skipped rows."
 						);
-					frm.add_custom_button(__("Download Skipped Rows"), () =>
-						frm.trigger("download_skipped_rows")
-					);
 				}
 
 				// If the job timed out, display an extra hint
@@ -1524,48 +1482,54 @@ frappe.ui.form.on("Data Import", {
 		});
 	},
 
+	// Cancel Import lives in the wizard footer (Import step) now; refresh the footer so
+	// it appears as soon as the import starts. The action itself is `cancel_import`.
 	show_cancel_import_btn(frm) {
-		frm.add_custom_button(__("Cancel Import"), () => {
-			frappe.confirm(
-				__(
-					"This will terminate the job immediately and might be dangerous, are you sure?"
-				),
-				() => {
-					frappe
-						.xcall("frappe.core.doctype.data_import.data_import.stop_data_import", {
-							doc_name: frm.doc.name,
-						})
-						.then((r) => {
-							frappe.show_alert(__("Job Stopped Successfully"));
-							frm.reload_doc();
-						});
-				}
-			);
-		});
+		frm.events.refresh_wizard_ui?.(frm);
 	},
 
+	cancel_import(frm) {
+		frappe.confirm(
+			__("This will terminate the job immediately and might be dangerous, are you sure?"),
+			() => {
+				frappe
+					.xcall("frappe.core.doctype.data_import.data_import.stop_data_import", {
+						doc_name: frm.doc.name,
+					})
+					.then(() => {
+						frappe.show_alert(__("Job Stopped Successfully"));
+						frm.reload_doc();
+					});
+			}
+		);
+	},
+
+	// Report Error lives in the wizard footer (shown when status === "Error"); refresh the
+	// footer so it appears. The action itself is `report_error_now`.
 	show_report_error_button(frm) {
 		if (frm.doc.status === "Error") {
-			frappe.db
-				.get_list("Error Log", {
-					filters: { method: frm.doc.name },
-					fields: ["method", "error"],
-					order_by: "creation desc",
-					limit: 1,
-				})
-				.then((result) => {
-					if (result.length > 0) {
-						frm.add_custom_button("Report Error", () => {
-							let fake_xhr = {
-								responseText: JSON.stringify({
-									exc: result[0].error,
-								}),
-							};
-							frappe.request.report_error(fake_xhr, {});
-						});
-					}
-				});
+			frm.events.refresh_wizard_ui?.(frm);
 		}
+	},
+
+	report_error_now(frm) {
+		frappe.db
+			.get_list("Error Log", {
+				filters: { method: frm.doc.name },
+				fields: ["method", "error"],
+				order_by: "creation desc",
+				limit: 1,
+			})
+			.then((result) => {
+				if (result.length > 0) {
+					const fake_xhr = {
+						responseText: JSON.stringify({ exc: result[0].error }),
+					};
+					frappe.request.report_error(fake_xhr, {});
+				} else {
+					frappe.show_alert(__("No error log found for this import."));
+				}
+			});
 	},
 
 	start_import(frm) {
@@ -2718,29 +2682,41 @@ frappe.ui.form.on("Data Import", {
 			}
 
 			const metric_html = [];
-			const metric_card = (value_html, label, first = false) =>
+			// A metric may carry one action, mounted (as a ghost icon-button) into the
+			// label row after the markup is set — see mount_metric_action below. Only
+			// Failed keeps a colour (red); Inserted/Updated are neutral.
+			const metric_card = (value_html, label, { action = "", first = false } = {}) =>
 				`<div class="diw-import-log-metric flex flex-col flex-1 gap-1 px-4 py-3${
 					first ? "" : " max-md:border-t"
-				}" role="listitem"><div class="diw-import-log-metric-label text-sm text-muted">${label}</div>${value_html}</div>`;
+				}" role="listitem">
+					<div class="diw-import-log-metric-head flex items-center justify-between gap-2">
+						<div class="diw-import-log-metric-label text-sm text-muted">${label}</div>
+						${
+							action
+								? `<span class="diw-import-log-metric-action inline-flex shrink-0" data-metric-action="${action}"></span>`
+								: ""
+						}
+					</div>${value_html}</div>`;
 			metric_html.push(
 				metric_card(
 					`<div class="diw-import-log-metric-value text-2xl-bold">${total_rows_in_file}</div>`,
 					__("Total rows"),
-					true
+					{ action: is_import_complete(frm.doc.status) ? "go_to_list" : "", first: true }
 				)
 			);
 
 			metric_html.push(
 				metric_card(
 					`<div class="diw-import-log-metric-value text-2xl-bold">${skipped_rows_count}</div>`,
-					__("Skipped")
+					__("Skipped"),
+					{ action: skipped_rows_count > 0 ? "download_skipped" : "" }
 				)
 			);
 
 			if (is_upsert || frm.doc.import_type === "Insert New Records") {
 				metric_html.push(
 					metric_card(
-						`<div class="diw-import-log-metric-value text-2xl-bold text-success">${inserted_rows}</div>`,
+						`<div class="diw-import-log-metric-value text-2xl-bold">${inserted_rows}</div>`,
 						__("Inserted")
 					)
 				);
@@ -2749,7 +2725,7 @@ frappe.ui.form.on("Data Import", {
 			if (is_upsert || frm.doc.import_type === "Update Existing Records") {
 				metric_html.push(
 					metric_card(
-						`<div class="diw-import-log-metric-value text-2xl-bold text-primary">${updated_rows}</div>`,
+						`<div class="diw-import-log-metric-value text-2xl-bold">${updated_rows}</div>`,
 						__("Updated")
 					)
 				);
@@ -2758,7 +2734,8 @@ frappe.ui.form.on("Data Import", {
 			metric_html.push(
 				metric_card(
 					`<div class="diw-import-log-metric-value text-2xl-bold text-danger">${failed_rows}</div>`,
-					__("Failed")
+					__("Failed"),
+					{ action: failed_rows > 0 ? "export_errored" : "" }
 				)
 			);
 
@@ -2801,6 +2778,36 @@ frappe.ui.form.on("Data Import", {
 					</tbody>
 				</table>
 			`);
+
+			// Mount the per-metric actions (ghost icon-buttons) that replaced the old
+			// navbar buttons: Total → Go to List, Skipped → Download, Failed → Export.
+			const mount_metric_action = (name, opts) => {
+				const $mount = wrapper.find(`[data-metric-action="${name}"]`);
+				if (!$mount.length) return;
+				$mount.empty().append(frappe.ui.button({ variant: "ghost", size: "xs", ...opts }));
+			};
+			if (is_import_complete(frm.doc.status)) {
+				mount_metric_action("go_to_list", {
+					icon: "external-link",
+					title: __("Go to {0} List", [__(frm.doc.reference_doctype)]),
+					onclick: () => frappe.set_route("List", frm.doc.reference_doctype),
+				});
+			}
+			if (skipped_rows_count > 0) {
+				mount_metric_action("download_skipped", {
+					icon: "download",
+					title: __("Export Skipped Rows"),
+					onclick: () => frm.trigger("download_skipped_rows"),
+				});
+			}
+			if (failed_rows > 0) {
+				mount_metric_action("export_errored", {
+					icon: "download",
+					theme: "red",
+					title: __("Export Errored Rows"),
+					onclick: () => frm.trigger("export_errored_rows"),
+				});
+			}
 
 			const log_filter = new frappe.ui.TabButtons({
 				label: __("Filter import log"),

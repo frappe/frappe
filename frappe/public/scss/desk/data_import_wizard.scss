@@ -20,6 +20,13 @@ body[data-route^="data-import"] {
 	}
 }
 
+// The custom Data Import page keeps the navbar to Search only: hide the standard Save
+// primary button (Ctrl/Cmd+S still saves via page.save_action). Scoped to the shell so
+// the Data Import list's own "Add Data Import" primary button is unaffected.
+.data-import-custom-shell .page-head .primary-action {
+	display: none;
+}
+
 .data-import-custom-page {
 	.data-import-std-form,
 	.std-form-layout {
@@ -359,6 +366,12 @@ body[data-route^="data-import"] {
 }
 
 // ---- import log + progress ----
+// Reserve the metric label row at the action icon-button height (xs es-button = 24px)
+// so the big numbers stay baseline-aligned across metrics with and without an action.
+.diw-import-log-metric-head {
+	min-height: 24px;
+}
+
 .diw-import-progress-standard {
 	.es-progress__label {
 		font-size: var(--text-md);

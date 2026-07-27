@@ -1153,6 +1153,48 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 				})
 			);
 		}
+
+		// Import step: the navbar has no actions now, so the contextual import controls
+		// live on the footer right. Cancel while running; Retry / Report Error after.
+		if (step === 3) {
+			const status = frm.doc.status;
+			const importing = status === "In Progress" || frm.import_in_progress;
+			if (importing) {
+				this.$footer_right.append(
+					frappe.ui.button({
+						label: __("Cancel Import"),
+						icon_left: "x",
+						onclick: () => frm.events.cancel_import(frm),
+					})
+				);
+			} else if (status === "Error") {
+				this.$footer_right.append(
+					frappe.ui.button({
+						label: __("Report Error"),
+						variant: "outline",
+						icon_left: "triangle-alert",
+						onclick: () => frm.events.report_error_now(frm),
+					})
+				);
+				this.$footer_right.append(
+					frappe.ui.button({
+						label: __("Retry"),
+						variant: "solid",
+						icon_left: "refresh-cw",
+						onclick: () => frm.events.begin_import(frm),
+					})
+				);
+			} else if (status === "Partial Success") {
+				this.$footer_right.append(
+					frappe.ui.button({
+						label: __("Retry"),
+						variant: "solid",
+						icon_left: "refresh-cw",
+						onclick: () => frm.events.begin_import(frm),
+					})
+				);
+			}
+		}
 	}
 
 	// ---- navigation --------------------------------------------------------
