@@ -5,10 +5,20 @@ routes. Formatting and business logic live in Central."""
 
 from __future__ import annotations
 
+import frappe
+
 
 def summary(client) -> dict:
-    """Full billing summary: plan + live usage, estimate, credit and payment state."""
-    data = client.get(client.site_path("billing/summary"))
+    """Full billing summary: plan + live usage, estimate, credit and payment state.
+
+    Billing is proxied from Central via pilot; until those routes exist the site
+    simply has no billing, so a missing/unreachable endpoint degrades to a clean
+    "not available" state (the tab shows a message) rather than surfacing an error."""
+    try:
+        data = client.get(client.site_path("billing/summary"))
+    except frappe.ValidationError:
+        frappe.clear_last_message()
+        return {"available": False}
     data["available"] = True
     return data
 
