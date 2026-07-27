@@ -32,12 +32,12 @@ function perm_call(method, args) {
 
 function draw(panel, doctype) {
 	const $body = panel.body.empty();
-	$(`<div class="text-muted small dts-perm-state">${__("Loading")}</div>`).appendTo($body);
+	frappe.doctype_settings.render_loading($body);
 
 	Promise.all([
 		perm_call("get_permissions", { doctype }),
 		// A Custom DocPerm row means this doctype's permissions diverge from standard.
-		frappe.db.get_list("Custom DocPerm", {
+		frappe.doctype_settings.get_list("Custom DocPerm", {
 			filters: { parent: doctype },
 			fields: ["name"],
 			limit: 1,
@@ -52,7 +52,9 @@ function draw(panel, doctype) {
 				roles: perms.map((p) => ({ ...p, source: is_customized ? "Custom" : "Standard" })),
 			});
 		})
-		.catch(() => frappe.doctype_settings.render_error(panel, () => draw(panel, doctype)));
+		.catch((err) =>
+			frappe.doctype_settings.render_error(panel, () => draw(panel, doctype), err)
+		);
 }
 
 function render(panel, doctype, { roles, is_customized }) {
@@ -202,37 +204,36 @@ function flag_badge() {
 }
 
 function customized_banner(panel, doctype, reload) {
-	const $banner = $('<div class="alert alert-warning dts-perm-banner" role="alert"></div>');
-	$banner.append(frappe.utils.icon("triangle-alert", "sm"));
-	$('<span class="dts-perm-banner-text"></span>')
-		.text(__("Permissions for this doctype have been customized."))
-		.appendTo($banner);
-	$('<a href="#" class="dts-perm-banner-action"></a>')
-		.text(__("Reset to default"))
-		.appendTo($banner)
-		.on("click", (e) => {
-			e.preventDefault();
-			frappe.confirm(
-				__("Reset {0} permissions to their default? This removes all customizations.", [
-					doctype,
-				]),
-				() =>
-					perm_call("reset", { doctype }).then(() => {
-						frappe.show_alert({
-							message: __("Permissions reset"),
-							indicator: "green",
-						});
-						reload();
-					})
-			);
-		});
-	return $banner;
+	const reset = () =>
+		frappe.confirm(
+			__("Reset {0} permissions to their default? This removes all customizations.", [
+				doctype,
+			]),
+			() =>
+				perm_call("reset", { doctype }).then(() => {
+					frappe.show_alert({ message: __("Permissions reset"), indicator: "green" });
+					reload();
+				})
+		);
+
+	return frappe.ui
+		.alert({
+			title: __("Permissions for this doctype have been customized."),
+			theme: "yellow",
+			footer: frappe.ui.button({
+				label: __("Reset to default"),
+				size: "sm",
+				variant: "outline",
+				onclick: reset,
+			}),
+		})
+		.addClass("dts-perm-banner");
 }
 
 function footer(panel, doctype) {
 	const $footer = $('<div class="dts-perm-footer"></div>');
 	$("<span></span>").appendTo($footer); // spacer to keep the link right-aligned
-	$('<a href="#" class="dts-perm-footer-link"></a>')
+	$('<a href="#" class="dts-perm-footer-link text-base-medium"></a>')
 		.append($("<span></span>").text(__("Open Role Permissions Manager")))
 		.append(frappe.utils.icon("external-link", "sm"))
 		.appendTo($footer)
