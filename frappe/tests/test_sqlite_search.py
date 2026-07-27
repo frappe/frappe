@@ -729,3 +729,57 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 
 		self.assertEqual(indexed_rows, 0)
 		self.assertEqual(incomplete, 0, "every doctype should be marked complete")
+
+
+class TestStripSurrogates(IntegrationTestCase):
+	"""Unit tests for the strip_surrogates helper.
+
+	Regression test for the poison-pill bug where a Communication with mis-encoded
+	UTF-16 surrogates (e.g., from Outlook/Exchange emojis) caused
+	cursor.executemany() to fail with UnicodeEncodeError, aborting the entire
+	indexing batch and blocking the source save (email pull, doc save, etc.).
+	"""
+
+	def test_clean_text_returns_unchanged(self):
+		from frappe.search.sqlite_search import strip_surrogates
+
+		self.assertEqual(strip_surrogates("Hello, world"), "Hello, world")
+		self.assertEqual(strip_surrogates("Hello, 世界 🎉"), "Hello, 世界 🎉")
+		self.assertEqual(strip_surrogates(""), "")
+
+	def test_paired_surrogates_recover_to_real_codepoint(self):
+		"""Outlook/Exchange emojis arriving as surrogate pairs get recombined."""
+		from frappe.search.sqlite_search import strip_surrogates
+
+		# 🎉 is the UTF-16 surrogate pair for U+1F389 (🎉)
+		poisoned = chr(0xD83C) + chr(0xDF89) + " Congrats"
+		self.assertEqual(strip_surrogates(poisoned), "🎉 Congrats")
+
+	def test_orphan_surrogates_are_dropped(self):
+		from frappe.search.sqlite_search import strip_surrogates
+
+		self.assertEqual(strip_surrogates("before" + chr(0xD83C) + "after"), "beforeafter")
+		self.assertEqual(strip_surrogates("before" + chr(0xDF89) + "after"), "beforeafter")
+
+	def test_non_string_values_pass_through(self):
+		from frappe.search.sqlite_search import strip_surrogates
+
+		self.assertIsNone(strip_surrogates(None))
+		self.assertEqual(strip_surrogates(42), 42)
+		self.assertEqual(strip_surrogates(""), "")
+
+	def test_output_is_always_utf8_encodable(self):
+		"""The sanitized string must be safe for sqlite3 parameter binding."""
+		from frappe.search.sqlite_search import strip_surrogates
+
+		# Every combination that previously caused UnicodeEncodeError
+		poisoned_inputs = [
+			chr(0xD83C) + chr(0xDF89) + " Congrats",  # paired
+			"before" + chr(0xD83C) + "after",  # orphan high
+			"before" + chr(0xDF89) + "after",  # orphan low
+			chr(0xD83C) + "X" + chr(0xDF89),  # invalid pairing
+		]
+		for value in poisoned_inputs:
+			with self.assertRaises(UnicodeEncodeError):
+				value.encode("utf-8")
+			strip_surrogates(value).encode("utf-8")  # must not raise
