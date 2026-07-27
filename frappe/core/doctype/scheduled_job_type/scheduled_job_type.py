@@ -49,6 +49,7 @@ class ScheduledJobType(Document):
 		]
 		last_execution: DF.Datetime | None
 		method: DF.Data
+		queue: DF.Literal["", "default", "short", "long"]
 		scheduler_event: DF.Link | None
 		server_script: DF.Link | None
 		stopped: DF.Check
@@ -198,6 +199,8 @@ class ScheduledJobType(Document):
 		frappe.db.commit()
 
 	def get_queue_name(self):
+		if self.queue:
+			return self.queue
 		return "long" if ("Long" in self.frequency or "Maintenance" in self.frequency) else "default"
 
 	def on_trash(self):

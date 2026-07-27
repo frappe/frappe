@@ -24,6 +24,7 @@
   "scheduler_event",
   "frequency",
   "cron_format",
+  "queue",
   "create_log",
   "status_section",
   "last_execution",
@@ -68,6 +69,14 @@
    "label": "Cron Format",
    "not_nullable": 1,
    "read_only": 1
+  },
+  {
+   "description": "If unset, jobs with a Long or Maintenance frequency run on the long queue and all others on the default queue.",
+   "fieldname": "queue",
+   "fieldtype": "Select",
+   "label": "Queue",
+   "options": "\ndefault\nshort\nlong",
+   "read_only_depends_on": "eval:doc.server_script"
   },
   {
    "fieldname": "frequency",
@@ -118,7 +127,7 @@
    "link_fieldname": "scheduled_job_type"
   }
  ],
- "modified": "2026-08-03 21:30:28.554421",
+ "modified": "2026-08-04 18:13:18.045480",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Type",
