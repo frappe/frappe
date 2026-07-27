@@ -1,9 +1,25 @@
 import json
 import os
 
-from flow_server.events import AssistantMessage, ToolCall, ToolResult, UserMessage
+import pytest
+
+from flow_server.events import (
+	ApprovalRequired,
+	AssistantMessage,
+	PendingCall,
+	RunEnded,
+	ToolCall,
+	ToolResult,
+	UserMessage,
+)
 from flow_server.session.log import SessionLog
-from flow_server.session.store import SessionConfig, SessionStore, _rebuild_messages
+from flow_server.session.store import (
+	SessionConfig,
+	SessionState,
+	SessionStore,
+	_rebuild_messages,
+	pending_approval,
+)
 
 
 def test_session_config_includes_all_builtin_tools_by_default():
@@ -87,3 +103,34 @@ def test_reload_discards_legacy_client_provider_auth(tmp_path):
 
 	assert not hasattr(reloaded.config, "api_key")
 	assert not hasattr(reloaded.config, "api_base")
+
+
+def test_pending_approval_scopes_reused_tool_ids_to_latest_batch(tmp_path):
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(model="mock"))
+	call = PendingCall(id="c1", name="read_file", args={"path": "a.txt"})
+	session.publish(ApprovalRequired(calls=[call]))
+	session.publish(ToolResult(tool_call_id="c1", name="read_file", content="old"))
+	session.publish(RunEnded(reason="done"))
+	session.publish(ApprovalRequired(calls=[call]))
+	session.publish(RunEnded(reason="paused"))
+
+	approval = pending_approval(session.log)
+	assert approval is not None
+	assert approval.calls == (call,)
+
+
+async def test_session_operation_state_clears_after_failure(tmp_path):
+	session = SessionStore(str(tmp_path)).create(SessionConfig(model="mock"))
+
+	async def fail() -> None:
+		raise RuntimeError("boom")
+
+	async with session.operation_lock:
+		task = session._start_operation(fail())
+		assert session.state is SessionState.RUNNING
+
+	with pytest.raises(RuntimeError, match="boom"):
+		await task
+	assert session.state is SessionState.IDLE
+	assert session.run_task is None

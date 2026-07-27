@@ -1,4 +1,4 @@
 from flow_server.agent.agent import Agent
-from flow_server.agent.loop import HookDecision, resume, run
+from flow_server.agent.loop import HookDecision, ResumeError, resume, run, validate_resume
 
-__all__ = ["Agent", "HookDecision", "resume", "run"]
+__all__ = ["Agent", "HookDecision", "ResumeError", "resume", "run", "validate_resume"]

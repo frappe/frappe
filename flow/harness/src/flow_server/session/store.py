@@ -13,12 +13,16 @@ import json
 import os
 import re
 import uuid
+from collections.abc import Coroutine
+from dataclasses import dataclass
+from enum import StrEnum
 from tempfile import mkstemp
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from flow_server import config as server_config
-from flow_server.events import _Event, parse_event
+from flow_server.events import ApprovalRequired, PendingCall, _Event, parse_event
 from flow_server.model.credentials import CredentialStore
 from flow_server.path_policy import canonical_path, is_path_allowed, normalize_roots
 from flow_server.session.log import SessionLog
@@ -26,6 +30,22 @@ from flow_server.session.log import SessionLog
 # client-provided session ids land in on-disk filenames — keep them to a safe slug so a
 # value like "../../etc/x" can't escape the sessions dir (arbitrary file write)
 _SID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+
+
+class SessionState(StrEnum):
+	"""Runtime state for admitting operations on one session."""
+
+	IDLE = "idle"
+	RUNNING = "running"
+	PAUSED = "paused"
+
+
+@dataclass(frozen=True, slots=True)
+class PendingApproval:
+	"""The unresolved part of the latest durable approval batch."""
+
+	seq: int
+	calls: tuple[PendingCall, ...]
 
 
 class SessionConfig(BaseModel):
@@ -94,7 +114,9 @@ class Session:
 		self.allowed_roots = allowed_roots
 		self.messages: list[dict] = _rebuild_messages(log)
 		self._subscribers: set[asyncio.Queue] = set()
-		self.run_task: asyncio.Task | None = None
+		self.operation_lock = asyncio.Lock()
+		self._state = SessionState.PAUSED if pending_approval(log) is not None else SessionState.IDLE
+		self.run_task: asyncio.Task[None] | None = None
 		self.abort = asyncio.Event()
 		self.steer_queue: asyncio.Queue[str] = asyncio.Queue()
 
@@ -125,7 +147,40 @@ class Session:
 
 	@property
 	def is_running(self) -> bool:
-		return self.run_task is not None and not self.run_task.done()
+		return self._state is SessionState.RUNNING
+
+	@property
+	def state(self) -> SessionState:
+		return self._state
+
+	def _start_operation(self, coro: Coroutine[Any, Any, None]) -> asyncio.Task[None]:
+		"""Register an admitted operation before it can execute.
+
+		The caller must hold ``operation_lock`` and validate the source state first.
+		Both blocking and background HTTP requests use the returned task, so there is
+		one lifecycle regardless of how the caller waits.
+		"""
+		if not self.operation_lock.locked():
+			coro.close()
+			raise RuntimeError("operation_lock must be held when starting a session operation")
+		if self._state is SessionState.RUNNING:
+			coro.close()
+			raise RuntimeError("session already has an active operation")
+		self._state = SessionState.RUNNING
+		task = asyncio.create_task(self._run_operation(coro))
+		self.run_task = task
+		return task
+
+	async def _run_operation(self, coro: Coroutine[Any, Any, None]) -> None:
+		try:
+			await coro
+		finally:
+			async with self.operation_lock:
+				if self.run_task is asyncio.current_task():
+					self.run_task = None
+					self._state = (
+						SessionState.PAUSED if pending_approval(self.log) is not None else SessionState.IDLE
+					)
 
 
 class SessionStore:
@@ -252,3 +307,36 @@ def _rebuild_messages(log: SessionLog) -> list[dict]:
 		elif ev.type == "tool_result":
 			messages.append({"role": "tool", "tool_call_id": ev.tool_call_id, "content": ev.content})
 	return messages
+
+
+def pending_approval(log: SessionLog) -> PendingApproval | None:
+	"""Return unresolved calls from the latest durable approval batch.
+
+	Tool-call ids are scoped to their approval event. Results from an older batch
+	with a reused id must not resolve a newer call.
+	"""
+	approval_seq: int | None = None
+	calls: tuple[PendingCall, ...] = ()
+	resolved: set[str] = set()
+	for raw in log.read_since(0):
+		event_type = raw.get("type")
+		if event_type == "run_started":
+			approval_seq = None
+			calls = ()
+			resolved.clear()
+		elif event_type == "approval_required":
+			event = ApprovalRequired.model_validate(raw)
+			approval_seq = event.seq
+			calls = tuple(event.calls)
+			resolved.clear()
+		elif event_type == "tool_result" and approval_seq is not None:
+			resolved.add(str(raw.get("tool_call_id")))
+		elif event_type == "run_ended" and raw.get("reason") != "paused":
+			approval_seq = None
+			calls = ()
+			resolved.clear()
+
+	if approval_seq is None:
+		return None
+	unresolved = tuple(call for call in calls if call.id not in resolved)
+	return PendingApproval(seq=approval_seq, calls=unresolved) if unresolved else None

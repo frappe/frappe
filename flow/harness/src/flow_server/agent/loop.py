@@ -44,7 +44,7 @@ from flow_server.events import (
 )
 from flow_server.model import Model, get_model
 from flow_server.model.resolver import resolve_model_auth
-from flow_server.session.store import Session
+from flow_server.session.store import PendingApproval, Session, pending_approval
 from flow_server.tools import BUILTIN_TOOLS, Tool, ToolContext
 
 
@@ -62,6 +62,10 @@ class HookDecision:
 # before(call, ctx) -> HookDecision | None (sync or async); after(call, result) -> str | None
 BeforeHook = Callable[[ToolCall, ToolContext], Any]
 AfterHook = Callable[[ToolCall, ToolResult], Any]
+
+
+class ResumeError(ValueError):
+	"""The requested continuation does not match the current approval batch."""
 
 
 async def run(
@@ -83,6 +87,7 @@ async def resume(
 	session: Session,
 	answers: dict[str, str],
 	*,
+	approval_seq: int | None = None,
 	model: Model | None = None,
 	before_tool_call: BeforeHook | None = None,
 	after_tool_call: AfterHook | None = None,
@@ -90,11 +95,10 @@ async def resume(
 	"""Continue a paused run. `answers` maps a pending tool_call_id to a decision:
 	"Approve" runs the tool, "Deny" halts the run, any other text redirects the model."""
 	session.abort.clear()
-	pending = _pending_calls(session)
-	if not pending:
-		session.publish(RunError(message="No tool calls are awaiting approval."))
-		session.publish(RunEnded(reason="error"))
-		return
+	approval = pending_approval(session.log)
+	validate_resume(approval, approval_seq, answers)
+	assert approval is not None  # narrowed by validate_resume
+	pending = approval.calls
 
 	server_tools = _server_tools(session)
 	ctx = _make_ctx(session)
@@ -156,6 +160,8 @@ async def _loop(
 			session.messages.append(_assistant_msg(assistant))
 			output_tokens += used
 			if not assistant.tool_calls:
+				if _drain_steering(session):
+					continue
 				reason = "done"
 				break
 
@@ -351,18 +357,31 @@ async def _call_client(session: Session, tc: ToolCall, mode: str) -> dict:
 # --- transcript / helpers -------------------------------------------------
 
 
-def _pending_calls(session: Session) -> list[PendingCall]:
-	"""The current unresolved approval batch, read from the durable log (survives restart,
-	honors any before-hook arg rewrite baked into the ApprovalRequired event)."""
-	resolved: set[str] = set()
-	pending: list[PendingCall] = []
-	for raw in session.log.read_since(0):
-		t = raw.get("type")
-		if t == "approval_required":
-			pending = ApprovalRequired.model_validate(raw).calls
-		elif t == "tool_result":
-			resolved.add(str(raw.get("tool_call_id")))
-	return [c for c in pending if c.id not in resolved]
+def validate_resume(
+	approval: PendingApproval | None,
+	approval_seq: int | None,
+	answers: dict[str, str],
+) -> None:
+	if approval is None:
+		raise ResumeError("No tool calls are awaiting approval.")
+	if approval_seq is not None and approval_seq != approval.seq:
+		raise ResumeError(f"Approval batch {approval_seq} is stale; current batch is {approval.seq}.")
+
+	expected = {call.id for call in approval.calls}
+	if len(expected) != len(approval.calls):
+		raise ResumeError("The pending approval batch contains duplicate tool-call ids.")
+	supplied = set(answers)
+	if supplied == expected:
+		return
+
+	missing = sorted(expected - supplied)
+	extra = sorted(supplied - expected)
+	details = []
+	if missing:
+		details.append(f"missing answers for: {', '.join(missing)}")
+	if extra:
+		details.append(f"unexpected answers for: {', '.join(extra)}")
+	raise ResumeError("Answers must exactly match the pending tool calls (" + "; ".join(details) + ").")
 
 
 def _emit_result(session: Session, result: ToolResult) -> None:
@@ -375,9 +394,12 @@ def _add_user(session: Session, content: str) -> None:
 	session.messages.append({"role": "user", "content": content})
 
 
-def _drain_steering(session: Session) -> None:
+def _drain_steering(session: Session) -> bool:
+	drained = False
 	while not session.steer_queue.empty():
 		_add_user(session, session.steer_queue.get_nowait())
+		drained = True
+	return drained
 
 
 def _assistant_msg(msg: AssistantMessage) -> dict:

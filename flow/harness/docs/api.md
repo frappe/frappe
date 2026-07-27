@@ -26,7 +26,8 @@ Agent(config: SessionConfig | None = None, *, data_dir="~/.flow/server", **overr
 
 ```python
 agent.run(message: str, **hooks) -> AsyncIterator[Event]        # start a turn
-agent.resume(answers: dict[str, str], **hooks) -> AsyncIterator[Event]   # continue a paused run
+agent.resume(answers: dict[str, str], *, approval_seq: int | None = None, **hooks)
+    -> AsyncIterator[Event]   # continue a paused run
 ```
 
 `**hooks` = `before_tool_call` and/or `after_tool_call` (see [tools.md](tools.md)).
@@ -52,12 +53,14 @@ Approval pause → resume:
 agent = Agent(model="openai/gpt-4o", cwd=".", confirm_tools=["bash", "edit"])
 
 pending = []
+approval_seq = None
 async for e in agent.run("delete the build dir"):
     if e.type == "approval_required":
         pending = e.calls                       # [PendingCall(id, name, args, prompt), ...]
+        approval_seq = e.seq
 
 answers = {c.id: "Approve" for c in pending}    # or "Deny", or free text to redirect
-async for e in agent.resume(answers):
+async for e in agent.resume(answers, approval_seq=approval_seq):
     ...
 ```
 
@@ -76,7 +79,8 @@ Body: a `SessionConfig` (all fields optional; see below).
 `ALLOWED_ROOTS` or `session_id` is invalid.
 
 ### `GET /sessions/{sid}`
-`→ {"session_id", "running", "latest_seq", "config"}`. `404` if unknown.
+`→ {"session_id", "state", "running", "latest_seq", "config"}`. `state` is `idle`,
+`running`, or `paused`; `running` remains as a compatibility boolean. `404` if unknown.
 
 ### `POST /sessions/{sid}/run?wait=<bool>`
 Body: `{"message": "...", "model": "provider/model", "credential_id": "optional-name"}`.
@@ -85,18 +89,28 @@ for later turns. Provider keys, OAuth tokens, headers, and base URLs are not acc
 this endpoint and are resolved inside flow_server.
 - default (`wait` false): starts the run as a background task → `{"status": "started"}`.
   If a run is already active, the message is queued as steering → `{"status": "steered"}`.
-- `?wait=true`: blocks until the run ends → `{"reason", "output", "usage", "pending"}`
-  (`output` = final assistant text; `pending` = approval calls if `reason=="paused"`).
+- `?wait=true`: blocks until the registered run ends →
+  `{"reason", "output", "usage", "pending", "approval_seq"}` (`output` = final
+  assistant text; `pending` and `approval_seq` identify the approval batch if
+  `reason=="paused"`).
+- `409` if the session is paused; resolve that batch through `/resume` before starting
+  another run.
 
 ### `POST /sessions/{sid}/resume?wait=<bool>`
-Body: `{"answers": {"<tool_call_id>": "Approve" | "Deny" | "<free text>"}}`.
-Same fire-and-forget / `?wait` shapes as `/run`. `409` if a run is currently active.
+Body:
+`{"approval_seq": 12, "answers": {"<tool_call_id>": "Approve" | "Deny" | "<free text>"}}`.
+`approval_seq` must identify the current `ApprovalRequired` event and `answers` must
+contain exactly its unresolved call ids. Missing, extra, stale, already-resolved, and
+not-paused requests return `409` without changing the log. Same fire-and-forget /
+`?wait` shapes as `/run`.
 
 ### `POST /sessions/{sid}/abort`
-Signals the run to stop at the next boundary → `{"status": "aborting" | "idle"}`.
+Signals the run to stop at the next boundary →
+`{"status": "aborting" | "idle" | "paused"}`.
 
 ### `GET /sessions/{sid}/entries?since=<int>`
-The durable log from the cursor → `{"entries": [...], "latest_seq", "running"}`.
+The durable log from the cursor →
+`{"entries": [...], "latest_seq", "state", "running"}`.
 
 ### `GET /sessions/{sid}/stream?since=<int>`
 Server-Sent Events. Replays durable entries with `seq > since`, then streams live events

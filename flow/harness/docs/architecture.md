@@ -112,6 +112,19 @@ same `/run` endpoint: fire-and-forget (returns immediately; the run proceeds as 
 background task — no pinned worker, survives a dropped client) or `?wait=true` (blocks
 and returns a Flow-like terminal summary). `GET /stream?since=N` = replay-then-live.
 
+Each session has one runtime `SessionState` (`idle`, `running`, or `paused`), one
+operation lock, and at most one registered task. Admission changes the state and
+registers the task before the loop can run. Both HTTP modes use that same task:
+`wait=true` awaits it, while the default response leaves it running. Cleanup happens
+in `finally`, deriving `paused` from the latest unresolved durable approval batch and
+otherwise returning to `idle`.
+
+An overlapping `/run` is accepted only as explicit steering. Other overlaps are
+rejected. A resume must carry the current approval event's `seq` and an exact answer
+set, preventing a delayed or duplicated client request from resolving a different
+batch. Unlike Pi/Tau's in-process confirmation UI, this durable paused state is a
+Flow-specific server extension needed for disconnect/restart-safe approval.
+
 ### Security policies
 
 - **`ALLOWED_ROOTS`** — a session's `cwd` and every path passed to `read_file`, `write`,
@@ -144,5 +157,5 @@ POST /sessions/{id}/run     → background task: agent.run(session, msg)
           else next turn … → RunEnded(done)
   every publish → log.append() [seq + fsync] + fan out to subscribers + sink
 GET /sessions/{id}/stream?since=N → replay log rows > N → attach live → until run_ended
-POST /sessions/{id}/resume  → read ApprovalRequired from log → dispatch approved → _loop
+POST /sessions/{id}/resume  → match approval seq + exact ids → dispatch approved → _loop
 ```

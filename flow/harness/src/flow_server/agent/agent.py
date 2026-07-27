@@ -17,7 +17,7 @@ from flow_server.agent.loop import resume as _resume
 from flow_server.agent.loop import run as _run
 from flow_server.events import _Event
 from flow_server.model import Model
-from flow_server.session.store import Session, SessionConfig, SessionStore
+from flow_server.session.store import Session, SessionConfig, SessionState, SessionStore
 
 
 class Agent:
@@ -45,16 +45,46 @@ class Agent:
 
 	def run(self, message: str, **hooks: Any) -> AsyncIterator[_Event]:
 		"""Start a turn; yields the live event stream until the run ends or pauses."""
-		return self._drive(lambda: _run(self._session, message, model=self._model, **hooks))
+		return self._drive(
+			lambda: _run(self._session, message, model=self._model, **hooks),
+			from_state=SessionState.IDLE,
+		)
 
-	def resume(self, answers: dict[str, str], **hooks: Any) -> AsyncIterator[_Event]:
+	def resume(
+		self,
+		answers: dict[str, str],
+		*,
+		approval_seq: int | None = None,
+		**hooks: Any,
+	) -> AsyncIterator[_Event]:
 		"""Continue a paused run; yields the event stream of the continuation."""
-		return self._drive(lambda: _resume(self._session, answers, model=self._model, **hooks))
+		return self._drive(
+			lambda: _resume(
+				self._session,
+				answers,
+				approval_seq=approval_seq,
+				model=self._model,
+				**hooks,
+			),
+			from_state=SessionState.PAUSED,
+		)
 
-	async def _drive(self, make_coro: Callable[[], Coroutine[Any, Any, None]]) -> AsyncIterator[_Event]:
+	async def _drive(
+		self,
+		make_coro: Callable[[], Coroutine[Any, Any, None]],
+		*,
+		from_state: SessionState,
+	) -> AsyncIterator[_Event]:
 		q = self._session.subscribe()  # subscribe before the run starts so no event is missed
-		task = asyncio.create_task(make_coro())
+		task: asyncio.Task[None] | None = None
 		try:
+			async with self._session.operation_lock:
+				if self._session.state is not from_state:
+					raise RuntimeError(
+						f"session must be {from_state} to start this operation "
+						f"(current state: {self._session.state})"
+					)
+				task = self._session._start_operation(make_coro())
 			while True:
 				ev = await q.get()
 				yield ev
@@ -62,4 +92,5 @@ class Agent:
 					break
 		finally:
 			self._session.unsubscribe(q)
-			await task
+			if task is not None:
+				await task
