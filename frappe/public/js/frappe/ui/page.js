@@ -68,7 +68,6 @@ frappe.ui.Page = class Page {
 	make() {
 		this.wrapper = $(this.parent);
 		this.add_main_section();
-		this.setup_scroll_handler();
 		this.setup_main_sidebar_toggle();
 		this.setup_awesomebar();
 	}
@@ -88,24 +87,6 @@ frappe.ui.Page = class Page {
 				}, __("Background Jobs"));
 			}
 		}
-	}
-
-	setup_scroll_handler() {
-		let last_scroll = 0;
-		$(".main-section").scroll(
-			frappe.utils.throttle(() => {
-				$(".page-head").toggleClass("drop-shadow", !!document.documentElement.scrollTop);
-				let current_scroll = document.documentElement.scrollTop;
-				if (
-					current_scroll > 0 &&
-					last_scroll <= current_scroll &&
-					(frappe.boot.read_only || frappe.boot.user.impersonated_by)
-				) {
-					$(".page-head").css("top", "-15px");
-				}
-				last_scroll = current_scroll;
-			}, 500)
-		);
 	}
 
 	get_empty_state(title, message, primary_action) {
