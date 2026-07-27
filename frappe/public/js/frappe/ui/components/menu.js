@@ -473,7 +473,12 @@ export class MenuTree {
 		// not just a row — means the pointer arrived at a menu: a close
 		// pending from a previously hovered row must not fire under the
 		// cursor, and any safe-triangle journey is complete
-		entry.panel.addEventListener("pointerenter", () => {
+		entry.panel.addEventListener("pointerenter", (e) => {
+			// real pointerenter doesn't bubble — the panel only ever sees
+			// itself as target. Synthetic events (tests) may bubble up from a
+			// row; those are the row's business, and clearing here would kill
+			// the submenu-open timer the row just scheduled.
+			if (e.target !== entry.panel) return;
 			clearTimeout(this.submenu_timer);
 			this.grace = null;
 		});
