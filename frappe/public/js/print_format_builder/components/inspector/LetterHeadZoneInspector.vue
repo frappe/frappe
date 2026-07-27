@@ -82,7 +82,7 @@
 				<div v-if="letterhead[image_field]" class="pfb-insp-row pfb-insp-row--col">
 					<span class="pfb-insp-label">{{ __("Size") }}</span>
 					<input
-						class="pfb-lh-slider"
+						class="pfb-size-slider"
 						type="range"
 						min="20"
 						:max="zone_size_max"
@@ -221,7 +221,7 @@ function open_html_split_dialog({ title, initial_html, on_save, doctype, docname
 					.pfb-lh-split{display:flex;height:480px;gap:0;overflow:hidden;margin:-15px}
 					.pfb-lh-split-pane{display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden}
 					.pfb-lh-split-divider{width:1px;background:var(--border-color);flex-shrink:0}
-					.pfb-lh-split-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);padding:10px 12px 8px;border-bottom:1px solid var(--border-color);flex-shrink:0}
+					.pfb-lh-split-label{font-size:11px;font-weight:700;color:var(--text-muted);padding:10px 12px 8px;border-bottom:1px solid var(--border-color);flex-shrink:0}
 					.pfb-lh-split-ctrl{flex:1;overflow:hidden}
 					.pfb-lh-split-ctrl .pfb-html-ctrl-host{height:100%}
 					.pfb-lh-preview-iframe{flex:1;width:100%;border:none;background:#fff}
@@ -365,18 +365,12 @@ function lh_create_letterhead() {
 	gap: 6px;
 	font-size: var(--text-tiny);
 	font-weight: var(--weight-semibold);
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
-	color: var(--blue-500);
-	background: var(--blue-50);
-	border-bottom: 1px solid var(--blue-200);
+	letter-spacing: 0;
+	color: var(--gray-600);
+	background: var(--gray-50);
+	border-bottom: 1px solid var(--gray-200);
 	padding: 7px 14px;
 	flex-shrink: 0;
-}
-
-.pfb-lh-slider {
-	width: 100%;
-	accent-color: var(--primary);
 }
 
 .pfb-lh-actions {

@@ -35,7 +35,7 @@ from frappe.utils.caching import deprecated_local_cache as local_cache
 from frappe.utils.caching import request_cache, site_cache
 from frappe.utils.data import as_unicode, bold, cint, cstr, safe_decode, safe_encode, sbool, scrub, unscrub
 from frappe.utils.local import Local, LocalProxy, release_local
-from frappe.utils.translations import _, _lt, set_user_lang
+from frappe.utils.translations import N_, _, _lt, set_user_lang
 
 # Local application imports
 from .exceptions import *
@@ -594,11 +594,14 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None)
 	"""
 
 	if not methods:
-		methods = ("GET", "POST", "PUT", "DELETE")
+		methods = ("GET", "POST", "PUT", "DELETE", "QUERY")
 	elif isinstance(methods, str):
 		methods = (methods,)
 	else:
 		methods = tuple(methods)
+
+	if "GET" in methods and "QUERY" not in methods:
+		methods = (*methods, "QUERY")
 
 	def innerfn(fn):
 		from frappe.utils.typing_validations import validate_argument_types
@@ -627,6 +630,9 @@ def is_whitelisted(method):
 
 	is_guest = session["user"] == "Guest"
 	if method not in whitelisted or (is_guest and method not in guest_methods):
+		if method in whitelisted and is_guest and response.get("session_expired"):
+			raise SessionExpired
+
 		summary = _("You are not permitted to access this resource. Login to access")
 		detail = _("Function {0} is not whitelisted.").format(bold(f"{method.__module__}.{method.__name__}"))
 		msg = f"<details><summary>{summary}</summary>{detail}</details>"

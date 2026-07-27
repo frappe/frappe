@@ -51,7 +51,7 @@ class TestDocType(IntegrationTestCase):
 			doc.delete()
 
 	@skipIf(
-		frappe.conf.db_type == "sqlite",
+		frappe.conf and frappe.conf.db_type == "sqlite",
 		"Not for SQLite for now",
 	)
 	def test_making_sequence_on_change(self):
@@ -739,6 +739,20 @@ class TestDocType(IntegrationTestCase):
 					"fieldtype": "Link",
 					"options": "User",
 					"link_filters": '{"name": "Administrator"}',
+				}
+			]
+		)
+
+		self.assertRaises(frappe.ValidationError, doctype.insert)
+
+	def test_attachment_gallery_filters_must_target_file(self):
+		doctype = new_doctype(
+			fields=[
+				{
+					"label": "Attachments",
+					"fieldname": "attachments",
+					"fieldtype": "Attachment Gallery",
+					"link_filters": '[["User", "name", "=", "Administrator"]]',
 				}
 			]
 		)

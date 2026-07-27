@@ -1,12 +1,6 @@
 <template>
-	<div
-		v-if="shouldRender"
-		class="builder-root"
-		:class="{
-			'builder-root--preview': show_preview,
-		}"
-	>
-		<PrintFormatControls v-if="!show_preview" />
+	<div v-if="shouldRender" class="builder-root">
+		<PrintFormatControls />
 		<div class="canvas-area">
 			<!-- Sidebar-open hint -->
 			<div v-if="sidebar_open && !hint_dismissed" class="pfb-sidebar-hint">
@@ -19,11 +13,10 @@
 				</button>
 			</div>
 
-			<!-- Canvas toolbar: sample data picker (hidden in preview mode).
-			     v-show (not v-if) so the picker control survives a preview round-trip. -->
-			<div v-show="!show_preview" class="canvas-toolbar">
+			<!-- Canvas toolbar: sample data picker, zoom, preview toggle -->
+			<div class="canvas-toolbar">
 				<div class="canvas-toolbar-left">
-					<span class="canvas-toolbar-eyebrow">{{ __("PREVIEW DATA") }}</span>
+					<span class="canvas-toolbar-eyebrow">{{ __("Data") }}</span>
 				</div>
 				<div class="canvas-toolbar-center">
 					<div ref="doc_picker_ref" class="canvas-doc-picker"></div>
@@ -32,10 +25,6 @@
 					<span v-if="!$store.preview_doc.value" class="canvas-no-data-hint">
 						← {{ __("Pick a record to see real values") }}
 					</span>
-					<span v-if="$store.preview_doc.value" class="es-badge" data-theme="green">{{
-						__("Live")
-					}}</span>
-
 					<div class="canvas-zoom-control" role="group" :aria-label="__('Zoom')">
 						<button
 							class="canvas-zoom-btn"
@@ -71,13 +60,11 @@
 					@start-default="on_start_default"
 					@start-blank="on_start_blank"
 				/>
-				<KeepAlive v-else>
-					<component :is="Preview" v-if="show_preview" />
-					<component :is="PrintFormat" v-else />
-				</KeepAlive>
+				<component :is="PrintFormat" v-else />
 			</div>
 		</div>
-		<FieldInspector v-if="!show_preview" />
+		<FieldInspector />
+		<Preview v-if="show_preview" @close="show_preview = false" />
 	</div>
 </template>
 
@@ -88,9 +75,8 @@ import Preview from "./components/Preview.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
 import { getStore } from "./stores";
-import { computed, ref, onMounted, onUnmounted, provide, nextTick, watch } from "vue";
+import { computed, ref, onMounted, onUnmounted, provide, nextTick } from "vue";
 
-// props
 const props = defineProps(["print_format_name"]);
 
 const HINT_KEY = "pfb_sidebar_hint_dismissed";
@@ -99,7 +85,6 @@ const ZOOM_STEP = 10;
 const ZOOM_MIN = 50;
 const ZOOM_MAX = 150;
 
-// variables
 let show_preview = ref(false);
 let doc_picker_ref = ref(null);
 let doc_picker_ctrl = ref(null);
@@ -108,7 +93,6 @@ let hint_dismissed = ref(localStorage.getItem(HINT_KEY) === "1");
 let canvas_zoom = ref(parseInt(localStorage.getItem(ZOOM_KEY)) || 100);
 let sidebar_observer_ref = null;
 
-// computed
 let $store = computed(() => {
 	return getStore(props.print_format_name);
 });
@@ -119,33 +103,48 @@ let shouldRender = computed(() => {
 	);
 });
 
-// provide
 provide("$store", $store.value);
 
-// methods
 function toggle_preview() {
 	show_preview.value = !show_preview.value;
 }
 
-watch(show_preview, (on) => {
-	if (on) {
-		history.pushState({ ...history.state, pfb_preview: true }, "");
-	} else {
-		// Reflect a document changed in preview mode back in the edit-mode picker
-		const name = $store.value.preview_doc_name.value;
-		if (name && doc_picker_ctrl.value?.get_value() !== name) {
-			doc_picker_ctrl.value?.set_value(name);
-		}
-		if (history.state?.pfb_preview) {
-			history.back();
-		}
-	}
-});
+const SETTINGS_DOCTYPE = "Print Settings";
 
-function handle_popstate() {
-	if (show_preview.value) {
-		show_preview.value = false;
+// Editing the Single in a dialog rather than routing to its form: the builder
+// holds unsaved layout in memory, and navigating away would drop it.
+async function open_print_settings() {
+	if (!frappe.perm.has_perm(SETTINGS_DOCTYPE, 0, "write")) {
+		frappe.msgprint(__("You are not permitted to change Print Settings"));
+		return;
 	}
+	await frappe.model.with_doctype(SETTINGS_DOCTYPE);
+	const doc = await frappe.model.with_doc(SETTINGS_DOCTYPE, SETTINGS_DOCTYPE);
+	// built from the doctype's own meta, so a new field shows up here for free
+	const fields = frappe.get_meta(SETTINGS_DOCTYPE).fields.filter((df) => !df.hidden);
+
+	const dialog = new frappe.ui.Dialog({
+		title: __("Print Settings"),
+		size: "large",
+		fields: fields.map((df) => ({ ...df, default: doc[df.fieldname] })),
+		primary_action_label: __("Save"),
+		primary_action: (values) => {
+			frappe
+				.call("frappe.client.set_value", {
+					doctype: SETTINGS_DOCTYPE,
+					name: SETTINGS_DOCTYPE,
+					fieldname: values,
+				})
+				.then(() => {
+					dialog.hide();
+					frappe.show_alert({
+						message: __("Print Settings updated"),
+						indicator: "green",
+					});
+				});
+		},
+	});
+	dialog.show();
 }
 
 function clear_selection() {
@@ -178,33 +177,29 @@ function on_start_blank() {
 	$store.value.needs_setup.value = false;
 }
 
+function is_typing_context() {
+	const el = document.activeElement;
+	return !!(
+		el?.tagName === "INPUT" ||
+		el?.tagName === "TEXTAREA" ||
+		el?.isContentEditable ||
+		el?.closest(".modal")
+	);
+}
+
 function handle_keydown(e) {
 	// Zoom shortcuts: Ctrl+= / Ctrl+- / Ctrl+0
 	if (e.ctrlKey || e.metaKey) {
 		if (e.key === "z" || e.key === "Z" || e.key === "y") {
 			// rich text editors and dialogs keep their own undo
-			const el = document.activeElement;
-			if (
-				el?.tagName === "INPUT" ||
-				el?.tagName === "TEXTAREA" ||
-				el?.isContentEditable ||
-				el?.closest(".modal")
-			)
-				return;
+			if (is_typing_context()) return;
 			e.preventDefault();
 			if (e.key === "y" || e.shiftKey) $store.value.redo();
 			else $store.value.undo();
 			return;
 		}
 		if (e.key === "c" || e.key === "C" || e.key === "v" || e.key === "V") {
-			const el = document.activeElement;
-			if (
-				el?.tagName === "INPUT" ||
-				el?.tagName === "TEXTAREA" ||
-				el?.isContentEditable ||
-				el?.closest(".modal")
-			)
-				return;
+			if (is_typing_context()) return;
 			const is_copy = e.key === "c" || e.key === "C";
 			if (is_copy) {
 				// Let native copy work when text is highlighted or nothing in the
@@ -219,6 +214,13 @@ function handle_keydown(e) {
 				e.preventDefault();
 				$store.value.paste_clipboard();
 			}
+			return;
+		}
+		if (e.key === "d" || e.key === "D") {
+			if (is_typing_context()) return;
+			if (!$store.value.selected_field.value && !$store.value.selected_section.value) return;
+			e.preventDefault();
+			$store.value.duplicate_selection();
 			return;
 		}
 		if (e.key === "=" || e.key === "+") {
@@ -238,19 +240,23 @@ function handle_keydown(e) {
 		}
 	}
 
+	if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+		if (is_typing_context()) return;
+		if (!$store.value.selected_field.value && !$store.value.selected_section.value) return;
+		e.preventDefault();
+		$store.value.move_selection(e.key === "ArrowUp" ? -1 : 1);
+		return;
+	}
+
 	if (e.key === "Delete" || e.key === "Backspace") {
 		// Never hijack delete/backspace from text editing contexts
-		const el = document.activeElement;
-		if (
-			el?.tagName === "INPUT" ||
-			el?.tagName === "TEXTAREA" ||
-			el?.isContentEditable ||
-			el?.closest(".modal")
-		)
-			return;
+		if (is_typing_context()) return;
 		const sf = $store.value.selected_field.value;
 		const ss = $store.value.selected_section.value;
-		if (sf) {
+		if ($store.value.selected_fields.value.length > 1) {
+			$store.value.remove_selected_fields();
+			e.preventDefault();
+		} else if (sf) {
 			sf.remove = true;
 			$store.value.selected_field.value = null;
 			e.preventDefault();
@@ -329,6 +335,13 @@ function dismiss_hint() {
 function init_doc_picker() {
 	if (!doc_picker_ref.value) return;
 	const meta = $store.value.meta.value;
+	// draft/cancelled documents can't be printed unless Print Settings allows it, so
+	// keep them out of the picker unless that's turned on
+	const is_printable_docstatus = (docstatus) =>
+		frappe.model.can_print_docstatus(meta?.name, docstatus);
+	const printable_filters = meta?.is_submittable
+		? { docstatus: ["in", [0, 1, 2].filter(is_printable_docstatus)] }
+		: {};
 	doc_picker_ctrl.value = frappe.ui.form.make_control({
 		parent: doc_picker_ref.value,
 		df: {
@@ -336,6 +349,7 @@ function init_doc_picker() {
 			fieldtype: "Link",
 			options: meta?.name,
 			placeholder: __("Pick a {0} to preview...", [__(meta?.name || "document")]),
+			get_query: () => ({ filters: printable_filters }),
 			change: () => {
 				const name = doc_picker_ctrl.value.get_value();
 				$store.value.load_preview_doc(name || null);
@@ -351,25 +365,32 @@ function init_doc_picker() {
 		$store.value.load_preview_doc(name);
 	};
 	// Prefer the record chosen last time (persisted across refresh); otherwise
-	// auto-select the most recent record so the preview is ready immediately.
+	// auto-select the most recent printable record so the preview is ready immediately.
 	const saved = $store.value.persisted_preview_doc_name();
 	const auto_select = () =>
 		frappe.db
-			.get_list(meta?.name, { limit: 1, fields: ["name"], order_by: "creation desc" })
+			.get_list(meta?.name, {
+				filters: printable_filters,
+				limit: 1,
+				fields: ["name"],
+				order_by: "creation desc",
+			})
 			.then((rows) => rows?.length && select(rows[0].name));
 	if (saved) {
 		frappe.db
-			.get_value(meta?.name, saved, "name")
-			.then((r) => (r?.message?.name ? select(saved) : auto_select()));
+			.get_value(meta?.name, saved, ["name", "docstatus"])
+			.then((r) =>
+				r?.message?.name && is_printable_docstatus(r.message.docstatus)
+					? select(saved)
+					: auto_select()
+			);
 	} else {
 		auto_select();
 	}
 }
 
-// mounted
 onMounted(() => {
 	document.addEventListener("keydown", handle_keydown);
-	window.addEventListener("popstate", handle_popstate);
 
 	// Detect desk sidebar open/close via MutationObserver on the wrapper's style attribute
 	check_sidebar();
@@ -389,11 +410,10 @@ onMounted(() => {
 
 onUnmounted(() => {
 	document.removeEventListener("keydown", handle_keydown);
-	window.removeEventListener("popstate", handle_popstate);
 	sidebar_observer_ref?.disconnect();
 });
 
-defineExpose({ toggle_preview, show_preview, $store });
+defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 </script>
 
 <style scoped>
@@ -412,11 +432,6 @@ defineExpose({ toggle_preview, show_preview, $store });
 	height: calc(100vh - var(--pfb-chrome-offset));
 }
 
-.builder-root--preview .canvas-area {
-	padding-left: 1.5rem;
-	padding-right: 1.5rem;
-}
-
 /* ── Sidebar hint ────────────────────────────────────────── */
 .pfb-sidebar-hint {
 	flex-shrink: 0;
@@ -424,10 +439,10 @@ defineExpose({ toggle_preview, show_preview, $store });
 	align-items: center;
 	gap: 6px;
 	padding: 4px 12px;
-	background: var(--blue-50);
-	border-bottom: 1px solid var(--blue-100);
+	background: var(--gray-50);
+	border-bottom: 1px solid var(--gray-200);
 	font-size: var(--text-xs);
-	color: var(--blue-700);
+	color: var(--gray-700);
 }
 
 .pfb-hint-icon {
@@ -447,7 +462,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	border: none;
 	background: transparent;
 	cursor: pointer;
-	color: var(--blue-400);
+	color: var(--gray-500);
 	border-radius: var(--radius);
 	line-height: 1;
 	opacity: 0.7;
@@ -455,7 +470,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 
 .pfb-hint-dismiss:hover {
 	opacity: 1;
-	background: var(--blue-100);
+	background: var(--gray-200);
 }
 
 /* ── Canvas toolbar ──────────────────────────────────────── */
@@ -517,22 +532,6 @@ defineExpose({ toggle_preview, show_preview, $store });
 	border: 1px solid var(--yellow-200);
 	border-radius: var(--radius);
 	padding: 3px 8px;
-}
-
-.canvas-icon-btn {
-	display: flex;
-	align-items: center;
-	padding: 3px;
-	border: none;
-	background: transparent;
-	cursor: pointer;
-	color: var(--gray-400);
-	border-radius: var(--radius);
-}
-
-.canvas-icon-btn:hover {
-	background: var(--gray-100);
-	color: var(--gray-600);
 }
 
 /* ── Zoom control ────────────────────────────────────────── */

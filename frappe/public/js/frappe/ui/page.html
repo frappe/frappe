@@ -54,33 +54,26 @@
 					<div class="standard-actions flex">
 						<span class="page-icon-group hide hidden-xs hidden-sm"></span>
 						<div class="menu-btn-group hide">
-							<button type="button" class="btn btn-default icon-btn menu-more-button" data-toggle="dropdown" aria-expanded="false" aria-label="{{ __("Menu") }}">
-								<span>
-									<span class="menu-btn-group-label">
-										<svg class="icon icon-sm">
-											<use href="#icon-ellipsis">
-											</use>
-										</svg>
-									</span>
-								</span>
-							</button>
+							{%= frappe.ui.button.html({
+								icon: "ellipsis",
+								title: __("Menu"),
+								css_class: "icon-btn menu-more-button",
+								attrs: { "data-toggle": "dropdown", "aria-expanded": "false" },
+							}) %}
 							<ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>
 						</div>
-						<button class="btn btn-secondary btn-default btn-sm hide"></button>
+						{%= frappe.ui.button.html({ css_class: "secondary-action hide" }) %}
 						<div class="actions-btn-group hide">
-							<button type="button" class="btn btn-primary btn-sm justify-center" data-toggle="dropdown" aria-expanded="false">
-								<span>
-									<span class="hidden-xs actions-btn-group-label">{%= __("Actions") %}</span>
-									<svg class="icon icon-xs">
-										<use href="#icon-chevrons-up-down">
-										</use>
-									</svg>
-								</span>
-							</button>
+							{%= frappe.ui.button.html({
+								label: __("Actions"),
+								icon_right: "chevrons-up-down",
+								variant: "solid",
+								attrs: { "data-toggle": "dropdown", "aria-expanded": "false" },
+							}) %}
 							<ul class="dropdown-menu dropdown-menu-right" role="menu">
 							</ul>
 						</div>
-						<button class="btn btn-primary btn-sm hide primary-action"></button>
+						{%= frappe.ui.button.html({ variant: "solid", css_class: "primary-action hide" }) %}
 					</div>
 				</div>
 			</div>

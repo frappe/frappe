@@ -67,22 +67,12 @@ def get_context(context) -> PrintContext:
 
 	meta = frappe.get_meta(doc.doctype)
 
-	print_format = get_print_format_doc(None, meta=meta)
-
-	from frappe.printing.doctype.print_format.classic_converter import (
-		get_default_print_format,
-		uses_beta_renderer,
-	)
-
-	if print_format is None:
-		print_format = get_default_print_format(doc.doctype)
+	print_format, standalone = resolve_print_format(None, meta)
 
 	print_format_name = getattr(print_format, "name", "Standard")
 	pdf_generator = frappe.form_dict.get(
 		"pdf_generator", getattr(print_format, "pdf_generator", "wkhtmltopdf")
 	)
-
-	standalone = uses_beta_renderer(print_format)
 
 	context = {
 		"standalone": standalone,
@@ -112,6 +102,7 @@ def get_context(context) -> PrintContext:
 			style=frappe.form_dict.style,
 			trigger_print=cint(frappe.form_dict.trigger_print),
 			action_banner=frappe.render_template("templates/print_formats/print_action_banner.html", context),
+			settings=settings,
 		)
 	else:
 		body = get_rendered_template(
@@ -156,6 +147,18 @@ def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" 
 			return None
 
 
+def resolve_print_format(print_format_name: "str | None", meta: "Meta") -> tuple["PrintFormat", bool]:
+	"""Resolve a print format name to its document — falling back to the doctype's
+	default beta format — and whether it renders through the beta renderer."""
+	from frappe.printing.doctype.print_format.classic_converter import (
+		get_default_print_format,
+		uses_beta_renderer,
+	)
+
+	print_format = get_print_format_doc(print_format_name, meta=meta) or get_default_print_format(meta.name)
+	return print_format, uses_beta_renderer(print_format)
+
+
 def get_rendered_template(
 	doc: "Document",
 	print_format: "PrintFormat" | None = None,
@@ -168,7 +171,7 @@ def get_rendered_template(
 	validate_print_permission(doc)
 
 	print_settings = frappe.get_single("Print Settings").as_dict()
-	print_settings.update(settings or {})
+	print_settings.update(get_allowed_print_settings_override(doc, settings))
 
 	if isinstance(no_letterhead, str):
 		no_letterhead = cint(no_letterhead)
@@ -326,23 +329,19 @@ def get_html_and_style(
 	else:
 		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
 
-	print_format = get_print_format_doc(print_format, meta=document.meta)
 	set_link_titles(document)
+	print_format, is_beta = resolve_print_format(print_format, document.meta)
 
-	from frappe.printing.doctype.print_format.classic_converter import (
-		get_default_print_format,
-		uses_beta_renderer,
-	)
-
-	if print_format is None:
-		print_format = get_default_print_format(document.doctype)
-
-	if uses_beta_renderer(print_format):
+	if is_beta:
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 
-		validate_print_permission(document)
-		validate_print_for_docstatus(document)
-		generator = PrintFormatGenerator(print_format, document, None if no_letterhead else letterhead)
+		validate_print(document)
+		generator = PrintFormatGenerator(
+			print_format,
+			document,
+			None if no_letterhead else letterhead,
+			settings=frappe.parse_json(settings),
+		)
 		html = generator.get_html_preview()
 	else:
 		try:
@@ -383,6 +382,15 @@ def get_rendered_raw_commands(
 	return {
 		"raw_commands": get_rendered_template(doc=document, print_format=print_format, meta=document.meta)
 	}
+
+
+def get_allowed_print_settings_override(doc: "Document", settings: dict | None) -> dict:
+	"""Keep only the Print Settings a caller may override: the doctype's own print toggles,
+	never unrelated flags like allow_print_for_draft that the docstatus guard reads."""
+	if not settings:
+		return {}
+	allowed = set(doc.get_print_settings() or []) if hasattr(doc, "get_print_settings") else set()
+	return {key: value for key, value in settings.items() if key in allowed}
 
 
 def validate_print_for_docstatus(doc: "Document", print_settings: dict | None = None) -> None:
@@ -426,6 +434,12 @@ def validate_print_permission(doc: "Document") -> None:
 			return
 
 	doc._handle_permission_failure("print")
+
+
+def validate_print(doc: "Document", print_settings: dict | None = None) -> None:
+	"""Run both print gates for a document: permission, then draft/cancelled docstatus."""
+	validate_print_permission(doc)
+	validate_print_for_docstatus(doc, print_settings)
 
 
 def validate_key(key: str, doc: "Document") -> None:

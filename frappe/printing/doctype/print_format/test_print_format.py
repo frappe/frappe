@@ -3,11 +3,7 @@
 import os
 import re
 import unittest
-from io import BytesIO
 from typing import TYPE_CHECKING, ClassVar
-from unittest.mock import patch
-
-from PIL import Image
 
 import frappe
 from frappe.tests import IntegrationTestCase
@@ -36,25 +32,6 @@ class TestPrintFormat(IntegrationTestCase):
 	def test_print_user_classic(self):
 		print_html = self.test_print_user("Classic")
 		self.assertTrue("/* classic format: for-test */" in print_html)
-
-	def test_regenerate_preview_replaces_referenced_file(self):
-		from frappe.printing.doctype.print_format.print_format import generate_preview
-
-		name = self.globalTestRecords["Print Format"][0]["name"]
-
-		buffer = BytesIO()
-		Image.new("RGB", (10, 10)).save(buffer, format="WEBP")
-
-		with patch("frappe.utils.preview.get_preview_from_html", return_value=buffer.getvalue()):
-			first_url = generate_preview(name)
-			self.assertTrue(first_url)
-
-			second_url = generate_preview(name)
-			self.assertTrue(second_url)
-
-		self.assertNotEqual(first_url, second_url)
-		self.assertFalse(frappe.db.exists("File", {"file_url": first_url}))
-		self.assertEqual(frappe.db.get_value("Print Format", name, "preview_image"), second_url)
 
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
@@ -479,3 +456,222 @@ class TestClassicConverter(IntegrationTestCase):
 
 		self.assertIn(self.FORMAT_NAME, report)
 		self.assertNotIn(bad_name, report)
+
+
+class TestPrintFormatPreview(IntegrationTestCase):
+	FORMAT_NAME = "_Test Preview Sweep"
+
+	def setUp(self):
+		frappe.delete_doc("Print Format", self.FORMAT_NAME, force=True, ignore_missing=True)
+		frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": self.FORMAT_NAME,
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": frappe.as_json(
+					{
+						"sections": [{"label": "", "columns": [{"label": "", "fields": []}]}],
+						"header": {"columns": []},
+						"footer": {"columns": []},
+					}
+				),
+			}
+		).insert()
+		frappe.get_doc({"doctype": "ToDo", "description": "preview sample"}).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", self.FORMAT_NAME, force=True)
+
+	def _preview_files(self):
+		return frappe.get_all(
+			"File",
+			filters={
+				"attached_to_doctype": "Print Format",
+				"attached_to_name": self.FORMAT_NAME,
+				"attached_to_field": "preview_image",
+			},
+			pluck="name",
+		)
+
+	def test_regenerate_keeps_single_preview_and_spares_user_files(self):
+		from unittest.mock import patch
+
+		from frappe.printing.doctype.print_format.print_format import generate_preview
+		from frappe.utils.file_manager import save_file
+
+		user_file = save_file("my-notes.txt", b"keep me", "Print Format", self.FORMAT_NAME, is_private=1)
+
+		with (
+			patch("frappe.get_print", return_value="<html><body>x</body></html>"),
+			patch("frappe.utils.preview.get_preview_from_html", side_effect=[b"webp-AAAA", b"webp-BBBB"]),
+		):
+			generate_preview(self.FORMAT_NAME)
+			generate_preview(self.FORMAT_NAME)
+
+		previews = self._preview_files()
+		self.assertEqual(len(previews), 1, "regenerating a preview must not accumulate files")
+
+		cooldown_key = f"pf_preview_cooldown::{self.FORMAT_NAME}"
+		self.addCleanup(frappe.cache.delete_value, cooldown_key)
+		self.assertTrue(frappe.cache.get_value(cooldown_key), "a completed render must stamp the cooldown")
+
+		self.assertTrue(frappe.db.exists("File", user_file.name), "user attachment must not be swept")
+
+		url = frappe.db.get_value("Print Format", self.FORMAT_NAME, "preview_image")
+		self.assertEqual(frappe.db.get_value("File", previews[0], "file_url"), url)
+
+	def test_autosave(self):
+		from frappe.printing.doctype.print_format.print_format import autosave
+
+		doc = frappe.get_doc("Print Format", self.FORMAT_NAME).as_dict()
+		doc["format_data"] = frappe.as_json(
+			{
+				"sections": [{"label": "Edited", "columns": [{"label": "", "fields": []}]}],
+				"header": {"columns": []},
+				"footer": {"columns": []},
+			}
+		)
+		result = autosave(frappe.as_json(doc))
+		self.assertEqual(result["name"], self.FORMAT_NAME)
+		self.assertIn("Edited", frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data"))
+
+	def test_autosave_preview_throttle(self):
+		"""Autosaves refresh the preview at most once per cooldown window; manual
+		saves always refresh."""
+		from unittest.mock import patch
+
+		pf = frappe.get_doc("Print Format", self.FORMAT_NAME)
+		cooldown_key = f"pf_preview_cooldown::{pf.name}"
+		frappe.cache.delete_value(cooldown_key)
+		self.addCleanup(frappe.cache.delete_value, cooldown_key)
+
+		with patch.object(frappe, "in_test", False), patch("frappe.enqueue") as enqueue:
+			pf.flags.pfb_autosave = True
+			pf.enqueue_preview_generation()
+			self.assertEqual(enqueue.call_count, 1, "no cooldown: autosave refreshes")
+
+			frappe.cache.set_value(cooldown_key, 1, expires_in_sec=60)
+			pf.enqueue_preview_generation()
+			self.assertEqual(enqueue.call_count, 1, "cooldown: autosave skips the refresh")
+
+			pf.flags.pfb_autosave = False
+			pf.enqueue_preview_generation()
+			self.assertEqual(enqueue.call_count, 2, "manual save refreshes despite cooldown")
+
+
+class TestPrintFormatChildTableVisibility(IntegrationTestCase):
+	"""Per-row and per-column conditional visibility for child Table fields."""
+
+	FORMAT_NAME = "_Test Child Table Visibility"
+
+	def setUp(self):
+		frappe.delete_doc("Contact", "PFB Table Test", force=True, ignore_missing=True)
+		self.contact = frappe.get_doc(
+			{
+				"doctype": "Contact",
+				"first_name": "PFB Table Test",
+				"email_ids": [
+					{"email_id": "primary@example.com", "is_primary": 1},
+					{"email_id": "secondary@example.com", "is_primary": 0},
+				],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Contact", self.contact.name, force=True)
+
+	def render(self, df):
+		from frappe.utils.print_format_generator import get_html
+
+		frappe.delete_doc("Print Format", self.FORMAT_NAME, force=True, ignore_missing=True)
+		format_data = {
+			"sections": [{"label": "", "columns": [{"label": "", "fields": [df]}]}],
+			"header": {"columns": []},
+			"footer": {"columns": []},
+		}
+		frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": self.FORMAT_NAME,
+				"doc_type": "Contact",
+				"standard": "No",
+				"print_format_builder_beta": 1,
+				"format_data": frappe.as_json(format_data),
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", self.FORMAT_NAME, force=True)
+		return get_html("Contact", self.contact.name, self.FORMAT_NAME)
+
+	def table_field(self, **overrides):
+		df = {
+			"fieldname": "email_ids",
+			"fieldtype": "Table",
+			"label": "Emails",
+			"options": "Contact Email",
+			"table_columns": [
+				{"label": "Email", "fieldname": "email_id", "fieldtype": "Data", "width": 60},
+				{"label": "Primary", "fieldname": "is_primary", "fieldtype": "Check", "width": 40},
+			],
+		}
+		df.update(overrides)
+		return df
+
+	def test_row_condition_drops_non_matching_rows(self):
+		html = self.render(self.table_field(row_condition="row.is_primary"))
+		self.assertIn("primary@example.com", html)
+		self.assertNotIn("secondary@example.com", html)
+
+	def test_bad_row_condition_keeps_all_rows(self):
+		html = self.render(self.table_field(row_condition="row.does_not_exist >"))
+		self.assertIn("primary@example.com", html)
+		self.assertIn("secondary@example.com", html)
+
+	def test_all_rows_filtered_hides_table(self):
+		html = self.render(self.table_field(row_condition="1 == 2"))
+		self.assertNotIn('data-fieldname="email_ids"', html)
+
+	def test_all_columns_dropped_hides_table(self):
+		df = self.table_field()
+		for col in df["table_columns"]:
+			col["column_condition"] = "1 == 2"
+		html = self.render(df)
+		self.assertNotIn('data-fieldname="email_ids"', html)
+
+	def test_column_condition_drops_column(self):
+		kept = self.render(self.table_field())
+		self.assertIn('data-fieldname="is_primary"', kept)
+
+		df = self.table_field()
+		df["table_columns"][1]["column_condition"] = "doc.first_name == 'no match'"
+		html = self.render(df)
+		self.assertNotIn('data-fieldname="is_primary"', html)
+		self.assertIn('data-fieldname="email_id"', html)
+		self.assertIn("primary@example.com", html)
+		self.assertIn("secondary@example.com", html)
+
+	def test_column_emptiness_respects_row_condition(self):
+		# Keep only the non-primary row; is_primary is 0 in that row, so the column has
+		# no value in the rendered rows and must be dropped — even though the filtered-out
+		# primary row had a 1.
+		html = self.render(self.table_field(row_condition="not row.is_primary"))
+		self.assertIn("secondary@example.com", html)
+		self.assertNotIn("primary@example.com", html)
+		self.assertIn('data-fieldname="email_id"', html)
+		self.assertNotIn('data-fieldname="is_primary"', html)
+
+	def test_bad_column_condition_keeps_column(self):
+		df = self.table_field()
+		df["table_columns"][1]["column_condition"] = "doc.does_not_exist >"
+		html = self.render(df)
+		self.assertIn('data-fieldname="is_primary"', html)
+		self.assertIn('data-fieldname="email_id"', html)
+
+	def test_print_settings_available_in_conditions(self):
+		html = self.render(
+			self.table_field(row_condition="print_settings.doctype == 'Print Settings' and row.is_primary")
+		)
+		self.assertIn("primary@example.com", html)
+		self.assertNotIn("secondary@example.com", html)
+
+		df = self.table_field()
+		df["table_columns"][1]["column_condition"] = "print_settings.doctype == 'Nope'"
+		html = self.render(df)
+		self.assertNotIn('data-fieldname="is_primary"', html)
+		self.assertIn('data-fieldname="email_id"', html)

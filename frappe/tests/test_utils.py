@@ -875,6 +875,11 @@ class TestDateUtils(IntegrationTestCase):
 		self.assertEqual(frappe.utils.is_last_day_of_the_month("2020-12-24"), False)
 		self.assertEqual(frappe.utils.is_last_day_of_the_month("2020-12-31"), True)
 
+	def test_get_timezone_utc_offset(self):
+		self.assertEqual(frappe.utils.data.get_timezone_utc_offset("UTC"), "+00:00")
+		self.assertEqual(frappe.utils.data.get_timezone_utc_offset("Asia/Kolkata"), "+05:30")
+		self.assertEqual(frappe.utils.data.get_timezone_utc_offset("Pacific/Marquesas"), "-09:30")
+
 	def test_get_time(self):
 		datetime_input = now_datetime()
 		timedelta_input = get_timedelta()
@@ -1438,11 +1443,13 @@ class TestTypingValidations(IntegrationTestCase):
 
 		self.assertEqual(
 			frappe.allowed_http_methods_for_whitelisted_func[default_methods],
-			("GET", "POST", "PUT", "DELETE"),
+			("GET", "POST", "PUT", "DELETE", "QUERY"),
 		)
-		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[list_methods], ("GET", "POST"))
+		self.assertEqual(
+			frappe.allowed_http_methods_for_whitelisted_func[list_methods], ("GET", "POST", "QUERY")
+		)
 		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[tuple_methods], ("PUT", "DELETE"))
-		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[string_method], ("GET",))
+		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[string_method], ("GET", "QUERY"))
 
 
 class TestTBSanitization(IntegrationTestCase):

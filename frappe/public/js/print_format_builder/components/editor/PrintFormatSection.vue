@@ -12,25 +12,12 @@
 				class="drag-handle section-drag-handle"
 				v-html="frappe.utils.icon('grip', 'xs')"
 			></div>
-			<button
-				class="es-button"
-				data-size="xs"
-				data-variant="ghost"
-				data-icon-button="true"
-				:title="__('Copy section')"
-				@click.stop="store.copy_section(section)"
-				v-html="frappe.utils.icon('copy', 'xs')"
-			></button>
-			<button
-				class="es-button"
-				data-size="xs"
-				data-variant="ghost"
-				data-theme="red"
-				data-icon-button="true"
-				:title="__('Remove section')"
-				@click.stop="remove_section"
-				v-html="frappe.utils.icon('x', 'xs')"
-			></button>
+			<SectionActions
+				:section="section"
+				size="xs"
+				@snippet="save_as_snippet"
+				@remove="remove_section"
+			/>
 		</div>
 		<div
 			class="print-format-section"
@@ -41,7 +28,11 @@
 				'section--grid-columns': is_grid && section.grid_borders === 'columns',
 			}"
 			:style="section_inline_style"
+			tabindex="0"
+			:aria-label="section.label || __('Untitled section')"
 			@click.stop="select_section"
+			@keydown.enter.prevent="select_section"
+			@keydown.space.prevent="select_section"
 		>
 			<div class="section-toolbar">
 				<div class="section-toolbar-left">
@@ -62,29 +53,13 @@
 					/>
 				</div>
 				<div class="section-toolbar-right">
-					<button
+					<SectionActions
 						v-if="!is_header"
-						class="es-button"
-						data-size="xs"
-						data-variant="ghost"
-						data-icon-button="true"
-						:title="__('Copy section')"
-						@click.stop="store.copy_section(section)"
-					>
-						<span v-html="frappe.utils.icon('copy', 'sm')"></span>
-					</button>
-					<button
-						v-if="!is_header"
-						class="es-button"
-						data-size="xs"
-						data-variant="ghost"
-						data-theme="red"
-						data-icon-button="true"
-						:title="__('Remove section')"
-						@click.stop="remove_section"
-					>
-						<span v-html="frappe.utils.icon('x', 'sm')"></span>
-					</button>
+						:section="section"
+						size="sm"
+						@snippet="save_as_snippet"
+						@remove="remove_section"
+					/>
 				</div>
 			</div>
 
@@ -120,9 +95,12 @@
 							group="fields"
 							:animation="150"
 							item-key="id"
-							filter="a, input, textarea, select, button, label, summary, [contenteditable], [role='button'], [tabindex]"
+							filter="a, input, textarea, select, button, label, summary, [contenteditable], [role='button'], [tabindex]:not(.field--chip):not(.field--preview)"
 							:preventOnFilter="false"
 							:emptyInsertThreshold="100"
+							v-bind="DRAG_OPTIONS"
+							@start="setDragging(true)"
+							@end="setDragging(false)"
 							@add="select_section"
 						>
 							<template #item="{ element }">
@@ -174,8 +152,10 @@
 <script setup>
 import draggable from "vuedraggable";
 import Field from "./Field.vue";
-import { computed, inject, onUnmounted } from "vue";
-import { evaluate_visible_if, parse_inline_style } from "../../utils";
+import SectionActions from "./SectionActions.vue";
+import { computed, inject } from "vue";
+import { useColumnResize } from "../../composables/useColumnResize";
+import { DRAG_OPTIONS, evaluate_visible_if, parse_inline_style, setDragging } from "../../utils";
 
 const props = defineProps(["section", "is_header", "zone"]);
 
@@ -216,7 +196,7 @@ let handle_offset = computed(() => {
 	return `${-(gap + 12.5)}px`;
 });
 
-let end_col_width_resize = null;
+const { start: start_column_resize } = useColumnResize();
 
 function start_col_width_resize(e, i) {
 	const cols = props.section.columns;
@@ -226,8 +206,6 @@ function start_col_width_resize(e, i) {
 	const total = container.getBoundingClientRect().width;
 	const widths = col_els.map((el) => (el.getBoundingClientRect().width / total) * 100);
 	const start_x = e.clientX;
-	handle.classList.add("col-width-handle--active");
-	document.body.classList.add("pfb-col-resizing");
 	const on_move = (ev) => {
 		let delta = ((ev.clientX - start_x) / total) * 100;
 		delta = Math.max(10 - widths[i], Math.min(widths[i + 1] - 10, delta));
@@ -235,21 +213,8 @@ function start_col_width_resize(e, i) {
 		cols[i].width = Math.round(widths[i] + delta);
 		cols[i + 1].width = Math.round(widths[i + 1] - delta);
 	};
-	const on_up = () => {
-		document.removeEventListener("pointermove", on_move);
-		document.removeEventListener("pointerup", on_up);
-		document.removeEventListener("pointercancel", on_up);
-		handle.classList.remove("col-width-handle--active");
-		document.body.classList.remove("pfb-col-resizing");
-		end_col_width_resize = null;
-	};
-	document.addEventListener("pointermove", on_move);
-	document.addEventListener("pointerup", on_up);
-	document.addEventListener("pointercancel", on_up);
-	end_col_width_resize = on_up;
+	start_column_resize(handle, "col-width-handle--active", on_move);
 }
-
-onUnmounted(() => end_col_width_resize?.());
 
 let has_visible_fields = computed(
 	() =>
@@ -272,30 +237,40 @@ let section_inline_style = computed(() => {
 		const pad = props.section.cell_padding ?? 8;
 		style["--pfb-cell-pad"] = `${pad}px`;
 	}
+	if (props.section.radius != null) style.borderRadius = `${props.section.radius}px`;
 	return { ...style, ...parse_inline_style(props.section.custom_style) };
 });
 
 function select_section() {
-	store.selected_section.value = props.section;
-	store.selected_field.value = null;
-	store.selected_letterhead.value = false;
-	store.selected_lh_footer.value = false;
+	store.select_section(props.section);
 }
 
 function remove_section() {
-	const idx = store.layout.value.sections.indexOf(props.section);
-	if (idx !== -1) {
-		store.layout.value.sections.splice(idx, 1);
-		if (store.selected_section.value === props.section) {
-			store.selected_section.value = null;
-		}
-		if (
-			store.selected_field.value &&
-			props.section.columns.some((c) => c.fields.includes(store.selected_field.value))
-		) {
-			store.selected_field.value = null;
-		}
-	}
+	store.remove_section(props.section);
+}
+
+function save_as_snippet() {
+	frappe.prompt(
+		{
+			label: __("Snippet name"),
+			fieldname: "name",
+			fieldtype: "Data",
+			reqd: 1,
+			default: props.section.label || "",
+		},
+		({ name }) => {
+			store.save_snippet(name, props.section, "Section").then(
+				() =>
+					frappe.show_alert(
+						{ message: __("Section saved as snippet"), indicator: "green" },
+						3
+					),
+				() => {}
+			);
+		},
+		__("Save Section as Snippet"),
+		__("Save")
+	);
 }
 
 function remove_column(index) {
@@ -402,10 +377,6 @@ function remove_column(index) {
 /* Section title — hidden in editor (toolbar shows it), revealed via parent :deep() */
 .section-title-display {
 	display: none;
-	font-size: var(--text-sm);
-	font-weight: var(--weight-semibold);
-	color: var(--text-muted);
-	padding: 0;
 }
 
 .section-columns {
@@ -476,13 +447,13 @@ function remove_column(index) {
 	min-height: 3rem;
 }
 
-.column:has(.sortable-ghost) .empty-drop-zone {
+.column:has(.pfb-drag-ghost) .empty-drop-zone {
 	background: transparent;
-	border-color: var(--blue-300);
+	border-color: var(--gray-400);
 	border-style: solid;
 }
 
-.column:has(.sortable-ghost) .empty-drop-zone-hint {
+.column:has(.pfb-drag-ghost) .empty-drop-zone-hint {
 	display: none;
 }
 
@@ -552,7 +523,7 @@ function remove_column(index) {
 
 /* ── Table layout (field borders) ───────────────────────── */
 .section--grid {
-	border: 1px solid var(--border-color);
+	border: 1px solid var(--gray-300);
 	border-radius: var(--border-radius-md, 8px);
 	overflow: hidden;
 	padding: 0;
@@ -563,7 +534,7 @@ function remove_column(index) {
 .section--grid .section-title-display {
 	padding: var(--pfb-cell-pad, 8px);
 	margin: 0;
-	border-bottom: 1px solid var(--border-color);
+	border-bottom: 1px solid var(--gray-300);
 }
 .section--grid .section-columns {
 	padding: 0;
@@ -572,7 +543,7 @@ function remove_column(index) {
 	padding: 0;
 }
 .section--grid .column:not(:last-child) {
-	border-right: 1px solid var(--border-color);
+	border-right: 1px solid var(--gray-300);
 }
 .section--grid .column-divider {
 	display: none;
@@ -583,7 +554,7 @@ function remove_column(index) {
 .section--grid :deep(.field--chip) {
 	padding: var(--pfb-cell-pad, 8px);
 	border: none;
-	border-bottom: 1px solid var(--border-color);
+	border-bottom: 1px solid var(--gray-300);
 	border-radius: 0;
 	background: transparent;
 }

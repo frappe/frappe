@@ -196,13 +196,14 @@ def get_app_rail_map():
 
 	A companion app (e.g. India Compliance for ERPNext, India Payroll for HRMS) stays off the
 	apps screen and instead surfaces its workspaces inside a host app's rail via the
-	`add_app_to_rail` hook. Each entry names the host `app` and the `workspace` to pin, with an
-	optional `has_permission` path to gate it. Returns a map of host app name -> ordered list of
-	permitted workspace names."""
-	rail_map = {}
-	permission_cache = {}
+	`add_to_workspace_dock` hook. Each entry names the host `app` and the `workspace` to pin.
+	Returns a map of host app name -> ordered list of workspace names.
 
-	for entry in frappe.get_hooks("add_app_to_rail") or []:
+	Nothing is permission-filtered here: the caller keeps only workspaces the user is allowed to
+	see, so a pinned workspace is gated by its own Roles table like any other workspace."""
+	rail_map = {}
+
+	for entry in frappe.get_hooks("add_to_workspace_dock") or []:
 		if not isinstance(entry, dict):
 			continue
 
@@ -211,24 +212,13 @@ def get_app_rail_map():
 		if not host_app or not workspace:
 			continue
 
-		has_permission = entry.get("has_permission")
-		if has_permission:
-			if has_permission not in permission_cache:
-				try:
-					permission_cache[has_permission] = bool(frappe.get_attr(has_permission)())
-				except Exception:
-					frappe.log_error(f"Failed to call add_app_to_rail has_permission hook ({has_permission})")
-					permission_cache[has_permission] = False
-			if not permission_cache[has_permission]:
-				continue
-
 		rail_map.setdefault(host_app, []).append(workspace)
 
 	return rail_map
 
 
 def get_app_rail_host_map():
-	"""Map of companion app -> the host app it pins into via `add_app_to_rail`.
+	"""Map of companion app -> the host app it pins into via `add_to_workspace_dock`.
 
 	A companion app has no shell of its own; its workspaces live inside the host app's rail. This
 	map lets the desk resolve the app context (dock + header) of a companion app's workspaces to
@@ -236,7 +226,7 @@ def get_app_rail_host_map():
 	into more than one host, the first host wins."""
 	host_map = {}
 	for app_name in frappe.get_installed_apps():
-		for entry in frappe.get_hooks("add_app_to_rail", app_name=app_name) or []:
+		for entry in frappe.get_hooks("add_to_workspace_dock", app_name=app_name) or []:
 			if isinstance(entry, dict) and entry.get("app") and entry.get("workspace"):
 				host_map[app_name] = entry["app"]
 				break
@@ -252,7 +242,7 @@ def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_user_workspaces
 
 	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
-	# Companion apps pin their workspaces into a host app's dock (rail) via `add_app_to_rail`,
+	# Companion apps pin their workspaces into a host app's dock (rail) via `add_to_workspace_dock`,
 	# instead of taking an apps-screen slot of their own. Resolved once, merged per host app below.
 	rail_map = get_app_rail_map()
 	# ...and their own workspaces resolve their app context (dock + header) to that host app, so a
@@ -332,8 +322,10 @@ def load_desktop_data(bootinfo):
 
 		bootinfo.app_data.append(
 			dict(
-				# whether the app opts into the apps screen via the add_to_apps_screen hook
-				on_apps_screen=bool(apps),
+				# whether the app opts into the apps screen via the add_to_apps_screen hook. An app
+				# that pins into a host app's dock never takes a slot of its own, even if it still
+				# declares add_to_apps_screen from before the dock existed -- the dock hook wins.
+				on_apps_screen=bool(apps) and app_name not in bootinfo.app_rail_host,
 				# Sort order for the apps (desktop) screen; lower shows first, Framework is pinned
 				# last (sequence_id 1000). Apps that don't declare one fall to a middle default.
 				sequence_id=app_info.get("sequence_id") or DEFAULT_APP_SEQUENCE_ID,
@@ -479,7 +471,19 @@ def get_desk_settings():
 
 
 def get_notification_settings():
-	return frappe.get_cached_doc("Notification Settings", frappe.session.user)
+	from frappe.desk.doctype.notification_settings.notification_settings import (
+		create_notification_settings,
+	)
+
+	try:
+		return frappe.get_cached_doc("Notification Settings", frappe.session.user)
+	except frappe.DoesNotExistError:
+		if frappe.flags.read_only:
+			raise
+		frappe.clear_last_message()
+		create_notification_settings(frappe.session.user)
+		frappe.local.flags.commit = True
+		return frappe.get_cached_doc("Notification Settings", frappe.session.user)
 
 
 def get_link_title_doctypes():

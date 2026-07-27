@@ -6,6 +6,7 @@ import json
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.model.utils.user_settings import clear_user_settings_cache
 from frappe.utils import cint
 
 
@@ -36,7 +37,7 @@ class KanbanBoard(Document):
 
 	def on_change(self):
 		frappe.clear_cache(doctype=self.reference_doctype)
-		frappe.cache.delete_keys("_user_settings")
+		clear_user_settings_cache(self.reference_doctype)
 
 	def before_insert(self):
 		for column in self.columns:

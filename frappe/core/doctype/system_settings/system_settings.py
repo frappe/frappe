@@ -161,7 +161,7 @@ class SystemSettings(Document):
 
 		if self.link_field_results_limit > 50:
 			self.link_field_results_limit = 50
-			label = _(self.meta.get_label("link_field_results_limit"))
+			label = _(self.meta.get_label("link_field_results_limit"), context=self.doctype)
 			frappe.msgprint(
 				_("{0} can not be more than {1}").format(label, 50), alert=True, indicator="yellow"
 			)

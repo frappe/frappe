@@ -4,7 +4,7 @@
 import json
 import typing
 from typing import Any
-from urllib.parse import quote_plus
+from urllib.parse import quote
 
 import frappe
 import frappe.defaults
@@ -187,8 +187,49 @@ def get_milestones(doctype, name):
 def get_attachments(dt, dn):
 	return frappe.get_all(
 		"File",
-		fields=["name", "file_name", "file_url", "is_private", "attached_to_field", "folder"],
+		fields=[
+			"name",
+			"file_name",
+			"file_url",
+			"file_type",
+			"file_size",
+			"is_private",
+			"attached_to_field",
+			"folder",
+		],
 		filters={"attached_to_name": str(dn), "attached_to_doctype": dt},
+	)
+
+
+@frappe.whitelist()
+def get_filtered_attachments(dt: str, dn: str | int, filters: str):
+	frappe.get_doc(dt, dn).check_permission("read")
+	filters = frappe.parse_json(filters)
+	if not isinstance(filters, list) or any(
+		not isinstance(filter_row, list) or len(filter_row) != 4 for filter_row in filters
+	):
+		frappe.throw(_("Filters must be a list of four-value filter rows."))
+	if any(filter_row[0] != "File" for filter_row in filters):
+		frappe.throw(_("Attachment Gallery filters must target File."))
+
+	return frappe.get_all(
+		"File",
+		fields=[
+			"name",
+			"file_name",
+			"file_url",
+			"file_type",
+			"file_size",
+			"is_private",
+			"attached_to_field",
+			"folder",
+		],
+		filters=[
+			["File", "attached_to_name", "=", str(dn)],
+			["File", "attached_to_doctype", "=", dt],
+			*filters,
+		],
+		limit=0,
 	)
 
 
@@ -410,7 +451,7 @@ def get_document_email(doctype, name):
 		return None
 
 	email = email.split("@")
-	return f"{email[0]}+{quote_plus(doctype)}={quote_plus(cstr(name))}@{email[1]}"
+	return f"{email[0]}+{quote(doctype, safe='')}={quote(cstr(name), safe='')}@{email[1]}"
 
 
 def get_additional_timeline_content(doctype, docname):

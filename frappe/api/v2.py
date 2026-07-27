@@ -24,6 +24,7 @@ from frappe.handler import is_valid_http_method, run_server_script, upload_file
 PERMISSION_MAP = {
 	"GET": "read",
 	"POST": "write",
+	"QUERY": "read",
 }
 
 
@@ -258,7 +259,9 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	fn = getattr(method_obj, "__func__", method_obj)
 	is_valid_http_method(fn)
 
-	assert frappe.request.method in PERMISSION_MAP, "execute_doc_method route is only mounted for GET/POST"
+	assert frappe.request.method in PERMISSION_MAP, (
+		"execute_doc_method route is only mounted for GET/POST/QUERY"
+	)
 	doc.check_permission(PERMISSION_MAP[frappe.request.method])
 	result = doc.run_method(method, **frappe.form_dict)
 	doc.apply_fieldlevel_read_permissions()
@@ -579,7 +582,7 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 	if kwargs is None:
 		kwargs = {}
 
-	assert frappe.request.method in PERMISSION_MAP, "run_doc_method route is only mounted for GET/POST"
+	assert frappe.request.method in PERMISSION_MAP, "run_doc_method route is only mounted for GET/POST/QUERY"
 	doc = frappe.get_doc(document, check_permission=PERMISSION_MAP[frappe.request.method])
 	doc._original_modified = doc.modified
 	doc.check_if_latest()
@@ -622,12 +625,12 @@ url_rules = [
 	Rule("/method/<method>", endpoint=handle_rpc_call),
 	Rule(
 		"/method/run_doc_method",
-		methods=["GET", "POST"],
+		methods=["GET", "POST", "QUERY"],
 		endpoint=lambda: frappe.call(run_doc_method, **frappe.form_dict),
 	),
 	Rule("/method/<doctype>/<method>", endpoint=handle_rpc_call),
 	# Document level APIs
-	Rule("/document/<doctype>", methods=["GET"], endpoint=document_list),
+	Rule("/document/<doctype>", methods=["GET", "QUERY"], endpoint=document_list),
 	Rule("/document/<doctype>", methods=["POST"], endpoint=create_doc),
 	Rule("/document/<doctype>/bulk_delete", methods=["POST"], endpoint=bulk_delete_docs),
 	Rule("/document/<doctype>/bulk_update", methods=["POST"], endpoint=bulk_update_docs),
@@ -637,10 +640,10 @@ url_rules = [
 	Rule("/document/<doctype>/<path:name>/", methods=["DELETE"], endpoint=delete_doc),
 	Rule(
 		"/document/<doctype>/<path:name>/method/<method>/",
-		methods=["GET", "POST"],
+		methods=["GET", "POST", "QUERY"],
 		endpoint=execute_doc_method,
 	),
 	# Collection level APIs
 	Rule("/doctype/<doctype>/meta", methods=["GET"], endpoint=get_meta),
-	Rule("/doctype/<doctype>/count", methods=["GET"], endpoint=count),
+	Rule("/doctype/<doctype>/count", methods=["GET", "QUERY"], endpoint=count),
 ]

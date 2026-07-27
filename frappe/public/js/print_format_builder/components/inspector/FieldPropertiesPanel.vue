@@ -40,7 +40,7 @@
 				/>
 			</template>
 			<template v-else-if="is_barcode_element">
-				<div class="pfb-insp-row">
+				<div class="pfb-insp-row" v-if="selected_field.custom">
 					<span class="pfb-insp-label">{{ __("Value from") }}</span>
 					<select
 						class="pfb-insp-select"
@@ -53,7 +53,10 @@
 						</option>
 					</select>
 				</div>
-				<div class="pfb-insp-row" v-if="!selected_field.barcode_field">
+				<div
+					class="pfb-insp-row"
+					v-if="selected_field.custom && !selected_field.barcode_field"
+				>
 					<span class="pfb-insp-label">{{ __("Value") }}</span>
 					<input
 						type="text"
@@ -63,7 +66,7 @@
 						@change="selected_field.barcode_value = $event.target.value"
 					/>
 				</div>
-				<div class="pfb-insp-row">
+				<div class="pfb-insp-row" v-if="selected_field.custom">
 					<span class="pfb-insp-label">{{ __("Format") }}</span>
 					<select
 						class="pfb-insp-select"
@@ -86,7 +89,10 @@
 						@input="selected_field.width = $event.target.value + 'px'"
 					/>
 				</div>
-				<div class="pfb-insp-row" v-if="selected_field.barcode_format !== 'QR'">
+				<div
+					class="pfb-insp-row"
+					v-if="selected_field.custom && selected_field.barcode_format !== 'QR'"
+				>
 					<span class="pfb-insp-label">{{ __("Value text") }}</span>
 					<label class="pfb-insp-check">
 						<input
@@ -119,7 +125,7 @@
 					:options="align_opts"
 					@update:model-value="(v) => (selected_field.align = v)"
 				/>
-				<div class="pfb-insp-row" v-if="fieldIsInline">
+				<div class="pfb-insp-row" v-if="fieldIsInline && current_align === 'left'">
 					<span class="pfb-insp-label">{{ __("Spacing") }}</span>
 					<select
 						class="pfb-insp-select"
@@ -153,12 +159,26 @@
 					:label="__('Label')"
 					:model-value="selected_field.label_color || ''"
 					@update:model-value="(v) => set_field_prop('label_color', v)"
-				/>
+				>
+					<ToggleButton
+						label="B"
+						:title="__('Bold label')"
+						:model-value="!!selected_field.label_bold"
+						@update:model-value="(v) => set_field_prop('label_bold', v)"
+					/>
+				</ColorField>
 				<ColorField
 					:label="__('Value')"
 					:model-value="selected_field.value_color || ''"
 					@update:model-value="(v) => set_field_prop('value_color', v)"
-				/>
+				>
+					<ToggleButton
+						label="B"
+						:title="__('Bold value')"
+						:model-value="!!selected_field.value_bold"
+						@update:model-value="(v) => set_field_prop('value_bold', v)"
+					/>
+				</ColorField>
 			</div>
 			<StyleSection :label="__('Custom CSS')" v-model="selected_field.custom_style" />
 		</InspectorSection>
@@ -177,6 +197,7 @@ import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
 import StyleSection from "./StyleSection.vue";
 import ColorField from "./ColorField.vue";
+import ToggleButton from "./ToggleButton.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import ImageUploadControl from "./ImageUploadControl.vue";
 import { get_image_dimensions } from "../../utils";
@@ -185,7 +206,7 @@ import { useSelectedField } from "./useSelectedField";
 
 defineProps(["fieldIsInline"]);
 
-const { selected_field, preview_doc } = useSelectedField();
+const { selected_field, preview_doc, set_field_prop } = useSelectedField();
 
 // Fieldtypes rendered as a label/value pair that a text colour can target
 const NON_TEXT_FIELDTYPES = new Set([
@@ -198,20 +219,21 @@ const NON_TEXT_FIELDTYPES = new Set([
 ]);
 let is_text_field = computed(() => !NON_TEXT_FIELDTYPES.has(selected_field.value?.fieldtype));
 
-function set_field_prop(key, value) {
-	if (value) selected_field.value[key] = value;
-	else delete selected_field.value[key];
-}
-
 let is_html_field = computed(() => selected_field.value?.fieldtype === "HTML");
 let is_image_element = computed(
 	() => selected_field.value?.fieldtype === "Image" && selected_field.value?.custom
 );
-let is_barcode_element = computed(
-	() => selected_field.value?.fieldtype === "Barcode" && selected_field.value?.custom
-);
+// dragged Barcode docfields get size/align only — value and format come from
+// the field itself
+let is_barcode_element = computed(() => selected_field.value?.fieldtype === "Barcode");
 
-const barcode_formats = ["CODE128", "CODE39", "QR"];
+// QR comes from Barcode docfields with qrcode options, not the block; the
+// option stays visible only on elements saved as QR before that change
+const barcode_formats = computed(() =>
+	selected_field.value?.barcode_format === "QR"
+		? ["CODE128", "CODE39", "QR"]
+		: ["CODE128", "CODE39"]
+);
 
 let store = inject("$store");
 

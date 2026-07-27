@@ -19,7 +19,7 @@
 	<style>{{ letterhead.custom_css }}</style>
 	{%- endif -%}
 </head>
-<body class="print-format-doc{% if print_settings and print_settings.show_label_colon %} show-label-colon{% endif %}">
+<body class="print-format-doc{% if print_format and print_format.show_label_colon %} show-label-colon{% endif %}">
 	{{ action_banner or '' }}
 	{%- if repeat_frame -%}
 	<table class="print-repeating-frame">
@@ -69,6 +69,11 @@
 				{%- if df.source and doc.get(df.source) -%}
 					{%- set ns.has_content = true -%}
 				{%- endif -%}
+			{%- elif df.fieldtype == 'Table' -%}
+				{%- set _tr = df.get('_rows') if df.get('_rows') is not none else doc.get(df.fieldname) -%}
+				{%- if _tr and df.table_columns -%}
+					{%- set ns.has_content = true -%}
+				{%- endif -%}
 			{%- elif doc.get(df.fieldname) -%}
 				{%- set ns.has_content = true -%}
 			{%- endif -%}
@@ -89,10 +94,13 @@
 		{%- set _cp = (section.cell_padding if section.cell_padding is defined and section.cell_padding is not none else 8) -%}
 		{%- set ns3.section_style = ns3.section_style + '--pfb-cell-pad:' + _cp|string + 'px;' -%}
 	{%- endif -%}
+	{%- if section.radius is defined and section.radius is not none -%}
+		{%- set ns3.section_style = ns3.section_style + 'border-radius:' + section.radius|string + 'px;' -%}
+	{%- endif -%}
 	{%- if section.custom_style -%}
 		{%- set ns3.section_style = ns3.section_style + section.custom_style|string -%}
 	{%- endif -%}
-	<div class="section {{ resolve_class({'page-break': section.page_break}) }}{{ ' section--grid' if section.field_borders else '' }}{{ ' section--grid-' + section.grid_borders if section.field_borders and section.grid_borders else '' }}"{% if ns3.section_style %} style="{{ ns3.section_style|e }}"{% endif %}>
+	<div class="section {{ resolve_class({'page-break': section.page_break, 'keep-together': section.keep_together}) }}{{ ' section--grid' if section.field_borders else '' }}{{ ' section--grid-' + section.grid_borders if section.field_borders and section.grid_borders else '' }}"{% if ns3.section_style %} style="{{ ns3.section_style|e }}"{% endif %}>
 		{% if section.label and section.show_label != 'hide' %}
 		<div class="section-label">{{ _(section.label) }}</div>
 		{% endif %}

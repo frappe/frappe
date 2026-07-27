@@ -1,3 +1,4 @@
+{% from "templates/includes/login/macros.html" import alert_banner %}
 {% extends "templates/web.html" %}
 {% block navbar %}
 {% if show_language_picker %}
@@ -6,72 +7,60 @@
 {% endblock %}
 {% macro email_login_body() -%}
 {% if not disable_user_pass_login or (ldap_settings and ldap_settings.enabled) %}
-<div class="page-card-body">
-	<div class="login-error-banner">
-		<div class="flex align-items-center justify-content-center">
-			<svg class="icon icon-sm" xmlns="http://www.w3.org/2000/svg">
-				<use href="#icon-triangle-alert"></use>
-			</svg>
-		</div>
-		<span></span>
-	</div>
-	<div class="form-group">
-		<label class="form-label" for="login_email">{{ login_label or _("Email")}}</label>
+<div class="page-card-body flex flex-col gap-4">
+	{{ alert_banner("error") }}
+	<div class="form-group flex flex-col items-start gap-1.5 mb-0">
+		<label class="text-base text-ink-gray-5 w-full mb-0" for="login_email">{{ login_label or _("Email")}}</label>
 		<div class="email-field">
 			<input type="text" id="login_email" class="form-control"
 				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _('jane@example.com') }}{% endif %}"
 				required autofocus autocomplete="username">
-			<svg class="icon icon-sm field-icon email-icon" xmlns="http://www.w3.org/2000/svg">
-				<use href="#icon-mail"></use>
-			</svg>
 		</div>
-		<p class="field-error"></p>
+		<p class="field-error text-base text-ink-red-8 mb-0"></p>
 	</div>
 
-	<div class="form-group">
-		<label class="form-label" for="login_password">{{ _("Password") }}</label>
-		<div class="password-field">
-			<input type="password" id="login_password" class="form-control" placeholder="•••••"
-				autocomplete="current-password" required>
+	<div class="form-group flex flex-col items-start gap-2 mb-0">
+		<div class="flex flex-col items-start gap-1.5 w-full">
+			<label class="text-base text-ink-gray-5 w-full mb-0" for="login_password">{{ _("Password") }}</label>
+			<div class="password-field">
+				<input type="password" id="login_password" class="form-control" placeholder="••••••••"
+					autocomplete="current-password" required>
 
-			<svg class="icon icon-sm field-icon password-icon"
-				xmlns="http://www.w3.org/2000/svg">
-					<use href="#icon-lock"></use>
-			</svg>
-			<svg toggle="#login_password" class="icon icon-sm toggle-password" xmlns="http://www.w3.org/2000/svg">
-					<use href="#icon-eye"></use>
-				</svg>
+				<svg toggle="#login_password" class="icon icon-sm toggle-password" xmlns="http://www.w3.org/2000/svg">
+						<use href="#icon-eye"></use>
+					</svg>
+			</div>
+			<p class="field-error text-base text-ink-red-8 mb-0"></p>
 		</div>
-		<p class="field-error"></p>
 		{% if not disable_user_pass_login %}
-		<p class="forgot-password-message">
-			<a href="#forgot">{{ _("Forgot password?") }}</a>
+		<p class="text-lg text-right w-full mb-0">
+			<a href="#forgot" class="text-base text-ink-gray-5">{{ _("Forgot password?") }}</a>
 		</p>
 		{% endif %}
 	</div>
 </div>
 {% endif %}
-<div class="page-card-actions">
+<div class="page-card-actions flex flex-col gap-3">
 	{% if not disable_user_pass_login %}
-	<button class="btn btn-sm btn-default btn-block btn-login" type="submit">
+	<button class="es-button w-full" data-variant="solid" type="submit">
 		{{ _("Continue") }}</button>
 	{% endif %}
 	{% if ldap_settings and ldap_settings.enabled %}
-	<button class="btn btn-sm {{ "btn-primary" if disable_user_pass_login else "btn-default" }} btn-block btn-login btn-ldap-login">
+	<button class="es-button w-full btn-ldap-login" data-variant="solid">
 		{{ _("Login with LDAP") }}</button>
 	{% endif %}
 	{% if login_with_email_link %}
 	<a href="#login-with-email-link"
-		class="btn btn-block btn-default btn-sm btn-login-option btn-login-with-email-link">
+		class="es-button w-full btn-login-option btn-login-with-email-link">
 		{{ _("Login with Email Link") }}</a>
 	{% endif %}
 	{% if social_login %}
-	<div class="social-logins text-center">
+	<div class="social-logins text-center text-base">
 		<div class="social-login-buttons">
 			{% for provider in provider_logins %}
 			<div class="login-button-wrapper">
 				<a href="{{ provider.auth_url }}"
-					class="btn btn-block btn-default btn-sm btn-login-option btn-{{ provider.name }}">
+					class="es-button w-full btn-login-option btn-{{ provider.name }}">
 					{% if provider.icon %}
 						{{ provider.icon }}
 					{% endif %}
@@ -89,16 +78,16 @@
 {% endblock %}
 
 {% macro logo_section(title=null, subtitle=null) %}
-<div class="page-card-head">
+<div class="page-card-head flex flex-col items-start gap-4 text-left">
 	<img class="app-logo" src="{{ logo }}">
-	<div class="page-card-head-text">
+	<div class="page-card-head-text flex flex-col gap-1.5 w-full">
 		{% if title %}
-		<h4>{{ _(title) }}</h4>
+		<h4 class="text-3xl-bold text-ink-gray-9 w-full mt-0 mb-0">{{ _(title) }}</h4>
 		{% else %}
-		<h4>{{ _('Sign In') }}</h4>
+		<h4 class="text-3xl-bold text-ink-gray-9 w-full mt-0 mb-0">{{ _('Sign In') }}</h4>
 		{% endif %}
 		{% if subtitle %}
-		<p class="page-card-subtitle">{{ _(subtitle) }}</p>
+		<p class="page-card-subtitle text-p-base text-ink-gray-6 mb-0">{{ _(subtitle) }}</p>
 		{% endif %}
 	</div>
 </div>
@@ -116,15 +105,15 @@
 		</div>
 	</noscript>
 	<section class='for-login'>
-		<div class="login-content page-card">
+		<div class="login-content page-card flex flex-col gap-5">
 			{{ logo_section(_('Sign In'), _('Welcome! Please sign in to continue.')) }}
-			<form class="form-signin form-login" role="form" novalidate>
+			<form class="form-signin form-login flex flex-col gap-8" role="form" novalidate>
 				{{ email_login_body() }}
 			</form>
 			{%- if not disable_signup and not disable_user_pass_login -%}
-			<div class="text-center sign-up-message">
+			<div class="text-center sign-up-message text-p-sm text-ink-gray-6 mt-auto mb-0">
 				{{ _("Don't have an account?") }}
-				<a href="#signup">{{ _("Sign up") }}</a>
+				<a href="#signup" class="text-p-sm-semibold text-ink-gray-6">{{ _("Sign up") }}</a>
 			</div>
 			{%- endif -%}
 		</div>
@@ -132,22 +121,22 @@
 
 	{%- if social_login -%}
 	<section class='for-email-login'>
-		<div class="login-content page-card">
+		<div class="login-content page-card flex flex-col gap-5">
 			{{ logo_section(_('Sign In'), _('Welcome! Please sign in to continue.')) }}
-			<form class="form-signin form-login" role="form" novalidate>
+			<form class="form-signin form-login flex flex-col gap-8" role="form" novalidate>
 			{{ email_login_body() }}
 			</form>
 			{%- if not disable_signup and not disable_user_pass_login -%}
-			<div class="text-center sign-up-message">
+			<div class="text-center sign-up-message text-p-sm text-ink-gray-6 mt-auto mb-0">
 				{{ _("Don't have an account?") }}
-				<a href="#signup">{{ _("Sign up") }}</a>
+				<a href="#signup" class="text-p-sm-semibold text-ink-gray-6">{{ _("Sign up") }}</a>
 			</div>
 			{%- endif -%}
 		</div>
 	</section>
 	{%- endif -%}
 	<section class='for-signup {{ "signup-disabled" if disable_signup else "" }}'>
-		<div class="login-content page-card">
+		<div class="login-content page-card flex flex-col gap-5">
 			{{ logo_section(_('Sign Up'), _("Let's setup your account.")) }}
 			{%- if not disable_signup -%}
 			{{ signup_form_template }}
@@ -155,79 +144,69 @@
 			<div class="signup-disabled-message">
 				<span class='indicator gray'>{{_("Signup Disabled")}}</span>
 				<p class="text-muted text-normal sign-up-message mt-1 mb-8">{{_("Signups have been disabled for this website.")}}</p>
-				<div><a href='/' class='btn btn-primary btn-md'>{{ _("Home") }}</a></div>
+				<div><a href='/' class='es-button' data-variant="solid">{{ _("Home") }}</a></div>
 			</div>
 			{%- endif -%}
 		</div>
 	</section>
 
 	<section class='for-forgot'>
-		<div class="login-content page-card">
+		<div class="login-content page-card flex flex-col gap-5">
 			{{ logo_section(_('Forgot Password?'), _("Please enter your email, we'll send you password reset link")) }}
-			<form class="form-signin form-forgot hide" role="form" novalidate>
-				<div class="page-card-body">
-					<div class="form-group">
-						<label class="form-label" for="forgot_email">{{ _("Email") }}</label>
+			<form class="form-signin form-forgot hide flex flex-col gap-8" role="form" novalidate>
+				<div class="page-card-body flex flex-col gap-4">
+					{{ alert_banner("success") }}
+					{{ alert_banner("error") }}
+					<div class="form-group flex flex-col items-start gap-1.5 mb-0">
+						<label class="text-base text-ink-gray-5 w-full mb-0" for="forgot_email">{{ _("Email") }}</label>
 						<div class="email-field">
 							<input type="email" id="forgot_email" class="form-control"
 								placeholder="{{ _('jane@example.com') }}" required autofocus autocomplete="username">
-							<svg class="icon icon-sm field-icon email-icon"
-								xmlns="http://www.w3.org/2000/svg">
-								<use href="#icon-mail"></use>
-							</svg>
 						</div>
-						<p class="field-error"></p>
+						<p class="field-error text-base text-ink-red-8 mb-0"></p>
 					</div>
 				</div>
-				<div class="page-card-actions">
-					<button class="btn btn-sm btn-primary btn-block btn-signup btn-forgot"
+				<div class="page-card-actions flex flex-col gap-3">
+					<button class="es-button w-full btn-forgot" data-variant="solid"
 						type="submit" disabled>{{ _("Send Link") }}</button>
 				</div>
 			</form>
-			<div class="text-center sign-up-message">
-				<a href="#login">{{ _("Back to sign in") }}</a>
+			<div class="text-center sign-up-message text-p-sm text-ink-gray-6 mt-auto mb-0">
+				<a href="#login" class="text-p-sm-semibold text-ink-gray-6">{{ _("Back to sign in") }}</a>
 			</div>
 		</div>
 	</section>
 
 	<section class='for-login-with-email-link'>
-		<div class="login-content page-card">
+		<div class="login-content page-card flex flex-col gap-5">
 			{{ logo_section(_('Sign In'), _('Welcome! Please sign in to continue.')) }}
-			<form class="form-signin form-login-with-email-link hide" role="form" novalidate>
-				<div class="page-card-body">
-					<div class="login-success-banner">
-						<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm">
-							<use href="#icon-circle-alert"></use>
-						</svg>
-						<span>{{ _("Please check your email.") }}</span>
-					</div>
-					<div class="form-group">
-						<label class="form-label" for="login_with_email_link_email">{{ _("Email") }}</label>
+			<form class="form-signin form-login-with-email-link hide flex flex-col gap-8" role="form" novalidate>
+				<div class="page-card-body flex flex-col gap-4">
+					{{ alert_banner("success", _("Please check your email.")) }}
+					{{ alert_banner("error") }}
+					<div class="form-group flex flex-col items-start gap-1.5 mb-0">
+						<label class="text-base text-ink-gray-5 w-full mb-0" for="login_with_email_link_email">{{ _("Email") }}</label>
 						<div class="email-field">
 							<input type="email" id="login_with_email_link_email" class="form-control"
 								placeholder="{{ _('jane@example.com') }}" required autofocus autocomplete="username">
-							<svg class="icon icon-sm field-icon email-icon"
-								xmlns="http://www.w3.org/2000/svg">
-								<use href="#icon-mail"></use>
-							</svg>
 						</div>
-						<p class="field-error"></p>
+						<p class="field-error text-base text-ink-red-8 mb-0"></p>
 					</div>
 				</div>
-				<div class="page-card-actions">
-					<p class="resend-link">
-						{{ _("Didn't receive the link?") }} <a href="#" class="btn-resend-link">{{ _("Resend") }}</a>
+				<div class="page-card-actions flex flex-col gap-3">
+					<p class="resend-link hidden flex items-center gap-2 w-full text-base text-ink-gray-6 mb-0">
+						{{ _("Didn't receive the link?") }} <a href="#" class="btn-resend-link text-base-semibold text-ink-gray-6">{{ _("Resend") }}</a>
 					</p>
-					<button class="btn btn-sm btn-primary btn-block btn-login btn-login-with-email-link"
+					<button class="es-button w-full btn-login-with-email-link" data-variant="solid"
 						type="submit">{{ _("Send login link") }}</button>
-					<a href="#login" class="btn btn-sm btn-default btn-block btn-login-option">
+					<a href="#login" class="es-button w-full btn-login-option">
 						{{ _("Login with password") }}</a>
 				</div>
 			</form>
 			{%- if not disable_signup -%}
-			<div class="text-center sign-up-message">
+			<div class="text-center sign-up-message text-p-sm text-ink-gray-6 mt-auto mb-0">
 				{{ _("Don't have an account?") }}
-				<a href="#signup">{{ _("Sign up") }}</a>
+				<a href="#signup" class="text-p-sm-semibold text-ink-gray-6">{{ _("Sign up") }}</a>
 			</div>
 			{%- endif -%}
 		</div>

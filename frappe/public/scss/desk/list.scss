@@ -6,6 +6,12 @@
 				width: auto;
 				display: table;
 
+				// Spacer rows reserve off-screen height in virtualized lists but should never intercept clicks.
+				.list-virtual-spacer {
+					width: 100%;
+					pointer-events: none;
+				}
+
 				.list-row-container {
 					width: fit-content;
 					min-width: 100%;
@@ -227,7 +233,7 @@
 
 .list-col-resize-handle {
 	position: absolute;
-	right: -8px;
+	inset-inline-end: -8px;
 	top: 0;
 	bottom: 0;
 	width: 16px;
@@ -245,23 +251,7 @@
 		background-color: var(--gray-500);
 		// Always show a faint resting separator so users can discover resize
 		opacity: 0.25;
-		transition: opacity 0.15s, background-color 0.15s, width 0.15s, height 0.15s;
 	}
-
-	&:hover::before {
-		background-color: var(--primary);
-		width: 3px;
-		height: 20px;
-		opacity: 1 !important;
-	}
-}
-
-// Darken & grow all separators when cursor enters the header row
-.list-row-head:hover .list-col-resize-handle::before {
-	background-color: var(--gray-600);
-	width: 3px;
-	height: 18px;
-	opacity: 0.7;
 }
 
 body.list-col-resizing {

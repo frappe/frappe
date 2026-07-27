@@ -51,10 +51,6 @@ defineEmits(["insert"]);
 	box-shadow: none;
 }
 
-.section-insert:hover .section-insert-line {
-	background: var(--gray-400);
-}
-
 .section-insert:hover .section-insert-btn {
 	border-color: var(--gray-400);
 	color: var(--text-color);

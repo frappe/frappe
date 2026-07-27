@@ -19,6 +19,7 @@ class NavbarItem(Document):
 		action: DF.Data | None
 		condition: DF.Code | None
 		hidden: DF.Check
+		icon: DF.Icon | None
 		is_standard: DF.Check
 		item_label: DF.Data | None
 		item_type: DF.Literal["Route", "Action", "Separator"]

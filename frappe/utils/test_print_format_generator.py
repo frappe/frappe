@@ -150,6 +150,57 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		html = get_html("ToDo", todo.name, pf.name)
 		self.assertIn(todo.description, html)
 
+	def test_qr_barcode_options(self):
+		from frappe.utils.print_format_generator import is_qr_barcode_options
+
+		self.assertTrue(is_qr_barcode_options("qrcode"))
+		self.assertTrue(is_qr_barcode_options("QR"))
+		self.assertTrue(is_qr_barcode_options('{"format": "qrcode"}'))
+		self.assertFalse(is_qr_barcode_options('{"format": "EAN"}'))
+		self.assertFalse(is_qr_barcode_options(None))
+		self.assertFalse(is_qr_barcode_options("random text"))
+
+	def test_barcode_docfield_with_qr_options_renders_qr(self):
+		"""A dragged Barcode docfield whose options ask for a qr code prints one —
+		decided by the field, without a barcode_format on the layout element."""
+		from frappe.utils.print_format_generator import get_html
+
+		fieldname = f"_test_qr_{frappe.generate_hash(length=6)}"
+		custom_field = frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"dt": "ToDo",
+				"label": "QR",
+				"fieldname": fieldname,
+				"fieldtype": "Barcode",
+				"options": "qrcode",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(custom_field.delete, ignore_permissions=True)
+
+		layout = {
+			"sections": [
+				{
+					"label": "",
+					"columns": [
+						{
+							"label": "",
+							"fields": [{"fieldtype": "Barcode", "fieldname": fieldname, "label": "QR"}],
+						}
+					],
+				}
+			],
+			"header": {"columns": [{"label": "", "fields": []}]},
+			"footer": {"columns": [{"label": "", "fields": []}]},
+		}
+		pf = self._make_print_format(format_data=json.dumps(layout))
+		todo = self._make_todo()
+		frappe.db.set_value("ToDo", todo.name, fieldname, "HELLO-QR")
+
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("data:image/svg+xml;base64", html)
+		self.assertNotIn('data-barcode-value="HELLO-QR"', html)
+
 	def test_get_html_applies_margin(self):
 		"""Margin values set on the print format should appear in the rendered CSS."""
 		from frappe.utils.print_format_generator import get_html
@@ -185,6 +236,50 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("margin-bottom: 20mm", page_rule)
 		self.assertNotIn("margin: 0;", page_rule)
 		self.assertLess(html.find("@media screen"), html.find("padding: 20mm"))
+
+	def test_top_page_number_sits_above_the_page_margin(self):
+		"""A top page number renders flush to the page edge, not below margin_top.
+		The header markup absorbs the margin (padding on everything after the page
+		number) and flags it so browser.py drops the header page's own marginTop —
+		otherwise the margin would be applied twice and the body would shift."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		todo = self._make_todo()
+		letterhead_doc = self._make_letterhead()
+
+		def chrome_options(letterhead=True, **pf_kwargs):
+			pf_kwargs.setdefault("margin_top", 12)
+			pf = self._make_print_format(**pf_kwargs)
+			generator = PrintFormatGenerator(pf, todo, letterhead=letterhead_doc.name if letterhead else None)
+			with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
+				generator.render_pdf()
+			return chrome_pdf.call_args.kwargs
+
+		top = chrome_options(page_number="Top Left")
+		self.assertTrue(top["options"]["header-includes-top-margin"])
+		self.assertIn("padding-top:12.0mm", top["html"])
+
+		# No letterhead and no header template: the page number is still the only
+		# thing above the margin, so the margin must still be reserved below it.
+		bare = chrome_options(page_number="Top Left", letterhead=False)
+		self.assertTrue(bare["options"]["header-includes-top-margin"])
+		self.assertIn("padding-top:12.0mm", bare["html"])
+
+		# repeat_header_footer off routes page numbers through the minimal overlay.
+		no_repeat = chrome_options(page_number="Top Left", repeat_header_footer=0)
+		self.assertTrue(no_repeat["options"]["header-includes-top-margin"])
+
+		for pos in ("Hide", "Bottom Center"):
+			opts = chrome_options(page_number=pos)["options"]
+			self.assertNotIn("header-includes-top-margin", opts)
+
+		# margin_top 0 has nothing to reserve.
+		self.assertNotIn(
+			"header-includes-top-margin",
+			chrome_options(page_number="Top Left", margin_top=0)["options"],
+		)
 
 	def test_render_pdf_passes_password_to_chrome(self):
 		"""Encrypted PDFs (attach_print(password=...)) must stay encrypted on the
@@ -1166,17 +1261,33 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertNotIn("Col B", html)
 
 	def test_show_label_colon_setting(self):
-		"""Print Settings ▸ show_label_colon toggles the classic colon body class."""
+		"""Print Format ▸ show_label_colon toggles the classic colon body class."""
 		from frappe.utils.print_format_generator import get_html
 
 		pf = self._make_print_format()
 		todo = self._make_todo()
-		with self.change_settings("Print Settings", show_label_colon=0):
-			body = get_html("ToDo", todo.name, pf.name).split("<body", 1)[1][:200]
-			self.assertNotIn("show-label-colon", body)
-		with self.change_settings("Print Settings", show_label_colon=1):
-			body = get_html("ToDo", todo.name, pf.name).split("<body", 1)[1][:200]
-			self.assertIn("show-label-colon", body)
+
+		body = get_html("ToDo", todo.name, pf.name).split("<body", 1)[1][:200]
+		self.assertNotIn("show-label-colon", body)
+
+		pf.db_set("show_label_colon", 1)
+		body = get_html("ToDo", todo.name, pf.name).split("<body", 1)[1][:200]
+		self.assertIn("show-label-colon", body)
+
+	def test_show_label_colon_is_per_format(self):
+		"""One format opting in must not put colons on another."""
+		from frappe.utils.print_format_generator import get_html
+
+		plain = self._make_print_format()
+		with_colon = self._make_print_format(show_label_colon=1)
+		todo = self._make_todo()
+
+		self.assertIn(
+			"show-label-colon", get_html("ToDo", todo.name, with_colon.name).split("<body", 1)[1][:200]
+		)
+		self.assertNotIn(
+			"show-label-colon", get_html("ToDo", todo.name, plain.name).split("<body", 1)[1][:200]
+		)
 
 	# ------------------------------------------------------------------ #
 	# repeating letterhead header / footer (repeat_header_footer setting)
@@ -1289,3 +1400,165 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		self.assertNotIn("print-repeating-frame", html)
 		self.assertIn("LETTERHEAD_TOP", html)
+
+	def _user_beta_format(self, layout):
+		import json
+
+		pf = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test PFG {frappe.generate_hash(length=6)}",
+				"doc_type": "User",
+				"print_format_builder_beta": 1,
+				"custom_format": 0,
+				"standard": "No",
+				"format_data": json.dumps(layout),
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(pf.delete, ignore_permissions=True)
+		return pf
+
+	def test_repeater_row_condition_filters_rows(self):
+		"""A repeater row_condition drops rows where it is falsy; a bad expression
+		fails open so a typo never blanks the table."""
+		import re
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		user = frappe.get_doc("User", "Administrator")
+		n = len(user.roles)
+		self.assertGreaterEqual(n, 2)
+
+		def rows_for(condition):
+			df = {
+				"fieldtype": "Repeater",
+				"fieldname": "_rep",
+				"label": "Roles",
+				"custom": 1,
+				"source": "roles",
+				"repeater_columns": [{"template": [{"t": "f", "v": "role"}], "align": "left"}],
+			}
+			if condition is not None:
+				df["row_condition"] = condition
+			layout = {
+				"sections": [{"label": "", "columns": [{"label": "", "fields": [df]}]}],
+				"header": {"columns": [{"label": "", "fields": []}]},
+				"footer": {"columns": [{"label": "", "fields": []}]},
+			}
+			html = PrintFormatGenerator(self._user_beta_format(layout), user).get_html_preview()
+			block = re.search(r"pfb-repeater-table.*?</table>", html, re.S)
+			return len(re.findall(r"<tr>", block.group(0))) if block else 0
+
+		self.assertEqual(rows_for(None), n)
+		self.assertEqual(rows_for("row.idx == 1"), 1)
+		self.assertEqual(rows_for("False"), 0)
+		self.assertEqual(rows_for("this is (( invalid"), n)
+		# print_settings is in scope alongside doc/row
+		with self.change_settings("Print Settings", pdf_page_size="A4"):
+			self.assertEqual(rows_for("print_settings.pdf_page_size == 'A4'"), n)
+			self.assertEqual(rows_for("print_settings.pdf_page_size == 'Letter'"), 0)
+
+	def test_merged_column_direction_emits_class(self):
+		"""A merged table column renders .cell-lines--horizontal only when
+		merge_direction is 'horizontal'."""
+		import re
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		user = frappe.get_doc("User", "Administrator")
+
+		def html_for(direction):
+			column = {
+				"fieldname": "role",
+				"fieldtype": "Data",
+				"label": "Role",
+				"width": 100,
+				"merged_fields": [{"fieldname": "role", "fieldtype": "Data", "style": "secondary"}],
+			}
+			if direction:
+				column["merge_direction"] = direction
+			layout = {
+				"sections": [
+					{
+						"label": "",
+						"columns": [
+							{
+								"label": "",
+								"fields": [
+									{
+										"fieldtype": "Table",
+										"fieldname": "roles",
+										"label": "Roles",
+										"custom": 1,
+										"table_columns": [column],
+									}
+								],
+							}
+						],
+					}
+				],
+				"header": {"columns": [{"label": "", "fields": []}]},
+				"footer": {"columns": [{"label": "", "fields": []}]},
+			}
+			return PrintFormatGenerator(self._user_beta_format(layout), user).get_html_preview()
+
+		def cell_lines_class(html):
+			# Match the markup, not the .cell-lines--horizontal rule in the embedded stylesheet.
+			match = re.search(r'<div class="(cell-lines[^"]*)"', html)
+			return match.group(1) if match else ""
+
+		self.assertEqual(cell_lines_class(html_for("horizontal")), "cell-lines cell-lines--horizontal")
+		self.assertEqual(cell_lines_class(html_for("vertical")), "cell-lines")
+		self.assertEqual(cell_lines_class(html_for(None)), "cell-lines")
+
+	def test_settings_override_does_not_persist(self):
+		"""A print-preview settings override (limited to the doctype's own print toggles)
+		changes the print_settings the generator renders with, but never writes back to
+		the saved single; keys outside the allowlist are ignored."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		todo.get_print_settings = lambda: ["repeat_header_footer"]
+		saved = frappe.db.get_single_value("Print Settings", "repeat_header_footer")
+		saved_draft = frappe.db.get_single_value("Print Settings", "allow_print_for_draft")
+		flipped = 0 if saved else 1
+
+		generator = PrintFormatGenerator(
+			pf, todo, settings={"repeat_header_footer": flipped, "allow_print_for_draft": 1}
+		)
+		self.assertEqual(generator.print_settings.repeat_header_footer, flipped)
+		self.assertEqual(generator.print_settings.allow_print_for_draft, saved_draft)
+		self.assertEqual(frappe.db.get_single_value("Print Settings", "repeat_header_footer"), saved)
+
+	def test_print_settings_override_allowlist(self):
+		"""get_allowed_print_settings_override keeps only fields the doctype exposes."""
+		from frappe.www.printview import get_allowed_print_settings_override
+
+		todo = self._make_todo()
+		self.assertEqual(get_allowed_print_settings_override(todo, None), {})
+		self.assertEqual(get_allowed_print_settings_override(todo, {"repeat_header_footer": 1}), {})
+
+		todo.get_print_settings = lambda: ["repeat_header_footer"]
+		self.assertEqual(
+			get_allowed_print_settings_override(
+				todo, {"repeat_header_footer": 1, "allow_print_for_draft": 1}
+			),
+			{"repeat_header_footer": 1},
+		)
+
+	def test_settings_override_reaches_pdf_download(self):
+		"""render_pdf (the PDF download path) renders with the overridden print_settings,
+		so a print-preview toggle carries into the downloaded file too."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		todo.get_print_settings = lambda: ["repeat_header_footer"]
+		generator = PrintFormatGenerator(pf, todo, settings={"repeat_header_footer": 1})
+
+		with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-"):
+			generator.render_pdf()
+		self.assertEqual(generator.print_settings.repeat_header_footer, 1)

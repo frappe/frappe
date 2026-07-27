@@ -1,11 +1,13 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import json
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
 import frappe
 from frappe.core.doctype.communication.communication import Communication, get_emails, parse_email
 from frappe.core.doctype.communication.email import add_attachments, make, undo_email_send
+from frappe.email import relink
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, now_datetime
@@ -180,6 +182,178 @@ class TestCommunication(IntegrationTestCase):
 		self.assertIn(contact_sender.name, contact_links)
 		self.assertIn(contact_recipient.name, contact_links)
 		self.assertIn(contact_cc.name, contact_links)
+
+	def test_relink_updates_comment_count(self):
+		"""https://github.com/frappe/frappe/issues/4513"""
+		frappe.delete_doc_if_exists("Note", "test relink comment count - old")
+		frappe.delete_doc_if_exists("Note", "test relink comment count - new")
+
+		old_note = frappe.get_doc(
+			{"doctype": "Note", "title": "test relink comment count - old", "content": "old"}
+		).insert(ignore_permissions=True)
+		new_note = frappe.get_doc(
+			{"doctype": "Note", "title": "test relink comment count - new", "content": "new"}
+		).insert(ignore_permissions=True)
+
+		comm = frappe.get_doc(
+			{
+				"doctype": "Communication",
+				"communication_type": "Communication",
+				"content": "Test relink comment count",
+				"reference_doctype": "Note",
+				"reference_name": old_note.name,
+			}
+		).insert(ignore_permissions=True)
+
+		def comment_count(doctype, name):
+			_comments = frappe.db.get_value(doctype, name, "_comments") or "[]"
+			return len(json.loads(_comments))
+
+		self.assertEqual(comment_count("Note", old_note.name), 1)
+		self.assertEqual(comment_count("Note", new_note.name), 0)
+
+		relink(comm.name, reference_doctype="Note", reference_name=new_note.name)
+
+		self.assertEqual(comment_count("Note", old_note.name), 0)
+		self.assertEqual(comment_count("Note", new_note.name), 1)
+
+	def test_relink_across_doctypes_with_shared_name(self):
+		"""relinking to a different doctype that shares the old parent's name must still
+		clear the old parent's comment cache (https://github.com/frappe/frappe/issues/4513)"""
+		shared_name = "test-relink-shared-name"
+		frappe.delete_doc_if_exists("Role", shared_name)
+		frappe.delete_doc_if_exists("Tag", shared_name)
+
+		old_parent = frappe.get_doc({"doctype": "Role", "role_name": shared_name}).insert(
+			ignore_permissions=True
+		)
+		new_parent = frappe.get_doc({"doctype": "Tag", "name": shared_name}).insert(ignore_permissions=True)
+		self.assertEqual(old_parent.name, new_parent.name)
+
+		comm = frappe.get_doc(
+			{
+				"doctype": "Communication",
+				"communication_type": "Communication",
+				"content": "Test relink across doctypes",
+				"reference_doctype": "Role",
+				"reference_name": old_parent.name,
+			}
+		).insert(ignore_permissions=True)
+
+		def comment_count(doctype, name):
+			_comments = frappe.db.get_value(doctype, name, "_comments") or "[]"
+			return len(json.loads(_comments))
+
+		self.assertEqual(comment_count("Role", old_parent.name), 1)
+		self.assertEqual(comment_count("Tag", new_parent.name), 0)
+
+		relink(comm.name, reference_doctype="Tag", reference_name=new_parent.name)
+
+		self.assertEqual(comment_count("Role", old_parent.name), 0)
+		self.assertEqual(comment_count("Tag", new_parent.name), 1)
+
+	def test_relink_noop_for_non_communication_type(self):
+		"""relink() must only act on communication_type "Communication"; the DB update
+		it issues never touches other types, so any comment-cache change alongside it
+		would desync from the (unmoved) row (https://github.com/frappe/frappe/issues/4513)"""
+		frappe.delete_doc_if_exists("Note", "test relink noop - old")
+		frappe.delete_doc_if_exists("Note", "test relink noop - new")
+
+		old_note = frappe.get_doc(
+			{"doctype": "Note", "title": "test relink noop - old", "content": "old"}
+		).insert(ignore_permissions=True)
+		new_note = frappe.get_doc(
+			{"doctype": "Note", "title": "test relink noop - new", "content": "new"}
+		).insert(ignore_permissions=True)
+
+		comm = frappe.get_doc(
+			{
+				"doctype": "Communication",
+				"communication_type": "Automated Message",
+				"content": "Test relink noop",
+				"reference_doctype": "Note",
+				"reference_name": old_note.name,
+			}
+		).insert(ignore_permissions=True)
+
+		def comment_count(doctype, name):
+			_comments = frappe.db.get_value(doctype, name, "_comments") or "[]"
+			return len(json.loads(_comments))
+
+		self.assertEqual(comment_count("Note", old_note.name), 1)
+		self.assertEqual(comment_count("Note", new_note.name), 0)
+
+		relink(comm.name, reference_doctype="Note", reference_name=new_note.name)
+
+		self.assertEqual(frappe.db.get_value("Communication", comm.name, "reference_name"), old_note.name)
+		self.assertEqual(comment_count("Note", old_note.name), 1)
+		self.assertEqual(comment_count("Note", new_note.name), 0)
+
+	def test_relink_unlink_clears_old_parent_cache(self):
+		"""relinking to no reference (reference_name=None) must still clear the old
+		parent's cached comment entry (https://github.com/frappe/frappe/issues/4513)"""
+		frappe.delete_doc_if_exists("Note", "test relink unlink - old")
+
+		old_note = frappe.get_doc(
+			{"doctype": "Note", "title": "test relink unlink - old", "content": "old"}
+		).insert(ignore_permissions=True)
+
+		comm = frappe.get_doc(
+			{
+				"doctype": "Communication",
+				"communication_type": "Communication",
+				"content": "Test relink unlink",
+				"reference_doctype": "Note",
+				"reference_name": old_note.name,
+			}
+		).insert(ignore_permissions=True)
+
+		def comment_count(doctype, name):
+			_comments = frappe.db.get_value(doctype, name, "_comments") or "[]"
+			return len(json.loads(_comments))
+
+		self.assertEqual(comment_count("Note", old_note.name), 1)
+
+		relink(comm.name, reference_doctype=None, reference_name=None)
+
+		self.assertIsNone(frappe.db.get_value("Communication", comm.name, "reference_name"))
+		self.assertEqual(comment_count("Note", old_note.name), 0)
+
+	def test_save_updates_comment_count(self):
+		"""changing reference_doctype/reference_name via Document.save() (not just relink())
+		must also move the cached comment entry (https://github.com/frappe/frappe/issues/4513)"""
+		frappe.delete_doc_if_exists("Note", "test save comment count - old")
+		frappe.delete_doc_if_exists("Note", "test save comment count - new")
+
+		old_note = frappe.get_doc(
+			{"doctype": "Note", "title": "test save comment count - old", "content": "old"}
+		).insert(ignore_permissions=True)
+		new_note = frappe.get_doc(
+			{"doctype": "Note", "title": "test save comment count - new", "content": "new"}
+		).insert(ignore_permissions=True)
+
+		comm = frappe.get_doc(
+			{
+				"doctype": "Communication",
+				"communication_type": "Communication",
+				"content": "Test save comment count",
+				"reference_doctype": "Note",
+				"reference_name": old_note.name,
+			}
+		).insert(ignore_permissions=True)
+
+		def comment_count(doctype, name):
+			_comments = frappe.db.get_value(doctype, name, "_comments") or "[]"
+			return len(json.loads(_comments))
+
+		self.assertEqual(comment_count("Note", old_note.name), 1)
+		self.assertEqual(comment_count("Note", new_note.name), 0)
+
+		comm.reference_name = new_note.name
+		comm.save(ignore_permissions=True)
+
+		self.assertEqual(comment_count("Note", old_note.name), 0)
+		self.assertEqual(comment_count("Note", new_note.name), 1)
 
 	def test_get_communication_data(self):
 		from frappe.desk.form.load import get_communication_data

@@ -150,7 +150,7 @@ jobs:
           db-root-password: ${{ env.DB_ROOT_PASSWORD }}
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: |
             3.13

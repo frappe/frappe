@@ -1,0 +1,11 @@
+{%- macro alert_banner(type, text="") -%}
+{%- set is_error = type == "error" -%}
+<div class="login-{{ type }}-banner es-alert hidden" role="alert" data-theme="{{ 'red' if is_error else 'green' }}">
+	<svg fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+		<use href="#icon-{{ 'circle-alert' if is_error else 'circle-check' }}"></use>
+	</svg>
+	<div class="es-alert__content">
+		<span class="es-alert__title">{{ text }}</span>
+	</div>
+</div>
+{%- endmacro %}

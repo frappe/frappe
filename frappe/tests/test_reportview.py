@@ -9,13 +9,43 @@ from frappe.desk.reportview import (
 	export_query,
 	extract_fieldnames,
 	get,
+	get_field_info,
 	get_filter_dashboard_data,
 	get_stats,
+	resolve_link_titles,
 )
 from frappe.tests import IntegrationTestCase
 
 
 class TestReportview(IntegrationTestCase):
+	def test_get_field_info_translates_field_labels(self):
+		doctype = "Translation"
+		translations = {
+			"Created On": "Translated Created On",
+			"Translated Text": "Translated Field Label",
+		}
+		for source, translated in translations.items():
+			frappe.get_doc(
+				{
+					"doctype": "Translation",
+					"language": "de",
+					"source_text": source,
+					"translated_text": translated,
+					"context": doctype,
+				}
+			).insert()
+
+		frappe.local.lang = "de"
+		try:
+			field_info = get_field_info(["creation", "translated_text"], doctype)
+		finally:
+			frappe.local.lang = "en"
+
+		self.assertEqual(
+			[field["label"] for field in field_info],
+			["Translated Created On", "Translated Field Label"],
+		)
+
 	def test_get_accepts_native_filters_and_fields(self):
 		# native dict/list payloads (JSON request body) instead of JSON strings
 		frappe.local.form_dict = frappe._dict(
@@ -50,6 +80,18 @@ class TestReportview(IntegrationTestCase):
 		export_query()
 		self.assertTrue(frappe.response["filename"].endswith(".csv"))
 		self.assertEqual(frappe.response["type"], "binary")
+
+	def test_resolve_link_titles_for_export(self):
+		language_name = frappe.db.get_value("Language", "en", "language_name")
+
+		self.assertEqual(
+			resolve_link_titles(
+				[("en", "System Manager"), ("missing-language", None), ("", "")],
+				["language", "role_profile_name"],
+				"User",
+			),
+			[[language_name, "System Manager"], ["missing-language", None], ["", ""]],
+		)
 
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader

@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
 
@@ -29,3 +30,14 @@ class TestMapper(IntegrationTestCase):
 		)
 		self.assertEqual(target["sources"], ["SRC-001", "SRC-002"])
 		self.assertEqual(target["args"], {"key": "val"})
+
+	def test_get_mapped_doc_accepts_dict_target(self):
+		from frappe.model.mapper import get_mapped_doc
+
+		note = frappe.get_doc({"doctype": "Note", "title": "Mapper Source Note"}).insert()
+		target = frappe.new_doc("Note").as_dict()
+
+		doc = get_mapped_doc("Note", note.name, {"Note": {"doctype": "Note"}}, target)
+
+		self.assertEqual(doc.doctype, "Note")
+		self.assertEqual(doc.title, note.title)
