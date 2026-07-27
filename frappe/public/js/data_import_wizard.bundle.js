@@ -1176,7 +1176,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 						onclick: () => frm.events.begin_import(frm),
 					})
 				);
-			} else if (status === "Partial Success") {
+			} else if (status === "Partial Success" || status === "Timed Out") {
 				this.$footer_right.append(
 					frappe.ui.button({
 						label: __("Retry"),
