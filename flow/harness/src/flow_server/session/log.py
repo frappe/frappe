@@ -26,7 +26,7 @@ class SessionLog:
 			for line in f:
 				line = line.strip()
 				if line:
-					last = json.loads(line).get("seq", last)
+					last = _entry_seq(json.loads(line))
 		return last
 
 	def append(self, event: _Event) -> int:
@@ -52,10 +52,17 @@ class SessionLog:
 				if not line:
 					continue
 				entry = json.loads(line)
-				if entry.get("seq", 0) > since:
+				if _entry_seq(entry) > since:
 					out.append(entry)
 		return out
 
 	@property
 	def latest_seq(self) -> int:
 		return self._seq
+
+
+def _entry_seq(entry: dict) -> int:
+	seq = entry.get("seq")
+	if type(seq) is not int:
+		raise ValueError("persisted log entry is missing a valid integer seq")
+	return seq

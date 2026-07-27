@@ -22,7 +22,15 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from flow_server import config as server_config
-from flow_server.events import ApprovalRequired, PendingCall, _Event, parse_event
+from flow_server.events import (
+	ApprovalRequired,
+	AssistantMessage,
+	PendingCall,
+	ToolCall,
+	ToolResult,
+	_Event,
+	parse_event,
+)
 from flow_server.model.credentials import CredentialStore
 from flow_server.path_policy import canonical_path, is_path_allowed, normalize_roots
 from flow_server.session.log import SessionLog
@@ -30,6 +38,8 @@ from flow_server.session.log import SessionLog
 # client-provided session ids land in on-disk filenames — keep them to a safe slug so a
 # value like "../../etc/x" can't escape the sessions dir (arbitrary file write)
 _SID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+_TRANSCRIPT_REPAIR_KEY = "transcript_repair"
+_INTERRUPTED_TOOL_CONTENT = "Tool call interrupted before completion."
 
 
 class SessionState(StrEnum):
@@ -46,6 +56,13 @@ class PendingApproval:
 
 	seq: int
 	calls: tuple[PendingCall, ...]
+
+
+@dataclass(slots=True)
+class _ToolBatch:
+	assistant_seq: int
+	calls: tuple[ToolCall, ...]
+	resolved_ids: set[str]
 
 
 class SessionConfig(BaseModel):
@@ -112,6 +129,8 @@ class Session:
 		self.event_sink = event_sink  # optional (session_id, event_dict) callback, e.g. Redis
 		self.credentials = credentials or CredentialStore(server_config.CREDENTIALS_PATH)
 		self.allowed_roots = allowed_roots
+		for repair in interrupted_tool_repairs(log):
+			log.append(repair)
 		self.messages: list[dict] = _rebuild_messages(log)
 		self._subscribers: set[asyncio.Queue] = set()
 		self.operation_lock = asyncio.Lock()
@@ -145,6 +164,17 @@ class Session:
 			except Exception:  # streaming is best-effort; the log heals gaps
 				pass
 
+	def repair_interrupted_transcript(self) -> None:
+		"""Persist missing tool results and refresh the provider-facing transcript."""
+		published = False
+		try:
+			for repair in interrupted_tool_repairs(self.log):
+				self.publish(repair)
+				published = True
+		finally:
+			if published:
+				self.messages = _rebuild_messages(self.log)
+
 	@property
 	def is_running(self) -> bool:
 		return self._state is SessionState.RUNNING
@@ -168,6 +198,7 @@ class Session:
 			raise RuntimeError("session already has an active operation")
 		self._state = SessionState.RUNNING
 		task = asyncio.create_task(self._run_operation(coro))
+		task.add_done_callback(_retrieve_task_exception)
 		self.run_task = task
 		return task
 
@@ -178,9 +209,15 @@ class Session:
 			async with self.operation_lock:
 				if self.run_task is asyncio.current_task():
 					self.run_task = None
-					self._state = (
-						SessionState.PAUSED if pending_approval(self.log) is not None else SessionState.IDLE
-					)
+					self._state = SessionState.IDLE
+					if pending_approval(self.log) is not None:
+						self._state = SessionState.PAUSED
+
+
+def _retrieve_task_exception(task: asyncio.Task[None]) -> None:
+	"""Mark background failures retrieved while preserving normal await semantics."""
+	if not task.cancelled():
+		task.exception()
 
 
 class SessionStore:
@@ -285,12 +322,38 @@ class SessionStore:
 
 def _rebuild_messages(log: SessionLog) -> list[dict]:
 	"""Reconstruct the LLM message transcript from durable log entries."""
+	rows = log.read_since(0)
+	repairs: dict[int, dict[str, dict]] = {}
+	for raw in rows:
+		if raw.get("type") != "tool_result":
+			continue
+		assistant_seq = _repair_assistant_seq(raw)
+		if assistant_seq is not None:
+			repairs.setdefault(assistant_seq, {})[str(raw.get("tool_call_id"))] = raw
+
 	messages: list[dict] = []
-	for raw in log.read_since(0):
+	pending_calls: tuple[ToolCall, ...] = ()
+	pending_seq: int | None = None
+	results: dict[str, dict] = {}
+
+	def flush_results() -> None:
+		nonlocal pending_calls, pending_seq, results
+		if pending_seq is not None:
+			results = {**repairs.get(pending_seq, {}), **results}
+			for call in pending_calls:
+				if call.id in results:
+					messages.append(_tool_message(results[call.id]))
+		pending_calls = ()
+		pending_seq = None
+		results = {}
+
+	for raw in rows:
 		ev = parse_event(raw)
 		if ev.type == "user_message":
+			flush_results()
 			messages.append({"role": "user", "content": ev.content})
 		elif ev.type == "assistant_message":
+			flush_results()
 			msg: dict = {"role": "assistant", "content": ev.text or None}
 			if ev.provider_data:
 				msg["provider_data"] = ev.provider_data
@@ -304,9 +367,101 @@ def _rebuild_messages(log: SessionLog) -> list[dict]:
 					for tc in ev.tool_calls
 				]
 			messages.append(msg)
+			if ev.tool_calls:
+				pending_calls = tuple(ev.tool_calls)
+				pending_seq = raw["seq"]
 		elif ev.type == "tool_result":
-			messages.append({"role": "tool", "tool_call_id": ev.tool_call_id, "content": ev.content})
+			if _repair_assistant_seq(raw) is not None:
+				continue
+			if pending_seq is not None and any(call.id == ev.tool_call_id for call in pending_calls):
+				results[ev.tool_call_id] = raw
+			else:
+				messages.append(_tool_message(raw))
+	flush_results()
 	return messages
+
+
+def _tool_message(raw: dict) -> dict:
+	return {
+		"role": "tool",
+		"tool_call_id": str(raw.get("tool_call_id")),
+		"content": str(raw.get("content", "")),
+	}
+
+
+def _repair_assistant_seq(raw: dict) -> int | None:
+	details = raw.get("details")
+	if not isinstance(details, dict):
+		return None
+	repair = details.get(_TRANSCRIPT_REPAIR_KEY)
+	if not isinstance(repair, dict):
+		return None
+	assistant_seq = repair.get("assistant_seq")
+	return assistant_seq if isinstance(assistant_seq, int) else None
+
+
+def interrupted_tool_repairs(log: SessionLog) -> tuple[ToolResult, ...]:
+	"""Build synthetic error results for unresolved non-approval tool calls.
+
+	Repairs carry the originating assistant event's sequence number. Replay uses
+	that marker to place a later-appended repair beside its original tool batch
+	without rewriting the append-only JSONL log.
+	"""
+	rows = log.read_since(0)
+	batches: dict[int, _ToolBatch] = {}
+	approval_batches: dict[int, int] = {}
+	current_batch: _ToolBatch | None = None
+
+	for raw in rows:
+		event_type = raw.get("type")
+		if event_type == "assistant_message":
+			event = AssistantMessage.model_validate(raw)
+			if not event.tool_calls:
+				current_batch = None
+				continue
+			assistant_seq = raw["seq"]
+			current_batch = _ToolBatch(assistant_seq, tuple(event.tool_calls), set())
+			batches[assistant_seq] = current_batch
+		elif event_type == "tool_result":
+			event = ToolResult.model_validate(raw)
+			repair_seq = _repair_assistant_seq(raw)
+			batch = batches.get(repair_seq) if repair_seq is not None else current_batch
+			if batch is not None and any(call.id == event.tool_call_id for call in batch.calls):
+				batch.resolved_ids.add(event.tool_call_id)
+		elif event_type == "user_message":
+			current_batch = None
+		elif event_type == "approval_required":
+			ApprovalRequired.model_validate(raw)
+			if current_batch is None:
+				raise ValueError("approval event has no preceding assistant tool batch")
+			approval_batches[raw["seq"]] = current_batch.assistant_seq
+
+	approval = pending_approval(log)
+	pending_batch_seq = approval_batches.get(approval.seq) if approval is not None else None
+	pending_ids = {call.id for call in approval.calls} if approval is not None else set()
+	repairs: list[ToolResult] = []
+	for batch in batches.values():
+		for call in batch.calls:
+			if call.id in batch.resolved_ids:
+				continue
+			if batch.assistant_seq == pending_batch_seq and call.id in pending_ids:
+				continue
+			repairs.append(
+				ToolResult(
+					tool_call_id=call.id,
+					name=call.name,
+					content=_INTERRUPTED_TOOL_CONTENT,
+					is_error=True,
+					details={
+						_TRANSCRIPT_REPAIR_KEY: {
+							"assistant_seq": batch.assistant_seq,
+							"reason": "interrupted",
+						}
+					},
+				)
+			)
+
+	return tuple(repairs)
 
 
 def pending_approval(log: SessionLog) -> PendingApproval | None:
@@ -326,7 +481,7 @@ def pending_approval(log: SessionLog) -> PendingApproval | None:
 			resolved.clear()
 		elif event_type == "approval_required":
 			event = ApprovalRequired.model_validate(raw)
-			approval_seq = event.seq
+			approval_seq = raw["seq"]
 			calls = tuple(event.calls)
 			resolved.clear()
 		elif event_type == "tool_result" and approval_seq is not None:

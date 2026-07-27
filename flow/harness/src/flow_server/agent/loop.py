@@ -21,12 +21,13 @@ if it lets the call through and the tool is confirm-gated, the durable pause tak
 
 from __future__ import annotations
 
+import asyncio
 import inspect
 import json
 import uuid
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
 
 import httpx
 
@@ -62,6 +63,7 @@ class HookDecision:
 # before(call, ctx) -> HookDecision | None (sync or async); after(call, result) -> str | None
 BeforeHook = Callable[[ToolCall, ToolContext], Any]
 AfterHook = Callable[[ToolCall, ToolResult], Any]
+RunReason = Literal["done", "max_turns", "budget", "aborted", "error", "paused"]
 
 
 class ResumeError(ValueError):
@@ -77,10 +79,14 @@ async def run(
 	after_tool_call: AfterHook | None = None,
 ) -> None:
 	"""Start a new turn."""
-	session.abort.clear()
-	session.publish(RunStarted(run_id=uuid.uuid4().hex[:12]))
-	_add_user(session, user_message)
-	await _loop(session, model, before_tool_call, after_tool_call)
+
+	async def operation() -> RunReason:
+		session.abort.clear()
+		session.publish(RunStarted(run_id=uuid.uuid4().hex[:12]))
+		_add_user(session, user_message)
+		return await _loop(session, model, before_tool_call, after_tool_call)
+
+	await _run_with_lifecycle(session, operation())
 
 
 async def resume(
@@ -94,31 +100,71 @@ async def resume(
 ) -> None:
 	"""Continue a paused run. `answers` maps a pending tool_call_id to a decision:
 	"Approve" runs the tool, "Deny" halts the run, any other text redirects the model."""
-	session.abort.clear()
 	approval = pending_approval(session.log)
 	validate_resume(approval, approval_seq, answers)
 	assert approval is not None  # narrowed by validate_resume
 	pending = approval.calls
 
-	server_tools = _server_tools(session)
-	ctx = _make_ctx(session)
-	denied = False
-	for call in pending:
-		answer = answers.get(call.id, "Deny")
-		tc = ToolCall(id=call.id, name=call.name, args=call.args)
-		if answer == "Approve":
-			result = await _run_one_tool(session, tc, server_tools, ctx, after_tool_call)
-		elif answer == "Deny":
-			result = _result(tc, _DENIED, is_error=True)
-			denied = True
-		else:
-			result = _result(tc, _redirect(answer))
-		_emit_result(session, result)
+	async def operation() -> RunReason:
+		session.abort.clear()
+		server_tools = _server_tools(session)
+		ctx = _make_ctx(session)
+		denied = False
+		for call in pending:
+			answer = answers[call.id]
+			tc = ToolCall(id=call.id, name=call.name, args=call.args)
+			if answer == "Approve":
+				result = await _run_one_tool(session, tc, server_tools, ctx, after_tool_call)
+			elif answer == "Deny":
+				result = _result(tc, _DENIED, is_error=True)
+				denied = True
+			else:
+				result = _result(tc, _redirect(answer))
+			_emit_result(session, result)
 
-	if denied:  # a rejected action stops the run rather than continuing
-		session.publish(RunEnded(reason="done"))
-		return
-	await _loop(session, model, before_tool_call, after_tool_call)
+		if denied:  # a rejected action stops the run rather than continuing
+			return "done"
+		return await _loop(session, model, before_tool_call, after_tool_call)
+
+	await _run_with_lifecycle(session, operation())
+
+
+async def _run_with_lifecycle(session: Session, operation: Awaitable[RunReason]) -> None:
+	"""Convert operation failures into one terminal protocol sequence.
+
+	Runtime state cleanup belongs to ``Session._run_operation``. This layer owns
+	durable transcript repair plus ``RunError``/``RunEnded`` publication so setup,
+	hooks, model iteration, and continuation failures settle like normal runs.
+	"""
+	reason: RunReason = "error"
+	failures: list[BaseException] = []
+	cancelled: asyncio.CancelledError | None = None
+	try:
+		reason = await operation
+	except asyncio.CancelledError as exc:
+		reason = "aborted"
+		cancelled = exc
+	except Exception as exc:
+		failures.append(exc)
+
+	if reason != "paused":
+		try:
+			session.repair_interrupted_transcript()
+		except Exception as exc:
+			failures.append(exc)
+
+	if failures:
+		reason = "error"
+		message = "; ".join(f"{type(exc).__name__}: {exc}" for exc in failures)
+		try:
+			session.publish(RunError(message=message))
+		finally:
+			session.publish(RunEnded(reason=reason))
+	else:
+		session.publish(RunEnded(reason=reason))
+
+	if cancelled is not None:
+		raise cancelled
 
 
 async def _loop(
@@ -126,7 +172,7 @@ async def _loop(
 	model: Model | None,
 	before_tool_call: BeforeHook | None,
 	after_tool_call: AfterHook | None,
-) -> None:
+) -> RunReason:
 	cfg = session.config
 	if model is None:
 		auth = await resolve_model_auth(
@@ -145,46 +191,34 @@ async def _loop(
 	ctx = _make_ctx(session)
 
 	output_tokens = 0
-	reason = "max_turns"
-	try:
-		for _ in range(cfg.max_turns):
-			_drain_steering(session)
-			if session.abort.is_set():
-				reason = "aborted"
-				break
+	for _ in range(cfg.max_turns):
+		_drain_steering(session)
+		if session.abort.is_set():
+			return "aborted"
 
-			assistant, used = await _model_call(session, model, tool_schemas)
-			if assistant is None:
-				reason = "error"
-				break
-			session.messages.append(_assistant_msg(assistant))
-			output_tokens += used
-			if not assistant.tool_calls:
-				if _drain_steering(session):
-					continue
-				reason = "done"
-				break
+		assistant, used = await _model_call(session, model, tool_schemas)
+		if assistant is None:
+			raise RuntimeError("model stream ended without an assistant message")
+		session.messages.append(_assistant_msg(assistant))
+		output_tokens += used
+		if not assistant.tool_calls:
+			if _drain_steering(session):
+				continue
+			return "done"
 
-			pending: list[PendingCall] = []
-			for tc in assistant.tool_calls:
-				await _handle_call(session, tc, server_tools, ctx, before_tool_call, after_tool_call, pending)
-			if pending:  # non-gated tools already ran; now wait for approval
-				session.publish(ApprovalRequired(calls=pending))
-				reason = "paused"
-				break
+		pending: list[PendingCall] = []
+		for tc in assistant.tool_calls:
+			await _handle_call(session, tc, server_tools, ctx, before_tool_call, after_tool_call, pending)
+		if pending:  # non-gated tools already ran; now wait for approval
+			session.publish(ApprovalRequired(calls=pending))
+			return "paused"
 
-			if output_tokens >= cfg.max_output_tokens:
-				reason = "budget"
-				break
-			if session.abort.is_set():
-				reason = "aborted"
-				break
-	except Exception as e:  # surface any loop failure as an event, never crash the daemon
-		session.publish(RunError(message=f"{type(e).__name__}: {e}"))
-		session.publish(RunEnded(reason="error"))
-		return
+		if output_tokens >= cfg.max_output_tokens:
+			return "budget"
+		if session.abort.is_set():
+			return "aborted"
 
-	session.publish(RunEnded(reason=reason))
+	return "max_turns"
 
 
 async def _handle_call(

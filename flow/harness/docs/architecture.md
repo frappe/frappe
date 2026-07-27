@@ -46,6 +46,13 @@ and `fsync`s. `read_since(n)` returns every entry with `seq > n` — this is bot
 **replay** path (catch a reconnecting client up) and the **restart** path (rebuild
 state from disk). Durability lives here and nowhere else.
 
+If execution stops after an `AssistantMessage` has been persisted but before every
+tool call has a `ToolResult`, Flow appends synthetic error results before the
+transcript is used again. Each repair records the originating assistant sequence so
+replay can place it in source-call order without rewriting the append-only log.
+Unresolved calls in a durable approval pause are deliberately excluded: they are
+pending work, not interrupted work.
+
 ## Session & config (`session/store.py`)
 
 - **`SessionConfig`** (a Pydantic model, sent per-session by any client) is the whole
@@ -54,7 +61,8 @@ state from disk). Durability lives here and nowhere else.
 - **`Session`** holds the live transcript (`messages`, rebuilt from the log via
   `_rebuild_messages`), an `abort` event, a `steer_queue`, and the pub/sub. `publish()`
   is the fan-out: persist-if-durable → deliver to live subscribers → forward to an
-  optional sink (e.g. Redis).
+  optional sink (e.g. Redis). It also owns interrupted-transcript repair so both live
+  failures and cold session loads use the same durable rule.
 - **`SessionStore`** owns create/get and enforces the security fences (below).
 
 ## The model layer (`model/`)
@@ -83,6 +91,12 @@ URLs are resolved internally and cannot be supplied through session or run paylo
 3. for each tool call, **`_handle_call`** (dispatch order below).
 4. if any call was confirm-gated → publish `ApprovalRequired`, stop with `paused`.
 5. else check caps (`max_turns`, `max_output_tokens`, `abort`) and loop.
+
+One outer lifecycle boundary covers setup, model streaming, hooks, tool dispatch, and
+resume continuations. It repairs interrupted tool batches, publishes one `RunError`
+for operational failures, and attempts exactly one terminal `RunEnded`. The session
+task clears runtime state in `finally`, including when terminal-event persistence
+itself fails.
 
 ### Two interception layers (deliberately separate — neither substitutes for the other)
 

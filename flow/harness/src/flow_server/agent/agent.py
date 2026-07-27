@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import AsyncIterator, Callable, Coroutine
+from contextlib import suppress
 from typing import Any
 
 from flow_server import config as server_config
@@ -77,6 +78,7 @@ class Agent:
 	) -> AsyncIterator[_Event]:
 		q = self._session.subscribe()  # subscribe before the run starts so no event is missed
 		task: asyncio.Task[None] | None = None
+		next_event: asyncio.Task[Any] | None = None
 		try:
 			async with self._session.operation_lock:
 				if self._session.state is not from_state:
@@ -86,11 +88,28 @@ class Agent:
 					)
 				task = self._session._start_operation(make_coro())
 			while True:
-				ev = await q.get()
+				if task.done() and q.empty():
+					await task
+					return
+				next_event = asyncio.create_task(q.get())
+				done, _ = await asyncio.wait(
+					(next_event, task),
+					return_when=asyncio.FIRST_COMPLETED,
+				)
+				if next_event not in done:
+					next_event.cancel()
+					with suppress(asyncio.CancelledError):
+						await next_event
+					continue
+				ev = next_event.result()
 				yield ev
 				if ev.type == "run_ended":  # always the terminal event
 					break
 		finally:
+			if next_event is not None and not next_event.done():
+				next_event.cancel()
+				with suppress(asyncio.CancelledError):
+					await next_event
 			self._session.unsubscribe(q)
 			if task is not None:
 				await task
