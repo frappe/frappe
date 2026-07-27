@@ -27,7 +27,6 @@ frappe.ui.toolbar.Toolbar = class {
 
 		this.setup_help();
 
-		this.setup_read_only_mode();
 		this.setup_announcement_widget();
 		this.make();
 	}
@@ -151,15 +150,6 @@ frappe.ui.toolbar.Toolbar = class {
 			setTimeout(function () {
 				search_modal.find("#modal-search").focus();
 			}, 300);
-		});
-	}
-
-	setup_read_only_mode() {
-		if (!frappe.boot.read_only) return;
-
-		$("header .read-only-banner").tooltip({
-			delay: { show: 600, hide: 100 },
-			trigger: "hover",
 		});
 	}
 
