@@ -87,7 +87,14 @@ def setup_complete(args: str | dict[str, Any]):
 
 
 @frappe.whitelist(methods=["POST"])
-def complete_setup(args: str | dict[str, Any] | None = None):
+def complete_setup(
+	country: str | None = None,
+	currency: str | None = None,
+	timezone: str | None = None,
+	language: str | None = None,
+	enable_telemetry: bool | None = None,
+	allow_recording_first_session: bool | None = None,
+):
 	"""Complete setup for an app-provided wizard: the setup engine minus the desk-input stages."""
 	frappe.only_for("System Manager")
 
@@ -99,9 +106,20 @@ def complete_setup(args: str | dict[str, Any] | None = None):
 			if frappe.is_setup_complete():
 				return {"status": "ok"}
 
-			kwargs = parse_args(sanitize_input(args or {}))
-			stages = get_setup_stages(kwargs, include_app_input_stages=False)
-			return process_setup_stages(stages, kwargs)
+			args = parse_args(
+				sanitize_input(
+					{
+						"country": country,
+						"currency": currency,
+						"timezone": timezone,
+						"language": language,
+						"enable_telemetry": enable_telemetry,
+						"allow_recording_first_session": allow_recording_first_session,
+					}
+				)
+			)
+			stages = get_setup_stages(args, include_app_input_stages=False)
+			return process_setup_stages(stages, args)
 	except LockTimeoutError:
 		# Duplicate request
 		return {"status": "ok"}

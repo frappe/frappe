@@ -72,11 +72,11 @@ class TestSetupWizardUrl(UnitTestCase):
 class TestCompleteSetup(IntegrationTestCase):
 	def test_needs_system_manager(self):
 		with set_user("Guest"):
-			self.assertRaises(frappe.PermissionError, setup_wizard.complete_setup, {})
+			self.assertRaises(frappe.PermissionError, setup_wizard.complete_setup)
 
 	def test_refuses_builtin_site(self):
 		with patch.object(setup_wizard, "site_requires_builtin_wizard", return_value=True):
-			self.assertRaises(frappe.ValidationError, setup_wizard.complete_setup, {})
+			self.assertRaises(frappe.ValidationError, setup_wizard.complete_setup)
 
 	def test_skips_when_already_complete(self):
 		with (
@@ -84,5 +84,5 @@ class TestCompleteSetup(IntegrationTestCase):
 			patch.object(frappe, "is_setup_complete", return_value=True),
 			patch.object(setup_wizard, "process_setup_stages") as process_stages,
 		):
-			self.assertEqual(setup_wizard.complete_setup({}), {"status": "ok"})
+			self.assertEqual(setup_wizard.complete_setup(), {"status": "ok"})
 			process_stages.assert_not_called()
