@@ -15,7 +15,11 @@ async def bash(
 	*,
 	ctx: ToolContext,
 ) -> ToolResult:
-	"""Run a shell command; returns combined stdout/stderr and the exit code."""
+	"""Run a shell command; returns combined stdout/stderr and the exit code.
+
+	Shell commands are not constrained by ``ToolContext.allowed_roots``. Use process
+	isolation when filesystem containment must be a security boundary.
+	"""
 	if timeout is not None and timeout <= 0:
 		return ToolResult(content="[timeout must be > 0]", is_error=True)
 	limit = timeout if timeout is not None else ctx.timeout

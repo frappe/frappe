@@ -143,7 +143,7 @@ print(res["output"], res["reason"], res["usage"])
 | `credential_id` | inferred | named credential selected for the model |
 | `confirm_tools` | `[]` | tools that pause for approval (overrides tool defaults) |
 | `auto_approve` | `false` | unattended runs skip approval |
-| `cwd` | `"."` | tool working dir (fenced by `ALLOWED_ROOTS`) |
+| `cwd` | `"."` | tool working dir; cwd and built-in file paths are checked against `ALLOWED_ROOTS` (`bash` is not sandboxed) |
 | `max_turns` | `30` | turn cap |
 | `max_output_tokens` | `200000` | output-token spend cap |
 | `stream` | `true` | consume the model as a token stream |

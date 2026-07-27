@@ -27,6 +27,9 @@ class ToolContext:
 	"""Runtime state injected into a tool call by the loop; never seen by the model."""
 
 	cwd: str = "."
+	# Empty preserves the local-development default: unrestricted filesystem access.
+	# When populated, every path-taking builtin must reject targets outside these roots.
+	allowed_roots: tuple[str, ...] = ()
 	abort: asyncio.Event = field(default_factory=asyncio.Event)
 	timeout: float = 120.0
 

@@ -9,6 +9,7 @@ import os
 import signal
 import tempfile
 
+from flow_server.path_policy import absolute_path, canonical_path, is_path_allowed
 from flow_server.tools.tool import ToolContext
 
 DEFAULT_MAX_LINES = 2000
@@ -16,7 +17,10 @@ DEFAULT_MAX_BYTES = 50 * 1024
 
 
 def resolve(ctx: ToolContext, path: str) -> str:
-	return path if os.path.isabs(path) else os.path.join(ctx.cwd, path)
+	target = absolute_path(path, base=ctx.cwd)
+	if ctx.allowed_roots and not is_path_allowed(canonical_path(target), ctx.allowed_roots):
+		raise PermissionError(f"path {path!r} resolves outside the configured allowed roots")
+	return target
 
 
 def to_lf(text: str) -> str:

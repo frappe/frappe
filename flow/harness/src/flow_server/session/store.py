@@ -20,6 +20,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from flow_server import config as server_config
 from flow_server.events import _Event, parse_event
 from flow_server.model.credentials import CredentialStore
+from flow_server.path_policy import canonical_path, is_path_allowed, normalize_roots
 from flow_server.session.log import SessionLog
 
 # client-provided session ids land in on-disk filenames — keep them to a safe slug so a
@@ -83,12 +84,14 @@ class Session:
 		log: SessionLog,
 		event_sink=None,
 		credentials: CredentialStore | None = None,
+		allowed_roots: tuple[str, ...] = (),
 	):
 		self.id = sid
 		self.config = config
 		self.log = log
 		self.event_sink = event_sink  # optional (session_id, event_dict) callback, e.g. Redis
 		self.credentials = credentials or CredentialStore(server_config.CREDENTIALS_PATH)
+		self.allowed_roots = allowed_roots
 		self.messages: list[dict] = _rebuild_messages(log)
 		self._subscribers: set[asyncio.Queue] = set()
 		self.run_task: asyncio.Task | None = None
@@ -144,7 +147,8 @@ class SessionStore:
 		if not sessions_dir_existed:
 			os.chmod(self.sessions_dir, 0o700)
 		self.event_sink = event_sink
-		self.allowed_roots = allowed_roots if allowed_roots is not None else server_config.ALLOWED_ROOTS
+		configured_roots = allowed_roots if allowed_roots is not None else server_config.ALLOWED_ROOTS
+		self.allowed_roots = normalize_roots(configured_roots)
 		self.credentials = credential_store or CredentialStore(server_config.CREDENTIALS_PATH)
 		self._cache: dict[str, Session] = {}
 
@@ -165,6 +169,7 @@ class SessionStore:
 			SessionLog(self._log_path(sid)),
 			self.event_sink,
 			self.credentials,
+			self.allowed_roots,
 		)
 		self.save_meta(session)
 		self._cache[sid] = session
@@ -191,11 +196,9 @@ class SessionStore:
 		escapes can't slip past). Empty roots = unrestricted (dev default)."""
 		if not self.allowed_roots:
 			return
-		target = os.path.realpath(cwd)
-		for root in self.allowed_roots:
-			root_real = os.path.realpath(root)
-			if target == root_real or target.startswith(root_real + os.sep):
-				return
+		target = canonical_path(cwd)
+		if is_path_allowed(target, self.allowed_roots):
+			return
 		raise ValueError(f"cwd {cwd!r} is not under an allowed root")
 
 	def get(self, sid: str) -> Session:
@@ -209,12 +212,14 @@ class SessionStore:
 		raw_config.pop("api_key", None)
 		raw_config.pop("api_base", None)
 		config = SessionConfig.model_validate(raw_config)
+		self._validate_cwd(config.cwd)
 		session = Session(
 			sid,
 			config,
 			SessionLog(self._log_path(sid)),
 			self.event_sink,
 			self.credentials,
+			self.allowed_roots,
 		)
 		self._cache[sid] = session
 		return session

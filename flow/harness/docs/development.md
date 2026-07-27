@@ -40,7 +40,7 @@ hand-maintain style - run the hooks.
 | `FLOW_SERVER_DATA_DIR` | `~/.flow/server` | session logs + metadata |
 | `FLOW_SERVER_MODEL` | `mock` | default model name |
 | `FLOW_SERVER_REDIS_URL` | none | if set, every event is also published to `harness:<sid>` |
-| `FLOW_SERVER_ALLOWED_ROOTS` | empty | `os.pathsep`-separated cwd fence (empty = unrestricted) |
+| `FLOW_SERVER_ALLOWED_ROOTS` | empty | `os.pathsep`-separated roots for session cwd and path-taking builtins; does not sandbox `bash` (empty = unrestricted) |
 | `FLOW_SERVER_CREDENTIALS_PATH` | `~/.flow/server/credentials.json` | API-key/OAuth store (0600) |
 
 Cross-repo wire identifiers are intentionally kept as `harness:*` (Redis channel,
