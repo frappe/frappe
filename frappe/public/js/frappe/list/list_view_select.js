@@ -247,11 +247,14 @@ frappe.views.ListViewSelect = class ListViewSelect {
 			// user_settings.save only updates the local cache in its server
 			// callback, so routing immediately would let the arriving list
 			// view restore from the stale value.
+			const go = () => frappe.set_route([this.slug(), "view", "list"]);
 			frappe.model.user_settings
 				.save(this.doctype, "List", {
 					active_layout_name: name === "default_layout" ? "" : name,
 				})
-				.then(() => frappe.set_route([this.slug(), "view", "list"]));
+				// a failed save must not make the click inert — the list
+				// opens either way, just without the chosen layout applied
+				.then(go, go);
 		};
 
 		const layout_row = (layout) => ({
