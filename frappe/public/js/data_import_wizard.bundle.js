@@ -161,7 +161,7 @@ function render_import_file_card(control, frm, $mount) {
 					true
 				)}</div>
 				<div class="min-w-0">
-					<a class="diw-import-file-card-name block truncate text-base-semibold" href="${safe_href}" target="_blank" rel="noopener noreferrer" title="${safe_name}">${safe_name}</a>
+					<a class="diw-import-file-card-name block truncate text-base-semibold text-ink-gray-9" href="${safe_href}" target="_blank" rel="noopener noreferrer" title="${safe_name}">${safe_name}</a>
 					<div class="text-sm text-muted">${frappe.utils.escape_html(meta_text)}</div>
 				</div>
 			</div>
@@ -197,7 +197,7 @@ function render_google_sheet_card(control, frm, $mount) {
 					"",
 					true
 				)}</span>
-				<a class="diw-google-sheet-card-url min-w-0 truncate" href="${safe_url}" target="_blank" rel="noopener noreferrer" title="${safe_url}">${safe_url}</a>
+				<a class="diw-google-sheet-card-url min-w-0 truncate text-ink-base" href="${safe_url}" target="_blank" rel="noopener noreferrer" title="${safe_url}">${safe_url}</a>
 			</div>
 			${
 				is_read_only

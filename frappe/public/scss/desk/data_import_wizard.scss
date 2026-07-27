@@ -40,7 +40,6 @@ body[data-route^="data-import"] {
 
 .diw-shell {
 	max-width: 840px;
-	box-sizing: border-box;
 }
 
 // ---- stepper ----
@@ -233,12 +232,7 @@ body[data-route^="data-import"] {
 }
 
 .diw-import-file-card-name {
-	color: var(--heading-color);
 	line-height: 1.35;
-}
-
-.diw-google-sheet-card-url {
-	color: var(--text-color);
 }
 
 .diw-google-sheet-host.is-locked {
@@ -279,12 +273,18 @@ body[data-route^="data-import"] {
 		max-width: 100%;
 
 		.dt-scrollable {
-			border-bottom: 1px solid var(--border-color);
 			overflow-x: auto;
+		}
 
-			.dt-row:last-child .dt-cell {
-				border-bottom: 1px solid var(--border-color);
-			}
+		// The .table-preview container draws the single rounded frame, so drop the
+		// datatable's own perimeter borders — otherwise they double at the edges and
+		// the rounded corners clip the square cell borders (the erased-corner look).
+		.dt-header .dt-cell {
+			border-top: 0;
+		}
+
+		.dt-cell--col-0 {
+			border-left: 0;
 		}
 	}
 }
@@ -306,27 +306,6 @@ body[data-route^="data-import"] {
 
 	.warnings {
 		.warning {
-			&[data-col],
-			&[data-row] {
-				padding-left: 14px;
-				border-left: none !important;
-
-				&::before {
-					content: "";
-					position: absolute;
-					left: 0;
-					top: 2px;
-					bottom: 2px;
-					width: 2px;
-					border-radius: 2px;
-					background: var(--yellow-500, #d8a100);
-				}
-			}
-
-			&[data-row]::before {
-				background: var(--red-300, #fca5a5);
-			}
-
 			.body {
 				color: var(--text-color);
 				line-height: 1.5;
@@ -342,9 +321,16 @@ body[data-route^="data-import"] {
 		}
 	}
 
-	.diw-warning-group-title {
-		letter-spacing: 0.04em;
+	.diw-row-warning-label {
+		text-underline-offset: 2px;
 	}
+}
+
+// Override fixed hover-card width for the row preview popover.
+.diw-row-preview-hover-card {
+	width: auto;
+	max-width: min(90vw, 56rem);
+	padding: var(--padding-sm);
 }
 
 .diw-fix-issues-step {
@@ -373,10 +359,6 @@ body[data-route^="data-import"] {
 }
 
 // ---- import log + progress ----
-.diw-import-log-metrics {
-	margin-bottom: var(--padding-lg);
-}
-
 .diw-import-progress-standard {
 	.es-progress__label {
 		font-size: var(--text-md);
@@ -490,6 +472,12 @@ body[data-route^="data-import"] {
 
 .diw-tree-filter-input {
 	box-sizing: border-box;
+	// Match the standard input height (28px) so the field lines up with the
+	// adjacent es-button (size sm = 28px) — was min-h-8 (32px) and sat taller.
+	height: var(--input-height);
+	// It's a <label>: Bootstrap's reset adds margin-bottom: .5rem, which inflated
+	// the flex row to 36px and top-aligned the field while the buttons centered.
+	margin: 0;
 
 	input,
 	.form-control {
@@ -535,10 +523,6 @@ body[data-route^="data-import"] {
 	.diw-footer {
 		padding-left: var(--padding-md);
 		padding-right: var(--padding-md);
-	}
-
-	.diw-import-log-metrics {
-		margin-bottom: var(--padding-md);
 	}
 
 	.diw-import-progress-stat .value {

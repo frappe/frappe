@@ -113,6 +113,73 @@ function dedupe_import_warnings(warnings) {
 	return [...rows, ...Object.values(by_col), ...others];
 }
 
+/** Warnings that can typically be solved through Value Mappings. */
+function is_mapping_warning(warning) {
+	return warning?.type === "value_mapping";
+}
+
+/** Horizontal preview table (header + one data row) for the Row errors hover card. */
+function build_import_row_preview_table(preview_data, row_number) {
+	const columns = preview_data?.columns || [];
+	const row = (preview_data?.data || []).find((r) => cint(r[0]) === cint(row_number));
+	const $wrap = $(`<div class="diw-row-preview-popover overflow-x-auto"></div>`);
+	if (!row) {
+		$wrap.append(
+			`<div class="text-sm text-muted">${__("No preview data for this row")}</div>`
+		);
+		return $wrap;
+	}
+
+	const cell_style =
+		"padding:6px 10px;border:1px solid var(--border-color);text-align:left;white-space:nowrap";
+	const th_style = `${cell_style};background:var(--control-bg);color:var(--heading-color);font-weight:600`;
+
+	const header_cells = columns
+		.map((col, i) => {
+			const label = col.header_title || col.df?.label || __("Column {0}", [i]);
+			return `<th style="${th_style}">${frappe.utils.escape_html(label)}</th>`;
+		})
+		.join("");
+
+	const data_cells = columns
+		.map((_, i) => {
+			const raw = row[i];
+			const value = raw == null || raw === "" ? "—" : cstr(raw);
+			const escaped = frappe.utils.escape_html(value);
+			return `<td style="${cell_style}" title="${escaped}">${escaped}</td>`;
+		})
+		.join("");
+
+	$wrap.html(`
+		<table style="border-collapse:collapse;font-size:var(--text-sm)">
+			<thead><tr>${header_cells}</tr></thead>
+			<tbody><tr>${data_cells}</tr></tbody>
+		</table>
+	`);
+	return $wrap;
+}
+
+/** Attach hover cards on "Row N" labels so the sheet row can be previewed. */
+function setup_row_warning_hover_cards(frm, preview_data) {
+	const $wrapper = frm.get_field("import_warnings")?.$wrapper;
+	if (!$wrapper?.length) return;
+
+	$wrapper.find(".diw-row-warning-label").each((_, el) => {
+		const $el = $(el);
+		$el.data("es-hover-card")?.destroy?.();
+		$el.removeData("es-hover-card");
+		const row_number = cint(el.getAttribute("data-row"));
+		frappe.ui.hover_card($el, {
+			side: "bottom",
+			align: "start",
+			open_delay: 250,
+			close_delay: 150,
+			css_class: "diw-row-preview-hover-card",
+			content: () => build_import_row_preview_table(preview_data, row_number),
+		});
+	});
+}
+
 /** 1-based sheet row numbers marked to skip on the Data Import form. */
 function get_skipped_row_set(frm) {
 	return new Set((frm.doc.skipped_rows || []).map((row) => cint(row.row_number)));
@@ -216,7 +283,7 @@ function detach_fix_issues_fields(frm) {
 	}
 }
 
-/** Mount warnings and value-mapping sections into the Fix Issues step container. */
+/** Mount warnings into the Fix Issues step; Value Mappings sits under Mapping warnings. */
 function mount_fix_issues_step(frm, container) {
 	const state = prepare_fix_issues_step(frm);
 	detach_fix_issues_fields(frm);
@@ -228,61 +295,40 @@ function mount_fix_issues_step(frm, container) {
 
 	const $step = $('<div class="diw-fix-issues-step flex flex-col gap-5"></div>');
 
-	const sections = [
-		{
-			section_name: "import_warnings_section",
-			fieldnames: ["import_warnings"],
-			show: state.has_warnings,
-			label: __("Import file errors and warnings ({0})", [state.warnings_count]),
-		},
-		{
-			section_name: "value_mappings_section",
-			fieldnames: ["value_mappings"],
-			show: state.has_mappings,
-			label: __("Value mappings ({0})", [state.value_mappings_count]),
-		},
-	];
-
-	for (const section of sections) {
-		if (!section.show) continue;
-
-		const $shell = $(`
-			<div class="form-section diw-fix-issues-section border-0 m-0 p-0 bg-transparent shadow-none" data-fieldname="${
-				section.section_name
-			}">
-				<div class="section-head text-lg-semibold pb-3 m-0">${frappe.utils.escape_html(
-					section.label
-				)}</div>
-				<div class="section-body m-0 p-0"></div>
-			</div>
-		`);
-		const $body = $shell.find(".section-body");
-
-		for (const fieldname of section.fieldnames) {
-			const field = frm.fields_dict[fieldname];
-			if (!field?.$wrapper?.length) continue;
-			frm.toggle_display(fieldname, true);
-			$body.append(field.$wrapper);
-		}
-
-		if (!$body.children().length) continue;
-		$step.append($shell);
+	// No top "Issues" heading — group headlines live inside the warnings HTML.
+	const warnings_field = frm.fields_dict.import_warnings;
+	if (warnings_field?.$wrapper?.length && (state.has_warnings || state.has_mappings)) {
+		frm.toggle_display("import_warnings", true);
+		$step.append(warnings_field.$wrapper);
 	}
 
 	if (!$step.children().length) {
 		return state;
 	}
 
-	$content.find('.frappe-control[data-fieldname="value_mappings"] > .tooltip-content').remove();
 	$content.append($step);
+	place_value_mappings_in_mapping_section(frm, $step);
+	return state;
+}
 
-	if (state.has_mappings) {
-		frm.events.setup_value_mappings_grid(frm);
-		// Reparenting detaches the grid from layout — refresh rebinds row controls and clicks.
-		frm.fields_dict.value_mappings?.grid?.refresh?.();
+/** Move the Value Mappings grid under the Mapping warnings helper text. */
+function place_value_mappings_in_mapping_section(frm, $root) {
+	const field = frm.fields_dict.value_mappings;
+	if (!field?.$wrapper?.length) return;
+
+	const $host = ($root || $(document)).find(".diw-mapping-grid-host").first();
+	const has_mappings = (frm.doc.value_mappings || []).length > 0;
+	if (!has_mappings || !$host.length) {
+		field.$wrapper.detach();
+		frm.toggle_display("value_mappings", false);
+		return;
 	}
 
-	return state;
+	frm.toggle_display("value_mappings", true);
+	$host.empty().append(field.$wrapper);
+	field.$wrapper.find("> .tooltip-content").remove();
+	frm.events.setup_value_mappings_grid(frm);
+	field.grid?.refresh?.();
 }
 
 /** Show a muted (count) badge on a collapsible section header, before the chevron. */
@@ -520,7 +566,7 @@ function get_import_log_skeleton_html() {
 	return `<div class="flex flex-col gap-3 w-full" aria-busy="true" aria-label="${frappe.utils.escape_html(
 		__("Loading import log")
 	)}">
-		<div class="diw-import-log-metrics w-full border rounded-md overflow-hidden bg-surface-base" role="list">
+		<div class="diw-import-log-metrics mb-3 mb-md-4 w-full border rounded-md overflow-hidden bg-surface-base" role="list">
 			${[0, 0, 0]
 				.map(
 					() =>
@@ -888,6 +934,12 @@ frappe.ui.form.on("Data Import", {
 	after_save(frm) {
 		if (cint(frm.wizard_step) === 2) {
 			frm._data_import_wizard?.refresh_fix_issues?.();
+		}
+		// Column remap only dirties template_options; refresh preview after Save.
+		if (frm._diw_column_map_dirty) {
+			frm._diw_column_map_dirty = false;
+			frm.events.import_file(frm, { force: true });
+			return;
 		}
 		// File may have been attached while the doc was still new — preview was deferred.
 		if (should_auto_import_preview(frm)) {
@@ -2113,15 +2165,22 @@ frappe.ui.form.on("Data Import", {
 							)
 						);
 						if (!Object.keys(next_changes).length) {
-							frappe.show_alert({
-								message: __("No mapping changes"),
-								indicator: "blue",
-							});
 							return;
 						}
 						Object.assign(template_options.column_to_field_map, next_changes);
+						// Store on the form only — Save persists, after_save refreshes preview.
 						frm.set_value("template_options", JSON.stringify(template_options));
-						frm.save().then(() => frm.trigger("import_file"));
+						frm._diw_column_map_dirty = true;
+					},
+					set_column_date_format(index, date_format) {
+						let template_options = JSON.parse(frm.doc.template_options || "{}");
+						template_options.column_to_date_format_map =
+							template_options.column_to_date_format_map || {};
+						if (template_options.column_to_date_format_map[index] === date_format)
+							return;
+						template_options.column_to_date_format_map[index] = date_format;
+						frm.set_value("template_options", JSON.stringify(template_options));
+						frm._diw_column_map_dirty = true;
 					},
 				},
 				on_ready() {
@@ -2196,7 +2255,6 @@ frappe.ui.form.on("Data Import", {
 		// Saved value mappings are explicit user decisions — show and set them up
 		// whenever they exist, regardless of whether this preview run redetects hints
 		// for them (that signal is timing-dependent on the async preview fetch).
-		// toggle_import_issues_ui() calls setup_value_mappings_grid() when show_mappings is true.
 		const has_saved_mappings = (frm.doc.value_mappings || []).length > 0;
 		frm.events.toggle_import_issues_ui(frm, warnings.length > 0, has_saved_mappings);
 		update_section_count(
@@ -2206,7 +2264,7 @@ frappe.ui.form.on("Data Import", {
 			"value-mappings-count"
 		);
 
-		if (!warnings.length) {
+		if (!warnings.length && !has_saved_mappings) {
 			frm.get_field("import_warnings").$wrapper.html("");
 			update_section_count(frm, "import_warnings_section", 0, "import-warnings-count");
 			return;
@@ -2214,26 +2272,26 @@ frappe.ui.form.on("Data Import", {
 
 		let warnings_by_row = {};
 		let column_warnings = [];
+		let mapping_warnings = [];
 		let generic_warnings = [];
-		const is_unknown_column_warning = (warning) => {
-			if (!warning?.col) return false;
-			if (warning.code === "unknown_column") return true;
-			return (warning.message || "").toLowerCase().includes("does not match any field");
-		};
 		for (let warning of warnings) {
 			if (warning.row) {
 				warnings_by_row[warning.row] = warnings_by_row[warning.row] || [];
 				warnings_by_row[warning.row].push(warning);
 			} else if (warning.col) {
-				column_warnings.push(warning);
+				if (is_mapping_warning(warning)) {
+					mapping_warnings.push(warning);
+				} else {
+					column_warnings.push(warning);
+				}
 			} else {
 				generic_warnings.push(warning);
 			}
 		}
 
-		let row_issue_html = "";
+		let row_error_html = "";
 		const skipped_rows = get_skipped_row_set(frm);
-		row_issue_html += Object.keys(warnings_by_row)
+		row_error_html += Object.keys(warnings_by_row)
 			.sort((a, b) => cint(a) - cint(b))
 			.map((row_number) => {
 				let message = warnings_by_row[row_number]
@@ -2254,53 +2312,86 @@ frappe.ui.form.on("Data Import", {
 					label: is_skipped ? __("Undo Skip") : __("Skip Row"),
 					size: "xs",
 					variant: "outline",
-					css_class: "skip-row-btn",
+					css_class: "skip-row-btn shrink-0",
 					attrs: { "data-row": String(row_number) },
 				});
 				return `
 				<div class="warning relative m-0 p-0 border-0 bg-transparent${
 					is_skipped ? " skipped" : ""
 				}" data-row="${row_number}">
-					<h5 class="warning-row-header flex items-center gap-3 mb-1 text-base-semibold">
-						<span>${__("Row {0}", [row_number])}</span>
+					<div class="warning-row-header flex items-center justify-between gap-3 mb-1">
+						<button type="button" class="diw-row-warning-label text-base-semibold text-ink-gray-9 underline p-0 border-0 bg-transparent cursor-pointer" data-row="${row_number}">
+							${__("Row {0}", [row_number])}
+						</button>
 						${skip_btn}
-					</h5>
+					</div>
 					<div class="body"><ul class="list-none m-0 p-0 flex flex-col gap-1">${message}</ul></div>
 				</div>
 			`;
 			})
 			.join("");
+		if (row_error_html) {
+			row_error_html = `<div class="flex flex-col gap-3">${row_error_html}</div>`;
+		}
 
-		let column_issue_html = column_warnings
+		const show_mapping_section = mapping_warnings.length > 0 || has_saved_mappings;
+		let mapping_warning_html = "";
+		if (show_mapping_section) {
+			let helper = "";
+			if (mapping_warnings.length) {
+				const affected_columns = [
+					...new Set(
+						mapping_warnings
+							.map(
+								(warning) =>
+									columns?.[warning.col]?.header_title ||
+									__("Column {0}", [warning.col])
+							)
+							.filter(Boolean)
+					),
+				];
+				const column_labels = affected_columns
+					.map((label) => `<strong>${frappe.utils.escape_html(label)}</strong>`)
+					.join(", ");
+				helper = `
+					<div class="body mb-3">
+						${__("Some columns have invalid values. Map them to valid values below. Affected columns: {0}.", [
+							column_labels,
+						])}
+					</div>
+				`;
+			}
+			mapping_warning_html = `
+				<div class="warning-mapping m-0 p-0">
+					${helper}
+					<div class="diw-mapping-grid-host"></div>
+				</div>
+			`;
+		}
+
+		let column_warning_html = column_warnings
 			.map((warning) => {
 				let column_number = __("Column {0}", [warning.col]);
-				let header = `<span class="text-uppercase">${column_number}</span>`;
-				let map_columns_btn = "";
+				let header = column_number;
 				if (columns && warning.col) {
 					let column_header = columns[warning.col]?.header_title
 						? frappe.utils.escape_html(columns[warning.col].header_title)
 						: "";
 					header = column_header ? `${column_header} (${column_number})` : header;
-					if (is_unknown_column_warning(warning)) {
-						map_columns_btn = frappe.ui.button.html({
-							label: __("Map columns"),
-							size: "xs",
-							variant: "outline",
-							css_class: "map-columns-fix-btn",
-						});
-					}
 				}
 				return `
 					<div class="warning relative m-0 p-0 border-0 bg-transparent" data-col="${warning.col}">
 						<h5 class="warning-row-header warning-col-header flex items-center gap-3 mb-1 text-base-semibold">
 							<span>${header}</span>
-							${map_columns_btn}
 						</h5>
 						<div class="body">${warning.message}</div>
 					</div>
 				`;
 			})
 			.join("");
+		if (column_warning_html) {
+			column_warning_html = `<div class="flex flex-col gap-3">${column_warning_html}</div>`;
+		}
 
 		let generic_issue_html = generic_warnings
 			.map(
@@ -2311,41 +2402,53 @@ frappe.ui.form.on("Data Import", {
 				`
 			)
 			.join("");
+		if (generic_issue_html) {
+			generic_issue_html = `<div class="flex flex-col gap-3">${generic_issue_html}</div>`;
+		}
 
 		let html = "";
 		let group_index = 0;
 		const warning_group = (title, body) => {
-			const spacing = group_index++ ? " mt-3 pt-3 border-t" : "";
+			const spacing = group_index++ ? " mt-4 pt-4 border-t" : "";
 			return `
 				<div class="diw-warning-group${spacing}">
-					<div class="diw-warning-group-title text-uppercase text-sm-semibold text-muted mb-3">${title}</div>
+					<div class="diw-warning-group-title text-base-semibold text-ink-gray-9 mb-2">${title}</div>
 					${body}
 				</div>
 			`;
 		};
-		if (row_issue_html) {
-			html += warning_group(__("Row issues"), row_issue_html);
+		if (row_error_html) {
+			html += warning_group(__("Row errors"), row_error_html);
 		}
 
-		if (column_issue_html) {
-			html += warning_group(__("Column issues"), column_issue_html);
+		if (mapping_warning_html) {
+			html += warning_group(__("Mapping warnings"), mapping_warning_html);
+		}
+
+		if (column_warning_html) {
+			html += warning_group(__("Column warnings"), column_warning_html);
 		}
 
 		if (generic_issue_html) {
 			html += warning_group(__("Issues"), generic_issue_html);
 		}
 
-		if (warnings.length) {
-			frm.get_field("import_warnings").$wrapper.html(
-				`<div class="warnings w-full m-0 p-0 flex flex-col gap-3">${html}</div>`
-			);
-			update_section_count(
-				frm,
-				"import_warnings_section",
-				warnings.length,
-				"import-warnings-count"
-			);
+		frm.get_field("import_warnings").$wrapper.html(
+			html ? `<div class="warnings w-full m-0 p-0 flex flex-col gap-3">${html}</div>` : ""
+		);
+		update_section_count(
+			frm,
+			"import_warnings_section",
+			warnings.length,
+			"import-warnings-count"
+		);
+
+		// Re-attach grid under Mapping warnings after HTML refresh (e.g. Skip Row).
+		const $step = frm.get_field("import_warnings")?.$wrapper?.closest(".diw-fix-issues-step");
+		if ($step?.length) {
+			place_value_mappings_in_mapping_section(frm, $step);
 		}
+		setup_row_warning_hover_cards(frm, preview_data || get_fix_issues_preview_data(frm));
 	},
 
 	setup_skip_row_handlers(frm) {
@@ -2355,26 +2458,6 @@ frappe.ui.form.on("Data Import", {
 			e.preventDefault();
 			frm.events.toggle_skip_row(frm, $(e.currentTarget).data("row"));
 		});
-		frm.get_field("import_warnings").$wrapper.on("click", ".map-columns-fix-btn", (e) => {
-			e.preventDefault();
-			frm.events.open_column_mapper_from_warnings(frm);
-		});
-	},
-
-	open_column_mapper_from_warnings(frm) {
-		frm.events.go_to_wizard_step(frm, 1);
-		const open_mapper = (attempt = 0) => {
-			if (frm.import_preview?.show_column_mapper) {
-				frm.import_preview.show_column_mapper();
-				return;
-			}
-			if (attempt >= 10) {
-				frappe.msgprint(__("Preview is still loading. Please try again."));
-				return;
-			}
-			setTimeout(() => open_mapper(attempt + 1), 100);
-		};
-		open_mapper();
 	},
 
 	/** Re-render datatable when the preview section is expanded after collapse. */
@@ -2666,7 +2749,7 @@ frappe.ui.form.on("Data Import", {
 
 			const wrapper = frm.get_field("import_log_preview").$wrapper;
 			wrapper.html(`
-				<div class="diw-import-log-metrics flex max-md:flex-col w-full" role="list" aria-label="${frappe.utils.escape_html(
+				<div class="diw-import-log-metrics mb-3 mb-md-4 flex max-md:flex-col w-full" role="list" aria-label="${frappe.utils.escape_html(
 					__("Import metrics")
 				)}">
 					${metric_html.join(metric_separator)}

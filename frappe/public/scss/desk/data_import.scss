@@ -2,22 +2,7 @@
 // Layout/spacing/border utilities live on the markup (utilities.scss).
 // Keep only component-specific rules: form overrides, indicators, and tree chrome.
 
-.map-columns .form-section {
-	padding: 0 7px 7px;
-	border-top: none;
-
-	.clearfix {
-		display: none;
-	}
-}
-
-.map-columns .form-section:first-child {
-	padding-top: 7px;
-}
-
 .table-preview {
-	margin-top: 12px;
-
 	.datatable {
 		width: max-content;
 		min-width: 100%;
@@ -36,7 +21,7 @@
 	}
 }
 
-// Column header status dots (mapped / skipped)
+// Column header status dots (mapped / skipped) — status colors not espresso utilities.
 .diw-preview-col-dot {
 	&--mapped {
 		background-color: var(--green-500, #39a84b);
@@ -47,26 +32,13 @@
 	}
 }
 
-.diw-preview-col-header--skipped .diw-preview-col-title {
-	color: var(--text-muted);
-}
-
 .import-tree-preview-panel {
 	.import-tree-body {
 		max-height: 380px;
-		border: none;
 
 		.tree {
 			padding: var(--padding-sm);
 		}
-	}
-
-	.import-tree-row-number {
-		font-weight: normal;
-	}
-
-	.import-tree-node-orphan .diw-tree-label {
-		color: var(--orange-600);
 	}
 }
 

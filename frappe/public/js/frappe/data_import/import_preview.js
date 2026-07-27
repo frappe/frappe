@@ -8,6 +8,60 @@ import { get_columns_for_picker } from "./data_exporter";
 
 frappe.provide("frappe.data_import");
 
+/** Sentinel mapping value (matches remap_column behavior). */
+const DONT_IMPORT = "Don't Import";
+/** Placeholder values used by the synthetic first-row mapper. */
+const DIW_MAP_CELL = "__diw_col_map__";
+const DIW_MAP_LABEL = "__diw_col_map_label__";
+
+const DATE_FIELDTYPES = ["Date", "Datetime", "Time"];
+
+// Curated formats for the date format pill (strptime + display). The column's
+// auto-detected format is always offered even if not listed.
+const COMMON_DATE_FORMATS = [
+	"%Y-%m-%d",
+	"%d-%m-%Y",
+	"%m-%d-%Y",
+	"%d/%m/%Y",
+	"%m/%d/%Y",
+	"%Y/%m/%d",
+	"%d.%m.%Y",
+	"%d-%b-%Y",
+];
+const COMMON_TIME_FORMATS = ["%H:%M:%S", "%H:%M", "%I:%M:%S %p", "%I:%M %p"];
+
+/** strptime format -> human display, e.g. "%Y-%m-%d" -> "yyyy-mm-dd". */
+function date_format_label(fmt) {
+	return (fmt || "")
+		.replace(/%Y/g, "yyyy")
+		.replace(/%y/g, "yy")
+		.replace(/%m/g, "mm")
+		.replace(/%d/g, "dd")
+		.replace(/%B/g, "Month")
+		.replace(/%b/g, "Mon")
+		.replace(/%H/g, "HH")
+		.replace(/%I/g, "hh")
+		.replace(/%M/g, "mm")
+		.replace(/%S/g, "ss")
+		.replace(/%p/g, "AM/PM")
+		.replace(/%f/g, "SSS");
+}
+
+/** Curated format options {value, label} for a Date / Time / Datetime column. */
+function get_date_format_options(fieldtype) {
+	if (fieldtype === "Time") {
+		return COMMON_TIME_FORMATS.map((f) => ({ value: f, label: date_format_label(f) }));
+	}
+	const base = COMMON_DATE_FORMATS;
+	if (fieldtype === "Datetime") {
+		return base.map((f) => {
+			const value = `${f} %H:%M:%S`;
+			return { value, label: date_format_label(value) };
+		});
+	}
+	return base.map((f) => ({ value: f, label: date_format_label(f) }));
+}
+
 frappe.data_import.ImportPreview = class ImportPreview {
 	constructor({ wrapper, doctype, preview_data, frm, import_log, events = {}, on_ready } = {}) {
 		this.wrapper = wrapper;
@@ -43,17 +97,11 @@ frappe.data_import.ImportPreview = class ImportPreview {
 						<div class="table-actions inline-flex items-center shrink-0"></div>
 						<div class="diw-preview-toolbar-meta table-message text-base text-muted ms-auto text-right whitespace-nowrap max-md:w-full max-md:ms-0 max-md:text-left max-md:whitespace-normal"></div>
 					</div>
-					<div class="table-preview min-w-0 w-full border rounded-md overflow-hidden bg-surface-base"></div>
+					<div class="table-preview mt-3 min-w-0 w-full border rounded-md bg-surface-base"></div>
 				</div>
 			`);
 			$preview = this.wrapper.find(".diw-table-preview");
 		}
-		this.wrapper.off("click.import_preview_actions");
-		this.wrapper.on("click.import_preview_actions", ".diw-preview-map-btn", (e) => {
-			e.preventDefault();
-			e.stopPropagation();
-			this.show_column_mapper(e, $(e.currentTarget));
-		});
 
 		this.$table_preview = $preview.find(".table-preview");
 	}
@@ -74,6 +122,10 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					focusable: false,
 					align: "left",
 					width: 56,
+					format: (value) => {
+						if (value === DIW_MAP_LABEL) return "1";
+						return value == null ? "" : value;
+					},
 				};
 			}
 
@@ -82,8 +134,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					frappe.utils.escape_html(col.header_title) ||
 					`<i>${__("Untitled Column")}</i>`;
 				let column_title = `<span class="diw-preview-col-header diw-preview-col-header--skipped inline-flex items-center gap-2 min-w-0">
-					<span class="diw-preview-col-dot diw-preview-col-dot--skipped shrink-0 size-2 rounded-full" aria-hidden="true"></span>
-					<span class="diw-preview-col-title truncate">${title}</span>
+					<span class="diw-preview-col-dot diw-preview-col-dot--skipped inline-flex shrink-0 size-2 rounded-full" aria-hidden="true"></span>
+					<span class="diw-preview-col-title truncate text-muted">${title}</span>
 				</span>`;
 				return {
 					id: `skipped-${i}`,
@@ -96,30 +148,29 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					focusable: false,
 					align: "left",
 					width: column_width,
-					format: (value) => `<div class="text-muted">${value}</div>`,
+					format: (value) => {
+						if (value === DIW_MAP_CELL) {
+							return `<span class="diw-col-map-field block min-w-0 w-full" data-col-index="${i}"></span>`;
+						}
+						return `<div class="text-muted">${value}</div>`;
+					},
 				};
 			}
 
-			let date_format = col.date_format
-				? col.date_format
-						.replace("%Y", "yyyy")
-						.replace("%y", "yy")
-						.replace("%m", "mm")
-						.replace("%d", "dd")
-						.replace("%H", "HH")
-						.replace("%M", "mm")
-						.replace("%S", "ss")
-						.replace("%b", "Mon")
-				: null;
+			const is_date = DATE_FIELDTYPES.includes(df.fieldtype);
+			if (is_date) {
+				column_width = Math.max(column_width, 200);
+			}
 
-			let column_title = `<span class="diw-preview-col-header inline-flex items-center gap-2 min-w-0">
-				<span class="diw-preview-col-dot diw-preview-col-dot--mapped shrink-0 size-2 rounded-full" aria-hidden="true"></span>
-				<span class="diw-preview-col-title truncate">${
+			// Status dot + sheet title; date columns get a calendar format pill.
+			let column_title = `<span class="diw-preview-col-header inline-flex items-center gap-2 min-w-0 w-full">
+				<span class="diw-preview-col-dot diw-preview-col-dot--mapped inline-flex shrink-0 size-2 rounded-full" aria-hidden="true"></span>
+				<span class="diw-preview-col-title truncate min-w-0">${
 					frappe.utils.escape_html(col.header_title) || df.label
 				}</span>
 				${
-					date_format
-						? `<span class="diw-preview-col-format shrink-0 text-xs text-muted">(${date_format})</span>`
+					is_date
+						? `<span class="diw-col-map-fmt-mount ms-auto shrink-0 inline-flex" data-col-index="${i}"></span>`
 						: ""
 				}
 			</span>`;
@@ -132,8 +183,32 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				editable: false,
 				align: "left",
 				width: column_width,
+				format: (value) => {
+					if (value === DIW_MAP_CELL) {
+						return `<span class="diw-col-map-field block min-w-0 w-full" data-col-index="${i}"></span>`;
+					}
+					return value == null ? "" : value;
+				},
 			};
 		});
+	}
+
+	/** Current mapped field for one preview column. */
+	get_column_map_value(col) {
+		const df = col.df;
+		if (col.skip_import || !df) return DONT_IMPORT;
+		if (col.map_to_field) return col.map_to_field;
+		if (col.is_child_table_field) {
+			return `${col.child_table_df.fieldname}.${df.fieldname}`;
+		}
+		return df.fieldname;
+	}
+
+	/** Synthetic first row that hosts inline mapping controls. */
+	build_mapping_row() {
+		return (this.preview_data.columns || []).map((col) =>
+			is_sr_no_column(col) ? DIW_MAP_LABEL : DIW_MAP_CELL
+		);
 	}
 
 	prepare_data() {
@@ -149,6 +224,12 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				return cell;
 			});
 		});
+
+		// Keep preview table simple, but add a first-row mapper for column mapping.
+		this._has_mapping_row = this.frm?.doc?.status !== "Success";
+		if (this._has_mapping_row) {
+			this.data = [this.build_mapping_row(), ...this.data];
+		}
 	}
 
 	/** Build or refresh the datatable once the pane has a stable width. */
@@ -273,7 +354,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					data: this.data,
 					columns,
 					layout: "fixed",
-					cellHeight: 35,
+					cellHeight: 42,
 					language: frappe.boot.lang,
 					translations: frappe.utils.datatable.get_translations(),
 					serialNoColumn: false,
@@ -305,6 +386,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.setup_styles();
 
 		this.setup_wizard_scroll();
+		this.mount_column_map_controls();
+		this.mount_date_format_controls();
 
 		// A datatable freshly built inside the wizard preview can be measured before
 		// its pane has a stable width — for tree doctypes the Table pane is revealed
@@ -331,6 +414,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				try {
 					this.datatable.refresh(this.data, this._get_render_columns());
 					this.setup_wizard_scroll();
+					this.mount_column_map_controls();
+					this.mount_date_format_controls();
 				} catch (error) {
 					// A later interaction will reconcile; avoid throwing mid-frame.
 				}
@@ -389,8 +474,9 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		const rows = this.data?.length || 0;
 		const preview_limited = Boolean(this.preview_data?.max_rows_exceeded);
 		const dynamic_height = Math.min(360, Math.max(220, window.innerHeight * 0.42));
-		const compact_height = Math.max(120, rows * 35 + 44);
-		const use_compact = rows > 0 && rows <= 10 && !preview_limited;
+		const compact_height = Math.max(120, rows * 42 + 44);
+		// Mapper row adds one extra row; keep compact mode on for common 10-row previews.
+		const use_compact = rows > 0 && rows <= 12 && !preview_limited;
 		const scroll_height = use_compact ? compact_height : dynamic_height;
 
 		this.datatable.style.setStyle(".dt-scrollable", {
@@ -398,10 +484,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			overflowX: "auto",
 			overflowY: use_compact ? "hidden" : "auto",
 		});
-		this.$table_preview.css({
-			overflowX: "auto",
-			overflowY: "hidden",
-		});
+		// Keep host overflow neutral so inline Autocomplete dropdown can escape cells.
+		this.$table_preview.css({ overflowX: "", overflowY: "" });
 	}
 
 	/** Scroll to and highlight a sheet row in the table preview. */
@@ -427,14 +511,15 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	/** Row count in the preview toolbar (right side). */
 	render_table_message() {
 		const $message = this.wrapper.find(".table-message");
-		if (!this.data.length) {
+		const visible_rows = this._has_mapping_row ? this.data.length - 1 : this.data.length;
+		if (!visible_rows) {
 			$message.empty();
 			return;
 		}
 
 		const { max_rows_exceeded, max_rows_in_preview, total_number_of_rows } = this.preview_data;
-		const total = total_number_of_rows ?? this.data.length;
-		const shown = max_rows_exceeded ? max_rows_in_preview : this.data.length;
+		const total = total_number_of_rows ?? visible_rows;
+		const shown = max_rows_exceeded ? max_rows_in_preview : visible_rows;
 		let text;
 		if (max_rows_exceeded || shown < total) {
 			text = __("Showing first {0} rows of {1}", [shown, total]);
@@ -447,6 +532,13 @@ frappe.data_import.ImportPreview = class ImportPreview {
 
 	setup_styles() {
 		if (!this.datatable?.style) return;
+		this.datatable.style.setStyle(".dt-row", {
+			height: "42px",
+		});
+		this.datatable.style.setStyle(".dt-cell__content", {
+			display: "flex",
+			alignItems: "center",
+		});
 
 		// import success checkbox
 		this.datatable.style.setStyle(`svg.import-success`, {
@@ -467,138 +559,196 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		});
 	}
 
-	add_actions() {
-		let actions = [
-			{
-				label: __("Map columns"),
-				handler: "show_column_mapper",
-				condition: this.frm.doc.status !== "Success",
-			},
-		];
+	/**
+	 * Mount a simple inline Autocomplete in mapper row; Save persists mapping via
+	 * existing remap_column + after_save flow.
+	 */
+	mount_column_map_controls() {
+		this._map_controls?.forEach((control) => {
+			control.$wrapper?.remove();
+		});
+		this._map_controls = [];
+		if (this._mapping_dropdown_scroll_handler) {
+			document.removeEventListener("scroll", this._mapping_dropdown_scroll_handler, true);
+			this._mapping_dropdown_scroll_handler = null;
+		}
+		this.$table_preview?.off(".diw-map-portal");
+		if (!this.$table_preview?.length) return;
+		if (this.frm?.doc?.status === "Success") return;
 
-		let html = actions
-			.filter((action) => action.condition)
-			.map((action) => {
-				// No inline onclick — the delegated click.import_preview_actions handler
-				// owns these buttons; two bindings opened duplicate dialogs.
-				if (action.handler === "show_column_mapper") {
-					return frappe.ui.button.html({
-						label: action.label,
-						variant: "outline",
-						icon_left: "arrow-right-left",
-						css_class: "diw-preview-map-btn",
-						attrs: { "data-action": action.handler },
-					});
-				}
-				return frappe.ui.button.html({
-					label: action.label,
-					variant: "outline",
-					attrs: { "data-action": action.handler },
-				});
-			});
+		const options = [{ label: __("Don't Import"), value: DONT_IMPORT }].concat(
+			get_fields_as_options(this.doctype, get_columns_for_picker(this.doctype))
+		);
 
-		this.wrapper.find(".table-actions").html(html.join(""));
-	}
+		this.$table_preview.find(".diw-col-map-field").each((_, el) => {
+			const i = cint(el.getAttribute("data-col-index"));
+			const col = this.preview_data.columns[i];
+			if (!(i > 0) || !col) return;
 
-	show_column_mapper() {
-		let column_picker_fields = get_columns_for_picker(this.doctype);
-		let changed = [];
-		let initial_map_by_index = {};
-		let fields = this.preview_data.columns.map((col, i) => {
-			let df = col.df;
-			const is_row_number_col = is_sr_no_column(col);
-			if (is_row_number_col) return [];
-
-			let fieldname;
-			if (col.map_to_field) {
-				fieldname = col.map_to_field;
-			} else if (!df) {
-				fieldname = null;
-			} else if (col.is_child_table_field) {
-				fieldname = `${col.child_table_df.fieldname}.${df.fieldname}`;
-			} else {
-				fieldname = df.fieldname;
-			}
-			initial_map_by_index[i] = fieldname || "Don't Import";
-			return [
-				{
-					label: "",
-					fieldtype: "Data",
-					default: col.header_title,
-					fieldname: `Column ${i}`,
-					read_only: 1,
-				},
-				{
-					fieldtype: "Column Break",
-				},
-				{
+			const current = this.get_column_map_value(col);
+			let ready = false;
+			let applied = current;
+			const control = frappe.ui.form.make_control({
+				parent: el,
+				only_input: true,
+				df: {
 					fieldtype: "Autocomplete",
-					fieldname: i,
+					fieldname: `column_map_${i}`,
 					label: "",
+					input_class: "input-xs",
 					max_items: Infinity,
-					options: [
-						{
-							label: __("Don't Import"),
-							value: "Don't Import",
-						},
-					].concat(get_fields_as_options(this.doctype, column_picker_fields)),
-					default: fieldname || "Don't Import",
-					change() {
-						changed.push(i);
+					options,
+					default: current,
+					change: () => {
+						if (!ready) return;
+						const next = control.get_value() || DONT_IMPORT;
+						if (next === applied) return;
+						applied = next;
+						this.events.remap_column({ [i - 1]: next });
 					},
 				},
-				{
-					fieldtype: "Section Break",
-				},
-			];
+				render_input: true,
+			});
+			control.set_value(current);
+			control.$wrapper.addClass("w-full m-0");
+			control.$wrapper.find(".tooltip-content").addClass("hidden");
+			control.$input.addClass("rounded w-full");
+			control.$wrapper.on("mousedown click", (e) => e.stopPropagation());
+			ready = true;
+			this._map_controls.push(control);
 		});
-		// flatten the array
-		fields = fields.reduce((acc, curr) => [...acc, ...curr]);
-		let file_name = (this.frm.doc.import_file || "").split("/").pop();
-		let parts = [file_name.bold(), this.doctype.bold()];
-		fields = [
-			{
-				fieldtype: "HTML",
-				fieldname: "heading",
-				options: `
-					<div class="margin-top text-muted">
-					${__("Map columns from {0} to fields in {1}", parts)}
-					</div>
-				`,
-			},
-			{
-				fieldtype: "Section Break",
-			},
-		].concat(fields);
 
-		if (this._column_mapper_dialog) {
-			this._column_mapper_dialog.hide();
-			this._column_mapper_dialog.$wrapper?.remove();
-			this._column_mapper_dialog = null;
-		}
+		this.setup_mapping_dropdown_portal();
+	}
 
-		let dialog = new frappe.ui.Dialog({
-			title: __("Map Columns"),
-			fields,
-			primary_action: (values) => {
-				let changed_map = {};
-				changed.map((i) => {
-					let header_row_index = i - 1;
-					const next_value = values[i] || "Don't Import";
-					const current_value = initial_map_by_index[i] || "Don't Import";
-					if (next_value !== current_value) {
-						changed_map[header_row_index] = next_value;
-					}
-				});
-				if (Object.keys(changed_map).length > 0) {
-					this.events.remap_column(changed_map);
+	/** Shared dropdown positioning for all mapper Autocomplete inputs. */
+	setup_mapping_dropdown_portal() {
+		if (!this.$table_preview?.length) return;
+		const get_dropdown = (input) => $(input).closest(".awesomplete").children("ul").get(0);
+
+		const position_dropdown = (input) => {
+			// Fixed coords break inside transformed modal contexts; skip there.
+			if (input.closest(".form-in-grid")) return;
+			const ul = get_dropdown(input);
+			if (!ul) return;
+			const rect = input.getBoundingClientRect();
+			const list_width = Math.max(rect.width, 250);
+			// Fixed positioning escapes the wizard scroll container clipping.
+			$(ul).css({
+				position: "fixed",
+				left: rect.left,
+				top: rect.bottom,
+				width: `${list_width}px`,
+				minWidth: `${list_width}px`,
+				maxWidth: "420px",
+				zIndex: 1050,
+			});
+		};
+
+		this.$table_preview.on(
+			"awesomplete-open.diw-map-portal",
+			".diw-col-map-field input",
+			function () {
+				position_dropdown(this);
+			}
+		);
+		this.$table_preview.on(
+			"input.diw-map-portal focus.diw-map-portal",
+			".diw-col-map-field input",
+			function () {
+				const ul = get_dropdown(this);
+				if (ul && !$(ul).is(":hidden")) {
+					position_dropdown(this);
 				}
-				dialog.hide();
-			},
+			}
+		);
+
+		if (this._mapping_dropdown_scroll_handler) {
+			document.removeEventListener("scroll", this._mapping_dropdown_scroll_handler, true);
+		}
+		// Capture phase catches scrolls on the wizard panel and nested containers.
+		const reposition_open_dropdowns = () => {
+			this.$table_preview.find(".diw-col-map-field input:focus").each(function () {
+				const ul = get_dropdown(this);
+				if (ul && $(ul).is(":visible")) {
+					position_dropdown(this);
+				}
+			});
+		};
+		document.addEventListener("scroll", reposition_open_dropdowns, true);
+		this._mapping_dropdown_scroll_handler = reposition_open_dropdowns;
+	}
+
+	/** Mount calendar format pills on Date / Time / Datetime column headers. */
+	mount_date_format_controls() {
+		this._fmt_dropdowns?.forEach((dropdown) => dropdown.destroy?.());
+		this._fmt_dropdowns = [];
+
+		if (!this.$table_preview?.length) return;
+		if (this.frm?.doc?.status === "Success") return;
+
+		this.$table_preview.find(".diw-col-map-fmt-mount").each((_, mount) => {
+			const i = cint(mount.getAttribute("data-col-index"));
+			const col = this.preview_data.columns[i];
+			if (!col?.df) return;
+
+			const fmt_label = col.date_format
+				? date_format_label(col.date_format)
+				: __("Select format");
+			const $btn = frappe.ui.button({
+				icon: "calendar",
+				label: fmt_label,
+				variant: "outline",
+				size: "xs",
+				title: __("Select date format"),
+				css_class: "rounded-full shrink-0",
+			});
+			$btn.on("mousedown click", (e) => e.stopPropagation());
+			$(mount).empty().append($btn);
+
+			const dropdown = new frappe.ui.Dropdown({
+				trigger: $btn,
+				side: "bottom",
+				align: "end",
+				options: () => {
+					const current = col.date_format || "";
+					const formats = get_date_format_options(col.df.fieldtype);
+					if (current && !formats.some((o) => o.value === current)) {
+						formats.unshift({
+							value: current,
+							label: date_format_label(current),
+							detected: true,
+						});
+					}
+					return [
+						{
+							group: __("Select date format"),
+							options: formats.map((o) => ({
+								label: o.detected ? __("{0} (detected)", [o.label]) : o.label,
+								selected: o.value === current,
+								onclick: () =>
+									this.events.set_column_date_format?.(i - 1, o.value),
+							})),
+						},
+					];
+				},
+			});
+			this._fmt_dropdowns.push(dropdown);
 		});
-		this._column_mapper_dialog = dialog;
-		dialog.$body.addClass("map-columns");
-		dialog.show();
+	}
+
+	add_actions() {
+		if (this.frm?.doc?.status === "Success") {
+			this.wrapper.find(".table-actions").empty();
+			return;
+		}
+		this.wrapper
+			.find(".table-actions")
+			.html(
+				`<div class="text-base text-muted">${__(
+					"Map each file column to a field. Save to apply changes."
+				)}</div>`
+			);
 	}
 
 	is_row_imported(row) {

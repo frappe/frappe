@@ -43,6 +43,14 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 							root_label
 						)}</span>
 					</div>
+				</div>
+				<div class="import-tree-actions flex items-center justify-between gap-2 mb-2">
+					<label class="diw-tree-filter-input flex items-center gap-2 flex-1 min-w-0 max-w-lg border rounded px-2 bg-surface-base">
+						<span class="diw-tree-filter-icon inline-flex text-muted">${this.icon_set.search}</span>
+						<input type="search" class="form-control input-sm" placeholder="${__(
+							"Filter nodes"
+						)}" autocomplete="off" />
+					</label>
 					<div class="inline-flex items-center gap-1 shrink-0">
 						${frappe.ui.button.html({
 							label: __("Expand all"),
@@ -56,16 +64,8 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 						})}
 					</div>
 				</div>
-				<div class="mb-2">
-					<label class="diw-tree-filter-input flex items-center gap-2 w-full min-h-8 border rounded px-2 bg-surface-base">
-						<span class="diw-tree-filter-icon inline-flex text-muted">${this.icon_set.search}</span>
-						<input type="search" class="form-control input-sm" placeholder="${__(
-							"Filter nodes"
-						)}" autocomplete="off" />
-					</label>
-				</div>
 				<div class="import-tree-box flex flex-col border rounded overflow-hidden bg-surface-base">
-					<div class="import-tree-body flex-1 overflow-auto bg-transparent"></div>
+					<div class="import-tree-body flex-1 overflow-auto border-0 bg-transparent"></div>
 					<div class="diw-tree-preview-footer flex items-center shrink-0 border-t text-sm text-muted px-3 py-2 bg-surface-gray-1">
 						<span class="whitespace-nowrap">${footer}</span>
 					</div>
@@ -180,6 +180,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		}
 
 		$('<a class="tree-label diw-tree-label flex-1 min-w-0 truncate">')
+			.toggleClass("text-ink-orange-7", Boolean(node.orphan))
 			.attr("data-name", node.id)
 			.html(this.get_node_label_html(node))
 			.appendTo($main);

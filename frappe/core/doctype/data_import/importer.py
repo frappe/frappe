@@ -727,6 +727,10 @@ class ImportFile:
 		self.reference_doctype = reference_doctype or doctype
 		self.template_options = template_options or frappe._dict(column_to_field_map=frappe._dict())
 		self.column_to_field_map = self.template_options.column_to_field_map
+		# Optional per-column date/time format overrides, chosen by the user in the UI.
+		self.column_to_date_format_map = (
+			self.template_options.get("column_to_date_format_map") or frappe._dict()
+		)
 		self.import_type = import_type
 		from frappe.core.doctype.data_import.value_mapping import build_lookup_for_data_import
 
@@ -796,6 +800,7 @@ class ImportFile:
 					self.column_to_field_map,
 					self.value_lookup,
 					self.reference_doctype,
+					self.column_to_date_format_map,
 				)
 			else:
 				row_obj = Row(i, row, self.doctype, header, self.import_type)
@@ -1691,6 +1696,7 @@ class Header(Row):
 		column_to_field_map=None,
 		value_lookup=None,
 		reference_doctype=None,
+		column_to_date_format_map=None,
 	):
 		self.index = index
 		self.row_number = index + 1
@@ -1699,6 +1705,7 @@ class Header(Row):
 		self.reference_doctype = reference_doctype or doctype
 		self.value_lookup = value_lookup or {}
 		column_to_field_map = column_to_field_map or frappe._dict()
+		column_to_date_format_map = column_to_date_format_map or frappe._dict()
 
 		self.seen = []
 		self.columns = []
@@ -1717,6 +1724,7 @@ class Header(Row):
 				map_to_field,
 				self.seen,
 				value_row_numbers,
+				column_to_date_format_map.get(str(j)),
 			)
 			self.seen.append(header)
 			self.columns.append(column)
@@ -1758,6 +1766,7 @@ class Column:
 		map_to_field=None,
 		seen=None,
 		value_row_numbers=None,
+		date_format_override=None,
 	):
 		if seen is None:
 			seen = []
@@ -1771,6 +1780,8 @@ class Column:
 		self.seen = seen
 		self.invalid_value_items = None
 
+		# User-chosen date/time format for this column (falls back to auto-guess).
+		self.date_format_override = date_format_override
 		self.date_format = None
 		self.df = None
 		self.skip_import = None
@@ -1830,9 +1841,9 @@ class Column:
 			self.warnings.append(
 				{
 					"col": column_number,
-					"message": _('"{0}" does not match any field').format(
-						frappe.bold(escape_html(header_title))
-					),
+					"message": _(
+						'"{0}" does not match any field. Map it in the Preview step, otherwise it will be ignored.'
+					).format(frappe.bold(escape_html(header_title))),
 					"code": "unknown_column",
 					"type": "info",
 				}
@@ -1910,7 +1921,7 @@ class Column:
 			# The date guesser might fail, as, this can be also parsed as %y-%m-%d, as both 23 and 24 are valid for year & for day
 			# This is an issue that cannot be handled automatically, no matter how we try, as it completely depends on the user's input.
 			# Defining an explicit value which surely recognizes
-			self.date_format = self.guess_date_format_for_column()
+			self.date_format = self.date_format_override or self.guess_date_format_for_column()
 
 			if not self.date_format:
 				if self.df.fieldtype == "Time":
