@@ -2,7 +2,9 @@
 # License: MIT. See LICENSE
 
 import smtplib
+import ssl
 from contextlib import suppress
+from functools import partial
 
 import frappe
 from frappe import _
@@ -59,7 +61,7 @@ class SMTPServer:
 		"""Secure the connection incase of TLS."""
 		if self.use_tls:
 			conn.ehlo()
-			conn.starttls()
+			conn.starttls(context=ssl.create_default_context())
 			conn.ehlo()
 
 	@property
@@ -71,7 +73,12 @@ class SMTPServer:
 		if self.is_session_active():
 			return self._session
 
-		SMTP = smtplib.SMTP_SSL if self.use_ssl else smtplib.SMTP
+		# `context` is only accepted by SMTP_SSL; plain SMTP has no such argument.
+		SMTP = (
+			partial(smtplib.SMTP_SSL, context=ssl.create_default_context())
+			if self.use_ssl
+			else smtplib.SMTP
+		)
 
 		try:
 			_session = SMTP(self.server, self.port, timeout=self.timeout)
