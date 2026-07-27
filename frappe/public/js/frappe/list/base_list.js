@@ -213,13 +213,10 @@ frappe.views.BaseList = class BaseList {
 				Map: __("Map View"),
 			};
 
-			this.views_menu = this.page.add_custom_button_group(
-				label_map[this.view_name] || label_map["List"],
-				icon_map[this.view_name] || "list"
-			);
+			// one nested dropdown: view rows + the current view's variants
+			// (saved layouts, kanban boards, ...) as its submenu
 			this.views_list = new frappe.views.ListViewSelect({
 				doctype: this.doctype,
-				parent: this.views_menu,
 				page: this.page,
 				list_view: this,
 				icon_map: icon_map,
