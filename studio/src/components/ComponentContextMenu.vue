@@ -33,12 +33,14 @@ const posY = ref(0)
 
 const block = ref(null) as unknown as Ref<Block>
 const showFormDialog = ref(false)
+
+const selectedSlot = ref<string | null>(null)
 const showContextMenu = (e: MouseEvent, refBlock: Block) => {
 	block.value = refBlock
 	if (block.value.isRoot()) return
 	// remember the right-clicked slot so "Add Component" drops into it
 	const slot = canvasStore.activeCanvas?.selectedSlot
-	addTargetSlot.value = slot && slot.parentBlockId === refBlock.componentId ? slot.slotName : null
+	selectedSlot.value = slot && slot.parentBlockId === refBlock.componentId ? slot.slotName : null
 	contextMenuVisible.value = true
 	posX.value = e.pageX
 	posY.value = e.pageY
@@ -51,47 +53,22 @@ const handleContextMenuSelect = (action: CallableFunction) => {
 	contextMenuVisible.value = false
 }
 
-// Add Component via the context menu — an alternative to drag & drop, useful when a slot's
-// drop target is too small to hit. Rendered as a grouped submenu (Core / Frappe UI / Framework UI).
-const addTargetSlot = ref<string | null>(null)
-
-const buildComponentSubmenu = (): ContextMenuGroup[] => {
-	const list = components.list as any[]
-	const toOptions = (group: any[]): ContextMenuOption[] =>
-		group.map((component) => ({
+const getComponentSubMenu = (): ContextMenuGroup[] =>
+	components.getComponentGroups(components.list).map((group) => ({
+		label: group.label,
+		options: group.components.map((component) => ({
 			label: component.title,
 			icon: component.icon,
 			action: () => addComponent(component.name),
-		}))
-	const groups: ContextMenuGroup[] = [
-		{
-			label: "Core",
-			options: toOptions(
-				list.filter(
-					(c) => !components.isFrappeUIComponent(c.name) && !components.isFrameworkUIComponent(c.name),
-				),
-			),
-		},
-		{ label: "Frappe UI", options: toOptions(list.filter((c) => components.isFrappeUIComponent(c.name))) },
-	]
-	// @framework/ui isn't shipped on older frappe — hide its components entirely.
-	if (components.isFrameworkUIAvailable()) {
-		groups.push({
-			label: "Framework UI",
-			options: toOptions(list.filter((c) => components.isFrameworkUIComponent(c.name))),
-		})
-	}
-	return groups.filter((group) => group.options.length)
-}
+		})),
+	}))
 
-// only shown when the target can accept children (see the "Add Component" condition),
-// so the new block always drops straight in — into the right-clicked slot if there was one.
 const addComponent = (componentName: string) => {
 	const targetBlock = block.value
 	if (!targetBlock) return
 	const newBlock = getComponentBlock(componentName)
-	if (addTargetSlot.value) {
-		newBlock.parentSlotName = addTargetSlot.value
+	if (selectedSlot.value) {
+		newBlock.parentSlotName = selectedSlot.value
 	}
 	targetBlock.addChild(newBlock)
 }
@@ -100,7 +77,7 @@ const contextMenuOptions: ContextMenuOption[] = [
 	{
 		label: "Add Component",
 		condition: () => Boolean(block.value?.canHaveChildren()),
-		submenu: buildComponentSubmenu(),
+		submenu: getComponentSubMenu(),
 	},
 	{
 		label: "Wrap In Container",

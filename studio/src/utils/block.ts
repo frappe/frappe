@@ -636,7 +636,6 @@ class Block implements BlockOptions {
 			}
 			slot.parentBlockId = this.componentId
 
-			// legacy pages may carry string slot content; those are migrated, ignore any leftovers
 			slot.slotContent = (Array.isArray(slot.slotContent) ? slot.slotContent : []).map((block) => {
 				block.parentBlock = this
 				return reactive(new Block(block))
