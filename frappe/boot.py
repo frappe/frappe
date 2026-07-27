@@ -18,6 +18,7 @@ from frappe.desk.desk_views import DeskViews
 from frappe.desk.doctype.form_tour.form_tour import get_onboarding_ui_tours
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
+from frappe.desk.page.setup_wizard.setup_wizard import get_setup_wizard_url
 from frappe.desk.utils import is_item_allowed
 from frappe.email.inbox import get_email_accounts
 from frappe.integrations.frappe_providers.frappecloud_billing import current_site_info, is_fc_site
@@ -45,6 +46,8 @@ def get_bootinfo():
 	bootinfo.sitename = frappe.local.site
 	bootinfo.sysdefaults = frappe.defaults.get_defaults()
 	bootinfo.sysdefaults["setup_complete"] = frappe.is_setup_complete()
+	if not bootinfo.sysdefaults["setup_complete"]:
+		bootinfo.setup_wizard_url = get_setup_wizard_url()
 
 	bootinfo.server_date = frappe.utils.nowdate()
 

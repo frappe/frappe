@@ -17,6 +17,22 @@ from frappe.utils.synchronization import LockTimeoutError, filelock
 from . import install_fixtures
 
 
+def site_requires_builtin_wizard() -> bool:
+	for app in frappe.get_installed_apps():
+		hooks = frappe.get_hooks(app_name=app)
+		if hooks.get("setup_wizard_stages") or hooks.get("setup_wizard_complete"):
+			return True
+	return False
+
+
+def get_setup_wizard_url() -> str:
+	"""Setup UI for a fresh site: an app's `setup_wizard_url` hook (last installed wins), else the desk wizard."""
+	urls = frappe.get_hooks("setup_wizard_url")
+	if urls and not site_requires_builtin_wizard():
+		return urls[-1]
+	return "/app/setup-wizard"
+
+
 def get_setup_stages(args):  # nosemgrep
 	# App setup stage functions should not include frappe.db.commit
 	# That is done by frappe after successful completion of all stages
