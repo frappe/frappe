@@ -112,12 +112,18 @@ same `/run` endpoint: fire-and-forget (returns immediately; the run proceeds as 
 background task — no pinned worker, survives a dropped client) or `?wait=true` (blocks
 and returns a Flow-like terminal summary). `GET /stream?since=N` = replay-then-live.
 
-### Security fences (in `SessionStore.create`, so every creation path is covered)
+### Security policies
 
-- **`ALLOWED_ROOTS`** — a session's `cwd` is realpath-resolved (defeating symlink/`..`
-  escapes) and must sit under a configured root; else 400. Empty = unrestricted (dev).
+- **`ALLOWED_ROOTS`** — a session's `cwd` and every path passed to `read_file`, `write`,
+  `edit`, or `grep` are realpath-resolved (defeating normal symlink/`..` escapes) and
+  must sit under a configured root. Stored sessions are revalidated when loaded.
+  Empty = unrestricted (dev).
 - **`session_id`** must match `^[A-Za-z0-9_-]{1,64}$` — the id lands in on-disk
   filenames, so an unvalidated `../../etc/x` would be an arbitrary-file-write hole.
+
+`ALLOWED_ROOTS` is not an OS sandbox: `bash` runs with the daemon process's filesystem
+permissions and can access paths outside those roots. Deployments that need containment
+must isolate shell execution in a container or equivalent sandbox.
 
 The daemon binds `127.0.0.1` by default. When `FLOW_SERVER_AUTH_TOKEN` is set, all
 endpoints except `/healthz` require a matching bearer token. `flowd serve` refuses to

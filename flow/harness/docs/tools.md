@@ -64,8 +64,11 @@ is reached, the loop emits `ApprovalRequired` and pauses until `resume`.
 
 ## Builtins
 
-All resolve relative paths against `ctx.cwd`. Output is truncated to 2000 lines / 50 KB.
-Mutating/executing tools default `requires_confirmation=True`; read-only ones don't.
+Path-taking tools resolve relative paths against `ctx.cwd`. When
+`FLOW_SERVER_ALLOWED_ROOTS` is configured, `read_file`, `write`, `edit`, and `grep`
+realpath-check every target and reject traversal or symlink escapes. Output is truncated
+to 2000 lines / 50 KB. Mutating/executing tools default
+`requires_confirmation=True`; read-only ones don't.
 
 | Tool | Args | Confirm | Notes |
 |---|---|---|---|
@@ -75,9 +78,11 @@ Mutating/executing tools default `requires_confirmation=True`; read-only ones do
 | `edit` | `path`, `edits: [{old, new}]` | ✓ | multi-edit; each `old` must occur exactly once; non-overlapping; all-or-nothing; LF-normalized match with BOM/CRLF preserved; emits a unified diff in `details` |
 | `grep` | `pattern`, `path?` | — | ripgrep if available, else `grep`; match count in `details` |
 
-**Trust note:** builtins run in the daemon's own process with no sandbox — fine for a
-local single-user setup. A multi-user deployment must sandbox `bash`/`edit`/`write` per
-session; that's deliberate, separate work.
+**Trust note:** `ALLOWED_ROOTS` is a path policy for the path-taking builtins, not an OS
+sandbox. In particular, `bash` can access anything available to the daemon process. A
+deployment that requires security containment must run shell commands in a separate
+container or equivalent sandbox. Confirmation prompts reduce accidental execution but
+are not a containment boundary.
 
 ## Client-side tools
 

@@ -256,7 +256,11 @@ def _server_tools(session: Session) -> dict[str, Tool]:
 
 
 def _make_ctx(session: Session) -> ToolContext:
-	return ToolContext(cwd=session.config.cwd, abort=session.abort)
+	return ToolContext(
+		cwd=session.config.cwd,
+		allowed_roots=session.allowed_roots,
+		abort=session.abort,
+	)
 
 
 def _needs_confirm(cfg, name: str, server_tools: dict[str, Tool]) -> bool:

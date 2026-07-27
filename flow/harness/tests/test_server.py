@@ -1,10 +1,11 @@
 import json
 
+import pytest
 from fastapi.testclient import TestClient
 
 from flow_server.model.credentials import CredentialStore
 from flow_server.server import create_app
-from flow_server.session.store import SessionStore
+from flow_server.session.store import SessionConfig, SessionStore
 
 
 def _client(tmp_path, **store_kw):
@@ -116,6 +117,28 @@ def test_allowed_roots_fences_cwd(tmp_path):
 	c = _client(tmp_path, allowed_roots=[str(allowed)])
 	assert c.post("/sessions", json={"cwd": str(allowed / "proj")}).status_code == 200
 	assert c.post("/sessions", json={"cwd": str(tmp_path / "elsewhere")}).status_code == 400
+
+
+def test_allowed_roots_revalidate_stored_session_on_load(tmp_path):
+	outside = tmp_path / "outside"
+	allowed = tmp_path / "allowed"
+	outside.mkdir()
+	allowed.mkdir()
+	data_dir = tmp_path / "data"
+	first_store = SessionStore(
+		str(data_dir),
+		allowed_roots=[],
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+	)
+	sid = first_store.create(SessionConfig(cwd=str(outside))).id
+
+	restricted_store = SessionStore(
+		str(data_dir),
+		allowed_roots=[str(allowed)],
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+	)
+	with pytest.raises(ValueError, match="not under an allowed root"):
+		restricted_store.get(sid)
 
 
 def test_rejects_path_traversal_session_id(tmp_path):

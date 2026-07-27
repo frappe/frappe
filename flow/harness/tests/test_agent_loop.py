@@ -41,6 +41,32 @@ async def test_tool_call_runs_and_completes(tmp_path):
 	assert _of(events, "run_ended")[0]["reason"] == "done"
 
 
+async def test_agent_propagates_allowed_roots_to_path_tools(tmp_path):
+	allowed = tmp_path / "allowed"
+	allowed.mkdir()
+	(tmp_path / "secret.txt").write_text("SECRET")
+	events: list[dict] = []
+	store = SessionStore(
+		str(tmp_path / "data"),
+		event_sink=lambda _sid, ev: events.append(ev),
+		allowed_roots=[str(allowed)],
+	)
+	session = store.create(SessionConfig(cwd=str(allowed)))
+	mock = MockModel(
+		replies=[
+			_read_call(path="../secret.txt"),
+			AssistantMessage(text="done"),
+		]
+	)
+
+	await run(session, "read outside the project", model=mock)
+
+	result = _of(events, "tool_result")[0]
+	assert result["is_error"] is True
+	assert "outside the configured allowed roots" in result["content"]
+	assert _of(events, "run_ended")[0]["reason"] == "done"
+
+
 async def test_before_hook_rewrites_args(tmp_path):
 	(tmp_path / "a.txt").write_text("AAA")
 	(tmp_path / "b.txt").write_text("BBB")
