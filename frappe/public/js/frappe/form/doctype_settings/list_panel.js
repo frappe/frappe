@@ -67,7 +67,8 @@ class ListPanel {
 	}
 
 	load() {
-		this.render_state(__("Loading"));
+		this.$body.empty();
+		frappe.doctype_settings.render_loading(this.$body);
 		const c = this.config;
 		const source = c.load ? c.load() : Promise.resolve(c.rows || []);
 		Promise.resolve(source)
@@ -75,7 +76,7 @@ class ListPanel {
 				this.rows = rows || [];
 				this.render();
 			})
-			.catch(() => this.render_error());
+			.catch((err) => this.render_error(err));
 	}
 
 	// ── public controller API ──
@@ -116,7 +117,7 @@ class ListPanel {
 
 	make_head() {
 		const c = this.config;
-		const $head = $('<div class="dts-list-row dts-list-head"></div>');
+		const $head = $('<div class="dts-list-row dts-list-head text-sm-medium"></div>');
 
 		// The title column owns the leading media, so its header label sits at the
 		// column's left edge (above the thumbnail) and the rest stays aligned.
@@ -155,7 +156,7 @@ class ListPanel {
 
 		// Primary line: name + inline tags (attributes of the row, e.g. Default / Global).
 		const $primaryRow = $('<div class="dts-list-primary-row"></div>').appendTo($text);
-		const $primary = $('<div class="dts-list-primary ellipsis"></div>')
+		const $primary = $('<div class="dts-list-primary text-base-medium ellipsis"></div>')
 			.text(tc.primary ? tc.primary(row) : "")
 			.appendTo($primaryRow);
 		if (tc.onclick) {
@@ -170,7 +171,9 @@ class ListPanel {
 		);
 
 		if (tc.secondary && tc.secondary(row)) {
-			$('<div class="dts-list-secondary"></div>').text(tc.secondary(row)).appendTo($text);
+			$('<div class="dts-list-secondary text-p-sm"></div>')
+				.text(tc.secondary(row))
+				.appendTo($text);
 		}
 
 		// Middle columns: text or badge.
@@ -260,15 +263,18 @@ class ListPanel {
 		});
 	}
 
-	render_state(text) {
+	render_error(err) {
 		this.$body.empty();
-		$('<div class="text-muted small dts-list-state"></div>').text(text).appendTo(this.$body);
-	}
-
-	render_error() {
-		this.$body.empty();
+		if (frappe.doctype_settings.is_permission_error(err)) {
+			frappe.doctype_settings.empty_state(this.$body, {
+				icon: "lock",
+				title: __("No access"),
+				description: __("You don't have permission to view this."),
+			});
+			return;
+		}
 		const $err = $('<div class="dts-list-state"></div>').appendTo(this.$body);
-		$('<div class="text-muted small"></div>')
+		$('<div class="text-muted text-p-sm"></div>')
 			.text(__("Could not load this tab."))
 			.appendTo($err);
 		frappe.ui

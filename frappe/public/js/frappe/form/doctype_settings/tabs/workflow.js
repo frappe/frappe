@@ -18,7 +18,7 @@ frappe.doctype_settings.register("workflow", function (panel, doctype) {
 		show_header: true,
 		primary_action: { label: __("New"), icon: "plus", onclick: create },
 		load: () =>
-			frappe.db.get_list("Workflow", {
+			frappe.doctype_settings.get_list("Workflow", {
 				filters: { document_type: doctype },
 				fields: ["name", "workflow_name", "is_active"],
 				order_by: "name asc",
