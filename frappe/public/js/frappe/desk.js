@@ -377,6 +377,7 @@ frappe.Application = class Application {
 				"body"
 			);
 			frappe.container = new frappe.views.Container();
+			frappe.ui.setup_site_banners();
 		}
 	}
 	make_nav_bar() {
