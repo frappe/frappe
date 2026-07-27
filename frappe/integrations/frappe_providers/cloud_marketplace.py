@@ -2,6 +2,8 @@
 or update apps through the bench pilot admin. All actions go over HTTP to the
 site's bench; this module only shapes requests and merges the responses."""
 
+from urllib.parse import quote
+
 import frappe
 
 
@@ -14,7 +16,10 @@ def list_apps(client) -> dict:
 
 	Note: The endpoint from Pilot provides entire list of apps, it would be ideal if we eventually add pagination to API and also add infinite scroll to the frontend.
 	"""
-	catalog = client.get("apps/marketplace")
+	# Site-scoped catalog route: the bench-wide /marketplace/apps needs a bench
+	# token, which the site doesn't hold, so pilot exposes the same catalog under
+	# the site.
+	catalog = client.get(client.site_path("marketplace"))
 	if not isinstance(catalog, list):
 		catalog = []
 	installed = _installed_versions(client)
@@ -31,13 +36,14 @@ def list_apps(client) -> dict:
 
 
 def install(client, app: str) -> dict:
-	"""Clone (if needed) and install a catalog app on the site. The bench
-	resolves the repo and compatible target from the marketplace app name."""
-	return client.post(client.site_path("get-and-install-app"), {"app": _clean(app)})
+	"""Clone (if needed) and install a catalog app on the site. The bench resolves
+	the repo and compatible target from the marketplace app name. Returns the
+	bench task (task_id) the UI polls to completion."""
+	return client.post(client.site_path("apps"), {"app": _clean(app)})
 
 
 def uninstall(client, app: str) -> dict:
-	return client.post(client.site_path("uninstall-app"), {"app": _clean(app)})
+	return client.delete(client.site_path(f"apps/{quote(_clean(app), safe='')}"))
 
 
 def update(client, apps: str | None) -> dict:
@@ -47,7 +53,7 @@ def update(client, apps: str | None) -> dict:
 	args = {"command": "update"}
 	if names:
 		args["apps"] = [_clean(name) for name in names]
-	return client.post("tasks/run", args)
+	return client.post("tasks", args)
 
 
 def _installed_versions(client) -> dict:
