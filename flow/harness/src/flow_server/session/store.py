@@ -115,9 +115,7 @@ class Session:
 		self.messages: list[dict] = _rebuild_messages(log)
 		self._subscribers: set[asyncio.Queue] = set()
 		self.operation_lock = asyncio.Lock()
-		self._state = (
-			SessionState.PAUSED if pending_approval(log) is not None else SessionState.IDLE
-		)
+		self._state = SessionState.PAUSED if pending_approval(log) is not None else SessionState.IDLE
 		self.run_task: asyncio.Task[None] | None = None
 		self.abort = asyncio.Event()
 		self.steer_queue: asyncio.Queue[str] = asyncio.Queue()
@@ -181,9 +179,7 @@ class Session:
 				if self.run_task is asyncio.current_task():
 					self.run_task = None
 					self._state = (
-						SessionState.PAUSED
-						if pending_approval(self.log) is not None
-						else SessionState.IDLE
+						SessionState.PAUSED if pending_approval(self.log) is not None else SessionState.IDLE
 					)
 
 

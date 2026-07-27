@@ -365,9 +365,7 @@ def validate_resume(
 	if approval is None:
 		raise ResumeError("No tool calls are awaiting approval.")
 	if approval_seq is not None and approval_seq != approval.seq:
-		raise ResumeError(
-			f"Approval batch {approval_seq} is stale; current batch is {approval.seq}."
-		)
+		raise ResumeError(f"Approval batch {approval_seq} is stale; current batch is {approval.seq}.")
 
 	expected = {call.id for call in approval.calls}
 	if len(expected) != len(approval.calls):

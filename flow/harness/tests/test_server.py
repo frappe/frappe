@@ -240,11 +240,7 @@ def test_paused_run_requires_exact_current_approval_batch(tmp_path, monkeypatch)
 
 def test_paused_state_and_approval_survive_store_reload(tmp_path, monkeypatch):
 	mock = MockModel(
-		replies=[
-			AssistantMessage(
-				tool_calls=[ToolCall(id="c1", name="read_file", args={"path": "a.txt"})]
-			)
-		]
+		replies=[AssistantMessage(tool_calls=[ToolCall(id="c1", name="read_file", args={"path": "a.txt"})])]
 	)
 	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: mock)
 	data_dir = tmp_path / "data"
