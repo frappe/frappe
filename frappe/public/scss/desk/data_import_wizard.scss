@@ -251,11 +251,6 @@ body[data-route^="data-import"] {
 
 // ---- preview step ----
 .diw-preview-step {
-	.data-import-tree-preview-section .section-head,
-	.data-import-preview-section .section-head {
-		display: none !important;
-	}
-
 	.form-section,
 	.section-body .form-column {
 		padding: 0;
@@ -366,12 +361,6 @@ body[data-route^="data-import"] {
 }
 
 // ---- import log + progress ----
-// Reserve the metric label row at the action icon-button height (xs es-button = 24px)
-// so the big numbers stay baseline-aligned across metrics with and without an action.
-.diw-import-log-metric-head {
-	min-height: 24px;
-}
-
 .diw-import-progress-standard {
 	.es-progress__label {
 		font-size: var(--text-md);
@@ -387,10 +376,6 @@ body[data-route^="data-import"] {
 
 .diw-import-progress-stats {
 	grid-template-columns: repeat(var(--diw-import-progress-stat-count, 3), minmax(0, 1fr));
-}
-
-.diw-import-log-message a {
-	text-decoration: underline;
 }
 
 .diw-import-log-expand-btn[aria-expanded="true"] .icon {

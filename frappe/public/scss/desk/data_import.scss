@@ -1,6 +1,7 @@
 // Data Import
 // Layout/spacing/border utilities live on the markup (utilities.scss).
-// Keep only component-specific rules: form overrides, indicators, and tree chrome.
+// Keep only component-specific rules: form overrides and indicators.
+// Tree chrome lives in data_import_wizard.scss (tree only mounts in the wizard).
 
 .table-preview {
 	.datatable {
@@ -29,16 +30,6 @@
 
 	&--skipped {
 		background-color: var(--gray-400, #c0c5cc);
-	}
-}
-
-.import-tree-preview-panel {
-	.import-tree-body {
-		max-height: 380px;
-
-		.tree {
-			padding: var(--padding-sm);
-		}
 	}
 }
 

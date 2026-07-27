@@ -502,8 +502,12 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		}
 
 		this._highlighted_row_index = row_index;
+		const is_dark = document.documentElement.getAttribute("data-theme") === "dark";
 		this.datatable.style.setStyle(`.dt-row-${row_index} .dt-cell`, {
-			backgroundColor: frappe.ui.color.get_color_shade("yellow", "extra-light"),
+			backgroundColor: frappe.ui.color.get_color_shade(
+				"yellow",
+				is_dark ? "dark" : "extra-light"
+			),
 		});
 		frappe.utils.scroll_to(this.$table_preview.find(`.dt-row-${row_index}`), true, 30);
 	}
@@ -540,12 +544,15 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			alignItems: "center",
 		});
 
+		const is_dark = document.documentElement.getAttribute("data-theme") === "dark";
 		// import success checkbox
 		this.datatable.style.setStyle(`svg.import-success`, {
 			width: "16px",
-			fill: frappe.ui.color.get_color_shade("green", "dark"),
+			fill: frappe.ui.color.get_color_shade("green", is_dark ? "light" : "dark"),
 		});
-		// make successfully imported rows readonly
+		// Successfully imported rows: readonly + muted. Shade names are light-mode
+		// oriented (extra-light ≈ gray-100); flip for dark so bg stays readable
+		// against .dt-cell { color: var(--text-color) !important }.
 		let row_classes = this.datatable
 			.getRows()
 			.filter((row) => this.is_row_imported(row))
@@ -554,8 +561,11 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			.join(",");
 		this.datatable.style.setStyle(row_classes, {
 			pointerEvents: "none",
-			backgroundColor: frappe.ui.color.get_color_shade("gray", "extra-light"),
-			color: frappe.ui.color.get_color_shade("gray", "dark"),
+			backgroundColor: frappe.ui.color.get_color_shade(
+				"gray",
+				is_dark ? "dark" : "extra-light"
+			),
+			color: frappe.ui.color.get_color_shade("gray", is_dark ? "extra-light" : "dark"),
 		});
 	}
 

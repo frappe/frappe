@@ -653,6 +653,10 @@ function update_preview_loading_skeleton(frm, loading) {
 
 	const is_tree_doctype = is_tree_reference_doctype(frm);
 	if (is_tree_doctype && tree_wrapper && !tree_preview_has_rendered_content(tree_wrapper)) {
+		// Field stays hidden until tree_preview arrives; force it visible so the Tree tab
+		// shows a skeleton instead of an empty pane while the preview fetch is in flight.
+		frm.toggle_display("import_tree_preview", true);
+		frm.toggle_display("section_import_tree_preview", true);
 		if (!tree_wrapper.querySelector("[data-fallback-skeleton='tree']")) {
 			tree_wrapper.insertAdjacentHTML("beforeend", get_tree_preview_skeleton_html());
 		}
@@ -865,7 +869,7 @@ frappe.ui.form.on("Data Import", {
 					if (cint(frm.wizard_step) === 3) {
 						frm.trigger("show_import_log");
 					}
-					frm.trigger("show_cancel_import_btn");
+					frm.events.refresh_wizard_ui?.(frm);
 				});
 			}
 			// Completion transition is handled by data_import_refresh realtime event.
@@ -989,7 +993,7 @@ frappe.ui.form.on("Data Import", {
 				failed: 0,
 			};
 			frm.events.refresh_import_progress_counts(frm);
-			frm.trigger("show_cancel_import_btn");
+			frm.events.refresh_wizard_ui?.(frm);
 		} else {
 			frm._wizard_import_progress = null;
 		}
@@ -1002,11 +1006,11 @@ frappe.ui.form.on("Data Import", {
 
 		if (frm.doc.status != "Pending") frm.trigger("show_import_status");
 
-		frm.trigger("show_report_error_button");
+		// Footer Cancel / Report Error / Retry are refreshed via refresh_wizard_ui.
+		frm.events.refresh_wizard_ui?.(frm);
 
 		// "Go to List" moved onto the Total rows metric in the import log (see render_import_log).
 
-		frm.events.setup_preview_section_collapse_handler(frm);
 		frm.trigger("render_custom_ui");
 		frm.trigger("update_primary_action");
 		// Preview is often already cached after import, so import_file is skipped —
@@ -1144,6 +1148,12 @@ frappe.ui.form.on("Data Import", {
 			// after Success / Partial Success without a full page reload.
 			frm.import_preview?.add_actions?.();
 		}
+
+		// Re-apply after remount — loading may have started while fields were still in
+		// the hidden form layout, or the Tree tab may have been empty on first paint.
+		if (frm._import_preview_loading) {
+			update_preview_loading_skeleton(frm, true);
+		}
 	},
 
 	refresh_wizard_table_preview(frm) {
@@ -1151,9 +1161,7 @@ frappe.ui.form.on("Data Import", {
 	},
 
 	/** Reparent import-log fields into the Import step container. */
-	mount_legacy_step(frm, step, container) {
-		if (step !== 3) return;
-
+	mount_import_step(frm, container) {
 		const $content = $(container).empty();
 		for (const fieldname of IMPORT_STEP_FIELDS) {
 			const field = frm.fields_dict[fieldname];
@@ -1352,7 +1360,7 @@ frappe.ui.form.on("Data Import", {
 		frm.page.clear_primary_action();
 		frm.page.set_indicator(__("In Progress"), "orange");
 		frm.events.go_to_wizard_step(frm, 3);
-		frm.trigger("show_cancel_import_btn");
+		frm.events.refresh_wizard_ui?.(frm);
 		frm.trigger("update_primary_action");
 		frm.events.start_import(frm);
 	},
@@ -1482,12 +1490,7 @@ frappe.ui.form.on("Data Import", {
 		});
 	},
 
-	// Cancel Import lives in the wizard footer (Import step) now; refresh the footer so
-	// it appears as soon as the import starts. The action itself is `cancel_import`.
-	show_cancel_import_btn(frm) {
-		frm.events.refresh_wizard_ui?.(frm);
-	},
-
+	// Cancel Import lives in the wizard footer (Import step). The action is `cancel_import`.
 	cancel_import(frm) {
 		frappe.confirm(
 			__("This will terminate the job immediately and might be dangerous, are you sure?"),
@@ -1504,14 +1507,7 @@ frappe.ui.form.on("Data Import", {
 		);
 	},
 
-	// Report Error lives in the wizard footer (shown when status === "Error"); refresh the
-	// footer so it appears. The action itself is `report_error_now`.
-	show_report_error_button(frm) {
-		if (frm.doc.status === "Error") {
-			frm.events.refresh_wizard_ui?.(frm);
-		}
-	},
-
+	// Report Error lives in the wizard footer when status === "Error".
 	report_error_now(frm) {
 		frappe.db
 			.get_list("Error Log", {
@@ -2446,25 +2442,6 @@ frappe.ui.form.on("Data Import", {
 		});
 	},
 
-	/** Re-render datatable when the preview section is expanded after collapse. */
-	setup_preview_section_collapse_handler(frm) {
-		const section = frm.layout?.sections_dict?.section_import_preview;
-		if (!section || section._preview_collapse_hook) return;
-		section._preview_collapse_hook = true;
-
-		const collapse = section.collapse.bind(section);
-		section.collapse = (hide) => {
-			const was_collapsed = section.is_collapsed();
-			collapse(hide);
-			const preview = frm.import_preview;
-			if (was_collapsed && !section.is_collapsed() && preview?.datatable) {
-				requestAnimationFrame(() => {
-					preview.render_datatable_if_needed?.(true);
-				});
-			}
-		};
-	},
-
 	toggle_skip_row(frm, row_number) {
 		row_number = cint(row_number);
 		const skipped = (frm.doc.skipped_rows || []).find(
@@ -2541,10 +2518,9 @@ frappe.ui.form.on("Data Import", {
 				? Math.max(status_total_rows, total_rows + skipped_rows_count)
 				: total_rows + skipped_rows_count;
 
-			// Banner is overall (not tab-specific); export when any bucket is capped.
-			const is_truncated = total_rows > IMPORT_LOG_PREVIEW_LIMIT;
+			// Tab badges already show "1000 of N" when a bucket is capped; no separate banner.
 			const show_export =
-				is_truncated ||
+				total_rows > IMPORT_LOG_PREVIEW_LIMIT ||
 				success_rows > IMPORT_LOG_PREVIEW_LIMIT ||
 				failed_rows > IMPORT_LOG_PREVIEW_LIMIT;
 
@@ -2687,7 +2663,7 @@ frappe.ui.form.on("Data Import", {
 			// Failed keeps a colour (red); Inserted/Updated are neutral.
 			const metric_card = (value_html, label, { action = "" } = {}) =>
 				`<div class="diw-import-log-metric flex flex-col flex-1 gap-1 px-4 py-3" role="listitem">
-					<div class="diw-import-log-metric-head flex items-center justify-between gap-2">
+					<div class="diw-import-log-metric-head min-h-6 flex items-center justify-between gap-2">
 						<div class="diw-import-log-metric-label text-sm text-muted">${label}</div>
 						${
 							action
@@ -2752,14 +2728,6 @@ frappe.ui.form.on("Data Import", {
 				)}">
 					${metric_html.join(metric_separator)}
 				</div>
-				${
-					is_truncated
-						? `<div class="text-muted text-sm mb-2">${__(
-								"Showing {0} of {1} log entries.",
-								[IMPORT_LOG_PREVIEW_LIMIT, total_rows]
-						  )}</div>`
-						: ""
-				}
 				<div class="flex items-center justify-between gap-2">
 					<div class="diw-import-log-filter-tabs"></div>
 					<div class="diw-import-log-filter-actions inline-flex items-center ms-auto"></div>

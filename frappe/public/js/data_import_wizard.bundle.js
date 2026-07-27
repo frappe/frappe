@@ -22,7 +22,6 @@ const REPARENTED_FIELDS = [
 	"use_csv_sniffer",
 	"custom_delimiters",
 	"delimiter_options",
-	"download_template",
 	"import_file",
 	"google_sheets_url",
 	"refresh_google_sheet",
@@ -381,11 +380,6 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 	set_preview_loading(loading) {
 		this._preview_loading = Boolean(loading);
 		this.render_footer();
-	}
-
-	set_preview_tab(tab) {
-		if (this.current_step !== 1) return;
-		this.select_preview_tab(tab === "tree" ? "tree" : "table");
 	}
 
 	// ---- stepper -----------------------------------------------------------
@@ -946,8 +940,6 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 	select_preview_tab(tab) {
 		if (!this._preview_panes?.is_tree) return;
 		this._preview_tab = tab;
-		// silent: when this comes from on_change the tab is already active; this call is
-		// for the programmatic path (set_preview_tab) and must not re-enter on_change.
 		this.preview_tabs?.set_active?.(tab === "table" ? 1 : 0, { silent: true });
 		if (tab === "table") {
 			// Tabs mounts a panel lazily on first activation, so the datatable may have
@@ -1058,7 +1050,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 	}
 
 	mount_import($content) {
-		this.frm.events.mount_legacy_step(this.frm, 3, $content.get(0));
+		this.frm.events.mount_import_step(this.frm, $content.get(0));
 	}
 
 	// ---- status ------------------------------------------------------------

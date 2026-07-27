@@ -12,23 +12,7 @@
 	gap: 8px;
 }
 
-/* Collapsible section headers with (count) before chevron. */
-.data-import-warnings-section .section-head.collapsible,
-.data-import-value-mappings-section .section-head.collapsible,
-.data-import-tree-preview-section .section-head.collapsible,
-.data-import-preview-section .section-head.collapsible {
-	display: flex;
-	align-items: center;
-}
-
-.data-import-warnings-section .section-head .import-warnings-count,
-.data-import-value-mappings-section .section-head .value-mappings-count,
-.data-import-tree-preview-section .section-head .import-tree-preview-count,
-.data-import-preview-section .section-head .import-preview-count {
-	margin-left: auto;
-	margin-right: 6px;
-}
-
+/* Wizard preview shells (.diw-preview-field-shell) — full-width column layout. */
 .data-import-tree-preview-section .section-body,
 .data-import-preview-section .section-body {
 	display: block;
@@ -45,13 +29,7 @@
 	display: none;
 }
 
-.data-import-preview-section [data-fieldname="import_log_heading"] {
-	width: 100%;
-	margin-top: var(--margin-xl);
-	margin-bottom: 0;
-}
-
-/* Wizard step DOM reparents this field outside .data-import-preview-section. */
+/* Wizard step DOM reparents import_log_heading into the Import step. */
 .diw-step-panel[data-step="3"]
 	.frappe-control[data-fieldname="import_log_heading"]
 	.section-head.import-log-title {
@@ -60,10 +38,6 @@
 	line-height: 1.5;
 	color: var(--text-color);
 	padding-bottom: var(--padding-lg);
-}
-
-.data-import-preview-section [data-fieldname="import_log_preview"] {
-	margin-top: 0;
 }
 
 /* Hide duplicate field labels; section break is the collapsible header. */

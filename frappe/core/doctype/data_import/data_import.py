@@ -449,7 +449,7 @@ def get_import_logs(data_import: str, status: str | None = None):
 	- ``success``: up to 1000 successful rows
 	- ``failed``: up to 1000 failed rows
 
-	Totals for "Showing N of M" come from ``get_import_status`` / ``get_import_log_count``.
+	Tab badge totals come from ``get_import_status`` / ``get_import_log_count``.
 	"""
 	doc = frappe.get_doc("Data Import", data_import)
 	doc.check_permission("read")
