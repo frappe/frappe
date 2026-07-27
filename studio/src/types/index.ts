@@ -55,9 +55,17 @@ export interface SlotConfig {
 
 export interface ContextMenuOption {
 	label: string
-	action: CallableFunction
+	action?: CallableFunction
 	condition?: () => boolean
 	disabled?: () => boolean
+	icon?: any
+	// when present, the option expands into a nested (grouped) submenu on hover
+	submenu?: ContextMenuGroup[]
+}
+
+export interface ContextMenuGroup {
+	label?: string
+	options: ContextMenuOption[]
 }
 
 export type ComponentProp = {
