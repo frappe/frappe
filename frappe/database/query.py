@@ -1922,7 +1922,7 @@ class Engine:
 				columns = info_schema.columns
 				current_schema = frappe.conf.get("db_schema", "public")
 				res = (
-					frappe.qb.from_(columns)
+					frappe.qb.from_(columns, immutable=False)
 					.select(columns.data_type)
 					.where(
 						(columns.table_name == target_table)
@@ -2237,13 +2237,15 @@ def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str) -> 
 	"""Get matching nodes based on operator."""
 	table = frappe.qb.DocType(doctype)
 	try:
-		lft, rgt = frappe.qb.from_(table).select("lft", "rgt").where(table.name == name).run()[0]
+		lft, rgt = (
+			frappe.qb.from_(table, immutable=False).select("lft", "rgt").where(table.name == name).run()[0]
+		)
 	except IndexError:
 		lft, rgt = None, None
 
 	if hierarchy in ("descendants of", "not descendants of", "descendants of (inclusive)"):
 		result = (
-			frappe.qb.from_(table)
+			frappe.qb.from_(table, immutable=False)
 			.select(table.name)
 			.where(table.lft > lft)
 			.where(table.rgt < rgt)
@@ -2255,7 +2257,7 @@ def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str) -> 
 	else:
 		# Get ancestor elements of a DocType with a tree structure
 		result = (
-			frappe.qb.from_(table)
+			frappe.qb.from_(table, immutable=False)
 			.select(table.name)
 			.where(table.lft < lft)
 			.where(table.rgt > rgt)
