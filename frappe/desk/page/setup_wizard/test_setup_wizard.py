@@ -1,10 +1,11 @@
 # Copyright (c) 2025, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe.desk.page.setup_wizard import setup_wizard
 from frappe.tests import IntegrationTestCase, UnitTestCase, set_user
+from frappe.utils.synchronization import LockTimeoutError
 
 
 def fake_hooks(apps):
@@ -86,3 +87,15 @@ class TestCompleteSetup(IntegrationTestCase):
 		):
 			self.assertEqual(setup_wizard.complete_setup(), {"status": "ok"})
 			process_stages.assert_not_called()
+
+	def test_lock_timeout_never_reports_false_success(self):
+		lock = MagicMock()
+		lock.__enter__.side_effect = LockTimeoutError
+		with (
+			patch.object(setup_wizard, "site_requires_builtin_wizard", return_value=False),
+			patch.object(setup_wizard, "filelock", return_value=lock),
+		):
+			with patch.object(frappe, "is_setup_complete", return_value=False):
+				self.assertRaises(frappe.ValidationError, setup_wizard.complete_setup)
+			with patch.object(frappe, "is_setup_complete", return_value=True):
+				self.assertEqual(setup_wizard.complete_setup(), {"status": "ok"})
