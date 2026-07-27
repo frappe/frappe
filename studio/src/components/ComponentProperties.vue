@@ -15,7 +15,7 @@
 						:key="Object.keys(block?.componentSlots || {}).length"
 						:options="availableSlotOptions"
 						:allowCustomValue="true"
-						placeholder="Search or type a dynamic slot name"
+						placeholder="Search or add a slot"
 						@update:modelValue="(slotName: string) => addSlot(slotName)"
 						align="end"
 					>
@@ -33,7 +33,11 @@
 						@click="selectSlot(slotName)"
 					>
 						<div class="flex min-w-0 items-center gap-1.5">
-							<Tooltip :hoverDelay="0" :text="isDynamicSlot(slotName) ? 'Dynamic slot' : 'Standard slot'">
+							<Tooltip
+								placement="left"
+								:hoverDelay="0"
+								:text="isDynamicSlot(slotName) ? 'Dynamic slot' : 'Standard slot'"
+							>
 								<span class="inline-flex shrink-0">
 									<component
 										:is="isDynamicSlot(slotName) ? LucideZap : LucideHash"

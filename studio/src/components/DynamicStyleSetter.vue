@@ -12,7 +12,7 @@
 		<IconButton
 			ref="dropdownTrigger"
 			:icon="LucideCirclePlus"
-			placement="bottom"
+			placement="left"
 			class="mr-1"
 			size="sm"
 			tabIndex="-1"

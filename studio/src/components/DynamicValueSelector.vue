@@ -21,7 +21,7 @@
 				v-else
 				:icon="LucideCirclePlus"
 				label="Click to set dynamic value"
-				placement="bottom"
+				placement="left"
 				class="mr-1"
 				size="sm"
 				:tabIndex="-1"
