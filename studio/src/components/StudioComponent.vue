@@ -232,9 +232,12 @@ const vModelListeners = computed(() => {
 
 const attrs = useAttrs()
 const componentProps = computed(() => {
+	// exclude class/style here so they don't clobber the block's own
+	// class/style props (e.g. an icon's `h-6 w-6` sizing), which would render it invisible.
+	const { class: _class, style: _style, ...restAttrs } = attrs
 	return {
 		...getComponentProps(),
-		...attrs,
+		...restAttrs,
 	}
 })
 
