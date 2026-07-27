@@ -24,6 +24,11 @@ import { place } from "./position.js";
  *
  * Rows are built with createElement + textContent, so labels can never
  * smuggle markup — there is no HTML channel here at all.
+ *
+ * Async: the root options (via a function returning a promise, or a bare
+ * promise) and function submenus may resolve later — the panel opens with a
+ * loading placeholder and fill() swaps the rows in when the data lands,
+ * re-measuring the position. Late resolutions after a close are discarded.
  */
 
 /**
@@ -38,7 +43,7 @@ import { place } from "./position.js";
  * @property {function} [onclick] Called with the click event. The menu closes after.
  * @property {string} [href] Renders the row as a link. Code-running schemes are refused.
  * @property {function} [condition] Checked on every open; return false to hide the row.
- * @property {MenuItem[]} [submenu] Nested rows — the row opens a side panel instead of acting.
+ * @property {MenuItem[]|function} [submenu] Nested rows — the row opens a side panel instead of acting. A function runs at hover-start (once per menu open, result cached) and may return the rows or a Promise of them; the panel shows a loading state until it settles.
  */
 
 /**
@@ -49,6 +54,10 @@ import { place } from "./position.js";
  */
 
 const THEMES = ["gray", "red"];
+
+function is_thenable(value) {
+	return !!value && typeof value.then === "function";
+}
 
 const SUBMENU_OFFSET = 4;
 const SUBMENU_OPEN_DELAY = 150;
@@ -220,12 +229,10 @@ function build_item(item, { reserve_icon_space, component, taken }) {
 	return { el, mnemonic };
 }
 
-function build_panel(groups, { empty_text, component }) {
-	const panel = document.createElement("div");
-	panel.className = "es-menu";
-	panel.setAttribute("role", "menu");
-	panel.setAttribute("tabindex", "-1");
-
+// fill a bare panel with its group/row elements (or the empty text) and
+// return the rows. Separate from build_panel so a panel that opened in its
+// loading state can be filled in place when the async items arrive.
+function render_content(panel, groups, { empty_text, component }) {
 	const rows = []; // [{ el, item, mnemonic }] in visual order
 	const taken = new Set(); // Alt-mnemonic letters, unique within a panel
 
@@ -234,7 +241,7 @@ function build_panel(groups, { empty_text, component }) {
 		empty.className = "es-menu__empty";
 		empty.textContent = empty_text || __("No options");
 		panel.appendChild(empty);
-		return { panel, rows };
+		return rows;
 	}
 
 	for (const group of groups) {
@@ -267,6 +274,39 @@ function build_panel(groups, { empty_text, component }) {
 		panel.appendChild(group_el);
 	}
 
+	return rows;
+}
+
+// the placeholder shown while async items load: a spinner + "Loading...",
+// inert like the empty state (no rows, so keyboard navigation has nothing
+// to land on; Escape and outside-click work through the panel as usual)
+function render_loading(panel) {
+	const loading = document.createElement("div");
+	loading.className = "es-menu__loading";
+	const spinner = document.createElement("span");
+	spinner.className = "es-spinner";
+	spinner.setAttribute("aria-hidden", "true");
+	const text = document.createElement("span");
+	text.textContent = __("Loading...");
+	loading.append(spinner, text);
+	panel.appendChild(loading);
+	panel.setAttribute("aria-busy", "true");
+}
+
+// `groups === null` means the items are still loading (async source) — the
+// panel opens with the loading placeholder and fill() swaps the rows in
+function build_panel(groups, { empty_text, component }) {
+	const panel = document.createElement("div");
+	panel.className = "es-menu";
+	panel.setAttribute("role", "menu");
+	panel.setAttribute("tabindex", "-1");
+
+	if (groups === null) {
+		render_loading(panel);
+		return { panel, rows: [] };
+	}
+
+	const rows = render_content(panel, groups, { empty_text, component });
 	return { panel, rows };
 }
 
@@ -287,6 +327,9 @@ export class MenuTree {
 		this.lock_scroll = lock_scroll;
 		this.panels = []; // [{ panel, rows, anchor, side, align, offset, parent_row }]
 		this.closed = false;
+		// function submenus resolve once per menu open: row -> items or the
+		// pending promise (see get_submenu_items)
+		this.submenu_cache = new Map();
 		this.submenu_timer = null;
 		this.typeahead_buffer = "";
 		this.typeahead_timer = null;
@@ -295,17 +338,22 @@ export class MenuTree {
 
 	open({ side = "bottom", align = "start", offset = 4, motion = "animated", focus = null }) {
 		// options can be a function so the menu reflects right-now state
-		// (which row was clicked, what's selected); it runs on every open
-		const groups = normalize_options(
-			typeof this.options === "function" ? this.options() : this.options
-		);
-		const entry = this.mount(groups, {
-			anchor: this.anchor,
-			side,
-			align,
-			offset,
-			motion,
-		});
+		// (which row was clicked, what's selected); it runs on every open.
+		// A promise (or a function returning one) opens the menu in its
+		// loading state, and the rows fill in when it settles.
+		const value = typeof this.options === "function" ? this.options() : this.options;
+		const mount_opts = { anchor: this.anchor, side, align, offset, motion };
+		let entry;
+		if (is_thenable(value)) {
+			entry = this.mount(null, mount_opts);
+			entry.pending_focus = focus === "first" || focus === "last" ? focus : null;
+			value.then(
+				(items) => this.fill(entry, normalize_options(items)),
+				(error) => this.fill_failed(entry, error)
+			);
+		} else {
+			entry = this.mount(normalize_options(value), mount_opts);
+		}
 
 		// pressing down anywhere that isn't a panel (or the trigger, which
 		// handles its own clicks) closes the menu
@@ -352,9 +400,11 @@ export class MenuTree {
 
 		// keyboard opens land on a row right away (ArrowDown = first,
 		// ArrowUp = last); mouse opens just focus the panel so keys work
-		// without stealing the highlight from wherever the pointer is
-		if (focus === "first") this.focus_step(entry, 1);
-		else if (focus === "last") this.focus_step(entry, -1);
+		// without stealing the highlight from wherever the pointer is. An
+		// async panel has no rows yet — focus the panel so Escape works, and
+		// fill() honors pending_focus when the rows arrive
+		if (focus === "first" && entry.rows.length) this.focus_step(entry, 1);
+		else if (focus === "last" && entry.rows.length) this.focus_step(entry, -1);
 		else entry.panel.focus({ preventScroll: true });
 	}
 
@@ -388,9 +438,26 @@ export class MenuTree {
 	}
 
 	bind_panel(entry) {
-		const { panel, rows } = entry;
+		this.bind_rows(entry);
 
-		for (const row of rows) {
+		// whichever row has focus carries the highlight — this is the only
+		// place data-highlighted is ever set. Reads entry.rows live (not a
+		// captured copy) so an async fill's new rows are covered too.
+		entry.panel.addEventListener("focusin", (e) => {
+			for (const row of entry.rows) {
+				row.el.toggleAttribute("data-highlighted", row.el === e.target);
+			}
+		});
+
+		// key presses on focused rows bubble up to the panel, so one
+		// listener per panel covers all of its rows
+		entry.panel.addEventListener("keydown", (e) => this.handle_keydown(entry, e));
+	}
+
+	// per-row listeners; called at mount and again after an async fill
+	// replaces a panel's rows
+	bind_rows(entry) {
+		for (const row of entry.rows) {
 			row.el.addEventListener("click", (e) => {
 				// disabled buttons don't fire click, but a scripted or AT
 				// activation can still reach here — never act on a disabled row
@@ -417,18 +484,47 @@ export class MenuTree {
 				this.schedule_submenu(entry, row);
 			});
 		}
+	}
 
-		// whichever row has focus carries the highlight — this is the only
-		// place data-highlighted is ever set
-		panel.addEventListener("focusin", (e) => {
-			for (const row of rows) {
-				row.el.toggleAttribute("data-highlighted", row.el === e.target);
-			}
+	// swap a loading panel's placeholder for the resolved rows, in place.
+	// Late resolutions are dropped: the whole menu may have closed, or just
+	// that submenu panel (hover moved on) — either way there's nothing to do.
+	fill(entry, groups) {
+		if (this.closed || !this.panels.includes(entry)) return;
+		// read focus before replaceChildren blurs whatever held it
+		const had_focus =
+			entry.panel === document.activeElement || entry.panel.contains(document.activeElement);
+		entry.panel.replaceChildren();
+		entry.panel.removeAttribute("aria-busy");
+		entry.rows = render_content(entry.panel, groups, {
+			empty_text: this.empty_text,
+			component: this.component,
 		});
+		this.bind_rows(entry);
+		// the panel's size just changed — measure, flip and clamp again
+		place(entry.panel, entry.anchor(), entry.side, entry.align, entry.offset);
+		if (entry.pending_focus) {
+			this.focus_step(entry, entry.pending_focus === "last" ? -1 : 1);
+			entry.pending_focus = null;
+		} else if (had_focus) {
+			entry.panel.focus({ preventScroll: true });
+		}
+	}
 
-		// key presses on focused rows bubble up to the panel, so one
-		// listener per panel covers all of its rows
-		panel.addEventListener("keydown", (e) => this.handle_keydown(entry, e));
+	// async items rejected: keep the panel up with an inert notice — a dead
+	// hover with no feedback would look like the menu is broken
+	fill_failed(entry, error) {
+		if (this.closed || !this.panels.includes(entry)) return;
+		console.warn(`frappe.ui.${this.component}: menu items failed to load`, error);
+		entry.panel.replaceChildren();
+		entry.panel.removeAttribute("aria-busy");
+		const failed = document.createElement("div");
+		failed.className = "es-menu__empty";
+		failed.textContent = __("Couldn't load options");
+		entry.panel.appendChild(failed);
+		entry.rows = [];
+		entry.pending_focus = null;
+		place(entry.panel, entry.anchor(), entry.side, entry.align, entry.offset);
 	}
 
 	// all keyboard behavior for one panel. `entry` is the panel the focused
@@ -605,6 +701,10 @@ export class MenuTree {
 	// other row closes panels deeper than this one
 	schedule_submenu(entry, row) {
 		clearTimeout(this.submenu_timer);
+		// a function submenu starts resolving at hover-START, before the open
+		// delay — a fast source is ready before the panel ever shows, so the
+		// loading state often never appears at all
+		if (row.item.submenu) this.get_submenu_items(row);
 		const depth = this.panels.indexOf(entry);
 		this.submenu_timer = setTimeout(() => {
 			if (this.closed) return;
@@ -613,19 +713,41 @@ export class MenuTree {
 		}, SUBMENU_OPEN_DELAY);
 	}
 
+	// a submenu's items: an array passes through; a function runs once per
+	// menu open and its result — value or promise — is cached, so hovering
+	// away and back doesn't refetch. When a promise resolves, the cache is
+	// swapped to the plain items so the next open of that row is synchronous.
+	// A rejected promise stays cached (no retry until the next menu open);
+	// the rejection itself is handled where the panel consumes it.
+	get_submenu_items(row) {
+		const source = row.item.submenu;
+		if (typeof source !== "function") return source;
+		if (!this.submenu_cache.has(row)) {
+			const value = source();
+			this.submenu_cache.set(row, value);
+			if (is_thenable(value)) {
+				value.then(
+					(items) => this.submenu_cache.set(row, items),
+					() => {} // fill_failed reports it; this guard just keeps the prefetch handled
+				);
+			}
+		}
+		return this.submenu_cache.get(row);
+	}
+
 	open_submenu(parent_entry, row, { focus }) {
 		// this row's submenu is already open — just step into it if asked
 		const depth = this.panels.indexOf(parent_entry);
 		const already = this.panels[depth + 1];
 		if (already && already.parent_row === row.el) {
-			if (focus) this.focus_step(already, 1);
+			if (focus && already.rows.length) this.focus_step(already, 1);
 			return;
 		}
 		// a sibling's submenu may be open — only one branch at a time
 		this.close_submenus_from(depth + 1);
 
-		const groups = normalize_options(row.item.submenu);
-		const entry = this.mount(groups, {
+		const source = this.get_submenu_items(row);
+		const mount_opts = {
 			// the submenu hangs off its row and follows it around, opening
 			// toward the reading direction (left in RTL)
 			anchor: () => row.el.getBoundingClientRect(),
@@ -634,10 +756,21 @@ export class MenuTree {
 			offset: SUBMENU_OFFSET,
 			motion: "animated",
 			parent_row: row.el,
-		});
-		// keyboard opens step onto the first row; hover opens leave focus
-		// on the parent row until the pointer moves in
-		if (focus) this.focus_step(entry, 1);
+		};
+		let entry;
+		if (is_thenable(source)) {
+			entry = this.mount(null, mount_opts);
+			if (focus) entry.pending_focus = "first";
+			source.then(
+				(items) => this.fill(entry, normalize_options(items)),
+				(error) => this.fill_failed(entry, error)
+			);
+		} else {
+			entry = this.mount(normalize_options(source), mount_opts);
+			// keyboard opens step onto the first row; hover opens leave focus
+			// on the parent row until the pointer moves in
+			if (focus) this.focus_step(entry, 1);
+		}
 	}
 
 	// close every panel deeper than `depth` (the Math.max keeps the root

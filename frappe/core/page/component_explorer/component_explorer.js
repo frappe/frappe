@@ -132,6 +132,76 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					],
 				},
 				{
+					title: __("Async items (loading state)"),
+					items: [
+						{
+							button: { label: "Async options" },
+							options: () =>
+								new Promise((resolve) =>
+									setTimeout(
+										() =>
+											resolve([
+												{
+													label: "Fetched row 1",
+													onclick: () =>
+														frappe.ui.toast({ message: "Row 1" }),
+												},
+												{
+													label: "Fetched row 2",
+													onclick: () =>
+														frappe.ui.toast({ message: "Row 2" }),
+												},
+											]),
+										600
+									)
+								),
+						},
+						{
+							button: { label: "Async submenu" },
+							options: [
+								{
+									label: "Recent documents",
+									icon: "clock",
+									submenu: () =>
+										new Promise((resolve) =>
+											setTimeout(
+												() =>
+													resolve([
+														{
+															label: "Doc A",
+															onclick: () =>
+																frappe.ui.toast({
+																	message: "Doc A",
+																}),
+														},
+														{
+															label: "Doc B",
+															onclick: () =>
+																frappe.ui.toast({
+																	message: "Doc B",
+																}),
+														},
+													]),
+												600
+											)
+										),
+								},
+								{
+									label: "Fails to load",
+									icon: "cloud-off",
+									submenu: () =>
+										new Promise((resolve, reject) =>
+											setTimeout(
+												() => reject(new Error("network down")),
+												600
+											)
+										),
+								},
+							],
+						},
+					],
+				},
+				{
 					title: __("Selected row, descriptions and links"),
 					items: [
 						{
