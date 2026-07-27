@@ -1,5 +1,9 @@
+import asyncio
+
+import pytest
+
 from flow_server.agent import Agent
-from flow_server.events import AssistantMessage, ToolCall
+from flow_server.events import AssistantMessage, RunEnded, ToolCall
 from flow_server.model.mock import MockModel
 
 
@@ -29,3 +33,26 @@ async def test_run_then_resume_across_pause(tmp_path):
 	assert tool_results[0].content == "SECRET"
 	assert results[-1].type == "run_ended"
 	assert results[-1].reason == "done"
+
+
+async def test_event_iterator_does_not_hang_if_terminal_publish_fails(tmp_path, monkeypatch):
+	agent = Agent(
+		model=MockModel(replies=[AssistantMessage(text="done")]),
+		data_dir=str(tmp_path),
+		cwd=str(tmp_path),
+	)
+	original_publish = agent.session.publish
+
+	def fail_terminal(event):
+		if isinstance(event, RunEnded):
+			raise OSError("log unavailable")
+		original_publish(event)
+
+	monkeypatch.setattr(agent.session, "publish", fail_terminal)
+
+	async def consume():
+		return [event async for event in agent.run("hi")]
+
+	with pytest.raises(OSError, match="log unavailable"):
+		await asyncio.wait_for(consume(), timeout=0.5)
+	assert agent.session.is_running is False

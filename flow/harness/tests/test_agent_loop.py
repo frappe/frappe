@@ -155,6 +155,7 @@ async def test_resume_rejects_non_exact_answers_without_mutating_log(tmp_path):
 	await run(session, "read", model=mock)
 	approval_seq = _of(events, "approval_required")[0]["seq"]
 	latest_seq = session.log.latest_seq
+	session.abort.set()
 
 	with pytest.raises(ResumeError, match="missing answers for: c2"):
 		await resume(
@@ -172,6 +173,7 @@ async def test_resume_rejects_non_exact_answers_without_mutating_log(tmp_path):
 		)
 
 	assert session.log.latest_seq == latest_seq
+	assert session.abort.is_set()
 	assert _of(events, "tool_result") == []
 
 
@@ -191,3 +193,89 @@ async def test_max_turns_cap(tmp_path):
 	await run(session, "loop", model=mock)
 	assert _of(events, "run_ended")[0]["reason"] == "max_turns"
 	assert len(_of(events, "tool_result")) == 2
+
+
+async def test_setup_failure_emits_one_terminal_error(tmp_path, monkeypatch):
+	session, events = _session(tmp_path)
+
+	async def fail_auth(*args, **kwargs):
+		raise RuntimeError("auth setup failed")
+
+	monkeypatch.setattr("flow_server.agent.loop.resolve_model_auth", fail_auth)
+	await run(session, "hi")
+
+	assert _of(events, "run_error")[0]["message"] == "RuntimeError: auth setup failed"
+	assert [event["reason"] for event in _of(events, "run_ended")] == ["error"]
+
+
+async def test_hook_failure_repairs_all_unreturned_tool_calls(tmp_path):
+	session, events = _session(tmp_path)
+	mock = MockModel(
+		replies=[
+			AssistantMessage(
+				tool_calls=[
+					ToolCall(id="c1", name="read_file", args={"path": "a.txt"}),
+					ToolCall(id="c2", name="read_file", args={"path": "b.txt"}),
+				]
+			)
+		]
+	)
+
+	def fail_before(tc, ctx):
+		raise RuntimeError("hook failed")
+
+	await run(session, "read", model=mock, before_tool_call=fail_before)
+
+	results = _of(events, "tool_result")
+	assert [result["tool_call_id"] for result in results] == ["c1", "c2"]
+	assert all(result["is_error"] for result in results)
+	assert all(result["details"]["transcript_repair"]["reason"] == "interrupted" for result in results)
+	assert _of(events, "run_error")[0]["message"] == "RuntimeError: hook failed"
+	assert [event["reason"] for event in _of(events, "run_ended")] == ["error"]
+	assert [message["role"] for message in session.messages] == [
+		"user",
+		"assistant",
+		"tool",
+		"tool",
+	]
+	latest_seq = session.log.latest_seq
+	reloaded = SessionStore(str(tmp_path)).get(session.id)
+	assert reloaded.log.latest_seq == latest_seq
+
+
+async def test_model_stream_failure_repairs_persisted_assistant_calls(tmp_path, monkeypatch):
+	session, events = _session(tmp_path)
+	mock = MockModel()
+
+	async def fail_after_assistant(messages, tools, *, stream=True):
+		yield _read_call()
+		raise RuntimeError("stream failed")
+
+	monkeypatch.setattr(mock, "run", fail_after_assistant)
+	await run(session, "read", model=mock)
+
+	assert [result["tool_call_id"] for result in _of(events, "tool_result")] == ["c1"]
+	assert _of(events, "run_error")[0]["message"] == "RuntimeError: stream failed"
+	assert [event["reason"] for event in _of(events, "run_ended")] == ["error"]
+	assert [message["role"] for message in session.messages] == [
+		"user",
+		"assistant",
+		"tool",
+	]
+
+
+async def test_model_stream_without_assistant_emits_terminal_error(tmp_path, monkeypatch):
+	session, events = _session(tmp_path)
+	mock = MockModel()
+
+	async def empty_stream(messages, tools, *, stream=True):
+		if False:
+			yield
+
+	monkeypatch.setattr(mock, "run", empty_stream)
+	await run(session, "hi", model=mock)
+
+	assert _of(events, "run_error")[0]["message"] == (
+		"RuntimeError: model stream ended without an assistant message"
+	)
+	assert [event["reason"] for event in _of(events, "run_ended")] == ["error"]

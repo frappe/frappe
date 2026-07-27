@@ -18,6 +18,7 @@ from flow_server.session.store import (
 	SessionState,
 	SessionStore,
 	_rebuild_messages,
+	interrupted_tool_repairs,
 	pending_approval,
 )
 
@@ -120,6 +121,103 @@ def test_pending_approval_scopes_reused_tool_ids_to_latest_batch(tmp_path):
 	assert approval.calls == (call,)
 
 
+def test_reload_durably_repairs_orphans_in_their_original_batch(tmp_path):
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(model="mock"))
+	call = ToolCall(id="c1", name="read_file", args={"path": "old.txt"})
+	assistant = AssistantMessage(tool_calls=[call])
+	session.publish(assistant)
+	session.publish(RunEnded(reason="error"))
+	session.publish(UserMessage(content="try something else"))
+	session.publish(
+		AssistantMessage(tool_calls=[ToolCall(id="c1", name="read_file", args={"path": "new.txt"})])
+	)
+	session.publish(ToolResult(tool_call_id="c1", name="read_file", content="new result"))
+	session.publish(RunEnded(reason="done"))
+	before_repair = session.log.latest_seq
+
+	reloaded = SessionStore(str(tmp_path)).get(session.id)
+	assert reloaded.log.latest_seq == before_repair + 1
+	repair = reloaded.log.read_since(before_repair)[0]
+	assert repair["tool_call_id"] == "c1"
+	assert repair["is_error"] is True
+	assert repair["details"]["transcript_repair"]["assistant_seq"] == assistant.seq
+	assert [message["role"] for message in reloaded.messages] == [
+		"assistant",
+		"tool",
+		"user",
+		"assistant",
+		"tool",
+	]
+	assert reloaded.messages[1]["content"] == "Tool call interrupted before completion."
+	assert reloaded.messages[-1]["content"] == "new result"
+
+	second_reload = SessionStore(str(tmp_path)).get(session.id)
+	assert second_reload.log.latest_seq == reloaded.log.latest_seq
+
+
+def test_reload_orders_actual_and_repaired_results_by_source_call(tmp_path):
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(model="mock"))
+	session.publish(
+		AssistantMessage(
+			tool_calls=[
+				ToolCall(id="c1", name="read_file", args={"path": "first.txt"}),
+				ToolCall(id="c2", name="read_file", args={"path": "second.txt"}),
+			]
+		)
+	)
+	session.publish(ToolResult(tool_call_id="c2", name="read_file", content="second result"))
+	session.publish(RunEnded(reason="error"))
+
+	reloaded = SessionStore(str(tmp_path)).get(session.id)
+
+	assert [message["role"] for message in reloaded.messages] == [
+		"assistant",
+		"tool",
+		"tool",
+	]
+	assert [message["tool_call_id"] for message in reloaded.messages[1:]] == ["c1", "c2"]
+	assert reloaded.messages[1]["content"] == "Tool call interrupted before completion."
+	assert reloaded.messages[2]["content"] == "second result"
+
+
+def test_reload_does_not_repair_calls_waiting_for_approval(tmp_path):
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(model="mock"))
+	call = ToolCall(id="c1", name="read_file", args={"path": "a.txt"})
+	session.publish(AssistantMessage(tool_calls=[call]))
+	session.publish(ApprovalRequired(calls=[PendingCall(id=call.id, name=call.name, args=call.args)]))
+	session.publish(RunEnded(reason="paused"))
+	latest_seq = session.log.latest_seq
+
+	reloaded = SessionStore(str(tmp_path)).get(session.id)
+	assert reloaded.state is SessionState.PAUSED
+	assert reloaded.log.latest_seq == latest_seq
+	assert not any(row["type"] == "tool_result" for row in reloaded.log.read_since(0))
+
+
+def test_interrupted_tool_repair_rejects_persisted_assistant_without_seq(tmp_path):
+	path = tmp_path / "invalid.jsonl"
+	log = SessionLog(str(path))
+	path.write_text(
+		AssistantMessage(
+			tool_calls=[ToolCall(id="c1", name="read_file", args={"path": "a.txt"})]
+		).model_dump_json()
+	)
+
+	with pytest.raises(ValueError, match="persisted log entry is missing a valid integer seq"):
+		interrupted_tool_repairs(log)
+
+
+def test_interrupted_tool_repair_rejects_unlinked_approval(tmp_path):
+	log = SessionLog(str(tmp_path / "invalid.jsonl"))
+	log.append(ApprovalRequired(calls=[PendingCall(id="c1", name="read_file", args={"path": "a.txt"})]))
+
+	with pytest.raises(ValueError, match="approval event has no preceding assistant tool batch"):
+		interrupted_tool_repairs(log)
+
+
 async def test_session_operation_state_clears_after_failure(tmp_path):
 	session = SessionStore(str(tmp_path)).create(SessionConfig(model="mock"))
 
@@ -134,3 +232,24 @@ async def test_session_operation_state_clears_after_failure(tmp_path):
 		await task
 	assert session.state is SessionState.IDLE
 	assert session.run_task is None
+
+
+async def test_session_operation_state_clears_if_state_rebuild_fails(tmp_path, monkeypatch):
+	session = SessionStore(str(tmp_path)).create(SessionConfig(model="mock"))
+
+	def fail_pending_approval(log):
+		raise OSError("log unavailable")
+
+	monkeypatch.setattr("flow_server.session.store.pending_approval", fail_pending_approval)
+
+	async with session.operation_lock:
+		task = session._start_operation(_complete())
+
+	with pytest.raises(OSError, match="log unavailable"):
+		await task
+	assert session.state is SessionState.IDLE
+	assert session.run_task is None
+
+
+async def _complete() -> None:
+	return
