@@ -484,6 +484,12 @@ use_json_request_body = True
 # 	"Role": "home_page"
 # }}
 
+# Setup Wizard
+# ------------
+
+# open a fresh site's setup in this app's own UI instead of the desk wizard
+# setup_wizard_url = "/{app_name}/setup"
+
 # Generators
 # ----------
 
