@@ -47,7 +47,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 
 	function load() {
 		panel.body.empty();
-		$(`<div class="text-muted small">${__("Loading")}</div>`).appendTo(panel.body);
+		frappe.doctype_settings.render_loading(panel.body);
 
 		// Reuse generic client APIs: get_list for the formats and a printable sample
 		// (submitted-only for submittable doctypes) for previews. The current default is
@@ -57,13 +57,13 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 		const sample_filters = meta.is_submittable ? { docstatus: 1 } : {};
 
 		Promise.all([
-			frappe.db.get_list("Print Format", {
+			frappe.doctype_settings.get_list("Print Format", {
 				filters: { doc_type: doctype },
 				fields: ["name", "standard", "preview_image"],
 				order_by: "standard asc, name asc",
 				limit: 0,
 			}),
-			frappe.db.get_list(doctype, {
+			frappe.doctype_settings.get_list(doctype, {
 				filters: sample_filters,
 				fields: ["name"],
 				order_by: "modified desc",
@@ -76,7 +76,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 				default_pf = current_default;
 				render(formats || []);
 			})
-			.catch(() => frappe.doctype_settings.render_error(panel, load));
+			.catch((err) => frappe.doctype_settings.render_error(panel, load, err));
 	}
 
 	// Default print format lives in a Property Setter for standard doctypes (Customize
@@ -191,7 +191,8 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 			fields: [{ fieldtype: "HTML", fieldname: "preview" }],
 		});
 		const $wrapper = dialog.fields_dict.preview.$wrapper;
-		$wrapper.html(`<div class="text-muted small">${__("Loading")}</div>`);
+		$wrapper.empty();
+		frappe.doctype_settings.render_loading($wrapper);
 		dialog.show();
 
 		// Render the print HTML server-side and inject it as a static (JS-free) iframe via
