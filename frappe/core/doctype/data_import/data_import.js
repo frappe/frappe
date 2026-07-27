@@ -489,6 +489,20 @@ function get_import_preview_source_key(frm) {
 	].join("|");
 }
 
+/**
+ * Clear snapshotted blocked-import warnings when the import source changes.
+ * Otherwise the wizard keeps routing to Fix Issues from the previous file
+ * until the next successful save.
+ */
+function clear_stale_template_warnings_for_source(frm) {
+	const source_key = get_import_preview_source_key(frm);
+	const prev = frm._diw_template_warnings_source_key;
+	if (prev != null && prev !== source_key && frm.doc.template_warnings) {
+		frm.doc.template_warnings = "";
+	}
+	frm._diw_template_warnings_source_key = source_key;
+}
+
 function is_import_preview_ready_for_source(frm, source_key = get_import_preview_source_key(frm)) {
 	return Boolean(frm._import_preview_ready && frm._import_preview_source_key === source_key);
 }
@@ -927,11 +941,13 @@ frappe.ui.form.on("Data Import", {
 		frm._wizard_import_progress = null;
 		frm._import_log_filter = null;
 		frm._import_log_total_count = null;
+		frm._diw_template_warnings_source_key = null;
 		// Let the wizard recompute the landing step for this document.
 		frm.wizard_step = null;
 	},
 
 	after_save(frm) {
+		clear_stale_template_warnings_for_source(frm);
 		if (cint(frm.wizard_step) === 2) {
 			frm._data_import_wizard?.refresh_fix_issues?.();
 		}
@@ -1610,6 +1626,7 @@ frappe.ui.form.on("Data Import", {
 		// Save / re-render can re-fire this handler for the same URL — don't wipe error
 		// state or start a second preview fetch (that produced duplicate modals).
 		if (source_changed) {
+			clear_stale_template_warnings_for_source(frm);
 			frm._diw_google_sheets_preview_source = source_key;
 			frm._import_preview_error = null;
 			frm._import_preview_error_key = null;
@@ -1635,6 +1652,10 @@ frappe.ui.form.on("Data Import", {
 	},
 
 	refresh_google_sheet(frm) {
+		// Sheet data can change without a URL change — drop blocked-import snapshots.
+		if (frm.doc.template_warnings) {
+			frm.doc.template_warnings = "";
+		}
 		frm._import_preview_failed_source = null;
 		frm._import_preview_last_error = null;
 		frm._import_preview_error_key = null;
@@ -1909,6 +1930,7 @@ frappe.ui.form.on("Data Import", {
 			return Promise.resolve(null);
 		}
 
+		clear_stale_template_warnings_for_source(frm);
 		const request_source_key = get_import_preview_source_key(frm);
 		const force_reload = force || frm._import_preview_force_reload;
 		if (has_failed_import_preview(frm, request_source_key) && !force_reload) {

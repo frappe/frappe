@@ -16,11 +16,38 @@ from frappe.model import CORE_DOCTYPES
 from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.modules.import_file import import_file_by_path
-from frappe.utils import cint
+from frappe.utils import cint, cstr
 from frappe.utils.background_jobs import enqueue, get_redis_conn, is_job_enqueued
 from frappe.utils.csvutils import validate_google_sheets_url
 
 BLOCKED_DOCTYPES = CORE_DOCTYPES - {"User", "Role", "Print Format"}
+
+
+def _value_mapping_state(doc) -> list[tuple[str, str, str, str]]:
+	"""Sorted mapping tuples used to detect whether Fix Issues targets changed."""
+	return sorted(
+		(
+			row.fieldname or "",
+			row.parent_field or "",
+			row.source_value or "",
+			(row.target_value or "").strip(),
+		)
+		for row in (doc.get("value_mappings") or [])
+	)
+
+
+def _import_source_fingerprint(doc) -> str:
+	"""Fingerprint of parse inputs that invalidate blocked-import warning snapshots."""
+	return "|".join(
+		[
+			cstr(doc.import_file),
+			cstr(doc.google_sheets_url),
+			cstr(cint(doc.use_csv_sniffer)),
+			cstr(cint(doc.custom_delimiters)),
+			cstr(doc.delimiter_options),
+			cstr(doc.template_options),
+		]
+	)
 
 
 class DataImport(Document):
@@ -74,30 +101,30 @@ class DataImport(Document):
 		importer = self.get_importer() if (self.import_file or self.google_sheets_url) else None
 		if importer:
 			self.set_payload_count(importer)
+			# Sync can reshape mappings when file content changes at the same URL —
+			# clear snapshotted warnings if that happens so Fix Issues routing stays honest.
+			mappings_before_sync = _value_mapping_state(self)
 			self.sync_value_mappings_from_import(importer)
+			if self.template_warnings and _value_mapping_state(self) != mappings_before_sync:
+				self.template_warnings = ""
 		else:
 			self.set_payload_count()
 
 	def clear_stale_template_warnings(self, doc_before_save) -> None:
-		"""Warnings snapshotted from a blocked import attempt go stale once the user updates
-		value mappings — clear them so the UI recomputes from a fresh preview."""
+		"""Drop blocked-import warning snapshots that no longer match the current file
+		or mappings — otherwise the wizard keeps landing on Fix Issues after a swap."""
 		if not self.template_warnings or not doc_before_save:
 			return
 
-		def mapping_state(doc):
-			return sorted(
-				(
-					row.fieldname or "",
-					row.parent_field or "",
-					row.source_value or "",
-					(row.target_value or "").strip(),
-				)
-				for row in (doc.get("value_mappings") or [])
-			)
+		# URL change is also handled above; keep this explicit so mapping-only saves and
+		# delimiter / column-map edits still invalidate the snapshot.
+		if _import_source_fingerprint(self) != _import_source_fingerprint(doc_before_save):
+			self.template_warnings = ""
+			return
 
 		# Keep template warnings when only skipped_rows changes so skipped row warnings
 		# remain visible in Fix Issues with an Undo Skip action after save.
-		if mapping_state(self) != mapping_state(doc_before_save):
+		if _value_mapping_state(self) != _value_mapping_state(doc_before_save):
 			self.template_warnings = ""
 
 	def sync_value_mappings_from_import(self, importer: Importer | None = None) -> bool:
