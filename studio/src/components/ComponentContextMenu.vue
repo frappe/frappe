@@ -13,19 +13,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Ref } from "vue"
+import { ref, computed, Ref } from "vue"
 import ContextMenu from "@/components/ContextMenu.vue"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
+import useStudioStore from "@/stores/studioStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import type { ContextMenuOption, ContextMenuGroup } from "@/types"
+import type { StudioComponent } from "@/types/Studio/StudioComponent"
 import { getBlockCopy, getComponentBlock } from "@/utils/serializer"
 import getBlockTemplate from "@/utils/blockTemplate"
 import FormDialog from "@/components/FormDialog.vue"
 import components from "@/data/components"
+import { studioComponents } from "@/data/studioComponents"
 import { toast } from "frappe-ui"
+import LucideCode from "~icons/lucide/code"
+import LucideBox from "~icons/lucide/box"
 
 const canvasStore = useCanvasStore()
+const store = useStudioStore()
 
 const contextMenuVisible = ref(false)
 const posX = ref(0)
@@ -53,8 +59,21 @@ const handleContextMenuSelect = (action: CallableFunction) => {
 	contextMenuVisible.value = false
 }
 
-const getComponentSubMenu = (): ContextMenuGroup[] =>
-	components.getComponentGroups(components.list).map((group) => ({
+const addComponent = (
+	componentName: string,
+	{ isStudioComponent = false, isCustomVueComponent = false } = {},
+) => {
+	const targetBlock = block.value
+	if (!targetBlock) return
+	const newBlock = getComponentBlock(componentName, isStudioComponent, isCustomVueComponent)
+	if (selectedSlot.value) {
+		newBlock.parentSlotName = selectedSlot.value
+	}
+	targetBlock.addChild(newBlock)
+}
+
+const componentSubmenu = computed<ContextMenuGroup[]>(() => {
+	const groups: ContextMenuGroup[] = components.getComponentGroups(components.list).map((group) => ({
 		label: group.label,
 		options: group.components.map((component) => ({
 			label: component.title,
@@ -63,21 +82,38 @@ const getComponentSubMenu = (): ContextMenuGroup[] =>
 		})),
 	}))
 
-const addComponent = (componentName: string) => {
-	const targetBlock = block.value
-	if (!targetBlock) return
-	const newBlock = getComponentBlock(componentName)
-	if (selectedSlot.value) {
-		newBlock.parentSlotName = selectedSlot.value
+	if (store.customVueComponents.length) {
+		groups.push({
+			label: "Vue Components",
+			options: store.customVueComponents.map((component) => ({
+				label: component.component_name,
+				icon: LucideCode,
+				action: () => addComponent(component.component_name, { isCustomVueComponent: true }),
+			})),
+		})
 	}
-	targetBlock.addChild(newBlock)
-}
+
+	if (studioComponents.data.length) {
+		groups.push({
+			label: "Studio Components",
+			options: studioComponents.data.map((component: StudioComponent) => ({
+				label: component.component_name,
+				icon: LucideBox,
+				action: () => addComponent(component.component_id, { isStudioComponent: true }),
+			})),
+		})
+	}
+
+	return groups
+})
 
 const contextMenuOptions: ContextMenuOption[] = [
 	{
 		label: "Add Component",
 		condition: () => Boolean(block.value?.canHaveChildren()),
-		submenu: getComponentSubMenu(),
+		get submenu() {
+			return componentSubmenu.value
+		},
 	},
 	{
 		label: "Wrap In Container",
