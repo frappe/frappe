@@ -363,20 +363,14 @@ frappe.views.Calendar = class Calendar {
 						me.fullCalendar.changeView("timeGridDay", info.date);
 						me.$wrapper.find(".date-clicked").removeClass("date-clicked");
 
-						// update "active view" btn
-						me.$wrapper.find(".fc-month-button").removeClass("active");
-						me.$wrapper.find(".fc-agendaDay-button").addClass("active");
+						// keep the view pill in sync with the programmatic view
+						// change. Silent: double-click navigation is a jump, not a
+						// choice of default view, so it isn't persisted.
+						me.view_button_group.set_value("timeGridDay", { silent: true });
 					}
 
 					me.$wrapper.find(".date-clicked").removeClass("date-clicked");
 					$date_cell.addClass("date-clicked");
-
-					// explicitly remove the fc primary button styling that is append on view change
-					// from month -> day
-					$("#fc-calendar-wrapper")
-						.find("button.fc-button")
-						.removeClass("fc-button fc-button-primary fc-button-active")
-						.addClass("btn btn-default");
 				}
 				return false;
 			},
