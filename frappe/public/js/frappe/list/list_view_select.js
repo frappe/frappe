@@ -243,11 +243,15 @@ frappe.views.ListViewSelect = class ListViewSelect {
 		const open_with_layout = (name) => {
 			// remember the choice, then route WITHOUT carrying the current
 			// view's filters — a layout defines its own, and URL filters
-			// would override the restore
-			frappe.model.user_settings.save(this.doctype, "List", {
-				active_layout_name: name === "default_layout" ? "" : name,
-			});
-			frappe.set_route([this.slug(), "view", "list"]);
+			// would override the restore. The route waits for the save:
+			// user_settings.save only updates the local cache in its server
+			// callback, so routing immediately would let the arriving list
+			// view restore from the stale value.
+			frappe.model.user_settings
+				.save(this.doctype, "List", {
+					active_layout_name: name === "default_layout" ? "" : name,
+				})
+				.then(() => frappe.set_route([this.slug(), "view", "list"]));
 		};
 
 		const layout_row = (layout) => ({
