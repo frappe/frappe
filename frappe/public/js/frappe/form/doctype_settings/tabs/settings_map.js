@@ -60,7 +60,7 @@ function render(panel, doctype, groups) {
 // settings form, for anything beyond the curated subset shown here.
 function make_heading(panel, group) {
 	const $heading = $('<div class="dts-settings-group-heading"></div>');
-	$('<div class="text-base-medium text-ink-gray-8"></div>').text(group.label).appendTo($heading);
+	$('<div class="text-base text-ink-gray-5"></div>').text(group.label).appendTo($heading);
 	$('<a href="#" class="dts-settings-group-link"></a>')
 		.attr("title", __("Open {0}", [group.label]))
 		.attr("aria-label", __("Open {0}", [group.label]))
@@ -83,7 +83,7 @@ function render_field($body, group, field) {
 	field.$row = $row; // referenced by apply_dependencies() to show/hide the field
 
 	const $text = $('<div class="dts-setting-text"></div>').appendTo($row);
-	$('<div class="dts-setting-label text-base"></div>').text(field.label).appendTo($text);
+	$('<div class="dts-setting-label text-base-medium"></div>').text(field.label).appendTo($text);
 	if (field.description) {
 		$('<div class="dts-setting-description text-p-sm"></div>')
 			.text(field.description)
