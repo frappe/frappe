@@ -39,7 +39,8 @@ class PilotClient:
 		try:
 			response = requests.request(
 				method,
-				f"{self.endpoint}/api/{path.lstrip('/')}",
+				# Pilot's admin API is versioned under /api/v1.
+				f"{self.endpoint}/api/v1/{path.lstrip('/')}",
 				json=data,
 				headers={"Authorization": f"Bearer {self.token}"},
 				timeout=cint(frappe.conf.get("cloud_settings_timeout")) or 30,
@@ -51,8 +52,10 @@ class PilotClient:
 		# Some endpoints (e.g. the app registry) return a bare JSON list.
 		if response.ok and (isinstance(payload, list) or not payload.get("error")):
 			return payload
-		message = payload.get("error") or payload.get("message") or response.text
-		frappe.throw(message or _("Request to your server failed."), frappe.ValidationError)
+		frappe.throw(
+			self._error_message(payload) or response.text or _("Request to your server failed."),
+			frappe.ValidationError,
+		)
 
 	@staticmethod
 	def _parse(response):
@@ -60,6 +63,18 @@ class PilotClient:
 			return response.json()
 		except ValueError:
 			return {}
+
+	@staticmethod
+	def _error_message(payload) -> str:
+		"""Pilot reports an error as either a string or a nested object; always
+		return a plain string. frappe.throw() feeds this to strip_html_tags(), which
+		raises on a dict."""
+		if not isinstance(payload, dict):
+			return ""
+		error = payload.get("error") or payload.get("message")
+		if isinstance(error, dict):
+			error = error.get("message") or error.get("detail") or error.get("error")
+		return str(error) if error else ""
 
 
 # --- access control -------------------------------------------------------
@@ -219,9 +234,13 @@ def get_task(task_id: str) -> dict:
 	if not task_id:
 		frappe.throw(_("Task id is required."), frappe.ValidationError)
 	try:
-		response = PilotClient().get(f"tasks/{quote(task_id, safe='')}")
+		client = PilotClient()
+		# Site-scoped task route: a site token can read its own install/uninstall
+		# tasks but not bench-wide ones.
+		response = client.get(client.site_path(f"tasks/{quote(task_id, safe='')}"))
 	except frappe.ValidationError:
-		# Unknown / expired task — don't surface the reachability error as a toast.
+		# Unknown / expired / not-ours task — don't surface it as a toast; the UI
+		# treats an unknowable task as "still running in the background".
 		frappe.clear_last_message()
 		return {}
 	# The bench nests the task metadata under "task" (alongside its output log).
