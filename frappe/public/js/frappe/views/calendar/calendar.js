@@ -154,32 +154,101 @@ frappe.views.Calendar = class Calendar {
 		});
 
 		$(this.parent).on("show", function () {
-			me.$cal.fullCalendar.refetchEvents();
+			// (this used the FullCalendar v3 jQuery API — me.$cal.fullCalendar
+			// is undefined on v6, so it threw on every page revisit)
+			me.fullCalendar.refetchEvents();
+			me.set_calendar_height();
 		});
 	}
 
 	make() {
 		this.$wrapper = this.parent;
-		this.$cal = $("<div id='fc-calendar-wrapper'>").appendTo(this.$wrapper);
+		this.make_toolbar();
+		// no horizontal padding of its own — the view container's rail is the
+		// alignment edge for the toolbar, the grid and the footnote alike
+		this.$cal = $("<div id='fc-calendar-wrapper' class='pt-3'>").appendTo(this.$wrapper);
 		this.footnote_area = frappe.utils.set_footnote(
 			this.footnote_area,
 			this.$wrapper,
 			__("Select or drag across time slots to create a new event.")
 		);
-		this.footnote_area.addClass("px-4 pb-4").css({
+		this.footnote_area.addClass("pb-4").css({
 			"border-top": "0px",
 		});
 		this.fullCalendar = new frappe.FullCalendar(this.$cal[0], this.cal_options);
 		this.fullCalendar.render();
 
-		this.set_css();
+		this.set_calendar_height();
+		$(window).on(
+			"resize.fc-calendar",
+			frappe.utils.debounce(() => this.set_calendar_height(), 300)
+		);
+	}
+
+	// size the calendar to the space left in the scroll column, so the view
+	// fits the viewport instead of growing past it (FullCalendar's default
+	// aspect-ratio sizing overflows on tall months)
+	set_calendar_height() {
+		if (!this.$cal.is(":visible")) return;
+		const main = document.querySelector(".main-section");
+		if (!main) return;
+		const top = this.$cal[0].getBoundingClientRect().top - main.getBoundingClientRect().top;
+		const footnote_height = this.footnote_area ? this.footnote_area.outerHeight(true) : 0;
+		const available = main.clientHeight - top - footnote_height;
+		this.fullCalendar.setOption("height", Math.max(available, 400));
+	}
+
+	// [prev] [title] [next] ........ [Month|Week|Day] [Today]
+	// Month/Week/Day is a radio group (you are always in exactly one);
+	// Today is an action, so it's a plain button
+	make_toolbar() {
+		this.$toolbar_title = $('<span class="text-lg-semibold text-ink-gray-8"></span>');
+		this.view_button_group = new frappe.ui.TabButtons({
+			label: __("Calendar View"),
+			options: [
+				{ label: __("Month"), value: "dayGridMonth" },
+				{ label: __("Week"), value: "timeGridWeek" },
+				{ label: __("Day"), value: "timeGridDay" },
+			],
+			value: this.cal_options.initialView,
+			on_change: (value) => {
+				this.fullCalendar.changeView(value);
+				this.set_localStorage_option("cal_initialView", value);
+			},
+		});
+
+		this.$toolbar = $('<div class="flex items-center gap-2 pt-4"></div>').append(
+			frappe.ui.button({
+				icon: "chevron-left",
+				variant: "ghost",
+				title: __("Previous"),
+				onclick: () => this.fullCalendar.prev(),
+			}),
+			this.$toolbar_title,
+			frappe.ui.button({
+				icon: "chevron-right",
+				variant: "ghost",
+				title: __("Next"),
+				onclick: () => this.fullCalendar.next(),
+			}),
+			$('<div class="grow"></div>'),
+			this.view_button_group.$el,
+			frappe.ui.button({
+				label: __("Today"),
+				onclick: () => this.fullCalendar.today(),
+			})
+		);
+		this.$wrapper.append(this.$toolbar);
 	}
 	setup_view_mode_button(defaults) {
-		var me = this;
-		$(me.footnote_area).find(".btn-weekend").detach();
-		let btnTitle = defaults.weekends ? __("Hide Weekends") : __("Show Weekends");
-		const btn = `<button class="btn btn-default btn-xs btn-weekend">${btnTitle}</button>`;
-		me.footnote_area.append(btn);
+		$(this.footnote_area).find(".btn-weekend").detach();
+		this.footnote_area.append(
+			frappe.ui.button({
+				label: defaults.weekends ? __("Hide Weekends") : __("Show Weekends"),
+				size: "xs",
+				css_class: "btn-weekend",
+			})
+		);
 	}
 	set_localStorage_option(option, value) {
 		localStorage.removeItem(option);
@@ -187,62 +256,11 @@ frappe.views.Calendar = class Calendar {
 	}
 	bind() {
 		const me = this;
-		let btn_group = me.$wrapper.find(".fc-button-group");
-		btn_group.on("click", ".btn", function () {
-			let value = $(this).hasClass("fc-timeGridWeek-button")
-				? "timeGridWeek"
-				: $(this).hasClass("fc-timeGridDay-button")
-				? "timeGridDay"
-				: "dayGridMonth";
-			me.set_localStorage_option("cal_initialView", value);
-		});
-
 		me.$wrapper.on("click", ".btn-weekend", function () {
 			me.cal_options.weekends = !me.cal_options.weekends;
 			me.fullCalendar.setOption("weekends", me.cal_options.weekends);
 			me.set_localStorage_option("cal_weekends", me.cal_options.weekends);
-			me.set_css();
 			me.setup_view_mode_button(me.cal_options);
-		});
-	}
-	set_css() {
-		const viewButtons =
-			".fc-dayGridMonth-button, .fc-timeGridWeek-button, .fc-timeGridDay-button, .fc-today-button";
-		const fcViewButtonClasses = "fc-button fc-button-primary fc-button-active";
-
-		// remove fc-button styles
-		this.$wrapper
-			.find("button.fc-button")
-			.removeClass(fcViewButtonClasses)
-			.addClass("btn btn-default");
-
-		// group all view buttons
-		this.$wrapper.find(viewButtons).wrapAll('<div class="btn-group" />');
-
-		// add icons
-		this.$wrapper
-			.find(`.fc-prev-button span`)
-			.attr("class", "")
-			.html(frappe.utils.icon("chevron-left"));
-		this.$wrapper
-			.find(`.fc-next-button span`)
-			.attr("class", "")
-			.html(frappe.utils.icon("chevron-right"));
-		if (this.$wrapper.find(".fc-today-button svg").length == 0)
-			this.$wrapper.find(".fc-today-button").prepend(frappe.utils.icon("calendar-days"));
-
-		// v6.x of fc has weird behaviour which removes all the custom classes
-		// on header buttons on click, event below re-adds all the classes
-		var btn_group = this.$wrapper.find(".fc-button-group");
-		btn_group.find(".fc-button-active").addClass("active");
-
-		btn_group.find(".btn").on("click", function () {
-			btn_group
-				.find(viewButtons)
-				.removeClass(`active ${fcViewButtonClasses}`)
-				.addClass("btn btn-default");
-
-			$(this).addClass("active");
 		});
 	}
 
@@ -263,10 +281,12 @@ frappe.views.Calendar = class Calendar {
 			},
 			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
 			eventDisplay: "block",
-			headerToolbar: {
-				left: "prev,title,next",
-				center: "",
-				right: "today,dayGridMonth,timeGridWeek,timeGridDay",
+			// the toolbar is ours (make_toolbar), not FullCalendar's — no
+			// more stripping fc-button classes and re-adding them after every
+			// re-render
+			headerToolbar: false,
+			datesSet: (info) => {
+				this.$toolbar_title && this.$toolbar_title.text(info.view.title);
 			},
 			editable: true,
 			droppable: true,
