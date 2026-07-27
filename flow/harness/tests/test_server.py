@@ -290,6 +290,33 @@ class _BlockingModel(Model):
 		yield Usage()
 
 
+class _ResumeBlockingModel(Model):
+	name = "resume-blocking"
+
+	def __init__(self):
+		self.started = asyncio.Event()
+		self.release = asyncio.Event()
+		self.call_count = 0
+
+	async def run(
+		self,
+		messages: list[dict[str, Any]],
+		tools: list[dict[str, Any]] | None = None,
+		*,
+		stream: bool = True,
+	) -> AsyncIterator[_Event]:
+		del messages, tools, stream
+		self.call_count += 1
+		if self.call_count == 1:
+			yield AssistantMessage(tool_calls=[ToolCall(id="c1", name="read_file", args={"path": "a.txt"})])
+			yield Usage()
+			return
+		self.started.set()
+		await self.release.wait()
+		yield AssistantMessage(text="done")
+		yield Usage()
+
+
 async def test_waiting_run_is_registered_and_concurrent_run_steers(tmp_path, monkeypatch):
 	model = _BlockingModel()
 	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: model)
@@ -330,3 +357,51 @@ async def test_waiting_run_is_registered_and_concurrent_run_steers(tmp_path, mon
 			"first",
 			"second",
 		]
+
+
+async def test_concurrent_resume_is_rejected_before_duplicate_tool_execution(tmp_path, monkeypatch):
+	(tmp_path / "a.txt").write_text("SECRET")
+	model = _ResumeBlockingModel()
+	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: model)
+	store = SessionStore(
+		str(tmp_path / "data"),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+	)
+	app = create_app(store)
+	transport = httpx.ASGITransport(app=app)
+	async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+		sid = (
+			await client.post(
+				"/sessions",
+				json={"cwd": str(tmp_path), "confirm_tools": ["read_file"]},
+			)
+		).json()["session_id"]
+		paused = (
+			await client.post(
+				f"/sessions/{sid}/run",
+				params={"wait": "true"},
+				json={"message": "read"},
+			)
+		).json()
+		payload = {
+			"approval_seq": paused["approval_seq"],
+			"answers": {"c1": "Approve"},
+		}
+
+		first = asyncio.create_task(
+			client.post(
+				f"/sessions/{sid}/resume",
+				params={"wait": "true"},
+				json=payload,
+			)
+		)
+		await model.started.wait()
+
+		overlap = await client.post(f"/sessions/{sid}/resume", json=payload)
+		assert overlap.status_code == 409
+		assert overlap.json()["detail"] == "run is not paused"
+
+		model.release.set()
+		assert (await first).json()["reason"] == "done"
+		entries = (await client.get(f"/sessions/{sid}/entries")).json()["entries"]
+		assert len([row for row in entries if row["type"] == "tool_result"]) == 1

@@ -46,6 +46,12 @@ and `fsync`s. `read_since(n)` returns every entry with `seq > n` — this is bot
 **replay** path (catch a reconnecting client up) and the **restart** path (rebuild
 state from disk). Durability lives here and nowhere else.
 
+Loading is strict and line-aware: malformed JSON, invalid event shapes, live-only
+events, and non-monotonic sequences fail with the file and line number. Flow does not
+guess past or truncate a corrupt tail; Pi and Tau likewise reject invalid JSONL rather
+than silently discarding history. Appends are serialized within one `SessionLog`, and
+the sequence advances only after a complete line is written.
+
 If execution stops after an `AssistantMessage` has been persisted but before every
 tool call has a `ToolResult`, Flow appends synthetic error results before the
 transcript is used again. Each repair records the originating assistant sequence so
@@ -138,6 +144,10 @@ rejected. A resume must carry the current approval event's `seq` and an exact an
 set, preventing a delayed or duplicated client request from resolving a different
 batch. Unlike Pi/Tau's in-process confirmation UI, this durable paused state is a
 Flow-specific server extension needed for disconnect/restart-safe approval.
+
+`flowd serve` runs one application worker. The operation lock and JSONL append lock are
+in-process guarantees; multiple daemon processes must not share the same session
+directory without an external single-writer coordinator.
 
 ### Security policies
 
