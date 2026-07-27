@@ -90,6 +90,31 @@ class TestCloudSettings(TestCase):
 		):
 			self.assertFalse(is_cloud_settings_enabled())
 
+	def test_error_message_always_a_string(self):
+		"""Pilot may nest the error as an object; _error_message must return a str so
+		frappe.throw()/strip_html_tags() never crashes with 'got dict'."""
+		from frappe.integrations.frappe_providers.cloud_settings import PilotClient
+
+		self.assertEqual(PilotClient._error_message({"error": "flat"}), "flat")
+		self.assertEqual(PilotClient._error_message({"error": {"message": "boom"}}), "boom")
+		self.assertEqual(PilotClient._error_message({"message": {"detail": "d"}}), "d")
+		self.assertEqual(PilotClient._error_message(["a", "b"]), "")
+		self.assertEqual(PilotClient._error_message({}), "")
+
+	def test_billing_summary_degrades_when_unavailable(self):
+		"""Pilot has no billing routes yet; summary must return a 'not available'
+		state (not raise) so the Billing tab shows a message, not an error."""
+		from frappe.integrations.frappe_providers import cloud_billing
+
+		class Unreachable:
+			def site_path(self, path):
+				return path
+
+			def get(self, path):
+				raise frappe.ValidationError("API route not found.")
+
+		self.assertEqual(cloud_billing.summary(Unreachable()), {"available": False})
+
 	def test_get_domains_calls_scoped_pilot_endpoint(self):
 		with (
 			patch.dict(frappe.conf, PILOT_CONF),
@@ -103,7 +128,7 @@ class TestCloudSettings(TestCase):
 
 		request.assert_called_once()
 		_, url = request.call_args.args[:2]
-		self.assertEqual(url, "https://pilot.example.com/api/sites/ravibakes.frappe.cloud/domains")
+		self.assertEqual(url, "https://pilot.example.com/api/v1/sites/ravibakes.frappe.cloud/domains")
 		self.assertEqual(
 			request.call_args.kwargs["headers"],
 			{"Authorization": "Bearer secret-token"},
@@ -165,7 +190,7 @@ class TestCloudMarketplace(TestCase):
 
 		client = FakeClient(
 			{
-				"apps/marketplace": self.CATALOG,
+				"sites/test.localhost/marketplace": self.CATALOG,
 				"sites/test.localhost/apps": {"apps": [{"name": "erpnext", "version": "15.0.0"}]},
 			}
 		)
@@ -193,21 +218,21 @@ class TestCloudMarketplace(TestCase):
 
 		client = FakeClient({})
 		cloud_marketplace.install(client, " hrms ")
-		self.assertEqual(client.posts[0], ("sites/test.localhost/get-and-install-app", {"app": "hrms"}))
+		self.assertEqual(client.posts[0], ("sites/test.localhost/apps", {"app": "hrms"}))
 
-	def test_uninstall_posts_to_site_scoped_route(self):
+	def test_uninstall_deletes_site_scoped_app(self):
 		from frappe.integrations.frappe_providers import cloud_marketplace
 
 		client = FakeClient({})
 		cloud_marketplace.uninstall(client, "hrms")
-		self.assertEqual(client.posts[0], ("sites/test.localhost/uninstall-app", {"app": "hrms"}))
+		self.assertEqual(client.deletes[0], ("sites/test.localhost/apps/hrms", None))
 
 	def test_update_all_runs_bench_update_task(self):
 		from frappe.integrations.frappe_providers import cloud_marketplace
 
 		client = FakeClient({})
 		cloud_marketplace.update(client, None)
-		self.assertEqual(client.posts[0], ("tasks/run", {"command": "update"}))
+		self.assertEqual(client.posts[0], ("tasks", {"command": "update"}))
 
 	def test_update_selected_apps_filters_task(self):
 		from frappe.integrations.frappe_providers import cloud_marketplace
@@ -215,7 +240,7 @@ class TestCloudMarketplace(TestCase):
 		client = FakeClient({})
 		cloud_marketplace.update(client, '["hrms", "erpnext"]')
 		self.assertEqual(
-			client.posts[0], ("tasks/run", {"command": "update", "apps": ["hrms", "erpnext"]})
+			client.posts[0], ("tasks", {"command": "update", "apps": ["hrms", "erpnext"]})
 		)
 
 
@@ -241,7 +266,9 @@ class TestCloudTask(TestCase):
 			result = get_task("task-1")
 
 		_, url = request.call_args.args[:2]
-		self.assertEqual(url, "https://pilot.example.com/api/tasks/task-1")
+		self.assertEqual(
+			url, "https://pilot.example.com/api/v1/sites/ravibakes.frappe.cloud/tasks/task-1"
+		)
 		self.assertEqual(result["status"], "success")
 		self.assertEqual(result["task_id"], "task-1")
 
@@ -263,6 +290,7 @@ class FakeClient:
 	def __init__(self, responses):
 		self.responses = responses
 		self.posts = []
+		self.deletes = []
 
 	def site_path(self, path):
 		return f"sites/test.localhost/{path.lstrip('/')}"
@@ -273,4 +301,8 @@ class FakeClient:
 
 	def post(self, path, data=None):
 		self.posts.append((path, data))
+		return {"ok": True, "task_id": "task-1"}
+
+	def delete(self, path, data=None):
+		self.deletes.append((path, data))
 		return {"ok": True, "task_id": "task-1"}
