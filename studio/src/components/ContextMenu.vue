@@ -7,7 +7,7 @@
 		</DropdownMenuTrigger>
 		<DropdownMenuPortal>
 			<DropdownMenuContent
-				class="z-50 min-w-[150px] rounded-lg bg-surface-base p-1 text-sm shadow-2xl"
+				class="z-50 min-w-[150px] rounded-lg bg-surface-base p-1.5 text-sm shadow-2xl"
 				:side-offset="0"
 				align="start"
 				avoid-collisions
@@ -16,20 +16,20 @@
 					<!-- option with a nested submenu (Add Component) -->
 					<DropdownMenuSub v-if="option.submenu && (!option.condition || option.condition())">
 						<DropdownMenuSubTrigger
-							class="flex cursor-pointer items-center justify-between gap-6 rounded px-3 py-1.5 text-ink-gray-8 outline-none data-[highlighted]:bg-surface-gray-3 data-[state=open]:bg-surface-gray-3"
+							class="flex w-full cursor-pointer items-center gap-2 rounded px-3 py-1.5 text-ink-gray-8 outline-none data-[highlighted]:bg-surface-gray-3 data-[state=open]:bg-surface-gray-3"
 						>
-							{{ option.label }}
+							<span class="flex-1 truncate">{{ option.label }}</span>
 							<LucideChevronRight class="size-4 shrink-0 text-ink-gray-5" />
 						</DropdownMenuSubTrigger>
 						<DropdownMenuPortal>
 							<DropdownMenuSubContent
-								class="z-50 flex w-max min-w-[200px] flex-col rounded-lg bg-surface-base p-1 text-sm shadow-2xl"
+								class="z-50 flex w-max min-w-[200px] flex-col rounded-lg bg-surface-base py-1.5 text-sm shadow-2xl"
 								:side-offset="4"
 								:align-offset="-4"
 								avoid-collisions
 								@open-auto-focus="onSubContentOpen"
 							>
-								<div class="js-submenu-search p-1" @keydown.stop @mousedown.stop @click.stop>
+								<div class="js-submenu-search px-1.5 pb-1.5" @keydown.stop @mousedown.stop @click.stop>
 									<TextInput
 										v-model="submenuSearch"
 										size="sm"
@@ -39,8 +39,8 @@
 								</div>
 								<div class="max-h-80 overflow-y-auto">
 									<template v-for="(group, groupIndex) in filterGroups(option.submenu)" :key="groupIndex">
-										<DropdownMenuSeparator v-if="groupIndex > 0" class="mx-2 my-1 h-px bg-surface-gray-3" />
-										<DropdownMenuGroup>
+										<DropdownMenuSeparator v-if="groupIndex > 0" class="my-1 h-px bg-surface-gray-3" />
+										<DropdownMenuGroup class="px-1.5">
 											<DropdownMenuLabel
 												v-if="group.label"
 												class="px-3 pb-1 pt-1.5 text-xs font-medium text-ink-gray-5"
