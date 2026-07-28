@@ -325,6 +325,14 @@ class StudioPage(Document):
 		self.published = 0
 		self.save()
 
+	@frappe.whitelist()
+	def revert(self):
+		"""Discard the working draft so the page falls back to its published blocks (see save_draft)."""
+		self.draft_blocks = None
+		self._skip_validate = True  # blocks only change
+		self.save()
+		return self.modified
+
 	def validate_conflicts_with_other_pages(self):
 		other_pages = frappe.get_all(
 			"Studio Page",
