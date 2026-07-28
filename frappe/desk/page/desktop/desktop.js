@@ -1,4 +1,3 @@
-
 frappe.desktop_utils = {};
 frappe.desktop_grids = [];
 frappe.desktop_icons_objects = [];
