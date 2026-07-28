@@ -20,8 +20,29 @@ PILOT_CONF = {
 }
 
 
-class TestCloudSettings(TestCase):
+class _CloudTestCase(TestCase):
+	"""Save/restore frappe.local so these tests do not poison later CI shard files."""
+
 	def setUp(self):
+		self._local = {
+			"conf": frappe.local.conf,
+			"session": getattr(frappe.local, "session", None),
+			"site": getattr(frappe.local, "site", None),
+			"flags": getattr(frappe.local, "flags", None),
+			"message_log": getattr(frappe.local, "message_log", None),
+		}
+		self.configure_local()
+
+	def tearDown(self):
+		for key, value in self._local.items():
+			setattr(frappe.local, key, value)
+
+	def configure_local(self):
+		pass
+
+
+class TestCloudSettings(_CloudTestCase):
+	def configure_local(self):
 		frappe.local.conf = frappe._dict()
 		frappe.local.session = frappe._dict(user="Administrator")
 		# The site name IS the scope of the pilot token and the bench routes.
@@ -306,7 +327,7 @@ class TestCloudSettings(TestCase):
 		self.assertEqual(call.kwargs["json"], {"primary": True})
 
 
-class TestCloudMarketplace(TestCase):
+class TestCloudMarketplace(_CloudTestCase):
 	CATALOG: ClassVar[list[dict]] = [
 		{
 			"name": "erpnext",
@@ -334,7 +355,7 @@ class TestCloudMarketplace(TestCase):
 		},
 	]
 
-	def setUp(self):
+	def configure_local(self):
 		frappe.local.site = "test.localhost"
 
 	def _list(self):
@@ -397,8 +418,8 @@ class TestCloudMarketplace(TestCase):
 		)
 
 
-class TestCloudTask(TestCase):
-	def setUp(self):
+class TestCloudTask(_CloudTestCase):
+	def configure_local(self):
 		frappe.local.session = frappe._dict(user="Administrator")
 		frappe.local.site = "ravibakes.frappe.cloud"
 
