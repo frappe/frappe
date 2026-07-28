@@ -634,7 +634,8 @@ watch(
 
 .field--chip.field--selected {
 	border-style: solid;
-	border-color: var(--gray-500);
+	border-color: var(--pfb-accent);
+	box-shadow: inset 0 0 0 1px var(--pfb-accent);
 }
 
 .field-row {
@@ -794,8 +795,9 @@ watch(
 }
 
 .field--preview.field--selected {
-	outline: 1px solid var(--gray-400);
-	outline-offset: 1px;
+	outline: none;
+	box-shadow: inset 0 0 0 2px var(--pfb-accent);
+	border-radius: var(--radius-sm);
 }
 
 .field--chip.field--layer-hover {

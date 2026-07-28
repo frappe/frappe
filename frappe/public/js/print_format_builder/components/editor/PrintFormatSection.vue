@@ -322,7 +322,8 @@ function remove_column(index) {
 }
 
 .section--selected {
-	border-color: var(--gray-400);
+	border-color: var(--pfb-accent);
+	box-shadow: inset 0 0 0 1px var(--pfb-accent);
 }
 
 .section-toolbar {
@@ -549,7 +550,8 @@ function remove_column(index) {
 	padding: 0;
 }
 .section--grid.section--selected {
-	border-color: var(--gray-400);
+	border-color: var(--pfb-accent);
+	box-shadow: inset 0 0 0 1px var(--pfb-accent);
 }
 .section--grid .section-title-display {
 	padding: var(--pfb-cell-pad, 8px);
@@ -594,6 +596,7 @@ function remove_column(index) {
 	outline-offset: -1px;
 }
 .section--grid :deep(.field--selected) {
-	outline-style: solid;
+	outline: 1px solid var(--pfb-accent);
+	outline-offset: -1px;
 }
 </style>
