@@ -78,6 +78,7 @@ from frappe.utils.data import (
 	map_trackers,
 	now_datetime,
 	nowtime,
+	orjson_dumps,
 	pretty_date,
 	rounded,
 	sha256_hash,
@@ -1670,6 +1671,18 @@ class TestDataUtils(UnitTestCase):
 
 	def tearDown(self):
 		frappe.local.lang = "en"
+
+	def test_orjson_dumps_fallback_on_large_integers(self):
+		def normalize(v):
+			return json.loads(v)
+
+		big = 2**63 + 1
+		result = orjson_dumps({"big": big})
+		self.assertEqual(normalize(result), normalize(json.dumps({"big": big})))
+
+		result_bytes = orjson_dumps({"big": big}, decode=False)
+		self.assertIsInstance(result_bytes, bytes)
+		self.assertEqual(normalize(result_bytes), normalize(json.dumps({"big": big}).encode()))
 
 	def test_comma_and(self):
 		self.assertEqual(comma_and(["a", "b", "c"]), "'a', 'b', and 'c'")

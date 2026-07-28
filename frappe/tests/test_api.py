@@ -391,16 +391,6 @@ class TestMethodAPI(FrappeAPITestCase):
 
 		self.assertEqual(response.json["message"], test_data)
 
-	def test_unserializable_response_v1(self):
-		method = "frappe.tests.test_api.test_unserializable_response"
-
-		with suppress_stdout():
-			response = self.get(self.method(method), {"sid": self.sid})
-
-		self.assertEqual(response.status_code, 500)
-		self.assertEqual(response.json["exc_type"], "TypeError")
-		self.assertIn("Integer exceeds 64-bit range", response.json["exception"])
-
 
 class TestReadOnlyMode(FrappeAPITestCase):
 	"""During migration if read only mode can be enabled.
@@ -567,5 +557,10 @@ def test_array(data):
 
 
 @whitelist_for_tests()
+<<<<<<< HEAD
 def test_unserializable_response():
 	frappe.response["value"] = 2**70
+=======
+def create_todo_for_testing(description: str):
+	return frappe.get_doc({"doctype": "ToDo", "description": description}).insert().name
+>>>>>>> 61e632c4b4 ( fix: Handle large int serialization (#41308))
