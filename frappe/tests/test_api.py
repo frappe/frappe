@@ -412,16 +412,6 @@ class TestMethodAPI(FrappeAPITestCase):
 
 		self.assertEqual(response.json["message"], test_data)
 
-	def test_unserializable_response_v1(self):
-		method = "frappe.tests.test_api.test_unserializable_response"
-
-		with suppress_stdout():
-			response = self.get(self.method(method), {"sid": self.sid})
-
-		self.assertEqual(response.status_code, 500)
-		self.assertEqual(response.json["exc_type"], "TypeError")
-		self.assertIn("Integer exceeds 64-bit range", response.json["exception"])
-
 
 class TestQueryMethod(FrappeAPITestCase):
 	"""QUERY (RFC 10008) is a safe method with a request body: parsed like POST,
@@ -720,11 +710,6 @@ def test(
 @whitelist_for_tests(allow_guest=True)
 def test_array(data: typing.Any):
 	return data
-
-
-@whitelist_for_tests()
-def test_unserializable_response():
-	frappe.response["value"] = 2**70
 
 
 @whitelist_for_tests()

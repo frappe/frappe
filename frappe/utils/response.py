@@ -61,18 +61,7 @@ def report_error(status_code):
 			_link_error_with_message_log(error_log, exc_value, frappe.message_log)
 			frappe.local.response.errors = [error_log]
 
-	try:
-		response = build_response("json")
-	except TypeError:
-		error_keys = ("exception", "exc_type", "errors")
-		frappe.local.response = frappe._dict(
-			{key: frappe.local.response[key] for key in error_keys if key in frappe.local.response}
-		)
-		try:
-			response = build_response("json")
-		except TypeError:
-			response = Response(orjson.dumps({"exc_type": exc_type.__name__}), mimetype="application/json")
-
+	response = build_response("json")
 	response.status_code = status_code
 
 	return response
