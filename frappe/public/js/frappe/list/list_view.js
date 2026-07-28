@@ -2494,10 +2494,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.user_roles.includes("System Manager")) {
 			items.push({
 				label: __("Role Permissions Manager", null, "Button in list view menu"),
-				action: () =>
-					frappe.set_route("permission-manager", {
-						doctype,
-					}),
+				action: () => frappe.set_route("permission-manager", doctype),
 				standard: true,
 			});
 		}
