@@ -472,6 +472,11 @@ function remove_column(index) {
 	transition: border-color 0.15s, background 0.15s;
 }
 
+.column.col > .empty-drop-zone {
+	left: 15px;
+	right: 15px;
+}
+
 .empty-drop-zone-hint {
 	color: var(--gray-500);
 }
