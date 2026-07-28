@@ -54,9 +54,7 @@ class TestCloudSettings(TestCase):
 		):
 			bundle = get_boot_context()["bundle"]
 
-		self.assertEqual(
-			bundle["js"], "https://pilot.example.com/embed/cloud-settings/cloud-settings.js"
-		)
+		self.assertEqual(bundle["js"], "https://pilot.example.com/embed/cloud-settings/cloud-settings.js")
 
 	def test_bundle_embed_url_overrides_with_version(self):
 		conf = {
@@ -109,8 +107,7 @@ class TestCloudSettings(TestCase):
 
 		client = FakeClient(
 			{
-				"sites/test.localhost/central/"
-				"central.billing.api.billing_api.get_billing_summary": {
+				"sites/test.localhost/central/central.billing.api.billing_api.get_billing_summary": {
 					"currency": "INR",
 					"plan": {"name": "Basic"},
 				}
@@ -133,18 +130,15 @@ class TestCloudSettings(TestCase):
 			client.posts,
 			[
 				(
-					"sites/test.localhost/central/"
-					"central.billing.api.billing_api.save_billing_profile",
+					"sites/test.localhost/central/central.billing.api.billing_api.save_billing_profile",
 					{"legal_name": "Acme"},
 				),
 				(
-					"sites/test.localhost/central/"
-					"central.billing.api.billing_api.remove_payment_method",
+					"sites/test.localhost/central/central.billing.api.billing_api.remove_payment_method",
 					{"payment_method": "pm-1"},
 				),
 				(
-					"sites/test.localhost/central/"
-					"central.billing.api.billing_api.create_topup_checkout",
+					"sites/test.localhost/central/central.billing.api.billing_api.create_topup_checkout",
 					{"amount": 500, "redirect_url": "https://site.example/desk"},
 				),
 			],
@@ -173,10 +167,7 @@ class TestCloudSettings(TestCase):
 		from frappe.integrations.frappe_providers import cloud_billing
 
 		client = FakeClient(
-			{
-				"sites/test.localhost/central/"
-				"central.billing.api.billing_api.get_plan_options": {"plans": []}
-			}
+			{"sites/test.localhost/central/central.billing.api.billing_api.get_plan_options": {"plans": []}}
 		)
 
 		self.assertEqual(cloud_billing.get_plan_options(client), {"plans": []})
@@ -185,8 +176,7 @@ class TestCloudSettings(TestCase):
 			client.posts,
 			[
 				(
-					"sites/test.localhost/central/"
-					"central.billing.api.billing_api.change_plan",
+					"sites/test.localhost/central/central.billing.api.billing_api.change_plan",
 					{"plan": "business"},
 				)
 			],
@@ -402,6 +392,7 @@ class TestCloudMarketplace(TestCase):
 			("sites/test.localhost/actions/update-apps", {"apps": ["hrms", "erpnext"]}),
 		)
 
+
 class TestCloudTask(TestCase):
 	def setUp(self):
 		frappe.local.session = frappe._dict(user="Administrator")
@@ -424,9 +415,7 @@ class TestCloudTask(TestCase):
 			result = get_task("task-1")
 
 		_, url = request.call_args.args[:2]
-		self.assertEqual(
-			url, "https://pilot.example.com/api/v1/sites/ravibakes.frappe.cloud/tasks/task-1"
-		)
+		self.assertEqual(url, "https://pilot.example.com/api/v1/sites/ravibakes.frappe.cloud/tasks/task-1")
 		self.assertEqual(result["status"], "success")
 		self.assertEqual(result["task_id"], "task-1")
 

@@ -29,7 +29,6 @@ def list_apps(client) -> dict:
 	apps = [app for app in apps if app["name"] != "frappe"]
 	apps.sort(key=_sort_key)
 
-
 	categories = sorted({app["category"] for app in apps if app["category"]})
 	update_count = sum(1 for app in apps if app["has_update"])
 	return {"apps": apps, "categories": categories, "update_count": update_count}

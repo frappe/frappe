@@ -151,9 +151,9 @@ def _embed_bundle() -> dict:
 
 	One script and no stylesheet: the dialog renders inside a shadow root and
 	adopts its own styles, so there is nothing for desk to link."""
-	base = (
-		frappe.conf.get("cloud_settings_embed_url") or frappe.conf.get("pilot_endpoint") or ""
-	).rstrip("/")
+	base = (frappe.conf.get("cloud_settings_embed_url") or frappe.conf.get("pilot_endpoint") or "").rstrip(
+		"/"
+	)
 	if not base:
 		return {}
 	version = frappe.conf.get("cloud_settings_embed_version")
@@ -330,8 +330,9 @@ def get_payment_gateways() -> list:
 
 
 @frappe.whitelist(methods=["POST"])
-def add_payment_method(method_type: str = "Card", contact: str | None = None,
-					   gateway: str | None = None) -> dict:
+def add_payment_method(
+	method_type: str = "Card", contact: str | None = None, gateway: str | None = None
+) -> dict:
 	_assert_access()
 	from frappe.integrations.frappe_providers import cloud_billing
 
