@@ -898,6 +898,16 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	show_jump_to_field_dialog() {
+		// Reuse the existing Jump to Field dialog if it's already open.
+		const existing_dialog = frappe.ui.open_dialogs.find(
+			(dialog) => dialog.dialog_type === "jump_to_field" && dialog.display
+		);
+
+		if (existing_dialog) {
+			existing_dialog.hide();
+			return;
+		}
+
 		let visible_fields_filter = (f) =>
 			!["Section Break", "Column Break", "Tab Break"].includes(f.df.fieldtype) &&
 			!f.df.hidden &&
@@ -934,6 +944,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 			},
 			animate: false,
 		});
+
+		dialog.dialog_type = "jump_to_field";
 
 		dialog.show();
 	}
