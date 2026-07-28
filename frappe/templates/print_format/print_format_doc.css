@@ -276,6 +276,10 @@
 	border-left: 1px solid var(--gray-300) !important;
 }
 
+.print-format-doc .child-table--bordered .table tbody tr:last-child td {
+	border-bottom: 1px solid var(--gray-300) !important;
+}
+
 /* the cap only has work to do on bordered tables (closing the outline with a
    rounded bottom on every printed page); elsewhere it would just add an empty
    band under the table, so it gets no height */
