@@ -3,10 +3,14 @@ from unittest.mock import patch
 
 import frappe
 from frappe.integrations.frappe_providers.cloud_settings import (
+	CloudMigrationConflictError,
 	add_domain,
 	get_boot_context,
+	get_domain_dns_records,
 	get_domains,
 	is_cloud_settings_enabled,
+	remove_domain,
+	set_primary_domain,
 )
 
 PILOT_CONF = {
@@ -70,10 +74,9 @@ class TestCloudSettings(TestCase):
 			bundle["js"],
 			"https://cdn.example.com/embed/cloud-settings/cloud-settings.js?v=16.0.1",
 		)
-		self.assertEqual(
-			bundle["css"],
-			"https://cdn.example.com/embed/cloud-settings/cloud-settings.css?v=16.0.1",
-		)
+		# The embed renders in a shadow root and adopts its own styles, so the
+		# bundle is one script with no stylesheet for desk to link.
+		self.assertNotIn("css", bundle)
 
 	def test_disabled_without_system_manager_role(self):
 		with (
@@ -101,19 +104,93 @@ class TestCloudSettings(TestCase):
 		self.assertEqual(PilotClient._error_message(["a", "b"]), "")
 		self.assertEqual(PilotClient._error_message({}), "")
 
-	def test_billing_summary_degrades_when_unavailable(self):
-		"""Pilot has no billing routes yet; summary must return a 'not available'
-		state (not raise) so the Billing tab shows a message, not an error."""
+	def test_billing_uses_allowlisted_central_proxy(self):
 		from frappe.integrations.frappe_providers import cloud_billing
 
-		class Unreachable:
-			def site_path(self, path):
-				return path
+		client = FakeClient(
+			{
+				"sites/test.localhost/central/"
+				"central.billing.api.billing_api.get_billing_summary": {
+					"currency": "INR",
+					"plan": {"name": "Basic"},
+				}
+			}
+		)
 
-			def get(self, path):
-				raise frappe.ValidationError("API route not found.")
+		result = cloud_billing.summary(client)
 
-		self.assertEqual(cloud_billing.summary(Unreachable()), {"available": False})
+		self.assertEqual(result["plan"]["name"], "Basic")
+
+	def test_billing_actions_use_matching_central_methods(self):
+		from frappe.integrations.frappe_providers import cloud_billing
+
+		client = FakeClient({})
+		cloud_billing.save_profile(client, {"legal_name": "Acme"})
+		cloud_billing.remove_payment_method(client, "pm-1")
+		cloud_billing.create_topup_checkout(client, 500, "https://site.example/desk")
+
+		self.assertEqual(
+			client.posts,
+			[
+				(
+					"sites/test.localhost/central/"
+					"central.billing.api.billing_api.save_billing_profile",
+					{"legal_name": "Acme"},
+				),
+				(
+					"sites/test.localhost/central/"
+					"central.billing.api.billing_api.remove_payment_method",
+					{"payment_method": "pm-1"},
+				),
+				(
+					"sites/test.localhost/central/"
+					"central.billing.api.billing_api.create_topup_checkout",
+					{"amount": 500, "redirect_url": "https://site.example/desk"},
+				),
+			],
+		)
+
+	def test_account_url_comes_from_pilots_central_configuration(self):
+		from frappe.integrations.frappe_providers.cloud_settings import get_account_url
+
+		with (
+			patch.dict(frappe.conf, PILOT_CONF),
+			patch("frappe.get_roles", return_value=["System Manager"]),
+			patch(
+				"frappe.integrations.frappe_providers.cloud_settings.requests.request",
+				return_value=Response({"url": "http://central.localhost:8001"}),
+			) as request,
+		):
+			result = get_account_url()
+
+		self.assertEqual(result, {"url": "http://central.localhost:8001"})
+		self.assertEqual(
+			request.call_args.args[1],
+			"https://pilot.example.com/api/v1/sites/ravibakes.frappe.cloud/account-url",
+		)
+
+	def test_plan_actions_use_centrals_eligible_catalog(self):
+		from frappe.integrations.frappe_providers import cloud_billing
+
+		client = FakeClient(
+			{
+				"sites/test.localhost/central/"
+				"central.billing.api.billing_api.get_plan_options": {"plans": []}
+			}
+		)
+
+		self.assertEqual(cloud_billing.get_plan_options(client), {"plans": []})
+		cloud_billing.change_plan(client, "business")
+		self.assertEqual(
+			client.posts,
+			[
+				(
+					"sites/test.localhost/central/"
+					"central.billing.api.billing_api.change_plan",
+					{"plan": "business"},
+				)
+			],
+		)
 
 	def test_get_domains_calls_scoped_pilot_endpoint(self):
 		with (
@@ -152,6 +229,87 @@ class TestCloudSettings(TestCase):
 		self.assertEqual(result["task_id"], "task-1")
 		self.assertEqual(request.call_args.args[0], "POST")
 		self.assertEqual(request.call_args.kwargs["json"], {"domain": "shop.example.com"})
+
+	def test_migration_conflict_gets_its_own_exception_type(self):
+		"""The class name reaches the browser as `exc_type`, which is how the UI knows
+		to offer the migrations page instead of a pointless retry."""
+		payload = {"error": {"code": "migration_conflict", "message": "Still needs_attention."}}
+		with (
+			patch.dict(frappe.conf, PILOT_CONF),
+			patch("frappe.get_roles", return_value=["System Manager"]),
+			patch(
+				"frappe.integrations.frappe_providers.cloud_settings.requests.request",
+				return_value=Response(payload, ok=False),
+			),
+			self.assertRaises(CloudMigrationConflictError),
+		):
+			add_domain("shop.example.com")
+
+	def test_other_pilot_errors_stay_generic(self):
+		payload = {"error": {"code": "invalid_domain", "message": "Bad."}}
+		with (
+			patch.dict(frappe.conf, PILOT_CONF),
+			patch("frappe.get_roles", return_value=["System Manager"]),
+			patch(
+				"frappe.integrations.frappe_providers.cloud_settings.requests.request",
+				return_value=Response(payload, ok=False),
+			),
+			self.assertRaises(frappe.ValidationError) as caught,
+		):
+			add_domain("shop.example.com")
+		self.assertNotIsInstance(caught.exception, CloudMigrationConflictError)
+
+	# Pilot addresses a single domain as a path segment. These three used to send
+	# the domain in the body against a collection URL, which pilot answered with
+	# "Method not allowed" — the DNS preview, remove and make-primary flows were
+	# all dead. Assert the verb and URL shape so they cannot silently drift again.
+	def _pilot_call(self, action, payload):
+		with (
+			patch.dict(frappe.conf, PILOT_CONF),
+			patch("frappe.get_roles", return_value=["System Manager"]),
+			patch(
+				"frappe.integrations.frappe_providers.cloud_settings.requests.request",
+				return_value=Response(payload),
+			) as request,
+		):
+			result = action()
+		return result, request.call_args
+
+	def test_dns_records_are_read_from_the_domain_resource(self):
+		result, call = self._pilot_call(
+			lambda: get_domain_dns_records(" Shop.Example.Com "),
+			{"records": {"cname": [{"type": "CNAME"}], "a": [{"type": "A"}]}},
+		)
+
+		method, url = call.args[:2]
+		self.assertEqual(method, "GET")
+		self.assertEqual(
+			url,
+			"https://pilot.example.com/api/v1/sites/ravibakes.frappe.cloud"
+			"/domains/shop.example.com/dns-records",
+		)
+		self.assertEqual([record["type"] for record in result["records"]], ["CNAME", "A"])
+
+	def test_remove_domain_deletes_the_domain_resource(self):
+		_, call = self._pilot_call(lambda: remove_domain("shop.example.com"), {"ok": True})
+
+		method, url = call.args[:2]
+		self.assertEqual(method, "DELETE")
+		self.assertEqual(
+			url,
+			"https://pilot.example.com/api/v1/sites/ravibakes.frappe.cloud/domains/shop.example.com",
+		)
+
+	def test_set_primary_domain_patches_the_domain_resource(self):
+		_, call = self._pilot_call(lambda: set_primary_domain("shop.example.com"), {"ok": True})
+
+		method, url = call.args[:2]
+		self.assertEqual(method, "PATCH")
+		self.assertEqual(
+			url,
+			"https://pilot.example.com/api/v1/sites/ravibakes.frappe.cloud/domains/shop.example.com",
+		)
+		self.assertEqual(call.kwargs["json"], {"primary": True})
 
 
 class TestCloudMarketplace(TestCase):
@@ -227,22 +385,22 @@ class TestCloudMarketplace(TestCase):
 		cloud_marketplace.uninstall(client, "hrms")
 		self.assertEqual(client.deletes[0], ("sites/test.localhost/apps/hrms", None))
 
-	def test_update_all_runs_bench_update_task(self):
+	def test_update_all_posts_to_site_scoped_action(self):
 		from frappe.integrations.frappe_providers import cloud_marketplace
 
 		client = FakeClient({})
 		cloud_marketplace.update(client, None)
-		self.assertEqual(client.posts[0], ("tasks", {"command": "update"}))
+		self.assertEqual(client.posts[0], ("sites/test.localhost/actions/update-apps", {}))
 
-	def test_update_selected_apps_filters_task(self):
+	def test_update_selected_apps_posts_site_scoped_filter(self):
 		from frappe.integrations.frappe_providers import cloud_marketplace
 
 		client = FakeClient({})
 		cloud_marketplace.update(client, '["hrms", "erpnext"]')
 		self.assertEqual(
-			client.posts[0], ("tasks", {"command": "update", "apps": ["hrms", "erpnext"]})
+			client.posts[0],
+			("sites/test.localhost/actions/update-apps", {"apps": ["hrms", "erpnext"]}),
 		)
-
 
 class TestCloudTask(TestCase):
 	def setUp(self):
@@ -274,11 +432,11 @@ class TestCloudTask(TestCase):
 
 
 class Response:
-	ok = True
 	text = ""
 
-	def __init__(self, payload):
+	def __init__(self, payload, ok=True):
 		self.payload = payload
+		self.ok = ok
 
 	def json(self):
 		return self.payload
