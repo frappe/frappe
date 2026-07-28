@@ -751,6 +751,10 @@ class TestImage(IntegrationTestCase):
 		self.assertEqual(new_image._getexif(), None)
 		self.assertNotEqual(original_image._getexif(), new_image._getexif())
 
+		# Testing idempotency of strip_exif_data()
+		restripped_image_content = strip_exif_data(new_image_content, "image/jpeg")
+		self.assertEqual(restripped_image_content, new_image_content)
+
 	def test_optimize_image(self):
 		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
 		content_type = guess_type(image_file_path)[0]
@@ -870,6 +874,11 @@ class TestDateUtils(IntegrationTestCase):
 	def test_is_last_day_of_the_month(self):
 		self.assertEqual(frappe.utils.is_last_day_of_the_month("2020-12-24"), False)
 		self.assertEqual(frappe.utils.is_last_day_of_the_month("2020-12-31"), True)
+
+	def test_get_timezone_utc_offset(self):
+		self.assertEqual(frappe.utils.data.get_timezone_utc_offset("UTC"), "+00:00")
+		self.assertEqual(frappe.utils.data.get_timezone_utc_offset("Asia/Kolkata"), "+05:30")
+		self.assertEqual(frappe.utils.data.get_timezone_utc_offset("Pacific/Marquesas"), "-09:30")
 
 	def test_get_time(self):
 		datetime_input = now_datetime()
@@ -1414,20 +1423,53 @@ class TestTypingValidations(IntegrationTestCase):
 
 		func(1)  # should run without error
 
+	def test_whitelisted_http_methods_are_stored_as_tuple(self):
+		def default_methods():
+			pass
+
+		def list_methods():
+			pass
+
+		def tuple_methods():
+			pass
+
+		def string_method():
+			pass
+
+		default_methods = frappe.whitelist()(default_methods)
+		list_methods = frappe.whitelist(methods=["GET", "POST"])(list_methods)
+		tuple_methods = frappe.whitelist(methods=("PUT", "DELETE"))(tuple_methods)
+		string_method = frappe.whitelist(methods="GET")(string_method)
+
+		self.assertEqual(
+			frappe.allowed_http_methods_for_whitelisted_func[default_methods],
+			("GET", "POST", "PUT", "DELETE", "QUERY"),
+		)
+		self.assertEqual(
+			frappe.allowed_http_methods_for_whitelisted_func[list_methods], ("GET", "POST", "QUERY")
+		)
+		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[tuple_methods], ("PUT", "DELETE"))
+		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[string_method], ("GET", "QUERY"))
+
 
 class TestTBSanitization(IntegrationTestCase):
 	def test_traceback_sanitzation(self):
+		handle = io.BufferedWriter(io.BytesIO())
 		try:
 			password = "424242"  # noqa: F841
-			args = {"password": "424242", "pwd": "424242", "safe": "safe_value"}
-			args = frappe._dict({"password": "424242", "pwd": "424242", "safe": "safe_value"})  # noqa: F841
+			values = {"password": "424242", "pwd": "424242", "safe": "safe_value", "handle": handle}
+			args = frappe._dict(values)  # noqa: F841
 			raise Exception
 		except Exception:
 			traceback = frappe.get_traceback(with_context=True)
-			self.assertNotIn("424242", traceback)
-			self.assertIn("********", traceback)
-			self.assertIn("password =", traceback)
-			self.assertIn("safe_value", traceback)
+		finally:
+			handle.close()
+
+		self.assertNotIn("424242", traceback)
+		self.assertNotIn("cannot pickle", traceback)
+		self.assertIn("********", traceback)
+		self.assertIn("password =", traceback)
+		self.assertIn("safe_value", traceback)
 
 
 class TestRounding(IntegrationTestCase):

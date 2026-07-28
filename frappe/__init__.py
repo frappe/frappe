@@ -35,7 +35,7 @@ from frappe.utils.caching import deprecated_local_cache as local_cache
 from frappe.utils.caching import request_cache, site_cache
 from frappe.utils.data import as_unicode, bold, cint, cstr, safe_decode, safe_encode, sbool, scrub, unscrub
 from frappe.utils.local import Local, LocalProxy, release_local
-from frappe.utils.translations import _, _lt, set_user_lang
+from frappe.utils.translations import N_, _, _lt, set_user_lang
 
 # Local application imports
 from .exceptions import *
@@ -563,7 +563,7 @@ def get_request_header(key, default=None):
 whitelisted: set[Callable] = set()
 guest_methods: set[Callable] = set()
 xss_safe_methods: set[Callable] = set()
-allowed_http_methods_for_whitelisted_func: dict[Callable, list[str]] = {}
+allowed_http_methods_for_whitelisted_func: dict[Callable, tuple[str, ...]] = {}
 
 
 def _in_request_or_test():
@@ -594,7 +594,14 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None)
 	"""
 
 	if not methods:
-		methods = ["GET", "POST", "PUT", "DELETE"]
+		methods = ("GET", "POST", "PUT", "DELETE", "QUERY")
+	elif isinstance(methods, str):
+		methods = (methods,)
+	else:
+		methods = tuple(methods)
+
+	if "GET" in methods and "QUERY" not in methods:
+		methods = (*methods, "QUERY")
 
 	def innerfn(fn):
 		from frappe.utils.typing_validations import validate_argument_types
@@ -623,6 +630,9 @@ def is_whitelisted(method):
 
 	is_guest = session["user"] == "Guest"
 	if method not in whitelisted or (is_guest and method not in guest_methods):
+		if method in whitelisted and is_guest and response.get("session_expired"):
+			raise SessionExpired
+
 		summary = _("You are not permitted to access this resource. Login to access")
 		detail = _("Function {0} is not whitelisted.").format(bold(f"{method.__module__}.{method.__name__}"))
 		msg = f"<details><summary>{summary}</summary>{detail}</details>"
@@ -663,6 +673,7 @@ def read_only():
 def write_only():
 	# if replica connection exists, we have to replace it momentarily with the primary connection
 	def innfn(fn):
+		@functools.wraps(fn)
 		def wrapper_fn(*args, **kwargs):
 			primary_db = getattr(local, "primary_db", None)
 			replica_db = getattr(local, "replica_db", None)
@@ -1455,21 +1466,9 @@ def ping():
 
 
 def validate_and_sanitize_search_inputs(fn):
-	@functools.wraps(fn)
-	def wrapper(*args, **kwargs):
-		from frappe.desk.search import sanitize_searchfield
+	from frappe.desk.search import validate_and_sanitize_search_inputs as get_wrapper
 
-		kwargs.update(dict(zip(fn.__code__.co_varnames, args, strict=False)))
-		sanitize_searchfield(kwargs["searchfield"])
-		kwargs["start"] = cint(kwargs["start"])
-		kwargs["page_len"] = cint(kwargs["page_len"])
-
-		if kwargs["doctype"] and not db.exists("DocType", kwargs["doctype"]):
-			return []
-
-		return fn(**kwargs)
-
-	return wrapper
+	return get_wrapper(fn)
 
 
 def override_whitelisted_method(original_method: str) -> str:

@@ -28,7 +28,7 @@ export default class Widget {
 
 		options.allow_sorting &&
 			frappe.utils.add_custom_button(
-				frappe.utils.icon("es-line-drag", "xs"),
+				frappe.utils.icon("grip-vertical", "xs"),
 				null,
 				"drag-handle",
 				__("Drag"),
@@ -43,10 +43,10 @@ export default class Widget {
 				this.title_field.css("opacity", 0.5);
 				this.footer.css("opacity", 0.5);
 			}
-			const classname = this.hidden ? "fa fa-eye" : "fa fa-eye-slash";
+			const icon_html = frappe.utils.icon(this.hidden ? "eye" : "eye-off", "sm");
 			const title = this.hidden ? __("Show") : __("Hide");
 			frappe.utils.add_custom_button(
-				`<i class="${classname}" aria-hidden="true"></i>`,
+				icon_html,
 				() => this.hide_or_show(),
 				"show-or-hide-button",
 				title,
@@ -59,7 +59,7 @@ export default class Widget {
 
 		options.allow_edit &&
 			frappe.utils.add_custom_button(
-				frappe.utils.icon("es-line-edit-alt", "xs"),
+				frappe.utils.icon("pencil", "xs"),
 				() => this.edit(),
 				"edit-button",
 				__("Edit"),
@@ -175,10 +175,10 @@ export default class Widget {
 		}
 		this.show_or_hide_button.empty();
 
-		const classname = this.hidden ? "fa fa-eye" : "fa fa-eye-slash";
+		const icon_html = frappe.utils.icon(this.hidden ? "eye" : "eye-off", "sm");
 		const title = this.hidden ? __("Show") : __("Hide");
 
-		$(`<i class="${classname}" aria-hidden="true" title="${title}"></i>`).appendTo(
+		$(`<span aria-hidden="true" title="${title}">${icon_html}</span>`).appendTo(
 			this.show_or_hide_button
 		);
 	}

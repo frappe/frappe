@@ -8,7 +8,7 @@ import frappe
 from frappe import _, scrub
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.core.doctype.page.page import delete_custom_role
-from frappe.desk.query_report import run
+from frappe.desk.query_report import _run
 from frappe.desk.reportview import DEFAULT_AGGREGATE_FIELDNAME, append_totals_row, get_aggregate_field_info
 from frappe.model.document import Document
 from frappe.modules import make_boilerplate
@@ -56,7 +56,7 @@ class Report(Document):
 		report_script: DF.Code | None
 		report_type: DF.Literal["Report Builder", "Query Report", "Script Report", "Custom Report"]
 		roles: DF.Table[HasRole]
-		synced_report: DF.Check
+		snapshot_report: DF.Check
 		timeout: DF.Int
 	# end: auto-generated types
 
@@ -207,8 +207,8 @@ class Report(Document):
 		# The JOB
 		try:
 			if self.is_standard == "Yes":
-				if self.synced_report:
-					res = self.execute_synced_report(filters)
+				if self.snapshot_report:
+					res = self.execute_snapshot_report(filters)
 				else:
 					res = self.execute_module(filters)
 			else:
@@ -240,12 +240,12 @@ class Report(Document):
 		else:
 			return self.get_columns(), loc["result"]
 
-	def execute_synced_report(self, filters):
+	def execute_snapshot_report(self, filters):
 		try:
-			execute_synced_report = self.get_module_method("execute_synced_report")
+			execute_snapshot_report = self.get_module_method("execute_snapshot_report")
 		except AttributeError:
 			return [], []
-		return execute_synced_report(frappe._dict(filters))
+		return execute_snapshot_report(frappe._dict(filters))
 
 	def get_data(
 		self,
@@ -272,8 +272,8 @@ class Report(Document):
 		self, filters=None, user=None, ignore_prepared_report=False, are_default_filters=True
 	):
 		columns, result = [], []
-		data = run(
-			self.name,
+		data = _run(
+			report_name=self.name,
 			filters=filters,
 			user=user,
 			ignore_prepared_report=ignore_prepared_report,
@@ -550,3 +550,22 @@ def enable_prepared_report(report: str, site: str):
 	frappe.db.set_value("Report", report, "prepared_report", 1)
 	frappe.db.commit()
 	frappe.destroy()
+
+
+def get_permission_query_conditions(user=None):
+	"""Hide Postgres-only diagnostic reports (named with a "Postgres " prefix) from the report
+	list on other database backends, where they raise instead of running."""
+	if frappe.db.db_type == "postgres":
+		return None
+	# substr comparison, not LIKE 'Postgres %': a literal % in a permission condition is read as a
+	# printf placeholder when the list query is parameterized, raising "not enough arguments".
+	return "substr(`tabReport`.`name`, 1, 9) != 'Postgres '"
+
+
+def has_permission(doc, ptype=None, user=None, debug=False):
+	"""Deny document-level access to a Postgres-only report on other backends. Running the report
+	is separately guarded by its execute() raising on non-Postgres. Case-insensitive to match the
+	report list's SQL filter under MariaDB's case-insensitive collation."""
+	if frappe.db.db_type != "postgres" and doc.name and doc.name.lower().startswith("postgres "):
+		return False
+	return True

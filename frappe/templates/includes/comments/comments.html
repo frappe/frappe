@@ -3,7 +3,7 @@
 	<div class="no-comment">
 		<p class="text-muted small">{{ _("No comments yet.") }}
 			<span class="hidden login-required">
-				<a href="/login?redirect-to={{ pathname }}">{{ _("Login to start a new discussion") }}</a>
+				<a href="/login?redirect-to={{ pathname | urlencode }}">{{ _("Login to start a new discussion") }}</a>
 			</span>
 			<span class="hidden start-discussion">{{ _("Start a new discussion") }}</span>
 		</p>
@@ -89,7 +89,7 @@
 
 		let $comment_count = $(`
 			<div class="feedback-item comments">
-				<span class="comment-icon">${frappe.utils.icon('small-message', 'md')}</span>
+				<span class="comment-icon">${frappe.utils.icon('message-circle', 'md')}</span>
 				<span class="comment-count">${comment_count}</span>
 			</div>
 		`);
@@ -109,7 +109,7 @@
 
 				$('.add-comment-button').text('{{ _("Login to comment") }}');
 				$('.add-comment-button').click(() => {
-					window.location.href = '/login?redirect-to={{ pathname }}';
+					window.location.href = '/login?redirect-to={{ pathname | urlencode }}';
 				});
 			}
 		} else {
@@ -148,10 +148,14 @@
 				comment_by: $("[name='comment_by']").val(),
 				comment_email: $("[name='comment_email']").val(),
 				comment: $("[name='comment']").val(),
-				reference_doctype: "{{ reference_doctype or doctype }}",
-				reference_name: "{{ reference_name or name }}",
+				reference_doctype: {{ (reference_doctype or doctype) | tojson }},
+				reference_name: {{ (reference_name or name) | tojson }},
 				comment_type: "Comment",
-				route: "{{ pathname }}",
+				route: {{ pathname | tojson }},
+			}
+
+			if (frappe.web_form) {
+				args.web_form = frappe.web_form.name;
 			}
 
 			if (!args.comment_by || !args.comment_email || !args.comment) {

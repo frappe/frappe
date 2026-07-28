@@ -30,7 +30,7 @@ context("Datetime Field Validation", () => {
 						expect(frm.is_dirty()).to.be.false;
 					});
 				cy.get('[data-testid="page-status"]').should("contain", "Draft");
-				cy.get(".btn-primary[data-label='Submit']").should("be.visible");
+				cy.get(".primary-action[data-label='Submit']").should("be.visible");
 			});
 	});
 });

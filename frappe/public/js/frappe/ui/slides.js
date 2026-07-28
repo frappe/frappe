@@ -335,7 +335,7 @@ frappe.ui.Slides = class Slides {
 		this.slides.map((slide, id) => {
 			let $dot = $(`<div class="slide-step">
 				<div class="slide-step-indicator"></div>
-				<div class="slide-step-complete">${frappe.utils.icon("tick", "xs")}</div>
+				<div class="slide-step-complete">${frappe.utils.icon("check", "xs")}</div>
 			</div>`).attr({ "data-step-id": id });
 
 			if (

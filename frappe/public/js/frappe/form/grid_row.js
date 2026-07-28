@@ -339,7 +339,7 @@ export default class GridRow {
 					const edit_msg = __("Edit", "", "Edit grid row");
 					this.open_form_button = $(`
 						<div class="btn-open-row" data-toggle="tooltip" data-placement="right" title="${edit_msg}">
-							<a>${frappe.utils.icon("edit", "xs")}</a>
+							<a>${frappe.utils.icon("pencil", "xs")}</a>
 						</div>
 					`).appendTo(this.open_form_button);
 
@@ -581,7 +581,7 @@ export default class GridRow {
 
 						<div class='row'>
 							<div class='col-1' style='padding-top: 4px;'>
-								<a style='cursor: grabbing;'>${frappe.utils.icon("drag", "xs")}</a>
+								<a style='cursor: grabbing;'>${frappe.utils.icon("grip", "xs")}</a>
 							</div>
 							<div class='col-5' style='padding-top: 5px;'>
 								${__(docfield.label, null, docfield.parent)}
@@ -727,19 +727,14 @@ export default class GridRow {
 
 		this.grid.visible_columns.forEach((col, ci) => {
 			// to get update df for the row
-			let df = fields.find((field) => field?.fieldname === col[0].fieldname);
+			let df = this.get_column_docfield(fields, col[0].fieldname);
 
 			this.set_dependant_property(df);
 
 			let width = col[1];
 
 			let txt = this.doc
-				? frappe.format(
-						this._escape_for_format(this.doc[df.fieldname], df),
-						df,
-						null,
-						this.doc
-				  )
+				? this._format_static_value(this.doc[df.fieldname], df, this.doc)
 				: __(df.label, null, df.parent);
 
 			if (this.doc && df.fieldtype === "Select") {
@@ -800,6 +795,18 @@ export default class GridRow {
 			this.doc &&
 			!column.df.hidden
 		);
+	}
+
+	get_column_docfield(fields, fieldname) {
+		const column_df = fields.find((field) => field?.fieldname === fieldname);
+		const row_df = this.docfields?.find((df) => df.fieldname === fieldname);
+
+		if (!column_df || !row_df || column_df === row_df) return column_df;
+
+		row_df.sticky = column_df.sticky;
+		row_df.in_list_view = column_df.in_list_view;
+
+		return row_df;
 	}
 
 	set_dependant_property(df) {
@@ -900,7 +907,7 @@ export default class GridRow {
 		let input_class = this._get_fieldtype_class(df.fieldtype);
 
 		let $col = $(
-			`<div class="col grid-static-col search" style="flex: 0 0 ${width}px; width: ${width}px;"></div>`
+			`<div class="col grid-static-col search" style="flex: 1 0 ${width}px; width: ${width}px;"></div>`
 		).appendTo(this.row);
 
 		let $search_input = $(`
@@ -951,8 +958,7 @@ export default class GridRow {
 		let me = this;
 		let add_class = this._get_fieldtype_class(df.fieldtype);
 
-		// Static pixel width; the grid scrolls horizontally when columns overflow.
-		let add_style = `flex: 0 0 ${width}px; width: ${width}px;`;
+		let add_style = `flex: 1 0 ${width}px; width: ${width}px;`;
 		if (df.sticky) {
 			add_class += " sticky-grid-col";
 			add_style += `left: ${this.grid.get_sticky_offset(df.fieldname)}px;`;
@@ -1143,12 +1149,7 @@ export default class GridRow {
 					let df = this.grid.visible_columns[index][0];
 
 					let txt = this.doc
-						? frappe.format(
-								this._escape_for_format(this.doc[df.fieldname], df),
-								df,
-								null,
-								this.doc
-						  )
+						? this._format_static_value(this.doc[df.fieldname], df, this.doc)
 						: __(df.label, null, df.parent);
 
 					this.refresh_field(df.fieldname, txt);
@@ -1520,33 +1521,31 @@ export default class GridRow {
 		return value;
 	}
 
+	// Static cells clip to a single line, so building the full rich-text HTML per cell
+	// is wasted work — show stripped text instead, like the list view does.
+	_format_static_value(value, df, doc) {
+		const RICH_TEXT_FIELDTYPES = ["Text Editor", "HTML Editor", "Markdown Editor"];
+		if (df && RICH_TEXT_FIELDTYPES.includes(df.fieldtype)) {
+			return strip_html(cstr(value));
+		}
+		return frappe.format(this._escape_for_format(value, df), df, null, doc);
+	}
+
 	refresh_field(fieldname, txt) {
 		let fields =
 			this.grid.user_defined_columns && this.grid.user_defined_columns.length > 0
 				? this.grid.user_defined_columns
 				: this.docfields;
 
-		let df = fields.find((col) => {
-			return col?.fieldname === fieldname;
-		});
+		let df = this.get_column_docfield(fields, fieldname);
 
 		// format values if no frm
 		if (df && this.doc) {
-			txt = frappe.format(
-				this._escape_for_format(this.doc[fieldname], df),
-				df,
-				null,
-				this.doc
-			);
+			txt = this._format_static_value(this.doc[fieldname], df, this.doc);
 		}
 
 		if (!txt && this.frm) {
-			txt = frappe.format(
-				this._escape_for_format(this.doc[fieldname], df),
-				df,
-				null,
-				this.frm.doc
-			);
+			txt = this._format_static_value(this.doc[fieldname], df, this.frm.doc);
 		}
 
 		// reset static value

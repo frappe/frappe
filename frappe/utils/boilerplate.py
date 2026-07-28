@@ -426,7 +426,18 @@ use_json_request_body = True
 # 		"logo": "/assets/{app_name}/logo.png",
 # 		"title": "{app_title}",
 # 		"route": "/{app_name}",
-# 		"has_permission": "{app_name}.api.permission.has_app_permission"
+# 		"has_permission": "{app_name}.api.permission.has_app_permission",
+# 	}}
+# ]
+
+# Companion apps that extend a host app (instead of taking their own apps-screen icon) can pin
+# their workspaces into the host app's workspace dock (rail) with this hook. Declaring it keeps
+# the app off the apps screen, so it takes precedence over any add_to_apps_screen above. Who can
+# see a pinned workspace is controlled by that workspace's own Roles table.
+# add_to_workspace_dock = [
+# 	{{
+# 		"app": "erpnext",
+# 		"workspace": "My Workspace",
 # 	}}
 # ]
 

@@ -34,8 +34,6 @@ class Browser:
 			# now wait for page to load as we need DOM to generate pdf
 			self.body_page.wait_for_set_content()
 			self.body_pdf = self.body_page.generate_pdf(raw=not self.header_page and not self.footer_page)
-			if not self.debug_mode:
-				self.body_page.close()
 			self.update_header_footer_page()
 
 			if self.header_page:
@@ -45,8 +43,6 @@ class Browser:
 					)
 				else:
 					self.header_pdf = self.header_page.generate_pdf()
-				if not self.debug_mode:
-					self.header_page.close()
 
 			if self.footer_page:
 				if not self.is_footer_dynamic:
@@ -55,12 +51,19 @@ class Browser:
 					)
 				else:
 					self.footer_pdf = self.footer_page.generate_pdf()
-				if not self.debug_mode:
-					self.footer_page.close()
-
-			if not self.debug_mode:
-				self.close()
 		finally:
+			if not self.debug_mode:
+				for attr in ("body_page", "header_page", "footer_page"):
+					page = getattr(self, attr, None)
+					if page:
+						try:
+							page.close()
+						except Exception:
+							frappe.log_error(f"Failed to close {attr} in Chrome")
+				try:
+					self.close()
+				except Exception:
+					frappe.log_error("Failed to disconnect CDP session")
 			generator.remove_browser(self.browserID)
 		if self.debug_mode:
 			generator.detach_debug_browser()
@@ -323,8 +326,13 @@ class Browser:
 		footer_with_bottom_margin = 0
 		footer_height = 0
 
+		# When the caller already reserved the top margin inside the header markup
+		# (so a page number can sit flush to the page edge), the measured header
+		# height covers it and Chrome must not add it a second time.
+		header_owns_top_margin = bool(options.get("header-includes-top-margin"))
+
 		if self.header_page:
-			header_with_top_margin = self.header_height + margin_top
+			header_with_top_margin = self.header_height + (0 if header_owns_top_margin else margin_top)
 			header_spacing = options.get("header-spacing", 0)
 			header_with_spacing_top_margin = header_with_top_margin + header_spacing
 			self.header_page.options["paperHeight"] = (
@@ -336,7 +344,7 @@ class Browser:
 		margin_top = convert_uom(margin_top, "px", "in", only_number=True)
 
 		if self.header_page:
-			self.header_page.options["marginTop"] = margin_top
+			self.header_page.options["marginTop"] = 0 if header_owns_top_margin else margin_top
 		else:
 			self.body_page.options["marginTop"] = margin_top
 

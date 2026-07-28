@@ -78,10 +78,11 @@ def getdoctype(doctype: str, with_parent: int | bool = False):
 
 
 def get_meta_bundle(doctype):
-	bundle = [frappe.desk.form.meta.get_meta(doctype)]
+	form_meta = frappe.desk.form.meta.get_meta(doctype)
+	bundle = [form_meta.as_dict(no_nulls=True)]
 	bundle.extend(
-		frappe.desk.form.meta.get_meta(df.options)
-		for df in bundle[0].fields
+		frappe.desk.form.meta.get_meta(df.options).as_dict(no_nulls=True, parenttype=doctype)
+		for df in form_meta.fields
 		if df.fieldtype in frappe.model.table_fields
 	)
 	return bundle
@@ -105,6 +106,9 @@ def get_docinfo(
 	communications_except_auto_messages = [
 		msg for msg in all_communications if msg["communication_type"] != "Automated Message"
 	]
+	assert len(automated_messages) + len(communications_except_auto_messages) == len(all_communications), (
+		"every communication must be classified into exactly one message group"
+	)
 
 	docinfo = frappe._dict(user_info={})
 
@@ -183,8 +187,49 @@ def get_milestones(doctype, name):
 def get_attachments(dt, dn):
 	return frappe.get_all(
 		"File",
-		fields=["name", "file_name", "file_url", "is_private", "attached_to_field", "folder"],
+		fields=[
+			"name",
+			"file_name",
+			"file_url",
+			"file_type",
+			"file_size",
+			"is_private",
+			"attached_to_field",
+			"folder",
+		],
 		filters={"attached_to_name": str(dn), "attached_to_doctype": dt},
+	)
+
+
+@frappe.whitelist()
+def get_filtered_attachments(dt: str, dn: str | int, filters: str):
+	frappe.get_doc(dt, dn).check_permission("read")
+	filters = frappe.parse_json(filters)
+	if not isinstance(filters, list) or any(
+		not isinstance(filter_row, list) or len(filter_row) != 4 for filter_row in filters
+	):
+		frappe.throw(_("Filters must be a list of four-value filter rows."))
+	if any(filter_row[0] != "File" for filter_row in filters):
+		frappe.throw(_("Attachment Gallery filters must target File."))
+
+	return frappe.get_all(
+		"File",
+		fields=[
+			"name",
+			"file_name",
+			"file_url",
+			"file_type",
+			"file_size",
+			"is_private",
+			"attached_to_field",
+			"folder",
+		],
+		filters=[
+			["File", "attached_to_name", "=", str(dn)],
+			["File", "attached_to_doctype", "=", dt],
+			*filters,
+		],
+		limit=0,
 	)
 
 

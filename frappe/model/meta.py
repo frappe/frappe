@@ -23,7 +23,7 @@ from datetime import datetime
 import click
 
 import frappe
-from frappe import _, _lt
+from frappe import N_, _
 from frappe.model import (
 	NO_VALUE_FIELDS,
 	child_table_fields,
@@ -49,17 +49,17 @@ ListOrTuple = list | tuple
 SerializableTypes = str | int | float | datetime
 
 DEFAULT_FIELD_LABELS = {
-	"name": _lt("ID"),
-	"creation": _lt("Created On"),
-	"docstatus": _lt("Document Status"),
-	"idx": _lt("Index"),
-	"modified": _lt("Last Updated On"),
-	"modified_by": _lt("Last Updated By"),
-	"owner": _lt("Created By"),
-	"_user_tags": _lt("Tags"),
-	"_liked_by": _lt("Liked By"),
-	"_comments": _lt("Comments"),
-	"_assign": _lt("Assigned To"),
+	"name": N_("ID"),
+	"creation": N_("Created On"),
+	"docstatus": N_("Document Status"),
+	"idx": N_("Index"),
+	"modified": N_("Last Updated On"),
+	"modified_by": N_("Last Updated By"),
+	"owner": N_("Created By"),
+	"_user_tags": N_("Tags"),
+	"_liked_by": N_("Liked By"),
+	"_comments": N_("Comments"),
+	"_assign": N_("Assigned To"),
 }
 
 # When number of rows in a table exceeds this number, we disable certain features automatically.
@@ -196,20 +196,19 @@ class Meta(Document):
 	def get_dynamic_link_fields(self):
 		return self._dynamic_link_fields
 
-	def get_masked_fields(self):
+	def get_masked_fields(self, parenttype=None):
 		import copy
 
 		if frappe.session.user == "Administrator":
 			return []
-		cache_key = f"masked_fields::{self.name}::{frappe.session.user}"
+		cache_key = f"masked_fields::{self.name}::{parenttype or ''}::{frappe.session.user}"
 		masked_fields = frappe.cache.get_value(cache_key)
 
 		if masked_fields is None:
 			masked_fields = []
+			permlevel_access = set(self.get_permlevel_access("mask", parenttype))
 			for df in self.fields:
-				if df.get("mask") and not self.has_permlevel_access_to(
-					fieldname=df.fieldname, df=df, permission_type="mask"
-				):
+				if df.get("mask") and df.permlevel not in permlevel_access:
 					# work on a copy instead of original df
 					df_copy = copy.deepcopy(df)
 					df_copy.mask_readonly = 1
@@ -303,12 +302,12 @@ class Meta(Document):
 		return fieldname in self._fields
 
 	def get_label(self, fieldname):
-		"""Return label of the given fieldname."""
+		"""Return the untranslated source label of the given fieldname."""
 		if df := self.get_field(fieldname):
 			return df.get("label")
 
 		if fieldname in DEFAULT_FIELD_LABELS:
-			return str(DEFAULT_FIELD_LABELS[fieldname])
+			return DEFAULT_FIELD_LABELS[fieldname]
 
 		return "No Label"
 

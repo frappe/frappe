@@ -300,8 +300,6 @@ class TestTelemetryGate(TestPulseClient):
 	def _conf(self, **overrides):
 		conf = {"pulse_api_key": "k", "developer_mode": 0, "pulse_force_enabled": 0}
 		conf.update(overrides)
-		is_enabled.clear_cache()
-		self.addCleanup(is_enabled.clear_cache)
 		return patch.dict(frappe.conf, conf)
 
 	def test_off_by_default_and_endpoint_leaks_nothing(self):
@@ -343,6 +341,15 @@ class TestTelemetryGate(TestPulseClient):
 		with self._conf(fc_team="team_x"), patch("frappe.get_system_settings", return_value=True):
 			self.assertEqual(boot_config()["team"], "team_x")
 
+	def test_boot_config_includes_site_age(self):
+		# Exposed so frappe-ui apps can gate onboarding-only tracking the way desk does.
+		with (
+			self._conf(),
+			patch("frappe.get_system_settings", return_value=True),
+			patch("frappe.utils.telemetry.site_age", return_value=3),
+		):
+			self.assertEqual(boot_config()["site_age"], 3)
+
 	def test_client_url_is_absolute_when_host_lacks_scheme(self):
 		# A scheme-less pulse_host must still yield an absolute client_url, else the
 		# browser resolves the import against the Frappe origin and telemetry never loads.
@@ -360,24 +367,21 @@ class TestCapture(TestPulseClient):
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_capture_when_disabled(self, mock_enabled):
 		"""Test that capture does nothing when disabled"""
-		is_enabled.clear_cache()
 		mock_enabled.return_value = False
 		eq = EventQueue()
 
-		capture("test_event", site="test.localhost")
+		capture("test_event")
 
 		self.assertEqual(eq.length, 0)
 
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_capture_basic(self, mock_enabled):
 		"""Test basic event capture"""
-		is_enabled.clear_cache()
 		mock_enabled.return_value = True
 		eq = EventQueue()
 
 		capture(
 			"test_event",
-			site="test.localhost",
 			app="frappe",
 			user="fc_priya",
 			team="team_test",
@@ -391,12 +395,11 @@ class TestCapture(TestPulseClient):
 
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_capture_user_and_team_group(self, mock_enabled):
-		"""The user is the identity; the team is a group it belongs to"""
-		is_enabled.clear_cache()
+		"""On events, team is the identity subject and user is a per-actor dimension"""
 		mock_enabled.return_value = True
 		eq = EventQueue()
 
-		capture("test_event", site="test.localhost", user="fc_priya", team="team_priya")
+		capture("test_event", user="fc_priya", team="team_priya")
 
 		events = eq.collect(batch_size=1)
 		# user is always anonymized (the privacy gate); team is the raw group id
@@ -407,11 +410,10 @@ class TestCapture(TestPulseClient):
 	def test_capture_defaults_user_and_leaves_team_empty(self, mock_enabled):
 		"""user defaults to the anon site user; team is null when the site has no
 		fc_team configured (e.g. a marketing site)"""
-		is_enabled.clear_cache()
 		mock_enabled.return_value = True
 		eq = EventQueue()
 
-		capture("test_event", site="test.localhost")
+		capture("test_event")
 
 		events = eq.collect(batch_size=1)
 		# user defaults to the (anonymized) session user
@@ -422,15 +424,26 @@ class TestCapture(TestPulseClient):
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_capture_defaults_team_from_site_config(self, mock_enabled):
 		"""A site with fc_team set stamps it on events without the caller passing it."""
-		is_enabled.clear_cache()
 		mock_enabled.return_value = True
 		eq = EventQueue()
 
 		with patch.dict(frappe.conf, {"fc_team": "team_x"}):
-			capture("test_event", site="test.localhost")
+			capture("test_event")
 
 		events = eq.collect(batch_size=1)
 		self.assertEqual(events[0]["team"], "team_x")
+
+	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
+	def test_capture_explicit_site_overrides_local(self, mock_enabled):
+		"""site defaults to frappe.local.site but an explicit site= wins (the simulator
+		emits for many sites from one process)."""
+		mock_enabled.return_value = True
+		eq = EventQueue()
+
+		capture("test_event", site="other.localhost")
+
+		events = eq.collect(batch_size=1)
+		self.assertEqual(events[0]["site"], "other.localhost")
 
 
 class TestIdentify(TestPulseClient):
@@ -438,10 +451,9 @@ class TestIdentify(TestPulseClient):
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_identify_noop_when_disabled(self, mock_enabled, mock_session):
 		"""identify does nothing (and posts nothing) when telemetry is disabled"""
-		is_enabled.clear_cache()
 		mock_enabled.return_value = False
 
-		identify("team_test", {"plan": "pro"})
+		identify({"plan": "pro"})
 
 		mock_session.assert_not_called()
 
@@ -449,18 +461,17 @@ class TestIdentify(TestPulseClient):
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_identify_swallows_bad_json(self, mock_enabled, mock_session):
 		"""A malformed properties string is logged, not raised — and nothing is posted."""
-		is_enabled.clear_cache()
 		mock_enabled.return_value = True
 
-		identify("fc_priya", "{not valid json")  # must not raise
+		with patch.dict(frappe.conf, {"fc_team": "team_test"}):
+			identify("{not valid json")  # must not raise
 
 		mock_session.assert_not_called()
 
 	@patch("frappe.utils.telemetry.pulse.transport.PulseHTTP._session")
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_identify_posts_profile(self, mock_enabled, mock_session):
-		"""identify posts the user + properties to the identify endpoint"""
-		is_enabled.clear_cache()
+		"""identify posts the team + properties to the identify endpoint"""
 		mock_enabled.return_value = True
 
 		posted = {}
@@ -475,17 +486,17 @@ class TestIdentify(TestPulseClient):
 
 		mock_session.return_value = type("_Session", (), {"post": staticmethod(_fake_post)})()
 
-		identify("fc_priya", {"persona": "founder"})
+		with patch.dict(frappe.conf, {"fc_team": "team_x"}):
+			identify({"persona": "founder"})
 
-		self.assertEqual(posted["data"]["user"], "fc_priya")
+		self.assertEqual(posted["data"]["team"], "team_x")
 		self.assertEqual(posted["data"]["properties"]["persona"], "founder")
 		self.assertTrue(posted["url"].endswith("/api/method/pulse.api.identify"))
 
 	@patch("frappe.utils.telemetry.pulse.transport.PulseHTTP._session")
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled")
 	def test_alias_posts_mapping(self, mock_enabled, mock_session):
-		"""alias posts the previous_id → user mapping to the alias endpoint"""
-		is_enabled.clear_cache()
+		"""alias posts the previous_id → team mapping to the alias endpoint"""
 		mock_enabled.return_value = True
 
 		posted = {}
@@ -500,10 +511,11 @@ class TestIdentify(TestPulseClient):
 
 		mock_session.return_value = type("_Session", (), {"post": staticmethod(_fake_post)})()
 
-		alias("anon_8f2c", "fc_priya")
+		with patch.dict(frappe.conf, {"fc_team": "team_x"}):
+			alias("anon_8f2c")
 
 		self.assertEqual(posted["data"]["previous_id"], "anon_8f2c")
-		self.assertEqual(posted["data"]["user"], "fc_priya")
+		self.assertEqual(posted["data"]["team"], "team_x")
 		self.assertTrue(posted["url"].endswith("/api/method/pulse.api.alias"))
 
 

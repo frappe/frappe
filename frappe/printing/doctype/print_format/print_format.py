@@ -1,11 +1,12 @@
 # Copyright (c) 2017, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import json
+import re
 
 import frappe
 import frappe.utils
 from frappe import _
+from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
 from frappe.model.document import Document
 from frappe.utils.jinja import validate_template
 from frappe.utils.print_format_generator import download_pdf, get_html
@@ -24,6 +25,7 @@ class PrintFormat(Document):
 
 		absolute_value: DF.Check
 		align_labels_right: DF.Check
+		classic_format_data: DF.Code | None
 		css: DF.Code | None
 		custom_format: DF.Check
 		default_print_language: DF.Link | None
@@ -33,6 +35,7 @@ class PrintFormat(Document):
 		font_size: DF.Int
 		format_data: DF.Code | None
 		html: DF.Code | None
+		label_color: DF.Color | None
 		line_breaks: DF.Check
 		margin_bottom: DF.Float
 		margin_left: DF.Float
@@ -43,6 +46,7 @@ class PrintFormat(Document):
 			"Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"
 		]
 		pdf_generator: DF.Literal["wkhtmltopdf", "chrome"]
+		preview_image: DF.AttachImage | None
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
 		print_format_for: DF.Literal["DocType", "Report"]
@@ -50,8 +54,10 @@ class PrintFormat(Document):
 		raw_commands: DF.Code | None
 		raw_printing: DF.Check
 		report: DF.Link | None
+		show_label_colon: DF.Check
 		show_section_headings: DF.Check
 		standard: DF.Literal["No", "Yes"]
+		value_color: DF.Color | None
 	# end: auto-generated types
 
 	def onload(self):
@@ -70,7 +76,6 @@ class PrintFormat(Document):
 		if self.print_format_for == "Report":
 			self.custom_format = 1
 
-		# New non-custom formats default to builder beta + Chrome
 		if self.is_new() and not self.custom_format:
 			self.print_format_builder_beta = 1
 
@@ -96,8 +101,6 @@ class PrintFormat(Document):
 		# old_doc_type is required for clearing item cache
 		self.old_doc_type = frappe.db.get_value("Print Format", self.name, "doc_type")
 
-		self.extract_images()
-
 		if not self.module:
 			doc_type = "DocType" if self.print_format_for == "DocType" else "Report"
 			document_name = self.doc_type if self.print_format_for == "DocType" else self.report
@@ -115,18 +118,17 @@ class PrintFormat(Document):
 		if self.print_format_for == "Report" and not self.report:
 			frappe.throw(_("{0} is required").format(frappe.bold(_("Report"))), frappe.MandatoryError)
 
-	def extract_images(self):
-		from frappe.core.doctype.file.utils import extract_images_from_html
+		self.validate_colors()
 
-		if self.print_format_builder_beta:
-			return
-
-		if self.format_data:
-			data = json.loads(self.format_data)
-			for df in data:
-				if df.get("fieldtype") and df["fieldtype"] in ("HTML", "Custom HTML") and df.get("options"):
-					df["options"] = extract_images_from_html(self, df["options"])
-			self.format_data = json.dumps(data)
+	def validate_colors(self):
+		for fieldname in ("label_color", "value_color"):
+			value = self.get(fieldname)
+			if value and not re.fullmatch(r"#[0-9a-fA-F]{6}", value):
+				frappe.throw(
+					_("{0} must be a hex color code like #1a5fb4").format(
+						frappe.bold(_(self.meta.get_label(fieldname), context=self.doctype))
+					)
+				)
 
 	def on_update(self):
 		if hasattr(self, "old_doc_type") and self.old_doc_type:
@@ -135,12 +137,64 @@ class PrintFormat(Document):
 			frappe.clear_cache(doctype=self.doc_type)
 
 		self.export_doc()
+		self.enqueue_preview_generation()
+		self.clear_default_print_format_if_disabled()
+
+	def enqueue_preview_generation(self):
+		"""Refresh the preview image in the background so saving the format isn't blocked by
+		the (slow) Chromium render. Deduplicated so rapid saves don't pile up renders."""
+		if (
+			frappe.flags.in_import
+			or frappe.flags.in_migrate
+			or frappe.flags.in_install
+			or frappe.flags.in_patch
+			or frappe.in_test
+		):
+			return
+		if self.print_format_for != "DocType" or not self.doc_type:
+			return
+		# autosaves land every few seconds while the builder is open — refresh the
+		# (slow, Chromium) preview at most once per cooldown window for those;
+		# manual saves always refresh
+		if self.flags.pfb_autosave and frappe.cache.get_value(f"pf_preview_cooldown::{self.name}"):
+			return
+
+		frappe.enqueue(
+			generate_preview,
+			queue="short",
+			enqueue_after_commit=True,
+			job_id=f"print_format_preview::{self.name}",
+			deduplicate=True,
+			name=self.name,
+		)
+
+	def clear_default_print_format_if_disabled(self):
+		"""If this format is disabled while set as its DocType's default, unset it as default."""
+		if not (self.disabled and self.doc_type):
+			return
+
+		meta = frappe.get_meta(self.doc_type)
+		if meta.default_print_format != self.name:
+			return
+
+		if meta.custom:
+			frappe.db.set_value("DocType", self.doc_type, "default_print_format", "")
+		else:
+			delete_property_setter(self.doc_type, "default_print_format")
+
+		frappe.clear_cache(doctype=self.doc_type)
+		frappe.msgprint(
+			_(
+				"{0} was the default print format for {1}. Since it is now disabled, it has been removed as the default."
+			).format(frappe.bold(self.name), frappe.bold(self.doc_type)),
+			indicator="orange",
+			alert=True,
+		)
 
 	def after_rename(self, old: str, new: str, *args, **kwargs):
 		if self.doc_type:
 			frappe.clear_cache(doctype=self.doc_type)
 
-		# update property setter default_print_format if set
 		frappe.db.set_value(
 			"Property Setter",
 			{
@@ -161,6 +215,20 @@ class PrintFormat(Document):
 	def on_trash(self):
 		if self.doc_type:
 			frappe.clear_cache(doctype=self.doc_type)
+
+
+@frappe.whitelist()
+def create_custom_format(doctype: str, name: str | int, based_on: str = "Standard"):
+	doc = frappe.new_doc("Print Format")
+	doc.doc_type = doctype
+	doc.name = name
+	doc.print_format_builder_beta = 1
+	if based_on and based_on != "Standard":
+		source = frappe.get_doc("Print Format", based_on)
+		source.check_permission("read")
+		doc.format_data = source.format_data
+	doc.insert()
+	return doc
 
 
 @frappe.whitelist()
@@ -188,4 +256,88 @@ def make_default(name: str):
 		frappe._("{0} is now default print format for {1} doctype").format(
 			frappe.bold(name), frappe.bold(print_format.doc_type)
 		)
+	)
+
+
+def printable_sample(doctype: str) -> str | None:
+	"""Most recent document the user can read AND print. Submittable doctypes only
+	reliably print submitted docs (draft/cancelled hit the printview guards), so
+	restrict to those; otherwise any latest doc works."""
+	filters = {"docstatus": 1} if frappe.get_meta(doctype).is_submittable else {}
+	sample = frappe.get_list(doctype, filters=filters, limit=1, order_by="modified desc", pluck="name")
+	return sample[0] if sample else None
+
+
+@frappe.whitelist()
+def autosave(doc: str | dict):
+	"""Save from the builder's autosave: like frappe.client.save, but the preview
+	image refresh is throttled by a cooldown instead of running on every save."""
+	doc = frappe.get_doc(frappe.parse_json(doc))
+	doc.flags.pfb_autosave = True
+	doc.save()
+	return doc.as_dict()
+
+
+def generate_preview(name: str) -> str | None:
+	"""Render this format against a sample document, screenshot the HTML via the
+	bundled Chromium, and store the result in the format's `preview_image` field.
+
+	Uses `db_set` rather than `save` so it works for standard formats too (whose
+	`validate` blocks saving) and skips the full validation cycle. Returns the new
+	image URL, or None when there's no printable sample to render against."""
+	doc = frappe.get_doc("Print Format", name)
+
+	sample_name = printable_sample(doc.doc_type)
+	if not sample_name:
+		return
+
+	from frappe.utils.file_manager import save_file
+	from frappe.utils.preview import get_preview_from_html
+
+	try:
+		html = frappe.get_print(doc.doc_type, sample_name, name)
+		# 850px ≈ 8.3in at 96dpi — matches the print sheet width so margin:auto
+		# centers correctly and the screenshot captures the full page width.
+		image = get_preview_from_html(html, format="webp", width=850)
+	except Exception:
+		frappe.local.message_log = []
+		frappe.log_error(f"Print format preview generation failed: {name}")
+		return None
+
+	fname = f"pf-preview-{frappe.generate_hash(length=10)}.webp"
+	frappe.cache.set_value(f"pf_preview_cooldown::{name}", 1, expires_in_sec=5 * 60)
+	file = save_file(fname, image, "Print Format", name, is_private=1, df="preview_image")
+	# Don't bump `modified` — generating a preview isn't a content edit. Otherwise the
+	# background refresh would stale-date an open form and break its next save with a
+	# timestamp mismatch.
+	doc.db_set("preview_image", file.file_url, update_modified=False)
+
+	stale = frappe.get_all(
+		"File",
+		filters={
+			"attached_to_doctype": "Print Format",
+			"attached_to_name": name,
+			"attached_to_field": "preview_image",
+			"name": ("!=", file.name),
+		},
+		pluck="name",
+	)
+	for old in stale:
+		frappe.delete_doc("File", old, ignore_permissions=True, delete_permanently=True)
+		notify_docinfo_attachment(name, {"name": old}, "delete")
+	notify_docinfo_attachment(name, file.as_dict(), "add")
+	return file.file_url
+
+
+def notify_docinfo_attachment(print_format: str, doc: dict, action: str):
+	frappe.publish_realtime(
+		"docinfo_update",
+		{
+			"doc": {**doc, "reference_doctype": "Print Format", "reference_name": print_format},
+			"key": "attachments",
+			"action": action,
+		},
+		doctype="Print Format",
+		docname=print_format,
+		after_commit=True,
 	)

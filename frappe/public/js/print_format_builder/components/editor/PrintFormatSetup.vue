@@ -20,13 +20,13 @@
 					</div>
 					<div
 						class="pfb-setup-option-arrow"
-						v-html="frappe.utils.icon('right', 'xs')"
+						v-html="frappe.utils.icon('chevron-right', 'xs')"
 					></div>
 				</button>
 				<button class="pfb-setup-option" @click="$emit('start-blank')">
 					<div
 						class="pfb-setup-option-icon"
-						v-html="frappe.utils.icon('add', 'md')"
+						v-html="frappe.utils.icon('plus', 'md')"
 					></div>
 					<div class="pfb-setup-option-body">
 						<div class="pfb-setup-option-label">{{ __("Start blank") }}</div>
@@ -36,7 +36,7 @@
 					</div>
 					<div
 						class="pfb-setup-option-arrow"
-						v-html="frappe.utils.icon('right', 'xs')"
+						v-html="frappe.utils.icon('chevron-right', 'xs')"
 					></div>
 				</button>
 			</div>
@@ -108,8 +108,8 @@ defineEmits(["start-default", "start-blank"]);
 }
 
 .pfb-setup-option:hover {
-	border-color: var(--primary);
-	background: var(--blue-50);
+	border-color: var(--gray-500);
+	background: var(--gray-50);
 }
 
 .pfb-setup-option-icon {
@@ -118,7 +118,7 @@ defineEmits(["start-default", "start-blank"]);
 }
 
 .pfb-setup-option:hover .pfb-setup-option-icon {
-	color: var(--primary);
+	color: var(--gray-700);
 }
 
 .pfb-setup-option-body {

@@ -5,11 +5,12 @@ import datetime
 from math import ceil
 from random import choice
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 import frappe
 from frappe.core.utils import find
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-from frappe.database import savepoint
+from frappe.database import get_db, savepoint
 from frappe.database.database import get_query_execution_timeout
 from frappe.database.utils import FallBackDateTimeStr
 from frappe.query_builder import Field
@@ -762,6 +763,54 @@ class TestDB(IntegrationTestCase):
 	def test_db_explain(self):
 		frappe.db.sql("select 1", debug=1, explain=1)
 
+	@unimplemented_for(db_type_is.SQLITE)
+	def test_session_time_zone_follows_system_timezone(self):
+		with patch("frappe.database.database.get_system_timezone", return_value="America/New_York"):
+			db = get_db(
+				socket=frappe.db.socket,
+				host=frappe.db.host,
+				user=frappe.db.user,
+				password=frappe.db.password,
+				port=frappe.db.port,
+				cur_db_name=frappe.db.cur_db_name,
+			)
+			try:
+				db_now = db.sql("select LOCALTIMESTAMP")[0][0]
+			finally:
+				db.close()
+
+		expected = datetime.datetime.now(ZoneInfo("America/New_York")).replace(tzinfo=None)
+		self.assertLess(abs((expected - db_now).total_seconds()), 10)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_session_time_zone_falls_back_to_utc_offset(self):
+		from frappe.database.mariadb.database import MariaDBDatabase
+		from frappe.database.mariadb.mysqlclient import MariaDBDatabase as MySQLClientDatabase
+
+		for db_class in (MariaDBDatabase, MySQLClientDatabase):
+			with patch.object(db_class, "sql", side_effect=[db_class.OperationalError, None]) as mocked_sql:
+				db_class(cur_db_name=frappe.db.cur_db_name).set_session_time_zone("Asia/Kolkata")
+
+			mocked_sql.assert_called_with("set session time_zone = %s", "+05:30")
+
+	@unimplemented_for(db_type_is.SQLITE)
+	def test_connect_survives_session_time_zone_failure(self):
+		with patch(
+			"frappe.database.database.get_system_timezone", side_effect=Exception("timezone unavailable")
+		):
+			db = get_db(
+				socket=frappe.db.socket,
+				host=frappe.db.host,
+				user=frappe.db.user,
+				password=frappe.db.password,
+				port=frappe.db.port,
+				cur_db_name=frappe.db.cur_db_name,
+			)
+			try:
+				self.assertEqual(db.sql("select 1")[0][0], 1)
+			finally:
+				db.close()
+
 
 @run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(IntegrationTestCase):
@@ -1048,6 +1097,69 @@ class TestDDLCommandsPost(IntegrationTestCase):
 		)
 		self.assertEqual(len(indexs_in_table), 1)
 
+	def test_advisory_lock(self) -> None:
+		def advisory_count():
+			return frappe.db.sql("SELECT count(*) FROM pg_locks WHERE locktype = 'advisory'")[0][0]
+
+		before = advisory_count()
+		with frappe.db.advisory_lock("frappe-test-lock"):
+			self.assertEqual(advisory_count(), before + 1)
+		self.assertEqual(advisory_count(), before)
+
+	def test_advisory_lock_released_after_query_error(self) -> None:
+		# A DB error inside the block aborts the transaction; the session-scoped lock must still be
+		# released on exit, not leaked. Regression: the unlock in `finally` runs on the aborted txn.
+		def advisory_count():
+			return frappe.db.sql("SELECT count(*) FROM pg_locks WHERE locktype = 'advisory'")[0][0]
+
+		before = advisory_count()
+		with self.assertRaises(Exception):
+			with frappe.db.advisory_lock("frappe-test-lock-error"):
+				frappe.db.sql("SELECT * FROM tab_does_not_exist")
+		frappe.db.rollback()
+		self.assertEqual(advisory_count(), before)
+
+	def _indexdef(self, field: str, using: str) -> str:
+		from frappe.database.postgres.schema import get_qualified_index_name
+
+		name = get_qualified_index_name(f"tab{self.test_table_name}", [field], using)
+		return frappe.db.sql("SELECT indexdef FROM pg_indexes WHERE indexname = %s", (name,))[0][0]
+
+	def test_add_index_trigram(self) -> None:
+		frappe.db.add_index(self.test_table_name, ["content"], using="gin_trgm")
+		indexdef = self._indexdef("content", "gin_trgm")
+		self.assertIn("USING gin", indexdef)
+		self.assertIn("gin_trgm_ops", indexdef)
+
+	def test_add_index_fulltext(self) -> None:
+		frappe.db.add_index(self.test_table_name, ["content"], using="gin_fulltext")
+		indexdef = self._indexdef("content", "gin_fulltext")
+		self.assertIn("USING gin", indexdef)
+		self.assertIn("to_tsvector", indexdef)
+
+	def test_add_index_partial(self) -> None:
+		frappe.db.add_index(self.test_table_name, ["id"], index_name="test_partial", where="id > 0")
+		indexdef = frappe.db.sql("SELECT indexdef FROM pg_indexes WHERE indexname = 'test_partial'")[0][0]
+		self.assertIn("WHERE", indexdef)
+
+	def test_covering_index(self) -> None:
+		frappe.db.add_index(self.test_table_name, ["id"], index_name="test_covering", include=["content"])
+		indexdef = frappe.db.sql("SELECT indexdef FROM pg_indexes WHERE indexname = 'test_covering'")[0][0]
+		self.assertIn("INCLUDE", indexdef)
+		self.assertIn("content", indexdef)
+
+	def test_add_index_rejects_unknown_method(self) -> None:
+		# `using` reaches the DDL string verbatim, so an unknown method must be refused, not run.
+		with self.assertRaises(frappe.ValidationError):
+			frappe.db.add_index(self.test_table_name, ["content"], using="gin; DROP TABLE x")
+
+	def test_add_index_rejects_unsafe_columns(self) -> None:
+		# field and include column names are interpolated into the DDL, so reject non-identifiers.
+		with self.assertRaises(frappe.ValidationError):
+			frappe.db.add_index(self.test_table_name, ['id") ; DROP TABLE x --'])
+		with self.assertRaises(frappe.ValidationError):
+			frappe.db.add_index(self.test_table_name, ["id"], include=['content") ; DROP TABLE x --'])
+
 	def test_json_columns_return_strings(self) -> None:
 		# Regression: psycopg2 auto-parses json/jsonb into python objects, but frappe models JSON
 		# fields as strings (like MariaDB's longtext) and json.loads them on demand. A parsed value
@@ -1172,6 +1284,17 @@ class TestTransactionManagement(IntegrationTestCase):
 
 		frappe.db.commit()
 		self.assertEqual(_get_transaction_id(), _get_transaction_id())
+
+	def test_transaction_advisory_lock(self):
+		def advisory_count():
+			return frappe.db.sql("SELECT count(*) FROM pg_locks WHERE locktype = 'advisory'")[0][0]
+
+		before = advisory_count()
+		frappe.db.transaction_advisory_lock("frappe-test-xact-lock")
+		self.assertEqual(advisory_count(), before + 1)
+		frappe.db.transaction_advisory_lock("frappe-test-xact-lock")  # re-entrant
+		frappe.db.rollback()
+		self.assertEqual(advisory_count(), before)
 
 
 # Treat same DB as replica for tests, a separate connection will be opened
@@ -1531,7 +1654,12 @@ class TestPostgresSchemaQueryIndependence(ExtIntegrationTestCase):
 
 
 class TestDbConnectWithEnvCredentials(IntegrationTestCase):
-	current_site = frappe.local.site
+	@classmethod
+	def setUpClass(cls):
+		# resolved here instead of the class body: at import time there may be
+		# no site context (depends on which test modules ran before this one)
+		super().setUpClass()
+		cls.current_site = frappe.local.site
 
 	def tearDown(self):
 		frappe.init(self.current_site, force=True)
@@ -1655,3 +1783,90 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 		unrelated = _E()
 		unrelated.pgcode = "12345"
 		self.assertFalse(PostgresExceptionUtil.is_deadlocked(unrelated))
+
+
+class TestAdvisoryLockMariaDB(IntegrationTestCase):
+	@run_only_if(db_type_is.MARIADB)
+	def test_advisory_lock_get_release(self):
+		# Exercises the MariaDB GET_LOCK / RELEASE_LOCK path (the Postgres test uses pg_locks).
+		import hashlib
+
+		name = hashlib.sha256(b"frappe-test-lock").hexdigest()
+
+		def held():
+			# IS_USED_LOCK returns the connection id holding the lock, or NULL when free.
+			return frappe.db.sql("SELECT IS_USED_LOCK(%s)", (name,))[0][0] is not None
+
+		self.assertFalse(held())
+		with frappe.db.advisory_lock("frappe-test-lock"):
+			self.assertTrue(held())
+		self.assertFalse(held())
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_advisory_lock_retries_on_transient_null(self):
+		# GET_LOCK returns NULL on a transient server error (e.g. a killed thread). The acquire loop
+		# must retry within the budget and self-heal, not fail the whole operation with a bare error.
+		from unittest.mock import patch
+
+		real_sql = frappe.db.sql
+		get_lock_calls = []
+
+		def fake_sql(query, values=(), **kwargs):
+			if isinstance(query, str) and "GET_LOCK" in query:
+				get_lock_calls.append(values)
+				return ((None,),) if len(get_lock_calls) < 3 else ((1,),)  # two blips, then acquire
+			return real_sql(query, values, **kwargs)
+
+		with patch.object(frappe.db, "sql", fake_sql):
+			with frappe.db.advisory_lock("frappe-test-null", timeout=5):
+				pass
+
+		self.assertGreaterEqual(len(get_lock_calls), 3)
+
+
+class TestBulkInsertCopy(IntegrationTestCase):
+	def test_bulk_insert_copy(self):
+		# postgres bulk_insert streams via COPY, other engines use multi-row INSERT; both must
+		# round-trip NULLs and tab/newline characters (the COPY text encoding escapes these).
+		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabBulkLoadTest`")
+		frappe.db.sql("CREATE TABLE `tabBulkLoadTest` (`name` varchar(140), `qty` int, `note` text)")
+		self.addCleanup(frappe.db.sql_ddl, "DROP TABLE IF EXISTS `tabBulkLoadTest`")
+
+		rows = [("a", 1, "x"), ("b", 2, None), ("c\twith\ttabs", 3, "line\nbreak")]
+		frappe.db.bulk_insert("BulkLoadTest", ["name", "qty", "note"], rows)
+		frappe.db.commit()  # nosemgrep
+
+		got = frappe.db.sql("SELECT `name`, `qty`, `note` FROM `tabBulkLoadTest` ORDER BY `qty`")
+		self.assertEqual(len(got), 3)
+		self.assertIsNone(got[1][2])
+		self.assertEqual(got[2][0], "c\twith\ttabs")
+		self.assertEqual(got[2][2], "line\nbreak")
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_bulk_insert_copy_time(self):
+		# COPY encodes Time (timedelta) values itself: a sub-24h value must round-trip rather than
+		# str()'s "H:MM:SS" formatting drifting or a days component becoming "1 day, ...".
+		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabBulkTimeTest`")
+		frappe.db.sql('CREATE TABLE "tabBulkTimeTest" ("name" varchar(140), "at" time)')
+		self.addCleanup(frappe.db.sql_ddl, "DROP TABLE IF EXISTS `tabBulkTimeTest`")
+
+		value = datetime.timedelta(hours=2, minutes=30, seconds=15)
+		frappe.db.bulk_insert("BulkTimeTest", ["name", "at"], [("a", value)])
+		frappe.db.commit()  # nosemgrep
+
+		self.assertEqual(frappe.db.sql('SELECT "at" FROM "tabBulkTimeTest"')[0][0], value)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_bulk_insert_copy_check_field(self):
+		# Check fields are smallint; COPY must encode Python True/False as 1/0 -- smallint_in("true")
+		# would raise "invalid input syntax for type smallint".
+		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabBulkFlagTest`")
+		frappe.db.sql('CREATE TABLE "tabBulkFlagTest" ("name" varchar(140), "flag" smallint)')
+		self.addCleanup(frappe.db.sql_ddl, "DROP TABLE IF EXISTS `tabBulkFlagTest`")
+
+		frappe.db.bulk_insert("BulkFlagTest", ["name", "flag"], [("a", True), ("b", False)])
+		frappe.db.commit()  # nosemgrep
+
+		got = dict(frappe.db.sql('SELECT "name", "flag" FROM "tabBulkFlagTest"'))
+		self.assertEqual(got["a"], 1)
+		self.assertEqual(got["b"], 0)

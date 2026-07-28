@@ -376,6 +376,10 @@ def _bulk_workflow_action(docnames, doctype, action):
 				else:
 					successful_transactions[docname].append({"docname": docname, "message": None})
 
+	assert all(
+		docname in failed_transactions or docname in successful_transactions for docname in docnames
+	), "every docname must be recorded as either a failed or successful transaction"
+
 	if failed_transactions and successful_transactions:
 		indicator = "orange"
 	elif failed_transactions:

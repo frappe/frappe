@@ -12,38 +12,43 @@
 		<tr>
 			<td class="body-content" align="center" valign="top">
 				<table class="email-container" border="0" cellpadding="0" cellspacing="0"
-					width="{% if header %} 600 {% else %} 100% {% endif %}">
-					{% if brand_logo %}
+					width="{% if header or with_container %} 600 {% else %} 100% {% endif %}">
+					{% if brand_logo or brand_name %}
 					<tr>
-						<td width="40" align="left" valign="middle">
+						<td align="left" valign="middle" class="email-masthead">
 							<a href="{{ site_url or 'https://frappeframework.com' }}">
+								{% if brand_logo %}
 								<img
 									src="{{ brand_logo or '/assets/frappe/images/frappe-framework-logo.svg' }}"
-									height="40"
+									height="28"
 									class="brand-logo"
 								/>
+								{% endif %}
+								{% if brand_name %}
+								<span class="brand-name">{{ brand_name }}</span>
+								{% endif %}
 							</a>
 						</td>
 					</tr>
 					{% endif %}
 					<tr>
-						<td valign="top">
+						<td valign="top" class="email-title-cell">
 							{{ header or "" }}
 						</td>
 					</tr>
 					<tr>
-						<td valign="top">
+						<td valign="top" class="email-body-cell">
 							<table class="email-body" border="0" cellpadding="0" cellspacing="0" width="100%">
 								<tr>
 									<td valign="top">
-										<p>{{ content }}</p>
+										<div>{{ content }}</div>
 									</td>
 								</tr>
 							</table>
 						</td>
 					</tr>
 					<tr>
-						<td valign="top">
+						<td valign="top" class="email-footer-cell {% if footer and 'with-divider' in footer %}filled{% endif %}">
 							<table class="email-footer" border="0" cellpadding="0" cellspacing="0" width="100%">
 								<tr>
 									<td valign="top" data-email-footer="true">

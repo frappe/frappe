@@ -6,7 +6,7 @@ frappe.ui.Notifications = class Notifications {
 		this.notification_settings = frappe.boot.notification_settings;
 		this.full_height = opts?.full_height || false;
 
-		this.wrapper = opts?.wrapper || $(".standard-items-sections");
+		this.wrapper = opts?.wrapper || $(".body-sidebar");
 		this.make();
 	}
 
@@ -19,7 +19,6 @@ frappe.ui.Notifications = class Notifications {
 		this.body = this.dropdown_list.find(".notification-list-body");
 		this.panel_events = this.dropdown_list.find(".panel-events");
 		this.panel_notifications = this.dropdown_list.find(".panel-notifications");
-		this.panel_changelog_feed = this.dropdown_list.find(".panel-changelog-feed");
 
 		this.user = frappe.session.user;
 
@@ -69,12 +68,6 @@ frappe.ui.Notifications = class Notifications {
 				id: "todays_events",
 				view: EventsView,
 				el: this.panel_events,
-			},
-			{
-				label: __("What's New"),
-				id: "changelog_feed",
-				view: ChangelogFeedView,
-				el: this.panel_changelog_feed,
 			},
 		];
 
@@ -144,8 +137,9 @@ frappe.ui.Notifications = class Notifications {
 		});
 
 		$(document).on("click", function (e) {
+			// the bell may live in the sidebar or the workspace dock; match either
 			const isInsideNotificationBtn =
-				$(e.target).closest(".standard-items-sections .sidebar-notification").length > 0;
+				$(e.target).closest(".sidebar-notification").length > 0;
 			const isInsideDropdown = $(e.target).closest(".notifications-list").length > 0;
 			if (!isInsideNotificationBtn && !isInsideDropdown) {
 				if (full_height) {
@@ -221,13 +215,6 @@ class NotificationsView extends BaseNotificationsView {
 		this.notifications_icon
 			.attr("title", __("Notifications"))
 			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
-
-		this.bell_indicator = this.parent.find(".desktop-notification-icon");
-		if (!this.bell_indicator.length) {
-			this.bell_indicator = this.parent
-				.closest(".body-sidebar")
-				?.find(".sidebar-notification .sidebar-item-icon");
-		}
 
 		this.setup_notification_listeners();
 
@@ -390,15 +377,22 @@ class NotificationsView extends BaseNotificationsView {
 		return frappe.utils.get_form_link(link_doctype, link_docname);
 	}
 
+	// The bell icon(s) that carry the unseen indicator. Re-queried each call so they cover every
+	// bell (sidebar and/or workspace dock, the latter created after this view). Falls back to the
+	// mobile navbar icon when there's no sidebar bell.
+	get_bell_icons() {
+		let $icons = this.parent.find(".desktop-notification-icon");
+		return $icons.length ? $icons : $(".sidebar-notification .sidebar-item-icon");
+	}
+
 	toggle_notification_icon(seen) {
-		this.bell_indicator?.toggleClass("indicator blue", !seen);
+		this.get_bell_icons().toggleClass("indicator blue", !seen);
 	}
 
 	update_count_badge(count) {
 		this.unread_count = count;
-		const $suffix = this.parent
-			.closest(".body-sidebar")
-			?.find(".sidebar-notification .sidebar-notification-count");
+		// update the count on every bell (sidebar and/or workspace dock)
+		const $suffix = $(".sidebar-notification .sidebar-notification-count");
 		if (!$suffix?.length) return;
 
 		if (count > 0) {
@@ -454,7 +448,7 @@ class NotificationsView extends BaseNotificationsView {
 			}
 
 			this.toggle_seen(true);
-			if (this.bell_indicator?.hasClass("indicator")) {
+			if (this.get_bell_icons().hasClass("indicator")) {
 				this.toggle_notification_icon(true);
 				frappe.call(
 					"frappe.desk.doctype.notification_log.notification_log.trigger_indicator_hide"
@@ -519,13 +513,15 @@ class EventsView extends BaseNotificationsView {
 				// REDESIGN-TODO: Add location to calendar field
 				let location = "";
 				if (event.location) {
-					location = `, ${event.location}`;
+					location = `, ${frappe.utils.escape_html(event.location)}`;
 				}
 
-				return `<a class="recent-item event" href="/desk/event/${event.name}">
-					<div class="event-border" style="border-color: ${event.color}"></div>
+				return `<a class="recent-item event" href="/desk/event/${frappe.utils.escape_html(
+					event.name
+				)}">
+					<div class="event-border" style="border-color: ${frappe.utils.escape_html(event.color)}"></div>
 					<div class="event-item">
-						<div class="event-subject">${event.subject}</div>
+						<div class="event-subject">${frappe.utils.escape_html(event.subject)}</div>
 						<div class="event-time">${time}${location}</div>
 						${particpants}
 					</div>
@@ -544,56 +540,6 @@ class EventsView extends BaseNotificationsView {
 			`;
 		}
 
-		this.container.html(html);
-	}
-}
-
-class ChangelogFeedView extends BaseNotificationsView {
-	make() {
-		this.render_changelog_feed_html(frappe.boot.changelog_feed || []);
-	}
-
-	render_changelog_feed_html(changelog_feed) {
-		let html = "";
-		if (changelog_feed.length) {
-			this.container.empty();
-			const get_changelog_feed_html = (changelog_feed_item) => {
-				const timestamp = frappe.datetime.prettyDate(
-					changelog_feed_item.posting_timestamp
-				);
-				const message_html = `<div class="message">
-							<div>${changelog_feed_item.title}</div>
-							<div class="notification-timestamp text-muted">
-							${changelog_feed_item.app_title} | ${timestamp}
-							</div>
-						</div>`;
-
-				const item_html = `<a class="recent-item notification-item"
-								href="${changelog_feed_item.link}"
-								data-name="${changelog_feed_item.title}"
-								target="_blank" rel="noopener noreferrer"
-							>
-							<div class="notification-body">
-								${message_html}
-							</div>
-							</div>
-						</a>`;
-
-				return item_html;
-			};
-			html = changelog_feed.map(get_changelog_feed_html).join("");
-		} else {
-			html = `<div class="notification-null-state">
-						<div class="text-center">
-							<img src="/assets/frappe/images/ui-states/notification-empty-state.svg" alt="Generic Empty State" class="null-state">
-							<div class="title">${__("Nothing new")}</div>
-							<div class="subtitle">
-								${__("There is nothing new to show you right now.")}
-							</div>
-						</div>
-					</div>
-					`;
-		}
 		this.container.html(html);
 	}
 }

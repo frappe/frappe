@@ -53,6 +53,10 @@ def set_encrypted_password(doctype, name, pwd, fieldname="password"):
 		Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted
 	)
 
+	assert frappe.db.db_type in ("mariadb", "sqlite", "postgres"), (
+		"exactly one db_type branch must build the insert query"
+	)
+
 	# TODO: Simplify this via aliasing methods in `frappe.qb`
 	if frappe.db.db_type == "mariadb":
 		query = query.insert(doctype, name, fieldname, encrypt(pwd), 1).on_duplicate_key_update(
@@ -119,6 +123,7 @@ def check_password(user, pwd, doctype="User", fieldname="password", delete_track
 
 	# lettercase agnostic
 	user = result[0].name
+	assert user, "authenticated user name must be non-empty"
 
 	# TODO: This need to be deleted after checking side effects of it.
 	# We have a `LoginAttemptTracker` that can take care of tracking related cache.
@@ -149,6 +154,10 @@ def update_password(user, pwd, doctype="User", fieldname="password", logout_all_
 
 	query = frappe.qb.into(Auth).columns(
 		Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted
+	)
+
+	assert frappe.db.db_type in ("mariadb", "sqlite", "postgres"), (
+		"exactly one db_type branch must build the insert query"
 	)
 
 	# TODO: Simplify this via aliasing methods in `frappe.qb`

@@ -69,6 +69,10 @@
 	align-items: center;
 	padding-left: 0px;
 
+	.filters:not(:empty) {
+		margin-left: var(--margin-sm, 8px);
+	}
+
 	.btn {
 		height: var(--btn-height);
 		margin-left: var(--margin-sm, 8px);
@@ -88,8 +92,28 @@
 		padding: 4px 8px;
 	}
 
+	// the header buttons are es-buttons now; they style themselves, but the
+	// spacing between siblings still comes from here (until the layout moves
+	// to gap in the header-skeleton PR)
+	.es-button {
+		margin-left: var(--margin-sm, 8px);
+	}
+
+	// below md, a button whose label is breakpoint-hidden (hidden-xs) with no
+	// short-label swap (hidden-lg) is icon-only — square it like an icon
+	// button instead of leaving a lone icon with text padding
+	@include media-breakpoint-down(sm) {
+		.es-button:has(> .es-button__label.hidden-xs):not(:has(> .es-button__label.hidden-lg)) {
+			padding-inline: 0;
+			width: var(--es-bt-h);
+			min-width: 0;
+		}
+	}
+
 	.btn-primary,
-	.btn-secondary {
+	.btn-secondary,
+	.primary-action,
+	.secondary-action {
 		min-width: 40px;
 	}
 

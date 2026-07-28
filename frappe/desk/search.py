@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import functools
 import json
 import re
 from typing import NotRequired, TypedDict
@@ -8,7 +9,7 @@ from typing import NotRequired, TypedDict
 import frappe
 
 # Backward compatbility
-from frappe import _, bold, is_whitelisted, validate_and_sanitize_search_inputs
+from frappe import _, bold, is_whitelisted
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.db_query import get_order_by
 from frappe.permissions import has_permission
@@ -25,6 +26,28 @@ def sanitize_searchfield(searchfield: str):
 
 	if SPECIAL_CHAR_PATTERN.search(searchfield):
 		frappe.throw(_("Invalid Search Field {0}").format(searchfield), frappe.DataError)
+
+
+def validate_and_sanitize_search_inputs(fn):
+	@functools.wraps(fn)
+	def wrapper(*args, **kwargs):
+		kwargs.update(dict(zip(fn.__code__.co_varnames, args, strict=False)))
+
+		if "searchfield" in kwargs:
+			sanitize_searchfield(kwargs["searchfield"])
+
+		if "start" in kwargs:
+			kwargs["start"] = cint(kwargs["start"])
+
+		if "page_len" in kwargs:
+			kwargs["page_len"] = cint(kwargs["page_len"])
+
+		if "doctype" in kwargs and kwargs["doctype"] and not frappe.db.exists("DocType", kwargs["doctype"]):
+			return []
+
+		return fn(**kwargs)
+
+	return wrapper
 
 
 class LinkSearchResults(TypedDict):
@@ -291,7 +314,30 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 	):
 		return
 
+	matched_child_field = None
+	for table_field in meta.get_table_fields():
+		if not frappe.db.exists("DocType", table_field.options):
+			continue
+
+		child_field = frappe.get_meta(table_field.options).get_field(link_fieldname)
+		if not child_field or child_field.fieldtype not in ("Link", "Dynamic Link"):
+			continue
+
+		if child_field.fieldtype == "Link" and child_field.options != link_doctype:
+			continue
+
+		if child_field.ignore_user_permissions:
+			return
+
+		matched_child_field = child_field
+
 	link_field = meta.get_field(link_fieldname)
+	field_doctype = form_doctype
+
+	if not link_field and matched_child_field:
+		link_field = matched_child_field
+		field_doctype = matched_child_field.parent
+
 	if not link_field:
 		_throw(
 			_("Field <code>{0}</code> not found in {1}").format(
@@ -321,7 +367,7 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 	if not ignore_user_permissions:
 		_throw(
 			_("The field {0} in {1} does not allow ignoring user permissions").format(
-				bold(meta.get_label(link_fieldname)), bold(_(form_doctype))
+				bold(_(link_field.label or link_fieldname, context=field_doctype)), bold(_(field_doctype))
 			)
 		)
 
@@ -336,8 +382,8 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 	if found_doctype != link_doctype:
 		_throw(
 			_("The field {0} in {1} links to {2} and not {3}").format(
-				bold(meta.get_label(link_fieldname)),
-				bold(_(form_doctype)),
+				bold(_(link_field.label or link_fieldname, context=field_doctype)),
+				bold(_(field_doctype)),
 				bold(_(found_doctype)),
 				bold(escape_html(link_doctype)),
 			)

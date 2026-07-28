@@ -5,6 +5,7 @@ from frappe.core.doctype.user.user import get_system_users
 from frappe.desk.doctype.notification_log.notification_log import (
 	enqueue_create_notification,
 	get_email_header,
+	get_title,
 )
 from frappe.desk.doctype.notification_type.notification_type import install_notification_types
 from frappe.desk.form.assign_to import add as assign_task
@@ -124,6 +125,11 @@ class TestNotificationLog(IntegrationTestCase):
 			frappe.db.get_value("Notification Log", name, "assistance_url"),
 			"https://docs.example.com/fix",
 		)
+
+	def test_get_title_falls_back_to_docname_when_title_is_empty(self):
+		note = frappe.get_doc({"doctype": "Note", "title": "Notification title"}).insert()
+		frappe.db.set_value("Note", note.name, "title", None, update_modified=False)
+		self.assertEqual(get_title("Note", note.name), note.name)
 
 	def test_app_derived_from_document_type(self):
 		"""`app` is filled from the reference document's owning app on insert."""

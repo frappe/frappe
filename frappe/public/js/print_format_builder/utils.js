@@ -1,6 +1,48 @@
+export function clone_plain(obj) {
+	return JSON.parse(JSON.stringify(obj));
+}
+
+export function read_json(key, fallback = null) {
+	try {
+		return JSON.parse(localStorage.getItem(key)) || fallback;
+	} catch {
+		return fallback;
+	}
+}
+
+export function write_json(key, value) {
+	try {
+		localStorage.setItem(key, JSON.stringify(value));
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+// Blocks the builder invents — they never map to a docfield on the document type
+export const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater"]);
+
+// Mirrors print_format_generator.is_qr_barcode_options: a Barcode docfield whose
+// options ask for a qr code — "qrcode"/"qr" or JSON like {"format": "qrcode"}
+export function is_qr_barcode_options(options) {
+	options = (options || "").trim();
+	if (["qr", "qrcode"].includes(options.toLowerCase())) return true;
+	try {
+		return ["qr", "qrcode"].includes((JSON.parse(options).format || "").toLowerCase());
+	} catch {
+		return false;
+	}
+}
+
+export function freshen_field(f) {
+	delete f.remove;
+	if (f.custom && f.fieldname) f.fieldname += "_" + frappe.utils.get_random(8);
+	return f;
+}
+
 export function create_default_layout(meta, print_format) {
 	let layout = {
-		header: get_default_header(meta),
+		header: get_default_header(),
 		sections: [],
 	};
 
@@ -43,8 +85,7 @@ export function create_default_layout(meta, print_format) {
 
 	for (let df of meta.fields) {
 		if (df.fieldname) {
-			// make a copy to avoid mutation bugs
-			df = JSON.parse(JSON.stringify(df));
+			df = clone_plain(df);
 		} else {
 			continue;
 		}
@@ -82,7 +123,6 @@ export function create_default_layout(meta, print_format) {
 		}
 	}
 
-	// remove empty sections
 	layout.sections = layout.sections.filter((section) => section.has_fields);
 
 	return layout;
@@ -124,7 +164,7 @@ function get_field_template(print_format, fieldname) {
 	return null;
 }
 
-function get_default_header(meta) {
+function get_default_header() {
 	return { columns: [{ label: "", fields: [] }] };
 }
 
@@ -138,19 +178,153 @@ export function pluck(object, keys) {
 	return out;
 }
 
+export const DRAG_OPTIONS = {
+	forceFallback: true,
+	fallbackOnBody: true,
+	fallbackTolerance: 4,
+	fallbackClass: "pfb-drag-fallback",
+	ghostClass: "pfb-drag-ghost",
+};
+
+export function setDragging(active) {
+	document.body.classList.toggle("pfb-dragging", active);
+	if (active) window.getSelection()?.removeAllRanges();
+}
+
+const TABLE_COLUMN_PLUCK_KEYS = [
+	"label",
+	"fieldname",
+	"fieldtype",
+	"options",
+	"width",
+	"field_template",
+	"merged_fields",
+	"merge_direction",
+	"image_size",
+	"column_condition",
+];
+
+const FIELD_PLUCK_KEYS = [
+	"label",
+	"fieldname",
+	"fieldtype",
+	"options",
+	"table_columns",
+	"table_style",
+	"table_bordered",
+	"table_header",
+	"table_cell_padding",
+	"table_radius",
+	"table_header_bg",
+	"table_border_color",
+	"html",
+	"field_template",
+	"source",
+	"repeater_columns",
+	"row_condition",
+	"show_label",
+	"align",
+	"label_justify",
+	"label_gap",
+	"visible_if",
+	"custom_style",
+	"value_color",
+	"value_bold",
+	"label_color",
+	"label_bold",
+	"custom",
+	"image_url",
+	"width",
+	"barcode_field",
+	"barcode_value",
+	"barcode_format",
+	"show_text",
+];
+
+const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(
+	(key) => key !== "table_cell_padding" && key !== "table_radius"
+);
+
+export function serialize_layout(layout) {
+	layout.sections = layout.sections
+		.filter((section) => !section.remove)
+		.map((section) => {
+			section.columns = section.columns.map((column) => {
+				column.fields = column.fields
+					.filter((df) => !df.remove)
+					.map((df) => {
+						if (df.table_columns) {
+							df.table_columns = df.table_columns.map((tf) => {
+								if (Array.isArray(tf.merged_fields) && !tf.merged_fields.length) {
+									delete tf.merged_fields;
+								}
+								return pluck(tf, TABLE_COLUMN_PLUCK_KEYS);
+							});
+						}
+						return pluck(df, FIELD_PLUCK_KEYS);
+					});
+				return column;
+			});
+			return section;
+		});
+
+	function clean_zone(zone) {
+		if (!zone || !zone.columns) return zone;
+		zone.columns = zone.columns.map((column) => {
+			column.fields = column.fields
+				.filter((df) => !df.remove)
+				.map((df) => pluck(df, ZONE_FIELD_PLUCK_KEYS));
+			return column;
+		});
+		return zone;
+	}
+	layout.header = clean_zone(layout.header);
+	layout.footer = clean_zone(layout.footer);
+
+	return layout;
+}
+
+// Parse "border: 1px solid; padding: 4px" into a Vue style-binding object.
+// Splits on the first ":" per declaration so values like url(http://…) survive.
+export function parse_inline_style(css) {
+	const style = {};
+	if (!css || typeof css !== "string") return style;
+	for (const decl of css.split(";")) {
+		const idx = decl.indexOf(":");
+		if (idx === -1) continue;
+		const prop = decl.slice(0, idx).trim();
+		const value = decl.slice(idx + 1).trim();
+		if (prop && value) style[prop] = value;
+	}
+	return style;
+}
+
+// Deterministic pastel colour for a merged-cell initials thumbnail, keyed off
+// the first character so the canvas and the PDF (Table.html, same formula)
+// always agree — no palette table to keep in sync across the two.
+export function thumb_hue(text) {
+	const idx = "abcdefghijklmnopqrstuvwxyz0123456789".indexOf(
+		String(text || "")
+			.trim()
+			.charAt(0)
+			.toLowerCase()
+	);
+	return ((idx < 0 ? 0 : idx) * 37) % 360;
+}
+
 export async function render_jinja_html(html, doctype, docname) {
 	if (!html) return html;
 	if (!html.includes("{{") && !html.includes("{%")) return html;
 	if (!doctype || !docname) return html;
 	try {
-		const r = await frappe.call("frappe.utils.print_format_generator.render_jinja_template", {
-			template: html,
-			doctype,
-			docname,
+		const r = await frappe.call({
+			method: "frappe.utils.print_format_generator.render_jinja_template",
+			args: { template: html, doctype, docname },
+			silent: 1,
 		});
 		return r.message ?? html;
 	} catch {
-		return html;
+		return null;
 	}
 }
 
@@ -234,6 +408,12 @@ const SAFE_HTML_ATTRS = new Set([
 	"cellspacing",
 ]);
 
+export function strip_html_to_text(html, fallback = "") {
+	const tmp = document.createElement("div");
+	tmp.innerHTML = html;
+	return tmp.textContent || tmp.innerText || fallback;
+}
+
 export function sanitize_html(html) {
 	const root = document.createElement("div");
 	root.innerHTML = frappe.dom.remove_script_and_style(html || "");
@@ -281,6 +461,16 @@ export function sanitize_html(html) {
 		}
 	})(root);
 	return root.innerHTML;
+}
+
+export function evaluate_visible_if(expr, doc) {
+	if (!expr || !expr.trim()) return true;
+	try {
+		// eslint-disable-next-line no-new-func
+		return !!new Function("doc", `return (${expr})`)(doc);
+	} catch {
+		return true;
+	}
 }
 
 export function get_image_dimensions(src) {

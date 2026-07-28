@@ -61,7 +61,7 @@ frappe.views.CommunicationComposer = class {
 			},
 			{
 				fieldtype: "Button",
-				label: frappe.utils.icon("down", "xs"),
+				label: frappe.utils.icon("chevron-down", "xs"),
 				title: __("More Options"),
 				fieldname: "option_toggle_button",
 				click: () => {
@@ -318,7 +318,7 @@ frappe.views.CommunicationComposer = class {
 		this.dialog.set_df_property("more_options", "hidden", !show_options);
 		this.dialog.set_df_property("email_template_section_break", "hidden", !show_options);
 
-		const label = frappe.utils.icon(show_options ? "up-line" : "down", "xs");
+		const label = frappe.utils.icon(show_options ? "chevron-up" : "chevron-down", "xs");
 		this.dialog.get_field("option_toggle_button").set_label(label);
 	}
 
@@ -710,7 +710,7 @@ frappe.views.CommunicationComposer = class {
 			<div class='attach-list'></div>
 			<p class='add-more-attachments'>
 				<button class='btn btn-xs btn-default'>
-					${frappe.utils.icon("small-add", "xs")}&nbsp;
+					${frappe.utils.icon("plus", "xs")}&nbsp;
 					${__("Add Attachment")}
 				</button>
 			</p>
@@ -768,7 +768,7 @@ frappe.views.CommunicationComposer = class {
 					class="btn-link"
 					style="padding-left: var(--padding-xs)"
 				>
-					${frappe.utils.icon("link-url", "sm")}
+					${frappe.utils.icon("link", "sm")}
 				</a>
 			</label>
 		</p>`);
@@ -948,21 +948,14 @@ frappe.views.CommunicationComposer = class {
 						me.frm.reload_doc();
 					}
 
-					let undo_alert = frappe.show_alert(
-						{
-							message: `<span>${__(
-								"Email Sent"
-							)}</span><span class="cursor-pointer ml-4" data-action="undo" style="font-weight: 500; text-decoration: underline;">${__(
-								"Undo"
-							)}</span>`,
-							indicator: "green",
-						},
-						10,
-						{
-							undo: () => {
-								if (undo_alert) {
-									undo_alert.find(".close").click();
-								}
+					const undo_toast = frappe.ui.toast({
+						message: __("Email Sent"),
+						type: "success",
+						duration: 10000,
+						action: {
+							label: __("Undo"),
+							onclick: () => {
+								undo_toast.dismiss();
 								frappe
 									.xcall(
 										"frappe.core.doctype.communication.email.undo_email_send",
@@ -987,14 +980,14 @@ frappe.views.CommunicationComposer = class {
 											frm: me.frm,
 										});
 
-										frappe.show_alert({
+										frappe.ui.toast({
 											message: __("Email sending undone"),
-											indicator: "blue",
+											type: "info",
 										});
 									});
 							},
-						}
-					);
+						},
+					});
 
 					// try the success callback if it exists
 					if (me.success) {

@@ -251,7 +251,9 @@ frappe.Application = class Application {
 					},
 				],
 			});
-			s.fields_dict.checking.$wrapper.html('<i class="fa fa-spinner fa-spin fa-4x"></i>');
+			s.fields_dict.checking.$wrapper.html(
+				frappe.utils.icon("loader-circle", "xl", "", "animation: spin 1s linear infinite")
+			);
 			s.show();
 			frappe.call({
 				method: "frappe.email.doctype.email_account.email_account.set_email_password",
@@ -402,7 +404,18 @@ frappe.Application = class Application {
 		});
 	}
 	handle_session_expired() {
-		frappe.app.redirect_to_login();
+		if (frappe.app.session_expired_dialog) {
+			return;
+		}
+		const dialog = new frappe.ui.Dialog({
+			title: __("Session Expired"),
+		});
+		dialog.onhide = () => frappe.app.redirect_to_login();
+		frappe.app.session_expired_dialog = dialog;
+		dialog.show();
+		dialog.set_message(
+			__("Your session has expired due to inactivity. Please log in again to continue.")
+		);
 	}
 	redirect_to_login() {
 		window.location.href = `/login?redirect-to=${encodeURIComponent(

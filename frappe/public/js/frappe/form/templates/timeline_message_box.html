@@ -63,19 +63,18 @@
 		</span>
 		<span class="actions" style="flex-shrink: 0">
 			{% if (doc._doc_status && doc._doc_status_indicator) { %}
-			<span class="es-badge" data-theme="{%= doc._doc_status_indicator %}"
-				title="{%= __(doc._doc_status) %}"
-				style="order: -1">
-				<span class="hidden-xs small">
-					{%= __(doc._doc_status) %}
-				</span>
-			</span>
+			{%= frappe.ui.badge.html({
+				label: __(doc._doc_status),
+				theme: doc._doc_status_indicator,
+				title: __(doc._doc_status),
+				attrs: { style: "order: -1" },
+			}) %}
 			{% } %}
 
 			{% if (doc._url && !frappe.is_mobile()) { %}
 			<a class="action-btn" href="{{ doc._url }}" title="{{ __("Open Communication") }}">
 				<svg class="icon">
-					<use href="#icon-link-url"></use>
+					<use href="#icon-link"></use>
 				</svg>
 			</a>
 			{% } %}
@@ -84,7 +83,7 @@
 				<a type="button" class="action-btn"
 					data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 					<svg class="icon icon-sm">
-						<use href="#icon-dot-horizontal"></use>
+						<use href="#icon-ellipsis"></use>
 					</svg>
 				</a>
 

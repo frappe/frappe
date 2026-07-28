@@ -2,12 +2,6 @@ context("Workspace 2.0", () => {
 	before(() => {
 		cy.visit("/login");
 		cy.login();
-		return cy
-			.window()
-			.its("frappe")
-			.then((frappe) => {
-				return frappe.xcall("frappe.tests.ui_test_helpers.empty_my_workspaces");
-			});
 	});
 
 	it("Navigate to page from sidebar", () => {
@@ -36,7 +30,7 @@ context("Workspace 2.0", () => {
 		// check if sidebar item is added in pubic section
 		cy.get('.sidebar-item-container[item-name="Test Private Page"]');
 		cy.wait(300);
-		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
+		cy.get('.standard-actions .primary-action[data-label="Save"]').click();
 		cy.wait(300);
 		cy.get('.sidebar-item-container[item-name="Test Private Page"]');
 
@@ -80,6 +74,6 @@ context("Workspace 2.0", () => {
 		cy.get(".ce-block:last .dropdown-item").contains("Expand").click();
 		cy.get(".ce-block:last").should("have.class", "col-xs-12");
 		cy.wait(300);
-		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
+		cy.get('.standard-actions .primary-action[data-label="Save"]').click();
 	});
 });

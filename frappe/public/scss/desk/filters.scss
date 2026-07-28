@@ -60,6 +60,7 @@
 	.filter-action-buttons {
 		display: flex;
 		justify-content: space-between;
+		margin-bottom: 0.5rem;
 
 		.add-filter {
 			cursor: pointer;
@@ -75,6 +76,7 @@
 	}
 
 	.divider {
+		margin: 15px 0;
 		background-color: var(--border-color);
 	}
 }

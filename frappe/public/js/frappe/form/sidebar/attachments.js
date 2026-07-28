@@ -50,6 +50,7 @@ frappe.ui.form.Attachments = class Attachments {
 	refresh() {
 		if (this.frm.doc.__islocal) {
 			this.parent.toggle(false);
+			this.notify_change();
 			return;
 		}
 		this.parent.toggle(true);
@@ -62,6 +63,11 @@ frappe.ui.form.Attachments = class Attachments {
 		var attachments = this.get_attachments();
 		this.render_attachments(attachments);
 		this.setup_show_all_button(attachments);
+		this.notify_change();
+	}
+
+	notify_change() {
+		$(this.frm.wrapper).trigger("attachments_change");
 	}
 
 	setup_show_all_button(attachments) {
@@ -152,7 +158,7 @@ frappe.ui.form.Attachments = class Attachments {
 		}
 
 		const icon = `<a href="/desk/file/${fileid}" class="attachment-icon">
-				${frappe.utils.icon(attachment.is_private ? "es-line-lock" : "es-line-unlock", "sm ml-0")}
+				${frappe.utils.icon(attachment.is_private ? "lock" : "lock-open", "sm ml-0")}
 			</a>`;
 
 		let $attachment_row = $(`<div class="attachment-row"></div>`)
@@ -218,7 +224,7 @@ frappe.ui.form.Attachments = class Attachments {
 							href="${escaped_file_url}" target="_blank" rel="noopener noreferrer"
 							title="${__("Open file in new tab")}"
 						>
-							${frappe.utils.icon("es-line-arrow-up-right", "sm")}
+							${frappe.utils.icon("arrow-up-right", "sm")}
 						</a>
 						<button class="btn btn-link icon-btn attachment-preview-copy-link"
 							type="button"
@@ -226,12 +232,12 @@ frappe.ui.form.Attachments = class Attachments {
 							title="${__("Copy file URL to clipboard")}"
 							aria-label="${__("Copy file URL to clipboard")}"
 						>
-							${frappe.utils.icon("es-line-copy", "sm")}
+							${frappe.utils.icon("copy", "sm")}
 						</button>
 						<button class="btn btn-link icon-btn attachment-preview-close" type="button" title="${__(
 							"Close"
 						)}">
-							${frappe.utils.icon("es-line-close", "sm")}
+							${frappe.utils.icon("x", "sm")}
 						</button>
 					</div>
 				</div>
@@ -307,7 +313,7 @@ frappe.ui.form.Attachments = class Attachments {
 			<div class="text-muted">${frappe.utils.escape_html(message)}</div>
 			<a class="btn btn-default btn-sm" href="${file_url}" target="_blank" rel="noopener noreferrer">
 				<span>${__("Open file")}</span>
-				${frappe.utils.icon("es-line-arrow-up-right", "xs", "", "", "ml-1")}
+				${frappe.utils.icon("arrow-up-right", "xs", "", "", "ml-1")}
 			</a>
 		</div>`;
 	}
@@ -655,13 +661,17 @@ frappe.ui.form.Attachments = class Attachments {
 		new frappe.ui.FileUploader({
 			doctype: this.frm.doctype,
 			docname: this.frm.docname,
+			fieldname,
 			frm: this.frm,
 			folder: "Home/Attachments",
+			make_attachments_public:
+				fieldname && this.frm.get_docfield(fieldname)?.make_attachment_public
+					? 1
+					: this.frm.meta.make_attachments_public,
 			on_success: (file_doc) => {
 				this.attachment_uploaded(file_doc);
 			},
 			restrictions,
-			make_attachments_public: this.frm.meta.make_attachments_public,
 		});
 	}
 	get_args() {

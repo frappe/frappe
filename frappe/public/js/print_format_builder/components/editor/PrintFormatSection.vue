@@ -1,26 +1,38 @@
 <template>
-	<div class="print-format-section-container" data-pfb-section>
-		<!-- Top-left actions pill shown on hover in clean-preview (toolbar is hidden) -->
+	<div
+		class="print-format-section-container"
+		data-pfb-section
+		v-show="!preview_doc || has_visible_fields"
+		:class="{ 'section-container--condition-hidden': preview_doc && !is_section_visible }"
+		@click.stop="select_section"
+	>
+		<!-- Top-right actions pill shown on hover in clean-preview (toolbar is hidden) -->
 		<div v-if="!is_header" class="section-preview-actions">
 			<div
 				class="drag-handle section-drag-handle"
-				v-html="frappe.utils.icon('drag', 'xs')"
+				v-html="frappe.utils.icon('grip', 'xs')"
 			></div>
-			<button
-				class="btn btn-xs btn-icon"
-				:title="__('Remove section')"
-				@click.stop="remove_section"
-				v-html="frappe.utils.icon('x', 'xs')"
-			></button>
+			<SectionActions
+				:section="section"
+				size="xs"
+				@snippet="save_as_snippet"
+				@remove="remove_section"
+			/>
 		</div>
 		<div
 			class="print-format-section"
 			:class="{
 				'section--selected': is_selected,
-				'label-uppercase': section.label_case === 'uppercase',
+				'section--grid': is_grid,
+				'section--grid-rows': is_grid && section.grid_borders === 'rows',
+				'section--grid-columns': is_grid && section.grid_borders === 'columns',
 			}"
 			:style="section_inline_style"
+			tabindex="0"
+			:aria-label="section.label || __('Untitled section')"
 			@click.stop="select_section"
+			@keydown.enter.prevent="select_section"
+			@keydown.space.prevent="select_section"
 		>
 			<div class="section-toolbar">
 				<div class="section-toolbar-left">
@@ -28,9 +40,9 @@
 						v-if="!is_header"
 						class="drag-handle section-drag-handle"
 						title="Drag to reorder"
-						v-html="frappe.utils.icon('drag', 'sm')"
+						v-html="frappe.utils.icon('grip', 'sm')"
 					></div>
-					<span v-if="zone" class="zone-badge">{{
+					<span v-if="zone" class="es-badge">{{
 						zone === "header" ? __("Header") : __("Footer")
 					}}</span>
 					<input
@@ -41,43 +53,54 @@
 					/>
 				</div>
 				<div class="section-toolbar-right">
-					<button
+					<SectionActions
 						v-if="!is_header"
-						class="btn btn-xs btn-icon toolbar-btn toolbar-btn-danger"
-						:title="__('Remove section')"
-						@click.stop="remove_section"
-					>
-						<span v-html="frappe.utils.icon('x', 'sm')"></span>
-					</button>
+						:section="section"
+						size="sm"
+						@snippet="save_as_snippet"
+						@remove="remove_section"
+					/>
 				</div>
 			</div>
 
 			<div
 				v-if="section.label && section.show_label !== 'hide'"
-				class="section-title-display"
+				class="section-title-display section-label"
 			>
 				{{ section.label }}
 			</div>
 			<div
 				class="section-columns"
-				:style="
-					section.columns.length > 1 && section.gap ? { gap: section.gap + 'px' } : {}
-				"
+				:class="preview_doc ? ['row', row_layout] : []"
+				:style="columns_gap_style"
 			>
 				<template v-for="(column, i) in section.columns" :key="i">
-					<div v-if="i > 0" class="column-divider"></div>
+					<div v-if="i > 0 && !preview_doc" class="column-divider"></div>
 					<div
 						class="column"
-						:class="{ 'column-align-right': column.align === 'right' }"
+						:class="{ col: !!preview_doc }"
+						:style="column.width ? { flex: `${column.width} 1 0%` } : {}"
 					>
+						<div
+							v-if="i < section.columns.length - 1"
+							class="col-width-handle"
+							:style="{ right: handle_offset }"
+							@pointerdown.prevent.stop="start_col_width_resize($event, i)"
+							@mousedown.prevent.stop
+							@click.stop
+						></div>
 						<draggable
 							class="drag-container"
 							v-model="column.fields"
 							group="fields"
 							:animation="150"
 							item-key="id"
-							handle=".drag-handle"
+							filter="a, input, textarea, select, button, label, summary, [contenteditable], [role='button'], [tabindex]:not(.field--chip):not(.field--preview)"
+							:preventOnFilter="false"
 							:emptyInsertThreshold="100"
+							v-bind="DRAG_OPTIONS"
+							@start="setDragging(true)"
+							@end="setDragging(false)"
 							@add="select_section"
 						>
 							<template #item="{ element }">
@@ -93,7 +116,11 @@
 						>
 							<button
 								v-if="section.columns.length > 1"
-								class="btn btn-xs btn-icon empty-col-remove"
+								class="es-button empty-col-remove"
+								data-size="xs"
+								data-variant="ghost"
+								data-theme="red"
+								data-icon-button="true"
 								:title="__('Remove column')"
 								@click.stop="remove_column(i)"
 								v-html="frappe.utils.icon('x', 'xs')"
@@ -109,7 +136,11 @@
 		<div class="page-break-indicator" v-if="section.page_break">
 			<span>— {{ __("Page Break") }} —</span>
 			<button
-				class="btn btn-xs page-break-remove"
+				class="es-button"
+				data-size="xs"
+				data-variant="ghost"
+				data-theme="red"
+				data-icon-button="true"
 				:title="__('Remove page break')"
 				@click.stop="section.page_break = false"
 				v-html="frappe.utils.icon('x', 'xs')"
@@ -121,45 +152,125 @@
 <script setup>
 import draggable from "vuedraggable";
 import Field from "./Field.vue";
+import SectionActions from "./SectionActions.vue";
 import { computed, inject } from "vue";
+import { useColumnResize } from "../../composables/useColumnResize";
+import { DRAG_OPTIONS, evaluate_visible_if, parse_inline_style, setDragging } from "../../utils";
 
 const props = defineProps(["section", "is_header", "zone"]);
 
 let store = inject("$store");
 
 let is_selected = computed(() => store.selected_section.value === props.section);
+let preview_doc = computed(() => store.preview_doc.value);
+let is_section_visible = computed(() =>
+	evaluate_visible_if(props.section.visible_if, preview_doc.value)
+);
+
+let is_grid = computed(() => !!props.section.field_borders);
+
+// Mirrors the row layout class print_format.html picks for right-aligned
+// columns; the server computes it for body sections only, never header/footer
+let row_layout = computed(() => {
+	if (props.is_header) return "";
+	const cols = props.section.columns || [];
+	if (!cols.some((c) => c.align === "right")) return "";
+	return cols.length === 1 ? "row-col-right-end" : "row-col-space-between";
+});
+
+// In preview the gap mirrors the server default (20px unless set, 0 for grid)
+let columns_gap_style = computed(() => {
+	if (preview_doc.value) {
+		return { gap: is_grid.value ? "0" : `${props.section.gap ?? 20}px` };
+	}
+	return is_grid.value
+		? { gap: "0" }
+		: props.section.columns.length > 1 && props.section.gap
+		? { gap: props.section.gap + "px" }
+		: {};
+});
+
+let handle_offset = computed(() => {
+	if (preview_doc.value) return `${-((props.section.gap ?? 20) / 2 + 4)}px`;
+	const gap = props.section.columns.length > 1 && props.section.gap ? props.section.gap : 0;
+	return `${-(gap + 12.5)}px`;
+});
+
+const { start: start_column_resize } = useColumnResize();
+
+function start_col_width_resize(e, i) {
+	const cols = props.section.columns;
+	const handle = e.currentTarget;
+	const container = handle.closest(".section-columns");
+	const col_els = [...container.children].filter((el) => el.classList.contains("column"));
+	const total = container.getBoundingClientRect().width;
+	const widths = col_els.map((el) => (el.getBoundingClientRect().width / total) * 100);
+	const start_x = e.clientX;
+	const on_move = (ev) => {
+		let delta = ((ev.clientX - start_x) / total) * 100;
+		delta = Math.max(10 - widths[i], Math.min(widths[i + 1] - 10, delta));
+		cols.forEach((c, j) => (c.width = Math.round(widths[j])));
+		cols[i].width = Math.round(widths[i] + delta);
+		cols[i + 1].width = Math.round(widths[i + 1] - delta);
+	};
+	start_column_resize(handle, "col-width-handle--active", on_move);
+}
+
+let has_visible_fields = computed(
+	() =>
+		!props.section.label ||
+		props.section.columns.some((col) => col.fields.some((f) => !f.remove))
+);
 
 let section_inline_style = computed(() => {
 	const style = {};
 	if (props.section.background) style.backgroundColor = props.section.background;
-	if (props.section.padding) {
-		const p = props.section.padding;
-		style.padding = `${p.top || 0}px ${p.right || 0}px ${p.bottom || 0}px ${p.left || 0}px`;
+	for (const prop of ["padding", "margin"]) {
+		const box = props.section[prop];
+		if (box) {
+			style[prop] = `${box.top || 0}px ${box.right || 0}px ${box.bottom || 0}px ${
+				box.left || 0
+			}px`;
+		}
 	}
-	return style;
+	if (is_grid.value) {
+		const pad = props.section.cell_padding ?? 8;
+		style["--pfb-cell-pad"] = `${pad}px`;
+	}
+	if (props.section.radius != null) style.borderRadius = `${props.section.radius}px`;
+	return { ...style, ...parse_inline_style(props.section.custom_style) };
 });
 
 function select_section() {
-	store.selected_section.value = props.section;
-	store.selected_field.value = null;
-	store.selected_letterhead.value = false;
-	store.selected_lh_footer.value = false;
+	store.select_section(props.section);
 }
 
 function remove_section() {
-	const idx = store.layout.value.sections.indexOf(props.section);
-	if (idx !== -1) {
-		store.layout.value.sections.splice(idx, 1);
-		if (store.selected_section.value === props.section) {
-			store.selected_section.value = null;
-		}
-		if (
-			store.selected_field.value &&
-			props.section.columns.some((c) => c.fields.includes(store.selected_field.value))
-		) {
-			store.selected_field.value = null;
-		}
-	}
+	store.remove_section(props.section);
+}
+
+function save_as_snippet() {
+	frappe.prompt(
+		{
+			label: __("Snippet name"),
+			fieldname: "name",
+			fieldtype: "Data",
+			reqd: 1,
+			default: props.section.label || "",
+		},
+		({ name }) => {
+			store.save_snippet(name, props.section, "Section").then(
+				() =>
+					frappe.show_alert(
+						{ message: __("Section saved as snippet"), indicator: "green" },
+						3
+					),
+				() => {}
+			);
+		},
+		__("Save Section as Snippet"),
+		__("Save")
+	);
 }
 
 function remove_column(index) {
@@ -171,10 +282,20 @@ function remove_column(index) {
 <style scoped>
 .print-format-section-container {
 	position: relative;
+	/* flow-root keeps the section's own margin inside this box, so selection
+	   outlines drawn on the container enclose the margin area */
+	display: flow-root;
 }
 
 .print-format-section-container:not(:last-child) {
 	margin-bottom: 0.5rem;
+}
+
+.section-container--condition-hidden {
+	opacity: 0.35;
+	outline: 2px dashed var(--gray-400);
+	outline-offset: 2px;
+	border-radius: var(--radius);
 }
 
 .print-format-section {
@@ -226,20 +347,6 @@ function remove_column(index) {
 	color: var(--gray-600);
 }
 
-.zone-badge {
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-bold);
-	text-transform: uppercase;
-	letter-spacing: 0.07em;
-	color: var(--text-muted);
-	background: var(--gray-100);
-	border: 1px solid var(--gray-300);
-	border-radius: var(--radius);
-	padding: 1px 6px;
-	white-space: nowrap;
-	flex-shrink: 0;
-}
-
 .input-section-label {
 	border: 1px solid transparent;
 	border-radius: var(--radius);
@@ -267,35 +374,9 @@ function remove_column(index) {
 	color: var(--gray-400);
 }
 
-.toolbar-btn {
-	padding: 3px;
-	box-shadow: none;
-	color: var(--text-muted);
-	border-radius: var(--radius);
-}
-
-.toolbar-btn:hover {
-	background: var(--gray-200);
-	color: var(--text-color);
-}
-
-.toolbar-btn.active {
-	background: var(--gray-200);
-	color: var(--text-color);
-}
-
-.toolbar-btn-danger:hover {
-	background: var(--red-50);
-	color: var(--red-500);
-}
-
 /* Section title — hidden in editor (toolbar shows it), revealed via parent :deep() */
 .section-title-display {
 	display: none;
-	font-size: var(--text-sm);
-	font-weight: var(--weight-semibold);
-	color: var(--text-muted);
-	padding: 0;
 }
 
 .section-columns {
@@ -320,6 +401,37 @@ function remove_column(index) {
 	flex-shrink: 0;
 }
 
+.col-width-handle {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 8px;
+	cursor: col-resize;
+	z-index: 2;
+}
+
+.col-width-handle::after {
+	content: "";
+	position: absolute;
+	top: 2px;
+	bottom: 2px;
+	left: 3px;
+	width: 2px;
+	border-radius: 1px;
+	background: var(--gray-400);
+	opacity: 0;
+	transition: opacity 0.15s;
+}
+
+.section-columns:hover .col-width-handle::after {
+	opacity: 0.4;
+}
+
+.col-width-handle:hover::after,
+.col-width-handle--active::after {
+	opacity: 1;
+}
+
 .drag-container {
 	flex: 1;
 	min-width: 0;
@@ -335,13 +447,13 @@ function remove_column(index) {
 	min-height: 3rem;
 }
 
-.column:has(.sortable-ghost) .empty-drop-zone {
+.column:has(.pfb-drag-ghost) .empty-drop-zone {
 	background: transparent;
-	border-color: var(--blue-300);
+	border-color: var(--gray-400);
 	border-style: solid;
 }
 
-.column:has(.sortable-ghost) .empty-drop-zone-hint {
+.column:has(.pfb-drag-ghost) .empty-drop-zone-hint {
 	display: none;
 }
 
@@ -368,9 +480,6 @@ function remove_column(index) {
 	position: absolute;
 	top: 4px;
 	right: 4px;
-	padding: 2px;
-	box-shadow: none;
-	color: var(--gray-500);
 	opacity: 0;
 	transition: opacity 0.1s;
 	pointer-events: auto;
@@ -378,11 +487,6 @@ function remove_column(index) {
 
 .empty-drop-zone:hover .empty-col-remove {
 	opacity: 1;
-}
-
-.empty-col-remove:hover {
-	background: var(--red-50);
-	color: var(--red-500);
 }
 
 .page-break-indicator {
@@ -399,24 +503,12 @@ function remove_column(index) {
 	margin: 0.25rem 0;
 }
 
-.page-break-remove {
-	padding: 1px 3px;
-	box-shadow: none;
-	color: var(--gray-500);
-	line-height: 1;
-}
-
-.page-break-remove:hover {
-	background: var(--red-50);
-	color: var(--red-500);
-}
-
 /* ── Section preview actions pill (only visible in clean-preview, hidden in edit) ── */
 .section-preview-actions {
 	display: none; /* shown via .pfb-clean-preview :deep() override */
 	position: absolute;
-	top: 4px;
-	left: 4px;
+	bottom: calc(100% + 2px);
+	right: 4px;
 	z-index: 2;
 	gap: 2px;
 	padding: 1px 2px;
@@ -429,50 +521,59 @@ function remove_column(index) {
 	transition: opacity 0.12s;
 }
 
-.section-preview-actions .section-drag-handle {
-	cursor: grab;
-	color: var(--gray-400);
-	display: flex;
-	align-items: center;
-	padding: 2px;
+/* ── Table layout (field borders) ───────────────────────── */
+.section--grid {
+	border: 1px solid var(--gray-300);
+	border-radius: var(--border-radius-md, 8px);
+	overflow: hidden;
+	padding: 0;
 }
-
-.section-preview-actions .section-drag-handle:hover {
-	color: var(--gray-600);
+.section--grid.section--selected {
+	border-color: var(--gray-400);
 }
-
-.section-preview-actions .btn-icon {
-	box-shadow: none;
-	padding: 2px;
-	color: var(--text-muted);
+.section--grid .section-title-display {
+	padding: var(--pfb-cell-pad, 8px);
+	margin: 0;
+	border-bottom: 1px solid var(--gray-300);
 }
-
-.section-preview-actions .btn-icon:hover {
-	background: var(--red-50);
-	color: var(--red-500);
+.section--grid .section-columns {
+	padding: 0;
 }
-
-/* ── Label case: uppercase (mirrors print_format.css rules for builder canvas) */
-
-/* section-title-display is in this same component — plain scoped selector */
-.print-format-section.label-uppercase .section-title-display {
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
+.section--grid .column {
+	padding: 0;
 }
-
-/* field-preview-* and preview-table are inside child Field.vue — need :deep() */
-.print-format-section.label-uppercase :deep(.field-preview-label) {
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
+.section--grid .column:not(:last-child) {
+	border-right: 1px solid var(--gray-300);
 }
-
-.print-format-section.label-uppercase :deep(.field-preview-table > .field-preview-label) {
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
+.section--grid .column-divider {
+	display: none;
 }
-
-.print-format-section.label-uppercase :deep(.preview-table th) {
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
+.section--grid :deep(.drag-container) {
+	gap: 0;
+}
+.section--grid :deep(.field--chip) {
+	padding: var(--pfb-cell-pad, 8px);
+	border: none;
+	border-bottom: 1px solid var(--gray-300);
+	border-radius: 0;
+	background: transparent;
+}
+.section--grid :deep(.field--chip:last-child) {
+	border-bottom: none;
+}
+.section--grid-rows .column:not(:last-child) {
+	border-right: none;
+}
+.section--grid-columns :deep(.field--chip) {
+	border-bottom: none;
+}
+.section--grid :deep(.field--chip:hover),
+.section--grid :deep(.field--preview:hover),
+.section--grid :deep(.field--selected) {
+	outline: 1px dashed var(--gray-400);
+	outline-offset: -1px;
+}
+.section--grid :deep(.field--selected) {
+	outline-style: solid;
 }
 </style>

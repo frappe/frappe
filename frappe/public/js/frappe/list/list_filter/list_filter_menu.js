@@ -5,7 +5,7 @@ import ManageLayoutsDialog from "./manage_layouts_dialog";
 export const ListFilterMenu = {
 	/** Group label shown in page inner button for saved layouts menu. */
 	get saved_layout_group_label() {
-		return __("Default Layouts");
+		return __("Default Layout");
 	},
 
 	/** Create the Saved Layouts button and populate the dropdown menu. */
@@ -375,10 +375,9 @@ export const ListFilterMenu = {
 						lv.column_max_widths[col.fieldname] = cint(col.width);
 					}
 				});
-				lv.setup_columns(columns);
-			} else {
-				lv.setup_columns();
+				return lv.setup_columns(columns);
 			}
+			return lv.setup_columns();
 		};
 
 		const finish = () => {
@@ -388,12 +387,12 @@ export const ListFilterMenu = {
 		const filter_area = lv.filter_area;
 		if (!filter_area) {
 			lv.filters = filters || [];
-			apply_columns();
-			if (refresh) {
-				return lv.refresh(true).then(finish, finish);
-			}
-			finish();
-			return Promise.resolve();
+			return apply_columns().then(() => {
+				if (refresh) {
+					return lv.refresh(true).then(finish, finish);
+				}
+				finish();
+			}, finish);
 		}
 
 		filter_area.trigger_refresh = false;
@@ -403,8 +402,9 @@ export const ListFilterMenu = {
 			.then(() => {
 				filter_area.trigger_refresh = true;
 				lv.filters = filters || [];
-				apply_columns();
-				if (refresh) return lv.refresh(true);
+				return apply_columns().then(() => {
+					if (refresh) return lv.refresh(true);
+				});
 			})
 			.then(finish, finish);
 	},
@@ -414,15 +414,9 @@ export const ListFilterMenu = {
 		if (!this.layout_menu_group) return;
 
 		const label = this.active_layout_label || this.default_layout_label;
-		const label_node = $(
-			`.inner-group-button[data-label="${encodeURIComponent(
-				this.saved_layout_group_label
-			)}"] button`
-		)
-			.contents()
-			.first()[0];
-		if (!label_node) return;
-		label_node.textContent = label;
+		// the group trigger is an es-button now — its text lives in the
+		// label span, not in the button's first text node
+		this.layout_menu_group.find("button .es-button__label").text(label);
 	},
 
 	/** Show tick on the currently selected layout row. */
@@ -466,13 +460,13 @@ export const ListFilterMenu = {
 
 	/** Append Create / Manage action rows. */
 	append_layout_action_items($menu) {
-		const $create_item = this.layout_action_template(__("Create Layout"), "add");
+		const $create_item = this.layout_action_template(__("Create Layout"), "plus");
 		$create_item.find(".dropdown-item").on("click", (e) => {
 			e.preventDefault();
 			this.open_layout_dialog();
 		});
 		$menu.append($create_item);
-		const $manage_item = this.layout_action_template(__("Manage Layouts"), "setting-gear");
+		const $manage_item = this.layout_action_template(__("Manage Layouts"), "settings");
 		$manage_item.find(".dropdown-item").on("click", (e) => {
 			e.preventDefault();
 			this.open_manage_layouts_dialog();
@@ -499,7 +493,7 @@ export const ListFilterMenu = {
 		return $(`
 			<li class="saved-layout-action-item">
 				<a class="dropdown-item d-flex align-items-center">
-					<span class="layout-action-icon mr-2">${frappe.utils.icon(icon, "xs")}</span>
+					<span class="mr-2 flex align-items-center">${frappe.utils.icon(icon)}</span>
 					<span>${frappe.utils.escape_html(label)}</span>
 				</a>
 			</li>
@@ -514,7 +508,7 @@ export const ListFilterMenu = {
 				<a class="dropdown-item d-flex justify-content-between align-items-center">
 					<span class="d-flex align-items-center">
 						<span class="filter-check mr-2 ${is_active ? "" : "invisible"}">
-							${frappe.utils.icon("tick", "xs")}
+							${frappe.utils.icon("check", "xs")}
 						</span>
 						<span class="filter-label">
 							${frappe.utils.escape_html(__(filter.filter_name))}

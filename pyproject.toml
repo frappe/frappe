@@ -15,9 +15,10 @@ dependencies = [
     "filetype~=1.2.0",
     "GitPython~=3.1.45",
     "Jinja2~=3.1.6",
-    "Pillow~=12.2.0",
+    "Pillow~=12.3.0",
     "PyJWT~=2.13.0",
     "duckdb~=1.4.3",
+    "pyarrow~=25.0.0",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
@@ -52,7 +53,7 @@ dependencies = [
     "orjson~=3.11.5",
     "passlib~=1.7.4",
     "pdfkit~=1.0.0",
-    "phonenumbers~=9.0.21",
+    "phonenumbers~=9.0.23",
     "premailer~=3.10.0",
     "psutil~=7.2.2",
     "psycopg2-binary~=2.9.11",
@@ -108,6 +109,7 @@ Documentation = "https://docs.frappe.io/framework"
 
 [project.optional-dependencies]
 dev = [
+    "pyperf==2.8.1",
     "pyngrok~=8.1.2",
     "watchdog~=6.0.0",
     "responses==0.23.1",
@@ -155,6 +157,7 @@ skip_namespaces = [
 
 [tool.bench.dev-dependencies]
 coverage = "~=7.14.1"
+pyperf = "==2.8.1"
 pyngrok = "~=8.1.2"
 unittest-xml-reporting = "~=4.0.0"
 watchdog = "~=6.0.0"

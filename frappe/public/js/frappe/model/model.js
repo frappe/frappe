@@ -8,6 +8,7 @@ $.extend(frappe.model, {
 		"Autocomplete",
 		"Attach",
 		"Attach Image",
+		"Attachment Gallery",
 		"Barcode",
 		"Button",
 		"Check",
@@ -50,6 +51,7 @@ $.extend(frappe.model, {
 		"Section Break",
 		"Column Break",
 		"Tab Break",
+		"Attachment Gallery",
 		"HTML",
 		"Table",
 		"Table MultiSelect",
@@ -435,6 +437,25 @@ $.extend(frappe.model, {
 		return frappe.boot.user.can_print.indexOf(doctype) !== -1;
 	},
 
+	// whether a document in this docstatus is printable at all, per Print Settings
+	// (submitted documents always are; draft/cancelled only if explicitly allowed)
+	can_print_docstatus: function (doctype, docstatus) {
+		if (!frappe.model.is_submittable(doctype) || docstatus == 1) return true;
+
+		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings") || {};
+		if (docstatus == 2) return !!cint(print_settings.allow_print_for_cancelled);
+		if (docstatus == 0) return !!cint(print_settings.allow_print_for_draft);
+		return false;
+	},
+
+	can_print_doc: function (frm) {
+		return !!(
+			frappe.model.can_print_docstatus(frm.doc.doctype, frm.doc.docstatus) &&
+			frappe.model.can_print(null, frm) &&
+			!frm.meta.issingle
+		);
+	},
+
 	can_email: function (doctype, frm) {
 		if (frm) return frm.perm[0].email === 1;
 		return frappe.boot.user.can_email.indexOf(doctype) !== -1;
@@ -810,7 +831,11 @@ $.extend(frappe.model, {
 			frappe.throw(
 				__("Please specify") +
 					": " +
-					__(frappe.meta.get_label(doc.doctype, fieldname, doc.parent || doc.name))
+					__(
+						frappe.meta.get_label(doc.doctype, fieldname, doc.parent || doc.name),
+						null,
+						doc.doctype
+					)
 			);
 		}
 	},

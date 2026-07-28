@@ -1,26 +1,22 @@
 <template>
-	<div
-		v-if="shouldRender"
-		class="builder-root"
-		:class="{ 'builder-root--preview': show_preview }"
-	>
-		<PrintFormatControls v-if="!show_preview" />
+	<div v-if="shouldRender" class="builder-root">
+		<PrintFormatControls />
 		<div class="canvas-area">
 			<!-- Sidebar-open hint -->
 			<div v-if="sidebar_open && !hint_dismissed" class="pfb-sidebar-hint">
-				<span v-html="frappe.utils.icon('solid-info', 'sm', 'pfb-hint-icon')"></span>
+				<span v-html="frappe.utils.icon('info', 'sm', 'pfb-hint-icon')"></span>
 				<span class="pfb-hint-text">{{
 					__("Tip: Close the left sidebar for more editing space.")
 				}}</span>
 				<button class="pfb-hint-dismiss" @click="dismiss_hint" :aria-label="__('Dismiss')">
-					<span v-html="frappe.utils.icon('close', 'xs')"></span>
+					<span v-html="frappe.utils.icon('x', 'xs')"></span>
 				</button>
 			</div>
 
-			<!-- Canvas toolbar: sample data picker (hidden in preview mode) -->
-			<div v-if="!show_preview" class="canvas-toolbar">
+			<!-- Canvas toolbar: sample data picker, zoom, preview toggle -->
+			<div class="canvas-toolbar">
 				<div class="canvas-toolbar-left">
-					<span class="canvas-toolbar-eyebrow">{{ __("PREVIEW DATA") }}</span>
+					<span class="canvas-toolbar-eyebrow">{{ __("Data") }}</span>
 				</div>
 				<div class="canvas-toolbar-center">
 					<div ref="doc_picker_ref" class="canvas-doc-picker"></div>
@@ -29,17 +25,6 @@
 					<span v-if="!$store.preview_doc.value" class="canvas-no-data-hint">
 						← {{ __("Pick a record to see real values") }}
 					</span>
-					<button
-						v-if="$store.preview_doc_name.value"
-						class="canvas-clear-btn"
-						:title="__('Clear preview data')"
-						@click="clear_preview_doc"
-						v-html="frappe.utils.icon('x', 'xs')"
-					></button>
-					<span v-if="$store.preview_doc.value" class="canvas-preview-badge">{{
-						__("Live")
-					}}</span>
-
 					<div class="canvas-zoom-control" role="group" :aria-label="__('Zoom')">
 						<button
 							class="canvas-zoom-btn"
@@ -60,7 +45,7 @@
 							:title="__('Zoom in')"
 							:disabled="canvas_zoom >= ZOOM_MAX"
 							@click="zoom_in"
-							v-html="frappe.utils.icon('add', 'xs')"
+							v-html="frappe.utils.icon('plus', 'xs')"
 						></button>
 					</div>
 				</div>
@@ -75,13 +60,12 @@
 					@start-default="on_start_default"
 					@start-blank="on_start_blank"
 				/>
-				<KeepAlive v-else>
-					<component :is="Preview" v-if="show_preview" />
-					<component :is="PrintFormat" v-else />
-				</KeepAlive>
+				<component :is="PrintFormat" v-else />
 			</div>
 		</div>
-		<FieldInspector v-if="!show_preview" />
+		<!-- the right rail is either the inspector or the preview, never both -->
+		<Preview v-if="show_preview" @close="show_preview = false" />
+		<FieldInspector v-else />
 	</div>
 </template>
 
@@ -94,7 +78,6 @@ import FieldInspector from "./components/inspector/FieldInspector.vue";
 import { getStore } from "./stores";
 import { computed, ref, onMounted, onUnmounted, provide, nextTick } from "vue";
 
-// props
 const props = defineProps(["print_format_name"]);
 
 const HINT_KEY = "pfb_sidebar_hint_dismissed";
@@ -103,7 +86,6 @@ const ZOOM_STEP = 10;
 const ZOOM_MIN = 50;
 const ZOOM_MAX = 150;
 
-// variables
 let show_preview = ref(false);
 let doc_picker_ref = ref(null);
 let doc_picker_ctrl = ref(null);
@@ -112,7 +94,6 @@ let hint_dismissed = ref(localStorage.getItem(HINT_KEY) === "1");
 let canvas_zoom = ref(parseInt(localStorage.getItem(ZOOM_KEY)) || 100);
 let sidebar_observer_ref = null;
 
-// computed
 let $store = computed(() => {
 	return getStore(props.print_format_name);
 });
@@ -123,12 +104,48 @@ let shouldRender = computed(() => {
 	);
 });
 
-// provide
 provide("$store", $store.value);
 
-// methods
 function toggle_preview() {
 	show_preview.value = !show_preview.value;
+}
+
+const SETTINGS_DOCTYPE = "Print Settings";
+
+// Editing the Single in a dialog rather than routing to its form: the builder
+// holds unsaved layout in memory, and navigating away would drop it.
+async function open_print_settings() {
+	if (!frappe.perm.has_perm(SETTINGS_DOCTYPE, 0, "write")) {
+		frappe.msgprint(__("You are not permitted to change Print Settings"));
+		return;
+	}
+	await frappe.model.with_doctype(SETTINGS_DOCTYPE);
+	const doc = await frappe.model.with_doc(SETTINGS_DOCTYPE, SETTINGS_DOCTYPE);
+	// built from the doctype's own meta, so a new field shows up here for free
+	const fields = frappe.get_meta(SETTINGS_DOCTYPE).fields.filter((df) => !df.hidden);
+
+	const dialog = new frappe.ui.Dialog({
+		title: __("Print Settings"),
+		size: "large",
+		fields: fields.map((df) => ({ ...df, default: doc[df.fieldname] })),
+		primary_action_label: __("Save"),
+		primary_action: (values) => {
+			frappe
+				.call("frappe.client.set_value", {
+					doctype: SETTINGS_DOCTYPE,
+					name: SETTINGS_DOCTYPE,
+					fieldname: values,
+				})
+				.then(() => {
+					dialog.hide();
+					frappe.show_alert({
+						message: __("Print Settings updated"),
+						indicator: "green",
+					});
+				});
+		},
+	});
+	dialog.show();
 }
 
 function clear_selection() {
@@ -161,9 +178,52 @@ function on_start_blank() {
 	$store.value.needs_setup.value = false;
 }
 
+function is_typing_context() {
+	const el = document.activeElement;
+	return !!(
+		el?.tagName === "INPUT" ||
+		el?.tagName === "TEXTAREA" ||
+		el?.isContentEditable ||
+		el?.closest(".modal")
+	);
+}
+
 function handle_keydown(e) {
 	// Zoom shortcuts: Ctrl+= / Ctrl+- / Ctrl+0
 	if (e.ctrlKey || e.metaKey) {
+		if (e.key === "z" || e.key === "Z" || e.key === "y") {
+			// rich text editors and dialogs keep their own undo
+			if (is_typing_context()) return;
+			e.preventDefault();
+			if (e.key === "y" || e.shiftKey) $store.value.redo();
+			else $store.value.undo();
+			return;
+		}
+		if (e.key === "c" || e.key === "C" || e.key === "v" || e.key === "V") {
+			if (is_typing_context()) return;
+			const is_copy = e.key === "c" || e.key === "C";
+			if (is_copy) {
+				// Let native copy work when text is highlighted or nothing in the
+				// canvas is selected
+				if (String(window.getSelection() || "")) return;
+				if (!$store.value.selected_field.value && !$store.value.selected_section.value)
+					return;
+				e.preventDefault();
+				$store.value.copy_selection();
+			} else {
+				if (!$store.value.clipboard.value) return;
+				e.preventDefault();
+				$store.value.paste_clipboard();
+			}
+			return;
+		}
+		if (e.key === "d" || e.key === "D") {
+			if (is_typing_context()) return;
+			if (!$store.value.selected_field.value && !$store.value.selected_section.value) return;
+			e.preventDefault();
+			$store.value.duplicate_selection();
+			return;
+		}
 		if (e.key === "=" || e.key === "+") {
 			e.preventDefault();
 			zoom_in();
@@ -181,9 +241,46 @@ function handle_keydown(e) {
 		}
 	}
 
+	if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+		if (is_typing_context()) return;
+		if (!$store.value.selected_field.value && !$store.value.selected_section.value) return;
+		e.preventDefault();
+		$store.value.move_selection(e.key === "ArrowUp" ? -1 : 1);
+		return;
+	}
+
+	if (e.key === "Delete" || e.key === "Backspace") {
+		// Never hijack delete/backspace from text editing contexts
+		if (is_typing_context()) return;
+		const sf = $store.value.selected_field.value;
+		const ss = $store.value.selected_section.value;
+		if ($store.value.selected_fields.value.length > 1) {
+			$store.value.remove_selected_fields();
+			e.preventDefault();
+		} else if (sf) {
+			sf.remove = true;
+			$store.value.selected_field.value = null;
+			e.preventDefault();
+		} else if (ss) {
+			// Header/footer zones aren't in layout.sections, so they can't be deleted
+			const sections = $store.value.layout.value?.sections || [];
+			const idx = sections.indexOf(ss);
+			if (idx !== -1) {
+				sections.splice(idx, 1);
+				$store.value.selected_section.value = null;
+				e.preventDefault();
+			}
+		}
+		return;
+	}
+
 	if (e.key !== "Escape") return;
 	// Don't intercept if a modal/dialog is open
-	if (document.querySelector(".modal.show, .frappe-dialog:visible")) return;
+	if (document.querySelector(".modal.show")) return;
+	const dialog_open = Array.from(document.querySelectorAll(".frappe-dialog")).some(
+		(el) => el.offsetParent !== null
+	);
+	if (dialog_open) return;
 
 	const sf = $store.value.selected_field.value;
 	const ss = $store.value.selected_section.value;
@@ -236,14 +333,16 @@ function dismiss_hint() {
 	localStorage.setItem(HINT_KEY, "1");
 }
 
-function clear_preview_doc() {
-	$store.value.load_preview_doc(null);
-	doc_picker_ctrl.value?.set_value("");
-}
-
 function init_doc_picker() {
 	if (!doc_picker_ref.value) return;
 	const meta = $store.value.meta.value;
+	// draft/cancelled documents can't be printed unless Print Settings allows it, so
+	// keep them out of the picker unless that's turned on
+	const is_printable_docstatus = (docstatus) =>
+		frappe.model.can_print_docstatus(meta?.name, docstatus);
+	const printable_filters = meta?.is_submittable
+		? { docstatus: ["in", [0, 1, 2].filter(is_printable_docstatus)] }
+		: {};
 	doc_picker_ctrl.value = frappe.ui.form.make_control({
 		parent: doc_picker_ref.value,
 		df: {
@@ -251,6 +350,7 @@ function init_doc_picker() {
 			fieldtype: "Link",
 			options: meta?.name,
 			placeholder: __("Pick a {0} to preview...", [__(meta?.name || "document")]),
+			get_query: () => ({ filters: printable_filters }),
 			change: () => {
 				const name = doc_picker_ctrl.value.get_value();
 				$store.value.load_preview_doc(name || null);
@@ -261,19 +361,35 @@ function init_doc_picker() {
 	doc_picker_ref.value.querySelector(".control-label")?.remove();
 	doc_picker_ref.value.querySelector(".form-group")?.style.setProperty("margin", "0");
 
-	// Auto-select the first available record so preview is ready immediately
-	frappe.db
-		.get_list(meta?.name, { limit: 1, fields: ["name"], order_by: "creation desc" })
-		.then((rows) => {
-			if (rows?.length) {
-				const first = rows[0].name;
-				doc_picker_ctrl.value?.set_value(first);
-				$store.value.load_preview_doc(first);
-			}
-		});
+	const select = (name) => {
+		doc_picker_ctrl.value?.set_value(name);
+		$store.value.load_preview_doc(name);
+	};
+	// Prefer the record chosen last time (persisted across refresh); otherwise
+	// auto-select the most recent printable record so the preview is ready immediately.
+	const saved = $store.value.persisted_preview_doc_name();
+	const auto_select = () =>
+		frappe.db
+			.get_list(meta?.name, {
+				filters: printable_filters,
+				limit: 1,
+				fields: ["name"],
+				order_by: "creation desc",
+			})
+			.then((rows) => rows?.length && select(rows[0].name));
+	if (saved) {
+		frappe.db
+			.get_value(meta?.name, saved, ["name", "docstatus"])
+			.then((r) =>
+				r?.message?.name && is_printable_docstatus(r.message.docstatus)
+					? select(saved)
+					: auto_select()
+			);
+	} else {
+		auto_select();
+	}
 }
 
-// mounted
 onMounted(() => {
 	document.addEventListener("keydown", handle_keydown);
 
@@ -298,11 +414,13 @@ onUnmounted(() => {
 	sidebar_observer_ref?.disconnect();
 });
 
-defineExpose({ toggle_preview, show_preview, $store });
+defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 </script>
 
 <style scoped>
 .builder-root {
+	/* navbar + page head height */
+	--pfb-chrome-offset: 95px;
 	display: flex;
 	width: 100%;
 }
@@ -312,12 +430,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	min-width: 0;
 	display: flex;
 	flex-direction: column;
-	height: calc(100vh - 95px);
-}
-
-.builder-root--preview .canvas-area {
-	padding-left: 1.5rem;
-	padding-right: 1.5rem;
+	height: calc(100vh - var(--pfb-chrome-offset));
 }
 
 /* ── Sidebar hint ────────────────────────────────────────── */
@@ -327,10 +440,10 @@ defineExpose({ toggle_preview, show_preview, $store });
 	align-items: center;
 	gap: 6px;
 	padding: 4px 12px;
-	background: var(--blue-50);
-	border-bottom: 1px solid var(--blue-100);
+	background: var(--gray-50);
+	border-bottom: 1px solid var(--gray-200);
 	font-size: var(--text-xs);
-	color: var(--blue-700);
+	color: var(--gray-700);
 }
 
 .pfb-hint-icon {
@@ -350,7 +463,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 	border: none;
 	background: transparent;
 	cursor: pointer;
-	color: var(--blue-400);
+	color: var(--gray-500);
 	border-radius: var(--radius);
 	line-height: 1;
 	opacity: 0.7;
@@ -358,7 +471,7 @@ defineExpose({ toggle_preview, show_preview, $store });
 
 .pfb-hint-dismiss:hover {
 	opacity: 1;
-	background: var(--blue-100);
+	background: var(--gray-200);
 }
 
 /* ── Canvas toolbar ──────────────────────────────────────── */
@@ -420,33 +533,6 @@ defineExpose({ toggle_preview, show_preview, $store });
 	border: 1px solid var(--yellow-200);
 	border-radius: var(--radius);
 	padding: 3px 8px;
-}
-
-.canvas-clear-btn {
-	display: flex;
-	align-items: center;
-	padding: 3px;
-	border: none;
-	background: transparent;
-	cursor: pointer;
-	color: var(--gray-400);
-	border-radius: var(--radius);
-}
-
-.canvas-clear-btn:hover {
-	background: var(--gray-100);
-	color: var(--gray-600);
-}
-
-.canvas-preview-badge {
-	font-size: 10px;
-	font-weight: 600;
-	color: var(--green-600);
-	background: var(--green-50);
-	border: 1px solid var(--green-200);
-	border-radius: var(--radius);
-	padding: 2px 6px;
-	line-height: 1.4;
 }
 
 /* ── Zoom control ────────────────────────────────────────── */

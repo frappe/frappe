@@ -61,7 +61,17 @@ def get_system_managers():
 
 @frappe.whitelist()
 def relink(name: str, reference_doctype: str | None = None, reference_name: str | None = None):
+	from frappe.core.doctype.comment.comment import relink_comment_cache
+
 	frappe.has_permission("Communication", "write", name, throw=True)
+
+	comm = frappe.get_doc("Communication", name)
+	if comm.communication_type != "Communication":
+		return
+
+	old_reference_doctype = comm.reference_doctype
+	old_reference_name = comm.reference_name
+
 	frappe.db.sql(
 		"""update
 			`tabCommunication`
@@ -70,10 +80,13 @@ def relink(name: str, reference_doctype: str | None = None, reference_name: str 
 			reference_name = %s,
 			status = "Linked"
 		where
-			communication_type = "Communication" and
 			name = %s""",
 		(reference_doctype, reference_name, name),
 	)
+
+	comm.reference_doctype = reference_doctype
+	comm.reference_name = reference_name
+	relink_comment_cache(comm, old_reference_doctype, old_reference_name)
 
 
 @frappe.whitelist()
@@ -155,6 +168,7 @@ def sendmail(
 	email_headers=None,
 	raw_html=False,
 	add_css=True,
+	redact_message_after_send=False,
 ) -> EmailQueue | None:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -188,6 +202,7 @@ def sendmail(
 	    :param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
 	    :param raw_html: Whether to treat email template as a complete HTML file
 	    :param add_css: Whether to add CSS from hooks/email_css to the email template
+	    :param redact_message_after_send: Replace the message body with a placeholder once sent, for emails carrying sensitive content.
 	"""
 
 	from frappe.utils.jinja import get_email_from_template
@@ -249,6 +264,7 @@ def sendmail(
 		email_headers=email_headers,
 		raw_html=raw_html,
 		add_css=add_css,
+		redact_message_after_send=redact_message_after_send,
 	)
 
 	# build email queue and send the email if send_now is True.

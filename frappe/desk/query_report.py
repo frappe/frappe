@@ -141,7 +141,7 @@ def generate_report_result(
 		"execution_time": frappe.cache.hget("report_execution_time", report.name) or 0,
 	}
 
-	if report.synced_report and report.doctype_to_sync:
+	if report.snapshot_report and report.doctype_to_sync:
 		if latest_sync := frappe.db.get_all(
 			"DuckDB Sync",
 			filters={"doc_type": report.doctype_to_sync[0].doc_type, "docstatus": 1},
@@ -152,8 +152,8 @@ def generate_report_result(
 		):
 			return_dict.update(
 				{
-					"synced_report": True,
-					"synced_at": latest_sync[0],
+					"snapshot_report": True,
+					"snapshot_at": latest_sync[0],
 				}
 			)
 
@@ -225,6 +225,30 @@ def get_reference_report(report):
 def run(
 	report_name: str,
 	filters: str | dict | None = None,
+	user: str | None = None,  # Kept for backward compatibility
+	ignore_prepared_report: bool = False,
+	custom_columns: str | list | None = None,
+	is_tree: bool = False,
+	parent_field: str | None = None,
+	are_default_filters: bool = True,
+	js_filters: str | list | None = None,
+) -> dict:
+	return _run(
+		report_name=report_name,
+		filters=filters,
+		ignore_prepared_report=ignore_prepared_report,
+		custom_columns=custom_columns,
+		is_tree=is_tree,
+		parent_field=parent_field,
+		are_default_filters=are_default_filters,
+		js_filters=js_filters,
+	)
+
+
+def _run(
+	*,
+	report_name: str,
+	filters: str | dict | None = None,
 	user: str | None = None,
 	ignore_prepared_report: bool = False,
 	custom_columns: str | list | None = None,
@@ -257,6 +281,8 @@ def run(
 					filters = json.loads(filters)
 
 				dn = filters.pop("prepared_report_name", None)
+				if dn:
+					frappe.has_permission("Prepared Report", "read", dn, throw=True)
 			else:
 				dn = ""
 			result = get_prepared_report_result(report, filters, dn, user)
@@ -430,15 +456,16 @@ def _export_query(form_params, csv_params, populate_response=True):
 		return
 
 	has_total_row = cint(data.get("add_total_row"))
-	needs_visible_filtering = (
-		visible_idx
-		and not ignore_visible_idx
-		and len(visible_idx) < len(data.result) - (1 if has_total_row else 0)
-	)
 
-	if needs_visible_filtering:
-		visible_idx = set(visible_idx)
-		filtered_result = [row for idx, row in enumerate(data.result) if idx in visible_idx]
+	# visible_idx is the client's display-order list of row indices into
+	# data.result. Iterate it as an ordered list (not a set) so the UI
+	# sort direction the user applied before Export survives into the file.
+	if visible_idx and not ignore_visible_idx:
+		row_count = len(data.result)
+		# Guard out-of-range indices in case the server's re-run returned
+		# fewer rows than the client had (data changed, or the report is
+		# non-deterministic).
+		filtered_result = [data.result[idx] for idx in visible_idx if 0 <= idx < row_count]
 
 		if has_total_row:
 			filtered_result = add_total_row(filtered_result, data.columns)

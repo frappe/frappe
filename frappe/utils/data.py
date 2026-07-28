@@ -390,6 +390,14 @@ def get_system_timezone() -> str:
 	return frappe.get_system_settings("time_zone") or "Asia/Kolkata"  # Default to India ?!
 
 
+def get_timezone_utc_offset(timezone: str) -> str:
+	"""Return the current UTC offset of the given timezone in ±HH:MM format."""
+	offset_seconds = int(datetime.datetime.now(ZoneInfo(timezone)).utcoffset().total_seconds())
+	sign = "+" if offset_seconds >= 0 else "-"
+	hours, minutes = divmod(abs(offset_seconds) // 60, 60)
+	return f"{sign}{hours:02d}:{minutes:02d}"
+
+
 def convert_utc_to_timezone(utc_timestamp: datetime.datetime, time_zone: str) -> datetime.datetime:
 	if utc_timestamp.tzinfo is None:
 		utc_timestamp = utc_timestamp.replace(tzinfo=ZoneInfo("UTC"))
@@ -1474,7 +1482,7 @@ def fmt_money(
 	if amount != "0":
 		amount = minus + amount
 
-	if currency and frappe.defaults.get_global_default("hide_currency_symbol") != "Yes":
+	if currency and frappe.defaults.get_global_default("hide_currency_symbol") not in ("1", "Yes"):
 		symbol = frappe.db.get_value("Currency", currency, "symbol", cache=True) or currency
 		symbol_on_right = frappe.db.get_value("Currency", currency, "symbol_on_right", cache=True)
 
@@ -1621,6 +1629,38 @@ def is_image(filepath: str) -> bool:
 	return (guess_type(filepath)[0] or "").startswith("image/")
 
 
+def validate_egress_url(url: str) -> None:
+	"""Raise ValueError if url resolves to a private/internal address.
+
+	Guards server-side HTTP fetches against SSRF by resolving the hostname and
+	blocking loopback, link-local (including 169.254.169.254), private, and
+	reserved ranges regardless of the URL's textual representation.
+	"""
+	import ipaddress
+	import socket
+
+	parsed = urlparse(url)
+	if parsed.scheme not in ("http", "https"):
+		raise ValueError(f"Disallowed scheme: {parsed.scheme!r}")
+
+	hostname = parsed.hostname
+	if not hostname:
+		raise ValueError("URL has no hostname")
+
+	try:
+		addr_info = socket.getaddrinfo(hostname, None)
+	except socket.gaierror as exc:
+		raise ValueError(f"Cannot resolve host {hostname!r}") from exc
+
+	for record in addr_info:
+		try:
+			ip = ipaddress.ip_address(record[4][0])
+		except (ValueError, IndexError):
+			continue
+		if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+			raise ValueError(f"Requests to internal address {ip} are not permitted")
+
+
 def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> str:
 	"""Return a base64 data: URI thumbnail of `url`, or the original `url` on
 	any error. Used by print templates to keep generated PDFs small: Chrome's
@@ -1648,6 +1688,12 @@ def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> 
 	if key in cache:
 		return cache[key]
 
+	if not url.startswith("/"):
+		try:
+			validate_egress_url(url)
+		except ValueError:
+			return url
+
 	try:
 		if url.startswith("/"):
 			path = None
@@ -1663,7 +1709,7 @@ def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> 
 		else:
 			import requests
 
-			r = requests.get(url, timeout=5, stream=True)
+			r = requests.get(url, timeout=5, stream=True, allow_redirects=False)
 			r.raise_for_status()
 			chunks, total = [], 0
 			for chunk in r.iter_content(8192):
@@ -2011,11 +2057,10 @@ def get_link_to_form(doctype: str, name: str | None = None, label: str | None = 
 
 
 def get_url_to_workspace(workspace: str, is_public: bool):
-	url_prefix = "/desk/"
-	if not is_public:
-		workspace_url = "/desk/private/"
-	workspace_url = url_prefix + workspace.lower()
-	return workspace_url
+	from frappe.desk.utils import slug
+
+	url_prefix = "/desk/" if is_public else "/desk/private/"
+	return url_prefix + slug(workspace)
 
 
 def get_link_to_report(

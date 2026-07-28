@@ -148,6 +148,9 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def set_execution_timeout(self, seconds: int):
 		self.sql(f"PRAGMA busy_timeout = {int(seconds) * 1000}")
 
+	def set_session_time_zone(self, timezone: str):
+		pass
+
 	def setup_type_map(self):
 		self.db_type = "sqlite"
 		self.type_map = {
@@ -382,13 +385,20 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			if index_info and index_info[0]["name"] == fieldname:
 				return index
 
-	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
-		"""Creates an index with given fields if not already created."""
+	def add_index(
+		self, doctype: str, fields: list, index_name: str | None = None, using=None, where=None, include=None
+	):
+		"""Creates an index with given fields if not already created.
+		`using`/`where`/`include` are postgres-only (trigram/partial/covering); a `using` kind
+		has no SQLite equivalent so it is skipped, and a plain index covers all rows regardless of
+		`where`/`include`."""
 
 		from frappe.custom.doctype.property_setter.property_setter import (
 			make_property_setter,
 		)
 
+		if using:
+			return
 		# We can't specify the length of the index in SQLite
 		fields = [re.sub(r"\(.*?\)", "", field) for field in fields]
 

@@ -1,11 +1,15 @@
 <template>
 	<div
 		class="print-format-main"
+		data-theme="light"
 		:style="rootStyles"
 		:class="{
 			'pfb-clean-preview': !!store.preview_doc.value,
+			'print-format-doc': !!store.preview_doc.value,
+			'show-label-colon': !!print_format.show_label_colon,
 		}"
 	>
+		<component :is="'style'" v-if="color_css">{{ color_css }}</component>
 		<div v-if="!page_number_hidden" class="pfb-page-num" :style="page_number_style">
 			{{ __("1 of 2") }}
 		</div>
@@ -14,11 +18,16 @@
 
 		<!-- Body wrapper: font size/family applied here so letterhead zones are unaffected -->
 		<div class="pfb-body" :style="bodyStyles">
-			<div class="zone-divider zone-divider--header">
-				<span class="zone-divider-label">{{ __("Header") }}</span>
+			<div class="zone-divider">
+				<span class="zone-divider-label">
+					{{ __("Header") }}
+					<span v-if="repeat_header_footer" class="zone-divider-hint"
+						>· {{ __("repeats on all pages") }}</span
+					>
+				</span>
 			</div>
 			<PrintFormatSection :section="layout.header" :is_header="true" zone="header" />
-			<div class="zone-divider zone-divider--body">
+			<div class="zone-divider">
 				<span class="zone-divider-label">{{ __("Body") }}</span>
 			</div>
 
@@ -30,6 +39,9 @@
 				item-key="id"
 				handle=".section-drag-handle"
 				filter=".section-columns, .column, .field"
+				v-bind="DRAG_OPTIONS"
+				@start="setDragging(true)"
+				@end="setDragging(false)"
 				@add="on_section_add"
 			>
 				<template #item="{ element, index }">
@@ -39,12 +51,32 @@
 					</div>
 				</template>
 				<template #footer>
-					<SectionInsert @insert="add_section_at(layout.sections.length)" />
+					<SectionInsert
+						v-if="layout.sections && layout.sections.length"
+						@insert="add_section_at(layout.sections.length)"
+					/>
 				</template>
 			</draggable>
 
-			<div class="zone-divider zone-divider--footer">
-				<span class="zone-divider-label">{{ __("Footer") }}</span>
+			<button
+				v-if="!layout.sections || !layout.sections.length"
+				class="body-empty"
+				@click="add_section_at(0)"
+			>
+				<span class="body-empty-icon" v-html="frappe.utils.icon('plus', 'md')"></span>
+				<span class="body-empty-title">{{ __("Add a section") }}</span>
+				<span class="body-empty-hint">
+					{{ __("Sections hold the columns and fields of your document.") }}
+				</span>
+			</button>
+
+			<div class="zone-divider">
+				<span class="zone-divider-label">
+					{{ __("Footer") }}
+					<span v-if="repeat_header_footer" class="zone-divider-hint"
+						>· {{ __("repeats on all pages") }}</span
+					>
+				</span>
 			</div>
 			<PrintFormatSection :section="layout.footer" :is_header="true" zone="footer" />
 		</div>
@@ -58,11 +90,42 @@ import draggable from "vuedraggable";
 import LetterHeadZoneEditor from "../letterhead/LetterHeadZoneEditor.vue";
 import PrintFormatSection from "./PrintFormatSection.vue";
 import SectionInsert from "./SectionInsert.vue";
+import { DRAG_OPTIONS, setDragging } from "../../utils";
 import { useStore } from "../../stores";
-import { computed, inject, watch, nextTick } from "vue";
+import { computed, inject, watch, nextTick, onMounted, onUnmounted, ref } from "vue";
 
 let { layout, letterhead, print_format } = useStore();
 let store = inject("$store");
+
+const PAGE_SIZES_MM = { A4: [210, 297], Letter: [216, 279.4] };
+let page_size = ref("A4");
+
+onMounted(() => {
+	frappe.db.get_single_value("Print Settings", "pdf_page_size").then((v) => {
+		if (v && PAGE_SIZES_MM[v]) page_size.value = v;
+	});
+});
+
+const CUSTOM_CSS_ID = "pfb-letterhead-custom-css";
+watch(
+	letterhead,
+	(lh) => {
+		let el = document.getElementById(CUSTOM_CSS_ID);
+		const css = lh?.custom_css;
+		if (!css) {
+			el?.remove();
+			return;
+		}
+		if (!el) {
+			el = document.createElement("style");
+			el.id = CUSTOM_CSS_ID;
+			document.head.appendChild(el);
+		}
+		el.textContent = css;
+	},
+	{ immediate: true, deep: true }
+);
+onUnmounted(() => document.getElementById(CUSTOM_CSS_ID)?.remove());
 
 watch(
 	() => store.scroll_to_section.value,
@@ -112,20 +175,43 @@ let rootStyles = computed(() => {
 		margin_left = 0,
 		margin_right = 0,
 	} = print_format.value;
+	const [page_w, page_h] = PAGE_SIZES_MM[page_size.value] || PAGE_SIZES_MM.A4;
 	return {
 		padding: `${margin_top}mm ${margin_right}mm ${margin_bottom}mm ${margin_left}mm`,
-		width: "210mm",
-		minHeight: "297mm",
+		width: `${page_w}mm`,
+		minHeight: `${page_h}mm`,
 	};
 });
 
 let bodyStyles = computed(() => {
 	const { font_size, font } = print_format.value;
 	const styles = {};
-	if (font_size) styles.fontSize = `${font_size}pt`;
+	if (font_size) styles.fontSize = `${parseFloat(font_size)}px`;
 	if (font) styles.fontFamily = `'${font}', sans-serif`;
 	return styles;
 });
+
+// Same scoped colour rules the server appends after the shared stylesheet;
+// rendered as a style element inside the component so it dies with the DOM
+let color_css = computed(() => {
+	const { label_color, value_color } = print_format.value;
+	let css = "";
+	if (label_color) {
+		css += `.print-format-doc .field .label,
+.print-format-doc .field.left-right .label,
+.print-format-doc .field.field-inline .label { color: ${label_color}; }\n`;
+	}
+	if (value_color) {
+		css += `.print-format-doc .field .value,
+.print-format-doc .field.left-right .value,
+.print-format-doc .field.field-inline .value { color: ${value_color}; }\n`;
+	}
+	return css;
+});
+
+let repeat_header_footer = computed(
+	() => !!frappe.model.get_doc(":Print Settings", "Print Settings")?.repeat_header_footer
+);
 
 let page_number_hidden = computed(() => print_format.value.page_number.includes("Hide"));
 
@@ -149,9 +235,6 @@ let page_number_style = computed(() => {
 	}
 	return style;
 });
-
-watch(layout, () => (store.dirty.value = true), { deep: true });
-watch(print_format, () => (store.dirty.value = true), { deep: true });
 </script>
 
 <style scoped>
@@ -178,11 +261,54 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	margin-bottom: 1rem;
 }
 
+/* ── Empty-body call to action ────────────────────────────── */
+.body-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	width: 100%;
+	padding: 2rem 1rem;
+	border: 1px dashed var(--gray-300);
+	border-radius: var(--radius);
+	background: var(--gray-50);
+	color: var(--text-muted);
+	cursor: pointer;
+	transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.body-empty:hover {
+	border-color: var(--gray-500);
+	background: var(--gray-100);
+	color: var(--text-color);
+}
+
+.body-empty-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	margin-bottom: 2px;
+	border-radius: 50%;
+	background: var(--gray-200);
+	color: var(--gray-700);
+}
+
+.body-empty-title {
+	font-size: var(--text-md);
+	font-weight: var(--weight-medium);
+}
+
+.body-empty-hint {
+	font-size: var(--text-sm);
+}
+
 /* ── Zone dividers ────────────────────────────────────────── */
 .zone-divider {
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: 12px;
 	margin: 0.75rem 0 0.5rem;
 }
 
@@ -191,35 +317,21 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	content: "";
 	flex: 1;
 	height: 1px;
-	background: var(--gray-300);
+	background: var(--gray-200);
 }
 
 .zone-divider-label {
 	font-size: var(--text-tiny);
-	font-weight: var(--weight-bold);
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
+	font-weight: var(--weight-medium);
+	letter-spacing: 0;
 	white-space: nowrap;
-	padding: 2px 8px;
-	border-radius: var(--radius);
+	color: var(--gray-400);
 }
 
-.zone-divider--header .zone-divider-label {
-	color: var(--blue-500);
-	background: var(--blue-50);
-	border: 1px solid var(--blue-200);
-}
-
-.zone-divider--body .zone-divider-label {
-	color: var(--text-muted);
-	background: var(--gray-100);
-	border: 1px solid var(--gray-300);
-}
-
-.zone-divider--footer .zone-divider-label {
-	color: var(--blue-500);
-	background: var(--blue-50);
-	border: 1px solid var(--blue-200);
+.zone-divider-hint {
+	text-transform: none;
+	font-weight: var(--weight-regular);
+	letter-spacing: 0.02em;
 }
 
 .section-with-insert {
@@ -236,57 +348,49 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 /* Hide all editor chrome */
 .pfb-clean-preview :deep(.section-toolbar),
 .pfb-clean-preview :deep(.configure-columns-btn) {
-	display: none !important;
+	display: none;
 }
 
-/* Section hover/selected states in clean-preview */
-.pfb-clean-preview :deep(.print-format-section) {
+/* Default section skin in clean-preview — grid sections style themselves */
+.pfb-clean-preview :deep(.print-format-section:not(.section--grid)) {
 	border: 1px solid transparent;
 	border-radius: var(--radius);
 	overflow: visible;
 	transition: border-color 0.1s;
 }
 
-.pfb-clean-preview :deep(.print-format-section:hover) {
-	border: 1px dashed var(--gray-400);
+/* Outlines live on the container so they enclose the section's margin too */
+.pfb-clean-preview :deep(.print-format-section-container:hover) {
+	outline: 1px dashed var(--gray-400);
+	outline-offset: 2px;
+	border-radius: var(--radius);
 }
 
-.pfb-clean-preview :deep(.print-format-section.section--selected) {
-	border: 1px solid var(--gray-400);
+.pfb-clean-preview :deep(.print-format-section-container:has(.section--selected)) {
+	outline: 1px solid var(--gray-400);
+	outline-offset: 2px;
+	border-radius: var(--radius);
 }
 
 .pfb-clean-preview :deep(.print-format-section-container) {
 	margin-bottom: 0;
 }
 
-/* Field hover/selected states in clean-preview */
-.pfb-clean-preview :deep(.field--preview) {
-	border: 1px solid transparent;
-	background: transparent;
-	padding: 0;
-	border-radius: var(--radius);
-	transition: border-color 0.1s;
-}
-
-.pfb-clean-preview :deep(.field--preview:hover) {
-	border: 1px dashed var(--gray-400);
-	background: transparent;
-}
-
-.pfb-clean-preview :deep(.field--preview.field--selected) {
-	border: 1px solid var(--gray-400);
-	background: transparent;
-}
+/* Field selection chrome lives in Field.vue and is outline-only */
 
 /* Section columns: no vertical padding in preview (matches PDF) */
 .pfb-clean-preview :deep(.section-columns) {
 	padding: 0;
 }
 
-/* Remove drag container min-height gaps */
+/* Remove drag container min-height gaps; grid sections keep their own gap */
 .pfb-clean-preview :deep(.drag-container) {
 	min-height: 0;
-	gap: 0.15rem;
+}
+
+/* Field spacing comes from the shared .field + .field margin, like the PDF */
+.pfb-clean-preview :deep(.drag-container:not(.section--grid *)) {
+	gap: 0;
 }
 
 /* Section drag handle in clean-preview: show on hover */
@@ -301,14 +405,8 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	opacity: 1;
 }
 
-/* Section title: match PDF's .section-label look */
+/* Section title: typography/border come from the shared .section-label rules */
 .pfb-clean-preview :deep(.section-title-display) {
 	display: block;
-	padding: 0 0 0.3rem;
-	margin-bottom: 0.4rem;
-	border-bottom: 1.5px solid var(--border-color);
-	font-size: var(--text-lg);
-	font-weight: var(--weight-bold);
-	color: var(--text-color);
 }
 </style>
