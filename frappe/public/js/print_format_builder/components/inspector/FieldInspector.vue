@@ -1,21 +1,10 @@
 <template>
 	<div class="pfb-inspector" @click.stop>
-		<!-- Header -->
-		<div class="pfb-inspector-head">
+		<!-- Header — hidden on the canvas (settings) view -->
+		<div v-if="has_selection" class="pfb-inspector-head">
 			<div class="pfb-inspector-title">
 				<span class="pfb-inspector-kind">{{ inspector_kind }}</span>
-				<span
-					class="pfb-inspector-name"
-					v-if="
-						selected_field ||
-						selected_section ||
-						selected_letterhead ||
-						selected_lh_footer
-					"
-				>
-					{{ inspector_subtitle }}
-				</span>
-				<span v-else class="pfb-inspector-eyebrow-inline">{{ __("Inspector") }}</span>
+				<span class="pfb-inspector-name">{{ inspector_subtitle }}</span>
 			</div>
 		</div>
 
@@ -40,12 +29,7 @@
 		</div>
 
 		<!-- Nothing selected: canvas-wide print settings -->
-		<div
-			v-if="
-				!selected_field && !selected_section && !selected_letterhead && !selected_lh_footer
-			"
-			class="pfb-insp-body pfb-canvas-settings"
-		>
+		<div v-if="!has_selection" class="pfb-insp-body pfb-canvas-settings">
 			<PrintSettingsPanel />
 		</div>
 
@@ -95,6 +79,13 @@ let is_multi_select = computed(() => store.selected_fields.value.length > 1);
 let selected_section = computed(() => store.selected_section.value);
 let selected_letterhead = computed(() => store.selected_letterhead.value);
 let selected_lh_footer = computed(() => store.selected_lh_footer.value);
+let has_selection = computed(
+	() =>
+		selected_field.value ||
+		selected_section.value ||
+		selected_letterhead.value ||
+		selected_lh_footer.value
+);
 
 let is_table_field = computed(() => selected_field.value?.fieldtype === "Table");
 let is_repeater_field = computed(() => selected_field.value?.fieldtype === "Repeater");
@@ -197,12 +188,6 @@ let field_is_inline = computed(() => parent_section.value?.field_orientation ===
 	content: "·";
 	margin-right: 6px;
 	opacity: 0.4;
-}
-
-.pfb-inspector-eyebrow-inline {
-	font-size: var(--text-sm);
-	font-weight: var(--weight-medium);
-	color: var(--text-muted);
 }
 
 /* ── Breadcrumb ──────────────────────────────────────────── */
