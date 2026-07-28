@@ -124,10 +124,10 @@ class DesktopPage {
 			});
 			return;
 		}
-		// Reject a successful script load that never registered the expected API,
-		// and clear the cache so a later click can retry with a fixed bundle.
+		// A 200 that never registers show() must not stick: clear the promise and
+		// bust the URL so the next click cannot reuse the API-less HTTP response.
 		if (typeof frappe.cloudSettings?.show !== "function") {
-			this._cloud_settings_loaded = null;
+			this.invalidate_cloud_settings_bundle();
 			frappe.show_alert({
 				message: __("Couldn't open Cloud settings. Please try again."),
 				indicator: "red",
@@ -137,6 +137,22 @@ class DesktopPage {
 		frappe.cloudSettings.show(settings);
 	}
 
+	invalidate_cloud_settings_bundle() {
+		this._cloud_settings_loaded = null;
+		this._cloud_settings_cache_bust = Date.now();
+		// Drop any partial global left by an API-less evaluation so a retry can
+		// re-register cleanly.
+		delete frappe.cloudSettings;
+		document.querySelectorAll("script[data-cloud-settings-bundle]").forEach((el) => el.remove());
+	}
+
+	cloud_settings_bundle_url(bundle) {
+		const base = bundle.js;
+		if (!this._cloud_settings_cache_bust) return base;
+		const sep = base.includes("?") ? "&" : "?";
+		return `${base}${sep}_=${this._cloud_settings_cache_bust}`;
+	}
+
 	// Load pilot's cross-origin bundle once. It's a classic-script IIFE, so no CORS
 	// is involved, and it carries its own styles (the dialog renders in a shadow
 	// root), so there is no stylesheet to link. A failed load rejects and clears
@@ -144,11 +160,13 @@ class DesktopPage {
 	load_cloud_settings_bundle(bundle) {
 		if (this._cloud_settings_loaded) return this._cloud_settings_loaded;
 
+		const src = this.cloud_settings_bundle_url(bundle);
 		this._cloud_settings_loaded = new Promise((resolve, reject) => {
 			const script = document.createElement("script");
-			script.src = bundle.js;
+			script.src = src;
+			script.dataset.cloudSettingsBundle = "1";
 			script.onload = resolve;
-			script.onerror = () => reject(new Error(`Failed to load ${bundle.js}`));
+			script.onerror = () => reject(new Error(`Failed to load ${src}`));
 			document.head.appendChild(script);
 		}).catch((error) => {
 			this._cloud_settings_loaded = null;

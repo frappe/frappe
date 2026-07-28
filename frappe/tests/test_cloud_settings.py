@@ -26,6 +26,9 @@ class TestCloudSettings(TestCase):
 		frappe.local.session = frappe._dict(user="Administrator")
 		# The site name IS the scope of the pilot token and the bench routes.
 		frappe.local.site = "ravibakes.frappe.cloud"
+		# frappe.throw() reads these; keep them bound for bare unittest runs.
+		frappe.local.flags = frappe._dict(mute_messages=True, print_messages=False)
+		frappe.local.message_log = []
 
 	def test_disabled_for_self_hosted_site(self):
 		"""A self-hosted site has no pilot credentials, so the modal stays hidden."""
