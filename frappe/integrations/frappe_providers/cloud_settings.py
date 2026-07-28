@@ -13,6 +13,11 @@ from frappe.utils import cint
 CLOUD_SETTINGS_ROLE = "System Manager"
 
 
+class CloudMigrationConflictError(frappe.ValidationError):
+	"""Another migration is unresolved, so this one cannot start. Distinct so the UI
+	can offer the migrations page instead of a pointless retry."""
+
+
 class PilotClient:
 	"""Thin HTTP client for this site's bench pilot admin."""
 
@@ -29,11 +34,19 @@ class PilotClient:
 	def post(self, path: str, data: dict | None = None) -> dict:
 		return self._request("POST", path, data)
 
+	def patch(self, path: str, data: dict | None = None) -> dict:
+		return self._request("PATCH", path, data)
+
 	def delete(self, path: str, data: dict | None = None) -> dict:
 		return self._request("DELETE", path, data)
 
 	def site_path(self, path: str) -> str:
 		return f"sites/{quote(self.site, safe='')}/{path.lstrip('/')}"
+
+	def domain_path(self, domain: str, suffix: str = "") -> str:
+		"""Pilot addresses a single domain as a path segment, not a body field."""
+		path = f"domains/{quote(domain, safe='')}"
+		return self.site_path(f"{path}/{suffix.lstrip('/')}" if suffix else path)
 
 	def _request(self, method: str, path: str, data: dict | None = None):
 		try:
@@ -54,8 +67,17 @@ class PilotClient:
 			return payload
 		frappe.throw(
 			self._error_message(payload) or response.text or _("Request to your server failed."),
-			frappe.ValidationError,
+			# The exception class reaches the browser as `exc_type`, which is how the
+			# UI knows a conflict needs the "open migrations" action rather than a retry.
+			CloudMigrationConflictError
+			if self._error_code(payload) == "migration_conflict"
+			else frappe.ValidationError,
 		)
+
+	@staticmethod
+	def _error_code(payload) -> str:
+		error = payload.get("error") if isinstance(payload, dict) else None
+		return str(error.get("code") or "") if isinstance(error, dict) else ""
 
 	@staticmethod
 	def _parse(response):
@@ -119,13 +141,16 @@ def _safe_context() -> dict:
 
 
 def _embed_bundle() -> dict:
-	"""Browser-reachable URLs for pilot's Cloud Settings embed bundle.
+	"""Browser-reachable URL for pilot's Cloud Settings embed bundle.
 
 	Pilot builds and serves this bundle from its admin backend; the framework only
 	points at it. By default we load it from `pilot_endpoint` — the admin's public
 	URL the site already talks to, which also serves `/embed/cloud-settings/`. Set
 	`cloud_settings_embed_url` only to override that (e.g. a CDN). `embed_version`
-	busts the browser cache when pilot ships an update."""
+	busts the browser cache when pilot ships an update.
+
+	One script and no stylesheet: the dialog renders inside a shadow root and
+	adopts its own styles, so there is nothing for desk to link."""
 	base = (
 		frappe.conf.get("cloud_settings_embed_url") or frappe.conf.get("pilot_endpoint") or ""
 	).rstrip("/")
@@ -133,11 +158,7 @@ def _embed_bundle() -> dict:
 		return {}
 	version = frappe.conf.get("cloud_settings_embed_version")
 	query = f"?v={quote(str(version), safe='')}" if version else ""
-	root = f"{base}/embed/cloud-settings"
-	return {
-		"js": f"{root}/cloud-settings.js{query}",
-		"css": f"{root}/cloud-settings.css{query}",
-	}
+	return {"js": f"{base}/embed/cloud-settings/cloud-settings.js{query}"}
 
 
 # --- whitelisted endpoints ------------------------------------------------
@@ -147,6 +168,15 @@ def _embed_bundle() -> dict:
 def get_context() -> dict:
 	_assert_access()
 	return _safe_context()
+
+
+@frappe.whitelist(methods=["GET"])
+def get_account_url() -> dict:
+	"""Central's configured browser URL, looked up only when the user opens it."""
+	_assert_access()
+	client = PilotClient()
+	response = client.get(client.site_path("account-url"))
+	return response if isinstance(response, dict) else {}
 
 
 @frappe.whitelist(methods=["GET"])
@@ -167,8 +197,8 @@ def get_domains() -> dict:
 def get_domain_dns_records(domain: str) -> dict:
 	_assert_access()
 	client = PilotClient()
-	response = client.post(client.site_path("domains/dns-records"), {"domain": _clean_domain(domain)})
-	records = response.get("records") or {}
+	response = client.get(client.domain_path(_clean_domain(domain), "dns-records"))
+	records = (response or {}).get("records") or {}
 	return {"records": [*records.get("cname", []), *records.get("a", [])]}
 
 
@@ -183,14 +213,16 @@ def add_domain(domain: str) -> dict:
 def remove_domain(domain: str) -> dict:
 	_assert_access()
 	client = PilotClient()
-	return client.delete(client.site_path("domains"), {"domain": _clean_domain(domain)})
+	return client.delete(client.domain_path(_clean_domain(domain)))
 
 
 @frappe.whitelist(methods=["POST"])
-def set_primary_domain(domain: str | None = None) -> dict:
+def set_primary_domain(domain: str) -> dict:
 	_assert_access()
 	client = PilotClient()
-	return client.post(client.site_path("domains/primary"), {"domain": _clean_optional_domain(domain)})
+	# Pilot models "make primary" as a PATCH on the domain resource, so the domain
+	# is part of the path and therefore required.
+	return client.patch(client.domain_path(_clean_domain(domain)), {"primary": True})
 
 
 @frappe.whitelist(methods=["GET"])
@@ -255,6 +287,22 @@ def get_billing() -> dict:
 	from frappe.integrations.frappe_providers import cloud_billing
 
 	return cloud_billing.summary(PilotClient())
+
+
+@frappe.whitelist(methods=["GET"])
+def get_plan_options() -> dict:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.get_plan_options(PilotClient())
+
+
+@frappe.whitelist(methods=["POST"])
+def change_plan(plan: str) -> dict:
+	_assert_access()
+	from frappe.integrations.frappe_providers import cloud_billing
+
+	return cloud_billing.change_plan(PilotClient(), plan)
 
 
 @frappe.whitelist(methods=["GET"])
@@ -356,10 +404,6 @@ def _clean_domain(domain: str) -> str:
 	if not domain:
 		frappe.throw(_("Domain is required."), frappe.ValidationError)
 	return domain
-
-
-def _clean_optional_domain(domain: str | None) -> str:
-	return (domain or "").strip().lower()
 
 
 def _domain_row(domain: str, primary: str, is_default: bool = False) -> dict:
