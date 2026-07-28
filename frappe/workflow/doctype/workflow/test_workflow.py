@@ -108,17 +108,21 @@ class TestWorkflow(IntegrationTestCase):
 		self.assertEqual(workflow_actions[0].status, "Completed")
 
 	def test_if_workflow_set_on_action(self):
-		self.workflow._update_state_docstatus = True
-		self.workflow.states[1].doc_status = 1
-		self.workflow.save()
-		todo = create_new_todo()
-		self.assertEqual(todo.docstatus, 0)
-		todo.submit()
-		self.assertEqual(todo.docstatus, 1)
-		self.assertEqual(todo.workflow_state, "Approved")
+		dt = create_new_submittable_doctype()
+		workflow = create_submittable_workflow(dt.name)
+		doc = frappe.get_doc({"doctype": dt.name, "test_field": "test"}).insert()
 
-		self.workflow.states[1].doc_status = 0
-		self.workflow.save()
+		workflow._update_state_docstatus = True
+		workflow.states[1].doc_status = 1
+		workflow.save()
+
+		self.assertEqual(doc.docstatus, 0)
+		doc.submit()
+		self.assertEqual(doc.docstatus, 1)
+		self.assertEqual(doc.workflow_state, "Approved")
+
+		workflow.states[1].doc_status = 0
+		workflow.save()
 
 	def test_syntax_error_in_transition_rule(self):
 		self.workflow.transitions[0].condition = 'doc.status =! "Closed"'
@@ -348,6 +352,55 @@ def create_domain_workflow():
 
 def create_new_todo():
 	return frappe.get_doc(doctype="ToDo", description="workflow " + random_string(10)).insert()
+
+
+def create_new_submittable_doctype():
+	return frappe.get_doc(
+		{
+			"doctype": "DocType",
+			"module": "Core",
+			"name": "Test Submittable Doc",
+			"custom": 1,
+			"is_submittable": 1,
+			"fields": [
+				{"label": "Field", "fieldname": "test_field", "fieldtype": "Data"},
+				{
+					"label": "Workflow State",
+					"fieldname": "workflow_state",
+					"fieldtype": "Link",
+					"options": "Workflow State",
+				},
+			],
+			"permissions": [{"role": "System Manager", "read": 1, "write": 1, "submit": 1, "cancel": 1}],
+		}
+	).insert(ignore_if_duplicate=True)
+
+
+def create_submittable_workflow(doctype):
+	workflow = frappe.get_doc(
+		{
+			"doctype": "Workflow",
+			"workflow_name": "Submittable Workflow",
+			"document_type": doctype,
+			"workflow_state_field": "workflow_state",
+			"is_active": 1,
+			"states": [
+				{"state": "Pending", "allow_edit": "All"},
+				{"state": "Approved", "allow_edit": "System Manager", "doc_status": 0},
+			],
+			"transitions": [
+				{
+					"state": "Pending",
+					"action": "Approve",
+					"next_state": "Approved",
+					"allowed": "System Manager",
+					"allow_self_approval": 1,
+				}
+			],
+		}
+	).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+	return workflow
 
 
 def create_new_note(doc):
