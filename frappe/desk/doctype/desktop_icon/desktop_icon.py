@@ -258,8 +258,8 @@ def create_desktop_icons_from_workspace():
 						"Desktop Icon", [{"label": icon.label, "icon_type": icon.icon_type}]
 					):
 						icon.insert(ignore_if_duplicate=True)
-				except Exception as e:
-					frappe.log_error(title="Creation of Desktop Icon Failed", message=e)
+				except Exception:
+					frappe.log_error(title="Creation of Desktop Icon Failed")
 
 
 def create_desktop_icons_from_installed_apps():
