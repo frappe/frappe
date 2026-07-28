@@ -50,10 +50,10 @@ def update(client, apps: str | None) -> dict:
 	"""Pull and migrate apps in the background. ``apps`` is an optional JSON list
 	of names; omit it to update everything."""
 	names = frappe.parse_json(apps) if apps else None
-	args = {"command": "update"}
+	args = {}
 	if names:
 		args["apps"] = [_clean(name) for name in names]
-	return client.post("tasks", args)
+	return client.post(client.site_path("actions/update-apps"), args)
 
 
 def _installed_versions(client) -> dict:
