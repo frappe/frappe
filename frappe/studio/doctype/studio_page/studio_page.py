@@ -325,6 +325,14 @@ class StudioPage(Document):
 		self.published = 0
 		self.save()
 
+	@frappe.whitelist()
+	def revert(self, known_modified: str | None = None):
+		self.reject_if_stale(known_modified)
+		self.draft_blocks = None
+		self._skip_validate = True  # blocks only change
+		self.save()
+		return self.modified
+
 	def validate_conflicts_with_other_pages(self):
 		other_pages = frappe.get_all(
 			"Studio Page",

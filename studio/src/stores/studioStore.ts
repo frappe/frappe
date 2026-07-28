@@ -194,6 +194,9 @@ const useStudioStore = defineStore("store", () => {
 	async function setPage(pageName: string) {
 		settingPage.value = true
 		pageConflict.value = false
+		// leaving the current page: drop its in-flight-save flag so the new page isn't blocked
+		// waiting on a save it doesn't own (that save's own callback no longer clears this flag)
+		savingPage.value = false
 		const page = await fetchPage(pageName)
 		if (!page) {
 			settingPage.value = false
@@ -232,18 +235,26 @@ const useStudioStore = defineStore("store", () => {
 			}
 		}
 		const pageData = jsToJson(pageBlocks.value.map((block) => getBlockCopyWithoutParent(block)))
+		const savedPage = selectedPage.value
 
 		return studioPages.runDocMethod
 			.submit({
-				name: selectedPage.value,
+				name: savedPage,
 				method: "save_draft",
 				draft_blocks: pageData,
 				known_modified: activePage.value?.modified,
 			})
-			.then(syncPageModified)
+			.then((response: any) => {
+				// a save that resolves after the user switched pages must not stamp this page's
+				// timestamp/draft marker onto the newly opened one
+				if (activePage.value?.name !== savedPage) return
+				syncPageModified(response)
+				// track that the page now has unpublished changes (drives the "Revert Changes" option)
+				activePage.value.draft_blocks = pageData
+			})
 			.catch(handlePageWriteConflict)
 			.finally(() => {
-				savingPage.value = false
+				if (activePage.value?.name === savedPage) savingPage.value = false
 			})
 	}
 
@@ -370,6 +381,36 @@ const useStudioStore = defineStore("store", () => {
 				},
 			}
 		)
+	}
+
+	function revertPage() {
+		if (!activePage.value) return
+		dialog.confirm({
+			title: "Revert changes",
+			message:
+				"This will discard all changes made to the page since it was last published. Are you sure you want to continue?",
+			confirmLabel: "Revert",
+			theme: "yellow",
+			onConfirm: async () => {
+				try {
+					await studioPages.runDocMethod.submit({
+						name: selectedPage.value,
+						method: "revert",
+						known_modified: activePage.value?.modified,
+					})
+					await setPage(selectedPage.value!)
+					toast.success("Changes reverted")
+				} catch (error: any) {
+					try {
+						handlePageWriteConflict(error)
+					} catch {
+						toast.error("Failed to revert the changes", {
+							description: error?.messages?.join(", "),
+						})
+					}
+				}
+			},
+		})
 	}
 
 	async function publishApp() {
@@ -645,6 +686,7 @@ const useStudioStore = defineStore("store", () => {
 		reloadActivePageScript,
 		publishPage,
 		unpublishPage,
+		revertPage,
 		publishApp,
 		unpublishApp,
 		openPageInBrowser,

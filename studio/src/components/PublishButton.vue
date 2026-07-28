@@ -18,6 +18,19 @@
 		<Dropdown
 			:options="[
 				{
+					group: 'Revert',
+					hideLabel: true,
+					items: [
+						{
+							label: 'Revert Changes',
+							icon: LucideRotateCcw,
+							onClick: () => store.revertPage(),
+							condition: () =>
+								Boolean(store.activePage?.published) && Boolean(store.activePage?.draft_blocks),
+						},
+					],
+				},
+				{
 					group: 'Publish',
 					hideLabel: true,
 					items: [
@@ -72,6 +85,7 @@ import { Dropdown } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import LucideCircleDashed from "~icons/lucide/circle-dashed"
 import LucideGlobe from "~icons/lucide/globe"
+import LucideRotateCcw from "~icons/lucide/rotate-ccw"
 import GlobeOff from "@/components/Icons/GlobeOff.vue"
 
 defineProps<{
