@@ -1,14 +1,14 @@
 import asyncio
 import json
-from collections.abc import AsyncIterator
-from typing import Any
+import os
+import shlex
 
 import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from flow_server.events import AssistantMessage, ToolCall, TranscriptMessage, Usage, _Event
-from flow_server.model import Model
+from flow_server.events import AssistantMessage, ToolCall, Usage
+from flow_server.model import Model, ModelRequest
 from flow_server.model.credentials import CredentialStore
 from flow_server.model.mock import MockModel
 from flow_server.server import create_app
@@ -275,15 +275,7 @@ class _BlockingModel(Model):
 		self.release = asyncio.Event()
 		self.call_count = 0
 
-	async def run(
-		self,
-		messages: list[TranscriptMessage],
-		tools: list[dict[str, Any]] | None = None,
-		*,
-		system_prompt: str = "",
-		stream: bool = True,
-	) -> AsyncIterator[_Event]:
-		del messages, tools, system_prompt, stream
+	async def run(self, request: ModelRequest):
 		self.call_count += 1
 		self.started.set()
 		await self.release.wait()
@@ -299,15 +291,7 @@ class _ResumeBlockingModel(Model):
 		self.release = asyncio.Event()
 		self.call_count = 0
 
-	async def run(
-		self,
-		messages: list[TranscriptMessage],
-		tools: list[dict[str, Any]] | None = None,
-		*,
-		system_prompt: str = "",
-		stream: bool = True,
-	) -> AsyncIterator[_Event]:
-		del messages, tools, system_prompt, stream
+	async def run(self, request: ModelRequest):
 		self.call_count += 1
 		if self.call_count == 1:
 			yield AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})])
@@ -317,6 +301,27 @@ class _ResumeBlockingModel(Model):
 		await self.release.wait()
 		yield AssistantMessage(content="done")
 		yield Usage()
+
+
+class _AbortBlockingModel(Model):
+	name = "abort-blocking"
+
+	def __init__(self):
+		self.started = asyncio.Event()
+		self.cancelled = asyncio.Event()
+		self.release_cleanup = asyncio.Event()
+		self.request: ModelRequest | None = None
+
+	async def run(self, request: ModelRequest):
+		self.request = request
+		self.started.set()
+		try:
+			await asyncio.Event().wait()
+		finally:
+			self.cancelled.set()
+			await self.release_cleanup.wait()
+		if False:
+			yield
 
 
 async def test_waiting_run_is_registered_and_concurrent_run_steers(tmp_path, monkeypatch):
@@ -359,6 +364,112 @@ async def test_waiting_run_is_registered_and_concurrent_run_steers(tmp_path, mon
 			"first",
 			"second",
 		]
+
+
+async def test_abort_interrupts_stream_clears_steering_and_returns_session_to_idle(tmp_path, monkeypatch):
+	model = _AbortBlockingModel()
+	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: model)
+	store = SessionStore(
+		str(tmp_path / "data"),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+	)
+	app = create_app(store)
+	transport = httpx.ASGITransport(app=app)
+	async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+		sid = (
+			await client.post(
+				"/sessions",
+				json={"cwd": str(tmp_path)},
+			)
+		).json()["session_id"]
+		run_request = asyncio.create_task(
+			client.post(
+				f"/sessions/{sid}/run",
+				params={"wait": "true"},
+				json={"message": "first"},
+			)
+		)
+		await model.started.wait()
+
+		steered = await client.post(f"/sessions/{sid}/run", json={"message": "discard me"})
+		assert steered.json() == {"status": "steered"}
+		assert (await client.post(f"/sessions/{sid}/abort")).json() == {"status": "aborting"}
+		await model.cancelled.wait()
+
+		rejected = await client.post(f"/sessions/{sid}/run", json={"message": "too late"})
+		assert rejected.status_code == 409
+		assert rejected.json()["detail"] == "run is aborting"
+		assert model.request is not None
+		cancellation = model.request.cancellation
+		assert cancellation is store.get(sid).abort
+		assert cancellation is not None and cancellation.is_set()
+
+		model.release_cleanup.set()
+		assert (await run_request).json()["reason"] == "aborted"
+		state = (await client.get(f"/sessions/{sid}")).json()
+		assert state["state"] == "idle"
+		assert state["running"] is False
+		entries = (await client.get(f"/sessions/{sid}/entries")).json()["entries"]
+		assert [row["content"] for row in entries if row["type"] == "user_message"] == ["first"]
+		assert [row["stop_reason"] for row in entries if row["type"] == "assistant_message"] == ["aborted"]
+		assert [row["reason"] for row in entries if row["type"] == "run_ended"] == ["aborted"]
+
+
+async def test_http_abort_kills_active_bash_process_tree_and_repairs_transcript(tmp_path, monkeypatch):
+	pid_file = tmp_path / "child.pid"
+	command = f'sleep 30 & child=$!; printf \'%s\\n\' "$child" > {shlex.quote(str(pid_file))}; wait "$child"'
+	model = MockModel(
+		replies=[
+			AssistantMessage(content=[ToolCall(id="bash-1", name="bash", arguments={"command": command})])
+		]
+	)
+	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: model)
+	store = SessionStore(
+		str(tmp_path / "data"),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+	)
+	app = create_app(store)
+	transport = httpx.ASGITransport(app=app)
+	async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+		sid = (
+			await client.post(
+				"/sessions",
+				json={"cwd": str(tmp_path), "tools": ["bash"], "auto_approve": True},
+			)
+		).json()["session_id"]
+		run_request = asyncio.create_task(
+			client.post(
+				f"/sessions/{sid}/run",
+				params={"wait": "true"},
+				json={"message": "run the command"},
+			)
+		)
+		for _ in range(100):
+			if pid_file.exists() and pid_file.read_text().strip():
+				break
+			await asyncio.sleep(0.01)
+		assert pid_file.exists()
+		child_pid = int(pid_file.read_text().strip())
+
+		assert (await client.post(f"/sessions/{sid}/abort")).json() == {"status": "aborting"}
+		assert (await asyncio.wait_for(run_request, timeout=2)).json()["reason"] == "aborted"
+
+		for _ in range(100):
+			try:
+				os.kill(child_pid, 0)
+			except ProcessLookupError:
+				break
+			await asyncio.sleep(0.01)
+		else:
+			pytest.fail("Bash child process survived HTTP cancellation")
+
+		state = (await client.get(f"/sessions/{sid}")).json()
+		assert state["state"] == "idle"
+		assert state["running"] is False
+		entries = (await client.get(f"/sessions/{sid}/entries")).json()["entries"]
+		assert [row["stop_reason"] for row in entries if row["type"] == "assistant_message"][-1] == "aborted"
+		assert [row["tool_call_id"] for row in entries if row["type"] == "tool_result"] == ["bash-1"]
+		assert [row["reason"] for row in entries if row["type"] == "run_ended"] == ["aborted"]
 
 
 async def test_concurrent_resume_is_rejected_before_duplicate_tool_execution(tmp_path, monkeypatch):

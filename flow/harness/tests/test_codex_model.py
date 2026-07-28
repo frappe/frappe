@@ -1,3 +1,4 @@
+import asyncio
 import json
 
 import httpx
@@ -10,17 +11,29 @@ from flow_server.events import (
 	ToolResult,
 	UserMessage,
 )
+from flow_server.model import ModelRequest
 from flow_server.model.providers.codex import CodexModel, _responses_input
 
 
-async def _collect(model, messages, tools=None, *, system_prompt="", stream=True):
+async def _collect(
+	model,
+	messages,
+	tools=None,
+	*,
+	system_prompt="",
+	stream=True,
+	cancellation=None,
+):
 	return [
 		event
 		async for event in model.run(
-			messages,
-			tools,
-			system_prompt=system_prompt,
-			stream=stream,
+			ModelRequest(
+				messages=messages,
+				tools=tools,
+				system_prompt=system_prompt,
+				stream=stream,
+				cancellation=cancellation,
+			)
 		)
 	]
 
@@ -145,6 +158,102 @@ async def test_codex_non_streaming_suppresses_live_deltas():
 
 	assert [event.type for event in events] == ["assistant_message", "usage"]
 	assert events[0].text == "done"
+
+
+async def test_codex_cancellation_closes_active_http_stream():
+	class BlockingSSE(httpx.AsyncByteStream):
+		def __init__(self):
+			self.started = asyncio.Event()
+			self.closed = asyncio.Event()
+
+		async def __aiter__(self):
+			yield (b'data: {"type":"response.output_text.delta","delta":"partial"}\n\n')
+			self.started.set()
+			await asyncio.Event().wait()
+
+		async def aclose(self):
+			self.closed.set()
+
+	body = BlockingSSE()
+
+	def handler(request):
+		return httpx.Response(200, stream=body)
+
+	cancellation = asyncio.Event()
+	async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+		model = CodexModel("codex/gpt-test", api_key="token", client=client)
+		task = asyncio.create_task(
+			_collect(
+				model,
+				[UserMessage(content="hi")],
+				cancellation=cancellation,
+			)
+		)
+		await body.started.wait()
+		cancellation.set()
+		events = await asyncio.wait_for(task, timeout=1)
+
+	assert body.closed.is_set()
+	assert [event.type for event in events] == ["text_delta", "assistant_message", "usage"]
+	assert events[-2].text == "partial"
+	assert events[-2].stop_reason == "aborted"
+
+
+async def test_codex_cancellation_interrupts_response_header_wait():
+	request_started = asyncio.Event()
+	request_cancelled = asyncio.Event()
+
+	async def handler(request):
+		request_started.set()
+		try:
+			await asyncio.Event().wait()
+		finally:
+			request_cancelled.set()
+
+	cancellation = asyncio.Event()
+	async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+		model = CodexModel("codex/gpt-test", api_key="token", client=client)
+		task = asyncio.create_task(_collect(model, [UserMessage(content="hi")], cancellation=cancellation))
+		await request_started.wait()
+		cancellation.set()
+		events = await asyncio.wait_for(task, timeout=1)
+
+	assert request_cancelled.is_set()
+	assert [event.type for event in events] == ["assistant_message", "usage"]
+	assert events[0].stop_reason == "aborted"
+
+
+async def test_codex_cancellation_interrupts_error_body_read_and_closes_stream():
+	class BlockingErrorBody(httpx.AsyncByteStream):
+		def __init__(self):
+			self.started = asyncio.Event()
+			self.closed = asyncio.Event()
+
+		async def __aiter__(self):
+			self.started.set()
+			await asyncio.Event().wait()
+			if False:
+				yield b""
+
+		async def aclose(self):
+			self.closed.set()
+
+	body = BlockingErrorBody()
+
+	def handler(request):
+		return httpx.Response(500, stream=body)
+
+	cancellation = asyncio.Event()
+	async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+		model = CodexModel("codex/gpt-test", api_key="token", client=client)
+		task = asyncio.create_task(_collect(model, [UserMessage(content="hi")], cancellation=cancellation))
+		await body.started.wait()
+		cancellation.set()
+		events = await asyncio.wait_for(task, timeout=1)
+
+	assert body.closed.is_set()
+	assert [event.type for event in events] == ["assistant_message", "usage"]
+	assert events[0].stop_reason == "aborted"
 
 
 def test_codex_replays_opaque_reasoning_before_tool_turn():

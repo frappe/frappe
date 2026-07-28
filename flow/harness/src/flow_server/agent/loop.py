@@ -38,12 +38,15 @@ from flow_server.events import (
 	RunEnded,
 	RunError,
 	RunStarted,
+	TextContent,
+	TextDelta,
 	ToolCall,
 	ToolResult,
 	Usage,
 	UserMessage,
 )
-from flow_server.model import Model, get_model
+from flow_server.model import Model, ModelRequest, get_model
+from flow_server.model.model import ModelCancelled, await_with_cancellation, iterate_with_cancellation
 from flow_server.model.resolver import resolve_model_auth
 from flow_server.session.store import PendingApproval, Session, pending_approval
 from flow_server.tools import BUILTIN_TOOLS, Tool, ToolContext
@@ -81,7 +84,6 @@ async def run(
 	"""Start a new turn."""
 
 	async def operation() -> RunReason:
-		session.abort.clear()
 		session.publish(RunStarted(run_id=uuid.uuid4().hex[:12]))
 		_add_user(session, user_message)
 		return await _loop(session, model, before_tool_call, after_tool_call)
@@ -106,11 +108,11 @@ async def resume(
 	pending = approval.calls
 
 	async def operation() -> RunReason:
-		session.abort.clear()
 		server_tools = _server_tools(session)
 		ctx = _make_ctx(session)
 		denied = False
 		for call in pending:
+			_raise_if_aborted(session)
 			answer = answers[call.id]
 			tc = ToolCall(id=call.id, name=call.name, arguments=call.args)
 			if answer == "Approve":
@@ -120,6 +122,7 @@ async def resume(
 				denied = True
 			else:
 				result = _result(tc, _redirect(answer))
+			_raise_if_aborted(session)
 			_emit_result(session, result)
 
 		if denied:  # a rejected action stops the run rather than continuing
@@ -141,11 +144,17 @@ async def _run_with_lifecycle(session: Session, operation: Awaitable[RunReason])
 	cancelled: asyncio.CancelledError | None = None
 	try:
 		reason = await operation
+	except ModelCancelled:
+		reason = "aborted"
 	except asyncio.CancelledError as exc:
 		reason = "aborted"
 		cancelled = exc
 	except Exception as exc:
 		failures.append(exc)
+
+	if reason == "aborted":
+		session.clear_steering()
+		_ensure_aborted_assistant(session)
 
 	if reason != "paused":
 		try:
@@ -175,11 +184,15 @@ async def _loop(
 ) -> RunReason:
 	cfg = session.config
 	if model is None:
-		auth = await resolve_model_auth(
-			cfg.model,
-			session.credentials,
-			credential_id=cfg.credential_id,
+		auth = await await_with_cancellation(
+			resolve_model_auth(
+				cfg.model,
+				session.credentials,
+				credential_id=cfg.credential_id,
+			),
+			session.abort,
 		)
+		_raise_if_aborted(session)
 		model = get_model(
 			cfg.model,
 			api_key=auth.api_key,
@@ -192,6 +205,8 @@ async def _loop(
 
 	output_tokens = 0
 	for _ in range(cfg.max_turns):
+		if session.abort.is_set():
+			return "aborted"
 		_drain_steering(session)
 		if session.abort.is_set():
 			return "aborted"
@@ -212,8 +227,14 @@ async def _loop(
 
 		pending: list[PendingCall] = []
 		for tc in assistant.tool_calls:
+			if session.abort.is_set():
+				return "aborted"
 			await _handle_call(session, tc, server_tools, ctx, before_tool_call, after_tool_call, pending)
+			if session.abort.is_set():
+				return "aborted"
 		if pending:  # non-gated tools already ran; now wait for approval
+			if session.abort.is_set():
+				return "aborted"
 			session.publish(ApprovalRequired(calls=pending))
 			return "paused"
 
@@ -237,12 +258,15 @@ async def _handle_call(
 	"""Process one tool call: bad-args feedback, before-hook, confirm gate, then dispatch.
 	Appends to `pending` (deferred to approval) instead of running when confirm-gated."""
 	if tc.error:  # model emitted malformed args — feed the error back so it can retry
+		_raise_if_aborted(session)
 		_emit_result(session, _result(tc, tc.error, is_error=True))
 		return
 
+	_raise_if_aborted(session)
 	if before is not None:
 		# `before` hook must return `HookDecision | None` (sync or async), not a raw dict/string
-		decision = await _maybe_await(before(tc, ctx))
+		decision = await _maybe_await(before(tc, ctx), session.abort)
+		_raise_if_aborted(session)
 		if decision is not None and decision.result is not None:
 			_emit_result(session, _result(tc, decision.result, is_error=decision.is_error))
 			return
@@ -251,6 +275,7 @@ async def _handle_call(
 
 	if _needs_confirm(session.config, tc.name, server_tools):
 		prompt = await _confirm_prompt(session, tc, server_tools)
+		_raise_if_aborted(session)
 		pending.append(PendingCall(id=tc.id, name=tc.name, args=tc.args, prompt=prompt))
 		return
 
@@ -263,17 +288,27 @@ async def _model_call(
 	cfg = session.config
 	assistant: AssistantMessage | None = None
 	output_tokens = 0
-	async for ev in model.run(
-		session.messages,
-		tool_schemas,
+	partial_text: list[str] = []
+	request = ModelRequest(
+		messages=session.messages,
+		tools=tool_schemas,
 		system_prompt=cfg.system_prompt,
 		stream=cfg.stream,
-	):
-		if isinstance(ev, AssistantMessage):
-			assistant = ev
-		elif isinstance(ev, Usage):
-			output_tokens = ev.output_tokens
-		session.publish(ev)  # assistant/usage are durable; text/tool-call deltas are live-only
+		cancellation=session.abort,
+	)
+	events = model.run(request)
+	try:
+		async for ev in iterate_with_cancellation(events, session.abort):
+			if isinstance(ev, AssistantMessage):
+				assistant = ev
+			elif isinstance(ev, Usage):
+				output_tokens = ev.output_tokens
+			elif isinstance(ev, TextDelta):
+				partial_text.append(ev.text)
+			session.publish(ev)  # assistant/usage are durable; text/tool-call deltas are live-only
+	except ModelCancelled:
+		assistant = _aborted_assistant(session, model, "".join(partial_text))
+		session.publish(assistant)
 	return assistant, output_tokens
 
 
@@ -327,9 +362,12 @@ async def _run_one_tool(
 	ctx: ToolContext,
 	after: AfterHook | None,
 ) -> ToolResult:
-	result = await _dispatch(session, tc, server_tools, ctx)
+	_raise_if_aborted(session)
+	result = await await_with_cancellation(_dispatch(session, tc, server_tools, ctx), session.abort)
+	_raise_if_aborted(session)
 	if after is not None:
-		new_content = await _maybe_await(after(tc, result))
+		new_content = await _maybe_await(after(tc, result), session.abort)
+		_raise_if_aborted(session)
 		if new_content is not None:
 			result = result.model_copy(update={"content": new_content})
 	return result
@@ -357,12 +395,17 @@ async def _confirm_prompt(session: Session, tc: ToolCall, server_tools: dict[str
 	tool = server_tools.get(tc.name)
 	if tool is not None and tool.confirm_prompt is not None:
 		try:
+			_raise_if_aborted(session)
 			return tool.confirm_prompt(tc.args)
 		except Exception:
 			pass
 	if session.config.callback_url and tc.name not in server_tools:
 		try:
-			resp = await _call_client(session, tc, "confirm")
+			resp = await await_with_cancellation(
+				_call_client(session, tc, "confirm"),
+				session.abort,
+			)
+			_raise_if_aborted(session)
 			if resp.get("prompt"):
 				return resp["prompt"]
 		except Exception:
@@ -439,11 +482,38 @@ def _add_user(session: Session, content: str) -> None:
 
 def _drain_steering(session: Session) -> bool:
 	drained = False
-	while not session.steer_queue.empty():
+	while not session.abort.is_set() and not session.steer_queue.empty():
 		_add_user(session, session.steer_queue.get_nowait())
 		drained = True
 	return drained
 
 
-async def _maybe_await(value: Any) -> Any:
-	return await value if inspect.isawaitable(value) else value
+async def _maybe_await(value: Any, cancellation: asyncio.Event) -> Any:
+	return await await_with_cancellation(value, cancellation) if inspect.isawaitable(value) else value
+
+
+def _raise_if_aborted(session: Session) -> None:
+	if session.abort.is_set():
+		raise ModelCancelled
+
+
+def _aborted_assistant(session: Session, model: Model | None = None, text: str = "") -> AssistantMessage:
+	name = getattr(model, "model", None) or getattr(model, "name", None) or session.config.model
+	return AssistantMessage(
+		content=[TextContent(text=text)] if text else [],
+		api=getattr(model, "api", "unknown"),
+		provider=getattr(model, "provider", session.config.model.partition("/")[0]),
+		model=name,
+		stop_reason="aborted",
+	)
+
+
+def _ensure_aborted_assistant(session: Session) -> None:
+	for row in reversed(session.log.read_since(0)):
+		if row.get("type") == "run_ended":
+			break
+		if row.get("type") == "assistant_message" and row.get("stop_reason") == "aborted":
+			return
+	message = _aborted_assistant(session)
+	session.publish(message)
+	session.messages.append(message)

@@ -70,6 +70,13 @@ class Agent:
 			from_state=SessionState.PAUSED,
 		)
 
+	def abort(self) -> bool:
+		"""Signal the active run to stop; return whether a run was active."""
+		if not self._session.is_running:
+			return False
+		self._session.request_abort()
+		return True
+
 	async def _drive(
 		self,
 		make_coro: Callable[[], Coroutine[Any, Any, None]],

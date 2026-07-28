@@ -1,3 +1,4 @@
+import asyncio
 import inspect
 import os
 
@@ -210,6 +211,31 @@ async def test_bash_abort(tmp_path):
 	assert res.is_error
 	assert "[command aborted]" in res.content
 	assert res.details["aborted"] is True
+
+
+async def test_bash_task_cancellation_kills_child_process_group(tmp_path):
+	pid_file = tmp_path / "child.pid"
+	command = f"sh -c 'sleep 30 & echo $! > {pid_file}; wait'"
+	task = asyncio.ensure_future(bash(command=command, ctx=_ctx(tmp_path)))
+	for _ in range(100):
+		if pid_file.exists() and pid_file.read_text().strip():
+			break
+		await asyncio.sleep(0.01)
+	assert pid_file.exists()
+	child_pid = int(pid_file.read_text().strip())
+
+	task.cancel()
+	with pytest.raises(asyncio.CancelledError):
+		await task
+
+	for _ in range(100):
+		try:
+			os.kill(child_pid, 0)
+		except ProcessLookupError:
+			break
+		await asyncio.sleep(0.01)
+	else:
+		pytest.fail("Bash child process survived cancellation")
 
 
 async def test_bash_truncation_spills_to_temp_file(tmp_path):

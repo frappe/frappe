@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import time
 from typing import Annotated
 
@@ -33,17 +34,31 @@ async def bash(
 	)
 	comm = asyncio.ensure_future(proc.communicate())
 	abort = asyncio.ensure_future(ctx.abort.wait())
-	done, _ = await asyncio.wait({comm, abort}, timeout=limit, return_when=asyncio.FIRST_COMPLETED)
-	abort.cancel()
+	interrupted = False
+	cancelled: asyncio.CancelledError | None = None
+	try:
+		done, _ = await asyncio.wait({comm, abort}, timeout=limit, return_when=asyncio.FIRST_COMPLETED)
+		interrupted = comm not in done
+	except asyncio.CancelledError as exc:
+		# The agent loop races every tool against cancellation. Preserve Bash's stronger
+		# guarantee when that outer race cancels this coroutine: kill the whole process
+		# group before allowing cancellation to propagate.
+		interrupted = True
+		cancelled = exc
+	finally:
+		abort.cancel()
+		with contextlib.suppress(asyncio.CancelledError):
+			await abort
 
-	interrupted = comm not in done
 	if interrupted:
 		kill_group(proc)  # kill the group so pipeline/compound children die too
 	try:
-		# drain buffered output; after the group kill communicate() settles promptly
-		stdout, _ = await asyncio.wait_for(comm, timeout=5)
-	except (TimeoutError, asyncio.CancelledError):
+		# Drain buffered output; after the group kill communicate() settles promptly.
+		stdout, _ = await asyncio.wait_for(asyncio.shield(comm), timeout=5)
+	except TimeoutError, asyncio.CancelledError:
 		stdout = b""
+	if cancelled is not None:
+		raise cancelled
 	out = stdout.decode("utf-8", "replace")
 	duration = round(time.monotonic() - start, 3)
 

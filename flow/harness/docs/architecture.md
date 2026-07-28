@@ -109,8 +109,10 @@ URLs are resolved internally and cannot be supplied through session or run paylo
 
 `run()` → publish `RunStarted`, append the user message, enter `_loop`. Each turn:
 
-1. **`_model_call`** — build `[system] + session.messages`, consume `model.run()`,
-   publish deltas + `AssistantMessage` + `Usage`, return the assistant + token count.
+1. **`_model_call`** — build a provider-neutral `ModelRequest` from the transcript,
+   tools, system prompt, stream settings, and the active cancellation signal;
+   consume `model.run()`, publish deltas + `AssistantMessage` + `Usage`, and return the
+   assistant + token count.
 2. append the assistant message. If it has no tool calls → `RunEnded(done)`.
 3. for each tool call, **`_handle_call`** (dispatch order below).
 4. if any call was confirm-gated → publish `ApprovalRequired`, stop with `paused`.
@@ -121,6 +123,16 @@ resume continuations. It repairs interrupted tool batches, publishes one `RunErr
 for operational failures, and attempts exactly one terminal `RunEnded`. The session
 task clears runtime state in `finally`, including when terminal-event persistence
 itself fails.
+
+Cancellation is raced across every async boundary rather than polled only between
+turns. The model iterator is closed (which closes native provider HTTP streams), tool
+and callback tasks are cancelled, and hooks are checked immediately before and after
+they run. Short synchronous filesystem operations cannot be interrupted halfway
+through; the checks on both sides prevent later work from starting. Bash additionally
+kills its whole process group when its tool coroutine is cancelled. Cancellation is a
+terminal outcome, never an operational error or retry: an aborted assistant message is
+persisted, unfinished tool calls are repaired with error results, and exactly one
+`RunEnded(aborted)` closes the operation.
 
 ### Two interception layers (deliberately separate — neither substitutes for the other)
 
@@ -162,6 +174,11 @@ rejected. A resume must carry the current approval event's `seq` and an exact an
 set, preventing a delayed or duplicated client request from resolving a different
 batch. Unlike Pi/Tau's in-process confirmation UI, this durable paused state is a
 Flow-specific server extension needed for disconnect/restart-safe approval.
+
+Flow currently has one active-run queue: steering. `/abort` sets the operation signal
+before clearing that queue, and `steer()` rejects additions after the signal is set.
+There is no separate follow-up queue; if one is added later it must follow the same
+explicit cancellation policy rather than leaking messages into the next run.
 
 `flowd serve` runs one application worker. The operation lock and JSONL append lock are
 in-process guarantees; multiple daemon processes must not share the same session

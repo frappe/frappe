@@ -102,7 +102,8 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 				)
 			_apply_overrides(store, session, req)
 			if session.state is SessionState.RUNNING:
-				session.steer(req.message)
+				if not session.steer(req.message):
+					raise HTTPException(status_code=409, detail="run is aborting")
 				return {"status": "steered"}
 			from_seq = session.log.latest_seq
 			task = session._start_operation(agent.run(session, req.message))
@@ -132,8 +133,11 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 	@app.post("/sessions/{sid}/abort")
 	async def abort(sid: str):
 		session = _get(sid)
-		session.abort.set()
-		return {"status": "aborting" if session.is_running else session.state}
+		async with session.operation_lock:
+			if not session.is_running:
+				return {"status": session.state}
+			session.request_abort()
+			return {"status": "aborting"}
 
 	@app.get("/sessions/{sid}/entries")
 	async def entries(sid: str, since: int = 0):

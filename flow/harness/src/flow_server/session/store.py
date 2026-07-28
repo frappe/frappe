@@ -140,9 +140,26 @@ class Session:
 		self.abort = asyncio.Event()
 		self.steer_queue: asyncio.Queue[str] = asyncio.Queue()
 
-	def steer(self, content: str) -> None:
-		"""Queue a message to inject into the running turn at the next boundary."""
+	def steer(self, content: str) -> bool:
+		"""Queue a message for the active turn, unless that turn is already aborting."""
+		if self.abort.is_set():
+			return False
 		self.steer_queue.put_nowait(content)
+		return True
+
+	def clear_steering(self) -> None:
+		"""Discard steering that has not yet become part of the durable transcript."""
+		while not self.steer_queue.empty():
+			self.steer_queue.get_nowait()
+
+	def request_abort(self) -> None:
+		"""Signal active work first, then discard its still-queued steering."""
+		self.abort.set()
+		self.clear_steering()
+
+	def reset_abort(self) -> None:
+		"""Allocate the cancellation signal for a newly admitted operation."""
+		self.abort = asyncio.Event()
 
 	# --- live pub/sub -----------------------------------------------------
 	def subscribe(self) -> asyncio.Queue:
@@ -197,6 +214,10 @@ class Session:
 		if self._state is SessionState.RUNNING:
 			coro.close()
 			raise RuntimeError("session already has an active operation")
+		# Allocate a signal per admitted operation. Besides preventing a late clear
+		# from losing an abort, this avoids reusing an asyncio.Event bound to an event
+		# loop from an earlier request (notably across sync ASGI test/client portals).
+		self.reset_abort()
 		self._state = SessionState.RUNNING
 		task = asyncio.create_task(self._run_operation(coro))
 		task.add_done_callback(_retrieve_task_exception)
