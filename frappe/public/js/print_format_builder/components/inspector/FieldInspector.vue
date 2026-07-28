@@ -39,19 +39,14 @@
 			{{ __("Edits here update the Letter Head document directly.") }}
 		</div>
 
-		<!-- Empty state -->
+		<!-- Nothing selected: canvas-wide print settings -->
 		<div
 			v-if="
 				!selected_field && !selected_section && !selected_letterhead && !selected_lh_footer
 			"
-			class="pfb-inspector-empty"
+			class="pfb-insp-body pfb-canvas-settings"
 		>
-			<span
-				class="text-muted"
-				style="margin-bottom: 8px"
-				v-html="frappe.utils.icon('text-cursor', 'md')"
-			></span>
-			<p class="text-muted">{{ __("Click a field to edit its properties") }}</p>
+			<PrintSettingsPanel />
 		</div>
 
 		<!-- ── Letter Head Footer inspector ──────────────────────── -->
@@ -90,6 +85,7 @@ import RepeaterFieldInspector from "./RepeaterFieldInspector.vue";
 import TableFieldInspector from "./TableFieldInspector.vue";
 import FieldPropertiesPanel from "./FieldPropertiesPanel.vue";
 import BulkPropertiesPanel from "./BulkPropertiesPanel.vue";
+import PrintSettingsPanel from "../PrintSettingsPanel.vue";
 
 let store = inject("$store");
 let { letterhead, layout, print_format } = useStore();
@@ -246,16 +242,9 @@ let field_is_inline = computed(() => parent_section.value?.field_orientation ===
 	white-space: nowrap;
 }
 
-/* ── Empty state ─────────────────────────────────────────── */
-.pfb-inspector-empty {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	padding: 24px;
-	text-align: center;
-	font-size: var(--text-sm);
+/* ── Canvas settings (nothing selected) ──────────────────── */
+.pfb-canvas-settings {
+	padding: 12px 14px;
 }
 
 /* ── Letter Head notice ──────────────────────────────────── */
