@@ -11,19 +11,52 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, TypeAdapter
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
 
 class ToolCall(BaseModel):
+	"""A tool invocation in the assistant's ordered content."""
+
+	model_config = ConfigDict(extra="forbid")
+
+	type: Literal["tool_call"] = "tool_call"
 	id: str
 	name: str
-	args: dict
+	arguments: dict
 	# Set when the model emitted unparseable arguments; the agent feeds this back so it can
 	# retry.
 	error: str | None = None
 
+	@property
+	def args(self) -> dict:
+		"""Compatibility view used by Flow's tool-dispatch API."""
+		return self.arguments
+
+
+class TextContent(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
+	type: Literal["text"] = "text"
+	text: str
+	text_signature: str | None = None
+
+
+class ThinkingContent(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
+	type: Literal["thinking"] = "thinking"
+	thinking: str
+	thinking_signature: str | None = None
+	redacted: bool = False
+
+
+AssistantContent = Annotated[TextContent | ThinkingContent | ToolCall, Field(discriminator="type")]
+StopReason = Literal["stop", "length", "tool_use", "error", "aborted"]
+
 
 class _Event(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
 	seq: int | None = None  # assigned by the log when persisted
 	durable: bool = Field(default=True, exclude=True)
 
@@ -42,14 +75,41 @@ class UserMessage(_Event):
 
 
 class AssistantMessage(_Event):
-	"""Final assembled assistant turn (text + any tool calls)."""
+	"""Final provider response ordered by content blocks."""
 
 	type: Literal["assistant_message"] = "assistant_message"
-	text: str = ""
-	tool_calls: list[ToolCall] = Field(default_factory=list)
-	# Opaque provider continuation state (for example encrypted Codex reasoning).
-	# Durable so a tool turn can continue after reconnect/restart.
-	provider_data: dict = Field(default_factory=dict)
+	content: list[AssistantContent] = Field(default_factory=list)
+	api: str = "unknown"
+	provider: str = "unknown"
+	model: str = "unknown"
+	response_model: str | None = None
+	response_id: str | None = None
+	stop_reason: StopReason = "stop"
+	error_message: str | None = None
+
+	@model_validator(mode="before")
+	@classmethod
+	def _normalize_content_string(cls, value: object) -> object:
+		"""Allow concise Python constructor while keeping one serialized shape."""
+		if not isinstance(value, dict):
+			return value
+		data = dict(value)
+		content = data.get("content")
+		if isinstance(content, str):
+			data["content"] = [TextContent(text=content)] if content else []
+		return data
+
+	@property
+	def text(self) -> str:
+		return "".join(block.text for block in self.content if isinstance(block, TextContent))
+
+	@property
+	def thinking_text(self) -> str:
+		return "".join(block.thinking for block in self.content if isinstance(block, ThinkingContent))
+
+	@property
+	def tool_calls(self) -> tuple[ToolCall, ...]:
+		return tuple(block for block in self.content if isinstance(block, ToolCall))
 
 
 class ToolResult(_Event):
@@ -60,6 +120,9 @@ class ToolResult(_Event):
 	is_error: bool = False
 	# structured render metadata (diff, truncation, exit code, ...); never sent to the model
 	details: dict = Field(default_factory=dict)
+
+
+TranscriptMessage = UserMessage | AssistantMessage | ToolResult
 
 
 class Usage(_Event):
@@ -86,7 +149,7 @@ class ApprovalRequired(_Event):
 
 class RunEnded(_Event):
 	type: Literal["run_ended"] = "run_ended"
-	reason: Literal["done", "max_turns", "budget", "aborted", "error", "paused"] = "done"
+	reason: Literal["done", "length", "max_turns", "budget", "aborted", "error", "paused"] = "done"
 
 
 class RunError(_Event):
@@ -129,5 +192,5 @@ _ADAPTER: TypeAdapter[AnyEvent] = TypeAdapter(Event)
 
 
 def parse_event(data: dict) -> AnyEvent:
-	"""Rebuild a typed event from a persisted/log dict."""
+	"""Validate and rebuild a typed event from its durable wire representation."""
 	return _ADAPTER.validate_python(data)

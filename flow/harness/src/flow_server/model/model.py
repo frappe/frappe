@@ -18,7 +18,20 @@ import json
 from collections.abc import AsyncIterator
 from typing import Any, cast
 
-from flow_server.events import AssistantMessage, TextDelta, ToolCall, ToolCallStarted, Usage, _Event
+from flow_server.events import (
+	AssistantMessage,
+	StopReason,
+	TextContent,
+	TextDelta,
+	ThinkingContent,
+	ToolCall,
+	ToolCallStarted,
+	ToolResult,
+	TranscriptMessage,
+	Usage,
+	UserMessage,
+	_Event,
+)
 
 
 class Model(abc.ABC):
@@ -27,12 +40,13 @@ class Model(abc.ABC):
 	@abc.abstractmethod
 	def run(
 		self,
-		messages: list[dict[str, Any]],
+		messages: list[TranscriptMessage],
 		tools: list[dict[str, Any]] | None = None,
 		*,
+		system_prompt: str = "You are a helpful assistant.",
 		stream: bool = True,
 	) -> AsyncIterator[_Event]:
-		"""Run one model turn over the OpenAI-format `messages`, yielding typed events.
+		"""Run one model turn over the provider-neutral transcript, yielding typed events.
 
 		Streaming: `TextDelta` per text chunk and one `ToolCallStarted` per tool call.
 		Always terminates with an `AssistantMessage` then a `Usage`."""
@@ -47,8 +61,14 @@ class LiteLLMModel(Model):
 		api_base: str | None = None,
 		headers: dict[str, str] | None = None,
 		params: dict[str, Any] | None = None,
+		api: str = "litellm",
+		provider: str | None = None,
+		model: str | None = None,
 	):
 		self.name = name
+		self.api = api
+		self.provider = provider or (name.split("/", 1)[0] if "/" in name else "litellm")
+		self.model = model or name
 		self._api_key = api_key
 		self._api_base = api_base
 		self._headers = headers or {}
@@ -56,14 +76,19 @@ class LiteLLMModel(Model):
 
 	async def run(
 		self,
-		messages: list[dict[str, Any]],
+		messages: list[TranscriptMessage],
 		tools: list[dict[str, Any]] | None = None,
 		*,
+		system_prompt: str = "You are a helpful assistant.",
 		stream: bool = True,
 	) -> AsyncIterator[_Event]:
 		import litellm
 
-		kwargs: dict[str, Any] = {"model": self.name, "messages": messages, **self._params}
+		kwargs: dict[str, Any] = {
+			"model": self.name,
+			"messages": _openai_messages(messages, self, system_prompt),
+			**self._params,
+		}
 		if self._api_key:
 			kwargs["api_key"] = self._api_key
 		if self._api_base:
@@ -77,9 +102,18 @@ class LiteLLMModel(Model):
 			response = await litellm.acompletion(**kwargs)
 			choice = (_attr(response, "choices") or [None])[0]
 			message = _attr(choice, "message")
+			content = _message_content(message)
 			yield AssistantMessage(
-				text=_attr(message, "content") or "",
-				tool_calls=_message_tool_calls(message),
+				content=content,
+				api=self.api,
+				provider=self.provider,
+				model=self.model,
+				response_model=_response_model(response, self.name),
+				response_id=_attr(response, "id"),
+				stop_reason=_stop_reason(
+					_attr(choice, "finish_reason"),
+					has_tools=any(isinstance(block, ToolCall) for block in content),
+				),
 			)
 			yield _usage_event(_attr(response, "usage"), _cost(response))
 			return
@@ -88,23 +122,49 @@ class LiteLLMModel(Model):
 		kwargs["stream_options"] = {"include_usage": True}
 		acc: dict[int, dict[str, str]] = {}
 		announced: set[int] = set()
-		parts: list[str] = []
+		ordered: list[TextContent | ThinkingContent | int] = []
+		ordered_tools: set[int] = set()
 		usage_obj: Any = None
 		cost = 0.0
+		finish_reason: str | None = None
+		response_id: str | None = None
+		response_model: str | None = None
 
 		# `stream=True` lives in kwargs, so litellm's overloads still resolve to the
 		# non-streaming ModelResponse; the runtime object is an async chunk iterator.
 		stream_iter = cast(AsyncIterator[Any], await litellm.acompletion(**kwargs))
 		async for chunk in stream_iter:
+			response_id = response_id or _attr(chunk, "id")
+			response_model = response_model or _response_model(chunk, self.name)
 			choices = _attr(chunk, "choices") or []
 			if choices:
-				delta = _attr(choices[0], "delta")
+				choice = choices[0]
+				delta = _attr(choice, "delta")
+				finish_reason = _attr(choice, "finish_reason") or finish_reason
+				reasoning, reasoning_signature = _reasoning(delta)
+				if reasoning:
+					if ordered and isinstance(ordered[-1], ThinkingContent):
+						ordered[-1].thinking += reasoning
+						ordered[-1].thinking_signature = ordered[-1].thinking_signature or reasoning_signature
+					else:
+						ordered.append(
+							ThinkingContent(
+								thinking=reasoning,
+								thinking_signature=reasoning_signature,
+							)
+						)
 				text = _attr(delta, "content")
 				if text:
-					parts.append(text)
+					if ordered and isinstance(ordered[-1], TextContent):
+						ordered[-1].text += text
+					else:
+						ordered.append(TextContent(text=text))
 					yield TextDelta(text=text)
 				for tc in _attr(delta, "tool_calls") or []:
 					index = _accumulate_tool_call(acc, tc)
+					if index not in ordered_tools:
+						ordered_tools.add(index)
+						ordered.append(index)
 					slot = acc[index]
 					if index not in announced and slot["id"] and slot["name"]:
 						announced.add(index)
@@ -116,7 +176,25 @@ class LiteLLMModel(Model):
 			if chunk_cost is not None:
 				cost = chunk_cost
 
-		yield AssistantMessage(text="".join(parts), tool_calls=_finalize_tool_calls(acc))
+		calls_by_index = _finalize_tool_call_map(acc)
+		content: list[TextContent | ThinkingContent | ToolCall] = []
+		for block in ordered:
+			if isinstance(block, int):
+				call = calls_by_index.get(block)
+				if call is not None:
+					content.append(call)
+			else:
+				content.append(block)
+		calls = list(calls_by_index.values())
+		yield AssistantMessage(
+			content=content,
+			api=self.api,
+			provider=self.provider,
+			model=self.model,
+			response_model=response_model,
+			response_id=response_id,
+			stop_reason=_stop_reason(finish_reason, has_tools=bool(calls)),
+		)
 		yield _usage_event(usage_obj, cost)
 
 
@@ -151,12 +229,16 @@ def _accumulate_tool_call(acc: dict[int, dict[str, str]], delta: Any) -> int:
 
 
 def _finalize_tool_calls(acc: dict[int, dict[str, str]]) -> list[ToolCall]:
-	calls: list[ToolCall] = []
+	return list(_finalize_tool_call_map(acc).values())
+
+
+def _finalize_tool_call_map(acc: dict[int, dict[str, str]]) -> dict[int, ToolCall]:
+	calls: dict[int, ToolCall] = {}
 	for index in sorted(acc):
 		slot = acc[index]
 		if not slot["id"] and not slot["name"]:
 			continue
-		calls.append(_build_tool_call(slot["id"], slot["name"], slot["arguments"]))
+		calls[index] = _build_tool_call(slot["id"], slot["name"], slot["arguments"])
 	return calls
 
 
@@ -174,21 +256,127 @@ def _message_tool_calls(message: Any) -> list[ToolCall]:
 	return calls
 
 
+def _message_content(message: Any) -> list[TextContent | ThinkingContent | ToolCall]:
+	content: list[TextContent | ThinkingContent | ToolCall] = []
+	reasoning, reasoning_signature = _reasoning(message)
+	if reasoning:
+		content.append(
+			ThinkingContent(
+				thinking=reasoning,
+				thinking_signature=reasoning_signature,
+			)
+		)
+	text = _attr(message, "content")
+	if isinstance(text, str) and text:
+		content.append(TextContent(text=text))
+	content.extend(_message_tool_calls(message))
+	return content
+
+
 def _build_tool_call(call_id: str, name: str, raw_args: str) -> ToolCall:
 	"""Parse a tool call's raw JSON arguments. Malformed arguments become a `ToolCall.error`
 	the agent feeds back to the model to retry, rather than an exception that fails the run."""
 	raw_args = raw_args or ""
 	if not raw_args:
-		return ToolCall(id=call_id, name=name, args={})
+		return ToolCall(id=call_id, name=name, arguments={})
 	try:
 		parsed = json.loads(raw_args)
-	except (TypeError, ValueError):
+	except TypeError, ValueError:
 		msg = f"Invalid JSON in arguments for {name!r}; resend the call with valid JSON."
-		return ToolCall(id=call_id, name=name, args={}, error=msg)
+		return ToolCall(id=call_id, name=name, arguments={}, error=msg)
 	if not isinstance(parsed, dict):
 		msg = f"Arguments for {name!r} must be a JSON object."
-		return ToolCall(id=call_id, name=name, args={}, error=msg)
-	return ToolCall(id=call_id, name=name, args=parsed)
+		return ToolCall(id=call_id, name=name, arguments={}, error=msg)
+	return ToolCall(id=call_id, name=name, arguments=parsed)
+
+
+def _openai_messages(
+	messages: list[TranscriptMessage],
+	model: LiteLLMModel,
+	system_prompt: str,
+) -> list[dict[str, Any]]:
+	"""Translate canonical transcript messages at the provider boundary."""
+	out: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
+	for message in messages:
+		if isinstance(message, UserMessage):
+			out.append({"role": "user", "content": message.content})
+		elif isinstance(message, AssistantMessage):
+			if message.stop_reason in {"error", "aborted"}:
+				continue
+			same_model = (
+				message.api == model.api
+				and message.provider == model.provider
+				and message.model == model.model
+			)
+			text_parts: list[str] = []
+			reasoning_parts: list[str] = []
+			for block in message.content:
+				if isinstance(block, TextContent):
+					text_parts.append(block.text)
+				elif isinstance(block, ThinkingContent) and block.thinking and not block.redacted:
+					# deliberately degrades cross-model thinking to ordinary text.
+					if not same_model:
+						text_parts.append(block.thinking)
+					else:
+						reasoning_parts.append(block.thinking)
+			assistant: dict[str, Any] = {
+				"role": "assistant",
+				"content": "".join(text_parts) or None,
+			}
+			if message.tool_calls:
+				assistant["tool_calls"] = [
+					{
+						"id": call.id,
+						"type": "function",
+						"function": {
+							"name": call.name,
+							"arguments": json.dumps(call.arguments),
+						},
+					}
+					for call in message.tool_calls
+				]
+			if reasoning_parts:
+				assistant["reasoning_content"] = "".join(reasoning_parts)
+			out.append(assistant)
+		elif isinstance(message, ToolResult):
+			out.append(
+				{
+					"role": "tool",
+					"tool_call_id": message.tool_call_id,
+					"content": message.content,
+				}
+			)
+	return out
+
+
+def _reasoning(value: Any) -> tuple[str, str | None]:
+	for key in ("reasoning_content", "reasoning"):
+		reasoning = _attr(value, key)
+		if isinstance(reasoning, str):
+			return reasoning, None
+		if isinstance(reasoning, dict):
+			text = reasoning.get("content") or reasoning.get("text")
+			if isinstance(text, str):
+				signature = reasoning.get("signature")
+				return text, signature if isinstance(signature, str) else None
+	return "", None
+
+
+def _response_model(value: Any, requested: str) -> str | None:
+	actual = _attr(value, "model")
+	return actual if isinstance(actual, str) and actual != requested else None
+
+
+def _stop_reason(value: str | None, *, has_tools: bool = False) -> StopReason:
+	if has_tools or value in {"tool_calls", "tool_use"}:
+		return "tool_use"
+	if value in {"length", "max_tokens", "MAX_TOKENS", "incomplete"}:
+		return "length"
+	if value in {"abort", "aborted", "cancelled", "canceled"}:
+		return "aborted"
+	if value in {"error", "content_filter", "network_error"}:
+		return "error"
+	return "stop"
 
 
 def _usage_event(usage_obj: Any, cost: float) -> Usage:

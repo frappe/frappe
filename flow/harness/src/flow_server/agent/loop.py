@@ -63,7 +63,7 @@ class HookDecision:
 # before(call, ctx) -> HookDecision | None (sync or async); after(call, result) -> str | None
 BeforeHook = Callable[[ToolCall, ToolContext], Any]
 AfterHook = Callable[[ToolCall, ToolResult], Any]
-RunReason = Literal["done", "max_turns", "budget", "aborted", "error", "paused"]
+RunReason = Literal["done", "length", "max_turns", "budget", "aborted", "error", "paused"]
 
 
 class ResumeError(ValueError):
@@ -112,7 +112,7 @@ async def resume(
 		denied = False
 		for call in pending:
 			answer = answers[call.id]
-			tc = ToolCall(id=call.id, name=call.name, args=call.args)
+			tc = ToolCall(id=call.id, name=call.name, arguments=call.args)
 			if answer == "Approve":
 				result = await _run_one_tool(session, tc, server_tools, ctx, after_tool_call)
 			elif answer == "Deny":
@@ -199,12 +199,16 @@ async def _loop(
 		assistant, used = await _model_call(session, model, tool_schemas)
 		if assistant is None:
 			raise RuntimeError("model stream ended without an assistant message")
-		session.messages.append(_assistant_msg(assistant))
+		session.messages.append(assistant)
 		output_tokens += used
+		if assistant.stop_reason == "error":
+			raise RuntimeError(assistant.error_message or "model response failed")
+		if assistant.stop_reason == "aborted":
+			return "aborted"
 		if not assistant.tool_calls:
 			if _drain_steering(session):
 				continue
-			return "done"
+			return "length" if assistant.stop_reason == "length" else "done"
 
 		pending: list[PendingCall] = []
 		for tc in assistant.tool_calls:
@@ -243,7 +247,7 @@ async def _handle_call(
 			_emit_result(session, _result(tc, decision.result, is_error=decision.is_error))
 			return
 		if decision is not None and decision.args is not None:
-			tc = tc.model_copy(update={"args": decision.args})
+			tc = tc.model_copy(update={"arguments": decision.args})
 
 	if _needs_confirm(session.config, tc.name, server_tools):
 		prompt = await _confirm_prompt(session, tc, server_tools)
@@ -257,10 +261,14 @@ async def _model_call(
 	session: Session, model: Model, tool_schemas: list[dict]
 ) -> tuple[AssistantMessage | None, int]:
 	cfg = session.config
-	messages = [{"role": "system", "content": cfg.system_prompt}, *session.messages]
 	assistant: AssistantMessage | None = None
 	output_tokens = 0
-	async for ev in model.run(messages, tool_schemas, stream=cfg.stream):
+	async for ev in model.run(
+		session.messages,
+		tool_schemas,
+		system_prompt=cfg.system_prompt,
+		stream=cfg.stream,
+	):
 		if isinstance(ev, AssistantMessage):
 			assistant = ev
 		elif isinstance(ev, Usage):
@@ -420,12 +428,13 @@ def validate_resume(
 
 def _emit_result(session: Session, result: ToolResult) -> None:
 	session.publish(result)
-	session.messages.append(_tool_msg(result))
+	session.messages.append(result)
 
 
 def _add_user(session: Session, content: str) -> None:
-	session.publish(UserMessage(content=content))
-	session.messages.append({"role": "user", "content": content})
+	message = UserMessage(content=content)
+	session.publish(message)
+	session.messages.append(message)
 
 
 def _drain_steering(session: Session) -> bool:
@@ -434,26 +443,6 @@ def _drain_steering(session: Session) -> bool:
 		_add_user(session, session.steer_queue.get_nowait())
 		drained = True
 	return drained
-
-
-def _assistant_msg(msg: AssistantMessage) -> dict:
-	out: dict = {"role": "assistant", "content": msg.text or None}
-	if msg.provider_data:
-		out["provider_data"] = msg.provider_data
-	if msg.tool_calls:
-		out["tool_calls"] = [
-			{
-				"id": tc.id,
-				"type": "function",
-				"function": {"name": tc.name, "arguments": json.dumps(tc.args)},
-			}
-			for tc in msg.tool_calls
-		]
-	return out
-
-
-def _tool_msg(result: ToolResult) -> dict:
-	return {"role": "tool", "tool_call_id": result.tool_call_id, "content": result.content}
 
 
 async def _maybe_await(value: Any) -> Any:

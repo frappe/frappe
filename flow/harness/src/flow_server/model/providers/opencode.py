@@ -39,6 +39,8 @@ def opencode_go_model(
 			api_base=_anthropic_base(base),
 			headers=headers,
 			params=params,
+			provider=PREFIX,
+			model=name,
 		)
 	return LiteLLMModel(
 		f"openai/{model_id}",
@@ -46,6 +48,8 @@ def opencode_go_model(
 		api_base=base,
 		headers=headers,
 		params=params,
+		provider=PREFIX,
+		model=name,
 	)
 
 

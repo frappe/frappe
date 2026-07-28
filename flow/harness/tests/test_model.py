@@ -1,6 +1,6 @@
 import pytest
 
-from flow_server.events import AssistantMessage, ToolCall
+from flow_server.events import AssistantMessage, TextContent, ThinkingContent, ToolCall, UserMessage
 from flow_server.model import (
 	_REGISTRY,
 	LiteLLMModel,
@@ -8,7 +8,7 @@ from flow_server.model import (
 	get_model,
 	register_provider,
 )
-from flow_server.model.model import _build_tool_call
+from flow_server.model.model import _build_tool_call, _openai_messages, _reasoning
 
 
 async def _collect(gen):
@@ -16,7 +16,7 @@ async def _collect(gen):
 
 
 async def test_mock_streaming_sequence():
-	events = await _collect(MockModel().run([{"role": "user", "content": "hi there"}]))
+	events = await _collect(MockModel().run([UserMessage(content="hi there")]))
 	types = [e.type for e in events]
 	assert types[-2:] == ["assistant_message", "usage"]
 	assert all(t == "text_delta" for t in types[:-2])
@@ -28,20 +28,20 @@ async def test_mock_streaming_sequence():
 
 
 async def test_mock_non_streaming_has_no_deltas():
-	events = await _collect(MockModel().run([{"role": "user", "content": "hi"}], stream=False))
+	events = await _collect(MockModel().run([UserMessage(content="hi")], stream=False))
 	assert [e.type for e in events] == ["assistant_message", "usage"]
 
 
 async def test_mock_scripted_replies_multi_turn():
-	call = ToolCall(id="c1", name="bash", args={"command": "ls"})
-	model = MockModel(replies=[AssistantMessage(text="", tool_calls=[call]), AssistantMessage(text="done")])
+	call = ToolCall(id="c1", name="bash", arguments={"command": "ls"})
+	model = MockModel(replies=[AssistantMessage(content=[call]), AssistantMessage(content="done")])
 
-	first = await _collect(model.run([{"role": "user", "content": "go"}]))
+	first = await _collect(model.run([UserMessage(content="go")]))
 	assert [e.type for e in first] == ["tool_call_started", "assistant_message", "usage"]
 	assert first[0].id == "c1" and first[0].name == "bash"
 	assert first[1].tool_calls[0].args == {"command": "ls"}
 
-	second = await _collect(model.run([{"role": "user", "content": "go"}]))
+	second = await _collect(model.run([UserMessage(content="go")]))
 	assert second[-2].text == "done"
 
 
@@ -125,3 +125,48 @@ def test_build_tool_call_non_object():
 	tc = _build_tool_call("c1", "bash", "[1, 2, 3]")
 	assert tc.args == {}
 	assert tc.error is not None
+
+
+def test_litellm_replays_reasoning_only_to_the_same_model():
+	source = AssistantMessage(
+		content=[
+			ThinkingContent(thinking="plan", thinking_signature="opaque"),
+			TextContent(text="answer"),
+		],
+		api="litellm",
+		provider="anthropic",
+		model="anthropic/claude",
+	)
+	same = LiteLLMModel("anthropic/claude")
+	different = LiteLLMModel("anthropic/claude-new")
+
+	same_wire = _openai_messages([source], same, "system")[1]
+	different_wire = _openai_messages([source], different, "system")[1]
+
+	assert same_wire["reasoning_content"] == "plan"
+	assert same_wire["content"] == "answer"
+	assert "reasoning_content" not in different_wire
+	assert different_wire["content"] == "plananswer"
+
+
+def test_litellm_only_persists_actual_reasoning_signatures():
+	assert _reasoning({"reasoning_content": "plan"}) == ("plan", None)
+	assert _reasoning({"reasoning": {"content": "plan", "signature": "opaque"}}) == (
+		"plan",
+		"opaque",
+	)
+
+
+def test_litellm_does_not_replay_failed_assistant_response():
+	failed = AssistantMessage(
+		content="partial",
+		api="litellm",
+		provider="openai",
+		model="openai/gpt",
+		stop_reason="error",
+		error_message="network failed",
+	)
+
+	assert _openai_messages([failed], LiteLLMModel("openai/gpt"), "system") == [
+		{"role": "system", "content": "system"}
+	]
