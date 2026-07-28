@@ -26,11 +26,11 @@ Every interaction is a typed event. Two families:
 |---|---|---|
 | `RunStarted` | ✓ | a turn began (`run_id`) |
 | `UserMessage` | ✓ | user input added to the transcript |
-| `AssistantMessage` | ✓ | assembled turn (`text`, tool calls, provider continuation data) |
+| `AssistantMessage` | ✓ | ordered text/thinking/tool-call blocks, provider identity, and model stop reason |
 | `ToolResult` | ✓ | a tool's outcome (`content` seen by the model; `details` for rendering; `is_error`) |
 | `Usage` | ✓ | token/cost accounting for a turn |
 | `ApprovalRequired` | ✓ | the run paused; `calls` = `PendingCall`s awaiting a decision |
-| `RunEnded` | ✓ | terminal; `reason` ∈ done/max_turns/budget/aborted/error/paused |
+| `RunEnded` | ✓ | terminal; `reason` ∈ done/length/max_turns/budget/aborted/error/paused |
 | `RunError` | ✓ | a run-level failure message |
 | `TextDelta` | — | a streamed text chunk |
 | `ToolCallStarted` | — | a tool call's name became known mid-stream |
@@ -38,6 +38,14 @@ Every interaction is a typed event. Two families:
 `content` on a `ToolResult` is what the model sees; `details` (diff, truncation,
 exit code, …) rides the durable stream for rich rendering but is **never** sent to the
 model.
+
+An `AssistantMessage.content` list preserves provider order. Its blocks are
+`text` (`text`, optional `text_signature`), `thinking` (`thinking`, optional
+`thinking_signature`, `redacted`), or `tool_call` (`id`, `name`, `arguments`). The
+message also records `api`, `provider`, `model`,
+`response_model`, `response_id`, and `stop_reason` (`stop`, `length`, `tool_use`,
+`error`, or `aborted`). `text`, `thinking_text`, and `tool_calls` remain Python
+convenience properties; they are not second persisted representations.
 
 ## The durable log (`session/log.py`)
 
@@ -73,9 +81,19 @@ pending work, not interrupted work.
 
 ## The model layer (`model/`)
 
-`Model.run(messages, tools, *, stream)` is an **async generator**: streaming yields
-`TextDelta` + `ToolCallStarted`, and every turn ends with a terminal `AssistantMessage`
-then a `Usage`. The loop consumes exactly this, whatever the provider underneath.
+`Model.run(messages, tools, *, system_prompt, stream)` is an **async generator** over
+the provider-neutral typed transcript: streaming yields `TextDelta` +
+`ToolCallStarted`, and every turn ends with a terminal `AssistantMessage` then a
+`Usage`. Each adapter converts the canonical transcript to its provider wire format at
+the boundary.
+
+Opaque reasoning signatures are replayed only when `api`, `provider`, and requested
+`model` all match. On a model change, non-redacted visible thinking degrades to plain
+text and opaque/redacted state is dropped. This follows Pi's cross-model safety rule;
+it is intentionally stricter than blindly forwarding a provider blob.
+`thinking_signature` contains only opaque provider continuation data, never the name of
+a provider wire field. Codex text signatures encode versioned output-item identity and
+an optional response phase.
 
 Before model construction, `resolve_model_auth()` selects a stored provider credential,
 falling back to the provider's standard environment variable. `get_model(name)` then

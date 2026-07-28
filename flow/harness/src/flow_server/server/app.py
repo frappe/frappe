@@ -21,6 +21,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict
 
 from flow_server import agent
+from flow_server.events import AssistantMessage, parse_event
 from flow_server.session.store import (
 	Session,
 	SessionConfig,
@@ -192,7 +193,9 @@ def _summary(session: Session, from_seq: int) -> dict:
 	for row in session.log.read_since(from_seq):
 		t = row["type"]
 		if t == "assistant_message":
-			text = row.get("text") or text
+			message = parse_event(row)
+			assert isinstance(message, AssistantMessage)
+			text = message.text or text
 		elif t == "usage":
 			input_tokens += row.get("input_tokens", 0)
 			output_tokens += row.get("output_tokens", 0)
@@ -226,7 +229,7 @@ async def _stream_events(session: Session, since: int) -> AsyncIterator[bytes]:
 				if not session.is_running:
 					break
 				continue
-			data = ev.model_dump()
+			data = ev.model_dump(exclude_none=True)
 			seq = data.get("seq")
 			if seq is not None:
 				if seq <= max_seq:  # already replayed

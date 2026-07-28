@@ -18,23 +18,24 @@ def _of(events, t):
 
 
 def _read_call(cid="c1", path="a.txt"):
-	return AssistantMessage(tool_calls=[ToolCall(id=cid, name="read_file", args={"path": path})])
+	return AssistantMessage(content=[ToolCall(id=cid, name="read_file", arguments={"path": path})])
 
 
 async def test_full_turn_no_tools(tmp_path):
 	session, events = _session(tmp_path)
-	await run(session, "hi", model=MockModel(replies=[AssistantMessage(text="hello there")]))
+	await run(session, "hi", model=MockModel(replies=[AssistantMessage(content="hello there")]))
 	types = [e["type"] for e in events]
 	assert "run_started" in types and "user_message" in types
-	assert _of(events, "assistant_message")[0]["text"] == "hello there"
+	assert _of(events, "assistant_message")[0]["content"][0]["text"] == "hello there"
 	assert _of(events, "run_ended")[0]["reason"] == "done"
-	assert session.messages[0] == {"role": "user", "content": "hi"}
+	assert session.messages[0].type == "user_message"
+	assert session.messages[0].content == "hi"
 
 
 async def test_tool_call_runs_and_completes(tmp_path):
 	(tmp_path / "a.txt").write_text("FILE-A")
 	session, events = _session(tmp_path)
-	mock = MockModel(replies=[_read_call(), AssistantMessage(text="done")])
+	mock = MockModel(replies=[_read_call(), AssistantMessage(content="done")])
 	await run(session, "read it", model=mock)
 	tr = _of(events, "tool_result")
 	assert len(tr) == 1
@@ -57,7 +58,7 @@ async def test_agent_propagates_allowed_roots_to_path_tools(tmp_path):
 	mock = MockModel(
 		replies=[
 			_read_call(path="../secret.txt"),
-			AssistantMessage(text="done"),
+			AssistantMessage(content="done"),
 		]
 	)
 
@@ -73,7 +74,7 @@ async def test_before_hook_rewrites_args(tmp_path):
 	(tmp_path / "a.txt").write_text("AAA")
 	(tmp_path / "b.txt").write_text("BBB")
 	session, events = _session(tmp_path)
-	mock = MockModel(replies=[_read_call(path="a.txt"), AssistantMessage(text="ok")])
+	mock = MockModel(replies=[_read_call(path="a.txt"), AssistantMessage(content="ok")])
 
 	def before(tc, ctx):
 		return HookDecision(args={"path": "b.txt"}) if tc.name == "read_file" else None
@@ -85,7 +86,7 @@ async def test_before_hook_rewrites_args(tmp_path):
 async def test_before_hook_blocks(tmp_path):
 	(tmp_path / "a.txt").write_text("AAA")
 	session, events = _session(tmp_path)
-	mock = MockModel(replies=[_read_call(), AssistantMessage(text="ok")])
+	mock = MockModel(replies=[_read_call(), AssistantMessage(content="ok")])
 
 	def before(tc, ctx):
 		return HookDecision(result="[blocked by policy]", is_error=True)
@@ -99,7 +100,7 @@ async def test_before_hook_blocks(tmp_path):
 async def test_after_hook_rewrites_result(tmp_path):
 	(tmp_path / "a.txt").write_text("sensitive-token-123")
 	session, events = _session(tmp_path)
-	mock = MockModel(replies=[_read_call(), AssistantMessage(text="ok")])
+	mock = MockModel(replies=[_read_call(), AssistantMessage(content="ok")])
 
 	def after(tc, result):
 		return "[redacted]" if "sensitive" in result.content else None
@@ -111,7 +112,7 @@ async def test_after_hook_rewrites_result(tmp_path):
 async def test_pause_and_resume(tmp_path):
 	(tmp_path / "a.txt").write_text("SECRET")
 	session, events = _session(tmp_path, confirm_tools=["read_file"])
-	mock = MockModel(replies=[_read_call(), AssistantMessage(text="all done")])
+	mock = MockModel(replies=[_read_call(), AssistantMessage(content="all done")])
 
 	await run(session, "read", model=mock)
 	approvals = _of(events, "approval_required")
@@ -128,7 +129,7 @@ async def test_pause_and_resume(tmp_path):
 async def test_resume_deny_stops_run(tmp_path):
 	(tmp_path / "a.txt").write_text("SECRET")
 	session, events = _session(tmp_path, confirm_tools=["read_file"])
-	mock = MockModel(replies=[_read_call(), AssistantMessage(text="unreached")])
+	mock = MockModel(replies=[_read_call(), AssistantMessage(content="unreached")])
 
 	await run(session, "read", model=mock)
 	await resume(session, {"c1": "Deny"}, model=mock)
@@ -145,9 +146,9 @@ async def test_resume_rejects_non_exact_answers_without_mutating_log(tmp_path):
 	mock = MockModel(
 		replies=[
 			AssistantMessage(
-				tool_calls=[
-					ToolCall(id="c1", name="read_file", args={"path": "a.txt"}),
-					ToolCall(id="c2", name="read_file", args={"path": "a.txt"}),
+				content=[
+					ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"}),
+					ToolCall(id="c2", name="read_file", arguments={"path": "a.txt"}),
 				]
 			)
 		]
@@ -179,10 +180,20 @@ async def test_resume_rejects_non_exact_answers_without_mutating_log(tmp_path):
 
 async def test_non_streaming_run(tmp_path):
 	session, events = _session(tmp_path, stream=False)
-	await run(session, "hi", model=MockModel(replies=[AssistantMessage(text="hi there friend")]))
+	await run(session, "hi", model=MockModel(replies=[AssistantMessage(content="hi there friend")]))
 	assert _of(events, "text_delta") == []  # no live deltas in non-streaming mode
-	assert _of(events, "assistant_message")[0]["text"] == "hi there friend"
+	assert _of(events, "assistant_message")[0]["content"][0]["text"] == "hi there friend"
 	assert _of(events, "run_ended")[0]["reason"] == "done"
+
+
+async def test_length_stop_is_not_reported_as_done(tmp_path):
+	session, events = _session(tmp_path)
+	reply = AssistantMessage(content="partial", stop_reason="length")
+
+	await run(session, "hi", model=MockModel(replies=[reply]))
+
+	assert _of(events, "assistant_message")[0]["stop_reason"] == "length"
+	assert _of(events, "run_ended")[0]["reason"] == "length"
 
 
 async def test_max_turns_cap(tmp_path):
@@ -213,9 +224,9 @@ async def test_hook_failure_repairs_all_unreturned_tool_calls(tmp_path):
 	mock = MockModel(
 		replies=[
 			AssistantMessage(
-				tool_calls=[
-					ToolCall(id="c1", name="read_file", args={"path": "a.txt"}),
-					ToolCall(id="c2", name="read_file", args={"path": "b.txt"}),
+				content=[
+					ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"}),
+					ToolCall(id="c2", name="read_file", arguments={"path": "b.txt"}),
 				]
 			)
 		]
@@ -232,11 +243,11 @@ async def test_hook_failure_repairs_all_unreturned_tool_calls(tmp_path):
 	assert all(result["details"]["transcript_repair"]["reason"] == "interrupted" for result in results)
 	assert _of(events, "run_error")[0]["message"] == "RuntimeError: hook failed"
 	assert [event["reason"] for event in _of(events, "run_ended")] == ["error"]
-	assert [message["role"] for message in session.messages] == [
-		"user",
-		"assistant",
-		"tool",
-		"tool",
+	assert [message.type for message in session.messages] == [
+		"user_message",
+		"assistant_message",
+		"tool_result",
+		"tool_result",
 	]
 	latest_seq = session.log.latest_seq
 	reloaded = SessionStore(str(tmp_path)).get(session.id)
@@ -247,7 +258,7 @@ async def test_model_stream_failure_repairs_persisted_assistant_calls(tmp_path, 
 	session, events = _session(tmp_path)
 	mock = MockModel()
 
-	async def fail_after_assistant(messages, tools, *, stream=True):
+	async def fail_after_assistant(messages, tools, *, system_prompt="", stream=True):
 		yield _read_call()
 		raise RuntimeError("stream failed")
 
@@ -257,10 +268,10 @@ async def test_model_stream_failure_repairs_persisted_assistant_calls(tmp_path, 
 	assert [result["tool_call_id"] for result in _of(events, "tool_result")] == ["c1"]
 	assert _of(events, "run_error")[0]["message"] == "RuntimeError: stream failed"
 	assert [event["reason"] for event in _of(events, "run_ended")] == ["error"]
-	assert [message["role"] for message in session.messages] == [
-		"user",
-		"assistant",
-		"tool",
+	assert [message.type for message in session.messages] == [
+		"user_message",
+		"assistant_message",
+		"tool_result",
 	]
 
 
@@ -268,7 +279,7 @@ async def test_model_stream_without_assistant_emits_terminal_error(tmp_path, mon
 	session, events = _session(tmp_path)
 	mock = MockModel()
 
-	async def empty_stream(messages, tools, *, stream=True):
+	async def empty_stream(messages, tools, *, system_prompt="", stream=True):
 		if False:
 			yield
 

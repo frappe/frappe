@@ -7,7 +7,7 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from flow_server.events import AssistantMessage, ToolCall, Usage, _Event
+from flow_server.events import AssistantMessage, ToolCall, TranscriptMessage, Usage, _Event
 from flow_server.model import Model
 from flow_server.model.credentials import CredentialStore
 from flow_server.model.mock import MockModel
@@ -173,12 +173,12 @@ def test_paused_run_requires_exact_current_approval_batch(tmp_path, monkeypatch)
 	mock = MockModel(
 		replies=[
 			AssistantMessage(
-				tool_calls=[
-					ToolCall(id="c1", name="read_file", args={"path": "a.txt"}),
-					ToolCall(id="c2", name="read_file", args={"path": "a.txt"}),
+				content=[
+					ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"}),
+					ToolCall(id="c2", name="read_file", arguments={"path": "a.txt"}),
 				]
 			),
-			AssistantMessage(text="done"),
+			AssistantMessage(content="done"),
 		]
 	)
 	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: mock)
@@ -240,7 +240,7 @@ def test_paused_run_requires_exact_current_approval_batch(tmp_path, monkeypatch)
 
 def test_paused_state_and_approval_survive_store_reload(tmp_path, monkeypatch):
 	mock = MockModel(
-		replies=[AssistantMessage(tool_calls=[ToolCall(id="c1", name="read_file", args={"path": "a.txt"})])]
+		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})])]
 	)
 	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: mock)
 	data_dir = tmp_path / "data"
@@ -277,16 +277,17 @@ class _BlockingModel(Model):
 
 	async def run(
 		self,
-		messages: list[dict[str, Any]],
+		messages: list[TranscriptMessage],
 		tools: list[dict[str, Any]] | None = None,
 		*,
+		system_prompt: str = "",
 		stream: bool = True,
 	) -> AsyncIterator[_Event]:
-		del messages, tools, stream
+		del messages, tools, system_prompt, stream
 		self.call_count += 1
 		self.started.set()
 		await self.release.wait()
-		yield AssistantMessage(text="done")
+		yield AssistantMessage(content="done")
 		yield Usage()
 
 
@@ -300,20 +301,21 @@ class _ResumeBlockingModel(Model):
 
 	async def run(
 		self,
-		messages: list[dict[str, Any]],
+		messages: list[TranscriptMessage],
 		tools: list[dict[str, Any]] | None = None,
 		*,
+		system_prompt: str = "",
 		stream: bool = True,
 	) -> AsyncIterator[_Event]:
-		del messages, tools, stream
+		del messages, tools, system_prompt, stream
 		self.call_count += 1
 		if self.call_count == 1:
-			yield AssistantMessage(tool_calls=[ToolCall(id="c1", name="read_file", args={"path": "a.txt"})])
+			yield AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})])
 			yield Usage()
 			return
 		self.started.set()
 		await self.release.wait()
-		yield AssistantMessage(text="done")
+		yield AssistantMessage(content="done")
 		yield Usage()
 
 

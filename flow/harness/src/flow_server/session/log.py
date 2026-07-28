@@ -37,7 +37,7 @@ class SessionLog:
 				raise ValueError("live-only events cannot be appended to the session log")
 			next_seq = self._seq + 1
 			persisted = event.model_copy(update={"seq": next_seq})
-			data = (persisted.model_dump_json() + "\n").encode()
+			data = (persisted.model_dump_json(exclude_none=True) + "\n").encode()
 			os.makedirs(os.path.dirname(self.path), mode=0o700, exist_ok=True)
 			fd = os.open(self.path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
 			try:
@@ -89,7 +89,8 @@ def _read_rows(path: str) -> list[dict]:
 				raise _invalid_row(path, line_number, "is not a valid event") from exc
 			if not event.durable:
 				raise _invalid_row(path, line_number, "contains a live-only event")
-			rows.append(entry)
+			# Return the validated canonical wire shape used by replay and the API.
+			rows.append(event.model_dump(exclude_none=True))
 			previous_seq = seq
 	return rows
 

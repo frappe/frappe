@@ -92,7 +92,8 @@ this endpoint and are resolved inside flow_server.
 - `?wait=true`: blocks until the registered run ends →
   `{"reason", "output", "usage", "pending", "approval_seq"}` (`output` = final
   assistant text; `pending` and `approval_seq` identify the approval batch if
-  `reason=="paused"`).
+  `reason=="paused"`). A model token-limit stop returns `reason=="length"` rather than
+  being reported as a completed answer.
 - `409` if the session is paused; resolve that batch through `/resume` before starting
   another run.
 
@@ -116,6 +117,11 @@ The durable log from the cursor →
 Server-Sent Events. Replays durable entries with `seq > since`, then streams live events
 until `run_ended`. Each line: `data: {<event json>}\n\n`. Reconnect after a drop by
 passing `since=<last seq you saw>`.
+
+Durable `assistant_message` entries contain an ordered `content` array of `text`,
+`thinking`, and `tool_call` blocks plus `api`, `provider`, `model`, optional upstream
+response identity, and `stop_reason`. Tool-call input is named `arguments` inside that
+array.
 
 ### Example client
 

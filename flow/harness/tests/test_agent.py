@@ -8,7 +8,7 @@ from flow_server.model.mock import MockModel
 
 
 async def test_run_streams_a_full_turn(tmp_path):
-	mock = MockModel(replies=[AssistantMessage(text="hello world")])
+	mock = MockModel(replies=[AssistantMessage(content="hello world")])
 	agent = Agent(model=mock, data_dir=str(tmp_path), cwd=str(tmp_path))
 	types = [ev.type async for ev in agent.run("hi")]
 	assert types[0] == "run_started"
@@ -18,8 +18,8 @@ async def test_run_streams_a_full_turn(tmp_path):
 
 async def test_run_then_resume_across_pause(tmp_path):
 	(tmp_path / "a.txt").write_text("SECRET")
-	call = ToolCall(id="c1", name="read_file", args={"path": "a.txt"})
-	mock = MockModel(replies=[AssistantMessage(tool_calls=[call]), AssistantMessage(text="done")])
+	call = ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})
+	mock = MockModel(replies=[AssistantMessage(content=[call]), AssistantMessage(content="done")])
 	agent = Agent(model=mock, data_dir=str(tmp_path), cwd=str(tmp_path), confirm_tools=["read_file"])
 
 	pending = None
@@ -37,7 +37,7 @@ async def test_run_then_resume_across_pause(tmp_path):
 
 async def test_event_iterator_does_not_hang_if_terminal_publish_fails(tmp_path, monkeypatch):
 	agent = Agent(
-		model=MockModel(replies=[AssistantMessage(text="done")]),
+		model=MockModel(replies=[AssistantMessage(content="done")]),
 		data_dir=str(tmp_path),
 		cwd=str(tmp_path),
 	)

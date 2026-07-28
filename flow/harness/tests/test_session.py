@@ -9,7 +9,9 @@ from flow_server.events import (
 	AssistantMessage,
 	PendingCall,
 	RunEnded,
+	TextContent,
 	TextDelta,
+	ThinkingContent,
 	ToolCall,
 	ToolResult,
 	UserMessage,
@@ -32,7 +34,7 @@ def test_session_config_includes_all_builtin_tools_by_default():
 def test_log_seq_and_replay(tmp_path):
 	log = SessionLog(str(tmp_path / "s.jsonl"))
 	assert log.append(UserMessage(content="hi")) == 1
-	assert log.append(AssistantMessage(text="hello")) == 2
+	assert log.append(AssistantMessage(content="hello")) == 2
 	assert log.latest_seq == 2
 
 	all_rows = log.read_since(0)
@@ -66,6 +68,14 @@ def test_log_rejects_partial_final_line_with_location(tmp_path):
 def test_log_rejects_invalid_event_with_location(tmp_path):
 	path = tmp_path / "s.jsonl"
 	path.write_text(json.dumps({"seq": 1, "type": "unknown"}) + "\n")
+
+	with pytest.raises(SessionLogError, match=r"line 1 is not a valid event"):
+		SessionLog(str(path))
+
+
+def test_log_rejects_pre_release_assistant_shape(tmp_path):
+	path = tmp_path / "s.jsonl"
+	path.write_text(json.dumps({"seq": 1, "type": "assistant_message", "text": "old shape"}) + "\n")
 
 	with pytest.raises(SessionLogError, match=r"line 1 is not a valid event"):
 		SessionLog(str(path))
@@ -132,22 +142,62 @@ def test_log_rejects_direct_append_of_live_only_event(tmp_path):
 def test_rebuild_messages_roundtrip(tmp_path):
 	log = SessionLog(str(tmp_path / "s.jsonl"))
 	log.append(UserMessage(content="do it"))
-	call = ToolCall(id="c1", name="bash", args={"command": "ls"})
+	reasoning = {"type": "reasoning", "id": "r1", "encrypted_content": "opaque"}
+	call = ToolCall(id="c1", name="bash", arguments={"command": "ls"})
 	log.append(
 		AssistantMessage(
-			text="",
-			tool_calls=[call],
-			provider_data={"codex_reasoning": [{"type": "reasoning", "id": "r1"}]},
+			content=[
+				ThinkingContent(thinking="", thinking_signature=json.dumps(reasoning)),
+				TextContent(text="working"),
+				call,
+			],
+			api="openai-codex-responses",
+			provider="codex",
+			model="codex/gpt-test",
+			response_id="resp_1",
+			stop_reason="tool_use",
 		)
 	)
 	log.append(ToolResult(tool_call_id="c1", name="bash", content="file.txt"))
 
 	msgs = _rebuild_messages(log)
-	assert msgs[0] == {"role": "user", "content": "do it"}
-	assert msgs[1]["role"] == "assistant"
-	assert msgs[1]["tool_calls"][0]["function"]["name"] == "bash"
-	assert msgs[1]["provider_data"]["codex_reasoning"][0]["id"] == "r1"
-	assert msgs[2] == {"role": "tool", "tool_call_id": "c1", "content": "file.txt"}
+	assert isinstance(msgs[0], UserMessage)
+	assert msgs[0].content == "do it"
+	assert isinstance(msgs[1], AssistantMessage)
+	assert [block.type for block in msgs[1].content] == ["thinking", "text", "tool_call"]
+	assert msgs[1].tool_calls[0].name == "bash"
+	assert msgs[1].response_id == "resp_1"
+	assert isinstance(msgs[2], ToolResult)
+	assert msgs[2].content == "file.txt"
+
+
+def test_assistant_uses_flow_native_schema_names():
+	message = AssistantMessage(
+		content=[
+			TextContent(text="answer", text_signature="msg_1"),
+			ThinkingContent(thinking="plan", thinking_signature="opaque"),
+			ToolCall(
+				id="c1",
+				name="bash",
+				arguments={"command": "pwd"},
+			),
+		],
+		api="responses",
+		provider="provider",
+		model="requested",
+		response_model="actual",
+		response_id="resp_1",
+		stop_reason="tool_use",
+	)
+
+	payload = message.model_dump(exclude_none=True)
+
+	assert payload["response_model"] == "actual"
+	assert payload["response_id"] == "resp_1"
+	assert payload["stop_reason"] == "tool_use"
+	assert payload["content"][0]["text_signature"] == "msg_1"
+	assert payload["content"][1]["thinking_signature"] == "opaque"
+	assert message.thinking_text == "plan"
 
 
 def test_store_create_and_reload(tmp_path):
@@ -158,7 +208,7 @@ def test_store_create_and_reload(tmp_path):
 	fresh = SessionStore(str(tmp_path))  # cold store, only disk
 	reloaded = fresh.get(session.id)
 	assert reloaded.config.model == "mock"
-	assert reloaded.messages[0]["content"] == "remember me"
+	assert reloaded.messages[0].content == "remember me"
 	assert oct(os.stat(reloaded.log.path).st_mode & 0o777) == "0o600"
 
 
@@ -203,13 +253,13 @@ def test_pending_approval_scopes_reused_tool_ids_to_latest_batch(tmp_path):
 def test_reload_durably_repairs_orphans_in_their_original_batch(tmp_path):
 	store = SessionStore(str(tmp_path))
 	session = store.create(SessionConfig(model="mock"))
-	call = ToolCall(id="c1", name="read_file", args={"path": "old.txt"})
-	assistant = AssistantMessage(tool_calls=[call])
+	call = ToolCall(id="c1", name="read_file", arguments={"path": "old.txt"})
+	assistant = AssistantMessage(content=[call])
 	session.publish(assistant)
 	session.publish(RunEnded(reason="error"))
 	session.publish(UserMessage(content="try something else"))
 	session.publish(
-		AssistantMessage(tool_calls=[ToolCall(id="c1", name="read_file", args={"path": "new.txt"})])
+		AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "new.txt"})])
 	)
 	session.publish(ToolResult(tool_call_id="c1", name="read_file", content="new result"))
 	session.publish(RunEnded(reason="done"))
@@ -221,15 +271,15 @@ def test_reload_durably_repairs_orphans_in_their_original_batch(tmp_path):
 	assert repair["tool_call_id"] == "c1"
 	assert repair["is_error"] is True
 	assert repair["details"]["transcript_repair"]["assistant_seq"] == assistant.seq
-	assert [message["role"] for message in reloaded.messages] == [
-		"assistant",
-		"tool",
-		"user",
-		"assistant",
-		"tool",
+	assert [message.type for message in reloaded.messages] == [
+		"assistant_message",
+		"tool_result",
+		"user_message",
+		"assistant_message",
+		"tool_result",
 	]
-	assert reloaded.messages[1]["content"] == "Tool call interrupted before completion."
-	assert reloaded.messages[-1]["content"] == "new result"
+	assert reloaded.messages[1].content == "Tool call interrupted before completion."
+	assert reloaded.messages[-1].content == "new result"
 
 	second_reload = SessionStore(str(tmp_path)).get(session.id)
 	assert second_reload.log.latest_seq == reloaded.log.latest_seq
@@ -240,9 +290,9 @@ def test_reload_orders_actual_and_repaired_results_by_source_call(tmp_path):
 	session = store.create(SessionConfig(model="mock"))
 	session.publish(
 		AssistantMessage(
-			tool_calls=[
-				ToolCall(id="c1", name="read_file", args={"path": "first.txt"}),
-				ToolCall(id="c2", name="read_file", args={"path": "second.txt"}),
+			content=[
+				ToolCall(id="c1", name="read_file", arguments={"path": "first.txt"}),
+				ToolCall(id="c2", name="read_file", arguments={"path": "second.txt"}),
 			]
 		)
 	)
@@ -251,21 +301,21 @@ def test_reload_orders_actual_and_repaired_results_by_source_call(tmp_path):
 
 	reloaded = SessionStore(str(tmp_path)).get(session.id)
 
-	assert [message["role"] for message in reloaded.messages] == [
-		"assistant",
-		"tool",
-		"tool",
+	assert [message.type for message in reloaded.messages] == [
+		"assistant_message",
+		"tool_result",
+		"tool_result",
 	]
-	assert [message["tool_call_id"] for message in reloaded.messages[1:]] == ["c1", "c2"]
-	assert reloaded.messages[1]["content"] == "Tool call interrupted before completion."
-	assert reloaded.messages[2]["content"] == "second result"
+	assert [message.tool_call_id for message in reloaded.messages[1:]] == ["c1", "c2"]
+	assert reloaded.messages[1].content == "Tool call interrupted before completion."
+	assert reloaded.messages[2].content == "second result"
 
 
 def test_reload_does_not_repair_calls_waiting_for_approval(tmp_path):
 	store = SessionStore(str(tmp_path))
 	session = store.create(SessionConfig(model="mock"))
-	call = ToolCall(id="c1", name="read_file", args={"path": "a.txt"})
-	session.publish(AssistantMessage(tool_calls=[call]))
+	call = ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})
+	session.publish(AssistantMessage(content=[call]))
 	session.publish(ApprovalRequired(calls=[PendingCall(id=call.id, name=call.name, args=call.args)]))
 	session.publish(RunEnded(reason="paused"))
 	latest_seq = session.log.latest_seq
@@ -281,7 +331,7 @@ def test_interrupted_tool_repair_rejects_persisted_assistant_without_seq(tmp_pat
 	log = SessionLog(str(path))
 	path.write_text(
 		AssistantMessage(
-			tool_calls=[ToolCall(id="c1", name="read_file", args={"path": "a.txt"})]
+			content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})]
 		).model_dump_json()
 	)
 

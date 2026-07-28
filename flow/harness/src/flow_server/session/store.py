@@ -28,6 +28,7 @@ from flow_server.events import (
 	PendingCall,
 	ToolCall,
 	ToolResult,
+	TranscriptMessage,
 	_Event,
 	parse_event,
 )
@@ -131,7 +132,7 @@ class Session:
 		self.allowed_roots = allowed_roots
 		for repair in interrupted_tool_repairs(log):
 			log.append(repair)
-		self.messages: list[dict] = _rebuild_messages(log)
+		self.messages: list[TranscriptMessage] = _rebuild_messages(log)
 		self._subscribers: set[asyncio.Queue] = set()
 		self.operation_lock = asyncio.Lock()
 		self._state = SessionState.PAUSED if pending_approval(log) is not None else SessionState.IDLE
@@ -160,7 +161,7 @@ class Session:
 			q.put_nowait(event)
 		if self.event_sink is not None:
 			try:
-				self.event_sink(self.id, event.model_dump())
+				self.event_sink(self.id, event.model_dump(exclude_none=True))
 			except Exception:  # streaming is best-effort; the log heals gaps
 				pass
 
@@ -320,7 +321,7 @@ class SessionStore:
 		return sid in self._cache or os.path.isfile(self._meta_path(sid))
 
 
-def _rebuild_messages(log: SessionLog) -> list[dict]:
+def _rebuild_messages(log: SessionLog) -> list[TranscriptMessage]:
 	"""Reconstruct the LLM message transcript from durable log entries."""
 	rows = log.read_since(0)
 	repairs: dict[int, dict[str, dict]] = {}
@@ -331,7 +332,7 @@ def _rebuild_messages(log: SessionLog) -> list[dict]:
 		if assistant_seq is not None:
 			repairs.setdefault(assistant_seq, {})[str(raw.get("tool_call_id"))] = raw
 
-	messages: list[dict] = []
+	messages: list[TranscriptMessage] = []
 	pending_calls: tuple[ToolCall, ...] = ()
 	pending_seq: int | None = None
 	results: dict[str, dict] = {}
@@ -351,22 +352,10 @@ def _rebuild_messages(log: SessionLog) -> list[dict]:
 		ev = parse_event(raw)
 		if ev.type == "user_message":
 			flush_results()
-			messages.append({"role": "user", "content": ev.content})
+			messages.append(ev)
 		elif ev.type == "assistant_message":
 			flush_results()
-			msg: dict = {"role": "assistant", "content": ev.text or None}
-			if ev.provider_data:
-				msg["provider_data"] = ev.provider_data
-			if ev.tool_calls:
-				msg["tool_calls"] = [
-					{
-						"id": tc.id,
-						"type": "function",
-						"function": {"name": tc.name, "arguments": json.dumps(tc.args)},
-					}
-					for tc in ev.tool_calls
-				]
-			messages.append(msg)
+			messages.append(ev)
 			if ev.tool_calls:
 				pending_calls = tuple(ev.tool_calls)
 				pending_seq = raw["seq"]
@@ -376,17 +365,13 @@ def _rebuild_messages(log: SessionLog) -> list[dict]:
 			if pending_seq is not None and any(call.id == ev.tool_call_id for call in pending_calls):
 				results[ev.tool_call_id] = raw
 			else:
-				messages.append(_tool_message(raw))
+				messages.append(ev)
 	flush_results()
 	return messages
 
 
-def _tool_message(raw: dict) -> dict:
-	return {
-		"role": "tool",
-		"tool_call_id": str(raw.get("tool_call_id")),
-		"content": str(raw.get("content", "")),
-	}
+def _tool_message(raw: dict) -> ToolResult:
+	return ToolResult.model_validate(raw)
 
 
 def _repair_assistant_seq(raw: dict) -> int | None:

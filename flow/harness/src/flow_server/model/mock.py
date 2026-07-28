@@ -10,7 +10,16 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from typing import Any
 
-from flow_server.events import AssistantMessage, TextDelta, ToolCallStarted, Usage, _Event
+from flow_server.events import (
+	AssistantMessage,
+	TextContent,
+	TextDelta,
+	ToolCallStarted,
+	TranscriptMessage,
+	Usage,
+	UserMessage,
+	_Event,
+)
 from flow_server.model.model import Model
 
 
@@ -23,38 +32,46 @@ class MockModel(Model):
 
 	async def run(
 		self,
-		messages: list[dict[str, Any]],
+		messages: list[TranscriptMessage],
 		tools: list[dict[str, Any]] | None = None,
 		*,
+		system_prompt: str = "You are a helpful assistant.",
 		stream: bool = True,
 	) -> AsyncIterator[_Event]:
+		del tools, system_prompt
 		reply = self._next_reply(messages)
 		if stream:
 			for piece in _chunk(reply.text):
 				yield TextDelta(text=piece)
 			for call in reply.tool_calls:
 				yield ToolCallStarted(id=call.id, name=call.name)
-		yield AssistantMessage(text=reply.text, tool_calls=list(reply.tool_calls))
+		yield reply.model_copy(
+			update={
+				"api": "mock",
+				"provider": "mock",
+				"model": self.name,
+				"stop_reason": "tool_use" if reply.tool_calls else reply.stop_reason,
+			}
+		)
 		yield Usage(
 			input_tokens=_estimate(_last_user(messages)),
 			output_tokens=_estimate(reply.text),
 		)
 
-	def _next_reply(self, messages: list[dict[str, Any]]) -> AssistantMessage:
+	def _next_reply(self, messages: list[TranscriptMessage]) -> AssistantMessage:
 		if self._replies is None:
-			return AssistantMessage(text=f"Mock reply to: {_last_user(messages)}")
+			return AssistantMessage(content=[TextContent(text=f"Mock reply to: {_last_user(messages)}")])
 		if self._turn >= len(self._replies):
-			return AssistantMessage(text="")
+			return AssistantMessage()
 		reply = self._replies[self._turn]
 		self._turn += 1
 		return reply
 
 
-def _last_user(messages: list[dict[str, Any]]) -> str:
+def _last_user(messages: list[TranscriptMessage]) -> str:
 	for message in reversed(messages):
-		if message.get("role") == "user":
-			content = message.get("content")
-			return content if isinstance(content, str) else ""
+		if isinstance(message, UserMessage):
+			return message.content
 	return ""
 
 
