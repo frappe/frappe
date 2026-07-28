@@ -1,3 +1,4 @@
+from typing import ClassVar
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -303,7 +304,7 @@ class TestCloudSettings(TestCase):
 
 
 class TestCloudMarketplace(TestCase):
-	CATALOG = [
+	CATALOG: ClassVar[list[dict]] = [
 		{
 			"name": "erpnext",
 			"title": "ERPNext",
