@@ -55,9 +55,6 @@ frappe.ui.misc.about = function () {
 				}
 			</div>
 
-<<<<<<< HEAD
-			<div class="about-section-label">${__("Installed Apps")}</div>
-=======
 			<div class="about-section-header flex items-center justify-between w-full">
 				<div class="about-section-label text-2xs text-ink-gray-6 text-uppercase">${__(
 					"Installed Apps"
@@ -67,7 +64,6 @@ frappe.ui.misc.about = function () {
 					${frappe.utils.icon("clipboard", "sm", "", "", "", true)}
 				</button>
 			</div>
->>>>>>> 463f3687aa (feat: Add button to copy installed apps version in about dialog)
 
 			<div id="about-app-versions" class="about-app-list"></div>
 		</div>`
@@ -140,15 +136,7 @@ frappe.ui.misc.about = function () {
 			const version_text = get_version_text(app);
 			const title = `${app_name}: ${app.version}`;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-			$(`<div class="about-app-row" title="${title}">
-=======
-			$(`<div class="about-app-row flex items-center gap-3 cursor-pointer" role="button" title="${title}">
->>>>>>> cb6f5b4966 (feat: Add cursor pointer and role attribute to app row in about dialog)
-=======
 			$(`<div class="about-app-row flex items-center gap-3 cursor-pointer" role="button" tabindex="0" title="${title}">
->>>>>>> 700641d176 (fix: Add tabindex attribute to app row in about dialog for accessibility)
 					${render_app_icon(app_name, app)}
 					<div class="about-app-info">
 						<div class="about-app-name">${__(app.title)}</div>
