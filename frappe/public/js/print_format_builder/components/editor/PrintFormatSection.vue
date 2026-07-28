@@ -3,7 +3,10 @@
 		class="print-format-section-container"
 		data-pfb-section
 		v-show="!preview_doc || has_visible_fields"
-		:class="{ 'section-container--condition-hidden': preview_doc && !is_section_visible }"
+		:class="{
+			'section-container--condition-hidden': preview_doc && !is_section_visible,
+			'pfb-layer-hover': store.hovered_section.value === section,
+		}"
 		@click.stop="select_section"
 	>
 		<!-- Top-right actions pill shown on hover in clean-preview (toolbar is hidden) -->
@@ -295,6 +298,12 @@ function remove_column(index) {
 
 .print-format-section-container:not(:last-child) {
 	margin-bottom: 0.5rem;
+}
+
+.print-format-section-container.pfb-layer-hover {
+	outline: 1px dashed var(--gray-400);
+	outline-offset: 2px;
+	border-radius: var(--radius);
 }
 
 .section-container--condition-hidden {

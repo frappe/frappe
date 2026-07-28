@@ -243,98 +243,143 @@
 			</draggable>
 		</div>
 
-		<!-- ── Outline ────────────────────────────────────────── -->
-		<div v-else-if="activeTab === 'outline'" class="pfb-tab-body pfb-tree" role="tree">
-			<div v-if="!outline_tree.length" class="pfb-empty">
+		<!-- ── Layers ─────────────────────────────────────────── -->
+		<div v-else-if="activeTab === 'layers'" class="pfb-tab-body pfb-tree" role="tree">
+			<div v-if="!layout || !layout.sections.length" class="pfb-empty">
 				{{ __("No sections yet. Add sections to the canvas.") }}
 			</div>
-			<div v-for="(node, i) in outline_tree" :key="i" class="pfb-tree-node">
-				<div
-					class="pfb-tree-row"
-					:class="{ active: store.selected_section.value === node.section }"
-					role="treeitem"
-					tabindex="0"
-					:aria-expanded="!is_collapsed(node.section)"
-					:aria-selected="store.selected_section.value === node.section"
-					@click="select_section(node.section)"
-					@keydown.enter.prevent="select_section(node.section)"
-					@keydown.space.prevent="select_section(node.section)"
-				>
-					<button
-						class="pfb-tree-chevron"
-						:class="{ collapsed: is_collapsed(node.section) }"
-						@click.stop="toggle_collapse(node.section)"
-						v-html="frappe.utils.icon('chevron-down', 'sm')"
-					></button>
-					<span
-						class="pfb-tree-icon"
-						v-html="frappe.utils.icon('rectangle-horizontal', 'sm')"
-					></span>
-					<span class="pfb-tree-label">
-						{{ node.section.label || __("Untitled section") }}
-					</span>
-				</div>
-				<div v-if="!is_collapsed(node.section)" class="pfb-tree-children">
-					<div v-for="(col, ci) in node.columns" :key="ci" class="pfb-tree-node">
+			<draggable
+				v-else
+				v-model="layout.sections"
+				group="pfb-tree-sections"
+				handle=".pfb-drag-handle"
+				item-key="id"
+				v-bind="DRAG_OPTIONS"
+				@start="setDragging(true)"
+				@end="setDragging(false)"
+			>
+				<template #item="{ element: section }">
+					<div class="pfb-tree-node">
 						<div
-							class="pfb-tree-row"
+							class="pfb-tree-row pfb-drag-handle"
+							@mouseenter="store.hovered_section.value = section"
+							@mouseleave="store.hovered_section.value = null"
+							:class="{ active: store.selected_section.value === section }"
 							role="treeitem"
 							tabindex="0"
-							@click="select_section(node.section)"
-							@keydown.enter.prevent="select_section(node.section)"
-							@keydown.space.prevent="select_section(node.section)"
+							:aria-expanded="!is_collapsed(section)"
+							:aria-selected="store.selected_section.value === section"
+							@click="select_section(section)"
+							@keydown.enter.prevent="select_section(section)"
+							@keydown.space.prevent="select_section(section)"
 						>
 							<button
-								v-if="col.fields.length"
 								class="pfb-tree-chevron"
-								:class="{ collapsed: is_collapsed(col.column) }"
-								@click.stop="toggle_collapse(col.column)"
+								:class="{ collapsed: is_collapsed(section) }"
+								@click.stop="toggle_collapse(section)"
 								v-html="frappe.utils.icon('chevron-down', 'sm')"
 							></button>
-							<span v-else class="pfb-tree-spacer"></span>
 							<span
 								class="pfb-tree-icon"
-								v-html="frappe.utils.icon('columns-2', 'sm')"
+								v-html="frappe.utils.icon('rectangle-horizontal', 'sm')"
 							></span>
-							<span class="pfb-tree-label text-muted">
-								{{ __("Column {0}", [ci + 1]) }}
+							<span class="pfb-tree-label">
+								{{ section.label || __("Untitled section") }}
 							</span>
 						</div>
-						<div v-if="!is_collapsed(col.column)" class="pfb-tree-children">
+						<div v-if="!is_collapsed(section)" class="pfb-tree-children">
 							<div
-								v-for="(field, fi) in col.fields"
-								:key="fi"
-								class="pfb-tree-row"
-								:class="{ active: store.selected_fields.value.includes(field) }"
-								role="treeitem"
-								tabindex="0"
-								:aria-selected="store.selected_fields.value.includes(field)"
-								@click="select_field(field, node.section, $event)"
-								@keydown.enter.prevent="select_field(field, node.section, $event)"
-								@keydown.space.prevent="select_field(field, node.section, $event)"
+								v-for="(col, ci) in section.columns"
+								:key="ci"
+								class="pfb-tree-node"
 							>
-								<span class="pfb-tree-spacer"></span>
-								<span
-									class="pfb-tree-icon"
-									v-html="frappe.utils.icon(field_icon(field), 'sm')"
-								></span>
-								<span class="pfb-tree-label">{{ field_label(field) }}</span>
-								<span
-									v-if="field_broken(field)"
-									class="pfb-tree-warn"
-									:title="
-										__('Field “{0}” no longer exists on {1}', [
-											field.fieldname,
-											meta.name,
-										])
-									"
-									v-html="frappe.utils.icon('triangle-alert', 'sm')"
-								></span>
+								<div
+									class="pfb-tree-row"
+									role="treeitem"
+									tabindex="0"
+									@click="select_section(section)"
+									@keydown.enter.prevent="select_section(section)"
+									@keydown.space.prevent="select_section(section)"
+								>
+									<button
+										v-if="col.fields.length"
+										class="pfb-tree-chevron"
+										:class="{ collapsed: is_collapsed(col) }"
+										@click.stop="toggle_collapse(col)"
+										v-html="frappe.utils.icon('chevron-down', 'sm')"
+									></button>
+									<span v-else class="pfb-tree-spacer"></span>
+									<span
+										class="pfb-tree-icon"
+										v-html="frappe.utils.icon('columns-2', 'sm')"
+									></span>
+									<span class="pfb-tree-label text-muted">
+										{{ __("Column {0}", [ci + 1]) }}
+									</span>
+								</div>
+								<draggable
+									v-if="!is_collapsed(col)"
+									v-model="col.fields"
+									class="pfb-tree-children pfb-tree-fields"
+									group="pfb-tree-fields"
+									item-key="id"
+									:emptyInsertThreshold="20"
+									v-bind="DRAG_OPTIONS"
+									@start="setDragging(true)"
+									@end="setDragging(false)"
+									@add="(e) => select_dropped_layer_field(col, e)"
+								>
+									<template #item="{ element: field }">
+										<div
+											v-show="!field.remove"
+											class="pfb-tree-row"
+											:class="{
+												active: store.selected_fields.value.includes(
+													field
+												),
+											}"
+											@mouseenter="store.hovered_field.value = field"
+											@mouseleave="store.hovered_field.value = null"
+											role="treeitem"
+											tabindex="0"
+											:aria-selected="
+												store.selected_fields.value.includes(field)
+											"
+											@click="select_field(field, section, $event)"
+											@keydown.enter.prevent="
+												select_field(field, section, $event)
+											"
+											@keydown.space.prevent="
+												select_field(field, section, $event)
+											"
+										>
+											<span class="pfb-tree-spacer"></span>
+											<span
+												class="pfb-tree-icon"
+												v-html="frappe.utils.icon(field_icon(field), 'sm')"
+											></span>
+											<span class="pfb-tree-label">{{
+												field_label(field)
+											}}</span>
+											<span
+												v-if="field_broken(field)"
+												class="pfb-tree-warn"
+												:title="
+													__(
+														'Field \u201c{0}\u201d no longer exists on {1}',
+														[field.fieldname, meta.name]
+													)
+												"
+												v-html="frappe.utils.icon('triangle-alert', 'sm')"
+											></span>
+										</div>
+									</template>
+								</draggable>
 							</div>
 						</div>
 					</div>
-				</div>
-			</div>
+				</template>
+			</draggable>
 		</div>
 	</div>
 </template>
@@ -362,7 +407,7 @@ let raw_templates = ref([]);
 // ── tab definitions ───────────────────────────────────────
 const TAB_STORE_KEY = "pfb_active_tab";
 const tabs = computed(() => [
-	{ id: "outline", label: __("Outline") },
+	{ id: "layers", label: __("Layers") },
 	{ id: "fields", label: __("Fields") },
 	{ id: "blocks", label: __("Blocks") },
 	{ id: "library", label: __("Library") },
@@ -371,7 +416,7 @@ const tabs = computed(() => [
 // A stale tab id would render an empty sidebar, so fall back to the first tab
 function restore_tab() {
 	const saved = localStorage.getItem(TAB_STORE_KEY);
-	return tabs.value.some((t) => t.id === saved) ? saved : "outline";
+	return tabs.value.some((t) => t.id === saved) ? saved : "layers";
 }
 let activeTab = ref(restore_tab());
 
@@ -564,6 +609,11 @@ function select_field(field, section, e) {
 	store.select_field(field, additive);
 }
 
+function select_dropped_layer_field(column, e) {
+	const field = column.fields[e.newIndex];
+	if (field) store.select_field(field);
+}
+
 function field_label(f) {
 	return f.label || f.fieldname || f.fieldtype || __("Field");
 }
@@ -578,16 +628,6 @@ function field_broken(f) {
 	if (BLOCK_FIELDTYPES.has(f.fieldtype)) return false;
 	return !known_fieldnames.value.has(f.fieldname);
 }
-
-let outline_tree = computed(() =>
-	visible_sections.value.map((section) => ({
-		section,
-		columns: (section.columns || []).map((column) => ({
-			column,
-			fields: (column.fields || []).filter((f) => !f.remove),
-		})),
-	}))
-);
 
 const FIELD_ICONS = {
 	Table: "table",
@@ -751,12 +791,6 @@ let print_templates_list = computed(() => {
 			field_label,
 		};
 	});
-});
-
-// ── computed: outline tab ──────────────────────────────────
-let visible_sections = computed(() => {
-	if (!layout.value) return [];
-	return layout.value.sections.filter((s) => !s.remove);
 });
 
 // ── computed: misc ─────────────────────────────────────────
@@ -1075,6 +1109,10 @@ function handle_slash_key(e) {
 
 .pfb-tree-children {
 	margin-left: 18px;
+}
+
+.pfb-tree-fields {
+	min-height: 8px;
 }
 
 /* ── Empty state ─────────────────────────────────────────── */
