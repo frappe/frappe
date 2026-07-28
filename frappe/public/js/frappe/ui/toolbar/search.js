@@ -373,6 +373,14 @@ frappe.search.SearchDialog = class {
 		}
 	}
 
+	toggle_global_search_dialog(keywords) {
+		if (this.search_dialog.display) {
+			this.search_dialog.hide();
+		} else {
+			this.open_global_search_dialog(keywords);
+		}
+	}
+
 	get_results(keywords) {
 		this.current_keyword = keywords;
 		if (this.$body.find(".empty-state").length > 0) {
