@@ -330,7 +330,6 @@
 									"
 									v-html="frappe.utils.icon('triangle-alert', 'sm')"
 								></span>
-								<span class="pfb-tree-badge">{{ field.fieldtype }}</span>
 							</div>
 						</div>
 					</div>
@@ -1066,12 +1065,6 @@ function handle_slash_key(e) {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-}
-
-.pfb-tree-badge {
-	font-size: var(--text-tiny);
-	color: var(--gray-500);
-	flex-shrink: 0;
 }
 
 .pfb-tree-warn {
