@@ -194,6 +194,9 @@ const useStudioStore = defineStore("store", () => {
 	async function setPage(pageName: string) {
 		settingPage.value = true
 		pageConflict.value = false
+		// leaving the current page: drop its in-flight-save flag so the new page isn't blocked
+		// waiting on a save it doesn't own (that save's own callback no longer clears this flag)
+		savingPage.value = false
 		const page = await fetchPage(pageName)
 		if (!page) {
 			settingPage.value = false
@@ -251,7 +254,7 @@ const useStudioStore = defineStore("store", () => {
 			})
 			.catch(handlePageWriteConflict)
 			.finally(() => {
-				savingPage.value = false
+				if (activePage.value?.name === savedPage) savingPage.value = false
 			})
 	}
 
