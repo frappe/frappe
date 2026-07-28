@@ -20,6 +20,9 @@ from frappe.desk.doctype.route_history.route_history import frequently_visited_l
 from frappe.desk.form.load import get_meta_bundle
 from frappe.desk.utils import is_item_allowed
 from frappe.email.inbox import get_email_accounts
+from frappe.integrations.frappe_providers.cloud_settings import (
+	get_boot_context as get_cloud_settings_boot_context,
+)
 from frappe.integrations.frappe_providers.frappecloud_billing import current_site_info, is_fc_site
 from frappe.model.base_document import get_controller
 from frappe.utils import add_user_info, get_system_timezone
@@ -114,6 +117,7 @@ def get_bootinfo():
 	bootinfo.doctype_ptype_map = get_doctype_ptype_map()
 	bootinfo.subscription_conf = add_subscription_conf()
 	bootinfo.is_fc_site = is_fc_site()
+	bootinfo.cloud_settings = get_cloud_settings_boot_context()
 	bootinfo.enable_address_autocompletion = frappe.db.get_single_value(
 		"Geolocation Settings", "enable_address_autocompletion"
 	)
