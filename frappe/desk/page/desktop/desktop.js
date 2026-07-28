@@ -313,13 +313,11 @@ class DesktopPage {
 	prefetch_cloud_settings_bundle(bundle) {
 		if (this._cloud_settings_prefetched) return;
 		this._cloud_settings_prefetched = true;
-		for (const url of [bundle.js, bundle.css]) {
-			if (!url) continue;
-			const link = document.createElement("link");
-			link.rel = "prefetch";
-			link.href = url;
-			document.head.appendChild(link);
-		}
+		if (!bundle.js) return;
+		const link = document.createElement("link");
+		link.rel = "prefetch";
+		link.href = bundle.js;
+		document.head.appendChild(link);
 	}
 
 	async open_cloud_settings(settings) {
@@ -339,35 +337,19 @@ class DesktopPage {
 	}
 
 	// Load pilot's cross-origin bundle once. It's a classic-script IIFE, so no CORS
-	// is involved. The stylesheet is best-effort (a missing stylesheet degrades
-	// styling but not function); a failed script rejects and clears the cache so a
-	// later click can retry.
+	// is involved, and it carries its own styles (the dialog renders in a shadow
+	// root), so there is no stylesheet to link. A failed load rejects and clears
+	// the cache so a later click can retry.
 	load_cloud_settings_bundle(bundle) {
 		if (this._cloud_settings_loaded) return this._cloud_settings_loaded;
 
-		const assets = [];
-		if (bundle.css) {
-			assets.push(
-				new Promise((resolve) => {
-					const link = document.createElement("link");
-					link.rel = "stylesheet";
-					link.href = bundle.css;
-					link.onload = link.onerror = resolve;
-					document.head.appendChild(link);
-				})
-			);
-		}
-		assets.push(
-			new Promise((resolve, reject) => {
-				const script = document.createElement("script");
-				script.src = bundle.js;
-				script.onload = resolve;
-				script.onerror = () => reject(new Error(`Failed to load ${bundle.js}`));
-				document.head.appendChild(script);
-			})
-		);
-
-		this._cloud_settings_loaded = Promise.all(assets).catch((error) => {
+		this._cloud_settings_loaded = new Promise((resolve, reject) => {
+			const script = document.createElement("script");
+			script.src = bundle.js;
+			script.onload = resolve;
+			script.onerror = () => reject(new Error(`Failed to load ${bundle.js}`));
+			document.head.appendChild(script);
+		}).catch((error) => {
 			this._cloud_settings_loaded = null;
 			throw error;
 		});
