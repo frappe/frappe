@@ -233,10 +233,10 @@ frappe.views.Calendar = class Calendar {
 			}),
 			$('<div class="grow"></div>'),
 			this.view_button_group.$el,
-			frappe.ui.button({
+			(this.today_button = frappe.ui.button({
 				label: __("Today"),
 				onclick: () => this.fullCalendar.today(),
-			})
+			}))
 		);
 		this.$wrapper.append(this.$toolbar);
 	}
@@ -287,6 +287,15 @@ frappe.views.Calendar = class Calendar {
 			headerToolbar: false,
 			datesSet: (info) => {
 				this.$toolbar_title && this.$toolbar_title.text(info.view.title);
+				if (this.today_button) {
+					// no-op when the visible range already contains today
+					// (activeEnd is exclusive)
+					const now = new Date();
+					this.today_button.prop(
+						"disabled",
+						info.view.activeStart <= now && now < info.view.activeEnd
+					);
+				}
 			},
 			editable: true,
 			droppable: true,
