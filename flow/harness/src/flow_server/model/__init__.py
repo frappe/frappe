@@ -12,7 +12,7 @@ from collections.abc import Callable
 from typing import Any
 
 from flow_server.model.mock import MockModel
-from flow_server.model.model import LiteLLMModel, Model
+from flow_server.model.model import LiteLLMModel, Model, ModelRequest
 
 ModelFactory = Callable[..., Model]
 
@@ -55,4 +55,4 @@ register_provider("mock", lambda name, **kwargs: MockModel())
 from flow_server.model.providers import codex as _codex  # noqa: E402, F401
 from flow_server.model.providers import opencode as _opencode  # noqa: E402, F401
 
-__all__ = ["LiteLLMModel", "MockModel", "Model", "get_model", "register_provider"]
+__all__ = ["LiteLLMModel", "MockModel", "Model", "ModelRequest", "get_model", "register_provider"]

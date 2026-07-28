@@ -14,8 +14,11 @@ register via the provider registry in `flow_server.model` (see Phase 3).
 from __future__ import annotations
 
 import abc
+import asyncio
 import json
 from collections.abc import AsyncIterator
+from contextlib import suppress
+from dataclasses import dataclass
 from typing import Any, cast
 
 from flow_server.events import (
@@ -34,18 +37,80 @@ from flow_server.events import (
 )
 
 
+@dataclass(slots=True)
+class ModelRequest:
+	"""Provider-neutral input for one model turn.
+
+	``cancellation`` is owned by the session. Providers should pass cancellation
+	through to their transports where possible; the agent loop also races the model
+	iterator against it so a provider that ignores the signal cannot hold a run open.
+	"""
+
+	messages: list[TranscriptMessage]
+	tools: list[dict[str, Any]] | None = None
+	system_prompt: str = "You are a helpful assistant."
+	stream: bool = True
+	cancellation: asyncio.Event | None = None
+
+
+class ModelCancelled(Exception):
+	"""Internal control flow used when a model request's signal is set."""
+
+
+async def await_with_cancellation(awaitable: Any, cancellation: asyncio.Event | None) -> Any:
+	"""Await one provider operation while making cancellation win any completion race."""
+	if cancellation is None:
+		return await awaitable
+
+	task = asyncio.ensure_future(awaitable)
+	if cancellation.is_set():
+		task.cancel()
+		with suppress(asyncio.CancelledError):
+			await task
+		raise ModelCancelled
+	cancel_wait = asyncio.create_task(cancellation.wait())
+	try:
+		done, _ = await asyncio.wait({task, cancel_wait}, return_when=asyncio.FIRST_COMPLETED)
+		if cancel_wait in done:
+			task.cancel()
+			with suppress(asyncio.CancelledError):
+				await task
+			raise ModelCancelled
+		return await task
+	except asyncio.CancelledError:
+		task.cancel()
+		with suppress(asyncio.CancelledError):
+			await task
+		raise
+	finally:
+		cancel_wait.cancel()
+		with suppress(asyncio.CancelledError):
+			await cancel_wait
+
+
+async def iterate_with_cancellation(
+	iterator: AsyncIterator[Any], cancellation: asyncio.Event | None
+) -> AsyncIterator[Any]:
+	"""Consume and close an async iterator when cancellation is requested."""
+	try:
+		while True:
+			try:
+				item = await await_with_cancellation(anext(iterator), cancellation)
+			except StopAsyncIteration:
+				return
+			yield item
+	finally:
+		aclose = getattr(iterator, "aclose", None)
+		if aclose is not None:
+			with suppress(Exception):
+				await aclose()
+
+
 class Model(abc.ABC):
 	name: str
 
 	@abc.abstractmethod
-	def run(
-		self,
-		messages: list[TranscriptMessage],
-		tools: list[dict[str, Any]] | None = None,
-		*,
-		system_prompt: str = "You are a helpful assistant.",
-		stream: bool = True,
-	) -> AsyncIterator[_Event]:
+	def run(self, request: ModelRequest) -> AsyncIterator[_Event]:
 		"""Run one model turn over the provider-neutral transcript, yielding typed events.
 
 		Streaming: `TextDelta` per text chunk and one `ToolCallStarted` per tool call.
@@ -74,19 +139,12 @@ class LiteLLMModel(Model):
 		self._headers = headers or {}
 		self._params = params or {}
 
-	async def run(
-		self,
-		messages: list[TranscriptMessage],
-		tools: list[dict[str, Any]] | None = None,
-		*,
-		system_prompt: str = "You are a helpful assistant.",
-		stream: bool = True,
-	) -> AsyncIterator[_Event]:
+	async def run(self, request: ModelRequest) -> AsyncIterator[_Event]:
 		import litellm
 
 		kwargs: dict[str, Any] = {
 			"model": self.name,
-			"messages": _openai_messages(messages, self, system_prompt),
+			"messages": _openai_messages(request.messages, self, request.system_prompt),
 			**self._params,
 		}
 		if self._api_key:
@@ -95,11 +153,19 @@ class LiteLLMModel(Model):
 			kwargs["api_base"] = self._api_base
 		if self._headers:
 			kwargs["extra_headers"] = self._headers
-		if tools:
-			kwargs["tools"] = tools
+		if request.tools:
+			kwargs["tools"] = request.tools
 
-		if not stream:
-			response = await litellm.acompletion(**kwargs)
+		if not request.stream:
+			try:
+				response = await await_with_cancellation(
+					litellm.acompletion(**kwargs),
+					request.cancellation,
+				)
+			except ModelCancelled:
+				yield self._aborted()
+				yield Usage()
+				return
 			choice = (_attr(response, "choices") or [None])[0]
 			message = _attr(choice, "message")
 			content = _message_content(message)
@@ -132,49 +198,60 @@ class LiteLLMModel(Model):
 
 		# `stream=True` lives in kwargs, so litellm's overloads still resolve to the
 		# non-streaming ModelResponse; the runtime object is an async chunk iterator.
-		stream_iter = cast(AsyncIterator[Any], await litellm.acompletion(**kwargs))
-		async for chunk in stream_iter:
-			response_id = response_id or _attr(chunk, "id")
-			response_model = response_model or _response_model(chunk, self.name)
-			choices = _attr(chunk, "choices") or []
-			if choices:
-				choice = choices[0]
-				delta = _attr(choice, "delta")
-				finish_reason = _attr(choice, "finish_reason") or finish_reason
-				reasoning, reasoning_signature = _reasoning(delta)
-				if reasoning:
-					if ordered and isinstance(ordered[-1], ThinkingContent):
-						ordered[-1].thinking += reasoning
-						ordered[-1].thinking_signature = ordered[-1].thinking_signature or reasoning_signature
-					else:
-						ordered.append(
-							ThinkingContent(
-								thinking=reasoning,
-								thinking_signature=reasoning_signature,
+		try:
+			stream_iter = cast(
+				AsyncIterator[Any],
+				await await_with_cancellation(
+					litellm.acompletion(**kwargs),
+					request.cancellation,
+				),
+			)
+			async for chunk in iterate_with_cancellation(stream_iter, request.cancellation):
+				response_id = response_id or _attr(chunk, "id")
+				response_model = response_model or _response_model(chunk, self.name)
+				choices = _attr(chunk, "choices") or []
+				if choices:
+					choice = choices[0]
+					delta = _attr(choice, "delta")
+					finish_reason = _attr(choice, "finish_reason") or finish_reason
+					reasoning, reasoning_signature = _reasoning(delta)
+					if reasoning:
+						if ordered and isinstance(ordered[-1], ThinkingContent):
+							ordered[-1].thinking += reasoning
+							ordered[-1].thinking_signature = (
+								ordered[-1].thinking_signature or reasoning_signature
 							)
-						)
-				text = _attr(delta, "content")
-				if text:
-					if ordered and isinstance(ordered[-1], TextContent):
-						ordered[-1].text += text
-					else:
-						ordered.append(TextContent(text=text))
-					yield TextDelta(text=text)
-				for tc in _attr(delta, "tool_calls") or []:
-					index = _accumulate_tool_call(acc, tc)
-					if index not in ordered_tools:
-						ordered_tools.add(index)
-						ordered.append(index)
-					slot = acc[index]
-					if index not in announced and slot["id"] and slot["name"]:
-						announced.add(index)
-						yield ToolCallStarted(id=slot["id"], name=slot["name"])
-			chunk_usage = _attr(chunk, "usage")
-			if chunk_usage is not None:
-				usage_obj = chunk_usage
-			chunk_cost = (getattr(chunk, "_hidden_params", None) or {}).get("response_cost")
-			if chunk_cost is not None:
-				cost = chunk_cost
+						else:
+							ordered.append(
+								ThinkingContent(
+									thinking=reasoning,
+									thinking_signature=reasoning_signature,
+								)
+							)
+					text = _attr(delta, "content")
+					if text:
+						if ordered and isinstance(ordered[-1], TextContent):
+							ordered[-1].text += text
+						else:
+							ordered.append(TextContent(text=text))
+						yield TextDelta(text=text)
+					for tc in _attr(delta, "tool_calls") or []:
+						index = _accumulate_tool_call(acc, tc)
+						if index not in ordered_tools:
+							ordered_tools.add(index)
+							ordered.append(index)
+						slot = acc[index]
+						if index not in announced and slot["id"] and slot["name"]:
+							announced.add(index)
+							yield ToolCallStarted(id=slot["id"], name=slot["name"])
+				chunk_usage = _attr(chunk, "usage")
+				if chunk_usage is not None:
+					usage_obj = chunk_usage
+				chunk_cost = (getattr(chunk, "_hidden_params", None) or {}).get("response_cost")
+				if chunk_cost is not None:
+					cost = chunk_cost
+		except ModelCancelled:
+			finish_reason = "aborted"
 
 		calls_by_index = _finalize_tool_call_map(acc)
 		content: list[TextContent | ThinkingContent | ToolCall] = []
@@ -193,9 +270,21 @@ class LiteLLMModel(Model):
 			model=self.model,
 			response_model=response_model,
 			response_id=response_id,
-			stop_reason=_stop_reason(finish_reason, has_tools=bool(calls)),
+			stop_reason=(
+				"aborted"
+				if finish_reason == "aborted"
+				else _stop_reason(finish_reason, has_tools=bool(calls))
+			),
 		)
 		yield _usage_event(usage_obj, cost)
+
+	def _aborted(self) -> AssistantMessage:
+		return AssistantMessage(
+			api=self.api,
+			provider=self.provider,
+			model=self.model,
+			stop_reason="aborted",
+		)
 
 
 # --- litellm response helpers ---------------------------------------------

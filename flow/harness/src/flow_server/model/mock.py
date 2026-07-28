@@ -8,7 +8,6 @@ multi-turn agent-loop tests (tool call -> resume -> final answer) with no provid
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-from typing import Any
 
 from flow_server.events import (
 	AssistantMessage,
@@ -20,7 +19,7 @@ from flow_server.events import (
 	UserMessage,
 	_Event,
 )
-from flow_server.model.model import Model
+from flow_server.model.model import Model, ModelRequest
 
 
 class MockModel(Model):
@@ -30,17 +29,13 @@ class MockModel(Model):
 		self._replies = replies
 		self._turn = 0
 
-	async def run(
-		self,
-		messages: list[TranscriptMessage],
-		tools: list[dict[str, Any]] | None = None,
-		*,
-		system_prompt: str = "You are a helpful assistant.",
-		stream: bool = True,
-	) -> AsyncIterator[_Event]:
-		del tools, system_prompt
-		reply = self._next_reply(messages)
-		if stream:
+	async def run(self, request: ModelRequest) -> AsyncIterator[_Event]:
+		if request.cancellation is not None and request.cancellation.is_set():
+			yield AssistantMessage(api="mock", provider="mock", model=self.name, stop_reason="aborted")
+			yield Usage()
+			return
+		reply = self._next_reply(request.messages)
+		if request.stream:
 			for piece in _chunk(reply.text):
 				yield TextDelta(text=piece)
 			for call in reply.tool_calls:
@@ -54,7 +49,7 @@ class MockModel(Model):
 			}
 		)
 		yield Usage(
-			input_tokens=_estimate(_last_user(messages)),
+			input_tokens=_estimate(_last_user(request.messages)),
 			output_tokens=_estimate(reply.text),
 		)
 

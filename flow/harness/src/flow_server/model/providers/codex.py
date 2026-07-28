@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
+import sys
 import time
 from collections.abc import AsyncIterator, Mapping
 from typing import Any
@@ -34,7 +36,13 @@ from flow_server.model.auth import (
 	register_auth_provider,
 )
 from flow_server.model.credentials import OAuthCredential
-from flow_server.model.model import Model
+from flow_server.model.model import (
+	Model,
+	ModelCancelled,
+	ModelRequest,
+	await_with_cancellation,
+	iterate_with_cancellation,
+)
 
 CLIENT_ID = "app_EMoamEEZ73f0CkXaXp7hrann"
 ISSUER = "https://auth.openai.com"
@@ -145,20 +153,13 @@ class CodexModel(Model):
 		self._params = params or {}
 		self._client = client
 
-	async def run(
-		self,
-		messages: list[TranscriptMessage],
-		tools: list[dict[str, Any]] | None = None,
-		*,
-		system_prompt: str = "You are a helpful assistant.",
-		stream: bool = True,
-	) -> AsyncIterator[_Event]:
-		input_items = _responses_input(messages, self)
+	async def run(self, request: ModelRequest) -> AsyncIterator[_Event]:
+		input_items = _responses_input(request.messages, self)
 		payload: dict[str, Any] = {
 			"model": self._model,
 			"store": False,
 			"stream": True,
-			"instructions": system_prompt,
+			"instructions": request.system_prompt,
 			"input": input_items,
 			"text": {"verbosity": "low"},
 			"include": ["reasoning.encrypted_content"],
@@ -166,8 +167,8 @@ class CodexModel(Model):
 			"parallel_tool_calls": True,
 			**self._params,
 		}
-		if tools:
-			payload["tools"] = [_responses_tool(tool) for tool in tools]
+		if request.tools:
+			payload["tools"] = [_responses_tool(tool) for tool in request.tools]
 
 		headers = {
 			**self._headers,
@@ -179,16 +180,47 @@ class CodexModel(Model):
 		url = f"{self._api_base.rstrip('/')}/codex/responses"
 		owns_client = self._client is None
 		client = self._client or httpx.AsyncClient(timeout=120)
+		stream_context = client.stream("POST", url, json=payload, headers=headers)
+		response: httpx.Response | None = None
 		try:
-			async with client.stream("POST", url, json=payload, headers=headers) as response:
-				if response.status_code >= 400:
-					body = (await response.aread()).decode(errors="replace")
-					raise RuntimeError(f"Codex HTTP {response.status_code}: {body[:500]}")
-				async for event in _codex_events(response, model=self, emit_deltas=stream):
-					yield event
+			if request.cancellation is not None and request.cancellation.is_set():
+				raise ModelCancelled
+			response = await await_with_cancellation(
+				stream_context.__aenter__(),
+				request.cancellation,
+			)
+			assert response is not None
+			if response.status_code >= 400:
+				body = (
+					await await_with_cancellation(
+						response.aread(),
+						request.cancellation,
+					)
+				).decode(errors="replace")
+				raise RuntimeError(f"Codex HTTP {response.status_code}: {body[:500]}")
+			async for event in _codex_events(
+				response,
+				model=self,
+				emit_deltas=request.stream,
+				cancellation=request.cancellation,
+			):
+				yield event
+		except ModelCancelled:
+			yield self._aborted()
+			yield Usage()
 		finally:
+			if response is not None:
+				await stream_context.__aexit__(*sys.exc_info())
 			if owns_client:
 				await client.aclose()
+
+	def _aborted(self) -> AssistantMessage:
+		return AssistantMessage(
+			api=self.api,
+			provider=self.provider,
+			model=self.model,
+			stop_reason="aborted",
+		)
 
 
 class _ToolBuilder:
@@ -212,6 +244,7 @@ async def _codex_events(
 	*,
 	model: CodexModel,
 	emit_deltas: bool,
+	cancellation: asyncio.Event | None = None,
 ) -> AsyncIterator[_Event]:
 	builders: dict[str, _ToolBuilder] = {}
 	completed: set[str] = set()
@@ -222,114 +255,117 @@ async def _codex_events(
 	response_model: str | None = None
 	stop_reason = "stop"
 
-	async for raw in _iter_sse(response):
-		event_type = raw.get("type")
-		if event_type in {"error", "response.failed"}:
-			raise RuntimeError(_codex_error(raw))
-		if event_type == "response.output_item.added":
-			item = raw.get("item")
-			if isinstance(item, Mapping) and item.get("type") == "reasoning":
-				item_id = _string(item.get("id"))
-				block = ThinkingContent(
-					thinking=_reasoning_text(item),
-					thinking_signature=json.dumps(dict(item), separators=(",", ":")),
-				)
-				content_indices[item_id] = len(content)
-				content.append(block)
-			elif isinstance(item, Mapping) and item.get("type") == "message":
-				item_id = _string(item.get("id"))
-				content_indices[item_id] = len(content)
-				content.append(TextContent(text=_done_text(item), text_signature=_text_signature(item)))
-			elif isinstance(item, Mapping) and item.get("type") == "function_call":
-				builder = _ToolBuilder(item)
-				builder.content_index = len(content)
-				content.append(builder.build())
-				for key in (builder.item_id, builder.call_id):
-					if key:
-						builders[key] = builder
-				if emit_deltas:
-					yield ToolCallStarted(id=builder.id, name=builder.name)
-		elif event_type == "response.function_call_arguments.delta":
-			builder = _find_builder(raw, builders)
-			if builder and isinstance(raw.get("delta"), str):
-				builder.arguments += raw["delta"]
-				if builder.content_index is not None:
-					content[builder.content_index] = builder.build()
-		elif event_type == "response.function_call_arguments.done":
-			builder = _find_builder(raw, builders)
-			if builder and isinstance(raw.get("arguments"), str):
-				builder.arguments = raw["arguments"]
-				if builder.content_index is not None:
-					content[builder.content_index] = builder.build()
-		elif event_type == "response.output_text.delta":
-			delta = raw.get("delta")
-			if isinstance(delta, str) and delta:
-				item_id = _string(raw.get("item_id"))
-				index = content_indices.get(item_id)
-				if index is None or not isinstance(content[index], TextContent):
-					index = len(content)
-					content_indices[item_id] = index
-					content.append(
-						TextContent(
-							text="",
-							text_signature=_encode_text_signature(item_id) if item_id else None,
-						)
+	try:
+		async for raw in iterate_with_cancellation(_iter_sse(response), cancellation):
+			event_type = raw.get("type")
+			if event_type in {"error", "response.failed"}:
+				raise RuntimeError(_codex_error(raw))
+			if event_type == "response.output_item.added":
+				item = raw.get("item")
+				if isinstance(item, Mapping) and item.get("type") == "reasoning":
+					item_id = _string(item.get("id"))
+					block = ThinkingContent(
+						thinking=_reasoning_text(item),
+						thinking_signature=json.dumps(dict(item), separators=(",", ":")),
 					)
-				text_block = content[index]
-				assert isinstance(text_block, TextContent)
-				text_block.text += delta
-				if emit_deltas:
-					yield TextDelta(text=delta)
-		elif event_type in {"response.output_item.done", "response.output_item.completed"}:
-			item = raw.get("item")
-			if isinstance(item, Mapping) and item.get("type") == "reasoning":
-				item_id = _string(item.get("id"))
-				block = ThinkingContent(
-					thinking=_reasoning_text(item),
-					thinking_signature=json.dumps(dict(item), separators=(",", ":")),
-				)
-				index = content_indices.get(item_id)
-				if index is None or not isinstance(content[index], ThinkingContent):
 					content_indices[item_id] = len(content)
 					content.append(block)
-				else:
-					content[index] = block
-			elif isinstance(item, Mapping) and item.get("type") == "function_call":
-				builder = _find_builder(raw, builders) or _ToolBuilder(item)
-				if isinstance(item.get("arguments"), str):
-					builder.arguments = item["arguments"]
-				if builder.id not in completed:
-					if builder.content_index is None:
-						builder.content_index = len(content)
-						content.append(builder.build())
-					else:
+				elif isinstance(item, Mapping) and item.get("type") == "message":
+					item_id = _string(item.get("id"))
+					content_indices[item_id] = len(content)
+					content.append(TextContent(text=_done_text(item), text_signature=_text_signature(item)))
+				elif isinstance(item, Mapping) and item.get("type") == "function_call":
+					builder = _ToolBuilder(item)
+					builder.content_index = len(content)
+					content.append(builder.build())
+					for key in (builder.item_id, builder.call_id):
+						if key:
+							builders[key] = builder
+					if emit_deltas:
+						yield ToolCallStarted(id=builder.id, name=builder.name)
+			elif event_type == "response.function_call_arguments.delta":
+				builder = _find_builder(raw, builders)
+				if builder and isinstance(raw.get("delta"), str):
+					builder.arguments += raw["delta"]
+					if builder.content_index is not None:
 						content[builder.content_index] = builder.build()
-					completed.add(builder.id)
-			elif isinstance(item, Mapping) and item.get("type") == "message":
-				text = _done_text(item)
-				item_id = _string(item.get("id"))
-				index = content_indices.get(item_id)
-				if index is None or not isinstance(content[index], TextContent):
-					if text:
-						content_indices[item_id] = len(content)
-						content.append(TextContent(text=text, text_signature=_text_signature(item)))
-				else:
+			elif event_type == "response.function_call_arguments.done":
+				builder = _find_builder(raw, builders)
+				if builder and isinstance(raw.get("arguments"), str):
+					builder.arguments = raw["arguments"]
+					if builder.content_index is not None:
+						content[builder.content_index] = builder.build()
+			elif event_type == "response.output_text.delta":
+				delta = raw.get("delta")
+				if isinstance(delta, str) and delta:
+					item_id = _string(raw.get("item_id"))
+					index = content_indices.get(item_id)
+					if index is None or not isinstance(content[index], TextContent):
+						index = len(content)
+						content_indices[item_id] = index
+						content.append(
+							TextContent(
+								text="",
+								text_signature=_encode_text_signature(item_id) if item_id else None,
+							)
+						)
 					text_block = content[index]
 					assert isinstance(text_block, TextContent)
-					text_block.text_signature = _text_signature(item) or text_block.text_signature
-					if text and not text_block.text:
-						text_block.text = text
-						if emit_deltas:
-							yield TextDelta(text=text)
-		elif event_type in {"response.completed", "response.done", "response.incomplete"}:
-			usage = _codex_usage(raw)
-			response_data = raw.get("response")
-			if isinstance(response_data, Mapping):
-				response_id = _string(response_data.get("id")) or None
-				actual_model = _string(response_data.get("model"))
-				response_model = actual_model if actual_model and actual_model != model._model else None
-			stop_reason = "length" if event_type == "response.incomplete" else "stop"
-			break
+					text_block.text += delta
+					if emit_deltas:
+						yield TextDelta(text=delta)
+			elif event_type in {"response.output_item.done", "response.output_item.completed"}:
+				item = raw.get("item")
+				if isinstance(item, Mapping) and item.get("type") == "reasoning":
+					item_id = _string(item.get("id"))
+					block = ThinkingContent(
+						thinking=_reasoning_text(item),
+						thinking_signature=json.dumps(dict(item), separators=(",", ":")),
+					)
+					index = content_indices.get(item_id)
+					if index is None or not isinstance(content[index], ThinkingContent):
+						content_indices[item_id] = len(content)
+						content.append(block)
+					else:
+						content[index] = block
+				elif isinstance(item, Mapping) and item.get("type") == "function_call":
+					builder = _find_builder(raw, builders) or _ToolBuilder(item)
+					if isinstance(item.get("arguments"), str):
+						builder.arguments = item["arguments"]
+					if builder.id not in completed:
+						if builder.content_index is None:
+							builder.content_index = len(content)
+							content.append(builder.build())
+						else:
+							content[builder.content_index] = builder.build()
+						completed.add(builder.id)
+				elif isinstance(item, Mapping) and item.get("type") == "message":
+					text = _done_text(item)
+					item_id = _string(item.get("id"))
+					index = content_indices.get(item_id)
+					if index is None or not isinstance(content[index], TextContent):
+						if text:
+							content_indices[item_id] = len(content)
+							content.append(TextContent(text=text, text_signature=_text_signature(item)))
+					else:
+						text_block = content[index]
+						assert isinstance(text_block, TextContent)
+						text_block.text_signature = _text_signature(item) or text_block.text_signature
+						if text and not text_block.text:
+							text_block.text = text
+							if emit_deltas:
+								yield TextDelta(text=text)
+			elif event_type in {"response.completed", "response.done", "response.incomplete"}:
+				usage = _codex_usage(raw)
+				response_data = raw.get("response")
+				if isinstance(response_data, Mapping):
+					response_id = _string(response_data.get("id")) or None
+					actual_model = _string(response_data.get("model"))
+					response_model = actual_model if actual_model and actual_model != model._model else None
+				stop_reason = "length" if event_type == "response.incomplete" else "stop"
+				break
+	except ModelCancelled:
+		stop_reason = "aborted"
 
 	tool_calls = [block for block in content if isinstance(block, ToolCall)]
 	yield AssistantMessage(
@@ -339,7 +375,7 @@ async def _codex_events(
 		model=model.model,
 		response_model=response_model,
 		response_id=response_id,
-		stop_reason="tool_use" if tool_calls else stop_reason,
+		stop_reason="tool_use" if tool_calls and stop_reason != "aborted" else stop_reason,
 	)
 	yield usage
 

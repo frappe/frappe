@@ -16,7 +16,7 @@ from flow_server.tools.tool import tool, Tool, ToolContext, ToolResult
   your body runs (bad args raise `ValidationError`, which the loop turns into an error
   result). `to_schema()` produces the OpenAI function-tool schema.
 - **`ToolContext`** — runtime state injected by the loop, never seen by the model:
-  `cwd`, `abort` (an `asyncio.Event`), `timeout`.
+  `cwd`, `abort` (the active operation's `asyncio.Event`), `timeout`.
 - **`ToolResult`** — what a tool returns: `content` (the text the model sees),
   `details` (structured render metadata — diff, truncation, exit code — **never** sent
   to the model), `is_error`.
@@ -93,3 +93,8 @@ their schemas in `SessionConfig.client_tools` and sets `callback_url` (+ optiona
 `{session_id, tool, args, user_context, mode}` and the `X-Harness-Token` header. This is
 how Flow runs tools as the logged-in user. Hooks, by contrast, are in-process only and
 are never shipped over the wire.
+
+The callback request and the surrounding tool task are both cancelled when the
+session's abort signal is set. A custom async tool should still use `ctx.abort` for
+cooperative cleanup of resources it owns. Synchronous tool bodies cannot be preempted
+mid-call; the loop checks cancellation immediately before and after them.

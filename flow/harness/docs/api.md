@@ -22,16 +22,20 @@ Agent(config: SessionConfig | None = None, *, data_dir="~/.flow/server", **overr
 - `data_dir` is where the durable log is written. It defaults to the user-global
   `~/.flow/server`; pass an explicit path for isolated embedded instances.
 
-### Methods — both are async generators yielding events
+### Methods
 
 ```python
 agent.run(message: str, **hooks) -> AsyncIterator[Event]        # start a turn
 agent.resume(answers: dict[str, str], *, approval_seq: int | None = None, **hooks)
     -> AsyncIterator[Event]   # continue a paused run
+agent.abort() -> bool         # signal the active run; false when idle/paused
 ```
 
-`**hooks` = `before_tool_call` and/or `after_tool_call` (see [tools.md](tools.md)).
-Iteration ends when a `run_ended` event is yielded.
+`run()` and `resume()` are async generators. `**hooks` = `before_tool_call` and/or
+`after_tool_call` (see [tools.md](tools.md)); iteration ends when a `run_ended` event
+is yielded. `abort()` is synchronous: it signals the same per-operation cancellation
+event used by the HTTP API and returns whether an active run was found. Continue
+consuming the run iterator through its terminal `run_ended(reason=="aborted")` event.
 
 ### Examples
 
@@ -95,7 +99,8 @@ this endpoint and are resolved inside flow_server.
   `reason=="paused"`). A model token-limit stop returns `reason=="length"` rather than
   being reported as a completed answer.
 - `409` if the session is paused; resolve that batch through `/resume` before starting
-  another run.
+  another run. A run that has already received `/abort` also rejects new steering with
+  `409` instead of carrying it into a later turn.
 
 ### `POST /sessions/{sid}/resume?wait=<bool>`
 Body:
@@ -106,8 +111,14 @@ not-paused requests return `409` without changing the log. Same fire-and-forget 
 `?wait` shapes as `/run`.
 
 ### `POST /sessions/{sid}/abort`
-Signals the run to stop at the next boundary →
+Signals active work to stop and clears steering that has not yet entered the durable
+transcript →
 `{"status": "aborting" | "idle" | "paused"}`.
+Model streams, provider HTTP bodies, hooks, tools, Bash process groups, and client-tool
+callback requests are interrupted. A completed cancellation persists an
+`assistant_message` with `stop_reason=="aborted"` followed by
+`run_ended(reason=="aborted")`; the session then returns to `idle`. Calling this
+endpoint for an idle or approval-paused session is a no-op.
 
 ### `GET /sessions/{sid}/entries?since=<int>`
 The durable log from the cursor →

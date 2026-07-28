@@ -1,9 +1,15 @@
+import asyncio
+
 import pytest
 
+import flow_server.agent.loop as agent_loop
 from flow_server.agent import HookDecision, ResumeError, resume, run
 from flow_server.events import AssistantMessage, ToolCall
+from flow_server.model import Model, ModelRequest
 from flow_server.model.mock import MockModel
 from flow_server.session.store import SessionConfig, SessionStore
+from flow_server.tools import tool
+from flow_server.tools.tool import ToolResult as RuntimeToolResult
 
 
 def _session(tmp_path, **cfg):
@@ -258,7 +264,7 @@ async def test_model_stream_failure_repairs_persisted_assistant_calls(tmp_path, 
 	session, events = _session(tmp_path)
 	mock = MockModel()
 
-	async def fail_after_assistant(messages, tools, *, system_prompt="", stream=True):
+	async def fail_after_assistant(request):
 		yield _read_call()
 		raise RuntimeError("stream failed")
 
@@ -279,7 +285,7 @@ async def test_model_stream_without_assistant_emits_terminal_error(tmp_path, mon
 	session, events = _session(tmp_path)
 	mock = MockModel()
 
-	async def empty_stream(messages, tools, *, system_prompt="", stream=True):
+	async def empty_stream(request):
 		if False:
 			yield
 
@@ -290,3 +296,203 @@ async def test_model_stream_without_assistant_emits_terminal_error(tmp_path, mon
 		"RuntimeError: model stream ended without an assistant message"
 	)
 	assert [event["reason"] for event in _of(events, "run_ended")] == ["error"]
+
+
+class _CancellationBlockingModel(Model):
+	name = "cancellation-blocking"
+
+	def __init__(self):
+		self.started = asyncio.Event()
+		self.closed = asyncio.Event()
+		self.requests: list[ModelRequest] = []
+		self.attempts = 0
+
+	async def run(self, request: ModelRequest):
+		self.requests.append(request)
+		self.attempts += 1
+		self.started.set()
+		try:
+			await asyncio.Event().wait()
+		finally:
+			self.closed.set()
+		if False:
+			yield
+
+
+async def test_abort_during_model_stream_closes_stream_and_emits_aborted_turn(tmp_path):
+	session, events = _session(tmp_path)
+	model = _CancellationBlockingModel()
+
+	task = asyncio.create_task(run(session, "wait", model=model))
+	await model.started.wait()
+	session.request_abort()
+	await asyncio.wait_for(task, timeout=1)
+
+	assert model.requests[0].cancellation is session.abort
+	assert model.closed.is_set()
+	assert model.attempts == 1
+	assert [event["stop_reason"] for event in _of(events, "assistant_message")] == ["aborted"]
+	assert [event["reason"] for event in _of(events, "run_ended")] == ["aborted"]
+	assert _of(events, "run_error") == []
+
+
+async def test_abort_during_provider_retry_delay_prevents_next_attempt(tmp_path):
+	class RetryDelayModel(Model):
+		name = "retry-delay"
+
+		def __init__(self):
+			self.attempts = 0
+			self.delay_started = asyncio.Event()
+
+		async def run(self, request: ModelRequest):
+			for _ in range(3):
+				self.attempts += 1
+				self.delay_started.set()
+				await asyncio.sleep(60)
+			if False:
+				yield
+
+	session, events = _session(tmp_path)
+	model = RetryDelayModel()
+	task = asyncio.create_task(run(session, "retry", model=model))
+	await model.delay_started.wait()
+	session.request_abort()
+	await asyncio.wait_for(task, timeout=1)
+
+	assert model.attempts == 1
+	assert _of(events, "run_ended")[-1]["reason"] == "aborted"
+
+
+async def test_abort_cancels_blocked_before_hook_before_tool_starts(tmp_path):
+	(tmp_path / "a.txt").write_text("secret")
+	session, events = _session(tmp_path)
+	model = MockModel(replies=[_read_call()])
+	hook_started = asyncio.Event()
+	hook_cancelled = asyncio.Event()
+
+	async def before(tc, ctx):
+		hook_started.set()
+		try:
+			await asyncio.Event().wait()
+		finally:
+			hook_cancelled.set()
+
+	task = asyncio.create_task(run(session, "read", model=model, before_tool_call=before))
+	await hook_started.wait()
+	session.request_abort()
+	await asyncio.wait_for(task, timeout=1)
+
+	assert hook_cancelled.is_set()
+	results = _of(events, "tool_result")
+	assert len(results) == 1
+	assert results[0]["details"]["transcript_repair"]["reason"] == "interrupted"
+	assert _of(events, "run_ended")[-1]["reason"] == "aborted"
+
+
+async def test_abort_cancels_blocked_after_hook(tmp_path):
+	(tmp_path / "a.txt").write_text("secret")
+	session, events = _session(tmp_path)
+	model = MockModel(replies=[_read_call()])
+	hook_started = asyncio.Event()
+	hook_cancelled = asyncio.Event()
+
+	async def after(tc, result):
+		hook_started.set()
+		try:
+			await asyncio.Event().wait()
+		finally:
+			hook_cancelled.set()
+
+	task = asyncio.create_task(run(session, "read", model=model, after_tool_call=after))
+	await hook_started.wait()
+	session.request_abort()
+	await asyncio.wait_for(task, timeout=1)
+
+	assert hook_cancelled.is_set()
+	assert _of(events, "run_ended")[-1]["reason"] == "aborted"
+
+
+async def test_abort_between_tool_calls_prevents_later_tool_from_starting(tmp_path, monkeypatch):
+	started: list[str] = []
+
+	@tool
+	async def first(*, ctx):
+		started.append("first")
+		ctx.abort.set()
+		return RuntimeToolResult(content="first finished")
+
+	@tool
+	async def second(*, ctx):
+		started.append("second")
+		return RuntimeToolResult(content="second finished")
+
+	monkeypatch.setitem(agent_loop.BUILTIN_TOOLS, "first", first)
+	monkeypatch.setitem(agent_loop.BUILTIN_TOOLS, "second", second)
+	session, events = _session(tmp_path, tools=["first", "second"], auto_approve=True)
+	model = MockModel(
+		replies=[
+			AssistantMessage(
+				content=[
+					ToolCall(id="c1", name="first", arguments={}),
+					ToolCall(id="c2", name="second", arguments={}),
+				]
+			)
+		]
+	)
+
+	await run(session, "go", model=model)
+
+	assert started == ["first"]
+	assert [event["tool_call_id"] for event in _of(events, "tool_result")] == ["c1", "c2"]
+	assert _of(events, "run_ended")[-1]["reason"] == "aborted"
+
+
+async def test_abort_cancels_client_callback_request(tmp_path, monkeypatch):
+	callback_started = asyncio.Event()
+	callback_cancelled = asyncio.Event()
+
+	class BlockingClient:
+		def __init__(self, *args, **kwargs):
+			pass
+
+		async def __aenter__(self):
+			return self
+
+		async def __aexit__(self, *args):
+			return None
+
+		async def post(self, *args, **kwargs):
+			callback_started.set()
+			try:
+				await asyncio.Event().wait()
+			finally:
+				callback_cancelled.set()
+
+	monkeypatch.setattr("flow_server.agent.loop.httpx.AsyncClient", BlockingClient)
+	session, events = _session(
+		tmp_path,
+		tools=[],
+		client_tools=[
+			{
+				"type": "function",
+				"function": {
+					"name": "client_wait",
+					"description": "wait",
+					"parameters": {"type": "object", "properties": {}},
+				},
+			}
+		],
+		callback_url="https://client.invalid/tools",
+		auto_approve=True,
+	)
+	model = MockModel(
+		replies=[AssistantMessage(content=[ToolCall(id="client-1", name="client_wait", arguments={})])]
+	)
+
+	task = asyncio.create_task(run(session, "call client", model=model))
+	await callback_started.wait()
+	session.request_abort()
+	await asyncio.wait_for(task, timeout=1)
+
+	assert callback_cancelled.is_set()
+	assert _of(events, "run_ended")[-1]["reason"] == "aborted"

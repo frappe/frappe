@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 from flow_server.events import AssistantMessage, TextContent, ThinkingContent, ToolCall, UserMessage
@@ -5,6 +7,7 @@ from flow_server.model import (
 	_REGISTRY,
 	LiteLLMModel,
 	MockModel,
+	ModelRequest,
 	get_model,
 	register_provider,
 )
@@ -16,7 +19,7 @@ async def _collect(gen):
 
 
 async def test_mock_streaming_sequence():
-	events = await _collect(MockModel().run([UserMessage(content="hi there")]))
+	events = await _collect(MockModel().run(ModelRequest(messages=[UserMessage(content="hi there")])))
 	types = [e.type for e in events]
 	assert types[-2:] == ["assistant_message", "usage"]
 	assert all(t == "text_delta" for t in types[:-2])
@@ -28,7 +31,7 @@ async def test_mock_streaming_sequence():
 
 
 async def test_mock_non_streaming_has_no_deltas():
-	events = await _collect(MockModel().run([UserMessage(content="hi")], stream=False))
+	events = await _collect(MockModel().run(ModelRequest(messages=[UserMessage(content="hi")], stream=False)))
 	assert [e.type for e in events] == ["assistant_message", "usage"]
 
 
@@ -36,13 +39,56 @@ async def test_mock_scripted_replies_multi_turn():
 	call = ToolCall(id="c1", name="bash", arguments={"command": "ls"})
 	model = MockModel(replies=[AssistantMessage(content=[call]), AssistantMessage(content="done")])
 
-	first = await _collect(model.run([UserMessage(content="go")]))
+	first = await _collect(model.run(ModelRequest(messages=[UserMessage(content="go")])))
 	assert [e.type for e in first] == ["tool_call_started", "assistant_message", "usage"]
 	assert first[0].id == "c1" and first[0].name == "bash"
 	assert first[1].tool_calls[0].args == {"command": "ls"}
 
-	second = await _collect(model.run([UserMessage(content="go")]))
+	second = await _collect(model.run(ModelRequest(messages=[UserMessage(content="go")])))
 	assert second[-2].text == "done"
+
+
+async def test_litellm_cancellation_closes_active_stream(monkeypatch):
+	class BlockingStream:
+		def __init__(self):
+			self.started = asyncio.Event()
+			self.closed = asyncio.Event()
+
+		def __aiter__(self):
+			return self
+
+		async def __anext__(self):
+			self.started.set()
+			await asyncio.Event().wait()
+
+		async def aclose(self):
+			self.closed.set()
+
+	stream = BlockingStream()
+
+	async def completion(**kwargs):
+		return stream
+
+	monkeypatch.setattr("litellm.acompletion", completion)
+	cancellation = asyncio.Event()
+	model = LiteLLMModel("openai/test")
+	task = asyncio.create_task(
+		_collect(
+			model.run(
+				ModelRequest(
+					messages=[UserMessage(content="hi")],
+					cancellation=cancellation,
+				)
+			)
+		)
+	)
+	await stream.started.wait()
+	cancellation.set()
+	events = await asyncio.wait_for(task, timeout=1)
+
+	assert stream.closed.is_set()
+	assert [event.type for event in events] == ["assistant_message", "usage"]
+	assert events[0].stop_reason == "aborted"
 
 
 def test_get_model_mock():

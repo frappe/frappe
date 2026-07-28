@@ -3,7 +3,8 @@ import asyncio
 import pytest
 
 from flow_server.agent import Agent
-from flow_server.events import AssistantMessage, RunEnded, ToolCall
+from flow_server.events import AssistantMessage, RunEnded, ToolCall, Usage
+from flow_server.model import Model, ModelRequest
 from flow_server.model.mock import MockModel
 
 
@@ -56,3 +57,52 @@ async def test_event_iterator_does_not_hang_if_terminal_publish_fails(tmp_path, 
 	with pytest.raises(OSError, match="log unavailable"):
 		await asyncio.wait_for(consume(), timeout=0.5)
 	assert agent.session.is_running is False
+
+
+async def test_abort_stops_in_process_run_and_next_run_gets_fresh_signal(tmp_path):
+	class AbortThenFinishModel(Model):
+		name = "abort-then-finish"
+
+		def __init__(self):
+			self.calls = 0
+			self.started = asyncio.Event()
+			self.cancelled = asyncio.Event()
+
+		async def run(self, request: ModelRequest):
+			self.calls += 1
+			if self.calls == 1:
+				self.started.set()
+				try:
+					await asyncio.Event().wait()
+				finally:
+					self.cancelled.set()
+				if False:
+					yield
+				return
+			assert request.cancellation is not None
+			assert not request.cancellation.is_set()
+			yield AssistantMessage(content="recovered")
+			yield Usage()
+
+	model = AbortThenFinishModel()
+	agent = Agent(model=model, data_dir=str(tmp_path), cwd=str(tmp_path))
+
+	first = asyncio.create_task(_collect(agent.run("wait")))
+	await model.started.wait()
+	assert agent.abort() is True
+	events = await asyncio.wait_for(first, timeout=1)
+
+	assert model.cancelled.is_set()
+	assert [event.stop_reason for event in events if event.type == "assistant_message"] == ["aborted"]
+	assert events[-1].type == "run_ended"
+	assert events[-1].reason == "aborted"
+	assert agent.session.is_running is False
+	assert agent.abort() is False
+
+	second = await _collect(agent.run("try again"))
+	assert [event.text for event in second if event.type == "assistant_message"] == ["recovered"]
+	assert second[-1].reason == "done"
+
+
+async def _collect(events):
+	return [event async for event in events]
