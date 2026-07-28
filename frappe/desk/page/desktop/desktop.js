@@ -467,7 +467,6 @@ class DesktopPage {
 				onClick: function () {
 					window.open("https://support.frappe.io/help", "_blank");
 				},
-<<<<<<< HEAD
 			},
 			{
 				icon: "rotate-ccw",
@@ -476,16 +475,6 @@ class DesktopPage {
 					reset_to_default();
 					window.location.reload();
 				},
-			},
-			{
-				icon: "log-out",
-				label: "Logout",
-				onClick: function () {
-					frappe.app.logout();
-				},
-=======
-				order: 40,
->>>>>>> 73008dc4d0 (fix: add order to desktop menu item)
 			},
 		];
 		// sort() is stable, so items sharing an `order` keep the order they were added in.
