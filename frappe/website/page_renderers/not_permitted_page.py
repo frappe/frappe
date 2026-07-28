@@ -23,6 +23,8 @@ class NotPermittedPage(TemplatePage):
 			if frappe.request.path.startswith("/desk/") or frappe.request.path == "/desk":
 				action = "/login"
 			context.update(primary_action=action, primary_label=_("Login"))
+		else:
+			context.update(primary_action="/app", primary_label=_("Home"))
 		frappe.local.response["context"] = context
 		self.set_standard_path("message")
 		return super().render()
