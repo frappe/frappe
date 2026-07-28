@@ -279,7 +279,6 @@ class DesktopPage {
 		this.setup_awesomebar();
 		this.handle_route_change();
 	}
-<<<<<<< HEAD
 	setup_edit_button() {
 		if (this.edit_mode || frappe.is_mobile()) return;
 		const me = this;
@@ -426,7 +425,6 @@ class DesktopPage {
 			me.stop_editing_layout("submit");
 		});
 	}
-=======
 
 	setup_cloud_settings() {
 		const $button = $(".desktop-cloud-settings");
@@ -524,7 +522,6 @@ class DesktopPage {
 		return this._cloud_settings_loaded;
 	}
 
->>>>>>> 86a69710c5 (feat(cloud_settings): add in-app cloud settings embed (#41293))
 	setup_notifications() {
 		this.notifications = new frappe.ui.Notifications({
 			wrapper: $(".desktop-notifications"),

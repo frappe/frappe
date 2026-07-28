@@ -118,11 +118,8 @@ def get_bootinfo():
 	bootinfo.subscription_conf = add_subscription_conf()
 	bootinfo.marketplace_apps = get_marketplace_apps()
 	bootinfo.is_fc_site = is_fc_site()
-<<<<<<< HEAD
 	bootinfo.changelog_feed = get_changelog_feed_items()
-=======
 	bootinfo.cloud_settings = get_cloud_settings_boot_context()
->>>>>>> 86a69710c5 (feat(cloud_settings): add in-app cloud settings embed (#41293))
 	bootinfo.enable_address_autocompletion = frappe.db.get_single_value(
 		"Geolocation Settings", "enable_address_autocompletion"
 	)
