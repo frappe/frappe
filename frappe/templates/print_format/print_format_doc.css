@@ -210,23 +210,11 @@
 	border-bottom-right-radius: var(--pfb-radius, 0);
 }
 
-/* bordered tables end in the .table-foot cap instead — rounding the last row
-   too would curve its side borders away from the cap and leave an open notch */
-.print-format-doc
-	.child-table:not(.child-table--bordered)
-	.table
-	tbody
-	tr:last-child
-	td:first-child {
+.print-format-doc .child-table .table tbody tr:last-child td:first-child {
 	border-bottom-left-radius: var(--pfb-radius, 0);
 }
 
-.print-format-doc
-	.child-table:not(.child-table--bordered)
-	.table
-	tbody
-	tr:last-child
-	td:last-child {
+.print-format-doc .child-table .table tbody tr:last-child td:last-child {
 	border-bottom-right-radius: var(--pfb-radius, 0);
 }
 
@@ -276,22 +264,14 @@
 	border-left: 1px solid var(--gray-300) !important;
 }
 
-/* the cap only has work to do on bordered tables (closing the outline with a
-   rounded bottom on every printed page); elsewhere it would just add an empty
-   band under the table, so it gets no height */
+.print-format-doc .child-table--bordered .table tbody tr:last-child td {
+	border-bottom: 1px solid var(--gray-300) !important;
+}
+
 .print-format-doc .child-table .table .table-foot {
 	padding: 0;
 	height: 0;
 	border: none !important;
-	border-bottom-left-radius: var(--pfb-radius, 0);
-	border-bottom-right-radius: var(--pfb-radius, 0);
-}
-
-.print-format-doc .child-table--bordered .table .table-foot {
-	height: var(--pfb-radius, 0);
-	border-left: 1px solid var(--gray-300) !important;
-	border-right: 1px solid var(--gray-300) !important;
-	border-bottom: 1px solid var(--gray-300) !important;
 }
 
 /* plain header: no fill, a single rule under the header row instead */
