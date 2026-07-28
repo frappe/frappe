@@ -790,7 +790,7 @@ watch(
 
 /* outline-only selection chrome: must not change previewed geometry */
 .field--preview:hover {
-	outline: 1px dashed var(--gray-400);
+	outline: 1px solid var(--pfb-accent);
 	outline-offset: 1px;
 }
 
@@ -802,11 +802,11 @@ watch(
 
 .field--chip.field--layer-hover {
 	border-style: solid;
-	border-color: var(--gray-500);
+	border-color: var(--pfb-accent);
 }
 
 .field--preview.field--layer-hover {
-	outline: 1px dashed var(--gray-400);
+	outline: 1px solid var(--pfb-accent);
 	outline-offset: 1px;
 }
 

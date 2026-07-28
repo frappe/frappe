@@ -421,7 +421,6 @@ defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 	/* navbar + page head height */
 	--pfb-chrome-offset: 95px;
 	--pfb-accent: var(--blue-400);
-	--pfb-accent-soft: var(--blue-300);
 	display: flex;
 	width: 100%;
 }
