@@ -1481,3 +1481,155 @@ class TestWebForm(IntegrationTestCase):
 		self.addCleanup(restore_settings)
 		frappe.db.set_value("Web Form", "manage-events", settings, update_modified=False)
 		frappe.clear_document_cache("Web Form", "manage-events")
+
+
+class TestWebFormNewDocType(IntegrationTestCase):
+	"""Tests for creating a DocType on the fly from a Web Form."""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def new_web_form(self, doctype_name, fields=None, **kwargs):
+		web_form = frappe.get_doc(
+			{
+				"doctype": "Web Form",
+				"title": doctype_name,
+				"module": "Website",
+				"is_new_doctype": 1,
+				"new_doctype_name": doctype_name,
+				"web_form_fields": fields
+				or [
+					{
+						"fieldname": "first_name",
+						"label": "First Name",
+						"fieldtype": "Data",
+						"reqd": 1,
+					}
+				],
+				**kwargs,
+			}
+		)
+		self.addCleanup(lambda: self.delete_web_form_and_doctype(web_form.name, doctype_name))
+		return web_form.insert()
+
+	def delete_web_form_and_doctype(self, web_form_name, doctype_name):
+		frappe.delete_doc("Web Form", web_form_name, ignore_permissions=True, force=True)
+		if frappe.db.exists("DocType", doctype_name):
+			frappe.delete_doc("DocType", doctype_name, ignore_permissions=True, force=True)
+
+	def test_create_new_doctype_creates_doctype_from_fields(self):
+		doctype_name = "Test Web Form Generated DocType"
+		web_form = self.new_web_form(doctype_name)
+
+		self.assertTrue(frappe.db.exists("DocType", doctype_name))
+		self.assertEqual(web_form.doc_type, doctype_name)
+		self.assertEqual(web_form.is_new_doctype, 0)
+		self.assertEqual(web_form.created_new_doctype, 1)
+
+		meta = frappe.get_meta(doctype_name)
+		self.assertTrue(meta.custom)
+		self.assertEqual(meta.module, "Website")
+
+		field = meta.get_field("first_name")
+		self.assertEqual(field.label, "First Name")
+		self.assertEqual(field.fieldtype, "Data")
+		self.assertEqual(field.reqd, 1)
+
+	def test_create_new_doctype_requires_new_doctype_name(self):
+		web_form = frappe.get_doc(
+			{
+				"doctype": "Web Form",
+				"title": "Test Web Form Missing DocType Name",
+				"module": "Website",
+				"is_new_doctype": 1,
+				"new_doctype_name": "",
+				"web_form_fields": [
+					{"fieldname": "first_name", "label": "First Name", "fieldtype": "Data"}
+				],
+			}
+		)
+		self.addCleanup(
+			lambda: frappe.delete_doc(
+				"Web Form", web_form.name, ignore_permissions=True, force=True
+			)
+			if web_form.name and frappe.db.exists("Web Form", web_form.name)
+			else None
+		)
+
+		with self.assertRaises(frappe.ValidationError):
+			web_form.insert()
+
+	def test_create_new_doctype_rejects_already_existing_doctype_name(self):
+		web_form = frappe.get_doc(
+			{
+				"doctype": "Web Form",
+				"title": "Test Web Form Existing DocType Name",
+				"module": "Website",
+				"is_new_doctype": 1,
+				"new_doctype_name": "Event",
+				"web_form_fields": [
+					{"fieldname": "first_name", "label": "First Name", "fieldtype": "Data"}
+				],
+			}
+		)
+		self.addCleanup(
+			lambda: frappe.delete_doc(
+				"Web Form", web_form.name, ignore_permissions=True, force=True
+			)
+			if web_form.name and frappe.db.exists("Web Form", web_form.name)
+			else None
+		)
+
+		with self.assertRaises(frappe.ValidationError):
+			web_form.insert()
+
+	def test_sync_fields_to_doctype_adds_new_field_after_creation(self):
+		doctype_name = "Test Web Form Sync DocType"
+		web_form = self.new_web_form(doctype_name)
+
+		web_form.append(
+			"web_form_fields",
+			{"fieldname": "last_name", "label": "Last Name", "fieldtype": "Data"},
+		)
+		web_form.save()
+
+		meta = frappe.get_meta(doctype_name)
+		self.assertTrue(meta.has_field("last_name"))
+		self.assertEqual(meta.get_field("last_name").label, "Last Name")
+
+	def test_sync_fields_to_doctype_does_not_apply_to_manually_selected_doctype(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		custom_doctype = new_doctype(
+			"Test Web Form Manual DocType",
+			fields=[{"fieldname": "existing_field", "label": "Existing Field", "fieldtype": "Data"}],
+		).insert()
+		self.addCleanup(lambda: frappe.delete_doc("DocType", custom_doctype.name, force=True))
+
+		web_form = frappe.get_doc(
+			{
+				"doctype": "Web Form",
+				"title": "Test Web Form Manual DocType Selection",
+				"module": "Website",
+				"doc_type": custom_doctype.name,
+				"web_form_fields": [
+					{"fieldname": "existing_field", "label": "Existing Field", "fieldtype": "Data"},
+					{"fieldname": "not_on_doctype", "label": "Not On DocType", "fieldtype": "Data"},
+				],
+			}
+		)
+		self.addCleanup(
+			lambda: frappe.delete_doc(
+				"Web Form", web_form.name, ignore_permissions=True, force=True
+			)
+			if web_form.name and frappe.db.exists("Web Form", web_form.name)
+			else None
+		)
+
+		with self.assertRaises(frappe.ValidationError):
+			web_form.insert()
+
+		self.assertFalse(frappe.get_meta(custom_doctype.name).has_field("not_on_doctype"))
