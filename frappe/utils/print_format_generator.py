@@ -36,10 +36,11 @@ def download_pdf(
 	settings: str | dict | None = None,
 ):
 	from frappe.printing.doctype.print_format.classic_converter import get_default_print_format
-	from frappe.www.printview import validate_print
+	from frappe.www.printview import set_link_titles, validate_print
 
 	doc = frappe.get_doc(doctype, name)
 	validate_print(doc)
+	set_link_titles(doc)
 	if not print_format or print_format == "Standard":
 		print_format = get_default_print_format(doctype)
 	generator = PrintFormatGenerator(print_format, doc, letterhead, settings=frappe.parse_json(settings))
