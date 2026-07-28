@@ -210,20 +210,7 @@ class TestMethodAPIV2(FrappeAPITestCase):
 		)
 		self.assertEqual(expanded_response.data, shorthand_response.data)
 
-<<<<<<< HEAD
-	def test_unserializable_response_v2(self):
-		method = "frappe.tests.test_api.test_unserializable_response"
-
-		with suppress_stdout():
-			response = self.get(self.method(method), {"sid": self.sid})
-
-		self.assertEqual(response.status_code, 500)
-		self.assertEqual(response.json["errors"][0]["type"], "TypeError")
-
 	def test_logout(self):
-=======
-	def test_logout_v2(self):
->>>>>>> 61e632c4b4 ( fix: Handle large int serialization (#41308))
 		self.post(self.method("logout"), {"sid": self.sid})
 		response = self.get(self.method("ping"))
 		self.assertFalse(response.request.cookies["sid"])

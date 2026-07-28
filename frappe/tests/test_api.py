@@ -557,10 +557,5 @@ def test_array(data):
 
 
 @whitelist_for_tests()
-<<<<<<< HEAD
-def test_unserializable_response():
-	frappe.response["value"] = 2**70
-=======
 def create_todo_for_testing(description: str):
 	return frappe.get_doc({"doctype": "ToDo", "description": description}).insert().name
->>>>>>> 61e632c4b4 ( fix: Handle large int serialization (#41308))
