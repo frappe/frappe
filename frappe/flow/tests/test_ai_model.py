@@ -45,7 +45,7 @@ class TestModel(UnitTestCase):
 
 	def test_init_allows_empty_api_key_for_local_providers(self):
 		m = Model(model_id="ollama/llama3.1", base_url="http://localhost:11434")
-		self.assertEqual(m._api_key, "")
+		self.assertIsNone(m._api_key)
 
 	def test_init_rejects_name_with_kwargs(self):
 		with self.assertRaises(ValueError):
