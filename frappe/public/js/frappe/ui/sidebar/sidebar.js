@@ -554,6 +554,14 @@ frappe.ui.Sidebar = class Sidebar {
 						new frappe.ui.DockManager();
 					},
 				},
+				{
+					name: "reload",
+					label: __("Reload"),
+					icon: "rotate-ccw",
+					onClick: function () {
+						frappe.ui.toolbar.clear_cache();
+					},
+				},
 				...frappe.boot.navbar_settings.settings_dropdown.map((item) => ({
 					...item,
 					label: item.item_label,
