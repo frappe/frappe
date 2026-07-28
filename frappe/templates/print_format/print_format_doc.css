@@ -272,13 +272,6 @@
 	padding: 0;
 	height: 0;
 	border: none !important;
-	border-bottom-left-radius: var(--pfb-radius, 0);
-	border-bottom-right-radius: var(--pfb-radius, 0);
-}
-
-.print-format-doc .child-table--bordered .table .table-foot {
-	height: 0;
-	border-bottom: 1px solid var(--gray-300) !important;
 }
 
 /* plain header: no fill, a single rule under the header row instead */
