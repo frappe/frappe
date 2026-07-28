@@ -55,12 +55,14 @@ class WebForm(WebsiteGenerator):
 		button_label: DF.Data | None
 		client_script: DF.Code | None
 		condition_json: DF.JSON | None
+		created_new_doctype: DF.Check
 		custom_css: DF.Code | None
-		doc_type: DF.Link
+		doc_type: DF.Link | None
 		dynamic_filters_json: DF.JSON | None
 		hide_footer: DF.Check
 		hide_navbar: DF.Check
 		introduction_text: DF.TextEditor | None
+		is_new_doctype: DF.Check
 		is_standard: DF.Check
 		key_required: DF.Check
 		list_columns: DF.Table[WebFormListColumn]
@@ -71,6 +73,7 @@ class WebForm(WebsiteGenerator):
 		meta_image: DF.AttachImage | None
 		meta_title: DF.Data | None
 		module: DF.Link | None
+		new_doctype_name: DF.Data | None
 		print_format: DF.Link | None
 		published: DF.Check
 		route: DF.Data | None
@@ -88,6 +91,9 @@ class WebForm(WebsiteGenerator):
 	website = frappe._dict(no_cache=1)
 
 	def validate(self):
+		if self.is_new_doctype:
+			self.create_new_doctype()
+
 		super().validate()
 
 		if not self.module:
@@ -112,6 +118,84 @@ class WebForm(WebsiteGenerator):
 		self.validate_hidden_and_mandatory()
 		self.validate_guest_key_link_fields()
 
+	def create_new_doctype(self):
+		"""Create the target DocType from this Web Form's fields instead of
+		requiring the user to pick an existing DocType."""
+		if not self.new_doctype_name:
+			frappe.throw(_("New DocType Name is mandatory to create a new DocType"))
+
+		if frappe.db.exists("DocType", self.new_doctype_name):
+			frappe.throw(_("DocType {0} already exists").format(self.new_doctype_name))
+
+		new_doctype = frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"name": self.new_doctype_name,
+				"module": self.module,
+				"custom": 1,
+				"fields": self.get_fields_for_new_doctype(),
+				"permissions": [
+					{
+						"role": "System Manager",
+						"read": 1,
+						"write": 1,
+						"create": 1,
+						"delete": 1,
+						"print": 1,
+						"email": 1,
+						"export": 1,
+						"report": 1,
+						"share": 1,
+					}
+				],
+			}
+		).insert()
+
+		self.doc_type = new_doctype.name
+		self.is_new_doctype = 0
+		self.created_new_doctype = 1
+
+	def get_fields_for_new_doctype(self):
+		"""Map Web Form Field rows to DocField dicts for `create_new_doctype`."""
+		return [self.as_docfield(d) for d in self.web_form_fields]
+
+	def as_docfield(self, web_form_field):
+		"""Map a single Web Form Field row to a DocField dict."""
+		return {
+			"fieldname": web_form_field.fieldname,
+			"label": web_form_field.label,
+			"fieldtype": web_form_field.fieldtype,
+			"options": web_form_field.options,
+			"reqd": web_form_field.reqd,
+			"default": web_form_field.default,
+			"description": web_form_field.description,
+		}
+
+	def sync_fields_to_doctype(self):
+		"""Add Web Form Field rows that don't exist yet on the target DocType,
+		so fields can keep being designed from the Web Form itself after the
+		DocType has already been created. Only applies to a DocType that this
+		very Web Form created on the fly - any other DocType (even a Custom
+		one picked manually) keeps the original strict behaviour."""
+		if not self.created_new_doctype:
+			return
+
+		if not self.doc_type or not frappe.db.exists("DocType", self.doc_type):
+			return
+
+		meta = frappe.get_meta(self.doc_type)
+		if not meta.custom:
+			return
+
+		missing_fields = [d for d in self.web_form_fields if d.fieldname and not meta.has_field(d.fieldname)]
+		if not missing_fields:
+			return
+
+		target_doctype = frappe.get_doc("DocType", self.doc_type)
+		for d in missing_fields:
+			target_doctype.append("fields", self.as_docfield(d))
+		target_doctype.save()
+
 	def validate_guest_key_link_fields(self):
 		if not is_guest_key_web_form(self):
 			return
@@ -128,8 +212,11 @@ class WebForm(WebsiteGenerator):
 				)
 
 	def validate_fields(self):
-		"""Validate all fields are present"""
+		"""Validate all fields are present, creating any missing ones on a
+		Custom target DocType instead of failing."""
 		from frappe.model import no_value_fields
+
+		self.sync_fields_to_doctype()
 
 		meta = frappe.get_meta(self.doc_type)
 		missing = [

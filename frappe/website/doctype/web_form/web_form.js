@@ -34,6 +34,7 @@ frappe.ui.form.on("Web Form", {
 		}
 		on_controlled_access_change(frm);
 
+		frm.trigger("toggle_new_doctype_fields");
 		frm.trigger("set_fields");
 		frm.trigger("add_get_fields_button");
 		frm.trigger("add_publish_button");
@@ -63,6 +64,30 @@ frappe.ui.form.on("Web Form", {
 		}
 	},
 
+	is_new_doctype: function (frm) {
+		// doc_type and new_doctype_name are mutually exclusive ways of
+		// pointing to the DocType this Web Form is built on.
+		frm.set_value(frm.doc.is_new_doctype ? "doc_type" : "new_doctype_name", "");
+		frm.trigger("toggle_new_doctype_fields");
+		frm.trigger("set_fields");
+	},
+
+	toggle_new_doctype_fields(frm) {
+		// "Field Name" stays freely editable (existing fields shown as
+		// suggestions) while a DocType is still being designed: during
+		// initial creation, and afterwards only for the DocType this very
+		// Web Form created, so new fields can keep being added from here.
+		// Any other DocType (even one that's Custom) keeps the original
+		// pick-from-existing-fields behaviour.
+		let editable = frm.doc.is_new_doctype || frm.doc.created_new_doctype;
+		frm.fields_dict.web_form_fields.grid.update_docfield_property(
+			"fieldname",
+			"fieldtype",
+			editable ? "Autocomplete" : "Select"
+		);
+		frm.refresh_field("web_form_fields");
+	},
+
 	validate: function (frm) {
 		// must run before the checks below, which read web_form_fields
 		flush_form_builder(frm);
@@ -83,6 +108,14 @@ frappe.ui.form.on("Web Form", {
 
 	add_get_fields_button(frm) {
 		frm.add_custom_button(__("Get Fields"), () => {
+			if (!frm.doc.doc_type) {
+				frappe.show_alert({
+					message: __("Select an existing DocType to fetch its fields"),
+					indicator: "orange",
+				});
+				return;
+			}
+
 			// flush first, or fields only on the canvas show unticked and get added twice
 			flush_form_builder(frm);
 
@@ -405,7 +438,21 @@ frappe.ui.form.on("Web Form Field", {
 			frm.refresh_field("web_form_fields");
 		}
 	},
+	label: function (frm, doctype, name) {
+		// Auto-suggest a fieldname while designing a DocType's fields (new,
+		// or the DocType this Web Form itself created, being extended),
+		// same as how "Field Name" is derived from "Label" on the DocType form.
+		if (!frm.doc.is_new_doctype && !frm.doc.created_new_doctype) return;
+
+		let doc = frappe.get_doc(doctype, name);
+		if (doc.label && !doc.fieldname) {
+			doc.fieldname = frappe.model.scrub(doc.label);
+			frm.refresh_field("web_form_fields");
+		}
+	},
 	fieldname: function (frm, doctype, name) {
+		if (frm.doc.is_new_doctype) return;
+
 		let doc = frappe.get_doc(doctype, name);
 		let df = frappe.meta.get_docfield(frm.doc.doc_type, doc.fieldname);
 		if (!df) return;

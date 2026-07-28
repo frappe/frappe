@@ -13,7 +13,10 @@
   "banner_image",
   "published",
   "column_break_vdhm",
+  "is_new_doctype",
+  "created_new_doctype",
   "doc_type",
+  "new_doctype_name",
   "module",
   "is_standard",
   "section_break_1",
@@ -88,18 +91,44 @@
    "unique": 1
   },
   {
+   "default": "0",
+   "fieldname": "is_new_doctype",
+   "fieldtype": "Check",
+   "label": "Create New DocType"
+  },
+  {
+   "default": "0",
+   "description": "Set automatically when this Web Form creates its DocType. Only such Web Forms may keep adding fields to the DocType later.",
+   "fieldname": "created_new_doctype",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Created New DocType",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:!doc.is_new_doctype",
    "fieldname": "doc_type",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Select DocType",
-   "options": "DocType",
-   "reqd": 1
+   "mandatory_depends_on": "eval:!doc.is_new_doctype",
+   "options": "DocType"
+  },
+  {
+   "depends_on": "eval:doc.is_new_doctype",
+   "description": "A new DocType will be created with the fields added below.",
+   "fieldname": "new_doctype_name",
+   "fieldtype": "Data",
+   "label": "New DocType Name",
+   "mandatory_depends_on": "eval:doc.is_new_doctype"
   },
   {
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module",
+   "mandatory_depends_on": "eval:doc.is_new_doctype",
    "options": "Module Def"
   },
   {
