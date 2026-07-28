@@ -1,0 +1,8 @@
+@font-face {
+	font-family: "Saudi Riyal";
+	font-style: normal;
+	font-weight: 100 900;
+	font-display: swap;
+	src: url("/assets/frappe/css/fonts/saudi_riyal/saudi_riyal.woff2") format("woff2");
+	unicode-range: U+20C1;
+}

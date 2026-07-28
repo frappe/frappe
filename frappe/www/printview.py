@@ -650,7 +650,7 @@ def get_font(
 	default = """
 	"InterVariable", "Inter", -apple-system", "BlinkMacSystemFont",
 		"Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
-		"Helvetica Neue", sans-serif;
+		"Helvetica Neue", "Saudi Riyal", sans-serif;
 	"""
 	if for_legacy:
 		return default
@@ -658,11 +658,11 @@ def get_font(
 	font = None
 	if print_format:
 		if print_format.font and print_format.font != "Default":
-			font = f"{print_format.font}, sans-serif"
+			font = f'{print_format.font}, "Saudi Riyal", sans-serif'
 
 	if not font:
 		if print_settings.font and print_settings.font != "Default":
-			font = f"{print_settings.font}, sans-serif"
+			font = f'{print_settings.font}, "Saudi Riyal", sans-serif'
 
 		else:
 			font = default
