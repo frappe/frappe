@@ -143,7 +143,9 @@ class DesktopPage {
 		// Drop any partial global left by an API-less evaluation so a retry can
 		// re-register cleanly.
 		delete frappe.cloudSettings;
-		document.querySelectorAll("script[data-cloud-settings-bundle]").forEach((el) => el.remove());
+		document
+			.querySelectorAll("script[data-cloud-settings-bundle]")
+			.forEach((el) => el.remove());
 	}
 
 	cloud_settings_bundle_url(bundle) {
