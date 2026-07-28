@@ -390,12 +390,11 @@ const useStudioStore = defineStore("store", () => {
 			theme: "yellow",
 			onConfirm: async () => {
 				try {
-					const response = await studioPages.runDocMethod.submit({
+					await studioPages.runDocMethod.submit({
 						name: selectedPage.value,
 						method: "revert",
 						known_modified: activePage.value?.modified,
 					})
-					syncPageModified(response)
 					await setPage(selectedPage.value!)
 					toast.success("Changes reverted")
 				} catch (error: any) {
