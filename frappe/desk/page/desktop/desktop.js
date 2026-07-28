@@ -274,10 +274,12 @@ class DesktopPage {
 		$(document).trigger("desktop_screen", { desktop: this });
 		this.setup_avatar();
 		this.setup_notifications();
+		this.setup_cloud_settings();
 		this.setup_navbar();
 		this.setup_awesomebar();
 		this.handle_route_change();
 	}
+<<<<<<< HEAD
 	setup_edit_button() {
 		if (this.edit_mode || frappe.is_mobile()) return;
 		const me = this;
@@ -424,6 +426,105 @@ class DesktopPage {
 			me.stop_editing_layout("submit");
 		});
 	}
+=======
+
+	setup_cloud_settings() {
+		const $button = $(".desktop-cloud-settings");
+		const settings = frappe.boot.cloud_settings;
+		// The bundle is hosted by pilot; without its URL there's nothing to open.
+		if (!settings?.enabled || !settings.bundle?.js) {
+			$button.addClass("hidden");
+			return;
+		}
+
+		$button.removeClass("hidden");
+
+		// Warm the cache on hover so the first click feels instant.
+		$button.off("mouseenter.cloud-settings").on("mouseenter.cloud-settings", () => {
+			this.prefetch_cloud_settings_bundle(settings.bundle);
+		});
+
+		$button.off("click.cloud-settings").on("click.cloud-settings", () => {
+			this.open_cloud_settings(settings);
+		});
+	}
+
+	prefetch_cloud_settings_bundle(bundle) {
+		if (this._cloud_settings_prefetched) return;
+		this._cloud_settings_prefetched = true;
+		if (!bundle.js) return;
+		const link = document.createElement("link");
+		link.rel = "prefetch";
+		link.href = bundle.js;
+		document.head.appendChild(link);
+	}
+
+	async open_cloud_settings(settings) {
+		try {
+			await this.load_cloud_settings_bundle(settings.bundle);
+		} catch (error) {
+			// Pilot may be unreachable or the origin blocked; let the user retry.
+			console.error("Cloud settings bundle failed to load", error); // eslint-disable-line no-console
+			frappe.show_alert({
+				message: __("Couldn't open Cloud settings. Please try again."),
+				indicator: "red",
+			});
+			return;
+		}
+		// A 200 that never registers show() must not stick: clear the promise and
+		// bust the URL so the next click cannot reuse the API-less HTTP response.
+		if (typeof frappe.cloudSettings?.show !== "function") {
+			this.invalidate_cloud_settings_bundle();
+			frappe.show_alert({
+				message: __("Couldn't open Cloud settings. Please try again."),
+				indicator: "red",
+			});
+			return;
+		}
+		frappe.cloudSettings.show(settings);
+	}
+
+	invalidate_cloud_settings_bundle() {
+		this._cloud_settings_loaded = null;
+		this._cloud_settings_cache_bust = Date.now();
+		// Drop any partial global left by an API-less evaluation so a retry can
+		// re-register cleanly.
+		delete frappe.cloudSettings;
+		document
+			.querySelectorAll("script[data-cloud-settings-bundle]")
+			.forEach((el) => el.remove());
+	}
+
+	cloud_settings_bundle_url(bundle) {
+		const base = bundle.js;
+		if (!this._cloud_settings_cache_bust) return base;
+		const sep = base.includes("?") ? "&" : "?";
+		return `${base}${sep}_=${this._cloud_settings_cache_bust}`;
+	}
+
+	// Load pilot's cross-origin bundle once. It's a classic-script IIFE, so no CORS
+	// is involved, and it carries its own styles (the dialog renders in a shadow
+	// root), so there is no stylesheet to link. A failed load rejects and clears
+	// the cache so a later click can retry.
+	load_cloud_settings_bundle(bundle) {
+		if (this._cloud_settings_loaded) return this._cloud_settings_loaded;
+
+		const src = this.cloud_settings_bundle_url(bundle);
+		this._cloud_settings_loaded = new Promise((resolve, reject) => {
+			const script = document.createElement("script");
+			script.src = src;
+			script.dataset.cloudSettingsBundle = "1";
+			script.onload = resolve;
+			script.onerror = () => reject(new Error(`Failed to load ${src}`));
+			document.head.appendChild(script);
+		}).catch((error) => {
+			this._cloud_settings_loaded = null;
+			throw error;
+		});
+		return this._cloud_settings_loaded;
+	}
+
+>>>>>>> 86a69710c5 (feat(cloud_settings): add in-app cloud settings embed (#41293))
 	setup_notifications() {
 		this.notifications = new frappe.ui.Notifications({
 			wrapper: $(".desktop-notifications"),
