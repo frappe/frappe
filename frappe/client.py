@@ -433,17 +433,18 @@ def is_document_amended(doctype: str, docname: str):
 
 
 @frappe.whitelist()
-def validate_link(doctype: str, docname: str, fields=None):
+def validate_link(doctype: str, docname: str, fields: list[str] | str | None = None):
 	if not isinstance(doctype, str):
 		frappe.throw(_("DocType must be a string"))
 
 	if not isinstance(docname, str):
 		frappe.throw(_("Document Name must be a string"))
 
+	parent_doctype = None
+	if frappe.get_meta(doctype).istable:  # needed for links to child rows
+		parent_doctype = frappe.db.get_value(doctype, docname, "parenttype")
+
 	if doctype != "DocType":
-		parent_doctype = None
-		if frappe.get_meta(doctype).istable:  # needed for links to child rows
-			parent_doctype = frappe.db.get_value(doctype, docname, "parenttype")
 		if not (
 			frappe.has_permission(doctype, "select", parent_doctype=parent_doctype)
 			or frappe.has_permission(doctype, "read", parent_doctype=parent_doctype)
@@ -473,7 +474,7 @@ def validate_link(doctype: str, docname: str, fields=None):
 		return values
 
 	try:
-		values.update(get_value(doctype, fields, docname))
+		values.update(get_value(doctype, fields, docname, parent=parent_doctype))
 	except frappe.PermissionError:
 		frappe.clear_last_message()
 		frappe.msgprint(

@@ -867,14 +867,14 @@ from {tables}
 		hooks = frappe.get_hooks("permission_query_conditions", {})
 		for method in hooks.get(doctype, []) + hooks.get("*", []):
 			if hook_cond := frappe.call(frappe.get_attr(method), self.user, doctype=doctype):
-				# replace only field-level references (`tabDoctype`.`field`) with the alias,
-				# not bare table names inside subqueries (`from `tabDoctype``)
-				conditions.append(hook_cond.replace(f"`tab{doctype}`.`", f"{table_alias}.`"))
+				# replace only field-level references (`tabDoctype`.field or `tabDoctype`.`field`)
+				# with the alias, not bare table names inside subqueries (`from `tabDoctype``)
+				conditions.append(hook_cond.replace(f"`tab{doctype}`.", f"{table_alias}."))
 
 		if script_name := get_server_script_map().get("permission_query", {}).get(doctype):
 			script = frappe.get_doc("Server Script", script_name)
 			if script_cond := script.get_permission_query_conditions(self.user):
-				conditions.append(script_cond.replace(f"`tab{doctype}`.`", f"{table_alias}.`"))
+				conditions.append(script_cond.replace(f"`tab{doctype}`.", f"{table_alias}."))
 
 		return " and ".join(conditions)
 
