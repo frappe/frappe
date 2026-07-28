@@ -232,18 +232,22 @@ const useStudioStore = defineStore("store", () => {
 			}
 		}
 		const pageData = jsToJson(pageBlocks.value.map((block) => getBlockCopyWithoutParent(block)))
+		const savedPage = selectedPage.value
 
 		return studioPages.runDocMethod
 			.submit({
-				name: selectedPage.value,
+				name: savedPage,
 				method: "save_draft",
 				draft_blocks: pageData,
 				known_modified: activePage.value?.modified,
 			})
 			.then((response: any) => {
+				// a save that resolves after the user switched pages must not stamp this page's
+				// timestamp/draft marker onto the newly opened one
+				if (activePage.value?.name !== savedPage) return
 				syncPageModified(response)
 				// track that the page now has unpublished changes (drives the "Revert Changes" option)
-				if (activePage.value) activePage.value.draft_blocks = pageData
+				activePage.value.draft_blocks = pageData
 			})
 			.catch(handlePageWriteConflict)
 			.finally(() => {
@@ -389,13 +393,19 @@ const useStudioStore = defineStore("store", () => {
 					const response = await studioPages.runDocMethod.submit({
 						name: selectedPage.value,
 						method: "revert",
+						known_modified: activePage.value?.modified,
 					})
+					syncPageModified(response)
 					await setPage(selectedPage.value!)
 					toast.success("Changes reverted")
 				} catch (error: any) {
-					toast.error("Failed to revert the changes", {
-						description: error?.messages?.join(", "),
-					})
+					try {
+						handlePageWriteConflict(error)
+					} catch {
+						toast.error("Failed to revert the changes", {
+							description: error?.messages?.join(", "),
+						})
+					}
 				}
 			},
 		})

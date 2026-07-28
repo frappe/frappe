@@ -326,8 +326,8 @@ class StudioPage(Document):
 		self.save()
 
 	@frappe.whitelist()
-	def revert(self):
-		"""Discard the working draft so the page falls back to its published blocks (see save_draft)."""
+	def revert(self, known_modified: str | None = None):
+		self.reject_if_stale(known_modified)
 		self.draft_blocks = None
 		self._skip_validate = True  # blocks only change
 		self.save()
