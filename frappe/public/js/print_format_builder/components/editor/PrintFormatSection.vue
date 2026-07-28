@@ -101,7 +101,7 @@
 							v-bind="DRAG_OPTIONS"
 							@start="setDragging(true)"
 							@end="setDragging(false)"
-							@add="select_section"
+							@add="(e) => select_dropped_field(column, e)"
 						>
 							<template #item="{ element }">
 								<Field
@@ -243,6 +243,12 @@ let section_inline_style = computed(() => {
 
 function select_section() {
 	store.select_section(props.section);
+}
+
+function select_dropped_field(column, e) {
+	const field = column.fields[e.newIndex];
+	if (field) store.select_field(field);
+	else store.select_section(props.section);
 }
 
 function remove_section() {
