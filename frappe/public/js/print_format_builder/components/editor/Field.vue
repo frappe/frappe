@@ -17,6 +17,7 @@
 		:aria-label="df.label || df.fieldname"
 		tabindex="0"
 		@click.stop="select_field($event)"
+		@contextmenu="on_context_menu"
 		@keydown.enter.prevent="kbd_select($event)"
 		@keydown.space.prevent="kbd_select($event)"
 	>
@@ -295,6 +296,7 @@ import FieldPreviewTable from "./FieldPreviewTable.vue";
 import { render_jinja_html, evaluate_visible_if, parse_inline_style } from "../../utils";
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
 import { useFieldFormat } from "../../composables/useFieldFormat";
+import { useContextMenu } from "../../composables/useContextMenu";
 
 const props = defineProps(["df", "field_orientation"]);
 
@@ -524,6 +526,33 @@ function save_as_snippet() {
 		__("Save Field as Snippet"),
 		__("Save")
 	);
+}
+
+const { open: open_context_menu } = useContextMenu();
+
+function on_context_menu(e) {
+	store.select_field(props.df);
+	open_context_menu(e, [
+		{ label: __("Copy"), icon: "copy", action: () => store.copy_field(props.df) },
+		{
+			label: __("Duplicate"),
+			icon: "copy-plus",
+			action: () => store.duplicate_field(props.df),
+		},
+		{ label: __("Save as snippet"), icon: "bookmark-plus", action: save_as_snippet },
+		store.clipboard.value && {
+			label: __("Paste"),
+			icon: "clipboard-paste",
+			action: () => store.paste_clipboard(),
+		},
+		{ divider: true },
+		{
+			label: __("Delete"),
+			icon: "trash",
+			danger: true,
+			action: () => store.remove_field(props.df),
+		},
+	]);
 }
 
 function configure_columns() {

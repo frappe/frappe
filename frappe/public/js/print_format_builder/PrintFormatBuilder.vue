@@ -65,6 +65,7 @@
 		</div>
 		<FieldInspector />
 		<Preview v-if="show_preview" @close="show_preview = false" />
+		<ContextMenu />
 	</div>
 </template>
 
@@ -74,6 +75,7 @@ import PrintFormatSetup from "./components/editor/PrintFormatSetup.vue";
 import Preview from "./components/Preview.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
+import ContextMenu from "./components/editor/ContextMenu.vue";
 import { getStore } from "./stores";
 import { computed, ref, onMounted, onUnmounted, provide, nextTick } from "vue";
 

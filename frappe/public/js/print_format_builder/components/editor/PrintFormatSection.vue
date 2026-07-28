@@ -8,6 +8,7 @@
 			'pfb-layer-hover': store.hovered_section.value === section,
 		}"
 		@click.stop="select_section"
+		@contextmenu="on_context_menu"
 	>
 		<!-- Top-right actions pill shown on hover in clean-preview (toolbar is hidden) -->
 		<div v-if="!is_header" class="section-preview-actions">
@@ -159,6 +160,7 @@ import SectionActions from "./SectionActions.vue";
 import { computed, inject } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
 import { DRAG_OPTIONS, evaluate_visible_if, parse_inline_style, setDragging } from "../../utils";
+import { useContextMenu } from "../../composables/useContextMenu";
 
 const props = defineProps(["section", "is_header", "zone"]);
 
@@ -256,6 +258,41 @@ function select_dropped_field(column, e) {
 
 function remove_section() {
 	store.remove_section(props.section);
+}
+
+const { open: open_context_menu } = useContextMenu();
+
+function on_context_menu(e) {
+	select_section();
+	open_context_menu(e, [
+		!props.is_header && {
+			label: __("Copy section"),
+			icon: "copy",
+			action: () => store.copy_section(props.section),
+		},
+		!props.is_header && {
+			label: __("Duplicate section"),
+			icon: "copy-plus",
+			action: () => store.duplicate_section(props.section),
+		},
+		!props.is_header && {
+			label: __("Save as snippet"),
+			icon: "bookmark-plus",
+			action: save_as_snippet,
+		},
+		store.clipboard.value && {
+			label: __("Paste"),
+			icon: "clipboard-paste",
+			action: () => store.paste_clipboard(),
+		},
+		!props.is_header && { divider: true },
+		!props.is_header && {
+			label: __("Delete section"),
+			icon: "trash",
+			danger: true,
+			action: remove_section,
+		},
+	]);
 }
 
 function save_as_snippet() {
