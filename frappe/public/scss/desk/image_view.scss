@@ -2,6 +2,10 @@
 .image-view {
 	.frappe-list {
 		padding: var(--padding-xs);
+
+		.result-container {
+			overflow-y: auto;
+		}
 	}
 
 	.list-header-subject {

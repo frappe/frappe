@@ -241,17 +241,15 @@ def create_desktop_icons_from_workspace():
 				if app_icon:
 					icon.parent_icon = app_icon
 
+				app_icon_link = frappe.db.get_value("Desktop Icon", app_icon, "link") if app_icon else None
+
 				# Portal App With Desk Workspace
-				if frappe.db.get_value("Desktop Icon", app_icon, "link") and not frappe.db.get_value(
-					"Desktop Icon", app_icon, "link"
-				).startswith("/app"):
+				if app_icon_link and not app_icon_link.startswith("/app"):
 					icon.hidden = 1
 					icon.parent_icon = None
 
 				# If Desk App has one workspace with the same name
-				if icon.label == app_title and (
-					app_icon and frappe.db.get_value("Desktop Icon", app_icon, "link").startswith("/app")
-				):
+				if icon.label == app_title and app_icon_link and app_icon_link.startswith("/app"):
 					icon.hidden = 1
 					icon.parent_icon = None
 
@@ -260,8 +258,8 @@ def create_desktop_icons_from_workspace():
 						"Desktop Icon", [{"label": icon.label, "icon_type": icon.icon_type}]
 					):
 						icon.insert(ignore_if_duplicate=True)
-				except Exception as e:
-					frappe.error_log(title="Creation of Desktop Icon Failed", message=e)
+				except Exception:
+					frappe.log_error(title="Creation of Desktop Icon Failed")
 
 
 def create_desktop_icons_from_installed_apps():

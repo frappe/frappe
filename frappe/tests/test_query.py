@@ -1339,6 +1339,109 @@ class TestQuery(IntegrationTestCase):
 		test_user_doc.remove_roles(test_role)
 		frappe.delete_doc("Role", test_role, force=True)
 
+	def test_link_table_field_optional_link_not_filtered_by_target_permission_conditions(self):
+		"""An optional (empty) Link field fetched via dot-notation must not cause the
+		parent row to disappear because of the *target* doctype's permission_query_conditions.
+
+		LinkTableField.apply_join LEFT JOINs the linked doctype and applies the target's
+		permission_query_conditions as a WHERE clause. When the link value is empty, the
+		joined row is entirely NULL, so any non-trivial condition on it evaluates false and
+		silently drops the parent row -- even though the parent row never referenced
+		anything the user isn't allowed to see. The condition belongs in the JOIN's ON
+		clause, where it only ever affects what gets attached, never whether the parent
+		row survives.
+		"""
+		target_dt_name = "TargetDocForOptionalLink"
+		source_dt_name = "SourceDocForOptionalLink"
+		test_role = "OptionalLinkPermTestRole"
+		test_user = "test3@example.com"
+
+		# Cleanup previous runs
+		frappe.set_user("Administrator")
+		frappe.delete_doc("DocType", source_dt_name, ignore_missing=True, force=True)
+		frappe.delete_doc("DocType", target_dt_name, ignore_missing=True, force=True)
+		frappe.delete_doc("Role", test_role, ignore_missing=True, force=True)
+		test_user_doc = frappe.get_doc("User", test_user)
+		test_user_doc.remove_roles(test_role)
+
+		# Create Doctypes: source has an OPTIONAL link to target
+		target_dt = new_doctype(
+			target_dt_name,
+			fields=[{"fieldname": "value", "fieldtype": "Data", "label": "Value"}],
+		).insert(ignore_if_duplicate=True)
+
+		source_dt = new_doctype(
+			source_dt_name,
+			fields=[
+				{
+					"fieldname": "link_field",
+					"fieldtype": "Link",
+					"options": target_dt_name,
+					"label": "Link Field",
+					"reqd": 0,
+				}
+			],
+		).insert(ignore_if_duplicate=True)
+
+		# Setup Role and Permissions
+		frappe.get_doc({"doctype": "Role", "role_name": test_role}).insert(ignore_if_duplicate=True)
+		add_permission(source_dt_name, test_role, 0, ptype="read")
+		add_permission(target_dt_name, test_role, 0, ptype="read")
+		test_user_doc.add_roles(test_role)
+
+		# Create records: one source doc points at a target, the other has no link at all
+		target_doc = frappe.get_doc(doctype=target_dt_name, value="Secret Data").insert(
+			ignore_permissions=True
+		)
+		linked_source = frappe.get_doc(doctype=source_dt_name, link_field=target_doc.name).insert(
+			ignore_permissions=True
+		)
+		unlinked_source = frappe.get_doc(doctype=source_dt_name).insert(ignore_permissions=True)
+
+		# Target doctype's permission_query_conditions denies every row for every user,
+		# simulating "the user can't see the specific document this field would point to".
+		with self.patch_hooks(
+			{
+				"permission_query_conditions": {
+					target_dt_name: ["frappe.tests.test_query.test_deny_all_permission_hook"]
+				}
+			}
+		):
+			# Registered before switching so an assertion failure can't leak the user
+			# (and the roles granting it access) into subsequent tests.
+			self.addCleanup(lambda: frappe.set_user("Administrator"))
+			frappe.set_user(test_user)
+			result = frappe.qb.get_query(
+				source_dt_name,
+				filters={"name": ["in", [linked_source.name, unlinked_source.name]]},
+				fields=["name", "link_field.value as linked_value"],
+				ignore_permissions=False,
+			).run(as_dict=True)
+
+			by_name = {d.name: d for d in result}
+			self.assertIn(
+				unlinked_source.name,
+				by_name,
+				"A row with no link at all must not be filtered out by an unrelated "
+				"doctype's permission condition.",
+			)
+			self.assertIsNone(by_name[unlinked_source.name].linked_value)
+
+			# The row that *does* link to an inaccessible target should still be visible
+			# (its own permissions are unaffected) but must not leak the target's data.
+			self.assertIn(linked_source.name, by_name)
+			self.assertIsNone(by_name[linked_source.name].linked_value)
+
+		# Cleanup
+		frappe.set_user("Administrator")
+		linked_source.delete(ignore_permissions=True)
+		unlinked_source.delete(ignore_permissions=True)
+		target_doc.delete(ignore_permissions=True)
+		source_dt.delete()
+		target_dt.delete()
+		test_user_doc.remove_roles(test_role)
+		frappe.delete_doc("Role", test_role, force=True)
+
 	def test_filter_direct_field_permission(self):
 		"""Test that filtering is only allowed on permitted direct fields."""
 		with setup_patched_blog_post(), setup_test_user(set_user=True) as user:
@@ -2622,3 +2725,8 @@ class TestQuery(IntegrationTestCase):
 # This function is used as a permission query condition hook
 def test_permission_hook_condition(user):
 	return "`tabDashboard Settings`.`name` = 'Administrator'"
+
+
+# Used to simulate "user cannot see any row of this doctype" for LinkTableField tests.
+def test_deny_all_permission_hook(user, doctype=None):
+	return "1=0"

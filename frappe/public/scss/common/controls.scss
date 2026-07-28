@@ -388,6 +388,11 @@ textarea.form-control {
 	overflow-wrap: break-word;
 }
 
+.frappe-control[data-fieldtype="Text Editor"] .control-value {
+	max-height: 300px;
+	overflow: auto;
+}
+
 .frappe-control[data-fieldtype="Data"] .control-input,
 .control-value {
 	position: relative;

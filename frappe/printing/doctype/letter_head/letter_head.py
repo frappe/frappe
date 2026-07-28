@@ -56,7 +56,8 @@ class LetterHead(Document):
 			frappe.throw(_("Letter Head cannot be both disabled and default"))
 
 		if (
-			not self.is_default
+			self.is_new()
+			and not self.is_default
 			and not self.disabled
 			and not frappe.flags.in_migrate
 			and not frappe.flags.in_install

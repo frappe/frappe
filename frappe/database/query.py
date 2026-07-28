@@ -2050,10 +2050,13 @@ class LinkTableField(DynamicTableField):
 		table = frappe.qb.DocType(self.doctype)
 		main_table = frappe.qb.DocType(self.parent_doctype)
 		if not query.is_joined(table):
-			query = query.left_join(table).on(table.name == getattr(main_table, self.link_fieldname))
+			clause = table.name == getattr(main_table, self.link_fieldname)
+
 			if engine and engine.apply_permissions:
 				if condition := engine.get_permission_conditions(self.doctype, table):
-					query = query.where(condition)
+					clause &= condition
+
+			query = query.left_join(table).on(clause)
 
 		return query
 
