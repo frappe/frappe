@@ -554,8 +554,3 @@ def test(*, fail=False, handled=True, message="Failed"):
 @whitelist_for_tests(allow_guest=True)
 def test_array(data):
 	return data
-
-
-@whitelist_for_tests()
-def create_todo_for_testing(description: str):
-	return frappe.get_doc({"doctype": "ToDo", "description": description}).insert().name
