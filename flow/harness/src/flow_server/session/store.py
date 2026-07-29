@@ -384,9 +384,8 @@ def _rebuild_messages(log: SessionLog) -> list[TranscriptMessage]:
 			if _repair_assistant_seq(raw) is not None:
 				continue
 			if pending_seq is not None and any(call.id == ev.tool_call_id for call in pending_calls):
-				results[ev.tool_call_id] = raw
-			else:
-				messages.append(ev)
+				results.setdefault(ev.tool_call_id, raw)  # first answer wins
+			# a result answering no open call is dropped; providers reject an unpaired one
 	flush_results()
 	return messages
 

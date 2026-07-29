@@ -289,6 +289,28 @@ def test_pending_approval_scopes_reused_tool_ids_to_latest_batch(tmp_path):
 	assert approval.calls == (call,)
 
 
+def test_rebuild_keeps_the_first_result_and_drops_unmatched_ones(tmp_path):
+	log = SessionLog(str(tmp_path / "s.jsonl"))
+	log.append(UserMessage(content="do it"))
+	log.append(
+		AssistantMessage(
+			content=[ToolCall(id="c1", name="bash", arguments={})],
+			stop_reason="tool_use",
+		)
+	)
+	log.append(ToolResult(tool_call_id="c1", name="bash", content="first"))
+	log.append(ToolResult(tool_call_id="c1", name="bash", content="second"))
+	log.append(ToolResult(tool_call_id="unknown", name="bash", content="orphan"))
+
+	msgs = _rebuild_messages(log)
+
+	results = [m for m in msgs if isinstance(m, ToolResult)]
+	assert [r.content for r in results] == ["first"]  # duplicate and orphan both excluded
+	# every tool result the provider sees is preceded by the call it answers
+	calls = {c.id for m in msgs if isinstance(m, AssistantMessage) for c in m.tool_calls}
+	assert all(r.tool_call_id in calls for r in results)
+
+
 def test_reload_durably_repairs_orphans_in_their_original_batch(tmp_path):
 	store = SessionStore(str(tmp_path))
 	session = store.create(SessionConfig(model="mock"))
