@@ -272,6 +272,57 @@ def test_paused_run_requires_exact_current_approval_batch(tmp_path, monkeypatch)
 	)
 
 
+def test_abort_releases_a_paused_session(tmp_path, monkeypatch):
+	(tmp_path / "a.txt").write_text("SECRET")
+	mock = MockModel(
+		replies=[
+			AssistantMessage(
+				content=[
+					ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"}),
+					ToolCall(id="c2", name="read_file", arguments={"path": "a.txt"}),
+				]
+			),
+			AssistantMessage(content="moved on"),
+		]
+	)
+	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: mock)
+	c = _client(tmp_path)
+	sid = c.post(
+		"/sessions",
+		json={"cwd": str(tmp_path), "confirm_tools": ["read_file"]},
+	).json()["session_id"]
+	paused = c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "read"}).json()
+	assert paused["reason"] == "paused"
+
+	assert c.post(f"/sessions/{sid}/abort").json() == {"status": "aborted"}
+
+	assert c.get(f"/sessions/{sid}").json()["state"] == "idle"
+	rows = c.get(f"/sessions/{sid}/entries").json()["entries"]
+	answered = [r["tool_call_id"] for r in rows if r["type"] == "tool_result"]
+	assert answered == ["c1", "c2"]  # every gated call answered, so nothing dangles
+	assert "SECRET" not in json.dumps(rows)  # and none of them actually ran
+	assert [r["reason"] for r in rows if r["type"] == "run_ended"] == ["paused", "aborted"]
+	# the session is usable again without a resume
+	assert (
+		c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "hi"}).json()["reason"]
+		== "done"
+	)
+
+
+def test_abort_on_a_paused_session_is_idempotent(tmp_path, monkeypatch):
+	mock = MockModel(replies=[AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={})])])
+	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: mock)
+	c = _client(tmp_path)
+	sid = c.post(
+		"/sessions",
+		json={"cwd": str(tmp_path), "confirm_tools": ["read_file"]},
+	).json()["session_id"]
+	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "read"})
+
+	assert c.post(f"/sessions/{sid}/abort").json() == {"status": "aborted"}
+	assert c.post(f"/sessions/{sid}/abort").json() == {"status": "idle"}
+
+
 def test_paused_state_and_approval_survive_store_reload(tmp_path, monkeypatch):
 	mock = MockModel(
 		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})])]

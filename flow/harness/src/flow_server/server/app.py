@@ -148,10 +148,16 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 	async def abort(sid: str):
 		session = _get(sid)
 		async with session.operation_lock:
-			if not session.is_running:
+			if session.is_running:
+				session.request_abort()
+				return {"status": "aborting"}
+			if session.state is not SessionState.PAUSED:
 				return {"status": session.state}
-			session.request_abort()
-			return {"status": "aborting"}
+			# a pause has no active work to signal; answer the batch instead so the
+			# session can reach idle without a resume
+			task = session._start_operation(agent.cancel_pending(session))
+		await task
+		return {"status": "aborted"}
 
 	@app.get("/sessions/{sid}/entries")
 	async def entries(sid: str, since: int = 0):
