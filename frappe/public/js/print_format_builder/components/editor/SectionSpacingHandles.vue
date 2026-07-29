@@ -1,17 +1,17 @@
 <template>
-	<div class="pfb-spacing-handles">
+	<div class="pfb-spacing-handles" :class="'pfb-spacing-' + type">
 		<template v-for="side in sides" :key="side">
-			<!-- translucent band showing the current padding on this side -->
-			<div class="pfb-pad-band" :style="band_style[side]"></div>
-			<!-- small grab handle centered on the padding/content boundary -->
+			<!-- translucent band showing the current spacing on this side -->
+			<div class="pfb-space-band" :style="band_style[side]"></div>
+			<!-- small grab handle sitting on the spacing boundary -->
 			<div
-				class="pfb-pad-grip"
-				:class="['pfb-pad-grip-' + side, { active: active === side }]"
+				class="pfb-space-grip"
+				:class="['pfb-space-grip-' + side, { active: active === side }]"
 				:style="grip_style[side]"
-				:title="__('Drag to change {0} padding', [side])"
+				:title="__('Drag to change {0} {1}', [side, type])"
 				@pointerdown.stop.prevent="start(side, $event)"
 			>
-				<span v-if="active === side" class="pfb-pad-tip">{{ pad[side] || 0 }}</span>
+				<span v-if="active === side" class="pfb-space-tip">{{ box[side] || 0 }}</span>
 			</div>
 		</template>
 	</div>
@@ -20,24 +20,41 @@
 <script setup>
 import { computed, ref } from "vue";
 
-const props = defineProps(["section"]);
+const props = defineProps({
+	section: { type: Object, required: true },
+	type: { type: String, default: "padding" }, // "padding" (inside) | "margin" (outside)
+});
 const sides = ["top", "right", "bottom", "left"];
 const active = ref(null);
 
-const pad = computed(() => props.section.padding || { top: 0, right: 0, bottom: 0, left: 0 });
+// margin sits outside the border, so its bands/handles are offset the other way
+const outward = computed(() => (props.type === "margin" ? -1 : 1));
+const box = computed(() => props.section[props.type] || { top: 0, right: 0, bottom: 0, left: 0 });
+const at = (side) => (outward.value < 0 ? -(box.value[side] || 0) : box.value[side] || 0);
+const edge = (side) => (outward.value < 0 ? -(box.value[side] || 0) : 0);
 
 const band_style = computed(() => ({
-	top: { top: 0, left: 0, right: 0, height: (pad.value.top || 0) + "px" },
-	bottom: { bottom: 0, left: 0, right: 0, height: (pad.value.bottom || 0) + "px" },
-	left: { left: 0, top: 0, bottom: 0, width: (pad.value.left || 0) + "px" },
-	right: { right: 0, top: 0, bottom: 0, width: (pad.value.right || 0) + "px" },
+	top: { top: edge("top") + "px", left: 0, right: 0, height: (box.value.top || 0) + "px" },
+	bottom: {
+		bottom: edge("bottom") + "px",
+		left: 0,
+		right: 0,
+		height: (box.value.bottom || 0) + "px",
+	},
+	left: { left: edge("left") + "px", top: 0, bottom: 0, width: (box.value.left || 0) + "px" },
+	right: {
+		right: edge("right") + "px",
+		top: 0,
+		bottom: 0,
+		width: (box.value.right || 0) + "px",
+	},
 }));
 
 const grip_style = computed(() => ({
-	top: { top: (pad.value.top || 0) + "px", left: "50%" },
-	bottom: { bottom: (pad.value.bottom || 0) + "px", left: "50%" },
-	left: { left: (pad.value.left || 0) + "px", top: "50%" },
-	right: { right: (pad.value.right || 0) + "px", top: "50%" },
+	top: { top: at("top") + "px", left: "50%" },
+	bottom: { bottom: at("bottom") + "px", left: "50%" },
+	left: { left: at("left") + "px", top: "50%" },
+	right: { right: at("right") + "px", top: "50%" },
 }));
 
 function canvas_zoom(el) {
@@ -48,17 +65,20 @@ function canvas_zoom(el) {
 function start(side, e) {
 	active.value = side;
 	const zoom = canvas_zoom(e.currentTarget);
-	const vertical = side === "top" || side === "bottom";
-	const axis = vertical ? "clientY" : "clientX";
-	// dragging inward (down/right for top/left, up/left for bottom/right) grows padding
-	const sign = side === "top" || side === "left" ? 1 : -1;
+	const axis = side === "top" || side === "bottom" ? "clientY" : "clientX";
+	// dragging away from the content grows the spacing; margin is the mirror of padding
+	const base = side === "top" || side === "left" ? 1 : -1;
+	const sign = base * outward.value;
 	const origin = e[axis];
-	const box = { top: 0, right: 0, bottom: 0, left: 0, ...props.section.padding };
-	const start_val = box[side];
+	const start_box = { top: 0, right: 0, bottom: 0, left: 0, ...props.section[props.type] };
+	const start_val = start_box[side];
 
 	function move(ev) {
 		const delta = ((ev[axis] - origin) / zoom) * sign;
-		props.section.padding = { ...box, [side]: Math.max(0, Math.round(start_val + delta)) };
+		props.section[props.type] = {
+			...start_box,
+			[side]: Math.max(0, Math.round(start_val + delta)),
+		};
 	}
 	function up() {
 		active.value = null;
@@ -77,56 +97,60 @@ function start(side, e) {
 	pointer-events: none;
 	z-index: 3;
 }
+.pfb-spacing-padding {
+	--spacing-color: var(--pfb-accent);
+}
+.pfb-spacing-margin {
+	--spacing-color: var(--orange-400, #f5a623);
+}
 
-/* padding region — like the builder's shaded spacing band */
-.pfb-pad-band {
+.pfb-space-band {
 	position: absolute;
-	background: var(--pfb-accent);
+	background: var(--spacing-color);
 	opacity: 0.14;
 }
 
-/* small draggable handle sitting on the padding boundary */
-.pfb-pad-grip {
+.pfb-space-grip {
 	position: absolute;
 	pointer-events: auto;
-	background: var(--pfb-accent);
+	background: var(--spacing-color);
 	border: 1.5px solid var(--fg-color);
 	border-radius: 6px;
 	box-shadow: var(--shadow-sm);
 }
 
-.pfb-pad-grip-top,
-.pfb-pad-grip-bottom {
+.pfb-space-grip-top,
+.pfb-space-grip-bottom {
 	width: 26px;
 	height: 6px;
 	cursor: ns-resize;
 }
-.pfb-pad-grip-left,
-.pfb-pad-grip-right {
+.pfb-space-grip-left,
+.pfb-space-grip-right {
 	width: 6px;
 	height: 26px;
 	cursor: ew-resize;
 }
 
-.pfb-pad-grip-top {
+.pfb-space-grip-top {
 	transform: translate(-50%, -50%);
 }
-.pfb-pad-grip-bottom {
+.pfb-space-grip-bottom {
 	transform: translate(-50%, 50%);
 }
-.pfb-pad-grip-left {
+.pfb-space-grip-left {
 	transform: translate(-50%, -50%);
 }
-.pfb-pad-grip-right {
+.pfb-space-grip-right {
 	transform: translate(50%, -50%);
 }
 
-.pfb-pad-tip {
+.pfb-space-tip {
 	position: absolute;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	background: var(--pfb-accent);
+	background: var(--spacing-color);
 	color: #fff;
 	font-size: var(--text-tiny);
 	line-height: 1;

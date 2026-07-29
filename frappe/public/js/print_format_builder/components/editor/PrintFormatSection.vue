@@ -137,7 +137,10 @@
 					</div>
 				</template>
 			</div>
-			<SectionSpacingHandles v-if="show_spacing_handles" :section="section" />
+			<template v-if="show_spacing_handles">
+				<SectionSpacingHandles :section="section" type="margin" />
+				<SectionSpacingHandles :section="section" type="padding" />
+			</template>
 		</div>
 		<div class="page-break-indicator" v-if="section.page_break">
 			<span>— {{ __("Page Break") }} —</span>
