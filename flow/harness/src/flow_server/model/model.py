@@ -558,7 +558,9 @@ def _response_model(value: Any, requested: str) -> str | None:
 
 
 def _stop_reason(value: str | None, *, has_tools: bool = False) -> StopReason:
-	if has_tools or value in {"tool_calls", "tool_use"}:
+	"""Map the provider's own signal first; tool calls only upgrade a plain stop.
+	A truncated turn must stay "length" so the loop refuses its half-written calls."""
+	if value in {"tool_calls", "tool_use"}:
 		return "tool_use"
 	if value in {"length", "max_tokens", "MAX_TOKENS", "incomplete"}:
 		return "length"
@@ -566,7 +568,7 @@ def _stop_reason(value: str | None, *, has_tools: bool = False) -> StopReason:
 		return "aborted"
 	if value in {"error", "content_filter", "network_error"}:
 		return "error"
-	return "stop"
+	return "tool_use" if has_tools else "stop"
 
 
 def _usage_event(usage_obj: Any, cost: float) -> Usage:

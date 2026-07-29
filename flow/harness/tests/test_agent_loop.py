@@ -204,6 +204,27 @@ async def test_length_stop_is_not_reported_as_done(tmp_path):
 	assert _of(events, "run_ended")[0]["reason"] == "length"
 
 
+async def test_truncated_turn_fails_its_tool_calls_without_running_them(tmp_path):
+	session, events = _session(tmp_path)
+	truncated = AssistantMessage(
+		content=[
+			ToolCall(id="c1", name="write", arguments={"path": "a.txt", "content": "x"}),
+			ToolCall(id="c2", name="write", arguments={"path": "b.txt", "content": "y"}),
+		],
+		stop_reason="length",
+	)
+	mock = MockModel(replies=[truncated, AssistantMessage(content="retried")])
+
+	await run(session, "write them", model=mock)
+
+	results = _of(events, "tool_result")
+	assert [r["tool_call_id"] for r in results] == ["c1", "c2"]
+	assert all(r["is_error"] and "truncated" in r["content"] for r in results)
+	assert not (tmp_path / "a.txt").exists() and not (tmp_path / "b.txt").exists()
+	# the model still gets a turn to re-issue the calls
+	assert _of(events, "run_ended")[0]["reason"] == "done"
+
+
 async def test_max_turns_cap(tmp_path):
 	(tmp_path / "a.txt").write_text("x")
 	session, events = _session(tmp_path, max_turns=2)

@@ -18,6 +18,7 @@ from flow_server.model.model import (
 	_openai_messages,
 	_reasoning_blocks,
 	_reasoning_field,
+	_stop_reason,
 )
 
 
@@ -198,6 +199,41 @@ def test_register_provider_dispatch():
 		assert get_model("dummy/whatever") is sentinel
 	finally:
 		_REGISTRY.pop("dummy", None)
+
+
+def test_stop_reason_prefers_the_provider_signal_over_tool_presence():
+	assert _stop_reason("length", has_tools=True) == "length"
+	assert _stop_reason("content_filter", has_tools=True) == "error"
+	# a plain stop is still upgraded, which is why has_tools exists
+	assert _stop_reason("stop", has_tools=True) == "tool_use"
+	assert _stop_reason(None, has_tools=True) == "tool_use"
+	assert _stop_reason("tool_calls", has_tools=False) == "tool_use"
+
+
+async def test_litellm_streaming_truncated_tool_call_reports_length(monkeypatch):
+	_stream(
+		monkeypatch,
+		[
+			_chunk(
+				{
+					"tool_calls": [
+						{
+							"index": 0,
+							"id": "c1",
+							"function": {"name": "bash", "arguments": '{"command":"ls"}'},
+						}
+					]
+				}
+			),
+			_chunk({}, "length"),
+		],
+	)
+
+	events = await _collect(LiteLLMModel("gpt-4").run(ModelRequest(messages=[UserMessage(content="hi")])))
+
+	assistant = next(e for e in events if isinstance(e, AssistantMessage))
+	assert assistant.tool_calls[0].id == "c1"
+	assert assistant.stop_reason == "length"
 
 
 def test_build_tool_call_valid():

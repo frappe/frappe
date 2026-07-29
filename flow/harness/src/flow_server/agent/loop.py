@@ -284,18 +284,23 @@ async def _loop(
 				continue
 			return "length" if assistant.stop_reason == "length" else "done"
 
-		pending: list[PendingCall] = []
-		for tc in assistant.tool_calls:
-			if session.abort.is_set():
-				return "aborted"
-			await _handle_call(session, tc, server_tools, ctx, before_tool_call, after_tool_call, pending)
-			if session.abort.is_set():
-				return "aborted"
-		if pending:  # non-gated tools already ran; now wait for approval
-			if session.abort.is_set():
-				return "aborted"
-			session.publish(ApprovalRequired(calls=pending))
-			return "paused"
+		if assistant.stop_reason == "length":
+			# truncated arguments can still parse, so no call in this turn is safe to run
+			for tc in assistant.tool_calls:
+				_emit_result(session, _result(tc, _TRUNCATED, is_error=True))
+		else:
+			pending: list[PendingCall] = []
+			for tc in assistant.tool_calls:
+				if session.abort.is_set():
+					return "aborted"
+				await _handle_call(session, tc, server_tools, ctx, before_tool_call, after_tool_call, pending)
+				if session.abort.is_set():
+					return "aborted"
+			if pending:  # non-gated tools already ran; now wait for approval
+				if session.abort.is_set():
+					return "aborted"
+				session.publish(ApprovalRequired(calls=pending))
+				return "paused"
 
 		if output_tokens >= cfg.max_output_tokens:
 			return "budget"
@@ -466,6 +471,16 @@ async def _model_call(
 # --- tool dispatch & confirmation ----------------------------------------
 
 _DENIED = json.dumps({"status": "denied", "message": "User denied this tool call."})
+_TRUNCATED = json.dumps(
+	{
+		"status": "truncated",
+		"message": "Tool not executed.",
+		"instruction": (
+			"The response hit the output token limit, so these arguments may be "
+			"incomplete. Re-issue the call with complete arguments."
+		),
+	}
+)
 
 
 def _redirect(feedback: str) -> str:

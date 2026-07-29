@@ -145,6 +145,29 @@ async def test_codex_model_streams_text_tools_and_usage():
 	assert events[-1].output_tokens == 4
 
 
+async def test_codex_incomplete_response_keeps_length_over_tool_use():
+	sse = "\n\n".join(
+		[
+			(
+				'data: {"type":"response.output_item.done","item":'
+				'{"type":"function_call","id":"item_1","call_id":"call_1",'
+				'"name":"bash","arguments":"{\\"command\\":\\"pwd\\"}"}}'
+			),
+			('data: {"type":"response.incomplete","response":{"id":"resp_1","usage":{}}}'),
+			"data: [DONE]",
+		]
+	)
+
+	async with httpx.AsyncClient(
+		transport=httpx.MockTransport(lambda _r: httpx.Response(200, text=sse))
+	) as client:
+		model = CodexModel("codex/gpt-test", api_key="t", api_base="https://e.test", client=client)
+		events = await _collect(model, [UserMessage(content="hi")])
+
+	assert events[-2].tool_calls  # the truncated call is still reported
+	assert events[-2].stop_reason == "length"
+
+
 async def test_codex_non_streaming_suppresses_live_deltas():
 	sse = "\n\n".join(
 		[

@@ -45,7 +45,11 @@ class MockModel(Model):
 				"api": "mock",
 				"provider": "mock",
 				"model": self.name,
-				"stop_reason": "tool_use" if reply.tool_calls else reply.stop_reason,
+				# mirrors the real adapters: only a plain stop upgrades, so a scripted
+				# "length" survives and the loop can be tested against a truncated turn
+				"stop_reason": (
+					"tool_use" if reply.tool_calls and reply.stop_reason == "stop" else reply.stop_reason
+				),
 			}
 		)
 		yield Usage(

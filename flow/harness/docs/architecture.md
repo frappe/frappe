@@ -51,6 +51,11 @@ message also records `api`, `provider`, `model`,
 `error`, or `aborted`). `text`, `thinking_text`, and `tool_calls` remain Python
 convenience properties; they are not second persisted representations.
 
+`stop_reason` comes from the provider's own signal; the presence of tool calls only
+upgrades a plain `stop` to `tool_use`. A turn cut off by the output-token limit stays
+`length`, and the loop answers every call in it with an error instead of executing it:
+truncated arguments can still parse, so none of them are safe to run.
+
 ## The durable log (`session/log.py`)
 
 An append-only JSONL file, one per session. `append()` assigns the next `seq`, writes,
