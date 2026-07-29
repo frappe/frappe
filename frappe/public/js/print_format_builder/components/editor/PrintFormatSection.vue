@@ -137,11 +137,11 @@
 					</div>
 				</template>
 			</div>
-			<template v-if="show_spacing_handles">
-				<SectionSpacingHandles :section="section" type="margin" />
-				<SectionSpacingHandles :section="section" type="padding" />
-				<SectionRadiusHandle :section="section" />
-			</template>
+		</div>
+		<div v-if="show_spacing_handles" class="pfb-section-chrome" :style="section_chrome_style">
+			<SectionSpacingHandles :section="section" type="margin" />
+			<SectionSpacingHandles :section="section" type="padding" />
+			<SectionRadiusHandle :section="section" />
 		</div>
 		<div class="page-break-indicator" v-if="section.page_break">
 			<span>— {{ __("Page Break") }} —</span>
@@ -189,6 +189,17 @@ let show_spacing_handles = computed(
 		store.selected_sections.value.length === 1 &&
 		store.selected_fields.value.length === 0
 );
+// the chrome overlay sits on the section's border box: inset from the container
+// by the section's own margins (the flow-root reserves that space)
+let section_chrome_style = computed(() => {
+	const m = props.section.margin || {};
+	return {
+		top: (m.top || 0) + "px",
+		right: (m.right || 0) + "px",
+		bottom: (m.bottom || 0) + "px",
+		left: (m.left || 0) + "px",
+	};
+});
 let preview_doc = computed(() => store.preview_doc.value);
 let is_section_visible = computed(() =>
 	evaluate_visible_if(props.section.visible_if, preview_doc.value)
@@ -264,7 +275,11 @@ let section_inline_style = computed(() => {
 		const pad = props.section.cell_padding ?? 8;
 		style["--pfb-cell-pad"] = `${pad}px`;
 	}
-	if (props.section.radius != null) style.borderRadius = `${props.section.radius}px`;
+	if (props.section.radius != null) {
+		style.borderRadius = `${props.section.radius}px`;
+		// clip content to the rounded corners (non-grid sections are overflow:visible)
+		style.overflow = "hidden";
+	}
 	return { ...style, ...parse_inline_style(props.section.custom_style) };
 });
 
@@ -386,9 +401,12 @@ function remove_column(index) {
 	cursor: default;
 }
 
-/* let the spacing handles and their tooltip show past the section edges */
-.print-format-section:has(.pfb-spacing-handles) {
-	overflow: visible;
+/* overlay carrying the padding/margin/radius handles — sits on the section's
+   border box, outside the section so its content still clips to the radius */
+.pfb-section-chrome {
+	position: absolute;
+	pointer-events: none;
+	z-index: 3;
 }
 
 .section-toolbar {
