@@ -430,6 +430,16 @@ frappe.views.BaseList = class BaseList {
 		// place it at the footer of the page
 
 		let $result_container = this.$result.parent(".result-container");
+
+		// On mobile a fixed height makes the container a second scroller and
+		// the page double-scrolls (the browser bar resizing the viewport
+		// leaves the pixel height stale). Let rows flow instead — except in
+		// virtual mode, which needs a scrollbox to window rows.
+		if (frappe.is_mobile() && !this.virtualization_state?.enabled) {
+			$result_container.css("height", "");
+			return;
+		}
+
 		let main_rect = $(".main-section").get(0).getBoundingClientRect();
 		let result_top = $result_container.get(0).getBoundingClientRect().top - main_rect.top;
 		let resultContainerHeight = Math.floor(
