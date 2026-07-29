@@ -193,6 +193,10 @@ export function getScriptError(code: string): ScriptSyntaxError | null {
 
 // Validate the contents of every {{ ... }} in a value and return the first problem, or null if all parse
 export function getExpressionError(value: string): string | null {
+	const unmatchedBraces = value.replace(DYNAMIC_EXPRESSION_CONTENT_REGEX, "")
+	if (unmatchedBraces.includes("{{")) return "Missing closing '}}'"
+	if (unmatchedBraces.includes("}}")) return "Missing opening '{{'"
+
 	for (const match of value.matchAll(DYNAMIC_EXPRESSION_CONTENT_REGEX)) {
 		const expression = match[1].trim()
 		if (!expression) return "Expression cannot be empty"
