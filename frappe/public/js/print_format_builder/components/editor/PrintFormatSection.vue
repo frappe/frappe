@@ -628,6 +628,7 @@ function remove_column(index) {
 }
 .section--grid :deep(.field--chip:hover),
 .section--grid :deep(.field--preview:hover),
+.section--grid :deep(.field--layer-hover),
 .section--grid :deep(.field--selected) {
 	outline: 2px solid var(--pfb-accent);
 	outline-offset: -2px;
