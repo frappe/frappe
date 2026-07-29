@@ -21,6 +21,7 @@ REDIS_URL = os.environ.get("FLOW_SERVER_REDIS_URL") or None
 # Filesystem fence for a session's `cwd`: an os.pathsep-separated list of roots a session
 # may operate under. Empty (the default) = unrestricted (single-user dev). Enforced in
 # SessionStore.create so every session-creation path (HTTP, embedded, Flow) is fenced.
+# Entries are `~`-expanded and realpath-resolved by `path_policy.normalize_roots`.
 ALLOWED_ROOTS = [p for p in os.environ.get("FLOW_SERVER_ALLOWED_ROOTS", "").split(os.pathsep) if p]
 # API-key and OAuth credentials live beside the durable session directory. Deployments
 # can still use FLOW_SERVER_CREDENTIALS_PATH to place them elsewhere.

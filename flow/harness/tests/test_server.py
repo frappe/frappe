@@ -130,6 +130,19 @@ def test_allowed_roots_fences_cwd(tmp_path):
 	assert c.post("/sessions", json={"cwd": str(tmp_path / "elsewhere")}).status_code == 400
 
 
+def test_allowed_roots_expand_home_relative_paths(tmp_path, monkeypatch):
+	home = tmp_path / "home"
+	(home / "projects").mkdir(parents=True)
+	monkeypatch.setenv("HOME", str(home))
+	c = _client(tmp_path, allowed_roots=["~/projects"])
+
+	# the root is configured home-relative; the client addresses it absolutely
+	assert c.post("/sessions", json={"cwd": str(home / "projects" / "app")}).status_code == 200
+	assert c.post("/sessions", json={"cwd": str(tmp_path / "elsewhere")}).status_code == 400
+	# only roots are expanded: an addressed `~` stays literal and is fenced out
+	assert c.post("/sessions", json={"cwd": "~/projects/app"}).status_code == 400
+
+
 def test_allowed_roots_revalidate_stored_session_on_load(tmp_path):
 	outside = tmp_path / "outside"
 	allowed = tmp_path / "allowed"

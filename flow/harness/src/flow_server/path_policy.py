@@ -25,8 +25,9 @@ def canonical_path(path: str, *, base: str | None = None) -> str:
 
 
 def normalize_roots(roots: Iterable[str]) -> tuple[str, ...]:
-	"""Normalize and de-duplicate configured roots while preserving their order."""
-	return tuple(dict.fromkeys(canonical_path(root) for root in roots))
+	"""Expand `~`, normalize, and de-duplicate configured roots, preserving their order.
+	An unexpanded root names a directory literally called `~`, fencing off everything."""
+	return tuple(dict.fromkeys(canonical_path(os.path.expanduser(root)) for root in roots))
 
 
 def is_path_allowed(path: str, roots: Iterable[str]) -> bool:

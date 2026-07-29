@@ -261,5 +261,33 @@ async def test_grep_finds_and_misses(tmp_path):
 	assert miss.details["matches"] == 0
 
 
+async def test_grep_treats_an_option_like_pattern_as_a_pattern(tmp_path):
+	"""An unseparated pattern would be read as a flag, dropping the search path."""
+	allowed = tmp_path / "allowed"
+	allowed.mkdir()
+	(allowed / "a.txt").write_text("-L is a literal here\n")
+	ctx = _ctx(allowed, allowed_roots=(str(allowed),))
+
+	found = await grep(pattern="-L", path=".", ctx=ctx)
+
+	assert "-L is a literal here" in found.content
+	assert found.details["matches"] == 1
+
+
+async def test_grep_option_like_pattern_cannot_search_outside_the_root(tmp_path, monkeypatch):
+	allowed = tmp_path / "allowed"
+	outside = tmp_path / "outside"
+	allowed.mkdir()
+	outside.mkdir()
+	(outside / "secret.txt").write_text("SUPER-SECRET\n")
+	monkeypatch.chdir(outside)  # a bare recursive search would land here
+	ctx = _ctx(allowed, allowed_roots=(str(allowed),))
+
+	for pattern in ("-L", "-l", "-r"):
+		result = await grep(pattern=pattern, path=".", ctx=ctx)
+		assert "secret.txt" not in result.content
+		assert "SUPER-SECRET" not in result.content
+
+
 def test_tools_are_async():
 	assert inspect.iscoroutinefunction(bash.func)
