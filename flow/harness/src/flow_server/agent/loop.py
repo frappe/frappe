@@ -141,6 +141,22 @@ async def resume(
 	await _run_with_lifecycle(session, operation())
 
 
+async def cancel_pending(session: Session) -> None:
+	"""Abandon a paused approval batch. Answering every call is what releases the pause:
+	an unanswered one would leave the transcript incomplete for the next turn."""
+
+	async def operation() -> RunReason:
+		approval = pending_approval(session.log)
+		if approval is None:
+			raise ResumeError("No tool calls are awaiting approval.")
+		for call in approval.calls:
+			tc = ToolCall(id=call.id, name=call.name, arguments=call.args)
+			_emit_result(session, _result(tc, _CANCELLED, is_error=True))
+		return "aborted"
+
+	await _run_with_lifecycle(session, operation())
+
+
 async def _run_with_lifecycle(session: Session, operation: Awaitable[RunReason]) -> None:
 	"""Convert operation failures into one terminal protocol sequence.
 
@@ -471,6 +487,7 @@ async def _model_call(
 # --- tool dispatch & confirmation ----------------------------------------
 
 _DENIED = json.dumps({"status": "denied", "message": "User denied this tool call."})
+_CANCELLED = json.dumps({"status": "cancelled", "message": "Run aborted while awaiting approval."})
 _TRUNCATED = json.dumps(
 	{
 		"status": "truncated",

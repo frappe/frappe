@@ -113,12 +113,14 @@ not-paused requests return `409` without changing the log. Same fire-and-forget 
 ### `POST /sessions/{sid}/abort`
 Signals active work to stop and clears steering that has not yet entered the durable
 transcript →
-`{"status": "aborting" | "idle" | "paused"}`.
+`{"status": "aborting" | "aborted" | "idle"}`.
 Model streams, provider HTTP bodies, hooks, tools, Bash process groups, and client-tool
 callback requests are interrupted. A completed cancellation persists an
 `assistant_message` with `stop_reason=="aborted"` followed by
-`run_ended(reason=="aborted")`; the session then returns to `idle`. Calling this
-endpoint for an idle or approval-paused session is a no-op.
+`run_ended(reason=="aborted")`; the session then returns to `idle`. An approval-paused
+session has no active work to signal, so it is released synchronously instead: every
+pending call receives a cancelled error result and the response is `"aborted"`. Calling
+this endpoint for an idle session is a no-op.
 
 ### `GET /sessions/{sid}/entries?since=<int>`
 The durable log from the cursor →

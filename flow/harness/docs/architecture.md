@@ -221,7 +221,9 @@ An overlapping `/run` is accepted only as explicit steering. Other overlaps are
 rejected. A resume must carry the current approval event's `seq` and an exact answer
 set, preventing a delayed or duplicated client request from resolving a different
 batch. Unlike Pi/Tau's in-process confirmation UI, this durable paused state is a
-Flow-specific server extension needed for disconnect/restart-safe approval.
+Flow-specific server extension needed for disconnect/restart-safe approval. Because it
+outlives its client, `/abort` also releases it: every pending call is answered with a
+cancelled error result, so an abandoned approval cannot strand a session.
 
 Flow currently has one active-run queue: steering. `/abort` sets the operation signal
 before clearing that queue, and `steer()` rejects additions after the signal is set.
