@@ -1,6 +1,7 @@
 import { parse, parseExpressionAt } from "acorn"
 import type { Node } from "acorn"
 import { LRUCache } from "@/utils/cache"
+import { DYNAMIC_EXPRESSION_CONTENT_REGEX } from "@/utils/constants"
 import { isRef, unref } from "vue"
 
 const fnCache = new LRUCache<boolean>(20)
@@ -188,6 +189,29 @@ export function getScriptError(code: string): ScriptSyntaxError | null {
 			column: error.loc?.column ?? 0,
 		}
 	}
+}
+
+// Validate the contents of every {{ ... }} in a value and return the first syntax error or null if all parse
+export function getExpressionError(value: string): string | null {
+	for (const match of value.matchAll(DYNAMIC_EXPRESSION_CONTENT_REGEX)) {
+		const expression = match[1].trim()
+		if (!expression) continue
+
+		try {
+			const parsed = parseExpressionAt(expression, 0, { ecmaVersion: "latest" })
+			const trailing = expression.slice(parsed.end)
+			if (trailing.trim()) return describeExpressionError("Unexpected token", trailing)
+		} catch (error: any) {
+			const message = error.message.replace(/\s*\(\d+:\d+\)$/, "")
+			return describeExpressionError(message, expression.slice(error.pos ?? 0))
+		}
+	}
+	return null
+}
+
+function describeExpressionError(message: string, remaining: string) {
+	const token = remaining.trim().split(/\s/)[0]?.slice(0, 20)
+	return token ? `${message} near '${token}'` : message
 }
 
 function walkAST(node: any, callback: (node: Node) => void) {

@@ -27,8 +27,9 @@
 				:emitOnChange="true"
 				:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
 			/>
-			<div class="mt-2 flex items-center justify-end gap-2">
-				<Button variant="solid" @click="setStyle">Set</Button>
+			<div class="mt-2 flex items-center justify-between gap-2">
+				<ErrorMessage v-if="error" :message="error" />
+				<Button class="ml-auto" variant="solid" @click="setStyle">Set</Button>
 			</div>
 		</template>
 	</DraggablePopup>
@@ -36,10 +37,12 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue"
+import { Button, ErrorMessage } from "frappe-ui"
 import Code from "@/components/Code.vue"
 import IconButton from "@/components/IconButton.vue"
 import Block from "@/utils/block"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
+import { getExpressionError } from "@/utils/parseCode"
 import type { CompletionContext } from "@codemirror/autocomplete"
 import type { BlockProperty } from "@/components/ComponentStyles.vue"
 import LucideCirclePlus from "~icons/lucide/circle-plus"
@@ -71,7 +74,14 @@ watch(
 	{ immediate: true, deep: true },
 )
 
+const error = ref("")
+watch(dynamicValue, () => (error.value = ""))
+
 const setStyle = () => {
+	// CSS values like var(--ink-red-5) must be quoted to be valid JS, flag them before saving
+	error.value = getExpressionError(dynamicValue.value) || ""
+	if (error.value) return
+
 	emit("update:modelValue", dynamicValue.value)
 	showDynamicValueModal.value = false
 }
