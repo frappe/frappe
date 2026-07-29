@@ -444,6 +444,11 @@ frappe.views.Calendar = class Calendar {
 				d.end = frappe.datetime.add_days(d.end, 1);
 			}
 
+			// timed events get the accent bar (see calendar.scss)
+			if (!d.allDay) {
+				d.classNames = (d.classNames || []).concat("timed-event");
+			}
+
 			me.prepare_colors(d);
 
 			d.title = frappe.utils.html2text(d.title);
@@ -467,37 +472,64 @@ frappe.views.Calendar = class Calendar {
 			"teal",
 			"violet",
 		];
+		// the color picker's swatches — saturated hexes stored on existing
+		// documents; render them as their espresso family so old colored
+		// events pick up the soft look instead of a solid block
+		const swatch_families = {
+			"#449cf0": "blue",
+			"#ecad4b": "amber",
+			"#29cd42": "green",
+			"#761acb": "purple",
+			"#cb2929": "red",
+			"#ed6396": "pink",
+			"#4463f0": "violet",
+			"#ec864b": "orange",
+			"#4f9dd9": "cyan",
+			"#39e4a5": "teal",
+			"#b4cd29": "yellow",
+		};
+
+		const apply_family = (name) => {
+			// "dark-green" was a color in the old palette
+			if (name === "dark-green") name = "green";
+			if (!families.includes(name)) name = "blue";
+			// tokens instead of resolved hexes, so events flip in dark mode
+			d.backgroundColor = `var(--surface-${name}-1)`;
+			d.textColor = `var(--ink-${name}-7)`;
+		};
+
+		// known hexes (picker swatches, old standard palette) map to a
+		// family; for hand-picked hexes, synthesize a family-style pair
+		// from the hex itself — a barely-tinted surface and a text color
+		// pulled toward ink. Mixing with tokens keeps them dark-mode aware.
+		const apply_hex = (hex) => {
+			hex = hex.toLowerCase();
+			const family = swatch_families[hex] || frappe.ui.color.get_color_name(hex);
+			if (family) {
+				apply_family(family);
+			} else {
+				d.backgroundColor = `color-mix(in oklab, ${hex} 14%, var(--surface-base))`;
+				d.textColor = `color-mix(in oklab, ${hex} 55%, var(--ink-gray-9))`;
+			}
+		};
+
 		if (this.get_css_class) {
 			let color_name = this.get_css_class(d);
 			// color_map keeps the old semantic names (danger, success, ...) working
 			color_name = this.color_map[color_name] || color_name || "blue";
 
 			if (color_name.startsWith("#")) {
-				// custom hex straight from the doctype's calendar config
 				if (frappe.ui.color.validate_hex(color_name)) {
-					d.backgroundColor = color_name;
-					d.textColor = frappe.ui.color.get_contrast_color(color_name);
+					apply_hex(color_name);
 					return d;
 				}
 				color_name = "blue";
 			}
-
-			// "dark-green" was a color in the old palette
-			if (color_name === "dark-green") color_name = "green";
-			if (!families.includes(color_name)) color_name = "blue";
-
-			// tokens instead of resolved hexes, so events flip in dark mode
-			d.backgroundColor = `var(--surface-${color_name}-1)`;
-			d.textColor = `var(--ink-${color_name}-7)`;
+			apply_family(color_name);
+		} else if (d.color && frappe.ui.color.validate_hex(d.color)) {
+			apply_hex(d.color);
 		} else {
-			let color = d.color;
-			if (color && frappe.ui.color.validate_hex(color)) {
-				d.backgroundColor = color;
-				d.textColor = frappe.ui.color.get_contrast_color(color);
-			} else {
-				d.backgroundColor = "var(--surface-blue-1)";
-				d.textColor = "var(--ink-blue-7)";
-			}
+			apply_family("blue");
 		}
 		return d;
 	}

@@ -53,12 +53,66 @@ th.fc-col-header-cell {
 	color: var(--ink-gray-4);
 }
 
-.fc-event {
-	border: none !important;
+// fc dims out-of-month cells with opacity — we use ink-gray-4 instead,
+// and the two combined would be too faint
+.fc.fc-theme-standard .fc-day-other .fc-daygrid-day-top {
+	opacity: 1;
 }
 
-.fc-event-main-frame {
-	flex-direction: column;
+// FullCalendar injects its stylesheet at runtime, after ours — rules
+// that tie with one of fc's need the extra .fc to win the cascade
+.fc .fc-event {
+	border: none !important;
+	border-radius: var(--radius-sm);
+}
+
+// title above, time below it
+.fc .fc-daygrid-event .fc-event-main-frame,
+.fc .fc-timegrid-event .fc-event-main-frame {
+	flex-direction: column-reverse;
+	min-width: 0;
+	flex: 1;
+}
+
+// chip anatomy: [accent bar] [title / time]
+.fc-daygrid-event .fc-event-main,
+.fc-timegrid-event .fc-event-main {
+	display: flex;
+	gap: 6px;
+}
+
+.fc .fc-timegrid-event .fc-event-main {
+	padding: 4px 5px;
+}
+
+// currentColor is the event's inline textColor (its ink-X-7 token),
+// so every chip's bar matches its own color without any JS
+.fc-daygrid-event .fc-event-main::before,
+.fc-timegrid-event .fc-event-main::before {
+	content: "";
+	width: 2px;
+	border-radius: 2px;
+	background-color: currentColor;
+	flex-shrink: 0;
+}
+
+// only timed events carry the accent bar (class set in calendar.js)
+.fc-event:not(.timed-event) .fc-event-main::before {
+	display: none;
+}
+
+// titles inherit the event's textColor (its ink-X-7 accent)
+.fc-daygrid-event .fc-event-title {
+	font-weight: var(--font-weight-medium);
+}
+
+// in the timegrid the title keeps the event color; the time goes quiet
+.fc-timegrid-event .fc-event-time {
+	color: var(--ink-gray-6);
+}
+
+.fc-event.fc-event-past {
+	opacity: 0.5;
 }
 
 .fc-daygrid-day-top {
@@ -102,7 +156,7 @@ th.fc-col-header-cell {
 .fc-daygrid-event {
 	border: none !important;
 	margin: 5px 4px 0 !important;
-	padding: 1px 5px !important;
+	padding: 3px 5px !important;
 }
 
 .fc .fc-timegrid-slot-label,
