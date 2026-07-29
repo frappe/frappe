@@ -650,6 +650,7 @@ watch(
 
 <style scoped>
 .field--chip {
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	gap: 0;
@@ -827,18 +828,19 @@ watch(
 	opacity: 0.35;
 }
 
-/* One ring for every active field state — selected, hover, layer-hover all
-   look identical. Inset (never changes previewed geometry, never bleeds past
-   the page or a grid cell); 2px survives the canvas zoom (1px → sub-pixel). */
-.field--preview.field--selected,
-.field--preview:hover,
-.field--preview.field--layer-hover,
-.field--chip.field--selected,
-.field--chip:hover,
-.field--chip.field--layer-hover {
-	outline: var(--pfb-ring);
-	outline-offset: -2px;
-	box-shadow: none;
+.field--preview.field--selected::after,
+.field--preview:hover::after,
+.field--preview.field--layer-hover::after,
+.field--chip.field--selected::after,
+.field--chip:hover::after,
+.field--chip.field--layer-hover::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	border: var(--pfb-ring);
+	border-radius: inherit;
+	pointer-events: none;
 }
 
 .field-preview-actions {
