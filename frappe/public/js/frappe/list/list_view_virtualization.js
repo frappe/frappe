@@ -139,8 +139,9 @@ export const list_view_virtualization = {
 	},
 
 	get_virtualization_row_buffer() {
-		// Keep more rows rendered off-screen so fast scrolls are less likely to hit a blank gap.
-		return frappe.is_mobile() ? 24 : this.virtualization_row_buffer;
+		// Keep more rows rendered off-screen so fast scrolls are less likely to hit
+		// a blank gap. Touch flings outrun the window sooner, so mobile gets more.
+		return frappe.is_mobile() ? 40 : this.virtualization_row_buffer;
 	},
 
 	uses_accumulated_row_heights() {
@@ -361,7 +362,10 @@ export const list_view_virtualization = {
 		// Step 1: compute visible window from scroll position
 		const row_buffer = this.get_virtualization_row_buffer();
 		const scroll_top = $container.scrollTop() || 0;
-		const viewport_height = $container.innerHeight() || 0;
+		// clamped: an auto-height container reports its own content (spacers
+		// included) as innerHeight, which would inflate the row window until
+		// the whole list is in the DOM
+		const viewport_height = Math.min($container.innerHeight() || 0, window.innerHeight);
 		const start = this.find_virtual_start_index(scroll_top, row_buffer, total_rows);
 		const end = this.find_virtual_end_index(start, viewport_height, row_buffer, total_rows);
 
@@ -381,27 +385,24 @@ export const list_view_virtualization = {
 		$container.find(".list-virtual-spacer").remove();
 		this.$result.find('.list-row-container[data-virtual-row="1"]').remove();
 
-		// Steps 4–6: spacers + rows + spacers
+		// Steps 4–6: spacers + rows + spacers, built as one string and
+		// inserted once — this runs on every window shift while scrolling
 		const top_spacer_height = this.get_virtual_spacer_height(0, start);
 		const bottom_spacer_height = this.get_virtual_spacer_height(end, total_rows);
 
+		let window_html = "";
 		if (top_spacer_height > 0) {
-			this.$result.append(
-				`<div class="list-virtual-spacer" style="height:${top_spacer_height}px"></div>`
-			);
+			window_html += `<div class="list-virtual-spacer" style="height:${top_spacer_height}px"></div>`;
 		}
-
 		for (let i = start; i < end; i++) {
 			const doc = this.data[i];
 			doc._idx = i;
-			this.$result.append(this.get_list_row_html(doc, { virtual: true }));
+			window_html += this.get_list_row_html(doc, { virtual: true });
 		}
-
 		if (bottom_spacer_height > 0) {
-			this.$result.append(
-				`<div class="list-virtual-spacer" style="height:${bottom_spacer_height}px"></div>`
-			);
+			window_html += `<div class="list-virtual-spacer" style="height:${bottom_spacer_height}px"></div>`;
 		}
+		this.$result.append(window_html);
 
 		if (!frappe.is_mobile()) {
 			this.apply_column_widths();
