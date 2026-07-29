@@ -5,6 +5,7 @@
 		v-show="!preview_doc || has_visible_fields"
 		:class="{
 			'section-container--condition-hidden': preview_doc && !is_section_visible,
+			'pfb-section-active': is_selected,
 			'pfb-layer-hover': store.hovered_section.value === section,
 		}"
 		@click.stop="select_section"
@@ -26,7 +27,6 @@
 		<div
 			class="print-format-section"
 			:class="{
-				'section--selected': is_selected,
 				'section--grid': is_grid,
 				'section--grid-rows': is_grid && section.grid_borders === 'rows',
 				'section--grid-columns': is_grid && section.grid_borders === 'columns',
@@ -337,8 +337,13 @@ function remove_column(index) {
 	margin-bottom: 0.5rem;
 }
 
-.print-format-section-container.pfb-layer-hover {
-	outline: 2px solid var(--pfb-accent);
+/* One ring for every active section state — selected, hover (canvas), and
+   layer-hover all look identical. The :has() guard keeps hover on the innermost
+   element: when a field inside is hovered, the field's ring shows, not this. */
+.print-format-section-container.pfb-section-active,
+.print-format-section-container.pfb-layer-hover,
+.print-format-section-container:hover:not(:has(.field--preview:hover, .field--chip:hover)) {
+	outline: var(--pfb-ring);
 	outline-offset: 2px;
 	border-radius: var(--radius);
 }
@@ -356,11 +361,6 @@ function remove_column(index) {
 	border-radius: var(--radius);
 	overflow: hidden;
 	cursor: default;
-}
-
-.section--selected {
-	border-color: var(--pfb-accent);
-	box-shadow: inset 0 0 0 1px var(--pfb-accent);
 }
 
 .section-toolbar {
@@ -586,10 +586,6 @@ function remove_column(index) {
 	overflow: hidden;
 	padding: 0;
 }
-.section--grid.section--selected {
-	border-color: var(--pfb-accent);
-	box-shadow: inset 0 0 0 1px var(--pfb-accent);
-}
 .section--grid .section-title-display {
 	padding: var(--pfb-cell-pad, 8px);
 	margin: 0;
@@ -625,12 +621,5 @@ function remove_column(index) {
 }
 .section--grid-columns :deep(.field--chip) {
 	border-bottom: none;
-}
-.section--grid :deep(.field--chip:hover),
-.section--grid :deep(.field--preview:hover),
-.section--grid :deep(.field--layer-hover),
-.section--grid :deep(.field--selected) {
-	outline: 2px solid var(--pfb-accent);
-	outline-offset: -2px;
 }
 </style>

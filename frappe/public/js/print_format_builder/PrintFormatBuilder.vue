@@ -52,6 +52,7 @@
 			</div>
 			<div
 				class="print-format-container"
+				:class="{ 'pfb-marquee-dragging': marquee_dragging }"
 				:style="{ '--pfb-zoom': canvas_zoom / 100 }"
 				@click="clear_selection"
 				@pointerdown="on_canvas_pointerdown"
@@ -175,6 +176,7 @@ function clear_selection() {
 
 // ── Marquee (rubber-band) selection ──────────────────────────
 const marquee = ref(null);
+const marquee_dragging = ref(false);
 let marquee_start = null;
 let marquee_base = [];
 let suppress_next_click = false;
@@ -189,6 +191,7 @@ const MARQUEE_IGNORE =
 function on_canvas_pointerdown(e) {
 	if (e.button !== 0 || e.target.closest(MARQUEE_IGNORE)) return;
 	marquee_start = { x: e.clientX, y: e.clientY };
+	marquee_dragging.value = true; // suppresses text selection while dragging
 	marquee_base =
 		e.shiftKey || e.metaKey || e.ctrlKey ? $store.value.selected_fields.value.slice() : [];
 	window.addEventListener("pointermove", on_canvas_pointermove);
@@ -233,6 +236,7 @@ function on_canvas_pointerup() {
 	suppress_next_click = !!marquee.value;
 	marquee.value = null;
 	marquee_start = null;
+	marquee_dragging.value = false;
 }
 
 function on_start_default() {
@@ -505,7 +509,10 @@ defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 .builder-root {
 	/* navbar + page head height */
 	--pfb-chrome-offset: 95px;
+	/* single source of truth for every selection/hover ring on the canvas —
+	   change these two and fields, sections, and layer-hover all update */
 	--pfb-accent: var(--blue-400);
+	--pfb-ring: 2px solid var(--pfb-accent);
 	display: flex;
 	width: 100%;
 }
@@ -683,6 +690,12 @@ defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 
 .print-format-container :deep(.print-format-main) {
 	zoom: var(--pfb-zoom, 1);
+}
+
+/* while rubber-band dragging, don't let the drag select page text */
+.print-format-container.pfb-marquee-dragging,
+.print-format-container.pfb-marquee-dragging :deep(*) {
+	user-select: none;
 }
 
 /* teleported to <body>, so --pfb-accent (scoped to .builder-root) isn't in scope */

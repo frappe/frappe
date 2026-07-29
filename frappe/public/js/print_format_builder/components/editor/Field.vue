@@ -675,12 +675,6 @@ watch(
 	border-color: var(--gray-600);
 }
 
-.field--chip.field--selected {
-	border-style: solid;
-	border-color: var(--pfb-accent);
-	box-shadow: inset 0 0 0 1px var(--pfb-accent);
-}
-
 .field-row {
 	display: flex;
 	align-items: center;
@@ -831,27 +825,18 @@ watch(
 	opacity: 0.35;
 }
 
-/* outline-only selection chrome: must not change previewed geometry.
-   2px so it survives the canvas zoom transform (1px scales to sub-pixel) */
-.field--preview:hover {
-	outline: 2px solid var(--pfb-accent);
-	outline-offset: 1px;
-}
-
-.field--preview.field--selected {
-	outline: none;
-	box-shadow: inset 0 0 0 2px var(--pfb-accent);
-	border-radius: var(--radius-sm);
-}
-
+/* One ring for every active field state — selected, hover, layer-hover all
+   look identical. Inset (never changes previewed geometry, never bleeds past
+   the page or a grid cell); 2px survives the canvas zoom (1px → sub-pixel). */
+.field--preview.field--selected,
+.field--preview:hover,
+.field--preview.field--layer-hover,
+.field--chip.field--selected,
+.field--chip:hover,
 .field--chip.field--layer-hover {
-	border-style: solid;
-	border-color: var(--pfb-accent);
-}
-
-.field--preview.field--layer-hover {
-	outline: 2px solid var(--pfb-accent);
-	outline-offset: 1px;
+	outline: var(--pfb-ring);
+	outline-offset: -2px;
+	box-shadow: none;
 }
 
 .field-preview-actions {
