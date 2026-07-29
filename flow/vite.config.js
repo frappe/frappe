@@ -16,7 +16,7 @@ export default defineConfig({
 	plugins: [vue()],
 	resolve: {
 		alias: [
-			{ find: "@", replacement: fileURLToPath(new URL("./src", import.meta.url)) },
+			{ find: "@", replacement: fileURLToPath(new URL("./frontend/src", import.meta.url)) },
 			// frappe-ui's package `exports` map hides its source; alias it so we can import
 			// individual components without dragging in the whole index (tiptap, echarts, …).
 			{
@@ -28,13 +28,13 @@ export default defineConfig({
 		],
 	},
 	build: {
-		outDir: fileURLToPath(new URL("../flow/public/flow_panel", import.meta.url)),
+		outDir: fileURLToPath(new URL("./flow/public/flow_panel", import.meta.url)),
 		emptyOutDir: true,
 		cssCodeSplit: false,
 		sourcemap: false,
 		target: "es2017",
 		lib: {
-			entry: fileURLToPath(new URL("./src/main.js", import.meta.url)),
+			entry: fileURLToPath(new URL("./frontend/src/main.js", import.meta.url)),
 			formats: ["iife"],
 			name: "FlowPanel",
 			fileName: () => "flow_panel.js",
