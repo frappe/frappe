@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+
 import frappe
 from frappe.model.document import Document
 from frappe.website.path_resolver import validate_path
@@ -25,9 +26,13 @@ class PortalSettings(Document):
 		menu: DF.Table[PortalMenuItem]
 	# end: auto-generated types
 
+	def get_all_menu_items(self):
+		"""Get all menu items (standard + custom) with None-safety"""
+		return (self.get("menu") or []) + (self.get("custom_menu") or [])
+
 	def add_item(self, item):
 		"""insert new portal menu item if route is not set, or role is different"""
-		exists = [d for d in self.get("menu", []) if d.get("route") == item.get("route")]
+		exists = [d for d in (self.get("menu") or []) if d.get("route") == item.get("route")]
 		if exists and item.get("role"):
 			if exists[0].role != item.get("role"):
 				exists[0].role = item.get("role")
@@ -42,6 +47,7 @@ class PortalSettings(Document):
 		"""Restore defaults"""
 		self.menu = []
 		self.sync_menu()
+
 
 	def sync_menu(self):
 		"""Sync portal menu items"""
@@ -73,7 +79,7 @@ class PortalSettings(Document):
 
 	def remove_deleted_doctype_items(self):
 		existing_doctypes = set(frappe.get_list("DocType", pluck="name"))
-		for menu_item in list(self.get("menu") + self.get("custom_menu")):
+		for menu_item in self.get_all_menu_items():
 			if menu_item.reference_doctype not in existing_doctypes:
 				self.remove(menu_item)
 
