@@ -130,7 +130,8 @@ class GoogleOAuth:
 		:param state: dict of values which you need on callback (for calling methods, redirection back to the form, doc name, etc)
 		"""
 
-		state.update({"domain": self.domain})
+		# Persist the callback method in the (server-side) state so the callback can route without relying on _DOMAIN_CALLBACK_METHODS, which only lives in current worker's memory.
+		state.update({"domain": self.domain, "callback_method": _DOMAIN_CALLBACK_METHODS[self.domain]})
 		state_token = create_google_oauth_state(state)
 		callback_url = get_request_site_address(True) + CALLBACK_METHOD
 
@@ -209,9 +210,11 @@ def callback(state: str, code: str | None = None, error: str | None = None) -> N
 	failure_query_param = state.pop("failure_query_param", "")
 
 	if not error:
-		if (domain := state.pop("domain")) in _DOMAIN_CALLBACK_METHODS:
+		domain = state.pop("domain", None)
+		callback_method = state.pop("callback_method", None) or _DOMAIN_CALLBACK_METHODS.get(domain)
+		if callback_method:
 			state.update({"code": code})
-			frappe.get_attr(_DOMAIN_CALLBACK_METHODS[domain])(**state)
+			frappe.get_attr(callback_method)(**state)
 
 			# GET request, hence using commit to persist changes
 			frappe.db.commit()  # nosemgrep
