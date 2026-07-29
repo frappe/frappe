@@ -279,14 +279,23 @@
 	padding: 0;
 	height: var(--pfb-radius, 0);
 	border: none !important;
-	border-bottom-left-radius: var(--pfb-radius, 0);
-	border-bottom-right-radius: var(--pfb-radius, 0);
 }
 
+/* the cap is one cell per column (see macros/Table.html), so each one carries
+   its column divider down to the closing line — with a single colspan cell the
+   verticals would stop short of the bottom edge by the height of the cap */
 .print-format-doc .child-table--bordered .table .table-foot {
-	border-left: 1px solid var(--gray-300) !important;
 	border-right: 1px solid var(--gray-300) !important;
 	border-bottom: 1px solid var(--gray-300) !important;
+}
+
+.print-format-doc .child-table--bordered .table .table-foot:first-child {
+	border-left: 1px solid var(--gray-300) !important;
+	border-bottom-left-radius: var(--pfb-radius, 0);
+}
+
+.print-format-doc .child-table--bordered .table .table-foot:last-child {
+	border-bottom-right-radius: var(--pfb-radius, 0);
 }
 
 /* plain header: no fill, a single rule under the header row instead */

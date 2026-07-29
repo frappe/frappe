@@ -138,8 +138,10 @@ class TestPrintSurfaceMarkupContract(UnitTestCase):
 		* the cap draws border-bottom -> every page the table spans is closed,
 		  not just the final one;
 		* no body row draws border-bottom -> the last page isn't doubled;
-		* the cap is radius-tall and carries side borders -> the rounded
-		  corners have room to curve (and collapse to nothing at radius 0).
+		* the cap is radius-tall and its outer cells carry the rounded corners
+		  -> the curve has room (and collapses to nothing at radius 0);
+		* the cap is one cell per column, each drawing border-right -> the
+		  column dividers reach the closing line instead of stopping short.
 		"""
 		css = re.sub(r"/\*.*?\*/", "", SHARED_CSS.read_text(), flags=re.S)
 
@@ -154,19 +156,31 @@ class TestPrintSurfaceMarkupContract(UnitTestCase):
 
 		cap = block(".print-format-doc .child-table--bordered .table .table-foot")
 		self.assertIn("border-bottom:", cap)
-		self.assertIn("border-left:", cap)
 		self.assertIn("border-right:", cap)
+
+		first = block(".print-format-doc .child-table--bordered .table .table-foot:first-child")
+		self.assertIn("border-left:", first)
+		self.assertIn("border-bottom-left-radius: var(--pfb-radius", first)
+
+		last = block(".print-format-doc .child-table--bordered .table .table-foot:last-child")
+		self.assertIn("border-bottom-right-radius: var(--pfb-radius", last)
 
 		geometry = block(".print-format-doc .child-table .table .table-foot")
 		self.assertIn("height: var(--pfb-radius", geometry)
-		self.assertIn("border-bottom-left-radius: var(--pfb-radius", geometry)
-		self.assertIn("border-bottom-right-radius: var(--pfb-radius", geometry)
 
 		# nothing may re-close the outline on the last body row
 		self.assertNotRegex(
 			css,
 			r"\.child-table--bordered[^{}]*tbody\s+tr:last-child\s+td\s*\{[^}]*border-bottom:\s*1px",
 		)
+
+		# a single colspan cap cell has no interior edges to carry the dividers
+		for source in (
+			APP_PATH / "templates" / "print_format" / "macros" / "Table.html",
+			BUILDER_DIR / "components" / "editor" / "FieldPreviewTable.vue",
+		):
+			foot = re.search(r"<tfoot>(.*?)</tfoot>", source.read_text(), flags=re.S).group(1)
+			self.assertNotIn("colspan", foot, f"{source.name}: cap must be one cell per column")
 
 	def test_data_html_field_properties_mirrored_in_canvas(self):
 		"""Every df.* property the regular-field macro reads must be handled by Field.vue."""
