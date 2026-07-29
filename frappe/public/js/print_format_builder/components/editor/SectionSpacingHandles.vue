@@ -1,16 +1,19 @@
 <template>
 	<div class="pfb-spacing-handles">
-		<div
-			v-for="side in sides"
-			:key="side"
-			class="pfb-pad-handle"
-			:class="['pfb-pad-' + side, { active: active === side }]"
-			:style="handle_pos[side]"
-			:title="__('Drag to change {0} padding', [side])"
-			@pointerdown.stop.prevent="start(side, $event)"
-		>
-			<span v-if="active === side" class="pfb-pad-tip">{{ pad[side] || 0 }}</span>
-		</div>
+		<template v-for="side in sides" :key="side">
+			<!-- translucent band showing the current padding on this side -->
+			<div class="pfb-pad-band" :style="band_style[side]"></div>
+			<!-- small grab handle centered on the padding/content boundary -->
+			<div
+				class="pfb-pad-grip"
+				:class="['pfb-pad-grip-' + side, { active: active === side }]"
+				:style="grip_style[side]"
+				:title="__('Drag to change {0} padding', [side])"
+				@pointerdown.stop.prevent="start(side, $event)"
+			>
+				<span v-if="active === side" class="pfb-pad-tip">{{ pad[side] || 0 }}</span>
+			</div>
+		</template>
 	</div>
 </template>
 
@@ -23,12 +26,18 @@ const active = ref(null);
 
 const pad = computed(() => props.section.padding || { top: 0, right: 0, bottom: 0, left: 0 });
 
-// handles sit on the padding/content boundary of each side
-const handle_pos = computed(() => ({
-	top: { top: (pad.value.top || 0) + "px", left: 0, right: 0 },
-	bottom: { bottom: (pad.value.bottom || 0) + "px", left: 0, right: 0 },
-	left: { left: (pad.value.left || 0) + "px", top: 0, bottom: 0 },
-	right: { right: (pad.value.right || 0) + "px", top: 0, bottom: 0 },
+const band_style = computed(() => ({
+	top: { top: 0, left: 0, right: 0, height: (pad.value.top || 0) + "px" },
+	bottom: { bottom: 0, left: 0, right: 0, height: (pad.value.bottom || 0) + "px" },
+	left: { left: 0, top: 0, bottom: 0, width: (pad.value.left || 0) + "px" },
+	right: { right: 0, top: 0, bottom: 0, width: (pad.value.right || 0) + "px" },
+}));
+
+const grip_style = computed(() => ({
+	top: { top: (pad.value.top || 0) + "px", left: "50%" },
+	bottom: { bottom: (pad.value.bottom || 0) + "px", left: "50%" },
+	left: { left: (pad.value.left || 0) + "px", top: "50%" },
+	right: { right: (pad.value.right || 0) + "px", top: "50%" },
 }));
 
 function canvas_zoom(el) {
@@ -69,54 +78,47 @@ function start(side, e) {
 	z-index: 3;
 }
 
-.pfb-pad-handle {
-	position: absolute;
-	pointer-events: auto;
-	background: transparent;
-}
-
-/* thin accent line on the padding boundary, shown on hover/drag */
-.pfb-pad-handle::before {
-	content: "";
+/* padding region — like the builder's shaded spacing band */
+.pfb-pad-band {
 	position: absolute;
 	background: var(--pfb-accent);
-	opacity: 0;
-	transition: opacity 0.1s;
+	opacity: 0.14;
 }
 
-.pfb-pad-handle:hover::before,
-.pfb-pad-handle.active::before {
-	opacity: 1;
+/* small draggable handle sitting on the padding boundary */
+.pfb-pad-grip {
+	position: absolute;
+	pointer-events: auto;
+	background: var(--pfb-accent);
+	border: 1.5px solid var(--fg-color);
+	border-radius: 6px;
+	box-shadow: var(--shadow-sm);
 }
 
-.pfb-pad-top,
-.pfb-pad-bottom {
-	height: 9px;
-	margin-top: -4px;
+.pfb-pad-grip-top,
+.pfb-pad-grip-bottom {
+	width: 26px;
+	height: 6px;
 	cursor: ns-resize;
 }
-.pfb-pad-left,
-.pfb-pad-right {
-	width: 9px;
-	margin-left: -4px;
+.pfb-pad-grip-left,
+.pfb-pad-grip-right {
+	width: 6px;
+	height: 26px;
 	cursor: ew-resize;
 }
 
-.pfb-pad-top::before,
-.pfb-pad-bottom::before {
-	left: 0;
-	right: 0;
-	top: 50%;
-	height: 2px;
-	transform: translateY(-50%);
+.pfb-pad-grip-top {
+	transform: translate(-50%, -50%);
 }
-.pfb-pad-left::before,
-.pfb-pad-right::before {
-	top: 0;
-	bottom: 0;
-	left: 50%;
-	width: 2px;
-	transform: translateX(-50%);
+.pfb-pad-grip-bottom {
+	transform: translate(-50%, 50%);
+}
+.pfb-pad-grip-left {
+	transform: translate(-50%, -50%);
+}
+.pfb-pad-grip-right {
+	transform: translate(50%, -50%);
 }
 
 .pfb-pad-tip {
