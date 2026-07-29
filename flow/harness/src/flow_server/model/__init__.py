@@ -11,6 +11,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
+from flow_server.model.errors import ProviderError, ProviderErrorKind
 from flow_server.model.mock import MockModel
 from flow_server.model.model import LiteLLMModel, Model, ModelRequest
 
@@ -55,4 +56,13 @@ register_provider("mock", lambda name, **kwargs: MockModel())
 from flow_server.model.providers import codex as _codex  # noqa: E402, F401
 from flow_server.model.providers import opencode as _opencode  # noqa: E402, F401
 
-__all__ = ["LiteLLMModel", "MockModel", "Model", "ModelRequest", "get_model", "register_provider"]
+__all__ = [
+	"LiteLLMModel",
+	"MockModel",
+	"Model",
+	"ModelRequest",
+	"ProviderError",
+	"ProviderErrorKind",
+	"get_model",
+	"register_provider",
+]
