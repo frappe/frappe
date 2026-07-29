@@ -137,6 +137,7 @@
 					</div>
 				</template>
 			</div>
+			<SectionSpacingHandles v-if="show_spacing_handles" :section="section" />
 		</div>
 		<div class="page-break-indicator" v-if="section.page_break">
 			<span>— {{ __("Page Break") }} —</span>
@@ -158,6 +159,7 @@
 import draggable from "vuedraggable";
 import Field from "./Field.vue";
 import SectionActions from "./SectionActions.vue";
+import SectionSpacingHandles from "./SectionSpacingHandles.vue";
 import { computed, inject } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
 import {
@@ -174,6 +176,14 @@ const props = defineProps(["section", "is_header", "zone"]);
 let store = inject("$store");
 
 let is_selected = computed(() => store.selected_sections.value.includes(props.section));
+// spacing handles only for a single, sole-selected body section
+let show_spacing_handles = computed(
+	() =>
+		!props.is_header &&
+		is_selected.value &&
+		store.selected_sections.value.length === 1 &&
+		store.selected_fields.value.length === 0
+);
 let preview_doc = computed(() => store.preview_doc.value);
 let is_section_visible = computed(() =>
 	evaluate_visible_if(props.section.visible_if, preview_doc.value)
@@ -363,11 +373,17 @@ function remove_column(index) {
 }
 
 .print-format-section {
+	position: relative;
 	background-color: var(--fg-color);
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
 	overflow: hidden;
 	cursor: default;
+}
+
+/* let the spacing handles and their tooltip show past the section edges */
+.print-format-section:has(.pfb-spacing-handles) {
+	overflow: visible;
 }
 
 .section-toolbar {
