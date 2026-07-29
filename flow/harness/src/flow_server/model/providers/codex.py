@@ -361,7 +361,7 @@ async def _codex_events(
 						thinking=_reasoning_text(item) or (streamed.thinking if streamed else ""),
 						thinking_signature=json.dumps(dict(item), separators=(",", ":")),
 					)
-					if streamed is None:
+					if index is None or streamed is None:
 						content_indices[item_id] = len(content)
 						content.append(block)
 					else:
