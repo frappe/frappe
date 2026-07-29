@@ -277,7 +277,9 @@ $.extend(frappe.model, {
 			// meta has sugar, like __js and other properties that doc won't have
 			frappe.meta.__doctype_meta = JSON.parse(JSON.stringify(meta));
 		}
-		for (const asset_key of ["__list_js", "__custom_list_js", "__calendar_js", "__tree_js"]) {
+		// custom scripts run last so they can override the standard
+		// definitions for any view, calendar included (#37460)
+		for (const asset_key of ["__list_js", "__calendar_js", "__tree_js", "__custom_list_js"]) {
 			if (meta[asset_key]) {
 				new Function(meta[asset_key])();
 			}

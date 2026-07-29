@@ -466,6 +466,15 @@ frappe.views.Calendar = class Calendar {
 				d.allDay = me.field_map.allDay;
 			}
 
+			// date-only events (Date fields, no time part) are all-day by
+			// nature even when the config doesn't say so; without this the
+			// exclusive-end rule below never runs and multi-day events
+			// draw one day short (#25193)
+			const date_only = (v) => v && !String(v).includes(" ");
+			if (!d.allDay && date_only(d.start) && (!d.end || date_only(d.end))) {
+				d.allDay = 1;
+			}
+
 			if (!me.field_map.convertToUserTz) d.convertToUserTz = 1;
 
 			// convert to user tz
