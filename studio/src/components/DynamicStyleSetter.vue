@@ -1,26 +1,17 @@
 <template>
-	<Dropdown
-		:options="[
-			{
-				label: 'Set Dynamic Value',
-				onClick: () => {
-					showDynamicValueModal = !showDynamicValueModal
-				},
-			},
-		]"
-	>
-		<IconButton
-			ref="dropdownTrigger"
-			:icon="LucideCirclePlus"
-			placement="left"
-			class="mr-1"
-			size="sm"
-			tabIndex="-1"
-		/>
-	</Dropdown>
+	<IconButton
+		ref="triggerButton"
+		:icon="LucideCirclePlus"
+		label="Set Dynamic Value"
+		tooltipPlacement="left"
+		class="mr-1"
+		size="sm"
+		tabIndex="-1"
+		@click="showDynamicValueModal = !showDynamicValueModal"
+	/>
 	<DraggablePopup
 		v-model="showDynamicValueModal"
-		:container="dropdownTrigger?.rootRef"
+		:container="triggerButton?.rootRef"
 		placement="middle-right"
 		:clickOutsideToClose="false"
 		:placementOffset="20"
@@ -45,7 +36,6 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue"
-import { Dropdown } from "frappe-ui"
 import Code from "@/components/Code.vue"
 import IconButton from "@/components/IconButton.vue"
 import Block from "@/utils/block"
@@ -59,7 +49,7 @@ const emit = defineEmits<{
 	(event: "update:modelValue", value: string): void
 }>()
 
-const dropdownTrigger = ref<typeof IconButton | null>(null)
+const triggerButton = ref<typeof IconButton | null>(null)
 const showDynamicValueModal = ref(false)
 const getCompletions = useStudioCompletions()
 
