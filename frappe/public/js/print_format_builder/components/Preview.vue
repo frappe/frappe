@@ -114,7 +114,8 @@ async function render() {
 		if (!res.ok) throw new Error(res.statusText);
 		const blob = await res.blob();
 		if (seq !== render_seq) return;
-		set_pdf_url(URL.createObjectURL(blob) + "#toolbar=0&navpanes=0&view=FitH");
+		// keep the browser's own PDF toolbar — page nav, zoom and download come free
+		set_pdf_url(URL.createObjectURL(blob) + "#view=FitH");
 	} catch (e) {
 		if (seq !== render_seq) return;
 		set_pdf_url(null);
@@ -170,20 +171,19 @@ onUnmounted(() => {
 	flex-direction: column;
 	width: min(1000px, 94vw);
 	height: 94vh;
-	background: var(--gray-100);
-	border-radius: var(--radius-lg, 8px);
-	box-shadow: var(--shadow-lg);
+	/* no chrome of its own — the PDF viewer fills the frame edge to edge */
+	background: transparent;
 	overflow: hidden;
 }
 
-/* floating controls over the top-right of the document, Gmail-style */
+/* controls sit on the backdrop above the document, so the browser's own PDF
+   toolbar keeps the top of the frame to itself */
 .pfb-preview-controls {
-	position: absolute;
-	top: 12px;
-	right: 12px;
-	z-index: 1;
 	display: flex;
+	justify-content: flex-end;
 	gap: 4px;
+	padding-bottom: 8px;
+	flex-shrink: 0;
 }
 
 .pfb-preview-btn {
@@ -191,14 +191,14 @@ onUnmounted(() => {
 	align-items: center;
 	padding: 6px;
 	border: none;
-	background: rgba(0, 0, 0, 0.55);
+	background: rgba(255, 255, 255, 0.15);
 	border-radius: var(--radius);
 	color: #fff;
 	cursor: pointer;
 }
 
 .pfb-preview-btn:hover {
-	background: rgba(0, 0, 0, 0.75);
+	background: rgba(255, 255, 255, 0.3);
 }
 
 .pfb-preview-empty {
@@ -213,6 +213,7 @@ onUnmounted(() => {
 	width: 100%;
 	min-height: 0;
 	border: none;
+	border-radius: var(--radius-lg, 8px);
 	display: block;
 }
 </style>
