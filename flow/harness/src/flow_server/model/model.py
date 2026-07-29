@@ -35,6 +35,7 @@ from flow_server.events import (
 	UserMessage,
 	_Event,
 )
+from flow_server.model.errors import normalize_litellm_error
 
 
 @dataclass(slots=True)
@@ -155,6 +156,9 @@ class LiteLLMModel(Model):
 			kwargs["extra_headers"] = self._headers
 		if request.tools:
 			kwargs["tools"] = request.tools
+		# Flow owns retries so it can emit one event protocol and keep backoff
+		# cancellable. One call to LiteLLM therefore means exactly one provider attempt.
+		kwargs["num_retries"] = 0
 
 		if not request.stream:
 			try:
@@ -166,6 +170,8 @@ class LiteLLMModel(Model):
 				yield self._aborted()
 				yield Usage()
 				return
+			except Exception as exc:
+				raise normalize_litellm_error(exc, provider=self.provider) from exc
 			choice = (_attr(response, "choices") or [None])[0]
 			message = _attr(choice, "message")
 			content = _message_content(message)
@@ -252,6 +258,8 @@ class LiteLLMModel(Model):
 					cost = chunk_cost
 		except ModelCancelled:
 			finish_reason = "aborted"
+		except Exception as exc:
+			raise normalize_litellm_error(exc, provider=self.provider) from exc
 
 		calls_by_index = _finalize_tool_call_map(acc)
 		content: list[TextContent | ThinkingContent | ToolCall] = []
