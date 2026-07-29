@@ -225,37 +225,22 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		// view modes (for translation) __("Day"), __("Week"), __("Month"),
 		//__("Half Day"), __("Quarter Day")
 
-		let $btn_group = this.$paging_area.find(".gantt-view-mode");
-		if ($btn_group.length > 0) return;
+		if (this.$paging_area.find(".gantt-view-mode").length > 0) return;
 
 		const view_modes = this.gantt.options.view_modes || [];
-		const active_class = (view_mode) => (this.gantt.view_is(view_mode) ? "btn-info" : "");
-		const html = `<div class="btn-group gantt-view-mode mx-2">
-				${view_modes
-					.map(
-						(value) => `<button type="button"
-						class="btn btn-default btn-sm btn-view-mode ${active_class(value.name)}"
-						data-value="${value.name}">
-						${__(value.name)}
-					</button>`
-					)
-					.join("")}
-			</div>`;
-
-		this.$paging_area.find(".level-left").append(html);
-
-		// change view mode asynchronously
-		const change_view_mode = (value) =>
-			setTimeout(() => this.gantt.change_view_mode(value), 0);
-
-		this.$paging_area.on("click", ".btn-view-mode", (e) => {
-			const $btn = $(e.currentTarget);
-			this.$paging_area.find(".btn-view-mode").removeClass("btn-info");
-			$btn.addClass("btn-info");
-
-			const value = $btn.data().value;
-			change_view_mode(value);
+		const active = view_modes.find((mode) => this.gantt.view_is(mode.name));
+		const view_mode_group = new frappe.ui.TabButtons({
+			label: __("Gantt View Mode"),
+			css_class: "gantt-view-mode ms-2 me-2",
+			options: view_modes.map((mode) => ({
+				label: __(mode.name),
+				value: mode.name,
+			})),
+			value: active && active.name,
+			// change view mode asynchronously
+			on_change: (value) => setTimeout(() => this.gantt.change_view_mode(value), 0),
 		});
+		this.$paging_area.find(".level-left").append(view_mode_group.$el);
 	}
 
 	set_colors() {
