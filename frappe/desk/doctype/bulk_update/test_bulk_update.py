@@ -190,31 +190,31 @@ class TestBulkAssignRoles(IntegrationTestCase):
 		"""System Manager can bulk assign roles to multiple users"""
 		from frappe.desk.doctype.bulk_update.bulk_update import bulk_assign_roles
 
-		failed = bulk_assign_roles(self.test_users, ["Analytics"])
+		failed = bulk_assign_roles(self.test_users, ["Accounts User"])
 		self.assertEqual(failed, [])
 
 		for email in self.test_users:
 			user = frappe.get_doc("User", email)
 			roles = [r.role for r in user.roles]
-			self.assertIn("Analytics", roles)
+			self.assertIn("Accounts User", roles)
 			self.assertIn("Desk User", roles)
 
 	def test_bulk_assign_roles_failed_list(self):
 		"""Invalid docname should appear in failed list not raise exception"""
 		from frappe.desk.doctype.bulk_update.bulk_update import bulk_assign_roles
 
-		failed = bulk_assign_roles(["nonexistent@example.com"], ["Analytics"])
+		failed = bulk_assign_roles(["nonexistent@example.com"], ["Accounts User"])
 		self.assertIn("nonexistent@example.com", failed)
 
 	def test_bulk_assign_roles_duplicate_skip(self):
 		"""Assigning an already assigned role should not create duplicate rows"""
 		from frappe.desk.doctype.bulk_update.bulk_update import bulk_assign_roles
 
-		bulk_assign_roles([self.test_users[0]], ["Analytics"])
-		bulk_assign_roles([self.test_users[0]], ["Analytics"])
+		bulk_assign_roles([self.test_users[0]], ["Accounts User"])
+		bulk_assign_roles([self.test_users[0]], ["Accounts User"])
 
 		user = frappe.get_doc("User", self.test_users[0])
-		blogger_count = sum(1 for r in user.roles if r.role == "Analytics")
+		blogger_count = sum(1 for r in user.roles if r.role == "Accounts User")
 		self.assertEqual(blogger_count, 1)
 
 	def test_bulk_assign_multiple_roles(self):
