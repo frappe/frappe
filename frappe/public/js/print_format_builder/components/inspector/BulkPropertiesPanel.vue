@@ -9,12 +9,11 @@
 			/>
 			<div class="pfb-insp-row">
 				<button
-					class="es-button pfb-bulk-delete"
+					class="es-button"
 					data-variant="subtle"
 					data-theme="red"
 					@click="store.remove_selected_fields()"
 				>
-					<span v-html="frappe.utils.icon('trash', 'sm')"></span>
 					{{ __("Remove selected") }}
 				</button>
 			</div>
@@ -37,13 +36,3 @@ let common_align = computed(() => {
 	return aligns.every((a) => a === first) ? first : "";
 });
 </script>
-
-<style scoped>
-.pfb-bulk-delete {
-	width: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 6px;
-}
-</style>
