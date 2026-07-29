@@ -20,6 +20,9 @@ export function useSelection() {
 			selected_fields.value = df ? [df] : [];
 			selected_field.value = df;
 		}
+		// selecting a field drops any section selection (symmetric with select_section)
+		selected_section.value = null;
+		selected_sections.value = [];
 		selected_letterhead.value = false;
 		selected_lh_footer.value = false;
 	}
