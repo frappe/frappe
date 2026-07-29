@@ -452,24 +452,52 @@ frappe.views.Calendar = class Calendar {
 		});
 	}
 	prepare_colors(d) {
-		let color, color_name;
+		// espresso color families that have a surface-X-1 / ink-X-7 pair
+		const families = [
+			"red",
+			"green",
+			"blue",
+			"orange",
+			"amber",
+			"yellow",
+			"gray",
+			"purple",
+			"pink",
+			"cyan",
+			"teal",
+			"violet",
+		];
 		if (this.get_css_class) {
-			color_name = this.get_css_class(d);
+			let color_name = this.get_css_class(d);
+			// color_map keeps the old semantic names (danger, success, ...) working
 			color_name = this.color_map[color_name] || color_name || "blue";
 
 			if (color_name.startsWith("#")) {
-				color_name = frappe.ui.color.validate_hex(color_name) ? color_name : "blue";
+				// custom hex straight from the doctype's calendar config
+				if (frappe.ui.color.validate_hex(color_name)) {
+					d.backgroundColor = color_name;
+					d.textColor = frappe.ui.color.get_contrast_color(color_name);
+					return d;
+				}
+				color_name = "blue";
 			}
 
-			d.backgroundColor = frappe.ui.color.get(color_name, "extra-light");
-			d.textColor = frappe.ui.color.get(color_name, "dark");
+			// "dark-green" was a color in the old palette
+			if (color_name === "dark-green") color_name = "green";
+			if (!families.includes(color_name)) color_name = "blue";
+
+			// tokens instead of resolved hexes, so events flip in dark mode
+			d.backgroundColor = `var(--surface-${color_name}-1)`;
+			d.textColor = `var(--ink-${color_name}-7)`;
 		} else {
-			color = d.color;
-			if (!frappe.ui.color.validate_hex(color) || !color) {
-				color = frappe.ui.color.get("blue", "extra-light");
+			let color = d.color;
+			if (color && frappe.ui.color.validate_hex(color)) {
+				d.backgroundColor = color;
+				d.textColor = frappe.ui.color.get_contrast_color(color);
+			} else {
+				d.backgroundColor = "var(--surface-blue-1)";
+				d.textColor = "var(--ink-blue-7)";
 			}
-			d.backgroundColor = color;
-			d.textColor = frappe.ui.color.get_contrast_color(color);
 		}
 		return d;
 	}
