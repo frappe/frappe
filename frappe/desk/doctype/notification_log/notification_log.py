@@ -111,6 +111,12 @@ def get_permission_query_conditions(for_user):
 	return f"""(`tabNotification Log`.for_user = {frappe.db.escape(for_user)})"""
 
 
+def has_permission(doc, ptype="read", user=None):
+	user = user or frappe.session.user
+
+	return user == "Administrator" or doc.for_user == user
+
+
 def get_title(doctype, docname, title_field=None):
 	if not title_field:
 		title_field = frappe.get_meta(doctype).get_title_field()
