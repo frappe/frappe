@@ -7,10 +7,12 @@
 		:class="{
 			'section-container--condition-hidden': preview_doc && !is_section_visible,
 			'pfb-section-active': is_selected,
-			'pfb-layer-hover': store.hovered_section.value === section,
+			'pfb-layer-hover': store.hovered_node.value === section,
 		}"
 		@click.stop="select_section"
 		@contextmenu="on_context_menu"
+		@mouseenter="store.hovered_section.value = section"
+		@mouseleave="store.hovered_section.value = null"
 	>
 		<!-- Top-right actions pill shown on hover in clean-preview (toolbar is hidden) -->
 		<div v-if="!is_header" class="section-preview-actions">
@@ -83,8 +85,13 @@
 					<div v-if="i > 0 && !preview_doc" class="column-divider"></div>
 					<div
 						class="column"
-						:class="{ col: !!preview_doc }"
+						:class="{
+							col: !!preview_doc,
+							'pfb-column-hover': store.hovered_node.value === column,
+						}"
 						:style="column.width ? { flex: `${column.width} 1 0%` } : {}"
+						@mouseenter="store.hovered_column.value = column"
+						@mouseleave="store.hovered_column.value = null"
 					>
 						<div
 							v-if="i < section.columns.length - 1"
@@ -520,6 +527,13 @@ function remove_column(index) {
 	display: flex;
 	flex-direction: column;
 	position: relative;
+}
+
+/* same ring as every other hover/selection state (--pfb-ring), so a hovered
+   column reads the same as a hovered field or section */
+.column.pfb-column-hover {
+	outline: var(--pfb-ring);
+	outline-offset: -2px;
 }
 
 .column-divider {

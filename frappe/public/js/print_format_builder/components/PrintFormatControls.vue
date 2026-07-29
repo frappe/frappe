@@ -138,27 +138,6 @@
 		<div v-else-if="activeTab === 'library'" class="pfb-tab-body">
 			<div class="pfb-group-label">
 				{{ __("Saved Snippets") }}
-				<span class="pfb-label-actions">
-					<button
-						class="es-button"
-						data-size="xs"
-						data-variant="ghost"
-						data-icon-button="true"
-						:disabled="!store.snippets.value.length"
-						:title="__('Export snippets')"
-						@click="store.export_snippets()"
-						v-html="frappe.utils.icon('download', 'xs')"
-					></button>
-					<button
-						class="es-button"
-						data-size="xs"
-						data-variant="ghost"
-						data-icon-button="true"
-						:title="__('Import snippets')"
-						@click="import_snippets"
-						v-html="frappe.utils.icon('upload', 'xs')"
-					></button>
-				</span>
 			</div>
 			<div v-if="!store.snippets.value.length" class="pfb-empty">
 				{{ __("Save a section or field as a snippet to reuse it here.") }}
@@ -264,7 +243,10 @@
 							class="pfb-tree-row pfb-drag-handle"
 							@mouseenter="store.hovered_section.value = section"
 							@mouseleave="store.hovered_section.value = null"
-							:class="{ active: store.selected_sections.value.includes(section) }"
+							:class="{
+								active: store.selected_sections.value.includes(section),
+								'pfb-tree-hover': store.hovered_node.value === section,
+							}"
 							role="treeitem"
 							tabindex="0"
 							:aria-expanded="!is_collapsed(section)"
@@ -293,10 +275,16 @@
 								:key="ci"
 								class="pfb-tree-node"
 							>
+								<!-- a lone column isn't a real division of the section, so it
+								     only earns a row once there's more than one -->
 								<div
+									v-if="section.columns.length > 1"
 									class="pfb-tree-row"
+									:class="{ 'pfb-tree-hover': store.hovered_node.value === col }"
 									role="treeitem"
 									tabindex="0"
+									@mouseenter="store.hovered_column.value = col"
+									@mouseleave="store.hovered_column.value = null"
 									@click="select_section(section)"
 									@keydown.enter.prevent="select_section(section)"
 									@keydown.space.prevent="select_section(section)"
@@ -318,9 +306,12 @@
 									</span>
 								</div>
 								<draggable
-									v-if="!is_collapsed(col)"
+									v-if="section.columns.length === 1 || !is_collapsed(col)"
 									v-model="col.fields"
 									class="pfb-tree-children pfb-tree-fields"
+									:class="{
+										'pfb-tree-fields--flush': section.columns.length === 1,
+									}"
 									group="pfb-tree-fields"
 									item-key="id"
 									:emptyInsertThreshold="20"
@@ -337,6 +328,8 @@
 												active: store.selected_fields.value.includes(
 													field
 												),
+												'pfb-tree-hover':
+													store.hovered_node.value === field,
 											}"
 											@mouseenter="store.hovered_field.value = field"
 											@mouseleave="store.hovered_field.value = null"
@@ -491,35 +484,6 @@ const draggable_blocks = [
 
 function confirm_delete_snippet(name) {
 	frappe.confirm(__("Delete the snippet '{0}'?", [name]), () => store.delete_snippet(name));
-}
-
-function import_snippets() {
-	const input = document.createElement("input");
-	input.type = "file";
-	input.accept = "application/json,.json";
-	input.onchange = async () => {
-		const file = input.files?.[0];
-		if (!file) return;
-		let payload;
-		try {
-			payload = JSON.parse(await file.text());
-		} catch {
-			frappe.throw(__("{0} is not a valid JSON file", [file.name]));
-		}
-		const { imported, other_doctypes, skipped } = await store.import_snippets(payload);
-		let message = __("Imported {0} snippet(s)", [imported]);
-		if (other_doctypes) {
-			message += " " + __("({0} belong to other document types)", [other_doctypes]);
-		}
-		if (skipped.length) {
-			message += " — " + __("skipped {0}", [skipped.join(", ")]);
-		}
-		frappe.show_alert(
-			{ message, indicator: skipped.length ? "orange" : "green" },
-			skipped.length ? 7 : 5
-		);
-	};
-	input.click();
 }
 
 // ── helpers ────────────────────────────────────────────────
@@ -1053,6 +1017,14 @@ function handle_slash_key(e) {
 	background: var(--gray-100);
 }
 
+/* mirrors the canvas hover back into the tree — an outline in the same accent
+   as the canvas ring, so it reads as "this is the block you're pointing at"
+   rather than as another selectable/active row */
+.pfb-tree-row.pfb-tree-hover {
+	outline: 1px solid var(--pfb-accent);
+	outline-offset: -1px;
+}
+
 .pfb-tree-row.active {
 	background: var(--gray-200);
 	color: var(--gray-900);
@@ -1113,6 +1085,12 @@ function handle_slash_key(e) {
 
 .pfb-tree-fields {
 	min-height: 8px;
+}
+
+/* single-column sections have no Column row, so their fields sit directly
+   under the section instead of indenting past a row that isn't there */
+.pfb-tree-fields--flush {
+	margin-left: 0;
 }
 
 /* ── Empty state ─────────────────────────────────────────── */

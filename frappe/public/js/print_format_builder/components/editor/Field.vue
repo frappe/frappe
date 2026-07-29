@@ -4,7 +4,7 @@
 			preview_doc ? preview_root.classes : 'field field--chip',
 			{
 				'field--selected': is_selected,
-				'field--layer-hover': store.hovered_field.value === df,
+				'field--layer-hover': store.hovered_node.value === df,
 				'field--preview': !!preview_doc,
 				'field--condition-hidden': preview_doc && !is_field_visible,
 			},
@@ -19,6 +19,8 @@
 		tabindex="0"
 		@click.stop="select_field($event)"
 		@contextmenu="on_context_menu"
+		@mouseenter="store.hovered_field.value = df"
+		@mouseleave="store.hovered_field.value = null"
 		@keydown.enter.prevent="kbd_select($event)"
 		@keydown.space.prevent="kbd_select($event)"
 	>
