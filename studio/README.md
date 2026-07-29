@@ -27,7 +27,10 @@ Frappe Studio aims to improve how developers build applications with the Frappe 
 - Wire Frappe Framework data sources in the app using minimum configurations
 - Edit props and slots for any component with the powerful editor
 - Faster layout creation with form and CRUD utilities
-- Build reactive apps with dynamic variables, scripts & watcher support
+- Write page scripts (mirroring vue <script setup>) to add reactive state, computed values, watchers & handlers, usable across props, styles and events
+- Generate and modify pages with the built-in AI assistant
+- Use custom Vue components from the studio folder of your app in your bench
+- Export apps to your app's source and build them for production, served by Studio at their own route
 
 ### Under the Hood
 
@@ -39,7 +42,7 @@ Frappe Studio aims to improve how developers build applications with the Frappe 
 
 ### Local Setup
 
-1. [Setup Bench](https://docs.frappe.io/framework/user/en/installation).
+1. [Setup Bench](https://docs.frappe.io/framework/user/en/installation). Studio needs Node `>=20.19` (or `>=22.12`).
 1. In the frappe-bench directory, run `bench start` and keep it running.
 1. Open a new terminal session and cd into `frappe-bench` directory and run following commands:
 ```bash
@@ -49,16 +52,41 @@ bench browse studio.localhost --user Administrator
 ```
 1. Access the studio page at `studio.localhost:8000/studio` in your web browser.
 
-**For Frontend Development**
+To use the AI assistant, set your OpenRouter API key in Studio Settings.
+
+**For Frontend Development & Exported Apps**
+
+You need this setup to work on Studio's frontend, and to build standard (exported) apps, whose pages and scripts live in your Frappe app's `studio` folder — the editor loads them off disk through the vite dev server.
+
+1. Enable developer mode, allow the dev server's requests, and install dev dependencies:
+```bash
+bench set-config -g developer_mode 1
+bench --site studio.localhost set-config ignore_csrf 1
+bench setup requirements --dev
+```
 1. Open a new terminal session and run the following commands:
 ```bash
 cd frappe-bench/apps/studio
 yarn install
 yarn dev --host
 ```
-1. Now, you can access the site on vite dev server at `http://studio.localhost:8080`
+1. Now, you can access the site on vite dev server at `http://studio.localhost:8080` (the port shifts along with your bench's `webserver_port`)
+1. In one more terminal session, you can start the watcher and keep it running alongside `bench start`:
+```bash
+bench --site studio.localhost watch-studio
+```
+It watches the `studio` folder of every installed app and imports changed app/page/component JSON into the database, so apps edited on disk (by hand, the CLI or an AI agent) show up in the editor without a `bench migrate`. Deletions are not synchronized, so remove the corresponding database record separately. Page scripts don't need it — vite hot-reloads the `.ts` files straight off disk.
+
+**Note:** Exported apps can only be edited on a local setup with the dev server running. On a production site they only run, they can't be edited. We will be adding customization support for standard apps soon.
 
 **Note:** You'll find all the code related to Studio's frontend inside `frappe-bench/apps/studio/frontend`
+
+### Bench Commands
+
+```bash
+bench build-studio-app <app-name>   # build an app for production
+bench --site <site-name> watch-studio # long running watcher to sync app/page/component JSON edited in files to DB
+```
 
 <h2></h2>
 
