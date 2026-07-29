@@ -104,8 +104,8 @@
 							:preventOnFilter="false"
 							:emptyInsertThreshold="100"
 							v-bind="DRAG_OPTIONS"
-							@start="setDragging(true)"
-							@end="setDragging(false)"
+							@start="(e) => on_field_drag_start(column, e)"
+							@end="on_field_drag_end"
 							@add="(e) => select_dropped_field(column, e)"
 						>
 							<template #item="{ element }">
@@ -291,6 +291,29 @@ function select_dropped_field(column, e) {
 	const field = column.fields[e.newIndex];
 	if (field) store.select_field(field);
 	else store.select_section(props.section);
+}
+
+// Bulk drag: if the grabbed field is part of a multi-selection, snapshot the
+// whole group (document order) at drag start; on drop, Sortable has moved only
+// the grabbed field, so we pull the rest over to sit contiguously around it.
+let drag_group = null;
+function on_field_drag_start(column, e) {
+	setDragging(true);
+	drag_group = null;
+	const dragged = column.fields[e.oldIndex];
+	const sel = store.selected_fields.value;
+	if (dragged && sel.length > 1 && sel.includes(dragged)) {
+		const group = store.ordered_body_fields().filter((f) => sel.includes(f));
+		if (group.length > 1 && group.includes(dragged)) drag_group = { dragged, group };
+	}
+}
+function on_field_drag_end() {
+	setDragging(false);
+	if (!drag_group) return;
+	const { dragged, group } = drag_group;
+	drag_group = null;
+	store.reflow_dragged_group(dragged, group);
+	store.set_selected(group);
 }
 
 function remove_section() {
