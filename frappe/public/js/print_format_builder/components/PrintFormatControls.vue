@@ -619,13 +619,13 @@ function build_field(df) {
 }
 
 function select_section(section) {
-	store.scroll_to_section.value = section;
+	store.scroll_target.value = section;
 	store.select_section(section);
 }
 
 function select_field(field, section, e) {
 	const additive = !!(e && (e.metaKey || e.ctrlKey || e.shiftKey));
-	if (section && !additive) store.scroll_to_section.value = section;
+	if (!additive) store.scroll_target.value = field;
 	store.select_field(field, additive);
 }
 

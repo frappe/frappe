@@ -17,7 +17,7 @@ export function getStore(print_format_name) {
 	let dirty = ref(false);
 	let needs_setup = ref(false);
 	let edit_letterhead = ref(false);
-	let scroll_to_section = ref(null);
+	let scroll_target = ref(null);
 	let hovered_field = ref(null);
 	let hovered_section = ref(null);
 	const selection = useSelection();
@@ -365,7 +365,7 @@ export function getStore(print_format_name) {
 		dirty,
 		needs_setup,
 		edit_letterhead,
-		scroll_to_section,
+		scroll_target,
 		hovered_field,
 		hovered_section,
 		selected_field,
