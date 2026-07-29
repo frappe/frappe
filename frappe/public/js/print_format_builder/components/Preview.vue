@@ -2,31 +2,6 @@
 	<Teleport to="body">
 		<div class="pfb-preview-backdrop" @click.self="$emit('close')">
 			<div class="pfb-preview-modal">
-				<div class="pfb-preview-controls">
-					<button
-						class="pfb-preview-btn"
-						:title="__('Refresh')"
-						:aria-label="__('Refresh')"
-						@click="refresh"
-						v-html="frappe.utils.icon('refresh-cw', 'sm')"
-					></button>
-					<a
-						v-if="pdf_url"
-						class="pfb-preview-btn"
-						target="_blank"
-						:href="pdf_url"
-						:title="__('Open in a new tab')"
-						v-html="frappe.utils.icon('external-link', 'sm')"
-					></a>
-					<button
-						class="pfb-preview-btn"
-						:title="__('Close preview')"
-						:aria-label="__('Close preview')"
-						@click="$emit('close')"
-						v-html="frappe.utils.icon('x', 'sm')"
-					></button>
-				</div>
-
 				<div v-if="!docname" class="pfb-preview-empty">
 					{{ __("Pick a record in the toolbar above to preview it.") }}
 				</div>
@@ -37,7 +12,11 @@
 					{{ __("This document is a draft and cannot be printed.") }}
 				</div>
 				<div v-else-if="!preview_loaded" class="pfb-preview-empty">
-					{{ __("Generating preview...") }}
+					<span class="pfb-preview-spinner" aria-hidden="true"></span>
+					<span>{{ __("Generating preview…") }}</span>
+					<span class="pfb-preview-hint">{{
+						__("Rendering the PDF for this record")
+					}}</span>
 				</div>
 				<iframe
 					v-show="docname && preview_loaded && !unprintable_reason"
@@ -129,10 +108,6 @@ function set_pdf_url(next) {
 	pdf_url.value = next;
 }
 
-function refresh() {
-	render();
-}
-
 // docstatus arrives async and can resolve after docname already triggered a render
 watch([docname, () => store.value.preview_doc?.docstatus], render, { flush: "post" });
 
@@ -176,36 +151,39 @@ onUnmounted(() => {
 	overflow: hidden;
 }
 
-/* controls sit on the backdrop above the document, so the browser's own PDF
-   toolbar keeps the top of the frame to itself */
-.pfb-preview-controls {
-	display: flex;
-	justify-content: flex-end;
-	gap: 4px;
-	padding-bottom: 8px;
-	flex-shrink: 0;
-}
-
-.pfb-preview-btn {
-	display: flex;
-	align-items: center;
-	padding: 6px;
-	border: none;
-	background: rgba(255, 255, 255, 0.15);
-	border-radius: var(--radius);
-	color: #fff;
-	cursor: pointer;
-}
-
-.pfb-preview-btn:hover {
-	background: rgba(255, 255, 255, 0.3);
-}
-
+/* opaque while there's no PDF yet — the modal itself is transparent, so without
+   this the canvas behind shows through and the message looks like a glitch */
 .pfb-preview-empty {
-	margin: auto;
-	padding: 10px 12px;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	background: var(--fg-color);
+	border-radius: var(--radius-lg, 8px);
 	font-size: var(--text-sm);
+	color: var(--text-color);
+}
+
+.pfb-preview-hint {
+	font-size: var(--text-xs);
 	color: var(--text-muted);
+}
+
+.pfb-preview-spinner {
+	width: 20px;
+	height: 20px;
+	border: 2px solid var(--gray-300);
+	border-top-color: var(--gray-600);
+	border-radius: 50%;
+	animation: pfb-preview-spin 0.7s linear infinite;
+}
+
+@keyframes pfb-preview-spin {
+	to {
+		transform: rotate(360deg);
+	}
 }
 
 .pfb-preview-iframe {
