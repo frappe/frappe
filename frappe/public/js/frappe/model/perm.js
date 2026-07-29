@@ -3,7 +3,7 @@
 
 frappe.provide("frappe.perm");
 
-const boot_backed_rights = ["select", "delete", "submit", "cancel"];
+const boot_backed_rights = ["select", "write", "delete", "submit", "cancel"];
 
 // backward compatibilty
 Object.assign(window, {
