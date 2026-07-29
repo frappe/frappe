@@ -1013,13 +1013,7 @@ function handle_slash_key(e) {
 	user-select: none;
 }
 
-.pfb-tree-row:hover {
-	background: var(--gray-100);
-}
-
-/* mirrors the canvas hover back into the tree — an outline in the same accent
-   as the canvas ring, so it reads as "this is the block you're pointing at"
-   rather than as another selectable/active row */
+.pfb-tree-row:hover,
 .pfb-tree-row.pfb-tree-hover {
 	outline: 1px solid var(--pfb-accent);
 	outline-offset: -1px;
