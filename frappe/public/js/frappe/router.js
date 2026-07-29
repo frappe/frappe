@@ -130,7 +130,8 @@ frappe.router = {
 			!frappe.re_route["setup-wizard"] && (frappe.re_route["setup-wizard"] = "app");
 		} else if (
 			frappe.boot.setup_wizard_url &&
-			!frappe.boot.setup_wizard_url.startsWith("/app/")
+			!frappe.boot.setup_wizard_url.startsWith("/app/") &&
+			!frappe.boot.setup_wizard_url.startsWith("/desk/")
 		) {
 			window.location.replace(frappe.boot.setup_wizard_url);
 			return;

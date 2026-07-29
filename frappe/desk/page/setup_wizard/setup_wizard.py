@@ -28,14 +28,14 @@ def site_requires_builtin_wizard() -> bool:
 def get_setup_wizard_url() -> str:
 	"""Setup UI for a fresh site: an app's `setup_wizard_url` hook (last installed wins), else the desk wizard.
 
-	`setup_wizard_url` must be a non-desk route (not under `/app`); it redirects the user out of
-	desk to an app-owned setup UI. To customize setup within desk, use the built-in wizard via the
-	`setup_wizard_stages` / `setup_wizard_complete` hooks.
+	`setup_wizard_url` must be a non-desk route (not under `/desk` or `/app`); it redirects the user
+	out of desk to an app-owned setup UI. To customize setup within desk, use the built-in wizard via
+	the `setup_wizard_stages` / `setup_wizard_complete` hooks.
 	"""
 	urls = frappe.get_hooks("setup_wizard_url")
 	if urls and not site_requires_builtin_wizard():
 		return urls[-1]
-	return "/app/setup-wizard"
+	return "/desk/setup-wizard"
 
 
 def get_setup_stages(args, include_app_input_stages=True):  # nosemgrep

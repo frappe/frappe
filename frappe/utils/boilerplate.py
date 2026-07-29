@@ -488,8 +488,8 @@ use_json_request_body = True
 # ------------
 
 # open a fresh site's setup in this app's own UI instead of the desk wizard.
-# must be a non-desk route (not under /app); to customize setup within desk,
-# use setup_wizard_stages / setup_wizard_complete instead.
+# must be a non-desk route (not under /desk or /app); to customize setup within
+# desk, use setup_wizard_stages / setup_wizard_complete instead.
 # setup_wizard_url = "/{app_name}/setup"
 
 # Generators

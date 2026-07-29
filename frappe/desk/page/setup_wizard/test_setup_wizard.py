@@ -32,7 +32,7 @@ class TestSetupWizardUrl(UnitTestCase):
 
 	def test_defaults_to_desk(self):
 		url, builtin = self.resolve({"frappe": {}})
-		self.assertEqual(url, "/app/setup-wizard")
+		self.assertEqual(url, "/desk/setup-wizard")
 		self.assertFalse(builtin)
 
 	def test_uses_app_url(self):
@@ -56,7 +56,7 @@ class TestSetupWizardUrl(UnitTestCase):
 				"erpnext": {"setup_wizard_stages": ["erpnext.setup.get_setup_stages"]},
 			}
 		)
-		self.assertEqual(url, "/app/setup-wizard")
+		self.assertEqual(url, "/desk/setup-wizard")
 		self.assertTrue(builtin)
 
 	def test_complete_hook_forces_desk(self):
@@ -66,7 +66,7 @@ class TestSetupWizardUrl(UnitTestCase):
 				"crm": {"setup_wizard_complete": ["crm.setup.after_complete"]},
 			}
 		)
-		self.assertEqual(url, "/app/setup-wizard")
+		self.assertEqual(url, "/desk/setup-wizard")
 		self.assertTrue(builtin)
 
 
