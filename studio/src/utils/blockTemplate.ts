@@ -144,9 +144,11 @@ function getBlockTemplate(
 
 // --- Compound component templates -------------------------------------------
 // The list and settings families are compositional: one drop should yield a
-// whole, working tree. Studio injects scoped-slot props (item/index/value) only
-// into blocks that live in a component's *slot*, not its `children`, so these
-// templates nest their content through the default slot (see withDefaultSlot).
+// whole, working tree. Content nests through `children` (which Studio renders
+// into each component's default slot) — the one exception is ListRows: its row
+// template must live in a real slot, because Studio injects the scoped-slot props
+// (item/index/value) only into slot content, not children. Everything below
+// ListRows inherits that scope ambiently, so it can stay as plain children.
 
 // A List seeded in column mode: a two-column header plus ListRows bound to sample
 // items, each row reading `item`/`value` from the scope ListRows exposes.
@@ -159,13 +161,10 @@ function listTemplate(): BlockOptions {
 			rowHeight: 44,
 		},
 		baseStyles: { width: "100%" } as BlockStyleMap,
-		componentSlots: withDefaultSlot([
+		children: [
 			{
 				componentName: "ListHeader",
-				componentSlots: withDefaultSlot([
-					listHeaderCell("Title"),
-					listHeaderCell("Status"),
-				]),
+				children: [listHeaderCell("Title"), listHeaderCell("Status")],
 			},
 			{
 				componentName: "ListRows",
@@ -176,20 +175,18 @@ function listTemplate(): BlockOptions {
 						{ name: "3", title: "Third item", status: "Open" },
 					],
 				},
+				// Row template in a real slot so item/index/value reach it.
 				componentSlots: withDefaultSlot([
 					{
 						componentName: "ListRow",
 						// `value` is the row identity used by selection / active-row state.
 						// Baked from the scope so authors don't wire it by hand.
 						componentProps: { value: "{{ value }}" },
-						componentSlots: withDefaultSlot([
-							listCell("{{ item.title }}"),
-							listCell("{{ item.status }}"),
-						]),
+						children: [listCell("{{ item.title }}"), listCell("{{ item.status }}")],
 					},
 				]),
 			},
-		]),
+		],
 	};
 }
 
@@ -207,23 +204,20 @@ function settingsDialogTemplate(): BlockOptions {
 			shortcut: false,
 			unmountOnHide: false,
 		},
-		componentSlots: withDefaultSlot([
+		children: [
 			{
 				componentName: "SettingsSidebar",
-				componentSlots: withDefaultSlot([
+				children: [
 					{
 						componentName: "SettingsNavGroup",
 						componentProps: { label: "User settings" },
-						componentSlots: withDefaultSlot([
-							navItem("profile", "Profile"),
-							navItem("notifications", "Notifications"),
-						]),
+						children: [navItem("profile", "Profile"), navItem("notifications", "Notifications")],
 					},
-				]),
+				],
 			},
 			{
 				componentName: "SettingsContent",
-				componentSlots: withDefaultSlot([
+				children: [
 					settingsPanel("profile", "Profile", "How you appear across the app.", [
 						settingsRow("Full name", "Your display name.", {
 							componentName: "TextInput",
@@ -236,24 +230,18 @@ function settingsDialogTemplate(): BlockOptions {
 							componentProps: { modelValue: true },
 						}),
 					]),
-				]),
+				],
 			},
-		]),
+		],
 	};
 }
 
 function listHeaderCell(label: string): BlockOptions {
-	return {
-		componentName: "ListHeaderCell",
-		componentSlots: withDefaultSlot([textBlock(label)]),
-	};
+	return { componentName: "ListHeaderCell", children: [textBlock(label)] };
 }
 
 function listCell(text: string): BlockOptions {
-	return {
-		componentName: "ListCell",
-		componentSlots: withDefaultSlot([textBlock(text)]),
-	};
+	return { componentName: "ListCell", children: [textBlock(text)] };
 }
 
 function navItem(value: string, label: string): BlockOptions {
@@ -261,7 +249,7 @@ function navItem(value: string, label: string): BlockOptions {
 	return {
 		componentName: "SettingsNavItem",
 		componentProps: { value },
-		componentSlots: withDefaultSlot([textBlock(label)]),
+		children: [textBlock(label)],
 	};
 }
 
@@ -274,16 +262,16 @@ function settingsPanel(
 	return {
 		componentName: "SettingsPanel",
 		componentProps: { value },
-		componentSlots: withDefaultSlot([
+		children: [
 			{
 				componentName: "SettingsHeader",
 				componentProps: description ? { title, description } : { title },
 			},
 			{
 				componentName: "SettingsBody",
-				componentSlots: withDefaultSlot(rows),
+				children: rows,
 			},
-		]),
+		],
 	};
 }
 
@@ -291,7 +279,7 @@ function settingsRow(title: string, description: string, control: BlockOptions):
 	return {
 		componentName: "SettingsRow",
 		componentProps: { title, description },
-		componentSlots: withDefaultSlot([control]),
+		children: [control],
 	};
 }
 
@@ -299,9 +287,10 @@ function textBlock(text: string): BlockOptions {
 	return { componentName: "TextBlock", componentProps: { text, tag: "span" } };
 }
 
-// Wrap blocks as a component's default-slot content. Each block is tagged with
-// parentSlotName so slot bookkeeping (selection, removal) works; Block's
-// constructor upgrades these loose options into real Slot/Block instances
+// Wrap blocks as a component's default-slot content. Only ListRows needs this:
+// its scoped-slot props reach expressions solely through slot content. Each block
+// is tagged with parentSlotName so slot bookkeeping (selection, removal) works;
+// Block's constructor upgrades these loose options into real Slot/Block instances
 // (slotId, parentBlockId, reactive Blocks) via initializeSlots().
 function withDefaultSlot(content: BlockOptions[]): Record<string, Slot> {
 	content.forEach((block) => (block.parentSlotName = "default"));

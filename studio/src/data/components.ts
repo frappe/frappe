@@ -1202,8 +1202,8 @@ export const COMPONENTS: FrappeUIComponents = {
 	// Shown together under the "List" panel group. `List` drops the whole tree via
 	// its block template as a ready starter; every part is also droppable on its
 	// own so a list can be composed by hand (e.g. plain ListHeaderCell instead of
-	// the sortable one). Content-holding parts get a default slot so a freshly
-	// dropped instance is a valid drop target.
+	// the sortable one). Their default slots are discovered by the slot parser
+	// (utils/components.ts globs molecules/), so no initialSlots are needed.
 	List: {
 		name: "List",
 		title: "List",
@@ -1216,7 +1216,6 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "List Rows",
 		icon: LucideRows3,
 		group: "List",
-		initialSlots: ["default"],
 		// items drives iteration and is read unguarded inside ListRows — default to
 		// an empty array so a bare drop doesn't throw before it's bound to data.
 		initialState: {
@@ -1228,42 +1227,36 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "List Row",
 		icon: LucideRows3,
 		group: "List",
-		initialSlots: ["default"],
 	},
 	ListCell: {
 		name: "ListCell",
 		title: "List Cell",
 		icon: LucideColumns3,
 		group: "List",
-		initialSlots: ["default"],
 	},
 	ListHeader: {
 		name: "ListHeader",
 		title: "List Header",
 		icon: LucideColumns3,
 		group: "List",
-		initialSlots: ["default"],
 	},
 	ListHeaderCell: {
 		name: "ListHeaderCell",
 		title: "List Header Cell",
 		icon: LucideColumns3,
 		group: "List",
-		initialSlots: ["default"],
 	},
 	ListHeaderCellSort: {
 		name: "ListHeaderCellSort",
 		title: "List Header Cell (Sortable)",
 		icon: LucideArrowUpDown,
 		group: "List",
-		initialSlots: ["default"],
 	},
 	ListGroup: {
 		name: "ListGroup",
 		title: "List Group",
 		icon: LucideList,
 		group: "List",
-		initialSlots: ["default"],
 		initialState: {
 			label: "Group",
 		},
@@ -1288,14 +1281,12 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Settings Sidebar",
 		icon: LucideSidebar,
 		group: "Settings Dialog",
-		initialSlots: ["default"],
 	},
 	SettingsNavGroup: {
 		name: "SettingsNavGroup",
 		title: "Settings Nav Group",
 		icon: LucideSidebar,
 		group: "Settings Dialog",
-		initialSlots: ["default"],
 		initialState: {
 			label: "Group",
 		},
@@ -1305,7 +1296,6 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Settings Nav Item",
 		icon: LucideSidebar,
 		group: "Settings Dialog",
-		initialSlots: ["default"],
 		initialState: {
 			value: "tab",
 		},
@@ -1315,14 +1305,12 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Settings Content",
 		icon: LucideAppWindowMac,
 		group: "Settings Dialog",
-		initialSlots: ["default"],
 	},
 	SettingsPanel: {
 		name: "SettingsPanel",
 		title: "Settings Panel",
 		icon: LucideAppWindowMac,
 		group: "Settings Dialog",
-		initialSlots: ["default"],
 		initialState: {
 			value: "tab",
 		},
@@ -1341,14 +1329,12 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Settings Body",
 		icon: LucideAppWindowMac,
 		group: "Settings Dialog",
-		initialSlots: ["default"],
 	},
 	SettingsRow: {
 		name: "SettingsRow",
 		title: "Settings Row",
 		icon: LucideRows3,
 		group: "Settings Dialog",
-		initialSlots: ["default"],
 		initialState: {
 			title: "Setting",
 			description: "",
