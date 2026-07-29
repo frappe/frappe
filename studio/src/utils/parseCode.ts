@@ -191,11 +191,11 @@ export function getScriptError(code: string): ScriptSyntaxError | null {
 	}
 }
 
-// Validate the contents of every {{ ... }} in a value and return the first syntax error or null if all parse
+// Validate the contents of every {{ ... }} in a value and return the first problem, or null if all parse
 export function getExpressionError(value: string): string | null {
 	for (const match of value.matchAll(DYNAMIC_EXPRESSION_CONTENT_REGEX)) {
 		const expression = match[1].trim()
-		if (!expression) continue
+		if (!expression) return "Expression cannot be empty"
 
 		try {
 			const parsed = parseExpressionAt(expression, 0, { ecmaVersion: "latest" })
