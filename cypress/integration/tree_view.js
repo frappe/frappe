@@ -27,6 +27,55 @@ context("Tree View", () => {
 			});
 	});
 
+	it("shows Expand All / Collapse All only when the tree's state warrants it", () => {
+		cy.visit("/app/custom-tree/view/tree");
+
+		const tree_view = (win) => win.frappe.views.trees["Custom Tree"];
+		const assert_buttons = (expand_visible, collapse_visible) => {
+			cy.window().should((win) => {
+				let tv = tree_view(win);
+				expect(tv.$expand_all_btn.css("display")).to.eq(expand_visible ? "block" : "none");
+				expect(tv.$collapse_all_btn.css("display")).to.eq(
+					collapse_visible ? "block" : "none"
+				);
+			});
+		};
+		const click_menu_item = (label) => {
+			cy.get(".menu-btn-group > button").click();
+			cy.contains(".menu-btn-group .dropdown-menu .dropdown-item", label).click();
+		};
+
+		// root auto-expands; both groups underneath are still collapsed -> only "Expand All"
+		assert_buttons(true, false);
+
+		// expand one group, leave its sibling group collapsed -> mixed, both show
+		cy.get('.tree-link[data-label="Parent Node"]').click();
+		cy.get('.tree-link[data-label="Child Node"]').should("be.visible");
+		assert_buttons(true, true);
+
+		// Expand All -> every node, including the untouched sibling group, opens -> only "Collapse All"
+		click_menu_item("Expand All");
+		cy.get('.tree-link[data-label="Child Node"]').should("be.visible");
+		assert_buttons(false, true);
+
+		// collapsing the root hides every descendant; only "Expand All" should be
+		// offered, regardless of the (now hidden) descendants' own expanded flags
+		cy.get('.tree-link[data-label="All Trees"]').click();
+		cy.get('.tree-link[data-label="Parent Node"]').should("not.be.visible");
+		assert_buttons(true, false);
+
+		// reopening the root restores the descendants exactly as they were left,
+		// so the mixed/all-expanded state from before is visible again
+		cy.get('.tree-link[data-label="All Trees"]').click();
+		cy.get('.tree-link[data-label="Child Node"]').should("be.visible");
+		assert_buttons(false, true);
+
+		// Collapse All -> back to the initial state
+		click_menu_item("Collapse All");
+		cy.get('.tree-link[data-label="Child Node"]').should("not.exist");
+		assert_buttons(true, false);
+	});
+
 	it("restores the scroll position when navigating back to the tree", () => {
 		cy.visit("/app/custom-tree/view/tree");
 
