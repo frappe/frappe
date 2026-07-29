@@ -1,15 +1,18 @@
 {
  "actions": [],
  "allow_bulk_edit": 1,
- "allow_rename": 1,
+ "autoname": "autoincrement",
  "creation": "2026-07-28 12:27:36.897526",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "master",
-  "type",
+  "map",
+  "reduce",
+  "status",
   "key",
-  "value"
+  "value",
+  "map_partial"
  ],
  "fields": [
   {
@@ -19,12 +22,6 @@
    "options": "MapReduce Job"
   },
   {
-   "fieldname": "type",
-   "fieldtype": "Select",
-   "label": "Type",
-   "options": "Map\nReduce"
-  },
-  {
    "fieldname": "key",
    "fieldtype": "Data",
    "label": "Key"
@@ -32,16 +29,42 @@
   {
    "fieldname": "value",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Value"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Queued\nRunning\nCompleted"
+  },
+  {
+   "fieldname": "map",
+   "fieldtype": "Data",
+   "label": "Map"
+  },
+  {
+   "fieldname": "reduce",
+   "fieldtype": "Data",
+   "label": "Reduce"
+  },
+  {
+   "fieldname": "map_partial",
+   "fieldtype": "JSON",
+   "label": "Partial result from map"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-28 12:29:10.038646",
+ "modified": "2026-07-30 17:16:28.941714",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "MapReduce Task",
+ "naming_rule": "Autoincrement",
  "owner": "Administrator",
  "permissions": [
   {

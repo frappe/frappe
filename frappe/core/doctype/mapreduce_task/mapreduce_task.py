@@ -15,8 +15,12 @@ class MapReduceTask(Document):
 		from frappe.types import DF
 
 		key: DF.Data | None
+		map: DF.Data | None
+		map_partial: DF.JSON | None
 		master: DF.Link | None
-		type: DF.Literal["Map", "Reduce"]
+		name: DF.Int | None
+		reduce: DF.Data | None
+		status: DF.Literal["Queued", "Running", "Completed"]
 		value: DF.Data | None
 	# end: auto-generated types
 

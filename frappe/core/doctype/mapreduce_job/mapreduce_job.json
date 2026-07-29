@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_bulk_edit": 1,
- "allow_rename": 1,
+ "autoname": "autoincrement",
  "creation": "2026-07-27 12:25:53.403303",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -10,6 +10,7 @@
   "map",
   "reduce",
   "data",
+  "result",
   "amended_from"
  ],
  "fields": [
@@ -41,16 +42,23 @@
    "fieldname": "data",
    "fieldtype": "JSON",
    "label": "Data"
+  },
+  {
+   "fieldname": "result",
+   "fieldtype": "JSON",
+   "label": "Result",
+   "no_copy": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-28 12:17:25.037319",
+ "modified": "2026-07-30 13:04:40.065084",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "MapReduce Job",
+ "naming_rule": "Autoincrement",
  "owner": "Administrator",
  "permissions": [
   {
