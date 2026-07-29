@@ -12,6 +12,7 @@
 
 <script setup>
 import { computed, ref } from "vue";
+import { canvas_zoom } from "../../utils";
 
 const props = defineProps(["section"]);
 const active = ref(false);
@@ -22,11 +23,6 @@ const pos = computed(() => {
 	const r = Math.max(radius.value, 10) + "px";
 	return { top: r, left: r };
 });
-
-function canvas_zoom(el) {
-	const c = el.closest(".print-format-container");
-	return parseFloat(c && getComputedStyle(c).getPropertyValue("--pfb-zoom")) || 1;
-}
 
 function start(e) {
 	active.value = true;

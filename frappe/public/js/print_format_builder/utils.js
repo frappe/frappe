@@ -11,6 +11,12 @@ export function field_uid(df) {
 	return _field_uids.get(df);
 }
 
+// the canvas is scaled via CSS `zoom`; convert a screen-pixel delta to doc px
+export function canvas_zoom(el) {
+	const c = el?.closest(".print-format-container");
+	return parseFloat(c && getComputedStyle(c).getPropertyValue("--pfb-zoom")) || 1;
+}
+
 export function read_json(key, fallback = null) {
 	try {
 		return JSON.parse(localStorage.getItem(key)) || fallback;

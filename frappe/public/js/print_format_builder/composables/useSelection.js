@@ -50,11 +50,6 @@ export function useSelection() {
 			selected_sections.value = [ns];
 		}
 	});
-	function remove_selected_fields() {
-		selected_fields.value.forEach((df) => (df.remove = true));
-		selected_fields.value = [];
-		selected_field.value = null;
-	}
 	function remove_field(df) {
 		df.remove = true;
 		const rest = selected_fields.value.filter((f) => f !== df);
@@ -91,7 +86,6 @@ export function useSelection() {
 		set_selection,
 		select_section,
 		select_letterhead,
-		remove_selected_fields,
 		remove_field,
 		align_selected_fields,
 	};

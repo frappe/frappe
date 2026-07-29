@@ -19,6 +19,7 @@
 
 <script setup>
 import { computed, ref } from "vue";
+import { canvas_zoom } from "../../utils";
 
 const props = defineProps({
 	section: { type: Object, required: true },
@@ -56,11 +57,6 @@ const grip_style = computed(() => ({
 	left: { left: at("left") + "px", top: "50%" },
 	right: { right: at("right") + "px", top: "50%" },
 }));
-
-function canvas_zoom(el) {
-	const c = el.closest(".print-format-container");
-	return parseFloat(c && getComputedStyle(c).getPropertyValue("--pfb-zoom")) || 1;
-}
 
 function start(side, e) {
 	active.value = side;

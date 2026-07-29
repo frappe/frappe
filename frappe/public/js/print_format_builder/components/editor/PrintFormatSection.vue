@@ -393,7 +393,6 @@ function remove_column(index) {
 }
 
 .print-format-section {
-	position: relative;
 	background-color: var(--fg-color);
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);

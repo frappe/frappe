@@ -33,7 +33,6 @@ export function getStore(print_format_name) {
 		set_selection,
 		select_section,
 		select_letterhead,
-		remove_selected_fields,
 		remove_field,
 		align_selected_fields,
 	} = selection;
@@ -369,7 +368,6 @@ export function getStore(print_format_name) {
 		hovered_section,
 		selected_field,
 		selected_fields,
-		remove_selected_fields,
 		remove_selection,
 		remove_field,
 		align_selected_fields,
