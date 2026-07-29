@@ -474,6 +474,12 @@
 
 /* ── Table layout (field-borders mode) ───────────────────── */
 .print-format-doc .section--grid {
+	/* table padding is folded into the edge cells (below) so the dividers and
+	   border wrap the padded box instead of leaving a borderless strip */
+	--pfb-pad-top: 0px;
+	--pfb-pad-right: 0px;
+	--pfb-pad-bottom: 0px;
+	--pfb-pad-left: 0px;
 	border: 1px solid var(--gray-300);
 	border-radius: var(--border-radius-md, 8px);
 	overflow: hidden;
@@ -504,6 +510,19 @@
 }
 .print-format-doc .section--grid .field:last-child {
 	border-bottom: none;
+}
+/* fold the section padding into the outermost cells */
+.print-format-doc .section--grid .field:first-child {
+	padding-top: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-top));
+}
+.print-format-doc .section--grid .field:last-child {
+	padding-bottom: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-bottom));
+}
+.print-format-doc .section--grid .col:first-child .field {
+	padding-left: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-left));
+}
+.print-format-doc .section--grid .col:last-child .field {
+	padding-right: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-right));
 }
 .print-format-doc .section--grid-rows .col:not(:last-child) {
 	border-right: none;
