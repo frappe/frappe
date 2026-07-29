@@ -237,6 +237,62 @@ async def test_concurrent_resolve_refreshes_once(tmp_path):
 	assert refreshes == 1
 
 
+async def test_provider_rejected_oauth_token_forces_one_refresh(tmp_path, monkeypatch):
+	store = CredentialStore(str(tmp_path / "c.json"))
+	store.set(
+		"codex",
+		OAuthCredential(access="rejected", refresh="r0", expires=10_000_000, account_id="acc"),
+	)
+	provider = get_auth_provider("codex")
+	refreshes = 0
+
+	async def refresh(credential, **kwargs):
+		nonlocal refreshes
+		refreshes += 1
+		return OAuthCredential(
+			access="replacement",
+			refresh="r1",
+			expires=20_000_000,
+			account_id="acc",
+		)
+
+	monkeypatch.setattr(provider, "refresh", refresh)
+
+	auth = await resolve_auth(
+		store,
+		"codex",
+		now_ms=1_000,
+		refresh_access_token="rejected",
+	)
+
+	assert auth.token == "replacement"
+	assert refreshes == 1
+	assert store.get_oauth("codex").access == "replacement"
+
+
+async def test_rejected_oauth_refresh_reuses_concurrently_replaced_token(tmp_path, monkeypatch):
+	store = CredentialStore(str(tmp_path / "c.json"))
+	store.set(
+		"codex",
+		OAuthCredential(access="replacement", refresh="r1", expires=20_000_000, account_id="acc"),
+	)
+	provider = get_auth_provider("codex")
+
+	async def refresh(credential, **kwargs):
+		raise AssertionError("a token replaced by another request must not refresh again")
+
+	monkeypatch.setattr(provider, "refresh", refresh)
+
+	auth = await resolve_auth(
+		store,
+		"codex",
+		now_ms=1_000,
+		refresh_access_token="rejected",
+	)
+
+	assert auth.token == "replacement"
+
+
 def test_codex_runtime_auth_requires_account_id():
 	with pytest.raises(AuthError, match="account id"):
 		get_auth_provider("codex").runtime_auth(OAuthCredential(access="tok", refresh="r", expires=1))

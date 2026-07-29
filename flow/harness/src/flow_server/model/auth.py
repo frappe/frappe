@@ -133,24 +133,34 @@ async def resolve_auth(
 	*,
 	client: httpx.AsyncClient | None = None,
 	now_ms: int | None = None,
+	refresh_access_token: str | None = None,
 ) -> RuntimeAuth:
-	"""Request-time entry point: load -> refresh-if-stale -> persist -> RuntimeAuth."""
+	"""Load runtime auth, refreshing a stale or provider-rejected access token.
+
+	``refresh_access_token`` is the token rejected by the provider. If another
+	concurrent request already replaced it, that newer credential is reused instead
+	of consuming the refresh token twice.
+	"""
 	provider = get_auth_provider(name)
 	credential = store.get_oauth(name)
 	if credential is None:
 		raise NotAuthenticated(f"Not logged in to {name!r}; run login first.")
 	now = now_ms if now_ms is not None else _now_ms()
-	if now < credential.expires - TOKEN_REFRESH_SKEW_MS:
+	if refresh_access_token is not None and credential.access != refresh_access_token:
+		return provider.runtime_auth(credential)
+	if refresh_access_token is None and now < credential.expires - TOKEN_REFRESH_SKEW_MS:
 		return provider.runtime_auth(credential)
 
-	# Several sessions can notice the same stale token at once. Re-read under a
-	# provider lock so only one refresh consumes a rotating refresh token.
+	# Several sessions can notice the same stale/rejected token at once. Re-read
+	# under a provider lock so only one refresh consumes a rotating refresh token.
 	async with _refresh_lock(name):
 		credential = store.get_oauth(name)
 		if credential is None:
 			raise NotAuthenticated(f"Not logged in to {name!r}; run login first.")
 		now = now_ms if now_ms is not None else _now_ms()
-		if now >= credential.expires - TOKEN_REFRESH_SKEW_MS:
+		if refresh_access_token is not None and credential.access != refresh_access_token:
+			return provider.runtime_auth(credential)
+		if refresh_access_token is not None or now >= credential.expires - TOKEN_REFRESH_SKEW_MS:
 			credential = await provider.refresh(credential, client=client)
 			store.set_oauth(name, credential)
 	return provider.runtime_auth(credential)
