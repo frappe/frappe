@@ -1,10 +1,10 @@
 """The model layer — a provider-neutral interface that turns any LLM's stream into
 our typed events.
 
-A `run` call is an async generator: streaming yields `TextDelta` (and a
-`ToolCallStarted` the moment each tool call's name is known); every turn ends with a
-terminal `AssistantMessage` (assembled text + tool calls) followed by a `Usage`. The
-loop consumes exactly that contract, whatever the provider underneath.
+A `run` call is an async generator: streaming yields `TextDelta` and `ThinkingDelta`
+(and a `ToolCallStarted` the moment each tool call's name is known); every turn ends
+with a terminal `AssistantMessage` (assembled text + tool calls) followed by a `Usage`.
+The loop consumes exactly that contract, whatever the provider underneath.
 
 `LiteLLMModel` is the broad API-key path (any provider litellm supports). Native
 providers with their own auth (OAuth/subscription) implement this same interface and
@@ -27,6 +27,7 @@ from flow_server.events import (
 	TextContent,
 	TextDelta,
 	ThinkingContent,
+	ThinkingDelta,
 	ToolCall,
 	ToolCallStarted,
 	ToolResult,
@@ -196,6 +197,7 @@ class LiteLLMModel(Model):
 		announced: set[int] = set()
 		ordered: list[TextContent | ThinkingContent | int] = []
 		ordered_tools: set[int] = set()
+		thinking_open = False
 		usage_obj: Any = None
 		cost = 0.0
 		finish_reason: str | None = None
@@ -220,20 +222,34 @@ class LiteLLMModel(Model):
 					choice = choices[0]
 					delta = _attr(choice, "delta")
 					finish_reason = _attr(choice, "finish_reason") or finish_reason
-					reasoning, reasoning_signature = _reasoning(delta)
-					if reasoning:
-						if ordered and isinstance(ordered[-1], ThinkingContent):
-							ordered[-1].thinking += reasoning
-							ordered[-1].thinking_signature = (
-								ordered[-1].thinking_signature or reasoning_signature
-							)
-						else:
+					for part in _reasoning_deltas(delta):
+						if part.redacted:
 							ordered.append(
 								ThinkingContent(
-									thinking=reasoning,
-									thinking_signature=reasoning_signature,
+									thinking="",
+									thinking_signature=part.signature,
+									redacted=True,
 								)
 							)
+							thinking_open = False
+							continue
+						block = ordered[-1] if thinking_open and ordered else None
+						if not isinstance(block, ThinkingContent):
+							block = ThinkingContent(thinking="")
+							ordered.append(block)
+							thinking_open = True
+						text = part.text
+						if part.signature and text == block.thinking:
+							# Anthropic replays the block's accumulated thinking on its
+							# signature chunk; Gemini signs a genuinely new fragment.
+							text = ""
+						if text:
+							block.thinking += text
+							yield ThinkingDelta(thinking=text)
+						if part.signature:
+							# A signature seals its block; later reasoning opens a new one.
+							block.thinking_signature = part.signature
+							thinking_open = False
 					text = _attr(delta, "content")
 					if text:
 						if ordered and isinstance(ordered[-1], TextContent):
@@ -354,15 +370,7 @@ def _message_tool_calls(message: Any) -> list[ToolCall]:
 
 
 def _message_content(message: Any) -> list[TextContent | ThinkingContent | ToolCall]:
-	content: list[TextContent | ThinkingContent | ToolCall] = []
-	reasoning, reasoning_signature = _reasoning(message)
-	if reasoning:
-		content.append(
-			ThinkingContent(
-				thinking=reasoning,
-				thinking_signature=reasoning_signature,
-			)
-		)
+	content: list[TextContent | ThinkingContent | ToolCall] = list(_reasoning_blocks(message))
 	text = _attr(message, "content")
 	if isinstance(text, str) and text:
 		content.append(TextContent(text=text))
@@ -407,14 +415,20 @@ def _openai_messages(
 			)
 			text_parts: list[str] = []
 			reasoning_parts: list[str] = []
+			thinking_blocks: list[dict[str, Any]] = []
 			for block in message.content:
 				if isinstance(block, TextContent):
 					text_parts.append(block.text)
-				elif isinstance(block, ThinkingContent) and block.thinking and not block.redacted:
-					# deliberately degrades cross-model thinking to ordinary text.
+				elif isinstance(block, ThinkingContent):
 					if not same_model:
-						text_parts.append(block.thinking)
-					else:
+						# deliberately degrades cross-model thinking to ordinary text.
+						if block.thinking and not block.redacted:
+							text_parts.append(block.thinking)
+						continue
+					wire = _thinking_block_wire(block)
+					if wire is not None:
+						thinking_blocks.append(wire)
+					if block.thinking and not block.redacted:
 						reasoning_parts.append(block.thinking)
 			assistant: dict[str, Any] = {
 				"role": "assistant",
@@ -434,6 +448,10 @@ def _openai_messages(
 				]
 			if reasoning_parts:
 				assistant["reasoning_content"] = "".join(reasoning_parts)
+			# Anthropic-family providers read thinking only from `thinking_blocks`;
+			# without them litellm silently drops the `thinking` parameter next turn.
+			if thinking_blocks:
+				assistant["thinking_blocks"] = thinking_blocks
 			out.append(assistant)
 		elif isinstance(message, ToolResult):
 			out.append(
@@ -446,7 +464,82 @@ def _openai_messages(
 	return out
 
 
-def _reasoning(value: Any) -> tuple[str, str | None]:
+@dataclass(slots=True)
+class _ReasoningPart:
+	"""One reasoning fragment. A redacted part carries only its opaque payload."""
+
+	text: str = ""
+	signature: str | None = None
+	redacted: bool = False
+
+
+def _reasoning_deltas(delta: Any) -> list[_ReasoningPart]:
+	"""Reasoning fragments carried by one streamed chunk.
+
+	A fragment's text may be new (Gemini) or a replay of the open block (Anthropic
+	restates it alongside the signature); only the caller, which holds the block, can
+	tell the two apart."""
+	blocks = _attr(delta, "thinking_blocks")
+	if isinstance(blocks, list):
+		parts = [part for block in blocks if (part := _thinking_block_part(block)) is not None]
+		if parts:
+			return parts
+	text, signature = _reasoning_field(delta)
+	return [_ReasoningPart(text=text, signature=signature)] if text else []
+
+
+def _reasoning_blocks(message: Any) -> list[ThinkingContent]:
+	"""Thinking blocks of one non-streamed message, signatures intact."""
+	blocks = _attr(message, "thinking_blocks")
+	if isinstance(blocks, list):
+		content = [
+			ThinkingContent(
+				thinking=part.text,
+				thinking_signature=part.signature,
+				redacted=part.redacted,
+			)
+			for block in blocks
+			if (part := _thinking_block_part(block)) is not None
+		]
+		if content:
+			return content
+	text, signature = _reasoning_field(message)
+	return [ThinkingContent(thinking=text, thinking_signature=signature)] if text else []
+
+
+def _thinking_block_wire(block: ThinkingContent) -> dict[str, Any] | None:
+	"""Anthropic-family replay form. Unsigned thinking cannot be verified upstream, so
+	it is left to `reasoning_content` (which the Anthropic path ignores) rather than
+	sent as a block the provider would reject."""
+	if block.redacted:
+		if not block.thinking_signature:
+			return None
+		return {"type": "redacted_thinking", "data": block.thinking_signature}
+	if not block.thinking_signature:
+		return None
+	return {
+		"type": "thinking",
+		"thinking": block.thinking,
+		"signature": block.thinking_signature,
+	}
+
+
+def _thinking_block_part(block: Any) -> _ReasoningPart | None:
+	"""Read one litellm `thinking_blocks` entry (Anthropic-family and Gemini)."""
+	if _attr(block, "type") == "redacted_thinking":
+		data = _attr(block, "data")
+		return _ReasoningPart(signature=data, redacted=True) if isinstance(data, str) and data else None
+	text = _attr(block, "thinking")
+	signature = _attr(block, "signature")
+	part = _ReasoningPart(
+		text=text if isinstance(text, str) else "",
+		signature=signature if isinstance(signature, str) and signature else None,
+	)
+	return part if part.text or part.signature else None
+
+
+def _reasoning_field(value: Any) -> tuple[str, str | None]:
+	"""Fallback for providers that expose reasoning as a plain field, not blocks."""
 	for key in ("reasoning_content", "reasoning"):
 		reasoning = _attr(value, key)
 		if isinstance(reasoning, str):

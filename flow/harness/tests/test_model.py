@@ -13,7 +13,27 @@ from flow_server.model import (
 	get_model,
 	register_provider,
 )
-from flow_server.model.model import _build_tool_call, _openai_messages, _reasoning
+from flow_server.model.model import (
+	_build_tool_call,
+	_openai_messages,
+	_reasoning_blocks,
+	_reasoning_field,
+)
+
+
+def _chunk(delta: dict, finish_reason: str | None = None) -> dict:
+	return {"choices": [{"delta": delta, "finish_reason": finish_reason}]}
+
+
+def _stream(monkeypatch, chunks: list[dict]):
+	async def completion(**kwargs):
+		async def iterator():
+			for chunk in chunks:
+				yield chunk
+
+		return iterator()
+
+	monkeypatch.setattr("litellm.acompletion", completion)
 
 
 async def _collect(gen):
@@ -221,17 +241,176 @@ def test_litellm_replays_reasoning_only_to_the_same_model():
 	different_wire = _openai_messages([source], different, "system")[1]
 
 	assert same_wire["reasoning_content"] == "plan"
+	assert same_wire["thinking_blocks"] == [{"type": "thinking", "thinking": "plan", "signature": "opaque"}]
 	assert same_wire["content"] == "answer"
 	assert "reasoning_content" not in different_wire
+	assert "thinking_blocks" not in different_wire
 	assert different_wire["content"] == "plananswer"
 
 
+def test_litellm_replays_redacted_thinking_as_its_opaque_payload():
+	source = AssistantMessage(
+		content=[ThinkingContent(thinking="", thinking_signature="enc", redacted=True)],
+		api="litellm",
+		provider="anthropic",
+		model="anthropic/claude",
+	)
+	wire = _openai_messages([source], LiteLLMModel("anthropic/claude"), "system")[1]
+
+	assert wire["thinking_blocks"] == [{"type": "redacted_thinking", "data": "enc"}]
+	assert "reasoning_content" not in wire
+
+
+def test_litellm_does_not_replay_unsigned_thinking_as_a_block():
+	source = AssistantMessage(
+		content=[ThinkingContent(thinking="plan")],
+		api="litellm",
+		provider="anthropic",
+		model="anthropic/claude",
+	)
+	wire = _openai_messages([source], LiteLLMModel("anthropic/claude"), "system")[1]
+
+	assert "thinking_blocks" not in wire
+	assert wire["reasoning_content"] == "plan"
+
+
 def test_litellm_only_persists_actual_reasoning_signatures():
-	assert _reasoning({"reasoning_content": "plan"}) == ("plan", None)
-	assert _reasoning({"reasoning": {"content": "plan", "signature": "opaque"}}) == (
+	assert _reasoning_field({"reasoning_content": "plan"}) == ("plan", None)
+	assert _reasoning_field({"reasoning": {"content": "plan", "signature": "opaque"}}) == (
 		"plan",
 		"opaque",
 	)
+
+
+def test_litellm_reads_signatures_from_thinking_blocks():
+	blocks = _reasoning_blocks(
+		{
+			"reasoning_content": "plan",
+			"thinking_blocks": [{"type": "thinking", "thinking": "plan", "signature": "sig"}],
+		}
+	)
+	assert [(b.thinking, b.thinking_signature, b.redacted) for b in blocks] == [("plan", "sig", False)]
+
+	redacted = _reasoning_blocks({"thinking_blocks": [{"type": "redacted_thinking", "data": "enc"}]})
+	assert [(b.thinking, b.thinking_signature, b.redacted) for b in redacted] == [("", "enc", True)]
+
+
+async def test_litellm_streams_thinking_and_seals_the_signature(monkeypatch):
+	# litellm repeats the accumulated thinking on the signature chunk and blanks
+	# reasoning_content there (llms/anthropic/chat/handler.py).
+	_stream(
+		monkeypatch,
+		[
+			_chunk(
+				{"reasoning_content": "plan ", "thinking_blocks": [{"type": "thinking", "thinking": "plan "}]}
+			),
+			_chunk(
+				{"reasoning_content": "more", "thinking_blocks": [{"type": "thinking", "thinking": "more"}]}
+			),
+			_chunk(
+				{
+					"reasoning_content": "",
+					"thinking_blocks": [{"type": "thinking", "thinking": "plan more", "signature": "sig-1"}],
+				}
+			),
+			_chunk({"content": "answer"}, finish_reason="stop"),
+		],
+	)
+	events = await _collect(LiteLLMModel("anthropic/claude").run(ModelRequest(messages=[])))
+
+	assert [e.type for e in events] == [
+		"thinking_delta",
+		"thinking_delta",
+		"text_delta",
+		"assistant_message",
+		"usage",
+	]
+	assert [e.thinking for e in events[:2]] == ["plan ", "more"]
+	content = events[-2].content
+	assert [b.type for b in content] == ["thinking", "text"]
+	assert (content[0].thinking, content[0].thinking_signature) == ("plan more", "sig-1")
+	assert content[1].text == "answer"
+
+
+async def test_litellm_starts_a_new_thinking_block_after_each_signature(monkeypatch):
+	_stream(
+		monkeypatch,
+		[
+			_chunk({"thinking_blocks": [{"type": "thinking", "thinking": "first"}]}),
+			_chunk({"thinking_blocks": [{"type": "thinking", "thinking": "first", "signature": "sig-a"}]}),
+			_chunk({"thinking_blocks": [{"type": "thinking", "thinking": "second"}]}),
+			# litellm resets its per-block accumulator on content_block_start, so the
+			# second signature restates only the second block.
+			_chunk(
+				{"thinking_blocks": [{"type": "thinking", "thinking": "second", "signature": "sig-b"}]},
+				finish_reason="stop",
+			),
+		],
+	)
+	content = (await _collect(LiteLLMModel("anthropic/claude").run(ModelRequest(messages=[]))))[-2].content
+
+	assert [(b.thinking, b.thinking_signature) for b in content] == [
+		("first", "sig-a"),
+		("second", "sig-b"),
+	]
+
+
+async def test_litellm_keeps_new_text_that_arrives_with_its_signature(monkeypatch):
+	# Gemini signs the thought part it streams, so the text is new, not a replay.
+	_stream(
+		monkeypatch,
+		[
+			_chunk({"thinking_blocks": [{"type": "thinking", "thinking": "weigh "}]}),
+			_chunk({"thinking_blocks": [{"type": "thinking", "thinking": "options", "signature": "sig-g"}]}),
+			_chunk({"content": "answer"}, finish_reason="stop"),
+		],
+	)
+	events = await _collect(LiteLLMModel("gemini/gemini-3-pro").run(ModelRequest(messages=[])))
+
+	assert [e.thinking for e in events if e.type == "thinking_delta"] == ["weigh ", "options"]
+	content = events[-2].content
+	assert (content[0].thinking, content[0].thinking_signature) == ("weigh options", "sig-g")
+
+
+async def test_litellm_streams_redacted_thinking_without_a_delta(monkeypatch):
+	_stream(
+		monkeypatch,
+		[
+			_chunk({"thinking_blocks": [{"type": "redacted_thinking", "data": "enc"}]}),
+			_chunk({"content": "answer"}, finish_reason="stop"),
+		],
+	)
+	events = await _collect(LiteLLMModel("anthropic/claude").run(ModelRequest(messages=[])))
+
+	assert [e.type for e in events] == ["text_delta", "assistant_message", "usage"]
+	content = events[-2].content
+	assert [b.type for b in content] == ["thinking", "text"]
+	assert (content[0].thinking, content[0].thinking_signature, content[0].redacted) == ("", "enc", True)
+
+
+async def test_litellm_non_streaming_keeps_thinking_signatures(monkeypatch):
+	async def completion(**kwargs):
+		return {
+			"id": "resp_1",
+			"choices": [
+				{
+					"message": {
+						"content": "answer",
+						"reasoning_content": "plan",
+						"thinking_blocks": [{"type": "thinking", "thinking": "plan", "signature": "sig-1"}],
+					},
+					"finish_reason": "stop",
+				}
+			],
+			"usage": {"prompt_tokens": 3, "completion_tokens": 5},
+		}
+
+	monkeypatch.setattr("litellm.acompletion", completion)
+	events = await _collect(LiteLLMModel("anthropic/claude").run(ModelRequest(messages=[], stream=False)))
+
+	content = events[0].content
+	assert [b.type for b in content] == ["thinking", "text"]
+	assert (content[0].thinking, content[0].thinking_signature) == ("plan", "sig-1")
 
 
 def test_litellm_does_not_replay_failed_assistant_response():

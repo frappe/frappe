@@ -33,6 +33,7 @@ Every interaction is a typed event. Two families:
 | `RunEnded` | ✓ | terminal; `reason` ∈ done/length/max_turns/budget/aborted/error/paused |
 | `RunError` | ✓ | a run-level failure; provider failures include typed kind/status/retryability/detail |
 | `TextDelta` | — | a streamed text chunk |
+| `ThinkingDelta` | — | a streamed reasoning chunk |
 | `ToolCallStarted` | — | a tool call's name became known mid-stream |
 | `RetryScheduled` | — | the next provider attempt, its place in the attempt budget, and the cancellable delay |
 | `RetryStarted` | — | a scheduled provider attempt has begun; discard the turn's streamed text |
@@ -85,8 +86,8 @@ pending work, not interrupted work.
 ## The model layer (`model/`)
 
 `Model.run(messages, tools, *, system_prompt, stream)` is an **async generator** over
-the provider-neutral typed transcript: streaming yields `TextDelta` +
-`ToolCallStarted`, and every turn ends with a terminal `AssistantMessage` then a
+the provider-neutral typed transcript: streaming yields `TextDelta`, `ThinkingDelta`
+and `ToolCallStarted`, and every turn ends with a terminal `AssistantMessage` then a
 `Usage`. Each adapter converts the canonical transcript to its provider wire format at
 the boundary.
 
@@ -96,7 +97,11 @@ text and opaque/redacted state is dropped. This follows Pi's cross-model safety 
 it is intentionally stricter than blindly forwarding a provider blob.
 `thinking_signature` contains only opaque provider continuation data, never the name of
 a provider wire field. Codex text signatures encode versioned output-item identity and
-an optional response phase.
+an optional response phase. On the LiteLLM path signatures live in `thinking_blocks`
+(Anthropic-family) — the only channel those providers read on the way back in, and the
+one whose absence makes LiteLLM silently drop the `thinking` parameter. A signature
+also terminates its block: the next reasoning fragment opens a new one. Unsigned
+thinking is never replayed as a block, since the provider cannot verify it.
 
 Before model construction, `resolve_model_auth()` selects a stored provider credential,
 falling back to the provider's standard environment variable. `get_model(name)` then

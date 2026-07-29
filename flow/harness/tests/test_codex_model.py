@@ -164,6 +164,69 @@ async def test_codex_non_streaming_suppresses_live_deltas():
 	assert events[0].text == "done"
 
 
+async def test_codex_streams_reasoning_summary_deltas():
+	sse = "\n\n".join(
+		[
+			(
+				'data: {"type":"response.output_item.added","item":'
+				'{"type":"reasoning","id":"reason_1","summary":[]}}'
+			),
+			('data: {"type":"response.reasoning_summary_text.delta","item_id":"reason_1","delta":"weigh "}'),
+			('data: {"type":"response.reasoning_summary_text.delta","item_id":"reason_1","delta":"options"}'),
+			(
+				'data: {"type":"response.output_item.done","item":'
+				'{"type":"reasoning","id":"reason_1","encrypted_content":"opaque",'
+				'"summary":[{"type":"summary_text","text":"weigh options"}]}}'
+			),
+			'data: {"type":"response.completed","response":{}}',
+		]
+	)
+
+	def handler(request):
+		return httpx.Response(200, text=sse)
+
+	async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+		model = CodexModel("codex/gpt-test", api_key="token", client=client)
+		events = await _collect(model, [UserMessage(content="hi")])
+
+	assert [event.type for event in events] == [
+		"thinking_delta",
+		"thinking_delta",
+		"assistant_message",
+		"usage",
+	]
+	assert [event.thinking for event in events[:2]] == ["weigh ", "options"]
+	thinking = events[-2].content[0]
+	assert isinstance(thinking, ThinkingContent)
+	assert thinking.thinking == "weigh options"
+	assert json.loads(thinking.thinking_signature)["encrypted_content"] == "opaque"
+
+
+async def test_codex_keeps_streamed_reasoning_when_the_done_item_omits_it():
+	sse = "\n\n".join(
+		[
+			('data: {"type":"response.reasoning_text.delta","item_id":"reason_1","delta":"raw thought"}'),
+			(
+				'data: {"type":"response.output_item.done","item":'
+				'{"type":"reasoning","id":"reason_1","encrypted_content":"opaque"}}'
+			),
+			'data: {"type":"response.completed","response":{}}',
+		]
+	)
+
+	def handler(request):
+		return httpx.Response(200, text=sse)
+
+	async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+		model = CodexModel("codex/gpt-test", api_key="token", client=client)
+		events = await _collect(model, [UserMessage(content="hi")])
+
+	thinking = events[-2].content[0]
+	assert isinstance(thinking, ThinkingContent)
+	assert thinking.thinking == "raw thought"
+	assert json.loads(thinking.thinking_signature)["encrypted_content"] == "opaque"
+
+
 async def test_codex_cancellation_closes_active_http_stream():
 	class BlockingSSE(httpx.AsyncByteStream):
 		def __init__(self):

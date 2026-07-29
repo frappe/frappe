@@ -17,6 +17,7 @@ from flow_server.events import (
 	TextContent,
 	TextDelta,
 	ThinkingContent,
+	ThinkingDelta,
 	ToolCall,
 	ToolCallStarted,
 	ToolResult,
@@ -311,6 +312,23 @@ async def _codex_events(
 					builder.arguments = raw["arguments"]
 					if builder.content_index is not None:
 						content[builder.content_index] = builder.build()
+			elif event_type in {
+				"response.reasoning_summary_text.delta",
+				"response.reasoning_text.delta",
+			}:
+				delta = raw.get("delta")
+				if isinstance(delta, str) and delta:
+					item_id = _string(raw.get("item_id"))
+					index = content_indices.get(item_id)
+					if index is None or not isinstance(content[index], ThinkingContent):
+						index = len(content)
+						content_indices[item_id] = index
+						content.append(ThinkingContent(thinking=""))
+					thinking_block = content[index]
+					assert isinstance(thinking_block, ThinkingContent)
+					thinking_block.thinking += delta
+					if emit_deltas:
+						yield ThinkingDelta(thinking=delta)
 			elif event_type == "response.output_text.delta":
 				delta = raw.get("delta")
 				if isinstance(delta, str) and delta:
@@ -334,12 +352,16 @@ async def _codex_events(
 				item = raw.get("item")
 				if isinstance(item, Mapping) and item.get("type") == "reasoning":
 					item_id = _string(item.get("id"))
+					index = content_indices.get(item_id)
+					streamed = content[index] if index is not None else None
+					if not isinstance(streamed, ThinkingContent):
+						streamed = None
 					block = ThinkingContent(
-						thinking=_reasoning_text(item),
+						# The done item omits summary text when it was only streamed.
+						thinking=_reasoning_text(item) or (streamed.thinking if streamed else ""),
 						thinking_signature=json.dumps(dict(item), separators=(",", ":")),
 					)
-					index = content_indices.get(item_id)
-					if index is None or not isinstance(content[index], ThinkingContent):
+					if index is None or streamed is None:
 						content_indices[item_id] = len(content)
 						content.append(block)
 					else:
@@ -514,14 +536,19 @@ def _parse_text_signature(signature: str | None) -> dict[str, str] | None:
 
 
 def _reasoning_text(item: Mapping[str, Any]) -> str:
-	summary = item.get("summary")
-	if not isinstance(summary, list):
-		return ""
-	return "".join(
-		part.get("text", "")
-		for part in summary
-		if isinstance(part, Mapping) and isinstance(part.get("text"), str)
-	)
+	"""Summary text when the model summarises, else the raw reasoning text."""
+	for key in ("summary", "content"):
+		parts = item.get(key)
+		if not isinstance(parts, list):
+			continue
+		text = "".join(
+			part.get("text", "")
+			for part in parts
+			if isinstance(part, Mapping) and isinstance(part.get("text"), str)
+		)
+		if text:
+			return text
+	return ""
 
 
 def _responses_tool(tool: dict[str, Any]) -> dict:
