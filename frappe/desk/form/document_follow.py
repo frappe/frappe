@@ -19,16 +19,16 @@ if TYPE_CHECKING:
 def update_follow(doctype: str, doc_name: str, following: bool | str):
 	following = frappe.utils.sbool(following)
 	if following:
-		is_following = follow_document(doctype, doc_name, frappe.session.user)
+		is_following = follow_document(doctype, doc_name)
 		return bool(is_following)
 	else:
-		unfollow_document(doctype, doc_name, frappe.session.user)
+		unfollow_document(doctype, doc_name)
 		return False
 
 
 @frappe.whitelist()
-def follow_document(doctype: str, doc_name: str, user: str) -> Document | bool:
-	return _follow_document(doctype, doc_name, user, ignore_permissions=False)
+def follow_document(doctype: str, doc_name: str) -> Document | bool:
+	return _follow_document(doctype, doc_name, frappe.session.user, ignore_permissions=False)
 
 
 def _follow_document(
@@ -67,13 +67,6 @@ def _follow_document(
 		frappe.toast(_("Administrator can't follow"))
 		return False
 
-	if (
-		not ignore_permissions
-		and user != frappe.session.user
-		and not frappe.has_permission("Document Follow", "write")
-	):
-		frappe.throw(_("You can only follow documents for yourself."), frappe.PermissionError)
-
 	if not frappe.has_permission(doctype, "read", doc=doc_name, user=user):
 		return False
 
@@ -92,9 +85,12 @@ def _follow_document(
 
 
 @frappe.whitelist()
-def unfollow_document(doctype: str, doc_name: str, user: str) -> bool:
-	if user != frappe.session.user and not frappe.has_permission("Document Follow", "write"):
-		frappe.throw(_("You can only unfollow documents for yourself."), frappe.PermissionError)
+def unfollow_document(doctype: str, doc_name: str) -> bool:
+	return _unfollow_document(doctype, doc_name, frappe.session.user)
+
+
+def _unfollow_document(doctype: str, doc_name: str, user: str) -> bool:
+	"""Same as unfollow_document but hides param `user` from API"""
 
 	doc = frappe.get_all(
 		"Document Follow",
