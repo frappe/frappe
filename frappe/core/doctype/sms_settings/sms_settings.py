@@ -45,6 +45,7 @@ def validate_receiver_nos(receiver_list):
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def get_contact_number(contact_name, ref_doctype, ref_name):
 	"returns mobile number of the contact"
 	number = frappe.db.sql(
@@ -56,8 +57,28 @@ def get_contact_number(contact_name, ref_doctype, ref_name):
 	""",
 		(contact_name, ref_doctype, ref_name),
 	)
+=======
+def get_contact_number(contact_name: str, ref_doctype: str, ref_name: str):
+	"Return mobile number of the given contact."
+	frappe.has_permission("Contact", doc=contact_name, throw=True)
+	frappe.has_permission(ref_doctype, doc=ref_name, throw=True)
+>>>>>>> e478d6d3ae (fix: check permissions before returning a contact number for SMS (#41327))
 
-	return (number and (number[0][0] or number[0][1])) or ""
+	is_linked = frappe.db.exists(
+		"Dynamic Link",
+		{
+			"parenttype": "Contact",
+			"parent": contact_name,
+			"link_doctype": ref_doctype,
+			"link_name": ref_name,
+		},
+	)
+	if not is_linked:
+		return ""
+
+	contact = frappe.db.get_value("Contact", contact_name, ["mobile_no", "phone"], as_dict=True)
+
+	return (contact and (contact.mobile_no or contact.phone)) or ""
 
 
 @frappe.whitelist()
