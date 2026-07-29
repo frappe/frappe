@@ -25,15 +25,52 @@ export function getStore(print_format_name) {
 		selected_field,
 		selected_fields,
 		selected_section,
+		selected_sections,
 		selected_letterhead,
 		selected_lh_footer,
 		select_field,
+		set_selected,
+		set_selection,
 		select_section,
 		select_letterhead,
-		remove_selected_fields,
 		remove_field,
 		align_selected_fields,
 	} = selection;
+
+	// remove everything currently selected — field tombstones + spliced sections
+	function remove_selection() {
+		selected_fields.value.forEach((df) => (df.remove = true));
+		const sections = layout.value?.sections || [];
+		selected_sections.value.forEach((s) => {
+			const i = sections.indexOf(s);
+			if (i !== -1) sections.splice(i, 1);
+		});
+		selected_fields.value = [];
+		selected_field.value = null;
+		selected_sections.value = [];
+		selected_section.value = null;
+	}
+
+	// body fields flattened in layout order — shared by shift-range and marquee select
+	function ordered_body_fields() {
+		const out = [];
+		for (const section of layout.value?.sections || []) {
+			for (const column of section.columns || []) {
+				for (const field of column.fields || []) {
+					if (!field.remove) out.push(field);
+				}
+			}
+		}
+		return out;
+	}
+	function select_field_range(target) {
+		const all = ordered_body_fields();
+		const ti = all.indexOf(target);
+		const ai = selected_field.value ? all.indexOf(selected_field.value) : -1;
+		if (ti === -1 || ai === -1) return select_field(target);
+		const [lo, hi] = ai <= ti ? [ai, ti] : [ti, ai];
+		set_selected(all.slice(lo, hi + 1));
+	}
 	const {
 		duplicate_field,
 		duplicate_section,
@@ -331,10 +368,11 @@ export function getStore(print_format_name) {
 		hovered_section,
 		selected_field,
 		selected_fields,
-		remove_selected_fields,
+		remove_selection,
 		remove_field,
 		align_selected_fields,
 		selected_section,
+		selected_sections,
 		selected_letterhead,
 		selected_lh_footer,
 		preview_doc,
@@ -348,6 +386,10 @@ export function getStore(print_format_name) {
 		save_status,
 		get_preview_format_doc,
 		select_field,
+		set_selected,
+		set_selection,
+		select_field_range,
+		ordered_body_fields,
 		select_section,
 		select_letterhead,
 		remove_section,

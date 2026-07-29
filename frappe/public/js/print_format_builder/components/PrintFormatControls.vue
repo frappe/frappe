@@ -245,6 +245,26 @@
 
 		<!-- ── Layers ─────────────────────────────────────────── -->
 		<div v-else-if="activeTab === 'layers'" class="pfb-tab-body pfb-tree" role="tree">
+			<div v-if="layout && layout.sections.length" class="pfb-tree-toolbar">
+				<button
+					class="es-button"
+					data-size="xs"
+					data-variant="ghost"
+					data-icon-button="true"
+					:title="__('Expand all')"
+					@click="expand_all"
+					v-html="frappe.utils.icon('chevron-down', 'xs')"
+				></button>
+				<button
+					class="es-button"
+					data-size="xs"
+					data-variant="ghost"
+					data-icon-button="true"
+					:title="__('Collapse all')"
+					@click="collapse_all"
+					v-html="frappe.utils.icon('chevron-right', 'xs')"
+				></button>
+			</div>
 			<div v-if="!layout || !layout.sections.length" class="pfb-empty">
 				{{ __("No sections yet. Add sections to the canvas.") }}
 			</div>
@@ -264,11 +284,11 @@
 							class="pfb-tree-row pfb-drag-handle"
 							@mouseenter="store.hovered_section.value = section"
 							@mouseleave="store.hovered_section.value = null"
-							:class="{ active: store.selected_section.value === section }"
+							:class="{ active: store.selected_sections.value.includes(section) }"
 							role="treeitem"
 							tabindex="0"
 							:aria-expanded="!is_collapsed(section)"
-							:aria-selected="store.selected_section.value === section"
+							:aria-selected="store.selected_sections.value.includes(section)"
 							@click="select_section(section)"
 							@keydown.enter.prevent="select_section(section)"
 							@keydown.space.prevent="select_section(section)"
@@ -655,6 +675,17 @@ function toggle_collapse(node) {
 	next.has(node) ? next.delete(node) : next.add(node);
 	collapsed_nodes.value = next;
 }
+function expand_all() {
+	collapsed_nodes.value = new Set();
+}
+function collapse_all() {
+	const next = new Set();
+	for (const section of layout.value?.sections || []) {
+		next.add(section);
+		for (const col of section.columns || []) next.add(col);
+	}
+	collapsed_nodes.value = next;
+}
 watch(
 	() => layout.value,
 	() => (collapsed_nodes.value = new Set())
@@ -1036,6 +1067,13 @@ function handle_slash_key(e) {
 /* ── Outline tab (tree) ──────────────────────────────────── */
 .pfb-tree {
 	padding-top: 4px;
+}
+
+.pfb-tree-toolbar {
+	display: flex;
+	justify-content: flex-end;
+	gap: 2px;
+	padding: 0 4px 2px;
 }
 
 .pfb-tree-row {

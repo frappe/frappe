@@ -2,12 +2,15 @@
 	<div
 		class="print-format-section-container"
 		data-pfb-section
+		:data-section-uid="field_uid(section)"
 		v-show="!preview_doc || has_visible_fields"
 		:class="{
 			'section-container--condition-hidden': preview_doc && !is_section_visible,
+			'pfb-section-active': is_selected,
 			'pfb-layer-hover': store.hovered_section.value === section,
 		}"
 		@click.stop="select_section"
+		@contextmenu="on_context_menu"
 	>
 		<!-- Top-right actions pill shown on hover in clean-preview (toolbar is hidden) -->
 		<div v-if="!is_header" class="section-preview-actions">
@@ -25,7 +28,6 @@
 		<div
 			class="print-format-section"
 			:class="{
-				'section--selected': is_selected,
 				'section--grid': is_grid,
 				'section--grid-rows': is_grid && section.grid_borders === 'rows',
 				'section--grid-columns': is_grid && section.grid_borders === 'columns',
@@ -136,6 +138,11 @@
 				</template>
 			</div>
 		</div>
+		<div v-if="show_spacing_handles" class="pfb-section-chrome" :style="section_chrome_style">
+			<SectionSpacingHandles :section="section" type="margin" />
+			<SectionSpacingHandles :section="section" type="padding" />
+			<SectionRadiusHandle :section="section" />
+		</div>
 		<div class="page-break-indicator" v-if="section.page_break">
 			<span>— {{ __("Page Break") }} —</span>
 			<button
@@ -156,15 +163,43 @@
 import draggable from "vuedraggable";
 import Field from "./Field.vue";
 import SectionActions from "./SectionActions.vue";
+import SectionSpacingHandles from "./SectionSpacingHandles.vue";
+import SectionRadiusHandle from "./SectionRadiusHandle.vue";
 import { computed, inject } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
-import { DRAG_OPTIONS, evaluate_visible_if, parse_inline_style, setDragging } from "../../utils";
+import {
+	DRAG_OPTIONS,
+	evaluate_visible_if,
+	parse_inline_style,
+	setDragging,
+	field_uid,
+} from "../../utils";
+import { useContextMenu } from "../../composables/useContextMenu";
 
 const props = defineProps(["section", "is_header", "zone"]);
 
 let store = inject("$store");
 
-let is_selected = computed(() => store.selected_section.value === props.section);
+let is_selected = computed(() => store.selected_sections.value.includes(props.section));
+// spacing handles only for a single, sole-selected body section
+let show_spacing_handles = computed(
+	() =>
+		!props.is_header &&
+		is_selected.value &&
+		store.selected_sections.value.length === 1 &&
+		store.selected_fields.value.length === 0
+);
+// the chrome overlay sits on the section's border box: inset from the container
+// by the section's own margins (the flow-root reserves that space)
+let section_chrome_style = computed(() => {
+	const m = props.section.margin || {};
+	return {
+		top: (m.top || 0) + "px",
+		right: (m.right || 0) + "px",
+		bottom: (m.bottom || 0) + "px",
+		left: (m.left || 0) + "px",
+	};
+});
 let preview_doc = computed(() => store.preview_doc.value);
 let is_section_visible = computed(() =>
 	evaluate_visible_if(props.section.visible_if, preview_doc.value)
@@ -240,7 +275,11 @@ let section_inline_style = computed(() => {
 		const pad = props.section.cell_padding ?? 8;
 		style["--pfb-cell-pad"] = `${pad}px`;
 	}
-	if (props.section.radius != null) style.borderRadius = `${props.section.radius}px`;
+	if (props.section.radius != null) {
+		style.borderRadius = `${props.section.radius}px`;
+		// clip content to the rounded corners (non-grid sections are overflow:visible)
+		style.overflow = "hidden";
+	}
 	return { ...style, ...parse_inline_style(props.section.custom_style) };
 });
 
@@ -256,6 +295,41 @@ function select_dropped_field(column, e) {
 
 function remove_section() {
 	store.remove_section(props.section);
+}
+
+const { open: open_context_menu } = useContextMenu();
+
+function on_context_menu(e) {
+	select_section();
+	open_context_menu(e, [
+		!props.is_header && {
+			label: __("Copy section"),
+			icon: "copy",
+			action: () => store.copy_section(props.section),
+		},
+		!props.is_header && {
+			label: __("Duplicate section"),
+			icon: "copy-plus",
+			action: () => store.duplicate_section(props.section),
+		},
+		!props.is_header && {
+			label: __("Save as snippet"),
+			icon: "bookmark-plus",
+			action: save_as_snippet,
+		},
+		store.clipboard.value && {
+			label: __("Paste"),
+			icon: "clipboard-paste",
+			action: () => store.paste_clipboard(),
+		},
+		!props.is_header && { divider: true },
+		!props.is_header && {
+			label: __("Delete section"),
+			icon: "trash",
+			danger: true,
+			action: remove_section,
+		},
+	]);
 }
 
 function save_as_snippet() {
@@ -300,8 +374,13 @@ function remove_column(index) {
 	margin-bottom: 0.5rem;
 }
 
-.print-format-section-container.pfb-layer-hover {
-	outline: 1px dashed var(--gray-400);
+/* One ring for every active section state — selected, hover (canvas), and
+   layer-hover all look identical. The :has() guard keeps hover on the innermost
+   element: when a field inside is hovered, the field's ring shows, not this. */
+.print-format-section-container.pfb-section-active,
+.print-format-section-container.pfb-layer-hover,
+.print-format-section-container:hover:not(:has(.field--preview:hover, .field--chip:hover)) {
+	outline: var(--pfb-ring);
 	outline-offset: 2px;
 	border-radius: var(--radius);
 }
@@ -321,8 +400,12 @@ function remove_column(index) {
 	cursor: default;
 }
 
-.section--selected {
-	border-color: var(--gray-400);
+/* overlay carrying the padding/margin/radius handles — sits on the section's
+   border box, outside the section so its content still clips to the radius */
+.pfb-section-chrome {
+	position: absolute;
+	pointer-events: none;
+	z-index: 3;
 }
 
 .section-toolbar {
@@ -548,9 +631,6 @@ function remove_column(index) {
 	overflow: hidden;
 	padding: 0;
 }
-.section--grid.section--selected {
-	border-color: var(--gray-400);
-}
 .section--grid .section-title-display {
 	padding: var(--pfb-cell-pad, 8px);
 	margin: 0;
@@ -586,14 +666,5 @@ function remove_column(index) {
 }
 .section--grid-columns :deep(.field--chip) {
 	border-bottom: none;
-}
-.section--grid :deep(.field--chip:hover),
-.section--grid :deep(.field--preview:hover),
-.section--grid :deep(.field--selected) {
-	outline: 1px dashed var(--gray-400);
-	outline-offset: -1px;
-}
-.section--grid :deep(.field--selected) {
-	outline-style: solid;
 }
 </style>

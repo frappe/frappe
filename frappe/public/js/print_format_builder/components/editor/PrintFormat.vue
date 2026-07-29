@@ -359,18 +359,7 @@ let page_number_style = computed(() => {
 	transition: border-color 0.1s;
 }
 
-/* Outlines live on the container so they enclose the section's margin too */
-.pfb-clean-preview :deep(.print-format-section-container:hover) {
-	outline: 1px dashed var(--gray-400);
-	outline-offset: 2px;
-	border-radius: var(--radius);
-}
-
-.pfb-clean-preview :deep(.print-format-section-container:has(.section--selected)) {
-	outline: 1px solid var(--gray-400);
-	outline-offset: 2px;
-	border-radius: var(--radius);
-}
+/* section hover/selection rings live in one place — PrintFormatSection.vue */
 
 .pfb-clean-preview :deep(.print-format-section-container) {
 	margin-bottom: 0;
@@ -399,9 +388,8 @@ let page_number_style = computed(() => {
 }
 
 .pfb-clean-preview :deep(.print-format-section-container:hover .section-preview-actions),
-.pfb-clean-preview :deep(.print-format-section.section--selected ~ .section-preview-actions),
 .pfb-clean-preview
-	:deep(.print-format-section-container:has(.section--selected) .section-preview-actions) {
+	:deep(.print-format-section-container.pfb-section-active .section-preview-actions) {
 	opacity: 1;
 }
 

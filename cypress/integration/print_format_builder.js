@@ -932,3 +932,145 @@ context("Print Format Builder — image and barcode blocks", () => {
 		});
 	});
 });
+
+// ─── selection & spacing ────────────────────────────────────────────────────────
+
+context("Print Format Builder — selection & spacing", () => {
+	let PF_NAME;
+
+	before(() => {
+		cy.login();
+		cy.visit("/app");
+	});
+
+	beforeEach(() => {
+		PF_NAME = pf_name();
+	});
+
+	afterEach(() => {
+		cy.window().then((win) => cleanup(win, PF_NAME));
+	});
+
+	function three_field_format(name) {
+		insert_builder_format(name, [
+			{
+				label: "Alpha",
+				columns: [
+					{
+						label: "",
+						fields: [
+							{ fieldtype: "Data", fieldname: "description", label: "Description" },
+							{ fieldtype: "Data", fieldname: "status", label: "Status" },
+							{ fieldtype: "Data", fieldname: "priority", label: "Priority" },
+						],
+					},
+				],
+			},
+		]);
+	}
+
+	// 1. Shift-click selects a contiguous range
+	it("shift-click selects a range of fields", () => {
+		three_field_format(PF_NAME);
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get("[data-pfb-section] .field", { timeout: 30000 }).should("have.length", 3);
+		cy.get("[data-pfb-section] .field").eq(0).click({ force: true });
+		cy.get("[data-pfb-section] .field").eq(2).click({ shiftKey: true, force: true });
+
+		cy.get(".field--selected").should("have.length", 3);
+		cy.get(".pfb-inspector").should("contain", "Selection").and("contain", "3 fields");
+	});
+
+	// 2. Ctrl/Cmd-click toggles fields individually
+	it("cmd/ctrl-click toggles individual fields", () => {
+		three_field_format(PF_NAME);
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get("[data-pfb-section] .field", { timeout: 30000 }).eq(0).click({ force: true });
+		cy.get("[data-pfb-section] .field").eq(1).click({ ctrlKey: true, force: true });
+		cy.get(".field--selected").should("have.length", 2);
+
+		// toggle the first one back off
+		cy.get("[data-pfb-section] .field").eq(0).click({ ctrlKey: true, force: true });
+		cy.get(".field--selected").should("have.length", 1);
+	});
+
+	// 3. Bulk "Remove selected" deletes every selected field
+	it("bulk Remove selected deletes the selected fields", () => {
+		three_field_format(PF_NAME);
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get("[data-pfb-section] .field", { timeout: 30000 }).eq(0).click({ force: true });
+		cy.get("[data-pfb-section] .field").eq(1).click({ ctrlKey: true, force: true });
+		cy.get(".field--selected").should("have.length", 2);
+
+		cy.contains(".es-button", "Remove selected").click();
+
+		cy.get("[data-pfb-section] .field:visible").should("have.length", 1);
+		cy.get(".field--selected").should("have.length", 0);
+	});
+
+	// 4. Dragging the padding handle grows the section padding
+	it("padding handle drags to add section padding", () => {
+		three_field_format(PF_NAME);
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get(".pfb-tab[title='Layers']", { timeout: 30000 }).click();
+		cy.contains(".pfb-tree-row", "Alpha").click();
+
+		cy.get(".pfb-spacing-padding .pfb-space-grip-top").then(($g) => {
+			const r = $g[0].getBoundingClientRect();
+			const cx = r.x + r.width / 2;
+			const cyv = r.y + r.height / 2;
+			cy.wrap($g).trigger("pointerdown", {
+				clientX: cx,
+				clientY: cyv,
+				button: 0,
+				force: true,
+			});
+			cy.get("body").trigger("pointermove", { clientX: cx, clientY: cyv + 40, button: 0 });
+			cy.get("body").trigger("pointerup", { clientX: cx, clientY: cyv + 40, force: true });
+		});
+
+		cy.get(".pfb-section-active .print-format-section").should(($s) => {
+			expect(parseInt($s.css("padding-top"), 10)).to.be.greaterThan(10);
+		});
+	});
+
+	// 5. The border-radius handle appears on a selected section and drags
+	it("border-radius handle rounds the section corners", () => {
+		three_field_format(PF_NAME);
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get(".pfb-tab[title='Layers']", { timeout: 30000 }).click();
+		cy.contains(".pfb-tree-row", "Alpha").click();
+
+		cy.get(".pfb-radius-handle").should("exist");
+		cy.get(".pfb-radius-handle").then(($h) => {
+			const r = $h[0].getBoundingClientRect();
+			const cx = r.x + r.width / 2;
+			const cyv = r.y + r.height / 2;
+			cy.wrap($h).trigger("pointerdown", {
+				clientX: cx,
+				clientY: cyv,
+				button: 0,
+				force: true,
+			});
+			cy.get("body").trigger("pointermove", {
+				clientX: cx + 30,
+				clientY: cyv + 30,
+				button: 0,
+			});
+			cy.get("body").trigger("pointerup", {
+				clientX: cx + 30,
+				clientY: cyv + 30,
+				force: true,
+			});
+		});
+
+		cy.get(".pfb-section-active .print-format-section").should(($s) => {
+			expect(parseInt($s.css("border-top-left-radius"), 10)).to.be.greaterThan(12);
+		});
+	});
+});
