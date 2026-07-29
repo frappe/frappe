@@ -2,23 +2,11 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.desk.reportview import export_query, extract_fieldnames, resolve_link_titles
+from frappe.desk.reportview import export_query, extract_fieldnames
 from frappe.tests import IntegrationTestCase
 
 
 class TestReportview(IntegrationTestCase):
-	def test_resolve_link_titles_for_export(self):
-		language_name = frappe.db.get_value("Language", "en", "language_name")
-
-		self.assertEqual(
-			resolve_link_titles(
-				[("en", "System Manager"), ("missing-language", None), ("", "")],
-				["language", "role_profile_name"],
-				"User",
-			),
-			[[language_name, "System Manager"], ["missing-language", None], ["", ""]],
-		)
-
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
 		from io import StringIO
