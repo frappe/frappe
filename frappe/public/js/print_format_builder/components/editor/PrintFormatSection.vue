@@ -338,7 +338,7 @@ function remove_column(index) {
 }
 
 .print-format-section-container.pfb-layer-hover {
-	outline: 1px solid var(--pfb-accent);
+	outline: 2px solid var(--pfb-accent);
 	outline-offset: 2px;
 	border-radius: var(--radius);
 }
@@ -629,11 +629,7 @@ function remove_column(index) {
 .section--grid :deep(.field--chip:hover),
 .section--grid :deep(.field--preview:hover),
 .section--grid :deep(.field--selected) {
-	outline: 1px solid var(--pfb-accent);
-	outline-offset: -1px;
-}
-.section--grid :deep(.field--selected) {
-	outline: 1px solid var(--pfb-accent);
-	outline-offset: -1px;
+	outline: 2px solid var(--pfb-accent);
+	outline-offset: -2px;
 }
 </style>

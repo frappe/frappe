@@ -817,9 +817,10 @@ watch(
 	opacity: 0.35;
 }
 
-/* outline-only selection chrome: must not change previewed geometry */
+/* outline-only selection chrome: must not change previewed geometry.
+   2px so it survives the canvas zoom transform (1px scales to sub-pixel) */
 .field--preview:hover {
-	outline: 1px solid var(--pfb-accent);
+	outline: 2px solid var(--pfb-accent);
 	outline-offset: 1px;
 }
 
@@ -835,7 +836,7 @@ watch(
 }
 
 .field--preview.field--layer-hover {
-	outline: 1px solid var(--pfb-accent);
+	outline: 2px solid var(--pfb-accent);
 	outline-offset: 1px;
 }
 
