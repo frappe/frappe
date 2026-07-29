@@ -1422,9 +1422,9 @@ Object.assign(frappe.utils, {
 							name: first_link.link_to,
 						};
 
-						// `?.` guards the always-on new sidebar, which has no `editor` (that was the
-						// v16 sidebar's in-place editor). Undefined edit_mode reads as "not editing".
-						if (first_link.report || !frappe.app.sidebar.editor?.edit_mode) {
+						// the body reads `first_link.report.*`, so a link whose report has been
+						// deleted (no `report` payload) has to skip it, not fall through to it
+						if (first_link.report) {
 							args.is_query_report =
 								first_link.report.report_type === "Query Report" ||
 								first_link.report.report_type == "Script Report";

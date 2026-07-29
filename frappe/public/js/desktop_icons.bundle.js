@@ -54,7 +54,9 @@ function get_route(desktop_icon) {
 						name: first_link.link_to,
 					};
 
-					if (first_link.report || !frappe.app.sidebar.editor.edit_mode) {
+					// the body reads `first_link.report.*`, so a link whose report has been
+					// deleted (no `report` payload) has to skip it, not fall through to it
+					if (first_link.report) {
 						args.is_query_report =
 							first_link.report.report_type === "Query Report" ||
 							first_link.report.report_type == "Script Report";
