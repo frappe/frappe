@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-26 10:09+0000\n"
-"PO-Revision-Date: 2026-07-28 15:09\n"
+"PO-Revision-Date: 2026-07-29 15:05\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -144,7 +144,7 @@ msgstr "(Erfordrad)"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:475
 msgid "({0} belong to other document types)"
-msgstr ""
+msgstr "({0} tillhör andra dokument typer)"
 
 #: frappe/model/rename_doc.py:710
 msgid "** Failed: {0} to {1}: {2}"
@@ -893,7 +893,7 @@ msgstr "Återkommande {0} {1} har skapats via Återkommande {2}."
 
 #: frappe/public/js/print_format_builder/composables/useSnippets.js:49
 msgid "A snippet named {0} already exists for {1}."
-msgstr ""
+msgstr "Det finns redan kodsnutt med {0} namn för {1}."
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:453
 msgid "A standard workspace is shipped by the app; changes are saved as customizations."
@@ -1630,7 +1630,7 @@ msgstr "Lägg till Rad Under denna Rad"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormat.vue:67
 msgid "Add a section"
-msgstr ""
+msgstr "Lägg till avsnitt"
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:276
 msgid "Add a {0} Chart"
@@ -4008,7 +4008,7 @@ msgstr "Säkerhetskopiering är redan i kö. Du kommer att få E-post meddelande
 
 #: frappe/utils/backups.py:577
 msgid "Backup requested for unknown DocType(s): {0}. Check for typos or use the exact DocType name (case-sensitive). Aborting to avoid taking a full backup instead of the requested subset."
-msgstr ""
+msgstr "Säkerhetskopiering begärd för okända DocType(er): {0}. Kontrollera om det finns stavfel eller ange det exakta DocType namn (skiljer på stora och små bokstäver). Avbryter för att undvika att fullständig säkerhetskopia tas istället för begärd delmängd."
 
 #. Label of the backups_tab (Tab Break) field in DocType 'System Settings'
 #. Label of the backups_section (Section Break) field in DocType 'System Health
@@ -4292,11 +4292,11 @@ msgstr "Fet"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:165
 msgid "Bold label"
-msgstr ""
+msgstr "Fet etikett"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:177
 msgid "Bold value"
-msgstr ""
+msgstr "Fet värde"
 
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:233
 msgid "Border"
@@ -5383,7 +5383,7 @@ msgstr "Välj Färg"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:11
 msgid "Choose a preset…"
-msgstr ""
+msgstr "Välj förinställning…"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSetup.vue:7
 msgid "Choose a starting point for your print format."
@@ -5488,7 +5488,7 @@ msgstr "Rensa e-post meddelande och lägg till mall"
 
 #: frappe/public/js/frappe/list/list_view.js:704
 msgid "Clear the filters to see all records."
-msgstr ""
+msgstr "Rensa filter för att visa alla poster."
 
 #: frappe/website/doctype/web_page/web_page.py:217
 msgid "Clearing end date, as it cannot be in the past for published pages."
@@ -5508,7 +5508,7 @@ msgstr "Klicka på ett fält för att redigera dess egenskaper"
 
 #: frappe/templates/emails/user_invitation.html:5
 msgid "Click below to accept your invitation and get started."
-msgstr ""
+msgstr "Klicka nedan för att acceptera inbjudan och komma igång."
 
 #: frappe/website/doctype/web_form/templates/web_form.html:167
 msgid "Click here"
@@ -5551,11 +5551,11 @@ msgstr "Klicka på tabell att redigera"
 
 #: frappe/templates/emails/new_user.html:10
 msgid "Click the button below to complete your registration and set a new password."
-msgstr ""
+msgstr "Klicka på knappen nedan för att slutföra registrering och ange nytt lösenord."
 
 #: frappe/templates/emails/login_with_email_link.html:2
 msgid "Click the button below to sign in to your account. This link will expire in {0} minutes."
-msgstr ""
+msgstr "Klicka på knappen nedan för att logga in på ditt konto. Länken upphör att gälla om {0} minuter."
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:509
 #: frappe/desk/doctype/number_card/number_card.js:556
@@ -6099,7 +6099,7 @@ msgstr "Slutför Konfiguration"
 
 #: frappe/templates/emails/new_user.html:1
 msgid "Complete your registration"
-msgstr ""
+msgstr "Slutför din registrering"
 
 #. Option for the 'Status' (Select) field in DocType 'Auto Repeat'
 #. Option for the 'Status' (Select) field in DocType 'Background Task'
@@ -6515,11 +6515,11 @@ msgstr "Innehåll Data ska vara lista"
 
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.py:47
 msgid "Content must be a JSON object"
-msgstr ""
+msgstr "Innehåll måste vara JSON objekt"
 
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.py:44
 msgid "Content must be valid JSON"
-msgstr ""
+msgstr "Innehåll måste vara giltig JSON"
 
 #: frappe/website/doctype/web_page/web_page.js:91
 msgid "Content type for building the page"
@@ -6690,7 +6690,7 @@ msgstr "Kunde inte parsa fält: {0}"
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:227
 msgid "Could not render the paged preview"
-msgstr ""
+msgstr "Det gick inte att visa förhandsvisning med sidindelning"
 
 #: frappe/utils/chromium/process.py:173
 msgid "Could not start Chromium. Check logs for details."
@@ -6924,7 +6924,7 @@ msgstr "Skapa Uppsättning"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:221
 msgid "Create one"
-msgstr ""
+msgstr "Skapa en"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:58
 msgid "Create or Edit Print Format"
@@ -6936,7 +6936,7 @@ msgstr "Skapa eller Redigera Arbetsflöde"
 
 #: frappe/public/js/frappe/list/list_view.js:708
 msgid "Create your first {0} to get started."
-msgstr ""
+msgstr "Skapa din första {0} för att komma igång."
 
 #: frappe/workflow/doctype/workflow/workflow.js:16
 msgid "Create your workflow visually using the Workflow Builder."
@@ -8231,7 +8231,7 @@ msgstr "Ta bort namngivning regel {0}?"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:32
 msgid "Delete preset"
-msgstr ""
+msgstr "Ta bort förinställning"
 
 #: frappe/public/js/frappe/form/grid.js:290
 msgid "Delete row"
@@ -8248,7 +8248,7 @@ msgstr "Ta bort namngivning serie {0}?"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:195
 msgid "Delete snippet"
-msgstr ""
+msgstr "Ta bort kodsnutt"
 
 #: frappe/public/js/form_builder/components/Tabs.vue:71
 msgctxt "Button text"
@@ -8269,11 +8269,11 @@ msgstr "Ta bort <b>{0}</b> arbetsyta? Detta kan inte ångras."
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:456
 msgid "Delete the snippet '{0}'?"
-msgstr ""
+msgstr "Ta bort kodsnutt ”{0}”?"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:206
 msgid "Delete the style preset '{0}'?"
-msgstr ""
+msgstr "Ta bort förinställning för '{0}' stil?"
 
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.py:31
 msgid "Delete this record to allow sending to this email address"
@@ -9734,7 +9734,7 @@ msgstr "Dra och släpp filer här eller ladda upp från"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:185
 msgid "Drag into the layout, or click to insert"
-msgstr ""
+msgstr "Dra in i layouten eller klicka för att infoga"
 
 #: frappe/public/js/workflow_builder/WorkflowBuilder.vue:296
 msgid "Drag to add state"
@@ -9821,7 +9821,7 @@ msgstr "Duplicera rader"
 
 #: frappe/public/js/print_format_builder/components/editor/SectionActions.vue:16
 msgid "Duplicate section"
-msgstr ""
+msgstr "Duplicera avsnitt"
 
 #: frappe/public/js/frappe/form/grid.js:296
 msgid "Duplicate {0} rows"
@@ -10695,7 +10695,7 @@ msgstr "Aktivera kryssrutor för att välja flera poster och utföra massåtgär
 
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.py:32
 msgid "Enable developer mode to create a standard Print Format Snippet"
-msgstr ""
+msgstr "Aktivera utvecklarläge för att skapa standard Utskrift Format Kodsnutt"
 
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.py:31
 msgid "Enable developer mode to create a standard Print Template"
@@ -11285,7 +11285,7 @@ msgstr "Befintliga Gravatar-URL:er kan fortfarande lagras i Användare, Kontakt 
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:19
 msgid "Exit full screen"
-msgstr ""
+msgstr "Avsluta helskärm"
 
 #: frappe/public/js/frappe/views/treeview.js:125
 #: frappe/public/js/frappe/views/treeview.js:137
@@ -11457,7 +11457,7 @@ msgstr "Exportera endast anpassningar som är tilldelade vald modul.<br><span cl
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:148
 msgid "Export snippets"
-msgstr ""
+msgstr "Exportera kodsnutt"
 
 #. Description of the 'Export without main header' (Check) field in DocType
 #. 'Data Export'
@@ -11469,7 +11469,7 @@ msgstr "Exportera data utan några rubrikanteckningar och kolumnbeskrivningar"
 #. Snippet'
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.json
 msgid "Export this snippet to its module so it ships with the app. Requires developer mode."
-msgstr ""
+msgstr "Exportera detta kodsnutt till modul så att det levereras med app. Erfordrar utvecklarläge."
 
 #. Label of the export_without_main_header (Check) field in DocType 'Data
 #. Export'
@@ -11905,11 +11905,11 @@ msgstr "Fält är ej tillåtet i fråga"
 
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:519
 msgid "Field saved as snippet"
-msgstr ""
+msgstr "Fält sparad som kodsnutt"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:217
 msgid "Field templates render a specific field with custom Jinja/HTML, e.g. a custom items table."
-msgstr ""
+msgstr "Fält mallar renderar specifikt fält med anpassad Jinja/HTML, t.ex. en anpassad artikel tabell."
 
 #. Description of the 'Workflow State Field' (Data) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -12467,7 +12467,7 @@ msgstr "Flyttal Precision"
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:8
 msgid "Flow"
-msgstr ""
+msgstr "Flöde"
 
 #: frappe/core/doctype/error_log/error_log_list.js:26
 msgid "Flush Error Logs"
@@ -13085,7 +13085,7 @@ msgstr "Fullständigt namn erfordras."
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:19
 msgid "Full screen"
-msgstr ""
+msgstr "Helskärm"
 
 #. Label of the function (Select) field in DocType 'Number Card'
 #. Label of the report_function (Select) field in DocType 'Number Card'
@@ -14692,15 +14692,15 @@ msgstr "Om du laddar upp nya poster, lämna kolumn 'namn' (ID) tomt."
 
 #: frappe/templates/emails/password_reset.html:6
 msgid "If you did not request a password reset, please ignore this email. Your password will remain unchanged."
-msgstr ""
+msgstr "Om du inte har begärt att få ditt lösenord återställt kan du bortse från detta e-post meddelande. Ditt lösenord förblir oförändrad."
 
 #: frappe/templates/emails/verification_code.html:4
 msgid "If you did not request this code, you can safely ignore this email."
-msgstr ""
+msgstr "Om du inte har begärt denna kod kan du ignorera detta e-post meddelande."
 
 #: frappe/templates/emails/login_with_email_link.html:6
 msgid "If you didn't request this link, you can ignore this email. Someone may have entered your email address by mistake."
-msgstr ""
+msgstr "Om du inte begärde denna länk kan du ignorera detta e-post meddelande. Någon kan ha angett din e-postadress av misstag."
 
 #: frappe/templates/emails/user_invitation.html:10
 msgid "If you have any questions, reach out to your system administrator."
@@ -14973,7 +14973,7 @@ msgstr "Importera från Google Sheets"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:157
 msgid "Import snippets"
-msgstr ""
+msgstr "Importera kodsnuttar"
 
 #: frappe/core/doctype/data_import/importer.py:858
 msgid "Import template should be of type .csv, .xlsx or .xls"
@@ -14989,7 +14989,7 @@ msgstr "Import misslyckades, försök igen."
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:473
 msgid "Imported {0} snippet(s)"
-msgstr ""
+msgstr "Importerade {0} kodsnutt"
 
 #: frappe/core/doctype/data_import/data_import.js:19
 msgid "Importing or updating {0} of {1}, {2}"
@@ -15740,7 +15740,7 @@ msgstr "Ogiltig Sök Fält {0}"
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.py:44
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.py:47
 msgid "Invalid Snippet"
-msgstr ""
+msgstr "Ogiltig kodsnutt"
 
 #: frappe/core/doctype/doctype/doctype.py:1314
 msgid "Invalid Table Fieldname"
@@ -15998,7 +15998,7 @@ msgstr "Inbjudan finns redan"
 
 #: frappe/templates/emails/user_invitation_cancelled.html:1
 msgid "Invitation cancelled"
-msgstr ""
+msgstr "Inbjudan avbruten"
 
 #: frappe/core/api/user_invitation.py:101
 msgid "Invitation cannot be cancelled"
@@ -16006,7 +16006,7 @@ msgstr "Inbjudan kan inte avbrytas"
 
 #: frappe/templates/emails/user_invitation_expired.html:1
 msgid "Invitation expired"
-msgstr ""
+msgstr "Inbjudan upphörde"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:130
 msgid "Invitation is cancelled"
@@ -16543,7 +16543,7 @@ msgstr "Håll skannern öppen efter skanning"
 
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:105
 msgid "Keep together"
-msgstr ""
+msgstr "Håll ihop"
 
 #. Description of a DocType
 #: frappe/core/doctype/activity_log/activity_log.json
@@ -17120,7 +17120,7 @@ msgstr "Lämna tomt för att ärva app levererad ikon."
 #. Snippet'
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.json
 msgid "Leave blank to make this snippet available for all document types"
-msgstr ""
+msgstr "Lämna tomt för att göra detta kodsnutt tillgänglig för alla dokument typer"
 
 #. Description of the 'Document Type' (Link) field in DocType 'Print Format
 #. Field Template'
@@ -17795,7 +17795,7 @@ msgstr "Logg DocType"
 
 #: frappe/templates/emails/login_with_email_link.html:4
 msgid "Log In to {0}"
-msgstr ""
+msgstr "Logga in på {0}"
 
 #. Label of the log_index (Int) field in DocType 'Data Import Log'
 #: frappe/core/doctype/data_import_log/data_import_log.json
@@ -17819,7 +17819,7 @@ msgstr "Logga in för att öppna denna sida."
 
 #: frappe/templates/emails/login_with_email_link.html:1
 msgid "Log in to {0}"
-msgstr ""
+msgstr "Logga in på {0}"
 
 #: frappe/website/doctype/website_settings/website_settings.py:182
 msgid "Log out"
@@ -18765,7 +18765,7 @@ msgstr "Minimum"
 
 #: frappe/www/update-password.html:53
 msgid "Minimum 8 characters, including at least one number or special character."
-msgstr ""
+msgstr "Minst 8 tecken, varav minst en siffra eller ett specialtecken."
 
 #. Label of the minimum_password_score (Select) field in DocType 'System
 #. Settings'
@@ -18982,7 +18982,7 @@ msgstr "Modul ändrad till {0}. Filer i föregående modul flyttades inte och f�
 
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.py:34
 msgid "Module is required for a standard Print Format Snippet"
-msgstr ""
+msgstr "Modul erfordras för standard Utskrift Format Kodsnutt"
 
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.py:33
 msgid "Module is required for a standard Print Template"
@@ -20181,7 +20181,7 @@ msgstr "Ingen fördröjning"
 
 #: frappe/utils/print_format_generator.py:192
 msgid "No document available to preview"
-msgstr ""
+msgstr "Inget dokument tillgängligt för förhandsvisning"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/print_format.js:180
 msgid "No document to preview"
@@ -20205,7 +20205,7 @@ msgstr "Inga redigerbara fält tillgängliga för massredigering."
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:21
 msgid "No email account associated with the User. Please add an account under User > Settings > User Emails."
-msgstr ""
+msgstr "Inget e-post konto är kopplat till användare. Lägg till ett konto under Användare > Inställningar > Användare e-post adresser."
 
 #: frappe/core/api/user_invitation.py:17
 msgid "No email addresses to invite"
@@ -20439,7 +20439,7 @@ msgstr "Inga giltiga träd noder hittades i import fil."
 
 #: frappe/public/js/print_format_builder/components/editor/FieldPreviewBarcode.vue:12
 msgid "No value to encode"
-msgstr ""
+msgstr "Inget värde att koda"
 
 #: frappe/public/js/frappe/form/controls/multiselect_list.js:301
 #: frappe/public/js/frappe/utils/utils.js:1063
@@ -20456,7 +20456,7 @@ msgstr "Ingen {0}"
 
 #: frappe/public/js/frappe/list/list_view.js:701
 msgid "No {0} created"
-msgstr ""
+msgstr "Ingen {0} skapad"
 
 #: frappe/public/js/frappe/list/list_view.js:700
 #: frappe/public/js/frappe/web_form/web_form_list.js:263
@@ -20751,7 +20751,7 @@ msgstr "Anteckningar:"
 
 #: frappe/public/js/frappe/list/list_view.js:709
 msgid "Nothing has been added yet."
-msgstr ""
+msgstr "Inget har lagts till ännu."
 
 #: frappe/public/js/frappe/form/doctype_settings/registry.js:87
 msgid "Nothing here yet"
@@ -21712,7 +21712,7 @@ msgstr "Alternativ inte angiven för länk fält {0}"
 
 #: frappe/templates/emails/new_user.html:21
 msgid "Or copy and paste this link:"
-msgstr ""
+msgstr "Eller kopiera och klistra in denna länk:"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
@@ -22066,7 +22066,7 @@ msgstr "Sida Bredd (i mm)"
 
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:100
 msgid "Page break after"
-msgstr ""
+msgstr "Sidbrytning efter"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormat.vue:164
 msgid "Page break must follow a section"
@@ -22703,7 +22703,7 @@ msgstr "Välj Kolumner"
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:41
 msgid "Pick a record in the toolbar above to preview it."
-msgstr ""
+msgstr "Välj post i verktygsfält ovan för att förhandsvisa den."
 
 #: frappe/public/js/print_format_builder/PrintFormatBuilder.vue:26
 msgid "Pick a record to see real values"
@@ -23444,7 +23444,7 @@ msgstr "Lägg mall före e-post meddelande"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:187
 msgid "Preset name"
-msgstr ""
+msgstr "Förinställt namn"
 
 #: frappe/public/js/frappe/ui/keyboard.js:157
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:756
@@ -23669,7 +23669,7 @@ msgstr "Utskrift Format Hjälp"
 #. Name of a DocType
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.json
 msgid "Print Format Snippet"
-msgstr ""
+msgstr "Utskrift Format Kodsnutt"
 
 #. Label of the print_format_type (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -23740,7 +23740,7 @@ msgstr "Utskrift Inställningar"
 
 #: frappe/public/js/print_format_builder/PrintFormatBuilder.vue:141
 msgid "Print Settings updated"
-msgstr ""
+msgstr "Utskrift Inställningar uppdaterade"
 
 #. Label of the print_style_section (Section Break) field in DocType 'Print
 #. Settings'
@@ -24647,7 +24647,7 @@ msgstr "Röd"
 #. Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Redact Message After Send"
-msgstr ""
+msgstr "Ändra Meddelande Efter Skicka"
 
 #. Label of the redirect_http_status (Select) field in DocType 'Website Route
 #. Redirect'
@@ -25159,7 +25159,7 @@ msgstr "Ta bort sektion"
 
 #: frappe/public/js/print_format_builder/components/inspector/BulkPropertiesPanel.vue:18
 msgid "Remove selected"
-msgstr ""
+msgstr "Ta bort markerade"
 
 #: frappe/public/js/form_builder/components/Tabs.vue:141
 msgid "Remove tab"
@@ -25292,7 +25292,7 @@ msgstr "Ersätt mall <strong>{0}</strong> med de aktuella formulär värdena? De
 #. 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Replace the message body with a placeholder once the email has been sent, so that sensitive content like password reset links is not retained in the queue."
-msgstr ""
+msgstr "Ersätt meddelandetext med platshållare så snart e-post meddelande har skickats, så att känsligt innehåll, såsom länkar för återställning av lösenord, inte sparas i kön."
 
 #: frappe/public/js/frappe/form/template_manager.js:387
 msgid "Replace with current form values"
@@ -26668,7 +26668,7 @@ msgstr "Spara Anpassningar"
 
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:525
 msgid "Save Field as Snippet"
-msgstr ""
+msgstr "Spara Fält som Kodsnutt"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:24
 msgid "Save Print Format"
@@ -26680,15 +26680,15 @@ msgstr "Spara Rapport"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSection.vue:271
 msgid "Save Section as Snippet"
-msgstr ""
+msgstr "Spara Avsnitt som Kodsnutt"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:198
 msgid "Save Style Preset"
-msgstr ""
+msgstr "Spara Stil Förinställning"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:164
 msgid "Save a section or field as a snippet to reuse it here."
-msgstr ""
+msgstr "Spara avsnitt eller fält som kodsnutt för att återanvända det här."
 
 #: frappe/public/js/frappe/form/template_manager.js:63
 msgid "Save as Template"
@@ -26697,15 +26697,15 @@ msgstr "Spara som Mall"
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:152
 #: frappe/public/js/print_format_builder/components/editor/SectionActions.vue:25
 msgid "Save as snippet"
-msgstr ""
+msgstr "Spara som kodsnutt"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:21
 msgid "Save current style as a preset"
-msgstr ""
+msgstr "Spara aktuell stil som förinställning"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:60
 msgid "Save failed"
-msgstr ""
+msgstr "Kunde inte spara"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:131
 msgid "Save filters"
@@ -26739,7 +26739,7 @@ msgstr "Sparad"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:140
 msgid "Saved Snippets"
-msgstr ""
+msgstr "Sparade Kodsnutt"
 
 #: frappe/public/js/frappe/list/list_settings.js:55
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:47
@@ -26774,7 +26774,7 @@ msgstr "Sparar..."
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:58
 #: frappe/public/js/print_format_builder/stores/index.js:160
 msgid "Saving…"
-msgstr ""
+msgstr "Sparar…"
 
 #: frappe/public/js/frappe/form/controls/data.js:149
 msgid "Scan"
@@ -27130,7 +27130,7 @@ msgstr "Sektion måste ha minst en kolumn"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSection.vue:265
 msgid "Section saved as snippet"
-msgstr ""
+msgstr "Avsnitt sparad som kodsnutt"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:30
 msgid "Section:"
@@ -27138,7 +27138,7 @@ msgstr "Sektion:"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormat.vue:69
 msgid "Sections hold the columns and fields of your document."
-msgstr ""
+msgstr "Avsnitten innehåller dokument kolumner och fält."
 
 #: frappe/core/doctype/user/user.py:1525
 msgid "Security Alert: Your account is being impersonated"
@@ -27556,7 +27556,7 @@ msgstr "Vald rad, beskrivningar och länkar"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:107
 msgid "Selection"
-msgstr ""
+msgstr "Urval"
 
 #: frappe/model/workflow.py:137
 msgid "Self approval is not allowed"
@@ -28706,11 +28706,11 @@ msgstr "Visa bilagor"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:86
 msgid "Show colon after labels"
-msgstr ""
+msgstr "Visa kolon efter etiketter"
 
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:205
 msgid "Show column when"
-msgstr ""
+msgstr "Visa kolumn när"
 
 #: frappe/core/page/component_explorer/component_explorer.js:921
 msgid "Show custom icon"
@@ -29220,16 +29220,16 @@ msgstr "Ögonblicksbild Rapporter"
 #. Label of the snippet_type (Select) field in DocType 'Print Format Snippet'
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.json
 msgid "Snippet Type"
-msgstr ""
+msgstr "Typ av Kodsnutt"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:61
 msgid "Snippet and more variables:  {0}"
-msgstr "Kodavsnitt och fler variabler: {0}"
+msgstr "Kodsnutt och fler variabler: {0}"
 
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:509
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSection.vue:255
 msgid "Snippet name"
-msgstr ""
+msgstr "Kodsnutt Namn"
 
 #. Name of a DocType
 #: frappe/website/doctype/social_link_settings/social_link_settings.json
@@ -29887,7 +29887,7 @@ msgstr "Raka rader av tangenter är lätta att gissa"
 
 #: frappe/www/update-password.html:42
 msgid "Strength:"
-msgstr ""
+msgstr "Styrka:"
 
 #. Label of the strip_exif_metadata_from_uploaded_images (Check) field in
 #. DocType 'System Settings'
@@ -29917,7 +29917,7 @@ msgstr "Stil"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:4
 msgid "Style Preset"
-msgstr ""
+msgstr "Förinställd Stil"
 
 #. Label of the section_break_9 (Section Break) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -29926,7 +29926,7 @@ msgstr "Stil Inställningar"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:196
 msgid "Style preset saved"
-msgstr ""
+msgstr "Stil Förinställning sparad"
 
 #. Description of the 'Style' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -31576,7 +31576,7 @@ msgstr "Detta dokument har osparade ändringar som kanske inte visas i slutlig P
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:47
 msgid "This document is a draft and cannot be printed."
-msgstr ""
+msgstr "Detta dokument är utkast och kan inte skrivas ut."
 
 #: frappe/public/js/frappe/form/form.js:1266
 msgid "This document is already amended, you cannot ammend it again"
@@ -31584,7 +31584,7 @@ msgstr "Detta dokument är redan ändrad, du kan inte ändra det igen"
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:44
 msgid "This document is cancelled and cannot be printed."
-msgstr ""
+msgstr "Detta dokument är annullerad och kan inte skrivas ut."
 
 #: frappe/model/document.py:795
 msgid "This document is currently locked and queued for execution. Please try again after some time."
@@ -31592,7 +31592,7 @@ msgstr "Detta dokument är för närvarande låst och står i kö för exekverin
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:84
 msgid "This document type has no printable fields."
-msgstr ""
+msgstr "Denna dokumenttyp har inga utskrivbara fält."
 
 #: frappe/templates/emails/auto_repeat_fail.html:7
 msgid "This email is autogenerated"
@@ -31621,7 +31621,7 @@ msgstr "Detta fält visas endast om fält namn definieras här har värde eller 
 
 #: frappe/public/js/print_format_builder/composables/useSnippets.js:113
 msgid "This file does not contain any snippets"
-msgstr ""
+msgstr "Denna fil innehåller inga kodsnuttar"
 
 #: frappe/core/doctype/file/file.py:604
 msgid "This file is attached to a protected document and cannot be deleted."
@@ -33461,7 +33461,7 @@ msgstr "Använd starka lösenord."
 
 #: frappe/templates/emails/verification_code.html:2
 msgid "Use the code below to complete your sign-in."
-msgstr ""
+msgstr "Använd koden nedan för att slutföra inloggning."
 
 #. Description of the 'Title Field' (Data) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
@@ -33989,7 +33989,7 @@ msgstr "Värde Baserad På"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:423
 msgid "Value Based On field is required to create a dashboard chart"
-msgstr ""
+msgstr "Värde Baserad På fält erfordras för att skapa översikt panel diagram"
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -34136,7 +34136,7 @@ msgstr "Verifiering Länk"
 
 #: frappe/templates/emails/verification_code.html:1
 msgid "Verification code"
-msgstr ""
+msgstr "Verifieringskod"
 
 #: frappe/templates/includes/login/login.js:470
 msgid "Verification code email not sent. Please contact Administrator."
@@ -34458,7 +34458,7 @@ msgstr "Vi har fått begäran från dig om att ladda ner din {0} data associerad
 
 #: frappe/templates/emails/password_reset.html:3
 msgid "We received a request to reset the password for your account. Click the button below to set a new password."
-msgstr ""
+msgstr "Vi har fått begäran om att återställa lösenord för ditt konto. Klicka på knapp nedan för att ange nytt lösenord."
 
 #: frappe/www/attribution.html:8
 msgid "We would like to thank the authors of these packages for their contribution."
@@ -35597,7 +35597,7 @@ msgstr "Du har inte åtkomst till {0}."
 
 #: frappe/public/js/print_format_builder/PrintFormatBuilder.vue:118
 msgid "You are not permitted to change Print Settings"
-msgstr ""
+msgstr "Du har inte behörighet att ändra Utskrift Inställningar"
 
 #: frappe/public/js/frappe/form/sidebar/document_follow.js:131
 msgid "You are now following this document. You will receive daily updates via email. You can change this in User Settings."
@@ -36048,7 +36048,7 @@ msgstr "Du kommer att omdirigeras till:"
 
 #: frappe/templates/emails/user_invitation.html:1
 msgid "You've been invited"
-msgstr ""
+msgstr "Du har blivit inbjuden"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:115
 msgid "You've been invited to join {0}"
@@ -36105,7 +36105,7 @@ msgstr "Din tilldelning {0} {1} togs bort av {2}"
 
 #: frappe/integrations/google_oauth.py:203
 msgid "Your authorization attempt is invalid or has expired. Please try again."
-msgstr ""
+msgstr "Ditt auktorisering försök är ogiltig eller har gått ut. Försök igen."
 
 #: frappe/core/doctype/file/file.js:98
 msgid "Your browser does not support the audio element."
@@ -36141,11 +36141,11 @@ msgstr "Din inbjudan att gå med i {0} har gått ut."
 
 #: frappe/templates/emails/new_user.html:8
 msgid "Your login ID is:"
-msgstr ""
+msgstr "Ditt Inlogging ID är:"
 
 #: frappe/utils/oauth.py:232
 msgid "Your login attempt is invalid or has expired. Please try again."
-msgstr ""
+msgstr "Ditt inloggning försök är ogiltig eller har gått ut. Försök igen."
 
 #: frappe/www/update-password.html:179
 msgid "Your new password has been set successfully."
@@ -36179,7 +36179,7 @@ msgstr "Din rapport håller på att skapas i bakgrunden. Du kommer att få e-pos
 
 #: frappe/public/js/frappe/desk.js:417
 msgid "Your session has expired due to inactivity. Please log in again to continue."
-msgstr ""
+msgstr "Din session har upphört på grund av inaktivitet. Logga in igen för att fortsätta."
 
 #: frappe/app.py:387
 msgid "Your session has expired, please login again to continue."
@@ -36915,7 +36915,7 @@ msgstr "sedan igår"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:478
 msgid "skipped {0}"
-msgstr ""
+msgstr "hoppade över {0}"
 
 #: frappe/core/doctype/doctype_settings_map/doctype_settings_map.py:86
 msgid "standard"
@@ -37407,7 +37407,7 @@ msgstr "{0} fält"
 
 #: frappe/public/js/print_format_builder/components/inspector/BulkPropertiesPanel.vue:3
 msgid "{0} fields selected"
-msgstr ""
+msgstr "{0} fält valda"
 
 #: frappe/core/doctype/data_import/importer.py:1764
 msgid "{0} format could not be determined from the values in this column. Defaulting to {1}."
@@ -37585,7 +37585,7 @@ msgstr "{0} är inte giltig ISO 3166 ALPHA-2 kod."
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:470
 msgid "{0} is not a valid JSON file"
-msgstr ""
+msgstr "{0} är inte giltig JSON fil"
 
 #: frappe/utils/__init__.py:176
 msgid "{0} is not a valid Name"
@@ -37876,7 +37876,7 @@ msgstr "{0} rader till {1}"
 
 #: frappe/public/js/print_format_builder/composables/useSnippets.js:163
 msgid "{0} saved section(s) already exist by name and were not imported"
-msgstr ""
+msgstr "{0} sparade avsnitt finns redan med samma namn och importerades inte"
 
 #: frappe/desk/query_report.py:897
 msgid "{0} saved successfully"
