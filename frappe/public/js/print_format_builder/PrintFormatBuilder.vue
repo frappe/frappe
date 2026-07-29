@@ -179,6 +179,9 @@ const marquee = ref(null);
 const marquee_dragging = ref(false);
 let marquee_start = null;
 let marquee_base = { fields: [], sections: [] };
+// element + rect for every hit-testable target, captured once per drag (no reflow
+// happens mid-marquee, so re-reading rects on every pointermove would only thrash)
+let marquee_targets = { sections: [], fields: [] };
 let suppress_next_click = false;
 const MARQUEE_THRESHOLD = 4;
 
@@ -196,6 +199,16 @@ function on_canvas_pointerdown(e) {
 	marquee_base = {
 		fields: additive ? $store.value.selected_fields.value.slice() : [],
 		sections: additive ? $store.value.selected_sections.value.slice() : [],
+	};
+	const el_of = (uid) =>
+		document.querySelector(`[data-field-uid="${uid}"], [data-section-uid="${uid}"]`);
+	const target = (key) => (obj) => {
+		const el = el_of(field_uid(obj));
+		return el ? { [key]: obj, el, r: el.getBoundingClientRect() } : null;
+	};
+	marquee_targets = {
+		sections: ($store.value.layout.value?.sections || []).map(target("s")).filter(Boolean),
+		fields: $store.value.ordered_body_fields().map(target("df")).filter(Boolean),
 	};
 	window.addEventListener("pointermove", on_canvas_pointermove);
 	window.addEventListener("pointerup", on_canvas_pointerup);
@@ -218,12 +231,6 @@ const dedupe = (arr) => [...new Set(arr)];
 function update_marquee_selection() {
 	const box = marquee.value;
 	if (!box) return;
-	const rect = (uid) => {
-		const el = document.querySelector(
-			`[data-field-uid="${uid}"], [data-section-uid="${uid}"]`
-		);
-		return el ? { el, r: el.getBoundingClientRect() } : null;
-	};
 	const encloses = (r) =>
 		r.left >= box.x && r.top >= box.y && r.right <= box.x + box.w && r.bottom <= box.y + box.h;
 	const overlaps = (r) =>
@@ -232,15 +239,10 @@ function update_marquee_selection() {
 	// Builder rule: select the outermost fully-enclosed element. A section the box
 	// fully wraps is selected as a section; its fields are then dropped. Fields that
 	// don't belong to any enclosed section are selected on their own.
-	const enclosed = ($store.value.layout.value?.sections || [])
-		.map((s) => ({ s, el: rect(field_uid(s))?.el }))
-		.filter((x) => x.el && encloses(x.el.getBoundingClientRect()));
-
-	const looseFields = $store.value.ordered_body_fields().filter((df) => {
-		const hit = rect(field_uid(df));
-		if (!hit || !overlaps(hit.r)) return false;
-		return !enclosed.some((x) => x.el.contains(hit.el));
-	});
+	const enclosed = marquee_targets.sections.filter((x) => encloses(x.r));
+	const looseFields = marquee_targets.fields
+		.filter((x) => overlaps(x.r) && !enclosed.some((sec) => sec.el.contains(x.el)))
+		.map((x) => x.df);
 
 	const fields = dedupe([...marquee_base.fields, ...looseFields]);
 	const sections = dedupe([...marquee_base.sections, ...enclosed.map((x) => x.s)]);
