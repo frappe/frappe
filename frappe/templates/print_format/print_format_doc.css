@@ -264,14 +264,29 @@
 	border-left: 1px solid var(--gray-300) !important;
 }
 
-.print-format-doc .child-table--bordered .table tbody tr:last-child td {
-	border-bottom: 1px solid var(--gray-300) !important;
-}
-
+/* The bottom edge of a bordered table is owned by the .table-foot cap alone.
+   It lives in a <tfoot>, so the renderer repeats it at the foot of every page
+   the table spans, closing the outline on each one. Three things have to hold
+   together here — changing one in isolation is what keeps regressing this:
+     1. the cap draws the bottom line, so mid-document page breaks close;
+     2. no body row draws a bottom border, so the last page isn't doubled
+        (bordered rows are separated by border-top — see .child-table--bordered
+        .table tbody td above);
+     3. the cap is as tall as the radius and carries the side borders, so the
+        rounded corners have room to curve. At radius 0 it collapses to nothing,
+        so there is no empty band under square tables. */
 .print-format-doc .child-table .table .table-foot {
 	padding: 0;
-	height: 0;
+	height: var(--pfb-radius, 0);
 	border: none !important;
+	border-bottom-left-radius: var(--pfb-radius, 0);
+	border-bottom-right-radius: var(--pfb-radius, 0);
+}
+
+.print-format-doc .child-table--bordered .table .table-foot {
+	border-left: 1px solid var(--gray-300) !important;
+	border-right: 1px solid var(--gray-300) !important;
+	border-bottom: 1px solid var(--gray-300) !important;
 }
 
 /* plain header: no fill, a single rule under the header row instead */
