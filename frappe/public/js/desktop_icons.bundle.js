@@ -252,9 +252,10 @@ class DesktopPage {
 		this.icon_grid = new DesktopIconGrid({
 			wrapper: this.wrapper,
 			icons_data: this.apps_icons,
+			// one page is one screenful of the `.icons` grid in desktop.css
 			page_size: {
-				row: 6,
-				col: 3,
+				columns: 6,
+				rows: 3,
 			},
 		});
 		this.setup_context_menu();
@@ -554,14 +555,18 @@ class DesktopIconGrid {
 	init() {
 		this.icons = [];
 		this.icons_html = [];
-		// this.page_size = {
-		// 	col: opts.page_size?.col || 4,
-		// 	row: opts.page_size?.row || 3,
-		// 	total: function () {
-		// 		return this.col * this.row;
-		// 	},
-		// };
+		// Only a grid given a `page_size` paginates: `.icons` is a fixed columns x rows CSS
+		// grid, so anything past one screenful has nowhere to go. The folder thumbnail, the
+		// folder modal and the hidden-icons pane pass none -- each clips or scrolls its own
+		// overflow -- and stay on a single page. Mobile renders 3 columns (see make()), so
+		// the page has to shrink with it or the last rows spill off screen again.
+		if (this.page_size) {
+			this.icons_per_page =
+				(frappe.is_mobile() ? 3 : this.page_size.columns) * this.page_size.rows;
+		}
 		this.grids = [];
+		// re-created per render: update_grid() re-runs init() against a fresh DOM
+		this.sortables = [];
 		this.prepare();
 		this.make();
 		frappe.desktop_grids.push(this);
@@ -577,15 +582,17 @@ class DesktopIconGrid {
 		return icon;
 	}
 	prepare() {
-		this.total_pages = 1;
-		this.icons_data = this.icons_data.sort((a, b) => {
+		this.icons_data.sort((a, b) => {
 			if (a.idx === b.idx) {
 				return a.label.localeCompare(b.label); // sort by label if idx is the same
 			}
 			return a.idx - b.idx; // sort by idx
 		});
-		this.icons_data_by_page =
-			this.icons_data || this.split_data(this.icons_data, this.page_size.total());
+		this.icons_data_by_page = this.icons_per_page
+			? this.split_data(this.icons_data, this.icons_per_page)
+			: [this.icons_data];
+		// an empty grid still renders one (empty) page
+		this.total_pages = this.icons_data_by_page.length || 1;
 	}
 	make() {
 		const me = this;
@@ -603,7 +610,7 @@ class DesktopIconGrid {
 				template = `<div class="icons" style="display: none; grid-template-columns: repeat(3, 1fr)"></div>`;
 			}
 			this.grids.push($(template).appendTo(this.icons_container));
-			this.make_icons(this.icons_data_by_page, this.grids[i]);
+			this.make_icons(this.icons_data_by_page[i] || [], this.grids[i]);
 		}
 		if (!this.in_folder && this.total_pages > 1) {
 			this.add_page_indicators();
@@ -758,6 +765,8 @@ class DesktopIconGrid {
 		this.hoverTarget = null;
 		this.hoverTimer = null;
 		if (!frappe.is_mobile()) {
+			// one Sortable per page, kept in `sortables` -- `idx` is numbered across the whole
+			// grid, so a drop has to read every page's order, not just the page it landed on
 			this.sortable = new Sortable($(grid).get(0), {
 				swapThreshold: 0.09,
 				desktop: true,
@@ -795,7 +804,7 @@ class DesktopIconGrid {
 					if (frappe.desktop_utils.in_folder_creation) return;
 					if (evt.oldIndex !== evt.newIndex) {
 						if (evt.to.parentElement == evt.from.parentElement) {
-							let reordered_icons = me.sortable.toArray();
+							let reordered_icons = me.get_ordered_labels();
 							let filters = {
 								parent_icon: me.parent_icon?.icon_data.label || "" || null,
 							};
@@ -807,11 +816,11 @@ class DesktopIconGrid {
 							let title = $(evt.item).find(".icon-title").text();
 							let selected_icon = get_desktop_icon_by_label(title);
 							if ($(to.get(0).parentElement)) {
-								me.reorder_icons(me.sortable.toArray());
+								me.reorder_icons(me.get_ordered_labels());
 								me.reorder_icons(
 									frappe.pages[
 										"desktop"
-									].desktop_page.icon_grid.sortable.toArray()
+									].desktop_page.icon_grid.get_ordered_labels()
 								);
 								selected_icon.idx = evt.newIndex;
 								selected_icon.parent_icon = null;
@@ -821,7 +830,12 @@ class DesktopIconGrid {
 					// save_desktop();
 				},
 			});
+			this.sortables.push(this.sortable);
 		}
+	}
+	get_ordered_labels() {
+		// every page's icon labels, in page order -- what `reorder_icons` renumbers `idx` from
+		return this.sortables.flatMap((sortable) => sortable.toArray());
 	}
 	update_grid(icons) {
 		this.wrapper.empty();

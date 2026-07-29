@@ -261,7 +261,7 @@ def load_desktop_data(bootinfo):
 	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()
 
 	# Only the Desktop Icon grid reads these; the default Apps screen builds itself from
-	# `app_data` below. Set after `workspace_sidebar_item`, which DesktopIcon.is_permitted reads.
+	# `app_data` below. Set after `workspace_sidebar_item`, which `is_icon_permitted` reads.
 	if is_desktop_icons_page():
 		from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
 
@@ -837,7 +837,7 @@ def add_sidebar_entry(
 	# A sidebar (and its desktop icon) is shown only if the user can see at least one
 	# real item in it, i.e. a non-Section-Break item survived the per-item filter above.
 	# This is the single source of truth for sidebar permissions and mirrors
-	# Desktop Icon.is_permitted.
+	# `is_icon_permitted` in the Desktop Icon controller.
 	if not any(i["type"] != "Section Break" for i in filtered_items):
 		return
 
