@@ -36,7 +36,7 @@ const edge = (side) => (outward.value < 0 ? -(box.value[side] || 0) : 0);
 // grips never sit closer than this to the border, so the inside (padding) and
 // outside (margin) handles stay visibly separated even at zero — matching the
 // website builder, where both affordances are always on screen
-const GRIP_GAP = 8;
+const GRIP_GAP = 5;
 const grip_off = (side) => {
 	const off = Math.max(box.value[side] || 0, GRIP_GAP);
 	return outward.value < 0 ? -off : off;
@@ -114,25 +114,31 @@ function start(side, e) {
 	opacity: 0.14;
 }
 
+/* small tick marks, not chunky pills — the hit area is widened separately so
+   they stay easy to grab (see ::before) */
 .pfb-space-grip {
 	position: absolute;
 	pointer-events: auto;
 	background: var(--spacing-color);
-	border: 1.5px solid var(--fg-color);
-	border-radius: 6px;
-	box-shadow: var(--shadow-sm);
+	border-radius: 2px;
+}
+
+.pfb-space-grip::before {
+	content: "";
+	position: absolute;
+	inset: -6px;
 }
 
 .pfb-space-grip-top,
 .pfb-space-grip-bottom {
-	width: 26px;
-	height: 6px;
+	width: 14px;
+	height: 3px;
 	cursor: ns-resize;
 }
 .pfb-space-grip-left,
 .pfb-space-grip-right {
-	width: 6px;
-	height: 26px;
+	width: 3px;
+	height: 14px;
 	cursor: ew-resize;
 }
 
