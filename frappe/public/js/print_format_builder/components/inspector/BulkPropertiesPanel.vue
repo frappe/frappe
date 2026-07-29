@@ -10,7 +10,7 @@
 			<div class="pfb-insp-row">
 				<button
 					class="es-button pfb-bulk-delete"
-					data-variant="ghost"
+					data-variant="subtle"
 					data-theme="red"
 					@click="store.remove_selected_fields()"
 				>
