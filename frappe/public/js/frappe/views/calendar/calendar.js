@@ -198,11 +198,22 @@ frappe.views.Calendar = class Calendar {
 		this.fullCalendar.setOption("height", Math.max(available, 400));
 	}
 
-	// [prev] [title] [next] ........ [Month|Week|Day] [Today]
+	// [prev] [title ⌄ → jump-to-date picker] [next] ..... [Today] [Month|Week|Day]
 	// Month/Week/Day is a radio group (you are always in exactly one);
 	// Today is an action, so it's a plain button
 	make_toolbar() {
-		this.$toolbar_title = $('<span class="text-lg-semibold text-ink-gray-8"></span>');
+		// the label is filled by the datesSet callback on first render
+		this.$toolbar_title = frappe.ui.button({
+			label: __("Calendar"),
+			variant: "ghost",
+			css_class: "text-lg-medium text-ink-gray-7",
+		});
+		this.date_popover = new frappe.ui.Popover({
+			trigger: this.$toolbar_title,
+			content: () => this.make_date_jumper(),
+			css_class: "calendar-date-jumper",
+		});
+
 		this.view_button_group = new frappe.ui.TabButtons({
 			label: __("Calendar View"),
 			options: [
@@ -232,13 +243,43 @@ frappe.views.Calendar = class Calendar {
 				onclick: () => this.fullCalendar.next(),
 			}),
 			$('<div class="grow"></div>'),
-			this.view_button_group.$el,
 			(this.today_button = frappe.ui.button({
 				label: __("Today"),
 				onclick: () => this.fullCalendar.today(),
-			}))
+			})),
+			this.view_button_group.$el
 		);
 		this.$wrapper.append(this.$toolbar);
+	}
+
+	// inline air-datepicker (the desk-standard picker) inside the title
+	// popover — picking any date jumps the calendar there in the current view
+	make_date_jumper() {
+		const wrapper = document.createElement("div");
+		let lang = (frappe.boot.user && frappe.boot.user.language) || "en";
+		if (!$.fn.datepicker.language[lang]) lang = "en";
+
+		// match the picker to the view: month view jumps by month,
+		// week/day views by day
+		const month_only = this.fullCalendar.view.type === "dayGridMonth";
+
+		let ready = false;
+		$(wrapper).datepicker({
+			language: lang,
+			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
+			...(month_only ? { view: "months", minView: "months" } : {}),
+			onSelect: (fd, date) => {
+				if (!ready || !date) return;
+				this.fullCalendar.gotoDate(date);
+				this.date_popover.close();
+			},
+		});
+		// preselect where the calendar currently is; selectDate fires
+		// onSelect synchronously, so the flag keeps it from immediately
+		// re-navigating and closing the popover
+		$(wrapper).data("datepicker").selectDate(this.fullCalendar.getDate());
+		ready = true;
+		return wrapper;
 	}
 	setup_view_mode_button(defaults) {
 		$(this.footnote_area).find(".btn-weekend").detach();
@@ -286,7 +327,9 @@ frappe.views.Calendar = class Calendar {
 			// re-render
 			headerToolbar: false,
 			datesSet: (info) => {
-				this.$toolbar_title && this.$toolbar_title.text(info.view.title);
+				// the title is an es-button now — swap only its label text
+				this.$toolbar_title &&
+					this.$toolbar_title.find(".es-button__label").text(info.view.title);
 				if (this.today_button) {
 					// no-op when the visible range already contains today
 					// (activeEnd is exclusive)

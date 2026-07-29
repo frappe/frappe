@@ -38,7 +38,7 @@ th.fc-col-header-cell {
 
 .fc-theme-standard .fc-day-today .fc-daygrid-day-number {
 	background-color: var(--surface-gray-10);
-	border-radius: var(--radius-sm);
+	border-radius: var(--radius);
 	color: var(--ink-gray-2);
 	height: 25px;
 	width: 25px;
@@ -63,7 +63,7 @@ th.fc-col-header-cell {
 // that tie with one of fc's need the extra .fc to win the cascade
 .fc .fc-event {
 	border: none !important;
-	border-radius: var(--radius-sm);
+	border-radius: var(--radius);
 }
 
 // title above, time below it
@@ -166,6 +166,18 @@ th.fc-col-header-cell {
 
 .fc .fc-timegrid-now-indicator-arrow {
 	display: none;
+}
+
+// the jump-to-date popover hugs the inline datepicker it contains
+.es-popover.calendar-date-jumper {
+	width: auto;
+	padding: 0;
+
+	.datepicker {
+		border: none;
+		background: transparent;
+		box-shadow: none;
+	}
 }
 
 #fc-calendar-wrapper .btn {
