@@ -56,6 +56,14 @@
 	grid-template-columns: 1fr;
 	gap: 4px;
 }
+/* a standalone toggle reads as label-on-left, switch-on-right (settings style),
+   so the label gets the full width instead of an 80px column that wraps it */
+.pfb-insp-row--toggle {
+	grid-template-columns: 1fr auto;
+}
+.pfb-insp-row--toggle .switch-control {
+	justify-self: end;
+}
 .pfb-insp-label {
 	font-size: var(--text-sm);
 	color: var(--text-muted);

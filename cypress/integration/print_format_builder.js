@@ -125,7 +125,7 @@ context("Print Format Builder — create flow", () => {
 		cy.get(".pfb-margin-grid", { timeout: 30000 }).should("be.visible");
 
 		cy.get(".freeze").should("not.exist");
-		cy.get('[data-testid="page-status"]').should("not.be.visible");
+		cy.get('[data-testid="page-status"]').should("contain", "Saved");
 
 		cy.contains(".pfb-margin-cell label", "Top")
 			.closest(".pfb-margin-cell")
@@ -140,7 +140,7 @@ context("Print Format Builder — create flow", () => {
 			expect(interception.response.statusCode).to.equal(200);
 			expect(Number(interception.response.body.message.margin_top)).to.equal(9);
 		});
-		cy.get('[data-testid="page-status"]').should("not.be.visible");
+		cy.get('[data-testid="page-status"]').should("contain", "Saved");
 	});
 
 	// 4. Layers tab: clicking a section scrolls to it and selects it

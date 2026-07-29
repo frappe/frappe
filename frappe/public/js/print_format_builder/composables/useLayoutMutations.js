@@ -88,6 +88,28 @@ export function useLayoutMutations(layout, selection) {
 			move_in_array(layout.value?.sections || [], selected_section.value, dir);
 		}
 	}
+	// After a bulk drag drops `dragged` (Sortable moved only that one field),
+	// pull the rest of the selected group over so they sit contiguously around
+	// it, keeping their original document order. `group` is the whole selection
+	// in document order, including `dragged`.
+	function reflow_dragged_group(dragged, group) {
+		if (!dragged || !group || group.length < 2 || !layout.value) return;
+		group
+			.filter((f) => f !== dragged)
+			.forEach((f) => {
+				const col = find_field_column(f);
+				if (col) col.fields.splice(col.fields.indexOf(f), 1);
+			});
+		const col = find_field_column(dragged);
+		if (!col) return;
+		const di = group.indexOf(dragged);
+		const before = group.slice(0, di);
+		const after = group.slice(di + 1);
+		let at = col.fields.indexOf(dragged);
+		before.forEach((f, k) => col.fields.splice(at + k, 0, f));
+		at = col.fields.indexOf(dragged) + 1;
+		after.forEach((f, k) => col.fields.splice(at + k, 0, f));
+	}
 	function insert_section(data) {
 		if (!data || !layout.value) return;
 		const clone = clone_plain(data);
@@ -136,6 +158,7 @@ export function useLayoutMutations(layout, selection) {
 		duplicate_section,
 		duplicate_selection,
 		move_selection,
+		reflow_dragged_group,
 		insert_section,
 		insert_field,
 		remove_section,

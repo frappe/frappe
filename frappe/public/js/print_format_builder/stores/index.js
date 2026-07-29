@@ -17,9 +17,15 @@ export function getStore(print_format_name) {
 	let dirty = ref(false);
 	let needs_setup = ref(false);
 	let edit_letterhead = ref(false);
-	let scroll_to_section = ref(null);
+	let scroll_target = ref(null);
 	let hovered_field = ref(null);
 	let hovered_section = ref(null);
+	let hovered_column = ref(null);
+	// the innermost hovered thing wins, so hovering a field doesn't also light up
+	// its column and section — one rule, shared by the canvas and the Layers tree
+	let hovered_node = computed(
+		() => hovered_field.value || hovered_column.value || hovered_section.value
+	);
 	const selection = useSelection();
 	const {
 		selected_field,
@@ -28,6 +34,7 @@ export function getStore(print_format_name) {
 		selected_sections,
 		selected_letterhead,
 		selected_lh_footer,
+		is_multi_select,
 		select_field,
 		set_selected,
 		set_selection,
@@ -76,6 +83,7 @@ export function getStore(print_format_name) {
 		duplicate_section,
 		duplicate_selection,
 		move_selection,
+		reflow_dragged_group,
 		insert_section,
 		insert_field,
 		remove_section,
@@ -342,14 +350,7 @@ export function getStore(print_format_name) {
 		insert_section,
 		insert_field,
 	});
-	const {
-		snippets,
-		save_snippet,
-		insert_snippet,
-		delete_snippet,
-		export_snippets,
-		import_snippets,
-	} = useSnippets({
+	const { snippets, save_snippet, insert_snippet, delete_snippet } = useSnippets({
 		insert_section,
 		insert_field,
 		doc_type: computed(() => print_format.value?.doc_type),
@@ -363,9 +364,11 @@ export function getStore(print_format_name) {
 		dirty,
 		needs_setup,
 		edit_letterhead,
-		scroll_to_section,
+		scroll_target,
 		hovered_field,
 		hovered_section,
+		hovered_column,
+		hovered_node,
 		selected_field,
 		selected_fields,
 		remove_selection,
@@ -375,6 +378,7 @@ export function getStore(print_format_name) {
 		selected_sections,
 		selected_letterhead,
 		selected_lh_footer,
+		is_multi_select,
 		preview_doc,
 		preview_doc_name,
 		preview_values,
@@ -390,6 +394,7 @@ export function getStore(print_format_name) {
 		set_selection,
 		select_field_range,
 		ordered_body_fields,
+		reflow_dragged_group,
 		select_section,
 		select_letterhead,
 		remove_section,
@@ -412,8 +417,6 @@ export function getStore(print_format_name) {
 		save_snippet,
 		insert_snippet,
 		delete_snippet,
-		export_snippets,
-		import_snippets,
 		paste_clipboard,
 		undo,
 		redo,

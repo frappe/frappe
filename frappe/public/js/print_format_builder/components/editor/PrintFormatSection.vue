@@ -7,10 +7,12 @@
 		:class="{
 			'section-container--condition-hidden': preview_doc && !is_section_visible,
 			'pfb-section-active': is_selected,
-			'pfb-layer-hover': store.hovered_section.value === section,
+			'pfb-layer-hover': store.hovered_node.value === section,
 		}"
 		@click.stop="select_section"
 		@contextmenu="on_context_menu"
+		@mouseenter="store.hovered_section.value = section"
+		@mouseleave="store.hovered_section.value = null"
 	>
 		<!-- Top-right actions pill shown on hover in clean-preview (toolbar is hidden) -->
 		<div v-if="!is_header" class="section-preview-actions">
@@ -83,8 +85,13 @@
 					<div v-if="i > 0 && !preview_doc" class="column-divider"></div>
 					<div
 						class="column"
-						:class="{ col: !!preview_doc }"
+						:class="{
+							col: !!preview_doc,
+							'pfb-column-hover': store.hovered_node.value === column,
+						}"
 						:style="column.width ? { flex: `${column.width} 1 0%` } : {}"
+						@mouseenter="store.hovered_column.value = column"
+						@mouseleave="store.hovered_column.value = null"
 					>
 						<div
 							v-if="i < section.columns.length - 1"
@@ -104,8 +111,8 @@
 							:preventOnFilter="false"
 							:emptyInsertThreshold="100"
 							v-bind="DRAG_OPTIONS"
-							@start="setDragging(true)"
-							@end="setDragging(false)"
+							@start="(e) => on_field_drag_start(column, e)"
+							@end="on_field_drag_end"
 							@add="(e) => select_dropped_field(column, e)"
 						>
 							<template #item="{ element }">
@@ -263,17 +270,24 @@ let has_visible_fields = computed(
 let section_inline_style = computed(() => {
 	const style = {};
 	if (props.section.background) style.backgroundColor = props.section.background;
-	for (const prop of ["padding", "margin"]) {
-		const box = props.section[prop];
-		if (box) {
-			style[prop] = `${box.top || 0}px ${box.right || 0}px ${box.bottom || 0}px ${
-				box.left || 0
-			}px`;
-		}
-	}
+	const box_css = (box) =>
+		`${box.top || 0}px ${box.right || 0}px ${box.bottom || 0}px ${box.left || 0}px`;
+	if (props.section.margin) style.margin = box_css(props.section.margin);
+	// In table mode, padding can't be element padding — child cell borders would
+	// stop at the content and leave a borderless strip. Instead expose it as
+	// per-side vars the grid CSS folds into the edge cells, so the dividers and
+	// border wrap the padded box. Non-grid sections keep real padding.
 	if (is_grid.value) {
-		const pad = props.section.cell_padding ?? 8;
-		style["--pfb-cell-pad"] = `${pad}px`;
+		style["--pfb-cell-pad"] = `${props.section.cell_padding ?? 8}px`;
+		const pad = props.section.padding;
+		if (pad) {
+			style["--pfb-pad-top"] = `${pad.top || 0}px`;
+			style["--pfb-pad-right"] = `${pad.right || 0}px`;
+			style["--pfb-pad-bottom"] = `${pad.bottom || 0}px`;
+			style["--pfb-pad-left"] = `${pad.left || 0}px`;
+		}
+	} else if (props.section.padding) {
+		style.padding = box_css(props.section.padding);
 	}
 	if (props.section.radius != null) {
 		style.borderRadius = `${props.section.radius}px`;
@@ -291,6 +305,29 @@ function select_dropped_field(column, e) {
 	const field = column.fields[e.newIndex];
 	if (field) store.select_field(field);
 	else store.select_section(props.section);
+}
+
+// Bulk drag: if the grabbed field is part of a multi-selection, snapshot the
+// whole group (document order) at drag start; on drop, Sortable has moved only
+// the grabbed field, so we pull the rest over to sit contiguously around it.
+let drag_group = null;
+function on_field_drag_start(column, e) {
+	setDragging(true);
+	drag_group = null;
+	const dragged = column.fields[e.oldIndex];
+	const sel = store.selected_fields.value;
+	if (dragged && sel.length > 1 && sel.includes(dragged)) {
+		const group = store.ordered_body_fields().filter((f) => sel.includes(f));
+		if (group.length > 1 && group.includes(dragged)) drag_group = { dragged, group };
+	}
+}
+function on_field_drag_end() {
+	setDragging(false);
+	if (!drag_group) return;
+	const { dragged, group } = drag_group;
+	drag_group = null;
+	store.reflow_dragged_group(dragged, group);
+	store.set_selected(group);
 }
 
 function remove_section() {
@@ -492,6 +529,13 @@ function remove_column(index) {
 	position: relative;
 }
 
+/* same ring as every other hover/selection state (--pfb-ring), so a hovered
+   column reads the same as a hovered field or section */
+.column.pfb-column-hover {
+	outline: var(--pfb-ring);
+	outline-offset: -2px;
+}
+
 .column-divider {
 	width: 1px;
 	background: var(--border-color);
@@ -626,6 +670,12 @@ function remove_column(index) {
 
 /* ── Table layout (field borders) ───────────────────────── */
 .section--grid {
+	/* section padding is folded into the edge cells (see below) so the grid
+	   dividers and border wrap it; default 0 when no padding is set */
+	--pfb-pad-top: 0px;
+	--pfb-pad-right: 0px;
+	--pfb-pad-bottom: 0px;
+	--pfb-pad-left: 0px;
 	border: 1px solid var(--gray-300);
 	border-radius: var(--border-radius-md, 8px);
 	overflow: hidden;
@@ -660,6 +710,20 @@ function remove_column(index) {
 }
 .section--grid :deep(.field--chip:last-child) {
 	border-bottom: none;
+}
+/* fold section padding into the outermost cells so the grid dividers and border
+   wrap the padded box (builder mode — preview/PDF handled in print_format_doc.css) */
+.section--grid :deep(.drag-container > .field--chip:first-child) {
+	padding-top: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-top));
+}
+.section--grid :deep(.drag-container > .field--chip:last-child) {
+	padding-bottom: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-bottom));
+}
+.section--grid .column:first-child :deep(.field--chip) {
+	padding-left: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-left));
+}
+.section--grid .column:last-child :deep(.field--chip) {
+	padding-right: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-right));
 }
 .section--grid-rows .column:not(:last-child) {
 	border-right: none;
