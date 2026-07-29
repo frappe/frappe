@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-26 10:09+0000\n"
-"PO-Revision-Date: 2026-07-28 15:10\n"
+"PO-Revision-Date: 2026-07-29 15:05\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -5505,7 +5505,7 @@ msgstr ""
 
 #: frappe/templates/emails/user_invitation.html:5
 msgid "Click below to accept your invitation and get started."
-msgstr ""
+msgstr "برای پذیرش دعوت و شروع، روی لینک زیر کلیک کنید."
 
 #: frappe/website/doctype/web_form/templates/web_form.html:167
 msgid "Click here"
@@ -6096,7 +6096,7 @@ msgstr "کامل کردن راه‌اندازی"
 
 #: frappe/templates/emails/new_user.html:1
 msgid "Complete your registration"
-msgstr ""
+msgstr "ثبت نام خود را تکمیل کنید"
 
 #. Option for the 'Status' (Select) field in DocType 'Auto Repeat'
 #. Option for the 'Status' (Select) field in DocType 'Background Task'
@@ -15995,7 +15995,7 @@ msgstr "دعوتنامه از قبل وجود دارد"
 
 #: frappe/templates/emails/user_invitation_cancelled.html:1
 msgid "Invitation cancelled"
-msgstr ""
+msgstr "دعوتنامه لغو شد"
 
 #: frappe/core/api/user_invitation.py:101
 msgid "Invitation cannot be cancelled"
@@ -16003,7 +16003,7 @@ msgstr "دعوتنامه قابل لغو نیست"
 
 #: frappe/templates/emails/user_invitation_expired.html:1
 msgid "Invitation expired"
-msgstr ""
+msgstr "دعوتنامه منقضی شد"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:130
 msgid "Invitation is cancelled"
@@ -20436,7 +20436,7 @@ msgstr ""
 
 #: frappe/public/js/print_format_builder/components/editor/FieldPreviewBarcode.vue:12
 msgid "No value to encode"
-msgstr ""
+msgstr "مقداری برای رمزگذاری وجود ندارد"
 
 #: frappe/public/js/frappe/form/controls/multiselect_list.js:301
 #: frappe/public/js/frappe/utils/utils.js:1063
@@ -20453,7 +20453,7 @@ msgstr "نه {0}"
 
 #: frappe/public/js/frappe/list/list_view.js:701
 msgid "No {0} created"
-msgstr ""
+msgstr "هیچ {0} ایجاد نشده است"
 
 #: frappe/public/js/frappe/list/list_view.js:700
 #: frappe/public/js/frappe/web_form/web_form_list.js:263
@@ -20748,7 +20748,7 @@ msgstr "یادداشت:"
 
 #: frappe/public/js/frappe/list/list_view.js:709
 msgid "Nothing has been added yet."
-msgstr ""
+msgstr "هنوز چیزی اضافه نشده است."
 
 #: frappe/public/js/frappe/form/doctype_settings/registry.js:87
 msgid "Nothing here yet"
@@ -21709,7 +21709,7 @@ msgstr "گزینه‌ها برای فیلد پیوند {0} تنظیم نشده �
 
 #: frappe/templates/emails/new_user.html:21
 msgid "Or copy and paste this link:"
-msgstr ""
+msgstr "یا این لینک را کپی و پیست کنید:"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
@@ -22063,7 +22063,7 @@ msgstr "عرض صفحه (به میلی‌متر)"
 
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:100
 msgid "Page break after"
-msgstr ""
+msgstr "شکست صفحه بعد از"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormat.vue:164
 msgid "Page break must follow a section"
@@ -22700,7 +22700,7 @@ msgstr "انتخاب ستون‌ها"
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:41
 msgid "Pick a record in the toolbar above to preview it."
-msgstr ""
+msgstr "برای پیش‌نمایش یک رکورد، آن را در نوار ابزار بالا انتخاب کنید."
 
 #: frappe/public/js/print_format_builder/PrintFormatBuilder.vue:26
 msgid "Pick a record to see real values"
@@ -23441,7 +23441,7 @@ msgstr "الگو را برای پیام ایمیل آماده کنید"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:187
 msgid "Preset name"
-msgstr ""
+msgstr "نام پیش‌تنظیم"
 
 #: frappe/public/js/frappe/ui/keyboard.js:157
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:756
@@ -23666,7 +23666,7 @@ msgstr "راهنمای قالب چاپ"
 #. Name of a DocType
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.json
 msgid "Print Format Snippet"
-msgstr ""
+msgstr "قطعه کد قالب چاپ"
 
 #. Label of the print_format_type (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -23737,7 +23737,7 @@ msgstr "تنظیمات چاپ"
 
 #: frappe/public/js/print_format_builder/PrintFormatBuilder.vue:141
 msgid "Print Settings updated"
-msgstr ""
+msgstr "تنظیمات چاپ به‌روزرسانی شد"
 
 #. Label of the print_style_section (Section Break) field in DocType 'Print
 #. Settings'
@@ -24644,7 +24644,7 @@ msgstr "قرمز"
 #. Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Redact Message After Send"
-msgstr ""
+msgstr "ویرایش پیام پس از ارسال"
 
 #. Label of the redirect_http_status (Select) field in DocType 'Website Route
 #. Redirect'
@@ -25156,7 +25156,7 @@ msgstr "حذف بخش"
 
 #: frappe/public/js/print_format_builder/components/inspector/BulkPropertiesPanel.vue:18
 msgid "Remove selected"
-msgstr ""
+msgstr "حذف انتخاب‌شده"
 
 #: frappe/public/js/form_builder/components/Tabs.vue:141
 msgid "Remove tab"
@@ -26665,7 +26665,7 @@ msgstr "سفارشی‌سازی ها را ذخیره کنید"
 
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:525
 msgid "Save Field as Snippet"
-msgstr ""
+msgstr "ذخیره فیلد به عنوان قطعه کد"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:24
 msgid "Save Print Format"
@@ -26771,7 +26771,7 @@ msgstr "ذخیره در..."
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:58
 #: frappe/public/js/print_format_builder/stores/index.js:160
 msgid "Saving…"
-msgstr ""
+msgstr "در حال ذخیره…"
 
 #: frappe/public/js/frappe/form/controls/data.js:149
 msgid "Scan"
@@ -27127,7 +27127,7 @@ msgstr "بخش باید حداقل یک ستون داشته باشد"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSection.vue:265
 msgid "Section saved as snippet"
-msgstr ""
+msgstr "بخش به عنوان قطعه کد ذخیره شد"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:30
 msgid "Section:"
@@ -27553,7 +27553,7 @@ msgstr ""
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:107
 msgid "Selection"
-msgstr ""
+msgstr "انتخاب"
 
 #: frappe/model/workflow.py:137
 msgid "Self approval is not allowed"
@@ -28703,11 +28703,11 @@ msgstr "نمایش پیوست‌ها"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:86
 msgid "Show colon after labels"
-msgstr ""
+msgstr "نمایش دونقطه بعد از برچسب‌ها"
 
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:205
 msgid "Show column when"
-msgstr ""
+msgstr "نمایش ستون هنگامی که"
 
 #: frappe/core/page/component_explorer/component_explorer.js:921
 msgid "Show custom icon"
@@ -29217,7 +29217,7 @@ msgstr ""
 #. Label of the snippet_type (Select) field in DocType 'Print Format Snippet'
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.json
 msgid "Snippet Type"
-msgstr ""
+msgstr "نوع قطعه کد"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:61
 msgid "Snippet and more variables:  {0}"
@@ -29226,7 +29226,7 @@ msgstr "Snippet و متغیرهای بیشتر: {0}"
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:509
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSection.vue:255
 msgid "Snippet name"
-msgstr ""
+msgstr "نام قطعه کد"
 
 #. Name of a DocType
 #: frappe/website/doctype/social_link_settings/social_link_settings.json
@@ -29884,7 +29884,7 @@ msgstr "ردیف های مستقیم کلیدها به راحتی قابل حد�
 
 #: frappe/www/update-password.html:42
 msgid "Strength:"
-msgstr ""
+msgstr "قدرت:"
 
 #. Label of the strip_exif_metadata_from_uploaded_images (Check) field in
 #. DocType 'System Settings'
@@ -31577,7 +31577,7 @@ msgstr "این سند دارای تغییرات ذخیره‌نشده است ک�
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:47
 msgid "This document is a draft and cannot be printed."
-msgstr ""
+msgstr "این سند پیش‌نویس است و قابل چاپ نیست."
 
 #: frappe/public/js/frappe/form/form.js:1266
 msgid "This document is already amended, you cannot ammend it again"
@@ -31585,7 +31585,7 @@ msgstr "این سند قبلاً اصلاح شده است، شما نمی‌تو
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:44
 msgid "This document is cancelled and cannot be printed."
-msgstr ""
+msgstr "این سند لغو شده و قابل چاپ نیست."
 
 #: frappe/model/document.py:795
 msgid "This document is currently locked and queued for execution. Please try again after some time."
@@ -31593,7 +31593,7 @@ msgstr "این سند در حال حاضر قفل شده و در صف اجرا �
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:84
 msgid "This document type has no printable fields."
-msgstr ""
+msgstr "این نوع سند هیچ فیلد قابل چاپی ندارد."
 
 #: frappe/templates/emails/auto_repeat_fail.html:7
 msgid "This email is autogenerated"
@@ -31623,7 +31623,7 @@ msgstr "این فیلد فقط در صورتی نمایش داده می‌شود
 
 #: frappe/public/js/print_format_builder/composables/useSnippets.js:113
 msgid "This file does not contain any snippets"
-msgstr ""
+msgstr "این فایل حاوی هیچ قطعه کدی نیست"
 
 #: frappe/core/doctype/file/file.py:604
 msgid "This file is attached to a protected document and cannot be deleted."
@@ -33464,7 +33464,7 @@ msgstr "از گذرواژه‌های قوی استفاده کنید."
 
 #: frappe/templates/emails/verification_code.html:2
 msgid "Use the code below to complete your sign-in."
-msgstr ""
+msgstr "برای تکمیل ثبت نام از کد زیر استفاده کنید."
 
 #. Description of the 'Title Field' (Data) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
@@ -34139,7 +34139,7 @@ msgstr "پیوند تأیید"
 
 #: frappe/templates/emails/verification_code.html:1
 msgid "Verification code"
-msgstr ""
+msgstr "کد تأیید"
 
 #: frappe/templates/includes/login/login.js:470
 msgid "Verification code email not sent. Please contact Administrator."
@@ -34232,7 +34232,7 @@ msgstr "مشاهده مجوزهای Doctype"
 
 #: frappe/public/js/frappe/form/info_card.js:50
 msgid "View Documentation"
-msgstr ""
+msgstr "مشاهده مستندات"
 
 #: frappe/core/doctype/file/file.js:4
 msgid "View File"
@@ -34461,7 +34461,7 @@ msgstr "ما درخواستی از شما دریافت کرده‌ایم برا�
 
 #: frappe/templates/emails/password_reset.html:3
 msgid "We received a request to reset the password for your account. Click the button below to set a new password."
-msgstr ""
+msgstr "ما درخواستی برای بازنشانی گذرواژه حساب شما دریافت کردیم. برای تنظیم گذرواژه جدید، روی دکمه زیر کلیک کنید."
 
 #: frappe/www/attribution.html:8
 msgid "We would like to thank the authors of these packages for their contribution."
@@ -36051,7 +36051,7 @@ msgstr "شما هدایت خواهید شد به:"
 
 #: frappe/templates/emails/user_invitation.html:1
 msgid "You've been invited"
-msgstr ""
+msgstr "شما دعوت شده‌اید"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:115
 msgid "You've been invited to join {0}"
@@ -36108,7 +36108,7 @@ msgstr "تخصیص شما در {0} {1} توسط {2} حذف شده است"
 
 #: frappe/integrations/google_oauth.py:203
 msgid "Your authorization attempt is invalid or has expired. Please try again."
-msgstr ""
+msgstr "تلاش شما برای احراز هویت نامعتبر است یا منقضی شده است. لطفاً دوباره امتحان کنید."
 
 #: frappe/core/doctype/file/file.js:98
 msgid "Your browser does not support the audio element."
@@ -36144,11 +36144,11 @@ msgstr "دعوت شما برای عضویت {0} منقضی شده است."
 
 #: frappe/templates/emails/new_user.html:8
 msgid "Your login ID is:"
-msgstr ""
+msgstr "شناسه ورود شما:"
 
 #: frappe/utils/oauth.py:232
 msgid "Your login attempt is invalid or has expired. Please try again."
-msgstr ""
+msgstr "تلاش شما برای ورود نامعتبر است یا منقضی شده است. لطفاً دوباره امتحان کنید."
 
 #: frappe/www/update-password.html:179
 msgid "Your new password has been set successfully."
