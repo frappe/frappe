@@ -1208,7 +1208,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "List",
 		title: "List",
 		icon: LucideList,
-		group: "List",
+		isGroup: true,
 		blockTemplate: "list",
 	},
 	ListRows: {
@@ -1248,7 +1248,7 @@ export const COMPONENTS: FrappeUIComponents = {
 	},
 	ListHeaderCellSort: {
 		name: "ListHeaderCellSort",
-		title: "List Header Cell (Sortable)",
+		title: "List Header Cell Sort",
 		icon: LucideArrowUpDown,
 		group: "List",
 	},
@@ -1273,20 +1273,20 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "SettingsDialog",
 		title: "Settings Dialog",
 		icon: LucideSettings,
-		group: "Settings Dialog",
+		isGroup: true,
 		blockTemplate: "settings-dialog",
 	},
 	SettingsSidebar: {
 		name: "SettingsSidebar",
 		title: "Settings Sidebar",
 		icon: LucideSidebar,
-		group: "Settings Dialog",
+		group: "SettingsDialog",
 	},
 	SettingsNavGroup: {
 		name: "SettingsNavGroup",
 		title: "Settings Nav Group",
 		icon: LucideSidebar,
-		group: "Settings Dialog",
+		group: "SettingsDialog",
 		initialState: {
 			label: "Group",
 		},
@@ -1295,7 +1295,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "SettingsNavItem",
 		title: "Settings Nav Item",
 		icon: LucideSidebar,
-		group: "Settings Dialog",
+		group: "SettingsDialog",
 		initialState: {
 			value: "tab",
 		},
@@ -1304,13 +1304,13 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "SettingsContent",
 		title: "Settings Content",
 		icon: LucideAppWindowMac,
-		group: "Settings Dialog",
+		group: "SettingsDialog",
 	},
 	SettingsPanel: {
 		name: "SettingsPanel",
 		title: "Settings Panel",
 		icon: LucideAppWindowMac,
-		group: "Settings Dialog",
+		group: "SettingsDialog",
 		initialState: {
 			value: "tab",
 		},
@@ -1319,7 +1319,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "SettingsHeader",
 		title: "Settings Header",
 		icon: LucideFrame,
-		group: "Settings Dialog",
+		group: "SettingsDialog",
 		initialState: {
 			title: "Section",
 		},
@@ -1328,13 +1328,13 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "SettingsBody",
 		title: "Settings Body",
 		icon: LucideAppWindowMac,
-		group: "Settings Dialog",
+		group: "SettingsDialog",
 	},
 	SettingsRow: {
 		name: "SettingsRow",
 		title: "Settings Row",
 		icon: LucideRows3,
-		group: "Settings Dialog",
+		group: "SettingsDialog",
 		initialState: {
 			title: "Setting",
 			description: "",
@@ -1365,36 +1365,27 @@ function isFrameworkUIAvailable() {
 }
 
 function getComponentGroups(list: FrappeUIComponent[]) {
-	// Components with an explicit `group` (compound families like List / Settings
-	// Dialog) get their own panel section, keeping the family together. Everything
-	// else falls back to grouping by source library.
-	const families = getFamilyGroups(list)
-	const ungrouped = list.filter((c) => !c.group)
+	// Partition components into panel sections by library source. Family parts stay in
+	// `components` here; the panel drops them from the top grid (showing only the family
+	// primary tile) and reveals them in the primary's tray — but keeps them while
+	// searching so a part like ListHeader surfaces directly.
+	const inFrappe = (c: FrappeUIComponent) => isFrappeUIComponent(c.name)
+	const inFramework = (c: FrappeUIComponent) => isFrameworkUIComponent(c.name)
 
-	const inFrappe = (name: string) => isFrappeUIComponent(name)
-	const inFramework = (name: string) => isFrameworkUIComponent(name)
 	const groups = [
-		{ label: "Core", components: ungrouped.filter((c) => !inFrappe(c.name) && !inFramework(c.name)) },
-		{ label: "Frappe UI", components: ungrouped.filter((c) => inFrappe(c.name)) },
-		...families,
+		{ label: "Core", components: list.filter((c) => !inFrappe(c) && !inFramework(c)) },
+		{ label: "Frappe UI", components: list.filter(inFrappe) },
 	]
 	if (isFrameworkUIAvailable()) {
-		groups.push({ label: "Framework UI", components: ungrouped.filter((c) => inFramework(c.name)) })
+		groups.push({ label: "Framework UI", components: list.filter(inFramework) })
 	}
 	return groups.filter((group) => group.components.length)
 }
 
-// One section per family `group`, in first-seen order (which follows the COMPONENTS
-// declaration order, so a family's tiles stay in the order they're defined).
-function getFamilyGroups(list: FrappeUIComponent[]) {
-	const byGroup = new Map<string, FrappeUIComponent[]>()
-	for (const component of list) {
-		if (!component.group) continue
-		const members = byGroup.get(component.group) || []
-		members.push(component)
-		byGroup.set(component.group, members)
-	}
-	return Array.from(byGroup, ([label, components]) => ({ label, components }))
+// A family's parts are the components whose `group` names this primary. The primary tile
+// drops the whole tree (via blockTemplate); each part is droppable on its own.
+function getParts(primaryName: string) {
+	return Object.values(COMPONENTS).filter((c) => c.group === primaryName)
 }
 
 function getProxyComponent(name: string) {
@@ -1414,6 +1405,7 @@ export default {
 	isFrameworkUIComponent,
 	isFrameworkUIAvailable,
 	getComponentGroups,
+	getParts,
 	get,
 }
 

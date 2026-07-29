@@ -36,23 +36,39 @@
 							<LucideFlaskConical class="h-3.5 w-3.5 text-ink-amber-6" />
 						</Tooltip>
 					</template>
-					<div class="grid grid-cols-3 items-start gap-x-2 gap-y-4">
-						<div v-for="component in componentGroup.components" :key="component.name" class="flex flex-col">
+					<!-- A family primary shows a stacked edge + part count; clicking it opens a tray
+					     of its parts right below. While searching, every match (parts included)
+					     shows as a plain tile so nothing stays hidden behind a family. -->
+					<div v-if="gridTiles(componentGroup).length" class="grid grid-cols-3 items-start gap-x-2 gap-y-4">
+						<template v-for="component in gridTiles(componentGroup)" :key="component.name">
+							<ComponentTile
+								:component="component"
+								:stacked="!isSearching && component.isGroup"
+								:count="!isSearching && component.isGroup ? partsCount(component) : undefined"
+								@click="onTileClick(component)"
+							/>
+							<!-- In-place tray: parts of the expanded family, spanning the full grid width. -->
 							<div
-								class="user-component group flex cursor-grab flex-col items-center justify-center gap-3 text-ink-gray-6 transition-all duration-200 hover:scale-105"
-								draggable="true"
-								:data-component-name="component.name"
+								v-if="!isSearching && component.isGroup && expandedFamily === component.name"
+								class="col-span-full mt-1 rounded-lg border border-outline-gray-2 bg-surface-gray-1 p-3"
 							>
-								<div
-									class="flex h-16 w-16 flex-col items-center justify-center rounded-lg border border-outline-gray-2 bg-surface-gray-1 p-3 transition-all duration-200 group-hover:border-outline-gray-3 group-hover:bg-surface-gray-2 group-hover:shadow-sm"
-								>
-									<component :is="component.icon" class="h-6 w-6" />
+								<div class="mb-3 flex items-center justify-between">
+									<span class="text-xs font-medium uppercase tracking-wide text-ink-gray-5">
+										{{ component.title }} Components
+									</span>
+									<button
+										type="button"
+										class="rounded p-0.5 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7"
+										@click="expandedFamily = null"
+									>
+										<LucideX class="h-3.5 w-3.5" />
+									</button>
 								</div>
-								<span class="w-full text-balance text-center text-xs leading-normal">
-									{{ component.title }}
-								</span>
+								<div class="grid grid-cols-3 items-start gap-x-2 gap-y-4">
+									<ComponentTile v-for="part in partsFor(component)" :key="part.name" :component="part" />
+								</div>
 							</div>
-						</div>
+						</template>
 					</div>
 				</CollapsibleSection>
 			</template>
@@ -147,10 +163,12 @@ import { computed, ref, watch, nextTick } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { Dropdown, FeatherIcon, Tooltip } from "frappe-ui"
 import LucideFlaskConical from "~icons/lucide/flask-conical"
+import LucideX from "~icons/lucide/x"
 import OptionToggle from "@/components/OptionToggle.vue"
 import Input from "@/components/Input.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
+import ComponentTile from "@/components/ComponentTile.vue"
 
 import components from "@/data/components"
 import { studioComponents } from "@/data/studioComponents"
@@ -160,7 +178,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import useStudioStore from "@/stores/studioStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import { confirm } from "@/utils/helpers"
-import type { leftPanelComponentTabOptions } from "@/types"
+import type { leftPanelComponentTabOptions, FrappeUIComponent } from "@/types"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
 import type { CustomVueComponentMeta } from "@/types/vue"
 import LucideCode from "~icons/lucide/code"
@@ -203,6 +221,27 @@ const customVueComponents = computed(() => {
 const standardComponentGroups = computed(() =>
 	components.getComponentGroups((componentList.value as any[]) || []),
 )
+
+// While searching, sections flatten: every matching component (parts included) shows as
+// a plain tile. Otherwise the grid shows standalone components + family primaries, with
+// each family's parts tucked into a tray opened from its tile.
+const isSearching = computed(() => Boolean(componentFilter.value))
+
+function gridTiles(group: { components: FrappeUIComponent[] }) {
+	if (isSearching.value) return group.components
+	const tiles = group.components.filter((c) => !c.group)
+	// primaries last so their tray opens at the bottom of the grid, not mid-row
+	return [...tiles.filter((c) => !c.isGroup), ...tiles.filter((c) => c.isGroup)]
+}
+
+const partsFor = (component: FrappeUIComponent) => components.getParts(component.name)
+const partsCount = (component: FrappeUIComponent) => partsFor(component).length
+
+const expandedFamily = ref<string | null>(null)
+function onTileClick(component: FrappeUIComponent) {
+	if (isSearching.value || !component.isGroup) return
+	expandedFamily.value = expandedFamily.value === component.name ? null : component.name
+}
 
 const activeTab = computed(() => store.studioLayout.leftPanelComponentTab)
 

@@ -12,9 +12,9 @@ import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useStudioStore from "@/stores/studioStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
-import type { ContextMenuOption, ContextMenuGroup } from "@/types"
+import type { ContextMenuOption, ContextMenuGroup, FrappeUIComponent } from "@/types"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
-import { getBlockCopy, getComponentBlock } from "@/utils/serializer"
+import { getBlockCopy, getBlockInstance, getComponentBlock } from "@/utils/serializer"
 import getBlockTemplate from "@/utils/blockTemplate"
 import FormDialog from "@/components/FormDialog.vue"
 import components from "@/data/components"
@@ -53,7 +53,12 @@ const addComponent = (
 ) => {
 	const targetBlock = block.value
 	if (!targetBlock) return
-	const newBlock = getComponentBlock(componentName, isStudioComponent, isCustomVueComponent)
+	// Compound components (List, Settings Dialog, Header) drop their whole tree via
+	// a block template, mirroring canvas drag-drop; the rest add a single block.
+	const blockTemplate = components.get(componentName)?.blockTemplate
+	const newBlock = blockTemplate
+		? getBlockInstance(getBlockTemplate(blockTemplate as any))
+		: getComponentBlock(componentName, isStudioComponent, isCustomVueComponent)
 	if (selectedSlot.value) {
 		newBlock.parentSlotName = selectedSlot.value
 	}
@@ -61,13 +66,24 @@ const addComponent = (
 }
 
 const componentSubmenu = computed<ContextMenuGroup[]>(() => {
+	const toOption = (component: FrappeUIComponent): ContextMenuOption => ({
+		label: component.title,
+		icon: component.icon,
+		action: () => addComponent(component.name),
+	})
+	// A family primary nests into a submenu (mirrors the panel's tile + tray): the primary
+	// itself drops the whole tree, followed by its individually droppable parts.
+	const toSectionOption = (component: FrappeUIComponent): ContextMenuOption =>
+		component.isGroup
+			? {
+					label: component.title,
+					icon: component.icon,
+					submenu: [{ options: [toOption(component), ...components.getParts(component.name).map(toOption)] }],
+				}
+			: toOption(component)
 	const groups: ContextMenuGroup[] = components.getComponentGroups(components.list).map((group) => ({
 		label: group.label,
-		options: group.components.map((component) => ({
-			label: component.title,
-			icon: component.icon,
-			action: () => addComponent(component.name),
-		})),
+		options: group.components.filter((c) => !c.group).map(toSectionOption),
 	}))
 
 	if (store.customVueComponents?.length) {
