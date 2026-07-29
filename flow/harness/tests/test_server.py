@@ -130,6 +130,27 @@ def test_allowed_roots_fences_cwd(tmp_path):
 	assert c.post("/sessions", json={"cwd": str(tmp_path / "elsewhere")}).status_code == 400
 
 
+def test_corrupt_log_reports_where_and_spares_other_sessions(tmp_path):
+	c = _client(tmp_path)
+	broken = c.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
+	healthy = c.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
+	good_line = json.dumps({"seq": 1, "type": "user_message", "content": "ok"}) + "\n"
+	log = tmp_path / "data" / "sessions" / f"{broken}.jsonl"
+	log.write_text(good_line + '{"seq":2,"type":"bad\n')
+	restarted = _client(tmp_path)  # a fresh store caches nothing
+
+	response = restarted.get(f"/sessions/{broken}")
+
+	assert response.status_code == 500
+	detail = response.json()["detail"]
+	assert detail["error"] == "session_log_corrupt"
+	assert detail["line"] == 2
+	assert detail["offset"] == len(good_line.encode())
+	assert str(tmp_path) not in json.dumps(detail)  # never leak the on-disk path
+	# one damaged session must not take the rest of the daemon down
+	assert restarted.get(f"/sessions/{healthy}").status_code == 200
+
+
 def test_allowed_roots_expand_home_relative_paths(tmp_path, monkeypatch):
 	home = tmp_path / "home"
 	(home / "projects").mkdir(parents=True)
