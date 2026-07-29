@@ -14,9 +14,6 @@
 				<div v-else-if="!preview_loaded" class="pfb-preview-empty">
 					<span class="pfb-preview-spinner" aria-hidden="true"></span>
 					<span>{{ __("Generating preview…") }}</span>
-					<span class="pfb-preview-hint">{{
-						__("Rendering the PDF for this record")
-					}}</span>
 				</div>
 				<iframe
 					v-show="docname && preview_loaded && !unprintable_reason"
@@ -164,11 +161,6 @@ onUnmounted(() => {
 	border-radius: var(--radius-lg, 8px);
 	font-size: var(--text-sm);
 	color: var(--text-color);
-}
-
-.pfb-preview-hint {
-	font-size: var(--text-xs);
-	color: var(--text-muted);
 }
 
 .pfb-preview-spinner {
