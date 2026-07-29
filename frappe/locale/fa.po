@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-26 10:10+0000\n"
-"PO-Revision-Date: 2026-07-28 15:07\n"
+"PO-Revision-Date: 2026-07-29 15:05\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -4959,7 +4959,7 @@ msgstr "روی سفارشی‌سازی کلیک کنید تا اولین ویج�
 
 #: frappe/templates/emails/user_invitation.html:5
 msgid "Click below to accept your invitation and get started."
-msgstr ""
+msgstr "برای پذیرش دعوت و شروع، روی لینک زیر کلیک کنید."
 
 #: frappe/website/doctype/web_form/templates/web_form.html:165
 msgid "Click here"
@@ -5522,7 +5522,7 @@ msgstr "کامل کردن راه‌اندازی"
 
 #: frappe/templates/emails/new_user.html:1
 msgid "Complete your registration"
-msgstr ""
+msgstr "ثبت نام خود را تکمیل کنید"
 
 #. Option for the 'Status' (Select) field in DocType 'Auto Repeat'
 #. Option for the 'Status' (Select) field in DocType 'Prepared Report'
@@ -14551,7 +14551,7 @@ msgstr "دعوتنامه از قبل وجود دارد"
 
 #: frappe/templates/emails/user_invitation_cancelled.html:1
 msgid "Invitation cancelled"
-msgstr ""
+msgstr "دعوتنامه لغو شد"
 
 #: frappe/core/api/user_invitation.py:101
 msgid "Invitation cannot be cancelled"
@@ -14559,7 +14559,7 @@ msgstr "دعوتنامه قابل لغو نیست"
 
 #: frappe/templates/emails/user_invitation_expired.html:1
 msgid "Invitation expired"
-msgstr ""
+msgstr "دعوتنامه منقضی شد"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:128
 msgid "Invitation is cancelled"
@@ -19583,7 +19583,7 @@ msgstr "گزینه‌ها برای فیلد پیوند {0} تنظیم نشده �
 
 #: frappe/templates/emails/new_user.html:21
 msgid "Or copy and paste this link:"
-msgstr ""
+msgstr "یا این لینک را کپی و پیست کنید:"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
@@ -22267,7 +22267,7 @@ msgstr "قرمز"
 #. Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Redact Message After Send"
-msgstr ""
+msgstr "ویرایش پیام پس از ارسال"
 
 #. Label of the redirect_http_status (Select) field in DocType 'Website Route
 #. Redirect'
@@ -22868,11 +22868,11 @@ msgstr "تکثیر"
 
 #: frappe/core/doctype/role_replication/role_replication.js:8
 msgid "Replicating..."
-msgstr ""
+msgstr "در حال تکثیر..."
 
 #: frappe/core/doctype/role_replication/role_replication.js:13
 msgid "Replication completed."
-msgstr ""
+msgstr "تکثیر کامل شد."
 
 #. Option for the 'Status' (Select) field in DocType 'Contact'
 #. Option for the 'Status' (Select) field in DocType 'Communication'
@@ -23613,7 +23613,7 @@ msgstr "نمایه‌های نقش"
 #. Name of a DocType
 #: frappe/core/doctype/role_replication/role_replication.json
 msgid "Role Replication"
-msgstr ""
+msgstr "تکثیر نقش"
 
 #. Label of the role_and_level (Section Break) field in DocType 'Custom
 #. DocPerm'
@@ -30088,7 +30088,7 @@ msgstr "از گذرواژه‌های قوی استفاده کنید."
 
 #: frappe/templates/emails/verification_code.html:2
 msgid "Use the code below to complete your sign-in."
-msgstr ""
+msgstr "برای تکمیل ثبت نام از کد زیر استفاده کنید."
 
 #: frappe/printing/page/print/print.js:302
 msgid "Use the new Print Format Builder"
@@ -30707,7 +30707,7 @@ msgstr "پیوند تأیید"
 
 #: frappe/templates/emails/verification_code.html:1
 msgid "Verification code"
-msgstr ""
+msgstr "کد تأیید"
 
 #: frappe/templates/includes/login/login.js:421
 msgid "Verification code email not sent. Please contact Administrator."
@@ -30774,7 +30774,7 @@ msgstr "مشاهده مجوزهای Doctype"
 
 #: frappe/public/js/frappe/form/info_card.js:50
 msgid "View Documentation"
-msgstr ""
+msgstr "مشاهده مستندات"
 
 #: frappe/core/doctype/file/file.js:4
 msgid "View File"
@@ -30984,7 +30984,7 @@ msgstr "ما درخواستی از شما دریافت کرده‌ایم برا�
 
 #: frappe/templates/emails/password_reset.html:3
 msgid "We received a request to reset the password for your account. Click the button below to set a new password."
-msgstr ""
+msgstr "ما درخواستی برای بازنشانی گذرواژه حساب شما دریافت کردیم. برای تنظیم گذرواژه جدید، روی دکمه زیر کلیک کنید."
 
 #: frappe/www/attribution.html:12
 msgid "We would like to thank the authors of these packages for their contribution."
@@ -32414,7 +32414,7 @@ msgstr "شما هدایت خواهید شد به:"
 
 #: frappe/templates/emails/user_invitation.html:1
 msgid "You've been invited"
-msgstr ""
+msgstr "شما دعوت شده‌اید"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:113
 msgid "You've been invited to join {0}"
@@ -32467,7 +32467,7 @@ msgstr "تخصیص شما در {0} {1} توسط {2} حذف شده است"
 
 #: frappe/integrations/google_oauth.py:203
 msgid "Your authorization attempt is invalid or has expired. Please try again."
-msgstr ""
+msgstr "تلاش شما برای احراز هویت نامعتبر است یا منقضی شده است. لطفاً دوباره امتحان کنید."
 
 #: frappe/core/doctype/file/file.js:94
 msgid "Your browser does not support the audio element."
@@ -32503,11 +32503,11 @@ msgstr "دعوت شما برای عضویت {0} منقضی شده است."
 
 #: frappe/templates/emails/new_user.html:8
 msgid "Your login ID is:"
-msgstr ""
+msgstr "شناسه ورود شما:"
 
 #: frappe/utils/oauth.py:232
 msgid "Your login attempt is invalid or has expired. Please try again."
-msgstr ""
+msgstr "تلاش شما برای ورود نامعتبر است یا منقضی شده است. لطفاً دوباره امتحان کنید."
 
 #: frappe/www/update-password.html:196
 msgid "Your new password has been set successfully."
