@@ -374,6 +374,22 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertTrue(uses_beta_renderer(classic))
 		self.assertTrue(uses_beta_renderer(beta))
 
+	def test_standard_jinja_format_stays_off_the_beta_renderer(self):
+		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+
+		# app-shipped Jinja format: html lives in the module's .html file, so there is
+		# no format_data for the beta renderer to read
+		doc = frappe.new_doc("Print Format")
+		doc.name = "_Test Standard Jinja Format"
+		doc.doc_type = "User"
+		doc.module = "Core"
+		doc.standard = "Yes"
+		doc.custom_format = 0
+		doc.before_save()
+
+		self.assertEqual(doc.print_format_builder_beta, 0)
+		self.assertFalse(uses_beta_renderer(doc))
+
 	def test_convert_print_format_document(self):
 		from frappe.printing.doctype.print_format.classic_converter import convert_print_format
 
