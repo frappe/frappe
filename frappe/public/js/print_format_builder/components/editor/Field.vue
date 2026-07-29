@@ -4,6 +4,7 @@
 			preview_doc ? preview_root.classes : 'field field--chip',
 			{
 				'field--selected': is_selected,
+				'field--layer-hover': store.hovered_field.value === df,
 				'field--preview': !!preview_doc,
 				'field--condition-hidden': preview_doc && !is_field_visible,
 			},
@@ -301,13 +302,11 @@ const props = defineProps(["df", "field_orientation"]);
 function label_text_style(df) {
 	return {
 		...(df.label_color ? { color: df.label_color } : {}),
-		...(df.label_bold ? { fontWeight: 600 } : {}),
 	};
 }
 function value_text_style(df) {
 	return {
 		...(df.value_color ? { color: df.value_color } : {}),
-		...(df.value_bold ? { fontWeight: 600 } : {}),
 	};
 }
 
@@ -796,6 +795,16 @@ watch(
 
 .field--preview.field--selected {
 	outline: 1px solid var(--gray-400);
+	outline-offset: 1px;
+}
+
+.field--chip.field--layer-hover {
+	border-style: solid;
+	border-color: var(--gray-500);
+}
+
+.field--preview.field--layer-hover {
+	outline: 1px dashed var(--gray-400);
 	outline-offset: 1px;
 }
 

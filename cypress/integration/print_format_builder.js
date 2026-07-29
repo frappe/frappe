@@ -122,8 +122,7 @@ context("Print Format Builder — create flow", () => {
 		cy.intercept("POST", "api/method/frappe.client.save").as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Setting']", { timeout: 30000 }).click();
-		cy.get(".pfb-margin-grid").should("be.visible");
+		cy.get(".pfb-margin-grid", { timeout: 30000 }).should("be.visible");
 
 		cy.get(".freeze").should("not.exist");
 		cy.get('[data-testid="page-status"]').should("not.be.visible");
@@ -144,8 +143,8 @@ context("Print Format Builder — create flow", () => {
 		cy.get('[data-testid="page-status"]').should("not.be.visible");
 	});
 
-	// 4. Outline tab: clicking a section scrolls to it and selects it
-	it("outline tab selects a section on click", () => {
+	// 4. Layers tab: clicking a section scrolls to it and selects it
+	it("layers tab selects a section on click", () => {
 		cy.visit("/app");
 
 		insert_builder_format(PF_NAME, [
@@ -155,7 +154,7 @@ context("Print Format Builder — create flow", () => {
 
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Outline']", { timeout: 30000 }).click();
+		cy.get(".pfb-tab[title='Layers']", { timeout: 30000 }).click();
 		cy.contains(".pfb-tree-row", "Beta").click();
 
 		cy.get(".pfb-inspector").should("contain", "Section");
@@ -183,7 +182,7 @@ context("Print Format Builder — create flow", () => {
 
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Outline']", { timeout: 30000 }).click();
+		cy.get(".pfb-tab[title='Layers']", { timeout: 30000 }).click();
 		cy.contains(".pfb-tree-row", "Details").click();
 
 		cy.get(".print-format-container").click();
@@ -198,7 +197,7 @@ context("Print Format Builder — create flow", () => {
 		cy.get(".pfb-breadcrumb").should("not.exist");
 	});
 
-	// 6. Format tab: font size change is reflected in canvas
+	// 6. Settings (inspector): font size change is reflected in canvas
 	it("font size change applies to canvas preview", () => {
 		cy.visit("/app");
 
@@ -207,8 +206,7 @@ context("Print Format Builder — create flow", () => {
 		cy.intercept("POST", "api/method/frappe.client.save").as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Setting']", { timeout: 30000 }).click();
-		cy.get(".pfb-margin-grid").should("be.visible");
+		cy.get(".pfb-margin-grid", { timeout: 30000 }).should("be.visible");
 
 		cy.contains("label", "Font Size")
 			.closest(".form-group")
@@ -253,8 +251,8 @@ context("Print Format Builder — create flow", () => {
 			});
 	});
 
-	// 8. Format tab: label color uses the Frappe Color control and persists on save
-	it("Format tab: label color persists on save", () => {
+	// 8. Settings (inspector): label color uses the Frappe Color control and persists on save
+	it("settings label color persists on save", () => {
 		cy.visit("/app");
 
 		insert_builder_format(PF_NAME, []);
@@ -262,8 +260,7 @@ context("Print Format Builder — create flow", () => {
 		cy.intercept("POST", "api/method/frappe.client.save").as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Setting']", { timeout: 30000 }).click();
-		cy.get(".pfb-margin-grid").should("be.visible");
+		cy.get(".pfb-margin-grid", { timeout: 30000 }).should("be.visible");
 
 		// The color field is rendered with Frappe's ControlColor (adds .selected-color swatch)
 		cy.get('[data-fieldname="label_color"] .selected-color').should("exist");

@@ -97,11 +97,6 @@
 
 		<InspectorSection :label="__('Print')" :init-open="false">
 			<ToggleRow
-				:label="__('Page break after')"
-				:model-value="!!selected_section.page_break"
-				@update:model-value="(v) => (selected_section.page_break = v)"
-			/>
-			<ToggleRow
 				:label="__('Keep together')"
 				:model-value="!!selected_section.keep_together"
 				@update:model-value="(v) => (selected_section.keep_together = v)"
