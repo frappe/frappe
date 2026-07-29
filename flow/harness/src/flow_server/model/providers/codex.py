@@ -413,7 +413,9 @@ async def _codex_events(
 		model=model.model,
 		response_model=response_model,
 		response_id=response_id,
-		stop_reason="tool_use" if tool_calls and stop_reason != "aborted" else stop_reason,
+		# only a plain stop upgrades: an incomplete response keeps "length" so its
+		# possibly-truncated calls are never executed
+		stop_reason="tool_use" if tool_calls and stop_reason == "stop" else stop_reason,
 	)
 	yield usage
 
