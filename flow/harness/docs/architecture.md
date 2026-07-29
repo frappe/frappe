@@ -81,6 +81,9 @@ replay can place it in source-call order without rewriting the append-only log.
 Unresolved calls in a durable approval pause are deliberately excluded: they are
 pending work, not interrupted work.
 
+Replay then enforces the pairing the providers require: the first result for a call
+wins, and a result matching no call in the open batch is dropped rather than forwarded.
+
 ## Session & config (`session/store.py`)
 
 - **`SessionConfig`** (a Pydantic model, sent per-session by any client) is the whole
