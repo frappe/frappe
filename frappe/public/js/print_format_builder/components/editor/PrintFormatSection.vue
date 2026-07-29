@@ -140,6 +140,7 @@
 			<template v-if="show_spacing_handles">
 				<SectionSpacingHandles :section="section" type="margin" />
 				<SectionSpacingHandles :section="section" type="padding" />
+				<SectionRadiusHandle :section="section" />
 			</template>
 		</div>
 		<div class="page-break-indicator" v-if="section.page_break">
@@ -163,6 +164,7 @@ import draggable from "vuedraggable";
 import Field from "./Field.vue";
 import SectionActions from "./SectionActions.vue";
 import SectionSpacingHandles from "./SectionSpacingHandles.vue";
+import SectionRadiusHandle from "./SectionRadiusHandle.vue";
 import { computed, inject } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
 import {
