@@ -182,6 +182,12 @@ class TextDelta(_Event):
 	durable: bool = Field(default=False, exclude=True)
 
 
+class ThinkingDelta(_Event):
+	type: Literal["thinking_delta"] = "thinking_delta"
+	thinking: str
+	durable: bool = Field(default=False, exclude=True)
+
+
 class ToolCallStarted(_Event):
 	type: Literal["tool_call_started"] = "tool_call_started"
 	id: str
@@ -221,6 +227,7 @@ AnyEvent = (
 	| RunEnded
 	| RunError
 	| TextDelta
+	| ThinkingDelta
 	| ToolCallStarted
 	| RetryScheduled
 	| RetryStarted
