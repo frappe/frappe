@@ -159,6 +159,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	load_report(route_options) {
+		this.side_panel?.close();
 		this.page.clear_inner_toolbar();
 		this.page.clear_menu();
 		this.route = frappe.get_route();
@@ -2359,6 +2360,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.$loading = $(this.message_div("")).hide().appendTo(this.page.main);
 		this.$report = $('<div class="report-wrapper">').appendTo(this.page.main);
 		this.$message = $(this.message_div("")).hide().appendTo(this.page.main);
+
+		this.side_panel = frappe.ui.report_link_preview.setup({
+			$click_area: this.$report,
+			$mount_parent: this.page.main,
+		});
 	}
 
 	show_status(status_message) {

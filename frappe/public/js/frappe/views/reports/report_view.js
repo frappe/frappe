@@ -66,6 +66,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.page.main.parent().addClass("report-view");
 	}
 
+	setup_link_preview_panel() {
+		this.side_panel = frappe.ui.report_link_preview.setup({
+			$click_area: this.$datatable_wrapper,
+			$mount_parent: this.$frappe_list,
+		});
+	}
+
 	setup_events() {
 		if (this.list_view_settings?.disable_auto_refresh) {
 			return;
@@ -84,6 +91,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.setup_charts_area();
 		this.$datatable_wrapper = $('<div class="datatable-wrapper">');
 		this.$result.append(this.$datatable_wrapper);
+		this.setup_link_preview_panel();
 		this.settings.onload && this.settings.onload(this);
 	}
 

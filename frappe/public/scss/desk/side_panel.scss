@@ -1,0 +1,148 @@
+// Default width; side_panel.js overrides it inline when resized or restored.
+$side-panel-width: 480px;
+
+.side-panel-preview {
+	position: fixed;
+	top: var(--navbar-height, 0px);
+	right: 0;
+	bottom: 0;
+	width: $side-panel-width;
+	max-width: 90vw;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	background-color: var(--surface-base);
+	border-left: 1px solid var(--outline-gray-2);
+	outline: none;
+	// Below #freeze (1020) so the panel dims with the page; the row-edit popup itself is
+	// teleported to <body> (side_panel.js) so it still beats freeze despite this.
+	z-index: 100;
+
+	&.hidden {
+		display: none;
+	}
+
+	&.side-panel-resizing {
+		user-select: none;
+	}
+
+	.side-panel-header {
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: calc(var(--spacing) * 2);
+		padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2) calc(var(--spacing) * 1.5)
+			calc(var(--spacing) * 3);
+		background-color: var(--surface-gray-1);
+	}
+
+	.side-panel-title {
+		display: flex;
+		align-items: center;
+		gap: calc(var(--spacing) * 1.5);
+		flex: 1;
+		min-width: 0;
+		font-size: var(--text-sm);
+		line-height: 1.4;
+	}
+
+	.side-panel-doctype {
+		color: var(--ink-gray-5);
+		flex-shrink: 1;
+	}
+
+	.side-panel-title-sep {
+		color: var(--ink-gray-4);
+		flex-shrink: 0;
+	}
+
+	.side-panel-docname {
+		font-weight: var(--font-weight-medium);
+		color: var(--ink-gray-8);
+		min-width: 0;
+	}
+
+	.side-panel-indicator {
+		flex-shrink: 0;
+	}
+
+	.side-panel-actions {
+		display: flex;
+		align-items: center;
+		gap: calc(var(--spacing) * 0.5);
+		flex-shrink: 0;
+	}
+
+	.side-panel-body {
+		position: relative;
+		flex: 1;
+		min-height: 0;
+		overflow-y: auto;
+
+		.page-head {
+			display: none;
+		}
+
+		.layout-side-section {
+			display: none;
+		}
+
+		// Out-specifies page.scss's width rules for these — no form sidebar to leave room for.
+		.page-body,
+		.layout-main,
+		.layout-main-section-wrapper {
+			width: 100%;
+			flex: 1 1 100%;
+		}
+
+		.form-page {
+			box-shadow: none;
+			border: none;
+		}
+
+		.form-tabs-list {
+			margin: 0 var(--padding-md);
+
+			.form-tabs .nav-item:first-child .nav-link {
+				margin-left: 0;
+			}
+
+			.form-tabs .nav-item:last-child .nav-link {
+				margin-right: 0;
+			}
+		}
+	}
+}
+
+// A sibling of .side-panel-preview so the grip can straddle its border. `right` is kept
+// in sync with the panel width in JS.
+.side-panel-resize-handle {
+	position: fixed;
+	top: var(--navbar-height, 0px);
+	right: $side-panel-width - 4px;
+	bottom: 0;
+	width: 8px;
+	cursor: col-resize;
+	z-index: 101;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	&.hidden {
+		display: none;
+	}
+
+	.side-panel-resize-grip {
+		width: 3px;
+		height: 32px;
+		border-radius: var(--radius-full, 9999px);
+		background-color: var(--outline-gray-3);
+		transition: background-color 120ms ease;
+	}
+
+	&:hover .side-panel-resize-grip,
+	&.side-panel-resizing .side-panel-resize-grip {
+		background-color: var(--ink-gray-4);
+	}
+}

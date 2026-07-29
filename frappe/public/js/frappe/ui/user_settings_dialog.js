@@ -30,6 +30,7 @@ frappe.ui.show_user_settings = async function (default_tab) {
 			"list_sidebar",
 			"bulk_actions",
 			"view_switcher",
+			"report_link_preview",
 			"form_sidebar",
 			"timeline",
 			"dashboard",
@@ -69,6 +70,7 @@ frappe.ui.show_user_settings = async function (default_tab) {
 					_appearance_tab(),
 					_preferences_tab(user_data || {}),
 					_lists_tab(user_data || {}),
+					_reports_tab(user_data || {}),
 					_forms_tab(user_data || {}),
 					_session_defaults_tab(),
 					_keyboard_shortcuts_tab(),
@@ -593,6 +595,43 @@ function _lists_tab(user_data) {
 		],
 		render(panel) {
 			_bind_switch_autosave(panel, ["list_sidebar", "bulk_actions", "view_switcher"]);
+		},
+	};
+}
+
+// ─── Reports ──────────────────────────────────────────────────────────────────
+
+function _reports_tab(user_data) {
+	return {
+		id: "reports",
+		label: __("Reports"),
+		icon: "chart-column",
+		title: __("Reports"),
+		description: __("Configure report view behaviour."),
+		fields: [
+			{
+				fieldtype: "Switch",
+				fieldname: "report_link_preview",
+				label: __("Preview documents in side panel"),
+				description: __(
+					"In report views, open a document link in a side panel preview instead of navigating to the full page."
+				),
+				default: user_data.report_link_preview,
+			},
+		],
+		render(panel) {
+			_bind_switch_autosave(panel, ["report_link_preview"]);
+
+			// Keep the boot copy in sync so the report link-preview toggle takes effect
+			// immediately (its click handler reads frappe.boot.desk_settings), no reload.
+			const ctrl = panel.fieldgroup.fields_dict["report_link_preview"];
+			if (ctrl && ctrl.$input) {
+				ctrl.$input.on("change", () => {
+					if (frappe.boot.desk_settings) {
+						frappe.boot.desk_settings.report_link_preview = ctrl.get_value() ? 1 : 0;
+					}
+				});
+			}
 		},
 	};
 }

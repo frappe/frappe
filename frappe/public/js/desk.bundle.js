@@ -38,6 +38,9 @@ import "./frappe/ui/sidebar/sidebar.js";
 import "./frappe/ui/sidebar/card.html";
 import "./frappe/ui/sidebar/card.js";
 import "./frappe/ui/link_preview.js";
+import "./frappe/ui/side_panel.js";
+import "./frappe/ui/side_panel_form_preview.js";
+import "./frappe/ui/report_link_preview.js";
 
 import "./frappe/request.js";
 import "./frappe/socketio_client.js";

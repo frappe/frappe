@@ -47,6 +47,7 @@ desk_properties = (
 	"list_sidebar",
 	"bulk_actions",
 	"view_switcher",
+	"report_link_preview",
 	"form_sidebar",
 	"form_navigation_buttons",
 	"timeline",
@@ -127,6 +128,7 @@ class User(Document):
 		onboarding_status: DF.SmallText | None
 		phone: DF.Data | None
 		redirect_url: DF.SmallText | None
+		report_link_preview: DF.Check
 		reset_password_key: DF.Data | None
 		restrict_ip: DF.SmallText | None
 		role_profile_name: DF.Link | None
