@@ -24,6 +24,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 import json
+import random
 import uuid
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
@@ -35,6 +36,9 @@ from flow_server.events import (
 	ApprovalRequired,
 	AssistantMessage,
 	PendingCall,
+	RetryExhausted,
+	RetryScheduled,
+	RetryStarted,
 	RunEnded,
 	RunError,
 	RunStarted,
@@ -45,7 +49,8 @@ from flow_server.events import (
 	Usage,
 	UserMessage,
 )
-from flow_server.model import Model, ModelRequest, get_model
+from flow_server.model import Model, ModelRequest, ProviderError, get_model
+from flow_server.model.errors import credential_refresh_error
 from flow_server.model.model import ModelCancelled, await_with_cancellation, iterate_with_cancellation
 from flow_server.model.resolver import resolve_model_auth
 from flow_server.session.store import PendingApproval, Session, pending_approval
@@ -67,6 +72,10 @@ class HookDecision:
 BeforeHook = Callable[[ToolCall, ToolContext], Any]
 AfterHook = Callable[[ToolCall, ToolResult], Any]
 RunReason = Literal["done", "length", "max_turns", "budget", "aborted", "error", "paused"]
+_RETRY_BASE_DELAY_SECONDS = 0.5
+_RETRY_MAX_BACKOFF_SECONDS = 8.0
+_RETRY_MAX_PROVIDER_DELAY_SECONDS = 60.0
+_MAX_TRANSIENT_RETRIES = 2
 
 
 class ResumeError(ValueError):
@@ -165,8 +174,18 @@ async def _run_with_lifecycle(session: Session, operation: Awaitable[RunReason])
 	if failures:
 		reason = "error"
 		message = "; ".join(f"{type(exc).__name__}: {exc}" for exc in failures)
+		provider_error = next((exc for exc in failures if isinstance(exc, ProviderError)), None)
 		try:
-			session.publish(RunError(message=message))
+			session.publish(
+				RunError(
+					message=message,
+					kind=provider_error.kind if provider_error else None,
+					retryable=provider_error.retryable if provider_error else None,
+					status_code=provider_error.status_code if provider_error else None,
+					provider=provider_error.provider if provider_error else None,
+					detail=provider_error.detail if provider_error else None,
+				)
+			)
 		finally:
 			session.publish(RunEnded(reason=reason))
 	else:
@@ -183,6 +202,7 @@ async def _loop(
 	after_tool_call: AfterHook | None,
 ) -> RunReason:
 	cfg = session.config
+	refresh_model: Callable[[], Awaitable[Model]] | None = None
 	if model is None:
 		auth = await await_with_cancellation(
 			resolve_model_auth(
@@ -199,6 +219,40 @@ async def _loop(
 			api_base=auth.base_url,
 			headers=auth.headers,
 		)
+		if auth.source == "OAuth" and auth.api_key is not None:
+
+			async def refresh_provider_model() -> Model:
+				nonlocal auth, model
+				rejected_token = auth.api_key
+				try:
+					auth = await await_with_cancellation(
+						resolve_model_auth(
+							cfg.model,
+							session.credentials,
+							credential_id=cfg.credential_id,
+							refresh_access_token=rejected_token,
+						),
+						session.abort,
+					)
+					model = get_model(
+						cfg.model,
+						api_key=auth.api_key,
+						api_base=auth.base_url,
+						headers=auth.headers,
+					)
+				except ModelCancelled:
+					raise
+				except Exception as exc:
+					# Token refresh is a separate provider call, so its failures must reach the loop as ProviderError.
+					raise credential_refresh_error(
+						exc,
+						provider=auth.provider_id or cfg.model.partition("/")[0],
+					) from exc
+				return model
+
+			refresh_model = refresh_provider_model
+
+	assert model is not None
 	server_tools = _server_tools(session)
 	tool_schemas = [t.to_schema() for t in server_tools.values()] + cfg.client_tools
 	ctx = _make_ctx(session)
@@ -211,7 +265,12 @@ async def _loop(
 		if session.abort.is_set():
 			return "aborted"
 
-		assistant, used = await _model_call(session, model, tool_schemas)
+		assistant, used = await _model_call(
+			session,
+			model,
+			tool_schemas,
+			refresh_model=refresh_model,
+		)
 		if assistant is None:
 			raise RuntimeError("model stream ended without an assistant message")
 		session.messages.append(assistant)
@@ -283,33 +342,125 @@ async def _handle_call(
 
 
 async def _model_call(
-	session: Session, model: Model, tool_schemas: list[dict]
+	session: Session,
+	model: Model,
+	tool_schemas: list[dict],
+	*,
+	refresh_model: Callable[[], Awaitable[Model]] | None = None,
 ) -> tuple[AssistantMessage | None, int]:
+	"""Run one model turn, retrying only before its durable terminal events commit."""
 	cfg = session.config
-	assistant: AssistantMessage | None = None
-	output_tokens = 0
-	partial_text: list[str] = []
-	request = ModelRequest(
-		messages=session.messages,
-		tools=tool_schemas,
-		system_prompt=cfg.system_prompt,
-		stream=cfg.stream,
-		cancellation=session.abort,
-	)
-	events = model.run(request)
-	try:
-		async for ev in iterate_with_cancellation(events, session.abort):
-			if isinstance(ev, AssistantMessage):
-				assistant = ev
-			elif isinstance(ev, Usage):
-				output_tokens = ev.output_tokens
-			elif isinstance(ev, TextDelta):
-				partial_text.append(ev.text)
-			session.publish(ev)  # assistant/usage are durable; text/tool-call deltas are live-only
-	except ModelCancelled:
-		assistant = _aborted_assistant(session, model, "".join(partial_text))
-		session.publish(assistant)
-	return assistant, output_tokens
+	current_model = model
+	attempt = 1
+	max_attempts = 1 + _MAX_TRANSIENT_RETRIES + (1 if refresh_model is not None else 0)
+	credential_refresh_used = False
+	transient_retries_used = 0
+
+	while True:
+		assistant: AssistantMessage | None = None
+		output_tokens = 0
+		partial_text: list[str] = []
+		buffered: list[Any] = []
+		request = ModelRequest(
+			messages=session.messages,
+			tools=tool_schemas,
+			system_prompt=cfg.system_prompt,
+			stream=cfg.stream,
+			cancellation=session.abort,
+		)
+		events = current_model.run(request)
+		try:
+			async for ev in iterate_with_cancellation(events, session.abort):
+				if isinstance(ev, AssistantMessage):
+					assistant = ev
+				elif isinstance(ev, Usage):
+					output_tokens = ev.output_tokens
+				elif isinstance(ev, TextDelta):
+					partial_text.append(ev.text)
+				if ev.durable:
+					buffered.append(ev)
+				else:
+					session.publish(ev)
+		except ModelCancelled:
+			assistant = _aborted_assistant(session, current_model, "".join(partial_text))
+			session.publish(assistant)
+			return assistant, output_tokens
+		except ProviderError as error:
+			delay = _retry_delay_seconds(error, transient_retries_used)
+			can_refresh = (
+				error.kind == "auth"
+				and error.retryable
+				and refresh_model is not None
+				and not credential_refresh_used
+			)
+			# Do not retry when the provider asks us to wait longer than Flow allows.
+			can_retry = (
+				error.retryable
+				and error.kind != "auth"
+				and transient_retries_used < _MAX_TRANSIENT_RETRIES
+				and delay <= _RETRY_MAX_PROVIDER_DELAY_SECONDS
+			)
+			if not can_refresh and not can_retry:
+				if attempt > 1:  # close a retry lifecycle this call actually opened
+					session.publish(
+						RetryExhausted(
+							attempts=attempt,
+							kind=error.kind,
+						)
+					)
+				_publish_provider_failure(
+					session,
+					current_model,
+					error,
+					text="".join(partial_text),
+				)
+				raise
+
+			next_attempt = attempt + 1
+			if can_refresh:
+				delay = 0.0
+			session.publish(
+				RetryScheduled(
+					attempt=next_attempt,
+					max_attempts=max_attempts,
+					delay_seconds=delay,
+					kind=error.kind,
+				)
+			)
+			await await_with_cancellation(asyncio.sleep(delay), session.abort)
+			if can_refresh:
+				assert refresh_model is not None
+				try:
+					current_model = await await_with_cancellation(refresh_model(), session.abort)
+				except ModelCancelled:
+					raise
+				except ProviderError as refresh_error:
+					session.publish(
+						RetryExhausted(
+							attempts=attempt,
+							kind=refresh_error.kind,
+						)
+					)
+					_publish_provider_failure(session, current_model, refresh_error)
+					raise
+				credential_refresh_used = True
+			else:
+				transient_retries_used += 1
+			session.publish(RetryStarted(attempt=next_attempt))
+			attempt = next_attempt
+			continue
+		except Exception:
+			# Non-provider exceptions keep the old custom-model behavior: commit any
+			# durable events already yielded, then let the error fail the run.
+			for ev in buffered:
+				session.publish(ev)
+			raise
+
+		if assistant is None:
+			raise RuntimeError("model stream ended without an assistant message")
+		for ev in buffered:
+			session.publish(ev)
+		return assistant, output_tokens
 
 
 # --- tool dispatch & confirmation ----------------------------------------
@@ -495,6 +646,37 @@ async def _maybe_await(value: Any, cancellation: asyncio.Event) -> Any:
 def _raise_if_aborted(session: Session) -> None:
 	if session.abort.is_set():
 		raise ModelCancelled
+
+
+def _retry_delay_seconds(error: ProviderError, retry_index: int) -> float:
+	"""Honour the provider's own retry hint, else jittered exponential backoff.
+
+	An oversized hint is returned as-is; the caller decides that a wait that long
+	means the call is not worth retrying at all.
+	"""
+	if error.retry_after_seconds is not None:
+		return error.retry_after_seconds
+	base = min(_RETRY_BASE_DELAY_SECONDS * (2**retry_index), _RETRY_MAX_BACKOFF_SECONDS)
+	return random.uniform(base * 0.75, base)
+
+
+def _publish_provider_failure(
+	session: Session,
+	model: Model,
+	error: ProviderError,
+	*,
+	text: str = "",
+) -> None:
+	message = AssistantMessage(
+		content=[TextContent(text=text)] if text else [],
+		api=getattr(model, "api", "unknown"),
+		provider=error.provider,
+		model=getattr(model, "model", None) or getattr(model, "name", None) or session.config.model,
+		stop_reason="error",
+		error_message=str(error),
+	)
+	session.publish(message)
+	session.messages.append(message)
 
 
 def _aborted_assistant(session: Session, model: Model | None = None, text: str = "") -> AssistantMessage:
