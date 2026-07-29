@@ -76,7 +76,7 @@ to 2000 lines / 50 KB. Mutating/executing tools default
 | `read_file` | `path`, `offset?`, `limit?` | — | 1-indexed line paging; head-truncates with a continuation hint |
 | `write` | `path`, `content` | ✓ | creates parent dirs; overwrites |
 | `edit` | `path`, `edits: [{old, new}]` | ✓ | multi-edit; each `old` must occur exactly once; non-overlapping; all-or-nothing; LF-normalized match with BOM/CRLF preserved; emits a unified diff in `details` |
-| `grep` | `pattern`, `path?` | — | ripgrep if available, else `grep`; match count in `details` |
+| `grep` | `pattern`, `path?` | — | ripgrep if available, else `grep`; the pattern is passed after `--` so it can never be read as an option; match count in `details` |
 
 **Trust note:** `ALLOWED_ROOTS` is a path policy for the path-taking builtins, not an OS
 sandbox. In particular, `bash` can access anything available to the daemon process. A

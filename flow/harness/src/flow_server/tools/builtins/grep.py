@@ -12,10 +12,12 @@ async def grep(pattern: str, path: str = ".", *, ctx: ToolContext) -> ToolResult
 	"""Search files for a regex pattern (uses ripgrep if available) and return matches."""
 	target = resolve(ctx, path)
 	rg = shutil.which("rg")
+	# `--` ends the option list: without it a pattern like "-L" is read as a flag, which
+	# shifts `target` out of its slot and searches the daemon's cwd instead of the root.
 	if rg:
-		cmd = [rg, "--line-number", "--no-heading", "--color=never", pattern, target]
+		cmd = [rg, "--line-number", "--no-heading", "--color=never", "--", pattern, target]
 	else:
-		cmd = ["grep", "-rn", pattern, target]
+		cmd = ["grep", "-rn", "--", pattern, target]
 	proc = await asyncio.create_subprocess_exec(
 		*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT
 	)

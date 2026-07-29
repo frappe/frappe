@@ -223,7 +223,8 @@ directory without an external single-writer coordinator.
 
 - **`ALLOWED_ROOTS`** — a session's `cwd` and every path passed to `read_file`, `write`,
   `edit`, or `grep` are realpath-resolved (defeating normal symlink/`..` escapes) and
-  must sit under a configured root. Stored sessions are revalidated when loaded.
+  must sit under a configured root. The configured roots themselves are `~`-expanded;
+  addressed paths are not. Stored sessions are revalidated when loaded.
   Empty = unrestricted (dev).
 - **`session_id`** must match `^[A-Za-z0-9_-]{1,64}$` — the id lands in on-disk
   filenames, so an unvalidated `../../etc/x` would be an arbitrary-file-write hole.
