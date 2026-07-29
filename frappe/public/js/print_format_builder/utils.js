@@ -2,6 +2,15 @@ export function clone_plain(obj) {
 	return JSON.parse(JSON.stringify(obj));
 }
 
+// stable per-object id used to map a field's DOM node back to its object
+// (fields have no persistent id of their own) — e.g. for marquee selection
+const _field_uids = new WeakMap();
+let _field_uid_seq = 0;
+export function field_uid(df) {
+	if (!_field_uids.has(df)) _field_uids.set(df, "pfb-f-" + ++_field_uid_seq);
+	return _field_uids.get(df);
+}
+
 export function read_json(key, fallback = null) {
 	try {
 		return JSON.parse(localStorage.getItem(key)) || fallback;

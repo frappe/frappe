@@ -28,12 +28,34 @@ export function getStore(print_format_name) {
 		selected_letterhead,
 		selected_lh_footer,
 		select_field,
+		set_selected,
 		select_section,
 		select_letterhead,
 		remove_selected_fields,
 		remove_field,
 		align_selected_fields,
 	} = selection;
+
+	// body fields flattened in layout order — shared by shift-range and marquee select
+	function ordered_body_fields() {
+		const out = [];
+		for (const section of layout.value?.sections || []) {
+			for (const column of section.columns || []) {
+				for (const field of column.fields || []) {
+					if (!field.remove) out.push(field);
+				}
+			}
+		}
+		return out;
+	}
+	function select_field_range(target) {
+		const all = ordered_body_fields();
+		const ti = all.indexOf(target);
+		const ai = selected_field.value ? all.indexOf(selected_field.value) : -1;
+		if (ti === -1 || ai === -1) return select_field(target);
+		const [lo, hi] = ai <= ti ? [ai, ti] : [ti, ai];
+		set_selected(all.slice(lo, hi + 1));
+	}
 	const {
 		duplicate_field,
 		duplicate_section,
@@ -348,6 +370,9 @@ export function getStore(print_format_name) {
 		save_status,
 		get_preview_format_doc,
 		select_field,
+		set_selected,
+		select_field_range,
+		ordered_body_fields,
 		select_section,
 		select_letterhead,
 		remove_section,

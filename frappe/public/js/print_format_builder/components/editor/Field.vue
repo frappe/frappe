@@ -12,6 +12,7 @@
 		:style="preview_doc ? preview_root.style : undefined"
 		:data-fieldname="preview_data_attr(df.fieldname)"
 		:data-fieldtype="preview_data_attr(df.fieldtype)"
+		:data-field-uid="field_uid(df)"
 		v-show="!df.remove"
 		:title="df.label || df.fieldname"
 		:aria-label="df.label || df.fieldname"
@@ -293,7 +294,12 @@ import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
 import FieldPreviewBarcode from "./FieldPreviewBarcode.vue";
 import FieldPreviewRepeater from "./FieldPreviewRepeater.vue";
 import FieldPreviewTable from "./FieldPreviewTable.vue";
-import { render_jinja_html, evaluate_visible_if, parse_inline_style } from "../../utils";
+import {
+	render_jinja_html,
+	evaluate_visible_if,
+	parse_inline_style,
+	field_uid,
+} from "../../utils";
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
 import { useFieldFormat } from "../../composables/useFieldFormat";
 import { useContextMenu } from "../../composables/useContextMenu";
@@ -451,14 +457,22 @@ const { preview_value, preview_value_html, rating_stars, multiselect_display } =
 );
 
 function select_field(e) {
-	const additive = !!(e && (e.metaKey || e.ctrlKey || e.shiftKey));
+	if (e && e.shiftKey && !e.metaKey && !e.ctrlKey) {
+		store.select_field_range(props.df);
+		return;
+	}
+	const additive = !!(e && (e.metaKey || e.ctrlKey));
 	store.select_field(props.df, additive);
 	if (!additive && props.df.fieldtype !== "HTML") {
 		editing.value = true;
 	}
 }
 function kbd_select(e) {
-	store.select_field(props.df, !!(e.shiftKey || e.metaKey || e.ctrlKey));
+	if (e && e.shiftKey && !e.metaKey && !e.ctrlKey) {
+		store.select_field_range(props.df);
+		return;
+	}
+	store.select_field(props.df, !!(e.metaKey || e.ctrlKey));
 }
 
 let short_fieldtype = computed(() => {

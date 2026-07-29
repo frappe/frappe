@@ -54,6 +54,7 @@
 				class="print-format-container"
 				:style="{ '--pfb-zoom': canvas_zoom / 100 }"
 				@click="clear_selection"
+				@pointerdown="on_canvas_pointerdown"
 			>
 				<PrintFormatSetup
 					v-if="$store.needs_setup.value"
@@ -66,6 +67,18 @@
 		<FieldInspector />
 		<Preview v-if="show_preview" @close="show_preview = false" />
 		<ContextMenu />
+		<Teleport to="body">
+			<div
+				v-if="marquee"
+				class="pfb-marquee"
+				:style="{
+					left: marquee.x + 'px',
+					top: marquee.y + 'px',
+					width: marquee.w + 'px',
+					height: marquee.h + 'px',
+				}"
+			></div>
+		</Teleport>
 	</div>
 </template>
 
@@ -77,6 +90,7 @@ import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
 import ContextMenu from "./components/editor/ContextMenu.vue";
 import { getStore } from "./stores";
+import { field_uid } from "./utils";
 import { computed, ref, onMounted, onUnmounted, provide, nextTick } from "vue";
 
 const props = defineProps(["print_format_name"]);
@@ -150,8 +164,75 @@ async function open_print_settings() {
 }
 
 function clear_selection() {
+	// a marquee drag ends with a click on the canvas — don't let it wipe the result
+	if (suppress_next_click) {
+		suppress_next_click = false;
+		return;
+	}
 	$store.value.selected_field.value = null;
 	$store.value.selected_section.value = null;
+}
+
+// ── Marquee (rubber-band) selection ──────────────────────────
+const marquee = ref(null);
+let marquee_start = null;
+let marquee_base = [];
+let suppress_next_click = false;
+const MARQUEE_THRESHOLD = 4;
+
+// controls that should start their own interaction, never a marquee
+const MARQUEE_IGNORE =
+	".field--preview, .field--chip, button, input, textarea, select, a, [contenteditable]," +
+	" .section-toolbar, .drag-handle, .col-width-handle, .field-preview-actions," +
+	" .section-preview-actions, .empty-drop-zone, .canvas-toolbar";
+
+function on_canvas_pointerdown(e) {
+	if (e.button !== 0 || e.target.closest(MARQUEE_IGNORE)) return;
+	marquee_start = { x: e.clientX, y: e.clientY };
+	marquee_base =
+		e.shiftKey || e.metaKey || e.ctrlKey ? $store.value.selected_fields.value.slice() : [];
+	window.addEventListener("pointermove", on_canvas_pointermove);
+	window.addEventListener("pointerup", on_canvas_pointerup);
+}
+
+function on_canvas_pointermove(e) {
+	if (!marquee_start) return;
+	const x = Math.min(marquee_start.x, e.clientX);
+	const y = Math.min(marquee_start.y, e.clientY);
+	const w = Math.abs(e.clientX - marquee_start.x);
+	const h = Math.abs(e.clientY - marquee_start.y);
+	// only engage once it's a real drag, so plain clicks still clear selection
+	if (!marquee.value && w < MARQUEE_THRESHOLD && h < MARQUEE_THRESHOLD) return;
+	marquee.value = { x, y, w, h };
+	update_marquee_selection();
+}
+
+function update_marquee_selection() {
+	const box = marquee.value;
+	if (!box) return;
+	const hits = marquee_base.slice();
+	const seen = new Set(hits);
+	for (const df of $store.value.ordered_body_fields()) {
+		if (seen.has(df)) continue;
+		const el = document.querySelector(`[data-field-uid="${field_uid(df)}"]`);
+		if (!el) continue;
+		const r = el.getBoundingClientRect();
+		const hit =
+			r.left < box.x + box.w && r.right > box.x && r.top < box.y + box.h && r.bottom > box.y;
+		if (hit) {
+			seen.add(df);
+			hits.push(df);
+		}
+	}
+	$store.value.set_selected(hits);
+}
+
+function on_canvas_pointerup() {
+	window.removeEventListener("pointermove", on_canvas_pointermove);
+	window.removeEventListener("pointerup", on_canvas_pointerup);
+	suppress_next_click = !!marquee.value;
+	marquee.value = null;
+	marquee_start = null;
 }
 
 function on_start_default() {
@@ -412,6 +493,8 @@ onMounted(() => {
 
 onUnmounted(() => {
 	document.removeEventListener("keydown", handle_keydown);
+	window.removeEventListener("pointermove", on_canvas_pointermove);
+	window.removeEventListener("pointerup", on_canvas_pointerup);
 	sidebar_observer_ref?.disconnect();
 });
 
@@ -600,5 +683,15 @@ defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 
 .print-format-container :deep(.print-format-main) {
 	zoom: var(--pfb-zoom, 1);
+}
+
+/* teleported to <body>, so --pfb-accent (scoped to .builder-root) isn't in scope */
+.pfb-marquee {
+	position: fixed;
+	z-index: 1040;
+	border: 1px solid var(--blue-400);
+	background: rgba(97, 175, 239, 0.12);
+	border-radius: 2px;
+	pointer-events: none;
 }
 </style>

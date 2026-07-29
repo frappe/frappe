@@ -22,6 +22,14 @@ export function useSelection() {
 		selected_letterhead.value = false;
 		selected_lh_footer.value = false;
 	}
+	function set_selected(fields) {
+		const arr = (fields || []).slice();
+		selected_fields.value = arr;
+		selected_field.value = arr[arr.length - 1] || null;
+		selected_section.value = null;
+		selected_letterhead.value = false;
+		selected_lh_footer.value = false;
+	}
 	watch(selected_field, (nf) => {
 		if (!nf) {
 			if (selected_fields.value.length) selected_fields.value = [];
@@ -63,6 +71,7 @@ export function useSelection() {
 		selected_letterhead,
 		selected_lh_footer,
 		select_field,
+		set_selected,
 		select_section,
 		select_letterhead,
 		remove_selected_fields,
