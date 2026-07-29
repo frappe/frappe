@@ -1,5 +1,5 @@
 import { defineAsyncComponent } from "vue"
-import { FRAPPE_UI_COMPONENTS, FRAMEWORK_UI_COMPONENTS } from "@/utils/constants"
+import { FRAPPE_UI_COMPONENTS, FRAPPE_UI_MOLECULES, FRAMEWORK_UI_COMPONENTS } from "@/utils/constants"
 
 import type { FrappeUIComponents, FrappeUIComponent } from "@/types"
 
@@ -69,6 +69,7 @@ import LucideRows3 from "~icons/lucide/rows-3"
 import LucideUpload from "~icons/lucide/upload"
 import LucidePaperclip from "~icons/lucide/paperclip"
 import LucideInbox from "~icons/lucide/inbox"
+import LucideSettings from "~icons/lucide/settings"
 
 export const COMPONENTS: FrappeUIComponents = {
 	TextBlock: {
@@ -1197,6 +1198,162 @@ export const COMPONENTS: FrappeUIComponents = {
 			side: "right",
 		},
 	},
+	// --- List family (frappe-ui/list) ---------------------------------------
+	// Shown together under the "List" panel group. `List` drops the whole tree via
+	// its block template as a ready starter; every part is also droppable on its
+	// own so a list can be composed by hand (e.g. plain ListHeaderCell instead of
+	// the sortable one). Content-holding parts get a default slot so a freshly
+	// dropped instance is a valid drop target.
+	List: {
+		name: "List",
+		title: "List",
+		icon: LucideList,
+		group: "List",
+		blockTemplate: "list",
+	},
+	ListRows: {
+		name: "ListRows",
+		title: "List Rows",
+		icon: LucideRows3,
+		group: "List",
+		initialSlots: ["default"],
+		// items drives iteration and is read unguarded inside ListRows — default to
+		// an empty array so a bare drop doesn't throw before it's bound to data.
+		initialState: {
+			items: [],
+		},
+	},
+	ListRow: {
+		name: "ListRow",
+		title: "List Row",
+		icon: LucideRows3,
+		group: "List",
+		initialSlots: ["default"],
+	},
+	ListCell: {
+		name: "ListCell",
+		title: "List Cell",
+		icon: LucideColumns3,
+		group: "List",
+		initialSlots: ["default"],
+	},
+	ListHeader: {
+		name: "ListHeader",
+		title: "List Header",
+		icon: LucideColumns3,
+		group: "List",
+		initialSlots: ["default"],
+	},
+	ListHeaderCell: {
+		name: "ListHeaderCell",
+		title: "List Header Cell",
+		icon: LucideColumns3,
+		group: "List",
+		initialSlots: ["default"],
+	},
+	ListHeaderCellSort: {
+		name: "ListHeaderCellSort",
+		title: "List Header Cell (Sortable)",
+		icon: LucideArrowUpDown,
+		group: "List",
+		initialSlots: ["default"],
+	},
+	ListGroup: {
+		name: "ListGroup",
+		title: "List Group",
+		icon: LucideList,
+		group: "List",
+		initialSlots: ["default"],
+		initialState: {
+			label: "Group",
+		},
+	},
+	// --- SettingsDialog family ----------------------------------------------
+	// Shown together under the "Settings Dialog" panel group. `SettingsDialog` drops
+	// the whole tree via its block template. NOTE: it renders as a teleported modal
+	// and needs a dedicated proxy to be visible/editable on the canvas (next step) —
+	// until then it seeds the tree (visible in Layers) but renders nothing on the
+	// page. The Sidebar / NavItem / Panel parts are reka-ui Tabs pieces that need a
+	// SettingsDialog ancestor; dropped on their own they fail to render (contained
+	// by StudioComponent's error boundary) until drop constraints land.
+	SettingsDialog: {
+		name: "SettingsDialog",
+		title: "Settings Dialog",
+		icon: LucideSettings,
+		group: "Settings Dialog",
+		blockTemplate: "settings-dialog",
+	},
+	SettingsSidebar: {
+		name: "SettingsSidebar",
+		title: "Settings Sidebar",
+		icon: LucideSidebar,
+		group: "Settings Dialog",
+		initialSlots: ["default"],
+	},
+	SettingsNavGroup: {
+		name: "SettingsNavGroup",
+		title: "Settings Nav Group",
+		icon: LucideSidebar,
+		group: "Settings Dialog",
+		initialSlots: ["default"],
+		initialState: {
+			label: "Group",
+		},
+	},
+	SettingsNavItem: {
+		name: "SettingsNavItem",
+		title: "Settings Nav Item",
+		icon: LucideSidebar,
+		group: "Settings Dialog",
+		initialSlots: ["default"],
+		initialState: {
+			value: "tab",
+		},
+	},
+	SettingsContent: {
+		name: "SettingsContent",
+		title: "Settings Content",
+		icon: LucideAppWindowMac,
+		group: "Settings Dialog",
+		initialSlots: ["default"],
+	},
+	SettingsPanel: {
+		name: "SettingsPanel",
+		title: "Settings Panel",
+		icon: LucideAppWindowMac,
+		group: "Settings Dialog",
+		initialSlots: ["default"],
+		initialState: {
+			value: "tab",
+		},
+	},
+	SettingsHeader: {
+		name: "SettingsHeader",
+		title: "Settings Header",
+		icon: LucideFrame,
+		group: "Settings Dialog",
+		initialState: {
+			title: "Section",
+		},
+	},
+	SettingsBody: {
+		name: "SettingsBody",
+		title: "Settings Body",
+		icon: LucideAppWindowMac,
+		group: "Settings Dialog",
+		initialSlots: ["default"],
+	},
+	SettingsRow: {
+		name: "SettingsRow",
+		title: "Settings Row",
+		icon: LucideRows3,
+		group: "Settings Dialog",
+		initialSlots: ["default"],
+		initialState: {
+			title: "Setting",
+			description: "",
+		},
+	},
 }
 
 const proxyComponentMap = new Map<string, any>()
@@ -1207,7 +1364,7 @@ Object.values(COMPONENTS).forEach((component: FrappeUIComponent) => {
 })
 
 function isFrappeUIComponent(name: string) {
-	return FRAPPE_UI_COMPONENTS.includes(name)
+	return FRAPPE_UI_COMPONENTS.includes(name) || FRAPPE_UI_MOLECULES.includes(name)
 }
 
 function isFrameworkUIComponent(name: string) {
@@ -1222,16 +1379,36 @@ function isFrameworkUIAvailable() {
 }
 
 function getComponentGroups(list: FrappeUIComponent[]) {
+	// Components with an explicit `group` (compound families like List / Settings
+	// Dialog) get their own panel section, keeping the family together. Everything
+	// else falls back to grouping by source library.
+	const families = getFamilyGroups(list)
+	const ungrouped = list.filter((c) => !c.group)
+
 	const inFrappe = (name: string) => isFrappeUIComponent(name)
 	const inFramework = (name: string) => isFrameworkUIComponent(name)
 	const groups = [
-		{ label: "Core", components: list.filter((c) => !inFrappe(c.name) && !inFramework(c.name)) },
-		{ label: "Frappe UI", components: list.filter((c) => inFrappe(c.name)) },
+		{ label: "Core", components: ungrouped.filter((c) => !inFrappe(c.name) && !inFramework(c.name)) },
+		{ label: "Frappe UI", components: ungrouped.filter((c) => inFrappe(c.name)) },
+		...families,
 	]
 	if (isFrameworkUIAvailable()) {
-		groups.push({ label: "Framework UI", components: list.filter((c) => inFramework(c.name)) })
+		groups.push({ label: "Framework UI", components: ungrouped.filter((c) => inFramework(c.name)) })
 	}
 	return groups.filter((group) => group.components.length)
+}
+
+// One section per family `group`, in first-seen order (which follows the COMPONENTS
+// declaration order, so a family's tiles stay in the order they're defined).
+function getFamilyGroups(list: FrappeUIComponent[]) {
+	const byGroup = new Map<string, FrappeUIComponent[]>()
+	for (const component of list) {
+		if (!component.group) continue
+		const members = byGroup.get(component.group) || []
+		members.push(component)
+		byGroup.set(component.group, members)
+	}
+	return Array.from(byGroup, ([label, components]) => ({ label, components }))
 }
 
 function getProxyComponent(name: string) {

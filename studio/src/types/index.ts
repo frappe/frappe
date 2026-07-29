@@ -105,6 +105,7 @@ export interface FrappeUIComponent {
 	expandArrayProps?: boolean // whether to render array props optimally using ArrayInput instead of as Code
 	blockTemplate?: string // to specify a block template to be used instead of a vue component when this component is dragged into the canvas
 	isCustomVueComponent?: boolean // whether this is a dynamically registered custom Vue component
+	group?: string // panel section for a family of related components (e.g. "List", "Settings Dialog"); overrides the library-source grouping
 }
 
 export interface FrappeUIComponents {

@@ -43,6 +43,28 @@ export const FRAPPE_UI_COMPONENTS = [
 	"AxisChart",
 	"NumberChart",
 	"DonutChart",
+	// SettingsDialog family
+	"SettingsDialog",
+	"SettingsSidebar",
+	"SettingsNavGroup",
+	"SettingsNavItem",
+	"SettingsContent",
+	"SettingsPanel",
+	"SettingsHeader",
+	"SettingsBody",
+	"SettingsRow",
+]
+
+// frappe-ui "molecules"
+export const FRAPPE_UI_MOLECULES = [
+	"List",
+	"ListRows",
+	"ListRow",
+	"ListCell",
+	"ListHeader",
+	"ListHeaderCell",
+	"ListHeaderCellSort",
+	"ListGroup",
 ]
 // Legacy frappe-ui/frappe components. Filter and Link now ship from @framework/ui
 // (see FRAMEWORK_UI_COMPONENTS), so this list is currently empty.

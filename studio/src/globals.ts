@@ -50,8 +50,29 @@ import {
 	ContextMenu,
 	Duration,
 	Spinner,
+	SettingsDialog,
+	SettingsSidebar,
+	SettingsNavGroup,
+	SettingsNavItem,
+	SettingsContent,
+	SettingsPanel,
+	SettingsHeader,
+	SettingsBody,
+	SettingsRow,
 } from "frappe-ui"
 import { CodeEditor } from "frappe-ui/code-editor"
+// List family lives on the `frappe-ui/list` subpath (its index also pulls in the
+// family's structural style.css). Composed via the `list` block template.
+import {
+	List,
+	ListRows,
+	ListRow,
+	ListCell,
+	ListHeader,
+	ListHeaderCell,
+	ListHeaderCellSort,
+	ListGroup,
+} from "frappe-ui/list"
 
 import Container from "@/components/AppLayout/Container.vue"
 import FitContainer from "@/components/AppLayout/FitContainer.vue"
@@ -122,6 +143,27 @@ export function registerGlobalComponents(app: App) {
 	app.component("ContextMenu", ContextMenu)
 	app.component("Duration", Duration)
 	app.component("Spinner", Spinner)
+
+	// List family (frappe-ui/list) — dropped as a tree via the `list` block template.
+	app.component("List", List)
+	app.component("ListRows", ListRows)
+	app.component("ListRow", ListRow)
+	app.component("ListCell", ListCell)
+	app.component("ListHeader", ListHeader)
+	app.component("ListHeaderCell", ListHeaderCell)
+	app.component("ListHeaderCellSort", ListHeaderCellSort)
+	app.component("ListGroup", ListGroup)
+
+	// SettingsDialog family — dropped as a tree via the `settings-dialog` block template.
+	app.component("SettingsDialog", SettingsDialog)
+	app.component("SettingsSidebar", SettingsSidebar)
+	app.component("SettingsNavGroup", SettingsNavGroup)
+	app.component("SettingsNavItem", SettingsNavItem)
+	app.component("SettingsContent", SettingsContent)
+	app.component("SettingsPanel", SettingsPanel)
+	app.component("SettingsHeader", SettingsHeader)
+	app.component("SettingsBody", SettingsBody)
+	app.component("SettingsRow", SettingsRow)
 
 	// @framework/ui components — only on frappe versions that ship apps/frappe/ui.
 	// __FRAMEWORK_UI_AVAILABLE__ is a build-time constant; when false, production
