@@ -178,7 +178,7 @@ function clear_selection() {
 const marquee = ref(null);
 const marquee_dragging = ref(false);
 let marquee_start = null;
-let marquee_base = [];
+let marquee_base = { fields: [], sections: [] };
 let suppress_next_click = false;
 const MARQUEE_THRESHOLD = 4;
 
@@ -192,8 +192,11 @@ function on_canvas_pointerdown(e) {
 	if (e.button !== 0 || e.target.closest(MARQUEE_IGNORE)) return;
 	marquee_start = { x: e.clientX, y: e.clientY };
 	marquee_dragging.value = true; // suppresses text selection while dragging
-	marquee_base =
-		e.shiftKey || e.metaKey || e.ctrlKey ? $store.value.selected_fields.value.slice() : [];
+	const additive = e.shiftKey || e.metaKey || e.ctrlKey;
+	marquee_base = {
+		fields: additive ? $store.value.selected_fields.value.slice() : [],
+		sections: additive ? $store.value.selected_sections.value.slice() : [],
+	};
 	window.addEventListener("pointermove", on_canvas_pointermove);
 	window.addEventListener("pointerup", on_canvas_pointerup);
 }
@@ -210,6 +213,8 @@ function on_canvas_pointermove(e) {
 	update_marquee_selection();
 }
 
+const dedupe = (arr) => [...new Set(arr)];
+
 function update_marquee_selection() {
 	const box = marquee.value;
 	if (!box) return;
@@ -224,39 +229,22 @@ function update_marquee_selection() {
 	const overlaps = (r) =>
 		r.left < box.x + box.w && r.right > box.x && r.top < box.y + box.h && r.bottom > box.y;
 
-	// Builder rule: select the outermost fully-enclosed element. When the box wraps
-	// a whole body section (and nothing outside it), select the section instead of
-	// its fields — our selection model holds one section, so this is single-section.
+	// Builder rule: select the outermost fully-enclosed element. A section the box
+	// fully wraps is selected as a section; its fields are then dropped. Fields that
+	// don't belong to any enclosed section are selected on their own.
 	const enclosed = ($store.value.layout.value?.sections || [])
-		.map((s) => ({ s, hit: rect(field_uid(s)) }))
-		.filter((x) => x.hit && encloses(x.hit.r));
+		.map((s) => ({ s, el: rect(field_uid(s))?.el }))
+		.filter((x) => x.el && encloses(x.el.getBoundingClientRect()));
 
-	const hitFields = $store.value.ordered_body_fields().filter((df) => {
+	const looseFields = $store.value.ordered_body_fields().filter((df) => {
 		const hit = rect(field_uid(df));
-		return hit && overlaps(hit.r);
+		if (!hit || !overlaps(hit.r)) return false;
+		return !enclosed.some((x) => x.el.contains(hit.el));
 	});
 
-	if (enclosed.length === 1) {
-		const secEl = enclosed[0].hit.el;
-		const loose = hitFields.some((df) => {
-			const hit = rect(field_uid(df));
-			return hit && !secEl.contains(hit.el);
-		});
-		if (!loose) {
-			$store.value.select_section(enclosed[0].s);
-			return;
-		}
-	}
-
-	const hits = marquee_base.slice();
-	const seen = new Set(hits);
-	for (const df of hitFields) {
-		if (!seen.has(df)) {
-			seen.add(df);
-			hits.push(df);
-		}
-	}
-	$store.value.set_selected(hits);
+	const fields = dedupe([...marquee_base.fields, ...looseFields]);
+	const sections = dedupe([...marquee_base.sections, ...enclosed.map((x) => x.s)]);
+	$store.value.set_selection({ fields, sections });
 }
 
 function on_canvas_pointerup() {
@@ -369,8 +357,11 @@ function handle_keydown(e) {
 		if (is_typing_context()) return;
 		const sf = $store.value.selected_field.value;
 		const ss = $store.value.selected_section.value;
-		if ($store.value.selected_fields.value.length > 1) {
-			$store.value.remove_selected_fields();
+		const total =
+			$store.value.selected_fields.value.length +
+			$store.value.selected_sections.value.length;
+		if (total > 1) {
+			$store.value.remove_selection();
 			e.preventDefault();
 		} else if (sf) {
 			sf.remove = true;

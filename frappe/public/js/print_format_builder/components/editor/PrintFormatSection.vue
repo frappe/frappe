@@ -173,7 +173,7 @@ const props = defineProps(["section", "is_header", "zone"]);
 
 let store = inject("$store");
 
-let is_selected = computed(() => store.selected_section.value === props.section);
+let is_selected = computed(() => store.selected_sections.value.includes(props.section));
 let preview_doc = computed(() => store.preview_doc.value);
 let is_section_visible = computed(() =>
 	evaluate_visible_if(props.section.visible_if, preview_doc.value)

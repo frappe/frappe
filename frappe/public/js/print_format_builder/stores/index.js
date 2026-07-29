@@ -25,16 +25,32 @@ export function getStore(print_format_name) {
 		selected_field,
 		selected_fields,
 		selected_section,
+		selected_sections,
 		selected_letterhead,
 		selected_lh_footer,
 		select_field,
 		set_selected,
+		set_selection,
 		select_section,
 		select_letterhead,
 		remove_selected_fields,
 		remove_field,
 		align_selected_fields,
 	} = selection;
+
+	// remove everything currently selected — field tombstones + spliced sections
+	function remove_selection() {
+		selected_fields.value.forEach((df) => (df.remove = true));
+		const sections = layout.value?.sections || [];
+		selected_sections.value.forEach((s) => {
+			const i = sections.indexOf(s);
+			if (i !== -1) sections.splice(i, 1);
+		});
+		selected_fields.value = [];
+		selected_field.value = null;
+		selected_sections.value = [];
+		selected_section.value = null;
+	}
 
 	// body fields flattened in layout order — shared by shift-range and marquee select
 	function ordered_body_fields() {
@@ -354,9 +370,11 @@ export function getStore(print_format_name) {
 		selected_field,
 		selected_fields,
 		remove_selected_fields,
+		remove_selection,
 		remove_field,
 		align_selected_fields,
 		selected_section,
+		selected_sections,
 		selected_letterhead,
 		selected_lh_footer,
 		preview_doc,
@@ -371,6 +389,7 @@ export function getStore(print_format_name) {
 		get_preview_format_doc,
 		select_field,
 		set_selected,
+		set_selection,
 		select_field_range,
 		ordered_body_fields,
 		select_section,

@@ -75,7 +75,10 @@ let store = inject("$store");
 let { letterhead, layout, print_format } = useStore();
 
 let selected_field = computed(() => store.selected_field.value);
-let is_multi_select = computed(() => store.selected_fields.value.length > 1);
+let selected_count = computed(
+	() => store.selected_fields.value.length + store.selected_sections.value.length
+);
+let is_multi_select = computed(() => selected_count.value > 1);
 let selected_section = computed(() => store.selected_section.value);
 let selected_letterhead = computed(() => store.selected_letterhead.value);
 let selected_lh_footer = computed(() => store.selected_lh_footer.value);
@@ -103,7 +106,11 @@ let inspector_kind = computed(() => {
 });
 
 let inspector_subtitle = computed(() => {
-	if (is_multi_select.value) return __("{0} fields", [store.selected_fields.value.length]);
+	if (is_multi_select.value) {
+		return store.selected_sections.value.length
+			? __("{0} items", [selected_count.value])
+			: __("{0} fields", [selected_count.value]);
+	}
 	if (selected_lh_footer.value) return __("Footer");
 	if (selected_letterhead.value) return letterhead.value?.name || "";
 	if (selected_field.value) {
