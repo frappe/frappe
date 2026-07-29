@@ -129,6 +129,8 @@ class LoginManager:
 		self.user_type = None
 
 		if frappe.local.request.path == "/api/method/login":
+			if frappe.local.request.method != "POST":
+				frappe.throw_permission_error()
 			if self.login() is False:
 				return
 			self.resume = False
