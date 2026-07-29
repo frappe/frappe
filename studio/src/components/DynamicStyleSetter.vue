@@ -19,7 +19,12 @@
 		:width="600"
 		v-if="showDynamicValueModal"
 	>
-		<template #header><div class="text-base-semibold text-ink-gray-7">Set Dynamic Value</div></template>
+		<template #header>
+			<div class="text-base-semibold text-ink-gray-7">
+				Set Dynamic Value
+				<span v-if="propertyLabel" class="text-ink-gray-5">&middot; {{ propertyLabel }}</span>
+			</div>
+		</template>
 		<template #content>
 			<Code
 				language="javascript"
@@ -36,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue"
+import { computed, ref, watch } from "vue"
 import { Button, ErrorMessage } from "frappe-ui"
 import Code from "@/components/Code.vue"
 import IconButton from "@/components/IconButton.vue"
@@ -55,6 +60,7 @@ const emit = defineEmits<{
 const triggerButton = ref<typeof IconButton | null>(null)
 const showDynamicValueModal = ref(false)
 const getCompletions = useStudioCompletions()
+const propertyLabel = computed(() => props.property?.getProps?.()?.label as string)
 
 const dynamicValue = ref("")
 watch(
