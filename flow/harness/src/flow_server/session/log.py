@@ -17,7 +17,15 @@ from flow_server.events import _Event, parse_event
 
 
 class SessionLogError(ValueError):
-	"""A persisted JSONL row violates the session-log contract."""
+	"""A persisted JSONL row violates the session-log contract.
+	Carries the row's location so an operator can find it without re-reading the file."""
+
+	def __init__(self, path: str, line: int, offset: int, reason: str):
+		self.path = path
+		self.line = line
+		self.offset = offset
+		self.reason = reason
+		super().__init__(f"Invalid session log {path}: line {line} {reason} (byte offset {offset})")
 
 
 class SessionLog:
@@ -42,13 +50,21 @@ class SessionLog:
 			fd = os.open(self.path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
 			try:
 				os.chmod(self.path, 0o600)
-				if os.write(fd, data) != len(data):
-					raise OSError("short write while appending session log")
-				self._seq = next_seq
-				event.seq = next_seq
-				os.fsync(fd)
+				complete = os.fstat(fd).st_size
+				try:
+					if os.write(fd, data) != len(data):
+						raise OSError("short write while appending session log")
+					os.fsync(fd)
+				except BaseException:
+					# A partial line has no newline, so the next append would splice onto
+					# it. Roll back to the last complete line instead.
+					os.ftruncate(fd, complete)
+					raise
 			finally:
 				os.close(fd)
+			# only now is the line durable, so only now does the sequence advance
+			self._seq = next_seq
+			event.seq = next_seq
 			return next_seq
 
 	def read_since(self, since: int) -> list[dict]:
@@ -66,45 +82,36 @@ def _read_rows(path: str) -> list[dict]:
 		return []
 	rows: list[dict] = []
 	previous_seq = 0
+	offset = 0
 	with open(path, encoding="utf-8") as file:
 		for line_number, line in enumerate(file, start=1):
-			if not line.strip():
-				continue
-			try:
-				entry = json.loads(line)
-			except json.JSONDecodeError as exc:
-				raise _invalid_row(path, line_number, "is not valid JSON") from exc
-			if not isinstance(entry, dict):
-				raise _invalid_row(path, line_number, "is not a JSON object")
-			seq = _entry_seq(entry, path, line_number)
-			if seq <= previous_seq:
-				raise _invalid_row(
-					path,
-					line_number,
-					f"has non-monotonic seq {seq} after {previous_seq}",
-				)
-			try:
-				event = parse_event(entry)
-			except (ValidationError, TypeError, ValueError) as exc:
-				raise _invalid_row(path, line_number, "is not a valid event") from exc
-			if not event.durable:
-				raise _invalid_row(path, line_number, "contains a live-only event")
-			# Return the validated canonical wire shape used by replay and the API.
-			rows.append(event.model_dump(exclude_none=True))
-			previous_seq = seq
+			if line.strip():
+				rows.append(_read_row(line, path, line_number, offset, previous_seq))
+				previous_seq = rows[-1]["seq"]
+			offset += len(line.encode())
 	return rows
 
 
-def _entry_seq(entry: dict, path: str, line_number: int) -> int:
+def _read_row(line: str, path: str, line_number: int, offset: int, previous_seq: int) -> dict:
+	def invalid(reason: str) -> SessionLogError:
+		return SessionLogError(path, line_number, offset, reason)
+
+	try:
+		entry = json.loads(line)
+	except json.JSONDecodeError as exc:
+		raise invalid("is not valid JSON") from exc
+	if not isinstance(entry, dict):
+		raise invalid("is not a JSON object")
 	seq = entry.get("seq")
 	if type(seq) is not int:
-		raise _invalid_row(path, line_number, "is missing a valid integer seq")
-	return seq
-
-
-def _invalid_row(
-	path: str,
-	line_number: int,
-	message: str,
-) -> SessionLogError:
-	return SessionLogError(f"Invalid session log {path}: line {line_number} {message}")
+		raise invalid("is missing a valid integer seq")
+	if seq <= previous_seq:
+		raise invalid(f"has non-monotonic seq {seq} after {previous_seq}")
+	try:
+		event = parse_event(entry)
+	except (ValidationError, TypeError, ValueError) as exc:
+		raise invalid("is not a valid event") from exc
+	if not event.durable:
+		raise invalid("contains a live-only event")
+	# Return the validated canonical wire shape used by replay and the API.
+	return event.model_dump(exclude_none=True)

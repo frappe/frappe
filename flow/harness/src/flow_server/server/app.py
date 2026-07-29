@@ -22,6 +22,7 @@ from pydantic import BaseModel, ConfigDict
 
 from flow_server import agent
 from flow_server.events import AssistantMessage, parse_event
+from flow_server.session.log import SessionLogError
 from flow_server.session.store import (
 	Session,
 	SessionConfig,
@@ -67,6 +68,19 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 			return store.get(sid)
 		except KeyError:
 			raise HTTPException(status_code=404, detail="session not found") from None
+		except SessionLogError as e:
+			# the request is well formed; the stored log is not. Report where, but never
+			# the on-disk path.
+			raise HTTPException(
+				status_code=500,
+				detail={
+					"error": "session_log_corrupt",
+					"session_id": sid,
+					"line": e.line,
+					"offset": e.offset,
+					"reason": e.reason,
+				},
+			) from None
 
 	@app.get("/healthz")
 	async def healthz():

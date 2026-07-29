@@ -81,6 +81,45 @@ def test_log_rejects_pre_release_assistant_shape(tmp_path):
 		SessionLog(str(path))
 
 
+def test_append_rolls_back_a_partial_write(tmp_path, monkeypatch):
+	path = tmp_path / "s.jsonl"
+	log = SessionLog(str(path))
+	log.append(UserMessage(content="first"))
+	healthy = path.read_text()
+	real_write, shortened = os.write, []
+
+	def short_once(fd, data):
+		if shortened:
+			return real_write(fd, data)
+		shortened.append(True)
+		return real_write(fd, data[: len(data) // 2])  # e.g. the disk filled up
+
+	monkeypatch.setattr(os, "write", short_once)
+	with pytest.raises(OSError, match="short write"):
+		log.append(UserMessage(content="second"))
+	monkeypatch.undo()
+
+	assert path.read_text() == healthy  # the partial line never survives
+	log.append(UserMessage(content="third"))  # and the log is still appendable
+	assert [row["seq"] for row in SessionLog(str(path)).read_since(0)] == [1, 2]
+
+
+def test_log_error_locates_the_offending_row(tmp_path):
+	path = tmp_path / "s.jsonl"
+	log = SessionLog(str(path))
+	log.append(UserMessage(content="one"))
+	good_line_bytes = path.stat().st_size
+	with path.open("a") as file:
+		file.write('{"type":"user_message"\n')
+
+	with pytest.raises(SessionLogError) as raised:
+		SessionLog(str(path))
+
+	assert raised.value.line == 2
+	assert raised.value.offset == good_line_bytes  # byte where the bad row starts
+	assert raised.value.reason == "is not valid JSON"
+
+
 def test_log_rejects_non_monotonic_sequences(tmp_path):
 	path = tmp_path / "s.jsonl"
 	first = UserMessage(seq=2, content="one").model_dump_json()

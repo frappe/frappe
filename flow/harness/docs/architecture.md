@@ -61,8 +61,13 @@ state from disk). Durability lives here and nowhere else.
 Loading is strict and line-aware: malformed JSON, invalid event shapes, live-only
 events, and non-monotonic sequences fail with the file and line number. Flow does not
 guess past or truncate a corrupt tail; Pi and Tau likewise reject invalid JSONL rather
-than silently discarding history. Appends are serialized within one `SessionLog`, and
-the sequence advances only after a complete line is written.
+than silently discarding history. Appends are serialized within one `SessionLog`; a
+write that fails or comes up short is rolled back to the last complete line, and the
+sequence advances only once the line is durable.
+
+`SessionLogError` carries the offending row's line number, byte offset, and reason. The
+HTTP boundary returns it as a typed `session_log_corrupt` detail — location only, never
+the on-disk path — so one damaged session is diagnosable without taking down the rest.
 
 If execution stops after an `AssistantMessage` has been persisted but before every
 tool call has a `ToolResult`, Flow appends synthetic error results before the
