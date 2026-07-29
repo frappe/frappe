@@ -127,6 +127,12 @@ def generate_report(prepared_report):
 		result = generate_report_result(report=report, filters=instance.filters, user=instance.owner)
 		create_json_gz_file(result, instance.doctype, instance.name, instance.report_name)
 
+<<<<<<< HEAD
+=======
+		if report.generate_csv:
+			_enqueue_json_to_csv_conversion(prepared_report)
+
+>>>>>>> 5e512da025 (fix: require read access on the prepared report before queuing its CSV export (#41329))
 		instance.status = "Completed"
 
 		frappe.get_doc(
@@ -354,6 +360,11 @@ def has_permission(doc, user):
 @frappe.whitelist()
 def enqueue_json_to_csv_conversion(prepared_report_name):
 	"""Call this to enqueue the conversion in background."""
+	frappe.get_doc("Prepared Report", prepared_report_name).check_permission("read")
+	_enqueue_json_to_csv_conversion(prepared_report_name)
+
+
+def _enqueue_json_to_csv_conversion(prepared_report_name: str):
 	enqueue(method=convert_json_to_csv, queue="long", prepared_report_name=prepared_report_name)
 
 
