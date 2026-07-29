@@ -26,9 +26,6 @@
 					<div ref="doc_picker_ref" class="canvas-doc-picker"></div>
 				</div>
 				<div class="canvas-toolbar-right">
-					<span v-if="!$store.preview_doc.value" class="canvas-no-data-hint">
-						← {{ __("Pick a record to see real values") }}
-					</span>
 					<div class="canvas-zoom-control" role="group" :aria-label="__('Zoom')">
 						<button
 							class="canvas-zoom-btn"
@@ -645,19 +642,6 @@ defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 	display: flex;
 	align-items: center;
 	gap: 6px;
-}
-
-.canvas-no-data-hint {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	font-size: 11px;
-	color: var(--text-muted);
-	white-space: nowrap;
-	background: var(--yellow-50);
-	border: 1px solid var(--yellow-200);
-	border-radius: var(--radius);
-	padding: 3px 8px;
 }
 
 /* ── Zoom control ────────────────────────────────────────── */
