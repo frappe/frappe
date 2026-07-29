@@ -36,10 +36,11 @@ def download_pdf(
 	settings: str | dict | None = None,
 ):
 	from frappe.printing.doctype.print_format.classic_converter import get_default_print_format
-	from frappe.www.printview import validate_print
+	from frappe.www.printview import set_link_titles, validate_print
 
 	doc = frappe.get_doc(doctype, name)
 	validate_print(doc)
+	set_link_titles(doc)
 	if not print_format or print_format == "Standard":
 		print_format = get_default_print_format(doctype)
 	generator = PrintFormatGenerator(print_format, doc, letterhead, settings=frappe.parse_json(settings))
@@ -48,6 +49,20 @@ def download_pdf(
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
 	frappe.local.response.filecontent = pdf
 	frappe.local.response.type = "pdf"
+
+
+def is_qr_barcode_options(options: str | None) -> bool:
+	"""Whether a Barcode docfield's options ask for a QR code — either the bare
+	string "qrcode"/"qr" or JsBarcode-style JSON like {"format": "qrcode"}."""
+	import json
+
+	options = (options or "").strip()
+	if options.lower() in ("qr", "qrcode"):
+		return True
+	try:
+		return json.loads(options).get("format", "").lower() in ("qr", "qrcode")
+	except Exception:
+		return False
 
 
 @frappe.whitelist()
@@ -109,6 +124,37 @@ def get_formatted_field_values(doctype: str, name: str) -> dict:
 	return {"values": values, "child": child}
 
 
+def _builder_preview_generator(
+	print_format: str | dict,
+	doctype: str,
+	name: str | None = None,
+	letterhead: str | None = None,
+	settings: str | dict | None = None,
+) -> "PrintFormatGenerator | None":
+	"""Permission gate and generator for the builder's unsaved-format previews.
+
+	Shared by the HTML and PDF entry points so the checks below have one home.
+	Returns None when the document type has nothing printable to sample.
+	"""
+	from frappe.printing.doctype.print_format.print_format import printable_sample
+	from frappe.www.printview import validate_print
+
+	frappe.has_permission("Print Format", "write", throw=True)
+
+	pf = frappe.get_doc(frappe.parse_json(print_format))
+	if pf.doctype != "Print Format":
+		frappe.throw(_("Expected an unsaved Print Format document"))
+
+	name = name or printable_sample(doctype)
+	if not name:
+		return None
+
+	doc = frappe.get_doc(doctype, name)
+	validate_print(doc)
+
+	return PrintFormatGenerator(pf, doc, letterhead, settings=frappe.parse_json(settings))
+
+
 @frappe.whitelist()
 def render_builder_preview(
 	print_format: str | dict,
@@ -124,24 +170,31 @@ def render_builder_preview(
 	the preview cannot drift from the printed output. ``print_format`` is the
 	in-memory Print Format document (dict/JSON), not a saved name.
 	"""
-	from frappe.printing.doctype.print_format.print_format import printable_sample
-	from frappe.www.printview import validate_print
+	generator = _builder_preview_generator(print_format, doctype, name, letterhead, settings)
+	return generator.get_html_preview() if generator else ""
 
-	frappe.has_permission("Print Format", "write", throw=True)
 
-	pf = frappe.get_doc(frappe.parse_json(print_format))
-	if pf.doctype != "Print Format":
-		frappe.throw(_("Expected an unsaved Print Format document"))
+@frappe.whitelist()
+def download_builder_preview_pdf(
+	print_format: str | dict,
+	doctype: str,
+	name: str | None = None,
+	letterhead: str | None = None,
+	settings: str | dict | None = None,
+):
+	"""Render a PDF for an UNSAVED builder format.
 
-	name = name or printable_sample(doctype)
-	if not name:
-		return ""
+	Same contract as :func:`render_builder_preview`, but through the PDF renderer.
+	Paginating HTML in the browser can only ever approximate where Chromium breaks
+	a page, so the builder's paged preview asks Chromium instead of guessing.
+	"""
+	generator = _builder_preview_generator(print_format, doctype, name, letterhead, settings)
+	if not generator:
+		frappe.throw(_("No document available to preview"))
 
-	doc = frappe.get_doc(doctype, name)
-	validate_print(doc)
-
-	generator = PrintFormatGenerator(pf, doc, letterhead, settings=frappe.parse_json(settings))
-	return generator.get_html_preview()
+	frappe.local.response.filename = "preview.pdf"
+	frappe.local.response.filecontent = generator.render_pdf()
+	frappe.local.response.type = "pdf"
 
 
 def get_html(
@@ -186,6 +239,7 @@ class PrintFormatGenerator:
 		self.doc = doc
 		self.style = style
 		self.settings_override = settings or {}
+		self._header_absorbs_top_margin = False
 
 		if letterhead == _("No Letterhead"):
 			letterhead = None
@@ -201,6 +255,11 @@ class PrintFormatGenerator:
 			from frappe.www.printview import get_allowed_print_settings_override
 
 			self.print_settings.update(get_allowed_print_settings_override(self.doc, self.settings_override))
+
+		from frappe.www.printview import run_before_print
+
+		run_before_print(self.doc, self.print_settings.as_dict())
+
 		page_width_map = {"A4": 210, "Letter": 216}
 		page_width = page_width_map.get(self.print_settings.pdf_page_size) or 210
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
@@ -266,17 +325,20 @@ class PrintFormatGenerator:
 		from frappe.utils.pdf import get_chrome_pdf
 
 		pf = self.print_format
+		html = self._build_html_for_chrome()
 		options = {
 			"margin-top": f"{pf.margin_top}mm",
 			"margin-bottom": f"{pf.margin_bottom}mm",
 			"margin-left": f"{pf.margin_left}mm",
 			"margin-right": f"{pf.margin_right}mm",
 		}
+		if self._header_absorbs_top_margin:
+			options["header-includes-top-margin"] = True
 		if password:
 			options["password"] = password
 		return get_chrome_pdf(
 			print_format=pf.name,
-			html=self._build_html_for_chrome(),
+			html=html,
 			options=options,
 			output=None,
 			pdf_generator="chrome",
@@ -296,6 +358,7 @@ class PrintFormatGenerator:
 		    overlay so they continue to repeat on every page if the user enabled them.
 		"""
 		self.context.for_chrome = True
+		self._header_absorbs_top_margin = False
 		self.context.repeat_frame = False
 		self.context.header_height = 0
 		self.context.footer_height = 0
@@ -321,6 +384,19 @@ class PrintFormatGenerator:
 
 		return self.get_main_html()
 
+	def _reserve_top_margin(self, html: str) -> str:
+		"""Reserve the page's top margin *below* the page number.
+
+		browser.py then drops the header page's own ``marginTop`` (via the
+		``header-includes-top-margin`` option), so the number sits flush to the
+		paper edge while everything after it keeps the configured margin.
+		"""
+		top_margin = float(self.print_format.margin_top or 0)
+		if not top_margin:
+			return html
+		self._header_absorbs_top_margin = True
+		return f'<div style="padding-top:{top_margin}mm">{html}</div>'
+
 	def _render_page_no_overlay(self, kind: str) -> str | None:
 		"""Return only the page-number HTML for kind ('header'/'footer'), or None."""
 		is_header = kind == "header"
@@ -328,7 +404,10 @@ class PrintFormatGenerator:
 		valid_positions = self._TOP_POSITIONS if is_header else self._BOTTOM_POSITIONS
 		if page_pos not in valid_positions:
 			return None
-		return self._page_number_html(page_pos)
+		page_no_html = self._page_number_html(page_pos)
+		if not is_header:
+			return page_no_html
+		return page_no_html + self._reserve_top_margin("")
 
 	def _render_overlay(self, kind: str, with_page_no: bool = True) -> str | None:
 		"""Render letterhead, layout.header/footer, and page number for the Chrome overlay.
@@ -356,10 +435,11 @@ class PrintFormatGenerator:
 		ctx = {"doc": self.context.doc}
 
 		parts = []
+		body_parts = []
 		if is_header and page_no_html:
 			parts.append(page_no_html)
 		if letterhead_html:
-			parts.append(
+			body_parts.append(
 				'<div class="letter-head">' + frappe.render_template(letterhead_html, ctx) + "</div>"
 			)
 		if layout_template:
@@ -372,9 +452,13 @@ class PrintFormatGenerator:
 				# Section object — render using the same logic as print_format.html
 				zone_html = self._render_zone_section(layout_template, ctx["doc"])
 			if zone_html:
-				parts.append('<div class="document-header-content">' + zone_html + "</div>")
+				body_parts.append('<div class="document-header-content">' + zone_html + "</div>")
 		if not is_header and page_no_html:
-			parts.append(page_no_html)
+			body_parts.append(page_no_html)
+
+		if is_header and page_no_html:
+			body_parts = [self._reserve_top_margin("\n".join(body_parts))]
+		parts.extend(body_parts)
 		return "\n".join(parts) or None
 
 	_ZONE_SECTION_TEMPLATE = """\
@@ -604,7 +688,17 @@ class PrintFormatGenerator:
 
 	def prepare_barcode(self, df):
 		"""Resolve JsBarcode options / QR data URI for Barcode layout elements."""
-		if df.get("fieldtype") != "Barcode" or not df.get("custom"):
+		if df.get("fieldtype") != "Barcode":
+			return
+		if not df.get("custom"):
+			# a dragged Barcode docfield prints whatever it stores; a docfield
+			# whose options ask for a qr code prints its value as one — the
+			# field decides the format, the builder offers no override
+			meta_df = frappe.get_meta(self.doc.doctype).get_field(df.get("fieldname"))
+			value = self.doc.get(df.get("fieldname"))
+			if value and meta_df and is_qr_barcode_options(meta_df.options):
+				df["barcode_format"] = "QR"
+				df["_qr_data_uri"] = get_qr_code(str(value))
 			return
 		if df.get("barcode_format") == "QR":
 			value = (

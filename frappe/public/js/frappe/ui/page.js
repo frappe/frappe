@@ -21,6 +21,13 @@
 
 frappe.ui.make_app_page = function (opts) {
 	opts.parent.page = new frappe.ui.Page(opts);
+	// A page is usually built before the container switches to it, but not always: a form creates
+	// its frappe.ui.Page inside the first frm.refresh(), by which point change_to() has already
+	// pointed the container at this element. Sidebar visibility was therefore resolved against a
+	// page that carried no options yet and fell back to hidden. Re-resolve now that they exist.
+	if (frappe.container?.page === opts.parent) {
+		frappe.app.sidebar.apply_page_visibility();
+	}
 	return opts.parent.page;
 };
 
@@ -53,7 +60,7 @@ frappe.ui.Page = class Page {
 		this.make();
 		if (!Object.keys(opts).includes("hide_sidebar")) this.hide_sidebar = false;
 		// pages can hide just the workspace dock (while keeping the body sidebar) via this option;
-		// a page that hides the whole sidebar hides the dock too (see Sidebar.page_hides_dock)
+		// a page that hides the whole sidebar hides the dock too (see Sidebar.page_allows_dock)
 		if (!Object.keys(opts).includes("hide_workspace_dock")) this.hide_workspace_dock = false;
 		frappe.ui.pages[frappe.get_route_str()] = this;
 	}
@@ -61,7 +68,6 @@ frappe.ui.Page = class Page {
 	make() {
 		this.wrapper = $(this.parent);
 		this.add_main_section();
-		this.setup_scroll_handler();
 		this.setup_main_sidebar_toggle();
 		this.setup_awesomebar();
 	}
@@ -81,24 +87,6 @@ frappe.ui.Page = class Page {
 				}, __("Background Jobs"));
 			}
 		}
-	}
-
-	setup_scroll_handler() {
-		let last_scroll = 0;
-		$(".main-section").scroll(
-			frappe.utils.throttle(() => {
-				$(".page-head").toggleClass("drop-shadow", !!document.documentElement.scrollTop);
-				let current_scroll = document.documentElement.scrollTop;
-				if (
-					current_scroll > 0 &&
-					last_scroll <= current_scroll &&
-					(frappe.boot.read_only || frappe.boot.user.impersonated_by)
-				) {
-					$(".page-head").css("top", "-15px");
-				}
-				last_scroll = current_scroll;
-			}, 500)
-		);
 	}
 
 	get_empty_state(title, message, primary_action) {

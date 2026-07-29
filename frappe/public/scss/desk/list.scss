@@ -251,23 +251,7 @@
 		background-color: var(--gray-500);
 		// Always show a faint resting separator so users can discover resize
 		opacity: 0.25;
-		transition: opacity 0.15s, background-color 0.15s, width 0.15s, height 0.15s;
 	}
-
-	&:hover::before {
-		background-color: var(--primary);
-		width: 3px;
-		height: 20px;
-		opacity: 1 !important;
-	}
-}
-
-// Darken & grow all separators when cursor enters the header row
-.list-row-head:hover .list-col-resize-handle::before {
-	background-color: var(--gray-600);
-	width: 3px;
-	height: 18px;
-	opacity: 0.7;
 }
 
 body.list-col-resizing {
@@ -360,25 +344,6 @@ $level-margin-right: 8px;
 .list-paging-area,
 .footnote-area {
 	border-top: 1px solid var(--border-color);
-
-	.btn-group {
-		border: 1px solid var(--border-color);
-		border-radius: var(--radius);
-
-		.btn-paging.btn-info {
-			&:not(:first-child) {
-				border-left: 1px solid var(--border-color);
-			}
-
-			background-color: var(--bg-color);
-			color: var(--text-color);
-			font-weight: var(--weight-medium);
-		}
-	}
-
-	.btn-paging {
-		background-color: var(--control-bg);
-	}
 }
 
 .layout-main-list {

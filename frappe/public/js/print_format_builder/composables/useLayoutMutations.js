@@ -88,6 +88,28 @@ export function useLayoutMutations(layout, selection) {
 			move_in_array(layout.value?.sections || [], selected_section.value, dir);
 		}
 	}
+	// After a bulk drag drops `dragged` (Sortable moved only that one field),
+	// pull the rest of the selected group over so they sit contiguously around
+	// it, keeping their original document order. `group` is the whole selection
+	// in document order, including `dragged`.
+	function reflow_dragged_group(dragged, group) {
+		if (!dragged || !group || group.length < 2 || !layout.value) return;
+		group
+			.filter((f) => f !== dragged)
+			.forEach((f) => {
+				const col = find_field_column(f);
+				if (col) col.fields.splice(col.fields.indexOf(f), 1);
+			});
+		const col = find_field_column(dragged);
+		if (!col) return;
+		const di = group.indexOf(dragged);
+		const before = group.slice(0, di);
+		const after = group.slice(di + 1);
+		let at = col.fields.indexOf(dragged);
+		before.forEach((f, k) => col.fields.splice(at + k, 0, f));
+		at = col.fields.indexOf(dragged) + 1;
+		after.forEach((f, k) => col.fields.splice(at + k, 0, f));
+	}
 	function insert_section(data) {
 		if (!data || !layout.value) return;
 		const clone = clone_plain(data);
@@ -99,6 +121,22 @@ export function useLayoutMutations(layout, selection) {
 		else sections.push(clone);
 		selected_field.value = null;
 		selected_section.value = clone;
+	}
+	function insert_field(data) {
+		if (!data || !layout.value) return;
+		const clone = freshen_field(clone_plain(data));
+		const col = selected_field.value && find_field_column(selected_field.value);
+		if (col) {
+			col.fields.splice(col.fields.indexOf(selected_field.value) + 1, 0, clone);
+		} else {
+			const sections = layout.value.sections || [];
+			const target = selected_section.value || sections[sections.length - 1];
+			const first_col = target?.columns?.[0];
+			if (!first_col) return;
+			first_col.fields.push(clone);
+		}
+		selected_section.value = null;
+		selected_field.value = clone;
 	}
 	function remove_section(section) {
 		const idx = layout.value.sections.indexOf(section);
@@ -116,12 +154,13 @@ export function useLayoutMutations(layout, selection) {
 	}
 
 	return {
-		find_field_column,
 		duplicate_field,
 		duplicate_section,
 		duplicate_selection,
 		move_selection,
+		reflow_dragged_group,
 		insert_section,
+		insert_field,
 		remove_section,
 	};
 }

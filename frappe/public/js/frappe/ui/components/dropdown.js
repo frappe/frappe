@@ -8,7 +8,7 @@ frappe.provide("frappe.ui");
  * @typedef {Object} DropdownOpts
  * @property {Element|JQuery} [trigger] An existing element that opens the menu. Omit to have one made from `button`.
  * @property {Object} [button] Options for the generated frappe.ui.button trigger (ignored when `trigger` is passed).
- * @property {Array|function} options Menu items and { group, options } sections — see MenuItem in menu.js. A function is called fresh on every open.
+ * @property {Array|function} options Menu items and { group, options } sections — see MenuItem in menu.js. A function is called fresh on every open, and may return a Promise of the items — the menu opens with a loading row and fills in when it settles. Individual items can lazy-load the same way via a function `submenu`.
  * @property {"top"|"right"|"bottom"|"left"} [side="bottom"] Which side of the trigger the menu opens on.
  * @property {"start"|"center"|"end"} [align="start"] How the menu lines up along that side.
  * @property {number} [offset=4] Gap between trigger and menu, in px.

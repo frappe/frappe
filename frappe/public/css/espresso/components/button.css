@@ -223,9 +223,14 @@
     display: none;
 }
 
-/* while busy, a loading label replaces the normal label + icon */
-.es-button[aria-busy="true"]:has(> .es-button__loading-label) > .es-button__label,
-.es-button[aria-busy="true"]:has(> .es-button__loading-label) > svg {
+/* while busy, the spinner replaces the icons — always, with or without a
+   loading label (otherwise spinner and icon show side by side) */
+.es-button[aria-busy="true"] > svg {
+    display: none;
+}
+
+/* and a loading label, when present, replaces the normal label */
+.es-button[aria-busy="true"]:has(> .es-button__loading-label) > .es-button__label {
     display: none;
 }
 

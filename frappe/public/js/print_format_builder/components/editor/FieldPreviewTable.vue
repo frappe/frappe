@@ -110,6 +110,13 @@
 				</td>
 			</tr>
 		</tbody>
+		<!-- after tbody (HTML5 order): user styles that remap tfoot's display can
+		     no longer float the cap up under the header -->
+		<tfoot>
+			<tr>
+				<td v-for="i in df.table_columns?.length || 1" :key="i" class="table-foot"></td>
+			</tr>
+		</tfoot>
 	</table>
 </template>
 
@@ -200,12 +207,6 @@ thead:hover .col-resize-handle::after {
 .col-resize-handle:hover::after,
 .col-resize-handle--active::after {
 	opacity: 1;
-}
-
-.pfb-table-note {
-	text-align: center;
-	font-size: 11px;
-	padding: 6px;
 }
 
 .preview-table-img {

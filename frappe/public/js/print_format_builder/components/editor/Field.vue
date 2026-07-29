@@ -3,8 +3,8 @@
 		:class="[
 			preview_doc ? preview_root.classes : 'field field--chip',
 			{
-				'field--table': df.fieldtype == 'Table',
 				'field--selected': is_selected,
+				'field--layer-hover': store.hovered_node.value === df,
 				'field--preview': !!preview_doc,
 				'field--condition-hidden': preview_doc && !is_field_visible,
 			},
@@ -12,11 +12,15 @@
 		:style="preview_doc ? preview_root.style : undefined"
 		:data-fieldname="preview_data_attr(df.fieldname)"
 		:data-fieldtype="preview_data_attr(df.fieldtype)"
+		:data-field-uid="field_uid(df)"
 		v-show="!df.remove"
 		:title="df.label || df.fieldname"
 		:aria-label="df.label || df.fieldname"
 		tabindex="0"
 		@click.stop="select_field($event)"
+		@contextmenu="on_context_menu"
+		@mouseenter="store.hovered_field.value = df"
+		@mouseleave="store.hovered_field.value = null"
 		@keydown.enter.prevent="kbd_select($event)"
 		@keydown.space.prevent="kbd_select($event)"
 	>
@@ -44,7 +48,7 @@
 				/>
 				<span v-else class="text-muted">{{ __("No image — set one in the panel") }}</span>
 			</template>
-			<FieldPreviewBarcode v-else-if="df.fieldtype == 'Barcode' && df.custom" :df="df" />
+			<FieldPreviewBarcode v-else-if="df.fieldtype == 'Barcode'" :df="df" />
 			<div
 				v-else-if="df.fieldtype == 'Field Template'"
 				v-html="rendered_template || ''"
@@ -68,7 +72,6 @@
 			</template>
 			<FieldPreviewTable v-else-if="df.fieldtype == 'Table'" :df="df" />
 			<FieldPreviewRepeater v-else-if="df.fieldtype == 'Repeater'" :df="df" />
-			<!-- Regular field -->
 			<template v-else>
 				<div
 					v-if="df.label && df.show_label !== 'hide'"
@@ -123,7 +126,6 @@
 					<span v-else>{{ preview_value || "—" }}</span>
 				</div>
 			</template>
-			<!-- Top-right actions pill: drag + remove -->
 			<div class="field-preview-actions">
 				<div
 					class="drag-handle field-drag-handle"
@@ -146,6 +148,15 @@
 					:title="__('Duplicate')"
 					@click.stop="store.duplicate_field(df)"
 					v-html="frappe.utils.icon('copy-plus', 'xs')"
+				></button>
+				<button
+					class="es-button"
+					data-size="xs"
+					data-variant="ghost"
+					data-icon-button="true"
+					:title="__('Save as snippet')"
+					@click.stop="save_as_snippet"
+					v-html="frappe.utils.icon('bookmark-plus', 'xs')"
 				></button>
 				<button
 					class="es-button"
@@ -285,18 +296,28 @@ import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
 import FieldPreviewBarcode from "./FieldPreviewBarcode.vue";
 import FieldPreviewRepeater from "./FieldPreviewRepeater.vue";
 import FieldPreviewTable from "./FieldPreviewTable.vue";
-import { render_jinja_html, evaluate_visible_if, parse_inline_style } from "../../utils";
+import {
+	render_jinja_html,
+	evaluate_visible_if,
+	parse_inline_style,
+	field_uid,
+} from "../../utils";
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
 import { useFieldFormat } from "../../composables/useFieldFormat";
+import { useContextMenu } from "../../composables/useContextMenu";
 
 const props = defineProps(["df", "field_orientation"]);
 
 // Per-field text colour for the label and value lines.
 function label_text_style(df) {
-	return df.label_color ? { color: df.label_color } : {};
+	return {
+		...(df.label_color ? { color: df.label_color } : {}),
+	};
 }
 function value_text_style(df) {
-	return df.value_color ? { color: df.value_color } : {};
+	return {
+		...(df.value_color ? { color: df.value_color } : {}),
+	};
 }
 
 let store = inject("$store");
@@ -438,14 +459,22 @@ const { preview_value, preview_value_html, rating_stars, multiselect_display } =
 );
 
 function select_field(e) {
-	const additive = !!(e && (e.metaKey || e.ctrlKey || e.shiftKey));
+	if (e && e.shiftKey && !e.metaKey && !e.ctrlKey) {
+		store.select_field_range(props.df);
+		return;
+	}
+	const additive = !!(e && (e.metaKey || e.ctrlKey));
 	store.select_field(props.df, additive);
 	if (!additive && props.df.fieldtype !== "HTML") {
 		editing.value = true;
 	}
 }
 function kbd_select(e) {
-	store.select_field(props.df, !!(e.shiftKey || e.metaKey || e.ctrlKey));
+	if (e && e.shiftKey && !e.metaKey && !e.ctrlKey) {
+		store.select_field_range(props.df);
+		return;
+	}
+	store.select_field(props.df, !!(e.metaKey || e.ctrlKey));
 }
 
 let short_fieldtype = computed(() => {
@@ -489,6 +518,57 @@ function edit_html() {
 	});
 	d.set_value("html", props.df.html);
 	d.show();
+}
+
+function save_as_snippet() {
+	frappe.prompt(
+		{
+			label: __("Snippet name"),
+			fieldname: "name",
+			fieldtype: "Data",
+			reqd: 1,
+			default: props.df.label || props.df.fieldname || "",
+		},
+		({ name }) => {
+			store.save_snippet(name, props.df, "Field").then(
+				() =>
+					frappe.show_alert(
+						{ message: __("Field saved as snippet"), indicator: "green" },
+						3
+					),
+				() => {}
+			);
+		},
+		__("Save Field as Snippet"),
+		__("Save")
+	);
+}
+
+const { open: open_context_menu } = useContextMenu();
+
+function on_context_menu(e) {
+	store.select_field(props.df);
+	open_context_menu(e, [
+		{ label: __("Copy"), icon: "copy", action: () => store.copy_field(props.df) },
+		{
+			label: __("Duplicate"),
+			icon: "copy-plus",
+			action: () => store.duplicate_field(props.df),
+		},
+		{ label: __("Save as snippet"), icon: "bookmark-plus", action: save_as_snippet },
+		store.clipboard.value && {
+			label: __("Paste"),
+			icon: "clipboard-paste",
+			action: () => store.paste_clipboard(),
+		},
+		{ divider: true },
+		{
+			label: __("Delete"),
+			icon: "trash",
+			danger: true,
+			action: () => store.remove_field(props.df),
+		},
+	]);
 }
 
 function configure_columns() {
@@ -595,11 +675,6 @@ watch(
 .field--chip:focus-within {
 	border-style: solid;
 	border-color: var(--gray-600);
-}
-
-.field--chip.field--selected {
-	border-style: solid;
-	border-color: var(--gray-500);
 }
 
 .field-row {
@@ -752,18 +827,20 @@ watch(
 	opacity: 0.35;
 }
 
-/* outline-only selection chrome: must not change previewed geometry */
-.field--preview:hover {
-	outline: 1px dashed var(--gray-400);
-	outline-offset: 1px;
+/* One ring for every active field state — selected, hover, layer-hover all
+   look identical. Inset (never changes previewed geometry, never bleeds past
+   the page or a grid cell); 2px survives the canvas zoom (1px → sub-pixel). */
+.field--preview.field--selected,
+.field--preview:hover,
+.field--preview.field--layer-hover,
+.field--chip.field--selected,
+.field--chip:hover,
+.field--chip.field--layer-hover {
+	outline: var(--pfb-ring);
+	outline-offset: -2px;
+	box-shadow: none;
 }
 
-.field--preview.field--selected {
-	outline: 1px solid var(--gray-400);
-	outline-offset: 1px;
-}
-
-/* Top-right actions pill: drag + remove — hidden until hover/selected */
 .field-preview-actions {
 	display: none;
 	position: absolute;

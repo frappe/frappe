@@ -2,6 +2,53 @@ export function clone_plain(obj) {
 	return JSON.parse(JSON.stringify(obj));
 }
 
+// stable per-object id used to map a field's DOM node back to its object
+// (fields have no persistent id of their own) — e.g. for marquee selection
+const _field_uids = new WeakMap();
+let _field_uid_seq = 0;
+export function field_uid(df) {
+	if (!_field_uids.has(df)) _field_uids.set(df, "pfb-f-" + ++_field_uid_seq);
+	return _field_uids.get(df);
+}
+
+// the canvas is scaled via CSS `zoom`; convert a screen-pixel delta to doc px
+export function canvas_zoom(el) {
+	const c = el?.closest(".print-format-container");
+	return parseFloat(c && getComputedStyle(c).getPropertyValue("--pfb-zoom")) || 1;
+}
+
+export function read_json(key, fallback = null) {
+	try {
+		return JSON.parse(localStorage.getItem(key)) || fallback;
+	} catch {
+		return fallback;
+	}
+}
+
+export function write_json(key, value) {
+	try {
+		localStorage.setItem(key, JSON.stringify(value));
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+// Blocks the builder invents — they never map to a docfield on the document type
+export const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater"]);
+
+// Mirrors print_format_generator.is_qr_barcode_options: a Barcode docfield whose
+// options ask for a qr code — "qrcode"/"qr" or JSON like {"format": "qrcode"}
+export function is_qr_barcode_options(options) {
+	options = (options || "").trim();
+	if (["qr", "qrcode"].includes(options.toLowerCase())) return true;
+	try {
+		return ["qr", "qrcode"].includes((JSON.parse(options).format || "").toLowerCase());
+	} catch {
+		return false;
+	}
+}
+
 export function freshen_field(f) {
 	delete f.remove;
 	if (f.custom && f.fieldname) f.fieldname += "_" + frappe.utils.get_random(8);
@@ -10,7 +57,7 @@ export function freshen_field(f) {
 
 export function create_default_layout(meta, print_format) {
 	let layout = {
-		header: get_default_header(meta),
+		header: get_default_header(),
 		sections: [],
 	};
 
@@ -53,8 +100,7 @@ export function create_default_layout(meta, print_format) {
 
 	for (let df of meta.fields) {
 		if (df.fieldname) {
-			// make a copy to avoid mutation bugs
-			df = JSON.parse(JSON.stringify(df));
+			df = clone_plain(df);
 		} else {
 			continue;
 		}
@@ -92,7 +138,6 @@ export function create_default_layout(meta, print_format) {
 		}
 	}
 
-	// remove empty sections
 	layout.sections = layout.sections.filter((section) => section.has_fields);
 
 	return layout;
@@ -134,7 +179,7 @@ function get_field_template(print_format, fieldname) {
 	return null;
 }
 
-function get_default_header(meta) {
+function get_default_header() {
 	return { columns: [{ label: "", fields: [] }] };
 }
 
@@ -161,7 +206,7 @@ export function setDragging(active) {
 	if (active) window.getSelection()?.removeAllRanges();
 }
 
-export const TABLE_COLUMN_PLUCK_KEYS = [
+const TABLE_COLUMN_PLUCK_KEYS = [
 	"label",
 	"fieldname",
 	"fieldtype",
@@ -174,7 +219,7 @@ export const TABLE_COLUMN_PLUCK_KEYS = [
 	"column_condition",
 ];
 
-export const FIELD_PLUCK_KEYS = [
+const FIELD_PLUCK_KEYS = [
 	"label",
 	"fieldname",
 	"fieldtype",
@@ -209,7 +254,7 @@ export const FIELD_PLUCK_KEYS = [
 	"show_text",
 ];
 
-export const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(
+const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(
 	(key) => key !== "table_cell_padding" && key !== "table_radius"
 );
 

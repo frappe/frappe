@@ -1,8 +1,6 @@
 <template>
 	<div class="pfb-insp-body">
-		<!-- SECTION properties -->
 		<InspectorSection :label="__('Section')">
-			<!-- Title -->
 			<LabelField
 				v-model="selected_section.label"
 				:label="__('Title')"
@@ -13,7 +11,6 @@
 				@update:show="(v) => (selected_section.show_label = v)"
 			/>
 
-			<!-- Columns -->
 			<SegmentedRow
 				:label="__('Columns')"
 				:model-value="selected_section.columns.length"
@@ -21,7 +18,6 @@
 				@update:model-value="set_columns"
 			/>
 
-			<!-- Orientation -->
 			<SegmentedRow
 				:label="__('Label side')"
 				:model-value="section_orientation === 'left-right' ? 'left-right' : 'top'"
@@ -36,7 +32,6 @@
 				"
 			/>
 
-			<!-- Gap -->
 			<StepperRow
 				:label="__('Gap')"
 				:model-value="section_gap"
@@ -47,12 +42,19 @@
 			/>
 		</InspectorSection>
 
-		<!-- BACKGROUND -->
 		<InspectorSection :label="__('Background')" :init-open="false">
 			<div ref="bg_color_host"></div>
+			<StepperRow
+				v-if="section_has_box"
+				:label="__('Radius')"
+				:model-value="section_radius"
+				unit="px"
+				:placeholder="__('none')"
+				allow-empty
+				@update:model-value="set_section_radius"
+			/>
 		</InspectorSection>
 
-		<!-- SPACING -->
 		<InspectorSection :label="__('Spacing')" :init-open="false">
 			<SpacingRow
 				v-for="prop in spacing_props"
@@ -63,9 +65,7 @@
 			/>
 		</InspectorSection>
 
-		<!-- LAYOUT -->
 		<InspectorSection :label="__('Layout')" :init-open="false">
-			<!-- Layout mode -->
 			<SegmentedRow
 				:label="__('Mode')"
 				:model-value="section_field_borders"
@@ -75,7 +75,6 @@
 				]"
 				@update:model-value="toggle_field_borders"
 			/>
-			<!-- Grid borders -->
 			<SegmentedRow
 				v-if="section_field_borders"
 				:label="__('Borders')"
@@ -87,7 +86,6 @@
 				]"
 				@update:model-value="set_grid_borders"
 			/>
-			<!-- Cell padding -->
 			<StepperRow
 				:label="__('Cell padding')"
 				:model-value="section_cell_padding"
@@ -97,13 +95,7 @@
 			/>
 		</InspectorSection>
 
-		<!-- PRINT -->
 		<InspectorSection :label="__('Print')" :init-open="false">
-			<ToggleRow
-				:label="__('Page break after')"
-				:model-value="!!selected_section.page_break"
-				@update:model-value="(v) => (selected_section.page_break = v)"
-			/>
 			<ToggleRow
 				:label="__('Keep together')"
 				:model-value="!!selected_section.keep_together"
@@ -111,12 +103,10 @@
 			/>
 		</InspectorSection>
 
-		<!-- STYLE -->
 		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
 			<StyleSection v-model="selected_section.custom_style" />
 		</InspectorSection>
 
-		<!-- VISIBILITY -->
 		<InspectorSection :label="__('Visibility')" :init-open="false" :padded="false">
 			<VisibilitySection v-model="selected_section.visible_if" :previewDoc="preview_doc" />
 		</InspectorSection>
@@ -149,6 +139,15 @@ let section_orientation = computed(() => selected_section.value?.field_orientati
 let section_gap = computed(() => selected_section.value?.gap ?? 20);
 let section_field_borders = computed(() => !!selected_section.value?.field_borders);
 let section_cell_padding = computed(() => selected_section.value?.cell_padding ?? 8);
+let section_radius = computed(() => selected_section.value?.radius ?? null);
+let section_has_box = computed(
+	() => !!(selected_section.value?.background || selected_section.value?.field_borders)
+);
+
+function set_section_radius(v) {
+	if (v === null) delete selected_section.value.radius;
+	else selected_section.value.radius = v;
+}
 
 const bg_color_host = ref(null);
 

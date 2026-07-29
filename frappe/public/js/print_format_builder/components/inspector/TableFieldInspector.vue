@@ -1,8 +1,6 @@
 <template>
 	<div class="pfb-insp-body">
-		<!-- TABLE section -->
 		<InspectorSection :label="__('Table')">
-			<!-- Title -->
 			<LabelField
 				v-model="selected_field.label"
 				:label="__('Title')"
@@ -28,7 +26,6 @@
 					</option>
 				</select>
 			</div>
-			<!-- Header -->
 			<SegmentedRow
 				:label="__('Header')"
 				:model-value="table_header"
@@ -39,7 +36,6 @@
 				]"
 				@update:model-value="(v) => (selected_field.table_header = v)"
 			/>
-			<!-- Cell padding -->
 			<StepperRow
 				:label="__('Cell padding')"
 				:model-value="table_cell_padding"
@@ -49,7 +45,6 @@
 				allow-empty
 				@update:model-value="set_cell_padding"
 			/>
-			<!-- Corner radius -->
 			<StepperRow
 				:label="__('Radius')"
 				:model-value="table_radius"
@@ -60,7 +55,6 @@
 			/>
 		</InspectorSection>
 
-		<!-- COLUMNS section -->
 		<InspectorSection :label="__('Columns')" :padded="false">
 			<template #head>
 				<span class="pfb-insp-col-count text-muted">{{
@@ -68,6 +62,17 @@
 				}}</span>
 			</template>
 			<div>
+				<!-- Add column picker -->
+				<div class="pfb-col-add-row top" v-if="available_columns.length">
+					<Autocomplete
+						:options="available_column_opts"
+						:placeholder="__('Add column...')"
+						@select="pick_column"
+					/>
+				</div>
+				<div v-else class="pfb-insp-hint text-muted pfb-col-add-row top">
+					{{ __("All available columns added.") }}
+				</div>
 				<!-- Column list -->
 				<draggable
 					:list="selected_field.table_columns"
@@ -211,21 +216,9 @@
 						</div>
 					</template>
 				</draggable>
-				<!-- Add column picker -->
-				<div class="pfb-col-add-row" v-if="available_columns.length">
-					<Autocomplete
-						:options="available_column_opts"
-						:placeholder="__('Add column...')"
-						@select="pick_column"
-					/>
-				</div>
-				<div v-else class="pfb-insp-hint text-muted" style="padding: 8px 14px 10px">
-					{{ __("All available columns added.") }}
-				</div>
 			</div>
 		</InspectorSection>
 
-		<!-- STYLE section -->
 		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
 			<div class="pfb-insp-section-body">
 				<ColorField
@@ -233,20 +226,19 @@
 					:label="__('Header')"
 					:model-value="table_header_bg"
 					:placeholder="__('Default')"
-					@update:model-value="(v) => set_table_prop('table_header_bg', v)"
+					@update:model-value="(v) => set_field_prop('table_header_bg', v)"
 				/>
 				<ColorField
 					v-if="has_lines"
 					:label="__('Border')"
 					:model-value="table_border_color"
 					:placeholder="__('Default')"
-					@update:model-value="(v) => set_table_prop('table_border_color', v)"
+					@update:model-value="(v) => set_field_prop('table_border_color', v)"
 				/>
 			</div>
 			<StyleSection :label="__('Custom CSS')" v-model="selected_field.custom_style" />
 		</InspectorSection>
 
-		<!-- VISIBILITY section -->
 		<InspectorSection :label="__('Visibility')" :padded="false">
 			<VisibilitySection v-model="selected_field.visible_if" :previewDoc="preview_doc" />
 			<div class="pfb-row-cond">
@@ -281,7 +273,7 @@ import ColorField from "./ColorField.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { useSelectedField } from "./useSelectedField";
 
-const { selected_field, preview_doc } = useSelectedField();
+const { selected_field, preview_doc, set_field_prop } = useSelectedField();
 
 let table_style = computed(() => selected_field.value?.table_style ?? "lined");
 let table_bordered = computed(() => selected_field.value?.table_bordered ?? true);
@@ -296,11 +288,6 @@ let has_lines = computed(
 		table_style.value === "lined" ||
 		table_header.value === "plain"
 );
-
-function set_table_prop(key, value) {
-	if (value) selected_field.value[key] = value;
-	else delete selected_field.value[key];
-}
 
 function set_cell_padding(v) {
 	if (v === null) delete selected_field.value.table_cell_padding;
@@ -537,6 +524,13 @@ function set_image_size(col, value) {
 .pfb-col-add-row {
 	padding: 6px 14px 10px;
 	border-top: 1px solid var(--gray-100);
+}
+
+/* the column picker sits above its list, so the divider belongs on the other side */
+.pfb-col-add-row.top {
+	padding: 8px 14px;
+	border-top: none;
+	border-bottom: 1px solid var(--gray-100);
 }
 
 .pfb-merge-direction {

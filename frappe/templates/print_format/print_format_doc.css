@@ -64,10 +64,7 @@
 	white-space: nowrap;
 }
 
-.print-format-doc .field.field-inline .label::after {
-	content: ":";
-}
-
+.print-format-doc .field.field-inline .label::after,
 .print-format-doc.show-label-colon .field .label::after {
 	content: ":";
 }
@@ -232,6 +229,12 @@
 	border-bottom: 1px solid var(--gray-300) !important;
 }
 
+/* row lines separate rows — the last row ends open (bordered tables close
+   through the .table-foot cap instead) */
+.print-format-doc .child-table--lined:not(.child-table--bordered) .table tbody tr:last-child td {
+	border-bottom: none !important;
+}
+
 .print-format-doc .child-table--striped .table .even td {
 	background-color: var(--gray-50) !important;
 }
@@ -239,7 +242,21 @@
 .print-format-doc .child-table--bordered .table th,
 .print-format-doc .child-table--bordered .table td {
 	border-right: 1px solid var(--gray-300) !important;
+	border-bottom: none !important;
+}
+
+.print-format-doc .child-table--bordered .table tbody td {
+	border-top: 1px solid var(--gray-300) !important;
+}
+
+/* the header row already draws this line — a border-top here doubles it */
+.print-format-doc .child-table--bordered .table thead ~ tbody tr:first-child td {
+	border-top: none !important;
+}
+
+.print-format-doc .child-table--bordered .table thead th {
 	border-bottom: 1px solid var(--gray-300) !important;
+	border-top: 1px solid var(--gray-300) !important;
 }
 
 .print-format-doc .child-table--bordered .table th:first-child,
@@ -247,8 +264,38 @@
 	border-left: 1px solid var(--gray-300) !important;
 }
 
-.print-format-doc .child-table--bordered .table thead th {
-	border-top: 1px solid var(--gray-300) !important;
+/* The bottom edge of a bordered table is owned by the .table-foot cap alone.
+   It lives in a <tfoot>, so the renderer repeats it at the foot of every page
+   the table spans, closing the outline on each one. Three things have to hold
+   together here — changing one in isolation is what keeps regressing this:
+     1. the cap draws the bottom line, so mid-document page breaks close;
+     2. no body row draws a bottom border, so the last page isn't doubled
+        (bordered rows are separated by border-top — see .child-table--bordered
+        .table tbody td above);
+     3. the cap is as tall as the radius and carries the side borders, so the
+        rounded corners have room to curve. At radius 0 it collapses to nothing,
+        so there is no empty band under square tables. */
+.print-format-doc .child-table .table .table-foot {
+	padding: 0;
+	height: var(--pfb-radius, 0);
+	border: none !important;
+}
+
+/* the cap is one cell per column (see macros/Table.html), so each one carries
+   its column divider down to the closing line — with a single colspan cell the
+   verticals would stop short of the bottom edge by the height of the cap */
+.print-format-doc .child-table--bordered .table .table-foot {
+	border-right: 1px solid var(--gray-300) !important;
+	border-bottom: 1px solid var(--gray-300) !important;
+}
+
+.print-format-doc .child-table--bordered .table .table-foot:first-child {
+	border-left: 1px solid var(--gray-300) !important;
+	border-bottom-left-radius: var(--pfb-radius, 0);
+}
+
+.print-format-doc .child-table--bordered .table .table-foot:last-child {
+	border-bottom-right-radius: var(--pfb-radius, 0);
 }
 
 /* plain header: no fill, a single rule under the header row instead */
@@ -428,12 +475,6 @@
 	height: auto;
 }
 
-.print-format-doc .document-header {
-	border-bottom-width: 1px;
-	border-bottom-style: solid;
-	border-bottom-color: var(--gray-300);
-}
-
 .print-format-doc .field[data-fieldtype="Rating"] .rating-star {
 	width: 1.5em;
 }
@@ -455,12 +496,14 @@
 	border-radius: var(--radius);
 }
 
-.print-format-doc .field[data-fieldtype="Check"] #icon-tick {
-	width: 1em;
-}
-
 /* ── Table layout (field-borders mode) ───────────────────── */
 .print-format-doc .section--grid {
+	/* table padding is folded into the edge cells (below) so the dividers and
+	   border wrap the padded box instead of leaving a borderless strip */
+	--pfb-pad-top: 0px;
+	--pfb-pad-right: 0px;
+	--pfb-pad-bottom: 0px;
+	--pfb-pad-left: 0px;
 	border: 1px solid var(--gray-300);
 	border-radius: var(--border-radius-md, 8px);
 	overflow: hidden;
@@ -491,6 +534,19 @@
 }
 .print-format-doc .section--grid .field:last-child {
 	border-bottom: none;
+}
+/* fold the section padding into the outermost cells */
+.print-format-doc .section--grid .field:first-child {
+	padding-top: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-top));
+}
+.print-format-doc .section--grid .field:last-child {
+	padding-bottom: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-bottom));
+}
+.print-format-doc .section--grid .col:first-child .field {
+	padding-left: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-left));
+}
+.print-format-doc .section--grid .col:last-child .field {
+	padding-right: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-right));
 }
 .print-format-doc .section--grid-rows .col:not(:last-child) {
 	border-right: none;

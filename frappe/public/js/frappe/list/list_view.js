@@ -183,9 +183,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	setup_page() {
 		this.parent.list_view = this;
 		super.setup_page();
-		// Start loading the virtualization bundle as soon as user picks a large page size.
-		this.$paging_area?.on("click", ".btn-paging", (e) => {
-			if (cint($(e.currentTarget).data("value")) >= this.virtualization_threshold) {
+	}
+
+	setup_paging_area() {
+		super.setup_paging_area();
+		// Start loading the virtualization bundle as soon as the user picks a
+		// large page size. (The old version of this hook bound to $paging_area
+		// from setup_page, which runs BEFORE the paging area exists — the ?.
+		// made it a silent no-op, so the preload never actually happened.)
+		this.paging_button_group.$el.on("click", () => {
+			if (cint(this.paging_button_group.get_value()) >= this.virtualization_threshold) {
 				ensure_list_virtualization_loaded().catch(() => {
 					this._virtualization_bundle_failed = true;
 				});
@@ -691,40 +698,27 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return fields_order;
 	}
 
-	get_documentation_link() {
-		if (this.meta.documentation) {
-			return `<a href="${
-				this.meta.documentation
-			}" target="_blank" class="meta-description small text-muted">${__("Need Help?")}</a>`;
-		}
-		return "";
-	}
-
 	get_no_result_message() {
 		let filters = this.filter_area && this.filter_area.get();
 
 		let has_filters_set = filters && filters.length;
-		const no_result_message = has_filters_set
-			? __("No {0} found with matching filters. Clear filters to see all {0}.", [
-					__(this.doctype),
-			  ])
+
+		let title = has_filters_set
+			? __("No {0} found", [__(this.doctype)])
+			: __("No {0} created", [__(this.doctype)]);
+
+		let description = has_filters_set
+			? __("Clear the filters to see all records.")
 			: this.meta.description
 			? __(this.meta.description)
-			: __("You haven't created a {0} yet", [__(this.doctype)]);
-
-		const new_button_label = has_filters_set
-			? __("Create a new {0}", [__(this.doctype)], "Create a new document from list view")
-			: __(
-					"Create your first {0}",
-					[__(this.doctype)],
-					"Create a new document from list view"
-			  );
+			: this.can_create
+			? __("Create your first {0} to get started.", [__(this.doctype)])
+			: __("Nothing has been added yet.");
 
 		const actions = [];
 		if (this.can_create) {
 			actions.push({
-				label: new_button_label,
-				variant: "solid",
+				label: __("Create"),
 				icon: "plus",
 				css_class: "btn-new-doc",
 			});
@@ -732,17 +726,23 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (this.meta.documentation) {
 			actions.push({
-				label: __("Need Help?"),
+				label: __("Documentation"),
 				href: this.meta.documentation,
 				icon: "external-link",
+				variant: "outline",
 			});
 		}
 
+		let icon = "file";
+		if (this.meta.icon && !this.meta.icon.startsWith("fa fa-")) {
+			icon = this.meta.icon;
+		}
+
 		return frappe.ui.empty_state.html({
-			icon: "file",
-			title: no_result_message,
+			icon,
+			title,
+			description,
 			actions,
-			css_class: "msg-box no-border",
 		});
 	}
 
@@ -2501,10 +2501,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.user_roles.includes("System Manager")) {
 			items.push({
 				label: __("Role Permissions Manager", null, "Button in list view menu"),
-				action: () =>
-					frappe.set_route("permission-manager", {
-						doctype,
-					}),
+				action: () => frappe.set_route("permission-manager", doctype),
 				standard: true,
 			});
 		}

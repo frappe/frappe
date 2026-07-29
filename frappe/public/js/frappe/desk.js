@@ -379,6 +379,7 @@ frappe.Application = class Application {
 				"body"
 			);
 			frappe.container = new frappe.views.Container();
+			frappe.ui.setup_site_banners();
 		}
 	}
 	make_nav_bar() {
@@ -404,7 +405,18 @@ frappe.Application = class Application {
 		});
 	}
 	handle_session_expired() {
-		frappe.app.redirect_to_login();
+		if (frappe.app.session_expired_dialog) {
+			return;
+		}
+		const dialog = new frappe.ui.Dialog({
+			title: __("Session Expired"),
+		});
+		dialog.onhide = () => frappe.app.redirect_to_login();
+		frappe.app.session_expired_dialog = dialog;
+		dialog.show();
+		dialog.set_message(
+			__("Your session has expired due to inactivity. Please log in again to continue.")
+		);
 	}
 	redirect_to_login() {
 		window.location.href = `/login?redirect-to=${encodeURIComponent(

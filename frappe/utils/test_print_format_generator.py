@@ -150,6 +150,57 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		html = get_html("ToDo", todo.name, pf.name)
 		self.assertIn(todo.description, html)
 
+	def test_qr_barcode_options(self):
+		from frappe.utils.print_format_generator import is_qr_barcode_options
+
+		self.assertTrue(is_qr_barcode_options("qrcode"))
+		self.assertTrue(is_qr_barcode_options("QR"))
+		self.assertTrue(is_qr_barcode_options('{"format": "qrcode"}'))
+		self.assertFalse(is_qr_barcode_options('{"format": "EAN"}'))
+		self.assertFalse(is_qr_barcode_options(None))
+		self.assertFalse(is_qr_barcode_options("random text"))
+
+	def test_barcode_docfield_with_qr_options_renders_qr(self):
+		"""A dragged Barcode docfield whose options ask for a qr code prints one —
+		decided by the field, without a barcode_format on the layout element."""
+		from frappe.utils.print_format_generator import get_html
+
+		fieldname = f"_test_qr_{frappe.generate_hash(length=6)}"
+		custom_field = frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"dt": "ToDo",
+				"label": "QR",
+				"fieldname": fieldname,
+				"fieldtype": "Barcode",
+				"options": "qrcode",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(custom_field.delete, ignore_permissions=True)
+
+		layout = {
+			"sections": [
+				{
+					"label": "",
+					"columns": [
+						{
+							"label": "",
+							"fields": [{"fieldtype": "Barcode", "fieldname": fieldname, "label": "QR"}],
+						}
+					],
+				}
+			],
+			"header": {"columns": [{"label": "", "fields": []}]},
+			"footer": {"columns": [{"label": "", "fields": []}]},
+		}
+		pf = self._make_print_format(format_data=json.dumps(layout))
+		todo = self._make_todo()
+		frappe.db.set_value("ToDo", todo.name, fieldname, "HELLO-QR")
+
+		html = get_html("ToDo", todo.name, pf.name)
+		self.assertIn("data:image/svg+xml;base64", html)
+		self.assertNotIn('data-barcode-value="HELLO-QR"', html)
+
 	def test_get_html_applies_margin(self):
 		"""Margin values set on the print format should appear in the rendered CSS."""
 		from frappe.utils.print_format_generator import get_html
@@ -185,6 +236,50 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("margin-bottom: 20mm", page_rule)
 		self.assertNotIn("margin: 0;", page_rule)
 		self.assertLess(html.find("@media screen"), html.find("padding: 20mm"))
+
+	def test_top_page_number_sits_above_the_page_margin(self):
+		"""A top page number renders flush to the page edge, not below margin_top.
+		The header markup absorbs the margin (padding on everything after the page
+		number) and flags it so browser.py drops the header page's own marginTop —
+		otherwise the margin would be applied twice and the body would shift."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		todo = self._make_todo()
+		letterhead_doc = self._make_letterhead()
+
+		def chrome_options(letterhead=True, **pf_kwargs):
+			pf_kwargs.setdefault("margin_top", 12)
+			pf = self._make_print_format(**pf_kwargs)
+			generator = PrintFormatGenerator(pf, todo, letterhead=letterhead_doc.name if letterhead else None)
+			with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
+				generator.render_pdf()
+			return chrome_pdf.call_args.kwargs
+
+		top = chrome_options(page_number="Top Left")
+		self.assertTrue(top["options"]["header-includes-top-margin"])
+		self.assertIn("padding-top:12.0mm", top["html"])
+
+		# No letterhead and no header template: the page number is still the only
+		# thing above the margin, so the margin must still be reserved below it.
+		bare = chrome_options(page_number="Top Left", letterhead=False)
+		self.assertTrue(bare["options"]["header-includes-top-margin"])
+		self.assertIn("padding-top:12.0mm", bare["html"])
+
+		# repeat_header_footer off routes page numbers through the minimal overlay.
+		no_repeat = chrome_options(page_number="Top Left", repeat_header_footer=0)
+		self.assertTrue(no_repeat["options"]["header-includes-top-margin"])
+
+		for pos in ("Hide", "Bottom Center"):
+			opts = chrome_options(page_number=pos)["options"]
+			self.assertNotIn("header-includes-top-margin", opts)
+
+		# margin_top 0 has nothing to reserve.
+		self.assertNotIn(
+			"header-includes-top-margin",
+			chrome_options(page_number="Top Left", margin_top=0)["options"],
+		)
 
 	def test_render_pdf_passes_password_to_chrome(self):
 		"""Encrypted PDFs (attach_print(password=...)) must stay encrypted on the
@@ -1166,17 +1261,33 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertNotIn("Col B", html)
 
 	def test_show_label_colon_setting(self):
-		"""Print Settings ▸ show_label_colon toggles the classic colon body class."""
+		"""Print Format ▸ show_label_colon toggles the classic colon body class."""
 		from frappe.utils.print_format_generator import get_html
 
 		pf = self._make_print_format()
 		todo = self._make_todo()
-		with self.change_settings("Print Settings", show_label_colon=0):
-			body = get_html("ToDo", todo.name, pf.name).split("<body", 1)[1][:200]
-			self.assertNotIn("show-label-colon", body)
-		with self.change_settings("Print Settings", show_label_colon=1):
-			body = get_html("ToDo", todo.name, pf.name).split("<body", 1)[1][:200]
-			self.assertIn("show-label-colon", body)
+
+		body = get_html("ToDo", todo.name, pf.name).split("<body", 1)[1][:200]
+		self.assertNotIn("show-label-colon", body)
+
+		pf.db_set("show_label_colon", 1)
+		body = get_html("ToDo", todo.name, pf.name).split("<body", 1)[1][:200]
+		self.assertIn("show-label-colon", body)
+
+	def test_show_label_colon_is_per_format(self):
+		"""One format opting in must not put colons on another."""
+		from frappe.utils.print_format_generator import get_html
+
+		plain = self._make_print_format()
+		with_colon = self._make_print_format(show_label_colon=1)
+		todo = self._make_todo()
+
+		self.assertIn(
+			"show-label-colon", get_html("ToDo", todo.name, with_colon.name).split("<body", 1)[1][:200]
+		)
+		self.assertNotIn(
+			"show-label-colon", get_html("ToDo", todo.name, plain.name).split("<body", 1)[1][:200]
+		)
 
 	# ------------------------------------------------------------------ #
 	# repeating letterhead header / footer (repeat_header_footer setting)

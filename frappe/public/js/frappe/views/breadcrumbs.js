@@ -48,6 +48,20 @@ frappe.breadcrumbs = {
 		return frappe.get_route_str();
 	},
 
+	set_tree_breadcrumb(breadcrumbs) {
+		const doctype = breadcrumbs.doctype;
+		const tree_title = frappe.treeview_settings?.[doctype]?.title || doctype;
+
+		this.append_breadcrumb_element(
+			`/desk/${frappe.router.slug(doctype)}`,
+			__(tree_title),
+			"title-text"
+		);
+
+		let tree_crumb = this.$breadcrumbs.find("li a.title-text").last();
+		tree_crumb.parent().addClass("ellipsis");
+	},
+
 	update() {
 		var breadcrumbs = this.all[frappe.breadcrumbs.current_page()];
 
@@ -79,6 +93,8 @@ frappe.breadcrumbs = {
 			if (breadcrumbs.doctype && ["print", "form"].includes(view)) {
 				this.set_list_breadcrumb(breadcrumbs);
 				this.set_form_breadcrumb(breadcrumbs, view);
+			} else if (breadcrumbs.doctype && view === "tree") {
+				this.set_tree_breadcrumb(breadcrumbs);
 			} else if (breadcrumbs.doctype && view === "list") {
 				this.set_list_breadcrumb(breadcrumbs);
 				if (breadcrumbs.layout_name) {

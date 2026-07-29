@@ -203,6 +203,9 @@ def update_job_id(prepared_report):
 @frappe.whitelist()
 def make_prepared_report(report_name: str, filters: dict[str, Any] | str | list | None = None):
 	"""run reports in background"""
+	from frappe.desk.query_report import get_report_doc
+
+	get_report_doc(report_name)
 	prepared_report = frappe.get_doc(
 		{
 			"doctype": "Prepared Report",
@@ -339,14 +342,17 @@ def get_permission_query_condition(user):
 
 	from frappe.utils.user import UserPermissions
 
-	user = UserPermissions(user)
+	user_perms = UserPermissions(user)
 
-	if "System Manager" in user.roles:
+	if "System Manager" in user_perms.roles:
 		return None
 
-	reports = [frappe.db.escape(report) for report in user.get_all_reports().keys()]
+	reports = [frappe.db.escape(report) for report in user_perms.get_all_reports().keys()]
 
-	return """`tabPrepared Report`.report_name in ({reports})""".format(reports=",".join(reports))
+	reports = ",".join(reports)
+	owner = frappe.db.escape(user)
+
+	return f"""`tabPrepared Report`.report_name in ({reports}) and `tabPrepared Report`.owner = {owner}"""
 
 
 def has_permission(doc, user):

@@ -2,9 +2,17 @@
 	<div
 		class="print-format-section-container"
 		data-pfb-section
+		:data-section-uid="field_uid(section)"
 		v-show="!preview_doc || has_visible_fields"
-		:class="{ 'section-container--condition-hidden': preview_doc && !is_section_visible }"
+		:class="{
+			'section-container--condition-hidden': preview_doc && !is_section_visible,
+			'pfb-section-active': is_selected,
+			'pfb-layer-hover': store.hovered_node.value === section,
+		}"
 		@click.stop="select_section"
+		@contextmenu="on_context_menu"
+		@mouseenter="store.hovered_section.value = section"
+		@mouseleave="store.hovered_section.value = null"
 	>
 		<!-- Top-right actions pill shown on hover in clean-preview (toolbar is hidden) -->
 		<div v-if="!is_header" class="section-preview-actions">
@@ -12,48 +20,16 @@
 				class="drag-handle section-drag-handle"
 				v-html="frappe.utils.icon('grip', 'xs')"
 			></div>
-			<button
-				class="es-button"
-				data-size="xs"
-				data-variant="ghost"
-				data-icon-button="true"
-				:title="__('Copy section')"
-				@click.stop="store.copy_section(section)"
-				v-html="frappe.utils.icon('copy', 'xs')"
-			></button>
-			<button
-				class="es-button"
-				data-size="xs"
-				data-variant="ghost"
-				data-icon-button="true"
-				:title="__('Duplicate section')"
-				@click.stop="store.duplicate_section(section)"
-				v-html="frappe.utils.icon('copy-plus', 'xs')"
-			></button>
-			<button
-				class="es-button"
-				data-size="xs"
-				data-variant="ghost"
-				data-icon-button="true"
-				:title="__('Save as snippet')"
-				@click.stop="save_as_snippet"
-				v-html="frappe.utils.icon('bookmark-plus', 'xs')"
-			></button>
-			<button
-				class="es-button"
-				data-size="xs"
-				data-variant="ghost"
-				data-theme="red"
-				data-icon-button="true"
-				:title="__('Remove section')"
-				@click.stop="remove_section"
-				v-html="frappe.utils.icon('x', 'xs')"
-			></button>
+			<SectionActions
+				:section="section"
+				size="xs"
+				@snippet="save_as_snippet"
+				@remove="remove_section"
+			/>
 		</div>
 		<div
 			class="print-format-section"
 			:class="{
-				'section--selected': is_selected,
 				'section--grid': is_grid,
 				'section--grid-rows': is_grid && section.grid_borders === 'rows',
 				'section--grid-columns': is_grid && section.grid_borders === 'columns',
@@ -84,51 +60,13 @@
 					/>
 				</div>
 				<div class="section-toolbar-right">
-					<button
+					<SectionActions
 						v-if="!is_header"
-						class="es-button"
-						data-size="xs"
-						data-variant="ghost"
-						data-icon-button="true"
-						:title="__('Copy section')"
-						@click.stop="store.copy_section(section)"
-					>
-						<span v-html="frappe.utils.icon('copy', 'sm')"></span>
-					</button>
-					<button
-						v-if="!is_header"
-						class="es-button"
-						data-size="xs"
-						data-variant="ghost"
-						data-icon-button="true"
-						:title="__('Duplicate section')"
-						@click.stop="store.duplicate_section(section)"
-					>
-						<span v-html="frappe.utils.icon('copy-plus', 'sm')"></span>
-					</button>
-					<button
-						v-if="!is_header"
-						class="es-button"
-						data-size="xs"
-						data-variant="ghost"
-						data-icon-button="true"
-						:title="__('Save as snippet')"
-						@click.stop="save_as_snippet"
-					>
-						<span v-html="frappe.utils.icon('bookmark-plus', 'sm')"></span>
-					</button>
-					<button
-						v-if="!is_header"
-						class="es-button"
-						data-size="xs"
-						data-variant="ghost"
-						data-theme="red"
-						data-icon-button="true"
-						:title="__('Remove section')"
-						@click.stop="remove_section"
-					>
-						<span v-html="frappe.utils.icon('x', 'sm')"></span>
-					</button>
+						:section="section"
+						size="sm"
+						@snippet="save_as_snippet"
+						@remove="remove_section"
+					/>
 				</div>
 			</div>
 
@@ -147,8 +85,13 @@
 					<div v-if="i > 0 && !preview_doc" class="column-divider"></div>
 					<div
 						class="column"
-						:class="{ col: !!preview_doc }"
+						:class="{
+							col: !!preview_doc,
+							'pfb-column-hover': store.hovered_node.value === column,
+						}"
 						:style="column.width ? { flex: `${column.width} 1 0%` } : {}"
+						@mouseenter="store.hovered_column.value = column"
+						@mouseleave="store.hovered_column.value = null"
 					>
 						<div
 							v-if="i < section.columns.length - 1"
@@ -168,9 +111,9 @@
 							:preventOnFilter="false"
 							:emptyInsertThreshold="100"
 							v-bind="DRAG_OPTIONS"
-							@start="setDragging(true)"
-							@end="setDragging(false)"
-							@add="select_section"
+							@start="(e) => on_field_drag_start(column, e)"
+							@end="on_field_drag_end"
+							@add="(e) => select_dropped_field(column, e)"
 						>
 							<template #item="{ element }">
 								<Field
@@ -202,6 +145,11 @@
 				</template>
 			</div>
 		</div>
+		<div v-if="show_spacing_handles" class="pfb-section-chrome" :style="section_chrome_style">
+			<SectionSpacingHandles :section="section" type="margin" />
+			<SectionSpacingHandles :section="section" type="padding" />
+			<SectionRadiusHandle :section="section" />
+		</div>
 		<div class="page-break-indicator" v-if="section.page_break">
 			<span>— {{ __("Page Break") }} —</span>
 			<button
@@ -221,15 +169,44 @@
 <script setup>
 import draggable from "vuedraggable";
 import Field from "./Field.vue";
+import SectionActions from "./SectionActions.vue";
+import SectionSpacingHandles from "./SectionSpacingHandles.vue";
+import SectionRadiusHandle from "./SectionRadiusHandle.vue";
 import { computed, inject } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
-import { DRAG_OPTIONS, evaluate_visible_if, parse_inline_style, setDragging } from "../../utils";
+import {
+	DRAG_OPTIONS,
+	evaluate_visible_if,
+	parse_inline_style,
+	setDragging,
+	field_uid,
+} from "../../utils";
+import { useContextMenu } from "../../composables/useContextMenu";
 
 const props = defineProps(["section", "is_header", "zone"]);
 
 let store = inject("$store");
 
-let is_selected = computed(() => store.selected_section.value === props.section);
+let is_selected = computed(() => store.selected_sections.value.includes(props.section));
+// spacing handles only for a single, sole-selected body section
+let show_spacing_handles = computed(
+	() =>
+		!props.is_header &&
+		is_selected.value &&
+		store.selected_sections.value.length === 1 &&
+		store.selected_fields.value.length === 0
+);
+// the chrome overlay sits on the section's border box: inset from the container
+// by the section's own margins (the flow-root reserves that space)
+let section_chrome_style = computed(() => {
+	const m = props.section.margin || {};
+	return {
+		top: (m.top || 0) + "px",
+		right: (m.right || 0) + "px",
+		bottom: (m.bottom || 0) + "px",
+		left: (m.left || 0) + "px",
+	};
+});
 let preview_doc = computed(() => store.preview_doc.value);
 let is_section_visible = computed(() =>
 	evaluate_visible_if(props.section.visible_if, preview_doc.value)
@@ -293,17 +270,29 @@ let has_visible_fields = computed(
 let section_inline_style = computed(() => {
 	const style = {};
 	if (props.section.background) style.backgroundColor = props.section.background;
-	for (const prop of ["padding", "margin"]) {
-		const box = props.section[prop];
-		if (box) {
-			style[prop] = `${box.top || 0}px ${box.right || 0}px ${box.bottom || 0}px ${
-				box.left || 0
-			}px`;
-		}
-	}
+	const box_css = (box) =>
+		`${box.top || 0}px ${box.right || 0}px ${box.bottom || 0}px ${box.left || 0}px`;
+	if (props.section.margin) style.margin = box_css(props.section.margin);
+	// In table mode, padding can't be element padding — child cell borders would
+	// stop at the content and leave a borderless strip. Instead expose it as
+	// per-side vars the grid CSS folds into the edge cells, so the dividers and
+	// border wrap the padded box. Non-grid sections keep real padding.
 	if (is_grid.value) {
-		const pad = props.section.cell_padding ?? 8;
-		style["--pfb-cell-pad"] = `${pad}px`;
+		style["--pfb-cell-pad"] = `${props.section.cell_padding ?? 8}px`;
+		const pad = props.section.padding;
+		if (pad) {
+			style["--pfb-pad-top"] = `${pad.top || 0}px`;
+			style["--pfb-pad-right"] = `${pad.right || 0}px`;
+			style["--pfb-pad-bottom"] = `${pad.bottom || 0}px`;
+			style["--pfb-pad-left"] = `${pad.left || 0}px`;
+		}
+	} else if (props.section.padding) {
+		style.padding = box_css(props.section.padding);
+	}
+	if (props.section.radius != null) {
+		style.borderRadius = `${props.section.radius}px`;
+		// clip content to the rounded corners (non-grid sections are overflow:visible)
+		style.overflow = "hidden";
 	}
 	return { ...style, ...parse_inline_style(props.section.custom_style) };
 });
@@ -312,8 +301,72 @@ function select_section() {
 	store.select_section(props.section);
 }
 
+function select_dropped_field(column, e) {
+	const field = column.fields[e.newIndex];
+	if (field) store.select_field(field);
+	else store.select_section(props.section);
+}
+
+// Bulk drag: if the grabbed field is part of a multi-selection, snapshot the
+// whole group (document order) at drag start; on drop, Sortable has moved only
+// the grabbed field, so we pull the rest over to sit contiguously around it.
+let drag_group = null;
+function on_field_drag_start(column, e) {
+	setDragging(true);
+	drag_group = null;
+	const dragged = column.fields[e.oldIndex];
+	const sel = store.selected_fields.value;
+	if (dragged && sel.length > 1 && sel.includes(dragged)) {
+		const group = store.ordered_body_fields().filter((f) => sel.includes(f));
+		if (group.length > 1 && group.includes(dragged)) drag_group = { dragged, group };
+	}
+}
+function on_field_drag_end() {
+	setDragging(false);
+	if (!drag_group) return;
+	const { dragged, group } = drag_group;
+	drag_group = null;
+	store.reflow_dragged_group(dragged, group);
+	store.set_selected(group);
+}
+
 function remove_section() {
 	store.remove_section(props.section);
+}
+
+const { open: open_context_menu } = useContextMenu();
+
+function on_context_menu(e) {
+	select_section();
+	open_context_menu(e, [
+		!props.is_header && {
+			label: __("Copy section"),
+			icon: "copy",
+			action: () => store.copy_section(props.section),
+		},
+		!props.is_header && {
+			label: __("Duplicate section"),
+			icon: "copy-plus",
+			action: () => store.duplicate_section(props.section),
+		},
+		!props.is_header && {
+			label: __("Save as snippet"),
+			icon: "bookmark-plus",
+			action: save_as_snippet,
+		},
+		store.clipboard.value && {
+			label: __("Paste"),
+			icon: "clipboard-paste",
+			action: () => store.paste_clipboard(),
+		},
+		!props.is_header && { divider: true },
+		!props.is_header && {
+			label: __("Delete section"),
+			icon: "trash",
+			danger: true,
+			action: remove_section,
+		},
+	]);
 }
 
 function save_as_snippet() {
@@ -326,8 +379,14 @@ function save_as_snippet() {
 			default: props.section.label || "",
 		},
 		({ name }) => {
-			store.save_section_snippet(name, props.section);
-			frappe.show_alert({ message: __("Section saved as snippet"), indicator: "green" }, 3);
+			store.save_snippet(name, props.section, "Section").then(
+				() =>
+					frappe.show_alert(
+						{ message: __("Section saved as snippet"), indicator: "green" },
+						3
+					),
+				() => {}
+			);
 		},
 		__("Save Section as Snippet"),
 		__("Save")
@@ -352,6 +411,17 @@ function remove_column(index) {
 	margin-bottom: 0.5rem;
 }
 
+/* One ring for every active section state — selected, hover (canvas), and
+   layer-hover all look identical. The :has() guard keeps hover on the innermost
+   element: when a field inside is hovered, the field's ring shows, not this. */
+.print-format-section-container.pfb-section-active,
+.print-format-section-container.pfb-layer-hover,
+.print-format-section-container:hover:not(:has(.field--preview:hover, .field--chip:hover)) {
+	outline: var(--pfb-ring);
+	outline-offset: 2px;
+	border-radius: var(--radius);
+}
+
 .section-container--condition-hidden {
 	opacity: 0.35;
 	outline: 2px dashed var(--gray-400);
@@ -367,8 +437,12 @@ function remove_column(index) {
 	cursor: default;
 }
 
-.section--selected {
-	border-color: var(--gray-400);
+/* overlay carrying the padding/margin/radius handles — sits on the section's
+   border box, outside the section so its content still clips to the radius */
+.pfb-section-chrome {
+	position: absolute;
+	pointer-events: none;
+	z-index: 3;
 }
 
 .section-toolbar {
@@ -455,6 +529,13 @@ function remove_column(index) {
 	position: relative;
 }
 
+/* same ring as every other hover/selection state (--pfb-ring), so a hovered
+   column reads the same as a hovered field or section */
+.column.pfb-column-hover {
+	outline: var(--pfb-ring);
+	outline-offset: -2px;
+}
+
 .column-divider {
 	width: 1px;
 	background: var(--border-color);
@@ -533,6 +614,11 @@ function remove_column(index) {
 	transition: border-color 0.15s, background 0.15s;
 }
 
+.column.col > .empty-drop-zone {
+	left: 15px;
+	right: 15px;
+}
+
 .empty-drop-zone-hint {
 	color: var(--gray-500);
 }
@@ -584,13 +670,16 @@ function remove_column(index) {
 
 /* ── Table layout (field borders) ───────────────────────── */
 .section--grid {
+	/* section padding is folded into the edge cells (see below) so the grid
+	   dividers and border wrap it; default 0 when no padding is set */
+	--pfb-pad-top: 0px;
+	--pfb-pad-right: 0px;
+	--pfb-pad-bottom: 0px;
+	--pfb-pad-left: 0px;
 	border: 1px solid var(--gray-300);
 	border-radius: var(--border-radius-md, 8px);
 	overflow: hidden;
 	padding: 0;
-}
-.section--grid.section--selected {
-	border-color: var(--gray-400);
 }
 .section--grid .section-title-display {
 	padding: var(--pfb-cell-pad, 8px);
@@ -622,19 +711,24 @@ function remove_column(index) {
 .section--grid :deep(.field--chip:last-child) {
 	border-bottom: none;
 }
+/* fold section padding into the outermost cells so the grid dividers and border
+   wrap the padded box (builder mode — preview/PDF handled in print_format_doc.css) */
+.section--grid :deep(.drag-container > .field--chip:first-child) {
+	padding-top: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-top));
+}
+.section--grid :deep(.drag-container > .field--chip:last-child) {
+	padding-bottom: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-bottom));
+}
+.section--grid .column:first-child :deep(.field--chip) {
+	padding-left: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-left));
+}
+.section--grid .column:last-child :deep(.field--chip) {
+	padding-right: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-right));
+}
 .section--grid-rows .column:not(:last-child) {
 	border-right: none;
 }
 .section--grid-columns :deep(.field--chip) {
 	border-bottom: none;
-}
-.section--grid :deep(.field--chip:hover),
-.section--grid :deep(.field--preview:hover),
-.section--grid :deep(.field--selected) {
-	outline: 1px dashed var(--gray-400);
-	outline-offset: -1px;
-}
-.section--grid :deep(.field--selected) {
-	outline-style: solid;
 }
 </style>

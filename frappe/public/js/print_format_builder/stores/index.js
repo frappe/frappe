@@ -17,28 +17,75 @@ export function getStore(print_format_name) {
 	let dirty = ref(false);
 	let needs_setup = ref(false);
 	let edit_letterhead = ref(false);
-	let scroll_to_section = ref(null);
+	let scroll_target = ref(null);
+	let hovered_field = ref(null);
+	let hovered_section = ref(null);
+	let hovered_column = ref(null);
+	// the innermost hovered thing wins, so hovering a field doesn't also light up
+	// its column and section — one rule, shared by the canvas and the Layers tree
+	let hovered_node = computed(
+		() => hovered_field.value || hovered_column.value || hovered_section.value
+	);
 	const selection = useSelection();
 	const {
 		selected_field,
 		selected_fields,
 		selected_section,
+		selected_sections,
 		selected_letterhead,
 		selected_lh_footer,
+		is_multi_select,
 		select_field,
+		set_selected,
+		set_selection,
 		select_section,
 		select_letterhead,
-		remove_selected_fields,
 		remove_field,
 		align_selected_fields,
 	} = selection;
+
+	// remove everything currently selected — field tombstones + spliced sections
+	function remove_selection() {
+		selected_fields.value.forEach((df) => (df.remove = true));
+		const sections = layout.value?.sections || [];
+		selected_sections.value.forEach((s) => {
+			const i = sections.indexOf(s);
+			if (i !== -1) sections.splice(i, 1);
+		});
+		selected_fields.value = [];
+		selected_field.value = null;
+		selected_sections.value = [];
+		selected_section.value = null;
+	}
+
+	// body fields flattened in layout order — shared by shift-range and marquee select
+	function ordered_body_fields() {
+		const out = [];
+		for (const section of layout.value?.sections || []) {
+			for (const column of section.columns || []) {
+				for (const field of column.fields || []) {
+					if (!field.remove) out.push(field);
+				}
+			}
+		}
+		return out;
+	}
+	function select_field_range(target) {
+		const all = ordered_body_fields();
+		const ti = all.indexOf(target);
+		const ai = selected_field.value ? all.indexOf(selected_field.value) : -1;
+		if (ti === -1 || ai === -1) return select_field(target);
+		const [lo, hi] = ai <= ti ? [ai, ti] : [ti, ai];
+		set_selected(all.slice(lo, hi + 1));
+	}
 	const {
-		find_field_column,
 		duplicate_field,
 		duplicate_section,
 		duplicate_selection,
 		move_selection,
+		reflow_dragged_group,
 		insert_section,
+		insert_field,
 		remove_section,
 	} = useLayoutMutations(layout, selection);
 	const {
@@ -150,8 +197,15 @@ export function getStore(print_format_name) {
 			],
 		};
 	}
+	// count, not a flag — autosave and a manual save can overlap
+	let saving_count = ref(0);
+	let save_failed = ref(false);
+	let save_status = computed(() =>
+		save_failed.value ? "failed" : saving_count.value > 0 ? "saving" : "saved"
+	);
 	function save_changes() {
-		frappe.dom.freeze(__("Saving..."));
+		frappe.dom.freeze(__("Saving…"));
+		saving_count.value++;
 
 		serialize_layout(layout.value);
 		print_format.value.format_data = JSON.stringify(layout.value);
@@ -171,15 +225,54 @@ export function getStore(print_format_name) {
 			})
 			.then(() => fetch())
 			.then(() => {
+				autosave_stopped = false;
+				save_failed.value = false;
 				frappe.show_alert({ message: __("Saved"), indicator: "green" });
 			})
+			.catch(() => (save_failed.value = true))
 			.always(() => {
+				saving_count.value--;
 				frappe.dom.unfreeze();
 			});
 	}
-	function reset_changes() {
-		fetch();
+	// stops after a failure so the error dialog doesn't loop; a manual save re-arms it
+	let autosave_stopped = false;
+	function autosave_changes() {
+		if (!dirty.value || autosave_stopped) return;
+		if (document.body.classList.contains("pfb-dragging")) {
+			autosave();
+			return;
+		}
+		dirty.value = false;
+		saving_count.value++;
+		frappe
+			.call({
+				method: "frappe.printing.doctype.print_format.print_format.autosave",
+				args: { doc: get_preview_format_doc() },
+			})
+			.then((r) => {
+				// sync only the stamp — the user may have kept editing mid-request
+				const was_dirty = dirty.value;
+				print_format.value.modified = r.message.modified;
+				if (!was_dirty) nextTick(() => (dirty.value = false));
+				if (letterhead.value && letterhead.value._dirty) {
+					return frappe
+						.call("frappe.client.save", { doc: letterhead.value })
+						.then((res) => {
+							letterhead.value.modified = res.message.modified;
+							letterhead.value._dirty = false;
+						});
+				}
+			})
+			.then(() => (save_failed.value = false))
+			.catch(() => {
+				autosave_stopped = true;
+				dirty.value = true;
+				save_failed.value = true;
+			})
+			.always(() => saving_count.value--);
 	}
+	const autosave = frappe.utils.debounce(autosave_changes, 3000);
 	function get_preview_format_doc() {
 		const snapshot = clone_plain(layout.value);
 		serialize_layout(snapshot);
@@ -238,21 +331,30 @@ export function getStore(print_format_name) {
 		},
 		{ deep: true }
 	);
+	// letterhead edits flag themselves with _dirty instead of touching `dirty` —
+	// route them into the same autosave pipeline
+	watch(
+		letterhead,
+		() => {
+			if (letterhead.value?._dirty) dirty.value = true;
+		},
+		{ deep: true }
+	);
+	watch(dirty, (v) => v && autosave());
 
 	const { style_presets, save_style_preset, apply_style_preset, delete_style_preset } =
 		usePresets(print_format);
 	const { clipboard, copy_field, copy_section, copy_selection, paste_clipboard } = useClipboard({
 		selection,
 		layout,
-		find_field_column,
 		insert_section,
+		insert_field,
 	});
-	const {
-		section_snippets,
-		save_section_snippet,
-		insert_section_snippet,
-		delete_section_snippet,
-	} = useSnippets({ insert_section });
+	const { snippets, save_snippet, insert_snippet, delete_snippet } = useSnippets({
+		insert_section,
+		insert_field,
+		doc_type: computed(() => print_format.value?.doc_type),
+	});
 
 	return {
 		print_format,
@@ -262,15 +364,21 @@ export function getStore(print_format_name) {
 		dirty,
 		needs_setup,
 		edit_letterhead,
-		scroll_to_section,
+		scroll_target,
+		hovered_field,
+		hovered_section,
+		hovered_column,
+		hovered_node,
 		selected_field,
 		selected_fields,
-		remove_selected_fields,
+		remove_selection,
 		remove_field,
 		align_selected_fields,
 		selected_section,
+		selected_sections,
 		selected_letterhead,
 		selected_lh_footer,
+		is_multi_select,
 		preview_doc,
 		preview_doc_name,
 		preview_values,
@@ -279,9 +387,14 @@ export function getStore(print_format_name) {
 		persisted_preview_doc_name,
 		fetch,
 		save_changes,
-		reset_changes,
+		save_status,
 		get_preview_format_doc,
 		select_field,
+		set_selected,
+		set_selection,
+		select_field_range,
+		ordered_body_fields,
+		reflow_dragged_group,
 		select_section,
 		select_letterhead,
 		remove_section,
@@ -300,10 +413,10 @@ export function getStore(print_format_name) {
 		save_style_preset,
 		apply_style_preset,
 		delete_style_preset,
-		section_snippets,
-		save_section_snippet,
-		insert_section_snippet,
-		delete_section_snippet,
+		snippets,
+		save_snippet,
+		insert_snippet,
+		delete_snippet,
 		paste_clipboard,
 		undo,
 		redo,

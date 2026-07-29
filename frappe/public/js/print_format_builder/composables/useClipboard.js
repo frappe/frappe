@@ -1,37 +1,21 @@
 import { ref } from "vue";
-import { clone_plain, freshen_field } from "../utils";
+import { clone_plain, read_json, write_json } from "../utils";
 
 const CLIPBOARD_KEY = "pfb_clipboard";
 
-function load_clipboard() {
-	try {
-		return JSON.parse(localStorage.getItem(CLIPBOARD_KEY)) || null;
-	} catch {
-		return null;
-	}
-}
-function persist(value) {
-	try {
-		localStorage.setItem(CLIPBOARD_KEY, JSON.stringify(value));
-		return true;
-	} catch {
-		return false;
-	}
-}
-
-const clipboard = ref(load_clipboard());
+const clipboard = ref(read_json(CLIPBOARD_KEY));
 function set_clipboard(value) {
 	clipboard.value = value;
-	persist(value);
+	write_json(CLIPBOARD_KEY, value);
 }
 
 if (typeof window !== "undefined") {
 	window.addEventListener("storage", (e) => {
-		if (e.key === CLIPBOARD_KEY) clipboard.value = load_clipboard();
+		if (e.key === CLIPBOARD_KEY) clipboard.value = read_json(CLIPBOARD_KEY);
 	});
 }
 
-export function useClipboard({ selection, layout, find_field_column, insert_section }) {
+export function useClipboard({ selection, layout, insert_section, insert_field }) {
 	const { selected_field, selected_section } = selection;
 
 	function copy_field(df) {
@@ -47,24 +31,12 @@ export function useClipboard({ selection, layout, find_field_column, insert_sect
 		else if (selected_section.value) copy_section(selected_section.value);
 	}
 	function paste_clipboard() {
-		const clip = load_clipboard() || clipboard.value;
+		const clip = read_json(CLIPBOARD_KEY) || clipboard.value;
 		clipboard.value = clip;
 		if (!clip || !layout.value) return;
 
 		if (clip.type === "field") {
-			const clone = freshen_field(clone_plain(clip.data));
-			const col = selected_field.value && find_field_column(selected_field.value);
-			if (col) {
-				col.fields.splice(col.fields.indexOf(selected_field.value) + 1, 0, clone);
-			} else {
-				const sections = layout.value.sections || [];
-				const target = selected_section.value || sections[sections.length - 1];
-				const first_col = target?.columns?.[0];
-				if (!first_col) return;
-				first_col.fields.push(clone);
-			}
-			selected_section.value = null;
-			selected_field.value = clone;
+			insert_field(clip.data);
 		} else if (clip.type === "section") {
 			insert_section(clip.data);
 		}
