@@ -78,7 +78,7 @@ let selected_field = computed(() => store.selected_field.value);
 let selected_count = computed(
 	() => store.selected_fields.value.length + store.selected_sections.value.length
 );
-let is_multi_select = computed(() => selected_count.value > 1);
+let is_multi_select = computed(() => store.is_multi_select.value);
 let selected_section = computed(() => store.selected_section.value);
 let selected_letterhead = computed(() => store.selected_letterhead.value);
 let selected_lh_footer = computed(() => store.selected_lh_footer.value);
