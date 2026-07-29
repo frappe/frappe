@@ -2,6 +2,7 @@
 	<div
 		class="print-format-section-container"
 		data-pfb-section
+		:data-section-uid="field_uid(section)"
 		v-show="!preview_doc || has_visible_fields"
 		:class="{
 			'section-container--condition-hidden': preview_doc && !is_section_visible,
@@ -159,7 +160,13 @@ import Field from "./Field.vue";
 import SectionActions from "./SectionActions.vue";
 import { computed, inject } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
-import { DRAG_OPTIONS, evaluate_visible_if, parse_inline_style, setDragging } from "../../utils";
+import {
+	DRAG_OPTIONS,
+	evaluate_visible_if,
+	parse_inline_style,
+	setDragging,
+	field_uid,
+} from "../../utils";
 import { useContextMenu } from "../../composables/useContextMenu";
 
 const props = defineProps(["section", "is_header", "zone"]);

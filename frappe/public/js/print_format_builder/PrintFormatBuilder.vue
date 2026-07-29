@@ -213,16 +213,45 @@ function on_canvas_pointermove(e) {
 function update_marquee_selection() {
 	const box = marquee.value;
 	if (!box) return;
+	const rect = (uid) => {
+		const el = document.querySelector(
+			`[data-field-uid="${uid}"], [data-section-uid="${uid}"]`
+		);
+		return el ? { el, r: el.getBoundingClientRect() } : null;
+	};
+	const encloses = (r) =>
+		r.left >= box.x && r.top >= box.y && r.right <= box.x + box.w && r.bottom <= box.y + box.h;
+	const overlaps = (r) =>
+		r.left < box.x + box.w && r.right > box.x && r.top < box.y + box.h && r.bottom > box.y;
+
+	// Builder rule: select the outermost fully-enclosed element. When the box wraps
+	// a whole body section (and nothing outside it), select the section instead of
+	// its fields — our selection model holds one section, so this is single-section.
+	const enclosed = ($store.value.layout.value?.sections || [])
+		.map((s) => ({ s, hit: rect(field_uid(s)) }))
+		.filter((x) => x.hit && encloses(x.hit.r));
+
+	const hitFields = $store.value.ordered_body_fields().filter((df) => {
+		const hit = rect(field_uid(df));
+		return hit && overlaps(hit.r);
+	});
+
+	if (enclosed.length === 1) {
+		const secEl = enclosed[0].hit.el;
+		const loose = hitFields.some((df) => {
+			const hit = rect(field_uid(df));
+			return hit && !secEl.contains(hit.el);
+		});
+		if (!loose) {
+			$store.value.select_section(enclosed[0].s);
+			return;
+		}
+	}
+
 	const hits = marquee_base.slice();
 	const seen = new Set(hits);
-	for (const df of $store.value.ordered_body_fields()) {
-		if (seen.has(df)) continue;
-		const el = document.querySelector(`[data-field-uid="${field_uid(df)}"]`);
-		if (!el) continue;
-		const r = el.getBoundingClientRect();
-		const hit =
-			r.left < box.x + box.w && r.right > box.x && r.top < box.y + box.h && r.bottom > box.y;
-		if (hit) {
+	for (const df of hitFields) {
+		if (!seen.has(df)) {
 			seen.add(df);
 			hits.push(df);
 		}
