@@ -13,6 +13,17 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
+ProviderErrorKind = Literal[
+	"rate_limit",
+	"overloaded",
+	"timeout",
+	"auth",
+	"context_overflow",
+	"invalid_request",
+	"transport",
+	"unknown",
+]
+
 
 class ToolCall(BaseModel):
 	"""A tool invocation in the assistant's ordered content."""
@@ -155,6 +166,11 @@ class RunEnded(_Event):
 class RunError(_Event):
 	type: Literal["run_error"] = "run_error"
 	message: str
+	kind: ProviderErrorKind | None = None
+	retryable: bool | None = None
+	status_code: int | None = None
+	provider: str | None = None
+	detail: str | None = None
 
 
 # --- live-only events -----------------------------------------------------
@@ -173,6 +189,28 @@ class ToolCallStarted(_Event):
 	durable: bool = Field(default=False, exclude=True)
 
 
+class RetryScheduled(_Event):
+	type: Literal["retry_scheduled"] = "retry_scheduled"
+	attempt: int
+	max_attempts: int
+	delay_seconds: float
+	kind: ProviderErrorKind
+	durable: bool = Field(default=False, exclude=True)
+
+
+class RetryStarted(_Event):
+	type: Literal["retry_started"] = "retry_started"
+	attempt: int
+	durable: bool = Field(default=False, exclude=True)
+
+
+class RetryExhausted(_Event):
+	type: Literal["retry_exhausted"] = "retry_exhausted"
+	attempts: int
+	kind: ProviderErrorKind
+	durable: bool = Field(default=False, exclude=True)
+
+
 AnyEvent = (
 	RunStarted
 	| UserMessage
@@ -184,6 +222,9 @@ AnyEvent = (
 	| RunError
 	| TextDelta
 	| ToolCallStarted
+	| RetryScheduled
+	| RetryStarted
+	| RetryExhausted
 )
 
 Event = Annotated[AnyEvent, Field(discriminator="type")]

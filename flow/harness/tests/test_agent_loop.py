@@ -1,12 +1,14 @@
 import asyncio
 
+import httpx
 import pytest
 
 import flow_server.agent.loop as agent_loop
 from flow_server.agent import HookDecision, ResumeError, resume, run
-from flow_server.events import AssistantMessage, ToolCall
-from flow_server.model import Model, ModelRequest
+from flow_server.events import AssistantMessage, TextDelta, ToolCall, Usage
+from flow_server.model import Model, ModelRequest, ProviderError
 from flow_server.model.mock import MockModel
+from flow_server.model.resolver import ResolvedModelAuth
 from flow_server.session.store import SessionConfig, SessionStore
 from flow_server.tools import tool
 from flow_server.tools.tool import ToolResult as RuntimeToolResult
@@ -496,3 +498,295 @@ async def test_abort_cancels_client_callback_request(tmp_path, monkeypatch):
 
 	assert callback_cancelled.is_set()
 	assert _of(events, "run_ended")[-1]["reason"] == "aborted"
+
+
+class _FlakyProviderModel(Model):
+	name = "flaky"
+	provider = "test"
+	api = "test"
+	model = "test/flaky"
+
+	def __init__(self, failures: list[ProviderError]):
+		self.failures = failures
+		self.attempts = 0
+
+	async def run(self, request: ModelRequest):
+		self.attempts += 1
+		if self.failures:
+			yield TextDelta(text=f"partial-{self.attempts}")
+			raise self.failures.pop(0)
+		yield AssistantMessage(content="done", provider=self.provider, model=self.model)
+		yield Usage(output_tokens=1)
+
+
+def _provider_error(kind="overloaded", *, retryable=True, detail="provider busy"):
+	return ProviderError(
+		kind=kind,
+		retryable=retryable,
+		status_code=503,
+		provider="test",
+		detail=detail,
+	)
+
+
+async def test_transient_provider_failure_retries_before_committing_assistant(tmp_path, monkeypatch):
+	monkeypatch.setattr(agent_loop, "_retry_delay_seconds", lambda error, retry_index: 0)
+	session, events = _session(tmp_path)
+	model = _FlakyProviderModel([_provider_error()])
+
+	await run(session, "try", model=model)
+
+	assert model.attempts == 2
+	assert [event["attempt"] for event in _of(events, "retry_scheduled")] == [2]
+	assert [event["max_attempts"] for event in _of(events, "retry_scheduled")] == [3]
+	assert [event["attempt"] for event in _of(events, "retry_started")] == [2]
+	assert _of(events, "retry_exhausted") == []
+	assert [event["content"][0]["text"] for event in _of(events, "assistant_message")] == ["done"]
+	assert [row["type"] for row in session.log.read_since(0)].count("assistant_message") == 1
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
+
+
+async def test_retry_exhaustion_has_one_typed_error_lifecycle(tmp_path, monkeypatch):
+	monkeypatch.setattr(agent_loop, "_retry_delay_seconds", lambda error, retry_index: 0)
+	session, events = _session(tmp_path)
+	model = _FlakyProviderModel([_provider_error(), _provider_error(), _provider_error()])
+
+	await run(session, "try", model=model)
+
+	assert model.attempts == 3
+	assert len(_of(events, "retry_scheduled")) == 2
+	assert len(_of(events, "retry_started")) == 2
+	assert _of(events, "retry_exhausted") == [
+		{
+			"type": "retry_exhausted",
+			"attempts": 3,
+			"kind": "overloaded",
+		}
+	]
+	assert len(_of(events, "assistant_message")) == 1
+	assert _of(events, "assistant_message")[0]["stop_reason"] == "error"
+	assert len(_of(events, "run_error")) == 1
+	assert _of(events, "run_error")[0]["kind"] == "overloaded"
+	assert _of(events, "run_error")[0]["status_code"] == 503
+	assert [event["reason"] for event in _of(events, "run_ended")] == ["error"]
+
+
+async def test_nonretryable_provider_failure_fails_immediately(tmp_path):
+	session, events = _session(tmp_path)
+	model = _FlakyProviderModel([_provider_error("invalid_request", retryable=False, detail="bad input")])
+
+	await run(session, "try", model=model)
+
+	assert model.attempts == 1
+	assert _of(events, "retry_scheduled") == []
+	assert _of(events, "retry_started") == []
+	assert _of(events, "retry_exhausted") == []
+	assert _of(events, "run_error")[0]["kind"] == "invalid_request"
+
+
+async def test_context_overflow_ends_cleanly_without_retry(tmp_path):
+	session, events = _session(tmp_path)
+	model = _FlakyProviderModel(
+		[_provider_error("context_overflow", retryable=False, detail="context_length_exceeded")]
+	)
+
+	await run(session, "too much", model=model)
+
+	assert model.attempts == 1
+	assert _of(events, "retry_scheduled") == []
+	assert _of(events, "run_error")[0]["kind"] == "context_overflow"
+	assert _of(events, "run_error")[0]["detail"] == "context_length_exceeded"
+	assert _of(events, "run_ended")[0]["reason"] == "error"
+
+
+async def test_oversized_provider_retry_hint_is_not_slept_out(tmp_path):
+	session, events = _session(tmp_path)
+	model = _FlakyProviderModel(
+		[
+			ProviderError(
+				kind="rate_limit",
+				retryable=True,
+				status_code=429,
+				provider="test",
+				detail="daily limit reached",
+				retry_after_seconds=3600,
+			)
+		]
+	)
+
+	await run(session, "try", model=model)
+
+	assert model.attempts == 1
+	assert _of(events, "retry_scheduled") == []
+	assert _of(events, "retry_exhausted") == []
+	assert _of(events, "run_error")[0]["kind"] == "rate_limit"
+	assert _of(events, "run_ended")[-1]["reason"] == "error"
+
+
+async def test_retry_started_separates_a_replayed_stream(tmp_path, monkeypatch):
+	"""A failed attempt's live deltas are already out, so `retry_started` is the
+	boundary at which a client drops the in-flight turn's streamed text."""
+
+	class RestreamingModel(Model):
+		name = "restreaming"
+
+		def __init__(self):
+			self.attempts = 0
+
+		async def run(self, request: ModelRequest):
+			self.attempts += 1
+			yield TextDelta(text="the plan is ")
+			if self.attempts == 1:
+				raise _provider_error()
+			yield TextDelta(text="to ship it")
+			yield AssistantMessage(content="the plan is to ship it")
+			yield Usage()
+
+	monkeypatch.setattr(agent_loop, "_retry_delay_seconds", lambda error, retry_index: 0)
+	session, events = _session(tmp_path)
+
+	await run(session, "plan", model=RestreamingModel())
+
+	timeline = [event["type"] for event in events]
+	boundary = timeline.index("retry_started")
+	assert timeline[:boundary].count("text_delta") == 1
+	assert timeline[boundary:].count("text_delta") == 2
+	assert [row["type"] for row in session.log.read_since(0)].count("assistant_message") == 1
+
+
+async def test_cancellation_interrupts_retry_backoff(tmp_path, monkeypatch):
+	monkeypatch.setattr(agent_loop, "_retry_delay_seconds", lambda error, retry_index: 60)
+	session, events = _session(tmp_path)
+	model = _FlakyProviderModel([_provider_error()])
+
+	task = asyncio.create_task(run(session, "try", model=model))
+	for _ in range(100):
+		if _of(events, "retry_scheduled"):
+			break
+		await asyncio.sleep(0.01)
+	session.request_abort()
+	await asyncio.wait_for(task, timeout=1)
+
+	assert model.attempts == 1
+	assert _of(events, "retry_started") == []
+	assert _of(events, "retry_exhausted") == []
+	assert _of(events, "assistant_message")[-1]["stop_reason"] == "aborted"
+	assert _of(events, "run_ended")[-1]["reason"] == "aborted"
+
+
+async def test_model_retry_never_reruns_completed_tools(tmp_path, monkeypatch):
+	tool_runs = 0
+
+	@tool
+	async def count_once(*, ctx):
+		nonlocal tool_runs
+		tool_runs += 1
+		return RuntimeToolResult(content="counted")
+
+	class ToolThenFlakyModel(Model):
+		name = "tool-then-flaky"
+
+		def __init__(self):
+			self.calls = 0
+
+		async def run(self, request: ModelRequest):
+			self.calls += 1
+			if self.calls == 1:
+				yield AssistantMessage(content=[ToolCall(id="count-1", name="count_once", arguments={})])
+				yield Usage()
+			elif self.calls == 2:
+				raise _provider_error()
+			else:
+				yield AssistantMessage(content="done")
+				yield Usage()
+
+	monkeypatch.setitem(agent_loop.BUILTIN_TOOLS, "count_once", count_once)
+	monkeypatch.setattr(agent_loop, "_retry_delay_seconds", lambda error, retry_index: 0)
+	session, events = _session(tmp_path, tools=["count_once"], auto_approve=True)
+
+	await run(session, "go", model=ToolThenFlakyModel())
+
+	assert tool_runs == 1
+	assert [event["tool_call_id"] for event in _of(events, "tool_result")] == ["count-1"]
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
+
+
+async def test_expired_oauth_refreshes_and_reresolves_model_once(tmp_path, monkeypatch):
+	resolutions: list[str | None] = []
+
+	async def resolve_auth(model, store, *, credential_id=None, refresh_access_token=None):
+		resolutions.append(refresh_access_token)
+		token = "fresh-token" if refresh_access_token else "expired-token"
+		return ResolvedModelAuth(
+			api_key=token,
+			source="OAuth",
+			provider_id="codex",
+		)
+
+	class TokenModel(Model):
+		name = "codex/test"
+
+		def __init__(self, token):
+			self.token = token
+
+		async def run(self, request: ModelRequest):
+			if self.token == "expired-token":
+				raise ProviderError(
+					kind="auth",
+					retryable=True,
+					status_code=401,
+					provider="codex",
+					detail="access token expired",
+				)
+			yield AssistantMessage(content="authenticated")
+			yield Usage()
+
+	monkeypatch.setattr(agent_loop, "resolve_model_auth", resolve_auth)
+	monkeypatch.setattr(agent_loop, "get_model", lambda name, *, api_key=None, **kwargs: TokenModel(api_key))
+	session, events = _session(tmp_path, model="codex/test")
+
+	await run(session, "hello")
+
+	assert resolutions == [None, "expired-token"]
+	assert [event["attempt"] for event in _of(events, "retry_scheduled")] == [2]
+	assert [event["max_attempts"] for event in _of(events, "retry_scheduled")] == [4]
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
+
+
+async def test_credential_refresh_failure_ends_the_run_typed(tmp_path, monkeypatch):
+	"""The token endpoint is a second provider call; its transport faults must not
+	escape the loop untyped."""
+
+	async def resolve_auth(model, store, *, credential_id=None, refresh_access_token=None):
+		if refresh_access_token is not None:
+			raise httpx.ConnectError("token endpoint unreachable")
+		return ResolvedModelAuth(api_key="expired-token", source="OAuth", provider_id="codex")
+
+	class ExpiredModel(Model):
+		name = "codex/test"
+
+		async def run(self, request: ModelRequest):
+			raise ProviderError(
+				kind="auth",
+				retryable=True,
+				status_code=401,
+				provider="codex",
+				detail="access token expired",
+			)
+			yield  # pragma: no cover - unreachable, keeps `run` an async generator
+
+	monkeypatch.setattr(agent_loop, "resolve_model_auth", resolve_auth)
+	monkeypatch.setattr(agent_loop, "get_model", lambda name, **kwargs: ExpiredModel())
+	session, events = _session(tmp_path, model="codex/test")
+
+	await run(session, "hello")
+
+	assert [event["attempt"] for event in _of(events, "retry_scheduled")] == [2]
+	assert _of(events, "retry_started") == []
+	assert [event["kind"] for event in _of(events, "retry_exhausted")] == ["auth"]
+	assert len(_of(events, "assistant_message")) == 1
+	assert _of(events, "assistant_message")[0]["stop_reason"] == "error"
+	run_error = _of(events, "run_error")[0]
+	assert (run_error["kind"], run_error["retryable"]) == ("auth", False)
+	assert "token endpoint unreachable" in run_error["detail"]
+	assert [event["reason"] for event in _of(events, "run_ended")] == ["error"]

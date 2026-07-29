@@ -24,6 +24,7 @@ async def resolve_model_auth(
 	store: CredentialStore,
 	*,
 	credential_id: str | None = None,
+	refresh_access_token: str | None = None,
 ) -> ResolvedModelAuth:
 	"""Resolve a stored credential first, then the provider's environment."""
 	spec = get_provider(credential_id) if credential_id else provider_for_model(model)
@@ -42,7 +43,11 @@ async def resolve_model_auth(
 		if isinstance(credential, OAuthCredential):
 			if spec and "oauth" not in spec.auth_methods:
 				raise AuthError(f"Provider {provider_id!r} does not support OAuth")
-			runtime = await resolve_auth(store, provider_id)
+			runtime = await resolve_auth(
+				store,
+				provider_id,
+				refresh_access_token=refresh_access_token,
+			)
 			return ResolvedModelAuth(
 				api_key=runtime.token,
 				base_url=runtime.base_url,

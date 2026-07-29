@@ -36,6 +36,12 @@ from flow_server.model.auth import (
 	register_auth_provider,
 )
 from flow_server.model.credentials import OAuthCredential
+from flow_server.model.errors import (
+	ProviderError,
+	normalize_provider_error,
+	provider_error_detail,
+	provider_error_from_http,
+)
 from flow_server.model.model import (
 	Model,
 	ModelCancelled,
@@ -191,13 +197,16 @@ class CodexModel(Model):
 			)
 			assert response is not None
 			if response.status_code >= 400:
-				body = (
-					await await_with_cancellation(
-						response.aread(),
-						request.cancellation,
-					)
-				).decode(errors="replace")
-				raise RuntimeError(f"Codex HTTP {response.status_code}: {body[:500]}")
+				body = await await_with_cancellation(
+					response.aread(),
+					request.cancellation,
+				)
+				raise provider_error_from_http(
+					status_code=response.status_code,
+					provider=self.provider,
+					body=body,
+					headers=response.headers,
+				)
 			async for event in _codex_events(
 				response,
 				model=self,
@@ -208,6 +217,10 @@ class CodexModel(Model):
 		except ModelCancelled:
 			yield self._aborted()
 			yield Usage()
+		except ProviderError:
+			raise
+		except httpx.HTTPError as exc:
+			raise normalize_provider_error(exc, provider=self.provider) from exc
 		finally:
 			if response is not None:
 				await stream_context.__aexit__(*sys.exc_info())
@@ -259,7 +272,10 @@ async def _codex_events(
 		async for raw in iterate_with_cancellation(_iter_sse(response), cancellation):
 			event_type = raw.get("type")
 			if event_type in {"error", "response.failed"}:
-				raise RuntimeError(_codex_error(raw))
+				raise normalize_provider_error(
+					RuntimeError(_codex_error(raw)),
+					provider=model.provider,
+				)
 			if event_type == "response.output_item.added":
 				item = raw.get("item")
 				if isinstance(item, Mapping) and item.get("type") == "reasoning":
@@ -571,19 +587,7 @@ def _codex_usage(event: Mapping[str, Any]) -> Usage:
 
 
 def _codex_error(event: Mapping[str, Any]) -> str:
-	sources: list[Mapping[str, Any]] = [event]
-	for key in ("error", "response"):
-		value = event.get(key)
-		if isinstance(value, Mapping):
-			sources.append(value)
-			nested = value.get("error")
-			if isinstance(nested, Mapping):
-				sources.append(nested)
-	for source in sources:
-		message = source.get("message")
-		if isinstance(message, str) and message:
-			return message
-	return "OpenAI Codex returned an error"
+	return provider_error_detail(event) or "OpenAI Codex returned an error"
 
 
 def _json_object(value: str) -> dict:

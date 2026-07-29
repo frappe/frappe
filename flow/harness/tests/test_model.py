@@ -1,5 +1,6 @@
 import asyncio
 
+import httpx
 import pytest
 
 from flow_server.events import AssistantMessage, TextContent, ThinkingContent, ToolCall, UserMessage
@@ -8,6 +9,7 @@ from flow_server.model import (
 	LiteLLMModel,
 	MockModel,
 	ModelRequest,
+	ProviderError,
 	get_model,
 	register_provider,
 )
@@ -89,6 +91,35 @@ async def test_litellm_cancellation_closes_active_stream(monkeypatch):
 	assert stream.closed.is_set()
 	assert [event.type for event in events] == ["assistant_message", "usage"]
 	assert events[0].stop_reason == "aborted"
+
+
+async def test_litellm_disables_sdk_retries_and_normalizes_provider_failure(monkeypatch):
+	seen_kwargs = {}
+
+	async def completion(**kwargs):
+		import litellm
+
+		seen_kwargs.update(kwargs)
+		request = httpx.Request("POST", "https://provider.test")
+		response = httpx.Response(429, headers={"retry-after": "3"}, request=request)
+		raise litellm.RateLimitError(
+			message="rate limited",
+			llm_provider="openai",
+			model="test",
+			response=response,
+		)
+
+	monkeypatch.setattr("litellm.acompletion", completion)
+	model = LiteLLMModel("openai/test")
+
+	with pytest.raises(ProviderError) as raised:
+		await _collect(model.run(ModelRequest(messages=[UserMessage(content="hi")], stream=False)))
+
+	assert seen_kwargs["num_retries"] == 0
+	assert raised.value.kind == "rate_limit"
+	assert raised.value.retryable is True
+	assert raised.value.status_code == 429
+	assert raised.value.retry_after_seconds == 3
 
 
 def test_get_model_mock():

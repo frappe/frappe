@@ -2,7 +2,10 @@ import asyncio
 import json
 
 import httpx
+import pytest
 
+import flow_server.agent.loop as agent_loop
+from flow_server.agent import run
 from flow_server.events import (
 	AssistantMessage,
 	TextContent,
@@ -13,6 +16,7 @@ from flow_server.events import (
 )
 from flow_server.model import ModelRequest
 from flow_server.model.providers.codex import CodexModel, _responses_input
+from flow_server.session.store import SessionConfig, SessionStore
 
 
 async def _collect(
@@ -254,6 +258,144 @@ async def test_codex_cancellation_interrupts_error_body_read_and_closes_stream()
 	assert body.closed.is_set()
 	assert [event.type for event in events] == ["assistant_message", "usage"]
 	assert events[0].stop_reason == "aborted"
+
+
+def _success_sse(text="ok"):
+	return "\n\n".join(
+		[
+			f'data: {{"type":"response.output_text.delta","delta":"{text}"}}',
+			'data: {"type":"response.completed","response":{}}',
+		]
+	)
+
+
+def _retry_session(tmp_path):
+	events: list[dict] = []
+	store = SessionStore(
+		str(tmp_path / "data"),
+		event_sink=lambda _sid, event: events.append(event),
+	)
+	session = store.create(
+		SessionConfig(
+			model="codex/gpt-test",
+			cwd=str(tmp_path),
+		)
+	)
+	return session, events
+
+
+@pytest.mark.parametrize("status", [429, 500, 503])
+async def test_codex_http_transient_failure_retries_through_agent_loop(tmp_path, status):
+	attempts = 0
+
+	def handler(request):
+		nonlocal attempts
+		attempts += 1
+		if attempts == 1:
+			return httpx.Response(
+				status,
+				headers={"retry-after": "0"},
+				json={"error": {"message": "provider temporarily unavailable"}},
+			)
+		return httpx.Response(200, text=_success_sse())
+
+	async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+		model = CodexModel("codex/gpt-test", api_key="token", client=client)
+		session, events = _retry_session(tmp_path)
+		await run(session, "hello", model=model)
+
+	assert attempts == 2
+	assert [event["attempt"] for event in events if event["type"] == "retry_scheduled"] == [2]
+	assert [event["delay_seconds"] for event in events if event["type"] == "retry_scheduled"] == [0.0]
+	assert [event["reason"] for event in events if event["type"] == "run_ended"] == ["done"]
+
+
+async def test_codex_timeout_retries_through_agent_loop(tmp_path, monkeypatch):
+	attempts = 0
+
+	def handler(request):
+		nonlocal attempts
+		attempts += 1
+		if attempts == 1:
+			raise httpx.ReadTimeout("provider stalled", request=request)
+		return httpx.Response(200, text=_success_sse())
+
+	monkeypatch.setattr(agent_loop, "_retry_delay_seconds", lambda error, retry_index: 0)
+	async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+		model = CodexModel("codex/gpt-test", api_key="token", client=client)
+		session, events = _retry_session(tmp_path)
+		await run(session, "hello", model=model)
+
+	assert attempts == 2
+	assert [event["kind"] for event in events if event["type"] == "retry_scheduled"] == ["timeout"]
+	assert [event["reason"] for event in events if event["type"] == "run_ended"] == ["done"]
+
+
+async def test_codex_invalid_request_does_not_retry(tmp_path):
+	attempts = 0
+
+	def handler(request):
+		nonlocal attempts
+		attempts += 1
+		return httpx.Response(400, json={"error": {"message": "invalid tool schema"}})
+
+	async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+		model = CodexModel("codex/gpt-test", api_key="token", client=client)
+		session, events = _retry_session(tmp_path)
+		await run(session, "hello", model=model)
+
+	assert attempts == 1
+	assert [event for event in events if event["type"] == "retry_scheduled"] == []
+	assert [event["kind"] for event in events if event["type"] == "run_error"] == ["invalid_request"]
+	assert [event["reason"] for event in events if event["type"] == "run_ended"] == ["error"]
+
+
+async def test_codex_context_overflow_is_typed_and_not_retried(tmp_path):
+	attempts = 0
+
+	def handler(request):
+		nonlocal attempts
+		attempts += 1
+		return httpx.Response(
+			400,
+			json={
+				"error": {
+					"code": "context_length_exceeded",
+					"message": "Your input exceeds the context window of this model.",
+				}
+			},
+		)
+
+	async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+		model = CodexModel("codex/gpt-test", api_key="token", client=client)
+		session, events = _retry_session(tmp_path)
+		await run(session, "hello", model=model)
+
+	assert attempts == 1
+	assert [event for event in events if event["type"] == "retry_scheduled"] == []
+	assert [event["kind"] for event in events if event["type"] == "run_error"] == ["context_overflow"]
+
+
+async def test_codex_in_stream_overload_retries_before_terminal_commit(tmp_path):
+	attempts = 0
+	overloaded = (
+		'data: {"type":"error","error":{"type":"service_unavailable_error",'
+		'"code":"server_is_overloaded","message":"server overloaded"}}'
+	)
+
+	def handler(request):
+		nonlocal attempts
+		attempts += 1
+		return httpx.Response(200, text=overloaded if attempts == 1 else _success_sse())
+
+	async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+		model = CodexModel("codex/gpt-test", api_key="token", client=client)
+		session, events = _retry_session(tmp_path)
+		await run(session, "hello", model=model)
+
+	assert attempts == 2
+	assert [event["kind"] for event in events if event["type"] == "retry_scheduled"] == ["overloaded"]
+	assert len([row for row in session.log.read_since(0) if row["type"] == "assistant_message"]) == 1
 
 
 def test_codex_replays_opaque_reasoning_before_tool_turn():
