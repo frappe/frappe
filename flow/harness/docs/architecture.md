@@ -31,9 +31,12 @@ Every interaction is a typed event. Two families:
 | `Usage` | ✓ | token/cost accounting for a turn |
 | `ApprovalRequired` | ✓ | the run paused; `calls` = `PendingCall`s awaiting a decision |
 | `RunEnded` | ✓ | terminal; `reason` ∈ done/length/max_turns/budget/aborted/error/paused |
-| `RunError` | ✓ | a run-level failure message |
+| `RunError` | ✓ | a run-level failure; provider failures include typed kind/status/retryability/detail |
 | `TextDelta` | — | a streamed text chunk |
 | `ToolCallStarted` | — | a tool call's name became known mid-stream |
+| `RetryScheduled` | — | the next provider attempt, its place in the attempt budget, and the cancellable delay |
+| `RetryStarted` | — | a scheduled provider attempt has begun; discard the turn's streamed text |
+| `RetryExhausted` | — | no further provider attempt will be made |
 
 `content` on a `ToolResult` is what the model sees; `details` (diff, truncation,
 exit code, …) rides the durable stream for rich rendering but is **never** sent to the
@@ -104,6 +107,33 @@ everything else falls through to `LiteLLMModel`.
 The credential store is user-global and type-tagged (`api_key` or `oauth`). Session
 metadata contains only an optional `credential_id`. Provider secrets, headers, and base
 URLs are resolved internally and cannot be supplied through session or run payloads.
+
+Provider adapters normalize HTTP, SDK, streaming, and transport failures into
+`ProviderError`. Its `kind` distinguishes rate limiting, overload, timeout,
+authentication, context overflow, invalid request, transport, and unknown failures.
+The LiteLLM adapter maps LiteLLM's provider-neutral exception classes first and uses
+status/message inspection only as a fallback for unexpected exceptions; native
+adapters such as Codex classify their own HTTP and streaming protocol errors.
+The loop retries only retryable failures from the current model call, never a whole
+agent turn: completed tools therefore cannot run twice. Flow makes at most two
+transient retries (three attempts on the normal path), using bounded exponential
+backoff with jitter and honouring a provider's own retry header. A provider asking to
+be retried more than a minute out is treated as terminal instead of slept on, so one
+throttled call cannot stall a run and spend the whole budget waiting. Backoff is
+cancellation-aware. Ordinary authentication and invalid requests are not retried; an
+explicitly expired OAuth token gets one separate refresh/re-resolution attempt, and any
+failure of that refresh — a rejected token or a fault reaching the token endpoint —
+ends the run as a typed authentication error rather than escaping untyped.
+
+Durable terminal model events are buffered until an attempt succeeds, so a failed
+attempt cannot leave a duplicate durable assistant message or usage record. Its live
+deltas are already out, though, and the retried attempt restreams the turn from the
+start: **`RetryStarted` is the point at which a client drops the in-flight turn's
+streamed text.** `RetryScheduled` and `RetryExhausted` bracket that lifecycle and are
+published only when an attempt was really scheduled, so a failure that was never
+retried emits none of the three. Exhaustion commits one failed assistant response and
+one typed `RunError` lifecycle. Context overflow is non-retryable and ends through that
+same clean error lifecycle; Flow does not compact history yet.
 
 ## The agent loop (`agent/loop.py`) — the heart
 
