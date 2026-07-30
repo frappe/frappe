@@ -86,7 +86,7 @@
 		/>
 	</template>
 
-	<teleport to="#overlay" v-if="canvasProps?.overlayElement">
+	<teleport :to="canvasProps.overlayElement" v-if="canvasProps?.overlayElement">
 		<!-- prettier-ignore -->
 		<ComponentEditor
 			v-if="loadEditor"
