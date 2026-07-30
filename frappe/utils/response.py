@@ -302,7 +302,29 @@ def download_private_file(path: str) -> Response:
 	return send_private_file(path.split("/private", 1)[1])
 
 
+<<<<<<< HEAD
 def send_private_file(path: str) -> Response:
+=======
+FORCE_DOWNLOAD_EXTENSIONS = (
+	".svg",
+	".svgz",
+	".html",
+	".htm",
+	".xhtml",
+	".xht",
+	".shtml",
+	".shtm",
+	".mhtml",
+	".mht",
+	".xml",
+	".xsl",
+	".xslt",
+	".swf",
+)
+
+
+def send_private_file(path: str, filename: str | None = None) -> Response:
+>>>>>>> 4fb5cf5e65 (fix: force download for more markup file types (#41359))
 	path = os.path.join(frappe.local.conf.get("private_path", "private"), path.strip("/"))
 	filename = os.path.basename(path)
 
