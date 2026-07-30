@@ -136,6 +136,7 @@ has_permission = {
 	"File": "frappe.core.doctype.file.file.has_permission",
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.has_permission",
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.has_permission",
+	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.has_permission",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.has_permission",
 }
 
