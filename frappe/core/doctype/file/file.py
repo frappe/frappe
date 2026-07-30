@@ -908,6 +908,10 @@ class File(Document):
 			content_type=content_type,
 		)
 
+		if original_content == optimized_content:
+			# optimization failed, don't resave it
+			return
+
 		self.save_file(content=optimized_content, overwrite=True)
 		self.save()
 
