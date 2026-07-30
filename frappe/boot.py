@@ -15,6 +15,7 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, get_navbar_settings
 from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
 from frappe.desk.desk_views import DeskViews
+from frappe.desk.doctype.desktop_settings.desktop_settings import get_desktop_page, is_desktop_icons_page
 from frappe.desk.doctype.form_tour.form_tour import get_onboarding_ui_tours
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
@@ -129,6 +130,7 @@ def get_bootinfo():
 	bootinfo.setup_wizard_completed_apps = get_setup_wizard_completed_apps() or []
 	bootinfo.desktop_icon_urls = get_desktop_icon_urls()
 	bootinfo.desktop_icon_style = get_icon_style() or "Subtle"
+	bootinfo.desktop_page = get_desktop_page()
 	if bootinfo.is_fc_site:
 		bootinfo.site_info = current_site_info()
 	return bootinfo
@@ -245,6 +247,7 @@ DEFAULT_APP_SEQUENCE_ID = 100
 def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_user_workspaces
 
+	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
 	# A companion app's workspaces resolve their app context (dock + header) to the host app they
 	# were pinned into via `add_to_workspace_dock`, so the companion appears to live inside the
 	# host's rail rather than flipping the desk to a shell of its own.
@@ -256,7 +259,15 @@ def load_desktop_data(bootinfo):
 	bootinfo.workspace_sidebar_item = get_sidebar_items()
 	bootinfo.default_workspace_map = build_default_workspace_map(bootinfo.workspace_sidebar_item)
 	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()
-	bootinfo.app_data = get_app_data([d.name for d in bootinfo.workspaces.get("pages")])
+
+	# Only the Desktop Icon grid reads these; the default Apps screen builds itself from
+	# `app_data` below. Set after `workspace_sidebar_item`, which `is_icon_permitted` reads.
+	if is_desktop_icons_page():
+		from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
+
+		bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
+
+	bootinfo.app_data = get_app_data(allowed_pages)
 
 
 def get_app_data(allowed_pages: list[str]) -> list[dict]:
@@ -826,7 +837,7 @@ def add_sidebar_entry(
 	# A sidebar (and its desktop icon) is shown only if the user can see at least one
 	# real item in it, i.e. a non-Section-Break item survived the per-item filter above.
 	# This is the single source of truth for sidebar permissions and mirrors
-	# Desktop Icon.is_permitted.
+	# `is_icon_permitted` in the Desktop Icon controller.
 	if not any(i["type"] != "Section Break" for i in filtered_items):
 		return
 
