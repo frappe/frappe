@@ -414,9 +414,6 @@ def login():
 	args = frappe.form_dict
 
 	if args.get("otp") and args.get("tmp_id"):
-		# Second round-trip of the 2FA challenge: user was already bound via LDAP
-		# in step 1, so resolve identity from the tmp_id cache instead of
-		# re-authenticating (that would wrongly fall back to the local password).
 		cached_user, _cached_pwd = get_cached_user_pass()
 		if not cached_user:
 			frappe.throw(_("Invalid or expired login attempt."), frappe.AuthenticationError)
