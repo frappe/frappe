@@ -8,31 +8,42 @@ import type { BlockOptions, BlockStyleMap, Slot } from "@/types";
 // into slot content, not children. Everything below ListRows inherits that scope
 // ambiently, so it can stay as plain children.
 
-// A List seeded in column mode: a two-column header plus ListRows bound to sample
-// items, each row reading `item`/`value` from the scope ListRows exposes.
+// A List seeded in column mode, mirroring the frappe-ui "Columns" story
+// (docs/molecules/list): a members table with an avatar + name/email cell, role,
+// a right-aligned date, and a trailing action button. Row identity defaults to
+// the item's `name`. Sort chrome (ListHeaderCellSort) is deliberately left out —
+// it needs app-owned sort state, which a seeded template can't provide.
+const MEMBERS = [
+	{ name: "Rosa Diaz", email: "rosa@example.com", role: "Admin", since: "2021-06" },
+	{ name: "Jake Peralta", email: "jake@example.com", role: "Member", since: "2022-01" },
+	{ name: "Amy Santiago", email: "amy@example.com", role: "Admin", since: "2020-11" },
+	{ name: "Terry Jeffords", email: "terry@example.com", role: "Member", since: "2023-03" },
+	{ name: "Raymond Holt", email: "holt@example.com", role: "Guest", since: "2024-08" },
+];
+
 export function listTemplate(): BlockOptions {
 	return {
 		componentName: "List",
 		blockName: "List",
 		componentProps: {
-			columns: ["minmax(0, 1fr)", "8rem"],
-			rowHeight: 44,
+			columns: ["minmax(0, 1fr)", "7rem", "8rem", "3rem"],
+			rowHeight: 56,
 		},
 		baseStyles: { width: "100%" } as BlockStyleMap,
 		children: [
 			{
 				componentName: "ListHeader",
-				children: [listHeaderCell("Title"), listHeaderCell("Status")],
+				children: [
+					listHeaderCell("Member"),
+					listHeaderCell("Role"),
+					listHeaderCell("Member since", ["justify-end"]),
+					// empty header over the row-action column
+					{ componentName: "ListHeaderCell" },
+				],
 			},
 			{
 				componentName: "ListRows",
-				componentProps: {
-					items: [
-						{ name: "1", title: "First item", status: "Open" },
-						{ name: "2", title: "Second item", status: "Done" },
-						{ name: "3", title: "Third item", status: "Open" },
-					],
-				},
+				componentProps: { items: MEMBERS },
 				// Row template in a real slot so item/index/value reach it.
 				componentSlots: withDefaultSlot([
 					{
@@ -40,9 +51,46 @@ export function listTemplate(): BlockOptions {
 						// `value` is the row identity used by selection / active-row state.
 						// Baked from the scope so authors don't wire it by hand.
 						componentProps: { value: "{{ value }}" },
-						children: [listCell("{{ item.title }}"), listCell("{{ item.status }}")],
+						children: [
+							memberCell(),
+							listCell("{{ item.role }}", ["text-ink-gray-7"]),
+							listCell("{{ item.since }}", ["text-ink-gray-6"], ["justify-end"]),
+							{
+								componentName: "ListCell",
+								classes: ["justify-end"],
+								children: [
+									{
+										componentName: "Button",
+										componentProps: { variant: "ghost", icon: "lucide-trash-2", label: "Remove member" },
+									},
+								],
+							},
+						],
 					},
 				]),
+			},
+		],
+	};
+}
+
+// Avatar with the member's name and email stacked beside it.
+function memberCell(): BlockOptions {
+	return {
+		componentName: "ListCell",
+		children: [
+			{
+				componentName: "Avatar",
+				componentProps: { label: "{{ item.name }}", size: "xl", shape: "circle" },
+			},
+			{
+				componentName: "container",
+				originalElement: "div",
+				classes: ["ml-3", "min-w-0"],
+				baseStyles: { display: "flex", flexDirection: "column" } as BlockStyleMap,
+				children: [
+					textBlock("{{ item.name }}", ["truncate", "text-base", "text-ink-gray-8"]),
+					textBlock("{{ item.email }}", ["mt-0.5", "truncate", "text-sm", "text-ink-gray-5"]),
+				],
 			},
 		],
 	};
@@ -96,12 +144,12 @@ export function settingsDialogTemplate(): BlockOptions {
 	};
 }
 
-function listHeaderCell(label: string): BlockOptions {
-	return { componentName: "ListHeaderCell", children: [textBlock(label)] };
+function listHeaderCell(label: string, classes: string[] = []): BlockOptions {
+	return { componentName: "ListHeaderCell", classes, children: [textBlock(label)] };
 }
 
-function listCell(text: string): BlockOptions {
-	return { componentName: "ListCell", children: [textBlock(text)] };
+function listCell(text: string, textClasses: string[] = [], cellClasses: string[] = []): BlockOptions {
+	return { componentName: "ListCell", classes: cellClasses, children: [textBlock(text, textClasses)] };
 }
 
 function navItem(value: string, label: string): BlockOptions {
@@ -143,8 +191,8 @@ function settingsRow(title: string, description: string, control: BlockOptions):
 	};
 }
 
-function textBlock(text: string): BlockOptions {
-	return { componentName: "TextBlock", componentProps: { text, tag: "span" } };
+function textBlock(text: string, classes: string[] = []): BlockOptions {
+	return { componentName: "TextBlock", classes, componentProps: { text, tag: "span" } };
 }
 
 // Wrap blocks as a component's default-slot content. Only ListRows needs this:
