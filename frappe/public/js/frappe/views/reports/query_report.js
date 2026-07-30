@@ -182,6 +182,76 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		]);
 	}
 
+	set_related_reports_dropdown() {
+		// singleton frappe.query_report reuses this.page across navigation, so
+		// tear down the previous dropdown (closes any open panel, unbinds the
+		// trigger) before rebuilding for the current report.
+		this.related_reports_dropdown?.data("es-dropdown")?.destroy();
+		this.related_reports_dropdown?.remove();
+		this.related_reports_dropdown = null;
+
+		if (!this.report_name || !this.report_doc) return;
+		const report_name = this.report_name;
+
+		// If we're viewing a Custom Report, its "family" is anchored on the
+		// report it was saved from; otherwise the current report is the base.
+		const is_custom = this.report_doc.report_type === "Custom Report";
+		const base_report_name = (is_custom && this.report_doc.reference_report) || report_name;
+
+		// Siblings: every Custom Report saved from the same base. get_list
+		// respects the user's read permission, so reports they can't view are
+		// filtered out automatically.
+		const get_siblings = frappe.db.get_list("Report", {
+			filters: {
+				reference_report: base_report_name,
+				report_type: "Custom Report",
+				disabled: 0,
+			},
+			fields: ["name", "report_name"],
+			order_by: "report_name asc",
+			limit: 0,
+		});
+
+		// The base/parent report itself, only needed when we're viewing one of
+		// its variants (so it can be listed alongside the siblings).
+		const get_base =
+			base_report_name !== report_name
+				? frappe.db.get_value("Report", base_report_name, "report_name")
+				: Promise.resolve(null);
+
+		return Promise.all([get_siblings, get_base]).then(([siblings, base]) => {
+			if (this.report_name !== report_name) return;
+
+			const related = (siblings || []).filter((r) => r.name !== report_name);
+
+			if (base_report_name !== report_name) {
+				related.unshift({
+					name: base_report_name,
+					report_name: base?.message?.report_name || base_report_name,
+				});
+			}
+
+			if (!related.length) return;
+
+			const options = related.map((r) => ({
+				label: r.report_name || r.name,
+				onclick: () => frappe.set_route("query-report", r.name),
+			}));
+
+			// position the trigger before the "Actions" group; it's a
+			// frappe.ui.button, so it matches the neighbouring toolbar buttons
+			this.related_reports_dropdown = frappe.ui.dropdown({
+				button: {
+					label: __("Related Reports"),
+					icon_right: "chevrons-up-down",
+					css_class: "ellipsis",
+				},
+				options,
+			});
+			this.related_reports_dropdown.prependTo(this.page.custom_actions);
+		});
+	}
+
 	add_card_button_to_toolbar() {
 		if (!frappe.model.can_create("Number Card")) return;
 		this.page.add_inner_button(
@@ -408,6 +478,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			() => this.report_settings.onload && this.report_settings.onload(this),
 			() => (this._no_refresh = false),
 			() => this.refresh(),
+			// rebuild the dropdown here (not in load_report) because
+			// clear_custom_actions() above wipes it, and refresh_report also runs
+			// on its own when returning to a report with filters in the URL.
+			() => this.set_related_reports_dropdown(),
 		]);
 	}
 
