@@ -10,9 +10,11 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import re
 import uuid
+from collections import deque
 from collections.abc import Coroutine
 from dataclasses import dataclass
 from enum import StrEnum
@@ -41,6 +43,7 @@ from flow_server.session.log import SessionLog
 _SID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 _TRANSCRIPT_REPAIR_KEY = "transcript_repair"
 _INTERRUPTED_TOOL_CONTENT = "Tool call interrupted before completion."
+_logger = logging.getLogger(__name__)
 
 
 class SessionState(StrEnum):
@@ -130,8 +133,8 @@ class Session:
 		self.event_sink = event_sink  # optional (session_id, event_dict) callback, e.g. Redis
 		self.credentials = credentials or CredentialStore(server_config.CREDENTIALS_PATH)
 		self.allowed_roots = allowed_roots
-		for repair in interrupted_tool_repairs(log):
-			log.append(repair)
+		# cached, not applied: loading stays read-only and runs skip a second full scan
+		self._pending_transcript_repairs = deque(interrupted_tool_repairs(log))
 		self.messages: list[TranscriptMessage] = _rebuild_messages(log)
 		self._subscribers: set[asyncio.Queue] = set()
 		self.operation_lock = asyncio.Lock()
@@ -182,16 +185,23 @@ class Session:
 			except Exception:  # streaming is best-effort; the log heals gaps
 				pass
 
-	def repair_interrupted_transcript(self) -> None:
-		"""Persist missing tool results and refresh the provider-facing transcript."""
+	def flush_pending_transcript_repairs(self) -> None:
+		"""Persist crash-recovery work found during the one-time session load scan."""
 		published = False
 		try:
-			for repair in interrupted_tool_repairs(self.log):
-				self.publish(repair)
+			while self._pending_transcript_repairs:
+				# publish first: a failed append leaves the repair queued for the retry
+				self.publish(self._pending_transcript_repairs[0])
+				self._pending_transcript_repairs.popleft()
 				published = True
 		finally:
 			if published:
 				self.messages = _rebuild_messages(self.log)
+
+	def repair_interrupted_transcript(self) -> None:
+		"""Discover and persist missing results after an interrupted live operation."""
+		self._pending_transcript_repairs = deque(interrupted_tool_repairs(self.log))
+		self.flush_pending_transcript_repairs()
 
 	@property
 	def is_running(self) -> bool:
@@ -351,7 +361,16 @@ def _rebuild_messages(log: SessionLog) -> list[TranscriptMessage]:
 			continue
 		assistant_seq = _repair_assistant_seq(raw)
 		if assistant_seq is not None:
-			repairs.setdefault(assistant_seq, {})[str(raw.get("tool_call_id"))] = raw
+			tool_call_id = str(raw.get("tool_call_id"))
+			batch_repairs = repairs.setdefault(assistant_seq, {})
+			if tool_call_id in batch_repairs:
+				_logger.warning(
+					"Dropping duplicate transcript-repair result for tool call %s in assistant batch %s",
+					tool_call_id,
+					assistant_seq,
+				)
+			else:
+				batch_repairs[tool_call_id] = raw
 
 	messages: list[TranscriptMessage] = []
 	pending_calls: tuple[ToolCall, ...] = ()
@@ -384,8 +403,16 @@ def _rebuild_messages(log: SessionLog) -> list[TranscriptMessage]:
 			if _repair_assistant_seq(raw) is not None:
 				continue
 			if pending_seq is not None and any(call.id == ev.tool_call_id for call in pending_calls):
-				results.setdefault(ev.tool_call_id, raw)  # first answer wins
-			# a result answering no open call is dropped; providers reject an unpaired one
+				if ev.tool_call_id in results:
+					_logger.warning(
+						"Dropping duplicate tool result for call %s; the first result wins",
+						ev.tool_call_id,
+					)
+				else:
+					results[ev.tool_call_id] = raw
+			else:
+				# Providers reject a tool result that has no call in the open assistant batch.
+				_logger.warning("Dropping unmatched tool result for call %s", ev.tool_call_id)
 	flush_results()
 	return messages
 
@@ -406,7 +433,7 @@ def _repair_assistant_seq(raw: dict) -> int | None:
 
 
 def interrupted_tool_repairs(log: SessionLog) -> tuple[ToolResult, ...]:
-	"""Build synthetic error results for unresolved non-approval tool calls.
+	"""Build synthetic error results for unresolved calls outside a live approval batch.
 
 	Repairs carry the originating assistant event's sequence number. Replay uses
 	that marker to place a later-appended repair beside its original tool batch
@@ -490,7 +517,9 @@ def pending_approval(log: SessionLog) -> PendingApproval | None:
 			calls = tuple(event.calls)
 			resolved.clear()
 		elif event_type == "tool_result" and approval_seq is not None:
-			resolved.add(str(raw.get("tool_call_id")))
+			# a repair answers the batch it names, so a reused id must not resolve this one
+			if _repair_assistant_seq(raw) is None:
+				resolved.add(str(raw.get("tool_call_id")))
 		elif event_type == "run_ended" and raw.get("reason") != "paused":
 			approval_seq = None
 			calls = ()

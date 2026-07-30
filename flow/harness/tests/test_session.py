@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
 
@@ -289,7 +290,34 @@ def test_pending_approval_scopes_reused_tool_ids_to_latest_batch(tmp_path):
 	assert approval.calls == (call,)
 
 
-def test_rebuild_keeps_the_first_result_and_drops_unmatched_ones(tmp_path):
+def test_pending_approval_ignores_older_repair_with_reused_tool_id(tmp_path):
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(model="mock"))
+	old_call = ToolCall(id="c1", name="read_file", arguments={"path": "old.txt"})
+	old_assistant = AssistantMessage(content=[old_call])
+	session.publish(old_assistant)
+	session.publish(RunEnded(reason="error"))
+	session.publish(UserMessage(content="try again"))
+	new_call = ToolCall(id="c1", name="read_file", arguments={"path": "new.txt"})
+	session.publish(AssistantMessage(content=[new_call]))
+	pending_call = PendingCall(id="c1", name="read_file", args={"path": "new.txt"})
+	session.publish(ApprovalRequired(calls=[pending_call]))
+	session.publish(RunEnded(reason="paused"))
+
+	repairs = interrupted_tool_repairs(session.log)
+	assert len(repairs) == 1
+	assert repairs[0].details["transcript_repair"]["assistant_seq"] == old_assistant.seq
+	session.publish(repairs[0])
+
+	approval = pending_approval(session.log)
+	assert approval is not None
+	assert approval.calls == (pending_call,)
+
+	session.publish(ToolResult(tool_call_id="c1", name="read_file", content="new result"))
+	assert pending_approval(session.log) is None
+
+
+def test_rebuild_keeps_the_first_result_and_drops_unmatched_ones(tmp_path, caplog):
 	log = SessionLog(str(tmp_path / "s.jsonl"))
 	log.append(UserMessage(content="do it"))
 	log.append(
@@ -302,16 +330,19 @@ def test_rebuild_keeps_the_first_result_and_drops_unmatched_ones(tmp_path):
 	log.append(ToolResult(tool_call_id="c1", name="bash", content="second"))
 	log.append(ToolResult(tool_call_id="unknown", name="bash", content="orphan"))
 
-	msgs = _rebuild_messages(log)
+	with caplog.at_level(logging.WARNING, logger="flow_server.session.store"):
+		msgs = _rebuild_messages(log)
 
 	results = [m for m in msgs if isinstance(m, ToolResult)]
 	assert [r.content for r in results] == ["first"]  # duplicate and orphan both excluded
 	# every tool result the provider sees is preceded by the call it answers
 	calls = {c.id for m in msgs if isinstance(m, AssistantMessage) for c in m.tool_calls}
 	assert all(r.tool_call_id in calls for r in results)
+	assert "Dropping duplicate tool result for call c1" in caplog.text
+	assert "Dropping unmatched tool result for call unknown" in caplog.text
 
 
-def test_reload_durably_repairs_orphans_in_their_original_batch(tmp_path):
+def test_reload_is_read_only_then_durably_repairs_in_the_original_batch(tmp_path):
 	store = SessionStore(str(tmp_path))
 	session = store.create(SessionConfig(model="mock"))
 	call = ToolCall(id="c1", name="read_file", arguments={"path": "old.txt"})
@@ -327,6 +358,15 @@ def test_reload_durably_repairs_orphans_in_their_original_batch(tmp_path):
 	before_repair = session.log.latest_seq
 
 	reloaded = SessionStore(str(tmp_path)).get(session.id)
+	assert reloaded.log.latest_seq == before_repair
+	assert [message.type for message in reloaded.messages] == [
+		"assistant_message",
+		"user_message",
+		"assistant_message",
+		"tool_result",
+	]
+
+	reloaded.repair_interrupted_transcript()
 	assert reloaded.log.latest_seq == before_repair + 1
 	repair = reloaded.log.read_since(before_repair)[0]
 	assert repair["tool_call_id"] == "c1"
@@ -346,7 +386,7 @@ def test_reload_durably_repairs_orphans_in_their_original_batch(tmp_path):
 	assert second_reload.log.latest_seq == reloaded.log.latest_seq
 
 
-def test_reload_orders_actual_and_repaired_results_by_source_call(tmp_path):
+def test_durable_repair_orders_results_by_source_call(tmp_path):
 	store = SessionStore(str(tmp_path))
 	session = store.create(SessionConfig(model="mock"))
 	session.publish(
@@ -360,7 +400,11 @@ def test_reload_orders_actual_and_repaired_results_by_source_call(tmp_path):
 	session.publish(ToolResult(tool_call_id="c2", name="read_file", content="second result"))
 	session.publish(RunEnded(reason="error"))
 
+	before_repair = session.log.latest_seq
 	reloaded = SessionStore(str(tmp_path)).get(session.id)
+	assert reloaded.log.latest_seq == before_repair
+
+	reloaded.repair_interrupted_transcript()
 
 	assert [message.type for message in reloaded.messages] == [
 		"assistant_message",
@@ -370,6 +414,43 @@ def test_reload_orders_actual_and_repaired_results_by_source_call(tmp_path):
 	assert [message.tool_call_id for message in reloaded.messages[1:]] == ["c1", "c2"]
 	assert reloaded.messages[1].content == "Tool call interrupted before completion."
 	assert reloaded.messages[2].content == "second result"
+
+
+def test_reload_never_appends_to_the_session_log(tmp_path, monkeypatch):
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(model="mock"))
+	session.publish(AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={})]))
+	session.publish(RunEnded(reason="error"))
+
+	def reject_append(self, event):
+		raise AssertionError("loading a session attempted to append to its log")
+
+	monkeypatch.setattr(SessionLog, "append", reject_append)
+
+	reloaded = SessionStore(str(tmp_path)).get(session.id)
+	assert reloaded.log.latest_seq == session.log.latest_seq
+
+
+def test_a_failed_repair_append_stays_queued_and_lands_once(tmp_path, monkeypatch):
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(model="mock"))
+	session.publish(AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={})]))
+	session.publish(RunEnded(reason="error"))
+	reloaded = SessionStore(str(tmp_path)).get(session.id)
+
+	def full_disk(self, event):
+		raise OSError("no space left on device")
+
+	monkeypatch.setattr(SessionLog, "append", full_disk)
+	with pytest.raises(OSError):
+		reloaded.flush_pending_transcript_repairs()
+	monkeypatch.undo()
+
+	reloaded.flush_pending_transcript_repairs()  # the repair survived to be retried
+
+	repairs = [row for row in reloaded.log.read_since(0) if row["type"] == "tool_result"]
+	assert len(repairs) == 1  # retried exactly once, never duplicated
+	assert repairs[0]["tool_call_id"] == "c1"
 
 
 def test_reload_does_not_repair_calls_waiting_for_approval(tmp_path):

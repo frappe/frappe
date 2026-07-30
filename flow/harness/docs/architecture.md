@@ -92,8 +92,10 @@ wins, and a result matching no call in the open batch is dropped rather than for
 - **`Session`** holds the live transcript (`messages`, rebuilt from the log via
   `_rebuild_messages`), an `abort` event, a `steer_queue`, and the pub/sub. `publish()`
   is the fan-out: persist-if-durable → deliver to live subscribers → forward to an
-  optional sink (e.g. Redis). It also owns interrupted-transcript repair so both live
-  failures and cold session loads use the same durable rule.
+  optional sink (e.g. Redis). It also owns interrupted-transcript repair. Cold session
+  loads are read-only and cache any required crash-recovery work; the next run or resume
+  flushes that plan without rescanning history. Live history is rescanned only after an
+  error or abort may have interrupted a tool batch.
 - **`SessionStore`** owns create/get and enforces the security fences (below).
 
 ## The model layer (`model/`)
@@ -155,7 +157,8 @@ same clean error lifecycle; Flow does not compact history yet.
 
 ## The agent loop (`agent/loop.py`) — the heart
 
-`run()` → publish `RunStarted`, append the user message, enter `_loop`. Each turn:
+`run()` → flush any cached crash-recovery results, publish `RunStarted`, append the user
+message, enter `_loop`. Each turn:
 
 1. **`_model_call`** — build a provider-neutral `ModelRequest` from the transcript,
    tools, system prompt, stream settings, and the active cancellation signal;
