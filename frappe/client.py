@@ -378,7 +378,7 @@ def attach_file(
 	docname: str | int | None = None,
 	folder: str | None = None,
 	decode_base64: int | bool = False,
-	is_private: int | bool | None = None,
+	is_private: int | bool | None = 1,
 	docfield: str | None = None,
 ):
 	"""Attach a file to Document
@@ -389,10 +389,10 @@ def attach_file(
 	:param docname: Reference DocName to attach file to
 	:param folder: Folder to add File into
 	:param decode_base64: decode filedata from base64 encode, default is False
-	:param is_private: Attach file as private file (1 or 0)
+	:param is_private: Attach file as private file (1 or 0), default is 1
 	:param docfield: file to attach to (optional)"""
 
-	doc = frappe.get_lazy_doc(doctype, docname, check_permission=True)
+	doc = frappe.get_lazy_doc(doctype, docname, check_permission="write")
 
 	file = frappe.get_doc(
 		{
