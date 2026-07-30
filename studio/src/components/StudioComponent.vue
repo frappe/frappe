@@ -242,6 +242,18 @@ const showComponent = computed(() => {
 const isHovered = ref(false)
 const isSelected = computed(() => canvasStore.activeCanvas?.selectedBlockIds?.has(props.block.componentId))
 
+watch(
+	isSelected,
+	(selected) => {
+		if (selected && slotScope?.value && !props.block.slotScope) {
+			props.block.setSlotScope(slotScope.value)
+		} else if (!selected && props.block.slotScope) {
+			props.block.setSlotScope(null)
+		}
+	},
+	{ immediate: true },
+)
+
 const target = computed<HTMLElement | null>(() => {
 	if (!componentRef.value) return null
 	const root = getComponentRoot(componentRef)
