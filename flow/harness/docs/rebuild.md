@@ -65,7 +65,7 @@ src/flow_server/
     agent.py                embedded facade — a thin alias over Session (~25 lines)
   model/
     base.py                 Model protocol, ModelRequest, cancellation utils,
-                            retrying() wrapper shared by adapters
+                            run_with_retries() envelope shared by adapters
     litellm.py              LiteLLM adapter + OpenAI-message translation
     mock.py                 keyless deterministic model
     errors.py               provider failure classification
@@ -96,7 +96,7 @@ Every future fix names the layer it belongs to before it lands. Concretely:
    and raises. `Session._commit` is the only place that appends to the log and fans out
    to subscribers and sinks.
 2. Retries, token refresh, and aborted-message synthesis live inside `Model.run`
-   (via `retrying()` in `model/base.py`). A fix touching provider failure behavior
+   (via `run_with_retries()` in `model/base.py`). A fix touching provider failure behavior
    lands in `model/`, never `agent/`.
 3. One reducer. Any "what is the current state" question is answered by extending
    `Transcript.record`. A PR adding a new full-log scan is wrong by definition.
@@ -165,8 +165,8 @@ old HTTP assertions pass unmodified in PR 6.
   first-result-wins, approval scoping across runs, live `record` == `replay`); ported
   log scenarios (fsync rollback, corruption line/offset, monotonic seq).
 - **PR 2 — model core.** `model/base.py` (Model protocol, `ModelRequest`,
-  cancellation utils, `retrying()` emitting `Retry` in-stream with cancellable
-  backoff, retry-after, bounded attempts, one-shot refresh hook, aborted-assistant
+  cancellation utils, `run_with_retries()` emitting `Retry` in-stream with cancellable
+  backoff, retry-after, bounded attempts, one-shot refresh_auth hook, aborted-assistant
   helper), `model/litellm.py` (translation ported from `main`'s `model.py`,
   thinking-block handling intact), `model/mock.py`, `model/errors.py`. Verify:
   ported model/translation/error scenarios plus retry/refresh scenarios — these are
