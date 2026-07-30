@@ -20,7 +20,7 @@ context("Grid Row Form Section Collapse", () => {
 		cy.fill_field("title", "Test Document");
 
 		cy.get('.frappe-control[data-fieldname="items"]').as("table");
-		cy.get("@table").findByRole("button", { name: "Add row" }).click();
+		cy.get("@table").findByRole("button", { name: "Add Row" }).click();
 		cy.get("@table").find('[data-idx="1"]').find(".btn-open-row").click();
 
 		cy.get(".grid-row-open").as("row-form");
