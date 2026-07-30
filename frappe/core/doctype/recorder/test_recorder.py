@@ -132,6 +132,16 @@ class TestRecorder(IntegrationTestCase):
 			apps, handlers = _doc_event_contributors("ToDo", "on_update")
 			self.assertIn("webhook", apps)
 			self.assertIn("Webhook: Demo Webhook", handlers)
+
+			# during migrate/install/etc. the dispatch paths skip these, so don't attribute them
+			frappe.flags.in_migrate = True
+			try:
+				apps, _ = _doc_event_contributors("ToDo", "validate")
+				self.assertNotIn("server_script", apps)
+				apps, _ = _doc_event_contributors("ToDo", "on_update")
+				self.assertNotIn("webhook", apps)
+			finally:
+				frappe.flags.in_migrate = False
 		finally:
 			frappe.client_cache.delete_value("server_script_map")
 			frappe.client_cache.delete_value("webhooks")
