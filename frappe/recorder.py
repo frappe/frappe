@@ -38,6 +38,7 @@ class RecorderConfig:
 	record_jobs: bool = True  # record background jobs
 	record_sql: bool = True  # Record SQL queries
 	capture_stack: bool = True  # Recod call stack of SQL queries
+	capture_doc_events: bool = True  # Record document lifecycle / doc_events timeline
 	profile: bool = False  # Run cProfile
 	explain: bool = True  # Provide explain output of SQL queries
 	request_filter: str = "/"  # Filter request paths
@@ -100,6 +101,71 @@ def get_current_stack_frames():
 				}
 	except Exception:
 		pass
+
+
+def _doc_event_handlers(doctype: str, method: str) -> list[str]:
+	"""Return the dotted paths of doc_events hooked on (doctype, method), across all apps."""
+	try:
+		doc_hooks = frappe.get_doc_hooks()
+	except Exception:
+		return []
+	return list(doc_hooks.get(doctype, {}).get(method, [])) + list(doc_hooks.get("*", {}).get(method, []))
+
+
+_run_method_traced = False
+
+
+def _install_run_method_tracer():
+	"""Wrap Document.run_method once per process so every lifecycle phase / doc_events
+	handler is recorded as a timed, nested span on the active recorder — attributed to
+	the app(s) that hook it. The wrapper is a cheap no-op unless recording is active with
+	`capture_doc_events`, so it is safe to leave installed."""
+	global _run_method_traced
+	if _run_method_traced:
+		return
+
+	from frappe.model.document import Document
+
+	original_run_method = Document.run_method
+
+	@functools.wraps(original_run_method)
+	def run_method(doc, method, *args, **kwargs):
+		recorder = getattr(frappe.local, "_recorder", None)
+		if (
+			recorder is None
+			or not getattr(recorder, "_recording", False)
+			or not recorder.config.capture_doc_events
+			or method.startswith("__")
+		):
+			return original_run_method(doc, method, *args, **kwargs)
+
+		seq = recorder._seq
+		depth = recorder._depth
+		recorder._seq += 1
+		recorder._depth += 1
+		queries_before = len(recorder.calls)
+		start_time = time.monotonic()
+		handlers = _doc_event_handlers(doc.doctype, method)
+		try:
+			return original_run_method(doc, method, *args, **kwargs)
+		finally:
+			recorder._depth -= 1
+			recorder.register_event(
+				{
+					"seq": seq,
+					"depth": depth,
+					"method": method,
+					"ref_doctype": doc.doctype,
+					"ref_name": doc.name or "",
+					"duration": float(f"{(time.monotonic() - start_time) * 1000:.3f}"),
+					"queries": len(recorder.calls) - queries_before,
+					"apps": sorted({handler.split(".")[0] for handler in handlers}),
+					"handlers": handlers,
+				}
+			)
+
+	Document.run_method = run_method
+	_run_method_traced = True
 
 
 def post_process():
@@ -204,6 +270,9 @@ class Recorder:
 		self.headers = None
 		self.form_dict = None
 		self.patched_databases = []
+		self.events = []
+		self._depth = 0
+		self._seq = 0
 
 		if (
 			self.config.record_requests
@@ -233,6 +302,8 @@ class Recorder:
 		self.time = now_datetime()
 
 		self._patch_sql(frappe.db)
+		if self.config.capture_doc_events:
+			_install_run_method_tracer()
 
 		if self.config.profile:
 			self.profiler = cProfile.Profile()
@@ -240,6 +311,9 @@ class Recorder:
 
 	def register(self, data):
 		self.calls.append(data)
+
+	def register_event(self, data):
+		self.events.append(data)
 
 	def cleanup(self):
 		if self.profiler:
@@ -270,10 +344,13 @@ class Recorder:
 			"duration": float(f"{(now_datetime() - self.time).total_seconds() * 1000:0.3f}"),
 			"method": self.method,
 			"event_type": self.event_type,
+			"number_of_events": len(self.events),
+			"apps_involved": ", ".join(sorted({app for event in self.events for app in event["apps"]})),
 		}
 		frappe.cache.hset(RECORDER_REQUEST_SPARSE_HASH, self.uuid, request_data)
 
 		request_data["calls"] = self.calls
+		request_data["events"] = sorted(self.events, key=lambda event: event["seq"])
 		request_data["headers"] = self.headers
 		request_data["form_dict"] = self.form_dict
 		request_data["profile"] = "".join(profiler_output.splitlines(keepends=True)[:200])
@@ -331,6 +408,7 @@ def start(
 	record_sql: bool = True,
 	profile: bool = False,
 	capture_stack: bool = True,
+	capture_doc_events: bool = True,
 	explain: bool = True,
 	request_filter: str = "/",
 	jobs_filter: str = "",
@@ -343,6 +421,7 @@ def start(
 		record_sql=int(record_sql),
 		profile=int(profile),
 		capture_stack=int(capture_stack),
+		capture_doc_events=int(capture_doc_events),
 		explain=int(explain),
 		request_filter=request_filter,
 		jobs_filter=jobs_filter,

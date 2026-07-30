@@ -78,6 +78,43 @@ class TestRecorder(FrappeTestCase):
 		request_doc = get_recorder_data(requests[0].name)
 		self.assertIsInstance(serialize_request(request_doc), dict)
 
+	def test_recorder_doc_events_timeline(self):
+		# saving a document runs its lifecycle methods through Document.run_method,
+		# which the recorder should capture as a timeline of events.
+		frappe.get_doc(doctype="ToDo", description="recorder timeline test").insert()
+		self.stop_recorder()
+
+		requests = frappe.get_all("Recorder")
+		self.assertGreaterEqual(len(requests), 1)
+		request = frappe.get_doc("Recorder", requests[0].name)
+
+		self.assertGreaterEqual(len(request.timeline), 1)
+		self.assertEqual(request.number_of_events, len(request.timeline))
+
+		methods = {event.method for event in request.timeline}
+		lifecycle = {"before_insert", "validate", "before_save", "after_insert", "on_update"}
+		self.assertTrue(
+			methods & lifecycle,
+			msg=f"expected lifecycle methods in timeline, got: {methods}",
+		)
+
+		event = request.timeline[0]
+		self.assertTrue(event.method)
+		self.assertGreaterEqual(event.duration, 0)
+		self.assertGreaterEqual(event.queries, 0)
+
+	def test_timeline_can_be_disabled(self):
+		frappe.recorder.stop()
+		frappe.recorder.delete()
+		set_request(path="/api/method/ping")
+		frappe.recorder.start(capture_doc_events=False)
+		frappe.recorder.record()
+		frappe.get_doc(doctype="ToDo", description="no timeline").insert()
+		self.stop_recorder()
+
+		request = frappe.get_doc("Recorder", frappe.get_all("Recorder")[0].name)
+		self.assertEqual(len(request.timeline), 0)
+
 
 class TestQueryOptimization(FrappeTestCase):
 	@run_only_if(db_type_is.MARIADB)
