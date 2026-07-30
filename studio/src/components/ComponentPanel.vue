@@ -26,46 +26,47 @@
 			<EmptyState v-if="!componentList.length" message="No matching components" />
 			<template v-else>
 				<CollapsibleSection
-					v-for="componentGroup in standardComponentGroups"
-					:key="componentGroup.label"
-					:sectionName="componentGroup.label"
+					v-for="section in sections"
+					:key="section.label"
+					:sectionName="section.label"
 					class="px-2"
 				>
-					<template #title-suffix v-if="componentGroup.label === 'Framework UI'">
+					<template #title-suffix v-if="section.label === 'Framework UI'">
 						<Tooltip text="Experimental — these components are still under development">
 							<LucideFlaskConical class="h-3.5 w-3.5 text-ink-amber-6" />
 						</Tooltip>
 					</template>
-					<!-- A family primary shows a stacked edge + part count; clicking it opens a tray
-					     of its parts right below. While searching, every match (parts included)
-					     shows as a plain tile so nothing stays hidden behind a family. -->
-					<div v-if="gridTiles(componentGroup).length" class="grid grid-cols-3 items-start gap-x-2 gap-y-4">
-						<template v-for="component in gridTiles(componentGroup)" :key="component.name">
+					<!-- A family primary shows a stacked edge + part count; clicking it opens its parts
+					     tray at the source tile's row boundary (full width, caret under the tile) so no
+					     grid cell is orphaned. While searching, every match (parts included) shows as a
+					     plain tile so nothing stays hidden behind a family. -->
+					<div v-if="section.tiles.length" class="grid grid-cols-3 items-start gap-x-2 gap-y-4">
+						<template v-for="(component, index) in section.tiles" :key="component.name">
 							<ComponentTile
 								:component="component"
 								:stacked="!isSearching && component.isGroup"
-								:count="!isSearching && component.isGroup ? partsCount(component) : undefined"
+								:expanded="!isSearching && expandedFamily === component.name"
 								@click="onTileClick(component)"
 							/>
-							<!-- In-place tray: parts of the expanded family, spanning the full grid width. -->
+
+							<!-- Parts of the open family. Inserted at the end of the source tile's row and
+							     spanning every column, with a caret under the source tile's column. -->
 							<div
-								v-if="!isSearching && component.isGroup && expandedFamily === component.name"
-								class="col-span-full mt-1 rounded-lg border border-outline-gray-2 bg-surface-gray-1 p-3"
+								v-if="index === section.trayAfter"
+								class="relative col-span-full -mt-1 rounded-xl border border-outline-gray-2 bg-surface-base p-3.5"
 							>
+								<span
+									class="absolute -top-1.5 h-3 w-3 -translate-x-1/2 rotate-45 border-l border-t border-outline-gray-2 bg-surface-base"
+									:style="{ left: section.caretLeft }"
+								/>
 								<div class="mb-3 flex items-center justify-between">
-									<span class="text-xs font-medium uppercase tracking-wide text-ink-gray-5">
-										{{ component.title }} Components
+									<span class="text-sm font-medium tracking-wide text-ink-gray-5">
+										{{ expandedPrimary?.title }} Components
 									</span>
-									<button
-										type="button"
-										class="rounded p-0.5 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7"
-										@click="expandedFamily = null"
-									>
-										<LucideX class="h-3.5 w-3.5" />
-									</button>
+									<Button icon="lucide-x" variant="ghost" size="sm" @click="expandedFamily = null" />
 								</div>
 								<div class="grid grid-cols-3 items-start gap-x-2 gap-y-4">
-									<ComponentTile v-for="part in partsFor(component)" :key="part.name" :component="part" />
+									<ComponentTile v-for="part in expandedParts" :key="part.name" :component="part" />
 								</div>
 							</div>
 						</template>
@@ -161,7 +162,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick } from "vue"
 import { useEventListener } from "@vueuse/core"
-import { Dropdown, FeatherIcon, Tooltip } from "frappe-ui"
+import { Dropdown, FeatherIcon, Tooltip, Button } from "frappe-ui"
 import LucideFlaskConical from "~icons/lucide/flask-conical"
 import LucideX from "~icons/lucide/x"
 import OptionToggle from "@/components/OptionToggle.vue"
@@ -218,30 +219,52 @@ const customVueComponents = computed(() => {
 	)
 })
 
+const isSearching = computed(() => Boolean(componentFilter.value))
+
 const standardComponentGroups = computed(() =>
 	components.getComponentGroups((componentList.value as any[]) || []),
 )
 
-// While searching, sections flatten: every matching component (parts included) shows as
-// a plain tile. Otherwise the grid shows standalone components + family primaries, with
-// each family's parts tucked into a tray opened from its tile.
-const isSearching = computed(() => Boolean(componentFilter.value))
-
+// Grid tiles for a section: while searching, every match (parts included) shows as a plain
+// tile; otherwise parts are hidden and reached through their family primary's tray.
 function gridTiles(group: { components: FrappeUIComponent[] }) {
-	if (isSearching.value) return group.components
-	const tiles = group.components.filter((c) => !c.group)
-	// primaries last so their tray opens at the bottom of the grid, not mid-row
-	return [...tiles.filter((c) => !c.isGroup), ...tiles.filter((c) => c.isGroup)]
+	return isSearching.value ? group.components : group.components.filter((c) => !c.group)
 }
-
-const partsFor = (component: FrappeUIComponent) => components.getParts(component.name)
-const partsCount = (component: FrappeUIComponent) => partsFor(component).length
 
 const expandedFamily = ref<string | null>(null)
 function onTileClick(component: FrappeUIComponent) {
 	if (isSearching.value || !component.isGroup) return
 	expandedFamily.value = expandedFamily.value === component.name ? null : component.name
 }
+
+// Panel sections with their tiles and, for the open family, where its parts tray lands.
+// The tray is inserted at the END of the source tile's row (design 1b, "row boundary") so the
+// row stays full and no cell is orphaned; the caret sits under the source tile's column.
+const GRID_COLUMNS = 3
+const sections = computed(() =>
+	standardComponentGroups.value.map((group) => {
+		const tiles = gridTiles(group)
+		const sourceIndex =
+			isSearching.value || !expandedFamily.value
+				? -1
+				: tiles.findIndex((c) => c.name === expandedFamily.value)
+		const rowEnd =
+			sourceIndex === -1
+				? -1
+				: Math.min(Math.floor(sourceIndex / GRID_COLUMNS) * GRID_COLUMNS + GRID_COLUMNS - 1, tiles.length - 1)
+		const column = sourceIndex === -1 ? 0 : sourceIndex % GRID_COLUMNS
+		return {
+			label: group.label,
+			tiles,
+			trayAfter: rowEnd,
+			caretLeft: `${((column + 0.5) / GRID_COLUMNS) * 100}%`,
+		}
+	}),
+)
+
+const partsFor = (component: FrappeUIComponent) => components.getParts(component.name)
+const expandedPrimary = computed(() => (expandedFamily.value ? components.get(expandedFamily.value) : null))
+const expandedParts = computed(() => (expandedPrimary.value ? partsFor(expandedPrimary.value) : []))
 
 const activeTab = computed(() => store.studioLayout.leftPanelComponentTab)
 
