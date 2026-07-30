@@ -947,6 +947,13 @@ def check_webform_perm(doctype, name):
 @frappe.read_only()
 def get_web_form_filters(web_form_name: str):
 	web_form = frappe.get_doc("Web Form", web_form_name)
+
+	if not web_form.published:
+		frappe.throw(_("Not Permitted"), frappe.PermissionError)
+
+	if web_form.login_required and frappe.session.user == "Guest":
+		frappe.throw(_("You must login to use this form"), frappe.PermissionError)
+
 	return [field for field in web_form.web_form_fields if field.show_in_filter]
 
 
@@ -1019,6 +1026,9 @@ def get_form_data(
 	web_form_request_key: str | None = None,
 ):
 	web_form = frappe.get_doc("Web Form", web_form_name)
+
+	if not web_form.published:
+		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
