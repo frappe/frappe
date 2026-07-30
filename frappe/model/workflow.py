@@ -311,15 +311,9 @@ def get_workflow_field_value(workflow_name, field):
 	return frappe.get_cached_value("Workflow", workflow_name, field)
 
 
-<<<<<<< HEAD
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def bulk_workflow_approval(docnames, doctype, action):
 	docnames = json.loads(docnames)
-=======
-@frappe.whitelist(methods=["POST"])
-def bulk_workflow_approval(docnames: str | list, doctype: str, action: str):
-	docnames = frappe.parse_json(docnames)
->>>>>>> 8465376ad9 (fix: require POST for bulk document and title update endpoints (#41361))
 	if len(docnames) < 20:
 		_bulk_workflow_action(docnames, doctype, action)
 	elif len(docnames) <= 500:
