@@ -132,11 +132,7 @@ has_permission = {
 	"File": "frappe.core.doctype.file.file.has_permission",
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.has_permission",
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.has_permission",
-<<<<<<< HEAD
-=======
 	"Dashboard Settings": "frappe.desk.doctype.dashboard_settings.dashboard_settings.has_permission",
-	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.has_permission",
->>>>>>> c7c859088d (fix: limit Dashboard Settings access to the matching user (#41364))
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.has_permission",
 }
 
