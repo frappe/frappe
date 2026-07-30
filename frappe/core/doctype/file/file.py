@@ -661,6 +661,7 @@ class File(Document):
 		if self.is_folder:
 			frappe.throw(_("Cannot get file contents of a Folder"))
 
+		self.validate_file_path()
 		# if doc was just created, content field is already populated, return it as-is
 		if self.get("content"):
 			self._content = self.content
