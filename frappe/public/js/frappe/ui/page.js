@@ -195,6 +195,31 @@ frappe.ui.Page = class Page {
 			});
 		frappe.ui.keys.get_shortcut_group(this.page_actions[0]).add(menu_btn);
 
+		// The Menu / Actions dropdowns are espresso menus. The old bootstrap
+		// ULs stay in the DOM as hidden item stores: add_dropdown_item keeps
+		// writing <li><a> markup there (the returned jQuery is public API and
+		// callers mutate it), and every open snapshots the store into rows —
+		// so .text() / .toggle() / .addClass("disabled") all keep working.
+		this.menu_dropdown = new frappe.ui.Dropdown({
+			trigger: menu_btn,
+			align: "end",
+			options: () => this.build_dropdown_options(this.menu),
+		});
+		this.actions_dropdown = new frappe.ui.Dropdown({
+			trigger: this.actions_btn_group.find("button"),
+			align: "end",
+			options: () => this.build_dropdown_options(this.actions),
+		});
+		// the menus body-portal, so one left open would float over the next
+		// page — the container fires "hide" on the page element on switch
+		this.wrapper.on("hide", () => {
+			this.menu_dropdown.close("owner");
+			this.actions_dropdown.close("owner");
+			this.wrapper.find(".inner-group-button, .custom-btn-group").each((_, group) => {
+				$(group).data("es_dropdown")?.close("owner");
+			});
+		});
+
 		// desktop shows "Actions" + chevron; mobile keeps just the chevron.
 		// actions-btn-group-label stays as the legacy hook name for the span.
 		let action_btn = this.actions_btn_group.find("button");
@@ -384,8 +409,30 @@ frappe.ui.Page = class Page {
 		this.clear_secondary_action();
 	}
 
+	// Close and tear down the espresso dropdowns of button groups inside
+	// $scope before their elements are discarded — an open menu body-portals,
+	// so removing its group would otherwise leave the panel floating over
+	// the page with its listeners live.
+	destroy_group_dropdowns($scope) {
+		$scope
+			.find(".inner-group-button, .custom-btn-group")
+			.addBack(".inner-group-button, .custom-btn-group")
+			.each((_, group) => {
+				$(group).data("es_dropdown")?.destroy();
+			});
+	}
+
 	clear_custom_actions() {
+		this.destroy_group_dropdowns(this.custom_actions);
 		this.custom_actions.addClass("hide").empty();
+		this.clear_mobile_custom_groups();
+	}
+	clear_mobile_custom_groups() {
+		const $groups = this.custom_mobile_actions.children(
+			".custom-btn-group:not(.view-switcher)"
+		);
+		this.destroy_group_dropdowns($groups);
+		$groups.remove();
 	}
 
 	clear_icons() {
@@ -507,28 +554,35 @@ frappe.ui.Page = class Page {
 			)}</span>`;
 		}
 
+		const data_label = encodeURIComponent(label);
 		if (shortcut) {
 			let shortcut_obj = this.prepare_shortcut_obj(shortcut, click, label);
 			$li = $(`
 				<li>
 					<a class="grey-link dropdown-item" href="#" onClick="return false;">
 						${$icon}
-						<span class="menu-item-label">${label}</span>
+						<span class="menu-item-label" data-label="${data_label}">${label}</span>
 						<span class="menu-item-shortcut">${shortcut_obj.shortcut_label}</span>
 					</a>
 				</li>
 			`);
+			// binding stays here — the menu rows only display the combo
 			frappe.ui.keys.add_shortcut(shortcut_obj);
+			$li.data("menu_shortcut", shortcut_obj.shortcut);
 		} else {
 			$li = $(`
 				<li>
 					<a class="grey-link dropdown-item" href="#" onClick="return false;">
 						${$icon}
-						<span class="menu-item-label">${label}</span>
+						<span class="menu-item-label" data-label="${data_label}">${label}</span>
 					</a>
 				</li>
 			`);
 		}
+
+		// the snapshot (build_dropdown_options) reads these back
+		$li.data("menu_click", click);
+		if (icon) $li.data("menu_icon", icon);
 
 		$link = $li.find("a").on("click", (e) => {
 			if (e.ctrlKey || e.metaKey) {
@@ -549,14 +603,96 @@ frappe.ui.Page = class Page {
 			$li.addClass("user-action").insertBefore(this.divider);
 		}
 
-		// if an shortcut is already set, dont set an alt Shortcut
-		if (!shortcut) {
-			// alt shortcut
-			frappe.ui.keys
-				.get_shortcut_group(parent.get(0))
-				.add($link, $link.find(".menu-item-label"));
-		}
 		return $link;
+	}
+
+	// Snapshot a hidden item store (this.menu / this.actions) into menu rows.
+	// Reading the live elements on every open is what keeps the legacy jQuery
+	// contract alive: .text(), .toggle(), .addClass("disabled") on a held item
+	// all show up the next time the menu opens. Divider <li>s split groups.
+	build_dropdown_options($parent) {
+		// classes internal to the legacy markup; everything else (visible-xs,
+		// hidden-xl, caller classes) is carried onto the rendered row
+		const internal = ["grey-link", "dropdown-item", "disabled", "user-action"];
+		// the responsive utilities, evaluated at open time — a group whose
+		// rows are all CSS-hidden would still paint its separator, and the
+		// legacy divider was itself visible-xs (desktop menus had none)
+		const responsive_hidden = (el) =>
+			(el.classList.contains("visible-xs") &&
+				window.matchMedia("(min-width: 576px)").matches) ||
+			(el.classList.contains("hidden-xl") &&
+				window.matchMedia("(min-width: 992px)").matches);
+		const segments = [[]];
+		// one submenu row per inner-button group, keyed by group label
+		const nested_groups = new Map();
+
+		$parent.children("li").each((_, li) => {
+			if (li.classList.contains("dropdown-divider")) {
+				if (!responsive_hidden(li) && segments[segments.length - 1].length) {
+					segments.push([]);
+				}
+				return;
+			}
+			const $li = $(li);
+			const a = $li.children("a").get(0);
+			if (!a) return;
+			// .toggle(false) / .hide() by callers
+			if (li.style.display === "none" || a.style.display === "none") return;
+			if (responsive_hidden(li) || responsive_hidden(a)) return;
+
+			// .text(label) on the held <a> replaces its children, so fall back
+			const label = ($li.find(".menu-item-label").text() || $(a).text()).trim();
+			if (!label) return;
+
+			const css_class = [...li.classList, ...a.classList]
+				.filter((c) => !internal.includes(c))
+				.join(" ");
+			const click = $li.data("menu_click");
+			const onclick = (e) => {
+				if (e && (e.ctrlKey || e.metaKey)) {
+					frappe.open_in_new_tab = true;
+				}
+				// raw <li>s appended by apps have no stashed handler —
+				// clicking their own link keeps them working
+				return click ? click() : a.click();
+			};
+
+			// grouped inner buttons mirror into this menu on mobile as flat
+			// "Group > Label" store items (see add_inner_button) — render
+			// them as one "Group" row with a submenu instead
+			const nested = $li.data("menu_submenu");
+			if (nested) {
+				let submenu = nested_groups.get(nested.group);
+				if (!submenu) {
+					submenu = [];
+					nested_groups.set(nested.group, submenu);
+					segments[segments.length - 1].push({
+						label: nested.group,
+						css_class: css_class || undefined,
+						submenu,
+					});
+				}
+				submenu.push({
+					label: nested.label,
+					disabled: a.classList.contains("disabled"),
+					onclick,
+				});
+				return;
+			}
+
+			segments[segments.length - 1].push({
+				label,
+				icon: $li.data("menu_icon") || undefined,
+				shortcut: $li.data("menu_shortcut") || undefined,
+				disabled: a.classList.contains("disabled"),
+				css_class: css_class || undefined,
+				onclick,
+			});
+		});
+
+		const groups = segments.filter((segment) => segment.length);
+		if (groups.length <= 1) return groups[0] || [];
+		return groups.map((options) => ({ group: "", hide_label: true, options }));
 	}
 
 	prepare_shortcut_obj(shortcut, click, label) {
@@ -602,6 +738,10 @@ frappe.ui.Page = class Page {
 	}
 
 	clear_btn_group(parent) {
+		// a refresh can clear the store while its menu is open — close it so
+		// the portaled panel doesn't float on with stale rows
+		if (parent.is(this.menu)) this.menu_dropdown?.close("owner");
+		if (parent.is(this.actions)) this.actions_dropdown?.close("owner");
 		parent.empty();
 		parent.parent().addClass("hide");
 	}
@@ -615,25 +755,69 @@ frappe.ui.Page = class Page {
 			`.inner-group-button[data-label="${encodeURIComponent(label)}"]`
 		);
 		if (!$group.length) {
+			// same bridge as the header menus: the .dropdown-menu div stays in
+			// the DOM as a hidden item store (add_inner_button returns its
+			// <a>s to callers, who mutate them), and the espresso dropdown
+			// snapshots it on every open
 			$group = $(
 				`<div class="inner-group-button" data-label="${encodeURIComponent(label)}">
-					<div role="menu" class="dropdown-menu ${align_right ? "dropdown-menu-right" : ""}"></div>
+					<div role="presentation" class="dropdown-menu ${align_right ? "dropdown-menu-right" : ""}"></div>
 				</div>`
 			).appendTo(this.inner_toolbar);
-			frappe.ui
+			const $btn = frappe.ui
 				.button({
 					label: label,
 					icon_right: "chevrons-up-down",
 					css_class: "ellipsis",
-					attrs: {
-						"data-toggle": "dropdown",
-						"aria-haspopup": "true",
-						"aria-expanded": "false",
-					},
 				})
 				.prependTo($group);
+			$group.data(
+				"es_dropdown",
+				new frappe.ui.Dropdown({
+					trigger: $btn,
+					align: align_right ? "end" : "start",
+					options: () =>
+						this.build_inner_group_options($group.children(".dropdown-menu")),
+				})
+			);
 		}
 		return $group;
+	}
+
+	// Snapshot an inner group's item store — bare <a.dropdown-item> children
+	// plus divider <li>s — into menu rows; same live-read contract as
+	// build_dropdown_options, so held-reference mutations show on next open.
+	build_inner_group_options($store) {
+		const segments = [[]];
+		$store.children().each((_, el) => {
+			if (el.classList.contains("dropdown-divider")) {
+				if (segments[segments.length - 1].length) segments.push([]);
+				return;
+			}
+			// match by tag, not .dropdown-item — change_inner_button_type's
+			// legacy removeClass() strips ALL classes off the store item
+			if (el.tagName !== "A" || el.style.display === "none") return;
+			const label = $(el).text().trim();
+			if (!label) return;
+			const internal = ["dropdown-item", "disabled", "btn", "btn-danger", "text-danger"];
+			const css_class = [...el.classList].filter((c) => !internal.includes(c)).join(" ");
+			segments[segments.length - 1].push({
+				label,
+				disabled: el.classList.contains("disabled"),
+				// btn-danger comes from change_inner_button_type(label, group,
+				// "danger"); text-danger is how apps mark risky rows
+				theme:
+					el.classList.contains("btn-danger") || el.classList.contains("text-danger")
+						? "red"
+						: undefined,
+				css_class: css_class || undefined,
+				// clicking the store element runs every handler callers bound
+				onclick: () => $(el).trigger("click"),
+			});
+		});
+		const groups = segments.filter((segment) => segment.length);
+		if (groups.length <= 1) return groups[0] || [];
+		return groups.map((options) => ({ group: "", hide_label: true, options }));
 	}
 
 	get_inner_group_button(label) {
@@ -688,9 +872,15 @@ frappe.ui.Page = class Page {
 			me.btn_disable_enable(btn, response);
 		};
 
-		// Add actions as menu item in Mobile View
+		// Add actions as menu item in Mobile View. The store keeps the flat
+		// "Group > Label" item (dedupe and remove_custom_button look it up by
+		// that label) — the snapshot renders stamped items as a nested
+		// "Group" row with a submenu instead.
 		let menu_item_label = group ? `${group} > ${label}` : label;
 		let menu_item = this.add_menu_item(menu_item_label, _action, false, false, false);
+		if (group) {
+			menu_item.closest("li").data("menu_submenu", { group, label });
+		}
 		menu_item.parent().addClass("hidden-xl");
 		if (this.menu_btn_group.hasClass("hide")) {
 			this.menu_btn_group.removeClass("hide").addClass("hidden-xl");
@@ -739,7 +929,10 @@ frappe.ui.Page = class Page {
 			if ($group.length) {
 				$group.find(`.dropdown-item[data-label="${encodeURIComponent(label)}"]`).remove();
 			}
-			if ($group.find(".dropdown-item").length === 0) $group.remove();
+			if ($group.find(".dropdown-item").length === 0) {
+				this.destroy_group_dropdowns($group);
+				$group.remove();
+			}
 		} else {
 			this.inner_toolbar.find(`button[data-label="${encodeURIComponent(label)}"]`).remove();
 		}
@@ -749,8 +942,9 @@ frappe.ui.Page = class Page {
 		let btn;
 
 		if (group) {
-			// dropdown items keep the legacy class treatment until the menu
-			// wave; note this strips any extra classes (pre-existing behavior)
+			// the class poke lands on the store item; the snapshot maps
+			// btn-danger to the red row theme. Strips extra classes
+			// (pre-existing behavior).
 			var $group = this.get_inner_group_button(__(group));
 			if ($group.length) {
 				btn = $group.find(`.dropdown-item[data-label="${encodeURIComponent(label)}"]`);
@@ -780,7 +974,9 @@ frappe.ui.Page = class Page {
 	}
 
 	clear_inner_toolbar() {
-		this.inner_toolbar.empty().addClass("hide");
+		// inner_toolbar IS custom_actions (see setup_page) — delegate so the
+		// dropdown teardown and the mobile-container clear live in one place
+		this.clear_custom_actions();
 	}
 
 	clear_user_actions() {
@@ -852,9 +1048,12 @@ frappe.ui.Page = class Page {
 	}
 
 	add_custom_button_group(label, icon, parent) {
+		// same bridge as the header menus: the UL is a hidden item store
+		// (add_custom_menu_item writes li > a there and returns the link),
+		// rendered as an espresso menu per open
 		let custom_btn_group = $(`
 			<div class="custom-btn-group">
-				<ul class="dropdown-menu" role="menu"></ul>
+				<ul class="dropdown-menu" role="presentation"></ul>
 			</div>
 		`);
 
@@ -863,7 +1062,6 @@ frappe.ui.Page = class Page {
 			icon: icon,
 			icon_right: "chevrons-up-down",
 			css_class: "ellipsis",
-			attrs: { "data-toggle": "dropdown", "aria-expanded": "false" },
 		});
 		$button.find(".es-button__label").addClass("custom-btn-group-label");
 		if (icon) {
@@ -879,7 +1077,16 @@ frappe.ui.Page = class Page {
 			parent = frappe.is_mobile() ? this.custom_mobile_actions : this.custom_actions;
 		parent.removeClass("hide").append(custom_btn_group);
 
-		return custom_btn_group.find(".dropdown-menu");
+		const $store = custom_btn_group.find(".dropdown-menu");
+		custom_btn_group.data(
+			"es_dropdown",
+			new frappe.ui.Dropdown({
+				trigger: $button,
+				options: () => this.build_dropdown_options($store),
+			})
+		);
+
+		return $store;
 	}
 
 	add_dropdown_button(parent, label, click, icon) {

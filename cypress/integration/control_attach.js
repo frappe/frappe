@@ -53,8 +53,7 @@ context("Attach Control", () => {
 		//Deleting the doc
 		cy.go_to_list("Test Attach Control");
 		cy.get(".list-row-checkbox").eq(0).click();
-		cy.get(".actions-btn-group > button").contains("Actions").click();
-		cy.get('.actions-btn-group > .dropdown-menu [data-label="Delete"]').click();
+		cy.click_action_button("Delete");
 		cy.click_modal_primary_button("Yes");
 	});
 
@@ -109,8 +108,7 @@ context("Attach Control", () => {
 		cy.go_to_list("Test Attach Control");
 		cy.get(".list-row-checkbox").eq(0).click();
 		cy.get(".list-row-checkbox").eq(1).click();
-		cy.get(".actions-btn-group > button").contains("Actions").click();
-		cy.get('.actions-btn-group > .dropdown-menu [data-label="Delete"]').click();
+		cy.click_action_button("Delete");
 		cy.click_modal_primary_button("Yes");
 	});
 

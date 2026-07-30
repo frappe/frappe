@@ -218,6 +218,14 @@
     box-shadow: none;
 }
 
+/* mobile layouts have no keyboard — the combo hints are noise there
+   (the bindings themselves stay active for attached keyboards) */
+@media (max-width: 767.98px) {
+    .es-menu__shortcut {
+        display: none;
+    }
+}
+
 /* ---- submenu chevron ---- */
 .es-menu__chevron {
     margin-inline-start: auto;
