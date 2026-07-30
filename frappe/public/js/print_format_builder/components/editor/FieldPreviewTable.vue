@@ -114,7 +114,7 @@
 		     no longer float the cap up under the header -->
 		<tfoot>
 			<tr>
-				<td class="table-foot" :colspan="df.table_columns?.length || 1"></td>
+				<td v-for="i in df.table_columns?.length || 1" :key="i" class="table-foot"></td>
 			</tr>
 		</tfoot>
 	</table>

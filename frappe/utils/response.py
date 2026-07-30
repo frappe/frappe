@@ -308,7 +308,22 @@ def download_private_file(path: str) -> Response:
 	return send_private_file(path.split("/private", 1)[1], filename=file.file_name)
 
 
-FORCE_DOWNLOAD_EXTENSIONS = (".svg", ".html", ".htm", ".xml")
+FORCE_DOWNLOAD_EXTENSIONS = (
+	".svg",
+	".svgz",
+	".html",
+	".htm",
+	".xhtml",
+	".xht",
+	".shtml",
+	".shtm",
+	".mhtml",
+	".mht",
+	".xml",
+	".xsl",
+	".xslt",
+	".swf",
+)
 
 
 def send_private_file(path: str, filename: str | None = None) -> Response:

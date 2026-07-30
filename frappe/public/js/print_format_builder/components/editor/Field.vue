@@ -4,7 +4,7 @@
 			preview_doc ? preview_root.classes : 'field field--chip',
 			{
 				'field--selected': is_selected,
-				'field--layer-hover': store.hovered_field.value === df,
+				'field--layer-hover': store.hovered_node.value === df,
 				'field--preview': !!preview_doc,
 				'field--condition-hidden': preview_doc && !is_field_visible,
 			},
@@ -19,6 +19,8 @@
 		tabindex="0"
 		@click.stop="select_field($event)"
 		@contextmenu="on_context_menu"
+		@mouseenter="store.hovered_field.value = df"
+		@mouseleave="store.hovered_field.value = null"
 		@keydown.enter.prevent="kbd_select($event)"
 		@keydown.space.prevent="kbd_select($event)"
 	>
@@ -648,6 +650,7 @@ watch(
 
 <style scoped>
 .field--chip {
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	gap: 0;
@@ -825,18 +828,19 @@ watch(
 	opacity: 0.35;
 }
 
-/* One ring for every active field state — selected, hover, layer-hover all
-   look identical. Inset (never changes previewed geometry, never bleeds past
-   the page or a grid cell); 2px survives the canvas zoom (1px → sub-pixel). */
-.field--preview.field--selected,
-.field--preview:hover,
-.field--preview.field--layer-hover,
-.field--chip.field--selected,
-.field--chip:hover,
-.field--chip.field--layer-hover {
-	outline: var(--pfb-ring);
-	outline-offset: -2px;
-	box-shadow: none;
+.field--preview.field--selected::after,
+.field--preview:hover::after,
+.field--preview.field--layer-hover::after,
+.field--chip.field--selected::after,
+.field--chip:hover::after,
+.field--chip.field--layer-hover::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	border: var(--pfb-ring);
+	border-radius: inherit;
+	pointer-events: none;
 }
 
 .field-preview-actions {

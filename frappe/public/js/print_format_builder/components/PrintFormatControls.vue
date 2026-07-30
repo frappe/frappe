@@ -138,27 +138,6 @@
 		<div v-else-if="activeTab === 'library'" class="pfb-tab-body">
 			<div class="pfb-group-label">
 				{{ __("Saved Snippets") }}
-				<span class="pfb-label-actions">
-					<button
-						class="es-button"
-						data-size="xs"
-						data-variant="ghost"
-						data-icon-button="true"
-						:disabled="!store.snippets.value.length"
-						:title="__('Export snippets')"
-						@click="store.export_snippets()"
-						v-html="frappe.utils.icon('download', 'xs')"
-					></button>
-					<button
-						class="es-button"
-						data-size="xs"
-						data-variant="ghost"
-						data-icon-button="true"
-						:title="__('Import snippets')"
-						@click="import_snippets"
-						v-html="frappe.utils.icon('upload', 'xs')"
-					></button>
-				</span>
 			</div>
 			<div v-if="!store.snippets.value.length" class="pfb-empty">
 				{{ __("Save a section or field as a snippet to reuse it here.") }}
@@ -245,26 +224,6 @@
 
 		<!-- ── Layers ─────────────────────────────────────────── -->
 		<div v-else-if="activeTab === 'layers'" class="pfb-tab-body pfb-tree" role="tree">
-			<div v-if="layout && layout.sections.length" class="pfb-tree-toolbar">
-				<button
-					class="es-button"
-					data-size="xs"
-					data-variant="ghost"
-					data-icon-button="true"
-					:title="__('Expand all')"
-					@click="expand_all"
-					v-html="frappe.utils.icon('chevron-down', 'xs')"
-				></button>
-				<button
-					class="es-button"
-					data-size="xs"
-					data-variant="ghost"
-					data-icon-button="true"
-					:title="__('Collapse all')"
-					@click="collapse_all"
-					v-html="frappe.utils.icon('chevron-right', 'xs')"
-				></button>
-			</div>
 			<div v-if="!layout || !layout.sections.length" class="pfb-empty">
 				{{ __("No sections yet. Add sections to the canvas.") }}
 			</div>
@@ -284,7 +243,10 @@
 							class="pfb-tree-row pfb-drag-handle"
 							@mouseenter="store.hovered_section.value = section"
 							@mouseleave="store.hovered_section.value = null"
-							:class="{ active: store.selected_sections.value.includes(section) }"
+							:class="{
+								active: store.selected_sections.value.includes(section),
+								'pfb-tree-hover': store.hovered_node.value === section,
+							}"
 							role="treeitem"
 							tabindex="0"
 							:aria-expanded="!is_collapsed(section)"
@@ -313,10 +275,16 @@
 								:key="ci"
 								class="pfb-tree-node"
 							>
+								<!-- a lone column isn't a real division of the section, so it
+								     only earns a row once there's more than one -->
 								<div
+									v-if="section.columns.length > 1"
 									class="pfb-tree-row"
+									:class="{ 'pfb-tree-hover': store.hovered_node.value === col }"
 									role="treeitem"
 									tabindex="0"
+									@mouseenter="store.hovered_column.value = col"
+									@mouseleave="store.hovered_column.value = null"
 									@click="select_section(section)"
 									@keydown.enter.prevent="select_section(section)"
 									@keydown.space.prevent="select_section(section)"
@@ -338,9 +306,12 @@
 									</span>
 								</div>
 								<draggable
-									v-if="!is_collapsed(col)"
+									v-if="section.columns.length === 1 || !is_collapsed(col)"
 									v-model="col.fields"
 									class="pfb-tree-children pfb-tree-fields"
+									:class="{
+										'pfb-tree-fields--flush': section.columns.length === 1,
+									}"
 									group="pfb-tree-fields"
 									item-key="id"
 									:emptyInsertThreshold="20"
@@ -357,6 +328,8 @@
 												active: store.selected_fields.value.includes(
 													field
 												),
+												'pfb-tree-hover':
+													store.hovered_node.value === field,
 											}"
 											@mouseenter="store.hovered_field.value = field"
 											@mouseleave="store.hovered_field.value = null"
@@ -513,35 +486,6 @@ function confirm_delete_snippet(name) {
 	frappe.confirm(__("Delete the snippet '{0}'?", [name]), () => store.delete_snippet(name));
 }
 
-function import_snippets() {
-	const input = document.createElement("input");
-	input.type = "file";
-	input.accept = "application/json,.json";
-	input.onchange = async () => {
-		const file = input.files?.[0];
-		if (!file) return;
-		let payload;
-		try {
-			payload = JSON.parse(await file.text());
-		} catch {
-			frappe.throw(__("{0} is not a valid JSON file", [file.name]));
-		}
-		const { imported, other_doctypes, skipped } = await store.import_snippets(payload);
-		let message = __("Imported {0} snippet(s)", [imported]);
-		if (other_doctypes) {
-			message += " " + __("({0} belong to other document types)", [other_doctypes]);
-		}
-		if (skipped.length) {
-			message += " — " + __("skipped {0}", [skipped.join(", ")]);
-		}
-		frappe.show_alert(
-			{ message, indicator: skipped.length ? "orange" : "green" },
-			skipped.length ? 7 : 5
-		);
-	};
-	input.click();
-}
-
 // ── helpers ────────────────────────────────────────────────
 function clone_field(df) {
 	let cloned = pluck(df, [
@@ -619,13 +563,13 @@ function build_field(df) {
 }
 
 function select_section(section) {
-	store.scroll_to_section.value = section;
+	store.scroll_target.value = section;
 	store.select_section(section);
 }
 
 function select_field(field, section, e) {
 	const additive = !!(e && (e.metaKey || e.ctrlKey || e.shiftKey));
-	if (section && !additive) store.scroll_to_section.value = section;
+	if (!additive) store.scroll_target.value = field;
 	store.select_field(field, additive);
 }
 
@@ -673,17 +617,6 @@ function is_collapsed(node) {
 function toggle_collapse(node) {
 	const next = new Set(collapsed_nodes.value);
 	next.has(node) ? next.delete(node) : next.add(node);
-	collapsed_nodes.value = next;
-}
-function expand_all() {
-	collapsed_nodes.value = new Set();
-}
-function collapse_all() {
-	const next = new Set();
-	for (const section of layout.value?.sections || []) {
-		next.add(section);
-		for (const col of section.columns || []) next.add(col);
-	}
 	collapsed_nodes.value = next;
 }
 watch(
@@ -1069,13 +1002,6 @@ function handle_slash_key(e) {
 	padding-top: 4px;
 }
 
-.pfb-tree-toolbar {
-	display: flex;
-	justify-content: flex-end;
-	gap: 2px;
-	padding: 0 4px 2px;
-}
-
 .pfb-tree-row {
 	display: flex;
 	align-items: center;
@@ -1087,8 +1013,10 @@ function handle_slash_key(e) {
 	user-select: none;
 }
 
-.pfb-tree-row:hover {
-	background: var(--gray-100);
+.pfb-tree-row:hover,
+.pfb-tree-row.pfb-tree-hover {
+	outline: 1px solid var(--pfb-accent);
+	outline-offset: -1px;
 }
 
 .pfb-tree-row.active {
@@ -1151,6 +1079,12 @@ function handle_slash_key(e) {
 
 .pfb-tree-fields {
 	min-height: 8px;
+}
+
+/* single-column sections have no Column row, so their fields sit directly
+   under the section instead of indenting past a row that isn't there */
+.pfb-tree-fields--flush {
+	margin-left: 0;
 }
 
 /* ── Empty state ─────────────────────────────────────────── */

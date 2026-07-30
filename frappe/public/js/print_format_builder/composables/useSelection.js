@@ -1,4 +1,4 @@
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 
 export function useSelection() {
 	const selected_field = ref(null);
@@ -7,6 +7,12 @@ export function useSelection() {
 	const selected_sections = ref([]);
 	const selected_letterhead = ref(false);
 	const selected_lh_footer = ref(false);
+
+	// more than one field/section selected — the single source of truth for
+	// "bulk mode" (bulk panel, and hiding per-item toolbars on the canvas)
+	const is_multi_select = computed(
+		() => selected_fields.value.length + selected_sections.value.length > 1
+	);
 
 	function select_field(df, additive = false) {
 		if (additive && df) {
@@ -84,6 +90,7 @@ export function useSelection() {
 		selected_sections,
 		selected_letterhead,
 		selected_lh_footer,
+		is_multi_select,
 		select_field,
 		set_selected,
 		set_selection,

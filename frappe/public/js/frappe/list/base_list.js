@@ -366,65 +366,48 @@ frappe.views.BaseList = class BaseList {
 		const paging_values = [20, 100, 500, 2500];
 		this.$paging_area = $(
 			`<div class="list-paging-area level">
-				<div class="level-left">
-					<div class="btn-group">
-						${paging_values
-							.map(
-								(value) => `
-							<button type="button" class="btn btn-default btn-sm btn-paging"
-								data-value="${value}">
-								${value}
-							</button>
-						`
-							)
-							.join("")}
-					</div>
-				</div>
-				<div class="level-right">
-					<button class="btn btn-default btn-more btn-sm">
-						${__("Load More")}
-					</button>
-				</div>
+				<div class="level-left"></div>
+				<div class="level-right"></div>
 			</div>`
 		).hide();
 		this.$frappe_list.append(this.$paging_area);
 
-		// set default paging btn active
-		this.$paging_area
-			.find(`.btn-paging[data-value="${this.page_length}"]`)
-			.addClass("btn-info")
-			.prop("disabled", true);
-
-		this.$paging_area.on("click", ".btn-paging", (e) => {
-			const $this = $(e.currentTarget);
-			// Set the active button
-			// This is always necessary because the current page length might
-			// have resulted from a previous "load more".
-			this.$paging_area.find(".btn-paging").removeClass("btn-info").prop("disabled", false);
-			$this.addClass("btn-info").prop("disabled", true);
-
-			const old_page_length = this.page_length;
-			const new_page_length = $this.data().value;
-
-			this.selected_page_count = new_page_length;
-			if (this.page_length > new_page_length) {
-				this.start = 0;
-				this.page_length = new_page_length;
-			} else {
-				this.start = this.page_length;
-				this.page_length = new_page_length - this.page_length;
-			}
-
-			if (old_page_length !== new_page_length) {
+		// the page-size choice is a radio group — TabButtons keeps exactly one
+		// pill selected (the old markup hand-rolled this with btn-info +
+		// disabled), and the selection survives "Load More" growing the page
+		this.paging_button_group = new frappe.ui.TabButtons({
+			label: __("Page Size"),
+			options: paging_values.map((value) => ({
+				label: String(value),
+				value: value,
+			})),
+			value: this.selected_page_count,
+			on_change: (value) => {
+				this.selected_page_count = value;
+				if (this.page_length > value) {
+					this.start = 0;
+					this.page_length = value;
+				} else {
+					// growing: fetch only the difference on top of what's loaded
+					this.start = this.page_length;
+					this.page_length = value - this.page_length;
+				}
 				this.refresh();
-			}
+			},
 		});
+		this.$paging_area.find(".level-left").append(this.paging_button_group.$el);
 
-		this.$paging_area.on("click", ".btn-more", (e) => {
-			this.start = this.data.length;
-			this.page_length = this.selected_page_count;
-			this.refresh();
-		});
+		this.$paging_area.find(".level-right").append(
+			frappe.ui.button({
+				label: __("Load More"),
+				css_class: "btn-more",
+				onclick: () => {
+					this.start = this.data.length;
+					this.page_length = this.selected_page_count;
+					this.refresh();
+				},
+			})
+		);
 	}
 
 	setup_resize_handler() {
@@ -447,6 +430,16 @@ frappe.views.BaseList = class BaseList {
 		// place it at the footer of the page
 
 		let $result_container = this.$result.parent(".result-container");
+
+		// On mobile a fixed height makes the container a second scroller and
+		// the page double-scrolls (the browser bar resizing the viewport
+		// leaves the pixel height stale). Let rows flow instead — except in
+		// virtual mode, which needs a scrollbox to window rows.
+		if (frappe.is_mobile() && !this.virtualization_state?.enabled) {
+			$result_container.css("height", "");
+			return;
+		}
+
 		let main_rect = $(".main-section").get(0).getBoundingClientRect();
 		let result_top = $result_container.get(0).getBoundingClientRect().top - main_rect.top;
 		let resultContainerHeight = Math.floor(

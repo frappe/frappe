@@ -1,5 +1,9 @@
 <template>
-	<div v-if="shouldRender" class="builder-root">
+	<div
+		v-if="shouldRender"
+		class="builder-root"
+		:class="{ 'pfb-multi-select': $store.is_multi_select.value }"
+	>
 		<PrintFormatControls />
 		<div class="canvas-area">
 			<!-- Sidebar-open hint -->
@@ -22,9 +26,6 @@
 					<div ref="doc_picker_ref" class="canvas-doc-picker"></div>
 				</div>
 				<div class="canvas-toolbar-right">
-					<span v-if="!$store.preview_doc.value" class="canvas-no-data-hint">
-						← {{ __("Pick a record to see real values") }}
-					</span>
 					<div class="canvas-zoom-control" role="group" :aria-label="__('Zoom')">
 						<button
 							class="canvas-zoom-btn"
@@ -359,10 +360,7 @@ function handle_keydown(e) {
 		if (is_typing_context()) return;
 		const sf = $store.value.selected_field.value;
 		const ss = $store.value.selected_section.value;
-		const total =
-			$store.value.selected_fields.value.length +
-			$store.value.selected_sections.value.length;
-		if (total > 1) {
+		if ($store.value.is_multi_select.value) {
 			$store.value.remove_selection();
 			e.preventDefault();
 		} else if (sf) {
@@ -539,6 +537,16 @@ defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 	width: 100%;
 }
 
+/* In bulk mode the per-item action toolbars (copy/duplicate/snippet/remove) are
+   just noise on top of every highlighted block — the bulk panel drives actions
+   instead. Hide them everywhere at once from the one multi-select flag. */
+.builder-root.pfb-multi-select :deep(.field-preview-actions),
+.builder-root.pfb-multi-select :deep(.field-actions),
+.builder-root.pfb-multi-select :deep(.section-preview-actions),
+.builder-root.pfb-multi-select :deep(.section-toolbar-right) {
+	display: none;
+}
+
 .canvas-area {
 	flex: 1;
 	min-width: 0;
@@ -634,19 +642,6 @@ defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 	display: flex;
 	align-items: center;
 	gap: 6px;
-}
-
-.canvas-no-data-hint {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	font-size: 11px;
-	color: var(--text-muted);
-	white-space: nowrap;
-	background: var(--yellow-50);
-	border: 1px solid var(--yellow-200);
-	border-radius: var(--radius);
-	padding: 3px 8px;
 }
 
 /* ── Zoom control ────────────────────────────────────────── */

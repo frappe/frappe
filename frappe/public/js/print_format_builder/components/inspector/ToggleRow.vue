@@ -1,5 +1,5 @@
 <template>
-	<div class="pfb-insp-row">
+	<div class="pfb-insp-row pfb-insp-row--toggle">
 		<span class="pfb-insp-label">{{ label }}</span>
 		<label class="switch-control" :title="label">
 			<span class="input-area">

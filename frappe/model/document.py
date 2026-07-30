@@ -20,7 +20,7 @@ from frappe import _, is_whitelisted, msgprint
 from frappe.core.doctype.file.utils import relink_mismatched_files
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
 from frappe.database.utils import commit_after_response
-from frappe.desk.form.document_follow import follow_document
+from frappe.desk.form.document_follow import _follow_document
 from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.model import optional_fields, table_fields
 from frappe.model.base_document import BaseDocument, D, get_controller
@@ -771,7 +771,7 @@ class Document(BaseDocument):
 
 		if not (frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard):
 			if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):
-				follow_document(self.doctype, self.name, frappe.session.user)
+				_follow_document(self.doctype, self.name, frappe.session.user)
 		return self
 
 	def check_if_locked(self):
@@ -1681,7 +1681,7 @@ class Document(BaseDocument):
 	def run_method(self, method: str, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""
 
-		if method.startswith("__"):
+		if method.startswith("_"):
 			raise Exception("Run method is for hooks, avoid usage on internal methods")
 
 		def fn(self, *args, **kwargs):

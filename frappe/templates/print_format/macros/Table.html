@@ -86,8 +86,10 @@
 		</tbody>
 		{# after tbody (HTML5 order): user styles that remap tfoot's display can
 		   no longer float the cap up under the header #}
+		{# one cap cell per column, not a single colspan: each carries the column
+		   divider so the verticals reach the closing line on every page #}
 		<tfoot>
-			<tr class="table-row"><td class="table-foot" colspan="{{ columns|length }}"></td></tr>
+			<tr class="table-row">{% for _ in columns %}<td class="table-foot"></td>{% endfor %}</tr>
 		</tfoot>
 	</table>
 </div>
