@@ -350,7 +350,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		} catch (e) {
 			this.$container.html(
 				`<div class="text-muted p-4">${__("Kanban Board {0} not found.", [
-					board_name,
+					frappe.utils.escape_html(board_name),
 				])}</div>`
 			);
 			return;
@@ -1081,9 +1081,22 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		span.className =
 			"kn-ficon inline-flex items-center justify-center shrink-0 size-4 text-ink-gray-4";
 		span.setAttribute("aria-label", label);
-		span.innerHTML = frappe.utils.icon(icon, "sm");
+		span.innerHTML = this.safe_icon(icon);
 		frappe.ui.tooltip(span, { text: label, side: "top", delay: 200 });
 		return span;
+	}
+
+	/**
+	 * SVG markup for a lucide icon name, but only for names that look like a
+	 * lucide id ([a-z0-9-]). Card/preview icon names come from the board's config
+	 * (user-editable child table) and are fed to innerHTML, so an unvalidated
+	 * name like `x"><img onerror=…>` would break out of the `href` attribute.
+	 * Returns "" for anything else.
+	 */
+	safe_icon(icon) {
+		const name = String(icon || "").trim();
+		if (!name || !/^[a-z0-9-]+$/i.test(name)) return "";
+		return frappe.utils.icon(name, "sm");
 	}
 
 	/** Fieldtypes whose stored value is markup or markdown, not display text. */
@@ -1384,7 +1397,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 				const span = document.createElement("span");
 				span.className =
 					"kn-ficon inline-flex items-center justify-center shrink-0 size-4 text-ink-gray-4";
-				span.innerHTML = frappe.utils.icon(icon, "sm");
+				span.innerHTML = this.safe_icon(icon);
 				k.appendChild(span);
 			}
 			const text = document.createElement("span");
