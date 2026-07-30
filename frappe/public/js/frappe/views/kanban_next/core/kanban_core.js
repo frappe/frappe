@@ -259,7 +259,7 @@ export class KanbanCore {
 		input.className =
 			"kn-add-card-input w-full border rounded-md p-2 bg-surface-base text-ink-gray-8 text-sm";
 		input.rows = 2;
-		input.placeholder = "Card title…";
+		input.placeholder = __("Card title…");
 		const close = () => {
 			if (!view.footer) return;
 			view.footer.remove();

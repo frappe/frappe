@@ -243,11 +243,8 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			.on("click", () => this.confirm_delete(this.selected_ids, done));
 
 		// Escape clears the selection — use Frappe's key pipeline (the same one
-		// dialogs/dropdowns use) so it fires reliably.
+		// dialogs/dropdowns use) so it fires reliably. key_map only emits "escape".
 		frappe.ui.keys.on("escape", () => {
-			if (this.selected_ids.length) this.clear_selection();
-		});
-		frappe.ui.keys.on("esc", () => {
 			if (this.selected_ids.length) this.clear_selection();
 		});
 		// The bar lives on <body>, so hide it when navigating away from the
@@ -338,7 +335,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		}
 		if (this.current_board === board_name && this.board) {
 			// Already mounted — only rebuild if the board's config changed
-			// (e.g. Show Labels or Card Fields edited on the form meanwhile).
+			// (e.g. Card Fields / Preview Fields edited on the form meanwhile).
 			this.remount_if_board_changed(board_name);
 			return;
 		}
@@ -381,8 +378,8 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 
 	/**
 	 * Rebuild the mounted board when its card config changed since we loaded
-	 * it, so edits on the Kanban Board form (Show Labels, Card Fields, …) show
-	 * up on the next visit without a full page reload. Only the rendering
+	 * it, so edits on the Kanban Board form (Card Fields, Preview Fields, …)
+	 * show up on the next visit without a full page reload. Only the rendering
 	 * config is compared — dragging a card also saves the board, and that must
 	 * not cost a remount.
 	 */
@@ -397,14 +394,17 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		this.load_from_route();
 	}
 
-	/** Comparable form of the config that decides how a card is rendered. */
+	/** Comparable form of the config that decides how a card / hover peek is rendered. */
 	card_config_signature(doc) {
+		const field_sig = (rows) =>
+			(rows || []).map((f) => [f.fieldname, f.label || "", f.icon || ""]);
 		return JSON.stringify([
 			doc.title_field || "",
 			doc.image_field || "",
 			cint(doc.show_assigned_to, 1),
 			doc.footer_date_field || "Modified",
-			(doc.card_fields || []).map((f) => [f.fieldname, f.label, f.icon || ""]),
+			field_sig(doc.card_fields),
+			field_sig(doc.preview_fields),
 		]);
 	}
 
@@ -1320,7 +1320,8 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		if (image) {
 			const banner = document.createElement("div");
 			banner.className = "kn-mi-banner";
-			banner.style.backgroundImage = `url('${encodeURI(image)}')`;
+			// JSON.stringify quotes/escapes so ', (, ) in the URL can't break url(...).
+			banner.style.backgroundImage = `url(${JSON.stringify(String(image))})`;
 			wrap.appendChild(banner);
 		}
 
@@ -1428,10 +1429,43 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	}
 
 	/**
+	 * Sanitize markup before innerHTML. remove_script_and_style only drops
+	 * <script>/<style>/… tags and returns the string verbatim when none are
+	 * present — so onerror / javascript: URIs would still run. Strip those too.
+	 * (Server sanitize_html covers normal saves; this is the client last line.)
+	 */
+	safe_html(html) {
+		const root = document.createElement("div");
+		root.innerHTML = frappe.dom.remove_script_and_style(html || "");
+		root.querySelectorAll("*").forEach((el) => {
+			for (const attr of [...el.attributes]) {
+				const name = attr.name.toLowerCase();
+				if (name.startsWith("on")) {
+					el.removeAttribute(attr.name);
+					continue;
+				}
+				if (!["href", "src", "action", "formaction", "xlink:href"].includes(name)) {
+					continue;
+				}
+				// Match browser URL parsing: drop tab/newline/CR anywhere, then
+				// leading C0 controls, before testing the scheme.
+				const bare = String(attr.value)
+					.replace(/[\t\n\r]/g, "")
+					.replace(/^[\u0000-\u0020]+/, "");
+				if (/^(javascript|vbscript):/i.test(bare)) {
+					el.removeAttribute(attr.name);
+				} else if (/^data:/i.test(bare) && !/^data:image\//i.test(bare)) {
+					el.removeAttribute(attr.name);
+				}
+			}
+		});
+		return root.innerHTML;
+	}
+
+	/**
 	 * The description snippet. For editor fields (Text Editor / HTML / Markdown)
-	 * the stored value is markup, so render it — scripts/styles stripped — and
-	 * let CSS clamp and flatten it, so tags and divs are handled instead of shown
-	 * raw. Plain fields fall back to a text excerpt.
+	 * the stored value is markup, so render it — sanitized — and let CSS clamp
+	 * and flatten it. Plain fields fall back to a text excerpt.
 	 */
 	description_el(card) {
 		const df = frappe.meta.get_docfield(this.doctype, this.desc_field);
@@ -1451,7 +1485,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			}
 			let html;
 			if (/<[a-z!/][^>]*>/i.test(raw)) {
-				// Real HTML (a normal Text Editor value) — render as-is.
+				// Real HTML (a normal Text Editor value) — sanitize, then render.
 				html = raw;
 			} else {
 				// Non-HTML content in a rich-text field: render as markdown so
@@ -1460,7 +1494,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 				raw = raw.replace(/^\s*h([1-6])\.\s+/gm, (_m, n) => "#".repeat(+n) + " ");
 				html = frappe.markdown(raw);
 			}
-			d.innerHTML = frappe.dom.remove_script_and_style(html);
+			d.innerHTML = this.safe_html(html);
 		} else {
 			d.textContent = frappe.ellipsis(this.plain_text(val, ft), 160);
 		}

@@ -208,8 +208,8 @@ def ensure_kanban_board_permission(board: Document, ptype: str = "read") -> None
 @frappe.whitelist()
 @frappe.read_only()
 def get_card_config(board_name: str) -> dict:
-	"""Just the bits that decide how a card looks: title/image fields and the
-	ordered card fields (with optional icons and labels).
+	"""Bits that decide how a card and its hover peek look: title/image fields,
+	card fields, and preview fields (with optional icons and labels).
 
 	The new Kanban polls this when returning to an already-open board, so it can
 	pick up config edits without re-fetching the whole board document (whose
@@ -218,14 +218,17 @@ def get_card_config(board_name: str) -> dict:
 	board = frappe.get_doc("Kanban Board", board_name)
 	ensure_kanban_board_permission(board, "read")
 	frappe.has_permission(board.reference_doctype, "read", throw=True)
+
+	def _field_rows(rows):
+		return [{"fieldname": f.fieldname, "label": f.label, "icon": f.icon} for f in rows]
+
 	return {
 		"title_field": board.title_field,
 		"image_field": board.image_field,
 		"show_assigned_to": board.show_assigned_to,
 		"footer_date_field": board.footer_date_field,
-		"card_fields": [
-			{"fieldname": f.fieldname, "label": f.label, "icon": f.icon} for f in board.card_fields
-		],
+		"card_fields": _field_rows(board.card_fields),
+		"preview_fields": _field_rows(board.preview_fields),
 	}
 
 
