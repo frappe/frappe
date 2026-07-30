@@ -95,7 +95,7 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 	setup_wizard_completed_apps = get_setup_wizard_completed_apps()
 	telemetry_enabled = bool(cint(user_input.get("enable_telemetry")))
 
-	capture("initated_server_side", "setup")
+	capture("initiated_server_side", "setup")
 	try:
 		frappe.flags.in_setup_wizard = True
 		current_task = None
@@ -149,6 +149,7 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 				"telemetry_enabled": telemetry_enabled,
 			},
 		)
+		apply_telemetry_preference(telemetry_enabled)
 		if not is_background_task:
 			return {"status": "ok"}
 		frappe.publish_realtime("setup_task", {"status": "ok"}, user=frappe.session.user)
@@ -182,6 +183,12 @@ def update_global_settings(args):  # nosemgrep
 	update_system_settings(args)
 	create_or_update_user(args)
 	frappe.enqueue(set_timezone, timezone=args.get("timezone"))
+
+
+def apply_telemetry_preference(telemetry_enabled):
+	# Applied only after the wizard's own completion event: setup events (funnel,
+	# persona) are always captured — this checkbox governs tracking after setup.
+	frappe.db.set_single_value("System Settings", "enable_telemetry", cint(telemetry_enabled))
 
 
 def run_post_setup_complete(args):  # nosemgrep
@@ -288,7 +295,6 @@ def update_system_settings(args):  # nosemgrep
 			"number_format": number_format,
 			"enable_scheduler": 1 if not frappe.in_test else 0,
 			"backup_limit": 3,  # Default for downloadable backups
-			"enable_telemetry": cint(args.get("enable_telemetry")),
 		}
 	)
 	system_settings.save()
