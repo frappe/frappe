@@ -345,14 +345,8 @@ def get_events(
 	target_user = user or caller
 
 	if user and user != caller:
-<<<<<<< HEAD
-		if not frappe.has_permission("Event", ptype="read"):
-			frappe.throw(_("You are not allowed to view events for another user."), frappe.PermissionError)
-	EventLikeDict: TypeAlias = Event | frappe._dict
-=======
 		frappe.only_for("System Manager")
 	type EventLikeDict = Event | frappe._dict
->>>>>>> 93edb6a0b0 (fix: limit cross-user event lookups to System Manager (#41326))
 	resolved_events: list[EventLikeDict] = []
 
 	if isinstance(filters, str):
