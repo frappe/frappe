@@ -409,8 +409,30 @@ frappe.ui.Page = class Page {
 		this.clear_secondary_action();
 	}
 
+	// Close and tear down the espresso dropdowns of button groups inside
+	// $scope before their elements are discarded — an open menu body-portals,
+	// so removing its group would otherwise leave the panel floating over
+	// the page with its listeners live.
+	destroy_group_dropdowns($scope) {
+		$scope
+			.find(".inner-group-button, .custom-btn-group")
+			.addBack(".inner-group-button, .custom-btn-group")
+			.each((_, group) => {
+				$(group).data("es_dropdown")?.destroy();
+			});
+	}
+
 	clear_custom_actions() {
+		this.destroy_group_dropdowns(this.custom_actions);
 		this.custom_actions.addClass("hide").empty();
+		this.clear_mobile_custom_groups();
+	}
+	clear_mobile_custom_groups() {
+		const $groups = this.custom_mobile_actions.children(
+			".custom-btn-group:not(.view-switcher)"
+		);
+		this.destroy_group_dropdowns($groups);
+		$groups.remove();
 	}
 
 	clear_icons() {
@@ -716,6 +738,10 @@ frappe.ui.Page = class Page {
 	}
 
 	clear_btn_group(parent) {
+		// a refresh can clear the store while its menu is open — close it so
+		// the portaled panel doesn't float on with stale rows
+		if (parent.is(this.menu)) this.menu_dropdown?.close("owner");
+		if (parent.is(this.actions)) this.actions_dropdown?.close("owner");
 		parent.empty();
 		parent.parent().addClass("hide");
 	}
@@ -897,7 +923,10 @@ frappe.ui.Page = class Page {
 			if ($group.length) {
 				$group.find(`.dropdown-item[data-label="${encodeURIComponent(label)}"]`).remove();
 			}
-			if ($group.find(".dropdown-item").length === 0) $group.remove();
+			if ($group.find(".dropdown-item").length === 0) {
+				this.destroy_group_dropdowns($group);
+				$group.remove();
+			}
 		} else {
 			this.inner_toolbar.find(`button[data-label="${encodeURIComponent(label)}"]`).remove();
 		}
@@ -939,7 +968,9 @@ frappe.ui.Page = class Page {
 	}
 
 	clear_inner_toolbar() {
-		this.inner_toolbar.empty().addClass("hide");
+		// inner_toolbar IS custom_actions (see setup_page) — delegate so the
+		// dropdown teardown and the mobile-container clear live in one place
+		this.clear_custom_actions();
 	}
 
 	clear_user_actions() {
