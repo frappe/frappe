@@ -10,7 +10,7 @@ from .utils import anonymize_user, pulse_host, utc_iso
 def is_enabled() -> bool:
 	# Not cached: the underlying reads are conf lookups (in-memory) and System Settings
 	# (already request- and redis-cached by frappe), so a local cache here buys nothing
-	# but staleness — notably during the setup wizard, where enable_telemetry flips on.
+	# but staleness — notably at setup wizard completion, where the opt-out lands.
 	if not frappe.conf.get("pulse_api_key"):
 		return False
 
@@ -141,7 +141,10 @@ def alias(previous_id: str):
 
 
 def send_queued_events():
-	if not is_enabled():
+	# Consent gates capture, not delivery: events queued while telemetry was on
+	# (e.g. setup wizard events, before an opt-out lands at wizard completion)
+	# must still be sent. Delivery only needs the ingest credentials.
+	if not frappe.conf.get("pulse_api_key"):
 		return
 
 	http = PulseHTTP()
