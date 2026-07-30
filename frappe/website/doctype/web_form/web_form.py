@@ -124,6 +124,12 @@ class WebForm(WebsiteGenerator):
 					HiddenAndMandatoryWithoutDefaultError,
 				)
 
+	def raise_if_unpublished(self):
+		"""Unpublishing is the only control that takes a web form offline, so it must
+		hold for direct API calls too, not just for the rendered page."""
+		if not self.published:
+			frappe.throw(_("Not permitted"), frappe.PermissionError)
+
 	def reset_field_parent(self):
 		"""Convert link fields to select with names as options"""
 		for df in self.web_form_fields:
@@ -604,6 +610,7 @@ def accept(web_form, data):
 	files_to_delete = []
 
 	web_form = frappe.get_doc("Web Form", web_form)
+	web_form.raise_if_unpublished()
 	doctype = web_form.doc_type
 	user = frappe.session.user
 
@@ -704,6 +711,7 @@ def accept(web_form, data):
 @frappe.whitelist()
 def delete(web_form_name: str, docname: str | int):
 	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form.raise_if_unpublished()
 
 	owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
 	if frappe.session.user == owner and web_form.allow_delete:
@@ -715,6 +723,7 @@ def delete(web_form_name: str, docname: str | int):
 @frappe.whitelist()
 def delete_multiple(web_form_name: str, docnames):
 	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form.raise_if_unpublished()
 
 	docnames = json.loads(docnames)
 
@@ -749,12 +758,14 @@ def check_webform_perm(doctype, name):
 @frappe.whitelist(allow_guest=True)
 def get_web_form_filters(web_form_name: str):
 	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form.raise_if_unpublished()
 	return [field for field in web_form.web_form_fields if field.show_in_filter]
 
 
 @frappe.whitelist(allow_guest=True)
 def get_form_data(doctype: str, docname: str | None = None, web_form_name: str | None = None):
 	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form.raise_if_unpublished()
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
