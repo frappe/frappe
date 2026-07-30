@@ -555,7 +555,7 @@ const styleSectionProperties = [
 		component: ColorInput,
 		getProps: () => {
 			return {
-				label: "Text Color",
+				label: "Color",
 				modelValue: blockController.getStyle("color"),
 				property: "textColor",
 			}
