@@ -99,7 +99,7 @@ Every future fix names the layer it belongs to before it lands. Concretely:
    (via `retrying()` in `model/base.py`). A fix touching provider failure behavior
    lands in `model/`, never `agent/`.
 3. One reducer. Any "what is the current state" question is answered by extending
-   `Transcript.apply`. A PR adding a new full-log scan is wrong by definition.
+   `Transcript.record`. A PR adding a new full-log scan is wrong by definition.
 4. Repairs are appended before any new transcript entries, so position is the only
    ordering mechanism. Nothing writes positional markers into event payloads.
 5. Provider round-trip data goes in `provider_state` — never encoded into semantic
@@ -159,11 +159,11 @@ old HTTP assertions pass unmodified in PR 6.
 - **PR 1 — events + log + transcript.** Fresh `events.py` with `provider_state` on
   `TextContent`/`ThinkingContent`/`ToolCall` and a single live-only
   `Retry(status=scheduled|started|exhausted)` event from day one. `session/log.py`
-  ported verbatim. New `session/transcript.py`: `apply`, `fold`, `missing_results`,
-  `pending_approval` as a field, results placed by position alone. Verify: reducer
-  unit tests (batch ordering, first-result-wins, approval scoping across runs,
-  `apply` == `fold`); ported log scenarios (fsync rollback, corruption line/offset,
-  monotonic seq).
+  ported verbatim. New `session/transcript.py`: `record` (per-event, real time),
+  `replay` (one full read at load), `missing_results`, `pending_approval` as a field,
+  results placed by position alone. Verify: reducer unit tests (batch ordering,
+  first-result-wins, approval scoping across runs, live `record` == `replay`); ported
+  log scenarios (fsync rollback, corruption line/offset, monotonic seq).
 - **PR 2 — model core.** `model/base.py` (Model protocol, `ModelRequest`,
   cancellation utils, `retrying()` emitting `Retry` in-stream with cancellable
   backoff, retry-after, bounded attempts, one-shot refresh hook, aborted-assistant
@@ -206,5 +206,5 @@ old HTTP assertions pass unmodified in PR 6.
 
 - **Backpressure** becomes a bounded-queue + detach policy inside `Session._commit`,
   the single fan-out point (slow subscribers detach and heal via replay).
-- **Context compaction** becomes a durable `Compaction` event folded through
-  `Transcript.apply` — never a rewrite of the log.
+- **Context compaction** becomes a durable `Compaction` event handled by
+  `Transcript.record` — never a rewrite of the log.
