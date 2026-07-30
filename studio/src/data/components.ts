@@ -1275,6 +1275,8 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideSettings,
 		isGroup: true,
 		blockTemplate: "settings-dialog",
+		editInFragmentMode: true,
+		proxyComponent: defineAsyncComponent(() => import("@/components/ProxyComponents/ProxySettingsDialog.vue")),
 	},
 	SettingsSidebar: {
 		name: "SettingsSidebar",

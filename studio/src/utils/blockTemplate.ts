@@ -190,10 +190,9 @@ function listTemplate(): BlockOptions {
 	};
 }
 
-// A minimal two-tab settings dialog. NOTE: SettingsDialog renders through
-// frappe-ui's Dialog (a teleported modal), so it needs a dedicated proxy to be
-// visible/editable on the canvas — dropping it seeds the tree (visible in Layers)
-// but nothing renders on the page until that proxy lands. `shortcut` and
+// A minimal two-tab settings dialog. SettingsDialog renders through frappe-ui's Dialog
+// (a teleported modal), so it's edited on a fragment canvas (editInFragmentMode) via
+// ProxySettingsDialog, which renders the inner TabsRoot inline. `shortcut` and
 // `unmountOnHide` are turned off here because both are hostile to the editor.
 function settingsDialogTemplate(): BlockOptions {
 	return {
@@ -203,6 +202,9 @@ function settingsDialogTemplate(): BlockOptions {
 			modelValue: false,
 			shortcut: false,
 			unmountOnHide: false,
+			// select the first nav item so its panel shows when the dialog opens (and so the
+			// editor proxy isn't blank — reka-ui shows no panel until a tab is active)
+			tab: "profile",
 		},
 		children: [
 			{

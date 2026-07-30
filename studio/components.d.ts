@@ -91,6 +91,7 @@ declare module 'vue' {
     PlacementControl: typeof import('./src/components/PlacementControl.vue')['default']
     PropsEditor: typeof import('./src/components/PropsEditor.vue')['default']
     ProxyDialog: typeof import('./src/components/ProxyComponents/ProxyDialog.vue')['default']
+    ProxySettingsDialog: typeof import('./src/components/ProxyComponents/ProxySettingsDialog.vue')['default']
     PublishButton: typeof import('./src/components/PublishButton.vue')['default']
     Repeater: typeof import('./src/components/AppLayout/Repeater.vue')['default']
     ResourceDialog: typeof import('./src/components/ResourceDialog.vue')['default']
