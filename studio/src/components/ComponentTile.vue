@@ -11,9 +11,12 @@
 				class="bg-surface-white pointer-events-none absolute inset-0 -translate-y-1 translate-x-1 rounded-md border border-outline-gray-2"
 			/>
 			<div
-				class="relative flex h-16 w-full items-center justify-center rounded-md border bg-surface-gray-1 p-3 transition-all duration-200 group-hover:border-outline-gray-3 group-hover:bg-surface-gray-2 group-hover:shadow-sm"
+				class="relative flex h-16 w-full items-center justify-center rounded-md border p-3 transition-all duration-200 group-hover:shadow-sm"
 				:class="[
-					stacked ? 'border-outline-gray-3' : 'border-outline-gray-2',
+					inverted
+						? 'border-outline-gray-1 bg-surface-base group-hover:border-outline-gray-2'
+						: 'bg-surface-gray-1 group-hover:border-outline-gray-3 group-hover:bg-surface-gray-2',
+					!inverted && (stacked ? 'border-outline-gray-3' : 'border-outline-gray-2'),
 					expanded && '!border-outline-gray-4',
 				]"
 			>
@@ -36,6 +39,12 @@
 <script setup lang="ts">
 import type { FrappeUIComponent } from "@/types"
 
-defineProps<{ component: FrappeUIComponent; stacked?: boolean; expanded?: boolean; compactLabel?: boolean }>()
+defineProps<{
+	component: FrappeUIComponent
+	stacked?: boolean
+	expanded?: boolean
+	compactLabel?: boolean
+	inverted?: boolean
+}>()
 const emit = defineEmits<{ (e: "click"): void }>()
 </script>

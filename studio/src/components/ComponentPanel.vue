@@ -49,16 +49,13 @@
 								@click="onTileClick(component)"
 							/>
 
-							<!-- Parts of the open family. Inserted at the end of the source tile's row and
-							     spanning every column, with a caret under the source tile's column.
-							     Radius nesting: outer 16px (rounded-2xl) − 10px padding (p-2.5) = 6px inner,
-							     matching the tile's rounded-md so the curves run parallel. -->
+							<!-- component family tray -->
 							<div
 								v-if="index === section.trayAfter"
-								class="relative col-span-full mt-1 rounded-2xl border border-outline-gray-2 bg-surface-base p-2.5"
+								class="relative col-span-full mt-1 rounded-xl bg-surface-gray-1 p-2.5"
 							>
 								<span
-									class="absolute -top-1.5 h-3 w-3 -translate-x-1/2 rotate-45 border-l border-t border-outline-gray-2 bg-surface-base"
+									class="absolute -top-1.5 h-3 w-3 -translate-x-1/2 rotate-45 rounded-[2px] bg-surface-gray-1"
 									:style="{ left: section.caretLeft }"
 								/>
 								<div class="grid grid-cols-3 items-start gap-3">
@@ -67,6 +64,7 @@
 										:key="part.name"
 										:component="part"
 										:compact-label="isLastTrayRow(partIndex)"
+										inverted
 									/>
 								</div>
 							</div>
