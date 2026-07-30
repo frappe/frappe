@@ -35,7 +35,13 @@ class DesktopSettings(Document):
 
 def get_desktop_page() -> str:
 	"""Which page /app/desktop renders. Defaults to `Apps` when unset (fresh install)."""
-	page = frappe.db.get_single_value("Desktop Settings", "desktop_page")
+	# This runs on every boot, and `get_single_value` throws on a field the doctype doesn't
+	# know about -- so on a site that has pulled the code but not migrated yet, reading this
+	# blind would take down session boot rather than just falling back to the default page.
+	if not frappe.get_meta(DesktopSettings._DOCTYPE_NAME).has_field("desktop_page"):
+		return APPS
+
+	page = frappe.db.get_single_value(DesktopSettings._DOCTYPE_NAME, "desktop_page")
 	return page if page in (APPS, DESKTOP_ICONS) else APPS
 
 
