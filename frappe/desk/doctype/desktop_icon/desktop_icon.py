@@ -165,7 +165,7 @@ def _has_app_permission(icon) -> bool:
 			if len(app_detail) != 0:
 				permission_method = app_detail[0].get("has_permission", None)
 				if permission_method:
-					return frappe.call(permission_method)
+					return frappe.get_attr(permission_method)()
 				else:
 					return True
 			else:
