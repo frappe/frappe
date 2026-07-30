@@ -119,6 +119,7 @@ permission_query_conditions = {
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.get_permission_query_condition",
 	"File": "frappe.core.doctype.file.file.get_permission_query_conditions",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.get_permission_query_conditions",
+	"Tag Link": "frappe.desk.doctype.tag_link.tag_link.get_permission_query_conditions",
 }
 
 has_permission = {
