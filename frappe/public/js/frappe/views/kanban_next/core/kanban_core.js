@@ -899,6 +899,20 @@ export class KanbanCore {
 		} catch (error) {
 			this.state = snapshot;
 			this.renderColumns(affected);
+			// Surface the failure the same way a single-card move does — otherwise a
+			// multi-move that fails just silently snaps back with no explanation.
+			cb.onMoveError &&
+				cb.onMoveError(
+					{
+						cardId:
+							selectedOrdered.length === 1
+								? selectedOrdered[0]
+								: __("{0} cards", [selectedOrdered.length]),
+						cardIds: [...selectedOrdered],
+						toColumn,
+					},
+					error
+				);
 			this.bus.emit("error", error);
 		}
 	}

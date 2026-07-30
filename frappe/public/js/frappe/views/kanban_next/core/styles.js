@@ -13,7 +13,9 @@ const CSS = `
 	overflow-y: hidden;
 }
 .kn-column {
-	flex: 0 0 300px;
+	/* Fixed column width — cards fill it. 320px fits label+value stacks
+	   without feeling sparse; content truncates inside, never grows the card. */
+	flex: 0 0 320px;
 	max-height: 100%;
 	min-height: 0;
 }
