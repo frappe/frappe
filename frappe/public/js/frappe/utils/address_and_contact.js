@@ -8,33 +8,44 @@ $.extend(frappe.contacts, {
 	},
 
 	render_address_and_contact: function (frm) {
-		const items = [
+		const sections = [
 			{
+				doctype: "Address",
 				field: "address_html",
 				data: "addr_list",
 				template: "address_list",
 				btn: ".btn-address",
-				doctype: "Address",
+				primary_flag: "is_primary_address",
 			},
 			{
+				doctype: "Contact",
 				field: "contact_html",
 				data: "contact_list",
 				template: "contact_list",
 				btn: ".btn-contact",
-				doctype: "Contact",
+				primary_flag: "is_primary_contact",
 			},
 		];
 
-		for (const item of items) {
-			// render address or contact
-			const field_wrapper = frm.fields_dict[item.field]?.wrapper;
+		for (const section of sections) {
+			const field_wrapper = frm.fields_dict[section.field]?.wrapper;
+			if (!field_wrapper || !frm.doc.__onload || !(section.data in frm.doc.__onload)) continue;
 
-			if (field_wrapper && frm.doc.__onload && item.data in frm.doc.__onload) {
-				$(field_wrapper)
-					.html(frappe.render_template(item.template, frm.doc.__onload))
-					.find(item.btn)
-					.on("click", () => new_record(item.doctype, frm));
-			}
+			const $wrapper = $(field_wrapper).html(
+				frappe.render_template(section.template, frm.doc.__onload)
+			);
+			$wrapper.find(section.btn).on("click", () => new_record(section.doctype, frm));
+			const records = frm.doc.__onload[section.data] || [];
+			const by_name = Object.fromEntries(records.map((r) => [r.name, r]));
+			$wrapper.find(".card-menu-btn").each(function () {
+				const record = by_name[this.closest("[data-name]")?.dataset.name];
+				if (!record) return;
+				new frappe.ui.Dropdown({
+					trigger: this,
+					options: card_menu(frm, section, record, records),
+					align: "end",
+				});
+			});
 		}
 	},
 
@@ -98,4 +109,60 @@ function new_record(doctype, frm) {
 	} else {
 		frappe.new_doc(doctype);
 	}
+}
+
+function card_menu(frm, section, record, records) {
+	const { doctype } = section;
+	return [
+		{
+			label: __("Edit"),
+			icon: "pen",
+			onclick: () => frappe.set_route("Form", doctype, record.name),
+		},
+		{
+			label: __("Set as Primary"),
+			icon: "star",
+			condition: () => !record[section.primary_flag],
+			onclick: () => set_primary(frm, section, record, records),
+		},
+		{
+			label: __("Delete"),
+			icon: "trash-2",
+			theme: "red",
+			onclick: () => delete_record(frm, doctype, record.name),
+		},
+	];
+}
+
+function get_primary_field(frm, doctype) {
+	return (frm.meta.fields || []).find(
+		(df) => df.fieldtype === "Link" && df.options === doctype && /primary/i.test(df.fieldname)
+	)?.fieldname;
+}
+
+function set_primary(frm, section, record, records) {
+	const { doctype, primary_flag } = section;
+	const primary_field = get_primary_field(frm, doctype);
+	const previous = records.find((r) => r.name !== record.name && r[primary_flag]);
+	const jobs = [];
+
+	if (previous) jobs.push(frappe.db.set_value(doctype, previous.name, primary_flag, 0));
+
+	if (primary_field) {
+		jobs.push(frappe.db.set_value(frm.doctype, frm.docname, primary_field, record.name));
+	} else {
+		jobs.push(frappe.db.set_value(doctype, record.name, primary_flag, 1));
+	}
+
+	Promise.all(jobs).then(() => frm.reload_doc());
+}
+
+function delete_record(frm, doctype, name) {
+	const label = `<b>${frappe.utils.escape_html(name)}</b>`;
+	frappe.confirm(__("Delete {0} {1}?", [__(doctype), label]), () => {
+		frappe.db.delete_doc(doctype, name).then(() => {
+			frappe.show_alert({ message: __("{0} deleted", [__(doctype)]), indicator: "green" });
+			frm.reload_doc();
+		});
+	});
 }

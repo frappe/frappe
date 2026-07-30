@@ -171,8 +171,8 @@ select.form-control {
 
 	.address-box,
 	.contact-box {
-		background-color: var(--control-bg);
-		padding: var(--padding-sm);
+		background-color: var(--card-bg);
+		padding: var(--padding-md);
 		margin-bottom: var(--margin-sm);
 		border: 1px solid var(--border-color);
 		border-radius: var(--radius);
@@ -183,19 +183,33 @@ select.form-control {
 			margin-bottom: 0;
 		}
 
-		.edit-btn {
+		.box-header {
+			padding-inline-end: 1.5rem;
+			margin-bottom: var(--margin-xs);
+		}
+
+		.box-subtitle {
+			margin-bottom: var(--margin-sm);
+		}
+
+		.card-menu-btn {
 			position: absolute;
-			top: 0px;
-			right: 0px;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			padding: var(--padding-sm);
+			top: var(--padding-sm);
+			inset-inline-end: var(--padding-sm);
 		}
 	}
 
 	.contact-box p {
 		line-height: 1.1;
+	}
+
+	.contact-box .contact-line {
+		margin-bottom: var(--margin-xs);
+
+		svg.icon {
+			flex-shrink: 0;
+			margin: 0;
+		}
 	}
 
 	.action-btn {
