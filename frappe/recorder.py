@@ -119,24 +119,29 @@ def _doc_event_contributors(doctype: str, method: str) -> tuple[list[str], list[
 	except Exception:
 		pass
 
+	flags = frappe.flags
+
+	# server scripts are skipped by run_server_script_for_doc_event during install/migrate
 	try:
 		from frappe.core.doctype.server_script.server_script_utils import EVENT_MAP, get_server_script_map
 
-		if event := EVENT_MAP.get(method):
+		if not (flags.in_install or flags.in_migrate) and (event := EVENT_MAP.get(method)):
 			for name in get_server_script_map().get(doctype, {}).get(event, None) or []:
 				handlers.append(f"Server Script: {name}")
 				apps.add("server_script")
 	except Exception:
 		pass
 
+	# webhooks are skipped by run_webhooks during import/patch/install/migrate
 	try:
 		from frappe.integrations.doctype.webhook import get_all_webhooks
 
-		webhooks = frappe.client_cache.get_value("webhooks", generator=get_all_webhooks)
-		for webhook in webhooks.get(doctype, None) or []:
-			if webhook.get("webhook_docevent") == method:
-				handlers.append(f"Webhook: {webhook.get('name')}")
-				apps.add("webhook")
+		if not (flags.in_import or flags.in_patch or flags.in_install or flags.in_migrate):
+			webhooks = frappe.client_cache.get_value("webhooks", generator=get_all_webhooks)
+			for webhook in webhooks.get(doctype, None) or []:
+				if webhook.get("webhook_docevent") == method:
+					handlers.append(f"Webhook: {webhook.get('name')}")
+					apps.add("webhook")
 	except Exception:
 		pass
 
