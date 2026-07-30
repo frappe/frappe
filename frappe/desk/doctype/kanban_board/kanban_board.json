@@ -19,8 +19,10 @@
   "fields",
   "section_break_new_kanban",
   "title_field",
+  "show_assigned_to",
   "column_break_new_kanban",
   "image_field",
+  "footer_date_field",
   "section_break_new_kanban_fields",
   "card_fields",
   "preview_fields"
@@ -116,6 +118,13 @@
    "label": "Title Field"
   },
   {
+   "default": "1",
+   "description": "Show the assignee stack and Assign control on cards and in the hover preview.",
+   "fieldname": "show_assigned_to",
+   "fieldtype": "Check",
+   "label": "Show Assigned To"
+  },
+  {
    "fieldname": "column_break_new_kanban",
    "fieldtype": "Column Break"
   },
@@ -126,13 +135,21 @@
    "label": "Image Field"
   },
   {
+   "default": "Modified",
+   "description": "Which timestamp to show in the card footer.",
+   "fieldname": "footer_date_field",
+   "fieldtype": "Select",
+   "label": "Footer Date",
+   "options": "Modified\nCreation"
+  },
+  {
    "fieldname": "section_break_new_kanban_fields",
    "fieldtype": "Section Break",
    "label": "Card and Preview Fields"
   }
  ],
  "links": [],
- "modified": "2026-07-30 16:51:23.792000",
+ "modified": "2026-07-30 17:49:31.948792",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Kanban Board",

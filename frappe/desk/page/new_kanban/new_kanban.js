@@ -12,9 +12,12 @@ frappe.provide("frappe.views");
  * How a Select value is drawn on a card: `theme` is a frappe.ui.badge theme and
  * `icon` a lucide icon placed before the label.
  *
- * Priority values carry an icon so the level is readable without relying on
- * colour alone (arrow down → equal → arrow up → warning); states go by colour.
- * Keys are matched case-insensitively, and any value missing here falls back to
+ * Priority uses signal bars (low → medium → high → urgent). Status prefers the
+ * circle family (dashed / empty / dot / check / x) so levels read without
+ * colour alone; a few waiting/blocked states use a clearer metaphor
+ * (hourglass, eye, ban, clock-alert).
+ *
+ * Keys are matched case-insensitively; missing values fall back to
  * frappe.utils.guess_colour() — the heuristic list views already use — so
  * app-specific values keep the colour users expect elsewhere.
  *
@@ -23,66 +26,74 @@ frappe.provide("frappe.views");
  * shorthand for `{ theme }`.
  */
 const SELECT_STYLES = {
-	// Priority.
-	low: { theme: "gray", icon: "arrow-down" },
-	medium: { theme: "blue", icon: "equal" },
-	high: { theme: "orange", icon: "arrow-up" },
-	urgent: { theme: "red", icon: "triangle-alert" },
+	// Priority — signal bars (Linear-style).
+	low: { theme: "gray", icon: "signal-low" },
+	medium: { theme: "amber", icon: "signal-medium" },
+	high: { theme: "red", icon: "signal-high" },
+	urgent: { theme: "red", icon: "signal" },
 
-	// Submission states. Draft stays neutral — nothing has gone wrong yet.
-	draft: { theme: "gray" },
-	submitted: { theme: "blue" },
-	cancelled: { theme: "red" },
+	// Submission / docstatus-ish.
+	draft: { theme: "gray", icon: "circle-dashed" },
+	submitted: { theme: "blue", icon: "send" },
+	cancelled: { theme: "red", icon: "circle-x" },
+	canceled: { theme: "red", icon: "circle-x" },
 
 	// Not started / waiting to run.
-	"not started": { theme: "gray" },
-	queued: { theme: "gray" },
-	scheduled: { theme: "gray" },
-	backlog: { theme: "gray" },
+	"not started": { theme: "gray", icon: "circle" },
+	todo: { theme: "gray", icon: "circle" },
+	open: { theme: "gray", icon: "circle" },
+	queued: { theme: "gray", icon: "circle-dashed" },
+	scheduled: { theme: "gray", icon: "circle-dashed" },
+	backlog: { theme: "gray", icon: "circle-dashed" },
 
 	// Running.
-	"in progress": { theme: "blue" },
-	working: { theme: "blue" },
-	running: { theme: "blue" },
-	started: { theme: "blue" },
-	processing: { theme: "blue" },
+	"in progress": { theme: "blue", icon: "circle-dot" },
+	working: { theme: "blue", icon: "circle-dot" },
+	running: { theme: "blue", icon: "circle-dot" },
+	started: { theme: "blue", icon: "circle-dot" },
+	processing: { theme: "blue", icon: "circle-dot" },
 
 	// Blocked or waiting on a person.
-	"on hold": { theme: "amber" },
-	paused: { theme: "amber" },
-	pending: { theme: "amber" },
-	"pending review": { theme: "amber" },
-	"awaiting approval": { theme: "amber" },
-	retrying: { theme: "amber" },
+	"on hold": { theme: "amber", icon: "circle-pause" },
+	paused: { theme: "amber", icon: "circle-pause" },
+	pending: { theme: "amber", icon: "hourglass" },
+	"pending review": { theme: "amber", icon: "eye" },
+	"under review": { theme: "amber", icon: "eye" },
+	"awaiting approval": { theme: "amber", icon: "user-check" },
+	"pending approval": { theme: "amber", icon: "user-check" },
+	blocked: { theme: "red", icon: "ban" },
+	retrying: { theme: "amber", icon: "loader" },
 
 	// Finished well.
-	success: { theme: "green" },
-	completed: { theme: "green" },
-	closed: { theme: "green" },
-	approved: { theme: "green" },
-	resolved: { theme: "green" },
-	verified: { theme: "green" },
+	done: { theme: "green", icon: "circle-check" },
+	success: { theme: "green", icon: "circle-check" },
+	completed: { theme: "green", icon: "circle-check" },
+	closed: { theme: "green", icon: "circle-check" },
+	approved: { theme: "green", icon: "circle-check" },
+	resolved: { theme: "green", icon: "circle-check" },
+	verified: { theme: "green", icon: "circle-check" },
 
 	// Finished, but not cleanly. Listed explicitly because the fallback would
 	// read "Partially Failed" as a plain failure.
-	"partial success": { theme: "amber" },
-	"partially failed": { theme: "amber" },
-	"partially completed": { theme: "amber" },
-	"timed out": { theme: "amber" },
-	timeout: { theme: "amber" },
+	"partial success": { theme: "amber", icon: "circle-ellipsis" },
+	"partially failed": { theme: "amber", icon: "circle-alert" },
+	"partially completed": { theme: "amber", icon: "circle-ellipsis" },
+	"timed out": { theme: "amber", icon: "clock-alert" },
+	timeout: { theme: "amber", icon: "clock-alert" },
 
 	// Finished badly.
-	failed: { theme: "red" },
-	error: { theme: "red" },
-	rejected: { theme: "red" },
-	expired: { theme: "red" },
-	overdue: { theme: "red" },
+	failed: { theme: "red", icon: "circle-x" },
+	error: { theme: "red", icon: "circle-x" },
+	rejected: { theme: "red", icon: "circle-x" },
+	expired: { theme: "red", icon: "clock-alert" },
+	overdue: { theme: "red", icon: "timer" },
 
 	// On/off states.
-	active: { theme: "green" },
-	enabled: { theme: "green" },
-	inactive: { theme: "gray" },
-	disabled: { theme: "gray" },
+	active: { theme: "green", icon: "circle-check" },
+	enabled: { theme: "green", icon: "circle-check" },
+	inactive: { theme: "gray", icon: "circle" },
+	disabled: { theme: "gray", icon: "circle-off" },
+	archived: { theme: "gray", icon: "archive" },
 };
 
 /**
@@ -189,9 +200,8 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			.kn-mi-desc :where(p,li,br)::after { content: " "; }
 			.kn-mi-desc :where(img,table,hr) { display: none; }
 			.kn-mi-props { display: grid; grid-template-columns: auto auto; column-gap: 1.5rem; row-gap: 0.75rem; width: max-content; max-width: 100%; box-sizing: border-box; }
-			/* keep the footer the same height whether it holds a 28px avatar or
-			   the shorter "Unassigned" text — no min-height utility exists */
-			.kn-mi-foot { min-height: 45px; }
+			/* Avatar stack is taller than badges — keep the band from collapsing. */
+			.kn-mi-foot { min-height: 28px; }
 		`;
 		document.head.appendChild(style);
 	}
@@ -224,7 +234,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			.on("click", () => this.bulk().add_tags(this.selected_ids, done));
 		this.$selection_bar
 			.find(".kn-sel-delete")
-			.on("click", () => this.bulk().delete(this.selected_ids, done));
+			.on("click", () => this.confirm_delete(this.selected_ids, done));
 
 		// Escape clears the selection — use Frappe's key pipeline (the same one
 		// dialogs/dropdowns use) so it fires reliably.
@@ -253,6 +263,24 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			this._bulk = new frappe.kanban_next.BulkOperations({ doctype: this.doctype });
 		}
 		return this._bulk;
+	}
+
+	/**
+	 * Confirm, then permanently delete the given docs (same wording as list view).
+	 * Used by the card context menu and the bulk selection bar.
+	 */
+	confirm_delete(docnames, done) {
+		const ids = (docnames || []).filter(Boolean);
+		if (!ids.length) return;
+		const message =
+			ids.length === 1
+				? __("Delete {0} item permanently?", [1], "Title of confirmation dialog")
+				: __(
+						"Delete {0} items permanently?",
+						[ids.length],
+						"Title of confirmation dialog"
+				  );
+		frappe.confirm(message, () => this.bulk().delete(ids, done));
 	}
 
 	is_field_editable(df) {
@@ -285,6 +313,8 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			this.$selection_bar
 				.find(".kn-sel-count")
 				.text(__("{0} selected", [this.selected_ids.length]));
+			// Bulk Assign follows the board's "Show Assigned To" setting.
+			this.$selection_bar.find(".kn-sel-assign").toggle(this.show_assigned_to !== false);
 			this.$selection_bar.css("display", "flex");
 		} else {
 			this.$selection_bar.hide();
@@ -366,6 +396,8 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		return JSON.stringify([
 			doc.title_field || "",
 			doc.image_field || "",
+			cint(doc.show_assigned_to, 1),
+			doc.footer_date_field || "Modified",
 			(doc.card_fields || []).map((f) => [f.fieldname, f.label, f.icon || ""]),
 		]);
 	}
@@ -392,6 +424,14 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		// Image thumb: board config → doctype image_field → first Attach Image.
 		// Empty means no thumb on cards.
 		this.image_field = this.resolve_image_field(meta);
+		// Assignees on the card + hover footer. Default on for boards that
+		// predate the setting (undefined / missing → show).
+		this.show_assigned_to = cint(this.board_doc.show_assigned_to, 1) === 1;
+		// Card-footer age badge: Modified (default) or Creation.
+		this.footer_date_field =
+			String(this.board_doc.footer_date_field || "Modified").toLowerCase() === "creation"
+				? "creation"
+				: "modified";
 
 		// Quick entry: does this doctype need more than a title to be created?
 		// (matches the old kanban's get_card_meta logic)
@@ -902,19 +942,28 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		// No divider: the extra top margin alone sets the footer apart, so the
 		// card stays one quiet block instead of two boxed halves.
 		foot.className = "flex items-center justify-between gap-2 mt-3";
-		foot.appendChild(this.assign_button(card));
+		if (this.show_assigned_to) {
+			foot.appendChild(this.assign_button(card));
+		}
 		const age = this.age_badge(card);
-		if (age) foot.appendChild(age);
+		if (age) {
+			// Keep the date on the right when assignees are hidden.
+			if (!this.show_assigned_to) age.classList.add("ms-auto");
+			foot.appendChild(age);
+		}
+		// No assignees and no date → omit an empty strip under the fields.
+		if (!foot.childNodes.length) return document.createDocumentFragment();
 		return foot;
 	}
 
 	/**
-	 * How long since the document last changed, e.g. "12 d" — exact time on
-	 * hover. Ghost badge: no fill, so it reads as quiet text next to the
-	 * assignees while the component keeps the icon and text in step.
+	 * How long since the chosen footer timestamp (modified or creation), e.g.
+	 * "12 d" — exact time on hover. Ghost badge: no fill, so it reads as quiet
+	 * text next to the assignees while the component keeps the icon and text
+	 * in step.
 	 */
 	age_badge(card) {
-		const when = card.modified || card.creation;
+		const when = card[this.footer_date_field] || card.modified || card.creation;
 		if (!when) return null;
 		const $badge = frappe.ui.badge({
 			icon: "clock",
@@ -922,9 +971,11 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			variant: "ghost",
 			size: "sm",
 		});
-		frappe.ui.tooltip($badge, {
-			text: __("Updated {0}", [frappe.datetime.str_to_user(when)]),
-		});
+		const tip =
+			this.footer_date_field === "creation"
+				? __("Created {0}", [frappe.datetime.str_to_user(when)])
+				: __("Updated {0}", [frappe.datetime.str_to_user(when)]);
+		frappe.ui.tooltip($badge, { text: tip });
 		return $badge[0];
 	}
 
@@ -1092,7 +1143,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			el.className = "min-w-0";
 			el.innerHTML = frappe.ui.badge.html({
 				label: __(val),
-				size: "sm",
+				size: "md",
 				theme: style.theme,
 				icon: style.icon,
 			});
@@ -1104,8 +1155,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			return el;
 		}
 
-		// Dates stay short on the card; due/end fields get a quiet "Due" cue
-		// so two calendars in a stack don't look identical.
+		// Dates stay short on the card; the row icon/label already names the field.
 		if (df.fieldtype === "Date" || df.fieldtype === "Datetime") {
 			let text;
 			if (df.fieldtype === "Datetime") {
@@ -1117,12 +1167,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			} else {
 				text = frappe.datetime.str_to_user(val, false, true);
 			}
-			const name = (df.fieldname || "").toLowerCase();
-			if (/(due|end|expir|dead|close|finish)/.test(name)) {
-				el.textContent = __("Due {0}", [text]);
-			} else {
-				el.textContent = text;
-			}
+			el.textContent = text;
 			frappe.ui.tooltip(el, {
 				text: frappe.datetime.str_to_user(val),
 				side: "top",
@@ -1151,8 +1196,9 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	}
 
 	/**
-	 * Badge theme (and icon, for priorities) for a Select value. Falls back to
-	 * frappe.utils.guess_colour, which returns a badge-compatible theme name.
+	 * Badge theme + icon for a Select value (priority signal bars, status
+	 * circles, etc.). Falls back to frappe.utils.guess_colour for unknown
+	 * values — a badge-compatible theme name, no icon.
 	 */
 	select_style(value) {
 		const style = this.select_styles[String(value).trim().toLowerCase()];
@@ -1215,7 +1261,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 				label: __("Delete"),
 				icon: "trash-2",
 				theme: "red",
-				onclick: () => this.bulk().delete([card.name], () => this.board.refresh()),
+				onclick: () => this.confirm_delete([card.name], () => this.board.refresh()),
 			},
 		];
 
@@ -1245,7 +1291,8 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	 * title + id, an optional cover image and description, a two-column grid of
 	 * the configured preview fields (type-aware values, Select → icon badge), and
 	 * a footer band gathering people & activity (assignees · tags · comments ·
-	 * likes). Built entirely from data already fetched with the cards.
+	 * likes) when any of those are present. Built entirely from data already
+	 * fetched with the cards.
 	 */
 	more_info_content(card, close) {
 		const wrap = document.createElement("div");
@@ -1333,7 +1380,13 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		}
 		if (props.childNodes.length) wrap.appendChild(props);
 
-		wrap.appendChild(this.preview_footer(card));
+		const foot = this.preview_footer(card);
+		if (foot) {
+			wrap.appendChild(foot);
+		} else if (wrap.lastElementChild) {
+			// No footer — give the last body section room above the card edge.
+			wrap.lastElementChild.classList.add("pb-3");
+		}
 		return wrap;
 	}
 
@@ -1397,20 +1450,32 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		return d;
 	}
 
-	/** Footer band: assignees (or "") · tags · comments · likes. */
+	/**
+	 * Footer band: assignees · tags · comments · likes.
+	 * Omitted entirely when there is nothing to show — no empty strip or divider.
+	 */
 	preview_footer(card) {
-		const foot = document.createElement("div");
-		foot.className =
-			"kn-mi-foot flex items-center justify-between gap-3 border-t px-4 py-2 mt-3";
-		foot.appendChild(this.preview_assignees(card));
-
-		const right = document.createElement("div");
-		right.className = "flex items-center gap-2 text-ink-gray-5 min-w-0";
+		const assignees = this.preview_assignees(card);
 		const tags = String(card._user_tags || "")
 			.split(",")
 			.map((t) => t.trim())
 			.filter(Boolean)
 			.slice(0, 3);
+		const comments = this.parse_json_list(card._comments).length;
+		const likes = this.parse_json_list(card._liked_by).length;
+		// Nothing on either side → skip the footer so the card ends on content.
+		if (!assignees && !tags.length && !comments && !likes) return null;
+
+		const foot = document.createElement("div");
+		// Spacing (not a border) separates body from footer when the band is present.
+		foot.className = "kn-mi-foot flex items-center justify-between gap-3 px-4 pb-2 mt-3";
+		if (assignees) foot.appendChild(assignees);
+
+		const right = document.createElement("div");
+		// Tags / comments / likes stay on the right even when assignees are off.
+		right.className = `flex items-center gap-2 text-ink-gray-5 min-w-0${
+			assignees ? "" : " ms-auto"
+		}`;
 		if (tags.length) {
 			// A tag icon, then the tags: [🏷] tag1 tag2 tag3
 			const group = document.createElement("span");
@@ -1422,23 +1487,17 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 					.join("");
 			right.appendChild(group);
 		}
-		const comments = this.parse_json_list(card._comments).length;
-		const likes = this.parse_json_list(card._liked_by).length;
 		if (comments) right.appendChild(this.preview_stat("message-square", comments));
 		if (likes) right.appendChild(this.preview_stat("heart", likes));
-		foot.appendChild(right);
+		if (right.childNodes.length) foot.appendChild(right);
 		return foot;
 	}
 
-	/** Read-only assignee stack for the preview footer, or an "Unassigned" hint. */
+	/** Read-only assignee stack for the preview footer; null when unassigned. */
 	preview_assignees(card) {
+		if (!this.show_assigned_to) return null;
 		const users = this.parse_json_list(card._assign);
-		if (!users.length) {
-			const span = document.createElement("span");
-			span.className = "inline-flex items-center gap-1.5 text-xs text-ink-gray-5";
-			span.innerHTML = `${frappe.utils.icon("user", "sm")}${__("Unassigned")}`;
-			return span;
-		}
+		if (!users.length) return null;
 		return frappe.avatar_group(users, 3, { align: "left", overlap: true })[0];
 	}
 

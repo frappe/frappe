@@ -28,11 +28,13 @@ class KanbanBoard(Document):
 		field_name: DF.Literal[None]
 		fields: DF.Code | None
 		filters: DF.Code | None
+		footer_date_field: DF.Literal["Modified", "Creation"]
 		image_field: DF.Autocomplete | None
 		kanban_board_name: DF.Data
 		preview_fields: DF.Table[KanbanBoardField]
 		private: DF.Check
 		reference_doctype: DF.Link
+		show_assigned_to: DF.Check
 		show_labels: DF.Check
 		title_field: DF.Autocomplete | None
 	# end: auto-generated types
@@ -214,6 +216,8 @@ def get_card_config(board_name: str) -> dict:
 	return {
 		"title_field": board.title_field,
 		"image_field": board.image_field,
+		"show_assigned_to": board.show_assigned_to,
+		"footer_date_field": board.footer_date_field,
 		"card_fields": [
 			{"fieldname": f.fieldname, "label": f.label, "icon": f.icon} for f in board.card_fields
 		],
