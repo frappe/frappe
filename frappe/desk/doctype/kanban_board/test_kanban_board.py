@@ -218,6 +218,28 @@ class TestKanbanBoard(IntegrationTestCase):
 		second_page = get_kanban_column_page()
 		self.assertEqual(len(_decompress_kanban_cards(second_page["cards"])), 1)
 
+	def test_private_board_blocks_other_users(self):
+		from frappe.desk.doctype.kanban_board.kanban_board import get_card_config, get_kanban_board_context
+
+		other = "kanban_perm_test@example.com"
+		if not frappe.db.exists("User", other):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": other,
+					"first_name": "Kanban",
+					"last_name": "Perm",
+					"send_welcome_email": 0,
+					"roles": [{"role": "System Manager"}],
+				}
+			).insert(ignore_permissions=True)
+
+		# Board is private and owned by the test session user, not `other`.
+		frappe.set_user(other)
+		self.assertRaises(frappe.PermissionError, lambda: get_card_config(self.board_name))
+		self.assertRaises(frappe.PermissionError, lambda: get_kanban_board_context(self.board_name))
+		frappe.set_user("Administrator")
+
 
 class TestKanbanBoardNativePayloads(IntegrationTestCase):
 	def setUp(self):

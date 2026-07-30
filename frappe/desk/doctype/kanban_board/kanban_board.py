@@ -200,6 +200,11 @@ def get_kanban_boards(doctype: str):
 	)
 
 
+def ensure_kanban_board_permission(board: Document, ptype: str = "read") -> None:
+	"""Enforce Kanban Board access (private boards are owner-only)."""
+	frappe.has_permission("Kanban Board", ptype, doc=board, throw=True)
+
+
 @frappe.whitelist()
 @frappe.read_only()
 def get_card_config(board_name: str) -> dict:
@@ -211,6 +216,7 @@ def get_card_config(board_name: str) -> dict:
 	column orders hold every card name and can be large).
 	"""
 	board = frappe.get_doc("Kanban Board", board_name)
+	ensure_kanban_board_permission(board, "read")
 	frappe.has_permission(board.reference_doctype, "read", throw=True)
 	return {
 		"title_field": board.title_field,
@@ -253,6 +259,7 @@ def get_kanban_reportview_args():
 def get_kanban_board_context(board_name: str):
 	"""Load the board and return active (non-archived) column names."""
 	board = frappe.get_doc("Kanban Board", board_name)
+	ensure_kanban_board_permission(board, "read")
 	frappe.has_permission(board.reference_doctype, "read", throw=True)
 	column_names = [col.column_name for col in board.columns if col.status != "Archived"]
 	return board, column_names

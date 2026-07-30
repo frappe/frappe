@@ -147,6 +147,13 @@ export class FrappeDataProvider {
 		});
 	}
 
+	/** Persist final orders for one or more columns in a single request (bulk moves). */
+	async updateOrder(orderByColumn) {
+		await this.call("update_order", {
+			order: JSON.stringify(orderByColumn || {}),
+		});
+	}
+
 	/** Persist the horizontal order of board columns after drag-and-drop. */
 	async moveColumnOrder(columnIds) {
 		await this.call("update_column_order", {
