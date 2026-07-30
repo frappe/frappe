@@ -20,16 +20,21 @@ class KanbanBoard(Document):
 
 	if TYPE_CHECKING:
 		from frappe.desk.doctype.kanban_board_column.kanban_board_column import KanbanBoardColumn
+		from frappe.desk.doctype.kanban_board_field.kanban_board_field import KanbanBoardField
 		from frappe.types import DF
 
+		card_fields: DF.Table[KanbanBoardField]
 		columns: DF.Table[KanbanBoardColumn]
 		field_name: DF.Literal[None]
 		fields: DF.Code | None
 		filters: DF.Code | None
+		image_field: DF.Autocomplete | None
 		kanban_board_name: DF.Data
+		preview_fields: DF.Table[KanbanBoardField]
 		private: DF.Check
 		reference_doctype: DF.Link
 		show_labels: DF.Check
+		title_field: DF.Autocomplete | None
 	# end: auto-generated types
 
 	def validate(self):
@@ -42,11 +47,126 @@ class KanbanBoard(Document):
 	def before_insert(self):
 		for column in self.columns:
 			column.order = get_order_for_column(self, column.column_name)
+		self.seed_title_and_image_fields()
+		self.seed_card_fields()
+		self.seed_preview_fields()
+
+	def seed_title_and_image_fields(self):
+		"""Pre-fill title and image fields for a new board. Old boards leave these
+		empty and the client falls back to the doctype's title/image field."""
+		if not self.reference_doctype:
+			return
+		if not self.title_field:
+			self.title_field = default_title_field(self.reference_doctype)
+		if not self.image_field:
+			self.image_field = default_image_field(self.reference_doctype)
+
+	def seed_card_fields(self):
+		"""Pre-fill the card fields for a new board with sensible defaults (the
+		doctype's in-list-view / mandatory fields). Only runs when the board is
+		created and no card fields were configured; the new Kanban board falls
+		back to the same auto-picking when this table is left empty."""
+		self._seed_field_table("card_fields", default_card_fieldnames(self.reference_doctype))
+
+	def seed_preview_fields(self):
+		"""Pre-fill the hover-preview fields for a new board — the doctype's
+		preview-popup fields, falling back to mandatory / in-list-view. Empty on
+		old boards, which fall back to the same auto-picking client-side."""
+		self._seed_field_table("preview_fields", default_preview_fieldnames(self.reference_doctype))
+
+	def _seed_field_table(self, tablefield: str, fieldnames: list[str]):
+		if self.get(tablefield) or not self.reference_doctype:
+			return
+		meta = frappe.get_meta(self.reference_doctype)
+		# Don't repeat the column field, title, or image — those live elsewhere on the card.
+		skip = {self.field_name, self.title_field, self.image_field}
+		for fieldname in fieldnames:
+			if fieldname in skip:
+				continue
+			df = meta.get_field(fieldname)
+			self.append(
+				tablefield,
+				{"fieldname": fieldname, "label": df.label if df else fieldname},
+			)
 
 	def validate_column_name(self):
 		for column in self.columns:
 			if not column.column_name:
 				frappe.msgprint(_("Column Name cannot be empty"), raise_exception=True)
+
+
+def default_title_field(doctype: str) -> str:
+	"""Card title field for a new board: doctype title_field when it is Data,
+	else the first Data field, else name (ID). Only name and Data are allowed."""
+	meta = frappe.get_meta(doctype)
+	title = meta.get("title_field")
+	if title:
+		df = meta.get_field(title)
+		if df and df.fieldtype == "Data" and not df.hidden:
+			return title
+	for df in meta.fields:
+		if df.fieldtype == "Data" and df.fieldname and not df.hidden:
+			return df.fieldname
+	return "name"
+
+
+def default_image_field(doctype: str) -> str | None:
+	"""Card image field for a new board: doctype image_field, else the first
+	Attach Image field. None when the doctype has no image fields."""
+	meta = frappe.get_meta(doctype)
+	if meta.image_field:
+		return meta.image_field
+	images = meta.get_image_fields()
+	return images[0].fieldname if images else None
+
+
+def default_card_fieldnames(doctype: str) -> list[str]:
+	"""Default fields to show on a card: the doctype's in-list-view fields,
+	falling back to its mandatory fields. Skips layout/table/no-value fields.
+	Mirrors the new Kanban board's client-side fallback."""
+	from frappe.model import no_value_fields, table_fields
+
+	meta = frappe.get_meta(doctype)
+
+	def usable(df):
+		return (
+			df.fieldtype not in no_value_fields
+			and df.fieldtype not in table_fields
+			and df.fieldtype != "Check"
+			and not df.hidden
+		)
+
+	fieldnames = [df.fieldname for df in meta.fields if df.in_list_view and usable(df)]
+	if not fieldnames:
+		fieldnames = [df.fieldname for df in meta.fields if df.reqd and usable(df)]
+	return fieldnames[:6]
+
+
+def default_preview_fieldnames(doctype: str) -> list[str]:
+	"""Default fields for the hover preview: the doctype's preview-popup fields
+	(`in_preview`), falling back to mandatory, then in-list-view. Skips the
+	title/image (they head the preview) and layout/table/no-value fields.
+	Mirrors the new Kanban board's client-side fallback."""
+	from frappe.model import no_value_fields, table_fields
+
+	meta = frappe.get_meta(doctype)
+	skip = {meta.get_title_field(), meta.image_field, "name"}
+
+	def usable(df):
+		return (
+			df.fieldtype not in no_value_fields
+			and df.fieldtype not in table_fields
+			and df.fieldtype != "Check"
+			and not df.hidden
+			and df.fieldname not in skip
+		)
+
+	fieldnames = [df.fieldname for df in meta.fields if df.in_preview and usable(df)]
+	if not fieldnames:
+		fieldnames = [df.fieldname for df in meta.fields if df.reqd and usable(df)]
+	if not fieldnames:
+		fieldnames = [df.fieldname for df in meta.fields if df.in_list_view and usable(df)]
+	return fieldnames[:6]
 
 
 def get_permission_query_conditions(user):
@@ -77,6 +197,26 @@ def get_kanban_boards(doctype: str):
 		fields=["name", "filters", "reference_doctype", "private"],
 		filters={"reference_doctype": doctype},
 	)
+
+
+@frappe.whitelist()
+@frappe.read_only()
+def get_card_config(board_name: str) -> dict:
+	"""Just the bits that decide how a card looks: the label mode and the
+	ordered card fields.
+
+	The new Kanban polls this when returning to an already-open board, so it can
+	pick up config edits without re-fetching the whole board document (whose
+	column orders hold every card name and can be large).
+	"""
+	board = frappe.get_doc("Kanban Board", board_name)
+	frappe.has_permission(board.reference_doctype, "read", throw=True)
+	return {
+		"show_labels": cint(board.show_labels),
+		"title_field": board.title_field,
+		"image_field": board.image_field,
+		"card_fields": [{"fieldname": f.fieldname, "label": f.label} for f in board.card_fields],
+	}
 
 
 # Paginated Kanban APIs — load cards in chunks instead of all at once.
