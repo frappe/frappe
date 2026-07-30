@@ -613,6 +613,7 @@ class QueueBuilder:
 		raw_html=False,
 		add_css=True,
 		redact_message_after_send=False,
+		wrapper=None,
 	):
 		"""Add email to sending queue (Email Queue)
 
@@ -687,6 +688,7 @@ class QueueBuilder:
 		self.raw_html = raw_html
 		self.add_css = add_css
 		self.redact_message_after_send = redact_message_after_send
+		self.email_wrapper = wrapper or "templates/emails/standard.html"
 
 	@property
 	def unsubscribe_method(self):
@@ -745,6 +747,7 @@ class QueueBuilder:
 			with_container=self.with_container,
 			raw_html=self.raw_html,
 			add_css=self.add_css,
+			wrapper=self.email_wrapper,
 		)
 
 	def should_include_unsubscribe_link(self):

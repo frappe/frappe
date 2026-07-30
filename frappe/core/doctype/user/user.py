@@ -515,12 +515,16 @@ class User(Document):
 	def password_reset_mail(self, link):
 		reset_password_template = frappe.db.get_system_setting("reset_password_template")
 
+		expiry_seconds = cint(frappe.get_system_settings("reset_password_link_expiry_duration"))
+		expiry_minutes = (expiry_seconds // 60) or None
+
 		self.send_login_mail(
 			_("Password Reset"),
 			"password_reset",
-			{"link": link},
+			{"link": link, "expiry_minutes": expiry_minutes},
 			now=True,
 			custom_template=reset_password_template,
+			wrapper=None if reset_password_template else "templates/emails/auth_email.html",
 		)
 
 	def send_welcome_mail_to_user(self):
@@ -550,7 +554,7 @@ class User(Document):
 			custom_template=welcome_email_template,
 		)
 
-	def send_login_mail(self, subject, template, add_args, now=None, custom_template=None):
+	def send_login_mail(self, subject, template, add_args, now=None, custom_template=None, wrapper=None):
 		"""send mail with login details"""
 		if not self.enabled:
 			return
@@ -591,6 +595,7 @@ class User(Document):
 			content=content if custom_template else None,
 			args=args,
 			with_container=True,
+			wrapper=wrapper,
 			delayed=(not now) if now is not None else self.flags.delay_emails,
 			retry=3,
 			redact_message_after_send=True,
