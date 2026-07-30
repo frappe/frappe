@@ -704,15 +704,18 @@ export class KanbanCore {
 
 	async applyMove(cardId, fromColumn, toColumn, toIndex) {
 		const sameColumn = fromColumn === toColumn;
-		const fromNames = this.orderedNames(fromColumn);
+		// Use full persisted order (includes not-yet-loaded names), not only
+		// the loaded window — otherwise the server would drop unloaded cards.
+		const loadedFrom = this.orderedNames(fromColumn);
+		const fromNames = this.persistedOrder(fromColumn);
 		const oldIndex = fromNames.indexOf(cardId);
 		if (oldIndex < 0) return;
 
-		const toNames = sameColumn ? fromNames : this.orderedNames(toColumn);
+		const loadedTo = sameColumn ? loadedFrom : this.orderedNames(toColumn);
+		const toNames = sameColumn ? fromNames : this.persistedOrder(toColumn);
+		let insertIndex = this.persistedInsertIndex(toNames, loadedTo, toIndex);
 		fromNames.splice(oldIndex, 1);
-
-		let insertIndex = toIndex;
-		if (sameColumn && oldIndex < toIndex) insertIndex -= 1;
+		if (sameColumn && oldIndex < insertIndex) insertIndex -= 1;
 		insertIndex = clamp(insertIndex, 0, toNames.length);
 		if (sameColumn && insertIndex === oldIndex) return;
 		toNames.splice(insertIndex, 0, cardId);
@@ -768,8 +771,9 @@ export class KanbanCore {
 		const selected = new Set(cardIds);
 		const selectedOrdered = [];
 		const sourceOf = new Map();
+		// Walk full persisted order so multi-select keeps unloaded cards intact.
 		for (const col of this.state.columns) {
-			for (const name of this.orderedNames(col.id)) {
+			for (const name of this.persistedOrder(col.id)) {
 				if (selected.has(name)) {
 					selectedOrdered.push(name);
 					sourceOf.set(name, col.id);
@@ -790,7 +794,7 @@ export class KanbanCore {
 		const affected = [...new Set([...sourceOf.values(), toColumn])];
 		const snapshot = this.state;
 
-		const targetClean = this.orderedNames(toColumn).filter((n) => !selected.has(n));
+		const targetClean = this.persistedOrder(toColumn).filter((n) => !selected.has(n));
 		let insertAt = targetClean.length;
 		if (anchorName) {
 			const idx = targetClean.indexOf(anchorName);
@@ -806,13 +810,11 @@ export class KanbanCore {
 			if (colId === toColumn) continue;
 			finalSourceOrders.set(
 				colId,
-				this.orderedNames(colId).filter((n) => !selected.has(n))
+				this.persistedOrder(colId).filter((n) => !selected.has(n))
 			);
 		}
 
-		const addedToTarget = selectedOrdered.filter(
-			(n) => !this.orderedNames(toColumn).includes(n)
-		).length;
+		const addedToTarget = selectedOrdered.filter((n) => sourceOf.get(n) !== toColumn).length;
 
 		this.animateMove(affected, () => {
 			const columns = this.state.columns.map((col) => {
@@ -820,7 +822,9 @@ export class KanbanCore {
 					return { ...col, order: finalTargetOrder, total: col.total + addedToTarget };
 				}
 				if (finalSourceOrders.has(col.id)) {
-					const removed = col.order.filter((n) => selected.has(n)).length;
+					const removed = selectedOrdered.filter(
+						(n) => sourceOf.get(n) === col.id
+					).length;
 					return {
 						...col,
 						order: finalSourceOrders.get(col.id),
@@ -847,25 +851,51 @@ export class KanbanCore {
 
 		this.setSelection([]);
 
+		// One server write for the whole selection so a mid-loop failure cannot
+		// leave partial moves persisted while the UI rolls back.
+		const orderPayload = { [toColumn]: finalTargetOrder };
+		for (const [colId, order] of finalSourceOrders) {
+			orderPayload[colId] = order;
+		}
+
 		this.localMoveGraceUntil = Date.now() + 3000;
 		try {
-			for (const name of selectedOrdered) {
-				const from = sourceOf.get(name);
-				const fromOrder =
-					from === toColumn ? finalTargetOrder : finalSourceOrders.get(from) || [];
-				const move = {
-					cardId: name,
-					fromColumn: from,
-					toColumn,
-					oldIndex: 0,
-					newIndex: finalTargetOrder.indexOf(name),
-					fromOrder,
-					toOrder: finalTargetOrder,
-				};
-				await this.options.provider.moveCard(move);
-				cb.onAfterCardMove && cb.onAfterCardMove(move);
+			if (this.options.provider.updateOrder) {
+				await this.options.provider.updateOrder(orderPayload);
+			} else {
+				for (const name of selectedOrdered) {
+					const from = sourceOf.get(name);
+					await this.options.provider.moveCard({
+						cardId: name,
+						fromColumn: from,
+						toColumn,
+						oldIndex: 0,
+						newIndex: finalTargetOrder.indexOf(name),
+						fromOrder:
+							from === toColumn
+								? finalTargetOrder
+								: finalSourceOrders.get(from) || [],
+						toOrder: finalTargetOrder,
+					});
+				}
 			}
 			this.localMoveGraceUntil = Date.now() + 3000;
+			for (const name of selectedOrdered) {
+				const from = sourceOf.get(name);
+				cb.onAfterCardMove &&
+					cb.onAfterCardMove({
+						cardId: name,
+						fromColumn: from,
+						toColumn,
+						oldIndex: 0,
+						newIndex: finalTargetOrder.indexOf(name),
+						fromOrder:
+							from === toColumn
+								? finalTargetOrder
+								: finalSourceOrders.get(from) || [],
+						toOrder: finalTargetOrder,
+					});
+			}
 		} catch (error) {
 			this.state = snapshot;
 			this.renderColumns(affected);
@@ -972,6 +1002,42 @@ export class KanbanCore {
 	orderedNames(columnId) {
 		const column = this.getColumn(columnId);
 		return column ? this.orderedCards(column).map((c) => c.name) : [];
+	}
+
+	/**
+	 * Full column order for persistence (loaded + not-yet-loaded names).
+	 * Drag UI uses orderedNames(); saves must use this so unloaded cards stay put.
+	 */
+	persistedOrder(columnId) {
+		const column = this.getColumn(columnId);
+		if (!column) return [];
+		if (column.order && column.order.length) {
+			const seen = new Set(column.order);
+			const extras = (this.state.cards[columnId] || [])
+				.map((c) => c.name)
+				.filter((name) => !seen.has(name));
+			return [...column.order, ...extras];
+		}
+		return this.orderedNames(columnId);
+	}
+
+	/**
+	 * Map a drop index from the loaded (visible) list into the full persisted order.
+	 * Unloaded cards usually sit after the loaded prefix, so visual indices align
+	 * with that prefix; append-after-last-loaded inserts after the last visible card.
+	 */
+	persistedInsertIndex(persisted, loaded, toIndex) {
+		if (!loaded.length) return clamp(toIndex, 0, persisted.length);
+		if (toIndex <= 0) {
+			const first = persisted.indexOf(loaded[0]);
+			return first >= 0 ? first : 0;
+		}
+		if (toIndex >= loaded.length) {
+			const last = persisted.indexOf(loaded[loaded.length - 1]);
+			return last >= 0 ? last + 1 : persisted.length;
+		}
+		const at = persisted.indexOf(loaded[toIndex]);
+		return at >= 0 ? at : clamp(toIndex, 0, persisted.length);
 	}
 
 	findCard(cardId) {
