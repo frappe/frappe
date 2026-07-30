@@ -215,6 +215,9 @@ frappe.ui.Page = class Page {
 		this.wrapper.on("hide", () => {
 			this.menu_dropdown.close("owner");
 			this.actions_dropdown.close("owner");
+			this.inner_toolbar.find(".inner-group-button").each((_, group) => {
+				$(group).data("es_dropdown")?.close("owner");
+			});
 		});
 
 		// desktop shows "Actions" + chevron; mobile keeps just the chevron.
@@ -733,25 +736,63 @@ frappe.ui.Page = class Page {
 			`.inner-group-button[data-label="${encodeURIComponent(label)}"]`
 		);
 		if (!$group.length) {
+			// same bridge as the header menus: the .dropdown-menu div stays in
+			// the DOM as a hidden item store (add_inner_button returns its
+			// <a>s to callers, who mutate them), and the espresso dropdown
+			// snapshots it on every open
 			$group = $(
 				`<div class="inner-group-button" data-label="${encodeURIComponent(label)}">
-					<div role="menu" class="dropdown-menu ${align_right ? "dropdown-menu-right" : ""}"></div>
+					<div role="presentation" class="dropdown-menu ${align_right ? "dropdown-menu-right" : ""}"></div>
 				</div>`
 			).appendTo(this.inner_toolbar);
-			frappe.ui
+			const $btn = frappe.ui
 				.button({
 					label: label,
 					icon_right: "chevrons-up-down",
 					css_class: "ellipsis",
-					attrs: {
-						"data-toggle": "dropdown",
-						"aria-haspopup": "true",
-						"aria-expanded": "false",
-					},
 				})
 				.prependTo($group);
+			$group.data(
+				"es_dropdown",
+				new frappe.ui.Dropdown({
+					trigger: $btn,
+					align: align_right ? "end" : "start",
+					options: () =>
+						this.build_inner_group_options($group.children(".dropdown-menu")),
+				})
+			);
 		}
 		return $group;
+	}
+
+	// Snapshot an inner group's item store — bare <a.dropdown-item> children
+	// plus divider <li>s — into menu rows; same live-read contract as
+	// build_dropdown_options, so held-reference mutations show on next open.
+	build_inner_group_options($store) {
+		const segments = [[]];
+		$store.children().each((_, el) => {
+			if (el.classList.contains("dropdown-divider")) {
+				if (segments[segments.length - 1].length) segments.push([]);
+				return;
+			}
+			// match by tag, not .dropdown-item — change_inner_button_type's
+			// legacy removeClass() strips ALL classes off the store item
+			if (el.tagName !== "A" || el.style.display === "none") return;
+			const label = $(el).text().trim();
+			if (!label) return;
+			segments[segments.length - 1].push({
+				label,
+				disabled: el.classList.contains("disabled"),
+				// change_inner_button_type(label, group, "danger") pokes
+				// btn-danger onto the store item
+				theme: el.classList.contains("btn-danger") ? "red" : undefined,
+				// clicking the store element runs every handler callers bound
+				onclick: () => $(el).trigger("click"),
+			});
+		});
+		const groups = segments.filter((segment) => segment.length);
+		if (groups.length <= 1) return groups[0] || [];
+		return groups.map((options) => ({ group: "", hide_label: true, options }));
 	}
 
 	get_inner_group_button(label) {
@@ -873,8 +914,9 @@ frappe.ui.Page = class Page {
 		let btn;
 
 		if (group) {
-			// dropdown items keep the legacy class treatment until the menu
-			// wave; note this strips any extra classes (pre-existing behavior)
+			// the class poke lands on the store item; the snapshot maps
+			// btn-danger to the red row theme. Strips extra classes
+			// (pre-existing behavior).
 			var $group = this.get_inner_group_button(__(group));
 			if ($group.length) {
 				btn = $group.find(`.dropdown-item[data-label="${encodeURIComponent(label)}"]`);
