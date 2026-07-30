@@ -199,11 +199,15 @@ def _install_run_method_tracer():
 		recorder._depth += 1
 		queries_before = len(recorder.calls)
 		start_time = time.monotonic()
-		apps, handlers = _doc_event_contributors(doc.doctype, method, doc=doc)
 		try:
 			return original_run_method(doc, method, *args, **kwargs)
 		finally:
 			recorder._depth -= 1
+			duration = float(f"{(time.monotonic() - start_time) * 1000:.3f}")
+			queries = len(recorder.calls) - queries_before
+			# compute contributors after the method ran: run_webhooks evaluates each
+			# webhook's condition against the post-execution doc, so we must too.
+			apps, handlers = _doc_event_contributors(doc.doctype, method, doc=doc)
 			recorder.register_event(
 				{
 					"seq": seq,
@@ -211,8 +215,8 @@ def _install_run_method_tracer():
 					"method": method,
 					"ref_doctype": doc.doctype,
 					"ref_name": doc.name or "",
-					"duration": float(f"{(time.monotonic() - start_time) * 1000:.3f}"),
-					"queries": len(recorder.calls) - queries_before,
+					"duration": duration,
+					"queries": queries,
 					"apps": apps,
 					"handlers": handlers,
 				}
