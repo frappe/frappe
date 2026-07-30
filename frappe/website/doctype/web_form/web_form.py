@@ -124,6 +124,12 @@ class WebForm(WebsiteGenerator):
 					HiddenAndMandatoryWithoutDefaultError,
 				)
 
+	def raise_if_unpublished(self):
+		"""Unpublishing is the only control that takes a web form offline, so it must
+		hold for direct API calls too, not just for the rendered page."""
+		if not self.published:
+			frappe.throw(_("Not permitted"), frappe.PermissionError)
+
 	def reset_field_parent(self):
 		"""Convert link fields to select with names as options"""
 		for df in self.web_form_fields:
@@ -603,7 +609,12 @@ def accept(web_form, data):
 	files = []
 	files_to_delete = []
 
+<<<<<<< HEAD
 	web_form = frappe.get_doc("Web Form", web_form)
+=======
+	web_form = frappe.get_lazy_doc("Web Form", web_form)
+	web_form.raise_if_unpublished()
+>>>>>>> 2f46ba8528 (fix: require a web form to be published before its API endpoints respond (#41367))
 	doctype = web_form.doc_type
 	user = frappe.session.user
 
@@ -701,9 +712,30 @@ def accept(web_form, data):
 	return doc
 
 
+<<<<<<< HEAD
 @frappe.whitelist()
 def delete(web_form_name: str, docname: str | int):
 	web_form = frappe.get_doc("Web Form", web_form_name)
+=======
+@frappe.whitelist(methods=["POST", "DELETE"], allow_guest=True)
+@rate_limit(key="web_form_name", limit=10, seconds=60)
+def delete(web_form_name: str, docname: str | int, web_form_request_key: str | None = None):
+	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
+	web_form.raise_if_unpublished()
+	web_form_request: "WebFormRequest | None" = web_form.get_web_form_request(
+		web_form_request_key,
+		docname=docname,
+		for_update=True,
+		allow_used=True,
+	)
+
+	if (
+		not web_form.allow_delete
+		or (frappe.session.user == "Guest" and web_form.login_required)
+		or (frappe.session.user == "Guest" and not web_form_request)
+	):
+		frappe.throw(_("Not Allowed"), frappe.PermissionError)
+>>>>>>> 2f46ba8528 (fix: require a web form to be published before its API endpoints respond (#41367))
 
 	owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
 	if frappe.session.user == owner and web_form.allow_delete:
@@ -712,9 +744,17 @@ def delete(web_form_name: str, docname: str | int):
 		raise frappe.PermissionError("Not Allowed")
 
 
+<<<<<<< HEAD
 @frappe.whitelist()
 def delete_multiple(web_form_name: str, docnames):
 	web_form = frappe.get_doc("Web Form", web_form_name)
+=======
+@frappe.whitelist(methods=["POST", "DELETE"])
+@rate_limit(key="web_form_name", limit=10, seconds=60)
+def delete_multiple(web_form_name: str, docnames: str | list):
+	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
+	web_form.raise_if_unpublished()
+>>>>>>> 2f46ba8528 (fix: require a web form to be published before its API endpoints respond (#41367))
 
 	docnames = json.loads(docnames)
 
@@ -749,12 +789,85 @@ def check_webform_perm(doctype, name):
 @frappe.whitelist(allow_guest=True)
 def get_web_form_filters(web_form_name: str):
 	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form.raise_if_unpublished()
 	return [field for field in web_form.web_form_fields if field.show_in_filter]
 
 
 @frappe.whitelist(allow_guest=True)
+<<<<<<< HEAD
 def get_form_data(doctype: str, docname: str | None = None, web_form_name: str | None = None):
+=======
+@rate_limit(key="web_form", limit=10, seconds=60)
+@frappe.read_only()
+def get_web_form_list(
+	web_form: str,
+	web_form_request_key: str,
+	limit_start: int = 0,
+	limit: int = 20,
+	**kwargs,
+) -> list[dict]:
+	"""Return documents bound to a Web Form Request key for the list view.
+
+	The key authorises read access to exactly the documents recorded in its
+	``references`` child table — no more, no less.
+	"""
+	web_form_doc: WebForm = frappe.get_lazy_doc("Web Form", web_form)
+	web_form_doc.raise_if_unpublished()
+	if web_form_doc.login_required and frappe.session.user == "Guest":
+		frappe.throw(_("You must login to use this form"), frappe.PermissionError)
+
+	if not web_form_doc.show_list:
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+	web_form_request: "WebFormRequest | None" = web_form_doc.get_web_form_request(
+		web_form_request_key,
+		allow_used=True,
+	)
+	if not web_form_request:
+		frappe.throw(_("Invalid Web Form Request"), frappe.PermissionError)
+
+	reference_names = [row.link_name for row in web_form_request.references]
+	if not reference_names:
+		return []
+
+	meta = frappe.get_meta(web_form_doc.doc_type)
+	filters = {}
+	for fieldname, raw_value in kwargs.items():
+		if not meta.has_field(fieldname):
+			continue
+		try:
+			filters[fieldname] = json.loads(raw_value)
+		except (TypeError, ValueError):
+			filters[fieldname] = raw_value
+
+	filters["name"] = ["in", reference_names]
+
+	fields = get_web_form_list_fields(web_form_doc, web_form_request_key)
+
+	return frappe.get_list(
+		web_form_doc.doc_type,
+		fields=fields,
+		filters=filters,
+		limit_start=cint(limit_start),
+		limit_page_length=min(cint(limit), 100),
+		# Valid key + show_list verified above; filters restrict to request references.
+		ignore_permissions=True,
+		order_by="creation desc",
+		distinct=True,
+	)
+
+
+@frappe.whitelist(allow_guest=True)
+@frappe.read_only()
+def get_form_data(
+	doctype: str,
+	docname: str | None = None,
+	web_form_name: str | None = None,
+	web_form_request_key: str | None = None,
+):
+>>>>>>> 2f46ba8528 (fix: require a web form to be published before its API endpoints respond (#41367))
 	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form.raise_if_unpublished()
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
