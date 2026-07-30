@@ -799,12 +799,18 @@ frappe.ui.Page = class Page {
 			if (el.tagName !== "A" || el.style.display === "none") return;
 			const label = $(el).text().trim();
 			if (!label) return;
+			const internal = ["dropdown-item", "disabled", "btn", "btn-danger", "text-danger"];
+			const css_class = [...el.classList].filter((c) => !internal.includes(c)).join(" ");
 			segments[segments.length - 1].push({
 				label,
 				disabled: el.classList.contains("disabled"),
-				// change_inner_button_type(label, group, "danger") pokes
-				// btn-danger onto the store item
-				theme: el.classList.contains("btn-danger") ? "red" : undefined,
+				// btn-danger comes from change_inner_button_type(label, group,
+				// "danger"); text-danger is how apps mark risky rows
+				theme:
+					el.classList.contains("btn-danger") || el.classList.contains("text-danger")
+						? "red"
+						: undefined,
+				css_class: css_class || undefined,
 				// clicking the store element runs every handler callers bound
 				onclick: () => $(el).trigger("click"),
 			});

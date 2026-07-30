@@ -25,7 +25,9 @@ const check_button_count = (label, group = "TestGroup") => {
 		.should("have.length", 1)
 		.should("be.visible")
 		.first()
-		.type("{esc}");
+		// buttons aren't typeable — keyboard goes through trigger (see
+		// the es_components spec convention)
+		.trigger("keydown", { key: "Escape" });
 
 	// Mobile: the ... menu shows the group as a nested submenu row
 	cy.viewport(420, 900);

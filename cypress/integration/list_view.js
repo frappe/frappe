@@ -50,15 +50,13 @@ context("List View", () => {
 		];
 		cy.go_to_list("ToDo");
 		cy.clear_filters();
-		cy.intercept({
-			method: "POST",
-			url: "api/method/frappe.model.workflow.get_common_transition_actions",
-		}).as("common-actions");
+		cy.intercept("POST", "/api/method/frappe.model.workflow.get_common_transition_actions").as(
+			"common-actions"
+		);
 		cy.get(".list-header-subject .list-subject .list-check-all").click();
-		// the menu snapshots its items at open — wait for the workflow toggle
-		// round-trip to hide "Review" (not common to the selected docs) first;
-		// the old bootstrap menu was live DOM, so the count could converge
-		// after opening, but a snapshot can't
+		// selecting rows triggers the workflow-actions refresh (debounced);
+		// wait for it to hide "Review" (not common to the selected docs)
+		// before opening — the menu snapshots its items at open
 		cy.wait("@common-actions");
 		cy.get('.actions-btn-group [data-label="Review"]')
 			.closest("li")

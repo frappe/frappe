@@ -2207,11 +2207,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			this.update_checkbox($target);
 		});
+	}
 
-		let me = this;
-		this.page.actions_btn_group.on("show.bs.dropdown", () => {
-			me.toggle_workflow_actions();
-		});
+	// Workflow actions refresh when the SELECTION changes
+	// instead — the store is settled before the menu is ever opened, rather
+	// than mutating under an open menu. Lazily built so ReportView (which
+	// overrides setup_events) inherits it too.
+	debounced_toggle_workflow_actions() {
+		if (!this._debounced_toggle_workflow_actions) {
+			this._debounced_toggle_workflow_actions = frappe.utils.debounce(
+				() => this.toggle_workflow_actions(),
+				300
+			);
+		}
+		this._debounced_toggle_workflow_actions();
 	}
 
 	setup_like() {
@@ -2424,6 +2433,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 		this.update_checkbox();
 		this.toggle_actions_menu_button(checked_count > 0);
+		if (checked_count > 0) {
+			this.debounced_toggle_workflow_actions();
+		}
 	}
 
 	get_checked_items(only_docnames) {
@@ -2704,6 +2716,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.workflow_action_items[key].addClass("disabled");
 		});
 		const checked_items = this.get_checked_items();
+		// the debounced call can land after a quick select-then-deselect
+		if (!checked_items.length) return;
 
 		frappe
 			.xcall("frappe.model.workflow.get_common_transition_actions", {
