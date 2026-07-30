@@ -3,11 +3,10 @@
 
 from datetime import datetime, timedelta
 
-from croniter import croniter
-
 import frappe
 from frappe.automation_engine import is_enabled
 from frappe.automation_engine.dispatch import kick_drainer, matches_rule, queue_trigger
+from frappe.core.doctype.scheduled_job_type.scheduled_job_type import parse_cron
 
 QUEUE = "Automation Trigger Queue"
 SCHEDULED_PAYLOAD_KEY = "scheduled_fire_at"
@@ -38,51 +37,46 @@ def _scheduled_rules() -> list:
 def _latest_fire(expression: str, now: datetime) -> datetime | None:
 	if not expression:
 		return None
-	return croniter(expression, now + timedelta(seconds=1)).get_prev(datetime)
-
-
-def _already_handled(rule, fire_at: datetime, docname: str | None = None) -> bool:
-	return _has_active_queue(rule.name, docname) or _has_run_since(rule.name, fire_at, docname)
-
-
-def _has_active_queue(automation: str, docname: str | None) -> bool:
-	return bool(
-		frappe.db.exists(
-			QUEUE,
-			{
-				"automation": automation,
-				"ref_name": docname or ("is", "not set"),
-				"status": ("in", ("Pending", "Running")),
-			},
-		)
+	return parse_cron(expression).get_prev(
+		datetime,
+		start_time=now + timedelta(seconds=1),
 	)
 
 
-def _has_run_since(automation: str, fire_at: datetime, docname: str | None) -> bool:
-	return bool(frappe.db.exists("Automation Run", _run_filters(automation, fire_at, docname)))
-
-
-def _run_filters(automation: str, fire_at: datetime, docname: str | None) -> dict:
-	return {
-		"automation": automation,
-		"reference_name": docname or ("is", "not set"),
-		"creation": (">=", fire_at),
-	}
+def _handled_names(automation: str, fire_at: datetime) -> set[str | None]:
+	active = frappe.get_all(
+		QUEUE,
+		filters={
+			"automation": automation,
+			"status": ("in", ("Pending", "Running")),
+		},
+		pluck="ref_name",
+	)
+	completed = frappe.get_all(
+		"Automation Run",
+		filters={"automation": automation, "creation": (">=", fire_at)},
+		pluck="reference_name",
+	)
+	return {*active, *completed}
 
 
 def _queue_rule(rule, fire_at: datetime) -> int:
 	if rule.document_type:
 		return _queue_matching_docs(rule, fire_at)
-	if _already_handled(rule, fire_at):
+	if None in _handled_names(rule.name, fire_at):
 		return 0
 	queue_trigger(rule.name, None, None, payload=_payload(fire_at))
 	return 1
 
 
 def _queue_matching_docs(rule, fire_at: datetime) -> int:
+	names = _matching_names(rule)
+	if not names:
+		return 0
+	handled = _handled_names(rule.name, fire_at)
 	queued = 0
-	for name in _matching_names(rule):
-		if _already_handled(rule, fire_at, name):
+	for name in names:
+		if name in handled:
 			continue
 		queue_trigger(rule.name, rule.document_type, name, payload=_payload(fire_at))
 		queued += 1
