@@ -93,6 +93,8 @@ async def run(
 	"""Start a new turn."""
 
 	async def operation() -> RunReason:
+		# loading is read-only, so close historical batches before the provider sees them
+		session.flush_pending_transcript_repairs()
 		session.publish(RunStarted(run_id=uuid.uuid4().hex[:12]))
 		_add_user(session, user_message)
 		return await _loop(session, model, before_tool_call, after_tool_call)
@@ -117,6 +119,7 @@ async def resume(
 	pending = approval.calls
 
 	async def operation() -> RunReason:
+		session.flush_pending_transcript_repairs()
 		server_tools = _server_tools(session)
 		ctx = _make_ctx(session)
 		denied = False
@@ -142,19 +145,25 @@ async def resume(
 
 
 async def cancel_pending(session: Session) -> None:
-	"""Abandon a paused approval batch. Answering every call is what releases the pause:
-	an unanswered one would leave the transcript incomplete for the next turn."""
+	"""Abandon a paused approval batch. Its calls are answered by the terminal lifecycle,
+	which is what releases the pause: an unanswered one leaves the transcript incomplete."""
 
 	async def operation() -> RunReason:
-		approval = pending_approval(session.log)
-		if approval is None:
+		if pending_approval(session.log) is None:
 			raise ResumeError("No tool calls are awaiting approval.")
-		for call in approval.calls:
-			tc = ToolCall(id=call.id, name=call.name, arguments=call.args)
-			_emit_result(session, _result(tc, _CANCELLED, is_error=True))
 		return "aborted"
 
 	await _run_with_lifecycle(session, operation())
+
+
+def _abandon_pending_approval(session: Session) -> None:
+	"""Answer every call in an approval batch that will not survive this run."""
+	approval = pending_approval(session.log)
+	if approval is None:
+		return
+	for call in approval.calls:
+		tc = ToolCall(id=call.id, name=call.name, arguments=call.args)
+		_emit_result(session, _result(tc, _CANCELLED, is_error=True))
 
 
 async def _run_with_lifecycle(session: Session, operation: Awaitable[RunReason]) -> None:
@@ -177,11 +186,18 @@ async def _run_with_lifecycle(session: Session, operation: Awaitable[RunReason])
 	except Exception as exc:
 		failures.append(exc)
 
+	if reason in ("aborted", "error"):
+		# the terminal event discards the approval, and repair spares a pending batch
+		try:
+			_abandon_pending_approval(session)
+		except Exception as exc:
+			failures.append(exc)
+
 	if reason == "aborted":
 		session.clear_steering()
 		_ensure_aborted_assistant(session)
 
-	if reason != "paused":
+	if reason in ("aborted", "error"):
 		try:
 			session.repair_interrupted_transcript()
 		except Exception as exc:

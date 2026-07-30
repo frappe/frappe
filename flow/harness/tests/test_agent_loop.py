@@ -4,8 +4,9 @@ import httpx
 import pytest
 
 import flow_server.agent.loop as agent_loop
+import flow_server.session.store as session_store
 from flow_server.agent import HookDecision, ResumeError, resume, run
-from flow_server.events import AssistantMessage, TextDelta, ToolCall, Usage
+from flow_server.events import AssistantMessage, RunEnded, TextDelta, ToolCall, Usage
 from flow_server.model import Model, ModelRequest, ProviderError
 from flow_server.model.mock import MockModel
 from flow_server.model.resolver import ResolvedModelAuth
@@ -38,6 +39,52 @@ async def test_full_turn_no_tools(tmp_path):
 	assert _of(events, "run_ended")[0]["reason"] == "done"
 	assert session.messages[0].type == "user_message"
 	assert session.messages[0].content == "hi"
+
+
+async def test_new_run_durably_repairs_reloaded_history_before_provider_call(tmp_path):
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(cwd=str(tmp_path)))
+	session.publish(AssistantMessage(content=[ToolCall(id="old", name="read_file", arguments={})]))
+	session.publish(RunEnded(reason="error"))
+	before_run = session.log.latest_seq
+
+	reloaded = SessionStore(str(tmp_path)).get(session.id)
+	assert reloaded.log.latest_seq == before_run  # loading alone is read-only
+
+	class _RecordingModel(Model):
+		name = "recording"
+
+		def __init__(self):
+			self.messages = []
+
+		async def run(self, request: ModelRequest):
+			self.messages = list(request.messages)
+			yield AssistantMessage(content="done")
+			yield Usage()
+
+	model = _RecordingModel()
+	await run(reloaded, "continue", model=model)
+
+	assert [message.type for message in model.messages] == [
+		"assistant_message",
+		"tool_result",
+		"user_message",
+	]
+	assert model.messages[1].tool_call_id == "old"
+	new_rows = reloaded.log.read_since(before_run)
+	assert [row["type"] for row in new_rows[:3]] == ["tool_result", "run_started", "user_message"]
+	assert new_rows[0]["details"]["transcript_repair"]["reason"] == "interrupted"
+
+
+async def test_successful_runs_do_not_rescan_transcript_for_repairs(tmp_path, monkeypatch):
+	session, _ = _session(tmp_path)
+
+	def reject_rescan(_log):
+		raise AssertionError("successful run rescanned the full transcript")
+
+	monkeypatch.setattr(session_store, "interrupted_tool_repairs", reject_rescan)
+	await run(session, "one", model=MockModel(replies=[AssistantMessage(content="first")]))
+	await run(session, "two", model=MockModel(replies=[AssistantMessage(content="second")]))
 
 
 async def test_tool_call_runs_and_completes(tmp_path):
@@ -246,6 +293,31 @@ async def test_setup_failure_emits_one_terminal_error(tmp_path, monkeypatch):
 
 	assert _of(events, "run_error")[0]["message"] == "RuntimeError: auth setup failed"
 	assert [event["reason"] for event in _of(events, "run_ended")] == ["error"]
+
+
+async def test_failed_resume_answers_the_approval_it_discards(tmp_path):
+	"""A non-paused terminal event drops the approval, so its calls must not dangle."""
+	(tmp_path / "a.txt").write_text("DATA")
+	session, events = _session(tmp_path, confirm_tools=["read_file"])
+	mock = MockModel(replies=[_read_call("X"), AssistantMessage(content="after")])
+	await run(session, "read", model=mock)
+	approval_seq = _of(events, "approval_required")[0]["seq"]
+
+	def failing_hook(tc, result):
+		raise RuntimeError("hook exploded")
+
+	await resume(session, {"X": "Approve"}, approval_seq=approval_seq, after_tool_call=failing_hook)
+
+	assert [row["reason"] for row in _of(events, "run_ended")] == ["paused", "error"]
+	assert [row["tool_call_id"] for row in _of(events, "tool_result")] == ["X"]
+	answered = {message.tool_call_id for message in session.messages if message.type == "tool_result"}
+	called = {
+		call.id
+		for message in session.messages
+		if message.type == "assistant_message"
+		for call in message.tool_calls
+	}
+	assert called <= answered  # nothing dangles into the next provider payload
 
 
 async def test_hook_failure_repairs_all_unreturned_tool_calls(tmp_path):
