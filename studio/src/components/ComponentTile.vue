@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="user-component group relative flex cursor-grab flex-col items-center justify-center gap-3 text-ink-gray-6 transition-all duration-200 hover:scale-105"
+		class="user-component group relative flex cursor-grab flex-col items-center justify-center gap-2 text-ink-gray-6 transition-all duration-200 hover:scale-105"
 		draggable="true"
 		:data-component-name="component.name"
 		@click="emit('click')"
@@ -20,7 +20,10 @@
 				<component :is="component.icon" class="h-6 w-6" />
 			</div>
 		</div>
-		<span class="w-full text-balance text-center text-xs leading-normal">
+		<span
+			class="line-clamp-2 min-h-[2lh] w-full text-balance text-center text-xs leading-normal"
+			:title="component.title"
+		>
 			{{ component.title }}
 		</span>
 	</div>

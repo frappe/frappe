@@ -40,7 +40,7 @@
 					     tray at the source tile's row boundary (full width, caret under the tile) so no
 					     grid cell is orphaned. While searching, every match (parts included) shows as a
 					     plain tile so nothing stays hidden behind a family. -->
-					<div v-if="section.tiles.length" class="grid grid-cols-3 items-start gap-x-2 gap-y-4">
+					<div v-if="section.tiles.length" class="grid grid-cols-3 items-start gap-x-2 gap-y-2">
 						<template v-for="(component, index) in section.tiles" :key="component.name">
 							<ComponentTile
 								:component="component"
