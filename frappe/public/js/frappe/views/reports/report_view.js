@@ -67,15 +67,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	setup_events() {
-		const me = this;
 		if (this.list_view_settings?.disable_auto_refresh) {
 			return;
 		}
 		frappe.realtime.doctype_subscribe(this.doctype);
 		frappe.realtime.on("list_update", (data) => this.on_update(data));
-		this.page.actions_btn_group.on("show.bs.dropdown", () => {
-			me.toggle_workflow_actions();
-		});
 	}
 
 	setup_page() {
@@ -361,6 +357,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				onCheckRow: () => {
 					const checked_items = this.get_checked_items();
 					this.toggle_actions_menu_button(checked_items.length > 0);
+					// refresh workflow actions on selection, not on menu open —
+					// see the matching note in list_view.js
+					if (checked_items.length > 0) {
+						this.debounced_toggle_workflow_actions();
+					}
 				},
 			},
 			hooks: {
