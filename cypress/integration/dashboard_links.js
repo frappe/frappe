@@ -50,8 +50,7 @@ context("Dashboard links", () => {
 		//Deleting the newly created contact
 		cy.visit("/desk/contact");
 		cy.get(".list-subject > .select-like > .list-row-checkbox").eq(0).click({ force: true });
-		cy.findByRole("button", { name: "Actions" }).click();
-		cy.get('.actions-btn-group [data-label="Delete"]').click();
+		cy.click_action_button("Delete");
 		cy.findByRole("button", { name: "Yes" }).click({ delay: 700 });
 
 		//To check if the counter from the "Contact" doc link is removed
