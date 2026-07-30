@@ -44,6 +44,8 @@ def get_headers():
 def current_site_info():
 	from frappe.utils import cint
 
+	frappe.only_for("System Manager")
+
 	cache_key = f"fc_current_site_info:{frappe.local.site}"
 	cached_data = frappe.cache().get_value(cache_key)
 	if cached_data:
