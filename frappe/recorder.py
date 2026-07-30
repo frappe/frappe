@@ -103,13 +103,44 @@ def get_current_stack_frames():
 		pass
 
 
-def _doc_event_handlers(doctype: str, method: str) -> list[str]:
-	"""Return the dotted paths of doc_events hooked on (doctype, method), across all apps."""
+def _doc_event_contributors(doctype: str, method: str) -> tuple[list[str], list[str]]:
+	"""Everything Document.run_method runs for (doctype, method): app `doc_events` hooks,
+	DocType Event server scripts, and webhooks. Returns (apps, handler_labels), where `apps`
+	tags the source (app name, "server_script", or "webhook"). All lookups are cached, and
+	any failure is swallowed so tracing can never break the actual request."""
+	handlers: list[str] = []
+	apps: set[str] = set()
+
 	try:
 		doc_hooks = frappe.get_doc_hooks()
+		for handler in doc_hooks.get(doctype, {}).get(method, []) + doc_hooks.get("*", {}).get(method, []):
+			handlers.append(handler)
+			apps.add(handler.split(".")[0])
 	except Exception:
-		return []
-	return list(doc_hooks.get(doctype, {}).get(method, [])) + list(doc_hooks.get("*", {}).get(method, []))
+		pass
+
+	try:
+		from frappe.core.doctype.server_script.server_script_utils import EVENT_MAP, get_server_script_map
+
+		if event := EVENT_MAP.get(method):
+			for name in get_server_script_map().get(doctype, {}).get(event, None) or []:
+				handlers.append(f"Server Script: {name}")
+				apps.add("server_script")
+	except Exception:
+		pass
+
+	try:
+		from frappe.integrations.doctype.webhook import get_all_webhooks
+
+		webhooks = frappe.client_cache.get_value("webhooks", generator=get_all_webhooks)
+		for webhook in webhooks.get(doctype, None) or []:
+			if webhook.get("webhook_docevent") == method:
+				handlers.append(f"Webhook: {webhook.get('name')}")
+				apps.add("webhook")
+	except Exception:
+		pass
+
+	return sorted(apps), handlers
 
 
 _run_method_traced = False
@@ -145,7 +176,7 @@ def _install_run_method_tracer():
 		recorder._depth += 1
 		queries_before = len(recorder.calls)
 		start_time = time.monotonic()
-		handlers = _doc_event_handlers(doc.doctype, method)
+		apps, handlers = _doc_event_contributors(doc.doctype, method)
 		try:
 			return original_run_method(doc, method, *args, **kwargs)
 		finally:
@@ -159,7 +190,7 @@ def _install_run_method_tracer():
 					"ref_name": doc.name or "",
 					"duration": float(f"{(time.monotonic() - start_time) * 1000:.3f}"),
 					"queries": len(recorder.calls) - queries_before,
-					"apps": sorted({handler.split(".")[0] for handler in handlers}),
+					"apps": apps,
 					"handlers": handlers,
 				}
 			)
