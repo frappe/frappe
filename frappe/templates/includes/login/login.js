@@ -28,7 +28,8 @@ login.bind_events = function () {
 			hasError = true;
 		}
 		if (hasError) return false;
-		login.call(args, null, "/api/method/login");
+		login.verify_url = "/api/method/login";
+		login.call(args, null, login.verify_url);
 		return false;
 	});
 
@@ -127,7 +128,8 @@ login.bind_events = function () {
 			login.set_status({{ _("Both login and password required") | tojson }}, 'red');
 			return false;
 		}
-		login.call(args, null, "/api/method/{{ ldap_settings.method }}");
+		login.verify_url = "/api/method/{{ ldap_settings.method }}";
+		login.call(args, null, login.verify_url);
 		return false;
 	});
 	{% endif %}
@@ -406,7 +408,7 @@ var verify_token = function (event) {
 			frappe.msgprint("{{ _('Login token required') | striptags | e }}");
 			return false;
 		}
-		login.call(args, null, "/api/method/login");
+		login.call(args, null, login.verify_url || "/api/method/login");
 		return false;
 	});
 }
