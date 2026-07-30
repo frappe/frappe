@@ -1806,8 +1806,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				csv_quoting,
 				csv_decimal_sep,
 			}) => {
-				this.make_access_log("Export", file_format);
-
 				const filters = this.get_filter_values(true);
 				const applied_filters = this.get_applied_filters(filters);
 

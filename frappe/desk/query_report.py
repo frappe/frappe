@@ -419,6 +419,7 @@ def run_export_query_job(user_email: str, form_params, csv_params):
 
 
 def _export_query(form_params, csv_params, populate_response=True):
+	from frappe.core.doctype.access_log.access_log import make_access_log
 	from frappe.desk.utils import get_csv_bytes, provide_binary_file
 
 	report_name = form_params.report_name
@@ -434,6 +435,13 @@ def _export_query(form_params, csv_params, populate_response=True):
 		visible_idx = json.loads(visible_idx)
 	elif not isinstance(visible_idx, list):
 		visible_idx = []
+
+	make_access_log(
+		report_name=report_name,
+		file_type=file_format_type,
+		filters=form_params.filters,
+		method="Export",
+	)
 
 	data = run(
 		report_name,
