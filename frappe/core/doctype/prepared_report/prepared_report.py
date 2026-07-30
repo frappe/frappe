@@ -127,12 +127,6 @@ def generate_report(prepared_report):
 		result = generate_report_result(report=report, filters=instance.filters, user=instance.owner)
 		create_json_gz_file(result, instance.doctype, instance.name, instance.report_name)
 
-<<<<<<< HEAD
-=======
-		if report.generate_csv:
-			_enqueue_json_to_csv_conversion(prepared_report)
-
->>>>>>> 5e512da025 (fix: require read access on the prepared report before queuing its CSV export (#41329))
 		instance.status = "Completed"
 
 		frappe.get_doc(
