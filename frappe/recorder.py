@@ -103,7 +103,7 @@ def get_current_stack_frames():
 		pass
 
 
-def _doc_event_contributors(doctype: str, method: str) -> tuple[list[str], list[str]]:
+def _doc_event_contributors(doctype: str, method: str, doc=None) -> tuple[list[str], list[str]]:
 	"""Everything Document.run_method runs for (doctype, method): app `doc_events` hooks,
 	DocType Event server scripts, and webhooks. Returns (apps, handler_labels), where `apps`
 	tags the source (app name, "server_script", or "webhook"). All lookups are cached, and
@@ -113,8 +113,13 @@ def _doc_event_contributors(doctype: str, method: str) -> tuple[list[str], list[
 
 	try:
 		doc_hooks = frappe.get_doc_hooks()
-		for handler in doc_hooks.get(doctype, {}).get(method, []) + doc_hooks.get("*", {}).get(method, []):
+		for handler in doc_hooks.get(doctype, {}).get(method, []):
 			handlers.append(handler)
+			apps.add(handler.split(".")[0])
+		# "*" hooks fire on every doctype, so flag them — otherwise it's unclear why an
+		# unrelated app's handler ran on this document.
+		for handler in doc_hooks.get("*", {}).get(method, []):
+			handlers.append(f"{handler}  (all doctypes)")
 			apps.add(handler.split(".")[0])
 	except Exception:
 		pass
@@ -132,16 +137,29 @@ def _doc_event_contributors(doctype: str, method: str) -> tuple[list[str], list[
 	except Exception:
 		pass
 
-	# webhooks are skipped by run_webhooks during import/patch/install/migrate
+	# webhooks are skipped by run_webhooks during import/patch/install/migrate; on insert,
+	# on_change/before_update_after_submit don't fire; and each webhook's condition is
+	# evaluated per-document. Mirror all three so we don't attribute one that wouldn't run.
 	try:
 		from frappe.integrations.doctype.webhook import get_all_webhooks
+		from frappe.integrations.doctype.webhook.webhook import get_context
 
 		if not (flags.in_import or flags.in_patch or flags.in_install or flags.in_migrate):
+			skip_on_insert = (
+				doc is not None
+				and getattr(doc.flags, "in_insert", False)
+				and method in ("on_change", "before_update_after_submit")
+			)
 			webhooks = frappe.client_cache.get_value("webhooks", generator=get_all_webhooks)
 			for webhook in webhooks.get(doctype, None) or []:
-				if webhook.get("webhook_docevent") == method:
-					handlers.append(f"Webhook: {webhook.get('name')}")
-					apps.add("webhook")
+				if webhook.get("webhook_docevent") != method or skip_on_insert:
+					continue
+				condition = webhook.get("condition")
+				if condition and doc is not None:
+					if not frappe.safe_eval(condition, eval_locals=get_context(doc)):
+						continue
+				handlers.append(f"Webhook: {webhook.get('name')}")
+				apps.add("webhook")
 	except Exception:
 		pass
 
@@ -181,7 +199,7 @@ def _install_run_method_tracer():
 		recorder._depth += 1
 		queries_before = len(recorder.calls)
 		start_time = time.monotonic()
-		apps, handlers = _doc_event_contributors(doc.doctype, method)
+		apps, handlers = _doc_event_contributors(doc.doctype, method, doc=doc)
 		try:
 			return original_run_method(doc, method, *args, **kwargs)
 		finally:
