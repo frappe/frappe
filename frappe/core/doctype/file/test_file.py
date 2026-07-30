@@ -996,8 +996,6 @@ class TestFileUtils(IntegrationTestCase):
 			"ToDo",
 			test_doc.name,
 			'<div class="ql-editor read-mode"><img src="data:image/png;filename=pix.png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="></div>',
-			frappe.session.user,
-			frappe.session.user,
 		)
 
 		self.assertTrue(

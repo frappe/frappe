@@ -60,8 +60,6 @@ frappe.ui.form.Footer = class FormFooter {
 							reference_doctype: this.frm.doctype,
 							reference_name: this.frm.docname,
 							content: comment,
-							comment_email: frappe.session.user,
-							comment_by: frappe.session.user_fullname,
 						})
 						.then(() => {
 							this.frm.comment_box.set_value("");

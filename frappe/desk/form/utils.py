@@ -11,6 +11,7 @@ from frappe import _
 from frappe.core.doctype.file.utils import extract_images_from_html
 from frappe.desk.form.document_follow import follow_document
 from frappe.query_builder.functions import IfNull
+from frappe.utils import get_fullname
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.comment.comment import Comment
@@ -24,9 +25,7 @@ def remove_attach():
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def add_comment(
-	reference_doctype: str, reference_name: str, content: str, comment_email: str, comment_by: str
-) -> "Comment":
+def add_comment(reference_doctype: str, reference_name: str, content: str) -> "Comment":
 	"""Allow logged user with permission to read document to add a comment"""
 	reference_doc = frappe.get_lazy_doc(reference_doctype, reference_name, check_permission=True)
 
@@ -36,8 +35,8 @@ def add_comment(
 			"comment_type": "Comment",
 			"reference_doctype": reference_doctype,
 			"reference_name": reference_name,
-			"comment_email": comment_email,
-			"comment_by": comment_by,
+			"comment_email": frappe.session.user,
+			"comment_by": get_fullname(frappe.session.user),
 			"content": extract_images_from_html(reference_doc, content, is_private=True),
 		}
 	)
