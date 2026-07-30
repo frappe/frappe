@@ -40,7 +40,7 @@
 					     tray at the source tile's row boundary (full width, caret under the tile) so no
 					     grid cell is orphaned. While searching, every match (parts included) shows as a
 					     plain tile so nothing stays hidden behind a family. -->
-					<div v-if="section.tiles.length" class="grid grid-cols-3 items-start gap-x-2 gap-y-2">
+					<div v-if="section.tiles.length" class="grid grid-cols-3 items-start gap-3">
 						<template v-for="(component, index) in section.tiles" :key="component.name">
 							<ComponentTile
 								:component="component"
@@ -50,16 +50,18 @@
 							/>
 
 							<!-- Parts of the open family. Inserted at the end of the source tile's row and
-							     spanning every column, with a caret under the source tile's column. -->
+							     spanning every column, with a caret under the source tile's column.
+							     Radius nesting: outer 16px (rounded-2xl) − 10px padding (p-2.5) = 6px inner,
+							     matching the tile's rounded-md so the curves run parallel. -->
 							<div
 								v-if="index === section.trayAfter"
-								class="relative col-span-full -mt-1 rounded-xl border border-outline-gray-2 bg-surface-base p-3.5"
+								class="relative col-span-full mt-1 rounded-2xl border border-outline-gray-2 bg-surface-base p-2.5"
 							>
 								<span
 									class="absolute -top-1.5 h-3 w-3 -translate-x-1/2 rotate-45 border-l border-t border-outline-gray-2 bg-surface-base"
 									:style="{ left: section.caretLeft }"
 								/>
-								<div class="grid grid-cols-3 items-start gap-x-2 gap-y-2">
+								<div class="grid grid-cols-3 items-start gap-3">
 									<ComponentTile
 										v-for="(part, partIndex) in expandedParts"
 										:key="part.name"
