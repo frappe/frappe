@@ -219,7 +219,13 @@ class TestKanbanBoard(IntegrationTestCase):
 		self.assertEqual(len(_decompress_kanban_cards(second_page["cards"])), 1)
 
 	def test_private_board_blocks_other_users(self):
-		from frappe.desk.doctype.kanban_board.kanban_board import get_card_config, get_kanban_board_context
+		from frappe.desk.doctype.kanban_board.kanban_board import (
+			add_card,
+			get_card_config,
+			get_kanban_board_context,
+			update_order,
+			update_order_for_single_card,
+		)
 
 		other = "kanban_perm_test@example.com"
 		if not frappe.db.exists("User", other):
@@ -238,6 +244,25 @@ class TestKanbanBoard(IntegrationTestCase):
 		frappe.set_user(other)
 		self.assertRaises(frappe.PermissionError, lambda: get_card_config(self.board_name))
 		self.assertRaises(frappe.PermissionError, lambda: get_kanban_board_context(self.board_name))
+		self.assertRaises(
+			frappe.PermissionError,
+			lambda: update_order_for_single_card(
+				board_name=self.board_name,
+				docname=self.todos[0],
+				from_colname="Open",
+				to_colname="Closed",
+				from_order=[],
+				to_order=[self.todos[0]],
+			),
+		)
+		self.assertRaises(
+			frappe.PermissionError,
+			lambda: update_order(self.board_name, {"Open": self.todos[:3]}),
+		)
+		self.assertRaises(
+			frappe.PermissionError,
+			lambda: add_card(self.board_name, self.todos[0], "Open"),
+		)
 		frappe.set_user("Administrator")
 
 
@@ -252,7 +277,9 @@ class TestKanbanBoardNativePayloads(IntegrationTestCase):
 		# update_column_order with a native list (frappe.parse_json passthrough)
 		kb.update_column_order(self.board.name, [c.column_name for c in self.board.columns])
 
-		# save_settings with a native dict
+		# save_settings with a native dict (partial payload must not KeyError)
+		resp = kb.save_settings(self.board.name, {"fields": []})
+		self.assertEqual(resp["doctype"], "Kanban Board")
 		resp = kb.save_settings(self.board.name, {"fields": [], "show_labels": 0})
 		self.assertEqual(resp["doctype"], "Kanban Board")
 

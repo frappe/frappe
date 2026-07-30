@@ -440,6 +440,7 @@ def archive_restore_column(board_name: str, column_title: str, status: str):
 def update_order(board_name: str, order: str | dict):
 	"""Save the order of cards in columns"""
 	board = frappe.get_doc("Kanban Board", board_name)
+	ensure_kanban_board_permission(board, "write")
 	doctype = board.reference_doctype
 	updated_cards = []
 
@@ -483,6 +484,7 @@ def update_order_for_single_card(
 	Otherwise send old_index and new_index.
 	"""
 	board = frappe.get_doc("Kanban Board", board_name)
+	ensure_kanban_board_permission(board, "write")
 	doctype = board.reference_doctype
 
 	frappe.has_permission(doctype, "write", throw=True)
@@ -540,6 +542,7 @@ def publish_kanban_board_update(board):
 def add_card(board_name: str, docname: str, colname: str):
 	"""Prepend a new card to a column's saved order and notify other sessions."""
 	board = frappe.get_doc("Kanban Board", board_name)
+	ensure_kanban_board_permission(board, "write")
 
 	frappe.has_permission(board.reference_doctype, "write", throw=True)
 
@@ -643,15 +646,16 @@ def set_indicator(board_name: str, column_name: str, indicator: str):
 
 @frappe.whitelist()
 def save_settings(board_name: str, settings: str | dict) -> Document:
-	settings = frappe.parse_json(settings)
+	settings = frappe.parse_json(settings) or {}
 	doc = frappe.get_doc("Kanban Board", board_name)
 
-	fields = settings["fields"]
+	fields = settings.get("fields", [])
 	if not isinstance(fields, str):
 		fields = json.dumps(fields)
 
 	doc.fields = fields
-	doc.show_labels = settings["show_labels"]
+	if "show_labels" in settings:
+		doc.show_labels = settings.get("show_labels")
 	doc.save()
 
 	resp = doc.as_dict()
