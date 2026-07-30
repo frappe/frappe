@@ -707,7 +707,7 @@ class Block implements BlockOptions {
 	}
 
 	// scoped slots
-	setSlotScope(slotScope: SlotScope) {
+	setSlotScope(slotScope: SlotScope | null) {
 		// temporarily set the enclosing scoped slot props on selected block for autocompletions
 		this.slotScope = slotScope
 	}

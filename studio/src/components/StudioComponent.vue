@@ -243,10 +243,12 @@ const isHovered = ref(false)
 const isSelected = computed(() => canvasStore.activeCanvas?.selectedBlockIds?.has(props.block.componentId))
 
 watch(
-	[isSelected, () => slotScope?.value],
-	([selected, scope]) => {
-		if (selected && scope) {
-			props.block.setSlotScope(scope)
+	isSelected,
+	(selected) => {
+		if (selected && slotScope?.value && !props.block.slotScope) {
+			props.block.setSlotScope(slotScope.value)
+		} else if (!selected && props.block.slotScope) {
+			props.block.setSlotScope(null)
 		}
 	},
 	{ immediate: true },
@@ -304,6 +306,9 @@ const handleClick = (e: MouseEvent) => {
 	const domEvent = e instanceof Event ? e : null
 	const block = (domEvent && getClickedComponent(domEvent)) || props.block
 	canvasStore.activeCanvas?.selectBlock(block, domEvent)
+	if (slotScope?.value) {
+		block.setSlotScope(slotScope.value)
+	}
 
 	if (!domEvent) return
 
