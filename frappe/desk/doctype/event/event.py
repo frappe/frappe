@@ -346,7 +346,8 @@ def get_events(
 
 	if user and user != caller:
 		frappe.only_for("System Manager")
-	type EventLikeDict = Event | frappe._dict
+
+	EventLikeDict: TypeAlias = Event | frappe._dict
 	resolved_events: list[EventLikeDict] = []
 
 	if isinstance(filters, str):
