@@ -46,8 +46,22 @@ class BulkUpdate(Document):
 		)
 
 
+<<<<<<< HEAD
 @frappe.whitelist()
 def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None, task_id=None):
+=======
+@frappe.whitelist(methods=["POST"])
+def submit_cancel_or_update_docs(
+	doctype: str,
+	docnames: str | list[str],
+	action: str = "submit",
+	data: str | dict[str, Any] | None = None,
+	task_id: str | None = None,
+) -> list[str] | None:
+	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
+		frappe.throw(_("You are not allowed to perform bulk actions."), frappe.PermissionError)
+
+>>>>>>> 8465376ad9 (fix: require POST for bulk document and title update endpoints (#41361))
 	if isinstance(docnames, str):
 		docnames = frappe.parse_json(docnames)
 
