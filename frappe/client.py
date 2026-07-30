@@ -356,7 +356,7 @@ def get_password(doctype: str, name: str | int, fieldname: str):
 	:param fieldname: `fieldname` of the password property
 	"""
 	frappe.only_for("System Manager")
-	return frappe.get_lazy_doc(doctype, name).get_password(fieldname)
+	return frappe.get_lazy_doc(doctype, name, check_permission="read").get_password(fieldname)
 
 
 from frappe.deprecation_dumpster import get_js as _get_js
