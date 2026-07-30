@@ -127,6 +127,8 @@ def rate_limit(
 	"""
 
 	def ratelimit_decorator(fn):
+		endpoint = f"{fn.__module__}.{fn.__qualname__}"
+
 		@wraps(fn)
 		def wrapper(*args, **kwargs):
 			# Do not apply rate limits if method is not opted to check
@@ -151,7 +153,7 @@ def rate_limit(
 			if not identity:
 				frappe.throw(_("Either key or IP flag is required."))
 
-			cache_key = frappe.cache.make_key(f"rl:{frappe.form_dict.cmd}:{identity}")
+			cache_key = frappe.cache.make_key(f"rl:{endpoint}:{identity}")
 
 			if not callable(seconds):
 				cache_key += f":{seconds}".encode()
