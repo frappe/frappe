@@ -52,7 +52,7 @@ context("List View", () => {
 		cy.clear_filters();
 		cy.get(".list-header-subject .list-subject .list-check-all").click();
 		cy.findByRole("button", { name: "Actions" }).click();
-		cy.get(".dropdown-menu li:visible .dropdown-item")
+		cy.get('.es-menu [role="menuitem"]')
 			.should("have.length", 9)
 			.each((el, index) => {
 				cy.wrap(el).contains(actions[index]);

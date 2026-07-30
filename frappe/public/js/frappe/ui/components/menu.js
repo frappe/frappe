@@ -43,6 +43,7 @@ import { place } from "./position.js";
  * @property {function} [onclick] Called with the click event. The menu closes after.
  * @property {string} [href] Renders the row as a link. Code-running schemes are refused.
  * @property {function} [condition] Checked on every open; return false to hide the row.
+ * @property {string} [css_class] Extra classes on the row element (responsive visibility hooks like visible-xs).
  * @property {MenuItem[]|function} [submenu] Nested rows — the row opens a side panel instead of acting. A function runs at hover-start (once per menu open, result cached) and may return the rows or a Promise of them; the panel shows a loading state until it settles.
  */
 
@@ -183,6 +184,7 @@ function build_item(item, { reserve_icon_space, component, taken }) {
 	const href = item.submenu || item.disabled ? null : safe_href(item.href, component);
 	const el = document.createElement(href ? "a" : "button");
 	el.className = "es-menu__item";
+	if (item.css_class) el.className += ` ${item.css_class}`;
 	el.setAttribute("role", "menuitem");
 	el.setAttribute("tabindex", "-1");
 	if (href) el.href = href;

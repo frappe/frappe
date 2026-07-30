@@ -195,6 +195,28 @@ frappe.ui.Page = class Page {
 			});
 		frappe.ui.keys.get_shortcut_group(this.page_actions[0]).add(menu_btn);
 
+		// The Menu / Actions dropdowns are espresso menus. The old bootstrap
+		// ULs stay in the DOM as hidden item stores: add_dropdown_item keeps
+		// writing <li><a> markup there (the returned jQuery is public API and
+		// callers mutate it), and every open snapshots the store into rows —
+		// so .text() / .toggle() / .addClass("disabled") all keep working.
+		this.menu_dropdown = new frappe.ui.Dropdown({
+			trigger: menu_btn,
+			align: "end",
+			options: () => this.build_dropdown_options(this.menu),
+		});
+		this.actions_dropdown = new frappe.ui.Dropdown({
+			trigger: this.actions_btn_group.find("button"),
+			align: "end",
+			options: () => this.build_dropdown_options(this.actions),
+		});
+		// the menus body-portal, so one left open would float over the next
+		// page — the container fires "hide" on the page element on switch
+		this.wrapper.on("hide", () => {
+			this.menu_dropdown.close("owner");
+			this.actions_dropdown.close("owner");
+		});
+
 		// desktop shows "Actions" + chevron; mobile keeps just the chevron.
 		// actions-btn-group-label stays as the legacy hook name for the span.
 		let action_btn = this.actions_btn_group.find("button");
@@ -507,28 +529,35 @@ frappe.ui.Page = class Page {
 			)}</span>`;
 		}
 
+		const data_label = encodeURIComponent(label);
 		if (shortcut) {
 			let shortcut_obj = this.prepare_shortcut_obj(shortcut, click, label);
 			$li = $(`
 				<li>
 					<a class="grey-link dropdown-item" href="#" onClick="return false;">
 						${$icon}
-						<span class="menu-item-label">${label}</span>
+						<span class="menu-item-label" data-label="${data_label}">${label}</span>
 						<span class="menu-item-shortcut">${shortcut_obj.shortcut_label}</span>
 					</a>
 				</li>
 			`);
+			// binding stays here — the menu rows only display the combo
 			frappe.ui.keys.add_shortcut(shortcut_obj);
+			$li.data("menu_shortcut", shortcut_obj.shortcut);
 		} else {
 			$li = $(`
 				<li>
 					<a class="grey-link dropdown-item" href="#" onClick="return false;">
 						${$icon}
-						<span class="menu-item-label">${label}</span>
+						<span class="menu-item-label" data-label="${data_label}">${label}</span>
 					</a>
 				</li>
 			`);
 		}
+
+		// the snapshot (build_dropdown_options) reads these back
+		$li.data("menu_click", click);
+		if (icon) $li.data("menu_icon", icon);
 
 		$link = $li.find("a").on("click", (e) => {
 			if (e.ctrlKey || e.metaKey) {
@@ -557,6 +586,69 @@ frappe.ui.Page = class Page {
 				.add($link, $link.find(".menu-item-label"));
 		}
 		return $link;
+	}
+
+	// Snapshot a hidden item store (this.menu / this.actions) into menu rows.
+	// Reading the live elements on every open is what keeps the legacy jQuery
+	// contract alive: .text(), .toggle(), .addClass("disabled") on a held item
+	// all show up the next time the menu opens. Divider <li>s split groups.
+	build_dropdown_options($parent) {
+		// classes internal to the legacy markup; everything else (visible-xs,
+		// hidden-xl, caller classes) is carried onto the rendered row
+		const internal = ["grey-link", "dropdown-item", "disabled", "user-action"];
+		// the responsive utilities, evaluated at open time — a group whose
+		// rows are all CSS-hidden would still paint its separator, and the
+		// legacy divider was itself visible-xs (desktop menus had none)
+		const responsive_hidden = (el) =>
+			(el.classList.contains("visible-xs") &&
+				window.matchMedia("(min-width: 576px)").matches) ||
+			(el.classList.contains("hidden-xl") &&
+				window.matchMedia("(min-width: 992px)").matches);
+		const segments = [[]];
+
+		$parent.children("li").each((_, li) => {
+			if (li.classList.contains("dropdown-divider")) {
+				if (!responsive_hidden(li) && segments[segments.length - 1].length) {
+					segments.push([]);
+				}
+				return;
+			}
+			const $li = $(li);
+			const a = $li.children("a").get(0);
+			if (!a) return;
+			// .toggle(false) / .hide() by callers
+			if (li.style.display === "none" || a.style.display === "none") return;
+			if (responsive_hidden(li) || responsive_hidden(a)) return;
+
+			// .text(label) on the held <a> replaces its children, so fall back
+			const label = ($li.find(".menu-item-label").text() || $(a).text()).trim();
+			if (!label) return;
+
+			const css_class = [...li.classList, ...a.classList]
+				.filter((c) => !internal.includes(c))
+				.join(" ");
+			const click = $li.data("menu_click");
+
+			segments[segments.length - 1].push({
+				label,
+				icon: $li.data("menu_icon") || undefined,
+				shortcut: $li.data("menu_shortcut") || undefined,
+				disabled: a.classList.contains("disabled"),
+				css_class: css_class || undefined,
+				onclick: (e) => {
+					if (e && (e.ctrlKey || e.metaKey)) {
+						frappe.open_in_new_tab = true;
+					}
+					// raw <li>s appended by apps have no stashed handler —
+					// clicking their own link keeps them working
+					return click ? click() : a.click();
+				},
+			});
+		});
+
+		const groups = segments.filter((segment) => segment.length);
+		if (groups.length <= 1) return groups[0] || [];
+		return groups.map((options) => ({ group: "", hide_label: true, options }));
 	}
 
 	prepare_shortcut_obj(shortcut, click, label) {
