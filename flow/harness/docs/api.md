@@ -106,21 +106,24 @@ this endpoint and are resolved inside flow_server.
 Body:
 `{"approval_seq": 12, "answers": {"<tool_call_id>": "Approve" | "Deny" | "<free text>"}}`.
 `approval_seq` must identify the current `ApprovalRequired` event and `answers` must
-contain exactly its unresolved call ids. Missing, extra, stale, already-resolved, and
-not-paused requests return `409` without changing the log. Same fire-and-forget /
-`?wait` shapes as `/run`.
+contain exactly its unresolved call ids. A not-paused request returns `409`. Missing,
+extra, stale, and already-resolved answer sets are failed continuation attempts, not
+failures of the paused run: they publish `run_error` + `run_ended(reason=="paused")` and
+retain the approval batch, so the session stays paused for a correct retry. Same
+fire-and-forget / `?wait` shapes as `/run`.
 
 ### `POST /sessions/{sid}/abort`
 Signals active work to stop and clears steering that has not yet entered the durable
 transcript →
-`{"status": "aborting" | "aborted" | "idle"}`.
+`{"status": "aborting" | "aborted" | "error" | "idle"}`.
 Model streams, provider HTTP bodies, hooks, tools, Bash process groups, and client-tool
 callback requests are interrupted. A completed cancellation persists an
 `assistant_message` with `stop_reason=="aborted"` followed by
 `run_ended(reason=="aborted")`; the session then returns to `idle`. An approval-paused
 session has no active work to signal, so it is released synchronously instead: every
-pending call receives a cancelled error result and the response is `"aborted"`. Calling
-this endpoint for an idle session is a no-op.
+pending call receives a cancelled error result, and the status carries that release's
+own `run_ended` reason — `"error"` if it could not be persisted. Calling this endpoint
+for an idle session is a no-op.
 
 ### `GET /sessions/{sid}/entries?since=<int>`
 The durable log from the cursor →

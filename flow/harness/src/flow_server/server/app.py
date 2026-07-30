@@ -28,7 +28,6 @@ from flow_server.session.store import (
 	SessionConfig,
 	SessionState,
 	SessionStore,
-	pending_approval,
 )
 
 
@@ -129,11 +128,6 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 		async with session.operation_lock:
 			if session.state is not SessionState.PAUSED:
 				raise HTTPException(status_code=409, detail="run is not paused")
-			approval = pending_approval(session.log)
-			try:
-				agent.validate_resume(approval, req.approval_seq, req.answers)
-			except agent.ResumeError as e:
-				raise HTTPException(status_code=409, detail=str(e)) from None
 			from_seq = session.log.latest_seq
 			task = session._start_operation(
 				agent.resume(
@@ -155,9 +149,11 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 				return {"status": session.state}
 			# a pause has no active work to signal; answer the batch instead so the
 			# session can reach idle without a resume
+			from_seq = session.log.latest_seq
 			task = session._start_operation(agent.cancel_pending(session))
 		await task
-		return {"status": "aborted"}
+		# the lifecycle settles a failure into run_ended(error) rather than raising
+		return {"status": _summary(session, from_seq)["reason"]}
 
 	@app.get("/sessions/{sid}/entries")
 	async def entries(sid: str, since: int = 0):

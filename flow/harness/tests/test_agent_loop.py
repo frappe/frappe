@@ -1,16 +1,15 @@
 import asyncio
 
 import httpx
-import pytest
 
 import flow_server.agent.loop as agent_loop
 import flow_server.session.store as session_store
-from flow_server.agent import HookDecision, ResumeError, resume, run
+from flow_server.agent import HookDecision, resume, run
 from flow_server.events import AssistantMessage, RunEnded, TextDelta, ToolCall, Usage
 from flow_server.model import Model, ModelRequest, ProviderError
 from flow_server.model.mock import MockModel
 from flow_server.model.resolver import ResolvedModelAuth
-from flow_server.session.store import SessionConfig, SessionStore
+from flow_server.session.store import SessionConfig, SessionStore, pending_approval
 from flow_server.tools import tool
 from flow_server.tools.tool import ToolResult as RuntimeToolResult
 
@@ -195,7 +194,7 @@ async def test_resume_deny_stops_run(tmp_path):
 	assert mock._turn == 1  # the model was NOT called again after denial
 
 
-async def test_resume_rejects_non_exact_answers_without_mutating_log(tmp_path):
+async def test_invalid_resume_emits_terminal_pair_and_preserves_approval(tmp_path):
 	(tmp_path / "a.txt").write_text("SECRET")
 	session, events = _session(tmp_path, confirm_tools=["read_file"])
 	mock = MockModel(
@@ -210,25 +209,30 @@ async def test_resume_rejects_non_exact_answers_without_mutating_log(tmp_path):
 	)
 	await run(session, "read", model=mock)
 	approval_seq = _of(events, "approval_required")[0]["seq"]
-	latest_seq = session.log.latest_seq
 	session.abort.set()
 
-	with pytest.raises(ResumeError, match="missing answers for: c2"):
-		await resume(
-			session,
-			{"c1": "Approve"},
-			approval_seq=approval_seq,
-			model=mock,
-		)
-	with pytest.raises(ResumeError, match="stale"):
-		await resume(
-			session,
-			{"c1": "Approve", "c2": "Approve"},
-			approval_seq=approval_seq - 1,
-			model=mock,
-		)
+	await resume(
+		session,
+		{"c1": "Approve"},
+		approval_seq=approval_seq,
+		model=mock,
+	)
+	await resume(
+		session,
+		{"c1": "Approve", "c2": "Approve"},
+		approval_seq=approval_seq - 1,
+		model=mock,
+	)
 
-	assert session.log.latest_seq == latest_seq
+	errors = _of(events, "run_error")
+	assert len(errors) == 2
+	assert "missing answers for: c2" in errors[0]["message"]
+	assert "stale" in errors[1]["message"]
+	assert [event["reason"] for event in _of(events, "run_ended")] == ["paused", "paused", "paused"]
+	approval = pending_approval(session.log)
+	assert approval is not None
+	assert approval.seq == approval_seq
+	assert {call.id for call in approval.calls} == {"c1", "c2"}
 	assert session.abort.is_set()
 	assert _of(events, "tool_result") == []
 

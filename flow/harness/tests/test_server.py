@@ -7,11 +7,12 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from flow_server.events import AssistantMessage, ToolCall, Usage
+from flow_server.events import AssistantMessage, ToolCall, ToolResult, Usage
 from flow_server.model import Model, ModelRequest
 from flow_server.model.credentials import CredentialStore
 from flow_server.model.mock import MockModel
 from flow_server.server import create_app
+from flow_server.session.log import SessionLog
 from flow_server.session.store import SessionConfig, SessionStore
 
 
@@ -246,8 +247,14 @@ def test_paused_run_requires_exact_current_approval_batch(tmp_path, monkeypatch)
 			"answers": {"c1": "Approve", "c2": "Approve"},
 		},
 	):
-		response = c.post(f"/sessions/{sid}/resume", json=payload)
-		assert response.status_code == 409
+		before = c.get(f"/sessions/{sid}/entries").json()["latest_seq"]
+		response = c.post(f"/sessions/{sid}/resume", params={"wait": "true"}, json=payload)
+		assert response.status_code == 200
+		assert response.json()["reason"] == "paused"
+		new_entries = c.get(f"/sessions/{sid}/entries", params={"since": before}).json()["entries"]
+		assert [entry["type"] for entry in new_entries] == ["run_error", "run_ended"]
+		assert new_entries[-1]["reason"] == "paused"
+		assert c.get(f"/sessions/{sid}").json()["state"] == "paused"
 
 	resumed = c.post(
 		f"/sessions/{sid}/resume",
@@ -321,6 +328,27 @@ def test_abort_on_a_paused_session_is_idempotent(tmp_path, monkeypatch):
 
 	assert c.post(f"/sessions/{sid}/abort").json() == {"status": "aborted"}
 	assert c.post(f"/sessions/{sid}/abort").json() == {"status": "idle"}
+
+
+def test_abort_reports_a_failed_release_rather_than_success(tmp_path, monkeypatch):
+	mock = MockModel(replies=[AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={})])])
+	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: mock)
+	c = _client(tmp_path)
+	sid = c.post(
+		"/sessions",
+		json={"cwd": str(tmp_path), "confirm_tools": ["read_file"]},
+	).json()["session_id"]
+	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "read"})
+	real_append = SessionLog.append
+
+	def unwritable(self, event):
+		if isinstance(event, ToolResult):
+			raise OSError(28, "No space left on device")
+		return real_append(self, event)
+
+	monkeypatch.setattr(SessionLog, "append", unwritable)
+	# the lifecycle settles the failure into run_ended(error) instead of raising
+	assert c.post(f"/sessions/{sid}/abort").json() == {"status": "error"}
 
 
 def test_paused_state_and_approval_survive_store_reload(tmp_path, monkeypatch):

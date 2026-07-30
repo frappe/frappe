@@ -82,6 +82,14 @@ class ResumeError(ValueError):
 	"""The requested continuation does not match the current approval batch."""
 
 
+class _ResumeValidationFailed(Exception):
+	"""Carry a recoverable resume error through the lifecycle without ending the pause."""
+
+	def __init__(self, error: ResumeError):
+		self.error = error
+		super().__init__(str(error))
+
+
 async def run(
 	session: Session,
 	user_message: str,
@@ -113,12 +121,16 @@ async def resume(
 ) -> None:
 	"""Continue a paused run. `answers` maps a pending tool_call_id to a decision:
 	"Approve" runs the tool, "Deny" halts the run, any other text redirects the model."""
-	approval = pending_approval(session.log)
-	validate_resume(approval, approval_seq, answers)
-	assert approval is not None  # narrowed by validate_resume
-	pending = approval.calls
 
 	async def operation() -> RunReason:
+		approval = pending_approval(session.log)
+		try:
+			validate_resume(approval, approval_seq, answers)
+		except ResumeError as exc:
+			raise _ResumeValidationFailed(exc) from None
+		assert approval is not None  # narrowed by validate_resume
+		pending = approval.calls
+
 		session.flush_pending_transcript_repairs()
 		server_tools = _server_tools(session)
 		ctx = _make_ctx(session)
@@ -176,8 +188,15 @@ async def _run_with_lifecycle(session: Session, operation: Awaitable[RunReason])
 	reason: RunReason = "error"
 	failures: list[BaseException] = []
 	cancelled: asyncio.CancelledError | None = None
+	preserve_pause = False
 	try:
 		reason = await operation
+	except _ResumeValidationFailed as exc:
+		# A stale or incomplete answer set is a failed continuation attempt, not a
+		# failure of the paused run. Publish its terminal pair but retain the batch.
+		reason = "paused"
+		failures.append(exc.error)
+		preserve_pause = True
 	except ModelCancelled:
 		reason = "aborted"
 	except asyncio.CancelledError as exc:
@@ -204,7 +223,7 @@ async def _run_with_lifecycle(session: Session, operation: Awaitable[RunReason])
 			failures.append(exc)
 
 	if failures:
-		reason = "error"
+		reason = "paused" if preserve_pause else "error"
 		message = "; ".join(f"{type(exc).__name__}: {exc}" for exc in failures)
 		provider_error = next((exc for exc in failures if isinstance(exc, ProviderError)), None)
 		try:
