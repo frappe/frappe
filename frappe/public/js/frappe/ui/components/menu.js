@@ -212,9 +212,11 @@ function build_item(item, { reserve_icon_space, component, taken }) {
 	const label = document.createElement("span");
 	label.className = "es-menu__label";
 	const label_text = item.label || "";
-	// disabled rows can't be activated, so they get no mnemonic
+	// disabled rows can't be activated, so they get no mnemonic; rows with
+	// an accelerator keep it as their only key path (the legacy desk rule —
+	// it also leaves the letter pool for shortcut-less rows)
 	let mnemonic = null;
-	if (taken && label_text && !item.disabled) {
+	if (taken && label_text && !item.disabled && !item.shortcut) {
 		mnemonic = assign_mnemonic(label, label_text, taken);
 	} else {
 		label.textContent = label_text;

@@ -215,7 +215,7 @@ frappe.ui.Page = class Page {
 		this.wrapper.on("hide", () => {
 			this.menu_dropdown.close("owner");
 			this.actions_dropdown.close("owner");
-			this.inner_toolbar.find(".inner-group-button").each((_, group) => {
+			this.wrapper.find(".inner-group-button, .custom-btn-group").each((_, group) => {
 				$(group).data("es_dropdown")?.close("owner");
 			});
 		});
@@ -581,13 +581,6 @@ frappe.ui.Page = class Page {
 			$li.addClass("user-action").insertBefore(this.divider);
 		}
 
-		// if an shortcut is already set, dont set an alt Shortcut
-		if (!shortcut) {
-			// alt shortcut
-			frappe.ui.keys
-				.get_shortcut_group(parent.get(0))
-				.add($link, $link.find(".menu-item-label"));
-		}
 		return $link;
 	}
 
@@ -1018,9 +1011,12 @@ frappe.ui.Page = class Page {
 	}
 
 	add_custom_button_group(label, icon, parent) {
+		// same bridge as the header menus: the UL is a hidden item store
+		// (add_custom_menu_item writes li > a there and returns the link),
+		// rendered as an espresso menu per open
 		let custom_btn_group = $(`
 			<div class="custom-btn-group">
-				<ul class="dropdown-menu" role="menu"></ul>
+				<ul class="dropdown-menu" role="presentation"></ul>
 			</div>
 		`);
 
@@ -1029,7 +1025,6 @@ frappe.ui.Page = class Page {
 			icon: icon,
 			icon_right: "chevrons-up-down",
 			css_class: "ellipsis",
-			attrs: { "data-toggle": "dropdown", "aria-expanded": "false" },
 		});
 		$button.find(".es-button__label").addClass("custom-btn-group-label");
 		if (icon) {
@@ -1045,7 +1040,16 @@ frappe.ui.Page = class Page {
 			parent = frappe.is_mobile() ? this.custom_mobile_actions : this.custom_actions;
 		parent.removeClass("hide").append(custom_btn_group);
 
-		return custom_btn_group.find(".dropdown-menu");
+		const $store = custom_btn_group.find(".dropdown-menu");
+		custom_btn_group.data(
+			"es_dropdown",
+			new frappe.ui.Dropdown({
+				trigger: $button,
+				options: () => this.build_dropdown_options($store),
+			})
+		);
+
+		return $store;
 	}
 
 	add_dropdown_button(parent, label, click, icon) {
