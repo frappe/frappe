@@ -3,7 +3,8 @@ no_cache = 1
 
 def get_context(context):
 	import frappe
-	from frappe.www.printview import resolve_print_format
+	from frappe.utils.jinja_globals import is_rtl
+	from frappe.www.printview import get_print_style, get_rendered_template, resolve_print_format
 
 	doctype = frappe.form_dict.doctype
 	docname = frappe.form_dict.name
@@ -18,4 +19,22 @@ def get_context(context):
 
 		context.body = get_html(doctype, docname, pf, letterhead, settings=settings)
 	else:
-		context.body = pf.get_html(docname, letterhead)
+		# Jinja formats render through the legacy pipeline, wrapped in the same
+		# page shell /printview uses — PrintFormat.get_html is the beta generator
+		# and has nothing to draw for them
+		body = get_rendered_template(
+			doc, print_format=pf, meta=doc.meta, letterhead=letterhead, settings=settings
+		)
+		context.body = frappe.render_template(
+			"www/printview.html",
+			{
+				"standalone": False,
+				"no_action_banner": True,
+				"body": body,
+				"print_style": get_print_style(print_format=pf),
+				"lang": frappe.local.lang,
+				"layout_direction": "rtl" if is_rtl() else "ltr",
+				"title": doc.get_title() or doc.name,
+				"comment": None,
+			},
+		)
