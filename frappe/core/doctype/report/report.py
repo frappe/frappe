@@ -196,17 +196,6 @@ class Report(Document):
 
 		return res
 
-<<<<<<< HEAD
-=======
-	def get_module_method(self, method):
-		if method not in ("execute", "execute_snapshot_report", "get_xlsx_styles"):
-			raise Exception("Unknown report method")
-
-		module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
-		method_path = get_report_module_dotted_path(module, self.name) + "." + method
-		return frappe.get_attr(method_path)
-
->>>>>>> 1d0b22e59f (fix: Restrict methods allowed (#41352))
 	def execute_module(self, filters):
 		# report in python module
 		module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
