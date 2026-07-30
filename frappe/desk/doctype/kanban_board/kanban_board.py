@@ -437,7 +437,7 @@ def archive_restore_column(board_name: str, column_title: str, status: str):
 
 
 @frappe.whitelist()
-def update_order(board_name: str, order: str | dict):
+def update_order(board_name: str, order: str | dict, throw_on_no_write: bool = False):
 	"""Save the order of cards in columns"""
 	board = frappe.get_doc("Kanban Board", board_name)
 	ensure_kanban_board_permission(board, "write")
@@ -445,7 +445,13 @@ def update_order(board_name: str, order: str | dict):
 	updated_cards = []
 
 	if not frappe.has_permission(doctype, "write"):
-		# Return board data from db
+		# The classic board syncs order on load even for users who can only READ the
+		# reference doctype, so it must be able to no-op here (return the board unsaved
+		# and let the client render). The new Kanban only calls this for an explicit
+		# multi-move and passes throw_on_no_write, so a move that can't be saved
+		# surfaces an error instead of silently sticking on screen.
+		if frappe.parse_json(throw_on_no_write):
+			frappe.has_permission(doctype, "write", throw=True)
 		return board, updated_cards
 
 	fieldname = board.field_name

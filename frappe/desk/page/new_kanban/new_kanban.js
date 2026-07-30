@@ -141,7 +141,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			/* Card rows sit on a quiet rhythm — short enough that a stack of
 			   fields doesn't look like a form, tall enough that icons and
 			   values stay aligned. Spacing/colour otherwise come from utilities. */
-			.kn-frow { min-height: 24px; }
+			.kn-frow { min-height: 24px; min-width: 0; }
 			.kn-frow.kn-title-row { min-height: 0; margin-bottom: 2px; }
 			.kn-fempty { font-style: italic; }
 			/* Link formatters emit <a> with desk $text-color (ink-gray-8). Match
@@ -189,15 +189,14 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			}
 			.kn-selection-bar .kn-sel-count { color: var(--ink-gray-8); }
 			.kn-selection-bar .es-button { margin: 0; }
-			/* Preview hovercard — width follows the field grid (not the long
-			   title), so left/right padding stays equal (same px-4 both sides). */
-			.es-hover-card.kn-mi-hc { width: fit-content; max-width: min(400px, calc(100vw - 32px)); padding: 0; overflow: hidden; }
-			.kn-mi { display: flex; flex-direction: column; width: fit-content; max-width: 100%; }
-			/* Title / desc / footer fill the props-driven width instead of expanding it. */
+			/* Preview hovercard — fixed width (not content-sized) so long emails
+			   never stretch the shell; values wrap inside equal columns. */
+			.es-hover-card.kn-mi-hc { width: 360px; max-width: min(360px, calc(100vw - 32px)); padding: 0; overflow: hidden; }
+			.kn-mi { display: flex; flex-direction: column; width: 100%; max-width: 100%; }
 			.kn-mi-banner,
 			.kn-mi-header,
 			.kn-mi-desc,
-			.kn-mi-foot { width: 0; min-width: 100%; box-sizing: border-box; }
+			.kn-mi-foot { width: 100%; box-sizing: border-box; }
 			.kn-mi-banner { height: 116px; background-size: cover; background-position: center; background-color: var(--bg-light-gray); }
 			.kn-mi-title, .kn-mi-desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 			.kn-mi-title:hover { text-decoration: underline; text-underline-offset: 2px; }
@@ -205,7 +204,9 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			.kn-mi-desc :where(h1,h2,h3,h4,h5,h6,p,ul,ol,li,blockquote,pre) { display: inline; margin: 0; padding: 0; font: inherit; list-style: none; }
 			.kn-mi-desc :where(p,li,br)::after { content: " "; }
 			.kn-mi-desc :where(img,table,hr) { display: none; }
-			.kn-mi-props { display: grid; grid-template-columns: auto auto; column-gap: 1.5rem; row-gap: 0.75rem; width: max-content; max-width: 100%; box-sizing: border-box; }
+			.kn-mi-props { display: grid; grid-template-columns: 1fr 1fr; column-gap: 1.25rem; row-gap: 0.75rem; width: 100%; box-sizing: border-box; }
+			/* Long strings (emails, phones) wrap inside the cell instead of overflowing. */
+			.kn-mi-props .kn-mi-val { overflow-wrap: anywhere; word-break: break-word; }
 			/* Avatar stack is taller than badges — keep the band from collapsing. */
 			.kn-mi-foot { min-height: 28px; }
 		`;
@@ -250,8 +251,27 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		// The bar lives on <body>, so hide it when navigating away from the
 		// board — otherwise it lingers over the next page (e.g. the form).
 		frappe.router.on("change", () => {
-			if (frappe.get_route()[0] !== "new-kanban") this.update_selection_bar([]);
+			if (frappe.get_route()[0] !== "new-kanban") {
+				this.update_selection_bar([]);
+				// Leaving the page: tear the board down so its realtime subscription
+				// stops reloading a board nobody is looking at. Returning re-mounts it.
+				this.teardown_board();
+			}
 		});
+	}
+
+	/** Destroy the mounted board (drops its realtime subscription) and force a
+	 * fresh mount on return. Called when navigating away from the page. */
+	teardown_board() {
+		if (this.board) {
+			try {
+				this.board.destroy();
+			} catch (e) {
+				// ignore
+			}
+			this.board = null;
+		}
+		this.current_board = null;
 	}
 
 	/** Deselect all cards and hide the selection bar. */
@@ -373,6 +393,9 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			this.setup_meta();
 			this.setup_toolbar();
 			this.mount_board();
+			// Keep the filter UI in step with this board (the group is reused across
+			// same-doctype board switches, so it can hold the previous board's set).
+			this.sync_filter_group_to_board();
 		});
 	}
 
@@ -762,6 +785,33 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		}
 	}
 
+	/**
+	 * Point the (per-doctype) filter group at the current board's filters. The
+	 * filter group is built once per doctype, so switching between two boards of
+	 * the same doctype otherwise leaves the previous board's filters in the UI —
+	 * and opening the popover would then apply them to the new board.
+	 */
+	sync_filter_group_to_board() {
+		if (!this.filter_group) return;
+		const desired = JSON.stringify(this.filters || []);
+		if (JSON.stringify(this.filter_group.get_filters() || []) === desired) {
+			this.sync_filter_ui();
+			return;
+		}
+		// Suppress the on_change → apply_filters reload while we rewrite the group;
+		// mount_board already loads with this board's filters.
+		this._syncing_filters = true;
+		try {
+			this.filter_group.clear_filters();
+			if (this.filters && this.filters.length) {
+				this.filter_group.add_filters_to_filter_group(this.filters);
+			}
+		} finally {
+			this._syncing_filters = false;
+		}
+		this.sync_filter_ui();
+	}
+
 	/** Sync the Filter button label ("Filters N") + the "Not Saved" indicator. */
 	sync_filter_ui() {
 		try {
@@ -783,6 +833,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	}
 
 	apply_filters() {
+		if (this._syncing_filters) return; // programmatic re-sync, not a user edit
 		if (!this.filter_group || !this.provider) return;
 		this.filters = this.filter_group.get_filters();
 		this.sync_filter_ui(); // always keep the button/indicator in sync (no reload)
@@ -1032,23 +1083,26 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	}
 
 	/**
-	 * One field row. When the child row has an Icon, show that icon (label on
-	 * hover) beside the value; otherwise show the label text directly. Empty
-	 * fields with an icon invite a value via "Set {label}…"; with a text label
-	 * they show a dash (the label is already spelled out).
+	 * One field row. Icon rows stay horizontal (icon is narrow). Text-label
+	 * rows stack label above value so long labels never steal value space
+	 * inside the fixed card width. Empty icon rows invite "Set {label}…";
+	 * text-label empties show a dash.
 	 */
 	field_row(card, df) {
 		const label = this.field_label(df);
 		const icon = (this.card_field_icons || {})[df.fieldname];
 		const row = document.createElement("div");
-		row.className = `kn-frow flex items-center ${icon ? "gap-2" : "gap-1"}`;
 
 		if (icon) {
+			row.className = "kn-frow flex items-center gap-2 min-w-0";
 			row.appendChild(this.row_icon(icon, label));
 		} else {
+			// Stacked: full label readable, value gets the whole card width.
+			row.className = "kn-frow flex flex-col gap-0.5 min-w-0";
 			const text = document.createElement("span");
-			text.className = "text-sm text-ink-gray-5 shrink-0 whitespace-nowrap";
-			text.textContent = `${label}:`;
+			text.className = "text-xs text-ink-gray-5 truncate";
+			text.textContent = label;
+			text.title = label;
 			row.appendChild(text);
 		}
 
@@ -1154,6 +1208,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			)}<span class="truncate">${frappe.utils.escape_html(
 				frappe.user_info(val).fullname || val
 			)}</span>`;
+			this.tip_if_long(el, frappe.user_info(val).fullname || val);
 			return el;
 		}
 
@@ -1163,6 +1218,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			// Hover preview: always plain text — more room, less noise.
 			if (opts.plain_select) {
 				el.textContent = __(val);
+				this.tip_if_long(el, __(val));
 				return el;
 			}
 			const style = this.select_style(val);
@@ -1176,6 +1232,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 				});
 			} else {
 				el.textContent = __(val);
+				this.tip_if_long(el, __(val));
 			}
 			return el;
 		}
@@ -1211,18 +1268,24 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			const text = this.plain_text(val, df.fieldtype);
 			if (!text) return null;
 			el.textContent = text;
-			if (text.length > 40) {
-				frappe.ui.tooltip(el, {
-					text: frappe.ellipsis(text, 280),
-					side: "top",
-					delay: 200,
-				});
-			}
+			this.tip_if_long(el, text);
 			return el;
 		}
 
 		el.innerHTML = frappe.format(val, df, { inline: true }, card);
+		// Truncated values still reveal the full string on hover.
+		this.tip_if_long(el, this.plain_text(val, df.fieldtype) || String(val));
 		return el;
+	}
+
+	/** Attach a tooltip when the value is long enough to likely ellipsize. */
+	tip_if_long(el, text) {
+		if (!text || String(text).length <= 28) return;
+		frappe.ui.tooltip(el, {
+			text: frappe.ellipsis(String(text), 280),
+			side: "top",
+			delay: 200,
+		});
 	}
 
 	/**
@@ -1390,8 +1453,8 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			const label = this.preview_field_labels[fn] || __(df.label || df.fieldname);
 			const icon = (this.preview_field_icons || {})[fn];
 			const k = document.createElement("div");
-			// Don't truncate labels here — the hovercard grows with content.
-			k.className = "text-sm text-ink-gray-5 flex items-center gap-1";
+			// Fixed hovercard width — labels can truncate; full name on title.
+			k.className = "text-sm text-ink-gray-5 flex items-center gap-1 min-w-0";
 			if (icon) {
 				// No tooltip — the label sits next to the icon in the preview.
 				const span = document.createElement("span");
@@ -1401,10 +1464,12 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 				k.appendChild(span);
 			}
 			const text = document.createElement("span");
+			text.className = "truncate";
 			text.textContent = label;
+			text.title = label;
 			k.appendChild(text);
 			cell.appendChild(k);
-			value.classList.add("mt-1");
+			value.classList.add("mt-1", "kn-mi-val");
 			value.classList.remove("truncate");
 			cell.appendChild(value);
 			props.appendChild(cell);

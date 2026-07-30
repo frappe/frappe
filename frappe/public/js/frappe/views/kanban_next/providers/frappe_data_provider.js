@@ -151,6 +151,10 @@ export class FrappeDataProvider {
 	async updateOrder(orderByColumn) {
 		await this.call("update_order", {
 			order: JSON.stringify(orderByColumn || {}),
+			// This is an explicit move, so a missing write permission should error
+			// (and roll the UI back) rather than silently no-op like the classic
+			// board's on-load order sync.
+			throw_on_no_write: 1,
 		});
 	}
 
