@@ -2594,7 +2594,13 @@ def orjson_dumps(obj, default=None, option=None, decode=True):
 	else:
 		option = DEFAULT_ORJSON_OPTIONS
 
-	value = orjson.dumps(obj, default, option)
+	try:
+		value = orjson.dumps(obj, default, option)
+	except orjson.JSONEncodeError:
+		# fallback to json.dumps when orjson cannot handle payload
+		# https://github.com/ijl/orjson#json-encoding-error
+		return json.dumps(obj, default=default) if decode else json.dumps(obj, default=default).encode()
+
 	return value.decode() if decode else value
 
 
