@@ -132,6 +132,19 @@ def get_messages_for_boot():
 	return get_all_translations(frappe.local.lang)
 
 
+<<<<<<< HEAD
+=======
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+@http_cache(max_age=31536000)
+def get_boot_translations(lang: str | None = None) -> dict[str, str]:
+	"""Return all translations for the current user's language."""
+	if lang and lang not in get_all_languages():
+		lang = None
+
+	return get_all_translations(lang or frappe.local.lang)
+
+
+>>>>>>> 44f1cd8415 (fix: serve boot translations only for enabled languages (#41362))
 def get_all_translations(lang: str) -> dict[str, str]:
 	"""Load and return the entire translations dictionary for a language from apps + user translations.
 
