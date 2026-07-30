@@ -71,9 +71,9 @@ class KanbanBoard(Document):
 		self._seed_field_table("card_fields", default_card_fieldnames(self.reference_doctype))
 
 	def seed_preview_fields(self):
-		"""Pre-fill the hover-preview fields for a new board — the doctype's
-		preview-popup fields, falling back to mandatory / in-list-view. Empty on
-		old boards, which fall back to the same auto-picking client-side."""
+		"""Pre-fill the hover-preview fields for a new board from the doctype's
+		preview-api fields (`in_preview`, else mandatory). Empty on old boards;
+		runtime then falls back: preview fields → preview api → card fields."""
 		self._seed_field_table("preview_fields", default_preview_fieldnames(self.reference_doctype))
 
 	def _seed_field_table(self, tablefield: str, fieldnames: list[str]):
@@ -145,10 +145,11 @@ def default_card_fieldnames(doctype: str) -> list[str]:
 
 
 def default_preview_fieldnames(doctype: str) -> list[str]:
-	"""Default fields for the hover preview: the doctype's preview-popup fields
-	(`in_preview`), falling back to mandatory, then in-list-view. Skips the
-	title/image (they head the preview) and layout/table/no-value fields.
-	Mirrors the new Kanban board's client-side fallback."""
+	"""Default fields for the hover preview — same source as
+	`frappe.desk.link_preview.get_preview_data`: `in_preview`, else mandatory.
+	Skips title/image (they head the preview) and layout/table/no-value fields.
+	Runtime fallback when the board table is empty: preview fields → these →
+	card fields (see new_kanban.compute_preview_fields)."""
 	from frappe.model import no_value_fields, table_fields
 
 	meta = frappe.get_meta(doctype)
@@ -166,8 +167,6 @@ def default_preview_fieldnames(doctype: str) -> list[str]:
 	fieldnames = [df.fieldname for df in meta.fields if df.in_preview and usable(df)]
 	if not fieldnames:
 		fieldnames = [df.fieldname for df in meta.fields if df.reqd and usable(df)]
-	if not fieldnames:
-		fieldnames = [df.fieldname for df in meta.fields if df.in_list_view and usable(df)]
 	return fieldnames[:6]
 
 

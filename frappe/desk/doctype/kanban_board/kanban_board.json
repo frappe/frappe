@@ -67,7 +67,7 @@
    "options": "Kanban Board Field"
   },
   {
-   "description": "Fields shown in the card hover preview, in order. Icon and Label behave the same as Card Fields. Leave empty to auto-pick.",
+   "description": "Fields shown in the card hover preview, in order. Icon and Label behave the same as Card Fields. Leave empty to use the doctype's preview fields, then card fields.",
    "fieldname": "preview_fields",
    "fieldtype": "Table",
    "label": "Preview Fields",

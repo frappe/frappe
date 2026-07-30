@@ -14,10 +14,10 @@ frappe.ui.form.on("Kanban Board", {
 			});
 		}
 		if (frm.is_new()) return;
-		frm.add_custom_button("Show Board", function () {
+		frm.add_custom_button(__("Show Board"), function () {
 			frappe.set_route("List", frm.doc.reference_doctype, "Kanban", frm.doc.name);
 		});
-		frm.add_custom_button("Open New Kanban", function () {
+		frm.add_custom_button(__("Open New Kanban"), function () {
 			frappe.set_route("new-kanban", frm.doc.name);
 		});
 	},
