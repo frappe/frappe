@@ -106,7 +106,7 @@ frappe.ui.form.PrintView = class {
 	setup_sidebar() {
 		this.sidebar = this.page.sidebar.addClass("print-preview-sidebar");
 
-		this.print_format_selector = this.add_sidebar_item({
+		this.print_format_field = this.add_sidebar_item({
 			fieldtype: "Link",
 			fieldname: "print_format",
 			options: "Print Format",
@@ -120,7 +120,8 @@ frappe.ui.form.PrintView = class {
 				};
 			},
 			change: () => this.refresh_print_format(),
-		}).$input;
+		});
+		this.print_format_selector = this.print_format_field.$input;
 
 		this.language_selector = this.add_sidebar_item({
 			fieldtype: "Link",
@@ -312,7 +313,7 @@ frappe.ui.form.PrintView = class {
 					callback: (r) => {
 						if (r.message) {
 							frappe.set_route("print-format-builder", r.message.name);
-							this.print_format_selector.val(data.print_format_name);
+							this.print_format_field.set_input(data.print_format_name);
 						}
 					},
 				});
@@ -495,15 +496,12 @@ frappe.ui.form.PrintView = class {
 	}
 
 	preview_beta() {
-		let print_format = this.get_print_format();
 		const iframe = this.print_wrapper.find(".preview-beta-wrapper iframe");
 		let params = new URLSearchParams({
 			doctype: this.frm.doc.doctype,
 			name: this.frm.doc.name,
+			print_format: this.selected_format(),
 		});
-		if (print_format.name) {
-			params.append("print_format", print_format.name);
-		}
 		let letterhead = this.get_letterhead();
 		if (letterhead) {
 			params.append("letterhead", letterhead);
@@ -881,7 +879,7 @@ frappe.ui.form.PrintView = class {
 	set_default_print_format() {
 		const default_format =
 			this.frm._layout_print_format || this.frm.meta.default_print_format || "";
-		this.print_format_selector.val(default_format);
+		this.print_format_field.set_input(default_format);
 	}
 
 	selected_format() {
