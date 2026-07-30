@@ -20,4 +20,42 @@ context("Grid Configuration", () => {
 		cy.findByRole("button", { name: "Update" }).click();
 		cy.get('[title="Align Right"').should("be.visible");
 	});
+
+	it("Populates footer parent label options on page load (#20918)", () => {
+		cy.findByRole("tab", { name: "Footer" }).click();
+		cy.window()
+			.its("cur_frm")
+			.then((frm) => {
+				frm.clear_table("footer_items");
+				frm.add_child("footer_items", { label: "Products" });
+				frm.add_child("footer_items", { label: "Phones" });
+				frm.refresh_field("footer_items");
+			});
+		cy.save();
+
+		// reload the page so onload_post_render actually runs; asserting in the
+		// same session would go through the reactive (field-change) path instead
+		// and mask the bug where options stayed empty on a fresh load
+		cy.reload();
+		cy.findByRole("tab", { name: "Footer" }).click();
+		cy.wait(200);
+
+		cy.window()
+			.its("cur_frm")
+			.then((frm) => {
+				let parent_label_field = frm
+					.get_field("footer_items")
+					.grid.docfields.find((df) => df.fieldname === "parent_label");
+				expect(parent_label_field.options).to.include("Products");
+				expect(parent_label_field.options).to.include("Phones");
+			});
+
+		cy.window()
+			.its("cur_frm")
+			.then((frm) => {
+				frm.clear_table("footer_items");
+				frm.refresh_field("footer_items");
+			});
+		cy.save();
+	});
 });
