@@ -90,6 +90,9 @@ export const STUDIO_COMPONENTS = [
 // Matches strings that are entirely wrapped in double curly braces, e.g., "{{ expression }}" (allows whitespace inside)
 export const DYNAMIC_EXPRESSION_REGEX = /^\{\{[\s\S]*\}\}$/
 
+// Matches every {{ ... }} expression in a string and captures its inner contents
+export const DYNAMIC_EXPRESSION_CONTENT_REGEX = /\{\{([\s\S]*?)\}\}/g
+
 // Match a double-quoted string and capture its inner content, including escaped chars.
 // This pattern safely captures the contents of a JSON-style double-quoted string,
 // preserving escaped sequences (e.g. \" or \\n) in the captured group.

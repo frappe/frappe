@@ -71,6 +71,7 @@ declare module 'vue' {
     ListBox: typeof import('./src/components/ListBox.vue')['default']
     LucideActivity: typeof import('~icons/lucide/activity')['default']
     LucideChevronDown: typeof import('~icons/lucide/chevron-down')['default']
+    LucideChevronRight: typeof import('~icons/lucide/chevron-right')['default']
     LucideChevronUp: typeof import('~icons/lucide/chevron-up')['default']
     LucideFlaskConical: typeof import('~icons/lucide/flask-conical')['default']
     LucidePaperclip: typeof import('~icons/lucide/paperclip')['default']
