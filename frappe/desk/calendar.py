@@ -48,6 +48,11 @@ def get_events(doctype, start, end, field_map, filters=None, fields=None):
 	if field_map.color:
 		fields.append(field_map.color)
 
+	valid_columns = doc_meta.get_valid_columns()
+	for key in ("start", "end"):
+		if field_map.get(key) not in valid_columns:
+			frappe.throw(_("{0} is not a valid field of {1}").format(field_map.get(key), doctype))
+
 	dt = frappe.qb.DocType(doctype)
 	start_field = functions.IfNull(dt[field_map.start], ValueWrapper("0001-01-01 00:00:00"))
 	end_field = functions.IfNull(dt[field_map.end], ValueWrapper("2199-12-31 00:00:00"))
