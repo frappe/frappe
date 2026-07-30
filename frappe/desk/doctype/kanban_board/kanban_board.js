@@ -17,7 +17,7 @@ frappe.ui.form.on("Kanban Board", {
 		frm.add_custom_button(__("Show Board"), function () {
 			frappe.set_route("List", frm.doc.reference_doctype, "Kanban", frm.doc.name);
 		});
-		frm.add_custom_button("Open New Kanban", function () {
+		frm.add_custom_button(__("Open New Kanban"), function () {
 			frappe.set_route("new-kanban", frm.doc.name);
 		});
 	},

@@ -144,6 +144,12 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			.kn-frow { min-height: 24px; }
 			.kn-frow.kn-title-row { min-height: 0; margin-bottom: 2px; }
 			.kn-fempty { font-style: italic; }
+			/* Link formatters emit <a> with desk $text-color (ink-gray-8). Match
+			   the muted ink-gray-6 used for Data / plain Select values. */
+			.kn-frow a,
+			.kn-mi-props a { color: inherit; text-decoration: none; }
+			.kn-frow a:hover,
+			.kn-mi-props a:hover { text-decoration: underline; }
 			/* Two-line clamp and the link underline — no utilities for either.
 			   The underline only appears on hover, so a board of cards reads as
 			   plain text until you point at a title. */
@@ -500,8 +506,8 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			if (f.icon) this.card_field_icons[f.fieldname] = f.icon;
 		});
 
-		// Hover-preview fields (configured `preview_fields`, else auto), plus
-		// their label / icon overrides. Same fallback story as the card fields.
+		// Hover-preview fields: configured `preview_fields` → preview-api
+		// (`in_preview`) → card fields. Label / icon overrides from the table.
 		this.preview_field_list = this.compute_preview_fields(meta);
 		this.fields = [...new Set([...this.fields, ...this.preview_field_list])];
 		this.preview_field_labels = {};
@@ -596,20 +602,22 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	}
 
 	/**
-	 * Preview fields to render. Prefer the board's configured `preview_fields`;
-	 * for boards that never set them, mirror the card's fields so the peek stays
-	 * consistent with the card (rather than diverging to a separate auto-pick),
-	 * finally falling back to the in-preview default.
+	 * Preview fields to render, in order:
+	 * 1. Board's configured `preview_fields`
+	 * 2. Doctype preview-api fields (`in_preview`, else mandatory — same as
+	 *    `frappe.desk.link_preview.get_preview_data`)
+	 * 3. Card fields, so the peek still has something when neither is set
 	 */
 	compute_preview_fields(meta) {
 		const configured = (this.board_doc.preview_fields || [])
 			.map((f) => f.fieldname)
 			.filter((fn) => fn && frappe.meta.has_field(this.doctype, fn));
+		const preview_api = this.default_preview_fieldnames(meta);
 		const list = configured.length
 			? configured
-			: this.card_field_list && this.card_field_list.length
-			? this.card_field_list
-			: this.default_preview_fieldnames(meta);
+			: preview_api.length
+			? preview_api
+			: this.card_field_list || [];
 		// Title, image and the group-by field head/own the preview elsewhere.
 		return list.filter(
 			(fn) =>
@@ -620,7 +628,11 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		);
 	}
 
-	/** Auto-pick preview fields: in-preview → mandatory → in-list-view. */
+	/**
+	 * Preview-api fieldnames for the doctype: `in_preview`, else mandatory.
+	 * Mirrors `frappe.desk.link_preview.get_preview_data` (without title/image,
+	 * which the hover card renders in the header).
+	 */
 	default_preview_fieldnames(meta) {
 		const skip = new Set([this.title_field, this.image_field, "name"]);
 		const usable = (df) =>
@@ -630,7 +642,6 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			!skip.has(df.fieldname);
 		let dfs = meta.fields.filter((df) => df.in_preview && usable(df));
 		if (!dfs.length) dfs = meta.fields.filter((df) => df.reqd && usable(df));
-		if (!dfs.length) dfs = meta.fields.filter((df) => df.in_list_view && usable(df));
 		return dfs.map((df) => df.fieldname).slice(0, 6);
 	}
 
@@ -1134,19 +1145,25 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		}
 
 		if (df.fieldtype === "Select") {
-			// Card: badge. Hover preview: plain text — more room, less noise.
+			// Card: badge only when we have a known icon (priority/status). Other
+			// Select values stay plain muted text so they match Link/Data rows.
+			// Hover preview: always plain text — more room, less noise.
 			if (opts.plain_select) {
 				el.textContent = __(val);
 				return el;
 			}
 			const style = this.select_style(val);
-			el.className = "min-w-0";
-			el.innerHTML = frappe.ui.badge.html({
-				label: __(val),
-				size: "md",
-				theme: style.theme,
-				icon: style.icon,
-			});
+			if (style.icon) {
+				el.className = "min-w-0";
+				el.innerHTML = frappe.ui.badge.html({
+					label: __(val),
+					size: "sm",
+					theme: style.theme,
+					icon: style.icon,
+				});
+			} else {
+				el.textContent = __(val);
+			}
 			return el;
 		}
 
