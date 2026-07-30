@@ -123,6 +123,7 @@ permission_query_conditions = {
 	"File": "frappe.core.doctype.file.file.get_permission_query_conditions",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.get_permission_query_conditions",
 	"Document Template": "frappe.desk.doctype.document_template.document_template.get_permission_query_conditions",
+	"Tag Link": "frappe.desk.doctype.tag_link.tag_link.get_permission_query_conditions",
 }
 
 has_permission = {
