@@ -92,7 +92,7 @@ def setup_complete(args: str | dict[str, Any]):
 
 
 @frappe.whitelist(methods=["POST"])
-def complete_setup(
+def complete_app_setup(
 	country: str | None = None,
 	currency: str | None = None,
 	timezone: str | None = None,
