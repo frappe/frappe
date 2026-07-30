@@ -12,7 +12,12 @@ import frappe
 from frappe import _, is_whitelisted, msgprint
 from frappe.core.doctype.file.utils import relink_mismatched_files
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
+<<<<<<< HEAD
 from frappe.desk.form.document_follow import follow_document
+=======
+from frappe.database.utils import commit_after_response
+from frappe.desk.form.document_follow import _follow_document
+>>>>>>> 452d71b308 (fix: scope follow and unfollow endpoints to the session user (#41368))
 from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.model import optional_fields, table_fields
 from frappe.model.base_document import BaseDocument, get_controller
@@ -344,7 +349,7 @@ class Document(BaseDocument):
 
 		if not (frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard):
 			if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):
-				follow_document(self.doctype, self.name, frappe.session.user)
+				_follow_document(self.doctype, self.name, frappe.session.user)
 		return self
 
 	def check_if_locked(self):
