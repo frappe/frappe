@@ -13,8 +13,12 @@
   "column_break_4",
   "private",
   "show_labels",
+  "title_field",
+  "image_field",
   "section_break_3",
   "columns",
+  "card_fields",
+  "preview_fields",
   "filters",
   "fields"
  ],
@@ -51,6 +55,20 @@
    "options": "Kanban Board Column"
   },
   {
+   "description": "Fields shown on each card in the new Kanban board, in order. Leave empty to auto-pick.",
+   "fieldname": "card_fields",
+   "fieldtype": "Table",
+   "label": "Card Fields",
+   "options": "Kanban Board Field"
+  },
+  {
+   "description": "Fields shown in the card's hover preview, in order. Leave empty to auto-pick.",
+   "fieldname": "preview_fields",
+   "fieldtype": "Table",
+   "label": "Preview Fields",
+   "options": "Kanban Board Field"
+  },
+  {
    "fieldname": "filters",
    "fieldtype": "Code",
    "label": "Filters",
@@ -77,10 +95,22 @@
   },
   {
    "default": "0",
+   "description": "Show each card field as \"Label: value\". When off, the new Kanban shows an icon per field instead (hover an icon for its label) and the classic Kanban shows the value alone.",
    "fieldname": "show_labels",
    "fieldtype": "Check",
-   "label": "Show Labels",
-   "read_only": 1
+   "label": "Show Labels"
+  },
+  {
+   "description": "Field shown as the card title. Only Name (ID) or Data fields. Leave empty on older boards to use the doctype's title field.",
+   "fieldname": "title_field",
+   "fieldtype": "Autocomplete",
+   "label": "Title Field"
+  },
+  {
+   "description": "Attach Image field shown as a thumbnail before the card title. Leave empty to use the doctype's image field, or hide the thumb when none exists.",
+   "fieldname": "image_field",
+   "fieldtype": "Autocomplete",
+   "label": "Image Field"
   }
  ],
  "links": [],

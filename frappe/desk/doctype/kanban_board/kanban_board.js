@@ -6,9 +6,19 @@ frappe.ui.form.on("Kanban Board", {
 		frm.trigger("reference_doctype");
 	},
 	refresh: function (frm) {
+		// The grid may not have had its docfields ready during onload.
+		if (frm.doc.reference_doctype) {
+			frappe.model.with_doctype(frm.doc.reference_doctype, () => {
+				set_card_field_options(frm);
+				set_title_image_field_options(frm);
+			});
+		}
 		if (frm.is_new()) return;
 		frm.add_custom_button("Show Board", function () {
 			frappe.set_route("List", frm.doc.reference_doctype, "Kanban", frm.doc.name);
+		});
+		frm.add_custom_button("Open New Kanban", function () {
+			frappe.set_route("new-kanban", frm.doc.name);
 		});
 	},
 	reference_doctype: function (frm) {
@@ -20,7 +30,7 @@ frappe.ui.form.on("Kanban Board", {
 				if (
 					d.fieldname &&
 					d.fieldtype === "Select" &&
-					frappe.model.no_value_type.indexOf(d.fieldtype) === -1
+					!frappe.model.no_value_type.includes(d.fieldtype)
 				) {
 					return d.fieldname;
 				}
@@ -28,6 +38,11 @@ frappe.ui.form.on("Kanban Board", {
 			});
 			frm.set_df_property("field_name", "options", options);
 			frm.get_field("field_name").refresh();
+			set_card_field_options(frm);
+			set_title_image_field_options(frm);
+			if (frm.is_new()) {
+				seed_title_and_image_fields(frm);
+			}
 		});
 	},
 	field_name: function (frm) {
@@ -43,3 +58,123 @@ frappe.ui.form.on("Kanban Board", {
 		frm.refresh();
 	},
 });
+
+frappe.ui.form.on("Kanban Board Field", {
+	fieldname: function (frm, cdt, cdn) {
+		// Autofill the label from the selected field; the user can still edit it.
+		var row = locals[cdt][cdn];
+		if (!row.fieldname || !frm.doc.reference_doctype) return;
+		var df = frappe.meta.get_docfield(frm.doc.reference_doctype, row.fieldname);
+		frappe.model.set_value(cdt, cdn, "label", df ? __(df.label) : row.fieldname);
+	},
+});
+
+/**
+ * Fill the Card Fields and Preview Fields grids' autocomplete with the reference
+ * doctype's fields. Value = fieldname (what is stored), label = field label,
+ * description = fieldname, so the dropdown reads like the field picker elsewhere
+ * in desk.
+ */
+function set_card_field_options(frm) {
+	if (!frm.doc.reference_doctype) return;
+
+	var options = frappe
+		.get_meta(frm.doc.reference_doctype)
+		.fields.filter(function (df) {
+			return (
+				df.fieldname &&
+				frappe.model.is_value_type(df.fieldtype) &&
+				!df.hidden &&
+				df.fieldtype !== "Password"
+			);
+		})
+		.map(function (df) {
+			return {
+				value: df.fieldname,
+				label: __(df.label) || df.fieldname,
+				description: df.fieldname,
+			};
+		});
+
+	["card_fields", "preview_fields"].forEach(function (tablefield) {
+		var grid = frm.fields_dict[tablefield] && frm.fields_dict[tablefield].grid;
+		if (!grid || !grid.docfields) return;
+		// update_docfield_property also patches already-rendered rows, so the
+		// options land on existing rows and on rows added afterwards.
+		grid.update_docfield_property("fieldname", "options", options);
+		grid.refresh();
+	});
+}
+
+/**
+ * Title Field: name (ID) + Data fields only.
+ * Image Field: Attach Image fields only.
+ */
+function set_title_image_field_options(frm) {
+	if (!frm.doc.reference_doctype) return;
+
+	var meta = frappe.get_meta(frm.doc.reference_doctype);
+	var to_option = function (df) {
+		return {
+			value: df.fieldname,
+			label: __(df.label) || df.fieldname,
+			description: df.fieldname,
+		};
+	};
+	var title_options = [
+		{
+			value: "name",
+			label: __("ID"),
+			description: "name",
+		},
+	].concat(
+		meta.fields
+			.filter(function (df) {
+				return df.fieldname && df.fieldtype === "Data" && !df.hidden;
+			})
+			.map(to_option)
+	);
+
+	var image_options = meta.fields
+		.filter(function (df) {
+			return df.fieldname && df.fieldtype === "Attach Image" && !df.hidden;
+		})
+		.map(to_option);
+
+	frm.set_df_property("title_field", "options", title_options);
+	frm.set_df_property("image_field", "options", image_options);
+	frm.get_field("title_field") && frm.get_field("title_field").set_data(title_options);
+	frm.get_field("image_field") && frm.get_field("image_field").set_data(image_options);
+}
+
+/** Mirror server before_insert defaults so a new form shows title/image already picked. */
+function seed_title_and_image_fields(frm) {
+	var meta = frappe.get_meta(frm.doc.reference_doctype);
+	if (!frm.doc.title_field) {
+		var title = null;
+		if (meta.title_field) {
+			var tdf = meta.fields.find(function (df) {
+				return df.fieldname === meta.title_field;
+			});
+			if (tdf && tdf.fieldtype === "Data" && !tdf.hidden) title = meta.title_field;
+		}
+		if (!title) {
+			var data = meta.fields.find(function (df) {
+				return df.fieldtype === "Data" && df.fieldname && !df.hidden;
+			});
+			title = data ? data.fieldname : "name";
+		}
+		frm.set_value("title_field", title);
+	}
+	if (!frm.doc.image_field) {
+		var image =
+			meta.image_field ||
+			(
+				meta.fields.find(function (df) {
+					return df.fieldtype === "Attach Image" && df.fieldname && !df.hidden;
+				}) || {}
+			).fieldname ||
+			"";
+		if (image) frm.set_value("image_field", image);
+	}
+}

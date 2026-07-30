@@ -179,6 +179,9 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			this.board.filters_array = JSON.parse(this.board.filters || "[]");
 			this.board.fields = JSON.parse(this.board.fields || "[]");
 			this.filters = this.board.filters_array;
+			// Re-resolve after the board loads so title_field / image_field apply.
+			this.card_meta = this.get_card_meta();
+			this.image_field = this.resolve_image_field();
 		});
 	}
 
@@ -429,8 +432,8 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				if (fieldname) this._add_field(fieldname);
 			});
 		}
-		// Optional: image and color if doctype has them
-		if (this.meta.image_field) this._add_field(this.meta.image_field);
+		// Optional: image and color if the board / doctype has them
+		if (this.image_field) this._add_field(this.image_field);
 		if (frappe.meta.has_field(this.doctype, "color")) this._add_field("color");
 	}
 
@@ -516,19 +519,23 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		var title_field = null;
 		var quick_entry = false;
 
-		if (this.meta.title_field) {
-			title_field = frappe.meta.get_field(this.doctype, this.meta.title_field);
+		// Prefer the board's configured title (name or Data); fall back for old boards.
+		const board_title = this.board && this.board.title_field;
+		if (board_title === "name") {
+			title_field = frappe.meta.get_field(this.doctype, "name");
+		} else if (board_title) {
+			const df = frappe.meta.get_field(this.doctype, board_title);
+			if (df && df.fieldtype === "Data" && !df.hidden) title_field = df;
 		}
 
-		this.meta.fields.forEach((df) => {
-			const is_valid_field =
-				["Data", "Text", "Small Text", "Text Editor"].includes(df.fieldtype) && !df.hidden;
+		if (!title_field && this.meta.title_field) {
+			const df = frappe.meta.get_field(this.doctype, this.meta.title_field);
+			if (df && df.fieldtype === "Data" && !df.hidden) title_field = df;
+		}
 
-			if (is_valid_field && !title_field) {
-				// can be mapped to textarea
-				title_field = df;
-			}
-		});
+		if (!title_field) {
+			title_field = this.meta.fields.find((df) => df.fieldtype === "Data" && !df.hidden);
+		}
 
 		// quick entry
 		var mandatory = meta.fields.filter((df) => df.reqd && !doc[df.fieldname]);
@@ -544,10 +551,29 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			title_field = frappe.meta.get_field(this.doctype, "name");
 		}
 
-		return {
-			quick_entry: quick_entry,
-			title_field: title_field,
+		return { quick_entry, title_field };
+	}
+
+	/**
+	 * Board image_field when Attach Image; else doctype image_field.
+	 * Used by card rendering and field fetching.
+	 */
+	resolve_image_field() {
+		const is_image = (fn) => {
+			if (!fn) return null;
+			const df = frappe.meta.get_field(this.doctype, fn);
+			return df && df.fieldtype === "Attach Image" && !df.hidden ? fn : null;
 		};
+		return (
+			is_image(this.board && this.board.image_field) ||
+			is_image(this.meta.image_field) ||
+			null
+		);
+	}
+
+	get_image_url(doc) {
+		const field = this.image_field || this.meta.image_field;
+		return (field && doc && doc[field]) || null;
 	}
 
 	get_view_settings() {
