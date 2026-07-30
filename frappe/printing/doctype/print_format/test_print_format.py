@@ -390,6 +390,13 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertEqual(doc.print_format_builder_beta, 0)
 		self.assertFalse(uses_beta_renderer(doc))
 
+		# rows flipped before the before_save fix are still in the wild — the flag
+		# alone must not route a layout-less standard format to the beta renderer
+		doc.print_format_builder_beta = 1
+		self.assertFalse(uses_beta_renderer(doc))
+		doc.format_data = '{"sections": []}'
+		self.assertTrue(uses_beta_renderer(doc))
+
 	def test_convert_print_format_document(self):
 		from frappe.printing.doctype.print_format.classic_converter import convert_print_format
 

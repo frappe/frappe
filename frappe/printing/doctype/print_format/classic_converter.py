@@ -34,7 +34,9 @@ def uses_beta_renderer(print_format) -> bool:
 	if print_format.get("custom_format") or print_format.get("raw_printing"):
 		return False
 	if print_format.get("print_format_builder_beta"):
-		return True
+		# a standard format with no layout is a file-based Jinja format whose
+		# flag was set wrongly on insert — the beta renderer has nothing to draw
+		return print_format.get("standard") != "Yes" or bool(print_format.get("format_data"))
 	return is_classic_layout(print_format.get("format_data"))
 
 
