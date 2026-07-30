@@ -1533,7 +1533,7 @@ if (frappe.views.KanbanView) {
 		return {
 			doctype: state.doctype,
 			name: card.name,
-			title: card[state.card_meta.title_field.fieldname],
+			title: card[state.card_meta.title_field.fieldname] || card.name,
 			creation: moment(card.creation).format("MMM DD, YYYY"),
 			_liked_by: card._liked_by,
 			image: card[cur_list.meta.image_field],
