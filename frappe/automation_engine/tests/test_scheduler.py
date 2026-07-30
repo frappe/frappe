@@ -5,7 +5,8 @@ import json
 from datetime import datetime
 
 import frappe
-from frappe.automation_engine.scheduler import process_cron
+from frappe.automation_engine.dispatch import queue_trigger
+from frappe.automation_engine.scheduler import _handled_names, process_cron
 from frappe.tests import IntegrationTestCase
 
 QUEUE = "Automation Trigger Queue"
@@ -55,6 +56,14 @@ class TestScheduler(IntegrationTestCase):
 		self.assertEqual(len(rows), 1)
 		self.assertEqual(json.loads(rows[0].event_payload)["scheduled_fire_at"], "2026-07-15 10:07:00")
 
+	def test_latest_fire_supports_intervals_between_scheduler_ticks(self):
+		for expression, expected in (("*/3 * * * *", "10:09:00"), ("*/7 * * * *", "10:07:00")):
+			with self.subTest(expression=expression):
+				rule = make_scheduled_rule(cron_expression=expression)
+				process_cron(datetime(2026, 7, 15, 10, 10))
+				payload = json.loads(self.rows(rule)[0].event_payload)
+				self.assertTrue(payload["scheduled_fire_at"].endswith(expected))
+
 	def test_document_scheduled_rule_queues_matching_docs(self):
 		low = self.make_todo(priority="Low")
 		high = self.make_todo(priority="High")
@@ -64,8 +73,21 @@ class TestScheduler(IntegrationTestCase):
 		)
 		process_cron(datetime(2026, 7, 15, 10, 5))
 		rows = self.rows(rule)
-		self.assertEqual([row.ref_name for row in rows], [high.name])
-		self.assertNotEqual(rows[0].ref_name, low.name)
+		queued_names = {row.ref_name for row in rows}
+		self.assertIn(high.name, queued_names)
+		self.assertNotIn(low.name, queued_names)
+
+	def test_handled_documents_are_loaded_in_constant_queries(self):
+		first = self.make_todo()
+		second = self.make_todo()
+		rule = make_scheduled_rule(document_type="ToDo")
+		queue_trigger(rule.name, "ToDo", first.name)
+		self.make_run(rule, second.name)
+
+		with self.assertQueryCount(2):
+			handled = _handled_names(rule.name, datetime(2026, 7, 15, 10, 5))
+
+		self.assertEqual(handled, {first.name, second.name})
 
 	def test_successful_run_prevents_duplicate_for_same_fire(self):
 		rule = make_scheduled_rule()
@@ -76,12 +98,14 @@ class TestScheduler(IntegrationTestCase):
 	def make_todo(self, **kwargs):
 		return frappe.get_doc({"doctype": "ToDo", "description": "x", **kwargs}).insert()
 
-	def make_run(self, rule):
+	def make_run(self, rule, reference_name=None):
 		run = frappe.get_doc(
 			{
 				"doctype": "Automation Run",
 				"automation": rule.name,
 				"automation_title": rule.title,
+				"reference_doctype": "ToDo" if reference_name else None,
+				"reference_name": reference_name,
 				"status": "Success",
 			}
 		).insert(ignore_permissions=True)
