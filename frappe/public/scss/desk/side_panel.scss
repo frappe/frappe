@@ -13,6 +13,7 @@ $side-panel-width: 480px;
 	flex-direction: column;
 	background-color: var(--surface-base);
 	border-left: 1px solid var(--outline-gray-2);
+	box-shadow: var(--shadow-sm);
 	outline: none;
 	// Below #freeze (1020) so the panel dims with the page; the row-edit popup itself is
 	// teleported to <body> (side_panel.js) so it still beats freeze despite this.
@@ -102,6 +103,7 @@ $side-panel-width: 480px;
 		}
 
 		.form-tabs-list {
+			top: 0;
 			margin: 0 var(--padding-md);
 
 			.form-tabs .nav-item:first-child .nav-link {
@@ -115,8 +117,6 @@ $side-panel-width: 480px;
 	}
 }
 
-// A sibling of .side-panel-preview so the grip can straddle its border. `right` is kept
-// in sync with the panel width in JS.
 .side-panel-resize-handle {
 	position: fixed;
 	top: var(--navbar-height, 0px);

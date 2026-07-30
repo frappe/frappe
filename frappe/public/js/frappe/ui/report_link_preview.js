@@ -29,8 +29,15 @@ Object.assign(frappe.ui.report_link_preview, {
 			side_panel.open({
 				title: name,
 				doctype: __(doctype),
-				render: (body_el, { set_header }) =>
-					frappe.ui.render_side_panel_form_preview(body_el, doctype, name, set_header),
+				render: (body_el, { set_header, previous, is_current }) =>
+					frappe.ui.render_side_panel_form_preview(
+						body_el,
+						doctype,
+						name,
+						set_header,
+						previous,
+						is_current
+					),
 				on_open_full_page: () => {
 					side_panel.close();
 					frappe.set_route("Form", doctype, name);

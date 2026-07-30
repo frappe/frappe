@@ -1,9 +1,4 @@
 frappe.provide("frappe.ui");
-
-// Generic right-hand slide-over panel; content comes from a `render(body_el, { set_header })`
-// callback passed to `open()`. A renderer can call `set_header({ title, indicator })`
-// once it knows the real title/status (`indicator` is a `[label, color]` pair, same
-// shape as `frappe.get_indicator()`).
 frappe.ui.SidePanel = class SidePanel {
 	constructor({ parent, width_storage_key = "side_panel_width" } = {}) {
 		this.parent = parent;
@@ -33,14 +28,14 @@ frappe.ui.SidePanel = class SidePanel {
 						${frappe.ui.button.html({
 							icon: "arrow-up-right",
 							variant: "ghost",
-							size: "xs",
+							size: "sm",
 							title: __("Open full page"),
 							css_class: "side-panel-open-full",
 						})}
 						${frappe.ui.button.html({
 							icon: "x",
 							variant: "ghost",
-							size: "xs",
+							size: "sm",
 							title: __("Close"),
 							css_class: "side-panel-close",
 						})}
@@ -120,7 +115,7 @@ frappe.ui.SidePanel = class SidePanel {
 	}
 
 	setup_resize() {
-		const $handle = this.$resize_handle;
+		const handle_el = this.$resize_handle.get(0);
 		let start_x = 0;
 		let start_width = 0;
 
@@ -131,20 +126,26 @@ frappe.ui.SidePanel = class SidePanel {
 			this.set_width(width);
 		};
 
-		const on_up = () => {
-			$(document).off("mousemove", on_move).off("mouseup", on_up);
+		const on_up = (e) => {
+			handle_el.releasePointerCapture(e.pointerId);
+			handle_el.removeEventListener("pointermove", on_move);
+			handle_el.removeEventListener("pointerup", on_up);
+			handle_el.removeEventListener("pointercancel", on_up);
 			this.$panel.removeClass("side-panel-resizing");
-			$handle.removeClass("side-panel-resizing");
+			this.$resize_handle.removeClass("side-panel-resizing");
 			this.save_width(this.$panel.width());
 		};
 
-		$handle.on("mousedown", (e) => {
+		handle_el.addEventListener("pointerdown", (e) => {
 			e.preventDefault();
 			start_x = e.clientX;
 			start_width = this.$panel.width();
 			this.$panel.addClass("side-panel-resizing");
-			$handle.addClass("side-panel-resizing");
-			$(document).on("mousemove", on_move).on("mouseup", on_up);
+			this.$resize_handle.addClass("side-panel-resizing");
+			handle_el.setPointerCapture(e.pointerId);
+			handle_el.addEventListener("pointermove", on_move);
+			handle_el.addEventListener("pointerup", on_up);
+			handle_el.addEventListener("pointercancel", on_up);
 		});
 	}
 
@@ -160,8 +161,14 @@ frappe.ui.SidePanel = class SidePanel {
 		localStorage.setItem(this.width_storage_key, Math.round(width));
 	}
 
+	restore_all_teleported_popups() {
+		for (const grid_row_el of Array.from(this.teleported.keys())) {
+			this.restore_popup(grid_row_el);
+		}
+	}
+
 	open({ title, doctype, render, on_open_full_page }) {
-		this.close();
+		this.restore_all_teleported_popups();
 
 		this.$doctype.text(doctype || "").attr("title", doctype || "");
 		this.$title.text(title || "").attr("title", title || "");
@@ -175,12 +182,12 @@ frappe.ui.SidePanel = class SidePanel {
 		this.$resize_handle.removeClass("hidden");
 		this.bind_escape();
 
-		// Guards a stale render's teardown/set_header from firing after a newer open().
 		this.open_id = (this.open_id || 0) + 1;
 		const my_open_id = this.open_id;
-		this.rendered = null;
+		const previous = this.rendered;
+		const is_current = () => this.is_open && this.open_id === my_open_id;
 		const set_header = ({ title, indicator } = {}) => {
-			if (this.open_id !== my_open_id) return;
+			if (!is_current()) return;
 			if (title) this.$title.text(title).attr("title", title);
 			this.$indicator.empty();
 			if (indicator) {
@@ -188,9 +195,9 @@ frappe.ui.SidePanel = class SidePanel {
 				this.$indicator.append(frappe.ui.badge.html({ label, theme: color, size: "sm" }));
 			}
 		};
-		const result = render && render(this.$body.get(0), { set_header });
+		const result = render && render(this.$body.get(0), { set_header, previous, is_current });
 		Promise.resolve(result).then((value) => {
-			if (this.open_id === my_open_id) this.rendered = value;
+			if (is_current()) this.rendered = value;
 		});
 	}
 
@@ -203,15 +210,14 @@ frappe.ui.SidePanel = class SidePanel {
 			this.rendered.side_panel_on_close();
 		}
 		this.rendered = null;
-		for (const grid_row_el of Array.from(this.teleported.keys())) {
-			this.restore_popup(grid_row_el);
-		}
+		this.restore_all_teleported_popups();
 		this.$body.empty();
 		this.on_open_full_page = null;
 		this.unbind_escape();
 	}
 
 	bind_escape() {
+		if (this.escape_handler) return; // open() no longer implies a fresh bind each time
 		this.escape_handler = (e) => {
 			if (e.key !== "Escape") return;
 			// keyboard.js closes an open row-edit popup on this same keypress; defer to it.
