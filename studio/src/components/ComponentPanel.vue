@@ -59,14 +59,13 @@
 									class="absolute -top-1.5 h-3 w-3 -translate-x-1/2 rotate-45 border-l border-t border-outline-gray-2 bg-surface-base"
 									:style="{ left: section.caretLeft }"
 								/>
-								<div class="mb-3 flex items-center justify-between">
-									<span class="text-sm font-medium tracking-wide text-ink-gray-5">
-										{{ expandedPrimary?.title }} Components
-									</span>
-									<Button icon="lucide-x" variant="ghost" size="sm" @click="expandedFamily = null" />
-								</div>
-								<div class="grid grid-cols-3 items-start gap-x-2 gap-y-4">
-									<ComponentTile v-for="part in expandedParts" :key="part.name" :component="part" />
+								<div class="grid grid-cols-3 items-start gap-x-2 gap-y-2">
+									<ComponentTile
+										v-for="(part, partIndex) in expandedParts"
+										:key="part.name"
+										:component="part"
+										:compact-label="isLastTrayRow(partIndex)"
+									/>
 								</div>
 							</div>
 						</template>
@@ -164,7 +163,6 @@ import { computed, ref, watch, nextTick } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { Dropdown, FeatherIcon, Tooltip, Button } from "frappe-ui"
 import LucideFlaskConical from "~icons/lucide/flask-conical"
-import LucideX from "~icons/lucide/x"
 import OptionToggle from "@/components/OptionToggle.vue"
 import Input from "@/components/Input.vue"
 import EmptyState from "@/components/EmptyState.vue"
@@ -265,6 +263,11 @@ const sections = computed(() =>
 const partsFor = (component: FrappeUIComponent) => components.getParts(component.name)
 const expandedPrimary = computed(() => (expandedFamily.value ? components.get(expandedFamily.value) : null))
 const expandedParts = computed(() => (expandedPrimary.value ? partsFor(expandedPrimary.value) : []))
+
+// Tiles in the tray's last row skip the 2-line label reserve so the tray doesn't leave a
+// blank line below its final row; the reserve still evens out the rows above it.
+const isLastTrayRow = (index: number) =>
+	Math.floor(index / GRID_COLUMNS) === Math.floor((expandedParts.value.length - 1) / GRID_COLUMNS)
 
 const activeTab = computed(() => store.studioLayout.leftPanelComponentTab)
 

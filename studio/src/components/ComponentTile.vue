@@ -20,8 +20,12 @@
 				<component :is="component.icon" class="h-6 w-6" />
 			</div>
 		</div>
+		<!-- reserve two lines so a wrapping label doesn't make its tile (and thus its whole
+		     grid row) taller than its neighbours — keeps grid rows even. `compactLabel` opts
+		     out (e.g. the parts tray) so the tile sizes to its content instead. -->
 		<span
-			class="line-clamp-2 min-h-[2lh] w-full text-balance text-center text-xs leading-normal"
+			class="line-clamp-2 w-full text-balance text-center text-xs leading-normal"
+			:class="{ 'min-h-[2lh]': !compactLabel }"
 			:title="component.title"
 		>
 			{{ component.title }}
@@ -32,6 +36,6 @@
 <script setup lang="ts">
 import type { FrappeUIComponent } from "@/types"
 
-defineProps<{ component: FrappeUIComponent; stacked?: boolean; expanded?: boolean }>()
+defineProps<{ component: FrappeUIComponent; stacked?: boolean; expanded?: boolean; compactLabel?: boolean }>()
 const emit = defineEmits<{ (e: "click"): void }>()
 </script>
