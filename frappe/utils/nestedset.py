@@ -165,6 +165,7 @@ def update_move_node(doc: Document, parent_field: str):
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def rebuild_tree(doctype, parent_field=None):
 	"""Call rebuild_node for all root nodes.
 
@@ -175,6 +176,16 @@ def rebuild_tree(doctype, parent_field=None):
 	if frappe.request and frappe.local.form_dict.cmd == "rebuild_tree":
 		frappe.only_for("System Manager")
 
+=======
+def rebuild_tree_for_doctype(doctype: str) -> None:
+	"""Rebuild the nested set of a tree doctype on request."""
+	frappe.only_for("System Manager")
+	rebuild_tree(doctype)
+
+
+def rebuild_tree(doctype: str) -> None:
+	"""Call rebuild_node for all root nodes."""
+>>>>>>> 53809f5 (fix: gate tree rebuild and user permission reads behind dedicated endpoints (#41416))
 	meta = frappe.get_meta(doctype)
 	if not meta.has_field("lft") or not meta.has_field("rgt"):
 		frappe.throw(
