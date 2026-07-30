@@ -115,6 +115,27 @@ class TestRecorder(IntegrationTestCase):
 		request = frappe.get_doc("Recorder", frappe.get_all("Recorder")[0].name)
 		self.assertEqual(len(request.timeline), 0)
 
+	def test_timeline_attributes_server_scripts_and_webhooks(self):
+		# run_method also runs DocType Event server scripts and webhooks; both should be
+		# attributed in the timeline, not just app doc_events hooks.
+		from frappe.recorder import _doc_event_contributors
+
+		frappe.client_cache.set_value("server_script_map", {"ToDo": {"Before Save": ["Demo Script"]}})
+		frappe.client_cache.set_value(
+			"webhooks", {"ToDo": [frappe._dict(name="Demo Webhook", webhook_docevent="on_update")]}
+		)
+		try:
+			apps, handlers = _doc_event_contributors("ToDo", "validate")  # -> "Before Save"
+			self.assertIn("server_script", apps)
+			self.assertIn("Server Script: Demo Script", handlers)
+
+			apps, handlers = _doc_event_contributors("ToDo", "on_update")
+			self.assertIn("webhook", apps)
+			self.assertIn("Webhook: Demo Webhook", handlers)
+		finally:
+			frappe.client_cache.delete_value("server_script_map")
+			frappe.client_cache.delete_value("webhooks")
+
 
 class TestQueryOptimization(IntegrationTestCase):
 	@run_only_if(db_type_is.MARIADB)
