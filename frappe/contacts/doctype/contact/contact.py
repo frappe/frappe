@@ -515,7 +515,6 @@ def get_contact_display_list(doctype: str, name: str) -> list[dict]:
 
 		if contact.address and frappe.has_permission("Address", "read"):
 			address = frappe.get_doc("Address", contact.address)
-			contact["address_name"] = address.name
 			contact["address"] = get_condensed_address(address)
 
 	return contact_list

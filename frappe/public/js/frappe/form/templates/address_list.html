@@ -8,7 +8,7 @@
 		{%= frappe.ui.button.html({ icon: "ellipsis", variant: "ghost", size: "sm", title: __("Options"), css_class: "card-menu-btn" }) %}
 		<div class="box-header flex items-center flex-wrap gap-2">
 			<span class="text-base-semibold text-ink-gray-8">{%= addr.address_title %}</span>
-			{% if (addr.is_primary_address) { %}
+			{% if (addr.name === primary_name) { %}
 				{%= frappe.ui.badge.html({ label: __("Primary"), theme: "blue" }) %}
 			{% } %}
 		</div>

@@ -185,10 +185,11 @@ select.form-control {
 
 		.box-header {
 			padding-inline-end: 1.5rem;
-			margin-bottom: var(--margin-xs);
+			margin-bottom: var(--margin-sm);
 		}
 
 		.box-subtitle {
+			margin-top: calc(-1 * var(--margin-xs));
 			margin-bottom: var(--margin-sm);
 		}
 
@@ -199,8 +200,9 @@ select.form-control {
 		}
 	}
 
+	.address-box p,
 	.contact-box p {
-		line-height: 1.1;
+		line-height: 1.4;
 	}
 
 	.contact-box .contact-line {

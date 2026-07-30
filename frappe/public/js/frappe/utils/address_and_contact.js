@@ -31,18 +31,20 @@ $.extend(frappe.contacts, {
 			const field_wrapper = frm.fields_dict[section.field]?.wrapper;
 			if (!field_wrapper || !frm.doc.__onload || !(section.data in frm.doc.__onload)) continue;
 
+			const records = frm.doc.__onload[section.data] || [];
+			const primary_name = get_primary_name(frm, section, records);
+
 			const $wrapper = $(field_wrapper).html(
-				frappe.render_template(section.template, frm.doc.__onload)
+				frappe.render_template(section.template, { ...frm.doc.__onload, primary_name })
 			);
 			$wrapper.find(section.btn).on("click", () => new_record(section.doctype, frm));
-			const records = frm.doc.__onload[section.data] || [];
 			const by_name = Object.fromEntries(records.map((r) => [r.name, r]));
 			$wrapper.find(".card-menu-btn").each(function () {
 				const record = by_name[this.closest("[data-name]")?.dataset.name];
 				if (!record) return;
 				new frappe.ui.Dropdown({
 					trigger: this,
-					options: card_menu(frm, section, record, records),
+					options: card_menu(frm, section, record, primary_name),
 					align: "end",
 				});
 			});
@@ -111,7 +113,7 @@ function new_record(doctype, frm) {
 	}
 }
 
-function card_menu(frm, section, record, records) {
+function card_menu(frm, section, record, primary_name) {
 	const { doctype } = section;
 	return [
 		{
@@ -122,8 +124,13 @@ function card_menu(frm, section, record, records) {
 		{
 			label: __("Set as Primary"),
 			icon: "star",
-			condition: () => !record[section.primary_flag],
-			onclick: () => set_primary(frm, section, record, records),
+			condition: () => record.name !== primary_name,
+			onclick: () => set_primary(frm, section, record),
+		},
+		{
+			label: __("Unlink from {0}", [__(frm.doctype)]),
+			icon: "unlink",
+			onclick: () => delink_record(frm, doctype, record.name),
 		},
 		{
 			label: __("Delete"),
@@ -140,21 +147,45 @@ function get_primary_field(frm, doctype) {
 	)?.fieldname;
 }
 
-function set_primary(frm, section, record, records) {
-	const { doctype, primary_flag } = section;
-	const primary_field = get_primary_field(frm, doctype);
-	const previous = records.find((r) => r.name !== record.name && r[primary_flag]);
-	const jobs = [];
+function get_primary_name(frm, section, records) {
+	const primary_field = get_primary_field(frm, section.doctype);
+	if (primary_field) return frm.doc[primary_field];
+	return records.find((r) => r[section.primary_flag])?.name;
+}
 
-	if (previous) jobs.push(frappe.db.set_value(doctype, previous.name, primary_flag, 0));
+async function set_primary(frm, section, record) {
+	const primary_field = get_primary_field(frm, section.doctype);
 
 	if (primary_field) {
-		jobs.push(frappe.db.set_value(frm.doctype, frm.docname, primary_field, record.name));
+		await frappe.db.set_value(frm.doctype, frm.docname, primary_field, record.name);
 	} else {
-		jobs.push(frappe.db.set_value(doctype, record.name, primary_flag, 1));
+		await frappe.db.set_value(section.doctype, record.name, section.primary_flag, 1);
 	}
 
-	Promise.all(jobs).then(() => frm.reload_doc());
+	frm.reload_doc();
+}
+
+function delink_record(frm, doctype, name) {
+	const label = `<b>${frappe.utils.escape_html(name)}</b>`;
+	frappe.confirm(
+		__("Unlink {0} {1} from {2}?", [__(doctype), label, __(frm.doctype)]),
+		() => {
+			frappe
+				.xcall("frappe.contacts.address_and_contact.delink_party", {
+					doctype,
+					name,
+					link_doctype: frm.doctype,
+					link_name: frm.docname,
+				})
+				.then(() => {
+					frappe.show_alert({
+						message: __("{0} unlinked", [__(doctype)]),
+						indicator: "green",
+					});
+					frm.reload_doc();
+				});
+		}
+	);
 }
 
 function delete_record(frm, doctype, name) {

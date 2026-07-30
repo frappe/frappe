@@ -16,6 +16,27 @@ def load_address_and_contact(doc, key=None) -> None:
 	doc.set_onload("contact_list", get_contact_display_list(doc.doctype, doc.name))
 
 
+@frappe.whitelist()
+def delink_party(doctype: str, name: str, link_doctype: str, link_name: str) -> None:
+	"""Remove the link between an Address or Contact and the given party."""
+	if doctype not in ("Address", "Contact"):
+		frappe.throw(_("Can only unlink an Address or a Contact"))
+
+	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("write")
+
+	remaining = [
+		link
+		for link in doc.links
+		if not (link.link_doctype == link_doctype and link.link_name == link_name)
+	]
+	if len(remaining) == len(doc.links):
+		return
+
+	doc.links = remaining
+	doc.save()
+
+
 def has_permission(doc, ptype, user):
 	links = get_permitted_and_not_permitted_links(doc.doctype)
 	if not links.get("not_permitted_links"):
