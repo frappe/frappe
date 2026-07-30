@@ -172,10 +172,15 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			}
 			.kn-selection-bar .kn-sel-count { color: var(--ink-gray-8); }
 			.kn-selection-bar .es-button { margin: 0; }
-			/* Preview hovercard — only what utility classes can't express: the
-			   popover width, the cover image, the two 2-line clamps, and the grid.
-			   Spacing/colour/typography all come from utilities in the markup. */
-			.es-hover-card.kn-mi-hc { width: 330px; padding: 0; overflow: hidden; }
+			/* Preview hovercard — width follows the field grid (not the long
+			   title), so left/right padding stays equal (same px-4 both sides). */
+			.es-hover-card.kn-mi-hc { width: fit-content; max-width: min(400px, calc(100vw - 32px)); padding: 0; overflow: hidden; }
+			.kn-mi { display: flex; flex-direction: column; width: fit-content; max-width: 100%; }
+			/* Title / desc / footer fill the props-driven width instead of expanding it. */
+			.kn-mi-banner,
+			.kn-mi-header,
+			.kn-mi-desc,
+			.kn-mi-foot { width: 0; min-width: 100%; box-sizing: border-box; }
 			.kn-mi-banner { height: 116px; background-size: cover; background-position: center; background-color: var(--bg-light-gray); }
 			.kn-mi-title, .kn-mi-desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 			.kn-mi-title:hover { text-decoration: underline; text-underline-offset: 2px; }
@@ -183,7 +188,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			.kn-mi-desc :where(h1,h2,h3,h4,h5,h6,p,ul,ol,li,blockquote,pre) { display: inline; margin: 0; padding: 0; font: inherit; list-style: none; }
 			.kn-mi-desc :where(p,li,br)::after { content: " "; }
 			.kn-mi-desc :where(img,table,hr) { display: none; }
-			.kn-mi-props { display: grid; grid-template-columns: 1fr 1fr; }
+			.kn-mi-props { display: grid; grid-template-columns: auto auto; column-gap: 1.5rem; row-gap: 0.75rem; width: max-content; max-width: 100%; box-sizing: border-box; }
 			/* keep the footer the same height whether it holds a 28px avatar or
 			   the shorter "Unassigned" text — no min-height utility exists */
 			.kn-mi-foot { min-height: 45px; }
@@ -359,10 +364,9 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	/** Comparable form of the config that decides how a card is rendered. */
 	card_config_signature(doc) {
 		return JSON.stringify([
-			doc.show_labels ? 1 : 0,
 			doc.title_field || "",
 			doc.image_field || "",
-			(doc.card_fields || []).map((f) => [f.fieldname, f.label]),
+			(doc.card_fields || []).map((f) => [f.fieldname, f.label, f.icon || ""]),
 		]);
 	}
 
@@ -440,35 +444,38 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			.map((df) => df.fieldname);
 		this.fields = [...new Set([...base, ...configured, ...list_fields])];
 
-		// Card field rows (icon-per-field). Prefer the board's configured
-		// `card_fields` child table; fall back to the doctype's in-list-view
-		// (then mandatory) fields for boards created before it existed. The title
-		// is rendered as its own first row, so drop it from the list here.
+		// Card field rows. Prefer the board's configured `card_fields` child
+		// table; fall back to the doctype's in-list-view (then mandatory) fields
+		// for boards created before it existed. The title is rendered as its own
+		// first row, so drop it from the list here.
 		this.card_field_list = this.compute_card_fields(meta);
 		this.fields = [...new Set([...this.fields, ...this.card_field_list])];
-		// Per-board label overrides from the child table (used for the icon's
-		// hover label and the empty-value hint).
+		// Per-board label / icon from the child table. Icon → show it (label on
+		// hover); no icon → show the label text next to the value.
 		this.card_field_labels = {};
+		this.card_field_icons = {};
 		(this.board_doc.card_fields || []).forEach((f) => {
-			if (f.fieldname && f.label) this.card_field_labels[f.fieldname] = f.label;
+			if (!f.fieldname) return;
+			if (f.label) this.card_field_labels[f.fieldname] = f.label;
+			if (f.icon) this.card_field_icons[f.fieldname] = f.icon;
 		});
 
-		// Hover-preview fields (configured `preview_fields`, else auto), plus their
-		// label overrides. Same fallback story as the card fields.
+		// Hover-preview fields (configured `preview_fields`, else auto), plus
+		// their label / icon overrides. Same fallback story as the card fields.
 		this.preview_field_list = this.compute_preview_fields(meta);
 		this.fields = [...new Set([...this.fields, ...this.preview_field_list])];
 		this.preview_field_labels = {};
+		this.preview_field_icons = {};
 		(this.board_doc.preview_fields || []).forEach((f) => {
-			if (f.fieldname && f.label) this.preview_field_labels[f.fieldname] = f.label;
+			if (!f.fieldname) return;
+			if (f.label) this.preview_field_labels[f.fieldname] = f.label;
+			if (f.icon) this.preview_field_icons[f.fieldname] = f.icon;
 		});
 		// A text field for the preview's description snippet, if the doctype has one.
 		this.desc_field = ["description", "content", "notes"].find((f) =>
 			frappe.meta.has_field(this.doctype, f)
 		);
 		if (this.desc_field) this.fields = [...new Set([...this.fields, this.desc_field])];
-		// Same board setting the classic Kanban uses: on → each row reads
-		// "Label: value"; off → an icon stands in for the label.
-		this.show_labels = !!this.board_doc.show_labels;
 		this.card_config_sig = this.card_config_signature(this.board_doc);
 
 		// --- card display config (overridable via frappe.kanban_next.settings) ---
@@ -874,8 +881,8 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		// Title row — always first, as a clickable link.
 		rows.appendChild(this.title_row(card));
 
-		// Configured field rows — a type-aware value behind either an icon
-		// (label on hover) or the label text, depending on the board's setting.
+		// Configured field rows — icon (label on hover) when set on the child
+		// row, otherwise the label text beside the value.
 		for (const fieldname of this.card_field_list) {
 			const df = frappe.meta.get_docfield(this.doctype, fieldname);
 			if (df) rows.appendChild(this.field_row(card, df));
@@ -963,24 +970,24 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	}
 
 	/**
-	 * One field row. With Show Labels off the label becomes an icon (its text
-	 * shows on hover) and an empty field invites a value with "Set {label}…".
-	 * With it on the row reads "Label: value" like the classic board, where the
-	 * label is already spelled out, so an empty field is just a dash.
+	 * One field row. When the child row has an Icon, show that icon (label on
+	 * hover) beside the value; otherwise show the label text directly. Empty
+	 * fields with an icon invite a value via "Set {label}…"; with a text label
+	 * they show a dash (the label is already spelled out).
 	 */
 	field_row(card, df) {
 		const label = this.field_label(df);
+		const icon = (this.card_field_icons || {})[df.fieldname];
 		const row = document.createElement("div");
-		// Text rows sit closer together than the icon column allows.
-		row.className = `kn-frow flex items-center ${this.show_labels ? "gap-1" : "gap-2"}`;
+		row.className = `kn-frow flex items-center ${icon ? "gap-2" : "gap-1"}`;
 
-		if (this.show_labels) {
+		if (icon) {
+			row.appendChild(this.row_icon(icon, label));
+		} else {
 			const text = document.createElement("span");
 			text.className = "text-sm text-ink-gray-5 shrink-0 whitespace-nowrap";
 			text.textContent = `${label}:`;
 			row.appendChild(text);
-		} else {
-			row.appendChild(this.row_icon(this.field_icon(df), label));
 		}
 
 		const value = this.field_value(card, df);
@@ -989,7 +996,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		} else {
 			const hint = document.createElement("div");
 			hint.className = "kn-fempty text-sm text-ink-gray-4 truncate";
-			hint.textContent = this.show_labels ? "—" : __("Set {0}…", [label]);
+			hint.textContent = icon ? __("Set {0}…", [label]) : "—";
 			row.appendChild(hint);
 		}
 		return row;
@@ -1015,45 +1022,6 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		span.innerHTML = frappe.utils.icon(icon, "sm");
 		frappe.ui.tooltip(span, { text: label, side: "top", delay: 200 });
 		return span;
-	}
-
-	/**
-	 * Lucide icon for a field. Dates use the fieldname so start vs due don't
-	 * look identical; Link→User is a person, not a generic link.
-	 */
-	field_icon(df) {
-		if (df.fieldtype === "Link" && df.options === "User") return "user";
-		if (df.fieldtype === "Link" || df.fieldtype === "Dynamic Link") {
-			const linked = df.options && frappe.get_meta(df.options);
-			return (linked && linked.icon) || "link";
-		}
-		if (df.fieldtype === "Date" || df.fieldtype === "Datetime") {
-			const name = (df.fieldname || "").toLowerCase();
-			if (/(due|end|expir|dead|close|finish)/.test(name)) return "calendar-check";
-			if (/(start|begin|from|open)/.test(name)) return "calendar";
-			return "calendar";
-		}
-		const map = {
-			Time: "clock",
-			Duration: "clock",
-			Currency: "circle-dollar-sign",
-			Float: "hash",
-			Int: "hash",
-			Percent: "percent",
-			Check: "square-check",
-			Select: "list",
-			Rating: "star",
-			Color: "palette",
-			Phone: "phone",
-			Data: "type",
-			"Small Text": "text-align-start",
-			Text: "text-align-start",
-			"Long Text": "text-align-start",
-			"Text Editor": "text-align-start",
-			Attach: "paperclip",
-			"Attach Image": "image",
-		};
-		return map[df.fieldtype] || "type";
 	}
 
 	/** Fieldtypes whose stored value is markup or markdown, not display text. */
@@ -1087,11 +1055,14 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 
 	/**
 	 * Type-aware value element for a field, or null when empty. Link→User shows
-	 * an avatar + name; Select shows a badge; rich text is flattened to one
-	 * readable line; everything else is formatted with frappe.format.
+	 * an avatar + name; Select shows a badge on the card (plain text in the
+	 * hover preview); rich text is flattened to one readable line; everything
+	 * else is formatted with frappe.format.
 	 * Metadata stays one step quieter than the title (ink-gray-6).
+	 * @param {{ plain_select?: boolean }} [opts] When true, Select values render
+	 * as text instead of a badge (used by the hover preview).
 	 */
-	field_value(card, df) {
+	field_value(card, df, opts = {}) {
 		const val = card[df.fieldname];
 		if (val === undefined || val === null || val === "") return null;
 
@@ -1112,6 +1083,11 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		}
 
 		if (df.fieldtype === "Select") {
+			// Card: badge. Hover preview: plain text — more room, less noise.
+			if (opts.plain_select) {
+				el.textContent = __(val);
+				return el;
+			}
 			const style = this.select_style(val);
 			el.className = "min-w-0";
 			el.innerHTML = frappe.ui.badge.html({
@@ -1286,7 +1262,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 
 		// Header: icon · title (link) · id.
 		const header = document.createElement("div");
-		header.className = "flex items-start gap-2 px-4 pt-3";
+		header.className = "kn-mi-header flex items-start gap-2 px-4 pt-3";
 		// Only show an icon when the doctype actually has a usable one — a blank
 		// square says nothing.
 		const icon_html = this.doctype_icon_html();
@@ -1323,20 +1299,35 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		}
 
 		// Two-column property grid — only fields that actually have a value.
+		// Preview has room: icon (if set) + label text side by side.
 		const props = document.createElement("div");
-		props.className = "kn-mi-props gap-3 px-4 pt-3";
+		props.className = "kn-mi-props px-4 pt-3";
 		for (const fn of this.preview_field_list) {
 			const df = frappe.meta.get_docfield(this.doctype, fn);
 			if (!df) continue;
-			const value = this.field_value(card, df);
+			const value = this.field_value(card, df, { plain_select: true });
 			if (!value) continue;
 			const cell = document.createElement("div");
 			cell.className = "min-w-0";
+			const label = this.preview_field_labels[fn] || __(df.label || df.fieldname);
+			const icon = (this.preview_field_icons || {})[fn];
 			const k = document.createElement("div");
-			k.className = "text-sm text-ink-gray-5 truncate";
-			k.textContent = this.preview_field_labels[fn] || __(df.label);
+			// Don't truncate labels here — the hovercard grows with content.
+			k.className = "text-sm text-ink-gray-5 flex items-center gap-1";
+			if (icon) {
+				// No tooltip — the label sits next to the icon in the preview.
+				const span = document.createElement("span");
+				span.className =
+					"kn-ficon inline-flex items-center justify-center shrink-0 size-4 text-ink-gray-4";
+				span.innerHTML = frappe.utils.icon(icon, "sm");
+				k.appendChild(span);
+			}
+			const text = document.createElement("span");
+			text.textContent = label;
+			k.appendChild(text);
 			cell.appendChild(k);
 			value.classList.add("mt-1");
+			value.classList.remove("truncate");
 			cell.appendChild(value);
 			props.appendChild(cell);
 		}
