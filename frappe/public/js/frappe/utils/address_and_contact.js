@@ -33,9 +33,16 @@ $.extend(frappe.contacts, {
 
 			const records = frm.doc.__onload[section.data] || [];
 			const primary_name = get_primary_name(frm, section, records);
+			const sorted = [...records].sort(
+				(a, b) => (b.name === primary_name) - (a.name === primary_name)
+			);
 
 			const $wrapper = $(field_wrapper).html(
-				frappe.render_template(section.template, { ...frm.doc.__onload, primary_name })
+				frappe.render_template(section.template, {
+					...frm.doc.__onload,
+					[section.data]: sorted,
+					primary_name,
+				})
 			);
 			$wrapper.find(section.btn).on("click", () => new_record(section.doctype, frm));
 			const by_name = Object.fromEntries(records.map((r) => [r.name, r]));
