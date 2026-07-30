@@ -98,7 +98,7 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 	setup_wizard_completed_apps = get_setup_wizard_completed_apps()
 	telemetry_enabled = bool(cint(user_input.get("enable_telemetry")))
 
-	capture("initated_server_side", "setup")
+	capture("initiated_server_side", "setup")
 	try:
 		frappe.flags.in_setup_wizard = True
 		current_task = None
