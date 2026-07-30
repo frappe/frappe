@@ -43,14 +43,13 @@ def create_tasks(job: str):
 	doc = frappe.get_doc("MapReduce Job", job)
 	data = frappe.parse_json(doc.data)
 
-	for idx, val in enumerate(data, 0):
+	for chunk in data:
 		task = frappe.new_doc("MapReduce Task")
 		task.master = doc.name
 		task.map = doc.map
 		task.reduce = doc.reduce
 		task.status = "Queued"
-		task.key = idx
-		task.value = frappe.json.dumps(val)
+		task.chunk = frappe.json.dumps(chunk)
 		task.map_partial = None
 		task.save()
 
@@ -60,13 +59,13 @@ def create_tasks(job: str):
 def task_execution_flow(current_task: str):
 	# Map
 	mpt = qb.DocType("MapReduce Task")
-	master, mapper, reducer, val = (
+	master, mapper, reducer, chunk = (
 		qb.from_(mpt)
-		.select(mpt.master, mpt.map, mpt.reduce, mpt.value)
+		.select(mpt.master, mpt.map, mpt.reduce, mpt.chunk)
 		.where(mpt.name.eq(current_task))
 		.run()[0]
 	)
-	parsed_val = frappe.parse_json(val)
+	parsed_val = frappe.parse_json(chunk)
 
 	# call map function
 	partial = frappe.call(mapper, parsed_val)
@@ -78,7 +77,7 @@ def task_execution_flow(current_task: str):
 	# Reduce
 	# take lock on master job
 	res = frappe.db.get_value("MapReduce Job", master, "result", for_update=True, wait=True)
-	final = 0 if res is None else frappe.parse_json(res)
+	final = frappe.parse_json(res)
 
 	partial_res = frappe.parse_json(frappe.db.get_value("MapReduce Task", current_task, "map_partial"))
 

@@ -14,14 +14,13 @@ class MapReduceTask(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		key: DF.Data | None
+		chunk: DF.JSON | None
 		map: DF.Data | None
 		map_partial: DF.JSON | None
 		master: DF.Link | None
 		name: DF.Int | None
 		reduce: DF.Data | None
 		status: DF.Literal["Queued", "Running", "Completed"]
-		value: DF.Data | None
 	# end: auto-generated types
 
 	_DOCTYPE_NAME = "MapReduce Task"

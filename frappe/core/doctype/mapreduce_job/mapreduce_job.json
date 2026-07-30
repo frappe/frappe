@@ -44,17 +44,19 @@
    "label": "Data"
   },
   {
+   "depends_on": "eval: doc.result",
    "fieldname": "result",
    "fieldtype": "JSON",
    "label": "Result",
-   "no_copy": 1
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-30 13:04:40.065084",
+ "modified": "2026-07-30 18:59:28.407378",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "MapReduce Job",

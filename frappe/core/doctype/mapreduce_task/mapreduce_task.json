@@ -7,11 +7,12 @@
  "engine": "InnoDB",
  "field_order": [
   "master",
+  "status",
+  "chunk",
+  "column_break_psfv",
   "map",
   "reduce",
-  "status",
-  "key",
-  "value",
+  "section_break_qxav",
   "map_partial"
  ],
  "fields": [
@@ -19,19 +20,8 @@
    "fieldname": "master",
    "fieldtype": "Link",
    "label": "Master",
-   "options": "MapReduce Job"
-  },
-  {
-   "fieldname": "key",
-   "fieldtype": "Data",
-   "label": "Key"
-  },
-  {
-   "fieldname": "value",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Value"
+   "options": "MapReduce Job",
+   "read_only": 1
   },
   {
    "fieldname": "status",
@@ -39,28 +29,49 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Queued\nRunning\nCompleted"
+   "options": "Queued\nRunning\nCompleted",
+   "read_only": 1
   },
   {
    "fieldname": "map",
    "fieldtype": "Data",
-   "label": "Map"
+   "label": "Map",
+   "read_only": 1
   },
   {
    "fieldname": "reduce",
    "fieldtype": "Data",
-   "label": "Reduce"
+   "label": "Reduce",
+   "read_only": 1
   },
   {
    "fieldname": "map_partial",
    "fieldtype": "JSON",
-   "label": "Partial result from map"
+   "label": "Partial result from map",
+   "read_only": 1
+  },
+  {
+   "fieldname": "chunk",
+   "fieldtype": "JSON",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Chunk",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_psfv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_qxav",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
+ "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-30 17:16:28.941714",
+ "modified": "2026-07-31 10:55:17.779636",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "MapReduce Task",
