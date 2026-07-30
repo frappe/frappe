@@ -605,6 +605,8 @@ frappe.ui.Page = class Page {
 			(el.classList.contains("hidden-xl") &&
 				window.matchMedia("(min-width: 992px)").matches);
 		const segments = [[]];
+		// one submenu row per inner-button group, keyed by group label
+		const nested_groups = new Map();
 
 		$parent.children("li").each((_, li) => {
 			if (li.classList.contains("dropdown-divider")) {
@@ -628,6 +630,37 @@ frappe.ui.Page = class Page {
 				.filter((c) => !internal.includes(c))
 				.join(" ");
 			const click = $li.data("menu_click");
+			const onclick = (e) => {
+				if (e && (e.ctrlKey || e.metaKey)) {
+					frappe.open_in_new_tab = true;
+				}
+				// raw <li>s appended by apps have no stashed handler —
+				// clicking their own link keeps them working
+				return click ? click() : a.click();
+			};
+
+			// grouped inner buttons mirror into this menu on mobile as flat
+			// "Group > Label" store items (see add_inner_button) — render
+			// them as one "Group" row with a submenu instead
+			const nested = $li.data("menu_submenu");
+			if (nested) {
+				let submenu = nested_groups.get(nested.group);
+				if (!submenu) {
+					submenu = [];
+					nested_groups.set(nested.group, submenu);
+					segments[segments.length - 1].push({
+						label: nested.group,
+						css_class: css_class || undefined,
+						submenu,
+					});
+				}
+				submenu.push({
+					label: nested.label,
+					disabled: a.classList.contains("disabled"),
+					onclick,
+				});
+				return;
+			}
 
 			segments[segments.length - 1].push({
 				label,
@@ -635,14 +668,7 @@ frappe.ui.Page = class Page {
 				shortcut: $li.data("menu_shortcut") || undefined,
 				disabled: a.classList.contains("disabled"),
 				css_class: css_class || undefined,
-				onclick: (e) => {
-					if (e && (e.ctrlKey || e.metaKey)) {
-						frappe.open_in_new_tab = true;
-					}
-					// raw <li>s appended by apps have no stashed handler —
-					// clicking their own link keeps them working
-					return click ? click() : a.click();
-				},
+				onclick,
 			});
 		});
 
@@ -780,9 +806,15 @@ frappe.ui.Page = class Page {
 			me.btn_disable_enable(btn, response);
 		};
 
-		// Add actions as menu item in Mobile View
+		// Add actions as menu item in Mobile View. The store keeps the flat
+		// "Group > Label" item (dedupe and remove_custom_button look it up by
+		// that label) — the snapshot renders stamped items as a nested
+		// "Group" row with a submenu instead.
 		let menu_item_label = group ? `${group} > ${label}` : label;
 		let menu_item = this.add_menu_item(menu_item_label, _action, false, false, false);
+		if (group) {
+			menu_item.closest("li").data("menu_submenu", { group, label });
+		}
 		menu_item.parent().addClass("hidden-xl");
 		if (this.menu_btn_group.hasClass("hide")) {
 			this.menu_btn_group.removeClass("hide").addClass("hidden-xl");
