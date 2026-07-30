@@ -316,8 +316,15 @@ def create_desktop_icons_from_workspace():
 			app_name = w.app or frappe.db.get_value("Module Def", w.module, "app_name")
 			if app_name in frappe.get_installed_apps():
 				icon.app_name = app_name
-				app_title = frappe.get_hooks("app_title", app_name=app_name)[0]
-				app_icon = frappe.db.exists("Desktop Icon", {"label": app_title, "icon_type": "App"})
+				# App icons are labelled by `app_title`; an app that declares no such hook has
+				# none to parent this workspace icon to, and looking one up by a null label
+				# would match whatever unlabelled row happens to exist.
+				app_title = (frappe.get_hooks("app_title", app_name=app_name) or [None])[0]
+				app_icon = (
+					frappe.db.exists("Desktop Icon", {"label": app_title, "icon_type": "App"})
+					if app_title
+					else None
+				)
 				if app_icon:
 					icon.parent_icon = app_icon
 
@@ -349,7 +356,13 @@ def create_desktop_icons_from_installed_apps():
 	apps = frappe.get_installed_apps()
 	index = 0
 	for a in apps:
-		app_title = frappe.get_hooks("app_title", app_name=a)[0]
+		# the icon is named after `app_title` (autoname is `field:label`), so an app that
+		# declares no such hook has nothing to name one with -- skip it rather than let an
+		# IndexError abort the seeding loop and leave every later app without icons
+		app_title = (frappe.get_hooks("app_title", app_name=a) or [None])[0]
+		if not app_title:
+			continue
+
 		app_details = frappe.get_hooks("add_to_apps_screen", app_name=a)
 		if not frappe.db.exists("Desktop Icon", [{"icon_type": "App"}, {"app": a}]):
 			if len(app_details) != 0:

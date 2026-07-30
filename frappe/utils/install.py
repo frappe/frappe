@@ -218,7 +218,11 @@ def delete_desktop_icons_for_app(app_name, dry_run=False):
 	# Icons are named/labelled by the app's title (Desktop Icon autoname is `field:label`,
 	# set to app_title in create_desktop_icons_from_installed_apps), not the package name --
 	# so match on the `app_title` hook, else the filters never hit and rows are orphaned.
-	app_title = frappe.get_hooks("app_title", app_name=app_name)[0]
+	# No hook means the seeding never created an icon for this app either, so there's
+	# nothing to clean up; indexing an empty list here would raise on uninstall instead.
+	app_title = (frappe.get_hooks("app_title", app_name=app_name) or [None])[0]
+	if not app_title:
+		return
 
 	icons_to_delete = frappe.get_all(
 		"Desktop Icon",

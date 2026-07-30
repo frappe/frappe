@@ -1476,10 +1476,7 @@ Object.assign(frappe.utils, {
 			icon_name
 		)}.svg`;
 
-		if (
-			frappe.boot.desktop_icon_urls[app_name] &&
-			frappe.boot.desktop_icon_urls[app_name][variant].includes(icon_url)
-		) {
+		if (frappe.boot.desktop_icon_urls[app_name]?.[variant]?.includes(icon_url)) {
 			return `/${icon_url}`;
 		}
 		return exists;
