@@ -202,8 +202,8 @@ def get_kanban_boards(doctype: str):
 @frappe.whitelist()
 @frappe.read_only()
 def get_card_config(board_name: str) -> dict:
-	"""Just the bits that decide how a card looks: the label mode and the
-	ordered card fields.
+	"""Just the bits that decide how a card looks: title/image fields and the
+	ordered card fields (with optional icons and labels).
 
 	The new Kanban polls this when returning to an already-open board, so it can
 	pick up config edits without re-fetching the whole board document (whose
@@ -212,10 +212,11 @@ def get_card_config(board_name: str) -> dict:
 	board = frappe.get_doc("Kanban Board", board_name)
 	frappe.has_permission(board.reference_doctype, "read", throw=True)
 	return {
-		"show_labels": cint(board.show_labels),
 		"title_field": board.title_field,
 		"image_field": board.image_field,
-		"card_fields": [{"fieldname": f.fieldname, "label": f.label} for f in board.card_fields],
+		"card_fields": [
+			{"fieldname": f.fieldname, "label": f.label, "icon": f.icon} for f in board.card_fields
+		],
 	}
 
 

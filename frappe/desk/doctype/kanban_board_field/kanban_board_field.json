@@ -6,11 +6,12 @@
  "engine": "InnoDB",
  "field_order": [
   "fieldname",
+  "icon",
   "label"
  ],
  "fields": [
   {
-   "columns": 5,
+   "columns": 4,
    "description": "Field of the board's reference doctype to show on the card.",
    "fieldname": "fieldname",
    "fieldtype": "Autocomplete",
@@ -19,8 +20,16 @@
    "reqd": 1
   },
   {
-   "columns": 5,
-   "description": "Shown when hovering the field's icon on the card. Auto-filled from the field; edit to override.",
+   "columns": 2,
+   "description": "Optional. When set, the card shows this icon and the label on hover; when empty, the label is shown directly.",
+   "fieldname": "icon",
+   "fieldtype": "Icon",
+   "in_list_view": 1,
+   "label": "Icon"
+  },
+  {
+   "columns": 4,
+   "description": "Shown as the field label, or as the icon tooltip when an icon is set. Auto-filled from the field; edit to override.",
    "fieldname": "label",
    "fieldtype": "Data",
    "in_list_view": 1,

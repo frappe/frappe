@@ -14,6 +14,7 @@ class KanbanBoardField(Document):
 		from frappe.types import DF
 
 		fieldname: DF.Autocomplete
+		icon: DF.Icon | None
 		label: DF.Data | None
 		parent: DF.Data
 		parentfield: DF.Data
