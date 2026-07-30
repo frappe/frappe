@@ -12,31 +12,17 @@ from frappe.utils import get_url_to_form
 @frappe.whitelist()
 def update_follow(doctype: str, doc_name: str, following: bool):
 	if following:
-<<<<<<< HEAD
-		return follow_document(doctype, doc_name, frappe.session.user)
+		return follow_document(doctype, doc_name)
 	else:
-		return unfollow_document(doctype, doc_name, frappe.session.user)
+		return unfollow_document(doctype, doc_name)
 
 
 @frappe.whitelist()
-def follow_document(doctype, doc_name, user):
-=======
-		is_following = follow_document(doctype, doc_name)
-		return bool(is_following)
-	else:
-		unfollow_document(doctype, doc_name)
-		return False
+def follow_document(doctype, doc_name):
+	return _follow_document(doctype, doc_name, frappe.session.user)
 
 
-@frappe.whitelist()
-def follow_document(doctype: str, doc_name: str) -> Document | bool:
-	return _follow_document(doctype, doc_name, frappe.session.user, ignore_permissions=False)
-
-
-def _follow_document(
-	doctype: str, doc_name: str, user: str, *, ignore_permissions: bool | int = False
-) -> Document | bool:
->>>>>>> 452d71b308 (fix: scope follow and unfollow endpoints to the session user (#41368))
+def _follow_document(doctype, doc_name, user):
 	"""
 	param:
 	Doctype name
@@ -65,15 +51,6 @@ def _follow_document(
 	if (not frappe.get_meta(doctype).track_changes) or user == "Administrator":
 		return
 
-<<<<<<< HEAD
-	if user != frappe.session.user and not frappe.has_permission("Document Follow", "write"):
-		frappe.throw(_("You can only follow documents for yourself."), frappe.PermissionError)
-=======
-	if user == "Administrator":
-		frappe.toast(_("Administrator can't follow"))
-		return False
->>>>>>> 452d71b308 (fix: scope follow and unfollow endpoints to the session user (#41368))
-
 	if not frappe.has_permission(doctype, "read", doc=doc_name, user=user):
 		return False
 
@@ -88,18 +65,12 @@ def _follow_document(
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def unfollow_document(doctype, doc_name, user):
-	if user != frappe.session.user and not frappe.has_permission("Document Follow", "write"):
-		frappe.throw(_("You can only unfollow documents for yourself."), frappe.PermissionError)
-=======
-def unfollow_document(doctype: str, doc_name: str) -> bool:
+def unfollow_document(doctype, doc_name):
 	return _unfollow_document(doctype, doc_name, frappe.session.user)
 
 
-def _unfollow_document(doctype: str, doc_name: str, user: str) -> bool:
+def _unfollow_document(doctype, doc_name, user):
 	"""Same as unfollow_document but hides param `user` from API"""
->>>>>>> 452d71b308 (fix: scope follow and unfollow endpoints to the session user (#41368))
 
 	doc = frappe.get_all(
 		"Document Follow",
