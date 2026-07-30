@@ -146,13 +146,6 @@ th.fc-col-header-cell {
 	}
 }
 
-.fc button {
-	height: 28px !important;
-	font-size: var(--text-md) !important;
-	outline: none !important;
-	text-transform: capitalize;
-}
-
 .fc-daygrid-event {
 	border: none !important;
 	margin: 5px 4px 0 !important;
@@ -177,17 +170,5 @@ th.fc-col-header-cell {
 		border: none;
 		background: transparent;
 		box-shadow: none;
-	}
-}
-
-#fc-calendar-wrapper .btn {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	line-height: 1.4;
-
-	svg {
-		width: 14px;
-		height: 14px;
 	}
 }

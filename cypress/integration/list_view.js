@@ -50,9 +50,19 @@ context("List View", () => {
 		];
 		cy.go_to_list("ToDo");
 		cy.clear_filters();
+		cy.intercept("POST", "/api/method/frappe.model.workflow.get_common_transition_actions").as(
+			"common-actions"
+		);
 		cy.get(".list-header-subject .list-subject .list-check-all").click();
+		// selecting rows triggers the workflow-actions refresh (debounced);
+		// wait for it to hide "Review" (not common to the selected docs)
+		// before opening — the menu snapshots its items at open
+		cy.wait("@common-actions");
+		cy.get('.actions-btn-group [data-label="Review"]')
+			.closest("li")
+			.should("have.css", "display", "none");
 		cy.findByRole("button", { name: "Actions" }).click();
-		cy.get(".dropdown-menu li:visible .dropdown-item")
+		cy.get('.es-menu [role="menuitem"]')
 			.should("have.length", 9)
 			.each((el, index) => {
 				cy.wrap(el).contains(actions[index]);

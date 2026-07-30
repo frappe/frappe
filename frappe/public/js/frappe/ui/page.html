@@ -42,9 +42,11 @@
 								icon: "ellipsis",
 								title: __("Menu"),
 								css_class: "icon-btn menu-more-button",
-								attrs: { "data-toggle": "dropdown", "aria-expanded": "false" },
 							}) %}
-							<ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>
+							<!-- hidden item store, not UI: add_dropdown_item writes <li><a> here
+							(the returned jQuery is public API); frappe.ui.Dropdown snapshots it
+							into menu rows on every open — see page.js build_dropdown_options -->
+							<ul class="dropdown-menu dropdown-menu-right" role="presentation"></ul>
 						</div>
 						{%= frappe.ui.button.html({ css_class: "secondary-action hide" }) %}
 						<div class="actions-btn-group hide">
@@ -52,9 +54,8 @@
 								label: __("Actions"),
 								icon_right: "chevrons-up-down",
 								variant: "solid",
-								attrs: { "data-toggle": "dropdown", "aria-expanded": "false" },
 							}) %}
-							<ul class="dropdown-menu dropdown-menu-right" role="menu">
+							<ul class="dropdown-menu dropdown-menu-right" role="presentation">
 							</ul>
 						</div>
 						{%= frappe.ui.button.html({ variant: "solid", css_class: "primary-action hide" }) %}
