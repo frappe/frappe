@@ -851,34 +851,35 @@ export class KanbanCore {
 
 		this.setSelection([]);
 
-		// One server write for the whole selection so a mid-loop failure cannot
-		// leave partial moves persisted while the UI rolls back.
+		// Multi-move must be one request. A sequential moveCard loop can commit
+		// early cards, then fail later — restoring `snapshot` would lie about
+		// server state. Providers without updateOrder cannot multi-move safely.
 		const orderPayload = { [toColumn]: finalTargetOrder };
 		for (const [colId, order] of finalSourceOrders) {
 			orderPayload[colId] = order;
 		}
 
+		const moveErrorArgs = {
+			cardId:
+				selectedOrdered.length === 1
+					? selectedOrdered[0]
+					: __("{0} cards", [selectedOrdered.length]),
+			cardIds: [...selectedOrdered],
+			toColumn,
+		};
+
+		if (!this.options.provider.updateOrder) {
+			this.state = snapshot;
+			this.renderColumns(affected);
+			const error = new Error(__("Bulk move is not supported"));
+			cb.onMoveError && cb.onMoveError(moveErrorArgs, error);
+			this.bus.emit("error", error);
+			return;
+		}
+
 		this.localMoveGraceUntil = Date.now() + 3000;
 		try {
-			if (this.options.provider.updateOrder) {
-				await this.options.provider.updateOrder(orderPayload);
-			} else {
-				for (const name of selectedOrdered) {
-					const from = sourceOf.get(name);
-					await this.options.provider.moveCard({
-						cardId: name,
-						fromColumn: from,
-						toColumn,
-						oldIndex: 0,
-						newIndex: finalTargetOrder.indexOf(name),
-						fromOrder:
-							from === toColumn
-								? finalTargetOrder
-								: finalSourceOrders.get(from) || [],
-						toOrder: finalTargetOrder,
-					});
-				}
-			}
+			await this.options.provider.updateOrder(orderPayload);
 			this.localMoveGraceUntil = Date.now() + 3000;
 			for (const name of selectedOrdered) {
 				const from = sourceOf.get(name);
@@ -897,22 +898,16 @@ export class KanbanCore {
 					});
 			}
 		} catch (error) {
-			this.state = snapshot;
-			this.renderColumns(affected);
-			// Surface the failure the same way a single-card move does — otherwise a
-			// multi-move that fails just silently snaps back with no explanation.
-			cb.onMoveError &&
-				cb.onMoveError(
-					{
-						cardId:
-							selectedOrdered.length === 1
-								? selectedOrdered[0]
-								: __("{0} cards", [selectedOrdered.length]),
-						cardIds: [...selectedOrdered],
-						toColumn,
-					},
-					error
-				);
+			// update_order may have already set_value'd some cards before failing.
+			// Resync from the server instead of restoring the pre-move snapshot.
+			try {
+				await this.reload();
+			} catch (reloadError) {
+				this.state = snapshot;
+				this.renderColumns(affected);
+				this.bus.emit("error", reloadError);
+			}
+			cb.onMoveError && cb.onMoveError(moveErrorArgs, error);
 			this.bus.emit("error", error);
 		}
 	}
