@@ -208,3 +208,76 @@ old HTTP assertions pass unmodified in PR 6.
   the single fan-out point (slow subscribers detach and heal via replay).
 - **Context compaction** becomes a durable `Compaction` event handled by
   `Transcript.record` — never a rewrite of the log.
+
+## Audit outcome (PR 7)
+
+All 15 inventory items survive, evidenced by the rebuilt suite (245 tests). Item →
+where it is pinned:
+
+1. Log durability — `test_log.py`; corrupt-log HTTP surface in `test_server.py`.
+2. Replay/SSE/`wait`/steering — `test_server.py` (including a real-uvicorn live
+   reconnect-with-`since` test main never had), `test_session.py::test_events_replays…`.
+3. Approval lifecycle — `test_agent_loop.py`, `test_transcript.py` approval battery,
+   `test_server.py` batch-exactness and reload tests.
+4. Interrupted-run repair — `test_transcript.py`, `test_session.py::test_reload_repairs…`,
+   loop hook/stream-failure repair tests.
+5. Abort everywhere — the loop's abort battery (model stream, hooks, between tools,
+   client callback), `test_codex.py`/`test_model.py` cancellation, `test_server.py`.
+6. Truncated turns — `test_agent_loop.py`, `test_model.py`, `test_codex.py`.
+7. Error taxonomy + retries + one-shot refresh — `test_model_errors.py`,
+   `test_model_retry.py`, `test_codex.py` retry set.
+8. Thinking blocks — `test_model.py` signature/degradation/redaction set.
+9. Codex wire + OAuth — `test_codex.py` (24), `test_auth.py` (15).
+10. Security fences — `test_server.py` roots/slug/bearer/secret tests,
+    `test_session.py` store fences.
+11. Tools — `test_tools.py`/`test_schema.py`; the files are byte-identical to `main`.
+12. Meta persistence + overrides — `test_session.py`, `test_server.py` (including a
+    new test that the override reaches the run that sent it).
+13. Client tools — loop callback tests incl. payload shape, `X-Harness-Token`, and
+    Frappe envelope unwrapping.
+14. Deltas live-only — `test_events.py` durability flags, transcript live==replay.
+15. Wire contract — `main`'s `test_server` assertions pass unmodified (adapted only in
+    imports and one renamed attribute, neither on the wire).
+
+### Intentional deviations from `main`
+
+Behavior changes, each deliberate:
+
+1. **`confirm_tools` is additive** (security): listing a tool gates it *in addition to*
+   each tool's own default; it no longer silently un-gates bash/write/edit.
+2. **Codex parallel tool calls are not duplicated** — `main` emits four calls for a
+   two-call turn (`output_item.done` fallback matched the wrong builder); fixed and
+   pinned by test.
+3. **Abandoning an approval batch is a first-class verb** — `cancel_pending`, exposed
+   as `POST /sessions/{sid}/cancel_pending`. `main` had no way to do this over HTTP
+   (abort was, and remains, a no-op on a paused session).
+4. **Provider failure settles as `run_error` + `run_ended(error)`** — no synthetic
+   error-text assistant message is written into the durable transcript.
+5. **Aborted turns persist no partial streamed text** in the aborted assistant message.
+6. **Repairs carry no marker protocol** — ordinary `tool_result` rows placed before
+   newer entries (`details.repair = "interrupted"`); `transcript_repair` markers gone.
+7. **Codex round-trips via `provider_state`** with the provider's own call ids — no
+   `call_id|item_id` composites, no `text_signature` micro-format (guardrail 5).
+8. **Tampered session meta fails loudly on load** instead of being silently accepted.
+9. **Model/credential overrides apply before admission** — a 409-rejected run request
+   still persists the override; an override steered into an active run takes effect on
+   the next run (the model is resolved once per run).
+10. **SSE liveness poll dropped** — the stream closes on `run_ended` or end-of-replay;
+    a run that dies *without* terminal events (reachable only if the log itself fails
+    mid-settlement) holds the stream open until client disconnect, where `main` closed
+    within 0.5s.
+11. **`Retry` is a new live-only event** — retry attempts are visible in-stream where
+    `main` buried them in the loop.
+
+Internal (not behavior): `resolve_auth` → `resolve_oauth`; `RunSubmission` → `RunHandle`;
+retries moved into the provider adapter; `loop.py` is 364 lines against the charter's
+~250 aspiration.
+
+### Known gaps carried over from `main` (unchanged, not regressions)
+
+- A SIGKILLed daemon orphans running bash children (`start_new_session=True`); the
+  transcript is repaired on reload but the processes survive.
+- A narrow window where steering queued during the loop's final drain is lost with the
+  ending run.
+- `build_schema` marks `X | None` parameters without defaults as not-required.
+- grep's timeout path kills but does not await its subprocess.
