@@ -25,7 +25,7 @@ context("Workspace 2.0", () => {
 		cy.wait(300);
 
 		cy.get_open_dialog().find(".modal-header").click();
-		cy.get_open_dialog().find(".btn-primary").click();
+		cy.get_open_dialog().find(".btn-modal-primary").click();
 
 		// check if sidebar item is added in pubic section
 		cy.get('.sidebar-item-container[item-name="Test Private Page"]');
