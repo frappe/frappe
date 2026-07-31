@@ -456,6 +456,15 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertIn('data-fieldname="idx"', html)
 		self.assertIn("print-heading", html)
 
+	def test_zero_font_size_renders_at_default(self):
+		# app-shipped classic fixtures carry no font_size, which lands as 0 — the
+		# stylesheet must not emit font-size: 0px or the whole page is invisible
+		self.make_classic_format()
+		frappe.db.set_value("Print Format", self.FORMAT_NAME, "font_size", 0)
+		html = frappe.get_print("User", "Administrator", print_format=self.FORMAT_NAME)
+		self.assertNotIn("font-size: 0px", html)
+		self.assertIn("font-size: 14px", html)
+
 	def test_migrate_all_classic_formats(self):
 		from frappe.printing.doctype.print_format.classic_converter import migrate_all_classic_formats
 

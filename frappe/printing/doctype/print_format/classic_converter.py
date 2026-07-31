@@ -249,6 +249,8 @@ def convert_print_format(doc):
 	doc.format_data = json.dumps(layout, indent=1)
 	doc.print_format_builder = 0
 	doc.print_format_builder_beta = 1
+	if not doc.font_size:
+		doc.font_size = 14
 	doc.pdf_generator = "chrome"
 	if not doc.page_number or doc.page_number == "Hide":
 		doc.page_number = "Bottom Center"
@@ -392,6 +394,7 @@ def migrate_all_classic_formats():
 						"print_format_builder_beta": 1,
 						"pdf_generator": doc.pdf_generator,
 						"page_number": doc.page_number,
+						"font_size": doc.font_size,
 					},
 					update_modified=False,
 				)
