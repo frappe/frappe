@@ -8,6 +8,7 @@
 			@update:modelValue="setColumnWidths"
 			@add="addCells"
 			@remove="removeCells"
+			@move="moveCells"
 		/>
 
 		<!-- the tree drifted from `columns` (hand-edited header/rows) -->
@@ -48,6 +49,11 @@ function addCells() {
 function removeCells(index: number) {
 	removeCellAt(headerBlock.value, HEADER_CELL_NAMES, index)
 	rowBlocks.value.forEach((row) => removeCellAt(row, ["ListCell"], index))
+}
+
+function moveCells({ from, to }: { from: number; to: number }) {
+	moveCellAt(headerBlock.value, HEADER_CELL_NAMES, from, to)
+	rowBlocks.value.forEach((row) => moveCellAt(row, ["ListCell"], from, to))
 }
 
 const mismatch = computed(() => {
@@ -103,5 +109,21 @@ function removeCellAt(parent: Block | null, names: string[], index: number) {
 	if (!parent) return
 	const cell = cellsOf(parent, names)[index]
 	if (cell) parent.removeChild(cell)
+}
+
+function moveCellAt(parent: Block | null, names: string[], from: number, to: number) {
+	if (!parent) return
+	const cell = cellsOf(parent, names)[from]
+	if (!cell) return
+	parent.removeChild(cell)
+	const remaining = cellsOf(parent, names)
+	const anchor = remaining[to]
+	const lastCell = remaining.at(-1)
+	const index = anchor
+		? parent.getChildIndex(anchor)
+		: lastCell
+			? (parent.getChildIndex(lastCell) ?? -1) + 1
+			: undefined
+	parent.addChild(cell, index, false)
 }
 </script>

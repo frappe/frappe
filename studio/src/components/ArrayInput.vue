@@ -11,7 +11,26 @@
 		<!-- primitive items -->
 		<div v-if="!itemTypes" class="flex flex-col gap-1.5">
 			<EmptyState v-if="items.length === 0 && emptyMessage" :message="emptyMessage" />
-			<div v-for="(item, index) in items" :key="index" class="flex items-center gap-2">
+			<div
+				v-for="(item, index) in items"
+				:key="index"
+				class="flex items-center gap-2"
+				:class="{ 'opacity-50': dragIndex === index }"
+				:draggable="dragHandleIndex === index"
+				@dragstart="onDragStart(index, $event)"
+				@dragend="resetDrag"
+				@dragover.prevent
+				@drop.prevent="onDrop(index)"
+			>
+				<button
+					class="flex-none cursor-grab text-ink-gray-4 hover:text-ink-gray-7"
+					title="Drag to reorder"
+					tabindex="-1"
+					@mousedown="dragHandleIndex = index"
+					@mouseup="resetDrag"
+				>
+					<LucideGripVertical class="size-3" />
+				</button>
 				<Input
 					class="flex-1"
 					hideClearButton
@@ -76,13 +95,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref } from "vue"
 import { Button } from "frappe-ui"
 import { IconPicker } from "frappe-ui/icons"
 import Input from "@/components/Input.vue"
 import InputLabel from "@/components/InputLabel.vue"
 import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
+import LucideGripVertical from "~icons/lucide/grip-vertical"
 
 const props = defineProps<{
 	modelValue: any[]
@@ -94,7 +114,7 @@ const props = defineProps<{
 	newItemValue?: any
 }>()
 
-const emit = defineEmits(["update:modelValue", "add", "remove"])
+const emit = defineEmits(["update:modelValue", "add", "remove", "move"])
 
 const items = computed(() => {
 	return Array.isArray(props.modelValue) ? props.modelValue : []
@@ -139,5 +159,36 @@ const getNewItem = () => {
 		newItem[key] = ""
 	})
 	return newItem
+}
+
+// Reorder via the grip handle. The row is only draggable while the handle is
+// pressed (dragHandleIndex) so text selection inside the inputs keeps working.
+const dragIndex = ref<number | null>(null)
+const dragHandleIndex = ref<number | null>(null)
+
+const onDragStart = (index: number, event: DragEvent) => {
+	dragIndex.value = index
+	event.dataTransfer?.setData("text/plain", String(index))
+	if (event.dataTransfer) event.dataTransfer.effectAllowed = "move"
+}
+
+const onDrop = (index: number) => {
+	if (dragIndex.value !== null && dragIndex.value !== index) {
+		moveItem(dragIndex.value, index)
+	}
+	resetDrag()
+}
+
+const resetDrag = () => {
+	dragIndex.value = null
+	dragHandleIndex.value = null
+}
+
+const moveItem = (from: number, to: number) => {
+	const newItems = [...items.value]
+	const [moved] = newItems.splice(from, 1)
+	newItems.splice(to, 0, moved)
+	emit("update:modelValue", newItems)
+	emit("move", { from, to })
 }
 </script>
