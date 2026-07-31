@@ -733,3 +733,14 @@ async def test_rewind_while_running_is_rejected_over_http(tmp_path, monkeypatch)
 
 		model.release.set()
 		assert (await first).json()["reason"] == "done"
+
+
+def test_active_entries_reject_a_cursor(tmp_path):
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
+	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "hi"})
+
+	# a rewind can retract rows before a cursor, so the snapshot view refuses one
+	assert c.get(f"/sessions/{sid}/entries", params={"since": 2}).status_code == 422
+	assert c.get(f"/sessions/{sid}/entries", params={"since": 2, "path": "all"}).status_code == 200
+	assert c.get(f"/sessions/{sid}/entries").status_code == 200

@@ -162,7 +162,12 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 		if path == "all":  # the raw log, including branches a rewind abandoned
 			rows = session.log.read_since(since)
 		else:
-			rows = [row for row in active_path(session.log.read_since(0)) if row["seq"] > since]
+			if since:  # a rewind can retract rows before the cursor, so no cursor here
+				raise HTTPException(
+					status_code=422,
+					detail="the active view is a snapshot; catch up over /stream or path=all",
+				)
+			rows = active_path(session.log.read_since(0))
 		return {
 			"entries": rows,
 			"latest_seq": session.log.latest_seq,
