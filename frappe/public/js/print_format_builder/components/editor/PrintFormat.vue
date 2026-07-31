@@ -194,7 +194,7 @@ let rootStyles = computed(() => {
 let bodyStyles = computed(() => {
 	const { font_size, font } = print_format.value;
 	const styles = {};
-	if (font_size) styles.fontSize = `${parseFloat(font_size)}px`;
+	styles.fontSize = `${parseFloat(font_size) || 14}px`;
 	if (font) styles.fontFamily = `'${font}', sans-serif`;
 	return styles;
 });
