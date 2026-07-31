@@ -156,8 +156,9 @@ class TestDocs(IntegrationTestCase):
 	def test_framework_example_docs_exist(self):
 		docs_root = os.path.join(frappe.get_app_path("frappe"), "docs")
 		self.assertTrue(os.path.isdir(docs_root))
-		self.assertTrue(os.path.isfile(os.path.join(docs_root, "index.md")))
-		self.assertTrue(os.path.isfile(os.path.join(docs_root, "authoring.md")))
+		self.assertTrue(os.path.isfile(os.path.join(docs_root, "framework", "index.md")))
+		self.assertTrue(os.path.isfile(os.path.join(docs_root, "framework", "docs", "index.md")))
+		self.assertTrue(os.path.isfile(os.path.join(docs_root, "framework", "docs", "authoring.md")))
 
 	def test_navigation_tree_includes_folder_nodes(self):
 		with self.docs_environment({"folder/leaf.md": "---\ntitle: Leaf\n---\n# Leaf"}):
