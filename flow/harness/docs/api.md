@@ -134,9 +134,20 @@ returns to idle →
 `{"status": "cancelled"}`, or `{"status": "idle" | ...}` when nothing was pending.
 `409` while a run is active.
 
-### `GET /sessions/{sid}/entries?since=<int>`
+### `POST /sessions/{sid}/rewind`
+Body: `{"target_seq": 12}`. Moves the conversation back to that entry; the next run
+branches from it. Nothing is deleted — the abandoned rows stay in the log, off the
+active path. The target must exist and leave a clean tail (no unanswered tool calls,
+no pending approval); rewinding a paused session abandons its approval batch →
+`{"status": "rewound"}`. `409` while a run is active or for an invalid target.
+
+### `GET /sessions/{sid}/entries?since=<int>&path=<active|all>`
 The durable log from the cursor →
 `{"entries": [...], "latest_seq", "state", "running"}`.
+Default (`active`) is the branch the conversation is on — what a renderer should show;
+for a session that was never rewound this is simply the whole log. `path=all` is raw
+file order, including branches a rewind abandoned and the `rewind` markers themselves.
+After seeing a `rewind` event on a live stream, refetch the default view.
 
 ### `GET /sessions/{sid}/stream?since=<int>`
 Server-Sent Events. Replays durable entries with `seq > since`, then streams live
