@@ -96,7 +96,9 @@ def get_communication_doctype(
 ):
 	can_read = frappe.get_user().get_can_read()
 
-	com_doctypes = frappe.db.get_values("DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0}, pluck="name")
+	com_doctypes = frappe.db.get_values(
+		"DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0}, pluck="name"
+	)
 
 	results = [[dt] for dt in list(set(com_doctypes)) if dt in can_read]
 
