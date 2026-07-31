@@ -309,9 +309,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		this.page.clear_icons();
 		this.page.clear_menu();
 
-		if (frappe.boot.desk_settings.form_sidebar) {
-			this.make_menu_items();
-		}
+		this.make_menu_items();
 
 		if (frappe.boot.desk_settings.form_navigation_buttons) {
 			this.make_navigation();
@@ -444,6 +442,36 @@ frappe.ui.form.Toolbar = class Toolbar {
 			);
 		}
 
+<<<<<<< HEAD
+=======
+	add_print() {
+		if (frappe.model.can_print_doc(this.frm)) {
+			let menu_item = this.page.add_menu_item(
+				__("Print"),
+				() => {
+					this.frm.print_doc();
+				},
+				true
+			);
+			menu_item.parent().addClass("hidden-xl");
+		}
+	}
+
+	add_open_sidebar() {
+		if (this.page.hide_sidebar || !frappe.boot.desk_settings.form_sidebar) {
+			return;
+		}
+		this.page.add_menu_item(
+			__("Toggle Sidebar"),
+			() => {
+				this.setup_sidebar_toggle(this.frm.sidebar.sidebar.parent());
+			},
+			true
+		);
+	}
+
+	add_reload() {
+>>>>>>> ec187e224d (fix(ui): keep form menu when sidebar is disabled)
 		// reload
 		this.page.add_menu_item(
 			__("Reload"),
