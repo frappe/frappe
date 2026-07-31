@@ -5,7 +5,7 @@ import pytest
 
 from flow_server.events import AssistantMessage, TextContent, ThinkingContent, ToolCall, UserMessage
 from flow_server.model import (
-	_REGISTRY,
+	_NATIVE_PROVIDERS,
 	LiteLLMModel,
 	MockModel,
 	ModelRequest,
@@ -20,6 +20,7 @@ from flow_server.model.litellm import (
 	_reasoning_field,
 	_stop_reason,
 )
+from flow_server.model.providers.codex import CodexModel
 
 
 def _chunk(delta: dict, finish_reason: str | None = None) -> dict:
@@ -167,7 +168,58 @@ def test_register_provider_dispatch():
 	try:
 		assert get_model("dummy/whatever") is sentinel
 	finally:
-		_REGISTRY.pop("dummy", None)
+		_NATIVE_PROVIDERS.pop("dummy", None)
+
+
+def test_get_model_dispatches_codex():
+	model = get_model("codex/gpt-test", api_key="token")
+	assert isinstance(model, CodexModel)
+
+
+def test_get_model_forwards_the_refresh_hook():
+	async def refresh_auth(rejected_token):
+		raise AssertionError("never called here")
+
+	model = get_model("codex/gpt-test", api_key="token", refresh_auth=refresh_auth)
+	assert model._refresh_auth is refresh_auth
+
+
+def test_opencode_go_routes_openai_family_to_chat_completions():
+	model = get_model("opencode-go/grok-4.5", api_key="sk-go")
+	assert isinstance(model, LiteLLMModel)
+	assert model.name == "openai/grok-4.5"
+	assert model._api_base == "https://opencode.ai/zen/go/v1"
+	assert model.provider == "opencode-go"
+	assert model.model == "opencode-go/grok-4.5"
+
+
+def test_opencode_go_routes_anthropic_families_to_messages():
+	for name, route in (
+		("opencode-go/minimax-m3", "anthropic/minimax-m3"),
+		("opencode-go/qwen3.7-max", "anthropic/qwen3.7-max"),
+	):
+		model = get_model(name, api_key="sk-go")
+		assert isinstance(model, LiteLLMModel)
+		assert model.name == route
+		assert model._api_base == "https://opencode.ai/zen/go/v1/messages"
+		assert model.model == name
+
+
+def test_opencode_go_honours_api_base_override():
+	def api_base(name, base):
+		model = get_model(name, api_base=base)
+		assert isinstance(model, LiteLLMModel)
+		return model._api_base
+
+	assert api_base("opencode-go/kimi-k3", "https://proxy.test/v1") == "https://proxy.test/v1"
+	assert api_base("opencode-go/minimax-m3", "https://proxy.test/v1") == "https://proxy.test/v1/messages"
+	# litellm appends /v1/messages itself when the base is not a versioned root
+	assert api_base("opencode-go/minimax-m3", "https://proxy.test") == "https://proxy.test"
+
+
+def test_opencode_go_rejects_bare_prefix():
+	with pytest.raises(ValueError, match="opencode-go/<model-id>"):
+		get_model("opencode-go")
 
 
 def test_stop_reason_prefers_the_provider_signal_over_tool_presence():
