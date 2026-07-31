@@ -82,10 +82,6 @@ frappe.ui.form.on("Recorder", {
 			const max_queries = Math.max(1, ...frm.doc.timeline.map((d) => d.queries));
 			heatmap("timeline", "duration", max_event);
 			heatmap("timeline", "queries", max_queries);
-			// preserve the depth indentation baked into the label
-			frm.fields_dict.timeline.grid.grid_rows.forEach((row) => {
-				$(row.columns.label).css("white-space", "pre");
-			});
 		}
 	},
 });
