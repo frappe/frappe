@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-26 10:10+0000\n"
-"PO-Revision-Date: 2026-07-28 15:07\n"
+"PO-Revision-Date: 2026-07-31 16:00\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -1544,12 +1544,12 @@ msgstr "Dodaj ovoj aktivnosti slanjem na {0}"
 
 #: frappe/public/js/frappe/views/kanban/kanban_column.html:20
 msgid "Add {0}"
-msgstr "{0}"
+msgstr "Dodaj {0}"
 
 #: frappe/public/js/frappe/list/list_view.js:288
 msgctxt "Primary action in list view"
 msgid "Add {0}"
-msgstr "{0}"
+msgstr "Dodaj {0}"
 
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:67
 msgid "Add/Update Filter"
@@ -4961,7 +4961,7 @@ msgstr "Kliknite Prilagodi kako biste dodali svoj prvi widget"
 
 #: frappe/templates/emails/user_invitation.html:5
 msgid "Click below to accept your invitation and get started."
-msgstr ""
+msgstr "Klikni ispod da biste prihvatili pozivnicu i započeli."
 
 #: frappe/website/doctype/web_form/templates/web_form.html:165
 msgid "Click here"
@@ -5002,11 +5002,11 @@ msgstr "Klikni na tabelu za uređivanje"
 
 #: frappe/templates/emails/new_user.html:10
 msgid "Click the button below to complete your registration and set a new password."
-msgstr ""
+msgstr "Klikni na gumb ispod kako biste dovršili registraciju i postavili novu lozinku."
 
 #: frappe/templates/emails/login_with_email_link.html:2
 msgid "Click the button below to sign in to your account. This link will expire in {0} minutes."
-msgstr ""
+msgstr "Klikni gumb ispod za prijavu na svoj račun. Ova veza isteći će za {0} minuta."
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:503
 #: frappe/desk/doctype/number_card/number_card.js:415
@@ -5524,7 +5524,7 @@ msgstr "Završi Postavljanje"
 
 #: frappe/templates/emails/new_user.html:1
 msgid "Complete your registration"
-msgstr ""
+msgstr "Dovršite registraciju"
 
 #. Option for the 'Status' (Select) field in DocType 'Auto Repeat'
 #. Option for the 'Status' (Select) field in DocType 'Prepared Report'
@@ -13334,15 +13334,15 @@ msgstr "Ako učitavate nove zapise, ostavite kolonu \"ime\" (ID) praznom."
 
 #: frappe/templates/emails/password_reset.html:6
 msgid "If you did not request a password reset, please ignore this email. Your password will remain unchanged."
-msgstr ""
+msgstr "Ako niste zatražili poništenje lozinke, zanemari ovu e-poštu. Vaša lozinka će ostati nepromijenjena."
 
 #: frappe/templates/emails/verification_code.html:4
 msgid "If you did not request this code, you can safely ignore this email."
-msgstr ""
+msgstr "Ako niste zatražili ovaj kod, možete sigurno zanemariti ovu e-poštu."
 
 #: frappe/templates/emails/login_with_email_link.html:6
 msgid "If you didn't request this link, you can ignore this email. Someone may have entered your email address by mistake."
-msgstr ""
+msgstr "Ako niste zatražili ovu poveznicu, možete zanemariti ovu e-poštu. Netko je možda pogreškom unio vašu adresu e-pošte."
 
 #: frappe/templates/emails/user_invitation.html:10
 msgid "If you have any questions, reach out to your system administrator."
@@ -14553,7 +14553,7 @@ msgstr "Pozivnica već postoji"
 
 #: frappe/templates/emails/user_invitation_cancelled.html:1
 msgid "Invitation cancelled"
-msgstr ""
+msgstr "Pozivnica otkazana"
 
 #: frappe/core/api/user_invitation.py:101
 msgid "Invitation cannot be cancelled"
@@ -14561,7 +14561,7 @@ msgstr "Pozivnica se ne može otkazati"
 
 #: frappe/templates/emails/user_invitation_expired.html:1
 msgid "Invitation expired"
-msgstr ""
+msgstr "Pozivnica istekla"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:128
 msgid "Invitation is cancelled"
@@ -16174,7 +16174,7 @@ msgstr "DocType Registara Sustava"
 
 #: frappe/templates/emails/login_with_email_link.html:4
 msgid "Log In to {0}"
-msgstr ""
+msgstr "Prijavite se na {0}"
 
 #. Label of the log_index (Int) field in DocType 'Data Import Log'
 #: frappe/core/doctype/data_import_log/data_import_log.json
@@ -16199,7 +16199,7 @@ msgstr "Prijavite se da pristupite ovoj stranici."
 
 #: frappe/templates/emails/login_with_email_link.html:1
 msgid "Log in to {0}"
-msgstr ""
+msgstr "Prijavite se na {0}"
 
 #: frappe/website/doctype/website_settings/website_settings.py:182
 msgid "Log out"
@@ -19585,7 +19585,7 @@ msgstr "Opcije nisu postavljene za polje veze {0}"
 
 #: frappe/templates/emails/new_user.html:21
 msgid "Or copy and paste this link:"
-msgstr ""
+msgstr "Ili kopiraj i zalijepi ovaj link:"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
@@ -22269,7 +22269,7 @@ msgstr "Crvena"
 #. Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Redact Message After Send"
-msgstr ""
+msgstr "Uredi Poruku nakon Slanja"
 
 #. Label of the redirect_http_status (Select) field in DocType 'Website Route
 #. Redirect'
@@ -22861,7 +22861,7 @@ msgstr "Ponavlja se {0}"
 #. 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Replace the message body with a placeholder once the email has been sent, so that sensitive content like password reset links is not retained in the queue."
-msgstr ""
+msgstr "Zamijeni tijelo poruke rezerviranim mjestom nakon što je e-pošta poslana kako se osjetljivi sadržaj poput poveznica za poništenje lozinke ne bi zadržavao u redu čekanja."
 
 #: frappe/core/doctype/role_replication/role_replication.js:7
 #: frappe/core/doctype/role_replication/role_replication.js:14
@@ -30090,7 +30090,7 @@ msgstr "Koristi jake lozinke."
 
 #: frappe/templates/emails/verification_code.html:2
 msgid "Use the code below to complete your sign-in."
-msgstr ""
+msgstr "Upotrijebi kod ispod za dovršetak prijave."
 
 #: frappe/printing/page/print/print.js:302
 msgid "Use the new Print Format Builder"
@@ -30709,7 +30709,7 @@ msgstr "Veza za Verifikaciju"
 
 #: frappe/templates/emails/verification_code.html:1
 msgid "Verification code"
-msgstr ""
+msgstr "Verifikacijski kod"
 
 #: frappe/templates/includes/login/login.js:421
 msgid "Verification code email not sent. Please contact Administrator."
@@ -30986,7 +30986,7 @@ msgstr "Primili smo vaš zahtjev za preuzimanje vaših {0} podataka povezanih sa
 
 #: frappe/templates/emails/password_reset.html:3
 msgid "We received a request to reset the password for your account. Click the button below to set a new password."
-msgstr ""
+msgstr "Primili smo zahtjev za poništenje lozinke za vaš račun. Kliknite gumb ispod da biste postavili novu lozinku."
 
 #: frappe/www/attribution.html:12
 msgid "We would like to thank the authors of these packages for their contribution."
@@ -32416,7 +32416,7 @@ msgstr "Bit ćete preusmjereni na:"
 
 #: frappe/templates/emails/user_invitation.html:1
 msgid "You've been invited"
-msgstr ""
+msgstr "Pozvani ste"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:113
 msgid "You've been invited to join {0}"
@@ -32469,7 +32469,7 @@ msgstr "Vašu dodjelu {0} {1} je uklonio {2}"
 
 #: frappe/integrations/google_oauth.py:203
 msgid "Your authorization attempt is invalid or has expired. Please try again."
-msgstr ""
+msgstr "Vaš pokušaj autorizacije nije valjan ili je istekao. Pokušaj ponovno."
 
 #: frappe/core/doctype/file/file.js:94
 msgid "Your browser does not support the audio element."
@@ -32505,11 +32505,11 @@ msgstr "Vaša pozivnica za pridruživanje {0} je istekla."
 
 #: frappe/templates/emails/new_user.html:8
 msgid "Your login ID is:"
-msgstr ""
+msgstr "Vaš ID za prijavu je:"
 
 #: frappe/utils/oauth.py:232
 msgid "Your login attempt is invalid or has expired. Please try again."
-msgstr ""
+msgstr "Vaš pokušaj prijave nije valjan ili je istekao. Pokušaj ponovno."
 
 #: frappe/www/update-password.html:196
 msgid "Your new password has been set successfully."
