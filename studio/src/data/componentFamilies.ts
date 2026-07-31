@@ -128,6 +128,14 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 		initialState: {
 			value: "tab",
 		},
+		// selecting a nav item activates its tab so the matching panel opens for editing
+		onSelect: (block) => {
+			const value = block.getProp("value")
+			const dialog = block.closest("SettingsDialog")
+			if (typeof value === "string" && dialog && dialog.getProp("tab") !== value) {
+				dialog.setProp("tab", value)
+			}
+		},
 	},
 	SettingsContent: {
 		name: "SettingsContent",

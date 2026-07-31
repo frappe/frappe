@@ -109,6 +109,7 @@ export interface FrappeUIComponent {
 	isGroup?: boolean // marks a family's root, a stacked tile that drops a whole working block template (e.g. List, SettingsDialog)
 	group?: string // name of the family primary this component is a part of
 	isStandalone?: boolean // false = can't mount outside its family root
+	onSelect?: (block: Block) => void // editor hook — runs when a block of this component is selected on canvas/layers
 }
 
 export interface FrappeUIComponents {

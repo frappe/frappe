@@ -228,6 +228,8 @@ function selectBlock(block: Block, e: MouseEvent | null, setBreakpoint = true) {
 		toggleBlockSelection(block)
 	} else {
 		selectBlockById(block.componentId)
+		// family-specific selection behavior (e.g. selecting a nav item activates its tab)
+		Block.getComponents()?.[block.componentName]?.onSelect?.(block)
 	}
 
 	if (setBreakpoint && e) {
