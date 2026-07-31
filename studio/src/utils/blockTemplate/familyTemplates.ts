@@ -1,4 +1,5 @@
 import type { BlockOptions, BlockStyleMap, Slot } from "@/types";
+import type { TextBlockProps } from "@/types/studio_components/TextBlock";
 
 // Block templates for component families (List, Settings Dialog). Families are
 // compositional: one drop of the primary should yield a whole, working tree.
@@ -36,7 +37,7 @@ export function listTemplate(): BlockOptions {
 				children: [
 					listHeaderCell("Member"),
 					listHeaderCell("Role"),
-					listHeaderCell("Member since", ["justify-end"]),
+					listHeaderCell("Member since", { justifyContent: "flex-end" }),
 					// empty header over the row-action column
 					{ componentName: "ListHeaderCell" },
 				],
@@ -53,11 +54,15 @@ export function listTemplate(): BlockOptions {
 						componentProps: { value: "{{ value }}" },
 						children: [
 							memberCell(),
-							listCell("{{ item.role }}", ["text-ink-gray-7"]),
-							listCell("{{ item.since }}", ["text-ink-gray-6"], ["justify-end"]),
+							listCell("{{ item.role }}", { color: "var(--ink-gray-7)" }),
+							listCell(
+								"{{ item.since }}",
+								{ color: "var(--ink-gray-6)" },
+								{ justifyContent: "flex-end" }
+							),
 							{
 								componentName: "ListCell",
-								classes: ["justify-end"],
+								baseStyles: { justifyContent: "flex-end" } as BlockStyleMap,
 								children: [
 									{
 										componentName: "Button",
@@ -85,11 +90,21 @@ function memberCell(): BlockOptions {
 			{
 				componentName: "container",
 				originalElement: "div",
-				classes: ["ml-3", "min-w-0"],
-				baseStyles: { display: "flex", flexDirection: "column" } as BlockStyleMap,
+				baseStyles: {
+					display: "flex",
+					flexDirection: "column",
+					marginLeft: "12px",
+					minWidth: "0px",
+				} as BlockStyleMap,
 				children: [
-					textBlock("{{ item.name }}", ["truncate", "text-base", "text-ink-gray-8"]),
-					textBlock("{{ item.email }}", ["mt-0.5", "truncate", "text-sm", "text-ink-gray-5"]),
+					{
+						...textBlock("{{ item.name }}", { color: "var(--ink-gray-8)" }, "text-base"),
+						classes: ["truncate"],
+					},
+					{
+						...textBlock("{{ item.email }}", { marginTop: "2px", color: "var(--ink-gray-5)" }, "text-sm"),
+						classes: ["truncate"],
+					},
 				],
 			},
 		],
@@ -144,12 +159,16 @@ export function settingsDialogTemplate(): BlockOptions {
 	};
 }
 
-function listHeaderCell(label: string, classes: string[] = []): BlockOptions {
-	return { componentName: "ListHeaderCell", classes, children: [textBlock(label)] };
+function listHeaderCell(label: string, styles: BlockStyleMap = {}): BlockOptions {
+	return { componentName: "ListHeaderCell", baseStyles: styles, children: [textBlock(label)] };
 }
 
-function listCell(text: string, textClasses: string[] = [], cellClasses: string[] = []): BlockOptions {
-	return { componentName: "ListCell", classes: cellClasses, children: [textBlock(text, textClasses)] };
+function listCell(
+	text: string,
+	textStyles: BlockStyleMap = {},
+	cellStyles: BlockStyleMap = {}
+): BlockOptions {
+	return { componentName: "ListCell", baseStyles: cellStyles, children: [textBlock(text, textStyles)] };
 }
 
 function navItem(value: string, label: string): BlockOptions {
@@ -191,8 +210,16 @@ function settingsRow(title: string, description: string, control: BlockOptions):
 	};
 }
 
-function textBlock(text: string, classes: string[] = []): BlockOptions {
-	return { componentName: "TextBlock", classes, componentProps: { text, tag: "span" } };
+function textBlock(
+	text: string,
+	styles: BlockStyleMap = {},
+	fontSize?: TextBlockProps["fontSize"]
+): BlockOptions {
+	return {
+		componentName: "TextBlock",
+		baseStyles: styles,
+		componentProps: { text, tag: "span", ...(fontSize && { fontSize }) },
+	};
 }
 
 // Wrap blocks as a component's default-slot content. Only ListRows needs this:
