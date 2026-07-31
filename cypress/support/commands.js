@@ -473,7 +473,7 @@ Cypress.Commands.add("clear_filters", () => {
 
 Cypress.Commands.add("click_modal_primary_button", (btn_name) => {
 	cy.wait(400);
-	cy.get(".modal-footer > .standard-actions > .btn-primary")
+	cy.get(".modal-footer > .standard-actions > .btn-modal-primary")
 		.contains(btn_name)
 		.click({ force: true });
 });
