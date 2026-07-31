@@ -1,0 +1,241 @@
+"""The Tool abstraction, its runtime context, the @tool decorator, and the
+OpenAI-style parameter-schema builder that derives a tool's schema from a
+callable's signature.
+
+`build_schema` is shared code: the daemon describes its own tools with it, and a
+client (e.g. Flow) describes its client-side tools the same way. The injected
+`ctx` parameter is runtime-only and never exposed to the model.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import functools
+import inspect
+import operator
+import types
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Literal, Union, get_args, get_origin, get_type_hints, overload
+
+from pydantic import BaseModel, ConfigDict, validate_call
+
+
+@dataclass
+class ToolContext:
+	"""Runtime state injected into a tool call by the loop; never seen by the model."""
+
+	cwd: str = "."
+	# Empty preserves the local-development default: unrestricted filesystem access.
+	# When populated, every path-taking builtin must reject targets outside these roots.
+	allowed_roots: tuple[str, ...] = ()
+	abort: asyncio.Event = field(default_factory=asyncio.Event)
+	timeout: float = 120.0
+
+
+@dataclass
+class ToolResult:
+	"""A tool's outcome. `content` is the text the model sees; `details` is structured
+	metadata for rich rendering/logging and is never sent to the model."""
+
+	content: str
+	details: dict[str, Any] = field(default_factory=dict)
+	is_error: bool = False
+
+
+@dataclass
+class Tool:
+	name: str
+	description: str
+	parameters: dict[str, Any]
+	func: Callable[..., Awaitable[ToolResult]]
+	requires_confirmation: bool = False
+	confirm_prompt: Callable[[dict[str, Any]], str] | None = None
+
+	def __post_init__(self) -> None:
+		self._validated = validate_call(config=ConfigDict(arbitrary_types_allowed=True))(self.func)
+
+	def __call__(self, **kwargs: Any) -> Awaitable[ToolResult]:
+		return self._validated(**kwargs)
+
+	def to_schema(self) -> dict[str, Any]:
+		return {
+			"type": "function",
+			"function": {
+				"name": self.name,
+				"description": self.description,
+				"parameters": self.parameters,
+			},
+		}
+
+
+@overload
+def tool(func: Callable[..., Awaitable[ToolResult]], /) -> Tool: ...
+
+
+@overload
+def tool(
+	*,
+	name: str | None = None,
+	description: str | None = None,
+	requires_confirmation: bool = False,
+	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
+) -> Callable[[Callable[..., Awaitable[ToolResult]]], Tool]: ...
+
+
+def tool(
+	func: Callable[..., Awaitable[ToolResult]] | None = None,
+	*,
+	name: str | None = None,
+	description: str | None = None,
+	requires_confirmation: bool = False,
+	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
+) -> Tool | Callable[[Callable[..., Awaitable[ToolResult]]], Tool]:
+	def wrap(f: Callable[..., Awaitable[ToolResult]]) -> Tool:
+		return Tool(
+			name=name or f.__name__,
+			description=description or (inspect.getdoc(f) or "").strip(),
+			parameters=build_schema(f),
+			func=f,
+			requires_confirmation=requires_confirmation,
+			confirm_prompt=confirm_prompt,
+		)
+
+	return wrap(func) if func is not None else wrap
+
+
+# --- parameter schema builder ---------------------------------------------
+
+_PRIMITIVES: dict[type, dict[str, str]] = {
+	str: {"type": "string"},
+	int: {"type": "integer"},
+	float: {"type": "number"},
+	bool: {"type": "boolean"},
+	bytes: {"type": "string"},
+}
+
+_SKIP = {"ctx", "self", "cls"}
+
+
+def build_schema(func: Callable[..., Any]) -> dict[str, Any]:
+	sig = inspect.signature(func)
+	try:
+		hints = get_type_hints(func, include_extras=True)
+	except Exception:
+		hints = {}
+
+	properties: dict[str, dict[str, Any]] = {}
+	required: list[str] = []
+	for name, param in sig.parameters.items():
+		if name in _SKIP or param.kind in (param.VAR_POSITIONAL, param.VAR_KEYWORD):
+			continue
+		actual, description = _unwrap_annotated(hints.get(name, Any))
+		actual, is_optional = _unwrap_optional(actual)
+		prop = _type_to_schema(actual)
+		if description:
+			prop["description"] = description
+		properties[name] = prop
+		if param.default is inspect.Parameter.empty and not is_optional:
+			required.append(name)
+
+	schema: dict[str, Any] = {
+		"type": "object",
+		"properties": properties,
+		"additionalProperties": False,
+	}
+	if required:
+		schema["required"] = required
+	return schema
+
+
+def _unwrap_annotated(t: Any) -> tuple[Any, str | None]:
+	metadata = getattr(t, "__metadata__", None)
+	if metadata is None:
+		return t, None
+	actual = getattr(t, "__origin__", t)
+	description = next((m for m in metadata if isinstance(m, str)), None)
+	return actual, description
+
+
+def _unwrap_optional(t: Any) -> tuple[Any, bool]:
+	if get_origin(t) not in (Union, types.UnionType):
+		return t, False
+	args = get_args(t)
+	if type(None) not in args:
+		return t, False
+	remaining = tuple(a for a in args if a is not type(None))
+	if len(remaining) == 1:
+		return remaining[0], True
+	if not remaining:
+		return Any, True
+	return functools.reduce(operator.or_, remaining), True
+
+
+def _type_to_schema(t: Any) -> dict[str, Any]:
+	if t is Any or t is object or t is None:
+		return {}
+	if t in _PRIMITIVES:
+		return dict(_PRIMITIVES[t])
+	if t is dict:
+		return {"type": "object"}
+	if t is list:
+		return {"type": "array"}
+
+	origin = get_origin(t)
+	args = get_args(t)
+	if origin in (list, tuple, set, frozenset):
+		return {"type": "array", "items": _type_to_schema(args[0]) if args else {}}
+	if origin is dict:
+		return {"type": "object"}
+	if origin is Literal:
+		return _enum_schema(list(args))
+	if origin in (Union, types.UnionType):
+		return {"anyOf": [_type_to_schema(a) for a in args]}
+
+	if isinstance(t, type):
+		if issubclass(t, BaseModel):
+			return _inline_pydantic_refs(t.model_json_schema())
+		if issubclass(t, Enum):
+			return _enum_schema([m.value for m in t])
+	return {}
+
+
+def _inline_pydantic_refs(schema: dict[str, Any]) -> dict[str, Any]:
+	defs = schema.pop("$defs", {})
+	if not defs:
+		return schema
+
+	resolved: dict[str, dict[str, Any]] = {}
+
+	def walk(node: Any) -> Any:
+		if isinstance(node, list):
+			return [walk(item) for item in node]
+		if not isinstance(node, dict):
+			return node
+		ref = node.get("$ref")
+		if isinstance(ref, str) and ref.startswith("#/$defs/"):
+			def_name = ref.split("/")[-1]
+			if def_name in resolved:
+				return resolved[def_name]
+			if def_name in defs:
+				return walk(defs[def_name])
+			return {"type": "object"}
+		return {key: walk(value) for key, value in node.items()}
+
+	for def_name, def_schema in defs.items():
+		resolved[def_name] = walk(def_schema)
+	return walk(schema)
+
+
+def _enum_schema(values: list[Any]) -> dict[str, Any]:
+	value_types = {type(v) for v in values}
+	if value_types == {str}:
+		return {"type": "string", "enum": values}
+	if value_types == {bool}:
+		return {"type": "boolean", "enum": values}
+	if value_types <= {int}:
+		return {"type": "integer", "enum": values}
+	if value_types <= {int, float}:
+		return {"type": "number", "enum": values}
+	return {"enum": values}
