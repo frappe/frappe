@@ -231,7 +231,7 @@ class TestClassicConverter(IntegrationTestCase):
 										"fieldname": "idx",
 										"fieldtype": "Int",
 										"options": None,
-										"width": 5.33,
+										"width": 10,
 									},
 									{
 										"label": "Role",
@@ -456,6 +456,15 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertIn('data-fieldname="idx"', html)
 		self.assertIn("print-heading", html)
 
+	def test_zero_font_size_renders_at_default(self):
+		# app-shipped classic fixtures carry no font_size, which lands as 0 — the
+		# stylesheet must not emit font-size: 0px or the whole page is invisible
+		self.make_classic_format()
+		frappe.db.set_value("Print Format", self.FORMAT_NAME, "font_size", 0)
+		html = frappe.get_print("User", "Administrator", print_format=self.FORMAT_NAME)
+		self.assertNotIn("font-size: 0px", html)
+		self.assertIn("font-size: 14px", html)
+
 	def test_migrate_all_classic_formats(self):
 		from frappe.printing.doctype.print_format.classic_converter import migrate_all_classic_formats
 
@@ -474,6 +483,41 @@ class TestClassicConverter(IntegrationTestCase):
 		doc.reload()
 		self.assertEqual(doc.print_format_builder_beta, 1)
 		self.assertEqual(frappe.parse_json(doc.classic_format_data), self.CLASSIC_FORMAT_DATA)
+
+	def test_repair_converted_print_formats(self):
+		from frappe.patches.v16_0.repair_converted_print_formats import execute
+
+		self.make_classic_format()
+		from frappe.printing.doctype.print_format.classic_converter import migrate_all_classic_formats
+
+		migrate_all_classic_formats()
+
+		# recreate the pre-fix conversion output: zero font size, 5.33% serial column
+		doc = frappe.get_doc("Print Format", self.FORMAT_NAME)
+		layout = frappe.parse_json(doc.format_data)
+		table = layout["sections"][0]["columns"][1]["fields"][1]
+		table["table_columns"][0]["width"] = 5.33
+		table["table_columns"][1]["width"] = 94.67
+		frappe.db.set_value(
+			"Print Format",
+			self.FORMAT_NAME,
+			{"font_size": 0, "format_data": frappe.as_json(layout)},
+		)
+
+		execute()
+
+		doc.reload()
+		self.assertEqual(doc.font_size, 14)
+		columns = frappe.parse_json(doc.format_data)["sections"][0]["columns"][1]["fields"][1][
+			"table_columns"
+		]
+		self.assertEqual(columns[0]["width"], 10)
+		self.assertEqual(columns[1]["width"], 90.0)
+
+		# already-repaired rows are untouched
+		modified = frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data")
+		execute()
+		self.assertEqual(frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data"), modified)
 
 	def test_migration_skips_corrupt_format(self):
 		"""A format with unparseable format_data is skipped, not fatal to the run."""

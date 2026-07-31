@@ -529,11 +529,14 @@ function remove_column(index) {
 	position: relative;
 }
 
-/* same ring as every other hover/selection state (--pfb-ring), so a hovered
-   column reads the same as a hovered field or section */
-.column.pfb-column-hover {
-	outline: var(--pfb-ring);
-	outline-offset: -2px;
+/* same ring as every other hover/selection state (--pfb-ring); drawn inside the
+   15px bootstrap gutter — the column box bleeds past the section edge */
+.column.pfb-column-hover::after {
+	content: "";
+	position: absolute;
+	inset: 0 15px;
+	border: var(--pfb-ring);
+	pointer-events: none;
 }
 
 .column-divider {
