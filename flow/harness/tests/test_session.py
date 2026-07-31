@@ -213,7 +213,7 @@ async def test_rewind_branches_and_the_next_run_follows_the_new_path(tmp_path):
 	await handle.task
 	rows_before = session.log.read_since(0)
 
-	await session.rewind(1)  # retype the first message
+	await session.rewind(1)  # branch from an entry mid-log
 
 	handle = await session.run("B", model=MockModel(replies=[AssistantMessage(content="Y")]))
 	assert handle.task is not None
