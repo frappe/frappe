@@ -106,5 +106,19 @@ async def test_abort_stops_in_process_run_and_next_run_gets_fresh_signal(tmp_pat
 	assert second[-1].reason == "done"
 
 
+async def test_set_model_records_for_a_name_constructed_agent(tmp_path):
+	agent = Agent(model="mock", data_dir=str(tmp_path), cwd=str(tmp_path))
+	await agent.set_model("mock/v2")
+	assert agent.session.model == "mock/v2"
+
+
+async def test_set_model_conflicts_with_an_injected_model_instance(tmp_path):
+	mock = MockModel(replies=[AssistantMessage(content="hello")])
+	agent = Agent(model=mock, data_dir=str(tmp_path), cwd=str(tmp_path))
+	with pytest.raises(RuntimeError, match="injected Model instance"):
+		await agent.set_model("mock/v2")
+	assert agent.session.log.latest_seq == 0  # nothing durable was recorded
+
+
 async def _collect(events):
 	return [event async for event in events]

@@ -4,6 +4,7 @@ from pydantic import ValidationError
 from flow_server.events import (
 	ApprovalRequired,
 	AssistantMessage,
+	ModelChanged,
 	Retry,
 	Rewind,
 	RunEnded,
@@ -31,6 +32,7 @@ def test_durable_classification():
 		Usage,
 		ApprovalRequired,
 		Rewind,
+		ModelChanged,
 		RunEnded,
 		RunError,
 	]

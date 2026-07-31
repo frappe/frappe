@@ -27,6 +27,7 @@ from flow_server.agent.loop import AfterHook, BeforeHook
 from flow_server.events import (
 	AnyEvent,
 	AssistantMessage,
+	ModelChanged,
 	ProviderErrorKind,
 	Rewind,
 	RunEnded,
@@ -141,6 +142,18 @@ class Session:
 	def is_running(self) -> bool:
 		return self.state is SessionState.RUNNING
 
+	@property
+	def model(self) -> str:
+		"""The effective model: the last model change on the active branch, else config."""
+		return self.transcript.model or self.config.model
+
+	@property
+	def credential_id(self) -> str | None:
+		# the selection travels as a pair: once a model change exists, its credential wins
+		if self.transcript.model is not None:
+			return self.transcript.credential_id
+		return self.config.credential_id
+
 	# --- verbs ------------------------------------------------------------
 
 	async def run(
@@ -206,6 +219,18 @@ class Session:
 				raise RewindError(f"entry {target_seq} leaves tool calls unanswered")
 			self._commit(Rewind(target_seq=target_seq))
 			self.transcript = candidate
+
+	async def set_model(self, model: str, credential_id: str | None = None) -> None:
+		"""Select the model (and credential) for runs from here on — a durable entry,
+		so it survives restarts and rewinds away with its branch."""
+		if not model:
+			raise ValueError("model must be a non-empty name")
+		async with self._operation_lock:
+			if self.state is SessionState.RUNNING:
+				raise SessionConflict("a run is already active")
+			if (model, credential_id) == (self.model, self.credential_id):
+				return
+			self._commit(ModelChanged(model=model, credential_id=credential_id))
 
 	async def cancel_pending(self) -> bool:
 		"""Abandon a paused run's approval batch: answer every undecided call with a
@@ -289,6 +314,8 @@ class Session:
 			messages=self.transcript.messages,
 			credentials=self.credentials,
 			abort=self.abort_signal,
+			model_name=self.model,
+			credential_id=self.credential_id,
 			allowed_roots=self.allowed_roots,
 			session_id=self.id,
 			model=model,
@@ -329,8 +356,8 @@ class Session:
 		if needs_aborted_message:
 			self._commit(
 				AssistantMessage(
-					provider=self.config.model.partition("/")[0],
-					model=self.config.model,
+					provider=self.model.partition("/")[0],
+					model=self.model,
 					stop_reason="aborted",
 				)
 			)

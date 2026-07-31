@@ -178,6 +178,15 @@ class Rewind(_Event):
 	target_seq: int
 
 
+class ModelChanged(_Event):
+	"""Selects the model (and credential) for runs from here on; per-branch, so a rewind
+	to before this entry restores the previous selection."""
+
+	type: Literal["model_changed"] = "model_changed"
+	model: str
+	credential_id: str | None = None  # None = inferred from the model prefix
+
+
 class RunError(_Event):
 	type: Literal["run_error"] = "run_error"
 	message: str
@@ -230,6 +239,7 @@ AnyEvent = (
 	| Usage
 	| ApprovalRequired
 	| Rewind
+	| ModelChanged
 	| RunEnded
 	| RunError
 	| TextDelta

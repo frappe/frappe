@@ -29,6 +29,7 @@ agent.run(message: str, **hooks) -> AsyncIterator[Event]        # start a turn
 agent.resume(answers: dict[str, str], *, approval_seq: int | None = None, **hooks)
     -> AsyncIterator[Event]   # continue a paused run
 agent.abort() -> bool         # signal the active run; false when idle/paused
+agent.set_model(model: str, credential_id: str | None = None)   # switch for later runs
 ```
 
 `run()` and `resume()` are async generators. `**hooks` = `before_tool_call` and/or
@@ -85,19 +86,17 @@ Body: a `SessionConfig` (all fields optional; see below).
 `ALLOWED_ROOTS` or `session_id` is invalid.
 
 ### `GET /sessions/{sid}`
-`→ {"session_id", "state", "running", "latest_seq", "config"}`. `state` is `idle`,
-`running`, or `paused`; `running` remains as a compatibility boolean. `404` if unknown.
+`→ {"session_id", "state", "running", "latest_seq", "model", "credential_id", "config"}`.
+`state` is `idle`, `running`, or `paused`; `running` remains as a compatibility boolean.
+`model`/`credential_id` are the effective selection — the last `model_changed` entry on
+the active branch, else the creation config. `404` if unknown.
 
 ### `POST /sessions/{sid}/run?wait=<bool>`
-Body: `{"message": "...", "model": "provider/model", "credential_id": "optional-name"}`.
-`model` and `credential_id` are optional; when supplied they are applied and persisted
-before the run is admitted, so the run they arrive with already uses them and they
-remain the session defaults for later turns. Provider keys, OAuth tokens, headers, and
-base URLs are not accepted by this endpoint and are resolved inside flow_server.
+Body: `{"message": "..."}`. A run always uses the session's current model selection;
+to switch, use `POST /sessions/{sid}/model` before the run.
 - default (`wait` false): starts the run as a background task → `{"status": "started"}`.
   If a run is already active, the message is queued as steering → `{"status": "steered"}`
-  (returned immediately even with `?wait=true`; an override steered into an active run
-  takes effect on the next run).
+  (returned immediately even with `?wait=true`).
 - `?wait=true`: blocks until the started run ends →
   `{"reason", "output", "usage", "pending", "approval_seq"}` (`output` = final
   assistant text; `pending` and `approval_seq` identify the approval batch if
@@ -142,6 +141,16 @@ to the entry before its run (or `0` for the first run). Any other target must ex
 and leave a clean tail (no unanswered tool calls, no pending approval); rewinding a
 paused session abandons its approval batch →
 `{"status": "rewound"}`. `409` while a run is active or for an invalid target.
+
+### `POST /sessions/{sid}/model`
+Body: `{"model": "provider/model", "credential_id": "optional-name"}`. Selects the
+model (and stored credential) for runs from here on, as a durable `model_changed`
+entry in the log — so it survives restarts and is per-branch: a rewind to before the
+change restores the previous selection. Setting the already-active selection writes
+nothing. Provider keys, OAuth tokens, headers, and base URLs are never accepted;
+they are resolved inside flow_server →
+`{"model": "...", "credential_id": ...}` (the now-effective selection). `409` while a
+run is active; allowed while paused (the resume continues on the new model).
 
 ### `GET /sessions/{sid}/entries?since=<int>&path=<active|all>`
 The durable log →
@@ -197,7 +206,7 @@ print(res["output"], res["reason"], res["usage"])
 | Field | Default | Notes |
 |---|---|---|
 | `session_id` | generated | client-provided id (must be `[A-Za-z0-9_-]{1,64}`) |
-| `model` | `"mock"` | name string; prefix selects the provider |
+| `model` | `"mock"` | name string; prefix selects the provider. The initial selection — switch later via `POST /sessions/{sid}/model` (config never mutates) |
 | `system_prompt` | `"You are a helpful agent."` | |
 | `tools` | `["bash","read_file","write","edit","grep"]` | builtin tool names |
 | `client_tools` | `[]` | schemas for tools the client runs (see [tools.md](tools.md)) |

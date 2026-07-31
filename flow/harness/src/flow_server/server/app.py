@@ -17,7 +17,7 @@ from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from flow_server.events import AssistantMessage, parse_event
 from flow_server.session.config import SessionConfig
@@ -37,9 +37,13 @@ class RunRequest(BaseModel):
 	model_config = ConfigDict(extra="forbid")
 
 	message: str
-	# A turn may switch the model or select another stored credential. Provider secrets
-	# and endpoints are resolved inside flow_server and are never run inputs.
-	model: str | None = None
+
+
+class SetModelRequest(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
+	# Names only: provider secrets and endpoints are resolved inside flow_server.
+	model: str = Field(min_length=1)
 	credential_id: str | None = None
 
 
@@ -118,13 +122,14 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 			"state": session.state,
 			"running": session.is_running,
 			"latest_seq": session.log.latest_seq,
+			"model": session.model,
+			"credential_id": session.credential_id,
 			"config": session.config.redacted(),
 		}
 
 	@app.post("/sessions/{sid}/run")
 	async def run(sid: str, req: RunRequest, wait: bool = False):
 		session = _get(sid)
-		_apply_overrides(store, session, req)  # settle the config before a run can read it
 		handle = await session.run(req.message)
 		if handle.status == "steered":
 			return {"status": "steered"}
@@ -148,6 +153,12 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 		session = _get(sid)
 		await session.rewind(req.target_seq)
 		return {"status": "rewound"}
+
+	@app.post("/sessions/{sid}/model")
+	async def set_model(sid: str, req: SetModelRequest):
+		session = _get(sid)
+		await session.set_model(req.model, credential_id=req.credential_id)
+		return {"model": session.model, "credential_id": session.credential_id}
 
 	@app.post("/sessions/{sid}/cancel_pending")
 	async def cancel_pending(sid: str):
@@ -185,19 +196,6 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 		)
 
 	return app
-
-
-def _apply_overrides(store: SessionStore, session: Session, req: RunRequest) -> None:
-	"""Apply a run's model/credential override to the session and persist it, so a model
-	switch sticks for later turns (like Flow keeps a session's chosen model)."""
-	changed = False
-	for field in ("model", "credential_id"):
-		value = getattr(req, field)
-		if value is not None and value != getattr(session.config, field):
-			setattr(session.config, field, value)
-			changed = True
-	if changed:
-		store.save_meta(session)
 
 
 async def _finish(session: Session, handle: RunHandle, wait: bool) -> dict:

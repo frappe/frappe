@@ -66,8 +66,8 @@ class SessionStore:
 		return sid in self._cache or os.path.isfile(self._meta_path(sid))
 
 	def save_meta(self, session: Session) -> None:
-		"""Persist a session's config so config changes (e.g. a model override on a later
-		turn) survive a restart."""
+		"""Write the session's config to its meta file (config is fixed after create;
+		later model changes live in the log)."""
 		path = self._meta_path(session.id)
 		fd, tmp = mkstemp(prefix=f".{os.path.basename(path)}.", dir=self.sessions_dir)
 		try:

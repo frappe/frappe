@@ -265,7 +265,9 @@ Behavior changes, each deliberate:
 8. **Tampered session meta fails loudly on load** instead of being silently accepted.
 9. **Model/credential overrides apply before admission** — a 409-rejected run request
    still persists the override; an override steered into an active run takes effect on
-   the next run (the model is resolved once per run).
+   the next run (the model is resolved once per run). *Superseded since: run requests
+   no longer carry overrides — model changes are a durable `model_changed` entry
+   committed by `POST /sessions/{sid}/model`.*
 10. **SSE liveness poll dropped** — the stream closes on `run_ended` or end-of-replay;
     a run that dies *without* terminal events (reachable only if the log itself fails
     mid-settlement) holds the stream open until client disconnect, where `main` closed
