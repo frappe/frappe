@@ -424,11 +424,30 @@ class Block implements BlockOptions {
 	}
 
 	isFlex() {
-		return this.getStyle("display") === "flex"
+		return this.getRenderedStyle("display") === "flex"
 	}
 
 	isGrid() {
-		return this.getStyle("display") === "grid"
+		return this.getRenderedStyle("display") === "grid"
+	}
+
+	// detect actual layout type directly from rendered element if not set in block styles
+	getRenderedStyle(style: styleProperty): StyleValue {
+		const configuredStyle = this.getStyle(style)
+		if (configuredStyle || typeof document === "undefined") return configuredStyle
+		const element = this.getRenderedElement()
+		if (!element) return undefined
+		return (getComputedStyle(element) as unknown as Record<string, StyleValue>)[style] || undefined
+	}
+
+	getRenderedElement(): HTMLElement | null {
+		const activeCanvas = useCanvasStore().activeCanvas
+		const breakpoint = activeCanvas?.activeBreakpoint
+		if (!breakpoint) return null
+		const scope: ParentNode = activeCanvas?.canvasContainer || document
+		return scope.querySelector(
+			`.__studio_component__[data-component-id="${this.componentId}"][data-breakpoint="${breakpoint}"]`,
+		)
 	}
 
 	getPadding() {
