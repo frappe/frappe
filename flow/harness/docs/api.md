@@ -6,7 +6,7 @@ iteration, for embedding/tests/TUI) and the **HTTP API** (remote, disconnect-tol
 ## In-process: `Agent`
 
 ```python
-from flow_server.agent.agent import Agent
+from flow_server.agent import Agent
 ```
 
 ### Constructor
