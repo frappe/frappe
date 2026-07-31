@@ -1188,11 +1188,15 @@ frappe.ui.form.Form = class FrappeForm {
 		if (skip_confirm) {
 			cancel_doc();
 		} else {
-			frappe.confirm(
+			frappe.warn(
+				__("Confirm"),
 				__("Permanently Cancel {0}?", [this.docname]),
 				cancel_doc,
-				me.handle_save_fail(btn, on_error)
+				__("Yes"),
+				false,
+				__("No")
 			);
+			me.handle_save_fail(btn, on_error);
 		}
 	}
 

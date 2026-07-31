@@ -741,24 +741,30 @@ $.extend(frappe.model, {
 				title = `${value} (${docname})`;
 			}
 		}
-		frappe.confirm(__("Permanently delete {0}?", [title.bold()]), function () {
-			return frappe.call({
-				method: "frappe.client.delete",
-				args: {
-					doctype: doctype,
-					name: docname,
-				},
-				freeze: true,
-				freeze_message: __("Deleting {0}...", [title]),
-				callback: function (r, rt) {
-					if (!r.exc) {
-						frappe.utils.play_sound("delete");
-						frappe.model.clear_doc(doctype, docname);
-						if (callback) callback(r, rt);
-					}
-				},
-			});
-		});
+		// destructive: red primary via frappe.warn, not a neutral confirm
+		frappe.warn(
+			__("Confirm"),
+			__("Permanently delete {0}?", [title.bold()]),
+			function () {
+				return frappe.call({
+					method: "frappe.client.delete",
+					args: {
+						doctype: doctype,
+						name: docname,
+					},
+					freeze: true,
+					freeze_message: __("Deleting {0}...", [title]),
+					callback: function (r, rt) {
+						if (!r.exc) {
+							frappe.utils.play_sound("delete");
+							frappe.model.clear_doc(doctype, docname);
+							if (callback) callback(r, rt);
+						}
+					},
+				});
+			},
+			__("Delete")
+		);
 	},
 
 	rename_doc: function (doctype, docname, callback) {
