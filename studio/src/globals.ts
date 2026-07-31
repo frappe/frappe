@@ -61,8 +61,6 @@ import {
 	SettingsRow,
 } from "frappe-ui"
 import { CodeEditor } from "frappe-ui/code-editor"
-// List family lives on the `frappe-ui/list` subpath (its index also pulls in the
-// family's structural style.css). Composed via the `list` block template.
 import {
 	List,
 	ListRows,

@@ -156,7 +156,7 @@ function getRendererContent(componentSources, pageScripts = []) {
 	} = componentSources
 	const frappeUIImports =
 		frappeUIComponents.length > 0 ? `import { ${frappeUIComponents.join(",\n ")} } from "frappe-ui";` : ""
-	// Molecules ship from a dedicated subpath (its index also pulls in the family's style.css).
+	// Molecules ship from a dedicated subpath
 	const frappeUIMoleculeImports =
 		frappeUIMolecules.length > 0 ? `import { ${frappeUIMolecules.join(",\n ")} } from "frappe-ui/list";` : ""
 	const frappeImports =
@@ -187,7 +187,9 @@ function getRendererContent(componentSources, pageScripts = []) {
 		: ""
 	const pageScriptSetup = pageScripts.length
 		? `setPageScriptImporters({
-${pageScripts.map((p) => `	${JSON.stringify(p.page_name)}: () => import(${JSON.stringify(p.file_path)}),`).join("\n")}
+${pageScripts
+	.map((p) => `	${JSON.stringify(p.page_name)}: () => import(${JSON.stringify(p.file_path)}),`)
+	.join("\n")}
 })`
 		: ""
 
@@ -238,7 +240,8 @@ function getFrameworkUIImports(frameworkUIComponents) {
 					`(and ensure apps/frappe/ui/src/index.ts re-exports it).`,
 			)
 		}
-		;(bySource[source] ||= []).push(comp)
+		bySource[source] ||= []
+		bySource[source].push(comp)
 	}
 	return Object.entries(bySource)
 		.map(([source, comps]) => `import { ${comps.join(", ")} } from "${source}";`)

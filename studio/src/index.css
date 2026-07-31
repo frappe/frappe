@@ -1,2 +1,5 @@
 @import "frappe-ui/style.css";
+/* frappe-ui/list's own style.css side-effect import gets pruned by rolldown in
+   production builds, so the family's structural CSS is imported explicitly here */
+@import "frappe-ui/list-style.css";
 @import './styles/codemirror.css';
