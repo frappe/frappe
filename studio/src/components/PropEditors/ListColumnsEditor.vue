@@ -61,8 +61,20 @@ const mismatch = computed(() => {
 	if (offRows.length) {
 		problems.push(`${offRows.length} row${offRows.length === 1 ? "" : "s"} with a mismatched cell count`)
 	}
+	const invalid = columnWidths.value.filter((width) => !isValidWidth(width))
+	if (invalid.length) {
+		problems.push(
+			`Invalid width${invalid.length === 1 ? "" : "s"}: ${invalid.map((width) => `"${width}"`).join(", ")}`,
+		)
+	}
 	return problems
 })
+
+function isValidWidth(width: string) {
+	// dynamic bindings resolve at render time — nothing to validate here
+	if (typeof width !== "string" || width.includes("{{")) return true
+	return CSS.supports("grid-template-columns", width)
+}
 
 const headerBlock = computed(
 	() => props.block.children.find((child) => child.componentName === "ListHeader") || null,
