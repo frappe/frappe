@@ -122,6 +122,16 @@ frappe.breadcrumbs = {
 	},
 
 	set_custom_breadcrumbs(breadcrumbs) {
+		if (breadcrumbs.items?.length) {
+			breadcrumbs.items.forEach((item, index) => {
+				this.append_breadcrumb_element(item.route, item.label, item.css_classes);
+				if (item.disabled || index === breadcrumbs.items.length - 1) {
+					this.$breadcrumbs.find("li").last().addClass("disabled");
+				}
+			});
+			return;
+		}
+
 		this.append_breadcrumb_element(breadcrumbs.route, breadcrumbs.label);
 	},
 

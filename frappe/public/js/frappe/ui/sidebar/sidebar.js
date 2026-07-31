@@ -562,6 +562,12 @@ frappe.ui.Sidebar = class Sidebar {
 						frappe.ui.toolbar.clear_cache();
 					},
 				},
+				{
+					name: "documentation",
+					label: __("Documentation"),
+					icon: "book-open",
+					url: "/desk/docs",
+				},
 				...frappe.boot.navbar_settings.settings_dropdown.map((item) => ({
 					...item,
 					label: item.item_label,

@@ -1,0 +1,103 @@
+.docs-browser {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.docs-sidebar .docs-tree {
+	padding: var(--padding-sm) 0;
+}
+
+.docs-tree-node {
+	display: block;
+	padding: var(--padding-xs) var(--padding-sm);
+	border-radius: var(--border-radius);
+	color: var(--text-color);
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.docs-tree-node:hover {
+	background-color: var(--control-bg);
+	text-decoration: none;
+}
+
+.docs-tree-node.active {
+	background-color: var(--control-bg);
+	font-weight: 600;
+}
+
+.docs-tree-children {
+	padding-left: var(--padding-md);
+}
+
+.docs-reading-pane {
+	flex: 1;
+	overflow: auto;
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 75ch;
+	margin-inline: auto;
+	padding: var(--padding-md);
+	color: var(--text-color);
+	font-size: 1rem;
+	line-height: 1.6;
+}
+
+.docs-reading-pane > :first-child {
+	margin-top: 0;
+}
+
+.docs-reading-pane h1,
+.docs-reading-pane h2,
+.docs-reading-pane h3,
+.docs-reading-pane h4,
+.docs-reading-pane h5,
+.docs-reading-pane h6 {
+	color: var(--text-color);
+	font-weight: var(--weight-semibold);
+	letter-spacing: normal;
+	text-wrap: balance;
+}
+
+.docs-reading-pane h1 {
+	font-size: 1.75rem;
+	line-height: 1.25;
+}
+
+.docs-reading-pane h2 {
+	font-size: 1.375rem;
+	line-height: 1.3;
+}
+
+.docs-reading-pane h3 {
+	font-size: 1.125rem;
+	line-height: 1.4;
+}
+
+.docs-reading-pane h4,
+.docs-reading-pane h5,
+.docs-reading-pane h6 {
+	font-size: 1rem;
+	line-height: 1.4;
+}
+
+.docs-state {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 1;
+	padding: var(--padding-xl);
+}
+
+.docs-state.hide {
+	display: none;
+}
+
+.docs-reading-pane.hide {
+	display: none;
+}
+
+.docs-loading {
+	opacity: 0.5;
+}

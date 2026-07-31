@@ -1,0 +1,16 @@
+{
+ "content": null,
+ "docstatus": 0,
+ "doctype": "Page",
+ "module": "Desk",
+ "name": "docs",
+ "page_name": "docs",
+ "roles": [
+  {
+   "role": "Desk User"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "title": "Documentation"
+}
