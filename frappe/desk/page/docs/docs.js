@@ -159,10 +159,23 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			method: "frappe.desk.docs.get_page",
 			args: { path },
 			callback: (response) => {
+				if (response.exc_type) {
+					this.show_error(response, path);
+					return;
+				}
 				this.show_page(response.message);
 			},
-			error: (response) => {
-				this.show_error(response, path);
+			always: (data) => {
+				if (data?.responseText) {
+					try {
+						data = JSON.parse(data.responseText);
+					} catch (e) {
+						return;
+					}
+				}
+				if (data?.exc_type && this.$reading.hasClass("docs-loading")) {
+					this.show_error(data, path);
+				}
 			},
 		});
 	}
