@@ -14,7 +14,8 @@ It keeps three things current:
 
 A result is matched against whichever tool calls are open when it arrives. So the
 stand-in results that close an interrupted turn (`missing_results`) have to reach the
-log before any newer message does; the session writes them when it admits the next run.
+log before any newer message does; the session writes them when it settles a failed
+run, and at load for a run a dead process never settled.
 """
 
 from __future__ import annotations
