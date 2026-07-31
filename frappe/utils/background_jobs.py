@@ -801,3 +801,12 @@ def _start_sentry():
 		integrations=integrations,
 		**kwargs,
 	)
+
+
+def mapreduce(map_method: str | Callable, reduce_method: str | Callable, data: str):
+	doc = frappe.new_doc("MapReduce Job")
+	doc.map = map_method
+	doc.reduce = reduce_method
+	doc.data = frappe.json.dumps(data)
+	doc.insert().submit()
+	return doc
