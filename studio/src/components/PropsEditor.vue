@@ -70,6 +70,12 @@
 							},
 						}"
 					/>
+					<component
+						v-else-if="config.editor && block"
+						:is="config.editor"
+						:label="propName"
+						:block="block"
+					/>
 					<ArrayInput
 						v-else-if="config.inputType === 'array'"
 						:label="propName"

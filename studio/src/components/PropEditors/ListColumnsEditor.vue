@@ -1,36 +1,26 @@
 <template>
 	<div class="flex w-full flex-col gap-2">
-		<InputLabel v-if="label" class="mb-1">{{ label }}</InputLabel>
+		<ArrayInput
+			:modelValue="tracks"
+			:label="label"
+			addLabel="Add Column"
+			newItemValue="8rem"
+			emptyMessage="No columns"
+			@update:modelValue="setTracks"
+			@add="addCells"
+			@remove="removeCells"
+		/>
 
 		<!-- the tree drifted from `columns` (hand-edited header/rows); ops still apply by position -->
 		<div v-if="mismatch.length" class="rounded-sm bg-surface-amber-2 p-2 text-xs text-ink-amber-6">
 			{{ mismatch.join(" · ") }}
 		</div>
-
-		<div v-for="(track, index) in tracks" :key="index" class="flex items-center gap-2">
-			<Input
-				class="flex-1"
-				:modelValue="track"
-				@update:modelValue="(value: string) => updateTrack(index, value)"
-			/>
-			<Button
-				class="flex-shrink-0 text-xs"
-				variant="subtle"
-				icon="lucide-x"
-				title="Remove column"
-				@click="removeColumn(index)"
-			/>
-		</div>
-
-		<Button variant="outline" class="w-full" icon-left="plus" @click="addColumn">Add Column</Button>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { Button } from "frappe-ui"
-import Input from "@/components/Input.vue"
-import InputLabel from "@/components/InputLabel.vue"
+import ArrayInput from "@/components/ArrayInput.vue"
 import Block from "@/utils/block"
 import { listCell, listHeaderCell } from "@/utils/blockTemplate/familyTemplates"
 
@@ -44,24 +34,21 @@ const tracks = computed<string[]>(() => {
 	return Array.isArray(value) ? value : []
 })
 
+function setTracks(next: string[]) {
+	props.block.setProp("columns", next)
+}
+
 // A column lives in three places — a track in `columns`, a header cell, and a cell in
 // every row template — kept in step positionally so header and rows never drift.
-function addColumn() {
-	setTracks([...tracks.value, "8rem"])
+// ArrayInput edits the tracks; `add`/`remove` mirror the operation onto the cells.
+function addCells() {
 	headerBlock.value?.addChild(listHeaderCell(`Column ${tracks.value.length}`), null, false)
 	rowBlocks.value.forEach((row) => row.addChild(listCell("—"), null, false))
 }
 
-function removeColumn(index: number) {
-	setTracks(tracks.value.filter((_, i) => i !== index))
+function removeCells(index: number) {
 	removeCellAt(headerBlock.value, HEADER_CELL_NAMES, index)
 	rowBlocks.value.forEach((row) => removeCellAt(row, ["ListCell"], index))
-}
-
-function updateTrack(index: number, value: string) {
-	const next = [...tracks.value]
-	next[index] = value
-	setTracks(next)
 }
 
 const mismatch = computed(() => {
@@ -77,10 +64,6 @@ const mismatch = computed(() => {
 	}
 	return problems
 })
-
-function setTracks(next: string[]) {
-	props.block.setProp("columns", next)
-}
 
 const headerBlock = computed(
 	() => props.block.children.find((child) => child.componentName === "ListHeader") || null,

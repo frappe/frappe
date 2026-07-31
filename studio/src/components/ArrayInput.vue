@@ -61,7 +61,9 @@
 		</template>
 		<EmptyState v-else :message="emptyMessage || 'No items added'" />
 
-		<Button variant="outline" class="w-full" icon-left="plus" @click="addItem">Add</Button>
+		<Button variant="outline" class="w-full" icon-left="plus" @click="addItem">
+			{{ addLabel || "Add" }}
+		</Button>
 	</div>
 </template>
 
@@ -80,9 +82,11 @@ const props = defineProps<{
 	itemTypes?: Record<string, any>
 	required?: boolean
 	emptyMessage?: string
+	addLabel?: string
+	newItemValue?: any
 }>()
 
-const emit = defineEmits(["update:modelValue"])
+const emit = defineEmits(["update:modelValue", "add", "remove"])
 
 const items = computed(() => {
 	return Array.isArray(props.modelValue) ? props.modelValue : []
@@ -110,19 +114,22 @@ const updateItem = (index: number, value: any) => {
 const removeItem = (index: number) => {
 	const newItems = items.value.filter((_, i) => i !== index)
 	emit("update:modelValue", newItems)
+	emit("remove", index)
 }
 
 const addItem = () => {
-	const newItems = [...items.value]
-	if (props.itemTypes) {
-		const newItem: Record<string, any> = {}
-		Object.keys(props.itemTypes).forEach((key) => {
-			newItem[key] = ""
-		})
-		newItems.push(newItem)
-	} else {
-		newItems.push("")
-	}
+	const newItems = [...items.value, getNewItem()]
 	emit("update:modelValue", newItems)
+	emit("add")
+}
+
+const getNewItem = () => {
+	if (props.newItemValue !== undefined) return props.newItemValue
+	if (!props.itemTypes) return ""
+	const newItem: Record<string, any> = {}
+	Object.keys(props.itemTypes).forEach((key) => {
+		newItem[key] = ""
+	})
+	return newItem
 }
 </script>

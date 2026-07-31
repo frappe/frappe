@@ -23,7 +23,7 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 		overrideProps: {
 			columns: {
 				type: "array",
-				inputType: "custom",
+				inputType: "array",
 				editor: defineAsyncComponent(() => import("@/components/PropEditors/ListColumnsEditor.vue")),
 			},
 		},
