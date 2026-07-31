@@ -107,8 +107,10 @@ def serialize_request(request):
 
 	events = request.get("events") or []
 	for event in events:
-		# indent the method by its nesting depth so the grid reads as a call tree
-		event["label"] = ("    " * event.get("depth", 0)) + (event.get("method") or "")
+		# indent the method by its nesting depth so the grid reads as a call tree.
+		# non-breaking spaces render the indentation without depending on CSS white-space.
+		indent = "\u00a0\u00a0\u00a0\u00a0" * event.get("depth", 0)
+		event["label"] = indent + (event.get("method") or "")
 		if isinstance(event.get("apps"), list):
 			event["apps"] = ", ".join(event["apps"])
 		if isinstance(event.get("handlers"), list):
