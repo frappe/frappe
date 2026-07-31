@@ -106,6 +106,13 @@ async def test_set_model_applies_to_later_runs_and_survives_restart(tmp_path, mo
 	assert reloaded.config.model == "mock"  # the creation config never mutates
 
 
+async def test_set_model_rejects_an_empty_name(tmp_path):
+	session = SessionStore(str(tmp_path)).create(SessionConfig(model="mock"))
+	with pytest.raises(ValueError, match="non-empty"):
+		await session.set_model("")
+	assert session.log.latest_seq == 0  # nothing became durable
+
+
 def test_reload_repairs_a_crashed_runs_open_calls(tmp_path):
 	"""A daemon that died mid-turn left tool calls with no results. Loading the
 	session closes them durably — once — so providers accept the transcript."""

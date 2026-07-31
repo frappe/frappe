@@ -223,6 +223,8 @@ class Session:
 	async def set_model(self, model: str, credential_id: str | None = None) -> None:
 		"""Select the model (and credential) for runs from here on — a durable entry,
 		so it survives restarts and rewinds away with its branch."""
+		if not model:
+			raise ValueError("model must be a non-empty name")
 		async with self._operation_lock:
 			if self.state is SessionState.RUNNING:
 				raise SessionConflict("a run is already active")
