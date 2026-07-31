@@ -100,6 +100,15 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 		blockTemplate: "settings-dialog",
 		editInFragmentMode: true,
 		proxyComponent: defineAsyncComponent(() => import("@/components/ProxyComponents/ProxySettingsDialog.vue")),
+		overrideProps: {
+			// tabs manager: adds/removes NavItem + Panel pairs atomically and tracks
+			// the active tab (the `tab` prop) via the leading dot
+			tab: {
+				type: "string",
+				inputType: "custom",
+				editor: defineAsyncComponent(() => import("@/components/PropEditors/SettingsTabsEditor.vue")),
+			},
+		},
 	},
 	// Sidebar/NavItem/Panel wrap reka-ui tabs primitives (TabsList/Trigger/Content)
 	// that throw without the TabsRoot that SettingsDialog provides.

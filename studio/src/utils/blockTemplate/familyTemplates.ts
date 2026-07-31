@@ -216,7 +216,7 @@ export function listCell(
 	return { componentName: "ListCell", baseStyles: cellStyles, children: [textBlock(text, textStyles)] };
 }
 
-function navItem(value: string, label: string): BlockOptions {
+export function navItem(value: string, label: string): BlockOptions {
 	// `value` pairs a nav item with the SettingsPanel that shares it.
 	return {
 		componentName: "SettingsNavItem",
@@ -225,7 +225,7 @@ function navItem(value: string, label: string): BlockOptions {
 	};
 }
 
-function settingsPanel(
+export function settingsPanel(
 	value: string,
 	title: string,
 	description: string,

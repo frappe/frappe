@@ -76,22 +76,16 @@ const rowBlocks = computed(() => {
 	const collect = (blocks: Block[]) => {
 		blocks.forEach((child) => {
 			if (child.componentName === "ListRow") rows.push(child)
-			if (child.componentName === "ListGroup") collect(childrenAndSlotContent(child))
+			if (child.componentName === "ListGroup") collect(child.childrenAndSlotContent())
 		})
 	}
 	const listRows = props.block.children.find((child) => child.componentName === "ListRows")
-	if (listRows) collect(childrenAndSlotContent(listRows))
+	if (listRows) collect(listRows.childrenAndSlotContent())
 	return rows
 })
 
-// Slot content renders before regular children, so this order matches the visual one.
-function childrenAndSlotContent(block: Block): Block[] {
-	const slotContent = Object.values(block.componentSlots).flatMap((slot) => slot.slotContent)
-	return [...slotContent, ...block.children]
-}
-
 function cellsOf(parent: Block, names: string[]): Block[] {
-	return childrenAndSlotContent(parent).filter((child) => names.includes(child.componentName))
+	return parent.childrenAndSlotContent().filter((child) => names.includes(child.componentName))
 }
 
 function removeCellAt(parent: Block | null, names: string[], index: number) {

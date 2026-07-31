@@ -102,6 +102,7 @@ declare module 'vue' {
     SearchBlock: typeof import('./src/components/SearchBlock.vue')['default']
     SectionContainer: typeof import('./src/components/SectionContainer.vue')['default']
     SettingItem: typeof import('./src/components/SettingItem.vue')['default']
+    SettingsTabsEditor: typeof import('./src/components/PropEditors/SettingsTabsEditor.vue')['default']
     SlotIcon: typeof import('./src/components/Icons/SlotIcon.vue')['default']
     SlotScopeProvider: typeof import('./src/components/SlotScopeProvider.vue')['default']
     SplitView: typeof import('./src/components/AppLayout/SplitView.vue')['default']

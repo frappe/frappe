@@ -241,6 +241,13 @@ class Block implements BlockOptions {
 		return this.parentBlock || null;
 	}
 
+	// direct children including named-slot content — slot content renders before
+	// regular children, so this order matches the visual one
+	childrenAndSlotContent(): Block[] {
+		const slotContent = Object.values(this.componentSlots).flatMap((slot) => slot.slotContent);
+		return [...slotContent, ...this.children];
+	}
+
 	// nearest block (including self) with the given componentName
 	closest(componentName: string): Block | null {
 		let current: Block | null = this;
