@@ -76,9 +76,14 @@ class PrintFormat(Document):
 		if self.print_format_for == "Report":
 			self.custom_format = 1
 
-		# standard formats render from their app's .html template or a classic layout,
-		# neither of which the beta renderer can read
-		if self.is_new() and not self.custom_format and self.standard != "Yes":
+		# standard formats render from their app's .html template and Print Designer
+		# formats from their own renderer — the beta renderer can read neither
+		if (
+			self.is_new()
+			and not self.custom_format
+			and self.standard != "Yes"
+			and not self.get("print_designer")
+		):
 			self.print_format_builder_beta = 1
 
 		if self.print_format_builder_beta and not self.custom_format:
