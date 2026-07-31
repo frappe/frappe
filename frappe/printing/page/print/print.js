@@ -313,7 +313,7 @@ frappe.ui.form.PrintView = class {
 					callback: (r) => {
 						if (r.message) {
 							frappe.set_route("print-format-builder", r.message.name);
-							this.print_format_field.set_input(data.print_format_name);
+							this.set_print_format_value(data.print_format_name);
 						}
 					},
 				});
@@ -879,7 +879,17 @@ frappe.ui.form.PrintView = class {
 	set_default_print_format() {
 		const default_format =
 			this.frm._layout_print_format || this.frm.meta.default_print_format || "";
-		this.print_format_field.set_input(default_format);
+		this.set_print_format_value(default_format);
+	}
+
+	// apps like Print Designer replace setup_sidebar and only provide
+	// print_format_selector, not the whole control
+	set_print_format_value(value) {
+		if (this.print_format_field) {
+			this.print_format_field.set_input(value);
+		} else {
+			this.print_format_selector.val(value);
+		}
 	}
 
 	selected_format() {
