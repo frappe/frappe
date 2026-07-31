@@ -1,11 +1,13 @@
 ---
 title: Getting Started
 order: 1
+roles:
+  - System Manager
 ---
 
 # Getting started
 
-Open **Documentation** from the Desk sidebar or navigate to `/desk/docs`.
+Open **Documentation** from the Desk sidebar or navigate to `/desk/docs/en`.
 
 Each page is discovered at runtime from installed apps. Restrict a page to specific roles with frontmatter:
 

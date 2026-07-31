@@ -1,11 +1,72 @@
+[data-page-route="docs"] {
+	.layout-main {
+		height: calc(100vh - var(--navbar-height) - var(--page-head-height));
+		min-height: 0;
+		align-items: stretch;
+	}
+
+	.layout-side-section {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+		overflow: hidden;
+	}
+
+	.layout-main-section-wrapper {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-height: 0;
+		overflow: auto;
+	}
+
+	.layout-main-section {
+		display: flex;
+		flex-direction: column;
+		flex: 1 0 auto;
+	}
+}
+
 .docs-browser {
 	display: flex;
 	flex-direction: column;
+	flex: 1 0 auto;
+}
+
+.docs-sidebar {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
 	height: 100%;
 }
 
 .docs-sidebar .docs-tree {
+	flex: 1;
+	min-height: 0;
+	overflow: auto;
 	padding: var(--padding-sm) 0;
+}
+
+.docs-locale-picker {
+	flex-shrink: 0;
+	padding: var(--padding-sm);
+	border-top: 1px solid var(--border-color);
+}
+
+.docs-locale-picker.hide {
+	display: none;
+}
+
+.docs-locale-label {
+	display: block;
+	margin-bottom: var(--margin-xs);
+	color: var(--text-muted);
+	font-size: var(--text-xs);
+}
+
+.docs-locale-select {
+	width: 100%;
 }
 
 .docs-tree-node {
@@ -32,8 +93,6 @@
 }
 
 .docs-reading-pane {
-	flex: 1;
-	overflow: auto;
 	box-sizing: border-box;
 	width: 100%;
 	max-width: 75ch;
@@ -86,7 +145,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	flex: 1;
+	min-height: calc(100vh - var(--navbar-height) - var(--page-head-height));
 	padding: var(--padding-xl);
 }
 

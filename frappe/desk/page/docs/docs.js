@@ -21,12 +21,24 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.tree_data = [];
 		this.page_paths = new Set();
 		this.current_path = null;
+		this.current_locale = frappe.boot.lang || "en";
+		this.locales = [];
 		this.setup_layout();
 	}
 
 	setup_layout() {
 		this.$sidebar = $('<div class="docs-sidebar"></div>').appendTo(this.page.sidebar);
 		this.$tree = $('<div class="docs-tree"></div>').appendTo(this.$sidebar);
+		this.$locale_picker = $(`
+			<div class="docs-locale-picker">
+				<label class="docs-locale-label" for="docs-locale-select">${__("Language")}</label>
+				<select id="docs-locale-select" class="form-control docs-locale-select"></select>
+			</div>
+		`).appendTo(this.$sidebar);
+		this.$locale_select = this.$locale_picker.find(".docs-locale-select");
+		this.$locale_select.on("change", () => {
+			this.switch_locale(this.$locale_select.val());
+		});
 		this.$content = $(frappe.render_template("docs")).appendTo(this.page.main);
 		this.$reading = this.$content.find(".docs-reading-pane");
 		this.$state = this.$content.find(".docs-state");
@@ -44,22 +56,139 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 
 	show() {
 		const route = frappe.get_route();
-		const route_path = route.length > 1 ? route.slice(1).join("/") : null;
-		this.load_tree().then(() => {
-			if (route_path === null) {
-				if (!this.tree_data.length) {
-					this.show_empty_state();
-					return;
-				}
-				return this.select_first_page();
+		this.ensure_locales().then(() => {
+			const parsed = this.parse_route(route);
+			if (!parsed.locale) {
+				return this.resolve_and_redirect(parsed.path);
 			}
-			this.load_page(route_path);
+			this.current_locale = parsed.locale;
+			this.load_tree().then(() => {
+				this.update_locale_picker();
+				if (parsed.path === null) {
+					if (!this.tree_data.length) {
+						this.show_empty_state();
+						return;
+					}
+					return this.select_first_page();
+				}
+				this.load_page(parsed.path);
+			});
 		});
+	}
+
+	ensure_locales() {
+		if (this.locales.length) {
+			return Promise.resolve(this.locales);
+		}
+		return frappe.xcall("frappe.desk.docs.get_locales").then((locales) => {
+			this.locales = (locales || []).map((locale) =>
+				typeof locale === "string" ? { locale, label: locale } : locale
+			);
+		});
+	}
+
+	get_locale_codes() {
+		return this.locales.map((locale) => locale.locale);
+	}
+
+	render_locale_picker(variants = []) {
+		const options = variants.length ? variants : this.locales;
+		const current = this.$locale_select.val();
+
+		this.$locale_picker.toggleClass("hide", options.length <= 1);
+		this.$locale_select.empty();
+
+		for (const option of options) {
+			const locale = option.locale;
+			const label = option.label || locale;
+			this.$locale_select.append($("<option></option>").attr("value", locale).text(label));
+		}
+
+		if (options.some((option) => option.locale === this.current_locale)) {
+			this.$locale_select.val(this.current_locale);
+		} else if (current) {
+			this.$locale_select.val(current);
+		}
+	}
+
+	update_locale_picker() {
+		if (!this.locales.length) {
+			return Promise.resolve();
+		}
+
+		return frappe
+			.xcall("frappe.desk.docs.get_page_variants", { path: this.current_path || "" })
+			.then((variants) => {
+				this.render_locale_picker(variants || []);
+			})
+			.catch(() => {
+				this.render_locale_picker(this.locales);
+			});
+	}
+
+	switch_locale(locale) {
+		if (!locale || locale === this.current_locale) {
+			return;
+		}
+
+		const path = this.current_path || "";
+		const route = ["docs", locale];
+		if (path) {
+			route.push(...path.split("/"));
+		}
+
+		frappe
+			.xcall("frappe.desk.docs.get_page", { path, locale })
+			.then(() => frappe.set_route(route))
+			.catch(() => {
+				frappe.xcall("frappe.desk.docs.get_first_page", { locale }).then((first_path) => {
+					const fallback = ["docs", locale];
+					if (first_path) {
+						fallback.push(...first_path.split("/"));
+					}
+					frappe.set_route(fallback);
+				});
+			});
+	}
+
+	parse_route(route) {
+		const segments = route.slice(1);
+		if (segments.length && this.is_locale_segment(segments[0])) {
+			return {
+				locale: segments[0],
+				path: segments.length > 1 ? segments.slice(1).join("/") : null,
+			};
+		}
+		return {
+			locale: null,
+			path: segments.length ? segments.join("/") : null,
+		};
+	}
+
+	is_locale_segment(segment) {
+		const locale_codes = this.get_locale_codes();
+		if (locale_codes.includes(segment)) {
+			return true;
+		}
+		const parent = segment.split("-")[0];
+		return parent !== segment && locale_codes.includes(parent);
+	}
+
+	resolve_and_redirect(path) {
+		return frappe
+			.xcall("frappe.desk.docs.resolve_locale", { path: path || "" })
+			.then((result) => {
+				const route = ["docs", result.locale];
+				if (result.path) {
+					route.push(...result.path.split("/"));
+				}
+				frappe.set_route(route);
+			});
 	}
 
 	load_tree() {
 		return frappe
-			.xcall("frappe.desk.docs.get_tree")
+			.xcall("frappe.desk.docs.get_tree", { locale: this.current_locale })
 			.then((tree) => {
 				this.tree_data = tree || [];
 				this.page_paths = this.collect_page_paths(this.tree_data);
@@ -120,21 +249,23 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 	}
 
 	select_first_page() {
-		return frappe.xcall("frappe.desk.docs.get_first_page").then((path) => {
-			if (path === null || path === undefined) {
-				this.show_empty_state();
-				return;
-			}
-			if (path === "") {
-				this.load_page("");
-				return;
-			}
-			this.navigate_to(path, true);
-		});
+		return frappe
+			.xcall("frappe.desk.docs.get_first_page", { locale: this.current_locale })
+			.then((path) => {
+				if (path === null || path === undefined) {
+					this.show_empty_state();
+					return;
+				}
+				if (path === "") {
+					this.load_page("");
+					return;
+				}
+				this.navigate_to(path, true);
+			});
 	}
 
 	navigate_to(path, replace_route = false) {
-		const route = ["docs"];
+		const route = ["docs", this.current_locale];
 		if (path) {
 			route.push(...path.split("/"));
 		}
@@ -143,7 +274,8 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			return;
 		}
 		const current = frappe.get_route();
-		if (current.slice(1).join("/") !== path) {
+		const current_path = current.slice(2).join("/");
+		if (current[1] !== this.current_locale || current_path !== path) {
 			frappe.set_route(route);
 			return;
 		}
@@ -157,25 +289,13 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 
 		return frappe.call({
 			method: "frappe.desk.docs.get_page",
-			args: { path },
+			args: { path, locale: this.current_locale },
 			callback: (response) => {
 				if (response.exc_type) {
 					this.show_error(response, path);
 					return;
 				}
 				this.show_page(response.message);
-			},
-			always: (data) => {
-				if (data?.responseText) {
-					try {
-						data = JSON.parse(data.responseText);
-					} catch (e) {
-						return;
-					}
-				}
-				if (data?.exc_type && this.$reading.hasClass("docs-loading")) {
-					this.show_error(data, path);
-				}
 			},
 		});
 	}
@@ -191,6 +311,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.page.set_title(doc.title || __("Documentation"));
 		this.$reading.html(doc.content || "");
 		this.update_breadcrumbs(doc.path, doc.title);
+		this.update_locale_picker();
 	}
 
 	show_empty_state() {
@@ -200,6 +321,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$state.removeClass("hide");
 		this.$state_message.text(__("No documentation is available for your account."));
 		this.update_breadcrumbs();
+		this.update_locale_picker();
 	}
 
 	show_error(response, path) {
@@ -238,11 +360,12 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 	}
 
 	get_docs_route(path) {
-		return path ? `/desk/docs/${path}` : "/desk/docs";
+		const route = `/desk/docs/${this.current_locale}`;
+		return path ? `${route}/${path}` : route;
 	}
 
 	update_breadcrumbs(path = null, title = null) {
-		const items = [{ label: __("Documentation"), route: "/desk/docs" }];
+		const items = [{ label: __("Documentation"), route: this.get_docs_route() }];
 
 		if (path === null || path === undefined) {
 			frappe.breadcrumbs.add({ type: "Custom", items });
