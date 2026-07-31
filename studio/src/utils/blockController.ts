@@ -81,6 +81,17 @@ const blockController = {
 		});
 		return styleValue;
 	},
+	getRenderedStyle: (style: styleProperty) => {
+		let styleValue = "__initial__" as StyleValue;
+		canvasStore.activeCanvas?.selectedBlocks.forEach((block) => {
+			if (styleValue === "__initial__") {
+				styleValue = block.getRenderedStyle(style);
+			} else if (styleValue !== block.getRenderedStyle(style)) {
+				styleValue = "Mixed";
+			}
+		});
+		return styleValue;
+	},
 	setStyle: (style: styleProperty, value: StyleValue) => {
 		if (value === "unset") {
 			value = null
