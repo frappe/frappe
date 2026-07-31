@@ -2,12 +2,14 @@
 	<div class="flex w-full flex-col gap-2">
 		<InputLabel v-if="label">{{ label }}</InputLabel>
 
-		<div class="flex flex-col gap-1.5">
+		<div role="radiogroup" aria-label="Active tab" class="flex flex-col gap-1.5">
 			<div v-for="tab in tabs" :key="tab.navItem.componentId" class="flex items-center gap-2">
 				<button
 					class="flex size-4 flex-none items-center justify-center"
 					:title="isActive(tab) ? 'Active tab' : 'Make active'"
 					@click="activate(tab.value)"
+					role="radio"
+					:aria-checked="isActive(tab) ? 'true' : 'false'"
 				>
 					<span
 						class="size-[5px] rounded-full"
@@ -65,7 +67,7 @@ const tabs = computed<TabEntry[]>(() =>
 	navItems.value.map((item) => {
 		const value = String(item.getProp("value") ?? "")
 		const labelBlock =
-			item.childrenAndSlotContent().find((child) => child.componentName === "TextBlock") || null
+			item.getChildrenAndSlotContent().find((child) => child.componentName === "TextBlock") || null
 		return {
 			navItem: item,
 			labelBlock,
@@ -143,10 +145,10 @@ const navItems = computed(() => {
 	const collect = (blocks: Block[]) => {
 		blocks.forEach((child) => {
 			if (child.componentName === "SettingsNavItem") items.push(child)
-			if (child.componentName === "SettingsNavGroup") collect(child.childrenAndSlotContent())
+			if (child.componentName === "SettingsNavGroup") collect(child.getChildrenAndSlotContent())
 		})
 	}
-	if (sidebarBlock.value) collect(sidebarBlock.value.childrenAndSlotContent())
+	if (sidebarBlock.value) collect(sidebarBlock.value.getChildrenAndSlotContent())
 	return items
 })
 
@@ -155,7 +157,9 @@ const navParent = computed(() => navItems.value.at(-1)?.getParentBlock() || side
 
 const panels = computed(() =>
 	contentBlock.value
-		? contentBlock.value.childrenAndSlotContent().filter((child) => child.componentName === "SettingsPanel")
+		? contentBlock.value
+				.getChildrenAndSlotContent()
+				.filter((child) => child.componentName === "SettingsPanel")
 		: [],
 )
 </script>

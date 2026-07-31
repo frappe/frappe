@@ -241,7 +241,7 @@ class Block implements BlockOptions {
 		return this.parentBlock || null;
 	}
 
-	childrenAndSlotContent(): Block[] {
+	getChildrenAndSlotContent(): Block[] {
 		const slotContent = Object.values(this.componentSlots).flatMap((slot) => slot.slotContent);
 		return [...slotContent, ...this.children];
 	}

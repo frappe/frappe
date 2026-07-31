@@ -26,7 +26,6 @@ import { listCell, listHeaderCell } from "@/utils/blockTemplate/familyTemplates"
 
 const props = defineProps<{ block: Block; label?: string }>()
 
-// ListHeaderCell and ListHeaderCellSort render the same cell geometry; both count.
 const HEADER_CELL_NAMES = ["ListHeaderCell", "ListHeaderCellSort"]
 
 const tracks = computed<string[]>(() => {
@@ -76,16 +75,16 @@ const rowBlocks = computed(() => {
 	const collect = (blocks: Block[]) => {
 		blocks.forEach((child) => {
 			if (child.componentName === "ListRow") rows.push(child)
-			if (child.componentName === "ListGroup") collect(child.childrenAndSlotContent())
+			if (child.componentName === "ListGroup") collect(child.getChildrenAndSlotContent())
 		})
 	}
 	const listRows = props.block.children.find((child) => child.componentName === "ListRows")
-	if (listRows) collect(listRows.childrenAndSlotContent())
+	if (listRows) collect(listRows.getChildrenAndSlotContent())
 	return rows
 })
 
 function cellsOf(parent: Block, names: string[]): Block[] {
-	return parent.childrenAndSlotContent().filter((child) => names.includes(child.componentName))
+	return parent.getChildrenAndSlotContent().filter((child) => names.includes(child.componentName))
 }
 
 function removeCellAt(parent: Block | null, names: string[], index: number) {
