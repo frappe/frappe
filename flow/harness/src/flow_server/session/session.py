@@ -170,7 +170,7 @@ class Session:
 		"""Continue a paused run with a decision per pending call."""
 		async with self._operation_lock:
 			if self.state is SessionState.RUNNING:
-				raise SessionConflict("a run is already active")
+				raise SessionConflict("run is not paused")
 			approval = self.transcript.pending_approval
 			validate_resume(approval, approval_seq, answers)
 			assert approval is not None  # narrowed by validate_resume
