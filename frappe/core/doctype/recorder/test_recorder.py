@@ -161,7 +161,7 @@ class TestRecorder(FrappeTestCase):
 			apps, handlers = _doc_event_contributors("ToDo", "on_update", doc=doc)
 			self.assertNotIn("Webhook: Cond Webhook", handlers)
 
-			# on_change / before_update_after_submit don't fire during insert
+			# on_change doesn't fire during insert
 			frappe.client_cache.set_value(
 				"webhooks", {"ToDo": [frappe._dict(name="Change Webhook", webhook_docevent="on_change")]}
 			)
@@ -171,6 +171,18 @@ class TestRecorder(FrappeTestCase):
 			doc.flags.in_insert = False
 			apps, handlers = _doc_event_contributors("ToDo", "on_change", doc=doc)
 			self.assertIn("Webhook: Change Webhook", handlers)
+
+			# run_webhooks rejects events outside supported_events, so don't attribute them
+			frappe.client_cache.set_value(
+				"webhooks",
+				{
+					"ToDo": [
+						frappe._dict(name="Submit Webhook", webhook_docevent="before_update_after_submit")
+					]
+				},
+			)
+			apps, handlers = _doc_event_contributors("ToDo", "before_update_after_submit", doc=doc)
+			self.assertNotIn("Webhook: Submit Webhook", handlers)
 
 			frappe.client_cache.set_value(
 				"webhooks", {"ToDo": [frappe._dict(name="Demo Webhook", webhook_docevent="on_update")]}

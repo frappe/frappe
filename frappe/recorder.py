@@ -137,18 +137,18 @@ def _doc_event_contributors(doctype: str, method: str, doc=None) -> tuple[list[s
 	except Exception:
 		pass
 
-	# webhooks are skipped by run_webhooks during import/patch/install/migrate; on insert,
-	# on_change/before_update_after_submit don't fire; and each webhook's condition is
-	# evaluated per-document. Mirror all three so we don't attribute one that wouldn't run.
+	# Mirror every gate run_webhooks applies so we don't attribute a webhook that wouldn't
+	# run: the event must be webhook-supported; skipped during import/patch/install/migrate;
+	# on_change doesn't fire on insert; and each webhook's condition is evaluated per-document.
 	try:
-		from frappe.integrations.doctype.webhook import get_all_webhooks
+		from frappe.integrations.doctype.webhook import get_all_webhooks, supported_events
 		from frappe.integrations.doctype.webhook.webhook import get_context
 
-		if not (flags.in_import or flags.in_patch or flags.in_install or flags.in_migrate):
+		if method in supported_events and not (
+			flags.in_import or flags.in_patch or flags.in_install or flags.in_migrate
+		):
 			skip_on_insert = (
-				doc is not None
-				and getattr(doc.flags, "in_insert", False)
-				and method in ("on_change", "before_update_after_submit")
+				doc is not None and getattr(doc.flags, "in_insert", False) and method == "on_change"
 			)
 			webhooks = frappe.client_cache.get_value("webhooks", generator=get_all_webhooks)
 			for webhook in webhooks.get(doctype, None) or []:
