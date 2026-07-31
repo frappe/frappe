@@ -74,7 +74,7 @@ class _Event(BaseModel):
 
 	durable: ClassVar[bool] = True
 	seq: int | None = None  # assigned by the log when persisted
-	parent_seq: int | None = None  # the entry this one follows
+	parent_seq: int | None = None  # the entry this one follows; 0 at the root
 
 
 # --- durable events -------------------------------------------------------

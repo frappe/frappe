@@ -44,7 +44,7 @@ class SessionLog:
 				raise ValueError("live-only events cannot be appended to the session log")
 			next_seq = self._seq + 1
 			# default to the previous row; a rewound writer passes its own parent
-			parent_seq = event.parent_seq if event.parent_seq is not None else (self._seq or None)
+			parent_seq = event.parent_seq if event.parent_seq is not None else self._seq
 			persisted = event.model_copy(update={"seq": next_seq, "parent_seq": parent_seq})
 			data = (persisted.model_dump_json(exclude_none=True) + "\n").encode()
 			os.makedirs(os.path.dirname(self.path), mode=0o700, exist_ok=True)

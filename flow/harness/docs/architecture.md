@@ -62,9 +62,9 @@ attaches them to their turn — no marker protocol.
 
 Every durable row carries a `parent_seq`, and the **leaf** — the row the next event
 will hang off — is the last row unless a `rewind` row moved it back to an earlier
-entry. `Session.rewind(target_seq)` commits that marker; the next run branches from
-the target, and the abandoned rows stay in the log, off the active path (same design
-as pi and tau). Replay walks the parent chain from the leaf to the root and folds only
+entry. `Session.rewind(target_seq)` commits that marker (target `0` = the empty
+root); the next run branches from the target, and the abandoned rows stay in the log,
+off the active path (same design as pi and tau). Replay walks the parent chain from the leaf to the root and folds only
 that path, so `messages`, `pending_approval`, and `missing_results` all describe the
 active branch — rewinding away from a paused turn abandons its approval, and a dead
 branch's open calls are never "repaired". The loop and the providers never know the

@@ -301,3 +301,29 @@ async def test_rewind_while_paused_abandons_the_approval_batch(tmp_path):
 	reloaded = SessionStore(str(tmp_path)).get(session.id)
 	assert reloaded.log.latest_seq == session.log.latest_seq
 	assert reloaded.state is SessionState.IDLE
+
+
+async def test_rewind_to_zero_replaces_the_first_run(tmp_path):
+	from flow_server.session.transcript import active_path
+
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(cwd=str(tmp_path)))
+	handle = await session.run("A", model=MockModel(replies=[AssistantMessage(content="X")]))
+	assert handle.task is not None
+	await handle.task
+
+	await session.rewind(0)
+
+	assert session.transcript.messages == []
+	handle = await session.run("B", model=MockModel(replies=[AssistantMessage(content="Y")]))
+	assert handle.task is not None
+	await handle.task
+	assert [getattr(m, "text", None) or m.content for m in session.transcript.messages] == ["B", "Y"]
+	# the new branch is a clean single run — no phantom run_started from the old one
+	assert [r["type"] for r in active_path(session.log.read_since(0))] == [
+		"run_started",
+		"user_message",
+		"assistant_message",
+		"usage",
+		"run_ended",
+	]

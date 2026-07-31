@@ -46,7 +46,8 @@ _logger = logging.getLogger(__name__)
 def active_path(rows: list[dict], leaf_seq: int | None = None) -> list[dict]:
 	"""Root→leaf rows of the branch ending at `leaf_seq` (default: the stored leaf).
 
-	Rows off the branch stay in the log but are not part of the conversation.
+	Leaf 0 is the empty root — the branch point before everything. Rows off the
+	branch stay in the log but are not part of the conversation.
 	"""
 	by_seq = {row["seq"]: row for row in rows}
 	if leaf_seq is None:  # the last row, or where its rewind points
@@ -54,14 +55,17 @@ def active_path(rows: list[dict], leaf_seq: int | None = None) -> list[dict]:
 			return []
 		last = rows[-1]
 		leaf_seq = last["target_seq"] if last["type"] == "rewind" else last["seq"]
-	elif leaf_seq not in by_seq:
+	if leaf_seq == 0:
+		return []
+	leaf = by_seq.get(leaf_seq)
+	if leaf is None:
 		raise ValueError(f"entry {leaf_seq} does not exist")
-	elif by_seq[leaf_seq]["type"] == "rewind":
+	if leaf["type"] == "rewind":
 		raise ValueError(f"entry {leaf_seq} is a rewind marker, not a conversation entry")
 
 	path: list[dict] = []
 	seq = leaf_seq
-	while seq is not None:
+	while seq:
 		row = by_seq.get(seq)
 		if row is None:
 			raise ValueError(f"entry {seq} is missing from the log")
@@ -122,7 +126,7 @@ class _OpenApproval:
 class Transcript:
 	def __init__(self) -> None:
 		self.messages: list[TranscriptMessage] = []
-		self.leaf_seq: int | None = None  # what the next committed event follows
+		self.leaf_seq: int = 0  # what the next committed event follows; 0 = the root
 		self._open_calls: _OpenToolCalls | None = None
 		self._open_approval: _OpenApproval | None = None
 
@@ -150,6 +154,7 @@ class Transcript:
 		if isinstance(event, Rewind):  # the session swaps in a transcript rebuilt from there
 			self.leaf_seq = event.target_seq
 			return
+		assert event.seq is not None  # recorded events are committed ones
 		self.leaf_seq = event.seq
 		if isinstance(event, UserMessage):
 			self._close_turn()

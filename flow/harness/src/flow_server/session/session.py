@@ -193,7 +193,8 @@ class Session:
 	async def rewind(self, target_seq: int) -> None:
 		"""Move the conversation back to an earlier entry; the next run branches from it.
 
-		The target must leave no unanswered tool calls and no pending approval."""
+		Target 0 rewinds to before everything. Any other target must leave no
+		unanswered tool calls and no pending approval."""
 		async with self._operation_lock:
 			if self.state is SessionState.RUNNING:
 				raise SessionConflict("a run is already active")

@@ -411,3 +411,20 @@ def test_active_path_rejects_bad_targets():
 	]
 	with pytest.raises(ValueError, match="points forward"):
 		active_path(forward)
+
+
+def test_rewind_to_the_root_starts_over(tmp_path):
+	log = make_log(
+		tmp_path,
+		RunStarted(run_id="run_1"),  # 1
+		UserMessage(content="A"),  # 2
+		AssistantMessage(content="X"),  # 3
+		RunEnded(),  # 4
+		Rewind(target_seq=0),  # 5
+		UserMessage(content="B", parent_seq=0),  # 6, a new root child
+	)
+
+	assert Transcript.replay(log, leaf_seq=0).messages == []
+	transcript = Transcript.replay(log)
+	assert [m.content for m in transcript.messages] == ["B"]
+	assert transcript.leaf_seq == 6
