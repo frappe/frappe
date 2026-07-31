@@ -527,11 +527,14 @@ async def _iter_sse(response: httpx.Response) -> AsyncIterator[dict]:
 def _responses_input(messages: list[TranscriptMessage], model: CodexModel) -> list[dict]:
 	items: list[dict] = []
 	text_index = 0
+	dropped_calls: set[str] = set()
 	for message in messages:
 		if isinstance(message, UserMessage):
 			items.append({"role": "user", "content": [{"type": "input_text", "text": message.content}]})
 		elif isinstance(message, AssistantMessage):
 			if message.stop_reason in {"error", "aborted"}:
+				# drop this turn's results too: an answer without its call is rejected
+				dropped_calls.update(call.id for call in message.tool_calls)
 				continue
 			same_model = (
 				message.api == model.api
@@ -554,6 +557,8 @@ def _responses_input(messages: list[TranscriptMessage], model: CodexModel) -> li
 				elif isinstance(block, ToolCall):
 					items.append(_function_call_item(block))
 		elif isinstance(message, ToolResult):
+			if message.tool_call_id in dropped_calls:
+				continue
 			items.append(
 				{
 					"type": "function_call_output",

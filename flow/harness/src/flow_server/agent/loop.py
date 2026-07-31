@@ -88,6 +88,9 @@ class LoopInputs:
 
 
 _DENIED = json.dumps({"status": "denied", "message": "User denied this tool call."})
+_ABORTED = json.dumps(
+	{"status": "aborted", "message": "Tool not executed. The run was aborted before this call ran."}
+)
 _TRUNCATED = json.dumps(
 	{
 		"status": "truncated",
@@ -174,6 +177,8 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 		if assistant.stop_reason == "error":
 			raise RuntimeError(assistant.error_message or "model response failed")
 		if assistant.stop_reason == "aborted":
+			for call in assistant.tool_calls:  # close any calls the aborted turn carries
+				yield _result(call, _ABORTED, is_error=True)
 			yield RunEnded(reason="aborted")
 			return
 

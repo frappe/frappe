@@ -3,7 +3,14 @@ import asyncio
 import httpx
 import pytest
 
-from flow_server.events import AssistantMessage, TextContent, ThinkingContent, ToolCall, UserMessage
+from flow_server.events import (
+	AssistantMessage,
+	TextContent,
+	ThinkingContent,
+	ToolCall,
+	ToolResult,
+	UserMessage,
+)
 from flow_server.model import (
 	_NATIVE_PROVIDERS,
 	LiteLLMModel,
@@ -481,5 +488,21 @@ def test_litellm_does_not_replay_failed_assistant_response():
 	)
 
 	assert _openai_messages([failed], LiteLLMModel("openai/gpt"), "system") == [
+		{"role": "system", "content": "system"}
+	]
+
+
+def test_litellm_drops_results_answering_a_dropped_assistant_turn():
+	aborted = AssistantMessage(
+		content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})],
+		api="litellm",
+		provider="openai",
+		model="openai/gpt",
+		stop_reason="aborted",
+	)
+	repair = ToolResult(tool_call_id="c1", name="read_file", content="interrupted", is_error=True)
+
+	# the call and its answer must both be dropped
+	assert _openai_messages([aborted, repair], LiteLLMModel("openai/gpt"), "system") == [
 		{"role": "system", "content": "system"}
 	]

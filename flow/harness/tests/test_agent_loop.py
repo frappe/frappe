@@ -482,6 +482,28 @@ async def test_abort_during_model_stream_closes_stream_and_emits_aborted_turn(tm
 	assert _of(events, "run_error") == []
 
 
+async def test_aborted_terminal_with_tool_calls_closes_them_durably(tmp_path):
+	"""An aborted turn can still carry tool calls; the loop must answer them."""
+	session, events = _session(tmp_path)
+	model = MockModel(
+		replies=[
+			AssistantMessage(
+				content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})],
+				stop_reason="aborted",
+			)
+		]
+	)
+
+	await _run(session, "go", model=model)
+
+	results = _of(events, "tool_result")
+	assert [r["tool_call_id"] for r in results] == ["c1"]
+	assert results[0]["is_error"] is True
+	assert "aborted" in results[0]["content"]
+	assert _of(events, "run_ended")[-1]["reason"] == "aborted"
+	assert session.transcript.missing_results() == ()  # a reload would repair nothing
+
+
 async def test_abort_cancels_blocked_before_hook_before_tool_starts(tmp_path):
 	(tmp_path / "a.txt").write_text("secret")
 	session, events = _session(tmp_path)

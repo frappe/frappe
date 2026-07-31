@@ -366,14 +366,19 @@ def _openai_messages(
 ) -> list[dict[str, Any]]:
 	"""Translate canonical transcript messages at the provider boundary."""
 	out: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
+	dropped_calls: set[str] = set()
 	for message in messages:
 		if isinstance(message, UserMessage):
 			out.append({"role": "user", "content": message.content})
 		elif isinstance(message, AssistantMessage):
 			if message.stop_reason in {"error", "aborted"}:
+				# drop this turn's results too: an answer without its call is rejected
+				dropped_calls.update(call.id for call in message.tool_calls)
 				continue
 			out.append(_assistant_wire(message, model))
 		elif isinstance(message, ToolResult):
+			if message.tool_call_id in dropped_calls:
+				continue
 			out.append(
 				{
 					"role": "tool",
