@@ -1,19 +1,17 @@
 import type { BlockOptions, BlockStyleMap, Slot } from "@/types";
 import type { TextBlockProps } from "@/types/studio_components/TextBlock";
 
-// Block templates for component families (List, Settings Dialog). Families are
-// compositional: one drop of the primary should yield a whole, working tree.
-// Content nests through `children` (which Studio renders into each component's
-// default slot) — the one exception is ListRows: its row template must live in a
-// real slot, because Studio injects the scoped-slot props (item/index/value) only
-// into slot content, not children. Everything below ListRows inherits that scope
-// ambiently, so it can stay as plain children.
+export const familyTemplates = {
+	list: listTemplate,
+	"list-row": listRowTemplate,
+	"list-rows": listRowsTemplate,
+	"list-header": listHeaderTemplate,
+	"list-cell": listCellTemplate,
+	"list-header-cell": listHeaderCellTemplate,
+	"list-header-cell-sort": listHeaderCellSortTemplate,
+	"settings-dialog": settingsDialogTemplate,
+} satisfies Record<string, () => BlockOptions>;
 
-// A List seeded in column mode, mirroring the frappe-ui "Columns" story
-// (docs/molecules/list): a members table with an avatar + name/email cell, role,
-// a right-aligned date, and a trailing action button. Row identity defaults to
-// the item's `name`. Sort chrome (ListHeaderCellSort) is deliberately left out —
-// it needs app-owned sort state, which a seeded template can't provide.
 const MEMBERS = [
 	{ name: "Rosa Diaz", email: "rosa@example.com", role: "Admin", since: "2021-06" },
 	{ name: "Jake Peralta", email: "jake@example.com", role: "Member", since: "2022-01" },
@@ -22,7 +20,7 @@ const MEMBERS = [
 	{ name: "Raymond Holt", email: "holt@example.com", role: "Guest", since: "2024-08" },
 ];
 
-export function listTemplate(): BlockOptions {
+function listTemplate(): BlockOptions {
 	return {
 		componentName: "List",
 		blockName: "List",
@@ -111,11 +109,8 @@ function memberCell(): BlockOptions {
 	};
 }
 
-// A minimal two-tab settings dialog. SettingsDialog renders through frappe-ui's Dialog
-// (a teleported modal), so it's edited on a fragment canvas (editInFragmentMode) via
-// ProxySettingsDialog, which renders the inner TabsRoot inline. `shortcut` and
-// `unmountOnHide` are turned off here because both are hostile to the editor.
-export function settingsDialogTemplate(): BlockOptions {
+// A minimal two-tab settings dialog
+function settingsDialogTemplate(): BlockOptions {
 	return {
 		componentName: "SettingsDialog",
 		blockName: "Settings Dialog",
@@ -123,8 +118,7 @@ export function settingsDialogTemplate(): BlockOptions {
 			modelValue: false,
 			shortcut: false,
 			unmountOnHide: false,
-			// select the first nav item so its panel shows when the dialog opens (and so the
-			// editor proxy isn't blank — reka-ui shows no panel until a tab is active)
+			// active tab
 			tab: "profile",
 		},
 		children: [
@@ -157,6 +151,57 @@ export function settingsDialogTemplate(): BlockOptions {
 			},
 		],
 	};
+}
+
+// --- Standalone part templates ------------------------------------------
+// A bare row/header/cell paints zero pixels on canvas (grid boxes with no content),
+// so individually dropped parts seed minimal visible content. Seeded counts won't
+// always match the surrounding List's columns — the column manager's mismatch
+// banner guides the fix-up.
+
+function listRowTemplate(): BlockOptions {
+	return { componentName: "ListRow", children: [listCell("—"), listCell("—")] };
+}
+
+function listHeaderTemplate(): BlockOptions {
+	return {
+		componentName: "ListHeader",
+		children: [listHeaderCell("Column 1"), listHeaderCell("Column 2")],
+	};
+}
+
+// Sample items + a row template in a real slot (scoped item/index/value) — the same
+// shape as the full list template, with neutral fields.
+function listRowsTemplate(): BlockOptions {
+	return {
+		componentName: "ListRows",
+		componentProps: {
+			items: [
+				{ name: "1", title: "First item", status: "Open" },
+				{ name: "2", title: "Second item", status: "Done" },
+				{ name: "3", title: "Third item", status: "Open" },
+			],
+		},
+		componentSlots: withDefaultSlot([
+			{
+				componentName: "ListRow",
+				componentProps: { value: "{{ value }}" },
+				children: [listCell("{{ item.title }}"), listCell("{{ item.status }}")],
+			},
+		]),
+	};
+}
+
+function listCellTemplate(): BlockOptions {
+	return listCell("Cell");
+}
+
+function listHeaderCellTemplate(): BlockOptions {
+	return listHeaderCell("Label");
+}
+
+function listHeaderCellSortTemplate(): BlockOptions {
+	return { componentName: "ListHeaderCellSort", children: [textBlock("Label")] };
 }
 
 export function listHeaderCell(label: string, styles: BlockStyleMap = {}): BlockOptions {
@@ -222,11 +267,7 @@ function textBlock(
 	};
 }
 
-// Wrap blocks as a component's default-slot content. Only ListRows needs this:
-// its scoped-slot props reach expressions solely through slot content. Each block
-// is tagged with parentSlotName so slot bookkeeping (selection, removal) works;
-// Block's constructor upgrades these loose options into real Slot/Block instances
-// (slotId, parentBlockId, reactive Blocks) via initializeSlots().
+// Wrap blocks as a component's default-slot content to access slot scope
 function withDefaultSlot(content: BlockOptions[]): Record<string, Slot> {
 	content.forEach((block) => (block.parentSlotName = "default"));
 	return {

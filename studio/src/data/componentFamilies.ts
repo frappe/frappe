@@ -10,17 +10,9 @@ import LucideRows3 from "~icons/lucide/rows-3"
 import LucideSettings from "~icons/lucide/settings"
 import LucideSidebar from "~icons/lucide/sidebar"
 
-// Component families: the primary (isGroup) drops a whole working tree via its block
-// template (utils/blockTemplate/familyTemplates.ts); each part declares
-// `group: <primaryName>` and is droppable on its own. The panel hides parts from the
-// grid and reveals them in the primary tile's tray.
+// Component families: the primary (isGroup) drops a whole working tree via its block template
 export const COMPONENT_FAMILIES: FrappeUIComponents = {
-	// --- List family (frappe-ui/list) ---------------------------------------
-	// `List` drops the whole tree via its block template as a ready starter; every
-	// part is also droppable on its own so a list can be composed by hand (e.g.
-	// plain ListHeaderCell instead of the sortable one). Their default slots are
-	// discovered by the slot parser (utils/components.ts globs molecules/), so no
-	// initialSlots are needed.
+	// List family (frappe-ui/list)
 	List: {
 		name: "List",
 		title: "List",
@@ -41,8 +33,7 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 		title: "List Rows",
 		icon: LucideRows3,
 		group: "List",
-		// items drives iteration and is read unguarded inside ListRows — default to
-		// an empty array so a bare drop doesn't throw before it's bound to data.
+		blockTemplate: "list-rows",
 		initialState: {
 			items: [],
 		},
@@ -52,30 +43,35 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 		title: "List Row",
 		icon: LucideRows3,
 		group: "List",
+		blockTemplate: "list-row",
 	},
 	ListCell: {
 		name: "ListCell",
 		title: "List Cell",
 		icon: LucideColumns3,
 		group: "List",
+		blockTemplate: "list-cell",
 	},
 	ListHeader: {
 		name: "ListHeader",
 		title: "List Header",
 		icon: LucideColumns3,
 		group: "List",
+		blockTemplate: "list-header",
 	},
 	ListHeaderCell: {
 		name: "ListHeaderCell",
 		title: "List Header Cell",
 		icon: LucideColumns3,
 		group: "List",
+		blockTemplate: "list-header-cell",
 	},
 	ListHeaderCellSort: {
 		name: "ListHeaderCellSort",
 		title: "List Header Cell Sort",
 		icon: LucideArrowUpDown,
 		group: "List",
+		blockTemplate: "list-header-cell-sort",
 	},
 	ListGroup: {
 		name: "ListGroup",
@@ -86,12 +82,7 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 			label: "Group",
 		},
 	},
-	// --- SettingsDialog family ----------------------------------------------
-	// `SettingsDialog` renders through frappe-ui's teleported Dialog, so it's edited
-	// on a fragment canvas (editInFragmentMode) via ProxySettingsDialog, which renders
-	// the inner TabsRoot inline. The Sidebar / NavItem / Panel parts are reka-ui Tabs
-	// pieces that need a SettingsDialog ancestor; dropped on their own they fail to
-	// render (contained by StudioComponent's error boundary) until drop constraints land.
+	// SettingsDialog family
 	SettingsDialog: {
 		name: "SettingsDialog",
 		title: "Settings Dialog",

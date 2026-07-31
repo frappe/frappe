@@ -71,19 +71,15 @@ const componentSubmenu = computed<ContextMenuGroup[]>(() => {
 		icon: component.icon,
 		action: () => addComponent(component.name),
 	})
-	// A family primary nests into a submenu (mirrors the panel's tile + tray): the primary
-	// itself drops the whole tree, followed by its individually droppable parts.
-	const toSectionOption = (component: FrappeUIComponent): ContextMenuOption =>
-		component.isGroup
-			? {
-					label: component.title,
-					icon: component.icon,
-					submenu: [{ options: [toOption(component), ...components.getParts(component.name).map(toOption)] }],
-				}
-			: toOption(component)
+
 	const groups: ContextMenuGroup[] = components.getComponentGroups(components.list).map((group) => ({
 		label: group.label,
-		options: group.components.filter((c) => !c.group).map(toSectionOption),
+		options: group.components
+			.filter((component) => !component.group)
+			.flatMap((component) => [
+				toOption(component),
+				...(component.isGroup ? components.getParts(component.name).map(toOption) : []),
+			]),
 	}))
 
 	if (store.customVueComponents?.length) {

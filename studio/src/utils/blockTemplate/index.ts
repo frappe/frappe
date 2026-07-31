@@ -1,19 +1,24 @@
 import type { BlockOptions, BlockStyleMap } from "@/types";
-import { listTemplate, settingsDialogTemplate } from "./familyTemplates";
+import { familyTemplates } from "./familyTemplates";
 
-function getBlockTemplate(
-	type:
-		| "body"
-		| "container"
-		| "fit-container"
-		| "header"
-		| "list"
-		| "settings-dialog"
-		| "fallback-component"
-		| "empty-component"
-		| "missing-component"
-): BlockOptions {
-	switch (type) {
+
+type CoreTemplate =
+	| "body"
+	| "container"
+	| "fit-container"
+	| "header"
+	| "fallback-component"
+	| "empty-component"
+	| "missing-component";
+type FamilyTemplate = keyof typeof familyTemplates;
+
+
+function getBlockTemplate(type: CoreTemplate | FamilyTemplate): BlockOptions {
+	if (type in familyTemplates) {
+		return familyTemplates[type as FamilyTemplate]();
+	}
+
+	switch (type as CoreTemplate) {
 		case "body":
 			return {
 				componentId: "root",
@@ -102,12 +107,6 @@ function getBlockTemplate(
 					}
 				],
 			}
-
-		case "list":
-			return listTemplate();
-
-		case "settings-dialog":
-			return settingsDialogTemplate();
 
 		case "fallback-component":
 			return {
