@@ -70,24 +70,7 @@ def test_create_prompt_wait_and_entries(tmp_path):
 	assert types[-1] == "run_ended"
 
 
-def test_run_persists_model_override(tmp_path):
-	c = _client(tmp_path)
-	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
-	# A run may switch model and select a stored credential; both mock names stay offline.
-	r = c.post(
-		f"/sessions/{sid}/run",
-		params={"wait": "true"},
-		json={"message": "hi", "model": "mock/v2", "credential_id": "mock-profile"},
-	)
-	assert r.json()["reason"] == "done"
-	cfg = c.get(f"/sessions/{sid}").json()["config"]
-	assert cfg["model"] == "mock/v2"
-	assert cfg["credential_id"] == "mock-profile"
-
-
-def test_model_override_reaches_the_run_that_sent_it(tmp_path, monkeypatch):
-	# the override is applied after admission, so it only lands in time while nothing
-	# awaits between creating the run task and writing the config
+def test_set_model_is_a_durable_entry_used_by_later_runs(tmp_path, monkeypatch):
 	resolved = []
 
 	def spy(name, **kwargs):
@@ -97,12 +80,26 @@ def test_model_override_reaches_the_run_that_sent_it(tmp_path, monkeypatch):
 	monkeypatch.setattr("flow_server.agent.loop.get_model", spy)
 	c = _client(tmp_path)
 	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
-	c.post(
-		f"/sessions/{sid}/run",
-		params={"wait": "true"},
-		json={"message": "hi", "model": "mock/v2"},
+
+	r = c.post(f"/sessions/{sid}/model", json={"model": "mock/v2", "credential_id": "mock-profile"})
+	assert r.json() == {"model": "mock/v2", "credential_id": "mock-profile"}
+	assert (
+		c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "hi"}).json()["reason"]
+		== "done"
 	)
 	assert resolved == ["mock/v2"]
+
+	info = c.get(f"/sessions/{sid}").json()
+	assert (info["model"], info["credential_id"]) == ("mock/v2", "mock-profile")
+	assert info["config"]["model"] == "mock"  # the creation config is fixed
+	assert c.get(f"/sessions/{sid}/entries").json()["entries"][0]["type"] == "model_changed"
+
+
+def test_run_does_not_accept_model_overrides(tmp_path):
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
+	r = c.post(f"/sessions/{sid}/run", json={"message": "hi", "model": "mock/v2"})
+	assert r.status_code == 422  # model changes go through POST /sessions/{sid}/model
 
 
 def test_provider_secrets_and_endpoints_are_not_client_inputs(tmp_path):
