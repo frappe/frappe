@@ -381,6 +381,7 @@ defineExpose({
 	history,
 	rootComponent,
 	canvasProps,
+	canvasContainer,
 	// canvas utils
 	findBlock,
 	removeBlock,

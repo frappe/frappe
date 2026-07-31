@@ -441,14 +441,13 @@ class Block implements BlockOptions {
 	}
 
 	getRenderedElement(): HTMLElement | null {
-		const canvasStore = useCanvasStore()
-		const breakpoint = canvasStore.activeCanvas?.activeBreakpoint
-		const selector = `.__studio_component__[data-component-id="${this.componentId}"]`
-		if (breakpoint) {
-			const element = document.querySelector(`${selector}[data-breakpoint="${breakpoint}"]`)
-			if (element) return element as HTMLElement
-		}
-		return document.querySelector(selector) as HTMLElement | null
+		const activeCanvas = useCanvasStore().activeCanvas
+		const breakpoint = activeCanvas?.activeBreakpoint
+		if (!breakpoint) return null
+		const scope: ParentNode = activeCanvas?.canvasContainer || document
+		return scope.querySelector(
+			`.__studio_component__[data-component-id="${this.componentId}"][data-breakpoint="${breakpoint}"]`,
+		)
 	}
 
 	getPadding() {
