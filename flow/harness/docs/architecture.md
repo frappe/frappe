@@ -32,8 +32,8 @@ One rule everything else follows from: **the loop yields, the session commits.**
 
 `events.py` is the shared contract. Durable events (`run_started`, `user_message`,
 `assistant_message`, `tool_result`, `usage`, `approval_required`, `run_ended`,
-`run_error`) are appended to the per-session JSONL log with a monotonic `seq` and
-rebuild all state on replay. Live-only events (`text_delta`, `thinking_delta`,
+`rewind`, `model_changed`, `run_error`) are appended to the per-session JSONL log
+with a monotonic `seq` and rebuild all state on replay. Live-only events (`text_delta`, `thinking_delta`,
 `tool_call_started`, `retry`) stream to subscribers and are never persisted — a missed
 delta is healed by replaying the durable log.
 
@@ -69,6 +69,12 @@ that path, so `messages`, `pending_approval`, and `missing_results` all describe
 active branch — rewinding away from a paused turn abandons its approval, and a dead
 branch's open calls are never "repaired". The loop and the providers never know the
 tree exists.
+
+The model selection is a tree entry too: `Session.set_model` commits a
+`model_changed` row (never during a run), and the effective selection — read by each
+run at admission — is the last such row on the active branch, falling back to the
+creation config. Config is immutable after create; a `run` request carries only its
+message, and rewinding past a model change restores the previous selection.
 
 ## One operation at a time
 
