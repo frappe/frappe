@@ -5,7 +5,7 @@
 			orientation="vertical"
 			activation-mode="manual"
 			:unmount-on-hide="false"
-			class="flex min-h-[480px] w-full flex-col sm:flex-row"
+			class="flex min-h-0 w-full flex-col overflow-hidden sm:h-[min(860px,calc(100vh-8rem))] sm:min-h-[560px] sm:flex-row"
 		>
 			<slot />
 		</TabsRoot>
