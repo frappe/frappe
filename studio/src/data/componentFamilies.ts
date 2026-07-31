@@ -26,6 +26,15 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 				inputType: "array",
 				editor: defineAsyncComponent(() => import("@/components/PropEditors/ListColumnsEditor.vue")),
 			},
+			// v-model state leaked in as props by defineModel
+			selection: {
+				type: "array",
+				inputType: "code",
+			},
+			active: {
+				type: "string",
+				inputType: "code",
+			},
 		},
 	},
 	ListRows: {
