@@ -35,7 +35,10 @@ def download_pdf(
 	letterhead: str | None = None,
 	settings: str | dict | None = None,
 ):
-	from frappe.printing.doctype.print_format.classic_converter import get_default_print_format
+	from frappe.printing.doctype.print_format.classic_converter import (
+		get_default_print_format,
+		uses_beta_renderer,
+	)
 	from frappe.www.printview import set_link_titles, validate_print
 
 	doc = frappe.get_doc(doctype, name)
@@ -43,6 +46,14 @@ def download_pdf(
 	set_link_titles(doc)
 	if not print_format or print_format == "Standard":
 		print_format = get_default_print_format(doctype)
+	else:
+		pf_doc = frappe.get_doc("Print Format", print_format)
+		if not uses_beta_renderer(pf_doc):
+			# jinja formats have no layout for the generator — hand off to the
+			# legacy pipeline, which reads the format's template
+			from frappe.utils.print_format import download_pdf as download_jinja_pdf
+
+			return download_jinja_pdf(doctype, name, format=print_format, letterhead=letterhead)
 	generator = PrintFormatGenerator(print_format, doc, letterhead, settings=frappe.parse_json(settings))
 	pdf = generator.render_pdf()
 
