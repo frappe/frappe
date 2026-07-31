@@ -184,6 +184,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		return result;
 	}
 	set_formatted_input(value) {
+		this._update_rows(value || []);
 		const link_field = this.get_link_field();
 		const values = (value || []).map((row) => row[link_field.fieldname]);
 		this.set_pill_html(values);
