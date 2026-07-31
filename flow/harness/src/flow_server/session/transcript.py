@@ -27,6 +27,7 @@ from flow_server.events import (
 	AnyEvent,
 	ApprovalRequired,
 	AssistantMessage,
+	ModelChanged,
 	PendingCall,
 	Rewind,
 	RunEnded,
@@ -127,6 +128,8 @@ class Transcript:
 	def __init__(self) -> None:
 		self.messages: list[TranscriptMessage] = []
 		self.leaf_seq: int = 0  # what the next committed event follows; 0 = the root
+		self.model: str | None = None  # last model change on the path; None = session config
+		self.credential_id: str | None = None
 		self._open_calls: _OpenToolCalls | None = None
 		self._open_approval: _OpenApproval | None = None
 
@@ -179,6 +182,9 @@ class Transcript:
 			# a pause outlives its run: `resume` may arrive after a restart
 			if event.reason != "paused":
 				self._open_approval = None
+		elif isinstance(event, ModelChanged):
+			self.model = event.model
+			self.credential_id = event.credential_id
 		# usage, run_error, and live-only events carry no transcript state
 
 	def _close_turn(self) -> None:

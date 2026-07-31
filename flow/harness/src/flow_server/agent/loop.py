@@ -79,6 +79,8 @@ class LoopInputs:
 	messages: list[TranscriptMessage]
 	credentials: CredentialStore
 	abort: asyncio.Event
+	model_name: str  # the session's effective selection at admission, not config
+	credential_id: str | None = None
 	allowed_roots: tuple[str, ...] = ()
 	session_id: str = ""
 	model: Model | None = None
@@ -147,7 +149,7 @@ async def resume(
 async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	"""The turn core shared by `run` and `resume`."""
 	config, abort = inputs.config, inputs.abort
-	model = inputs.model or await _authenticated_model(config, inputs.credentials, abort)
+	model = inputs.model or await _authenticated_model(inputs)
 	tools = _server_tools(config)
 	schemas = [tool.to_schema() for tool in tools.values()] + config.client_tools
 	ctx = _tool_context(inputs)
@@ -309,16 +311,14 @@ def _needs_confirmation(config: SessionConfig, name: str, tools: dict[str, Tool]
 	return bool(tool and tool.requires_confirmation)
 
 
-async def _authenticated_model(
-	config: SessionConfig, credentials: CredentialStore, abort: asyncio.Event
-) -> Model:
+async def _authenticated_model(inputs: LoopInputs) -> Model:
 	auth = await await_with_cancellation(
-		resolve_model_auth(config.model, credentials, provider_id=config.credential_id),
-		abort,
+		resolve_model_auth(inputs.model_name, inputs.credentials, provider_id=inputs.credential_id),
+		inputs.abort,
 	)
-	_raise_if_aborted(abort)
+	_raise_if_aborted(inputs.abort)
 	return get_model(
-		config.model,
+		inputs.model_name,
 		api_key=auth.api_key,
 		api_base=auth.base_url,
 		headers=auth.headers,

@@ -67,6 +67,10 @@ class Agent:
 		"""Move the conversation back to an earlier entry; the next run branches from it."""
 		await self._session.rewind(target_seq)
 
+	async def set_model(self, model: str, credential_id: str | None = None) -> None:
+		"""Select the model (and credential) for later runs; durable and per-branch."""
+		await self._session.set_model(model, credential_id=credential_id)
+
 	async def _events(self, submit: Callable[[], Awaitable[RunHandle]]) -> AsyncIterator[AnyEvent]:
 		queue = self._session.subscribe()  # subscribe before the run starts so no event is missed
 		task: asyncio.Task[None] | None = None

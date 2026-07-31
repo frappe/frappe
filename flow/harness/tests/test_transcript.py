@@ -3,6 +3,7 @@ import pytest
 from flow_server.events import (
 	ApprovalRequired,
 	AssistantMessage,
+	ModelChanged,
 	PendingCall,
 	Rewind,
 	RunEnded,
@@ -428,3 +429,32 @@ def test_rewind_to_the_root_starts_over(tmp_path):
 	transcript = Transcript.replay(log)
 	assert [m.content for m in transcript.messages] == ["B"]
 	assert transcript.leaf_seq == 6
+
+
+def test_model_change_folds_without_touching_the_conversation(tmp_path):
+	log = make_log(
+		tmp_path,
+		UserMessage(content="A"),  # 1
+		AssistantMessage(content="X"),  # 2
+		ModelChanged(model="mock/v2", credential_id="work"),  # 3
+	)
+
+	transcript = Transcript.replay(log)
+
+	assert (transcript.model, transcript.credential_id) == ("mock/v2", "work")
+	assert [getattr(m, "text", None) or m.content for m in transcript.messages] == ["A", "X"]
+	assert transcript.leaf_seq == 3  # the next entry hangs off the change
+
+
+def test_replay_to_before_a_model_change_forgets_it(tmp_path):
+	log = make_log(
+		tmp_path,
+		UserMessage(content="A"),  # 1
+		ModelChanged(model="mock/v2"),  # 2
+		ModelChanged(model="mock/v3", credential_id="work"),  # 3
+	)
+
+	assert Transcript.replay(log).model == "mock/v3"  # the last change on the path wins
+	earlier = Transcript.replay(log, leaf_seq=2)
+	assert (earlier.model, earlier.credential_id) == ("mock/v2", None)
+	assert Transcript.replay(log, leaf_seq=1).model is None  # back to the session config

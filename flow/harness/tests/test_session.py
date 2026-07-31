@@ -17,6 +17,7 @@ from flow_server.events import (
 	ToolResult,
 	UserMessage,
 )
+from flow_server.model.credentials import CredentialStore
 from flow_server.model.mock import MockModel
 from flow_server.session.config import SessionConfig
 from flow_server.session.session import SessionState
@@ -77,13 +78,32 @@ def test_reload_rejects_tampered_meta(tmp_path):
 		SessionStore(str(tmp_path)).get(session.id)
 
 
-def test_save_meta_persists_config_changes(tmp_path):
-	store = SessionStore(str(tmp_path))
-	session = store.create(SessionConfig(model="mock"))
-	session.config = session.config.model_copy(update={"model": "codex/gpt-test"})
-	store.save_meta(session)
+async def test_set_model_applies_to_later_runs_and_survives_restart(tmp_path, monkeypatch):
+	resolved = []
 
-	assert SessionStore(str(tmp_path)).get(session.id).config.model == "codex/gpt-test"
+	def spy(name, **kwargs):
+		resolved.append(name)
+		return MockModel()
+
+	monkeypatch.setattr("flow_server.agent.loop.get_model", spy)
+	credentials = CredentialStore(str(tmp_path / "credentials.json"))  # keep auth offline
+	store = SessionStore(str(tmp_path), credential_store=credentials)
+	session = store.create(SessionConfig(model="mock", cwd=str(tmp_path)))
+
+	await session.set_model("mock/v2", credential_id="mock-profile")
+	seq_after_change = session.log.latest_seq
+	await session.set_model("mock/v2", credential_id="mock-profile")  # same selection: no event
+	assert session.log.latest_seq == seq_after_change
+
+	handle = await session.run("hi")
+	assert handle.task is not None
+	await handle.task
+	assert resolved == ["mock/v2"]
+	assert (session.model, session.credential_id) == ("mock/v2", "mock-profile")
+
+	reloaded = SessionStore(str(tmp_path)).get(session.id)
+	assert (reloaded.model, reloaded.credential_id) == ("mock/v2", "mock-profile")
+	assert reloaded.config.model == "mock"  # the creation config never mutates
 
 
 def test_reload_repairs_a_crashed_runs_open_calls(tmp_path):
@@ -327,3 +347,74 @@ async def test_rewind_to_zero_replaces_the_first_run(tmp_path):
 		"usage",
 		"run_ended",
 	]
+
+
+async def test_set_model_is_rejected_while_running(tmp_path):
+	from flow_server.session.session import SessionConflict
+
+	class Blocking(MockModel):
+		def __init__(self):
+			super().__init__()
+			self.started = asyncio.Event()
+			self.release = asyncio.Event()
+
+		async def run(self, request):
+			self.started.set()
+			await self.release.wait()
+			yield AssistantMessage(content="done")
+
+	model = Blocking()
+	session = SessionStore(str(tmp_path)).create(SessionConfig(model="mock", cwd=str(tmp_path)))
+	handle = await session.run("go", model=model)
+	await model.started.wait()
+
+	with pytest.raises(SessionConflict):
+		await session.set_model("mock/v2")
+
+	model.release.set()
+	assert handle.task is not None
+	await handle.task
+	assert session.model == "mock"
+
+
+async def test_rewind_to_before_a_model_change_restores_the_old_selection(tmp_path):
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(model="mock", cwd=str(tmp_path)))
+	handle = await session.run("A", model=MockModel(replies=[AssistantMessage(content="X")]))
+	assert handle.task is not None
+	await handle.task
+	branch_point = session.log.latest_seq
+
+	await session.set_model("mock/v2")
+	assert session.model == "mock/v2"
+
+	await session.rewind(branch_point)
+
+	assert session.model == "mock"  # the change stayed behind on the abandoned branch
+	reloaded = SessionStore(str(tmp_path)).get(session.id)
+	assert reloaded.model == "mock"
+
+
+async def test_set_model_while_paused_keeps_the_pause(tmp_path):
+	(tmp_path / "a.txt").write_text("x")
+	session = SessionStore(str(tmp_path)).create(
+		SessionConfig(model="mock", cwd=str(tmp_path), confirm_tools=["read_file"])
+	)
+	model = MockModel(
+		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})])]
+	)
+	handle = await session.run("read", model=model)
+	assert handle.task is not None
+	await handle.task
+	assert session.state is SessionState.PAUSED
+
+	await session.set_model("mock/v2")
+
+	assert session.state is SessionState.PAUSED  # the approval batch is untouched
+	assert session.model == "mock/v2"
+	handle = await session.resume(
+		{"c1": "Approve"}, model=MockModel(replies=[AssistantMessage(content="done")])
+	)
+	assert handle.task is not None
+	await handle.task
+	assert session.state is SessionState.IDLE
