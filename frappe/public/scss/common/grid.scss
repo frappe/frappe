@@ -588,12 +588,6 @@
 		}
 	}
 
-	.grid-delete-row {
-		.icon use {
-			stroke: var(--fg-color);
-		}
-	}
-
 	.grid-append-row {
 		margin-top: calc(-1 * var(--margin-xs));
 	}
@@ -727,10 +721,6 @@
 	padding: 0;
 }
 
-.grid-footer {
-	margin-top: var(--margin-sm);
-}
-
 .grid-footer,
 .grid-custom-buttons {
 	padding: var(--padding-sm) 0px;
@@ -742,7 +732,8 @@
 		margin-bottom: -3px;
 	}
 
-	.btn:not(:last-child) {
+	.btn:not(:last-child),
+	.es-button:not(:last-child) {
 		margin-right: 4px;
 	}
 }
@@ -750,6 +741,7 @@
 .grid-pagination {
 	padding: 0;
 	display: flex;
+	align-items: center;
 
 	.last-page {
 		margin-left: 5px;
@@ -773,13 +765,6 @@
 	}
 }
 
-.prev-page,
-.next-page {
-	.icon {
-		width: 10px;
-	}
-}
-
 .prev-page {
 	margin-left: var(--margin-xs);
 	text-decoration: none;
@@ -797,11 +782,6 @@
 
 .grid-footer-toolbar {
 	padding: var(--padding-md) var(--padding-sm) var(--padding-xs) var(--padding-sm);
-
-	// border-top: 1px solid var(--border-color);
-	span {
-		margin-right: var(--margin-xs);
-	}
 
 	button {
 		margin-left: var(--margin-xs);
