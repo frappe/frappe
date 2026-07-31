@@ -1,11 +1,4 @@
 <template>
-	<!-- Editor stand-in for the teleported SettingsDialog. The real component composes
-	     Dialog (bare, teleported modal) → TabsRoot, so it's invisible on the canvas; this
-	     proxy mirrors that composition with ProxyDialog (which supplies the dialog chrome
-	     and size → width handling) and renders the inner TabsRoot inline and always "open"
-	     so the sidebar + panels are visible and editable in fragment mode. The child
-	     sidebar/nav/panels inject their Tabs context (TabsList/TabsTrigger/TabsContent)
-	     from this TabsRoot. -->
 	<ProxyDialog class="mx-auto" :size="size ?? '4xl'" bare>
 		<TabsRoot
 			v-model="activeTab"

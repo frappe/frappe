@@ -172,8 +172,7 @@ function getSinglePropType(propTypes: string | string[]) {
 	return "string"
 }
 
-// ?raw to get raw content of a file as string. Includes molecules (frappe-ui/list
-// etc.) so their slots are parsed like any other frappe-ui component.
+// ?raw to get raw content of a file as string
 const frappeUIModules: Record<string, string> = import.meta.glob(
 	[
 		"../../../node_modules/frappe-ui/src/components/**/*.vue",

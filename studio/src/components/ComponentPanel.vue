@@ -36,10 +36,7 @@
 							<LucideFlaskConical class="h-3.5 w-3.5 text-ink-amber-6" />
 						</Tooltip>
 					</template>
-					<!-- A family primary shows a stacked edge + part count; clicking it opens its parts
-					     tray at the source tile's row boundary (full width, caret under the tile) so no
-					     grid cell is orphaned. While searching, every match (parts included) shows as a
-					     plain tile so nothing stays hidden behind a family. -->
+					<!-- Component family tile -->
 					<div v-if="section.tiles.length" class="grid grid-cols-3 items-start gap-3">
 						<template v-for="(component, index) in section.tiles" :key="component.name">
 							<ComponentTile
@@ -223,9 +220,7 @@ const standardComponentGroups = computed(() =>
 	components.getComponentGroups((componentList.value as any[]) || []),
 )
 
-// Grid tiles for a section: while searching, every match (parts included) shows as a plain
-// tile; otherwise parts are hidden and reached through their family primary's tray.
-function gridTiles(group: { components: FrappeUIComponent[] }) {
+function getGridTiles(group: { components: FrappeUIComponent[] }) {
 	return isSearching.value ? group.components : group.components.filter((c) => !c.group)
 }
 
@@ -235,13 +230,10 @@ function onTileClick(component: FrappeUIComponent) {
 	expandedFamily.value = expandedFamily.value === component.name ? null : component.name
 }
 
-// Panel sections with their tiles and, for the open family, where its parts tray lands.
-// The tray is inserted at the END of the source tile's row (design 1b, "row boundary") so the
-// row stays full and no cell is orphaned; the caret sits under the source tile's column.
 const GRID_COLUMNS = 3
 const sections = computed(() =>
 	standardComponentGroups.value.map((group) => {
-		const tiles = gridTiles(group)
+		const tiles = getGridTiles(group)
 		const sourceIndex =
 			isSearching.value || !expandedFamily.value
 				? -1
@@ -260,12 +252,11 @@ const sections = computed(() =>
 	}),
 )
 
-const partsFor = (component: FrappeUIComponent) => components.getParts(component.name)
+const getComponentParts = (component: FrappeUIComponent) => components.getParts(component.name)
 const expandedPrimary = computed(() => (expandedFamily.value ? components.get(expandedFamily.value) : null))
-const expandedParts = computed(() => (expandedPrimary.value ? partsFor(expandedPrimary.value) : []))
+const expandedParts = computed(() => (expandedPrimary.value ? getComponentParts(expandedPrimary.value) : []))
 
-// Tiles in the tray's last row skip the 2-line label reserve so the tray doesn't leave a
-// blank line below its final row; the reserve still evens out the rows above it.
+// Tiles in the tray's last row skip the 2-line label reserve
 const isLastTrayRow = (index: number) =>
 	Math.floor(index / GRID_COLUMNS) === Math.floor((expandedParts.value.length - 1) / GRID_COLUMNS)
 

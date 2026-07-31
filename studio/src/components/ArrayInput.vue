@@ -8,7 +8,7 @@
 			{{ label }}
 		</InputLabel>
 
-		<!-- primitive items: one remove button per row, clear affordance hidden -->
+		<!-- primitive items -->
 		<div v-if="!itemTypes" class="flex flex-col gap-1.5">
 			<EmptyState v-if="items.length === 0 && emptyMessage" :message="emptyMessage" />
 			<div v-for="(item, index) in items" :key="index" class="flex items-center gap-2">
@@ -28,7 +28,7 @@
 			</div>
 		</div>
 
-		<!-- object items: one card per item with a field per itemTypes entry -->
+		<!-- object items -->
 		<template v-else-if="items.length > 0">
 			<div
 				v-for="(item, index) in items"

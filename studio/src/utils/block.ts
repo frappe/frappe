@@ -241,8 +241,6 @@ class Block implements BlockOptions {
 		return this.parentBlock || null;
 	}
 
-	// direct children including named-slot content — slot content renders before
-	// regular children, so this order matches the visual one
 	childrenAndSlotContent(): Block[] {
 		const slotContent = Object.values(this.componentSlots).flatMap((slot) => slot.slotContent);
 		return [...slotContent, ...this.children];
@@ -258,8 +256,7 @@ class Block implements BlockOptions {
 		return null;
 	}
 
-	// whether a component can mount under this block — non-standalone family
-	// parts crash outside their family root
+	// whether a component can mount under this block — non-standalone family parts crash outside their family root
 	canAddChild(component: FrappeUIComponent): boolean {
 		if (component.isStandalone === false && component.group) {
 			return Boolean(this.closest(component.group));

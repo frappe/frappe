@@ -1224,10 +1224,6 @@ function isFrameworkUIAvailable() {
 }
 
 function getComponentGroups(list: FrappeUIComponent[]) {
-	// Partition components into panel sections by library source. Family parts stay in
-	// `components` here; the panel drops them from the top grid (showing only the family
-	// primary tile) and reveals them in the primary's tray — but keeps them while
-	// searching so a part like ListHeader surfaces directly.
 	const inFrappe = (c: FrappeUIComponent) => isFrappeUIComponent(c.name)
 	const inFramework = (c: FrappeUIComponent) => isFrameworkUIComponent(c.name)
 
