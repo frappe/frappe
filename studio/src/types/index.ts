@@ -1,4 +1,4 @@
-import type { FunctionalComponent } from "vue"
+import type { Component, FunctionalComponent } from "vue"
 import Block from "../utils/block"
 import type { VuePropDefault } from "@/types/vue"
 import type { Completion } from "@codemirror/autocomplete"
@@ -73,6 +73,7 @@ export type ComponentProp = {
 	type: string
 	default?: VuePropDefault
 	inputType: string
+	editor?: Component // custom prop editor
 	modelValue?: any
 	required?: boolean
 	props?: Record<string, any>

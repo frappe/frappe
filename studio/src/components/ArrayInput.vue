@@ -8,7 +8,20 @@
 			{{ label }}
 		</InputLabel>
 
-		<template v-if="items.length > 0">
+		<!-- primitive items -->
+		<template v-if="items.length > 0 && !itemTypes">
+			<div v-for="(item, index) in items" :key="index" class="flex items-center gap-2">
+				<Input
+					class="flex-1"
+					:modelValue="item"
+					@update:modelValue="(newValue: string) => updateItem(index, newValue)"
+				/>
+				<Button class="flex-shrink-0 text-xs" variant="subtle" icon="lucide-x" @click="removeItem(index)" />
+			</div>
+		</template>
+
+		<!-- object items: one card per item with a field per itemTypes entry -->
+		<template v-else-if="items.length > 0">
 			<div
 				v-for="(item, index) in items"
 				:key="index"
@@ -56,6 +69,7 @@
 import { computed } from "vue"
 import { Button } from "frappe-ui"
 import { IconPicker } from "frappe-ui/icons"
+import Input from "@/components/Input.vue"
 import InputLabel from "@/components/InputLabel.vue"
 import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
@@ -87,6 +101,12 @@ const updateItemField = (index: number, key: string, value: any) => {
 	emit("update:modelValue", newItems)
 }
 
+const updateItem = (index: number, value: any) => {
+	const newItems = [...items.value]
+	newItems[index] = value
+	emit("update:modelValue", newItems)
+}
+
 const removeItem = (index: number) => {
 	const newItems = items.value.filter((_, i) => i !== index)
 	emit("update:modelValue", newItems)
@@ -94,13 +114,15 @@ const removeItem = (index: number) => {
 
 const addItem = () => {
 	const newItems = [...items.value]
-	const newItem: any = {}
 	if (props.itemTypes) {
+		const newItem: Record<string, any> = {}
 		Object.keys(props.itemTypes).forEach((key) => {
 			newItem[key] = ""
 		})
+		newItems.push(newItem)
+	} else {
+		newItems.push("")
 	}
-	newItems.push(newItem)
 	emit("update:modelValue", newItems)
 }
 </script>

@@ -159,11 +159,11 @@ export function settingsDialogTemplate(): BlockOptions {
 	};
 }
 
-function listHeaderCell(label: string, styles: BlockStyleMap = {}): BlockOptions {
+export function listHeaderCell(label: string, styles: BlockStyleMap = {}): BlockOptions {
 	return { componentName: "ListHeaderCell", baseStyles: styles, children: [textBlock(label)] };
 }
 
-function listCell(
+export function listCell(
 	text: string,
 	textStyles: BlockStyleMap = {},
 	cellStyles: BlockStyleMap = {}

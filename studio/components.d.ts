@@ -70,6 +70,7 @@ declare module 'vue' {
     InputLabel: typeof import('./src/components/InputLabel.vue')['default']
     ItemActions: typeof import('./src/components/ItemActions.vue')['default']
     ListBox: typeof import('./src/components/ListBox.vue')['default']
+    ListColumnsEditor: typeof import('./src/components/PropEditors/ListColumnsEditor.vue')['default']
     LucideActivity: typeof import('~icons/lucide/activity')['default']
     LucideChevronDown: typeof import('~icons/lucide/chevron-down')['default']
     LucideChevronRight: typeof import('~icons/lucide/chevron-right')['default']

@@ -141,7 +141,7 @@ class Block implements BlockOptions {
 		}
 	}
 
-	addChild(child: BlockOptions, index?: number | null) {
+	addChild(child: BlockOptions, index?: number | null, select = true) {
 		if (child.parentSlotName) {
 			return this.updateSlot(child.parentSlotName, child, index)
 		}
@@ -150,7 +150,9 @@ class Block implements BlockOptions {
 		const childBlock = reactive(new Block(child))
 		childBlock.parentBlock = this
 		this.children.splice(index, 0, childBlock)
-		childBlock.selectBlock()
+		if (select) {
+			childBlock.selectBlock()
+		}
 		return childBlock
 	}
 

@@ -1210,6 +1210,14 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideList,
 		isGroup: true,
 		blockTemplate: "list",
+		expandArrayProps: true,
+		overrideProps: {
+			columns: {
+				type: "array",
+				inputType: "custom",
+				editor: defineAsyncComponent(() => import("@/components/PropEditors/ListColumnsEditor.vue")),
+			},
+		},
 	},
 	ListRows: {
 		name: "ListRows",
