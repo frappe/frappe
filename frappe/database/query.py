@@ -601,6 +601,7 @@ class Engine:
 		if isinstance(value, Document):
 			frappe.throw(_("Document cannot be used as a filter value"))
 		_operator = operator
+		_operator_lowered: str = operator.lower()
 
 		# _assign and _liked_by store a JSON array of user ids, so `=`/`!=` never match a
 		# single member; treat them as `like`/`not like` against the serialized value.
@@ -609,10 +610,10 @@ class Engine:
 			if isinstance(_value, str) and _value:
 				_value = f"%{_value}%"
 
-		if _operator.lower() in ("timespan", "previous", "next"):
+		if _operator_lowered in ("timespan", "previous", "next"):
 			from frappe.model.db_query import get_date_range
 
-			_value = get_date_range(_operator.lower(), _value)
+			_value = get_date_range(_operator_lowered, _value)
 			_operator = "between"
 
 		# For Date fields with datetime values, convert to date to match db_query behavior
@@ -622,7 +623,7 @@ class Engine:
 			_value = _apply_date_field_filter_conversion(_value, _operator, doctype or self.doctype, field)
 
 		# For Datetime fields with date values and 'between' operator, convert to datetime range to match db_query
-		if _operator.lower() == "between":
+		if _operator_lowered == "between":
 			if isinstance(_value, (list, tuple)) and len(_value) == 2:
 				_value = _apply_datetime_field_filter_conversion(_value, doctype or self.doctype, field)
 			elif isinstance(_value, str):
@@ -637,9 +638,9 @@ class Engine:
 		# Handle empty lists for IN/NOT IN operators before conversion
 		# IN with empty list should return 0 results (always False)
 		# NOT IN with empty list should return all results (always True)
-		if _operator.lower() in ("in", "not in"):
+		if _operator_lowered in ("in", "not in"):
 			if isinstance(_value, (list, tuple, set)) and len(_value) == 0:
-				if _operator.lower() == "in":
+				if _operator_lowered == "in":
 					# Return a criterion that always evaluates to False (1=0)
 					# This ensures IN with empty list returns 0 results
 					return RawCriterion("1=0")
@@ -803,16 +804,16 @@ class Engine:
 		idx = 1
 		while idx < len(nested_list):
 			# Expect an operator ('and' or 'or')
-			operator_str = nested_list[idx]
-			if not isinstance(operator_str, str) or operator_str.lower() not in ("and", "or"):
+			operator_str_lowered = nested_list[idx].lower()
+			if not isinstance(operator_str_lowered, str) or operator_str_lowered not in ("and", "or"):
 				frappe.throw(
-					_("Expected 'and' or 'or' operator, found: {0}").format(operator_str),
+					_("Expected 'and' or 'or' operator, found: {0}").format(operator_str_lowered),
 					frappe.ValidationError,
 				)
 
 			idx += 1
 			if idx >= len(nested_list):
-				frappe.throw(_("Filter condition missing after operator: {0}").format(operator_str))
+				frappe.throw(_("Filter condition missing after operator: {0}").format(operator_str_lowered))
 
 			# Expect a condition (list/tuple)
 			next_condition = nested_list[idx]
@@ -823,9 +824,9 @@ class Engine:
 
 			next_criterion = self._condition_to_criterion(next_condition)
 
-			if operator_str.lower() == "and":
+			if operator_str_lowered == "and":
 				current_criterion = current_criterion & next_criterion
-			elif operator_str.lower() == "or":
+			elif operator_str_lowered == "or":
 				current_criterion = current_criterion | next_criterion
 
 			idx += 1
