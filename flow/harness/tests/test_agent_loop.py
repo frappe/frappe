@@ -568,6 +568,73 @@ async def test_abort_between_tool_calls_prevents_later_tool_from_starting(tmp_pa
 	assert _of(events, "run_ended")[-1]["reason"] == "aborted"
 
 
+async def test_client_tool_round_trips_the_callback_and_unwraps_the_frappe_envelope(tmp_path, monkeypatch):
+	seen = {}
+
+	class RecordingClient:
+		def __init__(self, *args, **kwargs):
+			pass
+
+		async def __aenter__(self):
+			return self
+
+		async def __aexit__(self, *args):
+			return None
+
+		async def post(self, url, *, json, headers):
+			seen.update(url=url, payload=json, headers=headers)
+
+			class Response:
+				def raise_for_status(self):
+					pass
+
+				def json(self):
+					return {"message": {"content": "42 unread emails", "is_error": False}}
+
+			return Response()
+
+	monkeypatch.setattr("flow_server.agent.client_tools.httpx.AsyncClient", RecordingClient)
+	session, events = _session(
+		tmp_path,
+		tools=[],
+		client_tools=[
+			{
+				"type": "function",
+				"function": {
+					"name": "check_mail",
+					"description": "count mail",
+					"parameters": {"type": "object", "properties": {}},
+				},
+			}
+		],
+		callback_url="https://client.invalid/tools",
+		callback_token="shared-secret",
+		user_context={"user": "alice"},
+		auto_approve=True,
+	)
+	model = MockModel(
+		replies=[
+			AssistantMessage(content=[ToolCall(id="client-1", name="check_mail", arguments={})]),
+			AssistantMessage(content="done"),
+		]
+	)
+
+	await _run(session, "check my mail", model=model)
+
+	assert seen["url"] == "https://client.invalid/tools"
+	assert seen["headers"]["X-Harness-Token"] == "shared-secret"
+	assert seen["payload"] == {
+		"session_id": session.id,
+		"tool": "check_mail",
+		"args": {},
+		"user_context": {"user": "alice"},
+		"mode": "execute",
+	}
+	results = _of(events, "tool_result")
+	assert [r["content"] for r in results] == ["42 unread emails"]  # envelope unwrapped
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
+
+
 async def test_abort_cancels_client_callback_request(tmp_path, monkeypatch):
 	callback_started = asyncio.Event()
 	callback_cancelled = asyncio.Event()
