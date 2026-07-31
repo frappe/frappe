@@ -1,6 +1,6 @@
-"""One session's lifecycle: admission, the single commit point, and settlement.
+"""One session's lifecycle: one operation at a time, the single commit point, settlement.
 
-The session drives the pure agent loop. `run`/`resume` admit one operation at a time
+The session drives the pure agent loop. `run`/`resume` start one operation at a time
 under a lock and spawn a task that pulls the loop's events through `_commit` — the only
 place anything is persisted, folded into the transcript, and fanned out to subscribers
 and the sink. When the loop raises instead of finishing its protocol, `_drive` settles
@@ -85,9 +85,9 @@ def validate_resume(
 
 
 @dataclass(frozen=True)
-class RunSubmission:
-	"""What an admitted `run`/`resume` handed back: either a started operation's task,
-	or confirmation the message was steered into the already-active run."""
+class RunHandle:
+	"""What `run`/`resume` hand back: the started operation's task, or confirmation the
+	message was steered into the already-active run."""
 
 	status: Literal["started", "steered"]
 	from_seq: int  # the log cursor before the operation; replay from here to watch it
@@ -145,7 +145,7 @@ class Session:
 		model: Model | None = None,
 		before_tool_call: BeforeHook | None = None,
 		after_tool_call: AfterHook | None = None,
-	) -> RunSubmission:
+	) -> RunHandle:
 		"""Start a turn — or steer the message into the turn already running."""
 		async with self._operation_lock:
 			if self.state is SessionState.PAUSED:
@@ -154,9 +154,9 @@ class Session:
 				if self.abort_signal.is_set():
 					raise SessionConflict("run is aborting")
 				self._steering_queue.append(message)
-				return RunSubmission(status="steered", from_seq=self.log.latest_seq)
+				return RunHandle(status="steered", from_seq=self.log.latest_seq)
 			inputs = self._loop_inputs(model, before_tool_call, after_tool_call)
-			return self._admit(loop.run(message, inputs))
+			return self._start_operation(loop.run(message, inputs))
 
 	async def resume(
 		self,
@@ -166,7 +166,7 @@ class Session:
 		model: Model | None = None,
 		before_tool_call: BeforeHook | None = None,
 		after_tool_call: AfterHook | None = None,
-	) -> RunSubmission:
+	) -> RunHandle:
 		"""Continue a paused run with a decision per pending call."""
 		async with self._operation_lock:
 			if self.state is SessionState.RUNNING:
@@ -175,7 +175,7 @@ class Session:
 			validate_resume(approval, approval_seq, answers)
 			assert approval is not None  # narrowed by validate_resume
 			inputs = self._loop_inputs(model, before_tool_call, after_tool_call)
-			return self._admit(loop.resume(approval, answers, inputs))
+			return self._start_operation(loop.resume(approval, answers, inputs))
 
 	def abort(self) -> bool:
 		"""Signal the active run to stop; steering that never became durable dies with it."""
@@ -248,12 +248,12 @@ class Session:
 
 	# --- driving one admitted operation -----------------------------------
 
-	def _admit(self, events: AsyncIterator[AnyEvent]) -> RunSubmission:
+	def _start_operation(self, events: AsyncIterator[AnyEvent]) -> RunHandle:
 		from_seq = self.log.latest_seq
 		task = asyncio.create_task(self._drive(events))
 		task.add_done_callback(_mark_retrieved)
 		self._task = task
-		return RunSubmission(status="started", from_seq=from_seq, task=task)
+		return RunHandle(status="started", from_seq=from_seq, task=task)
 
 	def _loop_inputs(
 		self, model: Model | None, before_tool_call: BeforeHook | None, after_tool_call: AfterHook | None

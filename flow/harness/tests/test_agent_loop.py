@@ -26,17 +26,17 @@ def _session(tmp_path, **cfg):
 
 
 async def _run(session, message, **kwargs):
-	submission = await session.run(message, **kwargs)
-	assert submission.task is not None
-	await submission.task
-	return submission
+	handle = await session.run(message, **kwargs)
+	assert handle.task is not None
+	await handle.task
+	return handle
 
 
 async def _resume(session, answers, **kwargs):
-	submission = await session.resume(answers, **kwargs)
-	assert submission.task is not None
-	await submission.task
-	return submission
+	handle = await session.resume(answers, **kwargs)
+	assert handle.task is not None
+	await handle.task
+	return handle
 
 
 def _of(events, t):
@@ -468,11 +468,11 @@ async def test_abort_during_model_stream_closes_stream_and_emits_aborted_turn(tm
 	session, events = _session(tmp_path)
 	model = _CancellationBlockingModel()
 
-	submission = await session.run("wait", model=model)
+	handle = await session.run("wait", model=model)
 	await model.started.wait()
 	assert session.abort() is True
-	assert submission.task is not None
-	await asyncio.wait_for(submission.task, timeout=1)
+	assert handle.task is not None
+	await asyncio.wait_for(handle.task, timeout=1)
 
 	assert model.requests[0].cancellation is session.abort_signal
 	assert model.closed.is_set()
@@ -496,11 +496,11 @@ async def test_abort_cancels_blocked_before_hook_before_tool_starts(tmp_path):
 		finally:
 			hook_cancelled.set()
 
-	submission = await session.run("read", model=model, before_tool_call=before)
+	handle = await session.run("read", model=model, before_tool_call=before)
 	await hook_started.wait()
 	session.abort()
-	assert submission.task is not None
-	await asyncio.wait_for(submission.task, timeout=1)
+	assert handle.task is not None
+	await asyncio.wait_for(handle.task, timeout=1)
 
 	assert hook_cancelled.is_set()
 	results = _of(events, "tool_result")
@@ -523,11 +523,11 @@ async def test_abort_cancels_blocked_after_hook(tmp_path):
 		finally:
 			hook_cancelled.set()
 
-	submission = await session.run("read", model=model, after_tool_call=after)
+	handle = await session.run("read", model=model, after_tool_call=after)
 	await hook_started.wait()
 	session.abort()
-	assert submission.task is not None
-	await asyncio.wait_for(submission.task, timeout=1)
+	assert handle.task is not None
+	await asyncio.wait_for(handle.task, timeout=1)
 
 	assert hook_cancelled.is_set()
 	assert _of(events, "run_ended")[-1]["reason"] == "aborted"
@@ -610,11 +610,11 @@ async def test_abort_cancels_client_callback_request(tmp_path, monkeypatch):
 		replies=[AssistantMessage(content=[ToolCall(id="client-1", name="client_wait", arguments={})])]
 	)
 
-	submission = await session.run("call client", model=model)
+	handle = await session.run("call client", model=model)
 	await callback_started.wait()
 	session.abort()
-	assert submission.task is not None
-	await asyncio.wait_for(submission.task, timeout=1)
+	assert handle.task is not None
+	await asyncio.wait_for(handle.task, timeout=1)
 
 	assert callback_cancelled.is_set()
 	assert _of(events, "run_ended")[-1]["reason"] == "aborted"

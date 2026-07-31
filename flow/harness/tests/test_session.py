@@ -152,11 +152,11 @@ async def test_state_is_derived_from_task_and_transcript(tmp_path):
 			async for event in super().run(request):
 				yield event
 
-	submission = await session.run("hi", model=GatedModel(replies=[AssistantMessage(content="ok")]))
+	handle = await session.run("hi", model=GatedModel(replies=[AssistantMessage(content="ok")]))
 	assert session.state is SessionState.RUNNING
 	release.set()
-	assert submission.task is not None
-	await submission.task
+	assert handle.task is not None
+	await handle.task
 	assert session.state is SessionState.IDLE
 
 
@@ -170,11 +170,11 @@ async def test_commit_failure_fails_the_task_and_frees_the_session(tmp_path, mon
 		return original_append(event)
 
 	monkeypatch.setattr(session.log, "append", fail_terminal)
-	submission = await session.run("hi", model=MockModel(replies=[AssistantMessage(content="ok")]))
-	assert submission.task is not None
+	handle = await session.run("hi", model=MockModel(replies=[AssistantMessage(content="ok")]))
+	assert handle.task is not None
 
 	with pytest.raises(OSError, match="log unavailable"):
-		await submission.task
+		await handle.task
 	assert session.is_running is False
 
 

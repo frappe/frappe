@@ -16,7 +16,7 @@ from flow_server import config as server_config
 from flow_server.events import AnyEvent
 from flow_server.model import Model
 from flow_server.session.config import SessionConfig
-from flow_server.session.session import RunSubmission, Session
+from flow_server.session.session import RunHandle, Session
 from flow_server.session.store import SessionStore
 
 
@@ -63,15 +63,15 @@ class Agent:
 		"""Signal the active run to stop; return whether a run was active."""
 		return self._session.abort()
 
-	async def _events(self, submit: Callable[[], Awaitable[RunSubmission]]) -> AsyncIterator[AnyEvent]:
+	async def _events(self, submit: Callable[[], Awaitable[RunHandle]]) -> AsyncIterator[AnyEvent]:
 		queue = self._session.subscribe()  # subscribe before the run starts so no event is missed
 		task: asyncio.Task[None] | None = None
 		next_event: asyncio.Task[AnyEvent] | None = None
 		try:
-			submission = await submit()
-			if submission.status != "started":
+			handle = await submit()
+			if handle.status != "started":
 				raise RuntimeError("session already has an active run")
-			task = submission.task
+			task = handle.task
 			assert task is not None
 			while True:
 				if task.done() and queue.empty():
