@@ -1,6 +1,8 @@
-<p>
-	{%= frappe.ui.button.html({ label: __("New Address"), icon: "plus", size: "sm", css_class: "btn-address" }) %}
-</p>
+{% if (addr_list.length) { %}
+	<p>
+		{%= frappe.ui.button.html({ label: __("Address"), icon: "plus", size: "sm", css_class: "btn-address" }) %}
+	</p>
+{% } %}
 
 <div class="clearfix"></div>
 {% for (const addr of addr_list) { %}
@@ -9,7 +11,7 @@
 		<div class="box-header flex items-center flex-wrap gap-2">
 			<span class="text-base-semibold text-ink-gray-8">{%= addr.address_title %}</span>
 			{% if (addr.name === primary_name) { %}
-				{%= frappe.ui.badge.html({ label: __("Primary"), theme: "blue" }) %}
+				{%= frappe.ui.badge.html({ label: __("Primary"), theme: "blue", size: "sm" }) %}
 			{% } %}
 		</div>
 		{% const tags = [addr.address_type !== "Other" ? __(addr.address_type) : null, addr.is_shipping_address ? __("Shipping") : null, addr.disabled ? __("Disabled") : null].filter(Boolean).join(" · "); %}
@@ -21,5 +23,9 @@
 {% } %}
 
 {% if (!addr_list.length) { %}
-	{%= frappe.ui.empty_state.html({ icon: "map-pin", title: __("No addresses added yet") }) %}
+	{%= frappe.ui.empty_state.html({
+		icon: "map-pin",
+		title: __("No addresses added yet"),
+		actions: [{ label: __("New Address"), icon: "plus", css_class: "btn-address" }],
+	}) %}
 {% } %}

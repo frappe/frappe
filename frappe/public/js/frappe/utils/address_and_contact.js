@@ -122,6 +122,7 @@ function new_record(doctype, frm) {
 
 function card_menu(frm, section, record, primary_name) {
 	const { doctype } = section;
+	const is_primary = record.name === primary_name;
 	return [
 		{
 			label: __("Edit"),
@@ -131,19 +132,19 @@ function card_menu(frm, section, record, primary_name) {
 		{
 			label: __("Set as Primary"),
 			icon: "star",
-			condition: () => record.name !== primary_name,
+			condition: () => !is_primary,
 			onclick: () => set_primary(frm, section, record),
 		},
 		{
-			label: __("Unlink from {0}", [__(frm.doctype)]),
-			icon: "unlink",
-			onclick: () => delink_record(frm, doctype, record.name),
+			label: __("Unset as Primary"),
+			icon: "star-off",
+			condition: () => is_primary,
+			onclick: () => unset_primary(frm, section, record),
 		},
 		{
-			label: __("Delete"),
-			icon: "trash-2",
-			theme: "red",
-			onclick: () => delete_record(frm, doctype, record.name),
+			label: __("Unlink {0}", [__(doctype)]),
+			icon: "unlink",
+			onclick: () => delink_record(frm, doctype, record.name),
 		},
 	];
 }
@@ -160,6 +161,12 @@ function get_primary_name(frm, section, records) {
 	return records.find((r) => r[section.primary_flag])?.name;
 }
 
+function get_dependent_fields(frm, primary_field) {
+	return (frm.meta.fields || [])
+		.filter((df) => df.fetch_from?.split(".")[0] === primary_field)
+		.map((df) => df.fieldname);
+}
+
 async function set_primary(frm, section, record) {
 	const primary_field = get_primary_field(frm, section.doctype);
 
@@ -172,10 +179,27 @@ async function set_primary(frm, section, record) {
 	frm.reload_doc();
 }
 
+async function unset_primary(frm, section, record) {
+	const primary_field = get_primary_field(frm, section.doctype);
+
+	if (primary_field) {
+		const updates = { [primary_field]: null };
+		for (const fieldname of get_dependent_fields(frm, primary_field)) {
+			updates[fieldname] = null;
+		}
+		await frappe.db.set_value(frm.doctype, frm.docname, updates);
+	} else {
+		await frappe.db.set_value(section.doctype, record.name, section.primary_flag, 0);
+	}
+
+	frm.reload_doc();
+}
+
 function delink_record(frm, doctype, name) {
 	const label = `<b>${frappe.utils.escape_html(name)}</b>`;
+	const party_label = `<b>${frappe.utils.escape_html(frm.docname)}</b>`;
 	frappe.confirm(
-		__("Unlink {0} {1} from {2}?", [__(doctype), label, __(frm.doctype)]),
+		__("Unlink {0} {1} from {2}?", [__(doctype), label, party_label]),
 		() => {
 			frappe
 				.xcall("frappe.contacts.address_and_contact.delink_party", {
@@ -193,14 +217,4 @@ function delink_record(frm, doctype, name) {
 				});
 		}
 	);
-}
-
-function delete_record(frm, doctype, name) {
-	const label = `<b>${frappe.utils.escape_html(name)}</b>`;
-	frappe.confirm(__("Delete {0} {1}?", [__(doctype), label]), () => {
-		frappe.db.delete_doc(doctype, name).then(() => {
-			frappe.show_alert({ message: __("{0} deleted", [__(doctype)]), indicator: "green" });
-			frm.reload_doc();
-		});
-	});
 }
