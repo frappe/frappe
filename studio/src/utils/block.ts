@@ -241,6 +241,16 @@ class Block implements BlockOptions {
 		return this.parentBlock || null;
 	}
 
+	// nearest block (including self) with the given componentName
+	closest(componentName: string): Block | null {
+		let current: Block | null = this;
+		while (current) {
+			if (current.componentName === componentName) return current;
+			current = current.getParentBlock();
+		}
+		return null;
+	}
+
 	getSiblingBlock(direction: "next" | "previous") {
 		const parentBlock = this.getParentBlock();
 		if (!parentBlock) return null;

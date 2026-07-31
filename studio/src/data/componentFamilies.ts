@@ -101,11 +101,14 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 		editInFragmentMode: true,
 		proxyComponent: defineAsyncComponent(() => import("@/components/ProxyComponents/ProxySettingsDialog.vue")),
 	},
+	// Sidebar/NavItem/Panel wrap reka-ui tabs primitives (TabsList/Trigger/Content)
+	// that throw without the TabsRoot that SettingsDialog provides.
 	SettingsSidebar: {
 		name: "SettingsSidebar",
 		title: "Settings Sidebar",
 		icon: LucideSidebar,
 		group: "SettingsDialog",
+		isStandalone: false,
 	},
 	SettingsNavGroup: {
 		name: "SettingsNavGroup",
@@ -121,6 +124,7 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 		title: "Settings Nav Item",
 		icon: LucideSidebar,
 		group: "SettingsDialog",
+		isStandalone: false,
 		initialState: {
 			value: "tab",
 		},
@@ -136,6 +140,7 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 		title: "Settings Panel",
 		icon: LucideAppWindowMac,
 		group: "SettingsDialog",
+		isStandalone: false,
 		initialState: {
 			value: "tab",
 		},

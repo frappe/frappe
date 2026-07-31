@@ -72,13 +72,18 @@ const componentSubmenu = computed<ContextMenuGroup[]>(() => {
 		action: () => addComponent(component.name),
 	})
 
+	// non-standalone parts crash outside their family primary (missing inject
+	// context), so hide them unless the target block sits inside one
+	const canAdd = (component: FrappeUIComponent) =>
+		component.isStandalone !== false || Boolean(component.group && block.value?.closest(component.group))
+
 	const groups: ContextMenuGroup[] = components.getComponentGroups(components.list).map((group) => ({
 		label: group.label,
 		options: group.components
 			.filter((component) => !component.group)
 			.flatMap((component) => [
 				toOption(component),
-				...(component.isGroup ? components.getParts(component.name).map(toOption) : []),
+				...(component.isGroup ? components.getParts(component.name).filter(canAdd).map(toOption) : []),
 			]),
 	}))
 

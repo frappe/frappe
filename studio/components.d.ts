@@ -75,6 +75,8 @@ declare module 'vue' {
     LucideChevronDown: typeof import('~icons/lucide/chevron-down')['default']
     LucideChevronUp: typeof import('~icons/lucide/chevron-up')['default']
     LucidePaperclip: typeof import('~icons/lucide/paperclip')['default']
+    LucidePlus: typeof import('~icons/lucide/plus')['default']
+    LucideX: typeof import('~icons/lucide/x')['default']
     MarginHandler: typeof import('./src/components/MarginHandler.vue')['default']
     MarkdownEditor: typeof import('./src/components/AppLayout/MarkdownEditor.vue')['default']
     MissingComponent: typeof import('./src/components/MissingComponent.vue')['default']
