@@ -69,6 +69,8 @@ class Agent:
 
 	async def set_model(self, model: str, credential_id: str | None = None) -> None:
 		"""Select the model (and credential) for later runs; durable and per-branch."""
+		if self._model is not None:
+			raise RuntimeError("runs use the injected Model instance; set_model cannot switch it")
 		await self._session.set_model(model, credential_id=credential_id)
 
 	async def _events(self, submit: Callable[[], Awaitable[RunHandle]]) -> AsyncIterator[AnyEvent]:
