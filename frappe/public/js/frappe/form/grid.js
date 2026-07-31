@@ -113,39 +113,57 @@ export default class Grid {
 				<div class="small form-clickable-section grid-footer">
 					<div class="flex justify-between">
 						<div class="grid-buttons">
-							<button type="button" class="btn btn-xs btn-danger grid-remove-rows hidden"
-								data-action="delete_rows">
-								${__("Delete")}
-							</button>
-							<button type="button" class="btn btn-xs btn-secondary grid-edit-rows hidden"
-								data-action="bulk_edit_rows">
-								${__("Edit")}
-							</button>
-							<button type="button" class="btn btn-xs btn-danger grid-remove-all-rows hidden"
-							data-action="delete_all_rows">
-							${__("Delete all")}
-							</button>
-							<button type="button" class="btn btn-xs btn-secondary grid-duplicate-rows hidden"
-								data-action="duplicate_rows">
-								${__("Duplicate rows")}
-							</button>
+							${frappe.ui.button.html({
+								label: __("Delete"),
+								size: "sm",
+								theme: "red",
+								css_class: "grid-remove-rows hidden",
+								attrs: { "data-action": "delete_rows" },
+							})}
+							${frappe.ui.button.html({
+								label: __("Edit"),
+								size: "sm",
+								css_class: "grid-edit-rows hidden",
+								attrs: { "data-action": "bulk_edit_rows" },
+							})}
+							${frappe.ui.button.html({
+								label: __("Delete all"),
+								size: "sm",
+								theme: "red",
+								css_class: "grid-remove-all-rows hidden",
+								attrs: { "data-action": "delete_all_rows" },
+							})}
+							${frappe.ui.button.html({
+								label: __("Duplicate rows"),
+								size: "sm",
+								css_class: "grid-duplicate-rows hidden",
+								attrs: { "data-action": "duplicate_rows" },
+							})}
 							<!-- hack to allow firefox include this in tabs -->
-							<button type="button" class="btn btn-xs btn-secondary grid-add-row">
-								${__("Add row")}
-							</button>
-							<button type="button" class="grid-add-multiple-rows btn btn-xs btn-secondary hidden">
-								${__("Add multiple")}</a>
-							</button>
+							${frappe.ui.button.html({
+								label: __("Add row"),
+								size: "sm",
+								css_class: "grid-add-row",
+							})}
+							${frappe.ui.button.html({
+								label: __("Add multiple"),
+								size: "sm",
+								css_class: "grid-add-multiple-rows hidden",
+							})}
 						</div>
 						<div class="grid-pagination">
 						</div>
 						<div class="grid-bulk-actions text-right">
-							<button type="button" class="grid-download btn btn-xs btn-secondary hidden">
-								${__("Download")}
-							</button>
-							<button type="button" class="grid-upload btn btn-xs btn-secondary hidden">
-								${__("Upload")}
-							</button>
+							${frappe.ui.button.html({
+								label: __("Download"),
+								size: "sm",
+								css_class: "grid-download hidden",
+							})}
+							${frappe.ui.button.html({
+								label: __("Upload"),
+								size: "sm",
+								css_class: "grid-upload hidden",
+							})}
 						</div>
 					</div>
 				</div>
@@ -287,13 +305,22 @@ export default class Grid {
 
 			// update "Delete" and "Duplicate" button labels
 			if (num_selected_rows == 1) {
-				this.remove_rows_button.text(__("Delete row"));
-				this.edit_rows_button.text(__("Edit row"));
-				this.duplicate_rows_button.text(__("Duplicate row"));
+				this.set_button_label(this.remove_rows_button, __("Delete row"));
+				this.set_button_label(this.edit_rows_button, __("Edit row"));
+				this.set_button_label(this.duplicate_rows_button, __("Duplicate row"));
 			} else {
-				this.remove_rows_button.text(__("Delete {0} rows", [num_selected_rows]));
-				this.edit_rows_button.text(__("Edit {0} rows", [num_selected_rows]));
-				this.duplicate_rows_button.text(__("Duplicate {0} rows", [num_selected_rows]));
+				this.set_button_label(
+					this.remove_rows_button,
+					__("Delete {0} rows", [num_selected_rows])
+				);
+				this.set_button_label(
+					this.edit_rows_button,
+					__("Edit {0} rows", [num_selected_rows])
+				);
+				this.set_button_label(
+					this.duplicate_rows_button,
+					__("Duplicate {0} rows", [num_selected_rows])
+				);
 			}
 
 			this.refresh_remove_rows_button();
@@ -421,8 +448,17 @@ export default class Grid {
 		this.remove_all_rows_button.toggleClass("hidden", !show_delete_all_btn);
 
 		if (show_delete_all_btn) {
-			this.remove_all_rows_button.text(__("Delete all {0} rows", [this.data.length]));
+			this.set_button_label(
+				this.remove_all_rows_button,
+				__("Delete all {0} rows", [this.data.length])
+			);
 		}
+	}
+
+	set_button_label($btn, label) {
+		// es buttons keep their label in a span; .text() on the button itself
+		// would wipe the spinner and loading-label structure
+		$btn.find(".es-button__label").text(label);
 	}
 
 	refresh_edit_rows_button() {
@@ -1718,8 +1754,8 @@ export default class Grid {
 		const $wrapper = position === "top" ? this.grid_custom_buttons : this.grid_buttons;
 		let $btn = this.custom_buttons[label];
 		if (!$btn) {
-			$btn = $(`<button type="button" class="btn btn-secondary btn-xs btn-custom">`)
-				.html(__(label))
+			$btn = frappe.ui
+				.button({ label: __(label), size: "sm", css_class: "btn-custom" })
 				.prependTo($wrapper)
 				.on("click", click);
 			this.custom_buttons[label] = $btn;

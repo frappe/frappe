@@ -80,9 +80,9 @@ function button_html(opts = {}) {
 
 	const classes = escape(["es-button", opts.css_class].filter(Boolean).join(" "));
 
-	return `<button class="${classes}" ${attrs.join(" ")}>
-		${content_html(opts)}
-	</button>`;
+	// no whitespace around the content: legacy callers read labels back with
+	// $(btn).text(), which includes every text node inside the button
+	return `<button class="${classes}" ${attrs.join(" ")}>${content_html(opts)}</button>`;
 }
 
 // The button's children: spinner + loading label + icons + label. Shared by
