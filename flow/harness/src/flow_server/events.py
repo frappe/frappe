@@ -1,15 +1,13 @@
-"""The event protocol — the single contract between the loop, the log, and clients.
+"""Typed events — the one contract between the loop, the log, and clients.
 
-Two families of events:
-  - durable: assigned a monotonic `seq` and persisted to the session log. These
-    reconstruct the conversation on replay/restart.
-  - live-only: transient token/tool deltas for a responsive UI. Never persisted;
-    the durable log + replay heals any gap if a client misses them.
+Durable events get a monotonic `seq` and persist to the session log; they rebuild the
+conversation on replay/restart. Live-only events (deltas, retry progress) are a
+transient UI feed — never persisted, healed by replay when missed.
 """
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import Annotated, Any, ClassVar, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
@@ -25,6 +23,9 @@ ProviderErrorKind = Literal[
 ]
 
 
+# --- assistant content blocks ---------------------------------------------
+
+
 class ToolCall(BaseModel):
 	"""A tool invocation in the assistant's ordered content."""
 
@@ -34,9 +35,11 @@ class ToolCall(BaseModel):
 	id: str
 	name: str
 	arguments: dict
-	# Set when the model emitted unparseable arguments; the agent feeds this back so it can
-	# retry.
+	# Set when the model emitted unparseable arguments; fed back so it can retry.
 	error: str | None = None
+	# Opaque provider round-trip data (e.g. a Responses item id). Never shown to the
+	# model or a UI; only the provider that wrote it reads it.
+	provider_state: dict | None = None
 
 	@property
 	def args(self) -> dict:
@@ -49,7 +52,7 @@ class TextContent(BaseModel):
 
 	type: Literal["text"] = "text"
 	text: str
-	text_signature: str | None = None
+	provider_state: dict | None = None
 
 
 class ThinkingContent(BaseModel):
@@ -59,6 +62,7 @@ class ThinkingContent(BaseModel):
 	thinking: str
 	thinking_signature: str | None = None
 	redacted: bool = False
+	provider_state: dict | None = None
 
 
 AssistantContent = Annotated[TextContent | ThinkingContent | ToolCall, Field(discriminator="type")]
@@ -68,8 +72,8 @@ StopReason = Literal["stop", "length", "tool_use", "error", "aborted"]
 class _Event(BaseModel):
 	model_config = ConfigDict(extra="forbid")
 
+	durable: ClassVar[bool] = True
 	seq: int | None = None  # assigned by the log when persisted
-	durable: bool = Field(default=True, exclude=True)
 
 
 # --- durable events -------------------------------------------------------
@@ -86,7 +90,7 @@ class UserMessage(_Event):
 
 
 class AssistantMessage(_Event):
-	"""Final provider response ordered by content blocks."""
+	"""Final provider response, ordered by content blocks."""
 
 	type: Literal["assistant_message"] = "assistant_message"
 	content: list[AssistantContent] = Field(default_factory=list)
@@ -101,7 +105,7 @@ class AssistantMessage(_Event):
 	@model_validator(mode="before")
 	@classmethod
 	def _normalize_content_string(cls, value: object) -> object:
-		"""Allow concise Python constructor while keeping one serialized shape."""
+		"""Allow the concise `content="text"` constructor while keeping one wire shape."""
 		if not isinstance(value, dict):
 			return value
 		data = dict(value)
@@ -151,16 +155,19 @@ class PendingCall(BaseModel):
 
 
 class ApprovalRequired(_Event):
-	"""The model called one or more confirmation-gated tools; the run pauses here until
-	a `resume` supplies a decision (Approve / Deny / free-text redirect) per call."""
+	"""The model called confirmation-gated tools; the run pauses here until a `resume`
+	supplies a decision (Approve / Deny / free-text redirect) per call."""
 
 	type: Literal["approval_required"] = "approval_required"
 	calls: list[PendingCall] = Field(default_factory=list)
 
 
+RunEndReason = Literal["done", "length", "max_turns", "budget", "aborted", "error", "paused"]
+
+
 class RunEnded(_Event):
 	type: Literal["run_ended"] = "run_ended"
-	reason: Literal["done", "length", "max_turns", "budget", "aborted", "error", "paused"] = "done"
+	reason: RunEndReason = "done"
 
 
 class RunError(_Event):
@@ -177,44 +184,34 @@ class RunError(_Event):
 
 
 class TextDelta(_Event):
+	durable: ClassVar[bool] = False
 	type: Literal["text_delta"] = "text_delta"
 	text: str
-	durable: bool = Field(default=False, exclude=True)
 
 
 class ThinkingDelta(_Event):
+	durable: ClassVar[bool] = False
 	type: Literal["thinking_delta"] = "thinking_delta"
 	thinking: str
-	durable: bool = Field(default=False, exclude=True)
 
 
 class ToolCallStarted(_Event):
+	durable: ClassVar[bool] = False
 	type: Literal["tool_call_started"] = "tool_call_started"
 	id: str
 	name: str
-	durable: bool = Field(default=False, exclude=True)
 
 
-class RetryScheduled(_Event):
-	type: Literal["retry_scheduled"] = "retry_scheduled"
+class Retry(_Event):
+	"""Provider retry progress: an attempt was scheduled, started, or given up on."""
+
+	durable: ClassVar[bool] = False
+	type: Literal["retry"] = "retry"
+	status: Literal["scheduled", "started", "exhausted"]
 	attempt: int
-	max_attempts: int
-	delay_seconds: float
-	kind: ProviderErrorKind
-	durable: bool = Field(default=False, exclude=True)
-
-
-class RetryStarted(_Event):
-	type: Literal["retry_started"] = "retry_started"
-	attempt: int
-	durable: bool = Field(default=False, exclude=True)
-
-
-class RetryExhausted(_Event):
-	type: Literal["retry_exhausted"] = "retry_exhausted"
-	attempts: int
-	kind: ProviderErrorKind
-	durable: bool = Field(default=False, exclude=True)
+	max_attempts: int | None = None
+	delay_seconds: float | None = None
+	kind: ProviderErrorKind | None = None
 
 
 AnyEvent = (
@@ -229,9 +226,7 @@ AnyEvent = (
 	| TextDelta
 	| ThinkingDelta
 	| ToolCallStarted
-	| RetryScheduled
-	| RetryStarted
-	| RetryExhausted
+	| Retry
 )
 
 Event = Annotated[AnyEvent, Field(discriminator="type")]
@@ -239,6 +234,6 @@ Event = Annotated[AnyEvent, Field(discriminator="type")]
 _ADAPTER: TypeAdapter[AnyEvent] = TypeAdapter(Event)
 
 
-def parse_event(data: dict) -> AnyEvent:
+def parse_event(data: dict[str, Any]) -> AnyEvent:
 	"""Validate and rebuild a typed event from its durable wire representation."""
 	return _ADAPTER.validate_python(data)

@@ -36,6 +36,8 @@ agent.abort() -> bool         # signal the active run; false when idle/paused
 is yielded. `abort()` is synchronous: it signals the same per-operation cancellation
 event used by the HTTP API and returns whether an active run was found. Continue
 consuming the run iterator through its terminal `run_ended(reason=="aborted")` event.
+For the raw verbs (`Session.run/resume/abort/cancel_pending`, `Session.events`), use
+`agent.session`.
 
 ### Examples
 
@@ -88,19 +90,23 @@ Body: a `SessionConfig` (all fields optional; see below).
 
 ### `POST /sessions/{sid}/run?wait=<bool>`
 Body: `{"message": "...", "model": "provider/model", "credential_id": "optional-name"}`.
-`model` and `credential_id` are optional; when supplied they become the session defaults
-for later turns. Provider keys, OAuth tokens, headers, and base URLs are not accepted by
-this endpoint and are resolved inside flow_server.
+`model` and `credential_id` are optional; when supplied they are applied and persisted
+before the run is admitted, so the run they arrive with already uses them and they
+remain the session defaults for later turns. Provider keys, OAuth tokens, headers, and
+base URLs are not accepted by this endpoint and are resolved inside flow_server.
 - default (`wait` false): starts the run as a background task → `{"status": "started"}`.
-  If a run is already active, the message is queued as steering → `{"status": "steered"}`.
-- `?wait=true`: blocks until the registered run ends →
+  If a run is already active, the message is queued as steering → `{"status": "steered"}`
+  (returned immediately even with `?wait=true`; an override steered into an active run
+  takes effect on the next run).
+- `?wait=true`: blocks until the started run ends →
   `{"reason", "output", "usage", "pending", "approval_seq"}` (`output` = final
   assistant text; `pending` and `approval_seq` identify the approval batch if
   `reason=="paused"`). A model token-limit stop returns `reason=="length"` rather than
   being reported as a completed answer.
-- `409` if the session is paused; resolve that batch through `/resume` before starting
-  another run. A run that has already received `/abort` also rejects new steering with
-  `409` instead of carrying it into a later turn.
+- `409` if the session is paused; resolve that batch through `/resume` (or abandon it
+  through `/cancel_pending`) before starting another run. A run that has already
+  received `/abort` also rejects new steering with `409` instead of carrying it into a
+  later turn.
 
 ### `POST /sessions/{sid}/resume?wait=<bool>`
 Body:
@@ -113,28 +119,37 @@ not-paused requests return `409` without changing the log. Same fire-and-forget 
 ### `POST /sessions/{sid}/abort`
 Signals active work to stop and clears steering that has not yet entered the durable
 transcript →
-`{"status": "aborting" | "aborted" | "idle"}`.
+`{"status": "aborting" | "idle" | "paused"}`.
 Model streams, provider HTTP bodies, hooks, tools, Bash process groups, and client-tool
 callback requests are interrupted. A completed cancellation persists an
 `assistant_message` with `stop_reason=="aborted"` followed by
-`run_ended(reason=="aborted")`; the session then returns to `idle`. An approval-paused
-session has no active work to signal, so it is released synchronously instead: every
-pending call receives a cancelled error result and the response is `"aborted"`. Calling
-this endpoint for an idle session is a no-op.
+`run_ended(reason=="aborted")`; the session then returns to `idle`. Calling this
+endpoint for an idle or approval-paused session is a no-op; to abandon a paused
+session's approval batch, use `/cancel_pending`.
+
+### `POST /sessions/{sid}/cancel_pending`
+Abandons a paused session's approval batch: every undecided call is answered with a
+cancellation `tool_result` (`is_error: true`), the transcript closes, and the session
+returns to idle →
+`{"status": "cancelled"}`, or `{"status": "idle" | ...}` when nothing was pending.
+`409` while a run is active.
 
 ### `GET /sessions/{sid}/entries?since=<int>`
 The durable log from the cursor →
 `{"entries": [...], "latest_seq", "state", "running"}`.
 
 ### `GET /sessions/{sid}/stream?since=<int>`
-Server-Sent Events. Replays durable entries with `seq > since`, then streams live events
-until `run_ended`. Each line: `data: {<event json>}\n\n`. Reconnect after a drop by
-passing `since=<last seq you saw>`.
+Server-Sent Events. Replays durable entries with `seq > since`, then streams live
+events. Each line: `data: {<event json>}\n\n`. The stream closes when the watched run
+ends (`run_ended`, including `reason=="paused"`); for a session with no active run it
+closes after the replay. Reconnect after a drop by passing `since=<last seq you saw>` —
+the continuation is gapless and duplicate-free.
 
 Durable `assistant_message` entries contain an ordered `content` array of `text`,
 `thinking`, and `tool_call` blocks plus `api`, `provider`, `model`, optional upstream
 response identity, and `stop_reason`. Tool-call input is named `arguments` inside that
-array.
+array. Provider round-trip data rides in the opaque `provider_state` field on content
+blocks.
 
 ### Example client
 
@@ -144,7 +159,7 @@ c = httpx.Client(base_url="http://127.0.0.1:8787", timeout=None)
 
 sid = c.post("/sessions", json={
     "model": "gpt-4o", "tools": ["bash", "read_file", "write", "edit", "grep"],
-    "cwd": "/proj", "confirm_tools": ["bash", "write", "edit"],
+    "cwd": "/proj", "confirm_tools": ["read_file"],
 }).json()["session_id"]
 
 # fire-and-forget + stream (survives disconnect)
@@ -174,7 +189,7 @@ print(res["output"], res["reason"], res["usage"])
 | `callback_url` / `callback_token` | none | where/how client tools are dispatched |
 | `user_context` | `{}` | opaque data echoed on callbacks |
 | `credential_id` | inferred | named credential selected for the model |
-| `confirm_tools` | `[]` | tools that pause for approval (overrides tool defaults) |
+| `confirm_tools` | `[]` | extra tools that pause for approval, on top of each tool's own default |
 | `auto_approve` | `false` | unattended runs skip approval |
 | `cwd` | `"."` | tool working dir; cwd and built-in file paths are checked against `ALLOWED_ROOTS` (`bash` is not sandboxed) |
 | `max_turns` | `30` | turn cap |

@@ -3,9 +3,16 @@ import asyncio
 import httpx
 import pytest
 
-from flow_server.events import AssistantMessage, TextContent, ThinkingContent, ToolCall, UserMessage
+from flow_server.events import (
+	AssistantMessage,
+	TextContent,
+	ThinkingContent,
+	ToolCall,
+	ToolResult,
+	UserMessage,
+)
 from flow_server.model import (
-	_REGISTRY,
+	_NATIVE_PROVIDERS,
 	LiteLLMModel,
 	MockModel,
 	ModelRequest,
@@ -13,13 +20,14 @@ from flow_server.model import (
 	get_model,
 	register_provider,
 )
-from flow_server.model.model import (
+from flow_server.model.litellm import (
 	_build_tool_call,
 	_openai_messages,
 	_reasoning_blocks,
 	_reasoning_field,
 	_stop_reason,
 )
+from flow_server.model.providers.codex import CodexModel
 
 
 def _chunk(delta: dict, finish_reason: str | None = None) -> dict:
@@ -114,12 +122,17 @@ async def test_litellm_cancellation_closes_active_stream(monkeypatch):
 	assert events[0].stop_reason == "aborted"
 
 
-async def test_litellm_disables_sdk_retries_and_normalizes_provider_failure(monkeypatch):
+async def test_litellm_disables_sdk_retries_and_owns_the_attempts(monkeypatch):
+	"""One acompletion call is one provider attempt; the retry budget lives in Flow."""
+	monkeypatch.setattr("flow_server.model.base._retry_delay_seconds", lambda error, retry_index: 0)
 	seen_kwargs = {}
+	attempts = 0
 
 	async def completion(**kwargs):
 		import litellm
 
+		nonlocal attempts
+		attempts += 1
 		seen_kwargs.update(kwargs)
 		request = httpx.Request("POST", "https://provider.test")
 		response = httpx.Response(429, headers={"retry-after": "3"}, request=request)
@@ -137,6 +150,7 @@ async def test_litellm_disables_sdk_retries_and_normalizes_provider_failure(monk
 		await _collect(model.run(ModelRequest(messages=[UserMessage(content="hi")], stream=False)))
 
 	assert seen_kwargs["num_retries"] == 0
+	assert attempts == 3  # the shared envelope exhausted its transient budget
 	assert raised.value.kind == "rate_limit"
 	assert raised.value.retryable is True
 	assert raised.value.status_code == 429
@@ -155,50 +169,64 @@ def test_get_model_falls_through_to_litellm():
 	assert model._api_base == "https://x"
 
 
-def test_opencode_go_routes_openai_family_to_chat_completions():
-	model = get_model("opencode-go/grok-4.5", api_key="sk-go")
-	assert isinstance(model, LiteLLMModel)
-	assert model.name == "openai/grok-4.5"
-	assert model._api_base == "https://opencode.ai/zen/go/v1"
-	assert model._api_key == "sk-go"
-
-
-def test_opencode_go_routes_anthropic_family_to_messages():
-	for name, expected in (
-		("opencode-go/minimax-m3", "anthropic/minimax-m3"),
-		("opencode-go/qwen3.7-max", "anthropic/qwen3.7-max"),
-	):
-		model = get_model(name, api_key="sk-go")
-		assert isinstance(model, LiteLLMModel)
-		assert model.name == expected
-		assert model._api_base == "https://opencode.ai/zen/go/v1/messages"
-
-
-def _api_base(name: str, api_base: str) -> str | None:
-	model = get_model(name, api_base=api_base)
-	assert isinstance(model, LiteLLMModel)
-	return model._api_base
-
-
-def test_opencode_go_honours_api_base_override():
-	assert _api_base("opencode-go/kimi-k3", "https://proxy.test/v1") == "https://proxy.test/v1"
-	assert _api_base("opencode-go/minimax-m3", "https://proxy.test/v1") == "https://proxy.test/v1/messages"
-	# litellm appends /v1/messages itself when the base is not a versioned root.
-	assert _api_base("opencode-go/minimax-m3", "https://proxy.test") == "https://proxy.test"
-
-
-def test_opencode_go_rejects_bare_prefix():
-	with pytest.raises(ValueError, match="opencode-go/<model-id>"):
-		get_model("opencode-go")
-
-
 def test_register_provider_dispatch():
 	sentinel = MockModel()
 	register_provider("dummy", lambda name, **kwargs: sentinel)
 	try:
 		assert get_model("dummy/whatever") is sentinel
 	finally:
-		_REGISTRY.pop("dummy", None)
+		_NATIVE_PROVIDERS.pop("dummy", None)
+
+
+def test_get_model_dispatches_codex():
+	model = get_model("codex/gpt-test", api_key="token")
+	assert isinstance(model, CodexModel)
+
+
+def test_get_model_forwards_the_refresh_hook():
+	async def refresh_auth(rejected_token):
+		raise AssertionError("never called here")
+
+	model = get_model("codex/gpt-test", api_key="token", refresh_auth=refresh_auth)
+	assert model._refresh_auth is refresh_auth
+
+
+def test_opencode_go_routes_openai_family_to_chat_completions():
+	model = get_model("opencode-go/grok-4.5", api_key="sk-go")
+	assert isinstance(model, LiteLLMModel)
+	assert model.name == "openai/grok-4.5"
+	assert model._api_base == "https://opencode.ai/zen/go/v1"
+	assert model.provider == "opencode-go"
+	assert model.model == "opencode-go/grok-4.5"
+
+
+def test_opencode_go_routes_anthropic_families_to_messages():
+	for name, route in (
+		("opencode-go/minimax-m3", "anthropic/minimax-m3"),
+		("opencode-go/qwen3.7-max", "anthropic/qwen3.7-max"),
+	):
+		model = get_model(name, api_key="sk-go")
+		assert isinstance(model, LiteLLMModel)
+		assert model.name == route
+		assert model._api_base == "https://opencode.ai/zen/go/v1/messages"
+		assert model.model == name
+
+
+def test_opencode_go_honours_api_base_override():
+	def api_base(name, base):
+		model = get_model(name, api_base=base)
+		assert isinstance(model, LiteLLMModel)
+		return model._api_base
+
+	assert api_base("opencode-go/kimi-k3", "https://proxy.test/v1") == "https://proxy.test/v1"
+	assert api_base("opencode-go/minimax-m3", "https://proxy.test/v1") == "https://proxy.test/v1/messages"
+	# litellm appends /v1/messages itself when the base is not a versioned root
+	assert api_base("opencode-go/minimax-m3", "https://proxy.test") == "https://proxy.test"
+
+
+def test_opencode_go_rejects_bare_prefix():
+	with pytest.raises(ValueError, match="opencode-go/<model-id>"):
+		get_model("opencode-go")
 
 
 def test_stop_reason_prefers_the_provider_signal_over_tool_presence():
@@ -460,5 +488,21 @@ def test_litellm_does_not_replay_failed_assistant_response():
 	)
 
 	assert _openai_messages([failed], LiteLLMModel("openai/gpt"), "system") == [
+		{"role": "system", "content": "system"}
+	]
+
+
+def test_litellm_drops_results_answering_a_dropped_assistant_turn():
+	aborted = AssistantMessage(
+		content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})],
+		api="litellm",
+		provider="openai",
+		model="openai/gpt",
+		stop_reason="aborted",
+	)
+	repair = ToolResult(tool_call_id="c1", name="read_file", content="interrupted", is_error=True)
+
+	# the call and its answer must both be dropped
+	assert _openai_messages([aborted, repair], LiteLLMModel("openai/gpt"), "system") == [
 		{"role": "system", "content": "system"}
 	]

@@ -41,13 +41,15 @@ PROVIDERS = (
 	),
 )
 
-_BY_ID = {provider.id: provider for provider in PROVIDERS}
-_BY_PREFIX = {prefix: provider for provider in PROVIDERS for prefix in provider.model_prefixes}
+_PROVIDERS_BY_ID = {provider.id: provider for provider in PROVIDERS}
+_PROVIDERS_BY_MODEL_PREFIX = {
+	prefix: provider for provider in PROVIDERS for prefix in provider.model_prefixes
+}
 
 
 def get_provider(provider_id: str) -> ProviderSpec | None:
-	return _BY_ID.get(provider_id)
+	return _PROVIDERS_BY_ID.get(provider_id)
 
 
 def provider_for_model(model: str) -> ProviderSpec | None:
-	return _BY_PREFIX.get(model.split("/", 1)[0])
+	return _PROVIDERS_BY_MODEL_PREFIX.get(model.split("/", 1)[0])

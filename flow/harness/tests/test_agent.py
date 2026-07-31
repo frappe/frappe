@@ -1,8 +1,10 @@
+"""The embedded facade: run/resume as live event iterators over one session."""
+
 import asyncio
 
 import pytest
 
-from flow_server.agent import Agent
+from flow_server.agent.agent import Agent
 from flow_server.events import AssistantMessage, RunEnded, ToolCall, Usage
 from flow_server.model import Model, ModelRequest
 from flow_server.model.mock import MockModel
@@ -36,20 +38,20 @@ async def test_run_then_resume_across_pause(tmp_path):
 	assert results[-1].reason == "done"
 
 
-async def test_event_iterator_does_not_hang_if_terminal_publish_fails(tmp_path, monkeypatch):
+async def test_event_iterator_does_not_hang_if_terminal_commit_fails(tmp_path, monkeypatch):
 	agent = Agent(
 		model=MockModel(replies=[AssistantMessage(content="done")]),
 		data_dir=str(tmp_path),
 		cwd=str(tmp_path),
 	)
-	original_publish = agent.session.publish
+	original_append = agent.session.log.append
 
 	def fail_terminal(event):
 		if isinstance(event, RunEnded):
 			raise OSError("log unavailable")
-		original_publish(event)
+		return original_append(event)
 
-	monkeypatch.setattr(agent.session, "publish", fail_terminal)
+	monkeypatch.setattr(agent.session.log, "append", fail_terminal)
 
 	async def consume():
 		return [event async for event in agent.run("hi")]

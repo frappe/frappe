@@ -1,4 +1,4 @@
-"""Translate provider failures into the small error model used by the agent loop."""
+"""Translate provider failures into the small typed error model the rest of Flow uses."""
 
 from __future__ import annotations
 
@@ -207,18 +207,12 @@ def provider_error_detail(value: Any) -> str:
 				sources.append(nested_error)
 	for source in sources:
 		# `detail` is the FastAPI convention, used by gateways in front of a provider
-		# (the LiteLLM proxy, OpenCode Go) and by flow_server's own HTTP boundary.
+		# and by flow_server's own HTTP boundary.
 		for key in ("type", "code", "message", "detail"):
 			item = source.get(key)
 			if isinstance(item, str) and item.strip():
 				parts.append(item.strip())
 	return ": ".join(dict.fromkeys(parts))
-
-
-def _is_context_overflow(detail: str) -> bool:
-	"""Return whether an explicit provider diagnostic describes context exhaustion."""
-	normalized = _normalized(detail)
-	return any(marker in normalized for marker in _CONTEXT_OVERFLOW_MARKERS)
 
 
 def _classify_untyped(
@@ -229,7 +223,7 @@ def _classify_untyped(
 	headers: Mapping[str, str] | None,
 ) -> ProviderError:
 	normalized = _normalized(detail)
-	if _is_context_overflow(detail):
+	if any(marker in normalized for marker in _CONTEXT_OVERFLOW_MARKERS):
 		kind: ProviderErrorKind = "context_overflow"
 		retryable = False
 	elif status_code == 429 or "rate limit" in normalized:
@@ -241,9 +235,9 @@ def _classify_untyped(
 	elif status_code in {401, 403} or "unauthorized" in normalized or "authentication failed" in normalized:
 		kind = "auth"
 		retryable = _is_expired_auth(detail)
-	# 409 and 425 are transient by LLM-API convention rather than HTTP semantics;
-	# pi retries 409 and tau retries both. An in-stream SSE failure arrives on a 200,
-	# so for those the markers are the only signal available.
+	# 409 and 425 are transient by LLM-API convention rather than HTTP semantics.
+	# An in-stream SSE failure arrives on a 200, so there the markers are the only
+	# signal available.
 	elif (
 		(status_code is not None and status_code >= 500)
 		or status_code in {409, 425}
@@ -312,12 +306,8 @@ def _status_code(error: Exception, response: Any) -> int | None:
 
 
 def _normalized(detail: str) -> str:
-	"""Lowercase and flatten separators so one marker matches prose and error codes.
-
-	Providers spell the same failure as `service unavailable`, `service_unavailable`,
-	or `service-unavailable` depending on whether it lands in a message or a code.
-	Pi handles this with `.?` in its patterns; this is the substring equivalent.
-	"""
+	"""Lowercase and flatten separators so one marker matches prose and error codes
+	(`service unavailable`, `service_unavailable`, `service-unavailable`)."""
 	return detail.lower().replace("_", " ").replace("-", " ")
 
 

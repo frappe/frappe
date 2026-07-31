@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 
 from flow_server.events import (
+	AnyEvent,
 	AssistantMessage,
 	TextContent,
 	TextDelta,
@@ -17,21 +18,23 @@ from flow_server.events import (
 	TranscriptMessage,
 	Usage,
 	UserMessage,
-	_Event,
 )
-from flow_server.model.model import Model, ModelRequest
+from flow_server.model.base import Model, ModelRequest
 
 
 class MockModel(Model):
 	name = "mock"
+	api = "mock"
+	provider = "mock"
+	model = "mock"
 
 	def __init__(self, replies: list[AssistantMessage] | None = None):
 		self._replies = replies
 		self._turn = 0
 
-	async def run(self, request: ModelRequest) -> AsyncIterator[_Event]:
+	async def run(self, request: ModelRequest) -> AsyncIterator[AnyEvent]:
 		if request.cancellation is not None and request.cancellation.is_set():
-			yield AssistantMessage(api="mock", provider="mock", model=self.name, stop_reason="aborted")
+			yield self.aborted_message()
 			yield Usage()
 			return
 		reply = self._next_reply(request.messages)
@@ -42,8 +45,8 @@ class MockModel(Model):
 				yield ToolCallStarted(id=call.id, name=call.name)
 		yield reply.model_copy(
 			update={
-				"api": "mock",
-				"provider": "mock",
+				"api": self.api,
+				"provider": self.provider,
 				"model": self.name,
 				# mirrors the real adapters: only a plain stop upgrades, so a scripted
 				# "length" survives and the loop can be tested against a truncated turn

@@ -1,19 +1,17 @@
-from flow_server.agent.agent import Agent
-from flow_server.agent.loop import (
-	HookDecision,
-	ResumeError,
-	cancel_pending,
-	resume,
-	run,
-	validate_resume,
-)
+"""The agent loop (pure generators), client-tool dispatch, and the embedded facade."""
 
-__all__ = [
-	"Agent",
-	"HookDecision",
-	"ResumeError",
-	"cancel_pending",
-	"resume",
-	"run",
-	"validate_resume",
-]
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+	from flow_server.agent.agent import Agent
+
+__all__ = ["Agent"]
+
+
+# lazy: an eager import here would cycle (agent.py -> session.py -> agent.loop -> here)
+def __getattr__(name: str):
+	if name == "Agent":
+		from flow_server.agent.agent import Agent
+
+		return Agent
+	raise AttributeError(name)

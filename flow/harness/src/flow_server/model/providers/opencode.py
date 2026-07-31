@@ -2,16 +2,16 @@
 
 One key fronts two wire protocols: most models are served over OpenAI
 `/chat/completions`, while the MiniMax and Qwen families are served over Anthropic
-`/v1/messages`. The factory picks the route from the model id so callers only ever
-say `opencode-go/<model-id>`; both routes then run through `LiteLLMModel`.
+`/v1/messages`. `opencode_go_model` picks the route from the model id so callers only
+ever say `opencode-go/<model-id>`; both routes then run through `LiteLLMModel`.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from flow_server.model import register_provider
-from flow_server.model.model import LiteLLMModel, Model
+from flow_server.model.base import Model
+from flow_server.model.litellm import LiteLLMModel
 
 PREFIX = "opencode-go"
 BASE_URL = "https://opencode.ai/zen/go/v1"
@@ -62,6 +62,3 @@ def _anthropic_base(base: str) -> str:
 	"""litellm appends `/v1/messages` unless the base already ends with it, so only
 	pre-join when the base is the gateway's versioned root."""
 	return f"{base}/messages" if base.endswith("/v1") else base
-
-
-register_provider(PREFIX, opencode_go_model)

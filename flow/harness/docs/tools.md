@@ -16,7 +16,7 @@ from flow_server.tools.tool import tool, Tool, ToolContext, ToolResult
   your body runs (bad args raise `ValidationError`, which the loop turns into an error
   result). `to_schema()` produces the OpenAI function-tool schema.
 - **`ToolContext`** — runtime state injected by the loop, never seen by the model:
-  `cwd`, `abort` (the active operation's `asyncio.Event`), `timeout`.
+  `cwd`, `allowed_roots`, `abort` (the active operation's `asyncio.Event`), `timeout`.
 - **`ToolResult`** — what a tool returns: `content` (the text the model sees),
   `details` (structured render metadata — diff, truncation, exit code — **never** sent
   to the model), `is_error`.
@@ -56,11 +56,12 @@ Register a builtin by adding it to `BUILTIN_TOOLS` in `tools/builtins/__init__.p
 ## Confirmation
 
 A tool declares its default with `requires_confirmation=True` and an optional
-`confirm_prompt(args) -> str` for a custom approval message. Whether a call actually
-pauses is decided per session (see confirm precedence in
-[architecture.md](architecture.md)): `auto_approve` off → an explicit
-`SessionConfig.confirm_tools` list wins, else the tool's own default. When a gated call
-is reached, the loop emits `ApprovalRequired` and pauses until `resume`.
+`confirm_prompt(args) -> str` for a custom approval message. Per call, the gate is:
+`auto_approve` switches approval off entirely; otherwise a call pauses when its tool is
+listed in `SessionConfig.confirm_tools` **or** the tool's own default requires it.
+`confirm_tools` is additive — gating a client tool never un-gates `bash`/`write`/`edit`.
+When a gated call is reached, the loop finishes the turn, emits `ApprovalRequired`, and
+pauses until `resume` (or `cancel_pending`).
 
 ## Builtins
 
@@ -90,7 +91,9 @@ A client can run its own tools instead of (or alongside) the builtins. It regist
 their schemas in `SessionConfig.client_tools` and sets `callback_url` (+ optional
 `callback_token`). When the model calls such a tool, the daemon POSTs to the callback
 (`mode: "execute"` to run it, `mode: "confirm"` to fetch an approval prompt) with
-`{session_id, tool, args, user_context, mode}` and the `X-Harness-Token` header. This is
+`{session_id, tool, args, user_context, mode}` and the `X-Harness-Token` header. The
+response may be the result dict itself or wrapped in a Frappe-style
+`{"message": {...}}` envelope; an `execute` result is `{content, is_error}`. This is
 how Flow runs tools as the logged-in user. Hooks, by contrast, are in-process only and
 are never shipped over the wire.
 
@@ -98,3 +101,12 @@ The callback request and the surrounding tool task are both cancelled when the
 session's abort signal is set. A custom async tool should still use `ctx.abort` for
 cooperative cleanup of resources it owns. Synchronous tool bodies cannot be preempted
 mid-call; the loop checks cancellation immediately before and after them.
+
+## Hooks
+
+Embedded callers may pass `before_tool_call(call, ctx)` / `after_tool_call(call,
+result)` into `run`/`resume` (sync or async). `before` returns a `HookDecision`:
+rewrite `args`, or short-circuit the call with `result` (+ `is_error`); `after` may
+return replacement result text. Order per call: bad-args feedback → before hook →
+confirm gate → dispatch → after hook. Hooks are never persisted and never cross the
+HTTP boundary.

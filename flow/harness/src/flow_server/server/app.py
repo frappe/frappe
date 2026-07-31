@@ -1,17 +1,15 @@
-"""The daemon: a FastAPI app that owns runs and a durable event log.
+"""The daemon's HTTP boundary: thin handlers over the Session verbs.
 
-Design notes that fall straight out of the durable-log model:
-  - POST /run returns immediately and the run proceeds as a background task; no pinned
-    workers, and a dropped client never abandons a run. `?wait=true` instead blocks and
-    returns the run's terminal summary (a Flow-like synchronous response over the same
-    endpoint) for callers that want request/response ergonomics.
-  - GET /stream?since=N replays the durable log from the cursor, then attaches to the live
-    feed — so "catch up after a disconnect" and "watch live" are one code path.
+Two ergonomics from one durable log:
+  - POST run/resume return immediately and the run proceeds as a background task, so a
+    dropped client never abandons a run. `?wait=true` instead drains the run and returns
+    its terminal summary (a Flow-like synchronous response) over the same endpoint.
+  - GET /stream?since=N replays the durable log from the cursor, then stays on the live
+    feed — catching up after a disconnect and watching live are one code path.
 """
 
 from __future__ import annotations
 
-import asyncio
 import json
 import secrets
 from collections.abc import AsyncIterator
@@ -20,16 +18,11 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict
 
-from flow_server import agent
 from flow_server.events import AssistantMessage, parse_event
+from flow_server.session.config import SessionConfig
 from flow_server.session.log import SessionLogError
-from flow_server.session.store import (
-	Session,
-	SessionConfig,
-	SessionState,
-	SessionStore,
-	pending_approval,
-)
+from flow_server.session.session import ResumeError, RunHandle, Session, SessionConflict
+from flow_server.session.store import SessionStore
 
 
 class RunRequest(BaseModel):
@@ -52,6 +45,12 @@ class ResumeRequest(BaseModel):
 def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI:
 	app = FastAPI(title="flow_server", version="0.1.0")
 
+	@app.exception_handler(SessionConflict)
+	@app.exception_handler(ResumeError)
+	async def state_conflict(request: Request, error: Exception):
+		"""A session verb refused by the session's current state answers 409."""
+		return JSONResponse({"detail": str(error)}, status_code=409)
+
 	if auth_token:
 
 		@app.middleware("http")
@@ -59,7 +58,9 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 			if request.url.path == "/healthz":
 				return await call_next(request)
 			scheme, _, supplied = request.headers.get("Authorization", "").partition(" ")
-			if scheme.lower() != "bearer" or not secrets.compare_digest(supplied, auth_token):
+			if scheme.lower() != "bearer" or not secrets.compare_digest(
+				supplied.encode(), auth_token.encode()
+			):
 				return JSONResponse({"detail": "unauthorized"}, status_code=401)
 			return await call_next(request)
 
@@ -108,56 +109,31 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 	@app.post("/sessions/{sid}/run")
 	async def run(sid: str, req: RunRequest, wait: bool = False):
 		session = _get(sid)
-		async with session.operation_lock:
-			if session.state is SessionState.PAUSED:
-				raise HTTPException(
-					status_code=409,
-					detail="run is paused for approval; resolve it with /resume",
-				)
-			_apply_overrides(store, session, req)
-			if session.state is SessionState.RUNNING:
-				if not session.steer(req.message):
-					raise HTTPException(status_code=409, detail="run is aborting")
-				return {"status": "steered"}
-			from_seq = session.log.latest_seq
-			task = session._start_operation(agent.run(session, req.message))
-		return await _launch(session, task, from_seq, wait)
+		_apply_overrides(store, session, req)  # settle the config before a run can read it
+		handle = await session.run(req.message)
+		if handle.status == "steered":
+			return {"status": "steered"}
+		return await _finish(session, handle, wait)
 
 	@app.post("/sessions/{sid}/resume")
 	async def resume(sid: str, req: ResumeRequest, wait: bool = False):
 		session = _get(sid)
-		async with session.operation_lock:
-			if session.state is not SessionState.PAUSED:
-				raise HTTPException(status_code=409, detail="run is not paused")
-			approval = pending_approval(session.log)
-			try:
-				agent.validate_resume(approval, req.approval_seq, req.answers)
-			except agent.ResumeError as e:
-				raise HTTPException(status_code=409, detail=str(e)) from None
-			from_seq = session.log.latest_seq
-			task = session._start_operation(
-				agent.resume(
-					session,
-					req.answers,
-					approval_seq=req.approval_seq,
-				)
-			)
-		return await _launch(session, task, from_seq, wait)
+		handle = await session.resume(req.answers, approval_seq=req.approval_seq)
+		return await _finish(session, handle, wait)
 
 	@app.post("/sessions/{sid}/abort")
 	async def abort(sid: str):
 		session = _get(sid)
-		async with session.operation_lock:
-			if session.is_running:
-				session.request_abort()
-				return {"status": "aborting"}
-			if session.state is not SessionState.PAUSED:
-				return {"status": session.state}
-			# a pause has no active work to signal; answer the batch instead so the
-			# session can reach idle without a resume
-			task = session._start_operation(agent.cancel_pending(session))
-		await task
-		return {"status": "aborted"}
+		if session.abort():
+			return {"status": "aborting"}
+		return {"status": session.state}
+
+	@app.post("/sessions/{sid}/cancel_pending")
+	async def cancel_pending(sid: str):
+		session = _get(sid)
+		if await session.cancel_pending():
+			return {"status": "cancelled"}
+		return {"status": session.state}
 
 	@app.get("/sessions/{sid}/entries")
 	async def entries(sid: str, since: int = 0):
@@ -173,7 +149,7 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 	async def stream(sid: str, since: int = 0):
 		session = _get(sid)
 		return StreamingResponse(
-			_stream_events(session, since),
+			_sse_stream(session, since),
 			media_type="text/event-stream",
 			headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
 		)
@@ -182,9 +158,8 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 
 
 def _apply_overrides(store: SessionStore, session: Session, req: RunRequest) -> None:
-	"""Apply a per-run model/credential override to the session and persist it, so switching
-	model on a turn sticks for later turns (like Flow keeps a session's chosen model). Takes
-	effect on the next turn; a model can't be swapped mid-generation."""
+	"""Apply a run's model/credential override to the session and persist it, so a model
+	switch sticks for later turns (like Flow keeps a session's chosen model)."""
 	changed = False
 	for field in ("model", "credential_id"):
 		value = getattr(req, field)
@@ -195,17 +170,13 @@ def _apply_overrides(store: SessionStore, session: Session, req: RunRequest) -> 
 		store.save_meta(session)
 
 
-async def _launch(
-	session: Session,
-	task: asyncio.Task[None],
-	from_seq: int,
-	wait: bool,
-) -> dict:
-	"""Return immediately or wait on the already-registered session operation."""
-	if wait:
-		await task
-		return _summary(session, from_seq)
-	return {"status": "started"}
+async def _finish(session: Session, handle: RunHandle, wait: bool) -> dict:
+	"""Fire-and-forget by default; `?wait=true` drains the run and returns its summary."""
+	if not wait:
+		return {"status": "started"}
+	assert handle.task is not None  # a "started" handle always carries its task
+	await handle.task
+	return _summary(session, handle.from_seq)
 
 
 def _summary(session: Session, from_seq: int) -> dict:
@@ -237,33 +208,19 @@ def _summary(session: Session, from_seq: int) -> dict:
 	}
 
 
-async def _stream_events(session: Session, since: int) -> AsyncIterator[bytes]:
-	q = session.subscribe()
-	max_seq = since
-	try:
-		for row in session.log.read_since(since):  # replay history from the cursor
-			max_seq = max(max_seq, row.get("seq", max_seq))
-			yield _sse(row)
-		if not session.is_running:
-			return
-		while True:  # then attach to the live feed
-			try:
-				ev = await asyncio.wait_for(q.get(), timeout=0.5)
-			except TimeoutError:
-				if not session.is_running:
-					break
-				continue
-			data = ev.model_dump(exclude_none=True)
-			seq = data.get("seq")
-			if seq is not None:
-				if seq <= max_seq:  # already replayed
-					continue
-				max_seq = seq
-			yield _sse(data)
-			if ev.type == "run_ended":
-				break
-	finally:
-		session.unsubscribe(q)
+async def _sse_stream(session: Session, since: int) -> AsyncIterator[bytes]:
+	"""Serve `session.events` as SSE, closing where a reconnecting client expects: when
+	the watched run ends, or once a session with no active run is fully replayed."""
+	since = min(since, session.log.latest_seq)  # a future cursor would suppress live events
+	boundary = session.log.latest_seq  # replay ends here: no await before events() attaches
+	if not session.is_running and boundary <= since:
+		return
+	async for event in session.events(since):
+		yield _sse(event.model_dump(exclude_none=True))
+		if event.type == "run_ended" and event.seq is not None and event.seq >= boundary:
+			return  # the live run (or the final historical one) is over
+		if event.seq == boundary and not session.is_running:
+			return  # replay is done and no live run follows
 
 
 def _sse(data: dict) -> bytes:

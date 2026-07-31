@@ -1,8 +1,7 @@
 """Append-only, sequence-numbered event log — the durable source of truth for a run.
 
 Every durable event gets a monotonic `seq`. `read_since(n)` is both the replay path
-(catch a reconnecting client up) and the restart path (rebuild state from disk). This
-is what lets a run survive a dropped connection or a daemon restart.
+(catch a reconnecting client up) and the restart path (rebuild state from disk).
 """
 
 from __future__ import annotations

@@ -1,24 +1,23 @@
-"""A simple in-process front door over the durable agent loop.
+"""A simple in-process front door over the durable session.
 
 One `Agent` object whose `run()`/`resume()` yield the live event stream — the ergonomic
-path for embedding, the TUI, tests, and scripts. The daemon and remote clients use the
-loop's `run()`/`resume()` functions + the session event log directly; this is a thin
-wrapper over the same engine (subscribe -> spawn the run -> yield events until it ends).
-"""
+path for embedding, tests, and scripts. The daemon and remote clients use the Session
+verbs + `Session.events` directly; this is a thin wrapper over the same engine
+(subscribe -> submit the run -> yield events until the run ends)."""
 
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator, Callable, Coroutine
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import suppress
 from typing import Any
 
 from flow_server import config as server_config
-from flow_server.agent.loop import resume as _resume
-from flow_server.agent.loop import run as _run
-from flow_server.events import _Event
+from flow_server.events import AnyEvent
 from flow_server.model import Model
-from flow_server.session.store import Session, SessionConfig, SessionState, SessionStore
+from flow_server.session.config import SessionConfig
+from flow_server.session.session import RunHandle, Session
+from flow_server.session.store import SessionStore
 
 
 class Agent:
@@ -44,12 +43,9 @@ class Agent:
 	def session(self) -> Session:
 		return self._session
 
-	def run(self, message: str, **hooks: Any) -> AsyncIterator[_Event]:
+	def run(self, message: str, **hooks: Any) -> AsyncIterator[AnyEvent]:
 		"""Start a turn; yields the live event stream until the run ends or pauses."""
-		return self._drive(
-			lambda: _run(self._session, message, model=self._model, **hooks),
-			from_state=SessionState.IDLE,
-		)
+		return self._events(lambda: self._session.run(message, model=self._model, **hooks))
 
 	def resume(
 		self,
@@ -57,66 +53,46 @@ class Agent:
 		*,
 		approval_seq: int | None = None,
 		**hooks: Any,
-	) -> AsyncIterator[_Event]:
+	) -> AsyncIterator[AnyEvent]:
 		"""Continue a paused run; yields the event stream of the continuation."""
-		return self._drive(
-			lambda: _resume(
-				self._session,
-				answers,
-				approval_seq=approval_seq,
-				model=self._model,
-				**hooks,
-			),
-			from_state=SessionState.PAUSED,
+		return self._events(
+			lambda: self._session.resume(answers, approval_seq=approval_seq, model=self._model, **hooks)
 		)
 
 	def abort(self) -> bool:
 		"""Signal the active run to stop; return whether a run was active."""
-		if not self._session.is_running:
-			return False
-		self._session.request_abort()
-		return True
+		return self._session.abort()
 
-	async def _drive(
-		self,
-		make_coro: Callable[[], Coroutine[Any, Any, None]],
-		*,
-		from_state: SessionState,
-	) -> AsyncIterator[_Event]:
-		q = self._session.subscribe()  # subscribe before the run starts so no event is missed
+	async def _events(self, submit: Callable[[], Awaitable[RunHandle]]) -> AsyncIterator[AnyEvent]:
+		queue = self._session.subscribe()  # subscribe before the run starts so no event is missed
 		task: asyncio.Task[None] | None = None
-		next_event: asyncio.Task[Any] | None = None
+		next_event: asyncio.Task[AnyEvent] | None = None
 		try:
-			async with self._session.operation_lock:
-				if self._session.state is not from_state:
-					raise RuntimeError(
-						f"session must be {from_state} to start this operation "
-						f"(current state: {self._session.state})"
-					)
-				task = self._session._start_operation(make_coro())
+			handle = await submit()
+			if handle.status != "started":
+				raise RuntimeError("session already has an active run")
+			task = handle.task
+			assert task is not None
 			while True:
-				if task.done() and q.empty():
-					await task
+				if task.done() and queue.empty():
+					await task  # surfaces a run that died without its terminal event
 					return
-				next_event = asyncio.create_task(q.get())
-				done, _ = await asyncio.wait(
-					(next_event, task),
-					return_when=asyncio.FIRST_COMPLETED,
-				)
+				next_event = asyncio.create_task(queue.get())
+				done, _ = await asyncio.wait((next_event, task), return_when=asyncio.FIRST_COMPLETED)
 				if next_event not in done:
 					next_event.cancel()
 					with suppress(asyncio.CancelledError):
 						await next_event
 					continue
-				ev = next_event.result()
-				yield ev
-				if ev.type == "run_ended":  # always the terminal event
+				event = next_event.result()
+				yield event
+				if event.type == "run_ended":  # always the terminal event
 					break
 		finally:
 			if next_event is not None and not next_event.done():
 				next_event.cancel()
 				with suppress(asyncio.CancelledError):
 					await next_event
-			self._session.unsubscribe(q)
+			self._session.unsubscribe(queue)
 			if task is not None:
 				await task

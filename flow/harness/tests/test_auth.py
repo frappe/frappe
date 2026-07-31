@@ -1,8 +1,10 @@
+"""Auth machinery: PKCE/JWT helpers, OAuth resolution with single-flight refresh,
+and per-model credential resolution (stored key, OAuth grant, environment)."""
+
 import asyncio
 import base64
 import hashlib
 import json
-import os
 
 import httpx
 import pytest
@@ -14,11 +16,10 @@ from flow_server.model.auth import (
 	decode_jwt_claims,
 	generate_pkce,
 	get_auth_provider,
-	resolve_auth,
+	resolve_model_auth,
+	resolve_oauth,
 )
-from flow_server.model.credentials import ApiKeyCredential, CredentialStore, OAuthCredential
-from flow_server.model.providers.codex import CLIENT_ID
-from flow_server.model.resolver import resolve_model_auth
+from flow_server.model.credentials import CredentialStore, OAuthCredential
 
 
 def _jwt(payload: dict) -> str:
@@ -31,47 +32,6 @@ def _jwt(payload: dict) -> str:
 
 def _mock_client(handler):
 	return httpx.AsyncClient(transport=httpx.MockTransport(handler))
-
-
-# --- credential store -----------------------------------------------------
-
-
-def test_credential_store_roundtrip(tmp_path):
-	store = CredentialStore(str(tmp_path / "creds.json"))
-	assert store.get("codex") is None
-	store.set("codex", OAuthCredential(access="a", refresh="r", expires=123, account_id="acc"))
-	got = store.get("codex")
-	assert got == OAuthCredential(access="a", refresh="r", expires=123, account_id="acc")
-	store.delete("codex")
-	assert store.get("codex") is None
-
-
-def test_credential_store_api_key_and_metadata(tmp_path):
-	store = CredentialStore(str(tmp_path / "creds.json"))
-	store.set_api_key("anthropic", " sk-test ")
-
-	assert store.get("anthropic") == ApiKeyCredential(key="sk-test")
-	assert store.get_api_key("anthropic").key == "sk-test"
-	assert store.get_oauth("anthropic") is None
-	assert store.list()[0].provider_id == "anthropic"
-	assert store.list()[0].type == "api_key"
-
-
-def test_credential_store_file_is_0600(tmp_path):
-	path = tmp_path / "sub" / "creds.json"
-	store = CredentialStore(str(path))
-	store.set("codex", OAuthCredential(access="a", refresh="r", expires=1))
-	assert oct(os.stat(path).st_mode & 0o777) == "0o600"
-	assert oct(os.stat(path.parent).st_mode & 0o777) == "0o700"
-
-
-def test_credential_store_repairs_file_permissions(tmp_path):
-	path = tmp_path / "creds.json"
-	path.write_text('{"openai":{"type":"api_key","key":"secret"}}')
-	path.chmod(0o644)
-
-	assert CredentialStore(str(path)).get_api_key("openai").key == "secret"
-	assert oct(os.stat(path).st_mode & 0o777) == "0o600"
 
 
 # --- pkce + jwt -----------------------------------------------------------
@@ -101,81 +61,16 @@ def test_account_id_extraction_variants():
 	assert account_id_from_tokens(_jwt({}), _jwt({})) is None
 
 
-# --- codex auth provider --------------------------------------------------
+# --- resolve_oauth (refresh-with-skew) ------------------------------------
 
 
-def test_codex_authorize_url():
-	url = get_auth_provider("codex").authorize_url(challenge="CH", state="ST")
-	assert url.startswith("https://auth.openai.com/oauth/authorize?")
-	for fragment in (
-		f"client_id={CLIENT_ID}",
-		"code_challenge=CH",
-		"code_challenge_method=S256",
-		"state=ST",
-		"code_challenge_method=S256",
-		"id_token_add_organizations=true",
-	):
-		assert fragment in url
-
-
-async def test_codex_exchange_builds_credential():
-	captured = {}
-
-	def handler(request):
-		captured["body"] = request.content.decode()
-		return httpx.Response(
-			200,
-			json={
-				"access_token": _jwt({"chatgpt_account_id": "acc-1"}),
-				"refresh_token": "refresh-1",
-				"expires_in": 3600,
-			},
-		)
-
-	async with _mock_client(handler) as client:
-		cred = await get_auth_provider("codex").exchange(
-			"the-code", "the-verifier", client=client, now_ms=1_000
-		)
-
-	assert "grant_type=authorization_code" in captured["body"]
-	assert "code=the-code" in captured["body"]
-	assert "code_verifier=the-verifier" in captured["body"]
-	assert cred.refresh == "refresh-1"
-	assert cred.account_id == "acc-1"
-	assert cred.expires == 1_000 + 3600 * 1000
-
-
-async def test_codex_refresh_keeps_old_refresh_when_absent():
-	def handler(request):
-		assert "grant_type=refresh_token" in request.content.decode()
-		return httpx.Response(200, json={"access_token": _jwt({}), "expires_in": 100})
-
-	old = OAuthCredential(access="old", refresh="keep-me", expires=0, account_id="acc")
-	async with _mock_client(handler) as client:
-		cred = await get_auth_provider("codex").refresh(old, client=client, now_ms=0)
-	assert cred.refresh == "keep-me"
-
-
-def test_codex_runtime_auth_headers():
-	auth = get_auth_provider("codex").runtime_auth(
-		OAuthCredential(access="tok", refresh="r", expires=0, account_id="acc-9")
-	)
-	assert auth.token == "tok"
-	assert auth.base_url == "https://chatgpt.com/backend-api"
-	assert auth.headers["chatgpt-account-id"] == "acc-9"
-	assert auth.headers["originator"] == "flow_server"
-
-
-# --- resolver (refresh-with-skew) -----------------------------------------
-
-
-async def test_resolve_auth_requires_login(tmp_path):
+async def test_resolve_oauth_requires_login(tmp_path):
 	store = CredentialStore(str(tmp_path / "c.json"))
 	with pytest.raises(NotAuthenticated):
-		await resolve_auth(store, "codex")
+		await resolve_oauth(store, "codex")
 
 
-async def test_resolve_auth_skips_refresh_when_fresh(tmp_path):
+async def test_resolve_oauth_skips_refresh_when_fresh(tmp_path):
 	store = CredentialStore(str(tmp_path / "c.json"))
 	store.set(
 		"codex",
@@ -186,11 +81,11 @@ async def test_resolve_auth_skips_refresh_when_fresh(tmp_path):
 		raise AssertionError("refresh should not run for a fresh credential")
 
 	async with _mock_client(handler) as client:
-		auth = await resolve_auth(store, "codex", client=client, now_ms=1_000)
+		auth = await resolve_oauth(store, "codex", client=client, now_ms=1_000)
 	assert auth.token == "fresh"
 
 
-async def test_resolve_auth_refreshes_within_skew(tmp_path):
+async def test_resolve_oauth_refreshes_within_skew(tmp_path):
 	store = CredentialStore(str(tmp_path / "c.json"))
 	store.set("codex", OAuthCredential(access="stale", refresh="r0", expires=50_000))
 
@@ -206,13 +101,13 @@ async def test_resolve_auth_refreshes_within_skew(tmp_path):
 
 	# now_ms is within TOKEN_REFRESH_SKEW_MS (60_000) of expiry -> refresh
 	async with _mock_client(handler) as client:
-		auth = await resolve_auth(store, "codex", client=client, now_ms=50_000)
+		auth = await resolve_oauth(store, "codex", client=client, now_ms=50_000)
 
 	assert auth.token != "stale"
 	assert store.get("codex").refresh == "r1"  # rotation persisted
 
 
-async def test_concurrent_resolve_refreshes_once(tmp_path):
+async def test_concurrent_resolves_refresh_once(tmp_path):
 	store = CredentialStore(str(tmp_path / "c.json"))
 	store.set("codex", OAuthCredential(access="stale", refresh="r0", expires=1))
 	refreshes = 0
@@ -231,13 +126,13 @@ async def test_concurrent_resolve_refreshes_once(tmp_path):
 
 	async with _mock_client(handler) as client:
 		await asyncio.gather(
-			resolve_auth(store, "codex", client=client, now_ms=50_000),
-			resolve_auth(store, "codex", client=client, now_ms=50_000),
+			resolve_oauth(store, "codex", client=client, now_ms=50_000),
+			resolve_oauth(store, "codex", client=client, now_ms=50_000),
 		)
 	assert refreshes == 1
 
 
-async def test_provider_rejected_oauth_token_forces_one_refresh(tmp_path, monkeypatch):
+async def test_provider_rejected_token_forces_one_refresh(tmp_path, monkeypatch):
 	store = CredentialStore(str(tmp_path / "c.json"))
 	store.set(
 		"codex",
@@ -258,19 +153,14 @@ async def test_provider_rejected_oauth_token_forces_one_refresh(tmp_path, monkey
 
 	monkeypatch.setattr(provider, "refresh", refresh)
 
-	auth = await resolve_auth(
-		store,
-		"codex",
-		now_ms=1_000,
-		refresh_access_token="rejected",
-	)
+	auth = await resolve_oauth(store, "codex", now_ms=1_000, refresh_access_token="rejected")
 
 	assert auth.token == "replacement"
 	assert refreshes == 1
 	assert store.get_oauth("codex").access == "replacement"
 
 
-async def test_rejected_oauth_refresh_reuses_concurrently_replaced_token(tmp_path, monkeypatch):
+async def test_rejected_token_refresh_reuses_concurrently_replaced_token(tmp_path, monkeypatch):
 	store = CredentialStore(str(tmp_path / "c.json"))
 	store.set(
 		"codex",
@@ -283,19 +173,9 @@ async def test_rejected_oauth_refresh_reuses_concurrently_replaced_token(tmp_pat
 
 	monkeypatch.setattr(provider, "refresh", refresh)
 
-	auth = await resolve_auth(
-		store,
-		"codex",
-		now_ms=1_000,
-		refresh_access_token="rejected",
-	)
+	auth = await resolve_oauth(store, "codex", now_ms=1_000, refresh_access_token="rejected")
 
 	assert auth.token == "replacement"
-
-
-def test_codex_runtime_auth_requires_account_id():
-	with pytest.raises(AuthError, match="account id"):
-		get_auth_provider("codex").runtime_auth(OAuthCredential(access="tok", refresh="r", expires=1))
 
 
 # --- model auth resolution ------------------------------------------------
@@ -312,6 +192,7 @@ async def test_model_auth_prefers_stored_key_over_environment(tmp_path, monkeypa
 
 	assert (stored.api_key, stored.source) == ("stored", "stored API key")
 	assert (ambient.api_key, ambient.source) == ("ambient", "ANTHROPIC_API_KEY")
+	assert stored.refresh is None  # a static key has nothing to refresh
 
 
 async def test_model_auth_missing_known_provider_has_clear_error(tmp_path, monkeypatch):
@@ -320,6 +201,14 @@ async def test_model_auth_missing_known_provider_has_clear_error(tmp_path, monke
 
 	with pytest.raises(AuthError, match=r"flowd login openai"):
 		await resolve_model_auth("openai/gpt-4.1", store)
+
+
+async def test_model_auth_refuses_a_stored_key_for_an_oauth_only_provider(tmp_path):
+	store = CredentialStore(str(tmp_path / "c.json"))
+	store.set_api_key("codex", "not-a-bearer")
+
+	with pytest.raises(AuthError, match="does not support stored API keys"):
+		await resolve_model_auth("codex/gpt-test", store)
 
 
 async def test_opencode_go_resolves_from_stored_key_and_env(tmp_path, monkeypatch):
@@ -335,10 +224,34 @@ async def test_opencode_go_resolves_from_stored_key_and_env(tmp_path, monkeypatc
 	assert (ambient.api_key, ambient.source) == ("ambient-go", "OPENCODE_API_KEY")
 
 
-async def test_explicit_credential_id_supports_custom_key(tmp_path):
+async def test_explicit_provider_id_supports_custom_key(tmp_path):
 	store = CredentialStore(str(tmp_path / "c.json"))
 	store.set_api_key("my-proxy", "proxy-key")
 
-	resolved = await resolve_model_auth("openai-compatible/custom", store, credential_id="my-proxy")
+	resolved = await resolve_model_auth("openai-compatible/custom", store, provider_id="my-proxy")
 	assert resolved.api_key == "proxy-key"
 	assert resolved.provider_id == "my-proxy"
+
+
+async def test_model_auth_for_oauth_carries_runtime_auth_and_a_refresh_hook(tmp_path, monkeypatch):
+	store = CredentialStore(str(tmp_path / "c.json"))
+	store.set(
+		"codex",
+		OAuthCredential(access="live", refresh="r0", expires=10_000_000_000_000, account_id="acc"),
+	)
+
+	resolved = await resolve_model_auth("codex/gpt-test", store)
+
+	assert (resolved.api_key, resolved.source) == ("live", "OAuth")
+	assert resolved.base_url == "https://chatgpt.com/backend-api"
+	assert resolved.headers["chatgpt-account-id"] == "acc"
+	assert resolved.refresh is not None
+
+	async def refresh(credential, **kwargs):
+		return OAuthCredential(access="fresh", refresh="r1", expires=20_000_000_000_000, account_id="acc")
+
+	monkeypatch.setattr(get_auth_provider("codex"), "refresh", refresh)
+	auth = await resolved.refresh("live")  # the provider rejected the live token
+
+	assert auth.token == "fresh"
+	assert store.get_oauth("codex").access == "fresh"

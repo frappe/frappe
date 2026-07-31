@@ -94,19 +94,19 @@ def _is_loopback(host: str) -> bool:
 
 
 def _login(args) -> None:
-	from flow_server.cli.auth import login
+	from flow_server.cli.login import login
 
 	login(CredentialStore(config.CREDENTIALS_PATH), args.provider, manual=args.manual)
 
 
 def _providers() -> None:
-	from flow_server.cli.auth import show_providers
+	from flow_server.cli.login import show_providers
 
 	show_providers(CredentialStore(config.CREDENTIALS_PATH))
 
 
 def _logout(args) -> None:
-	from flow_server.cli.auth import logout
+	from flow_server.cli.login import logout
 
 	logout(CredentialStore(config.CREDENTIALS_PATH), args.provider)
 

@@ -2,9 +2,11 @@ import asyncio
 import json
 import os
 import shlex
+import socket
 
 import httpx
 import pytest
+import uvicorn
 from fastapi.testclient import TestClient
 
 from flow_server.events import AssistantMessage, ToolCall, Usage
@@ -12,7 +14,8 @@ from flow_server.model import Model, ModelRequest
 from flow_server.model.credentials import CredentialStore
 from flow_server.model.mock import MockModel
 from flow_server.server import create_app
-from flow_server.session.store import SessionConfig, SessionStore
+from flow_server.session.config import SessionConfig
+from flow_server.session.store import SessionStore
 
 
 def _client(tmp_path, **store_kw):
@@ -80,6 +83,26 @@ def test_run_persists_model_override(tmp_path):
 	cfg = c.get(f"/sessions/{sid}").json()["config"]
 	assert cfg["model"] == "mock/v2"
 	assert cfg["credential_id"] == "mock-profile"
+
+
+def test_model_override_reaches_the_run_that_sent_it(tmp_path, monkeypatch):
+	# the override is applied after admission, so it only lands in time while nothing
+	# awaits between creating the run task and writing the config
+	resolved = []
+
+	def spy(name, **kwargs):
+		resolved.append(name)
+		return MockModel()
+
+	monkeypatch.setattr("flow_server.agent.loop.get_model", spy)
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
+	c.post(
+		f"/sessions/{sid}/run",
+		params={"wait": "true"},
+		json={"message": "hi", "model": "mock/v2"},
+	)
+	assert resolved == ["mock/v2"]
 
 
 def test_provider_secrets_and_endpoints_are_not_client_inputs(tmp_path):
@@ -272,57 +295,6 @@ def test_paused_run_requires_exact_current_approval_batch(tmp_path, monkeypatch)
 	)
 
 
-def test_abort_releases_a_paused_session(tmp_path, monkeypatch):
-	(tmp_path / "a.txt").write_text("SECRET")
-	mock = MockModel(
-		replies=[
-			AssistantMessage(
-				content=[
-					ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"}),
-					ToolCall(id="c2", name="read_file", arguments={"path": "a.txt"}),
-				]
-			),
-			AssistantMessage(content="moved on"),
-		]
-	)
-	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: mock)
-	c = _client(tmp_path)
-	sid = c.post(
-		"/sessions",
-		json={"cwd": str(tmp_path), "confirm_tools": ["read_file"]},
-	).json()["session_id"]
-	paused = c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "read"}).json()
-	assert paused["reason"] == "paused"
-
-	assert c.post(f"/sessions/{sid}/abort").json() == {"status": "aborted"}
-
-	assert c.get(f"/sessions/{sid}").json()["state"] == "idle"
-	rows = c.get(f"/sessions/{sid}/entries").json()["entries"]
-	answered = [r["tool_call_id"] for r in rows if r["type"] == "tool_result"]
-	assert answered == ["c1", "c2"]  # every gated call answered, so nothing dangles
-	assert "SECRET" not in json.dumps(rows)  # and none of them actually ran
-	assert [r["reason"] for r in rows if r["type"] == "run_ended"] == ["paused", "aborted"]
-	# the session is usable again without a resume
-	assert (
-		c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "hi"}).json()["reason"]
-		== "done"
-	)
-
-
-def test_abort_on_a_paused_session_is_idempotent(tmp_path, monkeypatch):
-	mock = MockModel(replies=[AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={})])])
-	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: mock)
-	c = _client(tmp_path)
-	sid = c.post(
-		"/sessions",
-		json={"cwd": str(tmp_path), "confirm_tools": ["read_file"]},
-	).json()["session_id"]
-	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "read"})
-
-	assert c.post(f"/sessions/{sid}/abort").json() == {"status": "aborted"}
-	assert c.post(f"/sessions/{sid}/abort").json() == {"status": "idle"}
-
-
 def test_paused_state_and_approval_survive_store_reload(tmp_path, monkeypatch):
 	mock = MockModel(
 		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})])]
@@ -486,7 +458,7 @@ async def test_abort_interrupts_stream_clears_steering_and_returns_session_to_id
 		assert rejected.json()["detail"] == "run is aborting"
 		assert model.request is not None
 		cancellation = model.request.cancellation
-		assert cancellation is store.get(sid).abort
+		assert cancellation is store.get(sid).abort_signal
 		assert cancellation is not None and cancellation.is_set()
 
 		model.release_cleanup.set()
@@ -603,3 +575,122 @@ async def test_concurrent_resume_is_rejected_before_duplicate_tool_execution(tmp
 		assert (await first).json()["reason"] == "done"
 		entries = (await client.get(f"/sessions/{sid}/entries")).json()["entries"]
 		assert len([row for row in entries if row["type"] == "tool_result"]) == 1
+
+
+async def test_stream_reconnect_with_since_continues_a_live_run(tmp_path, monkeypatch):
+	# a live SSE stream needs a real server: httpx's ASGITransport buffers whole bodies
+	model = _BlockingModel()
+	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: model)
+	store = SessionStore(
+		str(tmp_path / "data"),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+	)
+	app = create_app(store)
+
+	sock = socket.socket()
+	sock.bind(("127.0.0.1", 0))
+	port = sock.getsockname()[1]
+	server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
+	serve_task = asyncio.create_task(server.serve(sockets=[sock]))
+	try:
+		while not server.started:
+			await asyncio.sleep(0.01)
+		async with httpx.AsyncClient(base_url=f"http://127.0.0.1:{port}") as client:
+			sid = (await client.post("/sessions", json={"cwd": str(tmp_path)})).json()["session_id"]
+			assert (await client.post(f"/sessions/{sid}/run", json={"message": "hi"})).json() == {
+				"status": "started"
+			}
+			await asyncio.wait_for(model.started.wait(), timeout=2)
+
+			seen = []
+			async with client.stream("GET", f"/sessions/{sid}/stream") as response:
+				async for line in response.aiter_lines():
+					if not line.startswith("data:"):
+						continue
+					seen.append(json.loads(line[5:]))
+					if len(seen) == 2:
+						break  # drop the connection mid-run
+			assert [row["type"] for row in seen] == ["run_started", "user_message"]
+
+			model.release.set()
+			for _ in range(100):
+				if (await client.get(f"/sessions/{sid}")).json()["state"] == "idle":
+					break
+				await asyncio.sleep(0.01)
+			else:
+				pytest.fail("run never finished after release")
+
+			# reconnect from the last seen cursor: the rest of the run, no duplicates
+			cursor = seen[-1]["seq"]
+			async with client.stream("GET", f"/sessions/{sid}/stream", params={"since": cursor}) as response:
+				continued = [
+					json.loads(line[5:]) async for line in response.aiter_lines() if line.startswith("data:")
+				]
+			assert continued[0]["seq"] == cursor + 1
+			assert all(row["seq"] > cursor for row in continued)
+			assert any(row["type"] == "assistant_message" for row in continued)
+			assert continued[-1]["type"] == "run_ended"
+	finally:
+		server.should_exit = True
+		await asyncio.wait_for(serve_task, timeout=5)
+
+
+def test_cancel_pending_closes_a_paused_run(tmp_path, monkeypatch):
+	mock = MockModel(
+		replies=[
+			AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})]),
+			AssistantMessage(content="done"),
+		]
+	)
+	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: mock)
+	c = _client(tmp_path)
+	sid = c.post(
+		"/sessions",
+		json={"cwd": str(tmp_path), "confirm_tools": ["read_file"]},
+	).json()["session_id"]
+	paused = c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "read"}).json()
+	assert paused["reason"] == "paused"
+
+	assert c.post(f"/sessions/{sid}/cancel_pending").json() == {"status": "cancelled"}
+
+	assert c.get(f"/sessions/{sid}").json()["state"] == "idle"
+	results = [
+		row for row in c.get(f"/sessions/{sid}/entries").json()["entries"] if row["type"] == "tool_result"
+	]
+	assert [row["tool_call_id"] for row in results] == ["c1"]
+	assert all(row["is_error"] for row in results)
+	# the batch is settled; a late resume has nothing left to act on
+	late = c.post(
+		f"/sessions/{sid}/resume",
+		json={"approval_seq": paused["approval_seq"], "answers": {"c1": "Approve"}},
+	)
+	assert late.status_code == 409
+
+
+def test_cancel_pending_without_a_pause_is_a_noop(tmp_path):
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
+	assert c.post(f"/sessions/{sid}/cancel_pending").json() == {"status": "idle"}
+	assert c.get(f"/sessions/{sid}/entries").json()["entries"] == []
+
+
+async def test_cancel_pending_while_running_is_rejected(tmp_path, monkeypatch):
+	model = _BlockingModel()
+	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: model)
+	store = SessionStore(
+		str(tmp_path / "data"),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+	)
+	app = create_app(store)
+	transport = httpx.ASGITransport(app=app)
+	async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+		sid = (await client.post("/sessions", json={"cwd": str(tmp_path)})).json()["session_id"]
+		first = asyncio.create_task(
+			client.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "go"})
+		)
+		await model.started.wait()
+
+		assert (await client.post(f"/sessions/{sid}/cancel_pending")).status_code == 409
+
+		model.release.set()
+		assert (await first).json()["reason"] == "done"

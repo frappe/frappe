@@ -1,19 +1,28 @@
-"""Codex (ChatGPT subscription) OAuth and Responses API model."""
+"""Codex (ChatGPT subscription): OAuth provider + Responses SSE adapter.
+
+Codex must round-trip three provider-native identities that Flow's neutral events do
+not model: the raw reasoning item (encrypted), a message item's id and phase, and a
+function call's item id. All three ride in `provider_state` — written when a response
+is assembled, read back by `_responses_input` when the same model replays the turn,
+and invisible to every other layer.
+"""
 
 from __future__ import annotations
 
-import asyncio
 import json
 import sys
 import time
 from collections.abc import AsyncIterator, Mapping
+from dataclasses import dataclass, field
 from typing import Any
 from urllib.parse import urlencode
 
 import httpx
 
 from flow_server.events import (
+	AnyEvent,
 	AssistantMessage,
+	StopReason,
 	TextContent,
 	TextDelta,
 	ThinkingContent,
@@ -24,31 +33,29 @@ from flow_server.events import (
 	TranscriptMessage,
 	Usage,
 	UserMessage,
-	_Event,
 )
-from flow_server.model import register_provider
 from flow_server.model.auth import (
 	AuthError,
 	AuthProvider,
+	RefreshAuth,
 	RuntimeAuth,
 	account_id_from_tokens,
 	decode_jwt_claims,
 	post_token,
-	register_auth_provider,
 )
-from flow_server.model.credentials import OAuthCredential
-from flow_server.model.errors import (
-	ProviderError,
-	normalize_provider_error,
-	provider_error_detail,
-	provider_error_from_http,
-)
-from flow_server.model.model import (
+from flow_server.model.base import (
 	Model,
 	ModelCancelled,
 	ModelRequest,
 	await_with_cancellation,
 	iterate_with_cancellation,
+	run_with_retries,
+)
+from flow_server.model.credentials import OAuthCredential
+from flow_server.model.errors import (
+	normalize_provider_error,
+	provider_error_detail,
+	provider_error_from_http,
 )
 
 CLIENT_ID = "app_EMoamEEZ73f0CkXaXp7hrann"
@@ -60,6 +67,9 @@ SCOPE = "openid profile email offline_access"
 ORIGINATOR = "flow_server"
 API_BASE = "https://chatgpt.com/backend-api"
 DEFAULT_EXPIRES_S = 3600
+
+
+# --- OAuth provider --------------------------------------------------------
 
 
 class CodexAuthProvider(AuthProvider):
@@ -133,515 +143,6 @@ class CodexAuthProvider(AuthProvider):
 		)
 
 
-class CodexModel(Model):
-	"""ChatGPT subscription model over the Codex Responses SSE endpoint."""
-
-	api = "openai-codex-responses"
-	provider = "codex"
-
-	def __init__(
-		self,
-		name: str,
-		*,
-		api_key: str | None = None,
-		api_base: str | None = None,
-		headers: dict[str, str] | None = None,
-		params: dict[str, Any] | None = None,
-		client: httpx.AsyncClient | None = None,
-	):
-		if not api_key:
-			raise ValueError("Codex requires OAuth; run `flowd login codex`.")
-		self.name = name
-		self.model = name
-		self._model = name.split("/", 1)[1] if "/" in name else name
-		self._api_key = api_key
-		self._api_base = api_base or API_BASE
-		self._headers = headers or {}
-		self._params = params or {}
-		self._client = client
-
-	async def run(self, request: ModelRequest) -> AsyncIterator[_Event]:
-		input_items = _responses_input(request.messages, self)
-		payload: dict[str, Any] = {
-			"model": self._model,
-			"store": False,
-			"stream": True,
-			"instructions": request.system_prompt,
-			"input": input_items,
-			"text": {"verbosity": "low"},
-			"include": ["reasoning.encrypted_content"],
-			"tool_choice": "auto",
-			"parallel_tool_calls": True,
-			**self._params,
-		}
-		if request.tools:
-			payload["tools"] = [_responses_tool(tool) for tool in request.tools]
-
-		headers = {
-			**self._headers,
-			"Authorization": f"Bearer {self._api_key}",
-			"OpenAI-Beta": "responses=experimental",
-			"accept": "text/event-stream",
-			"content-type": "application/json",
-		}
-		url = f"{self._api_base.rstrip('/')}/codex/responses"
-		owns_client = self._client is None
-		client = self._client or httpx.AsyncClient(timeout=120)
-		stream_context = client.stream("POST", url, json=payload, headers=headers)
-		response: httpx.Response | None = None
-		try:
-			if request.cancellation is not None and request.cancellation.is_set():
-				raise ModelCancelled
-			response = await await_with_cancellation(
-				stream_context.__aenter__(),
-				request.cancellation,
-			)
-			assert response is not None
-			if response.status_code >= 400:
-				body = await await_with_cancellation(
-					response.aread(),
-					request.cancellation,
-				)
-				raise provider_error_from_http(
-					status_code=response.status_code,
-					provider=self.provider,
-					body=body,
-					headers=response.headers,
-				)
-			async for event in _codex_events(
-				response,
-				model=self,
-				emit_deltas=request.stream,
-				cancellation=request.cancellation,
-			):
-				yield event
-		except ModelCancelled:
-			yield self._aborted()
-			yield Usage()
-		except ProviderError:
-			raise
-		except httpx.HTTPError as exc:
-			raise normalize_provider_error(exc, provider=self.provider) from exc
-		finally:
-			if response is not None:
-				await stream_context.__aexit__(*sys.exc_info())
-			if owns_client:
-				await client.aclose()
-
-	def _aborted(self) -> AssistantMessage:
-		return AssistantMessage(
-			api=self.api,
-			provider=self.provider,
-			model=self.model,
-			stop_reason="aborted",
-		)
-
-
-class _ToolBuilder:
-	def __init__(self, item: Mapping[str, Any]):
-		self.item_id = _string(item.get("id"))
-		self.call_id = _string(item.get("call_id")) or "call_0"
-		self.name = _string(item.get("name"))
-		self.arguments = ""
-		self.content_index: int | None = None
-
-	@property
-	def id(self) -> str:
-		return f"{self.call_id}|{self.item_id}" if self.item_id else self.call_id
-
-	def build(self) -> ToolCall:
-		return _tool_call(self.id, self.name, self.arguments)
-
-
-async def _codex_events(
-	response: httpx.Response,
-	*,
-	model: CodexModel,
-	emit_deltas: bool,
-	cancellation: asyncio.Event | None = None,
-) -> AsyncIterator[_Event]:
-	builders: dict[str, _ToolBuilder] = {}
-	completed: set[str] = set()
-	content: list[TextContent | ThinkingContent | ToolCall] = []
-	content_indices: dict[str, int] = {}
-	usage = Usage()
-	response_id: str | None = None
-	response_model: str | None = None
-	stop_reason = "stop"
-
-	try:
-		async for raw in iterate_with_cancellation(_iter_sse(response), cancellation):
-			event_type = raw.get("type")
-			if event_type in {"error", "response.failed"}:
-				raise normalize_provider_error(
-					RuntimeError(_codex_error(raw)),
-					provider=model.provider,
-				)
-			if event_type == "response.output_item.added":
-				item = raw.get("item")
-				if isinstance(item, Mapping) and item.get("type") == "reasoning":
-					item_id = _string(item.get("id"))
-					block = ThinkingContent(
-						thinking=_reasoning_text(item),
-						thinking_signature=json.dumps(dict(item), separators=(",", ":")),
-					)
-					content_indices[item_id] = len(content)
-					content.append(block)
-				elif isinstance(item, Mapping) and item.get("type") == "message":
-					item_id = _string(item.get("id"))
-					content_indices[item_id] = len(content)
-					content.append(TextContent(text=_done_text(item), text_signature=_text_signature(item)))
-				elif isinstance(item, Mapping) and item.get("type") == "function_call":
-					builder = _ToolBuilder(item)
-					builder.content_index = len(content)
-					content.append(builder.build())
-					for key in (builder.item_id, builder.call_id):
-						if key:
-							builders[key] = builder
-					if emit_deltas:
-						yield ToolCallStarted(id=builder.id, name=builder.name)
-			elif event_type == "response.function_call_arguments.delta":
-				builder = _find_builder(raw, builders)
-				if builder and isinstance(raw.get("delta"), str):
-					builder.arguments += raw["delta"]
-					if builder.content_index is not None:
-						content[builder.content_index] = builder.build()
-			elif event_type == "response.function_call_arguments.done":
-				builder = _find_builder(raw, builders)
-				if builder and isinstance(raw.get("arguments"), str):
-					builder.arguments = raw["arguments"]
-					if builder.content_index is not None:
-						content[builder.content_index] = builder.build()
-			elif event_type in {
-				"response.reasoning_summary_text.delta",
-				"response.reasoning_text.delta",
-			}:
-				delta = raw.get("delta")
-				if isinstance(delta, str) and delta:
-					item_id = _string(raw.get("item_id"))
-					index = content_indices.get(item_id)
-					if index is None or not isinstance(content[index], ThinkingContent):
-						index = len(content)
-						content_indices[item_id] = index
-						content.append(ThinkingContent(thinking=""))
-					thinking_block = content[index]
-					assert isinstance(thinking_block, ThinkingContent)
-					thinking_block.thinking += delta
-					if emit_deltas:
-						yield ThinkingDelta(thinking=delta)
-			elif event_type == "response.output_text.delta":
-				delta = raw.get("delta")
-				if isinstance(delta, str) and delta:
-					item_id = _string(raw.get("item_id"))
-					index = content_indices.get(item_id)
-					if index is None or not isinstance(content[index], TextContent):
-						index = len(content)
-						content_indices[item_id] = index
-						content.append(
-							TextContent(
-								text="",
-								text_signature=_encode_text_signature(item_id) if item_id else None,
-							)
-						)
-					text_block = content[index]
-					assert isinstance(text_block, TextContent)
-					text_block.text += delta
-					if emit_deltas:
-						yield TextDelta(text=delta)
-			elif event_type in {"response.output_item.done", "response.output_item.completed"}:
-				item = raw.get("item")
-				if isinstance(item, Mapping) and item.get("type") == "reasoning":
-					item_id = _string(item.get("id"))
-					index = content_indices.get(item_id)
-					streamed = content[index] if index is not None else None
-					if not isinstance(streamed, ThinkingContent):
-						streamed = None
-					block = ThinkingContent(
-						# The done item omits summary text when it was only streamed.
-						thinking=_reasoning_text(item) or (streamed.thinking if streamed else ""),
-						thinking_signature=json.dumps(dict(item), separators=(",", ":")),
-					)
-					if index is None or streamed is None:
-						content_indices[item_id] = len(content)
-						content.append(block)
-					else:
-						content[index] = block
-				elif isinstance(item, Mapping) and item.get("type") == "function_call":
-					builder = _find_builder(raw, builders) or _ToolBuilder(item)
-					if isinstance(item.get("arguments"), str):
-						builder.arguments = item["arguments"]
-					if builder.id not in completed:
-						if builder.content_index is None:
-							builder.content_index = len(content)
-							content.append(builder.build())
-						else:
-							content[builder.content_index] = builder.build()
-						completed.add(builder.id)
-				elif isinstance(item, Mapping) and item.get("type") == "message":
-					text = _done_text(item)
-					item_id = _string(item.get("id"))
-					index = content_indices.get(item_id)
-					if index is None or not isinstance(content[index], TextContent):
-						if text:
-							content_indices[item_id] = len(content)
-							content.append(TextContent(text=text, text_signature=_text_signature(item)))
-					else:
-						text_block = content[index]
-						assert isinstance(text_block, TextContent)
-						text_block.text_signature = _text_signature(item) or text_block.text_signature
-						if text and not text_block.text:
-							text_block.text = text
-							if emit_deltas:
-								yield TextDelta(text=text)
-			elif event_type in {"response.completed", "response.done", "response.incomplete"}:
-				usage = _codex_usage(raw)
-				response_data = raw.get("response")
-				if isinstance(response_data, Mapping):
-					response_id = _string(response_data.get("id")) or None
-					actual_model = _string(response_data.get("model"))
-					response_model = actual_model if actual_model and actual_model != model._model else None
-				stop_reason = "length" if event_type == "response.incomplete" else "stop"
-				break
-	except ModelCancelled:
-		stop_reason = "aborted"
-
-	tool_calls = [block for block in content if isinstance(block, ToolCall)]
-	yield AssistantMessage(
-		content=content,
-		api=model.api,
-		provider=model.provider,
-		model=model.model,
-		response_model=response_model,
-		response_id=response_id,
-		# only a plain stop upgrades: an incomplete response keeps "length" so its
-		# possibly-truncated calls are never executed
-		stop_reason="tool_use" if tool_calls and stop_reason == "stop" else stop_reason,
-	)
-	yield usage
-
-
-async def _iter_sse(response: httpx.Response) -> AsyncIterator[dict]:
-	data_lines: list[str] = []
-	async for line in response.aiter_lines():
-		line = line.strip()
-		if not line:
-			if data_lines:
-				yield _json_object("\n".join(data_lines))
-				data_lines = []
-			continue
-		if line.startswith("data:"):
-			value = line.removeprefix("data:").strip()
-			if value == "[DONE]":
-				break
-			data_lines.append(value)
-	if data_lines:
-		yield _json_object("\n".join(data_lines))
-
-
-def _responses_input(messages: list[TranscriptMessage], model: CodexModel) -> list[dict]:
-	items: list[dict] = []
-	text_index = 0
-	for message in messages:
-		if isinstance(message, UserMessage):
-			items.append({"role": "user", "content": [{"type": "input_text", "text": message.content}]})
-		elif isinstance(message, AssistantMessage):
-			if message.stop_reason in {"error", "aborted"}:
-				continue
-			same_model = (
-				message.api == model.api
-				and message.provider == model.provider
-				and message.model == model.model
-			)
-			for block in message.content:
-				if isinstance(block, ThinkingContent):
-					if same_model and block.thinking_signature:
-						try:
-							reasoning_item = json.loads(block.thinking_signature)
-						except TypeError, ValueError:
-							reasoning_item = None
-						if isinstance(reasoning_item, dict):
-							items.append(reasoning_item)
-							continue
-					if not block.redacted and block.thinking:
-						items.append(_assistant_text_item(block.thinking, f"msg_{text_index}"))
-						text_index += 1
-				elif isinstance(block, TextContent):
-					signature = _parse_text_signature(block.text_signature) if same_model else None
-					item_id = signature["id"] if signature else f"msg_{text_index}"
-					phase = signature.get("phase") if signature else None
-					items.append(_assistant_text_item(block.text, item_id, phase))
-					text_index += 1
-				elif isinstance(block, ToolCall):
-					call_id, item_id = _split_call_id(block.id)
-					item = {
-						"type": "function_call",
-						"call_id": call_id,
-						"name": block.name,
-						"arguments": json.dumps(block.arguments),
-					}
-					if item_id:
-						item["id"] = item_id
-					items.append(item)
-		elif isinstance(message, ToolResult):
-			call_id, _ = _split_call_id(message.tool_call_id)
-			items.append(
-				{
-					"type": "function_call_output",
-					"call_id": call_id,
-					"output": message.content,
-				}
-			)
-	return items
-
-
-def _assistant_text_item(text: str, item_id: str, phase: str | None = None) -> dict:
-	item = {
-		"type": "message",
-		"role": "assistant",
-		"content": [{"type": "output_text", "text": text, "annotations": []}],
-		"status": "completed",
-		"id": item_id,
-	}
-	if phase is not None:
-		item["phase"] = phase
-	return item
-
-
-def _encode_text_signature(item_id: str, phase: str | None = None) -> str:
-	payload: dict[str, Any] = {"v": 1, "id": item_id}
-	if phase in {"commentary", "final_answer"}:
-		payload["phase"] = phase
-	return json.dumps(payload, separators=(",", ":"))
-
-
-def _text_signature(item: Mapping[str, Any]) -> str | None:
-	item_id = _string(item.get("id"))
-	if not item_id:
-		return None
-	phase = item.get("phase")
-	return _encode_text_signature(item_id, phase if isinstance(phase, str) else None)
-
-
-def _parse_text_signature(signature: str | None) -> dict[str, str] | None:
-	if not signature:
-		return None
-	try:
-		value = json.loads(signature)
-	except TypeError, ValueError:
-		return None
-	if not isinstance(value, dict) or value.get("v") != 1 or not isinstance(value.get("id"), str):
-		return None
-	result = {"id": value["id"]}
-	if value.get("phase") in {"commentary", "final_answer"}:
-		result["phase"] = value["phase"]
-	return result
-
-
-def _reasoning_text(item: Mapping[str, Any]) -> str:
-	"""Summary text when the model summarises, else the raw reasoning text."""
-	for key in ("summary", "content"):
-		parts = item.get(key)
-		if not isinstance(parts, list):
-			continue
-		text = "".join(
-			part.get("text", "")
-			for part in parts
-			if isinstance(part, Mapping) and isinstance(part.get("text"), str)
-		)
-		if text:
-			return text
-	return ""
-
-
-def _responses_tool(tool: dict[str, Any]) -> dict:
-	function = tool.get("function") or {}
-	return {
-		"type": "function",
-		"name": function.get("name") or "",
-		"description": function.get("description") or "",
-		"parameters": function.get("parameters") or {},
-		"strict": None,
-	}
-
-
-def _find_builder(raw: Mapping[str, Any], builders: dict[str, _ToolBuilder]) -> _ToolBuilder | None:
-	for key in ("item_id", "call_id"):
-		value = raw.get(key)
-		if isinstance(value, str) and value in builders:
-			return builders[value]
-	unique = {id(builder): builder for builder in builders.values()}
-	return next(iter(unique.values())) if len(unique) == 1 else None
-
-
-def _tool_call(call_id: str, name: str, arguments: str) -> ToolCall:
-	try:
-		args = json.loads(arguments or "{}")
-	except TypeError, ValueError:
-		return ToolCall(
-			id=call_id,
-			name=name,
-			arguments={},
-			error=f"Invalid JSON in arguments for {name!r}; resend the call with valid JSON.",
-		)
-	if not isinstance(args, dict):
-		return ToolCall(
-			id=call_id,
-			name=name,
-			arguments={},
-			error=f"Arguments for {name!r} must be a JSON object.",
-		)
-	return ToolCall(id=call_id, name=name, arguments=args)
-
-
-def _done_text(item: Mapping[str, Any]) -> str:
-	parts = item.get("content")
-	if not isinstance(parts, list):
-		return ""
-	return "".join(
-		part.get("text", "")
-		for part in parts
-		if isinstance(part, Mapping) and part.get("type") == "output_text"
-	)
-
-
-def _codex_usage(event: Mapping[str, Any]) -> Usage:
-	response = event.get("response")
-	raw = response.get("usage") if isinstance(response, Mapping) else None
-	if not isinstance(raw, Mapping):
-		return Usage()
-	return Usage(
-		input_tokens=_integer(raw.get("input_tokens")),
-		output_tokens=_integer(raw.get("output_tokens")),
-	)
-
-
-def _codex_error(event: Mapping[str, Any]) -> str:
-	return provider_error_detail(event) or "OpenAI Codex returned an error"
-
-
-def _json_object(value: str) -> dict:
-	try:
-		parsed = json.loads(value)
-	except json.JSONDecodeError:
-		return {}
-	return parsed if isinstance(parsed, dict) else {}
-
-
-def _split_call_id(value: str) -> tuple[str, str | None]:
-	if "|" not in value:
-		return value, None
-	call_id, item_id = value.split("|", 1)
-	return call_id, item_id or None
-
-
-def _string(value: Any) -> str:
-	return value if isinstance(value, str) else ""
-
-
-def _integer(value: Any) -> int:
-	return value if isinstance(value, int) and not isinstance(value, bool) else 0
-
-
 def _credential(
 	tokens: dict, *, old_refresh: str | None = None, now_ms: int | None = None
 ) -> OAuthCredential:
@@ -664,5 +165,519 @@ def _expires_ms(tokens: dict, access_token: str, now_ms: int) -> int:
 	return now_ms + DEFAULT_EXPIRES_S * 1000
 
 
-register_auth_provider(CodexAuthProvider())
-register_provider("codex", CodexModel)
+# --- the model -------------------------------------------------------------
+
+
+class CodexModel(Model):
+	"""ChatGPT subscription model over the Codex Responses SSE endpoint."""
+
+	api = "openai-codex-responses"
+	provider = "codex"
+
+	def __init__(
+		self,
+		name: str,
+		*,
+		api_key: str | None = None,
+		api_base: str | None = None,
+		headers: dict[str, str] | None = None,
+		params: dict[str, Any] | None = None,
+		client: httpx.AsyncClient | None = None,
+		refresh_auth: RefreshAuth | None = None,
+	):
+		if not api_key:
+			raise ValueError("Codex requires OAuth; run `flowd login codex`.")
+		self.name = name
+		self.model = name
+		self._remote_model = name.split("/", 1)[1] if "/" in name else name
+		self._api_key = api_key
+		self._api_base = api_base or API_BASE
+		self._headers = headers or {}
+		self._params = params or {}
+		self._client = client
+		self._refresh_auth = refresh_auth
+
+	async def run(self, request: ModelRequest) -> AsyncIterator[AnyEvent]:
+		owns_client = self._client is None
+		client = self._client or httpx.AsyncClient(timeout=120)
+
+		def start_attempt() -> AsyncIterator[AnyEvent]:
+			return self._response(request, client)
+
+		try:
+			async for event in run_with_retries(
+				start_attempt,
+				cancellation=request.cancellation,
+				refresh_auth=self._refresh_credentials if self._refresh_auth is not None else None,
+				provider=self.provider,
+			):
+				yield event
+		except ModelCancelled:
+			yield self.aborted_message()
+			yield Usage()
+		finally:
+			if owns_client:
+				await client.aclose()
+
+	async def _response(self, request: ModelRequest, client: httpx.AsyncClient) -> AsyncIterator[AnyEvent]:
+		"""One provider attempt. Headers are rebuilt here so a refreshed token is used."""
+		if request.cancellation is not None and request.cancellation.is_set():
+			raise ModelCancelled
+		url = f"{self._api_base.rstrip('/')}/codex/responses"
+		stream_context = client.stream(
+			"POST", url, json=self._payload(request), headers=self._request_headers()
+		)
+		response: httpx.Response | None = None
+		try:
+			response = await await_with_cancellation(stream_context.__aenter__(), request.cancellation)
+			assert response is not None
+			if response.status_code >= 400:
+				body = await await_with_cancellation(response.aread(), request.cancellation)
+				raise provider_error_from_http(
+					status_code=response.status_code,
+					provider=self.provider,
+					body=body,
+					headers=response.headers,
+				)
+			assembler = _ResponseAssembler(emit_deltas=request.stream)
+			try:
+				async for raw in iterate_with_cancellation(_iter_sse(response), request.cancellation):
+					if raw.get("type") in {"error", "response.failed"}:
+						detail = provider_error_detail(raw) or "OpenAI Codex returned an error"
+						raise normalize_provider_error(RuntimeError(detail), provider=self.provider)
+					for event in assembler.add_event(raw):
+						yield event
+					if assembler.finished:
+						break
+			except ModelCancelled:
+				assembler.stop_reason = "aborted"  # an aborted turn keeps its partial content
+			yield assembler.assistant_message(self)
+			yield assembler.usage
+		except httpx.HTTPError as exc:
+			raise normalize_provider_error(exc, provider=self.provider) from exc
+		finally:
+			if response is not None:
+				await stream_context.__aexit__(*sys.exc_info())
+
+	async def _refresh_credentials(self) -> None:
+		"""`run_with_retries` refresh hook: swap in fresh runtime auth after a rejection."""
+		assert self._refresh_auth is not None
+		auth = await self._refresh_auth(self._api_key)
+		self._api_key = auth.token
+		self._api_base = auth.base_url or self._api_base
+		self._headers = {**self._headers, **auth.headers}
+
+	def _payload(self, request: ModelRequest) -> dict[str, Any]:
+		payload: dict[str, Any] = {
+			"model": self._remote_model,
+			"store": False,
+			"stream": True,
+			"instructions": request.system_prompt,
+			"input": _responses_input(request.messages, self),
+			"text": {"verbosity": "low"},
+			"include": ["reasoning.encrypted_content"],
+			"tool_choice": "auto",
+			"parallel_tool_calls": True,
+			**self._params,
+		}
+		if request.tools:
+			payload["tools"] = [_responses_tool(tool) for tool in request.tools]
+		return payload
+
+	def _request_headers(self) -> dict[str, str]:
+		return {
+			**self._headers,
+			"Authorization": f"Bearer {self._api_key}",
+			"OpenAI-Beta": "responses=experimental",
+			"accept": "text/event-stream",
+			"content-type": "application/json",
+		}
+
+
+# --- response assembly -----------------------------------------------------
+
+
+class _ToolCallBuilder:
+	"""One function call's identity and its streamed argument fragments."""
+
+	def __init__(self, item: Mapping[str, Any]):
+		self.item_id = _string(item.get("id"))
+		self.call_id = _string(item.get("call_id")) or "call_0"
+		self.name = _string(item.get("name"))
+		self.arguments = ""
+
+	def build(self) -> ToolCall:
+		state = {"item_id": self.item_id} if self.item_id else None
+		try:
+			parsed = json.loads(self.arguments or "{}")
+		except ValueError:
+			error = f"Invalid JSON in arguments for {self.name!r}; resend the call with valid JSON."
+			return ToolCall(id=self.call_id, name=self.name, arguments={}, error=error, provider_state=state)
+		if not isinstance(parsed, dict):
+			error = f"Arguments for {self.name!r} must be a JSON object."
+			return ToolCall(id=self.call_id, name=self.name, arguments={}, error=error, provider_state=state)
+		return ToolCall(id=self.call_id, name=self.name, arguments=parsed, provider_state=state)
+
+
+@dataclass(slots=True)
+class _ResponseAssembler:
+	"""Assembles one Responses SSE stream into ordered content blocks.
+
+	Blocks are keyed by the item id events reference them with; a tool call sits in
+	`content` as its builder until the final assembly parses its arguments once.
+	"""
+
+	emit_deltas: bool
+	content: list[TextContent | ThinkingContent | _ToolCallBuilder] = field(default_factory=list)
+	positions: dict[str, int] = field(default_factory=dict)
+	calls: dict[str, _ToolCallBuilder] = field(default_factory=dict)  # by item id and call id
+	usage: Usage = field(default_factory=Usage)
+	response_id: str | None = None
+	response_model: str | None = None
+	stop_reason: StopReason = "stop"
+	finished: bool = False
+
+	def add_event(self, raw: Mapping[str, Any]) -> list[AnyEvent]:
+		"""Fold one SSE event into the assembly; return the live deltas it produced."""
+		kind = raw.get("type")
+		item = raw.get("item")
+		if kind == "response.output_item.added" and isinstance(item, Mapping):
+			return self._open_item(item)
+		if kind == "response.function_call_arguments.delta":
+			call = _find_call(self.calls, raw.get("item_id"), raw.get("call_id"))
+			if call is not None and isinstance(raw.get("delta"), str):
+				call.arguments += raw["delta"]
+		elif kind == "response.function_call_arguments.done":
+			call = _find_call(self.calls, raw.get("item_id"), raw.get("call_id"))
+			if call is not None and isinstance(raw.get("arguments"), str):
+				call.arguments = raw["arguments"]
+		elif kind in {"response.reasoning_summary_text.delta", "response.reasoning_text.delta"}:
+			return self._append_thinking(raw)
+		elif kind == "response.output_text.delta":
+			return self._append_text(raw)
+		elif kind in {"response.output_item.done", "response.output_item.completed"}:
+			if isinstance(item, Mapping):
+				return self._close_item(item)
+		elif kind in {"response.completed", "response.done", "response.incomplete"}:
+			self._finish(raw, truncated=kind == "response.incomplete")
+		return []
+
+	def _open_item(self, item: Mapping[str, Any]) -> list[AnyEvent]:
+		item_type = item.get("type")
+		if item_type == "reasoning":
+			self._place(
+				_string(item.get("id")),
+				ThinkingContent(thinking=_reasoning_text(item), provider_state={"item": dict(item)}),
+			)
+		elif item_type == "message":
+			self._place(
+				_string(item.get("id")),
+				TextContent(text=_message_text(item), provider_state=_message_state(item)),
+			)
+		elif item_type == "function_call":
+			call = _ToolCallBuilder(item)
+			self._register(call)
+			self.content.append(call)
+			if self.emit_deltas:
+				return [ToolCallStarted(id=call.call_id, name=call.name)]
+		return []
+
+	def _close_item(self, item: Mapping[str, Any]) -> list[AnyEvent]:
+		item_type = item.get("type")
+		if item_type == "reasoning":
+			item_id = _string(item.get("id"))
+			streamed = self._block_at(item_id, ThinkingContent)
+			sealed = ThinkingContent(
+				# the done item omits summary text when it was only streamed
+				thinking=_reasoning_text(item) or (streamed.thinking if streamed else ""),
+				provider_state={"item": dict(item)},
+			)
+			if streamed is None:
+				self._place(item_id, sealed)
+			else:
+				self.content[self.positions[item_id]] = sealed
+		elif item_type == "function_call":
+			call = _find_call(self.calls, item.get("id"), item.get("call_id"))
+			if call is None:
+				call = _ToolCallBuilder(item)
+				self._register(call)
+				self.content.append(call)
+			if isinstance(item.get("arguments"), str):
+				call.arguments = item["arguments"]
+		elif item_type == "message":
+			return self._close_message(item)
+		return []
+
+	def _close_message(self, item: Mapping[str, Any]) -> list[AnyEvent]:
+		item_id = _string(item.get("id"))
+		text = _message_text(item)
+		block = self._block_at(item_id, TextContent)
+		if block is None:
+			if text:
+				self._place(item_id, TextContent(text=text, provider_state=_message_state(item)))
+			return []
+		block.provider_state = _message_state(item) or block.provider_state
+		if text and not block.text:
+			block.text = text
+			if self.emit_deltas:
+				return [TextDelta(text=text)]
+		return []
+
+	def _append_thinking(self, raw: Mapping[str, Any]) -> list[AnyEvent]:
+		delta = raw.get("delta")
+		if not isinstance(delta, str) or not delta:
+			return []
+		item_id = _string(raw.get("item_id"))
+		block = self._block_at(item_id, ThinkingContent)
+		if block is None:
+			block = ThinkingContent(thinking="")
+			self._place(item_id, block)
+		block.thinking += delta
+		return [ThinkingDelta(thinking=delta)] if self.emit_deltas else []
+
+	def _append_text(self, raw: Mapping[str, Any]) -> list[AnyEvent]:
+		delta = raw.get("delta")
+		if not isinstance(delta, str) or not delta:
+			return []
+		item_id = _string(raw.get("item_id"))
+		block = self._block_at(item_id, TextContent)
+		if block is None:
+			block = TextContent(text="", provider_state={"id": item_id} if item_id else None)
+			self._place(item_id, block)
+		block.text += delta
+		return [TextDelta(text=delta)] if self.emit_deltas else []
+
+	def _finish(self, raw: Mapping[str, Any], *, truncated: bool) -> None:
+		response = raw.get("response")
+		if isinstance(response, Mapping):
+			usage = response.get("usage")
+			if isinstance(usage, Mapping):
+				self.usage = Usage(
+					input_tokens=_integer(usage.get("input_tokens")),
+					output_tokens=_integer(usage.get("output_tokens")),
+				)
+			self.response_id = _string(response.get("id")) or None
+			self.response_model = _string(response.get("model")) or None
+		self.stop_reason = "length" if truncated else "stop"
+		self.finished = True
+
+	def assistant_message(self, model: CodexModel) -> AssistantMessage:
+		content = [block.build() if isinstance(block, _ToolCallBuilder) else block for block in self.content]
+		has_calls = any(isinstance(block, ToolCall) for block in content)
+		actual = self.response_model
+		return AssistantMessage(
+			content=content,
+			api=model.api,
+			provider=model.provider,
+			model=model.model,
+			response_model=actual if actual and actual != model._remote_model else None,
+			response_id=self.response_id,
+			# only a plain stop upgrades: an incomplete response keeps "length" so its
+			# possibly-truncated calls are never executed
+			stop_reason="tool_use" if has_calls and self.stop_reason == "stop" else self.stop_reason,
+		)
+
+	def _place(self, item_id: str, block: TextContent | ThinkingContent) -> None:
+		self.positions[item_id] = len(self.content)
+		self.content.append(block)
+
+	def _register(self, call: _ToolCallBuilder) -> None:
+		for key in (call.item_id, call.call_id):
+			if key:
+				self.calls[key] = call
+
+	def _block_at[B: (TextContent, ThinkingContent)](self, item_id: str, block_type: type[B]) -> B | None:
+		position = self.positions.get(item_id)
+		if position is None:
+			return None
+		block = self.content[position]
+		return block if isinstance(block, block_type) else None
+
+
+def _find_call(calls: dict[str, _ToolCallBuilder], *candidates: Any) -> _ToolCallBuilder | None:
+	"""Match a call by any id the event carries; a lone call needs no id at all."""
+	for value in candidates:
+		if isinstance(value, str) and value in calls:
+			return calls[value]
+	unique = {id(call): call for call in calls.values()}
+	return next(iter(unique.values())) if len(unique) == 1 else None
+
+
+async def _iter_sse(response: httpx.Response) -> AsyncIterator[dict]:
+	data_lines: list[str] = []
+	async for line in response.aiter_lines():
+		line = line.strip()
+		if not line:
+			if data_lines:
+				yield _json_object("\n".join(data_lines))
+				data_lines = []
+			continue
+		if line.startswith("data:"):
+			value = line.removeprefix("data:").strip()
+			if value == "[DONE]":
+				break
+			data_lines.append(value)
+	if data_lines:
+		yield _json_object("\n".join(data_lines))
+
+
+# --- transcript -> Responses input ----------------------------------------
+
+
+def _responses_input(messages: list[TranscriptMessage], model: CodexModel) -> list[dict]:
+	items: list[dict] = []
+	text_index = 0
+	dropped_calls: set[str] = set()
+	for message in messages:
+		if isinstance(message, UserMessage):
+			items.append({"role": "user", "content": [{"type": "input_text", "text": message.content}]})
+		elif isinstance(message, AssistantMessage):
+			if message.stop_reason in {"error", "aborted"}:
+				# drop this turn's results too: an answer without its call is rejected
+				dropped_calls.update(call.id for call in message.tool_calls)
+				continue
+			same_model = (
+				message.api == model.api
+				and message.provider == model.provider
+				and message.model == model.model
+			)
+			for block in message.content:
+				if isinstance(block, ThinkingContent):
+					reasoning_item = _stored_reasoning_item(block) if same_model else None
+					if reasoning_item is not None:
+						items.append(reasoning_item)
+					elif not block.redacted and block.thinking:
+						# deliberately degrades cross-model thinking to ordinary text
+						items.append(_assistant_text_item(block.thinking, f"msg_{text_index}"))
+						text_index += 1
+				elif isinstance(block, TextContent):
+					item_id, phase = _message_identity(block.provider_state) if same_model else (None, None)
+					items.append(_assistant_text_item(block.text, item_id or f"msg_{text_index}", phase))
+					text_index += 1
+				elif isinstance(block, ToolCall):
+					items.append(_function_call_item(block))
+		elif isinstance(message, ToolResult):
+			if message.tool_call_id in dropped_calls:
+				continue
+			items.append(
+				{
+					"type": "function_call_output",
+					"call_id": message.tool_call_id,
+					"output": message.content,
+				}
+			)
+	return items
+
+
+def _stored_reasoning_item(block: ThinkingContent) -> dict | None:
+	"""The raw reasoning item this block was streamed as, if we stored one."""
+	state = block.provider_state
+	item = state.get("item") if isinstance(state, dict) else None
+	return item if isinstance(item, dict) else None
+
+
+def _message_identity(state: dict | None) -> tuple[str | None, str | None]:
+	"""The (item id, phase) a text block was streamed with, if we stored them."""
+	if not isinstance(state, dict):
+		return None, None
+	item_id = state.get("id")
+	if not isinstance(item_id, str) or not item_id:
+		return None, None
+	phase = state.get("phase")
+	return item_id, phase if isinstance(phase, str) else None
+
+
+def _assistant_text_item(text: str, item_id: str, phase: str | None = None) -> dict:
+	item = {
+		"type": "message",
+		"role": "assistant",
+		"content": [{"type": "output_text", "text": text, "annotations": []}],
+		"status": "completed",
+		"id": item_id,
+	}
+	if phase is not None:
+		item["phase"] = phase
+	return item
+
+
+def _function_call_item(call: ToolCall) -> dict:
+	item = {
+		"type": "function_call",
+		"call_id": call.id,
+		"name": call.name,
+		"arguments": json.dumps(call.arguments),
+	}
+	state = call.provider_state
+	item_id = state.get("item_id") if isinstance(state, dict) else None
+	if isinstance(item_id, str) and item_id:
+		item["id"] = item_id
+	return item
+
+
+def _responses_tool(tool: dict[str, Any]) -> dict:
+	function = tool.get("function") or {}
+	return {
+		"type": "function",
+		"name": function.get("name") or "",
+		"description": function.get("description") or "",
+		"parameters": function.get("parameters") or {},
+		"strict": None,
+	}
+
+
+# --- wire readers ----------------------------------------------------------
+
+
+def _message_state(item: Mapping[str, Any]) -> dict | None:
+	"""The identity a message must replay with: its item id, plus the phase Codex
+	attaches to commentary vs final answers."""
+	item_id = _string(item.get("id"))
+	if not item_id:
+		return None
+	phase = item.get("phase")
+	if isinstance(phase, str) and phase in {"commentary", "final_answer"}:
+		return {"id": item_id, "phase": phase}
+	return {"id": item_id}
+
+
+def _reasoning_text(item: Mapping[str, Any]) -> str:
+	"""Summary text when the model summarises, else the raw reasoning text."""
+	for key in ("summary", "content"):
+		parts = item.get(key)
+		if not isinstance(parts, list):
+			continue
+		text = "".join(
+			part.get("text", "")
+			for part in parts
+			if isinstance(part, Mapping) and isinstance(part.get("text"), str)
+		)
+		if text:
+			return text
+	return ""
+
+
+def _message_text(item: Mapping[str, Any]) -> str:
+	parts = item.get("content")
+	if not isinstance(parts, list):
+		return ""
+	return "".join(
+		part.get("text", "")
+		for part in parts
+		if isinstance(part, Mapping) and part.get("type") == "output_text"
+	)
+
+
+def _json_object(value: str) -> dict:
+	try:
+		parsed = json.loads(value)
+	except json.JSONDecodeError:
+		return {}
+	return parsed if isinstance(parsed, dict) else {}
+
+
+def _string(value: Any) -> str:
+	return value if isinstance(value, str) else ""
+
+
+def _integer(value: Any) -> int:
+	return value if isinstance(value, int) and not isinstance(value, bool) else 0

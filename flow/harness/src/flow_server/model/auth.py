@@ -1,12 +1,16 @@
-"""OAuth/subscription auth core — the provider-neutral machinery a native provider
-uses when its credential is not a static API key.
+"""How a model run gets its credentials.
 
-An `AuthProvider` owns one provider's login (`authorize_url` + `exchange`), token
-`refresh`, and request-time `runtime_auth` (bearer + headers + base_url). Providers
-register by name; `resolve_auth` is the request-time entry point a native
-model calls — it loads the stored credential, refreshes it if within the expiry skew,
-persists any rotation, and returns the `RuntimeAuth` for the call. The interactive login
-UX supplies the authorization code; this module owns the provider protocol.
+Two layers live here. The OAuth core is the provider-neutral subscription machinery:
+an `AuthProvider` owns one provider's login (`authorize_url` + `exchange`), token
+`refresh`, and request-time `runtime_auth` (bearer + headers + base_url), and
+`resolve_oauth` turns a stored credential into runtime auth — refreshing it under a
+single-flight lock when it is stale or was rejected by the provider.
+
+On top sits `resolve_model_auth`, the request-time entry point: given a model name it
+finds the credential — stored key, stored OAuth grant, or the provider's environment
+variable — and returns everything `get_model` needs, including a `refresh` hook an
+OAuth-backed adapter passes to `run_with_retries` for one-shot recovery from a
+rejected token.
 """
 
 from __future__ import annotations
@@ -16,14 +20,17 @@ import asyncio
 import base64
 import hashlib
 import json
+import os
 import secrets
 import time
 import weakref
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 
 import httpx
 
-from flow_server.model.credentials import CredentialStore, OAuthCredential
+from flow_server.model.catalog import get_provider, provider_for_model
+from flow_server.model.credentials import ApiKeyCredential, CredentialStore, OAuthCredential
 
 TOKEN_REFRESH_SKEW_MS = 60_000  # refresh this long before actual expiry
 
@@ -64,7 +71,7 @@ def decode_jwt_claims(token: str) -> dict:
 		payload = token.split(".")[1]
 		payload += "=" * (-len(payload) % 4)
 		return json.loads(base64.urlsafe_b64decode(payload))
-	except (ValueError, IndexError, TypeError):
+	except ValueError, IndexError, TypeError:
 		return {}
 
 
@@ -127,7 +134,7 @@ def get_auth_provider(name: str) -> AuthProvider:
 		raise AuthError(f"Unknown auth provider {name!r}") from None
 
 
-async def resolve_auth(
+async def resolve_oauth(
 	store: CredentialStore,
 	name: str,
 	*,
@@ -135,7 +142,7 @@ async def resolve_auth(
 	now_ms: int | None = None,
 	refresh_access_token: str | None = None,
 ) -> RuntimeAuth:
-	"""Load runtime auth, refreshing a stale or provider-rejected access token.
+	"""Load OAuth runtime auth, refreshing a stale or provider-rejected access token.
 
 	``refresh_access_token`` is the token rejected by the provider. If another
 	concurrent request already replaced it, that newer credential is reused instead
@@ -214,3 +221,72 @@ def _first_org_id(claims: dict) -> str | None:
 
 def _now_ms() -> int:
 	return int(time.time() * 1000)
+
+
+# --- request-time resolution for one model run ----------------------------
+
+# Trades the provider-rejected access token for fresh runtime auth.
+RefreshAuth = Callable[[str], Awaitable[RuntimeAuth]]
+
+
+@dataclass(frozen=True)
+class ResolvedModelAuth:
+	api_key: str | None = None
+	base_url: str | None = None
+	headers: dict[str, str] = field(default_factory=dict)
+	source: str | None = None
+	provider_id: str | None = None
+	# Set only for an OAuth credential; the adapter runs it via `run_with_retries`.
+	refresh: RefreshAuth | None = None
+
+
+async def resolve_model_auth(
+	model: str,
+	store: CredentialStore,
+	*,
+	provider_id: str | None = None,
+) -> ResolvedModelAuth:
+	"""Resolve a stored credential first, then the provider's environment."""
+	spec = get_provider(provider_id) if provider_id else provider_for_model(model)
+	provider_id = provider_id or (spec.id if spec else None)
+
+	if provider_id:
+		credential = store.get(provider_id)
+		if isinstance(credential, ApiKeyCredential):
+			if spec and "api_key" not in spec.auth_methods:
+				raise AuthError(f"Provider {provider_id!r} does not support stored API keys")
+			return ResolvedModelAuth(
+				api_key=credential.key,
+				source="stored API key",
+				provider_id=provider_id,
+			)
+		if isinstance(credential, OAuthCredential):
+			if spec and "oauth" not in spec.auth_methods:
+				raise AuthError(f"Provider {provider_id!r} does not support OAuth")
+			runtime = await resolve_oauth(store, provider_id)
+
+			async def refresh(rejected_token: str) -> RuntimeAuth:
+				return await resolve_oauth(store, provider_id, refresh_access_token=rejected_token)
+
+			return ResolvedModelAuth(
+				api_key=runtime.token,
+				base_url=runtime.base_url,
+				headers=runtime.headers,
+				source="OAuth",
+				provider_id=provider_id,
+				refresh=refresh,
+			)
+
+	if spec:
+		for name in spec.api_key_envs:
+			value = os.environ.get(name)
+			if value:
+				return ResolvedModelAuth(
+					api_key=value,
+					source=name,
+					provider_id=spec.id,
+				)
+		methods = " or ".join(spec.auth_methods)
+		raise AuthError(f"No {methods} credential for {spec.display_name}; run `flowd login {spec.id}`.")
+
+	return ResolvedModelAuth(provider_id=provider_id)
