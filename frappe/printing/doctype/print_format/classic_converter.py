@@ -33,6 +33,10 @@ def uses_beta_renderer(print_format) -> bool:
 		return False
 	if print_format.get("custom_format") or print_format.get("raw_printing"):
 		return False
+	# Print Designer formats carry their own format_data schema and renderer;
+	# also covers rows whose beta flag was flipped wrongly on insert
+	if print_format.get("print_designer"):
+		return False
 	if print_format.get("print_format_builder_beta"):
 		# a standard format with no layout is a file-based Jinja format whose
 		# flag was set wrongly on insert — the beta renderer has nothing to draw

@@ -397,6 +397,25 @@ class TestClassicConverter(IntegrationTestCase):
 		doc.format_data = '{"sections": []}'
 		self.assertTrue(uses_beta_renderer(doc))
 
+	def test_print_designer_format_stays_off_the_beta_renderer(self):
+		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+
+		doc = frappe.new_doc("Print Format")
+		doc.name = "_Test Print Designer Format"
+		doc.doc_type = "User"
+		doc.module = "Core"
+		doc.custom_format = 0
+		doc.print_designer = 1
+		doc.format_data = '{"header": [], "body": []}'
+		doc.before_save()
+
+		self.assertEqual(doc.print_format_builder_beta, 0)
+		self.assertFalse(uses_beta_renderer(doc))
+
+		# rows already flipped on insert must not reach the beta renderer either
+		doc.print_format_builder_beta = 1
+		self.assertFalse(uses_beta_renderer(doc))
+
 	def test_convert_print_format_document(self):
 		from frappe.printing.doctype.print_format.classic_converter import convert_print_format
 
