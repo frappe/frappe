@@ -253,7 +253,11 @@ Behavior changes, each deliberate:
    (abort was, and remains, a no-op on a paused session).
 4. **Provider failure settles as `run_error` + `run_ended(error)`** — no synthetic
    error-text assistant message is written into the durable transcript.
-5. **Aborted turns persist no partial streamed text** in the aborted assistant message.
+5. **An aborted turn persists what the provider had produced** — an adapter may yield
+   its partial content as an `aborted` assistant (codex does; the settle path
+   synthesizes an empty one). The loop closes any tool calls such a terminal carries
+   with aborted results, and provider replays drop the whole turn — calls and results
+   together — so a partial turn can never orphan the transcript.
 6. **Repairs carry no marker protocol** — ordinary `tool_result` rows placed before
    newer entries (`details.repair = "interrupted"`); `transcript_repair` markers gone.
 7. **Codex round-trips via `provider_state`** with the provider's own call ids — no
@@ -271,7 +275,8 @@ Behavior changes, each deliberate:
 
 Internal (not behavior): `resolve_auth` → `resolve_oauth`; `RunSubmission` → `RunHandle`;
 retries moved into the provider adapter; `loop.py` is 364 lines against the charter's
-~250 aspiration.
+~250 aspiration; `Agent._events` remains one queue-vs-task pull adapter — it must
+surface a run task that dies without its terminal event.
 
 ### Known gaps carried over from `main` (unchanged, not regressions)
 
@@ -281,3 +286,5 @@ retries moved into the provider adapter; `loop.py` is 364 lines against the char
   ending run.
 - `build_schema` marks `X | None` parameters without defaults as not-required.
 - grep's timeout path kills but does not await its subprocess.
+- Live streaming of a running tool's partial output (pi's `onUpdate`) is still
+  deferred — it needs a tool→loop update channel that `ToolResult` cannot carry.
