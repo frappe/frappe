@@ -243,3 +243,22 @@
     width: var(--es-bt-icon);
     height: var(--es-bt-icon);
 }
+/* ---- legacy compat shims (remove in v17 with the bootstrap button CSS) ----
+   External desk apps poke bootstrap-era classes onto held dialog-button
+   references (found by the selector gate): india_compliance adds .disabled
+   to guard double submits, erpnext adds .btn-danger for destructive
+   primaries. Map both onto the es contract so the behavior survives until
+   those call sites migrate. */
+.es-button.disabled {
+    pointer-events: none;
+    background: var(--bt-disabled-bg);
+    color: var(--bt-disabled-fg);
+    border-color: var(--bt-disabled-border);
+}
+
+.es-button.btn-danger {
+    --bt-bg: var(--surface-red-5);
+    --bt-fg: var(--ink-white);
+    --bt-hover-bg: var(--surface-red-6);
+    --bt-active-bg: var(--surface-red-7);
+}

@@ -2859,14 +2859,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							"Title of confirmation dialog"
 						);
 					}
-					frappe.confirm(message, () => {
-						this.disable_list_update = true;
-						bulk_operations.delete(docnames, () => {
-							this.disable_list_update = false;
-							this.clear_checked_items();
-							this.refresh();
-						});
-					});
+					// destructive: red primary via frappe.warn
+					frappe.warn(
+						__("Confirm"),
+						message,
+						() => {
+							this.disable_list_update = true;
+							bulk_operations.delete(docnames, () => {
+								this.disable_list_update = false;
+								this.clear_checked_items();
+								this.refresh();
+							});
+						},
+						__("Delete")
+					);
 				},
 				standard: true,
 			};
@@ -2878,7 +2884,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				action: () => {
 					const docnames = this.get_checked_items(true);
 					if (docnames.length > 0) {
-						frappe.confirm(
+						// destructive: red primary via frappe.warn
+						frappe.warn(
+							__("Confirm"),
 							__(
 								"Cancel {0} documents?",
 								[docnames.length],
@@ -2891,7 +2899,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 									this.clear_checked_items();
 									this.refresh();
 								});
-							}
+							},
+							__("Yes"),
+							false,
+							__("No")
 						);
 					}
 				},

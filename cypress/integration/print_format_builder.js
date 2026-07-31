@@ -69,7 +69,7 @@ context("Print Format Builder — create flow", () => {
 	it("shows the Create or Edit Print Format dialog", () => {
 		cy.visit("/app/print-format-builder");
 		cy.get_open_dialog().should("contain", "Create or Edit Print Format");
-		cy.get_open_dialog().find(".btn-primary").should("contain", "Create");
+		cy.get_open_dialog().find(".btn-modal-primary").should("contain", "Create");
 	});
 
 	// 2. Filling the dialog and clicking Create inserts a builder format
@@ -93,7 +93,7 @@ context("Print Format Builder — create flow", () => {
 			.trigger("input")
 			.trigger("change");
 
-		cy.get_open_dialog().find(".btn-primary").contains("Create").click();
+		cy.get_open_dialog().find(".btn-modal-primary").contains("Create").click();
 
 		cy.wait("@insert").then((interception) => {
 			expect(interception.response.statusCode).to.equal(200);

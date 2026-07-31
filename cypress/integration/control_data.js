@@ -145,6 +145,6 @@ context("Data Control", () => {
 		cy.go_to_list("Test Data Control");
 		cy.get(".list-row-checkbox").eq(0).click({ force: true });
 		cy.click_action_button("Delete");
-		cy.click_modal_primary_button("Yes");
+		cy.click_modal_primary_button("Delete");
 	});
 });
