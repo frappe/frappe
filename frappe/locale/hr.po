@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-26 10:09+0000\n"
-"PO-Revision-Date: 2026-07-28 15:10\n"
+"PO-Revision-Date: 2026-07-31 16:01\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -144,7 +144,7 @@ msgstr "(Obavezno)"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:475
 msgid "({0} belong to other document types)"
-msgstr ""
+msgstr "({0} pripada drugim tipovima dokumenata)"
 
 #: frappe/model/rename_doc.py:710
 msgid "** Failed: {0} to {1}: {2}"
@@ -893,7 +893,7 @@ msgstr "Ponavljajuće {0} {1} stvoreno je za vas putem automatskog ponavljanja {
 
 #: frappe/public/js/print_format_builder/composables/useSnippets.js:49
 msgid "A snippet named {0} already exists for {1}."
-msgstr ""
+msgstr "Isječak nazvan {0} već postoji za {1}."
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:453
 msgid "A standard workspace is shipped by the app; changes are saved as customizations."
@@ -1630,7 +1630,7 @@ msgstr "Dodaj Red Ispod Trenutnog Reda"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormat.vue:67
 msgid "Add a section"
-msgstr ""
+msgstr "Dodaj odjeljak"
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:276
 msgid "Add a {0} Chart"
@@ -4008,7 +4008,7 @@ msgstr "Posao Sigurnosne Kopije je već u redu čekanja. Primit ćete e-poruku s
 
 #: frappe/utils/backups.py:577
 msgid "Backup requested for unknown DocType(s): {0}. Check for typos or use the exact DocType name (case-sensitive). Aborting to avoid taking a full backup instead of the requested subset."
-msgstr ""
+msgstr "Zatražena je sigurnosna kopija za nepoznate DocTypes: {0}. Provjeri ima li tipografskih pogrešaka ili koristite točan naziv DocType (osjetljivo na velika i mala slova). Prekid se vrši kako bih se izbjegao pravljenje potpune sigurnosne kopije umjesto zatraženog podskupa."
 
 #. Label of the backups_tab (Tab Break) field in DocType 'System Settings'
 #. Label of the backups_section (Section Break) field in DocType 'System Health
@@ -4292,11 +4292,11 @@ msgstr "Podebljano"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:165
 msgid "Bold label"
-msgstr ""
+msgstr "Podebljani naziv"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:177
 msgid "Bold value"
-msgstr ""
+msgstr "Podebljana vrijednost"
 
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:233
 msgid "Border"
@@ -5382,7 +5382,7 @@ msgstr "Odaberi boju"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:11
 msgid "Choose a preset…"
-msgstr ""
+msgstr "Odaberi unaprijed postavljenu postavku…"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSetup.vue:7
 msgid "Choose a starting point for your print format."
@@ -5487,7 +5487,7 @@ msgstr "Obrišite poruku e-pošte i dodajte prodložak"
 
 #: frappe/public/js/frappe/list/list_view.js:704
 msgid "Clear the filters to see all records."
-msgstr ""
+msgstr "Izbrišite filtere da biste vidjeli sve zapise."
 
 #: frappe/website/doctype/web_page/web_page.py:217
 msgid "Clearing end date, as it cannot be in the past for published pages."
@@ -5507,7 +5507,7 @@ msgstr "Kliknite polje za uređivanje njegovih svojstava"
 
 #: frappe/templates/emails/user_invitation.html:5
 msgid "Click below to accept your invitation and get started."
-msgstr ""
+msgstr "Klikni ispod da biste prihvatili pozivnicu i započeli."
 
 #: frappe/website/doctype/web_form/templates/web_form.html:167
 msgid "Click here"
@@ -5550,11 +5550,11 @@ msgstr "Klikni na tabelu za uređivanje"
 
 #: frappe/templates/emails/new_user.html:10
 msgid "Click the button below to complete your registration and set a new password."
-msgstr ""
+msgstr "Klikni na gumb ispod kako biste dovršili registraciju i postavili novu lozinku."
 
 #: frappe/templates/emails/login_with_email_link.html:2
 msgid "Click the button below to sign in to your account. This link will expire in {0} minutes."
-msgstr ""
+msgstr "Klikni gumb ispod za prijavu na svoj račun. Ova veza isteći će za {0} minuta."
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:509
 #: frappe/desk/doctype/number_card/number_card.js:556
@@ -6098,7 +6098,7 @@ msgstr "Završi Postavljanje"
 
 #: frappe/templates/emails/new_user.html:1
 msgid "Complete your registration"
-msgstr ""
+msgstr "Dovršite registraciju"
 
 #. Option for the 'Status' (Select) field in DocType 'Auto Repeat'
 #. Option for the 'Status' (Select) field in DocType 'Background Task'
@@ -6514,11 +6514,11 @@ msgstr "Podaci o sadržaju trebaju biti popis"
 
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.py:47
 msgid "Content must be a JSON object"
-msgstr ""
+msgstr "Sadržaj mora biti JSON objekt"
 
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.py:44
 msgid "Content must be valid JSON"
-msgstr ""
+msgstr "Sadržaj mora biti valjani JSON"
 
 #: frappe/website/doctype/web_page/web_page.js:91
 msgid "Content type for building the page"
@@ -6689,7 +6689,7 @@ msgstr "Nije moguće parsati polje: {0}"
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:227
 msgid "Could not render the paged preview"
-msgstr ""
+msgstr "Nije moguće prikazati pregled stranice"
 
 #: frappe/utils/chromium/process.py:173
 msgid "Could not start Chromium. Check logs for details."
@@ -6923,7 +6923,7 @@ msgstr "Izradi izgled"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:221
 msgid "Create one"
-msgstr ""
+msgstr "Izradi jedan"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:58
 msgid "Create or Edit Print Format"
@@ -6935,7 +6935,7 @@ msgstr "Izradi ili Uredi Tijek  Rada"
 
 #: frappe/public/js/frappe/list/list_view.js:708
 msgid "Create your first {0} to get started."
-msgstr ""
+msgstr "Izradi svoj prvi {0} da biste započeli."
 
 #: frappe/workflow/doctype/workflow/workflow.js:16
 msgid "Create your workflow visually using the Workflow Builder."
@@ -8230,7 +8230,7 @@ msgstr "Izbriši pravilo imenovanja {0}?"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:32
 msgid "Delete preset"
-msgstr ""
+msgstr "Izbriši unaprijed postavljenu postavku"
 
 #: frappe/public/js/frappe/form/grid.js:290
 msgid "Delete row"
@@ -8247,7 +8247,7 @@ msgstr "Izbriši seriju imenovanja {0}?"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:195
 msgid "Delete snippet"
-msgstr ""
+msgstr "Izbriši isječak"
 
 #: frappe/public/js/form_builder/components/Tabs.vue:71
 msgctxt "Button text"
@@ -8268,11 +8268,11 @@ msgstr "Izbriši radni prostor <b>{0}</b>? Ovo se ne može poništiti."
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:456
 msgid "Delete the snippet '{0}'?"
-msgstr ""
+msgstr "Izbriši isječak '{0}'?"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:206
 msgid "Delete the style preset '{0}'?"
-msgstr ""
+msgstr "Izbriši unaprijed postavljeni stil '{0}'?"
 
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.py:31
 msgid "Delete this record to allow sending to this email address"
@@ -9733,7 +9733,7 @@ msgstr "Povuci i Ispusti datoteke ovdje ili ih učitaj iz"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:185
 msgid "Drag into the layout, or click to insert"
-msgstr ""
+msgstr "Prevuci u raspored ili klikni za umetanje"
 
 #: frappe/public/js/workflow_builder/WorkflowBuilder.vue:296
 msgid "Drag to add state"
@@ -9820,7 +9820,7 @@ msgstr "Dupliciraj redove"
 
 #: frappe/public/js/print_format_builder/components/editor/SectionActions.vue:16
 msgid "Duplicate section"
-msgstr ""
+msgstr "Dupliciraj odjeljak"
 
 #: frappe/public/js/frappe/form/grid.js:296
 msgid "Duplicate {0} rows"
@@ -10694,7 +10694,7 @@ msgstr "Omogući potvrdne okvire za odabir više zapisa i izvođenje masovnih op
 
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.py:32
 msgid "Enable developer mode to create a standard Print Format Snippet"
-msgstr ""
+msgstr "Omogućite način rada za razvojne programere za stvaranje standardnog isječka formata ispisa"
 
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.py:31
 msgid "Enable developer mode to create a standard Print Template"
@@ -11284,7 +11284,7 @@ msgstr "Postojeći Gravatar URL-ovi mogu se i dalje pohraniti u zapisima korisni
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:19
 msgid "Exit full screen"
-msgstr ""
+msgstr "Izađi iz punog zaslona"
 
 #: frappe/public/js/frappe/views/treeview.js:125
 #: frappe/public/js/frappe/views/treeview.js:137
@@ -11456,7 +11456,7 @@ msgstr "Izvezi samo prilagodbe dodijeljene odabranom modulu.<br><span class='tex
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:148
 msgid "Export snippets"
-msgstr ""
+msgstr "Izvezi isječke"
 
 #. Description of the 'Export without main header' (Check) field in DocType
 #. 'Data Export'
@@ -11468,7 +11468,7 @@ msgstr "Eksportiraj podatke bez ikakvih bilješki u zaglavlju i opisa kolona"
 #. Snippet'
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.json
 msgid "Export this snippet to its module so it ships with the app. Requires developer mode."
-msgstr ""
+msgstr "Izvezi ovaj isječak u njegov modul kako bi se isporučio s aplikacijom. Zahtijeva način rada za razvojne programere."
 
 #. Label of the export_without_main_header (Check) field in DocType 'Data
 #. Export'
@@ -11904,11 +11904,11 @@ msgstr "Polje nije dozvoljeno u upitu"
 
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:519
 msgid "Field saved as snippet"
-msgstr ""
+msgstr "Polje spremljeno kao isječak"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:217
 msgid "Field templates render a specific field with custom Jinja/HTML, e.g. a custom items table."
-msgstr ""
+msgstr "Predlošci polja prikazuju određeno polje s prilagođenim Jinja/HTML-om, npr. prilagođenu tablicu artikala."
 
 #. Description of the 'Workflow State Field' (Data) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -12466,7 +12466,7 @@ msgstr "Decimalna Preciznost"
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:8
 msgid "Flow"
-msgstr ""
+msgstr "Protok"
 
 #: frappe/core/doctype/error_log/error_log_list.js:26
 msgid "Flush Error Logs"
@@ -13084,7 +13084,7 @@ msgstr "Potpuno ime je obavezno."
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:19
 msgid "Full screen"
-msgstr ""
+msgstr "Cijeli zaslon"
 
 #. Label of the function (Select) field in DocType 'Number Card'
 #. Label of the report_function (Select) field in DocType 'Number Card'
@@ -14691,15 +14691,15 @@ msgstr "Ako učitavate nove zapise, ostavite kolonu \"ime\" (ID) praznom."
 
 #: frappe/templates/emails/password_reset.html:6
 msgid "If you did not request a password reset, please ignore this email. Your password will remain unchanged."
-msgstr ""
+msgstr "Ako niste zatražili poništenje lozinke, zanemari ovu e-poštu. Vaša lozinka će ostati nepromijenjena."
 
 #: frappe/templates/emails/verification_code.html:4
 msgid "If you did not request this code, you can safely ignore this email."
-msgstr ""
+msgstr "Ako niste zatražili ovaj kod, možete sigurno zanemariti ovu e-poruku."
 
 #: frappe/templates/emails/login_with_email_link.html:6
 msgid "If you didn't request this link, you can ignore this email. Someone may have entered your email address by mistake."
-msgstr ""
+msgstr "Ako niste zatražili ovu poveznicu, možete zanemariti ovu e-poruku. Netko je možda pogreškom unio vašu adresu e-pošte."
 
 #: frappe/templates/emails/user_invitation.html:10
 msgid "If you have any questions, reach out to your system administrator."
@@ -14972,7 +14972,7 @@ msgstr "Uvezi iz Google Sheet"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:157
 msgid "Import snippets"
-msgstr ""
+msgstr "Uvezi isječke"
 
 #: frappe/core/doctype/data_import/importer.py:858
 msgid "Import template should be of type .csv, .xlsx or .xls"
@@ -14988,7 +14988,7 @@ msgstr "Uvoz je istekao, pokušaj ponovo."
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:473
 msgid "Imported {0} snippet(s)"
-msgstr ""
+msgstr "Uvezeno {0} isječaka"
 
 #: frappe/core/doctype/data_import/data_import.js:19
 msgid "Importing or updating {0} of {1}, {2}"
@@ -15739,7 +15739,7 @@ msgstr "Nevažeće Polje Pretrage {0}"
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.py:44
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.py:47
 msgid "Invalid Snippet"
-msgstr ""
+msgstr "Nevažeći isječak"
 
 #: frappe/core/doctype/doctype/doctype.py:1314
 msgid "Invalid Table Fieldname"
@@ -15997,7 +15997,7 @@ msgstr "Pozivnica već postoji"
 
 #: frappe/templates/emails/user_invitation_cancelled.html:1
 msgid "Invitation cancelled"
-msgstr ""
+msgstr "Pozivnica otkazana"
 
 #: frappe/core/api/user_invitation.py:101
 msgid "Invitation cannot be cancelled"
@@ -16005,7 +16005,7 @@ msgstr "Pozivnica se ne može otkazati"
 
 #: frappe/templates/emails/user_invitation_expired.html:1
 msgid "Invitation expired"
-msgstr ""
+msgstr "Pozivnica istekla"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:130
 msgid "Invitation is cancelled"
@@ -16542,7 +16542,7 @@ msgstr "Ostavi skener otvoren nakon skeniranja"
 
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:105
 msgid "Keep together"
-msgstr ""
+msgstr "Drži zajedno"
 
 #. Description of a DocType
 #: frappe/core/doctype/activity_log/activity_log.json
@@ -17119,7 +17119,7 @@ msgstr "Ostavite prazno da biste naslijedili ikonu isporučene iz aplikacije."
 #. Snippet'
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.json
 msgid "Leave blank to make this snippet available for all document types"
-msgstr ""
+msgstr "Ostavite prazno kako bi ovaj isječak bio dostupan za sve tipove dokumenata"
 
 #. Description of the 'Document Type' (Link) field in DocType 'Print Format
 #. Field Template'
@@ -17794,7 +17794,7 @@ msgstr "DocType Registara Sustava"
 
 #: frappe/templates/emails/login_with_email_link.html:4
 msgid "Log In to {0}"
-msgstr ""
+msgstr "Prijavi se na {0}"
 
 #. Label of the log_index (Int) field in DocType 'Data Import Log'
 #: frappe/core/doctype/data_import_log/data_import_log.json
@@ -17818,7 +17818,7 @@ msgstr "Prijavite se da pristupite ovoj stranici."
 
 #: frappe/templates/emails/login_with_email_link.html:1
 msgid "Log in to {0}"
-msgstr ""
+msgstr "Prijavite se na {0}"
 
 #: frappe/website/doctype/website_settings/website_settings.py:182
 msgid "Log out"
@@ -18764,7 +18764,7 @@ msgstr "Minimum"
 
 #: frappe/www/update-password.html:53
 msgid "Minimum 8 characters, including at least one number or special character."
-msgstr ""
+msgstr "Najmanje 8 znakova, uključujući barem jedan broj ili poseban znak."
 
 #. Label of the minimum_password_score (Select) field in DocType 'System
 #. Settings'
@@ -18981,7 +18981,7 @@ msgstr "Modul promijenjen na {0}. Datoteke u prethodnom modulu nisu premještene
 
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.py:34
 msgid "Module is required for a standard Print Format Snippet"
-msgstr ""
+msgstr "Modul je obavezan za standardni isječak formata ispisa."
 
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.py:33
 msgid "Module is required for a standard Print Template"
@@ -20180,7 +20180,7 @@ msgstr "Nema kašnjenja"
 
 #: frappe/utils/print_format_generator.py:192
 msgid "No document available to preview"
-msgstr ""
+msgstr "Nema dostupnih dokumenata za pregled"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/print_format.js:180
 msgid "No document to preview"
@@ -20204,7 +20204,7 @@ msgstr "Nema dostupnih polja za masovno uređivanje."
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:21
 msgid "No email account associated with the User. Please add an account under User > Settings > User Emails."
-msgstr ""
+msgstr "Nijedan račun e-pošte nije povezan s korisnikom. Dodajte račun pod Korisnik > Postavke > E-pošta korisnika."
 
 #: frappe/core/api/user_invitation.py:17
 msgid "No email addresses to invite"
@@ -20438,7 +20438,7 @@ msgstr "U datoteci za uvoz nisu pronađeni valjani čvorovi stabla."
 
 #: frappe/public/js/print_format_builder/components/editor/FieldPreviewBarcode.vue:12
 msgid "No value to encode"
-msgstr ""
+msgstr "Nema vrijednosti za kodiranje"
 
 #: frappe/public/js/frappe/form/controls/multiselect_list.js:301
 #: frappe/public/js/frappe/utils/utils.js:1063
@@ -20455,7 +20455,7 @@ msgstr "Bez {0}"
 
 #: frappe/public/js/frappe/list/list_view.js:701
 msgid "No {0} created"
-msgstr ""
+msgstr "Nije izrađen {0}"
 
 #: frappe/public/js/frappe/list/list_view.js:700
 #: frappe/public/js/frappe/web_form/web_form_list.js:263
@@ -20750,7 +20750,7 @@ msgstr "Napomene:"
 
 #: frappe/public/js/frappe/list/list_view.js:709
 msgid "Nothing has been added yet."
-msgstr ""
+msgstr "Još ništa nije dodano."
 
 #: frappe/public/js/frappe/form/doctype_settings/registry.js:87
 msgid "Nothing here yet"
@@ -21711,7 +21711,7 @@ msgstr "Opcije nisu postavljene za polje veze {0}"
 
 #: frappe/templates/emails/new_user.html:21
 msgid "Or copy and paste this link:"
-msgstr ""
+msgstr "Ili kopiraj i zalijepi ovaj link:"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
@@ -22065,7 +22065,7 @@ msgstr "Širina Stranice (u mm)"
 
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:100
 msgid "Page break after"
-msgstr ""
+msgstr "Prijelom stranice nakon"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormat.vue:164
 msgid "Page break must follow a section"
@@ -22702,7 +22702,7 @@ msgstr "Odaberi Kolone"
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:41
 msgid "Pick a record in the toolbar above to preview it."
-msgstr ""
+msgstr "Odaberi zapis u alatnoj traci iznad da biste ga pregledali."
 
 #: frappe/public/js/print_format_builder/PrintFormatBuilder.vue:26
 msgid "Pick a record to see real values"
@@ -23443,7 +23443,7 @@ msgstr "Priloži prodložak poruci e-pošte"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:187
 msgid "Preset name"
-msgstr ""
+msgstr "Naziv unaprijed postavljene postavke"
 
 #: frappe/public/js/frappe/ui/keyboard.js:157
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:756
@@ -23668,7 +23668,7 @@ msgstr "Pomoć Ispis Formata"
 #. Name of a DocType
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.json
 msgid "Print Format Snippet"
-msgstr ""
+msgstr "Isječak Formata Ispisa"
 
 #. Label of the print_format_type (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -23739,7 +23739,7 @@ msgstr "Postavke Ispisa"
 
 #: frappe/public/js/print_format_builder/PrintFormatBuilder.vue:141
 msgid "Print Settings updated"
-msgstr ""
+msgstr "Postavke Ispisa ažurirane"
 
 #. Label of the print_style_section (Section Break) field in DocType 'Print
 #. Settings'
@@ -24646,7 +24646,7 @@ msgstr "Crvena"
 #. Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Redact Message After Send"
-msgstr ""
+msgstr "Uredi Poruku nakon Slanja"
 
 #. Label of the redirect_http_status (Select) field in DocType 'Website Route
 #. Redirect'
@@ -25158,7 +25158,7 @@ msgstr "Ukloni sekciju"
 
 #: frappe/public/js/print_format_builder/components/inspector/BulkPropertiesPanel.vue:18
 msgid "Remove selected"
-msgstr ""
+msgstr "Ukloni odabrano"
 
 #: frappe/public/js/form_builder/components/Tabs.vue:141
 msgid "Remove tab"
@@ -25291,7 +25291,7 @@ msgstr "Zamijeni predložak <strong>{0}</strong> s trenutnim vrijednostima obras
 #. 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Replace the message body with a placeholder once the email has been sent, so that sensitive content like password reset links is not retained in the queue."
-msgstr ""
+msgstr "Zamijenite tijelo poruke rezerviranim mjestom nakon što je e-pošta poslana kako se osjetljivi sadržaj poput poveznica za poništenje lozinke ne bi zadržavao u redu čekanja."
 
 #: frappe/public/js/frappe/form/template_manager.js:387
 msgid "Replace with current form values"
@@ -26667,7 +26667,7 @@ msgstr "Spremi Prilagođavanja"
 
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:525
 msgid "Save Field as Snippet"
-msgstr ""
+msgstr "Spremi Polje kao Isječak"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:24
 msgid "Save Print Format"
@@ -26679,15 +26679,15 @@ msgstr "Spremi Izvještaj"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSection.vue:271
 msgid "Save Section as Snippet"
-msgstr ""
+msgstr "Spremi Odjeljak kao Isječak"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:198
 msgid "Save Style Preset"
-msgstr ""
+msgstr "Spremi unaprijed postavljeni stil"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:164
 msgid "Save a section or field as a snippet to reuse it here."
-msgstr ""
+msgstr "Spremi odjeljak ili polje kao isječak da biste ga ponovo koristili ovdje."
 
 #: frappe/public/js/frappe/form/template_manager.js:63
 msgid "Save as Template"
@@ -26696,15 +26696,15 @@ msgstr "Spremi kao Predložak"
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:152
 #: frappe/public/js/print_format_builder/components/editor/SectionActions.vue:25
 msgid "Save as snippet"
-msgstr ""
+msgstr "Spremi kao isječak"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:21
 msgid "Save current style as a preset"
-msgstr ""
+msgstr "Spremi trenutni stil kao unaprijed postavljenu postavku"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:60
 msgid "Save failed"
-msgstr ""
+msgstr "Spremanje nije uspjelo"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:131
 msgid "Save filters"
@@ -26738,7 +26738,7 @@ msgstr "Spremljeno"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:140
 msgid "Saved Snippets"
-msgstr ""
+msgstr "Spremljeni isječci"
 
 #: frappe/public/js/frappe/list/list_settings.js:55
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:47
@@ -26773,7 +26773,7 @@ msgstr "Spremanje u toku..."
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:58
 #: frappe/public/js/print_format_builder/stores/index.js:160
 msgid "Saving…"
-msgstr ""
+msgstr "Spremanje…"
 
 #: frappe/public/js/frappe/form/controls/data.js:149
 msgid "Scan"
@@ -27129,7 +27129,7 @@ msgstr "Sekcija mora imati najmanje jednu kolonu"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSection.vue:265
 msgid "Section saved as snippet"
-msgstr ""
+msgstr "Odjeljak spremljen kao isječak"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:30
 msgid "Section:"
@@ -27137,7 +27137,7 @@ msgstr "Odjeljak:"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormat.vue:69
 msgid "Sections hold the columns and fields of your document."
-msgstr ""
+msgstr "Odjeljci sadrže stupce i polja vašeg dokumenta."
 
 #: frappe/core/doctype/user/user.py:1525
 msgid "Security Alert: Your account is being impersonated"
@@ -27555,7 +27555,7 @@ msgstr "Odabrani red, opisi i poveznice"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:107
 msgid "Selection"
-msgstr ""
+msgstr "Odabir"
 
 #: frappe/model/workflow.py:137
 msgid "Self approval is not allowed"
@@ -28705,11 +28705,11 @@ msgstr "Prikaži Priloge"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:86
 msgid "Show colon after labels"
-msgstr ""
+msgstr "Prikaži dvotočku nakon oznaka"
 
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:205
 msgid "Show column when"
-msgstr ""
+msgstr "Prikaži stupac kada"
 
 #: frappe/core/page/component_explorer/component_explorer.js:921
 msgid "Show custom icon"
@@ -29219,7 +29219,7 @@ msgstr "Izvješća Trenutnog Stanja"
 #. Label of the snippet_type (Select) field in DocType 'Print Format Snippet'
 #: frappe/printing/doctype/print_format_snippet/print_format_snippet.json
 msgid "Snippet Type"
-msgstr ""
+msgstr "Tip Isječka"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:61
 msgid "Snippet and more variables:  {0}"
@@ -29228,7 +29228,7 @@ msgstr "Isječak i više varijabli:  {0}"
 #: frappe/public/js/print_format_builder/components/editor/Field.vue:509
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSection.vue:255
 msgid "Snippet name"
-msgstr ""
+msgstr "Naziv isječka"
 
 #. Name of a DocType
 #: frappe/website/doctype/social_link_settings/social_link_settings.json
@@ -29886,7 +29886,7 @@ msgstr "Ravne redove ključeva je lako pogoditi"
 
 #: frappe/www/update-password.html:42
 msgid "Strength:"
-msgstr ""
+msgstr "Snaga:"
 
 #. Label of the strip_exif_metadata_from_uploaded_images (Check) field in
 #. DocType 'System Settings'
@@ -29916,7 +29916,7 @@ msgstr "Stil"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:4
 msgid "Style Preset"
-msgstr ""
+msgstr "Unaprijed Postavljeni Stil"
 
 #. Label of the section_break_9 (Section Break) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -29925,7 +29925,7 @@ msgstr "Postavke Stila"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:196
 msgid "Style preset saved"
-msgstr ""
+msgstr "Unaprijed Postavljeni Stil spremljen"
 
 #. Description of the 'Style' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -31579,7 +31579,7 @@ msgstr "Ovaj dokument ima nespremljene promjene koje se možda neće pojaviti u 
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:47
 msgid "This document is a draft and cannot be printed."
-msgstr ""
+msgstr "Ovaj dokument je nacrt i ne može se ispisati."
 
 #: frappe/public/js/frappe/form/form.js:1266
 msgid "This document is already amended, you cannot ammend it again"
@@ -31587,7 +31587,7 @@ msgstr "Ovaj dokument je već izmijenjen, ne možete ga ponovo mijenjati"
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:44
 msgid "This document is cancelled and cannot be printed."
-msgstr ""
+msgstr "Ovaj dokument je poništen i ne može se ispisati."
 
 #: frappe/model/document.py:795
 msgid "This document is currently locked and queued for execution. Please try again after some time."
@@ -31595,7 +31595,7 @@ msgstr "Ovaj dokument je trenutno zaključan i na čekanju za izvršenje. Molimo
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:84
 msgid "This document type has no printable fields."
-msgstr ""
+msgstr "Ovaj tip dokumenta nema polja za ispis."
 
 #: frappe/templates/emails/auto_repeat_fail.html:7
 msgid "This email is autogenerated"
@@ -31625,7 +31625,7 @@ msgstr "Ovo polje će se pojaviti samo ako ovdje definirani naziv polja ima vrij
 
 #: frappe/public/js/print_format_builder/composables/useSnippets.js:113
 msgid "This file does not contain any snippets"
-msgstr ""
+msgstr "Ova datoteka ne sadrži nikakve isječke"
 
 #: frappe/core/doctype/file/file.py:604
 msgid "This file is attached to a protected document and cannot be deleted."
@@ -33466,7 +33466,7 @@ msgstr "Koristi jake lozinke."
 
 #: frappe/templates/emails/verification_code.html:2
 msgid "Use the code below to complete your sign-in."
-msgstr ""
+msgstr "Upotrijebi kod ispod za dovršetak prijave."
 
 #. Description of the 'Title Field' (Data) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
@@ -33994,7 +33994,7 @@ msgstr "Vrijednost Na Osnovu"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:423
 msgid "Value Based On field is required to create a dashboard chart"
-msgstr ""
+msgstr "Polje Vrijednost na temelju je obavezno za izradu grafikona nadzorne ploče"
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -34141,7 +34141,7 @@ msgstr "Veza za Verifikaciju"
 
 #: frappe/templates/emails/verification_code.html:1
 msgid "Verification code"
-msgstr ""
+msgstr "Verifikacijski kod"
 
 #: frappe/templates/includes/login/login.js:470
 msgid "Verification code email not sent. Please contact Administrator."
@@ -34463,7 +34463,7 @@ msgstr "Primili smo vaš zahtjev za preuzimanje vaših {0} podataka povezanih sa
 
 #: frappe/templates/emails/password_reset.html:3
 msgid "We received a request to reset the password for your account. Click the button below to set a new password."
-msgstr ""
+msgstr "Primili smo zahtjev za poništenje lozinke za vaš račun. Kliknite gumb ispod da biste postavili novu lozinku."
 
 #: frappe/www/attribution.html:8
 msgid "We would like to thank the authors of these packages for their contribution."
@@ -35602,7 +35602,7 @@ msgstr "Nije vam dopušten pristup {0}."
 
 #: frappe/public/js/print_format_builder/PrintFormatBuilder.vue:118
 msgid "You are not permitted to change Print Settings"
-msgstr ""
+msgstr "Nije vam dopušteno mijenjati Postavke Ispisa"
 
 #: frappe/public/js/frappe/form/sidebar/document_follow.js:131
 msgid "You are now following this document. You will receive daily updates via email. You can change this in User Settings."
@@ -36053,7 +36053,7 @@ msgstr "Bit ćete preusmjereni na:"
 
 #: frappe/templates/emails/user_invitation.html:1
 msgid "You've been invited"
-msgstr ""
+msgstr "Pozvani ste"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:115
 msgid "You've been invited to join {0}"
@@ -36110,7 +36110,7 @@ msgstr "Vašu dodjelu {0} {1} je uklonio {2}"
 
 #: frappe/integrations/google_oauth.py:203
 msgid "Your authorization attempt is invalid or has expired. Please try again."
-msgstr ""
+msgstr "Vaš pokušaj autorizacije nije valjan ili je istekao. Pokušaj ponovno."
 
 #: frappe/core/doctype/file/file.js:98
 msgid "Your browser does not support the audio element."
@@ -36146,11 +36146,11 @@ msgstr "Vaša pozivnica za pridruživanje {0} je istekla."
 
 #: frappe/templates/emails/new_user.html:8
 msgid "Your login ID is:"
-msgstr ""
+msgstr "Vaš ID za prijavu je:"
 
 #: frappe/utils/oauth.py:232
 msgid "Your login attempt is invalid or has expired. Please try again."
-msgstr ""
+msgstr "Vaš pokušaj prijave nije valjan ili je istekao. Pokušaj ponovno."
 
 #: frappe/www/update-password.html:179
 msgid "Your new password has been set successfully."
@@ -36184,7 +36184,7 @@ msgstr "Vaše se izvješće generira u pozadini. Primit ćete e-poruku na {0} s 
 
 #: frappe/public/js/frappe/desk.js:417
 msgid "Your session has expired due to inactivity. Please log in again to continue."
-msgstr ""
+msgstr "Vaša sesija je istekla zbog neaktivnosti. Prijavi se ponovo da biste nastavili."
 
 #: frappe/app.py:387
 msgid "Your session has expired, please login again to continue."
@@ -36920,7 +36920,7 @@ msgstr "od jučer"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:478
 msgid "skipped {0}"
-msgstr ""
+msgstr "preskočeno {0}"
 
 #: frappe/core/doctype/doctype_settings_map/doctype_settings_map.py:86
 msgid "standard"
@@ -37412,7 +37412,7 @@ msgstr "{0} polja"
 
 #: frappe/public/js/print_format_builder/components/inspector/BulkPropertiesPanel.vue:3
 msgid "{0} fields selected"
-msgstr ""
+msgstr "{0} odabrana polja"
 
 #: frappe/core/doctype/data_import/importer.py:1764
 msgid "{0} format could not be determined from the values in this column. Defaulting to {1}."
@@ -37590,7 +37590,7 @@ msgstr "{0} nije važeći ISO 3166 ALPHA-2 kod."
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:470
 msgid "{0} is not a valid JSON file"
-msgstr ""
+msgstr "{0} nije valjana JSON datoteka"
 
 #: frappe/utils/__init__.py:176
 msgid "{0} is not a valid Name"
@@ -37881,7 +37881,7 @@ msgstr "{0} redova do {1}"
 
 #: frappe/public/js/print_format_builder/composables/useSnippets.js:163
 msgid "{0} saved section(s) already exist by name and were not imported"
-msgstr ""
+msgstr "{0} spremljenih odjeljaka već postoje po imenu i nisu uvezeni"
 
 #: frappe/desk/query_report.py:897
 msgid "{0} saved successfully"
