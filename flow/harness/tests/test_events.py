@@ -5,6 +5,7 @@ from flow_server.events import (
 	ApprovalRequired,
 	AssistantMessage,
 	Retry,
+	Rewind,
 	RunEnded,
 	RunError,
 	RunStarted,
@@ -29,6 +30,7 @@ def test_durable_classification():
 		ToolResult,
 		Usage,
 		ApprovalRequired,
+		Rewind,
 		RunEnded,
 		RunError,
 	]

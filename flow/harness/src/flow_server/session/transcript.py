@@ -28,6 +28,7 @@ from flow_server.events import (
 	ApprovalRequired,
 	AssistantMessage,
 	PendingCall,
+	Rewind,
 	RunEnded,
 	RunStarted,
 	ToolCall,
@@ -40,6 +41,37 @@ from flow_server.session.log import SessionLog
 
 _INTERRUPTED_TOOL_CONTENT = "Tool call interrupted before completion."
 _logger = logging.getLogger(__name__)
+
+
+def active_path(rows: list[dict], leaf_seq: int | None = None) -> list[dict]:
+	"""Root→leaf rows of the branch ending at `leaf_seq` (default: the stored leaf).
+
+	Rows off the branch stay in the log but are not part of the conversation.
+	"""
+	by_seq = {row["seq"]: row for row in rows}
+	if leaf_seq is None:  # the last row, or where its rewind points
+		if not rows:
+			return []
+		last = rows[-1]
+		leaf_seq = last["target_seq"] if last["type"] == "rewind" else last["seq"]
+	elif leaf_seq not in by_seq:
+		raise ValueError(f"entry {leaf_seq} does not exist")
+	elif by_seq[leaf_seq]["type"] == "rewind":
+		raise ValueError(f"entry {leaf_seq} is a rewind marker, not a conversation entry")
+
+	path: list[dict] = []
+	seq = leaf_seq
+	while seq is not None:
+		row = by_seq.get(seq)
+		if row is None:
+			raise ValueError(f"entry {seq} is missing from the log")
+		path.append(row)
+		parent = row.get("parent_seq")
+		if parent is not None and parent >= seq:
+			raise ValueError(f"entry {seq} points forward to {parent}")
+		seq = parent
+	path.reverse()
+	return path
 
 
 @dataclass(frozen=True)
@@ -90,14 +122,18 @@ class _OpenApproval:
 class Transcript:
 	def __init__(self) -> None:
 		self.messages: list[TranscriptMessage] = []
+		self.leaf_seq: int | None = None  # what the next committed event follows
 		self._open_calls: _OpenToolCalls | None = None
 		self._open_approval: _OpenApproval | None = None
 
 	@classmethod
-	def replay(cls, log: SessionLog) -> Transcript:
-		"""Rebuild the transcript from disk — the one full read, at session load."""
+	def replay(cls, log: SessionLog, *, leaf_seq: int | None = None) -> Transcript:
+		"""Rebuild the transcript from disk — the one full read, at session load.
+
+		Only the active branch is folded; pass `leaf_seq` to preview a rewind target.
+		"""
 		transcript = cls()
-		for row in log.read_since(0):
+		for row in active_path(log.read_since(0), leaf_seq):
 			transcript.record(parse_event(row))
 		return transcript
 
@@ -111,6 +147,10 @@ class Transcript:
 
 	def record(self, event: AnyEvent) -> None:
 		"""Take one committed event into account, as it happens."""
+		if isinstance(event, Rewind):  # the session swaps in a transcript rebuilt from there
+			self.leaf_seq = event.target_seq
+			return
+		self.leaf_seq = event.seq
 		if isinstance(event, UserMessage):
 			self._close_turn()
 			self.messages.append(event)

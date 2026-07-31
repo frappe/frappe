@@ -28,6 +28,7 @@ from flow_server.events import (
 	AnyEvent,
 	AssistantMessage,
 	ProviderErrorKind,
+	Rewind,
 	RunEnded,
 	RunError,
 	ToolResult,
@@ -55,6 +56,10 @@ class SessionConflict(Exception):
 
 class ResumeError(ValueError):
 	"""The requested continuation does not match the current approval batch."""
+
+
+class RewindError(ValueError):
+	"""The requested rewind target does not exist or is not a clean branch point."""
 
 
 def validate_resume(
@@ -185,6 +190,22 @@ class Session:
 		self._steering_queue.clear()
 		return True
 
+	async def rewind(self, target_seq: int) -> None:
+		"""Move the conversation back to an earlier entry; the next run branches from it.
+
+		The target must leave no unanswered tool calls and no pending approval."""
+		async with self._operation_lock:
+			if self.state is SessionState.RUNNING:
+				raise SessionConflict("a run is already active")
+			try:
+				candidate = Transcript.replay(self.log, leaf_seq=target_seq)
+			except ValueError as error:
+				raise RewindError(str(error)) from None
+			if candidate.missing_results() or candidate.pending_approval is not None:
+				raise RewindError(f"entry {target_seq} leaves tool calls unanswered")
+			self._commit(Rewind(target_seq=target_seq))
+			self.transcript = candidate
+
 	async def cancel_pending(self) -> bool:
 		"""Abandon a paused run's approval batch: answer every undecided call with a
 		cancellation so the transcript closes and the session returns to idle."""
@@ -236,6 +257,7 @@ class Session:
 	def _commit(self, event: AnyEvent) -> None:
 		"""Persist (if durable), fold into the transcript, fan out, forward to the sink."""
 		if event.durable:
+			event.parent_seq = self.transcript.leaf_seq  # after a rewind, not the last row
 			self.log.append(event)
 			self.transcript.record(event)
 		for queue in list(self._subscribers):

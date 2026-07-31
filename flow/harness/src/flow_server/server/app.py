@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import secrets
 from collections.abc import AsyncIterator
+from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -21,8 +22,15 @@ from pydantic import BaseModel, ConfigDict
 from flow_server.events import AssistantMessage, parse_event
 from flow_server.session.config import SessionConfig
 from flow_server.session.log import SessionLogError
-from flow_server.session.session import ResumeError, RunHandle, Session, SessionConflict
+from flow_server.session.session import (
+	ResumeError,
+	RewindError,
+	RunHandle,
+	Session,
+	SessionConflict,
+)
 from flow_server.session.store import SessionStore
+from flow_server.session.transcript import active_path
 
 
 class RunRequest(BaseModel):
@@ -42,11 +50,18 @@ class ResumeRequest(BaseModel):
 	answers: dict[str, str]  # pending tool_call_id -> "Approve" | "Deny" | free text
 
 
+class RewindRequest(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
+	target_seq: int
+
+
 def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI:
 	app = FastAPI(title="flow_server", version="0.1.0")
 
 	@app.exception_handler(SessionConflict)
 	@app.exception_handler(ResumeError)
+	@app.exception_handler(RewindError)
 	async def state_conflict(request: Request, error: Exception):
 		"""A session verb refused by the session's current state answers 409."""
 		return JSONResponse({"detail": str(error)}, status_code=409)
@@ -128,6 +143,12 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 			return {"status": "aborting"}
 		return {"status": session.state}
 
+	@app.post("/sessions/{sid}/rewind")
+	async def rewind(sid: str, req: RewindRequest):
+		session = _get(sid)
+		await session.rewind(req.target_seq)
+		return {"status": "rewound"}
+
 	@app.post("/sessions/{sid}/cancel_pending")
 	async def cancel_pending(sid: str):
 		session = _get(sid)
@@ -136,10 +157,14 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 		return {"status": session.state}
 
 	@app.get("/sessions/{sid}/entries")
-	async def entries(sid: str, since: int = 0):
+	async def entries(sid: str, since: int = 0, path: Literal["active", "all"] = "active"):
 		session = _get(sid)
+		if path == "all":  # the raw log, including branches a rewind abandoned
+			rows = session.log.read_since(since)
+		else:
+			rows = [row for row in active_path(session.log.read_since(0)) if row["seq"] > since]
 		return {
-			"entries": session.log.read_since(since),
+			"entries": rows,
 			"latest_seq": session.log.latest_seq,
 			"state": session.state,
 			"running": session.is_running,

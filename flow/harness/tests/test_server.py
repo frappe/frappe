@@ -694,3 +694,42 @@ async def test_cancel_pending_while_running_is_rejected(tmp_path, monkeypatch):
 
 		model.release.set()
 		assert (await first).json()["reason"] == "done"
+
+
+def test_rewind_branches_the_conversation_over_http(tmp_path):
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
+	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "first"})
+
+	assert c.post(f"/sessions/{sid}/rewind", json={"target_seq": 1}).json() == {"status": "rewound"}
+
+	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "second"})
+	active = c.get(f"/sessions/{sid}/entries").json()["entries"]  # the conversation view is the default
+	assert [r["content"] for r in active if r["type"] == "user_message"] == ["second"]
+	everything = c.get(f"/sessions/{sid}/entries", params={"path": "all"}).json()["entries"]
+	assert [r["content"] for r in everything if r["type"] == "user_message"] == ["first", "second"]
+	assert "rewind" in [r["type"] for r in everything]  # the old branch is still there
+
+	assert c.post(f"/sessions/{sid}/rewind", json={"target_seq": 999}).status_code == 409
+
+
+async def test_rewind_while_running_is_rejected_over_http(tmp_path, monkeypatch):
+	model = _BlockingModel()
+	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: model)
+	store = SessionStore(
+		str(tmp_path / "data"),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+	)
+	app = create_app(store)
+	transport = httpx.ASGITransport(app=app)
+	async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+		sid = (await client.post("/sessions", json={"cwd": str(tmp_path)})).json()["session_id"]
+		first = asyncio.create_task(
+			client.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "go"})
+		)
+		await model.started.wait()
+
+		assert (await client.post(f"/sessions/{sid}/rewind", json={"target_seq": 1})).status_code == 409
+
+		model.release.set()
+		assert (await first).json()["reason"] == "done"

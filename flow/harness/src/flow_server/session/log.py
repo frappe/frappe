@@ -43,7 +43,9 @@ class SessionLog:
 			if not event.durable:
 				raise ValueError("live-only events cannot be appended to the session log")
 			next_seq = self._seq + 1
-			persisted = event.model_copy(update={"seq": next_seq})
+			# default to the previous row; a rewound writer passes its own parent
+			parent_seq = event.parent_seq if event.parent_seq is not None else (self._seq or None)
+			persisted = event.model_copy(update={"seq": next_seq, "parent_seq": parent_seq})
 			data = (persisted.model_dump_json(exclude_none=True) + "\n").encode()
 			os.makedirs(os.path.dirname(self.path), mode=0o700, exist_ok=True)
 			fd = os.open(self.path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
@@ -64,6 +66,7 @@ class SessionLog:
 			# only now is the line durable, so only now does the sequence advance
 			self._seq = next_seq
 			event.seq = next_seq
+			event.parent_seq = parent_seq
 			return next_seq
 
 	def read_since(self, since: int) -> list[dict]:

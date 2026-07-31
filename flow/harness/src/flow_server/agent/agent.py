@@ -63,6 +63,10 @@ class Agent:
 		"""Signal the active run to stop; return whether a run was active."""
 		return self._session.abort()
 
+	async def rewind(self, target_seq: int) -> None:
+		"""Move the conversation back to an earlier entry; the next run branches from it."""
+		await self._session.rewind(target_seq)
+
 	async def _events(self, submit: Callable[[], Awaitable[RunHandle]]) -> AsyncIterator[AnyEvent]:
 		queue = self._session.subscribe()  # subscribe before the run starts so no event is missed
 		task: asyncio.Task[None] | None = None

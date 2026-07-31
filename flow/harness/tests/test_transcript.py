@@ -4,6 +4,7 @@ from flow_server.events import (
 	ApprovalRequired,
 	AssistantMessage,
 	PendingCall,
+	Rewind,
 	RunEnded,
 	RunStarted,
 	TextContent,
@@ -13,7 +14,7 @@ from flow_server.events import (
 	UserMessage,
 )
 from flow_server.session.log import SessionLog
-from flow_server.session.transcript import Transcript
+from flow_server.session.transcript import Transcript, active_path
 
 INTERRUPTED = "Tool call interrupted before completion."
 
@@ -314,3 +315,99 @@ def test_replay_spans_runs_with_a_repair_and_a_reused_call_id(tmp_path):
 	assert approval is not None
 	assert [c.id for c in approval.calls] == ["c1"]
 	assert transcript.missing_results() == ()
+
+
+def test_replay_follows_the_active_branch_after_a_rewind(tmp_path):
+	log = make_log(
+		tmp_path,
+		RunStarted(run_id="run_1"),  # 1
+		UserMessage(content="A"),  # 2
+		AssistantMessage(content="X"),  # 3
+		RunEnded(),  # 4
+		Rewind(target_seq=2),  # 5
+		RunStarted(run_id="run_2", parent_seq=2),  # 6, branches off 2
+		UserMessage(content="B", parent_seq=6),  # 7
+		AssistantMessage(content="Y", parent_seq=7),  # 8
+		RunEnded(parent_seq=8),  # 9
+	)
+
+	transcript = Transcript.replay(log)
+
+	# "X" is off the conversation
+	assert [
+		(m.type, getattr(m, "text", None) or getattr(m, "content", None)) for m in transcript.messages
+	] == [
+		("user_message", "A"),
+		("user_message", "B"),
+		("assistant_message", "Y"),
+	]
+	assert transcript.leaf_seq == 9
+
+
+def test_rewind_to_a_runs_start_replaces_the_user_message(tmp_path):
+	log = make_log(
+		tmp_path,
+		RunStarted(run_id="run_1"),  # 1
+		UserMessage(content="A"),  # 2
+		AssistantMessage(content="X"),  # 3
+		RunEnded(),  # 4
+		Rewind(target_seq=1),  # 5
+		UserMessage(content="B", parent_seq=1),  # 6, sibling of 2
+		AssistantMessage(content="Y", parent_seq=6),  # 7
+	)
+
+	transcript = Transcript.replay(log)
+
+	assert [getattr(m, "text", None) or m.content for m in transcript.messages] == ["B", "Y"]
+
+
+def test_explicit_leaf_previews_an_earlier_point(tmp_path):
+	log = make_log(
+		tmp_path,
+		RunStarted(run_id="run_1"),  # 1
+		UserMessage(content="A"),  # 2
+		AssistantMessage(content="X"),  # 3
+		RunEnded(),  # 4
+	)
+
+	preview = Transcript.replay(log, leaf_seq=2)
+
+	assert [m.content for m in preview.messages] == ["A"]
+	assert preview.leaf_seq == 2
+
+
+def test_a_later_rewind_switches_back_to_an_abandoned_branch(tmp_path):
+	log = make_log(
+		tmp_path,
+		RunStarted(run_id="run_1"),  # 1
+		UserMessage(content="A"),  # 2
+		AssistantMessage(content="X"),  # 3
+		Rewind(target_seq=1),  # 4
+		UserMessage(content="B", parent_seq=1),  # 5
+		Rewind(target_seq=3, parent_seq=5),  # 6, back to the first branch
+	)
+
+	transcript = Transcript.replay(log)
+
+	assert [getattr(m, "text", None) or m.content for m in transcript.messages] == ["A", "X"]
+	assert transcript.leaf_seq == 3
+
+
+def test_active_path_rejects_bad_targets():
+	rows = [
+		{"seq": 1, "type": "run_started"},
+		{"seq": 2, "type": "user_message", "parent_seq": 1},
+		{"seq": 3, "type": "rewind", "target_seq": 1, "parent_seq": 2},
+	]
+	with pytest.raises(ValueError, match="does not exist"):
+		active_path(rows, leaf_seq=99)
+	with pytest.raises(ValueError, match="rewind marker"):
+		active_path(rows, leaf_seq=3)
+	with pytest.raises(ValueError, match="does not exist"):
+		active_path([], leaf_seq=1)
+	forward = [
+		{"seq": 1, "type": "user_message", "parent_seq": 2},
+		{"seq": 2, "type": "run_ended", "parent_seq": 1},
+	]
+	with pytest.raises(ValueError, match="points forward"):
+		active_path(forward)
