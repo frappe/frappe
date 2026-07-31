@@ -54,7 +54,7 @@ context("Attach Control", () => {
 		cy.go_to_list("Test Attach Control");
 		cy.get(".list-row-checkbox").eq(0).click();
 		cy.click_action_button("Delete");
-		cy.click_modal_primary_button("Yes");
+		cy.click_modal_primary_button("Delete");
 	});
 
 	it('Checking functionality for "Library" button in the "Attach" fieldtype', () => {
@@ -109,7 +109,7 @@ context("Attach Control", () => {
 		cy.get(".list-row-checkbox").eq(0).click();
 		cy.get(".list-row-checkbox").eq(1).click();
 		cy.click_action_button("Delete");
-		cy.click_modal_primary_button("Yes");
+		cy.click_modal_primary_button("Delete");
 	});
 
 	it('Checking that "Camera" button in the "Attach" fieldtype does show if camera is available', () => {

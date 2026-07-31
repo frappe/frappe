@@ -23,7 +23,7 @@ context("Workspace Blocks", () => {
 		cy.fill_field("title", "Test Block Page", "Data");
 		cy.fill_field("type", "Workspace", "Select");
 		cy.get_open_dialog().find(".modal-header").click();
-		cy.get_open_dialog().find(".btn-primary").click();
+		cy.get_open_dialog().find(".btn-modal-primary").click();
 
 		// check if sidebar item is added in private section
 		cy.get('.sidebar-item-container[item-name="Test Block Page"]');
@@ -85,7 +85,7 @@ context("Workspace Blocks", () => {
 		cy.get_open_dialog().find(".filter-field .input-with-feedback").type("Pending");
 
 		cy.get_open_dialog().find(".modal-header").click();
-		cy.get_open_dialog().find(".btn-primary").click();
+		cy.get_open_dialog().find(".btn-modal-primary").click();
 
 		cy.get('.standard-actions .primary-action[data-label="Save"]').click();
 
@@ -115,7 +115,7 @@ context("Workspace Blocks", () => {
 			.focus()
 			.type("{selectall}Approved");
 		cy.get_open_dialog().find(".modal-header").click();
-		cy.get_open_dialog().find(".btn-primary").click();
+		cy.get_open_dialog().find(".btn-modal-primary").click();
 
 		cy.get("@todo-quick-list").find(".quick-list-item .status").should("contain", "Approved");
 

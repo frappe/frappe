@@ -63,7 +63,14 @@ frappe.confirm = function (
 	return d;
 };
 
-frappe.warn = function (title, message_html, proceed_action, primary_label, is_minimizable) {
+frappe.warn = function (
+	title,
+	message_html,
+	proceed_action,
+	primary_label,
+	is_minimizable,
+	secondary_label
+) {
 	const d = new frappe.ui.Dialog({
 		title: title,
 		indicator: "red",
@@ -72,13 +79,18 @@ frappe.warn = function (title, message_html, proceed_action, primary_label, is_m
 			if (proceed_action) proceed_action();
 			d.hide();
 		},
-		secondary_action_label: __("Cancel", null, "Secondary button in warning dialog"),
+		// "Cancel" reads wrong when the ACTION is cancelling something —
+		// those callers pass "No" instead
+		secondary_action_label:
+			secondary_label || __("Cancel", null, "Secondary button in warning dialog"),
 		secondary_action: () => d.hide(),
 		minimizable: is_minimizable,
 	});
 
 	d.$body.append(`<div class="frappe-confirm-message">${message_html}</div>`);
-	d.standard_actions.find(".btn-primary").removeClass("btn-primary").addClass("btn-danger");
+	// destructive confirm: the es-button red theme replaces the old
+	// btn-primary → btn-danger class swap
+	d.get_primary_btn().attr("data-theme", "red");
 
 	d.show();
 	return d;
