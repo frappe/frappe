@@ -203,3 +203,127 @@ async def test_events_replays_then_stays_live_without_duplicates(tmp_path):
 	assert durable_seqs == sorted(durable_seqs)
 	assert len(durable_seqs) == len(set(durable_seqs))  # replay/live overlap deduplicated
 	assert [event.content for event in seen if event.type == "user_message"] == ["one", "two"]
+
+
+async def test_rewind_branches_and_the_next_run_follows_the_new_path(tmp_path):
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(cwd=str(tmp_path)))
+	handle = await session.run("A", model=MockModel(replies=[AssistantMessage(content="X")]))
+	assert handle.task is not None
+	await handle.task
+	rows_before = session.log.read_since(0)
+
+	await session.rewind(1)  # branch from an entry mid-log
+
+	handle = await session.run("B", model=MockModel(replies=[AssistantMessage(content="Y")]))
+	assert handle.task is not None
+	await handle.task
+	texts = [getattr(m, "text", None) or m.content for m in session.transcript.messages]
+	assert texts == ["B", "Y"]
+	# nothing was deleted
+	rows = session.log.read_since(0)
+	assert rows[: len(rows_before)] == rows_before
+	assert rows[len(rows_before)]["type"] == "rewind"
+	reloaded = SessionStore(str(tmp_path)).get(session.id)
+	assert [getattr(m, "text", None) or m.content for m in reloaded.transcript.messages] == texts
+	assert reloaded.log.latest_seq == session.log.latest_seq  # load repaired nothing
+
+
+async def test_rewind_while_running_is_a_conflict(tmp_path):
+	from flow_server.session.session import SessionConflict
+
+	class Blocking(MockModel):
+		def __init__(self):
+			super().__init__()
+			self.started = asyncio.Event()
+			self.release = asyncio.Event()
+
+		async def run(self, request):
+			self.started.set()
+			await self.release.wait()
+			yield AssistantMessage(content="done")
+
+	model = Blocking()
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(cwd=str(tmp_path)))
+	handle = await session.run("go", model=model)
+	await model.started.wait()
+
+	with pytest.raises(SessionConflict):
+		await session.rewind(1)
+
+	model.release.set()
+	assert handle.task is not None
+	await handle.task
+
+
+async def test_rewind_rejects_targets_that_leave_calls_open(tmp_path):
+	from flow_server.session.session import RewindError
+
+	(tmp_path / "a.txt").write_text("x")
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(cwd=str(tmp_path), confirm_tools=["read_file"]))
+	model = MockModel(
+		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})])]
+	)
+	handle = await session.run("read", model=model)
+	assert handle.task is not None
+	await handle.task
+	assert session.state is SessionState.PAUSED
+	assistant_seq = next(r["seq"] for r in session.log.read_since(0) if r["type"] == "assistant_message")
+
+	with pytest.raises(RewindError, match="unanswered"):
+		await session.rewind(assistant_seq)
+	with pytest.raises(RewindError, match="does not exist"):
+		await session.rewind(999)
+
+
+async def test_rewind_while_paused_abandons_the_approval_batch(tmp_path):
+	from flow_server.session.session import ResumeError
+
+	(tmp_path / "a.txt").write_text("x")
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(cwd=str(tmp_path), confirm_tools=["read_file"]))
+	model = MockModel(
+		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})])]
+	)
+	handle = await session.run("read", model=model)
+	assert handle.task is not None
+	await handle.task
+	assert session.state is SessionState.PAUSED
+
+	await session.rewind(1)
+
+	assert session.state is SessionState.IDLE
+	with pytest.raises(ResumeError):  # the batch is on the dead branch
+		await session.resume({"c1": "Approve"})
+	# a reload does not repair the dead branch
+	reloaded = SessionStore(str(tmp_path)).get(session.id)
+	assert reloaded.log.latest_seq == session.log.latest_seq
+	assert reloaded.state is SessionState.IDLE
+
+
+async def test_rewind_to_zero_replaces_the_first_run(tmp_path):
+	from flow_server.session.transcript import active_path
+
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(cwd=str(tmp_path)))
+	handle = await session.run("A", model=MockModel(replies=[AssistantMessage(content="X")]))
+	assert handle.task is not None
+	await handle.task
+
+	await session.rewind(0)
+
+	assert session.transcript.messages == []
+	handle = await session.run("B", model=MockModel(replies=[AssistantMessage(content="Y")]))
+	assert handle.task is not None
+	await handle.task
+	assert [getattr(m, "text", None) or m.content for m in session.transcript.messages] == ["B", "Y"]
+	# the new branch is a clean single run — no phantom run_started from the old one
+	assert [r["type"] for r in active_path(session.log.read_since(0))] == [
+		"run_started",
+		"user_message",
+		"assistant_message",
+		"usage",
+		"run_ended",
+	]

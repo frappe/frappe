@@ -134,9 +134,24 @@ returns to idle →
 `{"status": "cancelled"}`, or `{"status": "idle" | ...}` when nothing was pending.
 `409` while a run is active.
 
-### `GET /sessions/{sid}/entries?since=<int>`
-The durable log from the cursor →
+### `POST /sessions/{sid}/rewind`
+Body: `{"target_seq": 12}`. Moves the conversation back to that entry; the next run
+branches from it. Nothing is deleted — the abandoned rows stay in the log, off the
+active path. `target_seq: 0` rewinds to before everything; to edit a message, rewind
+to the entry before its run (or `0` for the first run). Any other target must exist
+and leave a clean tail (no unanswered tool calls, no pending approval); rewinding a
+paused session abandons its approval batch →
+`{"status": "rewound"}`. `409` while a run is active or for an invalid target.
+
+### `GET /sessions/{sid}/entries?since=<int>&path=<active|all>`
+The durable log →
 `{"entries": [...], "latest_seq", "state", "running"}`.
+Default (`active`) is the branch the conversation is on — what a renderer should show;
+for a session that was never rewound this is simply the whole log. It is a snapshot:
+a rewind can retract rows before any cursor, so combining it with `since` is a `422`.
+`path=all` is raw file order — including abandoned branches and the `rewind` markers —
+and accepts `since`. To catch up after a disconnect, replay `/stream?since=N` (you
+will see any `rewind` marker) or refetch the active view whole.
 
 ### `GET /sessions/{sid}/stream?since=<int>`
 Server-Sent Events. Replays durable entries with `seq > since`, then streams live

@@ -74,6 +74,7 @@ class _Event(BaseModel):
 
 	durable: ClassVar[bool] = True
 	seq: int | None = None  # assigned by the log when persisted
+	parent_seq: int | None = None  # the entry this one follows; 0 at the root
 
 
 # --- durable events -------------------------------------------------------
@@ -170,6 +171,13 @@ class RunEnded(_Event):
 	reason: RunEndReason = "done"
 
 
+class Rewind(_Event):
+	"""Moves the leaf back to an earlier entry; later events branch from there."""
+
+	type: Literal["rewind"] = "rewind"
+	target_seq: int
+
+
 class RunError(_Event):
 	type: Literal["run_error"] = "run_error"
 	message: str
@@ -221,6 +229,7 @@ AnyEvent = (
 	| ToolResult
 	| Usage
 	| ApprovalRequired
+	| Rewind
 	| RunEnded
 	| RunError
 	| TextDelta
