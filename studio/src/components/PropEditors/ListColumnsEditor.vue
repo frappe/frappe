@@ -1,11 +1,11 @@
 <template>
 	<div class="flex w-full flex-col gap-2">
 		<ArrayInput
-			:modelValue="tracks"
+			:modelValue="columnWidths"
 			:label="label"
 			addLabel="Add Column"
 			newItemValue="8rem"
-			@update:modelValue="setTracks"
+			@update:modelValue="setColumnWidths"
 			@add="addCells"
 			@remove="removeCells"
 		/>
@@ -28,20 +28,20 @@ const props = defineProps<{ block: Block; label?: string }>()
 
 const HEADER_CELL_NAMES = ["ListHeaderCell", "ListHeaderCellSort"]
 
-const tracks = computed<string[]>(() => {
+const columnWidths = computed<string[]>(() => {
 	const value = props.block.getProp("columns")
 	return Array.isArray(value) ? value : []
 })
 
-function setTracks(next: string[]) {
+function setColumnWidths(next: string[]) {
 	props.block.setProp("columns", next)
 }
 
-// A column lives in three places — a track in `columns`, a header cell, and a cell in
-// every row template — kept in step positionally so header and rows never drift.
-// ArrayInput edits the tracks; `add`/`remove` mirror the operation onto the cells.
+// A column lives in three places — a width entry in `columns`, a header cell, and a cell
+// in every row template — kept in step positionally so header and rows never drift.
+// ArrayInput edits the widths; `add`/`remove` mirror the operation onto the cells.
 function addCells() {
-	headerBlock.value?.addChild(listHeaderCell(`Column ${tracks.value.length}`), null, false)
+	headerBlock.value?.addChild(listHeaderCell(`Column ${columnWidths.value.length}`), null, false)
 	rowBlocks.value.forEach((row) => row.addChild(listCell("—"), null, false))
 }
 
@@ -51,7 +51,7 @@ function removeCells(index: number) {
 }
 
 const mismatch = computed(() => {
-	const expected = tracks.value.length
+	const expected = columnWidths.value.length
 	const problems: string[] = []
 	if (headerBlock.value) {
 		const count = cellsOf(headerBlock.value, HEADER_CELL_NAMES).length
