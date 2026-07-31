@@ -26,7 +26,7 @@ export function useCanvasDropZone(
 			if (!componentName) return
 
 			const componentDef = Block.getComponents()?.[componentName]
-			if (componentDef && !isStandalone(componentDef, parentComponent)) return
+			if (componentDef && !canDrop(componentDef, parentComponent)) return
 
 			let newBlock: Block
 
@@ -186,14 +186,11 @@ export function useCanvasDropZone(
 		canvasStore.dropTarget.y = ev.y
 	}
 
-	const isStandalone = (componentDef: FrappeUIComponent, parentComponent: Block) => {
-		// non-standalone components crash outside their family root
-		if (componentDef?.isStandalone === false && componentDef.group && !parentComponent.closest(componentDef.group)) {
-			const primary = Block.getComponents()?.[componentDef.group]
-			toast.warning(`${componentDef.title} can only be placed inside a ${primary?.title || componentDef.group}`)
-			return false
-		}
-		return true
+	const canDrop = (componentDef: FrappeUIComponent, parentComponent: Block) => {
+		if (parentComponent.canAddChild(componentDef)) return true
+		const familyRoot = Block.getComponents()?.[componentDef.group as string]
+		toast.warning(`${componentDef.title} can only be placed inside a ${familyRoot?.title || componentDef.group}`)
+		return false
 	}
 
 	return { isOverDropZone }
