@@ -2,7 +2,7 @@
 	<div class="flex w-full flex-col gap-2">
 		<InputLabel v-if="label">{{ label }}</InputLabel>
 
-		<div role="radiogroup" aria-label="Active tab" class="flex flex-col gap-1.5">
+		<div role="radiogroup" aria-label="Active tab" class="flex flex-col gap-2">
 			<div v-for="tab in tabs" :key="tab.navItem.componentId" class="flex items-center gap-2">
 				<button
 					class="flex size-4 flex-none items-center justify-center"
@@ -19,9 +19,17 @@
 				<Input
 					class="flex-1"
 					hideClearButton
+					placeholder="Label"
 					:modelValue="tab.label"
 					:disabled="!tab.labelBlock"
 					@update:modelValue="(value: string) => updateLabel(tab, value)"
+				/>
+				<Input
+					hideClearButton
+					placeholder="value"
+					title="Tab value — the identity pairing the nav item with its panel"
+					:modelValue="tab.value"
+					@update:modelValue="(value: string) => renameValue(tab, value)"
 				/>
 				<Button
 					class="flex-shrink-0 text-xs"
@@ -45,7 +53,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { Button } from "frappe-ui"
+import { Button, toast } from "frappe-ui"
 import Input from "@/components/Input.vue"
 import InputLabel from "@/components/InputLabel.vue"
 import Block from "@/utils/block"
@@ -100,6 +108,21 @@ function removeTab(tab: TabEntry) {
 
 function updateLabel(tab: TabEntry, value: string) {
 	tab.labelBlock?.setProp("text", value)
+}
+
+function renameValue(tab: TabEntry, next: string) {
+	next = next.trim()
+	if (!next || next === tab.value) return
+	if (tabs.value.some((other) => other.value === next)) {
+		toast.warning(`A tab with value "${next}" already exists`)
+		return
+	}
+	const wasActive = isActive(tab)
+	tab.navItem.setProp("value", next)
+	tab.panel?.setProp("value", next)
+	if (wasActive) {
+		activate(next)
+	}
 }
 
 function activate(value: string) {
