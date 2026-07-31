@@ -8,17 +8,25 @@
 			{{ label }}
 		</InputLabel>
 
-		<!-- primitive items -->
-		<template v-if="items.length > 0 && !itemTypes">
+		<!-- primitive items: one remove button per row, clear affordance hidden -->
+		<div v-if="!itemTypes" class="flex flex-col gap-1.5">
+			<EmptyState v-if="items.length === 0 && emptyMessage" :message="emptyMessage" />
 			<div v-for="(item, index) in items" :key="index" class="flex items-center gap-2">
 				<Input
 					class="flex-1"
+					hideClearButton
 					:modelValue="item"
 					@update:modelValue="(newValue: string) => updateItem(index, newValue)"
 				/>
-				<Button class="flex-shrink-0 text-xs" variant="subtle" icon="lucide-x" @click="removeItem(index)" />
+				<Button
+					class="flex-shrink-0 text-xs"
+					variant="ghost"
+					icon="lucide-x"
+					title="Remove"
+					@click="removeItem(index)"
+				/>
 			</div>
-		</template>
+		</div>
 
 		<!-- object items: one card per item with a field per itemTypes entry -->
 		<template v-else-if="items.length > 0">

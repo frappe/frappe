@@ -5,14 +5,14 @@
 			:label="label"
 			addLabel="Add Column"
 			newItemValue="8rem"
-			emptyMessage="No columns"
 			@update:modelValue="setTracks"
 			@add="addCells"
 			@remove="removeCells"
 		/>
 
-		<!-- the tree drifted from `columns` (hand-edited header/rows); ops still apply by position -->
-		<div v-if="mismatch.length" class="rounded-sm bg-surface-amber-2 p-2 text-xs text-ink-amber-6">
+		<!-- the tree drifted from `columns` (hand-edited header/rows) -->
+		<div v-if="mismatch.length" class="flex items-center gap-1.5 text-xs text-ink-amber-6">
+			<span class="size-[5px] flex-none rounded-full bg-surface-amber-5"></span>
 			{{ mismatch.join(" · ") }}
 		</div>
 	</div>
