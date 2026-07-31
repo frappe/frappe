@@ -160,7 +160,7 @@ def convert_table_columns(df, meta_df, dropped) -> list:
 			"fieldname": "idx",
 			"fieldtype": "Int",
 			"options": None,
-			"width": parse_print_width("40px"),
+			"width": DEFAULT_COLUMN_WIDTH_PCT,
 		}
 	]
 

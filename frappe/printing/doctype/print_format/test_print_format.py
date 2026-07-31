@@ -231,7 +231,7 @@ class TestClassicConverter(IntegrationTestCase):
 										"fieldname": "idx",
 										"fieldtype": "Int",
 										"options": None,
-										"width": 5.33,
+										"width": 10,
 									},
 									{
 										"label": "Role",
