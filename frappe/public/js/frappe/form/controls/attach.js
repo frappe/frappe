@@ -40,7 +40,9 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 				me.frm.attachments.remove_attachment_by_filename(me.value, async () => {
 					await me.parse_validate_and_set_in_model(null);
 					me.refresh();
-					me.frm.doc.docstatus == 1 ? me.frm.save("Update") : me.frm.save();
+					if (!me.frm.is_new()) {
+						me.frm.doc.docstatus == 1 ? me.frm.save("Update") : me.frm.save();
+					}
 				});
 			} else {
 				me.dataurl = null;
@@ -139,7 +141,9 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		if (this.frm) {
 			await this.parse_validate_and_set_in_model(attachment.file_url);
 			this.frm.attachments.update_attachment(attachment);
-			this.frm.doc.docstatus == 1 ? this.frm.save("Update") : this.frm.save();
+			if (!this.frm.is_new()) {
+				this.frm.doc.docstatus == 1 ? this.frm.save("Update") : this.frm.save();
+			}
 		}
 		this.set_value(attachment.file_url);
 	}
