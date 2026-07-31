@@ -528,6 +528,7 @@ class User(Document):
 		)
 
 	def send_welcome_mail_to_user(self):
+		from frappe.email.email_body import get_brand_name
 		from frappe.utils import get_url
 
 		link = self._reset_password()
@@ -550,8 +551,10 @@ class User(Document):
 			dict(
 				link=link,
 				site_url=get_url(),
+				app_name=get_brand_name() or "Frappe",
 			),
 			custom_template=welcome_email_template,
+			wrapper=None if welcome_email_template else "templates/emails/auth_email.html",
 		)
 
 	def send_login_mail(self, subject, template, add_args, now=None, custom_template=None, wrapper=None):
