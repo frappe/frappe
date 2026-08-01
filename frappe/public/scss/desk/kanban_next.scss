@@ -1,5 +1,5 @@
 /**
- * Styles for the new Kanban (kanban_next engine + #new-kanban page).
+ * Styles for the new Kanban (kanban_next engine + List/.../Kanban route).
  *
  * Layout, spacing, colour and text come from the utility classes in
  * utilities.scss, applied inline on the markup. Only what utilities cannot
@@ -9,6 +9,11 @@
  */
 
 /* ---- page shell ---------------------------------------------------------- */
+.container.page-body.new-kanban-full-width {
+	max-width: 100% !important;
+	width: 100%;
+}
+
 .new-kanban-container {
 	flex: 1 1 auto;
 	min-height: 0;
