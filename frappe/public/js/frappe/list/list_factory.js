@@ -17,11 +17,21 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 			view_name = "File";
 		}
 
-		let view_class = frappe.views[view_name + "View"];
-		// System Settings → Use New Kanban: same List/.../Kanban route, new engine.
+		// New Kanban loads on demand — keeps the default bundle lean.
 		if (view_name === "Kanban" && cint(frappe.boot.sysdefaults.use_new_kanban)) {
-			view_class = frappe.views.NewKanbanView;
+			if (frappe.views.KanbanView.load_last_view()) return;
+			frappe.require("kanban_next.bundle.js", () => {
+				frappe.provide("frappe.views.list_view." + doctype);
+				frappe.views.list_view[me.page_name] = new frappe.views.NewKanbanView({
+					doctype,
+					parent: me.make_page(true, me.page_name, null),
+				});
+				me.set_cur_list();
+			});
+			return;
 		}
+
+		let view_class = frappe.views[view_name + "View"];
 		if (!view_class) view_class = frappe.views.ListView;
 
 		if (view_class && view_class.load_last_view && view_class.load_last_view()) {

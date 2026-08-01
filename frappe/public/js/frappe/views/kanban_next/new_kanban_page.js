@@ -2157,5 +2157,38 @@ frappe.views.NewKanbanGroupedBoard = class NewKanbanGroupedBoard {
 	}
 };
 
-// NewKanbanView (the list-factory shim) lives in new_kanban_view_stub.js so it
-// is always available in list.bundle.js without pulling the full page code in.
+frappe.views.NewKanbanView = class NewKanbanView {
+	static load_last_view() {
+		return frappe.views.KanbanView.load_last_view();
+	}
+
+	constructor(opts) {
+		this.doctype = opts.doctype;
+		this.parent = opts.parent;
+		this.page = this.parent.page;
+		this._kanban = new frappe.views.NewKanbanPage(this.parent);
+		this.show();
+	}
+
+	show() {
+		return frappe.views.KanbanView.get_kanbans(this.doctype).then((kanbans) => {
+			frappe.route_options = {};
+			if (!kanbans.length) {
+				return frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
+			}
+			if (frappe.get_route().length !== 4) {
+				const last_board = frappe.get_user_settings(this.doctype)["Kanban"]
+					?.last_kanban_board;
+				const names = (kanbans || []).map((k) => k.name || k);
+				if (last_board && names.includes(last_board)) {
+					frappe.set_route("List", this.doctype, "Kanban", last_board);
+					return;
+				}
+				const first = kanbans[0];
+				frappe.set_route("List", this.doctype, "Kanban", first.name || first);
+				return;
+			}
+			return this._kanban.load_from_route();
+		});
+	}
+};
