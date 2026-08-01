@@ -472,11 +472,13 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		if (!this.$table_preview.closest(".diw-preview-step").length) return;
 
 		const rows = this.data?.length || 0;
-		const preview_limited = Boolean(this.preview_data?.max_rows_exceeded);
 		const dynamic_height = Math.min(360, Math.max(220, window.innerHeight * 0.42));
+		// Header (~44px) + each body row (mapping + data at cellHeight 42).
 		const compact_height = Math.max(120, rows * 42 + 44);
-		// Mapper row adds one extra row; keep compact mode on for common 10-row previews.
-		const use_compact = rows > 0 && rows <= 12 && !preview_limited;
+		// Size from rows actually rendered — not whether the file has more rows than
+		// the preview sample (`max_rows_exceeded`). A "first 10 of 12" table still
+		// fits compactly; only large in-memory previews use the capped height.
+		const use_compact = rows > 0 && rows <= 13;
 		const scroll_height = use_compact ? compact_height : dynamic_height;
 
 		this.datatable.style.setStyle(".dt-scrollable", {

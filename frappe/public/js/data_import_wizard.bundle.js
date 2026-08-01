@@ -239,10 +239,10 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 						"Import steps"
 					)}"></nav></div>
 					<div class="diw-card flex flex-col w-full min-w-0 overflow-hidden rounded-lg shadow-sm border bg-surface-base">
-						<div class="diw-mobile-step-header shrink-0"></div>
+						<div class="diw-mobile-step-header shrink-0 pt-4 px-4"></div>
 						<div class="flex flex-col flex-1 min-h-0 min-w-0 w-full"><div class="diw-panels flex flex-col flex-1 min-h-0 min-w-0 w-full"></div></div>
-						<div class="diw-status-area shrink-0"></div>
-						<div class="diw-footer flex items-center justify-between shrink-0 w-full border-t mt-auto">
+						<div class="diw-status-area shrink-0 px-5 pb-4"></div>
+						<div class="diw-footer flex items-center justify-between shrink-0 w-full border-t mt-auto py-4 px-5">
 							<div class="diw-footer-left"></div>
 							<div class="diw-footer-right flex items-center gap-2"></div>
 						</div>
@@ -403,7 +403,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 			const is_completed = index < current;
 			const is_locked = !can_go_to_wizard_step(frm, index, current);
 			const $btn = $(`
-				<button type="button" class="diw-step flex flex-1 flex-col items-center gap-2 min-w-0 text-center cursor-pointer${
+				<button type="button" class="diw-step flex flex-1 flex-col items-center gap-2 min-w-0 w-0 p-0 text-center cursor-pointer bg-transparent border-0 appearance-none${
 					is_active ? " active" : ""
 				}${is_completed ? " completed" : ""}${
 				is_locked ? " is-locked" : ""
@@ -413,9 +413,11 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 							? `<span class="diw-step-check">${step_icon("check", "xs")}</span>`
 							: `<span class="diw-step-icon">${step_icon(step.icon)}</span>`
 					}</span>
-					<span class="diw-step-label truncate w-full text-xs-medium text-ink-gray-5">${frappe.utils.escape_html(
-						step.label
-					)}</span>
+					<span class="diw-step-label truncate w-full ${
+						is_active
+							? "text-xs-semibold text-ink-gray-9"
+							: "text-xs-medium text-ink-gray-5"
+					}">${frappe.utils.escape_html(step.label)}</span>
 				</button>
 			`);
 			$btn.on("click", () => this.on_step_click(index));
@@ -454,7 +456,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 			`<section class="diw-step-panel flex flex-col flex-1 min-h-0 min-w-0 w-full" data-step="${step}"></section>`
 		);
 		const $content = $(
-			'<div class="diw-step-content flex-1 min-h-0 min-w-0 w-full overflow-auto"></div>'
+			'<div class="diw-step-content flex-1 min-h-0 min-w-0 w-full overflow-auto py-4 px-5"></div>'
 		).appendTo($panel);
 		this.$panels.append($panel);
 

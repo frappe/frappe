@@ -51,13 +51,8 @@ body[data-route^="data-import"] {
 
 // ---- stepper ----
 .diw-step {
-	// Equal-width flex children + native button reset
-	width: 0;
-	padding: 0;
-	background: none;
-	border: none;
+	// Native <button> keeps the browser font unless we inherit the page typeface.
 	font: inherit;
-	appearance: none;
 
 	&.is-locked {
 		opacity: 0.55;
@@ -81,11 +76,6 @@ body[data-route^="data-import"] {
 			border-color: var(--ink-gray-9, var(--text-color));
 			color: var(--ink-gray-1, var(--card-bg));
 		}
-	}
-
-	&.active .diw-step-label {
-		color: var(--ink-gray-9, var(--text-color));
-		font-weight: 600;
 	}
 }
 
@@ -121,30 +111,21 @@ body[data-route^="data-import"] {
 	height: 20px;
 }
 
-// ---- panels / chrome (responsive padding — Bootstrap p-* uses !important) ----
+// ---- panels / chrome (padding utilities on the markup; mobile overrides below) ----
 .diw-step-content {
-	padding: var(--padding-md) var(--padding-lg);
-
 	.form-section {
 		margin-bottom: 0;
 	}
 }
 
 .diw-status-area {
-	padding: 0 var(--padding-lg) var(--padding-md);
-
 	&:empty {
 		display: none;
 	}
 }
 
-.diw-footer {
-	padding: var(--padding-md) var(--padding-lg);
-}
-
 .diw-mobile-step-header {
 	display: none;
-	padding: var(--padding-md) var(--padding-md) 0;
 }
 
 // ---- config step ----
@@ -173,6 +154,7 @@ body[data-route^="data-import"] {
 		display: none;
 	}
 
+	// Invisible hit target over the whole zone; real clicks open the uploader.
 	.btn-attach {
 		position: absolute;
 		inset: 0;
@@ -219,6 +201,7 @@ body[data-route^="data-import"] {
 			padding: 0;
 			border: none;
 			background: transparent;
+			cursor: default;
 		}
 
 		.diw-file-dropzone-ui,
@@ -382,12 +365,8 @@ body[data-route^="data-import"] {
 	transform: rotate(180deg);
 }
 
-.diw-import-log-details {
-	.diw-import-log-error-trace {
-		max-height: 14rem;
-		white-space: pre-wrap;
-		word-break: break-word;
-	}
+.diw-import-log-error-trace {
+	max-height: 14rem;
 }
 
 // ---- wizard tree preview overrides ----
@@ -500,12 +479,14 @@ body[data-route^="data-import"] {
 
 // ---- mobile (phones + narrow tablets) ----
 // Layout shifts that are specific to the wizard — keep them here, not in utilities.scss.
+// Use a parent + child selector wherever the markup also has a utility for the same
+// property: utilities.scss loads last, so a single class would otherwise lose.
 @media (max-width: 768px) {
 	.data-import-custom-page.layout-main-section {
 		padding: var(--padding-sm);
 	}
 
-	.diw-shell {
+	.data-import-custom-ui .diw-shell {
 		max-width: 100%;
 		gap: var(--padding-md);
 	}
@@ -518,23 +499,23 @@ body[data-route^="data-import"] {
 		display: block;
 	}
 
-	.diw-config-grid {
+	.diw-config-step .diw-config-grid {
 		grid-template-columns: 1fr;
 		gap: var(--padding-md);
 	}
 
-	.diw-step-content,
-	.diw-status-area,
-	.diw-footer {
+	.diw-card .diw-step-content,
+	.diw-card .diw-status-area,
+	.diw-card .diw-footer {
 		padding-left: var(--padding-md);
 		padding-right: var(--padding-md);
 	}
 
-	.diw-preview-toolbar {
+	.diw-table-preview .diw-preview-toolbar {
 		flex-wrap: wrap;
 	}
 
-	.diw-preview-toolbar-meta {
+	.diw-preview-toolbar .diw-preview-toolbar-meta {
 		width: 100%;
 		margin-inline-start: 0;
 		text-align: left;
@@ -562,7 +543,7 @@ body[data-route^="data-import"] {
 		display: none;
 	}
 
-	.diw-import-progress-stats {
+	.diw-import-progress-hero .diw-import-progress-stats {
 		gap: var(--padding-xs, 8px);
 	}
 

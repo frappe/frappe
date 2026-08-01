@@ -138,6 +138,7 @@
    right-to-left languages. Prefer gap on the parent over margins. */
 
 $spacing-steps: (
+	"0": 0,
 	"0\\.5": 0.5,
 	"1": 1,
 	"1\\.5": 1.5,
@@ -249,6 +250,10 @@ $spacing-steps: (
 	width: 100%;
 }
 
+.w-0 {
+	width: 0;
+}
+
 .min-w-0 {
 	min-width: 0;
 }
@@ -332,6 +337,14 @@ $min-h-steps: 8, 24, 32, 40, 48, 64, 80, 96;
 	white-space: nowrap;
 }
 
+.whitespace-pre-wrap {
+	white-space: pre-wrap;
+}
+
+.break-words {
+	overflow-wrap: break-word;
+}
+
 /* ---- lists ---- */
 .list-none {
 	list-style: none;
@@ -344,6 +357,10 @@ $min-h-steps: 8, 24, 32, 40, 48, 64, 80, 96;
 
 .pointer-events-none {
 	pointer-events: none;
+}
+
+.appearance-none {
+	appearance: none;
 }
 
 .invisible {

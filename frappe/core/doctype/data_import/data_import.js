@@ -2594,7 +2594,7 @@ frappe.ui.form.on("Data Import", {
 						const detail_list = message_details ? `<div>${message_details}</div>` : "";
 						const traceback = (log.exception || "").trim();
 						const traceback_html = traceback
-							? `<pre class="diw-import-log-error-trace m-0 mt-2 p-2 overflow-auto text-sm">${frappe.utils.escape_html(
+							? `<pre class="diw-import-log-error-trace m-0 mt-2 p-2 overflow-auto text-sm whitespace-pre-wrap break-words">${frappe.utils.escape_html(
 									traceback
 							  )}</pre>`
 							: "";
