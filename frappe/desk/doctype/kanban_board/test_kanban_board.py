@@ -290,17 +290,32 @@ class TestKanbanBoard(IntegrationTestCase):
 	def test_get_kanban_group_values(self):
 		from frappe.desk.doctype.kanban_board.kanban_board import get_kanban_group_values
 
-		# Group by status: 3 Open, 1 Closed among the board's four todos.
-		res = get_kanban_group_values(self.board_name, "status")
+		# priority is seeded into group_by_fields; status (column field) is not.
+		for name, priority in zip(self.todos, ["High", "High", "High", "Medium"], strict=True):
+			frappe.db.set_value("ToDo", name, "priority", priority)
+
+		res = get_kanban_group_values(self.board_name, "priority")
 		lanes = {lane["value"]: lane["count"] for lane in res["lanes"]}
-		self.assertEqual(lanes.get("Open"), 3)
-		self.assertEqual(lanes.get("Closed"), 1)
+		self.assertEqual(lanes.get("High"), 3)
+		self.assertEqual(lanes.get("Medium"), 1)
 		self.assertEqual(res["unset"], 0)
 
 		# Group by _assign: none are assigned, so everything is in the not-set bucket.
 		res_assign = get_kanban_group_values(self.board_name, "_assign")
 		self.assertEqual(res_assign["lanes"], [])
 		self.assertEqual(res_assign["unset"], 4)
+
+	def test_get_kanban_group_values_rejects_unconfigured_field(self):
+		from frappe.desk.doctype.kanban_board.kanban_board import get_kanban_group_values
+
+		# Column field and other DocType fields are not groupable unless listed.
+		self.assertRaises(frappe.ValidationError, get_kanban_group_values, self.board_name, "status")
+		self.assertRaises(frappe.ValidationError, get_kanban_group_values, self.board_name, "owner")
+		self.assertRaises(frappe.ValidationError, get_kanban_group_values, self.board_name, "nope")
+
+	def test_get_kanban_column_order_and_index_invalid_column(self):
+		board = frappe.get_doc("Kanban Board", self.board_name)
+		self.assertRaises(frappe.ValidationError, get_kanban_column_order_and_index, board, "Not A Column")
 
 	def test_group_by_fields_not_reseeded_when_configured(self):
 		name = frappe.generate_hash(length=10)

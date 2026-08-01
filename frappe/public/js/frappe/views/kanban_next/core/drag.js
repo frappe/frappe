@@ -30,10 +30,17 @@ export function bindCardDrag(el, data, hooks) {
 	});
 }
 
+/**
+ * @param {object} [hooks]
+ * @param {(args: { source: object }) => boolean} [hooks.canDrop]
+ *        When set, foreign boards (e.g. other swimlanes) reject the drag so
+ *        drop indicators and drop handling stay within one board instance.
+ */
 export function bindCardDropTarget(el, getData, hooks) {
 	return dropTargetForElements({
 		element: el,
 		getData: () => ({ ...getData() }),
+		canDrop: hooks && hooks.canDrop ? hooks.canDrop : undefined,
 		onDrag: (args) => {
 			if (!hooks || !hooks.onEdge) return;
 			const y =
@@ -50,8 +57,16 @@ export function bindCardDropTarget(el, getData, hooks) {
 	});
 }
 
-export function bindColumnDropTarget(el, data) {
-	return dropTargetForElements({ element: el, getData: () => ({ ...data }) });
+/**
+ * @param {(args: { source: object }) => boolean} [canDrop]
+ *        Same-board gate used by swimlanes so a card cannot land in another group.
+ */
+export function bindColumnDropTarget(el, data, canDrop) {
+	return dropTargetForElements({
+		element: el,
+		getData: () => ({ ...data }),
+		canDrop: canDrop || undefined,
+	});
 }
 
 export function startDragMonitor(onDrop) {

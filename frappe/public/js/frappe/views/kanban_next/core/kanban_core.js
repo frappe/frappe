@@ -7,7 +7,8 @@
  * logic lives in the consumer via `provider`, `callbacks` and `renderers`.
  *
  * Layout uses the tailwind-style utility classes from utilities.scss; only
- * behavioural bits are in core/styles.js.
+ * behavioural bits (scrollbars, drag/selection states, etc.) are in
+ * kanban_next.scss.
  */
 import {
 	bindCardDrag,
@@ -26,26 +27,29 @@ const CARD_GAP = 8;
 /** Prefetch the next page when the rendered window is within N rows of loaded end. */
 const PREFETCH_ROWS = 8;
 
+/** Unique id per KanbanCore so swimlane boards do not accept each other's drops. */
+let _kanban_instance_seq = 0;
+
 // Utility-class strings for the skeleton (utilities.scss).
 const CLS = {
 	board: "kn-board flex gap-3 overflow-x-auto overflow-y-hidden items-stretch py-2",
 	// The column is a flat gray panel: no border in light mode, the fill alone
-	// separates it from the board (dark mode flips this — see styles.js). The
-	// bottom padding is the column's own, so the scrolling list ends above the
+	// separates it from the board (dark mode flips this — see kanban_next.scss).
+	// Bottom padding is the column's own, so the scrolling list ends above the
 	// panel edge and cards read as sliding inside it.
 	column: "kn-column flex flex-col overflow-hidden rounded-lg bg-surface-gray-1 pb-2",
 	// Dot + title + count on the left; Add sits hard right.
 	header: "kn-column-header flex items-center justify-between gap-2 ps-4 pe-1 pt-1 shrink-0",
 	headerMeta: "kn-column-meta flex items-center gap-1.5 min-w-0",
 	// Colour lives on the indicator dot (not the count). Margin on ::before is
-	// zeroed in styles.js so flex gap alone spaces the dot from the title.
+	// zeroed in kanban_next.scss so flex gap alone spaces the dot from the title.
 	dot: "kn-column-dot indicator shrink-0",
 	title: "kn-column-title text-sm-medium text-ink-gray-8 truncate min-w-0",
 	count: "kn-column-count text-sm text-ink-gray-5 shrink-0",
 	// The rest of the padding lives on the body, not the column, so card shadows
 	// aren't clipped. It is 16px on both sides because the scroll thumb is
-	// painted inside that padding (see the scrollbar rules in styles.js) and at
-	// 8px it would touch the cards.
+	// painted inside that padding (see scrollbar rules in kanban_next.scss) and
+	// at 8px it would touch the cards.
 	body: "kn-column-body flex-1 overflow-y-auto overflow-x-hidden px-3 pt-2",
 	footer: "kn-column-footer shrink-0 px-4 pt-1",
 	card: "kn-card bg-surface-elevation-1 border rounded-lg text-ink-gray-8 text-sm p-3 mb-2",
@@ -60,6 +64,10 @@ export class KanbanCore {
 		this.bus = new EventBus();
 		this.container = null;
 		this.root = null;
+		// Shared across every drop target / drag source on this board. Grouped
+		// swimlanes each get their own id so a card cannot be dropped into
+		// another group's columns (monitors are document-global).
+		this.instanceId = `kn-${++_kanban_instance_seq}`;
 
 		this.state = { columns: [], cards: {}, selection: [], loading: false };
 
@@ -328,7 +336,11 @@ export class KanbanCore {
 		el.appendChild(body);
 
 		this.dragCleanups.push(
-			bindColumnDropTarget(body, { kind: "column", columnId: column.id })
+			bindColumnDropTarget(
+				body,
+				{ kind: "column", columnId: column.id, boardId: this.instanceId },
+				({ source }) => source.data && source.data.boardId === this.instanceId
+			)
 		);
 		this.resizeObserver && this.resizeObserver.observe(body);
 
@@ -461,6 +473,7 @@ export class KanbanCore {
 			animation: 150,
 			draggable: ".kn-column",
 			handle: ".kn-column-header",
+			ghostClass: "kn-col-dragging",
 			direction: "horizontal",
 			bubbleScroll: true,
 			// Don't preventDefault on body scroll / card / header-add interactions.
@@ -510,13 +523,20 @@ export class KanbanCore {
 		const cleanup = this.options.renderCard(card, el, { column, index, selected });
 		if (typeof cleanup === "function") sink.push(cleanup);
 
-		const dragData = { kind: "card", cardId: card.name, columnId: column.id, index };
+		const dragData = {
+			kind: "card",
+			cardId: card.name,
+			columnId: column.id,
+			index,
+			boardId: this.instanceId,
+		};
 		sink.push(
 			bindCardDrag(el, dragData, {
 				onStart: () => el.classList.add("kn-dragging"),
 				onEnd: () => el.classList.remove("kn-dragging"),
 			}),
 			bindCardDropTarget(el, () => dragData, {
+				canDrop: ({ source }) => source.data && source.data.boardId === this.instanceId,
 				onEdge: (edge) => this.showDropIndicator(el, edge),
 				onLeave: () => this.clearDropIndicator(el),
 			})
@@ -653,6 +673,10 @@ export class KanbanCore {
 		this.onDragEnd();
 		const src = args && args.source && args.source.data;
 		if (!src || src.kind !== "card") return;
+		// Each swimlane board registers a global monitor — ignore drags that
+		// started on another instance, and never apply a drop onto foreign targets.
+		if (src.boardId !== this.instanceId) return;
+		if (!this.findCard(src.cardId)) return;
 
 		const current = args && args.location && args.location.current;
 		const targets = (current && current.dropTargets) || [];
@@ -670,9 +694,15 @@ export class KanbanCore {
 
 		const clientY = (current && current.input && current.input.clientY) || 0;
 		const cardTarget = targets.find(
-			(t) => t.data && t.data.kind === "card" && t.data.cardId !== src.cardId
+			(t) =>
+				t.data &&
+				t.data.kind === "card" &&
+				t.data.cardId !== src.cardId &&
+				t.data.boardId === this.instanceId
 		);
-		const colTarget = targets.find((t) => t.data && t.data.kind === "column");
+		const colTarget = targets.find(
+			(t) => t.data && t.data.kind === "column" && t.data.boardId === this.instanceId
+		);
 
 		let toColumn;
 		let toIndex;
