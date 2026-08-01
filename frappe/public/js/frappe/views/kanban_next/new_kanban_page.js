@@ -1017,9 +1017,10 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			// virtualized window would under-render — the caller turns it off.
 			virtualization: opts.virtualization !== undefined ? opts.virtualization : true,
 			selection: "multi",
-			// Loading-skeleton column count — the board config already lists them.
+			// Loading-skeleton column count — the board config already lists them
+			// (excluding archived, to match the columns the provider returns).
 			skeletonColumns:
-				this.board_doc && this.board_doc.columns ? this.board_doc.columns.length : 3,
+				(this.board_doc?.columns || []).filter((c) => c.status !== "Archived").length || 3,
 			addCardLabel: __("Add {0}", [__(this.doctype)]),
 			renderCard: s.renderCard
 				? (card, el, ctx) => s.renderCard(card, el, ctx, this)
