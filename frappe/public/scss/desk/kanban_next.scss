@@ -1,0 +1,344 @@
+/**
+ * Styles for the new Kanban (kanban_next engine + #new-kanban page).
+ *
+ * Layout, spacing, colour and text come from the utility classes in
+ * utilities.scss, applied inline on the markup. Only what utilities cannot
+ * express lives here: structural height/overflow, scrollbar chrome, hover /
+ * focus / drag / selection states, line clamps, keyframes and a few overrides.
+ * Kept as named classes (not injected from JS) so it reads and diffs like CSS.
+ */
+
+/* ---- page shell ---------------------------------------------------------- */
+.new-kanban-container {
+	flex: 1 1 auto;
+	min-height: 0;
+	height: calc(100vh - var(--page-head-height) - var(--margin-md));
+}
+
+/* ---- engine: board / columns -------------------------------------------- */
+.kn-board {
+	--kn-accent: var(--blue-500, #2490ef);
+	height: 100%;
+	overflow-y: hidden;
+}
+.kn-column {
+	/* Fixed column width — cards fill it. 320px fits label+value stacks without
+	   feeling sparse; content truncates inside, never grows the card. */
+	flex: 0 0 320px;
+	max-height: 100%;
+	min-height: 0;
+}
+/* The column body is the board's only scrolling surface; its scrollbar is
+   painted over the body's inline padding (macOS reserves no gutter):
+   1. scrollbar.scss fills every track — blank it so only the thumb shows.
+   2. The thumb stays clear of cards via the body's end padding.
+   Chrome ignores ::-webkit-scrollbar-* once scrollbar-color is set, so the
+   standard props come first and the pseudo-elements are the Safari fallback. */
+.kn-column-body {
+	min-height: 0;
+	overflow-y: auto;
+	overflow-x: hidden;
+	scrollbar-width: thin;
+	scrollbar-color: var(--scrollbar-thumb-color) transparent;
+
+	&::-webkit-scrollbar {
+		width: 10px !important;
+		background: transparent;
+	}
+	&::-webkit-scrollbar-track,
+	&::-webkit-scrollbar-track-piece,
+	&::-webkit-scrollbar-corner {
+		background: transparent;
+	}
+	&::-webkit-scrollbar-thumb {
+		background: var(--scrollbar-thumb-color);
+		background-clip: content-box;
+		border: 2px solid transparent;
+		border-radius: var(--radius-full);
+	}
+}
+/* Dark mode: column fill matches the card fill, so outline the panel instead of
+   filling it (utilities have no dark variant). */
+[data-theme="dark"] .kn-column {
+	background: transparent;
+	border: 1px solid var(--outline-gray-1, #333);
+}
+/* width via w-full utility on the element; flex/pointer-events aren't utilities. */
+.kn-spacer {
+	flex: 0 0 auto;
+	pointer-events: none;
+}
+.kn-empty {
+	min-height: 24px;
+}
+.kn-add-card-input {
+	border-color: var(--kn-accent) !important;
+	font: inherit;
+	resize: none;
+	outline: none;
+}
+.kn-board.kn-loading {
+	opacity: 0.6;
+	pointer-events: none;
+}
+
+/* ---- engine: card states ------------------------------------------------- */
+/* Cards sit flat on the column and lift only on hover. */
+.kn-card {
+	cursor: grab;
+	transition: box-shadow 0.1s ease, border-color 0.1s ease;
+
+	&:active {
+		cursor: grabbing;
+	}
+	/* .border is a !important utility — states that repaint it must shout back. */
+	&:not(.kn-selected):hover {
+		border-color: var(--outline-gray-3, #cbd0d6) !important;
+		box-shadow: var(--elevation-sm);
+	}
+	&:focus-visible {
+		outline: 2px solid var(--kn-accent);
+		outline-offset: 1px;
+	}
+	/* While lifted, the card reads as the empty slot it left behind. */
+	&.kn-dragging {
+		opacity: 0.5;
+		border-style: dashed !important;
+		background: var(--surface-gray-2);
+		box-shadow: none;
+	}
+	&.kn-selected {
+		outline: 2px solid var(--kn-accent);
+		outline-offset: -1px;
+		background: var(--bg-blue);
+	}
+	&.kn-drop-before {
+		box-shadow: inset 0 3px 0 0 var(--kn-accent);
+	}
+	&.kn-drop-after {
+		box-shadow: inset 0 -3px 0 0 var(--kn-accent);
+	}
+}
+
+/* ---- engine: column header (drag handle) -------------------------------- */
+.kn-column-header {
+	cursor: grab;
+	user-select: none;
+
+	&.kn-col-dragging {
+		opacity: 0.65;
+		cursor: grabbing;
+	}
+	&.kn-col-drop-before {
+		box-shadow: inset 3px 0 0 0 var(--kn-accent);
+	}
+	&.kn-col-drop-after {
+		box-shadow: inset -3px 0 0 0 var(--kn-accent);
+	}
+}
+/* Drop the default indicator margin — flex gap on the header meta owns spacing. */
+.kn-column-dot.indicator::before {
+	margin: 0;
+	border-radius: 50%;
+}
+
+/* ---- page: card field rows ---------------------------------------------- */
+/* min-width via min-w-0, title-row margin via mb-0.5 — utilities on the element. */
+.kn-frow {
+	min-height: 24px;
+}
+.kn-frow.kn-title-row {
+	min-height: 0;
+}
+.kn-fempty {
+	font-style: italic;
+}
+/* Link formatters emit <a> in $text-color (ink-gray-8); match the muted
+   ink-gray-6 used for Data / plain Select values. */
+.kn-frow a,
+.kn-mi-props a {
+	color: inherit;
+	text-decoration: none;
+}
+.kn-frow a:hover,
+.kn-mi-props a:hover {
+	text-decoration: underline;
+}
+/* Two-line clamp + hover-only underline: a board reads as plain text until you
+   point at a title (no utilities for either). */
+.kn-card-title {
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	line-height: 1.35;
+
+	&.cursor-pointer:hover {
+		text-decoration: underline;
+		text-decoration-thickness: 1px;
+		text-underline-offset: 2px;
+		text-decoration-color: currentColor;
+	}
+}
+/* Selection highlight — Frappe-native blue ring + fill, overriding the engine's
+   harder outline. !important beats the card's .border utility. */
+.new-kanban-container .kn-card.kn-selected {
+	outline: none;
+	border-color: var(--blue-500, #2490ef) !important;
+	box-shadow: 0 0 0 1px var(--blue-500, #2490ef);
+	background: var(--bg-blue, #eaf2ff);
+}
+
+/* ---- page: assignees ----------------------------------------------------- */
+/* "+" add chip at the end of the avatar stack — neutral, standard hover. */
+.kn-assign-add {
+	cursor: pointer;
+
+	.avatar-frame {
+		transition: background 0.14s;
+	}
+	&:hover .avatar-frame {
+		background: var(--fg-hover-color);
+	}
+}
+/* Assignee hovercard: tighten the default popover shell. */
+.es-hover-card.kn-assignee-popover {
+	width: auto;
+	padding: 12px;
+}
+.kn-assignee-card {
+	min-width: 180px;
+	max-width: 240px;
+}
+.kn-assignee-actions {
+	border-top: 1px solid var(--border-color);
+
+	.es-button {
+		margin-left: -8px;
+	} /* flush with the card's left edge */
+}
+
+/* ---- page: bulk selection bar ------------------------------------------- */
+/* Neutral surface, clearly lifted with a strong shadow + slide-up entrance. */
+.kn-selection-bar {
+	border-color: var(--gray-300, #d1d8dd) !important;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2), 0 3px 10px rgba(0, 0, 0, 0.12) !important;
+	padding: 10px 10px 10px 18px !important;
+	animation: kn-sel-in 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
+
+	.kn-sel-count {
+		color: var(--ink-gray-8);
+	}
+	.es-button {
+		margin: 0;
+	}
+}
+@keyframes kn-sel-in {
+	from {
+		opacity: 0;
+		transform: translateX(-50%) translateY(14px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(-50%) translateY(0);
+	}
+}
+
+/* ---- page: hover preview (More Info) ------------------------------------ */
+/* Fixed width so long emails never stretch the shell; values wrap in columns. */
+.es-hover-card.kn-mi-hc {
+	width: 360px;
+	max-width: min(360px, calc(100vw - 32px));
+	padding: 0;
+	overflow: hidden;
+}
+/* Full width via w-full utility on each element (box-sizing is border-box globally). */
+.kn-mi-banner {
+	height: 116px;
+	background-size: cover;
+	background-position: center;
+	background-color: var(--bg-light-gray);
+}
+.kn-mi-title,
+.kn-mi-desc {
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+.kn-mi-title:hover {
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+/* Flatten rendered editor markup into one snippet line. */
+.kn-mi-desc :where(h1, h2, h3, h4, h5, h6, p, ul, ol, li, blockquote, pre) {
+	display: inline;
+	margin: 0;
+	padding: 0;
+	font: inherit;
+	list-style: none;
+}
+.kn-mi-desc :where(p, li, br)::after {
+	content: " ";
+}
+.kn-mi-desc :where(img, table, hr) {
+	display: none;
+}
+/* width via w-full utility; grid + custom gaps have no utility equivalent. */
+.kn-mi-props {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	column-gap: 1.25rem;
+	row-gap: 0.75rem;
+}
+/* Long strings (emails, phones) wrap inside the cell instead of overflowing. */
+.kn-mi-props .kn-mi-val {
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+/* Avatar stack is taller than badges — keep the band from collapsing. */
+.kn-mi-foot {
+	min-height: 28px;
+}
+
+/* ---- page: swimlanes (Group by) ----------------------------------------- */
+/* Layout/text/count use utility classes + the badge component; only positioning
+   and collapse behaviour live here. Each lane is a fixed-height band whose
+   columns scroll inside it (Jira style); a light rule separates lanes. */
+.kn-swimlanes {
+	height: 100%;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+.kn-swimlane {
+	border-bottom: 1px solid var(--border-color);
+}
+.kn-swimlane:last-child {
+	border-bottom: 0;
+}
+.kn-swimlane-head {
+	position: sticky;
+	top: 0;
+	z-index: 3;
+	cursor: pointer;
+	user-select: none;
+	background: var(--fg-color);
+
+	.avatar {
+		margin: 0;
+	}
+}
+.kn-swimlane-caret {
+	transition: transform 0.15s;
+}
+.kn-swimlane.kn-collapsed .kn-swimlane-caret {
+	transform: rotate(-90deg);
+}
+.kn-swimlane.kn-collapsed .kn-swimlane-body {
+	display: none;
+}
+.kn-swimlane-body .kn-board {
+	height: 46vh;
+	min-height: 260px;
+	padding-top: 0;
+}

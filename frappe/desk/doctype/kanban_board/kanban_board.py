@@ -21,6 +21,9 @@ class KanbanBoard(Document):
 	if TYPE_CHECKING:
 		from frappe.desk.doctype.kanban_board_column.kanban_board_column import KanbanBoardColumn
 		from frappe.desk.doctype.kanban_board_field.kanban_board_field import KanbanBoardField
+		from frappe.desk.doctype.kanban_board_group_field.kanban_board_group_field import (
+			KanbanBoardGroupField,
+		)
 		from frappe.types import DF
 
 		card_fields: DF.Table[KanbanBoardField]
@@ -29,6 +32,7 @@ class KanbanBoard(Document):
 		fields: DF.Code | None
 		filters: DF.Code | None
 		footer_date_field: DF.Literal["Modified", "Creation"]
+		group_by_fields: DF.Table[KanbanBoardGroupField]
 		image_field: DF.Autocomplete | None
 		kanban_board_name: DF.Data
 		preview_fields: DF.Table[KanbanBoardField]
@@ -52,6 +56,7 @@ class KanbanBoard(Document):
 		self.seed_title_and_image_fields()
 		self.seed_card_fields()
 		self.seed_preview_fields()
+		self.seed_group_by_fields()
 
 	def seed_title_and_image_fields(self):
 		"""Pre-fill title and image fields for a new board. Old boards leave these
@@ -75,6 +80,13 @@ class KanbanBoard(Document):
 		preview-api fields (`in_preview`, else mandatory). Empty on old boards;
 		runtime then falls back: preview fields → preview api → card fields."""
 		self._seed_field_table("preview_fields", default_preview_fieldnames(self.reference_doctype))
+
+	def seed_group_by_fields(self):
+		"""Pre-fill the group-by options for a new board with the doctype's Select
+		fields (minus the column field, which already forms the board's columns).
+		No runtime fallback — an empty table simply hides the Group button, so the
+		user curates the list (add Link fields like Supplier, remove noise)."""
+		self._seed_field_table("group_by_fields", default_group_by_fieldnames(self.reference_doctype))
 
 	def _seed_field_table(self, tablefield: str, fieldnames: list[str]):
 		if self.get(tablefield) or not self.reference_doctype:
@@ -168,6 +180,14 @@ def default_preview_fieldnames(doctype: str) -> list[str]:
 	if not fieldnames:
 		fieldnames = [df.fieldname for df in meta.fields if df.reqd and usable(df)]
 	return fieldnames[:6]
+
+
+def default_group_by_fieldnames(doctype: str) -> list[str]:
+	"""Group-by options to seed a new board: the doctype's Select fields. The
+	column field is dropped by `_seed_field_table` (it already splits the board
+	into columns)."""
+	meta = frappe.get_meta(doctype)
+	return [df.fieldname for df in meta.fields if df.fieldtype == "Select" and not df.hidden]
 
 
 def get_permission_query_conditions(user):
@@ -380,6 +400,57 @@ def get_kanban_board_data():
 		columns[column_name] = {"total": counts.get(column_name, 0), "cards": cards}
 
 	return {"columns": columns}
+
+
+@frappe.whitelist()
+@frappe.read_only()
+def get_kanban_group_values(board_name: str, group_by: str, filters: str | list | None = None):
+	"""Swimlane values for a board: the distinct values of `group_by` across the
+	board's cards (respecting board + runtime filters), most-populated first, with
+	counts and a trailing "not set" bucket. Capped so a high-cardinality Link
+	(Supplier, Customer) can't explode the board.
+	"""
+	from collections import Counter
+
+	board, _ = get_kanban_board_context(board_name)
+	doctype = board.reference_doctype
+	if group_by != "_assign" and not frappe.get_meta(doctype).get_field(group_by):
+		frappe.throw(_("Invalid group field"), title=_("Kanban Board"))
+
+	merged = merge_kanban_filters(board, frappe.parse_json(filters) if filters else None)
+	limit = 20
+	lanes = []
+	unset = 0
+
+	if group_by == "_assign":
+		counter = Counter()
+		for raw in frappe.get_all(doctype, filters=merged, pluck="_assign"):
+			users = frappe.parse_json(raw) if raw else []
+			if users:
+				for user in users:
+					counter[user] += 1
+			else:
+				unset += 1
+		lanes = [{"value": user, "label": user, "count": count} for user, count in counter.most_common(limit)]
+	else:
+		rows = frappe.get_all(
+			doctype,
+			filters=merged,
+			fields=[f"{group_by} as value", {"COUNT": "*", "as": "_count"}],
+			group_by=group_by,
+			order_by="_count desc",
+			limit=limit + 1,
+		)
+		for row in rows:
+			value = row.get("value")
+			count = cint(row.get("_count"))
+			if value in (None, ""):
+				unset += count
+			else:
+				lanes.append({"value": value, "label": value, "count": count})
+		lanes = lanes[:limit]
+
+	return {"lanes": lanes, "unset": unset}
 
 
 @frappe.whitelist()
