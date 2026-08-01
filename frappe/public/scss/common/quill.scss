@@ -54,7 +54,9 @@
 .ql-snow .ql-toolbar .ql-picker-item:hover,
 .ql-snow.ql-toolbar .ql-picker-item.ql-selected,
 .ql-snow .ql-toolbar .ql-picker-item.ql-selected {
-	color: var(--invert-neutral);
+	color: var(--text-color);
+	background-color: var(--control-bg);
+	border-radius: var(--radius-sm);
 }
 
 .ql-snow.ql-toolbar button:hover .ql-fill,
@@ -85,7 +87,7 @@
 .ql-snow .ql-toolbar .ql-picker-item:hover .ql-stroke.ql-fill,
 .ql-snow.ql-toolbar .ql-picker-item.ql-selected .ql-stroke.ql-fill,
 .ql-snow .ql-toolbar .ql-picker-item.ql-selected .ql-stroke.ql-fill {
-	fill: var(--invert-neutral);
+	fill: var(--text-color);
 }
 
 .ql-snow.ql-toolbar button:hover .ql-stroke,
@@ -116,7 +118,7 @@
 .ql-snow .ql-toolbar .ql-picker-item:hover .ql-stroke-miter,
 .ql-snow.ql-toolbar .ql-picker-item.ql-selected .ql-stroke-miter,
 .ql-snow .ql-toolbar .ql-picker-item.ql-selected .ql-stroke-miter {
-	stroke: var(--invert-neutral);
+	stroke: var(--text-color);
 }
 
 .ql-toolbar.ql-snow {
