@@ -10,6 +10,7 @@ frappe.ui.form.on("Kanban Board", {
 		if (frm.doc.reference_doctype) {
 			frappe.model.with_doctype(frm.doc.reference_doctype, () => {
 				set_card_field_options(frm);
+				set_group_by_field_options(frm);
 				set_title_image_field_options(frm);
 			});
 		}
@@ -39,6 +40,7 @@ frappe.ui.form.on("Kanban Board", {
 			frm.set_df_property("field_name", "options", options);
 			frm.get_field("field_name").refresh();
 			set_card_field_options(frm);
+			set_group_by_field_options(frm);
 			set_title_image_field_options(frm);
 			if (frm.is_new()) {
 				seed_title_and_image_fields(frm);
@@ -59,15 +61,17 @@ frappe.ui.form.on("Kanban Board", {
 	},
 });
 
-frappe.ui.form.on("Kanban Board Field", {
-	fieldname: function (frm, cdt, cdn) {
-		// Autofill the label from the selected field; the user can still edit it.
-		var row = locals[cdt][cdn];
-		if (!row.fieldname || !frm.doc.reference_doctype) return;
-		var df = frappe.meta.get_docfield(frm.doc.reference_doctype, row.fieldname);
-		frappe.model.set_value(cdt, cdn, "label", df ? __(df.label) : row.fieldname);
-	},
-});
+// Autofill the label from the selected field; the user can still edit it. Shared
+// by the Card/Preview field rows and the Group By field rows.
+function autofill_field_label(frm, cdt, cdn) {
+	var row = locals[cdt][cdn];
+	if (!row.fieldname || !frm.doc.reference_doctype) return;
+	var df = frappe.meta.get_docfield(frm.doc.reference_doctype, row.fieldname);
+	frappe.model.set_value(cdt, cdn, "label", df ? __(df.label) : row.fieldname);
+}
+
+frappe.ui.form.on("Kanban Board Field", { fieldname: autofill_field_label });
+frappe.ui.form.on("Kanban Board Group Field", { fieldname: autofill_field_label });
 
 /**
  * Fill the Card Fields and Preview Fields grids' autocomplete with the reference
@@ -104,6 +108,38 @@ function set_card_field_options(frm) {
 		grid.update_docfield_property("fieldname", "options", options);
 		grid.refresh();
 	});
+}
+
+/**
+ * Fill the Group By Fields grid's autocomplete. Only Select and Link fields
+ * make sense as swimlane groupings — bounded, categorical values — so the
+ * picker is narrower than the Card/Preview field pickers.
+ */
+function set_group_by_field_options(frm) {
+	if (!frm.doc.reference_doctype) return;
+
+	var options = frappe
+		.get_meta(frm.doc.reference_doctype)
+		.fields.filter(function (df) {
+			return (
+				df.fieldname &&
+				(df.fieldtype === "Select" || df.fieldtype === "Link") &&
+				!df.hidden
+			);
+		})
+		.map(function (df) {
+			return {
+				value: df.fieldname,
+				label: __(df.label) || df.fieldname,
+				description: df.fieldname,
+			};
+		});
+
+	var grid = frm.fields_dict.group_by_fields && frm.fields_dict.group_by_fields.grid;
+	if (!grid || !grid.docfields) return;
+	// update_docfield_property patches both existing and later-added rows.
+	grid.update_docfield_property("fieldname", "options", options);
+	grid.refresh();
 }
 
 /**

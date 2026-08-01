@@ -109,108 +109,12 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			single_column: true,
 		});
 		// flex column so an optional filter bar + the board share the height.
-		// Height = viewport − sticky page-head − bottom margin (same tokens as
-		// classic kanban). No magic px — works across screen sizes.
-		this.page.main.css({
-			padding: "0",
-			display: "flex",
-			"flex-direction": "column",
-			overflow: "hidden",
-		});
-		this.$container = $('<div class="new-kanban-container px-4">')
-			.css({
-				flex: "1 1 auto",
-				"min-height": "0",
-				height: "calc(100vh - var(--page-head-height) - var(--margin-md))",
-			})
-			.appendTo(this.page.main);
+		// The board area sizes itself in .new-kanban-container (kanban_next.scss);
+		// utilities here just make the page shell a full-height flex column.
+		this.page.main.addClass("flex flex-col overflow-hidden p-0");
+		this.$container = $('<div class="new-kanban-container px-4">').appendTo(this.page.main);
 
 		this.make_selection_bar();
-		this.inject_view_styles();
-	}
-
-	/**
-	 * Inject tiny behavior-only CSS for states utilities cannot express cleanly
-	 * (liked heart fill, icon scaling, and nested hover targets).
-	 */
-	inject_view_styles() {
-		if (document.getElementById("kn-view-styles")) return;
-		const style = document.createElement("style");
-		style.id = "kn-view-styles";
-		style.textContent = `
-			/* Card rows sit on a quiet rhythm — short enough that a stack of
-			   fields doesn't look like a form, tall enough that icons and
-			   values stay aligned. Spacing/colour otherwise come from utilities. */
-			.kn-frow { min-height: 24px; min-width: 0; }
-			.kn-frow.kn-title-row { min-height: 0; margin-bottom: 2px; }
-			.kn-fempty { font-style: italic; }
-			/* Link formatters emit <a> with desk $text-color (ink-gray-8). Match
-			   the muted ink-gray-6 used for Data / plain Select values. */
-			.kn-frow a,
-			.kn-mi-props a { color: inherit; text-decoration: none; }
-			.kn-frow a:hover,
-			.kn-mi-props a:hover { text-decoration: underline; }
-			/* Two-line clamp and the link underline — no utilities for either.
-			   The underline only appears on hover, so a board of cards reads as
-			   plain text until you point at a title. */
-			.kn-card-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.35; }
-			.kn-card-title.cursor-pointer:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; text-decoration-color: currentColor; }
-			/* Selection highlight — Frappe-native (blue ring + subtle blue fill),
-			   overriding the engine's harder 2px outline. The colour needs
-			   !important to beat the card's .border utility. */
-			.new-kanban-container .kn-card.kn-selected {
-				outline: none;
-				border-color: var(--blue-500, #2490ef) !important;
-				box-shadow: 0 0 0 1px var(--blue-500, #2490ef);
-				background: var(--bg-blue, #eaf2ff);
-			}
-			/* "+" add chip at the end of the avatar stack — neutral, standard hover. */
-			.kn-assign-add { cursor: pointer; }
-			.kn-assign-add .avatar-frame { transition: background .14s; }
-			.kn-assign-add:hover .avatar-frame { background: var(--fg-hover-color); }
-			/* Assignee hovercard: tighten the default popover shell (256px / 16px). */
-			.es-hover-card.kn-assignee-popover { width: auto; padding: 12px; }
-			.kn-assignee-card { min-width: 180px; max-width: 240px; }
-			.kn-assignee-actions { border-top: 1px solid var(--border-color); }
-			/* pull the ghost button flush with the card's left edge */
-			.kn-assignee-actions .es-button { margin-left: -8px; }
-			/* Selection bar — neutral surface, but clearly lifted off the board
-			   with a strong shadow, a defined border and a slide-up entrance so
-			   it's easy to notice (no colour, no black). */
-			.kn-selection-bar {
-				border-color: var(--gray-300, #d1d8dd) !important;
-				box-shadow: 0 12px 32px rgba(0,0,0,.20), 0 3px 10px rgba(0,0,0,.12) !important;
-				padding: 10px 10px 10px 18px !important;
-				animation: kn-sel-in .22s cubic-bezier(.2,.8,.3,1);
-			}
-			@keyframes kn-sel-in {
-				from { opacity: 0; transform: translateX(-50%) translateY(14px); }
-				to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-			}
-			.kn-selection-bar .kn-sel-count { color: var(--ink-gray-8); }
-			.kn-selection-bar .es-button { margin: 0; }
-			/* Preview hovercard — fixed width (not content-sized) so long emails
-			   never stretch the shell; values wrap inside equal columns. */
-			.es-hover-card.kn-mi-hc { width: 360px; max-width: min(360px, calc(100vw - 32px)); padding: 0; overflow: hidden; }
-			.kn-mi { display: flex; flex-direction: column; width: 100%; max-width: 100%; }
-			.kn-mi-banner,
-			.kn-mi-header,
-			.kn-mi-desc,
-			.kn-mi-foot { width: 100%; box-sizing: border-box; }
-			.kn-mi-banner { height: 116px; background-size: cover; background-position: center; background-color: var(--bg-light-gray); }
-			.kn-mi-title, .kn-mi-desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-			.kn-mi-title:hover { text-decoration: underline; text-underline-offset: 2px; }
-			/* flatten rendered editor markup into one snippet line */
-			.kn-mi-desc :where(h1,h2,h3,h4,h5,h6,p,ul,ol,li,blockquote,pre) { display: inline; margin: 0; padding: 0; font: inherit; list-style: none; }
-			.kn-mi-desc :where(p,li,br)::after { content: " "; }
-			.kn-mi-desc :where(img,table,hr) { display: none; }
-			.kn-mi-props { display: grid; grid-template-columns: 1fr 1fr; column-gap: 1.25rem; row-gap: 0.75rem; width: 100%; box-sizing: border-box; }
-			/* Long strings (emails, phones) wrap inside the cell instead of overflowing. */
-			.kn-mi-props .kn-mi-val { overflow-wrap: anywhere; word-break: break-word; }
-			/* Avatar stack is taller than badges — keep the band from collapsing. */
-			.kn-mi-foot { min-height: 28px; }
-		`;
-		document.head.appendChild(style);
 	}
 
 	make_selection_bar() {
@@ -389,14 +293,15 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		this.saved_filters = JSON.parse(JSON.stringify(this.filters));
 		this.page.set_title(__(board.kanban_board_name || board_name));
 
-		frappe.model.with_doctype(this.doctype, () => {
-			this.setup_meta();
-			this.setup_toolbar();
-			this.mount_board();
-			// Keep the filter UI in step with this board (the group is reused across
-			// same-doctype board switches, so it can hold the previous board's set).
-			this.sync_filter_group_to_board();
-		});
+		await frappe.model.with_doctype(this.doctype);
+		this.setup_meta();
+		this.setup_toolbar();
+		this.mount_board();
+		// Keep the filter UI in step with this board (the group is reused across
+		// same-doctype board switches, so it can hold the previous board's set).
+		this.sync_filter_group_to_board();
+		// Group button reflects this board's group-by options (rebuilt per board).
+		this.setup_group_button();
 	}
 
 	/**
@@ -546,6 +451,18 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		);
 		if (this.desc_field) this.fields = [...new Set([...this.fields, this.desc_field])];
 		this.card_config_sig = this.card_config_signature(this.board_doc);
+
+		// Group-by (swimlane) options: "Assigned To" first when the board shows
+		// assignees, then the board's configured Group By Fields. No fallback — an
+		// empty list simply hides the Group button. Keep the active choice only if
+		// it is still a valid option for this board.
+		this.group_by_options = this.compute_group_by_options();
+		if (
+			this.group_by_field &&
+			!this.group_by_options.some((o) => o.fieldname === this.group_by_field)
+		) {
+			this.group_by_field = null;
+		}
 
 		// --- card display config (overridable via frappe.kanban_next.settings) ---
 		const s = this.settings || {};
@@ -741,6 +658,82 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		page.add_menu_item(__("Save Filters"), () => this.save_filters());
 	}
 
+	/**
+	 * Group-by options for the Group button: "Assigned To" first (only when the
+	 * board shows assignees), then the board's configured Group By Fields. No
+	 * auto-fallback — an empty list hides the Group button entirely.
+	 */
+	compute_group_by_options() {
+		const options = [];
+		if (this.show_assigned_to) {
+			options.push({ fieldname: "_assign", label: __("Assigned To") });
+		}
+		(this.board_doc.group_by_fields || []).forEach((f) => {
+			if (!f.fieldname || !frappe.meta.has_field(this.doctype, f.fieldname)) return;
+			const df = frappe.meta.get_docfield(this.doctype, f.fieldname);
+			options.push({
+				fieldname: f.fieldname,
+				label: __(f.label || (df && df.label) || f.fieldname),
+			});
+		});
+		return options;
+	}
+
+	/**
+	 * (Re)build the "Group" toolbar button — a Layers icon + label with a
+	 * dropdown of the group-by options plus a "None" entry. Hidden when there are
+	 * no options. Once created the button keeps its toolbar slot; only its menu
+	 * items are refreshed (rebuilding would re-append it after the async
+	 * Select Kanban / View buttons and make it jump).
+	 */
+	setup_group_button() {
+		const options = this.group_by_options || [];
+		if (!options.length) {
+			if (this.$group_menu) {
+				this.$group_menu.closest(".custom-btn-group").remove();
+				this.$group_menu = null;
+			}
+			return;
+		}
+
+		const attached = this.$group_menu && this.$group_menu.closest(".custom-btn-group").length;
+		if (attached) {
+			this.$group_menu.empty(); // refresh items in place, keep the slot
+		} else {
+			this.$group_menu = this.page.add_custom_button_group(__("Group"), "layers");
+		}
+
+		const menu = this.$group_menu;
+		const check = (fn) => ((this.group_by_field || null) === (fn || null) ? "check" : null);
+		this.page.add_custom_menu_item(
+			menu,
+			__("None"),
+			() => this.set_group_by(null),
+			false,
+			null,
+			check(null)
+		);
+		options.forEach((opt) => {
+			this.page.add_custom_menu_item(
+				menu,
+				opt.label,
+				() => this.set_group_by(opt.fieldname),
+				false,
+				null,
+				check(opt.fieldname)
+			);
+		});
+	}
+
+	/** Set the active group-by field (null = ungrouped), re-render, update the menu. */
+	set_group_by(fieldname) {
+		const next = fieldname || null;
+		if (next === (this.group_by_field || null)) return;
+		this.group_by_field = next;
+		this.setup_group_button(); // move the check-mark to the active option
+		this.mount_board(); // swap between the flat board and swimlanes
+	}
+
 	setup_filter() {
 		try {
 			// Same markup + wiring as the list view's FilterArea.make_filter_list:
@@ -834,7 +827,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 
 	apply_filters() {
 		if (this._syncing_filters) return; // programmatic re-sync, not a user edit
-		if (!this.filter_group || !this.provider) return;
+		if (!this.filter_group) return;
 		this.filters = this.filter_group.get_filters();
 		this.sync_filter_ui(); // always keep the button/indicator in sync (no reload)
 		// Only reload data when the filter set actually changed (kills the blink on
@@ -842,6 +835,12 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		const key = JSON.stringify(this.filters || []);
 		if (key === this._loaded_key) return;
 		this._loaded_key = key;
+		if (this.group_by_field) {
+			// Swimlanes depend on the filtered set (which lanes exist), so re-mount.
+			this.mount_board();
+			return;
+		}
+		if (!this.provider) return;
 		this.provider.setFilters(this.filters);
 		this.board.refresh();
 	}
@@ -864,36 +863,55 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	// --- board -----------------------------------------------------------
 
 	mount_board() {
+		// Bumped every mount so a slow async swimlane load can tell it is stale.
+		this._mount_seq = (this._mount_seq || 0) + 1;
+		this.teardown_mounted();
+		this.$container.empty();
+		this._loaded_key = JSON.stringify(this.filters || []); // filters the board reflects
+		if (this.group_by_field) {
+			this.mount_grouped_board(this._mount_seq);
+		} else {
+			this.mount_flat_board();
+		}
+	}
+
+	teardown_mounted() {
 		if (this.board) {
 			try {
 				this.board.destroy();
 			} catch (e) {
 				// ignore
 			}
+			this.board = null;
 		}
-		this.$container.empty();
+	}
 
-		const provider = new frappe.kanban_next.FrappeDataProvider({
+	/** A data provider, optionally with extra (swimlane) filters merged in. */
+	make_provider(extra_filters) {
+		const filters = extra_filters
+			? [...(this.filters || []), ...extra_filters]
+			: this.filters || [];
+		return new frappe.kanban_next.FrappeDataProvider({
 			doctype: this.doctype,
 			board_name: this.current_board,
 			reportview_args: {
 				doctype: this.doctype,
 				fields: JSON.stringify(this.fields),
 				order_by: "modified desc",
-				filters: JSON.stringify(this.filters || []),
+				filters: JSON.stringify(filters),
 			},
 		});
-		this.provider = provider; // kept so filter changes reload in place
-		this._loaded_key = JSON.stringify(this.filters || []); // filters the board reflects
+	}
 
+	/** Engine options shared by the flat board and every swimlane board. */
+	board_options(provider, opts = {}) {
 		const s = this.settings || {};
-
-		// The page's own (internal) callbacks. Developer callbacks from settings are
-		// merged on top: onSelectionChange runs BOTH (so the selection bar keeps
-		// working); everything else the developer supplies overrides the default.
+		// Developer callbacks from settings are merged on top: onSelectionChange runs
+		// BOTH (so the selection bar keeps working); everything else the developer
+		// supplies overrides the default.
 		const base_callbacks = {
 			onCardOpen: (card) => frappe.set_route("Form", this.doctype, card.name),
-			onSelectionChange: (ids) => this.update_selection_bar(ids),
+			onSelectionChange: opts.onSelectionChange || ((ids) => this.update_selection_bar(ids)),
 			onMoveError: (mv, err) => {
 				frappe.show_alert({
 					message: __("Could not move {0}", [mv.cardId]),
@@ -905,11 +923,13 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			// column's group-by value + active "=" filters.
 			onAddCard: (columnId) => this.add_document(columnId),
 		};
-
-		this.board = new frappe.kanban_next.KanbanVanilla(this.$container[0], {
+		return {
 			provider,
 			groupBy: this.field_name,
-			pageLength: 20,
+			pageLength: opts.pageLength || 20,
+			// Swimlane boards are sized to their content (no inner scroll), so a
+			// virtualized window would under-render — the caller turns it off.
+			virtualization: opts.virtualization !== undefined ? opts.virtualization : true,
 			selection: "multi",
 			addCardLabel: __("Add {0}", [__(this.doctype)]),
 			renderCard: s.renderCard
@@ -920,7 +940,76 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			callbacks: this.merge_callbacks(base_callbacks, s.callbacks || {}),
 			// Any extra engine options (e.g. addColumn, pageLength overrides).
 			...(s.options || {}),
-		});
+		};
+	}
+
+	mount_flat_board() {
+		const provider = this.make_provider();
+		this.provider = provider; // kept so filter changes reload in place
+		this.board = new frappe.kanban_next.KanbanVanilla(
+			this.$container[0],
+			this.board_options(provider)
+		);
+	}
+
+	/**
+	 * Swimlane view: split the board into horizontal bands by `group_by_field`.
+	 * Each lane is an independent board of that group's cards, so the engine is
+	 * reused untouched and there is no cross-lane drag — grouping is view-only.
+	 */
+	async mount_grouped_board(seq) {
+		const field = this.group_by_field;
+		this.$container.html(`<div class="text-muted p-4">${__("Loading groups…")}</div>`);
+		let data;
+		try {
+			data = await frappe.xcall(
+				"frappe.desk.doctype.kanban_board.kanban_board.get_kanban_group_values",
+				{
+					board_name: this.current_board,
+					group_by: field,
+					filters: JSON.stringify(this.filters || []),
+				}
+			);
+		} catch (e) {
+			if (seq === this._mount_seq) {
+				this.$container.html(
+					`<div class="text-muted p-4">${__("Could not load groups.")}</div>`
+				);
+			}
+			return;
+		}
+		// A newer mount (board switch, group change, filter reload) superseded us.
+		if (seq !== this._mount_seq || this.group_by_field !== field) return;
+
+		const lanes = (data.lanes || []).slice();
+		if (data.unset) {
+			lanes.push({ value: null, label: __("Not set"), count: data.unset, unset: true });
+		}
+		this.$container.empty();
+		if (!lanes.length) {
+			this.$container.html(`<div class="text-muted p-4">${__("No cards to group.")}</div>`);
+			return;
+		}
+		this.board = new frappe.views.NewKanbanGroupedBoard(this, field, lanes);
+	}
+
+	/** Provider filter restricting a board to one swimlane's cards. */
+	lane_filter(field, lane) {
+		if (field === "_assign") {
+			return lane.unset
+				? [[this.doctype, "_assign", "is", "not set"]]
+				: [[this.doctype, "_assign", "like", `%${lane.value}%`]];
+		}
+		return lane.unset
+			? [[this.doctype, field, "is", "not set"]]
+			: [[this.doctype, field, "=", lane.value]];
+	}
+
+	/** Human label for a swimlane header. */
+	lane_label(field, lane) {
+		if (lane.unset) return __("Not set");
+		if (field === "_assign") return frappe.user_info(lane.value).fullname || lane.value;
+		return __(lane.label != null ? lane.label : lane.value);
 	}
 
 	/**
@@ -1048,7 +1137,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	 */
 	title_row(card) {
 		const row = document.createElement("div");
-		row.className = "kn-frow kn-title-row flex items-center gap-2";
+		row.className = "kn-frow kn-title-row flex items-center gap-2 min-w-0 mb-0.5";
 
 		const title_df = frappe.meta.get_docfield(this.doctype, this.title_field);
 		const title_text =
@@ -1389,13 +1478,13 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	 */
 	more_info_content(card, close) {
 		const wrap = document.createElement("div");
-		wrap.className = "kn-mi";
+		wrap.className = "kn-mi flex flex-col w-full";
 
 		// Cover image (board image field), when present.
 		const image = this.image_field && card[this.image_field];
 		if (image) {
 			const banner = document.createElement("div");
-			banner.className = "kn-mi-banner";
+			banner.className = "kn-mi-banner w-full";
 			// JSON.stringify quotes/escapes so ', (, ) in the URL can't break url(...).
 			banner.style.backgroundImage = `url(${JSON.stringify(String(image))})`;
 			wrap.appendChild(banner);
@@ -1403,7 +1492,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 
 		// Header: icon · title (link) · id.
 		const header = document.createElement("div");
-		header.className = "kn-mi-header flex items-start gap-2 px-4 pt-3";
+		header.className = "kn-mi-header flex items-start gap-2 px-4 pt-3 w-full";
 		// Only show an icon when the doctype actually has a usable one — a blank
 		// square says nothing.
 		const icon_html = this.doctype_icon_html();
@@ -1442,7 +1531,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		// Two-column property grid — only fields that actually have a value.
 		// Preview has room: icon (if set) + label text side by side.
 		const props = document.createElement("div");
-		props.className = "kn-mi-props px-4 pt-3";
+		props.className = "kn-mi-props px-4 pt-3 w-full";
 		for (const fn of this.preview_field_list) {
 			const df = frappe.meta.get_docfield(this.doctype, fn);
 			if (!df) continue;
@@ -1551,7 +1640,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		if (val === undefined || val === null || val === "") return null;
 		const ft = df && df.fieldtype;
 		const d = document.createElement("div");
-		d.className = "kn-mi-desc text-sm text-ink-gray-6 px-4 pt-2";
+		d.className = "kn-mi-desc text-sm text-ink-gray-6 px-4 pt-2 w-full";
 		if (ft === "Markdown Editor" || this.is_rich_text(ft)) {
 			let raw = String(val);
 			// Some data stores literal escapes (\n, \t) — decode so it isn't one blob.
@@ -1597,7 +1686,8 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 
 		const foot = document.createElement("div");
 		// Spacing (not a border) separates body from footer when the band is present.
-		foot.className = "kn-mi-foot flex items-center justify-between gap-3 px-4 pb-2 mt-3";
+		foot.className =
+			"kn-mi-foot flex items-center justify-between gap-3 px-4 pb-2 mt-3 w-full";
 		if (assignees) foot.appendChild(assignees);
 
 		const right = document.createElement("div");
@@ -1770,5 +1860,121 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		} catch (e) {
 			return [];
 		}
+	}
+};
+
+/**
+ * Swimlane container: renders one collapsible horizontal band per group value,
+ * each band a full (reused) Kanban board of that group's cards. Because the
+ * bands are independent engines there is no cross-lane drag — grouping is
+ * view-only; dragging within a lane still changes the card's column (status).
+ *
+ * Exposes the small `destroy` / `refresh` / `engine` surface the page's toolbar,
+ * selection bar and card menu already call, so those work unchanged.
+ */
+frappe.views.NewKanbanGroupedBoard = class NewKanbanGroupedBoard {
+	constructor(page, field, lanes) {
+		this.page = page;
+		this.field = field;
+		this.boards = [];
+		this._active_sel_lane = null;
+		this.$root = $('<div class="kn-swimlanes flex flex-col gap-2 py-2">').appendTo(
+			page.$container
+		);
+		lanes.forEach((lane, index) => this.build_lane(lane, index));
+	}
+
+	build_lane(lane, index) {
+		// Layout / text / colour use the shared utility classes; the count is the
+		// standard badge component. Only positioning + collapse behaviour is in
+		// desk/kanban_next.scss.
+		const $lane = $(`
+			<div class="kn-swimlane pb-2">
+				<div class="kn-swimlane-head flex items-center py-1 gap-2">
+					<span class="kn-swimlane-caret inline-flex items-center shrink-0 text-ink-gray-6">${frappe.utils.icon(
+						"chevron-down",
+						"sm"
+					)}</span>
+					<span class="kn-swimlane-label text-sm-semibold text-ink-gray-8 truncate"></span>
+				</div>
+				<div class="kn-swimlane-body"></div>
+			</div>`).appendTo(this.$root);
+		const $head = $lane.find(".kn-swimlane-head");
+		$head.find(".kn-swimlane-label").text(this.page.lane_label(this.field, lane));
+		frappe.ui.badge({ label: String(lane.count), size: "sm", theme: "gray" }).appendTo($head);
+		$head.on("click", () => $lane.toggleClass("kn-collapsed"));
+		// Assignee lanes lead with the person's avatar, like Jira swimlanes.
+		if (this.field === "_assign" && !lane.unset) {
+			$(frappe.avatar(lane.value, "avatar-small")).insertAfter(
+				$head.find(".kn-swimlane-caret")
+			);
+		}
+
+		const provider = this.page.make_provider(this.page.lane_filter(this.field, lane));
+		const board = new frappe.kanban_next.KanbanVanilla(
+			$lane.find(".kn-swimlane-body")[0],
+			this.page.board_options(provider, {
+				onSelectionChange: (ids) => this.on_lane_selection(index, ids),
+			})
+		);
+		this.boards.push({ board, $lane, lane });
+	}
+
+	/** Keep a single lane "active" for the bulk bar — selecting in one clears the rest. */
+	on_lane_selection(index, ids) {
+		if (ids.length) {
+			this._active_sel_lane = index;
+			this.page.update_selection_bar(ids);
+			this.boards.forEach((b, j) => {
+				if (j !== index && b.board.engine.state.selection.length)
+					b.board.engine.select([]);
+			});
+		} else if (this._active_sel_lane === index) {
+			this._active_sel_lane = null;
+			this.page.update_selection_bar([]);
+		}
+	}
+
+	refresh() {
+		// Reload each lane's cards in place (used by the Reload icon and after bulk
+		// actions). The lane set itself only changes with filters, which re-mounts
+		// via the page instead — so this stays light and doesn't re-enumerate.
+		this.boards.forEach((b) => {
+			try {
+				b.board.refresh();
+			} catch (e) {
+				// ignore
+			}
+		});
+	}
+
+	destroy() {
+		this.boards.forEach((b) => {
+			try {
+				b.board.destroy();
+			} catch (e) {
+				// ignore
+			}
+		});
+		this.boards = [];
+		this.$root && this.$root.remove();
+		this.$root = null;
+	}
+
+	/** Facade so the page's selection bar and card "Move to" work across lanes. */
+	get engine() {
+		const boards = this.boards;
+		return {
+			select: (ids) => boards.forEach((b) => b.board.engine.select(ids)),
+			get state() {
+				return (
+					(boards[0] && boards[0].board.engine.state) || { columns: [], selection: [] }
+				);
+			},
+			applyMove: (cardId, from, to, index) => {
+				const hit = boards.find((b) => b.board.engine.findCard(cardId));
+				if (hit) hit.board.engine.applyMove(cardId, from, to, index);
+			},
+		};
 	}
 };

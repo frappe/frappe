@@ -25,7 +25,8 @@
   "footer_date_field",
   "section_break_new_kanban_fields",
   "card_fields",
-  "preview_fields"
+  "preview_fields",
+  "group_by_fields"
  ],
  "fields": [
   {
@@ -72,6 +73,13 @@
    "fieldtype": "Table",
    "label": "Preview Fields",
    "options": "Kanban Board Field"
+  },
+  {
+   "description": "Fields the board can group cards by (swimlanes). New boards are pre-filled with the doctype's Select fields (except the column field). Add Link fields to offer more groupings; leave empty to hide the Group button.",
+   "fieldname": "group_by_fields",
+   "fieldtype": "Table",
+   "label": "Group By Fields",
+   "options": "Kanban Board Group Field"
   },
   {
    "fieldname": "filters",

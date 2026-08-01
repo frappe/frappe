@@ -265,6 +265,58 @@ class TestKanbanBoard(IntegrationTestCase):
 		)
 		frappe.set_user("Administrator")
 
+	def test_group_by_fields_seeded_with_select_fields(self):
+		name = frappe.generate_hash(length=10)
+		board = frappe.get_doc(
+			{
+				"doctype": "Kanban Board",
+				"kanban_board_name": name,
+				"reference_doctype": "ToDo",
+				"field_name": "status",
+				"columns": [{"column_name": "Open"}],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(lambda: frappe.delete_doc("Kanban Board", board.name, force=1))
+
+		meta = frappe.get_meta("ToDo")
+		seeded = {f.fieldname for f in board.group_by_fields}
+		# Every seeded field is a non-hidden Select…
+		for fieldname in seeded:
+			self.assertEqual(meta.get_field(fieldname).fieldtype, "Select")
+		# …the column field (status) is excluded, and other Select fields are in.
+		self.assertNotIn("status", seeded)
+		self.assertIn("priority", seeded)
+
+	def test_get_kanban_group_values(self):
+		from frappe.desk.doctype.kanban_board.kanban_board import get_kanban_group_values
+
+		# Group by status: 3 Open, 1 Closed among the board's four todos.
+		res = get_kanban_group_values(self.board_name, "status")
+		lanes = {lane["value"]: lane["count"] for lane in res["lanes"]}
+		self.assertEqual(lanes.get("Open"), 3)
+		self.assertEqual(lanes.get("Closed"), 1)
+		self.assertEqual(res["unset"], 0)
+
+		# Group by _assign: none are assigned, so everything is in the not-set bucket.
+		res_assign = get_kanban_group_values(self.board_name, "_assign")
+		self.assertEqual(res_assign["lanes"], [])
+		self.assertEqual(res_assign["unset"], 4)
+
+	def test_group_by_fields_not_reseeded_when_configured(self):
+		name = frappe.generate_hash(length=10)
+		board = frappe.get_doc(
+			{
+				"doctype": "Kanban Board",
+				"kanban_board_name": name,
+				"reference_doctype": "ToDo",
+				"field_name": "status",
+				"columns": [{"column_name": "Open"}],
+				"group_by_fields": [{"fieldname": "priority", "label": "Priority"}],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(lambda: frappe.delete_doc("Kanban Board", board.name, force=1))
+		self.assertEqual([f.fieldname for f in board.group_by_fields], ["priority"])
+
 
 class TestKanbanBoardNativePayloads(IntegrationTestCase):
 	def setUp(self):

@@ -18,7 +18,6 @@ import {
 	startDragMonitor,
 } from "./drag";
 import { EventBus } from "./events";
-import { injectBaseStyles } from "./styles";
 import { ColumnVirtualizer } from "./virtualization";
 
 const DEFAULT_PAGE_LENGTH = 50;
@@ -82,8 +81,7 @@ export class KanbanCore {
 
 	mount(container) {
 		this.container = container;
-		injectBaseStyles();
-
+		// Styles ship in desk/kanban_next.scss (bundled), not injected from JS.
 		this.root = document.createElement("div");
 		this.root.className = CLS.board;
 		container.replaceChildren(this.root);
@@ -335,9 +333,9 @@ export class KanbanCore {
 		this.resizeObserver && this.resizeObserver.observe(body);
 
 		const topSpacer = document.createElement("div");
-		topSpacer.className = "kn-spacer";
+		topSpacer.className = "kn-spacer w-full";
 		const bottomSpacer = document.createElement("div");
-		bottomSpacer.className = "kn-spacer";
+		bottomSpacer.className = "kn-spacer w-full";
 
 		const ordered = this.orderedCards(column);
 		const view = {
@@ -743,9 +741,12 @@ export class KanbanCore {
 		const snapshot = this.state;
 		this.animateMove(affected, () => {
 			this.setColumnOrder(fromColumn, fromNames, sameColumn ? 0 : -1);
-			if (!sameColumn) {
+			if (sameColumn) {
+				// Keep the loaded list in visual order (display uses it while paginated).
+				this.reorderLoaded(fromColumn, cardId, toIndex);
+			} else {
 				this.setColumnOrder(toColumn, toNames, 1);
-				this.moveCardBucket(cardId, fromColumn, toColumn);
+				this.moveCardBucket(cardId, fromColumn, toColumn, toIndex);
 			}
 			this.renderColumns(affected);
 		});
@@ -994,18 +995,31 @@ export class KanbanCore {
 		};
 	}
 
-	moveCardBucket(cardId, fromColumn, toColumn) {
+	moveCardBucket(cardId, fromColumn, toColumn, atIndex = null) {
 		const card = this.findCard(cardId);
 		if (!card) return;
 		const fromArr = (this.state.cards[fromColumn] || []).filter((c) => c.name !== cardId);
-		const toArr = [
-			...(this.state.cards[toColumn] || []),
-			{ ...card, [this.options.groupBy]: toColumn },
-		];
+		const toArr = [...(this.state.cards[toColumn] || [])];
+		const idx = atIndex == null ? toArr.length : clamp(atIndex, 0, toArr.length);
+		toArr.splice(idx, 0, { ...card, [this.options.groupBy]: toColumn });
 		this.state = {
 			...this.state,
 			cards: { ...this.state.cards, [fromColumn]: fromArr, [toColumn]: toArr },
 		};
+	}
+
+	/** Reorder a card within a column's loaded (visible) list — keeps the display
+	 * correct while a column shows its fetch order (partial/paginated). */
+	reorderLoaded(columnId, cardId, toIndex) {
+		const arr = [...(this.state.cards[columnId] || [])];
+		const from = arr.findIndex((c) => c.name === cardId);
+		if (from < 0) return;
+		const [card] = arr.splice(from, 1);
+		let idx = toIndex;
+		if (from < idx) idx -= 1;
+		idx = clamp(idx, 0, arr.length);
+		arr.splice(idx, 0, card);
+		this.state = { ...this.state, cards: { ...this.state.cards, [columnId]: arr } };
 	}
 
 	orderedNames(columnId) {
@@ -1061,7 +1075,13 @@ export class KanbanCore {
 
 	orderedCards(column) {
 		const loaded = this.state.cards[column.id] || [];
-		if (!column.order.length) return loaded;
+		// While a column is only partially loaded (paginated), keep the server's
+		// fetch order. Re-sorting a partial set against the full saved order makes
+		// the top reshuffle as later pages arrive (early-in-order cards load late).
+		// Moves keep `loaded` in visual order, so this stays correct through drags.
+		// Once everything is loaded (small columns) the saved order is applied — it
+		// is stable then and preserves manual ordering across reloads.
+		if (!column.order.length || loaded.length < (column.total || 0)) return loaded;
 
 		const byName = new Map(loaded.map((c) => [c.name, c]));
 		const ordered = [];
