@@ -402,6 +402,23 @@ def get_kanban_board_data():
 	return {"columns": columns}
 
 
+def validate_kanban_group_by(board, group_by: str):
+	"""Reject group fields the board does not offer in the Group menu.
+
+	`_assign` is allowed only when Show Assigned To is on; everything else must
+	be listed in the board's Group By Fields (and still exist on the DocType).
+	"""
+	if group_by == "_assign":
+		# Match client: missing/null defaults to on (cint(..., 1)).
+		if not cint(board.show_assigned_to, 1):
+			frappe.throw(_("Invalid group field"), title=_("Kanban Board"))
+		return
+
+	allowed = {row.fieldname for row in (board.group_by_fields or []) if row.fieldname}
+	if group_by not in allowed or not frappe.get_meta(board.reference_doctype).get_field(group_by):
+		frappe.throw(_("Invalid group field"), title=_("Kanban Board"))
+
+
 @frappe.whitelist()
 @frappe.read_only()
 def get_kanban_group_values(board_name: str, group_by: str, filters: str | list | None = None):
@@ -414,8 +431,7 @@ def get_kanban_group_values(board_name: str, group_by: str, filters: str | list 
 
 	board, _ = get_kanban_board_context(board_name)
 	doctype = board.reference_doctype
-	if group_by != "_assign" and not frappe.get_meta(doctype).get_field(group_by):
-		frappe.throw(_("Invalid group field"), title=_("Kanban Board"))
+	validate_kanban_group_by(board, group_by)
 
 	merged = merge_kanban_filters(board, frappe.parse_json(filters) if filters else None)
 	limit = 20
@@ -424,7 +440,10 @@ def get_kanban_group_values(board_name: str, group_by: str, filters: str | list 
 
 	if group_by == "_assign":
 		counter = Counter()
-		for raw in frappe.get_all(doctype, filters=merged, pluck="_assign"):
+		# Bound the scan so large doctypes can't OOM workers. Counts past this
+		# window are approximate; lane list is still the top assignees within it.
+		assign_scan_limit = 5000
+		for raw in frappe.get_all(doctype, filters=merged, pluck="_assign", limit=assign_scan_limit):
 			users = frappe.parse_json(raw) if raw else []
 			if users:
 				for user in users:
@@ -599,10 +618,8 @@ def get_kanban_column_order_and_index(board, colname):
 	"""Return parsed card-name order list and board.columns index for a column."""
 	for i, col in enumerate(board.columns):
 		if col.column_name == colname:
-			col_order = frappe.parse_json(col.order)
-			col_idx = i
-
-	return col_order, col_idx
+			return frappe.parse_json(col.order), i
+	frappe.throw(_("Invalid column"), title=_("Kanban Board"))
 
 
 def publish_kanban_board_update(board):

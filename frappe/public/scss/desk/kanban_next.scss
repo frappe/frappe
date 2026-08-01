@@ -124,17 +124,10 @@
 .kn-column-header {
 	cursor: grab;
 	user-select: none;
-
-	&.kn-col-dragging {
-		opacity: 0.65;
-		cursor: grabbing;
-	}
-	&.kn-col-drop-before {
-		box-shadow: inset 3px 0 0 0 var(--kn-accent);
-	}
-	&.kn-col-drop-after {
-		box-shadow: inset -3px 0 0 0 var(--kn-accent);
-	}
+}
+/* Sortable ghost while a column is being reordered. */
+.kn-col-dragging {
+	opacity: 0.65;
 }
 /* Drop the default indicator margin — flex gap on the header meta owns spacing. */
 .kn-column-dot.indicator::before {
@@ -309,6 +302,10 @@
 	height: 100%;
 	overflow-y: auto;
 	overflow-x: hidden;
+	/* Keep vertical scrollbar space outside lane content so cards never sit
+	   under/around the right edge scrollbar in grouped mode. */
+	scrollbar-gutter: stable;
+	padding-inline-end: 8px;
 }
 .kn-swimlane {
 	border-bottom: 1px solid var(--border-color);
@@ -317,9 +314,10 @@
 	border-bottom: 0;
 }
 .kn-swimlane-head {
-	position: sticky;
-	top: 0;
-	z-index: 3;
+	/* Sticky lane headers cause the next lane's cards to scroll underneath,
+	   which looks like clipped/broken content while grouping. Keep headers in
+	   normal flow so each lane scrolls as a clean block. */
+	position: relative;
 	cursor: pointer;
 	user-select: none;
 	background: var(--fg-color);
@@ -327,6 +325,14 @@
 	.avatar {
 		margin: 0;
 	}
+}
+.kn-swimlane-head:focus-visible,
+.kn-card-title[role="link"]:focus-visible {
+	outline: 2px solid var(--focus-ring-color, var(--kn-accent, #2490ef));
+	outline-offset: 2px;
+}
+.kn-card-title[role="link"]:focus-visible {
+	border-radius: var(--border-radius-sm, 4px);
 }
 .kn-swimlane-caret {
 	transition: transform 0.15s;
@@ -337,8 +343,16 @@
 .kn-swimlane.kn-collapsed .kn-swimlane-body {
 	display: none;
 }
+/* Keep unmounted (empty) bodies tall so IntersectionObserver only sees a
+   couple of lanes at a time — without this every header stacks in view and
+   every lane would mount at once. */
+.kn-swimlane-body {
+	min-height: 260px;
+}
 .kn-swimlane-body .kn-board {
 	height: 46vh;
 	min-height: 260px;
 	padding-top: 0;
+	/* Fill only the lane content box (excluding the reserved gutter above). */
+	width: 100%;
 }

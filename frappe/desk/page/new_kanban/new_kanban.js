@@ -21,9 +21,8 @@ frappe.provide("frappe.views");
  * frappe.utils.guess_colour() — the heuristic list views already use — so
  * app-specific values keep the colour users expect elsewhere.
  *
- * Extend or override per doctype with
- * `frappe.kanban_next.settings[doctype].select_styles`, where a plain string is
- * shorthand for `{ theme }`.
+ * Extend or override per doctype via `frappe.kanban_next.settings` (see
+ * settings.js). A plain string is shorthand for `{ theme }`.
  */
 const SELECT_STYLES = {
 	// Priority — signal bars (Linear-style).
@@ -100,6 +99,12 @@ const SELECT_STYLES = {
  * Next-generation Kanban board page. Loads the framework-agnostic engine
  * (kanban_next.bundle.js) and mounts it against an existing Kanban Board via
  * FrappeDataProvider. Route: #new-kanban/<board_name>
+ *
+ * Per-doctype customization: `frappe.kanban_next.settings` /
+ * `frappe.kanban_next.extend_settings` (see settings.js). Register JS from any
+ * app with hooks `doctype_kanban_js`, or ship `{doctype}_kanban.js` next to the
+ * DocType. Supports `card_context_menu`, `bulk_actions`, `select_styles`,
+ * render hooks, callbacks, and per-board overrides under `boards`.
  */
 frappe.views.NewKanbanPage = class NewKanbanPage {
 	constructor(wrapper) {
@@ -125,6 +130,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 				${frappe.ui.button.html({ label: __("Edit"), css_class: "kn-sel-edit" })}
 				${frappe.ui.button.html({ label: __("Assign"), css_class: "kn-sel-assign" })}
 				${frappe.ui.button.html({ label: __("Tags"), css_class: "kn-sel-tags" })}
+				<span class="kn-sel-custom flex items-center gap-2"></span>
 				${frappe.ui.button.html({ label: __("Delete"), theme: "red", css_class: "kn-sel-delete" })}
 				${frappe.ui.button.html({ label: __("Clear"), variant: "ghost", css_class: "kn-sel-clear" })}
 			</div>`).appendTo(document.body);
@@ -135,6 +141,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 				this.board.refresh();
 			}
 		};
+		this._selection_done = done;
 		this.$selection_bar.find(".kn-sel-clear").on("click", () => done());
 		this.$selection_bar.find(".kn-sel-edit").on("click", () => this.bulk_edit(done));
 		this.$selection_bar
@@ -159,14 +166,15 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 				this.update_selection_bar([]);
 				// Leaving the page: tear the board down so its realtime subscription
 				// stops reloading a board nobody is looking at. Returning re-mounts it.
-				this.teardown_board();
+				this.teardown_board(true);
 			}
 		});
 	}
 
-	/** Destroy the mounted board (drops its realtime subscription) and force a
-	 * fresh mount on return. Called when navigating away from the page. */
-	teardown_board() {
+	/** Destroy the mounted board (drops its realtime subscription). When
+	 * `clear_route` is true, also forget the current board so the next visit
+	 * remounts from scratch (used when navigating away from the page). */
+	teardown_board(clear_route = false) {
 		if (this.board) {
 			try {
 				this.board.destroy();
@@ -175,7 +183,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			}
 			this.board = null;
 		}
-		this.current_board = null;
+		if (clear_route) this.current_board = null;
 	}
 
 	/** Deselect all cards and hide the selection bar. */
@@ -242,10 +250,47 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 				.text(__("{0} selected", [this.selected_ids.length]));
 			// Bulk Assign follows the board's "Show Assigned To" setting.
 			this.$selection_bar.find(".kn-sel-assign").toggle(this.show_assigned_to !== false);
+			this.refresh_bulk_actions();
 			this.$selection_bar.css("display", "flex");
 		} else {
 			this.$selection_bar.hide();
 		}
+	}
+
+	/**
+	 * Rebuild developer bulk buttons from settings.bulk_actions. Defaults
+	 * (Edit / Assign / Tags / Delete / Clear) stay; extras sit between Tags
+	 * and Delete. Called whenever the selection bar is shown so condition()
+	 * and the current ids stay fresh.
+	 */
+	refresh_bulk_actions() {
+		const $slot = this.$selection_bar.find(".kn-sel-custom");
+		$slot.empty();
+
+		const s = this.settings || {};
+		if (typeof s.bulk_actions !== "function") return;
+
+		const done = this._selection_done || (() => {});
+		const actions = s.bulk_actions(this.selected_ids, this) || [];
+		actions.forEach((action) => {
+			if (!action || !action.label) return;
+			if (typeof action.condition === "function" && !action.condition()) return;
+
+			const $btn = $(
+				frappe.ui.button.html({
+					label: action.label,
+					icon: action.icon,
+					theme: action.theme,
+					variant: action.variant,
+				})
+			);
+			$btn.on("click", () => {
+				if (typeof action.onclick === "function") {
+					action.onclick(this.selected_ids, this, done);
+				}
+			});
+			$slot.append($btn);
+		});
 	}
 
 	async load_from_route() {
@@ -312,14 +357,24 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	 * not cost a remount.
 	 */
 	async remount_if_board_changed(board_name) {
-		const config = await frappe.xcall(
-			"frappe.desk.doctype.kanban_board.kanban_board.get_card_config",
-			{ board_name }
-		);
-		if (!config || this.card_config_signature(config) === this.card_config_sig) return;
+		try {
+			const config = await frappe.xcall(
+				"frappe.desk.doctype.kanban_board.kanban_board.get_card_config",
+				{ board_name }
+			);
+			if (!config || this.card_config_signature(config) === this.card_config_sig) return;
 
-		this.current_board = null;
-		this.load_from_route();
+			this.current_board = null;
+			this.load_from_route();
+		} catch (e) {
+			// Keep the existing board mounted — a failed config check must not
+			// wipe the UI. Surface a soft alert so the miss isn't silent.
+			console.error(e);
+			frappe.show_alert({
+				message: __("Could not refresh Kanban board settings."),
+				indicator: "orange",
+			});
+		}
 	}
 
 	/** Comparable form of the config that decides how a card / hover peek is rendered. */
@@ -340,8 +395,8 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		const meta = frappe.get_meta(this.doctype);
 		this.meta = meta;
 
-		// Developer customization from <doctype>_kanban.js (loaded via the meta
-		// bundle before this runs). Doctype-level config applies to every board;
+		// From `{doctype}_kanban.js` and/or `doctype_kanban_js` hooks (ran in
+		// init_doctype). Doctype-level config applies to every board;
 		// `boards[<board name>]` overrides it for one board.
 		const reg = (frappe.kanban_next.settings || {})[this.doctype] || {};
 		const board_override = (reg.boards && reg.boards[this.current_board]) || {};
@@ -366,16 +421,6 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			String(this.board_doc.footer_date_field || "Modified").toLowerCase() === "creation"
 				? "creation"
 				: "modified";
-
-		// Quick entry: does this doctype need more than a title to be created?
-		// (matches the old kanban's get_card_meta logic)
-		const route_options = { ...frappe.route_options };
-		const new_doc = frappe.model.get_new_doc(this.doctype);
-		frappe.route_options = route_options;
-		const mandatory = meta.fields.filter((df) => df.reqd && !new_doc[df.fieldname]);
-		this.quick_entry =
-			mandatory.some((df) => frappe.model.table_fields.includes(df.fieldtype)) ||
-			mandatory.length > 1;
 
 		const base = [
 			"name",
@@ -865,24 +910,13 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	mount_board() {
 		// Bumped every mount so a slow async swimlane load can tell it is stale.
 		this._mount_seq = (this._mount_seq || 0) + 1;
-		this.teardown_mounted();
+		this.teardown_board();
 		this.$container.empty();
 		this._loaded_key = JSON.stringify(this.filters || []); // filters the board reflects
 		if (this.group_by_field) {
 			this.mount_grouped_board(this._mount_seq);
 		} else {
 			this.mount_flat_board();
-		}
-	}
-
-	teardown_mounted() {
-		if (this.board) {
-			try {
-				this.board.destroy();
-			} catch (e) {
-				// ignore
-			}
-			this.board = null;
 		}
 	}
 
@@ -1081,7 +1115,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		el.appendChild(rows);
 		el.appendChild(this.card_footer(card));
 
-		// Right-click context menu — default items + <doctype>_kanban.js additions.
+		// Right-click context menu — defaults + settings.card_context_menu.
 		this.bind_context_menu(el, card);
 	}
 
@@ -1160,9 +1194,18 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		title.textContent = title_text;
 		if (this.open_on_title_click) {
 			title.classList.add("cursor-pointer");
-			title.addEventListener("click", (e) => {
+			title.setAttribute("role", "link");
+			title.setAttribute("tabindex", "0");
+			const open = (e) => {
 				e.stopPropagation();
 				frappe.set_route("Form", this.doctype, card.name);
+			};
+			title.addEventListener("click", open);
+			title.addEventListener("keydown", (e) => {
+				if (e.key === "Enter" || e.key === " ") {
+					e.preventDefault();
+					open(e);
+				}
 			});
 		}
 		row.appendChild(title);
@@ -1410,7 +1453,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			}));
 	}
 
-	/** Default card menu items, plus whatever <doctype>_kanban.js adds. */
+	/** Default card menu items, plus settings.card_context_menu extras. */
 	card_context_menu_items(card) {
 		const move_targets = this.move_to_items(card);
 		const items = [
@@ -1447,7 +1490,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			},
 		];
 
-		// Developer-added items from <doctype>_kanban.js.
+		// Extras from frappe.kanban_next.settings[doctype] (any app via hook).
 		const s = this.settings || {};
 		if (typeof s.card_context_menu === "function") {
 			const extra = s.card_context_menu(card, this) || [];
@@ -1869,6 +1912,9 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
  * bands are independent engines there is no cross-lane drag — grouping is
  * view-only; dragging within a lane still changes the card's column (status).
  *
+ * Lane boards mount lazily (visible lanes first, max 2 concurrent) so a
+ * high-cardinality group does not fan out N board loads on first paint.
+ *
  * Exposes the small `destroy` / `refresh` / `engine` surface the page's toolbar,
  * selection bar and card menu already call, so those work unchanged.
  */
@@ -1878,31 +1924,56 @@ frappe.views.NewKanbanGroupedBoard = class NewKanbanGroupedBoard {
 		this.field = field;
 		this.boards = [];
 		this._active_sel_lane = null;
+		this._mount_queue = [];
+		this._mounting_count = 0;
+		this._max_concurrent_mounts = 2;
+		this._destroyed = false;
 		this.$root = $('<div class="kn-swimlanes flex flex-col gap-2 py-2">').appendTo(
 			page.$container
 		);
 		lanes.forEach((lane, index) => this.build_lane(lane, index));
+		this.setup_lazy_mount();
 	}
 
 	build_lane(lane, index) {
-		// Layout / text / colour use the shared utility classes; the count is the
-		// standard badge component. Only positioning + collapse behaviour is in
-		// desk/kanban_next.scss.
+		// Shell only — the Kanban engine mounts when the lane is visible or
+		// expanded. Layout / text / colour use shared utilities; the count is
+		// the badge component. Collapse positioning lives in kanban_next.scss.
 		const $lane = $(`
 			<div class="kn-swimlane pb-2">
-				<div class="kn-swimlane-head flex items-center py-1 gap-2">
+				<div
+					class="kn-swimlane-head flex items-center py-1 gap-2"
+					role="button"
+					tabindex="0"
+					aria-expanded="true"
+				>
 					<span class="kn-swimlane-caret inline-flex items-center shrink-0 text-ink-gray-6">${frappe.utils.icon(
 						"chevron-down",
 						"sm"
 					)}</span>
 					<span class="kn-swimlane-label text-sm-semibold text-ink-gray-8 truncate"></span>
 				</div>
-				<div class="kn-swimlane-body"></div>
+				<div class="kn-swimlane-body">
+					<div class="kn-swimlane-placeholder text-muted text-sm p-4">${__("Loading...")}</div>
+				</div>
 			</div>`).appendTo(this.$root);
 		const $head = $lane.find(".kn-swimlane-head");
 		$head.find(".kn-swimlane-label").text(this.page.lane_label(this.field, lane));
 		frappe.ui.badge({ label: String(lane.count), size: "sm", theme: "gray" }).appendTo($head);
-		$head.on("click", () => $lane.toggleClass("kn-collapsed"));
+		const toggle = () => {
+			$lane.toggleClass("kn-collapsed");
+			const collapsed = $lane.hasClass("kn-collapsed");
+			$head.attr("aria-expanded", collapsed ? "false" : "true");
+			// Expanding a never-mounted lane must fetch its board immediately.
+			if (!collapsed) this.ensure_lane_mounted(index);
+		};
+		$head.on("click", toggle);
+		$head.on("keydown", (e) => {
+			if (e.key === "Enter" || e.key === " ") {
+				e.preventDefault();
+				toggle();
+			}
+		});
 		// Assignee lanes lead with the person's avatar, like Jira swimlanes.
 		if (this.field === "_assign" && !lane.unset) {
 			$(frappe.avatar(lane.value, "avatar-small")).insertAfter(
@@ -1910,14 +1981,83 @@ frappe.views.NewKanbanGroupedBoard = class NewKanbanGroupedBoard {
 			);
 		}
 
-		const provider = this.page.make_provider(this.page.lane_filter(this.field, lane));
-		const board = new frappe.kanban_next.KanbanVanilla(
-			$lane.find(".kn-swimlane-body")[0],
+		this.boards.push({ board: null, $lane, lane, index });
+	}
+
+	/**
+	 * Mount lane boards as they enter the swimlane scrollport (and on expand).
+	 * Caps concurrent mounts so the first paint stays responsive.
+	 */
+	setup_lazy_mount() {
+		// First two lanes are almost always on screen; mount them now so the
+		// grouped view isn't an empty shell while the observer catches up.
+		this.boards.slice(0, 2).forEach((_, i) => this.ensure_lane_mounted(i));
+
+		if (typeof IntersectionObserver === "undefined") {
+			this.boards.forEach((_, i) => this.ensure_lane_mounted(i));
+			return;
+		}
+		this._observer = new IntersectionObserver(
+			(entries) => {
+				if (this._destroyed) return;
+				entries.forEach((entry) => {
+					if (!entry.isIntersecting) return;
+					const index = cint(entry.target.dataset.laneIndex);
+					this.ensure_lane_mounted(index);
+					this._observer.unobserve(entry.target);
+				});
+			},
+			{ root: this.$root[0], rootMargin: "120px 0px", threshold: 0 }
+		);
+		this.boards.forEach((b) => {
+			b.$lane[0].dataset.laneIndex = String(b.index);
+			this._observer.observe(b.$lane[0]);
+		});
+	}
+
+	/** Queue a lane for mounting if it has no board yet. */
+	ensure_lane_mounted(index) {
+		if (this._destroyed) return;
+		const entry = this.boards[index];
+		if (!entry || entry.board || entry._queued) return;
+		entry._queued = true;
+		this._mount_queue.push(index);
+		this.pump_mount_queue();
+	}
+
+	/**
+	 * Drain the mount queue up to `_max_concurrent_mounts` in flight.
+	 * Each slot is held briefly after creating the engine so loadBoard
+	 * requests stagger instead of all starting in one tick.
+	 */
+	pump_mount_queue() {
+		if (this._destroyed) return;
+		while (this._mounting_count < this._max_concurrent_mounts && this._mount_queue.length) {
+			const index = this._mount_queue.shift();
+			this._mounting_count++;
+			this.mount_lane_board(index);
+			// Hold the concurrency slot across a frame so N intersecting lanes
+			// don't open N network loads in the same tick.
+			requestAnimationFrame(() => {
+				this._mounting_count--;
+				this.pump_mount_queue();
+			});
+		}
+	}
+
+	/** Create the KanbanVanilla engine for one swimlane body. */
+	mount_lane_board(index) {
+		if (this._destroyed) return;
+		const entry = this.boards[index];
+		if (!entry || entry.board) return;
+		const provider = this.page.make_provider(this.page.lane_filter(this.field, entry.lane));
+		// replaceChildren inside KanbanCore.mount clears the Loading placeholder.
+		entry.board = new frappe.kanban_next.KanbanVanilla(
+			entry.$lane.find(".kn-swimlane-body")[0],
 			this.page.board_options(provider, {
 				onSelectionChange: (ids) => this.on_lane_selection(index, ids),
 			})
 		);
-		this.boards.push({ board, $lane, lane });
 	}
 
 	/** Keep a single lane "active" for the bulk bar — selecting in one clears the rest. */
@@ -1926,7 +2066,7 @@ frappe.views.NewKanbanGroupedBoard = class NewKanbanGroupedBoard {
 			this._active_sel_lane = index;
 			this.page.update_selection_bar(ids);
 			this.boards.forEach((b, j) => {
-				if (j !== index && b.board.engine.state.selection.length)
+				if (j !== index && b.board && b.board.engine.state.selection.length)
 					b.board.engine.select([]);
 			});
 		} else if (this._active_sel_lane === index) {
@@ -1936,10 +2076,11 @@ frappe.views.NewKanbanGroupedBoard = class NewKanbanGroupedBoard {
 	}
 
 	refresh() {
-		// Reload each lane's cards in place (used by the Reload icon and after bulk
-		// actions). The lane set itself only changes with filters, which re-mounts
-		// via the page instead — so this stays light and doesn't re-enumerate.
+		// Reload each mounted lane in place. Unmounted lanes load fresh on
+		// next visibility / expand. Lane set itself only changes with filters
+		// (page remount), so this stays light.
 		this.boards.forEach((b) => {
+			if (!b.board) return;
 			try {
 				b.board.refresh();
 			} catch (e) {
@@ -1949,7 +2090,14 @@ frappe.views.NewKanbanGroupedBoard = class NewKanbanGroupedBoard {
 	}
 
 	destroy() {
+		this._destroyed = true;
+		this._mount_queue = [];
+		if (this._observer) {
+			this._observer.disconnect();
+			this._observer = null;
+		}
 		this.boards.forEach((b) => {
+			if (!b.board) return;
 			try {
 				b.board.destroy();
 			} catch (e) {
@@ -1965,14 +2113,16 @@ frappe.views.NewKanbanGroupedBoard = class NewKanbanGroupedBoard {
 	get engine() {
 		const boards = this.boards;
 		return {
-			select: (ids) => boards.forEach((b) => b.board.engine.select(ids)),
+			select: (ids) =>
+				boards.forEach((b) => {
+					if (b.board) b.board.engine.select(ids);
+				}),
 			get state() {
-				return (
-					(boards[0] && boards[0].board.engine.state) || { columns: [], selection: [] }
-				);
+				const hit = boards.find((b) => b.board);
+				return (hit && hit.board.engine.state) || { columns: [], selection: [] };
 			},
 			applyMove: (cardId, from, to, index) => {
-				const hit = boards.find((b) => b.board.engine.findCard(cardId));
+				const hit = boards.find((b) => b.board && b.board.engine.findCard(cardId));
 				if (hit) hit.board.engine.applyMove(cardId, from, to, index);
 			},
 		};

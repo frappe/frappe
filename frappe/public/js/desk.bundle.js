@@ -74,6 +74,7 @@ import "./frappe/ui/theme_switcher.js";
 import "./frappe/ui/naming_series.js";
 
 import "./frappe/model/model.js";
+import "./frappe/views/kanban_next/settings.js";
 import "./frappe/db.js";
 import "./frappe/model/meta.js";
 import "./frappe/model/sync.js";
