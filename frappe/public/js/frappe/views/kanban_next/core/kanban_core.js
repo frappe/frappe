@@ -624,6 +624,45 @@ export class KanbanCore {
 		}
 	}
 
+	/**
+	 * Guarantee a column's full card order is known before a move.
+	 *
+	 * `persistedOrder()` returns null for a column that has no saved order and is
+	 * only partially loaded — we can't build a truncation-safe list without the
+	 * unloaded names. Rather than abort the drag (which looks broken to the user),
+	 * load the remaining pages: once `loaded === total` the natural order is fully
+	 * known and the move proceeds normally. Resolves to true when the order is
+	 * usable, false only if the column vanished or the backend stops returning rows.
+	 */
+	async ensureOrderKnown(columnId) {
+		if (this.persistedOrder(columnId)) return true;
+		const view = this.columnViews.get(columnId);
+		while (!this.persistedOrder(columnId)) {
+			const column = this.getColumn(columnId);
+			if (!column) return false;
+			const loaded = (this.state.cards[columnId] || []).length;
+			if (loaded >= (column.total || 0)) break;
+			const { total, cards } = await this.options.provider.loadColumnPage(
+				columnId,
+				loaded,
+				this.options.pageLength
+			);
+			const existing = this.state.cards[columnId] || [];
+			this.state = {
+				...this.state,
+				cards: { ...this.state.cards, [columnId]: [...existing, ...cards] },
+				columns: this.state.columns.map((c) => (c.id === columnId ? { ...c, total } : c)),
+			};
+			if (view) {
+				const col = this.getColumn(columnId);
+				view.column = col;
+				view.virtualizer.setCount(this.orderedCards(col).length);
+			}
+			if (!cards.length) break; // no progress — avoid an infinite loop
+		}
+		return !!this.persistedOrder(columnId);
+	}
+
 	// --- auto-scroll while dragging --------------------------------------
 
 	onDragOver = (e) => {
@@ -732,6 +771,10 @@ export class KanbanCore {
 
 	async applyMove(cardId, fromColumn, toColumn, toIndex) {
 		const sameColumn = fromColumn === toColumn;
+		// A partially-loaded column with no saved order has an unknown full order;
+		// load the rest first so the move works instead of silently aborting.
+		if (!(await this.ensureOrderKnown(fromColumn))) return;
+		if (!sameColumn && !(await this.ensureOrderKnown(toColumn))) return;
 		// Use full persisted order (includes not-yet-loaded names), not only
 		// the loaded window — otherwise the server would drop unloaded cards.
 		const loadedFrom = this.orderedNames(fromColumn);
@@ -803,6 +846,17 @@ export class KanbanCore {
 
 	async applyMoveMultiple(cardIds, toColumn, anchorName, edge) {
 		const selected = new Set(cardIds);
+		// Load the target and any column holding a selected card that has no saved
+		// order yet, so no selected card is silently dropped from the move below.
+		const involved = new Set([toColumn]);
+		for (const col of this.state.columns) {
+			const names = (this.state.cards[col.id] || []).map((c) => c.name);
+			if (names.some((n) => selected.has(n))) involved.add(col.id);
+		}
+		for (const colId of involved) {
+			if (!(await this.ensureOrderKnown(colId))) return;
+		}
+
 		const selectedOrdered = [];
 		const sourceOf = new Map();
 		// Walk full persisted order so multi-select keeps unloaded cards intact.
