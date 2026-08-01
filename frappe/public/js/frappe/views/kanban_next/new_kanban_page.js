@@ -339,7 +339,6 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		// Keep navbar left side consistent with classic views.
 		frappe.breadcrumbs.add(this.doctype, board_name);
 		frappe.breadcrumbs.update();
-		await new Promise((resolve) => frappe.require("kanban_next.bundle.js", resolve));
 
 		let board;
 		try {
@@ -2158,47 +2157,5 @@ frappe.views.NewKanbanGroupedBoard = class NewKanbanGroupedBoard {
 	}
 };
 
-/**
- * List-factory view for the new Kanban. Same route as classic Kanban
- * (List/{Doctype}/Kanban/{board}); System Settings → Use New Kanban selects this
- * class instead of KanbanView.
- */
-frappe.views.NewKanbanView = class NewKanbanView {
-	static load_last_view() {
-		return frappe.views.KanbanView.load_last_view();
-	}
-
-	constructor(opts) {
-		this.doctype = opts.doctype;
-		this.parent = opts.parent;
-		this.page = this.parent.page;
-		this._kanban = new frappe.views.NewKanbanPage(this.parent);
-		// Mirror ListView behavior: initialize immediately after construction.
-		// Route lifecycle can skip an immediate on_show after settings toggles,
-		// which otherwise leaves an empty page shell until manual navigation.
-		this.show();
-	}
-
-	/** Resolve board from route (or last/first board), then mount the engine. */
-	show() {
-		return frappe.views.KanbanView.get_kanbans(this.doctype).then((kanbans) => {
-			frappe.route_options = {};
-			if (!kanbans.length) {
-				return frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
-			}
-			if (frappe.get_route().length !== 4) {
-				const last_board = frappe.get_user_settings(this.doctype)["Kanban"]
-					?.last_kanban_board;
-				const names = (kanbans || []).map((k) => k.name || k);
-				if (last_board && names.includes(last_board)) {
-					frappe.set_route("List", this.doctype, "Kanban", last_board);
-					return;
-				}
-				const first = kanbans[0];
-				frappe.set_route("List", this.doctype, "Kanban", first.name || first);
-				return;
-			}
-			return this._kanban.load_from_route();
-		});
-	}
-};
+// NewKanbanView (the list-factory shim) lives in new_kanban_view_stub.js so it
+// is always available in list.bundle.js without pulling the full page code in.

@@ -736,11 +736,14 @@ export class KanbanCore {
 		// the loaded window — otherwise the server would drop unloaded cards.
 		const loadedFrom = this.orderedNames(fromColumn);
 		const fromNames = this.persistedOrder(fromColumn);
+		// null means partial load with no saved order — sending it would truncate unloaded names.
+		if (!fromNames) return;
 		const oldIndex = fromNames.indexOf(cardId);
 		if (oldIndex < 0) return;
 
 		const loadedTo = sameColumn ? loadedFrom : this.orderedNames(toColumn);
 		const toNames = sameColumn ? fromNames : this.persistedOrder(toColumn);
+		if (!toNames) return;
 		let insertIndex = this.persistedInsertIndex(toNames, loadedTo, toIndex);
 		fromNames.splice(oldIndex, 1);
 		if (sameColumn && oldIndex < insertIndex) insertIndex -= 1;
@@ -804,7 +807,9 @@ export class KanbanCore {
 		const sourceOf = new Map();
 		// Walk full persisted order so multi-select keeps unloaded cards intact.
 		for (const col of this.state.columns) {
-			for (const name of this.persistedOrder(col.id)) {
+			const colOrder = this.persistedOrder(col.id);
+			if (!colOrder) continue; // partial load, no saved order — skip column
+			for (const name of colOrder) {
 				if (selected.has(name)) {
 					selectedOrdered.push(name);
 					sourceOf.set(name, col.id);
@@ -825,7 +830,10 @@ export class KanbanCore {
 		const affected = [...new Set([...sourceOf.values(), toColumn])];
 		const snapshot = this.state;
 
-		const targetClean = this.persistedOrder(toColumn).filter((n) => !selected.has(n));
+		const toPersistedOrder = this.persistedOrder(toColumn);
+		// null means partial load with no saved order — abort to avoid truncating unloaded names.
+		if (!toPersistedOrder) return;
+		const targetClean = toPersistedOrder.filter((n) => !selected.has(n));
 		let insertAt = targetClean.length;
 		if (anchorName) {
 			const idx = targetClean.indexOf(anchorName);
@@ -839,9 +847,11 @@ export class KanbanCore {
 		const finalSourceOrders = new Map();
 		for (const colId of new Set(sourceOf.values())) {
 			if (colId === toColumn) continue;
+			const srcOrder = this.persistedOrder(colId);
+			if (!srcOrder) continue; // shouldn't happen: sourceOf was built from non-null orders
 			finalSourceOrders.set(
 				colId,
-				this.persistedOrder(colId).filter((n) => !selected.has(n))
+				srcOrder.filter((n) => !selected.has(n))
 			);
 		}
 
@@ -1060,6 +1070,8 @@ export class KanbanCore {
 	/**
 	 * Full column order for persistence (loaded + not-yet-loaded names).
 	 * Drag UI uses orderedNames(); saves must use this so unloaded cards stay put.
+	 * Returns null when the order is unknown (no saved order + column partially loaded)
+	 * — callers must treat null as "abort; would truncate unloaded names".
 	 */
 	persistedOrder(columnId) {
 		const column = this.getColumn(columnId);
@@ -1071,6 +1083,11 @@ export class KanbanCore {
 				.filter((name) => !seen.has(name));
 			return [...column.order, ...extras];
 		}
+		// No saved order: safe only when all cards are loaded. With a partial load
+		// we don't know the unloaded names, so returning only loaded names would
+		// silently truncate the server's order on the first move.
+		const loaded = this.state.cards[columnId] || [];
+		if (loaded.length < (column.total || 0)) return null;
 		return this.orderedNames(columnId);
 	}
 

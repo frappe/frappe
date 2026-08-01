@@ -16,4 +16,7 @@ frappe.kanban_next.KanbanCore = KanbanCore;
 frappe.kanban_next.FrappeDataProvider = FrappeDataProvider;
 frappe.kanban_next.BulkOperations = BulkOperations;
 
+// Page wrapper and swimlane classes live here so list.bundle.js stays lean.
+import "./new_kanban_page";
+
 export { KanbanVanilla, KanbanCore, FrappeDataProvider };
