@@ -20,6 +20,17 @@
 	height: calc(100vh - var(--page-head-height) - var(--margin-md));
 }
 
+/* ---- loading skeleton (blocks reuse .es-skeleton) ------------------------ */
+.kn-skeleton-title {
+	height: 12px;
+	width: 40%;
+	margin: 8px 0 10px 4px;
+}
+.kn-skeleton-card {
+	height: 68px;
+	margin-bottom: 8px;
+}
+
 /* ---- engine: board / columns -------------------------------------------- */
 .kn-board {
 	--kn-accent: var(--blue-500, #2490ef);
