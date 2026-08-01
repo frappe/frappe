@@ -16,10 +16,8 @@ frappe.ui.form.on("Kanban Board", {
 		}
 		if (frm.is_new()) return;
 		frm.add_custom_button(__("Show Board"), function () {
+			// Same route for both UIs; System Settings → Use New Kanban picks the engine.
 			frappe.set_route("List", frm.doc.reference_doctype, "Kanban", frm.doc.name);
-		});
-		frm.add_custom_button(__("Open New Kanban"), function () {
-			frappe.set_route("new-kanban", frm.doc.name);
 		});
 	},
 	reference_doctype: function (frm) {

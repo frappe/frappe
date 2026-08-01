@@ -548,15 +548,21 @@ def update_order(board_name: str, order: str | dict, throw_on_no_write: bool = F
 	order_dict = frappe.parse_json(order)
 
 	for col_name, cards in order_dict.items():
+		# Saved column.order can still list deleted docs (classic board syncs full
+		# order on load). Skip missing names and prune them from the stored order.
+		valid_cards = []
 		for card in cards:
-			column = frappe.get_value(doctype, {"name": card}, fieldname)
+			column = frappe.db.get_value(doctype, card, fieldname)
 			if column != col_name:
+				if not frappe.db.exists(doctype, card):
+					continue
 				frappe.set_value(doctype, card, fieldname, col_name)
 				updated_cards.append(dict(name=card, column=col_name))
+			valid_cards.append(card)
 
 		for column in board.columns:
 			if column.column_name == col_name:
-				column.order = json.dumps(cards)
+				column.order = json.dumps(valid_cards)
 
 	saved = board.save(ignore_permissions=True)
 	publish_kanban_board_update(saved)

@@ -18,6 +18,10 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 		}
 
 		let view_class = frappe.views[view_name + "View"];
+		// System Settings → Use New Kanban: same List/.../Kanban route, new engine.
+		if (view_name === "Kanban" && cint(frappe.boot.sysdefaults.use_new_kanban)) {
+			view_class = frappe.views.NewKanbanView;
+		}
 		if (!view_class) view_class = frappe.views.ListView;
 
 		if (view_class && view_class.load_last_view && view_class.load_last_view()) {

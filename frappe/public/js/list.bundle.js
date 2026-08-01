@@ -26,6 +26,7 @@ import "./frappe/views/dashboard/dashboard_view.js";
 import "./frappe/views/image/image_view.js";
 import "./frappe/views/map/map_view.js";
 import "./frappe/views/kanban/kanban_view.js";
+import "./frappe/views/kanban_next/new_kanban_page.js";
 import "./frappe/views/inbox/inbox_view.js";
 import "./frappe/views/file/file_view.js";
 
