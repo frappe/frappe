@@ -111,18 +111,44 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 				single_column: true,
 			});
 		// flex column so an optional filter bar + the board share the height.
-		// The board area sizes itself in .new-kanban-container (kanban_next.scss);
-		// utilities here just make the page shell a full-height flex column.
-		this.page.main.addClass("flex flex-col overflow-hidden p-0");
 		this.$container = $('<div class="new-kanban-container px-4">').appendTo(this.page.main);
-		// Match classic List/Kanban shell so the side section does not consume
-		// horizontal space and shift the board toward the center.
-		$(document.body).addClass("no-list-sidebar");
-		// Use full width page body for Kanban columns so the board starts from the
-		// left and doesn't appear centered in the default fixed-width container.
-		this.page.container.addClass("new-kanban-full-width");
+		// Apply the full-width, no-sidebar page shell. This mutates the page + body,
+		// which the List view shares (same page instance), so restore_page_shell()
+		// must undo every part of it on teardown.
+		this.apply_page_shell();
 
 		this.make_selection_bar();
+	}
+
+	/**
+	 * Turn the shared page into the Kanban shell: a full-height, full-width,
+	 * padding-less flex column with the list side section suppressed. Idempotent,
+	 * so it's safe to call on every route load.
+	 */
+	apply_page_shell() {
+		// utilities make the page shell a full-height flex column; the board area
+		// sizes itself in .new-kanban-container (kanban_next.scss).
+		this.page.main.addClass("flex flex-col overflow-hidden p-0");
+		if (this.$container) this.$container.show();
+		// Side section must not consume horizontal space and shift the board.
+		$(document.body).addClass("no-list-sidebar");
+		// Full-width page body so columns start from the left instead of centered
+		// in the default fixed-width container.
+		this.page.container.addClass("new-kanban-full-width");
+	}
+
+	/**
+	 * Undo apply_page_shell() so returning to the List view (which reuses this
+	 * page instance) gets a clean, padded, fixed-width main section back.
+	 */
+	restore_page_shell() {
+		this.page.main.removeClass("flex flex-col overflow-hidden p-0");
+		if (this.$container) this.$container.hide();
+		// NOTE: don't remove `no-list-sidebar`. It's set to true by base_list for
+		// every list view and never unset elsewhere, so the List view we're likely
+		// returning to needs it; our teardown runs after the list's own setup, so
+		// removing it here would clobber the list and re-show its side section.
+		this.page.container.removeClass("new-kanban-full-width");
 	}
 
 	/** Board name from List/.../Kanban/{board} or legacy #new-kanban/{board}. */
@@ -200,9 +226,9 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		}
 		if (clear_route) this.current_board = null;
 		if (clear_route) {
-			// Remove list-shell layout override when leaving the new Kanban page.
-			$(document.body).removeClass("no-list-sidebar");
-			this.page.container.removeClass("new-kanban-full-width");
+			// Fully restore the shared page shell when leaving the new Kanban page;
+			// otherwise the List view (same page instance) inherits kanban layout.
+			this.restore_page_shell();
 		}
 	}
 
@@ -314,11 +340,9 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	}
 
 	async load_from_route() {
-		// Keep list shell behavior in sync while routing between boards/views.
-		$(document.body).addClass("no-list-sidebar");
-		// Re-apply shell class on every route load because router-driven teardown
-		// can clear it while reusing the same page instance.
-		this.page.container.addClass("new-kanban-full-width");
+		// Re-apply the page shell on every route load; router-driven teardown can
+		// clear it while reusing the same page instance.
+		this.apply_page_shell();
 
 		const board_name = this.get_board_name_from_route();
 		if (!board_name) {
@@ -993,6 +1017,9 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			// virtualized window would under-render — the caller turns it off.
 			virtualization: opts.virtualization !== undefined ? opts.virtualization : true,
 			selection: "multi",
+			// Loading-skeleton column count — the board config already lists them.
+			skeletonColumns:
+				this.board_doc && this.board_doc.columns ? this.board_doc.columns.length : 3,
 			addCardLabel: __("Add {0}", [__(this.doctype)]),
 			renderCard: s.renderCard
 				? (card, el, ctx) => s.renderCard(card, el, ctx, this)
@@ -1243,25 +1270,23 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	}
 
 	/**
-	 * One field row. Icon rows stay horizontal (icon is narrow). Text-label
-	 * rows stack label above value so long labels never steal value space
-	 * inside the fixed card width. Empty icon rows invite "Set {label}…";
-	 * text-label empties show a dash.
+	 * One field row. Always horizontal: icon (or text label) on the left,
+	 * value on the right. Empty rows show "Set {label}…" for icon mode,
+	 * or a dash for text-label mode.
 	 */
 	field_row(card, df) {
 		const label = this.field_label(df);
 		const icon = (this.card_field_icons || {})[df.fieldname];
 		const row = document.createElement("div");
 
+		// Both icon and text-label rows are horizontal: label/icon on the left, value on the right.
+		row.className = "kn-frow flex items-center gap-2 min-w-0";
 		if (icon) {
-			row.className = "kn-frow flex items-center gap-2 min-w-0";
 			row.appendChild(this.row_icon(icon, label));
 		} else {
-			// Stacked: full label readable, value gets the whole card width.
-			row.className = "kn-frow flex flex-col gap-0.5 min-w-0";
 			const text = document.createElement("span");
-			text.className = "text-xs text-ink-gray-5 truncate";
-			text.textContent = label;
+			text.className = "text-xs text-ink-gray-5 shrink-0";
+			text.textContent = label + ":";
 			text.title = label;
 			row.appendChild(text);
 		}

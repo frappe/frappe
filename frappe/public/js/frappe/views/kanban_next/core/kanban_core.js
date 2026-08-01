@@ -120,6 +120,9 @@ export class KanbanCore {
 
 	async reload() {
 		this.setLoading(true);
+		// First load has no columns yet — show placeholder columns instead of a
+		// blank panel while loadBoard() runs. render() replaces them with real data.
+		if (!this.state.columns.length) this.renderSkeleton();
 		try {
 			const { columns, cards } = await this.options.provider.loadBoard();
 			this.state = { ...this.state, columns, cards };
@@ -1229,6 +1232,38 @@ export class KanbanCore {
 	setLoading(loading) {
 		this.state = { ...this.state, loading };
 		this.root && this.root.classList.toggle("kn-loading", loading);
+	}
+
+	/**
+	 * Placeholder columns for the first load (before board data arrives), so the
+	 * board area shows structure instead of blank white. Uses the real column
+	 * shell classes for an accurate silhouette; the blocks are `.es-skeleton`
+	 * (pulsing, theme- and reduced-motion-aware). Column count comes from
+	 * options.skeletonColumns (the caller knows the board's columns); default 3.
+	 */
+	renderSkeleton() {
+		if (!this.root) return;
+		const count = Math.max(1, this.options.skeletonColumns || 3);
+		const frag = document.createDocumentFragment();
+		for (let c = 0; c < count; c++) {
+			const col = document.createElement("div");
+			col.className = CLS.column;
+			const header = document.createElement("div");
+			header.className = CLS.header + " pb-2";
+			header.innerHTML = `<div class="es-skeleton kn-skeleton-title" aria-hidden="true"></div>`;
+			const body = document.createElement("div");
+			body.className = CLS.body;
+			// A little variation so it reads as content, not a table.
+			for (let i = 0; i < 3 - (c % 2); i++) {
+				const card = document.createElement("div");
+				card.className = "es-skeleton kn-skeleton-card";
+				card.setAttribute("aria-hidden", "true");
+				body.appendChild(card);
+			}
+			col.append(header, body);
+			frag.appendChild(col);
+		}
+		this.root.replaceChildren(frag);
 	}
 
 	getColumn(id) {
