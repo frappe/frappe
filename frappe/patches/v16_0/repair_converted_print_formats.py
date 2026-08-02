@@ -4,28 +4,24 @@ import frappe
 from frappe.printing.doctype.print_format.classic_converter import (
 	CONVERTED_SECTION_GAP_PX,
 	DEFAULT_COLUMN_WIDTH_PCT,
+	NUMERIC_DEFAULT_FIELDS,
+	missing_numeric_defaults,
 )
 
 
 def execute():
-	"""Repair formats converted by migrate_classic_print_formats before the
-	converter fixes: font_size landed as 0 (invisible render), the serial column as
-	5.33% (too narrow) and sections with no spacing between them. Touches only those
-	defects so builder edits made since the conversion survive.
-
-	Re-runnable: patches.txt carries a dated entry so sites that already ran an
-	earlier version of this patch pick up the later fixes."""
+	"""Repair formats converted before the converter fixes: numeric fields left at 0,
+	narrow serial columns, sections with no spacing. Nothing else is touched."""
 	names = frappe.get_all(
 		"Print Format",
 		filters={"print_format_builder_beta": 1, "classic_format_data": ("is", "set")},
 		pluck="name",
 	)
+	fields = ["format_data", *NUMERIC_DEFAULT_FIELDS]
 	for name in names:
-		values = {}
-		font_size, format_data = frappe.db.get_value("Print Format", name, ["font_size", "format_data"])
-		if not font_size:
-			values["font_size"] = 14
-		repaired = repair_layout(format_data)
+		row = frappe.db.get_value("Print Format", name, fields, as_dict=True)
+		values = missing_numeric_defaults(row)
+		repaired = repair_layout(row.format_data)
 		if repaired:
 			values["format_data"] = repaired
 		if values:

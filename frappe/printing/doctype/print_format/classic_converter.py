@@ -4,13 +4,15 @@
 import json
 
 import frappe
-from frappe.utils import cint
+from frappe.utils import cint, flt
 
 ASSUMED_BODY_WIDTH_PX = 750
 DEFAULT_COLUMN_WIDTH_PCT = 10
 # classic wrapped text and table blocks in `padding: 10px 0px`; the beta renderer
 # has no such default, so converted sections carry the gap explicitly
 CONVERTED_SECTION_GAP_PX = 10
+MARGIN_FIELDS = ("margin_top", "margin_bottom", "margin_left", "margin_right")
+NUMERIC_DEFAULT_FIELDS = ("font_size", *MARGIN_FIELDS)
 
 DEFAULT_PRINT_HEADING = (
 	'{%- set heading = doc.get("select_print_heading") or doc.get("print_heading") or doc.doctype -%}'
@@ -233,6 +235,15 @@ def distribute_widths(columns) -> list:
 	return columns
 
 
+def missing_numeric_defaults(values) -> dict:
+	"""DocType defaults for numeric fields left unset. Margins only when all four are."""
+	meta = frappe.get_meta("Print Format")
+	fields = list(NUMERIC_DEFAULT_FIELDS)
+	if any(values.get(f) for f in MARGIN_FIELDS):
+		fields = [f for f in fields if f not in MARGIN_FIELDS]
+	return {f: flt(meta.get_field(f).default) for f in fields if not values.get(f)}
+
+
 def convert_print_format(doc):
 	"""Convert a classic Print Format document to beta in place (does not save).
 
@@ -255,8 +266,8 @@ def convert_print_format(doc):
 	doc.format_data = json.dumps(layout, indent=1)
 	doc.print_format_builder = 0
 	doc.print_format_builder_beta = 1
-	if not doc.font_size:
-		doc.font_size = 14
+	for fieldname, value in missing_numeric_defaults(doc).items():
+		doc.set(fieldname, value)
 	doc.pdf_generator = "chrome"
 	if not doc.page_number or doc.page_number == "Hide":
 		doc.page_number = "Bottom Center"
@@ -400,7 +411,7 @@ def migrate_all_classic_formats():
 						"print_format_builder_beta": 1,
 						"pdf_generator": doc.pdf_generator,
 						"page_number": doc.page_number,
-						"font_size": doc.font_size,
+						**{f: doc.get(f) for f in NUMERIC_DEFAULT_FIELDS},
 					},
 					update_modified=False,
 				)

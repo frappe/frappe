@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils import flt
 
 if TYPE_CHECKING:
 	from frappe.printing.doctype.print_format.print_format import PrintFormat
@@ -534,6 +535,29 @@ class TestClassicConverter(IntegrationTestCase):
 
 		# re-running changes nothing
 		self.assertFalse(add_section_spacing(untouched))
+
+	def test_conversion_fills_numeric_fields_left_empty(self):
+		from frappe.printing.doctype.print_format.classic_converter import (
+			NUMERIC_DEFAULT_FIELDS,
+			convert_print_format,
+		)
+
+		doc = self.make_classic_format()
+		for fieldname in NUMERIC_DEFAULT_FIELDS:
+			doc.set(fieldname, 0)
+		convert_print_format(doc)
+
+		meta = frappe.get_meta("Print Format")
+		for fieldname in NUMERIC_DEFAULT_FIELDS:
+			with self.subTest(fieldname=fieldname):
+				self.assertEqual(doc.get(fieldname), flt(meta.get_field(fieldname).default))
+
+		doc.margin_left = 3
+		for fieldname in ("margin_top", "margin_bottom", "margin_right"):
+			doc.set(fieldname, 0)
+		convert_print_format(doc)
+		self.assertEqual(doc.margin_left, 3)
+		self.assertEqual(doc.margin_right, 0)
 
 	def test_repair_converted_print_formats(self):
 		from frappe.patches.v16_0.repair_converted_print_formats import execute
