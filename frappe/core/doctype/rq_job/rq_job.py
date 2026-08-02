@@ -197,6 +197,18 @@ def filter_job_ids(job_ids: list[str], filters) -> list[str]:
 	if not filters:
 		return job_ids
 
+	identifier_filters = [filter for filter in filters if filter[1] in {"name", "job_id"}]
+	if identifier_filters:
+		job_ids = [
+			job_id
+			for job_id in job_ids
+			if all(compare(job_id, filter[2], filter[3]) for filter in identifier_filters)
+		]
+		filters = [filter for filter in filters if filter[1] not in {"name", "job_id"}]
+
+	if not filters:
+		return job_ids
+
 	conn = get_redis_conn()
 	jobs = Job.fetch_many(job_ids=job_ids, connection=conn)
 	return [job.id for job in jobs if job and evaluate_filters(serialize_job(job), filters)]

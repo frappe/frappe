@@ -3,6 +3,7 @@
 # See license.txt
 
 import time
+from unittest.mock import patch
 
 from rq import exceptions as rq_exc
 from rq.job import Job
@@ -76,7 +77,8 @@ class TestRQJob(IntegrationTestCase):
 			frappe.get_all("RQ Job", filters={"job_name": "__missing_job_name__"}),
 			[],
 		)
-		self.assertEqual(RQJob.get_count(filters=[["RQ Job", "job_id", "=", job.id]]), 1)
+		with patch.object(Job, "fetch_many", side_effect=AssertionError("exact ID filter fetched jobs")):
+			self.assertEqual(RQJob.get_count(filters=[["RQ Job", "job_id", "=", job.id]]), 1)
 
 	def test_configurable_ttl(self):
 		frappe.conf.rq_job_failure_ttl = 600
