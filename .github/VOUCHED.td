@@ -18,7 +18,6 @@ Copilot
 dependabot[bot]
 frappe-pr-bot
 gajjug004
-Henil666
 karm1000
 kaulith
 KerollesFathy
