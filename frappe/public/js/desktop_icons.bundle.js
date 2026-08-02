@@ -435,7 +435,7 @@ class DesktopPage {
 		let is_dark = document.documentElement.getAttribute("data-theme") === "dark";
 		let menu_items = [
 			{
-				icon: "edit",
+				icon: "pencil",
 				label: "Edit Profile",
 				url: `/desk/user/${frappe.session.user}`,
 			},
@@ -454,7 +454,7 @@ class DesktopPage {
 				},
 			},
 			{
-				icon: "support",
+				icon: "life-buoy",
 				label: "Frappe Support",
 				onClick: function () {
 					window.open("https://support.frappe.io/help", "_blank");
