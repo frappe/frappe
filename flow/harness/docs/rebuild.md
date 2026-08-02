@@ -1,6 +1,6 @@
 # Rebuild charter
 
-flow_server's behavior is right; its structure is not. The codebase grew by patching:
+flow's behavior is right; its structure is not. The codebase grew by patching:
 `agent/loop.py` was born at 385 lines and doubled through nine fix PRs, each solving a
 real problem (the problems pi and tau also solve) by grafting code onto a structure that
 could not absorb it. This document is the contract for rebuilding it — same behavior,
@@ -46,7 +46,7 @@ the evidence, not live pointers.
 ## Target layout
 
 ```
-src/flow_server/
+src/flow/
   config.py                 daemon env config (unchanged)
   events.py                 shared event contract; content blocks gain provider_state
   path_policy.py            shared path fences (unchanged)
@@ -106,7 +106,7 @@ Every future fix names the layer it belongs to before it lands. Concretely:
    fields, ids, or signatures.
 6. A fix adding more than ~30 lines to `loop.py` or `session.py` must first answer
    "which layer owns this?" in its PR description.
-7. No migration code. flow_server has not shipped, so there are no logs, credentials,
+7. No migration code. flow has not shipped, so there are no logs, credentials,
    or clients in the wild to be compatible with: no upgrade-on-read shims, no legacy
    field handling, no format version negotiation. Schemas are written as they should
    be. (The cross-repo wire contract with Flow is not migration — see inventory 15.)
@@ -134,7 +134,7 @@ The existing tests are the spec — port scenarios, not test code. Nothing here 
    (PKCE, single-flight refresh lock, 0600 atomic store, login CLI with loopback +
    manual fallback).
 10. Security fences: session-id slug, realpath cwd/tool fences under
-    `FLOW_SERVER_ALLOWED_ROOTS`, loopback-or-token bind guard, secrets never accepted
+    `FLOW_ALLOWED_ROOTS`, loopback-or-token bind guard, secrets never accepted
     as run inputs, redacted config echoes.
 11. Tools: bash group-kill/timeout/truncation/spill, atomic multi-edit with diff,
     read paging, grep `--` fence.
@@ -155,7 +155,7 @@ old HTTP assertions pass unmodified in PR 6.
 
 - **PR 0 — charter + bare package** (this PR). This document; strip the branch to
   scaffolding (pyproject, uv.lock, CI, pre-commit, pyright, .gitignore), a bare
-  `src/flow_server/__init__.py`, and a package smoke test so CI stays green.
+  `src/flow/__init__.py`, and a package smoke test so CI stays green.
 - **PR 1 — events + log + transcript.** Fresh `events.py` with `provider_state` on
   `TextContent`/`ThinkingContent`/`ToolCall` and a single live-only
   `Retry(status=scheduled|started|exhausted)` event from day one. `session/log.py`

@@ -6,7 +6,7 @@ iteration, for embedding/tests/TUI) and the **HTTP API** (remote, disconnect-tol
 ## In-process: `Agent`
 
 ```python
-from flow_server.agent import Agent
+from flow.agent import Agent
 ```
 
 ### Constructor
@@ -74,7 +74,7 @@ async for e in agent.resume(answers, approval_seq=approval_seq):
 ## HTTP API
 
 Start the daemon: `flowd serve --port 8787`. All routes are JSON unless noted. When
-`FLOW_SERVER_AUTH_TOKEN` is configured, send `Authorization: Bearer <token>` on every
+`FLOW_AUTH_TOKEN` is configured, send `Authorization: Bearer <token>` on every
 request except `GET /healthz`.
 
 ### `GET /healthz`
@@ -148,7 +148,7 @@ model (and stored credential) for runs from here on, as a durable `model_changed
 entry in the log — so it survives restarts and is per-branch: a rewind to before the
 change restores the previous selection. Setting the already-active selection writes
 nothing. Provider keys, OAuth tokens, headers, and base URLs are never accepted;
-they are resolved inside flow_server →
+they are resolved inside flow →
 `{"model": "...", "credential_id": ...}` (the now-effective selection). `409` while a
 run is active; allowed while paused (the resume continues on the new model).
 

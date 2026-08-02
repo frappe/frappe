@@ -3,7 +3,7 @@ import asyncio
 import httpx
 import pytest
 
-from flow_server.events import (
+from flow.events import (
 	AssistantMessage,
 	TextContent,
 	ThinkingContent,
@@ -11,7 +11,7 @@ from flow_server.events import (
 	ToolResult,
 	UserMessage,
 )
-from flow_server.model import (
+from flow.model import (
 	_NATIVE_PROVIDERS,
 	LiteLLMModel,
 	MockModel,
@@ -20,14 +20,14 @@ from flow_server.model import (
 	get_model,
 	register_provider,
 )
-from flow_server.model.litellm import (
+from flow.model.litellm import (
 	_build_tool_call,
 	_openai_messages,
 	_reasoning_blocks,
 	_reasoning_field,
 	_stop_reason,
 )
-from flow_server.model.providers.codex import CodexModel
+from flow.model.providers.codex import CodexModel
 
 
 def _chunk(delta: dict, finish_reason: str | None = None) -> dict:
@@ -124,7 +124,7 @@ async def test_litellm_cancellation_closes_active_stream(monkeypatch):
 
 async def test_litellm_disables_sdk_retries_and_owns_the_attempts(monkeypatch):
 	"""One acompletion call is one provider attempt; the retry budget lives in Flow."""
-	monkeypatch.setattr("flow_server.model.base._retry_delay_seconds", lambda error, retry_index: 0)
+	monkeypatch.setattr("flow.model.base._retry_delay_seconds", lambda error, retry_index: 0)
 	seen_kwargs = {}
 	attempts = 0
 

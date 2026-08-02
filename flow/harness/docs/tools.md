@@ -7,7 +7,7 @@ truth. Everything lives in `tools/`.
 ## The model
 
 ```python
-from flow_server.tools.tool import tool, Tool, ToolContext, ToolResult
+from flow.tools.tool import tool, Tool, ToolContext, ToolResult
 ```
 
 - **`Tool`** — `name`, `description`, `parameters` (JSON schema), `func`,
@@ -25,7 +25,7 @@ from flow_server.tools.tool import tool, Tool, ToolContext, ToolResult
 
 ```python
 from typing import Annotated
-from flow_server.tools.tool import tool, ToolContext, ToolResult
+from flow.tools.tool import tool, ToolContext, ToolResult
 
 @tool(requires_confirmation=True)
 async def rename(
@@ -66,7 +66,7 @@ pauses until `resume` (or `cancel_pending`).
 ## Builtins
 
 Path-taking tools resolve relative paths against `ctx.cwd`. When
-`FLOW_SERVER_ALLOWED_ROOTS` is configured, `read_file`, `write`, `edit`, and `grep`
+`FLOW_ALLOWED_ROOTS` is configured, `read_file`, `write`, `edit`, and `grep`
 realpath-check every target and reject traversal or symlink escapes. Output is truncated
 to 2000 lines / 50 KB. Mutating/executing tools default
 `requires_confirmation=True`; read-only ones don't.

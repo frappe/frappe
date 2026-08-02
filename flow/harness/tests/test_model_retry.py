@@ -6,9 +6,9 @@ import asyncio
 import httpx
 import pytest
 
-from flow_server.events import AssistantMessage, TextDelta, Usage
-from flow_server.model.base import ModelCancelled, run_with_retries
-from flow_server.model.errors import ProviderError
+from flow.events import AssistantMessage, TextDelta, Usage
+from flow.model.base import ModelCancelled, run_with_retries
+from flow.model.errors import ProviderError
 
 
 def provider_error(kind="overloaded", *, retryable=True, detail="provider busy", retry_after=None):
@@ -48,7 +48,7 @@ async def _collect(gen):
 
 
 def _no_delay(monkeypatch):
-	monkeypatch.setattr("flow_server.model.base._retry_delay_seconds", lambda error, retry_index: 0)
+	monkeypatch.setattr("flow.model.base._retry_delay_seconds", lambda error, retry_index: 0)
 
 
 async def test_transient_failure_retries_before_the_terminal_commits(monkeypatch):
@@ -155,7 +155,7 @@ async def test_no_retry_after_the_assistant_message_is_out():
 
 
 async def test_cancellation_interrupts_retry_backoff(monkeypatch):
-	monkeypatch.setattr("flow_server.model.base._retry_delay_seconds", lambda error, retry_index: 60)
+	monkeypatch.setattr("flow.model.base._retry_delay_seconds", lambda error, retry_index: 60)
 	cancellation = asyncio.Event()
 	flaky = Flaky([provider_error()])
 

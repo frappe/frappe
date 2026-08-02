@@ -9,7 +9,7 @@ import json
 import httpx
 import pytest
 
-from flow_server.model.auth import (
+from flow.model.auth import (
 	AuthError,
 	NotAuthenticated,
 	account_id_from_tokens,
@@ -19,7 +19,7 @@ from flow_server.model.auth import (
 	resolve_model_auth,
 	resolve_oauth,
 )
-from flow_server.model.credentials import CredentialStore, OAuthCredential
+from flow.model.credentials import CredentialStore, OAuthCredential
 
 
 def _jwt(payload: dict) -> str:

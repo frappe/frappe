@@ -8,7 +8,7 @@ import os
 import pytest
 from pydantic import ValidationError
 
-from flow_server.events import (
+from flow.events import (
 	ApprovalRequired,
 	AssistantMessage,
 	PendingCall,
@@ -17,11 +17,11 @@ from flow_server.events import (
 	ToolResult,
 	UserMessage,
 )
-from flow_server.model.credentials import CredentialStore
-from flow_server.model.mock import MockModel
-from flow_server.session.config import SessionConfig
-from flow_server.session.session import SessionState
-from flow_server.session.store import SessionStore
+from flow.model.credentials import CredentialStore
+from flow.model.mock import MockModel
+from flow.session.config import SessionConfig
+from flow.session.session import SessionState
+from flow.session.store import SessionStore
 
 
 def test_session_config_includes_all_builtin_tools_by_default():
@@ -85,7 +85,7 @@ async def test_set_model_applies_to_later_runs_and_survives_restart(tmp_path, mo
 		resolved.append(name)
 		return MockModel()
 
-	monkeypatch.setattr("flow_server.agent.loop.get_model", spy)
+	monkeypatch.setattr("flow.agent.loop.get_model", spy)
 	credentials = CredentialStore(str(tmp_path / "credentials.json"))  # keep auth offline
 	store = SessionStore(str(tmp_path), credential_store=credentials)
 	session = store.create(SessionConfig(model="mock", cwd=str(tmp_path)))
@@ -257,7 +257,7 @@ async def test_rewind_branches_and_the_next_run_follows_the_new_path(tmp_path):
 
 
 async def test_rewind_while_running_is_a_conflict(tmp_path):
-	from flow_server.session.session import SessionConflict
+	from flow.session.session import SessionConflict
 
 	class Blocking(MockModel):
 		def __init__(self):
@@ -285,7 +285,7 @@ async def test_rewind_while_running_is_a_conflict(tmp_path):
 
 
 async def test_rewind_rejects_targets_that_leave_calls_open(tmp_path):
-	from flow_server.session.session import RewindError
+	from flow.session.session import RewindError
 
 	(tmp_path / "a.txt").write_text("x")
 	store = SessionStore(str(tmp_path))
@@ -306,7 +306,7 @@ async def test_rewind_rejects_targets_that_leave_calls_open(tmp_path):
 
 
 async def test_rewind_while_paused_abandons_the_approval_batch(tmp_path):
-	from flow_server.session.session import ResumeError
+	from flow.session.session import ResumeError
 
 	(tmp_path / "a.txt").write_text("x")
 	store = SessionStore(str(tmp_path))
@@ -331,7 +331,7 @@ async def test_rewind_while_paused_abandons_the_approval_batch(tmp_path):
 
 
 async def test_rewind_to_zero_replaces_the_first_run(tmp_path):
-	from flow_server.session.transcript import active_path
+	from flow.session.transcript import active_path
 
 	store = SessionStore(str(tmp_path))
 	session = store.create(SessionConfig(cwd=str(tmp_path)))
@@ -357,7 +357,7 @@ async def test_rewind_to_zero_replaces_the_first_run(tmp_path):
 
 
 async def test_set_model_is_rejected_while_running(tmp_path):
-	from flow_server.session.session import SessionConflict
+	from flow.session.session import SessionConflict
 
 	class Blocking(MockModel):
 		def __init__(self):

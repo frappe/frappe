@@ -1,6 +1,6 @@
 import os
 
-from flow_server import config
+from flow import config
 
 
 def test_server_state_defaults_are_user_global():

@@ -1,6 +1,6 @@
-from flow_server.cli.login import _parse_callback, login, logout, show_providers
-from flow_server.cli.main import _is_loopback, _with_default_command
-from flow_server.model.credentials import CredentialStore
+from flow.cli.login import _parse_callback, login, logout, show_providers
+from flow.cli.main import _is_loopback, _with_default_command
+from flow.model.credentials import CredentialStore
 
 
 def test_api_key_login_status_and_logout(tmp_path, monkeypatch, capsys):

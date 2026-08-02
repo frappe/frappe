@@ -1,6 +1,6 @@
 # Authentication
 
-flow_server owns user-global provider credentials. Clients select a model and may select
+The flow server owns user-global provider credentials. Clients select a model and may select
 a named credential; provider secrets and endpoints never belong in session or run
 payloads.
 
@@ -51,7 +51,7 @@ Writes are validated, locked, and atomically replaced. OAuth refresh is
 serialized per provider within the daemon so concurrent sessions do not consume the
 same rotating refresh token.
 
-The daemon binds to `127.0.0.1` by default. Set `FLOW_SERVER_AUTH_TOKEN` to require
+The daemon binds to `127.0.0.1` by default. Set `FLOW_AUTH_TOKEN` to require
 `Authorization: Bearer <token>` on every endpoint except `/healthz`. `flowd serve`
 refuses a non-loopback bind unless this token is configured; embedders calling
 `create_app` directly must pass `auth_token=` themselves.

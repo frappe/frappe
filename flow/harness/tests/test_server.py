@@ -9,13 +9,13 @@ import pytest
 import uvicorn
 from fastapi.testclient import TestClient
 
-from flow_server.events import AssistantMessage, ToolCall, Usage
-from flow_server.model import Model, ModelRequest
-from flow_server.model.credentials import CredentialStore
-from flow_server.model.mock import MockModel
-from flow_server.server import create_app
-from flow_server.session.config import SessionConfig
-from flow_server.session.store import SessionStore
+from flow.events import AssistantMessage, ToolCall, Usage
+from flow.model import Model, ModelRequest
+from flow.model.credentials import CredentialStore
+from flow.model.mock import MockModel
+from flow.server import create_app
+from flow.session.config import SessionConfig
+from flow.session.store import SessionStore
 
 
 def _client(tmp_path, **store_kw):
@@ -77,7 +77,7 @@ def test_set_model_is_a_durable_entry_used_by_later_runs(tmp_path, monkeypatch):
 		resolved.append(name)
 		return MockModel()
 
-	monkeypatch.setattr("flow_server.agent.loop.get_model", spy)
+	monkeypatch.setattr("flow.agent.loop.get_model", spy)
 	c = _client(tmp_path)
 	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
 
@@ -235,7 +235,7 @@ def test_paused_run_requires_exact_current_approval_batch(tmp_path, monkeypatch)
 			AssistantMessage(content="done"),
 		]
 	)
-	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: mock)
+	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: mock)
 	c = _client(tmp_path)
 	sid = c.post(
 		"/sessions",
@@ -296,7 +296,7 @@ def test_paused_state_and_approval_survive_store_reload(tmp_path, monkeypatch):
 	mock = MockModel(
 		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})])]
 	)
-	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: mock)
+	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: mock)
 	data_dir = tmp_path / "data"
 	store = SessionStore(
 		str(data_dir),
@@ -380,7 +380,7 @@ class _AbortBlockingModel(Model):
 
 async def test_waiting_run_is_registered_and_concurrent_run_steers(tmp_path, monkeypatch):
 	model = _BlockingModel()
-	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: model)
+	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
 	store = SessionStore(
 		str(tmp_path / "data"),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
@@ -422,7 +422,7 @@ async def test_waiting_run_is_registered_and_concurrent_run_steers(tmp_path, mon
 
 async def test_abort_interrupts_stream_clears_steering_and_returns_session_to_idle(tmp_path, monkeypatch):
 	model = _AbortBlockingModel()
-	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: model)
+	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
 	store = SessionStore(
 		str(tmp_path / "data"),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
@@ -477,7 +477,7 @@ async def test_http_abort_kills_active_bash_process_tree_and_repairs_transcript(
 			AssistantMessage(content=[ToolCall(id="bash-1", name="bash", arguments={"command": command})])
 		]
 	)
-	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: model)
+	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
 	store = SessionStore(
 		str(tmp_path / "data"),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
@@ -529,7 +529,7 @@ async def test_http_abort_kills_active_bash_process_tree_and_repairs_transcript(
 async def test_concurrent_resume_is_rejected_before_duplicate_tool_execution(tmp_path, monkeypatch):
 	(tmp_path / "a.txt").write_text("SECRET")
 	model = _ResumeBlockingModel()
-	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: model)
+	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
 	store = SessionStore(
 		str(tmp_path / "data"),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
@@ -577,7 +577,7 @@ async def test_concurrent_resume_is_rejected_before_duplicate_tool_execution(tmp
 async def test_stream_reconnect_with_since_continues_a_live_run(tmp_path, monkeypatch):
 	# a live SSE stream needs a real server: httpx's ASGITransport buffers whole bodies
 	model = _BlockingModel()
-	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: model)
+	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
 	store = SessionStore(
 		str(tmp_path / "data"),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
@@ -639,7 +639,7 @@ def test_cancel_pending_closes_a_paused_run(tmp_path, monkeypatch):
 			AssistantMessage(content="done"),
 		]
 	)
-	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: mock)
+	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: mock)
 	c = _client(tmp_path)
 	sid = c.post(
 		"/sessions",
@@ -673,7 +673,7 @@ def test_cancel_pending_without_a_pause_is_a_noop(tmp_path):
 
 async def test_cancel_pending_while_running_is_rejected(tmp_path, monkeypatch):
 	model = _BlockingModel()
-	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: model)
+	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
 	store = SessionStore(
 		str(tmp_path / "data"),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
@@ -712,7 +712,7 @@ def test_rewind_branches_the_conversation_over_http(tmp_path):
 
 async def test_rewind_while_running_is_rejected_over_http(tmp_path, monkeypatch):
 	model = _BlockingModel()
-	monkeypatch.setattr("flow_server.agent.loop.get_model", lambda *args, **kwargs: model)
+	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: model)
 	store = SessionStore(
 		str(tmp_path / "data"),
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),

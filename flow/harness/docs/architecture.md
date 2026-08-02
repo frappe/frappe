@@ -1,6 +1,6 @@
 # Architecture
 
-flow_server is a standalone agent daemon: it runs model↔tool loops as durable,
+The flow server is a standalone agent daemon: it runs model↔tool loops as durable,
 disconnect-tolerant sessions and exposes them over HTTP/SSE and an embeddable Python
 facade. Flow (Frappe) is one client among many.
 
@@ -127,7 +127,7 @@ Two independent layers around every tool call, in order: bad-args feedback →
 same engine for embedders: subscribe, submit, yield until `run_ended`.
 
 `session/store.py` is disk only: private directories, meta persistence, the
-session-id slug check, and the realpath cwd fence under `FLOW_SERVER_ALLOWED_ROOTS`,
+session-id slug check, and the realpath cwd fence under `FLOW_ALLOWED_ROOTS`,
 enforced in `create` and re-checked on `get` so every path in is fenced.
 
 ## Dependency direction

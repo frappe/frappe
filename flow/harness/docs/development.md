@@ -20,7 +20,7 @@ uv run pytest
 - The keyless **`mock`** model drives loop/server tests with no provider. Script exact
   turns with `MockModel(replies=[AssistantMessage(...), ...])` (one consumed per model
   call) and inject it via `Agent(model=mock)`, `session.run(model=mock)`, or by
-  monkeypatching `flow_server.agent.loop.get_model` for HTTP-level tests.
+  monkeypatching `flow.agent.loop.get_model` for HTTP-level tests.
 - Live SSE cannot be tested through `httpx.ASGITransport` or the Starlette
   `TestClient` — both buffer whole response bodies. The live-stream test runs a real
   uvicorn server on an ephemeral port; completed-stream tests can use `TestClient`.
@@ -40,14 +40,14 @@ hand-maintain style — run the hooks.
 
 | Var | Default | Purpose |
 |---|---|---|
-| `FLOW_SERVER_HOST` | `127.0.0.1` | daemon bind host |
-| `FLOW_SERVER_PORT` | `8787` | daemon bind port |
-| `FLOW_SERVER_AUTH_TOKEN` | none | API bearer; required for non-loopback binds |
-| `FLOW_SERVER_DATA_DIR` | `~/.flow/server` | session logs + metadata |
-| `FLOW_SERVER_MODEL` | `mock` | default model name |
-| `FLOW_SERVER_REDIS_URL` | none | if set, every event is also published to `harness:<sid>` |
-| `FLOW_SERVER_ALLOWED_ROOTS` | empty | `os.pathsep`-separated roots for session cwd and path-taking builtins; does not sandbox `bash` (empty = unrestricted) |
-| `FLOW_SERVER_CREDENTIALS_PATH` | `~/.flow/server/credentials.json` | API-key/OAuth store (0600) |
+| `FLOW_HOST` | `127.0.0.1` | daemon bind host |
+| `FLOW_PORT` | `8787` | daemon bind port |
+| `FLOW_AUTH_TOKEN` | none | API bearer; required for non-loopback binds |
+| `FLOW_DATA_DIR` | `~/.flow/server` | session logs + metadata |
+| `FLOW_MODEL` | `mock` | default model name |
+| `FLOW_REDIS_URL` | none | if set, every event is also published to `harness:<sid>` |
+| `FLOW_ALLOWED_ROOTS` | empty | `os.pathsep`-separated roots for session cwd and path-taking builtins; does not sandbox `bash` (empty = unrestricted) |
+| `FLOW_CREDENTIALS_PATH` | `~/.flow/server/credentials.json` | API-key/OAuth store (0600) |
 
 Cross-repo wire identifiers are intentionally kept as `harness:*` (Redis channel,
 `X-Harness-Token` header) — they're a contract shared with Flow's bridge.

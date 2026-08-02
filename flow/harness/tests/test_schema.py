@@ -4,7 +4,7 @@ from typing import Annotated, Literal
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from flow_server.tools.tool import Tool, ToolContext, build_schema, tool
+from flow.tools.tool import Tool, ToolContext, build_schema, tool
 
 
 def test_primitives_and_required():

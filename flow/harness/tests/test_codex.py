@@ -8,7 +8,7 @@ import json
 import httpx
 import pytest
 
-from flow_server.events import (
+from flow.events import (
 	AssistantMessage,
 	TextContent,
 	ThinkingContent,
@@ -16,10 +16,10 @@ from flow_server.events import (
 	ToolResult,
 	UserMessage,
 )
-from flow_server.model import ModelRequest, ProviderError
-from flow_server.model.auth import AuthError, RuntimeAuth, get_auth_provider
-from flow_server.model.credentials import OAuthCredential
-from flow_server.model.providers.codex import CLIENT_ID, CodexModel, _responses_input
+from flow.model import ModelRequest, ProviderError
+from flow.model.auth import AuthError, RuntimeAuth, get_auth_provider
+from flow.model.credentials import OAuthCredential
+from flow.model.providers.codex import CLIENT_ID, CodexModel, _responses_input
 
 
 def _jwt(payload: dict) -> str:
@@ -119,7 +119,7 @@ def test_runtime_auth_headers():
 	assert auth.token == "tok"
 	assert auth.base_url == "https://chatgpt.com/backend-api"
 	assert auth.headers["chatgpt-account-id"] == "acc-9"
-	assert auth.headers["originator"] == "flow_server"
+	assert auth.headers["originator"] == "flow"
 
 
 def test_runtime_auth_requires_account_id():
@@ -477,7 +477,7 @@ async def test_http_transient_failure_retries_in_stream(status):
 
 
 async def test_timeout_retries_in_stream(monkeypatch):
-	monkeypatch.setattr("flow_server.model.base._retry_delay_seconds", lambda error, retry_index: 0)
+	monkeypatch.setattr("flow.model.base._retry_delay_seconds", lambda error, retry_index: 0)
 	attempts = 0
 
 	def handler(request):

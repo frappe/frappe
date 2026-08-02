@@ -2,7 +2,7 @@
 
 import os
 
-from flow_server.model.credentials import ApiKeyCredential, CredentialStore, OAuthCredential
+from flow.model.credentials import ApiKeyCredential, CredentialStore, OAuthCredential
 
 
 def test_roundtrip(tmp_path):

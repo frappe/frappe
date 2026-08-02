@@ -4,8 +4,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-from flow_server.events import AssistantMessage, TextDelta, UserMessage
-from flow_server.session.log import SessionLog, SessionLogError
+from flow.events import AssistantMessage, TextDelta, UserMessage
+from flow.session.log import SessionLog, SessionLogError
 
 
 def test_log_seq_and_replay(tmp_path):

@@ -4,10 +4,10 @@ import asyncio
 
 import pytest
 
-from flow_server.agent.agent import Agent
-from flow_server.events import AssistantMessage, RunEnded, ToolCall, Usage
-from flow_server.model import Model, ModelRequest
-from flow_server.model.mock import MockModel
+from flow.agent.agent import Agent
+from flow.events import AssistantMessage, RunEnded, ToolCall, Usage
+from flow.model import Model, ModelRequest
+from flow.model.mock import MockModel
 
 
 async def test_run_streams_a_full_turn(tmp_path):

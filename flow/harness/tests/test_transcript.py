@@ -1,6 +1,6 @@
 import pytest
 
-from flow_server.events import (
+from flow.events import (
 	ApprovalRequired,
 	AssistantMessage,
 	ModelChanged,
@@ -14,8 +14,8 @@ from flow_server.events import (
 	ToolResult,
 	UserMessage,
 )
-from flow_server.session.log import SessionLog
-from flow_server.session.transcript import Transcript, active_path
+from flow.session.log import SessionLog
+from flow.session.transcript import Transcript, active_path
 
 INTERRUPTED = "Tool call interrupted before completion."
 

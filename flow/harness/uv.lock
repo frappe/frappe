@@ -239,7 +239,7 @@ wheels = [
 ]
 
 [[package]]
-name = "flow-server"
+name = "flow"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from flow_server.events import (
+from flow.events import (
 	ApprovalRequired,
 	AssistantMessage,
 	ModelChanged,
