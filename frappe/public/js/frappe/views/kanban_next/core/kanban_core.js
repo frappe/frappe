@@ -79,7 +79,6 @@ export class KanbanCore {
 		this.resizeObserver = null;
 		this.dropSlotEl = null;
 		this.dropAnchor = null;
-		this.pendingDrop = null;
 		this.dragSourceColumn = null;
 		this.dragPreview = null;
 		this.dragGrab = null;
@@ -688,6 +687,18 @@ export class KanbanCore {
 		return !!this.persistedOrder(columnId);
 	}
 
+	/**
+	 * Surface a move that couldn't be applied because the column order couldn't be
+	 * resolved — so a rejected drag shows feedback (and rolls the card back)
+	 * instead of silently vanishing. Returns undefined so callers can `return this…`.
+	 */
+	reportMoveBlocked(cardId, fromColumn, toColumn) {
+		const cb = this.options.callbacks || {};
+		const error = new Error("kanban: could not resolve column order for the move");
+		cb.onMoveError && cb.onMoveError({ cardId, fromColumn, toColumn }, error);
+		this.bus.emit("error", error);
+	}
+
 	// --- auto-scroll while dragging --------------------------------------
 
 	onDragOver = (e) => {
@@ -734,8 +745,6 @@ export class KanbanCore {
 	// --- drag & drop -----------------------------------------------------
 
 	async handleDrop(args) {
-		// Capture the placeholder's intended drop before clearing it removes it.
-		const pendingDrop = this.pendingDrop;
 		this.clearDropIndicator();
 		this.onDragEnd();
 		const src = args && args.source && args.source.data;
@@ -774,21 +783,17 @@ export class KanbanCore {
 		let toColumn;
 		let toIndex;
 		let edge = "bottom";
-		const pd = pendingDrop;
 		if (cardTarget) {
 			edge = closestEdge(cardTarget.element.getBoundingClientRect(), clientY);
 			toColumn = cardTarget.data.columnId;
 			toIndex = cardTarget.data.index + (edge === "bottom" ? 1 : 0);
-		} else if (pd && colTarget && colTarget.data.columnId === pd.columnId) {
-			// Released over the placeholder slot (pointer-events:none, so the hit
-			// test fell through to the column). Use the slot's anchored position —
-			// where the user sees it will land — not the column's end.
-			edge = pd.edge;
-			toColumn = pd.columnId;
-			toIndex = pd.index + (pd.edge === "bottom" ? 1 : 0);
 		} else if (colTarget) {
+			// Released over the column — or over the placeholder slot, which is
+			// pointer-events:none so the hit test falls through to the column. Derive
+			// the insert index from where the pointer actually is among the rendered
+			// cards, so the card lands where the user dropped it (and stays visible).
 			toColumn = colTarget.data.columnId;
-			toIndex = this.orderedNames(toColumn).length;
+			toIndex = this.dropIndexFromPointer(toColumn, clientY);
 		} else {
 			return;
 		}
@@ -818,21 +823,25 @@ export class KanbanCore {
 	async applyMove(cardId, fromColumn, toColumn, toIndex) {
 		const sameColumn = fromColumn === toColumn;
 		// A partially-loaded column with no saved order has an unknown full order;
-		// load the rest first so the move works instead of silently aborting.
-		if (!(await this.ensureOrderKnown(fromColumn))) return;
-		if (!sameColumn && !(await this.ensureOrderKnown(toColumn))) return;
+		// load the rest first so the move works instead of silently aborting. If it
+		// can't be resolved (backend stopped returning rows), tell the user rather
+		// than snapping the card back with no explanation.
+		if (!(await this.ensureOrderKnown(fromColumn)))
+			return this.reportMoveBlocked(cardId, fromColumn, toColumn);
+		if (!sameColumn && !(await this.ensureOrderKnown(toColumn)))
+			return this.reportMoveBlocked(cardId, fromColumn, toColumn);
 		// Use full persisted order (includes not-yet-loaded names), not only
 		// the loaded window — otherwise the server would drop unloaded cards.
 		const loadedFrom = this.orderedNames(fromColumn);
 		const fromNames = this.persistedOrder(fromColumn);
 		// null means partial load with no saved order — sending it would truncate unloaded names.
-		if (!fromNames) return;
+		if (!fromNames) return this.reportMoveBlocked(cardId, fromColumn, toColumn);
 		const oldIndex = fromNames.indexOf(cardId);
 		if (oldIndex < 0) return;
 
 		const loadedTo = sameColumn ? loadedFrom : this.orderedNames(toColumn);
 		const toNames = sameColumn ? fromNames : this.persistedOrder(toColumn);
-		if (!toNames) return;
+		if (!toNames) return this.reportMoveBlocked(cardId, fromColumn, toColumn);
 		let insertIndex = this.persistedInsertIndex(toNames, loadedTo, toIndex);
 		fromNames.splice(oldIndex, 1);
 		if (sameColumn && oldIndex < insertIndex) insertIndex -= 1;
@@ -900,7 +909,8 @@ export class KanbanCore {
 			if (names.some((n) => selected.has(n))) involved.add(col.id);
 		}
 		for (const colId of involved) {
-			if (!(await this.ensureOrderKnown(colId))) return;
+			if (!(await this.ensureOrderKnown(colId)))
+				return this.reportMoveBlocked(cardIds[0], colId, toColumn);
 		}
 
 		const selectedOrdered = [];
@@ -932,7 +942,8 @@ export class KanbanCore {
 
 		const toPersistedOrder = this.persistedOrder(toColumn);
 		// null means partial load with no saved order — abort to avoid truncating unloaded names.
-		if (!toPersistedOrder) return;
+		if (!toPersistedOrder)
+			return this.reportMoveBlocked(cardIds[0], sourceOf.get(cardIds[0]), toColumn);
 		const targetClean = toPersistedOrder.filter((n) => !selected.has(n));
 		let insertAt = targetClean.length;
 		if (anchorName) {
@@ -1202,9 +1213,6 @@ export class KanbanCore {
 			return;
 		}
 		this.dropAnchor = el;
-		// Remember the intended drop position so a release over the (pointer-events:
-		// none) slot lands where the placeholder is, not on whatever the pointer hit.
-		if (data) this.pendingDrop = { columnId: data.columnId, index: data.index, edge };
 		const slot = this.dropSlotEl || (this.dropSlotEl = this.buildDropSlot());
 		if (this.dragGrab && this.dragGrab.h) slot.style.height = `${this.dragGrab.h}px`;
 		const parent = el.parentNode;
@@ -1220,14 +1228,29 @@ export class KanbanCore {
 		return slot;
 	}
 
-	clearDropIndicator(el) {
-		// Ignore a leave from a card we've already moved off of.
-		if (el && el !== this.dropAnchor) return;
+	clearDropIndicator() {
 		this.dropAnchor = null;
-		this.pendingDrop = null;
 		if (this.dropSlotEl && this.dropSlotEl.parentNode) {
 			this.dropSlotEl.parentNode.removeChild(this.dropSlotEl);
 		}
+	}
+
+	/**
+	 * Insert index for a drop over a column, from the pointer Y against the
+	 * column's rendered cards. Deterministic at drop time — no reliance on hover
+	 * state surviving until release. Returned index is in the loaded (visible)
+	 * order, which moveCardBucket/reorderLoaded consume.
+	 */
+	dropIndexFromPointer(columnId, clientY) {
+		const view = this.columnViews.get(columnId);
+		if (!view) return this.orderedNames(columnId).length;
+		const start = (view.renderedRange && view.renderedRange.start) || 0;
+		const cards = view.body.querySelectorAll(".kn-card");
+		for (let i = 0; i < cards.length; i++) {
+			const r = cards[i].getBoundingClientRect();
+			if (clientY < r.top + r.height / 2) return start + i;
+		}
+		return start + cards.length;
 	}
 
 	setColumnOrder(columnId, order, totalDelta) {
