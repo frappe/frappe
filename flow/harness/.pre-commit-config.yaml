@@ -3,7 +3,6 @@ default_stages: [pre-commit]
 default_install_hook_types: [pre-commit, commit-msg]
 fail_fast: false
 
-
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -30,10 +29,6 @@ repos:
       - id: ruff-format
         name: "Run ruff formatter"
 
-  # pyright runs through uv so it resolves against the locked project + typed deps
-  # (fastapi, httpx, pydantic…). An isolated pre-commit env wouldn't see them and
-  # would drown in false import errors. It reads its config (include = src) from
-  # pyrightconfig.json, so it types the whole package regardless of staged files.
   - repo: local
     hooks:
       - id: pyright
@@ -41,14 +36,13 @@ repos:
         entry: uv run --extra dev pyright
         language: system
         types: [python]
-        pass_filenames: false
-        always_run: true
-
+        pass_filenames: true
+        files: "^src/"
 
 ci:
-    autoupdate_schedule: weekly
-    # `uv` isn't available on the hosted pre-commit.ci runners, so the local
-    # pyright hook can't run there. It still runs locally, which is where the
-    # check actually gates commits.
-    skip: [pyright]
-    submodules: false
+  autoupdate_schedule: weekly
+  # `uv` isn't available on the hosted pre-commit.ci runners, so the local
+  # pyright hook can't run there. It still runs locally, which is where the
+  # check actually gates commits.
+  skip: [pyright]
+  submodules: false
