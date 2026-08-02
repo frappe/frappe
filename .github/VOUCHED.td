@@ -12,13 +12,25 @@
 #   - Optional details after a space following the handle.
 Abdeali099
 Anish59312
-barredterra
 Bowrna
 Copilot
+KerollesFathy
+Priyal208
+Rl0007
+SaiFi0102
+barredterra
 dependabot[bot]
 frappe-pr-bot
 gajjug004
+gavindsouza
 karm1000
 kaulith
-KerollesFathy
+ljain112
+mainshivam
+marination
 mergify[bot]
+priyanshshah2442
+revant
+shubhdoshi21
+Vigneshsekar
+vorasmit
