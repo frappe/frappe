@@ -760,6 +760,16 @@ export class KanbanCore {
 			return;
 		}
 
+		// A same-column reorder on a partially-loaded column is a no-op: its visible
+		// order is `modified desc` (the fetch order), not the saved order, so the
+		// reorder can't be shown and would only bump `modified` — bouncing the card
+		// to the top on the next reload. (Cross-column moves change the status and
+		// still go through; fully-loaded columns honor the saved order, so reorder
+		// works there.)
+		if (toColumn === src.columnId && this.isPartiallyLoaded(toColumn)) {
+			return;
+		}
+
 		if (this.state.selection.length > 1 && this.state.selection.includes(src.cardId)) {
 			const anchor =
 				cardTarget && !this.state.selection.includes(cardTarget.data.cardId)
@@ -1122,6 +1132,13 @@ export class KanbanCore {
 	orderedNames(columnId) {
 		const column = this.getColumn(columnId);
 		return column ? this.orderedCards(column).map((c) => c.name) : [];
+	}
+
+	/** True while a column still has unloaded pages (loaded < total). */
+	isPartiallyLoaded(columnId) {
+		const column = this.getColumn(columnId);
+		if (!column) return false;
+		return (this.state.cards[columnId] || []).length < (column.total || 0);
 	}
 
 	/**
