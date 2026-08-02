@@ -2,10 +2,9 @@
  * Styles for the new Kanban (kanban_next engine + List/.../Kanban route).
  *
  * Layout, spacing, colour and text come from the utility classes in
- * utilities.scss, applied inline on the markup. Only what utilities cannot
+ * utilities.scss, applied on the markup. Only what utilities cannot
  * express lives here: structural height/overflow, scrollbar chrome, hover /
  * focus / drag / selection states, line clamps, keyframes and a few overrides.
- * Kept as named classes (not injected from JS) so it reads and diffs like CSS.
  */
 
 /* ---- page shell ---------------------------------------------------------- */
@@ -79,7 +78,7 @@
 	background: transparent;
 	border: 1px solid var(--outline-gray-1, #333);
 }
-/* width via w-full utility on the element; flex/pointer-events aren't utilities. */
+/* width via w-full on the element; flex/pointer-events aren't utilities. */
 .kn-spacer {
 	flex: 0 0 auto;
 	pointer-events: none;
@@ -116,24 +115,66 @@
 		outline: 2px solid var(--kn-accent);
 		outline-offset: 1px;
 	}
-	/* While lifted, the card reads as the empty slot it left behind. */
+	/* While lifted, the card reads as the empty slot it left behind. Take it out
+	   of hit-testing so the pointer falls through to the real drop target under it
+	   (keeps the drop slot from churning when dragging over the lifted cards). */
 	&.kn-dragging {
 		opacity: 0.5;
 		border-style: dashed !important;
 		background: var(--surface-gray-2);
 		box-shadow: none;
+		pointer-events: none;
 	}
+	/* Frappe-native blue ring + fill. !important beats the card's .border utility. */
 	&.kn-selected {
-		outline: 2px solid var(--kn-accent);
-		outline-offset: -1px;
-		background: var(--bg-blue);
+		outline: none;
+		border-color: var(--blue-500, #2490ef) !important;
+		box-shadow: 0 0 0 1px var(--blue-500, #2490ef);
+		background: var(--bg-blue, #eaf2ff);
 	}
-	&.kn-drop-before {
-		box-shadow: inset 0 3px 0 0 var(--kn-accent);
-	}
-	&.kn-drop-after {
-		box-shadow: inset 0 -3px 0 0 var(--kn-accent);
-	}
+}
+
+/* ---- engine: drag preview (tilted card that follows the pointer) ---------- */
+/* The native drag image is disabled (drag.js); KanbanCore renders this instead.
+   Position + base tilt are set inline as the pointer moves. */
+.kn-drag-preview {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 2000;
+	pointer-events: none;
+	transform-origin: 22% 30%;
+	will-change: transform;
+}
+.kn-drag-preview-card {
+	position: relative;
+	margin: 0;
+	opacity: 1;
+	box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18), 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+/* Fanned cards peeking out behind the top one — a bulk drag reads as a deck. */
+.kn-drag-stack {
+	position: absolute;
+	inset: 0;
+	background: var(--card-bg, #fff);
+	border: 1px solid var(--outline-gray-2, #e2e2e2);
+	border-radius: var(--card-border-radius, 8px);
+	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+	transform-origin: 22% 30%;
+}
+[data-theme="dark"] .kn-drag-stack {
+	background: var(--surface-gray-2);
+}
+
+/* Placeholder that opens at the drop position: cards flow around it so you see
+   exactly where the card(s) will land. Sized to the dragged card by KanbanCore.
+   shrink-0 / mb-2 live as utilities on the element. */
+.kn-drop-slot {
+	border: 2px dashed var(--outline-gray-2, #d1d1d1);
+	border-radius: var(--card-border-radius, 8px);
+	background: var(--surface-gray-2);
+	box-sizing: border-box;
+	pointer-events: none;
 }
 
 /* ---- engine: column header (drag handle) -------------------------------- */
@@ -152,7 +193,7 @@
 }
 
 /* ---- page: card field rows ---------------------------------------------- */
-/* min-width via min-w-0, title-row margin via mb-0.5 — utilities on the element. */
+/* Title-row uses min-h via kn-title-row; field rows keep a 24px floor. */
 .kn-frow {
 	min-height: 24px;
 }
@@ -189,20 +230,10 @@
 		text-decoration-color: currentColor;
 	}
 }
-/* Selection highlight — Frappe-native blue ring + fill, overriding the engine's
-   harder outline. !important beats the card's .border utility. */
-.new-kanban-container .kn-card.kn-selected {
-	outline: none;
-	border-color: var(--blue-500, #2490ef) !important;
-	box-shadow: 0 0 0 1px var(--blue-500, #2490ef);
-	background: var(--bg-blue, #eaf2ff);
-}
 
 /* ---- page: assignees ----------------------------------------------------- */
-/* "+" add chip at the end of the avatar stack — neutral, standard hover. */
+/* "+" add chip — hover on the avatar frame (cursor-pointer is a utility). */
 .kn-assign-add {
-	cursor: pointer;
-
 	.avatar-frame {
 		transition: background 0.14s;
 	}
@@ -219,25 +250,18 @@
 	min-width: 180px;
 	max-width: 240px;
 }
-.kn-assignee-actions {
-	border-top: 1px solid var(--border-color);
-
-	.es-button {
-		margin-left: -8px;
-	} /* flush with the card's left edge */
+/* border-t via utility on the element; flush the ghost button with the card edge. */
+.kn-assignee-actions .es-button {
+	margin-left: -8px;
 }
 
 /* ---- page: bulk selection bar ------------------------------------------- */
-/* Neutral surface, clearly lifted with a strong shadow + slide-up entrance. */
+/* Markup owns layout utilities; custom shadow + slide-up entrance stay here. */
 .kn-selection-bar {
 	border-color: var(--gray-300, #d1d8dd) !important;
 	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2), 0 3px 10px rgba(0, 0, 0, 0.12) !important;
-	padding: 10px 10px 10px 18px !important;
 	animation: kn-sel-in 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
 
-	.kn-sel-count {
-		color: var(--ink-gray-8);
-	}
 	.es-button {
 		margin: 0;
 	}
@@ -261,7 +285,7 @@
 	padding: 0;
 	overflow: hidden;
 }
-/* Full width via w-full utility on each element (box-sizing is border-box globally). */
+/* Full width via w-full utility on each element. */
 .kn-mi-banner {
 	height: 116px;
 	background-size: cover;
@@ -293,7 +317,7 @@
 .kn-mi-desc :where(img, table, hr) {
 	display: none;
 }
-/* width via w-full utility; grid + custom gaps have no utility equivalent. */
+/* Grid + custom gaps have no utility equivalent. */
 .kn-mi-props {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
@@ -323,9 +347,7 @@
 	scrollbar-gutter: stable;
 	padding-inline-end: 8px;
 }
-.kn-swimlane {
-	border-bottom: 1px solid var(--border-color);
-}
+/* border-b on the element; drop it on the last lane. */
 .kn-swimlane:last-child {
 	border-bottom: 0;
 }
@@ -333,8 +355,6 @@
 	/* Sticky lane headers cause the next lane's cards to scroll underneath,
 	   which looks like clipped/broken content while grouping. Keep headers in
 	   normal flow so each lane scrolls as a clean block. */
-	position: relative;
-	cursor: pointer;
 	user-select: none;
 	background: var(--fg-color);
 

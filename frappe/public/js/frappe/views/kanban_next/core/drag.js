@@ -8,6 +8,7 @@ import {
 	dropTargetForElements,
 	monitorForElements,
 } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
+import { disableNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/element/disable-native-drag-preview";
 
 // NOTE: auto-scroll-while-dragging is hand-rolled in KanbanCore (the separate
 // pragmatic auto-scroll package isn't installed).
@@ -25,7 +26,13 @@ export function bindCardDrag(el, data, hooks) {
 	return draggable({
 		element: el,
 		getInitialData: () => ({ ...data }),
-		onDragStart: () => hooks.onStart && hooks.onStart(),
+		// Suppress the browser's flat (and, on macOS, translucent) drag image —
+		// KanbanCore renders its own tilted card that follows the pointer instead.
+		onGenerateDragPreview: ({ nativeSetDragImage }) =>
+			disableNativeDragPreview({ nativeSetDragImage }),
+		onDragStart: ({ location }) =>
+			hooks.onStart &&
+			hooks.onStart((location && location.current && location.current.input) || null),
 		onDrop: () => hooks.onEnd && hooks.onEnd(),
 	});
 }

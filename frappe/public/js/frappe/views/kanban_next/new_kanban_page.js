@@ -166,8 +166,8 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	make_selection_bar() {
 		this.selected_ids = [];
 		this.$selection_bar = $(`
-			<div class="kn-selection-bar position-fixed flex items-center gap-2 rounded-md border bg-surface-base shadow-lg px-3 py-2" style="bottom:24px;left:50%;transform:translateX(-50%);display:none;z-index:1000;">
-				<span class="kn-sel-count text-sm-semibold whitespace-nowrap pe-1"></span>
+			<div class="kn-selection-bar position-fixed flex items-center gap-2 rounded-md border bg-surface-base ps-4 pe-2.5 py-2.5" style="bottom:24px;left:50%;transform:translateX(-50%);display:none;z-index:1000;">
+				<span class="kn-sel-count text-sm-semibold text-ink-gray-8 whitespace-nowrap pe-1"></span>
 				${frappe.ui.button.html({ label: __("Edit"), css_class: "kn-sel-edit" })}
 				${frappe.ui.button.html({ label: __("Assign"), css_class: "kn-sel-assign" })}
 				${frappe.ui.button.html({ label: __("Tags"), css_class: "kn-sel-tags" })}
@@ -1858,7 +1858,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 
 		// "+" add chip — same element whether the card is unassigned or assigned.
 		const add = document.createElement("span");
-		add.className = "avatar avatar-small kn-assign-add";
+		add.className = "avatar avatar-small kn-assign-add cursor-pointer";
 		add.title = users.length ? __("Add assignee") : __("Assign");
 		add.innerHTML = `<div class="avatar-frame avatar-action">${frappe.utils.icon(
 			"plus",
@@ -1912,7 +1912,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		wrap.appendChild(head);
 
 		const foot = document.createElement("div");
-		foot.className = "kn-assignee-actions flex mt-2 pt-2";
+		foot.className = "kn-assignee-actions flex mt-2 pt-2 border-t";
 		foot.innerHTML = frappe.ui.button.html({
 			label: __("Unassign"),
 			icon: "x",
@@ -1994,9 +1994,9 @@ frappe.views.NewKanbanGroupedBoard = class NewKanbanGroupedBoard {
 		// expanded. Layout / text / colour use shared utilities; the count is
 		// the badge component. Collapse positioning lives in kanban_next.scss.
 		const $lane = $(`
-			<div class="kn-swimlane pb-2">
+			<div class="kn-swimlane border-b pb-2">
 				<div
-					class="kn-swimlane-head flex items-center py-1 gap-2"
+					class="kn-swimlane-head relative flex items-center py-1 gap-2 cursor-pointer"
 					role="button"
 					tabindex="0"
 					aria-expanded="true"
