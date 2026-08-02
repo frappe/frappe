@@ -159,8 +159,6 @@ class CredentialStore:
 			with os.fdopen(fd, "w", encoding="utf-8") as f:
 				json.dump(data, f, indent=2, sort_keys=True)
 				f.write("\n")
-				f.flush()
-				os.fsync(f.fileno())
 			os.replace(tmp, self.path)
 		finally:
 			if os.path.exists(tmp):

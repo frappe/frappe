@@ -10,7 +10,7 @@ facade. Flow (Frappe) is one client among many.
             ┌────────────┐   yields events / raises    ┌─────────────┐
  client ──▶ │  Session   │ ◀────────────────────────── │ agent loop  │
   HTTP      │ (lifecycle)│                             │ (pure gen)  │
-  SSE       │  _commit ──┼──▶ log (JSONL, fsync)       └─────────────┘
+  SSE       │  _commit ──┼──▶ log (JSONL)              └─────────────┘
   Agent     │            │──▶ transcript (reducer)            │
             │            │──▶ subscribers (live queues)   Model.run
             │            │──▶ event sink (Redis)         (retry envelope)
@@ -108,7 +108,7 @@ environment variables, and hands `get_model` the runtime auth plus the refresh h
 
 ## Approval and interception
 
-Two independent layers around every tool call, in order: bad-args feedback → 
+Two independent layers around every tool call, in order: bad-args feedback →
 `before_tool_call` hook → confirm gate → dispatch → `after_tool_call` hook.
 
 - **Hooks** are in-process callables (rewrite args, short-circuit, rewrite results);

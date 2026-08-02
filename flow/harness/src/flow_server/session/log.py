@@ -55,7 +55,6 @@ class SessionLog:
 				try:
 					if os.write(fd, data) != len(data):
 						raise OSError("short write while appending session log")
-					os.fsync(fd)
 				except BaseException:
 					# A partial line has no newline, so the next append would splice onto
 					# it. Roll back to the last complete line instead.
@@ -63,7 +62,7 @@ class SessionLog:
 					raise
 			finally:
 				os.close(fd)
-			# only now is the line durable, so only now does the sequence advance
+			# only now is the line written, so only now does the sequence advance
 			self._seq = next_seq
 			event.seq = next_seq
 			event.parent_seq = parent_seq

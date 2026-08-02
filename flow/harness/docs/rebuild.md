@@ -115,7 +115,7 @@ Every future fix names the layer it belongs to before it lands. Concretely:
 
 The existing tests are the spec — port scenarios, not test code. Nothing here regresses:
 
-1. Append-only seq-numbered JSONL: fsync, partial-append rollback, corruption located
+1. Append-only seq-numbered JSONL: partial-append rollback, corruption located
    by line/offset.
 2. Replay + live SSE with `since` cursor; `?wait=true` blocking summary on the same
    endpoint; steering while running.
@@ -163,7 +163,7 @@ old HTTP assertions pass unmodified in PR 6.
   `replay` (one full read at load), `missing_results`, `pending_approval` as a field,
   results placed by position alone. Verify: reducer unit tests (batch ordering,
   first-result-wins, approval scoping across runs, live `record` == `replay`); ported
-  log scenarios (fsync rollback, corruption line/offset, monotonic seq).
+  log scenarios (rollback, corruption line/offset, monotonic seq).
 - **PR 2 — model core.** `model/base.py` (Model protocol, `ModelRequest`,
   cancellation utils, `run_with_retries()` emitting `Retry` in-stream with cancellable
   backoff, retry-after, bounded attempts, one-shot refresh_auth hook, aborted-assistant

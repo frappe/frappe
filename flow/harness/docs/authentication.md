@@ -47,7 +47,7 @@ rejected on both session creation and run requests.
 ## Storage security
 
 The credential directory is created as `0700`; its JSON and lock files are `0600`.
-Writes are validated, locked, fsynced, and atomically replaced. OAuth refresh is
+Writes are validated, locked, and atomically replaced. OAuth refresh is
 serialized per provider within the daemon so concurrent sessions do not consume the
 same rotating refresh token.
 
