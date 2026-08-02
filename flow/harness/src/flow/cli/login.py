@@ -1,4 +1,4 @@
-"""Interactive provider credential setup for the flowd CLI."""
+"""Interactive provider credential setup for the flow CLI."""
 
 from __future__ import annotations
 
@@ -144,7 +144,7 @@ def _browser_callback(url: str) -> tuple[str | None, str | None]:
 		)
 	except OSError as e:
 		raise AuthError(
-			"Could not start the loopback OAuth callback. Retry with `flowd login codex --manual`."
+			"Could not start the loopback OAuth callback. Retry with `flow login codex --manual`."
 		) from e
 
 	server.timeout = 1

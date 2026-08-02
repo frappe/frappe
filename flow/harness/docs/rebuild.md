@@ -80,7 +80,7 @@ src/flow/
   server/
     app.py                  thin handlers over Session verbs; wire contract unchanged
   cli/
-    main.py                 flowd serve
+    main.py                 flow serve
     login.py                provider login/logout/status (renamed from cli/auth.py)
 ```
 

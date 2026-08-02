@@ -7,16 +7,16 @@ payloads.
 ## CLI
 
 ```bash
-flowd providers
-flowd login openai
-flowd login anthropic
-flowd login codex
-flowd logout openai
+flow providers
+flow login openai
+flow login anthropic
+flow login codex
+flow logout openai
 ```
 
 API-key login prompts without echo and stores the key in
 `~/.flow/server/credentials.json`. Codex login uses OAuth PKCE and captures the redirect
-on `127.0.0.1:1455`. For a headless environment, use `flowd login codex --manual` and
+on `127.0.0.1:1455`. For a headless environment, use `flow login codex --manual` and
 paste the full callback URL.
 
 Built-in API-key providers are `openai`, `anthropic`, `gemini`, `openrouter`, `xai`,
@@ -41,7 +41,7 @@ token the provider rejects mid-run is refreshed exactly once and the request ret
 (see `run_with_retries` in [architecture.md](architecture.md)).
 
 Clients send only `model` and, when needed, `credential_id`. API keys must go through
-`flowd login`; Codex tokens come from its OAuth flow. `api_key` and `api_base` are
+`flow login`; Codex tokens come from its OAuth flow. `api_key` and `api_base` are
 rejected on both session creation and run requests.
 
 ## Storage security
@@ -52,6 +52,6 @@ serialized per provider within the daemon so concurrent sessions do not consume 
 same rotating refresh token.
 
 The daemon binds to `127.0.0.1` by default. Set `FLOW_AUTH_TOKEN` to require
-`Authorization: Bearer <token>` on every endpoint except `/healthz`. `flowd serve`
+`Authorization: Bearer <token>` on every endpoint except `/healthz`. `flow serve`
 refuses a non-loopback bind unless this token is configured; embedders calling
 `create_app` directly must pass `auth_token=` themselves.

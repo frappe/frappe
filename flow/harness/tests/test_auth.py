@@ -199,7 +199,7 @@ async def test_model_auth_missing_known_provider_has_clear_error(tmp_path, monke
 	store = CredentialStore(str(tmp_path / "c.json"))
 	monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
-	with pytest.raises(AuthError, match=r"flowd login openai"):
+	with pytest.raises(AuthError, match=r"flow login openai"):
 		await resolve_model_auth("openai/gpt-4.1", store)
 
 

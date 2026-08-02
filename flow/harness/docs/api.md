@@ -73,7 +73,7 @@ async for e in agent.resume(answers, approval_seq=approval_seq):
 
 ## HTTP API
 
-Start the daemon: `flowd serve --port 8787`. All routes are JSON unless noted. When
+Start the daemon: `flow serve --port 8787`. All routes are JSON unless noted. When
 `FLOW_AUTH_TOKEN` is configured, send `Authorization: Bearer <token>` on every
 request except `GET /healthz`.
 

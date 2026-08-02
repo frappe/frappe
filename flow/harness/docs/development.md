@@ -55,15 +55,14 @@ Cross-repo wire identifiers are intentionally kept as `harness:*` (Redis channel
 ## Roadmap
 
 **Part 1 — the daemon (done, rebuilt):** durable event substrate → model core → auth +
-providers → tools → loop + session → HTTP API + `flowd`. The rebuild's contract and
+providers → tools → loop + session → HTTP API + `flow`. The rebuild's contract and
 parity audit live in [rebuild.md](rebuild.md).
 
 **Part 2 — client UIs:** a TUI that dogfoods the HTTP/SSE API; a shared
 transport-agnostic conversation core; a standalone Vue web shell. End of Part 2 = a
 usable standalone coding-agent product.
 
-Part 2 renames the console script from `flowd` to `flow` and makes the daemon an
-implementation detail of the client. The planned surface:
+Part 2 makes the daemon an implementation detail of the client. The planned surface:
 
 | Command | Behavior |
 |---|---|

@@ -186,7 +186,7 @@ class CodexModel(Model):
 		refresh_auth: RefreshAuth | None = None,
 	):
 		if not api_key:
-			raise ValueError("Codex requires OAuth; run `flowd login codex`.")
+			raise ValueError("Codex requires OAuth; run `flow login codex`.")
 		self.name = name
 		self.model = name
 		self._remote_model = name.split("/", 1)[1] if "/" in name else name

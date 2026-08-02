@@ -16,7 +16,7 @@ RESET = "\033[0m"
 
 
 def main() -> None:
-	parser = argparse.ArgumentParser(prog="flowd")
+	parser = argparse.ArgumentParser(prog="flow")
 	sub = parser.add_subparsers(dest="cmd")
 
 	p_serve = sub.add_parser("serve", help="run the daemon")
@@ -48,7 +48,7 @@ def main() -> None:
 		elif args.cmd == "logout":
 			_logout(args)
 	except (AuthError, CredentialStoreError) as e:
-		print(f"flowd: {e}", file=sys.stderr)
+		print(f"flow: {e}", file=sys.stderr)
 		raise SystemExit(1) from None
 	except (KeyboardInterrupt, EOFError):
 		# Ctrl-C or Ctrl-D at a prompt is a deliberate cancellation, not a crash.
@@ -56,7 +56,7 @@ def main() -> None:
 
 
 def _with_default_command(argv: list[str], commands: set[str]) -> list[str]:
-	"""`flowd` and `flowd --port 9000` mean `flowd serve ...`, so the common case needs no verb."""
+	"""`flow` and `flow --port 9000` mean `flow serve ...`, so the common case needs no verb."""
 	if argv and (argv[0] in commands or argv[0] in ("-h", "--help")):
 		return argv
 	return ["serve", *argv]

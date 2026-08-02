@@ -21,7 +21,7 @@ dev = [
 ]
 
 [project.scripts]
-flowd = "flow.cli.main:main"
+flow = "flow.cli.main:main"
 
 [build-system]
 requires = ["hatchling"]

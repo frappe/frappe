@@ -287,6 +287,6 @@ async def resolve_model_auth(
 					provider_id=spec.id,
 				)
 		methods = " or ".join(spec.auth_methods)
-		raise AuthError(f"No {methods} credential for {spec.display_name}; run `flowd login {spec.id}`.")
+		raise AuthError(f"No {methods} credential for {spec.display_name}; run `flow login {spec.id}`.")
 
 	return ResolvedModelAuth(provider_id=provider_id)
