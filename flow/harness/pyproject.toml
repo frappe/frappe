@@ -36,6 +36,7 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 110
+target-version = "py313"
 src = ["src"]
 
 [tool.ruff.lint]

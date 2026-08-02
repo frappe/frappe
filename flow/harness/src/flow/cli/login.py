@@ -74,7 +74,7 @@ def _select_provider(provider_id: str | None) -> ProviderSpec:
 		if index < 1:
 			raise IndexError
 		return PROVIDERS[index - 1]
-	except ValueError, IndexError:
+	except (ValueError, IndexError):
 		return _required_provider(raw)
 
 

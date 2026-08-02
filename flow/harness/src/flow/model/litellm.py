@@ -350,7 +350,7 @@ def _build_tool_call(call_id: str, name: str, raw_args: str) -> ToolCall:
 		return ToolCall(id=call_id, name=name, arguments={})
 	try:
 		parsed = json.loads(raw_args)
-	except TypeError, ValueError:
+	except (TypeError, ValueError):
 		msg = f"Invalid JSON in arguments for {name!r}; resend the call with valid JSON."
 		return ToolCall(id=call_id, name=name, arguments={}, error=msg)
 	if not isinstance(parsed, dict):

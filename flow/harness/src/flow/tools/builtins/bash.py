@@ -55,7 +55,7 @@ async def bash(
 	try:
 		# Drain buffered output; after the group kill communicate() settles promptly.
 		stdout, _ = await asyncio.wait_for(asyncio.shield(comm), timeout=5)
-	except TimeoutError, asyncio.CancelledError:
+	except (TimeoutError, asyncio.CancelledError):
 		stdout = b""
 	if cancelled is not None:
 		raise cancelled

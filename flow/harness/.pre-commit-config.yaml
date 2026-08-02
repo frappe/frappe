@@ -17,7 +17,7 @@ repos:
       - id: debug-statements
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.10
+    rev: v0.16.1
     hooks:
       - id: ruff
         name: "Run ruff import sorter"

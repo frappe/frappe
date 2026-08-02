@@ -191,7 +191,7 @@ def provider_error_detail(value: Any) -> str:
 			return ""
 		try:
 			value = json.loads(text)
-		except json.JSONDecodeError, TypeError:
+		except (json.JSONDecodeError, TypeError):
 			return _truncate(text)
 	if not isinstance(value, Mapping):
 		return str(value)
