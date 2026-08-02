@@ -1111,6 +1111,40 @@ class TestDBQuery(IntegrationTestCase):
 		res = DatabaseQuery("DocType").execute(filters={"autoname": ["is", "set"]})
 		self.assertFalse({"name": "Property Setter"} in res)
 
+	def test_is_set_filter_for_datetime_field(self):
+		"""`is set`/`is not set` filters must work for temporal fields on PostgreSQL too."""
+		from frappe.utils import add_to_date, now_datetime
+
+		frappe.db.delete("Event", {"subject": ("like", "Is Set Filter Test%")})
+
+		starts_on = now_datetime()
+		with_ends_on = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "Is Set Filter Test - with ends_on",
+				"event_type": "Public",
+				"starts_on": starts_on,
+				"ends_on": add_to_date(starts_on, hours=1),
+			}
+		).insert(ignore_permissions=True)
+
+		without_ends_on = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "Is Set Filter Test - without ends_on",
+				"event_type": "Public",
+				"starts_on": starts_on,
+			}
+		).insert(ignore_permissions=True)
+
+		def event_names(filters):
+			return {d["name"] for d in DatabaseQuery("Event").execute(filters=filters, fields=["name"])}
+
+		self.assertIn(with_ends_on.name, event_names({"ends_on": ["is", "set"]}))
+		self.assertNotIn(without_ends_on.name, event_names({"ends_on": ["is", "set"]}))
+		self.assertIn(without_ends_on.name, event_names({"ends_on": ["is", "not set"]}))
+		self.assertNotIn(with_ends_on.name, event_names({"ends_on": ["is", "not set"]}))
+
 	def test_set_field_tables(self):
 		# Tests _in_standard_sql_methods method in test_set_field_tables
 		# The following query will break if the above method is broken

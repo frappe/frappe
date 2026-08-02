@@ -1114,14 +1114,33 @@ from {tables}
 				fallback = f"'{FallBackDateTimeStr}'"
 
 			elif f.operator.lower() == "is":
-				fallback = "''"
-				if f.value == "set":
-					f.operator = "!="
-					can_be_null = False
-				elif f.value == "not set":
-					f.operator = "="
-					can_be_null = not getattr(df, "not_nullable", False)
-				f.value = value = ""
+				if frappe.conf.db_type == "postgres" and df and df.fieldtype in ("Date", "Datetime", "Time"):
+					if df.fieldtype == "Date":
+						fallback = "'0001-01-01'"
+					elif df.fieldtype == "Time":
+						fallback = "'00:00:00'"
+					else:
+						fallback = f"'{FallBackDateTimeStr}'"
+
+					if f.value == "set":
+						f.operator = "!="
+						can_be_null = False
+					elif f.value == "not set":
+						f.operator = "="
+						can_be_null = not getattr(df, "not_nullable", False)
+
+					f.value = ""
+					value = fallback
+					escape = False
+				else:
+					fallback = "''"
+					if f.value == "set":
+						f.operator = "!="
+						can_be_null = False
+					elif f.value == "not set":
+						f.operator = "="
+						can_be_null = not getattr(df, "not_nullable", False)
+					f.value = value = ""
 
 			elif df and df.fieldtype == "Date":
 				value = frappe.db.format_date(f.value)
