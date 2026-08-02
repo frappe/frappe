@@ -77,7 +77,12 @@ export class KanbanCore {
 		this.columnViews = new Map();
 		this.providerUnsub = null;
 		this.resizeObserver = null;
-		this.dropIndicatorEl = null;
+		this.dropSlotEl = null;
+		this.dropAnchor = null;
+		this.pendingDrop = null;
+		this.dragSourceColumn = null;
+		this.dragPreview = null;
+		this.dragGrab = null;
 		this.lastSelected = null;
 		this.pointer = { x: 0, y: 0 };
 		this.autoScrollRAF = null;
@@ -151,6 +156,12 @@ export class KanbanCore {
 	destroy() {
 		this.teardownViews();
 		this.onDragEnd();
+		// Teardown can happen while a drag is still active (route change/unmount).
+		// Ensure transient drag visuals are always removed.
+		this.dragSourceColumn = null;
+		this.clearCardsDragging();
+		this.endCardPreview();
+		this.clearDropIndicator();
 		this.resizeObserver = null;
 		this.monitorCleanup && this.monitorCleanup();
 		this.monitorCleanup = null;
@@ -535,13 +546,24 @@ export class KanbanCore {
 		};
 		sink.push(
 			bindCardDrag(el, dragData, {
-				onStart: () => el.classList.add("kn-dragging"),
-				onEnd: () => el.classList.remove("kn-dragging"),
+				onStart: (input) => {
+					this.dragSourceColumn = column.id;
+					this.markCardsDragging(card.name);
+					this.startCardPreview(el, card.name, input);
+				},
+				onEnd: () => {
+					this.dragSourceColumn = null;
+					this.clearCardsDragging();
+					this.endCardPreview();
+					this.clearDropIndicator();
+				},
 			}),
 			bindCardDropTarget(el, () => dragData, {
 				canDrop: ({ source }) => source.data && source.data.boardId === this.instanceId,
-				onEdge: (edge) => this.showDropIndicator(el, edge),
-				onLeave: () => this.clearDropIndicator(el),
+				// Only ever MOVE the slot to the hovered card. Removing it on leave
+				// (then re-inserting on the next card) flashed the dimmed source card
+				// between states — the slot now lives until drop/drag-end.
+				onEdge: (edge) => this.showDropIndicator(el, edge, dragData),
 			})
 		);
 
@@ -671,6 +693,7 @@ export class KanbanCore {
 	onDragOver = (e) => {
 		this.pointer.x = e.clientX;
 		this.pointer.y = e.clientY;
+		this.positionCardPreview(e.clientX, e.clientY);
 		if (this.autoScrollRAF === null) {
 			this.autoScrollRAF = requestAnimationFrame(this.autoScrollTick);
 		}
@@ -711,6 +734,8 @@ export class KanbanCore {
 	// --- drag & drop -----------------------------------------------------
 
 	async handleDrop(args) {
+		// Capture the placeholder's intended drop before clearing it removes it.
+		const pendingDrop = this.pendingDrop;
 		this.clearDropIndicator();
 		this.onDragEnd();
 		const src = args && args.source && args.source.data;
@@ -749,10 +774,18 @@ export class KanbanCore {
 		let toColumn;
 		let toIndex;
 		let edge = "bottom";
+		const pd = pendingDrop;
 		if (cardTarget) {
 			edge = closestEdge(cardTarget.element.getBoundingClientRect(), clientY);
 			toColumn = cardTarget.data.columnId;
 			toIndex = cardTarget.data.index + (edge === "bottom" ? 1 : 0);
+		} else if (pd && colTarget && colTarget.data.columnId === pd.columnId) {
+			// Released over the placeholder slot (pointer-events:none, so the hit
+			// test fell through to the column). Use the slot's anchored position —
+			// where the user sees it will land — not the column's end.
+			edge = pd.edge;
+			toColumn = pd.columnId;
+			toIndex = pd.index + (pd.edge === "bottom" ? 1 : 0);
 		} else if (colTarget) {
 			toColumn = colTarget.data.columnId;
 			toIndex = this.orderedNames(toColumn).length;
@@ -760,13 +793,13 @@ export class KanbanCore {
 			return;
 		}
 
-		// A same-column reorder on a partially-loaded column is a no-op: its visible
-		// order is `modified desc` (the fetch order), not the saved order, so the
-		// reorder can't be shown and would only bump `modified` — bouncing the card
-		// to the top on the next reload. (Cross-column moves change the status and
-		// still go through; fully-loaded columns honor the saved order, so reorder
-		// works there.)
-		if (toColumn === src.columnId && this.isPartiallyLoaded(toColumn)) {
+		// Same-column drops are a no-op: this board is about moving cards BETWEEN
+		// columns (which changes the group-by field). We don't support manual
+		// within-column reordering — the board fetches/paginates by `modified desc`,
+		// so a reorder can't be reflected on large columns anyway, and persisting one
+		// calls update_order_for_single_card (which set_value's the card, bumping
+		// `modified`) for no visible gain. Cross-column moves always go through.
+		if (toColumn === src.columnId) {
 			return;
 		}
 
@@ -1078,19 +1111,123 @@ export class KanbanCore {
 		}
 	}
 
-	showDropIndicator(el, edge) {
-		if (this.dropIndicatorEl && this.dropIndicatorEl !== el) {
-			this.dropIndicatorEl.classList.remove("kn-drop-before", "kn-drop-after");
+	/**
+	 * Lift the dragged card — and every other selected card in a multi-selection —
+	 * so a bulk drag shows all the cards being moved, not just the one grabbed.
+	 */
+	markCardsDragging(cardId) {
+		const sel = this.state.selection;
+		const names = sel.length > 1 && sel.includes(cardId) ? sel : [cardId];
+		const set = new Set(names);
+		this.root &&
+			this.root.querySelectorAll(".kn-card").forEach((el) => {
+				if (el.dataset.name && set.has(el.dataset.name)) el.classList.add("kn-dragging");
+			});
+	}
+
+	clearCardsDragging() {
+		this.root &&
+			this.root
+				.querySelectorAll(".kn-card.kn-dragging")
+				.forEach((el) => el.classList.remove("kn-dragging"));
+	}
+
+	/**
+	 * Build the tilted card that follows the pointer (the native ghost is
+	 * disabled in drag.js). A multi-selection gets a fanned "deck" behind the top
+	 * card plus a count badge, so a bulk drag clearly carries the whole set.
+	 */
+	startCardPreview(el, cardId, input) {
+		this.endCardPreview(); // never leave a previous preview orphaned
+		const rect = el.getBoundingClientRect();
+		this.dragGrab = {
+			dx: input ? input.clientX - rect.left : rect.width / 2,
+			dy: input ? input.clientY - rect.top : 24,
+			h: rect.height,
+		};
+		const sel = this.state.selection;
+		const count = sel.length > 1 && sel.includes(cardId) ? sel.length : 1;
+
+		const layer = document.createElement("div");
+		layer.className = "kn-drag-preview";
+		layer.style.width = `${rect.width}px`;
+
+		// Fanned cards peeking out behind the top card (bulk only).
+		for (let i = Math.min(count - 1, 2); i >= 1; i--) {
+			const ghost = document.createElement("div");
+			ghost.className = "kn-drag-stack";
+			ghost.style.transform = `translate(${i * 7}px, ${i * 7}px) rotate(${i * 3}deg)`;
+			layer.appendChild(ghost);
 		}
-		this.dropIndicatorEl = el;
-		el.classList.toggle("kn-drop-before", edge === "top");
-		el.classList.toggle("kn-drop-after", edge === "bottom");
+
+		const top = el.cloneNode(true);
+		top.classList.remove("kn-dragging", "kn-selected");
+		top.classList.add("kn-drag-preview-card");
+		top.style.width = `${rect.width}px`;
+		layer.appendChild(top);
+
+		document.body.appendChild(layer);
+		this.dragPreview = layer;
+		const px = input ? input.clientX : this.pointer.x;
+		const py = input ? input.clientY : this.pointer.y;
+		this.positionCardPreview(px, py);
+	}
+
+	positionCardPreview(x, y) {
+		if (!this.dragPreview || !this.dragGrab) return;
+		const left = x - this.dragGrab.dx;
+		const top = y - this.dragGrab.dy;
+		this.dragPreview.style.transform = `translate(${left}px, ${top}px) rotate(3deg)`;
+	}
+
+	endCardPreview() {
+		if (this.dragPreview) {
+			this.dragPreview.remove();
+			this.dragPreview = null;
+		}
+		this.dragGrab = null;
+	}
+
+	/**
+	 * Open a dashed placeholder slot at the drop position — cards flow around it,
+	 * like the Frappe UI board, so you see exactly where the card(s) will land.
+	 * `edge` is which half of `el` the pointer is over (top → slot before it).
+	 */
+	showDropIndicator(el, edge, data) {
+		// Don't tease a drop that won't happen: same-column drops are a no-op
+		// (see handleDrop), so hide the placeholder while over the source column
+		// instead of showing a slot the release will ignore.
+		if (data && data.columnId === this.dragSourceColumn) {
+			this.clearDropIndicator();
+			return;
+		}
+		this.dropAnchor = el;
+		// Remember the intended drop position so a release over the (pointer-events:
+		// none) slot lands where the placeholder is, not on whatever the pointer hit.
+		if (data) this.pendingDrop = { columnId: data.columnId, index: data.index, edge };
+		const slot = this.dropSlotEl || (this.dropSlotEl = this.buildDropSlot());
+		if (this.dragGrab && this.dragGrab.h) slot.style.height = `${this.dragGrab.h}px`;
+		const parent = el.parentNode;
+		if (!parent) return;
+		const ref = edge === "top" ? el : el.nextSibling;
+		if (slot.parentNode === parent && slot.nextSibling === ref) return; // already placed
+		parent.insertBefore(slot, ref);
+	}
+
+	buildDropSlot() {
+		const slot = document.createElement("div");
+		slot.className = "kn-drop-slot shrink-0 mb-2";
+		return slot;
 	}
 
 	clearDropIndicator(el) {
-		const target = el || this.dropIndicatorEl;
-		if (target) target.classList.remove("kn-drop-before", "kn-drop-after");
-		if (!el || el === this.dropIndicatorEl) this.dropIndicatorEl = null;
+		// Ignore a leave from a card we've already moved off of.
+		if (el && el !== this.dropAnchor) return;
+		this.dropAnchor = null;
+		this.pendingDrop = null;
+		if (this.dropSlotEl && this.dropSlotEl.parentNode) {
+			this.dropSlotEl.parentNode.removeChild(this.dropSlotEl);
+		}
 	}
 
 	setColumnOrder(columnId, order, totalDelta) {
@@ -1132,13 +1269,6 @@ export class KanbanCore {
 	orderedNames(columnId) {
 		const column = this.getColumn(columnId);
 		return column ? this.orderedCards(column).map((c) => c.name) : [];
-	}
-
-	/** True while a column still has unloaded pages (loaded < total). */
-	isPartiallyLoaded(columnId) {
-		const column = this.getColumn(columnId);
-		if (!column) return false;
-		return (this.state.cards[columnId] || []).length < (column.total || 0);
 	}
 
 	/**
