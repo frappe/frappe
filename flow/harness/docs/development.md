@@ -58,9 +58,24 @@ Cross-repo wire identifiers are intentionally kept as `harness:*` (Redis channel
 providers → tools → loop + session → HTTP API + `flowd`. The rebuild's contract and
 parity audit live in [rebuild.md](rebuild.md).
 
-**Part 2 — client UIs:** a TUI (`flowd chat`, dogfooding the HTTP/SSE API); a shared
+**Part 2 — client UIs:** a TUI that dogfoods the HTTP/SSE API; a shared
 transport-agnostic conversation core; a standalone Vue web shell. End of Part 2 = a
 usable standalone coding-agent product.
+
+Part 2 renames the console script from `flowd` to `flow` and makes the daemon an
+implementation detail of the client. The planned surface:
+
+| Command | Behavior |
+|---|---|
+| `flow` | Start a private daemon on an ephemeral port, open the TUI, and attach to it. Each invocation gets its own daemon; it never adopts one started by `flow serve`. |
+| `flow serve` | Start the daemon in the background on the configured host and port, print its address, and return. `--foreground` keeps it attached for supervisors and containers. |
+| `flow attach` | Open the TUI against a daemon that is already running — the configured host and port by default, `--url` for any other. It starts nothing. |
+| `flow login` / `logout` / `providers` | Unchanged apart from the program name. |
+
+The daemon stays the durable side in every mode: closing the TUI detaches the client,
+it does not end the run. Two questions are open — when a bare `flow` daemon shuts down
+after its client leaves, and how `flow attach` finds the sessions of a daemon on an
+ephemeral port.
 
 **Part 3 — Flow integration:** Flow adopts the daemon as a client (Frappe proxy
 endpoints + a Redis→realtime bridge + the shared core via a Frappe adapter), with Flow's
