@@ -88,10 +88,9 @@ const SELECT_STYLES = {
 };
 
 /**
- * Next-generation Kanban board. Loads the framework-agnostic engine
- * (kanban.bundle.js) and mounts it against an existing Kanban Board via
- * FrappeDataProvider. Primary route: List/{Doctype}/Kanban/{board_name}
- * (enabled via System Settings → Use New Kanban).
+ * Kanban v2 board. Loads the framework-agnostic engine (kanban.bundle.js) and
+ * mounts it against an existing Kanban Board via FrappeDataProvider. Route:
+ * List/{Doctype}/Kanban/{board_name} (per board, via Kanban Board → Use Kanban v2).
  *
  * Per-doctype customization: `frappe.kanban_v2.settings` /
  * `frappe.kanban_v2.extend_settings` (see settings.js). Register JS from any
@@ -99,17 +98,10 @@ const SELECT_STYLES = {
  * DocType. Supports `card_context_menu`, `bulk_actions`, `select_styles`,
  * render hooks, callbacks, and per-board overrides under `boards`.
  */
-frappe.views.NewKanbanPage = class NewKanbanPage {
+frappe.views.KanbanV2Page = class KanbanV2Page {
 	constructor(wrapper) {
-		// List factory already built an app page on `wrapper`; the legacy
-		// #new-kanban page passes a bare container and needs make_app_page.
-		this.page =
-			wrapper.page ||
-			frappe.ui.make_app_page({
-				parent: wrapper,
-				title: __("Kanban"),
-				single_column: true,
-			});
+		// List factory already built the app page on `wrapper`.
+		this.page = wrapper.page;
 		// flex column so an optional filter bar + the board share the height.
 		this.$container = $('<div class="kanban-v2-container px-4">').appendTo(this.page.main);
 		// Apply the full-width, no-sidebar page shell. This mutates the page + body,
@@ -151,12 +143,9 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		this.page.container.removeClass("kanban-v2-full-width");
 	}
 
-	/** Board name from List/.../Kanban/{board} or legacy #new-kanban/{board}. */
+	/** Board name from the List/.../Kanban/{board} route. */
 	get_board_name_from_route() {
 		const route = frappe.get_route();
-		if (route[0] === "new-kanban") {
-			return route[1] || null;
-		}
 		if (route[0] === "List" && frappe.utils.to_title_case(route[2] || "") === "Kanban") {
 			return route[3] || null;
 		}
@@ -1081,7 +1070,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			this.$container.html(`<div class="text-muted p-4">${__("No cards to group.")}</div>`);
 			return;
 		}
-		this.board = new frappe.views.NewKanbanGroupedBoard(this, field, lanes);
+		this.board = new frappe.views.KanbanV2GroupedBoard(this, field, lanes);
 	}
 
 	/** Provider filter restricting a board to one swimlane's cards. */
@@ -1973,7 +1962,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
  * Exposes the small `destroy` / `refresh` / `engine` surface the page's toolbar,
  * selection bar and card menu already call, so those work unchanged.
  */
-frappe.views.NewKanbanGroupedBoard = class NewKanbanGroupedBoard {
+frappe.views.KanbanV2GroupedBoard = class KanbanV2GroupedBoard {
 	constructor(page, field, lanes) {
 		this.page = page;
 		this.field = field;
@@ -2193,7 +2182,7 @@ frappe.views.KanbanV2View = class KanbanV2View {
 		this.doctype = opts.doctype;
 		this.parent = opts.parent;
 		this.page = this.parent.page;
-		this._kanban = new frappe.views.NewKanbanPage(this.parent);
+		this._kanban = new frappe.views.KanbanV2Page(this.parent);
 		this.show();
 	}
 
