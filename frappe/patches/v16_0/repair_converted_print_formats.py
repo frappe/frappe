@@ -55,14 +55,18 @@ def repair_layout(format_data):
 def add_section_spacing(layout):
 	"""Classic carried the gap between blocks in its own markup, so the conversion
 	never stored one and converted sections print flush against each other. The
-	first section sits under the header, which already has its own gap."""
-	changed = False
-	for section in (layout.get("sections") or [])[1:]:
-		if not isinstance(section, dict) or section.get("margin") or section.get("padding"):
-			continue
+	first section sits under the header, which already has its own gap.
+
+	Skipped entirely once any section carries spacing: that means someone has been
+	in the builder since the conversion, and sections they left unspaced were left
+	that way on purpose."""
+	sections = [s for s in (layout.get("sections") or [])[1:] if isinstance(s, dict)]
+	if any(s.get("margin") or s.get("padding") for s in sections):
+		return False
+
+	for section in sections:
 		section["margin"] = {"top": CONVERTED_SECTION_GAP_PX, "right": 0, "bottom": 0, "left": 0}
-		changed = True
-	return changed
+	return bool(sections)
 
 
 def widen_serial_column(table_columns):
