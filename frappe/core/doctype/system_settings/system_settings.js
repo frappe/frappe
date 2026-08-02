@@ -53,10 +53,7 @@ frappe.ui.form.on("System Settings", {
 			[frm.doc.rounding_method, frappe.boot.sysdefaults.rounding_method], // no user override.
 		];
 
-		if (
-			attr_tuples.some(has_effectively_changed) ||
-			cint(frm.doc.use_new_kanban) !== cint(frappe.boot.sysdefaults.use_new_kanban)
-		) {
+		if (attr_tuples.some(has_effectively_changed)) {
 			frappe.msgprint(__("Refreshing..."));
 			window.location.reload();
 		}

@@ -1,14 +1,13 @@
-context("New Kanban Board", () => {
-	// Same board/route as the classic suite — the `use_new_kanban` System Setting
+context("Kanban v2 Board", () => {
+	// Same board/route as the classic suite — this board's `use_kanban_v2` flag
 	// (toggled in before/after below) decides which UI renders at this URL.
 	const TODO_KANBAN_URL = "/desk/todo/view/kanban/ToDo Kanban";
 
-	const set_new_kanban = (enabled) =>
-		cy.set_value("System Settings", "System Settings", { use_new_kanban: enabled ? 1 : 0 });
+	const set_kanban_v2 = (enabled) =>
+		cy.set_value("Kanban Board", "ToDo Kanban", { use_kanban_v2: enabled ? 1 : 0 });
 
-	// Visit the board and wait for its data. Re-visiting reboots the page, so the
-	// `use_new_kanban` value set server-side is picked up (boot.py exposes it on
-	// frappe.boot.sysdefaults).
+	// Visit the board and wait for its data. Each visit is a full page load, so the
+	// board's `use_kanban_v2` flag is re-read (list_factory picks the engine).
 	const visit_board = () => {
 		cy.intercept(
 			"POST",
@@ -18,23 +17,23 @@ context("New Kanban Board", () => {
 		cy.wait("@kanban-board-data");
 	};
 
-	const visit_new_kanban = () => {
+	const visit_kanban_v2 = () => {
 		visit_board();
-		cy.get(".new-kanban-container", { timeout: 15000 }).should("exist");
+		cy.get(".kanban-v2-container", { timeout: 15000 }).should("exist");
 		cy.get(".kn-column").should("have.length.at.least", 3);
 	};
 
 	before(() => {
-		cy.login(); // Administrator — needed to write System Settings
+		cy.login(); // Administrator — needed to write the Kanban Board flag
 		cy.visit("/desk");
 		cy.call("frappe.tests.ui_test_helpers.ensure_todo_kanban_board");
 		// A few ToDos, all default to status "Open" so the Open column has cards.
 		cy.call("frappe.tests.ui_test_helpers.create_todo_records");
-		set_new_kanban(true);
+		set_kanban_v2(true);
 	});
 
 	it("renders the new Kanban board instead of the classic one", () => {
-		visit_new_kanban();
+		visit_kanban_v2();
 		// New engine markup is present; classic markup is not.
 		cy.get(".kanban-column").should("not.exist");
 		cy.get('.kn-column[data-col="Open"]').should("exist");
@@ -43,7 +42,7 @@ context("New Kanban Board", () => {
 	});
 
 	it("shows cards with titles in the Open column", () => {
-		visit_new_kanban();
+		visit_kanban_v2();
 		cy.get('.kn-column[data-col="Open"] .kn-card')
 			.should("have.length.at.least", 1)
 			.first()
@@ -53,7 +52,7 @@ context("New Kanban Board", () => {
 
 	it("creates a ToDo from the primary action", () => {
 		cy.intercept({ method: "POST", url: "api/method/frappe.client.save" }).as("save-todo");
-		visit_new_kanban();
+		visit_kanban_v2();
 
 		// Card titles on this board are the document name, so assert on the Open
 		// column's card count rather than the description text. Measured fresh each
@@ -68,7 +67,7 @@ context("New Kanban Board", () => {
 
 			// The primary action uses a plain frappe.new_doc (no board integration),
 			// so reload — the new ToDo (defaults to status "Open") adds one card.
-			visit_new_kanban();
+			visit_kanban_v2();
 			cy.get('.kn-column[data-col="Open"] .kn-card', { timeout: 15000 }).should(
 				"have.length",
 				before + 1
@@ -77,7 +76,7 @@ context("New Kanban Board", () => {
 	});
 
 	it("opens a pre-filled create dialog when adding a card to a column", () => {
-		visit_new_kanban();
+		visit_kanban_v2();
 
 		// The Closed column's inline "+ Add" should open the create flow with that
 		// column's group-by value (status = Closed) pre-set on the new doc.
@@ -97,7 +96,7 @@ context("New Kanban Board", () => {
 			"**/api/method/frappe.desk.doctype.kanban_board.kanban_board.update_order_for_single_card"
 		).as("single-card-order");
 
-		visit_new_kanban();
+		visit_kanban_v2();
 		cy.get('.kn-column[data-col="Open"] .kn-card').should("have.length.at.least", 1);
 
 		cy.get('.kn-column[data-col="Open"] .kn-card')
@@ -121,16 +120,16 @@ context("New Kanban Board", () => {
 	});
 
 	it("falls back to the classic Kanban board when the setting is disabled", () => {
-		set_new_kanban(false);
+		set_kanban_v2(false);
 		visit_board();
 		// Classic markup renders; the new engine's container is gone.
 		cy.get(".kanban-column", { timeout: 15000 }).should("have.length.at.least", 3);
-		cy.get(".new-kanban-container").should("not.exist");
+		cy.get(".kanban-v2-container").should("not.exist");
 	});
 
 	after(() => {
 		// Leave the setting off (idempotent) so other specs get the classic board.
-		set_new_kanban(false);
+		set_kanban_v2(false);
 		cy.call("logout");
 	});
 });

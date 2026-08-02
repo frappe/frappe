@@ -41,6 +41,7 @@ class KanbanBoard(Document):
 		show_assigned_to: DF.Check
 		show_labels: DF.Check
 		title_field: DF.Autocomplete | None
+		use_kanban_v2: DF.Check
 	# end: auto-generated types
 
 	def validate(self):
@@ -161,7 +162,7 @@ def default_preview_fieldnames(doctype: str) -> list[str]:
 	`frappe.desk.link_preview.get_preview_data`: `in_preview`, else mandatory.
 	Skips title/image (they head the preview) and layout/table/no-value fields.
 	Runtime fallback when the board table is empty: preview fields → these →
-	card fields (see new_kanban.compute_preview_fields)."""
+	card fields (see the kanban_v2 compute_preview_fields logic)."""
 	from frappe.model import no_value_fields, table_fields
 
 	meta = frappe.get_meta(doctype)
@@ -215,7 +216,7 @@ def get_kanban_boards(doctype: str):
 	"""Get Kanban Boards for doctype to show in List View"""
 	return frappe.get_list(
 		"Kanban Board",
-		fields=["name", "filters", "reference_doctype", "private"],
+		fields=["name", "filters", "reference_doctype", "private", "use_kanban_v2"],
 		filters={"reference_doctype": doctype},
 	)
 

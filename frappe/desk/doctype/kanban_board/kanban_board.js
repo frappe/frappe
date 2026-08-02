@@ -5,6 +5,13 @@ frappe.ui.form.on("Kanban Board", {
 	onload: function (frm) {
 		frm.trigger("reference_doctype");
 	},
+	after_save: function (frm) {
+		// The engine (classic vs v2) is chosen from use_kanban_v2; drop the cached
+		// value so reopening the board reflects a just-changed toggle (no reload).
+		if (frappe.views._kanban_engine_cache) {
+			delete frappe.views._kanban_engine_cache[frm.doc.name];
+		}
+	},
 	refresh: function (frm) {
 		// The grid may not have had its docfields ready during onload.
 		if (frm.doc.reference_doctype) {
@@ -16,7 +23,7 @@ frappe.ui.form.on("Kanban Board", {
 		}
 		if (frm.is_new()) return;
 		frm.add_custom_button(__("Show Board"), function () {
-			// Same route for both UIs; System Settings → Use New Kanban picks the engine.
+			// Same route for both UIs; this board's "Use Kanban v2" flag picks the engine.
 			frappe.set_route("List", frm.doc.reference_doctype, "Kanban", frm.doc.name);
 		});
 	},
