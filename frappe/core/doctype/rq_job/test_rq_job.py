@@ -77,8 +77,19 @@ class TestRQJob(IntegrationTestCase):
 			frappe.get_all("RQ Job", filters={"job_name": "__missing_job_name__"}),
 			[],
 		)
+
+		for filters in ({"job_id": job.id}, [["job_id", "=", job.id]]):
+			jobs = RQJob.get_list(filters=filters, page_length=1)
+			self.assertEqual([result.name for result in jobs], [job.id])
+
 		with patch.object(Job, "fetch_many", side_effect=AssertionError("exact ID filter fetched jobs")):
-			self.assertEqual(RQJob.get_count(filters=[["RQ Job", "job_id", "=", job.id]]), 1)
+			for filters in (
+				{"job_id": job.id},
+				[["job_id", job.id]],
+				[["job_id", "=", job.id]],
+				[["RQ Job", "job_id", "=", job.id]],
+			):
+				self.assertEqual(RQJob.get_count(filters=filters), 1)
 
 	def test_configurable_ttl(self):
 		frappe.conf.rq_job_failure_ttl = 600

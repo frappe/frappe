@@ -12,6 +12,7 @@ from rq.queue import Queue
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.types import Filters
 from frappe.utils import (
 	cint,
 	compare,
@@ -88,7 +89,7 @@ class RQJob(Document):
 
 	@staticmethod
 	def get_matching_job_ids(filters) -> list[str]:
-		filters = filters or []
+		filters = Filters(filters or [], doctype="RQ Job")
 		filter_dict = make_filter_dict(filters)
 
 		queues = _eval_filters(filter_dict.get("queue"), QUEUES + get_custom_queues())
@@ -102,7 +103,7 @@ class RQJob(Document):
 				matched_job_ids.extend(fetch_job_ids(queue, status))
 
 		matched_job_ids = filter_current_site_jobs(matched_job_ids)
-		filters = [filter for filter in filters if filter[1] not in {"queue", "status"}]
+		filters = [filter for filter in filters if filter.fieldname not in {"queue", "status"}]
 		return filter_job_ids(matched_job_ids, filters)
 
 	@check_permissions
@@ -197,14 +198,14 @@ def filter_job_ids(job_ids: list[str], filters) -> list[str]:
 	if not filters:
 		return job_ids
 
-	identifier_filters = [filter for filter in filters if filter[1] in {"name", "job_id"}]
+	identifier_filters = [filter for filter in filters if filter.fieldname in {"name", "job_id"}]
 	if identifier_filters:
 		job_ids = [
 			job_id
 			for job_id in job_ids
-			if all(compare(job_id, filter[2], filter[3]) for filter in identifier_filters)
+			if all(compare(job_id, filter.operator, filter.value) for filter in identifier_filters)
 		]
-		filters = [filter for filter in filters if filter[1] not in {"name", "job_id"}]
+		filters = [filter for filter in filters if filter.fieldname not in {"name", "job_id"}]
 
 	if not filters:
 		return job_ids
