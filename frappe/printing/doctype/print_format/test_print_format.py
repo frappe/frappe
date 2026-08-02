@@ -155,6 +155,129 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 		self.assertIn(b"<svg", base64.b64decode(data_uri[len(prefix) :]))
 
 
+class TestPrintFormatHardening(IntegrationTestCase):
+	"""Malformed layouts and conditions must not take the print down."""
+
+	NAME = "_Test Hardening"
+
+	def make(self, layout, **kwargs):
+		frappe.delete_doc("Print Format", self.NAME, force=True, ignore_missing=True)
+		doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": self.NAME,
+				"doc_type": "User",
+				"standard": "No",
+				"print_format_builder_beta": 1,
+				"format_data": layout if isinstance(layout, str) else frappe.as_json(layout),
+				**kwargs,
+			}
+		)
+		doc.insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", self.NAME, force=True, ignore_missing=True)
+		return doc
+
+	def render(self, layout, **kwargs):
+		from frappe.utils.print_format_generator import get_html
+
+		self.make(layout, **kwargs)
+		return get_html("User", "Administrator", self.NAME)
+
+	@staticmethod
+	def layout(*fields, **section):
+		sec = {"label": "", "columns": [{"label": "", "fields": list(fields)}]}
+		sec.update(section)
+		return {"sections": [sec], "header": {"columns": []}, "footer": {"columns": []}}
+
+	DATA: ClassVar[dict] = {"label": "First Name", "fieldname": "first_name", "fieldtype": "Data"}
+
+	def test_malformed_layout_renders_empty_instead_of_erroring(self):
+		for label, format_data in {
+			"corrupt json": '{"sections": [BROKEN',
+			"sections is a string": '{"sections": "nope"}',
+			"sections is null": '{"sections": null}',
+			"section without columns": '{"sections": [{"label": "x"}]}',
+			"column without fields": '{"sections": [{"columns": [{"label": ""}]}]}',
+			"non-dict field": '{"sections": [{"columns": [{"fields": ["nope"]}]}]}',
+		}.items():
+			with self.subTest(layout=label):
+				self.assertIn("print-format-doc", self.render(format_data))
+
+	def test_broken_condition_is_rejected_on_save(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.make(self.layout({**self.DATA, "visible_if": "doc.first_name ==== 'x'"}))
+
+		self.make(self.layout({**self.DATA, "visible_if": "   "}))
+
+	def test_runtime_condition_failure_shows_field_and_logs(self):
+		before = frappe.db.count("Error Log")
+		html = self.render(self.layout({**self.DATA, "label": "PROBE", "visible_if": "doc.nope.nope"}))
+		self.assertIn("PROBE", html)
+		self.assertGreater(frappe.db.count("Error Log"), before)
+
+	def test_malformed_table_columns_do_not_crash(self):
+		table = {"label": "T", "fieldname": "roles", "fieldtype": "Table", "options": "Has Role"}
+		for table_columns in (["nope", 3], "nope", {"a": 1}, 7, ""):
+			with self.subTest(table_columns=table_columns):
+				html = self.render(self.layout({**table, "table_columns": table_columns}))
+				self.assertIn("print-format-doc", html)
+
+	def test_non_string_condition_does_not_crash(self):
+		for condition in (5, ["a"], {"a": 1}):
+			with self.subTest(condition=condition):
+				html = self.render(self.layout({**self.DATA, "label": "PROBE", "visible_if": condition}))
+				self.assertIn("PROBE", html)
+
+	def test_failing_row_condition_logs_once_not_once_per_row(self):
+		frappe.db.delete("Error Log")
+		self.render(
+			self.layout(
+				{
+					"label": "T",
+					"fieldname": "roles",
+					"fieldtype": "Table",
+					"options": "Has Role",
+					"row_condition": "row.nope.nope",
+					"table_columns": [
+						{"label": "Role", "fieldname": "role", "fieldtype": "Link", "width": 100}
+					],
+				}
+			)
+		)
+		self.assertGreater(frappe.db.count("Has Role", {"parent": "Administrator"}), 1)
+		self.assertEqual(frappe.db.count("Error Log"), 1)
+
+	def test_labels_are_escaped(self):
+		payload = "<script>alert(1)</script>"
+		self.assertNotIn(payload, self.render(self.layout({**self.DATA, "label": payload})))
+		self.assertNotIn(
+			payload,
+			self.render(
+				{
+					"sections": [{"label": payload, "columns": [{"label": "", "fields": [self.DATA]}]}],
+					"header": {"columns": []},
+					"footer": {"columns": []},
+				}
+			),
+		)
+		self.assertNotIn(
+			payload,
+			self.render(
+				self.layout(
+					{
+						"label": "T",
+						"fieldname": "roles",
+						"fieldtype": "Table",
+						"options": "Has Role",
+						"table_columns": [
+							{"label": payload, "fieldname": "role", "fieldtype": "Link", "width": 100}
+						],
+					}
+				)
+			),
+		)
+
+
 class TestClassicConverter(IntegrationTestCase):
 	"""Conversion of classic print-format-builder layouts to the beta builder."""
 
@@ -663,7 +786,7 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 		self.addCleanup(frappe.delete_doc, "Contact", self.contact.name, force=True)
 
-	def render(self, df):
+	def render(self, df, skip_validation=False):
 		from frappe.utils.print_format_generator import get_html
 
 		frappe.delete_doc("Print Format", self.FORMAT_NAME, force=True, ignore_missing=True)
@@ -672,7 +795,7 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 			"header": {"columns": []},
 			"footer": {"columns": []},
 		}
-		frappe.get_doc(
+		doc = frappe.get_doc(
 			{
 				"doctype": "Print Format",
 				"name": self.FORMAT_NAME,
@@ -681,7 +804,10 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 				"print_format_builder_beta": 1,
 				"format_data": frappe.as_json(format_data),
 			}
-		).insert()
+		)
+		if skip_validation:
+			doc.flags.ignore_validate = True
+		doc.insert()
 		self.addCleanup(frappe.delete_doc, "Print Format", self.FORMAT_NAME, force=True)
 		return get_html("Contact", self.contact.name, self.FORMAT_NAME)
 
@@ -705,7 +831,7 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 		self.assertNotIn("secondary@example.com", html)
 
 	def test_bad_row_condition_keeps_all_rows(self):
-		html = self.render(self.table_field(row_condition="row.does_not_exist >"))
+		html = self.render(self.table_field(row_condition="row.does_not_exist >"), skip_validation=True)
 		self.assertIn("primary@example.com", html)
 		self.assertIn("secondary@example.com", html)
 
@@ -745,7 +871,7 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 	def test_bad_column_condition_keeps_column(self):
 		df = self.table_field()
 		df["table_columns"][1]["column_condition"] = "doc.does_not_exist >"
-		html = self.render(df)
+		html = self.render(df, skip_validation=True)
 		self.assertIn('data-fieldname="is_primary"', html)
 		self.assertIn('data-fieldname="email_id"', html)
 

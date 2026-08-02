@@ -1,6 +1,7 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
 
+import copy
 from typing import ClassVar
 
 import frappe
@@ -251,6 +252,7 @@ class PrintFormatGenerator:
 		self.style = style
 		self.settings_override = settings or {}
 		self._header_absorbs_top_margin = False
+		self._logged_conditions = set()
 
 		if letterhead == _("No Letterhead"):
 			letterhead = None
@@ -535,13 +537,19 @@ class PrintFormatGenerator:
 			"</div>"
 		)
 
+	EMPTY_LAYOUT: ClassVar[dict] = {
+		"sections": [],
+		"header": {"columns": []},
+		"footer": {"columns": []},
+	}
+
 	def get_layout(self, print_format):
-		layout = frappe.parse_json(print_format.format_data) or {
-			"sections": [],
-			"header": {"columns": []},
-			"footer": {"columns": []},
-		}
-		if isinstance(layout, list):
+		try:
+			layout = frappe.parse_json(print_format.format_data) or copy.deepcopy(self.EMPTY_LAYOUT)
+		except Exception:
+			frappe.log_error(title=f"Unreadable print format layout: {print_format.name}")
+			layout = copy.deepcopy(self.EMPTY_LAYOUT)
+		if isinstance(layout, list) and layout:
 			from frappe.printing.doctype.print_format.classic_converter import convert_classic_to_beta
 
 			layout, _dropped = convert_classic_to_beta(
@@ -549,10 +557,42 @@ class PrintFormatGenerator:
 			)
 			if not print_format.page_number or print_format.page_number == "Hide":
 				print_format.page_number = "Bottom Center"
+		layout = self.normalise_layout(layout)
 		layout = self.apply_permlevel_access(layout)
 		layout = self.set_field_renderers(layout)
 		layout = self.prune_table_columns(layout)
 		layout = self.process_margin_texts(layout)
+		return layout
+
+	def normalise_layout(self, layout):
+		"""Drop anything the builder could not have produced, rather than crashing."""
+		if not isinstance(layout, dict):
+			return copy.deepcopy(self.EMPTY_LAYOUT)
+
+		def clean_zone(zone):
+			if not isinstance(zone, dict):
+				return {"columns": []}
+			columns = [
+				{**col, "fields": [clean_field(f) for f in col.get("fields") or [] if isinstance(f, dict)]}
+				for col in zone.get("columns") or []
+				if isinstance(col, dict)
+			]
+			return {**zone, "columns": columns}
+
+		def clean_field(df):
+			if "table_columns" not in df:
+				return df
+			table_columns = df["table_columns"]
+			if not isinstance(table_columns, list):
+				table_columns = []
+			return {**df, "table_columns": [c for c in table_columns if isinstance(c, dict)]}
+
+		sections = layout.get("sections")
+		layout["sections"] = (
+			[clean_zone(s) for s in sections if isinstance(s, dict)] if isinstance(sections, list) else []
+		)
+		for zone in ("header", "footer"):
+			layout[zone] = clean_zone(layout.get(zone))
 		return layout
 
 	def layout_columns(self, layout):
@@ -630,21 +670,36 @@ class PrintFormatGenerator:
 				df["table_columns"] = kept
 		return layout
 
-	def column_condition_met(self, col, eval_locals):
-		condition = col.get("column_condition")
-		if not condition:
+	def eval_condition(self, condition, eval_locals, where):
+		"""Evaluate a visibility condition. A broken expression keeps the thing
+		visible, logged once per expression so a row condition cannot write one log
+		row per child row."""
+		if not isinstance(condition, str):
 			return True
 		try:
 			return bool(frappe.safe_eval(condition, None, eval_locals))
 		except Exception:
+			if condition not in self._logged_conditions:
+				self._logged_conditions.add(condition)
+				frappe.log_error(
+					title=f"Print format condition failed: {self.print_format.name}",
+					message=f"{where}: {condition}",
+				)
 			return True
+
+	def column_condition_met(self, col, eval_locals):
+		condition = col.get("column_condition")
+		if not condition:
+			return True
+		return self.eval_condition(
+			condition, eval_locals, f"column {col.get('label') or col.get('fieldname')}"
+		)
 
 	def _prepare_field(self, df, section, eval_locals):
 		if df.get("visible_if"):
-			try:
-				df["_hidden"] = not frappe.safe_eval(df["visible_if"], eval_locals)
-			except Exception:
-				df["_hidden"] = False
+			df["_hidden"] = not self.eval_condition(
+				df["visible_if"], eval_locals, f"field {df.get('label') or df.get('fieldname')}"
+			)
 		fieldtype = df.get("fieldtype", "Data")
 		df["renderer"] = self._FIELD_RENDERERS.get(fieldtype) or fieldtype.replace(" ", "")
 		df["section"] = section
@@ -655,10 +710,9 @@ class PrintFormatGenerator:
 		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
 		for section in layout["sections"]:
 			if section.get("visible_if"):
-				try:
-					section["_hidden"] = not frappe.safe_eval(section["visible_if"], eval_locals)
-				except Exception:
-					section["_hidden"] = False
+				section["_hidden"] = not self.eval_condition(
+					section["visible_if"], eval_locals, f"section {section.get('label') or ''}"
+				)
 			for column in section["columns"]:
 				for df in column["fields"]:
 					self._prepare_field(df, section, eval_locals)
@@ -689,11 +743,7 @@ class PrintFormatGenerator:
 		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
 		kept = []
 		for row in self.doc.get(source) or []:
-			try:
-				keep = frappe.safe_eval(condition, None, {**eval_locals, "row": row})
-			except Exception:
-				keep = True
-			if keep:
+			if self.eval_condition(condition, {**eval_locals, "row": row}, f"rows of {source}"):
 				kept.append(row)
 		df["_rows"] = kept
 
