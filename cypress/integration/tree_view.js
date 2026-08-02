@@ -31,18 +31,33 @@ context("Tree View", () => {
 		cy.visit("/app/custom-tree/view/tree");
 
 		const tree_view = (win) => win.frappe.views.trees["Custom Tree"];
+		// the menu only ever hides/shows these <li>s via jQuery .hide()/.show()/.toggle(),
+		// which resolves the "visible" state to the tag's native default display
+		// (list-item, not block) — assert against "none" vs. not-"none" instead of
+		// a specific display value
 		const assert_buttons = (expand_visible, collapse_visible) => {
 			cy.window().should((win) => {
 				let tv = tree_view(win);
-				expect(tv.$expand_all_btn.css("display")).to.eq(expand_visible ? "block" : "none");
-				expect(tv.$collapse_all_btn.css("display")).to.eq(
-					collapse_visible ? "block" : "none"
-				);
+				let expand_display = tv.$expand_all_btn.css("display");
+				let collapse_display = tv.$collapse_all_btn.css("display");
+				if (expand_visible) {
+					expect(expand_display).to.not.eq("none");
+				} else {
+					expect(expand_display).to.eq("none");
+				}
+				if (collapse_visible) {
+					expect(collapse_display).to.not.eq("none");
+				} else {
+					expect(collapse_display).to.eq("none");
+				}
 			});
 		};
 		const click_menu_item = (label) => {
+			// the menu button's own .dropdown-menu is a hidden item store (see
+			// page.js build_dropdown_options) — the actual open menu is an
+			// espresso panel with role="menu", portaled elsewhere in the DOM
 			cy.get(".menu-btn-group > button").click();
-			cy.contains(".menu-btn-group .dropdown-menu .dropdown-item", label).click();
+			cy.contains('[role="menu"] .es-menu__item', label).click();
 		};
 
 		// root auto-expands; both groups underneath are still collapsed -> only "Expand All"
