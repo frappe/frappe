@@ -8,6 +8,9 @@ from frappe.utils import cint
 
 ASSUMED_BODY_WIDTH_PX = 750
 DEFAULT_COLUMN_WIDTH_PCT = 10
+# classic wrapped text and table blocks in `padding: 10px 0px`; the beta renderer
+# has no such default, so converted sections carry the gap explicitly
+CONVERTED_SECTION_GAP_PX = 10
 
 DEFAULT_PRINT_HEADING = (
 	'{%- set heading = doc.get("select_print_heading") or doc.get("print_heading") or doc.doctype -%}'
@@ -142,6 +145,9 @@ def convert_classic_to_beta(format_data, meta, print_format=None) -> tuple[dict,
 	layout["sections"] = [
 		section for section in layout["sections"] if any(column["fields"] for column in section["columns"])
 	]
+
+	for section in layout["sections"][1:]:
+		section["margin"] = {"top": CONVERTED_SECTION_GAP_PX, "right": 0, "bottom": 0, "left": 0}
 
 	if line_breaks:
 		for section in layout["sections"][1:]:

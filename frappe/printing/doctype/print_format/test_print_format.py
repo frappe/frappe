@@ -484,6 +484,57 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertEqual(doc.print_format_builder_beta, 1)
 		self.assertEqual(frappe.parse_json(doc.classic_format_data), self.CLASSIC_FORMAT_DATA)
 
+	def test_converted_sections_get_spacing(self):
+		"""Classic put the gap in its markup; the conversion has to store one."""
+		from frappe.printing.doctype.print_format.classic_converter import (
+			CONVERTED_SECTION_GAP_PX,
+			convert_classic_to_beta,
+		)
+
+		classic = [
+			{"fieldtype": "Section Break", "label": "One"},
+			{"fieldname": "first_name", "print_hide": 0},
+			{"fieldtype": "Section Break", "label": "Two"},
+			{"fieldname": "last_name", "print_hide": 0},
+		]
+		layout, _dropped = convert_classic_to_beta(classic, frappe.get_meta("User"))
+
+		# the first section sits under the header, which already has its own gap
+		self.assertIsNone(layout["sections"][0].get("margin"))
+		self.assertEqual(layout["sections"][1]["margin"]["top"], CONVERTED_SECTION_GAP_PX)
+
+	def test_spacing_patch_skips_sections_edited_since_conversion(self):
+		from frappe.patches.v16_0.repair_converted_print_formats import add_section_spacing
+		from frappe.printing.doctype.print_format.classic_converter import CONVERTED_SECTION_GAP_PX
+
+		layout = {
+			"sections": [
+				{"label": "first", "columns": []},
+				{"label": "bare", "columns": []},
+				{"label": "tuned", "columns": [], "margin": {"top": 40}},
+			]
+		}
+		# one tuned section means someone has been in the builder — leave it all alone
+		self.assertFalse(add_section_spacing(layout))
+		self.assertIsNone(layout["sections"][1].get("margin"))
+		self.assertEqual(layout["sections"][2]["margin"]["top"], 40)
+
+		untouched = {
+			"sections": [
+				{"label": "first", "columns": []},
+				{"label": "a", "columns": []},
+				{"label": "b", "columns": []},
+			]
+		}
+		self.assertTrue(add_section_spacing(untouched))
+		# the first section sits under the header, which already has its own gap
+		self.assertIsNone(untouched["sections"][0].get("margin"))
+		self.assertEqual(untouched["sections"][1]["margin"]["top"], CONVERTED_SECTION_GAP_PX)
+		self.assertEqual(untouched["sections"][2]["margin"]["top"], CONVERTED_SECTION_GAP_PX)
+
+		# re-running changes nothing
+		self.assertFalse(add_section_spacing(untouched))
+
 	def test_repair_converted_print_formats(self):
 		from frappe.patches.v16_0.repair_converted_print_formats import execute
 
