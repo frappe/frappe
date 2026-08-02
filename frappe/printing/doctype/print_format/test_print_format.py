@@ -504,7 +504,7 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertEqual(layout["sections"][1]["margin"]["top"], CONVERTED_SECTION_GAP_PX)
 
 	def test_spacing_patch_skips_sections_edited_since_conversion(self):
-		from frappe.patches.v16_0.add_spacing_to_converted_print_formats import add_section_spacing
+		from frappe.patches.v16_0.repair_converted_print_formats import add_section_spacing
 		from frappe.printing.doctype.print_format.classic_converter import CONVERTED_SECTION_GAP_PX
 
 		layout = {
@@ -514,15 +514,15 @@ class TestClassicConverter(IntegrationTestCase):
 				{"label": "tuned", "columns": [], "margin": {"top": 40}},
 			]
 		}
-		spaced = frappe.parse_json(add_section_spacing(frappe.as_json(layout)))
+		self.assertTrue(add_section_spacing(layout))
 
-		self.assertIsNone(spaced["sections"][0].get("margin"))
-		self.assertEqual(spaced["sections"][1]["margin"]["top"], CONVERTED_SECTION_GAP_PX)
+		self.assertIsNone(layout["sections"][0].get("margin"))
+		self.assertEqual(layout["sections"][1]["margin"]["top"], CONVERTED_SECTION_GAP_PX)
 		# a margin someone set in the builder is left alone
-		self.assertEqual(spaced["sections"][2]["margin"]["top"], 40)
+		self.assertEqual(layout["sections"][2]["margin"]["top"], 40)
 
 		# re-running changes nothing
-		self.assertIsNone(add_section_spacing(frappe.as_json(spaced)))
+		self.assertFalse(add_section_spacing(layout))
 
 	def test_repair_converted_print_formats(self):
 		from frappe.patches.v16_0.repair_converted_print_formats import execute
