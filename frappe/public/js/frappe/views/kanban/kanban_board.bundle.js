@@ -1,4 +1,7 @@
-// TODO: Refactor for better UX
+// @deprecated Classic Kanban board renderer. Superseded by the vanilla-JS
+// Kanban v2 engine in views/kanban_v2/. Used for a board when its "Use Kanban
+// v2" flag (Kanban Board.use_kanban_v2) is OFF — the default. Do not add
+// features here — port them to kanban_v2 instead.
 //
 // Kanban runs in two steps for speed:
 //

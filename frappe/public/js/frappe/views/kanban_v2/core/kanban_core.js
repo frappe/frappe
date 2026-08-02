@@ -8,7 +8,7 @@
  *
  * Layout uses the tailwind-style utility classes from utilities.scss; only
  * behavioural bits (scrollbars, drag/selection states, etc.) are in
- * kanban_next.scss.
+ * kanban_v2.scss.
  */
 import {
 	bindCardDrag,
@@ -34,7 +34,7 @@ let _kanban_instance_seq = 0;
 const CLS = {
 	board: "kn-board flex gap-3 overflow-x-auto overflow-y-hidden items-stretch py-2",
 	// The column is a flat gray panel: no border in light mode, the fill alone
-	// separates it from the board (dark mode flips this — see kanban_next.scss).
+	// separates it from the board (dark mode flips this — see kanban_v2.scss).
 	// Bottom padding is the column's own, so the scrolling list ends above the
 	// panel edge and cards read as sliding inside it.
 	column: "kn-column flex flex-col overflow-hidden rounded-lg bg-surface-gray-1 pb-2",
@@ -42,13 +42,13 @@ const CLS = {
 	header: "kn-column-header flex items-center justify-between gap-2 ps-4 pe-1 pt-1 shrink-0",
 	headerMeta: "kn-column-meta flex items-center gap-1.5 min-w-0",
 	// Colour lives on the indicator dot (not the count). Margin on ::before is
-	// zeroed in kanban_next.scss so flex gap alone spaces the dot from the title.
+	// zeroed in kanban_v2.scss so flex gap alone spaces the dot from the title.
 	dot: "kn-column-dot indicator shrink-0",
 	title: "kn-column-title text-sm-medium text-ink-gray-8 truncate min-w-0",
 	count: "kn-column-count text-sm text-ink-gray-5 shrink-0",
 	// The rest of the padding lives on the body, not the column, so card shadows
 	// aren't clipped. It is 16px on both sides because the scroll thumb is
-	// painted inside that padding (see scrollbar rules in kanban_next.scss) and
+	// painted inside that padding (see scrollbar rules in kanban_v2.scss) and
 	// at 8px it would touch the cards.
 	body: "kn-column-body flex-1 overflow-y-auto overflow-x-hidden px-3 pt-2",
 	footer: "kn-column-footer shrink-0 px-4 pt-1",
@@ -93,7 +93,7 @@ export class KanbanCore {
 
 	mount(container) {
 		this.container = container;
-		// Styles ship in desk/kanban_next.scss (bundled), not injected from JS.
+		// Styles ship in desk/kanban_v2.scss (bundled), not injected from JS.
 		this.root = document.createElement("div");
 		this.root.className = CLS.board;
 		container.replaceChildren(this.root);

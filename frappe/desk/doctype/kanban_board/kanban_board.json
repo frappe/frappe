@@ -13,6 +13,7 @@
   "column_break_4",
   "private",
   "show_labels",
+  "use_kanban_v2",
   "section_break_3",
   "columns",
   "filters",
@@ -114,7 +115,15 @@
    "read_only": 1
   },
   {
-   "description": "Layout and fields for the new Kanban board only. Turn on Enable New Kanban in System Settings to use this board experience.",
+   "default": "0",
+   "description": "Open this board in the new Kanban experience. When off, the classic Kanban is used. Same List / Kanban route either way.",
+   "fieldname": "use_kanban_v2",
+   "fieldtype": "Check",
+   "label": "Use Kanban v2 (New Experience)"
+  },
+  {
+   "depends_on": "eval:doc.use_kanban_v2",
+   "description": "Layout and fields used by the new Kanban experience for this board.",
    "fieldname": "section_break_new_kanban",
    "fieldtype": "Section Break",
    "label": "New Kanban"
@@ -151,13 +160,14 @@
    "options": "Modified\nCreation"
   },
   {
+   "depends_on": "eval:doc.use_kanban_v2",
    "fieldname": "section_break_new_kanban_fields",
    "fieldtype": "Section Break",
    "label": "Card and Preview Fields"
   }
  ],
  "links": [],
- "modified": "2026-07-30 17:49:31.948792",
+ "modified": "2026-08-02 18:30:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Kanban Board",

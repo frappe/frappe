@@ -13,7 +13,7 @@ frappe.provide("frappe.views");
  * frappe.utils.guess_colour() — the heuristic list views already use — so
  * app-specific values keep the colour users expect elsewhere.
  *
- * Extend or override per doctype via `frappe.kanban_next.settings` (see
+ * Extend or override per doctype via `frappe.kanban_v2.settings` (see
  * settings.js). A plain string is shorthand for `{ theme }`.
  */
 const SELECT_STYLES = {
@@ -89,12 +89,12 @@ const SELECT_STYLES = {
 
 /**
  * Next-generation Kanban board. Loads the framework-agnostic engine
- * (kanban_next.bundle.js) and mounts it against an existing Kanban Board via
+ * (kanban.bundle.js) and mounts it against an existing Kanban Board via
  * FrappeDataProvider. Primary route: List/{Doctype}/Kanban/{board_name}
  * (enabled via System Settings → Use New Kanban).
  *
- * Per-doctype customization: `frappe.kanban_next.settings` /
- * `frappe.kanban_next.extend_settings` (see settings.js). Register JS from any
+ * Per-doctype customization: `frappe.kanban_v2.settings` /
+ * `frappe.kanban_v2.extend_settings` (see settings.js). Register JS from any
  * app with hooks `doctype_kanban_js`, or ship `{doctype}_kanban.js` next to the
  * DocType. Supports `card_context_menu`, `bulk_actions`, `select_styles`,
  * render hooks, callbacks, and per-board overrides under `boards`.
@@ -111,7 +111,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 				single_column: true,
 			});
 		// flex column so an optional filter bar + the board share the height.
-		this.$container = $('<div class="new-kanban-container px-4">').appendTo(this.page.main);
+		this.$container = $('<div class="kanban-v2-container px-4">').appendTo(this.page.main);
 		// Apply the full-width, no-sidebar page shell. This mutates the page + body,
 		// which the List view shares (same page instance), so restore_page_shell()
 		// must undo every part of it on teardown.
@@ -127,14 +127,14 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	 */
 	apply_page_shell() {
 		// utilities make the page shell a full-height flex column; the board area
-		// sizes itself in .new-kanban-container (kanban_next.scss).
+		// sizes itself in .kanban-v2-container (kanban_v2.scss).
 		this.page.main.addClass("flex flex-col overflow-hidden p-0");
 		if (this.$container) this.$container.show();
 		// Side section must not consume horizontal space and shift the board.
 		$(document.body).addClass("no-list-sidebar");
 		// Full-width page body so columns start from the left instead of centered
 		// in the default fixed-width container.
-		this.page.container.addClass("new-kanban-full-width");
+		this.page.container.addClass("kanban-v2-full-width");
 	}
 
 	/**
@@ -148,7 +148,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		// every list view and never unset elsewhere, so the List view we're likely
 		// returning to needs it; our teardown runs after the list's own setup, so
 		// removing it here would clobber the list and re-show its side section.
-		this.page.container.removeClass("new-kanban-full-width");
+		this.page.container.removeClass("kanban-v2-full-width");
 	}
 
 	/** Board name from List/.../Kanban/{board} or legacy #new-kanban/{board}. */
@@ -241,7 +241,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	/** Lazily create a BulkOperations helper for the current doctype. */
 	bulk() {
 		if (!this._bulk || this._bulk.doctype !== this.doctype) {
-			this._bulk = new frappe.kanban_next.BulkOperations({ doctype: this.doctype });
+			this._bulk = new frappe.kanban_v2.BulkOperations({ doctype: this.doctype });
 		}
 		return this._bulk;
 	}
@@ -458,7 +458,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		// From `{doctype}_kanban.js` and/or `doctype_kanban_js` hooks (ran in
 		// init_doctype). Doctype-level config applies to every board;
 		// `boards[<board name>]` overrides it for one board.
-		const reg = (frappe.kanban_next.settings || {})[this.doctype] || {};
+		const reg = (frappe.kanban_v2.settings || {})[this.doctype] || {};
 		const board_override = (reg.boards && reg.boards[this.current_board]) || {};
 		this.settings = {
 			...reg,
@@ -570,7 +570,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			this.group_by_field = null;
 		}
 
-		// --- card display config (overridable via frappe.kanban_next.settings) ---
+		// --- card display config (overridable via frappe.kanban_v2.settings) ---
 		const s = this.settings || {};
 		// Clicking the card title opens the document. Turn off where not wanted.
 		this.open_on_title_click =
@@ -872,7 +872,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			}
 			this.sync_filter_ui();
 		} catch (e) {
-			console.warn("[new-kanban] filter setup skipped", e);
+			console.warn("[kanban-v2] filter setup skipped", e);
 		}
 	}
 
@@ -978,7 +978,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 		const filters = extra_filters
 			? [...(this.filters || []), ...extra_filters]
 			: this.filters || [];
-		return new frappe.kanban_next.FrappeDataProvider({
+		return new frappe.kanban_v2.FrappeDataProvider({
 			doctype: this.doctype,
 			board_name: this.current_board,
 			reportview_args: {
@@ -1004,7 +1004,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 					message: __("Could not move {0}", [mv.cardId]),
 					indicator: "red",
 				});
-				console.error("[new-kanban] move failed", err);
+				console.error("[kanban-v2] move failed", err);
 			},
 			// "+ Add {Doctype}" opens the new-document form, pre-filled with the
 			// column's group-by value + active "=" filters.
@@ -1037,7 +1037,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 	mount_flat_board() {
 		const provider = this.make_provider();
 		this.provider = provider; // kept so filter changes reload in place
-		this.board = new frappe.kanban_next.KanbanVanilla(
+		this.board = new frappe.kanban_v2.KanbanVanilla(
 			this.$container[0],
 			this.board_options(provider)
 		);
@@ -1545,7 +1545,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 			},
 		];
 
-		// Extras from frappe.kanban_next.settings[doctype] (any app via hook).
+		// Extras from frappe.kanban_v2.settings[doctype] (any app via hook).
 		const s = this.settings || {};
 		if (typeof s.card_context_menu === "function") {
 			const extra = s.card_context_menu(card, this) || [];
@@ -1993,7 +1993,7 @@ frappe.views.NewKanbanGroupedBoard = class NewKanbanGroupedBoard {
 	build_lane(lane, index) {
 		// Shell only — the Kanban engine mounts when the lane is visible or
 		// expanded. Layout / text / colour use shared utilities; the count is
-		// the badge component. Collapse positioning lives in kanban_next.scss.
+		// the badge component. Collapse positioning lives in kanban_v2.scss.
 		const $lane = $(`
 			<div class="kn-swimlane border-b pb-2">
 				<div
@@ -2107,7 +2107,7 @@ frappe.views.NewKanbanGroupedBoard = class NewKanbanGroupedBoard {
 		if (!entry || entry.board) return;
 		const provider = this.page.make_provider(this.page.lane_filter(this.field, entry.lane));
 		// replaceChildren inside KanbanCore.mount clears the Loading placeholder.
-		entry.board = new frappe.kanban_next.KanbanVanilla(
+		entry.board = new frappe.kanban_v2.KanbanVanilla(
 			entry.$lane.find(".kn-swimlane-body")[0],
 			this.page.board_options(provider, {
 				onSelectionChange: (ids) => this.on_lane_selection(index, ids),
@@ -2184,7 +2184,7 @@ frappe.views.NewKanbanGroupedBoard = class NewKanbanGroupedBoard {
 	}
 };
 
-frappe.views.NewKanbanView = class NewKanbanView {
+frappe.views.KanbanV2View = class KanbanV2View {
 	static load_last_view() {
 		return frappe.views.KanbanView.load_last_view();
 	}

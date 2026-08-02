@@ -99,7 +99,6 @@
   "column_break_ewhs",
   "hide_empty_read_only_fields",
   "disable_product_suggestion",
-  "use_new_kanban",
   "backups_tab",
   "sec_backup_limit",
   "backup_limit",
@@ -781,13 +780,6 @@
    "fieldname": "disable_product_suggestion",
    "fieldtype": "Check",
    "label": "Disable Product Suggestion"
-  },
-  {
-   "default": "0",
-   "description": "When enabled, Kanban boards open in the new Kanban UI. When disabled, the classic Kanban is used. Uses the same List / Kanban route either way.",
-   "fieldname": "use_new_kanban",
-   "fieldtype": "Check",
-   "label": "Use New Kanban"
   },
   {
    "fieldname": "column_break_ewhs",

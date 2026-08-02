@@ -2,13 +2,13 @@
  * Per-doctype Kanban customization registry.
  *
  * Owning app (doctype folder `{doctype}_kanban.js`) usually assigns once:
- *   frappe.kanban_next.settings["Task"] = {
+ *   frappe.kanban_v2.settings["Task"] = {
  *     card_context_menu() { ... },
  *     bulk_actions() { ... },
  *   };
  *
  * Another app (hooks `doctype_kanban_js`) should extend so the base stays:
- *   frappe.kanban_next.extend_settings("Task", (super_) => ({
+ *   frappe.kanban_v2.extend_settings("Task", (super_) => ({
  *     card_context_menu(card, page) {
  *       return [
  *         ...(super_.card_context_menu?.(card, page) || []),
@@ -26,7 +26,7 @@
  *
  * Plain-object form auto-merges common keys (menu / bulk items append; styles /
  * callbacks / options / boards shallow-merge):
- *   frappe.kanban_next.extend_settings("Task", {
+ *   frappe.kanban_v2.extend_settings("Task", {
  *     card_context_menu(card, page) {
  *       return [{ label: __("My Action"), onclick: () => {} }];
  *     },
@@ -35,20 +35,20 @@
  *     },
  *   });
  */
-frappe.provide("frappe.kanban_next.settings");
+frappe.provide("frappe.kanban_v2.settings");
 
 /**
  * Layer new Kanban settings on top of whatever is already registered for the
  * doctype. Pass a function to get the previous layer as `super_` (like
  * Python's super()), or a plain object for an automatic merge.
  */
-frappe.kanban_next.extend_settings = function (doctype, patch) {
-	const parent = copy_kanban_settings(frappe.kanban_next.settings[doctype] || {});
+frappe.kanban_v2.extend_settings = function (doctype, patch) {
+	const parent = copy_kanban_settings(frappe.kanban_v2.settings[doctype] || {});
 	const next =
 		typeof patch === "function"
 			? patch(parent) || {}
 			: merge_kanban_settings(parent, patch || {});
-	frappe.kanban_next.settings[doctype] = next;
+	frappe.kanban_v2.settings[doctype] = next;
 	return next;
 };
 

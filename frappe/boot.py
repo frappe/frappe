@@ -27,7 +27,7 @@ from frappe.integrations.frappe_providers.cloud_settings import (
 )
 from frappe.integrations.frappe_providers.frappecloud_billing import current_site_info, is_fc_site
 from frappe.model.base_document import get_controller
-from frappe.utils import add_user_info, cint, get_system_timezone
+from frappe.utils import add_user_info, get_system_timezone
 from frappe.utils.caching import redis_cache
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled

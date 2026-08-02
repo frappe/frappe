@@ -17,16 +17,26 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 			view_name = "File";
 		}
 
-		// New Kanban loads on demand — keeps the default bundle lean.
-		if (view_name === "Kanban" && cint(frappe.boot.sysdefaults.use_new_kanban)) {
+		// Kanban engine is chosen per board (Kanban Board → "Use Kanban v2").
+		// The v2 bundle loads on demand so the default bundle stays lean.
+		if (view_name === "Kanban") {
+			// Resolve the board into the route first (may redirect to the last/first
+			// board). Once route[3] is known we pick the engine for that board.
 			if (frappe.views.KanbanView.load_last_view()) return;
-			frappe.require("kanban_next.bundle.js", () => {
+			frappe.views.get_kanban_engine(route[3]).then((use_v2) => {
 				frappe.provide("frappe.views.list_view." + doctype);
-				frappe.views.list_view[me.page_name] = new frappe.views.NewKanbanView({
-					doctype,
-					parent: me.make_page(true, me.page_name, null),
-				});
-				me.set_cur_list();
+				const build = (View) => {
+					frappe.views.list_view[me.page_name] = new View({
+						doctype,
+						parent: me.make_page(true, me.page_name, null),
+					});
+					me.set_cur_list();
+				};
+				if (use_v2) {
+					frappe.require("kanban.bundle.js", () => build(frappe.views.KanbanV2View));
+				} else {
+					build(frappe.views.KanbanView);
+				}
 			});
 			return;
 		}
@@ -110,4 +120,25 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 			window.cur_list = null;
 		}
 	}
+};
+
+// board name -> boolean (uses Kanban v2). Primed by KanbanView.get_kanbans so
+// board-to-board switches never re-fetch; a board's form clears its entry on save.
+frappe.views._kanban_engine_cache = frappe.views._kanban_engine_cache || {};
+
+/**
+ * Resolve which Kanban engine a board uses: true = Kanban v2, false = classic.
+ * Reads the board's `use_kanban_v2` flag (default off) with a small per-session
+ * cache. Unset/unknown boards fall back to the classic engine.
+ */
+frappe.views.get_kanban_engine = function (board) {
+	if (!board) return Promise.resolve(false);
+	if (board in frappe.views._kanban_engine_cache) {
+		return Promise.resolve(frappe.views._kanban_engine_cache[board]);
+	}
+	return frappe.db.get_value("Kanban Board", board, "use_kanban_v2").then((r) => {
+		const use_v2 = !!cint(r && r.message && r.message.use_kanban_v2);
+		frappe.views._kanban_engine_cache[board] = use_v2;
+		return use_v2;
+	});
 };

@@ -1,5 +1,5 @@
 /**
- * Vanilla adapter — the `frappe.kanban_next.KanbanVanilla` entry point.
+ * Vanilla adapter — the `frappe.kanban_v2.KanbanVanilla` entry point.
  * A thin wrapper: constructs a KanbanCore, mounts it, and exposes a small
  * imperative surface (refresh / destroy / engine). All logic lives in the core.
  */
