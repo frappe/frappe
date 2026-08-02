@@ -50,6 +50,9 @@ def main() -> None:
 	except (AuthError, CredentialStoreError) as e:
 		print(f"flowd: {e}", file=sys.stderr)
 		raise SystemExit(1) from None
+	except (KeyboardInterrupt, EOFError):
+		# Ctrl-C or Ctrl-D at a prompt is a deliberate cancellation, not a crash.
+		raise SystemExit(130) from None
 
 
 def _with_default_command(argv: list[str], commands: set[str]) -> list[str]:
