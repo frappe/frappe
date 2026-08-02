@@ -9,9 +9,17 @@ from rq import exceptions as rq_exc
 from rq.job import Job
 
 import frappe
-from frappe.core.doctype.rq_job.rq_job import RQJob, remove_failed_jobs, stop_job
+from frappe.core.doctype.rq_job import rq_job
+from frappe.core.doctype.rq_job.rq_job import (
+	JOB_FETCH_BATCH_SIZE,
+	RQJob,
+	filter_job_ids,
+	remove_failed_jobs,
+	stop_job,
+)
 from frappe.installer import update_site_config
 from frappe.tests import IntegrationTestCase, timeout
+from frappe.types import Filters
 from frappe.utils import cstr, execute_in_shell
 from frappe.utils.background_jobs import get_job_status, is_job_enqueued
 
@@ -90,6 +98,37 @@ class TestRQJob(IntegrationTestCase):
 				[["RQ Job", "job_id", "=", job.id]],
 			):
 				self.assertEqual(RQJob.get_count(filters=filters), 1)
+
+	def test_filter_job_ids_fetches_in_batches(self):
+		job_ids = [str(index) for index in range(JOB_FETCH_BATCH_SIZE * 2 + 1)]
+		filters = Filters({"job_name": ("like", "%test%")}, doctype="RQ Job")
+
+		def fetch_many(job_ids, connection):
+			return [frappe._dict(id=job_id) for job_id in job_ids]
+
+		with (
+			patch.object(rq_job, "get_redis_conn"),
+			patch.object(Job, "fetch_many", side_effect=fetch_many) as mock_fetch_many,
+			patch.object(rq_job, "serialize_job", return_value={}),
+			patch.object(rq_job, "evaluate_filters", return_value=True),
+		):
+			self.assertEqual(filter_job_ids(job_ids, filters), job_ids)
+
+		self.assertEqual(mock_fetch_many.call_count, 3)
+		self.assertTrue(
+			all(len(call.kwargs["job_ids"]) <= JOB_FETCH_BATCH_SIZE for call in mock_fetch_many.call_args_list)
+		)
+
+		limit = JOB_FETCH_BATCH_SIZE + 1
+		with (
+			patch.object(rq_job, "get_redis_conn"),
+			patch.object(Job, "fetch_many", side_effect=fetch_many) as mock_fetch_many,
+			patch.object(rq_job, "serialize_job", return_value={}),
+			patch.object(rq_job, "evaluate_filters", return_value=True),
+		):
+			self.assertEqual(filter_job_ids(job_ids, filters, limit=limit), job_ids[:limit])
+
+		self.assertEqual(mock_fetch_many.call_count, 2)
 
 	def test_configurable_ttl(self):
 		frappe.conf.rq_job_failure_ttl = 600

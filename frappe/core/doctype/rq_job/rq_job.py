@@ -25,6 +25,7 @@ from frappe.utils.background_jobs import get_queues, get_redis_conn
 
 QUEUES = ["default", "long", "short"]
 JOB_STATUSES = ["queued", "started", "failed", "finished", "deferred", "scheduled", "canceled"]
+JOB_FETCH_BATCH_SIZE = 100
 
 
 def check_permissions(method):
@@ -79,7 +80,9 @@ class RQJob(Document):
 
 	@staticmethod
 	def get_list(filters=None, start=0, page_length=20, order_by="creation desc"):
-		matched_job_ids = RQJob.get_matching_job_ids(filters=filters)[start : start + page_length]
+		matched_job_ids = RQJob.get_matching_job_ids(filters=filters, limit=start + page_length)[
+			start : start + page_length
+		]
 
 		conn = get_redis_conn()
 		jobs = [serialize_job(job) for job in Job.fetch_many(job_ids=matched_job_ids, connection=conn) if job]
@@ -88,7 +91,7 @@ class RQJob(Document):
 		return sorted(jobs, key=lambda j: j.creation, reverse=order_desc)
 
 	@staticmethod
-	def get_matching_job_ids(filters) -> list[str]:
+	def get_matching_job_ids(filters, limit: int | None = None) -> list[str]:
 		filters = Filters(filters or [], doctype="RQ Job")
 		filter_dict = make_filter_dict(filters)
 
@@ -104,7 +107,7 @@ class RQJob(Document):
 
 		matched_job_ids = filter_current_site_jobs(matched_job_ids)
 		filters = [filter for filter in filters if filter.fieldname not in {"queue", "status"}]
-		return filter_job_ids(matched_job_ids, filters)
+		return filter_job_ids(matched_job_ids, filters, limit=limit)
 
 	@check_permissions
 	def delete(self):
@@ -194,9 +197,9 @@ def filter_current_site_jobs(job_ids: list[str]) -> list[str]:
 	return [j for j in job_ids if j.startswith(site)]
 
 
-def filter_job_ids(job_ids: list[str], filters) -> list[str]:
+def filter_job_ids(job_ids: list[str], filters, limit: int | None = None) -> list[str]:
 	if not filters:
-		return job_ids
+		return job_ids[:limit] if limit is not None else job_ids
 
 	identifier_filters = [filter for filter in filters if filter.fieldname in {"name", "job_id"}]
 	if identifier_filters:
@@ -208,11 +211,19 @@ def filter_job_ids(job_ids: list[str], filters) -> list[str]:
 		filters = [filter for filter in filters if filter.fieldname not in {"name", "job_id"}]
 
 	if not filters:
-		return job_ids
+		return job_ids[:limit] if limit is not None else job_ids
 
 	conn = get_redis_conn()
-	jobs = Job.fetch_many(job_ids=job_ids, connection=conn)
-	return [job.id for job in jobs if job and evaluate_filters(serialize_job(job), filters)]
+	matched_job_ids = []
+	for job_id_batch in create_batch(job_ids, JOB_FETCH_BATCH_SIZE):
+		jobs = Job.fetch_many(job_ids=job_id_batch, connection=conn)
+		matched_job_ids.extend(
+			job.id for job in jobs if job and evaluate_filters(serialize_job(job), filters)
+		)
+		if limit is not None and len(matched_job_ids) >= limit:
+			return matched_job_ids[:limit]
+
+	return matched_job_ids
 
 
 def _eval_filters(filter, values: list[str]) -> list[str]:
