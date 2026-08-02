@@ -484,6 +484,7 @@ frappe.views.NewKanbanPage = class NewKanbanPage {
 
 		const base = [
 			"name",
+			"docstatus",
 			"creation",
 			"modified",
 			"owner",
