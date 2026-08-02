@@ -1050,8 +1050,11 @@ export class KanbanCore {
 					});
 			}
 		} catch (error) {
-			// update_order may have already set_value'd some cards before failing.
-			// Resync from the server instead of restoring the pre-move snapshot.
+			// update_order runs as one request, so a failed set_value rolls the whole
+			// transaction back (frappe/app.py -> db.rollback) and nothing persists.
+			// Resync from the server rather than restoring the optimistic snapshot:
+			// reload() reflects whatever the server actually committed, which stays
+			// correct even for a doctype that commits inside its own save hook.
 			try {
 				await this.reload();
 			} catch (reloadError) {
