@@ -25,7 +25,7 @@ uv run pytest
   `TestClient` — both buffer whole response bodies. The live-stream test runs a real
   uvicorn server on an ephemeral port; completed-stream tests can use `TestClient`.
 
-Formatting, lint, and types are enforced by pre-commit (ruff + pyright). Don't
+Formatting, lint, and types are enforced by pre-commit (ruff + ty). Do not
 hand-maintain style — run the hooks.
 
 ## Conventions

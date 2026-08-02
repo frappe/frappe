@@ -6,6 +6,7 @@ lock, replace the file atomically, and keep both the directory and files private
 
 from __future__ import annotations
 
+import builtins
 import json
 import os
 import threading
@@ -15,10 +16,11 @@ from dataclasses import dataclass
 from tempfile import mkstemp
 from typing import Literal
 
+fcntl = None
 try:
 	import fcntl
-except ImportError:  # pragma: no cover - Windows fallback
-	fcntl = None
+except ImportError:
+	pass
 
 _PROCESS_LOCKS: dict[str, threading.RLock] = {}
 
@@ -83,7 +85,7 @@ class CredentialStore:
 		credential = self.get(name)
 		return credential if isinstance(credential, OAuthCredential) else None
 
-	def list(self) -> list[CredentialInfo]:
+	def list(self) -> builtins.list[CredentialInfo]:
 		with self._locked():
 			data = self._load_unlocked()
 		return [

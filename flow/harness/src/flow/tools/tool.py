@@ -94,7 +94,7 @@ def tool(
 ) -> Tool | Callable[[Callable[..., Awaitable[ToolResult]]], Tool]:
 	def wrap(f: Callable[..., Awaitable[ToolResult]]) -> Tool:
 		return Tool(
-			name=name or f.__name__,
+			name=name or getattr(f, "__name__", f.__class__.__name__),
 			description=description or (inspect.getdoc(f) or "").strip(),
 			parameters=build_schema(f),
 			func=f,

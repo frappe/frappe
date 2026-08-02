@@ -154,7 +154,7 @@ run against the real thing. The client-facing wire contract is proven at the edg
 old HTTP assertions pass unmodified in PR 6.
 
 - **PR 0 — charter + bare package** (this PR). This document; strip the branch to
-  scaffolding (pyproject, uv.lock, CI, pre-commit, pyright, .gitignore), a bare
+  scaffolding (pyproject, uv.lock, CI, pre-commit, ty, .gitignore), a bare
   `src/flow/__init__.py`, and a package smoke test so CI stays green.
 - **PR 1 — events + log + transcript.** Fresh `events.py` with `provider_state` on
   `TextContent`/`ThinkingContent`/`ToolCall` and a single live-only
@@ -200,7 +200,7 @@ old HTTP assertions pass unmodified in PR 6.
 - **PR 7 — parity audit + docs.** Walk the behavior inventory above and list any
   intentionally changed behavior (target: none); rewrite `docs/`
   (architecture/api/tools/authentication/development) for the new tree; drop the
-  PR 0 smoke test; pyright + ruff + CI green.
+  PR 0 smoke test; ty + ruff + CI green.
 
 ## After the rebuild
 

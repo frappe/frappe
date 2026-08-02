@@ -17,7 +17,7 @@ dev = [
     "pytest>=8.3",
     "pytest-asyncio>=0.24",
     "ruff>=0.9",
-    "pyright>=1.1.390",
+    "ty>=0.0.65",
 ]
 
 [project.scripts]

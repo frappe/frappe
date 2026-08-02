@@ -31,9 +31,9 @@ repos:
 
   - repo: local
     hooks:
-      - id: pyright
-        name: "Run pyright"
-        entry: uv run --extra dev pyright
+      - id: ty
+        name: "Run ty"
+        entry: uv run --extra dev ty check
         language: system
         types: [python]
         pass_filenames: true
@@ -41,8 +41,7 @@ repos:
 
 ci:
   autoupdate_schedule: weekly
-  # `uv` isn't available on the hosted pre-commit.ci runners, so the local
-  # pyright hook can't run there. It still runs locally, which is where the
-  # check actually gates commits.
-  skip: [pyright]
+  # `uv` is not available on the hosted pre-commit.ci runners, so the local
+  # ty hook cannot run there. It still runs locally, which is where the check gates commits.
+  skip: [ty]
   submodules: false
