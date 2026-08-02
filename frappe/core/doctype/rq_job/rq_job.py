@@ -17,6 +17,7 @@ from frappe.utils import (
 	compare,
 	convert_utc_to_system_timezone,
 	create_batch,
+	evaluate_filters,
 	make_filter_dict,
 )
 from frappe.utils.background_jobs import get_queues, get_redis_conn
@@ -87,10 +88,11 @@ class RQJob(Document):
 
 	@staticmethod
 	def get_matching_job_ids(filters) -> list[str]:
-		filters = make_filter_dict(filters or [])
+		filters = filters or []
+		filter_dict = make_filter_dict(filters)
 
-		queues = _eval_filters(filters.get("queue"), QUEUES + get_custom_queues())
-		statuses = _eval_filters(filters.get("status"), JOB_STATUSES)
+		queues = _eval_filters(filter_dict.get("queue"), QUEUES + get_custom_queues())
+		statuses = _eval_filters(filter_dict.get("status"), JOB_STATUSES)
 
 		matched_job_ids = []
 		for queue in get_queues():
@@ -99,7 +101,9 @@ class RQJob(Document):
 			for status in statuses:
 				matched_job_ids.extend(fetch_job_ids(queue, status))
 
-		return filter_current_site_jobs(matched_job_ids)
+		matched_job_ids = filter_current_site_jobs(matched_job_ids)
+		filters = [filter for filter in filters if filter[1] not in {"queue", "status"}]
+		return filter_job_ids(matched_job_ids, filters)
 
 	@check_permissions
 	def delete(self):
@@ -187,6 +191,15 @@ def filter_current_site_jobs(job_ids: list[str]) -> list[str]:
 	site = frappe.local.site
 
 	return [j for j in job_ids if j.startswith(site)]
+
+
+def filter_job_ids(job_ids: list[str], filters) -> list[str]:
+	if not filters:
+		return job_ids
+
+	conn = get_redis_conn()
+	jobs = Job.fetch_many(job_ids=job_ids, connection=conn)
+	return [job.id for job in jobs if job and evaluate_filters(serialize_job(job), filters)]
 
 
 def _eval_filters(filter, values: list[str]) -> list[str]:

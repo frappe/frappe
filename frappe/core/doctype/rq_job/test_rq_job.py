@@ -53,6 +53,31 @@ class TestRQJob(IntegrationTestCase):
 		)
 		self.check_status(job, "finished")
 
+	def test_get_list_filtering_by_job_fields(self):
+		job = frappe.enqueue(method=self.BG_JOB, queue="short")
+		self.check_status(job, "finished")
+
+		for fieldname in ("name", "job_id"):
+			jobs = frappe.get_all(
+				"RQ Job",
+				filters={fieldname: job.id},
+				page_length=1,
+			)
+			self.assertEqual([result.name for result in jobs], [job.id])
+
+		jobs = frappe.get_all(
+			"RQ Job",
+			filters={"job_name": ("like", "%test_rq_job.test_func")},
+		)
+		self.assertTrue(jobs)
+		self.assertTrue(all(result.job_name == self.BG_JOB for result in jobs))
+
+		self.assertEqual(
+			frappe.get_all("RQ Job", filters={"job_name": "__missing_job_name__"}),
+			[],
+		)
+		self.assertEqual(RQJob.get_count(filters=[["RQ Job", "job_id", "=", job.id]]), 1)
+
 	def test_configurable_ttl(self):
 		frappe.conf.rq_job_failure_ttl = 600
 		job = frappe.enqueue(method=self.BG_JOB, queue="short")
