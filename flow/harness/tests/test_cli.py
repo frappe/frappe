@@ -43,8 +43,13 @@ def test_loopback_detection():
 
 
 def test_bare_invocation_defaults_to_serve():
-	commands = {"serve", "login", "providers", "logout"}
+	commands = {"serve", "attach", "login", "providers", "logout"}
 	assert _with_default_command([], commands) == ["serve"]
 	assert _with_default_command(["--port", "9001"], commands) == ["serve", "--port", "9001"]
 	assert _with_default_command(["login", "openai"], commands) == ["login", "openai"]
 	assert _with_default_command(["--help"], commands) == ["--help"]
+	assert _with_default_command(["attach", "--url", "http://x"], commands) == [
+		"attach",
+		"--url",
+		"http://x",
+	]

@@ -24,6 +24,9 @@ def main() -> None:
 	p_serve.add_argument("--port", type=int, default=config.PORT)
 	p_serve.add_argument("--data-dir", default=config.DATA_DIR)
 
+	p_attach = sub.add_parser("attach", help="attach a TUI to a running daemon")
+	p_attach.add_argument("--url", required=True, help="daemon base URL, e.g. http://127.0.0.1:8787")
+
 	p_login = sub.add_parser("login", help="save an API key or sign in with OAuth")
 	p_login.add_argument("provider", nargs="?")
 	p_login.add_argument(
@@ -41,6 +44,8 @@ def main() -> None:
 	try:
 		if args.cmd == "serve":
 			_serve(args)
+		elif args.cmd == "attach":
+			_attach(args)
 		elif args.cmd == "login":
 			_login(args)
 		elif args.cmd == "providers":
@@ -93,6 +98,13 @@ def _is_loopback(host: str) -> bool:
 		return ipaddress.ip_address(host).is_loopback
 	except ValueError:
 		return False
+
+
+def _attach(args) -> None:
+	# lazy: the server package must run without textual installed
+	from flow_tui.app import attach
+
+	attach(args.url, token=config.AUTH_TOKEN, model=config.DEFAULT_MODEL)
 
 
 def _login(args) -> None:

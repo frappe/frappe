@@ -1,0 +1,47 @@
+Screen {
+	layout: vertical;
+}
+
+#conversation {
+	height: 1fr;
+	padding: 0 1;
+	scrollbar-size-vertical: 1;
+}
+
+EntryView {
+	margin-bottom: 1;
+}
+
+.entry--tool_result {
+	color: $text-muted;
+}
+
+PartialAssistantView {
+	margin-bottom: 1;
+}
+
+#error-banner {
+	display: none;
+	padding: 0 1;
+	background: $error 20%;
+	color: $text;
+}
+
+#error-banner.visible {
+	display: block;
+}
+
+#composer {
+	height: auto;
+	max-height: 8;
+	min-height: 3;
+	border: round $primary;
+}
+
+#status {
+	dock: bottom;
+	height: 1;
+	padding: 0 1;
+	background: $panel;
+	color: $text-muted;
+}
