@@ -15,6 +15,7 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import Static
 
+from flow.events import ReasoningEffort
 from flow.session.config import SessionConfig
 from flow_tui.client.api import FlowAPIError, FlowClient
 from flow_tui.client.state import (
@@ -28,6 +29,7 @@ from flow_tui.client.state import (
 	StatusChanged,
 	StreamDelta,
 )
+from flow_tui.commands import FlowCommandProvider, dispatch
 from flow_tui.controller import Controller
 from flow_tui.widgets.composer import Composer
 from flow_tui.widgets.conversation import ConversationView
@@ -55,11 +57,19 @@ class ControllerLike(Protocol):
 	def queue(self, text: str) -> None: ...
 	async def abort(self) -> None: ...
 	async def stop(self) -> None: ...
+	async def change_model(self, model: str) -> None: ...
+	async def change_effort(self, effort: ReasoningEffort | None) -> None: ...
+	async def rewind(self, target_seq: int) -> None: ...
+	async def list_sessions(self) -> list[dict]: ...
+	async def new_session(self) -> str: ...
+	async def switch_session(self, sid: str) -> None: ...
 
 
 class FlowApp(App):
 	TITLE = "flow"
 	CSS_PATH = "styles.tcss"
+	COMMANDS: ClassVar = {FlowCommandProvider}
+	COMMAND_PALETTE_BINDING: ClassVar[str] = "ctrl+p"
 	BINDINGS: ClassVar = [
 		Binding("ctrl+c", "interrupt", "abort/quit", priority=True),
 		Binding("escape", "interrupt", "abort", show=False),
@@ -122,6 +132,15 @@ class FlowApp(App):
 			banner.add_class("visible")
 		else:
 			banner.remove_class("visible")
+
+	def on_composer_command_submitted(self, message: Composer.CommandSubmitted) -> None:
+		self.run_worker(dispatch(self, message.line), exclusive=False)
+
+	def prefill_composer(self, text: str) -> None:
+		composer = self.query_one(Composer)
+		composer.load_text(text)
+		composer.move_cursor(composer.document.end)
+		composer.focus()
 
 	def on_composer_submitted(self, message: Composer.Submitted) -> None:
 		if message.queue and self.controller.state.running:
