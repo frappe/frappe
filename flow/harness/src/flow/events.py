@@ -11,7 +11,7 @@ from typing import Annotated, Any, ClassVar, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
-ReasoningEffort = Literal["low", "medium", "high"]
+ReasoningEffort = Literal["off", "minimal", "low", "medium", "high", "xhigh", "max"]
 
 ProviderErrorKind = Literal[
 	"rate_limit",

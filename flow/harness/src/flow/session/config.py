@@ -15,8 +15,10 @@ class SessionConfig(BaseModel):
 		session_id: Client-provided id (else generated); lets a client keep one identity
 			across its own store and the daemon (e.g. Flow Session name).
 		model: The model to use.
-		reasoning_effort: How hard the model should think. None = provider default
-			(no reasoning parameter is sent at all).
+		reasoning_effort: How hard the model should think, on pi's ladder
+			(off/minimal/low/medium/high/xhigh/max). None = provider default (no
+			reasoning parameter is sent); "off" disables thinking where the provider
+			has a switch.
 		system_prompt: System prompt for the agent.
 		tools: Built-in tools available to the agent.
 		client_tools: Schemas registered by a client.

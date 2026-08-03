@@ -158,12 +158,13 @@ paused session abandons its approval batch →
 
 ### `POST /sessions/{sid}/model`
 Body: `{"model": "provider/model", "credential_id": "optional-name",
-"reasoning_effort": "low|medium|high" | null}`. Selects the model (with stored
+"reasoning_effort": "off|minimal|low|medium|high|xhigh|max" | null}`. Selects the model (with stored
 credential and reasoning effort) for runs from here on, as a durable `model_changed`
 entry in the log — so it survives restarts and is per-branch: a rewind to before the
 change restores the previous selection. Setting the already-active selection writes
 nothing. `reasoning_effort: null` means the provider's default (no reasoning parameter
-is sent). Provider keys, OAuth tokens, headers, and base URLs are never accepted;
+is sent); `"off"` disables thinking where the provider has a switch.
+Provider keys, OAuth tokens, headers, and base URLs are never accepted;
 they are resolved inside flow →
 `{"model": "...", "credential_id": ..., "reasoning_effort": ...}` (the now-effective
 selection). `409` while a run is active; allowed while paused (the resume continues on
@@ -224,7 +225,7 @@ print(res["output"], res["reason"], res["usage"])
 |---|---|---|
 | `session_id` | generated | client-provided id (must be `[A-Za-z0-9_-]{1,64}`) |
 | `model` | `"mock"` | name string; prefix selects the provider. The initial selection — switch later via `POST /sessions/{sid}/model` (config never mutates) |
-| `reasoning_effort` | `null` | `"low"`, `"medium"`, or `"high"`; `null` = provider default (no reasoning parameter sent). Anthropic gets a thinking token budget, Codex a `reasoning.effort`, everything else LiteLLM's unified `reasoning_effort` |
+| `reasoning_effort` | `null` | pi's ladder: `"off"`, `"minimal"`, `"low"`, `"medium"`, `"high"`, `"xhigh"`, `"max"`; `null` = provider default (no reasoning parameter sent). Anthropic gets a thinking token budget (xhigh/max clamp to high), Codex a `reasoning.effort`, everything else LiteLLM's unified `reasoning_effort`; `"off"` disables thinking on Anthropic and omits the parameter elsewhere |
 | `system_prompt` | `"You are a helpful agent."` | |
 | `tools` | `["bash","read_file","write","edit","grep"]` | builtin tool names |
 | `client_tools` | `[]` | schemas for tools the client runs (see [tools.md](tools.md)) |

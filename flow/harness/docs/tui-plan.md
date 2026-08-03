@@ -120,16 +120,19 @@ assert non-chat litellm entries are excluded; session list including a cold on-d
 `src/flow/session/session.py`, `src/flow/server/app.py`, `src/flow/agent/loop.py`,
 new `src/flow/model/reasoning.py`.
 
-- `SessionConfig.reasoning_effort: Literal["low","medium","high"] | None = None`.
+- `SessionConfig.reasoning_effort` on pi's ladder:
+  `Literal["off","minimal","low","medium","high","xhigh","max"] | None = None`.
 - `ModelChanged.reasoning_effort` (durable, per-branch, survives rewind); `set_model` and
   `SetModelRequest` accept it; expose current value in `GET /sessions/{sid}`.
 - `LoopInputs.reasoning_effort`; `_authenticated_model` passes
   `params=reasoning_params(inputs.model_name, effort)`.
-- `reasoning.py: reasoning_params(model, effort) -> dict | None`:
-  - `anthropic/*` → `{"thinking": {"type": "enabled", "budget_tokens": {low: 4096, medium: 12288, high: 32768}[effort]}}`
-  - litellm path (openai, gemini, xai, …) → `{"reasoning_effort": effort}` (litellm unified param)
-  - `codex/*` → map onto Codex `reasoning.effort`; verify `providers/codex.py` reads it from
-    `params`, add pass-through if absent.
+- `reasoning.py: reasoning_params(model, effort) -> dict | None` (pi's mappings):
+  - `anthropic/*` → thinking budget `{minimal: 1024, low: 2048, medium: 8192, high: 16384}`
+    (xhigh/max clamp to high); `"off"` → `{"thinking": {"type": "disabled"}}`.
+  - litellm path (openai, gemini, xai, …) → `{"reasoning_effort": effort}` (litellm unified
+    param); `"off"` omits the parameter.
+  - `codex/*` → `{"reasoning": {"effort": effort, "summary": "auto"}}`; `"off"` omits it.
+    `providers/codex.py` already splats `params` into the Responses payload.
 - Old `ModelChanged` rows replay fine (pydantic default None).
 
 **Risk:** Anthropic `thinking` needs `max_tokens` headroom — verify against `LiteLLMModel`
@@ -296,8 +299,8 @@ opens and runs a command.
 - `ModelPicker(ModalScreen)`: `Input` filter over `OptionList` fed by `GET /models`
   (configured providers only); Enter with no highlighted option submits the raw filter
   text (free-text path for anything the catalog missed). Result → `set_model`.
-- `EffortPicker`: default (None — provider default, no param sent)/low/medium/high →
-  `set_model(..., reasoning_effort=x)`.
+- `EffortPicker`: default (None — provider default, no param sent) plus pi's ladder
+  off/minimal/low/medium/high/xhigh/max → `set_model(..., reasoning_effort=x)`.
 - `set_model` mid-run returns 409 → status-bar toast. Status bar updates from the durable
   `model_changed` event, not optimistically.
 
