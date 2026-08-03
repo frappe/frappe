@@ -18,7 +18,7 @@ from textual.command import DiscoveryHit, Hit, Hits, Provider
 
 from flow.events import ReasoningEffort, UserMessage
 from flow_tui.client.api import FlowAPIError
-from flow_tui.screens.pickers import EffortPicker, ModelPicker
+from flow_tui.screens.pickers import EffortPicker, ModelPicker, SessionPicker
 
 if TYPE_CHECKING:
 	from flow_tui.app import FlowApp
@@ -139,25 +139,22 @@ async def _new(app: "FlowApp", arg: str) -> None:
 	app.notify(f"new session {sid[:8]}", markup=False)
 
 
-@command("sessions", "list sessions, or switch to one by id prefix", arg_hint="[id]")
-async def _sessions(app: "FlowApp", arg: str) -> None:
+@command("resume", "switch to another session; no arg opens the picker", arg_hint="[id]")
+async def _resume(app: "FlowApp", arg: str) -> None:
 	sessions = await app.controller.list_sessions()
+	if not sessions:
+		raise CommandError("no sessions on this daemon")
 	if not arg:
-		if not sessions:
-			raise CommandError("no sessions on this daemon")
-		lines = [
-			f"{s['session_id'][:8]}  {s['state']}  {s['model']}  {s['cwd']}"
-			+ ("  ← current" if s["session_id"] == app.controller.session_id else "")
-			for s in sessions
-		]
-		app.notify("\n".join(lines), title="/sessions <id> to switch", timeout=10, markup=False)
-		return
-	matches = [s for s in sessions if s["session_id"].startswith(arg)]
-	if not matches:
-		raise CommandError(f"no session matches {arg!r}")
-	if len(matches) > 1:
-		raise CommandError(f"{arg!r} is ambiguous ({len(matches)} sessions match)")
-	sid = matches[0]["session_id"]
+		sid = await app.push_screen_wait(SessionPicker(sessions, app.controller.session_id)) or ""
+		if not sid:
+			return
+	else:
+		matches = [s for s in sessions if s["session_id"].startswith(arg)]
+		if not matches:
+			raise CommandError(f"no session matches {arg!r}")
+		if len(matches) > 1:
+			raise CommandError(f"{arg!r} is ambiguous ({len(matches)} sessions match)")
+		sid = matches[0]["session_id"]
 	if sid == app.controller.session_id:
 		raise CommandError("already on that session")
 	await app.controller.switch_session(sid)
