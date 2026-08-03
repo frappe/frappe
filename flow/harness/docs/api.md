@@ -80,10 +80,23 @@ request except `GET /healthz`.
 ### `GET /healthz`
 `→ {"ok": true}`
 
+### `GET /models`
+`→ {"models": [{"name": "anthropic/claude-sonnet-4", "provider": "anthropic"}, ...]}`.
+The catalog is derived at runtime from litellm's cost table (chat models with function
+calling only) plus native providers' own ids, and is filtered to providers that are
+configured — a stored credential or an API-key env var. It is a suggestion list, not a
+gate: `POST /sessions` and `/model` accept any model name.
+
 ### `POST /sessions`
 Body: a `SessionConfig` (all fields optional; see below).
 `→ {"session_id": "...", "config": {...}}` (secrets redacted). `400` if `cwd` is outside
 `ALLOWED_ROOTS` or `session_id` is invalid.
+
+### `GET /sessions`
+`→ {"sessions": [{"session_id", "state", "model", "latest_seq", "cwd"}, ...]}`, newest
+activity first. A cheap listing for pickers: sessions this daemon has not loaded are
+read from their meta file and log tail without replay, so a cold session's `model` can
+lag a later `model_changed` entry — `GET /sessions/{sid}` reports exact values.
 
 ### `GET /sessions/{sid}`
 `→ {"session_id", "state", "running", "latest_seq", "model", "credential_id", "config"}`.
