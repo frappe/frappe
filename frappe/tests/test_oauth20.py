@@ -359,6 +359,31 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.assertEqual(openid_response.status_code, 200)
 		self.assertEqual(openid_response.json.get("email"), "test@example.com")
 
+	def test_authorize_preserves_custom_params(self):
+		"""Custom authorize params are kept for UI/state (RFC 6749 §3.1)."""
+		resp = self.get(
+			"/api/method/frappe.integrations.oauth2.authorize",
+			{
+				"client_id": self.client_id,
+				"scope": self.scope,
+				"response_type": "code",
+				"redirect_uri": self.redirect_uri,
+				"tenant_id": "xyz",
+				"ui_theme": "customer",
+			},
+		)
+		self.assertTrue(resp.location)
+		login_query = parse_qs(urlparse(resp.location).query)
+		redirect_to = login_query["redirect-to"][0]
+		authorize_query = parse_qs(urlparse(redirect_to).query)
+
+		self.assertEqual(authorize_query.get("tenant_id"), ["xyz"])
+		self.assertEqual(authorize_query.get("ui_theme"), ["customer"])
+		self.assertEqual(authorize_query.get("client_id"), [self.client_id])
+
+		# Custom params must not break the standard authorization code flow.
+		self.assertTrue(self.get_authorization_code(tenant_id="xyz", ui_theme="customer"))
+
 	def test_resource_owner_password_credentials_grant(self):
 		client = frappe.get_doc("OAuth Client", self.client_id)
 		client.grant_type = "Authorization Code"

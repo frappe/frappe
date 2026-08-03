@@ -51,6 +51,26 @@ def strip_none_values(params):
 	return {key: value for key, value in params.items() if value is not None}
 
 
+def sanitize_kwargs(param_kwargs):
+	"""Remove framework keys that are not OAuth request parameters."""
+	arguments = dict(param_kwargs)
+	arguments.pop("data", None)
+	arguments.pop("cmd", None)
+	return arguments
+
+
+def get_authorization_params(standard_params, custom_params=None):
+	"""Merge fixed OAuth/OIDC params with optional custom authorize params.
+
+	Unrecognized parameters are allowed on the authorization endpoint
+	(RFC 6749 §3.1) so providers can pass UI/state hints such as tenant_id.
+	"""
+	params = dict(standard_params)
+	if custom_params:
+		params.update(sanitize_kwargs(custom_params))
+	return strip_none_values(params)
+
+
 def get_oauth_request_url(params):
 	request_url = urlparse(frappe.request.url)
 	return request_url._replace(query=encode_params(params)).geturl()
@@ -86,8 +106,9 @@ def approve(
 	acr_values: str | None = None,
 	display: str | None = None,
 	claims: str | None = None,
+	**kwargs,
 ):
-	authorization_params = strip_none_values(
+	authorization_params = get_authorization_params(
 		{
 			"response_type": response_type,
 			"client_id": client_id,
@@ -106,7 +127,8 @@ def approve(
 			"acr_values": acr_values,
 			"display": display,
 			"claims": claims,
-		}
+		},
+		kwargs,
 	)
 	request_url = get_oauth_request_url(authorization_params)
 	r = frappe.request
@@ -153,8 +175,9 @@ def authorize(
 	acr_values: str | None = None,
 	display: str | None = None,
 	claims: str | None = None,
+	**kwargs,
 ):
-	authorization_params = strip_none_values(
+	authorization_params = get_authorization_params(
 		{
 			"response_type": response_type,
 			"client_id": client_id,
@@ -173,7 +196,8 @@ def authorize(
 			"acr_values": acr_values,
 			"display": display,
 			"claims": claims,
-		}
+		},
+		kwargs,
 	)
 	request_url = get_oauth_request_url(authorization_params)
 	success_url = "/api/method/frappe.integrations.oauth2.approve?" + encode_params(authorization_params)
