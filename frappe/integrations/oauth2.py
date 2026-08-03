@@ -353,7 +353,7 @@ def revoke_token(
 	return
 
 
-@frappe.whitelist(methods=["GET", "POST"])
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
 def openid_profile(access_token: str | None = None):
 	userinfo_params = strip_none_values({"access_token": access_token})
 	try:

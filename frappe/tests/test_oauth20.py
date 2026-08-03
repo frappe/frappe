@@ -349,6 +349,7 @@ class TestOAuth20(FrappeRequestTestCase):
 	def test_openid_profile_post_body_token(self):
 		"""The UserInfo endpoint should continue accepting access tokens in POST bodies."""
 		bearer_token = self.get_bearer_token()
+		self.TEST_CLIENT = get_test_client()
 
 		openid_response = self.post(
 			"/api/method/frappe.integrations.oauth2.openid_profile",

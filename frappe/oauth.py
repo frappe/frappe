@@ -252,7 +252,10 @@ class OAuthWebRequestValidator(RequestValidator):
 			get_url_delimiter()
 		)
 		are_scopes_valid = all(scope in client_scopes for scope in scopes)
-		return is_token_valid and are_scopes_valid
+		if is_token_valid and are_scopes_valid:
+			request.user = otoken.user
+			return True
+		return False
 
 	# Token refresh request
 
@@ -386,7 +389,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		return self.finalize_id_token(id_token, token, token_handler, request)
 
 	def get_userinfo_claims(self, request):
-		user = frappe.get_doc("User", frappe.session.user)
+		user = frappe.get_doc("User", request.user)
 		return get_userinfo(user)
 
 	def validate_id_token(self, token, scopes, request):
