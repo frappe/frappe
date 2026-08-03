@@ -699,7 +699,6 @@ $.extend(frappe.model, {
 				title = `${value} (${docname})`;
 			}
 		}
-<<<<<<< HEAD
 		frappe.confirm(__("Permanently delete {0}?", [title.bold()]), function () {
 			return frappe.call({
 				method: "frappe.client.delete",
@@ -712,38 +711,12 @@ $.extend(frappe.model, {
 				callback: function (r, rt) {
 					if (!r.exc) {
 						frappe.utils.play_sound("delete");
-						frappe.model.clear_doc(doctype, docname);
+						frappe.model.delete_from_locals(doctype, docname);
 						if (callback) callback(r, rt);
 					}
 				},
 			});
 		});
-=======
-		// destructive: red primary via frappe.warn, not a neutral confirm
-		frappe.warn(
-			__("Confirm"),
-			__("Permanently delete {0}?", [title.bold()]),
-			function () {
-				return frappe.call({
-					method: "frappe.client.delete",
-					args: {
-						doctype: doctype,
-						name: docname,
-					},
-					freeze: true,
-					freeze_message: __("Deleting {0}...", [title]),
-					callback: function (r, rt) {
-						if (!r.exc) {
-							frappe.utils.play_sound("delete");
-							frappe.model.delete_from_locals(doctype, docname);
-							if (callback) callback(r, rt);
-						}
-					},
-				});
-			},
-			__("Delete")
-		);
->>>>>>> a1636ab044 (fix(model): keep boot/meta locals in sync via delete and rename events (#41526))
 	},
 
 	rename_doc: function (doctype, docname, callback) {
