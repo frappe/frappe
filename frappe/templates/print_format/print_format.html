@@ -109,7 +109,7 @@
 	{%- endif -%}
 	<div class="section {{ resolve_class({'page-break': section.page_break, 'keep-together': section.keep_together}) }}{{ ' section--grid' if section.field_borders else '' }}{{ ' section--grid-' + section.grid_borders if section.field_borders and section.grid_borders else '' }}"{% if ns3.section_style %} style="{{ ns3.section_style|e }}"{% endif %}>
 		{% if section.label and section.show_label != 'hide' %}
-		<div class="section-label">{{ _(section.label) }}</div>
+		<div class="section-label">{{ _(section.label)|e }}</div>
 		{% endif %}
 
 		{#- Detect right-aligned columns to pick the right row layout class -#}

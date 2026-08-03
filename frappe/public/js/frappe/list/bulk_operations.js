@@ -207,8 +207,14 @@ export default class BulkOperations {
 				},
 			})
 			.then((r) => {
+				// delete_items returns the undeleted names, or null when the job was enqueued.
+				// Only trust an explicit list — otherwise we would clear meta locals for
+				// documents that still exist (failed deletes) or were not deleted yet (async).
 				let failed = r.message;
-				if (!failed) failed = [];
+				if (!Array.isArray(failed)) {
+					if (done) done();
+					return;
+				}
 
 				if (failed.length && !r._server_messages) {
 					frappe.throw(
