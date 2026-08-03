@@ -43,6 +43,7 @@ class TestNotificationLog(IntegrationTestCase):
 		note = frappe.get_doc({"doctype": "Note", "title": "Notification title"}).insert()
 		frappe.db.set_value("Note", note.name, "title", None, update_modified=False)
 		self.assertEqual(get_title("Note", note.name), note.name)
+
 	def test_type_link_conversion_alert_still_self_notifies(self):
 		"""`type` is now a Link, but an `Alert` must still insert even for the sender."""
 		install_notification_types()
