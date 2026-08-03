@@ -65,7 +65,7 @@ def convert_classic_to_beta(format_data, meta, print_format=None) -> tuple[dict,
 		"footer": {"columns": [{"label": "", "fields": []}]},
 	}
 
-	data = [frappe._dict(df) for df in (format_data or [])]
+	data = [frappe._dict(df) for df in (format_data or []) if isinstance(df, dict)]
 
 	if data and data[0].fieldname == "print_heading_template":
 		head = data.pop(0)
@@ -222,6 +222,9 @@ def parse_print_width(print_width) -> float | None:
 
 
 def distribute_widths(columns) -> list:
+	for col in columns:
+		if (col.get("width") or 0) < 0:
+			col["width"] = None
 	unsized = [col for col in columns if not col["width"]]
 	assigned = sum(col["width"] for col in columns if col["width"])
 	if unsized:

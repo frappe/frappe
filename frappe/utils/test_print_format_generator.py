@@ -1401,7 +1401,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertNotIn("print-repeating-frame", html)
 		self.assertIn("LETTERHEAD_TOP", html)
 
-	def _user_beta_format(self, layout):
+	def _user_beta_format(self, layout, skip_validation=False):
 		import json
 
 		pf = frappe.get_doc(
@@ -1414,7 +1414,10 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 				"standard": "No",
 				"format_data": json.dumps(layout),
 			}
-		).insert(ignore_permissions=True)
+		)
+		if skip_validation:
+			pf.flags.ignore_validate = True
+		pf.insert(ignore_permissions=True)
 		self.addCleanup(pf.delete, ignore_permissions=True)
 		return pf
 
@@ -1429,7 +1432,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		n = len(user.roles)
 		self.assertGreaterEqual(n, 2)
 
-		def rows_for(condition):
+		def rows_for(condition, skip_validation=False):
 			df = {
 				"fieldtype": "Repeater",
 				"fieldname": "_rep",
@@ -1445,14 +1448,15 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 				"header": {"columns": [{"label": "", "fields": []}]},
 				"footer": {"columns": [{"label": "", "fields": []}]},
 			}
-			html = PrintFormatGenerator(self._user_beta_format(layout), user).get_html_preview()
+			pf = self._user_beta_format(layout, skip_validation=skip_validation)
+			html = PrintFormatGenerator(pf, user).get_html_preview()
 			block = re.search(r"pfb-repeater-table.*?</table>", html, re.S)
 			return len(re.findall(r"<tr>", block.group(0))) if block else 0
 
 		self.assertEqual(rows_for(None), n)
 		self.assertEqual(rows_for("row.idx == 1"), 1)
 		self.assertEqual(rows_for("False"), 0)
-		self.assertEqual(rows_for("this is (( invalid"), n)
+		self.assertEqual(rows_for("this is (( invalid", skip_validation=True), n)
 		# print_settings is in scope alongside doc/row
 		with self.change_settings("Print Settings", pdf_page_size="A4"):
 			self.assertEqual(rows_for("print_settings.pdf_page_size == 'A4'"), n)
