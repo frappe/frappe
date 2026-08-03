@@ -26,24 +26,30 @@ def _check_config_permission():
 
 
 @frappe.whitelist()
-def get_automation_capabilities(doctype: str) -> dict:
+def get_automation_capabilities(doctype: str | None = None, trigger_type: str | None = None) -> dict:
 	"""Triggers, custom events, fields and serialized actions available for `doctype`."""
 	_check_config_permission()
-	frappe.has_permission(doctype, throw=True)
+	if doctype:
+		frappe.has_permission(doctype, throw=True)
 	return {
 		"triggers": TRIGGER_TYPES,
 		"custom_events": frappe.get_hooks("automation_events"),
-		"fields": _doc_fields(doctype),
-		"actions": [a.as_dict() for a in get_action_registry().values() if _applies(a, doctype)],
+		"fields": _doc_fields(doctype) if doctype else [],
+		"actions": [
+			a.as_dict() for a in get_action_registry().values() if _applies(a, doctype, trigger_type)
+		],
 	}
 
 
 @frappe.whitelist()
-def validate_action_params(action_type: str, doctype: str, params: str) -> dict:
+def validate_action_params(
+	action_type: str, params: str, doctype: str | None = None, trigger_type: str | None = None
+) -> dict:
 	"""Return {valid, errors:[{fieldname, message}]} for a single action's params."""
 	_check_config_permission()
 	action = get_action(action_type)
 	try:
+		_validate_action_context(action, doctype, trigger_type)
 		action.validate(frappe.parse_json(params) or {}, doctype)
 		return {"valid": True, "errors": []}
 	except AutomationParamError as e:
@@ -73,15 +79,19 @@ def get_param_options(
 
 
 @frappe.whitelist()
-def run_manually(automation: str, docname: str) -> dict:
+def run_manually(automation: str, docname: str | None = None) -> dict:
 	"""Queue a one-off run of `automation` against `docname` (Manual trigger / test button)."""
 	from frappe.automation_engine.dispatch import kick_drainer, queue_trigger
 
 	rule = frappe.get_doc("Automation Flow", automation)
 	frappe.has_permission("Automation Flow", "write", doc=rule, throw=True)
-	frappe.has_permission(rule.document_type, "read", doc=docname, throw=True)
+	if rule.document_type:
+		frappe.has_permission(rule.document_type, "read", doc=docname, throw=True)
+	elif docname:
+		frappe.throw(_("Document-less automations do not accept a document name"))
 
-	queue_trigger(automation, rule.document_type, docname, payload={"manual": True}, depth=1)
+	payload = {"manual": True, "manual_run_id": frappe.generate_hash(length=12)}
+	queue_trigger(automation, rule.document_type, docname, payload=payload, depth=1)
 	frappe.db.after_commit.add(kick_drainer)
 	return {"queued": True}
 
@@ -93,7 +103,15 @@ def get_runs(reference_doctype: str, reference_name: str) -> list:
 	return frappe.get_all(
 		"Automation Run",
 		filters={"reference_doctype": reference_doctype, "reference_name": reference_name},
-		fields=["name", "automation", "automation_title", "status", "started_at", "ended_at", "error_summary"],
+		fields=[
+			"name",
+			"automation",
+			"automation_title",
+			"status",
+			"started_at",
+			"ended_at",
+			"error_summary",
+		],
 		order_by="creation desc",
 	)
 
@@ -106,8 +124,23 @@ def _doc_fields(doctype: str) -> list:
 	]
 
 
-def _applies(action, doctype: str) -> bool:
-	return action.applicable_doctypes is None or doctype in action.applicable_doctypes
+def _applies(action, doctype: str | None, trigger_type: str | None = None) -> bool:
+	if action.requires_document and not doctype:
+		return False
+	if doctype and action.applicable_doctypes is not None and doctype not in action.applicable_doctypes:
+		return False
+	return (
+		not trigger_type
+		or not action.supported_trigger_types
+		or trigger_type in action.supported_trigger_types
+	)
+
+
+def _validate_action_context(action, doctype, trigger_type):
+	if action.requires_document and not doctype:
+		raise AutomationParamError(_("This action requires a Document Type"))
+	if trigger_type and action.supported_trigger_types and trigger_type not in action.supported_trigger_types:
+		raise AutomationParamError(_("This action does not support the selected trigger"))
 
 
 def _reject_client_methods(value):

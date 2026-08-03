@@ -1,4 +1,5 @@
 import base64
+import json
 import time
 import urllib
 
@@ -393,15 +394,39 @@ class Page:
 		if error:
 			raise RuntimeError(f"Error setting device metrics: {error}")
 
-	def capture_screenshot(self, image_format="jpeg", quality=30):
+	def wait_for_selector(self, selector, timeout=30):
+		"""Wait for a visible selector without relying on a fixed render delay."""
+		selector = json.dumps(selector)
+		expression = f"""new Promise((resolve, reject) => {{
+			const started = Date.now();
+			const timer = setInterval(() => {{
+				const element = document.querySelector({selector});
+				if (element && element.getBoundingClientRect().height > 0) {{ clearInterval(timer); resolve(true); }}
+				if (Date.now() - started > {timeout * 1000}) {{ clearInterval(timer); reject('timeout'); }}
+			}}, 100);
+		}})"""
+		return self.evaluate(expression, await_promise=True)
+
+	def capture_screenshot(self, image_format="jpeg", quality=30, clip=None, full_page=False):
 		"""Screenshot the current viewport; returns raw image bytes."""
-		params = {"format": image_format, "captureBeyondViewport": False}
+		params = {"format": image_format, "captureBeyondViewport": bool(clip or full_page)}
+		if full_page:
+			clip = self._content_clip()
+		if clip:
+			params["clip"] = {**clip, "scale": 1}
 		if image_format in ("jpeg", "webp"):  # quality is only valid for lossy formats
 			params["quality"] = quality
 		result, error = self.send("Page.captureScreenshot", params)
 		if error:
 			raise RuntimeError(f"Error capturing screenshot: {error}")
 		return base64.b64decode(result["data"])
+
+	def _content_clip(self):
+		result, error = self.send("Page.getLayoutMetrics")
+		if error:
+			raise RuntimeError(f"Error reading page dimensions: {error}")
+		size = result.get("cssContentSize") or result["contentSize"]
+		return {"x": 0, "y": 0, "width": size["width"], "height": size["height"]}
 
 	def generate_pdf(self, wait_for_pdf=True, raw=False):
 		self.add_page_size_css()

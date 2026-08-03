@@ -13,7 +13,7 @@ class AutomationAction(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		action_type: DF.Literal["SetFieldValue", "CreateDocument", "SendNotification", "AssignToUser"]
+		action_type: DF.Data | None
 		params: DF.JSON | None
 		parent: DF.Data
 		parentfield: DF.Data
