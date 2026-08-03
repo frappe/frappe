@@ -271,6 +271,26 @@ class TestDBUpdate(IntegrationTestCase):
 		frappe.db.add_index(doctype.name, ["status"])
 		self.assertTrue(get_table_column(doctype.name, "status").index)
 
+	def test_unique_index_name_is_scoped_to_its_table(self):
+		"""Two doctypes sharing a unique fieldname must each get their own enforced index"""
+
+		first = new_doctype(unique=1).insert()
+		second = new_doctype(unique=1).insert()
+		try:
+			# the alter path (as opposed to table creation) is what names the index itself
+			for doctype in (first, second):
+				doctype.fields[0].unique = 0
+				doctype.save()
+				doctype.fields[0].unique = 1
+				doctype.save()
+
+			for doctype in (first, second):
+				self.check_unique_indexes(doctype.name, "some_fieldname")
+		finally:
+			first.delete()
+			second.delete()
+			frappe.db.commit()
+
 	def test_unique_index_on_field_with_search_index(self):
 		"""Unique index must be created even when the field already has a search index"""
 

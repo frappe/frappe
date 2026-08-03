@@ -605,10 +605,17 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return '"' + '", "'.join(fields) + '"'
 
 	def add_unique(self, doctype, fields, constraint_name=None):
+		from frappe.database.postgres.schema import get_qualified_index_name
+
 		if isinstance(fields, str):
 			fields = [fields]
-		if not constraint_name:
-			constraint_name = "unique_" + "_".join(fields)
+		if constraint_name:
+			legacy_name = constraint_name
+		else:
+			constraint_name = get_qualified_index_name(get_table_name(doctype), fields, "unique")
+			# a table constrained before names were table-qualified still carries the legacy one;
+			# recognise it so we don't add a second constraint enforcing the same uniqueness
+			legacy_name = "unique_" + "_".join(fields)
 
 		if not self.sql(
 			"""
@@ -617,8 +624,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			WHERE table_name=%s
 			AND constraint_type='UNIQUE'
 			AND constraint_schema=%s
-			AND CONSTRAINT_NAME=%s""",
-			("tab" + doctype, self.db_schema, constraint_name),
+			AND CONSTRAINT_NAME IN (%s, %s)""",
+			("tab" + doctype, self.db_schema, constraint_name, legacy_name),
 		):
 			self.commit()
 
