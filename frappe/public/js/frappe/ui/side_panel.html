@@ -1,0 +1,23 @@
+<div class="side-panel hidden">
+	<div class="side-panel-resizer" title="{%= __("Drag to resize") %}"></div>
+	<div class="side-panel-header">
+		<button type="button" class="side-panel-btn side-panel-back hidden" title="{%= __("Back") %}">
+			{%= frappe.utils.icon("arrow-left", "sm") %}
+		</button>
+		<div class="side-panel-heading">
+			<span class="side-panel-doctype"></span>
+			<span class="side-panel-sep">/</span>
+			<span class="side-panel-title"></span>
+			<span class="side-panel-indicator"></span>
+		</div>
+		<div class="side-panel-actions">
+			<button type="button" class="side-panel-btn side-panel-expand" title="{%= __("Open in full page") %}">
+				{%= frappe.utils.icon("arrow-up-right", "sm") %}
+			</button>
+			<button type="button" class="side-panel-btn side-panel-close" title="{%= __("Close") %}">
+				{%= frappe.utils.icon("x", "sm") %}
+			</button>
+		</div>
+	</div>
+	<div class="side-panel-body"></div>
+</div>
