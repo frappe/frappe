@@ -68,7 +68,7 @@ PartialAssistantView {
 	height: 1;
 }
 
-ModelPicker, EffortPicker {
+FilterPicker, EffortPicker {
 	align: center middle;
 	background: $background 60%;
 }
