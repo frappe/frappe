@@ -12,16 +12,35 @@ daemon.
 This plan builds that TUI on textual (which bundles rich), with a transport-agnostic
 client core that a future Vue web shell can reuse. Decisions already made with the user:
 
-1. The bare-`flow` private daemon dies when its TUI exits.
-2. Model catalog lives server-side: new `GET /models` endpoint; picker also accepts free text.
-3. Reasoning effort gets full server plumbing (SessionConfig → LoopInputs → `get_model(params=...)`).
+1. The bare-`flow` private daemon dies when its TUI exits. Quit during an active run
+   aborts and drains without a confirmation prompt.
+2. Model catalog lives server-side: new `GET /models` endpoint, derived from
+   `litellm.model_cost` and filtered to providers that are actually configured
+   (credential stored or env key set). Picker also accepts free text.
+3. Reasoning effort gets full server plumbing (SessionConfig → LoopInputs →
+   `get_model(params=...)`). Default is `None` = provider default (no effort param sent).
 4. System prompt is composed client-side: base prompt + `~/AGENTS.md` + project `AGENTS.md`
-   (walk up from cwd) + `~/.agents/` skills index, sent via `SessionConfig.system_prompt`.
+   (walk up from cwd, stop at git root), sent via `SessionConfig.system_prompt`.
+   AGENTS.md only — no CLAUDE.md fallback. `~/.agents/` skills are deferred entirely.
+5. `auto_approve=True` is the DEFAULT session behavior, not a stopgap. The approvals UI
+   still exists for sessions with confirmation enabled (`--confirm` flag); guardrails
+   come later.
+6. Session continuity: bare `flow` starts fresh; `flow -c` continues the most recent
+   session for the cwd; a `--resume` picker comes later. In-TUI live session switching
+   (`/sessions`) stays in scope.
+7. Idle streaming: the server gains `?follow=true` so the SSE stream stays open between
+   runs (keepalive comment every 15 s) — no idle reconnect polling.
+8. Mid-run Enter steers (server semantics, with a "steered" marker); a keybind
+   (alt+enter) queues the message client-side for after `run_ended` instead.
+9. Accepted risk: two daemons opening the same session file (`flow -c` from two
+   terminals) can corrupt the log. Documented, not prevented. Future fix: per-session
+   `flock`.
+10. POSIX-only for now.
 
 Ground truths that shape the plan (verified in code):
 
-- `bash` has `requires_confirmation=True` → approvals UI must land right after the TUI shell,
-  or the first shell command deadlocks the session.
+- `bash` has `requires_confirmation=True`, but sessions default to `auto_approve=True`
+  (decision 5) so the default path never pauses; the approvals UI serves `--confirm` sessions.
 - `get_model()` already accepts `params` (`src/flow/model/__init__.py:38`) and `LiteLLMModel`
   splats it into the request; `loop._authenticated_model()` (`src/flow/agent/loop.py:314`)
   just never passes it. Effort is wiring, not new machinery.
@@ -41,7 +60,7 @@ src/flow/
     api.py                # FlowClient: async httpx wrapper over the HTTP API
     stream.py             # SSE parser + reconnecting EventStream with since-cursor
     state.py              # ConversationState reducer (pure, no I/O)
-    system_prompt.py      # base prompt + AGENTS.md discovery + ~/.agents index
+    system_prompt.py      # base prompt + AGENTS.md discovery
   tui/
     app.py                # FlowApp(App)
     controller.py         # FlowClient + EventStream + ConversationState → widget updates
@@ -69,17 +88,20 @@ core; 6–10 build the TUI against a manually run `flow serve`; 11 lands daemon 
 
 **Files:** `src/flow/model/catalog.py`, `src/flow/server/app.py`, `src/flow/session/store.py`, tests.
 
-- Extend `ProviderSpec` with `models: tuple[str, ...]` — short curated list per provider
-  (full names, e.g. `anthropic/claude-sonnet-4-5`, `codex/gpt-5.1-codex`). Static, no network.
+- Derive the catalog from `litellm.model_cost` at runtime — no curated list to maintain.
+  Filter: provider is configured (see next point), `mode == "chat"`, and
+  `supports_function_calling` (the agent loop needs tools). Map keys to flow model names
+  (provider prefix). Add native providers (`codex/...`) from their own known ids.
 - Factor the credential-availability predicate out of `login.show_providers`
-  (`src/flow/cli/login.py:62`) so login and the endpoint share it.
-- `GET /models` → `{"models": [{"name", "provider", "available": bool}]}`. Return all with a
-  flag (picker greys out unavailable) instead of filtering.
+  (`src/flow/cli/login.py:62`) so login and the endpoint share it. Only configured
+  providers appear in the payload; free text in the picker covers everything else.
+- `GET /models` → `{"models": [{"name", "provider"}]}`.
 - `SessionStore.list()` reads `*.meta.json` cheaply (no log replay); `GET /sessions` →
   `[{session_id, state, model, latest_seq, cwd}]`.
 
-**Test:** TestClient; models with/without credentials (tmp CredentialStore + env monkeypatch);
-session list including a cold on-disk session (new store over the same dir).
+**Test:** TestClient; models with/without credentials (tmp CredentialStore + env monkeypatch),
+assert non-chat litellm entries are excluded; session list including a cold on-disk session
+(new store over the same dir).
 
 ## Phase 2 — Server: reasoning-effort plumbing
 
@@ -112,15 +134,19 @@ request assembly; `budget_tokens` must be below max output tokens.
 - Async httpx (Textual is asyncio; sync would force threads). `FlowClient(base_url, token=None)`
   with typed methods for every endpoint. Reuse `flow.events.parse_event` and `SessionConfig`
   directly — no parallel shapes.
-- `EventStream(client, sid, since=0)` async iterator: open `/stream?since=cursor`, yield parsed
-  events, advance cursor only on durable events with seq, drop `seq <= cursor` (reconnect races
-  never double-render). Server closes at end of run → reconnect after short delay (0.2 s idle,
-  backoff on transport error). `stop()` closes cleanly. Wake-signal channel is a noted future
-  refinement.
+- **Server change (small):** `GET /stream?follow=true` keeps the SSE connection open when
+  the session goes idle instead of closing at end of run. The generator stays subscribed
+  and emits an SSE comment line (`: keepalive`) every 15 s so proxies and dead-peer
+  detection work. Default (`follow` absent) keeps today's close-at-boundary behavior.
+- `EventStream(client, sid, since=0)` async iterator: open `/stream?since=cursor&follow=true`,
+  yield parsed events, advance cursor only on durable events with seq, drop `seq <= cursor`
+  (reconnect races never double-render). Reconnect with backoff only on transport error or
+  unexpected close. `stop()` closes cleanly.
 
-**Test:** REST via `httpx.ASGITransport`; stream reconnect via real uvicorn on port 0
-(existing pattern in `tests/test_server.py`): two runs with MockModel, assert each durable
-event yielded exactly once across the server-side close between runs.
+**Test:** REST via `httpx.ASGITransport`; live stream via real uvicorn on port 0
+(existing pattern in `tests/test_server.py`): two runs with MockModel over ONE follow
+connection, assert each durable event yielded exactly once and keepalives are ignored;
+kill the connection mid-run, assert reconnect resumes from cursor without duplicates.
 
 ## Phase 4 — Client core: `ConversationState` reducer
 
@@ -146,11 +172,11 @@ lifecycle, rewind truncation + refold, usage accumulation, steering mid-run.
 - `build_system_prompt(cwd, home=None) -> str`:
   1. Base coding-agent prompt (module constant; replaces the daemon default client-side).
   2. `~/AGENTS.md` if present (global instructions section).
-  3. Project `AGENTS.md`: walk up from cwd to home (or root), outermost-first so nearer files
-     override by recency.
-  4. `~/.agents/*.md` as a skills index (name + first heading), not full contents — bounded
-     token cost, minimal layout assumption.
+  3. Project `AGENTS.md`: walk up from cwd, stop at the git root (first ancestor with
+     `.git`) or `$HOME`, whichever comes first; outermost-first so nearer files override
+     by recency. AGENTS.md only — no CLAUDE.md fallback.
 - Sections joined with provenance headers (`# Project instructions (/path/AGENTS.md)`).
+- `~/.agents/` skills are explicitly out of scope (deferred until the design is proven).
 
 **Test:** tmp_path trees with nested AGENTS.md, missing files; `home` is a parameter so no
 `Path.home` monkeypatching.
@@ -170,14 +196,16 @@ lifecycle, rewind truncation + refold, usage accumulation, steering mid-run.
   user scrolled up.
 - Controller owns `FlowClient`, `EventStream` (Textual worker), `ConversationState`; widgets
   never touch httpx → pilot-testable with a fake controller.
-- Composer: `TextArea`; Enter submits, `ctrl+j` inserts newline. Submit while running =
-  steering (server answers `{"status":"steered"}`; show a marker). One `ctrl+c`/Escape aborts
-  the run; second prompts quit.
+- Composer: `TextArea`; Enter submits, `ctrl+j` inserts newline. Enter while running =
+  steering (server answers `{"status":"steered"}`; show a marker); `alt+enter` while
+  running queues the message client-side and sends it after `run_ended` (queued indicator
+  in the status bar; queue survives stream reconnects — it lives in the controller, not
+  the stream). One `ctrl+c`/Escape aborts the run; second prompts quit.
 - Status bar: model · effort · state · Σ tokens · cost · session id.
 - Renders: user/assistant text, tool call one-liner + result preview, run_error banner,
   retry status ("retrying 2/5 in 3 s"). Thinking as plain dimmed text for now.
-- **Interim stopgap:** create sessions with `auto_approve=True` for this phase only (bash
-  gates by default and approvals UI is phase 7). Phase 7 removes it.
+- Sessions are created with `auto_approve=True` — this is the permanent default (decision 5),
+  not a stopgap. A `--confirm` flag creates gated sessions once phase 7 lands.
 
 **Risk:** textual on Python 3.14 — verify import + `run_test()` as the first commit of this
 phase; fall back to a newer textual pre-release if broken. Long-transcript reflow cost is
@@ -195,10 +223,11 @@ steering, status bar. One integration pilot against real uvicorn + MockModel.
   shortcut for batches. Submit → `POST resume {approval_seq, answers}`; card collapses into
   a verdict line. Bind `cancel_pending` for abandoning a paused run.
 - Status bar shows `paused — awaiting approval`; composer disabled with a hint while paused.
-- Remove the phase-6 `auto_approve` stopgap.
+- Add the `--confirm` flag: creates the session with `auto_approve=False` so tool gates
+  actually fire. Default stays `auto_approve=True`.
 
 **Test:** pilot drives `approval_required` → key presses → assert resume payload; integration
-with MockModel scripting a bash call → approve → run completes.
+with MockModel scripting a bash call in a `--confirm` session → approve → run completes.
 
 ## Phase 8 — Thinking traces (collapsible) + tool-result rendering
 
@@ -223,7 +252,8 @@ toggles, redacted stays sealed; render assertions for a bash result and an edit 
 
 - `Command(name, description, run, arg_hint)` in a module registry with a `@command`
   decorator. Initial set: `/model`, `/effort`, `/abort`, `/rewind [seq]` (default: last user
-  message), `/new`, `/sessions` (switch via `GET /sessions`), `/help`, `/quit`.
+  message), `/new`, `/sessions` (live switch: list via `GET /sessions`, pick one, controller
+  tears down its EventStream and re-seeds ConversationState on the new sid), `/help`, `/quit`.
 - Composer intercepts leading `/`; unknown command → inline error. Autocomplete deferred.
 - Use textual's built-in `CommandPalette` with a custom `Provider` fuzzy-matching the same
   registry; bind explicitly to `ctrl+p`.
@@ -235,10 +265,11 @@ opens and runs a command.
 
 **Files:** new `src/flow/tui/screens/pickers.py`; wire into `commands.py`; tests.
 
-- `ModelPicker(ModalScreen)`: `Input` filter over `OptionList` fed by `GET /models`;
-  available first, unavailable greyed with a `flow login <provider>` hint; Enter with no
-  highlighted option submits the raw filter text (free-text path). Result → `set_model`.
-- `EffortPicker`: default/low/medium/high → `set_model(..., reasoning_effort=x)`.
+- `ModelPicker(ModalScreen)`: `Input` filter over `OptionList` fed by `GET /models`
+  (configured providers only); Enter with no highlighted option submits the raw filter
+  text (free-text path for anything the catalog missed). Result → `set_model`.
+- `EffortPicker`: default (None — provider default, no param sent)/low/medium/high →
+  `set_model(..., reasoning_effort=x)`.
 - `set_model` mid-run returns 409 → status-bar toast. Status bar updates from the durable
   `model_changed` event, not optimistically.
 
@@ -258,14 +289,21 @@ in `_with_default_command`); `docs/development.md`; `tests/test_daemon_lifecycle
   port 0 ourselves, write the port file, pass the socket via `uvicorn.Server.serve(sockets=[sock])`.
   Auth token always set for private daemons, even on loopback.
 - Readiness: poll port file (≤5 s), then `GET /healthz` with token.
-- Teardown: TUI `finally:` → `terminate()`, 3 s grace, `kill()`. Orphan safety even under
-  SIGKILL of the TUI: `--parent-watch` spawns a thread in the child that blocks reading
-  inherited stdin; EOF (parent died) → `os._exit(0)`.
+- Teardown: quit while a run is active aborts and drains WITHOUT a prompt — `POST /abort`,
+  wait briefly (≤5 s) for `run_ended` so the log gets a clean aborted terminus, then
+  `terminate()`, 3 s grace, `kill()`. Orphan safety even under SIGKILL of the TUI:
+  `--parent-watch` spawns a thread in the child that blocks reading inherited stdin;
+  EOF (parent died) → `os._exit(0)`.
 - Crash handling: stream loop hits connection-refused and `proc.poll() is not None` → fatal
   modal with daemon log path; no auto-respawn (sessions are durable; rerun `flow`).
 - CLI surface:
   - `flow` → spawn private daemon (data dir stays `FLOW_DATA_DIR` — daemon is ephemeral,
-    session logs persist), create session, run TUI, teardown.
+    session logs persist), create session, run TUI, teardown. `flow -c/--continue` reuses
+    the most recent session whose `cwd` matches the current directory (via `GET /sessions`)
+    instead of creating one; `--resume` (session picker at launch) is a later addition.
+  - **Accepted risk:** two daemons can open the same session file (e.g. `flow -c` in two
+    terminals) — two writers on one append-only log can corrupt it. Documented in
+    `docs/development.md`; not prevented. Future mitigation: `fcntl.flock` per session file.
   - `flow serve` → background via `start_new_session=True`, print address, exit;
     `--foreground` keeps current behavior. POSIX-only for now (note in docs).
   - `flow attach [--url] [--session]` → default `http://{FLOW_HOST}:{FLOW_PORT}`, token from
@@ -299,18 +337,23 @@ terminate → gone; orphan test: close parent pipe end, child exits ≤2 s. Exte
 2. After phase 6: `uv run flow serve --foreground` in one terminal,
    `uv run flow attach --url http://127.0.0.1:8787` in another; converse with
    `FLOW_MODEL=mock`, then a real model.
-3. After phase 7: run a prompt that triggers `bash`; approve, deny, and redirect paths.
+3. After phase 7: in a `--confirm` session, run a prompt that triggers `bash`; approve,
+   deny, and redirect paths. Default session runs the same prompt without pausing.
 4. After phase 8: use an Anthropic/Codex model with effort set; expand/collapse via ctrl+t.
 5. After phase 11: bare `flow` → TUI up, `ps` shows one child daemon; quit → daemon gone;
-   `kill -9` the TUI → daemon exits within ~2 s; rerun `flow` → previous session log intact
-   on disk.
+   quit mid-run → log ends with a clean `run_ended(aborted)`; `kill -9` the TUI → daemon
+   exits within ~2 s; `flow -c` in the same cwd → previous conversation restored.
 6. After phase 12: `EDITOR=vim`, ctrl+x ctrl+e round-trips the draft.
 
 ## Top risks
 
 - textual × Python 3.14 compatibility — verify first commit of phase 6.
 - SSE reconnect races — owned entirely by `EventStream` seq-cursor dedup (phase 3), with a
-  dedicated two-run reconnect test.
+  dedicated reconnect test; `?follow=true` keepalives must not confuse the parser.
 - Anthropic thinking budget vs `max_tokens` interplay (phase 2).
+- litellm-derived catalog quality — filter heuristics (`mode == "chat"`,
+  `supports_function_calling`) may still admit noise or drop a wanted model; free text is
+  the escape hatch.
 - Orphaned private daemons — stdin-pipe watchdog (phase 11).
+- Two writers on one session log — ACCEPTED risk (decision 9), documented, `flock` later.
 - `app.suspend()` tty requirement (phase 12).
