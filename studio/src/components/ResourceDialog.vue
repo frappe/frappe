@@ -287,7 +287,7 @@ const filterFields = ref<DocTypeField[]>([])
 
 const doctypeFields = createResource({
 	url: "studio.api.get_doctype_fields",
-	makeParams,
+	makeParams: () => ({ ...makeParams(), with_standard_fields: true }),
 	transform: (data: DocTypeField[]) => {
 		filterFields.value = data
 		return data.map((field) => {
