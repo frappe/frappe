@@ -51,8 +51,8 @@ frappe.views.ListGroupBy = class ListGroupBy {
 						aria-haspopup="true" aria-expanded="false"
 						data-label="${label}" data-fieldname="${fieldname}" data-fieldtype="${fieldtype}"
 						href="#" onclick="return false;">
-							<span class="ellipsis">${__(label)}</span>
-							<span>${frappe.utils.icon("select", "xs")}</span>
+							<span class="ellipsis">${__(label, null, this.doctype)}</span>
+							<span>${frappe.utils.icon("chevrons-up-down", "xs")}</span>
 						</a>
 					<ul class="dropdown-menu group-by-dropdown" role="menu">
 					</ul>
@@ -175,7 +175,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		}
 		let value = field.name == null ? "" : encodeURIComponent(field.name);
 		let applied_html = applied
-			? `<span class="applied"> ${frappe.utils.icon("tick", "xs")} </span>`
+			? `<span class="applied"> ${frappe.utils.icon("check", "xs")} </span>`
 			: "";
 		return `<div class="group-by-item ${applied ? "selected" : ""}" data-value="${value}">
 			<a class="dropdown-item" href="#" onclick="return false;">

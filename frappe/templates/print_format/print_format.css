@@ -12,35 +12,25 @@
 	margin-bottom: {{ print_format.margin_bottom | int }}mm;
 	margin-left: {{ print_format.margin_left | int }}mm;
 	margin-right: {{ print_format.margin_right | int }}mm;
-	padding-top: {{ (header_height or 0) + 8 }}px;
-	padding-bottom: {{ (footer_height or 0) + 8 }}px;
-
-	/* page number */
-	{% set page_number_position = print_format.page_number.lower().replace(' ', '_') %}
-	{% if page_number_position in ['top_left', 'top_center', 'top_right', 'bottom_left', 'bottom_center', 'bottom_right'] %}
+{%- if not for_chrome %}
+	{%- set page_number_position = print_format.page_number.lower().replace(' ', '_') %}
+	{%- if page_number_position in ['top_left', 'top_center', 'top_right', 'bottom_left', 'bottom_center', 'bottom_right'] %}
 	{{ render_margin_text(page_number_position, _('{0} of {1}').format('counter(page) "', '" counter(pages)')) }}
-	{% endif %}
+	{%- endif %}
+{%- endif %}
 }
 
 html, body {
-	font-size: {{ print_format.font_size }}px;
+	font-size: {{ print_format.font_size or 14 }}px;
 }
 
 body {
+	box-sizing: border-box;
 	min-width: {{ body_width | int }}mm !important;
 	max-width: {{ body_width | int }}mm !important;
-}
-
-/* CSS rules to fix bootstrap column rendering in PDF
-   https://github.com/Kozea/WeasyPrint/issues/697#issuecomment-542338732
-*/
-@media print {
-	.col, *[class^="col-"] {
-		max-width: none !important;
-	}
-	.label {
-		border: none;
-	}
+{%- if not for_chrome %}
+	margin: 0 auto;
+{%- endif %}
 }
 
 @media screen {
@@ -53,86 +43,72 @@ body {
 		margin: 2rem auto;
 		min-height: 297mm;
 		height: min-content;
-		min-width: {{ body_width | int }}mm !important;
-		max-width: {{ body_width | int }}mm !important;
-		padding-top: {{ print_format.margin_top | int }}mm;
-		padding-right: {{ print_format.margin_right | int }}mm;
-		padding-left: {{ print_format.margin_left | int }}mm;
-		padding-bottom: {{ print_format.margin_bottom | int }}mm;
-	}
-
-	.child-table {
-		overflow-x: auto;
+	{%- if not for_chrome %}
+		min-width: {{ page_width | int }}mm !important;
+		max-width: {{ page_width | int }}mm !important;
+		padding: {{ print_format.margin_top | int }}mm {{ print_format.margin_right | int }}mm {{ print_format.margin_bottom | int }}mm {{ print_format.margin_left | int }}mm;
+	{%- endif %}
 	}
 }
 
-.section:not(:first-child) {
-	margin-top: 1rem;
+{%- if repeat_frame %}
+.print-repeating-frame {
+	width: 100%;
+	border-collapse: collapse;
 }
-
-.section-label {
-	font-size: 1.2rem;
-	font-weight: 600;
+.print-repeating-frame > thead {
+	display: table-header-group;
 }
-
-.field + .field {
-	margin-top: 0.5rem;
+.print-repeating-frame > tfoot {
+	display: table-footer-group;
 }
-
-.field .label {
-	font-weight: bold;
+.print-repeating-frame > thead > tr > td,
+.print-repeating-frame > tfoot > tr > td,
+.print-repeating-frame > tbody > tr > td {
+	padding: 0;
+	border: none;
 }
+{%- endif %}
 
-.field.left-right {
-	display: flex;
+{%- if action_banner %}
+@media screen {
+	.action-banner {
+		position: fixed;
+		top: 0;
+		right: 0;
+		display: flex;
+		justify-content: flex-end;
+		padding-right: 20px;
+	}
 }
-
-.field.left-right .label {
-	width: 50%;
+@media print {
+	.action-banner {
+		display: none !important;
+	}
 }
+{%- endif %}
 
-.field.left-right .value {
-	width: 50%;
+{% include "templates/print_format/print_format_doc.css" %}
+
+{%- if print_format.label_color %}
+.print-format-doc .field .label,
+.print-format-doc .field.left-right .label,
+.print-format-doc .field.field-inline .label {
+	color: {{ print_format.label_color }};
 }
-
-.child-table [data-fieldtype="Currency"] {
-	text-align: right;
+{%- endif %}
+{%- if print_format.value_color %}
+.print-format-doc .field .value,
+.print-format-doc .field.left-right .value,
+.print-format-doc .field.field-inline .value {
+	color: {{ print_format.value_color }};
 }
+{%- endif %}
 
-.table-row {
-	page-break-inside: avoid;
+.print-format-doc [document-status] {
+	text-align: center;
+	margin-bottom: 5mm;
 }
-
-.page-break {
-	page-break-after: always;
-}
-
-.document-header {
-	border-bottom-width: 1px;
-	border-bottom-style: solid;
-	border-bottom-color: var(--gray-300);
-}
-
-.field[data-fieldtype="Rating"] .rating-star {
-	width: 1.5rem;
-}
-
-.field[data-fieldtype="Long Text"] .value, .field[data-fieldtype="Text"] .value {
-	white-space: pre-line;
-}
-
-.field[data-fieldtype="Color"] .value {
-	display: flex;
-	align-items: center;
-}
-
-.field[data-fieldtype="Color"] .color-square {
-	width: 1rem;
-	height: 1rem;
-	margin-right: 0.3rem;
-	border-radius: var(--border-radius);
-}
-
-.field[data-fieldtype="Check"] #icon-tick {
-	width: 1rem;
+.print-format-doc [document-status] h4 {
+	margin: 0;
 }

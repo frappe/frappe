@@ -13,13 +13,13 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 
 	make_picker() {
 		this.inputs = [];
+		this.reposition_picker = () => this.position_picker();
 		this.set_duration_options();
 		this.$picker = $(
 			`<div class="duration-picker">
 				<div class="picker-row row"></div>
 			</div>`
 		);
-		this.$wrapper.append(this.$picker);
 		this.build_numeric_input(
 			"days",
 			this.duration_options.hide_days,
@@ -83,7 +83,7 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 		// flag to handle the display property of the picker
 		let clicked = false;
 
-		this.$wrapper.find(".duration-input").mousedown(() => {
+		this.$picker.on("mousedown", ".duration-input", () => {
 			// input in individual duration boxes
 			clicked = true;
 		});
@@ -104,7 +104,7 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 
 		this.$input.on("focus", () => {
 			if (this.df.read_only) return;
-			this.$picker.show();
+			this.show_picker();
 			let is_picker_set = this.is_duration_picker_set(this.inputs);
 			if (!is_picker_set) {
 				this.set_duration_picker_value(this.value);
@@ -117,9 +117,38 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 				clicked = false;
 			} else {
 				// blur event was not due to duration inputs
-				this.$picker.hide();
+				this.hide_picker();
 			}
 			this.set_formatted_input(this.value);
+		});
+	}
+
+	show_picker() {
+		$(document.body).append(this.$picker);
+		this.$picker.show();
+		this.position_picker();
+		document.addEventListener("scroll", this.reposition_picker, true);
+		window.addEventListener("resize", this.reposition_picker);
+	}
+
+	hide_picker() {
+		this.$picker.hide();
+		this.$picker.detach();
+		document.removeEventListener("scroll", this.reposition_picker, true);
+		window.removeEventListener("resize", this.reposition_picker);
+	}
+
+	position_picker() {
+		let input = this.$input.get(0);
+		if (!input.isConnected) {
+			this.hide_picker();
+			return;
+		}
+
+		let rect = input.getBoundingClientRect();
+		this.$picker.css({
+			top: rect.bottom + 10 + "px",
+			left: rect.left + "px",
 		});
 	}
 

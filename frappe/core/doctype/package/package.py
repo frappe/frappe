@@ -15,6 +15,8 @@ LICENSES = (
 
 
 class Package(Document):
+	_DOCTYPE_NAME = "Package"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -11,6 +11,8 @@ from frappe.utils import cint, cstr, get_datetime, get_system_timezone
 
 
 class TokenCache(Document):
+	_DOCTYPE_NAME = "Token Cache"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

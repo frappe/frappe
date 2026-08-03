@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class UserRoleProfile(Document):
+	_DOCTYPE_NAME = "User Role Profile"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -55,11 +55,7 @@ frappe.defaults = {
 		if (!$.isArray(d)) d = [d];
 
 		// filter out values which are not permitted to the user
-		d.filter((item) => {
-			if (frappe.defaults.in_user_permission(key, item)) {
-				return item;
-			}
-		});
+		d = d.filter((item) => frappe.defaults.in_user_permission(key, item));
 		return d;
 	},
 	get_global_default: function (key) {
@@ -125,7 +121,8 @@ frappe.defaults = {
 	},
 
 	update_user_permissions: function () {
-		const method = "frappe.core.doctype.user_permission.user_permission.get_user_permissions";
+		const method =
+			"frappe.core.doctype.user_permission.user_permission.get_current_user_permissions";
 		frappe.call(method).then((r) => {
 			if (r.message) {
 				this._user_permissions = Object.assign({}, r.message);

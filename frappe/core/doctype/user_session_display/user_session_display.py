@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class UserSessionDisplay(Document):
+	_DOCTYPE_NAME = "User Session Display"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

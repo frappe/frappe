@@ -15,7 +15,9 @@ frappe.ready(function () {
 			title: __("Not Permitted"),
 			primary_action_label: __("Login"),
 			primary_action: () => {
-				window.location.replace("/login?redirect-to=" + window.location.pathname);
+				window.location.replace(
+					"/login?redirect-to=" + window.location.pathname + window.location.search
+				);
 			},
 		});
 		login_required.show();

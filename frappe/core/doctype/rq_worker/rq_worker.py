@@ -13,6 +13,8 @@ from frappe.utils.background_jobs import get_workers
 
 
 class RQWorker(Document):
+	_DOCTYPE_NAME = "RQ Worker"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

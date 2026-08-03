@@ -7,7 +7,6 @@ frappe.ui.form.on("Letter Head", {
 	},
 
 	refresh(frm) {
-		frm.set_intro("");
 		frm.enable_save();
 
 		if (!frappe.boot.developer_mode) {

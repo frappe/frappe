@@ -7,7 +7,7 @@ from typing import Any
 
 import frappe
 from frappe import _
-from frappe.boot import get_allowed_report_names
+from frappe.desk.desk_views import DeskViews
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
@@ -40,13 +40,13 @@ def get_permission_query_conditions(user):
 	module_condition = False
 
 	allowed_doctypes = [frappe.db.escape(doctype) for doctype in get_doctypes_with_read(user)]
-	allowed_reports = [frappe.db.escape(report) for report in get_allowed_report_names(user=user)]
+	allowed_reports = [frappe.db.escape(report) for report in DeskViews.get_allowed_report_names(user=user)]
 	allowed_modules = [
 		frappe.db.escape(module.get("module_name")) for module in get_modules_from_all_apps_for_user(user)
 	]
 
 	if allowed_doctypes:
-		doctype_condition = "`tabDashboard Chart`.`document_type` in ({allowed_doctypes})".format(
+		doctype_condition = "`tabDashboard Chart`.`document_type` in ({allowed_doctypes}) OR `tabDashboard Chart`.`parent_document_type` in ({allowed_doctypes})".format(
 			allowed_doctypes=",".join(allowed_doctypes)
 		)
 	if allowed_reports:
@@ -78,7 +78,7 @@ def has_permission(doc, ptype, user):
 		if has_common(roles, allowed):
 			return True
 	elif doc.chart_type == "Report":
-		if doc.report_name in get_allowed_report_names(user=user):
+		if doc.report_name in DeskViews.get_allowed_report_names(user=user):
 			return True
 	else:
 		allowed_doctypes = get_doctypes_with_read(user)
@@ -123,7 +123,7 @@ def get(
 
 	timegrain = time_interval or chart.time_interval
 	filters = frappe.parse_json(filters) or frappe.parse_json(chart.filters_json)
-	if not filters:
+	if not isinstance(filters, list):
 		filters = []
 
 	# don't include cancelled documents
@@ -340,6 +340,8 @@ def get_charts_for_user(
 
 
 class DashboardChart(Document):
+	_DOCTYPE_NAME = "Dashboard Chart"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -417,6 +419,8 @@ class DashboardChart(Document):
 		else:
 			if not self.based_on:
 				frappe.throw(_("Time series based on is required to create a dashboard chart"))
+			if self.chart_type in ["Sum", "Average"] and not self.value_based_on:
+				frappe.throw(_("Value Based On field is required to create a dashboard chart"))
 
 	def check_document_type(self):
 		if frappe.get_meta(self.document_type).issingle:

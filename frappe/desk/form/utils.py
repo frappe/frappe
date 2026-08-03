@@ -9,7 +9,7 @@ import frappe.desk.form.load
 import frappe.desk.form.meta
 from frappe import _
 from frappe.core.doctype.file.utils import extract_images_from_html
-from frappe.desk.form.document_follow import follow_document
+from frappe.desk.form.document_follow import _follow_document
 from frappe.query_builder.functions import IfNull
 
 if TYPE_CHECKING:
@@ -44,7 +44,7 @@ def add_comment(
 	comment.insert(ignore_permissions=True)
 
 	if frappe.get_cached_value("User", frappe.session.user, "follow_commented_documents"):
-		follow_document(comment.reference_doctype, comment.reference_name, frappe.session.user)
+		_follow_document(comment.reference_doctype, comment.reference_name, frappe.session.user)
 
 	return comment
 
@@ -82,7 +82,7 @@ def get_next(
 	doctype: str,
 	value: str,
 	prev: str | int,
-	filters: dict | str | None = None,
+	filters: dict | str | list | None = None,
 	sort_order: str = "desc",
 	sort_field: str = "creation",
 ):

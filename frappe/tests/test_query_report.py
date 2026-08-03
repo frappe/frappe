@@ -1,8 +1,11 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import datetime
+import json
+
 import frappe
-from frappe.desk.query_report import build_xlsx_data, export_query, run
+from frappe.desk.query_report import build_xlsx_data, export_query, format_fields, run
 from frappe.tests import IntegrationTestCase
 from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, make_xlsx
 
@@ -15,6 +18,159 @@ class TestQueryReport(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.db.rollback()
+
+	def test_save_report_accepts_native_columns_and_filters(self):
+		from frappe.desk.query_report import save_report
+
+		frappe.set_user("Administrator")
+		ref = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Native Save Reference " + frappe.generate_hash(length=6),
+				"report_type": "Report Builder",
+				"is_standard": "No",
+			}
+		).insert(ignore_permissions=True)
+
+		custom_name = "Native Save Custom " + frappe.generate_hash(length=6)
+		frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": custom_name,
+				"json": '{"columns":[],"filters":[]}',
+				"ref_doctype": "ToDo",
+				"is_standard": "No",
+				"report_type": "Custom Report",
+				"reference_report": ref.name,
+			}
+		).insert(ignore_permissions=True)
+
+		# columns as a native list and filters as a native dict (frappe.parse_json passthrough)
+		docname = save_report(
+			ref.name, custom_name, columns=[{"fieldname": "name"}], filters={"status": "Open"}
+		)
+		saved = json.loads(frappe.get_doc("Report", docname).json)
+		self.assertEqual(saved["columns"], [{"fieldname": "name"}])
+		self.assertEqual(saved["filters"], {"status": "Open"})
+
+	def test_export_query_coerces_non_list_visible_idx(self):
+		frappe.set_user("Administrator")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": "Native Export Query " + frappe.generate_hash(length=6),
+				"ref_doctype": "ToDo",
+				"report_type": "Report Builder",
+				"is_standard": "No",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True)
+
+		# visible_idx as a non-list, non-str value is coerced to [] (the new elif branch).
+		# The coercion runs before the report executes, so the call must complete without the
+		# TypeError that a non-list visible_idx would otherwise cause downstream.
+		frappe.local.form_dict = frappe._dict(
+			report_name=report.name,
+			file_format_type="CSV",
+			visible_idx=5,
+		)
+		frappe.local.response = frappe._dict()
+		export_query()
+		self.assertIn("type", frappe.local.response)
+
+	def test_export_query_preserves_visible_idx_order(self):
+		"""Regression: `export_query` must apply `visible_idx` as an ordered
+		list so the UI column-header sort survives into the exported file.
+
+		Old code did ``set(visible_idx)`` and iterated ``data.result`` in its
+		default order, discarding the client's sort direction. New code
+		iterates ``visible_idx`` so output rows match display order.
+
+		Uses `mock.patch` on `run` so the test is decoupled from actual
+		report execution.
+		"""
+		import csv
+		import io
+		from unittest.mock import patch
+
+		frappe.set_user("Administrator")
+
+		# Fixed synthetic data — 5 rows in "default order" [A, B, C, D, E].
+		# The response the mocked `run` returns for any input.
+		fake_data = {
+			"result": [
+				["row_A", "id_a"],
+				["row_B", "id_b"],
+				["row_C", "id_c"],
+				["row_D", "id_d"],
+				["row_E", "id_e"],
+			],
+			"columns": [
+				{"label": "Description", "fieldname": "description", "fieldtype": "Data"},
+				{"label": "ID", "fieldname": "name", "fieldtype": "Data"},
+			],
+			"add_total_row": 0,
+			"applied_filters": {},
+			"filters": {},
+		}
+
+		# Minimal report to satisfy get_report_doc(); export_query looks up
+		# report_name to check permissions. The report's own body is unused
+		# because `run` is mocked.
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": f"Sort Order Export {frappe.generate_hash(length=6)}",
+				"ref_doctype": "ToDo",
+				"report_type": "Report Builder",
+				"is_standard": "No",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True)
+
+		# Non-identity, non-reverse permutation to catch order bugs. If the
+		# server iterated data.result (old code), the output would be A/B/C/D/E.
+		# If it iterates visible_idx (fixed code), output is D/A/E/B/C.
+		reorder = [3, 0, 4, 1, 2]
+		expected_descriptions = [fake_data["result"][i][0] for i in reorder]
+
+		frappe.local.form_dict = frappe._dict(
+			report_name=report.name,
+			file_format_type="CSV",
+			visible_idx=reorder,
+			applied_filters={},
+			filters={},
+		)
+		frappe.local.response = frappe._dict()
+
+		with patch("frappe.desk.query_report.run", return_value=fake_data):
+			export_query()
+
+		self.assertIn(
+			"filecontent",
+			frappe.local.response,
+			f"export_query didn't produce a file, got: {dict(frappe.local.response)!r}",
+		)
+		csv_bytes = frappe.local.response["filecontent"]
+		if isinstance(csv_bytes, bytes):
+			csv_bytes = csv_bytes.decode("utf-8")
+
+		# Data rows carry our "row_" marker; header row does not.
+		all_rows = list(csv.reader(io.StringIO(csv_bytes)))
+		data_rows = [r for r in all_rows if r and r[0].startswith("row_")]
+		self.assertEqual(
+			len(data_rows),
+			5,
+			f"expected 5 data rows in CSV, got {len(data_rows)}: {data_rows!r}",
+		)
+
+		actual_descriptions = [r[0] for r in data_rows]
+		self.assertEqual(
+			actual_descriptions,
+			expected_descriptions,
+			"CSV row order should follow visible_idx sequence, not default order",
+		)
 
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
@@ -89,6 +245,49 @@ class TestQueryReport(IntegrationTestCase):
 		for row in xlsx_data:
 			# column_b should be 'str' even with composite cell value
 			self.assertEqual(type(row[1]), str)
+
+	def test_xlsx_export_preserves_date_objects(self):
+		"""Date/Datetime columns must reach Excel as real date objects, while CSV keeps strings"""
+
+		posting_date = datetime.date(2026, 6, 1)
+		created_on = datetime.datetime(2026, 6, 1, 9, 30)
+
+		def make_data():
+			return frappe._dict(
+				report_name="",
+				columns=[
+					{"label": "Posting Date", "fieldname": "posting_date", "fieldtype": "Date"},
+					{"label": "Created On", "fieldname": "created_on", "fieldtype": "Datetime"},
+				],
+				result=[{"posting_date": posting_date, "created_on": created_on}],
+				filters={},
+				applied_filters={},
+			)
+
+		# Excel: date objects are preserved so make_xlsx can write real date cells
+		excel_data = make_data()
+		format_fields(excel_data, "Excel")
+		self.assertEqual(excel_data.result[0]["posting_date"], posting_date)
+		self.assertIsInstance(excel_data.result[0]["created_on"], datetime.datetime)
+
+		# build_xlsx_data passes the date through untouched for the Excel sheet
+		xlsx_data, _, styles = build_xlsx_data(excel_data, build_styles=True)
+		self.assertIsInstance(xlsx_data[1][0], datetime.date)
+		self.assertIsInstance(xlsx_data[1][1], datetime.datetime)
+
+		# the Date column carries a date number_format so Excel renders it as a date
+		date_style = {}
+		col0_style_ids = styles["column_styles"].get(0)
+		self.assertIsNotNone(col0_style_ids, "No column style registered for the Date column")
+		for sid in col0_style_ids:
+			date_style.update(styles["styles"][sid])
+		self.assertIn("num_format", date_style)
+
+		# CSV (default): dates are stringified for display
+		csv_data = make_data()
+		format_fields(csv_data)
+		self.assertIsInstance(csv_data.result[0]["posting_date"], str)
+		self.assertIsInstance(csv_data.result[0]["created_on"], str)
 
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader

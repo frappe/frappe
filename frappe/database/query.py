@@ -24,7 +24,7 @@ from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
 from frappe.model.document import Document
 from frappe.query_builder import Criterion, Field, Order, functions
-from frappe.query_builder.custom import Month, MonthName, Quarter
+from frappe.query_builder.custom import Month, MonthName, Quarter, Year
 
 CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 	(
@@ -193,6 +193,7 @@ FUNCTION_MAPPING = {
 	"MONTHNAME": MonthName,
 	"QUARTER": Quarter,
 	"MONTH": Month,
+	"YEAR": Year,
 }
 
 # Functions that accept '*' as an argument (e.g., COUNT(*))
@@ -264,6 +265,9 @@ class Engine:
 		self.permitted_fields_cache = {}  # Cache for get_permitted_fields results
 		self.is_aggregate_query = False
 		self._grouped_queries = set()
+		self._joined_link_tables = []
+
+		assert db_type in ("mariadb", "postgres", "sqlite"), f"unexpected db_type: {db_type}"
 
 		if isinstance(table, Table):
 			self.table = table
@@ -271,6 +275,8 @@ class Engine:
 		else:
 			self.doctype = table
 			self.table = qb.DocType(table)
+
+		assert isinstance(self.doctype, str) and self.doctype, "doctype must be a non-empty string"
 
 		if self.apply_permissions:
 			self.check_select_permission()
@@ -315,8 +321,10 @@ class Engine:
 		if for_update:
 			self.query = self.query.for_update(skip_locked=skip_locked, nowait=not wait)
 
-		if any(isinstance(f, functions.AggregateFunction) for f in getattr(self, "fields", [])):
-			# check if any field in select is aggregated (done to prevent breaking queries in postgres due to order by rule)
+		# check if any field in select is aggregated (done to prevent breaking queries in postgres due to
+		# order by rule). Use pypika's is_aggregate so aggregates *nested* in an expression are detected
+		# too (e.g. `Sum(a) - Sum(b)`), not just a top-level AggregateFunction.
+		if any(getattr(f, "is_aggregate", False) for f in getattr(self, "fields", [])):
 			self.is_aggregate_query = True
 
 		if group_by:
@@ -340,9 +348,11 @@ class Engine:
 
 		self.add_permission_conditions()
 
-		# Store metadata for masked field processing during execution
-		self.query._doctype = self.doctype
-		self.query._fields_list = getattr(self, "fields", [])
+		if self.apply_permissions:
+			# Store metadata for masked field processing during execution.
+			self.query._doctype = self.doctype
+			self.query._parent_doctype = self.parent_doctype
+			self.query._fields_list = getattr(self, "fields", [])
 
 		self.query.immutable = True
 		return self.query
@@ -571,6 +581,17 @@ class Engine:
 
 		_field = self._validate_and_prepare_filter_field(field, doctype)
 
+		# Child/link table fields live in a different doctype than the parent; NULL-fallback
+		# typing must resolve against the field's own doctype, else a numeric child field gets
+		# an empty-string fallback and postgres rejects `COALESCE(col, '') < 200`.
+		filter_doctype = doctype or self.doctype
+		field_table = getattr(_field, "table", None)
+		if field_table is not None:
+			try:
+				filter_doctype = get_doctype_name(field_table.get_sql())
+			except Exception:
+				pass
+
 		if isinstance(value, Field):
 			_value = value
 		else:
@@ -580,6 +601,13 @@ class Engine:
 		if isinstance(value, Document):
 			frappe.throw(_("Document cannot be used as a filter value"))
 		_operator = operator
+
+		# _assign and _liked_by store a JSON array of user ids, so `=`/`!=` never match a
+		# single member; treat them as `like`/`not like` against the serialized value.
+		if isinstance(field, str) and field in ("_assign", "_liked_by") and _operator in ("=", "!="):
+			_operator = "like" if _operator == "=" else "not like"
+			if isinstance(_value, str) and _value:
+				_value = f"%{_value}%"
 
 		if _operator.lower() in ("timespan", "previous", "next"):
 			from frappe.model.db_query import get_date_range
@@ -656,6 +684,38 @@ class Engine:
 			)
 			return operator_fn(_field, nodes or ("",))
 
+		# The `is` ("set"/"not set") operator compares against an empty string (`= ''`).
+		# MariaDB silently coerces `''` to the column's type (e.g. `0` for an int), but
+		# postgres rejects `date/numeric = ''` outright. Compare against the
+		# type-appropriate fallback instead so the same filter behaves identically on both
+		# backends (for a column that coerces `''` to its zero-value on MariaDB, the typed
+		# fallback yields the exact same match set). MariaDB keeps its existing path.
+		if self.is_postgres and _operator.casefold() == "is" and isinstance(_field, Field):
+			value_token = str(_value).strip().lower()
+			if value_token in ("set", "not set"):
+				is_field_name = (
+					field
+					if isinstance(field, str)
+					else (_field.name if hasattr(_field, "name") else str(_field))
+				)
+				if "." in is_field_name:
+					is_field_name = is_field_name.split(".")[-1]
+
+				fallback_sql = self._get_ifnull_fallback(filter_doctype, is_field_name)
+				if fallback_sql == "''":
+					fallback_value = ""
+				elif fallback_sql.startswith("'") and fallback_sql.endswith("'"):
+					fallback_value = fallback_sql[1:-1]
+				else:
+					try:
+						fallback_value = int(fallback_sql)
+					except (ValueError, TypeError):
+						fallback_value = fallback_sql
+
+				if value_token == "set":
+					return _field != fallback_value
+				return _field.isnull() | (_field == fallback_value)
+
 		if (
 			self.is_postgres and _operator.casefold() == "like"
 		):  # use `ILIKE` to support case insensitive search in postgres
@@ -672,7 +732,7 @@ class Engine:
 				if "." in filter_field_name:
 					filter_field_name = filter_field_name.split(".")[-1]
 
-				target_doctype = doctype or self.doctype
+				target_doctype = filter_doctype
 				fallback_sql = self._get_ifnull_fallback(target_doctype, filter_field_name)
 
 				if fallback_sql == "''":
@@ -696,7 +756,7 @@ class Engine:
 			if "." in filter_field_name:
 				filter_field_name = filter_field_name.split(".")[-1]
 
-			target_doctype = doctype or self.doctype
+			target_doctype = filter_doctype
 
 			# Skip applying ifnull if field already has null-handling function
 			if isinstance(_field, functions.IfNull | functions.Coalesce):
@@ -1225,10 +1285,36 @@ class Engine:
 
 	def apply_group_by(self, group_by: str | None = None):
 		parsed_group_by_fields = self._validate_group_by(group_by)
+		if self.is_postgres and self._is_main_table_pk_group_by(parsed_group_by_fields):
+			parsed_group_by_fields += self._joined_link_table_pks()
 		self._grouped_queries = {
 			f.get_sql() if hasattr(f, "get_sql") else str(f) for f in parsed_group_by_fields
 		}
 		self.query = self.query.groupby(*parsed_group_by_fields)
+
+	def _is_main_table_pk_group_by(self, parsed_fields: list) -> bool:
+		"""Group by on just the parent primary key — the dedup form list views send
+		along with child-table filters."""
+		if len(parsed_fields) != 1:
+			return False
+		field = parsed_fields[0]
+		return (
+			isinstance(field, Field)
+			and field.name == "name"
+			and (field.table is None or field.table == self.table)
+		)
+
+	def _joined_link_table_pks(self) -> list[Field]:
+		"""Primary keys of 1:1 joined link tables, recorded by LinkTableField.apply_join.
+
+		When deduping by the parent primary key, grouping additionally by each link
+		table's primary key cannot change the result (at most one link row per
+		parent) but satisfies postgres' functional-dependency rule for the link
+		table's selected columns, e.g. title fields fetched for
+		`show_title_field_in_link` (GH-39851). Child table joins are not recorded:
+		grouping by their primary key would undo the dedup.
+		"""
+		return [table["name"] for table in self._joined_link_tables]
 
 	def apply_order_by(self, order_by: str | None):
 		if not order_by or order_by == DefaultOrderBy:
@@ -1398,6 +1484,8 @@ class Engine:
 					order_direction = Order.desc if direction == "desc" else Order.asc
 				else:
 					order_direction = Order.asc if direction == "asc" else Order.desc
+
+				assert order_direction in (Order.asc, Order.desc), "order direction must be asc or desc"
 
 				parsed_field = self._validate_and_parse_field_for_clause(field_name, "Order By")
 				parsed_order_fields.append((parsed_field, order_direction))
@@ -1658,7 +1746,7 @@ class Engine:
 			tables.append(join.item.get_sql())
 		return list(set(tables))
 
-	def get_permission_query_conditions(self, doctype: str | None = None) -> list["RawCriterion"]:
+	def get_permission_query_conditions(self, doctype: str | None = None) -> list["Criterion"]:
 		"""Add permission query conditions from hooks and server scripts"""
 		from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 
@@ -1669,7 +1757,9 @@ class Engine:
 
 		for method in condition_methods:
 			if c := frappe.call(frappe.get_attr(method), self.user, doctype=doctype):
-				conditions.append(RawCriterion(f"({c})"))
+				# Hooks may return a raw SQL string or a pypika term. A term already
+				# participates in `Criterion.all`/`get_sql`, so only strings need wrapping.
+				conditions.append(RawCriterion(f"({c})") if isinstance(c, str) else c)
 
 		active_child_tables = []
 		current_tables = self.get_queried_tables()
@@ -1741,6 +1831,7 @@ class Engine:
 			if not user_permissions:
 				return match_filters
 
+			permission_filters = {}
 			for df in self.get_doctype_link_fields(self.doctype):
 				if df.get("ignore_user_permissions"):
 					continue
@@ -1764,7 +1855,10 @@ class Engine:
 							docs.append(doc)
 
 					if docs:
-						match_filters.append({options: docs})
+						permission_filters[options] = docs
+
+			if permission_filters:
+				match_filters.append(permission_filters)
 
 			return match_filters
 
@@ -2097,10 +2191,15 @@ class LinkTableField(DynamicTableField):
 		table = frappe.qb.DocType(self.doctype)
 		main_table = frappe.qb.DocType(self.parent_doctype)
 		if not query.is_joined(table):
-			query = query.left_join(table).on(table.name == getattr(main_table, self.link_fieldname))
+			clause = table.name == getattr(main_table, self.link_fieldname)
+
 			if engine and engine.apply_permissions:
 				if condition := engine.get_permission_conditions(self.doctype, table):
-					query = query.where(condition)
+					clause &= condition
+
+			query = query.left_join(table).on(clause)
+			if engine is not None:
+				engine._joined_link_tables.append(table)
 
 		return query
 
@@ -2354,6 +2453,7 @@ class SQLFunctionParser:
 		if not isinstance(right, Term):
 			right = ValueWrapper(right)
 
+		assert isinstance(left, Term) and isinstance(right, Term), "operands must be pypika Terms"
 		expression = ArithmeticExpression(operator=operator, left=left, right=right)
 
 		if alias:

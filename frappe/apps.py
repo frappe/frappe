@@ -1,7 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import os
 import re
+
+import orjson
 
 import frappe
 from frappe import _
@@ -16,10 +19,24 @@ from frappe.utils.caching import request_cache
 DESK_APP_PATTERN = re.compile(r"^/desk(/.*)?$")
 
 
+@request_cache
+def get_docked_apps() -> set[str]:
+	"""Apps that surface their workspaces inside another app's workspace dock.
+
+	A companion app (e.g. India Compliance for ERPNext) pins its workspaces into a host app's dock
+	via the `add_to_workspace_dock` hook instead of taking an apps-screen slot of its own. It is
+	kept off the apps screen even when it also declares `add_to_apps_screen` -- companion apps keep
+	that hook so they still appear on older versions, so here the dock hook wins."""
+	from frappe.boot import get_app_rail_host_map
+
+	return set(get_app_rail_host_map())
+
+
 @frappe.whitelist()
 @request_cache
 def get_apps():
 	apps = frappe.get_installed_apps()
+	docked_apps = get_docked_apps()
 	app_list = []
 	for app in apps:
 		if (
@@ -31,6 +48,10 @@ def get_apps():
 
 		if app == "frappe":
 			continue
+
+		if app in docked_apps:
+			continue
+
 		app_details = frappe.get_hooks("add_to_apps_screen", app_name=app)
 		if not len(app_details):
 			continue
@@ -119,3 +140,42 @@ def get_incomplete_setup_route(current_app: str, app_route: str):
 			return route
 
 	return app_route
+
+
+def get_all_apps(with_internal_apps=True, sites_path=None):
+	"""Get list of all apps via `sites/apps.txt`."""
+	from frappe.utils import get_file_items
+
+	if not sites_path:
+		sites_path = frappe.local.sites_path
+
+	apps = get_file_items(os.path.join(sites_path, "apps.txt"), raise_not_found=True)
+
+	if with_internal_apps:
+		for app in get_file_items(os.path.join(frappe.local.site_path, "apps.txt")):
+			if app not in apps:
+				apps.append(app)
+
+	if "frappe" in apps:
+		apps.remove("frappe")
+	apps.insert(0, "frappe")
+
+	return apps
+
+
+@request_cache
+def get_installed_apps(*, _ensure_on_bench: bool = False) -> list[str]:
+	"""Get list of installed apps in current site."""
+	if getattr(frappe.flags, "in_install_db", True):
+		return []
+
+	if not frappe.db:
+		frappe.connect()
+
+	installed = orjson.loads(frappe.db.get_global("installed_apps") or "[]")
+
+	if _ensure_on_bench:
+		all_apps = frappe.cache.get_value("all_apps", get_all_apps)
+		installed = [app for app in installed if app in all_apps]
+
+	return installed

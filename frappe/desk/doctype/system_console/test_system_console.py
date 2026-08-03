@@ -1,6 +1,7 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.desk.doctype.system_console.system_console import execute_code
 from frappe.tests import IntegrationTestCase
 
 
@@ -34,3 +35,15 @@ class TestSystemConsole(IntegrationTestCase):
 		system_console.run()
 
 		self.assertIn("PermissionError", system_console.output)
+
+	def test_execute_code_with_string(self):
+		"""execute_code should work with a JSON string (old call signature)."""
+		doc = frappe.as_json({"doctype": "System Console", "console": 'log("hello")', "type": "Python"})
+		result = execute_code(doc)
+		self.assertEqual(result.get("output"), "hello")
+
+	def test_execute_code_with_dict(self):
+		"""execute_code should work with an already-parsed dict."""
+		doc = {"doctype": "System Console", "console": 'log("hello")', "type": "Python"}
+		result = execute_code(doc)
+		self.assertEqual(result.get("output"), "hello")

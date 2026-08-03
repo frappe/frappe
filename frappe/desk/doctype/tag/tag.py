@@ -9,6 +9,8 @@ from frappe.utils import unique
 
 
 class Tag(Document):
+	_DOCTYPE_NAME = "Tag"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

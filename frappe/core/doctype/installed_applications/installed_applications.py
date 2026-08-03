@@ -14,6 +14,8 @@ class InvalidAppOrder(frappe.ValidationError):
 
 
 class InstalledApplications(Document):
+	_DOCTYPE_NAME = "Installed Applications"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -115,8 +117,7 @@ def update_installed_apps_order(new_order: list[str] | str):
 	"""
 	frappe.only_for("System Manager")
 
-	if isinstance(new_order, str):
-		new_order = json.loads(new_order)
+	new_order = frappe.parse_json(new_order)
 
 	frappe.local.request_cache and frappe.local.request_cache.clear()
 	existing_order = frappe.get_installed_apps(_ensure_on_bench=True)

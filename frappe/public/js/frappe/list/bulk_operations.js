@@ -369,9 +369,9 @@ export default class BulkOperations {
 				frappe
 					.call({
 						method: "frappe.desk.doctype.bulk_update.bulk_update.submit_cancel_or_update_docs",
+						freeze: true,
 						args: {
 							doctype: this.doctype,
-							freeze: true,
 							docnames: docnames,
 							action: "update",
 							data: update_data,
