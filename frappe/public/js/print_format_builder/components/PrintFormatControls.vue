@@ -37,9 +37,9 @@
 			<!-- Header -->
 			<div class="pfb-fields-header">
 				<span class="pfb-fields-header-title">
-					{{ __("DOCUMENT FIELDS") }}
+					{{ __("Document Fields") }}
 					<span class="pfb-fields-header-sep">·</span>
-					{{ (meta.name || "").toUpperCase() }}
+					{{ meta.name }}
 				</span>
 			</div>
 
@@ -915,7 +915,6 @@ function handle_slash_key(e) {
 .pfb-fields-header-title {
 	font-size: var(--text-tiny);
 	font-weight: var(--weight-semibold);
-	letter-spacing: 0.06em;
 	color: var(--text-muted);
 }
 
