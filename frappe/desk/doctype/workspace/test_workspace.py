@@ -48,6 +48,8 @@ class TestWorkspace(IntegrationTestCase):
 		workspace.title = "New Widget Test Workspace"
 		workspace.public = 0
 		workspace.for_user = frappe.session.user
+		# mandatory now: the dock is module-shaped, so a workspace with no module belongs nowhere
+		workspace.module = "Test Module"
 		workspace.content = "[]"
 		workspace.insert()
 
