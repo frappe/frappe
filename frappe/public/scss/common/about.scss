@@ -1,0 +1,65 @@
+/* About dialog */
+.about-dialog {
+	.modal-dialog {
+		max-width: 575px;
+	}
+
+	.modal-content {
+		max-height: min(590px, calc(100vh - 80px));
+		display: flex;
+		flex-direction: column;
+		border-radius: var(--radius-xl);
+	}
+
+	.modal-header {
+		border-bottom: none;
+		padding-top: 20px;
+		padding-left: 24px;
+		padding-right: 24px;
+		flex-shrink: 0;
+	}
+
+	.modal-body {
+		padding: 24px 24px 24px;
+		overflow-y: auto;
+		flex: 1;
+		min-height: 0;
+	}
+
+	.modal-footer {
+		padding: 20px;
+		border-top: none;
+		justify-content: center;
+	}
+
+	.modal-header .modal-title {
+		font-size: var(--text-2xl);
+		font-weight: var(--weight-semibold);
+		letter-spacing: 0.01em;
+		color: var(--heading-color);
+		line-height: 1em;
+	}
+}
+
+.about-frappe-wordmark {
+	height: 27px;
+	width: auto;
+
+	[data-theme="dark"] & {
+		filter: invert(1);
+	}
+}
+
+.about-info-row {
+	// 6px vertical padding is off the 4px scale; radius removed (dead — row has no bg)
+	padding: 6px 0;
+}
+
+.about-info-title {
+	// no self-start utility on desk
+	align-self: flex-start;
+}
+
+.about-app-logo {
+	object-fit: contain;
+}

@@ -12,6 +12,8 @@ from frappe.utils.scheduler import is_scheduler_inactive
 
 
 class BulkUpdate(Document):
+	_DOCTYPE_NAME = "Bulk Update"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -48,7 +50,7 @@ class BulkUpdate(Document):
 		)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def submit_cancel_or_update_docs(
 	doctype: str,
 	docnames: str | list[str],

@@ -8,6 +8,15 @@ frappe.ui.form.on("User", {
 				},
 			};
 		});
+
+		frm.set_query("workspace", "workspaces", () => {
+			return {
+				filters: {
+					public: 1,
+					title: ["!=", "Welcome Workspace"],
+				},
+			};
+		});
 	},
 	before_load: function (frm) {
 		let update_tz_options = function () {
@@ -160,6 +169,17 @@ frappe.ui.form.on("User", {
 				);
 
 				frm.toggle_display(["sb1", "sb3", "modules_access"], true);
+			}
+
+			if (cint(frm.doc.enabled) && frm.has_perm("write")) {
+				frm.add_custom_button(
+					__("Change Password"),
+					() =>
+						frappe.ui.show_change_password_dialog(frm.doc.name, () =>
+							frm.reload_doc()
+						),
+					__("Password")
+				);
 			}
 
 			frm.add_custom_button(
@@ -378,8 +398,8 @@ frappe.ui.form.on("User", {
 	},
 	setup_impersonation: function (frm) {
 		if (
-			frappe.session.user === "Administrator" &&
-			frm.doc.name != "Administrator" &&
+			(frappe.session.user === "Administrator" || frm.has_perm("impersonate")) &&
+			frm.doc.name !== frappe.session.user &&
 			!frm.is_new()
 		) {
 			frm.add_custom_button(__("Impersonate"), () => {

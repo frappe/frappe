@@ -52,6 +52,7 @@ frappe.ui.get_print_settings = function (
 			fieldtype: "Check",
 			fieldname: "with_letter_head",
 			label: __("With Letter Head"),
+			default: 1,
 		},
 		{
 			fieldtype: "Link",
@@ -77,6 +78,7 @@ frappe.ui.get_print_settings = function (
 			fieldtype: "Check",
 			fieldname: "include_filters",
 			depends_on: "eval: !doc.print_format",
+			default: 1,
 		});
 	}
 

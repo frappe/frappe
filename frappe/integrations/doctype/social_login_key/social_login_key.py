@@ -33,6 +33,8 @@ class ClientSecretNotSetError(frappe.ValidationError):
 
 
 class SocialLoginKey(Document):
+	_DOCTYPE_NAME = "Social Login Key"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

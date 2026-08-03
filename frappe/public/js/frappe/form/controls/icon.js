@@ -55,7 +55,7 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 
 		if (!this.selected_icon) {
 			this.selected_icon = $(
-				`<div class="selected-icon">${frappe.utils.icon("folder-normal", "md")}</div>`
+				`<div class="selected-icon">${frappe.utils.icon("folder", "sm")}</div>`
 			);
 			this.selected_icon.insertAfter(this.$input);
 		}
@@ -92,11 +92,11 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 	set_formatted_input(value) {
 		super.set_formatted_input(value);
 		this.$input.val(value);
-		this.selected_icon.find("use").attr("href", "#icon-" + (value || "folder-normal"));
+		this.selected_icon.find("use").attr("href", "#icon-" + (value || "folder"));
 		this.selected_icon.toggleClass("no-value", !value);
 	}
 
 	get_icon() {
-		return this.get_value() || "folder-normal";
+		return this.get_value() || "folder";
 	}
 };

@@ -231,7 +231,7 @@ class Recorder:
 		else:
 			self.event_type = "Function Call"
 
-		self.uuid = frappe.generate_hash(length=10)
+		self.uuid = None
 		self.time = now_datetime()
 
 		self._patch_sql(frappe.db)
@@ -260,6 +260,11 @@ class Recorder:
 	def dump(self):
 		if not self._recording:
 			return
+
+		import frappe.monitor
+
+		self.uuid = frappe.monitor.get_trace_id() or frappe.generate_hash(length=10)
+
 		profiler_output = self.process_profiler()
 
 		request_data = {

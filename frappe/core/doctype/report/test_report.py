@@ -3,7 +3,6 @@
 
 import json
 import os
-import textwrap
 
 import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
@@ -21,6 +20,65 @@ class TestReport(IntegrationTestCase):
 	def setUpClass(cls) -> None:
 		cls.enterClassContext(cls.enable_safe_exec())
 		return super().setUpClass()
+
+	def test_aggregate_column_field_info(self):
+		"""Aggregate column gets proper label and fieldtype"""
+		from frappe.core.doctype.report.report import get_group_by_column_field
+
+		cases = [
+			({"aggregate_function": "count"}, "Count", "Int"),
+			(
+				{"aggregate_function": "sum", "aggregate_on": "`tabUser`.`simultaneous_sessions`"},
+				"Sum of Simultaneous Sessions",
+				"Int",
+			),
+			(
+				{"aggregate_function": "avg", "aggregate_on": "`tabUser`.`simultaneous_sessions`"},
+				"Average of Simultaneous Sessions",
+				"Float",
+			),
+		]
+
+		for args, expected_label, expected_fieldtype in cases:
+			with self.subTest(aggregate_function=args["aggregate_function"]):
+				info = get_group_by_column_field(args, "User")
+				self.assertEqual(info["label"], expected_label)
+				self.assertEqual(info["fieldtype"], expected_fieldtype)
+
+	def test_parse_aggregate_field(self):
+		"""parse_aggregate_field extracts function name and target from aggregate field"""
+		from frappe.desk.reportview import parse_aggregate_field
+
+		cases = [
+			# dict form (produced by setup_group_by for qb)
+			(
+				{"COUNT": "`tabSales Invoice`.`name`", "as": "_aggregate_column"},
+				("COUNT", "`tabSales Invoice`.`name`"),
+			),
+			(
+				{"SUM": "`tabSales Invoice`.`amount`", "as": "_aggregate_column"},
+				("SUM", "`tabSales Invoice`.`amount`"),
+			),
+			# lowercase function in dict is normalized to uppercase
+			(
+				{"avg": "`tabSales Invoice`.`amount`"},
+				("AVG", "`tabSales Invoice`.`amount`"),
+			),
+			# string form with " as " alias
+			(
+				"count(`tabSales Invoice`.`amount`) as _aggregate_column",
+				("COUNT", "`tabSales Invoice`.`amount`"),
+			),
+			# string form without alias
+			(
+				"sum(`tabSales Invoice`.`amount`)",
+				("SUM", "`tabSales Invoice`.`amount`"),
+			),
+		]
+
+		for field, expected in cases:
+			with self.subTest(field=field):
+				self.assertEqual(parse_aggregate_field(field), expected)
 
 	def test_report_builder(self):
 		if frappe.db.exists("Report", "User Activity Report"):

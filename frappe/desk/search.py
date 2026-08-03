@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import functools
 import json
 import re
 from typing import NotRequired, TypedDict
@@ -8,11 +9,11 @@ from typing import NotRequired, TypedDict
 import frappe
 
 # Backward compatbility
-from frappe import _, bold, is_whitelisted, validate_and_sanitize_search_inputs
+from frappe import _, bold, is_whitelisted
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.db_query import get_order_by
 from frappe.permissions import has_permission
-from frappe.utils import cint, cstr, escape_html, unique
+from frappe.utils import cint, cstr, escape_html, sbool, unique
 from frappe.utils.caching import http_cache
 from frappe.utils.data import make_filter_tuple
 
@@ -25,6 +26,28 @@ def sanitize_searchfield(searchfield: str):
 
 	if SPECIAL_CHAR_PATTERN.search(searchfield):
 		frappe.throw(_("Invalid Search Field {0}").format(searchfield), frappe.DataError)
+
+
+def validate_and_sanitize_search_inputs(fn):
+	@functools.wraps(fn)
+	def wrapper(*args, **kwargs):
+		kwargs.update(dict(zip(fn.__code__.co_varnames, args, strict=False)))
+
+		if "searchfield" in kwargs:
+			sanitize_searchfield(kwargs["searchfield"])
+
+		if "start" in kwargs:
+			kwargs["start"] = cint(kwargs["start"])
+
+		if "page_len" in kwargs:
+			kwargs["page_len"] = cint(kwargs["page_len"])
+
+		if "doctype" in kwargs and kwargs["doctype"] and not frappe.db.exists("DocType", kwargs["doctype"]):
+			return []
+
+		return fn(**kwargs)
+
+	return wrapper
 
 
 class LinkSearchResults(TypedDict):
@@ -62,6 +85,18 @@ def search_link(
 	return build_for_autosuggest(results, doctype=doctype)
 
 
+def make_dict_from_filter_list(filters: list) -> dict:
+	"""Reverse of `make_filter_tuple`: convert
+	[[doctype, fieldname, operator, value], ..] back to {fieldname: value} for equality
+	filters and {fieldname: [operator, value]} otherwise.
+	"""
+	_filters = {}
+	for f in filters:
+		fieldname, operator, value = f[1], f[2], f[3]
+		_filters[fieldname] = value if operator == "=" else [operator, value]
+	return _filters
+
+
 # this is called by the search box
 @frappe.whitelist()
 def search_widget(
@@ -72,13 +107,15 @@ def search_widget(
 	start: int = 0,
 	page_length: int = 10,
 	filters: str | None | dict | list = None,
-	filter_fields: str | None = None,
+	filter_fields: str | list | None = None,
 	as_dict: bool = False,
 	reference_doctype: str | None = None,
 	ignore_user_permissions: bool = False,
 	*,
 	link_fieldname: str | None = None,
 	for_link_validation: bool = False,
+	# this param has been added temporarily for compatibility - may be removed later
+	query_filters_as_dict: bool = False,
 ):
 	if ignore_user_permissions:
 		if reference_doctype and link_fieldname:
@@ -116,6 +153,10 @@ def search_widget(
 		# translated values is applied below.
 		query_txt = "" if meta.translated_doctype else txt
 		query_page_length = PAGE_LENGTH_FOR_LINK_VALIDATION if meta.translated_doctype else page_length
+
+		if sbool(query_filters_as_dict) and isinstance(filters, list):
+			filters = make_dict_from_filter_list(filters)
+
 		try:
 			is_whitelisted(frappe.get_attr(query))
 			values = frappe.call(
@@ -203,7 +244,7 @@ def search_widget(
 	# format a list of fields combining search fields and filter fields
 	fields = get_std_fields_list(meta, searchfield or "name")
 	if filter_fields:
-		fields = list(set(fields + json.loads(filter_fields)))
+		fields = list(set(fields + frappe.parse_json(filter_fields)))
 	formatted_fields = [f.strip() for f in fields]
 
 	# Insert title field query after name
@@ -273,7 +314,30 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 	):
 		return
 
+	matched_child_field = None
+	for table_field in meta.get_table_fields():
+		if not frappe.db.exists("DocType", table_field.options):
+			continue
+
+		child_field = frappe.get_meta(table_field.options).get_field(link_fieldname)
+		if not child_field or child_field.fieldtype not in ("Link", "Dynamic Link"):
+			continue
+
+		if child_field.fieldtype == "Link" and child_field.options != link_doctype:
+			continue
+
+		if child_field.ignore_user_permissions:
+			return
+
+		matched_child_field = child_field
+
 	link_field = meta.get_field(link_fieldname)
+	field_doctype = form_doctype
+
+	if not link_field and matched_child_field:
+		link_field = matched_child_field
+		field_doctype = matched_child_field.parent
+
 	if not link_field:
 		_throw(
 			_("Field <code>{0}</code> not found in {1}").format(
@@ -303,7 +367,7 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 	if not ignore_user_permissions:
 		_throw(
 			_("The field {0} in {1} does not allow ignoring user permissions").format(
-				bold(meta.get_label(link_fieldname)), bold(_(form_doctype))
+				bold(_(link_field.label or link_fieldname, context=field_doctype)), bold(_(field_doctype))
 			)
 		)
 
@@ -318,8 +382,8 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 	if found_doctype != link_doctype:
 		_throw(
 			_("The field {0} in {1} links to {2} and not {3}").format(
-				bold(meta.get_label(link_fieldname)),
-				bold(_(form_doctype)),
+				bold(_(link_field.label or link_fieldname, context=field_doctype)),
+				bold(_(field_doctype)),
 				bold(_(found_doctype)),
 				bold(escape_html(link_doctype)),
 			)
@@ -448,6 +512,8 @@ def get_link_title(doctype: str, docname: str | int):
 	meta = frappe.get_meta(doctype)
 
 	if meta.show_title_field_in_link:
-		return frappe.db.get_value(doctype, docname, meta.title_field)
+		doc = frappe.get_lazy_doc(doctype, docname)
+		doc.check_permission()
+		return doc.get(meta.title_field)
 
 	return docname

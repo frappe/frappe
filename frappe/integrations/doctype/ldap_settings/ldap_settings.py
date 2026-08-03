@@ -26,6 +26,8 @@ if TYPE_CHECKING:
 
 
 class LDAPSettings(Document):
+	_DOCTYPE_NAME = "LDAP Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

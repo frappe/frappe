@@ -19,6 +19,8 @@ parse_cron = lru_cache(croniter)  # Cache parsed cron-expressions
 
 
 class ScheduledJobType(Document):
+	_DOCTYPE_NAME = "Scheduled Job Type"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -192,17 +194,17 @@ class ScheduledJobType(Document):
 
 
 @frappe.whitelist()
-def execute_event(doc: str):
+def execute_event(doc: str | dict):
 	frappe.only_for("System Manager")
-	doc = json.loads(doc)
+	doc = frappe.parse_json(doc)
 	frappe.get_doc("Scheduled Job Type", doc.get("name")).enqueue(force=True)
 	return doc
 
 
 @frappe.whitelist()
-def skip_next_execution(doc: str):
+def skip_next_execution(doc: str | dict):
 	frappe.only_for("System Manager")
-	doc = json.loads(doc)
+	doc = frappe.parse_json(doc)
 	doc: ScheduledJobType = frappe.get_doc("Scheduled Job Type", doc.get("name"))
 	doc.last_execution = doc.next_execution
 	return doc.save()

@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class SessionDefault(Document):
+	_DOCTYPE_NAME = "Session Default"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -17,7 +19,7 @@ class SessionDefault(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
-		ref_doctype: DF.Link | None
+		ref_doctype: DF.Link
 	# end: auto-generated types
 
 	pass

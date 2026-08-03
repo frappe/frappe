@@ -203,7 +203,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		let title;
 
 		if (d.is_folder) {
-			icon_class = "folder-normal";
+			icon_class = "folder";
 			type = "folder";
 		} else if (frappe.utils.is_image_file(d.file_name)) {
 			icon_class = "image";
@@ -231,7 +231,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		d.subject_html = `
 			${frappe.utils.icon(icon_class)}
 			<span>${title}</span>
-			${d.is_private ? '<i class="fa fa-lock fa-fw text-warning"></i>' : ""}
+			${d.is_private ? frappe.utils.icon("lock", "sm", "", "", "text-warning") : ""}
 		`;
 		return d;
 	}
@@ -308,8 +308,8 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 					<div class="copy-file-url hidden-xs" title="${__(
 						"Copy File URL"
 					)}" data-file-url="${absolute_file_url}">
-						<svg class="es-icon es-line icon-sm" aria-hidden="true">
-							<use class="" href="#es-line-copy-light"></use>
+						<svg class="icon icon-sm" aria-hidden="true">
+							<use class="" href="#icon-copy"></use>
 						</svg>
 					</div>
 					`;
@@ -348,7 +348,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 
 		return folders
 			.map((folder, i) => {
-				const title = this.get_folder_title(folder);
+				const title = frappe.utils.escape_html(this.get_folder_title(folder));
 
 				if (i === folders.length - 1) {
 					return `<span>${title}</span>`;
@@ -360,7 +360,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 					return acc;
 				}, "/desk/file/view");
 
-				return `<a href="${route}">${title}</a>`;
+				return `<a href="${frappe.utils.escape_html(route)}">${title}</a>`;
 			})
 			.join("&nbsp;/&nbsp;");
 	}

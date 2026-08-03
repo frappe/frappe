@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class ReplyToAddress(Document):
+	_DOCTYPE_NAME = "Reply To Address"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

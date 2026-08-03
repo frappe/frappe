@@ -1,14 +1,15 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_rename": 1,
  "autoname": "field:label",
- "beta": 1,
  "creation": "2020-01-23 13:45:59.470592",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "label",
+  "icon",
   "title",
   "sequence_id",
   "for_user",
@@ -20,13 +21,14 @@
   "link_to",
   "external_link",
   "column_break_3",
-  "icon",
+  "standard",
   "indicator_color",
   "restrict_to_domain",
   "hide_custom",
   "public",
   "is_hidden",
   "content",
+  "module_onboarding",
   "number_cards_tab",
   "number_cards",
   "tab_break_2",
@@ -40,7 +42,9 @@
   "custom_blocks_tab",
   "custom_blocks",
   "roles_tab",
-  "roles"
+  "roles",
+  "sidebar_tab",
+  "sidebar_items"
  ],
  "fields": [
   {
@@ -78,6 +82,7 @@
    "search_index": 1
   },
   {
+   "depends_on": "eval: doc.standard",
    "fieldname": "module",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -223,6 +228,7 @@
    "options": "green\ncyan\nblue\norange\nyellow\ngray\ngrey\nred\npink\ndarkgrey\npurple\nlight-blue"
   },
   {
+   "description": "The app this workspace is mounted to. Decides which app's dock (workspace rail) lists it. A standard workspace inherits this from its module; a custom one must be mounted explicitly, or it appears on no dock at all.",
    "fieldname": "app",
    "fieldtype": "Data",
    "label": "App"
@@ -258,11 +264,34 @@
    "label": "External Link",
    "mandatory_depends_on": "eval:doc.type==\"URL\"",
    "options": "URL"
+  },
+  {
+   "default": "0",
+   "fieldname": "standard",
+   "fieldtype": "Check",
+   "label": "Standard"
+  },
+  {
+   "fieldname": "sidebar_tab",
+   "fieldtype": "Tab Break",
+   "label": "Sidebar"
+  },
+  {
+   "fieldname": "sidebar_items",
+   "fieldtype": "Table",
+   "label": "Sidebar Items",
+   "options": "Workspace Sidebar Item"
+  },
+  {
+   "fieldname": "module_onboarding",
+   "fieldtype": "Link",
+   "label": "Module Onboarding",
+   "options": "Module Onboarding"
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2024-09-26 15:47:24.710881",
+ "modified": "2026-07-26 19:50:45.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
@@ -294,6 +323,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

@@ -30,3 +30,23 @@ class PrintViewTest(IntegrationTestCase):
 
 		# cancelled doc can't be printed by default
 		self.assertRaises(frappe.PermissionError, frappe.attach_print, doc.doctype, doc.name)
+
+	def test_before_print_runs_in_builder_renderer(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		note = frappe.get_doc(doctype="Note", title=frappe.generate_hash()).insert()
+		print_format = frappe.get_doc(
+			doctype="Print Format",
+			name=frappe.generate_hash(),
+			doc_type="Note",
+			print_format_builder_beta=1,
+			pdf_generator="chrome",
+			format_data="{}",
+		).insert()
+
+		self.assertNotEqual(note.get("print_heading"), note.name)
+
+		PrintFormatGenerator(print_format, note)
+
+		self.assertEqual(note.print_heading, note.name)
+		self.assertTrue(note.flags.in_print)

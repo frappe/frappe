@@ -11,6 +11,8 @@ from frappe.model.document import Document
 
 
 class DashboardSettings(Document):
+	_DOCTYPE_NAME = "Dashboard Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -41,6 +43,12 @@ def get_permission_query_conditions(user):
 		user = frappe.session.user
 
 	return f"""(`tabDashboard Settings`.name = {frappe.db.escape(user)})"""
+
+
+def has_permission(doc, ptype="read", user=None):
+	user = user or frappe.session.user
+
+	return user == "Administrator" or doc.name == user
 
 
 @frappe.whitelist()

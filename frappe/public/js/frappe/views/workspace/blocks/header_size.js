@@ -27,8 +27,8 @@ export default class HeaderSize {
 	render() {
 		this.button = document.createElement("button");
 		this.button.type = "button";
-		this.button.innerHTML = `${frappe.utils.icon("header", "sm")}${frappe.utils.icon(
-			"small-down",
+		this.button.innerHTML = `${frappe.utils.icon("heading", "sm")}${frappe.utils.icon(
+			"chevron-down",
 			"xs"
 		)}`;
 		this.button.classList = "header-inline-tool";

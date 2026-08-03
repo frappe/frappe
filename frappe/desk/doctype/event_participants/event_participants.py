@@ -4,6 +4,8 @@ from frappe.model.document import Document
 
 
 class EventParticipants(Document):
+	_DOCTYPE_NAME = "Event Participants"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

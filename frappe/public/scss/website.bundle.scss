@@ -1,1 +1,9 @@
 @import "./website/index";
+
+/* Espresso components (.es-* classes) — same aggregator as desk; available on
+   all website/portal pages incl. web forms (loaded via website.bundle.css). */
+@import "./espresso_components";
+
+/* Tailwind-style utility classes (same file desk uses) — kept as the LAST
+   import so utilities win over component/legacy rules. */
+@import "common/utilities";

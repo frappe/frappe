@@ -195,6 +195,9 @@ frappe.ui.form.on("Auto Email Report", {
 					reference_report.onload(frappe.query_report);
 				}
 
+				dialog.doc = dialog.doc || {};
+				dialog.fields_list.forEach((f) => (f.doc = dialog.doc));
+
 				dialog.set_values(filters);
 			});
 

@@ -7,6 +7,8 @@ from frappe.model.document import Document
 
 
 class NavbarSettings(Document):
+	_DOCTYPE_NAME = "Navbar Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

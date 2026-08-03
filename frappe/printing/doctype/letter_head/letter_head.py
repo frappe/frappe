@@ -9,6 +9,8 @@ from frappe.utils import flt, is_image
 
 
 class LetterHead(Document):
+	_DOCTYPE_NAME = "Letter Head"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -58,7 +60,8 @@ class LetterHead(Document):
 			frappe.throw(_("Letter Head cannot be both disabled and default"))
 
 		if (
-			not self.is_default
+			self.is_new()
+			and not self.is_default
 			and not self.disabled
 			and not frappe.flags.in_migrate
 			and not frappe.flags.in_install

@@ -5,7 +5,7 @@ frappe.provide("frappe.tags");
 
 frappe.search.AwesomeBar = class AwesomeBar {
 	setup(element) {
-		$(".search-bar, .navbar-search-bar").removeClass("hidden");
+		$(".navbar-search-bar").removeClass("hidden");
 
 		this.options = [];
 		this.global_results = [];
@@ -13,14 +13,14 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		this.setup_search_modal(element);
 
 		frappe.search.utils.setup_recent();
+		this.setup_page_change_event();
 	}
 
 	setup_search_modal(element) {
-		let is_event_listeners_added = false;
 		let $search_element = $(element);
 
 		let search_modal = new frappe.get_modal("Search", "");
-
+		this.search_modal = search_modal;
 		search_modal.removeClass("fade");
 		search_modal.on("shown.bs.modal", () => {
 			const input = search_modal.find("#navbar-search").get(0);
@@ -67,21 +67,37 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			.addClass("cool-awesomebar-modal-footer")
 			.html(search_modal_footer);
 
-		$search_element.on("click", () => {
-			if ($(search_modal).hasClass("show")) {
-				search_modal.modal("hide");
+		$(document).on("click", element, () => {
+			if (this.is_open()) {
+				this.close();
 				return;
 			}
 			search_modal.modal("show");
-
-			if (is_event_listeners_added) return;
-			is_event_listeners_added = true;
-
 			this.setup_event_listeners(search_modal);
 		});
 	}
 
+	open(search_modal) {
+		const modal = search_modal || this.search_modal;
+		if (!modal) return;
+		modal.modal("show");
+		this.setup_event_listeners(modal);
+	}
+
+	close() {
+		if (!this.is_open()) return;
+		this.search_modal.modal("hide");
+	}
+
+	is_open() {
+		return Boolean(this.search_modal?.hasClass("show"));
+	}
+
 	setup_event_listeners(search_modal) {
+		// Listeners and the Awesomplete dropdown only need to be set up once.
+		// Re-running this on every open creates duplicate dropdowns and shows results twice.
+		if (this.awesomplete) return;
+
 		var me = this;
 		let $input = search_modal.find("#navbar-search");
 		let input = $input.get(0);
@@ -91,6 +107,21 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			maxItems: 99,
 			autoFirst: true,
 			list: [],
+			container: function (input) {
+				let container = document.createElement("div");
+				container.className = "awesomplete";
+				let input_row = document.createElement("div");
+				input_row.className = "awesomebar-input-row";
+				let icon = document.createElement("span");
+				icon.className = "awesomebar-search-icon";
+				icon.setAttribute("aria-hidden", "true");
+				icon.innerHTML = frappe.utils.icon("search", "sm");
+				input.parentNode.insertBefore(container, input);
+				input_row.appendChild(icon);
+				input_row.appendChild(input);
+				container.appendChild(input_row);
+				return container;
+			},
 			filter: function (text, term) {
 				return true;
 			},
@@ -111,18 +142,6 @@ frappe.search.AwesomeBar = class AwesomeBar {
 							)
 						)
 					);
-				}
-				if (d.type == "sidebar") {
-					d.route_options = {
-						sidebar: d.description,
-					};
-				}
-				if (d.type == "Desktop Icon") {
-					target = frappe.utils.get_route_for_icon(d.icon_data);
-					d.route = target;
-					d.route_options = {
-						sidebar: d.icon_data.label,
-					};
 				}
 				let html = `<span>${__(d.label || d.value)}</span>`;
 
@@ -169,6 +188,13 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					);
 					me.options = me.options.concat(frappe.search.utils.get_frequent_links());
 				}
+
+				// hide footer and remove spacing when there are no results
+				$(this.awesomplete.ul).toggleClass("p-0 m-0", cint(me.options?.length) == 0);
+				search_modal
+					.find(".cool-awesomebar-modal-footer")
+					.toggleClass("hide", cint(me.options?.length) == 0);
+
 				let options = me.deduplicate(me.options);
 				awesomplete.options_with_desc = me.create_options_with_descriptions(options);
 				Awesomplete.prototype._itemCursor = 0;
@@ -265,13 +291,13 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			.concat(
 				frappe.search.utils.get_search_in_list(txt),
 				frappe.search.utils.get_doctypes(txt),
+				frappe.search.utils.get_doctype_layouts(txt),
 				frappe.search.utils.get_reports(txt),
 				frappe.search.utils.get_pages(txt),
-				frappe.search.utils.get_desktop_icons(txt),
+				frappe.search.utils.get_workspaces(txt),
 				frappe.search.utils.get_dashboards(txt),
 				frappe.search.utils.get_recent_pages(txt || ""),
-				frappe.search.utils.get_executables(txt),
-				frappe.search.utils.get_marketplace_apps(txt)
+				frappe.search.utils.get_executables(txt)
 			);
 		if (txt.charAt(0) === "#") {
 			options = frappe.tags.utils.get_tags(txt);
@@ -446,5 +472,27 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				},
 			});
 		}
+	}
+
+	setup_correct_button(wrapper) {
+		let small_button = $(wrapper).find("#small-search-button");
+		let full_button = $(wrapper).find("#full-search-button");
+		if (frappe.is_mobile()) {
+			small_button.removeClass("hidden");
+			full_button.addClass("hidden");
+			return;
+		}
+		small_button.addClass("hidden");
+		full_button.removeClass("hidden");
+	}
+	setup_page_change_event() {
+		const me = this;
+		$(document).on("page-change", function (event, data) {
+			me.setup_correct_button(data);
+		});
+
+		$(document).on("form-refresh", function (event, data) {
+			me.setup_correct_button(data.wrapper);
+		});
 	}
 };

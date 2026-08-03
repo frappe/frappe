@@ -5,6 +5,8 @@ from frappe.model.document import Document
 
 
 class BlockModule(Document):
+	_DOCTYPE_NAME = "Block Module"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

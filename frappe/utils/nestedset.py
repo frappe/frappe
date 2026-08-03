@@ -75,6 +75,7 @@ def update_add_node(doc, parent, parent_field):
 	# get the last sibling of the parent
 	if parent:
 		left, right = frappe.db.get_value(doctype, {"name": parent}, ["lft", "rgt"], for_update=True)
+		assert left < right, "parent node's lft must be less than its rgt in a nested set"
 		validate_loop(doc.doctype, doc.name, left, right)
 	else:  # root
 		right = (
@@ -111,6 +112,7 @@ def update_move_node(doc: Document, parent_field: str):
 			.run(as_dict=True)[0]
 		)
 
+		assert new_parent.lft < new_parent.rgt, "parent node's lft must be less than its rgt in a nested set"
 		validate_loop(doc.doctype, doc.name, new_parent.lft, new_parent.rgt)
 
 	# move to dark side
@@ -119,6 +121,7 @@ def update_move_node(doc: Document, parent_field: str):
 	).run()
 
 	# shift left
+	assert doc.lft < doc.rgt, "moving node's lft must be less than its rgt in a nested set"
 	diff = doc.rgt - doc.lft + 1
 	frappe.qb.update(Table).set(Table.lft, Table.lft - diff).set(Table.rgt, Table.rgt - diff).where(
 		Table.lft > doc.rgt
@@ -165,12 +168,14 @@ def update_move_node(doc: Document, parent_field: str):
 
 
 @frappe.whitelist()
+def rebuild_tree_for_doctype(doctype: str) -> None:
+	"""Rebuild the nested set of a tree doctype on request."""
+	frappe.only_for("System Manager")
+	rebuild_tree(doctype)
+
+
 def rebuild_tree(doctype: str) -> None:
 	"""Call rebuild_node for all root nodes."""
-	# Check for perm if called from client-side
-	if frappe.request and frappe.local.form_dict.cmd == "rebuild_tree":
-		frappe.only_for("System Manager")
-
 	meta = frappe.get_meta(doctype)
 	if not meta.has_field("lft") or not meta.has_field("rgt"):
 		frappe.throw(
@@ -221,6 +226,7 @@ def rebuild_node(doctype, parent, left, parent_field):
 
 	# we've got the left value, and now that we've processed
 	# the children of this node we also know the right value
+	assert right > left, "computed rgt must exceed lft after processing children"
 	frappe.db.set_value(doctype, parent, {"lft": left, "rgt": right}, update_modified=False)
 
 	# return the right value of this node + 1
@@ -242,6 +248,7 @@ def remove_subtree(doctype: str, name: str, throw=True):
 
 	# Determine the `lft` and `rgt` of the subtree to be removed.
 	lft, rgt = frappe.db.get_value(doctype, name, ["lft", "rgt"])
+	assert lft < rgt, "subtree root's lft must be less than its rgt in a nested set"
 
 	# Delete the subtree by removing all nodes whose values for `lft` and `rgt`
 	# lie within above values or match them.
