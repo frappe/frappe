@@ -40,6 +40,7 @@ from flow_tui.commands import FlowCommandProvider, dispatch
 from flow_tui.controller import Controller
 from flow_tui.widgets.composer import Composer
 from flow_tui.widgets.conversation import ConversationView
+from flow_tui.widgets.messages import SPINNER_FRAMES
 from flow_tui.widgets.status_bar import StatusBar
 
 TUI_SYSTEM_SUFFIX = (
@@ -47,7 +48,6 @@ TUI_SYSTEM_SUFFIX = (
 	"The user talks to you through the flow terminal UI. Keep answers terminal-friendly: "
 	"plain text and fenced code blocks; no HTML."
 )
-SPINNER_FRAMES = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
 
 
 class Spinner(Static):
@@ -120,6 +120,7 @@ class FlowApp(App):
 		Binding("ctrl+c", "interrupt", "abort/quit", priority=True),
 		Binding("escape", "interrupt", "abort", show=False),
 		Binding("ctrl+t", "toggle_thinking", "thinking", priority=True),
+		Binding("ctrl+o", "toggle_tools", "tool output", priority=True),
 	]
 
 	def __init__(
@@ -194,6 +195,7 @@ class FlowApp(App):
 			state, session_id=self.controller.session_id, queued=len(self.controller.queued)
 		)
 		self.query_one("#brewing").set_class(state.running, "visible")
+		self.query_one(ConversationView).set_running(state.running)
 		banner = self.query_one("#error-banner", Static)
 		if state.last_error is not None:
 			banner.update(f"✗ {state.last_error.message}")
@@ -244,6 +246,10 @@ class FlowApp(App):
 	def action_toggle_thinking(self) -> None:
 		conversation = self.query_one(ConversationView)
 		conversation.set_show_thinking(not conversation.show_thinking)
+
+	def action_toggle_tools(self) -> None:
+		conversation = self.query_one(ConversationView)
+		conversation.set_expand_tools(not conversation.expand_tools)
 
 	def action_interrupt(self) -> None:
 		"""First ctrl+c/escape aborts the run; ctrl+c while idle quits."""

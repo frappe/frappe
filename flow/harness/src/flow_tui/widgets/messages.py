@@ -3,18 +3,23 @@ mutable streamed-preview widget (`PartialAssistantView`) at the conversation tai
 
 `EntryView` is a container, not a single Static: an assistant message interleaves
 text, thinking, and tool calls, and each thinking block folds behind its own
-`Collapsible`. Tool results dispatch on `ToolResult.details` — a diff gets syntax
-highlighting, exit code and truncation become header badges, and everything else
-falls back to a collapsed output preview.
+`Collapsible`. A tool call renders as one `ToolCallView` — a per-tool one-liner
+(`$ cmd` for bash, `-> edit path (2 edits)`, …) behind a status glyph. The matching
+`ToolResult` merges into the same widget: the glyph settles to ✓/✗, a bracket
+suffix reports exit code / duration / truncation, and the output shows as a dim
+few-line preview that ctrl+o expands. A diff in `ToolResult.details` gets syntax
+highlighting instead of the plain preview.
 """
 
 from __future__ import annotations
 
 import json
 
+from rich.console import Group, RenderableType
 from rich.syntax import Syntax
 from rich.text import Text
 from textual.containers import Vertical
+from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Collapsible, Static
 
@@ -29,8 +34,71 @@ from flow.events import (
 )
 from flow_tui.client.state import PartialPart, PartialText, PartialThinking, PartialToolCall
 
-_TITLE_CHARS = 60
-_ARGS_CHARS = 100
+SPINNER_FRAMES = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+_PREVIEW_LINES = 3
+_DIFF_PREVIEW_LINES = 32
+
+
+def call_line(name: str, args: dict | None) -> str:
+	"""Collapsed one-liner for a tool call. `args is None` means only the live
+	ToolCallStarted has been seen; the line upgrades once the durable call lands."""
+	if args is None:
+		return f"-> {name} …"
+	if name == "bash":
+		return f"$ {args.get('command', '')}"
+	if name == "edit":
+		n = len(args.get("edits") or [])
+		return f"-> edit {args.get('path', '')} ({n} edit{'s' if n != 1 else ''})"
+	if name == "write":
+		return f"-> write {args.get('path', '')} ({len(args.get('content') or '')} chars)"
+	if name == "read_file":
+		return f"-> read {args.get('path', '')}"
+	if name == "grep":
+		return f"-> grep {args.get('pattern', '')} {args.get('path', '')}".rstrip()
+	if not args:
+		return f"-> {name}"
+	return f"-> {name} {json.dumps(args, ensure_ascii=False)}"
+
+
+def result_line(result: ToolResult) -> str:
+	"""Fallback one-liner rebuilt from `details` for a result whose call was never
+	seen (a replay hole); the call arguments are gone, the details survive."""
+	d = result.details
+	if result.name == "bash" and d.get("command"):
+		return f"$ {d['command']}"
+	parts = [f"-> {result.name}"]
+	if result.name == "grep" and d.get("pattern"):
+		parts.append(d["pattern"])
+	if d.get("path"):
+		parts.append(str(d["path"]))
+	if (n := d.get("edits")) is not None:
+		parts.append(f"({n} edit{'s' if n != 1 else ''})")
+	if (chars := d.get("chars")) is not None:
+		parts.append(f"({chars} chars)")
+	return " ".join(parts)
+
+
+def status_suffix(details: dict) -> str:
+	"""Trailing bracket annotations from `details`: abort/timeout/exit code, duration,
+	truncation, match count, spilled-output path."""
+	parts: list[str] = []
+	if details.get("aborted"):
+		parts.append("aborted")
+	elif details.get("timed_out"):
+		parts.append("timed out")
+	elif (code := details.get("exit_code")) is not None:
+		parts.append(f"exit {code}")
+	if (duration := details.get("duration_seconds")) is not None:
+		parts.append(f"{duration}s")
+	truncation = details.get("truncation") or {}
+	if truncation.get("truncated"):
+		shown, total = truncation.get("output_lines"), truncation.get("total_lines")
+		parts.append(f"truncated · {shown}/{total} lines")
+		if details.get("full_output_path"):
+			parts.append(f"full output: {details['full_output_path']}")
+	if (matches := details.get("matches")) is not None:
+		parts.append(f"{matches} matches")
+	return f"[{', '.join(parts)}]" if parts else ""
 
 
 class ThinkingBlock(Collapsible):
@@ -44,18 +112,152 @@ class ThinkingBlock(Collapsible):
 		)
 
 
-class EntryView(Vertical):
-	"""A rendered durable entry; keeps its seq so a rewind can drop it."""
+class ToolCallView(Static):
+	"""One tool call and, once it merges in, its result.
+
+	Runs through three looks: a spinner one-liner while the call executes, a settled
+	✓/✗ line with a bracket suffix when the result lands, and — via the `expanded`
+	reactive (ctrl+o) — the full output instead of the dim few-line preview.
+	`call` is None when a result arrived without its call; the line then rebuilds
+	from `ToolResult.details`.
+	"""
+
+	expanded: reactive[bool] = reactive(False)
 
 	def __init__(
-		self, entry: TranscriptMessage, *, steered: bool = False, show_thinking: bool = False
+		self,
+		call: ToolCall | None,
+		*,
+		entry_seq: int | None,
+		result: ToolResult | None = None,
+		expanded: bool = False,
+		running: bool = True,
+	) -> None:
+		super().__init__(classes="tool-call")
+		self.call = call
+		self.entry_seq = entry_seq
+		self.result = result
+		self.result_seq = result.seq if result is not None else None
+		self._live = running
+		self._frame = 0
+		self.set_reactive(ToolCallView.expanded, expanded)
+
+	def on_mount(self) -> None:
+		self.set_interval(0.1, self._tick)
+
+	def render(self) -> RenderableType:
+		header = self._header()
+		body = self._body()
+		return header if body is None else Group(header, body)
+
+	def set_result(self, result: ToolResult) -> None:
+		self.result = result
+		self.result_seq = result.seq
+		self.refresh(layout=True)
+
+	def clear_result(self) -> None:
+		"""A rewind cut the result but kept the call: back to the unresolved look."""
+		self.result = None
+		self.result_seq = None
+		self.refresh(layout=True)
+
+	def set_running(self, running: bool) -> None:
+		"""Freeze or resume the spinner; a resultless call after the run ended shows a
+		quiet dot instead of spinning forever."""
+		if running != self._live:
+			self._live = running
+			self.refresh()
+
+	def watch_expanded(self, _expanded: bool) -> None:
+		self.refresh(layout=True)
+
+	def _tick(self) -> None:
+		if self.result is None and self._live:
+			self._frame = (self._frame + 1) % len(SPINNER_FRAMES)
+			self.refresh()
+
+	def _header(self) -> Text:
+		result = self.result
+		failed = result is not None and (result.is_error or result.details.get("aborted"))
+		if result is None:
+			glyph, style = (SPINNER_FRAMES[self._frame], "yellow") if self._live else ("·", "dim")
+		elif failed:
+			glyph, style = "✗", "bold red"
+		else:
+			glyph, style = "✓", "bold green"
+		if self.call is not None:
+			line = call_line(self.call.name, self.call.arguments)
+		else:
+			assert result is not None  # a call-less view always carries its result
+			line = result_line(result)
+		text = Text()
+		text.append(f"{glyph} ", style)
+		text.append(line, style="red" if failed else "")
+		if result is not None and (suffix := status_suffix(result.details)):
+			text.append(f" {suffix}", style="red" if failed else "dim")
+		return text
+
+	def _body(self) -> RenderableType | None:
+		result = self.result
+		if result is None:
+			return None
+		if diff := result.details.get("diff"):
+			return _diff_body(diff, expanded=self.expanded)
+		content = result.content.strip()
+		if not content:
+			return None
+		if self.expanded:
+			return Text(content)
+		lines = content.splitlines()
+		head = lines[:_PREVIEW_LINES]
+		if (hidden := len(lines) - len(head)) > 0:
+			head.append(f"… (+{hidden} lines, ctrl+o to expand)")
+		return Text("\n".join(head), style="dim")
+
+
+def _diff_body(diff: str, *, expanded: bool) -> RenderableType:
+	lines = diff.splitlines()
+	if expanded or len(lines) <= _DIFF_PREVIEW_LINES:
+		return Syntax(diff, "diff", background_color="default")
+	return Group(
+		Syntax("\n".join(lines[:_DIFF_PREVIEW_LINES]), "diff", background_color="default"),
+		Text(f"… (+{len(lines) - _DIFF_PREVIEW_LINES} more diff lines, ctrl+o to expand)", style="dim"),
+	)
+
+
+class EntryView(Vertical):
+	"""A rendered durable entry; keeps its seq so a rewind can drop it.
+
+	`tool_calls` maps call id -> `ToolCallView` for the calls this entry contains, so
+	the conversation can merge later `ToolResult` entries into them.
+	"""
+
+	def __init__(
+		self,
+		entry: TranscriptMessage,
+		*,
+		steered: bool = False,
+		show_thinking: bool = False,
+		expand_tools: bool = False,
+		running: bool = True,
 	) -> None:
 		super().__init__()
 		self.seq = entry.seq
 		self.add_class(f"entry--{entry.type}")
 		if steered:
 			self.add_class("entry--steered")
-		self._parts = entry_widgets(entry, steered=steered, show_thinking=show_thinking)
+		self._parts = entry_widgets(
+			entry,
+			steered=steered,
+			show_thinking=show_thinking,
+			expand_tools=expand_tools,
+			running=running,
+		)
+		self.tool_calls = {
+			part.call.id: part
+			for part in self._parts
+			if isinstance(part, ToolCallView) and part.call is not None
+		}
 
 	def compose(self):
 		yield from self._parts
@@ -78,19 +280,27 @@ class PartialAssistantView(Static):
 			elif isinstance(part, PartialText):
 				text.append(part.text)
 			elif isinstance(part, PartialToolCall):
-				text.append(f"⚙ {part.name}…", style="yellow")
+				text.append(call_line(part.name, None), style="yellow")
 		text.append("▌", style="dim")
 		self.update(text)
 
 
 def entry_widgets(
-	entry: TranscriptMessage, *, steered: bool = False, show_thinking: bool = False
+	entry: TranscriptMessage,
+	*,
+	steered: bool = False,
+	show_thinking: bool = False,
+	expand_tools: bool = False,
+	running: bool = True,
 ) -> list[Widget]:
 	if isinstance(entry, UserMessage):
 		return [Static(_render_user(entry, steered=steered))]
 	if isinstance(entry, AssistantMessage):
-		return _assistant_widgets(entry, show_thinking=show_thinking)
-	return _tool_result_widgets(entry)
+		return _assistant_widgets(
+			entry, show_thinking=show_thinking, expand_tools=expand_tools, running=running
+		)
+	# a result whose call was never rendered (replay hole): standalone, already settled
+	return [ToolCallView(None, entry_seq=entry.seq, result=entry, expanded=expand_tools, running=False)]
 
 
 def _render_user(message: UserMessage, *, steered: bool) -> Text:
@@ -102,7 +312,9 @@ def _render_user(message: UserMessage, *, steered: bool) -> Text:
 	return text
 
 
-def _assistant_widgets(message: AssistantMessage, *, show_thinking: bool) -> list[Widget]:
+def _assistant_widgets(
+	message: AssistantMessage, *, show_thinking: bool, expand_tools: bool, running: bool
+) -> list[Widget]:
 	widgets: list[Widget] = []
 	for block in message.content:
 		if isinstance(block, ThinkingContent):
@@ -114,70 +326,10 @@ def _assistant_widgets(message: AssistantMessage, *, show_thinking: bool) -> lis
 		elif isinstance(block, TextContent):
 			widgets.append(Static(Text(block.text)))
 		elif isinstance(block, ToolCall):
-			widgets.append(Static(Text(_tool_call_line(block), style="yellow")))
+			widgets.append(ToolCallView(block, entry_seq=message.seq, expanded=expand_tools, running=running))
 	if message.stop_reason in ("aborted", "error"):
 		note = Text(f"[{message.stop_reason}]", style="bold red")
 		if message.error_message:
 			note.append(f" {message.error_message}", style="red")
 		widgets.append(Static(note))
 	return widgets
-
-
-def _tool_result_widgets(result: ToolResult) -> list[Widget]:
-	widgets: list[Widget] = [Static(_tool_result_header(result))]
-	diff = result.details.get("diff")
-	if diff:
-		body = Static(Syntax(diff, "diff", background_color="default"))
-		widgets.append(Collapsible(body, title="diff", collapsed=False))
-	elif content := result.content.strip():
-		lines = content.splitlines()
-		title = _clip(lines[0], _TITLE_CHARS)
-		if len(lines) > 1:
-			title += f" · {len(lines)} lines"
-		widgets.append(Collapsible(Static(Text(content, style="dim")), title=title, collapsed=True))
-	return widgets
-
-
-def _tool_result_header(result: ToolResult) -> Text:
-	text = Text()
-	if result.is_error:
-		text.append("✗ ", style="bold red")
-	else:
-		text.append("✓ ", style="bold green")
-	text.append(result.name, style="yellow")
-	if path := result.details.get("path"):
-		text.append(f" {path}", style="dim")
-	for badge, style in _badges(result.details):
-		text.append(f"  [{badge}]", style=style)
-	return text
-
-
-def _badges(details: dict) -> list[tuple[str, str]]:
-	"""Header badges for the `details` shapes the builtin tools emit."""
-	badges: list[tuple[str, str]] = []
-	if (code := details.get("exit_code")) is not None:
-		badges.append((f"exit {code}", "green" if code == 0 else "red"))
-	if details.get("aborted"):
-		badges.append(("aborted", "red"))
-	if details.get("timed_out"):
-		badges.append(("timed out", "red"))
-	truncation = details.get("truncation") or {}
-	if truncation.get("truncated"):
-		shown, total = truncation.get("output_lines"), truncation.get("total_lines")
-		badges.append((f"truncated · {shown}/{total} lines", "yellow"))
-	if (matches := details.get("matches")) is not None:
-		badges.append((f"{matches} matches", "dim"))
-	if (edits := details.get("edits")) is not None:
-		badges.append((f"{edits} edit{'s' if edits != 1 else ''}", "dim"))
-	if (chars := details.get("chars")) is not None:
-		badges.append((f"{chars} chars", "dim"))
-	return badges
-
-
-def _tool_call_line(call: ToolCall) -> str:
-	args = json.dumps(call.arguments, ensure_ascii=False)
-	return f"⚙ {call.name} {_clip(args, _ARGS_CHARS)}"
-
-
-def _clip(text: str, limit: int) -> str:
-	return text if len(text) <= limit else text[: limit - 1] + "…"

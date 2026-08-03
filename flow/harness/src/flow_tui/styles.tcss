@@ -31,10 +31,6 @@ EntryView Collapsible Contents {
 	color: $text-muted;
 }
 
-.entry--tool_result {
-	color: $text-muted;
-}
-
 PartialAssistantView {
 	margin-bottom: 1;
 }
