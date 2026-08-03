@@ -8,10 +8,7 @@ frappe.provide("frappe.ui");
 
 const TABLE_FIELDTYPES = ["Table", "Table MultiSelect"];
 
-// MOBILE_BREAKPOINT mirrors $grid-breakpoints "md" in scss/desk/variables.scss.
 const SIDE_PANEL_WIDTH_KEY = "side_panel_width";
-const MIN_PANEL_WIDTH = 380;
-const MOBILE_BREAKPOINT = 768;
 const LOAD_TIMEOUT_MS = 20000;
 
 // Fails open: showing an extra field beats hiding one the user should see.
@@ -240,7 +237,8 @@ frappe.ui.SidePanel = class SidePanel {
 		if (stored) this.set_width(stored);
 
 		this.$panel.find(".side-panel-resizer").on("mousedown", (e) => {
-			if (window.innerWidth <= MOBILE_BREAKPOINT) return;
+			// CSS hides the handle below the mobile breakpoint; don't restate the breakpoint here.
+			if (!$(e.currentTarget).is(":visible")) return;
 			e.preventDefault();
 
 			const start_x = e.clientX;
@@ -272,8 +270,14 @@ frappe.ui.SidePanel = class SidePanel {
 	}
 
 	set_width(width) {
-		const max = Math.max(MIN_PANEL_WIDTH, window.innerWidth - 120);
-		const clamped = Math.min(Math.max(width, MIN_PANEL_WIDTH), max);
+		// Lower bound comes from --side-panel-min-width so it can't drift from the CSS clamp.
+		const min =
+			parseInt(
+				getComputedStyle(this.$panel[0]).getPropertyValue("--side-panel-min-width"),
+				10
+			) || 0;
+		const max = Math.max(min, window.innerWidth - 120);
+		const clamped = Math.min(Math.max(width, min), max);
 		this.$panel[0].style.setProperty("--side-panel-width", `${clamped}px`);
 	}
 
@@ -482,12 +486,17 @@ frappe.ui.SidePanel = class SidePanel {
 		this.$panel.toggleClass("is-loading", state === "loading");
 		this.$body.find(".side-panel-doc").toggleClass("invisible", state !== "ready");
 
-		if (state === "loading") {
-			$(`<div class="side-panel-message">${__("Loading...")}</div>`).appendTo(this.$body);
-		} else if (state === "error") {
-			$(
-				`<div class="side-panel-message">${__("Could not load this document")}</div>`
-			).appendTo(this.$body);
+		const message =
+			state === "loading"
+				? __("Loading...")
+				: state === "error"
+				? __("Could not load this document")
+				: null;
+
+		if (message) {
+			$('<div class="side-panel-message text-center text-extra-muted"></div>')
+				.text(message)
+				.appendTo(this.$body);
 		}
 	}
 

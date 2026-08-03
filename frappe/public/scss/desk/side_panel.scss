@@ -1,7 +1,8 @@
 // Drawer chrome only — the body is a frappe.ui.form.Layout and inherits form.scss as-is.
 
 .side-panel {
-	--side-panel-width: clamp(380px, 46vw, 780px);
+	--side-panel-min-width: 380px;
+	--side-panel-width: clamp(var(--side-panel-min-width), 46vw, 780px);
 
 	position: fixed;
 	top: $navbar-height;
@@ -23,8 +24,11 @@
 		right: 0;
 	}
 
+	// Set width/right directly, not the variable — a stored width is applied as an inline custom
+	// property, which would otherwise win over this.
 	@media (max-width: map-get($grid-breakpoints, "md")) {
-		--side-panel-width: 100vw;
+		width: 100vw;
+		right: -100vw;
 	}
 }
 
@@ -75,8 +79,6 @@ body.side-panel-resizing {
 
 .side-panel-header {
 	flex-shrink: 0;
-	display: flex;
-	align-items: center;
 	gap: var(--margin-sm);
 	padding: var(--padding-sm) var(--padding-md);
 	// Tinted instead of a divider line; surface-gray-1 stays a subtle step in light and dark.
@@ -84,11 +86,8 @@ body.side-panel-resizing {
 }
 
 .side-panel-heading {
-	display: flex;
-	align-items: center;
 	gap: var(--margin-xs);
 	min-width: 0;
-	font-size: var(--text-base);
 }
 
 .side-panel-doctype,
@@ -98,34 +97,12 @@ body.side-panel-resizing {
 }
 
 .side-panel-title {
-	font-weight: var(--font-weight-semibold);
 	color: var(--ink-gray-8);
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
 }
 
 .side-panel-actions {
-	display: flex;
-	align-items: center;
 	gap: var(--margin-xs);
 	margin-left: auto;
-}
-
-.side-panel-btn {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: var(--padding-xs);
-	border: none;
-	border-radius: var(--radius-3);
-	background: transparent;
-	color: var(--ink-gray-5);
-
-	&:hover {
-		background-color: var(--surface-gray-2);
-		color: var(--ink-gray-8);
-	}
 }
 
 .side-panel-body {
@@ -133,16 +110,7 @@ body.side-panel-resizing {
 	min-height: 0;
 	overflow-y: auto;
 	position: relative;
-}
 
-.side-panel-message {
-	padding: var(--padding-xl);
-	text-align: center;
-	color: var(--ink-gray-5);
-	font-size: var(--text-base);
-}
-
-.side-panel-body {
 	.form-layout {
 		// No top padding — the tab bar brings its own (.nav-link, form.scss).
 		padding: 0 0 var(--padding-md);
@@ -154,6 +122,10 @@ body.side-panel-resizing {
 	.section-body {
 		max-width: none;
 	}
+}
+
+.side-panel-message {
+	padding: var(--padding-xl);
 }
 
 .side-panel.is-loading .side-panel-doc {

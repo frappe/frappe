@@ -1,20 +1,38 @@
 <div class="side-panel hidden">
 	<div class="side-panel-resizer" title="{%= __("Drag to resize") %}"></div>
-	<div class="side-panel-header">
-		<button type="button" class="side-panel-btn side-panel-back hidden" title="{%= __("Back") %}">
+	<div class="side-panel-header flex align-center">
+		<button
+			type="button"
+			class="es-button side-panel-back hidden"
+			data-variant="ghost"
+			data-icon-button="true"
+			title="{%= __("Back") %}"
+		>
 			{%= frappe.utils.icon("arrow-left", "sm") %}
 		</button>
-		<div class="side-panel-heading">
+		<div class="side-panel-heading flex align-center text-base-regular">
 			<span class="side-panel-doctype"></span>
 			<span class="side-panel-sep">/</span>
-			<span class="side-panel-title"></span>
+			<span class="side-panel-title ellipsis text-base-semibold"></span>
 			<span class="side-panel-indicator"></span>
 		</div>
-		<div class="side-panel-actions">
-			<button type="button" class="side-panel-btn side-panel-expand" title="{%= __("Open in full page") %}">
+		<div class="side-panel-actions flex align-center">
+			<button
+				type="button"
+				class="es-button side-panel-expand"
+				data-variant="ghost"
+				data-icon-button="true"
+				title="{%= __("Open in full page") %}"
+			>
 				{%= frappe.utils.icon("arrow-up-right", "sm") %}
 			</button>
-			<button type="button" class="side-panel-btn side-panel-close" title="{%= __("Close") %}">
+			<button
+				type="button"
+				class="es-button side-panel-close"
+				data-variant="ghost"
+				data-icon-button="true"
+				title="{%= __("Close") %}"
+			>
 				{%= frappe.utils.icon("x", "sm") %}
 			</button>
 		</div>
