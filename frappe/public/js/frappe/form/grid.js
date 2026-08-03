@@ -955,7 +955,12 @@ export default class Grid {
 			handle: ".sortable-handle",
 			draggable: ".grid-row",
 			animation: 100,
-			filter: "li, a",
+			filter: (evt) => {
+				if (evt.target.closest(".ql-editor")) {
+					return false;
+				}
+				return !!evt.target.closest("li, a");
+			},
 			onMove: (event) => {
 				// don't move if editable
 				if (!this.is_editable()) {
