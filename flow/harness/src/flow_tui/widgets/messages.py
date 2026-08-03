@@ -1,17 +1,22 @@
 """Per-entry widgets: one durable transcript entry becomes one widget, plus the
 mutable streamed-preview widget (`PartialAssistantView`) at the conversation tail.
 
-Rendering stays deliberately plain for the MVP: thinking is dimmed text, tool calls
-are one-liners, tool results show a short preview. Phase 8 upgrades these in place
-(collapsible thinking, diff highlighting) without changing the widget boundaries.
+`EntryView` is a container, not a single Static: an assistant message interleaves
+text, thinking, and tool calls, and each thinking block folds behind its own
+`Collapsible`. Tool results dispatch on `ToolResult.details` — a diff gets syntax
+highlighting, exit code and truncation become header badges, and everything else
+falls back to a collapsed output preview.
 """
 
 from __future__ import annotations
 
 import json
 
+from rich.syntax import Syntax
 from rich.text import Text
-from textual.widgets import Static
+from textual.containers import Vertical
+from textual.widget import Widget
+from textual.widgets import Collapsible, Static
 
 from flow.events import (
 	AssistantMessage,
@@ -24,33 +29,52 @@ from flow.events import (
 )
 from flow_tui.client.state import PartialPart, PartialText, PartialThinking, PartialToolCall
 
-_PREVIEW_CHARS = 400
-_PREVIEW_LINES = 6
+_TITLE_CHARS = 60
 _ARGS_CHARS = 100
 
 
-class EntryView(Static):
+class ThinkingBlock(Collapsible):
+	"""One `ThinkingContent` block, folded behind a char-count title."""
+
+	def __init__(self, thinking: str, *, collapsed: bool = True) -> None:
+		super().__init__(
+			Static(Text(thinking, style="dim italic")),
+			title=f"thinking · {len(thinking)} chars",
+			collapsed=collapsed,
+		)
+
+
+class EntryView(Vertical):
 	"""A rendered durable entry; keeps its seq so a rewind can drop it."""
 
-	def __init__(self, entry: TranscriptMessage, *, steered: bool = False) -> None:
-		super().__init__(render_entry(entry, steered=steered))
+	def __init__(
+		self, entry: TranscriptMessage, *, steered: bool = False, show_thinking: bool = False
+	) -> None:
+		super().__init__()
 		self.seq = entry.seq
 		self.add_class(f"entry--{entry.type}")
 		if steered:
 			self.add_class("entry--steered")
+		self._parts = entry_widgets(entry, steered=steered, show_thinking=show_thinking)
+
+	def compose(self):
+		yield from self._parts
 
 
 class PartialAssistantView(Static):
 	"""The streamed preview: re-rendered on every delta, swapped out when the durable
 	`assistant_message` arrives."""
 
-	def update_parts(self, parts: list[PartialPart]) -> None:
+	def update_parts(self, parts: list[PartialPart], *, show_thinking: bool = False) -> None:
 		text = Text()
 		for part in parts:
 			if text:
 				text.append("\n")
 			if isinstance(part, PartialThinking):
-				text.append(part.thinking, style="dim italic")
+				if show_thinking:
+					text.append(part.thinking, style="dim italic")
+				else:
+					text.append(f"thinking · {len(part.thinking)} chars", style="dim italic")
 			elif isinstance(part, PartialText):
 				text.append(part.text)
 			elif isinstance(part, PartialToolCall):
@@ -59,12 +83,14 @@ class PartialAssistantView(Static):
 		self.update(text)
 
 
-def render_entry(entry: TranscriptMessage, *, steered: bool = False) -> Text:
+def entry_widgets(
+	entry: TranscriptMessage, *, steered: bool = False, show_thinking: bool = False
+) -> list[Widget]:
 	if isinstance(entry, UserMessage):
-		return _render_user(entry, steered=steered)
+		return [Static(_render_user(entry, steered=steered))]
 	if isinstance(entry, AssistantMessage):
-		return _render_assistant(entry)
-	return _render_tool_result(entry)
+		return _assistant_widgets(entry, show_thinking=show_thinking)
+	return _tool_result_widgets(entry)
 
 
 def _render_user(message: UserMessage, *, steered: bool) -> Text:
@@ -76,53 +102,82 @@ def _render_user(message: UserMessage, *, steered: bool) -> Text:
 	return text
 
 
-def _render_assistant(message: AssistantMessage) -> Text:
-	text = Text()
+def _assistant_widgets(message: AssistantMessage, *, show_thinking: bool) -> list[Widget]:
+	widgets: list[Widget] = []
 	for block in message.content:
-		if text:
-			text.append("\n")
 		if isinstance(block, ThinkingContent):
-			thinking = "[redacted thinking]" if block.redacted else block.thinking
-			text.append(thinking, style="dim italic")
+			if block.redacted:
+				sealed = Static(Text("thinking · redacted", style="dim italic"), classes="thinking--redacted")
+				widgets.append(sealed)
+			else:
+				widgets.append(ThinkingBlock(block.thinking, collapsed=not show_thinking))
 		elif isinstance(block, TextContent):
-			text.append(block.text)
+			widgets.append(Static(Text(block.text)))
 		elif isinstance(block, ToolCall):
-			text.append(_tool_call_line(block), style="yellow")
+			widgets.append(Static(Text(_tool_call_line(block), style="yellow")))
 	if message.stop_reason in ("aborted", "error"):
-		if text:
-			text.append("\n")
-		text.append(f"[{message.stop_reason}]", style="bold red")
+		note = Text(f"[{message.stop_reason}]", style="bold red")
 		if message.error_message:
-			text.append(f" {message.error_message}", style="red")
-	return text
+			note.append(f" {message.error_message}", style="red")
+		widgets.append(Static(note))
+	return widgets
 
 
-def _render_tool_result(result: ToolResult) -> Text:
+def _tool_result_widgets(result: ToolResult) -> list[Widget]:
+	widgets: list[Widget] = [Static(_tool_result_header(result))]
+	diff = result.details.get("diff")
+	if diff:
+		body = Static(Syntax(diff, "diff", background_color="default"))
+		widgets.append(Collapsible(body, title="diff", collapsed=False))
+	elif content := result.content.strip():
+		lines = content.splitlines()
+		title = _clip(lines[0], _TITLE_CHARS)
+		if len(lines) > 1:
+			title += f" · {len(lines)} lines"
+		widgets.append(Collapsible(Static(Text(content, style="dim")), title=title, collapsed=True))
+	return widgets
+
+
+def _tool_result_header(result: ToolResult) -> Text:
 	text = Text()
 	if result.is_error:
 		text.append("✗ ", style="bold red")
 	else:
 		text.append("✓ ", style="bold green")
 	text.append(result.name, style="yellow")
-	preview = _preview(result.content)
-	if preview:
-		text.append("\n")
-		text.append(preview, style="dim")
+	if path := result.details.get("path"):
+		text.append(f" {path}", style="dim")
+	for badge, style in _badges(result.details):
+		text.append(f"  [{badge}]", style=style)
 	return text
+
+
+def _badges(details: dict) -> list[tuple[str, str]]:
+	"""Header badges for the `details` shapes the builtin tools emit."""
+	badges: list[tuple[str, str]] = []
+	if (code := details.get("exit_code")) is not None:
+		badges.append((f"exit {code}", "green" if code == 0 else "red"))
+	if details.get("aborted"):
+		badges.append(("aborted", "red"))
+	if details.get("timed_out"):
+		badges.append(("timed out", "red"))
+	truncation = details.get("truncation") or {}
+	if truncation.get("truncated"):
+		shown, total = truncation.get("output_lines"), truncation.get("total_lines")
+		badges.append((f"truncated · {shown}/{total} lines", "yellow"))
+	if (matches := details.get("matches")) is not None:
+		badges.append((f"{matches} matches", "dim"))
+	if (edits := details.get("edits")) is not None:
+		badges.append((f"{edits} edit{'s' if edits != 1 else ''}", "dim"))
+	if (chars := details.get("chars")) is not None:
+		badges.append((f"{chars} chars", "dim"))
+	return badges
 
 
 def _tool_call_line(call: ToolCall) -> str:
 	args = json.dumps(call.arguments, ensure_ascii=False)
-	if len(args) > _ARGS_CHARS:
-		args = args[: _ARGS_CHARS - 1] + "…"
-	return f"⚙ {call.name} {args}"
+	return f"⚙ {call.name} {_clip(args, _ARGS_CHARS)}"
 
 
-def _preview(content: str) -> str:
-	lines = content.strip().splitlines()
-	preview = "\n".join(lines[:_PREVIEW_LINES])
-	if len(preview) > _PREVIEW_CHARS:
-		preview = preview[:_PREVIEW_CHARS]
-	if len(lines) > _PREVIEW_LINES or len(preview) < len(content.strip()):
-		preview += " …"
-	return preview
+def _clip(text: str, limit: int) -> str:
+	return text if len(text) <= limit else text[: limit - 1] + "…"

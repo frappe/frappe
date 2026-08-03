@@ -1,4 +1,5 @@
-"""Phase 6 TUI shell: rendering, delta→durable swap, steering, queueing, status bar.
+"""Phases 6-7 TUI shell: rendering, delta→durable swap, steering, queueing, status
+bar, collapsible thinking, and detail-driven tool-result rendering.
 
 Pilot tests drive `FlowApp` with a fake controller (no HTTP); one integration test
 runs the real stack — uvicorn + MockModel + Controller — end to end.
@@ -10,6 +11,8 @@ from collections.abc import Callable
 from contextlib import asynccontextmanager
 
 import uvicorn
+from rich.syntax import Syntax
+from textual.widgets import Collapsible, Static
 
 from flow.events import (
 	AssistantMessage,
@@ -17,6 +20,8 @@ from flow.events import (
 	RunStarted,
 	TextContent,
 	TextDelta,
+	ThinkingContent,
+	ThinkingDelta,
 	ToolResult,
 	Usage,
 	UserMessage,
@@ -31,7 +36,7 @@ from flow_tui.client.state import Change, ConversationState, StatusChanged
 from flow_tui.controller import Controller
 from flow_tui.widgets.composer import Composer
 from flow_tui.widgets.conversation import ConversationView
-from flow_tui.widgets.messages import EntryView, PartialAssistantView
+from flow_tui.widgets.messages import EntryView, PartialAssistantView, ThinkingBlock
 from flow_tui.widgets.status_bar import StatusBar
 
 
@@ -73,7 +78,18 @@ class FakeController:
 
 
 def _widget_text(widget) -> str:
-	return str(widget.render())
+	"""All visible text of a widget: its own render, child statics, collapsible titles."""
+	if isinstance(widget, Static):
+		return _render_str(widget)
+	parts = [_render_str(static) for static in widget.query(Static)]
+	parts += [collapsible.title for collapsible in widget.query(Collapsible)]
+	return "\n".join(parts)
+
+
+def _render_str(static: Static) -> str:
+	rendered = static.render()
+	rendered = getattr(rendered, "_renderable", rendered)  # unwrap textual's RichVisual
+	return rendered.code if isinstance(rendered, Syntax) else str(rendered)
 
 
 async def test_renders_entries_and_swaps_partial_for_durable():
@@ -107,6 +123,132 @@ async def test_tool_result_renders_preview():
 		await pilot.pause()
 		text = _widget_text(pilot.app.query_one(ConversationView).query(EntryView).last())
 		assert "bash" in text and "line1" in text
+
+
+async def test_thinking_collapsed_by_default_and_redacted_stays_sealed():
+	fake = FakeController()
+	async with FlowApp(fake).run_test() as pilot:
+		fake.feed(
+			AssistantMessage(
+				content=[
+					ThinkingContent(thinking="let me think"),
+					TextContent(text="the answer"),
+					ThinkingContent(thinking="secret", redacted=True),
+				],
+				seq=1,
+			)
+		)
+		await pilot.pause()
+
+		entry = pilot.app.query_one(ConversationView).query(EntryView).last()
+		blocks = entry.query(ThinkingBlock)
+		assert len(blocks) == 1  # the redacted block is a sealed marker, not a collapsible
+		assert blocks.first().collapsed is True
+		assert blocks.first().title == "thinking · 12 chars"
+		text = _widget_text(entry)
+		assert "the answer" in text
+		assert "thinking · redacted" in text and "secret" not in text
+
+
+async def test_ctrl_t_toggles_thinking_blocks_and_partial():
+	fake = FakeController()
+	async with FlowApp(fake).run_test() as pilot:
+		fake.feed(AssistantMessage(content=[ThinkingContent(thinking="pondering")], seq=1))
+		fake.feed(RunStarted(run_id="r1", seq=2))
+		fake.feed(ThinkingDelta(thinking="hmm "))
+		fake.feed(ThinkingDelta(thinking="okay"))
+		fake.feed(TextDelta(text="reply"))
+		await pilot.pause()
+
+		block = pilot.app.query_one(ThinkingBlock)
+		partial = pilot.app.query_one(PartialAssistantView)
+		assert block.collapsed is True
+		preview = _widget_text(partial)
+		assert "thinking · 8 chars" in preview and "hmm okay" not in preview and "reply" in preview
+
+		await pilot.press("ctrl+t")
+		await pilot.pause()
+		assert block.collapsed is False
+		assert "hmm okay" in _widget_text(partial)
+
+		await pilot.press("ctrl+t")
+		await pilot.pause()
+		assert block.collapsed is True
+		assert "hmm okay" not in _widget_text(partial)
+
+
+async def test_new_entries_honor_thinking_toggle():
+	fake = FakeController()
+	async with FlowApp(fake).run_test() as pilot:
+		await pilot.press("ctrl+t")
+		fake.feed(AssistantMessage(content=[ThinkingContent(thinking="after toggle")], seq=1))
+		await pilot.pause()
+		assert pilot.app.query_one(ThinkingBlock).collapsed is False
+
+
+async def test_bash_result_renders_badges_and_collapsed_output():
+	fake = FakeController()
+	async with FlowApp(fake).run_test() as pilot:
+		fake.feed(
+			ToolResult(
+				tool_call_id="t1",
+				name="bash",
+				content="$ ls\na.txt\n[exit code: 0]",
+				details={
+					"command": "ls",
+					"exit_code": 0,
+					"duration_seconds": 0.01,
+					"truncation": {"truncated": False},
+					"full_output_path": None,
+				},
+				seq=1,
+			)
+		)
+		fake.feed(
+			ToolResult(
+				tool_call_id="t2",
+				name="bash",
+				content="$ yes\ny\n[output truncated]",
+				details={
+					"command": "yes",
+					"exit_code": 1,
+					"truncation": {"truncated": True, "output_lines": 2000, "total_lines": 90000},
+				},
+				is_error=True,
+				seq=2,
+			)
+		)
+		await pilot.pause()
+
+		entries = pilot.app.query_one(ConversationView).query(EntryView)
+		ok = _widget_text(entries.first())
+		assert "bash" in ok and "exit 0" in ok and "a.txt" in ok
+		assert entries.first().query(Collapsible).first().collapsed is True
+		failed = _widget_text(entries.last())
+		assert "exit 1" in failed and "truncated · 2000/90000 lines" in failed
+
+
+async def test_edit_result_renders_highlighted_diff():
+	fake = FakeController()
+	async with FlowApp(fake).run_test() as pilot:
+		diff = "--- a/f.py\n+++ b/f.py\n-old line\n+new line"
+		fake.feed(
+			ToolResult(
+				tool_call_id="t1",
+				name="edit",
+				content="edited f.py",
+				details={"path": "/proj/f.py", "edits": 1, "diff": diff},
+				seq=1,
+			)
+		)
+		await pilot.pause()
+
+		entry = pilot.app.query_one(ConversationView).query(EntryView).last()
+		text = _widget_text(entry)
+		assert "edit" in text and "/proj/f.py" in text and "1 edit" in text and "+new line" in text
+		assert entry.query(Collapsible).first().collapsed is False  # diffs are worth seeing
+		rendered = [getattr(static.render(), "_renderable", None) for static in entry.query(Static)]
+		assert any(isinstance(r, Syntax) and r.lexer.name.lower() == "diff" for r in rendered)
 
 
 async def test_enter_submits_and_enter_while_running_steers():

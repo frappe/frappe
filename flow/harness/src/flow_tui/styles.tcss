@@ -9,7 +9,26 @@ Screen {
 }
 
 EntryView {
+	height: auto;
 	margin-bottom: 1;
+}
+
+EntryView Static {
+	height: auto;
+}
+
+EntryView Collapsible {
+	border: none;
+	padding: 0;
+	background: transparent;
+}
+
+EntryView Collapsible Contents {
+	padding: 0 0 0 2;
+}
+
+.thinking--redacted {
+	color: $text-muted;
 }
 
 .entry--tool_result {

@@ -63,6 +63,7 @@ class FlowApp(App):
 	BINDINGS: ClassVar = [
 		Binding("ctrl+c", "interrupt", "abort/quit", priority=True),
 		Binding("escape", "interrupt", "abort", show=False),
+		Binding("ctrl+t", "toggle_thinking", "thinking", priority=True),
 	]
 
 	def __init__(self, controller: ControllerLike):
@@ -106,7 +107,7 @@ class FlowApp(App):
 			elif isinstance(change, EntriesTruncated):
 				conversation.truncate(change.target_seq)
 			elif isinstance(change, ApprovalChanged):
-				pass  # phase 7: approval cards
+				pass  # phase 12: approval cards
 			elif isinstance(change, StatusChanged):
 				self._refresh_status()
 
@@ -137,6 +138,10 @@ class FlowApp(App):
 		if status == "steered":
 			self.notify("steering the active run", severity="information")
 
+	def action_toggle_thinking(self) -> None:
+		conversation = self.query_one(ConversationView)
+		conversation.set_show_thinking(not conversation.show_thinking)
+
 	def action_interrupt(self) -> None:
 		"""First ctrl+c/escape aborts the run; ctrl+c while idle quits."""
 		if self.controller.state.running:
@@ -151,7 +156,7 @@ def attach(url: str, *, token: str | None = None, model: str = "mock") -> None:
 
 	The server composes the system prompt (preamble + AGENTS.md); the TUI only adds
 	its client suffix. `auto_approve=True` is the permanent default for TUI sessions;
-	a `--confirm` flag lands with the approvals UI (phase 7).
+	a `--confirm` flag lands with the approvals UI (phase 12).
 	"""
 	config = SessionConfig(
 		model=model,
