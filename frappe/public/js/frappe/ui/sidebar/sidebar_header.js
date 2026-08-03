@@ -122,20 +122,21 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		let app = this.sidebar.get_sidebar_app();
 		if (app) return app.app_title;
 
-		let workspace = frappe.workspaces[frappe.router.slug(this.sidebar.sidebar_title)];
-		if (workspace && !workspace.public && workspace.for_user) {
-			return workspace.title;
-		}
-		return this.sidebar.sidebar_title;
+		// no owning app -> the module's own label
+		return this.sidebar.sidebar_data?.label || this.sidebar.current_module;
 	}
 	set_header_icon() {
-		let workspace = frappe.workspaces[frappe.router.slug(this.sidebar.sidebar_title)];
-		if (this.sidebar.sidebar_data?.from_module) {
-			// auto-generated module sidebars have no real icon; render a letter icon from the
-			// title (matching the desktop apps screen) instead of the default app logo.
-			this.header_icon = frappe.utils.desktop_icon(this.sidebar.sidebar_title, "gray", "sm");
-		} else if (workspace?.icon) {
-			this.header_icon = frappe.utils.icon(workspace.icon, "md");
+		const sidebar = this.sidebar.sidebar_data;
+		if (sidebar?.header_icon) {
+			this.header_icon = frappe.utils.icon(sidebar.header_icon, "md");
+		} else if (sidebar) {
+			// a generated sidebar carries no authored icon; render a letter icon from the label
+			// (matching the desktop apps screen) instead of the default app logo
+			this.header_icon = frappe.utils.desktop_icon(
+				sidebar.label || this.sidebar.current_module,
+				"gray",
+				"sm"
+			);
 		} else {
 			this.header_icon = `<img src=${this.get_default_icon()}></img>`;
 		}

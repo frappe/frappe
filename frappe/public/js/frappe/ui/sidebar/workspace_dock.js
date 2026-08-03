@@ -177,7 +177,7 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 		}
 		this.$dock.removeClass("hidden");
 		this.render_logo();
-		this.render_workspaces();
+		this.render_modules();
 	}
 
 	// App logo pinned to the top corner of the dock; clicking it opens the apps (desktop) screen.
@@ -198,13 +198,13 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 		this.$logo.append($link);
 	}
 
-	render_workspaces() {
+	render_modules() {
 		// dispose tooltips from the previous render before wiping their elements
 		this.$items.find('[data-toggle="tooltip"]').tooltip("dispose");
 		this.$items.empty();
 
-		this.sidebar.collect_selector_workspaces(this.app).forEach((workspace) => {
-			let $item = this.make_workspace_item(workspace);
+		this.sidebar.collect_dock_modules(this.app).forEach((sidebar) => {
+			let $item = this.make_module_item(sidebar);
 			if ($item) this.$items.append($item);
 		});
 
@@ -216,15 +216,15 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 		});
 	}
 
-	make_workspace_item(workspace) {
-		let label = workspace.title || workspace.label || workspace.name;
+	make_module_item(sidebar) {
+		let label = sidebar.label || sidebar.module;
 		if (!label) return null;
-		let name = workspace.name || label;
-		let icon = workspace.icon
-			? frappe.utils.icon(workspace.icon, "md")
+		let module = sidebar.module;
+		let icon = sidebar.header_icon
+			? frappe.utils.icon(sidebar.header_icon, "md")
 			: frappe.utils.desktop_icon(label, "gray", "sm");
 
-		let is_active = this.sidebar.is_active_workspace(workspace);
+		let is_active = this.sidebar.is_active_module(sidebar);
 		let $item = $(`<button
 			class="workspace-dock-item ${is_active ? "active" : ""}"
 			title="${frappe.utils.escape_html(label)}"
@@ -234,7 +234,7 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 			${is_active ? 'aria-current="page"' : ""}
 		>${icon}</button>`);
 
-		$item.on("click", () => this.sidebar.open_workspace(name));
+		$item.on("click", () => this.sidebar.open_module(module));
 		return $item;
 	}
 };

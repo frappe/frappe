@@ -187,7 +187,9 @@ frappe.breadcrumbs = {
 
 			if (
 				breadcrumbs.module &&
-				frappe.boot.module_wise_workspaces[breadcrumbs.module]?.includes(last_workspace)
+				frappe.boot.module_sidebars[breadcrumbs.module]?.workspaces?.includes(
+					last_workspace
+				)
 			) {
 				breadcrumbs.workspace = last_workspace;
 			}
@@ -206,12 +208,11 @@ frappe.breadcrumbs = {
 				breadcrumbs.module_info = frappe.get_module(breadcrumbs.module);
 
 				// set workspace
-				if (
-					breadcrumbs.module_info &&
-					frappe.boot.module_wise_workspaces[breadcrumbs.module]
-				) {
+				// the module's home page, not merely its first workspace by creation
+				const module_sidebar = frappe.boot.module_sidebars[breadcrumbs.module];
+				if (breadcrumbs.module_info && module_sidebar) {
 					breadcrumbs.workspace =
-						frappe.boot.module_wise_workspaces[breadcrumbs.module][0];
+						module_sidebar.home_workspace || module_sidebar.workspaces?.[0];
 				}
 			}
 		}
