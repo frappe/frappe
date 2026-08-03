@@ -128,11 +128,11 @@ def is_icon_permitted(icon, bootinfo, roles: list[str], icon_module: str | None)
 	so `get_desktop_icons` can fetch both for the whole grid in one query each instead of
 	loading every icon just to reach them.
 	"""
+	from frappe.utils.modules import is_module_visible
+
 	# module permission check
-	if icon_module:
-		blocked_modules = frappe.get_cached_doc("User", frappe.session.user).get_blocked_modules()
-		if icon_module in blocked_modules:
-			return False
+	if icon_module and not is_module_visible(icon_module):
+		return False
 
 	# perform a permission check based on roles table (desktop icons)
 	if roles and not set(roles).intersection(frappe.get_roles()):
@@ -143,16 +143,15 @@ def is_icon_permitted(icon, bootinfo, roles: list[str], icon_module: str | None)
 	elif icon.icon_type == "App":
 		return _has_app_permission(icon)
 	else:
-		try:
-			items = bootinfo.workspace_sidebar_item[icon.label.lower()]["items"]
-
-			if len(items) and all(item["type"] == "Section Break" for item in items):
-				return False
-			if len(items) == 0:
-				return False
-			return True
-		except KeyError:
+		# Mirrors the boot builder's rule: a sidebar the user can see nothing real in is one
+		# they cannot use, so its icon does not belong on the desktop either. The two must not
+		# drift -- an icon for an empty sidebar leads nowhere.
+		sidebar = (bootinfo.module_sidebars or {}).get(icon_module or icon.label)
+		if not sidebar:
 			return False
+
+		items = sidebar["items"]
+		return bool(items) and any(item["type"] != "Section Break" for item in items)
 
 
 def _has_app_permission(icon) -> bool:
@@ -274,12 +273,16 @@ def get_desktop_icons(user=None, bootinfo=None):
 			modules_by_icon = get_linked_workspace_modules(user_icons)
 
 			for s in user_icons:
+				icon_module = modules_by_icon.get(s.name)
 				if is_icon_permitted(
 					s,
 					bootinfo,
 					roles=roles_by_icon.get(s.name, []),
-					icon_module=modules_by_icon.get(s.name),
+					icon_module=icon_module,
 				):
+					# carried into the payload so the client resolves the icon's route through
+					# the module-keyed sidebar payload instead of guessing from its label
+					s.module = icon_module
 					permitted_icons.append(s)
 
 					if not s.parent_icon:
