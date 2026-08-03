@@ -101,7 +101,7 @@ frappe.db = {
 		return new Promise((resolve) => {
 			frappe.call("frappe.client.delete", { doctype, name }, (r) => {
 				if (!r.exc) {
-					$(document).trigger("delete", [doctype, name]);
+					frappe.model.delete_from_locals(doctype, name);
 				}
 				resolve(r.message);
 			});
