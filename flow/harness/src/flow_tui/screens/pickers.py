@@ -1,9 +1,7 @@
 """Modal pickers for `/model`, `/resume`, and `/effort`.
 
 All dismiss with a string result or `None` for cancel; the calling command owns
-the API call, so a picker never touches the controller. The model picker's Enter
-with nothing highlighted submits the raw filter text — the free-text escape hatch
-for models the catalog missed.
+the API call, so a picker never touches the controller.
 """
 
 from __future__ import annotations
@@ -24,14 +22,12 @@ from flow.events import ReasoningEffort
 class FilterPicker(ModalScreen[str | None]):
 	"""A filter input over an option list; subclasses supply the options.
 
-	Enter selects the highlighted option and dismisses with its id. With nothing
-	highlighted, Enter submits the filter text verbatim when `free_text` is set,
-	else cancels. Escape cancels.
+	Enter selects the highlighted option and dismisses with its id; with nothing
+	highlighted it cancels, as does escape.
 	"""
 
 	BINDINGS: ClassVar = [Binding("escape", "cancel", "cancel")]
 	placeholder: ClassVar[str] = "filter"
-	free_text: ClassVar[bool] = False
 
 	def options(self, needle: str) -> Iterable[Option]:
 		"""The options whose label matches the lower-cased filter text."""
@@ -75,8 +71,6 @@ class FilterPicker(ModalScreen[str | None]):
 		options = self.query_one(OptionList)
 		if options.highlighted is not None:
 			self.dismiss(options.get_option_at_index(options.highlighted).id)
-		elif self.free_text:
-			self.dismiss(message.value.strip() or None)
 		else:
 			self.dismiss(None)
 
@@ -88,10 +82,9 @@ class FilterPicker(ModalScreen[str | None]):
 
 
 class ModelPicker(FilterPicker):
-	"""Filterable list over the daemon's model catalog; free text sends as-is."""
+	"""Filterable list over the daemon's model catalog."""
 
-	placeholder = "filter models — free text sends as-is"
-	free_text = True
+	placeholder = "filter models"
 
 	def __init__(self, models: list[dict]):
 		super().__init__()

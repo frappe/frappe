@@ -137,7 +137,7 @@ async def test_model_picker_filter_narrows_options():
 		assert fake.calls == [("change_model", "codex/gpt-5")]
 
 
-async def test_model_picker_free_text_when_nothing_matches():
+async def test_model_picker_enter_with_no_match_cancels():
 	fake = FakeController()
 	async with FlowApp(fake).run_test() as pilot:
 		await _open_picker(pilot, "/model", ModelPicker)
@@ -147,7 +147,8 @@ async def test_model_picker_free_text_when_nothing_matches():
 
 		await pilot.press("enter")
 		await pilot.pause()
-		assert fake.calls == [("change_model", "openai/gpt-x")]
+		assert fake.calls == []
+		assert not isinstance(pilot.app.screen, ModelPicker)
 
 
 async def test_model_picker_escape_cancels():
@@ -160,7 +161,7 @@ async def test_model_picker_escape_cancels():
 		assert not isinstance(pilot.app.screen, ModelPicker)
 
 
-async def test_model_picker_empty_free_text_cancels():
+async def test_model_picker_empty_catalog_enter_cancels():
 	fake = FakeController()
 	fake.models = []
 	async with FlowApp(fake).run_test() as pilot:
