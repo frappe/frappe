@@ -570,6 +570,7 @@ def serve(
 	site=None,
 	sites_path=".",
 	proxy=False,
+	bind_addr=None,
 ):
 	global application, _site, _sites_path
 	_site = site
@@ -603,7 +604,7 @@ def serve(
 		extra_dirs, exclude_patterns = _get_reloader_watch_config(sites_path)
 
 	run_simple(
-		"0.0.0.0",
+		bind_addr or os.environ.get("FRAPPE_BIND_ADDR") or "127.0.0.1",
 		int(port),
 		application,
 		extra_files=extra_dirs,
