@@ -3,7 +3,8 @@
 Each provider is queried live with the user's resolved credential, so the result
 reflects account- and plan-specific availability. A provider whose query fails
 falls back to its static catalog entries and reports the failure, so the picker
-still works offline.
+still works offline. Native providers (codex, opencode-go) have no static
+entries; on failure they contribute only the error.
 """
 
 from __future__ import annotations
@@ -57,9 +58,13 @@ async def available_models(
 		if owns_client:
 			await client.aclose()
 
-	fallback = _by_provider(list_models(store))
 	models: dict[str, ModelInfo] = {}
 	errors: list[str] = []
+	try:
+		fallback = _by_provider(list_models(store))
+	except Exception as e:  # a broken static catalog must not take live results down
+		fallback = {}
+		errors.append(f"static catalog: {e}")
 	for provider_id, result in zip(provider_ids, results, strict=True):
 		if isinstance(result, BaseException):
 			errors.append(f"{provider_id}: {result}")

@@ -23,7 +23,10 @@ from dataclasses import dataclass
 import httpx
 
 _POLL_INTERVAL = 0.05
-_SERVE_ARGV = [sys.executable, "-m", "flow.cli.main", "serve", "--foreground"]
+# -P keeps the cwd off sys.path: `python -m` would otherwise prepend it, and a cwd
+# inside the package tree (e.g. src/flow/model) makes local modules shadow real
+# packages (flow/model/litellm.py shadows litellm).
+_SERVE_ARGV = [sys.executable, "-P", "-m", "flow.cli.main", "serve", "--foreground"]
 
 
 class DaemonError(Exception):

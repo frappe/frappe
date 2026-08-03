@@ -61,9 +61,9 @@ def test_stored_key_configures_a_provider_and_prefixes_are_not_doubled(tmp_path,
 	]
 
 
-def test_native_codex_models_come_from_their_own_ids(tmp_path, bare_env):
+def test_native_providers_have_no_static_models(tmp_path, bare_env):
+	"""Native providers are covered only by live discovery, not the static catalog."""
 	store = _store(tmp_path)
 	store.set_oauth("codex", OAuthCredential(access="a", refresh="r", expires=1))
-	names = [model.name for model in list_models(store)]
-	assert names == ["codex/gpt-5", "codex/gpt-5-codex"]
-	assert all(model.provider == "codex" for model in list_models(store))
+	assert [provider.id for provider in configured_providers(store)] == ["codex"]
+	assert list_models(store) == []
