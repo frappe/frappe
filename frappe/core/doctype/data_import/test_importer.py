@@ -901,6 +901,46 @@ class TestTreeDataImport(IntegrationTestCase):
 		payload_ids = [p.doc.node_name for p in imp.import_file.get_payloads_for_import()]
 		self.assertEqual(payload_ids, ["Root", "Division", "Leaf"])
 
+	def test_tree_parent_overrides_update_preview_and_cache_key(self):
+		"""Tree move edits must change the preview parent and bust the Redis preview cache."""
+		from frappe.core.doctype.data_import.preview_cache import (
+			clear_preview_cache,
+			get_cached_preview,
+			get_preview_cache_key,
+		)
+
+		rows = [
+			("Root", "1", ""),
+			("Division", "1", "Root"),
+			("Leaf", "0", "Division"),
+		]
+		data_import = self._get_importer(self._make_csv_file(rows))
+		clear_preview_cache(data_import.name)
+
+		baseline = data_import.get_preview_from_template()
+		leaf = next(node for node in baseline.tree_preview.nodes if node.id == "Leaf")
+		self.assertEqual(leaf.parent, "Division")
+		self.assertEqual(leaf.orig_parent, "Division")
+		key_before = get_preview_cache_key(data_import)
+
+		# Move Leaf under Root via the same JSON the wizard persists.
+		data_import.tree_parent_overrides = frappe.as_json({leaf.row_number: {"parent": "Root"}})
+		data_import.db_set("tree_parent_overrides", data_import.tree_parent_overrides)
+		self.assertNotEqual(key_before, get_preview_cache_key(data_import))
+		self.assertIsNone(get_cached_preview(data_import))
+
+		preview = data_import.get_preview_from_template()
+		moved = next(node for node in preview.tree_preview.nodes if node.id == "Leaf")
+		self.assertEqual(moved.parent, "Root")
+		self.assertEqual(moved.orig_parent, "Division")
+		self.assertTrue(moved.edited)
+
+		# Import-time cell patch must follow the same override.
+		imp = Importer(self.doctype_name, data_import=data_import)
+		leaf_payload = next(p for p in imp.import_file.get_payloads_for_import() if p.doc.node_name == "Leaf")
+		meta = frappe.get_meta(self.doctype_name)
+		self.assertEqual(leaf_payload.doc.get(meta.nsm_parent_field), "Root")
+
 	def test_tree_import(self):
 		meta = frappe.get_meta(self.doctype_name)
 		parent_field = meta.nsm_parent_field

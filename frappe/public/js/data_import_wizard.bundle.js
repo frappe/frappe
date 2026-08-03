@@ -1209,6 +1209,22 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		this.on_go(index);
 	}
 
+	/** Moving forward from a dirty form saves first (Save + Next), then re-fetches the
+	 *  preview on the Preview step so tree warnings recompute against the saved edits. */
+	async save_if_dirty() {
+		const frm = this.frm;
+		if (!frm.is_dirty()) return true;
+		try {
+			await frm.save();
+		} catch (_error) {
+			return false;
+		}
+		if (this.current_step === 1) {
+			await Promise.resolve(frm.events.import_file(frm, { force: true })).catch(() => {});
+		}
+		return true;
+	}
+
 	async on_go(step) {
 		const frm = this.frm;
 		if (step === this.current_step) return;
@@ -1217,12 +1233,14 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 			this.set_step(step);
 			return;
 		}
+		if (!(await this.save_if_dirty())) return;
 		const ok = await frm.events.handle_wizard_go_to_step(frm, step, this.current_step);
 		if (ok !== false) this.set_step(frm.wizard_step);
 	}
 
 	async on_next() {
 		const frm = this.frm;
+		if (!(await this.save_if_dirty())) return;
 		const ok = await frm.events.handle_wizard_go_to_step(
 			frm,
 			this.current_step + 1,

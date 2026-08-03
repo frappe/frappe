@@ -69,3 +69,15 @@ body[data-route^="data-import"]
 	max-height: 240px;
 	overflow-y: auto;
 }
+
+/* Tree editor: Actions shows on hover, focus, or while its menu is open. */
+.diw-preview-step .diw-tree-node-actions {
+	opacity: 0;
+	transition: opacity 0.1s ease;
+}
+
+.diw-preview-step .tree-node.hover-active > .diw-tree-row .diw-tree-node-actions,
+.diw-preview-step .diw-tree-node-actions:focus,
+.diw-preview-step .diw-tree-node-actions[aria-expanded="true"] {
+	opacity: 1;
+}

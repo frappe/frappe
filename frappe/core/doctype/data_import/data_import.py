@@ -78,6 +78,7 @@ class DataImport(Document):
 		submit_after_import: DF.Check
 		template_options: DF.Code | None
 		template_warnings: DF.Code | None
+		tree_parent_overrides: DF.Code | None
 		use_csv_sniffer: DF.Check
 		value_mappings: DF.Table[DataImportValueMapping]
 	# end: auto-generated types
@@ -93,6 +94,12 @@ class DataImport(Document):
 			self.template_warnings = ""
 			self.value_mappings = []
 			self.skipped_rows = []
+			# Tree overrides are keyed by sheet row number, so a new file invalidates them.
+			self.tree_parent_overrides = ""
+
+		# The tree structure (and its row numbers) belongs to a specific DocType.
+		if doc_before_save and doc_before_save.reference_doctype != self.reference_doctype:
+			self.tree_parent_overrides = ""
 
 		self.clear_stale_template_warnings(doc_before_save)
 		self.set_delimiters_flag()

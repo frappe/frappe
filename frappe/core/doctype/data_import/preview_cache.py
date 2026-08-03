@@ -5,7 +5,8 @@
 
 Large CSV/XLSX files are expensive to re-parse on every Preview step load.
 Cache keyed by file content + delimiter settings + column map + value mappings
-(+ skipped rows) so mapping edits or remaps never return stale warnings.
+(+ skipped rows + tree parent overrides) so mapping edits, remaps, or tree moves
+never return stale warnings/nodes.
 Google Sheets previews are never cached — sheet data can change without a URL change.
 """
 
@@ -78,6 +79,8 @@ def get_preview_cache_key(doc) -> str:
 		cstr(doc.custom_delimiters),
 		cstr(doc.delimiter_options),
 		cstr(doc.template_options),
+		# Tree move / group edits change preview nodes — must bust the cached payload.
+		cstr(doc.tree_parent_overrides),
 		_mapping_fingerprint(doc),
 		_skipped_rows_fingerprint(doc),
 	]

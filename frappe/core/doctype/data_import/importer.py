@@ -68,6 +68,7 @@ class Importer:
 			use_sniffer=self.use_sniffer,
 			custom_delimiters=data_import.custom_delimiters,
 			delimiter_options=data_import.delimiter_options,
+			tree_parent_overrides=self.data_import.get("tree_parent_overrides"),
 		)
 
 	def get_data_for_import_preview(self):
@@ -722,9 +723,15 @@ class ImportFile:
 		use_sniffer=False,
 		custom_delimiters=False,
 		delimiter_options=None,
+		tree_parent_overrides=None,
 	):
 		self.doctype = doctype
 		self.reference_doctype = reference_doctype or doctype
+		# Per-row tree edits (move / group toggle), keyed by int row number: {row: {parent, is_group}}.
+		self.tree_parent_overrides = {
+			cint(row): value
+			for row, value in (frappe.parse_json(tree_parent_overrides or "{}") or {}).items()
+		}
 		self.template_options = template_options or frappe._dict(column_to_field_map=frappe._dict())
 		self.column_to_field_map = self.template_options.column_to_field_map
 		# Optional per-column date/time format overrides, chosen by the user in the UI.
@@ -896,6 +903,9 @@ class ImportFile:
 		return out
 
 	def get_payloads_for_import(self):
+		# Apply tree move / group edits to the parsed rows before building docs; the
+		# existing sort_tree_payloads() then re-orders parent-before-child for us.
+		self.apply_tree_overrides()
 		payloads = []
 		# make a copy
 		data = list(self.data)
@@ -905,6 +915,32 @@ class ImportFile:
 			assert len(data) < prev_len, "each iteration must consume at least one row to terminate"
 			payloads.append(frappe._dict(doc=doc, rows=rows))
 		return sort_tree_payloads(payloads, self.doctype, self.import_type)
+
+	def apply_tree_overrides(self):
+		"""Patch the parent / is_group cells of rows the user moved or (un)grouped in the
+		tree preview. Both the preview and the import read from these cells, so this single
+		mutation flows through the whole pipeline (including the parent-before-child sort)."""
+		overrides = self.tree_parent_overrides
+		if not overrides:
+			return
+		_parent_field, parent_column, _is_group_field, is_group_column = _get_tree_columns(self)
+
+		def set_cell(row, column, value):
+			if not column:
+				return
+			# Rows can be shorter than the header; pad so the index is assignable.
+			while len(row.data) <= column.index:
+				row.data.append(None)
+			row.data[column.index] = value
+
+		for row in self.data:
+			override = overrides.get(row.row_number)
+			if not override:
+				continue
+			if "parent" in override:
+				set_cell(row, parent_column, override.get("parent"))
+			if "is_group" in override:
+				set_cell(row, is_group_column, cint(override.get("is_group")))
 
 	def parse_next_row_for_import(self, data):
 		"""
@@ -1179,25 +1215,41 @@ def _build_db_tree_parent_name_map(doctype: str, parent_refs: set, alias_field: 
 	return name_map
 
 
+def _get_tree_columns(import_file: "ImportFile"):
+	"""(parent_field, parent_column, is_group_field, is_group_column) for a tree import."""
+	meta = frappe.get_meta(import_file.doctype)
+	parent_field = meta.nsm_parent_field or f"parent_{frappe.scrub(import_file.doctype)}"
+	is_group_field = "is_group" if meta.has_field("is_group") else None
+
+	def find_column(fieldname):
+		if not fieldname:
+			return None
+		return next(
+			(
+				col
+				for col in import_file.header.columns
+				if col.df and col.df.fieldname == fieldname and not col.skip_import
+			),
+			None,
+		)
+
+	return parent_field, find_column(parent_field), is_group_field, find_column(is_group_field)
+
+
 def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 	"""Build a flat, depth-ordered node list for tree DocType import preview."""
 	meta = frappe.get_meta(import_file.doctype)
 	if not meta.is_nested_set():
 		return None
 
-	parent_field = meta.nsm_parent_field or f"parent_{frappe.scrub(import_file.doctype)}"
+	parent_field, parent_column, is_group_field, is_group_column = _get_tree_columns(import_file)
 	id_fieldname = getattr(import_file.header, "id_fieldname", None) or _get_id_fieldname_from_meta(meta)
 	alias_field = getattr(import_file.header, "tree_alias_field", None)
 	label_fieldname = meta.title_field or id_fieldname
-	is_group_field = "is_group" if meta.has_field("is_group") else None
-	parent_column = next(
-		(
-			col
-			for col in import_file.header.columns
-			if col.df and col.df.fieldname == parent_field and not col.skip_import
-		),
-		None,
-	)
+	# Editable only when the field is a mapped column we can write back through.
+	editable = bool(parent_column)
+	is_group_editable = bool(is_group_column)
+	overrides = getattr(import_file, "tree_parent_overrides", None) or {}
 
 	nodes = []
 	id_to_rows: dict[str, list[int]] = {}
@@ -1211,12 +1263,22 @@ def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 		if not node_id:
 			continue
 
-		parent = _get_tree_parent_value(row, parent_column, doc, parent_field)
+		orig_parent = _get_tree_parent_value(row, parent_column, doc, parent_field)
+		orig_is_group = cint(doc.get(is_group_field)) if is_group_field else 0
+
+		# Apply the user's tree edits for display + warning recomputation. Keep the
+		# originals so the client can show an "edited" badge and reset a single node.
+		override = overrides.get(row.row_number) or {}
+		parent = orig_parent
+		is_group = orig_is_group
+		if "parent" in override:
+			value = override.get("parent")
+			parent = cstr(value).strip() if value not in INVALID_VALUES else None
+		if "is_group" in override:
+			is_group = cint(override.get("is_group"))
 
 		label = doc.get(label_fieldname) or node_id
 		label = cstr(label).strip() if label not in INVALID_VALUES else node_id
-
-		is_group = cint(doc.get(is_group_field)) if is_group_field else 0
 
 		id_to_rows.setdefault(node_id, []).append(row.row_number)
 		nodes.append(
@@ -1226,6 +1288,9 @@ def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 				parent=parent,
 				row_number=row.row_number,
 				is_group=is_group,
+				orig_parent=orig_parent,
+				orig_is_group=orig_is_group,
+				edited=bool(override),
 				warnings=[],
 			)
 		)
@@ -1239,7 +1304,15 @@ def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 			message = _("Duplicate ID {0} in rows {1}").format(
 				frappe.bold(escape_html(cstr(node_id))), format_row_numbers_for_warning(row_numbers)
 			)
-			tree_warnings.append({"message": message})
+			# Include type and rows metadata so the UI can offer "Keep First, Skip Rest"
+			tree_warnings.append(
+				{
+					"message": message,
+					"type": "duplicate_id",
+					"duplicate_id": cstr(node_id),
+					"rows": row_numbers,
+				}
+			)
 			duplicate_messages[node_id] = message
 
 	for node in nodes:
@@ -1290,6 +1363,9 @@ def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 		nodes=display_nodes,
 		tree_warnings=tree_warnings,
 		total_nodes=len(nodes),
+		editable=editable,
+		is_group_editable=is_group_editable,
+		parent_field=parent_field,
 	)
 
 

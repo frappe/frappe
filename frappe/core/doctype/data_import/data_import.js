@@ -88,7 +88,7 @@ function dedupe_import_warnings(warnings) {
 	const rows = [];
 	const others = [];
 	const seen_rows = new Set();
-	const seen_others = new Set();
+	const seen_others = new Map(); // Use Map to store the warning, not just seen status
 
 	for (const w of warnings) {
 		if (w.row) {
@@ -104,13 +104,14 @@ function dedupe_import_warnings(warnings) {
 			}
 		} else {
 			const key = `${w.code || ""}|${w.title || ""}|${w.message || ""}`;
-			if (!seen_others.has(key)) {
-				seen_others.add(key);
-				others.push(w);
+			const existing = seen_others.get(key);
+			// Prefer warning with more metadata (e.g., type, rows) for better UI rendering
+			if (!existing || (w.type && !existing.type)) {
+				seen_others.set(key, w);
 			}
 		}
 	}
-	return [...rows, ...Object.values(by_col), ...others];
+	return [...rows, ...Object.values(by_col), ...Array.from(seen_others.values())];
 }
 
 /** Warnings that can typically be solved through Value Mappings. */
@@ -2075,6 +2076,20 @@ frappe.ui.form.on("Data Import", {
 			const on_row_click = (row_number) => {
 				frm.import_preview?.highlight_table_row(row_number);
 			};
+			// Persist per-row move / group edits into the hidden JSON field and mark the
+			// form dirty. It is saved when the user clicks Next (Save + Next), which also
+			// re-fetches the preview so tree warnings recompute against the new arrangement.
+			const events = {
+				on_change: (overrides) => {
+					const value = Object.keys(overrides).length ? JSON.stringify(overrides) : "";
+					if ((frm.doc.tree_parent_overrides || "") === value) return;
+					frm.doc.tree_parent_overrides = value;
+					frm.dirty();
+					frm.trigger("update_primary_action");
+				},
+			};
+
+			const readonly = is_import_complete(frm.doc.status);
 
 			if (
 				frm.doc.name &&
@@ -2083,6 +2098,8 @@ frappe.ui.form.on("Data Import", {
 			) {
 				frm.import_tree_preview.preview_data = preview_data;
 				frm.import_tree_preview.on_row_click = on_row_click;
+				frm.import_tree_preview.events = events;
+				frm.import_tree_preview.readonly = readonly;
 				frm.import_tree_preview.refresh();
 			} else {
 				frm.import_tree_preview = new frappe.data_import.ImportTreePreview({
@@ -2090,6 +2107,8 @@ frappe.ui.form.on("Data Import", {
 					doctype: frm.doc.reference_doctype,
 					preview_data,
 					on_row_click,
+					events,
+					readonly,
 				});
 				frm.import_tree_preview.data_import_name = frm.doc.name;
 			}
@@ -2376,13 +2395,38 @@ frappe.ui.form.on("Data Import", {
 		}
 
 		let generic_issue_html = generic_warnings
-			.map(
-				(warning) => `
+			.map((warning) => {
+				// For duplicate ID warnings, show a "Keep First, Skip Rest" button
+				if (warning.type === "duplicate_id" && warning.rows && warning.rows.length > 1) {
+					const rows_to_skip = warning.rows.slice(1); // Skip all but the first row
+					const all_skipped = rows_to_skip.every((row) => skipped_rows.has(cint(row)));
+					const skip_btn = frappe.ui.button.html({
+						label: all_skipped
+							? __("Undo Skip Duplicates")
+							: __("Keep Row {0}, Skip Rest", [warning.rows[0]]),
+						size: "xs",
+						variant: "outline",
+						css_class: "skip-duplicate-rows-btn shrink-0",
+						attrs: {
+							"data-rows-to-skip": JSON.stringify(rows_to_skip),
+							"data-keep-row": String(warning.rows[0]),
+						},
+					});
+					return `
+						<div class="warning warning-generic warning-duplicate-id m-0 p-0 border-0 bg-transparent flex items-start justify-between gap-3${
+							all_skipped ? " skipped" : ""
+						}" data-col="generic">
+							<div class="body">${warning.message}</div>
+							${skip_btn}
+						</div>
+					`;
+				}
+				return `
 					<div class="warning warning-generic m-0 p-0 border-0 bg-transparent" data-col="generic">
 						<div class="body">${warning.message}</div>
 					</div>
-				`
-			)
+				`;
+			})
 			.join("");
 		if (generic_issue_html) {
 			generic_issue_html = `<div class="flex flex-col gap-3">${generic_issue_html}</div>`;
@@ -2440,6 +2484,48 @@ frappe.ui.form.on("Data Import", {
 			e.preventDefault();
 			frm.events.toggle_skip_row(frm, $(e.currentTarget).data("row"));
 		});
+		// Handler for "Keep First, Skip Rest" button on duplicate ID warnings
+		frm.get_field("import_warnings").$wrapper.on("click", ".skip-duplicate-rows-btn", (e) => {
+			e.preventDefault();
+			const $btn = $(e.currentTarget);
+			const rows_to_skip = JSON.parse($btn.attr("data-rows-to-skip") || "[]");
+			frm.events.toggle_skip_duplicate_rows(frm, rows_to_skip);
+		});
+	},
+
+	/** Toggle skip state for duplicate rows - skip all except the first occurrence */
+	toggle_skip_duplicate_rows(frm, rows_to_skip) {
+		const skipped_set = new Set((frm.doc.skipped_rows || []).map((r) => cint(r.row_number)));
+		const all_already_skipped = rows_to_skip.every((row) => skipped_set.has(cint(row)));
+
+		if (all_already_skipped) {
+			// Undo skip - remove all these rows from skipped_rows
+			for (const row_number of rows_to_skip) {
+				const skipped = (frm.doc.skipped_rows || []).find(
+					(r) => cint(r.row_number) === cint(row_number)
+				);
+				if (skipped) {
+					frappe.model.clear_doc(skipped.doctype, skipped.name);
+				}
+			}
+		} else {
+			// Skip all duplicate rows (except the first one which isn't in rows_to_skip)
+			const preview_data = get_fix_issues_preview_data(frm);
+			for (const row_number of rows_to_skip) {
+				if (skipped_set.has(cint(row_number))) continue; // Already skipped
+				const preview_row = preview_data?.data?.find(
+					(row) => cint(row[0]) === cint(row_number)
+				);
+				frm.add_child("skipped_rows", {
+					row_number: cint(row_number),
+					row_data: JSON.stringify(preview_row ? preview_row.slice(1) : []),
+				});
+			}
+		}
+
+		frm.dirty();
+		frm.trigger("update_primary_action");
+		frm.events.show_import_warnings(frm);
 	},
 
 	toggle_skip_row(frm, row_number) {

@@ -22,6 +22,7 @@
   "submit_after_import",
   "mute_emails",
   "template_options",
+  "tree_parent_overrides",
   "import_warnings_section",
   "template_warnings",
   "import_warnings",
@@ -98,6 +99,15 @@
    "fieldtype": "Code",
    "hidden": 1,
    "label": "Template Options",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "description": "Per-row parent / is_group overrides for tree DocType imports, keyed by sheet row number. Applied at import time.",
+   "fieldname": "tree_parent_overrides",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Tree Parent Overrides",
    "options": "JSON",
    "read_only": 1
   },
