@@ -77,6 +77,13 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	is_clear_button_enabled() {
+		return frappe.defaults.is_enabled("allow_clearing_link_fields");
+	}
+
+>>>>>>> a51f57297a (refactor(defaults): use helper for checking enabled defaults (#39416))
 	hide_link_and_clear_buttons() {
 		this.$link.toggle(false);
 		this.$link_clear.toggle(false);

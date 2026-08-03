@@ -117,6 +117,112 @@ frappe.ui.form.Sidebar = class {
 			this.refresh_comments_count();
 			frappe.ui.form.set_user_image(this.frm);
 		}
+<<<<<<< HEAD
+=======
+		this.refresh_like();
+	}
+
+	setup_copy_event() {
+		let classes = [".form-name-copy", ".form-title-text"];
+
+		$(this.sidebar)
+			.find(".sidebar-meta-details " + classes.join(", "))
+			.tooltip()
+			.on("click", (e) => {
+				frappe.utils.copy_to_clipboard($(e.currentTarget).attr("data-copy"));
+			});
+	}
+
+	setup_editable_title() {
+		let form_sidebar_text = $(this.sidebar).find(".form-stats-likes .form-title-edit");
+		this.toolbar.setup_editable_title(form_sidebar_text);
+	}
+
+	setup_print() {
+		if (frappe.model.can_print_doc(this.frm)) {
+			let print_icon = this.page.add_action_icon(
+				"printer",
+				() => {
+					this.frm.print_doc();
+				},
+				"",
+				__("Print")
+			);
+			print_icon.css("background-color", "transparent");
+			print_icon.addClass("p-0");
+			this.sidebar.find(".form-print").append(print_icon);
+		}
+	}
+
+	make_like() {
+		this.like_wrapper = this.sidebar.find(".liked-by");
+		this.like_icon = this.sidebar.find(".liked-by .like-icon");
+		frappe.ui.setup_like_popover(this.sidebar.find(".form-stats-likes"), ".like-icon");
+
+		this.like_icon.on("click", () => {
+			frappe.ui.toggle_like(this.like_wrapper, this.frm.doctype, this.frm.doc.name, () => {
+				this.refresh_like();
+			});
+		});
+	}
+
+	refresh_like() {
+		if (!this.like_icon) {
+			return;
+		}
+
+		this.like_wrapper.attr("data-liked-by", this.frm.doc._liked_by);
+		const liked = frappe.ui.is_liked(this.frm.doc);
+
+		this.like_wrapper
+			.toggleClass("not-liked", !liked)
+			.toggleClass("liked", liked)
+			.attr("data-doctype", this.frm.doctype)
+			.attr("data-name", this.frm.doc.name);
+	}
+
+	refresh_web_view_count() {
+		if (this.frm.doc.route && cint(frappe.boot.website_tracking_enabled)) {
+			let route = this.frm.doc.route;
+			frappe.utils.get_page_view_count(route).then((res) => {
+				this.sidebar
+					.find(".pageview-count")
+					.removeClass("hidden")
+					.html(__("{0} Web page views", [String(res.message).bold()]));
+			});
+		}
+	}
+
+	refresh_creation_modified() {
+		this.sidebar
+			.find(".modified-by")
+			.html(
+				get_user_message(
+					this.frm.doc.modified_by,
+					__("Last Edited By You", null),
+					__("Last Edited By {0}", [get_user_link(this.frm.doc.modified_by)])
+				) +
+					" <br> " +
+					(cint(frappe.boot.user.show_absolute_datetime_in_timeline) ||
+					frappe.defaults.is_enabled("show_absolute_datetime_in_timeline")
+						? frappe.datetime.str_to_user(this.frm.doc.modified)
+						: comment_when(this.frm.doc.modified))
+			);
+		this.sidebar
+			.find(".created-by")
+			.html(
+				get_user_message(
+					this.frm.doc.owner,
+					__("Created By You", null),
+					__("Created By {0}", [get_user_link(this.frm.doc.owner)])
+				) +
+					" <br> " +
+					(cint(frappe.boot.user.show_absolute_datetime_in_timeline) ||
+					frappe.defaults.is_enabled("show_absolute_datetime_in_timeline")
+						? frappe.datetime.str_to_user(this.frm.doc.creation)
+						: comment_when(this.frm.doc.creation))
+			);
+>>>>>>> a51f57297a (refactor(defaults): use helper for checking enabled defaults (#39416))
 	}
 
 	show_auto_repeat_status() {
