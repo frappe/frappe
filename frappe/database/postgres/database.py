@@ -83,7 +83,8 @@ FROM_TAB_PATTERN = re.compile(r"from tab([\w-]*)", flags=re.IGNORECASE)
 REGEXP_PATTERN = re.compile(
 	r"""
 	  (?P<skip>
-	      '(?:[^']|'')*'                     # string literal
+	      (?<!\w)[eE]'(?:[^'\\]|''|\\.)*'    # escape string: a \' does not end it
+	    | '(?:[^']|'')*'                     # string literal (only '' escapes a quote)
 	    | "(?:[^"]|"")*"                     # quoted identifier
 	    | \$(?P<tag>\w*)\$.*?\$(?P=tag)\$    # dollar-quoted string
 	    | --[^\n]*                           # line comment
