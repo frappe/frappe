@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-26 10:09+0000\n"
-"PO-Revision-Date: 2026-07-28 15:09\n"
+"PO-Revision-Date: 2026-08-03 16:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -241,7 +241,7 @@ msgstr "1 hónapja"
 
 #: frappe/public/js/frappe/data_import/import_tree_preview.js:33
 msgid "1 node"
-msgstr ""
+msgstr "1 csomópont"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormat.vue:14
 msgid "1 of 2"
@@ -253,7 +253,7 @@ msgstr "1 rekord exportálásra kerül"
 
 #: frappe/public/js/frappe/data_import/import_preview.js:202
 msgid "1 row"
-msgstr ""
+msgstr "1 sor"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:327
 msgctxt "User removed row from child table"
@@ -838,7 +838,7 @@ msgstr ">="
 
 #: frappe/core/page/component_explorer/component_explorer.js:291
 msgid "@jane"
-msgstr ""
+msgstr "@jane"
 
 #: frappe/core/doctype/doctype/doctype.py:1108
 msgid "A DocType's name should start with a letter and can only consist of letters, numbers, spaces, underscores and hyphens"
@@ -3103,7 +3103,7 @@ msgstr "Biztosan újra szeretnéd csatolni ezt a kommunikációt a(z) {0} címhe
 
 #: frappe/core/doctype/communication/communication.js:166
 msgid "Are you sure you want to relink this communication?"
-msgstr ""
+msgstr "Biztosan újra szeretnéd csatolni ezt a kommunikációt?"
 
 #: frappe/core/doctype/rq_job/rq_job_list.js:10
 msgid "Are you sure you want to remove all failed jobs?"
@@ -13705,14 +13705,14 @@ msgstr "ITT"
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "HH:mm"
-msgstr "HH:mm (óra:perc)"
+msgstr "óó:pp"
 
 #. Option for the 'Time Format' (Select) field in DocType 'Language'
 #. Option for the 'Time Format' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "HH:mm:ss"
-msgstr "HH:mm:ss (óra:perc:másodperc)"
+msgstr "óó:pp:mm"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -22018,7 +22018,7 @@ msgstr "Oldalmagasság (mm-ben)"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:64
 msgid "Page Margins (mm)"
-msgstr ""
+msgstr "Oldalmargók (mm)"
 
 #. Label of the page_name (Data) field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
@@ -37192,7 +37192,7 @@ msgstr "{0} listanézet beállítások"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:39
 msgid "{0} M"
-msgstr "{0} Ó"
+msgstr "{0} hó"
 
 #: frappe/public/js/frappe/views/map/map_view.js:14
 msgid "{0} Map"
@@ -37963,7 +37963,7 @@ msgstr "{0} megtekintette ezt"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:37
 msgid "{0} w"
-msgstr "{0} w"
+msgstr "{0} hét"
 
 #: frappe/templates/includes/oauth_confirmation.html:134
 msgid "{0} wants to access your account"
@@ -37983,7 +37983,7 @@ msgstr "{0} a szerepkörrel: <strong>{1}</strong>"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:41
 msgid "{0} y"
-msgstr "{0} é"
+msgstr "{0} év"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:74
 msgid "{0} years ago"
