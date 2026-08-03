@@ -415,6 +415,8 @@ class BaseDocument:
 			self.__dict__[key] = table = []
 
 		d = self._init_child(value, key)
+		assert isinstance(table, list), "child table storage must be a list"
+		assert d.parentfield == key, "appended child's parentfield must match the table key"
 
 		if position == -1:
 			table.append(d)
@@ -498,6 +500,8 @@ class BaseDocument:
 			__dict["__islocal"] = 1
 			__dict["__temporary_name"] = frappe.generate_hash(length=10)
 
+		assert isinstance(child, BaseDocument), "initialized child must be a BaseDocument"
+		assert __dict["parenttype"] == self.doctype, "child parenttype must reference its parent's doctype"
 		return child
 
 	@cached_property
@@ -541,15 +545,32 @@ class BaseDocument:
 			eval_locals={"doc": self},
 		)
 
+	def get_virtual_field_value(self, df):
+		fieldname = df.fieldname
+
+		if (prop := getattr(type(self), fieldname, None)) and is_a_property(prop):
+			return getattr(self, fieldname)
+
+		elif options := getattr(df, "options", None):
+			return self._evaluate_virtual_field_options(options)
+
 	def get_valid_dict(
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
 	) -> _dict:
 		d = _dict()
 		field_values = self.__dict__
 		field_map = self.meta._fields
+		masked_fieldnames = self.flags.get("masked_fieldnames")
 
 		for fieldname in self.meta.get_valid_fields():
 			value = field_values.get(fieldname)
+
+			# Masked fields hold the XXXXXXXX placeholder; pass it through untouched so it is not
+			# cast back to 0 for numeric fieldtypes. Only truthy values get masked, so falsy ones
+			# fall through to the normal null-aware path.
+			if value and fieldname in (masked_fieldnames or ()):
+				d[fieldname] = value
+				continue
 
 			# if no need for sanitization and value is None, continue
 			if not sanitize and value is None:
@@ -563,12 +584,7 @@ class BaseDocument:
 				if is_virtual_field:
 					if ignore_virtual or fieldname not in self.permitted_fieldnames:
 						continue
-
-					if (prop := getattr(type(self), fieldname, None)) and is_a_property(prop):
-						value = getattr(self, fieldname)
-
-					elif options := getattr(df, "options", None):
-						value = self._evaluate_virtual_field_options(options)
+					value = self.get_virtual_field_value(df)
 
 				fieldtype = df.fieldtype
 				if isinstance(value, list) and fieldtype not in table_fields:
@@ -585,6 +601,9 @@ class BaseDocument:
 
 				elif fieldtype in float_like_fields and not isinstance(value, float):
 					value = flt(value)
+
+				elif fieldtype == "Read Only" and not isinstance(value, str):
+					value = cstr(value)
 
 				elif (fieldtype in datetime_fields and value == "") or (
 					getattr(df, "unique", False) and cstr(value).strip() == ""
@@ -652,7 +671,7 @@ class BaseDocument:
 		return valid_columns_cache[self.doctype]
 
 	def is_new(self) -> bool:
-		return self.get("__islocal")
+		return bool(self.get("__islocal"))
 
 	@property
 	def docstatus(self) -> DocStatus:
@@ -759,6 +778,8 @@ class BaseDocument:
 		if not self.name:
 			# name will be set by document class in most cases
 			set_new_name(self)
+
+		assert self.name, "document name must be set before db_insert"
 
 		conflict_handler = ""
 		returning = ""
@@ -1039,7 +1060,11 @@ class BaseDocument:
 				assert df.fieldtype == "Dynamic Link"
 				doctype = self.get(df.options)
 				if not doctype:
-					frappe.throw(_("{0} must be set first").format(_(self.meta.get_label(df.options))))
+					frappe.throw(
+						_("{0} must be set first").format(
+							_(self.meta.get_label(df.options), context=self.doctype)
+						)
+					)
 				invalidate_distinct_link_doctypes(df.parent, df.options, doctype)
 
 			meta = frappe.get_meta(doctype)
@@ -1168,7 +1193,7 @@ class BaseDocument:
 			if value not in options and not (frappe.in_test and value.startswith("_T-")):
 				# show an elaborate message
 				prefix = _("Row #{0}:").format(self.idx) if self.get("parentfield") else ""
-				label = _(self.meta.get_label(df.fieldname))
+				label = _(self.meta.get_label(df.fieldname), context=self.doctype)
 				comma_options = '", "'.join(_(each) for each in options)
 
 				frappe.throw(
@@ -1243,7 +1268,9 @@ class BaseDocument:
 
 			if self.get(fieldname) != value:
 				frappe.throw(
-					_("Value cannot be changed for {0}").format(_(self.meta.get_label(fieldname))),
+					_("Value cannot be changed for {0}").format(
+						_(self.meta.get_label(fieldname), context=self.doctype)
+					),
 					frappe.CannotChangeConstantError,
 				)
 
@@ -1523,15 +1550,12 @@ class BaseDocument:
 		return print_hide
 
 	def in_format_data(self, fieldname):
-		"""Return True if shown via Print Format::`format_data` property.
+		"""Compatibility shim for third-party server-side print templates.
 
-		Called from within standard print format."""
-		doc = getattr(self, "parent_doc", self)
-
-		if hasattr(doc, "format_data_map"):
-			return fieldname in doc.format_data_map
-		else:
-			return True
+		The classic print format builder that populated `format_data_map` has been
+		removed; builder layouts now render through PrintFormatGenerator, so every
+		field is considered in scope here."""
+		return True
 
 	def reset_values_if_no_permlevel_access(self, has_access_to, high_permlevel_fields, mask_fields=None):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""
@@ -1636,7 +1660,9 @@ def _filter(data, filters, limit=None):
 	return out
 
 
-CACHED_PROPERTIES = (prop for prop, value in vars(BaseDocument).items() if isinstance(value, cached_property))
+CACHED_PROPERTIES = tuple(
+	prop for prop, value in vars(BaseDocument).items() if isinstance(value, cached_property)
+)
 
 UNPICKLABLE_KEYS = frozenset(
 	(

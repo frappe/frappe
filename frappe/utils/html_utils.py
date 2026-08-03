@@ -170,11 +170,14 @@ def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=No
 
 	# Allow caller to explicitly disallow some tags
 	if disallowed_tags:
-		tags.difference_update(disallowed_tags)
+		if disallowed_tags == "*":
+			tags = set()
+		else:
+			tags.difference_update(disallowed_tags)
 
 	attributes = {"*": acceptable_attributes, "svg": svg_attributes}
 
-	# returns html with escaped tags, escaped orphan >, <, etc.
+	# returns sanitized HTML with unsafe tags and attributes removed
 	escaped_html = nh3.clean(
 		html,
 		tags=tags,
@@ -744,3 +747,9 @@ svg_attributes = {
 	"y2",
 	"zoomAndPan",
 }
+
+# Tags whose content is stripped must never also be present in any allow-list of
+# renderable tags, otherwise sanitization would keep dangerous content.
+assert REMOVE_CONTENT_TAGS.isdisjoint(acceptable_elements | mathml_elements | svg_elements), (
+	"content-removal tags must never appear in any allowed tag set"
+)

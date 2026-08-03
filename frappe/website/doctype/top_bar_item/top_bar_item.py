@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class TopBarItem(Document):
+	_DOCTYPE_NAME = "Top Bar Item"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

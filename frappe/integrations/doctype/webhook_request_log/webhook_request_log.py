@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class WebhookRequestLog(Document):
+	_DOCTYPE_NAME = "Webhook Request Log"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -14,12 +16,15 @@ class WebhookRequestLog(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		attempt: DF.Int
 		data: DF.Code | None
 		error: DF.Text | None
 		headers: DF.Code | None
+		next_retry: DF.Datetime | None
 		reference_doctype: DF.Data | None
 		reference_document: DF.Data | None
 		response: DF.Code | None
+		status: DF.Literal["", "Delivered", "Failed", "Exhausted"]
 		url: DF.Text | None
 		user: DF.Link | None
 		webhook: DF.Link | None

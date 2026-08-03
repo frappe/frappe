@@ -9,6 +9,7 @@
  "engine": "InnoDB",
  "field_order": [
   "subject",
+  "reference_doctype",
   "use_html",
   "response_html",
   "response",
@@ -22,6 +23,12 @@
    "in_list_view": 1,
    "label": "Subject",
    "reqd": 1
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference DocType",
+   "options": "DocType"
   },
   {
    "depends_on": "eval:!doc.use_html",
@@ -57,7 +64,7 @@
  ],
  "icon": "fa fa-comment",
  "links": [],
- "modified": "2024-03-23 16:03:24.779791",
+ "modified": "2026-05-27 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Template",

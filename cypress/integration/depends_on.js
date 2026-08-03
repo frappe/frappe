@@ -26,6 +26,7 @@ context("Depends On", () => {
 							fieldname: "child_display_dependant_field",
 							fieldtype: "Data",
 							in_list_view: 1,
+							depends_on: "eval:doc.child_test_field == 'show'",
 						},
 					],
 				});
@@ -138,6 +139,41 @@ context("Depends On", () => {
 		cy.get("@row1-form_in_grid")
 			.find('.control-input [data-fieldname="child_dependant_field"]')
 			.should("be.disabled");
+	});
+	it("should re-evaluate an on-grid column's depends_on when a sibling field is set programmatically", () => {
+		// Reproduces the newest-row issue: a row's controlling field is set after the
+		// grid has already rendered (as `_add` handlers do), so the dependent column
+		// must be re-evaluated on the model change, not only on the next full refresh.
+		cy.new_form("Test Depends On");
+		cy.get('.frappe-control[data-fieldname="child_test_depends_on_field"]').as("table");
+		cy.get("@table").findByRole("button", { name: "Add row" }).click();
+
+		let dependant_df = (win) => {
+			let cdn =
+				win.cur_frm.fields_dict.child_test_depends_on_field.grid.grid_rows[0].doc.name;
+			return win.frappe.meta.get_docfield(
+				"Child Test Depends On",
+				"child_display_dependant_field",
+				cdn
+			);
+		};
+
+		// depends_on is not satisfied yet, so the column is hidden
+		cy.window().should((win) => {
+			expect(dependant_df(win).hidden_due_to_dependency).to.be.ok;
+		});
+
+		// set the controlling field programmatically (the path an `_add` handler takes)
+		cy.window().then((win) => {
+			let { doctype: cdt, name: cdn } =
+				win.cur_frm.fields_dict.child_test_depends_on_field.grid.grid_rows[0].doc;
+			win.frappe.model.set_value(cdt, cdn, "child_test_field", "show");
+		});
+
+		// the dependent column must become editable without another full grid refresh
+		cy.window().should((win) => {
+			expect(dependant_df(win).hidden_due_to_dependency).to.not.be.ok;
+		});
 	});
 	it("should display the field depending on other fields value", () => {
 		cy.new_form("Test Depends On");

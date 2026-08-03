@@ -19,6 +19,9 @@ def get_change_log(user=None):
 	if not user:
 		user = frappe.session.user
 
+	if not frappe.is_setup_complete():
+		return []
+
 	last_known_versions = frappe._dict(
 		json.loads(frappe.db.get_value("User", user, "last_known_versions") or "{}")
 	)
@@ -88,13 +91,14 @@ def get_change_log_for_app(app, from_version, to_version):
 
 @frappe.whitelist()
 def update_last_known_versions():
-	frappe.db.set_value(
-		"User",
-		frappe.session.user,
-		"last_known_versions",
-		json.dumps(get_versions()),
-		update_modified=False,
-	)
+	with suppress(frappe.QueryDeadlockError):
+		frappe.db.set_value(
+			"User",
+			frappe.session.user,
+			"last_known_versions",
+			json.dumps(get_versions()),
+			update_modified=False,
+		)
 
 
 @frappe.whitelist()
@@ -112,10 +116,22 @@ def get_versions():
 	versions = {}
 	for app in frappe.get_installed_apps(_ensure_on_bench=True):
 		app_hooks = frappe.get_hooks(app_name=app)
+		app_color = app_hooks.get("app_color")
+
+		# Prefer add_to_apps_screen logo, then app_logo_url — no frappe fallback
+		logo = None
+		apps_screen = app_hooks.get("add_to_apps_screen")
+		if apps_screen and apps_screen[0].get("logo"):
+			logo = apps_screen[0]["logo"]
+		elif app_hooks.get("app_logo_url"):
+			logo = app_hooks["app_logo_url"][0]
+
 		versions[app] = {
 			"title": app_hooks.get("app_title")[0],
 			"description": app_hooks.get("app_description")[0],
 			"branch": get_app_branch(app),
+			"color": app_color[0] if app_color else None,
+			"logo": logo,
 		}
 
 		if versions[app]["branch"] != "master":
@@ -165,7 +181,7 @@ def get_app_last_commit_ref(app):
 
 
 def check_for_update():
-	if frappe.get_system_settings("disable_system_update_notification"):
+	if frappe.get_system_settings("disable_system_update_notification") or not frappe.is_setup_complete():
 		return
 
 	updates = frappe._dict(major=[], minor=[], patch=[])

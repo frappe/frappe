@@ -25,10 +25,9 @@
   }
  ],
  "grid_page_length": 50,
- "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-13 16:17:58.536849",
+ "modified": "2026-04-27 13:30:28.567106",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Permission Type",

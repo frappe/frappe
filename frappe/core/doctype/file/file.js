@@ -14,7 +14,7 @@ frappe.ui.form.on("File", {
 
 		if (!frm.doc.is_folder) {
 			// add download button
-			frm.add_custom_button(__("Download"), () => frm.trigger("download"), "fa fa-download");
+			frm.add_custom_button(__("Download"), () => frm.trigger("download"));
 		}
 
 		if (!frm.doc.is_private) {
@@ -48,7 +48,13 @@ frappe.ui.form.on("File", {
 			const field = frm.get_field("attached_to_name");
 			field.$input_wrapper
 				.find(".control-value")
-				.html(`${frappe.utils.get_form_link(frm.doctype, frm.docname, true)}`);
+				.html(
+					`${frappe.utils.get_form_link(
+						frm.doc.attached_to_doctype,
+						frm.doc.attached_to_name,
+						true
+					)}`
+				);
 		}
 	},
 

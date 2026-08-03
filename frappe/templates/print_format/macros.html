@@ -1,6 +1,8 @@
 {% macro render_field(df, doc) %}
+{%- if not df.get('_hidden') -%}
 {%- set value = doc.get(df.fieldname) -%}
 {% include ['templates/print_format/macros/' + df.renderer + '.html', 'templates/print_format/macros/Data.html'] ignore missing %}
+{%- endif -%}
 {% endmacro %}
 
 {% macro field_attributes(df) %}

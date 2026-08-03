@@ -93,7 +93,8 @@ class SMTPServer:
 					frappe.msgprint(res[1], raise_exception=frappe.OutgoingEmailError)
 
 			# Re-issue EHLO after AUTH to refresh server capabilities
-			_session.ehlo()
+			if not frappe.conf.smtp_no_ehlo_after_auth:
+				_session.ehlo()
 
 			self._session = _session
 			self._enqueue_connection_closure()
@@ -126,6 +127,16 @@ class SMTPServer:
 				return self._session.noop()[0] == 250
 			except Exception:
 				return False
+
+	def discard_session(self):
+		"""Drop the cached session so the next `session` access reconnects.
+
+		A failed sendmail() can poison the connection server-side even though NOOP still reports it alive.
+		"""
+		if self._session:
+			with suppress(Exception):
+				self._session.close()
+			self._session = None
 
 	def quit(self):
 		with suppress(TimeoutError):

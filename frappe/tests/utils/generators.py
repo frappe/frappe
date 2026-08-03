@@ -35,9 +35,13 @@ __all__ = [
 
 
 @cache
-def get_modules(doctype) -> tuple[str, ModuleType]:
+def get_modules(doctype) -> tuple[str | None, ModuleType | None]:
 	"""Get the modules for the specified doctype"""
 	module = frappe.db.get_value("DocType", doctype, "module")
+	if not module:
+		# DocType is not installed on this site (e.g. belongs to an uninstalled app);
+		# treat it as a dead-end leaf rather than raising DoesNotExistError.
+		return None, None
 	try:
 		test_module = load_doctype_module(doctype, module, "test_")
 		if test_module:
@@ -49,7 +53,7 @@ def get_modules(doctype) -> tuple[str, ModuleType]:
 
 
 # @cache - don't cache the recursion, code depends on its recurn value declining
-def get_missing_records_doctypes(doctype, visited=None) -> list[str]:
+def get_missing_records_doctypes(doctype, visited=None, _parent=None) -> list[str]:
 	"""Get the dependencies for the specified doctype in a depth-first manner"""
 
 	if visited is None:
@@ -62,7 +66,18 @@ def get_missing_records_doctypes(doctype, visited=None) -> list[str]:
 	# Mark as visited
 	visited.add(doctype)
 
-	_module, test_module = get_modules(doctype)
+	module, test_module = get_modules(doctype)
+	if module is None:
+		# DocType is not installed on this site; skip it instead of crashing the
+		# whole test run. This typically means a Link field points to a DocType
+		# from an optional/uninstalled app.
+		testing_logger.warning(
+			"Skipping test record generation for %r (linked from %r): DocType not installed on this site",
+			doctype,
+			_parent,
+		)
+		return []
+
 	meta = frappe.get_meta(doctype)
 	link_fields = meta.get_link_fields()
 
@@ -79,7 +94,7 @@ def get_missing_records_doctypes(doctype, visited=None) -> list[str]:
 	# Recursive depth-first traversal
 	result = []
 	for dep_doctype in unique_doctypes:
-		result.extend(get_missing_records_doctypes(dep_doctype, visited))
+		result.extend(get_missing_records_doctypes(dep_doctype, visited, _parent=doctype))
 
 	result.append(doctype)
 	return result

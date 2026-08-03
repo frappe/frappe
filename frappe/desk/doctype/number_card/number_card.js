@@ -233,9 +233,9 @@ frappe.ui.form.on("Number Card", {
 			if (filters.length) {
 				filters.forEach((filter) => {
 					const filter_row = $(`<tr>
-							<td>${filter[1]}</td>
-							<td>${filter[2] || ""}</td>
-							<td>${filter[3]}</td>
+							<td>${frappe.utils.escape_html(filter[1])}</td>
+							<td>${frappe.utils.escape_html(filter[2] || "")}</td>
+							<td>${frappe.utils.escape_html(filter[3])}</td>
 						</tr>`);
 
 					table.find("tbody").append(filter_row);
@@ -248,9 +248,9 @@ frappe.ui.form.on("Number Card", {
 				if (filters[f.fieldname]) {
 					let condition = "=";
 					const filter_row = $(`<tr>
-							<td>${f.label}</td>
+							<td>${frappe.utils.escape_html(f.label)}</td>
 							<td>${condition}</td>
-							<td>${filters[f.fieldname] || ""}</td>
+							<td>${frappe.utils.escape_html(filters[f.fieldname] || "")}</td>
 						</tr>`);
 					table.find("tbody").append(filter_row);
 					if (!filters_set) filters_set = true;
@@ -504,7 +504,7 @@ frappe.ui.form.on("Number Card", {
 					<td class="text-center">
 						<a class="remove-filter text-muted" style="cursor: pointer;">
 							<svg class="icon icon-sm">
-								<use href="#icon-close" class="close"></use>
+								<use href="#icon-x" class="close"></use>
 							</svg>
 						</a>
 					</td>
@@ -559,8 +559,8 @@ frappe.ui.form.on("Number Card", {
 			let filter_rows = "";
 			dynamic_filters.forEach((filter) => {
 				filter_rows += `<tr>
-						<td>${filter[1]}</td>
-						<td><code>${filter[3] || ""}</code></td>
+						<td>${frappe.utils.escape_html(filter[1])}</td>
+						<td><code>${frappe.utils.escape_html(filter[3] || "")}</code></td>
 					</tr>`;
 			});
 

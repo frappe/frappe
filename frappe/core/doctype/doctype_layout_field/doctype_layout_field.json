@@ -1,0 +1,133 @@
+{
+ "actions": [],
+ "creation": "2020-11-16 16:03:43.771801",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "fieldname",
+  "label",
+  "hidden",
+  "reqd",
+  "read_only",
+  "column_break_overrides",
+  "default",
+  "description",
+  "bold",
+  "allow_in_quick_entry",
+  "in_list_view",
+  "in_standard_filter",
+  "section_break_conditions",
+  "depends_on",
+  "mandatory_depends_on",
+  "read_only_depends_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "fieldname",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Fieldname",
+   "reqd": 1
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label"
+  },
+  {
+   "default": "0",
+   "fieldname": "hidden",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Hidden"
+  },
+  {
+   "default": "0",
+   "fieldname": "reqd",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Required"
+  },
+  {
+   "default": "0",
+   "fieldname": "read_only",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Read Only"
+  },
+  {
+   "fieldname": "column_break_overrides",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "default",
+   "fieldtype": "Small Text",
+   "label": "Default Value"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description Override"
+  },
+  {
+   "default": "0",
+   "fieldname": "bold",
+   "fieldtype": "Check",
+   "label": "Bold"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_in_quick_entry",
+   "fieldtype": "Check",
+   "label": "Allow in Quick Entry"
+  },
+  {
+   "default": "0",
+   "fieldname": "in_list_view",
+   "fieldtype": "Check",
+   "label": "In List View"
+  },
+  {
+   "default": "0",
+   "fieldname": "in_standard_filter",
+   "fieldtype": "Check",
+   "label": "In Standard Filter"
+  },
+  {
+   "fieldname": "section_break_conditions",
+   "fieldtype": "Section Break",
+   "label": "Conditions"
+  },
+  {
+   "fieldname": "depends_on",
+   "fieldtype": "Code",
+   "label": "Depends On"
+  },
+  {
+   "fieldname": "mandatory_depends_on",
+   "fieldtype": "Code",
+   "label": "Mandatory Depends On"
+  },
+  {
+   "fieldname": "read_only_depends_on",
+   "fieldtype": "Code",
+   "label": "Read Only Depends On"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-06-10 19:14:45.806672",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "DocType Layout Field",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

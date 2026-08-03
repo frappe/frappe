@@ -148,6 +148,16 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		frappe.set_route(this.page_name, cstr(id));
 	}
 
+	sync_telemetry_preference() {
+		// Apply the opt-out from the final committed values, not on each checkbox
+		// change, so toggling within a slide stays reversible — disable() is one-way.
+		// Server-side the preference lands only at wizard completion, so setup
+		// events (funnel, persona) are captured regardless of the choice.
+		if (frappe.telemetry.enabled && !this.values.enable_telemetry) {
+			frappe.telemetry.disable();
+		}
+	}
+
 	show_hide_prev_next(id) {
 		super.show_hide_prev_next(id);
 		if (id + 1 === this.slides.length) {
@@ -203,9 +213,9 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	action_on_complete() {
-		frappe.telemetry.capture("initated_client_side", "setup");
 		if (!this.current_slide.set_values()) return;
 		this.update_values();
+		this.sync_telemetry_preference();
 		this.show_working_state();
 		this.disable_keyboard_nav();
 		this.listen_for_setup_stages();
@@ -360,7 +370,6 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 	make() {
 		super.make();
 		this.set_init_values();
-		this.setup_telemetry_events();
 		this.reset_action_button_state();
 	}
 
@@ -375,22 +384,6 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 				}
 			});
 		}
-	}
-
-	setup_telemetry_events() {
-		let me = this;
-		this.fields.filter(frappe.model.is_value_type).forEach((field) => {
-			field.fieldname &&
-				me.get_input(field.fieldname)?.on?.("change", function () {
-					frappe.telemetry.capture(`${field.fieldname}_set`, "setup");
-					if (
-						field.fieldname == "enable_telemetry" &&
-						!me.get_value("enable_telemetry")
-					) {
-						frappe.telemetry.disable();
-					}
-				});
-		});
 	}
 };
 
@@ -485,7 +478,6 @@ frappe.setup.slides_settings = [
 		// Profile slide
 		name: "user",
 		title: __("Let's set up your account"),
-		icon: "fa fa-user",
 		fields: [
 			{
 				fieldname: "full_name",
@@ -512,6 +504,8 @@ frappe.setup.slides_settings = [
 		],
 
 		onload: function (slide) {
+			slide.form.fields_dict.password?.$input?.attr("autocomplete", "new-password");
+
 			if (frappe.session.user !== "Administrator") {
 				const { first_name, last_name, email } = frappe.boot.user;
 				if (first_name || last_name) {

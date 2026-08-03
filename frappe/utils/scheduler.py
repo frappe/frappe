@@ -86,6 +86,8 @@ def sleep_duration(tick):
 	minutes = tick // 60
 	now = datetime.datetime.now(datetime.UTC)
 	left_minutes = minutes - now.minute % minutes
+	# `now.minute % minutes` is in [0, minutes), so left_minutes is in (0, minutes].
+	assert 0 < left_minutes <= minutes, "next tick must be at least one minute and within one tick window"
 	next_execution = now.replace(second=0) + datetime.timedelta(minutes=left_minutes)
 
 	return (next_execution - now).total_seconds()
@@ -132,10 +134,9 @@ def enqueue_events_for_site(site: str) -> None:
 def enqueue_events() -> list[str] | None:
 	if schedule_jobs_based_on_activity():
 		enqueued_jobs = []
-		all_jobs = frappe.get_all("Scheduled Job Type", filters={"stopped": 0}, fields="*")
+		all_jobs = frappe.get_docs("Scheduled Job Type", filters={"stopped": 0})
 		random.shuffle(all_jobs)
 		for job_type in all_jobs:
-			job_type = frappe.get_doc(doctype="Scheduled Job Type", **job_type)
 			try:
 				if job_type.enqueue():
 					enqueued_jobs.append(job_type.method)

@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 	from frappe.model.meta import Meta
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def update_document_title(
 	*,
 	doctype: str,
@@ -74,17 +74,6 @@ def update_document_title(
 			if isinstance(transformed_name, dict):
 				transformed_name = transformed_name.get("new")
 			transformed_name = transformed_name or updated_name
-
-			# run rename validations before queueing
-			# use savepoints to avoid partial renames / commits
-			validate_rename(
-				doctype=doctype,
-				old=current_name,
-				new=transformed_name,
-				meta=doc.meta,
-				merge=merge,
-				save_point=True,
-			)
 
 			doc.queue_action("rename", name=transformed_name, merge=merge, queue=queue, timeout=36000)
 		else:
@@ -153,6 +142,7 @@ def rename_doc(
 
 	old = old or doc.name
 	doctype = doctype or doc.doctype
+	assert doctype and old, "doctype and old name must be resolved from arguments or the passed doc"
 	force = sbool(force)
 	merge = sbool(merge)
 	meta = frappe.get_meta(doctype)
@@ -709,7 +699,7 @@ def bulk_rename(doctype: str, rows: list[list] | None = None, via_console: bool 
 	for row in rows:
 		# if row has some content
 		if len(row) > 1 and row[0] and row[1]:
-			merge = len(row) > 2 and (row[2] == "1" or row[2].lower() == "true")
+			merge = len(row) > 2 and sbool(row[2]) is True
 			try:
 				if rename_doc(doctype, row[0], row[1], merge=merge, rebuild_search=False):
 					msg = _("Successful: {0} to {1}").format(row[0], row[1])

@@ -46,20 +46,33 @@ export default class GridRowForm {
 					<span class="panel-title">
 						${__("Editing Row")} #<span class="grid-form-row-index"></span></span>
 					<span class="row-actions">
-						<button class="btn btn-secondary btn-sm pull-right grid-collapse-row">
-							${frappe.utils.icon("down")}
-						</button>
-						<button class="btn btn-secondary btn-sm pull-right grid-move-row hidden-xs">
-							${__("Move")}</button>
-						<button class="btn btn-secondary btn-sm pull-right grid-duplicate-row hidden-xs">
-							${frappe.utils.icon("duplicate")}
-							${__("Duplicate")}
-						</button>
-						<button class="btn btn-secondary btn-sm pull-right grid-insert-row hidden-xs">
-							${__("Insert Above")}</button>
-						<button class="btn btn-secondary btn-sm pull-right grid-insert-row-below hidden-xs">
-							${__("Insert Below")}</button>
-						<button class="btn btn-danger btn-sm pull-right grid-delete-row">${__("Delete")}</button>
+						${frappe.ui.button.html({
+							icon: "chevron-down",
+							title: __("Collapse"),
+							css_class: "pull-right grid-collapse-row",
+						})}
+						${frappe.ui.button.html({
+							label: __("Move"),
+							css_class: "pull-right grid-move-row hidden-xs",
+						})}
+						${frappe.ui.button.html({
+							icon: "copy",
+							label: __("Duplicate"),
+							css_class: "pull-right grid-duplicate-row hidden-xs",
+						})}
+						${frappe.ui.button.html({
+							label: __("Insert Above"),
+							css_class: "pull-right grid-insert-row hidden-xs",
+						})}
+						${frappe.ui.button.html({
+							label: __("Insert Below"),
+							css_class: "pull-right grid-insert-row-below hidden-xs",
+						})}
+						${frappe.ui.button.html({
+							label: __("Delete"),
+							theme: "red",
+							css_class: "pull-right grid-delete-row",
+						})}
 					</span>
 				</div>
 			</div>
@@ -72,9 +85,10 @@ export default class GridRowForm {
 						<kbd>${__("Ctrl + Up")}</kbd> . <kbd>${__("Ctrl + Down")}</kbd> . <kbd>${__("ESC")}</kbd>
 					</div>
 					<span class="row-actions">
-						<button class="btn btn-secondary btn-sm pull-right grid-append-row">
-							${__("Insert Below")}
-						</button>
+						${frappe.ui.button.html({
+							label: __("Insert Below"),
+							css_class: "pull-right grid-append-row",
+						})}
 					</span>
 				</div>
 			</div>`;

@@ -275,3 +275,30 @@ class TestSessionExpiry(FrappeAPITestCase):
 		with self.freeze_time(time_of_expiry):
 			self.assertIn(sid, get_expired_sessions())
 			self.assertFalse(s.get_session_data_from_db())
+
+	def test_expired_session_answers_401_without_leaking_method(self):
+		from frappe.auth import get_logged_user
+
+		frappe.set_user("Guest")
+		self.addCleanup(frappe.set_user, "Administrator")
+		self.addCleanup(frappe.local.response.pop, "session_expired", None)
+		self.addCleanup(frappe.clear_messages)
+
+		frappe.local.response["session_expired"] = 1
+		frappe.clear_messages()
+		with self.assertRaises(frappe.SessionExpired):
+			frappe.is_whitelisted(get_logged_user)
+		self.assertEqual(
+			frappe.get_message_log(), [], "an expired session must not send a message to the client"
+		)
+
+		frappe.local.response.pop("session_expired", None)
+		with self.assertRaises(frappe.PermissionError):
+			frappe.is_whitelisted(get_logged_user)
+
+		def not_whitelisted():
+			pass
+
+		frappe.local.response["session_expired"] = 1
+		with self.assertRaises(frappe.PermissionError):
+			frappe.is_whitelisted(not_whitelisted)

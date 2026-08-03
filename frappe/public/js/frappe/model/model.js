@@ -8,6 +8,7 @@ $.extend(frappe.model, {
 		"Autocomplete",
 		"Attach",
 		"Attach Image",
+		"Attachment Gallery",
 		"Barcode",
 		"Button",
 		"Check",
@@ -50,6 +51,7 @@ $.extend(frappe.model, {
 		"Section Break",
 		"Column Break",
 		"Tab Break",
+		"Attachment Gallery",
 		"HTML",
 		"Table",
 		"Table MultiSelect",
@@ -178,6 +180,31 @@ $.extend(frappe.model, {
 				}
 			}
 		});
+
+		frappe.realtime.on("doctype_update", function (data) {
+			if (frappe.get_route()[0] !== "Form") return;
+			if (!cur_frm || cur_frm.doctype !== data.doctype) return;
+			if (frappe.ui.form.is_saving) return;
+
+			if (cur_frm.is_dirty()) {
+				cur_frm.dashboard.clear_headline();
+				cur_frm.dashboard.set_headline_alert(
+					__(
+						"This DocType has been updated. Save or discard your changes, then reload the page to see the latest version."
+					),
+					"yellow"
+				);
+			} else {
+				frappe.show_alert(
+					{
+						message: __("DocType updated. Reloading…"),
+						indicator: "blue",
+					},
+					1
+				);
+				setTimeout(() => location.reload(), 1000);
+			}
+		});
 	},
 
 	is_value_type: function (fieldtype) {
@@ -250,7 +277,9 @@ $.extend(frappe.model, {
 			// meta has sugar, like __js and other properties that doc won't have
 			frappe.meta.__doctype_meta = JSON.parse(JSON.stringify(meta));
 		}
-		for (const asset_key of ["__list_js", "__custom_list_js", "__calendar_js", "__tree_js"]) {
+		// custom scripts run last so they can override the standard
+		// definitions for any view, calendar included (#37460)
+		for (const asset_key of ["__list_js", "__calendar_js", "__tree_js", "__custom_list_js"]) {
 			if (meta[asset_key]) {
 				new Function(meta[asset_key])();
 			}
@@ -408,6 +437,25 @@ $.extend(frappe.model, {
 	can_print: function (doctype, frm) {
 		if (frm) return frm.perm[0].print === 1;
 		return frappe.boot.user.can_print.indexOf(doctype) !== -1;
+	},
+
+	// whether a document in this docstatus is printable at all, per Print Settings
+	// (submitted documents always are; draft/cancelled only if explicitly allowed)
+	can_print_docstatus: function (doctype, docstatus) {
+		if (!frappe.model.is_submittable(doctype) || docstatus == 1) return true;
+
+		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings") || {};
+		if (docstatus == 2) return !!cint(print_settings.allow_print_for_cancelled);
+		if (docstatus == 0) return !!cint(print_settings.allow_print_for_draft);
+		return false;
+	},
+
+	can_print_doc: function (frm) {
+		return !!(
+			frappe.model.can_print_docstatus(frm.doc.doctype, frm.doc.docstatus) &&
+			frappe.model.can_print(null, frm) &&
+			!frm.meta.issingle
+		);
 	},
 
 	can_email: function (doctype, frm) {
@@ -693,24 +741,30 @@ $.extend(frappe.model, {
 				title = `${value} (${docname})`;
 			}
 		}
-		frappe.confirm(__("Permanently delete {0}?", [title.bold()]), function () {
-			return frappe.call({
-				method: "frappe.client.delete",
-				args: {
-					doctype: doctype,
-					name: docname,
-				},
-				freeze: true,
-				freeze_message: __("Deleting {0}...", [title]),
-				callback: function (r, rt) {
-					if (!r.exc) {
-						frappe.utils.play_sound("delete");
-						frappe.model.clear_doc(doctype, docname);
-						if (callback) callback(r, rt);
-					}
-				},
-			});
-		});
+		// destructive: red primary via frappe.warn, not a neutral confirm
+		frappe.warn(
+			__("Confirm"),
+			__("Permanently delete {0}?", [title.bold()]),
+			function () {
+				return frappe.call({
+					method: "frappe.client.delete",
+					args: {
+						doctype: doctype,
+						name: docname,
+					},
+					freeze: true,
+					freeze_message: __("Deleting {0}...", [title]),
+					callback: function (r, rt) {
+						if (!r.exc) {
+							frappe.utils.play_sound("delete");
+							frappe.model.clear_doc(doctype, docname);
+							if (callback) callback(r, rt);
+						}
+					},
+				});
+			},
+			__("Delete")
+		);
 	},
 
 	rename_doc: function (doctype, docname, callback) {
@@ -785,7 +839,11 @@ $.extend(frappe.model, {
 			frappe.throw(
 				__("Please specify") +
 					": " +
-					__(frappe.meta.get_label(doc.doctype, fieldname, doc.parent || doc.name))
+					__(
+						frappe.meta.get_label(doc.doctype, fieldname, doc.parent || doc.name),
+						null,
+						doc.doctype
+					)
 			);
 		}
 	},

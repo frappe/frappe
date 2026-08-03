@@ -72,7 +72,7 @@ function addStyles() {
 
 	.onb-panel {
 		position: fixed;
-		left: 236px;
+		inset-inline-end: 20px;
 		bottom: 24px;
 		width: 310px;
 		max-height: 80vh;
@@ -83,7 +83,21 @@ function addStyles() {
 		z-index: 1000;
 		display: flex;
 		flex-direction: column;
-	  }
+		overflow-y: auto;
+		transition-property: all;
+		transition-duration: 0.3s;
+		transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.onb-collapsible {
+		overflow: hidden;
+		transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.onb-collapsible--collapsed {
+		max-height: 0;
+		pointer-events: none;
+	}
 
 	.onb-header-main {
 		display: flex;
@@ -95,7 +109,7 @@ function addStyles() {
 		border: none;
 		background: transparent;
 		cursor: pointer;
-		margin-left: 2px;
+		margin-inline-start: 2px;
 	}
 
 	.onb-step-left {
@@ -125,7 +139,7 @@ function addStyles() {
 	.onb-step-text {
 		white-space: nowrap;
 		margin-top: 2px;
-		text-align: left;
+		text-align: start;
 		font-size: 14px;
 	}
 

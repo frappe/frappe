@@ -5,11 +5,11 @@
 	--dt-light-yellow: var(--yellow-50);
 	--dt-orange: var(--orange-500);
 	--dt-text-color: var(--text-muted);
-	--dt-text-light: var(--neutral-white);
+	--dt-text-light: var(--ink-base);
 	--dt-spacer-1: 0.25rem;
 	--dt-spacer-2: var(--padding-xs);
 	--dt-spacer-3: 1rem;
-	--dt-border-radius: var(--border-radius);
+	--dt-border-radius: var(--radius);
 	--dt-cell-bg: var(--fg-color);
 	--dt-border-color: var(--table-border-color);
 	--dt-header-cell-bg: var(--subtle-fg);
@@ -17,7 +17,6 @@
 	--dt-no-data-message-width: max-content;
 
 	background-color: var(--bg-color);
-	margin-left: -1px;
 	margin-top: 0px;
 	border-radius: var(--dt-border-radius);
 	@include get_textstyle("base", "regular");
@@ -124,7 +123,7 @@
 		}
 
 		.dt-filter.dt-input {
-			border-radius: var(--border-radius);
+			border-radius: var(--radius);
 			height: 100%;
 			background-color: var(--control-bg);
 			padding-left: 8px;

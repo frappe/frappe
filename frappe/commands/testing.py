@@ -144,7 +144,6 @@ def main(
 			verbosity=2 if testing_module_logger.getEffectiveLevel() < logging.INFO else 1,
 			tb_locals=testing_module_logger.getEffectiveLevel() <= logging.INFO,
 			cfg=test_config,
-			buffer=not debug,  # unfortunate as it messes up stdout/stderr output order
 		)
 
 		if doctype or doctype_list_path:
@@ -159,11 +158,14 @@ def main(
 			discover_all_tests(apps, runner)
 
 		results = []
+		global unittest_runner
 		for app, category, suite in runner.iterRun():
 			click.secho(
 				f"\nRunning {suite.countTestCases()} {category} tests for {app}", fg="cyan", bold=True
 			)
-			results.append([app, category, runner.run(suite)])
+			main_runner = unittest_runner if junit_xml_output and unittest_runner else runner
+			res = main_runner.run(suite)
+			results.append([app, category, res])
 
 		success = all(r.wasSuccessful() for _, _, r in results)
 		if not success:
@@ -181,6 +183,10 @@ def main(
 
 
 def run_tests_in_light_mode(test_params):
+	import cProfile
+	import pstats
+	from io import StringIO
+
 	from frappe.testing.loader import FrappeTestLoader
 	from frappe.testing.result import FrappeTestResult
 	from frappe.tests.utils import toggle_test_mode
@@ -199,7 +205,20 @@ def run_tests_in_light_mode(test_params):
 
 	toggle_test_mode(True)
 	suite = FrappeTestLoader().discover_tests(test_params)
+
+	if test_params.profile:
+		pr = cProfile.Profile()
+		pr.enable()
+
 	result = unittest.TextTestRunner(failfast=test_params.failfast, resultclass=FrappeTestResult).run(suite)
+
+	if test_params.profile:
+		pr.disable()
+		s = StringIO()
+		ps = pstats.Stats(pr, stream=s).sort_stats("cumulative")
+		ps.print_stats()
+		print(s.getvalue())
+
 	if not result.wasSuccessful():
 		sys.exit(1)
 
@@ -283,7 +302,11 @@ def _get_doctypes_for_module_def(app, module_def):
 @click.option("--coverage", is_flag=True, default=False)
 @click.option("--skip-test-records", is_flag=True, default=False, help="DEPRECATED")
 @click.option("--skip-before-tests", is_flag=True, default=False, help="Don't run before tests hook")
-@click.option("--junit-xml-output", help="Destination file path for junit xml report")
+@click.option(
+	"--junit-xml-output",
+	type=click.Path(dir_okay=False, file_okay=True, resolve_path=True),
+	help="Destination file path for junit xml report",
+)
 @click.option(
 	"--failfast", is_flag=True, default=False, help="Stop the test run on the first error or failure"
 )
@@ -440,7 +463,11 @@ def run_parallel_tests(
 @click.option("--parallel", is_flag=True, help="Run UI Test in parallel mode")
 @click.option("--with-coverage", is_flag=True, help="Generate coverage report")
 @click.option("--browser", default="chrome", help="Browser to run tests in")
-@click.option("--spec", help="Spec file to run")
+@click.option(
+	"--spec",
+	type=click.Path(dir_okay=False, file_okay=True),
+	help="Spec file to run",
+)
 @click.option("--ci-build-id")
 @pass_context
 def run_ui_tests(

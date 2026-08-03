@@ -1,0 +1,191 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "field:title",
+ "creation": "2020-11-16 17:05:35.306846",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "tab_break_details",
+  "title",
+  "document_type",
+  "based_on",
+  "column_break_header",
+  "is_standard",
+  "module",
+  "is_child_table",
+  "section_break_settings",
+  "default_print_format",
+  "default_email_template",
+  "column_break_settings",
+  "condition",
+  "fields_section",
+  "fields",
+  "tab_break_form",
+  "form_builder",
+  "tab_break_child_layouts",
+  "child_tables"
+ ],
+ "fields": [
+  {
+   "description": "Display name shown in the layout switcher",
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_header",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "DocType",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "default": "0",
+   "fetch_from": "document_type.istable",
+   "fieldname": "is_child_table",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Child Table"
+  },
+  {
+   "fieldname": "fields",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Fields",
+   "options": "DocType Layout Field"
+  },
+  {
+   "depends_on": "eval:!doc.is_child_table",
+   "fieldname": "child_tables",
+   "fieldtype": "Table",
+   "label": "Child Table Layouts",
+   "options": "DocType Layout Child Table"
+  },
+  {
+   "fieldname": "form_builder",
+   "fieldtype": "HTML",
+   "label": "Form Builder"
+  },
+  {
+   "fieldname": "section_break_settings",
+   "fieldtype": "Section Break",
+   "label": "Settings"
+  },
+  {
+   "default": "0",
+   "description": "Set for layouts shipped with apps or fixtures",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard"
+  },
+  {
+   "depends_on": "is_standard",
+   "description": "Module owning this standard layout",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "options": "Module Def"
+  },
+  {
+   "description": "Inherit field order and properties from another layout of the same DocType",
+   "fieldname": "based_on",
+   "fieldtype": "Link",
+   "label": "Based On",
+   "options": "DocType Layout"
+  },
+  {
+   "fieldname": "column_break_settings",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:!doc.is_child_table",
+   "fieldname": "default_print_format",
+   "fieldtype": "Link",
+   "label": "Default Print Format",
+   "link_filters": "[[\"Print Format\",\"doc_type\",\"=\",\"eval:doc.document_type\"]]",
+   "options": "Print Format"
+  },
+  {
+   "depends_on": "eval:!doc.is_child_table",
+   "fieldname": "default_email_template",
+   "fieldtype": "Link",
+   "label": "Default Email Template",
+   "options": "Email Template"
+  },
+  {
+   "depends_on": "eval:!doc.is_child_table",
+   "description": "JavaScript expression evaluated on every form refresh. When truthy, this layout is automatically applied and `doc.doctype_layout` is set. Example: doc.is_return == 1",
+   "fieldname": "condition",
+   "fieldtype": "Code",
+   "label": "Condition",
+   "options": "JavaScript"
+  },
+  {
+   "fieldname": "tab_break_details",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "tab_break_form",
+   "fieldtype": "Tab Break",
+   "label": "Parent Layout"
+  },
+  {
+   "depends_on": "eval:!doc.is_child_table",
+   "fieldname": "tab_break_child_layouts",
+   "fieldtype": "Tab Break",
+   "label": "Child Layouts"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "fields_section",
+   "fieldtype": "Section Break",
+   "label": "Fields"
+  }
+ ],
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-14 12:55:37.744479",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "DocType Layout",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Desk User"
+  }
+ ],
+ "route": "doctype-layout",
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

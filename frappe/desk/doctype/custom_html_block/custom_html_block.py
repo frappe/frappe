@@ -4,9 +4,12 @@
 import frappe
 from frappe.model.document import Document
 from frappe.query_builder.utils import DocType
+from frappe.utils import has_common
 
 
 class CustomHTMLBlock(Document):
+	_DOCTYPE_NAME = "Custom HTML Block"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -23,7 +26,12 @@ class CustomHTMLBlock(Document):
 		style: DF.Code | None
 	# end: auto-generated types
 
-	pass
+	def validate(self):
+		self.validate_private()
+
+	def validate_private(self):
+		if not has_common(frappe.get_roles(), ["Administrator", "System Manager", "Workspace Manager"]):
+			self.private = 1
 
 
 @frappe.whitelist()

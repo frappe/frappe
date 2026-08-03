@@ -40,6 +40,7 @@ frappe.Application = class Application {
 		this.load_user_permissions();
 		this.make_nav_bar();
 		this.make_sidebar();
+		this.set_desktop_page_class();
 		this.set_favicon();
 		this.set_fullwidth_if_enabled();
 		this.add_browser_class();
@@ -95,7 +96,7 @@ frappe.Application = class Application {
 	setup_theme() {
 		frappe.ui.keys.add_shortcut({
 			shortcut: "shift+ctrl+g",
-			description: __("Switch Theme"),
+			description: __("Switch theme"),
 			action: () => {
 				if (frappe.theme_switcher && frappe.theme_switcher.dialog.is_visible) {
 					frappe.theme_switcher.hide();
@@ -147,8 +148,17 @@ frappe.Application = class Application {
 		if (frappe.user_roles.includes("System Manager")) {
 			// delayed following requests to make boot faster
 			setTimeout(() => {
-				this.show_change_log();
-				this.show_update_available();
+				if (
+					!frappe.ui.maybe_show_legacy_gravatar_cleanup_prompt({
+						onhide: () => {
+							this.show_change_log();
+							this.show_update_available();
+						},
+					})
+				) {
+					this.show_change_log();
+					this.show_update_available();
+				}
 			}, 1000);
 		}
 
@@ -242,7 +252,9 @@ frappe.Application = class Application {
 					},
 				],
 			});
-			s.fields_dict.checking.$wrapper.html('<i class="fa fa-spinner fa-spin fa-4x"></i>');
+			s.fields_dict.checking.$wrapper.html(
+				frappe.utils.icon("loader-circle", "xl", "", "animation: spin 1s linear infinite")
+			);
 			s.show();
 			frappe.call({
 				method: "frappe.email.doctype.email_account.email_account.set_email_password",
@@ -285,7 +297,6 @@ frappe.Application = class Application {
 
 			frappe.boot.setup_complete = frappe.boot.sysdefaults["setup_complete"];
 			frappe.user.name = frappe.boot.user.name;
-			frappe.router.setup();
 		} else {
 			this.set_as_guest();
 		}
@@ -369,6 +380,7 @@ frappe.Application = class Application {
 				"body"
 			);
 			frappe.container = new frappe.views.Container();
+			frappe.ui.setup_site_banners();
 		}
 	}
 	make_nav_bar() {
@@ -380,19 +392,32 @@ frappe.Application = class Application {
 	logout() {
 		var me = this;
 		me.logged_out = true;
-		return frappe.call({
-			method: "logout",
-			callback: function (r) {
-				if (r.exc) {
-					return;
-				}
+		frappe.confirm(__("Are you sure you want to log out?"), function () {
+			return frappe.call({
+				method: "logout",
+				callback: function (r) {
+					if (r.exc) {
+						return;
+					}
 
-				me.redirect_to_login();
-			},
+					me.redirect_to_login();
+				},
+			});
 		});
 	}
 	handle_session_expired() {
-		frappe.app.redirect_to_login();
+		if (frappe.app.session_expired_dialog) {
+			return;
+		}
+		const dialog = new frappe.ui.Dialog({
+			title: __("Session Expired"),
+		});
+		dialog.onhide = () => frappe.app.redirect_to_login();
+		frappe.app.session_expired_dialog = dialog;
+		dialog.show();
+		dialog.set_message(
+			__("Your session has expired due to inactivity. Please log in again to continue.")
+		);
 	}
 	redirect_to_login() {
 		window.location.href = `/login?redirect-to=${encodeURIComponent(
@@ -459,12 +484,21 @@ frappe.Application = class Application {
 	}
 
 	show_update_available() {
-		if (!frappe.boot.has_app_updates) return;
+		if (!frappe.boot.has_app_updates || !frappe.boot.setup_complete) return;
 		frappe.xcall("frappe.utils.change_log.show_update_popup");
 	}
 
 	add_browser_class() {
 		$("html").addClass(frappe.utils.get_browser().name.toLowerCase());
+	}
+
+	set_desktop_page_class() {
+		// The two /app/desktop pages share CSS class names (.desktop-wrapper, .desktop-icon),
+		// so desktop.css scopes each set to one of these body classes. Exactly one is present.
+		const desktop_icons = frappe.boot.desktop_page === "Desktop Icons";
+		$("body")
+			.toggleClass("desktop-icons-page", desktop_icons)
+			.toggleClass("apps-page", !desktop_icons);
 	}
 
 	set_fullwidth_if_enabled() {
@@ -528,7 +562,6 @@ frappe.Application = class Application {
 							newdoc.idx = null;
 							newdoc.__run_link_triggers = false;
 							newdoc.on_paste_event = true;
-							newdoc = JSON.parse(JSON.stringify(newdoc));
 							frappe.set_route("Form", newdoc.doctype, newdoc.name);
 							frappe.dom.unfreeze();
 						});

@@ -8,6 +8,8 @@ from frappe.modules.export_file import export_to_files
 
 
 class ModuleOnboarding(Document):
+	_DOCTYPE_NAME = "Module Onboarding"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

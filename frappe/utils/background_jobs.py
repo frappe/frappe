@@ -63,7 +63,7 @@ def get_queues_timeout() -> dict[str, int]:
 
 	# Note: Order matters here
 	# If no queues are specified then RQ prioritizes queues in specified order
-	return {
+	timeouts = {
 		"short": default_timeout,
 		"default": default_timeout,
 		"long": 1500,
@@ -71,6 +71,9 @@ def get_queues_timeout() -> dict[str, int]:
 			worker: config.get("timeout", default_timeout) for worker, config in custom_workers_config.items()
 		},
 	}
+	# The three built-in queues must always be present; queue validation relies on this.
+	assert {"short", "default", "long"} <= timeouts.keys(), "built-in queues must always exist"
+	return timeouts
 
 
 def enqueue(
@@ -89,6 +92,7 @@ def enqueue(
 	job_id: str | None = None,
 	deduplicate=False,
 	at_front_when_starved=False,
+	retry=None,
 	**kwargs,
 ) -> Job | Any:
 	"""
@@ -173,6 +177,7 @@ def enqueue(
 		method_name = f"{method.__module__}.{method.__qualname__}"
 	else:
 		method_name = method
+	assert method_name, "method_name must be a non-empty identifier for the queued job"
 
 	queue_args = {
 		"site": frappe.local.site,
@@ -200,6 +205,7 @@ def enqueue(
 			failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
 			result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
 			job_id=job_id,
+			retry=retry,
 		)
 
 	if enqueue_after_commit:
@@ -241,7 +247,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	retval = None
 
 	if is_async:
-		frappe.init(site, force=True)
+		frappe.init(site, force=True, is_job=True)
 		frappe.connect()
 		if os.environ.get("CI"):
 			from frappe.tests.utils import toggle_test_mode
@@ -307,7 +313,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 
 	finally:
 		if not hasattr(frappe.local, "site"):
-			frappe.init(site, force=True)
+			frappe.init(site, force=True, is_job=True)
 			frappe.connect()
 		for after_job_task in frappe.get_hooks("after_job"):
 			frappe.call(after_job_task, method=method_name, kwargs=kwargs, result=retval)
@@ -332,13 +338,11 @@ def start_worker(
 
 	_start_sentry()
 
-	with frappe.init_site():
-		# empty init is required to get redis_queue from common_site_config.json
-		redis_connection = get_redis_conn(username=rq_username, password=rq_password)
+	redis_connection = get_redis_conn(username=rq_username, password=rq_password)
 
-		if queue:
-			queue = [q.strip() for q in queue.split(",")]
-		queues = get_queue_list(queue, build_queue_name=True)
+	if queue:
+		queue = [q.strip() for q in queue.split(",")]
+	queues = get_queue_list(queue, build_queue_name=True)
 
 	if os.environ.get("CI"):
 		setup_loghandlers("ERROR")
@@ -432,12 +436,11 @@ def start_worker_pool(
 	import frappe.website.path_resolver  # all the page types and resolver
 	# end: module pre-loading
 
-	with frappe.init_site():
-		redis_connection = get_redis_conn()
+	redis_connection = get_redis_conn()
 
-		if queue:
-			queue = [q.strip() for q in queue.split(",")]
-		queues = get_queue_list(queue, build_queue_name=True)
+	if queue:
+		queue = [q.strip() for q in queue.split(",")]
+	queues = get_queue_list(queue, build_queue_name=True)
 
 	if os.environ.get("CI"):
 		setup_loghandlers("ERROR")
@@ -569,10 +572,7 @@ def validate_queue(queue: str, default_queue_list: list | None = None) -> None:
 	reraise=True,
 )
 def get_redis_conn(username=None, password=None):
-	if not hasattr(frappe.local, "conf"):
-		raise Exception("You need to call frappe.init")
-
-	conf = frappe.get_site_config()
+	conf = frappe.get_conf()
 	if not conf.redis_queue:
 		raise Exception("redis_queue missing in common_site_config.json")
 
@@ -664,7 +664,9 @@ def create_job_id(job_id: str | None = None) -> str:
 		job_id = str(uuid4())
 	else:
 		job_id = job_id.replace(":", "|")
-	return f"{frappe.local.site}||{job_id}"
+	namespaced_id = f"{frappe.local.site}||{job_id}"
+	assert "||" in namespaced_id, "namespaced job id must contain site separator '||'"
+	return namespaced_id
 
 
 def is_job_enqueued(job_id: str) -> bool:
@@ -767,12 +769,10 @@ def _start_sentry():
 		ArgvIntegration(),
 	]
 
-	experiments = {}
 	kwargs = {}
 
 	if os.getenv("ENABLE_SENTRY_DB_MONITORING"):
 		integrations.append(FrappeIntegration())
-		experiments["record_sql_params"] = True
 
 	if tracing_sample_rate := os.getenv("SENTRY_TRACING_SAMPLE_RATE"):
 		kwargs["traces_sample_rate"] = float(tracing_sample_rate)
@@ -788,6 +788,5 @@ def _start_sentry():
 		auto_enabling_integrations=False,
 		default_integrations=False,
 		integrations=integrations,
-		_experiments=experiments,
 		**kwargs,
 	)

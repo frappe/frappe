@@ -291,3 +291,41 @@ class TestClient(IntegrationTestCase):
 		# cleanup
 		for doc in docs:
 			frappe.delete_doc("Note", doc)
+
+	def test_client_crud_accepts_native_dict(self):
+		import frappe.client as client
+
+		# save (frappe.parse_json passthrough) accepts a native dict, not a JSON string
+		doc = client.insert({"doctype": "ToDo", "description": "json-body insert"})
+		self.assertEqual(doc["doctype"], "ToDo")
+
+		doc["description"] = "edited"
+		saved = client.save(doc)
+		self.assertEqual(saved["description"], "edited")
+
+		# insert_many with a native list of dicts
+		names = client.insert_many([{"doctype": "ToDo", "description": "native insert_many"}])
+		self.assertTrue(names)
+
+		frappe.delete_doc("ToDo", doc["name"])
+		for name in names:
+			frappe.delete_doc("ToDo", name)
+
+	def test_bulk_update_accepts_native_list(self):
+		from frappe.client import bulk_update
+
+		todo = frappe.get_doc(doctype="ToDo", description="bulk").insert()
+		# bulk_update with a native list of dicts (frappe.parse_json passthrough)
+		result = bulk_update([{"doctype": "ToDo", "docname": todo.name, "description": "updated"}])
+		self.assertEqual(result["failed_docs"], [])
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "description"), "updated")
+		todo.delete()
+
+	def test_get_value_scientific_notation_docname(self):
+		from frappe.client import get_value
+
+		tag = frappe.get_doc({"doctype": "Tag", "name": "3E002"}).insert(ignore_if_duplicate=True)
+		try:
+			self.assertEqual(get_value("Tag", ["name"], "3E002"), {"name": "3E002"})
+		finally:
+			tag.delete()

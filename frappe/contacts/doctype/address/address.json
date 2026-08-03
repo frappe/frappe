@@ -34,9 +34,11 @@
    "options": "fa fa-map-marker"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "address_title",
    "fieldtype": "Data",
-   "label": "Address Title"
+   "label": "Address Title",
+   "mandatory_depends_on": "eval:!doc.links?.length"
   },
   {
    "fieldname": "address_type",
@@ -151,7 +153,7 @@
  "icon": "fa fa-map-marker",
  "idx": 5,
  "links": [],
- "modified": "2024-03-23 16:01:27.068028",
+ "modified": "2026-06-20 16:01:27.068028",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Address",

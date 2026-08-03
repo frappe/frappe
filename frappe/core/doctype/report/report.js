@@ -12,26 +12,22 @@ frappe.ui.form.on("Report", {
 
 		let doc = frm.doc;
 		if (!doc.__islocal) {
-			frm.add_custom_button(
-				__("Show Report"),
-				function () {
-					switch (doc.report_type) {
-						case "Report Builder":
-							frappe.set_route("List", doc.ref_doctype, "Report", doc.name);
-							break;
-						case "Query Report":
-							frappe.set_route("query-report", doc.name);
-							break;
-						case "Script Report":
-							frappe.set_route("query-report", doc.name);
-							break;
-						case "Custom Report":
-							frappe.set_route("query-report", doc.name);
-							break;
-					}
-				},
-				"fa fa-table"
-			);
+			frm.add_custom_button(__("Show Report"), function () {
+				switch (doc.report_type) {
+					case "Report Builder":
+						frappe.set_route("List", doc.ref_doctype, "Report", doc.name);
+						break;
+					case "Query Report":
+						frappe.set_route("query-report", doc.name);
+						break;
+					case "Script Report":
+						frappe.set_route("query-report", doc.name);
+						break;
+					case "Custom Report":
+						frappe.set_route("query-report", doc.name);
+						break;
+				}
+			});
 		}
 
 		if (doc.is_standard === "Yes" && frm.perm[0].write) {
@@ -43,8 +39,7 @@ frappe.ui.form.on("Report", {
 					}).then(() => {
 						frm.reload_doc();
 					});
-				},
-				doc.disabled ? "fa fa-check" : "fa fa-off"
+				}
 			);
 		}
 
@@ -54,6 +49,30 @@ frappe.ui.form.on("Report", {
 					istable: 0,
 				},
 			};
+		});
+
+		frm.set_query("default_print_format", () => {
+			return {
+				filters: {
+					print_format_for: "Report",
+					report: frm.doc.name,
+					print_format_type: "JS",
+					disabled: 0,
+				},
+			};
+		});
+
+		frm.set_query("default_letter_head", () => {
+			const filters = {
+				letter_head_for: "Report",
+				disabled: 0,
+			};
+
+			if (frm.doc.is_standard === "Yes") {
+				filters.standard = "Yes";
+			}
+
+			return { filters };
 		});
 	},
 

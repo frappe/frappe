@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class NumberCardLink(Document):
+	_DOCTYPE_NAME = "Number Card Link"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

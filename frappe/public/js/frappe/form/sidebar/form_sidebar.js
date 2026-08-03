@@ -72,8 +72,10 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	setup_copy_event() {
+		let classes = [".form-name-copy", ".form-title-text"];
+
 		$(this.sidebar)
-			.find(".sidebar-meta-details .form-name-copy")
+			.find(".sidebar-meta-details " + classes.join(", "))
 			.tooltip()
 			.on("click", (e) => {
 				frappe.utils.copy_to_clipboard($(e.currentTarget).attr("data-copy"));
@@ -81,35 +83,23 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	setup_editable_title() {
-		// setup editable title
-		let form_sidebar_text = $(this.sidebar).find(".form-stats-likes .form-title-text");
+		let form_sidebar_text = $(this.sidebar).find(".form-stats-likes .form-title-edit");
 		this.toolbar.setup_editable_title(form_sidebar_text);
 	}
 
 	setup_print() {
-		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings");
-		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
-		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
-
-		if (
-			!frappe.model.is_submittable(this.frm.doc.doctype) ||
-			this.frm.doc.docstatus == 1 ||
-			(allow_print_for_cancelled && this.frm.doc.docstatus == 2) ||
-			(allow_print_for_draft && this.frm.doc.docstatus == 0)
-		) {
-			if (frappe.model.can_print(null, this.frm) && !this.frm.meta.issingle) {
-				let print_icon = this.page.add_action_icon(
-					"printer",
-					() => {
-						this.frm.print_doc();
-					},
-					"",
-					__("Print")
-				);
-				print_icon.css("background-color", "transparent");
-				print_icon.addClass("p-0");
-				this.sidebar.find(".form-print").append(print_icon);
-			}
+		if (frappe.model.can_print_doc(this.frm)) {
+			let print_icon = this.page.add_action_icon(
+				"printer",
+				() => {
+					this.frm.print_doc();
+				},
+				"",
+				__("Print")
+			);
+			print_icon.css("background-color", "transparent");
+			print_icon.addClass("p-0");
+			this.sidebar.find(".form-print").append(print_icon);
 		}
 	}
 
@@ -158,11 +148,14 @@ frappe.ui.form.Sidebar = class {
 			.html(
 				get_user_message(
 					this.frm.doc.modified_by,
-					__("Last Edited by You", null),
-					__("Last Edited by {0}", [get_user_link(this.frm.doc.modified_by)])
+					__("Last Edited By You", null),
+					__("Last Edited By {0}", [get_user_link(this.frm.doc.modified_by)])
 				) +
 					" <br> " +
-					comment_when(this.frm.doc.modified)
+					(cint(frappe.boot.user.show_absolute_datetime_in_timeline) ||
+					cint(frappe.boot.sysdefaults.show_absolute_datetime_in_timeline)
+						? frappe.datetime.str_to_user(this.frm.doc.modified)
+						: comment_when(this.frm.doc.modified))
 			);
 		this.sidebar
 			.find(".created-by")
@@ -173,7 +166,10 @@ frappe.ui.form.Sidebar = class {
 					__("Created By {0}", [get_user_link(this.frm.doc.owner)])
 				) +
 					" <br> " +
-					comment_when(this.frm.doc.creation)
+					(cint(frappe.boot.user.show_absolute_datetime_in_timeline) ||
+					cint(frappe.boot.sysdefaults.show_absolute_datetime_in_timeline)
+						? frappe.datetime.str_to_user(this.frm.doc.creation)
+						: comment_when(this.frm.doc.creation))
 			);
 	}
 

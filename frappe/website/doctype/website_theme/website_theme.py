@@ -13,6 +13,8 @@ from frappe.model.document import Document
 
 
 class WebsiteTheme(Document):
+	_DOCTYPE_NAME = "Website Theme"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

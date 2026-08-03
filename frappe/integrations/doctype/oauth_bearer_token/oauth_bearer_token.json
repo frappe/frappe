@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "field:access_token",
+ "autoname": "hash",
  "creation": "2016-08-24 14:10:17.471264",
  "doctype": "DocType",
  "document_type": "Document",
@@ -52,7 +52,8 @@
    "fieldname": "refresh_token",
    "fieldtype": "Data",
    "label": "Refresh Token",
-   "read_only": 1
+   "read_only": 1,
+   "unique": 1
   },
   {
    "fieldname": "expiration_time",
@@ -82,7 +83,7 @@
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "OAuth Bearer Token",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {

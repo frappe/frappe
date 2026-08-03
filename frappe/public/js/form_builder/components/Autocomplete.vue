@@ -13,7 +13,7 @@
 					@click.stop
 				/>
 				<button class="clear-button btn btn-sm" @click="clear_search">
-					<div v-html="frappe.utils.icon('close', 'sm')" />
+					<div v-html="frappe.utils.icon('x', 'sm')" />
 				</button>
 			</div>
 			<div class="combo-box-items">
@@ -119,7 +119,7 @@ watch(showOptions, (val) => {
 .combo-box-options {
 	width: 100%;
 	background-color: var(--fg-color);
-	border-radius: var(--border-radius-lg);
+	border-radius: var(--radius-lg);
 	box-shadow: var(--shadow-2xl);
 	padding: 0;
 	border: 1px solid var(--subtle-accent);
@@ -128,7 +128,7 @@ watch(showOptions, (val) => {
 .combo-box-option {
 	font-size: small;
 	text-align: left;
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	padding: 6px 10px;
 	width: 100%;
 	cursor: pointer;

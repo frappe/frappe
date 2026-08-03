@@ -36,10 +36,10 @@
 				/>
 			</template>
 		</draggable>
-		<div class="empty-column" :hidden="store.read_only">
+		<div class="empty-column" :hidden="store.read_only || store.is_layout_form">
 			<AddFieldButton :column="column" />
 		</div>
-		<div v-if="column.fields.length" class="add-new-field-btn">
+		<div v-if="column.fields.length && !store.is_layout_form" class="add-new-field-btn">
 			<AddFieldButton :field="column.fields[column.fields.length - 1]" :column="column" />
 		</div>
 	</div>
@@ -60,7 +60,7 @@ const store = useStore();
 // delete/backspace to delete the field
 const { Backspace } = useMagicKeys();
 whenever(Backspace, (value) => {
-	if (value && selected.value && store.not_using_input) {
+	if (value && selected.value && store.not_using_input && !store.is_layout_form) {
 		remove_column();
 	}
 });
@@ -76,7 +76,7 @@ const selected = computed(() => store.selected(props.column.df.name));
 	flex-direction: column;
 	width: 100%;
 	background-color: var(--bg-light-gray);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	border: 1px dashed var(--gray-400);
 	padding: 0.5rem;
 	margin-left: 4px;
@@ -136,7 +136,7 @@ const selected = computed(() => store.selected(props.column.df.name));
 
 	.column-container {
 		min-height: 2rem;
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 		z-index: 1;
 
 		&:empty {

@@ -1,6 +1,6 @@
 {
  "actions": [],
- "beta": 1,
+ "allow_bulk_edit": 1,
  "creation": "2019-01-24 15:51:06.362222",
  "doctype": "DocType",
  "document_type": "Document",
@@ -139,7 +139,7 @@
    "link_fieldname": "connected_app"
   }
  ],
- "modified": "2024-07-05 08:24:50.182706",
+ "modified": "2026-05-30 23:25:41.508707",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Connected App",
@@ -162,6 +162,7 @@
    "role": "All"
   }
  ],
+ "row_format": "Dynamic",
  "show_title_field_in_link": 1,
  "sort_field": "creation",
  "sort_order": "DESC",

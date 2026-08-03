@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class DashboardChartLink(Document):
+	_DOCTYPE_NAME = "Dashboard Chart Link"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

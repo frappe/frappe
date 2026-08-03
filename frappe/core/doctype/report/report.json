@@ -11,14 +11,21 @@
   "reference_report",
   "is_standard",
   "module",
+  "documentation_url",
   "column_break_4",
   "report_type",
-  "letter_head",
+  "default_letter_head",
+  "default_print_format",
   "add_total_row",
   "disabled",
   "prepared_report",
+  "snapshot_report",
+  "disable_prepared_report_automation",
+  "generate_csv",
   "add_translate_data",
   "timeout",
+  "section_break_tljw",
+  "doctype_to_sync",
   "filters_section",
   "filters",
   "columns_section",
@@ -72,6 +79,12 @@
    "options": "Module Def"
   },
   {
+   "fieldname": "documentation_url",
+   "fieldtype": "Data",
+   "label": "Documentation URL",
+   "options": "URL"
+  },
+  {
    "default": "0",
    "depends_on": "eval: doc.report_type !== \"Report Builder\"",
    "fieldname": "add_total_row",
@@ -94,13 +107,6 @@
    "fieldname": "disabled",
    "fieldtype": "Check",
    "label": "Disabled"
-  },
-  {
-   "depends_on": "eval: doc.is_standard == \"No\"",
-   "fieldname": "letter_head",
-   "fieldtype": "Link",
-   "label": "Letter Head",
-   "options": "Letter Head"
   },
   {
    "fieldname": "section_break_6",
@@ -144,6 +150,13 @@
    "fieldname": "prepared_report",
    "fieldtype": "Check",
    "label": "Prepared Report"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.prepared_report == 1",
+   "fieldname": "generate_csv",
+   "fieldtype": "Check",
+   "label": "Generate CSV"
   },
   {
    "depends_on": "eval:doc.report_type===\"Script Report\" && doc.is_standard===\"No\"",
@@ -202,12 +215,50 @@
    "fieldname": "add_translate_data",
    "fieldtype": "Check",
    "label": "Add Translate Data"
+  },
+  {
+   "fieldname": "default_print_format",
+   "fieldtype": "Link",
+   "label": "Default Print Format",
+   "options": "Print Format"
+  },
+  {
+   "fieldname": "default_letter_head",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "label": "Default Letter Head",
+   "options": "Letter Head"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.report_type === \"Script Report\"",
+   "description": "If checked, <i>Prepared Report</i> will not be enabled automatically on slow runs.",
+   "fieldname": "disable_prepared_report_automation",
+   "fieldtype": "Check",
+   "label": "Disable Prepared Report Automation"
+  },
+  {
+   "fieldname": "section_break_tljw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval: doc.snapshot_report",
+   "fieldname": "doctype_to_sync",
+   "fieldtype": "Table",
+   "label": "Doctype To Sync",
+   "options": "Doctype To Sync"
+  },
+  {
+   "default": "0",
+   "fieldname": "snapshot_report",
+   "fieldtype": "Check",
+   "label": "Snapshot Report"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-28 18:28:32.510719",
+ "modified": "2026-07-01 13:35:14.237724",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",

@@ -21,6 +21,7 @@ from frappe.permissions import (
 	setup_custom_perms,
 	update_permission_property,
 )
+from frappe.utils import cint
 from frappe.utils.user import get_users_with_role as _get_user_with_role
 
 not_allowed_in_permission_manager = ["DocType", "Patch Log", "Module Def"]
@@ -150,7 +151,7 @@ def update(
 
 	out = update_permission_property(doctype, role, permlevel, ptype, value, if_owner=if_owner)
 
-	if ptype == "if_owner" and value == "1":
+	if ptype == "if_owner" and value == "1" and cint(permlevel) == 0:
 		update_permission_property(doctype, role, permlevel, "report", "0", if_owner=value)
 
 	frappe.db.after_commit.add(clear_cache)
