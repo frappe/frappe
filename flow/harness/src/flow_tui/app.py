@@ -18,6 +18,7 @@ from typing import ClassVar, Protocol
 
 from textual.app import App, ComposeResult, SuspendNotSupported
 from textual.binding import Binding
+from textual.containers import Horizontal
 from textual.widgets import Static
 
 from flow.config import UDS_URL
@@ -46,6 +47,20 @@ TUI_SYSTEM_SUFFIX = (
 	"The user talks to you through the flow terminal UI. Keep answers terminal-friendly: "
 	"plain text and fenced code blocks; no HTML."
 )
+SPINNER_FRAMES = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+
+
+class Spinner(Static):
+	def __init__(self) -> None:
+		super().__init__(SPINNER_FRAMES[0])
+		self._frame = 0
+
+	def on_mount(self) -> None:
+		self.set_interval(0.08, self._advance)
+
+	def _advance(self) -> None:
+		self._frame = (self._frame + 1) % len(SPINNER_FRAMES)
+		self.update(SPINNER_FRAMES[self._frame])
 
 
 def resolve_editor() -> str | None:
@@ -121,6 +136,11 @@ class FlowApp(App):
 	def compose(self) -> ComposeResult:
 		yield ConversationView(id="conversation")
 		yield Static(id="error-banner")
+		yield Horizontal(
+			Spinner(),
+			Static(" Brewing..."),
+			id="brewing",
+		)
 		yield Composer(id="composer")
 		yield StatusBar(id="status")
 
@@ -173,6 +193,7 @@ class FlowApp(App):
 		self.query_one(StatusBar).refresh_from(
 			state, session_id=self.controller.session_id, queued=len(self.controller.queued)
 		)
+		self.query_one("#brewing").set_class(state.running, "visible")
 		banner = self.query_one("#error-banner", Static)
 		if state.last_error is not None:
 			banner.update(f"✗ {state.last_error.message}")

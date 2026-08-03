@@ -50,6 +50,28 @@ PartialAssistantView {
 	display: block;
 }
 
+#brewing {
+	display: none;
+	height: 1;
+	padding: 0 1;
+	color: $text-muted;
+}
+
+#brewing.visible {
+	display: block;
+}
+
+#brewing Spinner {
+	width: 2;
+	height: 1;
+	color: $primary;
+}
+
+#brewing Static {
+	width: auto;
+	height: 1;
+}
+
 ModelPicker, EffortPicker {
 	align: center middle;
 	background: $background 60%;

@@ -30,7 +30,7 @@ from flow.model.credentials import CredentialStore
 from flow.server import create_app
 from flow.session.config import SessionConfig
 from flow.session.store import SessionStore
-from flow_tui.app import FlowApp
+from flow_tui.app import SPINNER_FRAMES, FlowApp, Spinner
 from flow_tui.client.api import FlowClient
 from flow_tui.client.state import Change, ConversationState, StatusChanged
 from flow_tui.controller import Controller
@@ -284,6 +284,28 @@ async def test_escape_aborts_running_run():
 		await pilot.press("escape")
 		await pilot.pause()
 		assert ("abort",) in fake.calls
+
+
+async def test_brewing_spinner_tracks_running_state():
+	fake = FakeController()
+	async with FlowApp(fake).run_test() as pilot:
+		brewing = pilot.app.query_one("#brewing")
+		assert brewing.display is False
+		spinner = brewing.query_one(Spinner)
+		assert _widget_text(spinner) == SPINNER_FRAMES[0]
+		assert "Brewing..." in _widget_text(brewing)
+
+		await pilot.pause(0.1)
+		assert _widget_text(spinner) != SPINNER_FRAMES[0]
+
+		fake.feed(RunStarted(run_id="r1", seq=1))
+		fake.feed(TextDelta(text="still working"))
+		await pilot.pause()
+		assert brewing.display is True
+
+		fake.feed(RunEnded(seq=2))
+		await pilot.pause()
+		assert brewing.display is False
 
 
 async def test_status_bar_reflects_state():
