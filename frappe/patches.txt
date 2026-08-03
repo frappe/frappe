@@ -245,29 +245,4 @@ frappe.printing.doctype.print_format.patches.sets_wkhtmltopdf_as_default_for_pdf
 frappe.patches.v16_0.social_eps_deprecation_warning
 frappe.core.doctype.communication_link.patches.copy_communication_date_to_link
 frappe.core.doctype.communication.patches.drop_ref_dt_dn_index
-<<<<<<< HEAD
-=======
-execute:from frappe.desk.doctype.notification_type.notification_type import install_notification_types; install_notification_types()
-execute:from frappe.email.doctype.notification.notification import install_notification_templates; install_notification_templates()
-execute:frappe.db.set_value("Email Account", {}, "add_x_original_from", 1)
-frappe.patches.v16_0.fix_myanmar_language_name
-execute:frappe.db.set_value("Email Account", {}, "add_reply_to_header", 1)
-frappe.patches.v16_0.set_reply_to_header
-frappe.patches.v16_0.rename_print_format_builder_beta_route
-frappe.patches.v16_0.sync_installed_apps_to_site_config
-frappe.patches.v16_0.backfill_notification_log_title_description
-frappe.patches.v16_0.backfill_notification_email_type_preferences
-frappe.patches.v16_0.backfill_notification_log_app
-frappe.patches.v16_0.backfill_list_layout_route_signature
-execute:frappe.db.create_sequence_table()  # backfill SQLite sequence emulation table on existing sites
-frappe.patches.v16_0.migrate_workspace_sidebar_to_workspace
-frappe.patches.v16_0.populate_workspace_sidebar_from_shortcuts
-frappe.desk.doctype.workspace.patches.set_standard_flag
-frappe.patches.v16_0.clear_if_owner_above_permlevel_zero
-frappe.patches.v16_0.migrate_classic_print_formats
-frappe.patches.v16_0.rename_lucide_workspace_icons
-frappe.patches.v16_0.keep_existing_sites_on_desktop_icons
-frappe.patches.v16_0.repair_converted_print_formats
-frappe.patches.v16_0.repair_converted_print_formats #2026-08-02 section-spacing
 execute:frappe.db.set_single_value("Contact Us Settings", "send_acknowledgement_email", 1)
->>>>>>> c85cfabafb (fix(contact): tighten rate limits and make acknowledgement emails configurable (#38337))
