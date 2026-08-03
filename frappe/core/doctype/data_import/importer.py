@@ -355,6 +355,13 @@ class Importer:
 						activity=self._build_error_activity(messages, row_indexes),
 					)
 
+			# Checkpoint status at end of each batch to handle worker crash mid-import.
+			# Without this, a worker death leaves the doc stuck in "In Progress" forever.
+			# Setting "Partial Success" here allows the UI to show recovery state.
+			if self.data_import.name and (inserted_count > 0 or updated_count > 0):
+				self.data_import.db_set("status", "Partial Success")
+				frappe.db.commit()
+
 		# Logs are db inserted directly so will have to be fetched again
 		import_log = (
 			frappe.get_all(
