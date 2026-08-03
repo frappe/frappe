@@ -193,3 +193,12 @@ cypress/videos
 
 # JetBrains IDEs
 .idea/
+<<<<<<< HEAD
+=======
+# Helix Editor
+.helix/
+# Aider AI Chat
+.aider*
+# Playwright AI
+.playwright-mcp
+>>>>>>> 133edd2a60 (feat(ui): backport @framework/ui component library to v16)
