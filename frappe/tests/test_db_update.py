@@ -134,6 +134,39 @@ class TestDBUpdate(IntegrationTestCase):
 			len(indexes), 1, msg=f"There should be 1 index on {doctype}.{field}, found {indexes}"
 		)
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_type_change_keeps_dynamic_defaults_dynamic(self):
+		"""A Today/Now default must not be frozen into the column when the type changes"""
+
+		doctype = new_doctype(
+			fields=[
+				{"fieldname": "starts_on", "fieldtype": "Data", "default": "Now"},
+				{"fieldname": "starts_day", "fieldtype": "Data", "default": "Today"},
+			]
+		).insert()
+		table = f"tab{doctype.name}"
+		# the type change below is DDL and commits itself, so the table outlives this test's
+		# rollback and has to be dropped (and that drop committed) whatever the assertions do
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.db.sql_ddl, f'DROP TABLE IF EXISTS "{table}" CASCADE')
+		self.addCleanup(doctype.delete)
+
+		for field in doctype.fields:
+			field.fieldtype = "Datetime" if field.fieldname == "starts_on" else "Date"
+		doctype.save()
+
+		for column in ("starts_on", "starts_day"):
+			expression = frappe.db.sql(
+				"""SELECT pg_get_expr(d.adbin, d.adrelid)
+				FROM pg_attrdef d
+				JOIN pg_class c ON c.oid = d.adrelid
+				JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = d.adnum
+				WHERE c.relname = %s AND a.attname = %s""",
+				(table, column),
+				pluck=True,
+			)
+			self.assertFalse(expression, msg=f"{column} kept a frozen literal default: {expression}")
+
 	def test_bigint_conversion(self):
 		doctype = new_doctype(fields=[{"fieldname": "int_field", "fieldtype": "Int"}]).insert()
 
