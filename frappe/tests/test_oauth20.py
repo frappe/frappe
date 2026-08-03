@@ -384,6 +384,21 @@ class TestOAuth20(FrappeRequestTestCase):
 		# Custom params must not break the standard authorization code flow.
 		self.assertTrue(self.get_authorization_code(tenant_id="xyz", ui_theme="customer"))
 
+	def test_authorize_accepts_post(self):
+		resp = self.post(
+			"/api/method/frappe.integrations.oauth2.authorize",
+			headers=self.form_header,
+			data={
+				"client_id": self.client_id,
+				"scope": self.scope,
+				"response_type": "code",
+				"redirect_uri": self.redirect_uri,
+			},
+		)
+
+		self.assertEqual(resp.status_code, 302)
+		self.assertTrue(resp.location.startswith("/login?"))
+
 	def test_resource_owner_password_credentials_grant(self):
 		client = frappe.get_doc("OAuth Client", self.client_id)
 		client.grant_type = "Authorization Code"

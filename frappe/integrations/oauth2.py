@@ -156,7 +156,7 @@ def approve(
 		return generate_json_error_response(e)
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
 def authorize(
 	response_type: str | None = None,
 	client_id: str | None = None,
