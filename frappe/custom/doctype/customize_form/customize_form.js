@@ -30,6 +30,7 @@ frappe.ui.form.on("Customize Form", {
 				filters: {
 					print_format_type: ["!=", "JS"],
 					doc_type: ["=", frm.doc.doc_type],
+					disabled: ["!=", 1],
 				},
 			};
 		});

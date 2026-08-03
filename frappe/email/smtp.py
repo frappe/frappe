@@ -128,6 +128,16 @@ class SMTPServer:
 			except Exception:
 				return False
 
+	def discard_session(self):
+		"""Drop the cached session so the next `session` access reconnects.
+
+		A failed sendmail() can poison the connection server-side even though NOOP still reports it alive.
+		"""
+		if self._session:
+			with suppress(Exception):
+				self._session.close()
+			self._session = None
+
 	def quit(self):
 		with suppress(TimeoutError):
 			if self.is_session_active():

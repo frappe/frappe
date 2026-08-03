@@ -27,6 +27,7 @@ from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import toggle_test_mode
 from frappe.utils import get_url
+from frappe.utils.data import orjson_dumps
 from frappe.www.login import sanitize_redirect
 
 user_module = frappe.core.doctype.user.user
@@ -208,6 +209,10 @@ class TestUser(IntegrationTestCase):
 			result = test_password_strength("Eastern_43A1W")
 			self.assertEqual(result["feedback"]["password_policy_validation_passed"], True)
 
+			result = test_password_strength("xK9#mP2$vL8@qR5&wN3*zB7!cF4^hJ6%tD1(gS0)yA9-eU2_iO5+kM8=nQ4~rV7")
+			self.assertEqual(set(result), {"score", "feedback"})
+			orjson_dumps(result)
+
 			# test password strength while saving user with new password
 			user = frappe.get_doc("User", "test@example.com")
 			toggle_test_mode(False)
@@ -313,6 +318,62 @@ class TestUser(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("Notification Settings", new_name))
 
 		frappe.delete_doc("User", new_name)
+
+	def test_user_rename_updates_private_workspace(self):
+		old_name = "test_user_rename_ws@example.com"
+		new_name = "test_user_rename_ws_new@example.com"
+		actor_name = "test_user_rename_ws_actor@example.com"
+
+		old_workspace = f"Test Rename Workspace-{old_name}"
+		for email in (old_name, new_name, actor_name):
+			frappe.delete_doc("User", email, ignore_permissions=True, force=True)
+		if frappe.db.exists("Workspace", old_workspace):
+			frappe.delete_doc("Workspace", old_workspace, ignore_permissions=True, force=True)
+
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": old_name,
+				"enabled": 1,
+				"first_name": "_Test",
+				"new_password": "Eastern_43A1W",
+				"roles": [{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": actor_name,
+				"enabled": 1,
+				"first_name": "_Test Actor",
+				"new_password": "Eastern_43A1W",
+				"roles": [{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": "Test Rename Workspace",
+				"label": old_workspace,
+				"type": "Workspace",
+				"for_user": old_name,
+				"public": 0,
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+
+		with self.set_user(actor_name):
+			frappe.rename_doc("User", old_name, new_name)
+
+		new_workspace = f"Test Rename Workspace-{new_name}"
+		self.assertTrue(frappe.db.exists("Workspace", new_workspace))
+		self.assertEqual(frappe.db.get_value("Workspace", new_workspace, "for_user"), new_name)
+
+		frappe.delete_doc("Workspace", new_workspace, ignore_permissions=True, force=True)
+		frappe.delete_doc("User", new_name, ignore_permissions=True, force=True)
+		frappe.delete_doc("User", actor_name, ignore_permissions=True, force=True)
 
 	def test_signup(self):
 		import frappe.website.utils

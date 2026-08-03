@@ -11,6 +11,8 @@ from frappe.utils import compare
 
 
 class AuditTrail(Document):
+	_DOCTYPE_NAME = "Audit Trail"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -31,8 +31,8 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 				onmouseout="this.classList.remove('btn-default')"
 				title="${__("Copy to Clipboard")}"
 			>
-				<svg class="es-icon es-line  icon-sm" style="" aria-hidden="true">
-					<use class="" href="#es-line-copy-light"></use>
+				<svg class="icon icon-sm" style="" aria-hidden="true">
+					<use class="" href="#icon-copy"></use>
 				</svg>
 			</button>`
 		);
@@ -179,6 +179,10 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 	refresh_height() {
 		this.ace_editor_target.css("height", this.expanded ? 600 : 300);
 		this.editor.resize();
+	}
+
+	on_section_collapse(hide) {
+		!hide && this.editor?.resize();
 	}
 
 	toggle_label() {

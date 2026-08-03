@@ -86,6 +86,7 @@
   "user_emails",
   "workspace_section",
   "default_workspace",
+  "workspaces",
   "app_section",
   "default_app",
   "sb2",
@@ -323,11 +324,13 @@
    "depends_on": "eval:doc.enabled && (!doc.__islocal || !cint(doc.send_welcome_email))",
    "fieldname": "change_password",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Change Password"
   },
   {
    "fieldname": "new_password",
    "fieldtype": "Password",
+   "hidden": 1,
    "label": "Set New Password",
    "no_copy": 1
   },
@@ -335,6 +338,7 @@
    "default": "1",
    "fieldname": "logout_all_sessions",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Logout From All Devices After Changing Password"
   },
   {
@@ -852,6 +856,12 @@
    "fieldname": "form_navigation_buttons",
    "fieldtype": "Check",
    "label": "Show navigation buttons"
+  },
+  {
+   "fieldname": "workspaces",
+   "fieldtype": "Table",
+   "label": "Workspaces",
+   "options": "User Workspaces"
   }
  ],
  "icon": "fa fa-user",
@@ -905,7 +915,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-04-28 21:59:59.160099",
+ "modified": "2026-06-17 16:47:51.772694",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

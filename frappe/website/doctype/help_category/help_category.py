@@ -7,6 +7,8 @@ from frappe.website.website_generator import WebsiteGenerator
 
 
 class HelpCategory(WebsiteGenerator):
+	_DOCTYPE_NAME = "Help Category"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

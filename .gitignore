@@ -6,9 +6,9 @@
 *.swp
 *.egg-info
 dist/
+frappe/public/dist
 # build/
 frappe/docs/current
-frappe/public/dist
 .vscode
 .vs
 node_modules
@@ -198,3 +198,5 @@ cypress/videos
 .helix/
 # Aider AI Chat
 .aider*
+# Playwright AI
+.playwright-mcp

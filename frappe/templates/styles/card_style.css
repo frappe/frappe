@@ -6,7 +6,7 @@
 	max-width: 360px;
 	padding: 15px;
 	margin: 70px auto;
-	border-radius: var(--border-radius-md);
+	border-radius: var(--radius-md);
 	background-color: var(--fg-color);
 	border: 1px solid var(--border-color);
 }
@@ -19,7 +19,7 @@
 	border: 0;
 	max-width: 450px;
 	margin: auto;
-	border-radius: var(--border-radius-md);
+	border-radius: var(--radius-md);
 	padding: 40px 60px;
 }
 
@@ -90,6 +90,7 @@ button#update {
 	max-width: 100%;
 	vertical-align: middle;
 }
+
 .field-icon {
 	left: 9px;
 	top: 5px;
@@ -97,6 +98,7 @@ button#update {
 	z-index: 2;
 	fill: var(--text-light);
 }
+
 .password-field {
 	position: relative;
 

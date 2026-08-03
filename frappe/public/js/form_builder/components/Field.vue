@@ -1,7 +1,7 @@
 <script setup>
 import EditableInput from "./EditableInput.vue";
 import { useStore } from "../store";
-import { move_children_to_parent, clone_field } from "../utils";
+import { clone_field } from "../utils";
 import { ref, computed, onMounted } from "vue";
 import AddFieldButton from "./AddFieldButton.vue";
 import { useMagicKeys, whenever } from "@vueuse/core";
@@ -14,14 +14,14 @@ const add_field_ref = ref(null);
 // cmd/ctrl + shift + n to open the add field autocomplete
 const { ctrl_shift_n, Backspace } = useMagicKeys();
 whenever(ctrl_shift_n, (value) => {
-	if (value && selected.value) {
+	if (value && selected.value && !store.is_layout_form) {
 		add_field_ref.value.open();
 	}
 });
 
 // delete/backspace to delete the field
 whenever(Backspace, (value) => {
-	if (value && selected.value && store.not_using_input) {
+	if (value && selected.value && store.not_using_input && !store.is_layout_form) {
 		remove_field();
 	}
 });
@@ -41,13 +41,6 @@ function remove_field() {
 	let index = props.column.fields.indexOf(props.field);
 	props.column.fields.splice(index, 1);
 	store.form.selected_field = null;
-}
-
-function move_fields_to_column() {
-	let current_section = store.current_tab.sections.find((section) =>
-		section.columns.find((column) => column == props.column)
-	);
-	move_children_to_parent(props, "column", "field", current_section);
 }
 
 function duplicate_field() {
@@ -85,11 +78,10 @@ function make_dialog(frm) {
 			},
 		],
 		primary_action: () => {
-			let fieldname = props.field.df.fieldname;
-			let field_option = props.field.df.options;
+			let filter_doctype = get_filter_doctype();
 			let filters = frm.filter_group.get_filters().map((filter) => {
 				// filter_group component requires options and frm.set_query requires fieldname so storing both
-				filter[0] = field_option;
+				filter[0] = filter_doctype;
 				return filter;
 			});
 
@@ -150,8 +142,12 @@ function add_existing_filter(frm, df) {
 	}
 }
 
+function get_filter_doctype() {
+	return props.field.df.fieldtype === "Attachment Gallery" ? "File" : props.field.df.options;
+}
+
 function edit_filters() {
-	const field_doctype = props.field.df.options;
+	const field_doctype = get_filter_doctype();
 
 	if (!field_doctype) {
 		frappe.throw({
@@ -225,22 +221,28 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 			<template #actions>
 				<div class="field-actions" :hidden="store.read_only">
 					<button
-						v-if="field.df.fieldtype === 'Link'"
+						v-if="['Attachment Gallery', 'Link'].includes(field.df.fieldtype)"
 						class="btn btn-xs btn-icon"
 						:class="is_filter_applied()"
 						@click="edit_filters"
 					>
-						<div v-html="frappe.utils.icon('filter', 'sm')" />
+						<div v-html="frappe.utils.icon('funnel', 'sm')" />
 					</button>
-					<AddFieldButton ref="add_field_ref" :column="column" :field="field">
+					<AddFieldButton
+						v-if="!store.is_layout_form"
+						ref="add_field_ref"
+						:column="column"
+						:field="field"
+					>
 						<div v-html="frappe.utils.icon('plus', 'sm')" />
 					</AddFieldButton>
 					<button
+						v-if="!store.is_layout_form"
 						class="btn btn-xs btn-icon"
 						:title="__('Duplicate field')"
 						@click.stop="duplicate_field"
 					>
-						<div v-html="frappe.utils.icon('duplicate', 'sm')" />
+						<div v-html="frappe.utils.icon('copy', 'sm')" />
 					</button>
 					<button
 						v-if="field.df.fieldtype === 'Table' && field.df.options"
@@ -251,6 +253,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						<div v-html="frappe.utils.icon('external-link', 'sm')" />
 					</button>
 					<button
+						v-if="!store.is_layout_form"
 						class="btn btn-xs btn-icon"
 						:title="__('Remove field')"
 						@click.stop="remove_field"
@@ -268,7 +271,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 	text-align: left;
 	width: 100%;
 	background-color: var(--bg-light-gray);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	border: 1px solid transparent;
 	padding: 0.3rem;
 	font-size: var(--text-sm);

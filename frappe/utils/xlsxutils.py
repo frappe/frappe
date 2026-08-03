@@ -366,7 +366,7 @@ class XLSXStyleBuilder:
 
 	@staticmethod
 	def _get_currency_symbol_info(currency: str | None) -> tuple[str, bool]:
-		if not currency or frappe.db.get_default("hide_currency_symbol") == "Yes":
+		if not currency or frappe.db.get_default("hide_currency_symbol") in ("1", "Yes"):
 			return "", False
 
 		symbol, on_right = frappe.db.get_value("Currency", currency, ["symbol", "symbol_on_right"])
@@ -628,7 +628,7 @@ def handle_html(data: str) -> str:
 	return value.replace("  \n", ", ").replace("\n", " ").replace("# ", ", ")
 
 
-def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=None):
+def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=None, *, read_only=False):
 	if file_url:
 		_file = frappe.get_doc("File", {"file_url": file_url})
 		filename = _file.get_full_path()
@@ -640,10 +640,12 @@ def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=Non
 		return
 
 	rows = []
-	wb1 = load_workbook(filename=filename, data_only=True)
+	wb1 = load_workbook(filename=filename, data_only=True, read_only=read_only)
 	ws1 = wb1.active
 	for row in ws1.iter_rows():
 		rows.append([cell.value for cell in row])
+	if read_only:
+		wb1.close()
 	return rows
 
 

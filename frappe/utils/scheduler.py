@@ -86,6 +86,8 @@ def sleep_duration(tick):
 	minutes = tick // 60
 	now = datetime.datetime.now(datetime.UTC)
 	left_minutes = minutes - now.minute % minutes
+	# `now.minute % minutes` is in [0, minutes), so left_minutes is in (0, minutes].
+	assert 0 < left_minutes <= minutes, "next tick must be at least one minute and within one tick window"
 	next_execution = now.replace(second=0) + datetime.timedelta(minutes=left_minutes)
 
 	return (next_execution - now).total_seconds()

@@ -24,14 +24,14 @@ frappe.ui.form.on("Workflow", {
 
 		let message = `
 		<div class="flex">
-			<div class="mr-3"><img style="border-radius: var(--border-radius-md)" width="600" src="/assets/frappe/images/workflow-builder.gif"></div>
+			<div class="mr-3"><img style="border-radius: var(--radius-md)" width="600" src="/assets/frappe/images/workflow-builder.gif"></div>
 			<div>
 				<p style="font-size: var(--text-xl)">${title}</p>
 				<p>${msg}</p>
 				<p class="mb-3">${note || ""}</p>
 				<div>
 					<a class="btn btn-primary btn-sm" href="${workflow_builder_url}">
-						${__("Workflow Builder")} ${frappe.utils.icon("right", "xs")}
+						${__("Workflow Builder")} ${frappe.utils.icon("chevron-right", "xs")}
 					</a>
 				</div>
 			</div>

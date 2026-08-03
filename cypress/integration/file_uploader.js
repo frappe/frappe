@@ -115,7 +115,7 @@ context("FileUploader", () => {
 
 			// Toggle button should be visible (secondary action button)
 			cy.get_open_dialog()
-				.find(".modal-footer .btn-secondary")
+				.find(".modal-footer .btn-modal-secondary")
 				.should("be.visible")
 				.and("contain", "Set all");
 
@@ -165,7 +165,7 @@ context("FileUploader", () => {
 
 			// Toggle button should be visible (secondary action button)
 			cy.get_open_dialog()
-				.find(".modal-footer .btn-secondary")
+				.find(".modal-footer .btn-modal-secondary")
 				.should("be.visible")
 				.and("contain", "Set all");
 
@@ -210,7 +210,7 @@ context("FileUploader", () => {
 
 			// Toggle button should be visible (secondary action button)
 			cy.get_open_dialog()
-				.find(".modal-footer .btn-secondary")
+				.find(".modal-footer .btn-modal-secondary")
 				.should("be.visible")
 				.and("contain", "Set all");
 
@@ -257,7 +257,9 @@ context("FileUploader", () => {
 			cy.get_open_dialog().find("#uploader-private-checkbox input").should("be.disabled");
 
 			// Toggle button should not be visible (secondary action button should be hidden)
-			cy.get_open_dialog().find(".modal-footer .btn-secondary").should("not.be.visible");
+			cy.get_open_dialog()
+				.find(".modal-footer .btn-modal-secondary")
+				.should("not.be.visible");
 
 			cy.hide_dialog();
 		});

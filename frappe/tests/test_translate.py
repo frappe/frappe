@@ -1,14 +1,20 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import os
+import tempfile
 import textwrap
+from pathlib import Path
 from random import choices
 from unittest.mock import patch
 
+from babel.messages.catalog import Catalog
+from babel.messages.mofile import write_mo
+
 import frappe
 import frappe.translate
-from frappe import _, _lt
+from frappe import N_, _, _lt
 from frappe.gettext.extractors.javascript import extract_javascript
+from frappe.gettext.translate import get_translations_from_mo
 from frappe.tests import IntegrationTestCase
 from frappe.translate import (
 	MERGED_TRANSLATION_KEY,
@@ -31,8 +37,19 @@ first_lang, second_lang, third_lang, fourth_lang, fifth_lang = choices(
 	k=5,
 )
 
+_LAZY_SOURCE = "Lazy Translation Source"
+_lazy_translations = _lt(_LAZY_SOURCE)
 
-_lazy_translations = _lt("Communication")
+
+def write_mo_catalogue(locale_dir: str, app: str, locale: str, messages: dict[str, str]):
+	catalog = Catalog(locale=locale)
+	for source, translation in messages.items():
+		catalog.add(source, translation)
+
+	mo_path = Path(locale_dir) / locale / "LC_MESSAGES" / f"{app}.mo"
+	mo_path.parent.mkdir(parents=True, exist_ok=True)
+	with open(mo_path, "wb") as f:
+		write_mo(f, catalog)
 
 
 class TestTranslate(IntegrationTestCase):
@@ -62,6 +79,13 @@ class TestTranslate(IntegrationTestCase):
 		self.assertIsNone(frappe.cache.hget(USER_TRANSLATION_KEY, frappe.local.lang))
 		self.assertIsNone(frappe.cache.hget(MERGED_TRANSLATION_KEY, frappe.local.lang))
 
+	def test_noop_preserves_source_string(self):
+		frappe.local.lang = "de"
+		message = N_("Noop Source")
+
+		self.assertIs(type(message), str)
+		self.assertEqual(message, "Noop Source")
+
 	def test_extract_message_from_file(self):
 		data = frappe.translate.get_messages_from_file(translation_string_file)
 		bench_path = get_bench_path()
@@ -83,15 +107,54 @@ class TestTranslate(IntegrationTestCase):
 			self.assertEqual(ext_line, exp_line)
 
 	def test_read_language_variant(self):
-		self.assertEqual(_("Mobile No"), "Mobile No")
+		source = "Language Variant Source"
+		t_pt = frappe.get_doc(
+			{
+				"doctype": "Translation",
+				"language": "pt",
+				"source_text": source,
+				"translated_text": "Tradução PT",
+			}
+		).insert()
+		t_pt_br = frappe.get_doc(
+			{
+				"doctype": "Translation",
+				"language": "pt-BR",
+				"source_text": source,
+				"translated_text": "Tradução PT-BR",
+			}
+		).insert()
+
 		try:
+			self.assertEqual(_(source), source)
+
 			frappe.local.lang = "pt-BR"
-			self.assertEqual(_("Mobile No"), "Celular")
+			self.assertEqual(_(source), "Tradução PT-BR")
+
 			frappe.local.lang = "pt"
-			self.assertEqual(_("Mobile No"), "Nr. de Telemóvel")
+			self.assertEqual(_(source), "Tradução PT")
 		finally:
+			t_pt.delete()
+			t_pt_br.delete()
 			frappe.local.lang = "en"
-			self.assertEqual(_("Mobile No"), "Mobile No")
+			self.assertEqual(_(source), source)
+
+	def test_regional_catalogue_overrides_parent_language_of_later_app(self):
+		with tempfile.TemporaryDirectory() as locale_dir:
+			write_mo_catalogue(locale_dir, "billing", "es", {"Mobile No": "Móvil"})
+			write_mo_catalogue(locale_dir, "storefront", "es", {"Mobile No": "Móvil"})
+			write_mo_catalogue(locale_dir, "billing", "es_MX", {"Mobile No": "Celular"})
+
+			with (
+				patch("frappe.gettext.translate.get_locale_dir", return_value=Path(locale_dir)),
+				patch("frappe.translate.get_translations_from_csv", return_value={}),
+			):
+				self.assertEqual(get_translations_from_mo("es_MX", "storefront"), {})
+
+				translations = frappe.translate.get_translations_from_apps(
+					"es-MX", apps=["billing", "storefront"]
+				)
+				self.assertEqual(translations["Mobile No"], "Celular")
 
 	def test_translation_with_context(self):
 		t1 = frappe.new_doc("Translation")
@@ -115,19 +178,34 @@ class TestTranslate(IntegrationTestCase):
 		t2.delete()
 
 	def test_lazy_translations(self):
-		frappe.local.lang = "de"
-		eager_translation = _("Communication")
-		self.assertEqual(str(_lazy_translations), eager_translation)
-		self.assertRaises(NotImplementedError, lambda: _lazy_translations == "blah")
+		# _lazy_translations is defined at module scope and only evaluated when cast to str
+		translation = frappe.get_doc(
+			{
+				"doctype": "Translation",
+				"language": "de",
+				"source_text": _LAZY_SOURCE,
+				"translated_text": "Lazy Übersetzung",
+			}
+		).insert()
 
-		# auto casts when added or radded
-		self.assertEqual(_lazy_translations + "A", eager_translation + "A")
-		x = _lazy_translations
-		x += "A"
-		self.assertEqual(x, eager_translation + "A")
+		try:
+			frappe.local.lang = "de"
+			eager_translation = _(_LAZY_SOURCE)
+			self.assertEqual(eager_translation, "Lazy Übersetzung")
+			self.assertEqual(str(_lazy_translations), eager_translation)
+			self.assertRaises(NotImplementedError, lambda: _lazy_translations == "blah")
 
-		# f string usually auto-casts
-		self.assertEqual(f"{_lazy_translations}", eager_translation)
+			# auto casts when added or radded
+			self.assertEqual(_lazy_translations + "A", eager_translation + "A")
+			x = _lazy_translations
+			x += "A"
+			self.assertEqual(x, eager_translation + "A")
+
+			# f string usually auto-casts
+			self.assertEqual(f"{_lazy_translations}", eager_translation)
+		finally:
+			translation.delete()
+			frappe.local.lang = "en"
 
 	def test_request_language_resolution_with_form_dict(self):
 		"""Test for frappe.translate.get_language
@@ -216,6 +294,7 @@ class TestTranslate(IntegrationTestCase):
 			_(not_a_string)
 			_(not_a_string, context="wat")
 			_lt("Communication")
+			N_("Created On")
 		"""
 		)
 		expected_output = [
@@ -226,6 +305,7 @@ class TestTranslate(IntegrationTestCase):
 			(6, "broken on", "new line"),
 			(10, "broken on separate line", None),
 			(15, "Communication", None),
+			(16, "Created On", None),
 		]
 
 		output = extract_messages_from_python_code(code)
@@ -317,6 +397,18 @@ class TestTranslate(IntegrationTestCase):
 		self.assertEqual(
 			args, ("Multiline translation with format replacements and no context {0} {1}", None)
 		)
+
+	def test_update_translations_for_source_accepts_native_dict(self):
+		from frappe.translate import update_translations_for_source
+
+		source = "Native translation source " + frappe.generate_hash(length=8)
+		frappe.db.delete("Translation", {"source_text": source})
+		# translation_dict as a native dict instead of a JSON string (frappe.parse_json passthrough)
+		update_translations_for_source(source=source, translation_dict={"de": "Hallo Quelle"})
+		self.assertTrue(
+			frappe.db.exists("Translation", {"source_text": source, "translated_text": "Hallo Quelle"})
+		)
+		frappe.db.delete("Translation", {"source_text": source})
 
 
 def verify_translation_files(app):

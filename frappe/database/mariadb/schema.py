@@ -1,5 +1,3 @@
-from pymysql.constants.ER import DUP_ENTRY
-
 import frappe
 from frappe import _
 from frappe.database.schema import DbColumn, DBTable
@@ -155,7 +153,7 @@ class MariaDBTable(DBTable):
 					print(f"Failed to update data in {self.table_name} for {col.fieldname}")
 					raise
 		try:
-			for query_parts in [add_column_query, modify_column_query, add_index_query, drop_index_query]:
+			for query_parts in [add_column_query, drop_index_query, modify_column_query, add_index_query]:
 				if query_parts:
 					query_body = ", ".join(query_parts)
 					query = f"ALTER TABLE `{self.table_name}` {query_body}"
@@ -166,12 +164,20 @@ class MariaDBTable(DBTable):
 			if query := locals().get("query"):  # this weirdness is to avoid potentially unbounded vars
 				print(f"Failed to alter schema using query: {query}")
 
-			if e.args[0] == DUP_ENTRY:
+			if frappe.db.is_duplicate_entry(e):
 				fieldname = str(e).split("'")[-2]
 				frappe.throw(
 					_(
 						"{0} field cannot be set as unique in {1}, as there are non-unique existing values"
 					).format(fieldname, self.table_name)
+				)
+
+			if frappe.db.is_data_truncated(e):
+				frappe.throw(
+					_(
+						"Cannot change field type in {0}: some existing values cannot be converted to the new type"
+					).format(self.doctype),
+					title=_("Incompatible Values"),
 				)
 
 			raise

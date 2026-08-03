@@ -5,7 +5,7 @@
 		@click.stop="toggle_fieldtype_options"
 	>
 		<slot>
-			<div v-html="frappe.utils.icon('dot-horizontal', 'sm')" />
+			<div v-html="frappe.utils.icon('ellipsis', 'sm')" />
 		</slot>
 		<Teleport to="#autocomplete-area">
 			<div class="dropdown" ref="dropdown_ref">
@@ -118,7 +118,7 @@ function action(clickEvent) {
 }
 .dropdown-options {
 	background-color: var(--fg-color);
-	border-radius: var(--border-radius-lg);
+	border-radius: var(--radius-lg);
 	box-shadow: var(--shadow-2xl);
 	padding: 4px;
 	border: 1px solid var(--subtle-accent);

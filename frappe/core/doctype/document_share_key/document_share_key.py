@@ -8,6 +8,8 @@ from frappe.model.document import Document
 
 
 class DocumentShareKey(Document):
+	_DOCTYPE_NAME = "Document Share Key"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

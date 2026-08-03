@@ -35,6 +35,76 @@ frappe.tools.downloadify = function (data, roles, title) {
 	document.body.removeChild(a);
 };
 
+const MD_ALLOWED_TAGS = new Set([
+	"p",
+	"br",
+	"hr",
+	"h1",
+	"h2",
+	"h3",
+	"h4",
+	"h5",
+	"h6",
+	"ul",
+	"ol",
+	"li",
+	"blockquote",
+	"pre",
+	"code",
+	"em",
+	"strong",
+	"del",
+	"b",
+	"i",
+	"a",
+	"img",
+	"table",
+	"thead",
+	"tbody",
+	"tr",
+	"th",
+	"td",
+]);
+const MD_SAFE_URL = /^(https?:|mailto:|tel:|#|\/(?!\/))/i;
+const MD_SAFE_IMG_SRC = /^(https?:|\/(?!\/)|data:image\/)/i;
+const MD_SAFE_ALIGN = /^text-align:\s*(left|right|center|justify);?$/i;
+
+// Whitelist-sanitize markdown-generated HTML to prevent XSS (showdown does not sanitize).
+function sanitize_markdown_html(html) {
+	const doc = new DOMParser().parseFromString(html, "text/html");
+	(function walk(node) {
+		for (const el of [...node.children]) {
+			const tag = el.tagName.toLowerCase();
+			walk(el);
+			if (!MD_ALLOWED_TAGS.has(tag)) {
+				el.replaceWith(...el.childNodes);
+				continue;
+			}
+			for (const attr of [...el.attributes]) {
+				const name = attr.name.toLowerCase();
+				const keep =
+					name === "title" ||
+					name === "alt" ||
+					(tag === "a" && name === "href" && MD_SAFE_URL.test(attr.value)) ||
+					(tag === "img" && name === "src" && MD_SAFE_IMG_SRC.test(attr.value)) ||
+					((tag === "code" || tag === "pre") && name === "class") ||
+					((tag === "th" || tag === "td") &&
+						name === "style" &&
+						MD_SAFE_ALIGN.test(attr.value));
+				if (!keep) el.removeAttribute(attr.name);
+			}
+			if (tag === "a") {
+				const href = el.getAttribute("href") || "";
+				if (href && !href.startsWith("#")) {
+					el.setAttribute("target", "_blank");
+					el.setAttribute("rel", "noopener noreferrer");
+				}
+			}
+		}
+	})(doc.body);
+	return doc.body.innerHTML;
+}
+
 frappe.markdown = function (txt) {
 	if (!frappe.md2html) {
 		frappe.md2html = new showdown.Converter({ tables: true });
@@ -61,7 +131,7 @@ frappe.markdown = function (txt) {
 		txt = txt1.join("\n");
 	}
 
-	return frappe.md2html.makeHtml(txt);
+	return sanitize_markdown_html(frappe.md2html.makeHtml(txt));
 };
 
 frappe.tools.to_csv = function (data) {

@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class LDAPGroupMapping(Document):
+	_DOCTYPE_NAME = "LDAP Group Mapping"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

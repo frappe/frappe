@@ -1,0 +1,54 @@
+/* Espresso effects — elevations (shadows) + focus rings, plain CSS (source of truth).
+ * Installed from design-poc/shared/tokens/espresso-effects.css. The Tailwind
+ * @theme/@utility adapters stay in frappe-ui; here the --shadow-* names are
+ * emitted as real :root custom properties (aliasing --elevation-*) so non-Tailwind
+ * consumers (Frappe/Bootstrap) can use var(--shadow-*). Loaded via espresso/_shadows.scss.
+ * Espresso 2.0: elevations use the same (light) values in both themes; only focus
+ * rings change in dark ([data-theme="dark"]). */
+
+:root {
+  --elevation-sm: inset 0px 0.25px 1.5px 0px #ffffff29, 0px 0px 1px 0px #00000033, 0px 1px 3px 0px #00000024;
+  --elevation-base: inset 0px 0.25px 1.5px 0px #ffffff29, 0px 0px 1.5px 0px #00000029, 0px 2px 5px 0px #00000024;
+  --elevation-md: inset 0px 0.25px 1.5px 0px #ffffff29, 0px 0px 1.5px 0px #00000026, 0px 0px 6px 2px #0000000a, 0px 6px 12px -2px #00000014;
+  --elevation-lg: inset 0px 0.25px 1.5px 0px #ffffff29, 0px 0px 1.5px 0px #0000002e, 0px 0px 6px 3px #00000008, 0px 18px 22px -6px #0000001a;
+  --elevation-xl: inset 0px 0.25px 1.5px 0px #ffffff29, 0px 0px 1px 0px #00000033, 0px 0px 10px 2px #0000000a, 0px 24px 30px -8px #0000001a;
+  --elevation-2xl: inset 0px 0.25px 2px 0px #ffffff29, 0px 0px 1.5px 0px #00000040, 0px 0px 10px 2px #00000008, 0px 44px 52px -10px #0000001a;
+  --elevation-status: 0px 0px 0px 1.5px #ffffff;
+
+  /* --shadow-* as real props (the frappe-ui @theme inline mapping, for Frappe). */
+  --shadow-sm: var(--elevation-sm);
+  --shadow: var(--elevation-base);
+  --shadow-md: var(--elevation-md);
+  --shadow-lg: var(--elevation-lg);
+  --shadow-xl: var(--elevation-xl);
+  --shadow-2xl: var(--elevation-2xl);
+  --shadow-status: var(--elevation-status);
+
+  --focus-default: 0px 0px 0px 2px #c9c9c9e5;
+  --focus-outline-default: 2px solid #c9c9c9e5;
+  --focus-red: 0px 0px 0px 2px #fa9c9de5;
+  --focus-outline-red: 2px solid #fa9c9de5;
+  --focus-green: 0px 0px 0px 2px #5ed29ce5;
+  --focus-outline-green: 2px solid #5ed29ce5;
+  --focus-amber: 0px 0px 0px 2px #ffda7ce5;
+  --focus-outline-amber: 2px solid #ffda7ce5;
+  --focus-blue: 0px 0px 0px 2px #65b9fce5;
+  --focus-outline-blue: 2px solid #65b9fce5;
+  --focus-violet: 0px 0px 0px 2px #bea2fce5;
+  --focus-outline-violet: 2px solid #bea2fce5;
+}
+
+[data-theme="dark"] {
+  --focus-default: 0px 0px 0px 3px #464646cc;
+  --focus-outline-default: 3px solid #464646cc;
+  --focus-red: 0px 0px 0px 3px #751819cc;
+  --focus-outline-red: 3px solid #751819cc;
+  --focus-green: 0px 0px 0px 3px #1d563bcc;
+  --focus-outline-green: 3px solid #1d563bcc;
+  --focus-amber: 0px 0px 0px 3px #744811cc;
+  --focus-outline-amber: 3px solid #744811cc;
+  --focus-blue: 0px 0px 0px 3px #0e3d62cc;
+  --focus-outline-blue: 3px solid #0e3d62cc;
+  --focus-violet: 0px 0px 0px 3px #412d87cc;
+  --focus-outline-violet: 3px solid #412d87cc;
+}

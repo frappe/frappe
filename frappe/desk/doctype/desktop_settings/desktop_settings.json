@@ -5,6 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "desktop_page",
   "icon_style"
  ],
  "fields": [
@@ -14,13 +15,21 @@
    "fieldtype": "Select",
    "label": "Icon Style",
    "options": "Subtle\nSolid"
+  },
+  {
+   "default": "Apps",
+   "description": "Apps shows the hook-driven apps screen. Desktop Icons shows the arrangeable desktop icon grid instead.",
+   "fieldname": "desktop_page",
+   "fieldtype": "Select",
+   "label": "Desktop Page",
+   "options": "Apps\nDesktop Icons"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-01-12 14:14:52.189474",
+ "modified": "2026-07-24 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desktop Settings",
