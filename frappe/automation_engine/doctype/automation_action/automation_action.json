@@ -14,7 +14,7 @@
   {
    "default": "Action",
    "fieldname": "step_type",
-   "fieldtype": "Select",
+   "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Step Type",
    "options": "Action\nWait\nIf\nElse"
@@ -24,8 +24,7 @@
    "fieldname": "action_type",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Action Type",
-   "options": "SetFieldValue\nCreateDocument\nSendNotification\nAssignToUser"
+   "label": "Action Type"
   },
   {
    "columns": 5,

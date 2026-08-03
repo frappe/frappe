@@ -8,6 +8,8 @@ shared Vue builder. Apps contribute actions via the `automation_actions` hook (a
 dotted paths to AutomationAction subclasses).
 """
 
+from typing import ClassVar
+
 import frappe
 from frappe import _
 
@@ -29,7 +31,9 @@ class AutomationAction:
 	label: str = ""
 	description: str = ""
 	applicable_doctypes: list | None = None  # None = all doctypes
-	params_schema: list = []
+	requires_document: bool = True
+	supported_trigger_types: list | None = None
+	params_schema: ClassVar[list] = []
 
 	def validate(self, params: dict, doctype: str):
 		"""Override to validate params against `doctype`; raise AutomationParamError."""
@@ -44,6 +48,8 @@ class AutomationAction:
 			"label": self.label,
 			"description": self.description,
 			"applicable_doctypes": self.applicable_doctypes,
+			"requires_document": self.requires_document,
+			"supported_trigger_types": self.supported_trigger_types,
 			"params_schema": self.params_schema,
 		}
 

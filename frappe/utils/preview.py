@@ -14,19 +14,48 @@ import frappe
 from frappe import _
 from frappe.utils.data import cint
 
-SUPPORTED_FORMATS = ("jpg", "jpeg", "webp")
+SUPPORTED_FORMATS = ("jpg", "jpeg", "png", "webp")
 
 
+<<<<<<< HEAD
 def get_preview_from_html(html: str, format: str = "jpg") -> bytes:
 	"""Screenshot a raw HTML string; returns viewport-sized image bytes."""
 	return capture_screenshot(format, html=html)
+=======
+def get_preview_from_html(html: str, format: str = "jpg", width: int = 1280, height: int = 720) -> bytes:
+	"""Screenshot a raw HTML string and return the image bytes.
+
+	Args:
+	        html: The raw HTML to render and capture.
+	        format: Image format — one of ``SUPPORTED_FORMATS`` (jpg, jpeg, png, webp).
+	        width: Viewport width in pixels (default 1280). Set this to the rendered
+	                content's width (e.g. a print sheet's pixel width) so the capture
+	                isn't cropped or letterboxed.
+	        height: Viewport height in pixels (default 720).
+
+	Returns the captured image as bytes, sized to the given viewport.
+	"""
+	return capture_screenshot(format, html=html, width=width, height=height)
+>>>>>>> 55a459b (feat(automation): support documentless actions)
 
 
 def get_preview_from_url(
-	url: str, wait_for: int = 0, headers: dict | None = None, format: str = "jpg"
+	url: str,
+	wait_for: int = 0,
+	headers: dict | None = None,
+	format: str = "jpg",
+	wait_for_selector: str | None = None,
+	full_page: bool = False,
 ) -> bytes:
 	"""Screenshot a rendered URL; returns viewport-sized image bytes."""
-	return capture_screenshot(format, url=url, wait_for=cint(wait_for), headers=headers)
+	return capture_screenshot(
+		format,
+		url=url,
+		wait_for=cint(wait_for),
+		headers=headers,
+		wait_for_selector=wait_for_selector,
+		full_page=full_page,
+	)
 
 
 def get_image_format(format: str) -> str:
@@ -36,7 +65,17 @@ def get_image_format(format: str) -> str:
 
 
 def capture_screenshot(
-	format, *, html=None, url=None, wait_for=0, headers=None, width=1280, height=720
+	format,
+	*,
+	html=None,
+	url=None,
+	wait_for=0,
+	headers=None,
+	width=1280,
+	height=720,
+	wait_for_selector=None,
+	clip=None,
+	full_page=False,
 ) -> bytes:
 	"""Drive Chromium over CDP, reusing the PDF generator's process + lifecycle:
 	register the browser so Chromium isn't torn down mid-use, and reset the
@@ -78,10 +117,16 @@ def capture_screenshot(
 					page.send("Network.enable")
 					page.send("Network.setExtraHTTPHeaders", {"headers": headers})
 				page.navigate(url)
+				if wait_for_selector:
+					page.wait_for_selector(wait_for_selector)
 				if wait_for:
 					time.sleep(wait_for / 1000)
 
-			return page.capture_screenshot(image_format=image_format)
+			return page.capture_screenshot(
+				image_format=image_format,
+				clip=clip,
+				full_page=full_page,
+			)
 		finally:
 			# Remove the browser before the outer except resets the singleton.
 			safe_execute(page and page.close)

@@ -15,6 +15,7 @@ class AutomationRunStep(Document):
 
 		action_type: DF.Data | None
 		detail: DF.LongText | None
+		output: DF.JSON | None
 		duration_ms: DF.Int
 		parent: DF.Data
 		parentfield: DF.Data

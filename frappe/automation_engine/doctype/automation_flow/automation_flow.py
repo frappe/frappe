@@ -94,8 +94,14 @@ class AutomationFlow(Document):
 			if row.step_type == "Wait":
 				continue
 			action = get_action(row.action_type)
-			if self.document_type:
-				action.validate(frappe.parse_json(row.params) if row.params else {}, self.document_type)
+			self.validate_action_context(action)
+			action.validate(frappe.parse_json(row.params) if row.params else {}, self.document_type)
+
+	def validate_action_context(self, action):
+		if action.requires_document and not self.document_type:
+			frappe.throw(_("{0} requires a Document Type").format(action.label))
+		if action.supported_trigger_types and self.trigger_type not in action.supported_trigger_types:
+			frappe.throw(_("{0} does not support {1} triggers").format(action.label, self.trigger_type))
 
 	def validate_step(self, row):
 		row.step_type = row.step_type or "Action"

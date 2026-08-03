@@ -142,6 +142,7 @@ def _step_condition_matches(action, doc, context) -> bool:
 
 
 def _append_step(run, action, idx, status, detail, duration):
+	detail, output = _action_result(detail)
 	run.append(
 		"steps",
 		{
@@ -149,9 +150,17 @@ def _append_step(run, action, idx, status, detail, duration):
 			"action_type": action.action_type,
 			"status": status,
 			"detail": (detail or "")[:5000],
+			"output": frappe.as_json(output) if output else None,
 			"duration_ms": duration,
 		},
 	)
+
+
+def _action_result(result):
+	if not isinstance(result, dict):
+		return result, None
+	detail = result.get("detail") or result.get("destination_reference") or _("Action completed")
+	return str(detail), result
 
 
 def _simulate_steps(run, rule):

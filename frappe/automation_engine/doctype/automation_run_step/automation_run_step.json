@@ -10,7 +10,8 @@
   "action_type",
   "status",
   "duration_ms",
-  "detail"
+  "detail",
+  "output"
  ],
  "fields": [
   {
@@ -47,6 +48,12 @@
    "fieldname": "detail",
    "fieldtype": "Long Text",
    "label": "Detail"
+  },
+  {
+   "description": "Small structured result returned by the action.",
+   "fieldname": "output",
+   "fieldtype": "JSON",
+   "label": "Output"
   }
  ],
  "istable": 1,
