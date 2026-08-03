@@ -421,6 +421,27 @@ class TestOAuth20(FrappeRequestTestCase):
 				redirect_query = parse_qs(urlparse(login_query["redirect-to"][0]).query)
 				self.assertEqual(redirect_query["state"], [state])
 
+	def test_authorize_rejects_duplicate_params(self):
+		update_client_for_auth_code_grant(self.client_id)
+		self.TEST_CLIENT.set_cookie(key="sid", value=self.sid)
+		resp = make_request(
+			target=self.TEST_CLIENT.get,
+			args=("/api/method/frappe.integrations.oauth2.authorize",),
+			kwargs={
+				"query_string": [
+					("client_id", self.client_id),
+					("client_id", self.client_id),
+					("scope", self.scope),
+					("response_type", "code"),
+					("redirect_uri", self.redirect_uri),
+				]
+			},
+			site=self.site,
+		)
+
+		self.assertEqual(resp.status_code, 400)
+		self.assertEqual(resp.json["error"], "invalid_request")
+
 	def test_resource_owner_password_credentials_grant(self):
 		client = frappe.get_doc("OAuth Client", self.client_id)
 		client.grant_type = "Authorization Code"

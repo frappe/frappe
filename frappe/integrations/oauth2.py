@@ -207,7 +207,6 @@ def authorize(
 		},
 		kwargs,
 	)
-	request_url = get_oauth_request_url(authorization_params)
 	success_url = "/api/method/frappe.integrations.oauth2.approve?" + encode_params(authorization_params)
 	failure_url = (redirect_uri or "") + "?error=access_denied"
 
@@ -223,7 +222,7 @@ def authorize(
 			(
 				scopes,
 				frappe.flags.oauth_credentials,
-			) = get_oauth_server().validate_authorization_request(request_url, r.method, None, r.headers)
+			) = get_oauth_server().validate_authorization_request(r.url, r.method, r.get_data(), r.headers)
 
 			skip_auth = frappe.get_cached_value(
 				"OAuth Client",
