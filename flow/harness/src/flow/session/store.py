@@ -16,6 +16,7 @@ from flow.model.credentials import CredentialStore
 from flow.path_policy import canonical_path, is_path_allowed, normalize_roots
 from flow.session.config import SessionConfig
 from flow.session.log import SessionLog
+from flow.session.prompt import build_system_prompt
 from flow.session.session import Session
 
 # client-provided session ids land in on-disk filenames — keep them to a safe slug so a
@@ -56,6 +57,9 @@ class SessionStore:
 
 	def create(self, config: SessionConfig) -> Session:
 		self._validate_cwd(config.cwd)
+		# compose once, here; the meta file persists the resolved prompt, so later
+		# AGENTS.md edits never leak into an existing session
+		config = config.model_copy(update={"system_prompt": build_system_prompt(config)})
 		sid = config.session_id or uuid.uuid4().hex[:16]
 		if not _SID_RE.match(sid):
 			raise ValueError(f"invalid session_id {sid!r} (allowed: letters, digits, - _)")

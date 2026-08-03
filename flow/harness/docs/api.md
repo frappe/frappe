@@ -81,11 +81,14 @@ request except `GET /healthz`.
 `→ {"ok": true}`
 
 ### `GET /models`
-`→ {"models": [{"name": "anthropic/claude-sonnet-4", "provider": "anthropic"}, ...]}`.
-The catalog is derived at runtime from litellm's cost table (chat models with function
-calling only) plus native providers' own ids, and is filtered to providers that are
-configured — a stored credential or an API-key env var. It is a suggestion list, not a
-gate: `POST /sessions` and `/model` accept any model name.
+`→ {"models": [{"name": "anthropic/claude-sonnet-4", "provider": "anthropic"}, ...],
+"errors": []}`.
+Live discovery: each configured provider — a stored credential or an API-key env var —
+is queried with the user's resolved credential, so the list reflects account- and
+plan-specific availability. A provider whose query fails falls back to the static
+catalog (litellm's cost table plus native providers' own ids) and adds a
+`"provider: reason"` string to `errors`. It is a suggestion list, not a gate:
+`POST /sessions` and `/model` accept any model name.
 
 ### `POST /sessions`
 Body: a `SessionConfig` (all fields optional; see below).
@@ -180,12 +183,17 @@ a rewind can retract rows before any cursor, so combining it with `since` is a `
 and accepts `since`. To catch up after a disconnect, replay `/stream?since=N` (you
 will see any `rewind` marker) or refetch the active view whole.
 
-### `GET /sessions/{sid}/stream?since=<int>`
+### `GET /sessions/{sid}/stream?since=<int>&follow=<bool>`
 Server-Sent Events. Replays durable entries with `seq > since`, then streams live
 events. Each line: `data: {<event json>}\n\n`. The stream closes when the watched run
 ends (`run_ended`, including `reason=="paused"`); for a session with no active run it
 closes after the replay. Reconnect after a drop by passing `since=<last seq you saw>` —
 the continuation is gapless and duplicate-free.
+
+`follow=true` removes the close-at-boundary behavior: the connection stays open across
+run boundaries and while the session idles. A quiet stream sends an SSE comment line
+(`: keepalive`) every 15 seconds so proxies and dead-peer detection keep working.
+Clients must ignore comment lines.
 
 Durable `assistant_message` entries contain an ordered `content` array of `text`,
 `thinking`, and `tool_call` blocks plus `api`, `provider`, `model`, optional upstream
@@ -226,7 +234,9 @@ print(res["output"], res["reason"], res["usage"])
 | `session_id` | generated | client-provided id (must be `[A-Za-z0-9_-]{1,64}`) |
 | `model` | `"mock"` | name string; prefix selects the provider. The initial selection — switch later via `POST /sessions/{sid}/model` (config never mutates) |
 | `reasoning_effort` | `null` | pi's ladder: `"off"`, `"minimal"`, `"low"`, `"medium"`, `"high"`, `"xhigh"`, `"max"`; `null` = provider default (no reasoning parameter sent). Anthropic gets a thinking token budget (xhigh/max clamp to high), Codex a `reasoning.effort`, everything else LiteLLM's unified `reasoning_effort`; `"off"` disables thinking on Anthropic and omits the parameter elsewhere |
-| `system_prompt` | `"You are a helpful agent."` | |
+| `system_preamble` | none | replaces the default preamble section of the composed prompt |
+| `system_suffix` | none | appended after all composed sections (the client-injection point) |
+| `system_prompt` | composed | verbatim override; when set, composition is skipped |
 | `tools` | `["bash","read_file","write","edit","grep"]` | builtin tool names |
 | `client_tools` | `[]` | schemas for tools the client runs (see [tools.md](tools.md)) |
 | `callback_url` / `callback_token` | none | where/how client tools are dispatched |
@@ -238,3 +248,20 @@ print(res["output"], res["reason"], res["usage"])
 | `max_turns` | `30` | turn cap |
 | `max_output_tokens` | `200000` | output-token spend cap |
 | `stream` | `true` | consume the model as a token stream |
+
+### System-prompt composition
+
+When `system_prompt` is not set, the server composes it once at session create, in this
+order:
+
+1. Preamble: `system_preamble`, or a default coding-agent preamble.
+2. `$HOME/AGENTS.md`, if present.
+3. Project `AGENTS.md` files: walk up from `cwd` to the git root (first ancestor with
+   `.git`) or `$HOME`, whichever comes first; outermost first, so nearer files override
+   by recency. AGENTS.md only — no CLAUDE.md fallback.
+4. `system_suffix`, if set.
+
+Each AGENTS.md section carries a provenance header with its file path. The resolved
+prompt is stored in the session config (reported by `GET /sessions/{sid}`); later
+AGENTS.md edits do not change an existing session. Set `system_prompt` to skip
+composition and use the text verbatim.

@@ -774,32 +774,27 @@ def test_active_entries_reject_a_cursor(tmp_path):
 	assert c.get(f"/sessions/{sid}/entries").status_code == 200
 
 
-def test_models_endpoint_lists_configured_providers_only(tmp_path, monkeypatch):
-	import litellm
-
+def test_models_endpoint_discovers_configured_providers_only(tmp_path, monkeypatch):
+	from flow.model import discovery
 	from flow.model.catalog import PROVIDERS
 
 	for provider in PROVIDERS:
 		for name in provider.api_key_envs:
 			monkeypatch.delenv(name, raising=False)
-	monkeypatch.setattr(
-		litellm,
-		"model_cost",
-		{
-			"gpt-4o": {"mode": "chat", "supports_function_calling": True, "litellm_provider": "openai"},
-			"claude-sonnet-4": {
-				"mode": "chat",
-				"supports_function_calling": True,
-				"litellm_provider": "anthropic",
-			},
-			"text-embedding-3-small": {"mode": "embedding", "litellm_provider": "openai"},
-		},
-	)
+
+	async def fake_http_models(url, auth, client, *, provider_id=None):
+		assert provider_id == "openai"
+		return ["gpt-4o"]
+
+	monkeypatch.setattr(discovery, "_http_models", fake_http_models)
 	c = _client(tmp_path)
-	assert c.get("/models").json() == {"models": []}
+	assert c.get("/models").json() == {"models": [], "errors": []}
 
 	monkeypatch.setenv("OPENAI_API_KEY", "k")
-	assert c.get("/models").json() == {"models": [{"name": "openai/gpt-4o", "provider": "openai"}]}
+	assert c.get("/models").json() == {
+		"models": [{"name": "openai/gpt-4o", "provider": "openai"}],
+		"errors": [],
+	}
 
 
 def test_list_sessions_includes_cold_on_disk_sessions(tmp_path):
@@ -866,3 +861,56 @@ def test_list_sessions_reports_a_cold_paused_session(tmp_path, monkeypatch):
 	)
 	(row,) = _client(tmp_path).get("/sessions").json()["sessions"]
 	assert row["state"] == "idle"
+
+
+async def test_stream_follow_stays_open_between_runs_with_keepalives(tmp_path, monkeypatch):
+	monkeypatch.setattr("flow.server.app.KEEPALIVE_SECONDS", 0.05)
+	store = SessionStore(
+		str(tmp_path / "data"),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+	)
+	app = create_app(store)
+
+	sock = socket.socket()
+	sock.bind(("127.0.0.1", 0))
+	port = sock.getsockname()[1]
+	server = uvicorn.Server(uvicorn.Config(app, log_level="error", timeout_graceful_shutdown=1))
+	serve_task = asyncio.create_task(server.serve(sockets=[sock]))
+	try:
+		while not server.started:
+			await asyncio.sleep(0.01)
+		async with httpx.AsyncClient(base_url=f"http://127.0.0.1:{port}") as client:
+			sid = (await client.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)})).json()[
+				"session_id"
+			]
+			await client.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "first"})
+
+			rows, saw_keepalive, second = [], False, None
+			async with client.stream(
+				"GET",
+				f"/sessions/{sid}/stream",
+				params={"follow": "true"},
+				timeout=httpx.Timeout(5, read=5),
+			) as response:
+				async with asyncio.timeout(10):
+					async for line in response.aiter_lines():
+						if line.startswith(":"):
+							saw_keepalive = True
+							if second is None:  # the boundary passed without a close; run again
+								second = asyncio.create_task(
+									client.post(f"/sessions/{sid}/run", json={"message": "second"})
+								)
+						elif line.startswith("data:"):
+							rows.append(json.loads(line[5:]))
+							if sum(r["type"] == "run_ended" for r in rows) == 2:
+								break
+			if second is not None:
+				await second
+
+			assert saw_keepalive
+			assert [r["content"] for r in rows if r["type"] == "user_message"] == ["first", "second"]
+			seqs = [r["seq"] for r in rows if "seq" in r]
+			assert seqs == sorted(seqs) and len(seqs) == len(set(seqs))
+	finally:
+		server.should_exit = True
+		await asyncio.wait_for(serve_task, timeout=5)

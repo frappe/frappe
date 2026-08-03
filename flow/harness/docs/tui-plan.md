@@ -90,8 +90,8 @@ lazy `import flow_tui` so the server package has no hard import of textual. Pack
 `pyproject.toml` `packages = ["src/flow", "src/flow_tui"]`.
 
 Each phase is one PR-sized commit with tests. Phases 1, 2, and 5 are server-only; 3–4 are
-the client core in `flow_tui`; 6–10 build the TUI against a manually run `flow serve`;
-11 lands daemon lifecycle; 12 is isolated polish.
+the client core in `flow_tui`; 6–9 build the TUI against a manually run `flow serve`;
+10 lands daemon lifecycle; 11 is isolated polish; 12 adds the approvals UI last.
 
 ---
 
@@ -221,8 +221,8 @@ no `Path.home` monkeypatching. Server test: create session → GET reports compo
 `system_suffix` for client-specific notes, e.g. UI conventions); `tests/test_tui_shell.py`.
 
 - **Per-message widgets in `VerticalScroll`, not `RichLog`** — needed for delta updates
-  in place, delta→durable replacement, collapsible thinking (phase 8), and interactive
-  approval cards (phase 7). One widget per durable entry + one mutable `PartialAssistantView`
+  in place, delta→durable replacement, collapsible thinking (phase 7), and interactive
+  approval cards (phase 12). One widget per durable entry + one mutable `PartialAssistantView`
   at the tail, swapped when the durable message arrives. Anchor scroll to bottom unless the
   user scrolled up.
 - Controller owns `FlowClient`, `EventStream` (Textual worker), `ConversationState`; widgets
@@ -236,7 +236,7 @@ no `Path.home` monkeypatching. Server test: create session → GET reports compo
 - Renders: user/assistant text, tool call one-liner + result preview, run_error banner,
   retry status ("retrying 2/5 in 3 s"). Thinking as plain dimmed text for now.
 - Sessions are created with `auto_approve=True` — this is the permanent default (decision 5),
-  not a stopgap. A `--confirm` flag creates gated sessions once phase 7 lands.
+  not a stopgap. A `--confirm` flag creates gated sessions once phase 12 lands.
 
 **Risk:** textual on Python 3.14 — verify import + `run_test()` as the first commit of this
 phase; fall back to a newer textual pre-release if broken. Long-transcript reflow cost is
@@ -245,22 +245,7 @@ accepted for MVP (`entries?path=active` seeding + virtualization later).
 **Test:** `App.run_test()` pilot with a fake controller: rendering, delta→durable swap,
 steering, status bar. One integration pilot against real uvicorn + MockModel.
 
-## Phase 7 — Approvals UI + pause/resume
-
-**Files:** new `src/flow_tui/widgets/approval.py`; `controller.py`, `messages.py`; tests.
-
-- On `pending_approval`: `ApprovalCard` per pending call at the log tail — prompt text,
-  `[a]pprove [d]eny`, free-text input (free text = redirect per contract), "approve all"
-  shortcut for batches. Submit → `POST resume {approval_seq, answers}`; card collapses into
-  a verdict line. Bind `cancel_pending` for abandoning a paused run.
-- Status bar shows `paused — awaiting approval`; composer disabled with a hint while paused.
-- Add the `--confirm` flag: creates the session with `auto_approve=False` so tool gates
-  actually fire. Default stays `auto_approve=True`.
-
-**Test:** pilot drives `approval_required` → key presses → assert resume payload; integration
-with MockModel scripting a bash call in a `--confirm` session → approve → run completes.
-
-## Phase 8 — Thinking traces (collapsible) + tool-result rendering
+## Phase 7 — Thinking traces (collapsible) + tool-result rendering
 
 **Files:** `src/flow_tui/widgets/messages.py` (add `ThinkingBlock` on textual `Collapsible`),
 render helpers, `app.py` binding.
@@ -277,7 +262,7 @@ render helpers, `app.py` binding.
 **Test:** pilot: interleaved thinking/text/tool message, collapsed by default, `ctrl+t`
 toggles, redacted stays sealed; render assertions for a bash result and an edit diff.
 
-## Phase 9 — Command registry, slash commands, palette
+## Phase 8 — Command registry, slash commands, palette
 
 **Files:** new `src/flow_tui/commands.py`; `composer.py`, `app.py`; tests.
 
@@ -292,7 +277,7 @@ toggles, redacted stays sealed; render assertions for a bash result and an edit 
 **Test:** registry parse/dispatch unit tests; pilot: `/abort` reaches controller; palette
 opens and runs a command.
 
-## Phase 10 — Model + effort pickers
+## Phase 9 — Model + effort pickers
 
 **Files:** new `src/flow_tui/screens/pickers.py`; wire into `commands.py`; tests.
 
@@ -306,7 +291,7 @@ opens and runs a command.
 
 **Test:** pilot with faked models payload: filter, select, free text, 409 toast.
 
-## Phase 11 — Daemon lifecycle + CLI reshape
+## Phase 10 — Daemon lifecycle + CLI reshape
 
 **Files:** new `src/flow/cli/daemon.py`; `src/flow/cli/main.py` (drop "bare flow = serve"
 in `_with_default_command`); `docs/development.md`; `tests/test_daemon_lifecycle.py`.
@@ -314,7 +299,7 @@ in `_with_default_command`); `docs/development.md`; `tests/test_daemon_lifecycle
 - **Subprocess, not in-process:** uvicorn signals and Textual both want the main loop;
   subprocess dogfoods the same path as `flow serve`; a daemon crash becomes a recoverable
   UI state instead of killing the TUI.
-- Spawn: `Popen([sys.executable, "-m", "flow.cli.main", "serve", "--foreground", "--port-file",
+- Spawn: `Popen([sys.executable, "-m", "flow.cli.main", "serve", "--port-file",
   path, "--parent-watch"], env={**os.environ, "FLOW_AUTH_TOKEN": secrets.token_urlsafe(32)},
   stdin=PIPE, stdout/stderr → log file under data dir)`. Ephemeral port: bind a socket with
   port 0 ourselves, write the port file, pass the socket via `uvicorn.Server.serve(sockets=[sock])`.
@@ -335,8 +320,9 @@ in `_with_default_command`); `docs/development.md`; `tests/test_daemon_lifecycle
   - **Accepted risk:** two daemons can open the same session file (e.g. `flow -c` in two
     terminals) — two writers on one append-only log can corrupt it. Documented in
     `docs/development.md`; not prevented. Future mitigation: `fcntl.flock` per session file.
-  - `flow serve` → background via `start_new_session=True`, print address, exit;
-    `--foreground` keeps current behavior. POSIX-only for now (note in docs).
+  - `flow serve` → run in the foreground (unchanged behavior); `--background` detaches
+    via `start_new_session=True`, prints the address, and exits. Background mode is
+    POSIX-only for now (note in docs).
   - `flow attach [--url] [--session]` → default `http://{FLOW_HOST}:{FLOW_PORT}`, token from
     `FLOW_AUTH_TOKEN`; session picker over `GET /sessions`; starts nothing. Discovery of
     private ephemeral daemons stays out of scope by design.
@@ -345,7 +331,7 @@ in `_with_default_command`); `docs/development.md`; `tests/test_daemon_lifecycle
 terminate → gone; orphan test: close parent pipe end, child exits ≤2 s. Extend
 `tests/test_cli.py` for parsing.
 
-## Phase 12 — External editor (`ctrl+x ctrl+e`) + composer polish
+## Phase 11 — External editor (`ctrl+x ctrl+e`) + composer polish
 
 **Files:** `src/flow_tui/widgets/composer.py`, `app.py`; tests.
 
@@ -360,21 +346,36 @@ terminate → gone; orphan test: close parent pipe end, child exits ≤2 s. Exte
 **Test:** unit-test `edit_text_via_editor(text) -> str` with a script editor
 (`sh -c 'echo x >> "$1"'`) and a stubbed suspend context; pilot tests chord arming.
 
+## Phase 12 — Approvals UI + pause/resume
+
+**Files:** new `src/flow_tui/widgets/approval.py`; `controller.py`, `messages.py`; tests.
+
+- On `pending_approval`: `ApprovalCard` per pending call at the log tail — prompt text,
+  `[a]pprove [d]eny`, free-text input (free text = redirect per contract), "approve all"
+  shortcut for batches. Submit → `POST resume {approval_seq, answers}`; card collapses into
+  a verdict line. Bind `cancel_pending` for abandoning a paused run.
+- Status bar shows `paused — awaiting approval`; composer disabled with a hint while paused.
+- Add the `--confirm` flag: creates the session with `auto_approve=False` so tool gates
+  actually fire. Default stays `auto_approve=True`.
+
+**Test:** pilot drives `approval_required` → key presses → assert resume payload; integration
+with MockModel scripting a bash call in a `--confirm` session → approve → run completes.
+
 ---
 
 ## Verification (end to end)
 
 1. `uv run pytest` green after every phase; ruff + ty clean (tabs, line 110).
-2. After phase 6: `uv run flow serve --foreground` in one terminal,
+2. After phase 6: `uv run flow serve` in one terminal,
    `uv run flow attach --url http://127.0.0.1:8787` in another; converse with
    `FLOW_MODEL=mock`, then a real model.
-3. After phase 7: in a `--confirm` session, run a prompt that triggers `bash`; approve,
-   deny, and redirect paths. Default session runs the same prompt without pausing.
-4. After phase 8: use an Anthropic/Codex model with effort set; expand/collapse via ctrl+t.
-5. After phase 11: bare `flow` → TUI up, `ps` shows one child daemon; quit → daemon gone;
+3. After phase 7: use an Anthropic/Codex model with effort set; expand/collapse via ctrl+t.
+4. After phase 10: bare `flow` → TUI up, `ps` shows one child daemon; quit → daemon gone;
    quit mid-run → log ends with a clean `run_ended(aborted)`; `kill -9` the TUI → daemon
    exits within ~2 s; `flow -c` in the same cwd → previous conversation restored.
-6. After phase 12: `EDITOR=vim`, ctrl+x ctrl+e round-trips the draft.
+5. After phase 11: `EDITOR=vim`, ctrl+x ctrl+e round-trips the draft.
+6. After phase 12: in a `--confirm` session, run a prompt that triggers `bash`; approve,
+   deny, and redirect paths. Default session runs the same prompt without pausing.
 
 ## Top risks
 
@@ -385,6 +386,6 @@ terminate → gone; orphan test: close parent pipe end, child exits ≤2 s. Exte
 - litellm-derived catalog quality — filter heuristics (`mode == "chat"`,
   `supports_function_calling`) may still admit noise or drop a wanted model; free text is
   the escape hatch.
-- Orphaned private daemons — stdin-pipe watchdog (phase 11).
+- Orphaned private daemons — stdin-pipe watchdog (phase 10).
 - Two writers on one session log — ACCEPTED risk (decision 9), documented, `flock` later.
-- `app.suspend()` tty requirement (phase 12).
+- `app.suspend()` tty requirement (phase 11).

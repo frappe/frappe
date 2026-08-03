@@ -19,7 +19,11 @@ class SessionConfig(BaseModel):
 			(off/minimal/low/medium/high/xhigh/max). None = provider default (no
 			reasoning parameter is sent); "off" disables thinking where the provider
 			has a switch.
-		system_prompt: System prompt for the agent.
+		system_preamble: Replaces the default preamble section of the composed prompt.
+		system_suffix: Appended after all composed sections (the client-injection point).
+		system_prompt: Verbatim system prompt; when set, composition is skipped. When
+			None (default), `SessionStore.create` composes the prompt from the preamble,
+			AGENTS.md files, and suffix, and stores the result here.
 		tools: Built-in tools available to the agent.
 		client_tools: Schemas registered by a client.
 		callback_url: Where client tools are dispatched.
@@ -40,7 +44,9 @@ class SessionConfig(BaseModel):
 	session_id: str | None = None
 	model: str = "mock"
 	reasoning_effort: ReasoningEffort | None = None
-	system_prompt: str = "You are a helpful agent."
+	system_preamble: str | None = None
+	system_suffix: str | None = None
+	system_prompt: str | None = None
 	tools: list[str] = Field(default_factory=lambda: ["bash", "read_file", "write", "edit", "grep"])
 	client_tools: list[dict] = Field(default_factory=list)
 	callback_url: str | None = None

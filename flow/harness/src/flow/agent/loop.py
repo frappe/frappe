@@ -167,7 +167,7 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 		request = ModelRequest(
 			messages=inputs.messages,
 			tools=schemas,
-			system_prompt=config.system_prompt,
+			system_prompt=config.system_prompt or "",
 			stream=config.stream,
 			cancellation=abort,
 		)

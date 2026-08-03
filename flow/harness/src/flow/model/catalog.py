@@ -80,22 +80,13 @@ class ModelInfo:
 	provider: str  # provider id
 
 
-# Native providers never appear in litellm's cost table; their ids are listed here.
-NATIVE_MODEL_IDS: dict[str, tuple[str, ...]] = {
-	"codex": ("gpt-5", "gpt-5-codex"),
-}
-
-
 def list_models(store: CredentialStore) -> list[ModelInfo]:
 	"""The model catalog for configured providers only. Derived at runtime, so there is
 	no curated list to maintain; pickers must still accept free text for anything the
-	filters miss."""
+	filters miss. Native providers (codex, opencode-go) have no litellm entries — live
+	discovery is the only source for them."""
 	configured = {provider.id for provider in configured_providers(store)}
 	models: dict[str, str] = {}
-	for provider_id, model_ids in NATIVE_MODEL_IDS.items():
-		if provider_id in configured:
-			for model_id in model_ids:
-				models[f"{provider_id}/{model_id}"] = provider_id
 	for name, provider_id in _litellm_chat_models():
 		if provider_id in configured:
 			models.setdefault(name, provider_id)

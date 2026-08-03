@@ -16,7 +16,7 @@ from __future__ import annotations
 import asyncio
 import json
 from collections import deque
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator, AsyncIterator
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Literal
@@ -276,7 +276,7 @@ class Session:
 	def unsubscribe(self, queue: asyncio.Queue[AnyEvent]) -> None:
 		self._subscribers.discard(queue)
 
-	async def events(self, since: int = 0) -> AsyncIterator[AnyEvent]:
+	async def events(self, since: int = 0) -> AsyncGenerator[AnyEvent]:
 		"""Replay the log from a cursor, then stay attached to the live stream.
 
 		The one subscription surface: SSE and embedded callers both read this. The

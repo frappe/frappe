@@ -6,10 +6,14 @@ Two ergonomics from one durable log:
     its terminal summary (a Flow-like synchronous response) over the same endpoint.
   - GET /stream?since=N replays the durable log from the cursor, then stays on the live
     feed — catching up after a disconnect and watching live are one code path.
+    `follow=true` keeps the connection open across run boundaries, with keepalive
+    comments while the session idles.
 """
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import json
 import secrets
 from collections.abc import AsyncIterator
@@ -21,7 +25,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from flow.events import AssistantMessage, ReasoningEffort, parse_event
-from flow.model.catalog import list_models
+from flow.model.discovery import available_models
 from flow.session.config import SessionConfig
 from flow.session.log import SessionLogError
 from flow.session.session import (
@@ -111,7 +115,8 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 
 	@app.get("/models")
 	async def models():
-		return {"models": [asdict(model) for model in list_models(store.credentials)]}
+		catalog = await available_models(store.credentials)
+		return {"models": [asdict(model) for model in catalog.models], "errors": catalog.errors}
 
 	@app.get("/sessions")
 	async def list_sessions():
@@ -205,10 +210,11 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 		}
 
 	@app.get("/sessions/{sid}/stream")
-	async def stream(sid: str, since: int = 0):
+	async def stream(sid: str, since: int = 0, follow: bool = False):
 		session = _get(sid)
+		body = _sse_follow_stream(session, since) if follow else _sse_stream(session, since)
 		return StreamingResponse(
-			_sse_stream(session, since),
+			body,
 			media_type="text/event-stream",
 			headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
 		)
@@ -252,6 +258,36 @@ def _summary(session: Session, from_seq: int) -> dict:
 		"pending": pending,
 		"approval_seq": approval_seq,
 	}
+
+
+# follow-mode keepalive cadence; a module global so tests can shrink it
+KEEPALIVE_SECONDS = 15.0
+
+
+async def _sse_follow_stream(session: Session, since: int) -> AsyncIterator[bytes]:
+	"""Follow mode: never close at a run boundary. The subscription stays attached
+	between runs and an SSE comment goes out whenever the feed is quiet, so proxies
+	and dead-peer detection keep working while the session idles."""
+	since = min(since, session.log.latest_seq)
+	events = session.events(since)
+	pending = asyncio.ensure_future(anext(events))
+	try:
+		while True:
+			done, _ = await asyncio.wait({pending}, timeout=KEEPALIVE_SECONDS)
+			if not done:
+				yield b": keepalive\n\n"
+				continue
+			try:
+				event = pending.result()
+			except StopAsyncIteration:
+				return
+			yield _sse(event.model_dump(exclude_none=True))
+			pending = asyncio.ensure_future(anext(events))
+	finally:
+		pending.cancel()
+		with contextlib.suppress(asyncio.CancelledError):
+			await pending
+		await events.aclose()
 
 
 async def _sse_stream(session: Session, since: int) -> AsyncIterator[bytes]:
