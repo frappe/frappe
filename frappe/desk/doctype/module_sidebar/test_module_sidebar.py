@@ -36,6 +36,50 @@ def no_developer_mode():
 		frappe.conf.developer_mode = original
 
 
+@contextmanager
+def developer_mode():
+	"""Exporting to files is gated on developer_mode; the test site may not have it on."""
+	original = frappe.conf.get("developer_mode")
+	frappe.conf.developer_mode = 1
+	try:
+		yield
+	finally:
+		frappe.conf.developer_mode = original
+
+
+@contextmanager
+def module_resolvable_on_disk(module, app="frappe"):
+	"""Make `module` resolve to a path, then take it back down.
+
+	`export_to_files` -> `get_module_path` resolves via `frappe.local.module_app`, which is
+	built from the app's modules.txt. Registering the module in memory instead of writing
+	that file keeps the working tree clean when the test rolls back.
+	"""
+	import os
+	import shutil
+
+	scrubbed = frappe.scrub(module)
+	path = frappe.get_app_path(app, scrubbed)
+
+	# `get_pymodule_path` imports the package, so the folder has to be a real one
+	os.makedirs(path, exist_ok=True)
+	open(os.path.join(path, "__init__.py"), "a").close()
+
+	frappe.local.module_app[scrubbed] = app
+	frappe.local.app_modules.setdefault(app, [])
+	added = scrubbed not in frappe.local.app_modules[app]
+	if added:
+		frappe.local.app_modules[app].append(scrubbed)
+
+	try:
+		yield path
+	finally:
+		shutil.rmtree(path, ignore_errors=True)
+		frappe.local.module_app.pop(scrubbed, None)
+		if added:
+			frappe.local.app_modules[app].remove(scrubbed)
+
+
 class TestModuleSidebarKeys(IntegrationTestCase):
 	"""The `key` field exists so per-user customization survives an app re-authoring its
 	sidebar. These pin the properties that makes that true."""
@@ -95,12 +139,14 @@ class TestModuleSidebarKeys(IntegrationTestCase):
 
 class TestModuleSidebarMerge(IntegrationTestCase):
 	def setUp(self):
-		frappe.db.delete("Module Sidebar", {"module": MODULE})
 		if not frappe.db.exists("Module Def", MODULE):
 			with no_developer_mode():
 				frappe.get_doc(
 					{"doctype": "Module Def", "module_name": MODULE, "app_name": "frappe"}
 				).insert()
+		# after the Module Def, since its `after_insert` generates a sidebar and every test
+		# here wants to build its own
+		frappe.db.delete("Module Sidebar", {"module": MODULE})
 		self.workspaces = []
 
 	def tearDown(self):
@@ -263,6 +309,66 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 		sync_module_sidebars(MODULE)
 		frappe.delete_doc("Module Def", MODULE, force=True)
 		self.assertFalse(frappe.db.exists("Module Sidebar", MODULE))
+
+	def test_items_may_come_from_any_module(self):
+		"""A sidebar's items are deliberately NOT constrained to its module.
+
+		Authors group by what belongs together in navigation, which is not the same as what
+		a module owns -- and this flexibility is why splitting a module later needs no
+		tooling. Pinned so nobody adds a well-meaning validation.
+		"""
+		sidebar = frappe.new_doc("Module Sidebar")
+		sidebar.module = MODULE
+		# User is Core, Report is Core, Workspace is Desk -- none of them this module
+		for item in (self.link("User"), self.link("Report"), self.link("DocType")):
+			sidebar.append("items", item)
+		sidebar.insert(ignore_permissions=True)
+
+		self.assertEqual(len(frappe.get_doc("Module Sidebar", MODULE).items), 3)
+
+	def test_keys_survive_export_and_reimport(self):
+		"""Export to JSON, re-import twice, and assert the deltas would still resolve.
+
+		This is the property `key` exists for. `import_doc` is delete-then-insert and child
+		rows are hash-named, so every re-import produces different row `name`s -- a
+		customization anchored on `name` would break on every `bench migrate`. Anchored on
+		`key` it survives, because the derivation is pure.
+		"""
+		import os
+
+		from frappe.modules.import_file import import_file_by_path
+
+		self.make_workspace(
+			"TSM Export",
+			[self.link("User"), self.link("Role"), {"type": "Section Break", "label": "More"}],
+		)
+		build_all()
+
+		doc = frappe.get_doc("Module Sidebar", MODULE)
+		# only a standard row exports; the merge deliberately produces standard=0
+		doc.db_set("standard", 1, update_modified=False)
+		doc.reload()
+
+		before = {i.key: i.link_to for i in doc.items}
+		names_before = {i.name for i in doc.items}
+		self.assertTrue(before, "sanity: the sidebar had items")
+
+		scrubbed = frappe.scrub(MODULE)
+		with module_resolvable_on_disk(MODULE) as module_path, developer_mode():
+			doc.export_sidebar()
+
+			path = os.path.join(module_path, "module_sidebar", scrubbed, f"{scrubbed}.json")
+			self.assertTrue(os.path.exists(path), f"export did not write {path}")
+
+			for _ in range(2):
+				import_file_by_path(path, force=True, ignore_version=True)
+
+			after_doc = frappe.get_doc("Module Sidebar", MODULE)
+			after = {i.key: i.link_to for i in after_doc.items}
+			names_after = {i.name for i in after_doc.items}
+
+		self.assertEqual(before, after, "keys must be identical across re-import")
+		self.assertNotEqual(names_before, names_after, "sanity: child row names are regenerated")
 
 	def test_legacy_store_is_untouched(self):
 		"""Phase 1 is non-destructive: the merge reads `Workspace.sidebar_items` and must
