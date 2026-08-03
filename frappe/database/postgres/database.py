@@ -621,6 +621,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		# A substring match on indexdef would false-positive any column whose name appears
 		# anywhere in a composite index's definition (e.g. `company` matching
 		# `posting_date_company_index`), which then wrongly suppresses creating its own index.
+		# Only plain btree indexes count: a partial, covering or non-btree index cannot be the
+		# framework-managed search index, so reporting it here would both suppress creating the
+		# real one and mark a hand-made index as framework-owned and droppable.
 		# pylint: disable=W1401
 		return self.sql(
 			f"""
@@ -644,9 +647,14 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 					i.indisprimary AS is_primary
 				FROM pg_index i
 				JOIN pg_class tc ON tc.oid = i.indrelid
+				JOIN pg_class ic ON ic.oid = i.indexrelid
+				JOIN pg_am am ON am.oid = ic.relam
 				JOIN pg_namespace n ON n.oid = tc.relnamespace
 				JOIN pg_attribute att ON att.attrelid = tc.oid AND att.attnum = i.indkey[0]
 				WHERE tc.relname = '{table_name}' AND n.nspname = '{self.db_schema}'
+					AND am.amname = 'btree'
+					AND i.indpred IS NULL
+					AND i.indnatts = i.indnkeyatts
 			) b ON b.column_name = a.column_name
 			WHERE a.table_name = '{table_name}'
 				AND a.table_schema = '{self.db_schema}'
