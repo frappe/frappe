@@ -47,6 +47,31 @@
     user-select: none;
 }
 
+/* ---- keyboard hint: one <kbd> per key after the label ----
+   Bootstrap and desk/global.scss both style bare kbd (dark chip, padding,
+   box-shadow) and load after this file — the two-class selector
+   out-specifies them, same trick as the menu shortcuts. */
+.es-tooltip .es-tooltip__shortcut {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    margin-inline-start: calc(var(--spacing) * 1.5);
+    vertical-align: bottom;
+}
+
+.es-tooltip kbd {
+    padding: 0;
+    height: auto;
+    background: transparent;
+    border-radius: 0;
+    font-family: inherit;
+    font-size: var(--text-xs);
+    line-height: calc(var(--spacing) * 4);
+    letter-spacing: normal;
+    color: var(--ink-gray-4);
+    box-shadow: none;
+}
+
 /* ---- arrow: an 8x4 triangle on the edge facing the trigger ----
    Made from borders: a 4px transparent frame where only the side facing
    away from the bubble is filled, which reads as a triangle. --arrow-offset
