@@ -49,6 +49,31 @@ export function safe_href(href, component) {
 	return href;
 }
 
+// same OS mapping as frappe.ui.keys.get_shortcut_label, but per key — that
+// util returns one joined string ("⌘P") while the components render one
+// <kbd> per key (menus, tooltips)
+const MAC_KEY_SYMBOLS = { ctrl: "⌘", meta: "⌘", cmd: "⌘", alt: "⌥", shift: "⇧" };
+
+/**
+ * Raw combo ("ctrl+p") → per-key display strings in OS form (["⌘", "P"] on
+ * Mac). Arrays pass through as already-formatted keys. Display only —
+ * binding stays the caller's job.
+ */
+export function shortcut_keys(shortcut) {
+	if (Array.isArray(shortcut)) return shortcut.map(String);
+	const mac = frappe.utils.is_mac && frappe.utils.is_mac();
+	return String(shortcut)
+		.split("+")
+		.map((key) => key.trim())
+		.filter(Boolean)
+		.map((key) => {
+			if (mac && MAC_KEY_SYMBOLS[key.toLowerCase()]) {
+				return MAC_KEY_SYMBOLS[key.toLowerCase()];
+			}
+			return frappe.utils.to_title_case(key);
+		});
+}
+
 /**
  * Turn an attrs object into escaped `key="value"` strings.
  * Attribute names become markup, so only normal-looking names are allowed;

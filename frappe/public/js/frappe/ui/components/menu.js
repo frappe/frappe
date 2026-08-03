@@ -1,4 +1,4 @@
-import { validated, safe_href } from "./utils.js";
+import { validated, safe_href, shortcut_keys } from "./utils.js";
 import { place } from "./position.js";
 
 /**
@@ -133,25 +133,6 @@ function icon_html(name, svg_class, component) {
 		return "";
 	}
 	return frappe.utils.icon(name, "sm", "", "", svg_class, true);
-}
-
-// same OS mapping as frappe.ui.keys.get_shortcut_label, but per key — that
-// util returns one joined string ("⌘P") and we render one <kbd> per key
-const MAC_KEY_SYMBOLS = { ctrl: "⌘", meta: "⌘", cmd: "⌘", alt: "⌥", shift: "⇧" };
-
-function shortcut_keys(shortcut) {
-	if (Array.isArray(shortcut)) return shortcut.map(String);
-	const mac = frappe.utils.is_mac && frappe.utils.is_mac();
-	return String(shortcut)
-		.split("+")
-		.map((key) => key.trim())
-		.filter(Boolean)
-		.map((key) => {
-			if (mac && MAC_KEY_SYMBOLS[key.toLowerCase()]) {
-				return MAC_KEY_SYMBOLS[key.toLowerCase()];
-			}
-			return frappe.utils.to_title_case(key);
-		});
 }
 
 // Underline the first free a-z letter of the label so Alt+letter can activate
