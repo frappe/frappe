@@ -210,6 +210,12 @@ export default class BulkOperations {
 				let failed = r.message;
 				if (!failed) failed = [];
 
+				for (const name of docnames) {
+					if (!failed.includes(name)) {
+						frappe.model.delete_from_locals(this.doctype, name);
+					}
+				}
+
 				if (failed.length && !r._server_messages) {
 					frappe.throw(
 						__("Cannot delete {0}", [failed.map((f) => f.bold()).join(", ")])
