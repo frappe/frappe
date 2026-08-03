@@ -74,6 +74,14 @@
     color: var(--bt-fg);
 }
 
+/* the class is element-neutral: links dressed as buttons (empty-state links,
+   attachment preview actions) must not pick up anchor underlines */
+a.es-button,
+a.es-button:hover,
+a.es-button:focus {
+    text-decoration: none;
+}
+
 /* subtle is the default; scope hover/active to default-or-explicit subtle so
        they don't leak onto the other variants. */
 .es-button:not([data-variant]):hover,
