@@ -649,14 +649,15 @@ class Document(BaseDocument):
 
 	def check_permission(self, permtype="read", permlevel=None):
 		"""Raise `frappe.PermissionError` if not permitted"""
-		if not self.has_permission(permtype):
+		if not self.has_permission(permtype, throw=True):
 			self._handle_permission_failure(permtype)
 
-	def has_permission(self, permtype="read", *, debug=False, user=None) -> bool:
+	def has_permission(self, permtype="read", *, debug=False, user=None, throw=False) -> bool:
 		"""
 		Call `frappe.permissions.has_permission` if `ignore_permissions` flag isn't truthy
 
 		:param permtype: `read`, `write`, `submit`, `cancel`, `delete`, etc.
+		:param throw: Raise `frappe.PermissionError` with the denial reason instead of returning False.
 		"""
 
 		if self.flags.ignore_permissions:
@@ -664,7 +665,9 @@ class Document(BaseDocument):
 
 		import frappe.permissions
 
-		return frappe.permissions.has_permission(self.doctype, permtype, self, debug=debug, user=user)
+		return frappe.permissions.has_permission(
+			self.doctype, permtype, self, debug=debug, user=user, throw=throw
+		)
 
 	def _handle_permission_failure(self, perm_type):
 		from frappe.permissions import check_doctype_permission
@@ -673,23 +676,14 @@ class Document(BaseDocument):
 		self.raise_no_permission_to(perm_type)
 
 	def raise_no_permission_to(self, perm_type):
-		"""Raise `frappe.PermissionError` with the specific denial reason when known."""
-		reasons = frappe.flags.pop("permission_denial_reasons", None)
-		if reasons:
-			frappe.flags.error_message = ("<br>").join(reasons)
-			# has_permission already pushed the same reasons via msgprint;
-			# drop that copy so the client shows the message only once
-			frappe.local.message_log = [
-				m for m in frappe.local.message_log if m.get("message") != frappe.flags.error_message
-			]
-		else:
-			frappe.flags.error_message = _(
-				"You need the '{0}' permission on {1} {2} to perform this action."
-			).format(
-				_(perm_type),
-				frappe.bold(_(self.doctype)),
-				self.name or "",
-			)
+		"""Raise `frappe.PermissionError`."""
+		frappe.flags.error_message = _(
+			"You need the '{0}' permission on {1} {2} to perform this action."
+		).format(
+			_(perm_type),
+			frappe.bold(_(self.doctype)),
+			self.name or "",
+		)
 		raise frappe.PermissionError
 
 	def insert(

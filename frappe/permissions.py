@@ -56,12 +56,11 @@ def print_has_permission_check_logs(func):
 		# print only if access denied
 		# and if user is checking their own permission
 		if not result and self_perm_check and owns_log_collection:
-			logs = frappe.flags.get("has_permission_check_logs", [])
-			if logs:
-				# keep the specific denial reasons so callers raising
-				# PermissionError can show them instead of a generic message
-				frappe.flags.permission_denial_reasons = list(logs)
-			msgprint(("<br>").join(logs))
+			message = ("<br>").join(frappe.flags.get("has_permission_check_logs", []))
+			if kwargs.get("throw") and message:
+				frappe.flags.pop("has_permission_check_logs", None)
+				frappe.throw(message, frappe.PermissionError, title=_("Not permitted"))
+			msgprint(message)
 
 		if owns_log_collection:
 			frappe.flags.pop("has_permission_check_logs", None)
@@ -94,6 +93,7 @@ def has_permission(
 	print_logs=True,
 	debug=False,
 	ignore_share_permissions=False,
+	throw=False,
 ) -> bool:
 	"""Return True if user has permission `ptype` for given `doctype`.
 	If `doc` is passed, also check user, share and owner permissions.
@@ -106,6 +106,8 @@ def has_permission(
 	                which explains why the permission check failed.
 	:param parent_doctype:
 	        Required when checking permission for a child DocType (unless doc is specified)
+	:param throw: If True, raise `frappe.PermissionError` on denial with the
+	        specific denial reason instead of returning False.
 	"""
 
 	if not user:
@@ -452,7 +454,7 @@ def has_user_permission(doc, user=None, debug=False, *, ptype=None, strict=True)
 					msg = _(
 						"You are not allowed to access this {0} record because it is linked to {1} '{2}' in row {3}, field {4}"
 					).format(
-						_(meta.name),
+						_(doctype),
 						_(field.options),
 						d.get(field.fieldname) or _("empty"),
 						d.idx,

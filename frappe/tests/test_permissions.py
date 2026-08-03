@@ -123,14 +123,21 @@ class TestPermissions(IntegrationTestCase):
 		frappe.set_user("test2@example.com")
 
 		post = frappe.get_doc("Test Blog Post", "_Test Blog Post")
-		self.assertRaises(frappe.PermissionError, post.check_permission, "read")
-		self.assertIn("because it is linked to", frappe.flags.error_message)
-		self.assertNotIn("You need the", frappe.flags.error_message)
-
-		# reason must not additionally appear as a server message (double dialog)
-		self.assertNotIn(
-			frappe.flags.error_message, [m.get("message") for m in frappe.local.message_log]
+		messages_before = len(frappe.local.message_log)
+		self.assertRaisesRegex(
+			frappe.PermissionError,
+			"Test Blog Post record because it is linked to",
+			post.check_permission,
+			"read",
 		)
+
+		# reason must reach the client exactly once
+		reasons = [
+			m.get("message")
+			for m in frappe.local.message_log[messages_before:]
+			if "because it is linked to" in m.get("message", "")
+		]
+		self.assertEqual(len(reasons), 1)
 
 	def test_user_permissions_in_report(self):
 		add_user_permission("Test Blog Category", "_Test Blog Category 1", "test2@example.com")
