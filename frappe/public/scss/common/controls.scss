@@ -165,6 +165,10 @@ select.form-control {
 		background-color: var(--control-bg);
 	}
 
+	.ql-container.ql-snow .ql-editor:not(.read-mode) {
+		background-color: var(--surface-base);
+	}
+
 	.address-box,
 	.contact-box {
 		background-color: var(--control-bg);
