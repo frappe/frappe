@@ -100,7 +100,9 @@ frappe.db = {
 	delete_doc: function (doctype, name) {
 		return new Promise((resolve) => {
 			frappe.call("frappe.client.delete", { doctype, name }, (r) => {
-				$(document).trigger("delete", [doctype, name]);
+				if (!r.exc) {
+					$(document).trigger("delete", [doctype, name]);
+				}
 				resolve(r.message);
 			});
 		});
