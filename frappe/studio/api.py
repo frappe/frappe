@@ -6,32 +6,32 @@ from typing import Literal
 
 import frappe
 from frappe import _
-from frappe.model import display_fieldtypes, no_value_fields, table_fields
+from frappe.model import display_fieldtypes, no_value_fields, std_fields, table_fields
+from frappe.utils import sbool
 
 from studio.constants import STANDARD_COMPONENT_NAMES
 from studio.utils import has_page_write_perm
 
 
 @frappe.whitelist()
-def get_doctype_fields(doctype: str) -> list[dict]:
-	fields = frappe.get_meta(doctype).fields
-	# find the name field
-	name_field = next((field for field in fields if field.fieldname == "name"), None)
-	if not name_field:
-		name_field = frappe._dict(
-			{
-				"fieldname": "name",
-				"fieldtype": "Data",
-				"label": "ID",
-			}
-		)
-		fields.append(name_field)
-
-	return [
-		field
-		for field in fields
-		if field.fieldtype not in ((set(no_value_fields) | set(display_fieldtypes)) - set(table_fields))
+def get_doctype_fields(doctype: str, with_standard_fields: bool = False) -> list[dict]:
+	frappe.has_permission(doctype, ptype="read", throw=True)
+	excluded_fieldtypes = (set(no_value_fields) | set(display_fieldtypes)) - set(table_fields)
+	fields = [
+		field for field in frappe.get_meta(doctype).fields if field.fieldtype not in excluded_fieldtypes
 	]
+	standard_fields = [frappe._dict(fieldname="name", fieldtype="Data", label="ID")]
+	if sbool(with_standard_fields):
+		standard_fields += get_meta_fields()
+
+	existing_fieldnames = {field.fieldname for field in fields}
+	fields += [field for field in standard_fields if field.fieldname not in existing_fieldnames]
+	return fields
+
+
+def get_meta_fields() -> list[frappe._dict]:
+	meta_fieldnames = ("owner", "creation", "modified", "modified_by")
+	return [frappe._dict(field) for field in std_fields if field["fieldname"] in meta_fieldnames]
 
 
 @frappe.whitelist()
@@ -39,6 +39,7 @@ def get_whitelisted_methods(doctype: str) -> list[str]:
 	from frappe import is_whitelisted
 	from frappe.model.base_document import get_controller
 
+	frappe.has_permission(doctype, ptype="read", throw=True)
 	controller = get_controller(doctype)
 	whitelisted_methods = []
 
@@ -56,6 +57,7 @@ def get_whitelisted_methods(doctype: str) -> list[str]:
 
 @frappe.whitelist()
 def get_sort_fields(doctype: str):
+	frappe.has_permission(doctype, ptype="read", throw=True)
 	fields = frappe.get_meta(doctype).fields
 	fields = [field for field in fields if field.fieldtype not in no_value_fields]
 	fields = [
