@@ -67,13 +67,13 @@ Part 2 makes the daemon an implementation detail of the client. The CLI surface:
 | Command | Behavior |
 |---|---|
 | `flow` | Start a private daemon on an ephemeral port, open the TUI, and attach to it. Each invocation gets its own daemon; it never adopts one started by `flow serve`. The daemon dies when the TUI exits; quit during an active run aborts and drains without a prompt. `flow -c` continues the most recent session for the current directory instead of creating one. |
-| `flow serve` | Start the daemon in the background on the configured host and port, print its address, and return. `--foreground` keeps it attached for supervisors and containers. |
+| `flow serve` | Run the daemon in the foreground on the configured host and port. `--background` detaches it, prints its address, and returns. |
 | `flow attach` | Open the TUI against a daemon that is already running — the configured host and port by default, `--url` for any other, `--session` to reopen an existing session. It starts nothing. |
 | `flow login` / `logout` / `providers` | Unchanged apart from the program name. |
 
 Daemon lifecycle notes:
 
-- The private daemon is a subprocess of the TUI (`flow serve --foreground --port-file
+- The private daemon is a subprocess of the TUI (`flow serve --port-file
   --parent-watch`), authenticated with a fresh `FLOW_AUTH_TOKEN` even on loopback. Its
   stdout and stderr go to a log file under `FLOW_DATA_DIR/logs/`. If the TUI dies —
   even by SIGKILL — the daemon's stdin pipe hits EOF and it exits, so orphans cannot

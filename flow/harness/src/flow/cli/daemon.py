@@ -1,9 +1,10 @@
 """Spawn, readiness, and teardown for the daemons behind bare `flow` and `flow serve`.
 
 Bare `flow` runs a private daemon: loopback, ephemeral port, fresh auth token, gone
-when the TUI exits. `flow serve` detaches a long-lived daemon on the configured host
-and port. Both spawn `flow serve --foreground` as a subprocess, so every mode runs
-the same server path and a daemon crash never takes the TUI down with it.
+when the TUI exits. `flow serve --background` detaches a long-lived daemon on the
+configured host and port. Both spawn a foreground `flow serve` as a subprocess, so
+every mode runs the same server path and a daemon crash never takes the TUI down
+with it.
 
 POSIX-only for now (process groups, stdin-pipe watchdog).
 """
@@ -26,7 +27,7 @@ _POLL_INTERVAL = 0.05
 # -P keeps the cwd off sys.path: `python -m` would otherwise prepend it, and a cwd
 # inside the package tree (e.g. src/flow/model) makes local modules shadow real
 # packages (flow/model/litellm.py shadows litellm).
-_SERVE_ARGV = [sys.executable, "-P", "-m", "flow.cli.main", "serve", "--foreground"]
+_SERVE_ARGV = [sys.executable, "-P", "-m", "flow.cli.main", "serve"]
 
 
 class DaemonError(Exception):
@@ -81,7 +82,7 @@ def spawn_private(data_dir: str, *, timeout: float = 5.0) -> PrivateDaemon:
 
 
 def spawn_background(host: str, port: int, data_dir: str, *, timeout: float = 5.0) -> str:
-	"""`flow serve`: detach a daemon on the configured host/port; returns its base URL."""
+	"""`flow serve --background`: detach a daemon on the configured host/port; returns its base URL."""
 	log_path = _log_path(data_dir, f"{host}-{port}")
 	with open(log_path, "ab") as log_file:
 		process = subprocess.Popen(

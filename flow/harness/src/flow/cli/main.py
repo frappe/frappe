@@ -30,11 +30,11 @@ def main() -> None:
 		help="continue the most recent session for this directory",
 	)
 
-	p_serve = sub.add_parser("serve", help="run the daemon in the background")
+	p_serve = sub.add_parser("serve", help="run the daemon")
 	p_serve.add_argument("--host", default=config.HOST)
 	p_serve.add_argument("--port", type=int, default=config.PORT)
 	p_serve.add_argument("--data-dir", default=config.DATA_DIR)
-	p_serve.add_argument("--foreground", action="store_true", help="stay attached (supervisors, containers)")
+	p_serve.add_argument("--background", action="store_true", help="detach, print the address, and return")
 	p_serve.add_argument(
 		"--port-file",
 		help="bind before serving and write the resolved port here (with --port 0: ephemeral port)",
@@ -147,7 +147,7 @@ def _serve(args) -> None:
 		raise AuthError(
 			"Refusing to expose an unauthenticated daemon. Set FLOW_AUTH_TOKEN or bind to a loopback host."
 		)
-	if not args.foreground:
+	if args.background:
 		from flow.cli.daemon import spawn_background
 
 		base_url = spawn_background(args.host, args.port, args.data_dir)

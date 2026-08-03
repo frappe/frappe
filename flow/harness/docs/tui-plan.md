@@ -299,7 +299,7 @@ in `_with_default_command`); `docs/development.md`; `tests/test_daemon_lifecycle
 - **Subprocess, not in-process:** uvicorn signals and Textual both want the main loop;
   subprocess dogfoods the same path as `flow serve`; a daemon crash becomes a recoverable
   UI state instead of killing the TUI.
-- Spawn: `Popen([sys.executable, "-m", "flow.cli.main", "serve", "--foreground", "--port-file",
+- Spawn: `Popen([sys.executable, "-m", "flow.cli.main", "serve", "--port-file",
   path, "--parent-watch"], env={**os.environ, "FLOW_AUTH_TOKEN": secrets.token_urlsafe(32)},
   stdin=PIPE, stdout/stderr → log file under data dir)`. Ephemeral port: bind a socket with
   port 0 ourselves, write the port file, pass the socket via `uvicorn.Server.serve(sockets=[sock])`.
@@ -320,8 +320,9 @@ in `_with_default_command`); `docs/development.md`; `tests/test_daemon_lifecycle
   - **Accepted risk:** two daemons can open the same session file (e.g. `flow -c` in two
     terminals) — two writers on one append-only log can corrupt it. Documented in
     `docs/development.md`; not prevented. Future mitigation: `fcntl.flock` per session file.
-  - `flow serve` → background via `start_new_session=True`, print address, exit;
-    `--foreground` keeps current behavior. POSIX-only for now (note in docs).
+  - `flow serve` → run in the foreground (unchanged behavior); `--background` detaches
+    via `start_new_session=True`, prints the address, and exits. Background mode is
+    POSIX-only for now (note in docs).
   - `flow attach [--url] [--session]` → default `http://{FLOW_HOST}:{FLOW_PORT}`, token from
     `FLOW_AUTH_TOKEN`; session picker over `GET /sessions`; starts nothing. Discovery of
     private ephemeral daemons stays out of scope by design.
@@ -365,7 +366,7 @@ with MockModel scripting a bash call in a `--confirm` session → approve → ru
 ## Verification (end to end)
 
 1. `uv run pytest` green after every phase; ruff + ty clean (tabs, line 110).
-2. After phase 6: `uv run flow serve --foreground` in one terminal,
+2. After phase 6: `uv run flow serve` in one terminal,
    `uv run flow attach --url http://127.0.0.1:8787` in another; converse with
    `FLOW_MODEL=mock`, then a real model.
 3. After phase 7: use an Anthropic/Codex model with effort set; expand/collapse via ctrl+t.
