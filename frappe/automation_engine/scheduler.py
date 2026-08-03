@@ -20,7 +20,7 @@ def process_cron(now: datetime | None = None):
 	queued = 0
 	for rule in _scheduled_rules():
 		fire_at = _latest_fire(rule.cron_expression, now)
-		if fire_at:
+		if fire_at and fire_at >= frappe.utils.get_datetime(rule.creation):
 			queued += _queue_rule(rule, fire_at)
 	if queued:
 		frappe.db.after_commit.add(kick_drainer)
@@ -30,7 +30,7 @@ def _scheduled_rules() -> list:
 	return frappe.get_all(
 		"Automation Flow",
 		filters={"enabled": 1, "trigger_type": "Scheduled"},
-		fields=["name", "document_type", "cron_expression", "filters", "condition"],
+		fields=["name", "document_type", "cron_expression", "filters", "condition", "creation"],
 	)
 
 
