@@ -710,6 +710,7 @@ $.extend(frappe.model, {
 				title = `${value} (${docname})`;
 			}
 		}
+<<<<<<< HEAD
 		frappe.confirm(__("Permanently delete {0}?", [title.bold()]), function () {
 			return frappe.call({
 				method: "frappe.client.delete",
@@ -728,6 +729,32 @@ $.extend(frappe.model, {
 				},
 			});
 		});
+=======
+		// destructive: red primary via frappe.warn, not a neutral confirm
+		frappe.warn(
+			__("Confirm"),
+			__("Permanently delete {0}?", [title.bold()]),
+			function () {
+				return frappe.call({
+					method: "frappe.client.delete",
+					args: {
+						doctype: doctype,
+						name: docname,
+					},
+					freeze: true,
+					freeze_message: __("Deleting {0}...", [title]),
+					callback: function (r, rt) {
+						if (!r.exc) {
+							frappe.utils.play_sound("delete");
+							frappe.model.delete_from_locals(doctype, docname);
+							if (callback) callback(r, rt);
+						}
+					},
+				});
+			},
+			__("Delete")
+		);
+>>>>>>> a1636ab044 (fix(model): keep boot/meta locals in sync via delete and rename events (#41526))
 	},
 
 	rename_doc: function (doctype, docname, callback) {
@@ -766,13 +793,17 @@ $.extend(frappe.model, {
 				btn: d.get_primary_btn(),
 				callback: function (r, rt) {
 					if (!r.exc) {
+						frappe.model.rename_doc_in_locals(
+							doctype,
+							docname,
+							r.message || args.new_name,
+							args.merge
+						);
 						$(document).trigger("rename", [
 							doctype,
 							docname,
 							r.message || args.new_name,
 						]);
-						if (locals[doctype] && locals[doctype][docname])
-							delete locals[doctype][docname];
 						d.hide();
 						if (callback) callback(r.message);
 					}
