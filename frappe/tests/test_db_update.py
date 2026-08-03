@@ -240,6 +240,37 @@ class TestDBUpdate(IntegrationTestCase):
 			doctype.delete()
 			frappe.db.commit()
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_manual_indexes_are_not_reported_as_search_indexes(self):
+		"""A partial, covering or non-btree index is never the framework's search index"""
+
+		doctype = new_doctype(
+			fields=[
+				{"fieldname": "status", "fieldtype": "Data"},
+				{"fieldname": "payload", "fieldtype": "Data"},
+			]
+		).insert()
+		table = f"tab{doctype.name}"
+		# add_index is DDL and commits itself, so the table outlives this test's rollback and has
+		# to be dropped (and that drop committed) whatever the assertions do
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.db.sql_ddl, f'DROP TABLE IF EXISTS "{table}" CASCADE')
+		self.addCleanup(doctype.delete)
+
+		for index_name, kwargs in (
+			("zz_partial_idx", {"where": "status <> 'done'"}),
+			("zz_covering_idx", {"include": ["payload"]}),
+			("zz_trigram_idx", {"using": "gin_trgm"}),
+		):
+			frappe.db.add_index(doctype.name, ["status"], index_name=index_name, **kwargs)
+			column = get_table_column(doctype.name, "status")
+			frappe.db.sql_ddl(f'DROP INDEX IF EXISTS "{index_name}"')
+			self.assertFalse(column.index, msg=f"{index_name} was taken for the search index")
+
+		# but a plain btree index on the column is exactly that
+		frappe.db.add_index(doctype.name, ["status"])
+		self.assertTrue(get_table_column(doctype.name, "status").index)
+
 	def test_unique_index_on_field_with_search_index(self):
 		"""Unique index must be created even when the field already has a search index"""
 
