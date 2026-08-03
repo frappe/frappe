@@ -3,7 +3,7 @@ import hashlib
 import frappe
 from frappe import _
 from frappe.database.schema import DbColumn, DBTable, get_definition
-from frappe.utils import cint, flt
+from frappe.utils import cint, cstr, flt
 from frappe.utils.defaults import get_not_null_defaults
 
 
@@ -160,6 +160,11 @@ class PostgresTable(DBTable):
 
 			elif not col.default:
 				# nullable types (e.g. Duration, Rating) keep their NULL default
+				col_default = "NULL"
+
+			elif col.default in frappe.db.DEFAULT_SHORTCUTS or cstr(col.default).startswith(":"):
+				# frappe resolves these per document (Today, Now, __user, :fieldname, ...). Emitting
+				# them as literals would make postgres freeze one value at migration time.
 				col_default = "NULL"
 
 			else:
