@@ -46,17 +46,24 @@ def print_has_permission_check_logs(func):
 		print_logs = kwargs.get("print_logs", True)
 		self_perm_check = True if not kwargs.get("user") else kwargs.get("user") == frappe.session.user
 
-		if print_logs:
+		# nested has_permission calls must not reset or pop the outermost call's logs
+		owns_log_collection = print_logs and frappe.flags.get("has_permission_check_logs") is None
+		if owns_log_collection:
 			frappe.flags["has_permission_check_logs"] = []
 
 		result = func(*args, **kwargs)
 
 		# print only if access denied
 		# and if user is checking their own permission
-		if not result and self_perm_check and print_logs:
-			msgprint(("<br>").join(frappe.flags.get("has_permission_check_logs", [])))
+		if not result and self_perm_check and owns_log_collection:
+			logs = frappe.flags.get("has_permission_check_logs", [])
+			if logs:
+				# keep the specific denial reasons so callers raising
+				# PermissionError can show them instead of a generic message
+				frappe.flags.permission_denial_reasons = list(logs)
+			msgprint(("<br>").join(logs))
 
-		if print_logs:
+		if owns_log_collection:
 			frappe.flags.pop("has_permission_check_logs", None)
 		return result
 

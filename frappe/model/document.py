@@ -673,14 +673,18 @@ class Document(BaseDocument):
 		self.raise_no_permission_to(perm_type)
 
 	def raise_no_permission_to(self, perm_type):
-		"""Raise `frappe.PermissionError`."""
-		frappe.flags.error_message = _(
-			"You need the '{0}' permission on {1} {2} to perform this action."
-		).format(
-			_(perm_type),
-			frappe.bold(_(self.doctype)),
-			self.name or "",
-		)
+		"""Raise `frappe.PermissionError` with the specific denial reason when known."""
+		reasons = frappe.flags.pop("permission_denial_reasons", None)
+		if reasons:
+			frappe.flags.error_message = ("<br>").join(reasons)
+		else:
+			frappe.flags.error_message = _(
+				"You need the '{0}' permission on {1} {2} to perform this action."
+			).format(
+				_(perm_type),
+				frappe.bold(_(self.doctype)),
+				self.name or "",
+			)
 		raise frappe.PermissionError
 
 	def insert(

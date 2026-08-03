@@ -116,6 +116,17 @@ class TestPermissions(IntegrationTestCase):
 		self.assertTrue(post1.has_permission("read"))
 		self.assertTrue(get_doc_permissions(post1).get("read"))
 
+	def test_permission_error_shows_user_permission_reason(self):
+		"""check_permission must surface the link-field denial reason, not the generic message."""
+		add_user_permission("Test Blog Category", "_Test Blog Category 1", "test2@example.com")
+
+		frappe.set_user("test2@example.com")
+
+		post = frappe.get_doc("Test Blog Post", "_Test Blog Post")
+		self.assertRaises(frappe.PermissionError, post.check_permission, "read")
+		self.assertIn("because it is linked to", frappe.flags.error_message)
+		self.assertNotIn("You need the", frappe.flags.error_message)
+
 	def test_user_permissions_in_report(self):
 		add_user_permission("Test Blog Category", "_Test Blog Category 1", "test2@example.com")
 
