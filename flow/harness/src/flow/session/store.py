@@ -85,7 +85,8 @@ class SessionStore:
 		return sid in self._cache or os.path.isfile(self._meta_path(sid))
 
 	def list(self) -> builtins.list[SessionInfo]:
-		"""Cheap listing for pickers, newest activity first. Cached sessions report live
+		"""Cheap listing for pickers, newest activity first. Sessions with no durable
+		entries are omitted — there is nothing to resume. Cached sessions report live
 		values; cold sessions are read from their meta file and log tail only (no log
 		replay), so a cold session's model can lag a later `model_changed` row — use
 		`get` for exact values."""
@@ -95,7 +96,7 @@ class SessionStore:
 				continue
 			sid = name[: -len(_META_SUFFIX)]
 			info = self._describe(sid)
-			if info is None:
+			if info is None or info.latest_seq == 0:
 				continue
 			log_path = self._log_path(sid)
 			try:
