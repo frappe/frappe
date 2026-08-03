@@ -717,6 +717,28 @@ class TestDB(IntegrationTestCase):
 		)
 
 	@run_only_if(db_type_is.POSTGRES)
+	def test_modify_query_rewrites_regexp_operator_only(self):
+		from frappe.database.postgres.database import modify_query
+
+		self.assertEqual("select 'a' ~* 'b'", modify_query("select 'a' REGEXP 'b'"))
+		self.assertEqual("select 'a' !~* 'b'", modify_query("select 'a' NOT REGEXP 'b'"))
+
+		# the operator only exists outside string literals and comments
+		self.assertEqual("select 'A REGEXP B'", modify_query("select 'A REGEXP B'"))
+		self.assertEqual("select 1 -- a REGEXP here", modify_query("select 1 -- a REGEXP here"))
+		self.assertEqual("select 1 /* a REGEXP here */", modify_query("select 1 /* a REGEXP here */"))
+
+		# and the rewritten operators are valid SQL
+		self.assertEqual(frappe.db.sql("select 'abc' REGEXP 'B'")[0][0], True)
+		self.assertEqual(frappe.db.sql("select 'abc' NOT REGEXP 'z'")[0][0], True)
+		self.assertEqual(frappe.db.sql("select 'A REGEXP B'")[0][0], "A REGEXP B")
+
+	def test_regex_filter_operator(self):
+		# pypika's Term.regex renders " REGEX ", which is not an operator on either backend
+		matched = frappe.get_all("User", filters={"name": ["regex", "^Administrator$"]}, pluck="name")
+		self.assertEqual(matched, ["Administrator"])
+
+	@run_only_if(db_type_is.POSTGRES)
 	def test_modify_values(self):
 		from frappe.database.postgres.database import modify_values
 
