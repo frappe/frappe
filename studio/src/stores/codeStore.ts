@@ -55,7 +55,6 @@ const useCodeStore = defineStore("codeStore", () => {
 	async function setPageResources(page: StudioPage, setResourceConfig: boolean = false) {
 		studioPageResources.filters = { parent: page.name }
 		await studioPageResources.reload()
-		resources.value = {}
 
 		const resourcePromises = studioPageResources.data.map(async (resource: Resource) => {
 			const newResource = await getNewResource(resource, {
@@ -73,14 +72,16 @@ const useCodeStore = defineStore("codeStore", () => {
 
 		const resolvedResources = await Promise.all(resourcePromises)
 
+		const newResources: Record<string, any> = {}
 		resolvedResources.forEach((item) => {
-			resources.value[item.resource_name] = item.value
+			newResources[item.resource_name] = item.value
 			if (setResourceConfig) {
 				if (!item.value) return
-				resources.value[item.resource_name].resource_id = item.resource_id
-				resources.value[item.resource_name].resource_type = item.resource_type
+				newResources[item.resource_name].resource_id = item.resource_id
+				newResources[item.resource_name].resource_type = item.resource_type
 			}
 		})
+		resources.value = newResources
 	}
 
 	async function setPageVariables(page: StudioPage) {
@@ -462,7 +463,10 @@ const useCodeStore = defineStore("codeStore", () => {
 				if (resource.sort_field) {
 					params["orderBy"] = `${resource.sort_field} ${resource.sort_order}`
 				}
-				return createListResource(params)
+				let listResource = createListResource(params)
+				// initialize listResource.data to an empty array to avoid undefined errors in the UI, frappe-ui sets data to null by default
+				listResource.data = []
+				return listResource
 			case "API Resource":
 				return createResource({
 					url: resource.url,
