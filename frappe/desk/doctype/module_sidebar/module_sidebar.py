@@ -77,9 +77,37 @@ class ModuleSidebar(Document, DeskViews):
 		if self.generated and self.standard:
 			frappe.throw(_("A generated sidebar cannot be standard."))
 
+		self.validate_standard()
 		self.validate_home_workspace()
 		assign_keys(self.items)
 		self.validate_unique_keys()
+
+	def validate_standard(self):
+		"""`standard` means "backed by a JSON file in an app", and only developer mode writes
+		one. Marking a sidebar standard without being able to export it produces a row that
+		`remove_orphan_entities` deletes on the very next `bench migrate` -- a standard record
+		whose file is missing is by definition an orphan. Refuse rather than let someone create
+		a row that quietly destroys itself.
+		"""
+		if not self.standard or not self.has_value_changed("standard"):
+			return
+
+		if not frappe.conf.developer_mode:
+			frappe.throw(
+				_("Enable developer mode to make a sidebar standard -- it has to be written to its app.")
+			)
+
+		if not self.module:
+			frappe.throw(_("A standard sidebar needs a module to be written to."))
+
+		try:
+			frappe.get_module_path(self.module)
+		except Exception:
+			frappe.throw(
+				_(
+					"Module {0} has no folder in an app, so a standard sidebar cannot be written to it."
+				).format(frappe.bold(self.module))
+			)
 
 	def validate_home_workspace(self):
 		if not self.home_workspace:
@@ -126,6 +154,95 @@ class ModuleSidebar(Document, DeskViews):
 		)
 		if allow_export:
 			export_to_files(record_list=[["Module Sidebar", self.name]], record_module=self.module)
+
+	def exported_file_path(self) -> str:
+		"""Where `export_to_files` writes this sidebar. Mirrors `check_if_record_exists`, which
+		is what orphan removal uses to decide whether a standard record still has a file."""
+		import os
+
+		scrubbed = frappe.scrub(self.name)
+		return os.path.join(
+			frappe.get_module_path(self.module), "module_sidebar", scrubbed, f"{scrubbed}.json"
+		)
+
+	@frappe.whitelist()
+	def mark_as_standard(self):
+		"""Adopt this sidebar as app-owned content: write it to its module's folder so the app
+		ships it, and let `bench migrate` re-import it from there.
+
+		A generated sidebar can be promoted this way -- "what was built from the module's
+		contents is good, ship it" -- which is why `generated` is cleared here rather than
+		refused. From then on it is authored, and regenerating no longer touches it.
+		"""
+		import os
+
+		if not is_workspace_manager():
+			frappe.throw(_("You need to be Workspace Manager to do this."), frappe.PermissionError)
+
+		if self.standard:
+			return self
+
+		self.standard = 1
+		self.generated = 0
+		self.app = get_module_app(self.module)
+		self.save()
+
+		# Verify rather than assume. If the export silently did nothing, the row is standard with
+		# no file -- an orphan that the next migrate deletes. Raising here rolls the whole thing
+		# back, so the failure is loud and now instead of quiet and later.
+		if not os.path.exists(self.exported_file_path()):
+			frappe.throw(
+				_("Could not write {0} to {1}. Left unchanged.").format(
+					frappe.bold(self.name), frappe.bold(self.app or "-")
+				)
+			)
+
+		frappe.msgprint(
+			_("{0} is now standard and exported to {1}.").format(
+				frappe.bold(self.name), frappe.bold(self.app)
+			),
+			alert=True,
+			indicator="green",
+		)
+		return self
+
+	@frappe.whitelist()
+	def unmark_as_standard(self):
+		"""Hand the sidebar back to the site: stop shipping it and remove its exported file.
+
+		The file has to go. Left behind, the next `bench migrate` re-imports it and marks the
+		row standard again, so clearing the flag alone would not survive a migrate.
+		"""
+		import os
+		import shutil
+
+		if not is_workspace_manager():
+			frappe.throw(_("You need to be Workspace Manager to do this."), frappe.PermissionError)
+
+		if not self.standard:
+			return self
+
+		path = None
+		if self.module:
+			try:
+				path = self.exported_file_path()
+			except Exception:
+				path = None
+
+		self.standard = 0
+		self.save()
+
+		if path and os.path.exists(path):
+			shutil.rmtree(os.path.dirname(path), ignore_errors=True)
+
+		frappe.msgprint(
+			_("{0} is no longer standard; its exported file has been removed.").format(
+				frappe.bold(self.name)
+			),
+			alert=True,
+			indicator="orange",
+		)
+		return self
 
 
 def derive_key(item, counter: Counter) -> str:
@@ -339,6 +456,10 @@ def get_module_app(module: str) -> str | None:
 	"""The app owning `module`, tolerating a Module Def that exists only in the DB."""
 	app = frappe.local.module_app.get(frappe.scrub(module))
 	return app or frappe.db.get_value("Module Def", module, "app_name")
+
+
+def is_workspace_manager() -> bool:
+	return "Workspace Manager" in frappe.get_roles()
 
 
 # ---------------------------------------------------------------------------------------

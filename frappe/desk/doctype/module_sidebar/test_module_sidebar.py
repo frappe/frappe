@@ -380,3 +380,113 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 		before = frappe.db.count("Workspace Sidebar")
 		build_all()
 		self.assertEqual(before, frappe.db.count("Workspace Sidebar"))
+
+
+class TestModuleSidebarStandard(IntegrationTestCase):
+	"""Marking a sidebar standard has to write its file in the same breath.
+
+	`standard` means "backed by a JSON file in an app", and orphan removal deletes a standard
+	record whose file is missing -- so a half-done mark is a row that destroys itself on the
+	next migrate.
+	"""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		if not frappe.db.exists("Module Def", MODULE):
+			with no_developer_mode():
+				frappe.get_doc(
+					{"doctype": "Module Def", "module_name": MODULE, "app_name": "frappe"}
+				).insert()
+		frappe.db.delete("Module Sidebar", {"module": MODULE})
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.delete("Module Sidebar", {"module": MODULE})
+		with no_developer_mode():
+			frappe.delete_doc("Module Def", MODULE, force=True, ignore_missing=True)
+		# `remove_orphan_entities` commits, so anything these tests wrote before it is already
+		# durable and the framework's rollback will not undo it. Commit the cleanup too, or a
+		# standard row for a module with no folder outlives the test and breaks every later
+		# save of it.
+		frappe.db.commit()
+
+	def make_sidebar(self, **kwargs):
+		doc = frappe.new_doc("Module Sidebar")
+		doc.module = MODULE
+		doc.update(kwargs)
+		doc.append("items", {"type": "Link", "link_type": "DocType", "link_to": "User", "label": "Users"})
+		doc.insert(ignore_permissions=True)
+		return doc
+
+	def test_marking_standard_writes_the_file(self):
+		import os
+
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			doc = self.make_sidebar()
+			self.assertEqual(doc.standard, 0)
+
+			doc.mark_as_standard()
+
+			self.assertEqual(doc.standard, 1)
+			self.assertEqual(doc.app, "frappe")
+			self.assertTrue(os.path.exists(doc.exported_file_path()))
+
+	def test_marking_a_generated_sidebar_adopts_it(self):
+		"""Promoting a generated sidebar is the "this is good, ship it" flow, so `generated`
+		is cleared rather than the promotion refused."""
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			doc = self.make_sidebar(generated=1)
+			doc.mark_as_standard()
+
+			self.assertEqual(doc.generated, 0)
+			self.assertEqual(doc.standard, 1)
+
+	def test_standard_row_survives_orphan_removal(self):
+		"""The whole point of writing the file: a standard row without one is an orphan."""
+		from frappe.model.sync import remove_orphan_entities
+
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			doc = self.make_sidebar()
+			doc.mark_as_standard()
+
+			remove_orphan_entities("Module Sidebar")
+			self.assertTrue(frappe.db.exists("Module Sidebar", doc.name))
+
+	def test_cannot_mark_standard_without_developer_mode(self):
+		"""Only developer mode writes files, so outside it the mark could only produce a row
+		that deletes itself."""
+		doc = self.make_sidebar()
+		with no_developer_mode(), self.assertRaises(frappe.ValidationError):
+			doc.mark_as_standard()
+
+	def test_cannot_mark_standard_when_the_module_has_no_folder(self):
+		doc = self.make_sidebar()
+		with developer_mode(), self.assertRaises(frappe.ValidationError):
+			doc.mark_as_standard()
+
+		self.assertEqual(frappe.db.get_value("Module Sidebar", doc.name, "standard"), 0)
+
+	def test_unmarking_removes_the_exported_file(self):
+		"""Clearing the flag alone would not survive a migrate -- the file would be re-imported
+		and mark the row standard again."""
+		import os
+
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			doc = self.make_sidebar()
+			doc.mark_as_standard()
+			path = doc.exported_file_path()
+			self.assertTrue(os.path.exists(path))
+
+			doc.unmark_as_standard()
+
+			self.assertEqual(doc.standard, 0)
+			self.assertFalse(os.path.exists(path))
+
+	def test_marking_standard_is_idempotent(self):
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			doc = self.make_sidebar()
+			doc.mark_as_standard()
+			modified = doc.modified
+
+			doc.mark_as_standard()
+			self.assertEqual(doc.modified, modified)
