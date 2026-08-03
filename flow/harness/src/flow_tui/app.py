@@ -118,7 +118,7 @@ class FlowApp(App):
 	COMMAND_PALETTE_BINDING: ClassVar[str] = "ctrl+p"
 	BINDINGS: ClassVar = [
 		Binding("ctrl+c", "interrupt", "abort/quit", priority=True),
-		Binding("escape", "interrupt", "abort", show=False),
+		Binding("escape", "abort", "abort", show=False),
 		Binding("ctrl+t", "toggle_thinking", "thinking", priority=True),
 		Binding("ctrl+o", "toggle_tools", "tool output", priority=True),
 	]
@@ -252,12 +252,17 @@ class FlowApp(App):
 		conversation.set_expand_tools(not conversation.expand_tools)
 
 	def action_interrupt(self) -> None:
-		"""First ctrl+c/escape aborts the run; ctrl+c while idle quits."""
+		"""Ctrl+c aborts the run; ctrl+c while idle quits."""
+		if self.controller.state.running:
+			self.action_abort()
+		else:
+			self.exit()
+
+	def action_abort(self) -> None:
+		"""Escape aborts the run and does nothing while idle — it never quits."""
 		if self.controller.state.running:
 			self.run_worker(self.controller.abort(), exclusive=False)
 			self.notify("aborting…", severity="warning")
-		else:
-			self.exit()
 
 
 def run_app(
