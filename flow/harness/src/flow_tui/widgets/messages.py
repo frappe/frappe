@@ -107,7 +107,7 @@ class ThinkingBlock(Collapsible):
 	def __init__(self, thinking: str, *, collapsed: bool = True) -> None:
 		super().__init__(
 			Static(Text(thinking, style="dim italic")),
-			title=f"thinking · {len(thinking)} chars",
+			title="thinking",
 			collapsed=collapsed,
 		)
 
@@ -276,7 +276,7 @@ class PartialAssistantView(Static):
 				if show_thinking:
 					text.append(part.thinking, style="dim italic")
 				else:
-					text.append(f"thinking · {len(part.thinking)} chars", style="dim italic")
+					text.append("thinking", style="dim italic")
 			elif isinstance(part, PartialText):
 				text.append(part.text)
 			elif isinstance(part, PartialToolCall):

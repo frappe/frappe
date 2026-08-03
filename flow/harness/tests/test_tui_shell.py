@@ -185,7 +185,7 @@ async def test_thinking_collapsed_by_default_and_redacted_stays_sealed():
 		blocks = entry.query(ThinkingBlock)
 		assert len(blocks) == 1  # the redacted block is a sealed marker, not a collapsible
 		assert blocks.first().collapsed is True
-		assert blocks.first().title == "thinking · 12 chars"
+		assert blocks.first().title == "thinking"
 		text = _widget_text(entry)
 		assert "the answer" in text
 		assert "thinking · redacted" in text and "secret" not in text
@@ -205,7 +205,7 @@ async def test_ctrl_t_toggles_thinking_blocks_and_partial():
 		partial = pilot.app.query_one(PartialAssistantView)
 		assert block.collapsed is True
 		preview = _widget_text(partial)
-		assert "thinking · 8 chars" in preview and "hmm okay" not in preview and "reply" in preview
+		assert "thinking" in preview and "hmm okay" not in preview and "reply" in preview
 
 		await pilot.press("ctrl+t")
 		await pilot.pause()

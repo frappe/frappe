@@ -250,7 +250,7 @@ steering, status bar. One integration pilot against real uvicorn + MockModel.
 **Files:** `src/flow_tui/widgets/messages.py` (add `ThinkingBlock` on textual `Collapsible`),
 render helpers, `app.py` binding.
 
-- Each `ThinkingContent` block → `Collapsible(title="thinking · n chars", collapsed=True)`,
+- Each `ThinkingContent` block → `Collapsible(title="thinking", collapsed=True)`,
   preserving block interleaving (content order is meaningful). `redacted=True` renders as a
   sealed marker, never expandable.
 - `ctrl+t` global toggle: app-level reactive flips all thinking blocks. Live `thinking_delta`
