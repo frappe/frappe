@@ -19,9 +19,13 @@ jobs:
        github.event.issue.pull_request &&
        contains(github.event.comment.body, '/recheck'))
     steps:
+      # The action reads the template from the workspace, not from the GitHub API.
+      - uses: actions/checkout@v7
+
       - uses: mitchellh/vouch/action/check-pr@d66fa29a64600490892131ad87597c30c91fcac4 # v1.5.0
         with:
           pr-number: ${{ github.event.pull_request.number || github.event.issue.number }}
           auto-close: true
+          template-file: .github/vouch-pr-unvouched.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
