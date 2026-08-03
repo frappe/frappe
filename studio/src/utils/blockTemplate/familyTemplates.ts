@@ -10,6 +10,8 @@ export const familyTemplates = {
 	"list-header-cell": listHeaderCellTemplate,
 	"list-header-cell-sort": listHeaderCellSortTemplate,
 	"settings-dialog": settingsDialogTemplate,
+	sidebar: sidebarTemplate,
+	"sidebar-label": sidebarLabelTemplate,
 } satisfies Record<string, () => BlockOptions>;
 
 const MEMBERS = [
@@ -153,6 +155,43 @@ function settingsDialogTemplate(): BlockOptions {
 	};
 }
 
+function sidebarTemplate(): BlockOptions {
+	return {
+		componentName: "Sidebar",
+		blockName: "Sidebar",
+		children: [
+			{
+				componentName: "SidebarHeader",
+				componentProps: { title: "Frappe", subtitle: "Jane Doe" },
+			},
+			{
+				componentName: "container",
+				originalElement: "div",
+				baseStyles: {
+					display: "flex",
+					flexDirection: "column",
+					flex: "1",
+					minHeight: "0px",
+					overflowY: "auto",
+					padding: "4px 8px",
+				} as BlockStyleMap,
+				children: [
+					sidebarLabel("Menu"),
+					sidebarItem("Home", "lucide-house"),
+					sidebarItem("Profile", "lucide-user-pen"),
+					sidebarItem("Settings", "lucide-settings"),
+				],
+			},
+			{
+				componentName: "container",
+				originalElement: "div",
+				baseStyles: { marginTop: "auto", padding: "0px 8px 8px" } as BlockStyleMap,
+				children: [{ componentName: "SidebarCollapseToggle" }],
+			},
+		],
+	};
+}
+
 // --- Standalone part templates ------------------------------------------
 // A bare row/header/cell paints zero pixels on canvas (grid boxes with no content),
 // so individually dropped parts seed minimal visible content. Seeded counts won't
@@ -202,6 +241,19 @@ function listHeaderCellTemplate(): BlockOptions {
 
 function listHeaderCellSortTemplate(): BlockOptions {
 	return { componentName: "ListHeaderCellSort", children: [textBlock("Label")] };
+}
+
+// A bare SidebarLabel paints nothing — its text lives in the default slot.
+function sidebarLabelTemplate(): BlockOptions {
+	return sidebarLabel("Label");
+}
+
+function sidebarLabel(text: string): BlockOptions {
+	return { componentName: "SidebarLabel", children: [textBlock(text)] };
+}
+
+function sidebarItem(label: string, icon: string): BlockOptions {
+	return { componentName: "SidebarItem", componentProps: { label, icon } };
 }
 
 export function listHeaderCell(label: string, styles: BlockStyleMap = {}): BlockOptions {

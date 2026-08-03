@@ -6,9 +6,11 @@ import LucideArrowUpDown from "~icons/lucide/arrow-up-down"
 import LucideColumns3 from "~icons/lucide/columns-3"
 import LucideFrame from "~icons/lucide/frame"
 import LucideList from "~icons/lucide/list"
+import LucidePanelLeftClose from "~icons/lucide/panel-left-close"
 import LucideRows3 from "~icons/lucide/rows-3"
 import LucideSettings from "~icons/lucide/settings"
 import LucideSidebar from "~icons/lucide/sidebar"
+import LucideTag from "~icons/lucide/tag"
 
 // Component families: the primary (isGroup) drops a whole working tree via its block template
 export const COMPONENT_FAMILIES: FrappeUIComponents = {
@@ -186,5 +188,48 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 			title: "Setting",
 			description: "",
 		},
+	},
+	// Sidebar family
+	Sidebar: {
+		name: "Sidebar",
+		title: "Sidebar",
+		icon: LucideSidebar,
+		isGroup: true,
+		blockTemplate: "sidebar",
+		// deprecated config-object API (`header`/`sections`); the family composes
+		// SidebarHeader/SidebarLabel/SidebarItem blocks instead
+		hideProps: ["header", "sections"],
+	},
+	SidebarHeader: {
+		name: "SidebarHeader",
+		title: "Sidebar Header",
+		icon: LucideFrame,
+		group: "Sidebar",
+		initialState: {
+			title: "Frappe",
+		},
+	},
+	SidebarItem: {
+		name: "SidebarItem",
+		title: "Sidebar Item",
+		icon: LucideRows3,
+		group: "Sidebar",
+		initialState: {
+			label: "Item",
+			icon: "lucide-circle-dashed",
+		},
+	},
+	SidebarLabel: {
+		name: "SidebarLabel",
+		title: "Sidebar Label",
+		icon: LucideTag,
+		group: "Sidebar",
+		blockTemplate: "sidebar-label",
+	},
+	SidebarCollapseToggle: {
+		name: "SidebarCollapseToggle",
+		title: "Sidebar Collapse Toggle",
+		icon: LucidePanelLeftClose,
+		group: "Sidebar",
 	},
 }
