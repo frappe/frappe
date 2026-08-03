@@ -180,12 +180,17 @@ a rewind can retract rows before any cursor, so combining it with `since` is a `
 and accepts `since`. To catch up after a disconnect, replay `/stream?since=N` (you
 will see any `rewind` marker) or refetch the active view whole.
 
-### `GET /sessions/{sid}/stream?since=<int>`
+### `GET /sessions/{sid}/stream?since=<int>&follow=<bool>`
 Server-Sent Events. Replays durable entries with `seq > since`, then streams live
 events. Each line: `data: {<event json>}\n\n`. The stream closes when the watched run
 ends (`run_ended`, including `reason=="paused"`); for a session with no active run it
 closes after the replay. Reconnect after a drop by passing `since=<last seq you saw>` —
 the continuation is gapless and duplicate-free.
+
+`follow=true` removes the close-at-boundary behavior: the connection stays open across
+run boundaries and while the session idles. A quiet stream sends an SSE comment line
+(`: keepalive`) every 15 seconds so proxies and dead-peer detection keep working.
+Clients must ignore comment lines.
 
 Durable `assistant_message` entries contain an ordered `content` array of `text`,
 `thinking`, and `tool_call` blocks plus `api`, `provider`, `model`, optional upstream

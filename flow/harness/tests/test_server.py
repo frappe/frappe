@@ -866,3 +866,56 @@ def test_list_sessions_reports_a_cold_paused_session(tmp_path, monkeypatch):
 	)
 	(row,) = _client(tmp_path).get("/sessions").json()["sessions"]
 	assert row["state"] == "idle"
+
+
+async def test_stream_follow_stays_open_between_runs_with_keepalives(tmp_path, monkeypatch):
+	monkeypatch.setattr("flow.server.app.KEEPALIVE_SECONDS", 0.05)
+	store = SessionStore(
+		str(tmp_path / "data"),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+	)
+	app = create_app(store)
+
+	sock = socket.socket()
+	sock.bind(("127.0.0.1", 0))
+	port = sock.getsockname()[1]
+	server = uvicorn.Server(uvicorn.Config(app, log_level="error", timeout_graceful_shutdown=1))
+	serve_task = asyncio.create_task(server.serve(sockets=[sock]))
+	try:
+		while not server.started:
+			await asyncio.sleep(0.01)
+		async with httpx.AsyncClient(base_url=f"http://127.0.0.1:{port}") as client:
+			sid = (await client.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)})).json()[
+				"session_id"
+			]
+			await client.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "first"})
+
+			rows, saw_keepalive, second = [], False, None
+			async with client.stream(
+				"GET",
+				f"/sessions/{sid}/stream",
+				params={"follow": "true"},
+				timeout=httpx.Timeout(5, read=5),
+			) as response:
+				async with asyncio.timeout(10):
+					async for line in response.aiter_lines():
+						if line.startswith(":"):
+							saw_keepalive = True
+							if second is None:  # the boundary passed without a close; run again
+								second = asyncio.create_task(
+									client.post(f"/sessions/{sid}/run", json={"message": "second"})
+								)
+						elif line.startswith("data:"):
+							rows.append(json.loads(line[5:]))
+							if sum(r["type"] == "run_ended" for r in rows) == 2:
+								break
+			if second is not None:
+				await second
+
+			assert saw_keepalive
+			assert [r["content"] for r in rows if r["type"] == "user_message"] == ["first", "second"]
+			seqs = [r["seq"] for r in rows if "seq" in r]
+			assert seqs == sorted(seqs) and len(seqs) == len(set(seqs))
+	finally:
+		server.should_exit = True
+		await asyncio.wait_for(serve_task, timeout=5)
