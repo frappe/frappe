@@ -6,7 +6,14 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from pypika.enums import Arithmetic
 from pypika.queries import QueryBuilder, Table
-from pypika.terms import AggregateFunction, ArithmeticExpression, Star, Term, ValueWrapper
+from pypika.terms import (
+	AggregateFunction,
+	ArithmeticExpression,
+	ExistsCriterion,
+	Star,
+	Term,
+	ValueWrapper,
+)
 
 import frappe
 from frappe import _
@@ -1644,6 +1651,51 @@ class Engine:
 						empty_value_condition = functions.IfNull(table[field_name], "") == ""
 						value_condition = table[field_name].isin(docs)
 						conditions.append(empty_value_condition | value_condition)
+
+		conditions.extend(self.get_child_table_user_permission_conditions(doctype, table, user_permissions))
+
+		return conditions
+
+	def get_child_table_user_permission_conditions(
+		self, doctype: str, table: Table, user_permissions: dict
+	) -> list[Criterion]:
+		"""Exclude records whose child rows link to docs restricted by user
+		permissions, mirroring the link field checks in `has_user_permission`."""
+		conditions = []
+		strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
+
+		for child_doctype in sorted({df.options for df in frappe.get_meta(doctype).get_table_fields()}):
+			child_table = frappe.qb.DocType(child_doctype)
+			row_conditions = []
+
+			for df in frappe.get_meta(child_doctype).get_link_fields():
+				if df.get("ignore_user_permissions"):
+					continue
+
+				allowed_docs = frappe.permissions.get_allowed_docs_for_doctype(
+					user_permissions.get(df.get("options"), []), doctype
+				)
+				if not allowed_docs:
+					continue
+
+				empty_value_condition = functions.IfNull(child_table[df.fieldname], "") == ""
+				not_allowed_condition = child_table[df.fieldname].notin(allowed_docs)
+				if strict_user_permissions:
+					row_conditions.append(empty_value_condition | not_allowed_condition)
+				else:
+					row_conditions.append(empty_value_condition.negate() & not_allowed_condition)
+
+			if row_conditions:
+				restricted_rows = (
+					frappe.qb.from_(child_table)
+					.select(child_table.name)
+					.where(
+						(child_table.parenttype == doctype)
+						& (child_table.parent == table.name)
+						& Criterion.any(row_conditions)
+					)
+				)
+				conditions.append(ExistsCriterion(restricted_rows).negate())
 
 		return conditions
 

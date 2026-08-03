@@ -116,6 +116,67 @@ class TestPermissions(IntegrationTestCase):
 		self.assertTrue(post1.has_permission("read"))
 		self.assertTrue(get_doc_permissions(post1).get("read"))
 
+	def test_user_permissions_on_child_table_in_list(self):
+		"""get_list must exclude records whose child rows link to restricted docs."""
+		frappe.set_user("Administrator")
+		child = new_doctype(
+			istable=1,
+			fields=[
+				{
+					"label": "Blog Category",
+					"fieldname": "blog_category",
+					"fieldtype": "Link",
+					"options": "Test Blog Category",
+				}
+			],
+		).insert()
+		parent = new_doctype(
+			fields=[
+				{
+					"label": "Categories",
+					"fieldname": "categories",
+					"fieldtype": "Table",
+					"options": child.name,
+				}
+			],
+		).insert()
+		self.addCleanup(_delete_doctypes, [parent.name, child.name], False)
+		self.addCleanup(self.set_strict_user_permissions, 0)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		allowed = frappe.get_doc(
+			doctype=parent.name, categories=[{"blog_category": "_Test Blog Category 1"}]
+		).insert()
+		restricted = frappe.get_doc(
+			doctype=parent.name, categories=[{"blog_category": "_Test Blog Category"}]
+		).insert()
+		empty_row = frappe.get_doc(doctype=parent.name, categories=[{}]).insert()
+		no_rows = frappe.get_doc(doctype=parent.name).insert()
+
+		add_user_permission("Test Blog Category", "_Test Blog Category 1", "test1@example.com")
+		frappe.set_user("test1@example.com")
+
+		visible = frappe.get_list(parent.name, pluck="name")
+		self.assertIn(allowed.name, visible)
+		self.assertIn(empty_row.name, visible)
+		self.assertIn(no_rows.name, visible)
+		self.assertNotIn(restricted.name, visible)
+
+		# list visibility must match document access
+		self.assertTrue(frappe.get_doc(parent.name, allowed.name).has_permission("read"))
+		self.assertFalse(frappe.get_doc(parent.name, restricted.name).has_permission("read"))
+
+		# strict mode also excludes empty child link values
+		frappe.set_user("Administrator")
+		self.set_strict_user_permissions(1)
+		frappe.set_user("test1@example.com")
+
+		visible = frappe.get_list(parent.name, pluck="name")
+		self.assertIn(allowed.name, visible)
+		self.assertIn(no_rows.name, visible)
+		self.assertNotIn(empty_row.name, visible)
+		self.assertNotIn(restricted.name, visible)
+
 	def test_user_permissions_in_report(self):
 		add_user_permission("Test Blog Category", "_Test Blog Category 1", "test2@example.com")
 
