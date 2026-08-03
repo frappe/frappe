@@ -548,7 +548,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		"""Creates an index with given fields if not already created.
 
 		Default index name is `<table>_<field1>_<field2>_index` (table-qualified so it is unique
-		per *schema*, as postgres requires).
+		per *schema*, as postgres requires). A non-default `using`, `where` or `include` adds a
+		digest of that definition to the name, so a partial or covering index never shares a name
+		with the plain index over the same key columns.
 
 		using: index kind beyond the default btree --
 			"gin_trgm"     GIN + gin_trgm_ops for fast LIKE/ILIKE substring search (needs pg_trgm)
@@ -574,9 +576,12 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				frappe.throw(f"Invalid index column: {column}")
 		# postgres index names are per-schema, not per-table: an unqualified default name collides
 		# across tables sharing these fields and `CREATE INDEX IF NOT EXISTS` then silently skips
-		# all but the first, leaving the index missing. Qualify with the table (and `using`, so a
-		# trigram index never clashes with the plain one on the same column).
-		index_name = index_name or get_qualified_index_name(table_name, clean_fields, using)
+		# all but the first, leaving the index missing. Qualify with the table and everything else
+		# that makes this index a distinct object -- `using`, the partial predicate and the
+		# INCLUDE list -- so no two differing definitions ever share a name.
+		index_name = index_name or get_qualified_index_name(
+			table_name, clean_fields, using, where=where, include=include
+		)
 
 		if using == "gin_trgm":
 			self.sql_ddl("CREATE EXTENSION IF NOT EXISTS pg_trgm")

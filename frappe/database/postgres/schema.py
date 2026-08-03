@@ -1,4 +1,5 @@
 import hashlib
+import re
 
 import frappe
 from frappe import _
@@ -6,16 +7,50 @@ from frappe.database.schema import DbColumn, DBTable, get_definition
 from frappe.utils import cint, cstr, flt
 from frappe.utils.defaults import get_not_null_defaults
 
+# Separators *outside* quoted tokens, so `id  >  0` and `id > 0` hash alike while `x = 'a  b'`
+# and `x = 'a b'` stay distinct -- collapsing inside a quoted token would give two different
+# predicates one name, and the second index would then be silently skipped. A comment is
+# whitespace to SQL, so a whole run of the two collapses to one space: that keeps the newline
+# ending a line comment significant, since it decides whether what follows is code or comment.
+PREDICATE_SEPARATOR_PATTERN = re.compile(
+	r"""
+	  (?P<quoted>
+	      (?<!\w)[eE]'(?:[^'\\]|''|\\.)*'    # escape string: a \' does not end it
+	    | '(?:[^']|'')*'                     # string literal (only '' escapes a quote)
+	    | "(?:[^"]|"")*"                     # quoted identifier
+	    | \$(?P<tag>\w*)\$.*?\$(?P=tag)\$    # dollar-quoted string
+	  )
+	| (?: \s | --[^\n]* | /\*.*?\*/ )+       # whitespace and comments, in any mix
+	""",
+	re.DOTALL | re.VERBOSE,
+)
+
+
+def _normalise_predicate(where: str | None) -> str:
+	if not where:
+		return ""
+	return PREDICATE_SEPARATOR_PATTERN.sub(lambda match: match.group("quoted") or " ", where).strip()
+
 
 # PostgreSQL index names are unique per *schema*, not per table like MariaDB. Naming an index
 # after just its field(s) therefore collides across tables that share a field (item_code,
 # company, posting_date, lft/rgt, ...) and `CREATE INDEX IF NOT EXISTS` silently skips all but
 # the first -- so most tables never get that index. Qualify the name with the table so it is
 # schema-unique, hashing if it would exceed postgres's 63-byte identifier cap.
-def get_qualified_index_name(table_name: str, fields: list[str], suffix: str | None = None) -> str:
+def get_qualified_index_name(
+	table_name: str,
+	fields: list[str],
+	suffix: str | None = None,
+	*,
+	where: str | None = None,
+	include: list[str] | None = None,
+) -> str:
 	base = f"{table_name}_" + "_".join(fields)
 	if suffix:
 		base += f"_{suffix}"
+	if where or include:
+		variant = f"{_normalise_predicate(where)}|{','.join(include or ())}"
+		base += "_" + hashlib.md5(variant.encode()).hexdigest()[:10]
 	name = f"{base}_index"
 	if len(name.encode()) > 63:
 		digest = hashlib.md5(base.encode()).hexdigest()[:10]
