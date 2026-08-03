@@ -18,6 +18,7 @@ from textual.command import DiscoveryHit, Hit, Hits, Provider
 
 from flow.events import ReasoningEffort, UserMessage
 from flow_tui.client.api import FlowAPIError
+from flow_tui.screens.pickers import EffortPicker, ModelPicker
 
 if TYPE_CHECKING:
 	from flow_tui.app import FlowApp
@@ -74,15 +75,26 @@ async def dispatch(app: "FlowApp", line: str) -> None:
 EFFORT_LEVELS: tuple[str, ...] = get_args(ReasoningEffort)
 
 
-@command("model", "switch the model for runs from here on", arg_hint="<name>")
+@command("model", "switch the model for runs from here on; no arg opens the picker", arg_hint="[name]")
 async def _model(app: "FlowApp", arg: str) -> None:
 	if not arg:
-		raise CommandError("usage: /model <name>")
+		models = await app.controller.list_models()
+		arg = await app.push_screen_wait(ModelPicker(models)) or ""
+		if not arg:
+			return
 	await app.controller.change_model(arg)
 
 
-@command("effort", "set reasoning effort", arg_hint="default|" + "|".join(EFFORT_LEVELS))
+@command(
+	"effort",
+	"set reasoning effort; no arg opens the picker",
+	arg_hint="[default|" + "|".join(EFFORT_LEVELS) + "]",
+)
 async def _effort(app: "FlowApp", arg: str) -> None:
+	if not arg:
+		arg = await app.push_screen_wait(EffortPicker(app.controller.state.reasoning_effort)) or ""
+		if not arg:
+			return
 	if arg == "default":
 		await app.controller.change_effort(None)
 	elif arg in EFFORT_LEVELS:

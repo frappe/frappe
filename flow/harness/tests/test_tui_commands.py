@@ -71,6 +71,9 @@ class FakeController:
 	async def list_sessions(self):
 		return self.sessions
 
+	async def list_models(self):
+		return []
+
 	async def new_session(self):
 		self.calls.append(("new_session",))
 		return "new-session-id"
@@ -156,11 +159,9 @@ async def test_model_and_effort_commands():
 			("change_effort", None),
 		]
 
-		await _slash(pilot, "/model")
 		await _slash(pilot, "/effort bogus")
-		assert fake.calls[-1] == ("change_effort", None)  # neither bad line dispatched
+		assert fake.calls[-1] == ("change_effort", None)  # the bad line did not dispatch
 		errors = [msg for msg, sev in _notifications(pilot.app) if sev == "error"]
-		assert any("usage: /model <name>" in msg for msg in errors)
 		assert any("usage: /effort" in msg for msg in errors)
 
 

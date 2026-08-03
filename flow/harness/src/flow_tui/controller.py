@@ -118,6 +118,9 @@ class Controller:
 	async def list_sessions(self) -> list[dict]:
 		return await self.client.list_sessions()
 
+	async def list_models(self) -> list[dict]:
+		return await self.client.list_models()
+
 	async def new_session(self) -> str:
 		"""Create a fresh session from the launch config and switch to it."""
 		sid = await self.client.create_session(self.config or SessionConfig())
