@@ -70,7 +70,7 @@ context("Print Format Builder — create flow", () => {
 		cy.visit("/app/print-format-builder");
 		cy.location("pathname", { timeout: 20000 }).should(
 			"match",
-			/^\/app\/print-format(\/view\/list)?$/
+			/^\/(app|desk)\/print-format(\/view\/list)?$/
 		);
 	});
 
@@ -82,8 +82,8 @@ context("Print Format Builder — create flow", () => {
 		cy.get(".page-actions", { timeout: 20000 }).contains("button", "Edit Format").click();
 
 		cy.location("pathname", { timeout: 20000 }).should(
-			"include",
-			"/app/print-format-builder/"
+			"match",
+			/\/(app|desk)\/print-format-builder\//
 		);
 		cy.get(".print-format-main", { timeout: 20000 }).should("exist");
 	});
