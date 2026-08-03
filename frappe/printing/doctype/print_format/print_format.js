@@ -4,11 +4,15 @@
 frappe.ui.form.on("Print Format", "onload", function (frm) {
 	frm.add_fetch("doc_type", "module", "module");
 	frm.add_fetch("report", "module", "module");
+
+	if (frm.is_new() && !frm.doc.custom_format) {
+		frm.set_value("print_format_builder_beta", 1);
+		frm.set_value("pdf_generator", "chrome");
+	}
 });
 
 frappe.ui.form.on("Print Format", {
 	refresh: function (frm) {
-		frm.set_intro("");
 		frm.toggle_enable(["html", "doc_type", "module"], false);
 		if (frappe.session.user === "Administrator" || frm.doc.standard === "No") {
 			frm.toggle_enable(["html", "doc_type", "module"], true);
@@ -32,11 +36,7 @@ frappe.ui.form.on("Print Format", {
 						frappe.msgprint(__("Please select DocType first"));
 						return;
 					}
-					if (frm.doc.print_format_builder_beta) {
-						frappe.set_route("print-format-builder", frm.doc.name);
-					} else {
-						frappe.set_route("print-format-builder-classic", frm.doc.name);
-					}
+					frappe.set_route("print-format-builder", frm.doc.name);
 				});
 			}
 			if (frappe.model.can_write("Customize Form")) {
@@ -66,6 +66,10 @@ frappe.ui.form.on("Print Format", {
 		frm.set_value("align_labels_right", value);
 		frm.set_value("show_section_headings", value);
 		frm.set_value("line_breaks", value);
+		// Custom HTML formats can't use the builder — clear the flag
+		if (frm.doc.custom_format) {
+			frm.set_value("print_format_builder_beta", 0);
+		}
 		frm.trigger("render_buttons");
 		frm.trigger("set_chrome_for_builder");
 	},
@@ -83,6 +87,22 @@ frappe.ui.form.on("Print Format", {
 	},
 	doc_type: function (frm) {
 		frm.trigger("hide_absolute_value_field");
+	},
+	disabled: function (frm) {
+		if (!frm.doc.disabled || !frm.doc.doc_type) return;
+
+		frappe.model.with_doctype(frm.doc.doc_type, () => {
+			if (frappe.get_meta(frm.doc.doc_type).default_print_format !== frm.doc.name) return;
+
+			frappe.confirm(
+				__(
+					"{0} is the default print format for {1}. Disabling it will remove it as the default. Do you want to continue?",
+					[frm.doc.name.bold(), frm.doc.doc_type.bold()]
+				),
+				null,
+				() => frm.set_value("disabled", 0)
+			);
+		});
 	},
 	print_format_for: function (frm) {
 		if (frm.doc.print_format_for === "Report") {

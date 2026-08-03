@@ -92,7 +92,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	set_default_secondary_action() {
 		this.refresh_button && this.refresh_button.remove();
 		this.refresh_button = this.page.add_action_icon(
-			"es-line-reload",
+			"refresh-cw",
 			() => {
 				this.setup_progress_bar();
 				this.refresh();
@@ -103,12 +103,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_no_result_message() {
-		return `<div class="msg-box no-border">
-			<svg class="icon icon-xl mb-4" style="stroke: var(--text-light);">
-				<use href="#icon-table"></use>
-			</svg>
-			<p>${__("Nothing to show")}</p>
-		</div>`;
+		return frappe.ui.empty_state({ icon: "sheet", title: __("Nothing to show") })[0].outerHTML;
 	}
 
 	setup_events() {
@@ -153,14 +148,19 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			// so refresh report again
 			this.refresh_report(route_options);
 		} else {
-			// same report
-			// don't do anything to preserve state
-			// like filters and datatable column widths
+			// same report — preserve filters/column widths but refresh
+			// report_doc so menu items (e.g. Documentation link) stay in sync
+			this.get_report_doc().then(() => {
+				this.page.clear_menu();
+				this.menu_items = this.get_menu_items();
+				this.set_menu_items();
+			});
 		}
 	}
 
 	load_report(route_options) {
 		this.page.clear_inner_toolbar();
+		this.page.clear_menu();
 		this.route = frappe.get_route();
 		this.page_name = frappe.get_route_str();
 		this.report_name = this.route[1];
@@ -180,6 +180,76 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			() => this.add_chart_buttons_to_toolbar(true),
 			() => this.add_card_button_to_toolbar(true),
 		]);
+	}
+
+	set_related_reports_dropdown() {
+		// singleton frappe.query_report reuses this.page across navigation, so
+		// tear down the previous dropdown (closes any open panel, unbinds the
+		// trigger) before rebuilding for the current report.
+		this.related_reports_dropdown?.data("es-dropdown")?.destroy();
+		this.related_reports_dropdown?.remove();
+		this.related_reports_dropdown = null;
+
+		if (!this.report_name || !this.report_doc) return;
+		const report_name = this.report_name;
+
+		// If we're viewing a Custom Report, its "family" is anchored on the
+		// report it was saved from; otherwise the current report is the base.
+		const is_custom = this.report_doc.report_type === "Custom Report";
+		const base_report_name = (is_custom && this.report_doc.reference_report) || report_name;
+
+		// Siblings: every Custom Report saved from the same base. get_list
+		// respects the user's read permission, so reports they can't view are
+		// filtered out automatically.
+		const get_siblings = frappe.db.get_list("Report", {
+			filters: {
+				reference_report: base_report_name,
+				report_type: "Custom Report",
+				disabled: 0,
+			},
+			fields: ["name", "report_name"],
+			order_by: "report_name asc",
+			limit: 0,
+		});
+
+		// The base/parent report itself, only needed when we're viewing one of
+		// its variants (so it can be listed alongside the siblings).
+		const get_base =
+			base_report_name !== report_name
+				? frappe.db.get_value("Report", base_report_name, "report_name")
+				: Promise.resolve(null);
+
+		return Promise.all([get_siblings, get_base]).then(([siblings, base]) => {
+			if (this.report_name !== report_name) return;
+
+			const related = (siblings || []).filter((r) => r.name !== report_name);
+
+			if (base_report_name !== report_name) {
+				related.unshift({
+					name: base_report_name,
+					report_name: base?.message?.report_name || base_report_name,
+				});
+			}
+
+			if (!related.length) return;
+
+			const options = related.map((r) => ({
+				label: r.report_name || r.name,
+				onclick: () => frappe.set_route("query-report", r.name),
+			}));
+
+			// position the trigger before the "Actions" group; it's a
+			// frappe.ui.button, so it matches the neighbouring toolbar buttons
+			this.related_reports_dropdown = frappe.ui.dropdown({
+				button: {
+					label: __("Related Reports"),
+					icon_right: "chevrons-up-down",
+					css_class: "ellipsis",
+				},
+				options,
+			});
+			this.related_reports_dropdown.prependTo(this.page.custom_actions);
+		});
 	}
 
 	add_card_button_to_toolbar() {
@@ -408,6 +478,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			() => this.report_settings.onload && this.report_settings.onload(this),
 			() => (this._no_refresh = false),
 			() => this.refresh(),
+			// rebuild the dropdown here (not in load_report) because
+			// clear_custom_actions() above wipes it, and refresh_report also runs
+			// on its own when returning to a report with filters in the URL.
+			() => this.set_related_reports_dropdown(),
 		]);
 	}
 
@@ -417,12 +491,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			.then((doc) => {
 				this.report_doc = doc;
 			})
-			.then(() => frappe.model.with_doctype(this.report_doc?.ref_doctype))
-			.then(
-				() =>
-					this.report_doc.module &&
-					frappe.app.sidebar.show_sidebar_for_module(this.report_doc.module)
-			);
+			.then(() => frappe.model.with_doctype(this.report_doc?.ref_doctype));
 	}
 
 	get_report_settings() {
@@ -764,6 +833,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.hide_status();
 				clearInterval(this.interval);
 				clearInterval(this.stale_report_interval);
+				this.snapshot_report = data.snapshot_report;
+				this.snapshot_at = data.snapshot_at;
 				this.refreshed_at = frappe.datetime.now_datetime();
 				this.execution_time = data.execution_time || 0.1;
 
@@ -795,7 +866,21 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					}
 				};
 
-				this.stale_report_interval = setInterval(check_if_report_is_stale, 60000);
+				if (this.snapshot_report) {
+					if (data.result.length > 0) {
+						let diff = frappe.datetime.comment_when(this.snapshot_at);
+						let pretty_diff = `<span style="color:var(--red-600)">${diff}</span>`;
+						this.show_status(`
+						<div class="indicator orange pl-1">
+							<span>
+								${__("This is a snapshot report generated {0}.", [pretty_diff])}
+							</span>
+						</div>
+					`);
+					}
+				} else {
+					this.stale_report_interval = setInterval(check_if_report_is_stale, 60000);
+				}
 
 				if (data.custom_filters) {
 					this.set_filters(data.custom_filters);
@@ -805,7 +890,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				if (data.prepared_report) {
 					this.prepared_report = true;
 					this.prepared_report_document = data.doc;
-					if (data.attachments) {
+					if (data.attachments.length) {
 						data.doc.attachments = data.attachments;
 					}
 					// If query_string contains prepared_report_name then set filters
@@ -887,12 +972,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_prepared_report_buttons(doc) {
-		let is_csv =
-			doc.attachments &&
-			doc.attachments.some((attachment) => attachment.file_name.endsWith(".csv"));
-		let label = is_csv ? __("Download Report as CSV") : __("Download Report");
-		let format = is_csv ? "csv" : "json";
-		if (doc) {
+		if (doc && frappe.model.can_read("Prepared Report")) {
+			let is_csv =
+				doc.attachments &&
+				doc.attachments.some((attachment) => attachment.file_name.endsWith(".csv"));
+			let label = is_csv ? __("Download Report as CSV") : __("Download Report");
+			let format = is_csv ? "csv" : "json";
 			this.page.add_inner_button(
 				label,
 				function () {
@@ -1059,11 +1144,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				const data = r.message;
 				// Rememeber the name of Prepared Report doc
 				this.prepared_report_doc_name = data.name;
-				let alert_message =
-					`<a href='/desk/prepared-report/${data.name}'>` +
-					__("Report initiated, click to view status") +
-					`</a>`;
-				frappe.show_alert({ message: alert_message, indicator: "orange" }, 10);
 				this.toggle_nothing_to_show(true);
 			});
 		}
@@ -1092,7 +1172,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				[cstr(format_number(data.length, null, 0)).bold(), __("export").bold()]
 			);
 
-			this.toggle_message(true, `${frappe.utils.icon("solid-warning")} ${msg}`);
+			this.toggle_message(true, `${frappe.utils.icon("triangle-alert")} ${msg}`);
 			return;
 		}
 
@@ -1809,10 +1889,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					filters.prepared_report_name = this.prepared_report_name;
 				}
 
-				// excluding total row index
-				const ignore_visible_idx =
-					visible_idx.length ===
-					this.data.length - (this.raw_data.add_total_row ? 1 : 0);
+				// visible_idx is a list of ORIGINAL row indices in DISPLAY order
+				// having both search-filter narrowing AND column sort. Only skip sending it
+				// when it exactly matches the default identity order [0, 1, ..., N-1]
+				// (i.e. neither sorted nor filtered), otherwise the server-side
+				// export would silently drop the user's UI sort direction.
+				const totalRows = this.data.length - (this.raw_data.add_total_row ? 1 : 0);
+				const isIdentityOrder =
+					visible_idx.length === totalRows && visible_idx.every((idx, i) => idx === i);
+				const ignore_visible_idx = isIdentityOrder;
 				visible_idx = ignore_visible_idx ? [] : visible_idx;
 
 				const args = {
@@ -1934,6 +2019,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				label: __("Edit"),
 				action: () => frappe.set_route("Form", "Report", this.report_name),
 				condition: () => frappe.user.is_report_manager(),
+				standard: true,
+			},
+			{
+				label: __("Documentation"),
+				action: () => window.open(this.report_doc.documentation_url),
+				condition: () => !!this.report_doc?.documentation_url,
 				standard: true,
 			},
 			{
@@ -2237,7 +2328,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		});
 		this.data.forEach((row) => {
 			doctypes.forEach((doc) => {
-				this.doctype_field_map[doc.doctype][doc.fieldname].names.add(row[doc.fieldname]);
+				if (row[doc.fieldname] != null) {
+					this.doctype_field_map[doc.doctype][doc.fieldname].names.add(
+						row[doc.fieldname]
+					);
+				}
 			});
 		});
 

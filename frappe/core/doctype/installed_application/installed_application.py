@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class InstalledApplication(Document):
+	_DOCTYPE_NAME = "Installed Application"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

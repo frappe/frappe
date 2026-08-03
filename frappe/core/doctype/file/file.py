@@ -44,9 +44,13 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True  # nosemgrep
 
 URL_PREFIXES = ("http://", "https://", "/api/method/")
 FILE_ENCODING_OPTIONS = ("utf-8-sig", "utf-8", "windows-1250", "windows-1252")
+# OLE2 Compound File Binary signature, used by legacy .xls/.doc/.ppt files, which filetype fails to detect
+OLE_FILE_SIGNATURE = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
 
 
 class File(Document):
+	_DOCTYPE_NAME = "File"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -660,6 +664,7 @@ class File(Document):
 		if self.is_folder:
 			frappe.throw(_("Cannot get file contents of a Folder"))
 
+		self.validate_file_path()
 		# if doc was just created, content field is already populated, return it as-is
 		if self.get("content"):
 			self._content = self.content
@@ -679,7 +684,7 @@ class File(Document):
 			self._content = f.read()
 			# Only decode if not a binary file
 			kind = filetype.guess(self._content)
-			if not kind:
+			if not kind and not self._content.startswith(OLE_FILE_SIGNATURE):
 				# looping will not result in slowdown, as the content is usually utf-8 or utf-8-sig
 				# encoded so the first iteration will be enough most of the time
 				for encoding in encodings:
@@ -910,6 +915,10 @@ class File(Document):
 			content_type=content_type,
 		)
 
+		if original_content == optimized_content:
+			# optimization failed, don't resave it
+			return
+
 		self.save_file(content=optimized_content, overwrite=True)
 		self.save()
 
@@ -949,6 +958,9 @@ def on_doctype_update():
 def has_permission(doc, ptype=None, user=None, debug=False):
 	user = user or frappe.session.user
 
+	if any(frappe.get_hooks("ignore_file_permissions")):
+		return True
+
 	if user == "Administrator":
 		return True
 
@@ -971,7 +983,7 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 		attached_to_name = doc.attached_to_name
 
 		try:
-			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
+			ref_doc = frappe.get_lazy_doc(attached_to_doctype, attached_to_name)
 		except (ModuleNotFoundError, ImportError):
 			return False
 		except frappe.DoesNotExistError:
@@ -988,6 +1000,10 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 
 def get_permission_query_conditions(user: str | None = None) -> str:
 	user = user or frappe.session.user
+
+	if any(frappe.get_hooks("ignore_file_permissions")):
+		return ""
+
 	if user == "Administrator":
 		return ""
 

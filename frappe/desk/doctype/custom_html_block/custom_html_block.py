@@ -8,6 +8,8 @@ from frappe.utils import has_common
 
 
 class CustomHTMLBlock(Document):
+	_DOCTYPE_NAME = "Custom HTML Block"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -80,6 +80,8 @@ allow_google_calendar_label = _lt("Allow Google Calendar Access")
 
 
 class GoogleCalendar(Document):
+	_DOCTYPE_NAME = "Google Calendar"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

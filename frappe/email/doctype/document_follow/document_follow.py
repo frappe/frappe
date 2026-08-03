@@ -5,6 +5,8 @@ from frappe.model.document import Document
 
 
 class DocumentFollow(Document):
+	_DOCTYPE_NAME = "Document Follow"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

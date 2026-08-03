@@ -11,7 +11,7 @@ const BASE_FIELDS = JSON.stringify([
 // Helper — open List View Settings modal for the current list
 function openListSettings() {
 	cy.get(".menu-btn-group button").click({ force: true });
-	cy.get(".dropdown-menu li").filter(":visible").contains("List Settings").click();
+	cy.get(".es-menu").contains('[role="menuitem"]', "List Settings").click();
 	cy.get(".modal-dialog").should("contain", `${DOCTYPE} List View Settings`);
 }
 

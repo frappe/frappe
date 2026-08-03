@@ -1,3 +1,103 @@
 .warnings .warning {
-	margin-bottom: 40px;
+	margin-bottom: 25px;
+}
+
+.warnings .warning.skipped .body {
+	opacity: 0.6;
+}
+
+.warnings .warning-row-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.warnings .skip-row-btn {
+	text-transform: none;
+	font-weight: normal;
+	letter-spacing: normal;
+}
+
+/* Collapsible section headers with (count) before chevron. */
+.data-import-warnings-section .section-head.collapsible,
+.data-import-value-mappings-section .section-head.collapsible,
+.data-import-tree-preview-section .section-head.collapsible,
+.data-import-preview-section .section-head.collapsible {
+	display: flex;
+	align-items: center;
+}
+
+.data-import-warnings-section .section-head .import-warnings-count,
+.data-import-value-mappings-section .section-head .value-mappings-count,
+.data-import-tree-preview-section .section-head .import-tree-preview-count,
+.data-import-preview-section .section-head .import-preview-count {
+	margin-left: auto;
+	margin-right: 6px;
+}
+
+.data-import-tree-preview-section .section-body {
+	display: block;
+	width: 100%;
+}
+
+.data-import-tree-preview-section .section-body .form-column {
+	width: 100%;
+	max-width: 100%;
+}
+
+[data-fieldname="import_tree_preview"] > .form-group .control-label {
+	display: none;
+}
+
+
+/* Preview section: full-width layout for datatable and import log. */
+.data-import-preview-section .section-body {
+	display: block;
+	width: 100%;
+}
+
+.data-import-preview-section .section-body .form-column {
+	width: 100%;
+	max-width: 100%;
+}
+
+.data-import-preview-section [data-fieldname="import_log_heading"] {
+	width: 100%;
+	margin-top: var(--margin-xl);
+	margin-bottom: 0;
+}
+
+.data-import-preview-section [data-fieldname="import_log_heading"] .section-head.import-log-title {
+	padding: 0 0 var(--padding-sm);
+	margin: 0;
+	cursor: default;
+}
+
+.data-import-preview-section [data-fieldname="show_failed_logs"] {
+	margin-bottom: var(--margin-sm);
+}
+
+/* Hide duplicate field labels; section break is the collapsible header. */
+[data-fieldname="import_warnings"] > .form-group .control-label,
+[data-fieldname="import_preview"] > .form-group .control-label,
+[data-fieldname="import_log_preview"] > .form-group .control-label {
+	display: none;
+}
+
+[data-fieldname="value_mappings"] > .grid-field > .control-label {
+	display: none;
+}
+
+/* Let Link / Select dropdowns escape the scrollable grid container. */
+[data-fieldname="value_mappings"] .form-grid-container,
+[data-fieldname="value_mappings"] .column-limit-reached,
+[data-fieldname="value_mappings"] .form-grid,
+[data-fieldname="value_mappings"] .grid-body {
+	overflow: visible !important;
+}
+
+[data-fieldname="value_mappings"] .awesomplete > ul {
+	z-index: 1050;
+	max-height: 240px;
+	overflow-y: auto;
 }

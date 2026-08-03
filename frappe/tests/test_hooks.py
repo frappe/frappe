@@ -1,9 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from unittest.mock import patch
+
 import frappe
 from frappe.cache_manager import clear_controller_cache
 from frappe.desk.doctype.todo.todo import ToDo
-from frappe.tests import IntegrationTestCase
+from frappe.model.document import _accepts_method_argument
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.test_api import FrappeAPITestCase
 
 
@@ -185,6 +188,92 @@ class TestHooks(IntegrationTestCase):
 			os.listdir(frappe.get_app_path(app, "fixtures")),
 		)
 
+	def test_disallowed_fixture_doctypes(self):
+		import click
+
+		from frappe import hooks
+		from frappe.utils.fixtures import DISALLOWED_FIXTURE_DOCTYPES, export_fixtures
+
+		app = "frappe"
+		for doctype in DISALLOWED_FIXTURE_DOCTYPES:
+			hooks.fixtures = [{"dt": doctype}]
+			if frappe._load_app_hooks in frappe.local.request_cache.keys():
+				del frappe.local.request_cache[frappe._load_app_hooks]
+
+			with patch("frappe.utils.fixtures.click.secho") as secho:
+				self.assertRaises(click.exceptions.Exit, export_fixtures, app)
+
+			message = secho.call_args.args[0]
+			self.assertIn(f'Cannot export "{doctype}" doctype', message)
+			self.assertIn("it can only be created in developer mode from desk", message)
+
+
+class TestDocEventHandlerSignature(UnitTestCase):
+	# `_accepts_method_argument` inspects a doc_events handler's signature to decide
+	# whether it should be called as `handler(doc)` or `handler(doc, method, ...)`.
+
+	def test_handler_without_method_arg(self):
+		self.assertFalse(_accepts_method_argument(lambda doc: None))
+
+	def test_handler_with_method_arg(self):
+		self.assertTrue(_accepts_method_argument(lambda doc, method: None))
+
+	def test_handler_with_method_default(self):
+		self.assertTrue(_accepts_method_argument(lambda doc, method=None: None))
+
+	def test_handler_with_var_positional(self):
+		self.assertTrue(_accepts_method_argument(lambda *args: None))
+		self.assertTrue(_accepts_method_argument(lambda doc, *args: None))
+
+	def test_handler_with_keyword_only_args(self):
+		self.assertFalse(_accepts_method_argument(lambda doc, *, key=None: None))
+
+
+class TestDocEventHandlerDispatch(IntegrationTestCase):
+	# Register doc_events handlers of each style and ensure `run_method` invokes
+	# them with the expected arguments.
+
+	def setUp(self):
+		frappe.flags.doc_event_calls = []
+
+	def _run_with_handlers(self, handlers):
+		method = "on_test_doc_event"
+		self.addCleanup(_reset_doc_events_cache)
+		with self.patch_hooks({"doc_events": {"ToDo": {method: handlers}}}):
+			frappe.local.doc_events_hooks = None
+			frappe.new_doc("ToDo", description="doc event test").run_method(method)
+
+	def test_doc_only_handler_called_without_method(self):
+		self._run_with_handlers(["frappe.tests.test_hooks.handler_doc_only"])
+		self.assertEqual(frappe.flags.doc_event_calls, [("doc_only", "ToDo", "<no-method>")])
+
+	def test_doc_method_handler_called_with_method(self):
+		self._run_with_handlers(["frappe.tests.test_hooks.handler_doc_method"])
+		self.assertEqual(frappe.flags.doc_event_calls, [("doc_method", "ToDo", "on_test_doc_event")])
+
+	def test_doc_method_default_handler_called_with_method(self):
+		self._run_with_handlers(["frappe.tests.test_hooks.handler_doc_method_default"])
+		self.assertEqual(frappe.flags.doc_event_calls, [("doc_method_default", "ToDo", "on_test_doc_event")])
+
+	def test_var_positional_handler_called_with_method(self):
+		self._run_with_handlers(["frappe.tests.test_hooks.handler_doc_varargs"])
+		self.assertEqual(frappe.flags.doc_event_calls, [("doc_varargs", "ToDo", "on_test_doc_event")])
+
+	def test_mixed_handlers_all_called_correctly(self):
+		self._run_with_handlers(
+			[
+				"frappe.tests.test_hooks.handler_doc_only",
+				"frappe.tests.test_hooks.handler_doc_method",
+			]
+		)
+		self.assertEqual(
+			frappe.flags.doc_event_calls,
+			[
+				("doc_only", "ToDo", "<no-method>"),
+				("doc_method", "ToDo", "on_test_doc_event"),
+			],
+		)
+
 
 class TestAPIHooks(FrappeAPITestCase):
 	def test_auth_hook(self):
@@ -212,3 +301,23 @@ def custom_auth():
 
 class CustomToDo(ToDo):
 	pass
+
+
+def _reset_doc_events_cache():
+	frappe.local.doc_events_hooks = None
+
+
+def handler_doc_only(doc):
+	frappe.flags.doc_event_calls.append(("doc_only", doc.doctype, "<no-method>"))
+
+
+def handler_doc_method(doc, method):
+	frappe.flags.doc_event_calls.append(("doc_method", doc.doctype, method))
+
+
+def handler_doc_method_default(doc, method=None):
+	frappe.flags.doc_event_calls.append(("doc_method_default", doc.doctype, method))
+
+
+def handler_doc_varargs(doc, *args):
+	frappe.flags.doc_event_calls.append(("doc_varargs", doc.doctype, args[0] if args else "<no-method>"))

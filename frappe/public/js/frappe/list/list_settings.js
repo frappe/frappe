@@ -30,7 +30,10 @@ export default class ListSettings {
 		let list_view_settings = frappe.get_meta("List View Settings");
 
 		me.dialog = new frappe.ui.Dialog({
-			title: __("{0} List View Settings", [__(me.doctype)]),
+			title:
+				me.doctype === "List View Settings"
+					? __("List View Settings")
+					: __("{0} List View Settings", [__(me.doctype)]),
 			fields: list_view_settings.fields,
 		});
 		me.dialog.set_values(me.settings);
@@ -52,6 +55,26 @@ export default class ListSettings {
 				message: __("Saving"),
 				indicator: "green",
 			});
+
+			if (
+				me.listview.list_filter?.active_layout_name &&
+				me.listview.list_filter.active_layout_name !== "default_layout"
+			) {
+				const layout = me.listview.list_filter.get_active_layout();
+				if (layout && me.listview.list_filter.can_edit_layout(layout)) {
+					me.listview.list_filter
+						.update_layout_columns(layout, me.fields, { debounce: false })
+						.then(async () => {
+							// setup_columns is async (may load linked doctype meta for
+							// link-title columns); wait before rendering the header.
+							await me.listview.setup_columns(me.fields);
+							me.listview.render_header(true);
+							me.listview.apply_column_widths?.();
+							me.dialog.hide();
+						});
+					return;
+				}
+			}
 
 			frappe.call({
 				method: "frappe.desk.doctype.list_view_settings.list_view_settings.save_listview_settings",
@@ -135,7 +158,7 @@ export default class ListSettings {
 
 					<div class="row flex-fill align-items-center">
 						<div class="col-1 flex align-items-center justify-content-center px-1">
-							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle " + show_sortable_handle)}
+							${frappe.utils.icon("grip", "xs", "", "", "sortable-handle " + show_sortable_handle)}
 						</div>
 
 						<div class="col flex align-items-center px-0">

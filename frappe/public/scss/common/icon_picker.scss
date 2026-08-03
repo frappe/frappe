@@ -65,30 +65,25 @@
 	input {
 		padding-left: 30px;
 	}
+	.control-input {
+		position: relative;
+	}
 	.selected-icon {
 		cursor: pointer;
 		width: 22px;
 		height: 22px;
 		border-radius: 5px;
 		position: absolute;
-		top: calc(50% + 2px);
-		left: 8px;
+		top: calc(50%);
+		transform: translateY(-50%);
+		left: 6px;
 		content: " ";
 	}
 	.like-disabled-input {
-		.icon-value {
-			padding-left: 25px;
-		}
 		.selected-icon {
-			top: 20%;
+			position: static;
+			transform: none;
 			cursor: default;
-		}
-	}
-	.horizontal {
-		.like-disabled-input {
-			.selected-icon {
-				left: 8px;
-			}
 		}
 	}
 }

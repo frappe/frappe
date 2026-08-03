@@ -2,7 +2,7 @@ import frappe
 from frappe import _
 from frappe.core.utils import get_parent_doc
 from frappe.desk.doctype.notification_settings.notification_settings import (
-	is_email_notifications_enabled_for_type,
+	is_email_enabled_for_feature,
 )
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.email.doctype.email_account.email_account import EmailAccount
@@ -100,7 +100,7 @@ class CommunicationEmailMixin:
 			assignees = set(self.get_assignees()) - {self.sender_mailid}
 			# Check and remove If user disabled notifications for incoming emails on assigned document.
 			for assignee in assignees.copy():
-				if not is_email_notifications_enabled_for_type(assignee, "threads_on_assigned_document"):
+				if not is_email_enabled_for_feature(assignee, "enable_email_threads_on_assigned_document"):
 					assignees.remove(assignee)
 			cc.update(assignees)
 
@@ -200,7 +200,7 @@ class CommunicationEmailMixin:
 			)
 		return self._incoming_email_account
 
-	def mail_attachments(self, print_format=None, print_html=None, print_language=None):
+	def mail_attachments(self, print_format=None, print_html=None, print_language=None, letterhead=None):
 		final_attachments = []
 
 		if print_format or print_html:
@@ -211,6 +211,7 @@ class CommunicationEmailMixin:
 				"doctype": self.reference_doctype,
 				"name": self.reference_name,
 				"lang": print_language or frappe.local.lang,
+				"letterhead": letterhead,
 			}
 			final_attachments.append(d)
 
@@ -272,6 +273,7 @@ class CommunicationEmailMixin:
 		print_format=None,
 		send_me_a_copy=None,
 		print_letterhead=None,
+		letterhead=None,
 		is_inbound_mail_communcation=None,
 		print_language=None,
 		raw_html=False,
@@ -293,7 +295,10 @@ class CommunicationEmailMixin:
 			return {}
 
 		final_attachments = self.mail_attachments(
-			print_format=print_format, print_html=print_html, print_language=print_language
+			print_format=print_format,
+			print_html=print_html,
+			print_language=print_language,
+			letterhead=letterhead,
 		)
 		incoming_email_account = self.get_incoming_email_account()
 
@@ -336,6 +341,7 @@ class CommunicationEmailMixin:
 		print_format=None,
 		send_me_a_copy=None,
 		print_letterhead=None,
+		letterhead=None,
 		is_inbound_mail_communcation=None,
 		print_language=None,
 		now=False,
@@ -347,6 +353,7 @@ class CommunicationEmailMixin:
 			print_format=print_format,
 			send_me_a_copy=send_me_a_copy,
 			print_letterhead=print_letterhead,
+			letterhead=letterhead,
 			is_inbound_mail_communcation=is_inbound_mail_communcation,
 			print_language=print_language,
 			raw_html=raw_html,

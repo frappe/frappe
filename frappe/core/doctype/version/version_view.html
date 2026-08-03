@@ -60,7 +60,7 @@
 {% for item in data.changed %}
 	{% if htmlDiffs[item[0]] %}
 	<div class="version-diff-container">
-		<h5>{{ frappe.meta.get_label(doc.ref_doctype, item[0]) }}</h5>
+		<h5>{{ __(frappe.meta.get_label(doc.ref_doctype, item[0]), null, doc.ref_doctype) }}</h5>
 		<div class="version-html-diff">{{ htmlDiffs[item[0]] }}</div>
 	</div>
 	{% endif %}
@@ -79,7 +79,7 @@
 		{% for item in data.changed %}
 		{% if !htmlDiffs[item[0]] %}
 		<tr>
-			<td>{{ frappe.meta.get_label(doc.ref_doctype, item[0]) }}</td>
+			<td>{{ __(frappe.meta.get_label(doc.ref_doctype, item[0]), null, doc.ref_doctype) }}</td>
 			<td class="diff-remove">{{ getEscapedValue(item[1]) }}</td>
 			<td class="diff-add">{{ getEscapedValue(item[2]) }}</td>
 		</tr>
@@ -106,7 +106,7 @@
 			{% var values = data[key]; %}
 			{% for item in values %}
 			<tr>
-				<td>{{ frappe.meta.get_label(doc.ref_doctype, item[0]) }}</td>
+				<td>{{ __(frappe.meta.get_label(doc.ref_doctype, item[0]), null, doc.ref_doctype) }}</td>
 				<td class="{{ key==="added" ? "diff-add" : "diff-remove" }}">
 					{% var item_keys = Object.keys(item[1]).sort(); %}
 					<table class="table table-bordered">
@@ -146,7 +146,7 @@
 			{% var _changed = table_info[3]; %}
 			{% for item in _changed %}
 			<tr>
-				<td>{{ frappe.meta.get_label(doc.ref_doctype, table_info[0]) }}</td>
+				<td>{{ __(frappe.meta.get_label(doc.ref_doctype, table_info[0]), null, doc.ref_doctype) }}</td>
 				<td>{{ table_info[1] }}</td>
 				<td>{{ item[0] }}</td>
 				<td class="diff-remove">{{ getEscapedValue(item[1]) }}</td>

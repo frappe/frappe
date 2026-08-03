@@ -25,22 +25,22 @@ def deferred_insert(doctype: str, records: list[dict | "Document"] | str):
 			insert_record(record, doctype)
 
 
-def save_to_db():
-	queue_keys = frappe.cache.get_keys(queue_prefix)
+def save_to_db(doctype: str | None = None):
+	queue_keys = [f"{queue_prefix}{doctype}"] if doctype else frappe.cache.get_keys(queue_prefix)
 	for key in queue_keys:
 		record_count = 0
-		queue_key = get_key_name(key)
-		doctype = get_doctype_name(key)
+		queue_key = key if doctype else get_key_name(key)
+		queue_doctype = doctype or get_doctype_name(key)
 		while frappe.cache.llen(queue_key) > 0 and record_count <= 10000:
 			records = frappe.cache.lpop(queue_key)
 			records = json.loads(records.decode("utf-8"))
 			if isinstance(records, dict):
 				record_count += 1
-				insert_record(records, doctype)
+				insert_record(records, queue_doctype)
 				continue
 			for record in records:
 				record_count += 1
-				insert_record(record, doctype)
+				insert_record(record, queue_doctype)
 				if record_count % 100 == 0:
 					frappe.db.commit()
 

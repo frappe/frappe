@@ -11,6 +11,8 @@ from frappe.utils.modules import get_modules_from_app
 
 
 class UserType(Document):
+	_DOCTYPE_NAME = "User Type"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

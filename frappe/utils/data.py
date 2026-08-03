@@ -390,6 +390,14 @@ def get_system_timezone() -> str:
 	return frappe.get_system_settings("time_zone") or "Asia/Kolkata"  # Default to India ?!
 
 
+def get_timezone_utc_offset(timezone: str) -> str:
+	"""Return the current UTC offset of the given timezone in ±HH:MM format."""
+	offset_seconds = int(datetime.datetime.now(ZoneInfo(timezone)).utcoffset().total_seconds())
+	sign = "+" if offset_seconds >= 0 else "-"
+	hours, minutes = divmod(abs(offset_seconds) // 60, 60)
+	return f"{sign}{hours:02d}:{minutes:02d}"
+
+
 def convert_utc_to_timezone(utc_timestamp: datetime.datetime, time_zone: str) -> datetime.datetime:
 	if utc_timestamp.tzinfo is None:
 		utc_timestamp = utc_timestamp.replace(tzinfo=ZoneInfo("UTC"))
@@ -478,6 +486,9 @@ def get_first_day(dt, d_years: int = 0, d_months: int = 0, as_str: bool = False)
 	overflow_years, month = divmod(dt.month + d_months - 1, 12)
 	year = dt.year + d_years + overflow_years
 
+	# divmod by 12 always yields a remainder in [0, 11]; month + 1 must be a valid 1..12 month
+	assert 0 <= month <= 11, "month index out of range after divmod by 12"
+
 	return (
 		datetime.date(year, month + 1, 1).strftime(DATE_FORMAT)
 		if as_str
@@ -502,6 +513,7 @@ def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: bool = False
 	"""
 	date = getdate(dt)
 	quarter = (date.month - 1) // 3 + 1
+	assert 1 <= quarter <= 4, "quarter must be in range 1..4 for a valid month"
 	first_date_of_quarter = datetime.date(date.year, ((quarter - 1) * 3) + 1, 1)
 	return first_date_of_quarter.strftime(DATE_FORMAT) if as_str else first_date_of_quarter
 
@@ -1303,22 +1315,26 @@ def _round_away_from_zero(num, precision):
 
 
 def _bankers_rounding(num, precision):
+	if num == 0:
+		return 0.0
+
+	sign = -1 if num < 0 else 1
 	multiplier = 10**precision
-	num = round(num * multiplier, 12)
+	num = round(abs(num) * multiplier, 12)
 
 	if num == 0:
 		return 0.0
 
-	floor_num = math.floor(num) if num > 0 else math.ceil(num)
+	floor_num = math.floor(num)
 	decimal_part = num - floor_num
 
-	epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
+	epsilon = 2.0 ** (math.log(num, 2) - 52.0)
 	if abs(decimal_part - 0.5) < epsilon:
-		num = floor_num if (floor_num % 2 == 0) else floor_num + 1 if num > 0 else floor_num - 1
+		num = floor_num if (floor_num % 2 == 0) else floor_num + 1
 	else:
 		num = round(num)
 
-	return num / multiplier
+	return sign * num / multiplier
 
 
 def remainder(numerator: NumericType, denominator: NumericType, precision: int = 2) -> NumericType:
@@ -1466,7 +1482,7 @@ def fmt_money(
 	if amount != "0":
 		amount = minus + amount
 
-	if currency and frappe.defaults.get_global_default("hide_currency_symbol") != "Yes":
+	if currency and frappe.defaults.get_global_default("hide_currency_symbol") not in ("1", "Yes"):
 		symbol = frappe.db.get_value("Currency", currency, "symbol", cache=True) or currency
 		symbol_on_right = frappe.db.get_value("Currency", currency, "symbol_on_right", cache=True)
 
@@ -1613,6 +1629,38 @@ def is_image(filepath: str) -> bool:
 	return (guess_type(filepath)[0] or "").startswith("image/")
 
 
+def validate_egress_url(url: str) -> None:
+	"""Raise ValueError if url resolves to a private/internal address.
+
+	Guards server-side HTTP fetches against SSRF by resolving the hostname and
+	blocking loopback, link-local (including 169.254.169.254), private, and
+	reserved ranges regardless of the URL's textual representation.
+	"""
+	import ipaddress
+	import socket
+
+	parsed = urlparse(url)
+	if parsed.scheme not in ("http", "https"):
+		raise ValueError(f"Disallowed scheme: {parsed.scheme!r}")
+
+	hostname = parsed.hostname
+	if not hostname:
+		raise ValueError("URL has no hostname")
+
+	try:
+		addr_info = socket.getaddrinfo(hostname, None)
+	except socket.gaierror as exc:
+		raise ValueError(f"Cannot resolve host {hostname!r}") from exc
+
+	for record in addr_info:
+		try:
+			ip = ipaddress.ip_address(record[4][0])
+		except (ValueError, IndexError):
+			continue
+		if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+			raise ValueError(f"Requests to internal address {ip} are not permitted")
+
+
 def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> str:
 	"""Return a base64 data: URI thumbnail of `url`, or the original `url` on
 	any error. Used by print templates to keep generated PDFs small: Chrome's
@@ -1640,6 +1688,12 @@ def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> 
 	if key in cache:
 		return cache[key]
 
+	if not url.startswith("/"):
+		try:
+			validate_egress_url(url)
+		except ValueError:
+			return url
+
 	try:
 		if url.startswith("/"):
 			path = None
@@ -1655,7 +1709,7 @@ def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> 
 		else:
 			import requests
 
-			r = requests.get(url, timeout=5, stream=True)
+			r = requests.get(url, timeout=5, stream=True, allow_redirects=False)
 			r.raise_for_status()
 			chunks, total = [], 0
 			for chunk in r.iter_content(8192):
@@ -2003,11 +2057,10 @@ def get_link_to_form(doctype: str, name: str | None = None, label: str | None = 
 
 
 def get_url_to_workspace(workspace: str, is_public: bool):
-	url_prefix = "/desk/"
-	if not is_public:
-		workspace_url = "/desk/private/"
-	workspace_url = url_prefix + workspace.lower()
-	return workspace_url
+	from frappe.desk.utils import slug
+
+	url_prefix = "/desk/" if is_public else "/desk/private/"
+	return url_prefix + slug(workspace)
 
 
 def get_link_to_report(
@@ -2645,7 +2698,7 @@ def validate_json_string(string: str) -> None:
 		raise frappe.ValidationError
 
 
-def parse_json(val: str):
+def parse_json(val: Any):
 	"""
 	Parses json if string else return
 	"""
@@ -2665,7 +2718,13 @@ def orjson_dumps(obj, default=None, option=None, decode=True):
 	else:
 		option = DEFAULT_ORJSON_OPTIONS
 
-	value = orjson.dumps(obj, default, option)
+	try:
+		value = orjson.dumps(obj, default, option)
+	except orjson.JSONEncodeError:
+		# fallback to json.dumps when orjson cannot handle payload
+		# https://github.com/ijl/orjson#json-encoding-error
+		return json.dumps(obj, default=default) if decode else json.dumps(obj, default=default).encode()
+
 	return value.decode() if decode else value
 
 
@@ -3023,3 +3082,13 @@ def attach_expanded_links(doctype: str, docs: list, fields_to_expand: list):
 			val_title = doctype_title_maps.get(link_doctype, {}).get(val)
 			if val and val_title:
 				li[fieldname] = val_title
+
+
+def scrub(txt: str) -> str:
+	"""Return sluggified string. e.g. `Sales Order` becomes `sales_order`."""
+	return cstr(txt).replace(" ", "_").replace("-", "_").lower()
+
+
+def unscrub(txt: str) -> str:
+	"""Return titlified string. e.g. `sales_order` becomes `Sales Order`."""
+	return txt.replace("_", " ").replace("-", " ").title()

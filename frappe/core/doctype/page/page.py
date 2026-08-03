@@ -15,6 +15,8 @@ from frappe.model.utils import render_include
 
 
 class Page(Document):
+	_DOCTYPE_NAME = "Page"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

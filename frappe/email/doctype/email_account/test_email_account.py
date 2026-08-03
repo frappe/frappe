@@ -2,10 +2,11 @@
 # License: MIT. See LICENSE
 
 import email
+import imaplib
 import os
 import unittest
 from datetime import datetime, timedelta
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe.core.doctype.communication.email import make
@@ -378,6 +379,42 @@ class TestEmailAccount(IntegrationTestCase):
 		with self.assertRaises(Exception):
 			email_account.validate()
 
+	def test_validation_surfaces_imap_auth_error(self):
+		# auth failure on save must raise, not swallow and leak a NONAUTH LIST error
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.flags.validate_imap_pop_connection = True
+
+		server = MagicMock()
+		server.connect.side_effect = imaplib.IMAP4.error("[AUTHENTICATIONFAILED] Invalid credentials")
+
+		with self.assertRaises(frappe.ValidationError):
+			email_account.check_email_server_connection(server, in_receive=True)
+
+	def test_validation_surfaces_imap_connection_error(self):
+		# a connection/timeout failure on save must raise too, not swallow into a NONAUTH leak
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.flags.validate_imap_pop_connection = True
+
+		server = MagicMock()
+		server.connect.side_effect = OSError("timed out")
+
+		with self.assertRaises(OSError):
+			email_account.check_email_server_connection(server, in_receive=True)
+
+	def test_background_receive_auth_error_disables_account(self):
+		# auth failure during background receive disables incoming instead of raising
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.flags.validate_imap_pop_connection = False
+
+		server = MagicMock()
+		server.connect.side_effect = imaplib.IMAP4.error("[AUTHENTICATIONFAILED] Invalid credentials")
+
+		with patch.object(email_account, "handle_incoming_connect_error") as mocked_handler:
+			result = email_account.check_email_server_connection(server, in_receive=True)
+
+		self.assertIsNone(result)
+		mocked_handler.assert_called_once()
+
 	def test_append_to(self):
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		mail_content = self.get_test_mail(fname="incoming-2.raw")
@@ -638,6 +675,32 @@ class TestInboundMail(IntegrationTestCase):
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
+
+	def test_subject_match_when_append_to_doctype_has_no_subject_field(self):
+		"""Inbound mail must not raise when the `Append To` doctype has no subject_field configured."""
+		mail_content = self.get_test_mail(fname="incoming-subject-placeholder.raw").replace(
+			"{{ subject }}", "RE: An unmatched subject line"
+		)
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
+
+		no_subject_fields = frappe._dict(subject_field=None, sender_field=None)
+		with patch.object(InboundMail, "get_email_fields", return_value=no_subject_fields):
+			# Should return None instead of raising an exception
+			self.assertIsNone(inbound_mail.match_record_by_subject_and_sender("ToDo"))
+
+	def test_subject_match_when_append_to_doctype_has_no_sender_field(self):
+		"""Subject matching must skip the sender filter (not crash) when sender_field is absent."""
+		mail_content = self.get_test_mail(fname="incoming-subject-placeholder.raw").replace(
+			"{{ subject }}", "RE: An unmatched subject line"
+		)
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
+
+		# subject_field set, sender_field absent: must build the subject filter and skip the sender one.
+		no_sender_field = frappe._dict(subject_field="description", sender_field=None)
+		with patch.object(InboundMail, "get_email_fields", return_value=no_sender_field):
+			self.assertIsNone(inbound_mail.match_record_by_subject_and_sender("ToDo"))
 
 	def test_reference_document_by_subject_match_with_accents(self):
 		subject = "Nouvelle tâche à faire 😃"

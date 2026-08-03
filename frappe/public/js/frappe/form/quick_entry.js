@@ -260,6 +260,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 					} else {
 						me.process_after_insert(r);
 					}
+					resolve(me.dialog.doc);
 				},
 				error: function () {
 					if (!me.skip_redirect_on_error) {
@@ -268,7 +269,6 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 				},
 				always: function () {
 					me.dialog.working = false;
-					resolve(me.dialog.doc);
 				},
 			});
 		});

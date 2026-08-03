@@ -3,7 +3,7 @@ export default class CustomBlock extends Block {
 	static get toolbox() {
 		return {
 			title: "Custom Block",
-			icon: frappe.utils.icon("edit", "sm"),
+			icon: frappe.utils.icon("pencil", "sm"),
 		};
 	}
 

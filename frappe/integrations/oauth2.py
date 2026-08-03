@@ -12,6 +12,8 @@ from werkzeug.exceptions import NotFound
 import frappe
 import frappe.utils
 from frappe import oauth
+from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo
+from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
 from frappe.integrations.utils import (
 	OAuth2DynamicClientMetadata,
 	create_new_oauth_client,
@@ -24,6 +26,8 @@ from frappe.oauth import (
 	get_server_url,
 	get_userinfo,
 )
+from frappe.rate_limiter import rate_limit
+from frappe.sessions import get_csrf_token
 
 ENDPOINTS = {
 	"token_endpoint": "/api/method/frappe.integrations.oauth2.get_token",
@@ -63,7 +67,7 @@ def encode_params(params):
 	return urlencode(params, quote_via=quote)
 
 
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(methods=["POST"])
 def approve(
 	response_type: str | None = None,
 	client_id: str | None = None,
@@ -187,18 +191,33 @@ def authorize(
 				frappe.flags.oauth_credentials,
 			) = get_oauth_server().validate_authorization_request(request_url, r.method, None, r.headers)
 
-			skip_auth = frappe.db.get_value(
+			skip_auth = frappe.get_cached_value(
 				"OAuth Client",
 				frappe.flags.oauth_credentials["client_id"],
 				"skip_authorization",
 			)
-			unrevoked_tokens = frappe.db.exists(
-				"OAuth Bearer Token", {"status": "Active", "user": frappe.session.user}
+			authorization_skipped = skip_auth or (
+				get_oauth_settings().skip_authorization == "Auto"
+				and frappe.db.exists(
+					"OAuth Bearer Token",
+					{
+						"status": "Active",
+						"user": frappe.session.user,
+						"client": frappe.flags.oauth_credentials["client_id"],
+					},
+				)
 			)
 
-			if skip_auth or (get_oauth_settings().skip_authorization == "Auto" and unrevoked_tokens):
+			if authorization_skipped:
+				headers, _body, _status = get_oauth_server().create_authorization_response(
+					uri=frappe.flags.oauth_credentials["redirect_uri"],
+					body=r.get_data(),
+					headers=r.headers,
+					scopes=scopes,
+					credentials=frappe.flags.oauth_credentials,
+				)
 				frappe.local.response["type"] = "redirect"
-				frappe.local.response["location"] = success_url
+				frappe.local.response["location"] = headers.get("Location")
 			else:
 				if "openid" in scopes:
 					scopes.remove("openid")
@@ -207,12 +226,14 @@ def authorize(
 				# Show Allow/Deny screen.
 				response_html_params = frappe._dict(
 					{
-						"client_id": frappe.db.get_value("OAuth Client", client_id, "app_name"),
+						"client_id": frappe.get_cached_value("OAuth Client", client_id, "app_name"),
 						"success_url": success_url,
 						"failure_url": failure_url,
 						"details": scopes,
+						"csrf_token": get_csrf_token(),
 					}
 				)
+				response_html_params.logo = get_app_logo()
 				resp_html = frappe.render_template(
 					"templates/includes/oauth_confirmation.html", response_html_params
 				)
@@ -351,11 +372,13 @@ def introspect_token(token: str, token_type_hint: str | None = None):
 	try:
 		bearer_token = None
 		if token_type_hint == "access_token":
-			bearer_token = frappe.get_doc("OAuth Bearer Token", {"access_token": token})
+			bearer_token = frappe.get_doc("OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)})
 		elif token_type_hint == "refresh_token":
-			bearer_token = frappe.get_doc("OAuth Bearer Token", {"refresh_token": token})
+			bearer_token = frappe.get_doc(
+				"OAuth Bearer Token", {"refresh_token": get_oauth_token_hash(token)}
+			)
 
-		client = frappe.get_doc("OAuth Client", bearer_token.client)
+		client = frappe.get_cached_doc("OAuth Client", bearer_token.client)
 
 		token_response = frappe._dict(
 			{
@@ -368,16 +391,9 @@ def introspect_token(token: str, token_type_hint: str | None = None):
 		)
 
 		if "openid" in bearer_token.scopes:
-			sub = frappe.get_value(
-				"User Social Login",
-				{"provider": "frappe", "parent": bearer_token.user},
-				"userid",
-			)
-
-			if sub:
-				token_response.update({"sub": sub})
-				user = frappe.get_doc("User", bearer_token.user)
-				userinfo = get_userinfo(user)
+			user = frappe.get_cached_doc("User", bearer_token.user)
+			userinfo = get_userinfo(user)
+			if userinfo.sub:
 				token_response.update(userinfo)
 
 		frappe.local.response = token_response
@@ -453,6 +469,7 @@ def _get_authorization_server_metadata():
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=5, seconds=10 * 60)
 def register_client():
 	"""
 	Registers an OAuth client.

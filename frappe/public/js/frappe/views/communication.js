@@ -61,7 +61,7 @@ frappe.views.CommunicationComposer = class {
 			},
 			{
 				fieldtype: "Button",
-				label: frappe.utils.icon("down", "xs"),
+				label: frappe.utils.icon("chevron-down", "xs"),
 				title: __("More Options"),
 				fieldname: "option_toggle_button",
 				click: () => {
@@ -102,6 +102,14 @@ frappe.views.CommunicationComposer = class {
 				fieldtype: "Link",
 				options: "Email Template",
 				fieldname: "email_template",
+				get_query: function () {
+					if (me.frm?.doctype) {
+						return {
+							query: "frappe.email.doctype.email_template.email_template.get_email_templates",
+							filters: { reference_doctype: me.frm.doctype },
+						};
+					}
+				},
 				onchange: async function () {
 					const email_template = this.value;
 					if (!email_template) {
@@ -184,6 +192,12 @@ frappe.views.CommunicationComposer = class {
 				onchange: function () {
 					me.guess_language();
 				},
+			},
+			{
+				label: __("Letter Head"),
+				fieldtype: "Link",
+				options: "Letter Head",
+				fieldname: "select_letter_head",
 			},
 			{
 				label: __("Print Language"),
@@ -304,7 +318,7 @@ frappe.views.CommunicationComposer = class {
 		this.dialog.set_df_property("more_options", "hidden", !show_options);
 		this.dialog.set_df_property("email_template_section_break", "hidden", !show_options);
 
-		const label = frappe.utils.icon(show_options ? "up-line" : "down", "xs");
+		const label = frappe.utils.icon(show_options ? "chevron-up" : "chevron-down", "xs");
 		this.dialog.get_field("option_toggle_button").set_label(label);
 	}
 
@@ -621,13 +635,16 @@ frappe.views.CommunicationComposer = class {
 		// print formats
 		const fields = this.dialog.fields_dict;
 
-		// toggle print format
+		// toggle print format and letter head
 		$(fields.attach_document_print.input).click(function () {
-			$(fields.select_print_format.wrapper).toggle($(this).prop("checked"));
+			const checked = $(this).prop("checked");
+			$(fields.select_print_format.wrapper).toggle(checked);
+			$(fields.select_letter_head.wrapper).toggle(checked);
 		});
 
 		// select print format
 		$(fields.select_print_format.wrapper).toggle(false);
+		$(fields.select_letter_head.wrapper).toggle(false);
 
 		if (this.frm) {
 			const print_formats = frappe.meta.get_print_formats(this.frm.meta.name);
@@ -635,10 +652,27 @@ frappe.views.CommunicationComposer = class {
 				.empty()
 				.add_options(print_formats)
 				.val(print_formats[0]);
+			this.set_default_letterhead();
 		} else {
 			$(fields.attach_document_print.wrapper).toggle(false);
 		}
 		this.guess_language();
+	}
+
+	set_default_letterhead() {
+		const fields = this.dialog.fields_dict;
+		if (this.frm.doc?.letter_head) {
+			this.dialog.set_value("select_letter_head", this.frm.doc.letter_head);
+			return;
+		}
+		frappe.db
+			.get_value("Letter Head", { disabled: 0, is_default: 1 }, "name")
+			.then(({ message }) => {
+				if (message?.name) {
+					this.dialog.set_value("select_letter_head", message.name);
+				}
+			})
+			.catch((err) => console.error("Failed to fetch default Letter Head:", err));
 	}
 
 	setup_attach() {
@@ -676,7 +710,7 @@ frappe.views.CommunicationComposer = class {
 			<div class='attach-list'></div>
 			<p class='add-more-attachments'>
 				<button class='btn btn-xs btn-default'>
-					${frappe.utils.icon("small-add", "xs")}&nbsp;
+					${frappe.utils.icon("plus", "xs")}&nbsp;
 					${__("Add Attachment")}
 				</button>
 			</p>
@@ -734,7 +768,7 @@ frappe.views.CommunicationComposer = class {
 					class="btn-link"
 					style="padding-left: var(--padding-xs)"
 				>
-					${frappe.utils.icon("link-url", "sm")}
+					${frappe.utils.icon("link", "sm")}
 				</a>
 			</label>
 		</p>`);
@@ -776,7 +810,8 @@ frappe.views.CommunicationComposer = class {
 				form_values,
 				selected_attachments,
 				null,
-				form_values.select_print_format || ""
+				form_values.select_print_format || "",
+				form_values.select_letter_head || null
 			);
 		} else {
 			me.send_email(btn, form_values, selected_attachments);
@@ -846,7 +881,7 @@ frappe.views.CommunicationComposer = class {
 		}
 	}
 
-	send_email(btn, form_values, selected_attachments, print_html, print_format) {
+	send_email(btn, form_values, selected_attachments, print_html, print_format, letterhead) {
 		const me = this;
 		this.dialog.hide();
 
@@ -885,6 +920,7 @@ frappe.views.CommunicationComposer = class {
 				attachments: selected_attachments,
 				read_receipt: form_values.send_read_receipt,
 				print_letterhead: me.is_print_letterhead_checked(),
+				letterhead: letterhead || null,
 				send_after: form_values.send_after ? form_values.send_after : null,
 				print_language: form_values.print_language,
 				raw_html: form_values.use_html,
@@ -912,21 +948,14 @@ frappe.views.CommunicationComposer = class {
 						me.frm.reload_doc();
 					}
 
-					let undo_alert = frappe.show_alert(
-						{
-							message: `<span>${__(
-								"Email Sent"
-							)}</span><span class="cursor-pointer ml-4" data-action="undo" style="font-weight: 500; text-decoration: underline;">${__(
-								"Undo"
-							)}</span>`,
-							indicator: "green",
-						},
-						10,
-						{
-							undo: () => {
-								if (undo_alert) {
-									undo_alert.find(".close").click();
-								}
+					const undo_toast = frappe.ui.toast({
+						message: __("Email Sent"),
+						type: "success",
+						duration: 10000,
+						action: {
+							label: __("Undo"),
+							onclick: () => {
+								undo_toast.dismiss();
 								frappe
 									.xcall(
 										"frappe.core.doctype.communication.email.undo_email_send",
@@ -951,14 +980,14 @@ frappe.views.CommunicationComposer = class {
 											frm: me.frm,
 										});
 
-										frappe.show_alert({
+										frappe.ui.toast({
 											message: __("Email sending undone"),
-											indicator: "blue",
+											type: "info",
 										});
 									});
 							},
-						}
-					);
+						},
+					});
 
 					// try the success callback if it exists
 					if (me.success) {

@@ -410,6 +410,10 @@ app_description = "{app_description}"
 app_email = "{app_email}"
 app_license = "{app_license}"
 
+# Send non-GET requests for this app's endpoints as native `application/json`
+# bodies instead of form-encoded, per-key JSON-stringified values.
+use_json_request_body = True
+
 # Apps
 # ------------------
 
@@ -422,7 +426,18 @@ app_license = "{app_license}"
 # 		"logo": "/assets/{app_name}/logo.png",
 # 		"title": "{app_title}",
 # 		"route": "/{app_name}",
-# 		"has_permission": "{app_name}.api.permission.has_app_permission"
+# 		"has_permission": "{app_name}.api.permission.has_app_permission",
+# 	}}
+# ]
+
+# Companion apps that extend a host app (instead of taking their own apps-screen icon) can pin
+# their workspaces into the host app's workspace dock (rail) with this hook. Declaring it keeps
+# the app off the apps screen, so it takes precedence over any add_to_apps_screen above. Who can
+# see a pinned workspace is controlled by that workspace's own Roles table.
+# add_to_workspace_dock = [
+# 	{{
+# 		"app": "erpnext",
+# 		"workspace": "My Workspace",
 # 	}}
 # ]
 
@@ -468,6 +483,14 @@ app_license = "{app_license}"
 # role_home_page = {{
 # 	"Role": "home_page"
 # }}
+
+# Setup Wizard
+# ------------
+
+# open a fresh site's setup in this app's own UI instead of the desk wizard.
+# must be a non-desk route (not under /desk or /app); to customize setup within
+# desk, use setup_wizard_stages / setup_wizard_complete instead.
+# setup_wizard_url = "/{app_name}/setup"
 
 # Generators
 # ----------
@@ -617,6 +640,8 @@ app_license = "{app_license}"
 # ----------
 # before_job = ["{app_name}.utils.before_job"]
 # after_job = ["{app_name}.utils.after_job"]
+
+# after_file_upload = ["{app_name}.utils.after_file_upload"]
 
 # User Data Protection
 # --------------------

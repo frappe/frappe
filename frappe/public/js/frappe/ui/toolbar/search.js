@@ -195,9 +195,45 @@ frappe.search.SearchDialog = class {
 		/** “Show more” links: global search or DocType-specific “More”. */
 		this.$body.on("click", ".section-more", (e) => {
 			e.preventDefault();
-			const type = $(e.currentTarget).attr("data-category");
-			if ($(e.currentTarget).attr("data-fetch-type") === "Global") {
-				this.apply_global_doctype_filter(type || "");
+			const $btn = $(e.currentTarget);
+			const type = $btn.attr("data-category");
+			if ($btn.attr("data-fetch-type") === "Global") {
+				const $section = $btn.closest(".result-section.global-summary");
+				const $list = $section.find(".global-search-results-list").first();
+				const current_count = Math.max(
+					0,
+					$list.children(".list-row-container").length - 1
+				);
+				frappe.search.utils
+					.get_global_results(
+						this.current_keyword,
+						current_count,
+						this.more_count,
+						type || ""
+					)
+					.then(
+						(doctype_results) => {
+							if (doctype_results.length) {
+								this.add_more_global_table_rows(
+									type,
+									doctype_results,
+									$btn,
+									$list
+								);
+								const total = Math.max(
+									0,
+									$list.children(".list-row-container").length - 1
+								);
+								const word = total === 1 ? __("result") : __("results");
+								$section
+									.find(".result-title")
+									.text(__(type) + " (" + total + " " + word + ")");
+							} else {
+								$btn.hide();
+							}
+						},
+						(err) => console.error(err)
+					);
 				return;
 			}
 			this.$body.find(".search-sidebar").find(`*[data-category="${type}"]`).trigger("click");
@@ -279,13 +315,16 @@ frappe.search.SearchDialog = class {
 					)
 					.then(
 						(doctype_results) => {
-							doctype_results.length &&
+							if (doctype_results.length) {
 								this.add_more_global_table_rows(
 									type,
 									doctype_results,
 									$trigger,
 									$list
 								);
+							} else {
+								$trigger.hide();
+							}
 						},
 						(err) => {
 							console.error(err);
@@ -331,6 +370,14 @@ frappe.search.SearchDialog = class {
 		} else {
 			this.current_keyword = keywords;
 			this.put_placeholder(this.search.empty_state_text);
+		}
+	}
+
+	toggle_global_search_dialog(keywords) {
+		if (this.search_dialog.display) {
+			this.search_dialog.hide();
+		} else {
+			this.open_global_search_dialog(keywords);
 		}
 	}
 
@@ -919,7 +966,7 @@ frappe.search.SearchDialog = class {
 				}
 			);
 			$results_list.find(".result-body").append($panel);
-			if (results.length > max_length) {
+			if (results.length > 0) {
 				const cat_esc = frappe.utils.escape_html(type || "");
 				$(`<button type="button" class="btn btn-default btn-xs mt-2 list-more" data-search="Global" data-category="${cat_esc}">
 					${__("More")}
@@ -966,7 +1013,7 @@ frappe.search.SearchDialog = class {
 			$result_section.find(".result-body").append($panel);
 
 			const min_show = GLOBAL_SEARCH_SUMMARY_SHOW_MORE_MIN;
-			if (!this.global_doctype_filter && results.length >= min_show) {
+			if (results.length >= min_show) {
 				const dt_esc = frappe.utils.escape_html(type || "");
 				const $btn = $("<button>", {
 					type: "button",

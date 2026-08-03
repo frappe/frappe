@@ -19,10 +19,10 @@ jobs:
     if: github.event_name == 'pull_request'
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 200
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           check-latest: true
@@ -39,10 +39,10 @@ jobs:
 
     steps:
       - name: 'Setup Environment'
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.14'
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Validate Docs
         env:
@@ -57,8 +57,8 @@ jobs:
     if: github.event_name == 'pull_request'
 
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.14'
           cache: pip
@@ -76,14 +76,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.14'
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Cache pip
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py') }}
@@ -92,10 +92,11 @@ jobs:
             ${{ runner.os }}-
 
       - name: Install and run pip-audit
+        # CVE-2025-26240: no fix available upstream, but vulnerable `_find_options_in_meta` is monkey-patched in frappe (b828efe)
         run: |
           pip install pip-audit
           cd ${GITHUB_WORKSPACE}
-          pip-audit --desc on --ignore-vuln PYSEC-2023-312 --ignore-vuln CVE-2026-4539 .
+          pip-audit --desc on --ignore-vuln PYSEC-2023-312 --ignore-vuln CVE-2026-4539 --ignore-vuln CVE-2025-26240 .
 
   precommit:
     name: 'Pre-Commit'
@@ -103,8 +104,8 @@ jobs:
     if: github.event_name == 'pull_request'
 
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.14'
           cache: pip

@@ -12,17 +12,8 @@
 	cursor: pointer;
 }
 
-.mark-all-read {
-	margin-top: 2px;
-	margin-right: 4px;
-	cursor: pointer;
-}
-
 .close-notification-dialogue {
 	cursor: pointer;
-	.icon {
-		stroke-width: 2px;
-	}
 }
 
 .notification-settings {
@@ -44,39 +35,10 @@
 	display: none;
 }
 
-.sidebar-notification .sidebar-item-icon.indicator,
-.desktop-notification-icon.indicator {
-	position: relative;
-
-	&::before {
-		position: absolute;
-		left: auto;
-		height: 6px;
-		width: 6px;
-		margin: 0;
-		z-index: 1;
-	}
-}
-
-.desktop-notification-icon.indicator::before {
-	top: 0;
-	right: 0;
-}
-
-.sidebar-notification .sidebar-item-icon.indicator::before {
-	top: 5px;
-	right: 6px;
-	height: 5.5px;
-	width: 5.5px;
-	transition: opacity 0.2s ease-in-out;
-}
-
-.sidebar-notification:hover .sidebar-item-icon.indicator::before {
-	opacity: 0;
-}
-
-.sidebar-notification-count {
-	min-width: 20px;
+// The unread count is the only unread affordance a bell gets. Where the bell has a label (the
+// sidebar) it reads as a pill next to it; on icon-only bells (desktop navbar, workspace dock) there
+// is no room for a number, so the same element is drawn as a dot on the icon's corner.
+.notification-count {
 	padding: 1px 7px;
 	background-color: var(--bg-gray-100);
 	color: var(--text-muted);
@@ -86,8 +48,24 @@
 	border-radius: 10px;
 }
 
-.sidebar-notification .standard-sidebar-item .item-anchor {
-	overflow: visible;
+.desktop-notification-icon {
+	position: relative;
+
+	.notification-count {
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 8px;
+		height: 8px;
+		padding: 0;
+		border-radius: 50%;
+		border: 1px solid var(--bg-color);
+		background-color: var(--surface-blue-5);
+		// dot only — hide the count text the shared notifications view sets on it
+		font-size: 0;
+		color: transparent;
+		overflow: hidden;
+	}
 }
 
 .mark-read {
@@ -171,7 +149,7 @@
 .recent-item {
 	padding: 10px;
 	margin: 4px 0px;
-	border-radius: var(--border-radius-md, 8px);
+	border-radius: var(--radius-md, 8px);
 	white-space: normal;
 	display: flex;
 	@include get_textstyle("base", "regular");
@@ -208,6 +186,7 @@
 			border: 2px solid var(--invert-neutral);
 			border-radius: 1000px;
 		}
+
 		.notification-body::before {
 			background: var(--invert-neutral);
 		}
@@ -280,14 +259,6 @@
 		.avatar-frame {
 			border-color: var(--border-color);
 		}
-	}
-}
-
-.recent-item.open-docs {
-	@include flex(flex, space-between, null, null);
-
-	.indicator-pill {
-		margin: 0px;
 	}
 }
 

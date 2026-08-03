@@ -1,5 +1,7 @@
 ### Introduction (first timers)
 
+> Note: Frappe Framework only accepts pull requests from people who are explicitly in the [list of vouched users](https://github.com/frappe/frappe/blob/develop/.github/VOUCHED.td).
+
 Thank you for your interest in raising an Issue with the Frappe Framework. An Issue could mean a bug report or a request for a missing feature. By raising a bug report, you are contributing to the development of the Frappe Framework and this is the first step of participating in the community. Bug reports are very helpful for developers as they quickly fix the issue before other users start facing it.
 
 Feature requests are also a great way to take the product forward. New ideas can come in any user scenario and the issue list also acts a roadmap of future features.

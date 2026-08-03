@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "creation": "2013-02-21 20:12:42",
  "description": "Settings for Contact Us Page",
  "doctype": "DocType",
@@ -7,6 +8,7 @@
  "field_order": [
   "introduction_section",
   "is_disabled",
+  "send_acknowledgement_email",
   "forward_to_email",
   "heading",
   "introduction",
@@ -118,17 +120,24 @@
    "label": "Skype"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "is_disabled",
    "fieldtype": "Check",
    "label": "Disabled"
+  },
+  {
+   "default": "1",
+   "description": "Send an acknowledgement email to the email address entered in the contact form.",
+   "fieldname": "send_acknowledgement_email",
+   "fieldtype": "Check",
+   "label": "Send Acknowledgement Email"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-08-22 12:59:39.463182",
+ "modified": "2026-08-03 15:41:06.808383",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Contact Us Settings",

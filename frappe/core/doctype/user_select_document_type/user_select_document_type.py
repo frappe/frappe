@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class UserSelectDocumentType(Document):
+	_DOCTYPE_NAME = "User Select Document Type"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

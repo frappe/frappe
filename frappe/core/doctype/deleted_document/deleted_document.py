@@ -11,6 +11,8 @@ from frappe.model.workflow import get_workflow_name
 
 
 class DeletedDocument(Document):
+	_DOCTYPE_NAME = "Deleted Document"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -1,0 +1,356 @@
+/* Espresso Menu — the floating panel shared by Dropdown and ContextMenu.
+ *
+ * Framework-neutral: the class + data-attribute contract below is everything.
+ * The data-attribute names (data-state, data-highlighted, data-disabled) are
+ * the ones radix/reka emit, so React and Vue apps get this styling from their
+ * menu primitives as-is; classic frappe gets them from frappe.ui.Dropdown.
+ *
+ *   <div class="es-menu" role="menu" data-state="open" data-motion="animated"
+ *        data-side="bottom" data-align="start">
+ *     <div class="es-menu__group" role="group">
+ *       <div class="es-menu__group-label">Group</div>
+ *       <button class="es-menu__item" role="menuitem">
+ *         <svg>...</svg>                        (icon, optional)
+ *         <span class="es-menu__icon-space"></span>  (aligns iconless rows)
+ *         <span class="es-menu__label">La<span class="es-menu__mnemonic">b</span>el
+ *           <span class="es-menu__description">optional line</span>
+ *         </span>
+ *         <span class="es-menu__shortcut"><kbd>⌘</kbd><kbd>D</kbd></span>
+ *         <svg class="es-menu__chevron">...</svg>    (submenu rows)
+ *       </button>
+ *     </div>
+ *     <div class="es-menu__empty">No options</div>
+ *   </div>
+ *
+ * Item attributes:
+ *   data-highlighted          the keyboard/pointer-active row
+ *   data-state="checked"      app-marked current choice (visual only)
+ *   data-state="open"         submenu row whose panel is open
+ *   data-disabled / disabled  inert row
+ *   data-theme="red"          destructive row
+ *
+ * Panel attributes:
+ *   data-state="open|closed"          drives enter/exit animation
+ *   data-motion="animated|instant"    pointer opens animate, keyboard opens don't
+ *   data-side / data-align            where the panel sits; sets the scale origin
+ *
+ * Rows are links or buttons; no hover styling on purpose — the highlight
+ * follows data-highlighted so pointer and keyboard can't mark two rows at
+ * once (same as radix/reka). Row height comes from padding + line-height
+ * only, never a fixed height. */
+
+.es-menu {
+    /* the owner (frappe.ui.Dropdown / a portal) sets top/left inline */
+    position: fixed;
+    /* above bootstrap modals (1050) so menus inside dialogs work */
+    z-index: 1060;
+    min-width: calc(var(--spacing) * 40);
+    /* the owner sets max-height inline when the viewport is short */
+    overflow-x: hidden;
+    overflow-y: auto;
+    background: var(--surface-elevation-2);
+    border-radius: var(--radius-lg);
+    /* faint 1px ring under the elevation shadow */
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), var(--elevation-2xl);
+    outline: none;
+}
+
+/* ---- groups ---- */
+.es-menu__group {
+    padding: calc(var(--spacing) * 1.5);
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 0.5);
+}
+
+.es-menu__group+.es-menu__group {
+    border-top: 1px solid var(--outline-elevation-2);
+}
+
+.es-menu__group-label {
+    padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 1.5);
+    font-size: var(--text-sm);
+    line-height: calc(var(--spacing) * 4);
+    font-weight: var(--font-weight-medium);
+    color: var(--ink-gray-4);
+}
+
+/* ---- rows ---- */
+.es-menu__item {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+    width: 100%;
+    padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+    border-radius: var(--radius);
+    font-size: var(--text-base);
+    line-height: calc(var(--spacing) * 4);
+    color: var(--ink-gray-7);
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+    outline: none;
+
+    /* button rows: strip the native button look */
+    border: 0;
+    background: transparent;
+}
+
+.es-menu__item:hover {
+    /* links: no underline; the highlight background comes from
+       data-highlighted below, not :hover (see the note up top) */
+    text-decoration: none;
+    color: var(--ink-gray-7);
+}
+
+.es-menu__item[data-highlighted] {
+    background: var(--surface-alpha-gray-2);
+}
+
+/* submenu row whose panel is open stays lit */
+.es-menu__item[data-state="open"] {
+    background: var(--surface-gray-2);
+}
+
+/* the app-marked current choice */
+.es-menu__item[data-state="checked"] {
+    background: var(--surface-gray-3);
+    color: var(--ink-gray-8);
+}
+
+.es-menu__item[data-state="checked"][data-highlighted] {
+    background: var(--surface-gray-4);
+}
+
+/* ---- red (destructive) rows ---- */
+.es-menu__item[data-theme="red"] {
+    color: var(--ink-red-6);
+}
+
+.es-menu__item[data-theme="red"]:hover {
+    color: var(--ink-red-6);
+}
+
+.es-menu__item[data-theme="red"][data-highlighted] {
+    background: var(--surface-red-3);
+}
+
+/* ---- disabled rows ---- */
+.es-menu__item[data-disabled],
+.es-menu__item:disabled {
+    color: var(--ink-gray-4);
+    cursor: not-allowed;
+    pointer-events: none;
+    background: transparent;
+}
+
+/* ---- icons ---- */
+.es-menu__item>svg,
+.es-menu__icon-space {
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+    flex-shrink: 0;
+}
+
+.es-menu__item>svg {
+    color: var(--ink-gray-6);
+}
+
+.es-menu__item[data-theme="red"]>svg {
+    color: var(--ink-red-6);
+}
+
+.es-menu__item[data-disabled]>svg,
+.es-menu__item:disabled>svg {
+    color: var(--ink-gray-4);
+}
+
+/* ---- label + optional description ---- */
+.es-menu__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.es-menu__description {
+    display: block;
+    font-size: var(--text-p-sm, var(--text-sm));
+    line-height: 1.5;
+    color: var(--ink-gray-5);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---- Alt-key mnemonics ----
+   Each row has one letter of its label wrapped in .es-menu__mnemonic. It's
+   only underlined while Alt is held (the panel gets data-alt then), matching
+   frappe's Alt+letter menu shortcuts. Alt+that letter activates the row. */
+.es-menu[data-alt] .es-menu__mnemonic {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+/* ---- keyboard shortcut hint: one <kbd> per key ----
+   Both bootstrap and desk/global.scss style bare kbd (dark background,
+   fixed height, padding) and load after this file — the two-class selector
+   out-specifies them. */
+.es-menu__shortcut {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    margin-inline-start: auto;
+}
+
+.es-menu__shortcut kbd {
+    padding: 0;
+    height: auto;
+    background: transparent;
+    border-radius: 0;
+    font-family: inherit;
+    font-size: var(--text-xs);
+    line-height: calc(var(--spacing) * 4);
+    letter-spacing: normal;
+    color: var(--ink-gray-6);
+    /** Box Shadow comes from Desk's stylesheet - overriding */
+    box-shadow: none;
+}
+
+/* mobile layouts have no keyboard — the combo hints are noise there
+   (the bindings themselves stay active for attached keyboards) */
+@media (max-width: 767.98px) {
+    .es-menu__shortcut {
+        display: none;
+    }
+}
+
+/* ---- submenu chevron ---- */
+.es-menu__chevron {
+    margin-inline-start: auto;
+    color: var(--ink-gray-6);
+}
+
+/* rows with a shortcut AND a submenu: the shortcut already pushed right,
+   the chevron just follows the gap */
+.es-menu__shortcut+.es-menu__chevron {
+    margin-inline-start: 0;
+}
+
+[dir="rtl"] .es-menu__chevron {
+    transform: scaleX(-1);
+}
+
+/* ---- empty state ---- */
+.es-menu__empty {
+    padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+    font-size: var(--text-base);
+    color: var(--ink-gray-5);
+}
+
+/* ---- loading state (async options/submenu, swapped out by fill()) ---- */
+.es-menu__loading {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+    padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+    font-size: var(--text-base);
+    color: var(--ink-gray-5);
+}
+
+.es-menu__loading>.es-spinner {
+    width: calc(var(--spacing) * 3.5);
+    height: calc(var(--spacing) * 3.5);
+}
+
+/* ---- motion: scale in from the trigger corner (per the frappe-ui spec:
+   enter 180ms / exit 140ms, keyboard opens skip the scale and only get a
+   short fade that masks the position-settle frame) ---- */
+.es-menu[data-motion="animated"][data-state="open"] {
+    animation: es-menu-in 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.es-menu[data-motion="instant"][data-state="open"] {
+    animation: es-menu-fade-in 80ms linear;
+}
+
+.es-menu[data-state="closed"] {
+    animation: es-menu-out 140ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    pointer-events: none;
+}
+
+@keyframes es-menu-in {
+    from {
+        opacity: 0;
+        transform: scale(0.97) translateY(2px);
+    }
+}
+
+@keyframes es-menu-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes es-menu-out {
+    to {
+        opacity: 0;
+        transform: scale(0.97) translateY(2px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .es-menu {
+        animation-duration: 0ms !important;
+    }
+}
+
+/* scale origin = the edge touching the trigger */
+.es-menu[data-side="bottom"] {
+    transform-origin: top center;
+}
+
+.es-menu[data-side="bottom"][data-align="start"] {
+    transform-origin: top left;
+}
+
+.es-menu[data-side="bottom"][data-align="end"] {
+    transform-origin: top right;
+}
+
+.es-menu[data-side="top"] {
+    transform-origin: bottom center;
+}
+
+.es-menu[data-side="top"][data-align="start"] {
+    transform-origin: bottom left;
+}
+
+.es-menu[data-side="top"][data-align="end"] {
+    transform-origin: bottom right;
+}
+
+.es-menu[data-side="right"] {
+    transform-origin: left center;
+}
+
+.es-menu[data-side="right"][data-align="start"] {
+    transform-origin: left top;
+}
+
+.es-menu[data-side="right"][data-align="end"] {
+    transform-origin: left bottom;
+}
+
+.es-menu[data-side="left"] {
+    transform-origin: right center;
+}
+
+.es-menu[data-side="left"][data-align="start"] {
+    transform-origin: right top;
+}
+
+.es-menu[data-side="left"][data-align="end"] {
+    transform-origin: right bottom;
+}

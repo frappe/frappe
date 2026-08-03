@@ -9,8 +9,30 @@ let store = useStore();
 let search_text = ref("");
 let args = ref({});
 
+const LAYOUT_OVERRIDE_PROPS = new Set([
+	"label",
+	"hidden",
+	"reqd",
+	"read_only",
+	"default",
+	"description",
+	"depends_on",
+	"mandatory_depends_on",
+	"read_only_depends_on",
+	"bold",
+	"allow_in_quick_entry",
+	"in_list_view",
+	"in_standard_filter",
+	"translatable",
+]);
+
 let docfield_df = computed(() => {
 	let fields = store.get_docfields.filter((df) => {
+		// Layout mode: only show overrideable properties
+		if (store.is_layout_form && !LAYOUT_OVERRIDE_PROPS.has(df.fieldname)) {
+			return false;
+		}
+
 		if (in_list(frappe.model.layout_fields, df.fieldtype) || df.hidden) {
 			return false;
 		}
@@ -71,11 +93,6 @@ let docfield_df = computed(() => {
 			df.description = FIELD_DESCRIPTIONS[fieldtype] || "";
 		}
 
-		// show link_filters docfield only when link field is selected
-		if (df.fieldname === "link_filters" && store.form.selected_field.fieldtype !== "Link") {
-			return false;
-		}
-
 		if (search_text.value) {
 			if (
 				df.label.toLowerCase().includes(search_text.value.toLowerCase()) ||
@@ -99,7 +116,7 @@ let docfield_df = computed(() => {
 			:title="__('Close properties')"
 			@click="store.form.selected_field = null"
 		>
-			<div v-html="frappe.utils.icon('remove', 'sm')"></div>
+			<div v-html="frappe.utils.icon('x', 'sm')"></div>
 		</button>
 	</div>
 	<div class="control-data">

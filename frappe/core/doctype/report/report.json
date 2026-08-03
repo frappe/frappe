@@ -11,6 +11,7 @@
   "reference_report",
   "is_standard",
   "module",
+  "documentation_url",
   "column_break_4",
   "report_type",
   "default_letter_head",
@@ -18,9 +19,13 @@
   "add_total_row",
   "disabled",
   "prepared_report",
+  "snapshot_report",
+  "disable_prepared_report_automation",
   "generate_csv",
   "add_translate_data",
   "timeout",
+  "section_break_tljw",
+  "doctype_to_sync",
   "filters_section",
   "filters",
   "columns_section",
@@ -72,6 +77,12 @@
    "fieldtype": "Link",
    "label": "Module",
    "options": "Module Def"
+  },
+  {
+   "fieldname": "documentation_url",
+   "fieldtype": "Data",
+   "label": "Documentation URL",
+   "options": "URL"
   },
   {
    "default": "0",
@@ -217,12 +228,37 @@
    "ignore_user_permissions": 1,
    "label": "Default Letter Head",
    "options": "Letter Head"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.report_type === \"Script Report\"",
+   "description": "If checked, <i>Prepared Report</i> will not be enabled automatically on slow runs.",
+   "fieldname": "disable_prepared_report_automation",
+   "fieldtype": "Check",
+   "label": "Disable Prepared Report Automation"
+  },
+  {
+   "fieldname": "section_break_tljw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval: doc.snapshot_report",
+   "fieldname": "doctype_to_sync",
+   "fieldtype": "Table",
+   "label": "Doctype To Sync",
+   "options": "Doctype To Sync"
+  },
+  {
+   "default": "0",
+   "fieldname": "snapshot_report",
+   "fieldtype": "Check",
+   "label": "Snapshot Report"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-23 14:53:54.321496",
+ "modified": "2026-07-01 13:35:14.237724",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",

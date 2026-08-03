@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class WorkspaceNumberCard(Document):
+	_DOCTYPE_NAME = "Workspace Number Card"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
