@@ -419,7 +419,7 @@ frappe.ui.Sidebar = class Sidebar {
 	// unless the route actually warrants a different sidebar.
 	refresh() {
 		this.apply_page_visibility();
-		if (!this.page_allows_sidebar()) return;
+		if (!this.page_allows_sidebar() && !this.page_allows_dock()) return;
 		// Re-resolve the app context now that the routed doctype's meta is loaded. On a cold/direct
 		// load the router `change` handler ran before the meta was available, so set_current_app()
 		// couldn't derive the app (leaving current_app -- and thus the dock -- unresolved). This
@@ -449,12 +449,13 @@ frappe.ui.Sidebar = class Sidebar {
 		return !!page && !page.hide_sidebar;
 	}
 
-	// The dock is displayed unless the page hides the whole sidebar (`hide_sidebar`, e.g. the
-	// desktop/apps screen) or opts out of just the dock with `hide_workspace_dock` -- both are
-	// standard frappe.ui.Page options, so this is configurable per page.
+	// The dock is displayed unless the page opts out with `hide_workspace_dock` -- both that and
+	// `hide_sidebar` are standard frappe.ui.Page options, and a page picks either shell on its
+	// own: the print format builder keeps the dock while hiding the body sidebar, the
+	// desktop/apps screen sets both.
 	page_allows_dock() {
 		const page = this.current_page();
-		return !!page && !page.hide_sidebar && !page.hide_workspace_dock;
+		return !!page && !page.hide_workspace_dock;
 	}
 
 	// Resolve both shells against the current page's options. This is the one place that turns
