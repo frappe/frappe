@@ -801,11 +801,18 @@ def _copy_encode(value):
 	if isinstance(value, datetime.timedelta):
 		# Frappe Time fields are timedelta; str() on a >=1 day delta is "1 day, H:MM:SS", which
 		# postgres cannot parse as time. Emit HH:MM:SS[.ffffff] so the COPY text is always valid.
-		total = int(value.total_seconds())
-		hours, remainder = divmod(total, 3600)
+		# Wrap into a single day the way the INSERT path does: psycopg2 adapts a timedelta to an
+		# interval and postgres reduces it mod 24h on the way into a `time` column, so a 25:03:04
+		# duration stores as 01:03:04 there. A literal "25:03:04" is out of range for `time` and
+		# would make COPY fail where the row-by-row path succeeds.
+		microseconds = (
+			(value.days * 86_400 + value.seconds) * 1_000_000 + value.microseconds
+		) % 86_400_000_000
+		seconds, microseconds = divmod(microseconds, 1_000_000)
+		hours, remainder = divmod(seconds, 3600)
 		minutes, seconds = divmod(remainder, 60)
 		encoded = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
-		return f"{encoded}.{value.microseconds:06d}" if value.microseconds else encoded
+		return f"{encoded}.{microseconds:06d}" if microseconds else encoded
 	return str(value).replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n").replace("\r", "\\r")
 
 
