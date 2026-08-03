@@ -76,18 +76,29 @@ LOCATE_QUERY_PATTERN = re.compile(r"locate\(", flags=re.IGNORECASE)
 PG_TRANSFORM_PATTERN = re.compile(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])")
 FROM_TAB_PATTERN = re.compile(r"from tab([\w-]*)", flags=re.IGNORECASE)
 # MySQL's REGEXP / NOT REGEXP -> postgres `~*` / `!~*` (case-insensitive, matching MySQL's default
-# collation). Group 1 swallows string literals, line comments and block comments so the operator is
-# only rewritten where it is actually an operator -- `SELECT 'a REGEXP b'` must keep its text.
+# collation). The `skip` branch swallows every token whose contents are data rather than code, so
+# the operator is only rewritten where it really is an operator: `SELECT 'a REGEXP b'` keeps its
+# text, and a doctype named "My Regexp Rules" keeps its table name (backticks are rewritten to
+# double quotes before this runs, so every frappe identifier arrives quoted).
 REGEXP_PATTERN = re.compile(
-	r"('(?:[^']|'')*'|--[^\n]*|/\*.*?\*/)|\s(NOT\s+)?REGEXP\s",
-	flags=re.IGNORECASE | re.DOTALL,
+	r"""
+	  (?P<skip>
+	      '(?:[^']|'')*'                     # string literal
+	    | "(?:[^"]|"")*"                     # quoted identifier
+	    | \$(?P<tag>\w*)\$.*?\$(?P=tag)\$    # dollar-quoted string
+	    | --[^\n]*                           # line comment
+	    | /\*.*?\*/                          # block comment
+	  )
+	| \s(?P<negated>NOT\s+)?REGEXP\s
+	""",
+	flags=re.IGNORECASE | re.DOTALL | re.VERBOSE,
 )
 
 
 def _replace_regexp_operator(match: re.Match) -> str:
-	if match.group(1):
-		return match.group(1)
-	return " !~* " if match.group(2) else " ~* "
+	if (skipped := match.group("skip")) is not None:
+		return skipped
+	return " !~* " if match.group("negated") else " ~* "
 
 
 # Index methods accepted by add_index(using=...): the two custom GIN modes plus postgres'

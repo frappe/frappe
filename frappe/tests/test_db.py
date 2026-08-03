@@ -723,10 +723,18 @@ class TestDB(IntegrationTestCase):
 		self.assertEqual("select 'a' ~* 'b'", modify_query("select 'a' REGEXP 'b'"))
 		self.assertEqual("select 'a' !~* 'b'", modify_query("select 'a' NOT REGEXP 'b'"))
 
-		# the operator only exists outside string literals and comments
+		# the operator only exists outside quoted tokens and comments
 		self.assertEqual("select 'A REGEXP B'", modify_query("select 'A REGEXP B'"))
 		self.assertEqual("select 1 -- a REGEXP here", modify_query("select 1 -- a REGEXP here"))
 		self.assertEqual("select 1 /* a REGEXP here */", modify_query("select 1 /* a REGEXP here */"))
+		self.assertEqual("select $$a REGEXP b$$", modify_query("select $$a REGEXP b$$"))
+		self.assertEqual("select $t$a REGEXP b$t$", modify_query("select $t$a REGEXP b$t$"))
+		# backticks become double quotes before this runs, so a doctype whose name contains the
+		# word must keep its table name intact
+		self.assertEqual(
+			'select 1 from "tabMy Regexp Rules"', modify_query("select 1 from `tabMy Regexp Rules`")
+		)
+		self.assertEqual('select "col REGEXP name"', modify_query('select "col REGEXP name"'))
 
 		# and the rewritten operators are valid SQL
 		self.assertEqual(frappe.db.sql("select 'abc' REGEXP 'B'")[0][0], True)
