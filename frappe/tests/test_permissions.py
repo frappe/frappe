@@ -127,6 +127,11 @@ class TestPermissions(IntegrationTestCase):
 		self.assertIn("because it is linked to", frappe.flags.error_message)
 		self.assertNotIn("You need the", frappe.flags.error_message)
 
+		# reason must not additionally appear as a server message (double dialog)
+		self.assertNotIn(
+			frappe.flags.error_message, [m.get("message") for m in frappe.local.message_log]
+		)
+
 	def test_user_permissions_in_report(self):
 		add_user_permission("Test Blog Category", "_Test Blog Category 1", "test2@example.com")
 

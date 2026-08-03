@@ -677,6 +677,11 @@ class Document(BaseDocument):
 		reasons = frappe.flags.pop("permission_denial_reasons", None)
 		if reasons:
 			frappe.flags.error_message = ("<br>").join(reasons)
+			# has_permission already pushed the same reasons via msgprint;
+			# drop that copy so the client shows the message only once
+			frappe.local.message_log = [
+				m for m in frappe.local.message_log if m.get("message") != frappe.flags.error_message
+			]
 		else:
 			frappe.flags.error_message = _(
 				"You need the '{0}' permission on {1} {2} to perform this action."
