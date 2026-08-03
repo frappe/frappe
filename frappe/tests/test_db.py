@@ -260,10 +260,14 @@ class TestDB(IntegrationTestCase):
 
 		frappe.flags.touched_tables = set()
 		cf = create_custom_field("ToDo", {"label": "ToDo Custom Field"})
+		# deleting the Custom Field leaves its column on the table, so without dropping it the next
+		# run adds no column, logs no ALTER TABLE, and never sees tabToDo as touched
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.db.sql_ddl, "ALTER TABLE `tabToDo` DROP COLUMN IF EXISTS `todo_custom_field`")
+		if cf:
+			self.addCleanup(cf.delete)
 		self.assertIn("tabToDo", frappe.flags.touched_tables)
 		self.assertIn("tabCustom Field", frappe.flags.touched_tables)
-		if cf:
-			cf.delete()
 		frappe.db.commit()
 		frappe.flags.in_migrate = False
 		frappe.flags.touched_tables.clear()
@@ -1025,6 +1029,10 @@ class TestDDLCommandsPost(IntegrationTestCase):
 	test_table_name = "TestNotes"
 
 	def setUp(self) -> None:
+		# several tests here call APIs that commit (add_index, advisory_lock, ...), so this table
+		# outlives a rollback. Drop first, and unconditionally in tearDown, or one failing test
+		# leaves it behind and every later run dies in setUp with "relation already exists".
+		self._drop_test_tables()
 		frappe.db.sql(
 			f"""
 			CREATE TABLE "tab{self.test_table_name}" ("id" INT NULL, content text, PRIMARY KEY ("id"))
@@ -1032,8 +1040,12 @@ class TestDDLCommandsPost(IntegrationTestCase):
 		)
 
 	def tearDown(self) -> None:
-		frappe.db.sql(f'DROP TABLE "tab{self.test_table_name}"')
 		self.test_table_name = "TestNotes"
+		self._drop_test_tables()
+
+	def _drop_test_tables(self) -> None:
+		for table in ("tabTestNotes", "tabTestNotes_new"):
+			frappe.db.sql_ddl(f'DROP TABLE IF EXISTS "{table}" CASCADE')
 
 	def test_rename(self) -> None:
 		new_table_name = f"{self.test_table_name}_new"
@@ -1148,6 +1160,30 @@ class TestDDLCommandsPost(IntegrationTestCase):
 		self.assertIn("INCLUDE", indexdef)
 		self.assertIn("content", indexdef)
 
+	def test_bulk_insert_matches_insert_for_time_values(self) -> None:
+		import datetime
+
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		doctype = new_doctype(fields=[{"fieldname": "shift", "fieldtype": "Time"}]).insert()
+		table = f"tab{doctype.name}"
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.db.sql_ddl, f'DROP TABLE IF EXISTS "{table}" CASCADE')
+		self.addCleanup(doctype.delete)
+
+		# a Time field is a timedelta and MariaDB's TIME accepts well past 24h, so migrated data
+		# can carry one. COPY must not reject what the row-by-row INSERT path accepts.
+		for value in (
+			datetime.timedelta(hours=13, minutes=3, seconds=4),
+			datetime.timedelta(hours=25, minutes=3, seconds=4),
+			datetime.timedelta(hours=49),
+		):
+			frappe.db.sql(f'DELETE FROM "{table}"')
+			frappe.db.bulk_insert(doctype.name, ["name", "shift"], [["copied", value]])
+			frappe.db.sql(f'INSERT INTO "{table}" (name, shift) VALUES (%s, %s)', ("inserted", value))
+			rows = dict(frappe.db.sql(f'SELECT name, shift FROM "{table}"'))
+			self.assertEqual(rows["copied"], rows["inserted"], msg=f"COPY differs from INSERT for {value}")
+
 	def test_add_index_rejects_unknown_method(self) -> None:
 		# `using` reaches the DDL string verbatim, so an unknown method must be refused, not run.
 		with self.assertRaises(frappe.ValidationError):
@@ -1241,7 +1277,15 @@ class TestDDLCommandsPost(IntegrationTestCase):
 	def test_sequence_table_creation(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
+		# fixed name: an earlier failed run would otherwise make every later one fail on insert
+		if frappe.db.exists("DocType", "autoinc_dt_seq_test"):
+			frappe.delete_doc("DocType", "autoinc_dt_seq_test", force=True, ignore_permissions=True)
+
 		dt = new_doctype("autoinc_dt_seq_test", autoname="autoincrement").insert(ignore_permissions=True)
+		self.addCleanup(
+			lambda: frappe.db.exists("DocType", "autoinc_dt_seq_test")
+			and frappe.delete_doc("DocType", "autoinc_dt_seq_test", force=True, ignore_permissions=True)
+		)
 
 		if frappe.db.db_type == "postgres":
 			self.assertTrue(
