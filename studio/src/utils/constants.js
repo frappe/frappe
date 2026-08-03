@@ -29,7 +29,6 @@ export const FRAPPE_UI_COMPONENTS = [
 	"Progress",
 	"Rating",
 	"Select",
-	"Sidebar",
 	"Slider",
 	"Spinner",
 	"Switch",
@@ -53,6 +52,12 @@ export const FRAPPE_UI_COMPONENTS = [
 	"SettingsHeader",
 	"SettingsBody",
 	"SettingsRow",
+	// Sidebar family
+	"Sidebar",
+	"SidebarHeader",
+	"SidebarItem",
+	"SidebarLabel",
+	"SidebarCollapseToggle",
 ]
 
 // frappe-ui "molecules"

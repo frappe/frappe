@@ -31,6 +31,10 @@ import {
 	Rating,
 	Select,
 	Sidebar,
+	SidebarHeader,
+	SidebarItem,
+	SidebarLabel,
+	SidebarCollapseToggle,
 	Slider,
 	Switch,
 	TabButtons,
@@ -120,7 +124,6 @@ export function registerGlobalComponents(app: App) {
 	app.component("Popover", Popover)
 	app.component("Rating", Rating)
 	app.component("Select", Select)
-	app.component("Sidebar", Sidebar)
 	app.component("Slider", Slider)
 	app.component("Switch", Switch)
 	app.component("TabButtons", TabButtons)
@@ -162,6 +165,13 @@ export function registerGlobalComponents(app: App) {
 	app.component("SettingsHeader", SettingsHeader)
 	app.component("SettingsBody", SettingsBody)
 	app.component("SettingsRow", SettingsRow)
+
+	// Sidebar family — dropped as a tree via the `sidebar` block template.
+	app.component("Sidebar", Sidebar)
+	app.component("SidebarHeader", SidebarHeader)
+	app.component("SidebarItem", SidebarItem)
+	app.component("SidebarLabel", SidebarLabel)
+	app.component("SidebarCollapseToggle", SidebarCollapseToggle)
 
 	// @framework/ui components — only on frappe versions that ship apps/frappe/ui.
 	// __FRAMEWORK_UI_AVAILABLE__ is a build-time constant; when false, production

@@ -38,7 +38,6 @@ import LucideListTree from "~icons/lucide/list-tree"
 import LucideCode from "~icons/lucide/code"
 import LucideRepeat from "~icons/lucide/repeat"
 import LucideFrame from "~icons/lucide/frame"
-import LucideSidebar from "~icons/lucide/sidebar"
 import LucideImage from "~icons/lucide/image"
 import LucideList from "~icons/lucide/list"
 import LucideLink from "~icons/lucide/link"
@@ -578,45 +577,6 @@ export const COMPONENTS: FrappeUIComponents = {
 				{
 					label: "Jane Wayne",
 					value: "jane-wayne",
-				},
-			],
-		},
-	},
-	Sidebar: {
-		name: "Sidebar",
-		title: "Sidebar",
-		icon: LucideSidebar,
-		initialState: {
-			header: {
-				title: "Frappe",
-				subtitle: "Jane Doe",
-				menuItems: [
-					{
-						label: "Help",
-						to: "/help",
-						icon: "{{ getIcon('circle-question-mark') }}",
-						onClick: () => alert("Help clicked!"),
-					},
-					{
-						label: "Logout",
-						to: "/log-out",
-						icon: "{{ getIcon('log-out') }}",
-						onClick: () => alert("Logging out..."),
-					},
-				],
-			},
-			sections: [
-				{
-					label: "",
-					items: [{ label: "Notifications", icon: "{{ getIcon('bell') }}", to: "" }],
-				},
-				{
-					label: "",
-					items: [
-						{ label: "Home", icon: "{{ getIcon('house') }}", to: "" },
-						{ label: "Profile", icon: "{{ getIcon('user-pen') }}", to: "" },
-						{ label: "Settings", icon: "{{ getIcon('settings') }}", to: "" },
-					],
 				},
 			],
 		},
