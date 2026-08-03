@@ -8,10 +8,15 @@ by bare `flow` and `flow attach`.
 from __future__ import annotations
 
 import os
+import shlex
+import subprocess
+import tempfile
 from collections.abc import Callable
+from contextlib import AbstractContextManager
+from pathlib import Path
 from typing import ClassVar, Protocol
 
-from textual.app import App, ComposeResult
+from textual.app import App, ComposeResult, SuspendNotSupported
 from textual.binding import Binding
 from textual.widgets import Static
 
@@ -40,6 +45,30 @@ TUI_SYSTEM_SUFFIX = (
 	"The user talks to you through the flow terminal UI. Keep answers terminal-friendly: "
 	"plain text and fenced code blocks; no HTML."
 )
+
+
+def resolve_editor() -> str | None:
+	"""The external editor command, `$VISUAL` over `$EDITOR`. The command must block
+	until the edit is done (`vim`, `code -w`, …) — a forking editor returns an
+	unchanged draft."""
+	return os.environ.get("VISUAL") or os.environ.get("EDITOR") or None
+
+
+def edit_text_via_editor(
+	text: str,
+	editor: str,
+	suspend: Callable[[], AbstractContextManager[None]],
+) -> str:
+	"""Round-trip `text` through `editor` while the TUI is suspended."""
+	with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False, encoding="utf-8") as handle:
+		handle.write(text)
+		path = Path(handle.name)
+	try:
+		with suspend():
+			subprocess.run([*shlex.split(editor), str(path)], check=False)
+		return path.read_text(encoding="utf-8")
+	finally:
+		path.unlink(missing_ok=True)
 
 
 class ControllerLike(Protocol):
@@ -173,6 +202,22 @@ class FlowApp(App):
 			return
 		if status == "steered":
 			self.notify("steering the active run", severity="information")
+
+	def on_composer_edit_requested(self, message: Composer.EditRequested) -> None:
+		self.action_edit_in_editor()
+
+	def action_edit_in_editor(self) -> None:
+		editor = resolve_editor()
+		if editor is None:
+			self.notify("set $VISUAL or $EDITOR to edit the draft externally", severity="warning")
+			return
+		composer = self.query_one(Composer)
+		try:
+			edited = edit_text_via_editor(composer.text, editor, self.suspend)
+		except SuspendNotSupported:
+			self.notify("external editing needs a real terminal", severity="error")
+			return
+		self.prefill_composer(edited.rstrip("\n"))
 
 	def action_toggle_thinking(self) -> None:
 		conversation = self.query_one(ConversationView)

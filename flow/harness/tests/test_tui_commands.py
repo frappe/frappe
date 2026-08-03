@@ -101,7 +101,17 @@ async def _slash(pilot, line: str) -> None:
 
 
 def test_registry_has_the_initial_command_set():
-	assert set(REGISTRY) == {"model", "effort", "abort", "rewind", "new", "sessions", "help", "quit"}
+	assert set(REGISTRY) == {
+		"model",
+		"effort",
+		"abort",
+		"rewind",
+		"new",
+		"sessions",
+		"editor",
+		"help",
+		"quit",
+	}
 
 
 def test_parse_splits_command_and_arg():

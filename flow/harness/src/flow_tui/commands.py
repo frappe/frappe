@@ -164,6 +164,11 @@ async def _sessions(app: "FlowApp", arg: str) -> None:
 	app.notify(f"switched to {sid[:8]}", markup=False)
 
 
+@command("editor", "edit the draft in $VISUAL/$EDITOR (ctrl+x ctrl+e); the editor must block, e.g. `code -w`")
+async def _editor(app: "FlowApp", arg: str) -> None:
+	app.action_edit_in_editor()
+
+
 @command("help", "list commands")
 async def _help(app: "FlowApp", arg: str) -> None:
 	lines = [f"{found.usage} — {found.description}" for found in REGISTRY.values()]
