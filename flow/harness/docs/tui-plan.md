@@ -9,8 +9,10 @@ target surface: bare `flow` starts a private daemon on an ephemeral port and att
 TUI; `flow serve` runs the daemon in the background; `flow attach` connects to a running
 daemon.
 
-This plan builds that TUI on textual (which bundles rich), with a transport-agnostic
-client core that a future Vue web shell can reuse. Decisions already made with the user:
+This plan builds that TUI on textual (which bundles rich) as a separate top-level package
+`src/flow_tui`, with its own HTTP/SSE client — no client code lands in `src/flow`. A future
+Vue web shell reuses the server-side contracts (events, endpoints, prompt builder), not the
+Python client. Decisions already made with the user:
 
 1. The bare-`flow` private daemon dies when its TUI exits. Quit during an active run
    aborts and drains without a confirmation prompt.
@@ -19,8 +21,12 @@ client core that a future Vue web shell can reuse. Decisions already made with t
    (credential stored or env key set). Picker also accepts free text.
 3. Reasoning effort gets full server plumbing (SessionConfig → LoopInputs →
    `get_model(params=...)`). Default is `None` = provider default (no effort param sent).
-4. System prompt is composed client-side: base prompt + `~/AGENTS.md` + project `AGENTS.md`
-   (walk up from cwd, stop at git root), sent via `SessionConfig.system_prompt`.
+4. System prompt building is a shared job. The SERVER owns a sectioned builder:
+   default pi-style coding-agent preamble → `$HOME/AGENTS.md` → project `AGENTS.md`
+   (from session cwd, walking up to the git root) → client-injected appendix. Clients
+   inject via new `SessionConfig` fields: `system_preamble` (replaces the default
+   preamble) and `system_suffix` (appended after all sections). `system_prompt` stays
+   as a verbatim full override (escape hatch; skips composition entirely).
    AGENTS.md only — no CLAUDE.md fallback. `~/.agents/` skills are deferred entirely.
 5. `auto_approve=True` is the DEFAULT session behavior, not a stopgap. The approvals UI
    still exists for sessions with confirmation enabled (`--confirm` flag); guardrails
@@ -55,32 +61,37 @@ Ground truths that shape the plan (verified in code):
 ## Module layout
 
 ```
-src/flow/
-  client/                 # transport-agnostic core (Vue shell reuses this)
-    api.py                # FlowClient: async httpx wrapper over the HTTP API
-    stream.py             # SSE parser + reconnecting EventStream with since-cursor
-    state.py              # ConversationState reducer (pure, no I/O)
-    system_prompt.py      # base prompt + AGENTS.md discovery
-  tui/
-    app.py                # FlowApp(App)
-    controller.py         # FlowClient + EventStream + ConversationState → widget updates
-    commands.py           # command registry (slash + palette share it)
-    screens/pickers.py    # ModelPicker, EffortPicker (ModalScreen)
-    widgets/
-      conversation.py     # VerticalScroll of per-message widgets
-      messages.py         # UserMessageView, AssistantMessageView, ThinkingBlock, ToolCallView
-      approval.py         # inline approval card
-      composer.py         # TextArea input, slash dispatch, editor hook
-      status_bar.py
-    styles.tcss
+src/flow/                 # server package — no TUI/client code
+  session/prompt.py       # NEW: sectioned system-prompt builder + AGENTS.md discovery
   cli/
     daemon.py             # spawn/readiness/teardown for private + background daemons
     main.py               # reshaped: flow / serve / attach / login / logout / providers
+src/flow_tui/             # TUI package (same distribution, second top-level package)
+  client/                 # HTTP/SSE client — lives here, NOT in flow
+    api.py                # FlowClient: async httpx wrapper over the HTTP API
+    stream.py             # SSE parser + reconnecting EventStream with since-cursor
+    state.py              # ConversationState reducer (pure, no I/O)
+  app.py                  # FlowApp(App)
+  controller.py           # FlowClient + EventStream + ConversationState → widget updates
+  commands.py             # command registry (slash + palette share it)
+  screens/pickers.py      # ModelPicker, EffortPicker (ModalScreen)
+  widgets/
+    conversation.py       # VerticalScroll of per-message widgets
+    messages.py           # UserMessageView, AssistantMessageView, ThinkingBlock, ToolCallView
+    approval.py           # inline approval card
+    composer.py           # TextArea input, slash dispatch, editor hook
+    status_bar.py
+  styles.tcss
 ```
 
-Each phase is one PR-sized commit with tests. Phases 1–2 are server-only; 3–5 are the shared
-core; 6–10 build the TUI against a manually run `flow serve`; 11 lands daemon lifecycle;
-12 is isolated polish.
+Dependency direction: `flow_tui` imports `flow` (events models, `SessionConfig`) — never
+the reverse. The `flow` console script stays at `flow.cli.main`; the TUI code path does a
+lazy `import flow_tui` so the server package has no hard import of textual. Packaging:
+`pyproject.toml` `packages = ["src/flow", "src/flow_tui"]`.
+
+Each phase is one PR-sized commit with tests. Phases 1, 2, and 5 are server-only; 3–4 are
+the client core in `flow_tui`; 6–10 build the TUI against a manually run `flow serve`;
+11 lands daemon lifecycle; 12 is isolated polish.
 
 ---
 
@@ -129,7 +140,8 @@ request assembly; `budget_tokens` must be below max output tokens.
 
 ## Phase 3 — Client core: `FlowClient` + reconnecting `EventStream`
 
-**Files:** new `src/flow/client/{api,stream}.py`, `tests/test_client.py`.
+**Files:** new `src/flow_tui/client/{api,stream}.py`, `tests/test_client.py`;
+`pyproject.toml` (add `src/flow_tui` to packages).
 
 - Async httpx (Textual is asyncio; sync would force threads). `FlowClient(base_url, token=None)`
   with typed methods for every endpoint. Reuse `flow.events.parse_event` and `SessionConfig`
@@ -150,7 +162,7 @@ kill the connection mid-run, assert reconnect resumes from cursor without duplic
 
 ## Phase 4 — Client core: `ConversationState` reducer
 
-**Files:** new `src/flow/client/state.py`, `tests/test_client_state.py`.
+**Files:** new `src/flow_tui/client/state.py`, `tests/test_client_state.py`.
 
 - `apply(event) -> list[Change]` (typed notices: `EntryAdded`, `EntryReplaced`, `StreamDelta`,
   `StatusChanged`, …) so the TUI updates incrementally.
@@ -165,29 +177,45 @@ kill the connection mid-run, assert reconnect resumes from cursor without duplic
 **Test:** pure unit tests, scripted sequences: delta replacement, retry discard, approval
 lifecycle, rewind truncation + refold, usage accumulation, steering mid-run.
 
-## Phase 5 — Client core: system-prompt builder
+## Phase 5 — Server: sectioned system-prompt builder
 
-**Files:** new `src/flow/client/system_prompt.py`, `tests/test_system_prompt.py`.
+**Files:** new `src/flow/session/prompt.py`; `src/flow/session/config.py`,
+`src/flow/session/store.py` (compose at session create); `docs/api.md`;
+`tests/test_system_prompt.py`.
 
-- `build_system_prompt(cwd, home=None) -> str`:
-  1. Base coding-agent prompt (module constant; replaces the daemon default client-side).
-  2. `~/AGENTS.md` if present (global instructions section).
-  3. Project `AGENTS.md`: walk up from cwd, stop at the git root (first ancestor with
-     `.git`) or `$HOME`, whichever comes first; outermost-first so nearer files override
-     by recency. AGENTS.md only — no CLAUDE.md fallback.
-- Sections joined with provenance headers (`# Project instructions (/path/AGENTS.md)`).
-- `~/.agents/` skills are explicitly out of scope (deferred until the design is proven).
+- New `SessionConfig` fields, all optional:
+  - `system_preamble: str | None` — replaces the default preamble section.
+  - `system_suffix: str | None` — appended after all sections (the client-injection point).
+  - `system_prompt: str | None` — semantics change: when set, used VERBATIM and
+    composition is skipped (escape hatch, keeps existing tests/embedders working).
+    Its default stops being `"You are a helpful agent."` and becomes None → compose.
+- `build_system_prompt(config, home=None) -> str` composes, in order, with provenance
+  headers per section:
+  1. Preamble: `system_preamble` or the default pi-style coding-agent prompt
+     (module constant — direct, terse, tool-usage and safety guidance).
+  2. `$HOME/AGENTS.md` if present (global instructions).
+  3. Project `AGENTS.md`: walk up from `config.cwd`, stop at the git root (first ancestor
+     with `.git`) or `$HOME`, whichever comes first; outermost-first so nearer files
+     override by recency. AGENTS.md only — no CLAUDE.md fallback.
+  4. `system_suffix` if set.
+- Composition happens ONCE at session create (`SessionStore.create`); the resolved prompt
+  is what the loop uses and what `GET /sessions/{sid}` reports. AGENTS.md edits do not
+  leak into an existing session mid-conversation — config stays immutable, transcripts
+  stay reproducible.
+- `~/.agents/` skills stay out of scope (deferred).
 
-**Test:** tmp_path trees with nested AGENTS.md, missing files; `home` is a parameter so no
-`Path.home` monkeypatching.
+**Test:** unit tests on `build_system_prompt` with tmp_path trees (nested AGENTS.md,
+missing files, preamble override, suffix, verbatim escape hatch); `home` is a parameter so
+no `Path.home` monkeypatching. Server test: create session → GET reports composed prompt.
 
 ## Phase 6 — TUI shell MVP (`flow attach --url` only)
 
-**Files:** new `src/flow/tui/{app,controller}.py`,
-`widgets/{conversation,messages,composer,status_bar}.py`, `styles.tcss`; `pyproject.toml`
-(add `textual` to deps, `textual-dev` to dev); `cli/main.py` (add `attach` with required
-`--url`, new session by default via `build_system_prompt(cwd)` + `POST /sessions` with
-`cwd=os.getcwd()`); `tests/test_tui_shell.py`.
+**Files:** new `src/flow_tui/{app,controller}.py`,
+`src/flow_tui/widgets/{conversation,messages,composer,status_bar}.py`, `styles.tcss`;
+`pyproject.toml` (add `textual` to deps, `textual-dev` to dev); `src/flow/cli/main.py`
+(add `attach` with required `--url`, lazy `import flow_tui`; new session by default via
+`POST /sessions` with `cwd=os.getcwd()` — the SERVER composes the prompt; the TUI passes
+`system_suffix` for client-specific notes, e.g. UI conventions); `tests/test_tui_shell.py`.
 
 - **Per-message widgets in `VerticalScroll`, not `RichLog`** — needed for delta updates
   in place, delta→durable replacement, collapsible thinking (phase 8), and interactive
@@ -216,7 +244,7 @@ steering, status bar. One integration pilot against real uvicorn + MockModel.
 
 ## Phase 7 — Approvals UI + pause/resume
 
-**Files:** new `src/flow/tui/widgets/approval.py`; `controller.py`, `messages.py`; tests.
+**Files:** new `src/flow_tui/widgets/approval.py`; `controller.py`, `messages.py`; tests.
 
 - On `pending_approval`: `ApprovalCard` per pending call at the log tail — prompt text,
   `[a]pprove [d]eny`, free-text input (free text = redirect per contract), "approve all"
@@ -231,7 +259,7 @@ with MockModel scripting a bash call in a `--confirm` session → approve → ru
 
 ## Phase 8 — Thinking traces (collapsible) + tool-result rendering
 
-**Files:** `src/flow/tui/widgets/messages.py` (add `ThinkingBlock` on textual `Collapsible`),
+**Files:** `src/flow_tui/widgets/messages.py` (add `ThinkingBlock` on textual `Collapsible`),
 render helpers, `app.py` binding.
 
 - Each `ThinkingContent` block → `Collapsible(title="thinking · n chars", collapsed=True)`,
@@ -248,7 +276,7 @@ toggles, redacted stays sealed; render assertions for a bash result and an edit 
 
 ## Phase 9 — Command registry, slash commands, palette
 
-**Files:** new `src/flow/tui/commands.py`; `composer.py`, `app.py`; tests.
+**Files:** new `src/flow_tui/commands.py`; `composer.py`, `app.py`; tests.
 
 - `Command(name, description, run, arg_hint)` in a module registry with a `@command`
   decorator. Initial set: `/model`, `/effort`, `/abort`, `/rewind [seq]` (default: last user
@@ -263,7 +291,7 @@ opens and runs a command.
 
 ## Phase 10 — Model + effort pickers
 
-**Files:** new `src/flow/tui/screens/pickers.py`; wire into `commands.py`; tests.
+**Files:** new `src/flow_tui/screens/pickers.py`; wire into `commands.py`; tests.
 
 - `ModelPicker(ModalScreen)`: `Input` filter over `OptionList` fed by `GET /models`
   (configured providers only); Enter with no highlighted option submits the raw filter
@@ -316,7 +344,7 @@ terminate → gone; orphan test: close parent pipe end, child exits ≤2 s. Exte
 
 ## Phase 12 — External editor (`ctrl+x ctrl+e`) + composer polish
 
-**Files:** `src/flow/tui/widgets/composer.py`, `app.py`; tests.
+**Files:** `src/flow_tui/widgets/composer.py`, `app.py`; tests.
 
 - Chord: `ctrl+x` arms a one-key chord (1.5 s timer disarms), `ctrl+e` fires. Also a palette
   command ("Edit in $EDITOR") for discoverability.
