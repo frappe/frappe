@@ -1,14 +1,20 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import os
+import tempfile
 import textwrap
+from pathlib import Path
 from random import choices
 from unittest.mock import patch
+
+from babel.messages.catalog import Catalog
+from babel.messages.mofile import write_mo
 
 import frappe
 import frappe.translate
 from frappe import N_, _, _lt
 from frappe.gettext.extractors.javascript import extract_javascript
+from frappe.gettext.translate import get_translations_from_mo
 from frappe.tests import IntegrationTestCase
 from frappe.translate import (
 	MERGED_TRANSLATION_KEY,
@@ -33,6 +39,17 @@ first_lang, second_lang, third_lang, fourth_lang, fifth_lang = choices(
 
 _LAZY_SOURCE = "Lazy Translation Source"
 _lazy_translations = _lt(_LAZY_SOURCE)
+
+
+def write_mo_catalogue(locale_dir: str, app: str, locale: str, messages: dict[str, str]):
+	catalog = Catalog(locale=locale)
+	for source, translation in messages.items():
+		catalog.add(source, translation)
+
+	mo_path = Path(locale_dir) / locale / "LC_MESSAGES" / f"{app}.mo"
+	mo_path.parent.mkdir(parents=True, exist_ok=True)
+	with open(mo_path, "wb") as f:
+		write_mo(f, catalog)
 
 
 class TestTranslate(IntegrationTestCase):
@@ -120,6 +137,23 @@ class TestTranslate(IntegrationTestCase):
 			t_pt_br.delete()
 			frappe.local.lang = "en"
 			self.assertEqual(_(source), source)
+
+	def test_regional_catalogue_overrides_parent_language_of_later_app(self):
+		with tempfile.TemporaryDirectory() as locale_dir:
+			write_mo_catalogue(locale_dir, "billing", "es", {"Mobile No": "Móvil"})
+			write_mo_catalogue(locale_dir, "storefront", "es", {"Mobile No": "Móvil"})
+			write_mo_catalogue(locale_dir, "billing", "es_MX", {"Mobile No": "Celular"})
+
+			with (
+				patch("frappe.gettext.translate.get_locale_dir", return_value=Path(locale_dir)),
+				patch("frappe.translate.get_translations_from_csv", return_value={}),
+			):
+				self.assertEqual(get_translations_from_mo("es_MX", "storefront"), {})
+
+				translations = frappe.translate.get_translations_from_apps(
+					"es-MX", apps=["billing", "storefront"]
+				)
+				self.assertEqual(translations["Mobile No"], "Celular")
 
 	def test_translation_with_context(self):
 		t1 = frappe.new_doc("Translation")
