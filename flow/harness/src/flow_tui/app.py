@@ -1,8 +1,8 @@
 """FlowApp — the TUI shell: transcript, composer, status bar.
 
 The app is a view over the controller: it routes `Change` notices from the reducer to
-widgets and user input back to controller verbs. `attach()` is the entry point used
-by `flow attach`.
+widgets and user input back to controller verbs. `run_app()` is the entry point used
+by bare `flow` and `flow attach`.
 """
 
 from __future__ import annotations
@@ -77,9 +77,16 @@ class FlowApp(App):
 		Binding("ctrl+t", "toggle_thinking", "thinking", priority=True),
 	]
 
-	def __init__(self, controller: ControllerLike):
+	def __init__(
+		self,
+		controller: ControllerLike,
+		fatal_check: Callable[[], str | None] | None = None,
+	):
 		super().__init__()
 		self.controller = controller
+		# returns a fatal notice when the daemon this TUI owns has died; None = healthy
+		# (or nobody to watch — `flow attach` has no child process)
+		self.fatal_check = fatal_check
 
 	def compose(self) -> ComposeResult:
 		yield ConversationView(id="conversation")
@@ -90,7 +97,16 @@ class FlowApp(App):
 	def on_mount(self) -> None:
 		self.controller.on_changes = self.apply_changes
 		self.query_one(Composer).focus()
+		if self.fatal_check is not None:
+			self.set_interval(1.0, self._check_daemon)
 		self.run_worker(self._run_controller(), exclusive=True)
+
+	def _check_daemon(self) -> None:
+		"""Daemon crash is fatal by design: no auto-respawn — sessions are durable,
+		rerunning `flow` recovers. Exit and surface the notice with the log path."""
+		notice = self.fatal_check() if self.fatal_check is not None else None
+		if notice is not None:
+			self.exit(return_code=1, message=notice)
 
 	async def _run_controller(self) -> None:
 		try:
@@ -171,11 +187,20 @@ class FlowApp(App):
 			self.exit()
 
 
-def attach(url: str, *, token: str | None = None, model: str = "mock") -> None:
-	"""Create a fresh session on the daemon at `url` and run the TUI against it.
+def run_app(
+	url: str,
+	*,
+	token: str | None = None,
+	model: str = "mock",
+	session_id: str | None = None,
+	fatal_check: Callable[[], str | None] | None = None,
+) -> str | None:
+	"""Run the TUI against the daemon at `url`; returns the last active session id.
 
-	The server composes the system prompt (preamble + AGENTS.md); the TUI only adds
-	its client suffix. `auto_approve=True` is the permanent default for TUI sessions;
+	With `session_id` the TUI attaches to that session and replays its history
+	(`flow -c`, `flow attach --session`); otherwise it creates a fresh one. The
+	server composes the system prompt (preamble + AGENTS.md); the TUI only adds its
+	client suffix. `auto_approve=True` is the permanent default for TUI sessions;
 	a `--confirm` flag lands with the approvals UI (phase 12).
 	"""
 	config = SessionConfig(
@@ -185,4 +210,6 @@ def attach(url: str, *, token: str | None = None, model: str = "mock") -> None:
 		system_suffix=TUI_SYSTEM_SUFFIX,
 	)
 	client = FlowClient(url, token=token)
-	FlowApp(Controller(client, config=config)).run()
+	controller = Controller(client, session_id=session_id, config=config)
+	FlowApp(controller, fatal_check=fatal_check).run()
+	return controller.session_id
