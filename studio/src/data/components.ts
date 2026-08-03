@@ -1,5 +1,6 @@
 import { defineAsyncComponent } from "vue"
-import { FRAPPE_UI_COMPONENTS, FRAMEWORK_UI_COMPONENTS } from "@/utils/constants"
+import { FRAPPE_UI_COMPONENTS, FRAPPE_UI_MOLECULES, FRAMEWORK_UI_COMPONENTS } from "@/utils/constants"
+import { COMPONENT_FAMILIES } from "@/data/componentFamilies"
 
 import type { FrappeUIComponents, FrappeUIComponent } from "@/types"
 
@@ -1197,6 +1198,7 @@ export const COMPONENTS: FrappeUIComponents = {
 			side: "right",
 		},
 	},
+	...COMPONENT_FAMILIES,
 }
 
 const proxyComponentMap = new Map<string, any>()
@@ -1207,7 +1209,7 @@ Object.values(COMPONENTS).forEach((component: FrappeUIComponent) => {
 })
 
 function isFrappeUIComponent(name: string) {
-	return FRAPPE_UI_COMPONENTS.includes(name)
+	return FRAPPE_UI_COMPONENTS.includes(name) || FRAPPE_UI_MOLECULES.includes(name)
 }
 
 function isFrameworkUIComponent(name: string) {
@@ -1222,16 +1224,23 @@ function isFrameworkUIAvailable() {
 }
 
 function getComponentGroups(list: FrappeUIComponent[]) {
-	const inFrappe = (name: string) => isFrappeUIComponent(name)
-	const inFramework = (name: string) => isFrameworkUIComponent(name)
+	const inFrappe = (c: FrappeUIComponent) => isFrappeUIComponent(c.name)
+	const inFramework = (c: FrappeUIComponent) => isFrameworkUIComponent(c.name)
+
 	const groups = [
-		{ label: "Core", components: list.filter((c) => !inFrappe(c.name) && !inFramework(c.name)) },
-		{ label: "Frappe UI", components: list.filter((c) => inFrappe(c.name)) },
+		{ label: "Core", components: list.filter((c) => !inFrappe(c) && !inFramework(c)) },
+		{ label: "Frappe UI", components: list.filter(inFrappe) },
 	]
 	if (isFrameworkUIAvailable()) {
-		groups.push({ label: "Framework UI", components: list.filter((c) => inFramework(c.name)) })
+		groups.push({ label: "Framework UI", components: list.filter(inFramework) })
 	}
 	return groups.filter((group) => group.components.length)
+}
+
+// A family's parts are the components whose `group` names this primary. The primary tile
+// drops the whole tree (via blockTemplate); each part is droppable on its own.
+function getParts(primaryName: string) {
+	return Object.values(COMPONENTS).filter((c) => c.group === primaryName)
 }
 
 function getProxyComponent(name: string) {
@@ -1251,6 +1260,7 @@ export default {
 	isFrameworkUIComponent,
 	isFrameworkUIAvailable,
 	getComponentGroups,
+	getParts,
 	get,
 }
 

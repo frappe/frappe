@@ -174,7 +174,11 @@ function getSinglePropType(propTypes: string | string[]) {
 
 // ?raw to get raw content of a file as string
 const frappeUIModules: Record<string, string> = import.meta.glob(
-	["../../../node_modules/frappe-ui/src/components/**/*.vue", "!**/*.story.vue"],
+	[
+		"../../../node_modules/frappe-ui/src/components/**/*.vue",
+		"../../../node_modules/frappe-ui/src/molecules/**/*.vue",
+		"!**/*.story.vue",
+	],
 	{ query: "?raw", eager: true, import: "default" },
 )
 
@@ -236,22 +240,7 @@ function getComponentTemplate(componentName: string): string {
 	let rawTemplate = ""
 
 	if (components.isFrappeUIComponent(componentName)) {
-		try {
-			let modulePath = `../../../node_modules/frappe-ui/src/components/${componentName}.vue`
-			if (frappeUIModules[modulePath]) {
-				rawTemplate = frappeUIModules[modulePath]
-			} else {
-				// try finding the vue file inside component folder
-				const folderName = componentFolders[componentName] || componentName
-				modulePath = `../../../node_modules/frappe-ui/src/components/${folderName}/${componentName}.vue`
-				if (frappeUIModules[modulePath]) {
-					rawTemplate = frappeUIModules[modulePath]
-				}
-			}
-		} catch (error) {
-			console.error(`Error loading component template ${componentName}:`, error)
-			return ""
-		}
+		rawTemplate = resolveFrappeUITemplate(componentName)
 	} else if (components.isFrameworkUIComponent(componentName)) {
 		const relativePath = frameworkUIComponentPaths[componentName]
 		if (relativePath) {
@@ -272,6 +261,30 @@ function getComponentTemplate(componentName: string): string {
 		templateCache.set(componentName, template)
 	}
 	return template
+}
+
+// Resolve a frappe-ui component's raw .vue source. Tries the flat components path,
+// then a component folder, then a filename scan across the glob. The scan covers
+// cases where the file name doesn't drive the path: molecules under
+// molecules/<family>/ (List family) and grouped families whose parts share one
+// folder (SettingsDialog/SettingsRow.vue, …).
+function resolveFrappeUITemplate(componentName: string): string {
+	const base = "../../../node_modules/frappe-ui/src"
+	const folderName = componentFolders[componentName] || componentName
+	const candidates = [
+		`${base}/components/${componentName}.vue`,
+		`${base}/components/${folderName}/${componentName}.vue`,
+	]
+	for (const path of candidates) {
+		if (frappeUIModules[path]) return frappeUIModules[path]
+	}
+	return findModuleByFileName(frappeUIModules, componentName)
+}
+
+function findModuleByFileName(modules: Record<string, string>, componentName: string): string {
+	const suffix = `/${componentName}.vue`
+	const match = Object.keys(modules).find((path) => path.endsWith(suffix))
+	return match ? modules[match] : ""
 }
 
 async function fetchCustomComponentTemplate(componentName: string): Promise<string> {

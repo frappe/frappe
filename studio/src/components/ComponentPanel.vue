@@ -26,33 +26,46 @@
 			<EmptyState v-if="!componentList.length" message="No matching components" />
 			<template v-else>
 				<CollapsibleSection
-					v-for="componentGroup in standardComponentGroups"
-					:key="componentGroup.label"
-					:sectionName="componentGroup.label"
+					v-for="section in sections"
+					:key="section.label"
+					:sectionName="section.label"
 					class="px-2"
 				>
-					<template #title-suffix v-if="componentGroup.label === 'Framework UI'">
+					<template #title-suffix v-if="section.label === 'Framework UI'">
 						<Tooltip text="Experimental — these components are still under development">
 							<LucideFlaskConical class="h-3.5 w-3.5 text-ink-amber-6" />
 						</Tooltip>
 					</template>
-					<div class="grid grid-cols-3 items-start gap-x-2 gap-y-4">
-						<div v-for="component in componentGroup.components" :key="component.name" class="flex flex-col">
+					<!-- Component family tile -->
+					<div v-if="section.tiles.length" class="grid grid-cols-3 items-start gap-3">
+						<template v-for="(component, index) in section.tiles" :key="component.name">
+							<ComponentTile
+								:component="component"
+								:stacked="!isSearching && component.isGroup"
+								:expanded="!isSearching && expandedFamily === component.name"
+								@click="onTileClick(component)"
+							/>
+
+							<!-- component family tray -->
 							<div
-								class="user-component group flex cursor-grab flex-col items-center justify-center gap-3 text-ink-gray-6 transition-all duration-200 hover:scale-105"
-								draggable="true"
-								:data-component-name="component.name"
+								v-if="index === section.trayAfter"
+								class="relative col-span-full mt-1 rounded-xl bg-surface-gray-1 p-2.5"
 							>
-								<div
-									class="flex h-16 w-16 flex-col items-center justify-center rounded-lg border border-outline-gray-2 bg-surface-gray-1 p-3 transition-all duration-200 group-hover:border-outline-gray-3 group-hover:bg-surface-gray-2 group-hover:shadow-sm"
-								>
-									<component :is="component.icon" class="h-6 w-6" />
+								<span
+									class="absolute -top-1.5 h-3 w-3 -translate-x-1/2 rotate-45 rounded-[2px] bg-surface-gray-1"
+									:style="{ left: section.caretLeft }"
+								/>
+								<div class="grid grid-cols-3 items-start gap-3">
+									<ComponentTile
+										v-for="(part, partIndex) in expandedParts"
+										:key="part.name"
+										:component="part"
+										:compact-label="isLastTrayRow(partIndex)"
+										inverted
+									/>
 								</div>
-								<span class="w-full text-balance text-center text-xs leading-normal">
-									{{ component.title }}
-								</span>
 							</div>
-						</div>
+						</template>
 					</div>
 				</CollapsibleSection>
 			</template>
@@ -145,12 +158,13 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick } from "vue"
 import { useEventListener } from "@vueuse/core"
-import { Dropdown, FeatherIcon, Tooltip } from "frappe-ui"
+import { Dropdown, FeatherIcon, Tooltip, Button } from "frappe-ui"
 import LucideFlaskConical from "~icons/lucide/flask-conical"
 import OptionToggle from "@/components/OptionToggle.vue"
 import Input from "@/components/Input.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
+import ComponentTile from "@/components/ComponentTile.vue"
 
 import components from "@/data/components"
 import { studioComponents } from "@/data/studioComponents"
@@ -160,7 +174,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import useStudioStore from "@/stores/studioStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import { confirm } from "@/utils/helpers"
-import type { leftPanelComponentTabOptions } from "@/types"
+import type { leftPanelComponentTabOptions, FrappeUIComponent } from "@/types"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
 import type { CustomVueComponentMeta } from "@/types/vue"
 import LucideCode from "~icons/lucide/code"
@@ -200,9 +214,51 @@ const customVueComponents = computed(() => {
 	)
 })
 
+const isSearching = computed(() => Boolean(componentFilter.value))
+
 const standardComponentGroups = computed(() =>
 	components.getComponentGroups((componentList.value as any[]) || []),
 )
+
+function getGridTiles(group: { components: FrappeUIComponent[] }) {
+	return isSearching.value ? group.components : group.components.filter((c) => !c.group)
+}
+
+const expandedFamily = ref<string | null>(null)
+function onTileClick(component: FrappeUIComponent) {
+	if (isSearching.value || !component.isGroup) return
+	expandedFamily.value = expandedFamily.value === component.name ? null : component.name
+}
+
+const GRID_COLUMNS = 3
+const sections = computed(() =>
+	standardComponentGroups.value.map((group) => {
+		const tiles = getGridTiles(group)
+		const sourceIndex =
+			isSearching.value || !expandedFamily.value
+				? -1
+				: tiles.findIndex((c) => c.name === expandedFamily.value)
+		const rowEnd =
+			sourceIndex === -1
+				? -1
+				: Math.min(Math.floor(sourceIndex / GRID_COLUMNS) * GRID_COLUMNS + GRID_COLUMNS - 1, tiles.length - 1)
+		const column = sourceIndex === -1 ? 0 : sourceIndex % GRID_COLUMNS
+		return {
+			label: group.label,
+			tiles,
+			trayAfter: rowEnd,
+			caretLeft: `${((column + 0.5) / GRID_COLUMNS) * 100}%`,
+		}
+	}),
+)
+
+const getComponentParts = (component: FrappeUIComponent) => components.getParts(component.name)
+const expandedPrimary = computed(() => (expandedFamily.value ? components.get(expandedFamily.value) : null))
+const expandedParts = computed(() => (expandedPrimary.value ? getComponentParts(expandedPrimary.value) : []))
+
+// Tiles in the tray's last row skip the 2-line label reserve
+const isLastTrayRow = (index: number) =>
+	Math.floor(index / GRID_COLUMNS) === Math.floor((expandedParts.value.length - 1) / GRID_COLUMNS)
 
 const activeTab = computed(() => store.studioLayout.leftPanelComponentTab)
 

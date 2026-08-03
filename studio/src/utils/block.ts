@@ -13,7 +13,7 @@ import { generateId, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpe
 import { copyObject, getBlockCopy, getComponentBlock } from "@/utils/serializer"
 import { componentHasDefaultSlot, getComponentSlots } from "@/utils/components"
 
-import type { StyleValue, FrappeUIComponents } from "@/types"
+import type { StyleValue, FrappeUIComponent, FrappeUIComponents } from "@/types"
 import type { ComponentEvent } from "@/types/ComponentEvent"
 
 export type styleProperty = keyof CSSProperties | `__${string}`;
@@ -141,7 +141,7 @@ class Block implements BlockOptions {
 		}
 	}
 
-	addChild(child: BlockOptions, index?: number | null) {
+	addChild(child: BlockOptions, index?: number | null, select = true) {
 		if (child.parentSlotName) {
 			return this.updateSlot(child.parentSlotName, child, index)
 		}
@@ -150,7 +150,9 @@ class Block implements BlockOptions {
 		const childBlock = reactive(new Block(child))
 		childBlock.parentBlock = this
 		this.children.splice(index, 0, childBlock)
-		childBlock.selectBlock()
+		if (select) {
+			childBlock.selectBlock()
+		}
 		return childBlock
 	}
 
@@ -237,6 +239,29 @@ class Block implements BlockOptions {
 
 	getParentBlock(): Block | null {
 		return this.parentBlock || null;
+	}
+
+	getChildrenAndSlotContent(): Block[] {
+		const slotContent = Object.values(this.componentSlots).flatMap((slot) => slot.slotContent);
+		return [...slotContent, ...this.children];
+	}
+
+	// nearest block (including self) with the given componentName
+	closest(componentName: string): Block | null {
+		let current: Block | null = this;
+		while (current) {
+			if (current.componentName === componentName) return current;
+			current = current.getParentBlock();
+		}
+		return null;
+	}
+
+	// whether a component can mount under this block — non-standalone family parts crash outside their family root
+	canAddChild(component: FrappeUIComponent): boolean {
+		if (component.isStandalone === false && component.group) {
+			return Boolean(this.closest(component.group));
+		}
+		return true;
 	}
 
 	getSiblingBlock(direction: "next" | "previous") {

@@ -13,7 +13,7 @@
 				v-if="!isTestingComponent"
 				:block="block"
 				@update:modelValue="(value, bindVariable) => setDynamicValue(propName, value, bindVariable)"
-				:class="{ 'mt-1 self-start': isCodeField(config.inputType) }"
+				:class="{ 'mt-1 self-start': isCodeField(config.inputType) || Boolean(config.editor) }"
 				:isVariableBound="isVariableBound(config.modelValue)"
 			/>
 
@@ -70,6 +70,12 @@
 							},
 						}"
 					/>
+					<component
+						v-else-if="config.editor && block"
+						:is="config.editor"
+						:label="propName"
+						:block="block"
+					/>
 					<ArrayInput
 						v-else-if="config.inputType === 'array'"
 						:label="propName"
@@ -81,6 +87,13 @@
 					/>
 				</div>
 			</template>
+			<component
+				v-else-if="config.editor && block"
+				:is="config.editor"
+				:label="propName"
+				:block="block"
+				class="min-w-0 flex-1"
+			/>
 			<InlineInput
 				v-else
 				:label="propName"

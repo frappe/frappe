@@ -28,7 +28,6 @@
 			:class="classes"
 			@mouseover="handleMouseOver"
 			@mouseleave="handleMouseLeave"
-			@click="handleClick"
 			ref="componentRef"
 		>
 			<!-- Dynamically render named slots -->
@@ -81,7 +80,6 @@
 			:class="classes"
 			@mouseover="handleMouseOver"
 			@mouseleave="handleMouseLeave"
-			@click="handleClick"
 			ref="componentRef"
 		/>
 	</template>
@@ -102,6 +100,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, useAttrs, inject, ComputedRef, onErrorCaptured, h } from "vue"
 import type { ComponentPublicInstance } from "vue"
+import { useEventListener } from "@vueuse/core"
 import StudioComponentWrapper from "@/components/StudioComponentWrapper.vue"
 import SlotScopeProvider from "@/components/SlotScopeProvider.vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
@@ -302,15 +301,11 @@ const getClickedComponent = (e: MouseEvent) => {
 }
 
 const handleClick = (e: MouseEvent) => {
-	// A component can declare its own `click` emit and fire it with a non-DOM payload
-	const domEvent = e instanceof Event ? e : null
-	const block = (domEvent && getClickedComponent(domEvent)) || props.block
-	canvasStore.activeCanvas?.selectBlock(block, domEvent)
+	const block = getClickedComponent(e) || props.block
+	canvasStore.activeCanvas?.selectBlock(block, e)
 	if (slotScope?.value) {
 		block.setSlotScope(slotScope.value)
 	}
-
-	if (!domEvent) return
 
 	const slotName = (e.target as HTMLElement).dataset.slotName
 	if (slotName) {
@@ -323,6 +318,9 @@ const handleClick = (e: MouseEvent) => {
 	e.stopPropagation()
 	e.preventDefault()
 }
+
+// Selection listens natively on the rendered root, NOT via a template @click to avoid passing it as an event prop
+useEventListener(target, "click", handleClick)
 
 watch(
 	() => canvasStore.activeCanvas?.hoveredBlock,

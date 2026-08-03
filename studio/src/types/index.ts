@@ -1,4 +1,4 @@
-import type { FunctionalComponent } from "vue"
+import type { Component, FunctionalComponent } from "vue"
 import Block from "../utils/block"
 import type { VuePropDefault } from "@/types/vue"
 import type { Completion } from "@codemirror/autocomplete"
@@ -73,6 +73,7 @@ export type ComponentProp = {
 	type: string
 	default?: VuePropDefault
 	inputType: string
+	editor?: Component // custom prop editor
 	modelValue?: any
 	required?: boolean
 	props?: Record<string, any>
@@ -105,6 +106,10 @@ export interface FrappeUIComponent {
 	expandArrayProps?: boolean // whether to render array props optimally using ArrayInput instead of as Code
 	blockTemplate?: string // to specify a block template to be used instead of a vue component when this component is dragged into the canvas
 	isCustomVueComponent?: boolean // whether this is a dynamically registered custom Vue component
+	isGroup?: boolean // marks a family's root, a stacked tile that drops a whole working block template (e.g. List, SettingsDialog)
+	group?: string // name of the family primary this component is a part of
+	isStandalone?: boolean // false = can't mount outside its family root
+	onSelect?: (block: Block) => void // editor hook — runs when a block of this component is selected on canvas/layers
 }
 
 export interface FrappeUIComponents {

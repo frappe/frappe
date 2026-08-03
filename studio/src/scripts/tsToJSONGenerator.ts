@@ -2,11 +2,19 @@ import tsToJSON from "../utils/tsToJSON"
 import fs from "fs"
 import path from "path"
 
+// A source folder is a plain path, or an object overriding the module's scan flags
+// for that folder alone (e.g. frappe-ui molecules use the perComponent layout while
+// its components use folderScan).
+type SourceFolder = string | { path: string; folderScan?: boolean; perComponent?: boolean; skipFolders?: string[] }
+
 const configMap: Record<string, any> = {
 	frappeui: {
 		srcFolders: [
 			"../node_modules/frappe-ui/src/components",
 			"../node_modules/frappe-ui/frappe",
+			// molecules (List family): several components per folder, keyed off the .vue
+			// files whose `<Component>Props` is exported from the folder's types.ts
+			{ path: "../node_modules/frappe-ui/src/molecules", perComponent: true, skipFolders: ["stories"] },
 		],
 		destFolder: "src/json_types/frappeui",
 		tsconfigPath: "../node_modules/frappe-ui/tsconfig.base.json",
@@ -57,14 +65,15 @@ const { srcFolders, destFolder, tsconfigPath, skipFolders, folderScan, perCompon
 // frappe-ui bump that breaks extraction degrades to a stale schema, not a missing
 // one. Only truly gone components (renamed/removed upstream) are pruned below.
 const expected = new Set<string>()
-srcFolders.forEach((srcFolder: string) => {
+srcFolders.forEach((srcFolder: SourceFolder) => {
+	const folder = typeof srcFolder === "string" ? { path: srcFolder } : srcFolder
 	const result = tsToJSON(
-		srcFolder,
+		folder.path,
 		destFolder,
-		skipFolders,
+		folder.skipFolders ?? skipFolders,
 		tsconfigPath,
-		Boolean(folderScan),
-		Boolean(perComponent),
+		Boolean(folder.folderScan ?? folderScan),
+		Boolean(folder.perComponent ?? perComponent),
 		skipComponents,
 	)
 	result.expected.forEach((name) => expected.add(name))
