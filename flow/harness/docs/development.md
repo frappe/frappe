@@ -66,21 +66,22 @@ Part 2 makes the daemon an implementation detail of the client. The CLI surface:
 
 | Command | Behavior |
 |---|---|
-| `flow` | Start a private daemon on an ephemeral port, open the TUI, and attach to it. Each invocation gets its own daemon; it never adopts one started by `flow serve`. The daemon dies when the TUI exits; quit during an active run aborts and drains without a prompt. `flow -c` continues the most recent session for the current directory instead of creating one. |
+| `flow` | Start a private daemon on a unix socket under the data dir, open the TUI, and attach to it. Each invocation gets its own daemon; it never adopts one started by `flow serve`. The daemon dies when the TUI exits; quit during an active run aborts and drains without a prompt. `flow -c` continues the most recent session for the current directory instead of creating one. |
 | `flow serve` | Run the daemon in the foreground on the configured host and port. `--background` detaches it, prints its address, and returns. |
 | `flow attach` | Open the TUI against a daemon that is already running — the configured host and port by default, `--url` for any other, `--session` to reopen an existing session. It starts nothing. |
 | `flow login` / `logout` / `providers` | Unchanged apart from the program name. |
 
 Daemon lifecycle notes:
 
-- The private daemon is a subprocess of the TUI (`flow serve --port-file
-  --parent-watch`), authenticated with a fresh `FLOW_AUTH_TOKEN` even on loopback. Its
+- The private daemon is a subprocess of the TUI (`flow serve --uds
+  <data-dir>/daemon-<pid>.sock --parent-watch`), authenticated with a fresh
+  `FLOW_AUTH_TOKEN` even though the socket is local and chmod 0600. Its
   stdout and stderr go to a log file under `FLOW_DATA_DIR/logs/`. If the TUI dies —
   even by SIGKILL — the daemon's stdin pipe hits EOF and it exits, so orphans cannot
   accumulate. POSIX-only for now.
 - A daemon crash is fatal to the TUI: it exits with the log path. There is no
   auto-respawn; sessions are durable, so rerun `flow -c`.
-- Discovery of private ephemeral daemons by `flow attach` is out of scope by design.
+- Discovery of private daemons by `flow attach` is out of scope by design.
 - **Accepted risk:** two daemons can open the same session file (for example `flow -c`
   in two terminals). Two writers on one append-only log can corrupt it. This is
   documented, not prevented; a future mitigation is a per-session `fcntl.flock`.

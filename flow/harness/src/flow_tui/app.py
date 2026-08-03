@@ -20,6 +20,7 @@ from textual.app import App, ComposeResult, SuspendNotSupported
 from textual.binding import Binding
 from textual.widgets import Static
 
+from flow.config import UDS_URL
 from flow.events import ReasoningEffort
 from flow.session.config import SessionConfig
 from flow_tui.client.api import FlowAPIError, FlowClient
@@ -233,14 +234,16 @@ class FlowApp(App):
 
 
 def run_app(
-	url: str,
+	url: str | None = None,
 	*,
+	uds: str | None = None,
 	token: str | None = None,
 	model: str = "mock",
 	session_id: str | None = None,
 	fatal_check: Callable[[], str | None] | None = None,
 ) -> str | None:
-	"""Run the TUI against the daemon at `url`; returns the last active session id.
+	"""Run the TUI against the daemon at `url`, or over the unix socket at `uds`;
+	returns the last active session id.
 
 	With `session_id` the TUI attaches to that session and replays its history
 	(`flow -c`, `flow attach --session`); otherwise it creates a fresh one. The
@@ -248,13 +251,15 @@ def run_app(
 	client suffix. `auto_approve=True` is the permanent default for TUI sessions;
 	a `--confirm` flag lands with the approvals UI (phase 12).
 	"""
+	if (url is None) == (uds is None):
+		raise ValueError("run_app needs exactly one of url or uds")
 	config = SessionConfig(
 		model=model,
 		cwd=os.getcwd(),
 		auto_approve=True,
 		system_suffix=TUI_SYSTEM_SUFFIX,
 	)
-	client = FlowClient(url, token=token)
+	client = FlowClient(url or UDS_URL, token=token, uds=uds)
 	controller = Controller(client, session_id=session_id, config=config)
 	FlowApp(controller, fatal_check=fatal_check).run()
 	return controller.session_id

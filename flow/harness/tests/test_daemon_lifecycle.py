@@ -1,11 +1,15 @@
 """Lifecycle tests for the daemons behind bare `flow` — real subprocesses, no TUI."""
 
+import os
+import socket
+import stat
 import time
 
 import httpx
 import pytest
 
-from flow.cli.daemon import bind_and_publish, spawn_private, teardown
+from flow.cli.daemon import bind_unix, spawn_private, teardown
+from flow.config import UDS_URL
 
 
 @pytest.fixture
@@ -15,8 +19,12 @@ def daemon(tmp_path):
 	teardown(d)
 
 
+def _client(d, **kw):
+	return httpx.Client(base_url=UDS_URL, transport=httpx.HTTPTransport(uds=d.socket_path), **kw)
+
+
 def test_private_daemon_requires_its_token(daemon):
-	with httpx.Client(base_url=daemon.base_url, timeout=5.0) as http:
+	with _client(daemon, timeout=5.0) as http:
 		assert http.get("/healthz").json() == {"ok": True}
 		assert http.get("/sessions").status_code == 401
 		authed = http.get("/sessions", headers={"Authorization": f"Bearer {daemon.token}"})
@@ -28,8 +36,9 @@ def test_teardown_stops_the_daemon(tmp_path):
 	d = spawn_private(str(tmp_path / "data"), timeout=15.0)
 	teardown(d)
 	assert d.process.poll() is not None
-	with httpx.Client(timeout=1.0) as http, pytest.raises(httpx.TransportError):
-		http.get(f"{d.base_url}/healthz")
+	assert not os.path.exists(d.socket_path)
+	with _client(d, timeout=1.0) as http, pytest.raises(httpx.TransportError):
+		http.get("/healthz")
 
 
 def test_orphaned_daemon_exits_on_parent_death(tmp_path):
@@ -46,12 +55,15 @@ def test_orphaned_daemon_exits_on_parent_death(tmp_path):
 		teardown(d)
 
 
-def test_bind_and_publish_writes_resolved_port(tmp_path):
-	port_file = tmp_path / "daemon.port"
-	sock = bind_and_publish("127.0.0.1", 0, str(port_file))
+def test_bind_unix_listens_and_replaces_stale_file(tmp_path):
+	path = str(tmp_path / "daemon.sock")
+	(tmp_path / "daemon.sock").write_text("stale")
+	sock = bind_unix(path)
 	try:
-		port = sock.getsockname()[1]
-		assert port > 0
-		assert int(port_file.read_text()) == port
+		mode = os.stat(path).st_mode
+		assert stat.S_ISSOCK(mode)
+		assert stat.S_IMODE(mode) == 0o600
+		with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as probe:
+			probe.connect(path)
 	finally:
 		sock.close()

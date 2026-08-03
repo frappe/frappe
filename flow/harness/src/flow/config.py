@@ -10,6 +10,9 @@ DEFAULT_CREDENTIALS_PATH = os.path.join(DEFAULT_DATA_DIR, "credentials.json")
 DATA_DIR = os.path.expanduser(os.environ.get("FLOW_DATA_DIR", DEFAULT_DATA_DIR))
 HOST = os.environ.get("FLOW_HOST", "127.0.0.1")
 PORT = int(os.environ.get("FLOW_PORT", "8787"))
+# httpx still needs an authority in the URL when the transport is a unix socket;
+# the name never resolves — it only labels the connection.
+UDS_URL = "http://flow-daemon"
 # Optional bearer for the daemon HTTP boundary. Required by the CLI when binding a
 # non-loopback host; when set, every endpoint except healthz requires it.
 AUTH_TOKEN = os.environ.get("FLOW_AUTH_TOKEN") or None

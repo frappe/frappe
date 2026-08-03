@@ -36,8 +36,8 @@ def main() -> None:
 	p_serve.add_argument("--data-dir", default=config.DATA_DIR)
 	p_serve.add_argument("--background", action="store_true", help="detach, print the address, and return")
 	p_serve.add_argument(
-		"--port-file",
-		help="bind before serving and write the resolved port here (with --port 0: ephemeral port)",
+		"--uds",
+		help="serve on a unix socket at this path instead of host/port",
 	)
 	p_serve.add_argument(
 		"--parent-watch",
@@ -96,7 +96,7 @@ def _with_default_command(argv: list[str], commands: set[str]) -> list[str]:
 
 
 def _tui(args) -> None:
-	"""Bare `flow`: private daemon on an ephemeral port, TUI attached, daemon dies on quit."""
+	"""Bare `flow`: private daemon on a unix socket, TUI attached, daemon dies on quit."""
 	from flow.cli.daemon import spawn_private, teardown
 	from flow_tui.app import run_app
 
@@ -106,7 +106,7 @@ def _tui(args) -> None:
 		if args.continue_:
 			session_id = _latest_session_for_cwd(daemon, os.getcwd())
 		session_id = run_app(
-			daemon.base_url,
+			uds=daemon.socket_path,
 			token=daemon.token,
 			model=settings.resolve_startup_model(),
 			session_id=session_id,
@@ -121,7 +121,8 @@ def _latest_session_for_cwd(daemon, cwd: str) -> str | None:
 	import httpx
 
 	with httpx.Client(
-		base_url=daemon.base_url,
+		base_url=config.UDS_URL,
+		transport=httpx.HTTPTransport(uds=daemon.socket_path),
 		headers={"Authorization": f"Bearer {daemon.token}"},
 		timeout=5.0,
 	) as http:
@@ -143,7 +144,7 @@ def _daemon_death_notice(daemon) -> str | None:
 
 
 def _serve(args) -> None:
-	if not _is_loopback(args.host) and not config.AUTH_TOKEN:
+	if not args.uds and not _is_loopback(args.host) and not config.AUTH_TOKEN:
 		raise AuthError(
 			"Refusing to expose an unauthenticated daemon. Set FLOW_AUTH_TOKEN or bind to a loopback host."
 		)
@@ -171,20 +172,17 @@ def _serve(args) -> None:
 	rinfo = f" · redis: {config.REDIS_URL}" if sink else ""
 	ainfo = " · auth: bearer" if config.AUTH_TOKEN else ""
 
-	def banner(port: int) -> None:
-		print(
-			f"{GREEN}flow daemon{RESET} on http://{args.host}:{port}  "
-			f"{DIM}(data: {args.data_dir}{rinfo}{ainfo}){RESET}"
-		)
+	def banner(address: str) -> None:
+		print(f"{GREEN}flow daemon{RESET} on {address}  {DIM}(data: {args.data_dir}{rinfo}{ainfo}){RESET}")
 
-	if args.port_file:
-		from flow.cli.daemon import bind_and_publish
+	if args.uds:
+		from flow.cli.daemon import bind_unix
 
-		sock = bind_and_publish(args.host, args.port, args.port_file)
-		banner(sock.getsockname()[1])
+		sock = bind_unix(args.uds)
+		banner(args.uds)
 		uvicorn.Server(uvicorn.Config(app, log_level="warning")).run(sockets=[sock])
 	else:
-		banner(args.port)
+		banner(f"http://{args.host}:{args.port}")
 		uvicorn.run(app, host=args.host, port=args.port, log_level="warning")
 
 

@@ -35,9 +35,12 @@ class FlowClient:
 		token: str | None = None,
 		*,
 		timeout: float = 30.0,
+		uds: str | None = None,
 		transport: httpx.AsyncBaseTransport | None = None,
 	):
 		headers = {"Authorization": f"Bearer {token}"} if token else {}
+		if uds is not None and transport is None:
+			transport = httpx.AsyncHTTPTransport(uds=uds)
 		self._http = httpx.AsyncClient(
 			base_url=base_url, headers=headers, timeout=timeout, transport=transport
 		)
