@@ -162,7 +162,17 @@ function sidebarTemplate(): BlockOptions {
 		children: [
 			{
 				componentName: "SidebarHeader",
-				componentProps: { title: "Frappe", subtitle: "Jane Doe" },
+				componentProps: {
+					title: "Frappe",
+					subtitle: "Jane Doe",
+					menuItems: [
+						{
+							label: "Log out",
+							icon: "lucide-log-out",
+							onClick: "() => {}",
+						},
+					],
+				},
 			},
 			{
 				componentName: "container",

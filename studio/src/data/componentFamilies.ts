@@ -207,6 +207,13 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 		group: "Sidebar",
 		initialState: {
 			title: "Frappe",
+			menuItems: [
+				{
+					label: "Log out",
+					icon: "lucide-log-out",
+					onClick: "() => {}",
+				},
+			],
 		},
 	},
 	SidebarItem: {
