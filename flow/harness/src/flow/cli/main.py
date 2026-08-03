@@ -7,7 +7,7 @@ import ipaddress
 import os
 import sys
 
-from flow import config
+from flow import config, settings
 from flow.cli.daemon import DaemonError
 from flow.model.auth import AuthError
 from flow.model.credentials import CredentialStore, CredentialStoreError
@@ -108,7 +108,7 @@ def _tui(args) -> None:
 		session_id = run_app(
 			daemon.base_url,
 			token=daemon.token,
-			model=config.DEFAULT_MODEL,
+			model=settings.resolve_startup_model(),
 			session_id=session_id,
 			fatal_check=lambda: _daemon_death_notice(daemon),
 		)
@@ -201,7 +201,12 @@ def _attach(args) -> None:
 	# lazy: the server package must run without textual installed
 	from flow_tui.app import run_app
 
-	run_app(args.url, token=config.AUTH_TOKEN, model=config.DEFAULT_MODEL, session_id=args.session)
+	run_app(
+		args.url,
+		token=config.AUTH_TOKEN,
+		model=settings.resolve_startup_model(),
+		session_id=args.session,
+	)
 
 
 def _login(args) -> None:

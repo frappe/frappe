@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
+from flow import settings
 from flow.events import ReasoningEffort, RunEnded, RunStarted, UserMessage
 from flow.session.config import SessionConfig
 from flow_tui.client.api import FlowClient
@@ -97,9 +98,16 @@ class Controller:
 		await self.client.abort(self.session_id)
 
 	async def change_model(self, model: str) -> None:
-		"""Switch the model, keeping the current effort; the server picks the credential."""
+		"""Switch the model, keeping the current effort; the server picks the credential.
+
+		A successful switch is remembered: `/new` in this session and the next
+		launch both start on it.
+		"""
 		assert self.session_id is not None
 		await self.client.set_model(self.session_id, model, reasoning_effort=self.state.reasoning_effort)
+		if self.config is not None:
+			self.config.model = model
+		settings.save_setting("last_model", model)
 
 	async def change_effort(self, effort: ReasoningEffort | None) -> None:
 		"""Change effort on the current model/credential; None = provider default."""

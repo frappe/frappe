@@ -8,7 +8,6 @@ FLOW_HOME = os.path.expanduser("~/.flow")
 DEFAULT_DATA_DIR = os.path.join(FLOW_HOME, "server")
 DEFAULT_CREDENTIALS_PATH = os.path.join(DEFAULT_DATA_DIR, "credentials.json")
 DATA_DIR = os.path.expanduser(os.environ.get("FLOW_DATA_DIR", DEFAULT_DATA_DIR))
-DEFAULT_MODEL = os.environ.get("FLOW_MODEL", "mock")
 HOST = os.environ.get("FLOW_HOST", "127.0.0.1")
 PORT = int(os.environ.get("FLOW_PORT", "8787"))
 # Optional bearer for the daemon HTTP boundary. Required by the CLI when binding a
