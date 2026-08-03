@@ -651,6 +651,22 @@ blockquote {
 			letter-spacing: 0.28px;
 			color: $body-text;
 		}
+
+		b {
+			font-weight: 600;
+			letter-spacing: 0.21px;
+		}
+
+		.email-subhead {
+			font-weight: 500;
+			letter-spacing: 0.21px;
+		}
+
+		.email-inline-link {
+			color: $body-text;
+			font-weight: normal;
+			text-decoration: underline;
+		}
 	}
 
 	.email-action {

@@ -1327,20 +1327,22 @@ def notify_admin_access_to_system_manager(login_manager=None):
 		and login_manager.user == "Administrator"
 		and frappe.local.conf.notify_admin_access_to_system_manager
 	):
-		site = '<a href="{0}" target="_blank">{0}</a>'.format(frappe.local.request.host_url)
-		date_and_time = "<b>{}</b>".format(format_datetime(now_datetime(), format_string="medium"))
-		ip_address = frappe.local.request_ip
+		from frappe.utils import get_url
 
-		access_message = _("Administrator accessed {0} on {1} via IP Address {2}.").format(
-			site, date_and_time, ip_address
-		)
+		date_and_time = format_datetime(now_datetime(), format_string="medium")
+		ip_address = frappe.local.request_ip
 
 		frappe.sendmail(
 			recipients=get_system_managers(),
 			subject=_("Administrator Logged In"),
 			template="administrator_logged_in",
-			args={"access_message": access_message},
-			header=["Access Notification", "orange"],
+			args={
+				"date_and_time": date_and_time,
+				"ip_address": ip_address,
+				"login_url": get_url("/login"),
+			},
+			with_container=True,
+			wrapper="templates/emails/auth_email.html",
 		)
 
 
