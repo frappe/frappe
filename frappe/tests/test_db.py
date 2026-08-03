@@ -1214,6 +1214,66 @@ class TestDDLCommandsPost(IntegrationTestCase):
 			rows = dict(frappe.db.sql(f'SELECT name, shift FROM "{table}"'))
 			self.assertEqual(rows["copied"], rows["inserted"], msg=f"COPY differs from INSERT for {value}")
 
+	def test_default_index_names_separate_plain_partial_and_covering(self) -> None:
+		frappe.db.add_index(self.test_table_name, ["id"])
+		frappe.db.add_index(self.test_table_name, ["id"], where="id > 0")
+		frappe.db.add_index(self.test_table_name, ["id"], where="id > 100")
+		frappe.db.add_index(self.test_table_name, ["id"], include=["content"])
+
+		defs = frappe.db.sql(
+			"""SELECT indexdef FROM pg_indexes
+			WHERE tablename = %s AND indexname LIKE %s""",
+			(f"tab{self.test_table_name}", f"tab{self.test_table_name}_id%_index"),
+			pluck=True,
+		)
+		self.assertEqual(len(defs), 4, msg=f"each definition needs its own index, got {defs}")
+		self.assertEqual(len([d for d in defs if "WHERE (id > 0)" in d]), 1)
+		self.assertEqual(len([d for d in defs if "WHERE (id > 100)" in d]), 1)
+		self.assertEqual(len([d for d in defs if "INCLUDE (content)" in d]), 1)
+
+	def test_default_index_name_is_stable_for_one_definition(self) -> None:
+		from frappe.database.postgres.schema import get_qualified_index_name
+
+		table = f"tab{self.test_table_name}"
+		# a comment is whitespace to SQL, so it does not change which index a predicate names
+		for formatted, plain in (
+			("id  >   0", "id > 0"),
+			("id > 0 /* why */ AND id < 9", "id > 0 AND id < 9"),
+			("id > 0 -- why\nAND id < 9", "id > 0 AND id < 9"),
+		):
+			self.assertEqual(
+				get_qualified_index_name(table, ["id"], where=formatted),
+				get_qualified_index_name(table, ["id"], where=plain),
+				msg=f"{formatted!r} and {plain!r} are the same predicate",
+			)
+
+		# ... but the newline ending a line comment decides what is code, so it stays significant
+		self.assertNotEqual(
+			get_qualified_index_name(table, ["id"], where="id > 0 -- why\nAND id < 9"),
+			get_qualified_index_name(table, ["id"], where="id > 0 -- why AND id < 9"),
+		)
+		# but whitespace inside a quoted token is part of the predicate, not formatting
+		for two_spaces, one_space in (
+			("content = 'a  b'", "content = 'a b'"),
+			('"a  b" > 0', '"a b" > 0'),
+			("content = $$a  b$$", "content = $$a b$$"),
+			("content = $t$a  b$t$", "content = $t$a b$t$"),
+			(r"content = E'a\'  b'", r"content = E'a\' b'"),
+		):
+			self.assertNotEqual(
+				get_qualified_index_name(table, ["id"], where=two_spaces),
+				get_qualified_index_name(table, ["id"], where=one_space),
+				msg=f"{two_spaces!r} and {one_space!r} must not share a name",
+			)
+		self.assertNotEqual(
+			get_qualified_index_name(table, ["id"]),
+			get_qualified_index_name(table, ["id"], where="id > 0"),
+		)
+		self.assertNotEqual(
+			get_qualified_index_name(table, ["id"], include=["content"]),
+			get_qualified_index_name(table, ["id"]),
+		)
+
 	def test_add_index_rejects_unknown_method(self) -> None:
 		# `using` reaches the DDL string verbatim, so an unknown method must be refused, not run.
 		with self.assertRaises(frappe.ValidationError):
