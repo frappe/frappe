@@ -51,6 +51,7 @@ def _file_fingerprint(file_url: str | None) -> str:
 		{"file_url": file_url},
 		["content_hash", "modified", "file_size"],
 		as_dict=True,
+		order_by="modified desc",
 	)
 	if not meta:
 		return cstr(file_url)
