@@ -3,6 +3,11 @@ default_stages: [pre-commit]
 default_install_hook_types: [pre-commit, commit-msg]
 fail_fast: false
 
+# The check-ast and debug-statements hooks must parse PEP 695 generics,
+# so they need Python >= 3.12. The system default is 3.10.
+default_language_version:
+  python: python3.12
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0

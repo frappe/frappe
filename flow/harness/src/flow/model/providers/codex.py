@@ -347,6 +347,9 @@ class CodexModel(Model):
 			"input": _responses_input(request.messages, self),
 			"text": {"verbosity": "low"},
 			"include": ["reasoning.encrypted_content"],
+			# codex reasons even without an effort setting; without this the summary
+			# text never streams and thinking blocks come back empty
+			"reasoning": {"summary": "auto"},
 			"tool_choice": "auto",
 			"parallel_tool_calls": True,
 			**self._params,

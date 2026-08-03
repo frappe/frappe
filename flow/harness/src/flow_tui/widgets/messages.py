@@ -321,7 +321,8 @@ def _assistant_widgets(
 			if block.redacted:
 				sealed = Static(Text("thinking · redacted", style="dim italic"), classes="thinking--redacted")
 				widgets.append(sealed)
-			else:
+			elif block.thinking:
+				# opaque reasoning with no summary has nothing worth a fold
 				widgets.append(ThinkingBlock(block.thinking, collapsed=not show_thinking))
 		elif isinstance(block, TextContent):
 			widgets.append(Static(Text(block.text)))
