@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-26 10:09+0000\n"
-"PO-Revision-Date: 2026-07-28 15:09\n"
+"PO-Revision-Date: 2026-08-03 16:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -21835,7 +21835,7 @@ msgstr "Przegląd"
 
 #: frappe/core/page/component_explorer/component_explorer.js:423
 msgid "Owner"
-msgstr ""
+msgstr "Właściciel"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
