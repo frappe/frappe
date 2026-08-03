@@ -1,48 +1,90 @@
-"""Sectioned system-prompt composition: default preamble, global and project AGENTS.md
-files, client suffix. `SessionStore.create` runs this once and stores the resolved
-prompt on the config, so a session's prompt never changes after create."""
+"""System-prompt composition, modeled on pi's: a short static intro, an "Available
+tools" list of one-line snippets, a deduped "Guidelines" section contributed by the
+active tools, AGENTS.md files wrapped in a <project_context> block, and a trailing
+"Current working directory" line. The full tool-usage rules stay in each tool's
+schema description; the prompt only carries the one-liners.
+
+`SessionStore.create` runs this once and stores the resolved prompt on the config,
+so a session's prompt never changes after create.
+"""
 
 from __future__ import annotations
 
 import os
 
 from flow.session.config import SessionConfig
+from flow.tools.builtins import BUILTIN_TOOLS
 
-DEFAULT_PREAMBLE = """\
-You are a coding agent. You work inside the user's project directory with real tools.
+DEFAULT_INTRO = (
+	"You are an expert coding assistant operating inside flow, a coding agent harness. "
+	"You help users by reading files, executing commands, editing code, and writing new files."
+)
 
-Rules:
-- Be direct and concise. Lead with the answer; explain only when it adds value.
-- Read the relevant code before you change it. Do not guess file contents or APIs.
-- Prefer small, focused changes. Match the style of the surrounding code.
-- Use the tools for every interaction with the system; never invent tool output.
-- After a change, verify it: run the tests or the code path the change affects.
-- Stop and ask before an action that is destructive or hard to reverse.
-- If you are blocked or the task is ambiguous, say so plainly instead of guessing.
-- Report results honestly, including failures and partial results."""
+CUSTOM_TOOLS_NOTE = (
+	"In addition to the tools above, you may have access to other custom tools depending on the project."
+)
+
+TAIL_GUIDELINES = (
+	"Be concise in your responses",
+	"Show file paths clearly when working with files",
+)
 
 
 def build_system_prompt(config: SessionConfig, home: str | None = None) -> str:
 	"""Resolve the session's system prompt. A verbatim `system_prompt` wins outright;
-	otherwise compose preamble -> $HOME/AGENTS.md -> project AGENTS.md chain -> suffix."""
+	otherwise compose body -> suffix -> <project_context> -> cwd trailer."""
 	if config.system_prompt is not None:
 		return config.system_prompt
 	home = os.path.realpath(home if home is not None else os.path.expanduser("~"))
 	sections: list[str] = []
-	preamble = config.system_preamble if config.system_preamble is not None else DEFAULT_PREAMBLE
-	sections.append(preamble)
+	body = config.system_preamble if config.system_preamble is not None else _default_body(config)
+	sections.append(body)
+	if config.system_suffix is not None:
+		sections.append(config.system_suffix)
+	context = _project_context(config, home)
+	if context is not None:
+		sections.append(context)
+	sections.append(f"Current working directory: {config.cwd.replace(os.sep, '/')}")
+	return "\n\n".join(section.strip() for section in sections if section.strip())
+
+
+def _default_body(config: SessionConfig) -> str:
+	tools = [BUILTIN_TOOLS[name] for name in config.tools if name in BUILTIN_TOOLS]
+	snippets = [f"- {t.name}: {t.prompt_snippet}" for t in tools if t.prompt_snippet]
+	guidelines: list[str] = []
+	for t in tools:
+		for guideline in t.prompt_guidelines:
+			if guideline not in guidelines:
+				guidelines.append(guideline)
+	guidelines.extend(g for g in TAIL_GUIDELINES if g not in guidelines)
+	parts = [
+		DEFAULT_INTRO,
+		"Available tools:\n" + ("\n".join(snippets) or "(none)"),
+		CUSTOM_TOOLS_NOTE,
+		"Guidelines:\n" + "\n".join(f"- {g}" for g in guidelines),
+	]
+	return "\n\n".join(parts)
+
+
+def _project_context(config: SessionConfig, home: str) -> str | None:
+	"""AGENTS.md files wrapped pi-style: $HOME/AGENTS.md first, then the project
+	chain outermost first."""
+	entries: list[tuple[str, str]] = []
 	global_path = os.path.join(home, "AGENTS.md")
 	text = _read(global_path)
 	if text is not None:
-		sections.append(f"# Global instructions ({global_path})\n\n{text}")
+		entries.append((global_path, text))
 	for directory in _project_dirs(config.cwd, home):
 		path = os.path.join(directory, "AGENTS.md")
 		text = _read(path)
 		if text is not None:
-			sections.append(f"# Project instructions ({path})\n\n{text}")
-	if config.system_suffix is not None:
-		sections.append(config.system_suffix)
-	return "\n\n".join(section.strip() for section in sections if section.strip())
+			entries.append((path, text))
+	if not entries:
+		return None
+	blocks = "\n\n".join(
+		f'<project_instructions path="{path}">\n{text}\n</project_instructions>' for path, text in entries
+	)
+	return f"<project_context>\n\nProject-specific instructions and guidelines:\n\n{blocks}\n\n</project_context>"
 
 
 def _project_dirs(cwd: str, home: str) -> list[str]:

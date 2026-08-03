@@ -52,6 +52,12 @@ class Tool:
 	func: Callable[..., Awaitable[ToolResult]]
 	requires_confirmation: bool = False
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None
+	# System-prompt surface, separate from `description` (which goes into the tool
+	# schema and carries the full usage rules). `prompt_snippet` is a one-line blurb
+	# for the prompt's "Available tools" list; `prompt_guidelines` are bullets merged
+	# (deduped) into the prompt's "Guidelines" section.
+	prompt_snippet: str | None = None
+	prompt_guidelines: tuple[str, ...] = ()
 
 	def __post_init__(self) -> None:
 		self._validated = validate_call(config=ConfigDict(arbitrary_types_allowed=True))(self.func)
@@ -81,6 +87,8 @@ def tool(
 	description: str | None = None,
 	requires_confirmation: bool = False,
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
+	prompt_snippet: str | None = None,
+	prompt_guidelines: tuple[str, ...] = (),
 ) -> Callable[[Callable[..., Awaitable[ToolResult]]], Tool]: ...
 
 
@@ -91,6 +99,8 @@ def tool(
 	description: str | None = None,
 	requires_confirmation: bool = False,
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
+	prompt_snippet: str | None = None,
+	prompt_guidelines: tuple[str, ...] = (),
 ) -> Tool | Callable[[Callable[..., Awaitable[ToolResult]]], Tool]:
 	def wrap(f: Callable[..., Awaitable[ToolResult]]) -> Tool:
 		return Tool(
@@ -100,6 +110,8 @@ def tool(
 			func=f,
 			requires_confirmation=requires_confirmation,
 			confirm_prompt=confirm_prompt,
+			prompt_snippet=prompt_snippet,
+			prompt_guidelines=prompt_guidelines,
 		)
 
 	return wrap(func) if func is not None else wrap

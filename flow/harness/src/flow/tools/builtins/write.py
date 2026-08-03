@@ -6,7 +6,11 @@ from flow.tools.builtins.common import resolve
 from flow.tools.tool import ToolContext, ToolResult, tool
 
 
-@tool(requires_confirmation=True)
+@tool(
+	requires_confirmation=True,
+	prompt_snippet="Create or overwrite files",
+	prompt_guidelines=("Use write only for new files or complete rewrites.",),
+)
 async def write(path: str, content: str, *, ctx: ToolContext) -> ToolResult:
 	"""Create or overwrite a file with the given text content."""
 	full = resolve(ctx, path)

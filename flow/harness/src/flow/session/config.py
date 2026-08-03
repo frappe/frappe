@@ -19,8 +19,10 @@ class SessionConfig(BaseModel):
 			(off/minimal/low/medium/high/xhigh/max). None = provider default (no
 			reasoning parameter is sent); "off" disables thinking where the provider
 			has a switch.
-		system_preamble: Replaces the default preamble section of the composed prompt.
-		system_suffix: Appended after all composed sections (the client-injection point).
+		system_preamble: Replaces the default body (intro, tools list, guidelines) of
+			the composed prompt.
+		system_suffix: Appended after the body, before the project context (the
+			client-injection point).
 		system_prompt: Verbatim system prompt; when set, composition is skipped. When
 			None (default), `SessionStore.create` composes the prompt from the preamble,
 			AGENTS.md files, and suffix, and stores the result here.
