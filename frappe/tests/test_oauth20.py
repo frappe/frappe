@@ -399,6 +399,28 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.assertEqual(resp.status_code, 302)
 		self.assertTrue(resp.location.startswith("/login?"))
 
+	def test_authorize_preserves_opaque_state_through_login(self):
+		path = "/api/method/frappe.integrations.oauth2.authorize"
+		state = "before<script>alert(1)</script>after"
+		params = {
+			"client_id": self.client_id,
+			"scope": self.scope,
+			"response_type": "code",
+			"redirect_uri": self.redirect_uri,
+			"state": state,
+		}
+
+		for method in ("GET", "POST"):
+			with self.subTest(method=method):
+				resp = (
+					self.get(path, params)
+					if method == "GET"
+					else self.post(path, params, headers=self.form_header)
+				)
+				login_query = parse_qs(urlparse(resp.location).query)
+				redirect_query = parse_qs(urlparse(login_query["redirect-to"][0]).query)
+				self.assertEqual(redirect_query["state"], [state])
+
 	def test_resource_owner_password_credentials_grant(self):
 		client = frappe.get_doc("OAuth Client", self.client_id)
 		client.grant_type = "Authorization Code"

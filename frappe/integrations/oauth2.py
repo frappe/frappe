@@ -76,6 +76,14 @@ def get_oauth_request_url(params):
 	return request_url._replace(query=encode_params(params)).geturl()
 
 
+def get_login_redirect_url():
+	request_url = urlparse(frappe.request.url)
+	if request_data := frappe.request.get_data(as_text=True):
+		query = "&".join(filter(None, (request_url.query, request_data)))
+		request_url = request_url._replace(query=query)
+	return request_url.geturl()
+
+
 def encode_params(params):
 	"""
 	Encode a dict of params into a query string.
@@ -206,7 +214,9 @@ def authorize(
 	if frappe.session.user == "Guest":
 		# Force login, redirect to preauth again.
 		frappe.local.response["type"] = "redirect"
-		frappe.local.response["location"] = "/login?" + encode_params({"redirect-to": request_url})
+		frappe.local.response["location"] = "/login?" + encode_params(
+			{"redirect-to": get_login_redirect_url()}
+		)
 	else:
 		try:
 			r = frappe.request
