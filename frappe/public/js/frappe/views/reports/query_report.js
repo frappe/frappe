@@ -1218,6 +1218,23 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (this.report_settings.after_datatable_render) {
 			this.report_settings.after_datatable_render(this.datatable);
 		}
+
+		this.setup_link_side_panel();
+	}
+
+	// Preview Link cells in the side panel. Query report columns carry fieldtype directly
+	// (report_utils.prepare_field_from_column) rather than a docfield.
+	setup_link_side_panel() {
+		this.$report
+			.off("click.side-panel")
+			.on("click.side-panel", "a[data-doctype][data-name]", (e) => {
+				frappe.ui.handle_link_cell_click(e, ($cell) => {
+					const col_index = $cell.attr("data-col-index");
+					if (col_index == null) return false;
+					const column = this.datatable.getColumn(Number(col_index));
+					return ["Link", "Dynamic Link"].includes(column?.fieldtype);
+				});
+			});
 	}
 
 	update_masked_fields_in_columns(columns) {
