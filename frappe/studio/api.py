@@ -15,6 +15,7 @@ from studio.utils import has_page_write_perm
 
 @frappe.whitelist()
 def get_doctype_fields(doctype: str, with_standard_fields: bool = False) -> list[dict]:
+	frappe.has_permission(doctype, ptype="read", throw=True)
 	excluded_fieldtypes = (set(no_value_fields) | set(display_fieldtypes)) - set(table_fields)
 	fields = [
 		field for field in frappe.get_meta(doctype).fields if field.fieldtype not in excluded_fieldtypes
@@ -38,6 +39,7 @@ def get_whitelisted_methods(doctype: str) -> list[str]:
 	from frappe import is_whitelisted
 	from frappe.model.base_document import get_controller
 
+	frappe.has_permission(doctype, ptype="read", throw=True)
 	controller = get_controller(doctype)
 	whitelisted_methods = []
 
@@ -55,6 +57,7 @@ def get_whitelisted_methods(doctype: str) -> list[str]:
 
 @frappe.whitelist()
 def get_sort_fields(doctype: str):
+	frappe.has_permission(doctype, ptype="read", throw=True)
 	fields = frappe.get_meta(doctype).fields
 	fields = [field for field in fields if field.fieldtype not in no_value_fields]
 	fields = [
