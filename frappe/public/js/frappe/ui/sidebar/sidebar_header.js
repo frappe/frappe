@@ -115,15 +115,20 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.$drop_icon = this.wrapper.find(".drop-icon");
 		this.toggle_width(this.sidebar.sidebar_expanded);
 	}
-	// The header shows the app the current sidebar belongs to. Custom / app-less / module sidebars
-	// have no owning app, so fall back to the workspace title (private workspaces are stored as
-	// `${title}-${for_user}`; show just the title).
+	// The header names the module whose sidebar is on screen -- the sidebar belongs to a module,
+	// so it should say which one. It used to show the owning app's title and fall back to the
+	// module only when there was no app, which meant every module in an app shared one header:
+	// "Frappe Framework" whether you were in Core, Website or Integrations.
+	//
+	// The app is still identifiable from the logo and the dock; the header is where the module
+	// goes. `label` is the Module Sidebar's title, which an app (or a customization) may override,
+	// falling back to the module name itself.
 	get_display_title() {
-		let app = this.sidebar.get_sidebar_app();
-		if (app) return app.app_title;
-
-		// no owning app -> the module's own label
-		return this.sidebar.sidebar_data?.label || this.sidebar.current_module;
+		return (
+			this.sidebar.sidebar_data?.label ||
+			this.sidebar.current_module ||
+			this.sidebar.get_sidebar_app()?.app_title
+		);
 	}
 	set_header_icon() {
 		const sidebar = this.sidebar.sidebar_data;
