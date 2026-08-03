@@ -739,6 +739,14 @@ class TestDB(IntegrationTestCase):
 			'select 1 from "tabMy Regexp Rules"', modify_query("select 1 from `tabMy Regexp Rules`")
 		)
 		self.assertEqual('select "col REGEXP name"', modify_query('select "col REGEXP name"'))
+		self.assertEqual(r"select E'a\' REGEXP b'", modify_query(r"select E'a\' REGEXP b'"))
+		# an escape string must not desynchronise the scan: a real operator after one still converts
+		self.assertEqual(
+			r"select E'x\' REGEXP y' , 'z' ~* 'w'",
+			modify_query(r"select E'x\' REGEXP y' , 'z' REGEXP 'w'"),
+		)
+		# ... while a standard literal ends at its closing quote even with a trailing backslash
+		self.assertEqual(r"select 'a\' as c, 'b' ~* 'c'", modify_query(r"select 'a\' as c, 'b' REGEXP 'c'"))
 
 		# and the rewritten operators are valid SQL
 		self.assertEqual(frappe.db.sql("select 'abc' REGEXP 'B'")[0][0], True)
