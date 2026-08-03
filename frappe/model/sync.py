@@ -214,9 +214,9 @@ def remove_orphan_entities(entity_types=None):
 		"Workspace Sidebar": {"standard": True},
 		"Desktop Icon": {"standard": True},
 		"Notification": {"is_standard": True},
-		# `generated` rows are built from the module's contents and have no file by design,
-		# so they must never be considered orphans.
-		"Module Sidebar": {"standard": True, "generated": 0},
+		# only a standard sidebar is backed by a file; everything else belongs to the site
+		# and is never an orphan
+		"Module Sidebar": {"standard": True},
 	}
 	entity_file_map = create_entity_file_map(entities)
 	if entity_types:

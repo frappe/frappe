@@ -23,16 +23,11 @@ frappe.ui.form.on("Module Sidebar", {
 		if (!frappe.boot.developer_mode) return;
 
 		frm.add_custom_button(__("Mark as Standard"), () => {
-			const generated = frm.doc.generated
-				? __(
-						"It was generated from the module's contents; marking it standard adopts it as authored content."
-				  )
-				: "";
 			frappe.confirm(
 				__("Write {0} into {1} so the app ships it?", [
 					frm.doc.name,
-					frm.doc.app || "its app",
-				]) + (generated ? " " + generated : ""),
+					frm.doc.app || __("its app"),
+				]),
 				() => frm.call("mark_as_standard").then(() => frm.reload_doc())
 			);
 		});

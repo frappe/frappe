@@ -660,7 +660,6 @@ def get_module_sidebars():
 			"header_icon",
 			"module_onboarding",
 			"home_workspace",
-			"generated",
 		],
 	)
 	# Two independent gates: `get_visible_modules` is the per-user navigation gate (blocked +
@@ -713,7 +712,6 @@ def get_module_sidebars():
 			"header_icon": header_icon,
 			"module_onboarding": sidebar.module_onboarding,
 			"home_workspace": sidebar.home_workspace,
-			"generated": sidebar.generated,
 			"customized": 1 if customized else 0,
 			"workspaces": workspaces_by_module.get(sidebar.module, []),
 			"items": filtered,

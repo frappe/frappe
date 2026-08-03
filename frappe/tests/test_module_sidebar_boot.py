@@ -31,7 +31,6 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 				"header_icon",
 				"module_onboarding",
 				"home_workspace",
-				"generated",
 				"workspaces",
 				"items",
 			):

@@ -284,11 +284,13 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 		"""The dock is 1:1 with Module Def, so a module shipping nothing still gets a row."""
 		sync_module_sidebars(MODULE)
 		self.assertTrue(frappe.db.exists("Module Sidebar", MODULE))
-		self.assertEqual(frappe.db.get_value("Module Sidebar", MODULE, "generated"), 1)
+		# built from the module's contents, and site-owned like anything else that is not
+		# shipped by an app
+		self.assertEqual(frappe.db.get_value("Module Sidebar", MODULE, "standard"), 0)
 
-	def test_generated_row_is_never_standard(self):
-		"""A generated row has no file by design; `standard` would make orphan removal
-		delete it on the next migrate."""
+	def test_a_built_row_cannot_be_made_standard_by_hand(self):
+		"""`standard` means backed by a file. Setting it without writing one leaves a row that
+		orphan removal deletes on the next migrate, so validate refuses it outright."""
 		sync_module_sidebars(MODULE)
 		doc = frappe.get_doc("Module Sidebar", MODULE)
 		self.assertEqual(doc.standard, 0)
@@ -296,9 +298,9 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 			doc.standard = 1
 			doc.save()
 
-	def test_generated_row_survives_orphan_removal(self):
-		"""Regression guard for the path collision: orphan removal deletes standard rows
-		whose backing file is gone, and a generated row has never had one."""
+	def test_site_owned_row_survives_orphan_removal(self):
+		"""Orphan removal only considers standard rows -- a site-owned sidebar has no file by
+		definition and must never be mistaken for one whose file went missing."""
 		from frappe.model.sync import remove_orphan_entities
 
 		sync_module_sidebars(MODULE)
@@ -431,15 +433,15 @@ class TestModuleSidebarStandard(IntegrationTestCase):
 			self.assertEqual(doc.app, "frappe")
 			self.assertTrue(os.path.exists(doc.exported_file_path()))
 
-	def test_marking_a_generated_sidebar_adopts_it(self):
-		"""Promoting a generated sidebar is the "this is good, ship it" flow, so `generated`
-		is cleared rather than the promotion refused."""
+	def test_marking_a_built_sidebar_adopts_it(self):
+		"""A sidebar built from the module's contents can be promoted -- "this is good, ship
+		it" -- with no separate provenance flag standing in the way."""
 		with module_resolvable_on_disk(MODULE), developer_mode():
-			doc = self.make_sidebar(generated=1)
+			doc = self.make_sidebar()
 			doc.mark_as_standard()
 
-			self.assertEqual(doc.generated, 0)
 			self.assertEqual(doc.standard, 1)
+			self.assertEqual(doc.app, "frappe")
 
 	def test_standard_row_survives_orphan_removal(self):
 		"""The whole point of writing the file: a standard row without one is an orphan."""

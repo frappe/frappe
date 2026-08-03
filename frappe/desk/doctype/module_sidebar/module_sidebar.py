@@ -59,7 +59,6 @@ class ModuleSidebar(Document, DeskViews):
 		from frappe.types import DF
 
 		app: DF.Autocomplete | None
-		generated: DF.Check
 		header_icon: DF.Icon | None
 		home_workspace: DF.Link | None
 		items: DF.Table[ModuleSidebarItem]
@@ -73,9 +72,6 @@ class ModuleSidebar(Document, DeskViews):
 	def validate(self):
 		if not self.title:
 			self.title = self.module
-
-		if self.generated and self.standard:
-			frappe.throw(_("A generated sidebar cannot be standard."))
 
 		self.validate_standard()
 		self.validate_home_workspace()
@@ -146,11 +142,7 @@ class ModuleSidebar(Document, DeskViews):
 		from frappe.modules.export_file import export_to_files
 
 		allow_export = (
-			self.standard
-			and not self.generated
-			and self.module
-			and not frappe.flags.in_import
-			and frappe.conf.developer_mode
+			self.standard and self.module and not frappe.flags.in_import and frappe.conf.developer_mode
 		)
 		if allow_export:
 			export_to_files(record_list=[["Module Sidebar", self.name]], record_module=self.module)
@@ -170,9 +162,9 @@ class ModuleSidebar(Document, DeskViews):
 		"""Adopt this sidebar as app-owned content: write it to its module's folder so the app
 		ships it, and let `bench migrate` re-import it from there.
 
-		A generated sidebar can be promoted this way -- "what was built from the module's
-		contents is good, ship it" -- which is why `generated` is cleared here rather than
-		refused. From then on it is authored, and regenerating no longer touches it.
+		This is the one flag that means anything: standard is app-owned and file-backed,
+		everything else belongs to the site -- whether it was merged from workspaces, built
+		from the module's contents, or edited by hand here.
 		"""
 		import os
 
@@ -183,7 +175,6 @@ class ModuleSidebar(Document, DeskViews):
 			return self
 
 		self.standard = 1
-		self.generated = 0
 		self.app = get_module_app(self.module)
 		self.save()
 
@@ -443,7 +434,6 @@ def build_module_sidebar(module: str, workspaces: list[frappe._dict]) -> frappe.
 			# gets it deleted by the very next `bench migrate`. It becomes standard only when
 			# an app deliberately exports it.
 			"standard": 0,
-			"generated": 0,
 			"merged_from": json.dumps([ws.name for ws in workspaces]),
 			"items": merge_items(primary, secondaries),
 			"primary": primary.name,
@@ -466,9 +456,9 @@ def is_workspace_manager() -> bool:
 # Generated sidebars -- the other half of "1:1 with Module Def"
 # ---------------------------------------------------------------------------------------
 
-# A generated sidebar is a real row now, not a throwaway built at boot, so it can afford to
-# list more than the three doctypes the old in-memory fallback showed. Per-user hide deltas
-# trim it from there.
+# A sidebar built from a module's contents is a real row now, not a throwaway assembled at
+# boot, so it can afford to list more than the three doctypes the old in-memory fallback
+# showed. Per-user hide deltas trim it from there.
 GENERATED_DOCTYPE_LIMIT = 15
 
 
@@ -491,7 +481,6 @@ def sync_module_sidebars(module: str | None = None) -> list[str]:
 			doc.module = module_name
 			doc.title = module_name
 			doc.header_icon = "hammer"
-			doc.generated = 1
 			doc.standard = 0
 			doc.app = get_module_app(module_name)
 			for item in generate_items(module_name):
@@ -627,7 +616,6 @@ def build_all(dry_run: bool = False) -> dict:
 					"module_onboarding",
 					"app",
 					"standard",
-					"generated",
 					"merged_from",
 				)
 			}

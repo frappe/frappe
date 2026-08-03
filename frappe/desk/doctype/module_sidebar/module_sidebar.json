@@ -16,7 +16,6 @@
   "items",
   "provenance_section",
   "standard",
-  "generated",
   "column_break_prov",
   "merged_from"
  ],
@@ -85,18 +84,11 @@
   },
   {
    "default": "0",
-   "description": "Authored by an app and exported to files. Set via the Mark as Standard action, not by hand: a standard sidebar with no exported file is an orphan and gets deleted on the next migrate.",
+   "description": "Owned by an app: exported to its module's folder and re-imported by migrate. Set via the Mark as Standard action, not by hand -- a standard sidebar with no exported file is an orphan and gets deleted on the next migrate. Everything else belongs to this site, however it got here.",
    "fieldname": "standard",
    "fieldtype": "Check",
    "label": "Standard",
    "read_only": 1
-  },
-  {
-   "default": "0",
-   "description": "Built from the module's contents because the app shipped no sidebar. Never exported; replaced wholesale if the app later ships one.",
-   "fieldname": "generated",
-   "fieldtype": "Check",
-   "label": "Generated"
   },
   {
    "fieldname": "column_break_prov",
@@ -113,7 +105,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-04 10:00:00.000000",
+ "modified": "2026-08-04 11:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Module Sidebar",
