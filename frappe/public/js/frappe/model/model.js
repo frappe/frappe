@@ -758,6 +758,7 @@ $.extend(frappe.model, {
 						if (!r.exc) {
 							frappe.utils.play_sound("delete");
 							frappe.model.clear_doc(doctype, docname);
+							$(document).trigger("delete", [doctype, docname]);
 							if (callback) callback(r, rt);
 						}
 					},

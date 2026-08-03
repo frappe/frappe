@@ -223,6 +223,11 @@ export default class BulkOperations {
 				}
 				if (failed.length < docnames.length) {
 					frappe.utils.play_sound("delete");
+					for (const name of docnames) {
+						if (!failed.includes(name)) {
+							$(document).trigger("delete", [this.doctype, name]);
+						}
+					}
 					if (done) done();
 				}
 			});

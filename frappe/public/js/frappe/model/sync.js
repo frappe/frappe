@@ -223,3 +223,25 @@ Object.assign(frappe.model, {
 		clear_keys(updated_doc, local_parent_doc);
 	},
 });
+
+// Boot/meta copies live under locals[":" + doctype] (see frappe.model.get_list).
+// Keep that namespace aligned when the real document is deleted or renamed —
+// without clear_doc, which only drops the full-document cache before a reload.
+$(document).on("delete", (e, doctype, name) => {
+	if (locals[":" + doctype]) {
+		delete locals[":" + doctype][name];
+	}
+});
+
+$(document).on("rename", (e, doctype, old_name, new_name) => {
+	const meta_doctype = ":" + doctype;
+	if (!locals[meta_doctype]?.[old_name]) {
+		return;
+	}
+	locals[meta_doctype][new_name] = {
+		...locals[meta_doctype][old_name],
+		name: new_name,
+		doctype: meta_doctype,
+	};
+	delete locals[meta_doctype][old_name];
+});
