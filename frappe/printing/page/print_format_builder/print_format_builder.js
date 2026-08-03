@@ -3,6 +3,7 @@ frappe.pages["print-format-builder"].on_page_load = function (wrapper) {
 		parent: wrapper,
 		title: __("Print Format Builder"),
 		single_column: true,
+		hide_sidebar: true,
 	});
 
 	// hot reload in development
