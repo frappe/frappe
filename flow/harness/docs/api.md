@@ -231,7 +231,9 @@ print(res["output"], res["reason"], res["usage"])
 | `session_id` | generated | client-provided id (must be `[A-Za-z0-9_-]{1,64}`) |
 | `model` | `"mock"` | name string; prefix selects the provider. The initial selection — switch later via `POST /sessions/{sid}/model` (config never mutates) |
 | `reasoning_effort` | `null` | pi's ladder: `"off"`, `"minimal"`, `"low"`, `"medium"`, `"high"`, `"xhigh"`, `"max"`; `null` = provider default (no reasoning parameter sent). Anthropic gets a thinking token budget (xhigh/max clamp to high), Codex a `reasoning.effort`, everything else LiteLLM's unified `reasoning_effort`; `"off"` disables thinking on Anthropic and omits the parameter elsewhere |
-| `system_prompt` | `"You are a helpful agent."` | |
+| `system_preamble` | none | replaces the default preamble section of the composed prompt |
+| `system_suffix` | none | appended after all composed sections (the client-injection point) |
+| `system_prompt` | composed | verbatim override; when set, composition is skipped |
 | `tools` | `["bash","read_file","write","edit","grep"]` | builtin tool names |
 | `client_tools` | `[]` | schemas for tools the client runs (see [tools.md](tools.md)) |
 | `callback_url` / `callback_token` | none | where/how client tools are dispatched |
@@ -243,3 +245,20 @@ print(res["output"], res["reason"], res["usage"])
 | `max_turns` | `30` | turn cap |
 | `max_output_tokens` | `200000` | output-token spend cap |
 | `stream` | `true` | consume the model as a token stream |
+
+### System-prompt composition
+
+When `system_prompt` is not set, the server composes it once at session create, in this
+order:
+
+1. Preamble: `system_preamble`, or a default coding-agent preamble.
+2. `$HOME/AGENTS.md`, if present.
+3. Project `AGENTS.md` files: walk up from `cwd` to the git root (first ancestor with
+   `.git`) or `$HOME`, whichever comes first; outermost first, so nearer files override
+   by recency. AGENTS.md only — no CLAUDE.md fallback.
+4. `system_suffix`, if set.
+
+Each AGENTS.md section carries a provenance header with its file path. The resolved
+prompt is stored in the session config (reported by `GET /sessions/{sid}`); later
+AGENTS.md edits do not change an existing session. Set `system_prompt` to skip
+composition and use the text verbatim.
