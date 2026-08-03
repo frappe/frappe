@@ -27,6 +27,9 @@
   "value_changed",
   "sender",
   "send_system_notification",
+  "notification_type",
+  "notification_title",
+  "notification_message",
   "sender_email",
   "section_break_9",
   "condition_type",
@@ -92,14 +95,14 @@
    "read_only": 1
   },
   {
-   "depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel)",
+   "depends_on": "eval: in_list(['Email', 'Slack'], doc.channel)",
    "description": "For a dynamic subject, use Jinja tags like this: <code>{{ doc.name }} Delivered</code>",
    "fieldname": "subject",
    "fieldtype": "Data",
    "ignore_xss_filter": 1,
    "in_list_view": 1,
    "label": "Subject",
-   "mandatory_depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel)"
+   "mandatory_depends_on": "eval: in_list(['Email', 'Slack'], doc.channel)"
   },
   {
    "fieldname": "document_type",
@@ -235,6 +238,7 @@
    "options": "Notification Recipient"
   },
   {
+   "depends_on": "eval: doc.channel != 'System Notification'",
    "fieldname": "message_sb",
    "fieldtype": "Section Break",
    "label": "Message"
@@ -285,6 +289,32 @@
    "fieldname": "send_system_notification",
    "fieldtype": "Check",
    "label": "Send System Notification"
+  },
+  {
+   "default": "Alert",
+   "depends_on": "eval: doc.channel === 'System Notification' || doc.send_system_notification",
+   "description": "Category for the in-app notification. Used for filtering and per-user email preferences.",
+   "fieldname": "notification_type",
+   "fieldtype": "Link",
+   "label": "Notification Type",
+   "options": "Notification Type"
+  },
+  {
+   "depends_on": "eval: doc.channel === 'System Notification' || doc.send_system_notification",
+   "description": "Headline of the in-app notification. Falls back to Subject if left blank. Supports Jinja.",
+   "fieldname": "notification_title",
+   "fieldtype": "Data",
+   "ignore_xss_filter": 1,
+   "label": "Notification Title",
+   "mandatory_depends_on": "eval: doc.channel === 'System Notification'"
+  },
+  {
+   "depends_on": "eval: doc.channel === 'System Notification' || doc.send_system_notification",
+   "description": "Optional body of the in-app notification. Supports Jinja.",
+   "fieldname": "notification_message",
+   "fieldtype": "Small Text",
+   "ignore_xss_filter": 1,
+   "label": "Notification Message"
   },
   {
    "default": "0",
