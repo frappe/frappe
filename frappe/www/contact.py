@@ -30,13 +30,8 @@ def get_context(context):
 
 
 @frappe.whitelist(allow_guest=True)
-<<<<<<< HEAD
-@rate_limit(limit=1000, seconds=60 * 60)
-def send_message(sender, message, subject="Website Query"):
-=======
 @rate_limit(limit=100, seconds=60 * 60)
 def send_message(sender: str, message: str, subject: str = "Website Query"):
->>>>>>> c85cfabafb (fix(contact): tighten rate limits and make acknowledgement emails configurable (#38337))
 	doc = frappe.get_doc("Contact Us Settings", "Contact Us Settings")
 	if doc.is_disabled:
 		return
