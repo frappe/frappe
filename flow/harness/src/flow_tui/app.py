@@ -147,6 +147,10 @@ class FlowApp(App):
 		yield StatusBar(id="status")
 
 	def on_mount(self) -> None:
+		if self._driver is not None:
+			# Terminals title the window from the foreground process name, which is the
+			# python interpreter behind the `flow` console script; set it explicitly.
+			self._driver.write("\x1b]0;flow\x07")
 		self.controller.on_changes = self.apply_changes
 		self.query_one(Composer).focus()
 		if self.fatal_check is not None:
