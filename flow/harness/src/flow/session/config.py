@@ -5,6 +5,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from flow.events import ReasoningEffort
+
 
 class SessionConfig(BaseModel):
 	"""Configuration for an agent session.
@@ -13,6 +15,8 @@ class SessionConfig(BaseModel):
 		session_id: Client-provided id (else generated); lets a client keep one identity
 			across its own store and the daemon (e.g. Flow Session name).
 		model: The model to use.
+		reasoning_effort: How hard the model should think. None = provider default
+			(no reasoning parameter is sent at all).
 		system_prompt: System prompt for the agent.
 		tools: Built-in tools available to the agent.
 		client_tools: Schemas registered by a client.
@@ -33,6 +37,7 @@ class SessionConfig(BaseModel):
 
 	session_id: str | None = None
 	model: str = "mock"
+	reasoning_effort: ReasoningEffort | None = None
 	system_prompt: str = "You are a helpful agent."
 	tools: list[str] = Field(default_factory=lambda: ["bash", "read_file", "write", "edit", "grep"])
 	client_tools: list[dict] = Field(default_factory=list)

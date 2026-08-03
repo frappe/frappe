@@ -11,6 +11,8 @@ from typing import Annotated, Any, ClassVar, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
+ReasoningEffort = Literal["low", "medium", "high"]
+
 ProviderErrorKind = Literal[
 	"rate_limit",
 	"overloaded",
@@ -185,6 +187,7 @@ class ModelChanged(_Event):
 	type: Literal["model_changed"] = "model_changed"
 	model: str
 	credential_id: str | None = None  # None = inferred from the model prefix
+	reasoning_effort: ReasoningEffort | None = None  # None = provider default
 
 
 class RunError(_Event):

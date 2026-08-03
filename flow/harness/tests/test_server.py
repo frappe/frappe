@@ -82,7 +82,7 @@ def test_set_model_is_a_durable_entry_used_by_later_runs(tmp_path, monkeypatch):
 	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
 
 	r = c.post(f"/sessions/{sid}/model", json={"model": "mock/v2", "credential_id": "mock-profile"})
-	assert r.json() == {"model": "mock/v2", "credential_id": "mock-profile"}
+	assert r.json() == {"model": "mock/v2", "credential_id": "mock-profile", "reasoning_effort": None}
 	assert (
 		c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "hi"}).json()["reason"]
 		== "done"
@@ -93,6 +93,37 @@ def test_set_model_is_a_durable_entry_used_by_later_runs(tmp_path, monkeypatch):
 	assert (info["model"], info["credential_id"]) == ("mock/v2", "mock-profile")
 	assert info["config"]["model"] == "mock"  # the creation config is fixed
 	assert c.get(f"/sessions/{sid}/entries").json()["entries"][0]["type"] == "model_changed"
+
+
+def test_reasoning_effort_travels_with_the_selection_and_rewinds_with_it(tmp_path, monkeypatch):
+	captured = []
+
+	def spy(name, **kwargs):
+		captured.append(kwargs.get("params"))
+		return MockModel()
+
+	monkeypatch.setattr("flow.agent.loop.get_model", spy)
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path), "reasoning_effort": "low"}).json()[
+		"session_id"
+	]
+	assert c.get(f"/sessions/{sid}").json()["reasoning_effort"] == "low"
+
+	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "hi"})
+	assert captured == [{"reasoning_effort": "low"}]
+	branch_point = c.get(f"/sessions/{sid}").json()["latest_seq"]
+
+	# same model, different effort: still a durable selection change
+	r = c.post(f"/sessions/{sid}/model", json={"model": "mock", "reasoning_effort": "high"})
+	assert r.json() == {"model": "mock", "credential_id": None, "reasoning_effort": "high"}
+	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "again"})
+	assert captured[-1] == {"reasoning_effort": "high"}
+
+	# rewinding to before the change restores the creation-config effort
+	c.post(f"/sessions/{sid}/rewind", json={"target_seq": branch_point})
+	assert c.get(f"/sessions/{sid}").json()["reasoning_effort"] == "low"
+	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "back"})
+	assert captured[-1] == {"reasoning_effort": "low"}
 
 
 def test_run_does_not_accept_model_overrides(tmp_path):

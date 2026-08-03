@@ -32,6 +32,7 @@ from flow.events import (
 	ApprovalRequired,
 	AssistantMessage,
 	PendingCall,
+	ReasoningEffort,
 	RunEnded,
 	RunStarted,
 	ToolCall,
@@ -44,6 +45,7 @@ from flow.model import Model, ModelRequest, get_model
 from flow.model.auth import resolve_model_auth
 from flow.model.base import ModelCancelled, await_with_cancellation, iterate_with_cancellation
 from flow.model.credentials import CredentialStore
+from flow.model.reasoning import reasoning_params
 from flow.session.config import SessionConfig
 from flow.session.transcript import PendingApproval
 from flow.tools import BUILTIN_TOOLS, Tool, ToolContext
@@ -81,6 +83,7 @@ class LoopInputs:
 	abort: asyncio.Event
 	model_name: str  # the session's effective selection at admission, not config
 	credential_id: str | None = None
+	reasoning_effort: ReasoningEffort | None = None
 	allowed_roots: tuple[str, ...] = ()
 	session_id: str = ""
 	model: Model | None = None
@@ -322,6 +325,7 @@ async def _authenticated_model(inputs: LoopInputs) -> Model:
 		api_key=auth.api_key,
 		api_base=auth.base_url,
 		headers=auth.headers,
+		params=reasoning_params(inputs.model_name, inputs.reasoning_effort),
 		refresh_auth=auth.refresh,
 	)
 
