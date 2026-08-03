@@ -59,8 +59,9 @@ class FlowClient:
 		except httpx.TransportError:
 			return False
 
-	async def list_models(self) -> list[dict]:
-		return (await self._request("GET", "/models"))["models"]
+	async def list_models(self) -> dict:
+		"""The discovered model catalog: `{"models": [...], "errors": [...]}`."""
+		return await self._request("GET", "/models")
 
 	async def list_sessions(self) -> list[dict]:
 		return (await self._request("GET", "/sessions"))["sessions"]

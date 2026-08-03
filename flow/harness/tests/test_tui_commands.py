@@ -72,7 +72,7 @@ class FakeController:
 		return self.sessions
 
 	async def list_models(self):
-		return []
+		return {"models": [], "errors": []}
 
 	async def new_session(self):
 		self.calls.append(("new_session",))

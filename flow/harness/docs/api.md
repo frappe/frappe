@@ -81,11 +81,14 @@ request except `GET /healthz`.
 `→ {"ok": true}`
 
 ### `GET /models`
-`→ {"models": [{"name": "anthropic/claude-sonnet-4", "provider": "anthropic"}, ...]}`.
-The catalog is derived at runtime from litellm's cost table (chat models with function
-calling only) plus native providers' own ids, and is filtered to providers that are
-configured — a stored credential or an API-key env var. It is a suggestion list, not a
-gate: `POST /sessions` and `/model` accept any model name.
+`→ {"models": [{"name": "anthropic/claude-sonnet-4", "provider": "anthropic"}, ...],
+"errors": []}`.
+Live discovery: each configured provider — a stored credential or an API-key env var —
+is queried with the user's resolved credential, so the list reflects account- and
+plan-specific availability. A provider whose query fails falls back to the static
+catalog (litellm's cost table plus native providers' own ids) and adds a
+`"provider: reason"` string to `errors`. It is a suggestion list, not a gate:
+`POST /sessions` and `/model` accept any model name.
 
 ### `POST /sessions`
 Body: a `SessionConfig` (all fields optional; see below).

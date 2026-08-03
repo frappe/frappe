@@ -774,32 +774,27 @@ def test_active_entries_reject_a_cursor(tmp_path):
 	assert c.get(f"/sessions/{sid}/entries").status_code == 200
 
 
-def test_models_endpoint_lists_configured_providers_only(tmp_path, monkeypatch):
-	import litellm
-
+def test_models_endpoint_discovers_configured_providers_only(tmp_path, monkeypatch):
+	from flow.model import discovery
 	from flow.model.catalog import PROVIDERS
 
 	for provider in PROVIDERS:
 		for name in provider.api_key_envs:
 			monkeypatch.delenv(name, raising=False)
-	monkeypatch.setattr(
-		litellm,
-		"model_cost",
-		{
-			"gpt-4o": {"mode": "chat", "supports_function_calling": True, "litellm_provider": "openai"},
-			"claude-sonnet-4": {
-				"mode": "chat",
-				"supports_function_calling": True,
-				"litellm_provider": "anthropic",
-			},
-			"text-embedding-3-small": {"mode": "embedding", "litellm_provider": "openai"},
-		},
-	)
+
+	async def fake_http_models(url, auth, client, *, provider_id=None):
+		assert provider_id == "openai"
+		return ["gpt-4o"]
+
+	monkeypatch.setattr(discovery, "_http_models", fake_http_models)
 	c = _client(tmp_path)
-	assert c.get("/models").json() == {"models": []}
+	assert c.get("/models").json() == {"models": [], "errors": []}
 
 	monkeypatch.setenv("OPENAI_API_KEY", "k")
-	assert c.get("/models").json() == {"models": [{"name": "openai/gpt-4o", "provider": "openai"}]}
+	assert c.get("/models").json() == {
+		"models": [{"name": "openai/gpt-4o", "provider": "openai"}],
+		"errors": [],
+	}
 
 
 def test_list_sessions_includes_cold_on_disk_sessions(tmp_path):

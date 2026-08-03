@@ -68,7 +68,13 @@ class _BlockingModel(Model):
 # --- REST over ASGITransport ----------------------------------------------
 
 
-async def test_rest_roundtrip(tmp_path):
+async def test_rest_roundtrip(tmp_path, monkeypatch):
+	from flow.model.catalog import PROVIDERS
+
+	# no developer API key may leak in, or /models would query providers live
+	for provider in PROVIDERS:
+		for name in provider.api_key_envs:
+			monkeypatch.delenv(name, raising=False)
 	async with _asgi_client(tmp_path) as client:
 		assert await client.healthz()
 
@@ -87,7 +93,7 @@ async def test_rest_roundtrip(tmp_path):
 		assert types[0] == "run_started" and types[-1] == "run_ended"
 
 		assert (await client.list_sessions())[0]["session_id"] == sid
-		assert isinstance(await client.list_models(), list)
+		assert await client.list_models() == {"models": [], "errors": []}
 
 		changed = await client.set_model(sid, "mock/v2", reasoning_effort="high")
 		assert changed == {"model": "mock/v2", "credential_id": None, "reasoning_effort": "high"}

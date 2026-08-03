@@ -78,8 +78,10 @@ EFFORT_LEVELS: tuple[str, ...] = get_args(ReasoningEffort)
 @command("model", "switch the model for runs from here on; no arg opens the picker", arg_hint="[name]")
 async def _model(app: "FlowApp", arg: str) -> None:
 	if not arg:
-		models = await app.controller.list_models()
-		arg = await app.push_screen_wait(ModelPicker(models)) or ""
+		catalog = await app.controller.list_models()
+		for error in catalog.get("errors", []):
+			app.notify(f"model discovery: {error}", severity="warning", markup=False)
+		arg = await app.push_screen_wait(ModelPicker(catalog["models"])) or ""
 		if not arg:
 			return
 	await app.controller.change_model(arg)

@@ -25,7 +25,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from flow.events import AssistantMessage, ReasoningEffort, parse_event
-from flow.model.catalog import list_models
+from flow.model.discovery import available_models
 from flow.session.config import SessionConfig
 from flow.session.log import SessionLogError
 from flow.session.session import (
@@ -115,7 +115,8 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 
 	@app.get("/models")
 	async def models():
-		return {"models": [asdict(model) for model in list_models(store.credentials)]}
+		catalog = await available_models(store.credentials)
+		return {"models": [asdict(model) for model in catalog.models], "errors": catalog.errors}
 
 	@app.get("/sessions")
 	async def list_sessions():

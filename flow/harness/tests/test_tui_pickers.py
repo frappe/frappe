@@ -35,6 +35,7 @@ class FakeController:
 		self.on_changes: Callable[[list[Change]], None] = lambda changes: None
 		self.calls = []
 		self.models = MODELS
+		self.errors: list[str] = []
 		self.set_model_error: FlowAPIError | None = None
 
 	async def connect(self):
@@ -72,7 +73,7 @@ class FakeController:
 		return []
 
 	async def list_models(self):
-		return self.models
+		return {"models": self.models, "errors": self.errors}
 
 	async def new_session(self):
 		return "new-session-id"
