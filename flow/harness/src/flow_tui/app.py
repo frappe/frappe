@@ -118,6 +118,7 @@ class FlowApp(App):
 	COMMAND_PALETTE_BINDING: ClassVar[str] = "ctrl+p"
 	BINDINGS: ClassVar = [
 		Binding("ctrl+c", "interrupt", "abort/quit", priority=True),
+		Binding("ctrl+d", "quit_app", "quit", priority=True),
 		Binding("escape", "abort", "abort", show=False),
 		Binding("ctrl+t", "toggle_thinking", "thinking", priority=True),
 		Binding("ctrl+o", "toggle_tools", "tool output", priority=True),
@@ -257,6 +258,10 @@ class FlowApp(App):
 			self.action_abort()
 		else:
 			self.exit()
+
+	def action_quit_app(self) -> None:
+		"""Ctrl+d quits like shell EOF, run or no run; teardown aborts and drains."""
+		self.exit()
 
 	def action_abort(self) -> None:
 		"""Escape aborts the run and does nothing while idle — it never quits."""

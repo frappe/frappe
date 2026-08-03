@@ -336,6 +336,14 @@ async def test_escape_while_idle_does_not_exit():
 		assert pilot.app.is_running
 
 
+async def test_ctrl_d_exits():
+	fake = FakeController()
+	async with FlowApp(fake).run_test() as pilot:
+		await pilot.press("ctrl+d")
+		await pilot.pause()
+		assert not pilot.app.is_running
+
+
 async def test_brewing_spinner_tracks_running_state():
 	fake = FakeController()
 	async with FlowApp(fake).run_test() as pilot:
