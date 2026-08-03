@@ -43,6 +43,12 @@ class ModuleDef(Document):
 			self.create_modules_folder()
 			self.add_to_modules_txt()
 
+	def after_insert(self):
+		"""Every Module Def gets a `Module Sidebar`; the desk dock is 1:1 with this doctype."""
+		from frappe.desk.doctype.module_sidebar.module_sidebar import sync_module_sidebars
+
+		sync_module_sidebars(self.name)
+
 	def create_modules_folder(self):
 		"""Creates a folder `[app]/[module]` and adds `__init__.py`"""
 		module_path = frappe.get_app_path(self.app_name, self.name)
@@ -70,6 +76,9 @@ class ModuleDef(Document):
 
 	def on_trash(self):
 		"""Delete module name from modules.txt"""
+		# The sidebar is this module's content, so it goes with it. Unconditional -- the
+		# developer_mode guard below is about editing modules.txt on disk, not about data.
+		frappe.delete_doc("Module Sidebar", self.name, ignore_missing=True, force=True)
 
 		if not frappe.conf.get("developer_mode") or frappe.flags.in_uninstall or self.custom:
 			return
@@ -78,7 +87,16 @@ class ModuleDef(Document):
 			frappe.db.after_commit.add(self.delete_module_from_file)
 
 	def delete_module_from_file(self):
-		delete_folder(self.module_name, "Module Def", self.name)
+		try:
+			delete_folder(self.module_name, "Module Def", self.name)
+		except frappe.DoesNotExistError:
+			# Runs after commit, so the Module Def row is already gone and the module may no
+			# longer resolve to a path -- `delete_folder` re-reads it to choose between the
+			# custom and app module paths. There is then nothing on disk to remove, and
+			# raising here would abort whatever transaction happened to trigger the flush.
+			# Fall through so modules.txt is still cleaned up.
+			pass
+
 		modules = []
 
 		modules_txt = Path(frappe.get_app_path(self.app_name, "modules.txt"))

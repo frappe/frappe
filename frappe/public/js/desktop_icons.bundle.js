@@ -936,11 +936,6 @@ class DesktopIcon {
 		});
 	}
 	validate_icon() {
-		// validate if my workspaces are empty
-		if (this.icon_data.label == "My Workspaces") {
-			if (frappe.boot.workspace_sidebar_item["my workspaces"].items.length == 0)
-				return false;
-		}
 		if (this.icon_type == "Folder") {
 			if (this.icon_data.child_icons.length == 0) return false;
 		}

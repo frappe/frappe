@@ -222,7 +222,7 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 		let name = workspace.name || label;
 		let icon = workspace.icon
 			? frappe.utils.icon(workspace.icon, "md")
-			: frappe.utils.desktop_icon(label, "sm");
+			: frappe.utils.desktop_icon(label, "gray", "sm");
 
 		let is_active = this.sidebar.is_active_workspace(workspace);
 		let $item = $(`<button

@@ -60,8 +60,6 @@ def get_bootinfo():
 	if frappe.session["user"] != "Guest":
 		bootinfo.user_info = get_user_info()
 
-	bootinfo.modules = {}
-	bootinfo.module_list = []
 	desk_views = DeskViews()
 	desk_views.build_entities()
 	desk_views.add_to_boot(bootinfo)

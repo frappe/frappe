@@ -22,6 +22,7 @@ from frappe.core.doctype.navbar_settings.navbar_settings import sync_standard_it
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.database.schema import add_column
 from frappe.deferred_insert import save_to_db as flush_deferred_inserts
+from frappe.desk.doctype.module_sidebar.module_sidebar import sync_module_sidebars
 from frappe.desk.notifications import clear_notifications
 from frappe.installer import reapply_disabled_app_state
 from frappe.modules.patch_handler import PatchType
@@ -187,6 +188,11 @@ class SiteMigration:
 
 		print("Flushing deferred inserts...")
 		flush_deferred_inserts()
+
+		print("Syncing module sidebars...")
+		# Before orphan removal: a module that just gained a sidebar file must have its row
+		# in place, and a generated row must exist so nothing mistakes the module for empty.
+		sync_module_sidebars()
 
 		print("Removing orphan doctypes...")
 		frappe.model.sync.remove_orphan_doctypes()

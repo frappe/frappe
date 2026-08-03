@@ -370,6 +370,12 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 	for fn in frappe.get_hooks("after_app_install"):
 		frappe.get_attr(fn)(name)
 
+	# The app's own Module Defs exist by now; give any that ship no sidebar a generated one
+	# so the dock stays 1:1 with Module Def on a fresh install as well as on migrate.
+	from frappe.desk.doctype.module_sidebar.module_sidebar import sync_module_sidebars
+
+	sync_module_sidebars()
+
 	sync_jobs()
 	sync_fixtures(name)
 	sync_customizations(name)

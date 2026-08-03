@@ -1,0 +1,151 @@
+{
+ "actions": [],
+ "autoname": "field:module",
+ "creation": "2026-08-03 17:10:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "module",
+  "title",
+  "header_icon",
+  "column_break_defn",
+  "home_workspace",
+  "module_onboarding",
+  "app",
+  "items_section",
+  "items",
+  "provenance_section",
+  "standard",
+  "generated",
+  "column_break_prov",
+  "merged_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Module",
+   "options": "Module Def",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "Label shown in the dock. Defaults to the module name.",
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title"
+  },
+  {
+   "fieldname": "header_icon",
+   "fieldtype": "Icon",
+   "label": "Header Icon",
+   "options": "Emojis"
+  },
+  {
+   "fieldname": "column_break_defn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The workspace this module opens to. Must be public and belong to this module.",
+   "fieldname": "home_workspace",
+   "fieldtype": "Link",
+   "label": "Home Workspace",
+   "options": "Workspace"
+  },
+  {
+   "fieldname": "module_onboarding",
+   "fieldtype": "Link",
+   "label": "Module Onboarding",
+   "options": "Module Onboarding"
+  },
+  {
+   "fieldname": "app",
+   "fieldtype": "Autocomplete",
+   "label": "App",
+   "options": "Installed Applications"
+  },
+  {
+   "fieldname": "items_section",
+   "fieldtype": "Section Break",
+   "label": "Items"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Module Sidebar Item"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "provenance_section",
+   "fieldtype": "Section Break",
+   "label": "Provenance"
+  },
+  {
+   "default": "0",
+   "description": "Authored by an app and exported to files.",
+   "fieldname": "standard",
+   "fieldtype": "Check",
+   "label": "Standard"
+  },
+  {
+   "default": "0",
+   "description": "Built from the module's contents because the app shipped no sidebar. Never exported; replaced wholesale if the app later ships one.",
+   "fieldname": "generated",
+   "fieldtype": "Check",
+   "label": "Generated"
+  },
+  {
+   "fieldname": "column_break_prov",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Workspaces whose sidebars were merged to build this one. Read by the module-split tool.",
+   "fieldname": "merged_from",
+   "fieldtype": "Long Text",
+   "label": "Merged From",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-08-03 17:45:00.000000",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Module Sidebar",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Desk User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

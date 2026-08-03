@@ -33,6 +33,7 @@ IMPORTABLE_DOCTYPES = [
 	("printing", "print_style"),
 	("desk", "workspace"),
 	("desk", "workspace_sidebar"),
+	("desk", "module_sidebar"),
 	("desk", "onboarding_step"),
 	("desk", "module_onboarding"),
 	("desk", "form_tour"),
@@ -105,6 +106,8 @@ def sync_for(app_name, force=0, reset_permissions=False):
 			"workspace",
 			"workspace_sidebar",
 			"workspace_sidebar_item",
+			"module_sidebar_item",
+			"module_sidebar",
 		]:
 			files.append(os.path.join(FRAPPE_PATH, "desk", "doctype", desk_module, f"{desk_module}.json"))
 
@@ -201,7 +204,7 @@ def remove_orphan_doctypes():
 
 
 def remove_orphan_entities(entity_types=None):
-	entities = ["Workspace", "Dashboard", "Page", "Report", "Notification"]
+	entities = ["Workspace", "Dashboard", "Page", "Report", "Notification", "Module Sidebar"]
 	app_level_entities = ["Workspace Sidebar", "Desktop Icon"]
 	entity_filter_map = {
 		"Workspace": [{"public": 1, "module": ["is", "set"], "app": ["is", "set"]}],
@@ -211,6 +214,9 @@ def remove_orphan_entities(entity_types=None):
 		"Workspace Sidebar": {"standard": True},
 		"Desktop Icon": {"standard": True},
 		"Notification": {"is_standard": True},
+		# `generated` rows are built from the module's contents and have no file by design,
+		# so they must never be considered orphans.
+		"Module Sidebar": {"standard": True, "generated": 0},
 	}
 	entity_file_map = create_entity_file_map(entities)
 	if entity_types:
@@ -278,8 +284,12 @@ def create_entity_file_map(entities):
 	for app in frappe.get_installed_apps():
 		app_path = frappe.get_app_path(app)
 		for entity in entities:
-			entity_folder = entity.lower()
-			if entity.lower() == "dashboard":
+			# `scrub`, not `lower`: a multi-word entity lives in a snake_case folder, so
+			# "Module Sidebar" must look in `module_sidebar/`, not `module sidebar/`. Every
+			# entity here used to be a single word, which kept the difference invisible --
+			# and would have made every Module Sidebar look like an orphan.
+			entity_folder = frappe.scrub(entity)
+			if entity_folder == "dashboard":
 				entity_folder = f"*_{entity_folder}"
 			entity_files = list(glob.glob(f"{app_path}/**/{entity_folder}/**/*.json", recursive=True))
 			for file in entity_files:
