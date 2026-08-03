@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-07-26 10:10+0000\n"
-"PO-Revision-Date: 2026-07-28 15:06\n"
+"PO-Revision-Date: 2026-08-03 16:44\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -2760,7 +2760,7 @@ msgstr "Biztosan újra szeretnéd csatolni ezt a kommunikációt a(z) {0} címhe
 
 #: frappe/core/doctype/communication/communication.js:166
 msgid "Are you sure you want to relink this communication?"
-msgstr ""
+msgstr "Biztosan újra szeretnéd csatolni ezt a kommunikációt?"
 
 #: frappe/core/doctype/rq_job/rq_job_list.js:10
 msgid "Are you sure you want to remove all failed jobs?"
@@ -9807,7 +9807,7 @@ msgstr "Űrlaptípus megadása"
 #: frappe/public/js/frappe/ui/messages.js:100
 msgctxt "Title of prompt dialog"
 msgid "Enter Value"
-msgstr ""
+msgstr "Érték megadása"
 
 #: frappe/public/js/frappe/form/form_tour.js:60
 msgid "Enter a name for this {0}"
@@ -12404,14 +12404,14 @@ msgstr "ITT"
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "HH:mm"
-msgstr "HH:mm (óra:perc)"
+msgstr "óó:pp"
 
 #. Option for the 'Time Format' (Select) field in DocType 'Language'
 #. Option for the 'Time Format' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "HH:mm:ss"
-msgstr "HH:mm:ss (óra:perc:másodperc)"
+msgstr "óó:pp:mm"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -33382,7 +33382,7 @@ msgstr "{0} listanézet beállítások"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:39
 msgid "{0} M"
-msgstr "{0} Ó"
+msgstr "{0} hó"
 
 #: frappe/public/js/frappe/views/map/map_view.js:14
 msgid "{0} Map"
@@ -34058,7 +34058,7 @@ msgstr "{0} megtekintette ezt"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:37
 msgid "{0} w"
-msgstr "{0} w"
+msgstr "{0} hét"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:66
 msgid "{0} weeks ago"
@@ -34070,7 +34070,7 @@ msgstr "{0} a szerepkörrel: <strong>{1}</strong>"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:41
 msgid "{0} y"
-msgstr "{0} é"
+msgstr "{0} év"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:74
 msgid "{0} years ago"
