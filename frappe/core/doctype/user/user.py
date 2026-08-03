@@ -1113,8 +1113,12 @@ def verify_password(password: str):
 	frappe.local.login_manager.check_password(frappe.session.user, password)
 
 
+def get_signup_limit():
+	return frappe.db.get_single_value("Website Settings", "max_signups_per_minute")
+
+
 @frappe.whitelist(allow_guest=True)
-@rate_limit(limit=500, seconds=60)
+@rate_limit(limit=get_signup_limit, seconds=60)
 def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 	allow = True
 	if is_signup_disabled():
