@@ -402,7 +402,9 @@ class Communication(Document, CommunicationEmailMixin):
 
 		for doctype, docname in parse_email([self.recipients, self.cc, self.bcc]):
 			# Both document and doctype names should be case insensitive in email addresses.
-			doctype = frappe.db.get_value("DocType", doctype)
+			doctype = frappe.db.exists("DocType", doctype, cache=True) or frappe.db.exists(
+				"DocType", frappe.unscrub(doctype), cache=True
+			)
 			if doctype:
 				docname = frappe.db.get_value(doctype, docname, ignore=True)
 			if not (doctype and docname):
@@ -612,7 +614,7 @@ def parse_email(email_strings):
 			if not document_parts or len(document_parts) != 2:
 				continue
 
-			doctype = frappe.unscrub(unquote_plus(document_parts[0]))
+			doctype = unquote_plus(document_parts[0])
 			docname = unquote_plus(document_parts[1])
 			yield doctype, docname
 

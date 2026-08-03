@@ -245,6 +245,38 @@ class TestCommunication(IntegrationTestCase):
 		results = list(parse_email([to, cc, bcc]))
 		self.assertEqual([("A", "Test"), ("Note", "Very important")], results)
 
+	def test_parse_email_keeps_doctype_case(self):
+		results = list(parse_email(["erp+ToDo=TASK-0001@example.org"]))
+		self.assertEqual([("ToDo", "TASK-0001")], results)
+
+	def test_timeline_link_from_doctype_in_address(self):
+		create_email_account()
+
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Email linking case test"}).insert(
+			ignore_permissions=True
+		)
+		note = frappe.get_doc(
+			{"doctype": "Note", "title": "Email linking case test", "content": "Email linking case test"}
+		).insert(ignore_permissions=True)
+
+		for doctype_in_address, doctype, docname in (
+			("ToDo", "ToDo", todo.name),
+			("note", "Note", note.name),
+		):
+			comm = frappe.get_doc(
+				{
+					"doctype": "Communication",
+					"communication_type": "Communication",
+					"communication_medium": "Email",
+					"content": "Email linking case test",
+					"sender": "sender@example.com",
+					"recipients": f"test_comm+{doctype_in_address}={docname}@example.com",
+				}
+			).insert(ignore_permissions=True)
+
+			self.assertEqual((doctype, docname), (comm.reference_doctype, comm.reference_name))
+			self.assertIn((doctype, docname), [(d.link_doctype, d.link_name) for d in comm.timeline_links])
+
 	def test_get_emails(self):
 		emails = get_emails(
 			[
