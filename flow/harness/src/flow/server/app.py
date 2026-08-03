@@ -13,13 +13,15 @@ from __future__ import annotations
 import json
 import secrets
 from collections.abc import AsyncIterator
+from dataclasses import asdict
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 
-from flow.events import AssistantMessage, parse_event
+from flow.events import AssistantMessage, ReasoningEffort, parse_event
+from flow.model.catalog import list_models
 from flow.session.config import SessionConfig
 from flow.session.log import SessionLogError
 from flow.session.session import (
@@ -45,6 +47,7 @@ class SetModelRequest(BaseModel):
 	# Names only: provider secrets and endpoints are resolved inside flow.
 	model: str = Field(min_length=1)
 	credential_id: str | None = None
+	reasoning_effort: ReasoningEffort | None = None
 
 
 class ResumeRequest(BaseModel):
@@ -106,6 +109,14 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 	async def healthz():
 		return {"ok": True}
 
+	@app.get("/models")
+	async def models():
+		return {"models": [asdict(model) for model in list_models(store.credentials)]}
+
+	@app.get("/sessions")
+	async def list_sessions():
+		return {"sessions": [asdict(info) for info in store.list()]}
+
 	@app.post("/sessions")
 	async def create_session(config: SessionConfig):
 		try:
@@ -124,6 +135,7 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 			"latest_seq": session.log.latest_seq,
 			"model": session.model,
 			"credential_id": session.credential_id,
+			"reasoning_effort": session.reasoning_effort,
 			"config": session.config.redacted(),
 		}
 
@@ -157,8 +169,14 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 	@app.post("/sessions/{sid}/model")
 	async def set_model(sid: str, req: SetModelRequest):
 		session = _get(sid)
-		await session.set_model(req.model, credential_id=req.credential_id)
-		return {"model": session.model, "credential_id": session.credential_id}
+		await session.set_model(
+			req.model, credential_id=req.credential_id, reasoning_effort=req.reasoning_effort
+		)
+		return {
+			"model": session.model,
+			"credential_id": session.credential_id,
+			"reasoning_effort": session.reasoning_effort,
+		}
 
 	@app.post("/sessions/{sid}/cancel_pending")
 	async def cancel_pending(sid: str):

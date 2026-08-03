@@ -29,6 +29,7 @@ from flow.events import (
 	AssistantMessage,
 	ModelChanged,
 	PendingCall,
+	ReasoningEffort,
 	Rewind,
 	RunEnded,
 	RunStarted,
@@ -130,6 +131,7 @@ class Transcript:
 		self.leaf_seq: int = 0  # what the next committed event follows; 0 = the root
 		self.model: str | None = None  # last model change on the path; None = session config
 		self.credential_id: str | None = None
+		self.reasoning_effort: ReasoningEffort | None = None
 		self._open_calls: _OpenToolCalls | None = None
 		self._open_approval: _OpenApproval | None = None
 
@@ -185,6 +187,7 @@ class Transcript:
 		elif isinstance(event, ModelChanged):
 			self.model = event.model
 			self.credential_id = event.credential_id
+			self.reasoning_effort = event.reasoning_effort
 		# usage, run_error, and live-only events carry no transcript state
 
 	def _close_turn(self) -> None:

@@ -80,16 +80,30 @@ request except `GET /healthz`.
 ### `GET /healthz`
 `→ {"ok": true}`
 
+### `GET /models`
+`→ {"models": [{"name": "anthropic/claude-sonnet-4", "provider": "anthropic"}, ...]}`.
+The catalog is derived at runtime from litellm's cost table (chat models with function
+calling only) plus native providers' own ids, and is filtered to providers that are
+configured — a stored credential or an API-key env var. It is a suggestion list, not a
+gate: `POST /sessions` and `/model` accept any model name.
+
 ### `POST /sessions`
 Body: a `SessionConfig` (all fields optional; see below).
 `→ {"session_id": "...", "config": {...}}` (secrets redacted). `400` if `cwd` is outside
 `ALLOWED_ROOTS` or `session_id` is invalid.
 
+### `GET /sessions`
+`→ {"sessions": [{"session_id", "state", "model", "latest_seq", "cwd"}, ...]}`, newest
+activity first. A cheap listing for pickers: sessions this daemon has not loaded are
+read from their meta file and log tail without replay, so a cold session's `model` can
+lag a later `model_changed` entry — `GET /sessions/{sid}` reports exact values.
+
 ### `GET /sessions/{sid}`
-`→ {"session_id", "state", "running", "latest_seq", "model", "credential_id", "config"}`.
+`→ {"session_id", "state", "running", "latest_seq", "model", "credential_id",
+"reasoning_effort", "config"}`.
 `state` is `idle`, `running`, or `paused`; `running` remains as a compatibility boolean.
-`model`/`credential_id` are the effective selection — the last `model_changed` entry on
-the active branch, else the creation config. `404` if unknown.
+`model`/`credential_id`/`reasoning_effort` are the effective selection — the last
+`model_changed` entry on the active branch, else the creation config. `404` if unknown.
 
 ### `POST /sessions/{sid}/run?wait=<bool>`
 Body: `{"message": "..."}`. A run always uses the session's current model selection;
@@ -143,14 +157,18 @@ paused session abandons its approval batch →
 `{"status": "rewound"}`. `409` while a run is active or for an invalid target.
 
 ### `POST /sessions/{sid}/model`
-Body: `{"model": "provider/model", "credential_id": "optional-name"}`. Selects the
-model (and stored credential) for runs from here on, as a durable `model_changed`
+Body: `{"model": "provider/model", "credential_id": "optional-name",
+"reasoning_effort": "off|minimal|low|medium|high|xhigh|max" | null}`. Selects the model (with stored
+credential and reasoning effort) for runs from here on, as a durable `model_changed`
 entry in the log — so it survives restarts and is per-branch: a rewind to before the
 change restores the previous selection. Setting the already-active selection writes
-nothing. Provider keys, OAuth tokens, headers, and base URLs are never accepted;
+nothing. `reasoning_effort: null` means the provider's default (no reasoning parameter
+is sent); `"off"` disables thinking where the provider has a switch.
+Provider keys, OAuth tokens, headers, and base URLs are never accepted;
 they are resolved inside flow →
-`{"model": "...", "credential_id": ...}` (the now-effective selection). `409` while a
-run is active; allowed while paused (the resume continues on the new model).
+`{"model": "...", "credential_id": ..., "reasoning_effort": ...}` (the now-effective
+selection). `409` while a run is active; allowed while paused (the resume continues on
+the new model).
 
 ### `GET /sessions/{sid}/entries?since=<int>&path=<active|all>`
 The durable log →
@@ -207,6 +225,7 @@ print(res["output"], res["reason"], res["usage"])
 |---|---|---|
 | `session_id` | generated | client-provided id (must be `[A-Za-z0-9_-]{1,64}`) |
 | `model` | `"mock"` | name string; prefix selects the provider. The initial selection — switch later via `POST /sessions/{sid}/model` (config never mutates) |
+| `reasoning_effort` | `null` | pi's ladder: `"off"`, `"minimal"`, `"low"`, `"medium"`, `"high"`, `"xhigh"`, `"max"`; `null` = provider default (no reasoning parameter sent). Anthropic gets a thinking token budget (xhigh/max clamp to high), Codex a `reasoning.effort`, everything else LiteLLM's unified `reasoning_effort`; `"off"` disables thinking on Anthropic and omits the parameter elsewhere |
 | `system_prompt` | `"You are a helpful agent."` | |
 | `tools` | `["bash","read_file","write","edit","grep"]` | builtin tool names |
 | `client_tools` | `[]` | schemas for tools the client runs (see [tools.md](tools.md)) |

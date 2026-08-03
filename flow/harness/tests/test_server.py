@@ -82,7 +82,7 @@ def test_set_model_is_a_durable_entry_used_by_later_runs(tmp_path, monkeypatch):
 	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
 
 	r = c.post(f"/sessions/{sid}/model", json={"model": "mock/v2", "credential_id": "mock-profile"})
-	assert r.json() == {"model": "mock/v2", "credential_id": "mock-profile"}
+	assert r.json() == {"model": "mock/v2", "credential_id": "mock-profile", "reasoning_effort": None}
 	assert (
 		c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "hi"}).json()["reason"]
 		== "done"
@@ -93,6 +93,37 @@ def test_set_model_is_a_durable_entry_used_by_later_runs(tmp_path, monkeypatch):
 	assert (info["model"], info["credential_id"]) == ("mock/v2", "mock-profile")
 	assert info["config"]["model"] == "mock"  # the creation config is fixed
 	assert c.get(f"/sessions/{sid}/entries").json()["entries"][0]["type"] == "model_changed"
+
+
+def test_reasoning_effort_travels_with_the_selection_and_rewinds_with_it(tmp_path, monkeypatch):
+	captured = []
+
+	def spy(name, **kwargs):
+		captured.append(kwargs.get("params"))
+		return MockModel()
+
+	monkeypatch.setattr("flow.agent.loop.get_model", spy)
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path), "reasoning_effort": "low"}).json()[
+		"session_id"
+	]
+	assert c.get(f"/sessions/{sid}").json()["reasoning_effort"] == "low"
+
+	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "hi"})
+	assert captured == [{"reasoning_effort": "low"}]
+	branch_point = c.get(f"/sessions/{sid}").json()["latest_seq"]
+
+	# same model, different effort: still a durable selection change
+	r = c.post(f"/sessions/{sid}/model", json={"model": "mock", "reasoning_effort": "high"})
+	assert r.json() == {"model": "mock", "credential_id": None, "reasoning_effort": "high"}
+	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "again"})
+	assert captured[-1] == {"reasoning_effort": "high"}
+
+	# rewinding to before the change restores the creation-config effort
+	c.post(f"/sessions/{sid}/rewind", json={"target_seq": branch_point})
+	assert c.get(f"/sessions/{sid}").json()["reasoning_effort"] == "low"
+	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "back"})
+	assert captured[-1] == {"reasoning_effort": "low"}
 
 
 def test_run_does_not_accept_model_overrides(tmp_path):
@@ -741,3 +772,97 @@ def test_active_entries_reject_a_cursor(tmp_path):
 	assert c.get(f"/sessions/{sid}/entries", params={"since": 2}).status_code == 422
 	assert c.get(f"/sessions/{sid}/entries", params={"since": 2, "path": "all"}).status_code == 200
 	assert c.get(f"/sessions/{sid}/entries").status_code == 200
+
+
+def test_models_endpoint_lists_configured_providers_only(tmp_path, monkeypatch):
+	import litellm
+
+	from flow.model.catalog import PROVIDERS
+
+	for provider in PROVIDERS:
+		for name in provider.api_key_envs:
+			monkeypatch.delenv(name, raising=False)
+	monkeypatch.setattr(
+		litellm,
+		"model_cost",
+		{
+			"gpt-4o": {"mode": "chat", "supports_function_calling": True, "litellm_provider": "openai"},
+			"claude-sonnet-4": {
+				"mode": "chat",
+				"supports_function_calling": True,
+				"litellm_provider": "anthropic",
+			},
+			"text-embedding-3-small": {"mode": "embedding", "litellm_provider": "openai"},
+		},
+	)
+	c = _client(tmp_path)
+	assert c.get("/models").json() == {"models": []}
+
+	monkeypatch.setenv("OPENAI_API_KEY", "k")
+	assert c.get("/models").json() == {"models": [{"name": "openai/gpt-4o", "provider": "openai"}]}
+
+
+def test_list_sessions_includes_cold_on_disk_sessions(tmp_path):
+	c = _client(tmp_path)
+	used = c.post(
+		"/sessions",
+		json={"model": "mock", "cwd": str(tmp_path / "a")},
+	).json()["session_id"]
+	fresh = c.post(
+		"/sessions",
+		json={"model": "mock/v2", "cwd": str(tmp_path / "b")},
+	).json()["session_id"]
+	c.post(f"/sessions/{used}/run", params={"wait": "true"}, json={"message": "hi"})
+	latest_seq = c.get(f"/sessions/{used}").json()["latest_seq"]
+
+	# a fresh store over the same dir caches nothing: the cold path reads meta + log tail
+	for client in (c, _client(tmp_path)):
+		rows = {row["session_id"]: row for row in client.get("/sessions").json()["sessions"]}
+		assert rows[used] == {
+			"session_id": used,
+			"state": "idle",
+			"model": "mock",
+			"latest_seq": latest_seq,
+			"cwd": str(tmp_path / "a"),
+		}
+		assert rows[fresh] == {
+			"session_id": fresh,
+			"state": "idle",
+			"model": "mock/v2",
+			"latest_seq": 0,
+			"cwd": str(tmp_path / "b"),
+		}
+	# newest activity first: only `used` has log activity
+	listing = _client(tmp_path).get("/sessions").json()["sessions"]
+	assert [row["session_id"] for row in listing] == [used, fresh]
+
+
+def test_list_sessions_reports_a_cold_paused_session(tmp_path, monkeypatch):
+	(tmp_path / "a.txt").write_text("x")
+	mock = MockModel(
+		replies=[
+			AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})]),
+			AssistantMessage(content="done"),
+		]
+	)
+	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: mock)
+	c = _client(tmp_path)
+	sid = c.post(
+		"/sessions",
+		json={"cwd": str(tmp_path), "confirm_tools": ["read_file"]},
+	).json()["session_id"]
+	paused = c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "read"}).json()
+	assert paused["reason"] == "paused"
+
+	cold = _client(tmp_path)
+	(row,) = cold.get("/sessions").json()["sessions"]
+	assert row["state"] == "paused"
+
+	# resolving the batch moves the tail past run_ended(paused): the cold state follows
+	c.post(
+		f"/sessions/{sid}/resume",
+		params={"wait": "true"},
+		json={"approval_seq": paused["approval_seq"], "answers": {"c1": "Approve"}},
+	)
+	(row,) = _client(tmp_path).get("/sessions").json()["sessions"]
+	assert row["state"] == "idle"

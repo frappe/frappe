@@ -29,6 +29,7 @@ from flow.events import (
 	AssistantMessage,
 	ModelChanged,
 	ProviderErrorKind,
+	ReasoningEffort,
 	Rewind,
 	RunEnded,
 	RunError,
@@ -154,6 +155,13 @@ class Session:
 			return self.transcript.credential_id
 		return self.config.credential_id
 
+	@property
+	def reasoning_effort(self) -> ReasoningEffort | None:
+		# effort travels with the selection, same as the credential
+		if self.transcript.model is not None:
+			return self.transcript.reasoning_effort
+		return self.config.reasoning_effort
+
 	# --- verbs ------------------------------------------------------------
 
 	async def run(
@@ -220,17 +228,28 @@ class Session:
 			self._commit(Rewind(target_seq=target_seq))
 			self.transcript = candidate
 
-	async def set_model(self, model: str, credential_id: str | None = None) -> None:
-		"""Select the model (and credential) for runs from here on — a durable entry,
-		so it survives restarts and rewinds away with its branch."""
+	async def set_model(
+		self,
+		model: str,
+		credential_id: str | None = None,
+		reasoning_effort: ReasoningEffort | None = None,
+	) -> None:
+		"""Select the model (with credential and reasoning effort) for runs from here on —
+		a durable entry, so it survives restarts and rewinds away with its branch."""
 		if not model:
 			raise ValueError("model must be a non-empty name")
 		async with self._operation_lock:
 			if self.state is SessionState.RUNNING:
 				raise SessionConflict("a run is already active")
-			if (model, credential_id) == (self.model, self.credential_id):
+			if (model, credential_id, reasoning_effort) == (
+				self.model,
+				self.credential_id,
+				self.reasoning_effort,
+			):
 				return
-			self._commit(ModelChanged(model=model, credential_id=credential_id))
+			self._commit(
+				ModelChanged(model=model, credential_id=credential_id, reasoning_effort=reasoning_effort)
+			)
 
 	async def cancel_pending(self) -> bool:
 		"""Abandon a paused run's approval batch: answer every undecided call with a
@@ -316,6 +335,7 @@ class Session:
 			abort=self.abort_signal,
 			model_name=self.model,
 			credential_id=self.credential_id,
+			reasoning_effort=self.reasoning_effort,
 			allowed_roots=self.allowed_roots,
 			session_id=self.id,
 			model=model,
