@@ -704,21 +704,12 @@ def delete_bulk(doctype, items):
 			realtime=True,
 			title=_("Bulk Operation Failed"),
 		)
-<<<<<<< HEAD
-	else:
-		frappe.msgprint(
-			_("Deleted all documents successfully"), realtime=True, title=_("Bulk Operation Successful")
-		)
-=======
 		return undeleted_items
 
 	frappe.msgprint(
-		_("Deleted {0} records from {1} doctype").format(len(items), doctype),
-		realtime=True,
-		title=_("Bulk Operation Successful"),
+		_("Deleted all documents successfully"), realtime=True, title=_("Bulk Operation Successful")
 	)
 	return []
->>>>>>> 958c6dc03c (fix(list): return undeleted names from bulk delete and trust only that list (#41522))
 
 
 @frappe.whitelist()
