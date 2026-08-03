@@ -190,9 +190,6 @@ frappe.ui.form.Attachments = class Attachments {
 		let preview_type = this.get_preview_type(attachment, file_url);
 		let escaped_file_name = frappe.utils.escape_html(file_name);
 		let escaped_file_url = frappe.utils.escape_html(file_url);
-		let escaped_absolute_file_url = frappe.utils.escape_html(
-			this.get_absolute_file_url(file_url)
-		);
 		let preview_html = "";
 
 		if (preview_type === "pdf") {
@@ -220,25 +217,28 @@ frappe.ui.form.Attachments = class Attachments {
 						<div class="ellipsis" title="${escaped_file_name}">${escaped_file_name}</div>
 					</div>
 					<div class="attachment-preview-actions">
-						<a class="btn btn-link icon-btn attachment-preview-open-link"
+						<a class="es-button attachment-preview-open-link"
+							data-variant="ghost" data-icon-button="true"
 							href="${escaped_file_url}" target="_blank" rel="noopener noreferrer"
 							title="${__("Open file in new tab")}"
+							aria-label="${__("Open file in new tab")}"
 						>
-							${frappe.utils.icon("arrow-up-right", "sm")}
+							${frappe.utils.icon("arrow-up-right", "sm", "", "", "", true)}
 						</a>
-						<button class="btn btn-link icon-btn attachment-preview-copy-link"
-							type="button"
-							data-file-url="${escaped_absolute_file_url}"
-							title="${__("Copy file URL to clipboard")}"
-							aria-label="${__("Copy file URL to clipboard")}"
-						>
-							${frappe.utils.icon("copy", "sm")}
-						</button>
-						<button class="btn btn-link icon-btn attachment-preview-close" type="button" title="${__(
-							"Close"
-						)}">
-							${frappe.utils.icon("x", "sm")}
-						</button>
+						${frappe.ui.button.html({
+							icon: "copy",
+							variant: "ghost",
+							title: __("Copy file URL to clipboard"),
+							css_class: "attachment-preview-copy-link",
+							// raw url: button.html escapes attr values itself
+							attrs: { "data-file-url": this.get_absolute_file_url(file_url) },
+						})}
+						${frappe.ui.button.html({
+							icon: "x",
+							variant: "ghost",
+							title: __("Close"),
+							css_class: "attachment-preview-close",
+						})}
 					</div>
 				</div>
 				<div class="attachment-preview-body">
@@ -311,9 +311,9 @@ frappe.ui.form.Attachments = class Attachments {
 	) {
 		return `<div class="attachment-preview-unavailable">
 			<div class="text-muted">${frappe.utils.escape_html(message)}</div>
-			<a class="btn btn-default btn-sm" href="${file_url}" target="_blank" rel="noopener noreferrer">
-				<span>${__("Open file")}</span>
-				${frappe.utils.icon("arrow-up-right", "xs", "", "", "ml-1")}
+			<a class="es-button" href="${file_url}" target="_blank" rel="noopener noreferrer">
+				<span class="es-button__label">${__("Open file")}</span>
+				${frappe.utils.icon("arrow-up-right", "sm", "", "", "", true)}
 			</a>
 		</div>`;
 	}

@@ -94,9 +94,12 @@
 				{%= frappe.utils.icon("users") %}
 				<span class="ellipsis">{%= __("Assign") %}</span>
 			</span>
-			<button class="add-assignment-btn btn btn-link icon-btn">
-				<svg class="icon icon-sm"><use href="#icon-plus"></use></svg>
-			</button>
+			{%= frappe.ui.button.html({
+				icon: "plus",
+				variant: "ghost",
+				title: __("Assign"),
+				css_class: "add-assignment-btn",
+			}) %}
 		</span>
 		<div class="assignments"></div>
 	</div>
@@ -110,9 +113,12 @@
 					{%= __("Attachments") %}
 				</a>
 			</span>
-			<button class="add-attachment-btn btn btn-link icon-btn">
-				<svg class="icon icon-sm"><use href="#icon-plus"></use></svg>
-			</button>
+			{%= frappe.ui.button.html({
+				icon: "plus",
+				variant: "ghost",
+				title: __("Add attachment"),
+				css_class: "add-attachment-btn",
+			}) %}
 		</span>
 	</div>
 	<a class="show-all-btn hidden" href="">
@@ -138,9 +144,12 @@
 				{%= frappe.utils.icon("share-2") %}
 				<span class="ellipsis">{%= __("Share") %}</span>
 			</span>
-			<button class="share-doc-btn btn btn-link icon-btn">
-				<svg class="icon icon-sm"><use href="#icon-plus"></use></svg>
-			</button>
+			{%= frappe.ui.button.html({
+				icon: "plus",
+				variant: "ghost",
+				title: __("Share"),
+				css_class: "share-doc-btn",
+			}) %}
 		</span>
 		<div class="shares"></div>
 	</div>

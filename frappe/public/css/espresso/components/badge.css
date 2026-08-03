@@ -132,6 +132,12 @@
   justify-content: center;
 }
 
+/* slot icons size to the affix, whatever size class they carry themselves */
+.es-badge__affix>svg {
+  width: 100%;
+  height: 100%;
+}
+
 .es-badge[data-size="lg"]>svg,
 .es-badge[data-size="lg"] .es-badge__affix {
   width: calc(var(--spacing) * 3);
