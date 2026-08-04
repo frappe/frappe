@@ -1,5 +1,5 @@
 <template>
-	<div class="flex select-none flex-col pb-16" v-show="filteredSections?.length">
+	<div class="flex select-none flex-col pb-16" v-if="filteredSections.length">
 		<EmptyState v-if="mixedTypeSelection" message="Select blocks of the same component to edit properties" />
 		<EmptyState v-else-if="!block?.componentName" message="Select a block to edit properties" />
 		<div v-else class="flex flex-col gap-3">
