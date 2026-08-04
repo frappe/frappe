@@ -224,15 +224,16 @@
 
 		<!-- ── Layers ─────────────────────────────────────────── -->
 		<div v-else-if="activeTab === 'layers'" class="pfb-tab-body pfb-tree" role="tree">
-			<div v-if="!layout || !layout.sections.length" class="pfb-empty">
+			<div v-if="!layout" class="pfb-empty">
 				{{ __("No sections yet. Add sections to the canvas.") }}
 			</div>
 			<draggable
 				v-else
-				v-model="layout.sections"
+				v-model="tree_sections"
 				group="pfb-tree-sections"
 				handle=".pfb-drag-handle"
 				item-key="id"
+				:move="(e) => !!e.related?.querySelector('.pfb-drag-handle')"
 				v-bind="DRAG_OPTIONS"
 				@start="setDragging(true)"
 				@end="setDragging(false)"
@@ -240,10 +241,11 @@
 				<template #item="{ element: section }">
 					<div class="pfb-tree-node">
 						<div
-							class="pfb-tree-row pfb-drag-handle"
+							class="pfb-tree-row"
 							@mouseenter="store.hovered_section.value = section"
 							@mouseleave="store.hovered_section.value = null"
 							:class="{
+								'pfb-drag-handle': !zone_of(section),
 								active: store.selected_sections.value.includes(section),
 								'pfb-tree-hover': store.hovered_node.value === section,
 							}"
@@ -266,7 +268,7 @@
 								v-html="frappe.utils.icon('rectangle-horizontal', 'sm')"
 							></span>
 							<span class="pfb-tree-label">
-								{{ section.label || __("Untitled section") }}
+								{{ section.label || zone_of(section) || __("Untitled section") }}
 							</span>
 						</div>
 						<div v-if="!is_collapsed(section)" class="pfb-tree-children">
@@ -373,6 +375,9 @@
 					</div>
 				</template>
 			</draggable>
+			<div v-if="layout && !layout.sections.length" class="pfb-empty">
+				{{ __("No sections yet. Add sections to the canvas.") }}
+			</div>
 		</div>
 	</div>
 </template>
@@ -608,6 +613,20 @@ const FIELD_ICONS = {
 };
 function field_icon(f) {
 	return FIELD_ICONS[f.fieldtype] || "type";
+}
+
+// the zones are sections too, so the tree lists them alongside the body ones —
+// only their order is fixed, since a header can't become a body section
+let tree_sections = computed({
+	get: () =>
+		[layout.value.header, ...layout.value.sections, layout.value.footer].filter(Boolean),
+	set: (v) => (layout.value.sections = v.filter((s) => !zone_of(s))),
+});
+
+function zone_of(section) {
+	if (section && section === layout.value?.header) return __("Header");
+	if (section && section === layout.value?.footer) return __("Footer");
+	return "";
 }
 
 let collapsed_nodes = ref(new Set());
