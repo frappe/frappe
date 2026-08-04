@@ -257,6 +257,7 @@ const FIELD_PLUCK_KEYS = [
 	"custom",
 	"image_url",
 	"width",
+	"height",
 	"barcode_field",
 	"barcode_value",
 	"barcode_format",
