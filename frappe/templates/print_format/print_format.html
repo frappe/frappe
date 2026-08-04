@@ -40,7 +40,7 @@
 	{%- if ns_h.has_fields -%}
 	{%- set col_gap = (layout.header.gap if layout.header.gap is defined and layout.header.gap != None else 20)|string + 'px' -%}
 	<div class="section document-header-content">
-	<div class="section-columns row" style="gap:{{ col_gap }}">
+	<div class="section-columns row{{ ' row-col-' + layout.header.justify if layout.header.justify else '' }}" style="gap:{{ col_gap }}">
 	{%- for column in layout.header.columns %}
 	<div class="column col"{% if column.width %} style="flex: {{ column.width|float }} 1 0%"{% endif %}>
 	{%- for df in column.fields %}{{ macros.render_field(df, doc) }}{%- endfor %}
@@ -153,7 +153,7 @@
 	{%- if ns_f.has_fields -%}
 	{%- set col_gap_f = (layout.footer.gap if layout.footer.gap is defined and layout.footer.gap != None else 20)|string + 'px' -%}
 	<div class="section document-footer-content">
-	<div class="section-columns row" style="gap:{{ col_gap_f }}">
+	<div class="section-columns row{{ ' row-col-' + layout.footer.justify if layout.footer.justify else '' }}" style="gap:{{ col_gap_f }}">
 	{%- for column in layout.footer.columns %}
 	<div class="column col"{% if column.width %} style="flex: {{ column.width|float }} 1 0%"{% endif %}>
 	{%- for df in column.fields %}{{ macros.render_field(df, doc) }}{%- endfor %}
