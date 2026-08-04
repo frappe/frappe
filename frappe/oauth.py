@@ -131,11 +131,13 @@ class OAuthWebRequestValidator(RequestValidator):
 		elif client.token_endpoint_auth_method == "None":
 			if basic_credentials or request.client_secret:
 				return False
-			client_secret = None
+			request.client_id = client.client_id
+			request.client = client.as_dict()
+			return True
 		else:
 			return False
 
-		if client_secret is not None and not hmac.compare_digest(client_secret, client.client_secret):
+		if not client_secret or not hmac.compare_digest(client_secret, client.client_secret):
 			return False
 
 		request.client_id = client.client_id
@@ -351,17 +353,16 @@ class OAuthWebRequestValidator(RequestValidator):
 		- Refresh Token Grant
 		"""
 
-		otoken = frappe.get_doc(
-			"OAuth Bearer Token",
-			{"refresh_token": get_oauth_token_hash(refresh_token), "status": "Active"},
-		)
-
-		if not otoken:
+		try:
+			otoken = frappe.get_doc(
+				"OAuth Bearer Token",
+				{"refresh_token": get_oauth_token_hash(refresh_token), "status": "Active"},
+			)
+		except frappe.DoesNotExistError:
 			return False
-		else:
-			# Set request.user to the user associated with the refresh token
-			request.user = otoken.user
-			return True
+
+		request.user = otoken.user
+		return True
 
 	# OpenID Connect
 

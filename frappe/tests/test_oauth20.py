@@ -159,6 +159,14 @@ class TestOAuth20(FrappeRequestTestCase):
 		)
 		self.assertTrue(bearer_token.get("access_token"))
 
+	def test_client_secret_post_requires_secret(self):
+		self.oauth_client.token_endpoint_auth_method = "Client Secret Post"
+		self.oauth_client.save()
+		frappe.db.commit()
+
+		token_response = self.get_bearer_token(headers=self.form_header)
+		self.assertEqual(token_response["error"], "invalid_client")
+
 	def test_public_client_authentication(self):
 		self.oauth_client.token_endpoint_auth_method = "None"
 		self.oauth_client.save()
