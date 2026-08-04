@@ -1,13 +1,12 @@
-"""Modal pickers for `/model` and `/effort`.
+"""Modal pickers for `/model`, `/resume`, and `/effort`.
 
-Both dismiss with a string result or `None` for cancel; the calling command owns
-the API call, so a picker never touches the controller. The model picker's Enter
-with nothing highlighted submits the raw filter text — the free-text escape hatch
-for models the catalog missed.
+All dismiss with a string result or `None` for cancel; the calling command owns
+the API call, so a picker never touches the controller.
 """
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import ClassVar
 
 from textual.app import ComposeResult
@@ -20,23 +19,24 @@ from textual.widgets.option_list import Option
 from flow.events import ReasoningEffort
 
 
-class ModelPicker(ModalScreen[str | None]):
-	"""Filterable list over the daemon's model catalog.
+class FilterPicker(ModalScreen[str | None]):
+	"""A filter input over an option list; subclasses supply the options.
 
-	Enter selects the highlighted option; when the filter matches nothing, Enter
-	submits the filter text verbatim. Escape cancels.
+	Enter selects the highlighted option and dismisses with its id; with nothing
+	highlighted it cancels, as does escape.
 	"""
 
 	BINDINGS: ClassVar = [Binding("escape", "cancel", "cancel")]
+	placeholder: ClassVar[str] = "filter"
 
-	def __init__(self, models: list[dict]):
-		super().__init__()
-		self._models = models
+	def options(self, needle: str) -> Iterable[Option]:
+		"""The options whose label matches the lower-cased filter text."""
+		raise NotImplementedError
 
 	def compose(self) -> ComposeResult:
 		with Vertical(classes="picker"):
-			yield Input(placeholder="filter models — free text sends as-is", id="model-filter")
-			yield OptionList(id="model-options")
+			yield Input(placeholder=self.placeholder)
+			yield OptionList()
 
 	def on_mount(self) -> None:
 		self._refilter("")
@@ -45,12 +45,7 @@ class ModelPicker(ModalScreen[str | None]):
 	def _refilter(self, needle: str) -> None:
 		options = self.query_one(OptionList)
 		options.clear_options()
-		needle = needle.lower()
-		options.add_options(
-			Option(f"{model['name']}  ·  {model['provider']}", id=model["name"])
-			for model in self._models
-			if needle in model["name"].lower()
-		)
+		options.add_options(self.options(needle.lower()))
 		if options.option_count:
 			options.highlighted = 0
 
@@ -77,13 +72,49 @@ class ModelPicker(ModalScreen[str | None]):
 		if options.highlighted is not None:
 			self.dismiss(options.get_option_at_index(options.highlighted).id)
 		else:
-			self.dismiss(message.value.strip() or None)
+			self.dismiss(None)
 
 	def on_option_list_option_selected(self, message: OptionList.OptionSelected) -> None:
 		self.dismiss(message.option.id)
 
 	def action_cancel(self) -> None:
 		self.dismiss(None)
+
+
+class ModelPicker(FilterPicker):
+	"""Filterable list over the daemon's model catalog."""
+
+	placeholder = "filter models"
+
+	def __init__(self, models: list[dict]):
+		super().__init__()
+		self._models = models
+
+	def options(self, needle: str) -> Iterable[Option]:
+		return (
+			Option(f"{model['name']}  ·  {model['provider']}", id=model["name"])
+			for model in self._models
+			if needle in model["name"].lower()
+		)
+
+
+class SessionPicker(FilterPicker):
+	"""Filterable list over the daemon's sessions; dismisses with the full session id."""
+
+	placeholder = "filter sessions"
+
+	def __init__(self, sessions: list[dict], current: str | None):
+		super().__init__()
+		self._sessions = sessions
+		self._current = current
+
+	def options(self, needle: str) -> Iterable[Option]:
+		for info in self._sessions:
+			label = f"{info['session_id'][:8]}  {info['state']:<7}  {info['model']}  {info['cwd']}"
+			if info["session_id"] == self._current:
+				label += "  ← current"
+			if needle in label.lower():
+				yield Option(label, id=info["session_id"])
 
 
 EFFORT_CHOICES: tuple[tuple[str, str], ...] = (

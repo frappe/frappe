@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 
 from flow.server import create_app
 from flow.session.config import SessionConfig
-from flow.session.prompt import DEFAULT_PREAMBLE, build_system_prompt
+from flow.session.prompt import DEFAULT_INTRO, build_system_prompt
 from flow.session.store import SessionStore
 
 
@@ -14,10 +14,31 @@ def _home(tmp_path):
 	return home
 
 
-def test_default_compose_is_the_preamble(tmp_path):
+def test_default_compose_shape(tmp_path):
 	home = _home(tmp_path)
 	config = SessionConfig(cwd=str(tmp_path / "work"))
-	assert build_system_prompt(config, home=str(home)) == DEFAULT_PREAMBLE
+	prompt = build_system_prompt(config, home=str(home))
+	assert prompt.startswith(DEFAULT_INTRO)
+	assert "Available tools:" in prompt
+	assert "- bash: " in prompt
+	assert "- read_file: " in prompt
+	assert "Guidelines:" in prompt
+	assert "- Be concise in your responses" in prompt
+	assert prompt.endswith(f"Current working directory: {tmp_path / 'work'}")
+	assert "<project_context>" not in prompt
+
+
+def test_tools_list_follows_config(tmp_path):
+	home = _home(tmp_path)
+	config = SessionConfig(cwd=str(tmp_path), tools=["read_file", "grep"])
+	prompt = build_system_prompt(config, home=str(home))
+	assert "- read_file: " in prompt
+	assert "- grep: " in prompt
+	assert "- bash: " not in prompt
+	assert "- edit: " not in prompt
+	# guidelines follow the active tools too
+	assert "Use read_file to examine files" in prompt
+	assert "Use write only" not in prompt
 
 
 def test_global_agents_md_included_with_provenance(tmp_path):
@@ -25,8 +46,9 @@ def test_global_agents_md_included_with_provenance(tmp_path):
 	(home / "AGENTS.md").write_text("always use tabs")
 	config = SessionConfig(cwd=str(tmp_path / "work"))
 	prompt = build_system_prompt(config, home=str(home))
-	assert prompt.startswith(DEFAULT_PREAMBLE)
-	assert f"# Global instructions ({home / 'AGENTS.md'})" in prompt
+	assert prompt.startswith(DEFAULT_INTRO)
+	assert "<project_context>" in prompt
+	assert f'<project_instructions path="{home / "AGENTS.md"}">' in prompt
 	assert "always use tabs" in prompt
 
 
@@ -43,8 +65,8 @@ def test_project_chain_outermost_first(tmp_path):
 	prompt = build_system_prompt(config, home=str(home))
 	order = [prompt.index(marker) for marker in ("global rules", "repo rules", "sub rules")]
 	assert order == sorted(order)
-	assert f"# Project instructions ({repo / 'AGENTS.md'})" in prompt
-	assert f"# Project instructions ({sub / 'AGENTS.md'})" in prompt
+	assert f'<project_instructions path="{repo / "AGENTS.md"}">' in prompt
+	assert f'<project_instructions path="{sub / "AGENTS.md"}">' in prompt
 
 
 def test_walk_stops_at_git_root(tmp_path):
@@ -67,7 +89,7 @@ def test_cwd_at_home_reads_agents_md_once(tmp_path):
 	config = SessionConfig(cwd=str(home))
 	prompt = build_system_prompt(config, home=str(home))
 	assert prompt.count("home rules") == 1
-	assert "# Project instructions" not in prompt
+	assert prompt.count("<project_instructions") == 1
 
 
 def test_git_file_marks_a_worktree_root(tmp_path):
@@ -87,7 +109,8 @@ def test_empty_and_missing_agents_md_are_skipped(tmp_path):
 	home = _home(tmp_path)
 	(home / "AGENTS.md").write_text("   \n\n")
 	config = SessionConfig(cwd=str(tmp_path / "nowhere"))
-	assert build_system_prompt(config, home=str(home)) == DEFAULT_PREAMBLE
+	prompt = build_system_prompt(config, home=str(home))
+	assert "<project_context>" not in prompt
 
 
 def test_preamble_override_and_suffix(tmp_path):
@@ -96,13 +119,15 @@ def test_preamble_override_and_suffix(tmp_path):
 	config = SessionConfig(
 		cwd=str(tmp_path),
 		system_preamble="short preamble",
-		system_suffix="client notes at the end",
+		system_suffix="client notes",
 	)
 	prompt = build_system_prompt(config, home=str(home))
 	assert prompt.startswith("short preamble")
-	assert DEFAULT_PREAMBLE not in prompt
-	assert prompt.endswith("client notes at the end")
-	assert "global rules" in prompt
+	assert DEFAULT_INTRO not in prompt
+	assert "Available tools:" not in prompt
+	# suffix comes before the context block and cwd trailer, like pi's append prompt
+	assert prompt.index("client notes") < prompt.index("global rules")
+	assert prompt.endswith(f"Current working directory: {tmp_path}")
 
 
 def test_verbatim_system_prompt_skips_composition(tmp_path):
@@ -142,7 +167,7 @@ def test_server_reports_composed_prompt(tmp_path, monkeypatch):
 	c = TestClient(create_app(SessionStore(str(tmp_path / "data"))))
 	created = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()
 	prompt = created["config"]["system_prompt"]
-	assert prompt.startswith(DEFAULT_PREAMBLE)
+	assert prompt.startswith(DEFAULT_INTRO)
 	assert "global rules" in prompt
 	got = c.get(f"/sessions/{created['session_id']}").json()
 	assert got["config"]["system_prompt"] == prompt

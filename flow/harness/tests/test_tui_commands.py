@@ -1,7 +1,7 @@
 """Phase 8: command registry, slash dispatch from the composer, and the palette.
 
 Registry parsing is plain unit tests; dispatch and the palette run under the pilot
-with a fake controller. One live-server test covers `/sessions` switching end to
+with a fake controller. One live-server test covers `/resume` switching end to
 end — stream teardown, state reset, history replay on the new session.
 """
 
@@ -107,7 +107,7 @@ def test_registry_has_the_initial_command_set():
 		"abort",
 		"rewind",
 		"new",
-		"sessions",
+		"resume",
 		"editor",
 		"help",
 		"quit",
@@ -200,23 +200,19 @@ async def test_rewind_default_with_no_user_message_errors():
 		assert any("nothing to rewind" in msg for msg, _ in _notifications(pilot.app))
 
 
-async def test_sessions_lists_and_switches_by_prefix():
+async def test_resume_switches_by_prefix():
 	fake = FakeController()
 	fake.sessions = [
 		{"session_id": "fake-session-id", "state": "idle", "model": "mock", "latest_seq": 4, "cwd": "/a"},
 		{"session_id": "0ther-session-id", "state": "idle", "model": "mock", "latest_seq": 9, "cwd": "/b"},
 	]
 	async with FlowApp(fake).run_test() as pilot:
-		await _slash(pilot, "/sessions")
-		listing = next(msg for msg, _ in _notifications(pilot.app))
-		assert "fake-ses" in listing and "0ther-se" in listing and "current" in listing
-
-		await _slash(pilot, "/sessions 0ther")
+		await _slash(pilot, "/resume 0ther")
 		assert fake.calls == [("switch_session", "0ther-session-id")]
 
-		await _slash(pilot, "/sessions missing")
+		await _slash(pilot, "/resume missing")
 		assert any("no session matches" in msg for msg, _ in _notifications(pilot.app))
-		await _slash(pilot, "/sessions fake")
+		await _slash(pilot, "/resume fake")
 		assert any("already on that session" in msg for msg, _ in _notifications(pilot.app))
 		assert fake.calls == [("switch_session", "0ther-session-id")]
 
@@ -285,7 +281,7 @@ async def _live_server(tmp_path):
 		await asyncio.wait_for(task, timeout=5)
 
 
-async def test_integration_sessions_switch_replays_other_session(tmp_path):
+async def test_integration_resume_switch_replays_other_session(tmp_path):
 	async with _live_server(tmp_path) as url:
 		config = SessionConfig(model="mock", cwd=str(tmp_path), auto_approve=True)
 		async with FlowClient(url) as setup:
@@ -300,7 +296,7 @@ async def test_integration_sessions_switch_replays_other_session(tmp_path):
 			first_sid = controller.session_id
 			assert first_sid != other_sid
 
-			await _slash(pilot, f"/sessions {other_sid[:8]}")
+			await _slash(pilot, f"/resume {other_sid[:8]}")
 			conversation = pilot.app.query_one(ConversationView)
 
 			def replayed():

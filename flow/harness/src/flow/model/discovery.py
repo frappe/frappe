@@ -33,7 +33,6 @@ MODEL_ENDPOINTS = {
 	"mistral": "https://api.mistral.ai/v1/models",
 	"cerebras": "https://api.cerebras.ai/v1/models",
 }
-DEFAULT_CODEX_CLIENT_VERSION = "0.145.0"
 
 
 @dataclass(frozen=True)
@@ -143,6 +142,8 @@ async def _codex_models(
 
 def _codex_client_version() -> str:
 	"""The backend gates its catalog by Codex protocol version, not this package version."""
+	from flow.model.providers.codex import DEFAULT_CODEX_CLIENT_VERSION
+
 	configured = os.environ.get("FLOW_CODEX_CLIENT_VERSION")
 	if configured:
 		return configured

@@ -7,7 +7,10 @@ from flow.tools.builtins.common import resolve, truncate
 from flow.tools.tool import ToolContext, ToolResult, tool
 
 
-@tool
+@tool(
+	prompt_snippet="Read file contents",
+	prompt_guidelines=("Use read_file to examine files instead of cat or sed.",),
+)
 async def read_file(
 	path: str,
 	offset: Annotated[int | None, "1-indexed line to start reading from"] = None,

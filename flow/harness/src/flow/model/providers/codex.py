@@ -68,7 +68,7 @@ SCOPE = "openid profile email offline_access"
 ORIGINATOR = "flow"
 API_BASE = "https://chatgpt.com/backend-api"
 DEFAULT_EXPIRES_S = 3600
-MODEL_CATALOG_CLIENT_VERSION = "0.144.3"
+DEFAULT_CODEX_CLIENT_VERSION = "0.145.0"
 MODEL_CATALOG_TIMEOUT_SECONDS = 5.0
 DEFAULT_CODEX_MAX_OUTPUT_TOKENS = 128_000
 DEFAULT_AUTO_COMPACT_PERCENT = 90
@@ -249,7 +249,7 @@ class CodexModel(Model):
 			response = await await_with_cancellation(
 				client.get(
 					f"{self._api_base.rstrip('/')}/codex/models",
-					params={"client_version": MODEL_CATALOG_CLIENT_VERSION},
+					params={"client_version": DEFAULT_CODEX_CLIENT_VERSION},
 					headers=self._model_catalog_headers(),
 					timeout=MODEL_CATALOG_TIMEOUT_SECONDS,
 				),
@@ -347,6 +347,9 @@ class CodexModel(Model):
 			"input": _responses_input(request.messages, self),
 			"text": {"verbosity": "low"},
 			"include": ["reasoning.encrypted_content"],
+			# codex reasons even without an effort setting; without this the summary
+			# text never streams and thinking blocks come back empty
+			"reasoning": {"summary": "auto"},
 			"tool_choice": "auto",
 			"parallel_tool_calls": True,
 			**self._params,

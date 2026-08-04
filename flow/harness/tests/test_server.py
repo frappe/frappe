@@ -850,16 +850,8 @@ def test_list_sessions_includes_cold_on_disk_sessions(tmp_path):
 			"latest_seq": latest_seq,
 			"cwd": str(tmp_path / "a"),
 		}
-		assert rows[fresh] == {
-			"session_id": fresh,
-			"state": "idle",
-			"model": "mock/v2",
-			"latest_seq": 0,
-			"cwd": str(tmp_path / "b"),
-		}
-	# newest activity first: only `used` has log activity
-	listing = _client(tmp_path).get("/sessions").json()["sessions"]
-	assert [row["session_id"] for row in listing] == [used, fresh]
+		# `fresh` has no durable entries — nothing to resume, so the listing omits it
+		assert fresh not in rows
 
 
 def test_list_sessions_reports_a_cold_paused_session(tmp_path, monkeypatch):

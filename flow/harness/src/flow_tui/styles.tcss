@@ -31,10 +31,6 @@ EntryView Collapsible Contents {
 	color: $text-muted;
 }
 
-.entry--tool_result {
-	color: $text-muted;
-}
-
 PartialAssistantView {
 	margin-bottom: 1;
 }
@@ -50,7 +46,29 @@ PartialAssistantView {
 	display: block;
 }
 
-ModelPicker, EffortPicker {
+#brewing {
+	display: none;
+	height: 1;
+	padding: 0 1;
+	color: $text-muted;
+}
+
+#brewing.visible {
+	display: block;
+}
+
+#brewing Spinner {
+	width: 2;
+	height: 1;
+	color: $primary;
+}
+
+#brewing Static {
+	width: auto;
+	height: 1;
+}
+
+FilterPicker, EffortPicker {
 	align: center middle;
 	background: $background 60%;
 }

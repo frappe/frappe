@@ -9,7 +9,11 @@ from flow.tools.builtins.common import kill_group, spill, truncate
 from flow.tools.tool import ToolContext, ToolResult, tool
 
 
-@tool(requires_confirmation=True)
+@tool(
+	requires_confirmation=True,
+	prompt_snippet="Execute bash commands (git, tests, build steps, etc.)",
+	prompt_guidelines=("Use bash for file operations like ls, find, and mv.",),
+)
 async def bash(
 	command: str,
 	timeout: Annotated[float | None, "maximum seconds to run (default 120)"] = None,

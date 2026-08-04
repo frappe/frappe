@@ -18,6 +18,7 @@ from typing import ClassVar, Protocol
 
 from textual.app import App, ComposeResult, SuspendNotSupported
 from textual.binding import Binding
+from textual.containers import Horizontal
 from textual.widgets import Static
 
 from flow.config import UDS_URL
@@ -39,6 +40,7 @@ from flow_tui.commands import FlowCommandProvider, dispatch
 from flow_tui.controller import Controller
 from flow_tui.widgets.composer import Composer
 from flow_tui.widgets.conversation import ConversationView
+from flow_tui.widgets.messages import SPINNER_FRAMES
 from flow_tui.widgets.status_bar import StatusBar
 
 TUI_SYSTEM_SUFFIX = (
@@ -46,6 +48,19 @@ TUI_SYSTEM_SUFFIX = (
 	"The user talks to you through the flow terminal UI. Keep answers terminal-friendly: "
 	"plain text and fenced code blocks; no HTML."
 )
+
+
+class Spinner(Static):
+	def __init__(self) -> None:
+		super().__init__(SPINNER_FRAMES[0])
+		self._frame = 0
+
+	def on_mount(self) -> None:
+		self.set_interval(0.08, self._advance)
+
+	def _advance(self) -> None:
+		self._frame = (self._frame + 1) % len(SPINNER_FRAMES)
+		self.update(SPINNER_FRAMES[self._frame])
 
 
 def resolve_editor() -> str | None:
@@ -103,8 +118,10 @@ class FlowApp(App):
 	COMMAND_PALETTE_BINDING: ClassVar[str] = "ctrl+p"
 	BINDINGS: ClassVar = [
 		Binding("ctrl+c", "interrupt", "abort/quit", priority=True),
-		Binding("escape", "interrupt", "abort", show=False),
+		Binding("ctrl+d", "quit_app", "quit", priority=True),
+		Binding("escape", "abort", "abort", show=False),
 		Binding("ctrl+t", "toggle_thinking", "thinking", priority=True),
+		Binding("ctrl+o", "toggle_tools", "tool output", priority=True),
 	]
 
 	def __init__(
@@ -121,10 +138,19 @@ class FlowApp(App):
 	def compose(self) -> ComposeResult:
 		yield ConversationView(id="conversation")
 		yield Static(id="error-banner")
+		yield Horizontal(
+			Spinner(),
+			Static(" Brewing..."),
+			id="brewing",
+		)
 		yield Composer(id="composer")
 		yield StatusBar(id="status")
 
 	def on_mount(self) -> None:
+		if self._driver is not None:
+			# Terminals title the window from the foreground process name, which is the
+			# python interpreter behind the `flow` console script; set it explicitly.
+			self._driver.write("\x1b]0;flow\x07")
 		self.controller.on_changes = self.apply_changes
 		self.query_one(Composer).focus()
 		if self.fatal_check is not None:
@@ -173,6 +199,8 @@ class FlowApp(App):
 		self.query_one(StatusBar).refresh_from(
 			state, session_id=self.controller.session_id, queued=len(self.controller.queued)
 		)
+		self.query_one("#brewing").set_class(state.running, "visible")
+		self.query_one(ConversationView).set_running(state.running)
 		banner = self.query_one("#error-banner", Static)
 		if state.last_error is not None:
 			banner.update(f"✗ {state.last_error.message}")
@@ -224,13 +252,26 @@ class FlowApp(App):
 		conversation = self.query_one(ConversationView)
 		conversation.set_show_thinking(not conversation.show_thinking)
 
+	def action_toggle_tools(self) -> None:
+		conversation = self.query_one(ConversationView)
+		conversation.set_expand_tools(not conversation.expand_tools)
+
 	def action_interrupt(self) -> None:
-		"""First ctrl+c/escape aborts the run; ctrl+c while idle quits."""
+		"""Ctrl+c aborts the run; ctrl+c while idle quits."""
+		if self.controller.state.running:
+			self.action_abort()
+		else:
+			self.exit()
+
+	def action_quit_app(self) -> None:
+		"""Ctrl+d quits like shell EOF, run or no run; teardown aborts and drains."""
+		self.exit()
+
+	def action_abort(self) -> None:
+		"""Escape aborts the run and does nothing while idle — it never quits."""
 		if self.controller.state.running:
 			self.run_worker(self.controller.abort(), exclusive=False)
 			self.notify("aborting…", severity="warning")
-		else:
-			self.exit()
 
 
 def run_app(

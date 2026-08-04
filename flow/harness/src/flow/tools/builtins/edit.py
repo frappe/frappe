@@ -14,7 +14,16 @@ class Replacement(BaseModel):
 	new: str = Field(description="replacement text")
 
 
-@tool(requires_confirmation=True)
+@tool(
+	requires_confirmation=True,
+	prompt_snippet="Make precise file edits with exact text replacement, including multiple disjoint edits in one call",
+	prompt_guidelines=(
+		"Use edit for precise changes (each edits[].old must match exactly once).",
+		"When changing multiple separate locations in one file, use one edit call with multiple entries in edits[] instead of multiple edit calls.",
+		"Each edits[].old is matched against the original file, not after earlier edits are applied. Do not emit overlapping edits; merge nearby changes into one edit.",
+		"Keep edits[].old as small as possible while still being unique in the file. Do not pad with large unchanged regions.",
+	),
+)
 async def edit(path: str, edits: list[Replacement], *, ctx: ToolContext) -> ToolResult:
 	"""Apply one or more exact-string replacements to a file. Each `old` must occur
 	exactly once in the original file, and edits must not overlap."""

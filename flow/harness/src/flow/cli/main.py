@@ -155,6 +155,8 @@ def _serve(args) -> None:
 		print(f"{GREEN}flow daemon{RESET} on {base_url}  {DIM}(data: {args.data_dir}){RESET}")
 		return
 
+	_warm_litellm()
+
 	import uvicorn
 
 	from flow.server import create_app
@@ -184,6 +186,24 @@ def _serve(args) -> None:
 	else:
 		banner(f"http://{args.host}:{args.port}")
 		uvicorn.run(app, host=args.host, port=args.port, log_level="warning")
+
+
+def _warm_litellm() -> None:
+	"""Import litellm off the event loop before it serves requests.
+
+	The first model call imports litellm lazily, ~2 s of CPU that would block the
+	event loop and hold back SSE delivery of the run's first events. Warming it in a
+	thread overlaps the cost with server startup instead.
+	"""
+	import threading
+
+	def _import() -> None:
+		try:
+			import litellm  # noqa: F401
+		except Exception:
+			pass  # the request path imports it again and reports the real error
+
+	threading.Thread(target=_import, name="litellm-warmup", daemon=True).start()
 
 
 def _is_loopback(host: str) -> bool:

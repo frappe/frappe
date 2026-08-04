@@ -11,6 +11,7 @@ from collections.abc import Callable
 from contextlib import asynccontextmanager
 
 import uvicorn
+from rich.console import Group
 from rich.syntax import Syntax
 from textual.widgets import Collapsible, Static
 
@@ -22,6 +23,7 @@ from flow.events import (
 	TextDelta,
 	ThinkingContent,
 	ThinkingDelta,
+	ToolCall,
 	ToolResult,
 	Usage,
 	UserMessage,
@@ -30,13 +32,13 @@ from flow.model.credentials import CredentialStore
 from flow.server import create_app
 from flow.session.config import SessionConfig
 from flow.session.store import SessionStore
-from flow_tui.app import FlowApp
+from flow_tui.app import SPINNER_FRAMES, FlowApp, Spinner
 from flow_tui.client.api import FlowClient
 from flow_tui.client.state import Change, ConversationState, StatusChanged
 from flow_tui.controller import Controller
 from flow_tui.widgets.composer import Composer
 from flow_tui.widgets.conversation import ConversationView
-from flow_tui.widgets.messages import EntryView, PartialAssistantView, ThinkingBlock
+from flow_tui.widgets.messages import EntryView, PartialAssistantView, ThinkingBlock, ToolCallView
 from flow_tui.widgets.status_bar import StatusBar
 
 
@@ -89,6 +91,12 @@ def _widget_text(widget) -> str:
 def _render_str(static: Static) -> str:
 	rendered = static.render()
 	rendered = getattr(rendered, "_renderable", rendered)  # unwrap textual's RichVisual
+	return _renderable_str(rendered)
+
+
+def _renderable_str(rendered) -> str:
+	if isinstance(rendered, Group):
+		return "\n".join(_renderable_str(part) for part in rendered.renderables)
 	return rendered.code if isinstance(rendered, Syntax) else str(rendered)
 
 
@@ -125,6 +133,39 @@ async def test_tool_result_renders_preview():
 		assert "bash" in text and "line1" in text
 
 
+async def test_tool_result_merges_into_call_and_ctrl_o_expands():
+	fake = FakeController()
+	async with FlowApp(fake).run_test() as pilot:
+		fake.feed(RunStarted(run_id="r1", seq=1))
+		fake.feed(
+			AssistantMessage(content=[ToolCall(id="t1", name="bash", arguments={"command": "ls"})], seq=2)
+		)
+		await pilot.pause()
+
+		conversation = pilot.app.query_one(ConversationView)
+		view = conversation.query_one(ToolCallView)
+		assert "$ ls" in _widget_text(view)  # per-tool one-liner, not a JSON dump
+
+		content = "\n".join(f"file{i}" for i in range(6))
+		fake.feed(
+			ToolResult(tool_call_id="t1", name="bash", content=content, details={"exit_code": 0}, seq=3)
+		)
+		await pilot.pause()
+
+		assert len(conversation.query(EntryView)) == 1  # result merged into the call, not appended
+		text = _widget_text(view)
+		assert "✓" in text and "[exit 0]" in text and "file0" in text
+		assert "file5" not in text and "+3 lines" in text  # collapsed preview
+
+		await pilot.press("ctrl+o")
+		await pilot.pause()
+		assert "file5" in _widget_text(view)
+
+		await pilot.press("ctrl+o")
+		await pilot.pause()
+		assert "file5" not in _widget_text(view)
+
+
 async def test_thinking_collapsed_by_default_and_redacted_stays_sealed():
 	fake = FakeController()
 	async with FlowApp(fake).run_test() as pilot:
@@ -144,7 +185,7 @@ async def test_thinking_collapsed_by_default_and_redacted_stays_sealed():
 		blocks = entry.query(ThinkingBlock)
 		assert len(blocks) == 1  # the redacted block is a sealed marker, not a collapsible
 		assert blocks.first().collapsed is True
-		assert blocks.first().title == "thinking · 12 chars"
+		assert blocks.first().title == "thinking"
 		text = _widget_text(entry)
 		assert "the answer" in text
 		assert "thinking · redacted" in text and "secret" not in text
@@ -164,7 +205,7 @@ async def test_ctrl_t_toggles_thinking_blocks_and_partial():
 		partial = pilot.app.query_one(PartialAssistantView)
 		assert block.collapsed is True
 		preview = _widget_text(partial)
-		assert "thinking · 8 chars" in preview and "hmm okay" not in preview and "reply" in preview
+		assert "thinking" in preview and "hmm okay" not in preview and "reply" in preview
 
 		await pilot.press("ctrl+t")
 		await pilot.pause()
@@ -186,7 +227,7 @@ async def test_new_entries_honor_thinking_toggle():
 		assert pilot.app.query_one(ThinkingBlock).collapsed is False
 
 
-async def test_bash_result_renders_badges_and_collapsed_output():
+async def test_bash_result_renders_status_suffix_and_collapsed_output():
 	fake = FakeController()
 	async with FlowApp(fake).run_test() as pilot:
 		fake.feed(
@@ -222,10 +263,9 @@ async def test_bash_result_renders_badges_and_collapsed_output():
 
 		entries = pilot.app.query_one(ConversationView).query(EntryView)
 		ok = _widget_text(entries.first())
-		assert "bash" in ok and "exit 0" in ok and "a.txt" in ok
-		assert entries.first().query(Collapsible).first().collapsed is True
+		assert "✓" in ok and "$ ls" in ok and "[exit 0, 0.01s]" in ok and "a.txt" in ok
 		failed = _widget_text(entries.last())
-		assert "exit 1" in failed and "truncated · 2000/90000 lines" in failed
+		assert "✗" in failed and "exit 1" in failed and "truncated · 2000/90000 lines" in failed
 
 
 async def test_edit_result_renders_highlighted_diff():
@@ -246,9 +286,10 @@ async def test_edit_result_renders_highlighted_diff():
 		entry = pilot.app.query_one(ConversationView).query(EntryView).last()
 		text = _widget_text(entry)
 		assert "edit" in text and "/proj/f.py" in text and "1 edit" in text and "+new line" in text
-		assert entry.query(Collapsible).first().collapsed is False  # diffs are worth seeing
-		rendered = [getattr(static.render(), "_renderable", None) for static in entry.query(Static)]
-		assert any(isinstance(r, Syntax) and r.lexer.name.lower() == "diff" for r in rendered)
+		rendered = entry.query_one(ToolCallView).render()
+		rendered = getattr(rendered, "_renderable", rendered)
+		assert isinstance(rendered, Group)  # diffs render by default, no expand needed
+		assert any(isinstance(r, Syntax) and r.lexer.name.lower() == "diff" for r in rendered.renderables)
 
 
 async def test_enter_submits_and_enter_while_running_steers():
@@ -284,6 +325,45 @@ async def test_escape_aborts_running_run():
 		await pilot.press("escape")
 		await pilot.pause()
 		assert ("abort",) in fake.calls
+
+
+async def test_escape_while_idle_does_not_exit():
+	fake = FakeController()
+	async with FlowApp(fake).run_test() as pilot:
+		await pilot.press("escape")
+		await pilot.pause()
+		assert fake.calls == []
+		assert pilot.app.is_running
+
+
+async def test_ctrl_d_exits():
+	fake = FakeController()
+	async with FlowApp(fake).run_test() as pilot:
+		await pilot.press("ctrl+d")
+		await pilot.pause()
+		assert not pilot.app.is_running
+
+
+async def test_brewing_spinner_tracks_running_state():
+	fake = FakeController()
+	async with FlowApp(fake).run_test() as pilot:
+		brewing = pilot.app.query_one("#brewing")
+		assert brewing.display is False
+		spinner = brewing.query_one(Spinner)
+		assert _widget_text(spinner) == SPINNER_FRAMES[0]
+		assert "Brewing..." in _widget_text(brewing)
+
+		await pilot.pause(0.1)
+		assert _widget_text(spinner) != SPINNER_FRAMES[0]
+
+		fake.feed(RunStarted(run_id="r1", seq=1))
+		fake.feed(TextDelta(text="still working"))
+		await pilot.pause()
+		assert brewing.display is True
+
+		fake.feed(RunEnded(seq=2))
+		await pilot.pause()
+		assert brewing.display is False
 
 
 async def test_status_bar_reflects_state():

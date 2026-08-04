@@ -273,6 +273,7 @@ async def test_streams_text_tools_and_usage():
 	assert captured["payload"]["instructions"] == "be useful"
 	assert captured["payload"]["tools"][0]["name"] == "bash"
 	assert "max_output_tokens" not in captured["payload"]
+	assert captured["payload"]["reasoning"] == {"summary": "auto"}
 	assert [event.type for event in events] == [
 		"text_delta",
 		"tool_call_started",

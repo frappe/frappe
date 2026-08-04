@@ -15,7 +15,7 @@ from flow.events import ModelChanged, ReasoningEffort
 from flow_tui.app import FlowApp
 from flow_tui.client.api import FlowAPIError
 from flow_tui.client.state import Change, ConversationState, StatusChanged
-from flow_tui.screens.pickers import EffortPicker, ModelPicker
+from flow_tui.screens.pickers import EffortPicker, ModelPicker, SessionPicker
 from flow_tui.widgets.composer import Composer
 from flow_tui.widgets.status_bar import StatusBar
 
@@ -35,6 +35,7 @@ class FakeController:
 		self.on_changes: Callable[[list[Change]], None] = lambda changes: None
 		self.calls = []
 		self.models = MODELS
+		self.sessions: list[dict] = []
 		self.errors: list[str] = []
 		self.set_model_error: FlowAPIError | None = None
 
@@ -70,7 +71,7 @@ class FakeController:
 		pass
 
 	async def list_sessions(self):
-		return []
+		return self.sessions
 
 	async def list_models(self):
 		return {"models": self.models, "errors": self.errors}
@@ -79,7 +80,7 @@ class FakeController:
 		return "new-session-id"
 
 	async def switch_session(self, sid: str):
-		pass
+		self.calls.append(("switch_session", sid))
 
 	def feed(self, event):
 		changes = self.state.apply(event)
@@ -136,7 +137,7 @@ async def test_model_picker_filter_narrows_options():
 		assert fake.calls == [("change_model", "codex/gpt-5")]
 
 
-async def test_model_picker_free_text_when_nothing_matches():
+async def test_model_picker_enter_with_no_match_cancels():
 	fake = FakeController()
 	async with FlowApp(fake).run_test() as pilot:
 		await _open_picker(pilot, "/model", ModelPicker)
@@ -146,7 +147,8 @@ async def test_model_picker_free_text_when_nothing_matches():
 
 		await pilot.press("enter")
 		await pilot.pause()
-		assert fake.calls == [("change_model", "openai/gpt-x")]
+		assert fake.calls == []
+		assert not isinstance(pilot.app.screen, ModelPicker)
 
 
 async def test_model_picker_escape_cancels():
@@ -159,7 +161,7 @@ async def test_model_picker_escape_cancels():
 		assert not isinstance(pilot.app.screen, ModelPicker)
 
 
-async def test_model_picker_empty_free_text_cancels():
+async def test_model_picker_empty_catalog_enter_cancels():
 	fake = FakeController()
 	fake.models = []
 	async with FlowApp(fake).run_test() as pilot:
@@ -177,6 +179,78 @@ async def test_slash_model_with_arg_skips_the_picker():
 		await _slash(pilot, "/model codex/gpt-5")
 		assert fake.calls == [("change_model", "codex/gpt-5")]
 		assert not isinstance(pilot.app.screen, ModelPicker)
+
+
+# --- session picker ----------------------------------------------------------
+
+SESSIONS = [
+	{"session_id": "fake-session-id", "state": "idle", "model": "mock", "latest_seq": 4, "cwd": "/a"},
+	{"session_id": "0ther-session-id", "state": "idle", "model": "codex/gpt-5", "latest_seq": 9, "cwd": "/b"},
+]
+
+
+async def test_session_picker_lists_sessions_and_switches():
+	fake = FakeController()
+	fake.sessions = SESSIONS
+	async with FlowApp(fake).run_test() as pilot:
+		await _open_picker(pilot, "/resume", SessionPicker)
+		options = pilot.app.screen.query_one(OptionList)
+		assert options.option_count == len(SESSIONS)
+		assert "current" in options.get_option_at_index(0).prompt
+
+		await pilot.press("down", "enter")
+		await pilot.pause()
+		assert fake.calls == [("switch_session", "0ther-session-id")]
+		assert not isinstance(pilot.app.screen, SessionPicker)
+
+
+async def test_session_picker_filter_narrows_options():
+	fake = FakeController()
+	fake.sessions = SESSIONS
+	async with FlowApp(fake).run_test() as pilot:
+		await _open_picker(pilot, "/resume", SessionPicker)
+		await pilot.press(*"codex")
+		await pilot.pause()
+		options = pilot.app.screen.query_one(OptionList)
+		assert options.option_count == 1
+
+		await pilot.press("enter")
+		await pilot.pause()
+		assert fake.calls == [("switch_session", "0ther-session-id")]
+
+
+async def test_session_picker_no_free_text_enter_cancels():
+	fake = FakeController()
+	fake.sessions = SESSIONS
+	async with FlowApp(fake).run_test() as pilot:
+		await _open_picker(pilot, "/resume", SessionPicker)
+		await pilot.press(*"nomatch")
+		await pilot.pause()
+		assert pilot.app.screen.query_one(OptionList).option_count == 0
+
+		await pilot.press("enter")
+		await pilot.pause()
+		assert fake.calls == []
+		assert not isinstance(pilot.app.screen, SessionPicker)
+
+
+async def test_session_picker_selecting_current_session_errors():
+	fake = FakeController()
+	fake.sessions = SESSIONS
+	async with FlowApp(fake).run_test() as pilot:
+		await _open_picker(pilot, "/resume", SessionPicker)
+		await pilot.press("enter")  # first option is the current session
+		await pilot.pause()
+		assert fake.calls == []
+		assert any("already on that session" in msg for msg, _ in _notifications(pilot.app))
+
+
+async def test_resume_with_no_sessions_errors():
+	fake = FakeController()
+	async with FlowApp(fake).run_test() as pilot:
+		await _slash(pilot, "/resume")
+		assert fake.calls == []
+		assert any("no sessions" in msg for msg, _ in _notifications(pilot.app))
 
 
 # --- effort picker -----------------------------------------------------------
