@@ -68,6 +68,9 @@ frappe.defaults = {
 		if (!$.isArray(d)) d = [d];
 		return d;
 	},
+	is_enabled: function (key) {
+		return cint(this.get_global_default(key)) === 1;
+	},
 	set_user_default_local: function (key, value) {
 		frappe.boot.user.defaults[key] = value;
 	},
@@ -118,7 +121,8 @@ frappe.defaults = {
 	},
 
 	update_user_permissions: function () {
-		const method = "frappe.core.doctype.user_permission.user_permission.get_user_permissions";
+		const method =
+			"frappe.core.doctype.user_permission.user_permission.get_current_user_permissions";
 		frappe.call(method).then((r) => {
 			if (r.message) {
 				this._user_permissions = Object.assign({}, r.message);

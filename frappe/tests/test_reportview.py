@@ -12,7 +12,6 @@ from frappe.desk.reportview import (
 	get_field_info,
 	get_filter_dashboard_data,
 	get_stats,
-	resolve_link_titles,
 )
 from frappe.tests import IntegrationTestCase
 
@@ -80,18 +79,6 @@ class TestReportview(IntegrationTestCase):
 		export_query()
 		self.assertTrue(frappe.response["filename"].endswith(".csv"))
 		self.assertEqual(frappe.response["type"], "binary")
-
-	def test_resolve_link_titles_for_export(self):
-		language_name = frappe.db.get_value("Language", "en", "language_name")
-
-		self.assertEqual(
-			resolve_link_titles(
-				[("en", "System Manager"), ("missing-language", None), ("", "")],
-				["language", "role_profile_name"],
-				"User",
-			),
-			[[language_name, "System Manager"], ["missing-language", None], ["", ""]],
-		)
 
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader

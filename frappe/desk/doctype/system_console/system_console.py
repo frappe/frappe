@@ -36,8 +36,6 @@ class SystemConsole(Document):
 				self.output = "\n".join(frappe.debug_log)
 			elif self.type == "SQL":
 				frappe.db.begin(read_only=True)
-				# Use json module directly to preserve key order.
-				frappe.as_json
 				self.output = json.dumps(read_sql(self.console, as_dict=1), default=json_handler)
 		except Exception:
 			self.commit = False

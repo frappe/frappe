@@ -1,10 +1,12 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
 
+import copy
 from typing import ClassVar
 
 import frappe
 from frappe import _
+from frappe.utils.data import cint
 from frappe.utils.jinja_globals import is_rtl
 
 
@@ -35,13 +37,25 @@ def download_pdf(
 	letterhead: str | None = None,
 	settings: str | dict | None = None,
 ):
-	from frappe.printing.doctype.print_format.classic_converter import get_default_print_format
-	from frappe.www.printview import validate_print
+	from frappe.printing.doctype.print_format.classic_converter import (
+		get_default_print_format,
+		uses_beta_renderer,
+	)
+	from frappe.www.printview import set_link_titles, validate_print
 
 	doc = frappe.get_doc(doctype, name)
 	validate_print(doc)
+	set_link_titles(doc)
 	if not print_format or print_format == "Standard":
 		print_format = get_default_print_format(doctype)
+	else:
+		pf_doc = frappe.get_doc("Print Format", print_format)
+		if not uses_beta_renderer(pf_doc):
+			# jinja formats have no layout for the generator — hand off to the
+			# legacy pipeline, which reads the format's template
+			from frappe.utils.print_format import download_pdf as download_jinja_pdf
+
+			return download_jinja_pdf(doctype, name, format=print_format, letterhead=letterhead)
 	generator = PrintFormatGenerator(print_format, doc, letterhead, settings=frappe.parse_json(settings))
 	pdf = generator.render_pdf()
 
@@ -205,12 +219,15 @@ def get_html(
 	style=None,
 	trigger_print=False,
 	settings=None,
+	no_letterhead=None,
 ):
 	from frappe.www.printview import validate_print
 
 	doc = frappe.get_doc(doctype, name)
 	validate_print(doc)
-	generator = PrintFormatGenerator(print_format, doc, letterhead, style=style, settings=settings)
+	generator = PrintFormatGenerator(
+		print_format, doc, letterhead, style=style, settings=settings, no_letterhead=no_letterhead
+	)
 	return generator.get_html_preview(action_banner=action_banner, trigger_print=trigger_print)
 
 
@@ -229,7 +246,7 @@ class PrintFormatGenerator:
 	}
 	_FIELD_RENDERERS: ClassVar[dict[str, str]] = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}
 
-	def __init__(self, print_format, doc, letterhead=None, style=None, settings=None):
+	def __init__(self, print_format, doc, letterhead=None, style=None, settings=None, no_letterhead=None):
 		self.print_format = (
 			print_format
 			if not isinstance(print_format, str)
@@ -239,14 +256,38 @@ class PrintFormatGenerator:
 		self.style = style
 		self.settings_override = settings or {}
 		self._header_absorbs_top_margin = False
-
-		if letterhead == _("No Letterhead"):
-			letterhead = None
-		self.letterhead = frappe.get_doc("Letter Head", letterhead) if letterhead else None
+		self._logged_conditions = set()
+		self.letterhead = None
 
 		self.build_context()
 		self.layout = self.get_layout(self.print_format)
 		self.context.layout = self.layout
+		self.letterhead = self.get_letterhead(letterhead, no_letterhead)
+		self.context.letterhead = self.letterhead
+
+	def get_letterhead(self, letterhead, no_letterhead):
+		"""Resolve the letter head to print, most specific choice first.
+
+		Mirrors ``printview.get_letter_head`` so a builder format prints the same
+		letter head a template one would, and adds the format's own choice: a layout
+		that names a letter head outranks the document's field. ``no_letterhead``
+		left unset falls back to the Print Settings toggle, as templates do.
+		"""
+		if no_letterhead is None:
+			no_letterhead = not cint(self.print_settings.with_letterhead)
+		if cint(no_letterhead) or letterhead == _("No Letterhead"):
+			return None
+
+		name = (
+			letterhead
+			or (self.layout or {}).get("letter_head")
+			or self.doc.get("letter_head")
+			or frappe.db.get_value("Letter Head", {"is_default": 1}, "name")
+		)
+		# a stale link shouldn't fail the render — templates degrade to no letter head too
+		if not name or not frappe.db.exists("Letter Head", name):
+			return None
+		return frappe.get_doc("Letter Head", name)
 
 	def build_context(self):
 		self.print_settings = frappe.get_doc("Print Settings")
@@ -254,6 +295,11 @@ class PrintFormatGenerator:
 			from frappe.www.printview import get_allowed_print_settings_override
 
 			self.print_settings.update(get_allowed_print_settings_override(self.doc, self.settings_override))
+
+		from frappe.www.printview import run_before_print
+
+		run_before_print(self.doc, self.print_settings.as_dict())
+
 		page_width_map = {"A4": 210, "Letter": 216}
 		page_width = page_width_map.get(self.print_settings.pdf_page_size) or 210
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
@@ -518,13 +564,19 @@ class PrintFormatGenerator:
 			"</div>"
 		)
 
+	EMPTY_LAYOUT: ClassVar[dict] = {
+		"sections": [],
+		"header": {"columns": []},
+		"footer": {"columns": []},
+	}
+
 	def get_layout(self, print_format):
-		layout = frappe.parse_json(print_format.format_data) or {
-			"sections": [],
-			"header": {"columns": []},
-			"footer": {"columns": []},
-		}
-		if isinstance(layout, list):
+		try:
+			layout = frappe.parse_json(print_format.format_data) or copy.deepcopy(self.EMPTY_LAYOUT)
+		except Exception:
+			frappe.log_error(title=f"Unreadable print format layout: {print_format.name}")
+			layout = copy.deepcopy(self.EMPTY_LAYOUT)
+		if isinstance(layout, list) and layout:
 			from frappe.printing.doctype.print_format.classic_converter import convert_classic_to_beta
 
 			layout, _dropped = convert_classic_to_beta(
@@ -532,10 +584,42 @@ class PrintFormatGenerator:
 			)
 			if not print_format.page_number or print_format.page_number == "Hide":
 				print_format.page_number = "Bottom Center"
+		layout = self.normalise_layout(layout)
 		layout = self.apply_permlevel_access(layout)
 		layout = self.set_field_renderers(layout)
 		layout = self.prune_table_columns(layout)
 		layout = self.process_margin_texts(layout)
+		return layout
+
+	def normalise_layout(self, layout):
+		"""Drop anything the builder could not have produced, rather than crashing."""
+		if not isinstance(layout, dict):
+			return copy.deepcopy(self.EMPTY_LAYOUT)
+
+		def clean_zone(zone):
+			if not isinstance(zone, dict):
+				return {"columns": []}
+			columns = [
+				{**col, "fields": [clean_field(f) for f in col.get("fields") or [] if isinstance(f, dict)]}
+				for col in zone.get("columns") or []
+				if isinstance(col, dict)
+			]
+			return {**zone, "columns": columns}
+
+		def clean_field(df):
+			if "table_columns" not in df:
+				return df
+			table_columns = df["table_columns"]
+			if not isinstance(table_columns, list):
+				table_columns = []
+			return {**df, "table_columns": [c for c in table_columns if isinstance(c, dict)]}
+
+		sections = layout.get("sections")
+		layout["sections"] = (
+			[clean_zone(s) for s in sections if isinstance(s, dict)] if isinstance(sections, list) else []
+		)
+		for zone in ("header", "footer"):
+			layout[zone] = clean_zone(layout.get(zone))
 		return layout
 
 	def layout_columns(self, layout):
@@ -613,21 +697,36 @@ class PrintFormatGenerator:
 				df["table_columns"] = kept
 		return layout
 
-	def column_condition_met(self, col, eval_locals):
-		condition = col.get("column_condition")
-		if not condition:
+	def eval_condition(self, condition, eval_locals, where):
+		"""Evaluate a visibility condition. A broken expression keeps the thing
+		visible, logged once per expression so a row condition cannot write one log
+		row per child row."""
+		if not isinstance(condition, str):
 			return True
 		try:
 			return bool(frappe.safe_eval(condition, None, eval_locals))
 		except Exception:
+			if condition not in self._logged_conditions:
+				self._logged_conditions.add(condition)
+				frappe.log_error(
+					title=f"Print format condition failed: {self.print_format.name}",
+					message=f"{where}: {condition}",
+				)
 			return True
+
+	def column_condition_met(self, col, eval_locals):
+		condition = col.get("column_condition")
+		if not condition:
+			return True
+		return self.eval_condition(
+			condition, eval_locals, f"column {col.get('label') or col.get('fieldname')}"
+		)
 
 	def _prepare_field(self, df, section, eval_locals):
 		if df.get("visible_if"):
-			try:
-				df["_hidden"] = not frappe.safe_eval(df["visible_if"], eval_locals)
-			except Exception:
-				df["_hidden"] = False
+			df["_hidden"] = not self.eval_condition(
+				df["visible_if"], eval_locals, f"field {df.get('label') or df.get('fieldname')}"
+			)
 		fieldtype = df.get("fieldtype", "Data")
 		df["renderer"] = self._FIELD_RENDERERS.get(fieldtype) or fieldtype.replace(" ", "")
 		df["section"] = section
@@ -638,10 +737,9 @@ class PrintFormatGenerator:
 		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
 		for section in layout["sections"]:
 			if section.get("visible_if"):
-				try:
-					section["_hidden"] = not frappe.safe_eval(section["visible_if"], eval_locals)
-				except Exception:
-					section["_hidden"] = False
+				section["_hidden"] = not self.eval_condition(
+					section["visible_if"], eval_locals, f"section {section.get('label') or ''}"
+				)
 			for column in section["columns"]:
 				for df in column["fields"]:
 					self._prepare_field(df, section, eval_locals)
@@ -672,11 +770,7 @@ class PrintFormatGenerator:
 		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
 		kept = []
 		for row in self.doc.get(source) or []:
-			try:
-				keep = frappe.safe_eval(condition, None, {**eval_locals, "row": row})
-			except Exception:
-				keep = True
-			if keep:
+			if self.eval_condition(condition, {**eval_locals, "row": row}, f"rows of {source}"):
 				kept.append(row)
 		df["_rows"] = kept
 

@@ -56,6 +56,14 @@
 	grid-template-columns: 1fr;
 	gap: 4px;
 }
+/* a standalone toggle reads as label-on-left, switch-on-right (settings style),
+   so the label gets the full width instead of an 80px column that wraps it */
+.pfb-insp-row--toggle {
+	grid-template-columns: 1fr auto;
+}
+.pfb-insp-row--toggle .switch-control {
+	justify-self: end;
+}
 .pfb-insp-label {
 	font-size: var(--text-sm);
 	color: var(--text-muted);
@@ -297,15 +305,28 @@
 	visibility: hidden !important;
 }
 
+/* Builder-style drop indicator: a blue insertion line with round end caps */
 .pfb-drag-ghost::after {
 	content: "";
 	position: absolute;
 	left: 0;
 	right: 0;
-	top: -1px;
-	height: 2px;
-	background: var(--gray-500);
+	top: -1.5px;
+	height: 3px;
+	background: var(--blue-500);
 	border-radius: 2px;
+}
+
+.pfb-drag-ghost::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: -3px;
+	height: 6px;
+	background: radial-gradient(circle 3px at left center, var(--blue-500) 99%, transparent 100%)
+			no-repeat,
+		radial-gradient(circle 3px at right center, var(--blue-500) 99%, transparent 100%) no-repeat;
 }
 
 .pfb-field-row,

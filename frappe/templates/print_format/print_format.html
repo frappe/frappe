@@ -84,12 +84,19 @@
 	{%- if section.background -%}
 		{%- set ns3.section_style = ns3.section_style + 'background:' + section.background + ';' -%}
 	{%- endif -%}
-	{%- for prop in ['padding', 'margin'] -%}
-		{%- set box = section.get(prop) -%}
-		{%- if box -%}
-			{%- set ns3.section_style = ns3.section_style + prop + ':' + (box.top or 0)|string + 'px ' + (box.right or 0)|string + 'px ' + (box.bottom or 0)|string + 'px ' + (box.left or 0)|string + 'px;' -%}
+	{%- if section.margin -%}
+		{%- set box = section.margin -%}
+		{%- set ns3.section_style = ns3.section_style + 'margin:' + (box.top or 0)|string + 'px ' + (box.right or 0)|string + 'px ' + (box.bottom or 0)|string + 'px ' + (box.left or 0)|string + 'px;' -%}
+	{%- endif -%}
+	{%- if section.padding -%}
+		{%- set box = section.padding -%}
+		{%- if section.field_borders -%}
+			{# table mode: fold padding into the edge cells, not element padding #}
+			{%- set ns3.section_style = ns3.section_style + '--pfb-pad-top:' + (box.top or 0)|string + 'px;--pfb-pad-right:' + (box.right or 0)|string + 'px;--pfb-pad-bottom:' + (box.bottom or 0)|string + 'px;--pfb-pad-left:' + (box.left or 0)|string + 'px;' -%}
+		{%- else -%}
+			{%- set ns3.section_style = ns3.section_style + 'padding:' + (box.top or 0)|string + 'px ' + (box.right or 0)|string + 'px ' + (box.bottom or 0)|string + 'px ' + (box.left or 0)|string + 'px;' -%}
 		{%- endif -%}
-	{%- endfor -%}
+	{%- endif -%}
 	{%- if section.field_borders -%}
 		{%- set _cp = (section.cell_padding if section.cell_padding is defined and section.cell_padding is not none else 8) -%}
 		{%- set ns3.section_style = ns3.section_style + '--pfb-cell-pad:' + _cp|string + 'px;' -%}
@@ -102,7 +109,7 @@
 	{%- endif -%}
 	<div class="section {{ resolve_class({'page-break': section.page_break, 'keep-together': section.keep_together}) }}{{ ' section--grid' if section.field_borders else '' }}{{ ' section--grid-' + section.grid_borders if section.field_borders and section.grid_borders else '' }}"{% if ns3.section_style %} style="{{ ns3.section_style|e }}"{% endif %}>
 		{% if section.label and section.show_label != 'hide' %}
-		<div class="section-label">{{ _(section.label) }}</div>
+		<div class="section-label">{{ _(section.label)|e }}</div>
 		{% endif %}
 
 		{#- Detect right-aligned columns to pick the right row layout class -#}

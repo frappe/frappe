@@ -51,14 +51,15 @@ class PrintFormatBuilder {
 		this.app = app;
 		this.$component = app.mount(this.$wrapper.get(0));
 
-		// quiet when saved; only "Saving…" transiently or a sticky "Save failed"
+		// persistent save status, Google-Docs style: "Saving…" while a save is in
+		// flight, "Saved" once it lands, and a sticky red "Save failed" on error
 		watch(
 			() => this.$component.$store.save_status,
 			(status) => {
 				if (status.value === "saving") this.page.set_indicator(__("Saving…"), "gray");
 				else if (status.value === "failed")
 					this.page.set_indicator(__("Save failed"), "red");
-				else this.page.clear_indicator();
+				else this.page.set_indicator(__("Saved"), "green");
 			},
 			{ deep: true, immediate: true }
 		);

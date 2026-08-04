@@ -202,7 +202,7 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 
 Cypress.Commands.add("get_field", (fieldname, fieldtype = "Data") => {
 	let field_element = fieldtype === "Select" ? "select" : "input";
-	let selector = `[data-fieldname="${fieldname}"] ${field_element}:visible`;
+	let selector = `[data-fieldname="${fieldname}"]:not(.search) ${field_element}:visible`;
 
 	if (fieldtype === "Text Editor") {
 		selector = `[data-fieldname="${fieldname}"] .ql-editor[contenteditable=true]:visible`;
@@ -454,14 +454,16 @@ Cypress.Commands.add("click_custom_action_button", (name) => {
 	cy.get(`.custom-actions [data-label="${encodeURIComponent(name)}"]`).click();
 });
 
+// the page header dropdowns are espresso menus now — the panel body-portals,
+// so rows are matched inside .es-menu, not inside the btn-group
 Cypress.Commands.add("click_action_button", (name) => {
 	cy.findByRole("button", { name: "Actions" }).click();
-	cy.get(`.actions-btn-group [data-label="${encodeURIComponent(name)}"]`).click();
+	cy.get(".es-menu").contains('[role="menuitem"]', name).click();
 });
 
 Cypress.Commands.add("click_menu_button", (name) => {
 	cy.get(".standard-actions .menu-btn-group > button").click();
-	cy.get(`.menu-btn-group [data-label="${encodeURIComponent(name)}"]`).click();
+	cy.get(".es-menu").contains('[role="menuitem"]', name).click();
 });
 
 Cypress.Commands.add("clear_filters", () => {
@@ -471,7 +473,7 @@ Cypress.Commands.add("clear_filters", () => {
 
 Cypress.Commands.add("click_modal_primary_button", (btn_name) => {
 	cy.wait(400);
-	cy.get(".modal-footer > .standard-actions > .btn-primary")
+	cy.get(".modal-footer > .standard-actions > .btn-modal-primary")
 		.contains(btn_name)
 		.click({ force: true });
 });

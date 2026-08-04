@@ -277,7 +277,9 @@ $.extend(frappe.model, {
 			// meta has sugar, like __js and other properties that doc won't have
 			frappe.meta.__doctype_meta = JSON.parse(JSON.stringify(meta));
 		}
-		for (const asset_key of ["__list_js", "__custom_list_js", "__calendar_js", "__tree_js"]) {
+		// custom scripts run last so they can override the standard
+		// definitions for any view, calendar included (#37460)
+		for (const asset_key of ["__list_js", "__calendar_js", "__tree_js", "__custom_list_js"]) {
 			if (meta[asset_key]) {
 				new Function(meta[asset_key])();
 			}
@@ -462,7 +464,7 @@ $.extend(frappe.model, {
 	},
 
 	can_share: function (doctype, frm) {
-		let disable_sharing = cint(frappe.sys_defaults.disable_document_sharing);
+		let disable_sharing = frappe.defaults.is_enabled("disable_document_sharing");
 
 		if (disable_sharing && frappe.session.user !== "Administrator") {
 			return false;
@@ -739,24 +741,30 @@ $.extend(frappe.model, {
 				title = `${value} (${docname})`;
 			}
 		}
-		frappe.confirm(__("Permanently delete {0}?", [title.bold()]), function () {
-			return frappe.call({
-				method: "frappe.client.delete",
-				args: {
-					doctype: doctype,
-					name: docname,
-				},
-				freeze: true,
-				freeze_message: __("Deleting {0}...", [title]),
-				callback: function (r, rt) {
-					if (!r.exc) {
-						frappe.utils.play_sound("delete");
-						frappe.model.clear_doc(doctype, docname);
-						if (callback) callback(r, rt);
-					}
-				},
-			});
-		});
+		// destructive: red primary via frappe.warn, not a neutral confirm
+		frappe.warn(
+			__("Confirm"),
+			__("Permanently delete {0}?", [title.bold()]),
+			function () {
+				return frappe.call({
+					method: "frappe.client.delete",
+					args: {
+						doctype: doctype,
+						name: docname,
+					},
+					freeze: true,
+					freeze_message: __("Deleting {0}...", [title]),
+					callback: function (r, rt) {
+						if (!r.exc) {
+							frappe.utils.play_sound("delete");
+							frappe.model.delete_from_locals(doctype, docname);
+							if (callback) callback(r, rt);
+						}
+					},
+				});
+			},
+			__("Delete")
+		);
 	},
 
 	rename_doc: function (doctype, docname, callback) {
@@ -795,13 +803,17 @@ $.extend(frappe.model, {
 				btn: d.get_primary_btn(),
 				callback: function (r, rt) {
 					if (!r.exc) {
+						frappe.model.rename_doc_in_locals(
+							doctype,
+							docname,
+							r.message || args.new_name,
+							args.merge
+						);
 						$(document).trigger("rename", [
 							doctype,
 							docname,
 							r.message || args.new_name,
 						]);
-						if (locals[doctype] && locals[doctype][docname])
-							delete locals[doctype][docname];
 						d.hide();
 						if (callback) callback(r.message);
 					}

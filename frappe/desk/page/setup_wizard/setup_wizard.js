@@ -151,8 +151,8 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	sync_telemetry_preference() {
 		// Apply the opt-out from the final committed values, not on each checkbox
 		// change, so toggling within a slide stays reversible — disable() is one-way.
-		// Called from action_on_complete *after* initated_client_side is captured,
-		// so the funnel event still fires for users who opted out.
+		// Server-side the preference lands only at wizard completion, so setup
+		// events (funnel, persona) are captured regardless of the choice.
 		if (frappe.telemetry.enabled && !this.values.enable_telemetry) {
 			frappe.telemetry.disable();
 		}
@@ -213,7 +213,6 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	action_on_complete() {
-		frappe.telemetry.capture("initated_client_side", "setup");
 		if (!this.current_slide.set_values()) return;
 		this.update_values();
 		this.sync_telemetry_preference();
@@ -371,7 +370,6 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 	make() {
 		super.make();
 		this.set_init_values();
-		this.setup_telemetry_events();
 		this.reset_action_button_state();
 	}
 
@@ -386,16 +384,6 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 				}
 			});
 		}
-	}
-
-	setup_telemetry_events() {
-		let me = this;
-		this.fields.filter(frappe.model.is_value_type).forEach((field) => {
-			field.fieldname &&
-				me.get_input(field.fieldname)?.on?.("change", function () {
-					frappe.telemetry.capture(`${field.fieldname}_set`, "setup");
-				});
-		});
 	}
 };
 

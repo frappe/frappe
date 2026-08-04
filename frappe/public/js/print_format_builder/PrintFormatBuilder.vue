@@ -1,18 +1,11 @@
 <template>
-	<div v-if="shouldRender" class="builder-root">
+	<div
+		v-if="shouldRender"
+		class="builder-root"
+		:class="{ 'pfb-multi-select': $store.is_multi_select.value }"
+	>
 		<PrintFormatControls />
 		<div class="canvas-area">
-			<!-- Sidebar-open hint -->
-			<div v-if="sidebar_open && !hint_dismissed" class="pfb-sidebar-hint">
-				<span v-html="frappe.utils.icon('info', 'sm', 'pfb-hint-icon')"></span>
-				<span class="pfb-hint-text">{{
-					__("Tip: Close the left sidebar for more editing space.")
-				}}</span>
-				<button class="pfb-hint-dismiss" @click="dismiss_hint" :aria-label="__('Dismiss')">
-					<span v-html="frappe.utils.icon('x', 'xs')"></span>
-				</button>
-			</div>
-
 			<!-- Canvas toolbar: sample data picker, zoom, preview toggle -->
 			<div class="canvas-toolbar">
 				<div class="canvas-toolbar-left">
@@ -22,9 +15,6 @@
 					<div ref="doc_picker_ref" class="canvas-doc-picker"></div>
 				</div>
 				<div class="canvas-toolbar-right">
-					<span v-if="!$store.preview_doc.value" class="canvas-no-data-hint">
-						← {{ __("Pick a record to see real values") }}
-					</span>
 					<div class="canvas-zoom-control" role="group" :aria-label="__('Zoom')">
 						<button
 							class="canvas-zoom-btn"
@@ -52,8 +42,10 @@
 			</div>
 			<div
 				class="print-format-container"
+				:class="{ 'pfb-marquee-dragging': marquee_dragging }"
 				:style="{ '--pfb-zoom': canvas_zoom / 100 }"
 				@click="clear_selection"
+				@pointerdown="on_canvas_pointerdown"
 			>
 				<PrintFormatSetup
 					v-if="$store.needs_setup.value"
@@ -65,6 +57,19 @@
 		</div>
 		<FieldInspector />
 		<Preview v-if="show_preview" @close="show_preview = false" />
+		<ContextMenu />
+		<Teleport to="body">
+			<div
+				v-if="marquee"
+				class="pfb-marquee"
+				:style="{
+					left: marquee.x + 'px',
+					top: marquee.y + 'px',
+					width: marquee.w + 'px',
+					height: marquee.h + 'px',
+				}"
+			></div>
+		</Teleport>
 	</div>
 </template>
 
@@ -74,12 +79,13 @@ import PrintFormatSetup from "./components/editor/PrintFormatSetup.vue";
 import Preview from "./components/Preview.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
+import ContextMenu from "./components/editor/ContextMenu.vue";
 import { getStore } from "./stores";
+import { field_uid } from "./utils";
 import { computed, ref, onMounted, onUnmounted, provide, nextTick } from "vue";
 
 const props = defineProps(["print_format_name"]);
 
-const HINT_KEY = "pfb_sidebar_hint_dismissed";
 const ZOOM_KEY = "pfb_canvas_zoom";
 const ZOOM_STEP = 10;
 const ZOOM_MIN = 50;
@@ -88,10 +94,7 @@ const ZOOM_MAX = 150;
 let show_preview = ref(false);
 let doc_picker_ref = ref(null);
 let doc_picker_ctrl = ref(null);
-let sidebar_open = ref(false);
-let hint_dismissed = ref(localStorage.getItem(HINT_KEY) === "1");
 let canvas_zoom = ref(parseInt(localStorage.getItem(ZOOM_KEY)) || 100);
-let sidebar_observer_ref = null;
 
 let $store = computed(() => {
 	return getStore(props.print_format_name);
@@ -148,8 +151,97 @@ async function open_print_settings() {
 }
 
 function clear_selection() {
+	// a marquee drag ends with a click on the canvas — don't let it wipe the result
+	if (suppress_next_click) {
+		suppress_next_click = false;
+		return;
+	}
 	$store.value.selected_field.value = null;
 	$store.value.selected_section.value = null;
+}
+
+// ── Marquee (rubber-band) selection ──────────────────────────
+const marquee = ref(null);
+const marquee_dragging = ref(false);
+let marquee_start = null;
+let marquee_base = { fields: [], sections: [] };
+// element + rect for every hit-testable target, captured once per drag (no reflow
+// happens mid-marquee, so re-reading rects on every pointermove would only thrash)
+let marquee_targets = { sections: [], fields: [] };
+let suppress_next_click = false;
+const MARQUEE_THRESHOLD = 4;
+
+// controls that should start their own interaction, never a marquee
+const MARQUEE_IGNORE =
+	".field--preview, .field--chip, button, input, textarea, select, a, [contenteditable]," +
+	" .section-toolbar, .drag-handle, .col-width-handle, .field-preview-actions," +
+	" .section-preview-actions, .empty-drop-zone, .canvas-toolbar";
+
+function on_canvas_pointerdown(e) {
+	if (e.button !== 0 || e.target.closest(MARQUEE_IGNORE)) return;
+	marquee_start = { x: e.clientX, y: e.clientY };
+	marquee_dragging.value = true; // suppresses text selection while dragging
+	const additive = e.shiftKey || e.metaKey || e.ctrlKey;
+	marquee_base = {
+		fields: additive ? $store.value.selected_fields.value.slice() : [],
+		sections: additive ? $store.value.selected_sections.value.slice() : [],
+	};
+	const el_of = (uid) =>
+		document.querySelector(`[data-field-uid="${uid}"], [data-section-uid="${uid}"]`);
+	const target = (key) => (obj) => {
+		const el = el_of(field_uid(obj));
+		return el ? { [key]: obj, el, r: el.getBoundingClientRect() } : null;
+	};
+	marquee_targets = {
+		sections: ($store.value.layout.value?.sections || []).map(target("s")).filter(Boolean),
+		fields: $store.value.ordered_body_fields().map(target("df")).filter(Boolean),
+	};
+	window.addEventListener("pointermove", on_canvas_pointermove);
+	window.addEventListener("pointerup", on_canvas_pointerup);
+}
+
+function on_canvas_pointermove(e) {
+	if (!marquee_start) return;
+	const x = Math.min(marquee_start.x, e.clientX);
+	const y = Math.min(marquee_start.y, e.clientY);
+	const w = Math.abs(e.clientX - marquee_start.x);
+	const h = Math.abs(e.clientY - marquee_start.y);
+	// only engage once it's a real drag, so plain clicks still clear selection
+	if (!marquee.value && w < MARQUEE_THRESHOLD && h < MARQUEE_THRESHOLD) return;
+	marquee.value = { x, y, w, h };
+	update_marquee_selection();
+}
+
+const dedupe = (arr) => [...new Set(arr)];
+
+function update_marquee_selection() {
+	const box = marquee.value;
+	if (!box) return;
+	const encloses = (r) =>
+		r.left >= box.x && r.top >= box.y && r.right <= box.x + box.w && r.bottom <= box.y + box.h;
+	const overlaps = (r) =>
+		r.left < box.x + box.w && r.right > box.x && r.top < box.y + box.h && r.bottom > box.y;
+
+	// Builder rule: select the outermost fully-enclosed element. A section the box
+	// fully wraps is selected as a section; its fields are then dropped. Fields that
+	// don't belong to any enclosed section are selected on their own.
+	const enclosed = marquee_targets.sections.filter((x) => encloses(x.r));
+	const looseFields = marquee_targets.fields
+		.filter((x) => overlaps(x.r) && !enclosed.some((sec) => sec.el.contains(x.el)))
+		.map((x) => x.df);
+
+	const fields = dedupe([...marquee_base.fields, ...looseFields]);
+	const sections = dedupe([...marquee_base.sections, ...enclosed.map((x) => x.s)]);
+	$store.value.set_selection({ fields, sections });
+}
+
+function on_canvas_pointerup() {
+	window.removeEventListener("pointermove", on_canvas_pointermove);
+	window.removeEventListener("pointerup", on_canvas_pointerup);
+	suppress_next_click = !!marquee.value;
+	marquee.value = null;
+	marquee_start = null;
+	marquee_dragging.value = false;
 }
 
 function on_start_default() {
@@ -253,8 +345,8 @@ function handle_keydown(e) {
 		if (is_typing_context()) return;
 		const sf = $store.value.selected_field.value;
 		const ss = $store.value.selected_section.value;
-		if ($store.value.selected_fields.value.length > 1) {
-			$store.value.remove_selected_fields();
+		if ($store.value.is_multi_select.value) {
+			$store.value.remove_selection();
 			e.preventDefault();
 		} else if (sf) {
 			sf.remove = true;
@@ -323,15 +415,6 @@ function reset_zoom() {
 	localStorage.setItem(ZOOM_KEY, 100);
 }
 
-function check_sidebar() {
-	sidebar_open.value = frappe.app?.sidebar?.wrapper?.is(":visible") ?? false;
-}
-
-function dismiss_hint() {
-	hint_dismissed.value = true;
-	localStorage.setItem(HINT_KEY, "1");
-}
-
 function init_doc_picker() {
 	if (!doc_picker_ref.value) return;
 	const meta = $store.value.meta.value;
@@ -392,13 +475,6 @@ function init_doc_picker() {
 onMounted(() => {
 	document.addEventListener("keydown", handle_keydown);
 
-	// Detect desk sidebar open/close via MutationObserver on the wrapper's style attribute
-	check_sidebar();
-	const sidebar_el = frappe.app?.sidebar?.wrapper?.[0];
-	if (sidebar_el) {
-		sidebar_observer_ref = new MutationObserver(check_sidebar);
-		sidebar_observer_ref.observe(sidebar_el, { attributes: true, attributeFilter: ["style"] });
-	}
 	$store.value.fetch().then(() => {
 		if (!$store.value.layout.value) {
 			$store.value.layout.value = $store.value.get_default_layout();
@@ -410,7 +486,8 @@ onMounted(() => {
 
 onUnmounted(() => {
 	document.removeEventListener("keydown", handle_keydown);
-	sidebar_observer_ref?.disconnect();
+	window.removeEventListener("pointermove", on_canvas_pointermove);
+	window.removeEventListener("pointerup", on_canvas_pointerup);
 });
 
 defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
@@ -420,8 +497,22 @@ defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 .builder-root {
 	/* navbar + page head height */
 	--pfb-chrome-offset: 95px;
+	/* single source of truth for every selection/hover ring on the canvas —
+	   change these two and fields, sections, and layer-hover all update */
+	--pfb-accent: var(--blue-400);
+	--pfb-ring: 2px solid var(--pfb-accent);
 	display: flex;
 	width: 100%;
+}
+
+/* In bulk mode the per-item action toolbars (copy/duplicate/snippet/remove) are
+   just noise on top of every highlighted block — the bulk panel drives actions
+   instead. Hide them everywhere at once from the one multi-select flag. */
+.builder-root.pfb-multi-select :deep(.field-preview-actions),
+.builder-root.pfb-multi-select :deep(.field-actions),
+.builder-root.pfb-multi-select :deep(.section-preview-actions),
+.builder-root.pfb-multi-select :deep(.section-toolbar-right) {
+	display: none;
 }
 
 .canvas-area {
@@ -430,47 +521,6 @@ defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 	display: flex;
 	flex-direction: column;
 	height: calc(100vh - var(--pfb-chrome-offset));
-}
-
-/* ── Sidebar hint ────────────────────────────────────────── */
-.pfb-sidebar-hint {
-	flex-shrink: 0;
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	padding: 4px 12px;
-	background: var(--gray-50);
-	border-bottom: 1px solid var(--gray-200);
-	font-size: var(--text-xs);
-	color: var(--gray-700);
-}
-
-.pfb-hint-icon {
-	flex-shrink: 0;
-	opacity: 0.7;
-}
-
-.pfb-hint-text {
-	flex: 1;
-}
-
-.pfb-hint-dismiss {
-	flex-shrink: 0;
-	display: flex;
-	align-items: center;
-	padding: 2px;
-	border: none;
-	background: transparent;
-	cursor: pointer;
-	color: var(--gray-500);
-	border-radius: var(--radius);
-	line-height: 1;
-	opacity: 0.7;
-}
-
-.pfb-hint-dismiss:hover {
-	opacity: 1;
-	background: var(--gray-200);
 }
 
 /* ── Canvas toolbar ──────────────────────────────────────── */
@@ -519,19 +569,6 @@ defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 	display: flex;
 	align-items: center;
 	gap: 6px;
-}
-
-.canvas-no-data-hint {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	font-size: 11px;
-	color: var(--text-muted);
-	white-space: nowrap;
-	background: var(--yellow-50);
-	border: 1px solid var(--yellow-200);
-	border-radius: var(--radius);
-	padding: 3px 8px;
 }
 
 /* ── Zoom control ────────────────────────────────────────── */
@@ -597,5 +634,21 @@ defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 
 .print-format-container :deep(.print-format-main) {
 	zoom: var(--pfb-zoom, 1);
+}
+
+/* while rubber-band dragging, don't let the drag select page text */
+.print-format-container.pfb-marquee-dragging,
+.print-format-container.pfb-marquee-dragging :deep(*) {
+	user-select: none;
+}
+
+/* teleported to <body>, so --pfb-accent (scoped to .builder-root) isn't in scope */
+.pfb-marquee {
+	position: fixed;
+	z-index: 1040;
+	border: 1px solid var(--blue-400);
+	background: rgba(97, 175, 239, 0.12);
+	border-radius: 2px;
+	pointer-events: none;
 }
 </style>

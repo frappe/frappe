@@ -75,8 +75,32 @@ LOCATE_SUB_PATTERN = re.compile(r"locate\(([^,]+),([^)]+)(\)?)\)", flags=re.IGNO
 LOCATE_QUERY_PATTERN = re.compile(r"locate\(", flags=re.IGNORECASE)
 PG_TRANSFORM_PATTERN = re.compile(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])")
 FROM_TAB_PATTERN = re.compile(r"from tab([\w-]*)", flags=re.IGNORECASE)
-# MySQL's REGEXP operator -> postgres `~*` (case-insensitive, matching MySQL's default collation)
-REGEXP_PATTERN = re.compile(r"\sREGEXP\s", flags=re.IGNORECASE)
+# MySQL's REGEXP / NOT REGEXP -> postgres `~*` / `!~*` (case-insensitive, matching MySQL's default
+# collation). The `skip` branch swallows every token whose contents are data rather than code, so
+# the operator is only rewritten where it really is an operator: `SELECT 'a REGEXP b'` keeps its
+# text, and a doctype named "My Regexp Rules" keeps its table name (backticks are rewritten to
+# double quotes before this runs, so every frappe identifier arrives quoted).
+REGEXP_PATTERN = re.compile(
+	r"""
+	  (?P<skip>
+	      (?<!\w)[eE]'(?:[^'\\]|''|\\.)*'    # escape string: a \' does not end it
+	    | '(?:[^']|'')*'                     # string literal (only '' escapes a quote)
+	    | "(?:[^"]|"")*"                     # quoted identifier
+	    | \$(?P<tag>\w*)\$.*?\$(?P=tag)\$    # dollar-quoted string
+	    | --[^\n]*                           # line comment
+	    | /\*.*?\*/                          # block comment
+	  )
+	| \s(?P<negated>NOT\s+)?REGEXP\s
+	""",
+	flags=re.IGNORECASE | re.DOTALL | re.VERBOSE,
+)
+
+
+def _replace_regexp_operator(match: re.Match) -> str:
+	if (skipped := match.group("skip")) is not None:
+		return skipped
+	return " !~* " if match.group("negated") else " ~* "
+
 
 # Index methods accepted by add_index(using=...): the two custom GIN modes plus postgres'
 # native access methods. Anything else is rejected before it reaches the DDL string.
@@ -524,7 +548,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		"""Creates an index with given fields if not already created.
 
 		Default index name is `<table>_<field1>_<field2>_index` (table-qualified so it is unique
-		per *schema*, as postgres requires).
+		per *schema*, as postgres requires). A non-default `using`, `where` or `include` adds a
+		digest of that definition to the name, so a partial or covering index never shares a name
+		with the plain index over the same key columns.
 
 		using: index kind beyond the default btree --
 			"gin_trgm"     GIN + gin_trgm_ops for fast LIKE/ILIKE substring search (needs pg_trgm)
@@ -550,9 +576,12 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				frappe.throw(f"Invalid index column: {column}")
 		# postgres index names are per-schema, not per-table: an unqualified default name collides
 		# across tables sharing these fields and `CREATE INDEX IF NOT EXISTS` then silently skips
-		# all but the first, leaving the index missing. Qualify with the table (and `using`, so a
-		# trigram index never clashes with the plain one on the same column).
-		index_name = index_name or get_qualified_index_name(table_name, clean_fields, using)
+		# all but the first, leaving the index missing. Qualify with the table and everything else
+		# that makes this index a distinct object -- `using`, the partial predicate and the
+		# INCLUDE list -- so no two differing definitions ever share a name.
+		index_name = index_name or get_qualified_index_name(
+			table_name, clean_fields, using, where=where, include=include
+		)
 
 		if using == "gin_trgm":
 			self.sql_ddl("CREATE EXTENSION IF NOT EXISTS pg_trgm")
@@ -582,10 +611,17 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return '"' + '", "'.join(fields) + '"'
 
 	def add_unique(self, doctype, fields, constraint_name=None):
+		from frappe.database.postgres.schema import get_qualified_index_name
+
 		if isinstance(fields, str):
 			fields = [fields]
-		if not constraint_name:
-			constraint_name = "unique_" + "_".join(fields)
+		if constraint_name:
+			legacy_name = constraint_name
+		else:
+			constraint_name = get_qualified_index_name(get_table_name(doctype), fields, "unique")
+			# a table constrained before names were table-qualified still carries the legacy one;
+			# recognise it so we don't add a second constraint enforcing the same uniqueness
+			legacy_name = "unique_" + "_".join(fields)
 
 		if not self.sql(
 			"""
@@ -594,8 +630,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			WHERE table_name=%s
 			AND constraint_type='UNIQUE'
 			AND constraint_schema=%s
-			AND CONSTRAINT_NAME=%s""",
-			("tab" + doctype, self.db_schema, constraint_name),
+			AND CONSTRAINT_NAME IN (%s, %s)""",
+			("tab" + doctype, self.db_schema, constraint_name, legacy_name),
 		):
 			self.commit()
 
@@ -621,6 +657,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		# A substring match on indexdef would false-positive any column whose name appears
 		# anywhere in a composite index's definition (e.g. `company` matching
 		# `posting_date_company_index`), which then wrongly suppresses creating its own index.
+		# Only plain btree indexes count: a partial, covering or non-btree index cannot be the
+		# framework-managed search index, so reporting it here would both suppress creating the
+		# real one and mark a hand-made index as framework-owned and droppable.
 		# pylint: disable=W1401
 		return self.sql(
 			f"""
@@ -644,9 +683,14 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 					i.indisprimary AS is_primary
 				FROM pg_index i
 				JOIN pg_class tc ON tc.oid = i.indrelid
+				JOIN pg_class ic ON ic.oid = i.indexrelid
+				JOIN pg_am am ON am.oid = ic.relam
 				JOIN pg_namespace n ON n.oid = tc.relnamespace
 				JOIN pg_attribute att ON att.attrelid = tc.oid AND att.attnum = i.indkey[0]
 				WHERE tc.relname = '{table_name}' AND n.nspname = '{self.db_schema}'
+					AND am.amname = 'btree'
+					AND i.indpred IS NULL
+					AND i.indnatts = i.indnkeyatts
 			) b ON b.column_name = a.column_name
 			WHERE a.table_name = '{table_name}'
 				AND a.table_schema = '{self.db_schema}'
@@ -801,11 +845,18 @@ def _copy_encode(value):
 	if isinstance(value, datetime.timedelta):
 		# Frappe Time fields are timedelta; str() on a >=1 day delta is "1 day, H:MM:SS", which
 		# postgres cannot parse as time. Emit HH:MM:SS[.ffffff] so the COPY text is always valid.
-		total = int(value.total_seconds())
-		hours, remainder = divmod(total, 3600)
+		# Wrap into a single day the way the INSERT path does: psycopg2 adapts a timedelta to an
+		# interval and postgres reduces it mod 24h on the way into a `time` column, so a 25:03:04
+		# duration stores as 01:03:04 there. A literal "25:03:04" is out of range for `time` and
+		# would make COPY fail where the row-by-row path succeeds.
+		microseconds = (
+			(value.days * 86_400 + value.seconds) * 1_000_000 + value.microseconds
+		) % 86_400_000_000
+		seconds, microseconds = divmod(microseconds, 1_000_000)
+		hours, remainder = divmod(seconds, 3600)
 		minutes, seconds = divmod(remainder, 60)
 		encoded = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
-		return f"{encoded}.{value.microseconds:06d}" if value.microseconds else encoded
+		return f"{encoded}.{microseconds:06d}" if microseconds else encoded
 	return str(value).replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n").replace("\r", "\\r")
 
 
@@ -824,7 +875,7 @@ def modify_query(query):
 	query = str(query).replace("`", '"')
 	query = replace_locate_with_strpos(query)
 	# MySQL REGEXP operator -> postgres case-insensitive regex match
-	query = REGEXP_PATTERN.sub(" ~* ", query)
+	query = REGEXP_PATTERN.sub(_replace_regexp_operator, query)
 	# select from requires ""
 	query = FROM_TAB_PATTERN.sub(r'from "tab\1"', query)
 

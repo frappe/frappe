@@ -68,11 +68,8 @@ frappe.form.formatters = {
 			return frappe.form.formatters.Currency(value, docfield, options, doc);
 		} else {
 			// show 1.000000 as 1
-			if (!(options || {}).always_show_decimals && !is_null(value)) {
-				var temp = cstr(value).split(".");
-				if (temp[1] == undefined || cint(temp[1]) === 0) {
-					precision = 0;
-				}
+			if (!(options || {}).always_show_decimals && !is_null(value) && flt(value) % 1 === 0) {
+				precision = 0;
 			}
 
 			value = value == null || value === "" ? "" : value;
@@ -95,7 +92,8 @@ frappe.form.formatters = {
 			return "";
 		}
 
-		const valuePrecision = value?.toString().split(".")[1]?.length || 0;
+		const [mantissa, exponent] = cstr(value).toLowerCase().split("e");
+		const valuePrecision = Math.max((mantissa.split(".")[1]?.length || 0) - cint(exponent), 0);
 
 		const precision =
 			docfield.precision ||

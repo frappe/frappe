@@ -724,7 +724,10 @@ def get_tests_CompatFrappeTestCase():
 
 			def _sql_with_count(*args, **kwargs):
 				ret = orig_sql(*args, **kwargs)
-				queries.append(args[0].last_query)
+				# `last_query` is a lazy wrapper on every driver except MariaDB
+				# (LazyMogrify on SQLite, LazyDecode on Postgres); the join below
+				# needs real strings. Matches IntegrationTestCase.assertQueryCount.
+				queries.append(str(args[0].last_query))
 				return ret
 
 			try:

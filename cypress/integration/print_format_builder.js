@@ -65,43 +65,27 @@ context("Print Format Builder — create flow", () => {
 		cy.window().then((win) => cleanup(win, PF_NAME));
 	});
 
-	// 1. Page loads with the Create-or-Edit dialog
-	it("shows the Create or Edit Print Format dialog", () => {
+	// 1. The route no longer creates anything on its own — it sends you to the list
+	it("redirects to the Print Format list when opened without a format", () => {
 		cy.visit("/app/print-format-builder");
-		cy.get_open_dialog().should("contain", "Create or Edit Print Format");
-		cy.get_open_dialog().find(".btn-primary").should("contain", "Create");
+		cy.location("pathname", { timeout: 20000 }).should(
+			"match",
+			/^\/(app|desk)\/print-format(\/view\/list)?$/
+		);
 	});
 
-	// 2. Filling the dialog and clicking Create inserts a builder format
-	it("creates a new Print Format with print_format_builder_beta=1", () => {
-		cy.intercept("POST", "api/method/frappe.client.insert").as("insert");
+	// 2. The Print Format form is where a format is created, and it opens the builder
+	it("opens the builder from the Print Format form", () => {
+		insert_builder_format(PF_NAME);
 
-		cy.visit("/app/print-format-builder");
-		cy.get_open_dialog().should("be.visible");
+		cy.visit(`/app/print-format/${encodeURIComponent(PF_NAME)}`);
+		cy.get(".page-actions", { timeout: 20000 }).contains("button", "Edit Format").click();
 
-		// The print_format_name field has depends_on: action === 'Create' and
-		// the dialog runs set_value('action', 'Create') *after* show(), so
-		// the depends_on reveal races with the first keystroke and
-		// cy.fill_field drops the leading 'C'. Set the value via .invoke('val')
-		// and trigger input/change so Frappe's Control picks it up without
-		// going through the keyboard simulator at all.
-		cy.fill_field("doctype", "ToDo", "Link");
-		cy.get_open_dialog()
-			.find('[data-fieldname="print_format_name"] input:visible')
-			.should("be.enabled")
-			.invoke("val", PF_NAME)
-			.trigger("input")
-			.trigger("change");
-
-		cy.get_open_dialog().find(".btn-primary").contains("Create").click();
-
-		cy.wait("@insert").then((interception) => {
-			expect(interception.response.statusCode).to.equal(200);
-			const doc = interception.response.body.message;
-			expect(doc.name).to.equal(PF_NAME);
-			expect(doc.doc_type).to.equal("ToDo");
-			expect(Number(doc.print_format_builder_beta)).to.equal(1);
-		});
+		cy.location("pathname", { timeout: 20000 }).should(
+			"match",
+			/\/(app|desk)\/print-format-builder\//
+		);
+		cy.get(".print-format-main", { timeout: 20000 }).should("exist");
 	});
 
 	// 3. Loading the builder for an existing format and saving a change
@@ -122,11 +106,10 @@ context("Print Format Builder — create flow", () => {
 		cy.intercept("POST", "api/method/frappe.client.save").as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Setting']", { timeout: 30000 }).click();
-		cy.get(".pfb-margin-grid").should("be.visible");
+		cy.get(".pfb-margin-grid", { timeout: 30000 }).should("be.visible");
 
 		cy.get(".freeze").should("not.exist");
-		cy.get('[data-testid="page-status"]').should("not.be.visible");
+		cy.get('[data-testid="page-status"]').should("contain", "Saved");
 
 		cy.contains(".pfb-margin-cell label", "Top")
 			.closest(".pfb-margin-cell")
@@ -141,11 +124,11 @@ context("Print Format Builder — create flow", () => {
 			expect(interception.response.statusCode).to.equal(200);
 			expect(Number(interception.response.body.message.margin_top)).to.equal(9);
 		});
-		cy.get('[data-testid="page-status"]').should("not.be.visible");
+		cy.get('[data-testid="page-status"]').should("contain", "Saved");
 	});
 
-	// 4. Outline tab: clicking a section scrolls to it and selects it
-	it("outline tab selects a section on click", () => {
+	// 4. Layers tab: clicking a section scrolls to it and selects it
+	it("layers tab selects a section on click", () => {
 		cy.visit("/app");
 
 		insert_builder_format(PF_NAME, [
@@ -155,7 +138,7 @@ context("Print Format Builder — create flow", () => {
 
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Outline']", { timeout: 30000 }).click();
+		cy.get(".pfb-tab[title='Layers']", { timeout: 30000 }).click();
 		cy.contains(".pfb-tree-row", "Beta").click();
 
 		cy.get(".pfb-inspector").should("contain", "Section");
@@ -183,7 +166,7 @@ context("Print Format Builder — create flow", () => {
 
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Outline']", { timeout: 30000 }).click();
+		cy.get(".pfb-tab[title='Layers']", { timeout: 30000 }).click();
 		cy.contains(".pfb-tree-row", "Details").click();
 
 		cy.get(".print-format-container").click();
@@ -198,7 +181,7 @@ context("Print Format Builder — create flow", () => {
 		cy.get(".pfb-breadcrumb").should("not.exist");
 	});
 
-	// 6. Format tab: font size change is reflected in canvas
+	// 6. Settings (inspector): font size change is reflected in canvas
 	it("font size change applies to canvas preview", () => {
 		cy.visit("/app");
 
@@ -207,8 +190,7 @@ context("Print Format Builder — create flow", () => {
 		cy.intercept("POST", "api/method/frappe.client.save").as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Setting']", { timeout: 30000 }).click();
-		cy.get(".pfb-margin-grid").should("be.visible");
+		cy.get(".pfb-margin-grid", { timeout: 30000 }).should("be.visible");
 
 		cy.contains("label", "Font Size")
 			.closest(".form-group")
@@ -253,8 +235,8 @@ context("Print Format Builder — create flow", () => {
 			});
 	});
 
-	// 8. Format tab: label color uses the Frappe Color control and persists on save
-	it("Format tab: label color persists on save", () => {
+	// 8. Settings (inspector): label color uses the Frappe Color control and persists on save
+	it("settings label color persists on save", () => {
 		cy.visit("/app");
 
 		insert_builder_format(PF_NAME, []);
@@ -262,8 +244,7 @@ context("Print Format Builder — create flow", () => {
 		cy.intercept("POST", "api/method/frappe.client.save").as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Setting']", { timeout: 30000 }).click();
-		cy.get(".pfb-margin-grid").should("be.visible");
+		cy.get(".pfb-margin-grid", { timeout: 30000 }).should("be.visible");
 
 		// The color field is rendered with Frappe's ControlColor (adds .selected-color swatch)
 		cy.get('[data-fieldname="label_color"] .selected-color').should("exist");
@@ -932,6 +913,148 @@ context("Print Format Builder — image and barcode blocks", () => {
 				show_text: true,
 				width: "200px",
 			});
+		});
+	});
+});
+
+// ─── selection & spacing ────────────────────────────────────────────────────────
+
+context("Print Format Builder — selection & spacing", () => {
+	let PF_NAME;
+
+	before(() => {
+		cy.login();
+		cy.visit("/app");
+	});
+
+	beforeEach(() => {
+		PF_NAME = pf_name();
+	});
+
+	afterEach(() => {
+		cy.window().then((win) => cleanup(win, PF_NAME));
+	});
+
+	function three_field_format(name) {
+		insert_builder_format(name, [
+			{
+				label: "Alpha",
+				columns: [
+					{
+						label: "",
+						fields: [
+							{ fieldtype: "Data", fieldname: "description", label: "Description" },
+							{ fieldtype: "Data", fieldname: "status", label: "Status" },
+							{ fieldtype: "Data", fieldname: "priority", label: "Priority" },
+						],
+					},
+				],
+			},
+		]);
+	}
+
+	// 1. Shift-click selects a contiguous range
+	it("shift-click selects a range of fields", () => {
+		three_field_format(PF_NAME);
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get("[data-pfb-section] .field", { timeout: 30000 }).should("have.length", 3);
+		cy.get("[data-pfb-section] .field").eq(0).click({ force: true });
+		cy.get("[data-pfb-section] .field").eq(2).click({ shiftKey: true, force: true });
+
+		cy.get(".field--selected").should("have.length", 3);
+		cy.get(".pfb-inspector").should("contain", "Selection").and("contain", "3 fields");
+	});
+
+	// 2. Ctrl/Cmd-click toggles fields individually
+	it("cmd/ctrl-click toggles individual fields", () => {
+		three_field_format(PF_NAME);
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get("[data-pfb-section] .field", { timeout: 30000 }).eq(0).click({ force: true });
+		cy.get("[data-pfb-section] .field").eq(1).click({ ctrlKey: true, force: true });
+		cy.get(".field--selected").should("have.length", 2);
+
+		// toggle the first one back off
+		cy.get("[data-pfb-section] .field").eq(0).click({ ctrlKey: true, force: true });
+		cy.get(".field--selected").should("have.length", 1);
+	});
+
+	// 3. Bulk "Remove selected" deletes every selected field
+	it("bulk Remove selected deletes the selected fields", () => {
+		three_field_format(PF_NAME);
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get("[data-pfb-section] .field", { timeout: 30000 }).eq(0).click({ force: true });
+		cy.get("[data-pfb-section] .field").eq(1).click({ ctrlKey: true, force: true });
+		cy.get(".field--selected").should("have.length", 2);
+
+		cy.contains(".es-button", "Remove selected").click();
+
+		cy.get("[data-pfb-section] .field:visible").should("have.length", 1);
+		cy.get(".field--selected").should("have.length", 0);
+	});
+
+	// 4. Dragging the padding handle grows the section padding
+	it("padding handle drags to add section padding", () => {
+		three_field_format(PF_NAME);
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get(".pfb-tab[title='Layers']", { timeout: 30000 }).click();
+		cy.contains(".pfb-tree-row", "Alpha").click();
+
+		cy.get(".pfb-spacing-padding .pfb-space-grip-top").then(($g) => {
+			const r = $g[0].getBoundingClientRect();
+			const cx = r.x + r.width / 2;
+			const cyv = r.y + r.height / 2;
+			cy.wrap($g).trigger("pointerdown", {
+				clientX: cx,
+				clientY: cyv,
+				button: 0,
+				force: true,
+			});
+			cy.get("body").trigger("pointermove", { clientX: cx, clientY: cyv + 40, button: 0 });
+			cy.get("body").trigger("pointerup", { clientX: cx, clientY: cyv + 40, force: true });
+		});
+
+		cy.get(".pfb-section-active .print-format-section").should(($s) => {
+			expect(parseInt($s.css("padding-top"), 10)).to.be.greaterThan(10);
+		});
+	});
+
+	// 5. The border-radius handle appears on a selected section and drags
+	it("border-radius handle rounds the section corners", () => {
+		three_field_format(PF_NAME);
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get(".pfb-tab[title='Layers']", { timeout: 30000 }).click();
+		cy.contains(".pfb-tree-row", "Alpha").click();
+
+		cy.get(".pfb-radius-handle").should("exist");
+		cy.get(".pfb-radius-handle").then(($h) => {
+			const r = $h[0].getBoundingClientRect();
+			const cx = r.x + r.width / 2;
+			const cyv = r.y + r.height / 2;
+			cy.wrap($h).trigger("pointerdown", {
+				clientX: cx,
+				clientY: cyv,
+				button: 0,
+				force: true,
+			});
+			cy.get("body").trigger("pointermove", {
+				clientX: cx + 30,
+				clientY: cyv + 30,
+				button: 0,
+			});
+			cy.get("body").trigger("pointerup", {
+				clientX: cx + 30,
+				clientY: cyv + 30,
+				force: true,
+			});
+		});
+
+		cy.get(".pfb-section-active .print-format-section").should(($s) => {
+			expect(parseInt($s.css("border-top-left-radius"), 10)).to.be.greaterThan(12);
 		});
 	});
 });

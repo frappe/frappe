@@ -99,6 +99,7 @@ def get_context(context) -> PrintContext:
 			name=frappe.form_dict.name,
 			print_format=print_format,
 			letterhead=letterhead,
+			no_letterhead=frappe.form_dict.no_letterhead,
 			style=frappe.form_dict.style,
 			trigger_print=cint(frappe.form_dict.trigger_print),
 			action_banner=frappe.render_template("templates/print_formats/print_action_banner.html", context),
@@ -179,12 +180,9 @@ def get_rendered_template(
 	elif no_letterhead is None:
 		no_letterhead = not cint(print_settings.with_letterhead)
 
-	doc.flags.in_print = True
-	doc.flags.print_settings = print_settings
-
 	validate_print_for_docstatus(doc, print_settings)
 
-	doc.run_method("before_print", print_settings)
+	run_before_print(doc, print_settings)
 
 	if not hasattr(doc, "print_heading"):
 		doc.print_heading = None
@@ -339,8 +337,9 @@ def get_html_and_style(
 		generator = PrintFormatGenerator(
 			print_format,
 			document,
-			None if no_letterhead else letterhead,
+			letterhead,
 			settings=frappe.parse_json(settings),
+			no_letterhead=no_letterhead,
 		)
 		html = generator.get_html_preview()
 	else:
@@ -440,6 +439,16 @@ def validate_print(doc: "Document", print_settings: dict | None = None) -> None:
 	"""Run both print gates for a document: permission, then draft/cancelled docstatus."""
 	validate_print_permission(doc)
 	validate_print_for_docstatus(doc, print_settings)
+
+
+def run_before_print(doc: "Document", print_settings: dict) -> None:
+	"""Flag the document as printing and fire its ``before_print`` hook.
+
+	Shared by the legacy template renderer and the builder generator so both
+	prepare the document the same way before rendering."""
+	doc.flags.in_print = True
+	doc.flags.print_settings = print_settings
+	doc.run_method("before_print", print_settings)
 
 
 def validate_key(key: str, doc: "Document") -> None:

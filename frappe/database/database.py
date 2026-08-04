@@ -63,6 +63,7 @@ ALLOWED_TYPES_FOR_VALUES = tuple | list | dict
 
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
+DROP_INDEX_PATTERN = re.compile(r"\s*DROP\s+INDEX\s", flags=re.IGNORECASE)
 SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
 MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
 
@@ -1481,6 +1482,12 @@ class Database:
 
 	def log_touched_tables(self, query, query_type):
 		if query_type not in QUERY_TYPES_FOR_LOG_TOUCHED_TABLES:
+			return
+
+		# `DROP INDEX <name>` never names its table, and on postgres the index name is
+		# table-qualified ("tabToDo_reference_type_index"), which the patterns below would read as
+		# a table. Index DDL touches no rows, and CREATE INDEX is already excluded by query_type.
+		if DROP_INDEX_PATTERN.match(query):
 			return
 
 		# single_word_regex is designed to match following patterns

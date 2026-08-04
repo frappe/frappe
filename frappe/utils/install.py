@@ -163,7 +163,7 @@ def complete_setup_wizard():
 			"country": "United States",
 			"timezone": "America/New_York",
 			"currency": "USD",
-			"enable_telemtry": 1,
+			"enable_telemetry": 1,
 		}
 	)
 
@@ -185,3 +185,55 @@ def add_standard_navbar_items():
 		navbar_settings.append("help_dropdown", item)
 
 	navbar_settings.save()
+
+
+def create_desktop_icons_for_app(app_name=None):
+	"""Seed Desktop Icons after an app is installed.
+
+	Only the Desktop Icon grid reads these rows, so there's nothing to do unless
+	Desktop Settings -> Desktop Page is `Desktop Icons`. Regenerates all icons, which is
+	idempotent -- it only creates the ones that don't already exist.
+	"""
+	from frappe.desk.doctype.desktop_settings.desktop_settings import is_desktop_icons_page
+
+	if not is_desktop_icons_page():
+		return
+
+	from frappe.desk.doctype.desktop_icon.desktop_icon import create_desktop_icons
+
+	try:
+		create_desktop_icons()
+		frappe.db.commit()  # nosemgrep
+	except Exception as e:
+		print(f"Error creating desktop icons: {e}")
+
+
+def delete_desktop_icons_for_app(app_name, dry_run=False):
+	"""Remove an uninstalled app's Desktop Icons."""
+	# `remove_app` fires after_app_uninstall hooks even on a dry run, so respect dry_run
+	# ourselves: preview only, don't touch the database.
+	if dry_run:
+		return
+
+	# Icons are named/labelled by the app's title (Desktop Icon autoname is `field:label`,
+	# set to app_title in create_desktop_icons_from_installed_apps), not the package name --
+	# so match on the `app_title` hook, else the filters never hit and rows are orphaned.
+	# No hook means the seeding never created an icon for this app either, so there's
+	# nothing to clean up; indexing an empty list here would raise on uninstall instead.
+	app_title = (frappe.get_hooks("app_title", app_name=app_name) or [None])[0]
+	if not app_title:
+		return
+
+	icons_to_delete = frappe.get_all(
+		"Desktop Icon",
+		pluck="name",
+		or_filters=[
+			["Desktop Icon", "name", "=", app_title],
+			["Desktop Icon", "parent_icon", "=", app_title],
+		],
+	)
+	for icon in icons_to_delete:
+		frappe.delete_doc_if_exists("Desktop Icon", icon)
+
+	# after_app_uninstall runs after remove_app's own commit, so persist the deletions here.
+	frappe.db.commit()  # nosemgrep

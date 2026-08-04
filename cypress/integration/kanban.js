@@ -44,10 +44,11 @@ context("Kanban Board", () => {
 			}
 
 			cy.visit("/desk/todo");
+			// the Kanban row hosts the boards submenu (it doesn't act on
+			// click) — creation lives in the submenu's Create Board row
 			cy.get(".page-actions .custom-btn-group button").click();
-			cy.get(".page-actions .custom-btn-group ul.dropdown-menu li")
-				.contains("Kanban")
-				.click();
+			cy.contains(".es-menu__item", "Kanban View").trigger("pointerenter");
+			cy.contains(".es-menu__item", "Create Board").click();
 
 			cy.get(".modal-dialog:visible").should("exist");
 			cy.fill_field("board_name", "ToDo Kanban", "Data");
@@ -56,6 +57,21 @@ context("Kanban Board", () => {
 
 			cy.get(".title-text").should("contain", "ToDo Kanban");
 		});
+	});
+
+	it("Open a board from the view switcher on list view", () => {
+		cy.visit("/desk/todo");
+		cy.get(".page-actions .custom-btn-group button").click();
+		// boards load async at hover — the row appears once the fetch lands
+		cy.contains(".es-menu__item", "Kanban View").trigger("pointerenter");
+		cy.contains(".es-menu__item", "ToDo Kanban").click();
+
+		cy.get(".title-text").should("contain", "ToDo Kanban");
+		cy.window()
+			.its("cur_list")
+			.then((list) => {
+				expect(list.view_name).to.equal("Kanban");
+			});
 	});
 
 	it("Create ToDo from kanban", () => {
@@ -67,7 +83,7 @@ context("Kanban Board", () => {
 		cy.click_listview_primary_button("Add ToDo");
 
 		cy.fill_field("description", "Test Kanban ToDo", "Text Editor").wait(300);
-		cy.get(".modal-footer .btn-primary").last().click();
+		cy.get(".modal-footer .btn-modal-primary").last().click();
 
 		cy.wait("@save-todo");
 	});

@@ -320,24 +320,24 @@ def _restore(
 			force,
 		)
 
-	# Extract public and/or private files to the restored site, if user has given the path
+	# Extract public and/or private files to the restored site, if user has given the path.
+	# extract_files now extracts directly from the source archive — no copy is made into
+	# the site dir, so no post-extract os.remove() is needed here.
 	if with_public_files:
 		_phase("Restoring public files")
 		if encryption_key:
 			with decrypt_backup(with_public_files, encryption_key):
-				public = extract_files(site, with_public_files)
+				extract_files(site, with_public_files)
 		else:
-			public = extract_files(site, with_public_files)
-		os.remove(public)
+			extract_files(site, with_public_files)
 
 	if with_private_files:
 		_phase("Restoring private files")
 		if encryption_key:
 			with decrypt_backup(with_private_files, encryption_key):
-				private = extract_files(site, with_private_files)
+				extract_files(site, with_private_files)
 		else:
-			private = extract_files(site, with_private_files)
-		os.remove(private)
+			extract_files(site, with_private_files)
 
 	success_message = "Site {} has been restored{}".format(
 		site, " with files" if (with_public_files or with_private_files) else ""

@@ -96,6 +96,64 @@ context("Espresso components", () => {
 			// .es-menu__item itself, not the inner label span.
 			cy.contains(".es-menu__item", "Archive").should("match", "button").and("be.disabled");
 		});
+
+		it("async options open in a loading state, then fill in when the promise settles", () => {
+			cy.contains(".explorer-group", "Async items")
+				.find('[aria-haspopup="menu"]')
+				.first()
+				.click();
+
+			// the panel opens immediately with the placeholder (aria-busy),
+			// no rows yet
+			cy.get(".es-menu[data-state='open']")
+				.should("have.attr", "aria-busy", "true")
+				.find(".es-menu__loading")
+				.should("exist");
+			cy.get(".es-menu__item").should("not.exist");
+
+			// the demo resolves after 600ms — the rows replace the placeholder
+			// and the busy state clears
+			cy.contains(".es-menu__item", "Fetched row 1").should("exist");
+			cy.get(".es-menu[data-state='open']").should("not.have.attr", "aria-busy");
+			cy.get(".es-menu__loading").should("not.exist");
+
+			// the swapped-in rows are live
+			cy.contains(".es-menu__item", "Fetched row 2").click();
+			cy.get(".es-menu[data-state='open']").should("not.exist");
+			cy.contains(".es-toast", "Row 2").should("exist");
+		});
+
+		it("a function submenu loads on hover and swaps in its rows", () => {
+			cy.contains(".explorer-group", "Async items")
+				.find('[aria-haspopup="menu"]')
+				.eq(1)
+				.click();
+
+			// hover intent starts the fetch and opens the panel after the delay
+			cy.contains(".es-menu__item", "Recent documents").trigger("pointerenter");
+			cy.get(".es-menu[data-state='open']").should("have.length", 2);
+
+			// resolved rows land in the submenu panel and activate normally
+			cy.contains(".es-menu__item", "Doc A").should("exist");
+			cy.contains(".es-menu__item", "Doc A").click();
+			cy.get(".es-menu[data-state='open']").should("not.exist");
+			cy.contains(".es-toast", "Doc A").should("exist");
+		});
+
+		it("a rejected submenu shows the failure notice instead of a dead panel", () => {
+			cy.contains(".explorer-group", "Async items")
+				.find('[aria-haspopup="menu"]')
+				.eq(1)
+				.click();
+
+			cy.contains(".es-menu__item", "Fails to load").trigger("pointerenter");
+			// the panel opens loading, then swaps to the inert notice
+			cy.get(".es-menu[data-state='open']").should("have.length", 2);
+			cy.contains(".es-menu__empty", "Couldn't load options").should("exist");
+			// the root menu is still alive — Escape closes everything
+			cy.focused().trigger("keydown", { key: "Escape" });
+			cy.get(".es-menu[data-state='open']").should("not.exist");
+		});
 	});
 
 	describe("Toast — legacy HTML message sanitisation", () => {

@@ -59,11 +59,14 @@ let is_selected = computed(() =>
 		? raw_store.selected_letterhead.value
 		: raw_store.selected_lh_footer.value
 );
-let empty_label = computed(() =>
-	props.zone === "header"
+let empty_label = computed(() => {
+	if (letterhead.value) {
+		return __("{0} is empty — click to add", [letterhead.value.name]);
+	}
+	return props.zone === "header"
 		? __("No Letter Head — click to add")
-		: __("No Letter Head Footer — click to add")
-);
+		: __("No Letter Head Footer — click to add");
+});
 
 function select_zone() {
 	raw_store.select_letterhead({ footer: props.zone !== "header" });

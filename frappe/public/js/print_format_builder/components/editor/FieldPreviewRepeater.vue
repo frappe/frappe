@@ -24,22 +24,20 @@
 					{{ repeater_cell(col, i, row) }}
 				</td>
 			</tr>
-			<tr v-if="!(preview_doc[df.source] || []).length">
-				<td class="text-muted pfb-table-note">
-					{{ df.source ? __("No rows") : __("Pick a source table") }}
-				</td>
-			</tr>
-			<tr v-if="(preview_doc[df.source] || []).length > 6">
-				<td :colspan="df.repeater_columns?.length || 1" class="text-muted pfb-table-note">
-					{{
-						__("+ {0} more rows in this document — all print in the real output", [
-							preview_doc[df.source].length - 6,
-						])
-					}}
-				</td>
-			</tr>
 		</tbody>
 	</table>
+	<!-- outside the table: a note row inside tbody would take over `tr:last-child`,
+	     which every last-row border rule is keyed on -->
+	<div v-if="!(preview_doc[df.source] || []).length" class="text-muted pfb-table-note">
+		{{ df.source ? __("No rows") : __("Pick a source table") }}
+	</div>
+	<div v-else-if="preview_doc[df.source].length > 6" class="text-muted pfb-table-note">
+		{{
+			__("+ {0} more rows in this document — all print in the real output", [
+				preview_doc[df.source].length - 6,
+			])
+		}}
+	</div>
 </template>
 
 <script setup>

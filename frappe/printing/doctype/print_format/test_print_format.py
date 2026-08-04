@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils import flt
 
 if TYPE_CHECKING:
 	from frappe.printing.doctype.print_format.print_format import PrintFormat
@@ -155,6 +156,129 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 		self.assertIn(b"<svg", base64.b64decode(data_uri[len(prefix) :]))
 
 
+class TestPrintFormatHardening(IntegrationTestCase):
+	"""Malformed layouts and conditions must not take the print down."""
+
+	NAME = "_Test Hardening"
+
+	def make(self, layout, **kwargs):
+		frappe.delete_doc("Print Format", self.NAME, force=True, ignore_missing=True)
+		doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": self.NAME,
+				"doc_type": "User",
+				"standard": "No",
+				"print_format_builder_beta": 1,
+				"format_data": layout if isinstance(layout, str) else frappe.as_json(layout),
+				**kwargs,
+			}
+		)
+		doc.insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", self.NAME, force=True, ignore_missing=True)
+		return doc
+
+	def render(self, layout, **kwargs):
+		from frappe.utils.print_format_generator import get_html
+
+		self.make(layout, **kwargs)
+		return get_html("User", "Administrator", self.NAME)
+
+	@staticmethod
+	def layout(*fields, **section):
+		sec = {"label": "", "columns": [{"label": "", "fields": list(fields)}]}
+		sec.update(section)
+		return {"sections": [sec], "header": {"columns": []}, "footer": {"columns": []}}
+
+	DATA: ClassVar[dict] = {"label": "First Name", "fieldname": "first_name", "fieldtype": "Data"}
+
+	def test_malformed_layout_renders_empty_instead_of_erroring(self):
+		for label, format_data in {
+			"corrupt json": '{"sections": [BROKEN',
+			"sections is a string": '{"sections": "nope"}',
+			"sections is null": '{"sections": null}',
+			"section without columns": '{"sections": [{"label": "x"}]}',
+			"column without fields": '{"sections": [{"columns": [{"label": ""}]}]}',
+			"non-dict field": '{"sections": [{"columns": [{"fields": ["nope"]}]}]}',
+		}.items():
+			with self.subTest(layout=label):
+				self.assertIn("print-format-doc", self.render(format_data))
+
+	def test_broken_condition_is_rejected_on_save(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.make(self.layout({**self.DATA, "visible_if": "doc.first_name ==== 'x'"}))
+
+		self.make(self.layout({**self.DATA, "visible_if": "   "}))
+
+	def test_runtime_condition_failure_shows_field_and_logs(self):
+		before = frappe.db.count("Error Log")
+		html = self.render(self.layout({**self.DATA, "label": "PROBE", "visible_if": "doc.nope.nope"}))
+		self.assertIn("PROBE", html)
+		self.assertGreater(frappe.db.count("Error Log"), before)
+
+	def test_malformed_table_columns_do_not_crash(self):
+		table = {"label": "T", "fieldname": "roles", "fieldtype": "Table", "options": "Has Role"}
+		for table_columns in (["nope", 3], "nope", {"a": 1}, 7, ""):
+			with self.subTest(table_columns=table_columns):
+				html = self.render(self.layout({**table, "table_columns": table_columns}))
+				self.assertIn("print-format-doc", html)
+
+	def test_non_string_condition_does_not_crash(self):
+		for condition in (5, ["a"], {"a": 1}):
+			with self.subTest(condition=condition):
+				html = self.render(self.layout({**self.DATA, "label": "PROBE", "visible_if": condition}))
+				self.assertIn("PROBE", html)
+
+	def test_failing_row_condition_logs_once_not_once_per_row(self):
+		frappe.db.delete("Error Log")
+		self.render(
+			self.layout(
+				{
+					"label": "T",
+					"fieldname": "roles",
+					"fieldtype": "Table",
+					"options": "Has Role",
+					"row_condition": "row.nope.nope",
+					"table_columns": [
+						{"label": "Role", "fieldname": "role", "fieldtype": "Link", "width": 100}
+					],
+				}
+			)
+		)
+		self.assertGreater(frappe.db.count("Has Role", {"parent": "Administrator"}), 1)
+		self.assertEqual(frappe.db.count("Error Log"), 1)
+
+	def test_labels_are_escaped(self):
+		payload = "<script>alert(1)</script>"
+		self.assertNotIn(payload, self.render(self.layout({**self.DATA, "label": payload})))
+		self.assertNotIn(
+			payload,
+			self.render(
+				{
+					"sections": [{"label": payload, "columns": [{"label": "", "fields": [self.DATA]}]}],
+					"header": {"columns": []},
+					"footer": {"columns": []},
+				}
+			),
+		)
+		self.assertNotIn(
+			payload,
+			self.render(
+				self.layout(
+					{
+						"label": "T",
+						"fieldname": "roles",
+						"fieldtype": "Table",
+						"options": "Has Role",
+						"table_columns": [
+							{"label": payload, "fieldname": "role", "fieldtype": "Link", "width": 100}
+						],
+					}
+				)
+			),
+		)
+
+
 class TestClassicConverter(IntegrationTestCase):
 	"""Conversion of classic print-format-builder layouts to the beta builder."""
 
@@ -231,7 +355,7 @@ class TestClassicConverter(IntegrationTestCase):
 										"fieldname": "idx",
 										"fieldtype": "Int",
 										"options": None,
-										"width": 5.33,
+										"width": 10,
 									},
 									{
 										"label": "Role",
@@ -374,6 +498,48 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertTrue(uses_beta_renderer(classic))
 		self.assertTrue(uses_beta_renderer(beta))
 
+	def test_standard_jinja_format_stays_off_the_beta_renderer(self):
+		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+
+		# app-shipped Jinja format: html lives in the module's .html file, so there is
+		# no format_data for the beta renderer to read
+		doc = frappe.new_doc("Print Format")
+		doc.name = "_Test Standard Jinja Format"
+		doc.doc_type = "User"
+		doc.module = "Core"
+		doc.standard = "Yes"
+		doc.custom_format = 0
+		doc.before_save()
+
+		self.assertEqual(doc.print_format_builder_beta, 0)
+		self.assertFalse(uses_beta_renderer(doc))
+
+		# rows flipped before the before_save fix are still in the wild — the flag
+		# alone must not route a layout-less standard format to the beta renderer
+		doc.print_format_builder_beta = 1
+		self.assertFalse(uses_beta_renderer(doc))
+		doc.format_data = '{"sections": []}'
+		self.assertTrue(uses_beta_renderer(doc))
+
+	def test_print_designer_format_stays_off_the_beta_renderer(self):
+		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+
+		doc = frappe.new_doc("Print Format")
+		doc.name = "_Test Print Designer Format"
+		doc.doc_type = "User"
+		doc.module = "Core"
+		doc.custom_format = 0
+		doc.print_designer = 1
+		doc.format_data = '{"header": [], "body": []}'
+		doc.before_save()
+
+		self.assertEqual(doc.print_format_builder_beta, 0)
+		self.assertFalse(uses_beta_renderer(doc))
+
+		# rows already flipped on insert must not reach the beta renderer either
+		doc.print_format_builder_beta = 1
+		self.assertFalse(uses_beta_renderer(doc))
+
 	def test_convert_print_format_document(self):
 		from frappe.printing.doctype.print_format.classic_converter import convert_print_format
 
@@ -414,6 +580,15 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertIn('data-fieldname="idx"', html)
 		self.assertIn("print-heading", html)
 
+	def test_zero_font_size_renders_at_default(self):
+		# app-shipped classic fixtures carry no font_size, which lands as 0 — the
+		# stylesheet must not emit font-size: 0px or the whole page is invisible
+		self.make_classic_format()
+		frappe.db.set_value("Print Format", self.FORMAT_NAME, "font_size", 0)
+		html = frappe.get_print("User", "Administrator", print_format=self.FORMAT_NAME)
+		self.assertNotIn("font-size: 0px", html)
+		self.assertIn("font-size: 14px", html)
+
 	def test_migrate_all_classic_formats(self):
 		from frappe.printing.doctype.print_format.classic_converter import migrate_all_classic_formats
 
@@ -432,6 +607,115 @@ class TestClassicConverter(IntegrationTestCase):
 		doc.reload()
 		self.assertEqual(doc.print_format_builder_beta, 1)
 		self.assertEqual(frappe.parse_json(doc.classic_format_data), self.CLASSIC_FORMAT_DATA)
+
+	def test_converted_sections_get_spacing(self):
+		"""Classic put the gap in its markup; the conversion has to store one."""
+		from frappe.printing.doctype.print_format.classic_converter import (
+			CONVERTED_SECTION_GAP_PX,
+			convert_classic_to_beta,
+		)
+
+		classic = [
+			{"fieldtype": "Section Break", "label": "One"},
+			{"fieldname": "first_name", "print_hide": 0},
+			{"fieldtype": "Section Break", "label": "Two"},
+			{"fieldname": "last_name", "print_hide": 0},
+		]
+		layout, _dropped = convert_classic_to_beta(classic, frappe.get_meta("User"))
+
+		# the first section sits under the header, which already has its own gap
+		self.assertIsNone(layout["sections"][0].get("margin"))
+		self.assertEqual(layout["sections"][1]["margin"]["top"], CONVERTED_SECTION_GAP_PX)
+
+	def test_spacing_patch_skips_sections_edited_since_conversion(self):
+		from frappe.patches.v16_0.repair_converted_print_formats import add_section_spacing
+		from frappe.printing.doctype.print_format.classic_converter import CONVERTED_SECTION_GAP_PX
+
+		layout = {
+			"sections": [
+				{"label": "first", "columns": []},
+				{"label": "bare", "columns": []},
+				{"label": "tuned", "columns": [], "margin": {"top": 40}},
+			]
+		}
+		# one tuned section means someone has been in the builder — leave it all alone
+		self.assertFalse(add_section_spacing(layout))
+		self.assertIsNone(layout["sections"][1].get("margin"))
+		self.assertEqual(layout["sections"][2]["margin"]["top"], 40)
+
+		untouched = {
+			"sections": [
+				{"label": "first", "columns": []},
+				{"label": "a", "columns": []},
+				{"label": "b", "columns": []},
+			]
+		}
+		self.assertTrue(add_section_spacing(untouched))
+		# the first section sits under the header, which already has its own gap
+		self.assertIsNone(untouched["sections"][0].get("margin"))
+		self.assertEqual(untouched["sections"][1]["margin"]["top"], CONVERTED_SECTION_GAP_PX)
+		self.assertEqual(untouched["sections"][2]["margin"]["top"], CONVERTED_SECTION_GAP_PX)
+
+		# re-running changes nothing
+		self.assertFalse(add_section_spacing(untouched))
+
+	def test_conversion_fills_numeric_fields_left_empty(self):
+		from frappe.printing.doctype.print_format.classic_converter import (
+			NUMERIC_DEFAULT_FIELDS,
+			convert_print_format,
+		)
+
+		doc = self.make_classic_format()
+		for fieldname in NUMERIC_DEFAULT_FIELDS:
+			doc.set(fieldname, 0)
+		convert_print_format(doc)
+
+		meta = frappe.get_meta("Print Format")
+		for fieldname in NUMERIC_DEFAULT_FIELDS:
+			with self.subTest(fieldname=fieldname):
+				self.assertEqual(doc.get(fieldname), flt(meta.get_field(fieldname).default))
+
+		doc.margin_left = 3
+		for fieldname in ("margin_top", "margin_bottom", "margin_right"):
+			doc.set(fieldname, 0)
+		convert_print_format(doc)
+		self.assertEqual(doc.margin_left, 3)
+		self.assertEqual(doc.margin_right, 0)
+
+	def test_repair_converted_print_formats(self):
+		from frappe.patches.v16_0.repair_converted_print_formats import execute
+
+		self.make_classic_format()
+		from frappe.printing.doctype.print_format.classic_converter import migrate_all_classic_formats
+
+		migrate_all_classic_formats()
+
+		# recreate the pre-fix conversion output: zero font size, 5.33% serial column
+		doc = frappe.get_doc("Print Format", self.FORMAT_NAME)
+		layout = frappe.parse_json(doc.format_data)
+		table = layout["sections"][0]["columns"][1]["fields"][1]
+		table["table_columns"][0]["width"] = 5.33
+		table["table_columns"][1]["width"] = 94.67
+		frappe.db.set_value(
+			"Print Format",
+			self.FORMAT_NAME,
+			{"font_size": 0, "format_data": frappe.as_json(layout)},
+		)
+
+		execute()
+
+		doc.reload()
+		self.assertEqual(doc.font_size, 14)
+		columns = frappe.parse_json(doc.format_data)["sections"][0]["columns"][1]["fields"][1][
+			"table_columns"
+		]
+		self.assertEqual(columns[0]["width"], 10)
+		self.assertEqual(columns[1]["width"], 90.0)
+
+		# already-repaired rows are untouched
+		modified = frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data")
+		execute()
+		self.assertEqual(frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data"), modified)
 
 	def test_migration_skips_corrupt_format(self):
 		"""A format with unparseable format_data is skipped, not fatal to the run."""
@@ -577,7 +861,7 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 		self.addCleanup(frappe.delete_doc, "Contact", self.contact.name, force=True)
 
-	def render(self, df):
+	def render(self, df, skip_validation=False):
 		from frappe.utils.print_format_generator import get_html
 
 		frappe.delete_doc("Print Format", self.FORMAT_NAME, force=True, ignore_missing=True)
@@ -586,7 +870,7 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 			"header": {"columns": []},
 			"footer": {"columns": []},
 		}
-		frappe.get_doc(
+		doc = frappe.get_doc(
 			{
 				"doctype": "Print Format",
 				"name": self.FORMAT_NAME,
@@ -595,7 +879,10 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 				"print_format_builder_beta": 1,
 				"format_data": frappe.as_json(format_data),
 			}
-		).insert()
+		)
+		if skip_validation:
+			doc.flags.ignore_validate = True
+		doc.insert()
 		self.addCleanup(frappe.delete_doc, "Print Format", self.FORMAT_NAME, force=True)
 		return get_html("Contact", self.contact.name, self.FORMAT_NAME)
 
@@ -619,7 +906,7 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 		self.assertNotIn("secondary@example.com", html)
 
 	def test_bad_row_condition_keeps_all_rows(self):
-		html = self.render(self.table_field(row_condition="row.does_not_exist >"))
+		html = self.render(self.table_field(row_condition="row.does_not_exist >"), skip_validation=True)
 		self.assertIn("primary@example.com", html)
 		self.assertIn("secondary@example.com", html)
 
@@ -659,7 +946,7 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 	def test_bad_column_condition_keeps_column(self):
 		df = self.table_field()
 		df["table_columns"][1]["column_condition"] = "doc.does_not_exist >"
-		html = self.render(df)
+		html = self.render(df, skip_validation=True)
 		self.assertIn('data-fieldname="is_primary"', html)
 		self.assertIn('data-fieldname="email_id"', html)
 

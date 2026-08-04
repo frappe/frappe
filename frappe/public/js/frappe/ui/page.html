@@ -32,22 +32,6 @@
 				</button>
 				<div class="flex col page-actions justify-content-end {% if frappe.is_mobile() %} pl-0 {% endif %}">
 					<!-- buttons -->
-					{% if (frappe.boot.read_only) { %}
-					{%= frappe.ui.badge.html({
-						label: __("Read Only Mode"),
-						theme: "amber",
-						css_class: "ml-2 read-only-banner",
-						title: __("Your site is undergoing maintenance or being updated."),
-					}) %}
-					{% } %}
-					{% if (frappe.boot.user.impersonated_by) { %}
-					{%= frappe.ui.badge.html({
-						label: __("Impersonating {0}", [frappe.boot.user.name]),
-						theme: "red",
-						css_class: "ml-2",
-						title: __("You are impersonating as another user."),
-					}) %}
-					{% } %}
 					<div class="filters flex"></div>
 					<div class="custom-actions hide hidden-xs hidden-md"></div>
 					<div class="custom-mobile-actions"></div>
@@ -58,9 +42,11 @@
 								icon: "ellipsis",
 								title: __("Menu"),
 								css_class: "icon-btn menu-more-button",
-								attrs: { "data-toggle": "dropdown", "aria-expanded": "false" },
 							}) %}
-							<ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>
+							<!-- hidden item store, not UI: add_dropdown_item writes <li><a> here
+							(the returned jQuery is public API); frappe.ui.Dropdown snapshots it
+							into menu rows on every open — see page.js build_dropdown_options -->
+							<ul class="dropdown-menu dropdown-menu-right" role="presentation"></ul>
 						</div>
 						{%= frappe.ui.button.html({ css_class: "secondary-action hide" }) %}
 						<div class="actions-btn-group hide">
@@ -68,9 +54,8 @@
 								label: __("Actions"),
 								icon_right: "chevrons-up-down",
 								variant: "solid",
-								attrs: { "data-toggle": "dropdown", "aria-expanded": "false" },
 							}) %}
-							<ul class="dropdown-menu dropdown-menu-right" role="menu">
+							<ul class="dropdown-menu dropdown-menu-right" role="presentation">
 							</ul>
 						</div>
 						{%= frappe.ui.button.html({ variant: "solid", css_class: "primary-action hide" }) %}

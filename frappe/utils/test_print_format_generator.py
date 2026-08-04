@@ -479,6 +479,57 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		html = generator._render_zone_section(section, todo)
 		self.assertFalse(html.strip())
 
+	def test_letterhead_resolution_precedence(self):
+		"""Beta renders resolve a letter head like templates do, with the layout's own choice on top."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		def make_lh(is_default=0):
+			lh = frappe.get_doc(
+				{
+					"doctype": "Letter Head",
+					"letter_head_name": f"_Test LH {frappe.generate_hash(length=6)}",
+					"source": "HTML",
+					"content": "<p>letterhead</p>",
+					"is_default": is_default,
+				}
+			).insert(ignore_permissions=True)
+			self.addCleanup(lh.delete, ignore_permissions=True)
+			return lh.name
+
+		site_default, from_layout, explicit = make_lh(is_default=1), make_lh(), make_lh()
+		pf = self._make_print_format()
+		todo = self._make_todo()
+
+		def resolved(**kwargs):
+			return (PrintFormatGenerator(pf.name, todo, **kwargs).letterhead or {}).get("name")
+
+		# nothing named anywhere: the site default, as templates do
+		self.assertEqual(resolved(no_letterhead=0), site_default)
+		self.assertIsNone(resolved(no_letterhead=1))
+
+		# the document's own field outranks the site default
+		todo.letter_head = from_layout
+		self.assertEqual(resolved(no_letterhead=0), from_layout)
+		todo.letter_head = None
+
+		# a layout that names one outranks the document
+		layout = json.loads(pf.format_data)
+		layout["letter_head"] = from_layout
+		pf.db_set("format_data", json.dumps(layout), update_modified=False)
+		frappe.clear_cache()
+		self.assertEqual(resolved(no_letterhead=0), from_layout)
+
+		# an explicit argument outranks everything, and "no" still wins
+		self.assertEqual(resolved(letterhead=explicit, no_letterhead=0), explicit)
+		self.assertIsNone(resolved(letterhead=explicit, no_letterhead=1))
+
+		# a deleted letter head degrades instead of raising
+		todo.letter_head = "_Test LH Deleted"
+		layout.pop("letter_head")
+		pf.db_set("format_data", json.dumps(layout), update_modified=False)
+		frappe.clear_cache()
+		self.assertIsNone(resolved(no_letterhead=0))
+
 	def test_section_background_in_html(self):
 		"""A section with a background color should have that style in the HTML output."""
 		from frappe.utils.print_format_generator import get_html
@@ -1401,7 +1452,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertNotIn("print-repeating-frame", html)
 		self.assertIn("LETTERHEAD_TOP", html)
 
-	def _user_beta_format(self, layout):
+	def _user_beta_format(self, layout, skip_validation=False):
 		import json
 
 		pf = frappe.get_doc(
@@ -1414,7 +1465,10 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 				"standard": "No",
 				"format_data": json.dumps(layout),
 			}
-		).insert(ignore_permissions=True)
+		)
+		if skip_validation:
+			pf.flags.ignore_validate = True
+		pf.insert(ignore_permissions=True)
 		self.addCleanup(pf.delete, ignore_permissions=True)
 		return pf
 
@@ -1429,7 +1483,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		n = len(user.roles)
 		self.assertGreaterEqual(n, 2)
 
-		def rows_for(condition):
+		def rows_for(condition, skip_validation=False):
 			df = {
 				"fieldtype": "Repeater",
 				"fieldname": "_rep",
@@ -1445,14 +1499,15 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 				"header": {"columns": [{"label": "", "fields": []}]},
 				"footer": {"columns": [{"label": "", "fields": []}]},
 			}
-			html = PrintFormatGenerator(self._user_beta_format(layout), user).get_html_preview()
+			pf = self._user_beta_format(layout, skip_validation=skip_validation)
+			html = PrintFormatGenerator(pf, user).get_html_preview()
 			block = re.search(r"pfb-repeater-table.*?</table>", html, re.S)
 			return len(re.findall(r"<tr>", block.group(0))) if block else 0
 
 		self.assertEqual(rows_for(None), n)
 		self.assertEqual(rows_for("row.idx == 1"), 1)
 		self.assertEqual(rows_for("False"), 0)
-		self.assertEqual(rows_for("this is (( invalid"), n)
+		self.assertEqual(rows_for("this is (( invalid", skip_validation=True), n)
 		# print_settings is in scope alongside doc/row
 		with self.change_settings("Print Settings", pdf_page_size="A4"):
 			self.assertEqual(rows_for("print_settings.pdf_page_size == 'A4'"), n)

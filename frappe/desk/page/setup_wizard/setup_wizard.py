@@ -17,7 +17,28 @@ from frappe.utils.synchronization import LockTimeoutError, filelock
 from . import install_fixtures
 
 
-def get_setup_stages(args):  # nosemgrep
+def site_requires_builtin_wizard() -> bool:
+	for app in frappe.get_installed_apps():
+		hooks = frappe.get_hooks(app_name=app)
+		if hooks.get("setup_wizard_stages") or hooks.get("setup_wizard_complete"):
+			return True
+	return False
+
+
+def get_setup_wizard_url() -> str:
+	"""Setup UI for a fresh site: an app's `setup_wizard_url` hook (last installed wins), else the desk wizard.
+
+	`setup_wizard_url` must be a non-desk route (not under `/desk` or `/app`); it redirects the user
+	out of desk to an app-owned setup UI. To customize setup within desk, use the built-in wizard via
+	the `setup_wizard_stages` / `setup_wizard_complete` hooks.
+	"""
+	urls = frappe.get_hooks("setup_wizard_url")
+	if urls and not site_requires_builtin_wizard():
+		return urls[-1]
+	return "/desk/setup-wizard"
+
+
+def get_setup_stages(args, include_app_input_stages=True):  # nosemgrep
 	# App setup stage functions should not include frappe.db.commit
 	# That is done by frappe after successful completion of all stages
 	stages = [
@@ -35,7 +56,9 @@ def get_setup_stages(args):  # nosemgrep
 		}
 	]
 
-	stages += get_stages_hooks(args) + get_setup_complete_hooks(args)
+	if include_app_input_stages:
+		stages += get_stages_hooks(args)
+	stages += get_setup_complete_hooks(args)
 
 	stages.append(
 		{
@@ -68,6 +91,46 @@ def setup_complete(args: str | dict[str, Any]):
 		return {"status": "ok"}
 
 
+@frappe.whitelist(methods=["POST"])
+def complete_app_setup(
+	country: str | None = None,
+	currency: str | None = None,
+	timezone: str | None = None,
+	language: str | None = None,
+	enable_telemetry: bool | None = None,
+	allow_recording_first_session: bool | None = None,
+):
+	"""Complete setup for an app-provided wizard: the setup engine minus the desk-input stages."""
+	frappe.only_for("System Manager")
+
+	if site_requires_builtin_wizard():
+		frappe.throw(_("This site's setup must run through the built-in wizard."))
+
+	try:
+		with filelock("setup_wizard", timeout=0.5):
+			if frappe.is_setup_complete():
+				return {"status": "ok"}
+
+			args = parse_args(
+				sanitize_input(
+					{
+						"country": country,
+						"currency": currency,
+						"timezone": timezone,
+						"language": language,
+						"enable_telemetry": enable_telemetry,
+						"allow_recording_first_session": allow_recording_first_session,
+					}
+				)
+			)
+			stages = get_setup_stages(args, include_app_input_stages=False)
+			return process_setup_stages(stages, args)
+	except LockTimeoutError:
+		if frappe.is_setup_complete():
+			return {"status": "ok"}
+		frappe.throw(_("Setup is already in progress. Please try again in a moment."))
+
+
 @frappe.whitelist()
 def initialize_system_settings_and_user(
 	system_settings_data: str | dict[str, Any], user_data: str | dict[str, Any]
@@ -98,7 +161,7 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 	setup_wizard_completed_apps = get_setup_wizard_completed_apps()
 	telemetry_enabled = bool(cint(user_input.get("enable_telemetry")))
 
-	capture("initated_server_side", "setup")
+	capture("initiated_server_side", "setup")
 	try:
 		frappe.flags.in_setup_wizard = True
 		current_task = None
@@ -152,6 +215,7 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 				"telemetry_enabled": telemetry_enabled,
 			},
 		)
+		apply_telemetry_preference(telemetry_enabled)
 		if not is_background_task:
 			return {"status": "ok"}
 		frappe.publish_realtime("setup_task", {"status": "ok"}, user=frappe.session.user)
@@ -185,6 +249,12 @@ def update_global_settings(args):  # nosemgrep
 	update_system_settings(args)
 	create_or_update_user(args)
 	frappe.enqueue(set_timezone, timezone=args.get("timezone"))
+
+
+def apply_telemetry_preference(telemetry_enabled):
+	# Applied only after the wizard's own completion event: setup events (funnel,
+	# persona) are always captured — this checkbox governs tracking after setup.
+	frappe.db.set_single_value("System Settings", "enable_telemetry", cint(telemetry_enabled))
 
 
 def run_post_setup_complete(args):  # nosemgrep
@@ -291,7 +361,6 @@ def update_system_settings(args):  # nosemgrep
 			"number_format": number_format,
 			"enable_scheduler": 1 if not frappe.in_test else 0,
 			"backup_limit": 3,  # Default for downloadable backups
-			"enable_telemetry": cint(args.get("enable_telemetry")),
 		}
 	)
 	system_settings.save()

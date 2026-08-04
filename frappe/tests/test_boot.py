@@ -36,6 +36,21 @@ class TestBootData(IntegrationTestCase):
 		self.assertIsInstance(apps, list)
 		self.assertIn("frappe", apps)
 
+	def test_setup_wizard_url_exposed_until_setup_complete(self):
+		from unittest.mock import patch
+
+		from frappe.boot import get_bootinfo
+
+		frappe.set_user("Administrator")
+		with (
+			patch.object(frappe, "is_setup_complete", return_value=False),
+			patch("frappe.boot.get_setup_wizard_url", return_value="/suite/setup") as resolve,
+		):
+			bootinfo = get_bootinfo()
+
+		resolve.assert_called_once()
+		self.assertEqual(bootinfo.setup_wizard_url, "/suite/setup")
+
 	def test_empty_allowed_views_are_served_from_cache(self):
 		from unittest.mock import patch
 

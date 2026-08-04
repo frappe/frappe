@@ -1,80 +1,118 @@
+// FullCalendar v6 grid, colored with espresso tokens.
+// Per-event background/text colors are set inline in calendar.js
+// (prepare_colors) — the event colors here are only the fallback.
+
+.fc {
+	// FullCalendar's own theming hooks — set these instead of fighting
+	// its rules with !important
+	--fc-border-color: var(--outline-gray-1);
+	// today is marked on the date number, not by tinting the whole cell
+	--fc-today-bg-color: transparent;
+	--fc-highlight-color: var(--surface-blue-2);
+	--fc-now-indicator-color: var(--ink-red-5);
+	--fc-event-bg-color: var(--surface-blue-1);
+	--fc-event-text-color: var(--ink-blue-7);
+	// background of the "+n more" popover
+	--fc-page-bg-color: var(--surface-elevation-1);
+	--fc-neutral-bg-color: var(--surface-gray-2);
+}
+
 .fc-theme-standard {
-	padding: 20px;
-	color: var(--text-light) !important;
+	color: var(--ink-gray-8) !important;
 }
 
 .fc-theme-standard a {
-	color: var(--text-light);
-}
-
-.fc-toolbar {
-	padding-bottom: 15px;
-	margin-bottom: 0px !important;
-}
-
-.fc-toolbar-chunk div {
-	display: flex;
-}
-
-.fc-view-container {
-	margin-left: -1px;
-	margin-right: -1px;
-}
-
-.fc-head-container {
-	border: none !important;
+	color: var(--ink-gray-8);
 }
 
 th.fc-col-header-cell {
-	color: var(--gray-500);
-	font-weight: 600;
-}
-
-.fc-theme-standard td,
-.fc-theme-standard hr,
-.fc-theme-standard thead,
-.fc-theme-standard tbody,
-.fc-theme-standard .fc-row,
-.fc-theme-standard .fc-popover {
-	border-color: var(--gray-300) !important;
+	padding: 10px 12px 10px 0 !important;
+	color: var(--ink-gray-6);
+	font-size: var(--text-base);
+	font-weight: var(--font-weight-regular);
 }
 
 .fc-theme-standard td.fc-day-sun {
-	background: var(--highlight-color);
+	background: var(--surface-gray-1);
 }
 
-.fc-theme-standard .fc-day-today {
-	background-color: var(--fg-color) !important;
-
-	.fc-daygrid-day-number {
-		background-color: var(--gray-700);
-		border-radius: 50%;
-		color: $white;
-		height: 22px;
-		width: 22px;
-		line-height: 22px;
-		display: flex;
-		justify-content: center;
-		text-align: center;
-		padding: 0;
-	}
+.fc-theme-standard .fc-day-today .fc-daygrid-day-number {
+	background-color: var(--surface-gray-10);
+	border-radius: var(--radius);
+	color: var(--ink-gray-2);
+	height: 25px;
+	width: 25px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	padding: 0;
 }
 
-.fc-event {
-	background-color: rgb(237, 246, 253);
+.fc-theme-standard .fc-day-other .fc-daygrid-day-number {
+	color: var(--ink-gray-4);
+}
+
+// fc dims out-of-month cells with opacity — we use ink-gray-4 instead,
+// and the two combined would be too faint
+.fc.fc-theme-standard .fc-day-other .fc-daygrid-day-top {
+	opacity: 1;
+}
+
+// FullCalendar injects its stylesheet at runtime, after ours — rules
+// that tie with one of fc's need the extra .fc to win the cascade
+.fc .fc-event {
 	border: none !important;
+	border-radius: var(--radius);
 }
 
-.fc-event-main-frame {
-	flex-direction: column;
+// title above, time below it
+.fc .fc-daygrid-event .fc-event-main-frame,
+.fc .fc-timegrid-event .fc-event-main-frame {
+	flex-direction: column-reverse;
+	min-width: 0;
+	flex: 1;
 }
 
-.fc-time-grid-event {
-	border: none !important;
+// chip anatomy: [accent bar] [title / time]
+.fc-daygrid-event .fc-event-main,
+.fc-timegrid-event .fc-event-main {
+	display: flex;
+	gap: 6px;
 }
 
-.fc-day-top {
-	padding: 5px 10px 0 0 !important;
+.fc .fc-timegrid-event .fc-event-main {
+	padding: 4px 5px;
+}
+
+// currentColor is the event's inline textColor (its ink-X-7 token),
+// so every chip's bar matches its own color without any JS
+.fc-daygrid-event .fc-event-main::before,
+.fc-timegrid-event .fc-event-main::before {
+	content: "";
+	width: 2px;
+	border-radius: 2px;
+	background-color: currentColor;
+	flex-shrink: 0;
+}
+
+// only timed events carry the accent bar (class set in calendar.js)
+.fc-event:not(.timed-event) .fc-event-main::before {
+	display: none;
+}
+
+// titles inherit the event's textColor (its ink-X-7 accent)
+.fc-daygrid-event .fc-event-title {
+	font-weight: var(--font-weight-medium);
+}
+
+// in the timegrid the title keeps the event color; the time goes quiet
+.fc-timegrid-event .fc-event-time {
+	color: var(--ink-gray-6);
+}
+
+.fc-event.fc-event-past {
+	opacity: 0.5;
 }
 
 .fc-daygrid-day-top {
@@ -86,18 +124,13 @@ th.fc-col-header-cell {
 	}
 }
 
-th.fc-col-header-cell {
-	padding: 10px 12px 10px 0 !important;
-	text-transform: uppercase;
-	font-size: 12px;
-}
-
 .fc-daygrid-dot-event {
 	padding: 3px;
 	display: flex;
 	flex-direction: column-reverse;
 	align-items: normal;
-	color: rgb(0, 112, 204) !important;
+	// no !important — per-event inline colors should win
+	color: var(--ink-blue-7);
 
 	.fc-event-time {
 		font-weight: normal;
@@ -113,133 +146,29 @@ th.fc-col-header-cell {
 	}
 }
 
-.fc-toolbar-title {
-	font-size: $font-size-lg !important;
-	font-weight: 500;
-	line-height: 28px;
-	height: 28px;
-}
-
-.fc button {
-	height: 28px !important;
-	font-size: var(--text-md) !important;
-	outline: none !important;
-	text-transform: capitalize;
-}
-
-.fc-right button {
-	min-width: 64px;
-}
-
-.fc-left button {
-	width: 80px;
-}
-
-.fc-button-active {
-	box-shadow: none !important;
-	background: var(--gray-500) !important;
-	color: var(--fg-color) !important;
-	z-index: 0 !important;
-}
-
-//override default and fc-button styles
-.fc-dayGridMonth-button,
-.fc-dayGridWeek-button,
-.fc-dayGridDay-button {
-	border: none !important;
-	border-radius: 0;
-	background-color: var(--control-bg);
-	color: var(--text-color);
-}
-
-.fc-dayGridMonth-button {
-	border-top-left-radius: var(--radius) !important;
-	border-bottom-left-radius: var(--radius) !important;
-}
-
-.fc-dayGridDay-button {
-	border-top-right-radius: var(--radius) !important;
-	border-bottom-right-radius: var(--radius) !important;
-}
-
-.fc-prev-button {
-	margin-right: 10px !important;
-}
-
-.fc-next-button {
-	margin-left: 10px;
-}
-
-.fc-today-button {
-	margin-right: 10px;
-	border-radius: var(--radius) !important;
-}
-
 .fc-daygrid-event {
 	border: none !important;
 	margin: 5px 4px 0 !important;
-	padding: 1px 5px !important;
+	padding: 3px 5px !important;
 }
 
-.fc-time-grid .fc-slats .fc-minor td {
-	border-top-style: none !important;
+.fc .fc-timegrid-slot-label,
+.fc .fc-timegrid-axis {
+	color: var(--ink-gray-5);
 }
 
-.fc-highlight {
-	background: var(--blue-100) !important;
-}
-
-.fc-left {
-	.fc-prev-button,
-	.fc-next-button {
-		width: 28px;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		background: var(--gray-100);
-		box-shadow: none;
-		border: none;
-
-		use {
-			stroke-width: 0.9;
-		}
-	}
-}
-
-.fc-time-grid .fc-slats td {
-	height: 2.5em !important;
-}
-
-.fc-day-grid {
-	border-bottom: 1px solid var(--gray-300);
-}
-
-.fc-divider {
+.fc .fc-timegrid-now-indicator-arrow {
 	display: none;
 }
 
-.fc .fc-axis {
-	color: var(--gray-600) !important;
-	text-align: center;
-	width: 60px !important;
-}
+// the jump-to-date popover hugs the inline datepicker it contains
+.es-popover.calendar-date-jumper {
+	width: auto;
+	padding: 0;
 
-.fc-now-indicator {
-	border-color: var(--primary) !important;
-}
-
-.fc-now-indicator-arrow {
-	display: none !important;
-}
-
-#fc-calendar-wrapper .btn {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	line-height: 1.4;
-
-	svg {
-		width: 14px;
-		height: 14px;
+	.datepicker {
+		border: none;
+		background: transparent;
+		box-shadow: none;
 	}
 }

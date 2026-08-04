@@ -1071,7 +1071,7 @@ frappe.ui.form.Form = class FrappeForm {
 				method: "frappe.desk.form.linked_with.get_submitted_linked_docs",
 				args: {
 					doctype: me.doc.doctype,
-					name: me.doc.name,
+					name: cstr(me.doc.name),
 					ignore_doctypes_on_cancel_all: me.ignore_doctypes_on_cancel_all,
 				},
 				freeze: true,
@@ -1188,11 +1188,23 @@ frappe.ui.form.Form = class FrappeForm {
 		if (skip_confirm) {
 			cancel_doc();
 		} else {
-			frappe.confirm(
+			// destructive: red primary via frappe.warn
+			const d = frappe.warn(
+				__("Confirm"),
 				__("Permanently Cancel {0}?", [this.docname]),
 				cancel_doc,
-				me.handle_save_fail(btn, on_error)
+				__("Yes"),
+				false,
+				__("No")
 			);
+			// declined (No / Escape / close): re-enable the button. A
+			// confirmed-but-failed cancellation calls handle_save_fail from
+			// inside cancel_doc — this must not double up with that.
+			d.onhide = () => {
+				if (!d.primary_action_fulfilled) {
+					me.handle_save_fail(btn, on_error);
+				}
+			};
 		}
 	}
 

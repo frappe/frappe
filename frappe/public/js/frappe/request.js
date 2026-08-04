@@ -149,13 +149,7 @@ frappe.request.call = function (opts) {
 			opts.success_callback && opts.success_callback(data, xhr.responseText);
 		},
 		401: function (xhr) {
-			if (
-				frappe.app.session_expired_dialog ||
-				frappe.request.is_session_expired(xhr.responseJSON)
-			) {
-				frappe.app.handle_session_expired();
-				return;
-			}
+			if (frappe.request.handle_session_expiry(xhr.responseJSON)) return;
 			opts.error_callback && opts.error_callback();
 		},
 		404: function (xhr) {
@@ -168,13 +162,7 @@ frappe.request.call = function (opts) {
 			opts.error_callback && opts.error_callback();
 		},
 		403: function (xhr) {
-			if (
-				frappe.app.session_expired_dialog ||
-				frappe.request.is_session_expired(xhr.responseJSON)
-			) {
-				frappe.app.handle_session_expired();
-				return;
-			}
+			if (frappe.request.handle_session_expiry(xhr.responseJSON)) return;
 			if (xhr.responseJSON && xhr.responseJSON._error_message) {
 				frappe.msgprint({
 					title: __("Not permitted"),
@@ -465,6 +453,20 @@ frappe.request.is_session_expired = function (response) {
 	return !user_id || user_id === "Guest" || frappe.session.user === "Guest";
 };
 
+frappe.request.handle_session_expiry = function (response) {
+	// the dialog and the redirect live on frappe.app, which only exists once
+	// start_app() has run on document ready. Requests fired from top level module
+	// code can land before that, so fall through to the regular handlers instead.
+	if (!frappe.app) return false;
+
+	if (!frappe.app.session_expired_dialog && !frappe.request.is_session_expired(response)) {
+		return false;
+	}
+
+	frappe.app.handle_session_expired();
+	return true;
+};
+
 frappe.request.cleanup = function (opts, r) {
 	// stop button indicator
 	if (opts.btn) {
@@ -477,10 +479,7 @@ frappe.request.cleanup = function (opts, r) {
 	if (opts.freeze) frappe.dom.unfreeze();
 
 	if (r) {
-		if (frappe.app.session_expired_dialog || frappe.request.is_session_expired(r)) {
-			frappe.app.handle_session_expired();
-			return;
-		}
+		if (frappe.request.handle_session_expiry(r)) return;
 
 		// error handlers
 		let global_handlers = frappe.request.error_handlers[r.exc_type] || [];
@@ -504,7 +503,13 @@ frappe.request.cleanup = function (opts, r) {
 		if (messages && !opts.silent) {
 			// show server messages if no handlers exist
 			if (handlers.length === 0) {
-				frappe.hide_msgprint();
+				const opens_dialog = messages.some((m) => {
+					const message = typeof m === "string" ? JSON.parse(m) : m;
+					return !(message.alert || message.toast);
+				});
+				if (opens_dialog) {
+					frappe.hide_msgprint();
+				}
 				frappe.msgprint(messages);
 			}
 		}

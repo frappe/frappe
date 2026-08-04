@@ -90,7 +90,7 @@ import draggable from "vuedraggable";
 import LetterHeadZoneEditor from "../letterhead/LetterHeadZoneEditor.vue";
 import PrintFormatSection from "./PrintFormatSection.vue";
 import SectionInsert from "./SectionInsert.vue";
-import { DRAG_OPTIONS, setDragging } from "../../utils";
+import { DRAG_OPTIONS, setDragging, field_uid } from "../../utils";
 import { useStore } from "../../stores";
 import { computed, inject, watch, nextTick, onMounted, onUnmounted, ref } from "vue";
 
@@ -128,16 +128,24 @@ watch(
 onUnmounted(() => document.getElementById(CUSTOM_CSS_ID)?.remove());
 
 watch(
-	() => store.scroll_to_section.value,
-	(section) => {
-		if (!section) return;
+	() => store.scroll_target.value,
+	(target) => {
+		if (!target) return;
 		nextTick(() => {
-			const els = document.querySelectorAll("[data-pfb-section]");
-			const idx = layout.value.sections.indexOf(section);
-			if (idx >= 0 && els[idx]) {
-				els[idx].scrollIntoView({ behavior: "smooth", block: "start" });
+			// a field carries a fieldtype; a section carries columns — a field
+			// scrolls to its own node so the exact row lands on screen, not just
+			// the section it lives in
+			if (target.columns) {
+				const els = document.querySelectorAll("[data-pfb-section]");
+				const idx = layout.value.sections.indexOf(target);
+				if (idx >= 0 && els[idx]) {
+					els[idx].scrollIntoView({ behavior: "smooth", block: "start" });
+				}
+			} else {
+				const el = document.querySelector(`[data-field-uid="${field_uid(target)}"]`);
+				el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 			}
-			store.scroll_to_section.value = null;
+			store.scroll_target.value = null;
 		});
 	}
 );
@@ -186,7 +194,7 @@ let rootStyles = computed(() => {
 let bodyStyles = computed(() => {
 	const { font_size, font } = print_format.value;
 	const styles = {};
-	if (font_size) styles.fontSize = `${parseFloat(font_size)}px`;
+	styles.fontSize = `${parseFloat(font_size) || 14}px`;
 	if (font) styles.fontFamily = `'${font}', sans-serif`;
 	return styles;
 });
@@ -359,18 +367,7 @@ let page_number_style = computed(() => {
 	transition: border-color 0.1s;
 }
 
-/* Outlines live on the container so they enclose the section's margin too */
-.pfb-clean-preview :deep(.print-format-section-container:hover) {
-	outline: 1px dashed var(--gray-400);
-	outline-offset: 2px;
-	border-radius: var(--radius);
-}
-
-.pfb-clean-preview :deep(.print-format-section-container:has(.section--selected)) {
-	outline: 1px solid var(--gray-400);
-	outline-offset: 2px;
-	border-radius: var(--radius);
-}
+/* section hover/selection rings live in one place — PrintFormatSection.vue */
 
 .pfb-clean-preview :deep(.print-format-section-container) {
 	margin-bottom: 0;
@@ -399,9 +396,8 @@ let page_number_style = computed(() => {
 }
 
 .pfb-clean-preview :deep(.print-format-section-container:hover .section-preview-actions),
-.pfb-clean-preview :deep(.print-format-section.section--selected ~ .section-preview-actions),
 .pfb-clean-preview
-	:deep(.print-format-section-container:has(.section--selected) .section-preview-actions) {
+	:deep(.print-format-section-container.pfb-section-active .section-preview-actions) {
 	opacity: 1;
 }
 

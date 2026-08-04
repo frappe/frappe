@@ -183,9 +183,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	setup_page() {
 		this.parent.list_view = this;
 		super.setup_page();
-		// Start loading the virtualization bundle as soon as user picks a large page size.
-		this.$paging_area?.on("click", ".btn-paging", (e) => {
-			if (cint($(e.currentTarget).data("value")) >= this.virtualization_threshold) {
+	}
+
+	setup_paging_area() {
+		super.setup_paging_area();
+		// Start loading the virtualization bundle as soon as the user picks a
+		// large page size. (The old version of this hook bound to $paging_area
+		// from setup_page, which runs BEFORE the paging area exists — the ?.
+		// made it a silent no-op, so the preload never actually happened.)
+		this.paging_button_group.$el.on("click", () => {
+			if (cint(this.paging_button_group.get_value()) >= this.virtualization_threshold) {
 				ensure_list_virtualization_loaded().catch(() => {
 					this._virtualization_bundle_failed = true;
 				});
@@ -1044,6 +1051,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.should_use_virtualization()) {
 			this.sync_virtualization_viewport_mode();
 			this.setup_virtualization_scroll_handler();
+			// restore the fixed container height (mobile drops it for small
+			// lists) BEFORE the first window render — otherwise the window
+			// math reads the container's own content as the viewport
+			this.set_result_height();
 			this.render_virtual_rows(true);
 		} else {
 			// Small list path: original behaviour — render every row into the DOM.
@@ -1051,11 +1062,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.teardown_virtualization_scroll_handler();
 			}
 			if (this.data.length > 0) {
+				// build all rows, insert once — per-row appends turn any
+				// geometry read in the loop into a re-layout of the growing
+				// list (quadratic on big pages)
 				let idx = 0;
-				for (let doc of this.data) {
-					doc._idx = idx++;
-					this.$result.append(this.get_list_row_html(doc));
-				}
+				const rows_html = this.data
+					.map((doc) => {
+						doc._idx = idx++;
+						return this.get_list_row_html(doc);
+					})
+					.join("");
+				this.$result.append(rows_html);
 			}
 		}
 
@@ -2190,11 +2207,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			this.update_checkbox($target);
 		});
+	}
 
-		let me = this;
-		this.page.actions_btn_group.on("show.bs.dropdown", () => {
-			me.toggle_workflow_actions();
-		});
+	// Workflow actions refresh when the SELECTION changes
+	// instead — the store is settled before the menu is ever opened, rather
+	// than mutating under an open menu. Lazily built so ReportView (which
+	// overrides setup_events) inherits it too.
+	debounced_toggle_workflow_actions() {
+		if (!this._debounced_toggle_workflow_actions) {
+			this._debounced_toggle_workflow_actions = frappe.utils.debounce(
+				() => this.toggle_workflow_actions(),
+				300
+			);
+		}
+		this._debounced_toggle_workflow_actions();
 	}
 
 	setup_like() {
@@ -2407,6 +2433,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 		this.update_checkbox();
 		this.toggle_actions_menu_button(checked_count > 0);
+		if (checked_count > 0) {
+			this.debounced_toggle_workflow_actions();
+		}
 	}
 
 	get_checked_items(only_docnames) {
@@ -2494,10 +2523,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.user_roles.includes("System Manager")) {
 			items.push({
 				label: __("Role Permissions Manager", null, "Button in list view menu"),
-				action: () =>
-					frappe.set_route("permission-manager", {
-						doctype,
-					}),
+				action: () => frappe.set_route("permission-manager", doctype),
 				standard: true,
 			});
 		}
@@ -2690,6 +2716,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.workflow_action_items[key].addClass("disabled");
 		});
 		const checked_items = this.get_checked_items();
+		// the debounced call can land after a quick select-then-deselect
+		if (!checked_items.length) return;
 
 		frappe
 			.xcall("frappe.model.workflow.get_common_transition_actions", {
@@ -2831,14 +2859,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							"Title of confirmation dialog"
 						);
 					}
-					frappe.confirm(message, () => {
-						this.disable_list_update = true;
-						bulk_operations.delete(docnames, () => {
-							this.disable_list_update = false;
-							this.clear_checked_items();
-							this.refresh();
-						});
-					});
+					// destructive: red primary via frappe.warn
+					frappe.warn(
+						__("Confirm"),
+						message,
+						() => {
+							this.disable_list_update = true;
+							bulk_operations.delete(docnames, () => {
+								this.disable_list_update = false;
+								this.clear_checked_items();
+								this.refresh();
+							});
+						},
+						__("Delete")
+					);
 				},
 				standard: true,
 			};
@@ -2850,7 +2884,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				action: () => {
 					const docnames = this.get_checked_items(true);
 					if (docnames.length > 0) {
-						frappe.confirm(
+						// destructive: red primary via frappe.warn
+						frappe.warn(
+							__("Confirm"),
 							__(
 								"Cancel {0} documents?",
 								[docnames.length],
@@ -2863,7 +2899,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 									this.clear_checked_items();
 									this.refresh();
 								});
-							}
+							},
+							__("Yes"),
+							false,
+							__("No")
 						);
 					}
 				},

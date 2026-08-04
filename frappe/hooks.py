@@ -15,6 +15,8 @@ app_email = "developers@frappe.io"
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
+after_app_install = "frappe.utils.install.create_desktop_icons_for_app"
+after_app_uninstall = "frappe.utils.install.delete_desktop_icons_for_app"
 
 page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
 
@@ -123,6 +125,7 @@ permission_query_conditions = {
 	"File": "frappe.core.doctype.file.file.get_permission_query_conditions",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.get_permission_query_conditions",
 	"Document Template": "frappe.desk.doctype.document_template.document_template.get_permission_query_conditions",
+	"Tag Link": "frappe.desk.doctype.tag_link.tag_link.get_permission_query_conditions",
 }
 
 has_permission = {
@@ -141,6 +144,8 @@ has_permission = {
 	"File": "frappe.core.doctype.file.file.has_permission",
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.has_permission",
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.has_permission",
+	"Dashboard Settings": "frappe.desk.doctype.dashboard_settings.dashboard_settings.has_permission",
+	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.has_permission",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.has_permission",
 	"Document Template": "frappe.desk.doctype.document_template.document_template.has_permission",
 }
@@ -522,6 +527,7 @@ default_log_clearing_doctypes = {
 	"OAuth Bearer Token": 30,
 	"API Request Log": 90,
 	"Email Queue Recipient": 30,  # this is added as a dummy placeholder and clearing is handled by Email Queue itself
+	"DuckDB Sync": 45,
 }
 
 # These keys will not be erased when doing frappe.clear_cache()

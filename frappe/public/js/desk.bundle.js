@@ -31,7 +31,7 @@ import "./frappe/ui/keyboard.js";
 import "./frappe/ui/colors.js";
 import "./frappe/ui/sidebar/sidebar_header.js";
 import "./frappe/ui/sidebar/sidebar_header.html";
-import "./frappe/ui/sidebar/workspace_picker.js";
+import "./frappe/ui/sidebar/dock_manager.js";
 import "./frappe/ui/sidebar/sidebar.html";
 import "./frappe/ui/sidebar/sidebar_item.html";
 import "./frappe/ui/sidebar/sidebar.js";
@@ -51,6 +51,7 @@ import "./frappe/roles_editor.js";
 import "./frappe/module_editor.js";
 import "./frappe/microtemplate.js";
 
+import "./frappe/ui/site_banners.js";
 import "./frappe/ui/page.html";
 import "./frappe/ui/page.js";
 import "./frappe/ui/slides.js";

@@ -22,8 +22,8 @@ class TestDocumentFollow(IntegrationTestCase):
 		event_doc.description = "This is a test description for sending mail"
 		event_doc.save(ignore_version=False)
 
-		document_follow.unfollow_document("Event", event_doc.name, user.name)
-		doc = document_follow.follow_document("Event", event_doc.name, user.name)
+		document_follow._unfollow_document("Event", event_doc.name, user.name)
+		doc = document_follow._follow_document("Event", event_doc.name, user.name)
 		self.assertEqual(doc.user, user.name)
 
 		document_follow.send_hourly_updates()
@@ -38,8 +38,8 @@ class TestDocumentFollow(IntegrationTestCase):
 			event_doc.doctype, event_doc.name, "This is a test comment", "Administrator@example.com", "Bosh"
 		)
 
-		document_follow.unfollow_document("Event", event_doc.name, user.name)
-		doc = document_follow.follow_document("Event", event_doc.name, user.name)
+		document_follow._unfollow_document("Event", event_doc.name, user.name)
+		doc = document_follow._follow_document("Event", event_doc.name, user.name)
 		self.assertEqual(doc.user, user.name)
 
 		document_follow.send_hourly_updates()
@@ -50,8 +50,8 @@ class TestDocumentFollow(IntegrationTestCase):
 		user = get_user()
 		for _ in range(25):
 			event_doc = get_event()
-			document_follow.unfollow_document("Event", event_doc.name, user.name)
-			doc = document_follow.follow_document("Event", event_doc.name, user.name)
+			document_follow._unfollow_document("Event", event_doc.name, user.name)
+			doc = document_follow._follow_document("Event", event_doc.name, user.name)
 			self.assertEqual(doc.user, user.name)
 		self.assertEqual(len(get_document_followed_by_user(user.name)), 20)
 
@@ -186,14 +186,14 @@ class TestDocumentFollow(IntegrationTestCase):
 		frappe.share.remove("Event", event_doc.name, user.name)
 
 		frappe.set_user(user.name)
-		result = document_follow.follow_document("Event", event_doc.name, user.name)
+		result = document_follow._follow_document("Event", event_doc.name, user.name)
 		self.assertFalse(result)
 		frappe.set_user("Administrator")
 
 	def test_revoked_access_cleans_up_follow(self):
 		user = get_user()
 		event_doc = get_event()
-		document_follow.follow_document("Event", event_doc.name, user.name)
+		document_follow._follow_document("Event", event_doc.name, user.name)
 
 		self.assertTrue(
 			frappe.db.exists(

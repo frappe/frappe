@@ -76,7 +76,14 @@ class PrintFormat(Document):
 		if self.print_format_for == "Report":
 			self.custom_format = 1
 
-		if self.is_new() and not self.custom_format:
+		# standard formats render from their app's .html template and Print Designer
+		# formats from their own renderer — the beta renderer can read neither
+		if (
+			self.is_new()
+			and not self.custom_format
+			and self.standard != "Yes"
+			and not self.get("print_designer")
+		):
 			self.print_format_builder_beta = 1
 
 		if self.print_format_builder_beta and not self.custom_format:
@@ -119,6 +126,28 @@ class PrintFormat(Document):
 			frappe.throw(_("{0} is required").format(frappe.bold(_("Report"))), frappe.MandatoryError)
 
 		self.validate_colors()
+		self.validate_conditions()
+
+	def validate_conditions(self):
+		"""Reject a layout whose visibility conditions cannot compile.
+
+		A condition that fails at render time is treated as "show", so a typo is
+		invisible unless it is caught here."""
+		try:
+			layout = frappe.parse_json(self.format_data) if self.format_data else None
+		except Exception:
+			return
+		if not isinstance(layout, dict):
+			return
+
+		for where, condition in _iter_conditions(layout):
+			try:
+				compile(condition, "<condition>", "eval")
+			except SyntaxError as e:
+				frappe.throw(
+					_("{0} is not a valid condition: {1}").format(frappe.bold(where), e.msg),
+					title=_("Invalid Condition"),
+				)
 
 	def validate_colors(self):
 		for fieldname in ("label_color", "value_color"):
@@ -215,6 +244,35 @@ class PrintFormat(Document):
 	def on_trash(self):
 		if self.doc_type:
 			frappe.clear_cache(doctype=self.doc_type)
+
+
+def _iter_conditions(layout):
+	"""Yield (label, expression) for every condition in a beta layout."""
+	zones = [layout.get("header"), layout.get("footer"), *(layout.get("sections") or [])]
+	for zone in zones:
+		if not isinstance(zone, dict):
+			continue
+		yield from _condition(zone, zone.get("label") or _("Section"), "visible_if")
+		columns = zone.get("columns")
+		for column in columns if isinstance(columns, list) else []:
+			fields = (column or {}).get("fields") if isinstance(column, dict) else None
+			for df in fields if isinstance(fields, list) else []:
+				if not isinstance(df, dict):
+					continue
+				label = df.get("label") or df.get("fieldname") or _("Field")
+				yield from _condition(df, label, "visible_if")
+				yield from _condition(df, label, "row_condition")
+				table_columns = df.get("table_columns")
+				for col in table_columns if isinstance(table_columns, list) else []:
+					if isinstance(col, dict):
+						yield from _condition(col, col.get("label") or label, "column_condition")
+
+
+def _condition(holder, label, key):
+	"""Yield (label, expression) only when the value is actually an expression."""
+	condition = holder.get(key)
+	if isinstance(condition, str) and condition.strip():
+		yield label, condition
 
 
 @frappe.whitelist()
