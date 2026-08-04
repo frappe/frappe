@@ -123,6 +123,8 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 	# frappe.apps
 	"get_all_apps": ("frappe.apps", "get_all_apps"),
 	"get_installed_apps": ("frappe.apps", "get_installed_apps"),
+	"get_disabled_apps": ("frappe.apps", "get_disabled_apps"),
+	"get_active_apps": ("frappe.apps", "get_active_apps"),
 	# frappe.utils.response
 	"respond_as_web_page": ("frappe.utils.response", "respond_as_web_page"),
 	"redirect_to_message": ("frappe.utils.response", "redirect_to_message"),
@@ -148,7 +150,7 @@ if TYPE_CHECKING:  # pragma: no cover
 	from werkzeug.wrappers import Request
 
 	# Lazy-imported names — resolved at runtime via __getattr__; listed here for editors/type checkers
-	from frappe.apps import get_all_apps, get_installed_apps
+	from frappe.apps import get_active_apps, get_all_apps, get_disabled_apps, get_installed_apps
 	from frappe.cache_manager import clear_cache, reset_metadata_version
 	from frappe.concurrency_limiter import concurrent_limit
 	from frappe.config import get_common_site_config, get_conf, get_site_config

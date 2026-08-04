@@ -16,6 +16,7 @@ import click
 from semantic_version import Version
 
 import frappe
+from frappe import _
 from frappe.defaults import _clear_cache
 from frappe.utils import cint, is_git_url
 from frappe.utils.dashboard import sync_dashboards
@@ -294,7 +295,10 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 		raise Exception(f"App {name} not in apps.txt")
 
 	if not force and name in installed_apps:
-		click.secho(f"App {name} already installed", fg="yellow")
+		if name in frappe.get_disabled_apps():
+			enable_app(name)
+		else:
+			click.secho(f"App {name} already installed", fg="yellow")
 		return
 
 	print(f"\nInstalling {name}...")
@@ -381,6 +385,59 @@ def remove_from_installed_apps(app_name):
 		if frappe.flags.in_install:
 			post_install()
 		_sync_installed_apps_to_site_config()
+
+
+def set_app_disabled(app_name, disabled):
+	with filelock("toggle_app_state"):
+		frappe.local.request_cache and frappe.local.request_cache.clear()
+		disabled_apps = frappe.get_disabled_apps()
+
+		if disabled and app_name not in disabled_apps:
+			disabled_apps.append(app_name)
+		elif not disabled and app_name in disabled_apps:
+			disabled_apps.remove(app_name)
+		else:
+			return
+
+		frappe.db.set_global("disabled_apps", json.dumps(disabled_apps))
+		frappe.get_single("Installed Applications").update_versions()
+		frappe.db.commit()
+		frappe.clear_cache()
+		frappe.client_cache.erase_persistent_caches()
+
+
+def enable_app(app_name):
+	"""Bring back an app that was disabled, without re-syncing its schema."""
+	if app_name not in frappe.get_installed_apps():
+		frappe.throw(_("App {0} is not installed").format(app_name))
+
+	disabled_apps = frappe.get_disabled_apps()
+	for required_app in frappe.get_hooks("required_apps", app_name=app_name):
+		dependency = parse_app_name(required_app)
+		if dependency in disabled_apps:
+			frappe.throw(_("App {0} depends on {1}. Enable {1} first.").format(app_name, dependency))
+
+	set_app_disabled(app_name, False)
+	click.secho(f"App {app_name} enabled on Site {frappe.local.site}", fg="green")
+
+
+def disable_app(app_name):
+	"""Keep the app's schema and data, but stop it from taking effect on this site."""
+	if app_name == "frappe":
+		frappe.throw(_("App frappe cannot be disabled"))
+
+	if app_name not in frappe.get_installed_apps():
+		frappe.throw(_("App {0} is not installed").format(app_name))
+
+	for app in frappe.get_active_apps():
+		if app == app_name:
+			continue
+		required_apps = frappe.get_hooks("required_apps", app_name=app)
+		if any(app_name in required_app for required_app in required_apps):
+			frappe.throw(_("App {0} is a dependency of {1}. Disable {1} first.").format(app_name, app))
+
+	set_app_disabled(app_name, True)
+	click.secho(f"App {app_name} disabled on Site {frappe.local.site}", fg="green")
 
 
 def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False):

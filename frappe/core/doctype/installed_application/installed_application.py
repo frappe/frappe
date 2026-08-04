@@ -18,6 +18,7 @@ class InstalledApplication(Document):
 
 		app_name: DF.Data
 		app_version: DF.Data
+		disabled: DF.Check
 		git_branch: DF.Data
 		has_setup_wizard: DF.Check
 		is_setup_complete: DF.Check

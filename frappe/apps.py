@@ -179,3 +179,23 @@ def get_installed_apps(*, _ensure_on_bench: bool = False) -> list[str]:
 		installed = [app for app in installed if app in all_apps]
 
 	return installed
+
+
+def get_disabled_apps() -> list[str]:
+	"""Return apps that are installed on current site but logically disabled."""
+	if getattr(frappe.flags, "in_install_db", True):
+		return []
+
+	if not frappe.db:
+		frappe.connect()
+
+	return orjson.loads(frappe.db.get_global("disabled_apps") or "[]")
+
+
+@request_cache
+def get_active_apps(*, _ensure_on_bench: bool = False) -> list[str]:
+	"""Installed apps excluding those logically disabled on this site."""
+	installed = get_installed_apps(_ensure_on_bench=_ensure_on_bench)
+	disabled = get_disabled_apps()
+
+	return [app for app in installed if app not in disabled]
