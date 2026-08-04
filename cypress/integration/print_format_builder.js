@@ -65,43 +65,27 @@ context("Print Format Builder — create flow", () => {
 		cy.window().then((win) => cleanup(win, PF_NAME));
 	});
 
-	// 1. Page loads with the Create-or-Edit dialog
-	it("shows the Create or Edit Print Format dialog", () => {
+	// 1. The route no longer creates anything on its own — it sends you to the list
+	it("redirects to the Print Format list when opened without a format", () => {
 		cy.visit("/app/print-format-builder");
-		cy.get_open_dialog().should("contain", "Create or Edit Print Format");
-		cy.get_open_dialog().find(".btn-modal-primary").should("contain", "Create");
+		cy.location("pathname", { timeout: 20000 }).should(
+			"match",
+			/^\/(app|desk)\/print-format(\/view\/list)?$/
+		);
 	});
 
-	// 2. Filling the dialog and clicking Create inserts a builder format
-	it("creates a new Print Format with print_format_builder_beta=1", () => {
-		cy.intercept("POST", "api/method/frappe.client.insert").as("insert");
+	// 2. The Print Format form is where a format is created, and it opens the builder
+	it("opens the builder from the Print Format form", () => {
+		insert_builder_format(PF_NAME);
 
-		cy.visit("/app/print-format-builder");
-		cy.get_open_dialog().should("be.visible");
+		cy.visit(`/app/print-format/${encodeURIComponent(PF_NAME)}`);
+		cy.get(".page-actions", { timeout: 20000 }).contains("button", "Edit Format").click();
 
-		// The print_format_name field has depends_on: action === 'Create' and
-		// the dialog runs set_value('action', 'Create') *after* show(), so
-		// the depends_on reveal races with the first keystroke and
-		// cy.fill_field drops the leading 'C'. Set the value via .invoke('val')
-		// and trigger input/change so Frappe's Control picks it up without
-		// going through the keyboard simulator at all.
-		cy.fill_field("doctype", "ToDo", "Link");
-		cy.get_open_dialog()
-			.find('[data-fieldname="print_format_name"] input:visible')
-			.should("be.enabled")
-			.invoke("val", PF_NAME)
-			.trigger("input")
-			.trigger("change");
-
-		cy.get_open_dialog().find(".btn-modal-primary").contains("Create").click();
-
-		cy.wait("@insert").then((interception) => {
-			expect(interception.response.statusCode).to.equal(200);
-			const doc = interception.response.body.message;
-			expect(doc.name).to.equal(PF_NAME);
-			expect(doc.doc_type).to.equal("ToDo");
-			expect(Number(doc.print_format_builder_beta)).to.equal(1);
-		});
+		cy.location("pathname", { timeout: 20000 }).should(
+			"match",
+			/\/(app|desk)\/print-format-builder\//
+		);
+		cy.get(".print-format-main", { timeout: 20000 }).should("exist");
 	});
 
 	// 3. Loading the builder for an existing format and saving a change
