@@ -17,7 +17,32 @@ from frappe.utils.synchronization import LockTimeoutError, filelock
 from . import install_fixtures
 
 
+<<<<<<< HEAD
 def get_setup_stages(args):  # nosemgrep
+=======
+def site_requires_builtin_wizard() -> bool:
+	for app in frappe.get_active_apps():
+		hooks = frappe.get_hooks(app_name=app)
+		if hooks.get("setup_wizard_stages") or hooks.get("setup_wizard_complete"):
+			return True
+	return False
+
+
+def get_setup_wizard_url() -> str:
+	"""Setup UI for a fresh site: an app's `setup_wizard_url` hook (last installed wins), else the desk wizard.
+
+	`setup_wizard_url` must be a non-desk route (not under `/desk` or `/app`); it redirects the user
+	out of desk to an app-owned setup UI. To customize setup within desk, use the built-in wizard via
+	the `setup_wizard_stages` / `setup_wizard_complete` hooks.
+	"""
+	urls = frappe.get_hooks("setup_wizard_url")
+	if urls and not site_requires_builtin_wizard():
+		return urls[-1]
+	return "/desk/setup-wizard"
+
+
+def get_setup_stages(args, include_app_input_stages=True):  # nosemgrep
+>>>>>>> f092dc9 (fix: Exclude disabled apps from setup wizard stages)
 	# App setup stage functions should not include frappe.db.commit
 	# That is done by frappe after successful completion of all stages
 	stages = [
@@ -219,8 +244,8 @@ def login_as_first_user(args):
 def get_stages_hooks(args):  # nosemgrep
 	stages = []
 
-	installed_apps = frappe.get_installed_apps(_ensure_on_bench=True)
-	for app_name in installed_apps:
+	active_apps = frappe.get_active_apps(_ensure_on_bench=True)
+	for app_name in active_apps:
 		setup_wizard_stages = frappe.get_hooks(app_name=app_name).get("setup_wizard_stages")
 		if not setup_wizard_stages:
 			continue
