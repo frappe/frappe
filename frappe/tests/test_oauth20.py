@@ -379,6 +379,41 @@ class TestOAuth20(FrappeRequestTestCase):
 		decoded_token = self.decode_id_token(bearer_token.get("id_token"))
 		self.assertEqual(decoded_token["email"], "test@example.com")
 
+	def test_refresh_token_is_bound_to_client(self):
+		update_client_for_auth_code_grant(self.client_id)
+		bearer_token = self.get_bearer_token()
+
+		refresh_response = self.post(
+			"/api/method/frappe.integrations.oauth2.get_token",
+			headers=self.get_client_auth_headers(),
+			data={
+				"grant_type": "refresh_token",
+				"refresh_token": bearer_token["refresh_token"],
+			},
+		)
+		self.assertEqual(refresh_response.status_code, 200)
+		refreshed_token = refresh_response.json
+		self.assertNotEqual(refreshed_token["refresh_token"], bearer_token["refresh_token"])
+
+		other_client = frappe.copy_doc(self.oauth_client)
+		other_client.name = "other_test_client_id"
+		other_client.client_secret = "other_test_client_secret"
+		other_client.insert()
+		self.addCleanup(other_client.delete, force=True)
+		credentials = b64encode(f"{other_client.client_id}:{other_client.client_secret}".encode()).decode()
+
+		response = self.post(
+			"/api/method/frappe.integrations.oauth2.get_token",
+			headers={**self.form_header, "Authorization": f"Basic {credentials}"},
+			data={
+				"grant_type": "refresh_token",
+				"refresh_token": refreshed_token["refresh_token"],
+			},
+		)
+
+		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.json.get("error"), "invalid_grant")
+
 	def test_login_using_authorization_code_with_pkce(self):
 		update_client_for_auth_code_grant(self.client_id)
 
