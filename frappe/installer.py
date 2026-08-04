@@ -320,6 +320,10 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 	if name != "frappe":
 		add_module_defs(name, ignore_if_duplicate=force)
 
+	if name not in (frappe.local.app_modules or {}):
+		frappe.cache.delete_value("app_modules")
+		frappe.setup_module_map(include_all_apps=True)
+
 	sync_for(name, force=force, reset_permissions=True)
 
 	add_to_installed_apps(name)
