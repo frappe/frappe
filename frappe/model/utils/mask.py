@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from typing import Any
 
 
 def mask_field_value(field, val):
@@ -39,6 +40,51 @@ def mask_field_value(field, val):
 		return "XX-XX-XXXX XX:XX"
 	else:
 		return "XXXXXXXX"
+
+
+def mask_pluck_results(
+	result: list[Any],
+	masked_fields: list[Any],
+	fields: list[Any],
+) -> list[Any]:
+	"""Mask plucked (scalar) results.
+
+	With ``pluck``, the database layer has already reduced each row to the
+	scalar value of the first selected field, so ``result`` is a flat list of
+	values rather than a list of tuples/dicts. Mask each value when the
+	plucked expression references a masked field — directly, or transitively
+	through a wrapper (Coalesce, Max, aliased expressions, arithmetic, ...).
+
+	Args:
+		result: Flat list of scalar values (one per row)
+		masked_fields: List of DocField objects with masking configuration
+		fields: List of field objects from the query (the plucked field is first)
+
+	Returns:
+		List of scalar values, with the plucked value masked when the
+		plucked expression references any masked field.
+	"""
+	if not fields:
+		return result
+
+	masked_names = {f.fieldname for f in masked_fields}
+
+	# pypika's Term.fields_() returns every Field reference in the expression
+	# subtree, so Coalesce(secret, x) / Max(secret) / secret + suffix all
+	# surface the underlying "secret" reference. Non-Term items (raw string
+	# fieldnames) don't have fields_(); fall back to a shallow name check.
+	first = fields[0]
+	if hasattr(first, "fields_"):
+		hit_name = next((f.name for f in first.fields_() if f.name in masked_names), None)
+	else:
+		name = getattr(first, "name", None)
+		hit_name = name if name in masked_names else None
+
+	if not hit_name:
+		return result
+
+	masked_field = next(f for f in masked_fields if f.fieldname == hit_name)
+	return [mask_field_value(masked_field, val) for val in result]
 
 
 def mask_dict_results(result, masked_fields):
