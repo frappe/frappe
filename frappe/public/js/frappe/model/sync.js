@@ -43,14 +43,45 @@ Object.assign(frappe.model, {
 
 	rename_after_save: (d, i) => {
 		frappe.model.new_names[d.localname] = d.name;
+		frappe.model.rename_doc_in_locals(d.doctype, d.localname, d.name);
 		$(document).trigger("rename", [d.doctype, d.localname, d.name]);
-		delete locals[d.doctype][d.localname];
 
 		// update docinfo to new dict keys
 		if (i === 0) {
 			frappe.model.docinfo[d.doctype][d.name] = frappe.model.docinfo[d.doctype][d.localname];
 			frappe.model.docinfo[d.doctype][d.localname] = undefined;
 		}
+	},
+
+	delete_from_locals: (doctype, name) => {
+		frappe.model.clear_doc(doctype, name);
+		if (locals[":" + doctype]) {
+			delete locals[":" + doctype][name];
+		}
+	},
+
+	rename_doc_in_locals: (doctype, old_name, new_name, merge = false) => {
+		if (old_name === new_name) {
+			return;
+		}
+
+		if (locals[doctype]) {
+			delete locals[doctype][old_name];
+		}
+
+		const meta_doctype = ":" + doctype;
+		const doc = locals[meta_doctype]?.[old_name];
+		if (!doc) {
+			return;
+		}
+
+		// The target survives a merge; keep its cached values if present.
+		if (!merge) {
+			doc.name = new_name;
+			doc.doctype = meta_doctype;
+			locals[meta_doctype][new_name] = doc;
+		}
+		delete locals[meta_doctype][old_name];
 	},
 
 	sync_docinfo: (r) => {

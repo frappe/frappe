@@ -666,11 +666,13 @@ def delete_items():
 
 	if len(items) > 10:
 		frappe.enqueue("frappe.desk.reportview.delete_bulk", doctype=doctype, items=items)
-	else:
-		delete_bulk(doctype, items)
+		return None
+
+	return delete_bulk(doctype, items)
 
 
 def delete_bulk(doctype, items):
+	"""Delete documents one by one. Returns names that could not be deleted."""
 	undeleted_items = []
 	for i, d in enumerate(items):
 		try:
@@ -695,17 +697,19 @@ def delete_bulk(doctype, items):
 			frappe.db.rollback()
 	if undeleted_items and len(items) != len(undeleted_items):
 		frappe.clear_messages()
-		delete_bulk(doctype, undeleted_items)
+		return delete_bulk(doctype, undeleted_items)
 	elif undeleted_items:
 		frappe.msgprint(
 			_("Failed to delete {0} documents: {1}").format(len(undeleted_items), ", ".join(undeleted_items)),
 			realtime=True,
 			title=_("Bulk Operation Failed"),
 		)
-	else:
-		frappe.msgprint(
-			_("Deleted all documents successfully"), realtime=True, title=_("Bulk Operation Successful")
-		)
+		return undeleted_items
+
+	frappe.msgprint(
+		_("Deleted all documents successfully"), realtime=True, title=_("Bulk Operation Successful")
+	)
+	return []
 
 
 @frappe.whitelist()
