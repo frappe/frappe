@@ -1,5 +1,6 @@
 import path from "path"
 import fs from "fs"
+import { isCSSRequest } from "vite"
 
 /**
  * Vite plugin for editing exported apps' `<app>/studio/` folders from Studio.
@@ -69,8 +70,12 @@ function studioFolderWatcher(appsDir) {
 		hotUpdate({ type, file, modules }) {
 			if (!isUnderStudioFolder(file)) return
 			if (type !== "update") return []
-			// skip .json files (exporting them leads to a full reload)
-			if (file.endsWith(".json")) return []
+			// Exported page JSON is a tailwind content source (icon class names live in
+			// page data), so hot-update the stylesheets that scan it (their importers) —
+			// but drop everything else, since exporting json otherwise leads to a full reload.
+			if (file.endsWith(".json")) {
+				return modules.flatMap((mod) => [...mod.importers].filter((imp) => isCSSRequest(imp.url)))
+			}
 			if (modules.length > 0) return
 			return []
 		},
