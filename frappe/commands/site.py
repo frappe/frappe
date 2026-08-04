@@ -571,7 +571,8 @@ def list_apps(context: CliCtxObj, format):
 		name_len = max(len(app.app_name) for app in apps)
 		ver_len = max(len(app.app_version) for app in apps)
 		template = f"{{0:{name_len}}} {{1:{ver_len}}} {{2}}"
-		return template.format(app.app_name, app.app_version, app.git_branch)
+		row = template.format(app.app_name, app.app_version, app.git_branch)
+		return f"{row} (disabled)" if app.get("disabled") else row
 
 	for site in context.sites:
 		frappe.init(site)
@@ -986,6 +987,43 @@ def remove_from_installed_apps(context: CliCtxObj, app):
 			frappe.init(site)
 			frappe.connect()
 			remove_from_installed_apps(app)
+		finally:
+			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+
+@click.command("enable-app")
+@click.argument("app")
+@pass_context
+def enable_app(context: CliCtxObj, app):
+	"Enable an app that was disabled on site"
+	from frappe.installer import enable_app as _enable_app
+
+	for site in context.sites:
+		try:
+			frappe.init(site)
+			frappe.connect()
+			_enable_app(app)
+		finally:
+			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+
+@click.command("disable-app")
+@click.argument("app")
+@pass_context
+def disable_app(context: CliCtxObj, app):
+	"Disable an app on site, keeping its schema and data intact"
+	ensure_app_not_frappe(app)
+	from frappe.installer import disable_app as _disable_app
+
+	for site in context.sites:
+		try:
+			frappe.init(site)
+			frappe.connect()
+			_disable_app(app)
 		finally:
 			frappe.destroy()
 	if not context.sites:
@@ -1696,6 +1734,8 @@ commands = [
 	describe_database_table,
 	backup,
 	drop_site,
+	disable_app,
+	enable_app,
 	install_app,
 	list_apps,
 	migrate,

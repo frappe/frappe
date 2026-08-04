@@ -1014,7 +1014,7 @@ def get_doc_hooks():
 def _load_app_hooks(app_name: str | None = None):
 	import types
 
-	from frappe.apps import get_installed_apps
+	from frappe.apps import get_active_apps
 	from frappe.utils import get_module
 
 	hooks = {}
