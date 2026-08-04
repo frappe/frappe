@@ -45,8 +45,6 @@ def get_oauth_client():
 	oauth_client.grant_type = "Authorization Code"
 	oauth_client.response_type = "Code"
 	oauth_client.skip_authorization = 1
-	# Connected App sends client_id/client_secret in the token request body.
-	oauth_client.token_endpoint_auth_method = "Client Secret Post"
 	oauth_client.insert()
 
 	return oauth_client

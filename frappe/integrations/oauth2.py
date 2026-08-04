@@ -240,6 +240,7 @@ def get_openid_configuration():
 			"userinfo_endpoint": f"{frappe_server_url}{ENDPOINTS['userinfo_endpoint']}",
 			"revocation_endpoint": f"{frappe_server_url}{ENDPOINTS['revocation_endpoint']}",
 			"introspection_endpoint": f"{frappe_server_url}{ENDPOINTS['introspection_endpoint']}",
+			"token_endpoint_auth_methods_supported": ["none", "client_secret_basic", "client_secret_post"],
 			"response_types_supported": [
 				"code",
 				"token",
@@ -346,7 +347,7 @@ def _get_authorization_server_metadata():
 		token_endpoint_auth_methods_supported=["none", "client_secret_basic", "client_secret_post"],
 		service_documentation="https://docs.frappe.io/framework/user/en/guides/integration/how_to_set_up_oauth#add-a-client-app",
 		revocation_endpoint=f"{issuer}{ENDPOINTS['revocation_endpoint']}",
-		revocation_endpoint_auth_methods_supported=["client_secret_basic", "client_secret_post"],
+		revocation_endpoint_auth_methods_supported=["none", "client_secret_basic", "client_secret_post"],
 		introspection_endpoint=f"{issuer}{ENDPOINTS['introspection_endpoint']}",
 		userinfo_endpoint=f"{issuer}{ENDPOINTS['userinfo_endpoint']}",
 		code_challenge_methods_supported=["S256"],

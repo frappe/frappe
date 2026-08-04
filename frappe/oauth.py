@@ -97,7 +97,10 @@ class OAuthWebRequestValidator(RequestValidator):
 		frappe.db.commit()
 
 	def authenticate_client(self, request: Request, *args, **kwargs) -> bool | None:
-		basic_credentials = self.get_basic_auth_credentials(request)
+		try:
+			basic_credentials = self.get_basic_auth_credentials(request)
+		except ValueError:
+			return False
 		if basic_credentials and (
 			request.client_secret or (request.client_id and basic_credentials[0] != request.client_id)
 		):
@@ -120,24 +123,23 @@ class OAuthWebRequestValidator(RequestValidator):
 		except frappe.DoesNotExistError:
 			return False
 
-		if client.token_endpoint_auth_method == "Client Secret Basic":
-			if not basic_credentials or basic_credentials[0] != client.client_id:
-				return False
-			client_secret = basic_credentials[1]
-		elif client.token_endpoint_auth_method == "Client Secret Post":
-			if basic_credentials:
-				return False
-			client_secret = request.client_secret
-		elif client.token_endpoint_auth_method == "None":
+		if client.is_public_client():
 			if basic_credentials or request.client_secret:
 				return False
 			request.client_id = client.client_id
 			request.client = client.as_dict()
 			return True
+
+		if basic_credentials:
+			client_secret = basic_credentials[1]
+		elif request.client_id and request.client_secret:
+			client_secret = request.client_secret
 		else:
 			return False
 
-		if not client_secret or not hmac.compare_digest(client_secret, client.client_secret):
+		if not client_secret or not hmac.compare_digest(
+			client_secret.encode("utf-8"), client.client_secret.encode("utf-8")
+		):
 			return False
 
 		request.client_id = client.client_id
@@ -147,13 +149,17 @@ class OAuthWebRequestValidator(RequestValidator):
 	@staticmethod
 	def get_basic_auth_credentials(request: Request) -> tuple[str, str] | None:
 		scheme, _, credentials = request.headers.get("Authorization", "").partition(" ")
-		if scheme.lower() != "basic" or not credentials:
+		if scheme.lower() != "basic":
 			return None
 		try:
+			if not credentials:
+				raise ValueError
 			client_id, client_secret = base64.b64decode(credentials, validate=True).decode().split(":", 1)
+			if any(re.search(r"%(?![0-9a-fA-F]{2})", value) for value in (client_id, client_secret)):
+				raise ValueError
+			return unquote_plus(client_id, errors="strict"), unquote_plus(client_secret, errors="strict")
 		except (binascii.Error, UnicodeDecodeError, ValueError):
-			return None
-		return unquote_plus(client_id), unquote_plus(client_secret)
+			raise ValueError("Malformed Basic credentials") from None
 
 	def authenticate_client_id(self, client_id, request, *args, **kwargs):
 		try:

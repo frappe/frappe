@@ -146,6 +146,14 @@ class TestOAuth20(FrappeRequestTestCase):
 		).insert(ignore_permissions=True)
 		return access_token, token
 
+	def authenticate_client(self, headers=None, client_id=None, client_secret=None):
+		request = frappe._dict(
+			headers=headers or {},
+			client_id=client_id,
+			client_secret=client_secret,
+		)
+		return OAuthWebRequestValidator().authenticate_client(request)
+
 	def tearDown(self):
 		self.oauth_client.delete(force=True)
 		frappe.db.rollback()
@@ -224,38 +232,72 @@ class TestOAuth20(FrappeRequestTestCase):
 
 				self.assertEqual(response.status_code, 415)
 
-	def test_confidential_client_requires_authentication(self):
-		for headers in (self.form_header, self.get_client_auth_headers("wrong-secret")):
-			with self.subTest(headers=headers):
-				token_response = self.get_bearer_token(headers=headers)
-				self.assertEqual(token_response["error"], "invalid_client")
+	def test_confidential_client_authentication(self):
+		for credentials in (
+			{"headers": self.get_client_auth_headers()},
+			{"client_id": self.client_id, "client_secret": self.client_secret},
+		):
+			with self.subTest(credentials=credentials):
+				self.assertTrue(self.authenticate_client(**credentials))
 
-	def test_client_secret_post_authentication(self):
-		self.oauth_client.token_endpoint_auth_method = "Client Secret Post"
-		self.oauth_client.save()
-		frappe.db.commit()
+	def test_confidential_client_requires_valid_secret(self):
+		for credentials in (
+			{"client_id": self.client_id},
+			{"client_id": self.client_id, "client_secret": "wrong-secret"},
+			{"headers": self.get_client_auth_headers("wrong-secret")},
+		):
+			with self.subTest(credentials=credentials):
+				self.assertFalse(self.authenticate_client(**credentials))
 
-		bearer_token = self.get_bearer_token(
-			headers=self.form_header,
-			client_secret=self.client_secret,
+	def test_duplicate_or_mismatched_client_authentication(self):
+		headers = self.get_client_auth_headers()
+		self.assertFalse(
+			self.authenticate_client(
+				headers=headers,
+				client_id=self.client_id,
+				client_secret=self.client_secret,
+			)
 		)
-		self.assertTrue(bearer_token.get("access_token"))
+		self.assertFalse(self.authenticate_client(headers=headers, client_id="other-client"))
 
-	def test_client_secret_post_requires_secret(self):
-		self.oauth_client.token_endpoint_auth_method = "Client Secret Post"
+	def test_malformed_basic_authentication(self):
+		malformed_credentials = (
+			"not-base64",
+			b64encode(b"\xff:secret").decode(),
+			b64encode(b"client-without-secret").decode(),
+			b64encode(b"client%ZZ:secret").decode(),
+		)
+		for credentials in malformed_credentials:
+			with self.subTest(credentials=credentials):
+				self.assertFalse(
+					self.authenticate_client(
+						headers={"Authorization": f"Basic {credentials}"},
+						client_id=self.client_id,
+						client_secret=self.client_secret,
+					)
+				)
+
+		self.oauth_client.token_endpoint_auth_method = "None"
 		self.oauth_client.save()
-		frappe.db.commit()
+		self.assertFalse(
+			self.authenticate_client(
+				headers={"Authorization": "Basic not-base64"},
+				client_id=self.client_id,
+			)
+		)
 
-		token_response = self.get_bearer_token(headers=self.form_header)
-		self.assertEqual(token_response["error"], "invalid_client")
+	def test_non_ascii_client_secret(self):
+		client_secret = "sëcret"
+		self.oauth_client.client_secret = client_secret
+		self.oauth_client.save()
+
+		self.assertTrue(self.authenticate_client(headers=self.get_client_auth_headers(client_secret)))
+		self.assertTrue(self.authenticate_client(client_id=self.client_id, client_secret=client_secret))
 
 	def test_public_client_authentication(self):
 		self.oauth_client.token_endpoint_auth_method = "None"
 		self.oauth_client.save()
-		frappe.db.commit()
-
-		bearer_token = self.get_bearer_token(headers=self.form_header)
-		self.assertTrue(bearer_token.get("access_token"))
+		self.assertTrue(self.authenticate_client(client_id=self.client_id))
 
 	def test_login_using_authorization_code(self):
 		update_client_for_auth_code_grant(self.client_id)

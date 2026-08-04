@@ -670,13 +670,11 @@ def validate_auth():
 def _is_oauth_client_auth(authorization_header):
 	from frappe.integrations.oauth2 import ENDPOINTS
 
-	path = frappe.request.path
+	path = frappe.request.path.removesuffix("/")
 	return (
 		len(authorization_header) == 2
 		and authorization_header[0].lower() == "basic"
-		and (
-			path.startswith(ENDPOINTS["token_endpoint"]) or path.startswith(ENDPOINTS["revocation_endpoint"])
-		)
+		and path in {ENDPOINTS["token_endpoint"], ENDPOINTS["revocation_endpoint"]}
 	)
 
 
