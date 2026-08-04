@@ -1456,10 +1456,14 @@ def is_setup_complete():
 	if not frappe.db.table_exists("Installed Application"):
 		return setup_complete
 
+	from frappe.apps import get_disabled_apps
+
+	disabled_apps = get_disabled_apps()
+	wizard_apps = [app for app in ["frappe", "erpnext"] if app not in disabled_apps]
 	if all(
 		frappe.get_all(
 			"Installed Application",
-			{"app_name": ("in", ["frappe", "erpnext"])},
+			{"app_name": ("in", wizard_apps)},
 			pluck="is_setup_complete",
 		)
 	):
