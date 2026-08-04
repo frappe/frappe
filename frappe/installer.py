@@ -396,8 +396,6 @@ def set_app_disabled(app_name, disabled):
 			disabled_apps.append(app_name)
 		elif not disabled and app_name in disabled_apps:
 			disabled_apps.remove(app_name)
-		else:
-			return
 
 		frappe.db.set_global("disabled_apps", json.dumps(disabled_apps))
 		frappe.get_single("Installed Applications").update_versions()
