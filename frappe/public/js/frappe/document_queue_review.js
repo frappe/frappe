@@ -1,11 +1,9 @@
 frappe.provide("frappe.document_queue_review");
 
-frappe.document_queue_review.storage_key = "frappe.document_queue_review.pending_context";
-frappe.document_queue_review.ttl_ms = 2 * 60 * 1000;
+
 frappe.document_queue_review.width_storage_key = "frappe.document_queue_review.preview_width";
 frappe.document_queue_review.default_preview_width = 38;
 frappe.document_queue_review.reviewable_statuses = ["Ready for Review", "Failed"];
-frappe.document_queue_review.upload_first_enabled = {};
 
 frappe.document_queue_review.start_from_document_queue = async function (frm) {
 	if (!frappe.document_queue_review.reviewable_statuses.includes(frm.doc.status)) {
@@ -36,8 +34,15 @@ frappe.document_queue_review.start_from_document_queue = async function (frm) {
 		return;
 	}
 
-	frappe.document_queue_review.store_pending_context(context);
-	frappe.new_doc(context.document_type);
+	frappe.model.with_doctype(context.document_type, () => {
+		const doc = frappe.model.get_new_doc(context.document_type);
+		frappe.document_queue_review.pending_context = context;
+		frappe.set_route("Form", context.document_type, doc.name).then(() => {
+			let url = new URL(window.location.href);
+			url.searchParams.set("document_queue", context.queue_name);
+			window.history.replaceState(window.history.state, "", url.toString());
+		});
+	});
 };
 
 frappe.document_queue_review.prompt_document_type = function () {
@@ -87,77 +92,13 @@ frappe.document_queue_review.fetch_context = function (document_queue) {
 		.then((r) => r.message || null);
 };
 
-frappe.document_queue_review.store_pending_context = function (context) {
-	const wrapped = {
-		context,
-		created_at: Date.now(),
-	};
-	frappe._document_queue_pending_review_context = context;
-	frappe._document_queue_pending_review_context_created_at = wrapped.created_at;
-
-	try {
-		sessionStorage.setItem(frappe.document_queue_review.storage_key, JSON.stringify(wrapped));
-	} catch (e) {
-		// no-op
-	}
-};
-
-frappe.document_queue_review.consume_pending_context = function () {
-	const globalContext = frappe._document_queue_pending_review_context;
-	const globalAge =
-		Date.now() - Number(frappe._document_queue_pending_review_context_created_at || 0);
-
-	if (globalContext?.queue_name && globalAge <= frappe.document_queue_review.ttl_ms) {
-		delete frappe._document_queue_pending_review_context;
-		delete frappe._document_queue_pending_review_context_created_at;
-		frappe.document_queue_review.clear_pending_context();
-		return globalContext;
-	}
-
-	try {
-		const raw = sessionStorage.getItem(frappe.document_queue_review.storage_key);
-		const parsed = raw ? JSON.parse(raw) : null;
-		const age = Date.now() - Number(parsed?.created_at || 0);
-		if (parsed?.context?.queue_name && age <= frappe.document_queue_review.ttl_ms) {
-			frappe.document_queue_review.clear_pending_context();
-			return parsed.context;
-		}
-	} catch (e) {
-		// no-op
-	}
-
-	frappe.document_queue_review.clear_pending_context();
-	return null;
-};
-
-frappe.document_queue_review.clear_pending_context = function () {
-	try {
-		sessionStorage.removeItem(frappe.document_queue_review.storage_key);
-	} catch (e) {
-		// no-op
-	}
-};
 
 frappe.document_queue_review.is_upload_first_enabled = function (doctype) {
 	if (!doctype || doctype === "Document Queue") {
 		return Promise.resolve(false);
 	}
 
-	if (doctype in frappe.document_queue_review.upload_first_enabled) {
-		return Promise.resolve(frappe.document_queue_review.upload_first_enabled[doctype]);
-	}
-
-	return frappe
-		.call({
-			method: "frappe.core.doctype.document_queue.document_queue.is_upload_first_workflow_enabled",
-			args: { document_type: doctype },
-		})
-		.then((r) => {
-			const enabled = Boolean(r.message);
-			frappe.document_queue_review.upload_first_enabled[doctype] = enabled;
-			return enabled;
-		})
-		.catch(() => false);
+	return Promise.resolve(Boolean(frappe.boot.upload_first_doctypes?.includes(doctype)));
 };
 
 frappe.document_queue_review.setup_upload_first = async function (frm) {
@@ -232,7 +173,7 @@ frappe.document_queue_review.open_upload_first_dialog = async function (frm) {
 };
 
 frappe.document_queue_review.create_upload_first_queue = async function (frm, file_name) {
-	frappe.dom.freeze(__("Extracting document"));
+	frappe.dom.freeze(`<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;"><div class="es-spinner"></div><div>${__("Extracting document...")}</div></div>`);
 	try {
 		const r = await frappe.call({
 			method: "frappe.core.doctype.document_queue.document_queue.create_upload_first_queue",
@@ -258,10 +199,25 @@ frappe.document_queue_review.create_upload_first_queue = async function (frm, fi
 				),
 				indicator: "red",
 			});
+		} else if (context.status === "Ready for Review") {
+			frappe.show_alert({
+				message: __("Extraction Completed"),
+				indicator: "green"
+			});
 		}
 
-		frappe.document_queue_review.store_pending_context(context);
-		await frappe.new_doc(context.document_type);
+		await new Promise(resolve => {
+			frappe.model.with_doctype(context.document_type, () => {
+				const doc = frappe.model.get_new_doc(context.document_type);
+				frappe.document_queue_review.pending_context = context;
+				frappe.set_route("Form", context.document_type, doc.name).then(() => {
+					let url = new URL(window.location.href);
+					url.searchParams.set("document_queue", context.queue_name);
+					window.history.replaceState(window.history.state, "", url.toString());
+					resolve();
+				});
+			});
+		});
 	} finally {
 		frappe.dom.unfreeze();
 	}
@@ -273,55 +229,119 @@ frappe.document_queue_review.wait_for_extraction = async function (context) {
 	}
 
 	let latest_context = context;
-	for (let attempt = 0; attempt < 90; attempt++) {
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+	let listener;
+	let timeout;
+	let is_resolving = false;
 
+	const fetch_context = async () => {
 		const response = await frappe.call({
 			method: "frappe.core.doctype.document_queue.document_queue.get_document_review_context",
-			args: {
-				document_queue: context.queue_name,
-			},
+			args: { document_queue: context.queue_name },
 		});
-
 		latest_context = response.message || latest_context;
-		if (!["Queued", "Processing"].includes(latest_context.status)) {
-			return latest_context;
+		return latest_context;
+	};
+
+	try {
+		return await new Promise((resolve, reject) => {
+			let fallback_interval;
+			const finish = (ctx) => {
+				clearTimeout(timeout);
+				if (fallback_interval) clearInterval(fallback_interval);
+				resolve(ctx);
+			};
+
+			timeout = setTimeout(() => {
+				if (is_resolving) return;
+				is_resolving = true;
+				frappe.msgprint({
+					title: __("Extraction Still Running"),
+					message: __(
+						"The document was queued, but extraction is taking longer than expected. You can continue reviewing it from Document Queue when extraction finishes."
+					),
+					indicator: "orange",
+				});
+				fetch_context().then(finish).catch(reject);
+			}, 90000);
+
+			fallback_interval = setInterval(() => {
+				if (is_resolving) return;
+				if (frappe.realtime?.socket?.connected) return;
+				
+				fetch_context()
+					.then((ctx) => {
+						if (is_resolving) return;
+						if (["Ready for Review", "Failed"].includes(ctx.status)) {
+							is_resolving = true;
+							finish(ctx);
+						}
+					})
+					.catch(() => {});
+			}, 3000);
+
+			listener = (data) => {
+				if (is_resolving) return;
+				if (data.task_id === context.task_id && ["Ready for Review", "Failed"].includes(data.status)) {
+					is_resolving = true;
+					fetch_context().then(finish).catch(reject);
+				}
+			};
+
+			frappe.realtime.on("task_update", listener);
+
+			// Immediate state fetch to close the fast-completion race condition
+			fetch_context()
+				.then((ctx) => {
+					if (is_resolving) return;
+					if (!["Queued", "Processing"].includes(ctx.status)) {
+						is_resolving = true;
+						finish(ctx);
+					}
+				})
+				.catch(reject);
+		});
+	} finally {
+		if (listener) {
+			frappe.realtime.off("task_update", listener);
 		}
 	}
-
-	frappe.msgprint({
-		title: __("Extraction Still Running"),
-		message: __(
-			"The document was queued, but extraction is taking longer than expected. You can continue reviewing it from Document Queue when extraction finishes."
-		),
-		indicator: "orange",
-	});
-
-	return latest_context;
 };
 
 frappe.document_queue_review.get_context = function (frm) {
-	return frm.document_queue_review_context || frm.doc.__document_queue_review_context || null;
+	return frm.doc.__document_queue_review_context || null;
 };
 
-frappe.document_queue_review.hydrate_context = function (frm) {
+frappe.document_queue_review.hydrate_context = async function (frm) {
 	if (frappe.document_queue_review.get_context(frm)) {
 		return;
 	}
 
-	const routeContext = frappe.route_options?.document_queue_review_context;
-	const pendingContext = frm.is_new()
-		? frappe.document_queue_review.consume_pending_context()
-		: null;
-	const context = routeContext?.queue_name ? routeContext : pendingContext;
+	let context = frappe.document_queue_review.pending_context;
+	if (context) {
+		frappe.document_queue_review.pending_context = null;
+	}
+
+	if (!context?.queue_name) {
+		const queryParams = frappe.utils.get_query_params();
+		let queueName = queryParams.document_queue || frappe.document_queue_review_loader.surviving_queue_name;
+		if (queueName) {
+			frappe.document_queue_review_loader.surviving_queue_name = null;
+			context = await frappe.document_queue_review.fetch_context(queueName);
+		}
+	}
 
 	if (!context?.queue_name || context.document_type !== frm.doctype) {
 		return;
 	}
 
-	frm.document_queue_review_context = context;
 	frm.doc.__document_queue_review_context = context;
 	frm.doc.__document_queue_name = context.queue_name;
+
+	const url = new URL(window.location.href);
+	if (url.searchParams.get("document_queue") !== context.queue_name) {
+		url.searchParams.set("document_queue", context.queue_name);
+		window.history.replaceState(window.history.state, "", url.toString());
+	}
 };
 
 frappe.document_queue_review.mount = function (frm) {
@@ -360,48 +380,78 @@ frappe.document_queue_review.teardown = function (frm) {
 };
 
 frappe.document_queue_review.render_panel = function (frm, context) {
-	const active_tab = frm.document_queue_review_active_tab || "preview";
+	const dev_mode = cint(frappe.boot.developer_mode);
+	let active_tab = frm.document_queue_review_active_tab || "preview";
+	if (!dev_mode && active_tab === "extraction") {
+		active_tab = "preview";
+	}
 	const source_file_url = context.source_file_url || context.source_file || "";
 	const file_name = frappe.document_queue_review.get_file_name(source_file_url);
 	const preview_type = frappe.document_queue_review.get_preview_type(source_file_url);
-	const open_sections = frm.document_queue_review_open_sections || { text: true };
+	const open_sections = frm.document_queue_review_open_sections || { text: true, json: false };
 	const text_icon = frappe.utils.icon(
 		open_sections.text ? "es-line-down" : "chevron-right",
 		"sm",
 		"mb-1"
 	);
+	const json_icon = frappe.utils.icon(
+		open_sections.json ? "es-line-down" : "chevron-right",
+		"sm",
+		"mb-1"
+	);
 
-	frm.document_queue_review_panel.html(`
-		<div class="document-queue-review-shell">
-			<div class="form-tabs-list document-queue-review-tabs">
-				<ul class="nav form-tabs" role="tablist" style="display: flex; justify-content: flex-start; width: 100%;">
-					<li class="nav-item" style="flex: 0 0 auto !important; width: auto !important;">
-						<button class="nav-link ${
-							active_tab === "preview" ? "active" : ""
-						}" data-tab="preview" type="button" role="tab" style="display: inline-flex !important; flex: none !important; width: auto !important;">
-							${__("Preview")}
-						</button>
-					</li>
-					<li class="nav-item" style="flex: 0 0 auto !important; width: auto !important;">
+	let error_alert = "";
+	if (context.status === "Failed" && context.error_message) {
+		error_alert = `
+			<div class="alert alert-danger mb-3">
+				<strong>${__("Extraction Failed")}</strong><br>
+				${frappe.utils.escape_html(context.error_message)}
+			</div>
+		`;
+	}
+
+	let raw_json_html = "";
+	if (context.raw_extraction_json) {
+		try {
+			let parsed = typeof context.raw_extraction_json === "string" ? JSON.parse(context.raw_extraction_json) : context.raw_extraction_json;
+			let formatted = JSON.stringify(parsed, null, 4);
+			raw_json_html = `
+				<div class="form-section document-queue-review-section">
+					<div class="section-head collapsible document-queue-review-section-head ${
+						open_sections.json ? "" : "collapsed"
+					}" data-section="json" tabindex="0">
+						${__("Raw Extraction JSON")}
+						<span class="collapse-indicator" tabindex="0">${json_icon}</span>
+					</div>
+					<div class="section-body ${open_sections.json ? "" : "hide"}">
+						<pre style="background-color: var(--control-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); font-size: var(--text-sm);">${frappe.utils.escape_html(formatted)}</pre>
+					</div>
+				</div>
+			`;
+		} catch (e) {
+			// ignore JSON parse errors
+		}
+	}
+
+	let debug_tab_button = "";
+	let debug_tab_panel = "";
+
+	if (dev_mode) {
+		debug_tab_button = `
+					<li class="nav-item">
 						<button class="nav-link ${
 							active_tab === "extraction" ? "active" : ""
-						}" data-tab="extraction" type="button" role="tab" style="display: inline-flex !important; flex: none !important; width: auto !important;">
-							${__("Extraction")}
+						}" data-tab="extraction" type="button" role="tab">
+							${__("Debug")}
 						</button>
 					</li>
-				</ul>
-			</div>
-			<div class="document-queue-review-body">
-				<section class="document-queue-review-tab-panel ${
-					active_tab === "preview" ? "active" : ""
-				}" data-panel="preview">
-					<div class="document-queue-review-resize-overlay">${__("Resizing preview...")}</div>
-					${frappe.document_queue_review.get_preview_markup(source_file_url, file_name)}
-				</section>
+		`;
+		debug_tab_panel = `
 				<section class="document-queue-review-tab-panel ${
 					active_tab === "extraction" ? "active" : ""
 				}" data-panel="extraction">
 					<div class="document-queue-review-sections">
+						${error_alert}
 						<div class="form-section document-queue-review-section">
 							<div class="section-head collapsible document-queue-review-section-head ${
 								open_sections.text ? "" : "collapsed"
@@ -413,8 +463,34 @@ frappe.document_queue_review.render_panel = function (frm, context) {
 								<pre>${frappe.utils.escape_html(context.extracted_text || "")}</pre>
 							</div>
 						</div>
+						${raw_json_html}
 					</div>
 				</section>
+		`;
+	}
+
+	frm.document_queue_review_panel.html(`
+		<div class="document-queue-review-shell">
+			<div class="form-tabs-list">
+				<ul class="nav form-tabs" role="tablist">
+					<li class="nav-item">
+						<button class="nav-link ${
+							active_tab === "preview" ? "active" : ""
+						}" data-tab="preview" type="button" role="tab">
+							${__("Preview")}
+						</button>
+					</li>
+${debug_tab_button}
+				</ul>
+			</div>
+			<div class="document-queue-review-body">
+				<section class="document-queue-review-tab-panel ${
+					active_tab === "preview" ? "active" : ""
+				}" data-panel="preview">
+					<div class="document-queue-review-resize-overlay">${__("Resizing preview...")}</div>
+					${frappe.document_queue_review.get_preview_markup(source_file_url, file_name)}
+				</section>
+${debug_tab_panel}
 			</div>
 		</div>
 		<div class="document-queue-review-resizer" title="${__("Resize")}"></div>
@@ -424,7 +500,7 @@ frappe.document_queue_review.render_panel = function (frm, context) {
 	frm.document_queue_review_panel.off("click.document-queue-review");
 	frm.document_queue_review_panel.on(
 		"click.document-queue-review",
-		".document-queue-review-tabs .nav-link",
+		".form-tabs-list .nav-link",
 		function () {
 			frm.document_queue_review_active_tab = $(this).attr("data-tab") || "preview";
 			frappe.document_queue_review.render_panel(frm, context);
@@ -436,7 +512,7 @@ frappe.document_queue_review.render_panel = function (frm, context) {
 		function () {
 			const section = $(this).attr("data-section");
 			frm.document_queue_review_open_sections = {
-				text: Boolean(open_sections.text),
+				...open_sections,
 				[section]: !open_sections[section],
 			};
 			frappe.document_queue_review.render_panel(frm, context);
@@ -609,10 +685,12 @@ frappe.document_queue_review.get_file_name = function (file_url) {
 };
 
 frappe.document_queue_review.link_after_save = function (frm) {
+	const context = frappe.document_queue_review.get_context(frm);
 	const queue_name =
-		frm.doc.__document_queue_name ||
-		frm.document_queue_review_context?.queue_name ||
-		frm.doc.__document_queue_review_context?.queue_name;
+		frappe.document_queue_review.saving_queue_name ||
+		new URLSearchParams(window.location.search).get("document_queue");
+
+	frappe.document_queue_review.saving_queue_name = null;
 
 	if (!queue_name || !frm.doc.name || frm.doc.__document_queue_linked) {
 		return Promise.resolve();
@@ -627,16 +705,21 @@ frappe.document_queue_review.link_after_save = function (frm) {
 			document_name: frm.doc.name,
 		},
 		callback(r) {
-			const context = frappe.document_queue_review.get_context(frm) || {};
-			frm.document_queue_review_context = {
-				...context,
+			const updated_context = {
+				...(context || {}),
 				status: r.message?.status || "Completed",
 				created_document: frm.doc.name,
 			};
-			frm.doc.__document_queue_review_context = frm.document_queue_review_context;
+			frm.doc.__document_queue_review_context = updated_context;
 			delete frm.doc.__document_queue_name;
-			delete frm.doc.__document_queue_review_context;
-			frm.document_queue_review_context = null;
+			
+			// Clean up URL now that it's completed
+			const url = new URL(window.location.href);
+			if (url.searchParams.has("document_queue")) {
+				url.searchParams.delete("document_queue");
+				window.history.replaceState(window.history.state, "", url.toString());
+			}
+
 			frm.sidebar?.reload_docinfo?.();
 			frappe.document_queue_review.teardown(frm);
 		},
@@ -673,7 +756,7 @@ frappe.document_queue_review.setup_list_banner = async function (listview) {
 		</div>
 	`);
 
-	$banner.find("button").on("click", () => {
+	$banner.on("click", () => {
 		frappe.set_route("List", "Document Queue", {
 			document_type: ["=", listview.doctype],
 			status: ["=", "Ready for Review"],
@@ -693,40 +776,15 @@ frappe.document_queue_review.get_ready_for_review_count = function (doctype) {
 		.catch(() => 0);
 };
 
-frappe.document_queue_review.refresh_form = function (frm) {
-	frappe.document_queue_review.hydrate_context(frm);
+frappe.document_queue_review.refresh_form = async function (frm) {
+	await frappe.document_queue_review.hydrate_context(frm);
 	frappe.document_queue_review.mount(frm);
 	frappe.document_queue_review.setup_upload_first(frm);
 };
 
-frappe.document_queue_review.patch_list_view = function () {
-	if (
-		frappe.document_queue_review.list_view_patched ||
-		frappe.document_queue_review_loader?.list_view_patched ||
-		!frappe.views?.ListView
-	) {
-		frappe.document_queue_review.list_view_patched = Boolean(
-			frappe.document_queue_review_loader?.list_view_patched
-		);
-		return;
-	}
-
-	const original_after_render = frappe.views.ListView.prototype.after_render;
-	frappe.views.ListView.prototype.after_render = function () {
-		original_after_render.apply(this, arguments);
-		frappe.document_queue_review.setup_list_banner(this);
-	};
-
-	frappe.document_queue_review.list_view_patched = true;
-	if (frappe.document_queue_review_loader) {
-		frappe.document_queue_review_loader.list_view_patched = true;
-	}
-};
-
 frappe.document_queue_review.add_styles = function () {
-	$("#document-queue-review-style").remove();
-
-	$(`<style id="document-queue-review-style">
+	frappe.dom.set_style(
+		`
 		.document-queue-upload-first {
 			display: flex;
 			align-items: center;
@@ -765,6 +823,11 @@ frappe.document_queue_review.add_styles = function () {
 			background: var(--fg-color);
 			color: var(--text-muted);
 			font-size: var(--text-sm);
+			cursor: pointer;
+			transition: background-color 0.2s;
+		}
+		.document-queue-ready-banner:hover {
+			background-color: var(--control-bg);
 		}
 		.std-form-layout.document-queue-review-layout {
 			display: grid;
@@ -793,61 +856,7 @@ frappe.document_queue_review.add_styles = function () {
 			border-radius: 0;
 			flex-direction: column;
 		}
-		.document-queue-review-tabs {
-			position: relative;
-			padding: 0;
-			background-color: var(--card-bg);
-			border-bottom: 1px solid var(--border-color);
-			border-radius: 0;
-			margin-bottom: 0;
-			margin-top: 0;
-		}
-		.document-queue-review-tabs .form-tabs {
-			display: flex;
-			flex-wrap: nowrap;
-			align-items: center;
-			justify-content: flex-start;
-			overflow: overlay;
-			padding: 0;
-			margin: 0;
-			list-style: none;
-			width: 100%;
-		}
-		.document-queue-review-tabs .nav-item {
-			flex: none !important;
-			white-space: nowrap;
-			width: auto !important;
-			max-width: max-content;
-		}
-		.document-queue-review-tabs .nav-link {
-			display: inline-flex !important;
-			align-items: center;
-			gap: 6px;
-			flex: none !important;
-			width: auto !important;
-			min-width: 0;
-			padding: 10px 0;
-			margin: 0 var(--margin-md);
-			border: 0;
-			border-bottom: 1px solid transparent;
-			border-radius: 0;
-			background-color: var(--card-bg);
-			color: var(--text-light);
-			font-size: var(--text-base);
-			font-weight: 400;
-			line-height: 1.4;
-			text-align: left;
-		}
-		.document-queue-review-tabs .nav-link.active {
-			padding-bottom: 9px;
-			border-bottom-color: var(--text-color);
-			color: var(--text-neutral);
-			font-weight: 400;
-		}
-		.document-queue-review-tabs .nav-link:focus-visible {
-			outline: none;
-			font-weight: 600;
-		}
+
 		.document-queue-review-body {
 			min-height: 0;
 			flex: 1;
@@ -952,7 +961,7 @@ frappe.document_queue_review.add_styles = function () {
 			transition: background-color 120ms ease;
 		}
 		.document-queue-review-resizer:hover {
-			background: color-mix(in srgb, var(--gray-400) 55%, transparent);
+			background: var(--border-color);
 		}
 		body.document-queue-review-is-resizing {
 			cursor: col-resize;
@@ -971,19 +980,15 @@ frappe.document_queue_review.add_styles = function () {
 				display: none;
 			}
 		}
-	</style>`).appendTo(document.head);
+		`,
+		"document-queue-review-style"
+	);
 };
 
-$(document).on("form-refresh", function (event, frm) {
-	frappe.document_queue_review.hydrate_context(frm);
+$(document).on("form-refresh", async function (event, frm) {
+	await frappe.document_queue_review.hydrate_context(frm);
 	frappe.document_queue_review.mount(frm);
 	frappe.document_queue_review.setup_upload_first(frm);
-});
-
-frappe.document_queue_review.patch_list_view();
-
-frappe.router?.on("change", () => {
-	frappe.document_queue_review.patch_list_view();
 });
 
 frappe.ui.form.on("*", {
