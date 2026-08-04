@@ -114,6 +114,13 @@ class TestScheduledJobType(IntegrationTestCase):
 		long_job = frappe.new_doc("Scheduled Job Type", frequency="Daily Long")
 		self.assertEqual(long_job.get_queue_name(), "long")
 
+		long_job.method = "frappe.desk.notifications.clear_notifications"
+		long_job.queue = "short"
+		long_job.insert()
+		self.assertFalse(long_job.queue)
+		self.assertEqual(long_job.get_queue_name(), "long")
+		frappe.db.rollback()
+
 	def test_maintenance_jobs(self):
 		sjt = frappe.new_doc(
 			"Scheduled Job Type",
