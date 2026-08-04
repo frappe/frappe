@@ -131,8 +131,18 @@ def enqueue_events_for_site(site: str) -> None:
 
 def enqueue_events() -> list[str] | None:
 	if schedule_jobs_based_on_activity():
+		from frappe.core.doctype.scheduled_job_type.scheduled_job_type import get_disabled_app_job_methods
+
 		enqueued_jobs = []
+<<<<<<< HEAD
 		all_jobs = frappe.get_all("Scheduled Job Type", filters={"stopped": 0}, fields="*")
+=======
+		filters = {"stopped": 0}
+		if disabled_methods := get_disabled_app_job_methods():
+			filters["method"] = ["not in", disabled_methods]
+
+		all_jobs = frappe.get_docs("Scheduled Job Type", filters=filters)
+>>>>>>> c71a6a6 (feat: Don't show, execute scheduled job of disabled apps)
 		random.shuffle(all_jobs)
 		for job_type in all_jobs:
 			job_type = frappe.get_doc(doctype="Scheduled Job Type", **job_type)
