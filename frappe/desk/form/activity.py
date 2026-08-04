@@ -337,7 +337,7 @@ def get_version_activities(doc: "Document", user_info: dict) -> list[dict]:
 
 	frappe.utils.add_user_info({v.owner for v in versions if v.owner}, user_info)
 
-	child_cache: dict[str, tuple[set, "frappe.Meta"]] = {}
+	child_cache: dict[str, tuple[set, frappe.Meta]] = {}
 
 	result = []
 	for v in versions:
