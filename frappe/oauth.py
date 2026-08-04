@@ -320,27 +320,21 @@ class OAuthWebRequestValidator(RequestValidator):
 		Method is used by:
 		- Revocation Endpoint
 		"""
-		if token_type_hint == "access_token":
-			frappe.db.set_value(
+		token_fields = ["access_token", "refresh_token"]
+		if token_type_hint == "refresh_token":
+			token_fields.reverse()
+
+		token_hash = get_oauth_token_hash(token)
+		for token_field in token_fields:
+			token_name = frappe.db.get_value(
 				"OAuth Bearer Token",
-				{"access_token": get_oauth_token_hash(token)},
-				"status",
-				"Revoked",
+				{token_field: token_hash, "client": request.client["name"]},
+				"name",
 			)
-		elif token_type_hint == "refresh_token":
-			frappe.db.set_value(
-				"OAuth Bearer Token",
-				{"refresh_token": get_oauth_token_hash(token)},
-				"status",
-				"Revoked",
-			)
-		else:
-			frappe.db.set_value(
-				"OAuth Bearer Token",
-				{"access_token": get_oauth_token_hash(token)},
-				"status",
-				"Revoked",
-			)
+			if token_name:
+				frappe.db.set_value("OAuth Bearer Token", token_name, "status", "Revoked")
+				break
+
 		frappe.db.commit()
 
 	def validate_refresh_token(self, refresh_token, client, request, *args, **kwargs):

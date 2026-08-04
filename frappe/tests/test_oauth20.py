@@ -328,58 +328,52 @@ class TestOAuth20(FrappeRequestTestCase):
 		decoded_token = self.decode_id_token(bearer_token.get("id_token"))
 		self.assertEqual(decoded_token["email"], "test@example.com")
 
-	def test_revoke_token(self):
-		client = frappe.get_doc("OAuth Client", self.client_id)
-		client.grant_type = "Authorization Code"
-		client.response_type = "Code"
-		client.save()
-		frappe.db.commit()
-
-		# Go to Authorize url
-		self.TEST_CLIENT.set_cookie(key="sid", value=self.sid)
-		resp = self.get(
-			"/api/method/frappe.integrations.oauth2.authorize",
-			{
-				"client_id": self.client_id,
-				"scope": self.scope,
-				"response_type": "code",
-				"redirect_uri": self.redirect_uri,
-			},
-			follow_redirects=True,
-		)
-
-		# Get authorization code from redirected URL
-		query = parse_qs(resp.request.environ["QUERY_STRING"])
-		auth_code = query.get("code")[0]
-
-		# Request for bearer token
-		token_response = self.post(
-			"/api/method/frappe.integrations.oauth2.get_token",
-			headers=self.get_client_auth_headers(),
-			data={
-				"grant_type": "authorization_code",
-				"code": auth_code,
-				"redirect_uri": self.redirect_uri,
-				"client_id": self.client_id,
-			},
-		)
-
-		# Parse bearer token json
-		bearer_token = token_response.json
-
-		# Revoke Token
+	def test_revoke_token_with_incorrect_hint(self):
+		bearer_token = self.get_bearer_token()
 		revoke_token_response = self.post(
 			"/api/method/frappe.integrations.oauth2.revoke_token",
 			headers=self.get_client_auth_headers(),
-			data={"token": bearer_token.get("access_token")},
+			data={"token": bearer_token.get("access_token"), "token_type_hint": "refresh_token"},
 		)
 
-		self.assertTrue(revoke_token_response.status_code == 200)
-
-		# Check revoked token
+		self.assertEqual(revoke_token_response.status_code, 200)
 		self.assertFalse(
 			check_valid_openid_response(access_token=bearer_token.get("access_token"), client=self)
 		)
+
+	def test_client_cannot_revoke_another_clients_token(self):
+		other_client = frappe.copy_doc(self.oauth_client)
+		other_client.name = "other_test_client_id"
+		other_client.app_name = "_Test Other OAuth Client"
+		other_client.client_secret = "other_test_client_secret"
+		other_client.insert()
+
+		access_token = frappe.generate_hash()
+		other_token = frappe.get_doc(
+			{
+				"doctype": "OAuth Bearer Token",
+				"access_token": access_token,
+				"client": other_client.name,
+				"expires_in": 3600,
+				"scopes": self.scope,
+				"status": "Active",
+				"user": "test@example.com",
+			}
+		).insert(ignore_permissions=True)
+
+		try:
+			revoke_token_response = self.post(
+				"/api/method/frappe.integrations.oauth2.revoke_token",
+				headers=self.get_client_auth_headers(),
+				data={"token": access_token},
+			)
+
+			self.assertEqual(revoke_token_response.status_code, 200)
+			self.assertEqual(frappe.db.get_value("OAuth Bearer Token", other_token.name, "status"), "Active")
+		finally:
+			other_token.delete(force=True)
+			other_client.delete(force=True)
+			frappe.db.commit()
 
 	def test_resource_owner_password_credentials_grant(self):
 		client = frappe.get_doc("OAuth Client", self.client_id)
