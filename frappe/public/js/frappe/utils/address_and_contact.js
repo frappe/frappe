@@ -1,4 +1,98 @@
 frappe.provide("frappe.contacts");
+frappe.provide("frappe.ui.form");
+
+/**
+ * Quick entry for records that belong to a party, such as Address and Contact.
+ *
+ * When the dialog is opened from a party's form, the new record is linked back to
+ * that party and the user stays on the form instead of being sent to the record
+ * that was just created. "Edit Full Form" still opens the full page.
+ */
+class PartyQuickEntryForm extends frappe.ui.form.QuickEntryForm {
+	insert() {
+		const link = this.get_party_link();
+		if (link) {
+			this.dialog.doc.links = [link];
+		}
+		return super.insert();
+	}
+
+	/**
+	 * The party is only linked while its form is the open one, so a stale
+	 * frappe.dynamic_link from an earlier visit cannot leak into a record created
+	 * somewhere else.
+	 */
+	get_party_link() {
+		const link = frappe.dynamic_link;
+		if (!link?.doc) return null;
+
+		const route = frappe.get_route();
+		const link_name = link.doc[link.fieldname];
+		const is_party_form_open =
+			route[0] === "Form" && route[1] === link.doctype && route[2] === link_name;
+
+		return is_party_form_open ? { link_doctype: link.doctype, link_name } : null;
+	}
+
+	open_form_if_not_list() {
+		if (frappe.get_route()?.[0] === "Form") {
+			cur_frm?.reload_doc();
+		}
+	}
+}
+
+frappe.ui.form.AddressQuickEntryForm = class AddressQuickEntryForm extends PartyQuickEntryForm {};
+
+frappe.ui.form.ContactQuickEntryForm = class ContactQuickEntryForm extends PartyQuickEntryForm {
+	render_dialog() {
+		const fields = this.get_phone_fields().map(({ primary_flag, ...field }) => field);
+		this.docfields = this.docfields.concat({ fieldtype: "Column Break" }, ...fields);
+		super.render_dialog();
+	}
+
+	update_doc() {
+		const doc = super.update_doc();
+		const phone_nos = [];
+
+		for (const { fieldname, primary_flag } of this.get_phone_fields()) {
+			if (doc[fieldname]) {
+				phone_nos.push({ phone: doc[fieldname], [primary_flag]: 1 });
+			}
+			delete doc[fieldname];
+		}
+
+		if (phone_nos.length) {
+			doc.phone_nos = phone_nos;
+		}
+		return doc;
+	}
+
+	/**
+	 * Contact.phone and Contact.mobile_no are read only values that validate()
+	 * derives from the phone_nos table. Reusing those fieldnames here would make
+	 * the form layout replace these inputs with the read only definitions and hide
+	 * them, so the numbers are collected under dialog specific fieldnames and
+	 * written to phone_nos on save.
+	 */
+	get_phone_fields() {
+		return [
+			{
+				fieldname: "contact_phone",
+				label: __("Phone"),
+				fieldtype: "Data",
+				options: "Phone",
+				primary_flag: "is_primary_phone",
+			},
+			{
+				fieldname: "contact_mobile_no",
+				label: __("Mobile No"),
+				fieldtype: "Data",
+				options: "Phone",
+				primary_flag: "is_primary_mobile_no",
+			},
+		];
+	}
+};
 
 $.extend(frappe.contacts, {
 	clear_address_and_contact: function (frm) {

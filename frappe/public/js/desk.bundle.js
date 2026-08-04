@@ -91,7 +91,6 @@ import "./frappe/utils/datetime.js";
 import "./frappe/utils/number_format.js";
 import "./frappe/utils/help.js";
 import "./frappe/utils/help_links.js";
-import "./frappe/utils/address_and_contact.js";
 import "./frappe/utils/preview_email.js";
 import "./frappe/utils/file_manager.js";
 import "./frappe/utils/diffview";
