@@ -267,6 +267,19 @@ frappe.ui.SidePanel = class SidePanel {
 			this.$panel[0].style.removeProperty("--side-panel-width");
 			localStorage.removeItem(SIDE_PANEL_WIDTH_KEY);
 		});
+
+		// set_width() clamps against the viewport, so a stored width from a larger window would
+		// otherwise overhang until the next drag.
+		$(window).on(
+			"resize.side-panel",
+			frappe.utils.debounce(() => {
+				const width = parseInt(
+					this.$panel[0].style.getPropertyValue("--side-panel-width"),
+					10
+				);
+				if (width) this.set_width(width);
+			}, 100)
+		);
 	}
 
 	set_width(width) {
@@ -531,9 +544,18 @@ frappe.ui.get_side_panel = function () {
 	return frappe.ui._side_panel;
 };
 
+// Off on mobile, where the drawer would cover the whole viewport and routing to the form is the
+// better experience. Defaults on, so an unset flag (pre-migration boot) still previews.
+frappe.ui.split_view_enabled = function () {
+	if (frappe.is_mobile()) return false;
+	const enabled = frappe.boot.desk_settings?.report_split_view;
+	return enabled === undefined || cint(enabled) === 1;
+};
+
 // Previews a clicked Link cell instead of routing to it. `is_link_cell` is the caller's policy —
 // report view keeps a docfield on the column, query reports put fieldtype/options on it directly.
 frappe.ui.handle_link_cell_click = function (e, is_link_cell) {
+	if (!frappe.ui.split_view_enabled()) return false;
 	if (e.which !== 1 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return false;
 
 	const link = e.currentTarget;
