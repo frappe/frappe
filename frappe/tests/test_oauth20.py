@@ -103,6 +103,25 @@ class TestOAuth20(FrappeRequestTestCase):
 		with suppress_stdout():
 			self.assertFalse(check_valid_openid_response(client=self))
 
+	def test_authorize_post_preserves_parameters_through_login(self):
+		params = {
+			"client_id": self.client_id,
+			"scope": self.scope,
+			"response_type": "code",
+			"redirect_uri": self.redirect_uri,
+			"state": "opaque +/%?&= state",
+		}
+
+		response = self.post(
+			"/api/method/frappe.integrations.oauth2.authorize",
+			params,
+			headers=self.form_header,
+		)
+		login_query = parse_qs(urlparse(response.location).query)
+		redirect_query = parse_qs(urlparse(login_query["redirect-to"][0]).query)
+
+		self.assertEqual(redirect_query, {key: [value] for key, value in params.items()})
+
 	def test_login_using_authorization_code(self):
 		update_client_for_auth_code_grant(self.client_id)
 
