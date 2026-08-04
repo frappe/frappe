@@ -150,6 +150,30 @@ class TestOAuth20(FrappeRequestTestCase):
 		with suppress_stdout():
 			self.assertFalse(check_valid_openid_response(client=self))
 
+	def test_missing_oauth_records_do_not_queue_messages(self):
+		missing_name = frappe.generate_hash()
+		validator = OAuthWebRequestValidator()
+		request = frappe._dict(
+			headers={},
+			client_id=missing_name,
+			client_secret=None,
+			refresh_token=None,
+			token=None,
+		)
+		validations = (
+			(validator.validate_client_id, (missing_name, frappe._dict())),
+			(validator.authenticate_client, (request,)),
+			(validator.authenticate_client_id, (missing_name, frappe._dict())),
+			(validator.validate_id_token, (missing_name, None, frappe._dict())),
+			(validator.validate_jwt_bearer_token, (missing_name, None, frappe._dict())),
+		)
+
+		for validation, args in validations:
+			with self.subTest(validation=validation.__name__):
+				frappe.clear_messages()
+				self.assertFalse(validation(*args))
+				self.assertFalse(frappe.get_message_log())
+
 	def test_confidential_client_authentication(self):
 		basic_credentials = {"headers": self.get_client_auth_headers()}
 		post_credentials = {"client_id": self.client_id, "client_secret": self.client_secret}
@@ -282,6 +306,21 @@ class TestOAuth20(FrappeRequestTestCase):
 
 		decoded_token = self.decode_id_token(bearer_token.get("id_token"))
 		self.assertEqual(decoded_token["email"], "test@example.com")
+
+	def test_invalid_refresh_token_does_not_leak_lookup(self):
+		frappe.db.commit()
+		refresh_response = self.post(
+			"/api/method/frappe.integrations.oauth2.get_token",
+			headers=self.get_client_auth_headers(),
+			data={
+				"grant_type": "refresh_token",
+				"refresh_token": frappe.generate_hash(),
+				"client_id": self.client_id,
+			},
+		)
+
+		self.assertEqual(refresh_response.json.get("error"), "invalid_grant")
+		self.assertNotIn("_server_messages", refresh_response.json)
 
 	def test_login_using_authorization_code_with_pkce(self):
 		update_client_for_auth_code_grant(self.client_id)
