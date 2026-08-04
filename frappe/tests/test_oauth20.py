@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from base64 import b64encode
 from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urljoin, urlparse
 
@@ -96,9 +97,41 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.client_id = self.oauth_client.get("client_id")
 		self.client_secret = self.oauth_client.get("client_secret")
 
-	def tearDown(self):
-		self.oauth_client.delete(force=True)
-		frappe.db.rollback()
+	def get_authorization_code(self):
+		self.TEST_CLIENT.set_cookie(key="sid", value=self.sid)
+		resp = self.get(
+			"/api/method/frappe.integrations.oauth2.authorize",
+			{
+				"client_id": self.client_id,
+				"scope": self.scope,
+				"response_type": "code",
+				"redirect_uri": self.redirect_uri,
+			},
+			follow_redirects=True,
+		)
+		query = parse_qs(resp.request.environ["QUERY_STRING"])
+		return query.get("code")[0]
+
+	def get_bearer_token(self, headers=None, **params):
+		auth_code = self.get_authorization_code()
+		token_response = self.post(
+			"/api/method/frappe.integrations.oauth2.get_token",
+			headers=headers or self.get_client_auth_headers(),
+			data={
+				"grant_type": "authorization_code",
+				"code": auth_code,
+				"redirect_uri": self.redirect_uri,
+				"client_id": self.client_id,
+				"scope": self.scope,
+				**params,
+			},
+		)
+		return token_response.json
+
+	def get_client_auth_headers(self, client_secret=None):
+		client_secret = self.client_secret if client_secret is None else client_secret
+		credentials = b64encode(f"{self.client_id}:{client_secret}".encode()).decode()
+		return {**self.form_header, "Authorization": f"Basic {credentials}"}
 
 	def _make_bearer_token(self):
 		access_token = frappe.generate_hash()
@@ -112,6 +145,14 @@ class TestOAuth20(FrappeRequestTestCase):
 			user="test@example.com",
 		).insert(ignore_permissions=True)
 		return access_token, token
+
+	def tearDown(self):
+		self.oauth_client.delete(force=True)
+		frappe.db.rollback()
+
+	def test_invalid_login(self):
+		with suppress_stdout():
+			self.assertFalse(check_valid_openid_response(client=self))
 
 	def test_bearer_token_rejects_disabled_owner(self):
 		access_token, _token = self._make_bearer_token()
@@ -142,10 +183,6 @@ class TestOAuth20(FrappeRequestTestCase):
 
 		self.assertEqual(openid_response.status_code, 200)
 		self.assertEqual(openid_response.json.get("email"), "test@example.com")
-
-	def test_invalid_login(self):
-		with suppress_stdout():
-			self.assertFalse(check_valid_openid_response(client=self))
 
 	def test_authorize_post_preserves_parameters_through_login(self):
 		params = {
@@ -187,39 +224,43 @@ class TestOAuth20(FrappeRequestTestCase):
 
 				self.assertEqual(response.status_code, 415)
 
+	def test_confidential_client_requires_authentication(self):
+		for headers in (self.form_header, self.get_client_auth_headers("wrong-secret")):
+			with self.subTest(headers=headers):
+				token_response = self.get_bearer_token(headers=headers)
+				self.assertEqual(token_response["error"], "invalid_client")
+
+	def test_client_secret_post_authentication(self):
+		self.oauth_client.token_endpoint_auth_method = "Client Secret Post"
+		self.oauth_client.save()
+		frappe.db.commit()
+
+		bearer_token = self.get_bearer_token(
+			headers=self.form_header,
+			client_secret=self.client_secret,
+		)
+		self.assertTrue(bearer_token.get("access_token"))
+
+	def test_client_secret_post_requires_secret(self):
+		self.oauth_client.token_endpoint_auth_method = "Client Secret Post"
+		self.oauth_client.save()
+		frappe.db.commit()
+
+		token_response = self.get_bearer_token(headers=self.form_header)
+		self.assertEqual(token_response["error"], "invalid_client")
+
+	def test_public_client_authentication(self):
+		self.oauth_client.token_endpoint_auth_method = "None"
+		self.oauth_client.save()
+		frappe.db.commit()
+
+		bearer_token = self.get_bearer_token(headers=self.form_header)
+		self.assertTrue(bearer_token.get("access_token"))
+
 	def test_login_using_authorization_code(self):
 		update_client_for_auth_code_grant(self.client_id)
 
-		# Go to Authorize url
-		self.TEST_CLIENT.set_cookie(key="sid", value=self.sid)
-		resp = self.get(
-			"/api/method/frappe.integrations.oauth2.authorize",
-			{
-				"client_id": self.client_id,
-				"scope": self.scope,
-				"response_type": "code",
-				"redirect_uri": self.redirect_uri,
-			},
-			follow_redirects=True,
-		)
-		query = parse_qs(resp.request.environ["QUERY_STRING"])
-		auth_code = query.get("code")[0]
-
-		# Request for bearer token
-		token_response = self.post(
-			"/api/method/frappe.integrations.oauth2.get_token",
-			headers=self.form_header,
-			data={
-				"grant_type": "authorization_code",
-				"code": auth_code,
-				"redirect_uri": self.redirect_uri,
-				"client_id": self.client_id,
-				"scope": self.scope,
-			},
-		)
-
-		# Parse bearer token json
-		bearer_token = token_response.json
+		bearer_token = self.get_bearer_token()
 
 		self.assertTrue(bearer_token.get("access_token"))
 		self.assertTrue(bearer_token.get("expires_in"))
@@ -259,7 +300,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		# Request for bearer token
 		token_response = self.post(
 			"/api/method/frappe.integrations.oauth2.get_token",
-			headers=self.form_header,
+			headers=self.get_client_auth_headers(),
 			data={
 				"grant_type": "authorization_code",
 				"code": auth_code,
@@ -306,7 +347,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		# Request for bearer token
 		token_response = self.post(
 			"/api/method/frappe.integrations.oauth2.get_token",
-			headers=self.form_header,
+			headers=self.get_client_auth_headers(),
 			data={
 				"grant_type": "authorization_code",
 				"code": auth_code,
@@ -321,7 +362,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		# Revoke Token
 		revoke_token_response = self.post(
 			"/api/method/frappe.integrations.oauth2.revoke_token",
-			headers=self.form_header,
+			headers=self.get_client_auth_headers(),
 			data={"token": bearer_token.get("access_token")},
 		)
 
@@ -349,7 +390,7 @@ class TestOAuth20(FrappeRequestTestCase):
 				"client_id": self.client_id,
 				"scope": self.scope,
 			},
-			headers=self.form_header,
+			headers=self.get_client_auth_headers(),
 		)
 
 		# Parse bearer token json
@@ -425,7 +466,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		# Request for bearer token
 		token_response = self.post(
 			"/api/method/frappe.integrations.oauth2.get_token",
-			headers=self.form_header,
+			headers=self.get_client_auth_headers(),
 			data=encode_params(
 				{
 					"grant_type": "authorization_code",
