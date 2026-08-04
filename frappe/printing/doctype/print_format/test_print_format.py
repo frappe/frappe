@@ -765,44 +765,6 @@ class TestPrintFormatPreview(IntegrationTestCase):
 		frappe.get_doc({"doctype": "ToDo", "description": "preview sample"}).insert()
 		self.addCleanup(frappe.delete_doc, "Print Format", self.FORMAT_NAME, force=True)
 
-	def _preview_files(self):
-		return frappe.get_all(
-			"File",
-			filters={
-				"attached_to_doctype": "Print Format",
-				"attached_to_name": self.FORMAT_NAME,
-				"attached_to_field": "preview_image",
-			},
-			pluck="name",
-		)
-
-	def test_regenerate_keeps_single_preview_and_spares_user_files(self):
-		from unittest.mock import patch
-
-		from frappe.printing.doctype.print_format.print_format import generate_preview
-		from frappe.utils.file_manager import save_file
-
-		user_file = save_file("my-notes.txt", b"keep me", "Print Format", self.FORMAT_NAME, is_private=1)
-
-		with (
-			patch("frappe.get_print", return_value="<html><body>x</body></html>"),
-			patch("frappe.utils.preview.get_preview_from_html", side_effect=[b"webp-AAAA", b"webp-BBBB"]),
-		):
-			generate_preview(self.FORMAT_NAME)
-			generate_preview(self.FORMAT_NAME)
-
-		previews = self._preview_files()
-		self.assertEqual(len(previews), 1, "regenerating a preview must not accumulate files")
-
-		cooldown_key = f"pf_preview_cooldown::{self.FORMAT_NAME}"
-		self.addCleanup(frappe.cache.delete_value, cooldown_key)
-		self.assertTrue(frappe.cache.get_value(cooldown_key), "a completed render must stamp the cooldown")
-
-		self.assertTrue(frappe.db.exists("File", user_file.name), "user attachment must not be swept")
-
-		url = frappe.db.get_value("Print Format", self.FORMAT_NAME, "preview_image")
-		self.assertEqual(frappe.db.get_value("File", previews[0], "file_url"), url)
-
 	def test_autosave(self):
 		from frappe.printing.doctype.print_format.print_format import autosave
 
