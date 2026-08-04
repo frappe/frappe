@@ -138,18 +138,7 @@ class BaseTimeline {
 		let timeline_content = timeline_item.find(".timeline-content");
 		timeline_content.append(item.content);
 		if (!item.hide_timestamp && !item.is_card) {
-<<<<<<< HEAD
 			timeline_content.append(`<span> · ${comment_when(item.creation)}</span>`);
-=======
-			timeline_content.append(
-				`<span> · ${
-					cint(frappe.boot.user.show_absolute_datetime_in_timeline) ||
-					frappe.defaults.is_enabled("show_absolute_datetime_in_timeline")
-						? frappe.datetime.str_to_user(item.creation)
-						: comment_when(item.creation)
-				}</span>`
-			);
->>>>>>> a51f57297a (refactor(defaults): use helper for checking enabled defaults (#39416))
 		}
 		if (item.id) {
 			timeline_content.attr("id", item.id);
