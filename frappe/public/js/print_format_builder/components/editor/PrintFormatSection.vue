@@ -1,7 +1,9 @@
 <template>
 	<div
+		ref="section_root"
 		class="print-format-section-container"
 		data-pfb-section
+		:data-pfb-zone="zone"
 		:data-section-uid="field_uid(section)"
 		v-show="!preview_doc || has_visible_fields"
 		:class="{
@@ -123,7 +125,10 @@
 							</template>
 						</draggable>
 						<div
-							v-if="column.fields.filter((f) => !f.remove).length === 0"
+							v-if="
+								column.fields.filter((f) => !f.remove).length === 0 ||
+								empty_columns[i]
+							"
 							class="empty-drop-zone"
 						>
 							<button
@@ -172,7 +177,7 @@ import Field from "./Field.vue";
 import SectionActions from "./SectionActions.vue";
 import SectionSpacingHandles from "./SectionSpacingHandles.vue";
 import SectionRadiusHandle from "./SectionRadiusHandle.vue";
-import { computed, inject } from "vue";
+import { computed, inject, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
 import {
 	DRAG_OPTIONS,
@@ -213,6 +218,32 @@ let is_section_visible = computed(() =>
 );
 
 let is_grid = computed(() => !!props.section.field_borders);
+
+// a zone field can print nothing — an empty Text Editor formats to an empty div —
+// leaving a column that holds fields but draws nothing to drop onto
+const empty_columns = ref({});
+const section_root = ref(null);
+let observer = null;
+
+function read_columns() {
+	const next = {};
+	section_root.value?.querySelectorAll(".drag-container").forEach((el, i) => {
+		next[i] =
+			!el.innerText.trim() &&
+			![...el.querySelectorAll("img, svg, table")].some(
+				(n) => !n.closest(".field-preview-actions")
+			);
+	});
+	empty_columns.value = next;
+}
+
+onMounted(() => {
+	if (!props.zone) return;
+	observer = new MutationObserver(read_columns);
+	observer.observe(section_root.value, { childList: true, subtree: true, characterData: true });
+	nextTick(read_columns);
+});
+onUnmounted(() => observer?.disconnect());
 
 // Mirrors the row layout class print_format.html picks for right-aligned
 // columns; the server computes it for body sections only, never header/footer
@@ -537,6 +568,10 @@ function remove_column(index) {
 	inset: 0 15px;
 	border: var(--pfb-ring);
 	pointer-events: none;
+}
+
+[data-pfb-zone] .column.pfb-column-hover::after {
+	display: none;
 }
 
 .column-divider {
