@@ -52,9 +52,6 @@ def get_bootinfo():
 	bootinfo.sysdefaults["setup_complete"] = frappe.is_setup_complete()
 	if not bootinfo.sysdefaults["setup_complete"]:
 		bootinfo.setup_wizard_url = get_setup_wizard_url()
-	# Feature flag may not be in DefaultValue until System Settings is saved once.
-	bootinfo.sysdefaults["use_new_kanban"] = cint(frappe.get_system_settings("use_new_kanban"))
-
 
 	bootinfo.server_date = frappe.utils.nowdate()
 
