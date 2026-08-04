@@ -54,7 +54,7 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false) {
 			);
 			for (const [key, value] of Object.entries(filters_json)) {
 				if (Array.isArray(value)) {
-					filters_json[key] = value[1];
+					filters_json[key] = value[0] === "=" ? value[1] : JSON.stringify(value);
 				}
 			}
 			if (item.link_type == "DocType") {
