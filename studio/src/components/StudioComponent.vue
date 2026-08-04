@@ -26,8 +26,6 @@
 			:data-breakpoint="breakpoint"
 			:style="styles"
 			:class="classes"
-			@mouseover="handleMouseOver"
-			@mouseleave="handleMouseLeave"
 			ref="componentRef"
 		>
 			<!-- Dynamically render named slots -->
@@ -78,8 +76,6 @@
 			:data-breakpoint="breakpoint"
 			:style="styles"
 			:class="classes"
-			@mouseover="handleMouseOver"
-			@mouseleave="handleMouseLeave"
 			ref="componentRef"
 		/>
 	</template>
@@ -319,8 +315,11 @@ const handleClick = (e: MouseEvent) => {
 	e.preventDefault()
 }
 
-// Selection listens natively on the rendered root, NOT via a template @click to avoid passing it as an event prop
+// Selection/hover listen natively on the rendered root, NOT via template events — those become
+// event props and can't attach when the component renders a fragment root (e.g. ListRows)
 useEventListener(target, "click", handleClick)
+useEventListener(target, "mouseover", handleMouseOver)
+useEventListener(target, "mouseleave", handleMouseLeave)
 
 watch(
 	() => canvasStore.activeCanvas?.hoveredBlock,
