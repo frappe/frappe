@@ -247,6 +247,7 @@ class File(Document):
 			frappe.throw(_("Cannot delete Home and Attachments folders"))
 		self.validate_empty_folder()
 		self.validate_protected_file()
+		self.validate_not_referenced_in_attach_field()
 		self._delete_file_on_disk()
 		if not self.is_folder:
 			self.add_comment_in_reference_doc("Attachment Removed", self.file_name)
@@ -604,6 +605,62 @@ class File(Document):
 			msg=_("This file is attached to a protected document and cannot be deleted."),
 			title=_("Protected File"),
 		)
+
+	def validate_not_referenced_in_attach_field(self):
+		"""Throw an exception if the linked document still has this file's URL set in an Attach field."""
+		if self.flags.force_delete:
+			return
+
+		if not (self.attached_to_doctype and self.attached_to_name and self.file_url):
+			return
+
+		url_backed_by_another_file = frappe.get_all(
+			"File",
+			filters={"file_url": self.file_url, "name": ["!=", self.name]},
+			limit=1,
+		)
+		if url_backed_by_another_file:
+			return
+
+		try:
+			ref_doc = frappe.get_doc(self.attached_to_doctype, self.attached_to_name)
+		except DoesNotExistError:
+			return
+
+		def get_referencing_field(doc):
+			for df in doc.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]}):
+				if doc.get(df.fieldname) == self.file_url:
+					return df
+
+		docs_to_check = [ref_doc]
+		for table_field in ref_doc.meta.get_table_fields():
+			docs_to_check.extend(ref_doc.get(table_field.fieldname))
+
+		referencing_field = None
+		referencing_doc = None
+		for doc in docs_to_check:
+			if referencing_field := get_referencing_field(doc):
+				referencing_doc = doc
+				break
+
+		if not referencing_field:
+			return
+
+		if ref_doc.docstatus > 0 and not referencing_field.allow_on_submit:
+			return
+
+		field_label = frappe.bold(_(referencing_field.label or referencing_field.fieldname))
+
+		if referencing_doc is ref_doc:
+			msg = _(
+				"This file cannot be deleted as it is set in field {0} of {1} {2}. Clear the field first."
+			).format(field_label, _(ref_doc.doctype), ref_doc.name)
+		else:
+			msg = _(
+				"This file cannot be deleted as it is set in field {0} in row {1} of {2} {3}. Clear the field first."
+			).format(field_label, referencing_doc.idx, _(ref_doc.doctype), ref_doc.name)
+
+		frappe.throw(msg, frappe.LinkExistsError)
 
 	def _delete_file_on_disk(self):
 		"""If file not attached to any other record, delete it"""
