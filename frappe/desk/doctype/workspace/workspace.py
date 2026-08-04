@@ -115,6 +115,7 @@ class Workspace(Document):
 		# so reject it here rather than let it strand the workspace.
 		if self.app and self.app not in frappe.get_installed_apps():
 			frappe.throw(_("{0} is not an installed app.").format(frappe.bold(self.app)))
+
 	@staticmethod
 	def get_duplicate_widget_labels(doc, parentfield):
 		rows = doc.get(parentfield) or []
