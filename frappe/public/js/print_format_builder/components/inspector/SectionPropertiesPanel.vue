@@ -74,7 +74,7 @@
 					@change="set_justify($event.target.value)"
 				>
 					<option value="">{{ __("Normal") }}</option>
-					<option v-for="mode in JUSTIFY_MODES" :key="mode" :value="mode">
+					<option v-for="mode in Object.keys(JUSTIFY_CLASSES)" :key="mode" :value="mode">
 						{{ justify_labels[mode] }}
 					</option>
 				</select>
@@ -137,7 +137,7 @@ import StyleSection from "./StyleSection.vue";
 import ToggleRow from "./ToggleRow.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { mountColorControl } from "./useColorControl";
-import { JUSTIFY_MODES } from "../../utils";
+import { JUSTIFY_CLASSES } from "../../utils";
 
 let store = inject("$store");
 

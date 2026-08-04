@@ -505,11 +505,12 @@ class PrintFormatGenerator:
 		return "\n".join(parts) or None
 
 	_ZONE_SECTION_TEMPLATE = """\
+{%- set justify_classes = {'space-between': 'row-col-space-between', 'space-evenly': 'row-col-space-evenly', 'center': 'row-col-center', 'right-end': 'row-col-right-end'} -%}
 {%- set ns = namespace(has_fields=false) -%}
 {%- for col in section.columns -%}{%- for df in col.get('fields', []) -%}{%- set ns.has_fields = true -%}{%- endfor -%}{%- endfor -%}
 {%- if ns.has_fields -%}
 {%- set col_gap = (section.gap if section.gap is defined and section.gap is not none else 20)|string + 'px' -%}
-<div class="section section-columns row{{ ' row-col-' + section.justify if section.get('justify') else '' }}" style="gap:{{ col_gap }}">
+<div class="section section-columns row {{ justify_classes.get(section.get('justify'), '') }}" style="gap:{{ col_gap }}">
 {%- for column in section.columns %}
 <div class="column col"{% if column.get('width') %} style="flex: {{ column.get('width')|float }} 1 0%"{% endif %}>
 {%- for df in column.get('fields', []) -%}

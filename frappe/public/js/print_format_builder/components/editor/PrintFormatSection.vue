@@ -176,7 +176,7 @@ import { computed, inject } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
 import {
 	DRAG_OPTIONS,
-	JUSTIFY_MODES,
+	JUSTIFY_CLASSES,
 	evaluate_visible_if,
 	parse_inline_style,
 	setDragging,
@@ -218,7 +218,7 @@ let is_grid = computed(() => !!props.section.field_borders);
 // Mirrors the row layout class print_format.html picks for right-aligned
 // columns; the server computes it for body sections only, never header/footer
 let row_layout = computed(() => {
-	if (JUSTIFY_MODES.includes(props.section.justify)) return `row-col-${props.section.justify}`;
+	if (JUSTIFY_CLASSES[props.section.justify]) return JUSTIFY_CLASSES[props.section.justify];
 	if (props.is_header) return "";
 	const cols = props.section.columns || [];
 	if (!cols.some((c) => c.align === "right")) return "";

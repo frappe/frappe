@@ -31,7 +31,8 @@ SERVER_SOURCES = [
 ]
 
 BUILDER_DIR = APP_PATH / "public" / "js" / "print_format_builder"
-CANVAS_SOURCES = sorted(BUILDER_DIR.rglob("*.vue"))
+# utils.js holds class names the components render from, so it speaks the markup too
+CANVAS_SOURCES = [*sorted(BUILDER_DIR.rglob("*.vue")), BUILDER_DIR / "utils.js"]
 
 # Classes that legitimately exist on only one surface.
 SERVER_ONLY_CLASSES = {
