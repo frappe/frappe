@@ -1,0 +1,148 @@
+import json
+
+from fastapi.testclient import TestClient
+
+from flow.server import create_app
+from flow.session.config import SessionConfig
+from flow.session.prompt import DEFAULT_PREAMBLE, build_system_prompt
+from flow.session.store import SessionStore
+
+
+def _home(tmp_path):
+	home = tmp_path / "home"
+	home.mkdir()
+	return home
+
+
+def test_default_compose_is_the_preamble(tmp_path):
+	home = _home(tmp_path)
+	config = SessionConfig(cwd=str(tmp_path / "work"))
+	assert build_system_prompt(config, home=str(home)) == DEFAULT_PREAMBLE
+
+
+def test_global_agents_md_included_with_provenance(tmp_path):
+	home = _home(tmp_path)
+	(home / "AGENTS.md").write_text("always use tabs")
+	config = SessionConfig(cwd=str(tmp_path / "work"))
+	prompt = build_system_prompt(config, home=str(home))
+	assert prompt.startswith(DEFAULT_PREAMBLE)
+	assert f"# Global instructions ({home / 'AGENTS.md'})" in prompt
+	assert "always use tabs" in prompt
+
+
+def test_project_chain_outermost_first(tmp_path):
+	home = _home(tmp_path)
+	(home / "AGENTS.md").write_text("global rules")
+	repo = home / "repo"
+	sub = repo / "pkg" / "sub"
+	sub.mkdir(parents=True)
+	(repo / ".git").mkdir()
+	(repo / "AGENTS.md").write_text("repo rules")
+	(sub / "AGENTS.md").write_text("sub rules")
+	config = SessionConfig(cwd=str(sub))
+	prompt = build_system_prompt(config, home=str(home))
+	order = [prompt.index(marker) for marker in ("global rules", "repo rules", "sub rules")]
+	assert order == sorted(order)
+	assert f"# Project instructions ({repo / 'AGENTS.md'})" in prompt
+	assert f"# Project instructions ({sub / 'AGENTS.md'})" in prompt
+
+
+def test_walk_stops_at_git_root(tmp_path):
+	home = _home(tmp_path)
+	outer = tmp_path / "outer"
+	repo = outer / "repo"
+	repo.mkdir(parents=True)
+	(repo / ".git").mkdir()
+	(outer / "AGENTS.md").write_text("outside the repo")
+	(repo / "AGENTS.md").write_text("repo rules")
+	config = SessionConfig(cwd=str(repo))
+	prompt = build_system_prompt(config, home=str(home))
+	assert "repo rules" in prompt
+	assert "outside the repo" not in prompt
+
+
+def test_cwd_at_home_reads_agents_md_once(tmp_path):
+	home = _home(tmp_path)
+	(home / "AGENTS.md").write_text("home rules")
+	config = SessionConfig(cwd=str(home))
+	prompt = build_system_prompt(config, home=str(home))
+	assert prompt.count("home rules") == 1
+	assert "# Project instructions" not in prompt
+
+
+def test_git_file_marks_a_worktree_root(tmp_path):
+	home = _home(tmp_path)
+	(tmp_path / "AGENTS.md").write_text("outside the worktree")
+	worktree = tmp_path / "wt"
+	worktree.mkdir()
+	(worktree / ".git").write_text("gitdir: /elsewhere")
+	(worktree / "AGENTS.md").write_text("worktree rules")
+	config = SessionConfig(cwd=str(worktree))
+	prompt = build_system_prompt(config, home=str(home))
+	assert "worktree rules" in prompt
+	assert "outside the worktree" not in prompt
+
+
+def test_empty_and_missing_agents_md_are_skipped(tmp_path):
+	home = _home(tmp_path)
+	(home / "AGENTS.md").write_text("   \n\n")
+	config = SessionConfig(cwd=str(tmp_path / "nowhere"))
+	assert build_system_prompt(config, home=str(home)) == DEFAULT_PREAMBLE
+
+
+def test_preamble_override_and_suffix(tmp_path):
+	home = _home(tmp_path)
+	(home / "AGENTS.md").write_text("global rules")
+	config = SessionConfig(
+		cwd=str(tmp_path),
+		system_preamble="short preamble",
+		system_suffix="client notes at the end",
+	)
+	prompt = build_system_prompt(config, home=str(home))
+	assert prompt.startswith("short preamble")
+	assert DEFAULT_PREAMBLE not in prompt
+	assert prompt.endswith("client notes at the end")
+	assert "global rules" in prompt
+
+
+def test_verbatim_system_prompt_skips_composition(tmp_path):
+	home = _home(tmp_path)
+	(home / "AGENTS.md").write_text("must not appear")
+	config = SessionConfig(
+		cwd=str(tmp_path),
+		system_prompt="exact prompt",
+		system_suffix="also ignored",
+	)
+	assert build_system_prompt(config, home=str(home)) == "exact prompt"
+
+
+def test_store_composes_once_and_persists(tmp_path, monkeypatch):
+	home = _home(tmp_path)
+	monkeypatch.setenv("HOME", str(home))
+	project = tmp_path / "project"
+	project.mkdir()
+	(project / "AGENTS.md").write_text("project rules")
+	data_dir = str(tmp_path / "data")
+	session = SessionStore(data_dir).create(SessionConfig(cwd=str(project)))
+	assert "project rules" in session.config.system_prompt
+
+	# an AGENTS.md edit after create must not change the session
+	(project / "AGENTS.md").write_text("changed later")
+	reloaded = SessionStore(data_dir).get(session.id)
+	assert reloaded.config.system_prompt == session.config.system_prompt
+
+	meta = json.loads((tmp_path / "data" / "sessions" / f"{session.id}.meta.json").read_text())
+	assert "project rules" in meta["system_prompt"]
+
+
+def test_server_reports_composed_prompt(tmp_path, monkeypatch):
+	home = _home(tmp_path)
+	(home / "AGENTS.md").write_text("global rules")
+	monkeypatch.setenv("HOME", str(home))
+	c = TestClient(create_app(SessionStore(str(tmp_path / "data"))))
+	created = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()
+	prompt = created["config"]["system_prompt"]
+	assert prompt.startswith(DEFAULT_PREAMBLE)
+	assert "global rules" in prompt
+	got = c.get(f"/sessions/{created['session_id']}").json()
+	assert got["config"]["system_prompt"] == prompt

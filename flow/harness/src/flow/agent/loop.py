@@ -44,6 +44,7 @@ from flow.events import (
 	Compaction,
 	CompactionReason,
 	PendingCall,
+	ReasoningEffort,
 	Retry,
 	RunEnded,
 	RunStarted,
@@ -57,6 +58,7 @@ from flow.model import Model, ModelRequest, ProviderError, get_model
 from flow.model.auth import resolve_model_auth
 from flow.model.base import ModelCancelled, await_with_cancellation, iterate_with_cancellation
 from flow.model.credentials import CredentialStore
+from flow.model.reasoning import reasoning_params
 from flow.session.config import SessionConfig
 from flow.session.transcript import PendingApproval
 from flow.tools import BUILTIN_TOOLS, Tool, ToolContext
@@ -94,6 +96,7 @@ class LoopInputs:
 	abort: asyncio.Event
 	model_name: str  # the session's effective selection at admission, not config
 	credential_id: str | None = None
+	reasoning_effort: ReasoningEffort | None = None
 	allowed_roots: tuple[str, ...] = ()
 	session_id: str = ""
 	model: Model | None = None
@@ -207,7 +210,7 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 		request = ModelRequest(
 			messages=inputs.messages,
 			tools=schemas,
-			system_prompt=config.system_prompt,
+			system_prompt=config.system_prompt or "",
 			stream=config.stream,
 			cancellation=abort,
 		)
@@ -268,13 +271,14 @@ async def _auto_compact(
 	config = inputs.config
 	if not config.auto_compact or context.just_compacted:
 		return
+	system_prompt = config.system_prompt or ""
 	compaction_threshold_tokens = _compact_threshold(config, model)
-	if context.tokens(config.system_prompt, schemas, inputs.messages) <= compaction_threshold_tokens:
+	if context.tokens(system_prompt, schemas, inputs.messages) <= compaction_threshold_tokens:
 		return
 	plan = _plan_compaction_preserving_recent_messages(
 		inputs,
 		model,
-		system_prompt=config.system_prompt,
+		system_prompt=system_prompt,
 		tools=schemas,
 	)
 	if plan is None:
@@ -518,6 +522,7 @@ async def _authenticated_model(inputs: LoopInputs) -> Model:
 		api_key=auth.api_key,
 		api_base=auth.base_url,
 		headers=auth.headers,
+		params=reasoning_params(inputs.model_name, inputs.reasoning_effort),
 		refresh_auth=auth.refresh,
 	)
 

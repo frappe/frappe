@@ -80,16 +80,33 @@ request except `GET /healthz`.
 ### `GET /healthz`
 `→ {"ok": true}`
 
+### `GET /models`
+`→ {"models": [{"name": "anthropic/claude-sonnet-4", "provider": "anthropic"}, ...],
+"errors": []}`.
+Live discovery: each configured provider — a stored credential or an API-key env var —
+is queried with the user's resolved credential, so the list reflects account- and
+plan-specific availability. A provider whose query fails falls back to the static
+catalog (litellm's cost table plus native providers' own ids) and adds a
+`"provider: reason"` string to `errors`. It is a suggestion list, not a gate:
+`POST /sessions` and `/model` accept any model name.
+
 ### `POST /sessions`
 Body: a `SessionConfig` (all fields optional; see below).
 `→ {"session_id": "...", "config": {...}}` (secrets redacted). `400` if `cwd` is outside
 `ALLOWED_ROOTS` or `session_id` is invalid.
 
+### `GET /sessions`
+`→ {"sessions": [{"session_id", "state", "model", "latest_seq", "cwd"}, ...]}`, newest
+activity first. A cheap listing for pickers: sessions this daemon has not loaded are
+read from their meta file and log tail without replay, so a cold session's `model` can
+lag a later `model_changed` entry — `GET /sessions/{sid}` reports exact values.
+
 ### `GET /sessions/{sid}`
-`→ {"session_id", "state", "running", "latest_seq", "model", "credential_id", "config"}`.
+`→ {"session_id", "state", "running", "latest_seq", "model", "credential_id",
+"reasoning_effort", "config"}`.
 `state` is `idle`, `running`, or `paused`; `running` remains as a compatibility boolean.
-`model`/`credential_id` are the effective selection — the last `model_changed` entry on
-the active branch, else the creation config. `404` if unknown.
+`model`/`credential_id`/`reasoning_effort` are the effective selection — the last
+`model_changed` entry on the active branch, else the creation config. `404` if unknown.
 
 ### `POST /sessions/{sid}/run?wait=<bool>`
 Body: `{"message": "..."}`. A run always uses the session's current model selection;
@@ -144,14 +161,18 @@ paused session abandons its approval batch →
 `{"status": "rewound"}`. `409` while a run is active or for an invalid target.
 
 ### `POST /sessions/{sid}/model`
-Body: `{"model": "provider/model", "credential_id": "optional-name"}`. Selects the
-model (and stored credential) for runs from here on, as a durable `model_changed`
+Body: `{"model": "provider/model", "credential_id": "optional-name",
+"reasoning_effort": "off|minimal|low|medium|high|xhigh|max" | null}`. Selects the model (with stored
+credential and reasoning effort) for runs from here on, as a durable `model_changed`
 entry in the log — so it survives restarts and is per-branch: a rewind to before the
 change restores the previous selection. Setting the already-active selection writes
-nothing. Provider keys, OAuth tokens, headers, and base URLs are never accepted;
+nothing. `reasoning_effort: null` means the provider's default (no reasoning parameter
+is sent); `"off"` disables thinking where the provider has a switch.
+Provider keys, OAuth tokens, headers, and base URLs are never accepted;
 they are resolved inside flow →
-`{"model": "...", "credential_id": ...}` (the now-effective selection). `409` while a
-run is active; allowed while paused (the resume continues on the new model).
+`{"model": "...", "credential_id": ..., "reasoning_effort": ...}` (the now-effective
+selection). `409` while a run is active; allowed while paused (the resume continues on
+the new model).
 
 ### `POST /sessions/{sid}/compact?wait=<bool>`
 Body (optional): `{"instructions": "focus for the summary"}`. Summarizes the whole
@@ -184,12 +205,17 @@ a rewind can retract rows before any cursor, so combining it with `since` is a `
 and accepts `since`. To catch up after a disconnect, replay `/stream?since=N` (you
 will see any `rewind` marker) or refetch the active view whole.
 
-### `GET /sessions/{sid}/stream?since=<int>`
+### `GET /sessions/{sid}/stream?since=<int>&follow=<bool>`
 Server-Sent Events. Replays durable entries with `seq > since`, then streams live
 events. Each line: `data: {<event json>}\n\n`. The stream closes when the watched run
 ends (`run_ended`, including `reason=="paused"`); for a session with no active run it
 closes after the replay. Reconnect after a drop by passing `since=<last seq you saw>` —
 the continuation is gapless and duplicate-free.
+
+`follow=true` removes the close-at-boundary behavior: the connection stays open across
+run boundaries and while the session idles. A quiet stream sends an SSE comment line
+(`: keepalive`) every 15 seconds so proxies and dead-peer detection keep working.
+Clients must ignore comment lines.
 
 Durable `assistant_message` entries contain an ordered `content` array of `text`,
 `thinking`, and `tool_call` blocks plus `api`, `provider`, `model`, optional upstream
@@ -229,7 +255,10 @@ print(res["output"], res["reason"], res["usage"])
 |---|---|---|
 | `session_id` | generated | client-provided id (must be `[A-Za-z0-9_-]{1,64}`) |
 | `model` | `"mock"` | name string; prefix selects the provider. The initial selection — switch later via `POST /sessions/{sid}/model` (config never mutates) |
-| `system_prompt` | `"You are a helpful agent."` | |
+| `reasoning_effort` | `null` | pi's ladder: `"off"`, `"minimal"`, `"low"`, `"medium"`, `"high"`, `"xhigh"`, `"max"`; `null` = provider default (no reasoning parameter sent). Anthropic gets a thinking token budget (xhigh/max clamp to high), Codex a `reasoning.effort`, everything else LiteLLM's unified `reasoning_effort`; `"off"` disables thinking on Anthropic and omits the parameter elsewhere |
+| `system_preamble` | none | replaces the default preamble section of the composed prompt |
+| `system_suffix` | none | appended after all composed sections (the client-injection point) |
+| `system_prompt` | composed | verbatim override; when set, composition is skipped |
 | `tools` | `["bash","read_file","write","edit","grep"]` | builtin tool names |
 | `client_tools` | `[]` | schemas for tools the client runs (see [tools.md](tools.md)) |
 | `callback_url` / `callback_token` | none | where/how client tools are dispatched |
@@ -243,3 +272,20 @@ print(res["output"], res["reason"], res["usage"])
 | `max_turns` | `30` | turn cap |
 | `max_output_tokens` | `200000` | output-token spend cap |
 | `stream` | `true` | consume the model as a token stream |
+
+### System-prompt composition
+
+When `system_prompt` is not set, the server composes it once at session create, in this
+order:
+
+1. Preamble: `system_preamble`, or a default coding-agent preamble.
+2. `$HOME/AGENTS.md`, if present.
+3. Project `AGENTS.md` files: walk up from `cwd` to the git root (first ancestor with
+   `.git`) or `$HOME`, whichever comes first; outermost first, so nearer files override
+   by recency. AGENTS.md only — no CLAUDE.md fallback.
+4. `system_suffix`, if set.
+
+Each AGENTS.md section carries a provenance header with its file path. The resolved
+prompt is stored in the session config (reported by `GET /sessions/{sid}`); later
+AGENTS.md edits do not change an existing session. Set `system_prompt` to skip
+composition and use the text verbatim.

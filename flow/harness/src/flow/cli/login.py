@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import getpass
 import html
-import os
 import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -13,7 +12,7 @@ from urllib.parse import parse_qs, urlparse
 import httpx
 
 from flow.model.auth import AuthError, generate_pkce, get_auth_provider, new_state
-from flow.model.catalog import PROVIDERS, ProviderSpec, get_provider
+from flow.model.catalog import PROVIDERS, ProviderSpec, configured_env, get_provider
 from flow.model.credentials import CredentialStore
 from flow.model.providers.codex import REDIRECT_URI
 
@@ -59,7 +58,7 @@ def show_providers(store: CredentialStore) -> None:
 		elif kind == "oauth":
 			source = "OAuth"
 		else:
-			source = next((name for name in provider.api_key_envs if os.environ.get(name)), None)
+			source = configured_env(provider)
 		print(f"{provider.id:<{width}}  {source or 'not configured'}")
 
 

@@ -82,7 +82,7 @@ def test_set_model_is_a_durable_entry_used_by_later_runs(tmp_path, monkeypatch):
 	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
 
 	r = c.post(f"/sessions/{sid}/model", json={"model": "mock/v2", "credential_id": "mock-profile"})
-	assert r.json() == {"model": "mock/v2", "credential_id": "mock-profile"}
+	assert r.json() == {"model": "mock/v2", "credential_id": "mock-profile", "reasoning_effort": None}
 	assert (
 		c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "hi"}).json()["reason"]
 		== "done"
@@ -93,6 +93,37 @@ def test_set_model_is_a_durable_entry_used_by_later_runs(tmp_path, monkeypatch):
 	assert (info["model"], info["credential_id"]) == ("mock/v2", "mock-profile")
 	assert info["config"]["model"] == "mock"  # the creation config is fixed
 	assert c.get(f"/sessions/{sid}/entries").json()["entries"][0]["type"] == "model_changed"
+
+
+def test_reasoning_effort_travels_with_the_selection_and_rewinds_with_it(tmp_path, monkeypatch):
+	captured = []
+
+	def spy(name, **kwargs):
+		captured.append(kwargs.get("params"))
+		return MockModel()
+
+	monkeypatch.setattr("flow.agent.loop.get_model", spy)
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path), "reasoning_effort": "low"}).json()[
+		"session_id"
+	]
+	assert c.get(f"/sessions/{sid}").json()["reasoning_effort"] == "low"
+
+	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "hi"})
+	assert captured == [{"reasoning_effort": "low"}]
+	branch_point = c.get(f"/sessions/{sid}").json()["latest_seq"]
+
+	# same model, different effort: still a durable selection change
+	r = c.post(f"/sessions/{sid}/model", json={"model": "mock", "reasoning_effort": "high"})
+	assert r.json() == {"model": "mock", "credential_id": None, "reasoning_effort": "high"}
+	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "again"})
+	assert captured[-1] == {"reasoning_effort": "high"}
+
+	# rewinding to before the change restores the creation-config effort
+	c.post(f"/sessions/{sid}/rewind", json={"target_seq": branch_point})
+	assert c.get(f"/sessions/{sid}").json()["reasoning_effort"] == "low"
+	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "back"})
+	assert captured[-1] == {"reasoning_effort": "low"}
 
 
 def test_run_does_not_accept_model_overrides(tmp_path):
@@ -771,3 +802,145 @@ def test_compact_verb_summarizes_and_conflicts(tmp_path, monkeypatch):
 	assert [e["type"] for e in entries][:2] == ["run_started", "user_message"]
 
 	assert c.post(f"/sessions/{sid}/compact", json={"instructions": 7}).status_code == 422
+
+
+def test_models_endpoint_discovers_configured_providers_only(tmp_path, monkeypatch):
+	from flow.model import discovery
+	from flow.model.catalog import PROVIDERS
+
+	for provider in PROVIDERS:
+		for name in provider.api_key_envs:
+			monkeypatch.delenv(name, raising=False)
+
+	async def fake_http_models(url, auth, client, *, provider_id=None):
+		assert provider_id == "openai"
+		return ["gpt-4o"]
+
+	monkeypatch.setattr(discovery, "_http_models", fake_http_models)
+	c = _client(tmp_path)
+	assert c.get("/models").json() == {"models": [], "errors": []}
+
+	monkeypatch.setenv("OPENAI_API_KEY", "k")
+	assert c.get("/models").json() == {
+		"models": [{"name": "openai/gpt-4o", "provider": "openai"}],
+		"errors": [],
+	}
+
+
+def test_list_sessions_includes_cold_on_disk_sessions(tmp_path):
+	c = _client(tmp_path)
+	used = c.post(
+		"/sessions",
+		json={"model": "mock", "cwd": str(tmp_path / "a")},
+	).json()["session_id"]
+	fresh = c.post(
+		"/sessions",
+		json={"model": "mock/v2", "cwd": str(tmp_path / "b")},
+	).json()["session_id"]
+	c.post(f"/sessions/{used}/run", params={"wait": "true"}, json={"message": "hi"})
+	latest_seq = c.get(f"/sessions/{used}").json()["latest_seq"]
+
+	# a fresh store over the same dir caches nothing: the cold path reads meta + log tail
+	for client in (c, _client(tmp_path)):
+		rows = {row["session_id"]: row for row in client.get("/sessions").json()["sessions"]}
+		assert rows[used] == {
+			"session_id": used,
+			"state": "idle",
+			"model": "mock",
+			"latest_seq": latest_seq,
+			"cwd": str(tmp_path / "a"),
+		}
+		assert rows[fresh] == {
+			"session_id": fresh,
+			"state": "idle",
+			"model": "mock/v2",
+			"latest_seq": 0,
+			"cwd": str(tmp_path / "b"),
+		}
+	# newest activity first: only `used` has log activity
+	listing = _client(tmp_path).get("/sessions").json()["sessions"]
+	assert [row["session_id"] for row in listing] == [used, fresh]
+
+
+def test_list_sessions_reports_a_cold_paused_session(tmp_path, monkeypatch):
+	(tmp_path / "a.txt").write_text("x")
+	mock = MockModel(
+		replies=[
+			AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})]),
+			AssistantMessage(content="done"),
+		]
+	)
+	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: mock)
+	c = _client(tmp_path)
+	sid = c.post(
+		"/sessions",
+		json={"cwd": str(tmp_path), "confirm_tools": ["read_file"]},
+	).json()["session_id"]
+	paused = c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "read"}).json()
+	assert paused["reason"] == "paused"
+
+	cold = _client(tmp_path)
+	(row,) = cold.get("/sessions").json()["sessions"]
+	assert row["state"] == "paused"
+
+	# resolving the batch moves the tail past run_ended(paused): the cold state follows
+	c.post(
+		f"/sessions/{sid}/resume",
+		params={"wait": "true"},
+		json={"approval_seq": paused["approval_seq"], "answers": {"c1": "Approve"}},
+	)
+	(row,) = _client(tmp_path).get("/sessions").json()["sessions"]
+	assert row["state"] == "idle"
+
+
+async def test_stream_follow_stays_open_between_runs_with_keepalives(tmp_path, monkeypatch):
+	monkeypatch.setattr("flow.server.app.KEEPALIVE_SECONDS", 0.05)
+	store = SessionStore(
+		str(tmp_path / "data"),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+	)
+	app = create_app(store)
+
+	sock = socket.socket()
+	sock.bind(("127.0.0.1", 0))
+	port = sock.getsockname()[1]
+	server = uvicorn.Server(uvicorn.Config(app, log_level="error", timeout_graceful_shutdown=1))
+	serve_task = asyncio.create_task(server.serve(sockets=[sock]))
+	try:
+		while not server.started:
+			await asyncio.sleep(0.01)
+		async with httpx.AsyncClient(base_url=f"http://127.0.0.1:{port}") as client:
+			sid = (await client.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)})).json()[
+				"session_id"
+			]
+			await client.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "first"})
+
+			rows, saw_keepalive, second = [], False, None
+			async with client.stream(
+				"GET",
+				f"/sessions/{sid}/stream",
+				params={"follow": "true"},
+				timeout=httpx.Timeout(5, read=5),
+			) as response:
+				async with asyncio.timeout(10):
+					async for line in response.aiter_lines():
+						if line.startswith(":"):
+							saw_keepalive = True
+							if second is None:  # the boundary passed without a close; run again
+								second = asyncio.create_task(
+									client.post(f"/sessions/{sid}/run", json={"message": "second"})
+								)
+						elif line.startswith("data:"):
+							rows.append(json.loads(line[5:]))
+							if sum(r["type"] == "run_ended" for r in rows) == 2:
+								break
+			if second is not None:
+				await second
+
+			assert saw_keepalive
+			assert [r["content"] for r in rows if r["type"] == "user_message"] == ["first", "second"]
+			seqs = [r["seq"] for r in rows if "seq" in r]
+			assert seqs == sorted(seqs) and len(seqs) == len(set(seqs))
+	finally:
+		server.should_exit = True
+		await asyncio.wait_for(serve_task, timeout=5)

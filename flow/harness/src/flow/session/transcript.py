@@ -32,6 +32,7 @@ from flow.events import (
 	Compaction,
 	ModelChanged,
 	PendingCall,
+	ReasoningEffort,
 	Rewind,
 	RunEnded,
 	RunStarted,
@@ -141,6 +142,7 @@ class Transcript:
 		self.leaf_seq: int = 0  # what the next committed event follows; 0 = the root
 		self.model: str | None = None  # last model change on the path; None = session config
 		self.credential_id: str | None = None
+		self.reasoning_effort: ReasoningEffort | None = None
 		self.context_tokens: int | None = None
 		self.context_message_count: int = 0
 		self._open_calls: _OpenToolCalls | None = None
@@ -198,6 +200,7 @@ class Transcript:
 		elif isinstance(event, ModelChanged):
 			self.model = event.model
 			self.credential_id = event.credential_id
+			self.reasoning_effort = event.reasoning_effort
 			self.context_tokens = None
 			self.context_message_count = 0
 		elif isinstance(event, Usage):

@@ -6,20 +6,26 @@ Two ergonomics from one durable log:
     its terminal summary (a Flow-like synchronous response) over the same endpoint.
   - GET /stream?since=N replays the durable log from the cursor, then stays on the live
     feed — catching up after a disconnect and watching live are one code path.
+    `follow=true` keeps the connection open across run boundaries, with keepalive
+    comments while the session idles.
 """
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import json
 import secrets
 from collections.abc import AsyncIterator
+from dataclasses import asdict
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 
-from flow.events import AssistantMessage, parse_event
+from flow.events import AssistantMessage, ReasoningEffort, parse_event
+from flow.model.discovery import available_models
 from flow.session.config import SessionConfig
 from flow.session.log import SessionLogError
 from flow.session.session import (
@@ -45,6 +51,7 @@ class SetModelRequest(BaseModel):
 	# Names only: provider secrets and endpoints are resolved inside flow.
 	model: str = Field(min_length=1)
 	credential_id: str | None = None
+	reasoning_effort: ReasoningEffort | None = None
 
 
 class ResumeRequest(BaseModel):
@@ -112,6 +119,15 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 	async def healthz():
 		return {"ok": True}
 
+	@app.get("/models")
+	async def models():
+		catalog = await available_models(store.credentials)
+		return {"models": [asdict(model) for model in catalog.models], "errors": catalog.errors}
+
+	@app.get("/sessions")
+	async def list_sessions():
+		return {"sessions": [asdict(info) for info in store.list()]}
+
 	@app.post("/sessions")
 	async def create_session(config: SessionConfig):
 		try:
@@ -130,6 +146,7 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 			"latest_seq": session.log.latest_seq,
 			"model": session.model,
 			"credential_id": session.credential_id,
+			"reasoning_effort": session.reasoning_effort,
 			"config": session.config.redacted(),
 		}
 
@@ -163,8 +180,14 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 	@app.post("/sessions/{sid}/model")
 	async def set_model(sid: str, req: SetModelRequest):
 		session = _get(sid)
-		await session.set_model(req.model, credential_id=req.credential_id)
-		return {"model": session.model, "credential_id": session.credential_id}
+		await session.set_model(
+			req.model, credential_id=req.credential_id, reasoning_effort=req.reasoning_effort
+		)
+		return {
+			"model": session.model,
+			"credential_id": session.credential_id,
+			"reasoning_effort": session.reasoning_effort,
+		}
 
 	@app.post("/sessions/{sid}/compact")
 	async def compact(sid: str, req: CompactRequest | None = None, wait: bool = False):
@@ -199,10 +222,11 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 		}
 
 	@app.get("/sessions/{sid}/stream")
-	async def stream(sid: str, since: int = 0):
+	async def stream(sid: str, since: int = 0, follow: bool = False):
 		session = _get(sid)
+		body = _sse_follow_stream(session, since) if follow else _sse_stream(session, since)
 		return StreamingResponse(
-			_sse_stream(session, since),
+			body,
 			media_type="text/event-stream",
 			headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
 		)
@@ -246,6 +270,36 @@ def _summary(session: Session, from_seq: int) -> dict:
 		"pending": pending,
 		"approval_seq": approval_seq,
 	}
+
+
+# follow-mode keepalive cadence; a module global so tests can shrink it
+KEEPALIVE_SECONDS = 15.0
+
+
+async def _sse_follow_stream(session: Session, since: int) -> AsyncIterator[bytes]:
+	"""Follow mode: never close at a run boundary. The subscription stays attached
+	between runs and an SSE comment goes out whenever the feed is quiet, so proxies
+	and dead-peer detection keep working while the session idles."""
+	since = min(since, session.log.latest_seq)
+	events = session.events(since)
+	pending = asyncio.ensure_future(anext(events))
+	try:
+		while True:
+			done, _ = await asyncio.wait({pending}, timeout=KEEPALIVE_SECONDS)
+			if not done:
+				yield b": keepalive\n\n"
+				continue
+			try:
+				event = pending.result()
+			except StopAsyncIteration:
+				return
+			yield _sse(event.model_dump(exclude_none=True))
+			pending = asyncio.ensure_future(anext(events))
+	finally:
+		pending.cancel()
+		with contextlib.suppress(asyncio.CancelledError):
+			await pending
+		await events.aclose()
 
 
 async def _sse_stream(session: Session, since: int) -> AsyncIterator[bytes]:

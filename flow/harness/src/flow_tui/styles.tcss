@@ -1,0 +1,88 @@
+Screen {
+	layout: vertical;
+}
+
+#conversation {
+	height: 1fr;
+	padding: 0 1;
+	scrollbar-size-vertical: 1;
+}
+
+EntryView {
+	height: auto;
+	margin-bottom: 1;
+}
+
+EntryView Static {
+	height: auto;
+}
+
+EntryView Collapsible {
+	border: none;
+	padding: 0;
+	background: transparent;
+}
+
+EntryView Collapsible Contents {
+	padding: 0 0 0 2;
+}
+
+.thinking--redacted {
+	color: $text-muted;
+}
+
+.entry--tool_result {
+	color: $text-muted;
+}
+
+PartialAssistantView {
+	margin-bottom: 1;
+}
+
+#error-banner {
+	display: none;
+	padding: 0 1;
+	background: $error 20%;
+	color: $text;
+}
+
+#error-banner.visible {
+	display: block;
+}
+
+ModelPicker, EffortPicker {
+	align: center middle;
+	background: $background 60%;
+}
+
+.picker {
+	width: 70;
+	max-width: 90%;
+	height: auto;
+	max-height: 70%;
+	padding: 1;
+	border: round $primary;
+	background: $surface;
+}
+
+.picker OptionList {
+	height: auto;
+	max-height: 16;
+	border: none;
+	background: transparent;
+}
+
+#composer {
+	height: auto;
+	max-height: 8;
+	min-height: 3;
+	border: round $primary;
+}
+
+#status {
+	dock: bottom;
+	height: 1;
+	padding: 0 1;
+	background: $panel;
+	color: $text-muted;
+}
