@@ -585,6 +585,10 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 def is_whitelisted(method):
 	from frappe.utils import sanitize_html
 
+	app_name = (method.__module__ or "").split(".", 1)[0]
+	if app_name in get_disabled_apps():
+		throw(_("App {0} is not installed").format(app_name), AppNotInstalledError)
+
 	is_guest = session["user"] == "Guest"
 	if method not in whitelisted or (is_guest and method not in guest_methods):
 		summary = _("You are not permitted to access this resource. Login to access")
@@ -1069,7 +1073,7 @@ def _load_app_hooks(app_name: str | None = None):
 	import types
 
 	hooks = {}
-	apps = [app_name] if app_name else get_installed_apps(_ensure_on_bench=True)
+	apps = [app_name] if app_name else get_active_apps(_ensure_on_bench=True)
 
 	for app in apps:
 		try:
