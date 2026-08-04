@@ -89,7 +89,7 @@ def get_pages(app=None):
 		if app:
 			apps = [app]
 		else:
-			apps = frappe.get_installed_apps()
+			apps = frappe.get_active_apps()
 
 		for app in apps:
 			app_path = frappe.get_app_path(app)
@@ -290,7 +290,7 @@ def get_doctypes_with_web_view():
 	"""Return doctypes with Has Web View or set via hooks"""
 
 	def _get():
-		installed_apps = frappe.get_installed_apps()
+		installed_apps = frappe.get_active_apps()
 		doctypes = frappe.get_hooks("website_generators")
 		doctypes_with_web_view = frappe.get_all(
 			"DocType", fields=["name", "module"], filters=dict(has_web_view=1)
