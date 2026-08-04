@@ -6,6 +6,7 @@ from typing import ClassVar
 
 import frappe
 from frappe import _
+from frappe.utils.data import cint
 from frappe.utils.jinja_globals import is_rtl
 
 
@@ -218,12 +219,15 @@ def get_html(
 	style=None,
 	trigger_print=False,
 	settings=None,
+	no_letterhead=None,
 ):
 	from frappe.www.printview import validate_print
 
 	doc = frappe.get_doc(doctype, name)
 	validate_print(doc)
-	generator = PrintFormatGenerator(print_format, doc, letterhead, style=style, settings=settings)
+	generator = PrintFormatGenerator(
+		print_format, doc, letterhead, style=style, settings=settings, no_letterhead=no_letterhead
+	)
 	return generator.get_html_preview(action_banner=action_banner, trigger_print=trigger_print)
 
 
@@ -242,7 +246,7 @@ class PrintFormatGenerator:
 	}
 	_FIELD_RENDERERS: ClassVar[dict[str, str]] = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}
 
-	def __init__(self, print_format, doc, letterhead=None, style=None, settings=None):
+	def __init__(self, print_format, doc, letterhead=None, style=None, settings=None, no_letterhead=None):
 		self.print_format = (
 			print_format
 			if not isinstance(print_format, str)
@@ -253,14 +257,37 @@ class PrintFormatGenerator:
 		self.settings_override = settings or {}
 		self._header_absorbs_top_margin = False
 		self._logged_conditions = set()
-
-		if letterhead == _("No Letterhead"):
-			letterhead = None
-		self.letterhead = frappe.get_doc("Letter Head", letterhead) if letterhead else None
+		self.letterhead = None
 
 		self.build_context()
 		self.layout = self.get_layout(self.print_format)
 		self.context.layout = self.layout
+		self.letterhead = self.get_letterhead(letterhead, no_letterhead)
+		self.context.letterhead = self.letterhead
+
+	def get_letterhead(self, letterhead, no_letterhead):
+		"""Resolve the letter head to print, most specific choice first.
+
+		Mirrors ``printview.get_letter_head`` so a builder format prints the same
+		letter head a template one would, and adds the format's own choice: a layout
+		that names a letter head outranks the document's field. ``no_letterhead``
+		left unset falls back to the Print Settings toggle, as templates do.
+		"""
+		if no_letterhead is None:
+			no_letterhead = not cint(self.print_settings.with_letterhead)
+		if cint(no_letterhead) or letterhead == _("No Letterhead"):
+			return None
+
+		name = (
+			letterhead
+			or (self.layout or {}).get("letter_head")
+			or self.doc.get("letter_head")
+			or frappe.db.get_value("Letter Head", {"is_default": 1}, "name")
+		)
+		# a stale link shouldn't fail the render — templates degrade to no letter head too
+		if not name or not frappe.db.exists("Letter Head", name):
+			return None
+		return frappe.get_doc("Letter Head", name)
 
 	def build_context(self):
 		self.print_settings = frappe.get_doc("Print Settings")
