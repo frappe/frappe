@@ -69,9 +69,8 @@ class UserInvitation(Document):
 		self.status = "Expired"
 		self.save()
 		email_title = self._get_email_title()
-		invited_by_user = frappe.get_doc("User", self.invited_by)
 		frappe.sendmail(
-			recipients=invited_by_user.email,
+			recipients=self.email,
 			subject=_("Invitation to join {0} expired").format(email_title),
 			template="user_invitation_expired",
 			args={"title": email_title},

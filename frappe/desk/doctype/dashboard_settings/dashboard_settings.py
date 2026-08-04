@@ -42,6 +42,12 @@ def get_permission_query_conditions(user):
 	return f"""(`tabDashboard Settings`.name = {frappe.db.escape(user)})"""
 
 
+def has_permission(doc, ptype="read", user=None):
+	user = user or frappe.session.user
+
+	return user == "Administrator" or doc.name == user
+
+
 @frappe.whitelist()
 def save_chart_config(reset, config, chart_name):
 	reset = frappe.parse_json(reset)

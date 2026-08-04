@@ -81,6 +81,9 @@ def get_bootinfo():
 	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
 	bootinfo.navbar_settings = get_navbar_settings()
 	bootinfo.notification_settings = get_notification_settings()
+	bootinfo.notification_unread_count = frappe.db.count(
+		"Notification Log", {"read": 0, "for_user": frappe.session.user}
+	)
 	bootinfo.onboarding_tours = get_onboarding_ui_tours()
 	set_time_zone(bootinfo)
 

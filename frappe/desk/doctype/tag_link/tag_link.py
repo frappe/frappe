@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.permissions import get_doctypes_with_read
 
 
 class TagLink(Document):
@@ -29,6 +30,19 @@ class TagLink(Document):
 
 def on_doctype_update():
 	frappe.db.add_index("Tag Link", ["document_type", "document_name"])
+
+
+def get_permission_query_conditions(user: str | None = None) -> str:
+	user = user or frappe.session.user
+
+	if user == "Administrator":
+		return ""
+
+	readable_doctypes = ", ".join(repr(dt) for dt in get_doctypes_with_read(user))
+	if not readable_doctypes:
+		return " 1 = 0 "
+
+	return f""" `tabTag Link`.`document_type` in ({readable_doctypes}) """
 
 
 def has_tags(doctype: str):

@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-07-19 10:02+0000\n"
-"PO-Revision-Date: 2026-07-21 13:52\n"
+"POT-Creation-Date: 2026-07-26 10:10+0000\n"
+"PO-Revision-Date: 2026-07-28 15:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -114,7 +114,7 @@ msgstr "(Обязательный)"
 msgid "** Failed: {0} to {1}: {2}"
 msgstr "** Не удалось: {0} до {1}: {2}"
 
-#: frappe/public/js/frappe/list/list_settings.js:144
+#: frappe/public/js/frappe/list/list_settings.js:147
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:121
 msgid "+ Add / Remove Fields"
 msgstr "+ Добавить / Удалить Поля"
@@ -787,7 +787,7 @@ msgstr "Имя DocType должно начинаться с буквы и мож
 msgid "A Frappe Framework instance can function as an OAuth Client, Resource, or Authorization server. This DocType contains settings related to all three."
 msgstr "Экземпляр Frappe Framework может функционировать как OAuth-клиент, ресурс или сервер авторизации. Этот DocType содержит настройки, относящиеся ко всем трём типам."
 
-#: frappe/custom/doctype/custom_field/custom_field.py:179
+#: frappe/custom/doctype/custom_field/custom_field.py:180
 msgid "A field with the name {0} already exists in {1}"
 msgstr "Поле с именем {0} уже существует в {1}"
 
@@ -800,9 +800,9 @@ msgstr "Файл с таким же именем {} уже существует"
 msgid "A list of resources which the Client App will have access to after the user allows it.<br> e.g. project"
 msgstr "Список ресурсов, к которым клиентское приложение будет иметь доступ после того, как пользователь разрешит это.<br> например, проект"
 
-#: frappe/templates/emails/new_user.html:5
-msgid "A new account has been created for you at {0}"
-msgstr "Новая учетная запись была создана для вас на {0}"
+#: frappe/templates/emails/new_user.html:7
+msgid "A new account has been created for you at {0}."
+msgstr "Новая учетная запись была создана для вас на {0}."
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:431
 msgid "A recurring {0} {1} has been created for you via Auto Repeat {2}."
@@ -1007,7 +1007,7 @@ msgstr "Осталось примерно {0} минут"
 msgid "About {0} seconds remaining"
 msgstr "Осталось примерно {0} секунд"
 
-#: frappe/templates/emails/user_invitation.html:16
+#: frappe/templates/emails/user_invitation.html:8
 msgid "Accept Invitation"
 msgstr "Принять приглашение"
 
@@ -1357,7 +1357,7 @@ msgstr "Добавить параметры запроса"
 msgid "Add Reply-To header"
 msgstr "Добавить заголовок \"Ответить\""
 
-#: frappe/core/doctype/user/user.py:885
+#: frappe/core/doctype/user/user.py:873
 msgid "Add Roles"
 msgstr "Добавить роли"
 
@@ -1693,11 +1693,11 @@ msgstr "Добавить пользовательское поле в тип Doc
 msgid "Administrator"
 msgstr "Администратор"
 
-#: frappe/core/doctype/user/user.py:1311
+#: frappe/core/doctype/user/user.py:1304
 msgid "Administrator Logged In"
 msgstr "Администратор вошел в систему"
 
-#: frappe/core/doctype/user/user.py:1305
+#: frappe/core/doctype/user/user.py:1298
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "Администратор получил доступ к {0} на {1} через IP-адрес {2}."
 
@@ -1925,10 +1925,12 @@ msgstr "Разрешить автоповтор"
 
 #. Label of the allow_bulk_edit (Check) field in DocType 'DocField'
 #. Label of the allow_bulk_edit (Check) field in DocType 'DocType'
+#. Label of the allow_bulk_edit (Check) field in DocType 'Custom Field'
 #. Label of the allow_bulk_edit (Check) field in DocType 'Customize Form'
 #. Label of the allow_bulk_edit (Check) field in DocType 'Customize Form Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/core/doctype/doctype/doctype.json
+#: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Allow Bulk Edit"
@@ -2298,11 +2300,11 @@ msgstr "Позволяет пользователю просмотреть до�
 msgid "Allows users to enable the mask property for any field of the respective doctype."
 msgstr "Позволяет пользователям включить свойство маски для любого поля соответствующего типа документа."
 
-#: frappe/core/doctype/user/user.py:1112
+#: frappe/core/doctype/user/user.py:1105
 msgid "Already Registered"
 msgstr "Уже зарегистрирован"
 
-#: frappe/public/js/frappe/form/toolbar.js:743
+#: frappe/public/js/frappe/form/toolbar.js:754
 msgid "Already amended as {0}"
 msgstr "Уже исправлено как {0}"
 
@@ -2357,7 +2359,7 @@ msgstr "Всегда использовать это имя как имя отп
 #: frappe/core/doctype/custom_docperm/custom_docperm.json
 #: frappe/core/doctype/docperm/docperm.json
 #: frappe/core/doctype/user_document_type/user_document_type.json
-#: frappe/public/js/frappe/form/toolbar.js:739
+#: frappe/public/js/frappe/form/toolbar.js:750
 msgid "Amend"
 msgstr "Дополнить"
 
@@ -2591,7 +2593,7 @@ msgstr "Название приложения"
 msgid "Application Version"
 msgstr "Версия приложения"
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:194
+#: frappe/core/doctype/user_invitation/user_invitation.py:197
 msgid "Application is not installed"
 msgstr "Приложение не установлено"
 
@@ -2692,7 +2694,7 @@ msgstr "Архивные"
 msgid "Archived Columns"
 msgstr "Архивные колонки"
 
-#: frappe/core/doctype/user_invitation/user_invitation.js:18
+#: frappe/core/doctype/user_invitation/user_invitation.js:37
 msgid "Are you sure you want to cancel the invitation?"
 msgstr "Вы уверены, что хотите отменить приглашение?"
 
@@ -2724,11 +2726,11 @@ msgctxt "Confirmation dialog message"
 msgid "Are you sure you want to delete the tab? All the sections along with fields in the tab will be moved to the previous tab."
 msgstr "Вы уверены, что хотите удалить вкладку? Все разделы вместе с полями на вкладке будут перемещены на предыдущую вкладку."
 
-#: frappe/public/js/frappe/web_form/web_form.js:199
+#: frappe/public/js/frappe/web_form/web_form.js:197
 msgid "Are you sure you want to delete this record?"
 msgstr "Вы уверены, что хотите удалить эту запись?"
 
-#: frappe/public/js/frappe/web_form/web_form.js:187
+#: frappe/public/js/frappe/web_form/web_form.js:186
 msgid "Are you sure you want to discard the changes?"
 msgstr "Вы уверены, что хотите отменить изменения?"
 
@@ -2740,7 +2742,7 @@ msgstr "Вы уверены, что хотите создать новый от�
 msgid "Are you sure you want to log out?"
 msgstr "Вы уверены, что хотите выйти?"
 
-#: frappe/public/js/frappe/form/toolbar.js:130
+#: frappe/public/js/frappe/form/toolbar.js:128
 msgid "Are you sure you want to merge {0} with {1}?"
 msgstr "Вы уверены, что хотите объединить {0} с {1}?"
 
@@ -2767,6 +2769,10 @@ msgstr "Вы уверены, что хотите удалить все неуд�
 #: frappe/public/js/frappe/list/list_filter.js:74
 msgid "Are you sure you want to remove the {0} filter?"
 msgstr "Вы уверены, что хотите удалить фильтр {0}?"
+
+#: frappe/core/doctype/user_invitation/user_invitation.js:18
+msgid "Are you sure you want to resend the invitation?"
+msgstr ""
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:268
 msgid "Are you sure you want to reset all customizations?"
@@ -2803,7 +2809,7 @@ msgstr "В качестве лучшей практики не назначай�
 msgid "As document sharing is disabled, please give them the required permissions before assigning."
 msgstr "Поскольку общий доступ к документам отключен, пожалуйста, предоставьте им необходимые разрешения перед назначением."
 
-#: frappe/templates/emails/account_deletion_notification.html:3
+#: frappe/templates/emails/account_deletion_notification.html:2
 msgid "As per your request, your account and data on {0} associated with email {1} has been permanently deleted"
 msgstr "По вашему запросу ваш аккаунт и данные на {0}, связанные с электронной почтой {1}, были удалены навсегда"
 
@@ -2970,7 +2976,7 @@ msgstr "Асинхронный"
 msgid "At least one column is required to show in the grid."
 msgstr "В сетке должен быть отображен хотя бы один столбец."
 
-#: frappe/website/doctype/web_form/web_form.js:73
+#: frappe/website/doctype/web_form/web_form.js:69
 msgid "At least one field is required in Web Form Fields Table"
 msgstr "В таблице полей веб-формы должно быть хотя бы одно поле"
 
@@ -3094,7 +3100,7 @@ msgstr "Настройки вложений"
 #. Label of the attachments (Code) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:105
-#: frappe/website/doctype/web_form/templates/web_form.html:122
+#: frappe/website/doctype/web_form/templates/web_form.html:123
 msgid "Attachments"
 msgstr "Приложения"
 
@@ -3787,7 +3793,7 @@ msgstr "Начинается с"
 msgid "Beta"
 msgstr "Бета"
 
-#: frappe/core/doctype/user/user.py:1328 frappe/utils/password_strength.py:73
+#: frappe/core/doctype/user/user.py:1321 frappe/utils/password_strength.py:73
 msgid "Better add a few more letters or another word"
 msgstr "Лучше добавить еще несколько букв или другое слово"
 
@@ -3998,11 +4004,11 @@ msgstr "Массовое редактирование"
 msgid "Bulk Edit {0}"
 msgstr "Массовое редактирование {0}"
 
-#: frappe/desk/reportview.py:703
+#: frappe/desk/reportview.py:749
 msgid "Bulk Operation Failed"
 msgstr "Массовая операция не удалась"
 
-#: frappe/desk/reportview.py:707
+#: frappe/desk/reportview.py:753
 msgid "Bulk Operation Successful"
 msgstr "Массовая операция прошла успешно"
 
@@ -4241,7 +4247,7 @@ msgstr "Кампания"
 msgid "Campaign Description (Optional)"
 msgstr "Описание кампании (необязательно)"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:414
+#: frappe/custom/doctype/custom_field/custom_field.py:415
 msgid "Can not rename as column {0} is already present on DocType."
 msgstr "Невозможно переименовать, так как столбец {0} уже присутствует в DocType."
 
@@ -4271,7 +4277,7 @@ msgstr "Невозможно переименовать {0} в {1} , так ка
 #: frappe/core/doctype/docperm/docperm.json
 #: frappe/core/doctype/doctype/doctype_list.js:131
 #: frappe/core/doctype/user_document_type/user_document_type.json
-#: frappe/core/doctype/user_invitation/user_invitation.js:17
+#: frappe/core/doctype/user_invitation/user_invitation.js:36
 #: frappe/email/doctype/notification/notification.json
 #: frappe/public/js/frappe/form/reminders.js:54
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:327
@@ -4341,7 +4347,7 @@ msgstr "Отменяются документы"
 msgid "Cancelling {0}"
 msgstr "Отменяется {0}"
 
-#: frappe/core/doctype/prepared_report/prepared_report.py:309
+#: frappe/core/doctype/prepared_report/prepared_report.py:312
 msgid "Cannot Download Report due to insufficient permissions"
 msgstr "Невозможно загрузить отчет из-за недостаточных прав доступа"
 
@@ -4630,11 +4636,11 @@ msgstr "Название категории"
 msgid "Center"
 msgstr "По центру"
 
-#: frappe/tests/test_translate.py:118
+#: frappe/tests/test_translate.py:139
 msgid "Change"
 msgstr "Изменение"
 
-#: frappe/tests/test_translate.py:119
+#: frappe/tests/test_translate.py:140
 msgctxt "Coins"
 msgid "Change"
 msgstr "Изменение"
@@ -4660,7 +4666,7 @@ msgstr "Изменить пароль"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:27
 msgid "Change Print Format"
-msgstr "Изменить формат печати"
+msgstr "Изменение формата печати"
 
 #. Description of the 'Update Series Counter' (Section Break) field in DocType
 #. 'Document Naming Settings'
@@ -4951,11 +4957,11 @@ msgstr "Очищаем конечную дату, так как для опуб�
 msgid "Click On Customize to add your first widget"
 msgstr "Нажмите \"Настроить\", чтобы добавить свой первый виджет"
 
-#: frappe/templates/emails/user_invitation.html:8
-msgid "Click below to get started:"
-msgstr "Нажмите ниже, чтобы начать:"
+#: frappe/templates/emails/user_invitation.html:5
+msgid "Click below to accept your invitation and get started."
+msgstr ""
 
-#: frappe/website/doctype/web_form/templates/web_form.html:163
+#: frappe/website/doctype/web_form/templates/web_form.html:165
 msgid "Click here"
 msgstr "Нажмите здесь"
 
@@ -4963,17 +4969,9 @@ msgstr "Нажмите здесь"
 msgid "Click on a file to select it."
 msgstr "Нажмите на файл, чтобы выбрать его."
 
-#: frappe/templates/emails/login_with_email_link.html:19
-msgid "Click on the button to log in to {0}"
-msgstr "Нажмите на кнопку для входа в {0}"
-
 #: frappe/templates/emails/data_deletion_approval.html:2
 msgid "Click on the link below to approve the request"
 msgstr "Нажмите на ссылку ниже, чтобы одобрить запрос"
-
-#: frappe/templates/emails/new_user.html:7
-msgid "Click on the link below to complete your registration and set a new password"
-msgstr "Нажмите на ссылку ниже, чтобы завершить регистрацию и установить новый пароль"
 
 #: frappe/templates/emails/download_data.html:3
 msgid "Click on the link below to download your data"
@@ -4996,9 +4994,17 @@ msgstr "Нажмите на {0} для генерации токена."
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:315
 #: frappe/desk/doctype/number_card/number_card.js:217
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:99
-#: frappe/website/doctype/web_form/web_form.js:252
+#: frappe/website/doctype/web_form/web_form.js:248
 msgid "Click table to edit"
 msgstr "Нажмите на таблицу для редактирования"
+
+#: frappe/templates/emails/new_user.html:10
+msgid "Click the button below to complete your registration and set a new password."
+msgstr ""
+
+#: frappe/templates/emails/login_with_email_link.html:2
+msgid "Click the button below to sign in to your account. This link will expire in {0} minutes."
+msgstr ""
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:503
 #: frappe/desk/doctype/number_card/number_card.js:415
@@ -5007,7 +5013,7 @@ msgstr "Нажмите, чтобы установить динамические
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:373
 #: frappe/desk/doctype/number_card/number_card.js:274
-#: frappe/website/doctype/web_form/web_form.js:279
+#: frappe/website/doctype/web_form/web_form.js:275
 msgid "Click to Set Filters"
 msgstr "Нажмите, чтобы установить фильтры"
 
@@ -5385,7 +5391,7 @@ msgstr "Обновление публичности комментария мо�
 #: frappe/model/meta.py:61 frappe/public/js/frappe/form/controls/comment.js:13
 #: frappe/public/js/frappe/model/meta.js:217
 #: frappe/public/js/frappe/model/model.js:135
-#: frappe/website/doctype/web_form/templates/web_form.html:138
+#: frappe/website/doctype/web_form/templates/web_form.html:139
 msgid "Comments"
 msgstr "Комментарии"
 
@@ -5430,8 +5436,7 @@ msgstr "Общие слова легко угадать."
 #: frappe/core/doctype/communication/communication.json
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json
 #: frappe/email/doctype/email_queue/email_queue.json
-#: frappe/tests/test_translate.py:35 frappe/tests/test_translate.py:67
-#: frappe/tests/test_translate.py:126 frappe/workspace_sidebar/email.json
+#: frappe/workspace_sidebar/email.json
 msgid "Communication"
 msgstr "Коммуникация"
 
@@ -5505,8 +5510,8 @@ msgstr "Завершенно"
 msgid "Complete By"
 msgstr "Завершить к"
 
-#: frappe/core/doctype/user/user.py:539
-#: frappe/templates/emails/new_user.html:10
+#: frappe/core/doctype/user/user.py:532
+#: frappe/templates/emails/new_user.html:12
 msgid "Complete Registration"
 msgstr "Завершить регистрацию"
 
@@ -5514,6 +5519,10 @@ msgstr "Завершить регистрацию"
 msgctxt "Finish the setup wizard"
 msgid "Complete Setup"
 msgstr "Завершение настройки"
+
+#: frappe/templates/emails/new_user.html:1
+msgid "Complete your registration"
+msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Auto Repeat'
 #. Option for the 'Status' (Select) field in DocType 'Prepared Report'
@@ -5572,7 +5581,7 @@ msgstr "Сжатый"
 #: frappe/email/doctype/notification/notification.json
 #: frappe/email/doctype/notification_recipient/notification_recipient.json
 #: frappe/integrations/doctype/webhook/webhook.json
-#: frappe/website/doctype/web_form/web_form.js:246
+#: frappe/website/doctype/web_form/web_form.js:242
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Condition"
 msgstr "Условия"
@@ -5684,8 +5693,8 @@ msgstr "Подтвердите удаление аккаунта"
 msgid "Confirm New Password"
 msgstr "Подтвердите новый пароль"
 
-#: frappe/templates/emails/data_deletion_approval.html:6
-#: frappe/templates/emails/delete_data_confirmation.html:7
+#: frappe/templates/emails/data_deletion_approval.html:4
+#: frappe/templates/emails/delete_data_confirmation.html:6
 msgid "Confirm Request"
 msgstr "Подтвердить запрос"
 
@@ -5929,6 +5938,7 @@ msgid "Copy File URL"
 msgstr "Скопировать URL файла"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:94
+#: frappe/website/doctype/web_form_request/web_form_request.js:10
 msgid "Copy Link"
 msgstr "Скопировать ссылку"
 
@@ -5941,7 +5951,7 @@ msgid "Copy error to clipboard"
 msgstr "Скопировать ошибку в буфер обмена"
 
 #: frappe/public/js/frappe/form/controls/code.js:32
-#: frappe/public/js/frappe/form/toolbar.js:543
+#: frappe/public/js/frappe/form/toolbar.js:554
 #: frappe/public/js/frappe/list/list_view.js:2448
 msgid "Copy to Clipboard"
 msgstr "Копировать в буфер обмена"
@@ -6174,7 +6184,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/controls/link.js:507
 #: frappe/public/js/frappe/form/link_selector.js:146
 #: frappe/public/js/frappe/list/list_view.js:547
-#: frappe/public/js/frappe/web_form/web_form_list.js:230
+#: frappe/public/js/frappe/web_form/web_form_list.js:253
 msgid "Create a new {0}"
 msgstr "Создать новый {0}"
 
@@ -6212,11 +6222,11 @@ msgstr "Создано в"
 msgid "Created By"
 msgstr "Создал"
 
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:176
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:165
 msgid "Created By You"
 msgstr "Создано Вами"
 
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:177
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:166
 msgid "Created By {0}"
 msgstr "Автор: {0}"
 
@@ -6432,15 +6442,15 @@ msgstr "Настраиваемые документы"
 msgid "Custom Field"
 msgstr "Настраиваемые поля"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:224
+#: frappe/custom/doctype/custom_field/custom_field.py:225
 msgid "Custom Field {0} is created by the Administrator and can only be deleted through the Administrator account."
 msgstr "Настраиваемое поле {0} создано Администратором и может быть удалено только под учетной записью Администратора."
 
-#: frappe/custom/doctype/custom_field/custom_field.py:281
+#: frappe/custom/doctype/custom_field/custom_field.py:282
 msgid "Custom Fields can only be added to a standard DocType."
 msgstr "Настраиваемые поля можно добавлять только к стандартному типу документа."
 
-#: frappe/custom/doctype/custom_field/custom_field.py:278
+#: frappe/custom/doctype/custom_field/custom_field.py:279
 msgid "Custom Fields cannot be added to core DocTypes."
 msgstr "Настраиваемые поля не могут быть добавлены к базовым типам документов."
 
@@ -6537,7 +6547,7 @@ msgstr "Настраиваемое боковое меню"
 msgid "Custom Translation"
 msgstr "Настраиваемый перевод"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:427
+#: frappe/custom/doctype/custom_field/custom_field.py:428
 msgid "Custom field renamed to {0} successfully."
 msgstr "Настраиваемое поле успешно переименовано в {0}."
 
@@ -6581,7 +6591,7 @@ msgstr "Настройки для <b>{0}</b> экспортированы в:<br
 #. Label of a Workspace Sidebar Item
 #: frappe/printing/page/print/print.js:192
 #: frappe/public/js/frappe/form/templates/print_layout.html:39
-#: frappe/public/js/frappe/form/toolbar.js:637
+#: frappe/public/js/frappe/form/toolbar.js:648
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:198
 #: frappe/workspace_sidebar/website.json
 msgid "Customize"
@@ -7038,7 +7048,7 @@ msgstr "Осталось дней"
 msgid "Deadlock Occurred"
 msgstr "Произошла тупиковая ситуация (взаимоблокировка)"
 
-#: frappe/templates/emails/password_reset.html:1
+#: frappe/templates/emails/password_reset.html:2
 msgid "Dear"
 msgstr "Уважаемый(ая)"
 
@@ -7298,10 +7308,10 @@ msgstr "Отложенный"
 #: frappe/public/js/frappe/form/footer/form_timeline.js:628
 #: frappe/public/js/frappe/form/grid.js:92
 #: frappe/public/js/frappe/form/grid_row_form.js:62
-#: frappe/public/js/frappe/form/toolbar.js:500
+#: frappe/public/js/frappe/form/toolbar.js:511
 #: frappe/public/js/frappe/views/reports/report_view.js:1857
 #: frappe/public/js/frappe/views/treeview.js:347
-#: frappe/public/js/frappe/web_form/web_form_list.js:283
+#: frappe/public/js/frappe/web_form/web_form_list.js:312
 #: frappe/templates/discussions/reply_card.html:35
 #: frappe/templates/discussions/reply_section.html:29
 msgid "Delete"
@@ -7312,7 +7322,7 @@ msgctxt "Button in list view actions menu"
 msgid "Delete"
 msgstr "Удалить"
 
-#: frappe/website/doctype/web_form/templates/web_form.html:61
+#: frappe/website/doctype/web_form/templates/web_form.html:62
 msgctxt "Button in web form"
 msgid "Delete"
 msgstr "Удалить"
@@ -7451,7 +7461,7 @@ msgstr "Удалённый документ"
 msgid "Deleted Name"
 msgstr "Удалённое наименование"
 
-#: frappe/desk/reportview.py:707
+#: frappe/desk/reportview.py:753
 msgid "Deleted all documents successfully"
 msgstr "Успешное удаление всех документов"
 
@@ -7459,7 +7469,7 @@ msgstr "Успешное удаление всех документов"
 msgid "Deleted!"
 msgstr "Удалено!"
 
-#: frappe/desk/reportview.py:684
+#: frappe/desk/reportview.py:730
 msgid "Deleting {0}"
 msgstr "Удаление: {0}"
 
@@ -7467,7 +7477,7 @@ msgstr "Удаление: {0}"
 msgid "Deleting {0} records..."
 msgstr "Удаление {0} записей..."
 
-#: frappe/public/js/frappe/model/model.js:692
+#: frappe/public/js/frappe/model/model.js:710
 msgid "Deleting {0}..."
 msgstr "Удаление {0}..."
 
@@ -7862,14 +7872,14 @@ msgid "Disabled Auto Reply"
 msgstr "Отключен автоматический ответ"
 
 #: frappe/desk/page/desktop/desktop.html:62
-#: frappe/public/js/frappe/form/toolbar.js:392
+#: frappe/public/js/frappe/form/toolbar.js:390
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:71
 #: frappe/public/js/frappe/views/workspace/workspace.js:399
-#: frappe/public/js/frappe/web_form/web_form.js:189
+#: frappe/public/js/frappe/web_form/web_form.js:188
 msgid "Discard"
 msgstr "Отменить"
 
-#: frappe/website/doctype/web_form/templates/web_form.html:53
+#: frappe/website/doctype/web_form/templates/web_form.html:54
 msgctxt "Button in web form"
 msgid "Discard"
 msgstr "Отменить"
@@ -7883,7 +7893,7 @@ msgstr "Отменить"
 msgid "Discard {0}"
 msgstr "Отменить {0}"
 
-#: frappe/public/js/frappe/web_form/web_form.js:186
+#: frappe/public/js/frappe/web_form/web_form.js:185
 msgid "Discard?"
 msgstr "Отменить?"
 
@@ -7984,6 +7994,12 @@ msgstr "Док События"
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Doc Status"
 msgstr "Статус дока"
+
+#. Label of the doc_values (Code) field in DocType 'Web Form Request'
+#: frappe/website/doctype/web_form_request/web_form_request.json
+#: frappe/website/doctype/web_form_request/web_form_request.py:104
+msgid "Doc Values"
+msgstr ""
 
 #. Name of a DocType
 #. Option for the 'Applied On' (Select) field in DocType 'Property Setter'
@@ -8492,11 +8508,11 @@ msgstr "Документ могут редактировать только по
 msgid "Document not Relinked"
 msgstr "Документ не связан повторно"
 
-#: frappe/model/rename_doc.py:218 frappe/public/js/frappe/form/toolbar.js:165
+#: frappe/model/rename_doc.py:218 frappe/public/js/frappe/form/toolbar.js:163
 msgid "Document renamed from {0} to {1}"
 msgstr "Документ переименован из {0} в {1}"
 
-#: frappe/public/js/frappe/form/toolbar.js:174
+#: frappe/public/js/frappe/form/toolbar.js:172
 msgid "Document renaming from {0} to {1} has been queued"
 msgstr "Переименование документа из {0} в {1} поставлено в очередь"
 
@@ -8632,7 +8648,7 @@ msgstr "Скачать"
 msgid "Download Backups"
 msgstr "Загрузить резервные копии"
 
-#: frappe/templates/emails/download_data.html:6
+#: frappe/templates/emails/download_data.html:5
 msgid "Download Data"
 msgstr "Загрузить данные"
 
@@ -8640,7 +8656,7 @@ msgstr "Загрузить данные"
 msgid "Download Files Backup"
 msgstr "Загрузить резервную копию файлов"
 
-#: frappe/templates/emails/download_data.html:9
+#: frappe/templates/emails/download_data.html:8
 msgid "Download Link"
 msgstr "Ссылка для скачивания"
 
@@ -8742,7 +8758,7 @@ msgid "Due Date Based On"
 msgstr "Дата выполнения на основе"
 
 #: frappe/public/js/frappe/form/grid_row_form.js:56
-#: frappe/public/js/frappe/form/toolbar.js:445
+#: frappe/public/js/frappe/form/toolbar.js:443
 msgid "Duplicate"
 msgstr "Дублировать"
 
@@ -8866,8 +8882,8 @@ msgstr "ESC"
 #: frappe/public/js/frappe/form/grid.js:96
 #: frappe/public/js/frappe/form/templates/address_list.html:13
 #: frappe/public/js/frappe/form/templates/contact_list.html:13
-#: frappe/public/js/frappe/form/toolbar.js:214
-#: frappe/public/js/frappe/form/toolbar.js:792
+#: frappe/public/js/frappe/form/toolbar.js:212
+#: frappe/public/js/frappe/form/toolbar.js:803
 #: frappe/public/js/frappe/views/reports/query_report.js:926
 #: frappe/public/js/frappe/views/reports/query_report.js:1936
 #: frappe/public/js/frappe/widgets/base_widget.js:65
@@ -8885,7 +8901,7 @@ msgctxt "Button in list view actions menu"
 msgid "Edit"
 msgstr "Редактировать"
 
-#: frappe/website/doctype/web_form/templates/web_form.html:32
+#: frappe/website/doctype/web_form/templates/web_form.html:33
 msgctxt "Button in web form"
 msgid "Edit"
 msgstr "Редактировать"
@@ -8915,7 +8931,7 @@ msgstr "Изменить настраиваемый блок"
 msgid "Edit Custom HTML"
 msgstr "Редактирование пользовательского HTML"
 
-#: frappe/public/js/frappe/form/toolbar.js:656
+#: frappe/public/js/frappe/form/toolbar.js:667
 msgid "Edit DocType"
 msgstr "Редактировать DocType"
 
@@ -9038,7 +9054,7 @@ msgstr "Редактирование Doctype {0} "
 msgid "Edit to add content"
 msgstr "Редактировать, чтобы добавить содержимое"
 
-#: frappe/public/js/frappe/web_form/web_form.js:473
+#: frappe/public/js/frappe/web_form/web_form.js:478
 msgctxt "Button in web form"
 msgid "Edit your response"
 msgstr "Изменить ваш ответ"
@@ -9128,7 +9144,7 @@ msgstr "Выбор элемента"
 #: frappe/email/doctype/notification/notification.json
 #: frappe/email/doctype/reply_to_address/reply_to_address.json
 #: frappe/public/js/frappe/form/success_action.js:85
-#: frappe/public/js/frappe/form/toolbar.js:405
+#: frappe/public/js/frappe/form/toolbar.js:403
 #: frappe/templates/includes/comments/comments.html:25
 #: frappe/templates/signup.html:10
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
@@ -9166,7 +9182,7 @@ msgstr "Учетная запись электронной почты отклю
 msgid "Email Account Name"
 msgstr "Имя учетной записи электронной почты"
 
-#: frappe/core/doctype/user/user.py:815
+#: frappe/core/doctype/user/user.py:803
 msgid "Email Account added multiple times"
 msgstr "Учетная запись электронной почты добавлена несколько раз"
 
@@ -9381,7 +9397,7 @@ msgstr ""
 msgid "Email not sent to {0} (unsubscribed / disabled)"
 msgstr "Письмо не отправлено {0} (отписан / отключено)"
 
-#: frappe/utils/oauth.py:193
+#: frappe/utils/oauth.py:213
 msgid "Email not verified with {0}"
 msgstr "Адрес электронной почты не подтвержден с помощью {0}"
 
@@ -9393,7 +9409,7 @@ msgstr "Очередь писем в настоящее время приост�
 msgid "Email sending undone"
 msgstr "Отправка электронного письма отменена"
 
-#: frappe/email/doctype/email_queue/email_queue.py:199
+#: frappe/email/doctype/email_queue/email_queue.py:214
 msgid "Email size {0:.2f} MB exceeds the maximum allowed size of {1:.2f} MB"
 msgstr "Размер электронного письма {0:.2f} МБ превышает максимально допустимый размер {1:.2f} МБ"
 
@@ -9861,17 +9877,21 @@ msgstr "Равняется"
 #. Label of the error (Text) field in DocType 'Webhook Request Log'
 #: frappe/core/api/user_invitation.py:90 frappe/core/api/user_invitation.py:95
 #: frappe/core/api/user_invitation.py:101
-#: frappe/core/api/user_invitation.py:132
+#: frappe/core/api/user_invitation.py:115
+#: frappe/core/api/user_invitation.py:121
+#: frappe/core/api/user_invitation.py:124
+#: frappe/core/api/user_invitation.py:154
 #: frappe/core/doctype/communication/communication.json
 #: frappe/core/doctype/data_import/data_import.json
 #: frappe/core/doctype/error_log/error_log.json
 #: frappe/core/doctype/prepared_report/prepared_report.json
-#: frappe/core/doctype/user_invitation/user_invitation.py:93
-#: frappe/core/doctype/user_invitation/user_invitation.py:97
-#: frappe/core/doctype/user_invitation/user_invitation.py:100
-#: frappe/core/doctype/user_invitation/user_invitation.py:121
-#: frappe/core/doctype/user_invitation/user_invitation.py:123
-#: frappe/core/doctype/user_invitation/user_invitation.py:125
+#: frappe/core/doctype/user_invitation/user_invitation.js:29
+#: frappe/core/doctype/user_invitation/user_invitation.py:95
+#: frappe/core/doctype/user_invitation/user_invitation.py:99
+#: frappe/core/doctype/user_invitation/user_invitation.py:102
+#: frappe/core/doctype/user_invitation/user_invitation.py:124
+#: frappe/core/doctype/user_invitation/user_invitation.py:126
+#: frappe/core/doctype/user_invitation/user_invitation.py:128
 #: frappe/desk/page/backups/backups.js:37
 #: frappe/email/doctype/email_queue/email_queue.json
 #: frappe/email/doctype/email_queue_recipient/email_queue_recipient.json
@@ -10212,6 +10232,7 @@ msgstr "Уведомление об истечении срока действи
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #: frappe/core/doctype/communication/communication.json
 #: frappe/core/doctype/user_invitation/user_invitation.json
+#: frappe/website/doctype/web_form_request/web_form_request_list.js:11
 msgid "Expired"
 msgstr "Истек срок действия"
 
@@ -10229,7 +10250,9 @@ msgid "Expires In"
 msgstr "Срок действия истекает"
 
 #. Label of the expires_on (Date) field in DocType 'Document Share Key'
+#. Label of the expires_on (Datetime) field in DocType 'Web Form Request'
 #: frappe/core/doctype/document_share_key/document_share_key.json
+#: frappe/website/doctype/web_form_request/web_form_request.json
 msgid "Expires On"
 msgstr "Актуален до"
 
@@ -10475,7 +10498,7 @@ msgstr "Не удалось расшифровать ключ {0}"
 msgid "Failed to delete communication"
 msgstr "Не удалось удалить сообщение"
 
-#: frappe/desk/reportview.py:701
+#: frappe/desk/reportview.py:747
 msgid "Failed to delete {0} documents: {1}"
 msgstr "Не удалось удалить {0} документов: {1}"
 
@@ -10532,7 +10555,7 @@ msgstr "Не удалось запросить вход в Frappe Cloud"
 msgid "Failed to retrieve the list of IMAP folders from the server. Please ensure the mailbox is accessible and the account has permission to list folders."
 msgstr "Не удалось получить список папок IMAP с сервера. Убедитесь, что почтовый ящик доступен и у учетной записи есть разрешение на просмотр содержимого папок."
 
-#: frappe/email/doctype/email_queue/email_queue.py:347
+#: frappe/email/doctype/email_queue/email_queue.py:372
 msgid "Failed to send email with subject:"
 msgstr "Не удалось отправить письмо с темой:"
 
@@ -10614,7 +10637,7 @@ msgstr "Выборка при сохранении, если пусто"
 msgid "Fetching default Global Search documents."
 msgstr "Извлечение документов глобального поиска по умолчанию."
 
-#: frappe/website/doctype/web_form/web_form.js:168
+#: frappe/website/doctype/web_form/web_form.js:164
 msgid "Fetching fields from {0}..."
 msgstr "Извлечение полей из {0}..."
 
@@ -10762,7 +10785,7 @@ msgstr "Для включения автоматического именова�
 msgid "Fieldname is limited to 64 characters ({0})"
 msgstr "Имя поля ограничено 64 символами ({0})"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:201
+#: frappe/custom/doctype/custom_field/custom_field.py:202
 msgid "Fieldname not set for Custom Field"
 msgstr "Имя поля не задано для пользовательского поля"
 
@@ -10805,7 +10828,7 @@ msgstr "Имя поля {0} ограничено"
 #: frappe/custom/doctype/doctype_layout/doctype_layout.json
 #: frappe/desk/doctype/kanban_board/kanban_board.json
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
-#: frappe/public/js/frappe/list/list_settings.js:141
+#: frappe/public/js/frappe/list/list_settings.js:144
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:114
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:83
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
@@ -10850,7 +10873,7 @@ msgstr "Поля разделенные запятой (,) будут включ
 msgid "Fieldtype"
 msgstr "Тип поля"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:197
+#: frappe/custom/doctype/custom_field/custom_field.py:198
 msgid "Fieldtype cannot be changed from {0} to {1}"
 msgstr "Тип поля не может быть изменен с {0} на {1}"
 
@@ -10969,7 +10992,7 @@ msgstr "Файлы"
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:93
 #: frappe/public/js/frappe/list/base_list.js:1404
 #: frappe/public/js/frappe/ui/filters/filter_list.js:134
-#: frappe/website/doctype/web_form/web_form.js:245
+#: frappe/website/doctype/web_form/web_form.js:241
 msgid "Filter"
 msgstr "Фильтр"
 
@@ -11166,6 +11189,11 @@ msgstr ""
 msgid "First Success Message"
 msgstr "Первое сообщение об успехе"
 
+#. Label of the first_used_on (Datetime) field in DocType 'Web Form Request'
+#: frappe/website/doctype/web_form_request/web_form_request.json
+msgid "First Used On"
+msgstr ""
+
 #: frappe/core/doctype/data_export/exporter.py:185
 msgid "First data column must be blank."
 msgstr "Первый столбец данных должен быть пустым."
@@ -11254,7 +11282,7 @@ msgid "Folio"
 msgstr "Фолио"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:150
-#: frappe/public/js/frappe/form/toolbar.js:1005
+#: frappe/public/js/frappe/form/toolbar.js:1016
 msgid "Follow"
 msgstr "Подписаться"
 
@@ -11274,7 +11302,7 @@ msgstr "Следующий документ {0}"
 msgid "Following documents are linked with {0}"
 msgstr "Следующие документы связаны с {0}"
 
-#: frappe/website/doctype/web_form/web_form.py:113
+#: frappe/website/doctype/web_form/web_form.py:138
 msgid "Following fields are missing:"
 msgstr "Отсутствуют следующие поля:"
 
@@ -11473,8 +11501,8 @@ msgstr "Например: {} Открыть"
 
 #. Description of the 'Client script' (Code) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
-msgid "For help see <a href=\"https://frappeframework.com/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\">Client Script API and Examples</a>"
-msgstr "Для получения справки см. раздел <a href=\"https://frappeframework.com/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\">API клиентского сценария и примеры</a>"
+msgid "For help see <a href=\"https://frappeframework.com/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\" rel=\"noopener noreferrer\">Client Script API and Examples</a>"
+msgstr "Для получения справки см. раздел <a href=\"https://frappeframework.com/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\" rel=\"noopener noreferrer\">API клиентского сценария и примеры</a>"
 
 #: frappe/integrations/doctype/google_settings/google_settings.js:7
 msgid "For more information, {0}."
@@ -11938,7 +11966,7 @@ msgstr "Получить резервный ключ шифрования"
 msgid "Get Contacts"
 msgstr "Получить контакты"
 
-#: frappe/website/doctype/web_form/web_form.js:93
+#: frappe/website/doctype/web_form/web_form.js:89
 msgid "Get Fields"
 msgstr "Получить поля"
 
@@ -12018,7 +12046,7 @@ msgstr "Глобальные сочетания клавиш"
 msgid "Global Unsubscribe"
 msgstr "Глобальная отписка"
 
-#: frappe/public/js/frappe/form/toolbar.js:892
+#: frappe/public/js/frappe/form/toolbar.js:903
 msgid "Go"
 msgstr "Вперёд"
 
@@ -12027,9 +12055,10 @@ msgstr "Вперёд"
 msgid "Go Back"
 msgstr "Назад"
 
-#: frappe/website/doctype/web_form/web_form.js:383
-msgid "Go to Login Required field"
-msgstr "Перейдите в поле «Требуется вход в систему»"
+#: frappe/website/doctype/web_form/web_form.js:394
+#: frappe/website/doctype/web_form/web_form.js:398
+msgid "Go to Access Control section"
+msgstr ""
 
 #: frappe/desk/doctype/notification_settings/notification_settings.js:17
 msgid "Go to Notification Settings List"
@@ -12587,10 +12616,11 @@ msgstr "Отчет о здоровье"
 msgid "Heatmap"
 msgstr "Тепловая карта"
 
-#: frappe/templates/emails/new_user.html:2
+#: frappe/templates/emails/new_user.html:3
 msgid "Hello"
 msgstr "Привет"
 
+#: frappe/templates/emails/file_backup_notification.html:1
 #: frappe/templates/emails/user_invitation.html:2
 #: frappe/templates/emails/user_invitation_cancelled.html:2
 #: frappe/templates/emails/user_invitation_expired.html:2
@@ -12951,7 +12981,7 @@ msgstr "Полагаю, у вас пока нет доступа к рабоче
 #: frappe/desk/report/todo/todo.py:36 frappe/model/meta.py:52
 #: frappe/public/js/frappe/data_import/data_exporter.js:371
 #: frappe/public/js/frappe/data_import/data_exporter.js:386
-#: frappe/public/js/frappe/list/list_settings.js:340
+#: frappe/public/js/frappe/list/list_settings.js:343
 #: frappe/public/js/frappe/list/list_view.js:427
 #: frappe/public/js/frappe/list/list_view.js:491
 #: frappe/public/js/frappe/list/list_view.js:2486
@@ -12960,7 +12990,7 @@ msgstr "Полагаю, у вас пока нет доступа к рабоче
 msgid "ID"
 msgstr "ID"
 
-#: frappe/desk/reportview.py:573
+#: frappe/desk/reportview.py:575
 #: frappe/public/js/frappe/views/reports/report_view.js:1085
 msgctxt "Label of name column in report"
 msgid "ID"
@@ -13189,6 +13219,11 @@ msgstr "Если уведомление включено, оно будет от
 msgid "If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 1 being very weak and 4 being very strong."
 msgstr "Если включено, надёжность пароля будет определяться на основе минимального значения оценки пароля. Значение 1 соответствует очень низкой надёжности, а значение 4 — очень высокой надёжности."
 
+#. Description of the 'Key required' (Check) field in DocType 'Web Form'
+#: frappe/website/doctype/web_form/web_form.json
+msgid "If enabled, the web form can only be used with a <i>Key</i> from a corresponding <b>Web Form Request</b>."
+msgstr ""
+
 #. Description of the 'Bypass Two Factor Auth for users who login from
 #. restricted IP Address' (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -13256,11 +13291,11 @@ msgstr "Если эти инструкции вам не помогли, пож�
 msgid "If this email is registered with us, a download link will be sent to it."
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1180
+#: frappe/core/doctype/user/user.py:1173
 msgid "If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
 msgstr "Если этот адрес электронной почты зарегистрирован у нас, мы отправили на него инструкции по сбросу пароля. Пожалуйста, проверьте входящие сообщения."
 
-#: frappe/templates/emails/user_invitation_cancelled.html:8
+#: frappe/templates/emails/user_invitation_cancelled.html:4
 msgid "If this was a mistake or you need access again, please reach out to your team."
 msgstr "Если это была ошибка или вам снова нужен доступ, обратитесь к своей команде."
 
@@ -13295,7 +13330,19 @@ msgstr "При загрузке новых записей поле «Имено�
 msgid "If you are uploading new records, leave the \"name\" (ID) column blank."
 msgstr "Если вы загружаете новые записи, оставьте столбец «имя» (ID) пустым."
 
-#: frappe/templates/emails/user_invitation.html:19
+#: frappe/templates/emails/password_reset.html:6
+msgid "If you did not request a password reset, please ignore this email. Your password will remain unchanged."
+msgstr ""
+
+#: frappe/templates/emails/verification_code.html:4
+msgid "If you did not request this code, you can safely ignore this email."
+msgstr ""
+
+#: frappe/templates/emails/login_with_email_link.html:6
+msgid "If you didn't request this link, you can ignore this email. Someone may have entered your email address by mistake."
+msgstr ""
+
+#: frappe/templates/emails/user_invitation.html:10
 msgid "If you have any questions, reach out to your system administrator."
 msgstr "Если у вас возникнут вопросы, обратитесь к вашему системному администратору."
 
@@ -13908,11 +13955,11 @@ msgstr "Вставить выше"
 msgid "Insert After"
 msgstr "Вставить после"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:255
+#: frappe/custom/doctype/custom_field/custom_field.py:256
 msgid "Insert After cannot be set as {0}"
 msgstr "Вставить после нельзя установить как {0}"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:248
+#: frappe/custom/doctype/custom_field/custom_field.py:249
 msgid "Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist"
 msgstr "Вставить после поля «{0}», упомянутого в пользовательском поле «{1}», с меткой «{2}», не существует"
 
@@ -13966,7 +14013,7 @@ msgstr "Установленные приложения"
 msgid "Instructions"
 msgstr "Инструкции"
 
-#: frappe/permissions.py:878
+#: frappe/permissions.py:880
 msgid "Insufficient Permission Level for {0}"
 msgstr "Недостаточный уровень разрешения для {0}"
 
@@ -14179,6 +14226,10 @@ msgstr "Недопустимое значение фильтра"
 msgid "Invalid Home Page"
 msgstr "Неверная домашняя страница"
 
+#: frappe/website/doctype/web_form_request/web_form_request.py:84
+msgid "Invalid JSON"
+msgstr ""
+
 #: frappe/utils/verified_command.py:48 frappe/www/update-password.html:185
 msgid "Invalid Link"
 msgstr "Неверная ссылка"
@@ -14204,7 +14255,7 @@ msgid "Invalid Naming Series: {}"
 msgstr "Неверная серия наименований: {}"
 
 #: frappe/core/doctype/data_import/data_import.py:183
-#: frappe/core/doctype/prepared_report/prepared_report.py:219
+#: frappe/core/doctype/prepared_report/prepared_report.py:222
 #: frappe/core/doctype/rq_job/rq_job.py:113
 #: frappe/core/doctype/rq_job/rq_job.py:122
 msgid "Invalid Operation"
@@ -14231,7 +14282,7 @@ msgstr "Недопустимое переопределение"
 msgid "Invalid Package Name"
 msgstr ""
 
-#: frappe/integrations/doctype/connected_app/connected_app.py:207
+#: frappe/integrations/doctype/connected_app/connected_app.py:212
 msgid "Invalid Parameters."
 msgstr "Неверные параметры."
 
@@ -14243,8 +14294,8 @@ msgstr "Неверный пароль"
 msgid "Invalid Phone Number"
 msgstr "Неверный номер телефона"
 
-#: frappe/auth.py:97 frappe/utils/oauth.py:214 frappe/utils/oauth.py:223
-#: frappe/www/login.py:123
+#: frappe/auth.py:97 frappe/integrations/google_oauth.py:202
+#: frappe/utils/oauth.py:231 frappe/utils/oauth.py:243 frappe/www/login.py:123
 msgid "Invalid Request"
 msgstr "Неверный запрос"
 
@@ -14275,6 +14326,12 @@ msgstr "Неверное имя пользователя или пароль с�
 msgid "Invalid Values"
 msgstr "Недопустимые значения"
 
+#: frappe/website/doctype/web_form/web_form.py:514
+#: frappe/website/doctype/web_form/web_form.py:977
+#: frappe/website/doctype/web_form_request/web_form_request.py:142
+msgid "Invalid Web Form Request"
+msgstr ""
+
 #: frappe/integrations/doctype/webhook/webhook.py:120
 msgid "Invalid Webhook Secret"
 msgstr "Неверный секрет веб-перехватчика"
@@ -14291,7 +14348,7 @@ msgstr "Недопустимая агрегатная функция"
 msgid "Invalid alias format: {0}. Alias must be a simple identifier."
 msgstr "Неверный формат псевдонима: {0}. Псевдоним должен быть простым идентификатором."
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:194
+#: frappe/core/doctype/user_invitation/user_invitation.py:197
 msgid "Invalid app"
 msgstr "Недопустимое приложение"
 
@@ -14416,7 +14473,7 @@ msgstr "Недопустимое вложенное выражение: слов
 msgid "Invalid or corrupted content for import"
 msgstr "Недопустимый или поврежденный контент для импорта"
 
-#: frappe/core/api/user_invitation.py:132
+#: frappe/core/api/user_invitation.py:154
 msgid "Invalid or expired key"
 msgstr ""
 
@@ -14432,7 +14489,7 @@ msgstr "Неверные аргументы запроса"
 msgid "Invalid request body"
 msgstr "Неверное тело запроса"
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:180
+#: frappe/core/doctype/user_invitation/user_invitation.py:183
 msgid "Invalid role"
 msgstr "Недопустимая роль"
 
@@ -14448,7 +14505,7 @@ msgstr "Недопустимое начало для условия фильтр
 msgid "Invalid template file for import"
 msgstr "Неверный файл шаблона для импорта"
 
-#: frappe/integrations/doctype/connected_app/connected_app.py:213
+#: frappe/integrations/doctype/connected_app/connected_app.py:218
 msgid "Invalid token state! Check if the token has been created by the OAuth user."
 msgstr "Неверное состояние токена! Проверьте, был ли токен создан пользователем OAuth."
 
@@ -14483,36 +14540,50 @@ msgstr "Неверный формат словаря {0}"
 msgid "Inverse"
 msgstr "Инверсия"
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:93
-#: frappe/core/doctype/user_invitation/user_invitation.py:121
+#: frappe/core/doctype/user_invitation/user_invitation.py:95
+#: frappe/core/doctype/user_invitation/user_invitation.py:124
 msgid "Invitation already accepted"
 msgstr "Приглашение уже принято"
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:97
+#: frappe/core/doctype/user_invitation/user_invitation.py:99
 msgid "Invitation already exists"
 msgstr "Приглашение уже существует"
+
+#: frappe/templates/emails/user_invitation_cancelled.html:1
+msgid "Invitation cancelled"
+msgstr ""
 
 #: frappe/core/api/user_invitation.py:101
 msgid "Invitation cannot be cancelled"
 msgstr "Приглашение не может быть отменено"
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:125
+#: frappe/templates/emails/user_invitation_expired.html:1
+msgid "Invitation expired"
+msgstr ""
+
+#: frappe/core/doctype/user_invitation/user_invitation.py:128
 msgid "Invitation is cancelled"
 msgstr "Приглашение отменено"
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:123
+#: frappe/core/doctype/user_invitation/user_invitation.py:126
 msgid "Invitation is expired"
 msgstr "Срок действия приглашения истек"
 
 #: frappe/core/api/user_invitation.py:90 frappe/core/api/user_invitation.py:95
+#: frappe/core/api/user_invitation.py:115
+#: frappe/core/api/user_invitation.py:121
 msgid "Invitation not found"
 msgstr "Приглашение не найдено"
+
+#: frappe/core/doctype/user_invitation/user_invitation.js:25
+msgid "Invitation resent"
+msgstr ""
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:57
 msgid "Invitation to join {0} cancelled"
 msgstr "Приглашение присоединиться к {0} отменено"
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:74
+#: frappe/core/doctype/user_invitation/user_invitation.py:75
 msgid "Invitation to join {0} expired"
 msgstr "Приглашение присоединиться {0} истекло"
 
@@ -14838,6 +14909,10 @@ msgstr "JSON"
 msgid "JSON Request Body"
 msgstr "Тело запроса JSON"
 
+#: frappe/website/doctype/web_form_request/web_form_request.py:87
+msgid "JSON value must be an object"
+msgstr ""
+
 #: frappe/templates/signup.html:5
 msgid "Jane Doe"
 msgstr "Иван Иванович"
@@ -14910,12 +14985,12 @@ msgid "Job is in {0} state and can't be cancelled"
 msgstr "Задание находится в состоянии {0} и не может быть отменено"
 
 #: frappe/core/doctype/data_import/data_import.py:183
-#: frappe/core/doctype/prepared_report/prepared_report.py:219
+#: frappe/core/doctype/prepared_report/prepared_report.py:222
 #: frappe/core/doctype/rq_job/rq_job.py:113
 msgid "Job is not running."
 msgstr "Задание не выполняется."
 
-#: frappe/core/doctype/prepared_report/prepared_report.py:217
+#: frappe/core/doctype/prepared_report/prepared_report.py:220
 msgid "Job stopped successfully"
 msgstr "Задание успешно завершено"
 
@@ -14923,8 +14998,8 @@ msgstr "Задание успешно завершено"
 msgid "Join video conference with {0}"
 msgstr "Присоединяйтесь к видеоконференции с помощью {0}"
 
-#: frappe/public/js/frappe/form/toolbar.js:421
-#: frappe/public/js/frappe/form/toolbar.js:881
+#: frappe/public/js/frappe/form/toolbar.js:419
+#: frappe/public/js/frappe/form/toolbar.js:892
 msgid "Jump to field"
 msgstr "Перейти к полю"
 
@@ -14995,6 +15070,7 @@ msgstr "Отслеживает все коммуникации"
 #. Label of the key (Data) field in DocType 'Query Parameters'
 #. Label of the key (Data) field in DocType 'Webhook Data'
 #. Label of the key (Small Text) field in DocType 'Webhook Header'
+#. Label of the key (Data) field in DocType 'Web Form Request'
 #. Label of the key (Data) field in DocType 'Website Meta Tag'
 #: frappe/core/doctype/defaultvalue/defaultvalue.json
 #: frappe/core/doctype/document_share_key/document_share_key.json
@@ -15002,9 +15078,19 @@ msgstr "Отслеживает все коммуникации"
 #: frappe/integrations/doctype/query_parameters/query_parameters.json
 #: frappe/integrations/doctype/webhook_data/webhook_data.json
 #: frappe/integrations/doctype/webhook_header/webhook_header.json
+#: frappe/website/doctype/web_form_request/web_form_request.json
 #: frappe/website/doctype/website_meta_tag/website_meta_tag.json
 msgid "Key"
 msgstr "Ключ"
+
+#: frappe/website/doctype/web_form/web_form.js:399
+msgid "Key Required"
+msgstr ""
+
+#. Label of the key_required (Check) field in DocType 'Web Form'
+#: frappe/website/doctype/web_form/web_form.json
+msgid "Key required"
+msgstr ""
 
 #. Label of a standard help item
 #. Type: Action
@@ -15253,7 +15339,7 @@ msgstr "Справка по меткам"
 msgid "Label and Type"
 msgstr "Метка и тип"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:149
+#: frappe/custom/doctype/custom_field/custom_field.py:150
 msgid "Label is mandatory"
 msgstr "Ярлык обязателен"
 
@@ -15328,11 +15414,11 @@ msgstr "Последние 90 Дней"
 msgid "Last Active"
 msgstr "Последний активный"
 
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:162
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:151
 msgid "Last Edited By You"
 msgstr ""
 
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:163
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:152
 msgid "Last Edited By {0}"
 msgstr ""
 
@@ -15977,6 +16063,7 @@ msgstr "Вид списка"
 
 #. Name of a DocType
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
+#: frappe/public/js/frappe/list/list_settings.js:35
 msgid "List View Settings"
 msgstr "Настройки просмотра списка"
 
@@ -16009,7 +16096,7 @@ msgid "Load Balancing"
 msgstr "Балансировка нагрузки"
 
 #: frappe/public/js/frappe/list/base_list.js:388
-#: frappe/public/js/frappe/web_form/web_form_list.js:306
+#: frappe/public/js/frappe/web_form/web_form_list.js:335
 #: frappe/website/doctype/help_article/templates/help_article_list.html:30
 msgid "Load More"
 msgstr "Загрузить ещё"
@@ -16083,9 +16170,9 @@ msgstr "Данные журнала"
 msgid "Log DocType"
 msgstr "Журнал DocType"
 
-#: frappe/templates/emails/login_with_email_link.html:27
-msgid "Log In To {0}"
-msgstr "Войти в {0}"
+#: frappe/templates/emails/login_with_email_link.html:4
+msgid "Log In to {0}"
+msgstr ""
 
 #. Label of the log_index (Int) field in DocType 'Data Import Log'
 #: frappe/core/doctype/data_import_log/data_import_log.json
@@ -16107,6 +16194,10 @@ msgstr "Настройки журнала"
 #: frappe/www/desk.py:23
 msgid "Log in to access this page."
 msgstr "Войдите, чтобы получить доступ к этой странице."
+
+#: frappe/templates/emails/login_with_email_link.html:1
+msgid "Log in to {0}"
+msgstr ""
 
 #: frappe/website/doctype/website_settings/website_settings.py:182
 msgid "Log out"
@@ -16164,6 +16255,10 @@ msgstr "Методы входа в систему"
 msgid "Login Page"
 msgstr "Страница входа в систему"
 
+#: frappe/website/doctype/web_form/web_form.js:395
+msgid "Login Required"
+msgstr ""
+
 #: frappe/www/login.py:152
 msgid "Login To {0}"
 msgstr "Войти в {0}"
@@ -16176,13 +16271,13 @@ msgstr "Код подтверждения входа от {}"
 msgid "Login and view in Browser"
 msgstr "Войти и просмотреть в браузере"
 
-#: frappe/website/doctype/web_form/web_form.js:387
-msgid "Login is required to see web form list view. Enable {0} to see list settings"
-msgstr "Для просмотра списка веб-форм требуется вход в систему. Включите {0}, чтобы увидеть настройки списка"
-
 #: frappe/auth.py:347 frappe/auth.py:350
 msgid "Login not allowed at this time"
 msgstr "Вход в систему в данный момент невозможен"
+
+#: frappe/website/doctype/web_form/web_form.js:402
+msgid "Login or a request key is required to see web form list view. Enable {0} to see list settings"
+msgstr ""
 
 #. Label of the login_required (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -16442,7 +16537,7 @@ msgstr "Обязательно Зависит от"
 msgid "Mandatory Depends On (JS)"
 msgstr "Обязательно Зависит от (JS)"
 
-#: frappe/website/doctype/web_form/web_form.py:548
+#: frappe/website/doctype/web_form/web_form.py:640
 msgid "Mandatory Information missing:"
 msgstr "Отсутствует обязательная информация:"
 
@@ -16728,8 +16823,8 @@ msgstr "Упоминания"
 msgid "Menu"
 msgstr "Меню"
 
-#: frappe/public/js/frappe/form/toolbar.js:270
-#: frappe/public/js/frappe/model/model.js:705
+#: frappe/public/js/frappe/form/toolbar.js:268
+#: frappe/public/js/frappe/model/model.js:723
 msgid "Merge with existing"
 msgstr "Слияние с существующими"
 
@@ -17021,9 +17116,7 @@ msgstr "Мобильный"
 #. Label of the mobile_no (Data) field in DocType 'Contact'
 #. Label of the mobile_no (Data) field in DocType 'User'
 #: frappe/contacts/doctype/contact/contact.json
-#: frappe/core/doctype/user/user.json frappe/tests/test_translate.py:93
-#: frappe/tests/test_translate.py:96 frappe/tests/test_translate.py:98
-#: frappe/tests/test_translate.py:101
+#: frappe/core/doctype/user/user.json
 msgid "Mobile No"
 msgstr "Номер мобильного телефона"
 
@@ -17380,7 +17473,7 @@ msgid "Mx"
 msgstr "Mx"
 
 #: frappe/templates/includes/web_sidebar.html:41
-#: frappe/website/doctype/web_form/web_form.py:537
+#: frappe/website/doctype/web_form/web_form.py:629
 #: frappe/website/doctype/website_settings/website_settings.py:181
 #: frappe/www/me.html:8 frappe/www/update_password.py:11
 msgid "My Account"
@@ -17615,7 +17708,7 @@ msgstr "Никогда"
 #: frappe/email/doctype/notification/notification.json
 #: frappe/public/js/frappe/form/success_action.js:77
 #: frappe/public/js/frappe/views/treeview.js:491
-#: frappe/website/doctype/web_form/templates/web_list.html:15
+#: frappe/website/doctype/web_form/templates/web_list.html:16
 msgid "New"
 msgstr "Новый"
 
@@ -17691,8 +17784,8 @@ msgstr "Новое сообщение со страницы контактов �
 
 #. Label of the new_name (Read Only) field in DocType 'Deleted Document'
 #: frappe/core/doctype/deleted_document/deleted_document.json
-#: frappe/public/js/frappe/form/toolbar.js:246
-#: frappe/public/js/frappe/model/model.js:713
+#: frappe/public/js/frappe/form/toolbar.js:244
+#: frappe/public/js/frappe/model/model.js:731
 msgid "New Name"
 msgstr "Новое имя"
 
@@ -17795,11 +17888,11 @@ msgid "New value to be set"
 msgstr "Новое значение для установки"
 
 #: frappe/public/js/frappe/form/quick_entry.js:180
-#: frappe/public/js/frappe/form/toolbar.js:47
-#: frappe/public/js/frappe/form/toolbar.js:234
-#: frappe/public/js/frappe/form/toolbar.js:249
-#: frappe/public/js/frappe/form/toolbar.js:597
-#: frappe/public/js/frappe/model/model.js:612
+#: frappe/public/js/frappe/form/toolbar.js:45
+#: frappe/public/js/frappe/form/toolbar.js:232
+#: frappe/public/js/frappe/form/toolbar.js:247
+#: frappe/public/js/frappe/form/toolbar.js:608
+#: frappe/public/js/frappe/model/model.js:630
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:178
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:179
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:228
@@ -17807,7 +17900,7 @@ msgstr "Новое значение для установки"
 #: frappe/public/js/frappe/views/breadcrumbs.js:232
 #: frappe/public/js/frappe/views/treeview.js:384
 #: frappe/public/js/frappe/widgets/widget_dialog.js:72
-#: frappe/website/doctype/web_form/web_form.py:455
+#: frappe/website/doctype/web_form/web_form.py:537
 msgid "New {0}"
 msgstr "Новый {0}"
 
@@ -17831,7 +17924,7 @@ msgstr "Новый {0}: {1}"
 msgid "New {} releases for the following apps are available"
 msgstr "Доступны новые {} версии для следующих приложений"
 
-#: frappe/core/doctype/user/user.py:881
+#: frappe/core/doctype/user/user.py:869
 msgid "Newly created user {0} has no roles enabled."
 msgstr "У вновь созданного пользователя {0} не включено ни одной роли."
 
@@ -17888,7 +17981,7 @@ msgstr "Дальнейшие действия"
 msgid "Next Actions HTML"
 msgstr "Следующие действия HTML"
 
-#: frappe/public/js/frappe/form/toolbar.js:357
+#: frappe/public/js/frappe/form/toolbar.js:355
 msgid "Next Document"
 msgstr "Следующий документ"
 
@@ -18113,7 +18206,7 @@ msgstr "Результатов нет"
 msgid "No Results found"
 msgstr "Результаты не найдены"
 
-#: frappe/core/doctype/user/user.py:882
+#: frappe/core/doctype/user/user.py:870
 msgid "No Roles Specified"
 msgstr "Роли не указаны"
 
@@ -18125,7 +18218,7 @@ msgstr "Не найдено ни одного выбранного поля"
 msgid "No Suggestions"
 msgstr "Нет предложений"
 
-#: frappe/desk/reportview.py:772 frappe/public/js/frappe/list/base_list.js:1071
+#: frappe/desk/reportview.py:818 frappe/public/js/frappe/list/base_list.js:1071
 msgid "No Tags"
 msgstr "Нет тегов"
 
@@ -18181,11 +18274,11 @@ msgstr "Контакты пока не добавлены."
 msgid "No contacts linked to document"
 msgstr "Нет контактов, связанных с документом"
 
-#: frappe/website/doctype/web_form/web_form.js:180
+#: frappe/website/doctype/web_form/web_form.js:176
 msgid "No currency fields in {0}"
 msgstr "Нет полей валюты в {0}"
 
-#: frappe/desk/query_report.py:447
+#: frappe/desk/query_report.py:449
 msgid "No data to export"
 msgstr "Нет данных для экспорта"
 
@@ -18207,7 +18300,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:21
 msgid "No email account associated with the User. Please add an account under User > Email Inbox."
-msgstr "С пользователем не связана учётная запись электронной почты. Добавьте учётную запись в разделе «Пользователь» > «Входящие»."
+msgstr "Учетная запись электронной почты, связанная с пользователем, отсутствует. Добавьте учетную запись в разделе Пользователь > Почтовый ящик."
 
 #: frappe/core/api/user_invitation.py:17
 msgid "No email addresses to invite"
@@ -18246,7 +18339,7 @@ msgstr "В текущих результатах нет совпадающих �
 msgid "No matching records. Search something new"
 msgstr "Нет соответствующих записей. Найдите что-нибудь новое"
 
-#: frappe/public/js/frappe/web_form/web_form_list.js:162
+#: frappe/public/js/frappe/web_form/web_form_list.js:178
 msgid "No more items to display"
 msgstr "Больше нет элементов для отображения"
 
@@ -18352,13 +18445,13 @@ msgstr "Нет значений для отображения"
 msgid "No {0}"
 msgstr "Нет {0}"
 
-#: frappe/public/js/frappe/web_form/web_form_list.js:240
+#: frappe/public/js/frappe/web_form/web_form_list.js:263
 msgid "No {0} found"
 msgstr "Не найдено {0}"
 
 #: frappe/public/js/frappe/list/list_view.js:540
 msgid "No {0} found with matching filters. Clear filters to see all {0}."
-msgstr "Нет {0}, соответствующих выбранным фильтрам. Очистите фильтры, чтобы увидеть все {0}."
+msgstr "Не найдено ни одного {0} с подходящими фильтрами. Очистить фильтры, чтобы увидеть все {0}."
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:171
 msgid "No {0} mail"
@@ -18398,6 +18491,10 @@ msgstr "Нет"
 msgid "None: End of Workflow"
 msgstr "Нет: Конец рабочего процесса"
 
+#: frappe/tests/test_translate.py:67
+msgid "Noop Source"
+msgstr ""
+
 #. Label of the normalized_copies (Int) field in DocType 'Recorder Query'
 #: frappe/core/doctype/recorder_query/recorder_query.json
 msgid "Normalized Copies"
@@ -18408,7 +18505,9 @@ msgstr "Нормализованные копии"
 msgid "Normalized Query"
 msgstr "Нормализованный запрос"
 
-#: frappe/core/doctype/user/user.py:1107 frappe/utils/oauth.py:301
+#: frappe/core/doctype/user/user.py:1100 frappe/utils/oauth.py:320
+#: frappe/website/doctype/web_form/web_form.py:887
+#: frappe/website/doctype/web_form/web_form.py:904
 msgid "Not Allowed"
 msgstr "Не разрешено"
 
@@ -18452,14 +18551,14 @@ msgstr "Не допускается значение NULL"
 
 #: frappe/__init__.py:570 frappe/app.py:388 frappe/desk/calendar.py:28
 #: frappe/public/js/frappe/web_form/webform_script.js:15
-#: frappe/website/doctype/web_form/web_form.py:798
+#: frappe/website/doctype/web_form/web_form.py:1021
 #: frappe/website/page_renderers/not_permitted_page.py:22
-#: frappe/www/login.py:197 frappe/www/qrcode.py:22 frappe/www/qrcode.py:25
+#: frappe/www/login.py:198 frappe/www/qrcode.py:22 frappe/www/qrcode.py:25
 #: frappe/www/qrcode.py:37
 msgid "Not Permitted"
 msgstr "Нет допуска"
 
-#: frappe/desk/query_report.py:814
+#: frappe/desk/query_report.py:816
 msgid "Not Permitted to read {0}"
 msgstr "Не разрешается читать {0}"
 
@@ -18468,13 +18567,13 @@ msgstr "Не разрешается читать {0}"
 msgid "Not Published"
 msgstr "Не опубликовано"
 
-#: frappe/public/js/frappe/form/toolbar.js:316
-#: frappe/public/js/frappe/form/toolbar.js:860
+#: frappe/public/js/frappe/form/toolbar.js:314
+#: frappe/public/js/frappe/form/toolbar.js:871
 #: frappe/public/js/frappe/model/indicator.js:28
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:215
 #: frappe/public/js/frappe/views/reports/report_view.js:215
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:39
-#: frappe/website/doctype/web_form/templates/web_form.html:94
+#: frappe/website/doctype/web_form/templates/web_form.html:95
 msgid "Not Saved"
 msgstr "Не сохранено"
 
@@ -18499,11 +18598,15 @@ msgctxt "Field value is not set"
 msgid "Not Set"
 msgstr "Не установлено"
 
+#: frappe/website/doctype/web_form_request/web_form_request_list.js:13
+msgid "Not Used"
+msgstr ""
+
 #: frappe/utils/csvutils.py:102
 msgid "Not a valid Comma Separated Value (CSV File)"
 msgstr "Не является действительным значением, разделенным запятыми (CSV-файл)"
 
-#: frappe/core/doctype/user/user.py:319
+#: frappe/core/doctype/user/user.py:318
 msgid "Not a valid User Image."
 msgstr "Недопустимое изображение пользователя."
 
@@ -18560,7 +18663,8 @@ msgstr "Не в режиме разработчика! Установите в s
 #: frappe/public/js/frappe/request.js:168
 #: frappe/public/js/frappe/request.js:173
 #: frappe/public/js/frappe/views/kanban/kanban_board.bundle.js:67
-#: frappe/utils/messages.py:173 frappe/website/doctype/web_form/web_form.py:811
+#: frappe/utils/messages.py:173 frappe/website/doctype/web_form/web_form.py:970
+#: frappe/website/doctype/web_form/web_form.py:1041
 #: frappe/website/js/website.js:97
 msgid "Not permitted"
 msgstr "Не разрешено"
@@ -18746,7 +18850,7 @@ msgstr "Уведомлять, если не получен ответ (в мин
 msgid "Notify users with a popup when they log in"
 msgstr "Уведомление пользователей с помощью всплывающего окна при входе в систему"
 
-#: frappe/public/js/frappe/form/controls/datetime.js:35
+#: frappe/public/js/frappe/form/controls/datetime.js:60
 #: frappe/public/js/frappe/form/controls/time.js:37
 msgid "Now"
 msgstr "Сейчас"
@@ -19002,7 +19106,7 @@ msgstr "Смещение должно быть неотрицательным ц
 msgid "Old Password"
 msgstr "Старый пароль"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:416
+#: frappe/custom/doctype/custom_field/custom_field.py:417
 msgid "Old and new fieldnames are same."
 msgstr "Старые и новые названия полей одинаковы."
 
@@ -19133,7 +19237,7 @@ msgstr "Один из"
 msgid "Only 200 inserts allowed in one request"
 msgstr "В одном запросе разрешено только 200 вставок"
 
-#: frappe/email/doctype/email_queue/email_queue.py:91
+#: frappe/email/doctype/email_queue/email_queue.py:94
 msgid "Only Administrator can delete Email Queue"
 msgstr "Только администратор может удалить очередь электронной почты"
 
@@ -19154,7 +19258,7 @@ msgstr "Только администратору разрешено испол�
 msgid "Only Allow Edit For"
 msgstr "Разрешить редактирование только для"
 
-#: frappe/desk/query_report.py:495
+#: frappe/desk/query_report.py:497
 msgid "Only CSV and Excel formats are supported for export"
 msgstr ""
 
@@ -19207,6 +19311,10 @@ msgstr "Для новых записей требуются только обя�
 #: frappe/contacts/doctype/contact/contact.py:155
 msgid "Only one {0} can be set as primary."
 msgstr "Только один {0} может быть установлен как основной."
+
+#: frappe/core/api/user_invitation.py:124
+msgid "Only pending invitations can be resent"
+msgstr ""
 
 #: frappe/desk/reportview.py:370
 msgid "Only reports of type Report Builder can be deleted"
@@ -19265,7 +19373,7 @@ msgstr "Открыть быстрый поиск"
 msgid "Open Communication"
 msgstr "Открытое общение"
 
-#: frappe/templates/emails/new_notification.html:10
+#: frappe/templates/emails/new_notification.html:8
 msgid "Open Document"
 msgstr "Открыть документ"
 
@@ -19472,6 +19580,10 @@ msgstr "Параметры обязательны для поля {0} типа {
 #: frappe/model/base_document.py:1010
 msgid "Options not set for link field {0}"
 msgstr "Параметры не установлены для поля ссылки {0}"
+
+#: frappe/templates/emails/new_user.html:21
+msgid "Or copy and paste this link:"
+msgstr ""
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
@@ -19907,7 +20019,7 @@ msgstr "Parent — имя документа, в который будут до�
 msgid "Parent-to-child or child-to-different-child grouping is not allowed."
 msgstr "Группировка по принципу «родитель-ребенок» или «ребенок-разный ребенок» не допускается."
 
-#: frappe/permissions.py:854
+#: frappe/permissions.py:856
 msgid "Parentfield not specified in {0}: {1}"
 msgstr "Родительское поле не указано в {0}: {1}"
 
@@ -19967,7 +20079,7 @@ msgstr "Пассивный"
 msgid "Password"
 msgstr "Пароль"
 
-#: frappe/core/doctype/user/user.py:513 frappe/core/doctype/user/user.py:1183
+#: frappe/core/doctype/user/user.py:512 frappe/core/doctype/user/user.py:1176
 msgid "Password Reset"
 msgstr "Сброс пароля"
 
@@ -20005,19 +20117,19 @@ msgstr "Отсутствует пароль в учетной записи эл�
 msgid "Password not found for {0} {1} {2}"
 msgstr "Пароль не найден для {0} {1} {2}"
 
-#: frappe/core/doctype/user/user.py:1345
+#: frappe/core/doctype/user/user.py:1338
 msgid "Password requirements not met"
 msgstr "Пароль не соответствует требованиям"
 
 #: frappe/www/update-password.html:195
 msgid "Password set"
-msgstr "Пароль установлен"
+msgstr "Установка пароля"
 
 #: frappe/auth.py:266
 msgid "Password size exceeded the maximum allowed size"
 msgstr "Размер пароля превышает максимально допустимый размер"
 
-#: frappe/core/doctype/user/user.py:954
+#: frappe/core/doctype/user/user.py:947
 msgid "Password size exceeded the maximum allowed size."
 msgstr "Размер пароля превышает максимально допустимый размер."
 
@@ -20178,7 +20290,7 @@ msgstr "Окончательно удалить {0}?"
 msgid "Permanently Submit {0}?"
 msgstr "Отправить навсегда {0}?"
 
-#: frappe/public/js/frappe/model/model.js:684
+#: frappe/public/js/frappe/model/model.js:702
 msgid "Permanently delete {0}?"
 msgstr "Удалить {0} навсегда?"
 
@@ -20452,7 +20564,7 @@ msgstr ""
 msgid "Please adjust filters to include some data"
 msgstr "Пожалуйста, скорректируйте фильтры, чтобы включить некоторые данные"
 
-#: frappe/core/doctype/user/user.py:1154
+#: frappe/core/doctype/user/user.py:1147
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "Попросите администратора подтвердить вашу регистрацию"
 
@@ -20480,7 +20592,7 @@ msgstr "Проверьте значения фильтра, установлен
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "Проверьте значение параметра «Извлечь из», заданное для поля {0}"
 
-#: frappe/core/doctype/user/user.py:1152
+#: frappe/core/doctype/user/user.py:1145
 msgid "Please check your email for verification"
 msgstr "Пожалуйста, проверьте свою электронную почту для подтверждения"
 
@@ -20507,10 +20619,6 @@ msgstr "Нажмите «Экспортировать ошибочные стр�
 #: frappe/twofactor.py:286
 msgid "Please click on the following link and follow the instructions on the page. {0}"
 msgstr "Пожалуйста, нажмите на следующую ссылку и следуйте инструкциям на странице. {0}"
-
-#: frappe/templates/emails/password_reset.html:2
-msgid "Please click on the following link to set your new password"
-msgstr "Нажмите на следующую ссылку, чтобы установить новый пароль"
 
 #: frappe/www/confirm_workflow_action.html:4
 msgid "Please confirm your action to {0} this document."
@@ -20558,11 +20666,11 @@ msgstr "Пожалуйста, включите всплывающие окна"
 msgid "Please enable pop-ups in your browser"
 msgstr "Пожалуйста, разрешите всплывающие окна в вашем браузере"
 
-#: frappe/integrations/google_oauth.py:55
+#: frappe/integrations/google_oauth.py:79
 msgid "Please enable {} before continuing."
 msgstr "Прежде чем продолжить, включите {}."
 
-#: frappe/utils/oauth.py:223
+#: frappe/utils/oauth.py:243
 msgid "Please ensure that your profile has an email address"
 msgstr "Убедитесь, что в вашем профиле указан адрес электронной почты"
 
@@ -20586,7 +20694,7 @@ msgstr "Пожалуйста, введите идентификатор клие
 msgid "Please enter Client Secret before social login is enabled"
 msgstr "Пожалуйста, введите секретный код клиента, прежде чем включить вход через социальную сеть"
 
-#: frappe/integrations/doctype/connected_app/connected_app.py:55
+#: frappe/integrations/doctype/connected_app/connected_app.py:56
 msgid "Please enter OpenID Configuration URL"
 msgstr "Введите URL-адрес конфигурации OpenID"
 
@@ -20789,7 +20897,7 @@ msgstr "Пожалуйста, настройте SMS перед использо
 msgid "Please setup a message first"
 msgstr "Пожалуйста, сначала настройте сообщение"
 
-#: frappe/core/doctype/user/user.py:478
+#: frappe/core/doctype/user/user.py:477
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
 msgstr "Настройте исходящую учетную запись электронной почты по умолчанию в разделе «Настройки» > «Учетная запись электронной почты»"
 
@@ -20797,11 +20905,11 @@ msgstr "Настройте исходящую учетную запись эле
 msgid "Please setup default outgoing Email Account from Tools > Email Account"
 msgstr "Настройте учетную запись исходящей электронной почты по умолчанию в меню Инструменты > Учетная запись электронной почты"
 
-#: frappe/public/js/frappe/model/model.js:774
+#: frappe/public/js/frappe/model/model.js:792
 msgid "Please specify"
 msgstr "Пожалуйста, сформулируйте"
 
-#: frappe/permissions.py:828
+#: frappe/permissions.py:830
 msgid "Please specify a valid parent DocType for {0}"
 msgstr "Укажите допустимый родительский DocType для {0}"
 
@@ -20838,7 +20946,7 @@ msgstr "Пожалуйста, попробуйте еще раз"
 msgid "Please update your security settings from desk."
 msgstr "Пожалуйста, обновите настройки безопасности через рабочий стол."
 
-#: frappe/integrations/google_oauth.py:58
+#: frappe/integrations/google_oauth.py:82
 msgid "Please update {} before continuing."
 msgstr "Пожалуйста, обновите {} перед продолжением."
 
@@ -20846,7 +20954,7 @@ msgstr "Пожалуйста, обновите {} перед продолжен�
 msgid "Please use a valid LDAP search filter"
 msgstr "Пожалуйста, используйте действительный фильтр поиска LDAP"
 
-#: frappe/templates/emails/file_backup_notification.html:4
+#: frappe/templates/emails/file_backup_notification.html:2
 msgid "Please use following links to download file backup."
 msgstr "Для загрузки резервной копии файла воспользуйтесь следующими ссылками."
 
@@ -21023,7 +21131,7 @@ msgstr "Подготовленный отчет Аналитика"
 msgid "Prepared Report User"
 msgstr "Подготовленный отчет пользователя"
 
-#: frappe/desk/query_report.py:365
+#: frappe/desk/query_report.py:367
 msgid "Prepared report render failed"
 msgstr "Подготовленный отчет не удалось отобразить"
 
@@ -21109,7 +21217,7 @@ msgctxt "Go to previous slide"
 msgid "Previous"
 msgstr "Предыдущий"
 
-#: frappe/public/js/frappe/form/toolbar.js:349
+#: frappe/public/js/frappe/form/toolbar.js:347
 msgid "Previous Document"
 msgstr "Предыдущий документ"
 
@@ -21168,9 +21276,10 @@ msgstr "Первичный ключ doctype {0} не может быть изм�
 #: frappe/core/doctype/user_document_type/user_document_type.json
 #: frappe/core/page/permission_manager/permission_manager_help.html:51
 #: frappe/printing/page/print/print.js:84
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:108
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:98
 #: frappe/public/js/frappe/form/success_action.js:81
 #: frappe/public/js/frappe/form/templates/print_layout.html:46
+#: frappe/public/js/frappe/form/toolbar.js:468
 #: frappe/public/js/frappe/list/bulk_operations.js:95
 #: frappe/public/js/frappe/views/reports/query_report.js:1942
 #: frappe/public/js/frappe/views/reports/report_view.js:1636
@@ -21412,7 +21521,7 @@ msgstr "Приватный"
 msgid "Private Files (MB)"
 msgstr "Личные файлы (МБ)"
 
-#: frappe/templates/emails/file_backup_notification.html:6
+#: frappe/templates/emails/file_backup_notification.html:4
 msgid "Private Files Backup:"
 msgstr "Резервная копия личных файлов:"
 
@@ -21556,7 +21665,7 @@ msgstr "Публичный"
 msgid "Public Files (MB)"
 msgstr "Публичные файлы (МБ)"
 
-#: frappe/templates/emails/file_backup_notification.html:5
+#: frappe/templates/emails/file_backup_notification.html:3
 msgid "Public Files Backup:"
 msgstr "Резервное копирование публичных файлов:"
 
@@ -21567,7 +21676,7 @@ msgstr "URL публичной политики должен начинатьс�
 #. Label of the publish (Check) field in DocType 'Package Release'
 #: frappe/core/doctype/package_release/package_release.json
 #: frappe/public/js/frappe/form/footer/form_timeline.js:634
-#: frappe/website/doctype/web_form/web_form.js:86
+#: frappe/website/doctype/web_form/web_form.js:82
 msgid "Publish"
 msgstr "Опубликовать"
 
@@ -22154,6 +22263,12 @@ msgstr "Рекурсивная выборка из"
 msgid "Red"
 msgstr "Красный"
 
+#. Label of the redact_message_after_send (Check) field in DocType 'Email
+#. Queue'
+#: frappe/email/doctype/email_queue/email_queue.json
+msgid "Redact Message After Send"
+msgstr ""
+
 #. Label of the redirect_http_status (Select) field in DocType 'Website Route
 #. Redirect'
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json
@@ -22209,12 +22324,12 @@ msgstr "Перенаправления"
 msgid "Redis cache server not running. Please contact Administrator / Tech support"
 msgstr "Кэш-сервер Redis не работает. Обратитесь в службу технической поддержки или к администратору"
 
-#: frappe/public/js/frappe/form/toolbar.js:566
+#: frappe/public/js/frappe/form/toolbar.js:577
 msgid "Redo"
 msgstr "Повторить"
 
 #: frappe/public/js/frappe/form/form.js:165
-#: frappe/public/js/frappe/form/toolbar.js:574
+#: frappe/public/js/frappe/form/toolbar.js:585
 msgid "Redo last action"
 msgstr "Повторить последнее действие"
 
@@ -22424,6 +22539,11 @@ msgstr "Название ссылки"
 msgid "Reference: {0} {1}"
 msgstr "Ссылка: {0} {1}"
 
+#. Label of the references (Table) field in DocType 'Web Form Request'
+#: frappe/website/doctype/web_form_request/web_form_request.json
+msgid "References"
+msgstr "Рекомендации"
+
 #. Label of the referrer (Data) field in DocType 'Web Page View'
 #: frappe/website/doctype/web_page_view/web_page_view.json
 #: frappe/website/report/website_analytics/website_analytics.js:37
@@ -22482,7 +22602,7 @@ msgstr "Обновление"
 msgid "Refreshing..."
 msgstr "Обновление..."
 
-#: frappe/core/doctype/user/user.py:1114
+#: frappe/core/doctype/user/user.py:1107
 msgid "Registered but disabled"
 msgstr "Зарегистрирован, но отключен"
 
@@ -22533,7 +22653,7 @@ msgid "Relinked"
 msgstr "Перезагрузка"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:129
-#: frappe/public/js/frappe/form/toolbar.js:483
+#: frappe/public/js/frappe/form/toolbar.js:494
 msgid "Reload"
 msgstr "Перезагрузить"
 
@@ -22564,7 +22684,7 @@ msgstr "Запомнить последнее выбранное значени�
 msgid "Remind At"
 msgstr "Напомнить в"
 
-#: frappe/public/js/frappe/form/toolbar.js:515
+#: frappe/public/js/frappe/form/toolbar.js:526
 msgid "Remind Me"
 msgstr "Напомнить мне"
 
@@ -22654,10 +22774,10 @@ msgid "Removed Icons"
 msgstr "Удалены значки"
 
 #: frappe/custom/doctype/custom_field/custom_field.js:138
-#: frappe/public/js/frappe/form/toolbar.js:282
-#: frappe/public/js/frappe/form/toolbar.js:286
-#: frappe/public/js/frappe/form/toolbar.js:458
-#: frappe/public/js/frappe/model/model.js:723
+#: frappe/public/js/frappe/form/toolbar.js:280
+#: frappe/public/js/frappe/form/toolbar.js:284
+#: frappe/public/js/frappe/form/toolbar.js:456
+#: frappe/public/js/frappe/model/model.js:741
 #: frappe/public/js/frappe/views/treeview.js:329
 msgid "Rename"
 msgstr "Переименовать"
@@ -22667,7 +22787,7 @@ msgstr "Переименовать"
 msgid "Rename Fieldname"
 msgstr "Переименовать имя поля"
 
-#: frappe/public/js/frappe/model/model.js:710
+#: frappe/public/js/frappe/model/model.js:728
 msgid "Rename {0}"
 msgstr "Переименовать {0}"
 
@@ -22684,7 +22804,7 @@ msgstr "В этом разделе отображаются метки слев�
 msgid "Reopen"
 msgstr "Возобновить"
 
-#: frappe/public/js/frappe/form/toolbar.js:583
+#: frappe/public/js/frappe/form/toolbar.js:594
 msgid "Repeat"
 msgstr "Повторите"
 
@@ -22731,9 +22851,15 @@ msgstr "Повторы типа \"aaa\" легко угадать"
 msgid "Repeats like \"abcabcabc\" are only slightly harder to guess than \"abc\""
 msgstr "Повторы типа \"abcabcabc\" угадать лишь немного сложнее, чем \"abc\""
 
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:201
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:190
 msgid "Repeats {0}"
 msgstr "Повторяет {0}"
+
+#. Description of the 'Redact Message After Send' (Check) field in DocType
+#. 'Email Queue'
+#: frappe/email/doctype/email_queue/email_queue.json
+msgid "Replace the message body with a placeholder once the email has been sent, so that sensitive content like password reset links is not retained in the queue."
+msgstr ""
 
 #: frappe/core/doctype/role_replication/role_replication.js:7
 #: frappe/core/doctype/role_replication/role_replication.js:14
@@ -22956,11 +23082,11 @@ msgstr "Отчет начат, нажмите для просмотра стат
 msgid "Report limit reached"
 msgstr "Лимит отчетов достигнут"
 
-#: frappe/core/doctype/prepared_report/prepared_report.py:267
+#: frappe/core/doctype/prepared_report/prepared_report.py:270
 msgid "Report timed out."
 msgstr "Отчет завершен по времени."
 
-#: frappe/desk/query_report.py:872
+#: frappe/desk/query_report.py:874
 msgid "Report updated successfully"
 msgstr "Отчет успешно обновлен"
 
@@ -23109,6 +23235,7 @@ msgstr "Требуется любой действительный путь fdn.
 msgid "Res: {0}"
 msgstr "Res: {0}"
 
+#: frappe/core/doctype/user_invitation/user_invitation.js:17
 #: frappe/www/login.html:219
 msgid "Resend"
 msgstr ""
@@ -23142,7 +23269,7 @@ msgstr "Сброс диаграммы"
 msgid "Reset Dashboard Customizations"
 msgstr "Сбросить настройки панели инструментов"
 
-#: frappe/public/js/frappe/list/list_settings.js:233
+#: frappe/public/js/frappe/list/list_settings.js:236
 msgid "Reset Fields"
 msgstr "Сброс полей"
 
@@ -23158,7 +23285,8 @@ msgstr "Сброс макета"
 msgid "Reset OTP Secret"
 msgstr "Сброс секретов OTP"
 
-#: frappe/core/doctype/user/user.js:163 frappe/www/me.html:48
+#: frappe/core/doctype/user/user.js:163
+#: frappe/templates/emails/password_reset.html:4 frappe/www/me.html:48
 msgid "Reset Password"
 msgstr "Сброс пароля"
 
@@ -23199,7 +23327,7 @@ msgstr "Сброс по умолчанию"
 msgid "Reset to defaults"
 msgstr "Сброс по умолчанию"
 
-#: frappe/templates/emails/password_reset.html:3
+#: frappe/templates/emails/password_reset.html:1
 msgid "Reset your password"
 msgstr "Сбросить ваш пароль"
 
@@ -23495,7 +23623,7 @@ msgstr "Воспроизведение роли"
 msgid "Role and Level"
 msgstr "Роль и уровень"
 
-#: frappe/core/doctype/user/user.py:427
+#: frappe/core/doctype/user/user.py:426
 msgid "Role has been set as per the user type {0}"
 msgstr "Роль установлена в соответствии с типом пользователя {0}"
 
@@ -23705,7 +23833,7 @@ msgstr "Правило"
 msgid "Rule Conditions"
 msgstr "Условия правил"
 
-#: frappe/permissions.py:700
+#: frappe/permissions.py:702
 msgid "Rule for this doctype, role, permlevel and if-owner combination already exists."
 msgstr "Правило для этой комбинации doctype, role, permlevel и if-owner уже существует."
 
@@ -23925,8 +24053,8 @@ msgstr "Суббота"
 #: frappe/printing/page/print_format_builder/print_format_builder.js:162
 #: frappe/public/js/frappe/form/footer/form_timeline.js:678
 #: frappe/public/js/frappe/form/quick_entry.js:186
-#: frappe/public/js/frappe/list/list_settings.js:37
-#: frappe/public/js/frappe/list/list_settings.js:250
+#: frappe/public/js/frappe/list/list_settings.js:40
+#: frappe/public/js/frappe/list/list_settings.js:253
 #: frappe/public/js/frappe/list/list_view.js:2061
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:335
 #: frappe/public/js/frappe/utils/common.js:443
@@ -23975,7 +24103,7 @@ msgstr "Сохраните документ."
 
 #: frappe/model/rename_doc.py:95
 #: frappe/printing/page/print_format_builder/print_format_builder.js:860
-#: frappe/public/js/frappe/form/toolbar.js:315
+#: frappe/public/js/frappe/form/toolbar.js:313
 #: frappe/public/js/frappe/views/kanban/kanban_board.bundle.js:952
 #: frappe/public/js/frappe/views/workspace/workspace.js:787
 msgid "Saved"
@@ -23985,7 +24113,7 @@ msgstr "Сохранено"
 msgid "Saved Filters"
 msgstr "Сохранённые фильтры"
 
-#: frappe/public/js/frappe/list/list_settings.js:41
+#: frappe/public/js/frappe/list/list_settings.js:44
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:47
 #: frappe/public/js/frappe/views/workspace/workspace.js:396
 msgid "Saving"
@@ -24360,11 +24488,11 @@ msgstr "Название раздела"
 msgid "Section must have at least one column"
 msgstr "Раздел должен иметь хотя бы один столбец"
 
-#: frappe/core/doctype/user/user.py:1504
+#: frappe/core/doctype/user/user.py:1497
 msgid "Security Alert: Your account is being impersonated"
 msgstr "Оповещение безопасности: кто-то пытается войти в ваш аккаунт"
 
-#: frappe/core/doctype/user/user.py:400
+#: frappe/core/doctype/user/user.py:399
 msgid "Security Alert: Your password has been changed."
 msgstr "Оповещение безопасности: Ваш пароль был изменён."
 
@@ -24412,7 +24540,7 @@ msgstr "Смотреть все Деятельность"
 msgid "See on Website"
 msgstr "Смотрите на сайте"
 
-#: frappe/website/doctype/web_form/templates/web_form.html:169
+#: frappe/website/doctype/web_form/templates/web_form.html:171
 msgctxt "Button in web form"
 msgid "See previous responses"
 msgstr "См. предыдущие ответы"
@@ -24544,7 +24672,7 @@ msgstr "Выберите Типы документов, чтобы устано�
 
 #: frappe/public/js/form_builder/components/controls/FetchFromControl.vue:33
 #: frappe/public/js/frappe/doctype/index.js:207
-#: frappe/public/js/frappe/form/toolbar.js:886
+#: frappe/public/js/frappe/form/toolbar.js:897
 msgid "Select Field"
 msgstr "Выберите поле"
 
@@ -24558,7 +24686,7 @@ msgstr "Выберите поле..."
 msgid "Select Fields"
 msgstr "Выбрать поля"
 
-#: frappe/public/js/frappe/list/list_settings.js:239
+#: frappe/public/js/frappe/list/list_settings.js:242
 msgid "Select Fields (Up to {0})"
 msgstr "Выберите поля (до {0})"
 
@@ -25183,7 +25311,7 @@ msgstr "Установите динамические фильтры"
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:381
 #: frappe/desk/doctype/number_card/number_card.js:287
 #: frappe/public/js/form_builder/components/Field.vue:80
-#: frappe/website/doctype/web_form/web_form.js:285
+#: frappe/website/doctype/web_form/web_form.js:281
 msgid "Set Filters"
 msgstr "Установить фильтры"
 
@@ -25638,7 +25766,7 @@ msgstr "Показать переключатель языков"
 msgid "Show Line Breaks after Sections"
 msgstr "Показать разрывы строк после разделов"
 
-#: frappe/public/js/frappe/form/toolbar.js:433
+#: frappe/public/js/frappe/form/toolbar.js:431
 msgid "Show Links"
 msgstr "Показать ссылки"
 
@@ -25917,7 +26045,7 @@ msgstr ""
 msgid "Sign Up and Confirmation"
 msgstr "Регистрация и подтверждение"
 
-#: frappe/core/doctype/user/user.py:1107
+#: frappe/core/doctype/user/user.py:1100
 msgid "Sign Up is disabled"
 msgstr "Регистрация отключена"
 
@@ -26351,9 +26479,9 @@ msgstr "Укажите домены или источники, которым р
 msgid "Splash Image"
 msgstr "Заставка"
 
-#: frappe/desk/reportview.py:469
+#: frappe/desk/reportview.py:471
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:162
-#: frappe/public/js/frappe/web_form/web_form_list.js:182
+#: frappe/public/js/frappe/web_form/web_form_list.js:198
 #: frappe/templates/print_formats/standard_macros.html:44
 msgid "Sr"
 msgstr "ст."
@@ -26623,7 +26751,7 @@ msgstr "Статистика, временной интервал"
 #: frappe/email/doctype/email_queue_recipient/email_queue_recipient.json
 #: frappe/integrations/doctype/integration_request/integration_request.json
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
-#: frappe/public/js/frappe/list/list_settings.js:362
+#: frappe/public/js/frappe/list/list_settings.js:365
 #: frappe/public/js/frappe/list/list_view.js:2492
 #: frappe/public/js/frappe/views/reports/report_view.js:1076
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
@@ -26820,7 +26948,7 @@ msgctxt "Button in list view actions menu"
 msgid "Submit"
 msgstr "Утвердить"
 
-#: frappe/website/doctype/web_form/templates/web_form.html:56
+#: frappe/website/doctype/web_form/templates/web_form.html:57
 msgctxt "Button in web form"
 msgid "Submit"
 msgstr "Утвердить"
@@ -26849,7 +26977,7 @@ msgstr "Отправить после импорта"
 msgid "Submit an Issue"
 msgstr "Отправить сообщение о проблеме"
 
-#: frappe/website/doctype/web_form/templates/web_form.html:172
+#: frappe/website/doctype/web_form/templates/web_form.html:174
 msgctxt "Button in web form"
 msgid "Submit another response"
 msgstr "Отправить еще один ответ"
@@ -26882,7 +27010,7 @@ msgstr "Отправить {0} документов?"
 #: frappe/core/doctype/comment/comment.json
 #: frappe/public/js/frappe/model/indicator.js:95
 #: frappe/public/js/frappe/ui/filters/filter.js:552
-#: frappe/website/doctype/web_form/templates/web_form.html:152
+#: frappe/website/doctype/web_form/templates/web_form.html:154
 msgid "Submitted"
 msgstr "Утвержден"
 
@@ -26996,7 +27124,7 @@ msgstr "Успешно импортировано {0} из {1} записей."
 msgid "Successfully reset onboarding status for all users."
 msgstr "Успешно сброшен статус регистрации для всех пользователей."
 
-#: frappe/core/doctype/user/user.py:1523
+#: frappe/core/doctype/user/user.py:1516
 msgid "Successfully signed out"
 msgstr "Вы успешно вышли"
 
@@ -27021,7 +27149,7 @@ msgstr "Предложить оптимизацию"
 msgid "Suggested Indexes"
 msgstr "Предлагаемые индексы"
 
-#: frappe/core/doctype/user/user.py:799
+#: frappe/core/doctype/user/user.py:787
 msgid "Suggested Username: {0}"
 msgstr "Предлагаемое имя пользователя: {0}"
 
@@ -27197,7 +27325,7 @@ msgstr "Система"
 msgid "System Console"
 msgstr "Системная консоль"
 
-#: frappe/custom/doctype/custom_field/custom_field.py:412
+#: frappe/custom/doctype/custom_field/custom_field.py:413
 msgid "System Generated Fields can not be renamed"
 msgstr "Системные поля не могут быть переименованы"
 
@@ -27632,7 +27760,7 @@ msgstr "Предупреждения шаблонов"
 msgid "Templates"
 msgstr "Шаблоны"
 
-#: frappe/core/doctype/user/user.py:1120
+#: frappe/core/doctype/user/user.py:1113
 msgid "Temporarily Disabled"
 msgstr "Временно отключен"
 
@@ -27694,7 +27822,7 @@ msgstr "Текстовое содержание"
 msgid "Text Editor"
 msgstr "Текстовый редактор"
 
-#: frappe/templates/emails/password_reset.html:5
+#: frappe/templates/emails/password_reset.html:9
 msgid "Thank you"
 msgstr "Спасибо"
 
@@ -27706,7 +27834,7 @@ msgstr "Спасибо, что обратились к нам. Мы свяжем
 "Ваш вопрос:\n\n"
 "{0}"
 
-#: frappe/website/doctype/web_form/templates/web_form.html:156
+#: frappe/website/doctype/web_form/templates/web_form.html:158
 msgid "Thank you for spending your valuable time to fill this form"
 msgstr "Спасибо, что потратили свое драгоценное время на заполнение этой формы"
 
@@ -27806,7 +27934,7 @@ msgstr "Комментарий не может быть пустым"
 msgid "The configured SMTP server does not support DSN (Delivery Status Notification)."
 msgstr "Настроенный SMTP-сервер не поддерживает DSN (уведомления о статусе доставки)."
 
-#: frappe/templates/emails/workflow_action.html:9
+#: frappe/templates/emails/workflow_action.html:8
 msgid "The contents of this email are strictly confidential. Please do not forward this email to anyone."
 msgstr "Содержание этого письма строго конфиденциально. Пожалуйста, не пересылайте это письмо никому."
 
@@ -27880,11 +28008,7 @@ msgstr "Следующие значения недопустимы: {0}. Зна�
 msgid "The following values do not exist for {0}: {1}"
 msgstr "Следующие значения не существуют для {0}: {1}"
 
-#: frappe/templates/emails/login_with_email_link.html:21
-msgid "The link will expire in {0} minutes"
-msgstr "Срок действия ссылки истекает через {0} минут"
-
-#: frappe/www/login.py:198
+#: frappe/www/login.py:199
 msgid "The link you trying to login is invalid or expired."
 msgstr "Ссылка, по которой вы пытаетесь войти в систему, недействительна или истекла."
 
@@ -27932,11 +28056,11 @@ msgstr "Номер проекта, полученный из Google Cloud Consol
 msgid "The report you requested has been generated.<br><br>Click here to download:<br><a href='{0}'>{0}</a><br><br>This link will expire in {1} hours."
 msgstr "Запрошенный вами отчет создан.<br><br>Нажмите здесь, чтобы загрузить:<br><a href='{0}'>{0}</a><br><br>Срок действия этой ссылки истечет через {1} часов."
 
-#: frappe/core/doctype/user/user.py:1078
+#: frappe/core/doctype/user/user.py:1071
 msgid "The reset password link has been expired"
 msgstr "Срок действия ссылки для сброса пароля истек"
 
-#: frappe/core/doctype/user/user.py:1080
+#: frappe/core/doctype/user/user.py:1073
 msgid "The reset password link has either been used before or is invalid"
 msgstr "Ссылка на сброс пароля либо уже использовалась, либо недействительна"
 
@@ -28049,8 +28173,8 @@ msgstr "Для этого {1} нет {0} почему бы вам не нача�
 msgid "There are {0} with the same filters already in the queue:"
 msgstr "В очереди уже есть {0} с теми же фильтрами:"
 
-#: frappe/website/doctype/web_form/web_form.js:81
-#: frappe/website/doctype/web_form/web_form.js:334
+#: frappe/website/doctype/web_form/web_form.js:77
+#: frappe/website/doctype/web_form/web_form.js:330
 msgid "There can be only 9 Page Break fields in a Web Form"
 msgstr "В веб-форме может быть только 9 полей разрыва страницы"
 
@@ -28163,6 +28287,14 @@ msgstr "Этот PDF-файл не может быть загружен, так 
 msgid "This Quarter"
 msgstr "В этом квартале"
 
+#: frappe/website/doctype/web_form_request/web_form_request.py:59
+msgid "This Web Form Request has already been used"
+msgstr ""
+
+#: frappe/website/doctype/web_form_request/web_form_request.py:62
+msgid "This Web Form Request has expired"
+msgstr ""
+
 #: frappe/public/js/frappe/ui/filters/filter.js:675
 msgid "This Week"
 msgstr "На этой неделе"
@@ -28179,8 +28311,8 @@ msgstr "Это действие необратимо. Вы хотите прод
 msgid "This action is only allowed for {}"
 msgstr "Это действие разрешено только для {}"
 
-#: frappe/public/js/frappe/form/toolbar.js:127
-#: frappe/public/js/frappe/model/model.js:706
+#: frappe/public/js/frappe/form/toolbar.js:125
+#: frappe/public/js/frappe/model/model.js:724
 msgid "This cannot be undone"
 msgstr "Этого не исправить"
 
@@ -28422,7 +28554,7 @@ msgstr "Это сбросит настройки тура и покажет ег
 msgid "This will terminate the job immediately and might be dangerous, are you sure?"
 msgstr "Это приведет к немедленному прекращению работы и может быть опасно, вы уверены?"
 
-#: frappe/core/doctype/user/user.py:1354
+#: frappe/core/doctype/user/user.py:1347
 msgid "Throttled"
 msgstr "Периодически"
 
@@ -28829,7 +28961,7 @@ msgstr "Переключить на полную ширину"
 msgid "Toggle Grid View"
 msgstr "Переключить вид сетки"
 
-#: frappe/public/js/frappe/form/toolbar.js:472
+#: frappe/public/js/frappe/form/toolbar.js:483
 #: frappe/public/js/frappe/ui/sidebar/sidebar.html:72
 #: frappe/public/js/frappe/ui/sidebar/sidebar_header.js:256
 msgid "Toggle Sidebar"
@@ -28869,10 +29001,6 @@ msgstr "Тип токена"
 msgid "Token URI"
 msgstr "URI токена"
 
-#: frappe/utils/oauth.py:214
-msgid "Token is missing"
-msgstr "Токен отсутствует"
-
 #: frappe/public/js/frappe/ui/filters/filter.js:752
 msgid "Tomorrow"
 msgstr "Завтра"
@@ -28898,7 +29026,7 @@ msgstr "Слишком много фоновых заданий в очеред�
 msgid "Too many requests. Please try again later."
 msgstr "Слишком много запросов. Пожалуйста, попробуйте позже."
 
-#: frappe/core/doctype/user/user.py:1121
+#: frappe/core/doctype/user/user.py:1114
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "В последнее время на сайте зарегистрировалось слишком много пользователей, поэтому регистрация отключена. Пожалуйста, попробуйте вернуться через час"
 
@@ -28959,7 +29087,7 @@ msgstr "Вверху справа"
 msgid "Topic"
 msgstr "Тема"
 
-#: frappe/desk/query_report.py:805
+#: frappe/desk/query_report.py:807
 #: frappe/public/js/frappe/views/reports/print_grid.html:50
 #: frappe/public/js/frappe/views/reports/query_report.js:1396
 #: frappe/public/js/frappe/views/reports/report_view.js:1651
@@ -29503,21 +29631,21 @@ msgstr "Отменить условие"
 msgid "Uncaught Exception"
 msgstr "Непонятное исключение сервера"
 
-#: frappe/public/js/frappe/form/toolbar.js:113
+#: frappe/public/js/frappe/form/toolbar.js:111
 msgid "Unchanged"
 msgstr "Без изменений"
 
-#: frappe/public/js/frappe/form/toolbar.js:554
+#: frappe/public/js/frappe/form/toolbar.js:565
 #: frappe/public/js/frappe/views/communication.js:905
 msgid "Undo"
 msgstr "Отменить"
 
-#: frappe/public/js/frappe/form/toolbar.js:562
+#: frappe/public/js/frappe/form/toolbar.js:573
 msgid "Undo last action"
 msgstr "Отменить последнее действие"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:153
-#: frappe/public/js/frappe/form/toolbar.js:1005
+#: frappe/public/js/frappe/form/toolbar.js:1016
 msgid "Unfollow"
 msgstr "Отписаться"
 
@@ -29581,7 +29709,7 @@ msgid "Unpin"
 msgstr ""
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:634
-#: frappe/website/doctype/web_form/web_form.js:86
+#: frappe/website/doctype/web_form/web_form.js:82
 msgid "Unpublish"
 msgstr "Отменить публикацию"
 
@@ -29635,7 +29763,7 @@ msgstr "Параметры отмены подписки"
 msgid "Unsubscribed"
 msgstr "Подписка отменена"
 
-#: frappe/desk/query_report.py:494
+#: frappe/desk/query_report.py:496
 msgid "Unsupported file format: {0}"
 msgstr ""
 
@@ -29765,7 +29893,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Permission Log'
 #: frappe/core/doctype/comment/comment.json
 #: frappe/core/doctype/permission_log/permission_log.json
-#: frappe/public/js/frappe/web_form/web_form.js:452
+#: frappe/public/js/frappe/web_form/web_form.js:453
 msgid "Updated"
 msgstr "Обновленный"
 
@@ -29810,7 +29938,7 @@ msgstr "Обновление глобальных настроек"
 msgid "Updating naming series options"
 msgstr "Обновление параметров серии именования"
 
-#: frappe/public/js/frappe/form/toolbar.js:146
+#: frappe/public/js/frappe/form/toolbar.js:144
 msgid "Updating related fields..."
 msgstr "Обновление связанных полей..."
 
@@ -29958,6 +30086,10 @@ msgstr "Использование подзапроса или функции о
 msgid "Use strong passwords."
 msgstr ""
 
+#: frappe/templates/emails/verification_code.html:2
+msgid "Use the code below to complete your sign-in."
+msgstr ""
+
 #: frappe/printing/page/print/print.js:302
 msgid "Use the new Print Format Builder"
 msgstr "Используйте новый конструктор форматов печати"
@@ -29972,6 +30104,10 @@ msgstr "Используйте это поле для создания назв�
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Use this, for example, if all sent emails should also be send to an archive."
 msgstr "Используйте это, например, если все отправленные письма также необходимо отправлять в архив."
+
+#: frappe/website/doctype/web_form_request/web_form_request_list.js:9
+msgid "Used"
+msgstr "Использовано"
 
 #. Label of the used_oauth (Check) field in DocType 'User Email'
 #: frappe/core/doctype/user_email/user_email.json
@@ -30254,7 +30390,7 @@ msgstr "Пользователь может войти в систему, исп
 msgid "User can login using Email id or User Name"
 msgstr "Пользователь может войти в систему, используя адрес электронной почты или имя пользователя"
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:100
+#: frappe/core/doctype/user_invitation/user_invitation.py:102
 msgid "User is disabled"
 msgstr "Пользователь отключен"
 
@@ -30272,7 +30408,7 @@ msgstr "Пользователь должен всегда выбирать"
 msgid "User permission already exists"
 msgstr "Разрешение пользователя уже существует"
 
-#: frappe/www/login.py:175
+#: frappe/www/login.py:176
 msgid "User with email address {0} does not exist"
 msgstr "Пользователь с адресом электронной почты {0} не существует"
 
@@ -30280,15 +30416,15 @@ msgstr "Пользователь с адресом электронной поч
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 msgstr "Пользователь с адресом электронной почты: {0} не существует в системе. Попросите системного администратора создать пользователя для вас."
 
-#: frappe/core/doctype/user/user.py:604
+#: frappe/core/doctype/user/user.py:592
 msgid "User {0} cannot be deleted"
 msgstr "Пользователь {0} не может быть удален"
 
-#: frappe/core/doctype/user/user.py:376
+#: frappe/core/doctype/user/user.py:375
 msgid "User {0} cannot be disabled"
 msgstr "Пользователь {0} не может быть отключен"
 
-#: frappe/core/doctype/user/user.py:677
+#: frappe/core/doctype/user/user.py:665
 msgid "User {0} cannot be renamed"
 msgstr "Пользователь {0} не может быть переименован"
 
@@ -30309,15 +30445,15 @@ msgstr "Пользователь {0} не имеет разрешения на �
 msgid "User {0} has requested for data deletion"
 msgstr "Пользователь {0} запросил удаление данных"
 
-#: frappe/core/doctype/user/user.py:1498
+#: frappe/core/doctype/user/user.py:1491
 msgid "User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
 msgstr "Пользователь {0} начал сеанс под вашим аккаунтом. <br><br><b>Указана причина:</b> {1}"
 
-#: frappe/core/doctype/user/user.py:1481
+#: frappe/core/doctype/user/user.py:1474
 msgid "User {0} impersonated as {1}"
 msgstr "Пользователь {0} выдал себя за {1}"
 
-#: frappe/utils/oauth.py:301
+#: frappe/utils/oauth.py:320
 msgid "User {0} is disabled"
 msgstr "Пользователь {0} отключен"
 
@@ -30342,7 +30478,7 @@ msgstr "URI пользовательской информации"
 msgid "Username"
 msgstr "Имя пользователя"
 
-#: frappe/core/doctype/user/user.py:766
+#: frappe/core/doctype/user/user.py:754
 msgid "Username {0} already exists"
 msgstr "Имя пользователя {0} уже существует"
 
@@ -30451,7 +30587,7 @@ msgstr "Валидность"
 #: frappe/public/js/frappe/list/bulk_operations.js:345
 #: frappe/public/js/frappe/list/bulk_operations.js:421
 #: frappe/public/js/frappe/list/list_view_permission_restrictions.html:4
-#: frappe/website/doctype/web_form/web_form.js:247
+#: frappe/website/doctype/web_form/web_form.js:243
 #: frappe/website/doctype/website_meta_tag/website_meta_tag.json
 msgid "Value"
 msgstr "Значение"
@@ -30565,9 +30701,13 @@ msgstr "Верификация"
 msgid "Verification Code"
 msgstr "Код проверки"
 
-#: frappe/templates/emails/delete_data_confirmation.html:10
+#: frappe/templates/emails/delete_data_confirmation.html:9
 msgid "Verification Link"
 msgstr "Ссылка для проверки"
+
+#: frappe/templates/emails/verification_code.html:1
+msgid "Verification code"
+msgstr ""
 
 #: frappe/templates/includes/login/login.js:421
 msgid "Verification code email not sent. Please contact Administrator."
@@ -30619,7 +30759,7 @@ msgstr "Посмотреть"
 msgid "View All"
 msgstr "Смотреть все"
 
-#: frappe/public/js/frappe/form/toolbar.js:616
+#: frappe/public/js/frappe/form/toolbar.js:627
 msgid "View Audit Trail"
 msgstr "История изменений / проверок"
 
@@ -30708,7 +30848,7 @@ msgstr "Просмотр отчета в браузере"
 msgid "View this in your browser"
 msgstr "Посмотреть в браузере"
 
-#: frappe/public/js/frappe/web_form/web_form.js:481
+#: frappe/public/js/frappe/web_form/web_form.js:486
 msgctxt "Button in web form"
 msgid "View your response"
 msgstr "Просмотреть свой ответ"
@@ -30842,6 +30982,10 @@ msgstr "Мы получили запрос на удаление {0} данны�
 msgid "We have received a request from you to download your {0} data associated with: {1}"
 msgstr "Мы получили от вас запрос на загрузку ваших данных {0} связанных с: {1}"
 
+#: frappe/templates/emails/password_reset.html:3
+msgid "We received a request to reset the password for your account. Click the button below to set a new password."
+msgstr ""
+
 #: frappe/www/attribution.html:12
 msgid "We would like to thank the authors of these packages for their contribution."
 msgstr "Мы хотели бы поблагодарить авторов этих пакетов за их вклад."
@@ -30855,8 +30999,10 @@ msgid "Weak"
 msgstr "Слабый"
 
 #. Name of a DocType
+#. Label of the web_form (Link) field in DocType 'Web Form Request'
 #. Label of a Workspace Sidebar Item
 #: frappe/website/doctype/web_form/web_form.json
+#: frappe/website/doctype/web_form_request/web_form_request.json
 #: frappe/workspace_sidebar/website.json
 msgid "Web Form"
 msgstr "Веб-форма"
@@ -30875,6 +31021,25 @@ msgstr "Поля веб-формы"
 #: frappe/website/doctype/web_form_list_column/web_form_list_column.json
 msgid "Web Form List Column"
 msgstr "Колонка списка веб-формы"
+
+#. Name of a DocType
+#: frappe/website/doctype/web_form_request/web_form_request.json
+msgid "Web Form Request"
+msgstr ""
+
+#: frappe/website/doctype/web_form_request/web_form_request.py:129
+msgid "Web Form Request key is required"
+msgstr ""
+
+#: frappe/website/doctype/web_form_request/web_form_request.js:15
+msgid "Web Form Request link copied"
+msgstr ""
+
+#. Label of the web_form_values (Code) field in DocType 'Web Form Request'
+#: frappe/website/doctype/web_form_request/web_form_request.json
+#: frappe/website/doctype/web_form_request/web_form_request.py:98
+msgid "Web Form Values"
+msgstr ""
 
 #. Name of a DocType
 #. Label of a Workspace Sidebar Item
@@ -31012,6 +31177,7 @@ msgstr "Аналитика веб-сайта"
 #: frappe/website/doctype/help_category/help_category.json
 #: frappe/website/doctype/portal_settings/portal_settings.json
 #: frappe/website/doctype/web_form/web_form.json
+#: frappe/website/doctype/web_form_request/web_form_request.json
 #: frappe/website/doctype/web_page/web_page.json
 #: frappe/website/doctype/website_script/website_script.json
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -31228,7 +31394,7 @@ msgstr "Приветственный URL"
 msgid "Welcome Workspace"
 msgstr "Добро пожаловать в рабочее пространство"
 
-#: frappe/core/doctype/user/user.py:470
+#: frappe/core/doctype/user/user.py:469
 msgid "Welcome email sent"
 msgstr "Приветственное письмо отправлено"
 
@@ -31240,7 +31406,7 @@ msgstr "Добро пожаловать в Frappe!"
 msgid "Welcome to the {0} workspace"
 msgstr "Добро пожаловать в рабочее пространство {0}"
 
-#: frappe/core/doctype/user/user.py:537
+#: frappe/core/doctype/user/user.py:530
 msgid "Welcome to {0}"
 msgstr "Добро пожаловать в {0}"
 
@@ -31772,7 +31938,7 @@ msgstr "Вам не разрешено редактировать отчет."
 #: frappe/core/doctype/data_import/exporter.py:123
 #: frappe/core/doctype/data_import/exporter.py:127
 #: frappe/desk/reportview.py:458 frappe/desk/reportview.py:461
-#: frappe/permissions.py:651
+#: frappe/permissions.py:653
 msgid "You are not allowed to export {} doctype"
 msgstr "Вам не разрешено экспортировать {} doctype"
 
@@ -31788,7 +31954,7 @@ msgstr "Вам запрещено отправлять электронные п
 msgid "You are not allowed to update attendance for another user."
 msgstr ""
 
-#: frappe/website/doctype/web_form/web_form.py:652
+#: frappe/website/doctype/web_form/web_form.py:760
 msgid "You are not allowed to update this Web Form Document"
 msgstr "Вам не разрешено обновлять этот документ веб-формы"
 
@@ -31804,7 +31970,7 @@ msgstr "Вы не имеете прав отменить это электрон
 msgid "You are not connected to Internet. Retry after sometime."
 msgstr "Вы не подключены к Интернету. Повторите попытку через некоторое время."
 
-#: frappe/public/js/frappe/web_form/webform_script.js:22
+#: frappe/public/js/frappe/web_form/webform_script.js:24
 msgid "You are not permitted to access this page without login."
 msgstr "Вы не можете получить доступ к этой странице без авторизации."
 
@@ -31841,15 +32007,11 @@ msgstr "Вы можете добавить динамические свойст
 msgid "You can also access wkhtmltopdf variables (valid only in PDF print):"
 msgstr "Вы также можете получить доступ к переменным wkhtmltopdf (действительны только при печати PDF):"
 
-#: frappe/templates/emails/new_user.html:22
-msgid "You can also copy-paste following link in your browser"
-msgstr "Вы также можете скопировать и вставить следующую ссылку в свой браузер"
-
-#: frappe/templates/emails/download_data.html:9
+#: frappe/templates/emails/download_data.html:8
 msgid "You can also copy-paste this"
 msgstr "Вы также можете скопировать и вставить следующее"
 
-#: frappe/templates/emails/delete_data_confirmation.html:11
+#: frappe/templates/emails/delete_data_confirmation.html:10
 msgid "You can also copy-paste this {0} to your browser"
 msgstr "Вы также можете скопировать и вставить этот {0} в свой браузер"
 
@@ -31857,7 +32019,7 @@ msgstr "Вы также можете скопировать и вставить 
 msgid "You can also use variables in the series name by putting them between (.) dots"
 msgstr ""
 
-#: frappe/templates/emails/user_invitation_expired.html:8
+#: frappe/templates/emails/user_invitation_expired.html:4
 msgid "You can ask your team to resend the invitation if you'd still like to join."
 msgstr "Если вы все еще хотите присоединиться, попросите свою команду повторно отправить приглашение."
 
@@ -31919,7 +32081,7 @@ msgstr "Вы можете выбрать один из следующих вар
 msgid "You can set a high value here if multiple users will be logging in from the same network."
 msgstr "Вы можете установить большое значение, если несколько пользователей будут входить в систему из одной сети."
 
-#: frappe/desk/query_report.py:448
+#: frappe/desk/query_report.py:450
 msgid "You can try changing the filters of your report."
 msgstr "Вы можете попробовать изменить фильтры вашего отчета."
 
@@ -32015,7 +32177,7 @@ msgstr "У вас нет прав доступа к полю: {0}"
 msgid "You do not have permission to access this file"
 msgstr ""
 
-#: frappe/desk/query_report.py:1155
+#: frappe/desk/query_report.py:1157
 msgid "You do not have permission to access {0}: {1}."
 msgstr "У вас нет разрешения на доступ к {0}: {1}."
 
@@ -32035,7 +32197,8 @@ msgstr "У вас нет прав на отмену всех связанных 
 msgid "You don't have access to Report: {0}"
 msgstr "У вас нет доступа к Отчету: {0}"
 
-#: frappe/website/doctype/web_form/web_form.py:877
+#: frappe/website/doctype/web_form/web_form.py:1108
+#: frappe/website/doctype/web_form/web_form.py:1154
 msgid "You don't have permission to access the {0} DocType."
 msgstr "У вас нет разрешения на доступ к {0} DocType."
 
@@ -32059,7 +32222,7 @@ msgstr "У вас нет разрешения на получение отчет
 msgid "You don't have permission to read/attach the file {0}."
 msgstr ""
 
-#: frappe/website/doctype/web_form/web_form.py:192
+#: frappe/website/doctype/web_form/web_form.py:226
 msgid "You don't have the permissions to access this document"
 msgstr "У вас нет прав для доступа к этому документу"
 
@@ -32098,7 +32261,7 @@ msgstr "Вы еще не добавили ни одной диаграммы п�
 
 #: frappe/public/js/frappe/list/list_view.js:544
 msgid "You haven't created a {0} yet"
-msgstr "Вы еще не создали {0}"
+msgstr "Вы еще не создали сайт {0}"
 
 #: frappe/rate_limiter.py:166
 msgid "You hit the rate limit because of too many requests. Please try after sometime."
@@ -32112,13 +32275,14 @@ msgstr "Последний раз вы редактировали это"
 msgid "You must add atleast one link."
 msgstr "Необходимо добавить хотя бы одну ссылку."
 
-#: frappe/website/doctype/web_form/web_form.py:873
+#: frappe/website/doctype/web_form/web_form.py:1141
 msgid "You must be logged in to use this form."
 msgstr "Вы должны войти в систему, чтобы использовать эту форму."
 
-#: frappe/website/doctype/web_form/web_form.py:696
-msgid "You must login to submit this form"
-msgstr "Вы должны войти в систему, чтобы отправить эту форму"
+#: frappe/website/doctype/web_form/web_form.py:754
+#: frappe/website/doctype/web_form/web_form.py:967
+msgid "You must login to use this form"
+msgstr ""
 
 #: frappe/model/document.py:422
 msgid "You need the '{0}' permission on {1} {2} to perform this action."
@@ -32141,7 +32305,7 @@ msgstr "Для редактирования этого документа вам
 msgid "You need to be a system user to access this page."
 msgstr "Вы должны войти в систему, чтобы получить доступ к этой странице."
 
-#: frappe/website/doctype/web_form/web_form.py:94
+#: frappe/website/doctype/web_form/web_form.py:103
 msgid "You need to be in developer mode to edit a Standard Web Form"
 msgstr "Чтобы отредактировать стандартную веб-форму необходимо находиться в режиме разработчика"
 
@@ -32153,7 +32317,7 @@ msgstr "Для доступа к резервным копиям вам необ
 msgid "You need to be logged in to access this page"
 msgstr "Вам необходимо войти в систему, чтобы получить доступ к этой странице"
 
-#: frappe/website/doctype/web_form/web_form.py:181
+#: frappe/website/doctype/web_form/web_form.py:213
 msgid "You need to be logged in to access this {0}."
 msgstr "Вы должны войти в систему, чтобы получить доступ к этому {0}."
 
@@ -32248,11 +32412,15 @@ msgstr "Вы просмотрели это"
 msgid "You will be redirected to:"
 msgstr "Вы будете перенаправлены на:"
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:111
+#: frappe/templates/emails/user_invitation.html:1
+msgid "You've been invited"
+msgstr ""
+
+#: frappe/core/doctype/user_invitation/user_invitation.py:113
 msgid "You've been invited to join {0}"
 msgstr "Вас пригласили присоединиться к {0}"
 
-#: frappe/templates/emails/user_invitation.html:5
+#: frappe/templates/emails/user_invitation.html:4
 msgid "You've been invited to join {0}."
 msgstr "Вас пригласили присоединиться к {0}."
 
@@ -32297,6 +32465,10 @@ msgstr "Ваш аккаунт был заблокирован и будет во
 msgid "Your assignment on {0} {1} has been removed by {2}"
 msgstr "Ваше задание на {0} {1} было удалено {2}"
 
+#: frappe/integrations/google_oauth.py:203
+msgid "Your authorization attempt is invalid or has expired. Please try again."
+msgstr ""
+
 #: frappe/core/doctype/file/file.js:94
 msgid "Your browser does not support the audio element."
 msgstr "Ваш браузер не поддерживает аудио элементы."
@@ -32317,21 +32489,25 @@ msgstr "Ваш email"
 msgid "Your exported report: {0}"
 msgstr "Экспорт отчета: {0}"
 
-#: frappe/public/js/frappe/web_form/web_form.js:453
+#: frappe/public/js/frappe/web_form/web_form.js:454
 msgid "Your form has been successfully updated"
 msgstr "Ваша форма была успешно обновлена"
 
-#: frappe/templates/emails/user_invitation_cancelled.html:5
+#: frappe/templates/emails/user_invitation_cancelled.html:3
 msgid "Your invitation to join {0} has been cancelled by the site administrator."
 msgstr "Ваше приглашение присоединиться к {0} было отменено администратором сайта."
 
-#: frappe/templates/emails/user_invitation_expired.html:5
+#: frappe/templates/emails/user_invitation_expired.html:3
 msgid "Your invitation to join {0} has expired."
 msgstr "Приглашение присоединиться {0} истекло."
 
-#: frappe/templates/emails/new_user.html:6
-msgid "Your login id is"
-msgstr "Ваш логин id"
+#: frappe/templates/emails/new_user.html:8
+msgid "Your login ID is:"
+msgstr ""
+
+#: frappe/utils/oauth.py:232
+msgid "Your login attempt is invalid or has expired. Please try again."
+msgstr ""
 
 #: frappe/www/update-password.html:196
 msgid "Your new password has been set successfully."
@@ -32347,7 +32523,7 @@ msgstr "Старый пароль неверен."
 msgid "Your organization name and address for the email footer."
 msgstr "Название и адрес Вашей организации для нижнего колонтитула письма."
 
-#: frappe/core/doctype/user/user.py:394
+#: frappe/core/doctype/user/user.py:393
 msgid "Your password has been changed and you might have been logged out of all systems.<br>Please contact the Administrator for further assistance."
 msgstr "Ваш пароль был изменён, и вы могли быть отключены от всех систем.<br>Пожалуйста, свяжитесь с Администратором для получения дальнейшей помощи."
 
@@ -32359,17 +32535,13 @@ msgstr ""
 msgid "Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail."
 msgstr "Ваш запрос получен. Мы ответим на него в ближайшее время. Если у вас есть дополнительная информация, пожалуйста, ответьте на это письмо."
 
-#: frappe/desk/query_report.py:399 frappe/desk/reportview.py:409
+#: frappe/desk/query_report.py:401 frappe/desk/reportview.py:409
 msgid "Your report is being generated in the background. You will receive an email on {0} with a download link once it is ready."
 msgstr "Ваш отчёт создаётся в фоновом режиме. Как только отчёт будет готов, вы получите электронное письмо на адрес {0} со ссылкой для скачивания."
 
 #: frappe/app.py:382
 msgid "Your session has expired, please login again to continue."
 msgstr "Ваш сеанс истек, пожалуйста, войдите снова, чтобы продолжить."
-
-#: frappe/templates/emails/verification_code.html:1
-msgid "Your verification code is {0}"
-msgstr "Ваш код проверки: {0}"
 
 #: frappe/utils/data.py:1561
 msgid "Zero"
@@ -32704,7 +32876,7 @@ msgstr "jane@example.com"
 msgid "just now"
 msgstr "только что"
 
-#: frappe/desk/desktop.py:223 frappe/desk/query_report.py:348
+#: frappe/desk/desktop.py:223 frappe/desk/query_report.py:350
 msgid "label"
 msgstr "заголовок"
 
@@ -32722,10 +32894,6 @@ msgstr "linkedIn"
 #: frappe/www/third_party_apps.html:43
 msgid "logged in"
 msgstr "выполнен вход"
-
-#: frappe/website/doctype/web_form/web_form.js:384
-msgid "login_required"
-msgstr "login_required"
 
 #. Option for the 'Queue' (Select) field in DocType 'RQ Job'
 #. Option for the 'Queue Type(s)' (Select) field in DocType 'RQ Worker'
@@ -32820,7 +32988,8 @@ msgstr "on_update"
 msgid "on_update_after_submit"
 msgstr "on_update_after_submit"
 
-#: frappe/public/js/frappe/utils/utils.js:399 frappe/www/login.py:112
+#: frappe/public/js/frappe/utils/utils.js:399
+#: frappe/website/doctype/web_form/web_form.js:397 frappe/www/login.py:112
 msgid "or"
 msgstr "или"
 
@@ -33006,7 +33175,7 @@ msgstr "отправить"
 msgid "this form"
 msgstr "эта форма"
 
-#: frappe/tests/test_translate.py:181
+#: frappe/tests/test_translate.py:217
 msgid "this shouldn't break"
 msgstr "это не должно сломаться"
 
@@ -33030,7 +33199,7 @@ msgstr ""
 msgid "to select"
 msgstr "выбрать"
 
-#: frappe/templates/emails/download_data.html:9
+#: frappe/templates/emails/download_data.html:8
 msgid "to your browser"
 msgstr "в вашем браузере"
 
@@ -33188,7 +33357,7 @@ msgid "{0} Dashboard"
 msgstr "Дашборд {0}"
 
 #: frappe/public/js/frappe/form/grid_row.js:474
-#: frappe/public/js/frappe/list/list_settings.js:230
+#: frappe/public/js/frappe/list/list_settings.js:233
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:178
 msgid "{0} Fields"
 msgstr "{0} полей"
@@ -33209,7 +33378,7 @@ msgstr "{0} нравится это"
 msgid "{0} List"
 msgstr "Список {0}"
 
-#: frappe/public/js/frappe/list/list_settings.js:33
+#: frappe/public/js/frappe/list/list_settings.js:36
 msgid "{0} List View Settings"
 msgstr "{0} Настройки просмотра списка"
 
@@ -33251,7 +33420,7 @@ msgid "{0} Tree"
 msgstr "{0} Дерево"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:128
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:151
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:140
 msgid "{0} Web page views"
 msgstr "{0} просмотров веб-страницы"
 
@@ -33350,6 +33519,10 @@ msgstr "{0} изменено {1} на {2}"
 msgid "{0} contains an invalid Fetch From expression, Fetch From can't be self-referential."
 msgstr "{0} содержит недопустимое выражение Fetch From, Fetch From не может быть самореферентным."
 
+#: frappe/website/doctype/web_form_request/web_form_request.py:110
+msgid "{0} contains invalid field(s): {1}"
+msgstr ""
+
 #: frappe/public/js/frappe/form/controls/link.js:699
 msgid "{0} contains {1}"
 msgstr "{0} содержит {1}"
@@ -33424,7 +33597,7 @@ msgstr "{0} покинул беседу в {1} {2}"
 msgid "{0} hours ago"
 msgstr "{0} часов назад"
 
-#: frappe/website/doctype/web_form/templates/web_form.html:164
+#: frappe/website/doctype/web_form/templates/web_form.html:166
 msgid "{0} if you are not redirected within {1} seconds"
 msgstr "{0} если вы не будете перенаправлены в течение {1} секунд"
 
@@ -33566,11 +33739,11 @@ msgstr "{0} не является действительным номером т
 msgid "{0} is not a valid Workflow State. Please update your Workflow and try again."
 msgstr "{0} не является действительным состоянием рабочего процесса. Пожалуйста, обновите рабочий процесс и повторите попытку."
 
-#: frappe/permissions.py:843
+#: frappe/permissions.py:845
 msgid "{0} is not a valid parent DocType for {1}"
 msgstr "{0} не является допустимым родительским DocType для {1}"
 
-#: frappe/permissions.py:863
+#: frappe/permissions.py:865
 msgid "{0} is not a valid parentfield for {1}"
 msgstr "{0} не является допустимым родительским полем для {1}"
 
@@ -33582,7 +33755,7 @@ msgstr "{0} не является правильным форматом отче
 msgid "{0} is not a zip file"
 msgstr "{0} не является zip файлом"
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:181
+#: frappe/core/doctype/user_invitation/user_invitation.py:184
 msgid "{0} is not an allowed role for {1}"
 msgstr "{0} не является допустимым родительским полем для {1}"
 
@@ -33656,7 +33829,7 @@ msgstr "{0} равно {1}"
 msgid "{0} items selected"
 msgstr "Выбрано {0} элементов"
 
-#: frappe/core/doctype/user/user.py:1490
+#: frappe/core/doctype/user/user.py:1483
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr "{0} только что выдал себя за тебя. Они указали причину: {1}"
 
@@ -33817,7 +33990,7 @@ msgctxt "User added rows to child table"
 msgid "{0} rows to {1}"
 msgstr "{0} строк до {1}"
 
-#: frappe/desk/query_report.py:887
+#: frappe/desk/query_report.py:889
 msgid "{0} saved successfully"
 msgstr "{0} сохранено успешно"
 
@@ -33995,7 +34168,7 @@ msgid "{0}: Field '{1}' cannot be set as Unique as it has non-unique values"
 msgstr "{0}: Поле '{1}' не может быть установлено как уникальное, так как оно имеет неуникальные значения"
 
 #: frappe/core/doctype/doctype/doctype.py:1389
-#: frappe/website/doctype/web_form/web_form.py:121
+#: frappe/website/doctype/web_form/web_form.py:146
 msgid "{0}: Field {1} in row {2} cannot be hidden and mandatory without default"
 msgstr "{0}: Поле {1} в строке {2} не может быть скрытым и обязательным для заполнения по умолчанию"
 
@@ -34010,6 +34183,10 @@ msgstr "{0}: Имя поля {1} встречается несколько ра�
 #: frappe/core/doctype/doctype/doctype.py:1471
 msgid "{0}: Fieldtype {1} for {2} cannot be unique"
 msgstr "{0}: Тип поля {1} для {2} не может быть уникальным"
+
+#: frappe/website/doctype/web_form/web_form.py:121
+msgid "{0}: Link field cannot reference DocType {1} without Guest read permission"
+msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1856
 msgid "{0}: No basic permissions set"

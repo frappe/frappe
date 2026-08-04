@@ -46,6 +46,23 @@ class TestGoogleOAuth(IntegrationTestCase):
 		self.assertEqual(frappe.local.response["type"], "redirect")
 		self.assertEqual(frappe.local.response["location"], "/app/todo?connected=1")
 
+	def test_callback_dispatches_via_state_callback_method(self):
+		_dispatched_calls.clear()
+		frappe.local.response = frappe._dict()
+		state_token = create_google_oauth_state(
+			{
+				"domain": "drive",
+				"callback_method": "frappe.integrations.test_google_oauth._fake_domain_callback",
+				"redirect": "/app/todo",
+				"success_query_param": "connected=1",
+			}
+		)
+		# "drive" is deliberately absent from _DOMAIN_CALLBACK_METHODS here
+		callback(state=state_token, code="real-auth-code")
+
+		self.assertEqual(_dispatched_calls, [{"code": "real-auth-code"}])
+		self.assertEqual(frappe.local.response["location"], "/app/todo?connected=1")
+
 	def test_callback_rejects_unknown_state(self):
 		frappe.local.response = frappe._dict()
 		callback(state="not-a-real-token", error="access_denied")
