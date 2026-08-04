@@ -86,13 +86,8 @@
    "label": "Filters"
   },
   {
-<<<<<<< HEAD
-   "depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel)",
-   "description": "To add dynamic subject, use jinja tags like\n\n<div><pre><code>{{ doc.name }} Delivered</code></pre></div>",
-=======
    "depends_on": "eval: in_list(['Email', 'Slack'], doc.channel)",
    "description": "For a dynamic subject, use Jinja tags like this: <code>{{ doc.name }} Delivered</code>",
->>>>>>> 133edd2a60 (feat(ui): backport @framework/ui component library to v16)
    "fieldname": "subject",
    "fieldtype": "Data",
    "ignore_xss_filter": 1,

@@ -24,16 +24,10 @@
   "attachment_section",
   "attached_file",
   "attachment_link",
-<<<<<<< HEAD
-  "open_reference_document",
-  "from_user",
-  "link"
-=======
   "email_section",
   "subject",
   "email_content",
   "email_header"
->>>>>>> 133edd2a60 (feat(ui): backport @framework/ui component library to v16)
  ],
  "fields": [
   {
@@ -152,12 +146,6 @@
    "label": "Attachment Link"
   },
   {
-<<<<<<< HEAD
-   "fieldname": "link",
-   "fieldtype": "Small Text",
-   "hidden": 1,
-   "label": "Link"
-=======
    "collapsible": 1,
    "description": "What the recipient receives by email when this notification fires. Mirrors Title/Description by default; set these to make the email differ from the in-app text.",
    "fieldname": "email_section",
@@ -178,7 +166,6 @@
    "fieldname": "email_header",
    "fieldtype": "Data",
    "label": "Email Header"
->>>>>>> 133edd2a60 (feat(ui): backport @framework/ui component library to v16)
   }
  ],
  "hide_toolbar": 1,

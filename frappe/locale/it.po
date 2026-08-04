@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-21 13:56\n"
+"PO-Revision-Date: 2026-07-29 15:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -784,7 +784,7 @@ msgstr "Un elenco di risorse a cui l'App Client avrà accesso dopo che l'utente 
 
 #: frappe/templates/emails/new_user.html:5
 msgid "A new account has been created for you at {0}"
-msgstr "Un nuovo account è stato creato per te su {0}"
+msgstr ""
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:403
 msgid "A recurring {0} {1} has been created for you via Auto Repeat {2}."
@@ -4662,7 +4662,7 @@ msgstr "Cambia Password"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:27
 msgid "Change Print Format"
-msgstr "Cambia Formato di Stampa"
+msgstr ""
 
 #: frappe/desk/page/user_profile/user_profile_controller.js:51
 #: frappe/desk/page/user_profile/user_profile_controller.js:59
@@ -4967,7 +4967,7 @@ msgstr "Fare clic su un file per selezionarlo."
 
 #: frappe/templates/emails/login_with_email_link.html:19
 msgid "Click on the button to log in to {0}"
-msgstr "Fare clic sul pulsante per accedere a {0}"
+msgstr ""
 
 #: frappe/templates/emails/data_deletion_approval.html:2
 msgid "Click on the link below to approve the request"
@@ -4975,7 +4975,7 @@ msgstr "Fare clic sul collegamento sottostante per approvare la richiesta"
 
 #: frappe/templates/emails/new_user.html:7
 msgid "Click on the link below to complete your registration and set a new password"
-msgstr "Fare clic sul collegamento sottostante per completare la registrazione e impostare una nuova password"
+msgstr ""
 
 #: frappe/templates/emails/download_data.html:3
 msgid "Click on the link below to download your data"
@@ -6140,7 +6140,7 @@ msgstr "Crea o Modifica Flusso di Lavoro"
 
 #: frappe/public/js/frappe/list/list_view.js:514
 msgid "Create your first {0}"
-msgstr "Crea il tuo primo {0}"
+msgstr ""
 
 #: frappe/workflow/doctype/workflow/workflow.js:16
 msgid "Create your workflow visually using the Workflow Builder."
@@ -15456,7 +15456,7 @@ msgstr "DocType registro"
 
 #: frappe/templates/emails/login_with_email_link.html:27
 msgid "Log In To {0}"
-msgstr "Accedi a {0}"
+msgstr ""
 
 #. Label of a Int field in DocType 'Data Import Log'
 #: frappe/core/doctype/data_import_log/data_import_log.json
@@ -16358,7 +16358,7 @@ msgstr "Autorizzazione mancante"
 
 #: frappe/www/update-password.html:107 frappe/www/update-password.html:114
 msgid "Missing Value"
-msgstr "Valore Mancante"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/field_group.js:164
 #: frappe/public/js/frappe/widgets/widget_dialog.js:349
@@ -17556,7 +17556,7 @@ msgstr "Nessun documento trovato taggato con {0}"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:21
 msgid "No email account associated with the User. Please add an account under User > Email Inbox."
-msgstr "Nessun account email associato all'utente. Si prega di aggiungere un account in Utente > Posta in arrivo."
+msgstr ""
 
 #: frappe/core/api/user_invitation.py:17
 msgid "No email addresses to invite"
@@ -17674,7 +17674,7 @@ msgstr "Nessun {0} trovato"
 
 #: frappe/public/js/frappe/list/list_view.js:504
 msgid "No {0} found with matching filters. Clear filters to see all {0}."
-msgstr "Nessun {0} trovato con i filtri corrispondenti. Cancella i filtri per vedere tutti i {0}."
+msgstr ""
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:171
 msgid "No {0} mail"
@@ -19232,7 +19232,7 @@ msgstr "I requisiti della password non sono soddisfatti"
 
 #: frappe/www/update-password.html:164
 msgid "Password set"
-msgstr "Password impostata"
+msgstr ""
 
 #: frappe/auth.py:254
 msgid "Password size exceeded the maximum allowed size"
@@ -19771,7 +19771,7 @@ msgstr "Si prega di inserire sia l'email che il messaggio affinché possiamo ris
 
 #: frappe/www/update-password.html:232
 msgid "Please enter the password"
-msgstr "Inserisci la password"
+msgstr ""
 
 #: frappe/public/js/frappe/desk.js:211
 msgctxt "Email Account"
@@ -20267,7 +20267,7 @@ msgstr "Anteprima dei nomi generati"
 
 #: frappe/public/js/print_format_builder/Preview.vue:103
 msgid "Preview type"
-msgstr "Tipo di anteprima"
+msgstr ""
 
 #: frappe/email/doctype/email_group/email_group.js:90
 msgid "Preview:"
@@ -27869,7 +27869,7 @@ msgstr "URI del token"
 
 #: frappe/utils/oauth.py:213
 msgid "Token is missing"
-msgstr "Il token è mancante"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:744
 msgid "Tomorrow"
@@ -29514,7 +29514,7 @@ msgstr "Verifica password"
 
 #: frappe/templates/includes/login/login.js:172
 msgid "Verifying..."
-msgstr "Verifica in corso..."
+msgstr ""
 
 #. Name of a DocType
 #: frappe/core/doctype/version/version.json
@@ -30686,7 +30686,7 @@ msgstr "È possibile accedere anche alle variabili wkhtmltopdf (valide solo nell
 
 #: frappe/templates/emails/new_user.html:22
 msgid "You can also copy-paste following link in your browser"
-msgstr "Puoi anche copiare e incollare il seguente collegamento nel tuo browser"
+msgstr ""
 
 #: frappe/templates/emails/download_data.html:9
 msgid "You can also copy-paste this "
@@ -30958,7 +30958,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:508
 msgid "You haven't created a {0} yet"
-msgstr "Non hai ancora creato un {0}"
+msgstr ""
 
 #: frappe/rate_limiter.py:164
 msgid "You hit the rate limit because of too many requests. Please try after sometime."
@@ -31221,7 +31221,7 @@ msgstr ""
 
 #: frappe/templates/emails/verification_code.html:1
 msgid "Your verification code is {0}"
-msgstr "Il tuo codice di verifica è {0}"
+msgstr ""
 
 #. Success message of the Module Onboarding 'Website'
 #: frappe/website/module_onboarding/website/website.json

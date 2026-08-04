@@ -2,15 +2,12 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.core.doctype.user.user import get_system_users
-<<<<<<< HEAD
-=======
 from frappe.desk.doctype.notification_log.notification_log import (
 	enqueue_create_notification,
 	get_email_header,
 	get_title,
 )
 from frappe.desk.doctype.notification_type.notification_type import install_notification_types
->>>>>>> 133edd2a60 (feat(ui): backport @framework/ui component library to v16)
 from frappe.desk.form.assign_to import add as assign_task
 from frappe.tests.utils import FrappeTestCase
 
@@ -42,8 +39,6 @@ class TestNotificationLog(FrappeTestCase):
 		content = f"Subject: {frappe.utils.get_fullname(frappe.session.user)} shared a document ToDo"
 		self.assertTrue(content in email.message)
 
-<<<<<<< HEAD
-=======
 	def test_get_title_falls_back_to_docname_when_title_is_empty(self):
 		note = frappe.get_doc({"doctype": "Note", "title": "Notification title"}).insert()
 		frappe.db.set_value("Note", note.name, "title", None, update_modified=False)
@@ -204,7 +199,6 @@ def make_recipient(email: str) -> str:
 		).insert(ignore_permissions=True)
 	return email
 
->>>>>>> 133edd2a60 (feat(ui): backport @framework/ui component library to v16)
 
 def get_last_email_queue():
 	res = frappe.get_all("Email Queue", fields=["message"], order_by="creation desc", limit=1)

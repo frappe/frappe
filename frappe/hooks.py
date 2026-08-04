@@ -78,7 +78,7 @@ notification_skip_email_types = ["Alert"]
 # Notification Types that are delivered even when the recipient is also the actor
 # (for_user == from_user). Other types suppress self-notifications.
 # TODO: This should not be hardcoded and a configurable option in future.
-notification_self_notify_types = ["Alert"]
+notification_self_notify_types = ["Alert", "Energy Point"]
 
 before_tests = "frappe.utils.install.before_tests"
 
@@ -276,7 +276,6 @@ scheduler_events = {
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
 		"frappe.social.doctype.energy_point_settings.energy_point_settings.allocate_review_points",
 		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
-		"frappe.core.doctype.duckdb_sync.duckdb_sync.cleanup_old_syncs",
 	],
 	"weekly_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",
@@ -586,6 +585,7 @@ default_log_clearing_doctypes = {
 	"Integration Request": 90,
 	"Activity Log": 90,
 	"Route History": 90,
+	"DuckDB Sync": 45,
 }
 
 # These keys will not be erased when doing frappe.clear_cache()

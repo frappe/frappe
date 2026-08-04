@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-26 14:42\n"
+"PO-Revision-Date: 2026-08-03 16:57\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -31257,7 +31257,7 @@ msgstr "Vaš upit je primljen. Odgovorit ćemo vam uskoro. Ako imate dodatnih in
 
 #: frappe/desk/query_report.py:341 frappe/desk/reportview.py:377
 msgid "Your report is being generated in the background. You will receive an email on {0} with a download link once it is ready."
-msgstr "Vaš izvještaj se generira u pozadini. Primit ćete e-poruku na {0} s linkom za preuzimanje kada bude spreman."
+msgstr "Vaš izvještaj se izrađuje u pozadini. Primit ćete e-poštu na {0} s linkom za preuzimanje kada bude spreman."
 
 #: frappe/app.py:359
 msgid "Your session has expired, please login again to continue."
