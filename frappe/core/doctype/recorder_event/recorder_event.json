@@ -88,9 +88,10 @@
    "read_only": 1
   }
  ],
+ "is_virtual": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-07-30 00:00:00.000000",
+ "modified": "2026-08-04 11:18:44.372615",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Recorder Event",
