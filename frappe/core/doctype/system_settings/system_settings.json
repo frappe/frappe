@@ -109,6 +109,7 @@
   "max_report_rows",
   "snapshot_reports_section",
   "enable_snapshot_reports",
+  "sync_in_batch",
   "frequency",
   "sync_timeout",
   "background_workers",
@@ -827,8 +828,7 @@
   {
    "fieldname": "snapshot_reports_section",
    "fieldtype": "Section Break",
-   "label": "Snapshot Reports",
-   "show_description_on_click": 1
+   "label": "Snapshot Reports"
   },
   {
    "default": "0",
@@ -836,12 +836,19 @@
    "fieldname": "enable_snapshot_reports",
    "fieldtype": "Check",
    "label": "Enable Snapshot Reports"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval: doc.enable_snapshot_reports",
+   "fieldname": "sync_in_batch",
+   "fieldtype": "Check",
+   "label": "Sync In Batches"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-07-01 16:09:59.407976",
+ "modified": "2026-08-03 11:12:47.811078",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
