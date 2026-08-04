@@ -631,6 +631,8 @@ def is_whitelisted(method):
 	from frappe.utils import sanitize_html
 
 	app_name = (method.__module__ or "").split(".", 1)[0]
+	from frappe.apps import get_disabled_apps
+
 	if app_name in get_disabled_apps():
 		throw(_("App {0} is not installed").format(app_name), AppNotInstalledError)
 

@@ -65,3 +65,31 @@ frappe.ui.form.on("Installed Applications", {
 			});
 	},
 });
+
+frappe.ui.form.on("Installed Application", {
+	disable_application(frm, cdt, cdn) {
+		let row = locals[cdt][cdn];
+		frappe.call({
+			method: "frappe.core.doctype.installed_applications.installed_applications.set_app_state",
+			args: { app_name: row.app_name, disabled: 1 },
+			callback() {
+				frappe.dom.unfreeze();
+				frappe.toast(__("{0} has been disabled", [row.app_name]));
+				cur_frm.reload_doc();
+			},
+		});
+	},
+
+	enable_application(frm, cdt, cdn) {
+		let row = locals[cdt][cdn];
+		frappe.call({
+			method: "frappe.core.doctype.installed_applications.installed_applications.set_app_state",
+			args: { app_name: row.app_name, disabled: 0 },
+			callback() {
+				frappe.dom.unfreeze();
+				frappe.toast(__("{0} has been enabled", [row.app_name]));
+				cur_frm.reload_doc();
+			},
+		});
+	},
+});
