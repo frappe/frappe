@@ -188,7 +188,6 @@ class DuckDBTable(DBTable):
 				options=field.get("options"),
 				unique=field.get("unique"),
 				precision=field.get("precision"),
-				not_nullable=field.get("not_nullable"),
 			)
 		return columns
 

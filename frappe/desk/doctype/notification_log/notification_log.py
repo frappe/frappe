@@ -31,11 +31,6 @@ class NotificationLog(Document):
 		link: DF.SmallText | None
 		read: DF.Check
 		subject: DF.Text | None
-<<<<<<< HEAD
-		type: DF.Literal["", "Mention", "Energy Point", "Assignment", "Share", "Alert"]
-
-	# end: auto-generated types
-=======
 		title: DF.SmallText | None
 		type: DF.Link | None
 	# end: auto-generated types
@@ -60,7 +55,6 @@ class NotificationLog(Document):
 		if not self.app and self.document_type:
 			self.app = _resolve_app_for_doctype(self.document_type)
 
->>>>>>> 133edd2a60 (feat(ui): backport @framework/ui component library to v16)
 	def after_insert(self):
 		frappe.publish_realtime("notification", after_commit=True, user=self.for_user)
 		set_notifications_as_unseen(self.for_user)
@@ -123,7 +117,9 @@ def has_permission(doc, ptype="read", user=None):
 def get_title(doctype, docname, title_field=None):
 	if not title_field:
 		title_field = frappe.get_meta(doctype).get_title_field()
-	return docname if title_field == "name" else frappe.db.get_value(doctype, docname, title_field)
+	if title_field == "name":
+		return docname
+	return frappe.db.get_value(doctype, docname, title_field) or docname
 
 
 def get_title_html(title):
@@ -173,15 +169,7 @@ def make_notification_logs(doc, users):
 		notification = frappe.new_doc("Notification Log")
 		notification.update(doc)
 		notification.for_user = user
-<<<<<<< HEAD
-		if (
-			notification.for_user != notification.from_user
-			or doc.type == "Energy Point"
-			or doc.type == "Alert"
-		):
-=======
 		if notification.for_user != notification.from_user or doc.type in self_notify_types:
->>>>>>> 133edd2a60 (feat(ui): backport @framework/ui component library to v16)
 			notification.insert(ignore_permissions=True)
 
 
@@ -249,15 +237,10 @@ def get_email_header(doc, language: str | None = None):
 		"Share": _("New Document Shared {0}", lang=language).format(docname),
 		"Energy Point": _("Energy Point Update on {0}", lang=language).format(docname),
 	}
-<<<<<<< HEAD
-=======
 	if not doc.email_header:
 		# `type` is an extensible Link now, so fall back gracefully for custom types
 		doc.email_header = header_map.get(doc.type or "Default", header_map["Default"])
 	return doc.email_header
->>>>>>> 133edd2a60 (feat(ui): backport @framework/ui component library to v16)
-
-	return header_map[doc.type or "Default"]
 
 
 @frappe.whitelist()

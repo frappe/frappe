@@ -7,6 +7,8 @@ LEGACY_FIELD_MAP = {
 	"Mention": "enable_email_mention",
 	"Assignment": "enable_email_assignment",
 	"Share": "enable_email_share",
+	# v15 still ships Energy Points (dropped on develop), so its opt-out must be honoured too.
+	"Energy Point": "enable_email_energy_point",
 }
 
 

@@ -4,7 +4,6 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils.caching import http_cache
 
 # Built-in notification types shipped by the framework. These mirror the values
 # that `Notification Log.type` historically used as a Select, so the Select -> Link
@@ -60,8 +59,10 @@ def install_notification_types():
 		doc.insert(ignore_permissions=True)
 
 
+# NOTE: develop decorates this with @http_cache(max_age=300, stale_while_revalidate=3600).
+# v15 has no `frappe.local.response_headers`, so the decorator is omitted here rather than
+# backporting the response-header pipeline onto a stable branch.
 @frappe.whitelist()
-@http_cache(max_age=300, stale_while_revalidate=60 * 60)
 def get_notification_types():
 	"""Return the enabled notification types (categorical only — no presentation).
 

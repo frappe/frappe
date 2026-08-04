@@ -1,25 +1,16 @@
 # Copyright (c) 2021, Frappe Technologies and Contributors
 # See license.txt
 
-<<<<<<< HEAD
-# import frappe
-from frappe.tests.utils import FrappeTestCase
-=======
 import frappe
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	is_email_enabled_for_feature,
 )
-from frappe.tests import IntegrationTestCase
->>>>>>> 133edd2a60 (feat(ui): backport @framework/ui component library to v16)
+from frappe.tests.utils import FrappeTestCase
 
 FEATURE_FIELD = "enable_email_event_reminders"
 
 
-<<<<<<< HEAD
 class TestNotificationSettings(FrappeTestCase):
-	pass
-=======
-class TestNotificationSettings(IntegrationTestCase):
 	def setUp(self):
 		self.user = "test_notification_feature@example.com"
 		if not frappe.db.exists("User", self.user):
@@ -59,4 +50,3 @@ class TestNotificationSettings(IntegrationTestCase):
 		frappe.db.set_value("Notification Settings", self.user, "enable_email_notifications", 0)
 		frappe.clear_document_cache("Notification Settings", self.user)
 		self.assertFalse(is_email_enabled_for_feature(self.user, FEATURE_FIELD))
->>>>>>> 133edd2a60 (feat(ui): backport @framework/ui component library to v16)

@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-21 13:56\n"
+"PO-Revision-Date: 2026-07-29 15:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese\n"
 "MIME-Version: 1.0\n"
@@ -4664,7 +4664,7 @@ msgstr "Alterar Palavra-passe"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:27
 msgid "Change Print Format"
-msgstr "Alterar Formato de Impressão"
+msgstr ""
 
 #: frappe/desk/page/user_profile/user_profile_controller.js:51
 #: frappe/desk/page/user_profile/user_profile_controller.js:59
@@ -4969,7 +4969,7 @@ msgstr "Clique num ficheiro para o selecionar."
 
 #: frappe/templates/emails/login_with_email_link.html:19
 msgid "Click on the button to log in to {0}"
-msgstr "Clique no botão para iniciar sessão em {0}"
+msgstr ""
 
 #: frappe/templates/emails/data_deletion_approval.html:2
 msgid "Click on the link below to approve the request"
@@ -15458,7 +15458,7 @@ msgstr "DocType de registo"
 
 #: frappe/templates/emails/login_with_email_link.html:27
 msgid "Log In To {0}"
-msgstr "Entrar em {0}"
+msgstr ""
 
 #. Label of a Int field in DocType 'Data Import Log'
 #: frappe/core/doctype/data_import_log/data_import_log.json
@@ -16360,7 +16360,7 @@ msgstr "Permissão ausente"
 
 #: frappe/www/update-password.html:107 frappe/www/update-password.html:114
 msgid "Missing Value"
-msgstr "Valor ausente"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/field_group.js:164
 #: frappe/public/js/frappe/widgets/widget_dialog.js:349
@@ -17676,7 +17676,7 @@ msgstr "Nenhum {0} encontrado"
 
 #: frappe/public/js/frappe/list/list_view.js:504
 msgid "No {0} found with matching filters. Clear filters to see all {0}."
-msgstr "Nenhum {0} encontrado com os filtros aplicados. Limpe os filtros para ver todos os {0}."
+msgstr ""
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:171
 msgid "No {0} mail"
@@ -19234,7 +19234,7 @@ msgstr "Os requisitos da senha não foram cumpridos"
 
 #: frappe/www/update-password.html:164
 msgid "Password set"
-msgstr "Senha definida"
+msgstr ""
 
 #: frappe/auth.py:254
 msgid "Password size exceeded the maximum allowed size"
@@ -20269,7 +20269,7 @@ msgstr "Pré-visualização dos nomes gerados"
 
 #: frappe/public/js/print_format_builder/Preview.vue:103
 msgid "Preview type"
-msgstr "Tipo de pré-visualização"
+msgstr ""
 
 #: frappe/email/doctype/email_group/email_group.js:90
 msgid "Preview:"
@@ -29516,7 +29516,7 @@ msgstr "Verificar senha"
 
 #: frappe/templates/includes/login/login.js:172
 msgid "Verifying..."
-msgstr "A verificar..."
+msgstr ""
 
 #. Name of a DocType
 #: frappe/core/doctype/version/version.json
@@ -30688,7 +30688,7 @@ msgstr "Também pode aceder às variáveis wkhtmltopdf (válidas apenas na impre
 
 #: frappe/templates/emails/new_user.html:22
 msgid "You can also copy-paste following link in your browser"
-msgstr "Também pode copiar e colar o seguinte link no seu navegador"
+msgstr ""
 
 #: frappe/templates/emails/download_data.html:9
 msgid "You can also copy-paste this "
@@ -30960,7 +30960,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:508
 msgid "You haven't created a {0} yet"
-msgstr "Você ainda não criou um {0}"
+msgstr ""
 
 #: frappe/rate_limiter.py:164
 msgid "You hit the rate limit because of too many requests. Please try after sometime."
@@ -31223,7 +31223,7 @@ msgstr ""
 
 #: frappe/templates/emails/verification_code.html:1
 msgid "Your verification code is {0}"
-msgstr "O seu código de verificação é {0}"
+msgstr ""
 
 #. Success message of the Module Onboarding 'Website'
 #: frappe/website/module_onboarding/website/website.json

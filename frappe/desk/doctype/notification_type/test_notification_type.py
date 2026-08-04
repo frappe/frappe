@@ -6,10 +6,10 @@ from frappe.desk.doctype.notification_type.notification_type import (
 	BUILTIN_NOTIFICATION_TYPES,
 	install_notification_types,
 )
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestNotificationType(IntegrationTestCase):
+class TestNotificationType(FrappeTestCase):
 	def test_builtin_types_seeded(self):
 		install_notification_types()
 		for definition in BUILTIN_NOTIFICATION_TYPES:
