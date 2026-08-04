@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-21 13:57\n"
+"PO-Revision-Date: 2026-07-29 15:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -17556,7 +17556,7 @@ msgstr "Nenhum documento encontrado marcado com {0}"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:21
 msgid "No email account associated with the User. Please add an account under User > Email Inbox."
-msgstr "Nenhuma conta de e-mail associada ao usuário. Por favor, adicione uma conta em Usuário > Caixa de entrada de e-mail."
+msgstr ""
 
 #: frappe/core/api/user_invitation.py:17
 msgid "No email addresses to invite"
@@ -19771,7 +19771,7 @@ msgstr "Por favor, insira seu e-mail e sua mensagem para que possamos retornar o
 
 #: frappe/www/update-password.html:232
 msgid "Please enter the password"
-msgstr "Por favor, insira a senha"
+msgstr ""
 
 #: frappe/public/js/frappe/desk.js:211
 msgctxt "Email Account"
@@ -27869,7 +27869,7 @@ msgstr "URI do token"
 
 #: frappe/utils/oauth.py:213
 msgid "Token is missing"
-msgstr "O token está ausente"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:744
 msgid "Tomorrow"

@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-21 13:56\n"
+"PO-Revision-Date: 2026-07-29 15:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -4699,7 +4699,7 @@ msgstr "Şifreyi Değiştir"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:27
 msgid "Change Print Format"
-msgstr "Yazdırma Biçimini Değiştir"
+msgstr ""
 
 #: frappe/desk/page/user_profile/user_profile_controller.js:51
 #: frappe/desk/page/user_profile/user_profile_controller.js:59
@@ -5005,7 +5005,7 @@ msgstr "Seçmek için bir dosyaya tıklayın."
 
 #: frappe/templates/emails/login_with_email_link.html:19
 msgid "Click on the button to log in to {0}"
-msgstr "{0} adresinde oturum açmak için düğmeye tıklayın"
+msgstr ""
 
 #: frappe/templates/emails/data_deletion_approval.html:2
 msgid "Click on the link below to approve the request"
@@ -5013,7 +5013,7 @@ msgstr "Talebi onaylamak için aşağıdaki bağlantıya tıklayın"
 
 #: frappe/templates/emails/new_user.html:7
 msgid "Click on the link below to complete your registration and set a new password"
-msgstr "Kaydınızı tamamlamak ve yeni bir şifre belirlemek için aşağıdaki bağlantıya tıklayın"
+msgstr ""
 
 #: frappe/templates/emails/download_data.html:3
 msgid "Click on the link below to download your data"
@@ -15496,7 +15496,7 @@ msgstr "Günlük Kayıt için DocType"
 
 #: frappe/templates/emails/login_with_email_link.html:27
 msgid "Log In To {0}"
-msgstr "{0} Adresine Giriş Yapın"
+msgstr ""
 
 #. Label of a Int field in DocType 'Data Import Log'
 #: frappe/core/doctype/data_import_log/data_import_log.json
@@ -16399,7 +16399,7 @@ msgstr "Eksik İzin"
 
 #: frappe/www/update-password.html:107 frappe/www/update-password.html:114
 msgid "Missing Value"
-msgstr "Eksik Değer"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/field_group.js:164
 #: frappe/public/js/frappe/widgets/widget_dialog.js:349
@@ -17599,7 +17599,7 @@ msgstr "{0} ile etiketlenen belge bulunamadı"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:21
 msgid "No email account associated with the User. Please add an account under User > Email Inbox."
-msgstr "Kullanıcıyla ilişkilendirilmiş bir e-posta hesabı bulunmamaktadır. Lütfen bir hesap ekleyin: Kullanıcı > E-posta Gelen Kutusu."
+msgstr ""
 
 #: frappe/core/api/user_invitation.py:17
 msgid "No email addresses to invite"
@@ -19275,7 +19275,7 @@ msgstr "Şifre gereksinimleri karşılanmadı"
 
 #: frappe/www/update-password.html:164
 msgid "Password set"
-msgstr "Şifre ayarlandı"
+msgstr ""
 
 #: frappe/auth.py:254
 msgid "Password size exceeded the maximum allowed size"
@@ -19814,7 +19814,7 @@ msgstr "Size geri dönüş yapabilmemiz için lütfen hem e-postanızı hem de m
 
 #: frappe/www/update-password.html:232
 msgid "Please enter the password"
-msgstr "Lütfen şifrenizi girin"
+msgstr ""
 
 #: frappe/public/js/frappe/desk.js:211
 msgctxt "Email Account"
@@ -30731,7 +30731,7 @@ msgstr "wkhtmltopdf değişkenlerine de erişebilirsiniz (yalnızca PDF yazdırm
 
 #: frappe/templates/emails/new_user.html:22
 msgid "You can also copy-paste following link in your browser"
-msgstr "Aşağıdaki bağlantıyı tarayıcınıza kopyalayıp yapıştırabilirsiniz"
+msgstr ""
 
 #: frappe/templates/emails/download_data.html:9
 msgid "You can also copy-paste this "
@@ -31003,7 +31003,7 @@ msgstr "Henüz herhangi bir <b>Gösterge Tablosu</b> ve <b>Sayı Kartı</b> ekle
 
 #: frappe/public/js/frappe/list/list_view.js:508
 msgid "You haven't created a {0} yet"
-msgstr "Henüz bir {0} oluşturmadınız"
+msgstr ""
 
 #: frappe/rate_limiter.py:164
 msgid "You hit the rate limit because of too many requests. Please try after sometime."
@@ -31266,7 +31266,7 @@ msgstr ""
 
 #: frappe/templates/emails/verification_code.html:1
 msgid "Your verification code is {0}"
-msgstr "Doğrulama kodunuz {0}"
+msgstr ""
 
 #. Success message of the Module Onboarding 'Website'
 #: frappe/website/module_onboarding/website/website.json
