@@ -245,6 +245,9 @@ class PrintFormatGenerator:
 		"bottom_right": "right",
 	}
 	_FIELD_RENDERERS: ClassVar[dict[str, str]] = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}
+	JUSTIFY_MODES: ClassVar[frozenset[str]] = frozenset(
+		{"space-between", "space-evenly", "center", "right-end"}
+	)
 
 	def __init__(self, print_format, doc, letterhead=None, style=None, settings=None, no_letterhead=None):
 		self.print_format = (
@@ -502,11 +505,12 @@ class PrintFormatGenerator:
 		return "\n".join(parts) or None
 
 	_ZONE_SECTION_TEMPLATE = """\
+{%- set justify_classes = {'space-between': 'row-col-space-between', 'space-evenly': 'row-col-space-evenly', 'center': 'row-col-center', 'right-end': 'row-col-right-end'} -%}
 {%- set ns = namespace(has_fields=false) -%}
 {%- for col in section.columns -%}{%- for df in col.get('fields', []) -%}{%- set ns.has_fields = true -%}{%- endfor -%}{%- endfor -%}
 {%- if ns.has_fields -%}
 {%- set col_gap = (section.gap if section.gap is defined and section.gap is not none else 20)|string + 'px' -%}
-<div class="section section-columns row" style="gap:{{ col_gap }}">
+<div class="section section-columns row {{ justify_classes.get(section.get('justify'), '') }}" style="gap:{{ col_gap }}">
 {%- for column in section.columns %}
 <div class="column col"{% if column.get('width') %} style="flex: {{ column.get('width')|float }} 1 0%"{% endif %}>
 {%- for df in column.get('fields', []) -%}
@@ -514,7 +518,7 @@ class PrintFormatGenerator:
 {%- if df.fieldtype == 'HTML' and df.html -%}
 <div class="custom-html">{{ frappe.render_template(df.html, {'doc': doc}) }}</div>
 {%- elif df.fieldtype == 'Spacer' -%}
-<div style="height:12px"></div>
+<div style="height:{{ (df.height|int|string + 'px') if df.get('height') else '1em' }}"></div>
 {%- elif df.fieldtype == 'Divider' -%}
 <hr style="border-top:1px solid #e5e7eb;margin:4px 0"/>
 {%- elif df.fieldtype == 'Image' -%}
@@ -604,7 +608,11 @@ class PrintFormatGenerator:
 				for col in zone.get("columns") or []
 				if isinstance(col, dict)
 			]
-			return {**zone, "columns": columns}
+			cleaned = {**zone, "columns": columns}
+			# justify names a CSS class, so only the modes we ship may reach the markup
+			if cleaned.get("justify") not in self.JUSTIFY_MODES:
+				cleaned.pop("justify", None)
+			return cleaned
 
 		def clean_field(df):
 			if "table_columns" not in df:

@@ -37,6 +37,15 @@ export function write_json(key, value) {
 // Blocks the builder invents — they never map to a docfield on the document type
 export const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater"]);
 
+// Mirrors PrintFormatGenerator.JUSTIFY_MODES; the class names are spelled out so
+// both surfaces can be grepped for them
+export const JUSTIFY_CLASSES = {
+	"space-between": "row-col-space-between",
+	"space-evenly": "row-col-space-evenly",
+	center: "row-col-center",
+	"right-end": "row-col-right-end",
+};
+
 // Mirrors print_format_generator.is_qr_barcode_options: a Barcode docfield whose
 // options ask for a qr code — "qrcode"/"qr" or JSON like {"format": "qrcode"}
 export function is_qr_barcode_options(options) {

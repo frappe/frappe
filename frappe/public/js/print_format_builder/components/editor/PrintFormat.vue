@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="print-format-main"
+		class="print-format-main print-format"
 		data-theme="light"
 		:style="rootStyles"
 		:class="{
@@ -10,6 +10,7 @@
 		}"
 	>
 		<component :is="'style'" v-if="color_css">{{ color_css }}</component>
+		<component :is="'style'" v-if="print_format.css">{{ print_format.css }}</component>
 		<div v-if="!page_number_hidden" class="pfb-page-num" :style="page_number_style">
 			{{ __("1 of 2") }}
 		</div>

@@ -530,6 +530,27 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		frappe.clear_cache()
 		self.assertIsNone(resolved(no_letterhead=0))
 
+	def test_section_justify_only_emits_known_modes(self):
+		"""justify names a CSS class, so a layout can't smuggle markup through it."""
+		from frappe.utils.print_format_generator import get_html
+
+		layout = {
+			"sections": [
+				{"justify": 'x" onmouseover="alert(1)', "columns": [{"fields": []}]},
+				{
+					"justify": "space-between",
+					"columns": [{"fields": [{"fieldtype": "Data", "fieldname": "description"}]}],
+				},
+			],
+			"header": {"justify": 'x" onmouseover="alert(1)', "columns": [{"fields": []}]},
+			"footer": {"columns": [{"fields": []}]},
+		}
+		pf = self._make_print_format(format_data=json.dumps(layout))
+		html = get_html("ToDo", self._make_todo().name, pf.name)
+
+		self.assertNotIn("onmouseover", html)
+		self.assertIn("row-col-space-between", html)
+
 	def test_section_background_in_html(self):
 		"""A section with a background color should have that style in the HTML output."""
 		from frappe.utils.print_format_generator import get_html
