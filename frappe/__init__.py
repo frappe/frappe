@@ -1072,6 +1072,12 @@ def get_doc_hooks():
 def _load_app_hooks(app_name: str | None = None):
 	import types
 
+<<<<<<< HEAD
+=======
+	from frappe.apps import get_active_apps
+	from frappe.utils import get_module
+
+>>>>>>> ca8f56b (feat: Add bench enable-app and disable-app commands)
 	hooks = {}
 	apps = [app_name] if app_name else get_active_apps(_ensure_on_bench=True)
 
