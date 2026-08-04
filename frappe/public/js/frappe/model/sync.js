@@ -31,6 +31,10 @@ Object.assign(frappe.model, {
 					frappe.meta.sync(d);
 				}
 
+				if (d.doctype === "Print Format") {
+					frappe.model.sync_print_format_for_meta(d);
+				}
+
 				if (d.localname) {
 					frappe.model.rename_after_save(d, i);
 				}
@@ -39,6 +43,19 @@ Object.assign(frappe.model, {
 
 		frappe.model.sync_docinfo(r);
 		return r.docs;
+	},
+
+	sync_print_format_for_meta: function (doc) {
+		if (!locals[":Print Format"]) locals[":Print Format"] = {};
+
+		if (doc.docstatus < 2 && !cint(doc.disabled)) {
+			locals[":Print Format"][doc.name] = {
+				...doc,
+				doctype: ":Print Format",
+			};
+		} else {
+			delete locals[":Print Format"][doc.name];
+		}
 	},
 
 	rename_after_save: (d, i) => {
