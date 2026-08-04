@@ -1,3 +1,7 @@
+// Rendered print HTML, keyed by doctype::format::sample. Kept outside the builder
+// because the panel re-runs it on every open, and the same format renders the same.
+const html_cache = new Map();
+
 frappe.doctype_settings.register("print-format", function (panel, doctype) {
 	// Captured each load: current default + a printable sample doc for previews.
 	let default_pf = null;
@@ -180,12 +184,12 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 
 	// One render path for both surfaces: the card thumbnail and the full-size dialog show
 	// the same print HTML, so a card can never disagree with what opening it reveals.
-	const html_cache = new Map();
 	const PREVIEW_WIDTH = 850;
 	const EAGER_THUMBS = 6;
 
 	function fetch_print_html(pf) {
-		if (html_cache.has(pf)) return html_cache.get(pf);
+		const key = `${doctype}::${pf}::${sample_name}`;
+		if (html_cache.has(key)) return html_cache.get(key);
 		const req = new Promise((resolve) => {
 			frappe.call({
 				method: "frappe.www.printview.get_html_and_style",
@@ -200,7 +204,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 				error: () => resolve(null),
 			});
 		});
-		html_cache.set(pf, req);
+		html_cache.set(key, req);
 		return req;
 	}
 
