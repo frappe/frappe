@@ -804,16 +804,16 @@ class Engine:
 		idx = 1
 		while idx < len(nested_list):
 			# Expect an operator ('and' or 'or')
-			operator_str_lowered = nested_list[idx].lower()
-			if not isinstance(operator_str_lowered, str) or operator_str_lowered not in ("and", "or"):
+			operator_str = nested_list[idx]
+			if not isinstance(operator_str, str) or operator_str.lower() not in ("and", "or"):
 				frappe.throw(
-					_("Expected 'and' or 'or' operator, found: {0}").format(operator_str_lowered),
+					_("Expected 'and' or 'or' operator, found: {0}").format(operator_str),
 					frappe.ValidationError,
 				)
 
 			idx += 1
 			if idx >= len(nested_list):
-				frappe.throw(_("Filter condition missing after operator: {0}").format(operator_str_lowered))
+				frappe.throw(_("Filter condition missing after operator: {0}").format(operator_str))
 
 			# Expect a condition (list/tuple)
 			next_condition = nested_list[idx]
@@ -824,9 +824,9 @@ class Engine:
 
 			next_criterion = self._condition_to_criterion(next_condition)
 
-			if operator_str_lowered == "and":
+			if operator_str.lower() == "and":
 				current_criterion = current_criterion & next_criterion
-			elif operator_str_lowered == "or":
+			elif operator_str.lower() == "or":
 				current_criterion = current_criterion | next_criterion
 
 			idx += 1
