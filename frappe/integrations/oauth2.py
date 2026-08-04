@@ -218,13 +218,8 @@ def openid_configuration():
 	)
 
 
-<<<<<<< HEAD
-@frappe.whitelist(allow_guest=True)
-def introspect_token(token: str, token_type_hint=None):
-=======
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 def introspect_token(token: str, token_type_hint: str | None = None):
->>>>>>> 507f04067b (fix(oauth2): restrict endpoint HTTP methods (#41543))
 	if token_type_hint not in ["access_token", "refresh_token"]:
 		token_type_hint = "access_token"
 	try:
