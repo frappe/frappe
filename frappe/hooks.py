@@ -105,15 +105,27 @@ pdf_generator = "frappe.utils.pdf.get_chrome_pdf"
 # permissions
 
 permission_query_conditions = {
-	"Report": "frappe.core.doctype.report.report.get_permission_query_conditions",
+	"Report": [
+		"frappe.core.doctype.report.report.get_permission_query_conditions",
+		"frappe.app_state.get_module_permission_query_conditions",
+	],
 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 	"ToDo": "frappe.desk.doctype.todo.todo.get_permission_query_conditions",
 	"User": "frappe.core.doctype.user.user.get_permission_query_conditions",
 	"Dashboard Settings": "frappe.desk.doctype.dashboard_settings.dashboard_settings.get_permission_query_conditions",
 	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.get_permission_query_conditions",
-	"Dashboard": "frappe.desk.doctype.dashboard.dashboard.get_permission_query_conditions",
-	"Dashboard Chart": "frappe.desk.doctype.dashboard_chart.dashboard_chart.get_permission_query_conditions",
-	"Number Card": "frappe.desk.doctype.number_card.number_card.get_permission_query_conditions",
+	"Dashboard": [
+		"frappe.desk.doctype.dashboard.dashboard.get_permission_query_conditions",
+		"frappe.app_state.get_module_permission_query_conditions",
+	],
+	"Dashboard Chart": [
+		"frappe.desk.doctype.dashboard_chart.dashboard_chart.get_permission_query_conditions",
+		"frappe.app_state.get_module_permission_query_conditions",
+	],
+	"Number Card": [
+		"frappe.desk.doctype.number_card.number_card.get_permission_query_conditions",
+		"frappe.app_state.get_module_permission_query_conditions",
+	],
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.get_permission_query_conditions",
 	"Note": "frappe.desk.doctype.note.note.get_permission_query_conditions",
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.get_permission_query_conditions",
@@ -126,6 +138,17 @@ permission_query_conditions = {
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.get_permission_query_conditions",
 	"Document Template": "frappe.desk.doctype.document_template.document_template.get_permission_query_conditions",
 	"Tag Link": "frappe.desk.doctype.tag_link.tag_link.get_permission_query_conditions",
+	"Scheduled Job Type": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.get_permission_query_conditions",
+	"DocType": "frappe.app_state.get_module_permission_query_conditions",
+	"Page": "frappe.app_state.get_module_permission_query_conditions",
+	"Workspace": "frappe.app_state.get_module_permission_query_conditions",
+	"Workspace Sidebar": "frappe.app_state.get_module_permission_query_conditions",
+	"Print Format": "frappe.app_state.get_module_permission_query_conditions",
+	"Notification": "frappe.app_state.get_module_permission_query_conditions",
+	"Web Form": "frappe.app_state.get_module_permission_query_conditions",
+	"Client Script": "frappe.app_state.get_module_permission_query_conditions",
+	"Server Script": "frappe.app_state.get_module_permission_query_conditions",
+	"Desktop Icon": "frappe.app_state.get_app_permission_query_conditions",
 }
 
 has_permission = {
