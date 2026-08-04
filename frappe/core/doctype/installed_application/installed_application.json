@@ -8,7 +8,8 @@
   "app_version",
   "git_branch",
   "has_setup_wizard",
-  "is_setup_complete"
+  "is_setup_complete",
+  "disabled"
  ],
  "fields": [
   {
@@ -51,12 +52,21 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Is Setup Complete?"
+  },
+  {
+   "columns": 2,
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Disabled",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "istable": 1,
  "links": [],
- "modified": "2025-05-27 12:26:49.523690",
+ "modified": "2026-08-03 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Installed Application",

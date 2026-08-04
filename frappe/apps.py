@@ -119,3 +119,65 @@ def get_incomplete_setup_route(current_app: str, app_route: str):
 			return route
 
 	return app_route
+<<<<<<< HEAD
+=======
+
+
+def get_all_apps(with_internal_apps=True, sites_path=None):
+	"""Get list of all apps via `sites/apps.txt`."""
+	from frappe.utils import get_file_items
+
+	if not sites_path:
+		sites_path = frappe.local.sites_path
+
+	apps = get_file_items(os.path.join(sites_path, "apps.txt"), raise_not_found=True)
+
+	if with_internal_apps:
+		for app in get_file_items(os.path.join(frappe.local.site_path, "apps.txt")):
+			if app not in apps:
+				apps.append(app)
+
+	if "frappe" in apps:
+		apps.remove("frappe")
+	apps.insert(0, "frappe")
+
+	return apps
+
+
+@request_cache
+def get_installed_apps(*, _ensure_on_bench: bool = False) -> list[str]:
+	"""Get list of installed apps in current site."""
+	if getattr(frappe.flags, "in_install_db", True):
+		return []
+
+	if not frappe.db:
+		frappe.connect()
+
+	installed = orjson.loads(frappe.db.get_global("installed_apps") or "[]")
+
+	if _ensure_on_bench:
+		all_apps = frappe.cache.get_value("all_apps", get_all_apps)
+		installed = [app for app in installed if app in all_apps]
+
+	return installed
+
+
+def get_disabled_apps() -> list[str]:
+	"""Return apps that are installed on current site but logically disabled."""
+	if getattr(frappe.flags, "in_install_db", True):
+		return []
+
+	if not frappe.db:
+		frappe.connect()
+
+	return orjson.loads(frappe.db.get_global("disabled_apps") or "[]")
+
+
+@request_cache
+def get_active_apps(*, _ensure_on_bench: bool = False) -> list[str]:
+	"""Installed apps excluding those logically disabled on this site."""
+	installed = get_installed_apps(_ensure_on_bench=_ensure_on_bench)
+	disabled = get_disabled_apps()
+
+	return [app for app in installed if app not in disabled]
+>>>>>>> 062db15 (feat: Add disabled state in installed apps and utility for action)

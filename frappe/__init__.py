@@ -55,7 +55,104 @@ from .utils.jinja import (
 	render_template,
 )
 
+<<<<<<< HEAD
 __version__ = "16.28.0"
+=======
+# Lazy imports — loaded on first attribute access, then cached in globals()
+_LAZY_IMPORTS: dict[str, tuple[str, str]] = {
+	# frappe.cache_manager
+	"clear_cache": ("frappe.cache_manager", "clear_cache"),
+	"reset_metadata_version": ("frappe.cache_manager", "reset_metadata_version"),
+	# frappe.config
+	"get_common_site_config": ("frappe.config", "get_common_site_config"),
+	"get_conf": ("frappe.config", "get_conf"),
+	"get_site_config": ("frappe.config", "get_site_config"),
+	# frappe.core.doctype.system_settings.system_settings
+	"get_system_settings": ("frappe.core.doctype.system_settings.system_settings", "get_system_settings"),
+	# frappe.model.document
+	"get_doc": ("frappe.model.document", "get_doc"),
+	"get_docs": ("frappe.model.document", "get_docs"),
+	"get_lazy_doc": ("frappe.model.document", "get_lazy_doc"),
+	"copy_doc": ("frappe.model.document", "copy_doc"),
+	"new_doc": ("frappe.model.document", "new_doc"),
+	"get_cached_doc": ("frappe.model.document", "get_cached_doc"),
+	"can_cache_doc": ("frappe.model.document", "can_cache_doc"),
+	"get_document_cache_key": ("frappe.model.document", "get_document_cache_key"),
+	"clear_document_cache": ("frappe.model.document", "clear_document_cache"),
+	"get_cached_value": ("frappe.model.document", "get_cached_value"),
+	"get_single_value": ("frappe.model.document", "get_single_value"),
+	"get_last_doc": ("frappe.model.document", "get_last_doc"),
+	"get_single": ("frappe.model.document", "get_single"),
+	"_set_document_in_cache": ("frappe.model.document", "_set_document_in_cache"),
+	# frappe.model.meta
+	"get_meta": ("frappe.model.meta", "get_meta"),
+	# frappe.realtime
+	"publish_progress": ("frappe.realtime", "publish_progress"),
+	"publish_realtime": ("frappe.realtime", "publish_realtime"),
+	# frappe.utils
+	"get_traceback": ("frappe.utils", "get_traceback"),
+	"mock": ("frappe.utils", "mock"),
+	"parse_json": ("frappe.utils", "parse_json"),
+	"safe_eval": ("frappe.utils", "safe_eval"),
+	"create_folder": ("frappe.utils", "create_folder"),
+	"get_module": ("frappe.utils", "get_module"),
+	"read_file": ("frappe.utils", "read_file"),
+	"get_file_json": ("frappe.utils", "get_file_json"),
+	"get_file_items": ("frappe.utils", "get_file_items"),
+	"get_attr": ("frappe.utils", "get_attr"),
+	# frappe.utils.background_jobs
+	"enqueue": ("frappe.utils.background_jobs", "enqueue"),
+	"enqueue_doc": ("frappe.utils.background_jobs", "enqueue_doc"),
+	# frappe.utils.task_queue
+	"enqueue_task": ("frappe.utils.task_queue", "enqueue_task"),
+	"get_current_task": ("frappe.utils.task_queue", "get_current_task"),
+	# frappe.utils.error
+	"log_error": ("frappe.utils.error", "log_error"),
+	# frappe.utils.formatters
+	"format_value": ("frappe.utils.formatters", "format_value"),
+	"format": ("frappe.utils.formatters", "format_value"),
+	# frappe.utils.print_utils
+	"get_print": ("frappe.utils.print_utils", "get_print"),
+	"attach_print": ("frappe.utils.print_utils", "attach_print"),
+	# frappe.email
+	"sendmail": ("frappe.email", "sendmail"),
+	# frappe.concurrency_limiter
+	"concurrent_limit": ("frappe.concurrency_limiter", "concurrent_limit"),
+	# frappe.deprecation_dumpster
+	"get_test_records": ("frappe.deprecation_dumpster", "frappe_get_test_records"),
+	# frappe.utils.data
+	"scrub": ("frappe.utils.data", "scrub"),
+	"unscrub": ("frappe.utils.data", "unscrub"),
+	# frappe.modules.utils
+	"get_module_path": ("frappe.modules.utils", "get_module_path"),
+	"get_app_path": ("frappe.modules.utils", "get_app_path"),
+	"get_app_source_path": ("frappe.modules.utils", "get_app_source_path"),
+	"get_site_path": ("frappe.modules.utils", "get_site_path"),
+	"get_pymodule_path": ("frappe.modules.utils", "get_pymodule_path"),
+	"get_module_list": ("frappe.modules.utils", "get_module_list"),
+	# frappe.apps
+	"get_all_apps": ("frappe.apps", "get_all_apps"),
+	"get_installed_apps": ("frappe.apps", "get_installed_apps"),
+	"get_disabled_apps": ("frappe.apps", "get_disabled_apps"),
+	"get_active_apps": ("frappe.apps", "get_active_apps"),
+	# frappe.utils.response
+	"respond_as_web_page": ("frappe.utils.response", "respond_as_web_page"),
+	"redirect_to_message": ("frappe.utils.response", "redirect_to_message"),
+}
+
+
+def __getattr__(name: str):
+	if name in _LAZY_IMPORTS:
+		module_path, attr_name = _LAZY_IMPORTS[name]
+		mod = importlib.import_module(module_path)
+		value = getattr(mod, attr_name)
+		globals()[name] = value
+		return value
+	raise AttributeError(f"module 'frappe' has no attribute {name!r}")
+
+
+__version__ = "17.0.0-dev"
+>>>>>>> 062db15 (feat: Add disabled state in installed apps and utility for action)
 __title__ = "Frappe Framework"
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -63,6 +160,15 @@ if TYPE_CHECKING:  # pragma: no cover
 
 	from werkzeug.wrappers import Request
 
+<<<<<<< HEAD
+=======
+	# Lazy-imported names — resolved at runtime via __getattr__; listed here for editors/type checkers
+	from frappe.apps import get_active_apps, get_all_apps, get_disabled_apps, get_installed_apps
+	from frappe.cache_manager import clear_cache, reset_metadata_version
+	from frappe.concurrency_limiter import concurrent_limit
+	from frappe.config import get_common_site_config, get_conf, get_site_config
+	from frappe.core.doctype.system_settings.system_settings import get_system_settings
+>>>>>>> 062db15 (feat: Add disabled state in installed apps and utility for action)
 	from frappe.database.mariadb.database import MariaDBDatabase as PyMariaDBDatabase
 	from frappe.database.mariadb.mysqlclient import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
