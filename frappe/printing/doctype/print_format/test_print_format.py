@@ -742,68 +742,6 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertNotIn(bad_name, report)
 
 
-class TestPrintFormatPreview(IntegrationTestCase):
-	FORMAT_NAME = "_Test Preview Sweep"
-
-	def setUp(self):
-		frappe.delete_doc("Print Format", self.FORMAT_NAME, force=True, ignore_missing=True)
-		frappe.get_doc(
-			{
-				"doctype": "Print Format",
-				"name": self.FORMAT_NAME,
-				"doc_type": "ToDo",
-				"print_format_builder_beta": 1,
-				"format_data": frappe.as_json(
-					{
-						"sections": [{"label": "", "columns": [{"label": "", "fields": []}]}],
-						"header": {"columns": []},
-						"footer": {"columns": []},
-					}
-				),
-			}
-		).insert()
-		frappe.get_doc({"doctype": "ToDo", "description": "preview sample"}).insert()
-		self.addCleanup(frappe.delete_doc, "Print Format", self.FORMAT_NAME, force=True)
-
-	def test_autosave(self):
-		from frappe.printing.doctype.print_format.print_format import autosave
-
-		doc = frappe.get_doc("Print Format", self.FORMAT_NAME).as_dict()
-		doc["format_data"] = frappe.as_json(
-			{
-				"sections": [{"label": "Edited", "columns": [{"label": "", "fields": []}]}],
-				"header": {"columns": []},
-				"footer": {"columns": []},
-			}
-		)
-		result = autosave(frappe.as_json(doc))
-		self.assertEqual(result["name"], self.FORMAT_NAME)
-		self.assertIn("Edited", frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data"))
-
-	def test_autosave_preview_throttle(self):
-		"""Autosaves refresh the preview at most once per cooldown window; manual
-		saves always refresh."""
-		from unittest.mock import patch
-
-		pf = frappe.get_doc("Print Format", self.FORMAT_NAME)
-		cooldown_key = f"pf_preview_cooldown::{pf.name}"
-		frappe.cache.delete_value(cooldown_key)
-		self.addCleanup(frappe.cache.delete_value, cooldown_key)
-
-		with patch.object(frappe, "in_test", False), patch("frappe.enqueue") as enqueue:
-			pf.flags.pfb_autosave = True
-			pf.enqueue_preview_generation()
-			self.assertEqual(enqueue.call_count, 1, "no cooldown: autosave refreshes")
-
-			frappe.cache.set_value(cooldown_key, 1, expires_in_sec=60)
-			pf.enqueue_preview_generation()
-			self.assertEqual(enqueue.call_count, 1, "cooldown: autosave skips the refresh")
-
-			pf.flags.pfb_autosave = False
-			pf.enqueue_preview_generation()
-			self.assertEqual(enqueue.call_count, 2, "manual save refreshes despite cooldown")
-
-
 class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 	"""Per-row and per-column conditional visibility for child Table fields."""
 

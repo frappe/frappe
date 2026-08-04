@@ -294,13 +294,3 @@ def printable_sample(doctype: str) -> str | None:
 	filters = {"docstatus": 1} if frappe.get_meta(doctype).is_submittable else {}
 	sample = frappe.get_list(doctype, filters=filters, limit=1, order_by="modified desc", pluck="name")
 	return sample[0] if sample else None
-
-
-@frappe.whitelist()
-def autosave(doc: str | dict):
-	"""Save from the builder's autosave: like frappe.client.save, but the preview
-	image refresh is throttled by a cooldown instead of running on every save."""
-	doc = frappe.get_doc(frappe.parse_json(doc))
-	doc.flags.pfb_autosave = True
-	doc.save()
-	return doc.as_dict()
