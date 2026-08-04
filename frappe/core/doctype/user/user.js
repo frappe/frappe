@@ -431,28 +431,20 @@ frappe.ui.form.on("User Email", {
 frappe.ui.form.on("User Role Profile", {
 	role_profiles_add: function (frm) {
 		if (frm.doc.role_profiles.length > 0) {
+			$(".deselect-all, .select-all").prop("disabled", true);
 			frm.roles_editor.disable = 1;
 			frm.call("populate_role_profile_roles").then(() => {
 				frm.roles_editor.show();
 			});
-<<<<<<< HEAD
-			$(".deselect-all, .select-all").prop("disabled", true);
-=======
->>>>>>> 66877405e1 (fix: enable/disable buttons in roles editor based on state (#37212))
 		}
 	},
 	role_profiles_remove: function (frm) {
 		if (frm.doc.role_profiles.length == 0) {
-<<<<<<< HEAD
-			frm.roles_editor.disable = 0;
-			frm.roles_editor.show();
 			$(".deselect-all, .select-all").prop("disabled", false);
-=======
 			if (frm.roles_editor) {
 				frm.roles_editor.disable = 0;
 				frm.roles_editor.show();
 			}
->>>>>>> 66877405e1 (fix: enable/disable buttons in roles editor based on state (#37212))
 		}
 	},
 });
