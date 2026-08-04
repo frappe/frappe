@@ -57,15 +57,18 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	}
 
 	set_breadcrumbs() {
-		const route = frappe.get_route();
-		route.splice(-1);
-		const last_folder = route[route.length - 1];
-		if (last_folder === "File") return;
+		const route = frappe.get_route().slice(0, -1);
+		const at_home_folder = route[route.length - 1] === "File";
 
 		frappe.breadcrumbs.add({
 			type: "Custom",
+<<<<<<< HEAD
 			label: __("Home"),
 			route: "/app/List/File/Home",
+=======
+			label: at_home_folder ? this.page_title : __("Home"),
+			route: "/desk/file",
+>>>>>>> 81465ecf60 (fix(file manager): resolve nested folder routes correctly)
 		});
 	}
 
@@ -363,7 +366,14 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	}
 
 	get_route_url(file) {
+<<<<<<< HEAD
 		return file.is_folder ? "/app/List/File/" + file.name : this.get_form_link(file);
+=======
+		if (!file.is_folder) return this.get_form_link(file);
+
+		const folder_path = file.name.split("/").map(encodeURIComponent).join("/");
+		return "/desk/file/view/" + folder_path;
+>>>>>>> 81465ecf60 (fix(file manager): resolve nested folder routes correctly)
 	}
 
 	get_creation_date(file) {
