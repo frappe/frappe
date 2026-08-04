@@ -122,7 +122,8 @@ to switch, use `POST /sessions/{sid}/model` before the run.
 - `409` if the session is paused; resolve that batch through `/resume` (or abandon it
   through `/cancel_pending`) before starting another run. A run that has already
   received `/abort` also rejects new steering with `409` instead of carrying it into a
-  later turn.
+  later turn, and so does an active manual compaction — a compaction never reads the
+  steering queue, so "steered" would silently delay or lose the message.
 
 ### `POST /sessions/{sid}/resume?wait=<bool>`
 Body:
@@ -172,6 +173,27 @@ they are resolved inside flow →
 `{"model": "...", "credential_id": ..., "reasoning_effort": ...}` (the now-effective
 selection). `409` while a run is active; allowed while paused (the resume continues on
 the new model).
+
+### `POST /sessions/{sid}/compact?wait=<bool>`
+Body (optional): `{"instructions": "focus for the summary"}`. Summarizes the whole
+conversation into a durable `compaction` entry and folds the context down to that
+summary — a manual context reset. Runs as its own operation with the usual
+fire-and-forget / `?wait=true` shapes; a summarization failure settles as
+`run_error` + `run_ended(reason=="error")`. Nothing is deleted: the replaced rows stay
+in the log (and in `/entries`), and rewinding to before the compaction entry restores
+the uncompacted conversation. `409` while a run is active, while paused for approval,
+or when there is nothing to compact.
+
+Compaction also happens automatically while `auto_compact` is on (the default): near
+the model's context window and once per run after a provider context-overflow error.
+The live `compaction_started` / `compaction_ended` pair brackets every summarization
+call — including an aborted one, which closes with `error_message: "aborted"` (a
+manual compaction then ends with `run_ended(reason=="aborted")` and writes no
+assistant row). The durable `compaction` entry records the summary and the
+superseded boundary (`compact_up_to_seq`).
+The summarization input is clipped per message and budgeted to the model's window, so
+the recovery call cannot itself overflow. While a manual compaction is active, `/run`
+answers `409` instead of steering.
 
 ### `GET /sessions/{sid}/entries?since=<int>&path=<active|all>`
 The durable log →
@@ -244,6 +266,8 @@ print(res["output"], res["reason"], res["usage"])
 | `credential_id` | inferred | named credential selected for the model |
 | `confirm_tools` | `[]` | extra tools that pause for approval, on top of each tool's own default |
 | `auto_approve` | `false` | unattended runs skip approval |
+| `auto_compact` | `true` | compact automatically near the model's context window; recover from a context overflow once per run |
+| `compact_threshold_tokens` | derived | explicit compaction trigger; default uses the provider threshold when available, otherwise the model window with output room reserved |
 | `cwd` | `"."` | tool working dir; cwd and built-in file paths are checked against `ALLOWED_ROOTS` (`bash` is not sandboxed) |
 | `max_turns` | `30` | turn cap |
 | `max_output_tokens` | `200000` | output-token spend cap |

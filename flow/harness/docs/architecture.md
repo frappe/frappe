@@ -32,9 +32,10 @@ One rule everything else follows from: **the loop yields, the session commits.**
 
 `events.py` is the shared contract. Durable events (`run_started`, `user_message`,
 `assistant_message`, `tool_result`, `usage`, `approval_required`, `run_ended`,
-`rewind`, `model_changed`, `run_error`) are appended to the per-session JSONL log
-with a monotonic `seq` and rebuild all state on replay. Live-only events (`text_delta`, `thinking_delta`,
-`tool_call_started`, `retry`) stream to subscribers and are never persisted — a missed
+`rewind`, `model_changed`, `compaction`, `run_error`) are appended to the per-session
+JSONL log with a monotonic `seq` and rebuild all state on replay. Live-only events
+(`text_delta`, `thinking_delta`, `tool_call_started`, `retry`, `compaction_started`,
+`compaction_ended`) stream to subscribers and are never persisted — a missed
 delta is healed by replaying the durable log.
 
 Provider round-trip data (thinking signatures, Codex response items) rides in the
@@ -75,6 +76,44 @@ The model selection is a tree entry too: `Session.set_model` commits a
 run at admission — is the last such row on the active branch, falling back to the
 creation config. Config is immutable after create; a `run` request carries only its
 message, and rewinding past a model change restores the previous selection.
+
+## Compaction
+
+Long sessions stay inside the model's context window by compaction: a summarization
+call whose result is appended as a durable `compaction` row — never a rewrite. The row
+carries the summary and `compact_up_to_seq`; the reducer folds it by swapping every
+message at or before that boundary for one synthetic "Previous conversation summary"
+user message, in place, because the running loop reads that exact list. The replaced
+rows stay in the log and on the tree path, so `/entries` still serves the full history
+and a rewind to before the compaction restores the uncompacted conversation.
+
+`agent/compaction.py` owns the mechanics: a chars/4 estimator (the trigger prefers the
+provider's own reported usage from the last turn), a boundary planner that keeps up
+to the newest ~20k tokens—scaled down for small windows and large system/tool
+prompts—and never splits a turn (the cut lands on a user message start, falling back
+to an assistant start, never a tool result), and the summarizer — a
+standalone tool-less model call whose deltas are consumed silently, and which updates
+a previous summary instead of re-summarizing its prose. Its input is clipped per
+message and budgeted to the model's window, so the giant tool result that caused an
+overflow cannot make the recovery call overflow too. Three triggers:
+
+- **threshold** — checked at the top of each turn, before the model call: past the
+  window minus a reserve (or `compact_threshold_tokens`), the loop yields the
+  protocol (`compaction_started` → `compaction` → `compaction_ended`); a failed
+  attempt reports in-stream and never loses the turn.
+- **overflow** — a `ProviderError(kind="context_overflow")` from the model call is
+  recovered once per run: compact, retry the call once, and if that fails too the
+  error settles as usual.
+- **manual** — `Session.compact(instructions)` / `POST /sessions/{sid}/compact`
+  replaces the whole conversation and runs as a normal operation (`run_started` …
+  `run_ended`); 409 while running or paused. A `run` during it is a 409 too — the
+  compaction never drains steering. Aborting it closes the pair
+  (`compaction_ended(error_message="aborted")`) and ends with
+  `run_ended(reason="aborted")`, with no fabricated assistant row.
+
+`auto_compact: false` switches both automatic paths off. The summarization call is
+internal and does not overwrite the provider usage retained for normal context
+tracking.
 
 ## One operation at a time
 

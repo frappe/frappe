@@ -3,6 +3,7 @@ import pytest
 from flow.events import (
 	ApprovalRequired,
 	AssistantMessage,
+	Compaction,
 	ModelChanged,
 	PendingCall,
 	Rewind,
@@ -15,7 +16,7 @@ from flow.events import (
 	UserMessage,
 )
 from flow.session.log import SessionLog
-from flow.session.transcript import Transcript, active_path
+from flow.session.transcript import COMPACTION_SUMMARY_PREFIX, Transcript, active_path
 
 INTERRUPTED = "Tool call interrupted before completion."
 
@@ -458,3 +459,96 @@ def test_replay_to_before_a_model_change_forgets_it(tmp_path):
 	earlier = Transcript.replay(log, leaf_seq=2)
 	assert (earlier.model, earlier.credential_id) == ("mock/v2", None)
 	assert Transcript.replay(log, leaf_seq=1).model is None  # back to the session config
+
+
+def _texts(transcript):
+	return [m.content if isinstance(m, UserMessage) else m.text for m in transcript.messages]
+
+
+def test_compaction_folds_the_prefix_into_a_summary(tmp_path):
+	log = make_log(
+		tmp_path,
+		RunStarted(run_id="r1"),  # 1
+		UserMessage(content="A"),  # 2
+		AssistantMessage(content="X"),  # 3
+		RunEnded(),  # 4
+		Compaction(reason="manual", summary="S", compact_up_to_seq=3),  # 5
+		UserMessage(content="B"),  # 6
+	)
+
+	transcript = Transcript.replay(log)
+
+	assert [m.type for m in transcript.messages] == ["user_message", "user_message"]
+	summary = transcript.messages[0]
+	assert summary.content == COMPACTION_SUMMARY_PREFIX + "S"
+	assert summary.seq == 3  # retained messages stay newer than the compacted boundary
+	assert transcript.messages[1].content == "B"
+	assert transcript.leaf_seq == 6
+	assert transcript.missing_results() == ()
+
+
+def test_live_compaction_mutates_the_messages_list_in_place(tmp_path):
+	log = make_log(tmp_path, UserMessage(content="A"), AssistantMessage(content="X"))
+	transcript = Transcript.replay(log)
+	messages = transcript.messages  # a running loop reads this exact list
+
+	compaction = Compaction(reason="threshold", summary="S", compact_up_to_seq=2)
+	log.append(compaction)
+	transcript.record(compaction)
+
+	assert transcript.messages is messages
+	assert [m.content for m in messages] == [COMPACTION_SUMMARY_PREFIX + "S"]
+
+
+def test_second_compaction_supersedes_the_first_summary(tmp_path):
+	log = make_log(
+		tmp_path,
+		UserMessage(content="A"),  # 1
+		AssistantMessage(content="X"),  # 2
+		Compaction(reason="threshold", summary="first", compact_up_to_seq=2),  # 3
+		UserMessage(content="B"),  # 4
+		AssistantMessage(content="Y"),  # 5
+		Compaction(reason="threshold", summary="second", compact_up_to_seq=4),  # 6
+		UserMessage(content="C"),  # 7
+	)
+
+	transcript = Transcript.replay(log)
+
+	assert _texts(transcript) == [COMPACTION_SUMMARY_PREFIX + "second", "Y", "C"]
+
+
+def test_rewind_to_before_a_compaction_restores_the_conversation(tmp_path):
+	log = make_log(
+		tmp_path,
+		UserMessage(content="A"),  # 1
+		AssistantMessage(content="X"),  # 2
+		Compaction(reason="manual", summary="S", compact_up_to_seq=2),  # 3
+		Rewind(target_seq=2),  # 4
+	)
+
+	assert _texts(Transcript.replay(log)) == ["A", "X"]
+
+
+def test_compaction_boundary_is_by_seq_not_list_position(tmp_path):
+	# parallel results arrive out of call order, so list position and seq disagree
+	# inside the replaced turn; only the seq filter drops all of it
+	log = make_log(
+		tmp_path,
+		AssistantMessage(
+			content=[
+				ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"}),
+				ToolCall(id="c2", name="read_file", arguments={"path": "b.txt"}),
+			],
+			stop_reason="tool_use",
+		),  # 1
+		ToolResult(tool_call_id="c2", name="read_file", content="second"),  # 2, list index 2
+		ToolResult(tool_call_id="c1", name="read_file", content="first"),  # 3, list index 1
+		UserMessage(content="next"),  # 4
+		Compaction(reason="manual", summary="S", compact_up_to_seq=3),  # 5
+	)
+
+	transcript = Transcript.replay(log)
+
+	assert [m.type for m in transcript.messages] == ["user_message", "user_message"]
+	assert transcript.messages[0].seq == 3  # the compacted boundary
+	assert transcript.messages[1].content == "next"

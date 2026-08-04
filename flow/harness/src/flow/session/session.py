@@ -122,6 +122,7 @@ class Session:
 		self.abort_signal = asyncio.Event()
 		self._operation_lock = asyncio.Lock()
 		self._task: asyncio.Task[None] | None = None
+		self._operation_type: Literal["run", "compact"] = "run"
 		self._steering_queue: deque[str] = deque()
 		self._subscribers: set[asyncio.Queue[AnyEvent]] = set()
 		# a run this process never settled (daemon crash) left open calls; close them
@@ -179,6 +180,9 @@ class Session:
 			if self.state is SessionState.RUNNING:
 				if self.abort_signal.is_set():
 					raise SessionConflict("run is aborting")
+				if self._operation_type != "run":
+					# compaction never drains steering; "steered" would delay or lose the message
+					raise SessionConflict("compaction is in progress; run again when it finishes")
 				self._steering_queue.append(message)
 				return RunHandle(status="steered", from_seq=self.log.latest_seq)
 			inputs = self._loop_inputs(model, before_tool_call, after_tool_call)
@@ -251,6 +255,27 @@ class Session:
 				ModelChanged(model=model, credential_id=credential_id, reasoning_effort=reasoning_effort)
 			)
 
+	async def compact(
+		self,
+		instructions: str | None = None,
+		*,
+		model: Model | None = None,
+	) -> RunHandle:
+		"""Summarize the whole conversation into a durable compaction entry; the
+		replaced rows stay in the log."""
+		async with self._operation_lock:
+			if self.state is SessionState.RUNNING:
+				raise SessionConflict("a run is already active")
+			if self.state is SessionState.PAUSED:
+				raise SessionConflict("run is paused for approval; resolve it before compacting")
+			if not self.transcript.messages:
+				raise SessionConflict("nothing to compact")
+			inputs = self._loop_inputs(model, None, None)
+			return self._start_operation(
+				loop.compact(instructions, inputs),
+				operation_type="compact",
+			)
+
 	async def cancel_pending(self) -> bool:
 		"""Abandon a paused run's approval batch: answer every undecided call with a
 		cancellation so the transcript closes and the session returns to idle."""
@@ -315,9 +340,15 @@ class Session:
 
 	# --- driving one admitted operation -----------------------------------
 
-	def _start_operation(self, events: AsyncIterator[AnyEvent]) -> RunHandle:
+	def _start_operation(
+		self,
+		events: AsyncIterator[AnyEvent],
+		*,
+		operation_type: Literal["run", "compact"] = "run",
+	) -> RunHandle:
 		from_seq = self.log.latest_seq
-		task = asyncio.create_task(self._drive(events))
+		self._operation_type = operation_type
+		task = asyncio.create_task(self._drive(events, operation_type=operation_type))
 		task.add_done_callback(_mark_retrieved)
 		self._task = task
 		return RunHandle(status="started", from_seq=from_seq, task=task)
@@ -339,6 +370,8 @@ class Session:
 			allowed_roots=self.allowed_roots,
 			session_id=self.id,
 			model=model,
+			context_tokens=self.transcript.context_tokens,
+			context_message_count=self.transcript.context_message_count,
 			next_steering=self._next_steering,
 			before_tool_call=before_tool_call,
 			after_tool_call=after_tool_call,
@@ -347,7 +380,9 @@ class Session:
 	def _next_steering(self) -> str | None:
 		return self._steering_queue.popleft() if self._steering_queue else None
 
-	async def _drive(self, events: AsyncIterator[AnyEvent]) -> None:
+	async def _drive(
+		self, events: AsyncIterator[AnyEvent], *, operation_type: Literal["run", "compact"]
+	) -> None:
 		"""Commit the loop's events; when it raises instead, settle the run here."""
 		aborted_terminal = False
 		try:
@@ -356,7 +391,10 @@ class Session:
 					aborted_terminal = True
 				self._commit(event)
 		except (ModelCancelled, asyncio.CancelledError) as cancelled:
-			self._settle(reason="aborted", needs_aborted_message=not aborted_terminal)
+			self._settle(
+				reason="aborted",
+				needs_aborted_message=operation_type == "run" and not aborted_terminal,
+			)
 			if isinstance(cancelled, asyncio.CancelledError):
 				raise
 		except Exception as error:

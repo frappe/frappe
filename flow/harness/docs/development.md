@@ -93,5 +93,5 @@ the TUI detaches the client, it does not end the run.
 endpoints + a Redis→realtime bridge + the shared core via a Frappe adapter), with Flow's
 behavior unchanged.
 
-App-layer features (project instructions, compaction, skills, slash-commands) are
-deferred to post-v1.
+App-layer features (project instructions, skills, slash-commands) are deferred to
+post-v1.

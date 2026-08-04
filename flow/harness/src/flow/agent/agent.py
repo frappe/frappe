@@ -59,6 +59,10 @@ class Agent:
 			lambda: self._session.resume(answers, approval_seq=approval_seq, model=self._model, **hooks)
 		)
 
+	def compact(self, instructions: str | None = None) -> AsyncIterator[AnyEvent]:
+		"""Summarize the conversation into a durable compaction entry; yields until done."""
+		return self._events(lambda: self._session.compact(instructions, model=self._model))
+
 	def abort(self) -> bool:
 		"""Signal the active run to stop; return whether a run was active."""
 		return self._session.abort()

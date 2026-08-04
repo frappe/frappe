@@ -46,6 +46,7 @@ class ModelRequest:
 	system_prompt: str = "You are a helpful assistant."
 	stream: bool = True
 	cancellation: asyncio.Event | None = None
+	max_output_tokens: int | None = None
 
 
 class ModelCancelled(Exception):
@@ -57,6 +58,25 @@ class Model(abc.ABC):
 	api: str = "unknown"
 	provider: str = "unknown"
 	model: str = "unknown"
+
+	@property
+	def context_window(self) -> int | None:
+		"""Tokens of context the model accepts; None means unknown."""
+		return None
+
+	@property
+	def max_output_tokens(self) -> int | None:
+		"""Largest output the model accepts; None means the adapter does not know."""
+		return None
+
+	@property
+	def auto_compact_threshold_tokens(self) -> int | None:
+		"""Provider-recommended input size for automatic compaction, if known."""
+		return None
+
+	async def load_model_limits(self, cancellation: asyncio.Event | None = None) -> None:
+		"""Load serving-surface-specific limits when a provider exposes them."""
+		return None
 
 	@abc.abstractmethod
 	def run(self, request: ModelRequest) -> AsyncIterator[AnyEvent]:

@@ -425,3 +425,174 @@ async def test_set_model_while_paused_keeps_the_pause(tmp_path):
 	assert handle.task is not None
 	await handle.task
 	assert session.state is SessionState.IDLE
+
+
+async def test_compact_writes_a_durable_summary_and_survives_reload(tmp_path):
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(cwd=str(tmp_path)))
+	handle = await session.run("A", model=MockModel(replies=[AssistantMessage(content="X")]))
+	assert handle.task is not None
+	await handle.task
+	rows_before = session.log.read_since(0)
+
+	handle = await session.compact(
+		"keep the goal", model=MockModel(replies=[AssistantMessage(content="the summary")])
+	)
+	assert handle.status == "started"
+	assert handle.task is not None
+	await handle.task
+
+	assert session.state is SessionState.IDLE
+	assert [m.content for m in session.transcript.messages] == ["Previous conversation summary:\nthe summary"]
+	# nothing was deleted: the replaced rows are still on the path, before the new rows
+	rows = session.log.read_since(0)
+	assert rows[: len(rows_before)] == rows_before
+	tail_types = [r["type"] for r in rows[len(rows_before) :]]
+	assert tail_types == ["run_started", "compaction", "run_ended"]
+	assert rows[-2]["reason"] == "manual"
+	reloaded = SessionStore(str(tmp_path)).get(session.id)
+	assert [m.model_dump() for m in reloaded.transcript.messages] == [
+		m.model_dump() for m in session.transcript.messages
+	]
+	assert reloaded.log.latest_seq == session.log.latest_seq  # load repaired nothing
+
+
+async def test_compact_conflicts_while_running_paused_or_empty(tmp_path):
+	from flow.session.session import SessionConflict
+
+	(tmp_path / "a.txt").write_text("x")
+	store = SessionStore(str(tmp_path))
+
+	empty = store.create(SessionConfig(cwd=str(tmp_path)))
+	with pytest.raises(SessionConflict, match="nothing to compact"):
+		await empty.compact()
+
+	class Blocking(MockModel):
+		def __init__(self):
+			super().__init__()
+			self.started = asyncio.Event()
+			self.release = asyncio.Event()
+
+		async def run(self, request):
+			self.started.set()
+			await self.release.wait()
+			yield AssistantMessage(content="done")
+
+	model = Blocking()
+	running = store.create(SessionConfig(cwd=str(tmp_path)))
+	handle = await running.run("go", model=model)
+	await model.started.wait()
+	with pytest.raises(SessionConflict, match="already active"):
+		await running.compact()
+	model.release.set()
+	assert handle.task is not None
+	await handle.task
+
+	paused = store.create(SessionConfig(cwd=str(tmp_path), confirm_tools=["read_file"]))
+	gate = MockModel(
+		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read_file", arguments={"path": "a.txt"})])]
+	)
+	handle = await paused.run("read", model=gate)
+	assert handle.task is not None
+	await handle.task
+	assert paused.state is SessionState.PAUSED
+	with pytest.raises(SessionConflict, match="paused for approval"):
+		await paused.compact()
+
+
+async def test_compact_failure_settles_as_a_failed_run(tmp_path):
+	store = SessionStore(str(tmp_path))
+	events: list[dict] = []
+	store.event_sink = lambda _sid, ev: events.append(ev)
+	session = store.create(SessionConfig(cwd=str(tmp_path)))
+	handle = await session.run("A", model=MockModel(replies=[AssistantMessage(content="X")]))
+	assert handle.task is not None
+	await handle.task
+	messages_before = [m.model_dump() for m in session.transcript.messages]
+
+	failing = MockModel(replies=[AssistantMessage(stop_reason="error", error_message="no summary")])
+	handle = await session.compact(model=failing)
+	assert handle.task is not None
+	await handle.task
+
+	assert session.state is SessionState.IDLE
+	ended = [e for e in events if e["type"] == "compaction_ended"][-1]
+	assert "no summary" in ended["error_message"]
+	errors = [e for e in events if e["type"] == "run_error"]
+	assert errors and "no summary" in errors[-1]["message"]
+	assert [e["reason"] for e in events if e["type"] == "run_ended"][-1] == "error"
+	assert [m.model_dump() for m in session.transcript.messages] == messages_before
+
+
+class _BlockingSummarizer(MockModel):
+	"""Blocks inside the summarization call until released (or aborted)."""
+
+	def __init__(self):
+		super().__init__()
+		self.started = asyncio.Event()
+		self.release = asyncio.Event()
+
+	async def run(self, request):
+		self.started.set()
+		await self.release.wait()
+		yield AssistantMessage(content="the summary")
+
+
+async def test_run_during_manual_compact_is_a_conflict_not_steering(tmp_path):
+	from flow.session.session import SessionConflict
+
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(cwd=str(tmp_path)))
+	handle = await session.run("A", model=MockModel(replies=[AssistantMessage(content="X")]))
+	assert handle.task is not None
+	await handle.task
+
+	model = _BlockingSummarizer()
+	compacting = await session.compact(model=model)
+	await model.started.wait()
+
+	with pytest.raises(SessionConflict, match="compaction is in progress"):
+		await session.run("during compaction", model=MockModel())
+	assert not session._steering_queue  # nothing was queued for a later run to misplace
+
+	model.release.set()
+	assert compacting.task is not None
+	await compacting.task
+
+	handle = await session.run("after", model=MockModel(replies=[AssistantMessage(content="Y")]))
+	assert handle.task is not None
+	await handle.task
+	texts = [getattr(m, "text", None) or m.content for m in session.transcript.messages]
+	assert texts == ["Previous conversation summary:\nthe summary", "after", "Y"]
+
+
+async def test_abort_during_manual_compact_closes_the_protocol_cleanly(tmp_path):
+	store = SessionStore(str(tmp_path))
+	events: list[dict] = []
+	store.event_sink = lambda _sid, ev: events.append(ev)
+	session = store.create(SessionConfig(cwd=str(tmp_path)))
+	handle = await session.run("A", model=MockModel(replies=[AssistantMessage(content="X")]))
+	assert handle.task is not None
+	await handle.task
+	rows_before = session.log.read_since(0)
+	messages_before = [m.model_dump() for m in session.transcript.messages]
+
+	model = _BlockingSummarizer()
+	compacting = await session.compact(model=model)
+	await model.started.wait()
+	assert session.abort() is True
+	assert compacting.task is not None
+	await compacting.task
+
+	assert session.state is SessionState.IDLE
+	assert [e["type"] for e in events if e["type"].startswith("compaction")][-2:] == [
+		"compaction_started",
+		"compaction_ended",
+	]
+	ended = [e for e in events if e["type"] == "compaction_ended"][-1]
+	assert ended["error_message"] == "aborted"
+	# no compaction row, no fabricated assistant turn — just the aborted operation
+	tail = session.log.read_since(0)[len(rows_before) :]
+	assert [r["type"] for r in tail] == ["run_started", "run_ended"]
+	assert tail[-1]["reason"] == "aborted"
+	assert [m.model_dump() for m in session.transcript.messages] == messages_before

@@ -28,9 +28,19 @@ class MockModel(Model):
 	provider = "mock"
 	model = "mock"
 
-	def __init__(self, replies: list[AssistantMessage] | None = None):
+	def __init__(
+		self,
+		replies: list[AssistantMessage] | None = None,
+		*,
+		context_window: int | None = None,
+	):
 		self._replies = replies
 		self._turn = 0
+		self._context_window = context_window
+
+	@property
+	def context_window(self) -> int | None:
+		return self._context_window
 
 	async def run(self, request: ModelRequest) -> AsyncIterator[AnyEvent]:
 		if request.cancellation is not None and request.cancellation.is_set():

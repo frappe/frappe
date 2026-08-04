@@ -774,6 +774,36 @@ def test_active_entries_reject_a_cursor(tmp_path):
 	assert c.get(f"/sessions/{sid}/entries").status_code == 200
 
 
+def test_compact_verb_summarizes_and_conflicts(tmp_path, monkeypatch):
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
+
+	assert c.post(f"/sessions/{sid}/compact").status_code == 409  # nothing to compact yet
+
+	mock = MockModel(
+		replies=[
+			AssistantMessage(content="answer one"),
+			AssistantMessage(content="## Goal\nserver summary"),  # the summarizer's turn
+		]
+	)
+	monkeypatch.setattr("flow.agent.loop.get_model", lambda name, **kw: mock)
+	r = c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "hello"}).json()
+	assert r["reason"] == "done"
+
+	r = c.post(f"/sessions/{sid}/compact", params={"wait": "true"}, json={"instructions": "goals"}).json()
+	assert r["reason"] == "done"
+
+	entries = c.get(f"/sessions/{sid}/entries").json()["entries"]
+	rows = [e for e in entries if e["type"] == "compaction"]
+	assert len(rows) == 1
+	assert rows[0]["reason"] == "manual"
+	assert rows[0]["summary"] == "## Goal\nserver summary"
+	# the replaced rows are still served — the fold is a read-time view, not a delete
+	assert [e["type"] for e in entries][:2] == ["run_started", "user_message"]
+
+	assert c.post(f"/sessions/{sid}/compact", json={"instructions": 7}).status_code == 422
+
+
 def test_models_endpoint_discovers_configured_providers_only(tmp_path, monkeypatch):
 	from flow.model import discovery
 	from flow.model.catalog import PROVIDERS
