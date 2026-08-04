@@ -104,9 +104,53 @@ def get_workspace_names(workspaces):
 	return workspace_list
 
 
+<<<<<<< HEAD
 def check_app_permission(label, app):
 	for a in frappe.get_installed_apps():
 		if frappe.get_hooks(app_name=a)["app_title"][0] == label or app == a:
+=======
+def is_icon_permitted(icon, bootinfo, roles: list[str], icon_module: str | None) -> bool:
+	"""Whether `icon` belongs on this user's desktop.
+
+	Takes a plain icon row rather than a Document, along with the two related bits the check
+	needs -- the icon's `Has Role` rows and, for a workspace link, that workspace's module --
+	so `get_desktop_icons` can fetch both for the whole grid in one query each instead of
+	loading every icon just to reach them.
+	"""
+	# module permission check
+	if icon_module:
+		blocked_modules = frappe.get_cached_doc("User", frappe.session.user).get_blocked_modules()
+		if icon_module in blocked_modules:
+			return False
+
+	# perform a permission check based on roles table (desktop icons)
+	if roles and not set(roles).intersection(frappe.get_roles()):
+		return False
+
+	if icon.icon_type == "Folder":
+		return True
+	elif icon.icon_type == "App":
+		return _has_app_permission(icon)
+	else:
+		try:
+			items = bootinfo.workspace_sidebar_item[icon.label.lower()]["items"]
+
+			if len(items) and all(item["type"] == "Section Break" for item in items):
+				return False
+			if len(items) == 0:
+				return False
+			return True
+		except KeyError:
+			return False
+
+
+def _has_app_permission(icon) -> bool:
+	for a in frappe.get_active_apps():
+		# an app needn't declare `app_title`; asking for the hook by name returns [] instead
+		# of raising, so one such app can't abort the whole grid's permission check
+		app_title = (frappe.get_hooks("app_title", app_name=a) or [None])[0]
+		if app_title == icon.label or icon.app == a:
+>>>>>>> 86e08e8 (feat: Don't show up disabled apps, workspaces on desk)
 			app_detail = frappe.get_hooks("add_to_apps_screen", app_name=a)
 			if len(app_detail) != 0:
 				permission_method = app_detail[0].get("has_permission", None)
