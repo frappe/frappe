@@ -122,3 +122,22 @@ async def test_set_model_conflicts_with_an_injected_model_instance(tmp_path):
 
 async def _collect(events):
 	return [event async for event in events]
+
+
+async def test_compact_streams_the_operation(tmp_path):
+	mock = MockModel(
+		replies=[
+			AssistantMessage(content="an answer"),
+			AssistantMessage(content="## Goal\nagent summary"),
+		]
+	)
+	agent = Agent(model=mock, data_dir=str(tmp_path), cwd=str(tmp_path))
+	async for _ in agent.run("hi"):
+		pass
+
+	types = [ev.type async for ev in agent.compact()]
+
+	assert types[0] == "run_started"
+	assert "compaction_started" in types and "compaction" in types
+	assert types[-1] == "run_ended"
+	assert agent.session.transcript.messages[0].content.startswith("Previous conversation summary:")

@@ -197,6 +197,19 @@ class RunError(_Event):
 	detail: str | None = None
 
 
+CompactionReason = Literal["manual", "threshold", "overflow"]
+
+
+class Compaction(_Event):
+	"""A summary of transcript messages up to `compact_up_to_seq`; replay folds it
+	while the original rows remain in the log."""
+
+	type: Literal["compaction"] = "compaction"
+	reason: CompactionReason
+	summary: str
+	compact_up_to_seq: int
+
+
 # --- live-only events -----------------------------------------------------
 
 
@@ -231,6 +244,21 @@ class Retry(_Event):
 	kind: ProviderErrorKind | None = None
 
 
+class CompactionStarted(_Event):
+	"""A summarization call is in flight; `CompactionEnded` closes the pair."""
+
+	durable: ClassVar[bool] = False
+	type: Literal["compaction_started"] = "compaction_started"
+	reason: CompactionReason
+
+
+class CompactionEnded(_Event):
+	durable: ClassVar[bool] = False
+	type: Literal["compaction_ended"] = "compaction_ended"
+	reason: CompactionReason
+	error_message: str | None = None
+
+
 AnyEvent = (
 	RunStarted
 	| UserMessage
@@ -240,12 +268,15 @@ AnyEvent = (
 	| ApprovalRequired
 	| Rewind
 	| ModelChanged
+	| Compaction
 	| RunEnded
 	| RunError
 	| TextDelta
 	| ThinkingDelta
 	| ToolCallStarted
 	| Retry
+	| CompactionStarted
+	| CompactionEnded
 )
 
 Event = Annotated[AnyEvent, Field(discriminator="type")]

@@ -60,6 +60,12 @@ class RewindRequest(BaseModel):
 	target_seq: int
 
 
+class CompactRequest(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
+	instructions: str | None = None
+
+
 def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI:
 	app = FastAPI(title="flow server", version="0.1.0")
 
@@ -159,6 +165,12 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 		session = _get(sid)
 		await session.set_model(req.model, credential_id=req.credential_id)
 		return {"model": session.model, "credential_id": session.credential_id}
+
+	@app.post("/sessions/{sid}/compact")
+	async def compact(sid: str, req: CompactRequest | None = None, wait: bool = False):
+		session = _get(sid)
+		handle = await session.compact(req.instructions if req else None)
+		return await _finish(session, handle, wait)
 
 	@app.post("/sessions/{sid}/cancel_pending")
 	async def cancel_pending(sid: str):

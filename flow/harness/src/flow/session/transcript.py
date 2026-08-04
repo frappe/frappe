@@ -5,12 +5,14 @@ committed, so nothing here ever re-reads the log mid-run. Reading the whole log 
 exactly once, at load — `replay` rebuilds a transcript by pushing every logged event
 through that same `record`, so a restarted session and a live one always agree.
 
-It keeps three things current:
+It keeps four things current:
   - `messages`: the conversation in the shape a provider accepts, with each tool
     result placed right after the call it answers.
   - the open tool calls: the newest assistant message whose tool calls have not all
     come back yet. Incoming results are matched against them.
   - `pending_approval`: the calls a paused run is waiting for a human to decide.
+  - the latest provider-reported context size and the message boundary it covered,
+    so the next operation can account for trailing messages without guessing.
 
 A result is matched against whichever tool calls are open when it arrives. So the
 stand-in results that close an interrupted turn (`missing_results`) have to reach the
@@ -27,6 +29,7 @@ from flow.events import (
 	AnyEvent,
 	ApprovalRequired,
 	AssistantMessage,
+	Compaction,
 	ModelChanged,
 	PendingCall,
 	Rewind,
@@ -35,13 +38,21 @@ from flow.events import (
 	ToolCall,
 	ToolResult,
 	TranscriptMessage,
+	Usage,
 	UserMessage,
 	parse_event,
 )
 from flow.session.log import SessionLog
 
 _INTERRUPTED_TOOL_CONTENT = "Tool call interrupted before completion."
+COMPACTION_SUMMARY_PREFIX = "Previous conversation summary:\n"
 _logger = logging.getLogger(__name__)
+
+
+def compaction_summary_message(summary: str, *, seq: int | None = None) -> UserMessage:
+	"""The synthetic message a compaction folds to; never persisted. Its sequence is
+	the compacted boundary so retained messages remain newer than the summary."""
+	return UserMessage(content=COMPACTION_SUMMARY_PREFIX + summary, seq=seq)
 
 
 def active_path(rows: list[dict], leaf_seq: int | None = None) -> list[dict]:
@@ -130,6 +141,8 @@ class Transcript:
 		self.leaf_seq: int = 0  # what the next committed event follows; 0 = the root
 		self.model: str | None = None  # last model change on the path; None = session config
 		self.credential_id: str | None = None
+		self.context_tokens: int | None = None
+		self.context_message_count: int = 0
 		self._open_calls: _OpenToolCalls | None = None
 		self._open_approval: _OpenApproval | None = None
 
@@ -185,7 +198,31 @@ class Transcript:
 		elif isinstance(event, ModelChanged):
 			self.model = event.model
 			self.credential_id = event.credential_id
-		# usage, run_error, and live-only events carry no transcript state
+			self.context_tokens = None
+			self.context_message_count = 0
+		elif isinstance(event, Usage):
+			reported_context_tokens = event.input_tokens + event.output_tokens
+			if reported_context_tokens > 0:
+				self.context_tokens = reported_context_tokens
+				self.context_message_count = len(self.messages)
+		elif isinstance(event, Compaction):
+			self._fold_compaction(event)
+		# run_error and live-only events carry no transcript state
+
+	def _fold_compaction(self, event: Compaction) -> None:
+		"""Swap messages up to the compacted sequence for the summary — in place (a
+		running loop reads this list), filtered by seq (results sit in call order)."""
+		if self._open_calls is not None:
+			_logger.warning("Compaction arrived with an open tool-call batch; dropping the open calls")
+		self._open_calls = None
+		self._open_approval = None
+		kept = [m for m in self.messages if m.seq is not None and m.seq > event.compact_up_to_seq]
+		self.messages[:] = [
+			compaction_summary_message(event.summary, seq=event.compact_up_to_seq),
+			*kept,
+		]
+		self.context_tokens = None
+		self.context_message_count = 0
 
 	def _close_turn(self) -> None:
 		"""A newer message means nothing can answer the previous turn's calls — and a

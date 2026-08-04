@@ -768,6 +768,152 @@ async def test_context_overflow_ends_the_run_typed(tmp_path):
 	assert _of(events, "run_ended")[0]["reason"] == "error"
 
 
+BIG = "x" * 100_000  # ~25k estimated tokens: past any test threshold, over the kept tail
+
+
+class _OverflowThenRecoverModel(Model):
+	"""Call 1 overflows; call 2 serves the summarizer; call 3 answers."""
+
+	name = "overflow-recover"
+
+	def __init__(self):
+		self.calls = 0
+
+	async def run(self, request: ModelRequest):
+		self.calls += 1
+		if self.calls == 1:
+			raise ProviderError(
+				kind="context_overflow",
+				retryable=False,
+				status_code=400,
+				provider="test",
+				detail="prompt is too long",
+			)
+		if self.calls == 2:
+			yield AssistantMessage(content="## Goal\noverflow summary")
+		else:
+			yield AssistantMessage(content="recovered")
+		yield Usage(input_tokens=10, output_tokens=5)
+
+
+async def test_threshold_compaction_folds_before_the_next_model_call(tmp_path):
+	session, events = _session(tmp_path, compact_threshold_tokens=100)
+	await _run(session, BIG, model=MockModel(replies=[AssistantMessage(content="first answer")]))
+	assert _of(events, "compaction") == []  # a single turn has nothing old enough to replace
+
+	mock = MockModel(
+		replies=[
+			AssistantMessage(content="## Goal\ncompacted summary"),  # consumed by the summarizer
+			AssistantMessage(content="final answer"),
+		]
+	)
+	await _run(session, "continue", model=mock)
+
+	assert mock._turn == 2
+	row = _of(events, "compaction")[0]
+	assert row["reason"] == "threshold"
+	final = _of(events, "assistant_message")[-1]
+	assert final["content"][0]["text"] == "final answer"
+	assert row["seq"] < final["seq"]  # folded before the turn's model call
+	# the summarizer's stream never leaks to subscribers
+	deltas = "".join(e["text"] for e in _of(events, "text_delta"))
+	assert "compacted summary" not in deltas
+	msgs = session.transcript.messages
+	assert [m.type for m in msgs] == ["user_message", "user_message", "assistant_message"]
+	assert msgs[0].content.startswith("Previous conversation summary:")
+	assert "compacted summary" in msgs[0].content
+	assert msgs[1].content == "continue"
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
+	# a reload folds identically
+	reloaded = SessionStore(str(tmp_path)).get(session.id)
+	assert [m.model_dump() for m in reloaded.transcript.messages] == [m.model_dump() for m in msgs]
+
+
+async def test_threshold_compaction_failure_keeps_the_turn(tmp_path):
+	session, events = _session(tmp_path, compact_threshold_tokens=100)
+	await _run(session, BIG, model=MockModel(replies=[AssistantMessage(content="first answer")]))
+
+	mock = MockModel(
+		replies=[
+			AssistantMessage(stop_reason="error", error_message="summarizer down"),
+			AssistantMessage(content="still answered"),
+		]
+	)
+	await _run(session, "continue", model=mock)
+
+	assert _of(events, "compaction") == []
+	ended = _of(events, "compaction_ended")[-1]
+	assert "summarizer down" in ended["error_message"]
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
+	assert len(session.transcript.messages) == 4  # nothing was folded
+	assert session.transcript.messages[-1].text == "still answered"
+
+
+async def test_overflow_compacts_once_and_retries_the_turn(tmp_path):
+	session, events = _session(tmp_path)
+	await _run(session, BIG, model=MockModel(replies=[AssistantMessage(content="first answer")]))
+
+	model = _OverflowThenRecoverModel()
+	await _run(session, "continue", model=model)
+
+	assert model.calls == 3
+	row = _of(events, "compaction")[0]
+	assert row["reason"] == "overflow"
+	assert _of(events, "run_error") == []
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
+	msgs = session.transcript.messages
+	assert msgs[0].content.startswith("Previous conversation summary:")
+	assert msgs[-1].text == "recovered"
+
+
+async def test_a_second_overflow_in_the_same_run_fails_typed(tmp_path):
+	class AlwaysOverflow(Model):
+		name = "always-overflow"
+
+		def __init__(self):
+			self.calls = 0
+
+		async def run(self, request: ModelRequest):
+			self.calls += 1
+			if self.calls == 2:  # only the summarizer call succeeds
+				yield AssistantMessage(content="summary")
+				yield Usage(input_tokens=1, output_tokens=1)
+				return
+			raise ProviderError(
+				kind="context_overflow",
+				retryable=False,
+				status_code=400,
+				provider="test",
+				detail="still too long",
+			)
+
+	session, events = _session(tmp_path)
+	await _run(session, BIG, model=MockModel(replies=[AssistantMessage(content="first")]))
+
+	model = AlwaysOverflow()
+	await _run(session, "continue", model=model)
+
+	assert model.calls == 3  # original, summarizer, failed retry — no second recovery
+	assert len(_of(events, "compaction")) == 1  # the recovery itself is durable
+	assert _of(events, "run_error")[-1]["kind"] == "context_overflow"
+	assert _of(events, "run_ended")[-1]["reason"] == "error"
+
+
+async def test_auto_compact_disabled_turns_both_paths_off(tmp_path):
+	session, events = _session(tmp_path, auto_compact=False, compact_threshold_tokens=10)
+	await _run(session, BIG, model=MockModel(replies=[AssistantMessage(content="one")]))
+	await _run(session, "again", model=MockModel(replies=[AssistantMessage(content="two")]))
+	assert _of(events, "compaction_started") == []
+
+	failing = _FailingModel(
+		ProviderError(kind="context_overflow", retryable=False, status_code=400, provider="test", detail="x")
+	)
+	await _run(session, "boom", model=failing)
+
+	assert failing.attempts == 1  # no compact-and-retry
+	assert _of(events, "run_error")[-1]["kind"] == "context_overflow"
+
+
 async def test_model_retries_inside_the_adapter_never_rerun_completed_tools(tmp_path, monkeypatch):
 	tool_runs = 0
 
@@ -815,3 +961,119 @@ async def test_model_retries_inside_the_adapter_never_rerun_completed_tools(tmp_
 	assert [event["tool_call_id"] for event in _of(events, "tool_result")] == ["count-1"]
 	assert [event["status"] for event in _of(events, "retry")] == ["scheduled", "started"]
 	assert _of(events, "run_ended")[-1]["reason"] == "done"
+
+
+async def test_overflow_recovery_survives_a_giant_message(tmp_path):
+	# a message so large it overflowed on its own; the summarizer input must be
+	# clipped and budgeted or the recovery call would overflow too
+	session, events = _session(tmp_path, compact_threshold_tokens=1_000_000_000)
+	giant = "y" * 600_000  # ~150k estimated tokens, over the 128k default window
+	await _run(session, giant, model=MockModel(replies=[AssistantMessage(content="first")]))
+
+	class RecordingOverflow(Model):
+		name = "recording-overflow"
+
+		def __init__(self):
+			self.calls = 0
+			self.summarizer_prompt_chars = 0
+
+		async def run(self, request: ModelRequest):
+			self.calls += 1
+			if self.calls == 1:
+				raise ProviderError(
+					kind="context_overflow",
+					retryable=False,
+					status_code=400,
+					provider="test",
+					detail="too long",
+				)
+			if self.calls == 2:
+				self.summarizer_prompt_chars = len(request.messages[0].content)
+				yield AssistantMessage(content="## Goal\nsummary")
+			else:
+				yield AssistantMessage(content="recovered")
+			yield Usage(input_tokens=5, output_tokens=5)
+
+	model = RecordingOverflow()
+	await _run(session, "continue", model=model)
+
+	assert model.calls == 3
+	assert 0 < model.summarizer_prompt_chars < 60_000  # the 600k message was clipped
+	assert _of(events, "run_error") == []
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
+	assert session.transcript.messages[-1].text == "recovered"
+
+
+async def test_abort_during_auto_compact_closes_the_pair(tmp_path):
+	session, events = _session(tmp_path, compact_threshold_tokens=100)
+	await _run(session, BIG, model=MockModel(replies=[AssistantMessage(content="first")]))
+
+	class BlockingSummarizer(MockModel):
+		def __init__(self):
+			super().__init__()
+			self.started = asyncio.Event()
+
+		async def run(self, request):
+			self.started.set()
+			await asyncio.Event().wait()
+			yield AssistantMessage(content="never")
+
+	blocker = BlockingSummarizer()
+	handle = await session.run("continue", model=blocker)
+	await blocker.started.wait()  # the threshold summarizer is in flight
+	session.abort()
+	assert handle.task is not None
+	await asyncio.wait_for(handle.task, timeout=1)
+
+	assert _of(events, "compaction") == []
+	ended = _of(events, "compaction_ended")[-1]
+	assert ended["error_message"] == "aborted"
+	assert _of(events, "run_ended")[-1]["reason"] == "aborted"
+
+
+async def test_small_window_threshold_does_not_fire_on_a_small_conversation(tmp_path):
+	# with the fixed 16k reserve a 10k window meant threshold=1: compaction on every
+	# turn; the proportional reserve keeps it at window minus a quarter
+	session, events = _session(tmp_path)
+	mock = MockModel(
+		replies=[AssistantMessage(content="one"), AssistantMessage(content="two")],
+		context_window=10_000,
+	)
+	await _run(session, "first", model=mock)
+	await _run(session, "second", model=mock)
+
+	assert _of(events, "compaction_started") == []
+	assert [e["reason"] for e in _of(events, "run_ended")] == ["done", "done"]
+
+
+async def test_small_window_scales_the_retained_tail(tmp_path):
+	session, events = _session(tmp_path)
+	mock = MockModel(
+		replies=[
+			AssistantMessage(content="first"),
+			AssistantMessage(content="small-window summary"),
+			AssistantMessage(content="final"),
+		],
+		context_window=10_000,
+	)
+	await _run(session, "x" * 32_000, model=mock)
+	await _run(session, "continue", model=mock)
+
+	assert [event["reason"] for event in _of(events, "compaction")] == ["threshold"]
+	assert session.transcript.messages[-1].text == "final"
+
+
+async def test_disabled_auto_compaction_does_not_load_model_limits(tmp_path):
+	class TrackingModel(MockModel):
+		def __init__(self):
+			super().__init__(replies=[AssistantMessage(content="done")])
+			self.limit_loads = 0
+
+		async def load_model_limits(self, cancellation=None):
+			self.limit_loads += 1
+
+	model = TrackingModel()
+	session, _events = _session(tmp_path, auto_compact=False)
+	await _run(session, "hello", model=model)
+
+	assert model.limit_loads == 0

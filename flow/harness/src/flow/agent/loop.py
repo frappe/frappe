@@ -27,11 +27,24 @@ from dataclasses import dataclass
 from typing import Any
 
 from flow.agent.client_tools import call_client
+from flow.agent.compaction import (
+	KEEP_RECENT_TOKENS,
+	CompactionPlan,
+	calculate_compaction_input_limit,
+	compact_events,
+	estimate_context_tokens,
+	estimate_message_tokens,
+	plan_all,
+	plan_keep_recent,
+)
 from flow.events import (
 	AnyEvent,
 	ApprovalRequired,
 	AssistantMessage,
+	Compaction,
+	CompactionReason,
 	PendingCall,
+	Retry,
 	RunEnded,
 	RunStarted,
 	ToolCall,
@@ -40,7 +53,7 @@ from flow.events import (
 	Usage,
 	UserMessage,
 )
-from flow.model import Model, ModelRequest, get_model
+from flow.model import Model, ModelRequest, ProviderError, get_model
 from flow.model.auth import resolve_model_auth
 from flow.model.base import ModelCancelled, await_with_cancellation, iterate_with_cancellation
 from flow.model.credentials import CredentialStore
@@ -84,6 +97,8 @@ class LoopInputs:
 	allowed_roots: tuple[str, ...] = ()
 	session_id: str = ""
 	model: Model | None = None
+	context_tokens: int | None = None
+	context_message_count: int = 0
 	next_steering: NextSteering | None = None
 	before_tool_call: BeforeHook | None = None
 	after_tool_call: AfterHook | None = None
@@ -111,6 +126,25 @@ async def run(message: str, inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	yield UserMessage(content=message)
 	async for event in _loop(inputs):
 		yield event
+
+
+async def compact(instructions: str | None, inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
+	"""One manual compaction as a full operation: summarize everything, fold, end."""
+	yield RunStarted(run_id=uuid.uuid4().hex[:12])
+	model = inputs.model or await _authenticated_model(inputs)
+	await model.load_model_limits(inputs.abort)
+	plan = plan_all(inputs.messages)
+	if plan is None:
+		raise RuntimeError("nothing to compact")
+	async for event in compact_events(
+		model,
+		plan,
+		compaction_reason="manual",
+		cancellation=inputs.abort,
+		summary_instructions=instructions,
+	):
+		yield event
+	yield RunEnded(reason="done")
 
 
 async def resume(
@@ -150,15 +184,24 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	"""The turn core shared by `run` and `resume`."""
 	config, abort = inputs.config, inputs.abort
 	model = inputs.model or await _authenticated_model(inputs)
+	if config.auto_compact:
+		await model.load_model_limits(abort)
 	tools = _server_tools(config)
 	schemas = [tool.to_schema() for tool in tools.values()] + config.client_tools
 	ctx = _tool_context(inputs)
 
 	output_tokens = 0
+	context = _ContextTracker(
+		usage_tokens=inputs.context_tokens,
+		usage_message_count=inputs.context_message_count,
+	)
 	for _ in range(config.max_turns):
 		_raise_if_aborted(abort)
 		for text in _drain(inputs.next_steering):
 			yield UserMessage(content=text)
+
+		async for event in _auto_compact(model, inputs, schemas, context):
+			yield event
 
 		assistant: AssistantMessage | None = None
 		request = ModelRequest(
@@ -168,11 +211,12 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 			stream=config.stream,
 			cancellation=abort,
 		)
-		async for event in iterate_with_cancellation(model.run(request), abort):
+		async for event in _model_turn(model, request, inputs, context):
 			if isinstance(event, AssistantMessage):
 				assistant = event
 			elif isinstance(event, Usage):
 				output_tokens += event.output_tokens
+				context.observe_usage(event, len(inputs.messages))
 			yield event
 		if assistant is None:
 			raise RuntimeError("model stream ended without an assistant message")
@@ -215,6 +259,158 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 			return
 
 	yield RunEnded(reason="max_turns")
+
+
+async def _auto_compact(
+	model: Model, inputs: LoopInputs, schemas: list[dict], context: _ContextTracker
+) -> AsyncIterator[AnyEvent]:
+	"""Compact before a model call when the active context crosses its threshold."""
+	config = inputs.config
+	if not config.auto_compact or context.just_compacted:
+		return
+	compaction_threshold_tokens = _compact_threshold(config, model)
+	if context.tokens(config.system_prompt, schemas, inputs.messages) <= compaction_threshold_tokens:
+		return
+	plan = _plan_compaction_preserving_recent_messages(
+		inputs,
+		model,
+		system_prompt=config.system_prompt,
+		tools=schemas,
+	)
+	if plan is None:
+		return
+	try:
+		async for event in _compact_once(model, inputs, plan, "threshold", context):
+			yield event
+	except ModelCancelled:
+		raise
+	except Exception:
+		return
+
+
+async def _model_turn(
+	model: Model, request: ModelRequest, inputs: LoopInputs, context: _ContextTracker
+) -> AsyncIterator[AnyEvent]:
+	"""One model turn. The first context overflow in a run compacts once and retries;
+	every other failure propagates untouched."""
+	terminal_seen = False
+	try:
+		async for event in iterate_with_cancellation(model.run(request), inputs.abort):
+			terminal_seen = terminal_seen or isinstance(event, AssistantMessage)
+			yield event
+		return
+	except ProviderError as error:
+		if not (
+			inputs.config.auto_compact
+			and error.kind == "context_overflow"
+			and not terminal_seen
+			and not context.overflow_used
+		):
+			raise
+		context.overflow_used = True
+		plan = _plan_compaction_preserving_recent_messages(
+			inputs,
+			model,
+			system_prompt=request.system_prompt,
+			tools=request.tools,
+		)
+		if plan is None:
+			raise
+		try:
+			async for event in _compact_once(model, inputs, plan, "overflow", context):
+				yield event
+		except ModelCancelled:
+			raise
+		except Exception:
+			raise error from None
+	# The failed request may already have streamed deltas. This is the existing UI
+	# boundary that tells consumers to discard them before rendering the retry.
+	yield Retry(status="started", attempt=2, max_attempts=2, kind="context_overflow")
+	# the fold already shrank request.messages in place
+	try:
+		async for event in iterate_with_cancellation(model.run(request), inputs.abort):
+			yield event
+	except ProviderError as error:
+		yield Retry(status="exhausted", attempt=2, kind=error.kind)
+		raise
+
+
+def _plan_compaction_preserving_recent_messages(
+	inputs: LoopInputs,
+	model: Model,
+	*,
+	system_prompt: str,
+	tools: list[dict] | None,
+) -> CompactionPlan | None:
+	"""Keep the normal 20k tail, scaled to the room messages actually have."""
+	compaction_threshold_tokens = min(
+		_compact_threshold(inputs.config, model),
+		calculate_compaction_input_limit(model),
+	)
+	non_message_tokens = estimate_context_tokens(system_prompt, tools, ())
+	message_threshold_tokens = max(1, compaction_threshold_tokens - non_message_tokens)
+	# Small windows need a smaller tail and room for the summary itself.
+	keep_recent_tokens = min(
+		KEEP_RECENT_TOKENS,
+		max(1, message_threshold_tokens // 4),
+	)
+	return plan_keep_recent(inputs.messages, keep_recent_tokens=keep_recent_tokens)
+
+
+def _compact_threshold(config: SessionConfig, model: Model) -> int:
+	if config.compact_threshold_tokens is not None:
+		return config.compact_threshold_tokens
+	if model.auto_compact_threshold_tokens is not None:
+		return model.auto_compact_threshold_tokens
+	return calculate_compaction_input_limit(model)
+
+
+async def _compact_once(
+	model: Model,
+	inputs: LoopInputs,
+	plan: CompactionPlan,
+	reason: CompactionReason,
+	context: _ContextTracker,
+) -> AsyncIterator[AnyEvent]:
+	"""Run one compaction and update context after its durable event."""
+	async for event in compact_events(
+		model,
+		plan,
+		compaction_reason=reason,
+		cancellation=inputs.abort,
+	):
+		if isinstance(event, Compaction):
+			context.mark_compacted()
+		yield event
+
+
+@dataclass
+class _ContextTracker:
+	"""Provider context usage plus guards that prevent compaction loops."""
+
+	usage_tokens: int | None = None
+	usage_message_count: int = 0
+	just_compacted: bool = False
+	overflow_used: bool = False
+
+	def observe_usage(self, usage: Usage, message_count: int) -> None:
+		# A completed model turn is enough to permit a later compaction even when the
+		# provider omits token counts and yields an empty Usage event.
+		self.just_compacted = False
+		reported = usage.input_tokens + usage.output_tokens
+		if reported > 0:
+			self.usage_tokens = reported
+			self.usage_message_count = message_count
+
+	def mark_compacted(self) -> None:
+		self.usage_tokens = None
+		self.just_compacted = True
+
+	def tokens(self, system_prompt: str, tools: list[dict], messages: list[TranscriptMessage]) -> int:
+		if self.usage_tokens is None:
+			return estimate_context_tokens(system_prompt, tools, messages)
+		trailing = sum(estimate_message_tokens(m) for m in messages[self.usage_message_count :])
+		return self.usage_tokens + trailing
 
 
 async def _settle_call(

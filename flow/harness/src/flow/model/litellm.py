@@ -61,6 +61,33 @@ class LiteLLMModel(Model):
 		self._api_base = api_base
 		self._headers = headers or {}
 		self._params = params or {}
+		self._limits: tuple[int | None, int | None] | None = None
+
+	@property
+	def context_window(self) -> int | None:
+		return self._model_limits()[0]
+
+	@property
+	def max_output_tokens(self) -> int | None:
+		return self._model_limits()[1]
+
+	def _model_limits(self) -> tuple[int | None, int | None]:
+		if self._limits is not None:
+			return self._limits
+		import litellm
+
+		try:
+			info = litellm.get_model_info(self.name)
+		except Exception:
+			self._limits = (None, None)
+			return self._limits
+		context = info.get("max_input_tokens") or info.get("max_tokens")
+		output = info.get("max_output_tokens")
+		self._limits = (
+			int(context) if context else None,
+			int(output) if output else None,
+		)
+		return self._limits
 
 	async def run(self, request: ModelRequest) -> AsyncIterator[AnyEvent]:
 		kwargs = self._completion_kwargs(request)
@@ -95,6 +122,8 @@ class LiteLLMModel(Model):
 			kwargs["extra_headers"] = self._headers
 		if request.tools:
 			kwargs["tools"] = request.tools
+		if request.max_output_tokens is not None:
+			kwargs["max_tokens"] = request.max_output_tokens
 		# Flow owns retries so it can emit one event protocol and keep backoff
 		# cancellable. One call to LiteLLM therefore means exactly one provider attempt.
 		kwargs["num_retries"] = 0
