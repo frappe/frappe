@@ -102,11 +102,23 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	constructor(wrapper) {
 		// List factory already built the app page on `wrapper`.
 		this.page = wrapper.page;
-		// flex column so an optional filter bar + the board share the height.
-		this.$container = $('<div class="kanban-v2-container px-4">').appendTo(this.page.main);
+
+		// Reuse List View's standard row under the topbar.
+		this.page.page_form.removeClass("hide row").addClass("flex").show();
+		this.page.page_form.addClass("list-page-form");
+		this.$filter_section = $(
+			'<div class="filter-section flex ms-auto kanban-v2-filter-section"></div>'
+		).appendTo(this.page.page_form);
+
+		// Board container sits below the filter bar.
+		this.$container = $('<div class="kanban-v2-container px-4 pb-2">').appendTo(
+			this.page.main
+		);
+
 		// Apply the full-width, no-sidebar page shell. This mutates the page + body,
 		// which the List view shares (same page instance), so restore_page_shell()
 		// must undo every part of it on teardown.
+		this.setup_board_height_sync();
 		this.apply_page_shell();
 
 		this.make_selection_bar();
@@ -120,13 +132,16 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	apply_page_shell() {
 		// utilities make the page shell a full-height flex column; the board area
 		// sizes itself in .kanban-v2-container (kanban_v2.scss).
+		this.setup_board_height_sync();
 		this.page.main.addClass("flex flex-col overflow-hidden p-0");
+		if (this.$filter_section) this.$filter_section.show();
 		if (this.$container) this.$container.show();
 		// Side section must not consume horizontal space and shift the board.
 		$(document.body).addClass("no-list-sidebar");
 		// Full-width page body so columns start from the left instead of centered
 		// in the default fixed-width container.
 		this.page.container.addClass("kanban-v2-full-width");
+		this.sync_board_height();
 	}
 
 	/**
@@ -135,6 +150,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	 */
 	restore_page_shell() {
 		this.page.main.removeClass("flex flex-col overflow-hidden p-0");
+		if (this.$filter_section) this.$filter_section.hide();
 		if (this.$container) this.$container.hide();
 		// NOTE: don't remove `no-list-sidebar`. It's set to true by base_list for
 		// every list view and never unset elsewhere, so the List view we're likely
@@ -215,10 +231,42 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		}
 		if (clear_route) this.current_board = null;
 		if (clear_route) {
+			this.cleanup_board_height_sync();
 			// Fully restore the shared page shell when leaving the new Kanban page;
 			// otherwise the List view (same page instance) inherits kanban layout.
 			this.restore_page_shell();
 		}
+	}
+
+	/** Keep the board height equal to the remaining viewport space. */
+	sync_board_height() {
+		if (!this.$container || !this.$container.length) return;
+		const rect = this.$container[0].getBoundingClientRect();
+		if (!rect) return;
+		const bottom_gap = 8;
+		const available = Math.max(
+			220,
+			Math.floor(window.innerHeight - Math.max(0, rect.top) - bottom_gap)
+		);
+		this.$container[0].style.setProperty("--kanban-v2-height", `${available}px`);
+	}
+
+	/** Minimal responsive sync: recompute on viewport resize. */
+	setup_board_height_sync() {
+		if (this._board_height_sync_bound) return;
+		this._board_height_sync_bound = true;
+
+		this._on_board_height_sync = () => this.sync_board_height();
+		window.addEventListener("resize", this._on_board_height_sync, { passive: true });
+	}
+
+	/** Remove resize listener while off-route; re-bound on next load. */
+	cleanup_board_height_sync() {
+		if (this._on_board_height_sync) {
+			window.removeEventListener("resize", this._on_board_height_sync);
+		}
+		this._on_board_height_sync = null;
+		this._board_height_sync_bound = false;
 	}
 
 	/** Deselect all cards and hide the selection bar. */
@@ -680,7 +728,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return dfs.map((df) => df.fieldname).slice(0, 6);
 	}
 
-	// --- toolbar (mirrors the normal Kanban navbar) ----------------------
+	// --- toolbar (uses common ListViewSelect like all views) ---------------
 
 	setup_toolbar() {
 		const page = this.page;
@@ -695,43 +743,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		if (this._toolbar_for === this.doctype) return; // static bits already built
 		this._toolbar_for = this.doctype;
 
-		// Layout mirrors the classic Kanban navbar:
-		// [Filter ×] [Select Kanban ▾] [⊞ Kanban View ▾]  [⟳]  [⋯]  [+ Add Doctype]
-
-		// Filter (funnel button + clear ×)
-		this.setup_filter();
-
-		// Select Kanban + Kanban View — Select Kanban loads async, so add the view
-		// switcher inside the same callback to preserve the classic order.
-		frappe.views.KanbanView.get_kanbans(this.doctype).then((kanbans) => {
-			const kgroup = page.add_custom_button_group(__("Select Kanban"));
-			(kanbans || []).forEach((k) =>
-				page.add_custom_menu_item(
-					kgroup,
-					k.name,
-					() => frappe.set_route("List", this.doctype, "Kanban", k.name),
-					false
-				)
-			);
-
-			const vgroup = page.add_custom_button_group(__("Kanban View"), "square-kanban");
-			page.add_custom_menu_item(
-				vgroup,
-				__("List"),
-				() => frappe.set_route("List", this.doctype, "List"),
-				false,
-				null,
-				"list"
-			);
-			page.add_custom_menu_item(
-				vgroup,
-				__("Report"),
-				() => frappe.set_route("List", this.doctype, "Report"),
-				false,
-				null,
-				"sheet"
-			);
-		});
+		// Use the common view switcher component (same as List View / old Kanban).
+		// Shows current board name + dropdown with all views and boards.
+		this.setup_view_menu();
 
 		// Refresh (visible icon, like the classic navbar)
 		page.add_action_icon(
@@ -743,6 +757,17 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 		// Save Filters (in the ... menu, like the classic kanban)
 		page.add_menu_item(__("Save Filters"), () => this.save_filters());
+
+		// Filter bar below topbar: Filter + Group buttons
+		this.setup_filter_bar();
+	}
+
+	/**
+	 * Reuse the exact shared list-view switcher path (same as old Kanban).
+	 */
+	setup_view_menu() {
+		this.show_saved_layout_menu = false;
+		frappe.views.BaseList.prototype.setup_view_menu.call(this);
 	}
 
 	/**
@@ -767,49 +792,111 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	}
 
 	/**
-	 * (Re)build the "Group" toolbar button — a Layers icon + label with a
-	 * dropdown of the group-by options plus a "None" entry. Hidden when there are
-	 * no options. Once created the button keeps its toolbar slot; only its menu
-	 * items are refreshed (rebuilding would re-append it after the async
-	 * Select Kanban / View buttons and make it jump).
+	 * Build the filter bar below the topbar with Filter + Group buttons.
+	 * Similar to List View's FilterArea but placed in our dedicated $filter_bar.
 	 */
-	setup_group_button() {
+	setup_filter_bar() {
+		const $filter_section = this.$filter_section;
+		$filter_section.empty(); // clear if rebuilding
+
+		// Button order: Filter, Group, Settings (like List View)
+		this.setup_filter_button($filter_section);
+		this.setup_group_button($filter_section);
+		this.setup_settings_button($filter_section);
+		this.sync_board_height();
+	}
+
+	/**
+	 * (Re)build the "Group" button in the filter bar — a Layers icon + label with a
+	 * dropdown of the group-by options plus a "None" entry. Hidden when there are
+	 * no options.
+	 */
+	setup_group_button($parent) {
 		const options = this.group_by_options || [];
 		if (!options.length) {
-			if (this.$group_menu) {
-				this.$group_menu.closest(".custom-btn-group").remove();
-				this.$group_menu = null;
+			if (this.$group_wrapper) {
+				this.$group_wrapper.remove();
+				this.$group_wrapper = null;
 			}
+			this.$group_dropdown = null;
 			return;
 		}
 
-		const attached = this.$group_menu && this.$group_menu.closest(".custom-btn-group").length;
-		if (attached) {
-			this.$group_menu.empty(); // refresh items in place, keep the slot
-		} else {
-			this.$group_menu = this.page.add_custom_button_group(__("Group"), "layers");
-		}
+		// Show selected group name on the trigger; default to "Group".
+		const active = options.find((o) => o.fieldname === this.group_by_field);
+		const label_text = active ? active.label : __("Group");
+		const icon_name = "layers";
 
-		const menu = this.$group_menu;
-		const check = (fn) => ((this.group_by_field || null) === (fn || null) ? "check" : null);
-		this.page.add_custom_menu_item(
-			menu,
-			__("None"),
-			() => this.set_group_by(null),
-			false,
-			null,
-			check(null)
-		);
-		options.forEach((opt) => {
-			this.page.add_custom_menu_item(
-				menu,
-				opt.label,
-				() => this.set_group_by(opt.fieldname),
-				false,
-				null,
-				check(opt.fieldname)
-			);
+		// Create the group button wrapper with dropdown
+		if (!this.$group_wrapper || !this.$group_wrapper.closest(".filter-section").length) {
+			this.$group_wrapper = $(`
+				<div class="group-selector">
+					<div class="btn-group">
+						<button class="btn btn-default btn-sm group-button" type="button">
+							<span class="filter-icon button-icon">${frappe.utils.icon(icon_name)}</span>
+							<span class="button-label">${label_text}</span>
+							<span class="filter-icon button-icon">${frappe.utils.icon("chevrons-up-down")}</span>
+						</button>
+					</div>
+				</div>
+			`);
+			if ($parent) {
+				$parent.append(this.$group_wrapper);
+			} else {
+				this.$filter_section.append(this.$group_wrapper);
+			}
+
+			// Use frappe.ui.Dropdown for consistent dropdown behavior
+			const $btn = this.$group_wrapper.find(".group-button");
+			this.$group_dropdown = new frappe.ui.Dropdown({
+				trigger: $btn,
+				options: () => this.get_group_dropdown_options(),
+			});
+		} else {
+			// Just update the label
+			const $label = this.$group_wrapper.find(".button-label");
+			$label.text(label_text);
+		}
+	}
+
+	/** Returns dropdown options for the Group button. */
+	get_group_dropdown_options() {
+		const options = this.group_by_options || [];
+		const items = [];
+
+		// "None" option
+		items.push({
+			label: __("None"),
+			selected: !this.group_by_field,
+			onclick: () => this.set_group_by(null),
 		});
+
+		// Group-by field options
+		options.forEach((opt) => {
+			items.push({
+				label: opt.label,
+				selected: this.group_by_field === opt.fieldname,
+				onclick: () => this.set_group_by(opt.fieldname),
+			});
+		});
+
+		return items;
+	}
+
+	/** Settings button (placeholder for now). */
+	setup_settings_button($parent) {
+		this.$settings_btn = $(`
+			<button class="btn btn-default btn-sm settings-button mr-0" type="button" title="${__(
+				"Settings"
+			)}">
+				<span class="button-icon">${frappe.utils.icon("settings")}</span>
+				<span class="button-label">${__("Settings")}</span>
+			</button>
+		`);
+		$parent.append(this.$settings_btn);
+
+		// Placeholder for upcoming settings menu.
+		this.$settings_btn.on("click", () => {});
 	}
 
 	/** Set the active group-by field (null = ungrouped), re-render, update the menu. */
@@ -817,11 +904,16 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const next = fieldname || null;
 		if (next === (this.group_by_field || null)) return;
 		this.group_by_field = next;
-		this.setup_group_button(); // move the check-mark to the active option
+		this.setup_group_button(); // update the dropdown checkmarks + label
+		this.sync_board_height();
 		this.mount_board(); // swap between the flat board and swimlanes
 	}
 
-	setup_filter() {
+	/**
+	 * Build the Filter button in the filter bar.
+	 * Uses the same FilterGroup component as List View.
+	 */
+	setup_filter_button($parent) {
 		try {
 			// Same markup + wiring as the list view's FilterArea.make_filter_list:
 			// a .filter-selector with the funnel Filter button + the ✕ clear button,
@@ -839,12 +931,15 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 						</button>
 					</div>
 				</div>`);
-			this.$filter_section = $('<div class="filter-section flex">')
-				.append($selector)
-				.appendTo(this.page.custom_actions);
+
+			if ($parent) {
+				$parent.append($selector);
+			} else {
+				this.$filter_section.append($selector);
+			}
 
 			this.filter_group = new frappe.ui.FilterGroup({
-				parent: this.$filter_section,
+				parent: $selector,
 				doctype: this.doctype,
 				filter_button: $selector.find(".filter-button"),
 				filter_x_button: $selector.find(".filter-x-button"),
