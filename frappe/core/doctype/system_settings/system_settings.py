@@ -102,6 +102,7 @@ class SystemSettings(Document):
 		show_absolute_datetime_in_timeline: DF.Check
 		store_attached_pdf_document: DF.Check
 		strip_exif_metadata_from_uploaded_images: DF.Check
+		sync_in_batch: DF.Check
 		sync_timeout: DF.Int
 		time_format: DF.Literal["HH:mm:ss", "HH:mm"]
 		time_zone: DF.Literal[None]

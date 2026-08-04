@@ -9,7 +9,7 @@ import frappe
 from frappe import _
 from frappe.contacts.doctype.contact.contact import get_default_contact
 from frappe.desk.doctype.notification_settings.notification_settings import (
-	is_email_notifications_enabled_for_type,
+	is_email_enabled_for_feature,
 )
 from frappe.desk.reportview import get_filters_cond
 from frappe.model.document import Document
@@ -307,7 +307,7 @@ def send_event_digest():
 	users = [
 		user
 		for user in get_enabled_system_users()
-		if is_email_notifications_enabled_for_type(user.name, "Event Reminders")
+		if is_email_enabled_for_feature(user.name, "enable_email_event_reminders")
 	]
 
 	for user in users:
@@ -345,8 +345,8 @@ def get_events(
 	target_user = user or caller
 
 	if user and user != caller:
-		if not frappe.has_permission("Event", ptype="read"):
-			frappe.throw(_("You are not allowed to view events for another user."), frappe.PermissionError)
+		frappe.only_for("System Manager")
+
 	EventLikeDict: TypeAlias = Event | frappe._dict
 	resolved_events: list[EventLikeDict] = []
 

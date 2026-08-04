@@ -226,7 +226,7 @@ class FormMeta(Meta):
 			WHERE doc_type=%s AND docstatus<2 and disabled=0""",
 			(self.name,),
 			as_dict=1,
-			update={"doctype": "Print Format"},
+			update={"doctype": ":Print Format"},
 		)
 
 		self.set("__print_formats", print_formats)

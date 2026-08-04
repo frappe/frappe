@@ -320,7 +320,22 @@ def send_private_file(path: str) -> Response:
 			raise NotFound
 
 		extension = os.path.splitext(path)[1]
-		blacklist = [".svg", ".html", ".htm", ".xml"]
+		blacklist = [
+			".svg",
+			".svgz",
+			".html",
+			".htm",
+			".xhtml",
+			".xht",
+			".shtml",
+			".shtm",
+			".mhtml",
+			".mht",
+			".xml",
+			".xsl",
+			".xslt",
+			".swf",
+		]
 		as_attachment = extension.lower() in blacklist
 
 		response = werkzeug.utils.send_file(
