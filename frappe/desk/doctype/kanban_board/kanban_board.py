@@ -34,22 +34,71 @@ class KanbanBoard(Document):
 		footer_date_field: DF.Literal["Modified", "Creation"]
 		group_by_fields: DF.Table[KanbanBoardGroupField]
 		image_field: DF.Autocomplete | None
+		is_standard: DF.Literal["No", "Yes"]
 		kanban_board_name: DF.Data
 		preview_fields: DF.Table[KanbanBoardField]
 		private: DF.Check
 		reference_doctype: DF.Link
 		show_assigned_to: DF.Check
+		show_tags_on_card: DF.Check
 		show_labels: DF.Check
 		title_field: DF.Autocomplete | None
 		use_kanban_v2: DF.Check
 	# end: auto-generated types
 
 	def validate(self):
+		self.validate_standard_board_rules()
+		self.validate_private_toggle_permission()
 		self.validate_column_name()
+
+	def validate_standard_board_rules(self):
+		"""Standard boards are fixture-backed: only Administrator in developer
+		mode can create/edit them, and standard boards cannot be converted by
+		non-standard edits."""
+		self.is_standard = self.is_standard or "No"
+
+		if (
+			self.is_standard == "No"
+			and frappe.db.get_value("Kanban Board", self.name, "is_standard") == "Yes"
+		):
+			frappe.throw(_("Cannot edit a standard Kanban Board. Please duplicate and create a new board"))
+
+		if self.is_standard == "Yes":
+			self.validate_standard_board()
+
+	def validate_standard_board(self):
+		if frappe.session.user != "Administrator":
+			frappe.throw(_("Only Administrator can save a standard Kanban Board. Please rename and save."))
+
+		if not cint(getattr(frappe.local.conf, "developer_mode", 0)):
+			frappe.throw(_("Standard Kanban Boards can only be created in developer mode."))
+
+	def validate_private_toggle_permission(self):
+		"""Only the owner or Administrator can toggle private on existing boards."""
+		if self.is_new() or not self.has_value_changed("private"):
+			return
+
+		user = frappe.session.user
+		if user == "Administrator" or user == self.owner:
+			return
+
+		frappe.throw(
+			_("Only the board owner or Administrator can change Private."),
+			frappe.PermissionError,
+		)
 
 	def on_change(self):
 		frappe.clear_cache(doctype=self.reference_doctype)
 		clear_user_settings_cache(self.reference_doctype)
+
+	def on_trash(self):
+		if self.is_standard == "Yes":
+			if (
+				not cint(getattr(frappe.local.conf, "developer_mode", 0))
+				and not frappe.flags.in_migrate
+				and not frappe.flags.in_patch
+			):
+				frappe.throw(_("You are not allowed to delete Standard Kanban Board"))
 
 	def before_insert(self):
 		for column in self.columns:
@@ -216,7 +265,7 @@ def get_kanban_boards(doctype: str):
 	"""Get Kanban Boards for doctype to show in List View"""
 	return frappe.get_list(
 		"Kanban Board",
-		fields=["name", "filters", "reference_doctype", "private", "use_kanban_v2"],
+		fields=["name", "filters", "reference_doctype", "private", "is_standard", "use_kanban_v2"],
 		filters={"reference_doctype": doctype},
 	)
 
@@ -247,6 +296,7 @@ def get_card_config(board_name: str) -> dict:
 		"title_field": board.title_field,
 		"image_field": board.image_field,
 		"show_assigned_to": board.show_assigned_to,
+		"show_tags_on_card": board.show_tags_on_card,
 		"footer_date_field": board.footer_date_field,
 		"card_fields": _field_rows(board.card_fields),
 		"preview_fields": _field_rows(board.preview_fields),
