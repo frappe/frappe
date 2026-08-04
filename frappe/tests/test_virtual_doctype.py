@@ -163,6 +163,28 @@ class TestVirtualDoctypes(IntegrationTestCase):
 	def test_get_count(self):
 		self.assertIsInstance(VirtualDoctypeTest.get_count(), int)
 
+	def test_get_all_preserves_unlimited_page_length(self):
+		from frappe.model.base_document import get_controller
+
+		controller = get_controller(TEST_DOCTYPE_NAME)
+		captured = {}
+
+		def spy_get_list(*args, **kwargs):
+			captured.update(kwargs)
+			return []
+
+		with patch.object(controller, "get_list", side_effect=spy_get_list):
+			frappe.get_all(TEST_DOCTYPE_NAME, limit_page_length=0)
+
+		self.assertEqual(captured.get("limit_page_length"), 0)
+		self.assertEqual(captured.get("page_length"), 0)
+
+		captured.clear()
+		with patch.object(controller, "get_list", side_effect=spy_get_list):
+			frappe.get_list(TEST_DOCTYPE_NAME)
+
+		self.assertEqual(captured.get("limit_page_length"), 20)
+
 	def test_delete_doc(self):
 		doc = frappe.get_doc(doctype=TEST_DOCTYPE_NAME).insert()
 

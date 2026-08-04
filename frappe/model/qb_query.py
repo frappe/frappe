@@ -333,7 +333,7 @@ class DatabaseQuery:
 		if not isinstance(or_filters, Filters):
 			or_filters = Filters(or_filters, doctype=self.doctype)
 
-		_page_length = page_length or limit or limit_page_length or 20
+		_page_length = next((x for x in (page_length, limit, limit_page_length) if x is not None), 20)
 		kwargs = {
 			"fields": fields,
 			"filters": filters,
