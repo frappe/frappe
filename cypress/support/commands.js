@@ -202,7 +202,7 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 
 Cypress.Commands.add("get_field", (fieldname, fieldtype = "Data") => {
 	let field_element = fieldtype === "Select" ? "select" : "input";
-	let selector = `[data-fieldname="${fieldname}"] ${field_element}:visible`;
+	let selector = `[data-fieldname="${fieldname}"]:not(.search) ${field_element}:visible`;
 
 	if (fieldtype === "Text Editor") {
 		selector = `[data-fieldname="${fieldname}"] .ql-editor[contenteditable=true]:visible`;
