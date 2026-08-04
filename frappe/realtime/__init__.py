@@ -159,7 +159,7 @@ def get_user_info():
 	return {
 		"user": frappe.session.user,
 		"user_type": user_type,
-		"installed_apps": frappe.get_installed_apps(),
+		"installed_apps": frappe.get_active_apps(),
 	}
 
 
