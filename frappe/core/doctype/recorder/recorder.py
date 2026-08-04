@@ -122,15 +122,10 @@ def serialize_request(request):
 		name=request.get("uuid"),
 		number_of_queries=request.get("queries"),
 		time_in_queries=request.get("time_queries"),
-<<<<<<< HEAD
-		request_headers=frappe.as_json(request.get("headers"), indent=4),
-		form_dict=frappe.as_json(request.get("form_dict"), indent=4),
-=======
 		number_of_events=request.get("number_of_events") or len(events),
 		apps_involved=request.get("apps_involved"),
-		request_headers=frappe.as_json(request.get("headers", {}), indent=4),
-		form_dict=frappe.as_json(request.get("form_dict", {}), indent=4),
->>>>>>> f63fecea70 (feat(recorder): capture document lifecycle / doc_events timeline)
+		request_headers=frappe.as_json(request.get("headers"), indent=4),
+		form_dict=frappe.as_json(request.get("form_dict"), indent=4),
 		sql_queries=request.get("calls"),
 		timeline=events,
 		suggested_indexes=request.get("suggested_indexes"),
