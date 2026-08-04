@@ -136,7 +136,7 @@ def authorize(**kwargs):
 			return generate_json_error_response(e)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 def get_token(*args, **kwargs):
 	try:
 		r = frappe.request
@@ -157,7 +157,7 @@ def get_token(*args, **kwargs):
 		return generate_json_error_response(e)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 def revoke_token(*args, **kwargs):
 	try:
 		r = frappe.request
@@ -176,7 +176,7 @@ def revoke_token(*args, **kwargs):
 	return
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET", "POST"])
 def openid_profile(*args, **kwargs):
 	try:
 		r = frappe.request
@@ -218,8 +218,13 @@ def openid_configuration():
 	)
 
 
+<<<<<<< HEAD
 @frappe.whitelist(allow_guest=True)
 def introspect_token(token: str, token_type_hint=None):
+=======
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+def introspect_token(token: str, token_type_hint: str | None = None):
+>>>>>>> 507f04067b (fix(oauth2): restrict endpoint HTTP methods (#41543))
 	if token_type_hint not in ["access_token", "refresh_token"]:
 		token_type_hint = "access_token"
 	try:
