@@ -996,6 +996,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	after_render() {
 		this.$no_result.html(this.get_no_result_message());
 		this.setup_new_doc_event();
+
+		if (frappe.boot.upload_first_doctypes?.includes(this.doctype)) {
+			frappe.require("/assets/frappe/js/frappe/document_queue_review.js").then(() => {
+				frappe.document_queue_review?.setup_list_banner?.(this);
+			});
+		}
 	}
 
 	render() {

@@ -40,8 +40,9 @@
    "fieldname": "document_type",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Document Type",
-   "options": "DocType"
+   "label": "Target Doctype",
+   "options": "DocType",
+   "reqd": 1
   },
   {
    "default": "Draft",
@@ -160,7 +161,8 @@
    "read": 1,
    "report": 1,
    "role": "Desk User",
-   "share": 1
+   "share": 1,
+   "write": 1
   }
  ],
  "row_format": "Dynamic",

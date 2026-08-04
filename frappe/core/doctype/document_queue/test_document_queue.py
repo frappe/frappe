@@ -248,7 +248,7 @@ class TestDocumentQueue(IntegrationTestCase):
 	def test_set_document_type_requires_upload_first_enabled_doctype(self):
 		queue_doc = self.make_queue()
 
-		with self.assertRaises(frappe.PermissionError):
+		with self.assertRaises(frappe.ValidationError):
 			queue_doc.set_document_type("File")
 
 		self.enable_upload_first_workflow("File")
@@ -280,6 +280,39 @@ class TestDocumentQueue(IntegrationTestCase):
 		self.assertEqual(context["status"], "Queued")
 		self.assertEqual(file_doc.attached_to_doctype, "Document Queue")
 		self.assertEqual(file_doc.attached_to_name, queue_doc.name)
+
+	def test_create_queue_without_file_write_permission(self):
+		from frappe.core.doctype.document_queue.document_queue import create_upload_first_queue
+
+		self.enable_upload_first_workflow("File")
+		
+		# Create file as Administrator (current session)
+		file_doc = self.make_file()
+
+		# Create a standard user with read-only access to File
+		user = frappe.get_doc({
+			"doctype": "User",
+			"email": "test_read_only_queue@example.com",
+			"first_name": "Test",
+			"roles": [{"role": "All"}],
+		}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		# Explicitly share the file with the User, granting 'read' but not 'write'
+		frappe.share.add(
+			doctype="File",
+			name=file_doc.name,
+			user=user.name,
+			read=1,
+			write=0
+		)
+
+		frappe.set_user(user.name)
+
+		# Attempt to create queue without write permission
+		with self.assertRaises(frappe.PermissionError):
+			create_upload_first_queue(file_doc.name, "File")
+
+		frappe.set_user("Administrator")
 
 	def test_get_document_review_context(self):
 		from frappe.core.doctype.document_queue.document_queue import get_document_review_context
@@ -351,3 +384,29 @@ class TestDocumentQueue(IntegrationTestCase):
 
 		with self.set_user(user.name):
 			self.assertEqual(get_ready_for_review_count("File"), 1)
+
+	def test_desk_user_can_link_document(self):
+		from frappe.core.doctype.document_queue.document_queue import link_to_document
+
+		user = self.make_desk_user()
+		
+		target_file = self.make_file()
+		# Grant target_file write access to the user so they can link to it
+		frappe.share.add(doctype="File", name=target_file.name, user=user.name, read=1, write=1)
+		
+		# Create a queue document owned by the desk user
+		queue_doc = self.make_queue()
+		queue_doc.db_set({
+			"document_type": "File",
+			"status": "Ready for Review",
+			"owner": user.name
+		})
+
+		# The Desk User should be able to invoke link_to_document without PermissionError
+		with self.set_user(user.name):
+			result = link_to_document(queue_doc.name, "File", target_file.name)
+		
+		self.assertTrue(result.get("ok"))
+		queue_doc.reload()
+		self.assertEqual(queue_doc.status, "Completed")
+		self.assertEqual(queue_doc.created_document, target_file.name)
