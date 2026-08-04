@@ -110,6 +110,19 @@
 					@update:model-value="(v) => (selected_field.align = v)"
 				/>
 			</template>
+			<template v-else-if="is_spacer">
+				<StepperRow
+					:label="__('Height')"
+					:model-value="selected_field.height"
+					:base="16"
+					:step="4"
+					unit="px"
+					:placeholder="__('auto')"
+					allow-empty
+					@update:model-value="(v) => (selected_field.height = v)"
+				/>
+			</template>
+			<template v-else-if="is_divider"></template>
 			<template v-else>
 				<LabelField
 					v-model="selected_field.label"
@@ -205,6 +218,9 @@ const NON_TEXT_FIELDTYPES = new Set([
 let is_text_field = computed(() => !NON_TEXT_FIELDTYPES.has(selected_field.value?.fieldtype));
 
 let is_html_field = computed(() => selected_field.value?.fieldtype === "HTML");
+// a spacer prints a gap and a divider a rule — neither carries a label to align
+let is_spacer = computed(() => selected_field.value?.fieldtype === "Spacer");
+let is_divider = computed(() => selected_field.value?.fieldtype === "Divider");
 let is_image_element = computed(
 	() => selected_field.value?.fieldtype === "Image" && selected_field.value?.custom
 );

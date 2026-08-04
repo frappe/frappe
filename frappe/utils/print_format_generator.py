@@ -514,7 +514,7 @@ class PrintFormatGenerator:
 {%- if df.fieldtype == 'HTML' and df.html -%}
 <div class="custom-html">{{ frappe.render_template(df.html, {'doc': doc}) }}</div>
 {%- elif df.fieldtype == 'Spacer' -%}
-<div style="height:12px"></div>
+<div style="height:{{ (df.height|int|string + 'px') if df.get('height') else '1em' }}"></div>
 {%- elif df.fieldtype == 'Divider' -%}
 <hr style="border-top:1px solid #e5e7eb;margin:4px 0"/>
 {%- elif df.fieldtype == 'Image' -%}
