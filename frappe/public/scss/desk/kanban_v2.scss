@@ -1,10 +1,10 @@
 /**
  * Styles for the Kanban v2 engine (kanban_v2 + List/.../Kanban route).
  *
- * Layout, spacing, colour and text come from the utility classes in
- * utilities.scss, applied on the markup. Only what utilities cannot
- * express lives here: structural height/overflow, scrollbar chrome, hover /
- * focus / drag / selection states, line clamps, keyframes and a few overrides.
+ * Layout, spacing, colour and text come from utilities.scss on the markup.
+ * Only what utilities cannot express lives here: structural height/overflow,
+ * scrollbar chrome, hover / focus / drag / selection states, line clamps,
+ * keyframes and a few overrides.
  */
 
 /* ---- page shell ---------------------------------------------------------- */
@@ -15,11 +15,13 @@
 
 /* ---- filter row tweaks (base spacing comes from desk/list.scss) ---------- */
 .kanban-v2-filter-section {
-	/* Match list.scss spacing rhythm: filter selector already gets this margin,
-	   so apply the same to custom Group and Settings controls. */
-	.group-selector .btn-group,
+	/* Match list.scss spacing rhythm on Group / Settings (Filter uses list chrome). */
+	.group-selector .es-button,
 	.settings-button {
 		margin: var(--margin-xs);
+		/* FilterGroup buttons are Bootstrap btn-sm (~29px). Keep controls aligned. */
+		height: 29px;
+		min-height: 29px;
 	}
 }
 
@@ -31,27 +33,11 @@
 	overflow: hidden;
 }
 
-/* ---- loading skeleton (blocks reuse .es-skeleton) ------------------------ */
-.kn-skeleton-title {
-	height: 12px;
-	width: 40%;
-	margin: 8px 0 10px 4px;
-}
-.kn-skeleton-card {
-	height: 68px;
-	margin-bottom: 8px;
-}
-
 /* ---- engine: board / columns -------------------------------------------- */
 .kn-board {
 	--kn-accent: var(--blue-500, #2490ef);
 	height: 100%;
 	overflow-y: hidden;
-}
-
-// Match list-view vertical rhythm: no extra top gap under the filter row.
-.kanban-v2-container .kn-board {
-	padding-top: 0;
 }
 .kn-column {
 	/* Fixed column width — cards fill it. 320px fits label+value stacks without
@@ -114,6 +100,11 @@
 	pointer-events: none;
 }
 
+/* ---- page: card footer -------------------------------------------------- */
+.kn-card-foot-left {
+	min-height: 24px;
+}
+
 /* ---- engine: card states ------------------------------------------------- */
 /* Cards sit flat on the column and lift only on hover. */
 .kn-card {
@@ -142,12 +133,12 @@
 		box-shadow: none;
 		pointer-events: none;
 	}
-	/* Frappe-native blue ring + fill. !important beats the card's .border utility. */
+	/* Soft gray selection: light fill + stronger ring than hover (not a dark slab). */
 	&.kn-selected {
 		outline: none;
-		border-color: var(--blue-500, #2490ef) !important;
-		box-shadow: 0 0 0 1px var(--blue-500, #2490ef);
-		background: var(--bg-blue, #eaf2ff);
+		border-color: var(--outline-gray-3) !important;
+		box-shadow: 0 0 0 1px var(--outline-gray-3);
+		background: var(--surface-gray-2);
 	}
 }
 
@@ -210,7 +201,6 @@
 }
 
 /* ---- page: card field rows ---------------------------------------------- */
-/* Title-row uses min-h via kn-title-row; field rows keep a 24px floor. */
 .kn-frow {
 	min-height: 24px;
 }
@@ -249,12 +239,30 @@
 }
 
 /* ---- page: assignees ----------------------------------------------------- */
-/* "+" add chip — hover on the avatar frame (cursor-pointer is a utility). */
+/* Overlapping stack: pull each disc onto the previous one and ring it in the
+   card colour (no negative-margin utility). */
+.kn-assign-group {
+	.kn-stack-av + .kn-stack-av {
+		margin-inline-start: -6px;
+	}
+	.kn-stack-av .es-avatar__fallback,
+	.kn-stack-av img {
+		box-shadow: 0 0 0 2px var(--card-bg, #fff);
+	}
+	/* Later discs sit above earlier ones; lift on hover so a covered avatar is
+	   fully visible when you point at it. */
+	.kn-stack-av:hover {
+		z-index: 1;
+	}
+}
+/* "+" add chip — subtle hover feedback (cursor-pointer is a utility on the el). */
 .kn-assign-add {
-	.avatar-frame {
+	transition: background 0.14s;
+
+	.es-avatar__fallback {
 		transition: background 0.14s;
 	}
-	&:hover .avatar-frame {
+	&:hover .es-avatar__fallback {
 		background: var(--fg-hover-color);
 	}
 }
@@ -273,15 +281,23 @@
 }
 
 /* ---- page: bulk selection bar ------------------------------------------- */
-/* Markup owns layout utilities; custom shadow + slide-up entrance stay here. */
+/* Position lives here (no fixed/bottom/z utilities); markup owns flex/gap/pad. */
 .kn-selection-bar {
-	border-color: var(--gray-300, #d1d8dd) !important;
+	position: fixed;
+	bottom: 24px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 1000;
+	display: none;
+	border-color: var(--outline-gray-3) !important;
 	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2), 0 3px 10px rgba(0, 0, 0, 0.12) !important;
 	animation: kn-sel-in 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
-
-	.es-button {
-		margin: 0;
-	}
+}
+/* Custom-actions slot is a flex child, so an empty one still gets a gap on both
+   sides — a double gap between Tags and Delete. Collapse it when it has no
+   actions so every button is evenly spaced. */
+.kn-sel-custom:empty {
+	display: none;
 }
 @keyframes kn-sel-in {
 	from {
@@ -295,14 +311,12 @@
 }
 
 /* ---- page: hover preview (More Info) ------------------------------------ */
-/* Fixed width so long emails never stretch the shell; values wrap in columns. */
 .es-hover-card.kn-mi-hc {
 	width: 360px;
 	max-width: min(360px, calc(100vw - 32px));
 	padding: 0;
 	overflow: hidden;
 }
-/* Full width via w-full utility on each element. */
 .kn-mi-banner {
 	height: 116px;
 	background-size: cover;
@@ -341,20 +355,15 @@
 	column-gap: 1.25rem;
 	row-gap: 0.75rem;
 }
-/* Long strings (emails, phones) wrap inside the cell instead of overflowing. */
 .kn-mi-props .kn-mi-val {
 	overflow-wrap: anywhere;
 	word-break: break-word;
 }
-/* Avatar stack is taller than badges — keep the band from collapsing. */
 .kn-mi-foot {
 	min-height: 28px;
 }
 
 /* ---- page: swimlanes (Group by) ----------------------------------------- */
-/* Layout/text/count use utility classes + the badge component; only positioning
-   and collapse behaviour live here. Each lane is a fixed-height band whose
-   columns scroll inside it (Jira style); a light rule separates lanes. */
 .kn-swimlanes {
 	height: 100%;
 	overflow-y: auto;
@@ -369,13 +378,13 @@
 	border-bottom: 0;
 }
 .kn-swimlane-head {
-	/* Sticky lane headers cause the next lane's cards to scroll underneath,
-	   which looks like clipped/broken content while grouping. Keep headers in
-	   normal flow so each lane scrolls as a clean block. */
+	/* Sticky lane headers cause the next lane's cards to scroll underneath.
+	   Keep headers in normal flow so each lane scrolls as a clean block. */
 	user-select: none;
 	background: var(--fg-color);
 
-	.avatar {
+	.avatar,
+	.es-avatar {
 		margin: 0;
 	}
 }
@@ -406,6 +415,5 @@
 	height: 46vh;
 	min-height: 260px;
 	padding-top: 0;
-	/* Fill only the lane content box (excluding the reserved gutter above). */
 	width: 100%;
 }

@@ -32,7 +32,8 @@ let _kanban_instance_seq = 0;
 
 // Utility-class strings for the skeleton (utilities.scss).
 const CLS = {
-	board: "kn-board flex gap-3 overflow-x-auto overflow-y-hidden items-stretch pb-2",
+	// overflow-y / stretch come from .kn-board / flex defaults in kanban_v2.scss.
+	board: "kn-board flex gap-3 overflow-x-auto pb-2",
 	// The column is a flat gray panel: no border in light mode, the fill alone
 	// separates it from the board (dark mode flips this — see kanban_v2.scss).
 	// Bottom padding is the column's own, so the scrolling list ends above the
@@ -46,11 +47,9 @@ const CLS = {
 	dot: "kn-column-dot indicator shrink-0",
 	title: "kn-column-title text-sm-medium text-ink-gray-8 truncate min-w-0",
 	count: "kn-column-count text-sm text-ink-gray-5 shrink-0",
-	// The rest of the padding lives on the body, not the column, so card shadows
-	// aren't clipped. It is 16px on both sides because the scroll thumb is
-	// painted inside that padding (see scrollbar rules in kanban_v2.scss) and
-	// at 8px it would touch the cards.
-	body: "kn-column-body flex-1 overflow-y-auto overflow-x-hidden px-3 pt-2",
+	// Scroll overflow lives on .kn-column-body in SCSS (scrollbar chrome).
+	// Side padding is 12px (px-3) so the thumb painted inside it clears cards.
+	body: "kn-column-body flex-1 px-3 pt-2",
 	footer: "kn-column-footer shrink-0 px-4 pt-1",
 	card: "kn-card bg-surface-elevation-1 border rounded-lg text-ink-gray-8 text-sm p-3 mb-2",
 };
@@ -79,6 +78,7 @@ export class KanbanCore {
 		this.resizeObserver = null;
 		this.dropSlotEl = null;
 		this.dropAnchor = null;
+		this.dropCommitPending = false;
 		this.dragSourceColumn = null;
 		this.dragPreview = null;
 		this.dragGrab = null;
@@ -554,7 +554,14 @@ export class KanbanCore {
 					this.dragSourceColumn = null;
 					this.clearCardsDragging();
 					this.endCardPreview();
-					this.clearDropIndicator();
+					// Defer: handleDrop may still be in its sync setup and about to
+					// claim the slot for the post-drop FLIP. If nothing claims it,
+					// ease the gap closed (cancel / invalid drop).
+					queueMicrotask(() => {
+						if (!this.dropCommitPending) {
+							this.clearDropIndicator({ animate: true });
+						}
+					});
 				},
 			}),
 			bindCardDropTarget(el, () => dragData, {
@@ -620,31 +627,71 @@ export class KanbanCore {
 
 	async loadMore(columnId, start) {
 		const view = this.columnViews.get(columnId);
+		// A load already running for this column? The shared per-column queue would
+		// serialize us anyway; returning early just keeps scroll from stacking calls.
 		if (!view || view.loading) return;
-		view.loading = true;
+		try {
+			await this.loadColumnPageOnce(columnId);
+		} catch (error) {
+			this.bus.emit("error", error);
+		}
+	}
+
+	/**
+	 * The single choke point every page fetch goes through — scroll prefetch
+	 * (`loadMore`) AND a drag's `ensureOrderKnown`. Calls are serialized per column
+	 * via `_pageLoads`, so a column never has two overlapping fetches for the same
+	 * offset: each load computes its offset from the freshly-appended state, and
+	 * appends are de-duped by card name as a backstop. Resolves to
+	 * `{ fetched, appended }`.
+	 */
+	loadColumnPageOnce(columnId) {
+		if (!this._pageLoads) this._pageLoads = {};
+		const prev = this._pageLoads[columnId] || Promise.resolve();
+		// Chain onto any in-flight load for this column (continue even if it threw).
+		const next = prev
+			.catch(() => {})
+			.then(() => this._appendNextColumnPage(columnId))
+			.finally(() => {
+				if (this._pageLoads[columnId] === next) delete this._pageLoads[columnId];
+			});
+		this._pageLoads[columnId] = next;
+		return next;
+	}
+
+	async _appendNextColumnPage(columnId) {
+		const view = this.columnViews.get(columnId);
+		const column = this.getColumn(columnId);
+		if (!column) return { fetched: 0, appended: 0 };
+		const loaded = (this.state.cards[columnId] || []).length;
+		if (column.total != null && loaded >= column.total) return { fetched: 0, appended: 0 };
+		if (view) view.loading = true;
 		try {
 			const { total, cards } = await this.options.provider.loadColumnPage(
 				columnId,
-				start,
+				loaded,
 				this.options.pageLength
 			);
 			const existing = this.state.cards[columnId] || [];
+			// De-dupe by name: a racing fetch (or a re-fetched offset) can't append a
+			// card the column already holds.
+			const have = new Set(existing.map((c) => c.name));
+			const fresh = (cards || []).filter((c) => c && !have.has(c.name));
 			this.state = {
 				...this.state,
-				cards: { ...this.state.cards, [columnId]: [...existing, ...cards] },
+				cards: { ...this.state.cards, [columnId]: [...existing, ...fresh] },
 				columns: this.state.columns.map((c) => (c.id === columnId ? { ...c, total } : c)),
 			};
-			const column = this.getColumn(columnId);
-			if (column) {
-				view.column = column;
-				view.virtualizer.setCount(this.orderedCards(column).length);
+			const col = this.getColumn(columnId);
+			if (view && col) {
+				view.column = col;
+				view.virtualizer.setCount(this.orderedCards(col).length);
 				this.renderWindow(view);
 			}
 			this.bus.emit("state:change", this.getState());
-		} catch (error) {
-			this.bus.emit("error", error);
+			return { fetched: (cards || []).length, appended: fresh.length };
 		} finally {
-			view.loading = false;
+			if (view) view.loading = false;
 		}
 	}
 
@@ -660,29 +707,15 @@ export class KanbanCore {
 	 */
 	async ensureOrderKnown(columnId) {
 		if (this.persistedOrder(columnId)) return true;
-		const view = this.columnViews.get(columnId);
 		while (!this.persistedOrder(columnId)) {
 			const column = this.getColumn(columnId);
 			if (!column) return false;
 			const loaded = (this.state.cards[columnId] || []).length;
 			if (loaded >= (column.total || 0)) break;
-			const { total, cards } = await this.options.provider.loadColumnPage(
-				columnId,
-				loaded,
-				this.options.pageLength
-			);
-			const existing = this.state.cards[columnId] || [];
-			this.state = {
-				...this.state,
-				cards: { ...this.state.cards, [columnId]: [...existing, ...cards] },
-				columns: this.state.columns.map((c) => (c.id === columnId ? { ...c, total } : c)),
-			};
-			if (view) {
-				const col = this.getColumn(columnId);
-				view.column = col;
-				view.virtualizer.setCount(this.orderedCards(col).length);
-			}
-			if (!cards.length) break; // no progress — avoid an infinite loop
+			// Same serialized loader as the scroll prefetch, so a drag and a scroll
+			// can't fetch the same offset and double-append the remaining pages.
+			const { fetched } = await this.loadColumnPageOnce(columnId);
+			if (!fetched) break; // no progress — avoid an infinite loop
 		}
 		return !!this.persistedOrder(columnId);
 	}
@@ -745,18 +778,21 @@ export class KanbanCore {
 	// --- drag & drop -----------------------------------------------------
 
 	async handleDrop(args) {
-		this.clearDropIndicator();
 		this.onDragEnd();
 		const src = args && args.source && args.source.data;
-		if (!src || src.kind !== "card") return;
+		// Cancelled / invalid drops: ease the hover gap closed. Successful moves
+		// keep the slot until animateMove so target cards don't bounce.
+		const abort = () => this.clearDropIndicator({ animate: true });
+
+		if (!src || src.kind !== "card") return abort();
 		// Each swimlane board registers a global monitor — ignore drags that
 		// started on another instance, and never apply a drop onto foreign targets.
-		if (src.boardId !== this.instanceId) return;
-		if (!this.findCard(src.cardId)) return;
+		if (src.boardId !== this.instanceId) return abort();
+		if (!this.findCard(src.cardId)) return abort();
 
 		const current = args && args.location && args.location.current;
 		const targets = (current && current.dropTargets) || [];
-		if (!targets.length) return;
+		if (!targets.length) return abort();
 
 		const innermost = targets[0];
 		if (
@@ -765,7 +801,7 @@ export class KanbanCore {
 			innermost.data.kind === "card" &&
 			innermost.data.cardId === src.cardId
 		) {
-			return;
+			return abort();
 		}
 
 		const clientY = (current && current.input && current.input.clientY) || 0;
@@ -795,7 +831,7 @@ export class KanbanCore {
 			toColumn = colTarget.data.columnId;
 			toIndex = this.dropIndexFromPointer(toColumn, clientY);
 		} else {
-			return;
+			return abort();
 		}
 
 		// Same-column drops are a no-op: this board is about moving cards BETWEEN
@@ -805,19 +841,30 @@ export class KanbanCore {
 		// calls update_order_for_single_card (which set_value's the card, bumping
 		// `modified`) for no visible gain. Cross-column moves always go through.
 		if (toColumn === src.columnId) {
-			return;
+			return abort();
 		}
 
-		if (this.state.selection.length > 1 && this.state.selection.includes(src.cardId)) {
-			const anchor =
-				cardTarget && !this.state.selection.includes(cardTarget.data.cardId)
-					? cardTarget.data.cardId
-					: null;
-			await this.applyMoveMultiple([...this.state.selection], toColumn, anchor, edge);
-			return;
-		}
+		// Claim the hover slot so onEnd's microtask does not close it before
+		// animateMove can measure with the gap still open.
+		this.dropCommitPending = true;
+		try {
+			if (this.state.selection.length > 1 && this.state.selection.includes(src.cardId)) {
+				const anchor =
+					cardTarget && !this.state.selection.includes(cardTarget.data.cardId)
+						? cardTarget.data.cardId
+						: null;
+				await this.applyMoveMultiple([...this.state.selection], toColumn, anchor, edge);
+				return;
+			}
 
-		await this.applyMove(src.cardId, src.columnId, toColumn, toIndex);
+			await this.applyMove(src.cardId, src.columnId, toColumn, toIndex);
+		} finally {
+			this.dropCommitPending = false;
+			// Aborted moves clear themselves; this is a safety net if they don't.
+			if (this.dropSlotEl && this.dropSlotEl.parentNode) {
+				this.clearDropIndicator({ animate: true });
+			}
+		}
 	}
 
 	async applyMove(cardId, fromColumn, toColumn, toIndex) {
@@ -826,31 +873,50 @@ export class KanbanCore {
 		// load the rest first so the move works instead of silently aborting. If it
 		// can't be resolved (backend stopped returning rows), tell the user rather
 		// than snapping the card back with no explanation.
-		if (!(await this.ensureOrderKnown(fromColumn)))
+		if (!(await this.ensureOrderKnown(fromColumn))) {
+			this.clearDropIndicator({ animate: true });
 			return this.reportMoveBlocked(cardId, fromColumn, toColumn);
-		if (!sameColumn && !(await this.ensureOrderKnown(toColumn)))
+		}
+		if (!sameColumn && !(await this.ensureOrderKnown(toColumn))) {
+			this.clearDropIndicator({ animate: true });
 			return this.reportMoveBlocked(cardId, fromColumn, toColumn);
+		}
 		// Use full persisted order (includes not-yet-loaded names), not only
 		// the loaded window — otherwise the server would drop unloaded cards.
 		const loadedFrom = this.orderedNames(fromColumn);
 		const fromNames = this.persistedOrder(fromColumn);
 		// null means partial load with no saved order — sending it would truncate unloaded names.
-		if (!fromNames) return this.reportMoveBlocked(cardId, fromColumn, toColumn);
+		if (!fromNames) {
+			this.clearDropIndicator({ animate: true });
+			return this.reportMoveBlocked(cardId, fromColumn, toColumn);
+		}
 		const oldIndex = fromNames.indexOf(cardId);
-		if (oldIndex < 0) return;
+		if (oldIndex < 0) {
+			this.clearDropIndicator({ animate: true });
+			return;
+		}
 
 		const loadedTo = sameColumn ? loadedFrom : this.orderedNames(toColumn);
 		const toNames = sameColumn ? fromNames : this.persistedOrder(toColumn);
-		if (!toNames) return this.reportMoveBlocked(cardId, fromColumn, toColumn);
+		if (!toNames) {
+			this.clearDropIndicator({ animate: true });
+			return this.reportMoveBlocked(cardId, fromColumn, toColumn);
+		}
 		let insertIndex = this.persistedInsertIndex(toNames, loadedTo, toIndex);
 		fromNames.splice(oldIndex, 1);
 		if (sameColumn && oldIndex < insertIndex) insertIndex -= 1;
 		insertIndex = clamp(insertIndex, 0, toNames.length);
-		if (sameColumn && insertIndex === oldIndex) return;
+		if (sameColumn && insertIndex === oldIndex) {
+			this.clearDropIndicator({ animate: true });
+			return;
+		}
 		toNames.splice(insertIndex, 0, cardId);
 
 		const card = this.findCard(cardId);
-		if (!card) return;
+		if (!card) {
+			this.clearDropIndicator({ animate: true });
+			return;
+		}
 
 		const move = {
 			cardId,
@@ -864,13 +930,23 @@ export class KanbanCore {
 
 		const cb = this.options.callbacks || {};
 		const guard = cb.canMoveCard && cb.canMoveCard(card, fromColumn, toColumn);
-		if (guard === false || typeof guard === "string") return;
+		if (guard === false || typeof guard === "string") {
+			this.clearDropIndicator({ animate: true });
+			return;
+		}
 		const beforeOk = cb.onBeforeCardMove ? await cb.onBeforeCardMove(move) : undefined;
-		if (beforeOk === false) return;
+		if (beforeOk === false) {
+			this.clearDropIndicator({ animate: true });
+			return;
+		}
 
 		const affected = sameColumn ? [fromColumn] : [fromColumn, toColumn];
 		const snapshot = this.state;
+		// Measure with the hover slot still open, then collapse slot + apply the
+		// new layout in one FLIP so (1) source cards ease up once, (2) target cards
+		// stay put (gap already reserved), (3) the moved card flies source→target.
 		this.animateMove(affected, () => {
+			this.clearDropIndicator();
 			this.setColumnOrder(fromColumn, fromNames, sameColumn ? 0 : -1);
 			if (sameColumn) {
 				// Keep the loaded list in visual order (display uses it while paginated).
@@ -909,8 +985,10 @@ export class KanbanCore {
 			if (names.some((n) => selected.has(n))) involved.add(col.id);
 		}
 		for (const colId of involved) {
-			if (!(await this.ensureOrderKnown(colId)))
+			if (!(await this.ensureOrderKnown(colId))) {
+				this.clearDropIndicator({ animate: true });
 				return this.reportMoveBlocked(cardIds[0], colId, toColumn);
+			}
 		}
 
 		const selectedOrdered = [];
@@ -926,7 +1004,10 @@ export class KanbanCore {
 				}
 			}
 		}
-		if (!selectedOrdered.length) return;
+		if (!selectedOrdered.length) {
+			this.clearDropIndicator({ animate: true });
+			return;
+		}
 
 		const cb = this.options.callbacks || {};
 		for (const name of selectedOrdered) {
@@ -934,7 +1015,10 @@ export class KanbanCore {
 			const card = this.findCard(name);
 			if (!from || !card) continue;
 			const guard = cb.canMoveCard && cb.canMoveCard(card, from, toColumn);
-			if (guard === false || typeof guard === "string") return;
+			if (guard === false || typeof guard === "string") {
+				this.clearDropIndicator({ animate: true });
+				return;
+			}
 		}
 
 		const affected = [...new Set([...sourceOf.values(), toColumn])];
@@ -942,8 +1026,10 @@ export class KanbanCore {
 
 		const toPersistedOrder = this.persistedOrder(toColumn);
 		// null means partial load with no saved order — abort to avoid truncating unloaded names.
-		if (!toPersistedOrder)
+		if (!toPersistedOrder) {
+			this.clearDropIndicator({ animate: true });
 			return this.reportMoveBlocked(cardIds[0], sourceOf.get(cardIds[0]), toColumn);
+		}
 		const targetClean = toPersistedOrder.filter((n) => !selected.has(n));
 		let insertAt = targetClean.length;
 		if (anchorName) {
@@ -969,6 +1055,8 @@ export class KanbanCore {
 		const addedToTarget = selectedOrdered.filter((n) => sourceOf.get(n) !== toColumn).length;
 
 		this.animateMove(affected, () => {
+			// Same as single-card: keep hover gap until this FLIP mutate.
+			this.clearDropIndicator();
 			const columns = this.state.columns.map((col) => {
 				if (col.id === toColumn) {
 					return { ...col, order: finalTargetOrder, total: col.total + addedToTarget };
@@ -1081,23 +1169,28 @@ export class KanbanCore {
 		}
 	}
 
-	animateMove(ids, mutate) {
-		const uniq = [...new Set(ids)];
+	/**
+	 * FLIP-animate `.kn-card` nodes inside the given column bodies across a DOM
+	 * mutation. Used after a real drop and while the hover drop-slot moves so
+	 * sibling cards ease into place instead of jumping.
+	 */
+	flipCards(bodies, mutate) {
+		const parents = [...new Set((bodies || []).filter(Boolean))];
 		const first = new Map();
-		for (const id of uniq) {
-			const view = this.columnViews.get(id);
-			if (!view) continue;
-			view.body.querySelectorAll(".kn-card").forEach((el) => {
-				if (el.dataset.name) first.set(el.dataset.name, el.getBoundingClientRect());
+		for (const parent of parents) {
+			parent.querySelectorAll(".kn-card").forEach((el) => {
+				if (!el.dataset.name) return;
+				// Finish any in-flight FLIP so the next read is layout position,
+				// not a mid-tween transform (which would skew the next delta).
+				el.getAnimations().forEach((a) => a.cancel());
+				first.set(el.dataset.name, el.getBoundingClientRect());
 			});
 		}
 
 		mutate();
 
-		for (const id of uniq) {
-			const view = this.columnViews.get(id);
-			if (!view) continue;
-			view.body.querySelectorAll(".kn-card").forEach((el) => {
+		for (const parent of parents) {
+			parent.querySelectorAll(".kn-card").forEach((el) => {
 				const prev = el.dataset.name ? first.get(el.dataset.name) : undefined;
 				const last = el.getBoundingClientRect();
 				if (prev) {
@@ -1123,6 +1216,16 @@ export class KanbanCore {
 				}
 			});
 		}
+	}
+
+	animateMove(ids, mutate) {
+		const bodies = [...new Set(ids)]
+			.map((id) => {
+				const view = this.columnViews.get(id);
+				return view && view.body;
+			})
+			.filter(Boolean);
+		this.flipCards(bodies, mutate);
 	}
 
 	/**
@@ -1154,13 +1257,16 @@ export class KanbanCore {
 	startCardPreview(el, cardId, input) {
 		this.endCardPreview(); // never leave a previous preview orphaned
 		const rect = el.getBoundingClientRect();
+		const sel = this.state.selection;
+		const count = sel.length > 1 && sel.includes(cardId) ? sel.length : 1;
 		this.dragGrab = {
 			dx: input ? input.clientX - rect.left : rect.width / 2,
 			dy: input ? input.clientY - rect.top : 24,
 			h: rect.height,
+			// Multi-drag reserves N card heights so the post-drop FLIP doesn't
+			// have to shove target cards further after release.
+			count,
 		};
-		const sel = this.state.selection;
-		const count = sel.length > 1 && sel.includes(cardId) ? sel.length : 1;
 
 		const layer = document.createElement("div");
 		layer.className = "kn-drag-preview";
@@ -1206,23 +1312,32 @@ export class KanbanCore {
 	 * Open a dashed placeholder slot at the drop position — cards flow around it,
 	 * like the Frappe UI board, so you see exactly where the card(s) will land.
 	 * `edge` is which half of `el` the pointer is over (top → slot before it).
+	 * Sibling cards FLIP-animate into place (same motion as post-drop).
 	 */
 	showDropIndicator(el, edge, data) {
 		// Don't tease a drop that won't happen: same-column drops are a no-op
 		// (see handleDrop), so hide the placeholder while over the source column
 		// instead of showing a slot the release will ignore.
 		if (data && data.columnId === this.dragSourceColumn) {
-			this.clearDropIndicator();
+			this.clearDropIndicator({ animate: true });
 			return;
 		}
 		this.dropAnchor = el;
 		const slot = this.dropSlotEl || (this.dropSlotEl = this.buildDropSlot());
-		if (this.dragGrab && this.dragGrab.h) slot.style.height = `${this.dragGrab.h}px`;
+		if (this.dragGrab && this.dragGrab.h) {
+			const n = this.dragGrab.count || 1;
+			// Slot height = N cards + the mb-2 gaps between them.
+			slot.style.height = `${this.dragGrab.h * n + CARD_GAP * (n - 1)}px`;
+		}
 		const parent = el.parentNode;
 		if (!parent) return;
 		const ref = edge === "top" ? el : el.nextSibling;
 		if (slot.parentNode === parent && slot.nextSibling === ref) return; // already placed
-		parent.insertBefore(slot, ref);
+
+		const prevParent = slot.parentNode;
+		this.flipCards([parent, prevParent], () => {
+			parent.insertBefore(slot, ref);
+		});
 	}
 
 	buildDropSlot() {
@@ -1231,11 +1346,19 @@ export class KanbanCore {
 		return slot;
 	}
 
-	clearDropIndicator() {
+	/**
+	 * Remove the hover drop slot.
+	 * @param {{ animate?: boolean }} [opts] - When true (hover leave / same-column),
+	 *        sibling cards ease closed; on actual drop/end, leave false so the
+	 *        post-drop animateMove owns the motion.
+	 */
+	clearDropIndicator(opts = {}) {
 		this.dropAnchor = null;
-		if (this.dropSlotEl && this.dropSlotEl.parentNode) {
-			this.dropSlotEl.parentNode.removeChild(this.dropSlotEl);
-		}
+		if (!(this.dropSlotEl && this.dropSlotEl.parentNode)) return;
+		const parent = this.dropSlotEl.parentNode;
+		const remove = () => parent.removeChild(this.dropSlotEl);
+		if (opts.animate) this.flipCards([parent], remove);
+		else remove();
 	}
 
 	/**
@@ -1410,7 +1533,7 @@ export class KanbanCore {
 	/**
 	 * Placeholder columns for the first load (before board data arrives), so the
 	 * board area shows structure instead of blank white. Uses the real column
-	 * shell classes for an accurate silhouette; the blocks are `.es-skeleton`
+	 * shell classes for an accurate silhouette; blocks are frappe.ui.skeleton
 	 * (pulsing, theme- and reduced-motion-aware). Column count comes from
 	 * options.skeletonColumns (the caller knows the board's columns); default 3.
 	 */
@@ -1423,15 +1546,23 @@ export class KanbanCore {
 			col.className = CLS.column;
 			const header = document.createElement("div");
 			header.className = CLS.header + " pb-2";
-			header.innerHTML = `<div class="es-skeleton kn-skeleton-title" aria-hidden="true"></div>`;
+			header.innerHTML = frappe.ui.skeleton.html({
+				width: "40%",
+				height: "12px",
+				css_class: "my-2 ms-1",
+			});
 			const body = document.createElement("div");
 			body.className = CLS.body;
 			// A little variation so it reads as content, not a table.
 			for (let i = 0; i < 3 - (c % 2); i++) {
-				const card = document.createElement("div");
-				card.className = "es-skeleton kn-skeleton-card";
-				card.setAttribute("aria-hidden", "true");
-				body.appendChild(card);
+				body.insertAdjacentHTML(
+					"beforeend",
+					frappe.ui.skeleton.html({
+						width: "100%",
+						height: "68px",
+						css_class: "mb-2",
+					})
+				);
 			}
 			col.append(header, body);
 			frag.appendChild(col);

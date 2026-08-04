@@ -124,6 +124,16 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.make_selection_bar();
 	}
 
+	/** Durable empty / error shell via frappe.ui.empty_state. */
+	show_empty(opts) {
+		this.$container.empty().append(
+			frappe.ui.empty_state({
+				...opts,
+				css_class: ["min-h-64", opts.css_class].filter(Boolean).join(" "),
+			})
+		);
+	}
+
 	/**
 	 * Turn the shared page into the Kanban shell: a full-height, full-width,
 	 * padding-less flex column with the list side section suppressed. Idempotent,
@@ -170,8 +180,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	make_selection_bar() {
 		this.selected_ids = [];
+		// Position / shadow / entrance live in kanban_v2.scss; utilities own layout.
 		this.$selection_bar = $(`
-			<div class="kn-selection-bar position-fixed flex items-center gap-2 rounded-md border bg-surface-base ps-4 pe-2.5 py-2.5" style="bottom:24px;left:50%;transform:translateX(-50%);display:none;z-index:1000;">
+			<div class="kn-selection-bar items-center gap-2 rounded-md border bg-surface-base ps-4 pe-2.5 py-2.5">
 				<span class="kn-sel-count text-sm-semibold text-ink-gray-8 whitespace-nowrap pe-1"></span>
 				${frappe.ui.button.html({ label: __("Edit"), css_class: "kn-sel-edit" })}
 				${frappe.ui.button.html({ label: __("Assign"), css_class: "kn-sel-assign" })}
@@ -383,9 +394,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 		const board_name = this.get_board_name_from_route();
 		if (!board_name) {
-			this.$container.html(
-				`<div class="text-muted p-4">${__("No Kanban Board specified.")}</div>`
-			);
+			this.show_empty({
+				icon: "columns-3",
+				title: __("No Kanban Board specified."),
+			});
 			return;
 		}
 		if (this.current_board === board_name && this.board) {
@@ -405,11 +417,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		try {
 			board = await frappe.db.get_doc("Kanban Board", board_name);
 		} catch (e) {
-			this.$container.html(
-				`<div class="text-muted p-4">${__("Kanban Board {0} not found.", [
-					frappe.utils.escape_html(board_name),
-				])}</div>`
-			);
+			this.show_empty({
+				icon: "columns-3",
+				title: __("Kanban Board {0} not found.", [board_name]),
+			});
 			return;
 		}
 
@@ -467,9 +478,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			// Keep the existing board mounted — a failed config check must not
 			// wipe the UI. Surface a soft alert so the miss isn't silent.
 			console.error(e);
-			frappe.show_alert({
+			frappe.ui.toast({
 				message: __("Could not refresh Kanban board settings."),
-				indicator: "orange",
+				type: "warning",
 			});
 		}
 	}
@@ -482,6 +493,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			doc.title_field || "",
 			doc.image_field || "",
 			cint(doc.show_assigned_to, 1),
+			cint(doc.show_tags_on_card, 0),
 			doc.footer_date_field || "Modified",
 			field_sig(doc.card_fields),
 			field_sig(doc.preview_fields),
@@ -513,6 +525,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		// Assignees on the card + hover footer. Default on for boards that
 		// predate the setting (undefined / missing → show).
 		this.show_assigned_to = cint(this.board_doc.show_assigned_to, 1) === 1;
+		// Optional colored tags on card footer (left of date).
+		this.show_tags_on_card = cint(this.board_doc.show_tags_on_card, 0) === 1;
 		// Card-footer age badge: Modified (default) or Creation.
 		this.footer_date_field =
 			String(this.board_doc.footer_date_field || "Modified").toLowerCase() === "creation"
@@ -799,63 +813,68 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const $filter_section = this.$filter_section;
 		$filter_section.empty(); // clear if rebuilding
 
-		// Button order: Filter, Group, Settings (like List View)
+		// Button order: Filter, Group, Settings (Filter chrome matches List View FilterGroup).
 		this.setup_filter_button($filter_section);
 		this.setup_group_button($filter_section);
 		this.setup_settings_button($filter_section);
 		this.sync_board_height();
 	}
 
+	/** Settings button — opens Board Settings (kanban_settings.bundle.js). */
+	setup_settings_button($parent) {
+		// Espresso button (Filter stays Bootstrap for FilterGroup chrome).
+		this.$settings_btn = frappe.ui.button({
+			label: __("Settings"),
+			icon: "settings",
+			size: "sm",
+			css_class: "settings-button mr-0",
+			title: __("Settings"),
+			onclick: () =>
+				frappe.require("kanban_settings.bundle.js", () =>
+					frappe.views.open_kanban_settings(this)
+				),
+		});
+		$parent.append(this.$settings_btn);
+	}
+
 	/**
-	 * (Re)build the "Group" button in the filter bar — a Layers icon + label with a
-	 * dropdown of the group-by options plus a "None" entry. Hidden when there are
-	 * no options.
+	 * (Re)build the "Group" button in the filter bar — espresso Dropdown with
+	 * layers icon + label + chevrons. Hidden when there are no group-by options.
 	 */
 	setup_group_button($parent) {
 		const options = this.group_by_options || [];
 		if (!options.length) {
+			if (this.$group_dropdown) {
+				this.$group_dropdown.destroy();
+				this.$group_dropdown = null;
+			}
 			if (this.$group_wrapper) {
 				this.$group_wrapper.remove();
 				this.$group_wrapper = null;
 			}
-			this.$group_dropdown = null;
 			return;
 		}
 
-		// Show selected group name on the trigger; default to "Group".
 		const active = options.find((o) => o.fieldname === this.group_by_field);
 		const label_text = active ? active.label : __("Group");
-		const icon_name = "layers";
+		const button_opts = {
+			label: label_text,
+			icon: "layers",
+			icon_right: "chevrons-up-down",
+			size: "sm",
+			css_class: "group-button",
+		};
 
-		// Create the group button wrapper with dropdown
 		if (!this.$group_wrapper || !this.$group_wrapper.closest(".filter-section").length) {
-			this.$group_wrapper = $(`
-				<div class="group-selector">
-					<div class="btn-group">
-						<button class="btn btn-default btn-sm group-button" type="button">
-							<span class="filter-icon button-icon">${frappe.utils.icon(icon_name)}</span>
-							<span class="button-label">${label_text}</span>
-							<span class="filter-icon button-icon">${frappe.utils.icon("chevrons-up-down")}</span>
-						</button>
-					</div>
-				</div>
-			`);
-			if ($parent) {
-				$parent.append(this.$group_wrapper);
-			} else {
-				this.$filter_section.append(this.$group_wrapper);
-			}
-
-			// Use frappe.ui.Dropdown for consistent dropdown behavior
-			const $btn = this.$group_wrapper.find(".group-button");
+			this.$group_wrapper = $('<div class="group-selector">');
 			this.$group_dropdown = new frappe.ui.Dropdown({
-				trigger: $btn,
+				button: button_opts,
 				options: () => this.get_group_dropdown_options(),
 			});
+			this.$group_wrapper.append(this.$group_dropdown.$trigger);
+			($parent || this.$filter_section).append(this.$group_wrapper);
 		} else {
-			// Just update the label
-			const $label = this.$group_wrapper.find(".button-label");
-			$label.text(label_text);
+			frappe.ui.button.dress(this.$group_dropdown.$trigger, button_opts);
 		}
 	}
 
@@ -881,22 +900,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		});
 
 		return items;
-	}
-
-	/** Settings button (placeholder for now). */
-	setup_settings_button($parent) {
-		this.$settings_btn = $(`
-			<button class="btn btn-default btn-sm settings-button mr-0" type="button" title="${__(
-				"Settings"
-			)}">
-				<span class="button-icon">${frappe.utils.icon("settings")}</span>
-				<span class="button-label">${__("Settings")}</span>
-			</button>
-		`);
-		$parent.append(this.$settings_btn);
-
-		// Placeholder for upcoming settings menu.
-		this.$settings_btn.on("click", () => {});
 	}
 
 	/** Set the active group-by field (null = ungrouped), re-render, update the menu. */
@@ -1038,7 +1041,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			.then(() => {
 				this.saved_filters = JSON.parse(JSON.stringify(this.filters || []));
 				this.update_saved_indicator();
-				frappe.show_alert({ message: __("Filters saved"), indicator: "green" });
+				frappe.ui.toast({ message: __("Filters saved"), type: "success" });
 			});
 	}
 
@@ -1084,9 +1087,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			onCardOpen: (card) => frappe.set_route("Form", this.doctype, card.name),
 			onSelectionChange: opts.onSelectionChange || ((ids) => this.update_selection_bar(ids)),
 			onMoveError: (mv, err) => {
-				frappe.show_alert({
+				frappe.ui.toast({
 					message: __("Could not move {0}", [mv.cardId]),
-					indicator: "red",
+					type: "error",
 				});
 				console.error("[kanban-v2] move failed", err);
 			},
@@ -1134,7 +1137,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	 */
 	async mount_grouped_board(seq) {
 		const field = this.group_by_field;
-		this.$container.html(`<div class="text-muted p-4">${__("Loading groups…")}</div>`);
+		this.$container.html(
+			`<div class="text-ink-gray-5 text-sm p-4">${__("Loading groups…")}</div>`
+		);
 		let data;
 		try {
 			data = await frappe.xcall(
@@ -1147,9 +1152,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			);
 		} catch (e) {
 			if (seq === this._mount_seq) {
-				this.$container.html(
-					`<div class="text-muted p-4">${__("Could not load groups.")}</div>`
-				);
+				this.show_empty({
+					icon: "alert-circle",
+					title: __("Could not load groups."),
+				});
 			}
 			return;
 		}
@@ -1162,7 +1168,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		}
 		this.$container.empty();
 		if (!lanes.length) {
-			this.$container.html(`<div class="text-muted p-4">${__("No cards to group.")}</div>`);
+			this.show_empty({
+				icon: "layers",
+				title: __("No cards to group."),
+			});
 			return;
 		}
 		this.board = new frappe.views.KanbanV2GroupedBoard(this, field, lanes);
@@ -1268,18 +1277,84 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		// No divider: the extra top margin alone sets the footer apart, so the
 		// card stays one quiet block instead of two boxed halves.
 		foot.className = "flex items-center justify-between gap-2 mt-3";
+
+		const left = document.createElement("div");
+		left.className = "kn-card-foot-left inline-flex items-center gap-2 min-w-0";
 		if (this.show_assigned_to) {
-			foot.appendChild(this.assign_button(card));
+			left.appendChild(this.assign_button(card));
 		}
+		const tags = this.card_tags(card);
+		if (tags) left.appendChild(tags);
+		if (left.childNodes.length) foot.appendChild(left);
+
 		const age = this.age_badge(card);
 		if (age) {
 			// Keep the date on the right when assignees are hidden.
-			if (!this.show_assigned_to) age.classList.add("ms-auto");
+			if (!left.childNodes.length) age.classList.add("ms-auto");
 			foot.appendChild(age);
 		}
-		// No assignees and no date → omit an empty strip under the fields.
+		// No assignees/tags/date → omit an empty strip under the fields.
 		if (!foot.childNodes.length) return document.createDocumentFragment();
 		return foot;
+	}
+
+	/** Standard badge tags on cards, kept compact. */
+	card_tags(card) {
+		if (!this.show_tags_on_card) return null;
+		const tags = String(card._user_tags || "")
+			.split(",")
+			.map((t) => t.trim())
+			.filter(Boolean);
+		if (!tags.length) return null;
+
+		const wrap = document.createElement("div");
+		wrap.className = "inline-flex items-center gap-1 min-w-0";
+
+		const shown = tags.slice(0, 2);
+		shown.forEach((tag) => {
+			wrap.appendChild(this.tag_badge(tag, "lg"));
+		});
+
+		if (tags.length > shown.length) {
+			const more = document.createElement("span");
+			more.className = "kn-card-tag-more text-xs text-ink-gray-5";
+			more.textContent = `+${tags.length - shown.length}`;
+			wrap.appendChild(more);
+		}
+
+		return wrap;
+	}
+
+	/** Hash a string into a stable espresso theme colour (badge / avatar). */
+	hash_theme(str, themes = ["blue", "green", "amber", "red", "violet"]) {
+		let hash = 0;
+		const s = String(str || "");
+		for (let i = 0; i < s.length; i++) {
+			hash = (hash * 31 + s.charCodeAt(i)) % 997;
+		}
+		return themes[hash % themes.length];
+	}
+
+	/** Standard frappe badge element for a tag. */
+	tag_badge(tag, size = "md") {
+		const $badge = frappe.ui.badge({
+			label: tag,
+			theme: this.hash_theme(tag),
+			size,
+			title: tag,
+		});
+		return $badge[0];
+	}
+
+	/** One assignee es-avatar: user photo, or a colour-themed initial fallback. */
+	assignee_avatar(user, size = "md") {
+		const info = frappe.user_info(user);
+		return frappe.ui.avatar({
+			image: info.image || undefined,
+			label: info.fullname || user,
+			theme: this.hash_theme(user),
+			size,
+		})[0];
 	}
 
 	/**
@@ -1472,14 +1547,16 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		if (df.fieldtype === "Link" && df.options === "User") {
 			// A 16px avatar keeps the row on the same rhythm as the icon column.
 			// The provider has already cached these users, so the name is here.
+			const info = frappe.user_info(val);
 			el.className = "inline-flex items-center gap-1.5 text-sm text-ink-gray-6 min-w-0";
-			el.innerHTML = `${frappe.avatar(
-				val,
-				"avatar-xs shrink-0"
-			)}<span class="truncate">${frappe.utils.escape_html(
-				frappe.user_info(val).fullname || val
-			)}</span>`;
-			this.tip_if_long(el, frappe.user_info(val).fullname || val);
+			el.innerHTML = `${frappe.ui.avatar.html({
+				image: info.image || undefined,
+				label: info.fullname || val,
+				theme: this.hash_theme(val),
+				size: "xs",
+				css_class: "shrink-0",
+			})}<span class="truncate">${frappe.utils.escape_html(info.fullname || val)}</span>`;
+			this.tip_if_long(el, info.fullname || val);
 			return el;
 		}
 
@@ -1497,7 +1574,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				el.className = "min-w-0";
 				el.innerHTML = frappe.ui.badge.html({
 					label: __(val),
-					size: "sm",
+					size: "md",
 					theme: style.theme,
 					icon: style.icon,
 				});
@@ -1822,7 +1899,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		if (val === undefined || val === null || val === "") return null;
 		const ft = df && df.fieldtype;
 		const d = document.createElement("div");
-		d.className = "kn-mi-desc text-sm text-ink-gray-6 px-4 pt-2 w-full";
+		d.className = "kn-mi-desc text-p-sm text-ink-gray-6 px-4 pt-2 w-full";
 		if (ft === "Markdown Editor" || this.is_rich_text(ft)) {
 			let raw = String(val);
 			// Some data stores literal escapes (\n, \t) — decode so it isn't one blob.
@@ -1878,14 +1955,13 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			assignees ? "" : " ms-auto"
 		}`;
 		if (tags.length) {
-			// A tag icon, then the tags: [🏷] tag1 tag2 tag3
+			// A tag icon, then standard badge tags.
 			const group = document.createElement("span");
 			group.className = "inline-flex items-center gap-1 min-w-0";
-			group.innerHTML =
-				frappe.utils.icon("tag", "sm") +
-				tags
-					.map((t) => frappe.ui.badge.html({ label: t, size: "sm", theme: "gray" }))
-					.join("");
+			group.innerHTML = frappe.utils.icon("tag", "sm");
+			tags.forEach((tag) => {
+				group.appendChild(this.tag_badge(tag, "md"));
+			});
 			right.appendChild(group);
 		}
 		if (comments) right.appendChild(this.preview_stat("message-square", comments));
@@ -1897,9 +1973,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	/** Read-only assignee stack for the preview footer; null when unassigned. */
 	preview_assignees(card) {
 		if (!this.show_assigned_to) return null;
-		const users = this.parse_json_list(card._assign);
-		if (!users.length) return null;
-		return frappe.avatar_group(users, 3, { align: "left", overlap: true })[0];
+		return this.assign_stack(card, { interactive: false });
 	}
 
 	preview_stat(icon, n) {
@@ -1910,52 +1984,55 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	}
 
 	/**
-	 * Assignees on the card's bottom-right: an overlapping avatar stack with a
-	 * native "+N" overflow, always ending in the same "+" add chip — so the add
-	 * affordance looks identical whether or not the card has assignees. Each
-	 * avatar reveals a hovercard (photo · name · email · Unassign) on hover.
+	 * Overlapping assignee avatar stack. Interactive mode wires hovercards and
+	 * always ends with a "+" add chip (even when the card has no assignees).
 	 */
-	assign_button(card) {
+	assign_stack(card, { interactive = false } = {}) {
 		const users = this.parse_json_list(card._assign);
+		if (!interactive && !users.length) return null;
 
 		const group = document.createElement("div");
-		group.className = "avatar-group overlap kn-assign-group inline-flex items-center";
-		group.addEventListener("click", (e) => e.stopPropagation());
+		// Overlap + ring live in .kn-assign-group (no negative-margin utility).
+		group.className = "kn-assign-group inline-flex items-center";
+		if (interactive) {
+			group.addEventListener("click", (e) => e.stopPropagation());
+		}
 
 		const shown = users.slice(0, 3);
 		const extra = users.slice(3);
 		shown.forEach((user) => {
-			const holder = document.createElement("div");
-			holder.innerHTML = frappe.avatar(user, "avatar-small");
-			const av = holder.firstElementChild;
+			const av = this.assignee_avatar(user, "md");
+			av.classList.add("kn-stack-av");
 			group.appendChild(av);
-			this.bind_assignee_hovercard(av, user, card);
+			if (interactive) this.bind_assignee_hovercard(av, user, card);
 		});
 
 		if (extra.length) {
-			const more = document.createElement("span");
-			more.className = "avatar avatar-small";
-			more.innerHTML = `<div class="avatar-frame standard-image avatar-extra-count" title="${extra
-				.map((u) => frappe.utils.escape_html(frappe.user_info(u).fullname || u))
-				.join(", ")}">+${extra.length}</div>`;
+			const more = frappe.ui.avatar({ size: "md", label: "" })[0];
+			more.classList.add("kn-stack-av");
+			more.querySelector(".es-avatar__fallback").textContent = `+${extra.length}`;
+			more.title = extra.map((u) => frappe.user_info(u).fullname || u).join(", ");
 			group.appendChild(more);
 		}
 
-		// "+" add chip — same element whether the card is unassigned or assigned.
-		const add = document.createElement("span");
-		add.className = "avatar avatar-small kn-assign-add cursor-pointer";
-		add.title = users.length ? __("Add assignee") : __("Assign");
-		add.innerHTML = `<div class="avatar-frame avatar-action">${frappe.utils.icon(
-			"plus",
-			"sm"
-		)}</div>`;
-		add.addEventListener("click", (e) => {
-			e.stopPropagation();
-			this.open_assign(card);
-		});
-		group.appendChild(add);
+		if (interactive) {
+			const add = frappe.ui.avatar({ size: "md", label: "" })[0];
+			add.querySelector(".es-avatar__fallback").innerHTML = frappe.utils.icon("plus", "sm");
+			add.classList.add("kn-stack-av", "kn-assign-add", "cursor-pointer");
+			add.title = users.length ? __("Add assignee") : __("Assign");
+			add.addEventListener("click", (e) => {
+				e.stopPropagation();
+				this.open_assign(card);
+			});
+			group.appendChild(add);
+		}
 
 		return group;
+	}
+
+	/** Assignees on the card footer: stack + "+" add chip. */
+	assign_button(card) {
+		return this.assign_stack(card, { interactive: true });
 	}
 
 	/** Open Frappe's assign dialog for this card (add/remove multiple people). */
@@ -1977,7 +2054,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	assignee_hovercard(user, card, hovercard) {
 		// Full name comes from frappe.user_info (populated from the server);
 		// only show the email line when it differs from the name.
-		const fullname = frappe.user_info(user).fullname || user;
+		const info = frappe.user_info(user);
+		const fullname = info.fullname || user;
 		const wrap = document.createElement("div");
 		wrap.className = "kn-assignee-card";
 
@@ -1989,7 +2067,12 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				: `<div class="text-xs text-ink-gray-5" style="word-break:break-all">${frappe.utils.escape_html(
 						user
 				  )}</div>`;
-		head.innerHTML = `${frappe.avatar(user, "avatar-medium-2")}
+		head.innerHTML = `${frappe.ui.avatar.html({
+			image: info.image || undefined,
+			label: fullname,
+			theme: this.hash_theme(user),
+			size: "lg",
+		})}
 			<div class="min-w-0">
 				<div class="text-sm-semibold text-ink-gray-8">${frappe.utils.escape_html(fullname)}</div>
 				${email_line}
@@ -2025,9 +2108,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 					assign_to: user,
 				})
 				.then(() => {
-					frappe.show_alert({
+					frappe.ui.toast({
 						message: __("Unassigned {0}", [label]),
-						indicator: "green",
+						type: "success",
 					});
 					this.board.refresh();
 				});
@@ -2093,7 +2176,7 @@ frappe.views.KanbanV2GroupedBoard = class KanbanV2GroupedBoard {
 					<span class="kn-swimlane-label text-sm-semibold text-ink-gray-8 truncate"></span>
 				</div>
 				<div class="kn-swimlane-body">
-					<div class="kn-swimlane-placeholder text-muted text-sm p-4">${__("Loading...")}</div>
+					<div class="kn-swimlane-placeholder text-ink-gray-5 text-sm p-4">${__("Loading...")}</div>
 				</div>
 			</div>`).appendTo(this.$root);
 		const $head = $lane.find(".kn-swimlane-head");
@@ -2115,9 +2198,15 @@ frappe.views.KanbanV2GroupedBoard = class KanbanV2GroupedBoard {
 		});
 		// Assignee lanes lead with the person's avatar, like Jira swimlanes.
 		if (this.field === "_assign" && !lane.unset) {
-			$(frappe.avatar(lane.value, "avatar-small")).insertAfter(
-				$head.find(".kn-swimlane-caret")
-			);
+			const info = frappe.user_info(lane.value);
+			frappe.ui
+				.avatar({
+					image: info.image || undefined,
+					label: info.fullname || lane.value,
+					theme: this.page.hash_theme(lane.value),
+					size: "sm",
+				})
+				.insertAfter($head.find(".kn-swimlane-caret"));
 		}
 
 		this.boards.push({ board: null, $lane, lane, index });

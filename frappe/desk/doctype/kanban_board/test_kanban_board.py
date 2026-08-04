@@ -11,6 +11,7 @@ from frappe.desk.doctype.kanban_board.kanban_board import (
 	update_order_for_single_card,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.utils import cint
 
 
 def _decompress_kanban_cards(cards):
@@ -279,6 +280,90 @@ class TestKanbanBoard(IntegrationTestCase):
 			lambda: add_card(self.board_name, self.todos[0], "Open"),
 		)
 		frappe.set_user("Administrator")
+
+	def test_private_toggle_allowed_only_for_owner_or_admin(self):
+		other = "kanban_perm_test@example.com"
+		if not frappe.db.exists("User", other):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": other,
+					"first_name": "Kanban",
+					"last_name": "Perm",
+					"send_welcome_email": 0,
+					"roles": [{"role": "System Manager"}],
+				}
+			).insert(ignore_permissions=True)
+
+		# Non-owner cannot toggle Private.
+		frappe.set_user(other)
+		board = frappe.get_doc("Kanban Board", self.board_name)
+		board.private = 0
+		self.assertRaises(frappe.PermissionError, board.save, ignore_permissions=True)
+
+		# Owner (Administrator in this test fixture) can toggle Private.
+		frappe.set_user("Administrator")
+		board = frappe.get_doc("Kanban Board", self.board_name)
+		board.private = 0
+		board.save(ignore_permissions=True)
+		self.assertEqual(cint(frappe.db.get_value("Kanban Board", self.board_name, "private")), 0)
+
+		# Administrator can toggle it back as well.
+		board.reload()
+		board.private = 1
+		board.save(ignore_permissions=True)
+		self.assertEqual(cint(frappe.db.get_value("Kanban Board", self.board_name, "private")), 1)
+
+	def test_standard_board_blocks_non_admin_edits(self):
+		other = "kanban_perm_test@example.com"
+		if not frappe.db.exists("User", other):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": other,
+					"first_name": "Kanban",
+					"last_name": "Perm",
+					"send_welcome_email": 0,
+					"roles": [{"role": "System Manager"}],
+				}
+			).insert(ignore_permissions=True)
+
+		frappe.db.set_value("Kanban Board", self.board_name, "is_standard", "Yes")
+		try:
+			frappe.set_user(other)
+			board = frappe.get_doc("Kanban Board", self.board_name)
+			board.use_kanban_v2 = 1 if not cint(board.use_kanban_v2) else 0
+			self.assertRaises(frappe.ValidationError, board.save, ignore_permissions=True)
+		finally:
+			frappe.set_user("Administrator")
+			frappe.db.set_value("Kanban Board", self.board_name, "is_standard", "No")
+
+	def test_standard_board_requires_developer_mode(self):
+		frappe.set_user("Administrator")
+		board = frappe.get_doc("Kanban Board", self.board_name)
+		old_dev_mode = getattr(frappe.local.conf, "developer_mode", 0)
+		try:
+			frappe.local.conf.developer_mode = 0
+			board.is_standard = "Yes"
+			self.assertRaises(frappe.ValidationError, board.save, ignore_permissions=True)
+		finally:
+			frappe.local.conf.developer_mode = old_dev_mode
+
+	def test_standard_board_delete_blocked_outside_developer_mode(self):
+		frappe.set_user("Administrator")
+		frappe.db.set_value("Kanban Board", self.board_name, "is_standard", "Yes")
+		old_dev_mode = getattr(frappe.local.conf, "developer_mode", 0)
+		try:
+			frappe.local.conf.developer_mode = 0
+			self.assertRaises(
+				frappe.ValidationError,
+				frappe.delete_doc,
+				"Kanban Board",
+				self.board_name,
+			)
+		finally:
+			frappe.local.conf.developer_mode = old_dev_mode
+			frappe.db.set_value("Kanban Board", self.board_name, "is_standard", "No")
 
 	def test_group_by_fields_seeded_with_select_fields(self):
 		name = frappe.generate_hash(length=10)

@@ -13,6 +13,8 @@ frappe.ui.form.on("Kanban Board", {
 		}
 	},
 	refresh: function (frm) {
+		set_standard_toggle_access(frm);
+		set_private_toggle_access(frm);
 		// The grid may not have had its docfields ready during onload.
 		if (frm.doc.reference_doctype) {
 			frappe.model.with_doctype(frm.doc.reference_doctype, () => {
@@ -27,6 +29,7 @@ frappe.ui.form.on("Kanban Board", {
 			frappe.set_route("List", frm.doc.reference_doctype, "Kanban", frm.doc.name);
 		});
 	},
+
 	reference_doctype: function (frm) {
 		// set field options
 		if (!frm.doc.reference_doctype) return;
@@ -65,6 +68,24 @@ frappe.ui.form.on("Kanban Board", {
 		frm.refresh();
 	},
 });
+
+/** Standard boards are fixture-backed: only Administrator in dev mode can mark/unmark. */
+function set_standard_toggle_access(frm) {
+	const can_toggle =
+		frappe.session.user === "Administrator" && Boolean(frappe.boot?.developer_mode);
+	frm.set_df_property("is_standard", "read_only", can_toggle ? 0 : 1);
+}
+
+/** Existing boards: only owner/Admin can toggle Private. Backend also enforces. */
+function set_private_toggle_access(frm) {
+	if (frm.is_new()) {
+		frm.set_df_property("private", "read_only", 0);
+		return;
+	}
+	const can_toggle =
+		frappe.session.user === "Administrator" || frappe.session.user === frm.doc.owner;
+	frm.set_df_property("private", "read_only", can_toggle ? 0 : 1);
+}
 
 // Autofill the label from the selected field; the user can still edit it. Shared
 // by the Card/Preview field rows and the Group By field rows.
