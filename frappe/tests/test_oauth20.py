@@ -99,6 +99,27 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.oauth_client.delete(force=True)
 		frappe.db.rollback()
 
+	def test_openid_profile_post_body_token(self):
+		access_token = frappe.generate_hash()
+		frappe.get_doc(
+			doctype="OAuth Bearer Token",
+			access_token=access_token,
+			client=self.client_id,
+			expires_in=3600,
+			scopes=self.scope,
+			status="Active",
+			user="test@example.com",
+		).insert(ignore_permissions=True)
+
+		openid_response = self.post(
+			"/api/method/frappe.integrations.oauth2.openid_profile",
+			headers=self.form_header,
+			data={"access_token": access_token},
+		)
+
+		self.assertEqual(openid_response.status_code, 200)
+		self.assertEqual(openid_response.json.get("email"), "test@example.com")
+
 	def test_invalid_login(self):
 		with suppress_stdout():
 			self.assertFalse(check_valid_openid_response(client=self))
