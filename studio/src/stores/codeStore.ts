@@ -280,10 +280,10 @@ const useCodeStore = defineStore("codeStore", () => {
 			const expression = match[1].trim()
 			const dynamicValue = evaluateExpression(expression, context)
 
-			if (typeof dynamicValue === "object") {
+			if (dynamicValue !== null && typeof dynamicValue === "object") {
 				// for proptype as object, return the evaluated object as is
 				// TODO: handle this more explicitly by checking the actual prop type
-				return dynamicValue || undefined
+				return dynamicValue
 			}
 
 			// If the whole value is a single dynamic expression, return the normalized evaluated value
@@ -294,8 +294,8 @@ const useCodeStore = defineStore("codeStore", () => {
 
 			// Append the static part of the string
 			result += value.slice(lastIndex, match.index)
-			// Append the evaluated dynamic value
-			result += dynamicValue !== undefined ? String(dynamicValue) : ''
+			// Append the evaluated dynamic value, treating null/undefined as empty
+			result += dynamicValue != null ? String(dynamicValue) : ""
 			// update lastIndex to the end of the current match
 			lastIndex = match.index + match[0].length
 		}
@@ -487,7 +487,8 @@ const useCodeStore = defineStore("codeStore", () => {
 		if (params && typeof params === "object") {
 			Object.entries(params).forEach(([key, value]) => {
 				if (isDynamicValue(value)) {
-					params[key] = getDynamicValue(value, context)
+					// null ?? undefined → undefined, so nullish params get dropped on serialization
+					params[key] = getDynamicValue(value, context) ?? undefined
 				}
 			})
 		}
@@ -538,7 +539,8 @@ const useCodeStore = defineStore("codeStore", () => {
 			let value = Array.isArray(filters[key]) ? filters[key][1] : filters[key]
 
 			if (isDynamicValue(value)) {
-				evaluatedFilters[key] = getDynamicValue(value, context)
+				// null ?? undefined → undefined, so nullish filters get dropped on serialization
+				evaluatedFilters[key] = getDynamicValue(value, context) ?? undefined
 			} else {
 				evaluatedFilters[key] = value
 			}
