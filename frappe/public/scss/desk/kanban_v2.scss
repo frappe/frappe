@@ -13,10 +13,22 @@
 	width: 100%;
 }
 
+/* ---- filter row tweaks (base spacing comes from desk/list.scss) ---------- */
+.kanban-v2-filter-section {
+	/* Match list.scss spacing rhythm: filter selector already gets this margin,
+	   so apply the same to custom Group and Settings controls. */
+	.group-selector .btn-group,
+	.settings-button {
+		margin: var(--margin-xs);
+	}
+}
+
 .kanban-v2-container {
 	flex: 1 1 auto;
 	min-height: 0;
-	height: calc(100vh - var(--page-head-height) - var(--margin-md));
+	// Keep board constrained so column bodies scroll instead of the full page.
+	height: var(--kanban-v2-height, calc(100vh - var(--page-head-height) - var(--margin-md)));
+	overflow: hidden;
 }
 
 /* ---- loading skeleton (blocks reuse .es-skeleton) ------------------------ */
@@ -35,6 +47,11 @@
 	--kn-accent: var(--blue-500, #2490ef);
 	height: 100%;
 	overflow-y: hidden;
+}
+
+// Match list-view vertical rhythm: no extra top gap under the filter row.
+.kanban-v2-container .kn-board {
+	padding-top: 0;
 }
 .kn-column {
 	/* Fixed column width — cards fill it. 320px fits label+value stacks without

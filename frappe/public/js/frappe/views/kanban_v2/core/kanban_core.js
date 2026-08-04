@@ -32,7 +32,7 @@ let _kanban_instance_seq = 0;
 
 // Utility-class strings for the skeleton (utilities.scss).
 const CLS = {
-	board: "kn-board flex gap-3 overflow-x-auto overflow-y-hidden items-stretch py-2",
+	board: "kn-board flex gap-3 overflow-x-auto overflow-y-hidden items-stretch pb-2",
 	// The column is a flat gray panel: no border in light mode, the fill alone
 	// separates it from the board (dark mode flips this — see kanban_v2.scss).
 	// Bottom padding is the column's own, so the scrolling list ends above the
