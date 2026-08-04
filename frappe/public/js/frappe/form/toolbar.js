@@ -325,9 +325,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		this.page.clear_icons();
 		this.page.clear_menu();
 
-		if (frappe.boot.desk_settings.form_sidebar) {
-			this.make_menu_items();
-		}
+		this.make_menu_items();
 
 		if (frappe.boot.desk_settings.form_navigation_buttons) {
 			this.make_navigation();
@@ -475,7 +473,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	add_open_sidebar() {
-		if (this.page.hide_sidebar) {
+		if (this.page.hide_sidebar || !frappe.boot.desk_settings.form_sidebar) {
 			return;
 		}
 		this.page.add_menu_item(
