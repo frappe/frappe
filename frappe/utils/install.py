@@ -3,6 +3,7 @@
 import getpass
 
 import frappe
+from frappe.desk.doctype.notification_type.notification_type import install_notification_types
 from frappe.geo.doctype.country.country import import_country_and_currency
 from frappe.utils.password import update_password
 
@@ -50,6 +51,9 @@ def after_install():
 		f.write("")
 
 	add_standard_navbar_items()
+
+	# standard notification types, seeded before any Notification Log can reference them
+	install_notification_types()
 
 	frappe.db.commit()
 
