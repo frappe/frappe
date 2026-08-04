@@ -87,6 +87,9 @@ export class KanbanCore {
 		this.autoScrollRAF = null;
 		this.localMoveGraceUntil = 0;
 		this.columnSortable = null;
+		// Monotonic board snapshot id. Bumped on every reload so late async
+		// responses from older snapshots can be ignored safely.
+		this.boardEpoch = 0;
 	}
 
 	// --- lifecycle -------------------------------------------------------
@@ -123,19 +126,21 @@ export class KanbanCore {
 	}
 
 	async reload() {
+		const epoch = ++this.boardEpoch;
 		this.setLoading(true);
 		// First load has no columns yet — show placeholder columns instead of a
 		// blank panel while loadBoard() runs. render() replaces them with real data.
 		if (!this.state.columns.length) this.renderSkeleton();
 		try {
 			const { columns, cards } = await this.options.provider.loadBoard();
+			if (epoch !== this.boardEpoch) return;
 			this.state = { ...this.state, columns, cards };
 			this.render();
 			this.bus.emit("state:change", this.getState());
 		} catch (error) {
-			this.bus.emit("error", error);
+			if (epoch === this.boardEpoch) this.bus.emit("error", error);
 		} finally {
-			this.setLoading(false);
+			if (epoch === this.boardEpoch) this.setLoading(false);
 		}
 	}
 
@@ -645,13 +650,13 @@ export class KanbanCore {
 	 * appends are de-duped by card name as a backstop. Resolves to
 	 * `{ fetched, appended }`.
 	 */
-	loadColumnPageOnce(columnId) {
+	loadColumnPageOnce(columnId, epoch = this.boardEpoch) {
 		if (!this._pageLoads) this._pageLoads = {};
 		const prev = this._pageLoads[columnId] || Promise.resolve();
 		// Chain onto any in-flight load for this column (continue even if it threw).
 		const next = prev
 			.catch(() => {})
-			.then(() => this._appendNextColumnPage(columnId))
+			.then(() => this._appendNextColumnPage(columnId, epoch))
 			.finally(() => {
 				if (this._pageLoads[columnId] === next) delete this._pageLoads[columnId];
 			});
@@ -659,7 +664,7 @@ export class KanbanCore {
 		return next;
 	}
 
-	async _appendNextColumnPage(columnId) {
+	async _appendNextColumnPage(columnId, epoch) {
 		const view = this.columnViews.get(columnId);
 		const column = this.getColumn(columnId);
 		if (!column) return { fetched: 0, appended: 0 };
@@ -672,6 +677,8 @@ export class KanbanCore {
 				loaded,
 				this.options.pageLength
 			);
+			// Reload replaced board state while this request was in-flight.
+			if (epoch !== this.boardEpoch) return { fetched: (cards || []).length, appended: 0 };
 			const existing = this.state.cards[columnId] || [];
 			// De-dupe by name: a racing fetch (or a re-fetched offset) can't append a
 			// card the column already holds.
@@ -706,15 +713,18 @@ export class KanbanCore {
 	 * usable, false only if the column vanished or the backend stops returning rows.
 	 */
 	async ensureOrderKnown(columnId) {
+		const epoch = this.boardEpoch;
 		if (this.persistedOrder(columnId)) return true;
 		while (!this.persistedOrder(columnId)) {
+			if (epoch !== this.boardEpoch) return false;
 			const column = this.getColumn(columnId);
 			if (!column) return false;
 			const loaded = (this.state.cards[columnId] || []).length;
 			if (loaded >= (column.total || 0)) break;
 			// Same serialized loader as the scroll prefetch, so a drag and a scroll
 			// can't fetch the same offset and double-append the remaining pages.
-			const { fetched } = await this.loadColumnPageOnce(columnId);
+			const { fetched } = await this.loadColumnPageOnce(columnId, epoch);
+			if (epoch !== this.boardEpoch) return false;
 			if (!fetched) break; // no progress — avoid an infinite loop
 		}
 		return !!this.persistedOrder(columnId);
