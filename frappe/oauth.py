@@ -28,6 +28,9 @@ class OAuthWebRequestValidator(RequestValidator):
 			return True
 		return False
 
+	def is_pkce_required(self, client_id, request):
+		return frappe.db.get_value("OAuth Client", client_id, "token_endpoint_auth_method") == "None"
+
 	def validate_redirect_uri(self, client_id, redirect_uri, request, *args, **kwargs):
 		# Is the client allowed to use the supplied redirect_uri? i.e. has
 		# the client previously registered this EXACT redirect uri.
@@ -131,6 +134,13 @@ class OAuthWebRequestValidator(RequestValidator):
 
 		request["client"] = client
 		return True
+
+	def get_code_challenge(self, code, request):
+		return frappe.db.get_value("OAuth Authorization Code", code, "code_challenge")
+
+	def get_code_challenge_method(self, code, request):
+		method = frappe.db.get_value("OAuth Authorization Code", code, "code_challenge_method")
+		return "S256" if method == "s256" else method
 
 	def validate_code(self, client_id, code, client, request, *args, **kwargs):
 		# Validate the code belongs to the client. Add associated scopes,
