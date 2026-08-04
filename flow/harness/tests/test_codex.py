@@ -19,7 +19,12 @@ from flow.events import (
 from flow.model import ModelRequest, ProviderError
 from flow.model.auth import AuthError, RuntimeAuth, get_auth_provider
 from flow.model.credentials import OAuthCredential
-from flow.model.providers.codex import CLIENT_ID, CodexModel, _responses_input
+from flow.model.providers.codex import (
+	CLIENT_ID,
+	MODEL_CATALOG_CLIENT_VERSION,
+	CodexModel,
+	_responses_input,
+)
 
 
 def _jwt(payload: dict) -> str:
@@ -34,7 +39,16 @@ def _mock_client(handler):
 	return httpx.AsyncClient(transport=httpx.MockTransport(handler))
 
 
-async def _collect(model, messages, tools=None, *, system_prompt="", stream=True, cancellation=None):
+async def _collect(
+	model,
+	messages,
+	tools=None,
+	*,
+	system_prompt="",
+	stream=True,
+	cancellation=None,
+	max_output_tokens=None,
+):
 	return [
 		event
 		async for event in model.run(
@@ -44,6 +58,7 @@ async def _collect(model, messages, tools=None, *, system_prompt="", stream=True
 				system_prompt=system_prompt,
 				stream=stream,
 				cancellation=cancellation,
+				max_output_tokens=max_output_tokens,
 			)
 		)
 	]
@@ -127,6 +142,57 @@ def test_runtime_auth_requires_account_id():
 		get_auth_provider("codex").runtime_auth(OAuthCredential(access="tok", refresh="r", expires=1))
 
 
+def test_codex_subscription_limits_have_a_conservative_fallback():
+	model = CodexModel("codex/gpt-5.6-sol", api_key="token")
+
+	assert model.context_window == 272_000
+	assert model.max_output_tokens == 128_000
+	assert model.auto_compact_threshold_tokens == 244_800
+
+
+async def test_loads_and_caches_account_model_limits():
+	requests = []
+
+	def handler(request):
+		requests.append(request)
+		return httpx.Response(
+			200,
+			json={
+				"models": [
+					{
+						"slug": "gpt-5.6-sol",
+						"max_context_window": 1_050_000,
+						"effective_context_window_percent": 88,
+						"auto_compact_token_limit": 900_000,
+						"max_output_tokens": 128_000,
+					}
+				]
+			},
+		)
+
+	async with _mock_client(handler) as client:
+		model = CodexModel(
+			"codex/gpt-5.6-sol",
+			api_key="token",
+			api_base="https://example.test/backend-api",
+			headers={"chatgpt-account-id": "acc"},
+			client=client,
+		)
+		await model.load_model_limits()
+		await model.load_model_limits()
+
+	assert len(requests) == 1
+	request = requests[0]
+	assert str(request.url) == (
+		f"https://example.test/backend-api/codex/models?client_version={MODEL_CATALOG_CLIENT_VERSION}"
+	)
+	assert request.headers["authorization"] == "Bearer token"
+	assert request.headers["chatgpt-account-id"] == "acc"
+	assert model.context_window == 1_050_000
+	assert model.max_output_tokens == 128_000
+	assert model.auto_compact_threshold_tokens == 900_000
+
+
 # --- streaming wire --------------------------------------------------------
 
 
@@ -198,6 +264,7 @@ async def test_streams_text_tools_and_usage():
 				}
 			],
 			system_prompt="be useful",
+			max_output_tokens=12_345,
 		)
 
 	assert captured["url"] == "https://example.test/backend-api/codex/responses"
@@ -205,6 +272,7 @@ async def test_streams_text_tools_and_usage():
 	assert captured["payload"]["model"] == "gpt-test"
 	assert captured["payload"]["instructions"] == "be useful"
 	assert captured["payload"]["tools"][0]["name"] == "bash"
+	assert "max_output_tokens" not in captured["payload"]
 	assert [event.type for event in events] == [
 		"text_delta",
 		"tool_call_started",

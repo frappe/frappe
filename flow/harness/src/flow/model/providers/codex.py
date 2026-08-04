@@ -9,6 +9,7 @@ and invisible to every other layer.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import sys
 import time
@@ -67,6 +68,33 @@ SCOPE = "openid profile email offline_access"
 ORIGINATOR = "flow"
 API_BASE = "https://chatgpt.com/backend-api"
 DEFAULT_EXPIRES_S = 3600
+MODEL_CATALOG_CLIENT_VERSION = "0.144.3"
+MODEL_CATALOG_TIMEOUT_SECONDS = 5.0
+DEFAULT_CODEX_MAX_OUTPUT_TOKENS = 128_000
+DEFAULT_AUTO_COMPACT_PERCENT = 90
+
+# The authenticated catalog overrides these conservative subscription fallbacks.
+# They deliberately describe the ChatGPT Codex serving surface, not the public API.
+_CODEX_FALLBACK_CONTEXT_WINDOWS = {
+	"gpt-5.6-sol": 272_000,
+	"gpt-5.6-terra": 272_000,
+	"gpt-5.6-luna": 272_000,
+	"gpt-5.6": 272_000,
+	"gpt-5.5": 272_000,
+	"gpt-5.4-mini": 272_000,
+	"gpt-5.4-pro": 272_000,
+	"gpt-5.4": 272_000,
+	"gpt-5.3-codex-spark": 128_000,
+	"gpt-5.3-codex": 400_000,
+	"gpt-5.2": 400_000,
+}
+
+
+@dataclass(frozen=True)
+class _CodexModelLimits:
+	context_window: int | None = None
+	max_output_tokens: int | None = None
+	auto_compact_threshold_tokens: int | None = None
 
 
 # --- OAuth provider --------------------------------------------------------
@@ -196,6 +224,49 @@ class CodexModel(Model):
 		self._params = params or {}
 		self._client = client
 		self._refresh_auth = refresh_auth
+		self._limits = _fallback_model_limits(self._remote_model)
+		self._model_limits_loaded = False
+
+	@property
+	def context_window(self) -> int | None:
+		return self._limits.context_window
+
+	@property
+	def max_output_tokens(self) -> int | None:
+		return self._limits.max_output_tokens
+
+	@property
+	def auto_compact_threshold_tokens(self) -> int | None:
+		return self._limits.auto_compact_threshold_tokens
+
+	async def load_model_limits(self, cancellation: asyncio.Event | None = None) -> None:
+		"""Load this account's limits from the authenticated Codex catalog once."""
+		if self._model_limits_loaded:
+			return
+		owns_client = self._client is None
+		client = self._client or httpx.AsyncClient()
+		try:
+			response = await await_with_cancellation(
+				client.get(
+					f"{self._api_base.rstrip('/')}/codex/models",
+					params={"client_version": MODEL_CATALOG_CLIENT_VERSION},
+					headers=self._model_catalog_headers(),
+					timeout=MODEL_CATALOG_TIMEOUT_SECONDS,
+				),
+				cancellation,
+			)
+			response.raise_for_status()
+			discovered_limits = _catalog_model_limits(response.json(), self._remote_model)
+			if discovered_limits is not None:
+				self._limits = _merge_model_limits(discovered_limits, self._limits)
+		except ModelCancelled:
+			raise
+		except Exception:
+			pass  # static limits remain the safe fallback
+		finally:
+			if owns_client:
+				await client.aclose()
+		self._model_limits_loaded = True
 
 	async def run(self, request: ModelRequest) -> AsyncIterator[AnyEvent]:
 		owns_client = self._client is None
@@ -292,6 +363,68 @@ class CodexModel(Model):
 			"accept": "text/event-stream",
 			"content-type": "application/json",
 		}
+
+	def _model_catalog_headers(self) -> dict[str, str]:
+		headers = self._request_headers()
+		headers["accept"] = "application/json"
+		headers.pop("content-type", None)
+		return headers
+
+
+def _fallback_model_limits(model: str) -> _CodexModelLimits:
+	for model_id, context_window_tokens in _CODEX_FALLBACK_CONTEXT_WINDOWS.items():
+		if model == model_id or model.startswith(f"{model_id}-20"):
+			return _CodexModelLimits(
+				context_window=context_window_tokens,
+				max_output_tokens=DEFAULT_CODEX_MAX_OUTPUT_TOKENS,
+				auto_compact_threshold_tokens=(context_window_tokens * DEFAULT_AUTO_COMPACT_PERCENT // 100),
+			)
+	return _CodexModelLimits()
+
+
+def _catalog_model_limits(payload: object, model: str) -> _CodexModelLimits | None:
+	if not isinstance(payload, Mapping):
+		return None
+	models = payload.get("models")
+	if not isinstance(models, list):
+		return None
+	for item in models:
+		if not isinstance(item, Mapping) or item.get("slug") != model:
+			continue
+		context_window_tokens = _positive_int(item.get("context_window")) or _positive_int(
+			item.get("max_context_window")
+		)
+		if context_window_tokens is None:
+			return None
+		effective_percent = _positive_int(item.get("effective_context_window_percent")) or 100
+		if effective_percent > 100:
+			return None
+		effective_context_window_tokens = max(1, context_window_tokens * effective_percent // 100)
+		auto_compact_threshold_tokens = _positive_int(item.get("auto_compact_token_limit"))
+		if auto_compact_threshold_tokens is None:
+			auto_compact_threshold_tokens = context_window_tokens * DEFAULT_AUTO_COMPACT_PERCENT // 100
+		return _CodexModelLimits(
+			context_window=context_window_tokens,
+			max_output_tokens=_positive_int(item.get("max_output_tokens")),
+			auto_compact_threshold_tokens=min(auto_compact_threshold_tokens, effective_context_window_tokens),
+		)
+	return None
+
+
+def _merge_model_limits(discovered: _CodexModelLimits, fallback: _CodexModelLimits) -> _CodexModelLimits:
+	return _CodexModelLimits(
+		context_window=discovered.context_window or fallback.context_window,
+		max_output_tokens=discovered.max_output_tokens or fallback.max_output_tokens,
+		auto_compact_threshold_tokens=(
+			discovered.auto_compact_threshold_tokens or fallback.auto_compact_threshold_tokens
+		),
+	)
+
+
+def _positive_int(value: object) -> int | None:
+	if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+		return None
+	return value
 
 
 # --- response assembly -----------------------------------------------------
