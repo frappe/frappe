@@ -74,10 +74,9 @@
 					@change="set_justify($event.target.value)"
 				>
 					<option value="">{{ __("Normal") }}</option>
-					<option value="space-between">{{ __("Space Between") }}</option>
-					<option value="space-evenly">{{ __("Space Evenly") }}</option>
-					<option value="center">{{ __("Center") }}</option>
-					<option value="right-end">{{ __("Right") }}</option>
+					<option v-for="mode in JUSTIFY_MODES" :key="mode" :value="mode">
+						{{ justify_labels[mode] }}
+					</option>
 				</select>
 			</div>
 			<SegmentedRow
@@ -138,6 +137,7 @@ import StyleSection from "./StyleSection.vue";
 import ToggleRow from "./ToggleRow.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { mountColorControl } from "./useColorControl";
+import { JUSTIFY_MODES } from "../../utils";
 
 let store = inject("$store");
 
@@ -148,6 +148,13 @@ const spacing_props = [
 	{ key: "margin", label: __("Margin") },
 ];
 let preview_doc = computed(() => store.preview_doc.value);
+
+const justify_labels = {
+	"space-between": __("Space Between"),
+	"space-evenly": __("Space Evenly"),
+	center: __("Center"),
+	"right-end": __("Right"),
+};
 
 let section_justify = computed(() => selected_section.value?.justify ?? "");
 

@@ -245,6 +245,9 @@ class PrintFormatGenerator:
 		"bottom_right": "right",
 	}
 	_FIELD_RENDERERS: ClassVar[dict[str, str]] = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}
+	JUSTIFY_MODES: ClassVar[frozenset[str]] = frozenset(
+		{"space-between", "space-evenly", "center", "right-end"}
+	)
 
 	def __init__(self, print_format, doc, letterhead=None, style=None, settings=None, no_letterhead=None):
 		self.print_format = (
@@ -604,7 +607,11 @@ class PrintFormatGenerator:
 				for col in zone.get("columns") or []
 				if isinstance(col, dict)
 			]
-			return {**zone, "columns": columns}
+			cleaned = {**zone, "columns": columns}
+			# justify names a CSS class, so only the modes we ship may reach the markup
+			if cleaned.get("justify") not in self.JUSTIFY_MODES:
+				cleaned.pop("justify", None)
+			return cleaned
 
 		def clean_field(df):
 			if "table_columns" not in df:
