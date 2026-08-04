@@ -452,13 +452,23 @@
 	justify-content: space-between !important;
 }
 
-.print-format-doc .row-col-space-between .col {
-	flex: none !important;
-	max-width: 48% !important;
+.print-format-doc .row-col-space-evenly {
+	justify-content: space-evenly !important;
+}
+
+.print-format-doc .row-col-center {
+	justify-content: center !important;
 }
 
 .print-format-doc .row-col-right-end {
 	justify-content: flex-end !important;
+}
+
+.print-format-doc .row-col-space-between .col,
+.print-format-doc .row-col-space-evenly .col,
+.print-format-doc .row-col-center .col {
+	flex: none !important;
+	max-width: 48% !important;
 }
 
 .print-format-doc .row-col-right-end .col {

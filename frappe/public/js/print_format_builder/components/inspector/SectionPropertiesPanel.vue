@@ -66,6 +66,20 @@
 		</InspectorSection>
 
 		<InspectorSection :label="__('Layout')" :init-open="false">
+			<div class="pfb-insp-row">
+				<span class="pfb-insp-label">{{ __("Justify") }}</span>
+				<select
+					class="pfb-insp-select"
+					:value="section_justify"
+					@change="set_justify($event.target.value)"
+				>
+					<option value="">{{ __("Normal") }}</option>
+					<option value="space-between">{{ __("Space Between") }}</option>
+					<option value="space-evenly">{{ __("Space Evenly") }}</option>
+					<option value="center">{{ __("Center") }}</option>
+					<option value="right-end">{{ __("Right") }}</option>
+				</select>
+			</div>
 			<SegmentedRow
 				:label="__('Mode')"
 				:model-value="section_field_borders"
@@ -134,6 +148,16 @@ const spacing_props = [
 	{ key: "margin", label: __("Margin") },
 ];
 let preview_doc = computed(() => store.preview_doc.value);
+
+let section_justify = computed(() => selected_section.value?.justify ?? "");
+
+function set_justify(value) {
+	if (value) {
+		selected_section.value.justify = value;
+	} else {
+		delete selected_section.value.justify;
+	}
+}
 
 let section_orientation = computed(() => selected_section.value?.field_orientation ?? "");
 let section_gap = computed(() => selected_section.value?.gap ?? 20);

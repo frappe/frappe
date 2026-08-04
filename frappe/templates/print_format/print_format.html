@@ -112,10 +112,12 @@
 		<div class="section-label">{{ _(section.label)|e }}</div>
 		{% endif %}
 
-		{#- Detect right-aligned columns to pick the right row layout class -#}
+		{#- The section's own justify wins; a right-aligned column is the older way to ask -#}
 		{%- set ns2 = namespace(has_right=false) -%}
 		{%- for col in section.columns -%}{%- if col.align == 'right' -%}{%- set ns2.has_right = true -%}{%- endif -%}{%- endfor -%}
-		{%- if ns2.has_right and section.columns | length == 1 -%}
+		{%- if section.justify -%}
+			{%- set row_layout = 'row-col-' + section.justify -%}
+		{%- elif ns2.has_right and section.columns | length == 1 -%}
 			{%- set row_layout = 'row-col-right-end' -%}
 		{%- elif ns2.has_right -%}
 			{%- set row_layout = 'row-col-space-between' -%}

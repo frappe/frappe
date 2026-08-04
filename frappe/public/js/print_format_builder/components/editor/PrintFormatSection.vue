@@ -217,6 +217,7 @@ let is_grid = computed(() => !!props.section.field_borders);
 // Mirrors the row layout class print_format.html picks for right-aligned
 // columns; the server computes it for body sections only, never header/footer
 let row_layout = computed(() => {
+	if (props.section.justify) return `row-col-${props.section.justify}`;
 	if (props.is_header) return "";
 	const cols = props.section.columns || [];
 	if (!cols.some((c) => c.align === "right")) return "";
