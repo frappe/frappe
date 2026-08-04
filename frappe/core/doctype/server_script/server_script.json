@@ -145,8 +145,8 @@
    "label": "Cron Format"
   },
   {
-   "depends_on": "eval:doc.script_type === \"Scheduler Event\"",
-   "description": "If unset, jobs with a Long frequency run on the long queue and all others on the default queue.",
+   "depends_on": "eval:doc.script_type === \"Scheduler Event\" && doc.event_frequency === 'Cron'",
+   "description": "If unset, cron jobs run on the default queue.",
    "fieldname": "queue",
    "fieldtype": "Select",
    "label": "Queue",
@@ -160,7 +160,7 @@
    "link_fieldname": "server_script"
   }
  ],
- "modified": "2026-07-27 14:26:17.061284",
+ "modified": "2026-08-04 18:13:18.243389",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

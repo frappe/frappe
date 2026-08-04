@@ -70,6 +70,8 @@ class ScheduledJobType(Document):
 					_("{0} is not a valid Cron expression.").format(f"<code>{self.cron_format}</code>"),
 					title=_("Bad Cron Expression"),
 				)
+		else:
+			self.queue = ""
 
 	@property
 	def is_app_disabled(self) -> bool:

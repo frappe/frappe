@@ -71,7 +71,8 @@
    "read_only": 1
   },
   {
-   "description": "If unset, jobs with a Long or Maintenance frequency run on the long queue and all others on the default queue.",
+   "depends_on": "eval:doc.frequency==='Cron'",
+   "description": "If unset, cron jobs run on the default queue.",
    "fieldname": "queue",
    "fieldtype": "Select",
    "label": "Queue",
