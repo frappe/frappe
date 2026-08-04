@@ -81,6 +81,7 @@ class UserInvitation(Document):
 			template="user_invitation_expired",
 			args={"title": email_title},
 			with_container=True,
+			wrapper="templates/emails/auth_email.html",
 			now=False,
 		)
 
