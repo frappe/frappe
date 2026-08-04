@@ -77,5 +77,16 @@ frappe.ui.form.on("Document Queue", {
 				frappe.set_route("Form", "Background Task", frm.doc.task);
 			});
 		}
+
+		const dev_mode = cint(frappe.boot.developer_mode);
+		if (!dev_mode) {
+			frm.set_df_property("extracted_text_section", "hidden", 1);
+			frm.set_df_property("raw_output_section", "hidden", 1);
+			frm.set_df_property("error_section", "hidden", 1);
+		} else {
+			frm.set_df_property("extracted_text_section", "label", __("Debug: Extracted Text"));
+			frm.set_df_property("raw_output_section", "label", __("Debug: Raw Output"));
+			frm.set_df_property("error_section", "label", __("Debug: Errors"));
+		}
 	},
 });

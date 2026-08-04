@@ -46,10 +46,6 @@ class DocumentQueue(Document):
 		task: DF.Link | None
 	# end: auto-generated types
 
-	def before_insert(self):
-		if not self.status:
-			self.status = "Draft"
-
 	def validate(self):
 		if self.source_file and not (_is_pdf(self.source_file) or _is_image(self.source_file)):
 			self.extraction_method = self.extraction_method or "Unsupported"
@@ -74,7 +70,9 @@ class DocumentQueue(Document):
 		self.enqueue_extraction()
 
 	def enqueue_extraction(self, *, queue: str = "default", enqueue_after_commit: bool = True) -> "Document":
-		return enqueue_document_extraction(self.name, queue=queue, enqueue_after_commit=enqueue_after_commit)
+		task = enqueue_document_extraction(self.name, queue=queue, enqueue_after_commit=enqueue_after_commit)
+		self.reload()
+		return task
 
 	def extract(self) -> dict[str, Any]:
 		return extract_document_queue_record(self.name)
@@ -182,7 +180,7 @@ def enqueue_document_extraction(
 	queue_doc = frappe.get_doc("Document Queue", document_queue)
 
 	task = enqueue_task(
-		_extract_document_queue_record,
+		extract_document_queue_record,
 		task_name=_("Extract document {0}").format(queue_doc.name),
 		queue=queue,
 		ref_doctype="Document Queue",
@@ -218,18 +216,11 @@ def extract_document_queue_record(document_queue: str) -> dict[str, Any]:
 		raise
 
 
-def _extract_document_queue_record(document_queue: str) -> dict[str, Any]:
-	return extract_document_queue_record(document_queue)
-
 
 @frappe.whitelist()
 def get_review_context(document_queue: str) -> dict[str, Any]:
 	return get_document_review_context(document_queue)
 
-
-@frappe.whitelist()
-def is_upload_first_workflow_enabled(document_type: str) -> bool:
-	return is_upload_first_workflow_doctype(document_type)
 
 
 @frappe.whitelist()
@@ -256,6 +247,7 @@ def create_upload_first_queue(file_name: str, document_type: str) -> dict[str, A
 
 	file_doc = frappe.get_doc("File", file_name)
 	file_doc.check_permission("read")
+	file_doc.check_permission("write")
 
 	queue_doc = frappe.get_doc(
 		{
@@ -285,6 +277,7 @@ def get_document_review_context(document_queue: str) -> dict[str, Any]:
 
 	return {
 		"queue_name": queue_doc.name,
+		"task_id": queue_doc.task,
 		"status": queue_doc.status,
 		"document_type": queue_doc.document_type,
 		"created_document": queue_doc.created_document,
@@ -352,7 +345,7 @@ def validate_upload_first_workflow_doctype(document_type: str):
 	if not is_upload_first_workflow_doctype(document_type):
 		frappe.throw(
 			_("{0} does not have Upload First Workflow enabled.").format(frappe.bold(document_type)),
-			frappe.PermissionError,
+			frappe.ValidationError,
 		)
 
 
@@ -616,3 +609,26 @@ def enqueue_extraction(document_queue: str) -> str:
 	queue_doc.check_permission("write")
 	task = queue_doc.enqueue_extraction()
 	return task.name
+
+
+def has_permission(doc, ptype="read", user=None):
+	if not doc or not getattr(doc, "document_type", None):
+		return True
+
+	return frappe.has_permission(doc.document_type, ptype=ptype, user=user)
+
+
+def get_permission_query_conditions(user: str | None = None) -> str:
+	user = user or frappe.session.user
+
+	if user == "Administrator":
+		return ""
+
+	from frappe.permissions import get_doctypes_with_read
+
+	readable_doctypes = ", ".join(frappe.db.escape(dt) for dt in get_doctypes_with_read(user))
+
+	if not readable_doctypes:
+		return "1=0"
+
+	return f"`tabDocument Queue`.`document_type` IN ({readable_doctypes})"
