@@ -9,7 +9,7 @@
 	<div class="contact-box" data-name="{%= frappe.utils.escape_html(contact.name) %}">
 		{%= frappe.ui.button.html({ icon: "ellipsis", variant: "ghost", size: "sm", title: __("Options"), css_class: "card-menu-btn" }) %}
 		<div class="box-header flex items-center flex-wrap gap-2">
-			<span class="text-base-semibold text-ink-gray-8">{%= contact.first_name %} {%= contact.last_name %}</span>
+			<span class="text-base-semibold text-ink-gray-8">{%= frappe.utils.escape_html(contact.first_name) %} {%= frappe.utils.escape_html(contact.last_name) %}</span>
 			{% if (contact.name === primary_name) { %}
 				{%= frappe.ui.badge.html({ label: __("Primary"), theme: "blue", size: "sm" }) %}
 			{% } %}
@@ -21,7 +21,7 @@
 		{% if (contact.designation) { %}
 			<p class="contact-line flex items-center gap-2 text-ink-gray-7" title="{%= __("Designation") %}">
 				{%= frappe.utils.icon("briefcase", "sm", "", "", "text-ink-gray-5", true) %}
-				<span>{%= contact.designation %}</span>
+				<span>{%= frappe.utils.escape_html(contact.designation) %}</span>
 			</p>
 		{% } %}
 		{% if (contact.phone) { %}
