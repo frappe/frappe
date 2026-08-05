@@ -247,7 +247,11 @@ class OAuthWebRequestValidator(RequestValidator):
 	def validate_bearer_token(self, token, scopes, request):
 		# Remember to check expiration and scope membership
 		otoken = frappe.get_doc("OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)})
-		is_token_valid = (now_datetime() < otoken.expiration_time) and otoken.status != "Revoked"
+		is_token_valid = (
+			now_datetime() < otoken.expiration_time
+			and otoken.status != "Revoked"
+			and frappe.db.exists("User", {"name": otoken.user, "enabled": 1})
+		)
 		client_scopes = frappe.get_cached_value("OAuth Client", otoken.client, "scopes").split(
 			get_url_delimiter()
 		)
