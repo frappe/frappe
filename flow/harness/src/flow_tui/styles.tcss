@@ -45,19 +45,19 @@ PartialAssistantView {
 	display: block;
 }
 
-#brewing {
+#working {
 	height: 3;
 	padding: 1;
 	color: $text-muted;
 }
 
-#brewing Spinner {
+#working Spinner {
 	width: 2;
 	height: 1;
 	color: $primary;
 }
 
-#brewing Static {
+#working Static {
 	width: auto;
 	height: 1;
 }
