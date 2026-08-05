@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "is_system_generated",
+  "is_app_disabled",
   "dt",
   "module",
   "label",
@@ -480,6 +481,14 @@
   },
   {
    "default": "0",
+   "description": "Set while owner app is disabled.",
+   "fieldname": "is_app_disabled",
+   "fieldtype": "Check",
+   "label": "Is App Disabled",
+   "read_only": 1
+  },
+  {
+   "default": "0",
    "depends_on": "eval: doc.fieldtype === 'Select'",
    "fieldname": "sort_options",
    "fieldtype": "Check",
@@ -529,7 +538,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-11 23:17:05.768689",
+ "modified": "2026-08-05 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
