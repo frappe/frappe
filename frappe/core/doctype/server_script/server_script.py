@@ -180,12 +180,11 @@ class ServerScript(Document):
 
 		if self.enable_rate_limit:
 			# Wrap in rate limiter, required for specifying custom limits for each script
-			# Note that rate limiter works on `cmd` which is script name
 			limit = self.rate_limit_count or 5
 			seconds = self.rate_limit_seconds or 24 * 60 * 60
 
 			_fn = partial(execute_api_server_script, script=self)
-			return rate_limit(limit=limit, seconds=seconds)(_fn)()
+			return rate_limit(limit=limit, seconds=seconds, endpoint=f"server_script:{self.name}")(_fn)()
 		else:
 			return execute_api_server_script(self)
 
