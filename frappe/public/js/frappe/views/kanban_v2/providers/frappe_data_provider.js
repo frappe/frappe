@@ -158,7 +158,7 @@ export class FrappeDataProvider {
 		});
 	}
 
-	/** Persist the horizontal order of board columns after drag-and-drop. */
+	/** Persist the horizontal order of board columns. */
 	async moveColumnOrder(columnIds) {
 		await this.call("update_column_order", {
 			order: JSON.stringify(columnIds || []),
