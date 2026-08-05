@@ -148,7 +148,7 @@ def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=No
 	Sanitize HTML tags, attributes and style to prevent XSS attacks
 	Based on nh3 clean, bleach whitelist and html5lib's Sanitizer defaults
 
-	Does not sanitize JSON unless explicitly specified, as it could lead to future problems
+	Content without any HTML tags is returned unchanged; everything else is sanitized.
 	"""
 	from bs4 import BeautifulSoup
 
@@ -156,9 +156,6 @@ def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=No
 		return html
 
 	if not always_sanitize:
-		if is_json(html):
-			return html
-
 		if not bool(BeautifulSoup(html, "html.parser").find()):
 			return html
 
