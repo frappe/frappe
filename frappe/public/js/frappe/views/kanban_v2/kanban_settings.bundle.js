@@ -1,18 +1,6 @@
 /**
- * Board Settings dialog — lazy bundle for the Kanban v2 "Settings" button.
- *
- * Built by esbuild to dist/js/kanban_settings.bundle.<hash>.js and loaded only
- * when Settings is first opened, via `frappe.require("kanban_settings.bundle.js")`
- * — so the FieldGroup/grid weight stays out of the main kanban bundle.
- *
- * A `frappe.ui.SettingsDialog` (grouped left tab rail + lazy right panels) edits
- * the current board's Kanban Board document in place: the New Kanban layout
- * options (Config), the column field + columns table (Columns), the card /
- * preview field tables (Cards), and the group-by table (Swimlanes). Field option
- * lists and the grid autocompletes are populated from the reference doctype meta
- * — the same rules the Kanban Board form uses (see kanban_board.js). Saving posts
- * the whole doc through the standard `frappe.client.save`, then reloads the board
- * so the change shows immediately.
+ * Board Settings dialog — lazy-loaded via `frappe.require("kanban_settings.bundle.js")`
+ * so FieldGroup/grid weight stays out of the main kanban bundle.
  */
 frappe.provide("frappe.views");
 
@@ -53,21 +41,17 @@ class KanbanBoardSettings {
 			description: df.fieldname,
 		});
 		this.opts = {
-			// Column grouping field: the doctype's Select fields.
 			field_name: meta.fields
 				.filter((d) => d.fieldname && d.fieldtype === "Select")
 				.map((d) => d.fieldname),
-			// Title: Name (ID) + Data fields.
 			title: [{ value: "name", label: __("ID"), description: "name" }].concat(
 				meta.fields
 					.filter((d) => d.fieldname && d.fieldtype === "Data" && !d.hidden)
 					.map(to_opt)
 			),
-			// Image: Attach Image fields.
 			image: meta.fields
 				.filter((d) => d.fieldname && d.fieldtype === "Attach Image" && !d.hidden)
 				.map(to_opt),
-			// Card / preview fields: any value-type field (except Password).
 			card: meta.fields
 				.filter(
 					(d) =>
@@ -77,7 +61,6 @@ class KanbanBoardSettings {
 						d.fieldtype !== "Password"
 				)
 				.map(to_opt),
-			// Swimlanes: bounded, categorical fields — Select and Link.
 			group: meta.fields
 				.filter(
 					(d) =>

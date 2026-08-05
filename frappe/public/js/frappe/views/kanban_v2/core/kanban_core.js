@@ -1,14 +1,6 @@
 /**
- * KanbanCore — the configurable Kanban engine (vanilla JS).
- *
- * Owns the skeleton DOM (board → columns → card lists), paints each card's
- * interior through the host `renderCard`, virtualizes long columns, wires drag &
- * drop (Pragmatic DnD), selection, inline create, and pagination. All business
- * logic lives in the consumer via `provider`, `callbacks` and `renderers`.
- *
- * Layout uses the tailwind-style utility classes from utilities.scss; only
- * behavioural bits (scrollbars, drag/selection states, etc.) are in
- * kanban_v2.scss.
+ * KanbanCore — board engine: columns, virtualized cards, drag/drop, selection,
+ * inline create, pagination. Host supplies `provider`, `callbacks`, `renderers`.
  */
 import {
 	bindCardDrag,
@@ -30,25 +22,14 @@ const PREFETCH_ROWS = 8;
 /** Unique id per KanbanCore so swimlane boards do not accept each other's drops. */
 let _kanban_instance_seq = 0;
 
-// Utility-class strings for the skeleton (utilities.scss).
 const CLS = {
-	// overflow-y / stretch come from .kn-board / flex defaults in kanban_v2.scss.
 	board: "kn-board flex gap-3 overflow-x-auto pb-2",
-	// The column is a flat gray panel: no border in light mode, the fill alone
-	// separates it from the board (dark mode flips this — see kanban_v2.scss).
-	// Bottom padding is the column's own, so the scrolling list ends above the
-	// panel edge and cards read as sliding inside it.
 	column: "kn-column flex flex-col overflow-hidden rounded-lg bg-surface-gray-1 pb-2",
-	// Dot + title + count on the left; Add sits hard right.
 	header: "kn-column-header flex items-center justify-between gap-2 ps-4 pe-1 pt-1 shrink-0",
 	headerMeta: "kn-column-meta flex items-center gap-1.5 min-w-0",
-	// Colour lives on the indicator dot (not the count). Margin on ::before is
-	// zeroed in kanban_v2.scss so flex gap alone spaces the dot from the title.
 	dot: "kn-column-dot indicator shrink-0",
 	title: "kn-column-title text-sm-medium text-ink-gray-8 truncate min-w-0",
 	count: "kn-column-count text-sm text-ink-gray-5 shrink-0",
-	// Scroll overflow lives on .kn-column-body in SCSS (scrollbar chrome).
-	// Side padding is 12px (px-3) so the thumb painted inside it clears cards.
 	body: "kn-column-body flex-1 px-3 pt-2",
 	footer: "kn-column-footer shrink-0 px-4 pt-1",
 	card: "kn-card bg-surface-elevation-1 border rounded-lg text-ink-gray-8 text-sm p-3 mb-2",
@@ -92,11 +73,9 @@ export class KanbanCore {
 		this.boardEpoch = 0;
 	}
 
-	// --- lifecycle -------------------------------------------------------
-
+	/** Mount into `container`, wire DnD/scroll, and load the board. */
 	mount(container) {
 		this.container = container;
-		// Styles ship in desk/kanban_v2.scss (bundled), not injected from JS.
 		this.root = document.createElement("div");
 		this.root.className = CLS.board;
 		container.replaceChildren(this.root);
@@ -125,6 +104,7 @@ export class KanbanCore {
 		this.reload();
 	}
 
+	/** Fetch board data and re-render; stale responses (older boardEpoch) are ignored. */
 	async reload() {
 		const epoch = ++this.boardEpoch;
 		this.setLoading(true);
@@ -148,7 +128,6 @@ export class KanbanCore {
 		return this.state;
 	}
 
-	/** Programmatically set the selection. */
 	select(cardIds) {
 		this.setSelection(cardIds);
 	}
@@ -157,6 +136,7 @@ export class KanbanCore {
 		return this.bus.on(event, cb);
 	}
 
+	/** Tear down listeners, drag UI, and DOM. Safe to call mid-drag. */
 	destroy() {
 		this.teardownViews();
 		this.onDragEnd();
@@ -186,8 +166,7 @@ export class KanbanCore {
 		this.bus.clear();
 	}
 
-	// --- selection -------------------------------------------------------
-
+	/** Click / ctrl / shift selection against the loaded column order. */
 	applySelection(cardId, columnId, index, ev) {
 		if (this.options.selection === "none") return;
 		const multi = this.options.selection === "multi";
@@ -217,6 +196,7 @@ export class KanbanCore {
 		this.setSelection([...sel]);
 	}
 
+	/** Replace selection and update selected card chrome + callbacks. */
 	setSelection(ids) {
 		this.state = { ...this.state, selection: ids };
 		const set = new Set(ids);
@@ -235,8 +215,7 @@ export class KanbanCore {
 		this.bus.emit("selection:change", ids);
 	}
 
-	// --- rendering -------------------------------------------------------
-
+	/** Rebuild all column shells and visible card windows from state. */
 	render() {
 		if (!this.root) return;
 		this.teardownViews();
@@ -252,8 +231,6 @@ export class KanbanCore {
 		}
 		setTimeout(() => this.refreshWindows(), 0);
 	}
-
-	// --- inline create ---------------------------------------------------
 
 	canAddCard() {
 		const cb = this.options.callbacks;
@@ -273,6 +250,7 @@ export class KanbanCore {
 		if (view) this.openAddCard(view);
 	}
 
+	/** Show the inline title input under a column. */
 	openAddCard(view) {
 		if (!view.footer) {
 			view.footer = document.createElement("div");
@@ -302,6 +280,7 @@ export class KanbanCore {
 		input.focus();
 	}
 
+	/** Create a card via callback and prepend it into the column. */
 	async submitAddCard(view, title) {
 		const columnId = view.column.id;
 		if (view.footer) {
@@ -331,6 +310,7 @@ export class KanbanCore {
 		}
 	}
 
+	/** Recompute visible windows after resize / layout change. */
 	refreshWindows() {
 		if (!this.options.virtualization) return;
 		for (const view of this.columnViews.values()) {
@@ -342,6 +322,7 @@ export class KanbanCore {
 		}
 	}
 
+	/** Build one column (header + scroll body + virtualizer view). */
 	buildColumnShell(column) {
 		const el = document.createElement("div");
 		el.className = CLS.column;
@@ -391,6 +372,7 @@ export class KanbanCore {
 		return el;
 	}
 
+	/** Paint the virtualized (or full) card window for a column. */
 	renderWindow(view) {
 		const ordered = this.orderedCards(view.column);
 		if (view.virtualizer.count !== ordered.length) {
@@ -453,7 +435,6 @@ export class KanbanCore {
 			title.className = CLS.title;
 			title.textContent = column.title;
 
-			// Plain muted number — not a badge.
 			const count = document.createElement("span");
 			count.className = CLS.count;
 			count.textContent = String(column.total);
@@ -501,7 +482,7 @@ export class KanbanCore {
 		});
 	}
 
-	/** Persist column order after a Sortable drag operation. */
+	/** Persist column order after a header drag; roll back on failure. */
 	async onColumnSortEnd(evt) {
 		const from = evt && evt.oldIndex;
 		const to = evt && evt.newIndex;
@@ -530,6 +511,7 @@ export class KanbanCore {
 		}
 	}
 
+	/** Create one card element and bind drag / drop / click handlers. */
 	createCardEl(column, card, index, sink) {
 		const el = document.createElement("div");
 		el.className = CLS.card;
@@ -602,8 +584,7 @@ export class KanbanCore {
 		return el;
 	}
 
-	// --- scroll: virtualization window + pagination ----------------------
-
+	/** On scroll: refresh the virtual window and prefetch the next page. */
 	onColumnScroll(view) {
 		if (!this.columnViews.has(view.column.id)) return;
 
@@ -616,6 +597,7 @@ export class KanbanCore {
 		this.maybeLoadMore(view);
 	}
 
+	/** Prefetch when the rendered window nears the end of loaded cards. */
 	maybeLoadMore(view) {
 		if (view.loading) return;
 		const column = this.getColumn(view.column.id);
@@ -630,6 +612,7 @@ export class KanbanCore {
 		this.loadMore(column.id, loaded);
 	}
 
+	/** Load the next page for a column (queued via loadColumnPageOnce). */
 	async loadMore(columnId, start) {
 		const view = this.columnViews.get(columnId);
 		// A load already running for this column? The shared per-column queue would
@@ -664,6 +647,7 @@ export class KanbanCore {
 		return next;
 	}
 
+	/** Fetch and append one page of cards for a column. */
 	async _appendNextColumnPage(columnId, epoch) {
 		const view = this.columnViews.get(columnId);
 		const column = this.getColumn(columnId);
@@ -742,8 +726,7 @@ export class KanbanCore {
 		this.bus.emit("error", error);
 	}
 
-	// --- auto-scroll while dragging --------------------------------------
-
+	/** Track pointer + kick auto-scroll while a native drag is active. */
 	onDragOver = (e) => {
 		this.pointer.x = e.clientX;
 		this.pointer.y = e.clientY;
@@ -753,6 +736,7 @@ export class KanbanCore {
 		}
 	};
 
+	/** Stop auto-scroll and clear drag chrome when the drag ends. */
 	onDragEnd = () => {
 		if (this.autoScrollRAF !== null) {
 			cancelAnimationFrame(this.autoScrollRAF);
@@ -760,6 +744,7 @@ export class KanbanCore {
 		}
 	};
 
+	/** Scroll column/board when the pointer is near an edge during drag. */
 	autoScrollTick = () => {
 		if (!this.root) {
 			this.autoScrollRAF = null;
@@ -785,8 +770,7 @@ export class KanbanCore {
 		this.autoScrollRAF = requestAnimationFrame(this.autoScrollTick);
 	};
 
-	// --- drag & drop -----------------------------------------------------
-
+	/** Resolve a Pragmatic drop into a single- or multi-card move. */
 	async handleDrop(args) {
 		this.onDragEnd();
 		const src = args && args.source && args.source.data;
@@ -877,6 +861,7 @@ export class KanbanCore {
 		}
 	}
 
+	/** Optimistic single-card move + persist; animates rollback on error. */
 	async applyMove(cardId, fromColumn, toColumn, toIndex) {
 		const sameColumn = fromColumn === toColumn;
 		// A partially-loaded column with no saved order has an unknown full order;
@@ -985,6 +970,7 @@ export class KanbanCore {
 		}
 	}
 
+	/** Optimistic multi-select move in one request; reloads on failure. */
 	async applyMoveMultiple(cardIds, toColumn, anchorName, edge) {
 		const selected = new Set(cardIds);
 		// Load the target and any column holding a selected card that has no saved
@@ -1165,6 +1151,7 @@ export class KanbanCore {
 		}
 	}
 
+	/** Re-render only the given columns (counts + card windows). */
 	renderColumns(ids) {
 		for (const id of new Set(ids)) {
 			const view = this.columnViews.get(id);
@@ -1228,6 +1215,7 @@ export class KanbanCore {
 		}
 	}
 
+	/** FLIP across columns, then drop the hover slot after mutate. */
 	animateMove(ids, mutate) {
 		const bodies = [...new Set(ids)]
 			.map((id) => {
@@ -1282,7 +1270,6 @@ export class KanbanCore {
 		layer.className = "kn-drag-preview";
 		layer.style.width = `${rect.width}px`;
 
-		// Fanned cards peeking out behind the top card (bulk only).
 		for (let i = Math.min(count - 1, 2); i >= 1; i--) {
 			const ghost = document.createElement("div");
 			ghost.className = "kn-drag-stack";
@@ -1303,6 +1290,7 @@ export class KanbanCore {
 		this.positionCardPreview(px, py);
 	}
 
+	/** Follow the pointer with the custom drag preview. */
 	positionCardPreview(x, y) {
 		if (!this.dragPreview || !this.dragGrab) return;
 		const left = x - this.dragGrab.dx;
@@ -1310,6 +1298,7 @@ export class KanbanCore {
 		this.dragPreview.style.transform = `translate(${left}px, ${top}px) rotate(3deg)`;
 	}
 
+	/** Remove the custom drag preview from the document. */
 	endCardPreview() {
 		if (this.dragPreview) {
 			this.dragPreview.remove();
@@ -1350,6 +1339,7 @@ export class KanbanCore {
 		});
 	}
 
+	/** Create the dashed hover placeholder element (reused). */
 	buildDropSlot() {
 		const slot = document.createElement("div");
 		slot.className = "kn-drop-slot shrink-0 mb-2";
@@ -1389,6 +1379,7 @@ export class KanbanCore {
 		return start + cards.length;
 	}
 
+	/** Write a column's persisted name order (and optional total delta). */
 	setColumnOrder(columnId, order, totalDelta) {
 		this.state = {
 			...this.state,
@@ -1398,6 +1389,7 @@ export class KanbanCore {
 		};
 	}
 
+	/** Move a card between loaded column arrays in local state. */
 	moveCardBucket(cardId, fromColumn, toColumn, atIndex = null) {
 		const card = this.findCard(cardId);
 		if (!card) return;
@@ -1425,6 +1417,7 @@ export class KanbanCore {
 		this.state = { ...this.state, cards: { ...this.state.cards, [columnId]: arr } };
 	}
 
+	/** Visible card names for a column (what the UI currently shows). */
 	orderedNames(columnId) {
 		const column = this.getColumn(columnId);
 		return column ? this.orderedCards(column).map((c) => c.name) : [];
@@ -1481,8 +1474,7 @@ export class KanbanCore {
 		return undefined;
 	}
 
-	// --- internals -------------------------------------------------------
-
+	/** Loaded cards in display order (fetch order while paginated). */
 	orderedCards(column) {
 		const loaded = this.state.cards[column.id] || [];
 		// While a column is only partially loaded (paginated), keep the server's
@@ -1525,6 +1517,7 @@ export class KanbanCore {
 		this.flushList(this.rendererCleanups);
 	}
 
+	/** Drop column virtualizers and card/drag cleanups before a re-render. */
 	teardownViews() {
 		this.resizeObserver && this.resizeObserver.disconnect();
 		this.flushRendererCleanups();
@@ -1563,7 +1556,6 @@ export class KanbanCore {
 			});
 			const body = document.createElement("div");
 			body.className = CLS.body;
-			// A little variation so it reads as content, not a table.
 			for (let i = 0; i < 3 - (c % 2); i++) {
 				body.insertAdjacentHTML(
 					"beforeend",

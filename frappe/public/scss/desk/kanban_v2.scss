@@ -38,6 +38,9 @@
 	--kn-accent: var(--blue-500, #2490ef);
 	height: 100%;
 	overflow-y: hidden;
+	/* Reserve space for the horizontal scrollbar so it doesn't overlap cards/columns. */
+	scrollbar-gutter: stable;
+	padding-bottom: max(var(--margin-sm), 12px);
 }
 .kn-column {
 	/* Fixed column width — cards fill it. 320px fits label+value stacks without

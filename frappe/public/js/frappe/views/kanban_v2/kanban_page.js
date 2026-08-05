@@ -1,35 +1,21 @@
 frappe.provide("frappe.views");
 
 /**
- * How a Select value is drawn on a card: `theme` is a frappe.ui.badge theme and
- * `icon` a lucide icon placed before the label.
- *
- * Priority uses signal bars (low → medium → high → urgent). Status prefers the
- * circle family (dashed / empty / dot / check / x) so levels read without
- * colour alone; a few waiting/blocked states use a clearer metaphor
- * (hourglass, eye, ban, clock-alert).
- *
- * Keys are matched case-insensitively; missing values fall back to
- * frappe.utils.guess_colour() — the heuristic list views already use — so
- * app-specific values keep the colour users expect elsewhere.
- *
- * Extend or override per doctype via `frappe.kanban_v2.settings` (see
- * settings.js). A plain string is shorthand for `{ theme }`.
+ * Select-value → badge theme + lucide icon for cards.
+ * Case-insensitive keys; missing values fall back to frappe.utils.guess_colour().
+ * Override per doctype via `frappe.kanban_v2.settings` (plain string = `{ theme }`).
  */
 const SELECT_STYLES = {
-	// Priority — signal bars (Linear-style).
 	low: { theme: "gray", icon: "signal-low" },
 	medium: { theme: "amber", icon: "signal-medium" },
 	high: { theme: "red", icon: "signal-high" },
 	urgent: { theme: "red", icon: "signal" },
 
-	// Submission / docstatus-ish.
 	draft: { theme: "gray", icon: "circle-dashed" },
 	submitted: { theme: "blue", icon: "send" },
 	cancelled: { theme: "red", icon: "circle-x" },
 	canceled: { theme: "red", icon: "circle-x" },
 
-	// Not started / waiting to run.
 	"not started": { theme: "gray", icon: "circle" },
 	todo: { theme: "gray", icon: "circle" },
 	open: { theme: "gray", icon: "circle" },
@@ -37,14 +23,12 @@ const SELECT_STYLES = {
 	scheduled: { theme: "gray", icon: "circle-dashed" },
 	backlog: { theme: "gray", icon: "circle-dashed" },
 
-	// Running.
 	"in progress": { theme: "blue", icon: "circle-dot" },
 	working: { theme: "blue", icon: "circle-dot" },
 	running: { theme: "blue", icon: "circle-dot" },
 	started: { theme: "blue", icon: "circle-dot" },
 	processing: { theme: "blue", icon: "circle-dot" },
 
-	// Blocked or waiting on a person.
 	"on hold": { theme: "amber", icon: "circle-pause" },
 	paused: { theme: "amber", icon: "circle-pause" },
 	pending: { theme: "amber", icon: "hourglass" },
@@ -55,7 +39,6 @@ const SELECT_STYLES = {
 	blocked: { theme: "red", icon: "ban" },
 	retrying: { theme: "amber", icon: "loader" },
 
-	// Finished well.
 	done: { theme: "green", icon: "circle-check" },
 	success: { theme: "green", icon: "circle-check" },
 	completed: { theme: "green", icon: "circle-check" },
@@ -64,22 +47,19 @@ const SELECT_STYLES = {
 	resolved: { theme: "green", icon: "circle-check" },
 	verified: { theme: "green", icon: "circle-check" },
 
-	// Finished, but not cleanly. Listed explicitly because the fallback would
-	// read "Partially Failed" as a plain failure.
+	// Explicit: fallback would treat "Partially Failed" as a plain failure.
 	"partial success": { theme: "amber", icon: "circle-ellipsis" },
 	"partially failed": { theme: "amber", icon: "circle-alert" },
 	"partially completed": { theme: "amber", icon: "circle-ellipsis" },
 	"timed out": { theme: "amber", icon: "clock-alert" },
 	timeout: { theme: "amber", icon: "clock-alert" },
 
-	// Finished badly.
 	failed: { theme: "red", icon: "circle-x" },
 	error: { theme: "red", icon: "circle-x" },
 	rejected: { theme: "red", icon: "circle-x" },
 	expired: { theme: "red", icon: "clock-alert" },
 	overdue: { theme: "red", icon: "timer" },
 
-	// On/off states.
 	active: { theme: "green", icon: "circle-check" },
 	enabled: { theme: "green", icon: "circle-check" },
 	inactive: { theme: "gray", icon: "circle" },
@@ -88,36 +68,24 @@ const SELECT_STYLES = {
 };
 
 /**
- * Kanban v2 board. Loads the framework-agnostic engine (kanban.bundle.js) and
- * mounts it against an existing Kanban Board via FrappeDataProvider. Route:
- * List/{Doctype}/Kanban/{board_name} (per board, via Kanban Board → Use Kanban v2).
- *
- * Per-doctype customization: `frappe.kanban_v2.settings` /
- * `frappe.kanban_v2.extend_settings` (see settings.js). Register JS from any
- * app with hooks `doctype_kanban_js`, or ship `{doctype}_kanban.js` next to the
- * DocType. Supports `card_context_menu`, `bulk_actions`, `select_styles`,
- * render hooks, callbacks, and per-board overrides under `boards`.
+ * Kanban v2 board page. Route: List/{Doctype}/Kanban/{board_name}.
+ * Customize via `frappe.kanban_v2.settings` / `extend_settings` (see settings.js).
  */
 frappe.views.KanbanV2Page = class KanbanV2Page {
 	constructor(wrapper) {
-		// List factory already built the app page on `wrapper`.
 		this.page = wrapper.page;
 
-		// Reuse List View's standard row under the topbar.
 		this.page.page_form.removeClass("hide row").addClass("flex").show();
 		this.page.page_form.addClass("list-page-form");
 		this.$filter_section = $(
 			'<div class="filter-section flex ms-auto kanban-v2-filter-section"></div>'
 		).appendTo(this.page.page_form);
 
-		// Board container sits below the filter bar.
 		this.$container = $('<div class="kanban-v2-container px-4 pb-2">').appendTo(
 			this.page.main
 		);
 
-		// Apply the full-width, no-sidebar page shell. This mutates the page + body,
-		// which the List view shares (same page instance), so restore_page_shell()
-		// must undo every part of it on teardown.
+		// Shared page instance with List view — restore_page_shell() must undo this.
 		this.setup_board_height_sync();
 		this.apply_page_shell();
 
@@ -140,16 +108,11 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	 * so it's safe to call on every route load.
 	 */
 	apply_page_shell() {
-		// utilities make the page shell a full-height flex column; the board area
-		// sizes itself in .kanban-v2-container (kanban_v2.scss).
 		this.setup_board_height_sync();
 		this.page.main.addClass("flex flex-col overflow-hidden p-0");
 		if (this.$filter_section) this.$filter_section.show();
 		if (this.$container) this.$container.show();
-		// Side section must not consume horizontal space and shift the board.
 		$(document.body).addClass("no-list-sidebar");
-		// Full-width page body so columns start from the left instead of centered
-		// in the default fixed-width container.
 		this.page.container.addClass("kanban-v2-full-width");
 		this.sync_board_height();
 	}
@@ -178,9 +141,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return null;
 	}
 
+	/** Floating bulk-action bar + Escape / route-change teardown. */
 	make_selection_bar() {
 		this.selected_ids = [];
-		// Position / shadow / entrance live in kanban_v2.scss; utilities own layout.
 		this.$selection_bar = $(`
 			<div class="kn-selection-bar items-center gap-2 rounded-md border bg-surface-base ps-4 pe-2.5 py-2.5">
 				<span class="kn-sel-count text-sm-semibold text-ink-gray-8 whitespace-nowrap pe-1"></span>
@@ -220,7 +183,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		// board — otherwise it lingers over the next page (e.g. the form).
 		frappe.router.on("change", () => {
 			const board_on_route = this.get_board_name_from_route();
-			// Tear down when leaving this board (form, another board, another view).
 			if (board_on_route !== this.current_board) {
 				this.update_selection_bar([]);
 				this.teardown_board(true);
@@ -249,7 +211,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		}
 	}
 
-	/** Keep the board height equal to the remaining viewport space. */
+	/** Fit the board container to the remaining viewport height. */
 	sync_board_height() {
 		if (!this.$container || !this.$container.length) return;
 		const rect = this.$container[0].getBoundingClientRect();
@@ -262,7 +224,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.$container[0].style.setProperty("--kanban-v2-height", `${available}px`);
 	}
 
-	/** Minimal responsive sync: recompute on viewport resize. */
 	setup_board_height_sync() {
 		if (this._board_height_sync_bound) return;
 		this._board_height_sync_bound = true;
@@ -271,7 +232,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		window.addEventListener("resize", this._on_board_height_sync, { passive: true });
 	}
 
-	/** Remove resize listener while off-route; re-bound on next load. */
 	cleanup_board_height_sync() {
 		if (this._on_board_height_sync) {
 			window.removeEventListener("resize", this._on_board_height_sync);
@@ -280,13 +240,11 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this._board_height_sync_bound = false;
 	}
 
-	/** Deselect all cards and hide the selection bar. */
 	clear_selection() {
 		if (this.board) this.board.engine.select([]);
 		this.update_selection_bar([]);
 	}
 
-	/** Lazily create a BulkOperations helper for the current doctype. */
 	bulk() {
 		if (!this._bulk || this._bulk.doctype !== this.doctype) {
 			this._bulk = new frappe.kanban_v2.BulkOperations({ doctype: this.doctype });
@@ -387,6 +345,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		});
 	}
 
+	/** Load the board named in the route (or last-used) and mount it. */
 	async load_from_route() {
 		// Re-apply the page shell on every route load; router-driven teardown can
 		// clear it while reusing the same page instance.
@@ -453,7 +412,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		// Keep the filter UI in step with this board (the group is reused across
 		// same-doctype board switches, so it can hold the previous board's set).
 		this.sync_filter_group_to_board();
-		// Group button reflects this board's group-by options (rebuilt per board).
 		this.setup_group_button();
 	}
 
@@ -500,6 +458,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		]);
 	}
 
+	/** Resolve title/image/fields and doctype kanban settings for this board. */
 	setup_meta() {
 		const meta = frappe.get_meta(this.doctype);
 		this.meta = meta;
@@ -525,9 +484,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		// Assignees on the card + hover footer. Default on for boards that
 		// predate the setting (undefined / missing → show).
 		this.show_assigned_to = cint(this.board_doc.show_assigned_to, 1) === 1;
-		// Optional colored tags on card footer (left of date).
 		this.show_tags_on_card = cint(this.board_doc.show_tags_on_card, 0) === 1;
-		// Card-footer age badge: Modified (default) or Creation.
 		this.footer_date_field =
 			String(this.board_doc.footer_date_field || "Modified").toLowerCase() === "creation"
 				? "creation"
@@ -621,7 +578,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			this.group_by_field = null;
 		}
 
-		// --- card display config (overridable via frappe.kanban_v2.settings) ---
 		const s = this.settings || {};
 		// Clicking the card title opens the document. Turn off where not wanted.
 		this.open_on_title_click =
@@ -742,8 +698,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return dfs.map((df) => df.fieldname).slice(0, 6);
 	}
 
-	// --- toolbar (uses common ListViewSelect like all views) ---------------
-
+	/** Primary action, view switcher, refresh, save filters, filter bar. */
 	setup_toolbar() {
 		const page = this.page;
 		// "+ Add <Doctype>" (primary) — same construction as the list view:
@@ -761,7 +716,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		// Shows current board name + dropdown with all views and boards.
 		this.setup_view_menu();
 
-		// Refresh (visible icon, like the classic navbar)
 		page.add_action_icon(
 			"refresh-cw",
 			() => this.board && this.board.refresh(),
@@ -769,10 +723,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			__("Reload")
 		);
 
-		// Save Filters (in the ... menu, like the classic kanban)
 		page.add_menu_item(__("Save Filters"), () => this.save_filters());
 
-		// Filter bar below topbar: Filter + Group buttons
 		this.setup_filter_bar();
 	}
 
@@ -813,7 +765,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const $filter_section = this.$filter_section;
 		$filter_section.empty(); // clear if rebuilding
 
-		// Button order: Filter, Group, Settings (Filter chrome matches List View FilterGroup).
 		this.setup_filter_button($filter_section);
 		this.setup_group_button($filter_section);
 		this.setup_settings_button($filter_section);
@@ -878,19 +829,16 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		}
 	}
 
-	/** Returns dropdown options for the Group button. */
 	get_group_dropdown_options() {
 		const options = this.group_by_options || [];
 		const items = [];
 
-		// "None" option
 		items.push({
 			label: __("None"),
 			selected: !this.group_by_field,
 			onclick: () => this.set_group_by(null),
 		});
 
-		// Group-by field options
 		options.forEach((opt) => {
 			items.push({
 				label: opt.label,
@@ -1010,6 +958,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		else this.page.clear_indicator();
 	}
 
+	/** Apply filter-group filters and remount if they changed. */
 	apply_filters() {
 		if (this._syncing_filters) return; // programmatic re-sync, not a user edit
 		if (!this.filter_group) return;
@@ -1030,6 +979,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.board.refresh();
 	}
 
+	/** Persist current filters onto the Kanban Board doc. */
 	save_filters() {
 		frappe.db
 			.set_value(
@@ -1045,8 +995,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			});
 	}
 
-	// --- board -----------------------------------------------------------
-
+	/** Remount the engine for the current board (flat or swimlanes). */
 	mount_board() {
 		// Bumped every mount so a slow async swimlane load can tell it is stale.
 		this._mount_seq = (this._mount_seq || 0) + 1;
@@ -1121,6 +1070,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		};
 	}
 
+	/** Mount a single ungrouped board. */
 	mount_flat_board() {
 		const provider = this.make_provider();
 		this.provider = provider; // kept so filter changes reload in place
@@ -1219,6 +1169,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return out;
 	}
 
+	/** Open a new doc prefilled with this column's group-by value. */
 	add_document(columnId) {
 		// Prefill the column's group-by value + any active "=" filters.
 		const values = { [this.field_name]: columnId };
@@ -1244,6 +1195,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		});
 	}
 
+	/** Paint card title, fields, and footer into `el`. */
 	render_card(card, el) {
 		// Optional color accent (left border) from a `color` field.
 		if (card.color) el.style.borderLeft = `3px solid ${card.color}`;
@@ -1268,8 +1220,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		// Right-click context menu — defaults + settings.card_context_menu.
 		this.bind_context_menu(el, card);
 	}
-
-	// --- footer ----------------------------------------------------------
 
 	/** The card's last row: assignees on the left, last activity on the right. */
 	card_footer(card) {
@@ -1714,8 +1664,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		}
 		return items;
 	}
-
-	// --- document preview (hovercard on the card title) ------------------
 
 	/** Reveal the document preview when hovering the card title. */
 	bind_more_info_hovercard(title, card) {
