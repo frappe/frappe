@@ -2244,9 +2244,7 @@ def filter_operator_timespan(value: str, pattern: str) -> bool:
 	return date_range[0] <= getdate(value) <= date_range[1]
 
 
-def _convert_type_for_between_filters(
-	value: DateTimeLikeObject, set_time: datetime.time
-) -> datetime.datetime:
+def convert_type_for_between_filters(value: DateTimeLikeObject, set_time: datetime.time) -> datetime.datetime:
 	"""Expand a date-only bound to a datetime using set_time; leave datetimes as-is."""
 	if isinstance(value, str):
 		if " " in value.strip():
@@ -2339,8 +2337,8 @@ def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None) 
 				val1 = cast(fieldtype, val1)
 			if fieldtype == "Datetime":
 				val2 = [
-					_convert_type_for_between_filters(val2[0], set_time=datetime.time()),
-					_convert_type_for_between_filters(val2[1], set_time=datetime.time(23, 59, 59, 999999)),
+					convert_type_for_between_filters(val2[0], set_time=datetime.time()),
+					convert_type_for_between_filters(val2[1], set_time=datetime.time(23, 59, 59, 999999)),
 				]
 			else:
 				val2 = [cast(fieldtype, v) for v in val2]
