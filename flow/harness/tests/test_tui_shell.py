@@ -1,5 +1,5 @@
 """Phases 6-7 TUI shell: rendering, delta→durable swap, steering, queueing, status
-bar, collapsible thinking, and detail-driven tool-result rendering.
+bar, foldable thinking, and detail-driven tool-result rendering.
 
 Pilot tests drive `FlowApp` with a fake controller (no HTTP); one integration test
 runs the real stack — uvicorn + MockModel + Controller — end to end.
@@ -13,7 +13,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 from rich.console import Group
 from rich.syntax import Syntax
-from textual.widgets import Collapsible, Static
+from textual.widgets import Static
 
 from flow.events import (
 	AssistantMessage,
@@ -38,7 +38,13 @@ from flow_tui.client.state import Change, ConversationState, StatusChanged
 from flow_tui.controller import Controller
 from flow_tui.widgets.composer import Composer
 from flow_tui.widgets.conversation import ConversationView
-from flow_tui.widgets.messages import EntryView, PartialAssistantView, ThinkingBlock, ToolCallView
+from flow_tui.widgets.messages import (
+	THINKING_MARKER,
+	EntryView,
+	PartialAssistantView,
+	ThinkingBlock,
+	ToolCallView,
+)
 from flow_tui.widgets.status_bar import StatusBar
 
 
@@ -80,12 +86,10 @@ class FakeController:
 
 
 def _widget_text(widget) -> str:
-	"""All visible text of a widget: its own render, child statics, collapsible titles."""
+	"""All visible text of a widget: its own render plus every child static."""
 	if isinstance(widget, Static):
 		return _render_str(widget)
-	parts = [_render_str(static) for static in widget.query(Static)]
-	parts += [collapsible.title for collapsible in widget.query(Collapsible)]
-	return "\n".join(parts)
+	return "\n".join(_render_str(static) for static in widget.query(Static))
 
 
 def _render_str(static: Static) -> str:
@@ -144,7 +148,7 @@ async def test_tool_result_merges_into_call_and_ctrl_o_expands():
 
 		conversation = pilot.app.query_one(ConversationView)
 		view = conversation.query_one(ToolCallView)
-		assert "$ ls" in _widget_text(view)  # per-tool one-liner, not a JSON dump
+		assert "bash ls" in _widget_text(view)  # per-tool one-liner, not a JSON dump
 
 		content = "\n".join(f"file{i}" for i in range(6))
 		fake.feed(
@@ -154,7 +158,7 @@ async def test_tool_result_merges_into_call_and_ctrl_o_expands():
 
 		assert len(conversation.query(EntryView)) == 1  # result merged into the call, not appended
 		text = _widget_text(view)
-		assert "✓" in text and "[exit 0]" in text and "file0" in text
+		assert "[exit 0]" in text and "file0" in text
 		assert "file5" not in text and "+3 lines" in text  # collapsed preview
 
 		await pilot.press("ctrl+o")
@@ -183,12 +187,12 @@ async def test_thinking_collapsed_by_default_and_redacted_stays_sealed():
 
 		entry = pilot.app.query_one(ConversationView).query(EntryView).last()
 		blocks = entry.query(ThinkingBlock)
-		assert len(blocks) == 1  # the redacted block is a sealed marker, not a collapsible
+		assert len(blocks) == 1  # the redacted block is a sealed marker, not a foldable block
 		assert blocks.first().collapsed is True
-		assert blocks.first().title == "thinking"
 		text = _widget_text(entry)
+		assert "let me think" not in text  # collapsed to its marker
 		assert "the answer" in text
-		assert "thinking · redacted" in text and "secret" not in text
+		assert "Thinking · redacted" in text and "secret" not in text
 
 
 async def test_ctrl_t_toggles_thinking_blocks_and_partial():
@@ -205,7 +209,7 @@ async def test_ctrl_t_toggles_thinking_blocks_and_partial():
 		partial = pilot.app.query_one(PartialAssistantView)
 		assert block.collapsed is True
 		preview = _widget_text(partial)
-		assert "thinking" in preview and "hmm okay" not in preview and "reply" in preview
+		assert THINKING_MARKER in preview and "hmm okay" not in preview and "reply" in preview
 
 		await pilot.press("ctrl+t")
 		await pilot.pause()
@@ -263,7 +267,7 @@ async def test_bash_result_renders_status_suffix_and_collapsed_output():
 
 		entries = pilot.app.query_one(ConversationView).query(EntryView)
 		ok = _widget_text(entries.first())
-		assert "✓" in ok and "$ ls" in ok and "[exit 0, 0.01s]" in ok and "a.txt" in ok
+		assert "bash ls" in ok and "[exit 0, 0.01s]" in ok and "a.txt" in ok
 		failed = _widget_text(entries.last())
 		assert "✗" in failed and "exit 1" in failed and "truncated · 2000/90000 lines" in failed
 

@@ -2,13 +2,17 @@
 mutable streamed-preview widget (`PartialAssistantView`) at the conversation tail.
 
 `EntryView` is a container, not a single Static: an assistant message interleaves
-text, thinking, and tool calls, and each thinking block folds behind its own
-`Collapsible`. A tool call renders as one `ToolCallView` — a per-tool one-liner
-(`$ cmd` for bash, `-> edit path (2 edits)`, …) behind a status glyph. The matching
-`ToolResult` merges into the same widget: the glyph settles to ✓/✗, a bracket
+text, thinking, and tool calls, and each thinking block folds to a one-word
+marker that ctrl+t expands. A tool call renders as one `ToolCallView` — a per-tool one-liner
+(`bash cmd`, `edit path (2 edits)`, …) that leads with the tool name. The matching
+`ToolResult` merges into the same widget: the glyph clears (or settles to ✗), a bracket
 suffix reports exit code / duration / truncation, and the output shows as a dim
 few-line preview that ctrl+o expands. A diff in `ToolResult.details` gets syntax
 highlighting instead of the plain preview.
+
+Assistant text renders as Markdown once the durable message lands. The streamed
+preview stays plain: a partial reply holds unclosed fences and half-written
+tables, which reflow on every delta.
 """
 
 from __future__ import annotations
@@ -21,7 +25,7 @@ from rich.text import Text
 from textual.containers import Vertical
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Collapsible, Static
+from textual.widgets import Markdown, Static
 
 from flow.events import (
 	AssistantMessage,
@@ -33,49 +37,71 @@ from flow.events import (
 	UserMessage,
 )
 from flow_tui.client.state import PartialPart, PartialText, PartialThinking, PartialToolCall
+from flow_tui.theme import (
+	STYLE_ERROR,
+	STYLE_ERROR_STRONG,
+	STYLE_MUTED,
+	STYLE_RUNNING,
+	STYLE_THINKING,
+	STYLE_TOOL_NAME,
+	SYNTAX_THEME,
+)
 
 SPINNER_FRAMES = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
 _PREVIEW_LINES = 3
 _DIFF_PREVIEW_LINES = 32
+THINKING_MARKER = "Thinking… ctrl+t to expand"
+TOOL_LABELS = {"read_file": "read"}
 
 
-def call_line(name: str, args: dict | None) -> str:
+def tool_label(name: str) -> Text:
+	"""The tool name in its own style, so the eye splits the name from the arguments
+	that follow it."""
+	# the style rides on a span, not on the Text itself: a base style would bleed
+	# into every argument appended after the name
+	return Text().append(TOOL_LABELS.get(name, name), style=STYLE_TOOL_NAME)
+
+
+def call_line(name: str, args: dict | None) -> Text:
 	"""Collapsed one-liner for a tool call. `args is None` means only the live
 	ToolCallStarted has been seen; the line upgrades once the durable call lands."""
+	line = tool_label(name)
 	if args is None:
-		return f"-> {name} …"
+		return line.append(" …", style=STYLE_MUTED)
 	if name == "bash":
-		return f"$ {args.get('command', '')}"
+		return line.append(f" {args.get('command', '')}")
 	if name == "edit":
 		n = len(args.get("edits") or [])
-		return f"-> edit {args.get('path', '')} ({n} edit{'s' if n != 1 else ''})"
+		line.append(f" {args.get('path', '')}")
+		return line.append(f" ({n} edit{'s' if n != 1 else ''})", style=STYLE_MUTED)
 	if name == "write":
-		return f"-> write {args.get('path', '')} ({len(args.get('content') or '')} chars)"
+		line.append(f" {args.get('path', '')}")
+		return line.append(f" ({len(args.get('content') or '')} chars)", style=STYLE_MUTED)
 	if name == "read_file":
-		return f"-> read {args.get('path', '')}"
+		return line.append(f" {args.get('path', '')}")
 	if name == "grep":
-		return f"-> grep {args.get('pattern', '')} {args.get('path', '')}".rstrip()
+		return line.append(f" {args.get('pattern', '')} {args.get('path', '')}".rstrip())
 	if not args:
-		return f"-> {name}"
-	return f"-> {name} {json.dumps(args, ensure_ascii=False)}"
+		return line
+	return line.append(f" {json.dumps(args, ensure_ascii=False)}")
 
 
-def result_line(result: ToolResult) -> str:
+def result_line(result: ToolResult) -> Text:
 	"""Fallback one-liner rebuilt from `details` for a result whose call was never
 	seen (a replay hole); the call arguments are gone, the details survive."""
 	d = result.details
+	line = tool_label(result.name)
 	if result.name == "bash" and d.get("command"):
-		return f"$ {d['command']}"
-	parts = [f"-> {result.name}"]
+		return line.append(f" {d['command']}")
 	if result.name == "grep" and d.get("pattern"):
-		parts.append(d["pattern"])
+		line.append(f" {d['pattern']}")
 	if d.get("path"):
-		parts.append(str(d["path"]))
+		line.append(f" {d['path']}")
 	if (n := d.get("edits")) is not None:
-		parts.append(f"({n} edit{'s' if n != 1 else ''})")
+		line.append(f" ({n} edit{'s' if n != 1 else ''})", style=STYLE_MUTED)
 	if (chars := d.get("chars")) is not None:
-		parts.append(f"({chars} chars)")
-	return " ".join(parts)
+		line.append(f" ({chars} chars)", style=STYLE_MUTED)
+	return line
 
 
 def status_suffix(details: dict) -> str:
@@ -101,22 +127,32 @@ def status_suffix(details: dict) -> str:
 	return f"[{', '.join(parts)}]" if parts else ""
 
 
-class ThinkingBlock(Collapsible):
-	"""One `ThinkingContent` block, folded behind a char-count title."""
+class ThinkingBlock(Static):
+	"""One `ThinkingContent` block: a one-word marker until it expands.
+
+	It carries no control of its own. ctrl+t drives every block at once, so a
+	per-block toggle would let the transcript disagree with the keybind.
+	"""
+
+	collapsed: reactive[bool] = reactive(True)
 
 	def __init__(self, thinking: str, *, collapsed: bool = True) -> None:
-		super().__init__(
-			Static(Text(thinking, style="dim italic")),
-			title="thinking",
-			collapsed=collapsed,
-		)
+		super().__init__(classes="thinking")
+		self.thinking = thinking
+		self.set_reactive(ThinkingBlock.collapsed, collapsed)
+
+	def render(self) -> RenderableType:
+		return Text(THINKING_MARKER if self.collapsed else self.thinking, style=STYLE_THINKING)
+
+	def watch_collapsed(self, _collapsed: bool) -> None:
+		self.refresh(layout=True)
 
 
 class ToolCallView(Static):
 	"""One tool call and, once it merges in, its result.
 
 	Runs through three looks: a spinner one-liner while the call executes, a settled
-	✓/✗ line with a bracket suffix when the result lands, and — via the `expanded`
+	unmarked line with a bracket suffix when the result lands, and — via the `expanded`
 	reactive (ctrl+o) — the full output instead of the dim few-line preview.
 	`call` is None when a result arrived without its call; the line then rebuilds
 	from `ToolResult.details`.
@@ -180,21 +216,24 @@ class ToolCallView(Static):
 		result = self.result
 		failed = result is not None and (result.is_error or result.details.get("aborted"))
 		if result is None:
-			glyph, style = (SPINNER_FRAMES[self._frame], "yellow") if self._live else ("·", "dim")
+			glyph, style = (SPINNER_FRAMES[self._frame], STYLE_RUNNING) if self._live else ("·", STYLE_MUTED)
 		elif failed:
-			glyph, style = "✗", "bold red"
+			glyph, style = "✗", STYLE_ERROR_STRONG
 		else:
-			glyph, style = "✓", "bold green"
+			glyph, style = None, ""  # a settled call carries no mark, and no gutter for one
 		if self.call is not None:
 			line = call_line(self.call.name, self.call.arguments)
 		else:
 			assert result is not None  # a call-less view always carries its result
 			line = result_line(result)
+		if failed:
+			line.stylize(STYLE_ERROR)  # the failure colour outranks the per-part styles
 		text = Text()
-		text.append(f"{glyph} ", style)
-		text.append(line, style="red" if failed else "")
+		if glyph is not None:
+			text.append(f"{glyph} ", style)
+		text.append_text(line)
 		if result is not None and (suffix := status_suffix(result.details)):
-			text.append(f" {suffix}", style="red" if failed else "dim")
+			text.append(f" {suffix}", style=STYLE_ERROR if failed else STYLE_MUTED)
 		return text
 
 	def _body(self) -> RenderableType | None:
@@ -212,16 +251,21 @@ class ToolCallView(Static):
 		head = lines[:_PREVIEW_LINES]
 		if (hidden := len(lines) - len(head)) > 0:
 			head.append(f"… (+{hidden} lines, ctrl+o to expand)")
-		return Text("\n".join(head), style="dim")
+		return Text("\n".join(head), style=STYLE_MUTED)
 
 
 def _diff_body(diff: str, *, expanded: bool) -> RenderableType:
 	lines = diff.splitlines()
 	if expanded or len(lines) <= _DIFF_PREVIEW_LINES:
-		return Syntax(diff, "diff", background_color="default")
+		return Syntax(diff, "diff", theme=SYNTAX_THEME, background_color="default")
 	return Group(
-		Syntax("\n".join(lines[:_DIFF_PREVIEW_LINES]), "diff", background_color="default"),
-		Text(f"… (+{len(lines) - _DIFF_PREVIEW_LINES} more diff lines, ctrl+o to expand)", style="dim"),
+		Syntax(
+			"\n".join(lines[:_DIFF_PREVIEW_LINES]),
+			"diff",
+			theme=SYNTAX_THEME,
+			background_color="default",
+		),
+		Text(f"… (+{len(lines) - _DIFF_PREVIEW_LINES} more diff lines, ctrl+o to expand)", style=STYLE_MUTED),
 	)
 
 
@@ -274,14 +318,14 @@ class PartialAssistantView(Static):
 				text.append("\n")
 			if isinstance(part, PartialThinking):
 				if show_thinking:
-					text.append(part.thinking, style="dim italic")
+					text.append(part.thinking, style=STYLE_THINKING)
 				else:
-					text.append("thinking", style="dim italic")
+					text.append(THINKING_MARKER, style=STYLE_THINKING)
 			elif isinstance(part, PartialText):
 				text.append(part.text)
 			elif isinstance(part, PartialToolCall):
-				text.append(call_line(part.name, None), style="yellow")
-		text.append("▌", style="dim")
+				text.append_text(call_line(part.name, None))
+		text.append("▌", style=STYLE_MUTED)
 		self.update(text)
 
 
@@ -304,11 +348,10 @@ def entry_widgets(
 
 
 def _render_user(message: UserMessage, *, steered: bool) -> Text:
-	text = Text()
-	text.append("↪ " if steered else "❯ ", style="bold cyan")  # noqa: RUF001
-	text.append(message.content)
+	# the tinted background marks a user entry, so a prompt glyph adds nothing
+	text = Text(message.content)
 	if steered:
-		text.append("  (steered)", style="dim")
+		text.append("  (steered)", style=STYLE_MUTED)
 	return text
 
 
@@ -319,18 +362,17 @@ def _assistant_widgets(
 	for block in message.content:
 		if isinstance(block, ThinkingContent):
 			if block.redacted:
-				sealed = Static(Text("thinking · redacted", style="dim italic"), classes="thinking--redacted")
-				widgets.append(sealed)
+				widgets.append(Static(Text("Thinking · redacted", style=STYLE_THINKING)))
 			elif block.thinking:
 				# opaque reasoning with no summary has nothing worth a fold
 				widgets.append(ThinkingBlock(block.thinking, collapsed=not show_thinking))
 		elif isinstance(block, TextContent):
-			widgets.append(Static(Text(block.text)))
+			widgets.append(Markdown(block.text))
 		elif isinstance(block, ToolCall):
 			widgets.append(ToolCallView(block, entry_seq=message.seq, expanded=expand_tools, running=running))
 	if message.stop_reason in ("aborted", "error"):
-		note = Text(f"[{message.stop_reason}]", style="bold red")
+		note = Text(f"[{message.stop_reason}]", style=STYLE_ERROR_STRONG)
 		if message.error_message:
-			note.append(f" {message.error_message}", style="red")
+			note.append(f" {message.error_message}", style=STYLE_ERROR)
 		widgets.append(Static(note))
 	return widgets

@@ -38,6 +38,7 @@ from flow_tui.client.state import (
 )
 from flow_tui.commands import FlowCommandProvider, dispatch
 from flow_tui.controller import Controller
+from flow_tui.theme import flow_theme
 from flow_tui.widgets.composer import Composer
 from flow_tui.widgets.conversation import ConversationView
 from flow_tui.widgets.messages import SPINNER_FRAMES
@@ -147,6 +148,8 @@ class FlowApp(App):
 		yield StatusBar(id="status")
 
 	def on_mount(self) -> None:
+		self.register_theme(flow_theme)
+		self.theme = flow_theme.name
 		if self._driver is not None:
 			# Terminals title the window from the foreground process name, which is the
 			# python interpreter behind the `flow` console script; set it explicitly.
