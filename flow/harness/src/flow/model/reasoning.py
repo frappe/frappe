@@ -68,7 +68,7 @@ def _model_info(model: str) -> dict[str, Any] | None:
 	import litellm
 
 	try:
-		return litellm.get_model_info(model)
+		return dict(litellm.get_model_info(model))
 	except Exception:
 		return None
 
