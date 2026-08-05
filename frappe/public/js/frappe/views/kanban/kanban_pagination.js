@@ -33,8 +33,12 @@ export const kanban_pagination = {
 	},
 
 	rebuild_column_loaded_names(column, field_name) {
+		// Callers pass either a mapped board column (has `title`) or a raw Kanban
+		// Board child row (has `column_name`); resolve either so `loaded_names` is
+		// rebuilt correctly. If this stays empty the memory cap never engages.
+		const column_title = column.title ?? column.column_name;
 		const saved = this.parse_column_order(column.order);
-		const in_column = (this.data || []).filter((d) => d[field_name] === column.title);
+		const in_column = (this.data || []).filter((d) => d[field_name] === column_title);
 		const in_set = new Set(in_column.map((d) => d.name));
 		const names = [];
 
