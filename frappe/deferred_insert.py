@@ -31,7 +31,7 @@ def save_to_db(doctype: str | None = None):
 		record_count = 0
 		queue_key = key if doctype else get_key_name(key)
 		queue_doctype = doctype or get_doctype_name(key)
-		while frappe.cache.llen(queue_key) > 0 and record_count <= 10000:
+		while frappe.cache.llen(queue_key) > 0:
 			records = frappe.cache.lpop(queue_key)
 			records = json.loads(records.decode("utf-8"))
 			if isinstance(records, dict):
@@ -46,6 +46,9 @@ def save_to_db(doctype: str | None = None):
 
 			if record_count % 100 == 0:
 				frappe.db.commit()
+
+		if record_count % 100 != 0:
+			frappe.db.commit()
 
 
 def insert_record(record: dict | "Document", doctype: str):
