@@ -9,6 +9,7 @@ from datetime import date, datetime, time
 
 import frappe
 from frappe import _
+from frappe.app_state import clear_cache_after_maintenance
 from frappe.core.doctype.version.version import get_diff
 from frappe.model import no_value_fields
 from frappe.utils import cint, cstr, duration_to_seconds, flt, update_progress_bar
@@ -264,6 +265,7 @@ class Importer:
 	def after_import(self):
 		frappe.flags.in_import = False
 		frappe.flags.mute_emails = False
+		clear_cache_after_maintenance()
 
 	def process_doc(self, doc):
 		if self.import_type == INSERT:

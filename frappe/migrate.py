@@ -16,6 +16,7 @@ import frappe
 import frappe.model.sync
 import frappe.modules.patch_handler
 import frappe.translate
+from frappe.app_state import clear_cache_after_maintenance
 from frappe.core.doctype.language.language import sync_languages
 from frappe.core.doctype.navbar_settings.navbar_settings import sync_standard_items
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
@@ -115,6 +116,7 @@ class SiteMigration:
 		frappe.publish_realtime("version-update")
 		frappe.flags.touched_tables.clear()
 		frappe.flags.in_migrate = False
+		clear_cache_after_maintenance()
 
 	@atomic
 	def pre_schema_updates(self):
