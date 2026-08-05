@@ -1,5 +1,5 @@
 """Phases 6-7 TUI shell: rendering, delta→durable swap, steering, queueing, status
-bar, collapsible thinking, and detail-driven tool-result rendering.
+bar, foldable thinking, and detail-driven tool-result rendering.
 
 Pilot tests drive `FlowApp` with a fake controller (no HTTP); one integration test
 runs the real stack — uvicorn + MockModel + Controller — end to end.
@@ -13,7 +13,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 from rich.console import Group
 from rich.syntax import Syntax
-from textual.widgets import Collapsible, Static
+from textual.widgets import Static
 
 from flow.events import (
 	AssistantMessage,
@@ -80,12 +80,10 @@ class FakeController:
 
 
 def _widget_text(widget) -> str:
-	"""All visible text of a widget: its own render, child statics, collapsible titles."""
+	"""All visible text of a widget: its own render plus every child static."""
 	if isinstance(widget, Static):
 		return _render_str(widget)
-	parts = [_render_str(static) for static in widget.query(Static)]
-	parts += [collapsible.title for collapsible in widget.query(Collapsible)]
-	return "\n".join(parts)
+	return "\n".join(_render_str(static) for static in widget.query(Static))
 
 
 def _render_str(static: Static) -> str:
@@ -183,10 +181,10 @@ async def test_thinking_collapsed_by_default_and_redacted_stays_sealed():
 
 		entry = pilot.app.query_one(ConversationView).query(EntryView).last()
 		blocks = entry.query(ThinkingBlock)
-		assert len(blocks) == 1  # the redacted block is a sealed marker, not a collapsible
+		assert len(blocks) == 1  # the redacted block is a sealed marker, not a foldable block
 		assert blocks.first().collapsed is True
-		assert blocks.first().title == "thinking"
 		text = _widget_text(entry)
+		assert "let me think" not in text  # collapsed to its marker
 		assert "the answer" in text
 		assert "thinking · redacted" in text and "secret" not in text
 

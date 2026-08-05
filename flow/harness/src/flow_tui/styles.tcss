@@ -24,20 +24,6 @@ EntryView Markdown {
 	margin-bottom: -1;
 }
 
-EntryView Collapsible {
-	border: none;
-	padding: 0;
-	background: transparent;
-}
-
-EntryView Collapsible Contents {
-	padding: 0 0 0 2;
-}
-
-.thinking--redacted {
-	color: $text-muted;
-}
-
 PartialAssistantView {
 	margin-bottom: 1;
 }

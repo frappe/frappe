@@ -2,8 +2,8 @@
 mutable streamed-preview widget (`PartialAssistantView`) at the conversation tail.
 
 `EntryView` is a container, not a single Static: an assistant message interleaves
-text, thinking, and tool calls, and each thinking block folds behind its own
-`Collapsible`. A tool call renders as one `ToolCallView` — a per-tool one-liner
+text, thinking, and tool calls, and each thinking block folds to a one-word
+marker that ctrl+t expands. A tool call renders as one `ToolCallView` — a per-tool one-liner
 (`$ cmd` for bash, `-> edit path (2 edits)`, …) behind a status glyph. The matching
 `ToolResult` merges into the same widget: the glyph settles to ✓/✗, a bracket
 suffix reports exit code / duration / truncation, and the output shows as a dim
@@ -25,7 +25,7 @@ from rich.text import Text
 from textual.containers import Vertical
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Collapsible, Markdown, Static
+from textual.widgets import Markdown, Static
 
 from flow.events import (
 	AssistantMessage,
@@ -116,15 +116,25 @@ def status_suffix(details: dict) -> str:
 	return f"[{', '.join(parts)}]" if parts else ""
 
 
-class ThinkingBlock(Collapsible):
-	"""One `ThinkingContent` block, folded behind a char-count title."""
+class ThinkingBlock(Static):
+	"""One `ThinkingContent` block: a one-word marker until it expands.
+
+	It carries no control of its own. ctrl+t drives every block at once, so a
+	per-block toggle would let the transcript disagree with the keybind.
+	"""
+
+	collapsed: reactive[bool] = reactive(True)
 
 	def __init__(self, thinking: str, *, collapsed: bool = True) -> None:
-		super().__init__(
-			Static(Text(thinking, style=STYLE_THINKING)),
-			title="thinking",
-			collapsed=collapsed,
-		)
+		super().__init__(classes="thinking")
+		self.thinking = thinking
+		self.set_reactive(ThinkingBlock.collapsed, collapsed)
+
+	def render(self) -> RenderableType:
+		return Text("thinking" if self.collapsed else self.thinking, style=STYLE_THINKING)
+
+	def watch_collapsed(self, _collapsed: bool) -> None:
+		self.refresh(layout=True)
 
 
 class ToolCallView(Static):
@@ -339,10 +349,7 @@ def _assistant_widgets(
 	for block in message.content:
 		if isinstance(block, ThinkingContent):
 			if block.redacted:
-				sealed = Static(
-					Text("thinking · redacted", style=STYLE_THINKING), classes="thinking--redacted"
-				)
-				widgets.append(sealed)
+				widgets.append(Static(Text("thinking · redacted", style=STYLE_THINKING)))
 			elif block.thinking:
 				# opaque reasoning with no summary has nothing worth a fold
 				widgets.append(ThinkingBlock(block.thinking, collapsed=not show_thinking))
