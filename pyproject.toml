@@ -35,17 +35,10 @@ dependencies = [
     "beautifulsoup4~=4.13.5",
     "bleach~=6.3.0",
     "bleach-allowlist~=1.0.3",
-<<<<<<< HEAD
     "chardet~=5.2.0",
     "croniter~=6.0.0",
-    "cryptography~=46.0.3",
-    "cssutils~=2.11.1",
-=======
-    "chardet~=7.4.3",
-    "croniter~=6.2.2",
     "cryptography~=50.0.0",
-    "cssutils~=2.15.0",
->>>>>>> c14dd687e7 (fix: bump cryptography past three advisories (#41589))
+    "cssutils~=2.11.1",
     "distro~=1.9.0",
     "email-reply-parser~=0.5.12",
     "gunicorn @ git+https://github.com/frappe/gunicorn@54b59ca884c79dcf04d4882658a32bbaf17e999f",
@@ -66,13 +59,8 @@ dependencies = [
     "premailer~=3.10.0",
     "psutil~=7.0.0",
     "psycopg2-binary~=2.9.11",
-<<<<<<< HEAD
-    "pyOpenSSL~=26.0.0",
-    "pydantic~=2.12.5",
-=======
     "pyOpenSSL~=26.4.0",
-    "pydantic~=2.13.4",
->>>>>>> c14dd687e7 (fix: bump cryptography past three advisories (#41589))
+    "pydantic~=2.12.5",
     "pyotp~=2.9.0",
     "python-dateutil~=2.9.0.post0",
     "pytz==2025.2",
