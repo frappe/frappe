@@ -106,7 +106,9 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 			return;
 		}
 		this.set_suffix();
-		if (!this.item.icon && !(this.item.child && this.item.parent.indent)) {
+		// `parent` is only set on items find_nested_items() actually nested; a row can carry
+		// `child` without one (a Section Break, or a child with no section above it).
+		if (!this.item.icon && !(this.item.child && this.item.parent?.indent)) {
 			this.item.icon = "list";
 		}
 		this.wrapper = $(

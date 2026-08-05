@@ -389,7 +389,10 @@ def merge_items(primary: frappe._dict, secondaries: list[frappe._dict]) -> list[
 		# over the merged list, where the ordinals differ.
 		if item.get("key"):
 			row["key"] = item.get("key")
-		if force_child:
+		# Only links nest. A secondary's own Section Breaks stay top-level sections: the desk
+		# renders one level of nesting, so a Section Break marked `child` is an item that
+		# claims a parent the renderer never gives it.
+		if force_child and item.get("type") != "Section Break":
 			row["child"] = 1
 		merged.append(row)
 
