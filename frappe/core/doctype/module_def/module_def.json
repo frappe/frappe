@@ -34,7 +34,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "App Name",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "restrict_to_domain",
@@ -139,7 +140,7 @@
    "link_fieldname": "module"
   }
  ],
- "modified": "2024-09-18 12:39:19.512528",
+ "modified": "2026-08-05 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Module Def",
