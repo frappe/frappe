@@ -6,6 +6,11 @@ token budget, the OpenAI family wants a named effort level, and Codex wants it i
 `reasoning` object. None means "send nothing" — the provider's default behavior. "off"
 disables thinking where the provider has a switch (Anthropic); elsewhere the parameter
 is omitted, like pi does, because those APIs have no portable off switch.
+
+On the LiteLLM path the effort is clamped to the nearest level the model supports (per
+litellm's capability flags), dropped for models that cannot reason, and passed through
+for models litellm does not know — gateways behind a custom base clamp or ignore what
+they don't support, while litellm's client-side guard would refuse the request outright.
 """
 
 from __future__ import annotations
@@ -31,10 +36,41 @@ def reasoning_params(model: str, effort: ReasoningEffort | None) -> dict[str, An
 	if effort == "off":
 		return None
 	if provider == "codex":
-		# summary: "auto" asks for the reasoning summaries the codex provider streams.
+		effort = "xhigh" if effort == "max" else effort
 		return {"reasoning": {"effort": effort, "summary": "auto"}}
-	# LiteLLM translates its unified param for openai, gemini, xai, and the rest.
+	return _litellm_params(model, effort)
+
+
+def _litellm_params(model: str, effort: ReasoningEffort) -> dict[str, Any] | None:
+	"""LiteLLM's unified param, clamped to what the model supports.
+
+	Models litellm does not know (gateway ids behind a custom base) skip its
+	client-side support guard via allowed_openai_params; the provider decides.
+	"""
+	info = _model_info(model)
+	if info is None:
+		return {"reasoning_effort": effort, "allowed_openai_params": ["reasoning_effort"]}
+	if not info.get("supports_reasoning"):
+		return None
+	# litellm's own policy: xhigh/max are opt-in per model, minimal/low opt-out.
+	if effort == "max" and not info.get("supports_max_reasoning_effort"):
+		effort = "xhigh"
+	if effort == "xhigh" and not info.get("supports_xhigh_reasoning_effort"):
+		effort = "high"
+	if effort == "minimal" and info.get("supports_minimal_reasoning_effort") is False:
+		effort = "low"
+	if effort == "low" and info.get("supports_low_reasoning_effort") is False:
+		effort = "medium"
 	return {"reasoning_effort": effort}
+
+
+def _model_info(model: str) -> dict[str, Any] | None:
+	import litellm
+
+	try:
+		return litellm.get_model_info(model)
+	except Exception:
+		return None
 
 
 def _anthropic_params(model: str, effort: ReasoningEffort) -> dict[str, Any]:

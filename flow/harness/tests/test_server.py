@@ -110,20 +110,20 @@ def test_reasoning_effort_travels_with_the_selection_and_rewinds_with_it(tmp_pat
 	assert c.get(f"/sessions/{sid}").json()["reasoning_effort"] == "low"
 
 	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "hi"})
-	assert captured == [{"reasoning_effort": "low"}]
+	assert [p["reasoning_effort"] for p in captured] == ["low"]
 	branch_point = c.get(f"/sessions/{sid}").json()["latest_seq"]
 
 	# same model, different effort: still a durable selection change
 	r = c.post(f"/sessions/{sid}/model", json={"model": "mock", "reasoning_effort": "high"})
 	assert r.json() == {"model": "mock", "credential_id": None, "reasoning_effort": "high"}
 	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "again"})
-	assert captured[-1] == {"reasoning_effort": "high"}
+	assert captured[-1]["reasoning_effort"] == "high"
 
 	# rewinding to before the change restores the creation-config effort
 	c.post(f"/sessions/{sid}/rewind", json={"target_seq": branch_point})
 	assert c.get(f"/sessions/{sid}").json()["reasoning_effort"] == "low"
 	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "back"})
-	assert captured[-1] == {"reasoning_effort": "low"}
+	assert captured[-1]["reasoning_effort"] == "low"
 
 
 def test_run_does_not_accept_model_overrides(tmp_path):

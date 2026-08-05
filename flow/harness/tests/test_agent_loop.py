@@ -382,7 +382,7 @@ async def test_reasoning_effort_reaches_the_model_as_params(tmp_path, monkeypatc
 
 	await _run(session, "hello")
 
-	assert captured["params"] == {"reasoning_effort": "high"}
+	assert captured["params"]["reasoning_effort"] == "high"
 
 
 async def test_no_reasoning_effort_sends_no_params(tmp_path, monkeypatch):
