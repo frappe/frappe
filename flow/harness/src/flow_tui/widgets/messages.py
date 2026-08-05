@@ -4,7 +4,7 @@ mutable streamed-preview widget (`PartialAssistantView`) at the conversation tai
 `EntryView` is a container, not a single Static: an assistant message interleaves
 text, thinking, and tool calls, and each thinking block folds to a one-word
 marker that ctrl+t expands. A tool call renders as one `ToolCallView` — a per-tool one-liner
-(`$ cmd` for bash, `-> edit path (2 edits)`, …) behind a status glyph. The matching
+(`bash cmd`, `edit path (2 edits)`, …) that leads with the tool name. The matching
 `ToolResult` merges into the same widget: the glyph clears (or settles to ✗), a bracket
 suffix reports exit code / duration / truncation, and the output shows as a dim
 few-line preview that ctrl+o expands. A diff in `ToolResult.details` gets syntax
@@ -51,36 +51,39 @@ SPINNER_FRAMES = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
 _PREVIEW_LINES = 3
 _DIFF_PREVIEW_LINES = 32
 THINKING_MARKER = "Thinking… ctrl+t to expand"
+TOOL_LABELS = {"read_file": "read"}
 
 
 def call_line(name: str, args: dict | None) -> str:
 	"""Collapsed one-liner for a tool call. `args is None` means only the live
 	ToolCallStarted has been seen; the line upgrades once the durable call lands."""
+	label = TOOL_LABELS.get(name, name)
 	if args is None:
-		return f"-> {name} …"
+		return f"{label} …"
 	if name == "bash":
-		return f"$ {args.get('command', '')}"
+		return f"{label} {args.get('command', '')}"
 	if name == "edit":
 		n = len(args.get("edits") or [])
-		return f"-> edit {args.get('path', '')} ({n} edit{'s' if n != 1 else ''})"
+		return f"{label} {args.get('path', '')} ({n} edit{'s' if n != 1 else ''})"
 	if name == "write":
-		return f"-> write {args.get('path', '')} ({len(args.get('content') or '')} chars)"
+		return f"{label} {args.get('path', '')} ({len(args.get('content') or '')} chars)"
 	if name == "read_file":
-		return f"-> read {args.get('path', '')}"
+		return f"{label} {args.get('path', '')}"
 	if name == "grep":
-		return f"-> grep {args.get('pattern', '')} {args.get('path', '')}".rstrip()
+		return f"{label} {args.get('pattern', '')} {args.get('path', '')}".rstrip()
 	if not args:
-		return f"-> {name}"
-	return f"-> {name} {json.dumps(args, ensure_ascii=False)}"
+		return label
+	return f"{label} {json.dumps(args, ensure_ascii=False)}"
 
 
 def result_line(result: ToolResult) -> str:
 	"""Fallback one-liner rebuilt from `details` for a result whose call was never
 	seen (a replay hole); the call arguments are gone, the details survive."""
 	d = result.details
+	label = TOOL_LABELS.get(result.name, result.name)
 	if result.name == "bash" and d.get("command"):
-		return f"$ {d['command']}"
-	parts = [f"-> {result.name}"]
+		return f"{label} {d['command']}"
+	parts = [label]
 	if result.name == "grep" and d.get("pattern"):
 		parts.append(d["pattern"])
 	if d.get("path"):

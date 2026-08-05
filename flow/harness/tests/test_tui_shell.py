@@ -148,7 +148,7 @@ async def test_tool_result_merges_into_call_and_ctrl_o_expands():
 
 		conversation = pilot.app.query_one(ConversationView)
 		view = conversation.query_one(ToolCallView)
-		assert "$ ls" in _widget_text(view)  # per-tool one-liner, not a JSON dump
+		assert "bash ls" in _widget_text(view)  # per-tool one-liner, not a JSON dump
 
 		content = "\n".join(f"file{i}" for i in range(6))
 		fake.feed(
@@ -267,7 +267,7 @@ async def test_bash_result_renders_status_suffix_and_collapsed_output():
 
 		entries = pilot.app.query_one(ConversationView).query(EntryView)
 		ok = _widget_text(entries.first())
-		assert "$ ls" in ok and "[exit 0, 0.01s]" in ok and "a.txt" in ok
+		assert "bash ls" in ok and "[exit 0, 0.01s]" in ok and "a.txt" in ok
 		failed = _widget_text(entries.last())
 		assert "✗" in failed and "exit 1" in failed and "truncated · 2000/90000 lines" in failed
 
