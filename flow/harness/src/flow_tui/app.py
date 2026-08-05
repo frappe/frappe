@@ -19,6 +19,7 @@ from typing import ClassVar, Protocol
 
 from textual.app import App, ComposeResult, SuspendNotSupported
 from textual.binding import Binding
+from textual.command import CommandPalette
 from textual.containers import Horizontal
 from textual.widgets import Static
 
@@ -163,6 +164,10 @@ class FlowApp(App):
 		# returns a fatal notice when the daemon this TUI owns has died; None = healthy
 		# (or nobody to watch — `flow attach` has no child process)
 		self.fatal_check = fatal_check
+
+	def action_command_palette(self) -> None:
+		if self.use_command_palette and not CommandPalette.is_open(self):
+			self.push_screen(CommandPalette(id="--command-palette", placeholder="filter commands"))
 
 	def compose(self) -> ComposeResult:
 		yield ConversationView(id="conversation")

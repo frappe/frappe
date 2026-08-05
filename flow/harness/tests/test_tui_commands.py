@@ -13,7 +13,7 @@ from contextlib import asynccontextmanager
 import pytest
 import uvicorn
 from textual.command import CommandPalette
-from textual.widgets import Static
+from textual.widgets import Input, Static
 
 from flow.events import AssistantMessage, ReasoningEffort, RunStarted, TextContent, UserMessage
 from flow.model.credentials import CredentialStore
@@ -251,6 +251,8 @@ async def test_palette_opens_and_runs_a_command():
 		await pilot.press("ctrl+p")
 		await pilot.pause()
 		assert isinstance(pilot.app.screen, CommandPalette)
+		assert pilot.app.screen.query_one(Input).placeholder == "filter commands"
+		assert pilot.app.screen.query_one("SearchIcon").styles.display == "none"
 
 		await pilot.press(*"abort")
 		await pilot.pause()
