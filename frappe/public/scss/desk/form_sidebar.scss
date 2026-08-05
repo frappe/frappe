@@ -773,24 +773,6 @@ body[data-route^="Form"] .attachment-preview {
 	}
 }
 
-.followed-by {
-	max-width: 100%;
-	display: block;
-	width: unset;
-	height: unset;
-	margin-right: 0;
-	padding: var(--padding-xs) !important;
-	border-radius: var(--radius-full);
-
-	&:hover {
-		background-color: var(--subtle-fg);
-	}
-
-	&:focus {
-		box-shadow: none;
-	}
-}
-
 .add-assignment-label,
 .tags-label,
 .share-label {
