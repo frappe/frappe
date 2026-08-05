@@ -146,11 +146,12 @@ class TestOAuth20(FrappeRequestTestCase):
 		).insert(ignore_permissions=True)
 		return access_token, token
 
-	def authenticate_client(self, headers=None, client_id=None, client_secret=None):
+	def authenticate_client(self, headers=None, client_id=None, client_secret=None, **kwargs):
 		request = frappe._dict(
 			headers=headers or {},
 			client_id=client_id,
 			client_secret=client_secret,
+			**kwargs,
 		)
 		return OAuthWebRequestValidator().authenticate_client(request)
 
@@ -233,21 +234,49 @@ class TestOAuth20(FrappeRequestTestCase):
 				self.assertEqual(response.status_code, 415)
 
 	def test_confidential_client_authentication(self):
-		for credentials in (
-			{"headers": self.get_client_auth_headers()},
-			{"client_id": self.client_id, "client_secret": self.client_secret},
+		basic_credentials = {"headers": self.get_client_auth_headers()}
+		post_credentials = {"client_id": self.client_id, "client_secret": self.client_secret}
+		for method, credentials, rejected_credentials in (
+			("Client Secret Basic", basic_credentials, post_credentials),
+			("Client Secret Post", post_credentials, basic_credentials),
 		):
-			with self.subTest(credentials=credentials):
+			with self.subTest(method=method):
+				self.oauth_client.token_endpoint_auth_method = method
+				self.oauth_client.save()
 				self.assertTrue(self.authenticate_client(**credentials))
+				self.assertFalse(self.authenticate_client(**rejected_credentials))
 
 	def test_confidential_client_requires_valid_secret(self):
-		for credentials in (
-			{"client_id": self.client_id},
-			{"client_id": self.client_id, "client_secret": "wrong-secret"},
-			{"headers": self.get_client_auth_headers("wrong-secret")},
+		for method, credentials in (
+			("Client Secret Basic", {"headers": self.get_client_auth_headers("wrong-secret")}),
+			(
+				"Client Secret Post",
+				{"client_id": self.client_id, "client_secret": "wrong-secret"},
+			),
 		):
-			with self.subTest(credentials=credentials):
+			with self.subTest(method=method):
+				self.oauth_client.token_endpoint_auth_method = method
+				self.oauth_client.save()
 				self.assertFalse(self.authenticate_client(**credentials))
+				self.assertFalse(self.authenticate_client(client_id=self.client_id))
+
+		self.oauth_client.token_endpoint_auth_method = "Client Secret Post"
+		self.oauth_client.save()
+		refresh_token = frappe.generate_hash()
+		frappe.get_doc(
+			doctype="OAuth Bearer Token",
+			access_token=frappe.generate_hash(),
+			refresh_token=refresh_token,
+			client=self.client_id,
+			expires_in=3600,
+			scopes=self.scope,
+			status="Active",
+			user="test@example.com",
+		).insert(ignore_permissions=True)
+
+		self.assertFalse(
+			self.authenticate_client(client_secret=self.client_secret, refresh_token=refresh_token)
+		)
 
 	def test_duplicate_or_mismatched_client_authentication(self):
 		headers = self.get_client_auth_headers()
@@ -289,15 +318,35 @@ class TestOAuth20(FrappeRequestTestCase):
 	def test_non_ascii_client_secret(self):
 		client_secret = "sëcret"
 		self.oauth_client.client_secret = client_secret
-		self.oauth_client.save()
-
-		self.assertTrue(self.authenticate_client(headers=self.get_client_auth_headers(client_secret)))
-		self.assertTrue(self.authenticate_client(client_id=self.client_id, client_secret=client_secret))
+		for method, credentials in (
+			("Client Secret Basic", {"headers": self.get_client_auth_headers(client_secret)}),
+			(
+				"Client Secret Post",
+				{"client_id": self.client_id, "client_secret": client_secret},
+			),
+		):
+			with self.subTest(method=method):
+				self.oauth_client.token_endpoint_auth_method = method
+				self.oauth_client.save()
+				self.assertTrue(self.authenticate_client(**credentials))
 
 	def test_public_client_authentication(self):
 		self.oauth_client.token_endpoint_auth_method = "None"
 		self.oauth_client.save()
 		self.assertTrue(self.authenticate_client(client_id=self.client_id))
+		self.assertFalse(self.authenticate_client(headers=self.get_client_auth_headers()))
+		self.assertFalse(self.authenticate_client(client_id=self.client_id, client_secret=self.client_secret))
+
+	def test_unknown_client_authentication_method(self):
+		frappe.db.set_value(
+			"OAuth Client",
+			self.client_id,
+			"token_endpoint_auth_method",
+			"Unsupported",
+		)
+		frappe.clear_document_cache("OAuth Client", self.client_id)
+
+		self.assertFalse(self.authenticate_client(headers=self.get_client_auth_headers()))
 
 	def test_login_using_authorization_code(self):
 		update_client_for_auth_code_grant(self.client_id)
