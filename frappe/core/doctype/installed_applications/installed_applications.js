@@ -75,7 +75,7 @@ frappe.ui.form.on("Installed Application", {
 			callback() {
 				frappe.dom.unfreeze();
 				frappe.toast(__("{0} has been disabled", [row.app_name]));
-				cur_frm.reload_doc();
+				frm.reload_doc();
 			},
 		});
 	},
@@ -88,7 +88,7 @@ frappe.ui.form.on("Installed Application", {
 			callback() {
 				frappe.dom.unfreeze();
 				frappe.toast(__("{0} has been enabled", [row.app_name]));
-				cur_frm.reload_doc();
+				frm.reload_doc();
 			},
 		});
 	},

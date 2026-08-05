@@ -402,7 +402,8 @@ def set_app_disabled(app_name, disabled):
 		frappe.db.set_global("disabled_apps", json.dumps(disabled_apps))
 		frappe.local.request_cache and frappe.local.request_cache.clear()
 		frappe.get_single("Installed Applications").update_versions()
-		frappe.db.commit()
+		# the lock serialises this read and write, so the new list must be visible before it opens
+		frappe.db.commit()  # nosemgrep
 		frappe.clear_cache()
 		frappe.client_cache.erase_persistent_caches()
 
@@ -428,7 +429,8 @@ def enable_app(app_name):
 		for after_enable in frappe.get_hooks("after_enable", app_name=app_name):
 			frappe.get_attr(after_enable)()
 
-		frappe.db.commit()
+		# `set_app_disabled` commits before these hooks, and the CLI closes without a commit
+		frappe.db.commit()  # nosemgrep
 	finally:
 		frappe.flags.in_app_toggle = False
 
@@ -460,7 +462,8 @@ def disable_app(app_name):
 		for after_disable in frappe.get_hooks("after_disable", app_name=app_name):
 			frappe.get_attr(after_disable)()
 
-		frappe.db.commit()
+		# `set_app_disabled` commits before these hooks, and the CLI closes without a commit
+		frappe.db.commit()  # nosemgrep
 	finally:
 		frappe.flags.in_app_toggle = False
 
