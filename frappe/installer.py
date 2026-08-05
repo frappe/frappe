@@ -427,6 +427,8 @@ def enable_app(app_name):
 
 		for after_enable in frappe.get_hooks("after_enable", app_name=app_name):
 			frappe.get_attr(after_enable)()
+
+		frappe.db.commit()
 	finally:
 		frappe.flags.in_app_toggle = False
 
@@ -457,6 +459,8 @@ def disable_app(app_name):
 
 		for after_disable in frappe.get_hooks("after_disable", app_name=app_name):
 			frappe.get_attr(after_disable)()
+
+		frappe.db.commit()
 	finally:
 		frappe.flags.in_app_toggle = False
 
