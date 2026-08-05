@@ -257,13 +257,12 @@ class ToolCallView(Static):
 def _diff_body(diff: str, *, expanded: bool) -> RenderableType:
 	lines = diff.splitlines()
 	if expanded or len(lines) <= _DIFF_PREVIEW_LINES:
-		return Syntax(diff, "diff", theme=SYNTAX_THEME, background_color="default")
+		return Syntax(diff, "diff", theme=SYNTAX_THEME)
 	return Group(
 		Syntax(
 			"\n".join(lines[:_DIFF_PREVIEW_LINES]),
 			"diff",
 			theme=SYNTAX_THEME,
-			background_color="default",
 		),
 		Text(f"… (+{len(lines) - _DIFF_PREVIEW_LINES} more diff lines, ctrl+o to expand)", style=STYLE_MUTED),
 	)
