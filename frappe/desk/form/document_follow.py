@@ -149,6 +149,7 @@ def get_user_list(frequency):
 		.on(DocumentFollow.user == User.name)
 		.where(User.document_follow_notify == 1)
 		.where(User.document_follow_frequency == frequency)
+		.where(User.enabled == 1)
 		.select(DocumentFollow.user)
 		.groupby(DocumentFollow.user)
 	).run(pluck="user")
