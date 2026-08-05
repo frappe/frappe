@@ -185,6 +185,21 @@ frappe.views.BaseList = class BaseList {
 
 	set_title() {
 		this.page.set_title(this.page_title, null, true, "", this.meta?.description);
+		this.set_deprecated_badge();
+	}
+
+	set_deprecated_badge() {
+		this.page.$title_area.find(".deprecated-badge").remove();
+		if (!this.meta?.deprecated) return;
+
+		frappe.ui
+			.badge({
+				label: __("Deprecated"),
+				theme: "red",
+				title: __("This DocType is deprecated and may be removed in a future release"),
+				css_class: "deprecated-badge",
+			})
+			.appendTo(this.page.$title_area);
 	}
 
 	setup_view_menu() {
