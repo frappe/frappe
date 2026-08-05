@@ -107,6 +107,7 @@ def test_registry_has_the_initial_command_set():
 		"abort",
 		"rewind",
 		"new",
+		"clear",
 		"resume",
 		"editor",
 		"help",
@@ -217,10 +218,11 @@ async def test_resume_switches_by_prefix():
 		assert fake.calls == [("switch_session", "0ther-session-id")]
 
 
-async def test_new_command_creates_and_announces():
+@pytest.mark.parametrize("command", ["new", "clear"])
+async def test_new_command_creates_and_announces(command):
 	fake = FakeController()
 	async with FlowApp(fake).run_test() as pilot:
-		await _slash(pilot, "/new")
+		await _slash(pilot, f"/{command}")
 		assert fake.calls == [("new_session",)]
 		assert any("new session new-sess" in msg for msg, _ in _notifications(pilot.app))
 

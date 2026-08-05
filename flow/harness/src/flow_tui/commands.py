@@ -133,6 +133,7 @@ async def _rewind(app: "FlowApp", arg: str) -> None:
 	app.prefill_composer(last_user.content)
 
 
+@command("clear", "start a fresh session (alias for /new)")
 @command("new", "start a fresh session")
 async def _new(app: "FlowApp", arg: str) -> None:
 	sid = await app.controller.new_session()
