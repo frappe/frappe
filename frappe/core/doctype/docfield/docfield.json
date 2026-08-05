@@ -185,7 +185,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:([\"Data\", \"Select\", \"Table\", \"Text\", \"Text Editor\", \"Link\", \"Small Text\", \"Long Text\", \"Read Only\", \"Heading\", \"Dynamic Link\"].indexOf(doc.fieldtype) !== -1)",
+   "depends_on": "eval:([\"Data\", \"Select\", \"Table\", \"Text\", \"Text Editor\", \"Link\", \"Small Text\", \"Long Text\", \"Read Only\", \"Heading\", \"Dynamic Link\"].indexOf(doc.fieldtype) !== -1 && !(cur_frm && cur_frm.doc && cur_frm.doc.is_virtual))",
    "fieldname": "in_global_search",
    "fieldtype": "Check",
    "label": "In Global Search"

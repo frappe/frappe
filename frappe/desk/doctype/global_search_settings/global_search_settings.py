@@ -6,6 +6,7 @@ from frappe import _
 from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
 from frappe.model import NO_VALUE_FIELDS
 from frappe.model.document import Document
+from frappe.utils import cint
 
 
 class GlobalSearchSettings(Document):
@@ -77,7 +78,7 @@ def update_global_search_doctypes():
 			if search_doctypes.get(domain):
 				global_search_doctypes.extend(search_doctypes.get(domain))
 
-	doctype_list = {dt.name for dt in frappe.get_all("DocType")}
+	doctype_list = {dt.name for dt in frappe.get_all("DocType", filters={"is_virtual": 0})}
 	allowed_in_global_search = []
 
 	for dt in global_search_doctypes:
@@ -130,6 +131,11 @@ def get_global_search_field_options(doctype: str | None = None):
 	frappe.only_for("System Manager")
 
 	meta = frappe.get_meta(doctype)
+
+	if cint(meta.get("is_virtual")) == 1:
+		frappe.throw(
+			_("{0} is a virtual doctype and does not support global search indexing.").format(_(doctype))
+		)
 
 	options = [
 		{

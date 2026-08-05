@@ -219,6 +219,7 @@ class DocType(Document):
 		self.validate_child_table()
 		self.validate_website()
 		self.validate_virtual_doctype_methods()
+		self.validate_virtual_doctype_search_flags()
 		self.ensure_minimum_max_attachment_limit()
 		self.patch_old_naming_expressions()
 		self.deduplicate_document_links()
@@ -433,6 +434,26 @@ class DocType(Document):
 		from frappe.model.virtual_doctype import validate_controller
 
 		validate_controller(self.name)
+
+	def validate_virtual_doctype_search_flags(self):
+		"""Reject global-search flags on virtual doctypes."""
+		if not self.get("is_virtual"):
+			return
+
+		if self.get("show_name_in_global_search"):
+			frappe.throw(
+				_("Virtual doctypes cannot enable {0} — global search indexing is not supported.").format(
+					frappe.bold(_("Make \"name\" searchable in Global Search"))
+				)
+			)
+
+		global_search_fields = [df.fieldname for df in self.fields if df.get("in_global_search")]
+		if global_search_fields:
+			frappe.throw(
+				_(
+					"Virtual doctypes cannot enable {0} on fields — global search indexing is not supported. Affected: {1}"
+				).format(frappe.bold(_("In Global Search")), ", ".join(global_search_fields))
+			)
 
 	def ensure_minimum_max_attachment_limit(self):
 		"""Ensure that max_attachments is *at least* bigger than number of attach fields."""

@@ -41,9 +41,9 @@ def get_doctypes_with_global_search(with_child_tables=True):
 
 	def _get():
 		global_search_doctypes = []
-		filters = {}
+		filters = {"is_virtual": 0}
 		if not with_child_tables:
-			filters = {"istable": ["!=", 1], "issingle": ["!=", 1]}
+			filters.update({"istable": ["!=", 1], "issingle": ["!=", 1]})
 		for d in frappe.get_all("DocType", fields=["name", "module"], filters=filters):
 			meta = frappe.get_meta(d.name)
 			if len(meta.get_global_search_fields()) > 0:
@@ -82,6 +82,9 @@ def rebuild_for_doctype(doctype):
 		return filters
 
 	meta = frappe.get_meta(doctype)
+
+	if cint(meta.get("is_virtual")) == 1:
+		return
 
 	if cint(meta.issingle) == 1:
 		return
@@ -249,6 +252,9 @@ def update_global_search(doc):
 	if frappe.local.conf.get("disable_global_search"):
 		return
 
+	if cint(doc.meta.get("is_virtual")) == 1:
+		return
+
 	if doc.docstatus > 1 or (doc.meta.has_field("enabled") and not doc.get("enabled")) or doc.get("disabled"):
 		return
 
@@ -405,6 +411,10 @@ def _get_deduped_search_item_values(items):
 def sync_values(values: list):
 	from pypika.terms import Values
 
+	values = [v for v in values if cint(frappe.get_meta(v[0]).get("is_virtual")) != 1]
+	if not values:
+		return
+
 	GlobalSearch = frappe.qb.Table("__global_search")
 	conflict_fields = ["content", "published", "title", "route"]
 
@@ -439,6 +449,9 @@ def sync_value(value: dict):
 	Sync a given document to global search
 	:param value: dict of { doctype, name, content, published, title, route }
 	"""
+
+	if cint(frappe.get_meta(value["doctype"]).get("is_virtual")) == 1:
+		return
 
 	frappe.db.multisql(
 		{
