@@ -51,7 +51,6 @@ const useCodeStore = defineStore("codeStore", () => {
 	const currentPageName = ref<string | null>(null)
 	let pageScriptScope: EffectScope | null = null
 	let resourceWatchers: WatchStopHandle[] = []
-	let pendingResources: Record<string, any> | null = null
 
 	function setRouteObject(route: ComputedRef) {
 		routeObject.value = route
@@ -61,6 +60,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		routerObject.value = router
 	}
 
+	let pendingResources: Record<string, any> | null = null
 	async function setPageResources(page: StudioPage, setResourceConfig: boolean = false) {
 		stopResourceWatchers()
 		// Each load uses its own map, so old async updates cannot change the current page resources.
@@ -257,8 +257,15 @@ const useCodeStore = defineStore("codeStore", () => {
 		}
 	})
 
-	const resourceProxies: Record<string, any> = {}
+	// for non-standard pages: scriptContext + vueReactivityApis since it can't import them
+	const interpretedScriptContext = computed(() => {
+		return {
+			...vueReactivityApis,
+			...scriptContext.value,
+		}
+	})
 
+	const resourceProxies: Record<string, any> = {}
 	function currentResourceProxies() {
 		const proxies: Record<string, any> = {}
 		for (const name in resources.value) {
@@ -270,8 +277,8 @@ const useCodeStore = defineStore("codeStore", () => {
 
 	const currentRoute = proxyToCurrent(() => unref(routeObject.value))
 
-	// An object that reads/writes every property on whatever getCurrent() returns right now.
-	// Methods come back as-is: frappe-ui resources and route objects use closures, not `this`.
+	// A stable object that forwards every read/write to whatever getCurrent() returns right now.
+	// Doesn't rebind methods — fine for frappe-ui resources and routes, which never use `this`.
 	function proxyToCurrent(getCurrent: () => any) {
 		return new Proxy(
 			{},
@@ -291,14 +298,6 @@ const useCodeStore = defineStore("codeStore", () => {
 			},
 		)
 	}
-
-	// for non-standard pages: scriptContext + vueReactivityApis since it can't import them
-	const interpretedScriptContext = computed(() => {
-		return {
-			...vueReactivityApis,
-			...scriptContext.value,
-		}
-	})
 
 	function getDynamicValue(value: string, localContext: ExpressionEvaluationContext) {
 		let result = ""
