@@ -1,7 +1,6 @@
 frappe.provide("frappe.contacts");
 frappe.provide("frappe.ui.form");
 
-// Links the new record to the party it was created from, and stays on that form.
 class PartyQuickEntryForm extends frappe.ui.form.QuickEntryForm {
 	insert() {
 		const link = this.get_party_link();
@@ -11,7 +10,6 @@ class PartyQuickEntryForm extends frappe.ui.form.QuickEntryForm {
 		return super.insert();
 	}
 
-	// Route check keeps a stale frappe.dynamic_link out of unrelated records.
 	get_party_link() {
 		const link = frappe.dynamic_link;
 		if (!link?.doc) return null;
@@ -35,37 +33,36 @@ frappe.ui.form.AddressQuickEntryForm = class AddressQuickEntryForm extends Party
 
 frappe.ui.form.ContactQuickEntryForm = class ContactQuickEntryForm extends PartyQuickEntryForm {
 	render_dialog() {
-		const fields = this.get_phone_fields().map(({ primary_flag, ...field }) => field);
+		const fields = this.get_detail_fields().map(
+			({ table, value_field, primary_flag, ...field }) => field
+		);
 		this.docfields = this.docfields.concat({ fieldtype: "Column Break" }, ...fields);
 		super.render_dialog();
 	}
 
 	update_doc() {
 		const doc = super.update_doc();
-		const phone_nos = [];
 
-		for (const { fieldname, primary_flag } of this.get_phone_fields()) {
-			if (doc[fieldname]) {
-				phone_nos.push({ phone: doc[fieldname], [primary_flag]: 1 });
-			}
+		for (const { fieldname, table, value_field, primary_flag } of this.get_detail_fields()) {
+			const value = doc[fieldname];
 			delete doc[fieldname];
+			if (!value) continue;
+
+			doc[table] = doc[table] || [];
+			doc[table].push({ [value_field]: value, [primary_flag]: 1 });
 		}
 
-		if (phone_nos.length) {
-			doc.phone_nos = phone_nos;
-		}
 		return doc;
 	}
-
-	// Not named phone/mobile_no: those are read only on Contact, so the layout
-	// would swap in the read only definitions and hide the inputs.
-	get_phone_fields() {
+	get_detail_fields() {
 		return [
 			{
 				fieldname: "contact_phone",
 				label: __("Phone"),
 				fieldtype: "Data",
 				options: "Phone",
+				table: "phone_nos",
+				value_field: "phone",
 				primary_flag: "is_primary_phone",
 			},
 			{
@@ -73,7 +70,18 @@ frappe.ui.form.ContactQuickEntryForm = class ContactQuickEntryForm extends Party
 				label: __("Mobile No"),
 				fieldtype: "Data",
 				options: "Phone",
+				table: "phone_nos",
+				value_field: "phone",
 				primary_flag: "is_primary_mobile_no",
+			},
+			{
+				fieldname: "contact_email",
+				label: __("Email"),
+				fieldtype: "Data",
+				options: "Email",
+				table: "email_ids",
+				value_field: "email_id",
+				primary_flag: "is_primary",
 			},
 		];
 	}
@@ -98,7 +106,6 @@ const PARTY_LINK_SECTIONS = [
 	},
 ];
 
-// One card list on a party's form: either its addresses or its contacts.
 class PartyLinkSection {
 	constructor(frm, { doctype, wrapper_field, onload_key, template, button_selector, primary_flag }) {
 		this.frm = frm;
@@ -110,7 +117,6 @@ class PartyLinkSection {
 		this.primary_flag = primary_flag;
 	}
 
-	// A missing onload key means the party does not track this link at all.
 	get is_loaded() {
 		const has_wrapper = Boolean(this.frm.fields_dict[this.wrapper_field]);
 		return has_wrapper && this.onload_key in (this.frm.doc.__onload || {});
@@ -120,7 +126,6 @@ class PartyLinkSection {
 		return this.frm.doc.__onload[this.onload_key] || [];
 	}
 
-	// The party's own link field, such as Customer.customer_primary_address.
 	get primary_field() {
 		return (this.frm.meta.fields || []).find(
 			(df) =>
@@ -240,8 +245,6 @@ class PartyLinkSection {
 		this.frm.reload_doc();
 	}
 
-	// Cleared with the primary link, else hooks like Customer.create_primary_contact
-	// see the stale fetched values and recreate the record.
 	get_dependent_fields(primary_field) {
 		return (this.frm.meta.fields || [])
 			.filter((df) => df.fetch_from?.split(".")[0] === primary_field)
