@@ -217,6 +217,10 @@ class PartyLinkSection {
 				record.name
 			);
 		} else {
+			const previous = this.primary_name;
+			if (previous && previous !== record.name) {
+				await frappe.db.set_value(this.doctype, previous, this.primary_flag, 0);
+			}
 			await frappe.db.set_value(this.doctype, record.name, this.primary_flag, 1);
 		}
 
