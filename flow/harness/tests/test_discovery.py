@@ -6,11 +6,8 @@ import pytest
 
 from flow.model.catalog import PROVIDERS, ModelInfo
 from flow.model.credentials import CredentialStore, OAuthCredential
-from flow.model.discovery import (
-	DEFAULT_CODEX_CLIENT_VERSION,
-	_codex_client_version,
-	available_models,
-)
+from flow.model.discovery import _codex_client_version, available_models
+from flow.model.providers.codex import DEFAULT_CODEX_CLIENT_VERSION
 
 
 @pytest.fixture
