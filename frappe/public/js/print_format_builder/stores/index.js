@@ -247,7 +247,7 @@ export function getStore(print_format_name) {
 		saving_count.value++;
 		frappe
 			.call({
-				method: "frappe.printing.doctype.print_format.print_format.autosave",
+				method: "frappe.client.save",
 				args: { doc: get_preview_format_doc() },
 			})
 			.then((r) => {

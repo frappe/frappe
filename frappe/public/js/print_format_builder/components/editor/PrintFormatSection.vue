@@ -421,14 +421,12 @@ function remove_column(index) {
 .print-format-section-container:hover:not(:has(.field--preview:hover, .field--chip:hover)) {
 	outline: var(--pfb-ring);
 	outline-offset: 2px;
-	border-radius: var(--radius);
 }
 
 .section-container--condition-hidden {
 	opacity: 0.35;
 	outline: 2px dashed var(--gray-400);
 	outline-offset: 2px;
-	border-radius: var(--radius);
 }
 
 .print-format-section {

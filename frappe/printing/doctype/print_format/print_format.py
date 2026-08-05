@@ -46,7 +46,6 @@ class PrintFormat(Document):
 			"Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"
 		]
 		pdf_generator: DF.Literal["wkhtmltopdf", "chrome"]
-		preview_image: DF.AttachImage | None
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
 		print_format_for: DF.Literal["DocType", "Report"]
@@ -166,36 +165,7 @@ class PrintFormat(Document):
 			frappe.clear_cache(doctype=self.doc_type)
 
 		self.export_doc()
-		self.enqueue_preview_generation()
 		self.clear_default_print_format_if_disabled()
-
-	def enqueue_preview_generation(self):
-		"""Refresh the preview image in the background so saving the format isn't blocked by
-		the (slow) Chromium render. Deduplicated so rapid saves don't pile up renders."""
-		if (
-			frappe.flags.in_import
-			or frappe.flags.in_migrate
-			or frappe.flags.in_install
-			or frappe.flags.in_patch
-			or frappe.in_test
-		):
-			return
-		if self.print_format_for != "DocType" or not self.doc_type:
-			return
-		# autosaves land every few seconds while the builder is open — refresh the
-		# (slow, Chromium) preview at most once per cooldown window for those;
-		# manual saves always refresh
-		if self.flags.pfb_autosave and frappe.cache.get_value(f"pf_preview_cooldown::{self.name}"):
-			return
-
-		frappe.enqueue(
-			generate_preview,
-			queue="short",
-			enqueue_after_commit=True,
-			job_id=f"print_format_preview::{self.name}",
-			deduplicate=True,
-			name=self.name,
-		)
 
 	def clear_default_print_format_if_disabled(self):
 		"""If this format is disabled while set as its DocType's default, unset it as default."""
@@ -324,78 +294,3 @@ def printable_sample(doctype: str) -> str | None:
 	filters = {"docstatus": 1} if frappe.get_meta(doctype).is_submittable else {}
 	sample = frappe.get_list(doctype, filters=filters, limit=1, order_by="modified desc", pluck="name")
 	return sample[0] if sample else None
-
-
-@frappe.whitelist()
-def autosave(doc: str | dict):
-	"""Save from the builder's autosave: like frappe.client.save, but the preview
-	image refresh is throttled by a cooldown instead of running on every save."""
-	doc = frappe.get_doc(frappe.parse_json(doc))
-	doc.flags.pfb_autosave = True
-	doc.save()
-	return doc.as_dict()
-
-
-def generate_preview(name: str) -> str | None:
-	"""Render this format against a sample document, screenshot the HTML via the
-	bundled Chromium, and store the result in the format's `preview_image` field.
-
-	Uses `db_set` rather than `save` so it works for standard formats too (whose
-	`validate` blocks saving) and skips the full validation cycle. Returns the new
-	image URL, or None when there's no printable sample to render against."""
-	doc = frappe.get_doc("Print Format", name)
-
-	sample_name = printable_sample(doc.doc_type)
-	if not sample_name:
-		return
-
-	from frappe.utils.file_manager import save_file
-	from frappe.utils.preview import get_preview_from_html
-
-	try:
-		html = frappe.get_print(doc.doc_type, sample_name, name)
-		# 850px ≈ 8.3in at 96dpi — matches the print sheet width so margin:auto
-		# centers correctly and the screenshot captures the full page width.
-		image = get_preview_from_html(html, format="webp", width=850)
-	except Exception:
-		frappe.local.message_log = []
-		frappe.log_error(f"Print format preview generation failed: {name}")
-		return None
-
-	fname = f"pf-preview-{frappe.generate_hash(length=10)}.webp"
-	frappe.cache.set_value(f"pf_preview_cooldown::{name}", 1, expires_in_sec=5 * 60)
-	file = save_file(fname, image, "Print Format", name, is_private=1, df="preview_image")
-	# Don't bump `modified` — generating a preview isn't a content edit. Otherwise the
-	# background refresh would stale-date an open form and break its next save with a
-	# timestamp mismatch.
-	doc.db_set("preview_image", file.file_url, update_modified=False)
-
-	stale = frappe.get_all(
-		"File",
-		filters={
-			"attached_to_doctype": "Print Format",
-			"attached_to_name": name,
-			"attached_to_field": "preview_image",
-			"name": ("!=", file.name),
-		},
-		pluck="name",
-	)
-	for old in stale:
-		frappe.delete_doc("File", old, ignore_permissions=True, delete_permanently=True)
-		notify_docinfo_attachment(name, {"name": old}, "delete")
-	notify_docinfo_attachment(name, file.as_dict(), "add")
-	return file.file_url
-
-
-def notify_docinfo_attachment(print_format: str, doc: dict, action: str):
-	frappe.publish_realtime(
-		"docinfo_update",
-		{
-			"doc": {**doc, "reference_doctype": "Print Format", "reference_name": print_format},
-			"key": "attachments",
-			"action": action,
-		},
-		doctype="Print Format",
-		docname=print_format,
-		after_commit=True,
-	)
