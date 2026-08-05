@@ -13,6 +13,20 @@
 1. `before_install` - method
 1. `after_install` - method
 
+#### Disable / Enable
+
+Called when the site disables the app, or enables it again. The app keeps its schema and its
+data, so these hooks only change what takes effect.
+
+1. `before_disable` - method, runs while the app still takes effect
+1. `after_disable` - method
+1. `before_enable` - method
+1. `after_enable` - method, runs after the app takes effect again
+
+An app hides its own customizations here, with `frappe.custom.hide_customizations` and
+`frappe.custom.unhide_customizations`. `bench migrate` runs `before_disable` again, so it must
+give the same result each time.
+
 
 #### Javascript / CSS Builds
 
