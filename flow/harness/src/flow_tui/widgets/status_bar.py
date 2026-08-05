@@ -56,6 +56,7 @@ class StatusBar(Static):
 			f"effort: {state.reasoning_effort or 'default'}",
 			run_state,
 			f"↑{compact_number(state.input_tokens)}",
+			f"↓{compact_number(state.output_tokens)}",
 			f"${state.cost:.4f}",
 		]
 		if queued:

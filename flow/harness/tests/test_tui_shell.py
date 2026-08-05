@@ -390,7 +390,7 @@ async def test_status_bar_reflects_state():
 		fake.feed(RunEnded(seq=3))
 		await pilot.pause()
 		text = _widget_text(pilot.app.query_one(StatusBar))
-		assert "idle" in text and "↑10" in text and "$0.5000" in text
+		assert "idle" in text and "↑10" in text and "↓5" in text and "$0.5000" in text
 
 
 # --- integration: real server + controller ---------------------------------
