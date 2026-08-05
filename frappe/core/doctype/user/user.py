@@ -463,9 +463,15 @@ class User(Document):
 		) or None
 
 		if custom_template:
+<<<<<<< HEAD
 			from frappe.email.doctype.email_template.email_template import get_email_template
 
 			email_template = get_email_template(custom_template, args)
+=======
+			email_template = frappe.get_doc("Email Template", custom_template).get_formatted_email(
+				args, sender=sender
+			)
+>>>>>>> 5ecf20421d (fix(email_template): add perm. chk. to get_email_template)
 			subject = email_template.get("subject")
 			content = email_template.get("message")
 
