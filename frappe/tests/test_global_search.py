@@ -230,7 +230,7 @@ class TestGlobalSearch(IntegrationTestCase):
 		# Insert a valid virtual doctype WITHOUT the flags (validation would
 		# otherwise reject it), then set the flags directly in the DB to
 		# mimic pre-fix state that skips validation entirely.
-		doc = frappe.get_doc(
+		frappe.get_doc(
 			{
 				"doctype": "DocType",
 				"name": dt_name,
@@ -285,9 +285,7 @@ class TestGlobalSearch(IntegrationTestCase):
 		frappe.db.commit()
 
 		# Sanity: preconditions hold.
-		self.assertEqual(
-			frappe.db.get_value("DocType", dt_name, "show_name_in_global_search"), 1
-		)
+		self.assertEqual(frappe.db.get_value("DocType", dt_name, "show_name_in_global_search"), 1)
 		self.assertEqual(
 			frappe.db.get_value(
 				"DocField",
@@ -312,9 +310,7 @@ class TestGlobalSearch(IntegrationTestCase):
 		frappe.db.commit()
 
 		# Postconditions: flags cleared, Property Setter gone, index empty.
-		self.assertEqual(
-			frappe.db.get_value("DocType", dt_name, "show_name_in_global_search"), 0
-		)
+		self.assertEqual(frappe.db.get_value("DocType", dt_name, "show_name_in_global_search"), 0)
 		self.assertEqual(
 			frappe.db.get_value(
 				"DocField",

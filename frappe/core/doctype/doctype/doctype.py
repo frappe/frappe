@@ -443,7 +443,7 @@ class DocType(Document):
 		if self.get("show_name_in_global_search"):
 			frappe.throw(
 				_("Virtual doctypes cannot enable {0} — global search indexing is not supported.").format(
-					frappe.bold(_("Make \"name\" searchable in Global Search"))
+					frappe.bold(_('Make "name" searchable in Global Search'))
 				)
 			)
 
