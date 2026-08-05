@@ -43,7 +43,7 @@ from flow_tui.theme import (
 	STYLE_MUTED,
 	STYLE_RUNNING,
 	STYLE_THINKING,
-	STYLE_TOOL_CALL,
+	STYLE_TOOL_NAME,
 	SYNTAX_THEME,
 )
 
@@ -54,45 +54,54 @@ THINKING_MARKER = "Thinking… ctrl+t to expand"
 TOOL_LABELS = {"read_file": "read"}
 
 
-def call_line(name: str, args: dict | None) -> str:
+def tool_label(name: str) -> Text:
+	"""The tool name in its own style, so the eye splits the name from the arguments
+	that follow it."""
+	# the style rides on a span, not on the Text itself: a base style would bleed
+	# into every argument appended after the name
+	return Text().append(TOOL_LABELS.get(name, name), style=STYLE_TOOL_NAME)
+
+
+def call_line(name: str, args: dict | None) -> Text:
 	"""Collapsed one-liner for a tool call. `args is None` means only the live
 	ToolCallStarted has been seen; the line upgrades once the durable call lands."""
-	label = TOOL_LABELS.get(name, name)
+	line = tool_label(name)
 	if args is None:
-		return f"{label} …"
+		return line.append(" …", style=STYLE_MUTED)
 	if name == "bash":
-		return f"{label} {args.get('command', '')}"
+		return line.append(f" {args.get('command', '')}")
 	if name == "edit":
 		n = len(args.get("edits") or [])
-		return f"{label} {args.get('path', '')} ({n} edit{'s' if n != 1 else ''})"
+		line.append(f" {args.get('path', '')}")
+		return line.append(f" ({n} edit{'s' if n != 1 else ''})", style=STYLE_MUTED)
 	if name == "write":
-		return f"{label} {args.get('path', '')} ({len(args.get('content') or '')} chars)"
+		line.append(f" {args.get('path', '')}")
+		return line.append(f" ({len(args.get('content') or '')} chars)", style=STYLE_MUTED)
 	if name == "read_file":
-		return f"{label} {args.get('path', '')}"
+		return line.append(f" {args.get('path', '')}")
 	if name == "grep":
-		return f"{label} {args.get('pattern', '')} {args.get('path', '')}".rstrip()
+		return line.append(f" {args.get('pattern', '')} {args.get('path', '')}".rstrip())
 	if not args:
-		return label
-	return f"{label} {json.dumps(args, ensure_ascii=False)}"
+		return line
+	return line.append(f" {json.dumps(args, ensure_ascii=False)}")
 
 
-def result_line(result: ToolResult) -> str:
+def result_line(result: ToolResult) -> Text:
 	"""Fallback one-liner rebuilt from `details` for a result whose call was never
 	seen (a replay hole); the call arguments are gone, the details survive."""
 	d = result.details
-	label = TOOL_LABELS.get(result.name, result.name)
+	line = tool_label(result.name)
 	if result.name == "bash" and d.get("command"):
-		return f"{label} {d['command']}"
-	parts = [label]
+		return line.append(f" {d['command']}")
 	if result.name == "grep" and d.get("pattern"):
-		parts.append(d["pattern"])
+		line.append(f" {d['pattern']}")
 	if d.get("path"):
-		parts.append(str(d["path"]))
+		line.append(f" {d['path']}")
 	if (n := d.get("edits")) is not None:
-		parts.append(f"({n} edit{'s' if n != 1 else ''})")
+		line.append(f" ({n} edit{'s' if n != 1 else ''})", style=STYLE_MUTED)
 	if (chars := d.get("chars")) is not None:
-		parts.append(f"({chars} chars)")
-	return " ".join(parts)
+		line.append(f" ({chars} chars)", style=STYLE_MUTED)
+	return line
 
 
 def status_suffix(details: dict) -> str:
@@ -219,9 +228,11 @@ class ToolCallView(Static):
 		else:
 			assert result is not None  # a call-less view always carries its result
 			line = result_line(result)
+		if failed:
+			line.stylize(STYLE_ERROR)  # the failure colour outranks the per-part styles
 		text = Text()
 		text.append(f"{glyph} ", style)
-		text.append(line, style=STYLE_ERROR if failed else "")
+		text.append_text(line)
 		if result is not None and (suffix := status_suffix(result.details)):
 			text.append(f" {suffix}", style=STYLE_ERROR if failed else STYLE_MUTED)
 		return text
@@ -314,7 +325,7 @@ class PartialAssistantView(Static):
 			elif isinstance(part, PartialText):
 				text.append(part.text)
 			elif isinstance(part, PartialToolCall):
-				text.append(call_line(part.name, None), style=STYLE_TOOL_CALL)
+				text.append_text(call_line(part.name, None))
 		text.append("▌", style=STYLE_MUTED)
 		self.update(text)
 
