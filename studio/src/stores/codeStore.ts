@@ -51,6 +51,7 @@ const useCodeStore = defineStore("codeStore", () => {
 	const currentPageName = ref<string | null>(null)
 	let pageScriptScope: EffectScope | null = null
 	let resourceWatchers: WatchStopHandle[] = []
+	let pendingResources: Record<string, any> | null = null
 
 	function setRouteObject(route: ComputedRef) {
 		routeObject.value = route
@@ -62,31 +63,27 @@ const useCodeStore = defineStore("codeStore", () => {
 
 	async function setPageResources(page: StudioPage, setResourceConfig: boolean = false) {
 		stopResourceWatchers()
+		// Each load uses its own map, so old async updates cannot change the current page resources.
+		const pageResources = reactive({}) as Record<string, any>
+		pendingResources = pageResources
+
 		studioPageResources.filters = { parent: page.name }
 		await studioPageResources.reload()
 
-		const resourcePromises = studioPageResources.data.map(async (resource: Resource) => {
-			const newResource = await getNewResource(resource)
-			return {
-				resource_name: resource.resource_name,
-				value: newResource,
-				resource_id: resource.resource_id,
-				resource_type: resource.resource_type,
-			}
-		})
+		await Promise.all(
+			studioPageResources.data.map(async (resource: Resource) => {
+				await addPageResource(resource, pageResources)
+				const newResource = pageResources[resource.resource_name]
+				if (setResourceConfig && newResource) {
+					newResource.resource_id = resource.resource_id
+					newResource.resource_type = resource.resource_type
+				}
+			}),
+		)
 
-		const resolvedResources = await Promise.all(resourcePromises)
-
-		const newResources: Record<string, any> = {}
-		resolvedResources.forEach((item) => {
-			newResources[item.resource_name] = item.value
-			if (setResourceConfig) {
-				if (!item.value) return
-				newResources[item.resource_name].resource_id = item.resource_id
-				newResources[item.resource_name].resource_type = item.resource_type
-			}
-		})
-		resources.value = newResources
+		if (pendingResources === pageResources) {
+			resources.value = pageResources
+		}
 	}
 
 	async function setPageVariables(page: StudioPage) {
@@ -482,14 +479,16 @@ const useCodeStore = defineStore("codeStore", () => {
 		}
 	}
 
-	function getNewResource(resource: Resource) {
+	async function addPageResource(resource: Resource, pageResources: Record<string, any>) {
 		switch (resource.resource_type) {
 			case "Document":
-				return getDocumentResource(resource)
+				return addDocumentResource(resource, pageResources)
 			case "Document List":
-				return getListResource(resource)
+				pageResources[resource.resource_name] = getListResource(resource)
+				break
 			case "API Resource":
-				return getAPIResource(resource)
+				pageResources[resource.resource_name] = getAPIResource(resource)
+				break
 		}
 	}
 
@@ -574,7 +573,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		return evaluated
 	}
 
-	const getDocumentResource = async (resource: DocumentResource) => {
+	const addDocumentResource = async (resource: DocumentResource, pageResources: Record<string, any>) => {
 		const createDoc = (docname?: string) =>
 			createDocumentResource({
 				doctype: resource.document_type,
@@ -586,40 +585,30 @@ const useCodeStore = defineStore("codeStore", () => {
 			})
 
 		if (!resource.fetch_document_using_filters || !resource.filters) {
-			return createDoc(resource.document_name)
+			pageResources[resource.resource_name] = createDoc(resource.document_name)
+			return
 		}
 
-		// the docname can't change on an existing document resource (frappe-ui caches them by
-		// doctype+name), so a filter change means re-resolving the docname and replacing the resource
+		// The docname can't change on an existing document resource (frappe-ui caches them by
+		// doctype+name), so a filter change means re-resolving the docname and replacing the entry.
+		// loadDoc is the entry's only writer; latestRequest keeps only the newest lookup's result.
 		let latestRequest = 0
-		const filters = evaluateAndWatch(
-			() => getEvaluatedFilters(resource.filters) || {},
-			async (newFilters) => {
-				const request = ++latestRequest
-				const docname = await resolveDocnameFromFilters(resource, newFilters)
-				const outdated = request !== latestRequest
-				if (outdated || !docname) return
-				replaceDocumentResource(resource.resource_name, createDoc(docname))
-			},
-		)
-
-		// If the filters changed while this initial lookup was pending, re-resolve
-		let docname = await resolveDocnameFromFilters(resource, filters)
-		if (latestRequest > 0) {
-			docname = await resolveDocnameFromFilters(resource, getEvaluatedFilters(resource.filters) || {})
+		async function loadDoc(currentFilters: Filters) {
+			const request = ++latestRequest
+			const docname = await resolveDocnameFromFilters(resource, currentFilters)
+			if (request !== latestRequest || !docname) return
+			const doc = createDoc(docname) as any
+			// carry over the editor's config stamps (see setResourceConfig in setPageResources)
+			const oldDoc = pageResources[resource.resource_name]
+			if (oldDoc?.resource_id) {
+				doc.resource_id = oldDoc.resource_id
+				doc.resource_type = oldDoc.resource_type
+			}
+			pageResources[resource.resource_name] = doc
 		}
-		return createDoc(docname)
-	}
 
-	function replaceDocumentResource(resourceName: string, newResource: any) {
-		if (!newResource) return
-		// carry over the editor's config stamps (see setResourceConfig in setPageResources)
-		const oldResource = resources.value[resourceName] as any
-		if (oldResource?.resource_id) {
-			newResource.resource_id = oldResource.resource_id
-			newResource.resource_type = oldResource.resource_type
-		}
-		resources.value[resourceName] = newResource
+		const filters = evaluateAndWatch(() => getEvaluatedFilters(resource.filters) || {}, loadDoc)
+		await loadDoc(filters)
 	}
 
 	const resolveDocnameFromFilters = async (resource: DocumentResource, filters: Filters) => {
