@@ -251,13 +251,6 @@ def is_document_followed(doctype, doc_name, user):
 	)
 
 
-@frappe.whitelist()
-def get_follow_users(doctype, doc_name):
-	return frappe.get_all(
-		"Document Follow", filters={"ref_doctype": doctype, "ref_docname": doc_name}, fields=["user"]
-	)
-
-
 def get_row_changed(row_changed, time, doctype, doc_name, v, user):
 	from frappe.core.utils import html2text
 
