@@ -148,6 +148,7 @@ class Usage(_Event):
 	input_tokens: int = 0
 	output_tokens: int = 0
 	cost: float = 0.0
+	context_window: int | None = None
 
 
 class PendingCall(BaseModel):

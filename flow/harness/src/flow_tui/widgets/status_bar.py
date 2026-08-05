@@ -1,4 +1,4 @@
-"""One-line session status: model · effort · state · tokens · session id."""
+"""One-line session status with model selection aligned on the right."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import subprocess
 from pathlib import Path
 
 from rich.text import Text
+from textual import events
 from textual.widgets import Static
 
 from flow_tui.client.state import ConversationState
@@ -40,6 +41,9 @@ def repository_label(cwd: str | Path | None) -> str:
 
 
 class StatusBar(Static):
+	_left = ""
+	_right = ""
+
 	def refresh_from(
 		self, state: ConversationState, *, session_id: str | None = None, queued: int = 0
 	) -> None:
@@ -50,13 +54,11 @@ class StatusBar(Static):
 		else:
 			run_state = "idle"
 
+		window = compact_number(state.context_window) if state.context_window is not None else "?"
 		parts = [
 			repository_label(state.cwd),
-			state.model or "?",
-			f"effort: {state.reasoning_effort or 'default'}",
 			run_state,
-			f"↑{compact_number(state.input_tokens)}",
-			f"↓{compact_number(state.output_tokens)}",
+			f"{compact_number(state.context_tokens)}/{window}",
 		]
 		if queued:
 			parts.append(f"{queued} queued")
@@ -69,4 +71,21 @@ class StatusBar(Static):
 			parts.append(retry)
 		if session_id:
 			parts.append(session_id[:8])
-		self.update(Text(" · ".join(parts)))
+
+		self._left = " · ".join(parts)
+		self._right = " · ".join((state.model or "?", state.reasoning_effort or "default"))
+		self._update_line()
+
+	def on_resize(self, _: events.Resize) -> None:
+		self._update_line()
+
+	def _update_line(self) -> None:
+		width = self.content_size.width
+		if width <= 0:
+			line = f"{self._left} · {self._right}"
+		elif width > len(self._right):
+			left = self._left[: width - len(self._right) - 1]
+			line = left + " " * (width - len(left) - len(self._right)) + self._right
+		else:
+			line = self._right[-width:]
+		self.update(Text(line))
