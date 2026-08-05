@@ -52,6 +52,7 @@ from flow_tui.theme import (
 SPINNER_FRAMES = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
 _PREVIEW_LINES = 3
 _DIFF_PREVIEW_LINES = 32
+THINKING_MARKER = "Thinking … ctrl+t to expand"
 
 
 def call_line(name: str, args: dict | None) -> str:
@@ -131,7 +132,7 @@ class ThinkingBlock(Static):
 		self.set_reactive(ThinkingBlock.collapsed, collapsed)
 
 	def render(self) -> RenderableType:
-		return Text("thinking" if self.collapsed else self.thinking, style=STYLE_THINKING)
+		return Text(THINKING_MARKER if self.collapsed else self.thinking, style=STYLE_THINKING)
 
 	def watch_collapsed(self, _collapsed: bool) -> None:
 		self.refresh(layout=True)
@@ -306,7 +307,7 @@ class PartialAssistantView(Static):
 				if show_thinking:
 					text.append(part.thinking, style=STYLE_THINKING)
 				else:
-					text.append("thinking", style=STYLE_THINKING)
+					text.append(THINKING_MARKER, style=STYLE_THINKING)
 			elif isinstance(part, PartialText):
 				text.append(part.text)
 			elif isinstance(part, PartialToolCall):
@@ -349,7 +350,7 @@ def _assistant_widgets(
 	for block in message.content:
 		if isinstance(block, ThinkingContent):
 			if block.redacted:
-				widgets.append(Static(Text("thinking · redacted", style=STYLE_THINKING)))
+				widgets.append(Static(Text("Thinking · redacted", style=STYLE_THINKING)))
 			elif block.thinking:
 				# opaque reasoning with no summary has nothing worth a fold
 				widgets.append(ThinkingBlock(block.thinking, collapsed=not show_thinking))

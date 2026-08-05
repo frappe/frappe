@@ -38,7 +38,13 @@ from flow_tui.client.state import Change, ConversationState, StatusChanged
 from flow_tui.controller import Controller
 from flow_tui.widgets.composer import Composer
 from flow_tui.widgets.conversation import ConversationView
-from flow_tui.widgets.messages import EntryView, PartialAssistantView, ThinkingBlock, ToolCallView
+from flow_tui.widgets.messages import (
+	THINKING_MARKER,
+	EntryView,
+	PartialAssistantView,
+	ThinkingBlock,
+	ToolCallView,
+)
 from flow_tui.widgets.status_bar import StatusBar
 
 
@@ -186,7 +192,7 @@ async def test_thinking_collapsed_by_default_and_redacted_stays_sealed():
 		text = _widget_text(entry)
 		assert "let me think" not in text  # collapsed to its marker
 		assert "the answer" in text
-		assert "thinking · redacted" in text and "secret" not in text
+		assert "Thinking · redacted" in text and "secret" not in text
 
 
 async def test_ctrl_t_toggles_thinking_blocks_and_partial():
@@ -203,7 +209,7 @@ async def test_ctrl_t_toggles_thinking_blocks_and_partial():
 		partial = pilot.app.query_one(PartialAssistantView)
 		assert block.collapsed is True
 		preview = _widget_text(partial)
-		assert "thinking" in preview and "hmm okay" not in preview and "reply" in preview
+		assert THINKING_MARKER in preview and "hmm okay" not in preview and "reply" in preview
 
 		await pilot.press("ctrl+t")
 		await pilot.pause()
