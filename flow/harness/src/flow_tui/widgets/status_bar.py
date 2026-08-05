@@ -2,10 +2,25 @@
 
 from __future__ import annotations
 
+import subprocess
+from pathlib import Path
+
 from rich.text import Text
 from textual.widgets import Static
 
 from flow_tui.client.state import ConversationState
+
+
+def repository_label(cwd: str | Path | None) -> str:
+	path = Path(cwd or Path.cwd())
+	result = subprocess.run(
+		["git", "-C", str(path), "symbolic-ref", "--short", "HEAD"],
+		capture_output=True,
+		text=True,
+		check=False,
+	)
+	branch = result.stdout.strip() if result.returncode == 0 else ""
+	return f"{path.name} ({branch})" if branch else path.name
 
 
 class StatusBar(Static):
@@ -20,6 +35,7 @@ class StatusBar(Static):
 			run_state = "idle"
 
 		parts = [
+			repository_label(state.cwd),
 			state.model or "?",
 			f"effort: {state.reasoning_effort or 'default'}",
 			run_state,

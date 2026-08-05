@@ -135,6 +135,7 @@ class ConversationState:
 		self.partial: list[PartialPart] = []
 		self.pending_approval: PendingApproval | None = None
 		self.running: bool = False
+		self.cwd: str | None = None
 		self.model: str | None = None
 		self.credential_id: str | None = None
 		self.reasoning_effort: ReasoningEffort | None = None
@@ -158,6 +159,7 @@ class ConversationState:
 		to the same place, so seeding then replaying is safe.
 		"""
 		config = info.get("config") or {}
+		self.cwd = config.get("cwd")
 		self._base_model = config.get("model")
 		self._base_credential_id = config.get("credential_id")
 		self._base_effort = config.get("reasoning_effort")
