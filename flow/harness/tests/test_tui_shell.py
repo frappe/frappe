@@ -158,7 +158,7 @@ async def test_tool_result_merges_into_call_and_ctrl_o_expands():
 
 		assert len(conversation.query(EntryView)) == 1  # result merged into the call, not appended
 		text = _widget_text(view)
-		assert "✓" in text and "[exit 0]" in text and "file0" in text
+		assert "[exit 0]" in text and "file0" in text
 		assert "file5" not in text and "+3 lines" in text  # collapsed preview
 
 		await pilot.press("ctrl+o")
@@ -267,7 +267,7 @@ async def test_bash_result_renders_status_suffix_and_collapsed_output():
 
 		entries = pilot.app.query_one(ConversationView).query(EntryView)
 		ok = _widget_text(entries.first())
-		assert "✓" in ok and "$ ls" in ok and "[exit 0, 0.01s]" in ok and "a.txt" in ok
+		assert "$ ls" in ok and "[exit 0, 0.01s]" in ok and "a.txt" in ok
 		failed = _widget_text(entries.last())
 		assert "✗" in failed and "exit 1" in failed and "truncated · 2000/90000 lines" in failed
 

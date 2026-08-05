@@ -5,7 +5,7 @@ mutable streamed-preview widget (`PartialAssistantView`) at the conversation tai
 text, thinking, and tool calls, and each thinking block folds to a one-word
 marker that ctrl+t expands. A tool call renders as one `ToolCallView` — a per-tool one-liner
 (`$ cmd` for bash, `-> edit path (2 edits)`, …) behind a status glyph. The matching
-`ToolResult` merges into the same widget: the glyph settles to ✓/✗, a bracket
+`ToolResult` merges into the same widget: the glyph clears (or settles to ✗), a bracket
 suffix reports exit code / duration / truncation, and the output shows as a dim
 few-line preview that ctrl+o expands. A diff in `ToolResult.details` gets syntax
 highlighting instead of the plain preview.
@@ -42,7 +42,6 @@ from flow_tui.theme import (
 	STYLE_ERROR_STRONG,
 	STYLE_MUTED,
 	STYLE_RUNNING,
-	STYLE_SUCCESS_STRONG,
 	STYLE_THINKING,
 	STYLE_TOOL_CALL,
 	SYNTAX_THEME,
@@ -141,7 +140,7 @@ class ToolCallView(Static):
 	"""One tool call and, once it merges in, its result.
 
 	Runs through three looks: a spinner one-liner while the call executes, a settled
-	✓/✗ line with a bracket suffix when the result lands, and — via the `expanded`
+	unmarked line with a bracket suffix when the result lands, and — via the `expanded`
 	reactive (ctrl+o) — the full output instead of the dim few-line preview.
 	`call` is None when a result arrived without its call; the line then rebuilds
 	from `ToolResult.details`.
@@ -209,7 +208,9 @@ class ToolCallView(Static):
 		elif failed:
 			glyph, style = "✗", STYLE_ERROR_STRONG
 		else:
-			glyph, style = "✓", STYLE_SUCCESS_STRONG
+			# a settled call needs no mark of its own; the blank keeps it aligned
+			# under the lines that do carry one
+			glyph, style = " ", ""
 		if self.call is not None:
 			line = call_line(self.call.name, self.call.arguments)
 		else:
