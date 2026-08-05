@@ -332,6 +332,7 @@ class DatabaseQuery:
 			or_filters = json.loads(or_filters)
 		if not isinstance(or_filters, Filters):
 			or_filters = Filters(or_filters, doctype=self.doctype)
+			
 		_page_length = page_length or limit or limit_page_length or 20
 		kwargs = {
 			"fields": fields,
