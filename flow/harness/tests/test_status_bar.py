@@ -2,7 +2,13 @@ import subprocess
 from pathlib import Path
 
 from flow_tui.client.state import ConversationState
-from flow_tui.widgets.status_bar import repository_label
+from flow_tui.widgets.status_bar import compact_number, repository_label
+
+
+def test_compact_number_rounds_large_values():
+	assert compact_number(999) == "999"
+	assert compact_number(1_500) == "1.5k"
+	assert compact_number(2_000_000) == "2M"
 
 
 def test_repository_label_shows_directory_and_branch(tmp_path: Path):

@@ -11,6 +11,14 @@ from textual.widgets import Static
 from flow_tui.client.state import ConversationState
 
 
+def compact_number(value: int) -> str:
+	for threshold, suffix in ((1_000_000, "M"), (1_000, "k")):
+		if value >= threshold:
+			scaled = value / threshold
+			return f"{scaled:.1f}".rstrip("0").rstrip(".") + suffix
+	return str(value)
+
+
 def repository_label(cwd: str | Path | None) -> str:
 	path = Path(cwd or Path.cwd())
 	result = subprocess.run(
@@ -47,7 +55,7 @@ class StatusBar(Static):
 			state.model or "?",
 			f"effort: {state.reasoning_effort or 'default'}",
 			run_state,
-			f"Σ {state.input_tokens + state.output_tokens} tok",
+			f"↑{compact_number(state.input_tokens)}",
 			f"${state.cost:.4f}",
 		]
 		if queued:
