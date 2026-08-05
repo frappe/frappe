@@ -467,6 +467,25 @@ def disable_app(app_name):
 	click.secho(f"App {app_name} disabled on Site {frappe.local.site}", fg="green")
 
 
+def reapply_disabled_app_state():
+	"""Run the `before_disable` hooks again for each app that the site disables.
+
+	A migration can create the customizations that an app hid. These hooks run more than
+	once, so they must give the same result each time.
+	"""
+	disabled_apps = frappe.get_disabled_apps()
+	if not disabled_apps:
+		return
+
+	frappe.flags.in_app_toggle = True
+	try:
+		for app_name in disabled_apps:
+			for before_disable in frappe.get_hooks("before_disable", app_name=app_name):
+				frappe.get_attr(before_disable)()
+	finally:
+		frappe.flags.in_app_toggle = False
+
+
 def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False):
 	"""Remove app and all linked to the app's module with the app from a site."""
 
