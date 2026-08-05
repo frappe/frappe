@@ -170,8 +170,6 @@
 					margin-bottom: var(--margin-xl);
 				}
 
-				// Every card is the same fixed height so virtual scrolling stays
-				// glitch-free. Content that does not fit is truncated.
 				.kanban-card {
 					@include flex(flex, flex-start, null, column);
 					margin-top: var(--margin-sm);
@@ -201,8 +199,6 @@
 							min-width: 0;
 						}
 
-						// Avatar (image or initials) + title on one fixed-height row so
-						// 1-line and 2-line titles reserve the same space.
 						.kanban-card-header {
 							display: flex;
 							align-items: flex-start;
@@ -238,9 +234,6 @@
 							}
 						}
 
-						// Each configured field on its own single, truncated line so
-						// every card in a board has the same number of rows (missing
-						// values render "-").
 						.kanban-card-doc {
 							display: flex;
 							flex-direction: column;
@@ -270,7 +263,6 @@
 							}
 						}
 
-						// Single fixed-height row: tags on the left, like + assignees right.
 						.kanban-card-meta {
 							flex: 0 0 auto;
 							display: flex;

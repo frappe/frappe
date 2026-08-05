@@ -520,16 +520,8 @@ if (frappe.views.KanbanView) {
 				}, show_empty_state)
 			);
 
-			// Order sync on load is expensive for large boards (10k+ DB lookups server-side).
-			// saved card server-side) and, on corrupt orders, re-saves cards and
-			// triggers TimestampMismatch errors.
 			requestAnimationFrame(() => {
-				const cols = store.cur_list?.board?.columns || [];
-				if (!cols.length) return;
-				const total_saved = cols.reduce((n, col) => n + parse_column_order(col).length, 0);
-				if (total_saved <= LARGE_BOARD_ORDER_SYNC_LIMIT) {
-					store.update_order();
-				}
+				store.update_order();
 			});
 		}
 
@@ -1378,7 +1370,6 @@ if (frappe.views.KanbanView) {
 		return self;
 	};
 
-	// Fieldtype → lucide icon, shown in place of the label when labels are hidden.
 	const FIELD_TYPE_ICONS = {
 		Data: "type",
 		"Small Text": "text-align-start",
@@ -1430,8 +1421,6 @@ if (frappe.views.KanbanView) {
 				disable_click: card._disable_click ? "disable-click" : "",
 				creation: card.creation,
 				doc_content: get_doc_content(card),
-				// Show the image as a fixed-size avatar beside the title only when the
-				// card actually has one — the title row height is fixed either way.
 				avatar_html: image_url
 					? frappe.ui.avatar.html({
 							label: title,
@@ -1451,8 +1440,6 @@ if (frappe.views.KanbanView) {
 			}
 		}
 
-		// Render every configured field on its own single line (missing values show
-		// "-") so all cards in a board have the same number of rows and height.
 		function get_doc_content(card) {
 			let fields = [];
 			const show_labels = get_kanban_board_show_labels();
@@ -1484,7 +1471,6 @@ if (frappe.views.KanbanView) {
 						</div>
 					`);
 				} else {
-					// Label hidden → show a fieldtype icon (tooltip = label) then value.
 					const label = frappe.utils.escape_html(__(field.label, null, field.parent));
 					const icon = frappe.utils.icon(get_field_icon(field), "sm");
 					fields.push(`

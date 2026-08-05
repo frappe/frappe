@@ -2,10 +2,10 @@
 	<div class="kanban-card content">
 		<div class="kanban-card-body">
 			<div class="kanban-title-area">
-				<div class="kanban-card-header flex items-center">
+				<div class="kanban-card-header">
 					{{ avatar_html }}
-					<a href="{{ form_link }}" class="kanban-card-title-link min-w-0 flex-1">
-						<div class="kanban-card-title ellipsis truncate" title="{{title}}">
+					<a href="{{ form_link }}" class="kanban-card-title-link">
+						<div class="kanban-card-title ellipsis" title="{{title}}">
 							{{ title }}
 						</div>
 					</a>
@@ -16,7 +16,7 @@
 				</div>
 				{% } %}
 			</div>
-			<div class="kanban-card-meta flex items-center">
+			<div class="kanban-card-meta">
 			</div>
 		</div>
 	</div>
