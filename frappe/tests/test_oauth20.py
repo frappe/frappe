@@ -361,6 +361,9 @@ class TestOAuth20(FrappeRequestTestCase):
 			}
 		).insert(ignore_permissions=True)
 
+		# The HTTP request runs in another thread and only sees committed fixtures.
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+
 		try:
 			revoke_token_response = self.post(
 				"/api/method/frappe.integrations.oauth2.revoke_token",
