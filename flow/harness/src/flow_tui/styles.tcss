@@ -93,7 +93,7 @@ FilterPicker, EffortPicker {
 	height: auto;
 	max-height: 8;
 	min-height: 3;
-	border: round $primary;
+	border: round $border;
 }
 
 #status {
