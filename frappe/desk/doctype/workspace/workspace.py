@@ -1,7 +1,7 @@
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 from json import loads
 
 import frappe
@@ -131,22 +131,19 @@ class Workspace(Document, DeskViews):
 			frappe.throw(_("{0} is not an installed app.").format(frappe.bold(self.app)))
 
 	@staticmethod
-	def get_duplicate_widget_labels(doc, parentfield):
+	def get_widget_label_counts(doc, parentfield) -> Counter:
+		"""How many rows of `parentfield` carry each label."""
 		rows = doc.get(parentfield) or []
 		if parentfield == "links":
 			# only `Card Break` rows name a card; the link rows beneath them aren't addressed by label
 			rows = [row for row in rows if row.type == "Card Break"]
 
-		seen, duplicates = set(), set()
+		counts = Counter()
 		for row in rows:
-			label = (row.label or "").strip()
-			if not label:
-				continue
-			if label in seen:
-				duplicates.add(label)
-			seen.add(label)
+			if label := (row.label or "").strip():
+				counts[label] += 1
 
-		return duplicates
+		return counts
 
 	def validate_duplicate_widget_labels(self):
 		"""Widget blocks in `content` reference their child row by label (see `clean_up` in
@@ -179,12 +176,14 @@ class Workspace(Document, DeskViews):
 		before_save = self.get_doc_before_save()
 
 		for parentfield, widget_label in widget_labels.items():
-			duplicates = self.get_duplicate_widget_labels(self, parentfield)
-			if not duplicates:
-				continue
+			counts = self.get_widget_label_counts(self, parentfield)
+			stored = self.get_widget_label_counts(before_save, parentfield) if before_save else {}
 
-			if before_save:
-				duplicates -= self.get_duplicate_widget_labels(before_save, parentfield)
+			# Compare counts, not just presence: a label already stored twice is grandfathered at
+			# two, but a third row under it is a clash *this* save introduces and still has to go.
+			duplicates = {
+				label for label, count in counts.items() if count > 1 and count > stored.get(label, 0)
+			}
 
 			if duplicates:
 				frappe.throw(
