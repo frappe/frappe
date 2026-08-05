@@ -123,16 +123,20 @@ class OAuthWebRequestValidator(RequestValidator):
 		except frappe.DoesNotExistError:
 			return False
 
-		if client.is_public_client():
+		if client.token_endpoint_auth_method == "None":
 			if basic_credentials or request.client_secret:
 				return False
 			request.client_id = client.client_id
 			request.client = client.as_dict()
 			return True
 
-		if basic_credentials:
+		if client.token_endpoint_auth_method == "Client Secret Basic":
+			if not basic_credentials or basic_credentials[0] != client.client_id:
+				return False
 			client_secret = basic_credentials[1]
-		elif request.client_id and request.client_secret:
+		elif client.token_endpoint_auth_method == "Client Secret Post":
+			if basic_credentials or not request.client_id or not request.client_secret:
+				return False
 			client_secret = request.client_secret
 		else:
 			return False
