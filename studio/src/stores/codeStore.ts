@@ -13,7 +13,14 @@ import * as globalUtils from "@/utils/globalUtils"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
 import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
 import { isFunctionExpression, toOptionalChaining, getTopLevelBindings } from "@/utils/parseCode"
-import type { Filters, Resource, DocumentResource, DataResult } from "@/types/Studio/StudioResource"
+import type {
+	Filters,
+	Resource,
+	DocumentResource,
+	DocumentListResource,
+	APIResource,
+	DataResult,
+} from "@/types/Studio/StudioResource"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
 import type { ExpressionEvaluationContext } from "@/types"
@@ -43,6 +50,7 @@ const useCodeStore = defineStore("codeStore", () => {
 	const pageScriptError = ref<string | null>(null)
 	const currentPageName = ref<string | null>(null)
 	let pageScriptScope: EffectScope | null = null
+	let resourceInputsScope: EffectScope | null = null
 
 	function setRouteObject(route: ComputedRef) {
 		routeObject.value = route
@@ -53,15 +61,13 @@ const useCodeStore = defineStore("codeStore", () => {
 	}
 
 	async function setPageResources(page: StudioPage, setResourceConfig: boolean = false) {
+		disposeResourceInputs()
 		studioPageResources.filters = { parent: page.name }
 		await studioPageResources.reload()
+		resourceInputsScope = effectScope(true)
 
 		const resourcePromises = studioPageResources.data.map(async (resource: Resource) => {
-			const newResource = await getNewResource(resource, {
-				...variables.value,
-				route: unref(routeObject.value),
-				router: routerObject.value,
-			})
+			const newResource = await getNewResource(resource)
 			return {
 				resource_name: resource.resource_name,
 				value: newResource,
@@ -242,17 +248,56 @@ const useCodeStore = defineStore("codeStore", () => {
 	})
 
 	// Base context for every script scope — event/success/error handlers, function-value props, and page-script setup.
+	// Resources and route go in as live handles: page-script setup destructures its context once and
+	// keeps running across navigations, but a docname change swaps the document resource object and
+	// vue-router makes a new route object per navigation — a plain spread would freeze the captures.
 	const scriptContext = computed(() => {
 		const variablesRefs = toRefs(variables.value)
 		return {
 			...variablesRefs,
-			...resources.value,
+			...getResourceHandles(),
 			...pageScriptBindings.value,
 			...globalUtils,
-			route: unref(routeObject.value),
+			route: liveRoute,
 			router: routerObject.value,
 		}
 	})
+
+	const resourceHandles: Record<string, any> = {}
+
+	function getResourceHandles() {
+		const handles: Record<string, any> = {}
+		for (const name in resources.value) {
+			resourceHandles[name] ??= createLiveHandle(() => resources.value[name])
+			handles[name] = resourceHandles[name]
+		}
+		return handles
+	}
+
+	const liveRoute = createLiveHandle(() => unref(routeObject.value))
+
+	// A stable object that forwards every access to the current target, so script closures created
+	// at setup stay live. Targets are frappe-ui resources / route objects whose methods are
+	// closures, not `this`-bound — values are returned as-is.
+	function createLiveHandle(getTarget: () => any) {
+		return new Proxy(
+			{},
+			{
+				get: (_, key) => getTarget()?.[key],
+				has: (_, key) => key in (getTarget() || {}),
+				set: (_, key, value) => {
+					const target = getTarget()
+					if (target) target[key] = value
+					return true
+				},
+				ownKeys: () => Reflect.ownKeys(getTarget() || {}),
+				getOwnPropertyDescriptor: (_, key) => {
+					const target = getTarget()
+					if (target && key in target) return { enumerable: true, configurable: true, value: target[key] }
+				},
+			},
+		)
+	}
 
 	// for non-standard pages: scriptContext + vueReactivityApis since it can't import them
 	const interpretedScriptContext = computed(() => {
@@ -441,78 +486,146 @@ const useCodeStore = defineStore("codeStore", () => {
 		}
 	}
 
-	function getNewResource(resource: Resource, context?: ExpressionEvaluationContext) {
-		let fields = []
-		if ('fields' in resource && typeof resource.fields === "string") {
-			fields = JSON.parse(resource.fields)
-		}
-
+	function getNewResource(resource: Resource) {
 		switch (resource.resource_type) {
 			case "Document":
-				return getDocumentResource(resource, context)
+				return getDocumentResource(resource)
 			case "Document List":
-				const params: any = {
-					doctype: resource.document_type,
-					fields: fields.length ? fields : "*",
-					filters: getEvaluatedFilters(resource.filters, context),
-					pageLength: resource.limit,
-					auto: resource.auto,
-					...getTransforms(resource),
-					...getSuccessErrorHandlers(resource),
-				}
-				if (resource.sort_field) {
-					params["orderBy"] = `${resource.sort_field} ${resource.sort_order}`
-				}
-				let listResource = createListResource(params)
-				// initialize listResource.data to an empty array to avoid undefined errors in the UI, frappe-ui sets data to null by default
-				listResource.data = []
-				return listResource
+				return getListResource(resource)
 			case "API Resource":
-				return createResource({
-					url: resource.url,
-					method: resource.method,
-					params: getAPIParams(resource.params, context),
-					auto: resource.auto,
-					...getTransforms(resource),
-					...getSuccessErrorHandlers(resource),
-				})
+				return getAPIResource(resource)
 		}
 	}
 
-	function getAPIParams(params: Record<string, any> | string | null = null, context: ExpressionEvaluationContext) {
+	function disposeResourceInputs() {
+		resourceInputsScope?.stop()
+		resourceInputsScope = null
+	}
+
+	// Live binding for a dynamic resource input: the computed evaluates {{ }} expressions against the
+	// live context (route/variables/other resources), the watch pushes value changes into the created
+	// resource — createResource-style utilities take plain values, not getters, so we bridge ourselves.
+	// Returns the initial value for resource creation.
+	function bindResourceInput<T>(evaluate: () => T, apply: (value: T) => void): T {
+		const setup = () => {
+			const input = computed(evaluate)
+			let lastValue = JSON.stringify(input.value)
+			watch(input, (value) => {
+				const serialized = JSON.stringify(value)
+				if (serialized === lastValue) return
+				lastValue = serialized
+				apply(value)
+			})
+			return input.value
+		}
+		return resourceInputsScope ? (resourceInputsScope.run(setup) as T) : setup()
+	}
+
+	function getListResource(resource: DocumentListResource) {
+		let fields = []
+		if ("fields" in resource && typeof resource.fields === "string") {
+			fields = JSON.parse(resource.fields)
+		}
+
+		const params: any = {
+			doctype: resource.document_type,
+			fields: fields.length ? fields : "*",
+			filters: bindResourceInput(
+				() => getEvaluatedFilters(resource.filters),
+				(filters) => {
+					listResource.update({ filters })
+					if (listResource.auto) listResource.reload()
+				},
+			),
+			pageLength: resource.limit,
+			auto: resource.auto,
+			...getTransforms(resource),
+			...getSuccessErrorHandlers(resource),
+		}
+		if (resource.sort_field) {
+			params["orderBy"] = `${resource.sort_field} ${resource.sort_order}`
+		}
+		const listResource = createListResource(params)
+		// initialize listResource.data to an empty array to avoid undefined errors in the UI, frappe-ui sets data to null by default
+		listResource.data = []
+		return listResource
+	}
+
+	function getAPIResource(resource: APIResource) {
+		const apiResource = createResource({
+			url: resource.url,
+			method: resource.method,
+			params: bindResourceInput(
+				() => getAPIParams(resource.params),
+				(params) => {
+					apiResource.update({ params })
+					if (apiResource.auto) apiResource.reload()
+				},
+			),
+			auto: resource.auto,
+			...getTransforms(resource),
+			...getSuccessErrorHandlers(resource),
+		})
+		return apiResource
+	}
+
+	function getAPIParams(params: Record<string, any> | string | null = null) {
 		if (!params) return null
 		if (typeof params === "string") {
 			params = JSON.parse(params)
 		}
-		if (params && typeof params === "object") {
-			Object.entries(params).forEach(([key, value]) => {
-				if (isDynamicValue(value)) {
-					// null ?? undefined → undefined, so nullish params get dropped on serialization
-					params[key] = getDynamicValue(value, context) ?? undefined
-				}
-			})
-		}
-		return params
-	}
-
-	const getDocumentResource = async (resource: DocumentResource, context: ExpressionEvaluationContext) => {
-		let docname = resource.document_name
-		if (resource.fetch_document_using_filters && resource.filters) {
-			docname = await resolveDocnameFromFilters(resource, context)
-		}
-
-		return createDocumentResource({
-			doctype: resource.document_type,
-			name: docname,
-			auto: resource.auto,
-			...getTransforms(resource),
-			...getSuccessErrorHandlers(resource),
-			...getWhitelistedMethods(resource),
+		// evaluate on a copy: evaluation re-runs on every context change and must not bake values into the config
+		const evaluated: Record<string, any> = { ...(params as Record<string, any>) }
+		Object.entries(evaluated).forEach(([key, value]) => {
+			if (isDynamicValue(value)) {
+				// null ?? undefined → undefined, so nullish params get dropped on serialization
+				evaluated[key] = getDynamicValue(value, {}) ?? undefined
+			}
 		})
+		return evaluated
 	}
 
-	const resolveDocnameFromFilters = async (resource: DocumentResource, context: ExpressionEvaluationContext) => {
-		const filters = getEvaluatedFilters(resource.filters, context) || {}
+	const getDocumentResource = async (resource: DocumentResource) => {
+		const createDoc = (docname?: string) =>
+			createDocumentResource({
+				doctype: resource.document_type,
+				name: docname,
+				auto: resource.auto,
+				...getTransforms(resource),
+				...getSuccessErrorHandlers(resource),
+				...getWhitelistedMethods(resource),
+			})
+
+		if (!resource.fetch_document_using_filters || !resource.filters) {
+			return createDoc(resource.document_name)
+		}
+
+		let resolveToken = 0
+		const filters = bindResourceInput(
+			() => getEvaluatedFilters(resource.filters) || {},
+			async (newFilters) => {
+				const token = ++resolveToken
+				const docname = await resolveDocnameFromFilters(resource, newFilters)
+				if (token !== resolveToken || !docname) return
+				// createDocumentResource caches by doctype+name, so an unchanged docname swaps in the same instance
+				swapPageResource(resource.resource_name, createDoc(docname))
+			},
+		)
+		return createDoc(await resolveDocnameFromFilters(resource, filters))
+	}
+
+	// a docname change means a new document resource; carry over the editor's config stamps
+	function swapPageResource(resourceName: string, newResource: any) {
+		if (!newResource) return
+		const oldResource = resources.value[resourceName] as any
+		if (oldResource?.resource_id) {
+			newResource.resource_id = oldResource.resource_id
+			newResource.resource_type = oldResource.resource_type
+		}
+		resources.value[resourceName] = newResource
+	}
+
+	const resolveDocnameFromFilters = async (resource: DocumentResource, filters: Filters) => {
 		// the common `name = {{ route.params.id }}` case resolves to the docname itself — no server lookup needed
 		const keys = Object.keys(filters)
 		if (keys.length === 1 && keys[0] === "name") {
@@ -527,7 +640,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		return doc?.name
 	}
 
-	const getEvaluatedFilters = (filters: Filters | null = null, context: ExpressionEvaluationContext) => {
+	const getEvaluatedFilters = (filters: Filters | null = null) => {
 		if (!filters) return
 		if (typeof filters === "string") {
 			filters = JSON.parse(filters)
@@ -540,7 +653,7 @@ const useCodeStore = defineStore("codeStore", () => {
 
 			if (isDynamicValue(value)) {
 				// null ?? undefined → undefined, so nullish filters get dropped on serialization
-				evaluatedFilters[key] = getDynamicValue(value, context) ?? undefined
+				evaluatedFilters[key] = getDynamicValue(value, {}) ?? undefined
 			} else {
 				evaluatedFilters[key] = value
 			}
@@ -628,6 +741,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		// resources
 		resources,
 		setPageResources,
+		disposeResourceInputs,
 		// variables
 		variables,
 		setPageVariables,

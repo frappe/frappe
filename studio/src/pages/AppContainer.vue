@@ -29,12 +29,11 @@ let loadedPath: string | null = null
 async function handleRouteChange() {
 	const currentPath = resolveCurrentPath()
 	if (currentPath && currentPath === loadedPath && page.value) {
-		// param-only navigation (/articles/a -> /articles/b): same page, new params.
-		// Keep the block tree mounted; just re-evaluate page data against the new route.
-		await setPageData()
-	} else {
-		await loadPage()
+		// param-only navigation (/articles/a -> /articles/b): everything stays mounted —
+		// resources with route-dependent inputs re-evaluate and reload themselves (codeStore live bindings)
+		return
 	}
+	await loadPage()
 }
 
 async function loadPage() {
@@ -46,7 +45,8 @@ async function loadPage() {
 
 	page.value = await findPageWithRoute(window.app_name, currentPath)
 	if (!page.value) return
-	await setPageData()
+	await store.setPageData(page.value)
+	await codeStore.setPageScript(page.value, Boolean(page.value.is_standard))
 
 	const blocks = window.is_preview
 		? JSON.parse(page.value?.draft_blocks || page.value?.blocks)
@@ -55,11 +55,6 @@ async function loadPage() {
 		rootBlock.value = getBlockInstance(blocks[0])
 	}
 	loadedPath = currentPath
-}
-
-async function setPageData() {
-	await store.setPageData(page.value!)
-	await codeStore.setPageScript(page.value!, Boolean(page.value!.is_standard))
 }
 
 function resolveCurrentPath(): string | undefined {
