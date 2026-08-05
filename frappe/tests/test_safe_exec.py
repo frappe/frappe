@@ -307,6 +307,27 @@ class TestSafeDoc(IntegrationTestCase):
 		)
 		self.assertEqual(result.strip(), expected)
 
+	def test_request_in_template_exposes_only_safe_attributes(self):
+		from werkzeug.wrappers import Request
+
+		from frappe.utils import set_request
+
+		original = getattr(frappe.local, "request", None)
+		try:
+			set_request(method="GET", path="/app/todo?q=1")
+			request = get_safe_globals()["frappe"]["request"]
+
+			# a plain read-only view, not the live Werkzeug request
+			self.assertNotIsInstance(request, Request)
+			self.assertEqual(request.path, "/app/todo")
+			self.assertEqual(request.method, "GET")
+			self.assertEqual(request.args.get("q"), "1")
+			# uploads / stream / environ are not reachable from templates
+			self.assertIsNone(request.get("files"))
+			self.assertIsNone(request.get("environ"))
+		finally:
+			frappe.local.request = original
+
 
 class TestNoSafeExec(IntegrationTestCase):
 	def test_safe_exec_disabled_by_default(self):

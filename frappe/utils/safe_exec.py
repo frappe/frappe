@@ -400,6 +400,23 @@ def make_safe_get_request(url: str, **kwargs):
 	return frappe.integrations.utils.make_get_request(url, **kwargs)
 
 
+def get_safe_request():
+	"""Read-only view of the request for sandboxed templates.
+
+	Only exposes plain path/method/query attributes; the raw request object is kept out so
+	template code cannot reach uploads, the stream or the WSGI environ.
+	"""
+	request = getattr(frappe.local, "request", None)
+	if not request:
+		return frappe._dict()
+
+	return frappe._dict(
+		path=request.path,
+		method=request.method,
+		args=frappe._dict(request.args.to_dict()),
+	)
+
+
 def render_safe_globals():
 	"""Safer subset of globals for rendering ops."""
 	datautils = frappe._dict()
@@ -463,7 +480,7 @@ def render_safe_globals():
 			full_name=frappe.local.session.data.full_name
 			if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
 			else "Guest",
-			request=getattr(frappe.local, "request", {}),
+			request=get_safe_request(),
 			session=frappe._dict(
 				user=user,
 				csrf_token=frappe.local.session.data.csrf_token
