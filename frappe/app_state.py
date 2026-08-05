@@ -4,7 +4,7 @@
 import frappe
 
 
-def is_concealment_active() -> bool:
+def is_disabled_app_filtering_active() -> bool:
 	"""Return False during maintenance, so a disabled app is never hidden mid-operation."""
 	return not (
 		frappe.flags.in_install
@@ -13,6 +13,7 @@ def is_concealment_active() -> bool:
 		or frappe.flags.in_import
 		or frappe.flags.in_uninstall
 		or frappe.flags.in_setup_wizard
+		or frappe.flags.in_app_toggle
 	)
 
 
@@ -23,7 +24,7 @@ def get_disabled_modules() -> set[str]:
 	Derived per request rather than cached across them, so it can never contradict the
 	`disabled_apps` global a worker is currently reading.
 	"""
-	if not is_concealment_active():
+	if not is_disabled_app_filtering_active():
 		return set()
 
 	disabled_apps = frappe.get_disabled_apps()

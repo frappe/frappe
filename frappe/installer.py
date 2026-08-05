@@ -418,7 +418,18 @@ def enable_app(app_name):
 		if dependency in disabled_apps:
 			frappe.throw(_("App {0} depends on {1}. Enable {1} first.").format(app_name, dependency))
 
-	set_app_disabled(app_name, False)
+	frappe.flags.in_app_toggle = True
+	try:
+		for before_enable in frappe.get_hooks("before_enable", app_name=app_name):
+			frappe.get_attr(before_enable)()
+
+		set_app_disabled(app_name, False)
+
+		for after_enable in frappe.get_hooks("after_enable", app_name=app_name):
+			frappe.get_attr(after_enable)()
+	finally:
+		frappe.flags.in_app_toggle = False
+
 	click.secho(f"App {app_name} enabled on Site {frappe.local.site}", fg="green")
 
 
@@ -437,7 +448,18 @@ def disable_app(app_name):
 		if any(app_name in required_app for required_app in required_apps):
 			frappe.throw(_("App {0} is a dependency of {1}. Disable {1} first.").format(app_name, app))
 
-	set_app_disabled(app_name, True)
+	frappe.flags.in_app_toggle = True
+	try:
+		for before_disable in frappe.get_hooks("before_disable", app_name=app_name):
+			frappe.get_attr(before_disable)()
+
+		set_app_disabled(app_name, True)
+
+		for after_disable in frappe.get_hooks("after_disable", app_name=app_name):
+			frappe.get_attr(after_disable)()
+	finally:
+		frappe.flags.in_app_toggle = False
+
 	click.secho(f"App {app_name} disabled on Site {frappe.local.site}", fg="green")
 
 
