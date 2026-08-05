@@ -18,7 +18,15 @@ def update_follow(doctype: str, doc_name: str | int, following: bool):
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def follow_document(doctype, doc_name, user):
+=======
+def follow_document(doctype: str, doc_name: str) -> Document | bool:
+	return _follow_document(doctype, doc_name, frappe.session.user)
+
+
+def _follow_document(doctype: str, doc_name: str, user: str) -> Document | bool:
+>>>>>>> 9a93ca0539 (fix(document_follow): add hooks for perm. chks for doc. follow)
 	"""
 	param:
 	Doctype name
@@ -58,8 +66,14 @@ def follow_document(doctype, doc_name, user):
 
 	if not is_document_followed(doctype, doc_name, user):
 		doc = frappe.new_doc("Document Follow")
+<<<<<<< HEAD
 		doc.update({"ref_doctype": doctype, "ref_docname": str(doc_name), "user": user})
 		doc.save()
+=======
+		doc.update({"ref_doctype": doctype, "ref_docname": doc_name, "user": user})
+		doc.save(ignore_permissions=True)
+		frappe.toast(_("Following document {0}").format(doc_name))
+>>>>>>> 9a93ca0539 (fix(document_follow): add hooks for perm. chks for doc. follow)
 		return doc
 
 

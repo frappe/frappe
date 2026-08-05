@@ -118,7 +118,11 @@ def _add(args=None, *, ignore_permissions=False):
 
 			# make this document followed by assigned user
 			if frappe.get_cached_value("User", assign_to, "follow_assigned_documents"):
+<<<<<<< HEAD
 				follow_document(args["doctype"], args["name"], assign_to)
+=======
+				_follow_document(args["doctype"], args["name"], assign_to)
+>>>>>>> 9a93ca0539 (fix(document_follow): add hooks for perm. chks for doc. follow)
 
 			# notify
 			notify_assignment(
