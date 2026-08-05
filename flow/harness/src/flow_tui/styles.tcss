@@ -17,6 +17,12 @@ EntryView Static {
 	height: auto;
 }
 
+/* the user entry carries the tint; assistant and tool entries stay on the screen
+   background, so the transcript reads as a reply flowing under each prompt */
+EntryView.entry--user_message {
+	background: $surface;
+}
+
 /* the entry carries the trailing gap; the negative margin drops the one the last
    markdown block adds, so an assistant reply spaces like every other entry */
 EntryView Markdown {
