@@ -6,6 +6,7 @@ from typing import Any
 
 import frappe
 from frappe import _
+from frappe.app_state import clear_cache_after_maintenance
 from frappe.core.doctype.installed_applications.installed_applications import get_setup_wizard_completed_apps
 from frappe.geo.country_info import get_country_info
 from frappe.permissions import AUTOMATIC_ROLES
@@ -221,6 +222,7 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 		frappe.publish_realtime("setup_task", {"status": "ok"}, user=frappe.session.user)
 	finally:
 		frappe.flags.in_setup_wizard = False
+		clear_cache_after_maintenance()
 
 
 def set_missing_values(task):

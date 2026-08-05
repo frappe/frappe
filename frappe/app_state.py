@@ -17,6 +17,16 @@ def is_disabled_app_filtering_active() -> bool:
 	)
 
 
+def clear_cache_after_maintenance():
+	"""Drop the caches that a maintenance operation filled.
+
+	While a maintenance flag is set, Frappe caches meta and hooks that still hold the
+	customizations of a disabled app. A site with no disabled app has nothing to drop.
+	"""
+	if frappe.get_disabled_apps():
+		frappe.clear_cache()
+
+
 @frappe.request_cache
 def get_disabled_modules() -> set[str]:
 	"""Return `Module Def` names owned by apps that are disabled on this site.
