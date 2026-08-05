@@ -182,9 +182,10 @@ def get_installed_apps(*, _ensure_on_bench: bool = False) -> list[str]:
 	return installed
 
 
+@request_cache
 def get_disabled_apps() -> list[str]:
 	"""Return apps that are installed on current site but logically disabled."""
-	if getattr(frappe.flags, "in_install_db", True):
+	if frappe.flags.in_install_db:
 		return []
 
 	if not frappe.db:

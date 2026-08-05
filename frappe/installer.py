@@ -391,8 +391,8 @@ def remove_from_installed_apps(app_name):
 
 def set_app_disabled(app_name, disabled):
 	with filelock("toggle_app_state"):
-		frappe.local.request_cache and frappe.local.request_cache.clear()
-		disabled_apps = frappe.get_disabled_apps()
+		# read the global directly: `get_disabled_apps` is request cached and may be stale here
+		disabled_apps = json.loads(frappe.db.get_global("disabled_apps") or "[]")
 
 		if disabled and app_name not in disabled_apps:
 			disabled_apps.append(app_name)
@@ -400,6 +400,7 @@ def set_app_disabled(app_name, disabled):
 			disabled_apps.remove(app_name)
 
 		frappe.db.set_global("disabled_apps", json.dumps(disabled_apps))
+		frappe.local.request_cache and frappe.local.request_cache.clear()
 		frappe.get_single("Installed Applications").update_versions()
 		frappe.db.commit()
 		frappe.clear_cache()
