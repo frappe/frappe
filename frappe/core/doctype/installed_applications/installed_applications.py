@@ -88,9 +88,6 @@ class InstalledApplications(Document):
 		if frappe.db.has_column("Installed Application", "disabled"):
 			return
 
-		if frappe.db.has_column("Installed Application", "is_setup_complete"):
-			return
-
 		frappe.reload_doc("core", "doctype", "installed_application")
 		frappe.reload_doc("core", "doctype", "installed_applications")
 		frappe.reload_doc("integrations", "doctype", "webhook")
