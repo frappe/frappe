@@ -22,6 +22,7 @@ from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.database.schema import add_column
 from frappe.deferred_insert import save_to_db as flush_deferred_inserts
 from frappe.desk.notifications import clear_notifications
+from frappe.installer import reapply_disabled_app_state
 from frappe.modules.patch_handler import PatchType
 from frappe.modules.utils import sync_customizations
 from frappe.search.website_search import build_index_for_all_routes
@@ -201,6 +202,9 @@ class SiteMigration:
 		for app in frappe.get_installed_apps():
 			for fn in frappe.get_hooks("after_migrate", app_name=app):
 				frappe.get_attr(fn)()
+
+		print("Applying state of disabled apps again...")
+		reapply_disabled_app_state()
 
 	def required_services_running(self) -> bool:
 		"""Return True if all required services are running. Return False and print
