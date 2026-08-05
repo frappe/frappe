@@ -46,14 +46,9 @@ PartialAssistantView {
 }
 
 #brewing {
-	display: none;
-	height: 1;
-	padding: 0 1;
+	height: 3;
+	padding: 1;
 	color: $text-muted;
-}
-
-#brewing.visible {
-	display: block;
 }
 
 #brewing Spinner {

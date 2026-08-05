@@ -348,26 +348,33 @@ async def test_ctrl_d_exits():
 		assert not pilot.app.is_running
 
 
-async def test_brewing_spinner_tracks_running_state():
+async def test_brewing_status_reserves_space_and_reports_elapsed_time():
 	fake = FakeController()
 	async with FlowApp(fake).run_test() as pilot:
 		brewing = pilot.app.query_one("#brewing")
-		assert brewing.display is False
 		spinner = brewing.query_one(Spinner)
-		assert _widget_text(spinner) == SPINNER_FRAMES[0]
-		assert "Brewing..." in _widget_text(brewing)
-
-		await pilot.pause(0.1)
-		assert _widget_text(spinner) != SPINNER_FRAMES[0]
+		label = brewing.query_one("#brewing-label", Static)
+		assert brewing.display is True
+		assert brewing.styles.height.value == 3
+		assert spinner.styles.visibility == "hidden"
+		assert label.styles.visibility == "hidden"
 
 		fake.feed(RunStarted(run_id="r1", seq=1))
 		fake.feed(TextDelta(text="still working"))
 		await pilot.pause()
-		assert brewing.display is True
+		assert spinner.styles.visibility == "visible"
+		assert label.styles.visibility == "visible"
+		assert "Brewing..." in _widget_text(label)
+
+		await pilot.pause(0.1)
+		assert _widget_text(spinner) != SPINNER_FRAMES[0]
 
 		fake.feed(RunEnded(seq=2))
 		await pilot.pause()
-		assert brewing.display is False
+		assert brewing.display is True
+		assert spinner.styles.visibility == "hidden"
+		assert "Worked for " in _widget_text(label)
+		assert _widget_text(label).endswith(" seconds")
 
 
 async def test_status_bar_reflects_state():

@@ -11,6 +11,7 @@ import os
 import shlex
 import subprocess
 import tempfile
+import time
 from collections.abc import Callable
 from contextlib import AbstractContextManager
 from pathlib import Path
@@ -62,6 +63,32 @@ class Spinner(Static):
 	def _advance(self) -> None:
 		self._frame = (self._frame + 1) % len(SPINNER_FRAMES)
 		self.update(SPINNER_FRAMES[self._frame])
+
+
+class BrewingStatus(Horizontal):
+	def __init__(self) -> None:
+		super().__init__(Spinner(), Static(" Brewing...", id="brewing-label"), id="brewing")
+		self._started_at: float | None = None
+
+	def on_mount(self) -> None:
+		self.query_one(Spinner).styles.visibility = "hidden"
+		self.query_one("#brewing-label").styles.visibility = "hidden"
+
+	def set_running(self, running: bool) -> None:
+		spinner = self.query_one(Spinner)
+		label = self.query_one("#brewing-label", Static)
+		if running:
+			if self._started_at is None:
+				self._started_at = time.monotonic()
+			spinner.styles.visibility = "visible"
+			label.styles.visibility = "visible"
+			label.update(" Brewing...")
+		elif self._started_at is not None:
+			elapsed = time.monotonic() - self._started_at
+			self._started_at = None
+			spinner.styles.visibility = "hidden"
+			label.styles.visibility = "visible"
+			label.update(f" Worked for {elapsed:.1f} seconds")
 
 
 def resolve_editor() -> str | None:
@@ -139,11 +166,7 @@ class FlowApp(App):
 	def compose(self) -> ComposeResult:
 		yield ConversationView(id="conversation")
 		yield Static(id="error-banner")
-		yield Horizontal(
-			Spinner(),
-			Static(" Brewing..."),
-			id="brewing",
-		)
+		yield BrewingStatus()
 		yield Composer(id="composer")
 		yield StatusBar(id="status")
 
@@ -202,7 +225,7 @@ class FlowApp(App):
 		self.query_one(StatusBar).refresh_from(
 			state, session_id=self.controller.session_id, queued=len(self.controller.queued)
 		)
-		self.query_one("#brewing").set_class(state.running, "visible")
+		self.query_one(BrewingStatus).set_running(state.running)
 		self.query_one(ConversationView).set_running(state.running)
 		banner = self.query_one("#error-banner", Static)
 		if state.last_error is not None:
