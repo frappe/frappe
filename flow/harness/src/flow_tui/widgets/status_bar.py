@@ -20,7 +20,15 @@ def repository_label(cwd: str | Path | None) -> str:
 		check=False,
 	)
 	branch = result.stdout.strip() if result.returncode == 0 else ""
-	return f"{path.name} ({branch})" if branch else path.name
+	if not branch:
+		return path.name
+	dirty = subprocess.run(
+		["git", "-C", str(path), "status", "--porcelain"],
+		capture_output=True,
+		text=True,
+		check=False,
+	).stdout.strip()
+	return f"{path.name} ({branch}{'*' if dirty else ''})"
 
 
 class StatusBar(Static):
