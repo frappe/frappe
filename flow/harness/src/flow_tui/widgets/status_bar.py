@@ -1,4 +1,4 @@
-"""One-line session status: model · effort · state · tokens · cost · session id."""
+"""One-line session status: model · effort · state · tokens · session id."""
 
 from __future__ import annotations
 
@@ -57,7 +57,6 @@ class StatusBar(Static):
 			run_state,
 			f"↑{compact_number(state.input_tokens)}",
 			f"↓{compact_number(state.output_tokens)}",
-			f"${state.cost:.4f}",
 		]
 		if queued:
 			parts.append(f"{queued} queued")
