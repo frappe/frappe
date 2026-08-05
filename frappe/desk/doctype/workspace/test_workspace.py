@@ -126,11 +126,24 @@ class TestWorkspace(IntegrationTestCase):
 			workspace.title = "Legacy Duplicate Workspace Renamed"
 			workspace.save()
 
-			# but adding a *third* clashing shortcut is still refused
-			workspace.append("shortcuts", {"type": "DocType", "link_to": "ToDo", "label": "Notes"})
-			workspace.append("shortcuts", {"type": "DocType", "link_to": "ToDo", "label": "Notes"})
+			# deepening the existing clash -- a *third* row under the grandfathered label -- is a
+			# new duplicate all the same, so it is still refused
+			workspace.append("shortcuts", {"type": "DocType", "link_to": "ToDo", "label": "Tasks"})
 			with self.assertRaises(frappe.ValidationError):
 				workspace.save()
+
+			# and so is a fresh clash on a label that was unique before
+			workspace.reload()
+			for _ in range(2):
+				workspace.append("shortcuts", {"type": "DocType", "link_to": "ToDo", "label": "Notes"})
+			with self.assertRaises(frappe.ValidationError):
+				workspace.save()
+
+			# dropping one of the grandfathered rows is a repair, not a new clash
+			workspace.reload()
+			workspace.shortcuts.pop()
+			workspace.save()
+			self.assertEqual(len(workspace.shortcuts), 1)
 		finally:
 			frappe.db.delete("Workspace Shortcut", {"parent": workspace.name})
 			frappe.db.delete("Workspace", {"name": workspace.name})

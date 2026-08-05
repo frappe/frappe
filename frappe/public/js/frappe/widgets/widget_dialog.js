@@ -131,7 +131,18 @@ class WidgetDialog {
 
 	is_duplicate_label(label) {
 		if (!this.for_workspace || !label) return false;
-		return this.get_sibling_labels().includes(frappe.utils.unescape_html(label));
+
+		const unescaped = frappe.utils.unescape_html(label);
+
+		// Mirror the server (`validate_duplicate_widget_labels`): only a clash *this* edit
+		// introduces is refused. A workspace saved before this check existed can already carry
+		// two widgets under one label, and editing either of them — without touching the label —
+		// has to stay possible, or the clash could never be cleaned up from the UI.
+		if (this.editing && unescaped == frappe.utils.unescape_html(this.values.label || "")) {
+			return false;
+		}
+
+		return this.get_sibling_labels().includes(unescaped);
 	}
 
 	validate_duplicate_label(data) {
