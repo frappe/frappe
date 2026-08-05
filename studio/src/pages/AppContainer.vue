@@ -59,7 +59,7 @@ async function loadPage() {
 
 function resolveCurrentPath(): string | undefined {
 	const { pageRoute } = route.params as { pageRoute: string[] }
-	// registered page routes carry isDynamic meta; their record path is the page's route pattern
+	// registered page routes carry isDynamic meta
 	if (route.meta?.isDynamic) return route.matched?.[0]?.path
 	if (pageRoute) return pageRoute[0]
 	return "/"

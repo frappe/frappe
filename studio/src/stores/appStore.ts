@@ -16,7 +16,6 @@ const useAppStore = defineStore("appStore", () => {
 
 	async function setPageData(page: StudioPage) {
 		activePage.value = page
-		// stop the old page's resource watchers before the variables reset, else they fire spurious reloads
 		codeStore.stopResourceWatchers()
 		await codeStore.setPageVariables(page)
 		await codeStore.setPageResources(page)

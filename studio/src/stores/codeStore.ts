@@ -246,6 +246,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		}
 	})
 
+	// Base context for every script scope — event/success/error handlers, function-value props, and page-script setup
 	const scriptContext = computed(() => {
 		const variablesRefs = toRefs(variables.value)
 		// Resources and currentRoute are proxies so scripts can destructure them once and still see the current values
@@ -601,7 +602,13 @@ const useCodeStore = defineStore("codeStore", () => {
 				replaceDocumentResource(resource.resource_name, createDoc(docname))
 			},
 		)
-		return createDoc(await resolveDocnameFromFilters(resource, filters))
+
+		// If the filters changed while this initial lookup was pending, re-resolve
+		let docname = await resolveDocnameFromFilters(resource, filters)
+		if (latestRequest > 0) {
+			docname = await resolveDocnameFromFilters(resource, getEvaluatedFilters(resource.filters) || {})
+		}
+		return createDoc(docname)
 	}
 
 	function replaceDocumentResource(resourceName: string, newResource: any) {
