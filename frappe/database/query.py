@@ -615,6 +615,7 @@ class Engine:
 
 			_value = get_date_range(_operator_lowered, _value)
 			_operator = "between"
+			_operator_lowered = "between"
 
 		# For Date fields with datetime values, convert to date to match db_query behavior
 		if isinstance(_value, datetime.datetime) or (
