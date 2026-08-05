@@ -10,7 +10,7 @@ Screen {
 
 EntryView {
 	height: auto;
-	margin-bottom: 1;
+	padding: 1;
 }
 
 EntryView Static {
@@ -23,7 +23,7 @@ EntryView.entry--user_message {
 	background: $surface;
 }
 
-/* the entry carries the trailing gap; the negative margin drops the one the last
+/* the entry padding carries the gap; the negative margin drops the one the last
    markdown block adds, so an assistant reply spaces like every other entry */
 EntryView Markdown {
 	padding: 0;
@@ -31,7 +31,7 @@ EntryView Markdown {
 }
 
 PartialAssistantView {
-	margin-bottom: 1;
+	padding: 1;
 }
 
 #error-banner {
