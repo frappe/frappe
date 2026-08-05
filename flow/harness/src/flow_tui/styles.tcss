@@ -5,7 +5,7 @@ Screen {
 #conversation {
 	height: 1fr;
 	padding: 0 1;
-	scrollbar-size-vertical: 1;
+	scrollbar-size-vertical: 0;
 }
 
 EntryView {
