@@ -234,9 +234,7 @@ class FlowApp(App):
 
 	def _refresh_status(self) -> None:
 		state = self.controller.state
-		self.query_one(StatusBar).refresh_from(
-			state, session_id=self.controller.session_id, queued=len(self.controller.queued)
-		)
+		self.query_one(StatusBar).refresh_from(state, queued=len(self.controller.queued))
 		self.query_one(WorkingStatus).set_running(state.running)
 		self.query_one(ConversationView).set_running(state.running)
 		banner = self.query_one("#error-banner", Static)

@@ -232,7 +232,7 @@ no `Path.home` monkeypatching. Server test: create session → GET reports compo
   running queues the message client-side and sends it after `run_ended` (queued indicator
   in the status bar; queue survives stream reconnects — it lives in the controller, not
   the stream). One `ctrl+c`/Escape aborts the run; second prompts quit.
-- Status bar: model · effort · state · Σ tokens · cost · session id.
+- Status bar: model · effort · state · Σ tokens · cost.
 - Renders: user/assistant text, tool call one-liner + result preview, run_error banner,
   retry status ("retrying 2/5 in 3 s"). Thinking as plain dimmed text for now.
 - Sessions are created with `auto_approve=True` — this is the permanent default (decision 5),

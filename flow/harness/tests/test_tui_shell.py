@@ -384,7 +384,8 @@ async def test_status_bar_reflects_state():
 		fake.feed(RunStarted(run_id="r1", seq=1))
 		await pilot.pause()
 		text = _widget_text(pilot.app.query_one(StatusBar))
-		assert "mock" in text and "running" in text and "fake-ses" in text
+		assert "mock" in text and "running" in text
+		assert "fake-ses" not in text
 
 		fake.feed(Usage(input_tokens=10, output_tokens=5, cost=0.5, context_window=256_000, seq=2))
 		fake.feed(RunEnded(seq=3))

@@ -44,9 +44,7 @@ class StatusBar(Static):
 	_left = ""
 	_right = ""
 
-	def refresh_from(
-		self, state: ConversationState, *, session_id: str | None = None, queued: int = 0
-	) -> None:
+	def refresh_from(self, state: ConversationState, *, queued: int = 0) -> None:
 		if state.pending_approval is not None:
 			run_state = "paused — awaiting approval"
 		elif state.running:
@@ -69,9 +67,6 @@ class StatusBar(Static):
 			if state.retry.delay_seconds:
 				retry += f" in {state.retry.delay_seconds:.0f} s"
 			parts.append(retry)
-		if session_id:
-			parts.append(session_id[:8])
-
 		self._left = " · ".join(parts)
 		self._right = " · ".join((state.model or "?", state.reasoning_effort or "default"))
 		self._update_line()
