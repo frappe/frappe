@@ -218,6 +218,15 @@ def clear_desktop_icons_cache(user=None):
 	frappe.cache.hdel("bootinfo", user or frappe.session.user)
 
 
+def get_app_desktop_icon(app_name: str) -> str | None:
+	"""Return the name of the "App" type Desktop Icon created for `app_name`, if it exists."""
+	app_title = frappe.get_hooks("app_title", app_name=app_name)
+	if not app_title:
+		return None
+
+	return frappe.db.exists("Desktop Icon", {"label": app_title[0], "icon_type": "App"})
+
+
 def create_desktop_icons_from_workspace():
 	workspaces = frappe.get_all(
 		"Workspace",
@@ -237,7 +246,7 @@ def create_desktop_icons_from_workspace():
 			if app_name in frappe.get_installed_apps():
 				icon.app_name = app_name
 				app_title = frappe.get_hooks("app_title", app_name=app_name)[0]
-				app_icon = frappe.db.exists("Desktop Icon", {"label": app_title, "icon_type": "App"})
+				app_icon = get_app_desktop_icon(app_name)
 				if app_icon:
 					icon.parent_icon = app_icon
 
@@ -254,9 +263,10 @@ def create_desktop_icons_from_workspace():
 					icon.parent_icon = None
 
 				try:
-					if not frappe.db.exists(
-						"Desktop Icon", [{"label": icon.label, "icon_type": icon.icon_type}]
-					):
+					# `label` is the docname (autoname: field:label) and is unique, so an icon
+					# of *any* type with this label collides. Filtering on icon_type as well
+					# would let a workspace named after an app slip through into an IntegrityError.
+					if not frappe.db.exists("Desktop Icon", icon.label):
 						icon.insert(ignore_if_duplicate=True)
 				except Exception:
 					frappe.log_error(title="Creation of Desktop Icon Failed")
@@ -266,21 +276,26 @@ def create_desktop_icons_from_installed_apps():
 	apps = frappe.get_installed_apps()
 	index = 0
 	for a in apps:
-		app_title = frappe.get_hooks("app_title", app_name=a)[0]
+		if get_app_desktop_icon(a):
+			continue
+
 		app_details = frappe.get_hooks("add_to_apps_screen", app_name=a)
-		if not frappe.db.exists("Desktop Icon", [{"icon_type": "App"}, {"app": a}]):
-			if len(app_details) != 0:
-				icon = frappe.new_doc("Desktop Icon")
-				icon.label = app_title
-				icon.link_type = "External"
-				icon.idx = index
-				icon.icon_type = "App"
-				icon.app = a
-				icon.link = app_details[0]["route"]
-				icon.logo_url = app_details[0]["logo"]
-				if not frappe.db.exists("Desktop Icon", [{"label": icon.label, "icon_type": icon.icon_type}]):
-					icon.save()
-				index += 1
+		if len(app_details) != 0:
+			app_title = frappe.get_hooks("app_title", app_name=a)[0]
+			if frappe.db.exists("Desktop Icon", app_title):
+				# some other icon (e.g. a workspace link) already holds this label
+				continue
+
+			icon = frappe.new_doc("Desktop Icon")
+			icon.label = app_title
+			icon.link_type = "External"
+			icon.idx = index
+			icon.icon_type = "App"
+			icon.app = a
+			icon.link = app_details[0]["route"]
+			icon.logo_url = app_details[0]["logo"]
+			icon.save()
+			index += 1
 
 
 def create_desktop_icons():
