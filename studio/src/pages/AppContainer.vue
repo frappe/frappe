@@ -30,7 +30,7 @@ async function handleRouteChange() {
 	const currentPath = resolveCurrentPath()
 	if (currentPath && currentPath === loadedPath && page.value) {
 		// param-only navigation (/articles/a -> /articles/b): everything stays mounted —
-		// resources with route-dependent inputs re-evaluate and reload themselves (codeStore live bindings)
+		// codeStore's resource watchers re-evaluate route-dependent filters/params and reload themselves
 		return
 	}
 	await loadPage()

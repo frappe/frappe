@@ -2,7 +2,7 @@ import { defineStore } from "pinia"
 import {
 	ref, computed, watch, watchEffect, reactive, toRef, toRefs, unref,
 	isRef, isReactive, shallowRef, readonly, markRaw, nextTick, effectScope,
-	type ComputedRef, type EffectScope, h,
+	type ComputedRef, type EffectScope, type WatchStopHandle, h,
 } from "vue"
 import { watchDebounced } from "@vueuse/core"
 import { createDocumentResource, createListResource, createResource, call } from "frappe-ui"
@@ -50,7 +50,7 @@ const useCodeStore = defineStore("codeStore", () => {
 	const pageScriptError = ref<string | null>(null)
 	const currentPageName = ref<string | null>(null)
 	let pageScriptScope: EffectScope | null = null
-	let resourceInputsScope: EffectScope | null = null
+	let resourceWatchers: WatchStopHandle[] = []
 
 	function setRouteObject(route: ComputedRef) {
 		routeObject.value = route
@@ -61,10 +61,9 @@ const useCodeStore = defineStore("codeStore", () => {
 	}
 
 	async function setPageResources(page: StudioPage, setResourceConfig: boolean = false) {
-		disposeResourceInputs()
+		stopResourceWatchers()
 		studioPageResources.filters = { parent: page.name }
 		await studioPageResources.reload()
-		resourceInputsScope = effectScope(true)
 
 		const resourcePromises = studioPageResources.data.map(async (resource: Resource) => {
 			const newResource = await getNewResource(resource)
@@ -247,52 +246,48 @@ const useCodeStore = defineStore("codeStore", () => {
 		}
 	})
 
-	// Base context for every script scope — event/success/error handlers, function-value props, and page-script setup.
-	// Resources and route go in as live handles: page-script setup destructures its context once and
-	// keeps running across navigations, but a docname change swaps the document resource object and
-	// vue-router makes a new route object per navigation — a plain spread would freeze the captures.
 	const scriptContext = computed(() => {
 		const variablesRefs = toRefs(variables.value)
+		// Resources and currentRoute are proxies so scripts can destructure them once and still see the current values
 		return {
 			...variablesRefs,
-			...getResourceHandles(),
+			...currentResourceProxies(),
 			...pageScriptBindings.value,
 			...globalUtils,
-			route: liveRoute,
+			route: currentRoute,
 			router: routerObject.value,
 		}
 	})
 
-	const resourceHandles: Record<string, any> = {}
+	const resourceProxies: Record<string, any> = {}
 
-	function getResourceHandles() {
-		const handles: Record<string, any> = {}
+	function currentResourceProxies() {
+		const proxies: Record<string, any> = {}
 		for (const name in resources.value) {
-			resourceHandles[name] ??= createLiveHandle(() => resources.value[name])
-			handles[name] = resourceHandles[name]
+			resourceProxies[name] ??= proxyToCurrent(() => resources.value[name])
+			proxies[name] = resourceProxies[name]
 		}
-		return handles
+		return proxies
 	}
 
-	const liveRoute = createLiveHandle(() => unref(routeObject.value))
+	const currentRoute = proxyToCurrent(() => unref(routeObject.value))
 
-	// A stable object that forwards every access to the current target, so script closures created
-	// at setup stay live. Targets are frappe-ui resources / route objects whose methods are
-	// closures, not `this`-bound — values are returned as-is.
-	function createLiveHandle(getTarget: () => any) {
+	// An object that reads/writes every property on whatever getCurrent() returns right now.
+	// Methods come back as-is: frappe-ui resources and route objects use closures, not `this`.
+	function proxyToCurrent(getCurrent: () => any) {
 		return new Proxy(
 			{},
 			{
-				get: (_, key) => getTarget()?.[key],
-				has: (_, key) => key in (getTarget() || {}),
+				get: (_, key) => getCurrent()?.[key],
+				has: (_, key) => key in (getCurrent() || {}),
 				set: (_, key, value) => {
-					const target = getTarget()
+					const target = getCurrent()
 					if (target) target[key] = value
 					return true
 				},
-				ownKeys: () => Reflect.ownKeys(getTarget() || {}),
+				ownKeys: () => Reflect.ownKeys(getCurrent() || {}),
 				getOwnPropertyDescriptor: (_, key) => {
-					const target = getTarget()
+					const target = getCurrent()
 					if (target && key in target) return { enumerable: true, configurable: true, value: target[key] }
 				},
 			},
@@ -497,28 +492,21 @@ const useCodeStore = defineStore("codeStore", () => {
 		}
 	}
 
-	function disposeResourceInputs() {
-		resourceInputsScope?.stop()
-		resourceInputsScope = null
+	function stopResourceWatchers() {
+		resourceWatchers.forEach((stop) => stop())
+		resourceWatchers = []
 	}
 
-	// Live binding for a dynamic resource input: the computed evaluates {{ }} expressions against the
-	// live context (route/variables/other resources), the watch pushes value changes into the created
-	// resource — createResource-style utilities take plain values, not getters, so we bridge ourselves.
-	// Returns the initial value for resource creation.
-	function bindResourceInput<T>(evaluate: () => T, apply: (value: T) => void): T {
-		const setup = () => {
-			const input = computed(evaluate)
-			let lastValue = JSON.stringify(input.value)
-			watch(input, (value) => {
-				const serialized = JSON.stringify(value)
-				if (serialized === lastValue) return
-				lastValue = serialized
-				apply(value)
-			})
-			return input.value
-		}
-		return resourceInputsScope ? (resourceInputsScope.run(setup) as T) : setup()
+	// Evaluate a resource's dynamic input ({{ }} filters/params) now, and call onChange whenever a
+	// route/variable change alters the result. Watching the serialized value keeps context churn
+	// that evaluates to the same input from refetching the resource.
+	function evaluateAndWatch<T>(evaluate: () => T, onChange: (value: T) => void): T {
+		const stop = watch(
+			() => JSON.stringify(evaluate()),
+			() => onChange(evaluate()),
+		)
+		resourceWatchers.push(stop)
+		return evaluate()
 	}
 
 	function getListResource(resource: DocumentListResource) {
@@ -530,7 +518,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		const params: any = {
 			doctype: resource.document_type,
 			fields: fields.length ? fields : "*",
-			filters: bindResourceInput(
+			filters: evaluateAndWatch(
 				() => getEvaluatedFilters(resource.filters),
 				(filters) => {
 					listResource.update({ filters })
@@ -555,7 +543,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		const apiResource = createResource({
 			url: resource.url,
 			method: resource.method,
-			params: bindResourceInput(
+			params: evaluateAndWatch(
 				() => getAPIParams(resource.params),
 				(params) => {
 					apiResource.update({ params })
@@ -600,23 +588,25 @@ const useCodeStore = defineStore("codeStore", () => {
 			return createDoc(resource.document_name)
 		}
 
-		let resolveToken = 0
-		const filters = bindResourceInput(
+		// the docname can't change on an existing document resource (frappe-ui caches them by
+		// doctype+name), so a filter change means re-resolving the docname and replacing the resource
+		let latestRequest = 0
+		const filters = evaluateAndWatch(
 			() => getEvaluatedFilters(resource.filters) || {},
 			async (newFilters) => {
-				const token = ++resolveToken
+				const request = ++latestRequest
 				const docname = await resolveDocnameFromFilters(resource, newFilters)
-				if (token !== resolveToken || !docname) return
-				// createDocumentResource caches by doctype+name, so an unchanged docname swaps in the same instance
-				swapPageResource(resource.resource_name, createDoc(docname))
+				const outdated = request !== latestRequest
+				if (outdated || !docname) return
+				replaceDocumentResource(resource.resource_name, createDoc(docname))
 			},
 		)
 		return createDoc(await resolveDocnameFromFilters(resource, filters))
 	}
 
-	// a docname change means a new document resource; carry over the editor's config stamps
-	function swapPageResource(resourceName: string, newResource: any) {
+	function replaceDocumentResource(resourceName: string, newResource: any) {
 		if (!newResource) return
+		// carry over the editor's config stamps (see setResourceConfig in setPageResources)
 		const oldResource = resources.value[resourceName] as any
 		if (oldResource?.resource_id) {
 			newResource.resource_id = oldResource.resource_id
@@ -741,7 +731,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		// resources
 		resources,
 		setPageResources,
-		disposeResourceInputs,
+		stopResourceWatchers,
 		// variables
 		variables,
 		setPageVariables,

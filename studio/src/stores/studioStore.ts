@@ -596,8 +596,7 @@ const useStudioStore = defineStore("store", () => {
 	// value selectors and in completions — no reload. Non-active pages refresh lazily on navigation
 	// (studioPageScripts caches the latest setup).
 	async function setPageData(page: StudioPage) {
-		// stop the old page's resource input watchers before the variables reset, else they fire spurious reloads
-		codeStore.disposeResourceInputs()
+		codeStore.stopResourceWatchers()
 		await codeStore.setPageVariables(page)
 		await codeStore.setPageResources(page, true)
 	}
