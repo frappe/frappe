@@ -17,6 +17,13 @@ EntryView Static {
 	height: auto;
 }
 
+/* the entry carries the trailing gap; the negative margin drops the one the last
+   markdown block adds, so an assistant reply spaces like every other entry */
+EntryView Markdown {
+	padding: 0;
+	margin-bottom: -1;
+}
+
 EntryView Collapsible {
 	border: none;
 	padding: 0;

@@ -9,6 +9,10 @@ text, thinking, and tool calls, and each thinking block folds behind its own
 suffix reports exit code / duration / truncation, and the output shows as a dim
 few-line preview that ctrl+o expands. A diff in `ToolResult.details` gets syntax
 highlighting instead of the plain preview.
+
+Assistant text renders as Markdown once the durable message lands. The streamed
+preview stays plain: a partial reply holds unclosed fences and half-written
+tables, which reflow on every delta.
 """
 
 from __future__ import annotations
@@ -21,7 +25,7 @@ from rich.text import Text
 from textual.containers import Vertical
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Collapsible, Static
+from textual.widgets import Collapsible, Markdown, Static
 
 from flow.events import (
 	AssistantMessage,
@@ -343,7 +347,7 @@ def _assistant_widgets(
 				# opaque reasoning with no summary has nothing worth a fold
 				widgets.append(ThinkingBlock(block.thinking, collapsed=not show_thinking))
 		elif isinstance(block, TextContent):
-			widgets.append(Static(Text(block.text)))
+			widgets.append(Markdown(block.text))
 		elif isinstance(block, ToolCall):
 			widgets.append(ToolCallView(block, entry_seq=message.seq, expanded=expand_tools, running=running))
 	if message.stop_reason in ("aborted", "error"):
