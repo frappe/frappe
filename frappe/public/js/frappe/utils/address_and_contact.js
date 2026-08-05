@@ -3,29 +3,17 @@ frappe.provide("frappe.ui.form");
 
 class PartyQuickEntryForm extends frappe.ui.form.QuickEntryForm {
 	insert() {
-		const link = this.get_party_link();
-		if (link) {
-			this.dialog.doc.links = [link];
+		if (this.party_frm) {
+			this.dialog.doc.links = [
+				{ link_doctype: this.party_frm.doctype, link_name: this.party_frm.docname },
+			];
 		}
 		return super.insert();
 	}
 
-	get_party_link() {
-		const link = frappe.dynamic_link;
-		if (!link?.doc) return null;
-
-		const route = frappe.get_route();
-		const link_name = link.doc[link.fieldname];
-		const is_party_form_open =
-			route[0] === "Form" && route[1] === link.doctype && route[2] === link_name;
-
-		return is_party_form_open ? { link_doctype: link.doctype, link_name } : null;
-	}
-
 	open_form_if_not_list() {
-		if (frappe.get_route()?.[0] === "Form") {
-			cur_frm?.reload_doc();
-		}
+		if (!this.party_frm) return super.open_form_if_not_list();
+		this.party_frm.reload_doc();
 	}
 }
 
@@ -54,6 +42,7 @@ frappe.ui.form.ContactQuickEntryForm = class ContactQuickEntryForm extends Party
 
 		return doc;
 	}
+
 	get_detail_fields() {
 		return [
 			{
@@ -107,7 +96,10 @@ const PARTY_LINK_SECTIONS = [
 ];
 
 class PartyLinkSection {
-	constructor(frm, { doctype, wrapper_field, onload_key, template, button_selector, primary_flag }) {
+	constructor(
+		frm,
+		{ doctype, wrapper_field, onload_key, template, button_selector, primary_flag }
+	) {
 		this.frm = frm;
 		this.doctype = doctype;
 		this.wrapper_field = wrapper_field;
@@ -129,7 +121,9 @@ class PartyLinkSection {
 	get primary_field() {
 		return (this.frm.meta.fields || []).find(
 			(df) =>
-				df.fieldtype === "Link" && df.options === this.doctype && /primary/i.test(df.fieldname)
+				df.fieldtype === "Link" &&
+				df.options === this.doctype &&
+				/primary/i.test(df.fieldname)
 		)?.fieldname;
 	}
 
@@ -210,7 +204,7 @@ class PartyLinkSection {
 				after_insert: () => frm.reload_doc(),
 			}).show();
 		} else {
-			frappe.new_doc(doctype);
+			frappe.new_doc(doctype, null, (quick_entry) => (quick_entry.party_frm = frm));
 		}
 	}
 
