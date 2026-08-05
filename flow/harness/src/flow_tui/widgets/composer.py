@@ -32,6 +32,10 @@ class Composer(TextArea):
 
 	_chord_timer: Timer | None = None
 
+	def on_mount(self) -> None:
+		# a blinking cursor pulls the eye away from the streaming transcript
+		self.cursor_blink = False
+
 	@property
 	def chord_armed(self) -> bool:
 		return self._chord_timer is not None
