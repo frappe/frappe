@@ -21,7 +21,7 @@ from flow.model.auth import AuthError, RuntimeAuth, get_auth_provider
 from flow.model.credentials import OAuthCredential
 from flow.model.providers.codex import (
 	CLIENT_ID,
-	MODEL_CATALOG_CLIENT_VERSION,
+	DEFAULT_CODEX_CLIENT_VERSION,
 	CodexModel,
 	_responses_input,
 )
@@ -184,7 +184,7 @@ async def test_loads_and_caches_account_model_limits():
 	assert len(requests) == 1
 	request = requests[0]
 	assert str(request.url) == (
-		f"https://example.test/backend-api/codex/models?client_version={MODEL_CATALOG_CLIENT_VERSION}"
+		f"https://example.test/backend-api/codex/models?client_version={DEFAULT_CODEX_CLIENT_VERSION}"
 	)
 	assert request.headers["authorization"] == "Bearer token"
 	assert request.headers["chatgpt-account-id"] == "acc"
