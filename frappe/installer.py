@@ -380,6 +380,8 @@ def remove_from_installed_apps(app_name):
 		)
 		_clear_cache("__global")
 		frappe.local.doc_events_hooks = None
+		if app_name in frappe.get_disabled_apps():
+			set_app_disabled(app_name, False)
 		frappe.get_single("Installed Applications").update_versions()
 		frappe.db.commit()
 		if frappe.flags.in_install:
