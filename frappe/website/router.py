@@ -31,10 +31,16 @@ def get_page_info_from_web_page_with_dynamic_routes(path):
 
 def get_page_info_from_web_form(path):
 	"""Query published web forms and evaluate if the route matches"""
+	from frappe.app_state import get_disabled_modules
 	from frappe.website.doctype.web_form.web_form import get_published_web_forms
+
+	disabled_modules = get_disabled_modules()
 
 	for d in get_published_web_forms():
 		if not (path.startswith(f"{d.route}") or path.startswith(f"/{d.route}")):
+			continue
+
+		if d.module in disabled_modules:
 			continue
 
 		rules = []
