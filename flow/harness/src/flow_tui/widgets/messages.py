@@ -33,6 +33,17 @@ from flow.events import (
 	UserMessage,
 )
 from flow_tui.client.state import PartialPart, PartialText, PartialThinking, PartialToolCall
+from flow_tui.theme import (
+	STYLE_ERROR,
+	STYLE_ERROR_STRONG,
+	STYLE_MUTED,
+	STYLE_PROMPT,
+	STYLE_RUNNING,
+	STYLE_SUCCESS_STRONG,
+	STYLE_THINKING,
+	STYLE_TOOL_CALL,
+	SYNTAX_THEME,
+)
 
 SPINNER_FRAMES = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
 _PREVIEW_LINES = 3
@@ -106,7 +117,7 @@ class ThinkingBlock(Collapsible):
 
 	def __init__(self, thinking: str, *, collapsed: bool = True) -> None:
 		super().__init__(
-			Static(Text(thinking, style="dim italic")),
+			Static(Text(thinking, style=STYLE_THINKING)),
 			title="thinking",
 			collapsed=collapsed,
 		)
@@ -180,11 +191,11 @@ class ToolCallView(Static):
 		result = self.result
 		failed = result is not None and (result.is_error or result.details.get("aborted"))
 		if result is None:
-			glyph, style = (SPINNER_FRAMES[self._frame], "yellow") if self._live else ("·", "dim")
+			glyph, style = (SPINNER_FRAMES[self._frame], STYLE_RUNNING) if self._live else ("·", STYLE_MUTED)
 		elif failed:
-			glyph, style = "✗", "bold red"
+			glyph, style = "✗", STYLE_ERROR_STRONG
 		else:
-			glyph, style = "✓", "bold green"
+			glyph, style = "✓", STYLE_SUCCESS_STRONG
 		if self.call is not None:
 			line = call_line(self.call.name, self.call.arguments)
 		else:
@@ -192,9 +203,9 @@ class ToolCallView(Static):
 			line = result_line(result)
 		text = Text()
 		text.append(f"{glyph} ", style)
-		text.append(line, style="red" if failed else "")
+		text.append(line, style=STYLE_ERROR if failed else "")
 		if result is not None and (suffix := status_suffix(result.details)):
-			text.append(f" {suffix}", style="red" if failed else "dim")
+			text.append(f" {suffix}", style=STYLE_ERROR if failed else STYLE_MUTED)
 		return text
 
 	def _body(self) -> RenderableType | None:
@@ -212,16 +223,21 @@ class ToolCallView(Static):
 		head = lines[:_PREVIEW_LINES]
 		if (hidden := len(lines) - len(head)) > 0:
 			head.append(f"… (+{hidden} lines, ctrl+o to expand)")
-		return Text("\n".join(head), style="dim")
+		return Text("\n".join(head), style=STYLE_MUTED)
 
 
 def _diff_body(diff: str, *, expanded: bool) -> RenderableType:
 	lines = diff.splitlines()
 	if expanded or len(lines) <= _DIFF_PREVIEW_LINES:
-		return Syntax(diff, "diff", background_color="default")
+		return Syntax(diff, "diff", theme=SYNTAX_THEME, background_color="default")
 	return Group(
-		Syntax("\n".join(lines[:_DIFF_PREVIEW_LINES]), "diff", background_color="default"),
-		Text(f"… (+{len(lines) - _DIFF_PREVIEW_LINES} more diff lines, ctrl+o to expand)", style="dim"),
+		Syntax(
+			"\n".join(lines[:_DIFF_PREVIEW_LINES]),
+			"diff",
+			theme=SYNTAX_THEME,
+			background_color="default",
+		),
+		Text(f"… (+{len(lines) - _DIFF_PREVIEW_LINES} more diff lines, ctrl+o to expand)", style=STYLE_MUTED),
 	)
 
 
@@ -274,14 +290,14 @@ class PartialAssistantView(Static):
 				text.append("\n")
 			if isinstance(part, PartialThinking):
 				if show_thinking:
-					text.append(part.thinking, style="dim italic")
+					text.append(part.thinking, style=STYLE_THINKING)
 				else:
-					text.append("thinking", style="dim italic")
+					text.append("thinking", style=STYLE_THINKING)
 			elif isinstance(part, PartialText):
 				text.append(part.text)
 			elif isinstance(part, PartialToolCall):
-				text.append(call_line(part.name, None), style="yellow")
-		text.append("▌", style="dim")
+				text.append(call_line(part.name, None), style=STYLE_TOOL_CALL)
+		text.append("▌", style=STYLE_MUTED)
 		self.update(text)
 
 
@@ -305,10 +321,10 @@ def entry_widgets(
 
 def _render_user(message: UserMessage, *, steered: bool) -> Text:
 	text = Text()
-	text.append("↪ " if steered else "❯ ", style="bold cyan")  # noqa: RUF001
+	text.append("↪ " if steered else "❯ ", style=STYLE_PROMPT)  # noqa: RUF001
 	text.append(message.content)
 	if steered:
-		text.append("  (steered)", style="dim")
+		text.append("  (steered)", style=STYLE_MUTED)
 	return text
 
 
@@ -319,7 +335,9 @@ def _assistant_widgets(
 	for block in message.content:
 		if isinstance(block, ThinkingContent):
 			if block.redacted:
-				sealed = Static(Text("thinking · redacted", style="dim italic"), classes="thinking--redacted")
+				sealed = Static(
+					Text("thinking · redacted", style=STYLE_THINKING), classes="thinking--redacted"
+				)
 				widgets.append(sealed)
 			elif block.thinking:
 				# opaque reasoning with no summary has nothing worth a fold
@@ -329,8 +347,8 @@ def _assistant_widgets(
 		elif isinstance(block, ToolCall):
 			widgets.append(ToolCallView(block, entry_seq=message.seq, expanded=expand_tools, running=running))
 	if message.stop_reason in ("aborted", "error"):
-		note = Text(f"[{message.stop_reason}]", style="bold red")
+		note = Text(f"[{message.stop_reason}]", style=STYLE_ERROR_STRONG)
 		if message.error_message:
-			note.append(f" {message.error_message}", style="red")
+			note.append(f" {message.error_message}", style=STYLE_ERROR)
 		widgets.append(Static(note))
 	return widgets
