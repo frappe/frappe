@@ -27,8 +27,12 @@ import frappe
 from frappe import _, _lt
 =======
 from frappe import N_, _
+<<<<<<< HEAD
 from frappe.app_state import is_module_disabled
 >>>>>>> 2d5cf9c (feat: Hide custom fields and property setters of disabled apps)
+=======
+from frappe.app_state import is_disabled_app_filtering_active, is_module_disabled
+>>>>>>> f9feeef (feat: Conceal customizations of a disabled app)
 from frappe.model import (
 	NO_VALUE_FIELDS,
 	child_table_fields,
@@ -446,7 +450,12 @@ class Meta(Document):
 		if not property_setters:
 			return
 
-		property_setters = [ps for ps in property_setters if not is_module_disabled(ps.module)]
+		hide_disabled = is_disabled_app_filtering_active()
+		property_setters = [
+			ps
+			for ps in property_setters
+			if not ((hide_disabled and ps.get("is_app_disabled")) or is_module_disabled(ps.module))
+		]
 
 		for ps in property_setters:
 			if ps.doctype_or_field == "DocType":
@@ -658,6 +667,10 @@ class Meta(Document):
 				filters=dict(parent=self.name),
 				update=dict(doctype="Custom DocPerm"),
 			)
+
+			if is_disabled_app_filtering_active():
+				custom_perms = [d for d in custom_perms if not d.get("is_app_disabled")]
+
 			if custom_perms:
 				self.permissions = [Document(d) for d in custom_perms]
 
@@ -861,6 +874,10 @@ def is_field_hidden_by_app(df) -> bool:
 	regardless of which app declared it.
 	"""
 	from frappe.app_state import get_disabled_doctypes
+
+	# The app that owns this field sets the flag in its `before_disable` hook.
+	if df.get("is_app_disabled") and is_disabled_app_filtering_active():
+		return True
 
 	if is_module_disabled(df.get("module")):
 		return True
