@@ -33,21 +33,13 @@ dependencies = [
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.12.2",
     "bleach-allowlist~=1.0.3",
-<<<<<<< HEAD
     "bleach~=6.3.0",
     "tinycss2==1.5.1",
     "cairocffi==1.5.1",
     "chardet~=5.2.0",
     "croniter~=6.0.0",
-    "cryptography~=46.0.3",
-    "cssutils~=2.11.1",
-=======
-    "chardet~=7.4.3",
-    "croniter~=6.2.2",
     "cryptography~=50.0.0",
-    "cssutils~=2.15.0",
-    "distro~=1.9.0",
->>>>>>> c14dd687e7 (fix: bump cryptography past three advisories (#41589))
+    "cssutils~=2.11.1",
     "email-reply-parser~=0.5.12",
     "gunicorn @ git+https://github.com/frappe/gunicorn@bb554053bb87218120d76ab6676af7015680e8b6",
     "html5lib~=1.1",
@@ -63,17 +55,10 @@ dependencies = [
     "pdfkit~=1.0.0",
     "phonenumbers~=9.0.23",
     "premailer~=3.10.0",
-<<<<<<< HEAD
     "psutil~=5.9.5",
     "psycopg2-binary~=2.9.1",
-    "pyOpenSSL~=26.0.0",
-    "pydantic~=2.12.0",
-=======
-    "psutil~=7.2.2",
-    "psycopg2-binary~=2.9.11",
     "pyOpenSSL~=26.4.0",
-    "pydantic~=2.13.4",
->>>>>>> c14dd687e7 (fix: bump cryptography past three advisories (#41589))
+    "pydantic~=2.12.0",
     "pyotp~=2.9.0",
     "python-dateutil~=2.9.0",
     "pytz==2025.2",
@@ -180,89 +165,3 @@ nixpkgs-deps = [
     "nodejs_20",
     "python312",
 ]
-<<<<<<< HEAD
-=======
-
-[tool.uv]
-exclude-newer = "7 days"
-exclude-newer-package = { cryptography = false, pyOpenSSL = false } # drop cryptography and pyOpenSSL after 2026-08-08
-
-[tool.mypy]
-strict = false
-pretty = true
-incremental = true
-sqlite_cache = true
-files = [
-    # start small, with a lot of multiplication potential
-    "frappe/types/__init__.py",
-    "frappe/types/DF.py",
-    "frappe/types/frappedict.py",
-    "frappe/types/filter.py",
-]
-exclude = [
-    # permanent excludes
-    "^frappe/patches",
-    '/test_.+\.py$',
-    "^frappe/tests/ui_test_helpers.py",
-    "^frappe/parallel_test_runner.py",
-    "^frappe/deprecation_dumpster.py",
-]
-disable_error_code = [
-]
-
-[[tool.mypy.overrides]]
-module = "frappe"
-# Too many for a start
-disable_error_code = [
-    "no-any-expr",
-    "no-untyped-def",
-    "no-untyped-call",
-    "no-untyped-usage",
-]
-
-# External libraries without types
-[[tool.mypy.overrides]]
-module = [
-    "bleach_allowlist",
-    "cssutils",
-    "cups",
-    "email_reply_parser",
-    "filetype",
-    "google",
-    "googleapiclient.discovery",
-    "googleapiclient.errors",
-    "google.oauth2",
-    "google.oauth2.credentials",
-    "markdown2",
-    "markdownify",
-    "num2words",
-    "pdfkit",
-    "premailer",
-    "pyngrok",
-    "pypika",
-    "pypika.dialects",
-    "pypika.functions",
-    "pypika.queries",
-    "pypika.terms",
-    "pypika.utils",
-    "pyqrcode",
-    "rauth",
-    "requests_oauthlib",
-    "RestrictedPython",
-    "RestrictedPython.Guards",
-    "RestrictedPython.transformer",
-    "semantic_version",
-    "sql_metadata",
-    "sqlparse",
-    "terminaltables",
-    "traceback_with_variables",
-    "whoosh.fields",
-    "whoosh.index",
-    "whoosh.qparser",
-    "whoosh.query",
-    "whoosh.writing",
-    "xlrd",
-    "xmlrunner",
-]
-ignore_missing_imports = true
->>>>>>> c14dd687e7 (fix: bump cryptography past three advisories (#41589))
