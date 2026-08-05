@@ -92,7 +92,7 @@ class ModelPicker(FilterPicker):
 
 	def options(self, needle: str) -> Iterable[Option]:
 		return (
-			Option(f"{model['name']}  ·  {model['provider']}", id=model["name"])
+			Option(model["name"], id=model["name"])
 			for model in self._models
 			if needle in model["name"].lower()
 		)

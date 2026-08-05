@@ -114,6 +114,9 @@ async def test_model_picker_lists_catalog_and_selects_highlighted():
 		await _open_picker(pilot, "/model", ModelPicker)
 		options = pilot.app.screen.query_one(OptionList)
 		assert options.option_count == len(MODELS)
+		assert [options.get_option_at_index(index).prompt for index in range(options.option_count)] == [
+			model["name"] for model in MODELS
+		]
 		assert options.highlighted == 0
 
 		await pilot.press("down", "enter")

@@ -1073,6 +1073,7 @@ async def test_small_window_threshold_does_not_fire_on_a_small_conversation(tmp_
 	await _run(session, "second", model=mock)
 
 	assert _of(events, "compaction_started") == []
+	assert [event["context_window"] for event in _of(events, "usage")] == [10_000, 10_000]
 	assert [e["reason"] for e in _of(events, "run_ended")] == ["done", "done"]
 
 

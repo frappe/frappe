@@ -67,6 +67,10 @@ FilterPicker, EffortPicker {
 	background: $background 60%;
 }
 
+CommandPalette SearchIcon {
+	display: none;
+}
+
 .picker {
 	width: 70;
 	max-width: 90%;

@@ -386,11 +386,11 @@ async def test_status_bar_reflects_state():
 		text = _widget_text(pilot.app.query_one(StatusBar))
 		assert "mock" in text and "running" in text and "fake-ses" in text
 
-		fake.feed(Usage(input_tokens=10, output_tokens=5, cost=0.5, seq=2))
+		fake.feed(Usage(input_tokens=10, output_tokens=5, cost=0.5, context_window=256_000, seq=2))
 		fake.feed(RunEnded(seq=3))
 		await pilot.pause()
 		text = _widget_text(pilot.app.query_one(StatusBar))
-		assert "idle" in text and "↑10" in text and "↓5" in text
+		assert "idle" in text and "15/256k" in text
 		assert "$" not in text
 
 

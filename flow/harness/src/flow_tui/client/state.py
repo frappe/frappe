@@ -25,6 +25,7 @@ from flow.events import (
 	AnyEvent,
 	ApprovalRequired,
 	AssistantMessage,
+	Compaction,
 	ModelChanged,
 	PendingCall,
 	ReasoningEffort,
@@ -141,6 +142,8 @@ class ConversationState:
 		self.reasoning_effort: ReasoningEffort | None = None
 		self.input_tokens: int = 0
 		self.output_tokens: int = 0
+		self.context_tokens: int = 0
+		self.context_window: int | None = None
 		self.cost: float = 0.0
 		self.last_error: RunError | None = None
 		self.retry: Retry | None = None
@@ -231,6 +234,12 @@ class ConversationState:
 		if isinstance(event, ModelChanged):
 			self._model_history.append(event)
 			self._fold_model()
+			self.context_tokens = 0
+			self.context_window = None
+			return [StatusChanged()]
+
+		if isinstance(event, Compaction):
+			self.context_tokens = 0
 			return [StatusChanged()]
 
 		if isinstance(event, RunError):
@@ -240,6 +249,9 @@ class ConversationState:
 		if isinstance(event, Usage):
 			self.input_tokens += event.input_tokens
 			self.output_tokens += event.output_tokens
+			self.context_tokens = event.input_tokens + event.output_tokens
+			if event.context_window is not None:
+				self.context_window = event.context_window
 			self.cost += event.cost
 			return [StatusChanged()]
 
@@ -298,6 +310,8 @@ class ConversationState:
 			change for change in self._model_history if change.seq is not None and change.seq <= target_seq
 		]
 		self._fold_model()
+		self.context_tokens = 0
+		self.context_window = None
 		changes.append(EntriesTruncated(target_seq))
 		changes.append(StatusChanged())
 		return changes
