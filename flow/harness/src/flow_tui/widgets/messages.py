@@ -220,9 +220,7 @@ class ToolCallView(Static):
 		elif failed:
 			glyph, style = "✗", STYLE_ERROR_STRONG
 		else:
-			# a settled call needs no mark of its own; the blank keeps it aligned
-			# under the lines that do carry one
-			glyph, style = " ", ""
+			glyph, style = None, ""  # a settled call carries no mark, and no gutter for one
 		if self.call is not None:
 			line = call_line(self.call.name, self.call.arguments)
 		else:
@@ -231,7 +229,8 @@ class ToolCallView(Static):
 		if failed:
 			line.stylize(STYLE_ERROR)  # the failure colour outranks the per-part styles
 		text = Text()
-		text.append(f"{glyph} ", style)
+		if glyph is not None:
+			text.append(f"{glyph} ", style)
 		text.append_text(line)
 		if result is not None and (suffix := status_suffix(result.details)):
 			text.append(f" {suffix}", style=STYLE_ERROR if failed else STYLE_MUTED)
