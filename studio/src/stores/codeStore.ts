@@ -596,7 +596,11 @@ const useCodeStore = defineStore("codeStore", () => {
 		async function loadDoc(currentFilters: Filters) {
 			const request = ++latestRequest
 			const docname = await resolveDocnameFromFilters(resource, currentFilters)
-			if (request !== latestRequest || !docname) return
+			if (request !== latestRequest) return
+			if (!docname) {
+				pageResources[resource.resource_name] = undefined
+				return
+			}
 			const doc = createDoc(docname) as any
 			// carry over the editor's config stamps (see setResourceConfig in setPageResources)
 			const oldDoc = pageResources[resource.resource_name]
