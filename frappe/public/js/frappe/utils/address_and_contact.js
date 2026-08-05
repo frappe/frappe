@@ -1,13 +1,7 @@
 frappe.provide("frappe.contacts");
 frappe.provide("frappe.ui.form");
 
-/**
- * Quick entry for records that belong to a party, such as Address and Contact.
- *
- * When the dialog is opened from a party's form, the new record is linked back to
- * that party and the user stays on the form instead of being sent to the record
- * that was just created. "Edit Full Form" still opens the full page.
- */
+// Links the new record to the party it was created from, and stays on that form.
 class PartyQuickEntryForm extends frappe.ui.form.QuickEntryForm {
 	insert() {
 		const link = this.get_party_link();
@@ -17,11 +11,7 @@ class PartyQuickEntryForm extends frappe.ui.form.QuickEntryForm {
 		return super.insert();
 	}
 
-	/**
-	 * The party is only linked while its form is the open one, so a stale
-	 * frappe.dynamic_link from an earlier visit cannot leak into a record created
-	 * somewhere else.
-	 */
+	// Route check keeps a stale frappe.dynamic_link out of unrelated records.
 	get_party_link() {
 		const link = frappe.dynamic_link;
 		if (!link?.doc) return null;
@@ -67,13 +57,8 @@ frappe.ui.form.ContactQuickEntryForm = class ContactQuickEntryForm extends Party
 		return doc;
 	}
 
-	/**
-	 * Contact.phone and Contact.mobile_no are read only values that validate()
-	 * derives from the phone_nos table. Reusing those fieldnames here would make
-	 * the form layout replace these inputs with the read only definitions and hide
-	 * them, so the numbers are collected under dialog specific fieldnames and
-	 * written to phone_nos on save.
-	 */
+	// Not named phone/mobile_no: those are read only on Contact, so the layout
+	// would swap in the read only definitions and hide the inputs.
 	get_phone_fields() {
 		return [
 			{
@@ -94,61 +79,216 @@ frappe.ui.form.ContactQuickEntryForm = class ContactQuickEntryForm extends Party
 	}
 };
 
+const PARTY_LINK_SECTIONS = [
+	{
+		doctype: "Address",
+		wrapper_field: "address_html",
+		onload_key: "addr_list",
+		template: "address_list",
+		button_selector: ".btn-address",
+		primary_flag: "is_primary_address",
+	},
+	{
+		doctype: "Contact",
+		wrapper_field: "contact_html",
+		onload_key: "contact_list",
+		template: "contact_list",
+		button_selector: ".btn-contact",
+		primary_flag: "is_primary_contact",
+	},
+];
+
+// One card list on a party's form: either its addresses or its contacts.
+class PartyLinkSection {
+	constructor(frm, { doctype, wrapper_field, onload_key, template, button_selector, primary_flag }) {
+		this.frm = frm;
+		this.doctype = doctype;
+		this.wrapper_field = wrapper_field;
+		this.onload_key = onload_key;
+		this.template = template;
+		this.button_selector = button_selector;
+		this.primary_flag = primary_flag;
+	}
+
+	// A missing onload key means the party does not track this link at all.
+	get is_loaded() {
+		const has_wrapper = Boolean(this.frm.fields_dict[this.wrapper_field]);
+		return has_wrapper && this.onload_key in (this.frm.doc.__onload || {});
+	}
+
+	get records() {
+		return this.frm.doc.__onload[this.onload_key] || [];
+	}
+
+	// The party's own link field, such as Customer.customer_primary_address.
+	get primary_field() {
+		return (this.frm.meta.fields || []).find(
+			(df) =>
+				df.fieldtype === "Link" && df.options === this.doctype && /primary/i.test(df.fieldname)
+		)?.fieldname;
+	}
+
+	get primary_name() {
+		if (this.primary_field) return this.frm.doc[this.primary_field];
+		return this.records.find((record) => record[this.primary_flag])?.name;
+	}
+
+	render() {
+		const primary_name = this.primary_name;
+		const records = [...this.records].sort(
+			(first, second) => (second.name === primary_name) - (first.name === primary_name)
+		);
+
+		const $wrapper = $(this.frm.fields_dict[this.wrapper_field].wrapper).html(
+			frappe.render_template(this.template, {
+				...this.frm.doc.__onload,
+				[this.onload_key]: records,
+				primary_name,
+			})
+		);
+
+		$wrapper.find(this.button_selector).on("click", () => this.create_record());
+		this.bind_card_menus($wrapper);
+	}
+
+	bind_card_menus($wrapper) {
+		const by_name = Object.fromEntries(this.records.map((record) => [record.name, record]));
+
+		$wrapper.find(".card-menu-btn").each((index, trigger) => {
+			const record = by_name[trigger.closest("[data-name]")?.dataset.name];
+			if (!record) return;
+			new frappe.ui.Dropdown({
+				trigger,
+				options: this.get_menu_options(record),
+				align: "end",
+			});
+		});
+	}
+
+	get_menu_options(record) {
+		const is_primary = record.name === this.primary_name;
+		return [
+			{
+				label: __("Edit"),
+				icon: "pen",
+				onclick: () => frappe.set_route("Form", this.doctype, record.name),
+			},
+			{
+				label: __("Set as Primary"),
+				icon: "star",
+				condition: () => !is_primary,
+				onclick: () => this.set_primary(record),
+			},
+			{
+				label: __("Unset as Primary"),
+				icon: "star-off",
+				condition: () => is_primary,
+				onclick: () => this.unset_primary(record),
+			},
+			{
+				label: __("Unlink {0}", [__(this.doctype)]),
+				icon: "unlink",
+				onclick: () => this.unlink(record),
+			},
+		];
+	}
+
+	create_record() {
+		const { frm, doctype } = this;
+		frappe.dynamic_link = { doctype: frm.doc.doctype, doc: frm.doc, fieldname: "name" };
+
+		if (frappe.boot.enable_address_autocompletion === 1 && doctype === "Address") {
+			new frappe.ui.AddressAutocompleteDialog({
+				title: __("New Address"),
+				link_doctype: frm.doc.doctype,
+				link_name: frm.doc.name,
+				after_insert: () => frm.reload_doc(),
+			}).show();
+		} else {
+			frappe.new_doc(doctype);
+		}
+	}
+
+	async set_primary(record) {
+		if (this.primary_field) {
+			await frappe.db.set_value(
+				this.frm.doctype,
+				this.frm.docname,
+				this.primary_field,
+				record.name
+			);
+		} else {
+			await frappe.db.set_value(this.doctype, record.name, this.primary_flag, 1);
+		}
+
+		this.frm.reload_doc();
+	}
+
+	async unset_primary(record) {
+		const primary_field = this.primary_field;
+
+		if (primary_field) {
+			const updates = { [primary_field]: null };
+			for (const fieldname of this.get_dependent_fields(primary_field)) {
+				updates[fieldname] = null;
+			}
+			await frappe.db.set_value(this.frm.doctype, this.frm.docname, updates);
+		} else {
+			await frappe.db.set_value(this.doctype, record.name, this.primary_flag, 0);
+		}
+
+		this.frm.reload_doc();
+	}
+
+	// Cleared with the primary link, else hooks like Customer.create_primary_contact
+	// see the stale fetched values and recreate the record.
+	get_dependent_fields(primary_field) {
+		return (this.frm.meta.fields || [])
+			.filter((df) => df.fetch_from?.split(".")[0] === primary_field)
+			.map((df) => df.fieldname);
+	}
+
+	unlink(record) {
+		const record_label = frappe.utils.bold(record.name);
+		const party_label = frappe.utils.bold(this.frm.docname);
+		const message = __("Unlink {0} {1} from {2}?", [
+			__(this.doctype),
+			record_label,
+			party_label,
+		]);
+
+		frappe.confirm(message, () => this.delink_party(record));
+	}
+
+	delink_party(record) {
+		return frappe
+			.xcall("frappe.contacts.address_and_contact.delink_party", {
+				doctype: this.doctype,
+				name: record.name,
+				link_doctype: this.frm.doctype,
+				link_name: this.frm.docname,
+			})
+			.then(() => {
+				frappe.show_alert({
+					message: __("{0} unlinked", [__(this.doctype)]),
+					indicator: "green",
+				});
+				this.frm.reload_doc();
+			});
+	}
+}
+
 $.extend(frappe.contacts, {
 	clear_address_and_contact: function (frm) {
-		for (const field of ["address_html", "contact_html"]) {
-			$(frm.fields_dict[field]?.wrapper)?.html("");
+		for (const wrapper_field of ["address_html", "contact_html"]) {
+			$(frm.fields_dict[wrapper_field]?.wrapper)?.html("");
 		}
 	},
 
 	render_address_and_contact: function (frm) {
-		const sections = [
-			{
-				doctype: "Address",
-				field: "address_html",
-				data: "addr_list",
-				template: "address_list",
-				btn: ".btn-address",
-				primary_flag: "is_primary_address",
-			},
-			{
-				doctype: "Contact",
-				field: "contact_html",
-				data: "contact_list",
-				template: "contact_list",
-				btn: ".btn-contact",
-				primary_flag: "is_primary_contact",
-			},
-		];
-
-		for (const section of sections) {
-			const field_wrapper = frm.fields_dict[section.field]?.wrapper;
-			if (!field_wrapper || !frm.doc.__onload || !(section.data in frm.doc.__onload)) continue;
-
-			const records = frm.doc.__onload[section.data] || [];
-			const primary_name = get_primary_name(frm, section, records);
-			const sorted = [...records].sort(
-				(a, b) => (b.name === primary_name) - (a.name === primary_name)
-			);
-
-			const $wrapper = $(field_wrapper).html(
-				frappe.render_template(section.template, {
-					...frm.doc.__onload,
-					[section.data]: sorted,
-					primary_name,
-				})
-			);
-			$wrapper.find(section.btn).on("click", () => new_record(section.doctype, frm));
-			const by_name = Object.fromEntries(records.map((r) => [r.name, r]));
-			$wrapper.find(".card-menu-btn").each(function () {
-				const record = by_name[this.closest("[data-name]")?.dataset.name];
-				if (!record) return;
-				new frappe.ui.Dropdown({
-					trigger: this,
-					options: card_menu(frm, section, record, primary_name),
-					align: "end",
-				});
-			});
+		for (const options of PARTY_LINK_SECTIONS) {
+			const section = new PartyLinkSection(frm, options);
+			if (section.is_loaded) section.render();
 		}
 	},
 
@@ -192,123 +332,3 @@ $.extend(frappe.contacts, {
 			.then((address_display) => frm.set_value(_display_field, address_display));
 	},
 });
-
-function new_record(doctype, frm) {
-	frappe.dynamic_link = {
-		doctype: frm.doc.doctype,
-		doc: frm.doc,
-		fieldname: "name",
-	};
-
-	if (frappe.boot.enable_address_autocompletion === 1 && doctype === "Address") {
-		new frappe.ui.AddressAutocompleteDialog({
-			title: __("New Address"),
-			link_doctype: frm.doc.doctype,
-			link_name: frm.doc.name,
-			after_insert: function (doc) {
-				frm.reload_doc();
-			},
-		}).show();
-	} else {
-		frappe.new_doc(doctype);
-	}
-}
-
-function card_menu(frm, section, record, primary_name) {
-	const { doctype } = section;
-	const is_primary = record.name === primary_name;
-	return [
-		{
-			label: __("Edit"),
-			icon: "pen",
-			onclick: () => frappe.set_route("Form", doctype, record.name),
-		},
-		{
-			label: __("Set as Primary"),
-			icon: "star",
-			condition: () => !is_primary,
-			onclick: () => set_primary(frm, section, record),
-		},
-		{
-			label: __("Unset as Primary"),
-			icon: "star-off",
-			condition: () => is_primary,
-			onclick: () => unset_primary(frm, section, record),
-		},
-		{
-			label: __("Unlink {0}", [__(doctype)]),
-			icon: "unlink",
-			onclick: () => delink_record(frm, doctype, record.name),
-		},
-	];
-}
-
-function get_primary_field(frm, doctype) {
-	return (frm.meta.fields || []).find(
-		(df) => df.fieldtype === "Link" && df.options === doctype && /primary/i.test(df.fieldname)
-	)?.fieldname;
-}
-
-function get_primary_name(frm, section, records) {
-	const primary_field = get_primary_field(frm, section.doctype);
-	if (primary_field) return frm.doc[primary_field];
-	return records.find((r) => r[section.primary_flag])?.name;
-}
-
-function get_dependent_fields(frm, primary_field) {
-	return (frm.meta.fields || [])
-		.filter((df) => df.fetch_from?.split(".")[0] === primary_field)
-		.map((df) => df.fieldname);
-}
-
-async function set_primary(frm, section, record) {
-	const primary_field = get_primary_field(frm, section.doctype);
-
-	if (primary_field) {
-		await frappe.db.set_value(frm.doctype, frm.docname, primary_field, record.name);
-	} else {
-		await frappe.db.set_value(section.doctype, record.name, section.primary_flag, 1);
-	}
-
-	frm.reload_doc();
-}
-
-async function unset_primary(frm, section, record) {
-	const primary_field = get_primary_field(frm, section.doctype);
-
-	if (primary_field) {
-		const updates = { [primary_field]: null };
-		for (const fieldname of get_dependent_fields(frm, primary_field)) {
-			updates[fieldname] = null;
-		}
-		await frappe.db.set_value(frm.doctype, frm.docname, updates);
-	} else {
-		await frappe.db.set_value(section.doctype, record.name, section.primary_flag, 0);
-	}
-
-	frm.reload_doc();
-}
-
-function delink_record(frm, doctype, name) {
-	const label = `<b>${frappe.utils.escape_html(name)}</b>`;
-	const party_label = `<b>${frappe.utils.escape_html(frm.docname)}</b>`;
-	frappe.confirm(
-		__("Unlink {0} {1} from {2}?", [__(doctype), label, party_label]),
-		() => {
-			frappe
-				.xcall("frappe.contacts.address_and_contact.delink_party", {
-					doctype,
-					name,
-					link_doctype: frm.doctype,
-					link_name: frm.docname,
-				})
-				.then(() => {
-					frappe.show_alert({
-						message: __("{0} unlinked", [__(doctype)]),
-						indicator: "green",
-					});
-					frm.reload_doc();
-				});
-		}
-	);
-}

@@ -26,9 +26,7 @@ def delink_party(doctype: str, name: str, link_doctype: str, link_name: str) -> 
 	doc.check_permission("write")
 
 	remaining = [
-		link
-		for link in doc.links
-		if not (link.link_doctype == link_doctype and link.link_name == link_name)
+		link for link in doc.links if not (link.link_doctype == link_doctype and link.link_name == link_name)
 	]
 	if len(remaining) == len(doc.links):
 		return
