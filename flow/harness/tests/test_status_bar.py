@@ -25,12 +25,15 @@ async def test_status_bar_shows_absolute_context_and_unlabelled_effort(tmp_path:
 	state.reasoning_effort = "high"
 	state.context_tokens = 5_000
 	state.context_window = 256_000
+	state.input_tokens = 12_000
+	state.output_tokens = 3_000
 	async with StatusApp().run_test() as pilot:
 		bar = pilot.app.query_one(StatusBar)
 		bar.refresh_from(state)
 		line = str(bar.render())
 
 		assert "5k/256k" in line
+		assert "↑12k · ↓3k" in line
 		assert line.endswith("codex/gpt-5 · high")
 		assert "effort:" not in line
 

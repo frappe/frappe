@@ -57,6 +57,8 @@ class StatusBar(Static):
 			repository_label(state.cwd),
 			run_state,
 			f"{compact_number(state.context_tokens)}/{window}",
+			f"↑{compact_number(state.input_tokens)}",
+			f"↓{compact_number(state.output_tokens)}",
 		]
 		if queued:
 			parts.append(f"{queued} queued")
