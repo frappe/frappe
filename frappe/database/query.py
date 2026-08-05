@@ -13,9 +13,115 @@ from frappe.database.operator_map import OPERATOR_MAP
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.database.utils import DefaultOrderBy, get_doctype_name
 from frappe.query_builder import Criterion, Field, Order, functions
+<<<<<<< HEAD
 from frappe.query_builder.functions import Function, SqlFunctions
 from frappe.query_builder.utils import PseudoColumnMapper
 from frappe.utils.data import MARIADB_SPECIFIC_COMMENT
+=======
+from frappe.query_builder.custom import Month, MonthName, Quarter, Year
+
+CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
+	(
+		"Custom Field",
+		"Property Setter",
+		"Module Def",
+		"__Auth",
+		"__global_search",
+		"Singles",
+		"Sessions",
+		"Series",
+	)
+)
+
+
+def _apply_date_field_filter_conversion(value, operator: str, doctype: str, field):
+	"""Apply datetime to date conversion for Date fieldtype filters.
+
+	This matches db_query behavior where datetime values are truncated to dates
+	when filtering on Date fields, for all operators (not just 'between').
+
+	Args:
+		value: The filter value (can be datetime, tuple of datetimes, or other)
+		operator: The operator being used (between, >, <, etc.)
+		doctype: The doctype to get field metadata from
+		field: The field name or pypika Field object
+
+	Returns:
+		The converted value with datetimes converted to dates if field is Date type
+	"""
+	try:
+		# Extract field name
+		if "." in str(field):
+			field = field.split(".")[-1]
+
+		# Skip querying meta for core doctypes to avoid recursion
+		if doctype in CORE_DOCTYPES:
+			meta = None
+		else:
+			meta = frappe.get_meta(doctype)
+
+		if meta is None:
+			return value
+
+		df = meta.get_field(field)
+		if df is None or df.fieldtype != "Date":
+			return value
+
+		# Convert datetime to date if the fieldtype is date
+		if operator.lower() == "between" and isinstance(value, list | tuple) and len(value) == 2:
+			from_val, to_val = value
+			if isinstance(from_val, datetime.datetime):
+				from_val = from_val.date()
+			if isinstance(to_val, datetime.datetime):
+				to_val = to_val.date()
+			return (from_val, to_val)
+		elif isinstance(value, datetime.datetime):
+			return value.date()
+
+	except (AttributeError, TypeError, KeyError):
+		pass
+
+	return value
+
+
+def _apply_datetime_field_filter_conversion(between_values: tuple | list, doctype: str, field) -> tuple:
+	"""Apply date to datetime conversion for Datetime fields with 'between' operator.
+
+	Args:
+		between_values: Tuple/list of two values [from, to] for between filter
+		doctype: DocType name
+		field: Field name or pypika Field object
+
+	Returns:
+		Tuple with dates expanded to datetime ranges for Datetime fields
+	"""
+	from frappe.utils.data import convert_type_for_between_filters
+
+	# Extract field name
+	field_name = field
+	if "." in str(field):
+		field_name = field.split(".")[-1]
+
+	# Skip querying meta for core doctypes to avoid recursion
+	if doctype in CORE_DOCTYPES:
+		df = None
+	else:
+		meta = frappe.get_meta(doctype)
+		df = meta.get_field(field_name) if meta else None
+
+	# Standard datetime fields or Datetime fieldtype
+	if not (field_name in ("creation", "modified") or (df and df.fieldtype == "Datetime")):
+		return between_values
+
+	from_val, to_val = between_values
+
+	# Convert to datetime using shared helper (handles strings, dates, datetimes)
+	from_val = convert_type_for_between_filters(from_val, set_time=datetime.time())
+	to_val = convert_type_for_between_filters(to_val, set_time=datetime.time(23, 59, 59, 999999))
+
+	return (from_val, to_val)
+
+>>>>>>> bb4f787909 (feat: add between operator to evaluate_filters (#41610))
 
 if TYPE_CHECKING:
 	from frappe.query_builder import DocType
