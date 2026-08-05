@@ -51,7 +51,7 @@ from flow_tui.theme import (
 SPINNER_FRAMES = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
 _PREVIEW_LINES = 3
 _DIFF_PREVIEW_LINES = 32
-THINKING_MARKER = "Thinking … ctrl+t to expand"
+THINKING_MARKER = "Thinking… ctrl+t to expand"
 
 
 def call_line(name: str, args: dict | None) -> str:
