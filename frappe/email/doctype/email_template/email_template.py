@@ -53,4 +53,5 @@ def get_email_template(template_name, doc):
 	"""Returns the processed HTML of a email template with the given doc"""
 
 	email_template = frappe.get_doc("Email Template", template_name)
+	email_template.check_permission("read")
 	return email_template.get_formatted_email(doc)
