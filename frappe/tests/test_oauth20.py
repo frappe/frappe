@@ -308,7 +308,8 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.assertEqual(decoded_token["email"], "test@example.com")
 
 	def test_invalid_refresh_token_does_not_leak_lookup(self):
-		frappe.db.commit()
+		# The request thread needs to see the client created in setUp.
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 		refresh_response = self.post(
 			"/api/method/frappe.integrations.oauth2.get_token",
 			headers=self.get_client_auth_headers(),
