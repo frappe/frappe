@@ -122,6 +122,27 @@ class TestOAuth20(FrappeRequestTestCase):
 
 		self.assertEqual(redirect_query, {key: [value] for key, value in params.items()})
 
+	def test_authorize_post_rejects_unsupported_content_types(self):
+		params = {
+			"client_id": self.client_id,
+			"scope": self.scope,
+			"response_type": "code",
+			"redirect_uri": self.redirect_uri,
+		}
+
+		for content_type, data in (
+			("application/json", frappe.as_json(params)),
+			("text/plain", encode_params(params)),
+		):
+			with self.subTest(content_type=content_type):
+				response = self.post(
+					"/api/method/frappe.integrations.oauth2.authorize",
+					data,
+					headers={"content-type": content_type},
+				)
+
+				self.assertEqual(response.status_code, 415)
+
 	def test_login_using_authorization_code(self):
 		update_client_for_auth_code_grant(self.client_id)
 
