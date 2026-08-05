@@ -41,7 +41,6 @@ from flow_tui.theme import (
 	STYLE_ERROR,
 	STYLE_ERROR_STRONG,
 	STYLE_MUTED,
-	STYLE_PROMPT,
 	STYLE_RUNNING,
 	STYLE_SUCCESS_STRONG,
 	STYLE_THINKING,
@@ -335,9 +334,8 @@ def entry_widgets(
 
 
 def _render_user(message: UserMessage, *, steered: bool) -> Text:
-	text = Text()
-	text.append("↪ " if steered else "❯ ", style=STYLE_PROMPT)  # noqa: RUF001
-	text.append(message.content)
+	# the tinted background marks a user entry, so a prompt glyph adds nothing
+	text = Text(message.content)
 	if steered:
 		text.append("  (steered)", style=STYLE_MUTED)
 	return text

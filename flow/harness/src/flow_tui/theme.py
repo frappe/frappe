@@ -89,7 +89,6 @@ STYLE_ERROR_STRONG = f"bold {_RED}"
 STYLE_SUCCESS_STRONG = f"bold {_GREEN}"
 STYLE_RUNNING = _YELLOW
 STYLE_TOOL_CALL = _YELLOW
-STYLE_PROMPT = f"bold {_TEAL}"
 
 
 class Base16Style(Style):
