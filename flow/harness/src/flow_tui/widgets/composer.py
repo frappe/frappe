@@ -2,8 +2,8 @@
 alt+enter asks the app to queue the message for after the current run. Lines that
 start with `/` are commands, never conversation — they dispatch immediately.
 
-`ctrl+x` arms a short-lived chord; `ctrl+e` while armed asks the app to open the
-draft in the external editor."""
+Up and down browse submitted prompts. `ctrl+x` arms a short-lived chord; `ctrl+e`
+while armed asks the app to open the draft in the external editor."""
 
 from __future__ import annotations
 
@@ -32,6 +32,12 @@ class Composer(TextArea):
 
 	_chord_timer: Timer | None = None
 
+	def __init__(self, *args, **kwargs) -> None:
+		super().__init__(*args, **kwargs)
+		self._history: list[str] = []
+		self._history_index: int | None = None
+		self._history_draft = ""
+
 	def on_mount(self) -> None:
 		# a blinking cursor pulls the eye away from the streaming transcript
 		self.cursor_blink = False
@@ -39,6 +45,44 @@ class Composer(TextArea):
 	@property
 	def chord_armed(self) -> bool:
 		return self._chord_timer is not None
+
+	def set_history(self, prompts: list[str]) -> None:
+		"""Prepend durable prompts loaded from this and earlier sessions."""
+		self._history = [*prompts, *self._history]
+		self._reset_history_navigation()
+
+	def _remember(self, text: str) -> None:
+		self._history.append(text)
+		self._reset_history_navigation()
+
+	def _reset_history_navigation(self) -> None:
+		self._history_index = None
+		self._history_draft = ""
+
+	def _show_history(self, text: str) -> None:
+		self.load_text(text)
+		self.move_cursor(self.document.end)
+
+	def _history_up(self) -> None:
+		if not self._history:
+			return
+		if self._history_index is None:
+			self._history_draft = self.text
+			self._history_index = len(self._history) - 1
+		elif self._history_index > 0:
+			self._history_index -= 1
+		self._show_history(self._history[self._history_index])
+
+	def _history_down(self) -> bool:
+		if self._history_index is None:
+			return False
+		if self._history_index < len(self._history) - 1:
+			self._history_index += 1
+			self._show_history(self._history[self._history_index])
+		else:
+			self._show_history(self._history_draft)
+			self._reset_history_navigation()
+		return True
 
 	def _arm_chord(self) -> None:
 		self._disarm_chord()
@@ -62,6 +106,15 @@ class Composer(TextArea):
 			event.prevent_default()
 			self._arm_chord()
 			return
+		if event.key == "up":
+			event.stop()
+			event.prevent_default()
+			self._history_up()
+			return
+		if event.key == "down" and self._history_down():
+			event.stop()
+			event.prevent_default()
+			return
 		if event.key in ("enter", "alt+enter"):
 			event.stop()
 			event.prevent_default()
@@ -69,7 +122,9 @@ class Composer(TextArea):
 			if text.startswith("/"):
 				self.post_message(self.CommandSubmitted(text))
 				self.clear()
+				self._reset_history_navigation()
 			elif text:
+				self._remember(text)
 				self.post_message(self.Submitted(text, queue=event.key == "alt+enter"))
 				self.clear()
 			return

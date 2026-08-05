@@ -135,6 +135,7 @@ class ControllerLike(Protocol):
 	async def rewind(self, target_seq: int) -> None: ...
 	async def list_sessions(self) -> list[dict]: ...
 	async def list_models(self) -> dict: ...
+	async def prompt_history(self, limit: int = 100) -> list[str]: ...
 	async def new_session(self) -> str: ...
 	async def switch_session(self, sid: str) -> None: ...
 
@@ -193,6 +194,12 @@ class FlowApp(App):
 	async def _run_controller(self) -> None:
 		try:
 			await self.controller.connect()
+			load_history = getattr(self.controller, "prompt_history", None)
+			if load_history is not None:
+				try:
+					self.query_one(Composer).set_history(await load_history())
+				except FlowAPIError as error:
+					self.notify(f"could not load prompt history: {error.detail}", severity="warning")
 			await self.controller.stream_events()
 		except FlowAPIError as error:
 			self.query_one("#error-banner", Static).update(f"✗ {error}")

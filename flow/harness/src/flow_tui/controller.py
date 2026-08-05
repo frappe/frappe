@@ -129,6 +129,26 @@ class Controller:
 	async def list_models(self) -> dict:
 		return await self.client.list_models()
 
+	async def prompt_history(self, limit: int = 100) -> list[str]:
+		"""Return recent prompts, oldest first, with the active session first in
+		reverse navigation and then earlier sessions by recent activity."""
+		if limit <= 0:
+			return []
+		sessions = await self.client.list_sessions()
+		sids = [item["session_id"] for item in sessions]
+		if self.session_id is not None:
+			sids = [self.session_id, *(sid for sid in sids if sid != self.session_id)]
+
+		recent: list[str] = []
+		for sid in sids:
+			data = await self.client.entries(sid, path="all")
+			for entry in reversed(data["entries"]):
+				if entry.get("type") == "user_message":
+					recent.append(entry["content"])
+					if len(recent) == limit:
+						return list(reversed(recent))
+		return list(reversed(recent))
+
 	async def new_session(self) -> str:
 		"""Create a fresh session from the launch config and switch to it."""
 		sid = await self.client.create_session(self.config or SessionConfig())
