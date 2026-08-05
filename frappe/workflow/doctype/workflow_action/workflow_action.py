@@ -7,7 +7,6 @@ import frappe
 from frappe import _
 from frappe.desk.form.utils import get_pdf_link
 from frappe.desk.notifications import clear_doctype_notifications
-from frappe.email.doctype.email_template.email_template import get_email_template
 from frappe.model.document import Document
 from frappe.model.workflow import (
 	apply_workflow,
@@ -533,7 +532,7 @@ def get_email_template_from_workflow(doc):
 
 	if isinstance(doc, Document):
 		doc = doc.as_dict()
-	return get_email_template(template_name, doc)
+	return frappe.get_doc("Email Template", template_name).get_formatted_email(doc)
 
 
 def get_state_optional_field_value(workflow_name, state):
