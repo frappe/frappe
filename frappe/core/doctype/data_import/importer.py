@@ -9,8 +9,8 @@ from datetime import date, datetime, time
 
 import frappe
 from frappe import _
-from frappe.core.doctype.data_import.value_mapping import INVALID_VALUES
 from frappe.app_state import clear_cache_after_maintenance
+from frappe.core.doctype.data_import.value_mapping import INVALID_VALUES
 from frappe.core.doctype.version.version import get_diff
 from frappe.model import no_value_fields
 from frappe.utils import cint, cstr, duration_to_seconds, flt, update_progress_bar
@@ -362,7 +362,7 @@ class Importer:
 			# Setting "Partial Success" here allows the UI to show recovery state.
 			if self.data_import.name and (inserted_count > 0 or updated_count > 0):
 				self.data_import.db_set("status", "Partial Success")
-				frappe.db.commit()
+				frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit -- checkpoint status durability before next batch to avoid stale In Progress on worker crash
 
 		# Logs are db inserted directly so will have to be fetched again
 		import_log = (
