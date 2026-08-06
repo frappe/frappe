@@ -147,8 +147,13 @@ class TestAutomationFlow(IntegrationTestCase):
 		doc.insert()
 		self.assertTrue(doc.name)
 
-	def test_enabling_date_based_flow_blocked(self):
+	def test_date_based_flow_enables(self):
 		doc = make_automation(
-			trigger_type="Date Based", date_field="date", date_direction="Before", enabled=1
+			trigger_type="Date Based", date_field="date", date_direction="Before", date_offset=3, enabled=1
 		)
+		doc.insert()
+		self.assertTrue(doc.name)
+
+	def test_date_based_requires_field_and_direction(self):
+		doc = make_automation(trigger_type="Date Based", date_field=None, date_direction=None)
 		self.assertRaises(frappe.ValidationError, doc.insert)
