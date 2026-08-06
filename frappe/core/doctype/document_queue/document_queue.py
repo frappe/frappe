@@ -349,6 +349,7 @@ def validate_upload_first_workflow_doctype(document_type: str):
 		)
 
 
+@frappe.whitelist()
 def is_upload_first_workflow_doctype(document_type: str) -> bool:
 	if not document_type:
 		return False

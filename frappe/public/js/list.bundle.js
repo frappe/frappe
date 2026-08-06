@@ -38,3 +38,4 @@ import "./frappe/views/image/photoswipe_dom.html";
 import "./frappe/views/kanban/kanban_board.html";
 import "./frappe/views/kanban/kanban_column.html";
 import "./frappe/views/kanban/kanban_card.html";
+import "./frappe/list/document_queue_list_action.js";
