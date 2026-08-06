@@ -11,6 +11,18 @@ import frameworkUIAlias from "./vite/frameworkUIAlias"
 
 const viteDevServerPort = getViteDevServerPort()
 const appsDir = path.resolve(__dirname, "../../")
+// Apps can be symlinked into apps/ from elsewhere (e.g. git worktrees under bench/.worktrees).
+// For those, allow only the checkout's studio/ folder
+const appSymlinkedSources = fs.readdirSync(appsDir).flatMap((entry) => {
+	try {
+		const realPath = fs.realpathSync(path.join(appsDir, entry))
+		if (realPath.startsWith(appsDir + path.sep)) return []
+		const studioDir = path.join(realPath, "studio")
+		return fs.existsSync(studioDir) ? [studioDir] : []
+	} catch {
+		return []
+	}
+})
 
 // @framework/ui (apps/frappe/ui) only exists on newer frappe (develop). On older
 // frappe it's absent, so its vite plugin, aliases, and component imports must be
@@ -46,10 +58,9 @@ export default defineConfig(async () => {
 			// Allow cross-origin requests from the renderer running on webserver port to Vite dev server.
 			cors: true,
 			fs: {
-				// Allow serving files from anywhere in the bench (for custom Vue components).
-				// Bench root, not apps/: apps checked out as git worktrees (bench/.worktrees/<name>)
-				// resolve outside apps/ and must still be importable.
-				allow: [path.resolve(__dirname, "../../../")],
+				// Allow serving custom Vue components and page scripts from any app, including ones
+				// symlinked from outside apps/
+				allow: [appsDir, ...appSymlinkedSources],
 			},
 			watch: {
 				// unplugin-vue-components generates this file which causes HMR while building other studio apps
