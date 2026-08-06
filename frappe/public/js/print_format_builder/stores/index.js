@@ -270,12 +270,16 @@ export function getStore(print_format_name) {
 	}
 	// stops after a failure so the error dialog doesn't loop; a manual save re-arms it
 	let autosave_stopped = false;
+	// one autosave at a time — a second would carry the same `modified` as the one
+	// still in flight and be rejected as stale
+	let autosave_inflight = false;
 	function autosave_changes() {
 		if (!dirty.value || autosave_stopped) return;
-		if (document.body.classList.contains("pfb-dragging")) {
+		if (autosave_inflight || document.body.classList.contains("pfb-dragging")) {
 			autosave();
 			return;
 		}
+		autosave_inflight = true;
 		dirty.value = false;
 		saving_count.value++;
 		const epoch = draft_epoch;
@@ -312,7 +316,10 @@ export function getStore(print_format_name) {
 				dirty.value = true;
 				save_failed.value = true;
 			})
-			.always(() => saving_count.value--);
+			.always(() => {
+				autosave_inflight = false;
+				saving_count.value--;
+			});
 	}
 	const autosave = frappe.utils.debounce(autosave_changes, 3000);
 	function get_preview_format_doc() {

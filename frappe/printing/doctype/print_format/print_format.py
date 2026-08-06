@@ -304,7 +304,10 @@ def _writable_format(name: str, modified: str | None):
 	"""
 	doc = frappe.get_doc("Print Format", name)
 	doc.check_permission("write")
-	if modified and frappe.utils.cstr(doc.modified) != frappe.utils.cstr(modified):
+	# lock the row for the rest of the transaction, so the check and the write that
+	# follows it can't interleave with another request doing the same
+	current = frappe.db.get_value("Print Format", name, "modified", for_update=True)
+	if modified and frappe.utils.cstr(current) != frappe.utils.cstr(modified):
 		frappe.throw(
 			_("{0} has changed since you opened it. Refresh to get the latest version.").format(
 				frappe.bold(name)
