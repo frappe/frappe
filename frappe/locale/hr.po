@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-02 10:07+0000\n"
-"PO-Revision-Date: 2026-08-05 16:57\n"
+"PO-Revision-Date: 2026-08-06 17:02\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -2534,7 +2534,7 @@ msgstr "Naziv Aplikacije (Ime Klijenta)"
 
 #: frappe/integrations/frappe_providers/cloud_marketplace.py:108
 msgid "App name is required."
-msgstr ""
+msgstr "Naziv aplikacije je obavezan."
 
 #: frappe/modules/utils.py:343
 msgid "App not found for module: {0}"
@@ -5160,7 +5160,7 @@ msgstr "Zatvoreno"
 #: frappe/desk/page/desktop/desktop.html:29
 #: frappe/desk/page/desktop/desktop.html:30
 msgid "Cloud settings"
-msgstr ""
+msgstr "Postavke Oblaka"
 
 #: frappe/templates/discussions/comment_box.html:25
 #: frappe/templates/discussions/reply_section.html:53
@@ -6006,7 +6006,7 @@ msgstr "Nije moguće parsati polje: {0}"
 
 #: frappe/integrations/frappe_providers/cloud_settings.py:62
 msgid "Could not reach your server: {0}"
-msgstr ""
+msgstr "Nije moguće uspostaviti vezu s vašim poslužiteljem: {0}"
 
 #: frappe/utils/pdf_generator/chrome_pdf_generator.py:175
 msgid "Could not start Chromium. Check logs for details."
@@ -6019,7 +6019,7 @@ msgstr "Nije moguće pokrenuti:"
 #: frappe/desk/page/desktop/desktop.js:467
 #: frappe/desk/page/desktop/desktop.js:477
 msgid "Couldn't open Cloud settings. Please try again."
-msgstr ""
+msgstr "Nije moguće otvoriti Postavke Oblaka. Pokušaj ponovo."
 
 #: frappe/public/js/frappe/web_form/web_form.js:384
 msgid "Couldn't save, please check the data you have entered"
@@ -8596,7 +8596,7 @@ msgstr "Postavke Domena"
 
 #: frappe/integrations/frappe_providers/cloud_settings.py:406
 msgid "Domain is required."
-msgstr ""
+msgstr "Domena je obavezna."
 
 #. Label of the domains_html (HTML) field in DocType 'Domain Settings'
 #: frappe/core/doctype/domain_settings/domain_settings.json
@@ -23235,7 +23235,7 @@ msgstr "Zahtjev za Brisanje Računa"
 
 #: frappe/integrations/frappe_providers/cloud_settings.py:69
 msgid "Request to your server failed."
-msgstr ""
+msgstr "Zahtjev upućen vašem poslužitelju nije uspio."
 
 #. Label of the requested_numbers (Code) field in DocType 'SMS Log'
 #: frappe/core/doctype/sms_log/sms_log.json
@@ -27725,7 +27725,7 @@ msgstr "Zadatak"
 
 #: frappe/integrations/frappe_providers/cloud_settings.py:267
 msgid "Task id is required."
-msgstr ""
+msgstr "ID zadatka je obavezan."
 
 #. Label of the tasks (Table) field in DocType 'Workflow Transition Tasks'
 #: frappe/workflow/doctype/workflow_transition_tasks/workflow_transition_tasks.json
@@ -32176,7 +32176,7 @@ msgstr "Izradili ste ovaj dokument {0}"
 
 #: frappe/integrations/frappe_providers/cloud_settings.py:125
 msgid "You do not have access to Cloud Settings for this site."
-msgstr ""
+msgstr "Nemate pristup postavkama oblaka za ovu web lokaciju."
 
 #: frappe/public/js/frappe/request.js:175
 msgid "You do not have enough permissions to access this resource. Please contact your manager to get access."
@@ -33766,7 +33766,7 @@ msgstr "{0} nije važeće Stanje Radnog Toka. Ažuriraj Tijek  Rada i pokušaj p
 
 #: frappe/desk/calendar.py:54
 msgid "{0} is not a valid field of {1}"
-msgstr ""
+msgstr "{0} nije valjano polje od {1}"
 
 #: frappe/permissions.py:845
 msgid "{0} is not a valid parent DocType for {1}"
