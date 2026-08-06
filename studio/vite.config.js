@@ -46,8 +46,10 @@ export default defineConfig(async () => {
 			// Allow cross-origin requests from the renderer running on webserver port to Vite dev server.
 			cors: true,
 			fs: {
-				// Allow serving files from any app in the bench apps folder (for custom Vue components)
-				allow: [path.resolve(__dirname, "../../")],
+				// Allow serving files from anywhere in the bench (for custom Vue components).
+				// Bench root, not apps/: apps checked out as git worktrees (bench/.worktrees/<name>)
+				// resolve outside apps/ and must still be importable.
+				allow: [path.resolve(__dirname, "../../../")],
 			},
 			watch: {
 				// unplugin-vue-components generates this file which causes HMR while building other studio apps
