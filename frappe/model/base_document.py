@@ -560,9 +560,17 @@ class BaseDocument:
 		d = _dict()
 		field_values = self.__dict__
 		field_map = self.meta._fields
+		masked_fieldnames = self.flags.get("masked_fieldnames")
 
 		for fieldname in self.meta.get_valid_fields():
 			value = field_values.get(fieldname)
+
+			# Masked fields hold the XXXXXXXX placeholder; pass it through untouched so it is not
+			# cast back to 0 for numeric fieldtypes. Only truthy values get masked, so falsy ones
+			# fall through to the normal null-aware path.
+			if value and fieldname in (masked_fieldnames or ()):
+				d[fieldname] = value
+				continue
 
 			# if no need for sanitization and value is None, continue
 			if not sanitize and value is None:
@@ -798,13 +806,6 @@ class BaseDocument:
 		)
 
 		columns = list(d)
-		# On postgres a failed statement aborts the whole transaction, so the duplicate/unique paths
-		# below (and the hash-collision retry) would leave it unusable. Wrap the INSERT in a savepoint
-		# and roll back to it on those handled errors, so the transaction survives the raised
-		# exception exactly like MariaDB (which does not abort). MariaDB keeps its existing path.
-		save_point = f"insert_{frappe.generate_hash(length=10)}" if frappe.db.db_type == "postgres" else None
-		if save_point:
-			frappe.db.savepoint(save_point)
 		try:
 			name = frappe.db.sql(
 				"""INSERT INTO `tab{doctype}` ({columns})
@@ -820,15 +821,8 @@ class BaseDocument:
 			if (
 				frappe.db.db_type == "postgres" and self.meta.autoname == "hash" and not name
 			):  # To avoid a transaction block, we regen in try (pg specific)
-				if save_point:
-					frappe.db.release_savepoint(save_point)
-					# already released: don't let the except handler roll back to a freed savepoint
-					save_point = None
 				return self._handle_hash_conflict()
 		except Exception as e:
-			if save_point:
-				# keep the transaction usable after the failed INSERT (postgres aborts otherwise)
-				frappe.db.rollback(save_point=save_point)
 			if frappe.db.is_primary_key_violation(e):
 				if self.meta.autoname == "hash":
 					# hash collision? try again
@@ -848,9 +842,6 @@ class BaseDocument:
 
 			else:
 				raise
-		else:
-			if save_point:
-				frappe.db.release_savepoint(save_point)
 
 		self.set("__islocal", False)
 
@@ -871,11 +862,6 @@ class BaseDocument:
 
 		columns = list(d)
 
-		# see db_insert: a savepoint keeps the transaction usable on postgres after a handled unique
-		# violation (postgres aborts the transaction on any failed statement, MariaDB does not).
-		save_point = f"update_{frappe.generate_hash(length=10)}" if frappe.db.db_type == "postgres" else None
-		if save_point:
-			frappe.db.savepoint(save_point)
 		try:
 			frappe.db.sql(
 				"""UPDATE `tab{doctype}`
@@ -886,8 +872,6 @@ class BaseDocument:
 			)
 
 		except Exception as e:
-			if save_point:
-				frappe.db.rollback(save_point=save_point)
 			if frappe.db.is_data_too_long(e):
 				column = re.search(r"column\s+'([^']+)'", e.args[1])
 				if column:
@@ -905,9 +889,6 @@ class BaseDocument:
 				self.show_unique_validation_message(e)
 			else:
 				raise
-		else:
-			if save_point:
-				frappe.db.release_savepoint(save_point)
 
 	def db_update_all(self):
 		"""Raw update parent + children
@@ -1079,7 +1060,11 @@ class BaseDocument:
 				assert df.fieldtype == "Dynamic Link"
 				doctype = self.get(df.options)
 				if not doctype:
-					frappe.throw(_("{0} must be set first").format(_(self.meta.get_label(df.options))))
+					frappe.throw(
+						_("{0} must be set first").format(
+							_(self.meta.get_label(df.options), context=self.doctype)
+						)
+					)
 				invalidate_distinct_link_doctypes(df.parent, df.options, doctype)
 
 			meta = frappe.get_meta(doctype)
@@ -1208,7 +1193,7 @@ class BaseDocument:
 			if value not in options and not (frappe.in_test and value.startswith("_T-")):
 				# show an elaborate message
 				prefix = _("Row #{0}:").format(self.idx) if self.get("parentfield") else ""
-				label = _(self.meta.get_label(df.fieldname))
+				label = _(self.meta.get_label(df.fieldname), context=self.doctype)
 				comma_options = '", "'.join(_(each) for each in options)
 
 				frappe.throw(
@@ -1283,7 +1268,9 @@ class BaseDocument:
 
 			if self.get(fieldname) != value:
 				frappe.throw(
-					_("Value cannot be changed for {0}").format(_(self.meta.get_label(fieldname))),
+					_("Value cannot be changed for {0}").format(
+						_(self.meta.get_label(fieldname), context=self.doctype)
+					),
 					frappe.CannotChangeConstantError,
 				)
 
@@ -1563,15 +1550,12 @@ class BaseDocument:
 		return print_hide
 
 	def in_format_data(self, fieldname):
-		"""Return True if shown via Print Format::`format_data` property.
+		"""Compatibility shim for third-party server-side print templates.
 
-		Called from within standard print format."""
-		doc = getattr(self, "parent_doc", self)
-
-		if hasattr(doc, "format_data_map"):
-			return fieldname in doc.format_data_map
-		else:
-			return True
+		The classic print format builder that populated `format_data_map` has been
+		removed; builder layouts now render through PrintFormatGenerator, so every
+		field is considered in scope here."""
+		return True
 
 	def reset_values_if_no_permlevel_access(self, has_access_to, high_permlevel_fields, mask_fields=None):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""

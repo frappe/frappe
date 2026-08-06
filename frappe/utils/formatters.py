@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import datetime
+import re
 
 from dateutil.parser import ParserError
 
@@ -18,6 +19,8 @@ from frappe.utils import (
 	format_timedelta,
 	formatdate,
 )
+
+BLOCK_TAGS_PATTERN = re.compile(r"(<br|<div|<p)")
 
 
 def format_value(value, df=None, doc=None, currency=None, translated=False, format=None):
@@ -46,6 +49,8 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 				df.fieldtype = "Float"
 			case _:
 				df.fieldtype = "Data"
+
+		assert df.get("fieldtype"), "value type guessing must always resolve a fieldtype"
 
 	elif isinstance(df, dict):
 		# Convert dict to object if necessary
@@ -91,11 +96,15 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 
 		return fmt_money(value, precision=precision, currency=currency)
 
+	elif df.get("fieldtype") == "Int":
+		return "" if value == "" else cstr(cint(value))
+
 	elif df.get("fieldtype") == "Percent":
 		return f"{flt(value, 2)}%"
 
-	elif df.get("fieldtype") in ("Text", "Small Text"):
-		return frappe.utils.escape_html(frappe.safe_decode(value)).replace("\n", "<br>")
+	elif df.get("fieldtype") in ("Text", "Small Text", "Long Text"):
+		if not BLOCK_TAGS_PATTERN.search(value):
+			return frappe.safe_decode(value).replace("\n", "<br>")
 
 	elif df.get("fieldtype") == "Markdown Editor":
 		return frappe.utils.markdown(value)

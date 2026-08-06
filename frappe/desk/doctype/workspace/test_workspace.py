@@ -1,5 +1,7 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
+import json
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
@@ -36,6 +38,114 @@ class TestWorkspace(IntegrationTestCase):
 	# 		self.assertEqual(len(cards), 2)
 	# 	else:
 	# 		self.assertEqual(len(cards), 1)
+
+	def test_save_page_with_new_widgets_as_dict(self):
+		"""save_page receives new_widgets already parsed into a dict by the request layer."""
+		from frappe.desk.doctype.workspace.workspace import save_page
+
+		workspace = frappe.new_doc("Workspace")
+		workspace.label = "New Widget Test Workspace"
+		workspace.title = "New Widget Test Workspace"
+		workspace.public = 0
+		workspace.for_user = frappe.session.user
+		workspace.content = "[]"
+		workspace.insert()
+
+		blocks = json.dumps(
+			[{"id": "abcdef1234", "type": "shortcut", "data": {"shortcut_name": "ToDo", "col": 4}}]
+		)
+
+		try:
+			save_page(
+				name=workspace.name,
+				public=0,
+				new_widgets={"shortcut": [{"type": "DocType", "link_to": "ToDo", "label": "ToDo"}]},
+				blocks=blocks,
+			)
+
+			saved = frappe.get_doc("Workspace", workspace.name)
+			self.assertEqual([shortcut.label for shortcut in saved.shortcuts], ["ToDo"])
+		finally:
+			frappe.db.delete("Workspace", {"name": workspace.name})
+
+	def test_duplicate_shortcut_labels_are_rejected(self):
+		"""Two shortcuts sharing a label would collapse into one row on save, so block it."""
+		workspace = frappe.new_doc("Workspace")
+		workspace.label = "Duplicate Shortcut Workspace"
+		workspace.title = "Duplicate Shortcut Workspace"
+		workspace.public = 0
+		workspace.for_user = frappe.session.user
+		workspace.content = "[]"
+
+		for stats_filter in (
+			'[["ToDo","status","!=","Open",false]]',
+			'[["ToDo","status","=","Closed",false]]',
+		):
+			workspace.append(
+				"shortcuts",
+				{"type": "DocType", "link_to": "ToDo", "label": "Tasks", "stats_filter": stats_filter},
+			)
+
+		try:
+			with self.assertRaises(frappe.ValidationError):
+				workspace.insert()
+		finally:
+			frappe.db.delete("Workspace", {"name": workspace.name})
+
+	def test_preexisting_duplicate_labels_stay_editable(self):
+		"""Duplicates already stored (shipped app data, older sites) must not lock the workspace."""
+		workspace = frappe.new_doc("Workspace")
+		workspace.label = "Legacy Duplicate Workspace"
+		workspace.title = "Legacy Duplicate Workspace"
+		workspace.public = 0
+		workspace.for_user = frappe.session.user
+		workspace.content = "[]"
+		workspace.insert()
+
+		try:
+			# simulate data that predates the check, bypassing validate()
+			for idx in (1, 2):
+				frappe.get_doc(
+					{
+						"doctype": "Workspace Shortcut",
+						"parent": workspace.name,
+						"parenttype": "Workspace",
+						"parentfield": "shortcuts",
+						"idx": idx,
+						"type": "DocType",
+						"link_to": "ToDo",
+						"label": "Tasks",
+					}
+				).db_insert()
+
+			workspace.reload()
+			self.assertEqual(len(workspace.shortcuts), 2)
+
+			# an unrelated edit still saves; the grandfathered duplicate is not re-raised
+			workspace.title = "Legacy Duplicate Workspace Renamed"
+			workspace.save()
+
+			# deepening the existing clash -- a *third* row under the grandfathered label -- is a
+			# new duplicate all the same, so it is still refused
+			workspace.append("shortcuts", {"type": "DocType", "link_to": "ToDo", "label": "Tasks"})
+			with self.assertRaises(frappe.ValidationError):
+				workspace.save()
+
+			# and so is a fresh clash on a label that was unique before
+			workspace.reload()
+			for _ in range(2):
+				workspace.append("shortcuts", {"type": "DocType", "link_to": "ToDo", "label": "Notes"})
+			with self.assertRaises(frappe.ValidationError):
+				workspace.save()
+
+			# dropping one of the grandfathered rows is a repair, not a new clash
+			workspace.reload()
+			workspace.shortcuts.pop()
+			workspace.save()
+			self.assertEqual(len(workspace.shortcuts), 1)
+		finally:
+			frappe.db.delete("Workspace Shortcut", {"parent": workspace.name})
+			frappe.db.delete("Workspace", {"name": workspace.name})
 
 	def test_role_restricted_non_public_workspace_visible_to_permitted_user(self):
 		"""Non-public workspace with roles should be visible to users with matching role."""

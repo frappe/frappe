@@ -1,6 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import json
 import os
 from typing import TYPE_CHECKING, Any
 
@@ -189,18 +188,27 @@ def set_value(doctype: str, name: str | int, fieldname: str | dict[str, Any], va
 	:param fieldname: fieldname string or JSON / dict with key value pair
 	:param value: value if fieldname is JSON / dict"""
 
-	if fieldname in (frappe.model.default_fields + frappe.model.child_table_fields):
-		frappe.throw(_("Cannot edit standard fields"))
-
-	if not value:
+	values = {}
+	if value is None:
 		values = fieldname
 		if isinstance(fieldname, str):
 			try:
-				values = json.loads(fieldname)
+				values = frappe.parse_json(fieldname)
 			except ValueError:
 				values = {fieldname: ""}
 	else:
 		values = {fieldname: value}
+
+	forbidden = set(frappe.model.default_fields + frappe.model.child_table_fields)
+
+	# In whole-doc payloads, framework-managed fields are incidental (e.g. name,
+	# owner, creation, idx echoed back), so strip them instead of failing.
+	# throws if only editing framework-managed fields
+	editable = {field: val for field, val in values.items() if field not in forbidden}
+	if values and not editable:
+		frappe.throw(_("Cannot edit standard fields"))
+
+	values = editable
 
 	# check for child table doctype
 	if not frappe.get_meta(doctype).istable:
@@ -222,8 +230,7 @@ def insert(doc: str | dict[str, Any] | None = None):
 	"""Insert a document
 
 	:param doc: JSON or dict object to be inserted"""
-	if isinstance(doc, str):
-		doc = json.loads(doc)
+	doc = frappe.parse_json(doc)
 
 	return insert_doc(doc).as_dict()
 
@@ -233,8 +240,7 @@ def insert_many(docs: str | list[dict[str, Any]] | None = None):
 	"""Insert multiple documents
 
 	:param docs: JSON or list of dict objects to be inserted in one request"""
-	if isinstance(docs, str):
-		docs = json.loads(docs)
+	docs = frappe.parse_json(docs)
 
 	if len(docs) > 200:
 		frappe.throw(_("Only 200 inserts allowed in one request"))
@@ -247,8 +253,7 @@ def save(doc: str | dict[str, Any]):
 	"""Update (save) an existing document
 
 	:param doc: JSON or dict object with the properties of the document to be updated"""
-	if isinstance(doc, str):
-		doc = json.loads(doc)
+	doc = frappe.parse_json(doc)
 
 	doc = frappe.get_doc(doc)
 	doc.save()
@@ -272,8 +277,7 @@ def submit(doc: str | dict[str, Any]):
 	"""Submit a document
 
 	:param doc: JSON or dict object to be submitted remotely"""
-	if isinstance(doc, str):
-		doc = json.loads(doc)
+	doc = frappe.parse_json(doc)
 
 	doc = frappe.get_doc(doc)
 	doc.submit()
@@ -303,11 +307,11 @@ def delete(doctype: str, name: str | int):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def bulk_update(docs: str):
+def bulk_update(docs: str | list):
 	"""Bulk update documents
 
 	:param docs: JSON list of documents to be updated remotely. Each document must have `docname` property"""
-	docs = json.loads(docs)
+	docs = frappe.parse_json(docs)
 	failed_docs = []
 	for doc in docs:
 		doc.pop("flags", None)
@@ -352,7 +356,7 @@ def get_password(doctype: str, name: str | int, fieldname: str):
 	:param fieldname: `fieldname` of the password property
 	"""
 	frappe.only_for("System Manager")
-	return frappe.get_lazy_doc(doctype, name).get_password(fieldname)
+	return frappe.get_lazy_doc(doctype, name, check_permission="read").get_password(fieldname)
 
 
 from frappe.deprecation_dumpster import get_js as _get_js
@@ -374,7 +378,7 @@ def attach_file(
 	docname: str | int | None = None,
 	folder: str | None = None,
 	decode_base64: int | bool = False,
-	is_private: int | bool | None = None,
+	is_private: int | bool | None = 1,
 	docfield: str | None = None,
 ):
 	"""Attach a file to Document
@@ -385,10 +389,10 @@ def attach_file(
 	:param docname: Reference DocName to attach file to
 	:param folder: Folder to add File into
 	:param decode_base64: decode filedata from base64 encode, default is False
-	:param is_private: Attach file as private file (1 or 0)
+	:param is_private: Attach file as private file (1 or 0), default is 1
 	:param docfield: file to attach to (optional)"""
 
-	doc = frappe.get_lazy_doc(doctype, docname, check_permission=True)
+	doc = frappe.get_lazy_doc(doctype, docname, check_permission="write")
 
 	file = frappe.get_doc(
 		{

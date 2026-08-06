@@ -386,11 +386,10 @@ def contact_query(
 
 
 @frappe.whitelist()
-def address_query(links: str):
-	import json
-
+def address_query(links: str | list):
 	links = [
-		{"link_doctype": d.get("link_doctype"), "link_name": d.get("link_name")} for d in json.loads(links)
+		{"link_doctype": d.get("link_doctype"), "link_name": d.get("link_name")}
+		for d in frappe.parse_json(links)
 	]
 	result = []
 

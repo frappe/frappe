@@ -94,7 +94,7 @@
 	padding-bottom: 15px;
 
 	.datatable {
-		border-radius: var(--border-radius) var(--border-radius) 0 0;
+		border-radius: var(--radius) var(--radius) 0 0;
 	}
 }
 
@@ -131,6 +131,7 @@
 @include media-breakpoint-up(sm) {
 	.report-view {
 		width: calc(100% - 220px);
+
 		.result {
 			.dt-row:last-child:not(.dt-row-filter) {
 				.dt-cell {
@@ -140,6 +141,7 @@
 		}
 	}
 }
+
 @include media-breakpoint-down(sm) {
 	.datatable .dt-scrollable {
 		height: calc(100vh - 260px) !important;
@@ -157,9 +159,11 @@
 		vertical-align: middle;
 	}
 }
+
 .group-by-icon.active {
 	--icon-stroke: var(--primary);
 }
+
 .comparison-message {
 	@include get_textstyle("base", "regular");
 }
@@ -224,7 +228,7 @@
 .report-summary {
 	// FORM
 	background-color: var(--bg-color);
-	border-radius: var(--border-radius-md, 8px);
+	border-radius: var(--radius-md, 8px);
 	border-bottom: 1px solid $border-color;
 
 	// SIZE & SPACING
@@ -271,9 +275,11 @@
 		&.green {
 			color: var(--green-500);
 		}
+
 		&.red {
 			color: var(--red-500);
 		}
+
 		&.blue {
 			color: var(--blue-500);
 		}
@@ -302,16 +308,18 @@
 		.summary-value {
 			// FORM
 			background: var(--card-bg);
-			border-radius: var(--border-radius-sm, 4px);
+			border-radius: var(--radius, 4px);
 			border: 1px solid var(--dark-border-color);
 			padding: 4px 6px;
 
 			&.green {
 				color: var(--green-500);
 			}
+
 			&.red {
 				color: var(--red-500);
 			}
+
 			&.blue {
 				color: var(--blue-500);
 			}
@@ -372,6 +380,7 @@
 .input-group > * {
 	margin-right: 10px;
 }
+
 .check-filter-area {
 	display: flex;
 	flex-wrap: wrap;

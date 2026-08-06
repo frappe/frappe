@@ -14,7 +14,7 @@ frappe.listview_settings["User"] = {
 		if (doc.enabled) {
 			return [__("Active"), "green", "enabled,=,1"];
 		} else {
-			return [__("Disabled"), "grey", "enabled,=,0"];
+			return [__("Disabled"), "gray", "enabled,=,0"];
 		}
 	},
 	set_default_app_options(listview) {

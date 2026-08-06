@@ -6,7 +6,7 @@ frappe.ui.Notifications = class Notifications {
 		this.notification_settings = frappe.boot.notification_settings;
 		this.full_height = opts?.full_height || false;
 
-		this.wrapper = opts?.wrapper || $(".standard-items-sections");
+		this.wrapper = opts?.wrapper || $(".body-sidebar");
 		this.make();
 	}
 
@@ -19,7 +19,6 @@ frappe.ui.Notifications = class Notifications {
 		this.body = this.dropdown_list.find(".notification-list-body");
 		this.panel_events = this.dropdown_list.find(".panel-events");
 		this.panel_notifications = this.dropdown_list.find(".panel-notifications");
-		this.panel_changelog_feed = this.dropdown_list.find(".panel-changelog-feed");
 
 		this.user = frappe.session.user;
 
@@ -69,12 +68,6 @@ frappe.ui.Notifications = class Notifications {
 				id: "todays_events",
 				view: EventsView,
 				el: this.panel_events,
-			},
-			{
-				label: __("What's New"),
-				id: "changelog_feed",
-				view: ChangelogFeedView,
-				el: this.panel_changelog_feed,
 			},
 		];
 
@@ -144,8 +137,9 @@ frappe.ui.Notifications = class Notifications {
 		});
 
 		$(document).on("click", function (e) {
+			// the bell may live in the sidebar or the workspace dock; match either
 			const isInsideNotificationBtn =
-				$(e.target).closest(".standard-items-sections .sidebar-notification").length > 0;
+				$(e.target).closest(".sidebar-notification").length > 0;
 			const isInsideDropdown = $(e.target).closest(".notifications-list").length > 0;
 			if (!isInsideNotificationBtn && !isInsideDropdown) {
 				if (full_height) {
@@ -222,22 +216,12 @@ class NotificationsView extends BaseNotificationsView {
 			.attr("title", __("Notifications"))
 			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 
-		this.bell_indicator = this.parent.find(".desktop-notification-icon");
-		if (!this.bell_indicator.length) {
-			this.bell_indicator = this.parent
-				.closest(".body-sidebar")
-				?.find(".sidebar-notification .sidebar-item-icon");
-		}
-
 		this.setup_notification_listeners();
 
 		this.dropdown_items = [];
 		this.notifications_fetched = false;
 		this.unread_count = frappe.boot.notification_unread_count || 0;
 
-		if (this.settings && this.settings.seen == 0) {
-			this.toggle_notification_icon(false);
-		}
 		this.update_count_badge(this.unread_count);
 	}
 
@@ -289,7 +273,8 @@ class NotificationsView extends BaseNotificationsView {
 		let doc_link = this.get_item_link(notification_log);
 
 		let read_class = notification_log.read ? "" : "unread";
-		let message = notification_log.subject;
+		// Title/Description are the canonical fields; fall back to the legacy subject/content.
+		let message = notification_log.title || notification_log.subject || "";
 
 		let title = message.match(/<b class="subject-title">(.*?)<\/b>/);
 		message = title
@@ -389,24 +374,21 @@ class NotificationsView extends BaseNotificationsView {
 		return frappe.utils.get_form_link(link_doctype, link_docname);
 	}
 
-	toggle_notification_icon(seen) {
-		this.bell_indicator?.toggleClass("indicator blue", !seen);
-	}
-
 	update_count_badge(count) {
 		this.unread_count = count;
-		const $suffix = this.parent
-			.closest(".body-sidebar")
-			?.find(".sidebar-notification .sidebar-notification-count");
-		if (!$suffix?.length) return;
+		// the unread count is the only unread affordance any bell gets -- update it wherever a bell
+		// lives (sidebar, workspace dock, desktop navbar). Re-queried each call so it also covers
+		// bells created after this view (the dock).
+		const $count = $(".notification-count");
+		if (!$count.length) return;
 
 		if (count > 0) {
-			$suffix
+			$count
 				.text(count > 99 ? "99+" : count)
 				.attr("aria-label", __("{0} unread notifications", [count]))
 				.removeClass("hidden");
 		} else {
-			$suffix.removeAttr("aria-label").addClass("hidden");
+			$count.removeAttr("aria-label").addClass("hidden");
 		}
 	}
 
@@ -423,14 +405,12 @@ class NotificationsView extends BaseNotificationsView {
 	setup_notification_listeners() {
 		frappe.realtime.on("notification", () => {
 			this.settings.seen = 0;
-			this.toggle_notification_icon(false);
 			this.update_count_badge(this.unread_count + 1);
 			this.update_dropdown();
 		});
 
 		frappe.realtime.on("indicator_hide", () => {
 			this.settings.seen = 1;
-			this.toggle_notification_icon(true);
 		});
 
 		this.parent.on("show.bs.dropdown", () => {
@@ -453,8 +433,9 @@ class NotificationsView extends BaseNotificationsView {
 			}
 
 			this.toggle_seen(true);
-			if (this.bell_indicator?.hasClass("indicator")) {
-				this.toggle_notification_icon(true);
+			// opening the panel counts as seeing what's in it -- let the other sessions know
+			if (this.settings?.seen == 0) {
+				this.settings.seen = 1;
 				frappe.call(
 					"frappe.desk.doctype.notification_log.notification_log.trigger_indicator_hide"
 				);
@@ -518,13 +499,15 @@ class EventsView extends BaseNotificationsView {
 				// REDESIGN-TODO: Add location to calendar field
 				let location = "";
 				if (event.location) {
-					location = `, ${event.location}`;
+					location = `, ${frappe.utils.escape_html(event.location)}`;
 				}
 
-				return `<a class="recent-item event" href="/desk/event/${event.name}">
-					<div class="event-border" style="border-color: ${event.color}"></div>
+				return `<a class="recent-item event" href="/desk/event/${frappe.utils.escape_html(
+					event.name
+				)}">
+					<div class="event-border" style="border-color: ${frappe.utils.escape_html(event.color)}"></div>
 					<div class="event-item">
-						<div class="event-subject">${event.subject}</div>
+						<div class="event-subject">${frappe.utils.escape_html(event.subject)}</div>
 						<div class="event-time">${time}${location}</div>
 						${particpants}
 					</div>
@@ -543,56 +526,6 @@ class EventsView extends BaseNotificationsView {
 			`;
 		}
 
-		this.container.html(html);
-	}
-}
-
-class ChangelogFeedView extends BaseNotificationsView {
-	make() {
-		this.render_changelog_feed_html(frappe.boot.changelog_feed || []);
-	}
-
-	render_changelog_feed_html(changelog_feed) {
-		let html = "";
-		if (changelog_feed.length) {
-			this.container.empty();
-			const get_changelog_feed_html = (changelog_feed_item) => {
-				const timestamp = frappe.datetime.prettyDate(
-					changelog_feed_item.posting_timestamp
-				);
-				const message_html = `<div class="message">
-							<div>${changelog_feed_item.title}</div>
-							<div class="notification-timestamp text-muted">
-							${changelog_feed_item.app_title} | ${timestamp}
-							</div>
-						</div>`;
-
-				const item_html = `<a class="recent-item notification-item"
-								href="${changelog_feed_item.link}"
-								data-name="${changelog_feed_item.title}"
-								target="_blank" rel="noopener noreferrer"
-							>
-							<div class="notification-body">
-								${message_html}
-							</div>
-							</div>
-						</a>`;
-
-				return item_html;
-			};
-			html = changelog_feed.map(get_changelog_feed_html).join("");
-		} else {
-			html = `<div class="notification-null-state">
-						<div class="text-center">
-							<img src="/assets/frappe/images/ui-states/notification-empty-state.svg" alt="Generic Empty State" class="null-state">
-							<div class="title">${__("Nothing new")}</div>
-							<div class="subtitle">
-								${__("There is nothing new to show you right now.")}
-							</div>
-						</div>
-					</div>
-					`;
-		}
 		this.container.html(html);
 	}
 }

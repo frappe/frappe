@@ -47,7 +47,7 @@ defineExpose({ show, hide });
 	bottom: 0;
 	right: 0;
 	background: rgba(0, 0, 0, 0.6);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	padding: 0.5rem 1rem;
 	color: white;
 	font-weight: 500;

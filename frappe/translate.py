@@ -138,6 +138,9 @@ def get_messages_for_boot():
 @http_cache(max_age=31536000)
 def get_boot_translations(lang: str | None = None) -> dict[str, str]:
 	"""Return all translations for the current user's language."""
+	if lang and lang not in get_all_languages():
+		lang = None
+
 	return get_all_translations(lang or frappe.local.lang)
 
 
@@ -646,7 +649,7 @@ def extract_messages_from_python_code(code: str) -> list[tuple[int, str, str | N
 
 	for message in extract_python(
 		io.BytesIO(code.encode()),
-		keywords=["_", "_lt"],
+		keywords=["_", "_lt", "N_"],
 		comment_tags=(),
 		options={},
 	):
@@ -909,11 +912,11 @@ def deduplicate_messages(messages):
 
 
 @frappe.whitelist()
-def update_translations_for_source(source: str | None = None, translation_dict: str | None = None):
+def update_translations_for_source(source: str | None = None, translation_dict: str | dict | None = None):
 	if not (source and translation_dict):
 		return
 
-	translation_dict = json.loads(translation_dict)
+	translation_dict = frappe.parse_json(translation_dict)
 
 	if is_html(source):
 		source = strip_html_tags(source)

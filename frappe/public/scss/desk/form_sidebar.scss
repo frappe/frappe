@@ -2,16 +2,20 @@
 	--form-sidebar-width: 277px;
 	--form-sidebar-image-width: 80px;
 }
+
 .underline-hover {
 	display: initial;
 }
+
 // form sidebar
 .form-sidebar {
 	.sidebar-section {
 		padding: var(--padding-md) var(--padding-md) 0;
+
 		&.border-bottom {
 			padding-bottom: var(--padding-md);
 		}
+
 		.form-sidebar-items {
 			display: flex;
 			width: 100%;
@@ -32,6 +36,7 @@
 				color: var(--text-light);
 			}
 		}
+
 		.modified-by,
 		.created-by {
 			.frappe-timestamp {
@@ -68,7 +73,7 @@
 			padding: 4px 8px;
 			margin-left: -6px;
 			margin-right: -8px;
-			border-radius: var(--border-radius-md);
+			border-radius: var(--radius-md);
 			transition: background-color 120ms ease;
 
 			&:hover,
@@ -157,6 +162,7 @@
 
 	.sidebar-image-section {
 		padding-bottom: 0px;
+
 		.sidebar-image {
 			height: auto;
 			object-fit: cover;
@@ -165,7 +171,7 @@
 
 		.standard-image {
 			font-size: 40px;
-			border-radius: var(--border-radius-lg);
+			border-radius: var(--radius-lg);
 		}
 
 		.sidebar-image-wrapper {
@@ -180,7 +186,7 @@
 			transition: opacity 0.3s;
 			width: var(--form-sidebar-image-width);
 			height: var(--form-sidebar-image-width);
-			border-radius: var(--border-radius-lg);
+			border-radius: var(--radius-lg);
 		}
 
 		.sidebar-image-wrapper:hover {
@@ -188,10 +194,12 @@
 			.sidebar-standard-image {
 				opacity: 0.5;
 			}
+
 			.sidebar-image-actions {
 				display: block;
 			}
 		}
+
 		.sidebar-image-actions {
 			display: none;
 			position: absolute;
@@ -208,7 +216,7 @@
 				align-items: center;
 				justify-content: center;
 				background: color-mix(in srgb, var(--gray-900) 15%, transparent);
-				border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+				border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 				color: var(--text-color);
 				line-height: 0;
 				pointer-events: none;
@@ -220,7 +228,7 @@
 				right: 0;
 				transform: translate(50%, -50%);
 				background: var(--bg-color);
-				border-radius: var(--border-radius-full);
+				border-radius: var(--radius-full);
 				padding: 2px;
 				line-height: 0;
 				display: flex;
@@ -232,6 +240,7 @@
 				}
 			}
 		}
+
 		// TODO: find better fix
 		.sidebar-standard-image {
 			.standard-image {
@@ -240,6 +249,7 @@
 			}
 		}
 	}
+
 	.sidebar-meta-details {
 		.form-name-copy {
 			cursor: copy;
@@ -255,21 +265,25 @@
 
 	.form-stats-likes {
 		gap: 2px;
+
 		.form-print {
 			button:hover {
 				background: var(--btn-default-hover-bg);
 			}
+
 			svg {
 				margin: 0px;
 			}
 		}
 	}
 }
+
 .form-sidebar-label {
 	display: flex;
 	align-items: center;
 	gap: 8px;
 }
+
 body[data-route^="Form"] {
 	.layout-side-section {
 		overflow-y: auto;
@@ -277,9 +291,11 @@ body[data-route^="Form"] {
 		height: calc(100vh - var(--page-head-height));
 		position: sticky;
 		top: var(--page-head-height);
+
 		.form-sidebar {
 			width: var(--form-sidebar-width);
 		}
+
 		@media (max-width: 991px) {
 			position: relative;
 		}
@@ -344,6 +360,7 @@ body[data-route^="Form"] {
 
 	.sidebar-menu > li > a {
 		display: inline-block;
+
 		&:hover,
 		&:focus,
 		&:active {
@@ -357,10 +374,6 @@ body[data-route^="Form"] {
 		display: flex;
 		align-items: center;
 		cursor: pointer;
-
-		.es-icon {
-			margin-right: 4px;
-		}
 
 		.icon {
 			margin: 0;
@@ -427,6 +440,7 @@ body[data-route^="Form"] {
 
 	.module-sidebar-nav {
 		margin-top: 15px;
+
 		@media (max-width: 991px) {
 			padding-left: 0;
 			padding-right: 0;
@@ -461,7 +475,9 @@ body[data-route^="Form"] {
 .attachment-row,
 .form-tag-row {
 	margin: 4px 0;
+}
 
+.attachment-row {
 	.data-pill {
 		@include get_textstyle("sm", "regular");
 		justify-content: space-between;
@@ -480,6 +496,7 @@ body[data-route^="Form"] {
 		}
 	}
 }
+
 .attachment-row {
 	margin-left: -6px;
 	margin-right: 0px;
@@ -488,7 +505,7 @@ body[data-route^="Form"] {
 		display: flex;
 		align-items: center;
 		height: 28px;
-		border-radius: var(--border-radius-md);
+		border-radius: var(--radius-md);
 		padding: 0px 6px !important;
 		background-color: unset;
 		box-shadow: none;
@@ -512,6 +529,7 @@ body[data-route^="Form"] {
 			display: block;
 			text-align: left;
 		}
+
 		.attachment-icon {
 			line-height: 0;
 		}
@@ -520,11 +538,26 @@ body[data-route^="Form"] {
 
 .form-tag-row {
 	margin-right: var(--margin-xs);
-	.data-pill {
-		background-color: var(--subtle-fg);
-		max-width: 150px;
-	}
 	display: inline-flex;
+
+	.form-tag {
+		max-width: 150px;
+
+		.pill-label {
+			min-width: 0;
+		}
+
+		// the remove ✕ — the only click target on the tag
+		.es-badge__affix {
+			cursor: pointer;
+			opacity: 0.7;
+
+			&:hover,
+			&:focus-visible {
+				opacity: 1;
+			}
+		}
+	}
 }
 
 .attachments-actions {
@@ -590,17 +623,6 @@ body[data-route^="Form"] .attachment-preview {
 		align-items: center;
 		gap: 2px;
 		flex-shrink: 0;
-
-		.btn-link {
-			text-decoration: none;
-
-			&:hover,
-			&:focus {
-				text-decoration: none;
-				outline: none;
-				box-shadow: none;
-			}
-		}
 	}
 
 	.attachment-preview-body {
@@ -625,7 +647,7 @@ body[data-route^="Form"] .attachment-preview {
 			width: auto;
 			height: auto;
 			border: 0;
-			border-radius: var(--border-radius-sm);
+			border-radius: var(--radius);
 			box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
 		}
 	}
@@ -686,7 +708,7 @@ body[data-route^="Form"] .attachment-preview {
 		background-color: var(--bg-color);
 		padding: var(--padding-sm) var(--padding-md);
 		border: 1px solid var(--border-color);
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 		pointer-events: none;
 	}
 
@@ -725,7 +747,7 @@ body[data-route^="Form"] .attachment-preview {
 			display: flex;
 			align-items: center;
 			height: 28px;
-			border-radius: var(--border-radius-md);
+			border-radius: var(--radius-md);
 			padding: 0px 6px;
 			margin-left: -8px;
 			margin-right: 0px;
@@ -750,26 +772,6 @@ body[data-route^="Form"] .attachment-preview {
 		}
 	}
 }
-.add-assignment-btn,
-.add-attachment-btn,
-.add-review-btn,
-.add-tags-btn,
-.share-doc-btn,
-.followed-by {
-	max-width: 100%;
-	display: block;
-	width: unset;
-	height: unset;
-	margin-right: 0;
-	padding: var(--padding-xs) !important;
-	border-radius: var(--border-radius-full);
-	&:hover {
-		background-color: var(--subtle-fg);
-	}
-	&:focus {
-		box-shadow: none;
-	}
-}
 
 .add-assignment-label,
 .tags-label,
@@ -791,7 +793,7 @@ body[data-route^="Form"] .attachment-preview {
 
 .liked-by-popover {
 	max-width: 240px;
-	border-radius: var(--border-radius-md);
+	border-radius: var(--radius-md);
 	box-shadow: var(--shadow-md);
 	overflow: hidden;
 
@@ -816,7 +818,7 @@ body[data-route^="Form"] .attachment-preview {
 				gap: var(--padding-xs);
 				padding: var(--padding-xs);
 				margin: 0;
-				border-radius: var(--border-radius-sm);
+				border-radius: var(--radius);
 				cursor: pointer;
 
 				&:hover {

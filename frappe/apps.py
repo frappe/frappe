@@ -19,10 +19,24 @@ from frappe.utils.caching import request_cache
 DESK_APP_PATTERN = re.compile(r"^/desk(/.*)?$")
 
 
+@request_cache
+def get_docked_apps() -> set[str]:
+	"""Apps that surface their workspaces inside another app's workspace dock.
+
+	A companion app (e.g. India Compliance for ERPNext) pins its workspaces into a host app's dock
+	via the `add_to_workspace_dock` hook instead of taking an apps-screen slot of its own. It is
+	kept off the apps screen even when it also declares `add_to_apps_screen` -- companion apps keep
+	that hook so they still appear on older versions, so here the dock hook wins."""
+	from frappe.boot import get_app_rail_host_map
+
+	return set(get_app_rail_host_map())
+
+
 @frappe.whitelist()
 @request_cache
 def get_apps():
 	apps = frappe.get_installed_apps()
+	docked_apps = get_docked_apps()
 	app_list = []
 	for app in apps:
 		if (
@@ -34,6 +48,10 @@ def get_apps():
 
 		if app == "frappe":
 			continue
+
+		if app in docked_apps:
+			continue
+
 		app_details = frappe.get_hooks("add_to_apps_screen", app_name=app)
 		if not len(app_details):
 			continue

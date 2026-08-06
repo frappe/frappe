@@ -150,6 +150,9 @@ class TestAuthHelpers(unittest.TestCase):
 		self.assertEqual(auth_mod.get_hostname("site.local:9000"), "site.local")
 		self.assertEqual(auth_mod.get_hostname("site.local"), "site.local")
 		self.assertIsNone(auth_mod.get_hostname(None))
+		# userinfo (user:pass@host) must resolve to the real host, not the userinfo
+		self.assertEqual(auth_mod.get_hostname("https://victim.com:1@evil.com"), "evil.com")
+		self.assertEqual(auth_mod.get_hostname("victim.com:1@evil.com"), "evil.com")
 
 	def test_site_resolution_order(self):
 		cfg = make_config(default_site="default.local")
@@ -173,6 +176,20 @@ class TestAuthHelpers(unittest.TestCase):
 		self.assertEqual(
 			auth_mod.get_url("http://x.local:9000", "/p", make_config()), "http://x.local:9000/p"
 		)
+
+	def test_get_url_webserver_host(self):
+		# bare host gets http:// scheme and the configured port
+		cfg = make_config(webserver_host="127.0.0.1", webserver_port=8000)
+		self.assertEqual(auth_mod.get_url("http://x.local", "/p", cfg), "http://127.0.0.1:8000/p")
+		# scheme in the value is preserved, not double-prefixed
+		cfg = make_config(webserver_host="https://app.frappe.cloud", webserver_port=8000)
+		self.assertEqual(auth_mod.get_url("http://x.local", "/p", cfg), "https://app.frappe.cloud:8000/p")
+		# explicit port in the value is not doubled
+		cfg = make_config(webserver_host="https://app.frappe.cloud:443", webserver_port=8000)
+		self.assertEqual(auth_mod.get_url("http://x.local", "/p", cfg), "https://app.frappe.cloud:443/p")
+		# bracketed IPv6 literal
+		cfg = make_config(webserver_host="[::1]", webserver_port=8000)
+		self.assertEqual(auth_mod.get_url("http://x.local", "/p", cfg), "http://[::1]:8000/p")
 
 
 class TestAuthenticate(unittest.TestCase):

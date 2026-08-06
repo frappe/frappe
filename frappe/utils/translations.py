@@ -13,6 +13,13 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 		frappe.local.lang = lang or "en"
 
 	if not lang:
+		# background jobs don't resume a session, so resolve the job user's language on first
+		# use here instead of eagerly in execute_job (keeps the job bootstrap free of DB access)
+		job = getattr(frappe.local, "job", None)
+		if job is not None and not job.lang_resolved:
+			set_user_lang(job.user)
+			job.lang_resolved = True
+
 		lang = frappe.local.lang
 
 	all_translations = get_all_translations(lang)
@@ -39,6 +46,11 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 			return translated_string
 
 	return non_translated_string
+
+
+def N_(msg: str, context: str | None = None) -> str:
+	"""Mark a string for translation extraction without translating it."""
+	return msg
 
 
 def _lt(msg: str, lang: str | None = None, context: str | None = None):

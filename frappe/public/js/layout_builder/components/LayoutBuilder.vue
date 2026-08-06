@@ -63,7 +63,7 @@ function on_drag_end() {
 		<div class="lb-sidebar" :class="{ 'lb-sidebar-visible': !!store.selected_field }">
 			<FieldProperties v-if="store.selected_field" />
 			<div v-else class="lb-sidebar-placeholder">
-				<span v-html="frappe.utils.icon('es-line-settings', 'lg')" />
+				<span v-html="frappe.utils.icon('settings', 'lg')" />
 				<p class="text-muted mt-2">
 					{{ __("Click a field to edit its layout overrides") }}
 				</p>
@@ -76,7 +76,7 @@ function on_drag_end() {
 .lb-container {
 	display: flex;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	overflow: hidden;
 	min-height: 200px;
 }

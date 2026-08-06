@@ -1,11 +1,12 @@
 # Copyright (c) 2017, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import json
+import re
 
 import frappe
 import frappe.utils
 from frappe import _
+from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
 from frappe.model.document import Document
 from frappe.utils.jinja import validate_template
 from frappe.utils.print_format_generator import download_pdf, get_html
@@ -24,6 +25,7 @@ class PrintFormat(Document):
 
 		absolute_value: DF.Check
 		align_labels_right: DF.Check
+		classic_format_data: DF.Code | None
 		css: DF.Code | None
 		custom_format: DF.Check
 		default_print_language: DF.Link | None
@@ -33,6 +35,7 @@ class PrintFormat(Document):
 		font_size: DF.Int
 		format_data: DF.Code | None
 		html: DF.Code | None
+		label_color: DF.Color | None
 		line_breaks: DF.Check
 		margin_bottom: DF.Float
 		margin_left: DF.Float
@@ -50,15 +53,21 @@ class PrintFormat(Document):
 		raw_commands: DF.Code | None
 		raw_printing: DF.Check
 		report: DF.Link | None
+		show_label_colon: DF.Check
 		show_section_headings: DF.Check
 		standard: DF.Literal["No", "Yes"]
+		value_color: DF.Color | None
 	# end: auto-generated types
 
 	def onload(self):
 		templates = frappe.get_all(
 			"Print Format Field Template",
 			fields=["template", "field", "name"],
-			filters={"document_type": self.doc_type},
+			or_filters=[
+				["document_type", "=", self.doc_type],
+				["document_type", "is", "not set"],
+			],
+			order_by="document_type desc",
 		)
 		self.set_onload("print_templates", templates)
 
@@ -66,8 +75,14 @@ class PrintFormat(Document):
 		if self.print_format_for == "Report":
 			self.custom_format = 1
 
-		# New non-custom formats default to builder beta + Chrome
-		if self.is_new() and not self.custom_format:
+		# standard formats render from their app's .html template and Print Designer
+		# formats from their own renderer — the beta renderer can read neither
+		if (
+			self.is_new()
+			and not self.custom_format
+			and self.standard != "Yes"
+			and not self.get("print_designer")
+		):
 			self.print_format_builder_beta = 1
 
 		if self.print_format_builder_beta and not self.custom_format:
@@ -92,8 +107,6 @@ class PrintFormat(Document):
 		# old_doc_type is required for clearing item cache
 		self.old_doc_type = frappe.db.get_value("Print Format", self.name, "doc_type")
 
-		self.extract_images()
-
 		if not self.module:
 			doc_type = "DocType" if self.print_format_for == "DocType" else "Report"
 			document_name = self.doc_type if self.print_format_for == "DocType" else self.report
@@ -111,18 +124,39 @@ class PrintFormat(Document):
 		if self.print_format_for == "Report" and not self.report:
 			frappe.throw(_("{0} is required").format(frappe.bold(_("Report"))), frappe.MandatoryError)
 
-	def extract_images(self):
-		from frappe.core.doctype.file.utils import extract_images_from_html
+		self.validate_colors()
+		self.validate_conditions()
 
-		if self.print_format_builder_beta:
+	def validate_conditions(self):
+		"""Reject a layout whose visibility conditions cannot compile.
+
+		A condition that fails at render time is treated as "show", so a typo is
+		invisible unless it is caught here."""
+		try:
+			layout = frappe.parse_json(self.format_data) if self.format_data else None
+		except Exception:
+			return
+		if not isinstance(layout, dict):
 			return
 
-		if self.format_data:
-			data = json.loads(self.format_data)
-			for df in data:
-				if df.get("fieldtype") and df["fieldtype"] in ("HTML", "Custom HTML") and df.get("options"):
-					df["options"] = extract_images_from_html(self, df["options"])
-			self.format_data = json.dumps(data)
+		for where, condition in _iter_conditions(layout):
+			try:
+				compile(condition, "<condition>", "eval")
+			except SyntaxError as e:
+				frappe.throw(
+					_("{0} is not a valid condition: {1}").format(frappe.bold(where), e.msg),
+					title=_("Invalid Condition"),
+				)
+
+	def validate_colors(self):
+		for fieldname in ("label_color", "value_color"):
+			value = self.get(fieldname)
+			if value and not re.fullmatch(r"#[0-9a-fA-F]{6}", value):
+				frappe.throw(
+					_("{0} must be a hex color code like #1a5fb4").format(
+						frappe.bold(_(self.meta.get_label(fieldname), context=self.doctype))
+					)
+				)
 
 	def on_update(self):
 		if hasattr(self, "old_doc_type") and self.old_doc_type:
@@ -131,12 +165,35 @@ class PrintFormat(Document):
 			frappe.clear_cache(doctype=self.doc_type)
 
 		self.export_doc()
+		self.clear_default_print_format_if_disabled()
+
+	def clear_default_print_format_if_disabled(self):
+		"""If this format is disabled while set as its DocType's default, unset it as default."""
+		if not (self.disabled and self.doc_type):
+			return
+
+		meta = frappe.get_meta(self.doc_type)
+		if meta.default_print_format != self.name:
+			return
+
+		if meta.custom:
+			frappe.db.set_value("DocType", self.doc_type, "default_print_format", "")
+		else:
+			delete_property_setter(self.doc_type, "default_print_format")
+
+		frappe.clear_cache(doctype=self.doc_type)
+		frappe.msgprint(
+			_(
+				"{0} was the default print format for {1}. Since it is now disabled, it has been removed as the default."
+			).format(frappe.bold(self.name), frappe.bold(self.doc_type)),
+			indicator="orange",
+			alert=True,
+		)
 
 	def after_rename(self, old: str, new: str, *args, **kwargs):
 		if self.doc_type:
 			frappe.clear_cache(doctype=self.doc_type)
 
-		# update property setter default_print_format if set
 		frappe.db.set_value(
 			"Property Setter",
 			{
@@ -157,6 +214,49 @@ class PrintFormat(Document):
 	def on_trash(self):
 		if self.doc_type:
 			frappe.clear_cache(doctype=self.doc_type)
+
+
+def _iter_conditions(layout):
+	"""Yield (label, expression) for every condition in a beta layout."""
+	zones = [layout.get("header"), layout.get("footer"), *(layout.get("sections") or [])]
+	for zone in zones:
+		if not isinstance(zone, dict):
+			continue
+		yield from _condition(zone, zone.get("label") or _("Section"), "visible_if")
+		columns = zone.get("columns")
+		for column in columns if isinstance(columns, list) else []:
+			fields = (column or {}).get("fields") if isinstance(column, dict) else None
+			for df in fields if isinstance(fields, list) else []:
+				if not isinstance(df, dict):
+					continue
+				label = df.get("label") or df.get("fieldname") or _("Field")
+				yield from _condition(df, label, "visible_if")
+				yield from _condition(df, label, "row_condition")
+				table_columns = df.get("table_columns")
+				for col in table_columns if isinstance(table_columns, list) else []:
+					if isinstance(col, dict):
+						yield from _condition(col, col.get("label") or label, "column_condition")
+
+
+def _condition(holder, label, key):
+	"""Yield (label, expression) only when the value is actually an expression."""
+	condition = holder.get(key)
+	if isinstance(condition, str) and condition.strip():
+		yield label, condition
+
+
+@frappe.whitelist()
+def create_custom_format(doctype: str, name: str | int, based_on: str = "Standard"):
+	doc = frappe.new_doc("Print Format")
+	doc.doc_type = doctype
+	doc.name = name
+	doc.print_format_builder_beta = 1
+	if based_on and based_on != "Standard":
+		source = frappe.get_doc("Print Format", based_on)
+		source.check_permission("read")
+		doc.format_data = source.format_data
+	doc.insert()
+	return doc
 
 
 @frappe.whitelist()
@@ -185,3 +285,12 @@ def make_default(name: str):
 			frappe.bold(name), frappe.bold(print_format.doc_type)
 		)
 	)
+
+
+def printable_sample(doctype: str) -> str | None:
+	"""Most recent document the user can read AND print. Submittable doctypes only
+	reliably print submitted docs (draft/cancelled hit the printview guards), so
+	restrict to those; otherwise any latest doc works."""
+	filters = {"docstatus": 1} if frappe.get_meta(doctype).is_submittable else {}
+	sample = frappe.get_list(doctype, filters=filters, limit=1, order_by="modified desc", pluck="name")
+	return sample[0] if sample else None

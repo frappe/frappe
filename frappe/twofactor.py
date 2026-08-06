@@ -260,7 +260,7 @@ def get_email_subject_for_2fa(kwargs_dict):
 	subject_template = _("Login Verification Code from {}").format(
 		frappe.get_system_settings("otp_issuer_name")
 	)
-	return frappe.render_template(subject_template, kwargs_dict)
+	return frappe.render_template(subject_template, kwargs_dict, restrict_globals=True)
 
 
 def get_email_body_for_2fa(kwargs_dict):
@@ -270,7 +270,7 @@ def get_email_body_for_2fa(kwargs_dict):
 		<br><br>
 		<b style="font-size: 18px;">{{ otp }}</b>
 	"""
-	return frappe.render_template(body_template, kwargs_dict)
+	return frappe.render_template(body_template, kwargs_dict, restrict_globals=True)
 
 
 def get_email_subject_for_qr_code(kwargs_dict):
@@ -278,7 +278,7 @@ def get_email_subject_for_qr_code(kwargs_dict):
 	subject_template = _("One Time Password (OTP) Registration Code from {}").format(
 		frappe.get_system_settings("otp_issuer_name")
 	)
-	return frappe.render_template(subject_template, kwargs_dict)
+	return frappe.render_template(subject_template, kwargs_dict, restrict_globals=True)
 
 
 def get_email_body_for_qr_code(kwargs_dict):
@@ -286,7 +286,7 @@ def get_email_body_for_qr_code(kwargs_dict):
 	body_template = _(
 		"Please click on the following link and follow the instructions on the page. {0}"
 	).format("<br><br> <a href='{{qrcode_link}}'>{{qrcode_link}}</a>")
-	return frappe.render_template(body_template, kwargs_dict)
+	return frappe.render_template(body_template, kwargs_dict, restrict_globals=True)
 
 
 def get_link_for_qrcode(user, totp_uri):
@@ -347,7 +347,7 @@ def get_rendered_otp_message(otp: str) -> str:
 	custom_template = frappe.get_system_settings("otp_sms_template")
 	template = custom_template or default_template
 
-	return frappe.render_template(template, {"otp": otp})
+	return frappe.render_template(template, {"otp": otp}, restrict_globals=True)
 
 
 def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, message=None):

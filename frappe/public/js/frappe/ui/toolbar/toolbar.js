@@ -27,7 +27,6 @@ frappe.ui.toolbar.Toolbar = class {
 
 		this.setup_help();
 
-		this.setup_read_only_mode();
 		this.setup_announcement_widget();
 		this.make();
 	}
@@ -154,15 +153,6 @@ frappe.ui.toolbar.Toolbar = class {
 		});
 	}
 
-	setup_read_only_mode() {
-		if (!frappe.boot.read_only) return;
-
-		$("header .read-only-banner").tooltip({
-			delay: { show: 600, hide: 100 },
-			trigger: "hover",
-		});
-	}
-
 	setup_announcement_widget() {
 		let current_announcement = frappe.boot.navbar_settings.announcement_widget;
 
@@ -200,7 +190,10 @@ $.extend(frappe.ui.toolbar, {
 		}
 
 		return $(
-			'<li class="custom-menu"><a><i class="fa-fw ' + icon + '"></i> ' + label + "</a></li>"
+			'<li class="custom-menu"><a>' +
+				(icon ? frappe.utils.icon(icon) + " " : "") +
+				label +
+				"</a></li>"
 		)
 			.insertBefore(menu.find(".divider"))
 			.find("a")

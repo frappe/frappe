@@ -33,7 +33,7 @@ from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
 from frappe.permissions import ALL_USER_ROLE, AUTOMATIC_ROLES, SYSTEM_USER_ROLE
 from frappe.query_builder.functions import Concat
-from frappe.utils import cint, flt, get_datetime, is_a_property, random_string
+from frappe.utils import cint, cstr, flt, get_datetime, is_a_property, random_string
 from frappe.website.utils import clear_cache
 
 if TYPE_CHECKING:
@@ -116,6 +116,7 @@ class DocType(Document):
 		default_email_template: DF.Link | None
 		default_print_format: DF.Data | None
 		default_view: DF.Literal[None]
+		deprecated: DF.Check
 		description: DF.SmallText | None
 		document_type: DF.Literal["", "Document", "Setup", "System", "Other"]
 		documentation: DF.Data | None
@@ -565,6 +566,7 @@ class DocType(Document):
 				self.run_module_method("after_doctype_insert")
 
 		if allow_doctype_export:
+			self.warn_on_module_change()
 
 			def export_doctype_files():
 				self.export_doc()
@@ -757,11 +759,13 @@ class DocType(Document):
 						# replace in one go
 						file_content = re.sub(
 							rf"{old_scrub}|{old_no_space}|{old_no_space_no_hyphen}",
-							lambda x: new_scrub
-							if x.group() == old_scrub
-							else new_no_space_no_hyphen
-							if x.group() == old_no_space_no_hyphen
-							else new_no_space,
+							lambda x: (
+								new_scrub
+								if x.group() == old_scrub
+								else new_no_space_no_hyphen
+								if x.group() == old_no_space_no_hyphen
+								else new_no_space
+							),
 							code,
 						)
 
@@ -887,6 +891,24 @@ class DocType(Document):
 
 		if "field_order" in docdict:
 			del docdict["field_order"]
+
+	def warn_on_module_change(self):
+		"""Warn that the old module folder is left behind after a module change, since export only writes to the new one."""
+		previous = self.get_doc_before_save()
+		if not previous or previous.module == self.module:
+			return
+
+		try:
+			old_path = get_doc_path(previous.module, "doctype", self.name)
+		except Exception:
+			return
+
+		frappe.msgprint(
+			_(
+				"Module changed to {0}. Files in the previous module were not moved and remain at {1}, remove or relocate them manually."
+			).format(frappe.bold(self.module), frappe.bold(str(old_path))),
+			alert=True,
+		)
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/doctype/[name]/[name].json`."""
@@ -1132,6 +1154,8 @@ class DocType(Document):
 			if link_tuple not in seen_links:
 				seen_links.add(link_tuple)
 				unique_links.append(link)
+
+		assert len(unique_links) == len(seen_links), "document links must be unique after deduplication"
 
 		if len(unique_links) < len(self.links or []):
 			self.links = unique_links
@@ -1459,12 +1483,15 @@ def validate_fields(meta: Meta):
 	def check_illegal_default(d):
 		if d.fieldtype == "Check" and not d.default:
 			d.default = "0"
-		if d.fieldtype == "Check" and cint(d.default) not in (0, 1):
-			frappe.throw(
-				_("Default for 'Check' type of field {0} must be either '0' or '1'").format(
-					frappe.bold(d.fieldname)
+		if d.fieldtype == "Check":
+			default_value = cstr(d.default).strip()
+			if default_value not in ("0", "1"):
+				frappe.throw(
+					_("The default value for the Check field {0} must be either '0' or '1'").format(
+						frappe.bold(d.label or d.fieldname)
+					)
 				)
-			)
+			d.default = default_value
 		if d.fieldtype == "Select" and d.default:
 			if not d.options:
 				frappe.throw(
@@ -1767,6 +1794,34 @@ def validate_fields(meta: Meta):
 					)
 				)
 
+	def validate_link_filters(docfield):
+		link_filters_value = docfield.get("link_filters")
+		if not link_filters_value:
+			return
+
+		try:
+			link_filters = json.loads(link_filters_value)
+		except (TypeError, ValueError):
+			frappe.throw(
+				_("Invalid Filters for field {0}. Filters must be valid JSON.").format(
+					frappe.bold(docfield.label or docfield.fieldname)
+				)
+			)
+
+		if not isinstance(link_filters, list) or any(
+			not isinstance(filter_row, list) or len(filter_row) != 4 for filter_row in link_filters
+		):
+			frappe.throw(
+				_(
+					"Invalid Filters for field {0}. Filters must be a list of filters, where each filter is a list with four values: doctype, fieldname, operator, and value."
+				).format(frappe.bold(docfield.label or docfield.fieldname))
+			)
+
+		if docfield.fieldtype == "Attachment Gallery" and any(
+			filter_row[0] != "File" for filter_row in link_filters
+		):
+			frappe.throw(_("Attachment Gallery filters must target File."))
+
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -1790,6 +1845,7 @@ def validate_fields(meta: Meta):
 		validate_fetch_from(d)
 		validate_data_field_type(d)
 		check_decimal_config(d)
+		validate_link_filters(d)
 
 		if not frappe.flags.in_migrate or in_ci:
 			check_unique_fieldname(meta.get("name"), d.fieldname)
@@ -2001,6 +2057,26 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 					).format(d.idx, frappe.bold(_(d.role))),
 					title=_("Permissions Error"),
 				)
+
+	# `if_owner` is only honoured at permlevel 0. Clear it at higher levels, where it is
+	# ignored, then drop any row that becomes an exact duplicate of another.
+	for d in permissions:
+		if cint(d.permlevel) > 0 and d.if_owner:
+			d.if_owner = 0
+
+	seen = []
+	deduped = []
+	for d in permissions:
+		comparable = d.as_dict(no_default_fields=True)
+		comparable.pop("name", None)
+		if comparable in seen:
+			continue
+		seen.append(comparable)
+		deduped.append(d)
+
+	if len(deduped) != len(permissions):
+		doctype.set("permissions", deduped)
+		permissions = doctype.get("permissions")
 
 	for d in permissions:
 		if not d.permlevel:

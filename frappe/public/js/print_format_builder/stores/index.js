@@ -1,23 +1,101 @@
-import { create_default_layout, pluck } from "../utils";
+import { clone_plain, create_default_layout, serialize_layout } from "../utils";
+import { useLayoutHistory } from "./useLayoutHistory";
+import { usePresets } from "../composables/usePresets";
+import { usePreviewDoc } from "../composables/usePreviewDoc";
+import { useSelection } from "../composables/useSelection";
+import { useLayoutMutations } from "../composables/useLayoutMutations";
+import { useClipboard } from "../composables/useClipboard";
+import { useSnippets } from "../composables/useSnippets";
 import { watch, ref, inject, computed, nextTick } from "vue";
 
 export function getStore(print_format_name) {
 	// variables
-	let letterhead_name = ref(null);
 	let print_format = ref(null);
 	let letterhead = ref(null);
-	let doctype = ref(null);
 	let meta = ref(null);
 	let layout = ref(null);
 	let dirty = ref(false);
+	let needs_setup = ref(false);
 	let edit_letterhead = ref(false);
-	let scroll_to_section = ref(null);
-	let selected_field = ref(null);
-	let selected_section = ref(null);
-	let selected_letterhead = ref(false);
-	let selected_lh_footer = ref(false);
-	let preview_doc = ref(null);
-	let preview_doc_name = ref(null);
+	let scroll_target = ref(null);
+	let hovered_field = ref(null);
+	let hovered_section = ref(null);
+	let hovered_column = ref(null);
+	// the innermost hovered thing wins, so hovering a field doesn't also light up
+	// its column and section — one rule, shared by the canvas and the Layers tree
+	let hovered_node = computed(
+		() => hovered_field.value || hovered_column.value || hovered_section.value
+	);
+	const selection = useSelection();
+	const {
+		selected_field,
+		selected_fields,
+		selected_section,
+		selected_sections,
+		selected_letterhead,
+		selected_lh_footer,
+		is_multi_select,
+		select_field,
+		set_selected,
+		set_selection,
+		select_section,
+		select_letterhead,
+		remove_field,
+		align_selected_fields,
+	} = selection;
+
+	// remove everything currently selected — field tombstones + spliced sections
+	function remove_selection() {
+		selected_fields.value.forEach((df) => (df.remove = true));
+		const sections = layout.value?.sections || [];
+		selected_sections.value.forEach((s) => {
+			const i = sections.indexOf(s);
+			if (i !== -1) sections.splice(i, 1);
+		});
+		selected_fields.value = [];
+		selected_field.value = null;
+		selected_sections.value = [];
+		selected_section.value = null;
+	}
+
+	// body fields flattened in layout order — shared by shift-range and marquee select
+	function ordered_body_fields() {
+		const out = [];
+		for (const section of layout.value?.sections || []) {
+			for (const column of section.columns || []) {
+				for (const field of column.fields || []) {
+					if (!field.remove) out.push(field);
+				}
+			}
+		}
+		return out;
+	}
+	function select_field_range(target) {
+		const all = ordered_body_fields();
+		const ti = all.indexOf(target);
+		const ai = selected_field.value ? all.indexOf(selected_field.value) : -1;
+		if (ti === -1 || ai === -1) return select_field(target);
+		const [lo, hi] = ai <= ti ? [ai, ti] : [ti, ai];
+		set_selected(all.slice(lo, hi + 1));
+	}
+	const {
+		duplicate_field,
+		duplicate_section,
+		duplicate_selection,
+		move_selection,
+		reflow_dragged_group,
+		insert_section,
+		insert_field,
+		remove_section,
+	} = useLayoutMutations(layout, selection);
+	const {
+		preview_doc,
+		preview_doc_name,
+		preview_values,
+		preview_child_values,
+		load_preview_doc,
+		persisted_preview_doc_name,
+	} = usePreviewDoc(print_format, print_format_name);
 
 	// methods
 	function fetch() {
@@ -28,31 +106,75 @@ export function getStore(print_format_name) {
 				frappe.model.with_doctype(_print_format.doc_type, () => {
 					meta.value = frappe.get_meta(_print_format.doc_type);
 					print_format.value = _print_format;
-					layout.value = get_layout() || get_default_layout();
-					// Migrate legacy string header/footer to section objects
-					layout.value.header = migrate_to_section(layout.value.header);
-					layout.value.footer = migrate_to_section(layout.value.footer);
-					edit_letterhead.value = false;
-					selected_field.value = null;
-					selected_section.value = null;
-					selected_letterhead.value = false;
-					selected_lh_footer.value = false;
+					const saved_layout = get_layout();
+					needs_setup.value = !saved_layout;
+					const is_classic = Array.isArray(saved_layout);
+					const layout_ready = is_classic
+						? convert_classic_layout(_print_format)
+						: Promise.resolve(saved_layout);
+					layout_ready.then((resolved_layout) => {
+						const converted = is_classic && !!resolved_layout;
+						layout.value = resolved_layout || get_default_layout();
+						layout.value.sections = layout.value.sections.filter((s) => !s.remove);
+						layout.value.header = migrate_to_section(layout.value.header);
+						layout.value.footer = migrate_to_section(layout.value.footer);
+						edit_letterhead.value = false;
+						selected_field.value = null;
+						selected_section.value = null;
+						selected_letterhead.value = false;
+						selected_lh_footer.value = false;
 
-					// load the letter head stored in format_data, if any
-					const lh_name = layout.value?.letter_head;
-					const load_lh = lh_name
-						? frappe.db
-								.get_doc("Letter Head", lh_name)
-								.then((doc) => (letterhead.value = doc))
-						: Promise.resolve((letterhead.value = null));
+						const lh_name = layout.value?.letter_head;
+						const load_lh = lh_name
+							? frappe.db
+									.get_doc("Letter Head", lh_name)
+									.then((doc) => (letterhead.value = doc))
+							: Promise.resolve((letterhead.value = null));
 
-					load_lh.then(() => {
-						nextTick(() => (dirty.value = false));
-						resolve();
+						load_lh.then(() => {
+							reset_history();
+							nextTick(() => (dirty.value = converted));
+							resolve();
+						});
 					});
 				});
 			});
 		});
+	}
+	function convert_classic_layout(_print_format) {
+		return frappe
+			.call("frappe.printing.doctype.print_format.classic_converter.get_beta_layout", {
+				print_format: print_format_name,
+			})
+			.then((r) => {
+				_print_format.classic_format_data = r.message.classic_format_data;
+				_print_format.print_format_builder = 0;
+				_print_format.print_format_builder_beta = 1;
+				_print_format.pdf_generator = "chrome";
+				if (_print_format.page_number === "Hide") {
+					_print_format.page_number = "Bottom Center";
+				}
+				if (r.message.dropped.length) {
+					frappe.msgprint({
+						title: __("Converted from the old Print Format Builder"),
+						indicator: "orange",
+						message: __(
+							"These fields no longer exist in the DocType and were removed from the layout: {0}",
+							[r.message.dropped.join(", ")]
+						),
+					});
+				}
+				return r.message.layout;
+			})
+			.catch((e) => {
+				console.error("Classic print format conversion failed", e);
+				frappe.msgprint({
+					title: __("Could not convert this print format"),
+					indicator: "red",
+					message: __("Starting from the default layout instead."),
+				});
+				return null;
+			});
 	}
 	function migrate_to_section(value) {
 		if (value && typeof value === "object" && value.columns) return value;
@@ -75,79 +197,17 @@ export function getStore(print_format_name) {
 			],
 		};
 	}
-	function update({ fieldname, value }) {
-		print_format.value[fieldname] = value;
-	}
+	// count, not a flag — autosave and a manual save can overlap
+	let saving_count = ref(0);
+	let save_failed = ref(false);
+	let save_status = computed(() =>
+		save_failed.value ? "failed" : saving_count.value > 0 ? "saving" : "saved"
+	);
 	function save_changes() {
-		frappe.dom.freeze(__("Saving..."));
+		frappe.dom.freeze(__("Saving…"));
+		saving_count.value++;
 
-		layout.value.sections = layout.value.sections
-			.filter((section) => !section.remove)
-			.map((section) => {
-				section.columns = section.columns.map((column) => {
-					column.fields = column.fields
-						.filter((df) => !df.remove)
-						.map((df) => {
-							if (df.table_columns) {
-								df.table_columns = df.table_columns.map((tf) => {
-									return pluck(tf, [
-										"label",
-										"fieldname",
-										"fieldtype",
-										"options",
-										"width",
-										"field_template",
-									]);
-								});
-							}
-							return pluck(df, [
-								"label",
-								"fieldname",
-								"fieldtype",
-								"options",
-								"table_columns",
-								"table_style",
-								"table_bordered",
-								"table_header",
-								"html",
-								"field_template",
-								"show_label",
-								"align",
-							]);
-						});
-					return column;
-				});
-				return section;
-			});
-
-		// Clean up header/footer section fields
-		const zone_pluck_keys = [
-			"label",
-			"fieldname",
-			"fieldtype",
-			"options",
-			"table_columns",
-			"table_style",
-			"table_bordered",
-			"table_header",
-			"html",
-			"field_template",
-			"show_label",
-			"align",
-		];
-		function clean_zone(zone) {
-			if (!zone || !zone.columns) return zone;
-			zone.columns = zone.columns.map((column) => {
-				column.fields = column.fields
-					.filter((df) => !df.remove)
-					.map((df) => pluck(df, zone_pluck_keys));
-				return column;
-			});
-			return zone;
-		}
-		layout.value.header = clean_zone(layout.value.header);
-		layout.value.footer = clean_zone(layout.value.footer);
-
+		serialize_layout(layout.value);
 		print_format.value.format_data = JSON.stringify(layout.value);
 
 		frappe
@@ -165,25 +225,58 @@ export function getStore(print_format_name) {
 			})
 			.then(() => fetch())
 			.then(() => {
+				autosave_stopped = false;
+				save_failed.value = false;
 				frappe.show_alert({ message: __("Saved"), indicator: "green" });
 			})
+			.catch(() => (save_failed.value = true))
 			.always(() => {
+				saving_count.value--;
 				frappe.dom.unfreeze();
 			});
 	}
-	function reset_changes() {
-		fetch();
-	}
-	function load_preview_doc(name) {
-		if (!name) {
-			preview_doc.value = null;
-			preview_doc_name.value = null;
+	// stops after a failure so the error dialog doesn't loop; a manual save re-arms it
+	let autosave_stopped = false;
+	function autosave_changes() {
+		if (!dirty.value || autosave_stopped) return;
+		if (document.body.classList.contains("pfb-dragging")) {
+			autosave();
 			return;
 		}
-		preview_doc_name.value = name;
-		frappe.db.get_doc(print_format.value.doc_type, name).then((doc) => {
-			preview_doc.value = doc;
-		});
+		dirty.value = false;
+		saving_count.value++;
+		frappe
+			.call({
+				method: "frappe.client.save",
+				args: { doc: get_preview_format_doc() },
+			})
+			.then((r) => {
+				// sync only the stamp — the user may have kept editing mid-request
+				const was_dirty = dirty.value;
+				print_format.value.modified = r.message.modified;
+				if (!was_dirty) nextTick(() => (dirty.value = false));
+				if (letterhead.value && letterhead.value._dirty) {
+					return frappe
+						.call("frappe.client.save", { doc: letterhead.value })
+						.then((res) => {
+							letterhead.value.modified = res.message.modified;
+							letterhead.value._dirty = false;
+						});
+				}
+			})
+			.then(() => (save_failed.value = false))
+			.catch(() => {
+				autosave_stopped = true;
+				dirty.value = true;
+				save_failed.value = true;
+			})
+			.always(() => saving_count.value--);
+	}
+	const autosave = frappe.utils.debounce(autosave_changes, 3000);
+	function get_preview_format_doc() {
+		const snapshot = clone_plain(layout.value);
+		serialize_layout(snapshot);
+		return { ...print_format.value, format_data: JSON.stringify(snapshot) };
 	}
 	function get_layout() {
 		if (print_format.value && print_format.value.format_data) {
@@ -201,49 +294,132 @@ export function getStore(print_format_name) {
 	function get_default_layout() {
 		return create_default_layout(meta.value, print_format.value);
 	}
-	function change_letterhead(_letterhead) {
+	function change_letterhead(_letterhead, { keep_clean = false } = {}) {
 		return frappe.db.get_doc("Letter Head", _letterhead).then((doc) => {
 			letterhead.value = doc;
 			// persist the letter head name inside format_data (layout) so it
 			// survives save → reload without needing a separate doctype field
 			if (layout.value) {
 				layout.value.letter_head = _letterhead;
+				if (keep_clean) {
+					nextTick(() => (dirty.value = false));
+				}
 			}
 		});
 	}
 
-	// watch
-	watch(layout, () => {
-		dirty.value = true;
+	const {
+		undo,
+		redo,
+		reset: reset_history,
+	} = useLayoutHistory(layout, () => {
+		selected_field.value = null;
+		selected_section.value = null;
 	});
-	watch(print_format, () => {
-		dirty.value = true;
+
+	watch(
+		layout,
+		() => {
+			dirty.value = true;
+		},
+		{ deep: true }
+	);
+	watch(
+		print_format,
+		() => {
+			dirty.value = true;
+		},
+		{ deep: true }
+	);
+	// letterhead edits flag themselves with _dirty instead of touching `dirty` —
+	// route them into the same autosave pipeline
+	watch(
+		letterhead,
+		() => {
+			if (letterhead.value?._dirty) dirty.value = true;
+		},
+		{ deep: true }
+	);
+	watch(dirty, (v) => v && autosave());
+
+	const { style_presets, save_style_preset, apply_style_preset, delete_style_preset } =
+		usePresets(print_format);
+	const { clipboard, copy_field, copy_section, copy_selection, paste_clipboard } = useClipboard({
+		selection,
+		layout,
+		insert_section,
+		insert_field,
+	});
+	const { snippets, save_snippet, insert_snippet, delete_snippet } = useSnippets({
+		insert_section,
+		insert_field,
+		doc_type: computed(() => print_format.value?.doc_type),
 	});
 
 	return {
-		letterhead_name,
 		print_format,
 		letterhead,
-		doctype,
 		meta,
 		layout,
 		dirty,
+		needs_setup,
 		edit_letterhead,
-		scroll_to_section,
+		scroll_target,
+		hovered_field,
+		hovered_section,
+		hovered_column,
+		hovered_node,
 		selected_field,
+		selected_fields,
+		remove_selection,
+		remove_field,
+		align_selected_fields,
 		selected_section,
+		selected_sections,
 		selected_letterhead,
 		selected_lh_footer,
+		is_multi_select,
 		preview_doc,
 		preview_doc_name,
+		preview_values,
+		preview_child_values,
 		load_preview_doc,
+		persisted_preview_doc_name,
 		fetch,
-		update,
 		save_changes,
-		reset_changes,
+		save_status,
+		get_preview_format_doc,
+		select_field,
+		set_selected,
+		set_selection,
+		select_field_range,
+		ordered_body_fields,
+		reflow_dragged_group,
+		select_section,
+		select_letterhead,
+		remove_section,
 		get_layout,
 		get_default_layout,
 		change_letterhead,
+		clipboard,
+		copy_field,
+		copy_section,
+		copy_selection,
+		duplicate_field,
+		duplicate_section,
+		duplicate_selection,
+		move_selection,
+		style_presets,
+		save_style_preset,
+		apply_style_preset,
+		delete_style_preset,
+		snippets,
+		save_snippet,
+		insert_snippet,
+		delete_snippet,
+		paste_clipboard,
+		undo,
+		redo,
 	};
 }
 

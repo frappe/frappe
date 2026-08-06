@@ -44,6 +44,8 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True  # nosemgrep
 
 URL_PREFIXES = ("http://", "https://", "/api/method/")
 FILE_ENCODING_OPTIONS = ("utf-8-sig", "utf-8", "windows-1250", "windows-1252")
+# OLE2 Compound File Binary signature, used by legacy .xls/.doc/.ppt files, which filetype fails to detect
+OLE_FILE_SIGNATURE = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
 
 
 class File(Document):
@@ -245,6 +247,7 @@ class File(Document):
 			frappe.throw(_("Cannot delete Home and Attachments folders"))
 		self.validate_empty_folder()
 		self.validate_protected_file()
+		self.validate_not_referenced_in_attach_field()
 		self._delete_file_on_disk()
 		if not self.is_folder:
 			self.add_comment_in_reference_doc("Attachment Removed", self.file_name)
@@ -603,6 +606,62 @@ class File(Document):
 			title=_("Protected File"),
 		)
 
+	def validate_not_referenced_in_attach_field(self):
+		"""Throw an exception if the linked document still has this file's URL set in an Attach field."""
+		if self.flags.force_delete:
+			return
+
+		if not (self.attached_to_doctype and self.attached_to_name and self.file_url):
+			return
+
+		url_backed_by_another_file = frappe.get_all(
+			"File",
+			filters={"file_url": self.file_url, "name": ["!=", self.name]},
+			limit=1,
+		)
+		if url_backed_by_another_file:
+			return
+
+		try:
+			ref_doc = frappe.get_doc(self.attached_to_doctype, self.attached_to_name)
+		except DoesNotExistError:
+			return
+
+		def get_referencing_field(doc):
+			for df in doc.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]}):
+				if doc.get(df.fieldname) == self.file_url:
+					return df
+
+		docs_to_check = [ref_doc]
+		for table_field in ref_doc.meta.get_table_fields():
+			docs_to_check.extend(ref_doc.get(table_field.fieldname))
+
+		referencing_field = None
+		referencing_doc = None
+		for doc in docs_to_check:
+			if referencing_field := get_referencing_field(doc):
+				referencing_doc = doc
+				break
+
+		if not referencing_field:
+			return
+
+		if ref_doc.docstatus > 0 and not referencing_field.allow_on_submit:
+			return
+
+		field_label = frappe.bold(_(referencing_field.label or referencing_field.fieldname))
+
+		if referencing_doc is ref_doc:
+			msg = _(
+				"This file cannot be deleted as it is set in field {0} of {1} {2}. Clear the field first."
+			).format(field_label, _(ref_doc.doctype), ref_doc.name)
+		else:
+			msg = _(
+				"This file cannot be deleted as it is set in field {0} in row {1} of {2} {3}. Clear the field first."
+			).format(field_label, referencing_doc.idx, _(ref_doc.doctype), ref_doc.name)
+
+		frappe.throw(msg, frappe.LinkExistsError)
+
 	def _delete_file_on_disk(self):
 		"""If file not attached to any other record, delete it"""
 		on_disk_file_not_shared = self.content_hash and not frappe.get_all(
@@ -662,6 +721,7 @@ class File(Document):
 		if self.is_folder:
 			frappe.throw(_("Cannot get file contents of a Folder"))
 
+		self.validate_file_path()
 		# if doc was just created, content field is already populated, return it as-is
 		if self.get("content"):
 			self._content = self.content
@@ -681,7 +741,7 @@ class File(Document):
 			self._content = f.read()
 			# Only decode if not a binary file
 			kind = filetype.guess(self._content)
-			if not kind:
+			if not kind and not self._content.startswith(OLE_FILE_SIGNATURE):
 				# looping will not result in slowdown, as the content is usually utf-8 or utf-8-sig
 				# encoded so the first iteration will be enough most of the time
 				for encoding in encodings:
@@ -912,6 +972,10 @@ class File(Document):
 			content_type=content_type,
 		)
 
+		if original_content == optimized_content:
+			# optimization failed, don't resave it
+			return
+
 		self.save_file(content=optimized_content, overwrite=True)
 		self.save()
 
@@ -951,6 +1015,9 @@ def on_doctype_update():
 def has_permission(doc, ptype=None, user=None, debug=False):
 	user = user or frappe.session.user
 
+	if any(frappe.get_hooks("ignore_file_permissions")):
+		return True
+
 	if user == "Administrator":
 		return True
 
@@ -973,7 +1040,7 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 		attached_to_name = doc.attached_to_name
 
 		try:
-			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
+			ref_doc = frappe.get_lazy_doc(attached_to_doctype, attached_to_name)
 		except (ModuleNotFoundError, ImportError):
 			return False
 		except frappe.DoesNotExistError:
@@ -990,6 +1057,10 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 
 def get_permission_query_conditions(user: str | None = None) -> str:
 	user = user or frappe.session.user
+
+	if any(frappe.get_hooks("ignore_file_permissions")):
+		return ""
+
 	if user == "Administrator":
 		return ""
 

@@ -4,14 +4,13 @@
 import json
 import typing
 from typing import Any
-from urllib.parse import quote_plus
+from urllib.parse import quote
 
 import frappe
 import frappe.defaults
 import frappe.desk.form.meta
 import frappe.utils
 from frappe import _, _dict
-from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
 from frappe.desk.form.document_follow import is_document_followed
 from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings
@@ -79,10 +78,11 @@ def getdoctype(doctype: str, with_parent: int | bool = False):
 
 
 def get_meta_bundle(doctype):
-	bundle = [frappe.desk.form.meta.get_meta(doctype)]
+	form_meta = frappe.desk.form.meta.get_meta(doctype)
+	bundle = [form_meta.as_dict(no_nulls=True)]
 	bundle.extend(
-		frappe.desk.form.meta.get_meta(df.options)
-		for df in bundle[0].fields
+		frappe.desk.form.meta.get_meta(df.options).as_dict(no_nulls=True, parenttype=doctype)
+		for df in form_meta.fields
 		if df.fieldtype in frappe.model.table_fields
 	)
 	return bundle
@@ -106,6 +106,9 @@ def get_docinfo(
 	communications_except_auto_messages = [
 		msg for msg in all_communications if msg["communication_type"] != "Automated Message"
 	]
+	assert len(automated_messages) + len(communications_except_auto_messages) == len(all_communications), (
+		"every communication must be classified into exactly one message group"
+	)
 
 	docinfo = frappe._dict(user_info={})
 
@@ -128,7 +131,6 @@ def get_docinfo(
 			"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
 			"tags": get_tags(doc.doctype, doc.name),
 			"document_email": get_document_email(doc.doctype, doc.name),
-			"custom_perm_types": get_doctype_ptype_map().get(doc.doctype, []),
 		}
 	)
 
@@ -185,8 +187,49 @@ def get_milestones(doctype, name):
 def get_attachments(dt, dn):
 	return frappe.get_all(
 		"File",
-		fields=["name", "file_name", "file_url", "is_private", "attached_to_field", "folder"],
+		fields=[
+			"name",
+			"file_name",
+			"file_url",
+			"file_type",
+			"file_size",
+			"is_private",
+			"attached_to_field",
+			"folder",
+		],
 		filters={"attached_to_name": str(dn), "attached_to_doctype": dt},
+	)
+
+
+@frappe.whitelist()
+def get_filtered_attachments(dt: str, dn: str | int, filters: str):
+	frappe.get_doc(dt, dn).check_permission("read")
+	filters = frappe.parse_json(filters)
+	if not isinstance(filters, list) or any(
+		not isinstance(filter_row, list) or len(filter_row) != 4 for filter_row in filters
+	):
+		frappe.throw(_("Filters must be a list of four-value filter rows."))
+	if any(filter_row[0] != "File" for filter_row in filters):
+		frappe.throw(_("Attachment Gallery filters must target File."))
+
+	return frappe.get_all(
+		"File",
+		fields=[
+			"name",
+			"file_name",
+			"file_url",
+			"file_type",
+			"file_size",
+			"is_private",
+			"attached_to_field",
+			"folder",
+		],
+		filters=[
+			["File", "attached_to_name", "=", str(dn)],
+			["File", "attached_to_doctype", "=", dt],
+			*filters,
+		],
+		limit=0,
 	)
 
 
@@ -408,7 +451,7 @@ def get_document_email(doctype, name):
 		return None
 
 	email = email.split("@")
-	return f"{email[0]}+{quote_plus(doctype)}={quote_plus(cstr(name))}@{email[1]}"
+	return f"{email[0]}+{quote(doctype, safe='')}={quote(cstr(name), safe='')}@{email[1]}"
 
 
 def get_additional_timeline_content(doctype, docname):
@@ -503,9 +546,9 @@ def update_user_info(docinfo, doc=None):
 
 
 @frappe.whitelist()
-def get_user_info_for_viewers(users: str):
+def get_user_info_for_viewers(users: str | list):
 	user_info = {}
-	for user in json.loads(users):
+	for user in frappe.parse_json(users):
 		frappe.utils.add_user_info(user, user_info)
 
 	return user_info

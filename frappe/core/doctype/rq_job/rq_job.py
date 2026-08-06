@@ -96,7 +96,11 @@ class RQJob(Document):
 
 		matched_job_ids = []
 		for queue in get_queues():
-			if not queue.name.endswith(tuple(queues)):
+			# RQ keys are prefixed with the bench path (e.g. `...bench:long`);
+			# split on ":" and compare the short name exactly. `endswith` alone
+			# would false-match custom queues whose name is a suffix of a
+			# standard one (e.g. `schedulelong` under `queue=long`).
+			if queue.name.rsplit(":", 1)[-1] not in queues:
 				continue
 			for status in statuses:
 				matched_job_ids.extend(fetch_job_ids(queue, status))

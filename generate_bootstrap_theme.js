@@ -1,28 +1,19 @@
-const sass = require("sass");
 const fs = require("fs");
-const sass_options = require("./esbuild/sass_options");
-let output_path = process.argv[2];
-let scss_content = process.argv[3];
-scss_content = scss_content.replace(/\\n/g, "\n");
+const { sass, sass_options } = require("./esbuild/sass_compiler");
 
-sass.render(
-	{
-		data: scss_content,
-		outputStyle: "compressed",
-		...sass_options,
-	},
-	function (err, result) {
-		if (err) {
-			console.error(err.formatted);
-			return;
-		}
+const output_path = process.argv[2];
+const scss_content = process.argv[3].replace(/\\n/g, "\n");
 
-		fs.writeFile(output_path, result.css, function (err) {
-			if (!err) {
-				console.log(output_path);
-			} else {
-				console.error(err);
-			}
-		});
-	}
-);
+// The caller (website_theme.py) treats anything on stderr as a compile
+// failure, so errors go to console.error and success prints only the path.
+sass.compileStringAsync(scss_content, {
+	style: "compressed",
+	...sass_options,
+	sourceMap: false,
+})
+	.then((result) => fs.promises.writeFile(output_path, result.css))
+	.then(() => console.log(output_path))
+	.catch((err) => {
+		console.error(err.message || err);
+		process.exitCode = 1;
+	});

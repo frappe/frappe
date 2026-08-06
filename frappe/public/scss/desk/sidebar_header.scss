@@ -3,7 +3,7 @@
 	display: flex;
 	align-items: center;
 	padding: 8px;
-	height: 48px;
+	height: 36px;
 	button {
 		margin-left: 8px;
 		@include truncate();
@@ -19,7 +19,10 @@
 .header-logo {
 	width: 32px;
 	height: 32px;
-
+	display: flex;
+	align-items: center;
+	background-color: var(--ink-gray-2);
+	border-radius: var(--radius-3);
 	& .icon-container {
 		padding: 4px;
 		border-radius: 10px;
@@ -39,7 +42,6 @@
 
 .title-container {
 	flex: 1 1 0%;
-	margin-left: 8px;
 	display: flex;
 	flex-direction: column;
 	text-align: left;
@@ -50,6 +52,7 @@
 	line-height: 1.2;
 	@include truncate();
 	overflow: unset;
+	margin-left: calc(var(--margin-xs) - 3px);
 }
 
 .header-subtitle {

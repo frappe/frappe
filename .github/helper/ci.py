@@ -9,9 +9,10 @@ configuration.
 """
 
 import json
-import sys
 import os
+import sys
 from pathlib import Path
+
 from coverage import Coverage
 
 STANDARD_INCLUSIONS = ["*.py"]

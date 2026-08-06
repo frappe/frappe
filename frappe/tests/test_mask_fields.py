@@ -19,6 +19,7 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.model.utils.mask import mask_field_value
 from frappe.permissions import add_user_permission, update_permission_property
 from frappe.tests import IntegrationTestCase
+from frappe.utils import flt
 
 
 def _make_field(fieldname, fieldtype="Data", options=None, mask=1, **kwargs):
@@ -63,6 +64,9 @@ class TestMaskFieldValue(IntegrationTestCase):
 
 	def test_time_field_masked(self):
 		self.assertEqual(mask_field_value(self._field("Time"), "14:30:00"), "XX:XX")
+
+	def test_datetime_field_masked(self):
+		self.assertEqual(mask_field_value(self._field("Datetime"), "2024-01-15 14:30:00"), "XX-XX-XXXX XX:XX")
 
 	def test_none_value_is_not_masked(self):
 		self.assertIsNone(mask_field_value(self._field("Data"), None))
@@ -215,6 +219,42 @@ class TestMaskFieldsBehaviour(IntegrationTestCase):
 		)
 		self.assertEqual(rows[0]["secret_data"], "top_secret_value")
 
+	def test_db_get_value_does_not_mask_when_permissions_are_ignored(self):
+		frappe.set_user(self.TEST_USER)
+		value = frappe.db.get_value(self.dt, self.docname, "secret_data")
+		self.assertEqual(value, "top_secret_value")
+
+	def test_qb_get_query_does_not_mask_when_permissions_are_ignored(self):
+		frappe.set_user(self.TEST_USER)
+		rows = frappe.qb.get_query(
+			self.dt,
+			fields=["secret_data"],
+			filters={"name": self.docname},
+			ignore_permissions=True,
+		).run(as_dict=True)
+		self.assertEqual(rows[0]["secret_data"], "top_secret_value")
+
+	def test_legacy_db_query_masks_plain_field(self):
+		frappe.set_user(self.TEST_USER)
+		from frappe.model.db_query import DatabaseQuery
+
+		rows = DatabaseQuery(self.dt).execute(
+			fields=["secret_data"],
+			filters={"name": self.docname},
+		)
+		self.assertEqual(rows[0]["secret_data"], "XXXXXXXX")
+
+	def test_legacy_db_query_does_not_mask_when_permissions_are_ignored(self):
+		frappe.set_user(self.TEST_USER)
+		from frappe.model.db_query import DatabaseQuery
+
+		rows = DatabaseQuery(self.dt).execute(
+			fields=["secret_data"],
+			filters={"name": self.docname},
+			ignore_permissions=True,
+		)
+		self.assertEqual(rows[0]["secret_data"], "top_secret_value")
+
 	# ------------------------------------------------------------------
 	# Save: server hooks and permission checks see real values
 	# ------------------------------------------------------------------
@@ -302,6 +342,381 @@ class TestMaskFieldsBehaviour(IntegrationTestCase):
 		finally:
 			update_permission_property(self.dt, self.TEST_ROLE, 0, "mask", 0)
 			frappe.clear_cache(doctype=self.dt)
+
+
+class TestMaskFieldsInChildTable(IntegrationTestCase):
+	"""Regression test for issue #39679: masked child-table fields must be masked on read
+	(numeric ones as the placeholder, not cast back to 0) and restored on save."""
+
+	TEST_USER = "test_mask_child_user@example.com"
+	TEST_ROLE = "Test Mask Child Role"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+
+		if not frappe.db.exists("Role", cls.TEST_ROLE):
+			frappe.get_doc({"doctype": "Role", "role_name": cls.TEST_ROLE, "desk_access": 1}).insert()
+
+		if not frappe.db.exists("User", cls.TEST_USER):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": cls.TEST_USER,
+					"first_name": "Mask Child Test",
+					"send_welcome_email": 0,
+					"roles": [{"role": cls.TEST_ROLE}],
+				}
+			).insert(ignore_permissions=True)
+		else:
+			frappe.get_doc("User", cls.TEST_USER).add_roles(cls.TEST_ROLE)
+
+		# Child doctype with a masked Data field, a masked Currency field and an unmasked Float
+		cls.child_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					_make_field("secret_note", "Data", mask=1),
+					_make_field("rate", "Currency", mask=1),
+					_make_field("public_qty", "Float", mask=0),
+				],
+			)
+			.insert()
+			.name
+		)
+
+		cls.dt = (
+			new_doctype(
+				fields=[_make_field("items", "Table", options=cls.child_dt, mask=0)],
+				permissions=[{"role": cls.TEST_ROLE, "read": 1, "write": 1, "create": 1}],
+			)
+			.insert()
+			.name
+		)
+
+		doc = frappe.get_doc(
+			{
+				"doctype": cls.dt,
+				"items": [{"secret_note": "child_secret", "rate": 1234.5, "public_qty": 7}],
+			}
+		).insert()
+		cls.docname = doc.name
+		cls.row_name = doc.items[0].name
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.set_user("Administrator")
+		frappe.db.delete(cls.dt)
+		frappe.db.delete(cls.child_dt)
+		frappe.delete_doc("DocType", cls.dt, force=True)
+		frappe.delete_doc("DocType", cls.child_dt, force=True)
+		if frappe.db.exists("User", cls.TEST_USER):
+			frappe.db.set_value("User", cls.TEST_USER, "enabled", 0)
+		super().tearDownClass()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def test_child_masked_fields_masked_for_non_admin(self):
+		"""Child masked fields are masked on read; numeric ones survive serialization as the
+		placeholder instead of being cast to 0."""
+		frappe.set_user(self.TEST_USER)
+		doc = frappe.get_doc(self.dt, self.docname)
+		doc.apply_fieldlevel_read_permissions()
+
+		self.assertEqual(doc.items[0].secret_note, "XXXXXXXX")
+		self.assertEqual(doc.items[0].rate, "XXXXXXXX")
+		self.assertEqual(doc.items[0].public_qty, 7)  # unmasked field untouched
+		# numeric placeholder must not be cast back to 0 when serialized for the client
+		self.assertEqual(doc.as_dict()["items"][0]["rate"], "XXXXXXXX")
+
+	def test_masked_child_value_preserved_on_save(self):
+		"""Saving with the placeholder in a masked child field keeps the real DB value."""
+		frappe.set_user(self.TEST_USER)
+		doc = frappe.get_doc(self.dt, self.docname)
+		doc.items[0].rate = "XXXXXXXX"  # as sent by the client
+		doc.items[0].public_qty = 9
+		doc.save()
+
+		frappe.set_user("Administrator")
+		saved = frappe.db.get_value(self.child_dt, self.row_name, ["rate", "public_qty"], as_dict=True)
+		self.assertEqual(flt(saved.rate), 1234.5)  # masked value restored, not overwritten
+		self.assertEqual(flt(saved.public_qty), 9)  # unmasked field still writable
+
+	def _grant_mask_permission(self):
+		update_permission_property(self.dt, self.TEST_ROLE, 0, "mask", 1)
+		frappe.clear_cache(doctype=self.dt)
+
+	def _revoke_mask_permission(self):
+		frappe.set_user("Administrator")
+		update_permission_property(self.dt, self.TEST_ROLE, 0, "mask", 0)
+		frappe.clear_cache(doctype=self.dt)
+
+	def test_child_fields_unmasked_with_parent_mask_permission(self):
+		"""The mask permission on the parent doctype must unmask child-table fields,
+		since child doctypes have no role permissions of their own (issue #40790)."""
+		self._grant_mask_permission()
+		try:
+			frappe.set_user(self.TEST_USER)
+			doc = frappe.get_doc(self.dt, self.docname)
+			doc.apply_fieldlevel_read_permissions()
+
+			self.assertEqual(doc.items[0].secret_note, "child_secret")
+			self.assertEqual(flt(doc.items[0].rate), 1234.5)
+		finally:
+			self._revoke_mask_permission()
+
+	def test_qb_child_query_masks_for_non_admin(self):
+		"""Child rows fetched via the query builder's child queries must be masked."""
+		frappe.set_user(self.TEST_USER)
+		rows = frappe.qb.get_query(
+			self.dt,
+			fields=["name", {"items": ["secret_note", "rate"]}],
+			filters={"name": self.docname},
+			ignore_permissions=False,
+		).run(as_dict=True)
+
+		self.assertEqual(len(rows), 1)
+		self.assertEqual(rows[0]["items"][0]["secret_note"], "XXXXXXXX")
+		self.assertEqual(rows[0]["items"][0]["rate"], "XXXXXXXX")
+
+	def test_qb_child_query_unmasked_with_parent_mask_permission(self):
+		self._grant_mask_permission()
+		try:
+			frappe.set_user(self.TEST_USER)
+			rows = frappe.qb.get_query(
+				self.dt,
+				fields=["name", {"items": ["secret_note"]}],
+				filters={"name": self.docname},
+				ignore_permissions=False,
+			).run(as_dict=True)
+
+			self.assertEqual(rows[0]["items"][0]["secret_note"], "child_secret")
+		finally:
+			self._revoke_mask_permission()
+
+	def test_dotted_child_field_masked_in_get_list(self):
+		"""Selecting a masked child field through dot notation must mask it, the same as
+		querying the child doctype directly."""
+		frappe.set_user(self.TEST_USER)
+
+		rows = frappe.get_list(self.dt, filters={"name": self.docname}, fields=["name", "items.rate"])
+		self.assertEqual(rows[0]["rate"], "XXXXXXXX")
+
+		rows = frappe.get_list(
+			self.dt, filters={"name": self.docname}, fields=["name", "items.rate"], as_list=True
+		)
+		self.assertEqual(rows[0][1], "XXXXXXXX")
+
+	def test_dotted_child_field_masked_in_query_engine(self):
+		frappe.set_user(self.TEST_USER)
+		rows = frappe.qb.get_query(
+			self.dt,
+			fields=["name", "items.rate", "items.secret_note"],
+			filters={"name": self.docname},
+			ignore_permissions=False,
+		).run(as_dict=True)
+
+		self.assertEqual(rows[0]["rate"], "XXXXXXXX")
+		self.assertEqual(rows[0]["secret_note"], "XXXXXXXX")
+
+	def test_dotted_child_field_masked_in_legacy_db_query(self):
+		frappe.set_user(self.TEST_USER)
+		from frappe.model.db_query import DatabaseQuery
+
+		rows = DatabaseQuery(self.dt).execute(
+			fields=["name", "items.rate", f"`tab{self.child_dt}`.`secret_note` as 'child:secret_note'"],
+			filters={"name": self.docname},
+		)
+		self.assertEqual(rows[0]["rate"], "XXXXXXXX")
+		self.assertEqual(rows[0]["child:secret_note"], "XXXXXXXX")
+
+	def test_dotted_child_field_unmasked_with_parent_mask_permission(self):
+		"""A dotted child field resolves its mask permission through the parent, the same as
+		the child rows themselves."""
+		self._grant_mask_permission()
+		try:
+			frappe.set_user(self.TEST_USER)
+			rows = frappe.get_list(self.dt, filters={"name": self.docname}, fields=["items.rate"])
+			self.assertEqual(flt(rows[0]["rate"]), 1234.5)
+		finally:
+			self._revoke_mask_permission()
+
+	def test_aliased_child_field_masked(self):
+		"""The report view selects child columns under an alias (`items.rate as 'Item:rate'`),
+		so masking has to match the alias the value lands under."""
+		frappe.set_user(self.TEST_USER)
+
+		rows = frappe.get_list(
+			self.dt, filters={"name": self.docname}, fields=[f"`tab{self.child_dt}`.`rate` as 'child:rate'"]
+		)
+		self.assertEqual(rows[0]["child:rate"], "XXXXXXXX")
+
+		rows = frappe.qb.get_query(
+			self.dt,
+			fields=["items.rate as child_rate"],
+			filters={"name": self.docname},
+			ignore_permissions=False,
+		).run(as_dict=True)
+		self.assertEqual(rows[0]["child_rate"], "XXXXXXXX")
+
+	def test_plucked_dotted_child_field_masked(self):
+		frappe.set_user(self.TEST_USER)
+		values = frappe.qb.get_query(
+			self.dt,
+			fields=["items.rate"],
+			filters={"name": self.docname},
+			ignore_permissions=False,
+		).run(pluck="rate")
+
+		self.assertEqual(values[0], "XXXXXXXX")
+
+	def test_plucked_aliased_child_field_masked(self):
+		"""An aliased dotted field is keyed under its alias, so the pluck path has to match
+		the alias too."""
+		frappe.set_user(self.TEST_USER)
+		values = frappe.qb.get_query(
+			self.dt,
+			fields=["items.rate as child_rate"],
+			filters={"name": self.docname},
+			ignore_permissions=False,
+		).run(pluck="child_rate")
+
+		self.assertEqual(values[0], "XXXXXXXX")
+
+	def test_query_run_without_as_dict_masks(self):
+		"""`run()` returns tuples, so masking must not treat the result as dicts."""
+		frappe.set_user(self.TEST_USER)
+		rows = frappe.qb.get_query(
+			self.child_dt,
+			fields=["rate"],
+			filters={"parent": self.docname},
+			parent_doctype=self.dt,
+			ignore_permissions=False,
+		).run()
+
+		self.assertEqual(rows[0][0], "XXXXXXXX")
+
+	def test_form_meta_child_masked_fields_respect_parent_permission(self):
+		"""masked_fields in the form meta bundle for a child doctype must follow the
+		parent doctype's mask permission."""
+		from frappe.desk.form.load import get_meta_bundle
+
+		frappe.set_user(self.TEST_USER)
+		child_meta_dict = next(d for d in get_meta_bundle(self.dt) if d["name"] == self.child_dt)
+		self.assertEqual(set(child_meta_dict["masked_fields"]), {"secret_note", "rate"})
+
+		frappe.set_user("Administrator")
+		self._grant_mask_permission()
+		try:
+			frappe.set_user(self.TEST_USER)
+			child_meta_dict = next(d for d in get_meta_bundle(self.dt) if d["name"] == self.child_dt)
+			self.assertEqual(child_meta_dict["masked_fields"], [])
+		finally:
+			self._revoke_mask_permission()
+
+
+class TestMaskFieldsInLinkedDocType(IntegrationTestCase):
+	"""A masked field on a link target must stay masked when selected through the link
+	(`customer.tax_id`), not just when its own doctype is queried."""
+
+	TEST_USER = "test_mask_link_field_user@example.com"
+	TEST_ROLE = "Test Mask Link Field Role"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+
+		if not frappe.db.exists("Role", cls.TEST_ROLE):
+			frappe.get_doc({"doctype": "Role", "role_name": cls.TEST_ROLE, "desk_access": 1}).insert()
+
+		if not frappe.db.exists("User", cls.TEST_USER):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": cls.TEST_USER,
+					"first_name": "Mask Link Field Test",
+					"send_welcome_email": 0,
+					"roles": [{"role": cls.TEST_ROLE}],
+				}
+			).insert(ignore_permissions=True)
+		else:
+			frappe.get_doc("User", cls.TEST_USER).add_roles(cls.TEST_ROLE)
+
+		cls.target_dt = (
+			new_doctype(
+				fields=[_make_field("tax_id", "Data", mask=1)],
+				permissions=[{"role": cls.TEST_ROLE, "read": 1, "write": 1, "create": 1}],
+			)
+			.insert()
+			.name
+		)
+
+		cls.dt = (
+			new_doctype(
+				fields=[_make_field("customer", "Link", options=cls.target_dt, mask=0)],
+				permissions=[{"role": cls.TEST_ROLE, "read": 1, "write": 1, "create": 1}],
+			)
+			.insert()
+			.name
+		)
+
+		cls.target_name = frappe.get_doc({"doctype": cls.target_dt, "tax_id": "GST12345"}).insert().name
+		cls.docname = frappe.get_doc({"doctype": cls.dt, "customer": cls.target_name}).insert().name
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.set_user("Administrator")
+		frappe.db.delete(cls.dt)
+		frappe.db.delete(cls.target_dt)
+		frappe.delete_doc("DocType", cls.dt, force=True)
+		frappe.delete_doc("DocType", cls.target_dt, force=True)
+		if frappe.db.exists("User", cls.TEST_USER):
+			frappe.db.set_value("User", cls.TEST_USER, "enabled", 0)
+		super().tearDownClass()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def test_masked_field_selected_through_link_is_masked(self):
+		frappe.set_user(self.TEST_USER)
+
+		rows = frappe.get_list(self.dt, filters={"name": self.docname}, fields=["customer.tax_id"])
+		self.assertEqual(rows[0]["tax_id"], "XXXXXXXX")
+
+		rows = frappe.qb.get_query(
+			self.dt,
+			fields=["customer.tax_id"],
+			filters={"name": self.docname},
+			ignore_permissions=False,
+		).run(as_dict=True)
+		self.assertEqual(rows[0]["tax_id"], "XXXXXXXX")
+
+	def test_masked_field_through_link_masked_in_legacy_db_query(self):
+		"""The link target is joined under a counter alias (`tabUser_1`), which has to resolve
+		back to the real doctype before its masked fields can be looked up."""
+		frappe.set_user(self.TEST_USER)
+		from frappe.model.db_query import DatabaseQuery
+
+		rows = DatabaseQuery(self.dt).execute(
+			fields=["name", "customer.tax_id"],
+			filters={"name": self.docname},
+		)
+		self.assertEqual(rows[0]["tax_id"], "XXXXXXXX")
+
+	def test_masked_field_through_link_follows_target_mask_permission(self):
+		"""Link targets are standalone doctypes, so their own mask permission applies."""
+		update_permission_property(self.target_dt, self.TEST_ROLE, 0, "mask", 1)
+		frappe.clear_cache(doctype=self.target_dt)
+
+		try:
+			frappe.set_user(self.TEST_USER)
+			rows = frappe.get_list(self.dt, filters={"name": self.docname}, fields=["customer.tax_id"])
+			self.assertEqual(rows[0]["tax_id"], "GST12345")
+		finally:
+			frappe.set_user("Administrator")
+			update_permission_property(self.target_dt, self.TEST_ROLE, 0, "mask", 0)
+			frappe.clear_cache(doctype=self.target_dt)
 
 
 class TestMaskFieldsWithUserPermissions(IntegrationTestCase):

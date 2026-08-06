@@ -193,7 +193,20 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 
 	get_primary_btn() {
-		return this.standard_actions.find(".btn-primary");
+		return this.standard_actions.find(".btn-modal-primary");
+	}
+
+	// the footer buttons are es-buttons — swap only the label text so the
+	// spinner/loading-label structure survives; when there's no label span
+	// (empty initial label, or an external caller .html()'d the structure
+	// away) rebuild it via dress, which leaves the other attributes alone
+	set_btn_label($btn, label) {
+		const $label = $btn.find(".es-button__label");
+		if ($label.length) {
+			$label.text(label);
+		} else {
+			frappe.ui.button.dress($btn, { label });
+		}
 	}
 
 	get_minimize_btn() {
@@ -234,8 +247,15 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.footer.removeClass("hide");
 		this.has_primary_action = true;
 		var me = this;
-		const primary_btn = this.get_primary_btn().removeClass("hide").html(label);
-		const spinner = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="width: 13px; height: 13px; animation: spin 1s linear infinite;"><circle opacity=".25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path opacity=".25" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>`;
+		// rebuild the es-button content so the spinner + loading-label
+		// structure matches this action (replaces the old hand-rolled
+		// spinner html; the busy visuals are pure CSS on aria-busy)
+		const primary_btn = this.get_primary_btn().removeClass("hide");
+		frappe.ui.button.dress(primary_btn, {
+			label,
+			loading_label: this.primary_action_loading_label || undefined,
+			variant: "solid",
+		});
 		if (typeof click == "function") {
 			primary_btn.off("click").on("click", function () {
 				me.primary_action_fulfilled = true;
@@ -246,31 +266,9 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				if (!values) return;
 				const action = click.apply(me, [values]);
 				if (action && typeof action.then === "function") {
-					const loading_label = me.primary_action_loading_label;
-					primary_btn
-						.css({
-							"min-width": primary_btn.outerWidth(),
-							"min-height": primary_btn.outerHeight(),
-						})
-						.prop("disabled", true)
-						.addClass("btn-primary-dark")
-						.html(
-							`<div class="d-flex align-items-center justify-content-center" style="gap: 0.45rem;">
-									${spinner}
-								${
-									loading_label
-										? `<span class="text-muted" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${loading_label}</span>`
-										: ""
-								}
-							</div>`
-						);
-
+					primary_btn.attr("aria-busy", "true");
 					Promise.resolve(action).finally(() => {
-						primary_btn
-							.css({ "min-width": "", "min-height": "" })
-							.prop("disabled", false)
-							.removeClass("btn-primary-dark")
-							.html(label);
+						primary_btn.removeAttr("aria-busy");
 					});
 				}
 			});
@@ -284,15 +282,16 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 
 	set_secondary_action_label(label) {
-		this.get_secondary_btn().removeClass("hide").html(label);
+		this.set_btn_label(this.get_secondary_btn().removeClass("hide"), label);
 	}
 
 	disable_primary_action() {
-		this.get_primary_btn().addClass("disabled");
+		// class kept in sync for callers that read .hasClass("disabled")
+		this.get_primary_btn().prop("disabled", true).addClass("disabled");
 	}
 
 	enable_primary_action() {
-		this.get_primary_btn().removeClass("disabled");
+		this.get_primary_btn().prop("disabled", false).removeClass("disabled");
 	}
 
 	make_head() {
@@ -394,11 +393,10 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 	add_custom_action(label, action, css_class = null) {
 		this.footer.removeClass("hide");
-		let action_button = $(`
-			<button class="btn btn-secondary btn-sm ${css_class || ""}">
-				${label}
-			</button>
-		`);
+		let action_button = frappe.ui.button({
+			label,
+			css_class: css_class || "",
+		});
 		this.custom_actions.append(action_button);
 
 		action && action_button.click(action);

@@ -32,6 +32,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.refresh_if_stale_for = 120;
 		this.opendocs = {};
 		this.custom_buttons = {};
+		this.$intro_message = null;
 		this.sections = [];
 		this.grids = [];
 		this.cscript = new frappe.ui.form.Controller({ frm: this });
@@ -545,6 +546,7 @@ frappe.ui.form.Form = class FrappeForm {
 			// reset page number to 1
 			grid_obj.grid.grid_pagination.go_to_page(1, true);
 		});
+		this.layout?.sections.forEach((section) => (section.expanded_by_user = false));
 		frappe.ui.form.close_grid_form();
 		this.viewers && this.viewers.parent.empty();
 		this.docname = docname;
@@ -920,7 +922,10 @@ frappe.ui.form.Form = class FrappeForm {
 	save(save_action, callback, btn, on_error) {
 		let me = this;
 		return new Promise((resolve, reject) => {
-			btn && $(btn).prop("disabled", true);
+			// aria-busy mirrors the disabled handling here and in save.js —
+			// see the note in frappe.ui.form.save (this promise doesn't settle
+			// on every validation-error path)
+			btn && $(btn).prop("disabled", true).attr("aria-busy", "true");
 			frappe.ui.form.close_grid_form();
 			me.validate_and_save(save_action, callback, btn, on_error, resolve, reject);
 		})
@@ -972,7 +977,7 @@ frappe.ui.form.Form = class FrappeForm {
 			if (e) {
 				console.error(e);
 			}
-			btn && $(btn).prop("disabled", false);
+			btn && $(btn).prop("disabled", false).removeAttr("aria-busy");
 			if (on_error) {
 				on_error();
 				reject();
@@ -1066,7 +1071,7 @@ frappe.ui.form.Form = class FrappeForm {
 				method: "frappe.desk.form.linked_with.get_submitted_linked_docs",
 				args: {
 					doctype: me.doc.doctype,
-					name: me.doc.name,
+					name: cstr(me.doc.name),
 					ignore_doctypes_on_cancel_all: me.ignore_doctypes_on_cancel_all,
 				},
 				freeze: true,
@@ -1183,11 +1188,23 @@ frappe.ui.form.Form = class FrappeForm {
 		if (skip_confirm) {
 			cancel_doc();
 		} else {
-			frappe.confirm(
+			// destructive: red primary via frappe.warn
+			const d = frappe.warn(
+				__("Confirm"),
 				__("Permanently Cancel {0}?", [this.docname]),
 				cancel_doc,
-				me.handle_save_fail(btn, on_error)
+				__("Yes"),
+				false,
+				__("No")
 			);
+			// declined (No / Escape / close): re-enable the button. A
+			// confirmed-but-failed cancellation calls handle_save_fail from
+			// inside cancel_doc — this must not double up with that.
+			d.onhide = () => {
+				if (!d.primary_action_fulfilled) {
+					me.handle_save_fail(btn, on_error);
+				}
+			};
 		}
 	}
 
@@ -1339,7 +1356,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	handle_save_fail(btn, on_error) {
-		$(btn).prop("disabled", false);
+		$(btn).prop("disabled", false).removeAttr("aria-busy");
 		if (on_error) {
 			on_error();
 		}
@@ -1411,6 +1428,8 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	add_web_link(path, label) {
+		if (!this.sidebar) return;
+
 		label = __(label) || __("See on Website");
 		this.web_link = this.sidebar
 			.add_user_action(__(label), function () {})
@@ -1645,7 +1664,13 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	set_intro(txt, color) {
-		this.dashboard.set_headline_alert(txt, color);
+		if (this.$intro_message) {
+			this.$intro_message.remove();
+			this.$intro_message = null;
+		}
+		if (txt) {
+			this.$intro_message = this.dashboard.set_headline_alert(txt, color);
+		}
 	}
 
 	set_footnote(txt) {
@@ -1743,13 +1768,16 @@ frappe.ui.form.Form = class FrappeForm {
 		$.each(fields_list, function (i, fname) {
 			var docfield = frappe.meta.docfield_map[doctype][fname];
 			if (docfield) {
-				var label = __(docfield.label || "", null, docfield.parent).replace(
-					/\([^\)]*\)/g,
-					""
-				); // eslint-disable-line
+				// Preserve the pristine label before any currency suffix is applied,
+				// so we don't have to strip it back out of a mutated value on reset
+				// (which would also destroy legitimate parentheticals like "Rate (ex-tax)").
+				if (docfield._original_label === undefined) {
+					docfield._original_label = docfield.label;
+				}
+				var label = __(docfield._original_label || "", null, docfield.parent);
 				if (parentfield) {
 					grid_field_label_map[doctype + "-" + fname] =
-						label.trim() + " (" + __(currency) + ")";
+						label.trim() + " (" + currency + ")";
 				} else {
 					field_label_map[fname] = label.trim() + " (" + currency + ")";
 				}
@@ -1763,6 +1791,35 @@ frappe.ui.form.Form = class FrappeForm {
 		$.each(grid_field_label_map, function (fname, label) {
 			fname = fname.split("-");
 			me.fields_dict[parentfield].grid.update_docfield_property(fname[1], "label", label);
+		});
+	}
+
+	reset_currency_labels(fields, parentfield) {
+		if (!fields.length) return;
+
+		const doctype = parentfield
+			? this.fields_dict[parentfield].grid.doctype
+			: this.doc.doctype;
+
+		fields.forEach((field) => {
+			const docfield = frappe.meta.docfield_map[doctype][field];
+			if (docfield) {
+				// Read the pristine label captured by set_currency_labels (or here on first use)
+				if (docfield._original_label === undefined) {
+					docfield._original_label = docfield.label;
+				}
+				const label = __(docfield._original_label || "", null, docfield.parent);
+
+				if (parentfield) {
+					this.fields_dict[parentfield].grid.update_docfield_property(
+						field,
+						"label",
+						label
+					);
+				} else {
+					this.fields_dict[field].set_label(label);
+				}
+			}
 		});
 	}
 
@@ -2285,6 +2342,10 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 
 			this.timeline && this.timeline.refresh();
+
+			if (key === "attachments") {
+				this.attachments && this.attachments.refresh();
+			}
 
 			if (["add", "delete"].includes(action) && doc.doctype === "Comment") {
 				this.footer.refresh_comments_count();

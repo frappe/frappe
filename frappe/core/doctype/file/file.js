@@ -14,7 +14,7 @@ frappe.ui.form.on("File", {
 
 		if (!frm.doc.is_folder) {
 			// add download button
-			frm.add_custom_button(__("Download"), () => frm.trigger("download"), "fa fa-download");
+			frm.add_custom_button(__("Download"), () => frm.trigger("download"));
 		}
 
 		if (!frm.doc.is_private) {

@@ -17,7 +17,7 @@ class PrintFormatFieldTemplate(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		document_type: DF.Link
+		document_type: DF.Link | None
 		field: DF.Data | None
 		module: DF.Link | None
 		standard: DF.Check
@@ -26,8 +26,11 @@ class PrintFormatFieldTemplate(Document):
 	# end: auto-generated types
 
 	def validate(self):
-		if self.standard and not frappe.conf.developer_mode and not frappe.flags.in_patch:
-			frappe.throw(_("Enable developer mode to create a standard Print Template"))
+		if self.standard:
+			if not frappe.conf.developer_mode and not frappe.flags.in_patch:
+				frappe.throw(_("Enable developer mode to create a standard Print Template"))
+			if not self.module:
+				frappe.throw(_("Module is required for a standard Print Template"))
 
 	def before_insert(self):
 		self.validate_duplicate()
@@ -39,7 +42,7 @@ class PrintFormatFieldTemplate(Document):
 	def validate_duplicate(self):
 		if not self.standard:
 			return
-		if not self.field:
+		if not self.field or not self.document_type:
 			return
 
 		filters = {"document_type": self.document_type, "field": self.field}

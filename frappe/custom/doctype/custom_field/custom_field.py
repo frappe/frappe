@@ -44,6 +44,7 @@ class CustomField(Document):
 			"Autocomplete",
 			"Attach",
 			"Attach Image",
+			"Attachment Gallery",
 			"Barcode",
 			"Button",
 			"Check",
@@ -102,6 +103,9 @@ class CustomField(Document):
 		length: DF.Int
 		link_filters: DF.JSON | None
 		mandatory_depends_on: DF.Code | None
+		mask: DF.Check
+		max_value: DF.Float
+		min_value: DF.Float
 		module: DF.Link | None
 		no_copy: DF.Check
 		non_negative: DF.Check
@@ -254,7 +258,11 @@ class CustomField(Document):
 			)
 
 		if self.fieldname == self.insert_after:
-			frappe.throw(_("Insert After cannot be set as {0}").format(meta.get_label(self.insert_after)))
+			frappe.throw(
+				_("Insert After cannot be set as {0}").format(
+					_(meta.get_label(self.insert_after), context=self.dt)
+				)
+			)
 
 	def get_permission_log_options(self, event=None):
 		if event != "after_delete" and self.fieldtype not in (
@@ -399,7 +407,7 @@ def get_existing_custom_fields(custom_fields):
 	return {(field.dt, field.fieldname): field for field in existing_fields}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def rename_fieldname(custom_field: str, fieldname: str):
 	frappe.only_for("System Manager")
 

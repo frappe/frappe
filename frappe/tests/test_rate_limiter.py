@@ -2,14 +2,15 @@
 # License: MIT. See LICENSE
 
 import time
+from functools import partial
 
 from werkzeug.wrappers import Response
 
 import frappe
 import frappe.rate_limiter
-from frappe.rate_limiter import RateLimiter
+from frappe.rate_limiter import RateLimiter, rate_limit
 from frappe.tests import IntegrationTestCase
-from frappe.utils import cint
+from frappe.utils import cint, set_request
 
 
 class TestRateLimiter(IntegrationTestCase):
@@ -117,3 +118,52 @@ class TestRateLimiter(IntegrationTestCase):
 		time.sleep(1.1)
 		self.assertFalse(frappe.cache.exists(limiter.key, shared=True))
 		frappe.cache.delete(limiter.key)
+
+
+@rate_limit(limit=2, seconds=60)
+def _limited_a():
+	return "a"
+
+
+@rate_limit(limit=2, seconds=60)
+def _limited_b():
+	return "b"
+
+
+class TestRateLimitDecorator(IntegrationTestCase):
+	def setUp(self):
+		request, request_ip = (
+			getattr(frappe.local, "request", None),
+			getattr(frappe.local, "request_ip", None),
+		)
+		self.addCleanup(setattr, frappe.local, "request", request)
+		self.addCleanup(setattr, frappe.local, "request_ip", request_ip)
+		self.addCleanup(frappe.cache.delete_keys, "rl:")
+		self.addCleanup(frappe.form_dict.pop, "cmd", None)
+
+		set_request(method="GET", path="/api/method/ping")
+		frappe.local.request_ip = "127.0.0.1"
+
+	def test_limit_is_shared_across_api_versions(self):
+		# v1 sets `cmd`, v2 does not, the same endpoint must share one counter
+		frappe.form_dict.cmd = "frappe.tests.test_rate_limiter._limited_a"
+		_limited_a()
+
+		frappe.form_dict.cmd = None
+		_limited_a()
+
+		self.assertRaises(frappe.RateLimitExceededError, _limited_a)
+
+	def test_callable_without_dotted_path(self):
+		# Server Scripts rate limit a `functools.partial`, which has no qualified name
+		fn = rate_limit(limit=1, seconds=60, endpoint="server_script:x")(partial(lambda: "x"))
+		fn()
+		self.assertRaises(frappe.RateLimitExceededError, fn)
+
+	def test_limit_is_not_shared_across_endpoints(self):
+		frappe.form_dict.cmd = None
+		_limited_a()
+		_limited_a()
+		self.assertRaises(frappe.RateLimitExceededError, _limited_a)
+
+		self.assertEqual(_limited_b(), "b")

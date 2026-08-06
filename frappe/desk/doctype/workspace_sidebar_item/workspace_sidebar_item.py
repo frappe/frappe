@@ -18,7 +18,9 @@ class WorkspaceSidebarItem(Document):
 
 		child: DF.Check
 		collapsible: DF.Check
+		default_workspace: DF.Check
 		filters: DF.Code | None
+		icon: DF.Icon | None
 		indent: DF.Check
 		keep_closed: DF.Check
 		label: DF.Data | None

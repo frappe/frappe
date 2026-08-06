@@ -164,7 +164,10 @@ function format_currency(v, currency, decimals) {
 
 function get_currency_symbol(currency) {
 	if (frappe.boot) {
-		if (frappe.boot.sysdefaults && frappe.boot.sysdefaults.hide_currency_symbol == "Yes")
+		if (
+			frappe.boot.sysdefaults &&
+			["1", "Yes"].includes(frappe.boot.sysdefaults.hide_currency_symbol)
+		)
 			return null;
 
 		if (!currency) currency = frappe.boot.sysdefaults.currency;
@@ -179,7 +182,7 @@ function get_currency_symbol(currency) {
 function get_number_format(currency) {
 	let sysdefaults = frappe?.boot?.sysdefaults;
 	return (
-		(cint(sysdefaults?.use_number_format_from_currency) &&
+		(frappe.defaults.is_enabled("use_number_format_from_currency") &&
 			currency &&
 			frappe.model.get_value(":Currency", currency, "number_format")) ||
 		sysdefaults.number_format ||

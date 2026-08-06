@@ -52,7 +52,9 @@ frappe.get_avatar = function (css_class, title, image_url = null, remove_color, 
 	if (image_url) {
 		el.innerHTML = `
 			<span class="avatar ${css_class}" ${data_attributes}>
-				<span class="avatar-frame" style='background-image: url("${image_url}")'</span>
+				<span class="avatar-frame" style='background-image: url("${frappe.utils.escape_html(
+					image_url
+				)}")'</span>
 			</span>`;
 	} else {
 		let abbr = frappe.get_abbr(title);
@@ -268,8 +270,18 @@ frappe.get_cookies = function getCookies() {
 	return cookies;
 };
 
+// Memoized: window.innerWidth forces layout, and is_mobile runs in tight
+// render loops where DOM writes keep layout dirty — reading it per call
+// made large list renders quadratic.
+let _is_mobile_cache = null;
+$(window).on("resize", () => {
+	_is_mobile_cache = null;
+});
 frappe.is_mobile = function () {
-	return window.innerWidth < 768;
+	if (_is_mobile_cache === null) {
+		_is_mobile_cache = window.innerWidth < 768;
+	}
+	return _is_mobile_cache;
 };
 
 frappe.is_large_screen = function () {

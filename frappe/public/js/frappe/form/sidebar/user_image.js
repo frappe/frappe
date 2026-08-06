@@ -60,9 +60,6 @@ frappe.ui.form.setup_user_image_event = function (frm) {
 	// remove button
 	frm.sidebar.image_wrapper.on("click", ".sidebar-image-remove", function (e) {
 		e.stopPropagation();
-		var field = frm.get_field(frm.meta.image_field);
-		frm.attachments.remove_attachment_by_filename(frm.doc[frm.meta.image_field], function () {
-			field.set_value("").then(() => frm.save());
-		});
+		frm.get_field(frm.meta.image_field).clear_attachment();
 	});
 };

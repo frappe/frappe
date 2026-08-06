@@ -49,6 +49,7 @@ def make(
 	bcc: str | list[str] | None = None,
 	read_receipt: str | int | bool | None = None,
 	print_letterhead: int | bool = True,
+	letterhead: str | None = None,
 	email_template: str | None = None,
 	communication_type: str | None = None,
 	send_after: str | datetime | None = None,
@@ -92,6 +93,9 @@ def make(
 	if doctype and name:
 		frappe.has_permission(doctype, doc=name, ptype="email", throw=True)
 
+	if letterhead:
+		frappe.has_permission("Letter Head", doc=letterhead, ptype="read", throw=True)
+
 	if raw_html and not (
 		email_template and frappe.get_cached_value("Email Template", email_template, "use_html")
 	):
@@ -123,6 +127,7 @@ def make(
 		bcc=bcc,
 		read_receipt=cint(read_receipt),
 		print_letterhead=print_letterhead,
+		letterhead=letterhead,
 		email_template=email_template,
 		communication_type=communication_type,
 		add_signature=False,
@@ -154,6 +159,7 @@ def _make(
 	bcc=None,
 	read_receipt=None,
 	print_letterhead=True,
+	letterhead=None,
 	email_template=None,
 	communication_type=None,
 	add_signature=True,
@@ -219,6 +225,7 @@ def _make(
 			print_format=print_format,
 			send_me_a_copy=send_me_a_copy,
 			print_letterhead=print_letterhead,
+			letterhead=letterhead,
 			print_language=print_language,
 			now=now,
 			raw_html=raw_html,

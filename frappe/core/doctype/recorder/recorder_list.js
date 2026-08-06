@@ -178,6 +178,19 @@ frappe.listview_settings["Recorder"] = {
 				},
 				{
 					fieldtype: "Section Break",
+					fieldname: "doc_events_section",
+					label: "Document Events",
+				},
+				{
+					fieldname: "capture_doc_events",
+					fieldtype: "Check",
+					label: "Capture document lifecycle timeline",
+					default: 1,
+					description: `Records each document lifecycle method / <code>doc_events</code> handler
+						that runs during the request, timed and attributed to the app that hooks it.`,
+				},
+				{
+					fieldtype: "Section Break",
 					fieldname: "python_section",
 					label: "Python",
 				},

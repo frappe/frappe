@@ -616,11 +616,13 @@ def add_user_permission(
 		).insert(ignore_permissions=ignore_permissions)
 
 
-def remove_user_permission(doctype, name, user):
+def remove_user_permission(doctype, name, user, ignore_permissions=False):
 	user_permission_name = frappe.db.get_value(
 		"User Permission", dict(user=user, allow=doctype, for_value=name)
 	)
-	frappe.delete_doc("User Permission", user_permission_name, force=True)
+	frappe.delete_doc(
+		"User Permission", user_permission_name, force=True, ignore_permissions=ignore_permissions
+	)
 
 
 def clear_user_permissions_for_doctype(doctype, user=None):
@@ -882,10 +884,16 @@ def has_child_permission(
 			)
 			return False
 
+		parent_doc = child_doc.parent_doc if hasattr(child_doc, "parent_doc") else None
+		if parent_doc is None:
+			parent_doc = child_doc.parent
+	else:
+		parent_doc = None
+
 	return has_permission(
 		parent_doctype,
 		ptype=ptype,
-		doc=child_doc and getattr(child_doc, "parent_doc", child_doc.parent),
+		doc=parent_doc,
 		user=user,
 		print_logs=print_logs,
 		debug=debug,

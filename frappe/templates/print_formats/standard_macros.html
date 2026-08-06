@@ -118,8 +118,6 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{%- endif %}
 	{%- if df.fieldtype=="Code" %}
 		<pre class="value">{{ doc.get(df.fieldname)|e }}</pre>
-	{%- elif df.fieldtype=="Long Text" -%}
-		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable)|e }}
 	{%- else -%}
 		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable) }}
 	{%- endif -%}
@@ -139,7 +137,6 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{% if child_templates and child_templates[df.fieldname] %}
 		{% include child_templates[df.fieldname] %}
 	{% elif df.fieldtype=="Check" and doc[df.fieldname] %}
-		<!-- <i class="{{ 'fa fa-check' }}"></i> -->
 		<svg viewBox="0 0 16 16"
 			fill="transparent" stroke="#1F272E" stroke-width="2"
 			xmlns="http://www.w3.org/2000/svg" id="icon-tick"
@@ -169,9 +166,6 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{% elif df.fieldtype=="Currency" %}
 		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable) }}
 	{% elif df.fieldtype=="Data" %}
-		{%- set parent = parent_doc or doc -%}
-		{{ doc.get_formatted(df.fieldname, parent, translated=df.translatable, absolute_value=parent.absolute_value) |e }}
-	{% elif df.fieldtype=="Long Text" %}
 		{%- set parent = parent_doc or doc -%}
 		{{ doc.get_formatted(df.fieldname, parent, translated=df.translatable, absolute_value=parent.absolute_value) |e }}
 	{% else %}

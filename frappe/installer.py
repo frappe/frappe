@@ -178,6 +178,7 @@ def install_db(
 	frappe.db.create_auth_table()
 	frappe.db.create_global_search_table()
 	frappe.db.create_user_settings_table()
+	frappe.db.create_sequence_table()
 
 	frappe.flags.in_install_db = False
 
@@ -319,6 +320,10 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 
 	if name != "frappe":
 		add_module_defs(name, ignore_if_duplicate=force)
+
+	if name not in (frappe.local.app_modules or {}):
+		frappe.cache.delete_value("app_modules")
+		frappe.setup_module_map(include_all_apps=True)
 
 	sync_for(name, force=force, reset_permissions=True)
 
@@ -792,7 +797,7 @@ def _guess_mariadb_version() -> tuple[int] | None:
 
 
 def extract_files(site_name, file_path):
-	import shutil
+	"""Extract a public/private files archive directly into the site directory."""
 	import subprocess
 
 	from frappe.utils import get_bench_relative_path
@@ -803,24 +808,22 @@ def extract_files(site_name, file_path):
 	frappe.init(site_name)
 	abs_site_path = os.path.abspath(frappe.get_site_path())
 
-	# Copy the files to the parent directory and extract
-	shutil.copy2(os.path.abspath(file_path), abs_site_path)
-
-	# Get the file name splitting the file path on
-	tar_name = os.path.split(file_path)[1]
-	tar_path = os.path.join(abs_site_path, tar_name)
+	if not file_path.endswith((".tar", ".tgz")):
+		# Fail loudly on unrecognized extensions. Previous behavior silently
+		# no-op'd — restore reported success with missing files.
+		frappe.destroy()
+		raise ValueError(
+			f"Unsupported archive format for {os.path.basename(file_path)}: expected .tar or .tgz"
+		)
 
 	try:
-		if file_path.endswith(".tar"):
-			subprocess.check_output(["tar", "xvf", tar_path, "--strip", "2"], cwd=abs_site_path)
-		elif file_path.endswith(".tgz"):
-			subprocess.check_output(["tar", "zxvf", tar_path, "--strip", "2"], cwd=abs_site_path)
-	except Exception:
-		raise
+		subprocess.run(
+			["tar", "xf", os.path.abspath(file_path), "--strip", "2"],
+			cwd=abs_site_path,
+			check=True,
+		)
 	finally:
 		frappe.destroy()
-
-	return tar_path
 
 
 def is_downgrade(sql_file_path, verbose=False):

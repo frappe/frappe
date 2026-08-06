@@ -231,50 +231,6 @@ class TestPerformance(IntegrationTestCase):
 		process = psutil.Process(pid)
 		self.assertLess(process.cpu_percent(interval=1.0), 2)
 
-	def test_cpu_allocation(self):
-		from frappe._optimizations import assign_core
-
-		# Already allocated
-		self.assertEqual(assign_core(0, 4, 8, [0], []), 0)
-
-		# All physical, pid same as core for 0-7
-		siblings = [(i,) for i in range(8)]
-		cores = list(range(8))
-		for pid in cores:
-			self.assertEqual(assign_core(pid, len(cores), len(cores), cores, siblings), pid)
-
-		# All physical, pid wraps for core for 8-15
-		for pid in range(8, 16):
-			self.assertEqual(assign_core(pid, len(cores), len(cores), cores, siblings), pid % len(cores))
-
-		default_affinity_16 = list(range(16))
-		# "linear" siblings = (0,1) (2,3) ...
-		linear_siblings_16 = list(itertools.batched(range(16), 2, strict=True))
-		logical_cores = list(range(16))
-		expected_assignments = [*(l[0] for l in linear_siblings_16), *(l[1] for l in linear_siblings_16)]
-		for pid, expected_core in zip(logical_cores, expected_assignments, strict=True):
-			core = assign_core(
-				pid, len(logical_cores) // 2, len(logical_cores), default_affinity_16, linear_siblings_16
-			)
-			self.assertEqual(core, expected_core)
-
-		# "Block" siblings = (0,4) (1,5) ...
-		block_siblings_16 = list(zip(range(8), range(8, 16), strict=True))
-		for pid in logical_cores:
-			core = assign_core(
-				pid, len(logical_cores) // 2, len(logical_cores), logical_cores, block_siblings_16
-			)
-			self.assertEqual(core, pid)
-
-		# Few cores disabled
-		enabled_cores = [0, 2, 4, 6]
-		affinity = [(i,) for i in enabled_cores]
-		core = assign_core(0, 4, 4, enabled_cores, affinity)
-		self.assertEqual(core, 0)
-
-		core = assign_core(1, 4, 4, enabled_cores, affinity)
-		self.assertEqual(core, 2)
-
 
 @run_only_if(db_type_is.MARIADB)
 class TestOverheadCalls(FrappeAPITestCase):
@@ -285,7 +241,7 @@ class TestOverheadCalls(FrappeAPITestCase):
 	Every call increase here is an actual increase in cost!
 	"""
 
-	BASE_SQL_CALLS = 2  # rollback + begin
+	BASE_SQL_CALLS = 3  # rollback + begin + session time zone on connect
 
 	def test_ping_overheads(self):
 		self.get(self.method("ping"), {"sid": "Guest"})

@@ -2,6 +2,7 @@
 # MIT License. See LICENSE
 import base64
 import binascii
+import hmac
 from urllib.parse import quote, unquote, urlencode, urlparse
 
 from werkzeug.wrappers import Response
@@ -25,7 +26,7 @@ from frappe.utils import cint, date_diff, datetime, get_datetime, today
 from frappe.utils.password import check_password, get_decrypted_password
 from frappe.website.utils import get_home_page
 
-SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS"))
+SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS", "QUERY"))
 UNSAFE_HTTP_METHODS = frozenset(("POST", "PUT", "DELETE", "PATCH"))
 assert SAFE_HTTP_METHODS.isdisjoint(UNSAFE_HTTP_METHODS), "a HTTP method cannot be both safe and unsafe"
 MAX_PASSWORD_SIZE = 512
@@ -664,6 +665,7 @@ def validate_oauth(authorization_header):
 	        authorization_header (list of str): The 'Authorization' header containing the prefix and token
 	"""
 
+	from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
 	from frappe.integrations.oauth2 import get_oauth_server
 	from frappe.oauth import get_url_delimiter
 
@@ -683,15 +685,20 @@ def validate_oauth(authorization_header):
 		body = None
 
 	try:
-		required_scopes = frappe.db.get_value("OAuth Bearer Token", token, "scopes").split(
-			get_url_delimiter()
+		token_hash = get_oauth_token_hash(token)
+		token_filters = {"access_token": token_hash}
+		token_details = frappe.db.get_value(
+			"OAuth Bearer Token", token_filters, ("scopes", "user"), as_dict=True
 		)
+		if not token_details:
+			return
+		required_scopes = token_details.scopes.split(get_url_delimiter())
 		valid, _oauthlib_request = get_oauth_server().verify_request(
 			uri, http_method, body, headers, required_scopes
 		)
 		if valid:
-			user = frappe.db.get_value("OAuth Bearer Token", token, "user")
-			if not frappe.db.get_value("User", user, "enabled"):
+			user = token_details.user
+			if not frappe.get_cached_value("User", user, "enabled"):
 				frappe.throw(_("User {0} is disabled").format(user), frappe.AuthenticationError)
 			frappe.set_user(user)
 			frappe.local.form_dict = form_dict
@@ -742,7 +749,7 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 		raise frappe.AuthenticationError
 	form_dict = frappe.local.form_dict
 	doc_secret = get_decrypted_password(doctype, docname, fieldname="api_secret", raise_exception=False)
-	if doc_secret and api_secret == doc_secret:
+	if doc_secret and hmac.compare_digest(api_secret.encode(), doc_secret.encode()):
 		if doctype == "User":
 			user = frappe.db.get_value(doctype="User", filters={"api_key": api_key}, fieldname=["name"])
 		else:

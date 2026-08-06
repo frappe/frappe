@@ -218,6 +218,16 @@ class BaseTestCommands(IntegrationTestCase):
 
 
 class TestCommands(BaseTestCommands):
+	def test_browse_sid(self):
+		self.setup_test_site()
+
+		with patch("click.launch") as launch:
+			with cli(frappe.commands.site.browse, ["--user", "Administrator", "--sid"]) as result:
+				self.assertEqual(result.exit_code, 0)
+				self.assertTrue(result.output.strip())
+				self.assertNotIn("Login URL", result.output)
+				launch.assert_not_called()
+
 	def test_execute(self):
 		# test 1: execute a command expecting a numeric output
 		self.execute("bench --site {site} execute frappe.db.get_database_size")
@@ -686,6 +696,21 @@ class TestBackups(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		self.assertIn("successfully completed", self.stdout)
 		self.assertNotEqual(before_backup["database"], after_backup["database"])
+
+	def test_backup_fails_on_unknown_include_doctype(self):
+		"""Regression: --include with an unknown doctype must abort, not
+		silently take a full backup (which would be filed as if it were the
+		requested partial subset)."""
+		self.execute("bench --site {site} backup --include NonExistentDoctypeXYZ")
+		self.assertEqual(self.returncode, 1)
+		self.assertIn("NonExistentDoctypeXYZ", self.stderr + self.stdout)
+
+	def test_backup_fails_on_unknown_exclude_doctype(self):
+		"""Regression: --exclude with an unknown doctype must abort — same
+		silent-full-backup class of bug as --include."""
+		self.execute("bench --site {site} backup --exclude NonExistentDoctypeXYZ")
+		self.assertEqual(self.returncode, 1)
+		self.assertIn("NonExistentDoctypeXYZ", self.stderr + self.stdout)
 
 	@skipIf(
 		not (frappe.conf.db_type == "mariadb"),

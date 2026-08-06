@@ -23,7 +23,7 @@ jobs:
       build: ${{ steps.check-build.outputs.build }}
     steps:
       - name: Clone
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Check if build should be run
         id: check-build
         run: |
@@ -50,7 +50,7 @@ jobs:
       fail-fast: false
       matrix:
         db: ["mariadb"]
-        index: [1, 2, 3]
+        index: [1, 2, 3, 4]
     services:
       mariadb:
         image: mariadb:11.8
@@ -60,7 +60,7 @@ jobs:
         env:
           MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
         name: Environment Setup
         with:
@@ -76,7 +76,7 @@ jobs:
           git diff --exit-code yarn.lock
 
       - name: Cache cypress binary
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/Cypress
           key: ${{ runner.os }}-cypress
@@ -110,7 +110,7 @@ jobs:
               --group ui-shard-${{ matrix.index }}
         env:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
-          SPLIT: 3
+          SPLIT: 4
           SPLIT_INDEX: ${{ strategy.job-index }}
 
       - name: Compress Cypress Videos

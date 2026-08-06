@@ -129,9 +129,9 @@
 
 <script setup lang="ts">
 import { Combobox, ItemListRow } from "frappe-ui";
-import { inputFontSizeClasses, useInputLabeling } from "frappe-ui/internals";
+import { inputFontSizeClasses, useInputLabeling } from "frappe-ui/experimental";
 import { computed, nextTick, onMounted, reactive, ref, useAttrs, useSlots, watch } from "vue";
-import type { Country, PhoneInputProps, PhoneInputSlots } from "./types";
+import type { Country, PhoneProps, PhoneSlots } from "./types";
 import {
 	countries,
 	getCountryFromCode,
@@ -145,14 +145,14 @@ defineOptions({
 	inheritAttrs: false,
 });
 
-const props = withDefaults(defineProps<PhoneInputProps>(), {
+const props = withDefaults(defineProps<PhoneProps>(), {
 	size: "sm",
 	variant: "subtle",
 });
 
 const model = defineModel<string>({ default: "" });
 
-defineSlots<PhoneInputSlots>();
+defineSlots<PhoneSlots>();
 
 const attrs = useAttrs();
 const slots = useSlots();
@@ -230,9 +230,9 @@ const inputClasses = computed(() => {
 				props.variant === "outline" ? "border-outline-gray-2" : "border-transparent",
 		  ]
 		: {
-				subtle: "border border-[--surface-gray-2] bg-surface-gray-2 hover:border-outline-gray-modals hover:bg-surface-gray-3 focus-within:bg-surface-white focus-within:border-outline-gray-4 focus-within:shadow-sm focus-within:hover:bg-surface-white focus-within:hover:border-outline-gray-4",
+				subtle: "border border-[--surface-gray-2] bg-surface-gray-2 hover:border-outline-elevation-2 hover:bg-surface-gray-3 focus-within:bg-surface-base focus-within:border-outline-gray-4 focus-within:shadow-sm focus-within:hover:bg-surface-base focus-within:hover:border-outline-gray-4",
 				outline:
-					"border border-outline-gray-2 bg-surface-white hover:border-outline-gray-3 hover:shadow-sm focus-within:bg-surface-white focus-within:border-outline-gray-4 focus-within:shadow-sm focus-within:hover:border-outline-gray-4",
+					"border border-outline-gray-2 bg-surface-base hover:border-outline-gray-3 hover:shadow-sm focus-within:bg-surface-base focus-within:border-outline-gray-4 focus-within:shadow-sm focus-within:hover:border-outline-gray-4",
 		  }[props.variant];
 
 	return [

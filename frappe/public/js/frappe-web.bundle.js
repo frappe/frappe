@@ -5,8 +5,30 @@ import "./frappe/provide.js";
 import "./frappe/translate.js";
 import "./frappe/form/formatters.js";
 import "./frappe/format.js";
+import "./frappe/sys_defaults.js";
 import "./frappe/utils/number_format.js";
 import "./frappe/utils/utils.js";
+
+// espresso component helpers (frappe.ui.*) — the css comes in through
+// website.bundle.scss; frappe.show_alert below renders through frappe.ui.toast
+import "./frappe/ui/components/button.js";
+import "./frappe/ui/components/badge.js";
+import "./frappe/ui/components/skeleton.js";
+import "./frappe/ui/components/divider.js";
+import "./frappe/ui/components/avatar.js";
+import "./frappe/ui/components/alert.js";
+import "./frappe/ui/components/breadcrumbs.js";
+import "./frappe/ui/components/toast.js";
+import "./frappe/ui/components/dropdown.js";
+import "./frappe/ui/components/context_menu.js";
+import "./frappe/ui/components/tooltip.js";
+import "./frappe/ui/components/popover.js";
+import "./frappe/ui/components/hover_card.js";
+import "./frappe/ui/components/tabs.js";
+import "./frappe/ui/components/tab_buttons.js";
+import "./frappe/ui/components/progress.js";
+import "./frappe/ui/components/empty_state.js";
+
 import "./frappe/utils/common.js";
 import "./frappe/ui/messages.js";
 import "./frappe/utils/pretty_date.js";

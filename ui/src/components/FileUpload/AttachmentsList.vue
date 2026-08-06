@@ -77,17 +77,11 @@
 // its heavy parts load on demand.
 import { defineAsyncComponent, ref, watch } from "vue";
 import { Button } from "frappe-ui";
-import type { Restrictions, UploadResult, UploadTransport } from "./types";
+import type { AttachmentsListProps, UploadResult } from "./types";
 
 const FileUploadDialog = defineAsyncComponent(() => import("./FileUploadDialog.vue"));
 
-const props = defineProps<{
-	modelValue: UploadResult[];
-	imageOnly?: boolean;
-	crop?: boolean;
-	restrictions?: Restrictions;
-	transport?: UploadTransport;
-}>();
+const props = defineProps<AttachmentsListProps>();
 
 const emit = defineEmits<{ "update:modelValue": [UploadResult[]] }>();
 
