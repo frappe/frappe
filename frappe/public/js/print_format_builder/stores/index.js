@@ -1,4 +1,4 @@
-import { clone_plain, create_default_layout, serialize_layout } from "../utils";
+import { clone_plain, create_default_layout, DRAFT_FIELDS, serialize_layout } from "../utils";
 import { useLayoutHistory } from "./useLayoutHistory";
 import { usePresets } from "../composables/usePresets";
 import { usePreviewDoc } from "../composables/usePreviewDoc";
@@ -106,6 +106,12 @@ export function getStore(print_format_name) {
 				frappe.model.with_doctype(_print_format.doc_type, () => {
 					meta.value = frappe.get_meta(_print_format.doc_type);
 					print_format.value = _print_format;
+					// the builder edits the draft; what prints stays on the format itself
+					// parse_json hands back the raw string when it can't parse
+					const parsed = frappe.utils.parse_json(_print_format.draft_data);
+					const draft = parsed && typeof parsed === "object" ? parsed : null;
+					has_draft.value = !!draft;
+					if (draft) Object.assign(print_format.value, draft);
 					const saved_layout = get_layout();
 					needs_setup.value = !saved_layout;
 					const is_classic = Array.isArray(saved_layout);
@@ -200,19 +206,34 @@ export function getStore(print_format_name) {
 	// count, not a flag — autosave and a manual save can overlap
 	let saving_count = ref(0);
 	let save_failed = ref(false);
+	let has_draft = ref(false);
 	let save_status = computed(() =>
-		save_failed.value ? "failed" : saving_count.value > 0 ? "saving" : "saved"
+		save_failed.value
+			? "failed"
+			: saving_count.value > 0
+			? "saving"
+			: has_draft.value
+			? "draft"
+			: "saved"
 	);
+	// what autosave parks in draft_data and what Save & Apply copies onto the format
+	function draft_payload() {
+		const doc = get_preview_format_doc();
+		return Object.fromEntries(
+			DRAFT_FIELDS.filter((field) => doc[field] !== undefined).map((field) => [
+				field,
+				doc[field],
+			])
+		);
+	}
 	function save_changes() {
-		frappe.dom.freeze(__("Saving…"));
+		frappe.dom.freeze(__("Applying…"));
 		saving_count.value++;
 
-		serialize_layout(layout.value);
-		print_format.value.format_data = JSON.stringify(layout.value);
-
 		frappe
-			.call("frappe.client.save", {
-				doc: print_format.value,
+			.call("frappe.printing.doctype.print_format.print_format.apply_draft", {
+				name: print_format_name,
+				data: draft_payload(),
 			})
 			.then(() => {
 				if (letterhead.value && letterhead.value._dirty) {
@@ -227,13 +248,21 @@ export function getStore(print_format_name) {
 			.then(() => {
 				autosave_stopped = false;
 				save_failed.value = false;
-				frappe.show_alert({ message: __("Saved"), indicator: "green" });
+				frappe.show_alert({ message: __("Applied"), indicator: "green" });
 			})
 			.catch(() => (save_failed.value = true))
 			.always(() => {
 				saving_count.value--;
 				frappe.dom.unfreeze();
 			});
+	}
+	function discard_draft() {
+		return frappe
+			.call("frappe.printing.doctype.print_format.print_format.discard_draft", {
+				name: print_format_name,
+			})
+			.then(() => fetch())
+			.then(() => frappe.show_alert({ message: __("Draft discarded"), indicator: "green" }));
 	}
 	// stops after a failure so the error dialog doesn't loop; a manual save re-arms it
 	let autosave_stopped = false;
@@ -247,13 +276,14 @@ export function getStore(print_format_name) {
 		saving_count.value++;
 		frappe
 			.call({
-				method: "frappe.client.save",
-				args: { doc: get_preview_format_doc() },
+				method: "frappe.printing.doctype.print_format.print_format.save_draft",
+				args: { name: print_format_name, data: draft_payload() },
 			})
 			.then((r) => {
 				// sync only the stamp — the user may have kept editing mid-request
 				const was_dirty = dirty.value;
-				print_format.value.modified = r.message.modified;
+				print_format.value.modified = r.message;
+				has_draft.value = true;
 				if (!was_dirty) nextTick(() => (dirty.value = false));
 				if (letterhead.value && letterhead.value._dirty) {
 					return frappe
@@ -388,6 +418,8 @@ export function getStore(print_format_name) {
 		fetch,
 		save_changes,
 		save_status,
+		has_draft,
+		discard_draft,
 		get_preview_format_doc,
 		select_field,
 		set_selected,

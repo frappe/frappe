@@ -14,15 +14,21 @@ class PrintFormatBuilder {
 		this.page.clear_custom_actions();
 
 		this.page.set_title(this.print_format);
-		this.page.set_primary_action(__("Save"), () => {
+		this.page.set_primary_action(__("Save & Apply"), () => {
 			this.$component.$store.save_changes();
 		});
 
 		frappe.ui.keys.add_shortcut({
 			shortcut: "ctrl+s",
 			action: () => this.$component.$store.save_changes(),
-			description: __("Save Print Format"),
+			description: __("Save & Apply Print Format"),
 			page: this.page,
+		});
+		this.page.add_menu_item(__("Discard Draft"), () => {
+			frappe.confirm(
+				__("Discard your unapplied changes and go back to what this format prints?"),
+				() => this.$component.$store.discard_draft()
+			);
 		});
 		let $preview_btn = this.page.add_action_icon(
 			"eye",
@@ -51,15 +57,17 @@ class PrintFormatBuilder {
 		this.app = app;
 		this.$component = app.mount(this.$wrapper.get(0));
 
-		// persistent save status, Google-Docs style: "Saving…" while a save is in
-		// flight, "Saved" once it lands, and a sticky red "Save failed" on error
+		// persistent save status: edits land in a draft as you go, so "Draft" means
+		// saved-but-not-yet-printing and "Applied" means the format itself is current
 		watch(
 			() => this.$component.$store.save_status,
 			(status) => {
 				if (status.value === "saving") this.page.set_indicator(__("Saving…"), "gray");
 				else if (status.value === "failed")
 					this.page.set_indicator(__("Save failed"), "red");
-				else this.page.set_indicator(__("Saved"), "green");
+				else if (status.value === "draft")
+					this.page.set_indicator(__("Draft — not applied"), "orange");
+				else this.page.set_indicator(__("Applied"), "green");
 			},
 			{ deep: true, immediate: true }
 		);

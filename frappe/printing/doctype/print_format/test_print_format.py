@@ -862,3 +862,71 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 		html = self.render(df)
 		self.assertNotIn('data-fieldname="is_primary"', html)
 		self.assertIn('data-fieldname="email_id"', html)
+
+
+class TestPrintFormatDraft(IntegrationTestCase):
+	"""The builder parks edits in draft_data; only Save & Apply touches what prints."""
+
+	def setUp(self):
+		self.pf = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test Draft {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": frappe.as_json({"sections": [], "header": {}, "footer": {}}),
+				"margin_top": 10,
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", self.pf.name, force=True)
+
+	def live(self, *fields):
+		return frappe.db.get_value("Print Format", self.pf.name, list(fields), as_dict=True)
+
+	def test_draft_does_not_change_what_prints(self):
+		from frappe.printing.doctype.print_format.print_format import (
+			apply_draft,
+			discard_draft,
+			save_draft,
+		)
+
+		save_draft(self.pf.name, {"margin_top": 25, "font": "Inter"})
+		live = self.live("margin_top", "font", "draft_data")
+		self.assertEqual(live.margin_top, 10)
+		self.assertIsNone(live.font)
+		self.assertEqual(frappe.parse_json(live.draft_data)["margin_top"], 25)
+
+		apply_draft(self.pf.name)
+		live = self.live("margin_top", "font", "draft_data")
+		self.assertEqual(live.margin_top, 25)
+		self.assertEqual(live.font, "Inter")
+		self.assertFalse(live.draft_data)
+
+		save_draft(self.pf.name, {"margin_top": 99})
+		discard_draft(self.pf.name)
+		live = self.live("margin_top", "draft_data")
+		self.assertEqual(live.margin_top, 25)
+		self.assertFalse(live.draft_data)
+
+	def test_draft_ignores_fields_outside_the_whitelist(self):
+		from frappe.printing.doctype.print_format.print_format import apply_draft, save_draft
+
+		save_draft(self.pf.name, {"margin_top": 25, "disabled": 1, "standard": "Yes"})
+		self.assertNotIn("disabled", frappe.parse_json(self.live("draft_data").draft_data))
+
+		apply_draft(self.pf.name, {"margin_top": 30, "disabled": 1})
+		live = self.live("margin_top", "disabled")
+		self.assertEqual(live.margin_top, 30)
+		self.assertEqual(live.disabled, 0)
+
+	def test_builder_draft_fields_match_the_javascript_list(self):
+		"""A field in one list and not the other silently stops being drafted."""
+		from pathlib import Path
+
+		from frappe.printing.doctype.print_format.print_format import BUILDER_DRAFT_FIELDS
+
+		app = Path(frappe.get_app_path("frappe"))
+		source = (app / "public/js/print_format_builder/utils.js").read_text()
+		block = re.search(r"export const DRAFT_FIELDS = \[(.*?)\];", source, re.S)
+		self.assertIsNotNone(block, "DRAFT_FIELDS not found in utils.js")
+		self.assertEqual(set(re.findall(r'"([^"]+)"', block.group(1))), set(BUILDER_DRAFT_FIELDS))
