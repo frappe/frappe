@@ -6,8 +6,9 @@ savepoint, and records the outcome. Bookkeeping never saves the Automation Flow 
 circuit breaker lives in Redis, and auto-disable uses db.set_value(update_modified=False).
 
 Steps run off an `actions_snapshot` taken at run start and stored in the Background Task's
-arguments. `If` steps pick an arm, and every step carrying that `parent_step` in the other
-arm is passed over — not run, and not logged.
+arguments, never off the live rule — so a Wait that spans a config edit resumes against the
+plan it started with. `If` steps pick an arm and every step carrying that `parent_step` in
+the other arm is passed over; `Wait` steps park the run and queue a resume row.
 """
 
 import time
@@ -21,15 +22,14 @@ QUEUE = "Automation Trigger Queue"
 TASK_METHOD = "frappe.automation_engine.runner.execute_automation"
 TASK_NAME_PREFIX = "Automation Flow: "
 DEFAULT_FAILURE_THRESHOLD = 10
+WAIT_UNIT_SECONDS = {"Seconds": 1, "Minutes": 60, "Hours": 3600, "Days": 86400}
 
 
 def execute_automation(queue_name: str):
 	row = frappe.get_doc(QUEUE, queue_name)
 	rule = frappe.get_cached_doc("Automation Flow", row.automation)
 	doc = _load_target(row)
-	snapshot = [_action_snapshot(action) for action in rule.actions]
-	run = _create_run(rule, row, snapshot)
-	steps = []
+	run, steps, snapshot = _run_state(rule, row)
 
 	if doc is None and row.ref_name:
 		return _finalize(run, rule, row, "Skipped", steps, error="Target document not found")
@@ -42,11 +42,28 @@ def execute_automation(queue_name: str):
 	previous_depth = frappe.flags.get("automation_depth", 0)
 	frappe.flags.automation_depth = frappe.utils.cint(row.depth)
 	try:
-		status = _run_plan(steps, rule, doc, _context(row, run, rule), snapshot)
+		context = _context(row, run, rule)
+		status = _run_plan(steps, rule, doc, context, snapshot, frappe.utils.cint(row.resume_from_idx))
 	finally:
 		frappe.flags.automation_depth = previous_depth
 
 	_finalize(run, rule, row, status, steps)
+
+
+def _run_state(rule, row):
+	"""Return (run, steps_so_far, actions_snapshot) for a fresh or resumed run."""
+	if row.resume_run:
+		return _resumed_run_state(row)
+	snapshot = [_action_snapshot(action) for action in rule.actions]
+	return _create_run(rule, row, snapshot), [], snapshot
+
+
+def _resumed_run_state(row):
+	"""Pick a waiting run back up: same Background Task, its original snapshot and steps."""
+	run = frappe.get_doc("Background Task", row.resume_run)
+	arguments = frappe.parse_json(run.arguments) if run.arguments else {}
+	result = frappe.parse_json(run.result) if run.result else {}
+	return run, result.get("steps") or [], arguments.get("actions_snapshot") or []
 
 
 def _load_target(row):
@@ -121,13 +138,13 @@ def _context(row, run, rule) -> dict:
 	}
 
 
-def _run_plan(steps, rule, doc, context, snapshot) -> str:
-	"""Walk the snapshot once, running only the steps on the taken branch arms."""
+def _run_plan(steps, rule, doc, context, snapshot, start_idx=0) -> str:
+	"""Walk the snapshot once, honouring branch arms and skipping what already ran."""
 	registry = get_action_registry()
 	taken: dict = {}
 	overall = "Success"
 	for pos, step in enumerate(snapshot):
-		status, detail, duration = _step_outcome(registry, step, doc, context, pos, taken)
+		status, detail, duration = _step_outcome(registry, step, doc, context, pos, start_idx, taken)
 		if status is None:
 			continue
 		_append_step(steps, step, pos, status, detail, duration)
@@ -140,17 +157,19 @@ def _run_plan(steps, rule, doc, context, snapshot) -> str:
 	return overall
 
 
-def _step_outcome(registry, step, doc, context, pos, taken):
+def _step_outcome(registry, step, doc, context, pos, start_idx, taken):
 	"""Resolve one plan entry. A None status means it is not on this run's path at all."""
 	if not _branch_active(step, taken):
 		return None, None, None
 	step_type = step.get("step_type") or "Action"
 	if step_type == "If":
-		return _resolve_if(step, doc, context, taken)
+		return _resolve_if(step, doc, context, pos, start_idx, taken)
+	if pos < start_idx:
+		return None, None, None  # already executed in the leg before the wait
 	if not _step_condition_matches(step, doc, context):
 		return "Skipped", _("Step condition did not match"), 0
 	if step_type == "Wait":
-		return "Waiting", _("Wait resume is not enabled yet"), 0
+		return _begin_wait(step, context, pos)
 	return _run_one(registry, step, doc, context, pos)
 
 
@@ -164,11 +183,50 @@ def _branch_active(step, taken) -> bool:
 	return (step.get("branch") or "If") == taken[parent]
 
 
-def _resolve_if(step, doc, context, taken):
-	"""Pick the arm for an If step; its children consult `taken` by the If's own idx."""
+def _resolve_if(step, doc, context, pos, start_idx, taken):
+	"""Pick the arm for an If step. Conditions are side-effect free, so a resumed run
+	re-evaluates the ones it already passed rather than persisting the chosen arms."""
 	arm = "If" if _step_condition_matches(step, doc, context) else "Else"
 	taken[frappe.utils.cint(step.get("idx"))] = arm
+	if pos < start_idx:
+		return None, None, None
 	return "Success", _("Condition took the {0} branch").format(arm), 0
+
+
+def _begin_wait(step, context, pos):
+	started = time.monotonic()
+	seconds = _wait_seconds(_step_params(step))
+	schedule_wait(context, seconds, pos + 1)
+	return "Waiting", _("Waiting {0} seconds").format(seconds), _ms(started)
+
+
+def _wait_seconds(params) -> int:
+	unit = params.get("unit") or "Minutes"
+	return frappe.utils.cint(params.get("value")) * WAIT_UNIT_SECONDS.get(unit, 60)
+
+
+def schedule_wait(context, seconds: int, resume_from_idx: int):
+	"""Queue the resume row that picks this run up once the wait elapses.
+
+	The outbox dedup key is NULL whenever resume_run is set, so resume rows never collide
+	with a fresh trigger for the same document (or with each other).
+	"""
+	row = context["queue_row"]
+	frappe.get_doc(
+		{
+			"doctype": QUEUE,
+			"automation": row.automation,
+			"ref_doctype": row.ref_doctype,
+			"ref_name": row.ref_name,
+			"status": "Pending",
+			"triggered_at": frappe.utils.now(),
+			"run_after": frappe.utils.add_to_date(frappe.utils.now(), seconds=seconds),
+			"depth": frappe.utils.cint(row.depth),
+			"event_payload": row.event_payload,
+			"resume_run": context["run"].name,
+			"resume_from_idx": resume_from_idx,
+		}
+	).insert(ignore_permissions=True)
 
 
 def _run_one(registry, step, doc, context, idx):
@@ -186,8 +244,10 @@ def _run_one(registry, step, doc, context, idx):
 				raise ValueError(f"Unknown action type: {step.get('action_type')}")
 			detail = handler.execute(doc, params, context)
 			return "Success", detail, _ms(started)
-		except StopAutomation:
-			return "Waiting", _("Automation paused"), _ms(started)
+		except StopAutomation as e:
+			# An action can park the run the same way a Wait step does.
+			schedule_wait(context, e.resume_after, idx + 1)
+			return "Waiting", str(e) or _("Automation paused"), _ms(started)
 		except frappe.TimestampMismatchError:
 			frappe.db.rollback(save_point=savepoint)
 			if last_attempt:
@@ -242,15 +302,7 @@ def _ms(started) -> int:
 
 def _finalize(run, rule, row, status, steps, error=None):
 	error_summary = error or _error_summary(status, steps)
-	run.update(
-		{
-			"status": "Failed" if status == "Failed" else "Completed",
-			"ended_at": frappe.utils.now(),
-			"progress": 100,
-			"result": frappe.as_json(_run_result(rule, row, status, steps, error_summary)),
-			"exception": _first_error_detail(steps) if status == "Failed" else None,
-		}
-	)
+	run.update(_run_values(rule, row, status, steps, error_summary))
 	run.save(ignore_permissions=True)
 
 	if status == "Failed":
@@ -258,13 +310,7 @@ def _finalize(run, rule, row, status, steps, error=None):
 	elif status in ("Success", "Simulated"):
 		_reset_failures(rule)
 
-	# Completed runs drop their queue row because detail lives in the Background Task result.
-	# Failed (stopped) and Skipped rows are retained for the purge sweep.
-	if status in ("Success", "Partially Failed", "Simulated"):
-		frappe.delete_doc(QUEUE, row.name, ignore_permissions=True, force=True)
-	else:
-		queue_status = "Done" if status == "Waiting" else status
-		frappe.db.set_value(QUEUE, row.name, "status", queue_status, update_modified=False)
+	_settle_queue_row(row, status)
 
 	frappe.publish_realtime(
 		"automation_run_update",
@@ -272,6 +318,33 @@ def _finalize(run, rule, row, status, steps, error=None):
 		doctype=run.ref_doctype,
 		docname=run.ref_docname,
 	)
+
+
+def _run_values(rule, row, status, steps, error_summary) -> dict:
+	values = {
+		"result": frappe.as_json(_run_result(rule, row, status, steps, error_summary)),
+		"exception": _first_error_detail(steps) if status == "Failed" else None,
+	}
+	if status == "Waiting":
+		# Background Task has no paused state, and this same task is what the resume row
+		# finishes — so it stays Running, with no end time, until the wait elapses.
+		return {**values, "status": "Running"}
+	return {
+		**values,
+		"status": "Failed" if status == "Failed" else "Completed",
+		"ended_at": frappe.utils.now(),
+		"progress": 100,
+	}
+
+
+def _settle_queue_row(row, status):
+	# Completed runs drop their queue row because detail lives in the Background Task result.
+	# A Waiting leg is done too — its future lives on in the resume row schedule_wait queued.
+	# Failed (stopped) and Skipped rows are retained for the purge sweep.
+	if status in ("Success", "Partially Failed", "Simulated", "Waiting"):
+		frappe.delete_doc(QUEUE, row.name, ignore_permissions=True, force=True)
+	else:
+		frappe.db.set_value(QUEUE, row.name, "status", status, update_modified=False)
 
 
 def _run_result(rule, row, status, steps, error_summary) -> dict:
