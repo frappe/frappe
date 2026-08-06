@@ -16,6 +16,10 @@ from frappe.model.document import Document
 # saved as drafts, but enabling one would silently never fire — so enable is blocked.
 NON_EXECUTABLE_TRIGGERS = ("Custom Event", "Date Based")
 
+# "Else" is not a step of its own — an If's two arms are expressed by its children's
+# `branch` field, so a bare Else row would have nothing to execute.
+STEP_TYPES = ("Action", "Wait", "If")
+
 
 class AutomationFlow(Document):
 	# begin: auto-generated types
@@ -91,11 +95,28 @@ class AutomationFlow(Document):
 
 		for row in self.actions:
 			self.validate_step(row)
-			if row.step_type == "Wait":
+			self.validate_branch(row)
+			if row.step_type in ("Wait", "If"):
 				continue
 			action = get_action(row.action_type)
 			self.validate_action_context(action)
 			action.validate(frappe.parse_json(row.params) if row.params else {}, self.document_type)
+
+	def validate_branch(self, row):
+		"""A step inside an If must name that If (by idx) and which arm it belongs to."""
+		if not row.parent_step:
+			if row.branch:
+				frappe.throw(_("Row {0}: Branch is only meaningful inside an If step").format(row.idx))
+			return
+		if row.parent_step >= row.idx:
+			frappe.throw(_("Row {0}: Parent Step must be an earlier row").format(row.idx))
+		if not self.if_step_at(row.parent_step):
+			frappe.throw(_("Row {0}: Parent Step {1} is not an If step").format(row.idx, row.parent_step))
+		if row.branch not in ("If", "Else"):
+			frappe.throw(_("Row {0}: choose the If or Else branch").format(row.idx))
+
+	def if_step_at(self, idx):
+		return next((r for r in self.actions if r.idx == idx and r.step_type == "If"), None)
 
 	def validate_action_context(self, action):
 		if action.requires_document and not self.document_type:
@@ -105,10 +126,12 @@ class AutomationFlow(Document):
 
 	def validate_step(self, row):
 		row.step_type = row.step_type or "Action"
-		if row.step_type in ("If", "Else"):
-			frappe.throw(_("{0} steps are reserved for a future release").format(row.step_type))
+		if row.step_type not in STEP_TYPES:
+			frappe.throw(_("Row {0}: unsupported Step Type {1}").format(row.idx, row.step_type))
 		if row.step_type == "Action" and not row.action_type:
 			frappe.throw(_("Action Type is required for action steps"))
+		if row.step_type == "If" and not row.step_condition:
+			frappe.throw(_("Row {0}: an If step needs a Step Condition").format(row.idx))
 		if row.step_type != "Wait":
 			return
 		params = frappe.parse_json(row.params) if row.params else {}

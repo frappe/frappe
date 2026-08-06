@@ -1,8 +1,14 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
+import json
+
 import frappe
 from frappe.tests import IntegrationTestCase
+
+
+def set_field(field, value):
+	return {"action_type": "SetFieldValue", "params": json.dumps({"field": field, "value": value})}
 
 
 def make_automation(**kwargs):
@@ -63,9 +69,48 @@ class TestAutomationFlow(IntegrationTestCase):
 		doc = make_automation(trigger_type="Custom Event", document_type=None, custom_event=None)
 		self.assertRaises(frappe.ValidationError, doc.insert)
 
-	def test_reserved_branch_step_rejected(self):
+	def test_else_step_type_rejected(self):
+		"""Else is not a step — the two arms are the children's `branch` values."""
+		doc = make_automation(actions=[{"step_type": "Else", "params": "{}"}])
+		self.assertRaises(frappe.ValidationError, doc.insert)
+
+	def test_if_step_requires_condition(self):
 		doc = make_automation(actions=[{"step_type": "If", "params": "{}"}])
 		self.assertRaises(frappe.ValidationError, doc.insert)
+
+	def test_branch_requires_an_if_parent(self):
+		doc = make_automation(
+			actions=[
+				set_field("priority", "Low"),
+				{**set_field("priority", "High"), "parent_step": 1, "branch": "If"},
+			]
+		)
+		self.assertRaises(frappe.ValidationError, doc.insert)
+
+	def test_branch_parent_must_be_earlier(self):
+		doc = make_automation(
+			actions=[
+				{**set_field("priority", "High"), "parent_step": 2, "branch": "If"},
+				{"step_type": "If", "step_condition": "True"},
+			]
+		)
+		self.assertRaises(frappe.ValidationError, doc.insert)
+
+	def test_branch_without_parent_step_rejected(self):
+		doc = make_automation(actions=[{**set_field("priority", "Low"), "branch": "If"}])
+		self.assertRaises(frappe.ValidationError, doc.insert)
+
+	def test_branching_flow_saves_and_enables(self):
+		doc = make_automation(
+			enabled=1,
+			actions=[
+				{"step_type": "If", "step_condition": "doc.priority == 'High'"},
+				{**set_field("status", "Open"), "parent_step": 1, "branch": "If"},
+				{**set_field("status", "Closed"), "parent_step": 1, "branch": "Else"},
+			],
+		)
+		doc.insert()
+		self.assertTrue(doc.name)
 
 	def test_wait_step_requires_duration(self):
 		doc = make_automation(actions=[{"step_type": "Wait", "params": "{}"}])
@@ -80,7 +125,7 @@ class TestAutomationFlow(IntegrationTestCase):
 		doc = make_automation(
 			enabled=1,
 			actions=[
-				{"action_type": "SetFieldValue", "params": '{"field": "priority", "value": "Low"}'},
+				set_field("priority", "Low"),
 				{"step_type": "Wait", "params": '{"value": 5, "unit": "seconds"}'},
 			],
 		)

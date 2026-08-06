@@ -14,8 +14,10 @@ class AutomationAction(Document):
 		from frappe.types import DF
 
 		action_type: DF.Data | None
+		branch: DF.Literal["", "If", "Else"]
 		params: DF.JSON | None
 		parent: DF.Data
+		parent_step: DF.Int
 		parentfield: DF.Data
 		parenttype: DF.Data
 		step_condition: DF.Code | None

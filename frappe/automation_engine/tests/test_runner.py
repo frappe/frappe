@@ -53,7 +53,7 @@ def set_first_action_type(auto, action_type):
 	frappe.clear_document_cache("Automation Flow", auto)
 
 
-class TestRunner(IntegrationTestCase):
+class AutomationRunnerTestCase(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		frappe.local.automation_actions = None
@@ -90,6 +90,8 @@ class TestRunner(IntegrationTestCase):
 		)[0]
 		return json.loads(result)
 
+
+class TestRunner(AutomationRunnerTestCase):
 	def test_success_applies_action_and_deletes_queue_row(self):
 		todo = make_todo()
 		auto = make_automation([set_field("priority", "High")])
@@ -248,3 +250,65 @@ class TestRunner(IntegrationTestCase):
 		finally:
 			frappe.conf.automation_failure_threshold = original
 			frappe.cache.delete(_failure_key(auto))
+
+
+def branch(action, parent_step, arm):
+	return {**action, "parent_step": parent_step, "branch": arm}
+
+
+def if_step(condition):
+	return {"step_type": "If", "step_condition": condition}
+
+
+class TestBranching(AutomationRunnerTestCase):
+	def branching_rule(self):
+		"""High priority takes the If arm, anything else the Else arm."""
+		return make_automation(
+			[
+				if_step("doc.priority == 'High'"),
+				branch(set_field("status", "Closed"), 1, "If"),
+				branch(set_field("status", "Cancelled"), 1, "Else"),
+				set_field("description", "after"),
+			]
+		)
+
+	def test_if_arm_runs_and_else_arm_is_untouched(self):
+		todo = make_todo(priority="High")
+		auto = self.branching_rule()
+		execute_automation(self.queue_row(auto, todo.name))
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "status"), "Closed")
+		self.assertEqual(self.run_status(auto), "Success")
+
+	def test_else_arm_runs_when_condition_is_false(self):
+		todo = make_todo(priority="Low")
+		auto = self.branching_rule()
+		execute_automation(self.queue_row(auto, todo.name))
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "status"), "Cancelled")
+
+	def test_untaken_arm_is_not_logged_as_a_step(self):
+		todo = make_todo(priority="High")
+		auto = self.branching_rule()
+		execute_automation(self.queue_row(auto, todo.name))
+		positions = [step["step_idx"] for step in self.run_result(auto)["steps"]]
+		self.assertEqual(positions, [0, 1, 3])  # the Else arm at position 2 never ran
+
+	def test_steps_after_the_branch_still_run(self):
+		todo = make_todo(priority="Low")
+		auto = self.branching_rule()
+		execute_automation(self.queue_row(auto, todo.name))
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "description"), "after")
+
+	def test_nested_if_only_runs_on_the_taken_outer_arm(self):
+		todo = make_todo(priority="High", status="Open")
+		auto = make_automation(
+			[
+				if_step("doc.priority == 'Low'"),
+				branch(if_step("True"), 1, "If"),
+				branch(set_field("description", "nested-ran"), 2, "If"),
+				branch(set_field("description", "outer-else"), 1, "Else"),
+			]
+		)
+		execute_automation(self.queue_row(auto, todo.name))
+		# The inner If sits on the outer Else arm, so neither it nor its child may run.
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "description"), "outer-else")
+

@@ -8,7 +8,9 @@
   "step_type",
   "action_type",
   "params",
-  "step_condition"
+  "step_condition",
+  "parent_step",
+  "branch"
  ],
  "fields": [
   {
@@ -39,11 +41,25 @@
    "fieldtype": "Code",
    "label": "Step Condition",
    "options": "PythonExpression"
+  },
+  {
+   "description": "idx of the enclosing If step; 0 for top-level steps",
+   "fieldname": "parent_step",
+   "fieldtype": "Int",
+   "label": "Parent Step"
+  },
+  {
+   "depends_on": "parent_step",
+   "description": "Which arm of the enclosing If this step belongs to",
+   "fieldname": "branch",
+   "fieldtype": "Select",
+   "label": "Branch",
+   "options": "\nIf\nElse"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2026-07-13 18:18:28.816397",
+ "modified": "2026-08-06 23:43:31.974832",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Automation Action",
