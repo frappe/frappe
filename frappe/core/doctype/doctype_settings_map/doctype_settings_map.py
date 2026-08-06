@@ -28,9 +28,11 @@ class DocTypeSettingsMap(Document):
 	# end: auto-generated types
 
 	def before_naming(self):
+		self._set_default_module()
+
+	def _set_default_module(self):
 		# Standard maps ship with an app; default the owning module to the one that owns the
-		# doctype they apply to (the dev can override). Needed before naming, since the module
-		# is part of a standard map's name. Custom maps aren't exported.
+		# doctype they apply to (the dev can override). Custom maps aren't exported.
 		if self.is_standard and not self.module:
 			self.module = frappe.db.get_value("DocType", self.applies_to_doctype, "module")
 
@@ -44,6 +46,7 @@ class DocTypeSettingsMap(Document):
 
 	def validate(self):
 		self._guard_standard()
+		self._set_default_module()
 		self._validate_unique_per_doctype()
 
 	def on_update(self):
@@ -84,8 +87,15 @@ class DocTypeSettingsMap(Document):
 		# If the active map is being deleted, promote the remaining one (prefer standard).
 		if self.is_active:
 			self._set_sibling_active()
-		# Drop the shipped JSON too, else the next migrate re-imports the deleted map.
-		if self.is_standard and self.module and frappe.conf.developer_mode and not frappe.flags.in_test:
+		# Drop the shipped JSON too, else the next migrate re-imports the deleted map. Never
+		# during migrate/install/patch: a cleanup patch deleting stale records must not take
+		# the app's shipped files with it.
+		if (
+			self.is_standard
+			and frappe.conf.developer_mode
+			and not frappe.flags.in_test
+			and not (frappe.flags.in_migrate or frappe.flags.in_install or frappe.flags.in_patch)
+		):
 			frappe.db.after_commit(self.delete_export_file)
 
 	def delete_export_file(self):
