@@ -22,6 +22,8 @@ from frappe.utils import cint, is_git_url
 from frappe.utils.dashboard import sync_dashboards
 from frappe.utils.synchronization import filelock
 
+APP_STATE_LOCK = "toggle_app_state"
+
 
 def _is_scheduler_enabled(site) -> bool:
 	enable_scheduler = False
@@ -380,32 +382,33 @@ def remove_from_installed_apps(app_name):
 		)
 		_clear_cache("__global")
 		frappe.local.doc_events_hooks = None
-		if app_name in frappe.get_disabled_apps():
-			set_app_disabled(app_name, False)
-		frappe.get_single("Installed Applications").update_versions()
-		frappe.db.commit()
+		with filelock(APP_STATE_LOCK):
+			if app_name in frappe.get_disabled_apps():
+				set_app_disabled(app_name, False)
+			frappe.get_single("Installed Applications").update_versions()
+			frappe.db.commit()
 		if frappe.flags.in_install:
 			post_install()
 		_sync_installed_apps_to_site_config()
 
 
 def set_app_disabled(app_name, disabled):
-	with filelock("toggle_app_state"):
-		# read the global directly: `get_disabled_apps` is request cached and may be stale here
-		disabled_apps = json.loads(frappe.db.get_global("disabled_apps") or "[]")
+	"""Add the app to the `disabled_apps` global, or take it out again.
 
-		if disabled and app_name not in disabled_apps:
-			disabled_apps.append(app_name)
-		elif not disabled and app_name in disabled_apps:
-			disabled_apps.remove(app_name)
+	The caller holds the `APP_STATE_LOCK` and owns the commit, so that the read and
+	the write below cannot interleave with another toggle.
+	"""
+	# read the global directly: `get_disabled_apps` is request cached and may be stale here
+	disabled_apps = json.loads(frappe.db.get_global("disabled_apps") or "[]")
 
-		frappe.db.set_global("disabled_apps", json.dumps(disabled_apps))
-		frappe.local.request_cache and frappe.local.request_cache.clear()
-		frappe.get_single("Installed Applications").update_versions()
-		# the lock serialises this read and write, so the new list must be visible before it opens
-		frappe.db.commit()  # nosemgrep
-		frappe.clear_cache()
-		frappe.client_cache.erase_persistent_caches()
+	if disabled and app_name not in disabled_apps:
+		disabled_apps.append(app_name)
+	elif not disabled and app_name in disabled_apps:
+		disabled_apps.remove(app_name)
+
+	frappe.db.set_global("disabled_apps", json.dumps(disabled_apps))
+	frappe.local.request_cache and frappe.local.request_cache.clear()
+	frappe.get_single("Installed Applications").update_versions()
 
 
 def enable_app(app_name):
@@ -413,26 +416,31 @@ def enable_app(app_name):
 	if app_name not in frappe.get_installed_apps():
 		frappe.throw(_("App {0} is not installed").format(app_name))
 
-	disabled_apps = frappe.get_disabled_apps()
-	for required_app in frappe.get_hooks("required_apps", app_name=app_name):
-		dependency = parse_app_name(required_app)
-		if dependency in disabled_apps:
-			frappe.throw(_("App {0} depends on {1}. Enable {1} first.").format(app_name, dependency))
+	with filelock(APP_STATE_LOCK):
+		frappe.flags.in_app_toggle = True
+		try:
+			disabled_apps = frappe.get_disabled_apps()
+			for required_app in frappe.get_hooks("required_apps", app_name=app_name):
+				dependency = parse_app_name(required_app)
+				if dependency in disabled_apps:
+					frappe.throw(_("App {0} depends on {1}. Enable {1} first.").format(app_name, dependency))
 
-	frappe.flags.in_app_toggle = True
-	try:
-		for before_enable in frappe.get_hooks("before_enable", app_name=app_name):
-			frappe.get_attr(before_enable)()
+			for before_enable in frappe.get_hooks("before_enable", app_name=app_name):
+				frappe.get_attr(before_enable)()
 
-		set_app_disabled(app_name, False)
+			set_app_disabled(app_name, False)
 
-		for after_enable in frappe.get_hooks("after_enable", app_name=app_name):
-			frappe.get_attr(after_enable)()
+			for after_enable in frappe.get_hooks("after_enable", app_name=app_name):
+				frappe.get_attr(after_enable)()
 
-		# `set_app_disabled` commits before these hooks, and the CLI closes without a commit
-		frappe.db.commit()  # nosemgrep
-	finally:
-		frappe.flags.in_app_toggle = False
+			frappe.db.commit()  # nosemgrep
+		except Exception:
+			frappe.db.rollback()
+			raise
+		finally:
+			frappe.clear_cache()
+			frappe.client_cache.erase_persistent_caches()
+			frappe.flags.in_app_toggle = False
 
 	click.secho(f"App {app_name} enabled on Site {frappe.local.site}", fg="green")
 
@@ -445,27 +453,34 @@ def disable_app(app_name):
 	if app_name not in frappe.get_installed_apps():
 		frappe.throw(_("App {0} is not installed").format(app_name))
 
-	for app in frappe.get_active_apps():
-		if app == app_name:
-			continue
-		required_apps = frappe.get_hooks("required_apps", app_name=app)
-		if any(app_name in required_app for required_app in required_apps):
-			frappe.throw(_("App {0} is a dependency of {1}. Disable {1} first.").format(app_name, app))
+	with filelock(APP_STATE_LOCK):
+		frappe.flags.in_app_toggle = True
+		try:
+			for app in frappe.get_active_apps():
+				if app == app_name:
+					continue
+				required_apps = frappe.get_hooks("required_apps", app_name=app)
+				if any(app_name in required_app for required_app in required_apps):
+					frappe.throw(
+						_("App {0} is a dependency of {1}. Disable {1} first.").format(app_name, app)
+					)
 
-	frappe.flags.in_app_toggle = True
-	try:
-		for before_disable in frappe.get_hooks("before_disable", app_name=app_name):
-			frappe.get_attr(before_disable)()
+			for before_disable in frappe.get_hooks("before_disable", app_name=app_name):
+				frappe.get_attr(before_disable)()
 
-		set_app_disabled(app_name, True)
+			set_app_disabled(app_name, True)
 
-		for after_disable in frappe.get_hooks("after_disable", app_name=app_name):
-			frappe.get_attr(after_disable)()
+			for after_disable in frappe.get_hooks("after_disable", app_name=app_name):
+				frappe.get_attr(after_disable)()
 
-		# `set_app_disabled` commits before these hooks, and the CLI closes without a commit
-		frappe.db.commit()  # nosemgrep
-	finally:
-		frappe.flags.in_app_toggle = False
+			frappe.db.commit()  # nosemgrep
+		except Exception:
+			frappe.db.rollback()
+			raise
+		finally:
+			frappe.clear_cache()
+			frappe.client_cache.erase_persistent_caches()
+			frappe.flags.in_app_toggle = False
 
 	click.secho(f"App {app_name} disabled on Site {frappe.local.site}", fg="green")
 
@@ -645,7 +660,7 @@ def post_install(rebuild_website=False):
 		clear_website_cache()
 
 	init_singles()
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep
 	frappe.clear_cache()
 
 
@@ -655,7 +670,7 @@ def set_all_patches_as_completed(app):
 	patches = get_patches_from_app(app)
 	for patch in patches:
 		frappe.get_doc({"doctype": "Patch Log", "patch": patch}).insert(ignore_permissions=True)
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep
 
 
 def init_singles():
