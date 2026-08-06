@@ -65,8 +65,7 @@ class PrintFormatBuilder {
 				if (status.value === "saving") this.page.set_indicator(__("Saving…"), "gray");
 				else if (status.value === "failed")
 					this.page.set_indicator(__("Save failed"), "red");
-				else if (status.value === "draft")
-					this.page.set_indicator(__("Draft — not applied"), "orange");
+				else if (status.value === "draft") this.page.set_indicator(__("Draft"), "orange");
 				else this.page.set_indicator(__("Applied"), "green");
 			},
 			{ deep: true, immediate: true }

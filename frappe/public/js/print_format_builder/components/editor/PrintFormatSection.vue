@@ -399,8 +399,8 @@ function remove_column(index) {
 <style scoped>
 .print-format-section-container {
 	position: relative;
-	/* flow-root keeps the section's own margin inside this box, so selection
-	   outlines drawn on the container enclose the margin area */
+	/* flow-root keeps the section's own margin inside this box, so the spacing
+	   handles can be positioned against it */
 	display: flow-root;
 }
 
@@ -410,18 +410,22 @@ function remove_column(index) {
 
 /* One ring for every active section state — selected, hover (canvas), and
    layer-hover all look identical. The :has() guard keeps hover on the innermost
-   element: when a field inside is hovered, the field's ring shows, not this. */
-.print-format-section-container.pfb-section-active,
-.print-format-section-container.pfb-layer-hover,
-.print-format-section-container:hover:not(:has(.field--preview:hover, .field--chip:hover)) {
+   element: when a field inside is hovered, the field's ring shows, not this.
+   Drawn on the section box itself, so it sits on the section's own border
+   instead of floating outside it, and takes the same corners. */
+.print-format-section-container.pfb-section-active > .print-format-section,
+.print-format-section-container.pfb-layer-hover > .print-format-section,
+.print-format-section-container:hover:not(:has(.field--preview:hover, .field--chip:hover))
+	> .print-format-section {
 	outline: var(--pfb-ring);
-	outline-offset: 2px;
 }
 
 .section-container--condition-hidden {
 	opacity: 0.35;
+}
+
+.section-container--condition-hidden > .print-format-section {
 	outline: 2px dashed var(--gray-400);
-	outline-offset: 2px;
 }
 
 .print-format-section {
