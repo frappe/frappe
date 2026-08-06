@@ -4,6 +4,10 @@
 """Executes a claimed outbox row: creates a Background Task, runs each action under its own
 savepoint, and records the outcome. Bookkeeping never saves the Automation Flow doc — the
 circuit breaker lives in Redis, and auto-disable uses db.set_value(update_modified=False).
+
+Steps run off an `actions_snapshot` taken at run start and stored in the Background Task's
+arguments. `If` steps pick an arm, and every step carrying that `parent_step` in the other
+arm is passed over — not run, and not logged.
 """
 
 import time
@@ -23,7 +27,8 @@ def execute_automation(queue_name: str):
 	row = frappe.get_doc(QUEUE, queue_name)
 	rule = frappe.get_cached_doc("Automation Flow", row.automation)
 	doc = _load_target(row)
-	run = _create_run(rule, row)
+	snapshot = [_action_snapshot(action) for action in rule.actions]
+	run = _create_run(rule, row, snapshot)
 	steps = []
 
 	if doc is None and row.ref_name:
@@ -31,13 +36,13 @@ def execute_automation(queue_name: str):
 	if rule.revalidate_on_run and doc and not matches_rule(rule, doc):
 		return _finalize(run, rule, row, "Skipped", steps, error="Rule no longer matches")
 	if rule.log_only:
-		_simulate_steps(steps, rule)
+		_simulate_steps(steps, snapshot)
 		return _finalize(run, rule, row, "Simulated", steps)
 
 	previous_depth = frappe.flags.get("automation_depth", 0)
 	frappe.flags.automation_depth = frappe.utils.cint(row.depth)
 	try:
-		status = _run_steps(steps, rule, doc, _context(row, run, rule))
+		status = _run_plan(steps, rule, doc, _context(row, run, rule), snapshot)
 	finally:
 		frappe.flags.automation_depth = previous_depth
 
@@ -53,16 +58,16 @@ def _load_target(row):
 		return None
 
 
-def _create_run(rule, row):
+def _create_run(rule, row, snapshot):
 	run = frappe.new_doc("Background Task")
-	run.update(_task_values(rule, row))
+	run.update(_task_values(rule, row, snapshot))
 	# The referenced doc may legitimately be gone (deleted, or a Doc Deleted trigger); the
 	# task must record it regardless, so skip Dynamic Link existence validation.
 	run.flags.ignore_links = True
 	return run.insert(ignore_permissions=True)
 
 
-def _task_values(rule, row) -> dict:
+def _task_values(rule, row, snapshot) -> dict:
 	return {
 		"task_id": frappe.generate_hash(length=20),
 		"job_id": row.name,
@@ -74,29 +79,32 @@ def _task_values(rule, row) -> dict:
 		"ref_doctype": row.ref_doctype,
 		"ref_docname": row.ref_name,
 		"started_at": frappe.utils.now(),
-		"arguments": frappe.as_json(_task_arguments(rule, row)),
+		"arguments": frappe.as_json(_task_arguments(rule, row, snapshot)),
 		"show_progress_bar": 0,
 		"allow_user_cancellation": 0,
 		"allow_user_retry": 0,
 	}
 
 
-def _task_arguments(rule, row) -> dict:
+def _task_arguments(rule, row, snapshot) -> dict:
 	return {
 		"automation": rule.name,
 		"automation_title": rule.title,
 		"depth": frappe.utils.cint(row.depth),
 		"event_payload": frappe.parse_json(row.event_payload) if row.event_payload else {},
-		"actions_snapshot": [_action_snapshot(action) for action in rule.actions],
+		"actions_snapshot": snapshot,
 	}
 
 
 def _action_snapshot(action) -> dict:
 	return {
+		"idx": frappe.utils.cint(action.idx),
 		"step_type": action.step_type or "Action",
 		"action_type": action.action_type,
 		"params": action.params,
 		"step_condition": action.step_condition,
+		"parent_step": frappe.utils.cint(action.parent_step),
+		"branch": action.branch or "",
 	}
 
 
@@ -113,12 +121,16 @@ def _context(row, run, rule) -> dict:
 	}
 
 
-def _run_steps(steps, rule, doc, context) -> str:
+def _run_plan(steps, rule, doc, context, snapshot) -> str:
+	"""Walk the snapshot once, running only the steps on the taken branch arms."""
 	registry = get_action_registry()
+	taken: dict = {}
 	overall = "Success"
-	for idx, action in enumerate(rule.actions):
-		status, detail, duration = _run_one(registry, action, doc, context, idx)
-		_append_step(steps, action, idx, status, detail, duration)
+	for pos, step in enumerate(snapshot):
+		status, detail, duration = _step_outcome(registry, step, doc, context, pos, taken)
+		if status is None:
+			continue
+		_append_step(steps, step, pos, status, detail, duration)
 		if status == "Waiting":
 			return "Waiting"
 		if status == "Failed":
@@ -128,24 +140,51 @@ def _run_steps(steps, rule, doc, context) -> str:
 	return overall
 
 
-def _run_one(registry, action, doc, context, idx):
+def _step_outcome(registry, step, doc, context, pos, taken):
+	"""Resolve one plan entry. A None status means it is not on this run's path at all."""
+	if not _branch_active(step, taken):
+		return None, None, None
+	step_type = step.get("step_type") or "Action"
+	if step_type == "If":
+		return _resolve_if(step, doc, context, taken)
+	if not _step_condition_matches(step, doc, context):
+		return "Skipped", _("Step condition did not match"), 0
+	if step_type == "Wait":
+		return "Waiting", _("Wait resume is not enabled yet"), 0
+	return _run_one(registry, step, doc, context, pos)
+
+
+def _branch_active(step, taken) -> bool:
+	"""True when the enclosing If (if any) chose the arm this step sits in."""
+	parent = frappe.utils.cint(step.get("parent_step"))
+	if not parent:
+		return True
+	if parent not in taken:
+		return False  # the enclosing If was itself on an arm that wasn't taken
+	return (step.get("branch") or "If") == taken[parent]
+
+
+def _resolve_if(step, doc, context, taken):
+	"""Pick the arm for an If step; its children consult `taken` by the If's own idx."""
+	arm = "If" if _step_condition_matches(step, doc, context) else "Else"
+	taken[frappe.utils.cint(step.get("idx"))] = arm
+	return "Success", _("Condition took the {0} branch").format(arm), 0
+
+
+def _run_one(registry, step, doc, context, idx):
 	started = time.monotonic()
 	savepoint = f"auto_step_{idx}"
-	handler = registry.get(action.action_type)
-	params = frappe.parse_json(action.params) if action.params else {}
+	handler = registry.get(step.get("action_type"))
+	params = _step_params(step)
 
 	# A concurrent write between claim and save raises TimestampMismatch
 	# reload and retry once.
 	for last_attempt in (False, True):
 		frappe.db.savepoint(savepoint)
 		try:
-			if not _step_condition_matches(action, doc, context):
-				return "Skipped", _("Step condition did not match"), _ms(started)
-			if (action.step_type or "Action") == "Wait":
-				return "Waiting", _("Wait resume is not enabled yet"), _ms(started)
 			if not handler:
-				raise ValueError(f"Unknown action type: {action.action_type}")
-			detail = handler.execute(doc, params or {}, context)
+				raise ValueError(f"Unknown action type: {step.get('action_type')}")
+			detail = handler.execute(doc, params, context)
 			return "Success", detail, _ms(started)
 		except StopAutomation:
 			return "Waiting", _("Automation paused"), _ms(started)
@@ -159,18 +198,24 @@ def _run_one(registry, action, doc, context, idx):
 			return "Failed", frappe.get_traceback(), _ms(started)
 
 
-def _step_condition_matches(action, doc, context) -> bool:
-	if not action.step_condition:
+def _step_params(step) -> dict:
+	params = step.get("params")
+	return (frappe.parse_json(params) if isinstance(params, str) else params) or {}
+
+
+def _step_condition_matches(step, doc, context) -> bool:
+	condition = step.get("step_condition")
+	if not condition:
 		return True
-	return bool(frappe.safe_eval(action.step_condition, None, {"doc": doc, "context": context}))
+	return bool(frappe.safe_eval(condition, None, {"doc": doc, "context": context}))
 
 
-def _append_step(steps, action, idx, status, detail, duration):
+def _append_step(steps, step, idx, status, detail, duration):
 	detail, output = _action_result(detail)
 	steps.append(
 		{
 			"step_idx": idx,
-			"action_type": action.action_type,
+			"action_type": step.get("action_type") or step.get("step_type") or "Action",
 			"status": status,
 			"detail": (detail or "")[:5000],
 			"output": output,
@@ -186,9 +231,9 @@ def _action_result(result):
 	return str(detail), result
 
 
-def _simulate_steps(steps, rule):
-	for idx, action in enumerate(rule.actions):
-		_append_step(steps, action, idx, "Skipped", _("Simulated: action was not executed"), 0)
+def _simulate_steps(steps, snapshot):
+	for idx, step in enumerate(snapshot):
+		_append_step(steps, step, idx, "Skipped", _("Simulated: action was not executed"), 0)
 
 
 def _ms(started) -> int:
