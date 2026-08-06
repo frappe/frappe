@@ -16,7 +16,7 @@
 		:breakpoint="breakpoint"
 	/>
 
-	<template v-else-if="block.canHaveChildren()">
+	<template v-else-if="block.hasChildren() || block.hasComponentSlots()">
 		<component
 			v-if="showComponent"
 			:is="componentName"

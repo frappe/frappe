@@ -4,7 +4,7 @@
 		:studioComponent="block"
 		:evaluationContext="evaluationContext"
 	/>
-	<template v-else-if="block.canHaveChildren()">
+	<template v-else-if="block.hasChildren() || block.hasComponentSlots()">
 		<component
 			ref="componentRef"
 			v-if="showComponent"
