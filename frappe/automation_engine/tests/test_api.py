@@ -6,6 +6,7 @@ import json
 import frappe
 from frappe.automation_engine import api
 from frappe.automation_engine.registry import clear_automation_cache
+from frappe.automation_engine.runner import TASK_METHOD, automation_task_name
 from frappe.tests import IntegrationTestCase
 
 
@@ -81,9 +82,7 @@ class TestApi(IntegrationTestCase):
 		self.assertIn("Administrator", [option.name for option in options])
 
 	def test_get_param_options_unknown_field_throws(self):
-		self.assertRaises(
-			frappe.ValidationError, api.get_param_options, "SetFieldValue", "bogus", "ToDo"
-		)
+		self.assertRaises(frappe.ValidationError, api.get_param_options, "SetFieldValue", "bogus", "ToDo")
 
 	def test_run_manually_queues_a_row(self):
 		auto = make_automation()
@@ -103,11 +102,15 @@ class TestApi(IntegrationTestCase):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "history"}).insert()
 		frappe.get_doc(
 			{
-				"doctype": "Automation Run",
-				"automation_title": "API Rule",
-				"reference_doctype": "ToDo",
-				"reference_name": todo.name,
-				"status": "Success",
+				"doctype": "Background Task",
+				"task_id": frappe.generate_hash(length=20),
+				"task_name": automation_task_name("AUTO-TEST"),
+				"user": frappe.session.user,
+				"method": TASK_METHOD,
+				"ref_doctype": "ToDo",
+				"ref_docname": todo.name,
+				"status": "Completed",
+				"result": json.dumps({"automation_title": "API Rule", "automation_status": "Success"}),
 			}
 		).insert(ignore_permissions=True)
 		runs = api.get_runs("ToDo", todo.name)

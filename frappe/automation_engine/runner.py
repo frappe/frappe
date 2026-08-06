@@ -1,7 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-"""Executes a claimed outbox row: builds a run log, runs each action under its own
+"""Executes a claimed outbox row: creates a Background Task, runs each action under its own
 savepoint, and records the outcome. Bookkeeping never saves the Automation Flow doc — the
 circuit breaker lives in Redis, and auto-disable uses db.set_value(update_modified=False).
 """
@@ -14,6 +14,8 @@ from frappe.automation_engine.actions.base import StopAutomation, get_action_reg
 from frappe.automation_engine.dispatch import matches_rule
 
 QUEUE = "Automation Trigger Queue"
+TASK_METHOD = "frappe.automation_engine.runner.execute_automation"
+TASK_NAME_PREFIX = "Automation Flow: "
 DEFAULT_FAILURE_THRESHOLD = 10
 
 
@@ -22,23 +24,24 @@ def execute_automation(queue_name: str):
 	rule = frappe.get_cached_doc("Automation Flow", row.automation)
 	doc = _load_target(row)
 	run = _create_run(rule, row)
+	steps = []
 
 	if doc is None and row.ref_name:
-		return _finalize(run, rule, row, "Skipped", error="Target document not found")
+		return _finalize(run, rule, row, "Skipped", steps, error="Target document not found")
 	if rule.revalidate_on_run and doc and not matches_rule(rule, doc):
-		return _finalize(run, rule, row, "Skipped", error="Rule no longer matches")
+		return _finalize(run, rule, row, "Skipped", steps, error="Rule no longer matches")
 	if rule.log_only:
-		_simulate_steps(run, rule)
-		return _finalize(run, rule, row, "Simulated")
+		_simulate_steps(steps, rule)
+		return _finalize(run, rule, row, "Simulated", steps)
 
 	previous_depth = frappe.flags.get("automation_depth", 0)
 	frappe.flags.automation_depth = frappe.utils.cint(row.depth)
 	try:
-		status = _run_steps(run, rule, doc, _context(row, run, rule))
+		status = _run_steps(steps, rule, doc, _context(row, run, rule))
 	finally:
 		frappe.flags.automation_depth = previous_depth
 
-	_finalize(run, rule, row, status)
+	_finalize(run, rule, row, status, steps)
 
 
 def _load_target(row):
@@ -51,33 +54,54 @@ def _load_target(row):
 
 
 def _create_run(rule, row):
-	run = frappe.new_doc("Automation Run")
-	run.update(
-		{
-			"automation": rule.name,
-			"automation_title": rule.title,
-			"reference_doctype": row.ref_doctype,
-			"reference_name": row.ref_name,
-			"status": "Running",
-			"depth": frappe.utils.cint(row.depth),
-			"started_at": frappe.utils.now(),
-			"actions_snapshot": frappe.as_json(
-				[
-					{
-						"step_type": a.step_type or "Action",
-						"action_type": a.action_type,
-						"params": a.params,
-						"step_condition": a.step_condition,
-					}
-					for a in rule.actions
-				]
-			),
-		}
-	)
+	run = frappe.new_doc("Background Task")
+	run.update(_task_values(rule, row))
 	# The referenced doc may legitimately be gone (deleted, or a Doc Deleted trigger); the
-	# run log must record it regardless, so skip Dynamic Link existence validation.
+	# task must record it regardless, so skip Dynamic Link existence validation.
 	run.flags.ignore_links = True
 	return run.insert(ignore_permissions=True)
+
+
+def _task_values(rule, row) -> dict:
+	return {
+		"task_id": frappe.generate_hash(length=20),
+		"job_id": row.name,
+		"task_name": automation_task_name(rule.name),
+		"user": frappe.session.user or "Administrator",
+		"method": TASK_METHOD,
+		"status": "Running",
+		"queue": "default",
+		"ref_doctype": row.ref_doctype,
+		"ref_docname": row.ref_name,
+		"started_at": frappe.utils.now(),
+		"arguments": frappe.as_json(_task_arguments(rule, row)),
+		"show_progress_bar": 0,
+		"allow_user_cancellation": 0,
+		"allow_user_retry": 0,
+	}
+
+
+def _task_arguments(rule, row) -> dict:
+	return {
+		"automation": rule.name,
+		"automation_title": rule.title,
+		"depth": frappe.utils.cint(row.depth),
+		"event_payload": frappe.parse_json(row.event_payload) if row.event_payload else {},
+		"actions_snapshot": [_action_snapshot(action) for action in rule.actions],
+	}
+
+
+def _action_snapshot(action) -> dict:
+	return {
+		"step_type": action.step_type or "Action",
+		"action_type": action.action_type,
+		"params": action.params,
+		"step_condition": action.step_condition,
+	}
+
+
+def automation_task_name(automation: str) -> str:
+	return f"{TASK_NAME_PREFIX}{automation}"
 
 
 def _context(row, run, rule) -> dict:
@@ -89,12 +113,12 @@ def _context(row, run, rule) -> dict:
 	}
 
 
-def _run_steps(run, rule, doc, context) -> str:
+def _run_steps(steps, rule, doc, context) -> str:
 	registry = get_action_registry()
 	overall = "Success"
 	for idx, action in enumerate(rule.actions):
 		status, detail, duration = _run_one(registry, action, doc, context, idx)
-		_append_step(run, action, idx, status, detail, duration)
+		_append_step(steps, action, idx, status, detail, duration)
 		if status == "Waiting":
 			return "Waiting"
 		if status == "Failed":
@@ -141,18 +165,17 @@ def _step_condition_matches(action, doc, context) -> bool:
 	return bool(frappe.safe_eval(action.step_condition, None, {"doc": doc, "context": context}))
 
 
-def _append_step(run, action, idx, status, detail, duration):
+def _append_step(steps, action, idx, status, detail, duration):
 	detail, output = _action_result(detail)
-	run.append(
-		"steps",
+	steps.append(
 		{
 			"step_idx": idx,
 			"action_type": action.action_type,
 			"status": status,
 			"detail": (detail or "")[:5000],
-			"output": frappe.as_json(output) if output else None,
+			"output": output,
 			"duration_ms": duration,
-		},
+		}
 	)
 
 
@@ -163,22 +186,26 @@ def _action_result(result):
 	return str(detail), result
 
 
-def _simulate_steps(run, rule):
+def _simulate_steps(steps, rule):
 	for idx, action in enumerate(rule.actions):
-		_append_step(run, action, idx, "Skipped", _("Simulated: action was not executed"), 0)
+		_append_step(steps, action, idx, "Skipped", _("Simulated: action was not executed"), 0)
 
 
 def _ms(started) -> int:
 	return int((time.monotonic() - started) * 1000)
 
 
-def _finalize(run, rule, row, status, error=None):
-	run.status = status
-	run.ended_at = frappe.utils.now()
-	if error:
-		run.error_summary = error
-	elif status in ("Failed", "Partially Failed"):
-		run.error_summary = _first_error(run)
+def _finalize(run, rule, row, status, steps, error=None):
+	error_summary = error or _error_summary(status, steps)
+	run.update(
+		{
+			"status": "Failed" if status == "Failed" else "Completed",
+			"ended_at": frappe.utils.now(),
+			"progress": 100,
+			"result": frappe.as_json(_run_result(rule, row, status, steps, error_summary)),
+			"exception": _first_error_detail(steps) if status == "Failed" else None,
+		}
+	)
 	run.save(ignore_permissions=True)
 
 	if status == "Failed":
@@ -186,8 +213,8 @@ def _finalize(run, rule, row, status, error=None):
 	elif status in ("Success", "Simulated"):
 		_reset_failures(rule)
 
-	# Completed runs (Success / Partially Failed) drop their queue row — detail lives in the
-	# Run log. Failed (stopped) and Skipped rows are retained for the purge sweep.
+	# Completed runs drop their queue row because detail lives in the Background Task result.
+	# Failed (stopped) and Skipped rows are retained for the purge sweep.
 	if status in ("Success", "Partially Failed", "Simulated"):
 		frappe.delete_doc(QUEUE, row.name, ignore_permissions=True, force=True)
 	else:
@@ -197,15 +224,33 @@ def _finalize(run, rule, row, status, error=None):
 	frappe.publish_realtime(
 		"automation_run_update",
 		{"automation": rule.name, "run": run.name, "status": status},
-		doctype=run.reference_doctype,
-		docname=run.reference_name,
+		doctype=run.ref_doctype,
+		docname=run.ref_docname,
 	)
 
 
-def _first_error(run) -> str:
-	for step in run.steps:
-		if step.status == "Failed":
-			return (step.detail or "").splitlines()[-1][:140] if step.detail else "Failed"
+def _run_result(rule, row, status, steps, error_summary) -> dict:
+	return {
+		"automation": rule.name,
+		"automation_title": rule.title,
+		"automation_status": status,
+		"depth": frappe.utils.cint(row.depth),
+		"error_summary": error_summary,
+		"steps": steps,
+	}
+
+
+def _error_summary(status, steps) -> str | None:
+	if status not in ("Failed", "Partially Failed"):
+		return None
+	detail = _first_error_detail(steps)
+	return detail.splitlines()[-1][:140] if detail else "Failed"
+
+
+def _first_error_detail(steps) -> str | None:
+	for step in steps:
+		if step["status"] == "Failed":
+			return step["detail"] or "Failed"
 	return "Failed"
 
 

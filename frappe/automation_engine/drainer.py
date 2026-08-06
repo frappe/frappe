@@ -129,12 +129,3 @@ def purge_queue():
 			"modified": ("<", frappe.utils.add_days(frappe.utils.now(), -retention_days)),
 		},
 	)
-
-
-def purge_runs():
-	"""Sweep old Automation Run logs (retention also enforced via Log Settings)."""
-	retention_days = frappe.conf.get("automation_run_retention_days") or 90
-	frappe.db.delete(
-		"Automation Run",
-		{"creation": ("<", frappe.utils.add_days(frappe.utils.now(), -retention_days))},
-	)

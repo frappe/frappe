@@ -43,7 +43,7 @@ def get_automation_capabilities(doctype: str | None = None, trigger_type: str | 
 
 @frappe.whitelist()
 def validate_action_params(
-	action_type: str, params: str, doctype: str | None = None, trigger_type: str | None = None
+	action_type: str, doctype: str | None, params: str, trigger_type: str | None = None
 ) -> dict:
 	"""Return {valid, errors:[{fieldname, message}]} for a single action's params."""
 	_check_config_permission()
@@ -99,20 +99,37 @@ def run_manually(automation: str, docname: str | None = None) -> dict:
 @frappe.whitelist()
 def get_runs(reference_doctype: str, reference_name: str) -> list:
 	"""Return the run history for a document (timeline feed)."""
+	from frappe.automation_engine.runner import TASK_METHOD
+
 	frappe.has_permission(reference_doctype, "read", doc=reference_name, throw=True)
-	return frappe.get_all(
-		"Automation Run",
-		filters={"reference_doctype": reference_doctype, "reference_name": reference_name},
+	tasks = frappe.get_all(
+		"Background Task",
+		filters={"ref_doctype": reference_doctype, "ref_docname": reference_name, "method": TASK_METHOD},
 		fields=[
 			"name",
-			"automation",
-			"automation_title",
+			"arguments",
+			"result",
 			"status",
 			"started_at",
 			"ended_at",
-			"error_summary",
+			"exception",
 		],
 		order_by="creation desc",
+	)
+	return [_serialize_run(task) for task in tasks]
+
+
+def _serialize_run(task) -> frappe._dict:
+	arguments = frappe.parse_json(task.arguments) or {}
+	result = frappe.parse_json(task.result) or {}
+	return frappe._dict(
+		name=task.name,
+		automation=result.get("automation") or arguments.get("automation"),
+		automation_title=result.get("automation_title") or arguments.get("automation_title"),
+		status=result.get("automation_status") or task.status,
+		started_at=task.started_at,
+		ended_at=task.ended_at,
+		error_summary=result.get("error_summary") or task.exception,
 	)
 
 
