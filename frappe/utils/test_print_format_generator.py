@@ -530,6 +530,43 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		frappe.clear_cache()
 		self.assertIsNone(resolved(no_letterhead=0))
 
+	def test_download_pdf_without_format_uses_the_doctype_default(self):
+		"""An omitted print_format means the doctype's default, matching
+		frappe.utils.print_format.download_pdf; "Standard" means the built-in one."""
+		from unittest.mock import patch
+
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+		from frappe.utils.print_format_generator import PrintFormatGenerator, download_pdf
+
+		todo = self._make_todo()
+		classic = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test Default Classic {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"custom_format": 1,
+				"html": "<div>classic</div>",
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", classic.name, force=True)
+		ps = make_property_setter(
+			"ToDo", None, "default_print_format", classic.name, "Data", for_doctype=True
+		)
+		self.addCleanup(frappe.delete_doc, "Property Setter", ps.name, force=True)
+		self.addCleanup(frappe.clear_cache, doctype="ToDo")
+		frappe.clear_cache(doctype="ToDo")
+
+		with patch("frappe.utils.print_format.download_pdf") as jinja:
+			download_pdf("ToDo", todo.name)
+		self.assertEqual(jinja.call_args.kwargs["format"], classic.name)
+
+		with (
+			patch("frappe.utils.print_format.download_pdf") as jinja,
+			patch.object(PrintFormatGenerator, "render_pdf", return_value=b""),
+		):
+			download_pdf("ToDo", todo.name, print_format="Standard")
+		jinja.assert_not_called()
+
 	def test_section_justify_only_emits_known_modes(self):
 		"""justify names a CSS class, so a layout can't smuggle markup through it."""
 		from frappe.utils.print_format_generator import get_html
