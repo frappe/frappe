@@ -46,11 +46,22 @@
 
 .desktop-notification-icon {
 	position: relative;
+	// Same 28px box as the avatar sitting next to it. Both open their panel with
+	// the same 4px offset off the trigger's bottom edge, so matching the boxes is
+	// what lines the notification popover up with the profile menu -- rather than
+	// hand-tuning an offset that would drift if the header ever changed.
+	@include size(28px, 28px);
+	// `flex`, not `inline-flex`: an inline-level button sits on its wrapper's text
+	// baseline, which adds a descender's worth of slack and drops it a pixel out of
+	// line with the avatar.
+	@include flex(flex, center, center, row);
 
 	.notification-count {
 		position: absolute;
-		top: 0;
-		right: 0;
+		// inset by the 4px of breathing room the box adds around the 20px icon, so
+		// the dot still sits on the bell's corner rather than the button's
+		top: 4px;
+		right: 4px;
 		width: 8px;
 		height: 8px;
 		padding: 0;
@@ -74,25 +85,20 @@
 	text-decoration: underline;
 }
 
+// The sidebar drawer: edge-anchored against the sidebar and full height, so it
+// casts sideways (away from that edge) and keeps square corners. The desk host
+// puts this same content inside an .es-popover, which is styled further down.
 .notifications-list {
-	width: 360px;
+	width: min(360px, 100vw);
 	padding: 0px;
-	min-height: 480px;
 	position: absolute;
 	top: 0;
-	box-shadow: rgba(0, 0, 0, 0.1) 8px 0px 8px;
-	background-color: var(--bg-color);
 	height: 100vh;
+	min-height: 480px;
+	background-color: var(--bg-color);
+	box-shadow: rgba(0, 0, 0, 0.1) 8px 0px 8px;
 	overflow: hidden;
 	@include flex(flex, null, null, column);
-
-	// On the desk homescreen this panel is a Bootstrap .dropdown-menu, which stays
-	// `display: none` until Bootstrap adds .show. The `display: flex` above has the
-	// same specificity and lands later in the cascade, so without this the empty
-	// panel would sit on the homescreen permanently.
-	&.dropdown-menu:not(.show) {
-		display: none;
-	}
 
 	.notification-list-header {
 		flex-shrink: 0;
@@ -137,73 +143,30 @@
 		.panel-notifications {
 			@include size(100%, null);
 		}
-
-		.notification-null-state {
-			min-height: 320px;
-			@include flex(flex, center, center, column);
-			text-align: center;
-			padding: var(--padding-lg);
-
-			.null-state-icon {
-				color: var(--ink-gray-5);
-				margin-bottom: var(--margin-md);
-
-				.icon {
-					@include size(32px, 32px);
-				}
-			}
-
-			.title {
-				@include get_textstyle("lg", "semibold");
-				color: var(--ink-gray-8);
-			}
-
-			.subtitle {
-				margin-top: 6px;
-				@include get_textstyle("base", "regular");
-				color: var(--ink-gray-5);
-			}
-		}
 	}
 
-	// Segmented control: a pill track with a raised "thumb" marking the active tab.
-	// Sized to frappe-ui's TabButtons (type subtle, size sm) so it stands the same
-	// 28px tall as the equivalent control in CRM: a 26px pill in a 1px track.
-	.notification-item-tabs {
-		@include flex(flex, null, stretch, row);
-		gap: 4px;
-		margin: 0;
-		padding: 1px;
-		list-style: none;
-		border: none;
-		border-radius: var(--radius-4);
-		background-color: var(--surface-gray-2);
+	// es-tab-buttons is left exactly as the component ships it -- inline-flex,
+	// sized by its labels, same as every other group in the component explorer.
+}
 
-		.notifications-category {
-			flex: 1 1 0;
-			height: 26px;
-			@include flex(flex, center, center, row);
-			padding: 0px 8px;
-			border-radius: 7px;
-			border: 1px solid transparent;
-			color: var(--ink-gray-5);
-			@include get_textstyle("sm", "regular");
-			cursor: pointer;
-			user-select: none;
-			@include truncate;
+// Desk host: the panel is a real popover, so .es-popover brings the surface
+// itself (rounded-lg / bg-surface-elevation-2 / shadow-2xl) -- nothing is copied
+// here. Only the sizing the notification list needs is overridden: the component
+// defaults to a narrow, padded, self-scrolling panel, and this one is wider,
+// unpadded, and scrolls in its own body so the header stays put.
+.es-popover.notifications-popover {
+	width: min(360px, calc(100vw - 16px));
+	padding: 0;
+	overflow: hidden;
 
-			&:hover:not(.active) {
-				color: var(--ink-gray-7);
-			}
-
-			&.active {
-				background-color: var(--bg-color);
-				border-color: var(--outline-gray-2);
-				box-shadow: var(--shadow-sm);
-				color: var(--ink-gray-8);
-				font-weight: var(--font-weight-medium);
-			}
-		}
+	.notifications-list {
+		position: static;
+		width: 100%;
+		height: auto;
+		min-height: 0;
+		max-height: min(500px, calc(100vh - var(--navbar-height) - 32px));
+		background: transparent;
+		box-shadow: none;
 	}
 }
 
@@ -472,18 +435,23 @@
 }
 
 @include media-breakpoint-down(sm) {
+	// Drawer: the sidebar collapses on mobile, so the panel takes the screen.
 	.dropdown-notifications {
 		.notifications-list {
 			position: fixed;
+			width: 100vw;
 			max-height: 100vh;
-			min-width: 100vw;
-			width: calc(90vw - 60px);
-			right: -68px;
 		}
 
 		.recent-item .user-avatar {
 			margin-right: 10px;
 			margin-left: 5px;
 		}
+	}
+
+	// Popover: .es-popover already caps itself at the viewport width; this just
+	// keeps the list from insisting on 360px inside it.
+	.es-popover.notifications-popover {
+		width: calc(100vw - 16px);
 	}
 }

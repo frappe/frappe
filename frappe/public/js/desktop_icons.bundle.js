@@ -423,6 +423,7 @@ class DesktopPage {
 		this.notifications = new frappe.ui.Notifications({
 			wrapper: $(".desktop-notifications"),
 			full_height: false,
+			popover: true,
 		});
 	}
 

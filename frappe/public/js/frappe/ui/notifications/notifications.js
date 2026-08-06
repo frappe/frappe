@@ -5,6 +5,10 @@ frappe.ui.Notifications = class Notifications {
 		this.tabs = {};
 		this.notification_settings = frappe.boot.notification_settings;
 		this.full_height = opts?.full_height || false;
+		// The desk bell opens a popover; the sidebar bell slides out a full-height
+		// drawer, which is a different thing and keeps its own show/hide.
+		this.as_popover = opts?.popover || false;
+		this.trigger = opts?.trigger;
 
 		this.wrapper = opts?.wrapper || $(".body-sidebar");
 		this.make();
@@ -12,50 +16,135 @@ frappe.ui.Notifications = class Notifications {
 
 	make() {
 		this.wrapper.find(".sidebar-notification").removeClass("hidden");
-		this.dropdown = this.wrapper.find(".dropdown-notifications");
-		this.dropdown_list = this.dropdown.find(".notifications-list");
+		this.dropdown = this.as_popover
+			? this.wrapper
+			: this.wrapper.find(".dropdown-notifications");
+		this.dropdown_list = this.as_popover
+			? $(`<div class="notifications-list"></div>`)
+			: this.dropdown.find(".notifications-list");
+
+		this.render_shell();
+
+		this.user = frappe.session.user;
+
+		this.setup_header_actions();
+		this.setup_tabs();
+
+		if (this.as_popover) {
+			this.setup_popover();
+		} else {
+			this.setup_dropdown_events();
+		}
+
+		// closing on navigation is wanted either way
+		$(document).on("page-change", () => this.close_panel());
+	}
+
+	setup_popover() {
+		let trigger = this.trigger || this.wrapper.find(".desktop-notification-icon");
+
+		this.popover = new frappe.ui.Popover({
+			trigger,
+			// the same element every time, so the fetched list and the selected tab
+			// survive a close/open round trip
+			content: () => this.dropdown_list[0],
+			css_class: "notifications-popover",
+			side: "bottom",
+			align: "end",
+			on_open: () => this.on_open(),
+		});
+	}
+
+	/** Fanned out to the views so neither of them has to know how it was opened. */
+	on_open() {
+		Object.keys(this.tabs).forEach((tab_name) => this.tabs[tab_name].on_open());
+	}
+
+	close_panel() {
+		if (this.as_popover) {
+			this.popover?.close();
+		} else if (this.full_height && this.dropdown?.length) {
+			this.dropdown.addClass("hidden");
+		}
+	}
+
+	/**
+	 * The panel's insides are owned here rather than copied into each host
+	 * template. The sidebar drawer supplies an empty `.notifications-list` for
+	 * this to fill; the desk hosts supply only a bell, and the list is built
+	 * above and handed to the popover as its content.
+	 */
+	render_shell() {
+		this.dropdown_list.html(`
+			<div class="notification-list-header">
+				<div class="notification-header-top">
+					<div class="notification-panel-title">${__("Notifications")}</div>
+					<div class="header-actions"></div>
+				</div>
+				<div class="header-items"></div>
+			</div>
+			<div class="notification-list-body">
+				<div class="panel-notifications"></div>
+				<div class="panel-events"></div>
+			</div>
+		`);
+
 		this.header_items = this.dropdown_list.find(".header-items");
 		this.header_actions = this.dropdown_list.find(".header-actions");
 		this.body = this.dropdown_list.find(".notification-list-body");
 		this.panel_events = this.dropdown_list.find(".panel-events");
 		this.panel_notifications = this.dropdown_list.find(".panel-notifications");
-
-		this.user = frappe.session.user;
-
-		this.setup_headers();
-		this.setup_dropdown_events();
 	}
 
-	setup_headers() {
-		$(`<span class="notification-settings" data-action="go_to_settings">
-			${frappe.utils.icon("settings")}
-		</span>`)
-			.on("click", (e) => {
+	setup_header_actions() {
+		let add_action = ({ css_class, icon, title, on_click }) => {
+			let $action = $(
+				`<span class="${css_class}">${frappe.utils.icon(
+					icon,
+					"sm",
+					"",
+					"",
+					"current-color",
+					true
+				)}</span>`
+			)
+				.on("click", on_click)
+				.appendTo(this.header_actions);
+
+			if (title) {
+				$action
+					.attr("title", title)
+					.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+			}
+			return $action;
+		};
+
+		add_action({
+			css_class: "notification-settings",
+			icon: "settings",
+			title: __("Notification Settings"),
+			on_click: (e) => {
 				e.stopImmediatePropagation();
 				frappe.set_route("Form", "Notification Settings", frappe.session.user);
-			})
-			.appendTo(this.header_actions)
-			.attr("title", __("Notification Settings"))
-			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+			},
+		});
 
-		$(`<span class="mark-all-read" data-action="mark_all_as_read">
-			${frappe.utils.icon("check-check")}
-		</span>`)
-			.on("click", (e) => this.mark_all_as_read(e))
-			.appendTo(this.header_actions)
-			.attr("title", __("Mark all as read"))
-			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+		add_action({
+			css_class: "mark-all-read",
+			icon: "check-check",
+			title: __("Mark all as read"),
+			on_click: (e) => this.mark_all_as_read(e),
+		});
 
-		$(`<span class="close-notification-dialogue">
-			${frappe.utils.icon("x")}
-		</span>`)
-			.on("click", (e) => {
-				if (this.full_height) {
-					this.dropdown.addClass("hidden");
-				}
-			})
-			.appendTo(this.header_actions);
+		add_action({
+			css_class: "close-notification-dialogue",
+			icon: "x",
+			title: __("Close"),
+			on_click: () => this.close_panel(),
+		});
+	}
 
+	setup_tabs() {
 		this.categories = [
 			{
 				label: __("All"),
@@ -71,45 +160,25 @@ frappe.ui.Notifications = class Notifications {
 			},
 		];
 
-		let get_headers_html = (item) => {
-			let active = item.id == "notifications" ? "active" : "";
+		this.categories.forEach((category) => this.make_tab_view(category));
 
-			return `<li class="notifications-category ${active}"
-   					id="${item.id}"
-   					role="tab"
-   					aria-selected="${active ? "true" : "false"}"
-   				>${item.label}</li>`;
-		};
+		// es-tab-buttons owns the segmented look, the radio-group semantics and the
+		// arrow-key navigation, so none of that is reimplemented here.
+		frappe.ui
+			.tab_buttons({
+				label: __("Notification categories"),
+				options: this.categories.map(({ label, id }) => ({ label, value: id })),
+				value: this.categories[0].id,
+				on_change: (id) => this.switch_tab(id),
+			})
+			.appendTo(this.header_items);
 
-		let navitem = $(`<ul class="notification-item-tabs" role="tablist"></ul>`);
-		this.categories = this.categories.map((item) => {
-			item.$tab = $(get_headers_html(item));
-			item.$tab.on("click", (e) => {
-				e.stopImmediatePropagation();
-				this.switch_tab(item);
-			});
-			navitem.append(item.$tab);
-
-			return item;
-		});
-		navitem.appendTo(this.header_items);
-		this.categories.forEach((category) => {
-			this.make_tab_view(category);
-		});
-		this.switch_tab(this.categories[0]);
+		this.switch_tab(this.categories[0].id);
 	}
 
-	switch_tab(item) {
-		// Set active tab
-		this.categories.forEach((item) => {
-			item.$tab.removeClass("active").attr("aria-selected", "false");
-		});
-
-		item.$tab.addClass("active").attr("aria-selected", "true");
-
-		// Hide other tabs
+	switch_tab(id) {
 		Object.keys(this.tabs).forEach((tab_name) => this.tabs[tab_name].hide());
-		this.tabs[item.id].show();
+		this.tabs[id].show();
 	}
 
 	make_tab_view(item) {
@@ -124,18 +193,16 @@ frappe.ui.Notifications = class Notifications {
 		this.tabs.notifications?.update_count_badge(0);
 	}
 
+	// The drawer is shown by toggling `.hidden` on its container, so it has to do its
+	// own outside-click dismissal. (The popover host needs none of this -- Escape,
+	// outside-click, focus-out and repositioning all come from the component.)
 	setup_dropdown_events() {
 		const dropdown = this.dropdown;
 		const full_height = this.full_height;
-		this.dropdown.on("hide.bs.dropdown", (e) => {
-			let hide = $(e.currentTarget).data("closable");
-			$(e.currentTarget).data("closable", true);
-			return hide;
-		});
 
-		this.dropdown.on("click", (e) => {
-			$(e.currentTarget).data("closable", true);
-		});
+		// not a real Bootstrap dropdown -- sidebar.js and workspace_dock.js trigger
+		// this event by hand when they un-hide the drawer, and it is the open signal
+		this.dropdown.on("show.bs.dropdown", () => this.on_open());
 
 		$(document).on("click", function (e) {
 			// the bell may live in the sidebar or the workspace dock; match either
@@ -146,15 +213,6 @@ frappe.ui.Notifications = class Notifications {
 				if (full_height) {
 					dropdown.addClass("hidden");
 				}
-			}
-		});
-
-		dropdown.find(".notification-item").on("click", (e) => {
-			dropdown.addClass("hidden");
-		});
-		$(document).on("page-change", function () {
-			if (dropdown && dropdown.length) {
-				dropdown.addClass("hidden");
 			}
 		});
 	}
@@ -190,20 +248,22 @@ frappe.ui.notifications = {
 	},
 };
 
-// Empty and loading states share one shell so every panel lines them up identically.
-function get_null_state_html(icon, title, subtitle) {
-	return `<div class="notification-null-state">
-		<div class="null-state-icon">
-			${frappe.utils.icon(icon, "xl", "", "", "current-color", true)}
-		</div>
-		<div class="title">${title}</div>
-		<div class="subtitle">${subtitle}</div>
-	</div>`;
+// Both panels fill the same amount of the body, so their empty and loading
+// states are built from one place and given the same min-height.
+const NULL_STATE_CLASS = "min-h-80";
+
+function get_null_state_html(icon, title, description) {
+	return frappe.ui.empty_state.html({
+		icon,
+		title,
+		description,
+		css_class: NULL_STATE_CLASS,
+	});
 }
 
 function get_loading_state_html() {
-	return `<div class="notification-null-state">
-		<div class="spinner-border spinner-border-sm text-muted"></div>
+	return `<div class="flex items-center justify-center ${NULL_STATE_CLASS}">
+		<span class="es-spinner" aria-label="${__("Loading")}"></span>
 	</div>`;
 }
 
@@ -225,6 +285,9 @@ class BaseNotificationsView {
 	hide() {
 		this.container.hide();
 	}
+
+	/** Called every time the panel opens, whichever host it lives in. */
+	on_open() {}
 }
 
 class NotificationsView extends BaseNotificationsView {
@@ -428,59 +491,59 @@ class NotificationsView extends BaseNotificationsView {
 		frappe.realtime.on("indicator_hide", () => {
 			this.settings.seen = 1;
 		});
+	}
 
-		this.parent.on("show.bs.dropdown", () => {
-			if (!this.notifications_fetched) {
-				this.container.html(get_loading_state_html());
-				this.get_notifications_list(this.max_length).then((r) => {
-					if (r.message && r.message.notification_logs) {
-						this.dropdown_items = r.message.notification_logs;
-						frappe.update_user_info(r.message.user_info);
-					} else {
-						this.dropdown_items = [];
-					}
-					this.render_notifications_dropdown();
-					this.notifications_fetched = true;
-				});
-			}
+	on_open() {
+		if (!this.notifications_fetched) {
+			this.container.html(get_loading_state_html());
+			this.get_notifications_list(this.max_length).then((r) => {
+				if (r.message && r.message.notification_logs) {
+					this.dropdown_items = r.message.notification_logs;
+					frappe.update_user_info(r.message.user_info);
+				} else {
+					this.dropdown_items = [];
+				}
+				this.render_notifications_dropdown();
+				this.notifications_fetched = true;
+			});
+		}
 
-			this.toggle_seen(true);
-			// opening the panel counts as seeing what's in it -- let the other sessions know
-			if (this.settings?.seen == 0) {
-				this.settings.seen = 1;
-				frappe.call(
-					"frappe.desk.doctype.notification_log.notification_log.trigger_indicator_hide"
-				);
-			}
-		});
+		this.toggle_seen(true);
+		// opening the panel counts as seeing what's in it -- let the other sessions know
+		if (this.settings?.seen == 0) {
+			this.settings.seen = 1;
+			frappe.call(
+				"frappe.desk.doctype.notification_log.notification_log.trigger_indicator_hide"
+			);
+		}
 	}
 }
 
 class EventsView extends BaseNotificationsView {
 	make() {
 		this.events_fetched = false;
+	}
 
-		this.parent.on("show.bs.dropdown", () => {
-			if (this.events_fetched) return;
+	on_open() {
+		if (this.events_fetched) return;
 
-			this.container.html(get_loading_state_html());
+		this.container.html(get_loading_state_html());
 
-			let today = frappe.datetime.get_today();
-			frappe
-				.xcall(
-					"frappe.desk.doctype.event.event.get_events",
-					{
-						start: today,
-						end: today,
-					},
-					"GET",
-					{ cache: true }
-				)
-				.then((event_list) => {
-					this.render_events_html(event_list);
-					this.events_fetched = true;
-				});
-		});
+		let today = frappe.datetime.get_today();
+		frappe
+			.xcall(
+				"frappe.desk.doctype.event.event.get_events",
+				{
+					start: today,
+					end: today,
+				},
+				"GET",
+				{ cache: true }
+			)
+			.then((event_list) => {
+				this.render_events_html(event_list);
+				this.events_fetched = true;
+			});
 	}
 
 	render_events_html(event_list) {
