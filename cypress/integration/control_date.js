@@ -72,7 +72,7 @@ context("Date Control", () => {
 		cy.get_field("date", "Date").click();
 
 		//Clicking on "Today" button
-		cy.get(".datepicker--button").click();
+		cy.get('.datepicker--button[data-action="today"]').click();
 
 		//Verifying if clicking on "Today" button matches today's date
 		cy.window().then((win) => {
