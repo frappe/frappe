@@ -631,27 +631,40 @@ def get_sentry_dsn():
 	return os.getenv("FRAPPE_SENTRY_DSN")
 
 
-def get_module_sidebars():
-	"""Build `bootinfo.module_sidebars` from the `Module Sidebar` table, keyed by module name.
+def get_navigable_modules() -> list[str]:
+	"""The site's modules, minus the ones this user may not navigate to.
 
-	Keyed by **exact-case module name**, which is the fix for the desk's long-standing
-	keyspace problem: `app_data[].modules` is already a list of exact Module Def names, so it
-	now indexes straight in. The legacy payload is keyed by `title.lower()`, a third keyspace
-	alongside `router.slug(name)` and the exact Workspace name.
+	This is the set `get_module_sidebars` walks. It is deliberately *every* `Module Def` and
+	not "every module that has a `Module Sidebar` row": a module the walk never enumerates can
+	never be handed a sidebar, however that sidebar might be produced.
 
-	Emitted alongside the legacy `workspace_sidebar_item` rather than replacing it. The two
-	genuinely differ -- the merge folded several workspaces into one module -- so aliasing one
-	to the other would change what the desk renders. The desk switches over in its own phase.
+	Ordered by name. The row-driven walk it replaces inherited `get_all`'s default
+	`modified desc`, so the payload reshuffled whenever anyone edited any sidebar -- an order
+	nothing could have been relying on. Consumers that iterate the payload
+	(`build_entity_module_map`, the desk's `get_modules_linking`) now get a stable one.
 	"""
-	from frappe import _
-	from frappe.app_state import get_disabled_modules
 	from frappe.utils.modules import get_visible_modules
 
-	# `is_item_allowed` lives on `DeskViews`; one throwaway instance is the shared context.
-	perm_ctx = frappe.new_doc("Workspace")
+	# Two independent gates: `get_visible_modules` is the per-user navigation gate (blocked +
+	# role-granted), `get_disabled_modules` is site-level -- the module's app is turned off, so
+	# nobody navigates to it regardless of permissions.
+	disabled = get_disabled_modules()
+	visible = get_visible_modules(frappe.get_all("Module Def", pluck="name", order_by="name asc"))
 
-	sidebars = frappe.get_all(
+	return [module for module in visible if module not in disabled]
+
+
+def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:
+	"""The sidebar base for each of `modules`, keyed by module, its item rows included.
+
+	**Sparse on purpose.** A module with no `Module Sidebar` document is simply absent, and the
+	caller skips it -- which is what a row-driven walk did by never considering it at all. Rows
+	are 1:1 with `Module Def` today, so nothing is missing yet; this is the seam a base computed
+	from the module's own contents plugs into.
+	"""
+	bases = frappe.get_all(
 		"Module Sidebar",
+		filters={"module": ["in", modules]},
 		fields=[
 			"name",
 			"module",
@@ -662,15 +675,34 @@ def get_module_sidebars():
 			"home_workspace",
 		],
 	)
-	# Two independent gates: `get_visible_modules` is the per-user navigation gate (blocked +
-	# role-granted), `get_disabled_modules` is site-level -- the module's app is turned off, so
-	# nobody sees it regardless of permissions.
-	visible = set(get_visible_modules([s.module for s in sidebars])) - get_disabled_modules()
-	sidebars = [s for s in sidebars if s.module in visible]
-	if not sidebars:
+
+	items_by_sidebar = get_module_sidebar_items([base.name for base in bases])
+	for base in bases:
+		# not `items`: `frappe._dict` inherits `dict.items()`, so that attribute is the method
+		base.rows = items_by_sidebar.get(base.name, [])
+
+	return {base.module: base for base in bases}
+
+
+def get_module_sidebars():
+	"""Build `bootinfo.module_sidebars` by resolving each of the site's modules to its sidebar.
+
+	Resolution walks **modules**, not `Module Sidebar` rows (see `get_navigable_modules`), and
+	each module's base comes from `get_sidebar_bases`. The two produce the same payload while
+	rows stay 1:1 with `Module Def`, which they are today.
+
+	Keyed by **exact-case module name**, which is the fix for the desk's long-standing
+	keyspace problem: `app_data[].modules` is already a list of exact Module Def names, so it
+	now indexes straight in. The legacy payload is keyed by `title.lower()`, a third keyspace
+	alongside `router.slug(name)` and the exact Workspace name.
+	"""
+	from frappe import _
+
+	modules = get_navigable_modules()
+	if not modules:
 		return {}
 
-	items_by_sidebar = get_module_sidebar_items([s.name for s in sidebars])
+	bases = get_sidebar_bases(modules)
 	workspaces_by_module = get_module_workspaces()
 
 	from frappe.desk.doctype.module_sidebar_customization.module_sidebar_customization import (
@@ -678,14 +710,24 @@ def get_module_sidebars():
 		get_customization,
 	)
 
+	# `is_item_allowed` lives on `DeskViews`; one throwaway instance is the shared context.
+	perm_ctx = frappe.new_doc("Workspace")
 	user = frappe.session.user
 	payload = {}
-	for sidebar in sidebars:
-		filtered = filter_sidebar_items(items_by_sidebar.get(sidebar.name, []), perm_ctx)
+	for module in modules:
+		base = bases.get(module)
+		# Nothing gives this module a sidebar, so there is nothing to customize either: a delta
+		# may only reshape a base, never stand in for one. Skipping before the deltas is what
+		# keeps a stranded `Module Sidebar Customization` -- one whose base was deleted out from
+		# under it -- from conjuring a module back into the payload with no title and no app.
+		if not base:
+			continue
+
+		filtered = filter_sidebar_items(base.rows, perm_ctx)
 
 		# Deltas are applied *after* the permission filter, so a customization can never
 		# resurface an item the user may not see, and an added item has already been checked.
-		filtered, customized = apply_customizations(sidebar.module, filtered, user)
+		filtered, customized = apply_customizations(module, filtered, user)
 
 		# Same rule as the legacy builder: a sidebar with nothing but Section Breaks left is
 		# a sidebar the user cannot use. Mirrored by `is_icon_permitted`; must not drift.
@@ -693,27 +735,24 @@ def get_module_sidebars():
 		if not any(i["type"] != "Section Break" for i in filtered):
 			continue
 
-		label = sidebar.title or sidebar.module
-		header_icon = sidebar.header_icon
+		label = base.title or module
+		header_icon = base.header_icon
 		if customized:
-			for layer in (
-				get_customization(sidebar.module, None),
-				get_customization(sidebar.module, user),
-			):
+			for layer in (get_customization(module, None), get_customization(module, user)):
 				if layer and layer.label:
 					label = layer.label
 				if layer and layer.header_icon:
 					header_icon = layer.header_icon
 
-		payload[sidebar.module] = {
-			"module": sidebar.module,
+		payload[module] = {
+			"module": module,
 			"label": _(label),
-			"app": sidebar.app,
+			"app": base.app,
 			"header_icon": header_icon,
-			"module_onboarding": sidebar.module_onboarding,
-			"home_workspace": sidebar.home_workspace,
+			"module_onboarding": base.module_onboarding,
+			"home_workspace": base.home_workspace,
 			"customized": 1 if customized else 0,
-			"workspaces": workspaces_by_module.get(sidebar.module, []),
+			"workspaces": workspaces_by_module.get(module, []),
 			"items": filtered,
 		}
 

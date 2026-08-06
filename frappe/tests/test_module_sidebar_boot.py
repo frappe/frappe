@@ -1,9 +1,31 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
+from contextlib import contextmanager
+
 import frappe
-from frappe.boot import build_entity_module_map, get_module_sidebars
+from frappe.boot import build_entity_module_map, get_module_sidebars, get_navigable_modules
+from frappe.desk.doctype.module_sidebar.test_module_sidebar import no_developer_mode
 from frappe.tests import IntegrationTestCase
+from frappe.utils.modules import get_visible_modules
+
+
+@contextmanager
+def sidebarless_module(name, app="frappe"):
+	"""A `Module Def` with no `Module Sidebar` -- the state a sparse-rows world produces.
+
+	`Module Def.after_insert` generates a sidebar for every new module, so getting a module
+	without one means taking that back off.
+	"""
+	with no_developer_mode():
+		frappe.get_doc({"doctype": "Module Def", "module_name": name, "app_name": app}).insert()
+	frappe.db.delete("Module Sidebar", {"module": name})
+
+	try:
+		yield name
+	finally:
+		with no_developer_mode():
+			frappe.delete_doc("Module Def", name, force=True, ignore_missing=True)
 
 
 class TestModuleSidebarBoot(IntegrationTestCase):
@@ -21,6 +43,48 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 		for key, sidebar in payload.items():
 			self.assertEqual(key, sidebar["module"])
 			self.assertTrue(frappe.db.exists("Module Def", key), f"{key} is not a Module Def")
+
+	def test_resolution_walks_modules_not_rows(self):
+		"""The set being resolved is the site's modules. Under today's 1:1 rows that produces
+		the same payload the row-walk produced -- every module it reaches still has a row -- but
+		the walk is no longer bounded by which rows happen to exist."""
+		modules = set(get_navigable_modules())
+		self.assertTrue(modules, "sanity: the site has modules")
+
+		row_backed = {
+			row.module
+			for row in frappe.get_all("Module Sidebar", fields=["module"])
+			if frappe.db.exists("Module Def", row.module)
+		}
+		row_backed = set(get_visible_modules(list(row_backed)))
+		self.assertTrue(row_backed, "sanity: the site has module sidebars")
+		self.assertTrue(row_backed <= modules, f"{row_backed - modules} would be dropped by the switch")
+		self.assertTrue(set(get_module_sidebars()) <= modules)
+
+	def test_a_module_with_no_sidebar_row_is_enumerated(self):
+		"""A row-driven walk never sees a module without a row, so such a module could never be
+		given a sidebar at all. Walking modules makes it *considered* -- it merely resolves to
+		nothing today, because nothing yet hands it a base."""
+		with sidebarless_module("Test Unenumerated Module") as module:
+			self.assertIn(module, get_navigable_modules())
+			self.assertNotIn(module, get_module_sidebars())
+
+	def test_a_customization_cannot_stand_in_for_a_missing_base(self):
+		"""A delta reshapes a base; it is not one. A customization whose `Module Sidebar` was
+		deleted out from under it must not conjure the module back into the payload -- the entry
+		would carry no title, no app and no home workspace, and the dock groups by app."""
+		with sidebarless_module("Test Stranded Delta Module") as module:
+			delta = frappe.get_doc(
+				{
+					"doctype": "Module Sidebar Customization",
+					"module": module,
+					"added_items": [{"type": "Link", "link_type": "DocType", "link_to": "ToDo"}],
+				}
+			).insert(ignore_permissions=True)
+			# `on_trash` clears the cached `(module, user)` set, which a DB rollback would not
+			self.addCleanup(delta.delete, ignore_permissions=True)
+
+			self.assertNotIn(module, get_module_sidebars())
 
 	def test_every_entry_has_the_documented_shape(self):
 		for sidebar in get_module_sidebars().values():
