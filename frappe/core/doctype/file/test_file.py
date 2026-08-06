@@ -6,6 +6,7 @@ import shutil
 import tempfile
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
+from unittest.mock import patch
 
 import frappe
 from frappe import _
@@ -646,6 +647,33 @@ class TestFile(IntegrationTestCase):
 			}
 		).insert(ignore_permissions=True)
 		self.assertRaisesRegex(ValidationError, "not a zip file", test_file.unzip)
+
+	@IntegrationTestCase.change_settings("System Settings", {"max_file_size": 0})
+	def test_file_unzip_exceeding_max_file_size(self):
+		file_path = frappe.get_app_path("frappe", "www/_test/assets/file.zip")
+		public_file_path = frappe.get_site_path("public", "files")
+		try:
+			shutil.copy(file_path, public_file_path)
+		except Exception:
+			pass
+
+		test_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_url": "/files/file.zip",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(test_file.delete)
+
+		file_count_before = frappe.db.count("File")
+
+		# file.zip's extracted contents (~158 KB) exceed this limit, so extraction must be rejected
+		with patch.dict(frappe.conf, {"max_file_size": 1000}):
+			self.assertRaisesRegex(ValidationError, "maximum allowed size", test_file.unzip)
+
+		# original zip must survive a rejected extraction, no children left behind
+		self.assertTrue(frappe.db.exists("File", test_file.name))
+		self.assertEqual(frappe.db.count("File"), file_count_before)
 
 	def test_create_file_without_file_url(self):
 		test_file = frappe.get_doc(
