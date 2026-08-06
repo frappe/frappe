@@ -231,6 +231,7 @@ class Importer:
 		skipped_rows = get_skipped_row_numbers(self.data_import)
 		skipped_payload_count = 0
 		batch_size = frappe.conf.data_import_batch_size or 1000
+		status_checkpoint_written = False
 
 		for batch_index, batched_payloads in enumerate(frappe.utils.create_batch(payloads, batch_size)):
 			for i, payload in enumerate(batched_payloads):
@@ -360,9 +361,14 @@ class Importer:
 			# Checkpoint status at end of each batch to handle worker crash mid-import.
 			# Without this, a worker death leaves the doc stuck in "In Progress" forever.
 			# Setting "Partial Success" here allows the UI to show recovery state.
-			if self.data_import.name and (inserted_count > 0 or updated_count > 0):
+			if (
+				not status_checkpoint_written
+				and self.data_import.name
+				and (inserted_count > 0 or updated_count > 0)
+			):
 				self.data_import.db_set("status", "Partial Success")
 				frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit -- checkpoint status durability before next batch to avoid stale In Progress on worker crash
+				status_checkpoint_written = True
 
 		# Logs are db inserted directly so will have to be fetched again
 		import_log = (
