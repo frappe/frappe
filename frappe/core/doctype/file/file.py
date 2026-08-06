@@ -556,13 +556,13 @@ class File(Document):
 
 	def unzip(self) -> list["File"]:
 		"""Unzip current file and replace it by its children"""
-		from frappe.core.api.file import get_max_file_size
+		from frappe.core.api.file import get_max_extract_size
 
 		if not self.file_url.endswith(".zip"):
 			frappe.throw(_("{0} is not a zip file").format(self.file_name))
 
 		zip_path = self.get_full_path()
-		max_extracted_size = get_max_file_size()
+		max_extracted_size = get_max_extract_size()
 
 		files = []
 		total_extracted_size = 0

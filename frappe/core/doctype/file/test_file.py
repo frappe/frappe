@@ -600,8 +600,8 @@ class TestFile(FrappeTestCase):
 		).insert(ignore_permissions=True)
 		self.assertRaisesRegex(ValidationError, "not a zip file", test_file.unzip)
 
-	@IntegrationTestCase.change_settings("System Settings", {"max_file_size": 0})
-	def test_file_unzip_exceeding_max_file_size(self):
+	@IntegrationTestCase.change_settings("System Settings", {"max_zip_extract_size": 0})
+	def test_file_unzip_respects_dedicated_extract_size_setting(self):
 		file_path = frappe.get_app_path("frappe", "www/_test/assets/file.zip")
 		public_file_path = frappe.get_site_path("public", "files")
 		try:
@@ -619,11 +619,11 @@ class TestFile(FrappeTestCase):
 
 		file_count_before = frappe.db.count("File")
 
-		# file.zip's extracted contents (~158 KB) exceed this limit, so extraction must be rejected
-		with patch.dict(frappe.conf, {"max_file_size": 1000}):
+		# a dedicated, tighter zip-extraction budget must be enforced even though
+		# max_file_size (used for ordinary uploads) stays at its generous default
+		with patch.dict(frappe.conf, {"max_zip_extract_size": 1000}):
 			self.assertRaisesRegex(ValidationError, "maximum allowed size", test_file.unzip)
 
-		# original zip must survive a rejected extraction, no children left behind
 		self.assertTrue(frappe.db.exists("File", test_file.name))
 		self.assertEqual(frappe.db.count("File"), file_count_before)
 
