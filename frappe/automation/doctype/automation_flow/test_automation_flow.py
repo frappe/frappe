@@ -10,12 +10,18 @@ def make_automation(**kwargs):
 	doc.title = kwargs.pop("title", "Test Automation")
 	doc.trigger_type = kwargs.pop("trigger_type", "Doc Created")
 	doc.document_type = kwargs.pop("document_type", "ToDo")
-	actions = kwargs.pop("actions", [{"action_type": "SetFieldValue", "params": '{"field": "priority", "value": "Low"}'}])
+	actions = kwargs.pop("actions", [_default_action(doc.document_type)])
 	for key, value in kwargs.items():
 		doc.set(key, value)
 	for action in actions:
 		doc.append("actions", action)
 	return doc
+
+
+def _default_action(document_type):
+	if document_type:
+		return {"action_type": "SetFieldValue", "params": '{"field": "priority", "value": "Low"}'}
+	return {"action_type": "CreateDocument", "params": '{"doctype": "ToDo"}'}
 
 
 class TestAutomationFlow(IntegrationTestCase):
@@ -37,15 +43,11 @@ class TestAutomationFlow(IntegrationTestCase):
 		self.assertRaises(frappe.ValidationError, doc.insert)
 
 	def test_scheduled_requires_valid_cron(self):
-		doc = make_automation(
-			trigger_type="Scheduled", document_type=None, cron_expression="not a cron"
-		)
+		doc = make_automation(trigger_type="Scheduled", document_type=None, cron_expression="not a cron")
 		self.assertRaises(frappe.ValidationError, doc.insert)
 
 	def test_scheduled_with_valid_cron_saves(self):
-		doc = make_automation(
-			trigger_type="Scheduled", document_type=None, cron_expression="0 0 * * *"
-		)
+		doc = make_automation(trigger_type="Scheduled", document_type=None, cron_expression="0 0 * * *")
 		doc.insert()
 		self.assertTrue(doc.name)
 

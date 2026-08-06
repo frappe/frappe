@@ -99,7 +99,7 @@
    "label": "Wait Resume"
   },
   {
-   "description": "Automation Run being resumed after a wait.",
+   "description": "Background Task being resumed after a wait.",
    "fieldname": "resume_run",
    "fieldtype": "Data",
    "label": "Resume Run"
@@ -114,7 +114,7 @@
  "links": [],
  "modified": "2026-07-13 12:15:01.342535",
  "modified_by": "Administrator",
- "module": "Automation Engine",
+ "module": "Automation",
  "name": "Automation Trigger Queue",
  "naming_rule": "Random",
  "owner": "Administrator",
