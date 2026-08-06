@@ -394,6 +394,16 @@ class TestWaitResume(AutomationRunnerTestCase):
 		execute_automation(self.resume_row(auto)[0])
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "status"), "Closed")
 
+	def test_target_deleted_during_the_wait_is_skipped(self):
+		todo = make_todo()
+		auto = self.wait_rule()
+		execute_automation(self.queue_row(auto, todo.name))
+		resume = self.resume_row(auto)[0]
+		frappe.delete_doc("ToDo", todo.name, force=True, ignore_permissions=True)
+
+		execute_automation(resume)
+		self.assertEqual(self.run_status(auto), "Skipped")
+
 	def test_wait_inside_a_branch_resumes_on_the_same_arm(self):
 		todo = make_todo(priority="High")
 		auto = make_automation(

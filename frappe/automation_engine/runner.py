@@ -303,6 +303,9 @@ def _ms(started) -> int:
 def _finalize(run, rule, row, status, steps, error=None):
 	error_summary = error or _error_summary(status, steps)
 	run.update(_run_values(rule, row, status, steps, error_summary))
+	# The target may have been deleted since the run started (notably across a Wait, or on a
+	# Doc Deleted trigger); the task must still record its outcome, so skip link validation.
+	run.flags.ignore_links = True
 	run.save(ignore_permissions=True)
 
 	if status == "Failed":
