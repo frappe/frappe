@@ -59,6 +59,8 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			sysdefaults && sysdefaults.date_format ? sysdefaults.date_format : "yyyy-mm-dd";
 
 		this.today_text = __("Today");
+		this.yesterday_text = __("Yesterday");
+		this.tomorrow_text = __("Tomorrow");
 		this.date_format = frappe.defaultDateFormat;
 		this.datepicker_options = {
 			language: lang,
@@ -77,7 +79,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			},
 			onShow: () => {
 				this.datepicker.$datepicker
-					.find(".datepicker--button:visible")
+					.find('[data-action="today"]:visible')
 					.text(this.today_text);
 
 				this.update_datepicker_position();
@@ -111,6 +113,33 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			this.datepicker.selectDate(this.get_now_date());
 			this.datepicker.hide();
 		});
+
+		this.add_yesterday_tomorrow_buttons();
+	}
+	add_yesterday_tomorrow_buttons() {
+		if (this.timepicker_only) return;
+
+		let $today_button = this.datepicker.$datepicker.find('[data-action="today"]');
+		if (!$today_button.length) return;
+
+		$(`<span class="datepicker--button" data-action="yesterday">${this.yesterday_text}</span>`)
+			.insertBefore($today_button)
+			.on("click", () => {
+				this.datepicker.selectDate(this.get_offset_date(-1));
+				this.datepicker.hide();
+			});
+
+		$(`<span class="datepicker--button" data-action="tomorrow">${this.tomorrow_text}</span>`)
+			.insertAfter($today_button)
+			.on("click", () => {
+				this.datepicker.selectDate(this.get_offset_date(1));
+				this.datepicker.hide();
+			});
+	}
+	get_offset_date(offset) {
+		let date = this.get_now_date();
+		date.setDate(date.getDate() + offset);
+		return date;
 	}
 	update_datepicker_position() {
 		// show datepicker above or below the input
