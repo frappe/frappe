@@ -837,9 +837,20 @@ function handle_slash_key(e) {
 	background: var(--fg-color);
 }
 
-/* the tab bar itself is styled by espresso/components/tabs.css */
+/* the tab bar itself is styled by espresso/components/tabs.css; the sidebar is
+   narrower than a page, so it takes a tighter rhythm than the default */
 .es-tabs {
 	flex-shrink: 0;
+}
+
+.es-tabs__list {
+	gap: calc(var(--spacing) * 3);
+	padding-inline: calc(var(--spacing) * 3);
+}
+
+.es-tabs__tab {
+	padding-block: calc(var(--spacing) * 2);
+	font-size: var(--text-sm);
 }
 
 /* ── Tab body ─────────────────────────────────────────────── */
