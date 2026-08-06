@@ -295,20 +295,37 @@ def _draft_payload(data: str | dict | None) -> dict:
 	return {key: value for key, value in data.items() if key in BUILDER_DRAFT_FIELDS}
 
 
-@frappe.whitelist()
-def save_draft(name: str, data: str | dict):
-	"""Store the builder's in-progress changes without touching what prints."""
+def _writable_format(name: str, modified: str | None):
+	"""The format, refusing the write if the caller's copy is behind the database.
+
+	`db_set` skips the timestamp check `save()` would run, so a second editor — or
+	an autosave still in flight when Save & Apply lands — would otherwise overwrite
+	a newer draft, or bring a discarded one back.
+	"""
 	doc = frappe.get_doc("Print Format", name)
 	doc.check_permission("write")
+	if modified and frappe.utils.cstr(doc.modified) != frappe.utils.cstr(modified):
+		frappe.throw(
+			_("{0} has changed since you opened it. Refresh to get the latest version.").format(
+				frappe.bold(name)
+			),
+			frappe.TimestampMismatchError,
+		)
+	return doc
+
+
+@frappe.whitelist()
+def save_draft(name: str, data: str | dict, modified: str | None = None):
+	"""Store the builder's in-progress changes without touching what prints."""
+	doc = _writable_format(name, modified)
 	doc.db_set("draft_data", frappe.as_json(_draft_payload(data)))
 	return doc.modified
 
 
 @frappe.whitelist()
-def apply_draft(name: str, data: str | dict | None = None):
+def apply_draft(name: str, data: str | dict | None = None, modified: str | None = None):
 	"""Copy the draft onto the fields that print, then clear it."""
-	doc = frappe.get_doc("Print Format", name)
-	doc.check_permission("write")
+	doc = _writable_format(name, modified)
 	for field, value in _draft_payload(data if data is not None else doc.draft_data).items():
 		doc.set(field, value)
 	doc.draft_data = None
@@ -317,10 +334,9 @@ def apply_draft(name: str, data: str | dict | None = None):
 
 
 @frappe.whitelist()
-def discard_draft(name: str):
+def discard_draft(name: str, modified: str | None = None):
 	"""Throw away the draft; what prints is untouched either way."""
-	doc = frappe.get_doc("Print Format", name)
-	doc.check_permission("write")
+	doc = _writable_format(name, modified)
 	doc.db_set("draft_data", None)
 	return doc.modified
 

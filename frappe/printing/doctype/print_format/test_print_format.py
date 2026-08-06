@@ -930,3 +930,24 @@ class TestPrintFormatDraft(IntegrationTestCase):
 		block = re.search(r"export const DRAFT_FIELDS = \[(.*?)\];", source, re.S)
 		self.assertIsNotNone(block, "DRAFT_FIELDS not found in utils.js")
 		self.assertEqual(set(re.findall(r'"([^"]+)"', block.group(1))), set(BUILDER_DRAFT_FIELDS))
+
+	def test_a_stale_write_cannot_clobber_a_newer_draft(self):
+		"""db_set skips the timestamp check save() runs, so the endpoints do it."""
+		from frappe.printing.doctype.print_format.print_format import (
+			apply_draft,
+			discard_draft,
+			save_draft,
+		)
+
+		stale = self.pf.modified
+		save_draft(self.pf.name, {"margin_top": 20})
+
+		for call in (
+			lambda: save_draft(self.pf.name, {"margin_top": 55}, modified=stale),
+			lambda: apply_draft(self.pf.name, None, stale),
+			lambda: discard_draft(self.pf.name, modified=stale),
+		):
+			with self.assertRaises(frappe.TimestampMismatchError):
+				call()
+
+		self.assertEqual(frappe.parse_json(self.live("draft_data").draft_data)["margin_top"], 20)

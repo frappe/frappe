@@ -226,14 +226,19 @@ export function getStore(print_format_name) {
 			])
 		);
 	}
+	// bumped by every apply/discard so a reply from an autosave that was already in
+	// flight can't put the draft back after it was cleared
+	let draft_epoch = 0;
 	function save_changes() {
 		frappe.dom.freeze(__("Applying…"));
 		saving_count.value++;
+		draft_epoch++;
 
 		frappe
 			.call("frappe.printing.doctype.print_format.print_format.apply_draft", {
 				name: print_format_name,
 				data: draft_payload(),
+				modified: print_format.value.modified,
 			})
 			.then(() => {
 				if (letterhead.value && letterhead.value._dirty) {
@@ -257,9 +262,11 @@ export function getStore(print_format_name) {
 			});
 	}
 	function discard_draft() {
+		draft_epoch++;
 		return frappe
 			.call("frappe.printing.doctype.print_format.print_format.discard_draft", {
 				name: print_format_name,
+				modified: print_format.value.modified,
 			})
 			.then(() => fetch())
 			.then(() => frappe.show_alert({ message: __("Draft discarded"), indicator: "green" }));
@@ -274,12 +281,18 @@ export function getStore(print_format_name) {
 		}
 		dirty.value = false;
 		saving_count.value++;
+		const epoch = draft_epoch;
 		frappe
 			.call({
 				method: "frappe.printing.doctype.print_format.print_format.save_draft",
-				args: { name: print_format_name, data: draft_payload() },
+				args: {
+					name: print_format_name,
+					data: draft_payload(),
+					modified: print_format.value.modified,
+				},
 			})
 			.then((r) => {
+				if (epoch !== draft_epoch) return;
 				// sync only the stamp — the user may have kept editing mid-request
 				const was_dirty = dirty.value;
 				print_format.value.modified = r.message;
@@ -296,6 +309,8 @@ export function getStore(print_format_name) {
 			})
 			.then(() => (save_failed.value = false))
 			.catch(() => {
+				// an apply landed first and moved the timestamp on — not a failure
+				if (epoch !== draft_epoch) return;
 				autosave_stopped = true;
 				dirty.value = true;
 				save_failed.value = true;
