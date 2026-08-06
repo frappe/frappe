@@ -12,13 +12,9 @@
 	cursor: pointer;
 }
 
-.close-notification-dialogue {
-	cursor: pointer;
-}
-
+// Layout for these lives on .header-actions in the panel; only the affordance is global.
+.close-notification-dialogue,
 .notification-settings {
-	margin-top: 2px;
-	margin-right: 4px;
 	cursor: pointer;
 }
 
@@ -88,16 +84,54 @@
 	background-color: var(--bg-color);
 	height: 100vh;
 	overflow: hidden;
+	@include flex(flex, null, null, column);
+
+	// On the desk homescreen this panel is a Bootstrap .dropdown-menu, which stays
+	// `display: none` until Bootstrap adds .show. The `display: flex` above has the
+	// same specificity and lands later in the cascade, so without this the empty
+	// panel would sit on the homescreen permanently.
+	&.dropdown-menu:not(.show) {
+		display: none;
+	}
 
 	.notification-list-header {
-		margin: 0px 10px;
-		@include flex(flex, space-between, center, null);
-		border-bottom: 1px solid var(--border-color);
+		flex-shrink: 0;
+		padding: 14px 16px 10px 16px;
+
+		.notification-header-top {
+			@include flex(flex, space-between, center, row);
+			margin-bottom: 12px;
+		}
+
+		.notification-panel-title {
+			@include get_textstyle("lg", "semibold");
+			color: var(--ink-gray-8);
+		}
+
+		.header-actions {
+			@include flex(flex, null, center, row);
+			gap: 2px;
+			color: var(--ink-gray-6);
+
+			> span {
+				@include flex(inline-flex, center, center, row);
+				@include size(24px, 24px);
+				border-radius: var(--radius-sm);
+				cursor: pointer;
+
+				&:hover {
+					background-color: var(--surface-gray-2);
+					color: var(--ink-gray-8);
+				}
+			}
+		}
 	}
 
 	.notification-list-body {
+		flex: 1;
+		min-height: 0;
 		overflow-y: auto;
-		height: 93%;
+		padding: 0px 10px 10px 10px;
 
 		.panel-events,
 		.panel-notifications {
@@ -105,37 +139,69 @@
 		}
 
 		.notification-null-state {
-			min-height: 300px;
-			@include flex(flex, null, center, null);
-			place-content: center;
+			min-height: 320px;
+			@include flex(flex, center, center, column);
+			text-align: center;
+			padding: var(--padding-lg);
+
+			.null-state-icon {
+				color: var(--ink-gray-5);
+				margin-bottom: var(--margin-md);
+
+				.icon {
+					@include size(32px, 32px);
+				}
+			}
 
 			.title {
-				margin-top: var(--margin-lg);
-				@include get_textstyle("base", "semibold");
+				@include get_textstyle("lg", "semibold");
+				color: var(--ink-gray-8);
 			}
 
 			.subtitle {
-				margin-top: var(--margin-sm);
+				margin-top: 6px;
 				@include get_textstyle("base", "regular");
-				color: var(--text-muted);
+				color: var(--ink-gray-5);
 			}
 		}
 	}
 
+	// Segmented control: a pill track with a raised "thumb" marking the active tab.
+	// Sized to frappe-ui's TabButtons (type subtle, size sm) so it stands the same
+	// 28px tall as the equivalent control in CRM: a 26px pill in a 1px track.
 	.notification-item-tabs {
+		@include flex(flex, null, stretch, row);
+		gap: 4px;
+		margin: 0;
+		padding: 1px;
+		list-style: none;
 		border: none;
+		border-radius: var(--radius-4);
+		background-color: var(--surface-gray-2);
 
 		.notifications-category {
-			padding: var(--padding-md) 0px;
-			margin-bottom: -1px;
-			margin-right: var(--margin-lg);
-			color: var(--text-light);
-			font-weight: var(--weight-medium);
+			flex: 1 1 0;
+			height: 26px;
+			@include flex(flex, center, center, row);
+			padding: 0px 8px;
+			border-radius: 7px;
+			border: 1px solid transparent;
+			color: var(--ink-gray-5);
+			@include get_textstyle("sm", "regular");
 			cursor: pointer;
+			user-select: none;
+			@include truncate;
+
+			&:hover:not(.active) {
+				color: var(--ink-gray-7);
+			}
 
 			&.active {
-				color: var(--text-color);
-				border-bottom: 1px solid var(--primary-color);
+				background-color: var(--bg-color);
+				border-color: var(--outline-gray-2);
+				box-shadow: var(--shadow-sm);
+				color: var(--ink-gray-8);
+				font-weight: var(--font-weight-medium);
 			}
 		}
 	}
@@ -148,31 +214,29 @@
 
 .recent-item {
 	padding: 10px;
-	margin: 4px 0px;
+	margin: 2px 0px;
 	border-radius: var(--radius-md, 8px);
 	white-space: normal;
 	display: flex;
 	@include get_textstyle("base", "regular");
 	line-height: 20px;
-	color: var(--text-light);
-	max-width: 455px;
-
-	&:first-child {
-		margin-top: 10px;
-	}
+	color: var(--ink-gray-7);
 
 	&:not(.no-hover):hover {
-		color: var(--text-muted);
+		color: var(--ink-gray-8);
 		text-decoration: none;
-		background-color: var(--fg-hover-color);
+		background-color: var(--surface-gray-1);
 	}
 }
 
 .recent-item.notification-item {
-	padding: 10px 10px 10px 0px;
-	margin: 10px 10px 10px 10px;
+	padding: 10px 8px;
+	margin: 2px 0px;
 	justify-content: space-between;
+	gap: 8px;
 
+	// --invert-neutral is not part of the Espresso palette, so both affordances below used to
+	// resolve to nothing; they read off the same blue the bell's unread dot uses.
 	&.unread {
 		.mark-as-read {
 			flex-shrink: 0;
@@ -183,12 +247,12 @@
 		}
 
 		&:hover .mark-as-read {
-			border: 2px solid var(--invert-neutral);
-			border-radius: 1000px;
+			border: 2px solid var(--surface-blue-5);
+			border-radius: var(--radius-full);
 		}
 
 		.notification-body::before {
-			background: var(--invert-neutral);
+			background: var(--surface-blue-5);
 		}
 	}
 
@@ -212,12 +276,14 @@
 	}
 
 	b {
-		font-weight: 500;
-		color: var(--text-light);
+		font-weight: var(--font-weight-medium);
+		color: var(--ink-gray-8);
 	}
 
 	.notification-timestamp {
+		margin-top: 2px;
 		font-size: var(--text-xs);
+		color: var(--ink-gray-5);
 	}
 
 	.user-avatar {
@@ -230,24 +296,96 @@
 	}
 }
 
+// Events are grouped under a collapsible section header, mirroring the calendar tile rows.
+.event-group {
+	.event-group-header {
+		@include flex(flex, null, center, row);
+		gap: 6px;
+		padding: 8px 4px;
+		color: var(--ink-gray-7);
+		cursor: pointer;
+		user-select: none;
+
+		// .icon ships `margin: 0 auto`, which would push the row apart inside this flex header
+		.event-group-chevron {
+			@include size(16px, 16px);
+			margin: 0;
+			color: var(--ink-gray-5);
+			transition: transform 0.15s ease;
+		}
+
+		.event-group-label {
+			@include get_textstyle("base", "regular");
+		}
+
+		.event-group-count {
+			@include get_textstyle("base", "regular");
+			margin-left: 6px;
+			color: var(--ink-gray-5);
+		}
+	}
+
+	&.collapsed {
+		.event-group-chevron {
+			transform: rotate(-90deg);
+		}
+
+		.event-group-items {
+			display: none;
+		}
+	}
+}
+
 .recent-item.event {
-	.event-border {
-		width: 1px;
-		border: 1px solid var(--primary-color);
-		border-radius: 4px;
+	gap: 10px;
+	align-items: flex-start;
+
+	// Calendar-tile date chip: month above, day below.
+	.event-date {
+		flex-shrink: 0;
+		@include size(44px, 44px);
+		@include flex(flex, center, center, column);
+		border: 1px solid var(--outline-gray-1);
+		border-radius: var(--radius-md);
+		background-color: var(--bg-color);
+		line-height: 1.1;
+
+		.event-date-month {
+			@include get_textstyle("xs", "medium");
+			text-transform: uppercase;
+			color: var(--ink-red-6);
+		}
+
+		.event-date-day {
+			@include get_textstyle("lg", "medium");
+			color: var(--ink-gray-8);
+		}
 	}
 
 	.event-item {
-		padding-left: 10px;
+		min-width: 0;
+
+		.event-subject-row {
+			@include flex(flex, null, center, row);
+			gap: 8px;
+		}
+
+		.event-dot {
+			flex-shrink: 0;
+			@include size(8px, 8px);
+			border-radius: var(--radius-full);
+			background-color: var(--ink-green-6);
+		}
 
 		.event-subject {
 			@include get_textstyle("base", "medium");
-			color: var(--text-light);
+			color: var(--ink-gray-8);
+			@include truncate;
 		}
 
 		.event-time {
-			@include get_textstyle("sm", "regular");
-			margin-right: 10px;
+			@include get_textstyle("base", "regular");
+			color: var(--ink-gray-6);
 		}
 
 		.avatar-group {
@@ -316,12 +454,16 @@
 .list-footer {
 	display: block;
 	text-align: center;
+	margin-top: 4px;
 	padding: 10px;
-	color: var(--text-muted);
+	border-radius: var(--radius-md);
+	@include get_textstyle("base", "regular");
+	color: var(--ink-gray-5);
 
 	&:hover {
 		text-decoration: none;
-		color: var(--text-color);
+		color: var(--ink-gray-8);
+		background-color: var(--surface-gray-1);
 	}
 }
 

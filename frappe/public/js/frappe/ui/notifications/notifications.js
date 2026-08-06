@@ -58,7 +58,7 @@ frappe.ui.Notifications = class Notifications {
 
 		this.categories = [
 			{
-				label: __("Notifications"),
+				label: __("All"),
 				id: "notifications",
 				view: NotificationsView,
 				el: this.panel_notifications,
@@ -76,11 +76,12 @@ frappe.ui.Notifications = class Notifications {
 
 			return `<li class="notifications-category ${active}"
    					id="${item.id}"
-   					data-toggle="collapse"
+   					role="tab"
+   					aria-selected="${active ? "true" : "false"}"
    				>${item.label}</li>`;
 		};
 
-		let navitem = $(`<ul class="notification-item-tabs nav nav-tabs" role="tablist"></ul>`);
+		let navitem = $(`<ul class="notification-item-tabs" role="tablist"></ul>`);
 		this.categories = this.categories.map((item) => {
 			item.$tab = $(get_headers_html(item));
 			item.$tab.on("click", (e) => {
@@ -101,10 +102,10 @@ frappe.ui.Notifications = class Notifications {
 	switch_tab(item) {
 		// Set active tab
 		this.categories.forEach((item) => {
-			item.$tab.removeClass("active");
+			item.$tab.removeClass("active").attr("aria-selected", "false");
 		});
 
-		item.$tab.addClass("active");
+		item.$tab.addClass("active").attr("aria-selected", "true");
 
 		// Hide other tabs
 		Object.keys(this.tabs).forEach((tab_name) => this.tabs[tab_name].hide());
@@ -188,6 +189,23 @@ frappe.ui.notifications = {
 		frappe.set_route("List", doctype);
 	},
 };
+
+// Empty and loading states share one shell so every panel lines them up identically.
+function get_null_state_html(icon, title, subtitle) {
+	return `<div class="notification-null-state">
+		<div class="null-state-icon">
+			${frappe.utils.icon(icon, "xl", "", "", "current-color", true)}
+		</div>
+		<div class="title">${title}</div>
+		<div class="subtitle">${subtitle}</div>
+	</div>`;
+}
+
+function get_loading_state_html() {
+	return `<div class="notification-null-state">
+		<div class="spinner-border spinner-border-sm text-muted"></div>
+	</div>`;
+}
 
 class BaseNotificationsView {
 	constructor(wrapper, parent, settings) {
@@ -340,13 +358,11 @@ class NotificationsView extends BaseNotificationsView {
 					</a>`);
 			} else {
 				this.container.html(
-					$(`<div class="notification-null-state">
-					<div class="text-center">
-						<img src="/assets/frappe/images/ui-states/notification-empty-state.svg" alt="Generic Empty State" class="null-state">
-						<div class="title">${__("No new notifications")}</div>
-						<div class="subtitle">
-							${__("Looks like you haven't received any notifications.")}
-					</div></div></div>`)
+					get_null_state_html(
+						"bell",
+						__("No New Notifications"),
+						__("You have no new notifications")
+					)
 				);
 			}
 		}
@@ -415,11 +431,7 @@ class NotificationsView extends BaseNotificationsView {
 
 		this.parent.on("show.bs.dropdown", () => {
 			if (!this.notifications_fetched) {
-				this.container.html(`<div class="notification-null-state">
-					<div class="text-center">
-						<div class="spinner-border spinner-border-sm text-muted"></div>
-					</div>
-				</div>`);
+				this.container.html(get_loading_state_html());
 				this.get_notifications_list(this.max_length).then((r) => {
 					if (r.message && r.message.notification_logs) {
 						this.dropdown_items = r.message.notification_logs;
@@ -451,11 +463,7 @@ class EventsView extends BaseNotificationsView {
 		this.parent.on("show.bs.dropdown", () => {
 			if (this.events_fetched) return;
 
-			this.container.html(`<div class="notification-null-state">
-				<div class="text-center">
-					<div class="spinner-border spinner-border-sm text-muted"></div>
-				</div>
-			</div>`);
+			this.container.html(get_loading_state_html());
 
 			let today = frappe.datetime.get_today();
 			frappe
@@ -476,56 +484,88 @@ class EventsView extends BaseNotificationsView {
 	}
 
 	render_events_html(event_list) {
-		let html = "";
-		if (event_list.length) {
-			let get_event_html = (event) => {
-				let time = __("All Day");
-				if (!event.all_day) {
-					let start_time = frappe.datetime.get_time(event.starts_on);
-					let days_diff = frappe.datetime.get_day_diff(event.ends_on, event.starts_on);
-					let end_time = frappe.datetime.get_time(event.ends_on);
-					if (days_diff > 1) {
-						end_time = __("Rest of the day");
-					}
-					time = `${start_time} - ${end_time}`;
-				}
-
-				// REDESIGN-TODO: Add Participants to get_events query
-				let particpants = "";
-				if (event.particpants) {
-					particpants = frappe.avatar_group(event.particpants, 3);
-				}
-
-				// REDESIGN-TODO: Add location to calendar field
-				let location = "";
-				if (event.location) {
-					location = `, ${frappe.utils.escape_html(event.location)}`;
-				}
-
-				return `<a class="recent-item event" href="/desk/event/${frappe.utils.escape_html(
-					event.name
-				)}">
-					<div class="event-border" style="border-color: ${frappe.utils.escape_html(event.color)}"></div>
-					<div class="event-item">
-						<div class="event-subject">${frappe.utils.escape_html(event.subject)}</div>
-						<div class="event-time">${time}${location}</div>
-						${particpants}
-					</div>
-				</a>`;
-			};
-			html = event_list.map(get_event_html).join("");
-		} else {
-			html = `
-				<div class="notification-null-state">
-					<div class="text-center">
-					<img src="/assets/frappe/images/ui-states/event-empty-state.svg" alt="Generic Empty State" class="null-state">
-					<div class="title">${__("No Upcoming Events")}</div>
-					<div class="subtitle">
-						${__("There are no upcoming events for you.")}
-				</div></div></div>
-			`;
+		if (!event_list.length) {
+			this.container.html(
+				get_null_state_html(
+					"calendar",
+					__("No Upcoming Events"),
+					__("There are no upcoming events for you.")
+				)
+			);
+			return;
 		}
 
-		this.container.html(html);
+		let get_event_html = (event) => {
+			let time = __("All Day");
+			if (!event.all_day) {
+				let start_time = frappe.datetime.get_time(event.starts_on);
+				let days_diff = frappe.datetime.get_day_diff(event.ends_on, event.starts_on);
+				let end_time = frappe.datetime.get_time(event.ends_on);
+				if (days_diff > 1) {
+					end_time = __("Rest of the day");
+				}
+				time = `${start_time} - ${end_time}`;
+			}
+
+			// REDESIGN-TODO: Add Participants to get_events query
+			let particpants = "";
+			if (event.particpants) {
+				particpants = frappe.avatar_group(event.particpants, 3);
+			}
+
+			// REDESIGN-TODO: Add location to calendar field
+			let location = "";
+			if (event.location) {
+				location = `, ${frappe.utils.escape_html(event.location)}`;
+			}
+
+			let starts_on = moment(event.starts_on);
+			let dot_style = event.color
+				? ` style="background-color: ${frappe.utils.escape_html(event.color)}"`
+				: "";
+
+			return `<a class="recent-item event" href="/desk/event/${frappe.utils.escape_html(
+				event.name
+			)}">
+				<div class="event-date">
+					<div class="event-date-month">${starts_on.format("MMM")}</div>
+					<div class="event-date-day">${starts_on.format("DD")}</div>
+				</div>
+				<div class="event-item">
+					<div class="event-subject-row">
+						<span class="event-dot"${dot_style}></span>
+						<span class="event-subject">${frappe.utils.escape_html(event.subject)}</span>
+					</div>
+					<div class="event-time">${time}${location}</div>
+					${particpants}
+				</div>
+			</a>`;
+		};
+
+		let $section = $(`<div class="event-group">
+			<div class="event-group-header" role="button" tabindex="0" aria-expanded="true">
+				${frappe.utils.icon("chevron-down", "sm", "", "", "event-group-chevron current-color", true)}
+				<span class="event-group-label">${__("Upcoming events")}</span>
+				<span class="event-group-count">${event_list.length}</span>
+			</div>
+			<div class="event-group-items">
+				${event_list.map(get_event_html).join("")}
+			</div>
+		</div>`);
+
+		let toggle_group = () => {
+			let collapsed = $section.toggleClass("collapsed").hasClass("collapsed");
+			$section.find(".event-group-header").attr("aria-expanded", !collapsed);
+		};
+
+		$section.find(".event-group-header").on("click", toggle_group);
+		$section.find(".event-group-header").on("keydown", (e) => {
+			if (e.key === "Enter" || e.key === " ") {
+				e.preventDefault();
+				toggle_group();
+			}
+		});
+
+		this.container.empty().append($section);
 	}
 }
