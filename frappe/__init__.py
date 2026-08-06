@@ -634,7 +634,7 @@ def is_whitelisted(method):
 	from frappe.apps import get_disabled_apps
 
 	if app_name in get_disabled_apps():
-		throw(_("App {0} is not installed").format(app_name), AppNotInstalledError)
+		throw(_("App {0} is disabled on this site").format(app_name), AppDisabledError)
 
 	is_guest = session["user"] == "Guest"
 	if method not in whitelisted or (is_guest and method not in guest_methods):

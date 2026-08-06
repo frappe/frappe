@@ -113,7 +113,10 @@ def get_default_path():
 
 @frappe.whitelist()
 def set_app_as_default(app_name: str):
-	if app_name not in frappe.get_active_apps():
+	if app_name in get_disabled_apps():
+		frappe.throw(_("App {} is disabled on this site").format(frappe.bold(app_name)))
+
+	if app_name not in get_installed_apps():
 		frappe.throw(_("App {} is not installed").format(frappe.bold(app_name)))
 
 	if frappe.db.get_value("User", frappe.session.user, "default_app") == app_name:
