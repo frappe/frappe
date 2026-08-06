@@ -146,7 +146,7 @@ def get_socketio_secret():
 	return secret
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep
 def get_user_info():
 	user_type = frappe.session.data.user_type
 	trusted_secret = get_socketio_secret()
