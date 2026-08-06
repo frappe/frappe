@@ -667,6 +667,15 @@ blockquote {
 			font-weight: normal;
 			text-decoration: underline;
 		}
+
+		.email-code {
+			font-family: "SF Mono", "Menlo", "Consolas", monospace;
+			font-size: 32px;
+			font-weight: 700;
+			letter-spacing: 0.18em;
+			color: $gray-900;
+			margin: 4px 0 20px;
+		}
 	}
 
 	.email-action {
@@ -739,11 +748,6 @@ blockquote {
 				padding-top: 0;
 				border-top: none;
 			}
-		}
-
-		.email-account-footer,
-		.default-mail-footer {
-			display: none !important;
 		}
 	}
 }

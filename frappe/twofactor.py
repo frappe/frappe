@@ -265,12 +265,10 @@ def get_email_subject_for_2fa(kwargs_dict):
 
 def get_email_body_for_2fa(kwargs_dict):
 	"""Get email body for 2fa."""
-	body_template = """
-		Enter this code to complete your login:
-		<br><br>
-		<b style="font-size: 18px;">{{ otp }}</b>
-	"""
-	return frappe.render_template(body_template, kwargs_dict, restrict_globals=True)
+	return frappe.render_template(
+		"templates/emails/verification_code.html",
+		{"code": kwargs_dict.get("otp"), "minutes": (frappe.flags.otp_expiry or 180) // 60},
+	)
 
 
 def get_email_subject_for_qr_code(kwargs_dict):
@@ -283,10 +281,7 @@ def get_email_subject_for_qr_code(kwargs_dict):
 
 def get_email_body_for_qr_code(kwargs_dict):
 	"""Get QRCode email body."""
-	body_template = _(
-		"Please click on the following link and follow the instructions on the page. {0}"
-	).format("<br><br> <a href='{{qrcode_link}}'>{{qrcode_link}}</a>")
-	return frappe.render_template(body_template, kwargs_dict, restrict_globals=True)
+	return frappe.render_template("templates/emails/two_factor_setup.html", kwargs_dict)
 
 
 def get_link_for_qrcode(user, totp_uri):
@@ -363,7 +358,8 @@ def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, mess
 		recipients=user_email,
 		subject=subject or get_email_subject_for_2fa(template_args),
 		message=message or get_email_body_for_2fa(template_args),
-		header=[_("Verification Code"), "blue"],
+		with_container=True,
+		wrapper="templates/emails/auth_email.html",
 		delayed=False,
 		retry=3,
 	)
