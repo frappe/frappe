@@ -69,6 +69,8 @@ const useCodeStore = defineStore("codeStore", () => {
 
 		studioPageResources.filters = { parent: page.name }
 		await studioPageResources.reload()
+		// a newer load claimed the slot during the await — don't arm watchers for a page that won't install
+		if (pendingResources !== pageResources) return
 
 		await Promise.all(
 			studioPageResources.data.map(async (resource: Resource) => {
