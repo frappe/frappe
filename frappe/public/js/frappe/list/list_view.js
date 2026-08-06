@@ -997,11 +997,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.$no_result.html(this.get_no_result_message());
 		this.setup_new_doc_event();
 
-		if (frappe.boot.upload_first_doctypes?.includes(this.doctype)) {
-			frappe.require("/assets/frappe/js/frappe/document_queue_review.js").then(() => {
-				frappe.document_queue_review?.setup_list_banner?.(this);
+		frappe.require("/assets/frappe/js/frappe/document_queue_review.js").then(() => {
+			frappe.document_queue_review?.is_upload_first_enabled?.(this.doctype).then((enabled) => {
+				if (enabled) {
+					frappe.document_queue_review?.setup_list_banner?.(this);
+				}
 			});
-		}
+		});
 	}
 
 	render() {

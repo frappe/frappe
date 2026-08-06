@@ -93,59 +93,96 @@ frappe.document_queue_review.fetch_context = function (document_queue) {
 };
 
 
-frappe.document_queue_review.is_upload_first_enabled = function (doctype) {
+frappe.document_queue_review.is_upload_first_enabled = async function (doctype, frm) {
 	if (!doctype || doctype === "Document Queue") {
-		return Promise.resolve(false);
+		return false;
 	}
 
-	return Promise.resolve(Boolean(frappe.boot.upload_first_doctypes?.includes(doctype)));
+	if (cint(frm?.meta?.enable_upload_first_workflow) === 1) {
+		return true;
+	}
+
+	const meta = frappe.get_meta(doctype);
+	if (cint(meta?.enable_upload_first_workflow) === 1) {
+		return true;
+	}
+
+	if (frappe.boot?.upload_first_doctypes?.includes(doctype)) {
+		return true;
+	}
+
+	try {
+		const res = await frappe.call({
+			method: "frappe.core.doctype.document_queue.document_queue.is_upload_first_workflow_doctype",
+			args: { document_type: doctype },
+		});
+		const is_enabled = Boolean(res?.message);
+		if (is_enabled) {
+			if (frappe.boot) {
+				frappe.boot.upload_first_doctypes = frappe.boot.upload_first_doctypes || [];
+				if (!frappe.boot.upload_first_doctypes.includes(doctype)) {
+					frappe.boot.upload_first_doctypes.push(doctype);
+				}
+			}
+			if (meta) {
+				meta.enable_upload_first_workflow = 1;
+			}
+			if (frm?.meta) {
+				frm.meta.enable_upload_first_workflow = 1;
+			}
+		}
+		return is_enabled;
+	} catch (e) {
+		return false;
+	}
 };
 
 frappe.document_queue_review.setup_upload_first = async function (frm) {
-	if (!frm?.is_new?.() || frappe.document_queue_review.get_context(frm)) {
-		frappe.document_queue_review.remove_upload_first(frm);
+	frappe.document_queue_review.remove_upload_first(frm);
+
+	if (!frm?.is_new?.() || frm.in_dialog || !frm.page || frappe.document_queue_review.get_context(frm)) {
 		return;
 	}
 
-	const enabled = await frappe.document_queue_review.is_upload_first_enabled(frm.doctype);
+	const enabled = await frappe.document_queue_review.is_upload_first_enabled(frm.doctype, frm);
 	if (!enabled || frappe.document_queue_review.get_context(frm)) {
-		frappe.document_queue_review.remove_upload_first(frm);
 		return;
 	}
 
-	frappe.document_queue_review.add_styles();
+	frm.page?.inner_toolbar?.find(`button[data-label="${encodeURIComponent(__("Upload Document"))}"]`)?.remove();
+	frm.page?.wrapper?.find(".document-queue-upload-btn")?.remove();
 
-	const $page = frm.$wrapper.find(".form-page").first();
-	if (!$page.length) {
-		return;
+	const $btn = frm.add_custom_button(
+		__("Upload Document"),
+		() => {
+			frappe.document_queue_review.open_upload_first_dialog(frm);
+		}
+	);
+
+	if ($btn && $btn.length) {
+		$btn.addClass("btn-default es-button document-queue-upload-btn");
+		$btn.css({
+			"display": "inline-flex",
+			"align-items": "center",
+			"gap": "6px",
+		});
+		if (!$btn.find("svg.icon").length) {
+			$btn.find(".button-label").before(frappe.utils.icon("upload", "sm") + " ");
+		}
+		if (frm.page.inner_toolbar) {
+			$btn.prependTo(frm.page.inner_toolbar.removeClass("hide"));
+		}
 	}
 
-	$page.find(".document-queue-upload-first").remove();
-
-	const $banner = $(`
-		<div class="document-queue-upload-first">
-			<div>
-				<div class="document-queue-upload-first-title">${__("Upload Document")}</div>
-				<div class="document-queue-upload-first-description">
-					${__("Upload one PDF or image before creating a draft.")}
-				</div>
-			</div>
-			<button class="btn btn-default btn-sm document-queue-upload-first-button" type="button">
-				${frappe.utils.icon("upload", "sm")}
-				<span>${__("Upload")}</span>
-			</button>
-		</div>
-	`);
-
-	$banner.find(".document-queue-upload-first-button").on("click", () => {
-		frappe.document_queue_review.open_upload_first_dialog(frm);
-	});
-
-	$page.prepend($banner);
-	frm.document_queue_upload_first_banner = $banner;
+	frm.document_queue_upload_first_btn = $btn;
 };
 
 frappe.document_queue_review.remove_upload_first = function (frm) {
+	frm?.document_queue_upload_first_btn?.remove();
+	frm.document_queue_upload_first_btn = null;
+	frm?.page?.inner_toolbar?.find(`button[data-label="${encodeURIComponent(__("Upload Document"))}"]`)?.remove();
+	frm?.page?.wrapper?.find(".document-queue-upload-btn")?.remove();
+	frm?.page?.remove_inner_button?.(__("Upload Document"));
 	frm?.document_queue_upload_first_banner?.remove();
 	frm.document_queue_upload_first_banner = null;
 	frm?.$wrapper?.find(".document-queue-upload-first").remove();
@@ -741,29 +778,8 @@ frappe.document_queue_review.setup_list_banner = async function (listview) {
 		return;
 	}
 
-	const count = await frappe.document_queue_review.get_ready_for_review_count(listview.doctype);
-	if (!count) {
-		return;
-	}
-
-	frappe.document_queue_review.add_styles();
-
-	const message = __("{0} Documents ready for review", [count]);
-	const $banner = $(`
-		<div class="document-queue-ready-banner">
-			<span>${frappe.utils.escape_html(message)}</span>
-			<button class="btn btn-xs btn-default" type="button">${__("View")}</button>
-		</div>
-	`);
-
-	$banner.on("click", () => {
-		frappe.set_route("List", "Document Queue", {
-			document_type: ["=", listview.doctype],
-			status: ["=", "Ready for Review"],
-		});
-	});
-
-	listview.$page.find(".layout-main-section").first().prepend($banner);
+	// Inject the primary "Review Pending" button that opens the modal.
+	frappe.document_queue_list_action?.setup(listview);
 };
 
 frappe.document_queue_review.get_ready_for_review_count = function (doctype) {
@@ -992,6 +1008,10 @@ $(document).on("form-refresh", async function (event, frm) {
 });
 
 frappe.ui.form.on("*", {
+	refresh(frm) {
+		frappe.document_queue_review.setup_upload_first(frm);
+	},
+
 	after_save(frm) {
 		return frappe.document_queue_review.link_after_save(frm);
 	},
