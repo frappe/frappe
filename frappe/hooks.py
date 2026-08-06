@@ -285,7 +285,9 @@ scheduler_events = {
 		"frappe.monitor.flush",
 		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
 	],
-	"hourly": [],
+	"hourly": [
+		"frappe.automation_engine.scheduler.process_date_based",
+	],
 	# Maintenance queue happen roughly once an hour but don't align with wall-clock time of *:00
 	# Use these for when you don't care about when the job runs but just need some guarantee for
 	# frequency.

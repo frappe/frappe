@@ -12,9 +12,9 @@ from frappe import _
 from frappe.automation_engine.registry import DOC_TRIGGER_TYPES, clear_automation_cache
 from frappe.model.document import Document
 
-# Triggers whose runtime path isn't wired yet (no emitter / no scheduler). They may be
-# saved as drafts, but enabling one would silently never fire — so enable is blocked.
-NON_EXECUTABLE_TRIGGERS = ("Custom Event", "Date Based")
+# Triggers whose runtime path isn't wired yet (no emitter). They may be saved as drafts,
+# but enabling one would silently never fire — so enable is blocked.
+NON_EXECUTABLE_TRIGGERS = ("Custom Event",)
 
 # "Else" is not a step of its own — an If's two arms are expressed by its children's
 # `branch` field, so a bare Else row would have nothing to execute.
@@ -75,8 +75,8 @@ class AutomationFlow(Document):
 	def validate_ready_to_enable(self):
 		"""Only allow enabling a rule whose every part can actually run today.
 
-		Not-yet-wired triggers are legal to draft, but enabling one would silently never
-		fire, so block enable.
+		Not-yet-wired triggers are legal to draft, but enabling one would silently
+		never fire, so block enable.
 		"""
 		if not self.actions:
 			frappe.throw(_("Enable an Automation Flow only after adding at least one action"))
