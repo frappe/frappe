@@ -62,7 +62,7 @@ class SessionConfig(BaseModel):
 	auto_compact: bool = True
 	compact_threshold_tokens: int | None = Field(default=None, gt=0)
 	cwd: str = "."
-	max_turns: int = 30
+	max_turns: int = 500
 	max_output_tokens: int = 200_000
 	stream: bool = True
 
