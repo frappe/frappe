@@ -6,7 +6,12 @@ import json
 import frappe
 from frappe.automation_engine.actions.base import AutomationAction, get_action_registry
 from frappe.automation_engine.registry import clear_automation_cache
-from frappe.automation_engine.runner import _failure_key, execute_automation
+from frappe.automation_engine.runner import (
+	TASK_METHOD,
+	_failure_key,
+	automation_task_name,
+	execute_automation,
+)
 from frappe.tests import IntegrationTestCase
 
 QUEUE = "Automation Trigger Queue"
@@ -75,9 +80,15 @@ class TestRunner(IntegrationTestCase):
 		return row.name
 
 	def run_status(self, automation):
-		return frappe.get_all(
-			"Automation Run", filters={"automation": automation}, fields=["status"]
-		)[0].status
+		return self.run_result(automation)["automation_status"]
+
+	def run_result(self, automation):
+		result = frappe.get_all(
+			"Background Task",
+			filters={"task_name": automation_task_name(automation), "method": TASK_METHOD},
+			pluck="result",
+		)[0]
+		return json.loads(result)
 
 	def test_success_applies_action_and_deletes_queue_row(self):
 		todo = make_todo()
@@ -87,6 +98,12 @@ class TestRunner(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "High")
 		self.assertFalse(frappe.db.exists(QUEUE, name))
 		self.assertEqual(self.run_status(auto), "Success")
+		result = self.run_result(auto)
+		self.assertEqual(result["steps"][0]["status"], "Success")
+		arguments = frappe.db.get_value(
+			"Background Task", {"task_name": automation_task_name(auto)}, "arguments"
+		)
+		self.assertEqual(json.loads(arguments)["actions_snapshot"][0]["action_type"], "SetFieldValue")
 
 	def test_missing_target_is_skipped(self):
 		auto = make_automation([set_field("priority", "High")])
@@ -131,12 +148,10 @@ class TestRunner(IntegrationTestCase):
 
 	def test_partial_failure_continues_when_not_stopping(self):
 		todo = make_todo()
-		auto = make_automation(
-			[set_field("priority", "Low"), set_field("priority", "High")], stop_on_error=0
-		)
-		first_child = frappe.get_all(
-			"Automation Action", filters={"parent": auto}, order_by="idx", limit=1
-		)[0].name
+		auto = make_automation([set_field("priority", "Low"), set_field("priority", "High")], stop_on_error=0)
+		first_child = frappe.get_all("Automation Action", filters={"parent": auto}, order_by="idx", limit=1)[
+			0
+		].name
 		frappe.db.set_value(
 			"Automation Action", first_child, "action_type", "NopeAction", update_modified=False
 		)

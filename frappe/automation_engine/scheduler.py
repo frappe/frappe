@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import frappe
 from frappe.automation_engine import is_enabled
 from frappe.automation_engine.dispatch import kick_drainer, matches_rule, queue_trigger
+from frappe.automation_engine.runner import TASK_METHOD, automation_task_name
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import parse_cron
 
 QUEUE = "Automation Trigger Queue"
@@ -52,12 +53,20 @@ def _handled_names(automation: str, fire_at: datetime) -> set[str | None]:
 		},
 		pluck="ref_name",
 	)
-	completed = frappe.get_all(
-		"Automation Run",
-		filters={"automation": automation, "creation": (">=", fire_at)},
-		pluck="reference_name",
-	)
+	completed = _completed_names(automation, fire_at)
 	return {*active, *completed}
+
+
+def _completed_names(automation: str, fire_at: datetime) -> list[str | None]:
+	task = frappe.qb.DocType("Background Task")
+	return (
+		frappe.qb.from_(task)
+		.select(task.ref_docname)
+		.where(task.task_name == automation_task_name(automation))
+		.where(task.method == TASK_METHOD)
+		.where(task.creation >= fire_at)
+		.run(pluck=True)
+	)
 
 
 def _queue_rule(rule, fire_at: datetime) -> int:

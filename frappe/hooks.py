@@ -292,7 +292,6 @@ scheduler_events = {
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
 		"frappe.automation_engine.drainer.purge_queue",
-		"frappe.automation_engine.drainer.purge_runs",
 		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
 	],
 	"weekly_long": [

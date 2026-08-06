@@ -6,6 +6,7 @@ from datetime import datetime
 
 import frappe
 from frappe.automation_engine.dispatch import queue_trigger
+from frappe.automation_engine.runner import TASK_METHOD, automation_task_name
 from frappe.automation_engine.scheduler import _handled_names, process_cron
 from frappe.tests import IntegrationTestCase
 
@@ -28,7 +29,10 @@ def make_scheduled_rule(**kwargs):
 		},
 	)
 	doc.enabled = 1
-	return doc.insert()
+	doc.insert()
+	doc.db_set("creation", "2026-07-15 10:00:00", update_modified=False)
+	doc.creation = "2026-07-15 10:00:00"
+	return doc
 
 
 class TestScheduler(IntegrationTestCase):
@@ -101,12 +105,14 @@ class TestScheduler(IntegrationTestCase):
 	def make_run(self, rule, reference_name=None):
 		run = frappe.get_doc(
 			{
-				"doctype": "Automation Run",
-				"automation": rule.name,
-				"automation_title": rule.title,
-				"reference_doctype": "ToDo" if reference_name else None,
-				"reference_name": reference_name,
-				"status": "Success",
+				"doctype": "Background Task",
+				"task_id": frappe.generate_hash(length=20),
+				"task_name": automation_task_name(rule.name),
+				"user": frappe.session.user,
+				"method": TASK_METHOD,
+				"ref_doctype": "ToDo" if reference_name else None,
+				"ref_docname": reference_name,
+				"status": "Completed",
 			}
 		).insert(ignore_permissions=True)
-		frappe.db.set_value("Automation Run", run.name, "creation", "2026-07-15 10:05:10")
+		frappe.db.set_value("Background Task", run.name, "creation", "2026-07-15 10:05:10")

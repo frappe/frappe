@@ -3,6 +3,8 @@
 
 """Built-in automation actions. Each delegates to existing framework internals."""
 
+from typing import ClassVar
+
 import frappe
 from frappe import _
 from frappe.automation_engine.actions.base import AutomationAction, AutomationParamError
@@ -29,7 +31,7 @@ class SetFieldValue(AutomationAction):
 	action_type = "SetFieldValue"
 	label = "Set Field Value"
 	description = "Set one or more fields on the triggering document."
-	params_schema = [
+	params_schema: ClassVar[list] = [
 		{"fieldname": "field", "label": "Field", "fieldtype": "Select", "options_source": "doc_fields"},
 		{"fieldname": "value", "label": "Value", "fieldtype": "Data"},
 		# Set several fields at once: {"values": {"color": "#ED6396", "priority": "High"}}.
@@ -69,8 +71,15 @@ class CreateDocument(AutomationAction):
 	action_type = "CreateDocument"
 	label = "Create Document"
 	description = "Create a new document, optionally seeded from the triggering document."
-	params_schema = [
-		{"fieldname": "doctype", "label": "Document Type", "fieldtype": "Link", "options": "DocType", "reqd": 1},
+	requires_document = False
+	params_schema: ClassVar[list] = [
+		{
+			"fieldname": "doctype",
+			"label": "Document Type",
+			"fieldtype": "Link",
+			"options": "DocType",
+			"reqd": 1,
+		},
 		{"fieldname": "values", "label": "Field Values", "fieldtype": "JSON"},
 	]
 
@@ -82,7 +91,11 @@ class CreateDocument(AutomationAction):
 
 	def execute(self, doc, params, context):
 		target = frappe.new_doc(params["doctype"])
-		values = frappe.parse_json(params.get("values")) if isinstance(params.get("values"), str) else params.get("values")
+		values = (
+			frappe.parse_json(params.get("values"))
+			if isinstance(params.get("values"), str)
+			else params.get("values")
+		)
 		for field, value in (values or {}).items():
 			target.set(field, _render(value, doc, context))
 		target.insert(ignore_permissions=True)
@@ -93,8 +106,14 @@ class SendNotification(AutomationAction):
 	action_type = "SendNotification"
 	label = "Send Notification"
 	description = "Send an email or system notification, optionally from an Email Template."
-	params_schema = [
-		{"fieldname": "channel", "label": "Channel", "fieldtype": "Select", "options": "Email\nSystem", "reqd": 1},
+	params_schema: ClassVar[list] = [
+		{
+			"fieldname": "channel",
+			"label": "Channel",
+			"fieldtype": "Select",
+			"options": "Email\nSystem",
+			"reqd": 1,
+		},
 		{
 			"fieldname": "recipients",
 			"label": "Recipients",
@@ -102,7 +121,12 @@ class SendNotification(AutomationAction):
 			"reqd": 1,
 			"options_source": "users",
 		},
-		{"fieldname": "email_template", "label": "Email Template", "fieldtype": "Link", "options": "Email Template"},
+		{
+			"fieldname": "email_template",
+			"label": "Email Template",
+			"fieldtype": "Link",
+			"options": "Email Template",
+		},
 		{"fieldname": "subject", "label": "Subject", "fieldtype": "Data"},
 		{"fieldname": "message", "label": "Message", "fieldtype": "Text Editor"},
 	]
@@ -132,7 +156,9 @@ class SendNotification(AutomationAction):
 			template = frappe.get_doc("Email Template", params["email_template"])
 			return (
 				frappe.render_template(template.subject, _render_context(doc, context)),
-				frappe.render_template(template.response or template.response_html or "", _render_context(doc, context)),
+				frappe.render_template(
+					template.response or template.response_html or "", _render_context(doc, context)
+				),
 			)
 		return _render(params.get("subject") or "", doc, context), _render(
 			params.get("message") or "", doc, context
@@ -159,7 +185,7 @@ class AssignToUser(AutomationAction):
 	action_type = "AssignToUser"
 	label = "Assign to User"
 	description = "Assign the triggering document to one or more users (wraps ToDo assignment)."
-	params_schema = [
+	params_schema: ClassVar[list] = [
 		{
 			"fieldname": "assign_to",
 			"label": "Assign To",
