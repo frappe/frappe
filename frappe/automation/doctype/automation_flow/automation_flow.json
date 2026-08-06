@@ -25,7 +25,9 @@
   "date_direction",
   "cron_expression",
   "conditions_section",
+  "filters_editor",
   "filters",
+  "advanced_condition_section",
   "condition",
   "revalidate_on_run",
   "actions_section",
@@ -155,15 +157,30 @@
    "label": "Conditions"
   },
   {
-   "fieldname": "filters",
-   "fieldtype": "JSON",
-   "label": "Filters"
+   "fieldname": "filters_editor",
+   "fieldtype": "HTML",
+   "label": "Match Fields"
   },
   {
-   "description": "Optional Python expression (safe_eval); `doc` is in context.",
+   "fieldname": "filters",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Filters",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "condition",
+   "fieldname": "advanced_condition_section",
+   "fieldtype": "Section Break",
+   "label": "Advanced Condition"
+  },
+  {
+   "description": "Optional Python expression for logic that field rules cannot express, such as OR groups. The current document is available as `doc`. All match fields and this expression must be true.",
    "fieldname": "condition",
    "fieldtype": "Code",
-   "label": "Condition",
+   "label": "Advanced Expression using Python",
    "options": "PythonExpression"
   },
   {

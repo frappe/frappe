@@ -37,7 +37,7 @@ class AutomationFlow(Document):
 		disabled_reason: DF.SmallText | None
 		document_type: DF.Link | None
 		enabled: DF.Check
-		filters: DF.JSON | None
+		filters: DF.Code | None
 		from_value: DF.Data | None
 		log_only: DF.Check
 		revalidate_on_run: DF.Check
