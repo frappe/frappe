@@ -264,8 +264,8 @@ class Importer:
 					)
 					continue
 
+				start = timeit.default_timer()
 				try:
-					start = timeit.default_timer()
 					doc, import_action = self.process_doc(doc)
 					processing_time = timeit.default_timer() - start
 					eta = self.get_eta(current_index, total_payload_count, processing_time)
@@ -344,10 +344,11 @@ class Importer:
 					except Exception:
 						pass
 
+					processing_time = timeit.default_timer() - start
 					self._publish_progress_event(
 						current_index=current_index,
 						total_payload_count=total_payload_count,
-						eta=self.get_eta(current_index, total_payload_count, 0),
+						eta=self.get_eta(current_index, total_payload_count, processing_time),
 						inserted_count=inserted_count,
 						updated_count=updated_count,
 						failed_count=failed_count,
