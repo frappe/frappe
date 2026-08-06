@@ -2034,9 +2034,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			const filters = $this.attr("data-filter").split("|");
 			const filters_to_apply = filters.map((f) => {
 				f = f.split(",");
-				if (f[2] === "Today") {
+				const df = frappe.meta.get_docfield(this.doctype, f[0]);
+				if (f[2] === "Today" && df && ["Date", "Datetime"].includes(df.fieldtype)) {
 					f[2] = frappe.datetime.get_today();
-				} else if (f[2] == "User") {
+				} else if (
+					f[2] == "User" &&
+					df &&
+					df.fieldtype === "Link" &&
+					df.options === "User"
+				) {
 					f[2] = frappe.session.user;
 				}
 				this.filter_area.remove(f[0]);

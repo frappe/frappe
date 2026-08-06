@@ -280,4 +280,27 @@ context("List View", () => {
 			.find(".sort-order use")
 			.should("have.attr", "href", "#icon-arrow-up-narrow-wide");
 	});
+
+	it("does not filter by session user when a clicked cell's value is literally 'User'", () => {
+		const fieldname = "test_filter_value_literally_user";
+		cy.create_records({
+			doctype: "Custom Field",
+			dt: "User",
+			fieldname: fieldname,
+			label: "Test Filter Value Literally User",
+			fieldtype: "Data",
+		});
+		cy.go_to_list("Custom Field");
+		cy.clear_filters();
+		cy.contains(".list-row-container", fieldname)
+			.find('a.filterable[data-filter="dt,=,User"]')
+			.click();
+		cy.wait(500);
+		cy.window()
+			.its("cur_list")
+			.then((list) => {
+				const dt_filter = list.filter_area.get().find((filter) => filter[1] === "dt");
+				expect(dt_filter[3]).to.equal("User");
+			});
+	});
 });
