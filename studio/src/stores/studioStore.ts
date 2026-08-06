@@ -536,7 +536,8 @@ const useStudioStore = defineStore("store", () => {
 	const routeObject = computed(() => {
 		if (!activePage.value) return ""
 
-		const newRoute = toRaw(router.currentRoute.value)
+		// copy — mutating the live route object would wipe the editor router's own params (appID/pageID)
+		const newRoute = { ...toRaw(router.currentRoute.value) }
 		// Seed each dynamic param with its design-time test value (empty string when unset),
 		// e.g. "/hr/:employee/:id" -> { employee, id } filled from routeVariables
 		const paramNames = getRouteVariables(activePage.value.route)
