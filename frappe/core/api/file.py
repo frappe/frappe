@@ -4,7 +4,7 @@ from frappe.core.doctype.file.utils import setup_folder_path
 from frappe.utils import cint, cstr
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def unzip_file(name: str):
 	"""Unzip the given file and make file records for each of the extracted files"""
 	file: File = frappe.get_doc("File", name)
