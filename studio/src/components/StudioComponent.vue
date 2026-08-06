@@ -54,6 +54,7 @@
 					:data-slot-id="slot.slotId"
 					:data-slot-name="slotName"
 					:data-component-id="block.componentId"
+					:data-breakpoint="breakpoint"
 				/>
 			</template>
 
