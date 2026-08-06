@@ -51,8 +51,48 @@ frappe.document_queue_review_loader.has_pending_context = function (frm) {
 	return false;
 };
 
-frappe.document_queue_review_loader.is_upload_first_enabled = function (doctype) {
-	return Promise.resolve(Boolean(frappe.boot.upload_first_doctypes?.includes(doctype)));
+frappe.document_queue_review_loader.is_upload_first_enabled = async function (doctype, frm) {
+	if (!doctype || doctype === "Document Queue") {
+		return false;
+	}
+
+	if (cint(frm?.meta?.enable_upload_first_workflow) === 1) {
+		return true;
+	}
+
+	const meta = frappe.get_meta(doctype);
+	if (cint(meta?.enable_upload_first_workflow) === 1) {
+		return true;
+	}
+
+	if (frappe.boot?.upload_first_doctypes?.includes(doctype)) {
+		return true;
+	}
+
+	try {
+		const res = await frappe.call({
+			method: "frappe.core.doctype.document_queue.document_queue.is_upload_first_workflow_doctype",
+			args: { document_type: doctype },
+		});
+		const is_enabled = Boolean(res?.message);
+		if (is_enabled) {
+			if (frappe.boot) {
+				frappe.boot.upload_first_doctypes = frappe.boot.upload_first_doctypes || [];
+				if (!frappe.boot.upload_first_doctypes.includes(doctype)) {
+					frappe.boot.upload_first_doctypes.push(doctype);
+				}
+			}
+			if (meta) {
+				meta.enable_upload_first_workflow = 1;
+			}
+			if (frm?.meta) {
+				frm.meta.enable_upload_first_workflow = 1;
+			}
+		}
+		return is_enabled;
+	} catch (e) {
+		return false;
+	}
 };
 
 frappe.document_queue_review_loader.setup_form = async function (frm) {
@@ -62,11 +102,11 @@ frappe.document_queue_review_loader.setup_form = async function (frm) {
 		return;
 	}
 
-	if (!frm?.is_new?.()) {
+	if (!frm?.is_new?.() || frm.in_dialog || !frm.page) {
 		return;
 	}
 
-	const enabled = await frappe.document_queue_review_loader.is_upload_first_enabled(frm.doctype);
+	const enabled = await frappe.document_queue_review_loader.is_upload_first_enabled(frm.doctype, frm);
 	if (!enabled) {
 		return;
 	}
