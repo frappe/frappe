@@ -282,11 +282,8 @@
 								<div
 									v-if="section.columns.length > 1"
 									class="pfb-tree-row"
-									:class="{ 'pfb-tree-hover': store.hovered_node.value === col }"
 									role="treeitem"
 									tabindex="0"
-									@mouseenter="store.hovered_column.value = col"
-									@mouseleave="store.hovered_column.value = null"
 									@click="select_section(section)"
 									@keydown.enter.prevent="select_section(section)"
 									@keydown.space.prevent="select_section(section)"

@@ -85,13 +85,8 @@
 					<div v-if="i > 0 && !preview_doc" class="column-divider"></div>
 					<div
 						class="column"
-						:class="{
-							col: !!preview_doc,
-							'pfb-column-hover': store.hovered_node.value === column,
-						}"
+						:class="{ col: !!preview_doc }"
 						:style="column.width ? { flex: `${column.width} 1 0%` } : {}"
-						@mouseenter="store.hovered_column.value = column"
-						@mouseleave="store.hovered_column.value = null"
 					>
 						<div
 							v-if="i < section.columns.length - 1"
@@ -527,16 +522,6 @@ function remove_column(index) {
 	display: flex;
 	flex-direction: column;
 	position: relative;
-}
-
-/* same ring as every other hover/selection state (--pfb-ring); drawn inside the
-   15px bootstrap gutter — the column box bleeds past the section edge */
-.column.pfb-column-hover::after {
-	content: "";
-	position: absolute;
-	inset: 0 15px;
-	border: var(--pfb-ring);
-	pointer-events: none;
 }
 
 .column-divider {
