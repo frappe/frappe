@@ -33,7 +33,7 @@ def get_modules_from_all_apps_for_user(user: str | None = None) -> list[dict]:
 
 def get_modules_from_all_apps():
 	modules_list = []
-	for app in frappe.get_installed_apps():
+	for app in frappe.get_active_apps():
 		modules_list += get_modules_from_app(app)
 	return modules_list
 

@@ -10,6 +10,7 @@ import frappe
 
 # Backward compatbility
 from frappe import _, bold, is_whitelisted
+from frappe.app_state import get_disabled_modules
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.db_query import get_order_by
 from frappe.permissions import has_permission
@@ -264,6 +265,13 @@ def search_widget(
 		_relevance = {"IFNULL": [_relevance_expr, -9999], "as": "_relevance"}
 		formatted_fields.append(_relevance)
 		order_by = f"_relevance desc, {order_by}"
+
+	# DocType searches run with ignore_permissions, so exclude disabled apps explicitly
+	if doctype == "DocType" and (disabled_modules := get_disabled_modules()):
+		if isinstance(filters, dict):
+			filters["module"] = ["not in", list(disabled_modules)]
+		elif isinstance(filters, list):
+			filters.append(["module", "not in", list(disabled_modules)])
 
 	values = frappe.get_list(
 		doctype,

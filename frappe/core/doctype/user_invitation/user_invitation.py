@@ -194,7 +194,7 @@ class UserInvitation(Document):
 
 	@staticmethod
 	def validate_app_name(app_name: str):
-		if app_name not in frappe.get_installed_apps():
+		if app_name not in frappe.get_active_apps():
 			frappe.throw(title=_("Invalid app"), msg=_("Application is not installed"))
 
 	@staticmethod
@@ -222,7 +222,7 @@ def mark_expired_invitations() -> None:
 def get_allowed_apps(user: Document | None) -> list[str]:
 	user_roles = set(get_user_roles(user))
 	allowed_apps: list[str] = []
-	for app in frappe.get_installed_apps():
+	for app in frappe.get_active_apps():
 		user_invitation_hooks = frappe.get_hooks("user_invitation", app_name=app)
 		if not isinstance(user_invitation_hooks, dict):
 			continue

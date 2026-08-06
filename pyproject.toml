@@ -34,7 +34,7 @@ dependencies = [
     "bleach-allowlist~=1.0.3",
     "chardet~=7.4.3",
     "croniter~=6.2.2",
-    "cryptography~=48.0.1",
+    "cryptography~=50.0.0",
     "cssutils~=2.15.0",
     "distro~=1.9.0",
     "email-reply-parser~=0.5.12",
@@ -57,7 +57,7 @@ dependencies = [
     "premailer~=3.10.0",
     "psutil~=7.2.2",
     "psycopg2-binary~=2.9.11",
-    "pyOpenSSL~=26.2.0",
+    "pyOpenSSL~=26.4.0",
     "pydantic~=2.13.4",
     "pyotp~=2.9.0",
     "python-dateutil~=2.9.0.post0",
@@ -225,6 +225,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
+exclude-newer-package = { cryptography = false, pyOpenSSL = false } # drop cryptography and pyOpenSSL after 2026-08-08
 
 [tool.mypy]
 strict = false
