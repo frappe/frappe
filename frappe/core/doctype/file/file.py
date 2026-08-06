@@ -710,31 +710,37 @@ class File(Document):
 					)
 				)
 
-			for file in members:
-				filename = os.path.basename(file.filename)
+			try:
+				for file in members:
+					filename = os.path.basename(file.filename)
 
-				file_doc = frappe.new_doc("File")
-				try:
-					content = z.read(file.filename)
-				except zipfile.BadZipFile:
-					frappe.throw(_("{0} is a not a valid zip file").format(self.file_name))
+					file_doc = frappe.new_doc("File")
+					try:
+						content = z.read(file.filename)
+					except zipfile.BadZipFile:
+						frappe.throw(_("{0} is a not a valid zip file").format(self.file_name))
 
-				total_extracted_size += len(content)
-				if total_extracted_size > max_extracted_size:
-					frappe.throw(
-						_("Zip file extracts to more than the maximum allowed size of {0} MB").format(
-							max_extracted_size // 1048576
+					total_extracted_size += len(content)
+					if total_extracted_size > max_extracted_size:
+						frappe.throw(
+							_("Zip file extracts to more than the maximum allowed size of {0} MB").format(
+								max_extracted_size // 1048576
+							)
 						)
-					)
 
-				file_doc.content = content
-				file_doc.file_name = filename
-				file_doc.folder = self.folder
-				file_doc.is_private = self.is_private
-				file_doc.attached_to_doctype = self.attached_to_doctype
-				file_doc.attached_to_name = self.attached_to_name
-				file_doc.save()
-				files.append(file_doc)
+					file_doc.content = content
+					file_doc.file_name = filename
+					file_doc.folder = self.folder
+					file_doc.is_private = self.is_private
+					file_doc.attached_to_doctype = self.attached_to_doctype
+					file_doc.attached_to_name = self.attached_to_name
+					file_doc.save()
+					files.append(file_doc)
+			except Exception:
+				# roll back any children already persisted before the failure
+				for file_doc in files:
+					frappe.delete_doc("File", file_doc.name, ignore_permissions=True, force=True)
+				raise
 
 		frappe.delete_doc("File", self.name)
 		return files
