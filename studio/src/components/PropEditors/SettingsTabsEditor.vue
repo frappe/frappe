@@ -57,7 +57,7 @@ import { Button, toast } from "frappe-ui"
 import Input from "@/components/Input.vue"
 import InputLabel from "@/components/InputLabel.vue"
 import Block from "@/utils/block"
-import { navItem, settingsPanel } from "@/utils/blockTemplate/familyTemplates"
+import { navItem, settingsPanel, tabBlockName } from "@/utils/blockTemplate/familyTemplates"
 
 const props = defineProps<{ block: Block; label?: string }>()
 
@@ -107,7 +107,28 @@ function removeTab(tab: TabEntry) {
 }
 
 function updateLabel(tab: TabEntry, value: string) {
+	syncBlockNames(tab, value)
 	tab.labelBlock?.setProp("text", value)
+	panelHeader(tab)?.setProp("title", value)
+}
+
+// layer names like "ProfileNavItem"/"ProfilePanel" follow the label,
+// unless the block was renamed by hand in the layers panel
+function syncBlockNames(tab: TabEntry, label: string) {
+	renameBlock(tab.navItem, tab.label, label, "NavItem")
+	renameBlock(tab.panel, tab.label, label, "Panel")
+}
+
+function renameBlock(block: Block | null, oldLabel: string, newLabel: string, suffix: "NavItem" | "Panel") {
+	if (!block) return
+	const isAutoNamed = !block.blockName || block.blockName === tabBlockName(oldLabel, suffix)
+	if (isAutoNamed) block.blockName = tabBlockName(newLabel, suffix)
+}
+
+function panelHeader(tab: TabEntry) {
+	return (
+		tab.panel?.getChildrenAndSlotContent().find((child) => child.componentName === "SettingsHeader") || null
+	)
 }
 
 function renameValue(tab: TabEntry, next: string) {
@@ -118,6 +139,7 @@ function renameValue(tab: TabEntry, next: string) {
 		return
 	}
 	const wasActive = isActive(tab)
+	if (!tab.labelBlock) syncBlockNames(tab, next) // label falls back to value
 	tab.navItem.setProp("value", next)
 	tab.panel?.setProp("value", next)
 	if (wasActive) {
