@@ -23,7 +23,12 @@ class AutomationParamError(frappe.ValidationError):
 
 
 class StopAutomation(Exception):
-	"""Raised by an action to pause the run (wait/resume). Executed in Phase 2."""
+	"""Raised by an action to park the run; it resumes from the next step after
+	`resume_after` seconds, exactly like a Wait step."""
+
+	def __init__(self, message="", resume_after: int = 60):
+		self.resume_after = resume_after
+		super().__init__(message)
 
 
 class AutomationAction:

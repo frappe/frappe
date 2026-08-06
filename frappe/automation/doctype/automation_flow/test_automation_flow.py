@@ -116,20 +116,25 @@ class TestAutomationFlow(IntegrationTestCase):
 		doc = make_automation(actions=[{"step_type": "Wait", "params": "{}"}])
 		self.assertRaises(frappe.ValidationError, doc.insert)
 
+	def test_wait_step_rejects_unknown_unit(self):
+		doc = make_automation(actions=[{"step_type": "Wait", "params": '{"value": 5, "unit": "weeks"}'}])
+		self.assertRaises(frappe.ValidationError, doc.insert)
+
 	def test_wait_step_with_duration_saves(self):
-		doc = make_automation(actions=[{"step_type": "Wait", "params": '{"value": 5, "unit": "seconds"}'}])
+		doc = make_automation(actions=[{"step_type": "Wait", "params": '{"value": 5, "unit": "Seconds"}'}])
 		doc.insert()
 		self.assertTrue(doc.name)
 
-	def test_enabling_wait_containing_flow_blocked(self):
+	def test_enabling_wait_containing_flow_allowed(self):
 		doc = make_automation(
 			enabled=1,
 			actions=[
 				set_field("priority", "Low"),
-				{"step_type": "Wait", "params": '{"value": 5, "unit": "seconds"}'},
+				{"step_type": "Wait", "params": '{"value": 5, "unit": "Seconds"}'},
 			],
 		)
-		self.assertRaises(frappe.ValidationError, doc.insert)
+		doc.insert()
+		self.assertTrue(doc.name)
 
 	def test_enabling_custom_event_flow_blocked(self):
 		doc = make_automation(

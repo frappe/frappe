@@ -256,6 +256,10 @@ def branch(action, parent_step, arm):
 	return {**action, "parent_step": parent_step, "branch": arm}
 
 
+def wait(value, unit="Seconds"):
+	return {"step_type": "Wait", "params": json.dumps({"value": value, "unit": unit})}
+
+
 def if_step(condition):
 	return {"step_type": "If", "step_condition": condition}
 
@@ -312,3 +316,96 @@ class TestBranching(AutomationRunnerTestCase):
 		# The inner If sits on the outer Else arm, so neither it nor its child may run.
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "description"), "outer-else")
 
+
+class TestWaitResume(AutomationRunnerTestCase):
+	def wait_rule(self, seconds=5):
+		return make_automation([set_field("priority", "High"), wait(seconds), set_field("status", "Closed")])
+
+	def resume_row(self, automation):
+		return frappe.db.get_value(
+			QUEUE, {"automation": automation, "resume_run": ("is", "set")}, ["name", "resume_from_idx"]
+		)
+
+	def test_wait_pauses_the_run_and_queues_a_resume_row(self):
+		todo = make_todo()
+		auto = self.wait_rule()
+		execute_automation(self.queue_row(auto, todo.name))
+
+		self.assertEqual(self.run_status(auto), "Waiting")
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "High")
+		self.assertNotEqual(frappe.db.get_value("ToDo", todo.name, "status"), "Closed")
+		name, resume_from_idx = self.resume_row(auto)
+		self.assertEqual(resume_from_idx, 2)
+		self.assertTrue(frappe.db.get_value(QUEUE, name, "run_after"))
+
+	def test_waiting_task_stays_running_until_it_resumes(self):
+		todo = make_todo()
+		auto = self.wait_rule()
+		execute_automation(self.queue_row(auto, todo.name))
+		task = frappe.db.get_value(
+			"Background Task", {"task_name": automation_task_name(auto)}, ["status", "ended_at"]
+		)
+		self.assertEqual(task[0], "Running")
+		self.assertIsNone(task[1])
+
+	def test_resume_finishes_the_same_task(self):
+		todo = make_todo()
+		auto = self.wait_rule()
+		execute_automation(self.queue_row(auto, todo.name))
+		before = frappe.get_all("Background Task", filters={"task_name": automation_task_name(auto)})
+
+		# The drainer would pick this up once run_after passes; call it directly.
+		execute_automation(self.resume_row(auto)[0])
+
+		after = frappe.get_all("Background Task", filters={"task_name": automation_task_name(auto)})
+		self.assertEqual(len(before), len(after))
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "status"), "Closed")
+		self.assertEqual(self.run_status(auto), "Success")
+
+	def test_resume_does_not_re_execute_steps_from_before_the_wait(self):
+		todo = make_todo()
+		auto = self.wait_rule()
+		execute_automation(self.queue_row(auto, todo.name))
+		frappe.db.set_value("ToDo", todo.name, "priority", "Low", update_modified=False)
+
+		execute_automation(self.resume_row(auto)[0])
+
+		# Step 0 ran in the first leg; a resumed run must not set priority back to High.
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "Low")
+
+	def test_resumed_run_keeps_the_steps_from_the_first_leg(self):
+		todo = make_todo()
+		auto = self.wait_rule()
+		execute_automation(self.queue_row(auto, todo.name))
+		execute_automation(self.resume_row(auto)[0])
+		positions = [step["step_idx"] for step in self.run_result(auto)["steps"]]
+		self.assertEqual(positions, [0, 1, 2])
+
+	def test_resume_runs_the_snapshot_not_the_edited_rule(self):
+		todo = make_todo()
+		auto = self.wait_rule()
+		execute_automation(self.queue_row(auto, todo.name))
+
+		# Rewrite the rule mid-wait: the resumed leg must still use the original plan.
+		rule = frappe.get_doc("Automation Flow", auto)
+		rule.actions[2].params = json.dumps({"field": "status", "value": "Cancelled"})
+		rule.save()
+
+		execute_automation(self.resume_row(auto)[0])
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "status"), "Closed")
+
+	def test_wait_inside_a_branch_resumes_on_the_same_arm(self):
+		todo = make_todo(priority="High")
+		auto = make_automation(
+			[
+				if_step("doc.priority == 'High'"),
+				branch(wait(5), 1, "If"),
+				branch(set_field("status", "Closed"), 1, "If"),
+				branch(set_field("status", "Cancelled"), 1, "Else"),
+			]
+		)
+		execute_automation(self.queue_row(auto, todo.name))
+		self.assertEqual(self.run_status(auto), "Waiting")
+
+		execute_automation(self.resume_row(auto)[0])
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "status"), "Closed")

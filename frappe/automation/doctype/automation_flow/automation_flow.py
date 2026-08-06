@@ -19,6 +19,7 @@ NON_EXECUTABLE_TRIGGERS = ("Custom Event", "Date Based")
 # "Else" is not a step of its own — an If's two arms are expressed by its children's
 # `branch` field, so a bare Else row would have nothing to execute.
 STEP_TYPES = ("Action", "Wait", "If")
+WAIT_UNITS = ("Seconds", "Minutes", "Hours", "Days")
 
 
 class AutomationFlow(Document):
@@ -74,8 +75,8 @@ class AutomationFlow(Document):
 	def validate_ready_to_enable(self):
 		"""Only allow enabling a rule whose every part can actually run today.
 
-		Wait steps and not-yet-wired triggers are legal to draft, but enabling them would
-		silently no-op (Custom Event/Date Based) or halt mid-run (Wait), so block enable.
+		Not-yet-wired triggers are legal to draft, but enabling one would silently never
+		fire, so block enable.
 		"""
 		if not self.actions:
 			frappe.throw(_("Enable an Automation Flow only after adding at least one action"))
@@ -84,10 +85,6 @@ class AutomationFlow(Document):
 				_("{0} triggers are not executable yet — keep this Automation Flow as a draft").format(
 					self.trigger_type
 				)
-			)
-		if any((row.step_type or "Action") == "Wait" for row in self.actions):
-			frappe.throw(
-				_("Wait steps are not executable yet — remove them or keep this Automation Flow as a draft")
 			)
 
 	def validate_actions(self):
@@ -132,11 +129,15 @@ class AutomationFlow(Document):
 			frappe.throw(_("Action Type is required for action steps"))
 		if row.step_type == "If" and not row.step_condition:
 			frappe.throw(_("Row {0}: an If step needs a Step Condition").format(row.idx))
-		if row.step_type != "Wait":
-			return
+		if row.step_type == "Wait":
+			self.validate_wait(row)
+
+	def validate_wait(self, row):
 		params = frappe.parse_json(row.params) if row.params else {}
 		if not params.get("value") or not params.get("unit"):
 			frappe.throw(_("Wait steps require a duration value and unit"))
+		if params["unit"] not in WAIT_UNITS:
+			frappe.throw(_("Row {0}: Wait unit must be one of {1}").format(row.idx, ", ".join(WAIT_UNITS)))
 
 	def validate_document_type(self):
 		if self.document_type and frappe.get_meta(self.document_type).istable:
