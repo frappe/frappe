@@ -21,11 +21,12 @@
 				:key="slotName"
 				v-slot:[slotName]="slotProps"
 			>
-				<SlotScopeProvider :scope="slotProps">
+				<SlotScopeProvider :scope="slotProps" v-slot="forwardedAttrs">
 					<AppComponent
 						v-for="slotBlock in slot.slotContent"
 						:block="slotBlock"
 						:key="slotBlock.componentId"
+						v-bind="forwardedAttrs"
 					/>
 				</SlotScopeProvider>
 			</template>
