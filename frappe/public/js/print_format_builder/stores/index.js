@@ -230,6 +230,7 @@ export function getStore(print_format_name) {
 		frappe.dom.freeze(__("Applying…"));
 		saving_count.value++;
 		draft_epoch++;
+		applying = true;
 
 		frappe
 			.call("frappe.printing.doctype.print_format.print_format.apply_draft", {
@@ -254,28 +255,33 @@ export function getStore(print_format_name) {
 			})
 			.catch(() => (save_failed.value = true))
 			.always(() => {
+				applying = false;
 				saving_count.value--;
 				frappe.dom.unfreeze();
 			});
 	}
 	function discard_draft() {
 		draft_epoch++;
+		applying = true;
 		return frappe
 			.call("frappe.printing.doctype.print_format.print_format.discard_draft", {
 				name: print_format_name,
 				modified: print_format.value.modified,
 			})
 			.then(() => fetch())
-			.then(() => frappe.show_alert({ message: __("Draft discarded"), indicator: "green" }));
+			.then(() => frappe.show_alert({ message: __("Draft discarded"), indicator: "green" }))
+			.always(() => (applying = false));
 	}
 	// stops after a failure so the error dialog doesn't loop; a manual save re-arms it
 	let autosave_stopped = false;
 	// one autosave at a time — a second would carry the same `modified` as the one
-	// still in flight and be rejected as stale
+	// still in flight and be rejected as stale. An apply/discard moves the timestamp
+	// too, so a queued autosave waits for it rather than firing against the old one.
 	let autosave_inflight = false;
+	let applying = false;
 	function autosave_changes() {
 		if (!dirty.value || autosave_stopped) return;
-		if (autosave_inflight || document.body.classList.contains("pfb-dragging")) {
+		if (applying || autosave_inflight || document.body.classList.contains("pfb-dragging")) {
 			autosave();
 			return;
 		}
