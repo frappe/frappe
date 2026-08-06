@@ -4,7 +4,7 @@
 		:studioComponent="block"
 		:evaluationContext="evaluationContext"
 	/>
-	<template v-else-if="block.canHaveChildren()">
+	<template v-else-if="block.hasChildren() || block.hasComponentSlots()">
 		<component
 			ref="componentRef"
 			v-if="showComponent"
@@ -21,11 +21,12 @@
 				:key="slotName"
 				v-slot:[slotName]="slotProps"
 			>
-				<SlotScopeProvider :scope="slotProps">
+				<SlotScopeProvider :scope="slotProps" v-slot="forwardedAttrs">
 					<AppComponent
 						v-for="slotBlock in slot.slotContent"
 						:block="slotBlock"
 						:key="slotBlock.componentId"
+						v-bind="forwardedAttrs"
 					/>
 				</SlotScopeProvider>
 			</template>

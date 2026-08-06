@@ -16,7 +16,7 @@
 		:breakpoint="breakpoint"
 	/>
 
-	<template v-else-if="block.canHaveChildren()">
+	<template v-else-if="block.hasChildren() || block.hasComponentSlots()">
 		<component
 			v-if="showComponent"
 			:is="componentName"
@@ -34,11 +34,12 @@
 				:key="slotName"
 				v-slot:[slotName]="slotProps"
 			>
-				<SlotScopeProvider v-if="slot.slotContent.length" :scope="slotProps">
+				<SlotScopeProvider v-if="slot.slotContent.length" :scope="slotProps" v-slot="forwardedAttrs">
 					<StudioComponent
 						v-for="slotBlock in slot.slotContent"
 						:key="slotBlock.componentId"
 						:block="slotBlock"
+						v-bind="forwardedAttrs"
 						:class="slotClasses"
 						:data-slot-id="slot.slotId"
 						:data-slot-name="slotName"
@@ -53,6 +54,7 @@
 					:data-slot-id="slot.slotId"
 					:data-slot-name="slotName"
 					:data-component-id="block.componentId"
+					:data-breakpoint="breakpoint"
 				/>
 			</template>
 
