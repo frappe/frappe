@@ -662,9 +662,19 @@ def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:
 	baseless -- it is computed and site-cached, in the same shape, so the resolution below
 	cannot tell which route a base arrived by.
 
+	**A document with no items falls back the same way**, because a sidebar with nothing in it
+	is not navigation -- the module would be dropped from the payload entirely, which is
+	indistinguishable from having no sidebar at all. Only its *rows* are computed: whatever the
+	document says about itself (title, icon, home workspace) is authored content and stands, so
+	a stub someone created to name a module keeps its name and gains contents.
+
+	Consequence worth knowing: emptying a sidebar's items is no longer a way to hide a module.
+	Hiding belongs to the customization layers and to `User.block_modules`, which run later and
+	are per-user; an empty base reads as unfinished, not as intent.
+
 	The documents come back in one query for the whole set, and the computed route costs a site
-	whose modules all ship a document nothing at all: it runs only for the modules that query
-	did not return.
+	whose modules all ship a populated document nothing at all: it runs only for the modules
+	that query did not return, and for the ones it returned empty.
 	"""
 	from frappe.desk.doctype.module_sidebar.module_sidebar import get_computed_base
 
@@ -689,8 +699,11 @@ def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:
 
 	resolved = {base.module: base for base in bases}
 	for module in modules:
-		if module not in resolved:
+		base = resolved.get(module)
+		if base is None:
 			resolved[module] = get_computed_base(module)
+		elif not base.rows:
+			base.rows = get_computed_base(module).rows
 
 	return resolved
 

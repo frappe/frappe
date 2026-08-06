@@ -91,6 +91,33 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 			self.assertEqual(sidebar["label"], "Shipped")
 			self.assertEqual([item["link_to"] for item in sidebar["items"]], ["ToDo"])
 
+	def test_a_document_with_no_items_falls_back_to_computed_ones(self):
+		"""An empty items table is not navigation -- it would drop the module from the payload,
+		which is indistinguishable from shipping no sidebar at all. So it computes, same as a
+		missing document."""
+		with sidebarless_module("Test Empty Document Module") as module:
+			make_report(module, "Test Filled In Report")
+			frappe.get_doc({"doctype": "Module Sidebar", "module": module}).insert(ignore_permissions=True)
+
+			sidebar = get_module_sidebars()[module]
+
+			self.assertIn("Test Filled In Report", [item["link_to"] for item in sidebar["items"]])
+
+	def test_an_empty_document_still_speaks_for_itself(self):
+		"""Only the rows are computed. What the document says about the module is authored
+		content, so a stub someone created to name it keeps the name and gains contents."""
+		with sidebarless_module("Test Stub Document Module") as module:
+			make_report(module, "Test Stub Report")
+			frappe.get_doc(
+				{"doctype": "Module Sidebar", "module": module, "title": "Stub", "header_icon": "box"}
+			).insert(ignore_permissions=True)
+
+			sidebar = get_module_sidebars()[module]
+
+			self.assertEqual(sidebar["label"], "Stub")
+			self.assertEqual(sidebar["header_icon"], "box")
+			self.assertIn("Test Stub Report", [item["link_to"] for item in sidebar["items"]])
+
 	def test_a_module_that_computes_to_nothing_is_dropped(self):
 		"""A module holding no navigable content computes to an empty sidebar, and an empty
 		sidebar is dropped by the same rule that drops one of only Section Breaks."""
