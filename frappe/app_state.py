@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.query_builder.functions import IfNull
 
 
 def is_disabled_app_filtering_active() -> bool:
@@ -83,17 +84,15 @@ def get_module_permission_query_conditions(user, doctype=None):
 	"""Hide records of a disabled app from list views, for any DocType with a `module` field."""
 	disabled_modules = get_disabled_modules()
 	if not disabled_modules:
-		return ""
+		return None
 
-	modules = ", ".join(frappe.db.escape(module) for module in disabled_modules)
-	return f"`tab{doctype}`.`module` not in ({modules})"
+	return IfNull(frappe.qb.DocType(doctype).module, "").notin(list(disabled_modules))
 
 
 def get_app_permission_query_conditions(user, doctype=None):
 	"""Same as above, for DocTypes that name their owner in an `app` field instead."""
 	disabled_apps = frappe.get_disabled_apps()
 	if not disabled_apps:
-		return ""
+		return None
 
-	apps = ", ".join(frappe.db.escape(app) for app in disabled_apps)
-	return f"ifnull(`tab{doctype}`.`app`, '') not in ({apps})"
+	return IfNull(frappe.qb.DocType(doctype).app, "").notin(disabled_apps)

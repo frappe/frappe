@@ -358,12 +358,11 @@ def get_disabled_app_job_methods() -> list[str]:
 
 def get_permission_query_conditions(user):
 	"""Hide jobs belonging to apps that are disabled on this site."""
-	conditions = []
-	for app in frappe.get_disabled_apps():
-		prefix = frappe.db.escape(app.replace("_", r"\_") + ".%")
-		conditions.append(f"`tabScheduled Job Type`.`method` not like {prefix}")
+	methods = get_disabled_app_job_methods()
+	if not methods:
+		return None
 
-	return " and ".join(conditions)
+	return frappe.qb.DocType("Scheduled Job Type").method.notin(methods)
 
 
 def on_doctype_update():
