@@ -455,7 +455,6 @@ def render_safe_globals():
 			full_name=frappe.local.session.data.full_name
 			if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
 			else "Guest",
-			request=getattr(frappe.local, "request", {}),
 			session=frappe._dict(
 				user=user,
 				csrf_token=frappe.local.session.data.csrf_token
@@ -558,6 +557,7 @@ def exec_safe_globals():
 			is_job_queued=is_job_queued,
 		)
 	)
+<<<<<<< HEAD
 	out.frappe.db.update(
 		NamespaceDict(
 			get_list=frappe.get_list,
@@ -582,6 +582,11 @@ def exec_safe_globals():
 		)
 	)
 	return out
+=======
+	result = _update_namespace(render_safe, exec_safe)
+	result["frappe"]["request"] = getattr(frappe.local, "request", {})
+	return result
+>>>>>>> 239e83549b (fix(safe_exec): remove request from render globals & place in exec globals)
 
 
 def get_keys_for_autocomplete(
