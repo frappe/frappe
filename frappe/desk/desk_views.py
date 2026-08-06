@@ -4,6 +4,7 @@
 from functools import cached_property
 
 import frappe
+from frappe.app_state import get_disabled_modules
 from frappe.permissions import has_permission
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
@@ -250,5 +251,15 @@ class DeskViews:
 			non_permitted_reports = set(has_role.keys()) - permitted_names
 			for r in non_permitted_reports:
 				has_role.pop(r, None)
+
+		if disabled_modules := get_disabled_modules():
+			hidden = (
+				frappe.qb.from_(parentTable)
+				.select(parentTable.name)
+				.where(parentTable.module.isin(list(disabled_modules)))
+				.run(pluck=True)
+			)
+			for name in hidden:
+				has_role.pop(name, None)
 
 		return has_role
