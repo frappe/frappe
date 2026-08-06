@@ -232,12 +232,17 @@ export function getStore(print_format_name) {
 		draft_epoch++;
 		applying = true;
 
-		frappe
-			.call("frappe.printing.doctype.print_format.print_format.apply_draft", {
-				name: print_format_name,
-				data: draft_payload(),
-				modified: print_format.value.modified,
-			})
+		// an autosave already in flight will move `modified` on; wait it out so this
+		// explicit save reads the fresh stamp instead of being rejected as stale
+		Promise.resolve(autosave_promise)
+			.catch(() => {})
+			.then(() =>
+				frappe.call("frappe.printing.doctype.print_format.print_format.apply_draft", {
+					name: print_format_name,
+					data: draft_payload(),
+					modified: print_format.value.modified,
+				})
+			)
 			.then(() => {
 				if (letterhead.value && letterhead.value._dirty) {
 					return frappe
@@ -254,7 +259,7 @@ export function getStore(print_format_name) {
 				frappe.show_alert({ message: __("Applied"), indicator: "green" });
 			})
 			.catch(() => (save_failed.value = true))
-			.always(() => {
+			.finally(() => {
 				applying = false;
 				saving_count.value--;
 				frappe.dom.unfreeze();
@@ -263,14 +268,17 @@ export function getStore(print_format_name) {
 	function discard_draft() {
 		draft_epoch++;
 		applying = true;
-		return frappe
-			.call("frappe.printing.doctype.print_format.print_format.discard_draft", {
-				name: print_format_name,
-				modified: print_format.value.modified,
-			})
+		return Promise.resolve(autosave_promise)
+			.catch(() => {})
+			.then(() =>
+				frappe.call("frappe.printing.doctype.print_format.print_format.discard_draft", {
+					name: print_format_name,
+					modified: print_format.value.modified,
+				})
+			)
 			.then(() => fetch())
 			.then(() => frappe.show_alert({ message: __("Draft discarded"), indicator: "green" }))
-			.always(() => (applying = false));
+			.finally(() => (applying = false));
 	}
 	// stops after a failure so the error dialog doesn't loop; a manual save re-arms it
 	let autosave_stopped = false;
@@ -278,6 +286,8 @@ export function getStore(print_format_name) {
 	// still in flight and be rejected as stale. An apply/discard moves the timestamp
 	// too, so a queued autosave waits for it rather than firing against the old one.
 	let autosave_inflight = false;
+	// the in-flight autosave, so an explicit save can wait for it to settle
+	let autosave_promise = null;
 	let applying = false;
 	function autosave_changes() {
 		if (!dirty.value || autosave_stopped) return;
@@ -289,7 +299,7 @@ export function getStore(print_format_name) {
 		dirty.value = false;
 		saving_count.value++;
 		const epoch = draft_epoch;
-		frappe
+		autosave_promise = frappe
 			.call({
 				method: "frappe.printing.doctype.print_format.print_format.save_draft",
 				args: {
@@ -299,10 +309,10 @@ export function getStore(print_format_name) {
 				},
 			})
 			.then((r) => {
-				if (epoch !== draft_epoch) return;
 				// sync only the stamp — the user may have kept editing mid-request
 				const was_dirty = dirty.value;
 				print_format.value.modified = r.message;
+				if (epoch !== draft_epoch) return;
 				has_draft.value = true;
 				if (!was_dirty) nextTick(() => (dirty.value = false));
 				if (letterhead.value && letterhead.value._dirty) {
