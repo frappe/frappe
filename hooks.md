@@ -15,18 +15,16 @@
 
 #### Disable / Enable
 
-Called when the site disables the app, or enables it again. The app keeps its schema and its
-data, so these hooks only change what takes effect.
+The site runs these hooks when it disables an app, and when it enables the app again. The app keeps its schema and its data. These hooks change only what the app does on the site.
 
-1. `before_disable` - method, runs while the app still takes effect
-1. `after_disable` - method
-1. `before_enable` - method
-1. `after_enable` - method, runs after the app takes effect again
+1. `before_disable` - method, runs while the app is still active
+2. `after_disable` - method, runs after the app becomes inactive
+3. `before_enable` - method, runs while the app is still inactive
+4. `after_enable` - method, runs after the app becomes active again
 
-An app hides its own customizations here, with `frappe.custom.hide_customizations` and
-`frappe.custom.unhide_customizations`. `bench migrate` runs `before_disable` again, so it must
-give the same result each time.
+An app hides and shows its own customizations in these hooks. Call `frappe.custom.hide_customizations` from `before_disable`, and `frappe.custom.unhide_customizations` from `after_enable`. `bench migrate` runs `before_disable` again, so `before_disable` must give the same result each time.
 
+A disable or an enable is one transaction. If a hook fails, the site keeps the state that it had before, and nothing the hook wrote remains.
 
 #### Javascript / CSS Builds
 
