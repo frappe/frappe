@@ -719,6 +719,13 @@ class DocType(Document):
 
 			clear_controller_cache(old)
 
+	def clear_cache(self):
+		from frappe.desk.doctype.module_sidebar.module_sidebar import clear_computed_base_for
+
+		# a module with no `Module Sidebar` has its sidebar computed from doctypes like this one
+		clear_computed_base_for(self)
+		return super().clear_cache()
+
 	def after_delete(self):
 		if not self.custom:
 			clear_controller_cache(self.name)

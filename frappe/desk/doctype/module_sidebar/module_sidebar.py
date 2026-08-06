@@ -464,9 +464,12 @@ def is_workspace_manager() -> bool:
 # showed. Per-user hide deltas trim it from there.
 GENERATED_DOCTYPE_LIMIT = 15
 
+# The icon a module that has said nothing about itself gets in the dock.
+DEFAULT_HEADER_ICON = "hammer"
+
 
 def sync_module_sidebars(module: str | None = None) -> list[str]:
-	"""Give every Module Def a `Module Sidebar`, building one from the module's contents.
+	"""Give every Module Def a `Module Sidebar`, persisting the base computed from its contents.
 
 	Idempotent, and never touches a row that already exists -- so an authored sidebar, or one
 	a user has since edited, is safe. Returns the modules it created rows for.
@@ -480,13 +483,15 @@ def sync_module_sidebars(module: str | None = None) -> list[str]:
 		if module_name in existing:
 			continue
 		try:
+			# the same base boot would have computed, written down instead of resolved
+			base = build_computed_base(module_name)
 			doc = frappe.new_doc("Module Sidebar")
-			doc.module = module_name
-			doc.title = module_name
-			doc.header_icon = "hammer"
+			doc.module = base.module
+			doc.title = base.title
+			doc.header_icon = base.header_icon
 			doc.standard = 0
-			doc.app = get_module_app(module_name)
-			for item in generate_items(module_name):
+			doc.app = base.app
+			for item in base.rows:
 				doc.append("items", item)
 			doc.insert(ignore_permissions=True)
 			created.append(module_name)
@@ -577,6 +582,89 @@ def generate_items(module_name: str) -> list[dict]:
 			items.append(item)
 
 	return items
+
+
+# ---------------------------------------------------------------------------------------
+# Computed bases -- the base a module gets when no app shipped one
+# ---------------------------------------------------------------------------------------
+
+COMPUTED_BASE_CACHE_KEY = "module_sidebar_computed_base"
+
+# Exactly what `get_module_info` reads, which is what a computed base's *items* are a
+# function of. Each of these clears this cache from its own `clear_cache`, the way
+# Assignment Rule and Milestone Tracker clear theirs; the two lists have to stay in step or
+# bases go quietly stale. The base's `app` comes from the `Module Def` instead, and needs
+# nothing: editing one calls `frappe.clear_cache()`, which drops every key this site holds.
+MODULE_CONTENT_DOCTYPES = ("DocType", "Report", "Page", "Workspace", "Dashboard")
+
+
+def get_computed_base(module: str) -> frappe._dict:
+	"""The base `module` gets when no app shipped it one, built from the module's contents.
+
+	Per D4 a base has exactly two origins -- an app shipped it as JSON, or the system computed
+	it -- and only the shipped route is meant to persist a document. This is the other route,
+	and it deliberately returns a plain dict rather than inserting a row: with nothing
+	persisted there is nothing to orphan when a module or an app goes away, and an app that
+	*stops* shipping a sidebar falls back here in the same request instead of leaving its
+	module un-navigable until the next migrate. (`sync_module_sidebars` still writes a row per
+	module until that path is removed, so today this route is reached only where one is
+	missing.)
+
+	Shaped exactly like a row read by `boot.get_sidebar_bases`, item rows included, so the
+	resolution cannot tell which route a base arrived by. `home_workspace` and
+	`module_onboarding` are absent because nothing computes them; the desk already falls back
+	to the first navigable item.
+
+	Site-cached, because it is a handful of queries per module and the contents change far
+	less often than the desk boots. See `on_module_content_changed` for what busts it.
+	"""
+	return frappe.cache.hget(COMPUTED_BASE_CACHE_KEY, module, generator=lambda: build_computed_base(module))
+
+
+def build_computed_base(module: str) -> frappe._dict:
+	"""`get_computed_base` without the cache -- the thing being cached."""
+	items = [frappe._dict(item) for item in generate_items(module)]
+	assign_keys(items)
+
+	return frappe._dict(
+		{
+			# no `name`: there is no document. Whatever reads this must not need one.
+			"module": module,
+			"title": module,
+			"app": get_module_app(module),
+			"header_icon": DEFAULT_HEADER_ICON,
+			"module_onboarding": None,
+			"home_workspace": None,
+			# not `items`: `frappe._dict` inherits `dict.items()`, so that attribute is the method
+			"rows": items,
+		}
+	)
+
+
+def clear_computed_base_cache(module: str) -> None:
+	"""Drop one module's cached base. The whole hash is in `global_cache_keys`."""
+	frappe.cache.hdel(COMPUTED_BASE_CACHE_KEY, module)
+
+
+def clear_computed_base_for(doc: Document) -> None:
+	"""Bust the computed base of every module `doc` has belonged to.
+
+	Called from the `clear_cache` of each doctype in `MODULE_CONTENT_DOCTYPES`, which is the
+	one place the framework already runs on both halves of "gains or loses": a save
+	(`run_post_save_methods`) and a delete (`delete_doc`) both land here. A rename needs no
+	call at all -- `rename_doc` ends in `frappe.clear_cache()`, which drops every key this
+	site holds.
+
+	Two modules, not one: moving a document between them means one lost what the other
+	gained, and only the document's *current* module is on `doc`.
+	"""
+	modules = {doc.get("module")}
+	if previous := doc.get_doc_before_save():
+		modules.add(previous.get("module"))
+
+	for module in modules:
+		if module:
+			clear_computed_base_cache(module)
 
 
 # ---------------------------------------------------------------------------------------

@@ -188,7 +188,11 @@ class Workspace(Document, DeskViews):
 			)
 
 	def clear_cache(self):
+		from frappe.desk.doctype.module_sidebar.module_sidebar import clear_computed_base_for
+
 		super().clear_cache()
+		# a module with no `Module Sidebar` has its sidebar computed from workspaces like this one
+		clear_computed_base_for(self)
 		if self.for_user:
 			frappe.cache.hdel("bootinfo", self.for_user)
 		else:

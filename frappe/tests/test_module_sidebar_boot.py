@@ -1,31 +1,16 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
-from contextlib import contextmanager
-
 import frappe
-from frappe.boot import build_entity_module_map, get_module_sidebars, get_navigable_modules
-from frappe.desk.doctype.module_sidebar.test_module_sidebar import no_developer_mode
+from frappe.boot import (
+	build_entity_module_map,
+	get_module_sidebars,
+	get_navigable_modules,
+	get_sidebar_bases,
+)
+from frappe.desk.doctype.module_sidebar.test_module_sidebar import make_report, sidebarless_module
 from frappe.tests import IntegrationTestCase
 from frappe.utils.modules import get_visible_modules
-
-
-@contextmanager
-def sidebarless_module(name, app="frappe"):
-	"""A `Module Def` with no `Module Sidebar` -- the state a sparse-rows world produces.
-
-	`Module Def.after_insert` generates a sidebar for every new module, so getting a module
-	without one means taking that back off.
-	"""
-	with no_developer_mode():
-		frappe.get_doc({"doctype": "Module Def", "module_name": name, "app_name": app}).insert()
-	frappe.db.delete("Module Sidebar", {"module": name})
-
-	try:
-		yield name
-	finally:
-		with no_developer_mode():
-			frappe.delete_doc("Module Def", name, force=True, ignore_missing=True)
 
 
 class TestModuleSidebarBoot(IntegrationTestCase):
@@ -61,18 +46,73 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 		self.assertTrue(row_backed <= modules, f"{row_backed - modules} would be dropped by the switch")
 		self.assertTrue(set(get_module_sidebars()) <= modules)
 
-	def test_a_module_with_no_sidebar_row_is_enumerated(self):
-		"""A row-driven walk never sees a module without a row, so such a module could never be
-		given a sidebar at all. Walking modules makes it *considered* -- it merely resolves to
-		nothing today, because nothing yet hands it a base."""
-		with sidebarless_module("Test Unenumerated Module") as module:
+	def test_a_module_with_no_sidebar_document_is_still_navigable(self):
+		"""Nothing shipped this module a sidebar, so the system computes one from its contents
+		-- the other of D4's two base origins, and the one that persists nothing."""
+		with sidebarless_module("Test Computed Base Module") as module:
+			make_report(module, "Test Computed Boot Report")
+
+			self.assertIn(module, get_navigable_modules())
+			sidebar = get_module_sidebars().get(module)
+
+			self.assertIsNotNone(sidebar, "a module with no document must still resolve")
+			self.assertEqual(sidebar["label"], module)
+			self.assertEqual(sidebar["app"], "frappe")
+			self.assertIn("Test Computed Boot Report", [item["link_to"] for item in sidebar["items"]])
+
+	def test_deleting_a_sidebar_document_leaves_the_module_navigable(self):
+		"""In the same request: no migrate, no restart. This is the defect the computed base
+		dissolves -- an app that stops shipping a sidebar used to un-navigate its module."""
+		with sidebarless_module("Test Deleted Document Module") as module:
+			make_report(module, "Test Surviving Report")
+			shipped = frappe.get_doc({"doctype": "Module Sidebar", "module": module})
+			shipped.append("items", {"type": "Link", "link_type": "DocType", "link_to": "ToDo"})
+			shipped.insert(ignore_permissions=True)
+
+			before = get_module_sidebars()[module]
+			self.assertEqual([item["link_to"] for item in before["items"]], ["ToDo"])
+
+			shipped.delete(ignore_permissions=True)
+
+			after = get_module_sidebars()[module]
+			self.assertIn("Test Surviving Report", [item["link_to"] for item in after["items"]])
+
+	def test_a_shipped_document_wins_over_the_computed_base(self):
+		"""The document is the base when there is one; nothing is merged into it. An app's
+		sidebar is exactly what the app authored."""
+		with sidebarless_module("Test Shipped Document Module") as module:
+			make_report(module, "Test Uninvited Report")
+			shipped = frappe.get_doc({"doctype": "Module Sidebar", "module": module, "title": "Shipped"})
+			shipped.append("items", {"type": "Link", "link_type": "DocType", "link_to": "ToDo"})
+			shipped.insert(ignore_permissions=True)
+
+			sidebar = get_module_sidebars()[module]
+
+			self.assertEqual(sidebar["label"], "Shipped")
+			self.assertEqual([item["link_to"] for item in sidebar["items"]], ["ToDo"])
+
+	def test_a_module_that_computes_to_nothing_is_dropped(self):
+		"""A module holding no navigable content computes to an empty sidebar, and an empty
+		sidebar is dropped by the same rule that drops one of only Section Breaks."""
+		with sidebarless_module("Test Empty Computed Module") as module:
 			self.assertIn(module, get_navigable_modules())
 			self.assertNotIn(module, get_module_sidebars())
 
-	def test_a_customization_cannot_stand_in_for_a_missing_base(self):
-		"""A delta reshapes a base; it is not one. A customization whose `Module Sidebar` was
-		deleted out from under it must not conjure the module back into the payload -- the entry
-		would carry no title, no app and no home workspace, and the dock groups by app."""
+	def test_a_site_of_shipped_documents_pays_nothing_for_the_computed_route(self):
+		"""The fallback runs only for the modules the documents query did not return, so a
+		site whose modules all ship a sidebar reads exactly what it read before: the bases,
+		then their items."""
+		rowed = frappe.get_all("Module Sidebar", pluck="module", limit=5)
+		self.assertTrue(rowed, "sanity: the site has module sidebars")
+
+		with self.assertQueryCount(2):
+			get_sidebar_bases(rowed)
+
+	def test_a_customization_reshapes_a_computed_base(self):
+		"""A delta reshapes a base; it is not one. With every module now given a base, a
+		customization whose `Module Sidebar` was deleted out from under it lands on the
+		computed one -- so the entry it produces carries a title and an app like any other,
+		rather than the empty shell a baseless module would have conjured."""
 		with sidebarless_module("Test Stranded Delta Module") as module:
 			delta = frappe.get_doc(
 				{
@@ -84,7 +124,11 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 			# `on_trash` clears the cached `(module, user)` set, which a DB rollback would not
 			self.addCleanup(delta.delete, ignore_permissions=True)
 
-			self.assertNotIn(module, get_module_sidebars())
+			sidebar = get_module_sidebars()[module]
+
+			self.assertEqual(sidebar["label"], module)
+			self.assertEqual(sidebar["app"], "frappe")
+			self.assertEqual([item["link_to"] for item in sidebar["items"]], ["ToDo"])
 
 	def test_every_entry_has_the_documented_shape(self):
 		for sidebar in get_module_sidebars().values():

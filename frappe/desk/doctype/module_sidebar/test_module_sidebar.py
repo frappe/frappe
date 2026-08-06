@@ -7,10 +7,14 @@ from contextlib import contextmanager
 
 import frappe
 from frappe.desk.doctype.module_sidebar.module_sidebar import (
+	COMPUTED_BASE_CACHE_KEY,
+	MODULE_CONTENT_DOCTYPES,
 	assign_keys,
 	build_all,
 	build_module_sidebar,
+	clear_computed_base_cache,
 	derive_key,
+	get_computed_base,
 	get_module_sidebar_sources,
 	pick_primary,
 	sync_module_sidebars,
@@ -45,6 +49,46 @@ def developer_mode():
 		yield
 	finally:
 		frappe.conf.developer_mode = original
+
+
+@contextmanager
+def sidebarless_module(name, app="frappe"):
+	"""A `Module Def` with no `Module Sidebar` -- the state a sparse-rows world produces.
+
+	`Module Def.after_insert` still generates a sidebar for every new module, so getting a
+	module without one means taking that back off.
+	"""
+	with no_developer_mode():
+		frappe.get_doc({"doctype": "Module Def", "module_name": name, "app_name": app}).insert()
+	frappe.db.delete("Module Sidebar", {"module": name})
+	clear_computed_base_cache(name)
+
+	try:
+		yield name
+	finally:
+		with no_developer_mode():
+			frappe.delete_doc("Module Def", name, force=True, ignore_missing=True)
+		# redis outlives the test's DB rollback, so a base computed from fixtures that are
+		# about to vanish would leak into whatever runs next
+		clear_computed_base_cache(name)
+
+
+def make_report(module: str, name: str):
+	"""Something for a computed base to be built out of, in `module`.
+
+	A Report, not a DocType: creating a DocType issues DDL, which commits, so the fixture
+	would outlive the test's rollback and strand content on a module that no longer exists.
+	"""
+	return frappe.get_doc(
+		{
+			"doctype": "Report",
+			"report_name": name,
+			"ref_doctype": "ToDo",
+			"report_type": "Report Builder",
+			"module": module,
+			"is_standard": "No",
+		}
+	).insert(ignore_permissions=True)
 
 
 @contextmanager
@@ -492,3 +536,135 @@ class TestModuleSidebarStandard(IntegrationTestCase):
 
 			doc.mark_as_standard()
 			self.assertEqual(doc.modified, modified)
+
+
+COMPUTED_MODULE = "Test Computed Sidebar Module"
+
+
+class TestComputedSidebarBase(IntegrationTestCase):
+	"""A module nobody shipped a sidebar for is navigable anyway: the system computes its
+	base from the module's own contents and site-caches it.
+
+	Per D4 a base has exactly two origins -- shipped as an app's JSON, or computed here --
+	and only the shipped route is meant to persist a document. So this route has to hold up
+	without one: it produces the base fresh, and the cache in front of it has to fall the
+	moment the module's contents change.
+	"""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.module = self.enterContext(sidebarless_module(COMPUTED_MODULE))
+
+	def make_report(self, name):
+		return make_report(self.module, name)
+
+	def make_page(self, name):
+		return frappe.get_doc(
+			{
+				"doctype": "Page",
+				"page_name": name,
+				"title": name,
+				"module": self.module,
+				"standard": "No",
+			}
+		).insert(ignore_permissions=True)
+
+	def links(self, base):
+		return [(row.link_type, row.link_to) for row in base.rows]
+
+	def test_the_base_is_built_from_the_module_contents(self):
+		"""Nothing shipped a sidebar, so the module's own doctypes, reports and pages are the
+		navigation. Shaped like a stored base so boot cannot tell the two apart."""
+		self.make_report("Test Computed Report")
+		self.make_page("test-computed-page")
+
+		base = get_computed_base(self.module)
+
+		self.assertEqual(base.module, self.module)
+		self.assertEqual(base.title, self.module)
+		self.assertEqual(base.app, "frappe")
+		self.assertIn(("Report", "Test Computed Report"), self.links(base))
+		self.assertIn(("Page", "test-computed-page"), self.links(base))
+
+	def test_nothing_is_persisted(self):
+		"""The whole point of computing: with no row there is nothing to orphan when the
+		module or its app goes away, and nothing to leave behind stale."""
+		self.make_report("Test Unpersisted Report")
+
+		get_computed_base(self.module)
+
+		self.assertFalse(frappe.db.exists("Module Sidebar", {"module": self.module}))
+
+	def test_items_carry_keys(self):
+		"""A delta anchors on `key`, so a computed base has to be customizable on the same
+		terms as a shipped one."""
+		self.make_report("Test Keyed Report")
+
+		keys = [row.key for row in get_computed_base(self.module).rows]
+
+		self.assertTrue(all(keys))
+		self.assertEqual(len(set(keys)), len(keys))
+
+	def test_the_base_is_served_from_the_site_cache(self):
+		"""Warm boot reads redis, not the module's contents -- which is what keeps the
+		computed route affordable on a site with many sidebar-less modules."""
+		self.make_report("Test Cached Report")
+		get_computed_base(self.module)
+
+		# a fresh worker: the request-local mirror is empty, so this has to come from redis
+		frappe.local.cache.clear()
+		with self.assertQueryCount(0):
+			base = get_computed_base(self.module)
+
+		self.assertIn(("Report", "Test Cached Report"), self.links(base))
+
+	def test_a_new_report_reaches_the_navigation(self):
+		"""The cache is busted by the module gaining content, so newly created content needs no
+		migrate and no restart to show up."""
+		get_computed_base(self.module)
+
+		self.make_report("Test Late Report")
+
+		self.assertIn(("Report", "Test Late Report"), self.links(get_computed_base(self.module)))
+
+	def test_a_deleted_page_leaves_the_navigation(self):
+		page = self.make_page("test-doomed-page")
+		self.assertIn(("Page", page.name), self.links(get_computed_base(self.module)))
+
+		frappe.delete_doc("Page", page.name, force=True)
+
+		self.assertNotIn(("Page", page.name), self.links(get_computed_base(self.module)))
+
+	def test_moving_content_busts_both_modules(self):
+		"""A module loses what another gains, so an update touches two caches -- the one named
+		on the document now and the one it named before."""
+		report = self.make_report("Test Migrating Report")
+		self.assertIn(("Report", report.name), self.links(get_computed_base(self.module)))
+
+		report.module = "Core"
+		report.save(ignore_permissions=True)
+		self.addCleanup(clear_computed_base_cache, "Core")
+
+		self.assertNotIn(("Report", report.name), self.links(get_computed_base(self.module)))
+		self.assertIn(("Report", report.name), self.links(get_computed_base("Core")))
+
+	def test_every_source_of_content_busts_the_cache(self):
+		"""The invalidation set has to equal the read set. If `get_module_info` grows a source
+		whose controller does not clear this cache, that source's bases go stale silently.
+
+		Driven through `clear_cache` -- the one method the framework runs on both a save and a
+		delete -- so this covers the DocType case without creating one; see `make_report` for
+		why no test does.
+		"""
+		for doctype in MODULE_CONTENT_DOCTYPES:
+			get_computed_base(self.module)
+			self.assertIsNotNone(frappe.cache.hget(COMPUTED_BASE_CACHE_KEY, self.module))
+
+			doc = frappe.new_doc(doctype)
+			doc.module = self.module
+			doc.clear_cache()
+
+			self.assertIsNone(
+				frappe.cache.hget(COMPUTED_BASE_CACHE_KEY, self.module),
+				f"{doctype}.clear_cache() does not bust the computed sidebar base",
+			)

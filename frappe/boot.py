@@ -657,11 +657,17 @@ def get_navigable_modules() -> list[str]:
 def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:
 	"""The sidebar base for each of `modules`, keyed by module, its item rows included.
 
-	**Sparse on purpose.** A module with no `Module Sidebar` document is simply absent, and the
-	caller skips it -- which is what a row-driven walk did by never considering it at all. Rows
-	are 1:1 with `Module Def` today, so nothing is missing yet; this is the seam a base computed
-	from the module's own contents plugs into.
+	Two origins and only two, per D4: an app shipped a `Module Sidebar` document, or the system
+	computed one from the module's own contents. A module with no document is therefore not
+	baseless -- it is computed and site-cached, in the same shape, so the resolution below
+	cannot tell which route a base arrived by.
+
+	The documents come back in one query for the whole set, and the computed route costs a site
+	whose modules all ship a document nothing at all: it runs only for the modules that query
+	did not return.
 	"""
+	from frappe.desk.doctype.module_sidebar.module_sidebar import get_computed_base
+
 	bases = frappe.get_all(
 		"Module Sidebar",
 		filters={"module": ["in", modules]},
@@ -681,15 +687,21 @@ def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:
 		# not `items`: `frappe._dict` inherits `dict.items()`, so that attribute is the method
 		base.rows = items_by_sidebar.get(base.name, [])
 
-	return {base.module: base for base in bases}
+	resolved = {base.module: base for base in bases}
+	for module in modules:
+		if module not in resolved:
+			resolved[module] = get_computed_base(module)
+
+	return resolved
 
 
 def get_module_sidebars():
 	"""Build `bootinfo.module_sidebars` by resolving each of the site's modules to its sidebar.
 
 	Resolution walks **modules**, not `Module Sidebar` rows (see `get_navigable_modules`), and
-	each module's base comes from `get_sidebar_bases`. The two produce the same payload while
-	rows stay 1:1 with `Module Def`, which they are today.
+	each module's base comes from `get_sidebar_bases` -- shipped as a document, or computed
+	from the module's own contents. Every module therefore has a base; what still drops one
+	from the payload is having nothing in it the user can navigate to.
 
 	Keyed by **exact-case module name**, which is the fix for the desk's long-standing
 	keyspace problem: `app_data[].modules` is already a list of exact Module Def names, so it
@@ -715,14 +727,7 @@ def get_module_sidebars():
 	user = frappe.session.user
 	payload = {}
 	for module in modules:
-		base = bases.get(module)
-		# Nothing gives this module a sidebar, so there is nothing to customize either: a delta
-		# may only reshape a base, never stand in for one. Skipping before the deltas is what
-		# keeps a stranded `Module Sidebar Customization` -- one whose base was deleted out from
-		# under it -- from conjuring a module back into the payload with no title and no app.
-		if not base:
-			continue
-
+		base = bases[module]
 		filtered = filter_sidebar_items(base.rows, perm_ctx)
 
 		# Deltas are applied *after* the permission filter, so a customization can never

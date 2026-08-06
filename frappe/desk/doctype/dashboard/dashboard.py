@@ -33,6 +33,13 @@ class Dashboard(Document):
 		module: DF.Link | None
 	# end: auto-generated types
 
+	def clear_cache(self):
+		from frappe.desk.doctype.module_sidebar.module_sidebar import clear_computed_base_for
+
+		# a module with no `Module Sidebar` has its sidebar computed from dashboards like this one
+		clear_computed_base_for(self)
+		return super().clear_cache()
+
 	def on_update(self):
 		if self.is_default:
 			# make all other dashboards non-default
