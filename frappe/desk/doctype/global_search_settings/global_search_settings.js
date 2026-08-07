@@ -78,6 +78,10 @@ function show_configure_search_fields_dialog(doctype, frm) {
 
 frappe.ui.form.on("Global Search Settings", {
 	refresh: function (frm) {
+		frm.set_query("document_type", "allowed_in_global_search", () => {
+			return { filters: { is_virtual: 0 } };
+		});
+
 		frappe.realtime.on("global_search_settings", (data) => {
 			if (data.progress) {
 				frm.dashboard.show_progress(

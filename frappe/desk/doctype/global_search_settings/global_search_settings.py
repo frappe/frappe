@@ -25,16 +25,25 @@ class GlobalSearchSettings(Document):
 	# end: auto-generated types
 
 	def validate(self):
-		dts, core_dts, repeated_dts = [], [], []
+		dts, core_dts, virtual_dts, repeated_dts = [], [], [], []
 
 		for dt in self.allowed_in_global_search:
 			if dt.document_type in dts:
 				repeated_dts.append(dt.document_type)
 
-			if frappe.get_meta(dt.document_type).module == "Core":
+			meta = frappe.get_meta(dt.document_type)
+			if meta.module == "Core":
 				core_dts.append(dt.document_type)
+			if cint(meta.get("is_virtual")) == 1:
+				virtual_dts.append(dt.document_type)
 
 			dts.append(dt.document_type)
+
+		if virtual_dts:
+			virtual_dts = ", ".join(frappe.bold(dt) for dt in virtual_dts)
+			frappe.throw(
+				_("Virtual DocTypes {0} cannot be searched in Global Search.").format(virtual_dts)
+			)
 
 		if core_dts:
 			core_dts = ", ".join(frappe.bold(dt) for dt in core_dts)

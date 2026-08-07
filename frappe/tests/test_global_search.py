@@ -373,6 +373,29 @@ class TestGlobalSearch(IntegrationTestCase):
 
 		frappe.delete_doc("DocType", dt_name, force=True, ignore_permissions=True)
 
+	def test_settings_validate_rejects_virtual_doctype_row(self):
+		# Client-side, the picker filters is_virtual=0, but a caller could
+		# still POST an entry via /api/resource or a Server Script. Validate()
+		# must reject virtual doctypes with a clear message.
+		virtual_dt = "RQ Job"
+		self.assertEqual(frappe.get_meta(virtual_dt).is_virtual, 1)
+
+		settings = frappe.get_single("Global Search Settings")
+		# snapshot the original list so we can restore it after the test
+		original_rows = [row.document_type for row in settings.allowed_in_global_search]
+
+		try:
+			settings.append("allowed_in_global_search", {"document_type": virtual_dt})
+			with self.assertRaises(frappe.ValidationError):
+				settings.save(ignore_permissions=True)
+		finally:
+			# Restore the original list — remove the doctype we appended.
+			settings.reload()
+			settings.allowed_in_global_search = []
+			for dt in original_rows:
+				settings.append("allowed_in_global_search", {"document_type": dt})
+			settings.save(ignore_permissions=True)
+
 	def test_settings_ui_excludes_virtual_doctypes(self):
 		from frappe.desk.doctype.global_search_settings.global_search_settings import (
 			get_global_search_field_options,
