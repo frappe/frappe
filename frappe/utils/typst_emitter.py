@@ -241,8 +241,18 @@ def ensure_typst_fonts(family: str | None):
 
 def q(value) -> str:
 	"""A Typst string literal — every doc value crosses as a quoted string, so
-	document content can never be interpreted as Typst markup."""
-	return json.dumps(str(value if value is not None else ""))
+	document content can never be interpreted as Typst markup. ensure_ascii stays
+	off because Typst reads \\uXXXX as literal text, not an escape."""
+	return json.dumps(str(value if value is not None else ""), ensure_ascii=False)
+
+
+COLOR_PATTERN = re.compile(r"^#[0-9a-fA-F]{3,8}$")
+
+
+def safe_color(value, default=None):
+	if isinstance(value, str) and COLOR_PATTERN.fullmatch(value.strip()):
+		return value.strip()
+	return default
 
 
 def _text_value(html_ish: str) -> str:
@@ -403,8 +413,9 @@ class TypstEmitter:
 			pad = frappe.utils.flt(section.get("cell_padding"), 0) or 8
 			args.append(f"inset: {round(pad * PX_TO_PT, 2)}pt")
 			args.append("clip: true")
-		if section.get("background"):
-			args.append(f'fill: rgb("{section["background"]}")')
+		background = safe_color(section.get("background"))
+		if background:
+			args.append(f'fill: rgb("{background}")')
 		padding = section.get("padding") or {}
 		if padding and not section.get("field_borders"):
 			args.append(
@@ -572,8 +583,8 @@ class TypstEmitter:
 		show_label = df.get("show_label") or "show"
 		inline = show_label == "inline" or section.get("field_orientation") == "left-right"
 
-		label_color = df.get("label_color") or pf.get("label_color") or "#6b7280"
-		value_color = df.get("value_color")
+		label_color = safe_color(df.get("label_color")) or safe_color(pf.get("label_color")) or "#6b7280"
+		value_color = safe_color(df.get("value_color"))
 		label = ""
 		if show_label != "hide" and df.get("label"):
 			label = f'#text(size: 0.85em, fill: rgb("{label_color}"), {q(_(df["label"]))})'
@@ -774,7 +785,7 @@ class TypstEmitter:
 
 		bordered = df.get("table_bordered")
 		stroke = '0.6pt + rgb("#e5e7eb")' if bordered is None or bordered else "none"
-		header_bg = df.get("table_header_bg") or "#f3f4f6"
+		header_bg = safe_color(df.get("table_header_bg")) or "#f3f4f6"
 		show_header = df.get("table_header") is None or df.get("table_header")
 
 		parts = [

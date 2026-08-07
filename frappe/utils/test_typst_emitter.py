@@ -220,6 +220,25 @@ class TestTypstTranslation(IntegrationTestCase):
 		self.assertTrue(literal.startswith('"') and literal.endswith('"'))
 		self.assertEqual(json.loads(literal), hostile)
 
+	def test_unicode_crosses_as_raw_text(self):
+		"""Typst reads \\uXXXX as literal text, so escaped unicode prints as
+		gibberish — non-ASCII must cross unescaped."""
+		value = "café ₹1,000 日本語"
+		literal = q(value)
+		self.assertIn("café", literal)
+		self.assertNotIn("\\u", literal)
+		self.assertEqual(json.loads(literal), value)
+
+	def test_hostile_colors_are_dropped(self):
+		from frappe.utils.typst_emitter import safe_color
+
+		self.assertEqual(safe_color("#ff0000"), "#ff0000")
+		self.assertEqual(safe_color(" #ABC "), "#ABC")
+		for hostile in ('") #eval', "red; fill: black", 'x" + sys.inputs', "", None, 12):
+			with self.subTest(color=hostile):
+				self.assertIsNone(safe_color(hostile))
+		self.assertEqual(safe_color("bogus", "#6b7280"), "#6b7280")
+
 	def test_translate_known_properties(self):
 		effects, unknown = translate_custom_style(
 			"font-weight: bold;\nborder-bottom: 1px solid #e5e7eb;\npadding-bottom: 10px;"
