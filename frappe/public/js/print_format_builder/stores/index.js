@@ -1,6 +1,5 @@
 import { clone_plain, create_default_layout, serialize_layout } from "../utils";
 import { useLayoutHistory } from "./useLayoutHistory";
-import { usePresets } from "../composables/usePresets";
 import { usePreviewDoc } from "../composables/usePreviewDoc";
 import { useSelection } from "../composables/useSelection";
 import { useLayoutMutations } from "../composables/useLayoutMutations";
@@ -20,12 +19,9 @@ export function getStore(print_format_name) {
 	let scroll_target = ref(null);
 	let hovered_field = ref(null);
 	let hovered_section = ref(null);
-	let hovered_column = ref(null);
 	// the innermost hovered thing wins, so hovering a field doesn't also light up
 	// its column and section — one rule, shared by the canvas and the Layers tree
-	let hovered_node = computed(
-		() => hovered_field.value || hovered_column.value || hovered_section.value
-	);
+	let hovered_node = computed(() => hovered_field.value || hovered_section.value);
 	const selection = useSelection();
 	const {
 		selected_field,
@@ -106,6 +102,12 @@ export function getStore(print_format_name) {
 				frappe.model.with_doctype(_print_format.doc_type, () => {
 					meta.value = frappe.get_meta(_print_format.doc_type);
 					print_format.value = _print_format;
+					// the builder edits the draft; what prints stays on the format itself
+					// parse_json hands back the raw string when it can't parse
+					const parsed = frappe.utils.parse_json(_print_format.draft_data);
+					const draft = parsed && typeof parsed === "object" ? parsed : null;
+					has_draft.value = !!draft;
+					if (draft) Object.assign(print_format.value, draft);
 					const saved_layout = get_layout();
 					needs_setup.value = !saved_layout;
 					const is_classic = Array.isArray(saved_layout);
@@ -200,20 +202,36 @@ export function getStore(print_format_name) {
 	// count, not a flag — autosave and a manual save can overlap
 	let saving_count = ref(0);
 	let save_failed = ref(false);
+	let has_draft = ref(false);
 	let save_status = computed(() =>
-		save_failed.value ? "failed" : saving_count.value > 0 ? "saving" : "saved"
+		save_failed.value
+			? "failed"
+			: saving_count.value > 0
+			? "saving"
+			: has_draft.value
+			? "draft"
+			: "saved"
 	);
+	// bumped by every apply/discard so a reply from an autosave that was already in
+	// flight can't put the draft back after it was cleared
+	let draft_epoch = 0;
 	function save_changes() {
-		frappe.dom.freeze(__("Saving…"));
+		frappe.dom.freeze(__("Applying…"));
 		saving_count.value++;
+		draft_epoch++;
+		applying = true;
 
-		serialize_layout(layout.value);
-		print_format.value.format_data = JSON.stringify(layout.value);
-
-		frappe
-			.call("frappe.client.save", {
-				doc: print_format.value,
-			})
+		// an autosave already in flight will move `modified` on; wait it out so this
+		// explicit save reads the fresh stamp instead of being rejected as stale
+		Promise.resolve(autosave_promise)
+			.catch(() => {})
+			.then(() =>
+				frappe.call("frappe.printing.doctype.print_format.print_format.apply_draft", {
+					name: print_format_name,
+					data: get_preview_format_doc(),
+					modified: print_format.value.modified,
+				})
+			)
 			.then(() => {
 				if (letterhead.value && letterhead.value._dirty) {
 					return frappe
@@ -227,33 +245,76 @@ export function getStore(print_format_name) {
 			.then(() => {
 				autosave_stopped = false;
 				save_failed.value = false;
-				frappe.show_alert({ message: __("Saved"), indicator: "green" });
+				frappe.show_alert({ message: __("Applied"), indicator: "green" });
 			})
 			.catch(() => (save_failed.value = true))
-			.always(() => {
+			.finally(() => {
+				applying = false;
 				saving_count.value--;
+				frappe.dom.unfreeze();
+			});
+	}
+	function discard_draft() {
+		// freeze like save_changes does — an edit made while the round trip runs
+		// would be silently erased when fetch() replaces the layout
+		frappe.dom.freeze(__("Discarding…"));
+		draft_epoch++;
+		applying = true;
+		return Promise.resolve(autosave_promise)
+			.catch(() => {})
+			.then(() =>
+				frappe.call("frappe.printing.doctype.print_format.print_format.discard_draft", {
+					name: print_format_name,
+					modified: print_format.value.modified,
+				})
+			)
+			.then(() => fetch())
+			.then(() => {
+				// discarding is a deliberate reset, so it re-arms autosave the same
+				// way an apply does — otherwise edits after a failure stay in memory
+				autosave_stopped = false;
+				save_failed.value = false;
+				frappe.show_alert({ message: __("Draft discarded"), indicator: "green" });
+			})
+			.finally(() => {
+				applying = false;
 				frappe.dom.unfreeze();
 			});
 	}
 	// stops after a failure so the error dialog doesn't loop; a manual save re-arms it
 	let autosave_stopped = false;
+	// one autosave at a time — a second would carry the same `modified` as the one
+	// still in flight and be rejected as stale. An apply/discard moves the timestamp
+	// too, so a queued autosave waits for it rather than firing against the old one.
+	let autosave_inflight = false;
+	// the in-flight autosave, so an explicit save can wait for it to settle
+	let autosave_promise = null;
+	let applying = false;
 	function autosave_changes() {
 		if (!dirty.value || autosave_stopped) return;
-		if (document.body.classList.contains("pfb-dragging")) {
+		if (applying || autosave_inflight || document.body.classList.contains("pfb-dragging")) {
 			autosave();
 			return;
 		}
+		autosave_inflight = true;
 		dirty.value = false;
 		saving_count.value++;
-		frappe
+		const epoch = draft_epoch;
+		autosave_promise = frappe
 			.call({
-				method: "frappe.client.save",
-				args: { doc: get_preview_format_doc() },
+				method: "frappe.printing.doctype.print_format.print_format.save_draft",
+				args: {
+					name: print_format_name,
+					data: get_preview_format_doc(),
+					modified: print_format.value.modified,
+				},
 			})
 			.then((r) => {
 				// sync only the stamp — the user may have kept editing mid-request
 				const was_dirty = dirty.value;
-				print_format.value.modified = r.message.modified;
+				print_format.value.modified = r.message;
+				if (epoch !== draft_epoch) return;
+				has_draft.value = true;
 				if (!was_dirty) nextTick(() => (dirty.value = false));
 				if (letterhead.value && letterhead.value._dirty) {
 					return frappe
@@ -266,11 +327,16 @@ export function getStore(print_format_name) {
 			})
 			.then(() => (save_failed.value = false))
 			.catch(() => {
+				// an apply landed first and moved the timestamp on — not a failure
+				if (epoch !== draft_epoch) return;
 				autosave_stopped = true;
 				dirty.value = true;
 				save_failed.value = true;
 			})
-			.always(() => saving_count.value--);
+			.always(() => {
+				autosave_inflight = false;
+				saving_count.value--;
+			});
 	}
 	const autosave = frappe.utils.debounce(autosave_changes, 3000);
 	function get_preview_format_doc() {
@@ -342,8 +408,6 @@ export function getStore(print_format_name) {
 	);
 	watch(dirty, (v) => v && autosave());
 
-	const { style_presets, save_style_preset, apply_style_preset, delete_style_preset } =
-		usePresets(print_format);
 	const { clipboard, copy_field, copy_section, copy_selection, paste_clipboard } = useClipboard({
 		selection,
 		layout,
@@ -367,7 +431,6 @@ export function getStore(print_format_name) {
 		scroll_target,
 		hovered_field,
 		hovered_section,
-		hovered_column,
 		hovered_node,
 		selected_field,
 		selected_fields,
@@ -388,6 +451,8 @@ export function getStore(print_format_name) {
 		fetch,
 		save_changes,
 		save_status,
+		has_draft,
+		discard_draft,
 		get_preview_format_doc,
 		select_field,
 		set_selected,
@@ -409,10 +474,6 @@ export function getStore(print_format_name) {
 		duplicate_section,
 		duplicate_selection,
 		move_selection,
-		style_presets,
-		save_style_preset,
-		apply_style_preset,
-		delete_style_preset,
 		snippets,
 		save_snippet,
 		insert_snippet,
