@@ -424,8 +424,11 @@ class PrintFormatGenerator:
 		with tempfile.TemporaryDirectory() as tmp:
 
 			def write(name, content, mode="w"):
+				# names are emitter-generated constants inside a fresh tempdir
 				path = os.path.join(tmp, name)
-				with open(path, mode) as f:
+				with open(
+					path, mode
+				) as f:  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 					f.write(content)
 				return path
 

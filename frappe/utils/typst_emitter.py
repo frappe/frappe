@@ -27,9 +27,10 @@ PX_TO_PT = 0.75
 EMITTED_FIELDTYPES = frozenset({"Divider", "Spacer", "Table"})
 
 #: field types that disqualify a format — each with the reason shown to the user
+# translated at use, not import — a module-level _() would pin the first site's language
 BLOCKER_FIELDTYPES = {
-	"HTML": _("Custom HTML block"),
-	"Field Template": _("Field Template (Jinja HTML)"),
+	"HTML": "Custom HTML block",
+	"Field Template": "Field Template (Jinja HTML)",
 }
 
 PAGE_NUMBER_POSITIONS = {
@@ -134,8 +135,9 @@ def typst_blockers(print_format, layout) -> list[str]:
 				if key not in seen:
 					seen.add(key)
 					blockers.append(_("Untranslatable CSS on {0}: {1}").format(where, ", ".join(unknown)))
+		fieldtype_reason = BLOCKER_FIELDTYPES.get(node.get("fieldtype"))
 		reason = (
-			BLOCKER_FIELDTYPES.get(node.get("fieldtype"))
+			(_(fieldtype_reason) if fieldtype_reason else None)
 			or _barcode_blocker(node, print_format)
 			or _image_blocker(node)
 		)
@@ -203,8 +205,11 @@ def ensure_typst_fonts(family: str | None):
 
 	if not family or family == "Default":
 		return
+	safe_family = re.sub(r"[^A-Za-z0-9 _-]", "", family).replace(" ", "_")
+	if not safe_family:
+		return
 	root = frappe.get_site_path("private", "files", "typst_fonts")
-	target = os.path.join(root, family.replace(" ", "_"))
+	target = os.path.join(root, safe_family)
 	if os.path.isdir(target) and os.listdir(target):
 		return
 	try:
@@ -226,7 +231,10 @@ def ensure_typst_fonts(family: str | None):
 		os.makedirs(target, exist_ok=True)
 		for weight, url in urls:
 			ttf = requests.get(url, timeout=10).content
-			with open(os.path.join(target, f"{family.replace(' ', '_')}-{weight}.ttf"), "wb") as f:
+			# safe_family is allowlist-sanitized above; the path cannot leave the cache dir
+			with open(
+				os.path.join(target, f"{safe_family}-{weight}.ttf"), "wb"
+			) as f:  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 				f.write(ttf)
 	except Exception:
 		frappe.log_error(title=f"Typst font fetch failed: {family}")
@@ -628,7 +636,10 @@ class TypstEmitter:
 		if not path.startswith(root + os.sep):
 			return None
 		try:
-			with open(path, "rb") as f:
+			# audited: realpath containment above, File permission for private paths
+			with open(
+				path, "rb"
+			) as f:  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 				return f.read()
 		except OSError:
 			return None
