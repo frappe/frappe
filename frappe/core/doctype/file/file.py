@@ -16,13 +16,15 @@ import frappe
 from frappe import _
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.exceptions import DoesNotExistError
+from frappe.model.db_query import requires_owner_constraint
 from frappe.model.document import Document
-from frappe.permissions import SYSTEM_USER_ROLE, get_doctypes_with_read
+from frappe.permissions import SYSTEM_USER_ROLE, get_doctypes_with_read, get_role_permissions
 from frappe.utils import (
 	call_hook_method,
 	cint,
 	get_files_path,
 	get_hook_method,
+	get_table_name,
 	get_url,
 )
 from frappe.utils.file_manager import is_safe_path
@@ -1067,12 +1069,45 @@ def get_permission_query_conditions(user: str | None = None) -> str:
 	if SYSTEM_USER_ROLE not in frappe.get_roles(user):
 		return f""" `tabFile`.`owner` = {frappe.db.escape(user)} """
 
-	readable_doctypes = ", ".join(repr(dt) for dt in get_doctypes_with_read())
-	return f"""
-		(`tabFile`.`is_private` = 0)
-		OR (`tabFile`.`attached_to_doctype` IS NULL AND `tabFile`.`owner` = {frappe.db.escape(user)})
-		OR (`tabFile`.`attached_to_doctype` IN ({readable_doctypes}))
-	"""
+	openly_readable_doctypes, owner_restricted_doctypes = _split_doctypes_by_owner_constraint(
+		get_doctypes_with_read(user), user
+	)
+
+	conditions = [
+		"(`tabFile`.`is_private` = 0)",
+		f"(`tabFile`.`attached_to_doctype` IS NULL AND `tabFile`.`owner` = {frappe.db.escape(user)})",
+	]
+
+	if openly_readable_doctypes:
+		readable_doctypes = ", ".join(repr(dt) for dt in openly_readable_doctypes)
+		conditions.append(f"(`tabFile`.`attached_to_doctype` IN ({readable_doctypes}))")
+
+	# these doctypes only grant "read" to their owner (if_owner), so a File attached to one
+	# of them may only be listed if the requesting user also owns the referenced document
+	for doctype in owner_restricted_doctypes:
+		table = get_table_name(doctype, wrap_in_backticks=True)
+		conditions.append(
+			f"""(`tabFile`.`attached_to_doctype` = {frappe.db.escape(doctype)}
+				AND EXISTS (
+					SELECT 1 FROM {table}
+					WHERE {table}.`name` = `tabFile`.`attached_to_name`
+					AND {table}.`owner` = {frappe.db.escape(user)}
+				))"""
+		)
+
+	return "(" + " OR ".join(conditions) + ")"
+
+
+def _split_doctypes_by_owner_constraint(doctypes, user):
+	"""Split doctypes into those the user can read unconditionally vs. only as owner ("if_owner")."""
+	openly_readable, owner_restricted = [], []
+	for doctype in doctypes:
+		role_permissions = get_role_permissions(doctype, user=user)
+		if requires_owner_constraint(role_permissions):
+			owner_restricted.append(doctype)
+		else:
+			openly_readable.append(doctype)
+	return openly_readable, owner_restricted
 
 
 # Note: kept at the end to not cause circular, partial imports & maintain backwards compatibility
