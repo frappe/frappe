@@ -408,10 +408,19 @@ def _get_deduped_search_item_values(items):
 	return values_dict.values()
 
 
+def _is_virtual_doctype(doctype: str) -> bool:
+	from frappe.model.utils import is_virtual_doctype
+
+	try:
+		return bool(is_virtual_doctype(doctype))
+	except frappe.DoesNotExistError:
+		return False
+
+
 def sync_values(values: list):
 	from pypika.terms import Values
 
-	values = [v for v in values if cint(frappe.get_meta(v[0]).get("is_virtual")) != 1]
+	values = [v for v in values if not _is_virtual_doctype(v[0])]
 	if not values:
 		return
 
@@ -450,7 +459,7 @@ def sync_value(value: dict):
 	:param value: dict of { doctype, name, content, published, title, route }
 	"""
 
-	if cint(frappe.get_meta(value["doctype"]).get("is_virtual")) == 1:
+	if _is_virtual_doctype(value["doctype"]):
 		return
 
 	frappe.db.multisql(
