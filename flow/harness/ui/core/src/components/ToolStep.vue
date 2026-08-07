@@ -1,0 +1,158 @@
+<template>
+	<div>
+		<component
+			:is="expandable ? 'button' : 'div'"
+			class="flex w-full items-baseline gap-2.5 px-3 py-2 text-left"
+			:class="expandable ? 'cursor-pointer hover:bg-surface-gray-2' : ''"
+			@click="expandable && (open = !open)"
+		>
+			<span class="flex-none text-xs font-medium text-ink-gray-9">{{ label }}</span>
+			<span
+				class="min-w-0 flex-1 truncate text-xs text-ink-gray-5"
+				:class="step.call.name === 'bash' ? 'font-mono text-2xs' : ''"
+			>{{ subject }}</span>
+			<!-- edits get a Codex-style colored diffstat; everything else the plain stat -->
+			<span v-if="diffStat" class="flex-none font-mono text-2xs">
+				<span class="text-ink-green-3">+{{ diffStat.added }}</span>
+				<span class="ml-1 text-ink-red-3">-{{ diffStat.removed }}</span>
+			</span>
+			<span v-else class="flex-none text-2xs" :class="statClass">{{ stat }}</span>
+			<FeatherIcon
+				v-if="expandable"
+				name="chevron-right"
+				class="h-[13px] w-[13px] flex-none self-center text-ink-gray-4 transition-transform"
+				:class="open ? 'rotate-90' : ''"
+			/>
+		</component>
+
+		<div v-if="open && expandable" ref="panelEl" class="border-t border-outline-gray-1 bg-surface-white">
+			<!-- a call the user denied, cancelled, or redirected -->
+			<div v-if="decision" class="px-3 py-2.5">
+				<div class="text-2xs font-medium" :class="statClass">{{ decisionTitle }}</div>
+				<div v-if="decision.user_feedback" class="mt-1 text-2xs leading-relaxed text-ink-gray-6">
+					“{{ decision.user_feedback }}”
+				</div>
+			</div>
+
+			<template v-else>
+				<div class="flex items-center gap-2 border-b border-outline-gray-1 px-3 py-1.5">
+					<span class="min-w-0 flex-1 truncate text-2xs text-ink-gray-4">{{ panelNote }}</span>
+					<span v-if="duration" class="flex-none font-mono text-2xs text-ink-gray-5">{{ duration }}</span>
+					<span
+						v-if="exitChip"
+						class="flex-none rounded px-1.5 py-px font-mono text-2xs font-medium"
+						:class="failed ? 'bg-surface-red-1 text-ink-red-3' : 'bg-surface-green-1 text-ink-green-3'"
+					>{{ exitChip }}</span>
+					<CopyButton
+						:text="diffLines ? details.diff : output"
+						class="grid h-5 w-5 flex-none place-items-center rounded text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+					/>
+				</div>
+				<pre
+					v-if="diffLines"
+					class="m-0 max-h-[260px] overflow-auto py-2 font-mono text-2xs leading-[1.7]"
+				><span
+					v-for="(line, i) in diffLines"
+					:key="i"
+					class="block px-3.5"
+					:class="lineClass(line)"
+				>{{ line }}</span></pre>
+				<pre
+					v-else
+					class="m-0 max-h-[200px] overflow-auto whitespace-pre px-3 py-2 font-mono text-2xs leading-[1.65] text-ink-gray-6"
+				>{{ output }}</pre>
+			</template>
+		</div>
+	</div>
+</template>
+
+<script setup>
+import { computed, nextTick, ref, watch } from "vue"
+import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+
+import { stepDecision, stepLabel, stepStat, stepSubject } from "../transcript.js"
+import CopyButton from "./CopyButton.vue"
+
+const props = defineProps({ step: { type: Object, required: true } })
+
+const open = ref(false)
+const panelEl = ref(null)
+
+// an expansion near the viewport bottom scrolls itself clear of the composer
+// (the scroller's scroll-padding accounts for the floating card)
+watch(open, (value) => {
+	if (value) nextTick(() => panelEl.value?.scrollIntoView({ block: "nearest", behavior: "smooth" }))
+})
+
+const label = computed(() => stepLabel(props.step.call.name))
+const subject = computed(() => stepSubject(props.step.call))
+const failed = computed(() => props.step.result?.is_error === true)
+const details = computed(() => props.step.result?.details ?? {})
+const output = computed(() => props.step.result?.content ?? "")
+
+const decision = computed(() => stepDecision(props.step.result))
+const decisionTitle = computed(
+	() =>
+		({
+			denied: "Denied by user",
+			cancelled: "Cancelled by user",
+			redirect: "User asked for changes",
+		})[decision.value?.status] ?? "",
+)
+
+const stat = computed(() => {
+	if (props.step.aborted && !props.step.result) return "aborted"
+	return stepStat(props.step)
+})
+const statClass = computed(() => {
+	if (decision.value) return decision.value.status === "redirect" ? "text-ink-amber-3" : "text-ink-red-3"
+	return failed.value ? "text-ink-red-3" : "text-ink-gray-4"
+})
+
+const diffLines = computed(() =>
+	typeof details.value.diff === "string" && details.value.diff ? details.value.diff.split("\n") : null,
+)
+
+// lines added/removed, from the server's authoritative count (absent on old
+// rows and on decision envelopes, which have no details)
+const diffStat = computed(() => {
+	const d = details.value
+	if (d.lines_added === undefined && d.lines_removed === undefined) return null
+	return { added: d.lines_added ?? 0, removed: d.lines_removed ?? 0 }
+})
+
+// dumping file contents inline is noise; expand only where the payload is the
+// point (command output, search hits, diffs) or the user intervened
+const expandable = computed(() => {
+	if (!props.step.result) return false
+	if (decision.value) return true
+	if (diffLines.value) return true
+	return ["bash", "grep"].includes(props.step.call.name) && !!output.value
+})
+
+const duration = computed(() =>
+	details.value.duration_seconds != null ? `${details.value.duration_seconds.toFixed(2)}s` : "",
+)
+const exitChip = computed(() =>
+	details.value.exit_code != null ? `exit ${details.value.exit_code}` : "",
+)
+const panelNote = computed(() => {
+	if (diffLines.value) {
+		const n = details.value.edits
+		return n != null ? `${n} edit${n === 1 ? "" : "s"}` : "diff"
+	}
+	const parts = []
+	if (details.value.total_lines != null) parts.push(`${details.value.total_lines} lines`)
+	if (details.value.matches != null) parts.push(`${details.value.matches} matches`)
+	if (details.value.truncation?.truncated) parts.push("truncated")
+	if (details.value.full_output_path) parts.push(`full output: ${details.value.full_output_path}`)
+	return parts.join(" · ") || "output"
+})
+
+function lineClass(line) {
+	if (line.startsWith("+")) return "bg-surface-green-1 text-ink-green-3"
+	if (line.startsWith("-")) return "bg-surface-red-1 text-ink-red-3"
+	if (line.startsWith("@@")) return "text-ink-gray-4"
+	return "text-ink-gray-6"
+}
+</script>

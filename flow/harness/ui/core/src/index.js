@@ -1,0 +1,36 @@
+export { DaemonClient, EventStream, FlowAPIError } from "./client.js"
+export { createFlowStore } from "./store.js"
+export {
+	EFFORTS,
+	EFFORT_LABELS,
+	applyEvent,
+	buildItems,
+	conversationTitle,
+	formatTokens,
+	initialConversation,
+	stepDecision,
+	stepLabel,
+	stepStat,
+	stepSubject,
+} from "./transcript.js"
+export { renderMarkdown } from "./markdown.js"
+
+export { default as FlowChat } from "./components/FlowChat.vue"
+export { default as SessionSidebar } from "./components/SessionSidebar.vue"
+export { default as ChatHeader } from "./components/ChatHeader.vue"
+export { default as MessageList } from "./components/MessageList.vue"
+export { default as Composer } from "./components/Composer.vue"
+export { default as ApprovalCard } from "./components/ApprovalCard.vue"
+export { default as ToolGroup } from "./components/ToolGroup.vue"
+export { default as ToolStep } from "./components/ToolStep.vue"
+export { default as UserBubble } from "./components/UserBubble.vue"
+export { default as AssistantText } from "./components/AssistantText.vue"
+export { default as ThinkingBlock } from "./components/ThinkingBlock.vue"
+export { default as PalettePanel } from "./components/PalettePanel.vue"
+export { default as PaletteSearch } from "./components/PaletteSearch.vue"
+export { default as ModelPalette } from "./components/ModelPalette.vue"
+export { default as ThinkingPalette } from "./components/ThinkingPalette.vue"
+export { default as ProvidersDialog } from "./components/ProvidersDialog.vue"
+export { default as ProviderIcon } from "./components/ProviderIcon.vue"
+export { default as BrandMark } from "./components/BrandMark.vue"
+export { default as CopyButton } from "./components/CopyButton.vue"

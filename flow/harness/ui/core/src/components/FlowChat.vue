@@ -1,0 +1,99 @@
+<template>
+	<div class="flex h-full min-h-0 overflow-hidden bg-surface-white text-base text-ink-gray-8">
+		<SessionSidebar :open="sidebarOpen" @close="store.setSidebarOpen(false)" />
+		<main class="relative flex min-w-0 flex-1 flex-col bg-surface-white">
+			<ChatHeader :sidebar-open="sidebarOpen" @open-sidebar="store.setSidebarOpen(true)" />
+			<MessageList ref="list" />
+			<Composer ref="composer" />
+		</main>
+
+		<!-- host for frappe-ui's imperative dialog.* stack (confirm/danger/prompt) -->
+		<Dialogs />
+
+		<Transition name="flow-toast">
+			<div
+				v-if="toast"
+				class="fixed bottom-5 right-5 z-50 flex max-w-[360px] items-start gap-2 rounded-lg border border-outline-gray-2 bg-surface-white px-3.5 py-2.5 shadow-md"
+			>
+				<FeatherIcon
+					:name="toast.kind === 'error' ? 'alert-circle' : 'info'"
+					class="mt-px h-3.5 w-3.5 flex-none"
+					:class="toast.kind === 'error' ? 'text-ink-red-3' : 'text-ink-gray-5'"
+				/>
+				<span class="min-w-0 text-xs leading-relaxed text-ink-gray-8">{{ toast.message }}</span>
+			</div>
+		</Transition>
+	</div>
+</template>
+
+<script setup>
+import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from "vue"
+import Dialogs from "frappe-ui/src/components/Dialogs.vue"
+import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+
+import ChatHeader from "./ChatHeader.vue"
+import Composer from "./Composer.vue"
+import MessageList from "./MessageList.vue"
+import SessionSidebar from "./SessionSidebar.vue"
+
+const props = defineProps({
+	store: { type: Object, required: true },
+})
+
+provide("flow", props.store)
+
+const sidebarOpen = computed(() => props.store.state.prefs.sidebarOpen !== false)
+const composer = ref(null)
+
+// the composer floats over the list; the list pads by its measured height so
+// the last message is never hidden under it
+const composerHeight = ref(120)
+provide("composerHeight", composerHeight)
+let resizeObserver = null
+onMounted(() => {
+	const el = composer.value?.$el
+	if (!el || typeof ResizeObserver === "undefined") return
+	resizeObserver = new ResizeObserver(() => (composerHeight.value = el.offsetHeight))
+	resizeObserver.observe(el)
+})
+onBeforeUnmount(() => resizeObserver?.disconnect())
+
+const toast = ref(null)
+let toastTimer = null
+watch(
+	() => props.store.state.toast,
+	(t) => {
+		if (!t) return
+		toast.value = t
+		clearTimeout(toastTimer)
+		toastTimer = setTimeout(() => (toast.value = null), 4000)
+	},
+)
+
+onMounted(async () => {
+	props.store.refreshModels()
+	document.documentElement.setAttribute("data-theme", props.store.state.prefs.theme)
+	await props.store.refreshSessions()
+	// a refresh mid-session returns to that session, not to a blank chat
+	const last = props.store.state.prefs.lastSession
+	if (last && !props.store.state.sessionId && props.store.state.sessions.some((s) => s.session_id === last)) {
+		props.store.openSession(last)
+	}
+})
+
+onBeforeUnmount(() => props.store.detach())
+</script>
+
+<style scoped>
+.flow-toast-enter-active,
+.flow-toast-leave-active {
+	transition:
+		opacity 0.15s ease,
+		transform 0.15s ease;
+}
+.flow-toast-enter-from,
+.flow-toast-leave-to {
+	opacity: 0;
+	transform: translateY(6px);
+}
+</style>

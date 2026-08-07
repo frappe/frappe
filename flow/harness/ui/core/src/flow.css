@@ -1,0 +1,224 @@
+/* Shared utility classes for @flow/ui-core components. Import once from the
+   consuming app, after Tailwind's layers. Colors come exclusively from
+   frappe-ui's themed CSS variables so dark mode follows [data-theme]. */
+
+.flow-icon-btn {
+	display: grid;
+	place-items: center;
+	width: 28px;
+	height: 28px;
+	flex: none;
+	border: 0;
+	background: transparent;
+	border-radius: 6px;
+	cursor: pointer;
+	color: var(--ink-gray-7);
+}
+.flow-icon-btn:hover {
+	background: var(--surface-gray-2);
+	color: var(--ink-gray-9);
+}
+
+.flow-btn-primary,
+.flow-btn-secondary,
+.flow-btn-ghost {
+	flex: none;
+	height: 30px;
+	border-radius: 7px;
+	cursor: pointer;
+	font-size: 13px;
+	font-weight: 500;
+	border: 0;
+}
+.flow-btn-primary {
+	padding: 0 15px;
+	background: var(--surface-gray-7);
+	color: var(--ink-white);
+	box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
+}
+.flow-btn-primary:hover {
+	opacity: 0.88;
+}
+.flow-btn-secondary {
+	padding: 0 13px;
+	border: 1px solid var(--outline-gray-2);
+	background: var(--surface-white);
+	color: var(--ink-gray-7);
+}
+.flow-btn-secondary:hover {
+	background: var(--surface-gray-2);
+	color: var(--ink-gray-9);
+}
+.flow-btn-ghost {
+	padding: 0 10px;
+	background: transparent;
+	color: var(--ink-gray-6);
+}
+.flow-btn-ghost:hover {
+	background: var(--surface-gray-2);
+	color: var(--ink-gray-9);
+}
+
+/* frappe-ui's dialog overlay ships without a z-index; lift it above the app's
+   layered chrome (composer z-10, sidebar z-30) so the backdrop dims everything */
+.dialog-overlay {
+	z-index: 40;
+}
+
+/* the per-turn copy row reveals when hovering the turn's last item (its
+   previous sibling), itself, or via keyboard focus — same feel as the user
+   bubble's hover copy. Scoped to the thread's direct children: a bare
+   `*:hover` selector forces hover checks across the whole document. */
+.flow-turn-copy {
+	opacity: 0;
+	transition: opacity 0.12s ease;
+}
+.flow-thread > :hover + .flow-turn-copy,
+.flow-turn-copy:hover,
+.flow-turn-copy:focus-within {
+	opacity: 1;
+}
+
+/* streaming */
+@keyframes flow-shimmer {
+	to {
+		background-position: -200% 0;
+	}
+}
+.flow-shimmer {
+	background: linear-gradient(
+		90deg,
+		var(--ink-gray-4) 0%,
+		var(--ink-gray-4) 35%,
+		var(--ink-gray-8) 50%,
+		var(--ink-gray-4) 65%,
+		var(--ink-gray-4) 100%
+	);
+	background-size: 200% 100%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	animation: flow-shimmer 1.6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+	.flow-shimmer {
+		animation: none;
+		color: var(--ink-gray-5);
+		background: none;
+	}
+}
+
+/* Message body copy. The UI type scale (letter-spacing .02em, weight 420) is
+   tuned for chrome — labels and buttons — and reads loose and thin at
+   paragraph length, so prose gets its own metrics. */
+.flow-prose {
+	font-size: 16px;
+	line-height: 1.72;
+	font-weight: 400;
+	letter-spacing: -0.003em;
+}
+
+/* rendered markdown */
+.flow-md > :first-child {
+	margin-top: 0;
+}
+.flow-md > :last-child {
+	margin-bottom: 0;
+}
+.flow-md p {
+	margin: 0.85em 0;
+}
+.flow-md h1,
+.flow-md h2,
+.flow-md h3,
+.flow-md h4 {
+	margin: 1em 0 0.4em;
+	font-weight: 600;
+	color: var(--ink-gray-9);
+}
+.flow-md h1 {
+	font-size: 1.25em;
+}
+.flow-md h2 {
+	font-size: 1.15em;
+}
+.flow-md h3,
+.flow-md h4 {
+	font-size: 1em;
+}
+/* Tailwind's preflight strips list markers; restore them for rendered markdown */
+.flow-md ul,
+.flow-md ol {
+	margin: 0.85em 0;
+	padding-left: 1.5em;
+}
+.flow-md ul {
+	list-style: disc outside;
+}
+.flow-md ol {
+	list-style: decimal outside;
+}
+.flow-md ul ul {
+	list-style-type: circle;
+}
+.flow-md li {
+	margin: 0.35em 0;
+}
+.flow-md code {
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	/* monospace reads optically larger; hold it under the surrounding text */
+	font-size: 0.875em;
+	letter-spacing: 0;
+	padding: 1px 5px;
+	border-radius: 5px;
+	background: var(--surface-gray-2);
+	color: var(--ink-gray-8);
+}
+.flow-md pre {
+	margin: 0.6em 0;
+	padding: 10px 12px;
+	border-radius: 8px;
+	border: 1px solid var(--outline-gray-1);
+	background: var(--surface-gray-1);
+	overflow-x: auto;
+	font-size: 0.85em;
+	line-height: 1.6;
+}
+.flow-md pre code {
+	padding: 0;
+	background: transparent;
+	color: var(--ink-gray-7);
+}
+.flow-md blockquote {
+	margin: 0.6em 0;
+	padding-left: 12px;
+	border-left: 3px solid var(--outline-gray-2);
+	color: var(--ink-gray-6);
+}
+.flow-md a {
+	color: var(--ink-gray-8);
+	text-decoration: underline;
+}
+.flow-md a:hover {
+	color: var(--ink-gray-9);
+}
+.flow-md table {
+	border-collapse: collapse;
+	margin: 0.6em 0;
+	font-size: 0.9em;
+}
+.flow-md th,
+.flow-md td {
+	border: 1px solid var(--outline-gray-2);
+	padding: 4px 10px;
+	text-align: left;
+}
+.flow-md th {
+	background: var(--surface-gray-1);
+	font-weight: 600;
+}
+.flow-md hr {
+	border: 0;
+	border-top: 1px solid var(--outline-gray-2);
+	margin: 1em 0;
+}

@@ -1,0 +1,458 @@
+<template>
+	<PalettePanel
+		:title="selected?.name || 'Providers'"
+		back
+		@close="emit('close')"
+		@back="selected ? deselect() : emit('back')"
+	>
+		<template v-if="!selected" #actions>
+			<button
+				class="flex h-7 w-7 items-center justify-center rounded-md text-ink-gray-5 hover:bg-surface-gray-2"
+				title="Refresh providers"
+				@click="reload"
+			>
+				<FeatherIcon name="refresh-cw" class="h-3.5 w-3.5" />
+			</button>
+		</template>
+
+		<template v-if="!selected" #search>
+			<PaletteSearch v-model="query" placeholder="Search providers" autofocus @keydown="onKey" />
+		</template>
+
+		<!-- provider list -->
+		<div v-if="!selected" ref="listEl" class="min-h-0 flex-1 overflow-y-auto p-1.5">
+			<button
+				v-for="(p, i) in filtered"
+				:key="p.id"
+				:data-palette-active="i === activeIndex"
+				class="flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left hover:bg-surface-gray-2"
+				:class="{ 'bg-surface-gray-2': i === activeIndex }"
+				@mouseenter="activeIndex = i"
+				@click="select(p)"
+			>
+				<span class="flex h-8 w-8 flex-none items-center justify-center">
+					<ProviderIcon :provider-id="p.id" :icon="p.icon" :size="21" />
+				</span>
+				<span class="min-w-0 flex-1">
+					<span class="block truncate text-xs font-medium leading-4 text-ink-gray-9">{{ p.name }}</span>
+					<span class="mt-1 block truncate text-2xs leading-4 text-ink-gray-5">{{ summary(p) }}</span>
+				</span>
+				<span
+					v-if="p.configured"
+					class="flex items-center gap-1 text-2xs font-medium text-ink-green-3"
+				>
+					<span class="h-1.5 w-1.5 rounded-full bg-surface-green-3" />
+					Connected
+				</span>
+				<FeatherIcon v-else name="chevron-right" class="h-4 w-4 text-ink-gray-4" />
+			</button>
+			<!-- pinned at the bottom: local runtimes and private gateways -->
+			<button
+				:data-palette-active="activeIndex === filtered.length"
+				class="mt-1 flex w-full items-center gap-3 rounded-md border-t border-outline-gray-1 px-2.5 py-2 pt-3 text-left hover:bg-surface-gray-2"
+				:class="{ 'bg-surface-gray-2': activeIndex === filtered.length }"
+				@mouseenter="activeIndex = filtered.length"
+				@click="select(CUSTOM_OPTION)"
+			>
+				<span
+					class="flex h-8 w-8 flex-none items-center justify-center rounded-md border border-outline-gray-2 text-ink-gray-6"
+				>
+					<FeatherIcon name="plus" class="h-3.5 w-3.5" />
+				</span>
+				<span class="min-w-0 flex-1">
+					<span class="block truncate text-xs font-medium leading-4 text-ink-gray-9">
+						Add custom endpoint
+					</span>
+					<span class="mt-1 block truncate text-2xs leading-4 text-ink-gray-5">
+						Ollama, LM Studio, or any OpenAI-compatible URL
+					</span>
+				</span>
+				<FeatherIcon name="chevron-right" class="h-4 w-4 text-ink-gray-4" />
+			</button>
+			<div v-if="!filtered.length && debouncedQuery" class="px-3 py-7 text-center text-xs text-ink-gray-5">
+				No providers found
+			</div>
+		</div>
+
+		<!-- provider detail -->
+		<div v-else class="min-h-0 flex-1 overflow-y-auto p-4">
+			<div class="flex items-center gap-3">
+				<span class="flex h-10 w-10 flex-none items-center justify-center">
+					<span
+						v-if="selected.custom_setup"
+						class="flex h-9 w-9 items-center justify-center rounded-md border border-outline-gray-2 text-ink-gray-6"
+					>
+						<FeatherIcon name="server" class="h-4 w-4" />
+					</span>
+					<ProviderIcon v-else :provider-id="selected.id" :icon="selected.icon" :size="28" />
+				</span>
+				<div class="min-w-0">
+					<div class="truncate text-sm font-semibold text-ink-gray-9">{{ selected.name }}</div>
+					<div class="truncate text-xs text-ink-gray-5">{{ selected.source || "Not connected" }}</div>
+				</div>
+			</div>
+
+			<!-- custom endpoint setup -->
+			<form v-if="selected.custom_setup" class="mt-5 flex flex-col gap-3" @submit.prevent="saveCustom">
+				<label class="block">
+					<span class="mb-1.5 block text-xs font-medium text-ink-gray-7">Name</span>
+					<input v-model="customName" :class="FIELD" placeholder="Local Ollama" />
+				</label>
+				<label class="block">
+					<span class="mb-1.5 block text-xs font-medium text-ink-gray-7">Base URL</span>
+					<input v-model="customBaseUrl" :class="FIELD" placeholder="http://localhost:11434/v1" />
+				</label>
+				<label class="block">
+					<span class="mb-1.5 block text-xs font-medium text-ink-gray-7">Models</span>
+					<textarea
+						v-model="customModelIds"
+						rows="3"
+						:class="[FIELD, 'h-auto resize-none py-2 leading-relaxed']"
+						placeholder="ollama/llama3.2&#10;ollama/qwen2.5"
+					/>
+					<span class="mt-1 block text-2xs leading-4 text-ink-gray-5">
+						One per line (or comma separated). Each id needs a prefix, e.g.
+						<code class="text-ink-gray-6">ollama/llama3.2</code>.
+					</span>
+				</label>
+				<label class="block">
+					<span class="mb-1.5 block text-xs font-medium text-ink-gray-7">
+						API key <span class="font-normal text-ink-gray-4">(optional)</span>
+					</span>
+					<input
+						v-model="customApiKey"
+						type="password"
+						autocomplete="off"
+						:class="FIELD"
+						placeholder="Leave empty for local runtimes"
+					/>
+				</label>
+				<button
+					type="submit"
+					class="mt-1 flex h-8 items-center gap-1.5 self-start rounded-md bg-surface-gray-7 px-3 text-xs font-medium text-ink-white hover:opacity-90 disabled:cursor-not-allowed disabled:border disabled:border-outline-gray-2 disabled:bg-surface-gray-1 disabled:text-ink-gray-4 disabled:hover:opacity-100"
+					:disabled="!canSaveCustom || saving"
+				>
+					<FeatherIcon name="plus" class="h-3.5 w-3.5" />
+					Add endpoint
+				</button>
+			</form>
+
+			<div v-else-if="selected.configured" class="mt-5">
+				<div
+					class="flex items-center gap-2 rounded-md border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
+				>
+					<FeatherIcon name="check-circle" class="h-4 w-4 text-ink-green-3" />
+					Ready to use
+				</div>
+				<button
+					v-if="selected.credential_type"
+					class="mt-3 flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-medium text-ink-red-3 hover:bg-surface-red-1"
+					:disabled="saving"
+					@click="disconnect"
+				>
+					<FeatherIcon name="log-out" class="h-3.5 w-3.5" />
+					Disconnect
+				</button>
+			</div>
+
+			<form v-else-if="selected.auth_methods.includes('api_key')" class="mt-5" @submit.prevent="saveKey">
+				<label class="mb-1.5 block text-xs font-medium text-ink-gray-7">API key</label>
+				<input
+					v-model="apiKey"
+					type="password"
+					autocomplete="off"
+					class="h-9 w-full rounded-md border border-outline-gray-2 bg-surface-white px-3 text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
+					placeholder="Paste your API key"
+				/>
+				<button
+					type="submit"
+					class="mt-3 flex h-8 items-center gap-1.5 rounded-md bg-surface-gray-7 px-3 text-xs font-medium text-ink-white hover:opacity-90 disabled:cursor-not-allowed disabled:border disabled:border-outline-gray-2 disabled:bg-surface-gray-1 disabled:text-ink-gray-4 disabled:hover:opacity-100"
+					:disabled="!apiKey.trim() || saving"
+				>
+					<FeatherIcon name="key" class="h-3.5 w-3.5" />
+					Save API key
+				</button>
+			</form>
+
+			<div v-else class="mt-5">
+				<button
+					v-if="!['pending', 'waiting_manual', 'exchanging', 'connected'].includes(oauthStatus)"
+					class="flex h-9 items-center gap-2 rounded-md bg-surface-gray-7 px-3.5 text-xs font-medium text-ink-white hover:opacity-90 disabled:opacity-50"
+					:disabled="saving"
+					@click="beginOAuth"
+				>
+					<FeatherIcon name="external-link" class="h-3.5 w-3.5" />
+					Sign in
+				</button>
+				<div
+					v-else-if="oauthStatus !== 'connected'"
+					class="flex items-center gap-2 rounded-md border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
+				>
+					<span class="flow-shimmer font-medium">
+						{{ oauthStatus === "exchanging" ? "Finishing sign-in…" : "Waiting for sign-in…" }}
+					</span>
+				</div>
+				<!-- popup blockers eat the window.open after the awaited /start —
+				     the link is the reliable, user-gesture path -->
+				<a
+					v-if="authorizeUrl && ['pending', 'waiting_manual'].includes(oauthStatus)"
+					:href="authorizeUrl"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="mt-2 flex w-fit items-center gap-1.5 text-xs text-ink-gray-6 underline hover:text-ink-gray-9"
+				>
+					<FeatherIcon name="external-link" class="h-3 w-3" />
+					Open the sign-in page
+				</a>
+				<div
+					v-if="oauthStatus === 'connected'"
+					class="flex items-center gap-2 rounded-md border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
+				>
+					<FeatherIcon name="check-circle" class="h-4 w-4 text-ink-green-3" />
+					Connected
+				</div>
+				<div v-if="oauthError" class="mt-2 text-xs leading-relaxed text-ink-red-3">
+					{{ oauthError }}
+				</div>
+				<button
+					v-if="['pending', 'waiting_manual'].includes(oauthStatus) && !showManual"
+					class="mt-3 block text-xs text-ink-gray-5 hover:text-ink-gray-8"
+					@click="showManual = true"
+				>
+					Enter callback URL
+				</button>
+				<form v-if="showManual" class="mt-3" @submit.prevent="completeOAuth">
+					<input
+						v-model="callbackUrl"
+						class="h-9 w-full rounded-md border border-outline-gray-2 bg-surface-white px-3 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
+						placeholder="http://localhost:1455/auth/callback?..."
+					/>
+					<button
+						type="submit"
+						class="mt-2 flex h-8 items-center gap-1.5 rounded-md border border-outline-gray-2 px-3 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-1 disabled:opacity-50"
+						:disabled="!callbackUrl.trim() || saving"
+					>
+						Complete sign-in
+					</button>
+				</form>
+			</div>
+		</div>
+	</PalettePanel>
+</template>
+
+<script setup>
+import { computed, inject, onBeforeUnmount, ref } from "vue"
+import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
+
+import { useDebouncedValue } from "../debounce.js"
+import { usePaletteNav } from "../paletteNav.js"
+import PalettePanel from "./PalettePanel.vue"
+import PaletteSearch from "./PaletteSearch.vue"
+import ProviderIcon from "./ProviderIcon.vue"
+
+const emit = defineEmits(["close", "back"])
+const flow = inject("flow")
+
+const rows = ref([])
+const selected = ref(null)
+const query = ref("")
+const debouncedQuery = useDebouncedValue(query, 150)
+const apiKey = ref("")
+const saving = ref(false)
+const oauthStatus = ref("idle")
+const oauthError = ref("")
+const showManual = ref(false)
+const callbackUrl = ref("")
+const authorizeUrl = ref("")
+let pollTimer = null
+
+const FIELD =
+	"h-9 w-full rounded-md border border-outline-gray-2 bg-surface-white px-3 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
+
+// the synthetic row that opens the custom-endpoint form
+const CUSTOM_OPTION = {
+	id: "__custom__",
+	name: "Custom endpoint",
+	auth_methods: ["custom"],
+	configured: false,
+	custom_setup: true,
+}
+
+const customName = ref("")
+const customBaseUrl = ref("")
+const customApiKey = ref("")
+const customModelIds = ref("")
+
+// ids may be newline- or comma-separated; the server dedupes and re-validates
+const customModels = computed(() =>
+	customModelIds.value
+		.split(/[\n,]/)
+		.map((m) => m.trim())
+		.filter(Boolean),
+)
+const canSaveCustom = computed(
+	() =>
+		!!customName.value.trim() &&
+		!!customBaseUrl.value.trim() &&
+		customModels.value.length > 0 &&
+		customModels.value.every((m) => m.includes("/")),
+)
+
+async function saveCustom() {
+	saving.value = true
+	try {
+		const data = await flow.client.saveCustomProvider({
+			name: customName.value.trim(),
+			base_url: customBaseUrl.value.trim(),
+			models: customModels.value,
+			api_key: customApiKey.value.trim() || null,
+		})
+		flow.notify(`${data.provider.name} added`)
+		await reload()
+		flow.refreshModels()
+		selected.value = rows.value.find((p) => p.id === data.provider.id) ?? null
+	} catch (error) {
+		flow.notify(error.message, "error")
+	} finally {
+		saving.value = false
+	}
+}
+
+async function reload() {
+	try {
+		rows.value = (await flow.client.providers()).providers
+		// the custom-setup row is synthetic and never in the server's list
+		if (selected.value && !selected.value.custom_setup) {
+			selected.value = rows.value.find((p) => p.id === selected.value.id) ?? null
+		}
+	} catch (error) {
+		flow.notify(error.message, "error")
+	}
+}
+reload()
+
+const filtered = computed(() => {
+	const q = debouncedQuery.value.trim().toLowerCase()
+	if (!q) return rows.value
+	return rows.value.filter((p) => p.name.toLowerCase().includes(q) || p.id.includes(q))
+})
+
+function summary(p) {
+	if (p.configured) return p.source
+	return p.auth_methods.includes("oauth") ? "Sign in with OAuth" : "Needs an API key"
+}
+
+// providers plus the custom-endpoint row, so arrows reach it too
+const navRows = computed(() => [...filtered.value, CUSTOM_OPTION])
+const { activeIndex, listEl, onKey } = usePaletteNav(navRows, {
+	onSelect: (row) => select(row),
+	onEscape: () => emit("close"),
+})
+
+function select(p) {
+	stopPolling() // a poll started for another provider must not follow us here
+	selected.value = p
+	apiKey.value = ""
+	oauthStatus.value = "idle"
+	oauthError.value = ""
+	showManual.value = false
+	callbackUrl.value = ""
+	authorizeUrl.value = ""
+	customName.value = ""
+	customBaseUrl.value = p.custom_setup ? "http://localhost:11434/v1" : ""
+	customApiKey.value = ""
+	customModelIds.value = ""
+}
+
+function deselect() {
+	stopPolling()
+	selected.value = null
+}
+
+async function saveKey() {
+	saving.value = true
+	try {
+		await flow.client.saveProviderKey(selected.value.id, apiKey.value.trim())
+		flow.notify(`${selected.value.name} key saved`)
+		apiKey.value = ""
+		await reload()
+		flow.refreshModels()
+	} catch (error) {
+		flow.notify(error.message, "error")
+	} finally {
+		saving.value = false
+	}
+}
+
+async function disconnect() {
+	saving.value = true
+	try {
+		await flow.client.deleteProvider(selected.value.id)
+		await reload()
+		flow.refreshModels()
+	} catch (error) {
+		flow.notify(error.message, "error")
+	} finally {
+		saving.value = false
+	}
+}
+
+async function beginOAuth() {
+	saving.value = true
+	oauthError.value = ""
+	try {
+		const started = await flow.client.oauthStart(selected.value.id)
+		authorizeUrl.value = started.authorize_url
+		window.open(started.authorize_url, "_blank", "noopener")
+		oauthStatus.value = started.status
+		startPolling()
+	} catch (error) {
+		oauthError.value = error.message
+	} finally {
+		saving.value = false
+	}
+}
+
+async function completeOAuth() {
+	saving.value = true
+	try {
+		const status = await flow.client.oauthComplete(selected.value.id, callbackUrl.value.trim())
+		applyStatus(status)
+	} catch (error) {
+		oauthError.value = error.message
+	} finally {
+		saving.value = false
+	}
+}
+
+function startPolling() {
+	stopPolling()
+	const providerId = selected.value.id // pinned: navigation must not retarget the poll
+	pollTimer = setInterval(async () => {
+		try {
+			applyStatus(await flow.client.oauthStatus(providerId))
+		} catch {
+			stopPolling()
+		}
+	}, 1500)
+}
+
+function applyStatus(status) {
+	oauthStatus.value = status.status
+	oauthError.value = status.error ?? ""
+	if (status.status === "connected") {
+		stopPolling()
+		reload()
+		flow.refreshModels()
+	} else if (["error", "expired"].includes(status.status)) {
+		stopPolling()
+	}
+}
+
+function stopPolling() {
+	clearInterval(pollTimer)
+	pollTimer = null
+}
+
+onBeforeUnmount(stopPolling)
+</script>
