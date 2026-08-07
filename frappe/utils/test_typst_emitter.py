@@ -88,6 +88,61 @@ class TestTypstGate(IntegrationTestCase):
 		blockers = typst_blockers(self.pf(), layout_with(bad))
 		self.assertTrue(any("transform" in b for b in blockers))
 
+	def test_asset_paths_cannot_escape_their_root(self):
+		"""Image srcs are document data; a traversal must read nothing."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		pf_doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Typst Traversal {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": json.dumps(layout_with()),
+			}
+		).insert()
+		self.addCleanup(pf_doc.delete, ignore_permissions=True)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "x"}).insert(ignore_permissions=True)
+		self.addCleanup(todo.delete, ignore_permissions=True)
+		emitter = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", todo.name)))
+		for hostile in (
+			"/assets/../site_config.json",
+			"/assets/../../sites/common_site_config.json",
+			"/files/../../private/files/secret.txt",
+			"/private/files/../../site_config.json",
+		):
+			with self.subTest(src=hostile):
+				self.assertIsNone(emitter._read_site_file(hostile))
+
+	def test_section_custom_style_is_emitted(self):
+		"""What the gate accepts must reach the output — accepted-but-dropped
+		styling is the failure mode this pins."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		layout = layout_with(
+			{"fieldtype": "Data", "fieldname": "description", "label": "D"},
+			section={"custom_style": "border-bottom: 1px solid #e5e7eb; margin-top: 20px"},
+		)
+		pf_doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Typst SecStyle {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": json.dumps(layout),
+			}
+		).insert()
+		self.addCleanup(pf_doc.delete, ignore_permissions=True)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "styled section"}).insert(
+			ignore_permissions=True
+		)
+		self.addCleanup(todo.delete, ignore_permissions=True)
+		source, _assets = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", todo.name))).emit()
+		self.assertIn('stroke: (bottom: 0.75pt + rgb("#e5e7eb"))', source)
+		self.assertIn("#v(15.0pt)", source)
+
 	def test_letterhead_with_html_blocks(self):
 		lh = frappe.get_doc(
 			{

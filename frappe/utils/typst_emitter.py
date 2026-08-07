@@ -380,6 +380,7 @@ class TypstEmitter:
 
 		block_args = self._section_block_args(section)
 		out = f"#block({', '.join(block_args)})[\n{body}\n]"
+		out = self._apply_style_effects(out, section.get("custom_style"))
 		margin = section.get("margin") or {}
 		top = round(frappe.utils.flt(margin.get("top")) * PX_TO_PT, 2)
 		bottom = round(frappe.utils.flt(margin.get("bottom")) * PX_TO_PT, 2)
@@ -578,9 +579,11 @@ class TypstEmitter:
 			else:
 				body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
 			return body
+		gap_effect = translate_custom_style(df.get("custom_style") or "")[0].get("gap")
+		spacing = gap_effect if gap_effect is not None else 4
 		parts = [f"[{label}]"] if label else []
 		parts.append(f"[{value_text}]")
-		body = "#stack(spacing: 4pt,\n" + ",\n".join(parts) + ")" if len(parts) > 1 else value_text
+		body = f"#stack(spacing: {spacing}pt,\n" + ",\n".join(parts) + ")" if len(parts) > 1 else value_text
 		if align in ("center", "right"):
 			return f"#align({align})[{body}]"
 		return body
@@ -603,12 +606,17 @@ class TypstEmitter:
 			return None
 		src = src.split("?", 1)[0]
 		if src.startswith("/private/files/"):
-			path = frappe.get_site_path("private", "files", os.path.basename(src))
+			root, rel = frappe.get_site_path("private", "files"), src[len("/private/files/") :]
 		elif src.startswith("/files/"):
-			path = frappe.get_site_path("public", "files", os.path.basename(src))
+			root, rel = frappe.get_site_path("public", "files"), src[len("/files/") :]
 		elif src.startswith("/assets/"):
-			path = os.path.join(frappe.get_site_path("..", "assets"), src[len("/assets/") :])
+			root, rel = frappe.get_site_path("..", "assets"), src[len("/assets/") :]
 		else:
+			return None
+		# the src is document data — never let it walk out of its root
+		root = os.path.realpath(root)
+		path = os.path.realpath(os.path.join(root, rel))
+		if not path.startswith(root + os.sep):
 			return None
 		try:
 			with open(path, "rb") as f:
