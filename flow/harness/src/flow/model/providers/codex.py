@@ -374,6 +374,11 @@ class CodexModel(Model):
 		return headers
 
 
+def static_context_window(model: str) -> int | None:
+	"""Best-known context window without network or auth (the fallback table)."""
+	return _fallback_model_limits(model).context_window
+
+
 def _fallback_model_limits(model: str) -> _CodexModelLimits:
 	for model_id, context_window_tokens in _CODEX_FALLBACK_CONTEXT_WINDOWS.items():
 		if model == model_id or model.startswith(f"{model_id}-20"):

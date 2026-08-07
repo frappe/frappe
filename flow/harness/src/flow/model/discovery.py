@@ -10,6 +10,7 @@ entries; on failure they contribute only the error.
 from __future__ import annotations
 
 import asyncio
+import functools
 import os
 import re
 import shutil
@@ -41,6 +42,26 @@ class ModelCatalog:
 	errors: list[str]
 
 
+@functools.lru_cache(maxsize=256)
+def context_window_for(model: str) -> int | None:
+	"""Best-effort static context window for a model name — no network, no auth.
+	Serves the UI's context meter; the loop's compaction math still uses the
+	authenticated model's own limits. Cached: static per name, slow on first call."""
+	try:
+		prefix, _, rest = model.partition("/")
+		if prefix == "codex":
+			from flow.model.providers.codex import static_context_window
+
+			return static_context_window(rest)
+		import litellm
+
+		info = litellm.get_model_info(model)
+	except Exception:
+		return None
+	window = info.get("max_input_tokens") or info.get("max_tokens")
+	return int(window) if window else None
+
+
 async def available_models(
 	store: CredentialStore, *, client: httpx.AsyncClient | None = None
 ) -> ModelCatalog:
@@ -70,6 +91,15 @@ async def available_models(
 			result = fallback.get(provider_id, [])
 		for info in result:
 			models.setdefault(info.name, info)
+	# custom endpoints declare their models up front — no discovery call to make
+	for info in store.list():
+		if info.type != "custom":
+			continue
+		credential = store.get_custom(info.provider_id)
+		if credential is None:
+			continue
+		for name in credential.models:
+			models.setdefault(name, ModelInfo(name=name, provider=info.provider_id))
 	return ModelCatalog(models=[models[name] for name in sorted(models)], errors=errors)
 
 
