@@ -168,8 +168,7 @@ export function useFieldFormat(props, store, preview_doc) {
 	}
 
 	function thumb_box(col) {
-		const s = (col.image_size || 40) + "px";
-		return { width: s, height: s };
+		return { "--thumb-size": (col.image_size || 40) + "px" };
 	}
 
 	// Initials fallback when an image field is merged but the row has no image.

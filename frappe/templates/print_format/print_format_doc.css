@@ -359,9 +359,12 @@
 	gap: 0.5556em;
 }
 
-/* size comes from an inline style (column.image_size) */
+/* size comes from --thumb-size (column.image_size); !important because the
+   Standard print style forces td img to width: 100% !important */
 .print-format-doc .child-table .cell-thumb-img,
 .print-format-doc .child-table .cell-thumb {
+	width: var(--thumb-size, 40px) !important;
+	height: var(--thumb-size, 40px) !important;
 	border-radius: 6px;
 	flex-shrink: 0;
 }
