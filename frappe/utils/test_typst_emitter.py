@@ -115,6 +115,28 @@ class TestTypstGate(IntegrationTestCase):
 			with self.subTest(src=hostile):
 				self.assertIsNone(emitter._read_site_file(hostile))
 
+	def test_private_files_require_file_permission(self):
+		"""A private path that is not a readable File document reads nothing —
+		printing doc A must not exfiltrate doc B's attachments."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		pf_doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Typst Priv {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": json.dumps(layout_with()),
+			}
+		).insert()
+		self.addCleanup(pf_doc.delete, ignore_permissions=True)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "x"}).insert(ignore_permissions=True)
+		self.addCleanup(todo.delete, ignore_permissions=True)
+		emitter = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", todo.name)))
+		# no File document registered for this path -> refused even if it existed on disk
+		self.assertIsNone(emitter._read_site_file("/private/files/unregistered.png"))
+
 	def test_section_custom_style_is_emitted(self):
 		"""What the gate accepts must reach the output — accepted-but-dropped
 		styling is the failure mode this pins."""

@@ -416,7 +416,11 @@ class TypstEmitter:
 
 	def _columns_grid(self, section, columns, rendered_columns) -> str:
 		gap = section.get("gap")
-		gap_pt = round(frappe.utils.flt(gap if gap is not None else 20) * PX_TO_PT, 2)
+		style_gap = translate_custom_style(section.get("custom_style") or "")[0].get("gap")
+		if style_gap is not None:
+			gap_pt = style_gap
+		else:
+			gap_pt = round(frappe.utils.flt(gap if gap is not None else 20) * PX_TO_PT, 2)
 		widths = []
 		for column in columns:
 			width = frappe.utils.flt(column.get("width"))
@@ -606,6 +610,11 @@ class TypstEmitter:
 			return None
 		src = src.split("?", 1)[0]
 		if src.startswith("/private/files/"):
+			# private files are permission-gated through the File doctype — the
+			# browser path enforces this over HTTP, so the direct read must too
+			file_name = frappe.db.get_value("File", {"file_url": src}, "name")
+			if not file_name or not frappe.has_permission("File", doc=file_name, ptype="read"):
+				return None
 			root, rel = frappe.get_site_path("private", "files"), src[len("/private/files/") :]
 		elif src.startswith("/files/"):
 			root, rel = frappe.get_site_path("public", "files"), src[len("/files/") :]
