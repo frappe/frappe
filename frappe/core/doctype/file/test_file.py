@@ -1483,3 +1483,44 @@ class TestPublicFileRestriction(IntegrationTestCase):
 
 		file_doc.insert()
 		self.assertFalse(file_doc.is_private)
+
+
+class TestFileListOwnerRestriction(IntegrationTestCase):
+	"""Test file list owner restriction."""
+
+	OWNER = "test1@example.com"
+	OTHER = "test2@example.com"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		other_user = frappe.get_doc("User", self.OTHER)
+		if not any(r.role == "Blogger" for r in other_user.roles):
+			other_user.append("roles", {"role": "Blogger"})
+			other_user.save(ignore_permissions=True)
+
+		frappe.set_user(self.OWNER)
+		pddr = frappe.get_doc({"doctype": "Personal Data Download Request", "user": self.OWNER}).insert(
+			ignore_permissions=True
+		)
+		self.file = frappe.new_doc(
+			"File",
+			file_name="secret_export.json",
+			attached_to_doctype="Personal Data Download Request",
+			attached_to_name=pddr.name,
+			content="secret data",
+			is_private=1,
+		).insert(ignore_permissions=True)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_other_user_file_count_excludes_owner_restricted_file(self):
+		frappe.set_user(self.OTHER)
+		files = frappe.get_list("File", filters={"name": self.file.name})
+		self.assertEqual(len(files), 0)
+
+	def test_owner_file_count_includes_owner_restricted_file(self):
+		frappe.set_user(self.OWNER)
+		files = frappe.get_list("File", filters={"name": self.file.name})
+		self.assertEqual(len(files), 1)
