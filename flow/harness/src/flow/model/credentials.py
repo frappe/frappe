@@ -58,13 +58,36 @@ class OAuthCredential:
 		return data
 
 
-Credential = ApiKeyCredential | OAuthCredential
+@dataclass(frozen=True)
+class CustomProviderCredential:
+	"""A user-added OpenAI-compatible endpoint (Ollama, LM Studio, a gateway). It
+	carries its own base URL and model ids: there is no static spec for it."""
+
+	name: str
+	base_url: str
+	models: tuple[str, ...]
+	api_key: str | None = None  # local runtimes usually need none
+	type: Literal["custom"] = "custom"
+
+	def to_dict(self) -> dict:
+		data = {
+			"type": self.type,
+			"name": self.name,
+			"base_url": self.base_url,
+			"models": list(self.models),
+		}
+		if self.api_key:
+			data["api_key"] = self.api_key
+		return data
+
+
+Credential = ApiKeyCredential | OAuthCredential | CustomProviderCredential
 
 
 @dataclass(frozen=True)
 class CredentialInfo:
 	provider_id: str
-	type: Literal["api_key", "oauth"]
+	type: Literal["api_key", "oauth", "custom"]
 
 
 class CredentialStore:
@@ -106,6 +129,29 @@ class CredentialStore:
 
 	def set_oauth(self, name: str, credential: OAuthCredential) -> None:
 		self.set(name, credential)
+
+	def get_custom(self, name: str) -> CustomProviderCredential | None:
+		credential = self.get(name)
+		return credential if isinstance(credential, CustomProviderCredential) else None
+
+	def set_custom(
+		self,
+		name: str,
+		*,
+		display_name: str,
+		base_url: str,
+		models: tuple[str, ...],
+		api_key: str | None = None,
+	) -> None:
+		self.set(
+			name,
+			CustomProviderCredential(
+				name=display_name.strip(),
+				base_url=base_url.strip(),
+				models=tuple(model.strip() for model in models),
+				api_key=api_key.strip() if api_key and api_key.strip() else None,
+			),
+		)
 
 	def delete(self, name: str) -> None:
 		with self._locked():
@@ -183,6 +229,21 @@ def _credential_from_dict(data: dict) -> Credential:
 			refresh=_required_string(data, "refresh"),
 			expires=expires,
 			account_id=account_id,
+		)
+	if kind == "custom":
+		models = data.get("models")
+		if not isinstance(models, list) or not models:
+			raise CredentialStoreError("Custom provider models must be a non-empty list")
+		if any(not isinstance(model, str) or not model.strip() for model in models):
+			raise CredentialStoreError("Custom provider models must be non-empty strings")
+		api_key = data.get("api_key")
+		if api_key is not None and (not isinstance(api_key, str) or not api_key.strip()):
+			raise CredentialStoreError("Custom provider API key must be a non-empty string")
+		return CustomProviderCredential(
+			name=_required_string(data, "name"),
+			base_url=_required_string(data, "base_url"),
+			models=tuple(model.strip() for model in models),
+			api_key=api_key.strip() if api_key else None,
 		)
 	raise CredentialStoreError(f"Unknown credential type {kind!r}")
 
