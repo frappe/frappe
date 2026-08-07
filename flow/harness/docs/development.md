@@ -68,6 +68,7 @@ Part 2 makes the daemon an implementation detail of the client. The CLI surface:
 |---|---|
 | `flow` | Start a private daemon on a unix socket under the data dir, open the TUI, and attach to it. Each invocation gets its own daemon; it never adopts one started by `flow serve`. The daemon dies when the TUI exits; quit during an active run aborts and drains without a prompt. `flow -c` continues the most recent session for the current directory instead of creating one. |
 | `flow serve` | Run the daemon in the foreground on the configured host and port. `--background` detaches it, prints its address, and returns. |
+| `flow web` | Run the daemon with the built web UI mounted same-origin and open a browser tab. Needs `ui/` built first (`cd ui && npm install && npm run build -w app`); `--no-browser` skips the tab. |
 | `flow attach` | Open the TUI against a daemon that is already running — the configured host and port by default, `--url` for any other, `--session` to reopen an existing session. It starts nothing. |
 | `flow login` / `logout` / `providers` | Unchanged apart from the program name. |
 

@@ -5,3 +5,5 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .flow-data/
+# built by `npm run build -w app` in ui/; served by `flow web`
+src/flow/server/webui/
