@@ -78,7 +78,7 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onMounted, ref } from "vue";
+import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
 import { mountColorControl } from "./inspector/useColorControl";
 import { useStore } from "../stores";
