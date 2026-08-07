@@ -43,6 +43,59 @@ PAGE_NUMBER_POSITIONS = {
 
 RIGHT_ALIGNED_FIELDTYPES = frozenset({"Currency", "Float", "Int", "Percent"})
 
+#: the css properties the builder writes into custom_style that we can express in
+#: Typst; anything outside this list keeps the format on Chromium
+TRANSLATABLE_STYLE_PROPS = frozenset(
+	{
+		"font-weight",
+		"border-top",
+		"border-bottom",
+		"margin-top",
+		"padding-top",
+		"padding-bottom",
+		"flex-direction",
+		"align-items",
+		"gap",
+	}
+)
+
+
+def translate_custom_style(style: str) -> tuple[dict, list[str]]:
+	"""Map a declaration list onto Typst effects; unknown properties are returned,
+	never dropped — a property we cannot express keeps the format on Chromium."""
+	effects, unknown = {}, []
+	for declaration in (style or "").split(";"):
+		if ":" not in declaration:
+			continue
+		prop, value = (part.strip() for part in declaration.split(":", 1))
+		prop = prop.lower()
+		if prop not in TRANSLATABLE_STYLE_PROPS:
+			unknown.append(prop)
+			continue
+		if prop == "font-weight":
+			if value in ("bold", "600", "700", "800", "900"):
+				effects["bold"] = True
+		elif prop in ("border-top", "border-bottom"):
+			match = re.match(r"([\d.]+)px\s+\w+\s+(#[0-9a-fA-F]{6}|[a-z]+)", value)
+			if match:
+				width = round(float(match.group(1)) * PX_TO_PT, 2)
+				color = match.group(2)
+				paint = f'rgb("{color}")' if color.startswith("#") else color
+				effects["stroke_top" if prop == "border-top" else "stroke_bottom"] = f"{width}pt + {paint}"
+		elif prop in ("margin-top", "padding-top", "padding-bottom", "gap"):
+			match = re.match(r"([\d.]+)(px)?$", value)
+			if match:
+				key = {
+					"margin-top": "space_before",
+					"padding-top": "inset_top",
+					"padding-bottom": "inset_bottom",
+					"gap": "gap",
+				}[prop]
+				effects[key] = round(float(match.group(1)) * PX_TO_PT, 2)
+		# flex-direction / align-items describe what the structured layout
+		# already does — accepted so they never block, nothing to emit
+	return effects, unknown
+
 
 def typst_blockers(print_format, layout) -> list[str]:
 	"""Why this format cannot render through Typst — empty means it can.
@@ -75,10 +128,12 @@ def typst_blockers(print_format, layout) -> list[str]:
 	for where, node in _walk(layout):
 		style = node.get("custom_style")
 		if isinstance(style, str) and style.strip():
-			key = ("custom_style", where)
-			if key not in seen:
-				seen.add(key)
-				blockers.append(_("Custom CSS on {0}").format(where))
+			_effects, unknown = translate_custom_style(style)
+			if unknown:
+				key = ("custom_style", where)
+				if key not in seen:
+					seen.add(key)
+					blockers.append(_("Untranslatable CSS on {0}: {1}").format(where, ", ".join(unknown)))
 		reason = (
 			BLOCKER_FIELDTYPES.get(node.get("fieldtype"))
 			or _barcode_blocker(node, print_format)
@@ -365,6 +420,41 @@ class TypstEmitter:
 	def _field(self, section, df) -> str:
 		if df.get("_hidden"):
 			return ""
+		body = self._field_body(section, df)
+		if not body:
+			return ""
+		return self._apply_style_effects(body, df.get("custom_style"))
+
+	def _apply_style_effects(self, body: str, style) -> str:
+		if not isinstance(style, str) or not style.strip():
+			return body
+		effects, _unknown = translate_custom_style(style)
+		if not effects:
+			return body
+		if effects.get("bold"):
+			body = f"#text(weight: 700)[{body}]"
+		strokes = []
+		if effects.get("stroke_top"):
+			strokes.append(f"top: {effects['stroke_top']}")
+		if effects.get("stroke_bottom"):
+			strokes.append(f"bottom: {effects['stroke_bottom']}")
+		insets = []
+		if effects.get("inset_top"):
+			insets.append(f"top: {effects['inset_top']}pt")
+		if effects.get("inset_bottom"):
+			insets.append(f"bottom: {effects['inset_bottom']}pt")
+		if strokes or insets:
+			args = ["width: 100%"]
+			if strokes:
+				args.append(f"stroke: ({', '.join(strokes)})")
+			if insets:
+				args.append(f"inset: ({', '.join(insets)})")
+			body = f"#block({', '.join(args)})[{body}]"
+		if effects.get("space_before"):
+			body = f"#v({effects['space_before']}pt)\n{body}"
+		return body
+
+	def _field_body(self, section, df) -> str:
 		fieldtype = df.get("fieldtype") or "Data"
 		if fieldtype == "Divider":
 			return '#line(length: 100%, stroke: 0.6pt + rgb("#d1d5db"))'
