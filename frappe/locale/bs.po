@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-02 10:07+0000\n"
-"PO-Revision-Date: 2026-08-05 16:59\n"
+"PO-Revision-Date: 2026-08-07 17:02\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -36,7 +36,7 @@ msgstr "\"Historija Poduzeća\""
 
 #: frappe/core/doctype/data_export/exporter.py:203
 msgid "\"Parent\" signifies the parent table in which this row must be added"
-msgstr "\"Nadređeni\" označava nadređenu tabelu u koju se ovaj red mora dodati"
+msgstr "\"Nadređeni\" odabire nadređenu tabelu u koju se ovaj red mora dodati"
 
 #. Description of the 'Team Members Heading' (Data) field in DocType 'About Us
 #. Settings'
@@ -468,7 +468,7 @@ msgstr "<h3>Pomoć za prilagođeni CSS</h3>\n\n"
 "<h4>Primjeri</h4>\n\n"
 "<p>1. Lijevo poravnanje cijelih brojeva</p>\n\n"
 "<pre><code>[data-fieldtype=\"Int\"] .value { text-align: left; }</code></pre>\n\n"
-"<p>1. Dodajte ivicu odjeljcima osim posljednjeg odjeljka</p>\n\n"
+"<p>1. Dodaj ivicu odjeljcima osim posljednjeg odjeljka</p>\n\n"
 "<pre><code>.section-break { padding: 30px 0px; border-bottom: 1px solid #eee; }\n"
 ".section-break:last-child { padding-bottom: 0px; rub-bottom: 0px; }</code></pre>\n"
 
@@ -1511,7 +1511,7 @@ msgstr "Dodaj Uloge"
 
 #: frappe/public/js/print_format_builder/components/editor/SectionInsert.vue:6
 msgid "Add Section"
-msgstr "Dodaj Sekciju"
+msgstr "Dodaj Odjeljak"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:72
 msgid "Add Series"
@@ -1535,7 +1535,7 @@ msgstr "Dodaj Razmak na Dnu"
 #. Label of the add_top_padding (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Space at Top"
-msgstr "Dodajte Razmak na Vrh"
+msgstr "Dodaj Razmak na Vrh"
 
 #: frappe/email/doctype/email_group/email_group.js:38
 #: frappe/email/doctype/email_group/email_group.js:59
@@ -1615,7 +1615,7 @@ msgstr "Dodaj Komentar"
 
 #: frappe/public/js/form_builder/components/Tabs.vue:193
 msgid "Add a new section"
-msgstr "Dodaj Novu Sekciju"
+msgstr "Dodaj Novu Odjeljak"
 
 #: frappe/public/js/frappe/form/form.js:203
 msgid "Add a row above the current row"
@@ -1675,7 +1675,7 @@ msgstr "Dodaj novu karticu"
 
 #: frappe/utils/password_strength.py:191
 msgid "Add numbers or special characters."
-msgstr "Dodajte brojeve ili posebne znakove."
+msgstr "Dodaj brojeve ili posebne znakove."
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/permissions.js:18
 msgid "Add role"
@@ -1687,11 +1687,11 @@ msgstr "Dodaj red"
 
 #: frappe/custom/doctype/client_script/client_script.js:22
 msgid "Add script for Child Table"
-msgstr "Dodajte skriptu za Podređenu Tabelu"
+msgstr "Dodaj skriptu za Podređenu Tabelu"
 
 #: frappe/public/js/form_builder/components/Section.vue:269
 msgid "Add section below"
-msgstr "Dodajte sekciju ispod"
+msgstr "Dodaj odjeljak ispod"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:159
 msgid "Add series"
@@ -1717,7 +1717,7 @@ msgstr "Dodaj u tabelu"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:104
 msgid "Add to this activity by mailing to {0}"
-msgstr "Dodajte ovoj aktivnosti slanjem e-pošte na adresu {0}"
+msgstr "Dodaj ovoj aktivnosti slanjem e-pošte na adresu {0}"
 
 #: frappe/public/js/frappe/views/kanban/kanban_column.html:21
 msgid "Add {0}"
@@ -5505,7 +5505,7 @@ msgstr "Očistite keš memoriju i ponovo učitaj"
 
 #: frappe/public/js/frappe/views/communication.js:506
 msgid "Clear the email message and add the template"
-msgstr "Obrišite poruku e-pošte i dodajte predložak"
+msgstr "Obrišite poruku e-pošte i dodaj predložak"
 
 #: frappe/public/js/frappe/list/list_view.js:711
 msgid "Clear the filters to see all records."
@@ -8215,7 +8215,7 @@ msgstr "Izbriši Natpisnu Tablu"
 #: frappe/public/js/form_builder/components/Section.vue:129
 msgctxt "Title of confirmation dialog"
 msgid "Delete Section"
-msgstr "Izbriši Sekciju"
+msgstr "Izbriši Odjeljak"
 
 #: frappe/public/js/form_builder/components/Tabs.vue:64
 msgctxt "Title of confirmation dialog"
@@ -8255,7 +8255,7 @@ msgstr "Izbriši cijelu kolonu s poljima"
 #: frappe/public/js/form_builder/components/Section.vue:138
 msgctxt "Button text"
 msgid "Delete entire section with fields"
-msgstr "Izbriši cijelu sekciju s poljima"
+msgstr "Izbriši cijelu odjeljak s poljima"
 
 #: frappe/public/js/form_builder/components/Tabs.vue:73
 msgctxt "Button text"
@@ -8280,12 +8280,12 @@ msgstr "Izbriši red"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSection.vue:364
 msgid "Delete section"
-msgstr "Izbriši sekciju"
+msgstr "Izbriši odjeljak"
 
 #: frappe/public/js/form_builder/components/Section.vue:136
 msgctxt "Button text"
 msgid "Delete section"
-msgstr "Izbriši sekciju"
+msgstr "Izbriši odjeljak"
 
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:114
 msgid "Delete series {0}?"
@@ -9790,7 +9790,7 @@ msgstr "Povuci"
 
 #: frappe/public/js/form_builder/components/Tabs.vue:190
 msgid "Drag & Drop a section here from another tab"
-msgstr "Povuci i Ispusti sekciju ovdje sa druge kartice"
+msgstr "Povuci i Ispusti odjeljak ovdje sa druge kartice"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:14
 msgid "Drag and drop files here or upload from"
@@ -10504,7 +10504,7 @@ msgstr "Slanje e-pošte svima za <b>{0}</b> obavještenja? Ovo ga dodaje u posta
 
 #: frappe/core/doctype/communication/communication.js:345
 msgid "Email has been marked as spam"
-msgstr "E-pošta je označena kao neželjena pošta"
+msgstr "E-pošta je odabrana kao neželjena pošta"
 
 #: frappe/core/doctype/communication/communication.js:358
 msgid "Email has been moved to trash"
@@ -13184,7 +13184,7 @@ msgstr "Funkcija {0} zahtijeva argumente, ali nijedan nije dat"
 
 #: frappe/public/js/frappe/views/treeview.js:437
 msgid "Further sub-groups can only be created under records marked as 'Group'"
-msgstr "Daljnje podgrupe mogu se izraditi samo pod zapisima označenim kao 'Grupa'"
+msgstr "Daljnje podgrupe mogu se izraditi samo pod zapisima odabranim kao 'Grupa'"
 
 #: frappe/core/doctype/communication/communication.js:294
 msgid "Fw: {0}"
@@ -13433,7 +13433,7 @@ msgstr "Idi Nazad"
 #: frappe/website/doctype/web_form/web_form.js:501
 #: frappe/website/doctype/web_form/web_form.js:505
 msgid "Go to Access Control section"
-msgstr "Idite na sekciju Kontrola Pristupa"
+msgstr "Idite na odjeljak Kontrola Pristupa"
 
 #: frappe/desk/doctype/notification_settings/notification_settings.js:17
 msgid "Go to Notification Settings List"
@@ -13855,7 +13855,7 @@ msgstr "HTML Stranica"
 #. Description of the 'Header' (HTML Editor) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "HTML for header section. Optional"
-msgstr "HTML za sekciju zaglavlja. Opcija"
+msgstr "HTML za odjeljak zaglavlja. Opcija"
 
 #: frappe/core/page/component_explorer/component_explorer.js:1006
 msgid "HTML message with inline link"
@@ -14646,7 +14646,7 @@ msgstr "Ako je omogućeno, samo Sistemski Odgovorni mogu postavljati javne datot
 #. Description of the 'Track Seen' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "If enabled, the document is marked as seen, the first time a user opens it"
-msgstr "Ako je omogućeno, dokument se označava kao viđen, kada ga korisnik prvi put otvori"
+msgstr "Ako je omogućeno, dokument se odabire kao viđen, kada ga korisnik prvi put otvori"
 
 #. Description of the 'Send System Notification' (Check) field in DocType
 #. 'Notification'
@@ -14729,7 +14729,7 @@ msgstr "Ako korisnik ima odabranu bilo koju ulogu, tada korisnik postaje \"Koris
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:105
 msgid "If these instructions where not helpful, please add in your suggestions on GitHub Issues."
-msgstr "Ako vam ove upute nisu pomogle, dodajte svoje prijedloge o GitHub problemima."
+msgstr "Ako vam ove upute nisu pomogle, dodaj svoje prijedloge o GitHub problemima."
 
 #. Success message of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json
@@ -14807,7 +14807,7 @@ msgstr "Ako mislite da je ovo neovlašteno, promijenite administratorsku lozinku
 #. Description of the 'Delimiter Options' (Data) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "If your CSV uses a different delimiter, add that character here, ensuring no spaces or additional characters are included."
-msgstr "Ako vaš CSV koristi drugačiji razdjelnik, dodajte taj znak ovdje, pazeći da nema razmaka ili dodatnih znakova."
+msgstr "Ako vaš CSV koristi drugačiji razdjelnik, dodaj taj znak ovdje, pazeći da nema razmaka ili dodatnih znakova."
 
 #. Description of the 'Source Text' (Code) field in DocType 'Translation'
 #: frappe/core/doctype/translation/translation.json
@@ -19259,7 +19259,7 @@ msgstr "Pomjerite kursor na prethodnu kolonu"
 
 #: frappe/public/js/form_builder/components/Section.vue:298
 msgid "Move sections to new tab"
-msgstr "Premjesti sekciju na novu karticu"
+msgstr "Premjesti odjeljak na novu karticu"
 
 #: frappe/public/js/frappe/form/grid_row.js:159
 msgid "Move to Row Number"
@@ -20288,7 +20288,7 @@ msgstr "Nijedan dokument nije dodan."
 
 #: frappe/public/js/frappe/ui/toolbar/search.js:109
 msgid "No documents found tagged with {0}"
-msgstr "Nije pronađen nijedan dokument označen sa {0}"
+msgstr "Nije pronađen nijedan dokument odabran sa {0}"
 
 #: frappe/core/doctype/role/role.js:320
 msgid "No documents found."
@@ -20451,7 +20451,7 @@ msgstr "Nema zapisa u {0}"
 
 #: frappe/public/js/frappe/list/list_sidebar_stat.html:11
 msgid "No records tagged."
-msgstr "Nema označenih zapisa."
+msgstr "Nema odabranih zapisa."
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:246
 msgid "No records will be exported"
@@ -20498,7 +20498,7 @@ msgstr "Nema spremljenih predložaka. Pokušaj spremiti trenutni obrazac kao pre
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:228
 msgid "No sections yet. Add sections to the canvas."
-msgstr "Još nema sekcija. Dodajte sekcije na platno."
+msgstr "Još nema sekcija. Dodaj sekcije na platno."
 
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:733
 msgid "No session defaults configured."
@@ -25262,7 +25262,7 @@ msgstr "Ukloni prijelom stranice"
 #: frappe/public/js/form_builder/components/Section.vue:270
 #: frappe/public/js/print_format_builder/components/editor/SectionActions.vue:35
 msgid "Remove section"
-msgstr "Ukloni sekciju"
+msgstr "Ukloni odjeljak"
 
 #: frappe/public/js/print_format_builder/components/inspector/BulkPropertiesPanel.vue:17
 msgid "Remove selected"
@@ -27622,7 +27622,7 @@ msgstr "Odaberi ili prevucite preko vremenskih intervala da izradi novi događaj
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:16
 msgid "Select parent section (Esc)"
-msgstr "Odaberi nadređenu sekciju (Esc)"
+msgstr "Odaberi nadređenu odjeljak (Esc)"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:239
 msgid "Select records for assignment"
