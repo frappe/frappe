@@ -60,7 +60,7 @@
 								<template #prefix><FeatherIcon name="chevron-left" class="!h-3 !w-3" /></template>
 								{{ parentFragmentName }}
 							</Button>
-							<Button variant="solid" class="text-xs" @click="saveFragmentMode">
+							<Button variant="solid" class="text-xs" :loading="savingFragment" @click="saveFragmentMode">
 								{{ canvasStore.fragmentData.saveActionLabel || "Save" }}
 							</Button>
 						</div>
@@ -214,10 +214,22 @@ const parentFragmentName = computed(() => {
 	return parentFragment?.fragmentName || "Page"
 })
 
+const savingFragment = ref(false)
+
 async function saveFragmentMode() {
 	const editedBlock = fragmentCanvas.value?.getRootBlock()
-	if (!editedBlock) return
-	canvasStore.fragmentData.saveAction?.(editedBlock)
+	if (!editedBlock || savingFragment.value) return
+
+	savingFragment.value = true
+	try {
+		await canvasStore.fragmentData.saveAction?.(editedBlock)
+	} catch {
+		// save failed, stay on this fragment so the edited state isn't lost
+		return
+	} finally {
+		savingFragment.value = false
+	}
+
 	if (canvasStore.editingMode === "fragment") {
 		toast.success(`${canvasStore.fragmentData.fragmentName} saved successfully`)
 	}

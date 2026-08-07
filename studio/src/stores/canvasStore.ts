@@ -109,7 +109,7 @@ const useCanvasStore = defineStore("canvasStore", () => {
 	// fragment mode
 	type FragmentData = {
 		block: Block
-		saveAction: (block: Block) => void
+		saveAction: (block: Block) => void | Promise<void>
 		saveActionLabel: string
 		fragmentName: string
 		fragmentId: string
