@@ -60,11 +60,7 @@ class DesktopIcon(Document):
 
 	def on_update(self):
 		self.export_desktop_icon()
-		if self.standard:
-			frappe.cache.delete_key("desktop_icons")
-			frappe.cache.delete_key("bootinfo")
-		else:
-			clear_desktop_icons_cache(user=self.owner)
+		clear_desktop_icons_cache()
 
 	def after_rename(self, old, new, merge):
 		delete_desktop_icon_file(self.app, old)
@@ -294,8 +290,14 @@ def get_desktop_icons(user=None, bootinfo=None):
 
 
 def clear_desktop_icons_cache(user=None):
-	frappe.cache.hdel("desktop_icons", user or frappe.session.user)
-	frappe.cache.hdel("bootinfo", user or frappe.session.user)
+	"""Drop the cached icon grid for `user`, or for everyone -- an icon is never scoped to one user."""
+	if user:
+		frappe.cache.hdel("desktop_icons", user)
+		frappe.cache.hdel("bootinfo", user)
+		return
+
+	frappe.cache.delete_key("desktop_icons")
+	frappe.cache.delete_key("bootinfo")
 
 
 def create_desktop_icons_from_workspace():
@@ -348,8 +350,8 @@ def create_desktop_icons_from_workspace():
 						"Desktop Icon", [{"label": icon.label, "icon_type": icon.icon_type}]
 					):
 						icon.insert(ignore_if_duplicate=True)
-				except Exception as e:
-					frappe.error_log(title="Creation of Desktop Icon Failed", message=e)
+				except Exception:
+					frappe.log_error(title="Creation of Desktop Icon Failed")
 
 
 def create_desktop_icons_from_installed_apps():

@@ -167,6 +167,31 @@ class TestWorkspace(IntegrationTestCase):
 		finally:
 			frappe.db.delete("Workspace", {"name": workspace.name})
 
+	def test_deleting_module_workspace_removes_its_sidebar_and_icon(self):
+		"""A workspace takes its sidebar and desktop icon with it, module or not."""
+		workspace = create_workspace(name="Sidebar Cleanup", label="Sidebar Cleanup", public=1)
+		workspace.insert()
+
+		sidebar = frappe.new_doc("Workspace Sidebar")
+		sidebar.title = workspace.name
+		sidebar.module = workspace.module
+		sidebar.append(
+			"items", {"label": "Home", "type": "Link", "link_type": "Workspace", "link_to": workspace.name}
+		)
+		sidebar.insert()
+
+		icon = frappe.new_doc("Desktop Icon")
+		icon.label = workspace.name
+		icon.icon_type = "Link"
+		icon.link_type = "Workspace Sidebar"
+		icon.link_to = sidebar.name
+		icon.insert()
+
+		frappe.delete_doc("Workspace", workspace.name)
+
+		self.assertFalse(frappe.db.exists("Workspace Sidebar", sidebar.name))
+		self.assertFalse(frappe.db.exists("Desktop Icon", icon.name))
+
 
 def create_module(module_name):
 	module = frappe.get_doc({"doctype": "Module Def", "module_name": module_name, "app_name": "frappe"})
