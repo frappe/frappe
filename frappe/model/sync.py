@@ -5,6 +5,7 @@ Sync's doctype and docfields from txt files to database
 perms will get synced only if none exist
 """
 
+import glob
 import os
 import re
 
@@ -158,6 +159,11 @@ def get_doc_files(files, start_path):
 					if os.path.exists(doc_path):
 						if doc_path not in files:
 							files.append(doc_path)
+
+	# DocType Settings Maps: doctype_settings_map/{name}.json
+	for doc_path in glob.glob(os.path.join(start_path, "doctype_settings_map", "*.json")):
+		if doc_path not in files:
+			files.append(doc_path)
 
 	return files
 
