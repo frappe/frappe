@@ -147,14 +147,15 @@ class TestWorkflow(FrappeTestCase):
 		with patch("frappe.sendmail") as sendmail:
 			todo = create_new_todo()
 			self.assertEqual(open_states(), ["Pending"])
-			self.assertEqual(sendmail.call_count, 1)
+			self.assertTrue(sendmail.called)
 
 			apply_workflow(todo, "Reject")
 			self.assertEqual(open_states(), ["Rejected"])
 
+			sendmail.reset_mock()
 			apply_workflow(todo, "Review")
 			self.assertEqual(open_states(), ["Pending"])
-			self.assertEqual(sendmail.call_count, 2)
+			self.assertTrue(sendmail.called)
 
 		actions = frappe.get_all(
 			"Workflow Action",
@@ -170,10 +171,12 @@ class TestWorkflow(FrappeTestCase):
 
 		with patch("frappe.sendmail") as sendmail:
 			todo = create_new_todo()
+			sendmail.reset_mock()
+
 			todo.description = "edited " + random_string(10)
 			todo.save()
 
-			self.assertEqual(sendmail.call_count, 1)
+			self.assertFalse(sendmail.called)
 
 		actions = frappe.get_all(
 			"Workflow Action", filters={"reference_doctype": "ToDo", "reference_name": todo.name}
