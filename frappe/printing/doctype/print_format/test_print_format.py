@@ -923,18 +923,6 @@ class TestPrintFormatDraft(IntegrationTestCase):
 		self.assertEqual(live.margin_top, 30)
 		self.assertEqual(live.disabled, 0)
 
-	def test_builder_draft_fields_match_the_javascript_list(self):
-		"""A field in one list and not the other silently stops being drafted."""
-		from pathlib import Path
-
-		from frappe.printing.doctype.print_format.print_format import BUILDER_DRAFT_FIELDS
-
-		app = Path(frappe.get_app_path("frappe"))
-		source = (app / "public/js/print_format_builder/utils.js").read_text()
-		block = re.search(r"export const DRAFT_FIELDS = \[(.*?)\];", source, re.S)
-		self.assertIsNotNone(block, "DRAFT_FIELDS not found in utils.js")
-		self.assertEqual(set(re.findall(r'"([^"]+)"', block.group(1))), set(BUILDER_DRAFT_FIELDS))
-
 	def test_a_stale_write_cannot_clobber_a_newer_draft(self):
 		"""db_set skips the timestamp check save() runs, so the endpoints do it."""
 		from frappe.printing.doctype.print_format.print_format import (

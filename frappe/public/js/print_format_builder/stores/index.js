@@ -1,4 +1,4 @@
-import { clone_plain, create_default_layout, DRAFT_FIELDS, serialize_layout } from "../utils";
+import { clone_plain, create_default_layout, serialize_layout } from "../utils";
 import { useLayoutHistory } from "./useLayoutHistory";
 import { usePresets } from "../composables/usePresets";
 import { usePreviewDoc } from "../composables/usePreviewDoc";
@@ -213,16 +213,6 @@ export function getStore(print_format_name) {
 			? "draft"
 			: "saved"
 	);
-	// what autosave parks in draft_data and what Save & Apply copies onto the format
-	function draft_payload() {
-		const doc = get_preview_format_doc();
-		return Object.fromEntries(
-			DRAFT_FIELDS.filter((field) => doc[field] !== undefined).map((field) => [
-				field,
-				doc[field],
-			])
-		);
-	}
 	// bumped by every apply/discard so a reply from an autosave that was already in
 	// flight can't put the draft back after it was cleared
 	let draft_epoch = 0;
@@ -239,7 +229,7 @@ export function getStore(print_format_name) {
 			.then(() =>
 				frappe.call("frappe.printing.doctype.print_format.print_format.apply_draft", {
 					name: print_format_name,
-					data: draft_payload(),
+					data: get_preview_format_doc(),
 					modified: print_format.value.modified,
 				})
 			)
@@ -304,7 +294,7 @@ export function getStore(print_format_name) {
 				method: "frappe.printing.doctype.print_format.print_format.save_draft",
 				args: {
 					name: print_format_name,
-					data: draft_payload(),
+					data: get_preview_format_doc(),
 					modified: print_format.value.modified,
 				},
 			})

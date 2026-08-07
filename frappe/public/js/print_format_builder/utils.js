@@ -34,26 +34,6 @@ export function write_json(key, value) {
 	}
 }
 
-// Mirrors BUILDER_DRAFT_FIELDS in print_format.py — the fields autosave parks in
-// draft_data and Save & Apply copies onto the format. A test pins the two together.
-export const DRAFT_FIELDS = [
-	"format_data",
-	"font",
-	"font_size",
-	"page_number",
-	"show_label_colon",
-	"margin_top",
-	"margin_bottom",
-	"margin_left",
-	"margin_right",
-	"label_color",
-	"value_color",
-	"classic_format_data",
-	"print_format_builder",
-	"print_format_builder_beta",
-	"pdf_generator",
-];
-
 // Blocks the builder invents — they never map to a docfield on the document type
 export const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater", "HTML"]);
 
