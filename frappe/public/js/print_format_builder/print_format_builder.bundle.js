@@ -24,7 +24,8 @@ class PrintFormatBuilder {
 			description: __("Save & Apply Print Format"),
 			page: this.page,
 		});
-		this.page.add_menu_item(__("Discard Draft"), () => {
+		// shown only while a draft exists — see the has_draft watch below
+		let $discard_btn = this.page.add_button(__("Discard Draft"), () => {
 			frappe.confirm(
 				__("Discard your unapplied changes and go back to what this format prints?"),
 				() => this.$component.$store.discard_draft()
@@ -68,6 +69,12 @@ class PrintFormatBuilder {
 				else if (status.value === "draft") this.page.set_indicator(__("Draft"), "orange");
 				else this.page.set_indicator(__("Applied"), "green");
 			},
+			{ deep: true, immediate: true }
+		);
+
+		watch(
+			() => this.$component.$store.has_draft,
+			(has_draft) => $discard_btn.toggle(!!has_draft.value),
 			{ deep: true, immediate: true }
 		);
 
