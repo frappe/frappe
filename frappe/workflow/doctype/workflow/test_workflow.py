@@ -103,6 +103,7 @@ class TestWorkflow(FrappeTestCase):
 		self.assertEqual(len(workflow_actions), 1)
 		self.assertEqual(workflow_actions[0].status, "Completed")
 
+<<<<<<< HEAD
 	def test_if_workflow_actions_were_processed_using_user(self):
 		user = frappe.get_doc("User", "test2@example.com")
 		user.add_roles("Test Approver", "System Manager")
@@ -125,6 +126,60 @@ class TestWorkflow(FrappeTestCase):
 		self.assertEqual(len(workflow_actions), 1)
 		self.assertEqual(workflow_actions[0].status, "Completed")
 		frappe.set_user("Administrator")
+=======
+	def add_approver(self):
+		"""Give the workflow a mail recipient other than the document owner."""
+		user = frappe.get_doc("User", "test2@example.com")
+		user.add_roles("Test Approver", "System Manager")
+		self.addCleanup(user.remove_roles, "Test Approver", "System Manager")
+
+	def test_workflow_action_recreated_when_state_is_re_entered(self):
+		"""A document coming back to a state it already left needs a fresh action and notification."""
+		self.add_approver()
+
+		def open_states():
+			return frappe.get_all(
+				"Workflow Action",
+				filters={"reference_doctype": "ToDo", "reference_name": todo.name, "status": "Open"},
+				pluck="workflow_state",
+			)
+
+		with patch("frappe.sendmail") as sendmail:
+			todo = create_new_todo()
+			self.assertEqual(open_states(), ["Pending"])
+			self.assertEqual(sendmail.call_count, 1)
+
+			apply_workflow(todo, "Reject")
+			self.assertEqual(open_states(), ["Rejected"])
+
+			apply_workflow(todo, "Review")
+			self.assertEqual(open_states(), ["Pending"])
+			self.assertEqual(sendmail.call_count, 2)
+
+		actions = frappe.get_all(
+			"Workflow Action",
+			filters={"reference_doctype": "ToDo", "reference_name": todo.name, "workflow_state": "Pending"},
+			pluck="status",
+			order_by="creation asc",
+		)
+		self.assertEqual(actions, ["Completed", "Open"])
+
+	def test_workflow_action_not_duplicated_on_resave(self):
+		"""Saving without leaving the state must not create another action or resend the email."""
+		self.add_approver()
+
+		with patch("frappe.sendmail") as sendmail:
+			todo = create_new_todo()
+			todo.description = "edited " + random_string(10)
+			todo.save()
+
+			self.assertEqual(sendmail.call_count, 1)
+
+		actions = frappe.get_all(
+			"Workflow Action", filters={"reference_doctype": "ToDo", "reference_name": todo.name}
+		)
+		self.assertEqual(len(actions), 1)
+>>>>>>> ce958aefe2 (fix: send workflow email when a document re-enters an approval state)
 
 	def test_if_workflow_set_on_action(self):
 		self.workflow._update_state_docstatus = True
