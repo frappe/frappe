@@ -1,7 +1,7 @@
 <template>
-	<div v-if="fragmentNodes.length" class="mt-5 flex w-full flex-col gap-2">
+	<div v-if="fragmentNodes.length" class="mt-5 flex w-full max-w-3xl flex-col gap-2 self-center">
 		<span class="text-xs font-medium text-ink-gray-5">
-			Fragments · {{ fragmentNodes.length }} — not rendered inline
+			Fragments · {{ fragmentNodes.length }} - not rendered inline
 		</span>
 		<div
 			v-for="block in fragmentNodes"

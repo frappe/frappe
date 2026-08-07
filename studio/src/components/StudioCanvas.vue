@@ -12,7 +12,7 @@
 		</Transition>
 
 		<div
-			class="fixed flex gap-40"
+			class="fixed flex flex-col"
 			ref="canvas"
 			:style="{
 				transformOrigin: 'top center',
@@ -37,9 +37,11 @@
 					/>
 				</div>
 			</div>
-			<div class="flex flex-col" v-for="breakpoint in visibleBreakpoints" :key="breakpoint.device">
+			<div class="flex gap-40">
 				<div
 					class="canvas relative flex bg-surface-base shadow-2xl contain-layout"
+					v-for="breakpoint in visibleBreakpoints"
+					:key="breakpoint.device"
 					:class="canvasStore.editingMode === 'page' ? 'min-h-[100dvh]' : ''"
 					:style="{
 						...canvasStyles,
@@ -67,8 +69,8 @@
 						:isEditingComponent="canvasStore.editingMode === 'component'"
 					/>
 				</div>
-				<slot name="afterCanvas" :rootBlock="rootComponent" :breakpoint="breakpoint"></slot>
 			</div>
+			<slot name="afterCanvas" :rootBlock="rootComponent"></slot>
 		</div>
 
 		<div
