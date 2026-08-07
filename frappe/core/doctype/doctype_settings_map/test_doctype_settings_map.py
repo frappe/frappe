@@ -16,7 +16,6 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 CUSTOM_NAME = "User"
-STANDARD_NAME = "User (Standard)"
 
 
 class IntegrationTestDocTypeSettingsMap(IntegrationTestCase):
@@ -51,7 +50,7 @@ class IntegrationTestDocTypeSettingsMap(IntegrationTestCase):
 		tab reads exactly one, so activation must reconcile the pair.
 		"""
 		custom = self.make_map(is_standard=0, is_active=0)
-		self.make_map(is_standard=1, is_active=1)
+		standard = self.make_map(is_standard=1, is_active=1)
 
 		# Inserting the standard map reconciled the custom row (set its is_active), bumping
 		# its timestamp — refresh before editing so the save isn't rejected as stale.
@@ -65,7 +64,7 @@ class IntegrationTestDocTypeSettingsMap(IntegrationTestCase):
 			"the map just activated should be active",
 		)
 		self.assertEqual(
-			frappe.db.get_value("DocType Settings Map", STANDARD_NAME, "is_active"),
+			frappe.db.get_value("DocType Settings Map", standard.name, "is_active"),
 			0,
 			"activating custom must deactivate the standard sibling",
 		)
@@ -77,14 +76,14 @@ class IntegrationTestDocTypeSettingsMap(IntegrationTestCase):
 		otherwise the General tab would silently vanish.
 		"""
 		custom = self.make_map(is_standard=0, is_active=1)
-		self.make_map(is_standard=1, is_active=0)
+		standard = self.make_map(is_standard=1, is_active=0)
 
 		custom.reload()
 		custom.is_active = 0
 		custom.save(ignore_permissions=True)
 
 		self.assertEqual(
-			frappe.db.get_value("DocType Settings Map", STANDARD_NAME, "is_active"),
+			frappe.db.get_value("DocType Settings Map", standard.name, "is_active"),
 			1,
 			"standard sibling should be promoted when nothing else is active",
 		)
@@ -114,12 +113,12 @@ class IntegrationTestDocTypeSettingsMap(IntegrationTestCase):
 		the doctype with none active.
 		"""
 		custom = self.make_map(is_standard=0, is_active=1)
-		self.make_map(is_standard=1, is_active=0)
+		standard = self.make_map(is_standard=1, is_active=0)
 
 		custom.delete(ignore_permissions=True)
 
 		self.assertEqual(
-			frappe.db.get_value("DocType Settings Map", STANDARD_NAME, "is_active"),
+			frappe.db.get_value("DocType Settings Map", standard.name, "is_active"),
 			1,
 			"remaining sibling should be promoted on delete",
 		)

@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import re
+from datetime import datetime
 
 import frappe
 import frappe.utils
@@ -10,6 +11,28 @@ from frappe.custom.doctype.property_setter.property_setter import delete_propert
 from frappe.model.document import Document
 from frappe.utils.jinja import validate_template
 from frappe.utils.print_format_generator import download_pdf, get_html
+
+#: The fields the builder may hold in `draft_data`. Everything the builder can edit
+#: belongs here — a field left out stays live, so a margin would apply instantly
+#: while the layout waited for Save & Apply.
+BUILDER_DRAFT_FIELDS = (
+	"format_data",
+	"font",
+	"font_size",
+	"page_number",
+	"show_label_colon",
+	"margin_top",
+	"margin_bottom",
+	"margin_left",
+	"margin_right",
+	"label_color",
+	"value_color",
+	# written once when a classic format is converted on open
+	"classic_format_data",
+	"print_format_builder",
+	"print_format_builder_beta",
+	"pdf_generator",
+)
 
 
 class PrintFormat(Document):
@@ -275,8 +298,71 @@ def create_custom_format(doctype: str, name: str | int, based_on: str = "Standar
 		source = frappe.get_doc("Print Format", based_on)
 		source.check_permission("read")
 		doc.format_data = source.format_data
+	else:
+		# seed the layout so the format prints something before its first Save & Apply
+		from frappe.printing.doctype.print_format.classic_converter import create_default_layout
+
+		doc.format_data = frappe.as_json(create_default_layout(frappe.get_meta(doctype)))
 	doc.insert()
 	return doc
+
+
+def _draft_payload(data: str | dict | None) -> dict:
+	"""Keep only the fields the builder is allowed to hold in a draft."""
+	data = frappe.parse_json(data) if data else {}
+	if not isinstance(data, dict):
+		frappe.throw(_("Draft data must be an object"))
+	return {key: value for key, value in data.items() if key in BUILDER_DRAFT_FIELDS}
+
+
+def _writable_format(name: str, modified: str | datetime):
+	"""The format, refusing the write if the caller's copy is behind the database.
+
+	`db_set` skips the timestamp check `save()` would run, so a second editor — or
+	an autosave still in flight when Save & Apply lands — would otherwise overwrite
+	a newer draft, or bring a discarded one back. `modified` is required for the
+	same reason `client.save` sends one: a caller without it cannot be checked.
+	"""
+	doc = frappe.get_doc("Print Format", name)
+	doc.check_permission("write")
+	# lock the row for the rest of the transaction, so the check and the write that
+	# follows it can't interleave with another request doing the same
+	current = frappe.db.get_value("Print Format", name, "modified", for_update=True)
+	if frappe.utils.cstr(current) != frappe.utils.cstr(modified):
+		frappe.throw(
+			_("{0} has changed since you opened it. Refresh to get the latest version.").format(
+				frappe.bold(name)
+			),
+			frappe.TimestampMismatchError,
+		)
+	return doc
+
+
+@frappe.whitelist()
+def save_draft(name: str, data: str | dict, modified: str | datetime):
+	"""Store the builder's in-progress changes without touching what prints."""
+	doc = _writable_format(name, modified)
+	doc.db_set("draft_data", frappe.as_json(_draft_payload(data)))
+	return doc.modified
+
+
+@frappe.whitelist()
+def apply_draft(name: str, modified: str | datetime, data: str | dict | None = None):
+	"""Copy the draft onto the fields that print, then clear it."""
+	doc = _writable_format(name, modified)
+	for field, value in _draft_payload(data if data is not None else doc.draft_data).items():
+		doc.set(field, value)
+	doc.draft_data = None
+	doc.save()
+	return doc.as_dict()
+
+
+@frappe.whitelist()
+def discard_draft(name: str, modified: str | datetime):
+	"""Throw away the draft; what prints is untouched either way."""
+	doc = _writable_format(name, modified)
+	doc.db_set("draft_data", None)
+	return doc.modified
 
 
 @frappe.whitelist()
