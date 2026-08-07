@@ -457,6 +457,7 @@ frappe.document_queue_review.render_panel = function (frm, context) {
 					</div>
 					<div class="section-body ${open_sections.json ? "" : "hide"}">
 						<pre class="document-queue-review-json-pre">${frappe.utils.escape_html(formatted)}</pre>
+					</div>
 				</div>
 			`;
 		} catch {
