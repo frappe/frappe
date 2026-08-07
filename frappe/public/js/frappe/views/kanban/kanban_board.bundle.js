@@ -1577,12 +1577,10 @@ if (frappe.views.KanbanView) {
 			card = Object.assign({}, card, doc);
 		}
 
-		const title_value = card[state.card_meta.title_field.fieldname];
-
 		return {
 			doctype: state.doctype,
 			name: card.name,
-			title: title_value == null || title_value === "" ? card.name : title_value,
+			title: card[state.card_meta.title_field.fieldname],
 			creation: moment(card.creation).format("MMM DD, YYYY"),
 			_liked_by: card._liked_by,
 			image: card[cur_list.meta.image_field],
