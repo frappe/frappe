@@ -295,19 +295,20 @@ def _draft_payload(data: str | dict | None) -> dict:
 	return {key: value for key, value in data.items() if key in BUILDER_DRAFT_FIELDS}
 
 
-def _writable_format(name: str, modified: str | None):
+def _writable_format(name: str, modified: str):
 	"""The format, refusing the write if the caller's copy is behind the database.
 
 	`db_set` skips the timestamp check `save()` would run, so a second editor — or
 	an autosave still in flight when Save & Apply lands — would otherwise overwrite
-	a newer draft, or bring a discarded one back.
+	a newer draft, or bring a discarded one back. `modified` is required for the
+	same reason `client.save` sends one: a caller without it cannot be checked.
 	"""
 	doc = frappe.get_doc("Print Format", name)
 	doc.check_permission("write")
 	# lock the row for the rest of the transaction, so the check and the write that
 	# follows it can't interleave with another request doing the same
 	current = frappe.db.get_value("Print Format", name, "modified", for_update=True)
-	if modified and frappe.utils.cstr(current) != frappe.utils.cstr(modified):
+	if frappe.utils.cstr(current) != frappe.utils.cstr(modified):
 		frappe.throw(
 			_("{0} has changed since you opened it. Refresh to get the latest version.").format(
 				frappe.bold(name)
@@ -318,7 +319,7 @@ def _writable_format(name: str, modified: str | None):
 
 
 @frappe.whitelist()
-def save_draft(name: str, data: str | dict, modified: str | None = None):
+def save_draft(name: str, data: str | dict, modified: str):
 	"""Store the builder's in-progress changes without touching what prints."""
 	doc = _writable_format(name, modified)
 	doc.db_set("draft_data", frappe.as_json(_draft_payload(data)))
@@ -326,7 +327,7 @@ def save_draft(name: str, data: str | dict, modified: str | None = None):
 
 
 @frappe.whitelist()
-def apply_draft(name: str, data: str | dict | None = None, modified: str | None = None):
+def apply_draft(name: str, modified: str, data: str | dict | None = None):
 	"""Copy the draft onto the fields that print, then clear it."""
 	doc = _writable_format(name, modified)
 	for field, value in _draft_payload(data if data is not None else doc.draft_data).items():
@@ -337,7 +338,7 @@ def apply_draft(name: str, data: str | dict | None = None, modified: str | None 
 
 
 @frappe.whitelist()
-def discard_draft(name: str, modified: str | None = None):
+def discard_draft(name: str, modified: str):
 	"""Throw away the draft; what prints is untouched either way."""
 	doc = _writable_format(name, modified)
 	doc.db_set("draft_data", None)
