@@ -23,11 +23,6 @@
 			</button>
 		</div>
 
-		<!-- Letter Head notice — shown whenever the letterhead is selected -->
-		<div v-if="selected_letterhead || selected_lh_footer" class="pfb-lh-notice">
-			{{ __("Edits here update the Letter Head document directly.") }}
-		</div>
-
 		<!-- Nothing selected: canvas-wide print settings -->
 		<div v-if="!has_selection" class="pfb-insp-body pfb-canvas-settings">
 			<PrintSettingsPanel />
@@ -237,19 +232,5 @@ let field_is_inline = computed(() => parent_section.value?.field_orientation ===
 /* ── Canvas settings (nothing selected) ──────────────────── */
 .pfb-canvas-settings {
 	padding: 12px 14px;
-}
-
-/* ── Letter Head notice ──────────────────────────────────── */
-.pfb-lh-notice {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	font-size: var(--text-tiny);
-	color: var(--yellow-800);
-	background: var(--yellow-50);
-	border-bottom: 1px solid var(--yellow-200);
-	padding: 7px 14px;
-	flex-shrink: 0;
-	line-height: 1.4;
 }
 </style>

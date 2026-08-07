@@ -10,6 +10,7 @@
 		<div class="pfb-insp-section">
 			<div class="pfb-insp-section-body" style="padding-top: 10px">
 				<SegmentedRow
+					v-if="letterhead"
 					:label="__('Based on')"
 					:model-value="zone_source"
 					:options="[
@@ -18,37 +19,15 @@
 					]"
 					@update:model-value="set_source"
 				/>
-				<!-- Letter head selection buttons — always visible for header zone -->
-				<template v-if="zone === 'header'">
-					<div v-if="letterhead" class="pfb-lh-actions" style="margin-top: 4px">
-						<button class="es-button" data-size="xs" @click="lh_change_letterhead">
-							{{ __("Change Letter Head") }}
-						</button>
-						<button
-							class="es-button"
-							data-size="xs"
-							@click="store.remove_letterhead()"
-						>
-							{{ __("Remove") }}
-						</button>
-					</div>
-					<div v-else class="pfb-lh-actions" style="margin-top: 4px">
-						<p class="pfb-insp-hint text-muted">
-							{{ __("No letter head selected.") }}
-						</p>
-						<button class="es-button" data-size="xs" @click="lh_create_letterhead">
-							{{ __("Create Letter Head") }}
-						</button>
-						<button class="es-button" data-size="xs" @click="lh_change_letterhead">
-							{{ __("Select Letter Head") }}
-						</button>
-					</div>
-				</template>
+				<div v-if="zone === 'header'" class="pfb-insp-row pfb-insp-row--col">
+					<span class="pfb-insp-label">{{ __("Letter Head") }}</span>
+					<div ref="lh_link_ref"></div>
+				</div>
 			</div>
 		</div>
 
 		<!-- HTML section -->
-		<InspectorSection v-if="zone_source === 'HTML'" :label="__('HTML')">
+		<InspectorSection v-if="letterhead && zone_source === 'HTML'" :label="__('HTML')">
 			<template v-if="letterhead">
 				<div
 					class="pfb-html-preview"
@@ -63,15 +42,10 @@
 					{{ __("Edit HTML") }}
 				</button>
 			</template>
-			<template v-else>
-				<p class="pfb-insp-hint text-muted">
-					{{ __("No letter head selected.") }}
-				</p>
-			</template>
 		</InspectorSection>
 
 		<!-- Image section -->
-		<InspectorSection v-if="zone_source === 'Image'" :label="__('Image')">
+		<InspectorSection v-if="letterhead && zone_source === 'Image'" :label="__('Image')">
 			<template v-if="letterhead">
 				<!-- Alignment -->
 				<SegmentedRow
@@ -103,17 +77,12 @@
 					@update:model-value="set_image"
 				/>
 			</template>
-			<template v-else>
-				<p class="pfb-insp-hint text-muted">
-					{{ __("No letter head selected.") }}
-				</p>
-			</template>
 		</InspectorSection>
 	</div>
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref } from "vue";
+import { computed, inject, onMounted, ref, watch } from "vue";
 import { useStore } from "../../stores";
 import { get_image_dimensions, render_jinja_html } from "../../utils";
 import SegmentedRow from "./SegmentedRow.vue";
@@ -329,40 +298,35 @@ function edit_html() {
 	});
 }
 
-function lh_change_letterhead() {
-	let d = new frappe.ui.Dialog({
-		title: __("Change Letter Head"),
-		fields: [
-			{
-				label: __("Letter Head"),
-				fieldname: "letterhead",
-				fieldtype: "Link",
-				options: "Letter Head",
-			},
-		],
-		primary_action: ({ letterhead: lh }) => {
-			if (lh) store.change_letterhead(lh);
-			d.hide();
-		},
-	});
-	d.show();
-}
+const lh_link_ref = ref(null);
+let lh_link_ctrl = null;
 
-function lh_create_letterhead() {
-	let d = new frappe.ui.Dialog({
-		title: __("Create Letter Head"),
-		fields: [{ label: __("Letter Head Name"), fieldname: "name", fieldtype: "Data" }],
-		primary_action: ({ name }) => {
-			return frappe.db
-				.insert({ doctype: "Letter Head", letter_head_name: name, source: "Image" })
-				.then((doc) => {
-					d.hide();
-					store.change_letterhead(doc.name);
-				});
+onMounted(() => {
+	if (props.zone !== "header" || !lh_link_ref.value) return;
+	lh_link_ctrl = frappe.ui.form.make_control({
+		parent: lh_link_ref.value,
+		df: {
+			fieldname: "letter_head",
+			fieldtype: "Link",
+			options: "Letter Head",
+			placeholder: __("No letter head"),
+			change: () => {
+				const name = lh_link_ctrl.get_value() || "";
+				if (name === (letterhead.value?.name || "")) return;
+				name ? store.change_letterhead(name) : store.remove_letterhead();
+			},
 		},
+		render_input: true,
 	});
-	d.show();
-}
+	lh_link_ctrl.set_value(letterhead.value?.name || "");
+	lh_link_ref.value.querySelector(".control-label")?.remove();
+	lh_link_ref.value.querySelector(".form-group")?.style.setProperty("margin", "0");
+});
+
+watch(
+	() => letterhead.value?.name,
+	(name) => lh_link_ctrl?.set_value(name || "")
+);
 </script>
 
 <style scoped>
@@ -378,11 +342,5 @@ function lh_create_letterhead() {
 	border-bottom: 1px solid var(--gray-200);
 	padding: 7px 14px;
 	flex-shrink: 0;
-}
-
-.pfb-lh-actions {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
 }
 </style>
