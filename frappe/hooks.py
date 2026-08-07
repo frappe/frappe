@@ -303,7 +303,6 @@ scheduler_events = {
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
 		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
-		"frappe.core.doctype.duckdb_sync.duckdb_sync.cleanup_old_syncs",
 		"frappe.integrations.doctype.oauth_client.oauth_client.delete_unused_dynamic_clients",
 		"frappe.core.doctype.security_settings.security_settings_alert.check_security_txt_expiry",
 	],
