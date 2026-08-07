@@ -41,9 +41,7 @@ class GlobalSearchSettings(Document):
 
 		if virtual_dts:
 			virtual_dts = ", ".join(frappe.bold(dt) for dt in virtual_dts)
-			frappe.throw(
-				_("Virtual DocTypes {0} cannot be searched in Global Search.").format(virtual_dts)
-			)
+			frappe.throw(_("Virtual DocTypes {0} cannot be searched in Global Search.").format(virtual_dts))
 
 		if core_dts:
 			core_dts = ", ".join(frappe.bold(dt) for dt in core_dts)
