@@ -1,8 +1,13 @@
 <template>
-	<EmptyState
-		v-if="isObjectEmpty(componentProps)"
-		:message="`${block?.getBlockDescription()} has no editable properties`"
-	/>
+	<template v-if="isObjectEmpty(componentProps)">
+		<EmptyState v-if="showComponentEditorLink">
+			<span>
+				No editable properties yet. Add inputs inside the
+				<button class="cursor-pointer underline" @click="openComponentEditor">component editor</button>
+			</span>
+		</EmptyState>
+		<EmptyState v-else :message="`${block?.getBlockDescription()} has no editable properties`" />
+	</template>
 	<div v-else class="mt-3 flex flex-col gap-3">
 		<div
 			v-for="(config, propName) in filteredComponentProps"
@@ -144,6 +149,13 @@ const canvasStore = useCanvasStore()
 const store = useStudioStore()
 
 const componentInstance = useComponentInstance(() => props.block)
+
+const showComponentEditorLink = computed(() => props.block?.isStudioComponent && !props.isTestingComponent)
+
+const openComponentEditor = () => {
+	if (!props.block) return
+	useComponentEditorStore().editComponent(props.block.componentName)
+}
 
 const componentProps = computed(() => {
 	if (!props.block || props.block.isRoot()) return {}
