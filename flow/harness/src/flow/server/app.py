@@ -19,13 +19,25 @@ import secrets
 from collections.abc import AsyncIterator
 from dataclasses import asdict
 from typing import Literal
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
+from flow import config as server_config
 from flow.events import AssistantMessage, ReasoningEffort, parse_event
-from flow.model.discovery import available_models
+from flow.model.auth import AuthError
+from flow.model.discovery import available_models, context_window_for
+from flow.server.fspick import PickerUnavailable, pick_folder
+from flow.server.provider_auth import (
+	OAuthCoordinator,
+	create_custom_provider,
+	provider_catalog,
+	require_provider,
+)
 from flow.session.config import SessionConfig
 from flow.session.log import SessionLogError
 from flow.session.session import (
@@ -73,8 +85,51 @@ class CompactRequest(BaseModel):
 	instructions: str | None = None
 
 
-def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI:
+class ConfigPatchRequest(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
+	auto_approve: bool | None = None
+
+
+class ApiKeyRequest(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
+	key: str = Field(min_length=1)
+
+
+class CustomProviderRequest(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
+	name: str = Field(min_length=1, max_length=60)
+	base_url: str = Field(min_length=1, max_length=300)
+	models: list[str] = Field(min_length=1, max_length=50)
+	api_key: str | None = None
+
+
+class OAuthCompleteRequest(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
+	callback_url: str = Field(min_length=1)
+
+
+def create_app(
+	store: SessionStore,
+	*,
+	auth_token: str | None = None,
+	cors_origins: list[str] | None = None,
+	webui_dir: str | None = None,
+) -> FastAPI:
 	app = FastAPI(title="flow server", version="0.1.0")
+	oauth = OAuthCoordinator(store.credentials)
+
+	origins = cors_origins if cors_origins is not None else server_config.CORS_ORIGINS
+	if origins:
+		app.add_middleware(
+			CORSMiddleware,
+			allow_origins=origins,
+			allow_methods=["*"],
+			allow_headers=["Authorization", "Content-Type"],
+		)
 
 	@app.exception_handler(SessionConflict)
 	@app.exception_handler(ResumeError)
@@ -83,11 +138,24 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 		"""A session verb refused by the session's current state answers 409."""
 		return JSONResponse({"detail": str(error)}, status_code=409)
 
+	@app.exception_handler(AuthError)
+	async def auth_error(request: Request, error: AuthError):
+		"""Provider setup problems are client errors, never 500s."""
+		return JSONResponse({"detail": str(error)}, status_code=400)
+
 	if auth_token:
+		api_prefixes = ("/sessions", "/models", "/providers", "/fs")
 
 		@app.middleware("http")
 		async def authenticate(request: Request, call_next):
 			if request.url.path == "/healthz":
+				return await call_next(request)
+			# the static shell must load before the page can send a bearer
+			if (
+				webui_dir
+				and request.method == "GET"
+				and not request.url.path.startswith(api_prefixes)
+			):
 				return await call_next(request)
 			scheme, _, supplied = request.headers.get("Authorization", "").partition(" ")
 			if scheme.lower() != "bearer" or not secrets.compare_digest(
@@ -95,7 +163,6 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 			):
 				return JSONResponse({"detail": "unauthorized"}, status_code=401)
 			return await call_next(request)
-
 	def _get(sid: str) -> Session:
 		try:
 			return store.get(sid)
@@ -124,9 +191,88 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 		catalog = await available_models(store.credentials)
 		return {"models": [asdict(model) for model in catalog.models], "errors": catalog.errors}
 
+	@app.get("/providers")
+	async def providers():
+		return {"providers": provider_catalog(store.credentials)}
+
+	@app.post("/providers/custom")
+	async def save_custom_provider(req: CustomProviderRequest):
+		"""Register an OpenAI-compatible endpoint (Ollama, LM Studio, a gateway)."""
+		base_url = req.base_url.strip().rstrip("/")
+
+		parsed = urlsplit(base_url)
+		if parsed.scheme not in ("http", "https") or not parsed.netloc:
+			raise HTTPException(status_code=422, detail="Base URL must be an absolute http(s) URL")
+		if parsed.username or parsed.password:
+			raise HTTPException(status_code=422, detail="Base URL must not contain credentials")
+		models = tuple(dict.fromkeys(m.strip() for m in req.models if m.strip()))
+		if not models:
+			raise HTTPException(status_code=422, detail="Add at least one model id")
+		# the prefix is what routes a model back to this endpoint later
+		if any("/" not in m for m in models):
+			raise HTTPException(
+				status_code=422,
+				detail="Model ids need a provider prefix, for example ollama/llama3.2",
+			)
+		name = req.name.strip()
+		if not name:
+			raise HTTPException(status_code=422, detail="Name must not be empty")
+		row = create_custom_provider(
+			store.credentials,
+			name=name,
+			base_url=base_url,
+			models=models,
+			api_key=(req.api_key or "").strip() or None,
+		)
+		return {"provider": row}
+
+	@app.post("/providers/{provider_id}/api-key")
+	async def save_provider_api_key(provider_id: str, req: ApiKeyRequest):
+		provider = require_provider(provider_id)
+		if "api_key" not in provider.auth_methods:
+			raise AuthError(f"{provider.display_name} does not take an API key")
+		store.credentials.set_api_key(provider_id, req.key)
+		return {"status": "saved"}
+
+	@app.delete("/providers/{provider_id}")
+	async def remove_provider_credential(provider_id: str):
+		# custom endpoints have no ProviderSpec; a stored credential proves the id
+		if store.credentials.get(provider_id) is None:
+			require_provider(provider_id)  # unknown id → 400, known-but-unset → 404
+			raise HTTPException(status_code=404, detail="no stored credential")
+		store.credentials.delete(provider_id)
+		return {"status": "removed"}
+
+	@app.post("/providers/{provider_id}/oauth/start")
+	async def start_provider_oauth(provider_id: str):
+		return await oauth.start(provider_id)
+
+	@app.get("/providers/{provider_id}/oauth/status")
+	async def provider_oauth_status(provider_id: str):
+		require_provider(provider_id)
+		return oauth.status(provider_id)
+
+	@app.post("/providers/{provider_id}/oauth/complete")
+	async def complete_provider_oauth(provider_id: str, req: OAuthCompleteRequest):
+		return await oauth.complete(provider_id, req.callback_url)
+
+	# POST, not GET: a GET could be fired by a hostile page's <img src=…>.
+	# One at a time — each pick pins a thread until the user answers.
+	pick_lock = asyncio.Lock()
+
+	@app.post("/fs/pick")
+	async def fs_pick():
+		async with pick_lock:
+			try:
+				path = await asyncio.to_thread(pick_folder)
+			except PickerUnavailable as e:
+				raise HTTPException(status_code=501, detail=str(e)) from None
+		return {"path": path}
+
 	@app.get("/sessions")
 	async def list_sessions():
-		return {"sessions": [asdict(info) for info in store.list()]}
+		infos = await asyncio.to_thread(store.list)  # per-session file reads
+		return {"sessions": [asdict(info) for info in infos]}
 
 	@app.post("/sessions")
 	async def create_session(config: SessionConfig):
@@ -148,7 +294,19 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 			"credential_id": session.credential_id,
 			"reasoning_effort": session.reasoning_effort,
 			"config": session.config.redacted(),
+			# both block: a file read, and litellm's import on the first call
+			"title": await asyncio.to_thread(store.title, sid),
+			"context_tokens": session.transcript.context_tokens,
+			"context_window": await asyncio.to_thread(context_window_for, session.model),
 		}
+
+	@app.delete("/sessions/{sid}")
+	async def delete_session(sid: str):
+		try:
+			store.delete(sid)
+		except KeyError:
+			raise HTTPException(status_code=404, detail="session not found") from None
+		return {"status": "deleted"}
 
 	@app.post("/sessions/{sid}/run")
 	async def run(sid: str, req: RunRequest, wait: bool = False):
@@ -176,6 +334,21 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 		session = _get(sid)
 		await session.rewind(req.target_seq)
 		return {"status": "rewound"}
+
+	@app.patch("/sessions/{sid}/config")
+	async def patch_config(sid: str, req: ConfigPatchRequest):
+		# safe mid-run: the loop reads config at each tool gate
+		session = _get(sid)
+		if req.auto_approve is not None:
+			previous = session.config.auto_approve
+			session.set_auto_approve(req.auto_approve)
+			try:
+				store.save_meta(session)
+			except OSError:
+				# memory and disk must agree, or the flag resurfaces after restart
+				session.set_auto_approve(previous)
+				raise HTTPException(status_code=500, detail="failed to persist config") from None
+		return {"config": session.config.redacted()}
 
 	@app.post("/sessions/{sid}/model")
 	async def set_model(sid: str, req: SetModelRequest):
@@ -230,6 +403,10 @@ def create_app(store: SessionStore, *, auth_token: str | None = None) -> FastAPI
 			media_type="text/event-stream",
 			headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
 		)
+
+	if webui_dir:
+		# registered last, so every API route above wins; "/" serves index.html
+		app.mount("/", StaticFiles(directory=webui_dir, html=True), name="webui")
 
 	return app
 
