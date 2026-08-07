@@ -435,7 +435,7 @@ frappe.ui.SidePanel = class SidePanel {
 
 		const dialog = new frappe.ui.Dialog({
 			title: __("Row #{0}", [row_doc.idx]),
-			size: "extra-large",
+			size: "large",
 		});
 		this.row_dialog = dialog;
 		dialog.$wrapper.addClass("side-panel-row-dialog");

@@ -132,6 +132,17 @@ body.side-panel-resizing {
 	visibility: hidden;
 }
 
+.side-panel-row-dialog {
+	.modal-dialog {
+		max-width: var(--page-max-width);
+	}
+
+	.modal-body {
+		max-height: 80vh;
+		overflow-y: auto;
+	}
+}
+
 // Child-row dialog. Reuses the form's classes, so only the column row needs styling here —
 // the real .form-column gets its width from bootstrap's col-sm-* grid, which this doesn't use.
 .side-panel-detail {
