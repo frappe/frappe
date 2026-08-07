@@ -1,7 +1,7 @@
 /** Minimal socket.io-compatible listener. Supplied by the host. */
 export interface DataImportSocket {
   on: (event: string, handler: (payload: any) => void) => void;
-  off?: (event: string, handler?: (payload: any) => void) => void;
+  off: (event: string, handler?: (payload: any) => void) => void;
 }
 
 export interface DataImportProps {
