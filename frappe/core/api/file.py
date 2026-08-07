@@ -91,8 +91,6 @@ def get_max_file_size() -> int:
 	)
 
 
-<<<<<<< HEAD
-=======
 def get_max_extract_size() -> int:
 	return (
 		cint(frappe.get_system_settings("max_zip_extract_size")) * 1024 * 1024
@@ -101,11 +99,6 @@ def get_max_extract_size() -> int:
 	)
 
 
-def get_file_chunk_size() -> int:
-	return cint(frappe.conf.get("file_chunk_size")) or 25 * 1024 * 1024
-
-
->>>>>>> b20e1b4b59 (feat(system settings): add a config. to enforce a lim.)
 @frappe.whitelist()
 def create_new_folder(file_name: str, folder: str) -> File:
 	"""create new folder under current parent folder"""

@@ -77,12 +77,8 @@ class SystemSettings(Document):
 		max_file_size: DF.Int
 		max_report_rows: DF.Int
 		max_signups_allowed_per_hour: DF.Int
-<<<<<<< HEAD
 		minimum_password_score: DF.Literal["2", "3", "4"]
-=======
 		max_zip_extract_size: DF.Int
-		minimum_password_score: DF.Literal["1", "2", "3", "4"]
->>>>>>> b20e1b4b59 (feat(system settings): add a config. to enforce a lim.)
 		number_format: DF.Literal[
 			"#,###.##",
 			"#.###,##",

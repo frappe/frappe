@@ -600,7 +600,6 @@ class TestFile(FrappeTestCase):
 		).insert(ignore_permissions=True)
 		self.assertRaisesRegex(ValidationError, "not a zip file", test_file.unzip)
 
-	@IntegrationTestCase.change_settings("System Settings", {"max_zip_extract_size": 0})
 	def test_file_unzip_respects_dedicated_extract_size_setting(self):
 		file_path = frappe.get_app_path("frappe", "www/_test/assets/file.zip")
 		public_file_path = frappe.get_site_path("public", "files")
