@@ -9,6 +9,7 @@ import redis
 
 import frappe
 from frappe.model.base_document import get_controller
+from frappe.model.utils import is_virtual_doctype
 from frappe.utils import cint, strip_html_tags
 from frappe.utils.data import cstr
 from frappe.utils.html_utils import unescape_html
@@ -83,7 +84,7 @@ def rebuild_for_doctype(doctype):
 
 	meta = frappe.get_meta(doctype)
 
-	if cint(meta.get("is_virtual")) == 1:
+	if meta.is_virtual:
 		return
 
 	if cint(meta.issingle) == 1:
@@ -252,7 +253,7 @@ def update_global_search(doc):
 	if frappe.local.conf.get("disable_global_search"):
 		return
 
-	if cint(doc.meta.get("is_virtual")) == 1:
+	if doc.meta.is_virtual:
 		return
 
 	if doc.docstatus > 1 or (doc.meta.has_field("enabled") and not doc.get("enabled")) or doc.get("disabled"):
@@ -409,8 +410,10 @@ def _get_deduped_search_item_values(items):
 
 
 def _is_virtual_doctype(doctype: str) -> bool:
-	from frappe.model.utils import is_virtual_doctype
-
+	# Safe wrapper around is_virtual_doctype for the pseudo-doctype case
+	# (e.g. "Static Web Page" from web-page indexing): those identifiers aren't
+	# real DocTypes, so get_meta() raises DoesNotExistError. Treat unknown
+	# identifiers as non-virtual so web-page indexing keeps working.
 	try:
 		return bool(is_virtual_doctype(doctype))
 	except frappe.DoesNotExistError:
