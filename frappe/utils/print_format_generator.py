@@ -274,12 +274,18 @@ class PrintFormatGenerator:
 		if cint(no_letterhead) or letterhead == _("No Letterhead"):
 			return None
 
-		name = (
-			letterhead
-			or (self.layout or {}).get("letter_head")
-			or self.doc.get("letter_head")
-			or frappe.db.get_value("Letter Head", {"is_default": 1}, "name")
-		)
+		name = letterhead
+		if not name:
+			layout = self.layout or {}
+			if "letter_head" in layout:
+				# an empty value is an explicit removal, not an unset field
+				name = layout.get("letter_head")
+				if not name:
+					return None
+			else:
+				name = self.doc.get("letter_head") or frappe.db.get_value(
+					"Letter Head", {"is_default": 1}, "name"
+				)
 		# a stale link shouldn't fail the render — templates degrade to no letter head too
 		if not name or not frappe.db.exists("Letter Head", name):
 			return None
@@ -733,6 +739,22 @@ class PrintFormatGenerator:
 			]
 			column["fields"] = fields
 			for df in fields:
+				if df.get("fieldtype") == "Repeater":
+					rows = self.doc.get(df.get("source")) or []
+					if not rows:
+						continue
+					child, child_meta = rows[0], rows[0].meta
+					for col in df.get("repeater_columns") or []:
+						col["template"] = [
+							tok
+							for tok in col.get("template") or []
+							if not (
+								isinstance(tok, dict)
+								and tok.get("t") == "f"
+								and not self.has_field_access(child, child_meta, tok.get("v"))
+							)
+						]
+					continue
 				if df.get("fieldtype") != "Table" or not df.get("table_columns"):
 					continue
 				rows = self.doc.get(df.get("fieldname")) or []
@@ -744,6 +766,13 @@ class PrintFormatGenerator:
 					for col in df["table_columns"]
 					if self.has_field_access(child, child_meta, col.get("fieldname"))
 				]
+				for col in df["table_columns"]:
+					if col.get("merged_fields"):
+						col["merged_fields"] = [
+							mf
+							for mf in col["merged_fields"]
+							if self.has_field_access(child, child_meta, mf.get("fieldname"))
+						]
 		return layout
 
 	def prune_table_columns(self, layout):

@@ -24,7 +24,6 @@ PX_TO_PT = 0.75
 
 #: field types the emitter renders; everything else with a plain value goes
 #: through the Data path (label + formatted value), same as macros.html
-EMITTED_FIELDTYPES = frozenset({"Divider", "Spacer", "Table"})
 
 #: field types that disqualify a format — each with the reason shown to the user
 # translated at use, not import — a module-level _() would pin the first site's language
@@ -225,10 +224,25 @@ def ensure_typst_fonts(family: str | None):
 	safe_family = re.sub(r"[^A-Za-z0-9 _-]", "", family).replace(" ", "_")
 	if not safe_family:
 		return
+	import time
+
 	root = frappe.get_site_path("private", "files", "typst_fonts")
 	target = os.path.join(root, safe_family)
 	if os.path.isdir(target) and os.listdir(target):
 		return
+	# a failed family is not retried for a day — the fetch sits on the render
+	# path and an offline site must not pay the timeouts on every print
+	sentinel = os.path.join(root, f".{safe_family}.unavailable")
+	if os.path.exists(sentinel) and time.time() - os.path.getmtime(sentinel) < 86400:
+		return
+
+	def mark_unavailable():
+		os.makedirs(root, exist_ok=True)
+		# safe_family is allowlist-sanitized above; the path cannot leave the cache dir
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+		with open(sentinel, "w"):
+			pass
+
 	try:
 		import requests
 
@@ -244,6 +258,7 @@ def ensure_typst_fonts(family: str | None):
 			if found:
 				urls.append((weight, found[0]))
 		if not urls:
+			mark_unavailable()
 			return
 		os.makedirs(target, exist_ok=True)
 		for weight, url in urls:
@@ -253,14 +268,20 @@ def ensure_typst_fonts(family: str | None):
 			with open(os.path.join(target, f"{safe_family}-{weight}.ttf"), "wb") as f:
 				f.write(ttf)
 	except Exception:
+		mark_unavailable()
 		frappe.log_error(title=f"Typst font fetch failed: {family}")
+
+
+_CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 
 
 def q(value) -> str:
 	"""A Typst string literal — every doc value crosses as a quoted string, so
 	document content can never be interpreted as Typst markup. ensure_ascii stays
-	off because Typst reads \\uXXXX as literal text, not an escape."""
-	return json.dumps(str(value if value is not None else ""), ensure_ascii=False)
+	off because Typst reads \\uXXXX as literal text, not an escape; C0 controls go
+	because JSON escapes like \\f are not valid Typst escapes."""
+	text = _CONTROL_CHARS.sub("", str(value if value is not None else ""))
+	return json.dumps(text, ensure_ascii=False)
 
 
 COLOR_PATTERN = re.compile(r"^#[0-9a-fA-F]{3,8}$")
@@ -405,7 +426,7 @@ class TypstEmitter:
 			slots[slot].append(
 				f'[#context [#set text(size: 7pt, fill: rgb("#6b7280"))\n'
 				f"  #set align({align})\n"
-				f'  #counter(page).display("1 of 1", both: true)]]'
+				f"  #counter(page).display({q('1 ' + _('of') + ' 1')}, both: true)]]"
 			)
 		if header_zone:
 			slots["header"].append(f"[{header_zone}]")
@@ -429,8 +450,9 @@ class TypstEmitter:
 		args = [f"size: {size_pt}pt"]
 		if pf.get("font") and pf.font != "Default":
 			args.append(f'font: ({q(pf.font)}, "Libertinus Serif")')
-		if pf.get("value_color"):
-			args.append(f'fill: rgb("{pf.value_color}")')
+		value_color = safe_color(pf.get("value_color"))
+		if value_color:
+			args.append(f'fill: rgb("{value_color}")')
 		return "#set text(" + ", ".join(args) + ")"
 
 	# ── sections ────────────────────────────────────────────────
@@ -687,8 +709,8 @@ class TypstEmitter:
 		if src.startswith("/private/files/"):
 			# private files are permission-gated through the File doctype — the
 			# browser path enforces this over HTTP, so the direct read must too
-			file_name = frappe.db.get_value("File", {"file_url": src}, "name")
-			if not file_name or not frappe.has_permission("File", doc=file_name, ptype="read"):
+			file_names = frappe.get_all("File", filters={"file_url": src}, pluck="name")
+			if not any(frappe.has_permission("File", doc=name, ptype="read") for name in file_names):
 				return None
 			root, rel = frappe.get_site_path("private", "files"), src[len("/private/files/") :]
 		elif src.startswith("/files/"):
@@ -715,9 +737,7 @@ class TypstEmitter:
 		if width in (None, ""):
 			return None
 		value = str(width).strip()
-		if value.endswith(("mm", "cm", "in", "pt")):
-			return value
-		if value.endswith("%"):
+		if re.fullmatch(r"\d+(\.\d+)?(mm|cm|in|pt|%)", value):
 			return value
 		if value.endswith("px"):
 			value = value[:-2]
@@ -732,10 +752,14 @@ class TypstEmitter:
 			return ""
 		data = self._read_site_file(str(src))
 		if data is None:
-			frappe.throw(
-				_("The Typst renderer cannot embed this image: {0}").format(frappe.bold(str(src)[:100])),
-				title=_("Typst renderer unavailable"),
-			)
+			if df.get("image_url"):
+				frappe.throw(
+					_("The Typst renderer cannot embed this image: {0}").format(frappe.bold(str(src)[:100])),
+					title=_("Typst renderer unavailable"),
+				)
+			# a document's own broken or remote image degrades to nothing,
+			# like a dead <img> in the HTML render — it must not fail bulk email
+			return ""
 		suffix = str(src).split("?", 1)[0].rsplit(".", 1)[-1].lower()
 		if suffix not in ("png", "jpg", "jpeg", "svg", "gif", "webp"):
 			suffix = "png"
@@ -798,7 +822,7 @@ class TypstEmitter:
 
 		label = ""
 		if df.get("label") and (df.get("show_label") or "show") != "hide":
-			label_color = self.print_format.get("label_color") or "#6b7280"
+			label_color = safe_color(self.print_format.get("label_color")) or "#6b7280"
 			label = f'#text(size: 0.85em, fill: rgb("{label_color}"), {q(_(df["label"]))})\n#v(3pt)\n'
 		return (
 			label
@@ -836,7 +860,7 @@ class TypstEmitter:
 
 		label = ""
 		if df.get("show_label") != "hide" and df.get("label"):
-			label_color = self.print_format.get("label_color") or "#6b7280"
+			label_color = safe_color(self.print_format.get("label_color")) or "#6b7280"
 			label = f'#text(size: 0.85em, fill: rgb("{label_color}"), {q(_(df["label"]))})\n#v(3pt)\n'
 
 		bordered = df.get("table_bordered")

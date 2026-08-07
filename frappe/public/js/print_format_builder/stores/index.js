@@ -225,14 +225,8 @@ export function getStore(print_format_name) {
 		// explicit save reads the fresh stamp instead of being rejected as stale
 		Promise.resolve(autosave_promise)
 			.catch(() => {})
-			.then(() =>
-				frappe.call("frappe.printing.doctype.print_format.print_format.apply_draft", {
-					name: print_format_name,
-					data: get_preview_format_doc(),
-					modified: print_format.value.modified,
-				})
-			)
 			.then(() => {
+				// the letterhead goes first so apply-time validation reads its live state
 				if (letterhead.value && letterhead.value._dirty) {
 					return frappe
 						.call("frappe.client.save", {
@@ -241,6 +235,13 @@ export function getStore(print_format_name) {
 						.then((r) => (letterhead.value = r.message));
 				}
 			})
+			.then(() =>
+				frappe.call("frappe.printing.doctype.print_format.print_format.apply_draft", {
+					name: print_format_name,
+					data: get_preview_format_doc(),
+					modified: print_format.value.modified,
+				})
+			)
 			.then(() => fetch())
 			.then(() => {
 				autosave_stopped = false;

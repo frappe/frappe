@@ -73,14 +73,25 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 			if ((node.custom_style || "").trim()) {
 				const unknown = node.custom_style
 					.split(";")
+					.filter((d) => d.includes(":"))
 					.map((d) => d.split(":")[0].trim().toLowerCase())
 					.filter((prop) => prop && !TYPST_STYLE_PROPS.has(prop));
 				if (unknown.length) add(__("Untranslatable CSS: {0}", [unknown.join(", ")]));
 			}
 			if (node.fieldtype === "HTML") add(__("Custom HTML block"));
 			if (node.fieldtype === "Field Template") add(__("Field Template (Jinja HTML)"));
-			if (node.fieldtype === "Barcode" && node.custom && node.barcode_format !== "QR")
-				add(__("Barcode (non-QR)"));
+			if (node.fieldtype === "Barcode") {
+				if (node.custom) {
+					if (node.barcode_format !== "QR") add(__("Barcode (non-QR)"));
+				} else {
+					const meta_df = frappe.meta.get_docfield(
+						print_format?.doc_type,
+						node.fieldname
+					);
+					if (!meta_df || !is_qr_barcode_options(meta_df.options))
+						add(__("Barcode (non-QR)"));
+				}
+			}
 			if (node.fieldtype === "Image" && /^https?:\/\//.test(node.image_url || ""))
 				add(__("Remote image URL"));
 		}
