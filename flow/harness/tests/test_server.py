@@ -849,6 +849,7 @@ def test_list_sessions_includes_cold_on_disk_sessions(tmp_path):
 			"model": "mock",
 			"latest_seq": latest_seq,
 			"cwd": str(tmp_path / "a"),
+			"title": "hi",
 		}
 		# `fresh` has no durable entries — nothing to resume, so the listing omits it
 		assert fresh not in rows
