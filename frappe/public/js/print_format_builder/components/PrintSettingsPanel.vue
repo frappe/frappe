@@ -37,6 +37,23 @@
 		</div>
 
 		<div class="form-group">
+			<label class="control-label">{{ __("PDF Renderer") }}</label>
+			<select
+				class="form-control form-control-sm"
+				:value="renderer"
+				@change="set_renderer($event.target.value)"
+			>
+				<option value="chrome">{{ __("Chromium") }}</option>
+				<option value="Typst" :disabled="typst_blockers.length > 0">
+					{{ __("Typst (fast)") }}
+				</option>
+			</select>
+			<p v-if="typst_blockers.length" class="pfb-renderer-hint">
+				{{ __("Typst unavailable:") }} {{ typst_blockers.join(", ") }}
+			</p>
+		</div>
+
+		<div class="form-group">
 			<label class="control-label">{{ __("Google Font") }}</label>
 			<Autocomplete
 				:options="font_options"
@@ -101,11 +118,31 @@ import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
 import { mountColorControl } from "./inspector/useColorControl";
 import { useStore } from "../stores";
+import { typst_blockers_client } from "../utils";
 
 let store = inject("$store");
 let { print_format } = useStore();
 
 let google_fonts = ref([]);
+
+let typst_blockers = computed(() => typst_blockers_client(print_format.value, store.layout.value));
+let renderer = computed(() =>
+	print_format.value?.pdf_generator === "Typst" ? "Typst" : "chrome"
+);
+function set_renderer(value) {
+	print_format.value.pdf_generator = value === "Typst" ? "Typst" : "chrome";
+}
+// a blocker added while Typst is selected drops the format back to Chromium,
+// mirroring the server's save-time refusal instead of failing later
+watch(typst_blockers, (blockers) => {
+	if (blockers.length && print_format.value?.pdf_generator === "Typst") {
+		print_format.value.pdf_generator = "chrome";
+		frappe.show_alert({
+			message: __("Switched back to Chromium: {0}", [blockers.join(", ")]),
+			indicator: "orange",
+		});
+	}
+});
 let font_options = computed(() => [
 	{ label: __("Default"), value: "" },
 	...google_fonts.value.map((f) => ({ label: f, value: f })),
@@ -222,6 +259,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.pfb-renderer-hint {
+	margin: 6px 0 0;
+	font-size: var(--text-tiny);
+	color: var(--text-muted);
+}
+
 .pfb-settings .form-group {
 	margin-bottom: 12px;
 }

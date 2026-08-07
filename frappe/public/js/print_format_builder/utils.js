@@ -34,6 +34,51 @@ export function write_json(key, value) {
 	}
 }
 
+// Mirrors typst_emitter.py: TRANSLATABLE_STYLE_PROPS + typst_blockers — a UX
+// hint only; the server list is the authority and refuses at save/render
+export const TYPST_STYLE_PROPS = new Set([
+	"font-weight",
+	"border-top",
+	"border-bottom",
+	"margin-top",
+	"padding-top",
+	"padding-bottom",
+	"flex-direction",
+	"align-items",
+	"gap",
+]);
+
+export function typst_blockers_client(print_format, layout) {
+	const blockers = [];
+	const add = (reason) => !blockers.includes(reason) && blockers.push(reason);
+	if (print_format?.custom_format) return [__("Custom HTML format")];
+	if ((print_format?.css || "").trim()) add(__("Custom CSS on the format"));
+	const zones = [layout?.header, layout?.footer, ...(layout?.sections || [])];
+	for (const zone of zones) {
+		if (!zone || typeof zone !== "object") continue;
+		const nodes = [zone];
+		for (const col of zone.columns || []) {
+			for (const df of col?.fields || []) if (df && !df.remove) nodes.push(df);
+		}
+		for (const node of nodes) {
+			if ((node.custom_style || "").trim()) {
+				const unknown = node.custom_style
+					.split(";")
+					.map((d) => d.split(":")[0].trim().toLowerCase())
+					.filter((prop) => prop && !TYPST_STYLE_PROPS.has(prop));
+				if (unknown.length) add(__("Untranslatable CSS: {0}", [unknown.join(", ")]));
+			}
+			if (node.fieldtype === "HTML") add(__("Custom HTML block"));
+			if (node.fieldtype === "Field Template") add(__("Field Template (Jinja HTML)"));
+			if (node.fieldtype === "Barcode" && node.custom && node.barcode_format !== "QR")
+				add(__("Barcode (non-QR)"));
+			if (node.fieldtype === "Image" && /^https?:\/\//.test(node.image_url || ""))
+				add(__("Remote image URL"));
+		}
+	}
+	return blockers;
+}
+
 // Blocks the builder invents — they never map to a docfield on the document type
 export const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater", "HTML"]);
 
