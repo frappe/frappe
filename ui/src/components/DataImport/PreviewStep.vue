@@ -170,7 +170,7 @@
 </template>
 <script setup lang="ts">
 import { getPreviewData, getBadgeColor } from "./dataImport";
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import type { DataImport, DataImports, DataImportSocket } from "./types";
 import { Badge, Button, FeatherIcon, HoverCard, TabButtons, call } from "frappe-ui";
 
@@ -188,13 +188,15 @@ const props = defineProps<{
 	socket?: DataImportSocket;
 }>();
 
+const onImportRefresh = (data: { data_import: string }) => {
+	reloadPreviewData(data.data_import);
+};
+
 onMounted(async () => {
 	// The host owns the socket connection, the same way `useNotifications` takes
 	// one. Without it the table still loads; it just does not refresh itself
 	// while the import runs.
-	props.socket?.on("data_import_refresh", (data: { data_import: string }) => {
-		reloadPreviewData(data.data_import);
-	});
+	props.socket?.on("data_import_refresh", onImportRefresh);
 
 	if (!props.data?.name) return;
 	preview.value = await getPreviewData(
@@ -205,6 +207,11 @@ onMounted(async () => {
 	if (props.data.status != "Pending") {
 		getImportLogs();
 	}
+});
+
+onBeforeUnmount(() => {
+	// The socket is the host's and outlives this screen, so drop our listener.
+	props.socket?.off("data_import_refresh", onImportRefresh);
 });
 
 const reloadPreviewData = (dataImport: string) => {
