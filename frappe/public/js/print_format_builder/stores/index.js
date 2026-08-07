@@ -1,6 +1,5 @@
 import { clone_plain, create_default_layout, serialize_layout } from "../utils";
 import { useLayoutHistory } from "./useLayoutHistory";
-import { usePresets } from "../composables/usePresets";
 import { usePreviewDoc } from "../composables/usePreviewDoc";
 import { useSelection } from "../composables/useSelection";
 import { useLayoutMutations } from "../composables/useLayoutMutations";
@@ -403,8 +402,6 @@ export function getStore(print_format_name) {
 	);
 	watch(dirty, (v) => v && autosave());
 
-	const { style_presets, save_style_preset, apply_style_preset, delete_style_preset } =
-		usePresets(print_format);
 	const { clipboard, copy_field, copy_section, copy_selection, paste_clipboard } = useClipboard({
 		selection,
 		layout,
@@ -471,10 +468,6 @@ export function getStore(print_format_name) {
 		duplicate_section,
 		duplicate_selection,
 		move_selection,
-		style_presets,
-		save_style_preset,
-		apply_style_preset,
-		delete_style_preset,
 		snippets,
 		save_snippet,
 		insert_snippet,

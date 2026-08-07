@@ -112,7 +112,7 @@ context("Print Format Builder — create flow", () => {
 		cy.get(".pfb-margin-grid", { timeout: 30000 }).should("be.visible");
 
 		cy.get(".freeze").should("not.exist");
-		cy.get('[data-testid="page-status"]').should("contain", "Applied");
+		cy.get('[data-testid="page-status"]').should("not.be.visible");
 
 		cy.contains(".pfb-margin-cell label", "Top")
 			.closest(".pfb-margin-cell")
@@ -127,7 +127,7 @@ context("Print Format Builder — create flow", () => {
 			expect(interception.response.statusCode).to.equal(200);
 			expect(Number(interception.response.body.message.margin_top)).to.equal(9);
 		});
-		cy.get('[data-testid="page-status"]').should("contain", "Applied");
+		cy.get('[data-testid="page-status"]').should("not.be.visible");
 	});
 
 	// 4. Layers tab: clicking a section scrolls to it and selects it
@@ -1119,7 +1119,7 @@ context("Print Format Builder — draft and Save & Apply", () => {
 			"api/method/frappe.printing.doctype.print_format.print_format.save_draft"
 		).as("draft");
 
-		cy.get('[data-testid="page-status"]').should("contain", "Applied");
+		cy.get('[data-testid="page-status"]').should("not.be.visible");
 		cy.get(DISCARD_BTN).should("not.be.visible");
 
 		set_margin_top("17");
@@ -1151,7 +1151,7 @@ context("Print Format Builder — draft and Save & Apply", () => {
 		cy.contains(".page-actions .primary-action", "Save & Apply").click({ force: true });
 		cy.wait("@apply").its("response.statusCode").should("eq", 200);
 
-		cy.get('[data-testid="page-status"]').should("contain", "Applied");
+		cy.get('[data-testid="page-status"]').should("not.be.visible");
 		cy.get(DISCARD_BTN).should("not.be.visible");
 
 		cy.call("frappe.client.get_value", {
@@ -1177,7 +1177,7 @@ context("Print Format Builder — draft and Save & Apply", () => {
 		cy.get(".modal-footer .btn-primary:visible").click();
 		cy.wait("@discard").its("response.statusCode").should("eq", 200);
 
-		cy.get('[data-testid="page-status"]').should("contain", "Applied");
+		cy.get('[data-testid="page-status"]').should("not.be.visible");
 		cy.get(DISCARD_BTN).should("not.be.visible");
 
 		cy.call("frappe.client.get_value", {

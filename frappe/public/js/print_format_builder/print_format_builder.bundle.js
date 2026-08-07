@@ -58,8 +58,8 @@ class PrintFormatBuilder {
 		this.app = app;
 		this.$component = app.mount(this.$wrapper.get(0));
 
-		// persistent save status: edits land in a draft as you go, so "Draft" means
-		// saved-but-not-yet-printing and "Applied" means the format itself is current
+		// the indicator only speaks up when something is pending — a format whose
+		// edits are live needs no badge
 		watch(
 			() => this.$component.$store.save_status,
 			(status) => {
@@ -67,7 +67,7 @@ class PrintFormatBuilder {
 				else if (status.value === "failed")
 					this.page.set_indicator(__("Save failed"), "red");
 				else if (status.value === "draft") this.page.set_indicator(__("Draft"), "orange");
-				else this.page.set_indicator(__("Applied"), "green");
+				else this.page.clear_indicator();
 			},
 			{ deep: true, immediate: true }
 		);
