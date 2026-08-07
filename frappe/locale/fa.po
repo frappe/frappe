@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-02 10:07+0000\n"
-"PO-Revision-Date: 2026-08-05 16:57\n"
+"PO-Revision-Date: 2026-08-07 17:01\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2531,7 +2531,7 @@ msgstr "نام برنامه (نام کلاینت)"
 
 #: frappe/integrations/frappe_providers/cloud_marketplace.py:108
 msgid "App name is required."
-msgstr ""
+msgstr "نام برنامه الزامی است."
 
 #: frappe/modules/utils.py:343
 msgid "App not found for module: {0}"
@@ -5004,11 +5004,11 @@ msgstr "برای ویرایش روی جدول کلیک کنید"
 
 #: frappe/templates/emails/new_user.html:10
 msgid "Click the button below to complete your registration and set a new password."
-msgstr ""
+msgstr "برای تکمیل ثبت نام و تنظیم گذرواژه جدید، روی دکمه زیر کلیک کنید."
 
 #: frappe/templates/emails/login_with_email_link.html:2
 msgid "Click the button below to sign in to your account. This link will expire in {0} minutes."
-msgstr ""
+msgstr "برای ورود به حساب کاربری خود، روی دکمه زیر کلیک کنید. این لینک تا {0} دقیقه دیگر منقضی خواهد شد."
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:503
 #: frappe/desk/doctype/number_card/number_card.js:415
@@ -5158,7 +5158,7 @@ msgstr "بسته شده"
 #: frappe/desk/page/desktop/desktop.html:29
 #: frappe/desk/page/desktop/desktop.html:30
 msgid "Cloud settings"
-msgstr ""
+msgstr "تنظیمات ابری"
 
 #: frappe/templates/discussions/comment_box.html:25
 #: frappe/templates/discussions/reply_section.html:53
@@ -6004,7 +6004,7 @@ msgstr "تجزیه فیلد امکان‌پذیر نیست: {0}"
 
 #: frappe/integrations/frappe_providers/cloud_settings.py:62
 msgid "Could not reach your server: {0}"
-msgstr ""
+msgstr "دسترسی به سرور شما مقدور نیست: {0}"
 
 #: frappe/utils/pdf_generator/chrome_pdf_generator.py:175
 msgid "Could not start Chromium. Check logs for details."
@@ -6017,7 +6017,7 @@ msgstr "راه‌اندازی نشد:"
 #: frappe/desk/page/desktop/desktop.js:467
 #: frappe/desk/page/desktop/desktop.js:477
 msgid "Couldn't open Cloud settings. Please try again."
-msgstr ""
+msgstr "نمی‌توان تنظیمات ابری را باز کرد. لطفاً دوباره تلاش کنید."
 
 #: frappe/public/js/frappe/web_form/web_form.js:384
 msgid "Couldn't save, please check the data you have entered"
@@ -8594,7 +8594,7 @@ msgstr "تنظیمات دامنه"
 
 #: frappe/integrations/frappe_providers/cloud_settings.py:406
 msgid "Domain is required."
-msgstr ""
+msgstr "دامنه الزامی است."
 
 #. Label of the domains_html (HTML) field in DocType 'Domain Settings'
 #: frappe/core/doctype/domain_settings/domain_settings.json
@@ -12218,7 +12218,7 @@ msgstr "Google Calendar پیکربندی شده است."
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/integrations.json
 msgid "Google Calender"
-msgstr ""
+msgstr "تقویم گوگل"
 
 #. Label of the sb_00 (Section Break) field in DocType 'Contact'
 #. Label of the google_contacts (Link) field in DocType 'Contact'
@@ -13311,7 +13311,7 @@ msgstr "اگر این دستورالعمل‌ها مفید نبودند، لطف
 #. Success message of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json
 msgid "If this email is registered with us, a download link will be sent to it."
-msgstr ""
+msgstr "اگر این ایمیل نزد ما ثبت شده باشد، لینک دانلود به آن ارسال خواهد شد."
 
 #: frappe/core/doctype/user/user.py:1173
 msgid "If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
@@ -13354,15 +13354,15 @@ msgstr "اگر رکوردهای جدیدی را آپلود می‌کنید، س�
 
 #: frappe/templates/emails/password_reset.html:6
 msgid "If you did not request a password reset, please ignore this email. Your password will remain unchanged."
-msgstr ""
+msgstr "اگر درخواست بازنشانی رمز عبور را نداده‌اید، لطفاً این ایمیل را نادیده بگیرید. رمز عبور شما بدون تغییر باقی خواهد ماند."
 
 #: frappe/templates/emails/verification_code.html:4
 msgid "If you did not request this code, you can safely ignore this email."
-msgstr ""
+msgstr "اگر شما این کد را درخواست نکرده‌اید، می‌توانید با خیال راحت این ایمیل را نادیده بگیرید."
 
 #: frappe/templates/emails/login_with_email_link.html:6
 msgid "If you didn't request this link, you can ignore this email. Someone may have entered your email address by mistake."
-msgstr ""
+msgstr "اگر شما این لینک را درخواست نکرده‌اید، می‌توانید این ایمیل را نادیده بگیرید. ممکن است کسی آدرس ایمیل شما را به اشتباه وارد کرده باشد."
 
 #: frappe/templates/emails/user_invitation.html:10
 msgid "If you have any questions, reach out to your system administrator."
@@ -13961,7 +13961,7 @@ msgstr "InnoDB"
 #. Description of the 'New Role' (Data) field in DocType 'Role Replication'
 #: frappe/core/doctype/role_replication/role_replication.json
 msgid "Input existing role name if you would like to extend it with access of another role."
-msgstr ""
+msgstr "اگر می‌خواهید دسترسی یک نقش دیگر را به نقش موجود اضافه کنید، نام نقش موجود را وارد کنید."
 
 #: frappe/core/doctype/data_import/data_import_list.js:35
 msgid "Insert"
@@ -14258,11 +14258,11 @@ msgstr "پیوند نامعتبر"
 
 #: frappe/core/doctype/doctype/doctype.py:1757
 msgid "Invalid Link Filters for field {0}. Link Filters must be a list of filters, where each filter is a list with four values: doctype, fieldname, operator, and value."
-msgstr ""
+msgstr "فیلترهای لینک نامعتبر برای فیلد {0}. فیلترهای لینک باید لیستی از فیلترها باشند، که هر فیلتر لیستی با چهار مقدار است: نوع سند، نام فیلد، عملگر و مقدار."
 
 #: frappe/core/doctype/doctype/doctype.py:1748
 msgid "Invalid Link Filters for field {0}. Link Filters must be valid JSON."
-msgstr ""
+msgstr "فیلترهای لینک نامعتبر برای فیلد {0}. فیلترهای پیوند باید از نوع JSON معتبر باشند."
 
 #: frappe/www/login.py:123
 msgid "Invalid Login Token"
@@ -16194,7 +16194,7 @@ msgstr "نوع سند گزارش"
 
 #: frappe/templates/emails/login_with_email_link.html:4
 msgid "Log In to {0}"
-msgstr ""
+msgstr "وارد شوید به {0}"
 
 #. Label of the log_index (Int) field in DocType 'Data Import Log'
 #: frappe/core/doctype/data_import_log/data_import_log.json
@@ -16219,7 +16219,7 @@ msgstr "برای دسترسی به این صفحه وارد شوید."
 
 #: frappe/templates/emails/login_with_email_link.html:1
 msgid "Log in to {0}"
-msgstr ""
+msgstr "وارد شوید به {0}"
 
 #: frappe/website/doctype/website_settings/website_settings.py:182
 msgid "Log out"
@@ -22882,7 +22882,7 @@ msgstr "تکرار می‌شود {0}"
 #. 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Replace the message body with a placeholder once the email has been sent, so that sensitive content like password reset links is not retained in the queue."
-msgstr ""
+msgstr "پس از ارسال ایمیل، متن پیام را با یک جای‌نگهدار جایگزین کنید تا محتوای حساس مانند لینک‌های تنظیم مجدد رمز عبور در صف انتظار باقی نماند."
 
 #: frappe/core/doctype/role_replication/role_replication.js:7
 #: frappe/core/doctype/role_replication/role_replication.js:14
@@ -23233,7 +23233,7 @@ msgstr "درخواست حذف حساب کاربری"
 
 #: frappe/integrations/frappe_providers/cloud_settings.py:69
 msgid "Request to your server failed."
-msgstr ""
+msgstr "درخواست به سرور شما ناموفق بود."
 
 #. Label of the requested_numbers (Code) field in DocType 'SMS Log'
 #: frappe/core/doctype/sms_log/sms_log.json
@@ -27723,7 +27723,7 @@ msgstr "تسک"
 
 #: frappe/integrations/frappe_providers/cloud_settings.py:267
 msgid "Task id is required."
-msgstr ""
+msgstr "شناسه تسک الزامی است."
 
 #. Label of the tasks (Table) field in DocType 'Workflow Transition Tasks'
 #: frappe/workflow/doctype/workflow_transition_tasks/workflow_transition_tasks.json
@@ -32174,7 +32174,7 @@ msgstr "شما این سند را ایجاد کردید {0}"
 
 #: frappe/integrations/frappe_providers/cloud_settings.py:125
 msgid "You do not have access to Cloud Settings for this site."
-msgstr ""
+msgstr "شما به تنظیمات ابری این سایت دسترسی ندارید."
 
 #: frappe/public/js/frappe/request.js:175
 msgid "You do not have enough permissions to access this resource. Please contact your manager to get access."
@@ -33764,7 +33764,7 @@ msgstr "{0} یک وضعیت گردش کار معتبر نیست. لطفاً گر
 
 #: frappe/desk/calendar.py:54
 msgid "{0} is not a valid field of {1}"
-msgstr ""
+msgstr "{0} یک فیلد معتبر از {1} نیست"
 
 #: frappe/permissions.py:845
 msgid "{0} is not a valid parent DocType for {1}"
