@@ -327,7 +327,12 @@ class TypstEmitter:
 
 		block_args = self._section_block_args(section)
 		out = f"#block({', '.join(block_args)})[\n{body}\n]"
-		return out + "\n#v(8pt)"
+		margin = section.get("margin") or {}
+		top = round(frappe.utils.flt(margin.get("top")) * PX_TO_PT, 2)
+		bottom = round(frappe.utils.flt(margin.get("bottom")) * PX_TO_PT, 2)
+		if top:
+			out = f"#v({top}pt)\n{out}"
+		return out + f"\n#v({bottom + 6}pt)"
 
 	def _section_block_args(self, section) -> list[str]:
 		args = ["width: 100%"]
@@ -347,14 +352,6 @@ class TypstEmitter:
 						k: round(frappe.utils.flt(padding.get(k)) * PX_TO_PT, 2)
 						for k in ("top", "bottom", "left", "right")
 					}
-				)
-			)
-		margin = section.get("margin") or {}
-		if margin:
-			args.append(
-				"outset: (top: -{top}pt, bottom: -{bottom}pt)".format(
-					top=round(frappe.utils.flt(margin.get("top")) * PX_TO_PT, 2),
-					bottom=round(frappe.utils.flt(margin.get("bottom")) * PX_TO_PT, 2),
 				)
 			)
 		if section.get("radius") is not None and not section.get("field_borders"):
@@ -400,6 +397,19 @@ class TypstEmitter:
 
 		if len(cells) == 1:
 			return cells[0][1:-1]
+		if section.get("field_borders") and section.get("grid_borders") != "rows":
+			pad = round((frappe.utils.flt(section.get("cell_padding"), 0) or 8) * PX_TO_PT, 2)
+			divided = [cells[0]]
+			for cell in cells[1:]:
+				divided.append(
+					f'grid.cell(stroke: (left: 0.6pt + rgb("#e5e7eb")), inset: (left: {pad}pt))'
+					+ cell
+				)
+			return (
+				f"#grid(columns: ({', '.join(widths)}), column-gutter: {pad}pt, align: top,\n"
+				+ ",\n".join(divided)
+				+ ")"
+			)
 		return (
 			f"#grid(columns: ({', '.join(widths)}), column-gutter: {gap_pt}pt, align: top,\n"
 			+ ",\n".join(cells)
@@ -411,6 +421,13 @@ class TypstEmitter:
 		parts = [p for p in parts if p]
 		if not parts:
 			return ""
+		if section.get("field_borders") and section.get("grid_borders") != "columns" and len(parts) > 1:
+			pad = round((frappe.utils.flt(section.get("cell_padding"), 0) or 8) * PX_TO_PT, 2)
+			ruled = [
+				f'#block(width: 100%, stroke: (bottom: 0.6pt + rgb("#e5e7eb")), inset: (bottom: {pad}pt))[{p}]'
+				for p in parts[:-1]
+			] + [parts[-1]]
+			return f"#stack(spacing: {pad}pt,\n" + ",\n".join(f"[{p}]" for p in ruled) + ")"
 		if len(parts) == 1:
 			return parts[0]
 		return "#stack(spacing: 8pt,\n" + ",\n".join(f"[{p}]" for p in parts) + ")"
@@ -698,21 +715,28 @@ class TypstEmitter:
 	def _table_cell(self, row, col) -> str:
 		merged = col.get("merged_fields")
 		if merged:
+			# the column's own field is the implicit primary line (Table.html:39)
+			merged = [{"fieldname": col.get("fieldname"), "fieldtype": col.get("fieldtype")}, *merged]
 			lines = []
+			first_text = True
 			for mf in merged:
 				fieldname = mf.get("fieldname")
-				if not fieldname:
+				if not fieldname or mf.get("fieldtype") in ("Attach Image", "Attach"):
 					continue
 				value = _text_value(row.get_formatted(fieldname))
-				if value:
-					style = mf.get("style") or "primary"
-					size = "0.85em" if style != "primary" else "1em"
-					fill = ', fill: rgb("#6b7280")' if style != "primary" else ""
-					lines.append(f"#text(size: {size}{fill}, {q(value)})")
+				if not value:
+					continue
+				if first_text:
+					lines.append(f"#text(weight: 500, {q(value)})")
+					first_text = False
+				else:
+					lines.append(f'#text(size: 0.85em, fill: rgb("#6b7280"), {q(value)})')
 			if not lines:
 				return ""
 			if len(lines) == 1:
 				return lines[0]
+			if col.get("merge_direction") == "horizontal":
+				return " #h(3pt) ".join(lines)
 			return "#stack(spacing: 3pt, " + ", ".join(f"[{line}]" for line in lines) + ")"
 		fieldname = col.get("fieldname")
 		if not fieldname:
