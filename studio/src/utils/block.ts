@@ -850,12 +850,10 @@ class Block implements BlockOptions {
 		this.extendedFromComponent = studioComponent
 
 		function linkParentComponentId(block: Block, studioComponentId: string) {
-			block.children?.forEach((child) => {
+			block.getChildrenAndSlotContent().forEach((child) => {
 				child.isChildOfComponent = studioComponentId
 				child.classes?.push("__studio_component_child__")
-				if (child.children?.length) {
-					linkParentComponentId(child, studioComponentId)
-				}
+				linkParentComponentId(child, studioComponentId)
 			})
 		}
 		linkParentComponentId(this, studioComponent.componentId)
