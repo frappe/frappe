@@ -119,7 +119,8 @@ def create_app(
 	cors_origins: list[str] | None = None,
 	webui_dir: str | None = None,
 ) -> FastAPI:
-	app = FastAPI(title="flow server", version="0.1.0")
+	# docs off: those routes would be reachable without a bearer beside the web UI
+	app = FastAPI(title="flow server", version="0.1.0", docs_url=None, redoc_url=None, openapi_url=None)
 	oauth = OAuthCoordinator(store.credentials)
 
 	origins = cors_origins if cors_origins is not None else server_config.CORS_ORIGINS
@@ -150,10 +151,12 @@ def create_app(
 		async def authenticate(request: Request, call_next):
 			if request.url.path == "/healthz":
 				return await call_next(request)
+			if request.method == "OPTIONS":
+				return await call_next(request)  # preflights carry no Authorization
 			# the static shell must load before the page can send a bearer
 			if (
 				webui_dir
-				and request.method == "GET"
+				and request.method in ("GET", "HEAD")
 				and not request.url.path.startswith(api_prefixes)
 			):
 				return await call_next(request)
@@ -163,6 +166,25 @@ def create_app(
 			):
 				return JSONResponse({"detail": "unauthorized"}, status_code=401)
 			return await call_next(request)
+	else:
+		# Tokenless mode trusts the local machine, so browsers are the threat:
+		# DNS rebinding forges a loopback Host, cross-site requests a foreign Origin.
+		allowed_origins = set(origins or [])
+		loopback_hosts = ("127.0.0.1", "localhost", "::1")
+
+		@app.middleware("http")
+		async def guard_browser_boundaries(request: Request, call_next):
+			server = request.scope.get("server")
+			if server is None or server[1] is None:
+				return await call_next(request)  # unix socket
+			if server[0] in loopback_hosts and request.url.hostname not in loopback_hosts:
+				return JSONResponse({"detail": "invalid host header"}, status_code=400)
+			origin = request.headers.get("origin")
+			if origin and origin not in allowed_origins:
+				if urlsplit(origin).hostname not in loopback_hosts:
+					return JSONResponse({"detail": "cross-origin request refused"}, status_code=403)
+			return await call_next(request)
+
 	def _get(sid: str) -> Session:
 		try:
 			return store.get(sid)
