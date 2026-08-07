@@ -426,9 +426,8 @@ class PrintFormatGenerator:
 			def write(name, content, mode="w"):
 				# names are emitter-generated constants inside a fresh tempdir
 				path = os.path.join(tmp, name)
-				with open(
-					path, mode
-				) as f:  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+				with open(path, mode) as f:
 					f.write(content)
 				return path
 

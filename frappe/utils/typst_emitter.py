@@ -232,9 +232,8 @@ def ensure_typst_fonts(family: str | None):
 		for weight, url in urls:
 			ttf = requests.get(url, timeout=10).content
 			# safe_family is allowlist-sanitized above; the path cannot leave the cache dir
-			with open(
-				os.path.join(target, f"{safe_family}-{weight}.ttf"), "wb"
-			) as f:  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+			with open(os.path.join(target, f"{safe_family}-{weight}.ttf"), "wb") as f:
 				f.write(ttf)
 	except Exception:
 		frappe.log_error(title=f"Typst font fetch failed: {family}")
@@ -637,9 +636,8 @@ class TypstEmitter:
 			return None
 		try:
 			# audited: realpath containment above, File permission for private paths
-			with open(
-				path, "rb"
-			) as f:  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+			with open(path, "rb") as f:
 				return f.read()
 		except OSError:
 			return None
