@@ -165,6 +165,41 @@ class TestTypstGate(IntegrationTestCase):
 		self.assertIn('stroke: (bottom: 0.75pt + rgb("#e5e7eb"))', source)
 		self.assertIn("#v(15.0pt)", source)
 
+	def test_bordered_section_honours_configured_gap(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		layout = layout_with(
+			section={
+				"field_borders": True,
+				"custom_style": "gap: 10px",
+				"columns": [
+					{
+						"label": "",
+						"fields": [{"fieldtype": "Data", "fieldname": "description", "label": "D"}],
+					},
+					{"label": "", "fields": [{"fieldtype": "Data", "fieldname": "status", "label": "S"}]},
+				],
+			}
+		)
+		pf_doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Typst BorderGap {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": json.dumps(layout),
+			}
+		).insert()
+		self.addCleanup(pf_doc.delete, ignore_permissions=True)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "gap", "status": "Open"}).insert(
+			ignore_permissions=True
+		)
+		self.addCleanup(todo.delete, ignore_permissions=True)
+		source, _assets = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", todo.name))).emit()
+		self.assertIn("column-gutter: 7.5pt", source)
+		self.assertIn('stroke: (left: 0.6pt + rgb("#e5e7eb"))', source)
+
 	def test_letterhead_with_html_blocks(self):
 		lh = frappe.get_doc(
 			{

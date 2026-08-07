@@ -464,13 +464,14 @@ class TypstEmitter:
 			return cells[0][1:-1]
 		if section.get("field_borders") and section.get("grid_borders") != "rows":
 			pad = round((frappe.utils.flt(section.get("cell_padding"), 0) or 8) * PX_TO_PT, 2)
+			gutter = gap_pt if (style_gap is not None or gap is not None) else pad
 			divided = [cells[0]]
 			for cell in cells[1:]:
 				divided.append(
 					f'grid.cell(stroke: (left: 0.6pt + rgb("#e5e7eb")), inset: (left: {pad}pt))' + cell
 				)
 			return (
-				f"#grid(columns: ({', '.join(widths)}), column-gutter: {pad}pt, align: top,\n"
+				f"#grid(columns: ({', '.join(widths)}), column-gutter: {gutter}pt, align: top,\n"
 				+ ",\n".join(divided)
 				+ ")"
 			)
