@@ -38,13 +38,23 @@
 								<FeatherIcon name="chevron-right" class="h-3 w-3" />
 								<a
 									v-if="index < canvasStore.fragmentStack.length - 1"
-									class="cursor-pointer"
+									class="flex cursor-pointer items-center gap-1.5"
 									@click="canvasStore.popToFragment(index)"
 								>
 									{{ fragment.fragmentName }}
+									<span
+										v-if="fragment.dirty"
+										title="Unsaved changes"
+										class="h-1.5 w-1.5 rounded-full bg-surface-amber-6"
+									></span>
 								</a>
-								<span v-else class="flex items-center gap-2 font-medium">
+								<span v-else class="flex items-center gap-1.5 font-medium">
 									{{ fragment.fragmentName }}
+									<span
+										v-if="canvasStore.isActiveFragmentDirty"
+										title="Unsaved changes"
+										class="h-1.5 w-1.5 rounded-full bg-surface-amber-6"
+									></span>
 								</span>
 							</template>
 						</div>
@@ -236,6 +246,8 @@ async function saveFragmentMode() {
 	// saving a nested fragment returns to its parent fragment canvas
 	if (canvasStore.fragmentStack.length > 1) {
 		canvasStore.popFragment()
+	} else {
+		canvasStore.markActiveFragmentClean()
 	}
 }
 

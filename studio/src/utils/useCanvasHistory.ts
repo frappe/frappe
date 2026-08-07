@@ -50,7 +50,12 @@ export function useCanvasHistory(source: Ref<Block>, selectedBlockIds: Ref<Set<s
 		eventFilter: selectionWatherFilter,
 	});
 
+	// tracks tree changes since the last markClean() — undoing back to the exact
+	// saved state still counts as dirty (conservative, like a text editor)
+	const dirty = ref(false);
+
 	function commit() {
+		dirty.value = true;
 		undoStack.value.unshift(last.value);
 		last.value = createHistoryRecord();
 		if (undoStack.value.length > CAPACITY) {
@@ -89,6 +94,7 @@ export function useCanvasHistory(source: Ref<Block>, selectedBlockIds: Ref<Set<s
 		if (state) {
 			redoStack.value.unshift(last.value);
 			setSource(state);
+			dirty.value = true;
 		}
 	}
 
@@ -101,6 +107,7 @@ export function useCanvasHistory(source: Ref<Block>, selectedBlockIds: Ref<Set<s
 		if (state) {
 			undoStack.value.unshift(last.value);
 			setSource(state);
+			dirty.value = true;
 		}
 	}
 
@@ -156,6 +163,14 @@ export function useCanvasHistory(source: Ref<Block>, selectedBlockIds: Ref<Set<s
 		resume(pauseId, true);
 	}
 
+	function isDirty() {
+		return dirty.value;
+	}
+
+	function markClean() {
+		dirty.value = false;
+	}
+
 	return {
 		undo,
 		redo,
@@ -164,6 +179,8 @@ export function useCanvasHistory(source: Ref<Block>, selectedBlockIds: Ref<Set<s
 		batch,
 		canUndo,
 		canRedo,
+		isDirty,
+		markClean,
 		dispose,
 		undoStack,
 		redoStack,

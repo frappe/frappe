@@ -2,6 +2,7 @@ import { defineStore } from "pinia"
 import { ref, reactive, computed, nextTick } from "vue"
 import type Block from "@/utils/block"
 import { getBlockCopy, getBlockInstance } from "@/utils/serializer"
+import { confirm } from "@/utils/helpers"
 
 import type StudioCanvas from "@/components/StudioCanvas.vue"
 import type { EditingMode, BlockOptions } from "@/types"
@@ -115,6 +116,7 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		fragmentId: string
 		cancelAction: Function | null
 		mode: EditingMode
+		dirty?: boolean
 	}
 
 	const editingMode = ref<EditingMode>("page")
@@ -177,6 +179,7 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		const activeFragment = fragmentStack.value[fragmentStack.value.length - 1]
 		if (activeFragment && activeCanvas.value) {
 			activeFragment.block = activeCanvas.value.getRootBlock()
+			activeFragment.dirty = isActiveFragmentDirty.value
 		}
 	}
 
@@ -187,22 +190,55 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		}
 		activeCanvas.value?.clearSelection()
 		const activeFragment = fragmentStack.value[fragmentStack.value.length - 1]
+		if (!cancelled && activeFragment) {
+			// a nested save wrote into this fragment's tree — it now has unsaved changes
+			activeFragment.dirty = true
+		}
 		editingMode.value = activeFragment ? activeFragment.mode : "page"
+	}
+
+	function markActiveFragmentClean() {
+		const activeFragment = fragmentStack.value[fragmentStack.value.length - 1]
+		if (activeFragment) {
+			activeFragment.dirty = false
+		}
+		activeCanvas.value?.history?.markClean()
+	}
+
+	const isActiveFragmentDirty = computed(() => {
+		if (editingMode.value === "page") return false
+		return Boolean(fragmentData.value.dirty || activeCanvas.value?.history?.isDirty())
+	})
+
+	async function confirmDiscardFragments(fromIndex: number): Promise<boolean> {
+		const poppedFragments = fragmentStack.value.slice(fromIndex)
+		const dirtyNames = poppedFragments.filter((fragment) => fragment.dirty).map((f) => f.fragmentName)
+		if (isActiveFragmentDirty.value && !dirtyNames.includes(fragmentData.value.fragmentName)) {
+			dirtyNames.push(fragmentData.value.fragmentName)
+		}
+		if (!dirtyNames.length) return true
+		return await confirm(`Discard unsaved changes in ${dirtyNames.join(", ")}?`)
 	}
 
 	async function exitFragmentMode(e?: Event) {
 		if (editingMode.value === "page") return
 		e?.preventDefault()
-		popFragment(true)
+		if (await confirmDiscardFragments(fragmentStack.value.length - 1)) {
+			popFragment(true)
+		}
 	}
 
-	function popToFragment(index: number) {
+	async function popToFragment(index: number) {
+		if (fragmentStack.value.length <= index + 1) return
+		if (!(await confirmDiscardFragments(index + 1))) return
 		while (fragmentStack.value.length > index + 1) {
 			popFragment(true)
 		}
 	}
 
-	function exitAllFragments() {
+	async function exitAllFragments() {
+		if (!fragmentStack.value.length) return
+		if (!(await confirmDiscardFragments(0))) return
 		while (fragmentStack.value.length) {
 			popFragment(true)
 		}
@@ -253,6 +289,8 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		fragmentStack,
 		fragmentData,
 		primaryFragmentId,
+		isActiveFragmentDirty,
+		markActiveFragmentClean,
 		editOnCanvas,
 		exitFragmentMode,
 		popFragment,
