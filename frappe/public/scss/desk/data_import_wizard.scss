@@ -208,6 +208,116 @@
 		.dt-cell--col-0 {
 			border-left: 0;
 		}
+
+		// The header row now hosts the inline column mapper (Autocomplete); give the
+		// header cell room to seat the control without clipping it, and paint it
+		// surface-gray-2 (the file-header row below it is surface-gray-1).
+		.dt-header .dt-cell__content {
+			min-height: 42px;
+		}
+
+		.dt-header .dt-row-header,
+		.dt-header .dt-cell--header .dt-cell__content {
+			background-color: var(--surface-gray-2);
+		}
+	}
+}
+
+// Inline column mapper (Autocomplete) sitting in the preview header row. Style it
+// like a normal form field — base (white in light) surface + border — so it reads
+// as an editable control, not header text. Scoped under .diw-table-preview to
+// outrank `.datatable .form-control { background: transparent; border: none }`,
+// which otherwise leaves the input transparent (showing the gray header through it).
+.diw-table-preview .diw-col-map-field {
+	width: 100%;
+
+	.awesomplete {
+		display: block;
+		width: 100%;
+	}
+
+	input {
+		width: 100%;
+		height: 28px;
+		padding: 0 var(--padding-sm);
+		background-color: var(--surface-base);
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius);
+		color: var(--text-color);
+		box-shadow: none;
+
+		&:focus {
+			border-color: var(--outline-gray-3);
+			box-shadow: none;
+			outline: none;
+		}
+	}
+
+	// Completed / partial imports render the frozen mapping as this static field
+	// (see mount_column_map_controls) — same footprint as the editable input, but
+	// muted text and a default cursor so it clearly reads as read-only.
+	.diw-col-map-readonly {
+		display: flex;
+		align-items: center;
+		width: 100%;
+		height: 28px;
+		padding: 0 var(--padding-sm);
+		background-color: var(--surface-base);
+		border: 1px solid var(--border-color);
+		border-radius: var(--radius);
+		color: var(--text-muted);
+		font-size: var(--text-sm);
+		cursor: default;
+	}
+}
+
+// The mapper dropdown is reparented to <body> when open (to escape the datatable
+// header's transform/overflow clipping), so it no longer inherits the scoped
+// `.awesomplete > [role=listbox]` styles — re-apply the essentials here. Position,
+// width and z-index are set inline by setup_mapping_dropdown_portal.
+ul.diw-map-dropdown-portaled {
+	list-style: none;
+	margin: 0;
+	padding: var(--padding-xs);
+	background-color: var(--bg-color);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow-md);
+	max-height: unquote("min(60vh, 300px)");
+	overflow-y: auto;
+	overflow-x: hidden;
+
+	&:empty {
+		display: none;
+	}
+
+	> li,
+	> [role="option"] {
+		cursor: pointer;
+		padding: var(--padding-sm);
+		font-size: var(--text-sm);
+		color: var(--text-color);
+		border-radius: var(--radius);
+		white-space: unset;
+
+		&:not(:last-child) {
+			margin-bottom: var(--margin-xs);
+		}
+
+		p {
+			margin-bottom: 0;
+			text-overflow: ellipsis;
+		}
+
+		strong {
+			font-weight: var(--weight-semibold);
+		}
+
+		&:hover,
+		&[aria-selected="true"] {
+			background-color: var(--awesomplete-hover-bg);
+			color: var(--text-color);
+		}
 	}
 }
 
@@ -415,21 +525,6 @@
 }
 
 // ---- import log summary (Result / Details key-value tables) ----
-// Buttons sit inline on the right of the "Import Log" heading row.
-.import-log-title.diw-import-log-title-row {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: var(--padding-sm);
-
-	.diw-import-log-summary-actions {
-		flex-shrink: 0;
-	}
-
-	.es-button {
-		white-space: nowrap;
-	}
-}
 
 .diw-import-log-summary {
 	// Hairline between rows lives on the cells so it spans only the table width,
@@ -437,6 +532,30 @@
 	.diw-log-kv-row:not(:first-child) .diw-log-kv-key,
 	.diw-log-kv-row:not(:first-child) .diw-log-kv-val {
 		border-top: 1px solid var(--outline-gray-2);
+	}
+
+	// Keep Result and Details row heights aligned even when some Result rows
+	// include inline action buttons (Go to list / download actions).
+	.diw-log-kv-row .diw-log-kv-key,
+	.diw-log-kv-row .diw-log-kv-val {
+		vertical-align: middle;
+	}
+
+	.diw-log-kv-row .diw-log-kv-key {
+		padding-inline-end: var(--padding-sm);
+	}
+
+	.diw-log-kv-row .diw-log-kv-val {
+		padding-inline-start: var(--padding-md);
+	}
+
+	.diw-log-kv-key-inner,
+	.diw-log-kv-val-inner {
+		height: 2.25rem;
+
+		.es-button {
+			white-space: nowrap;
+		}
 	}
 
 	.diw-log-kv-val {
@@ -502,16 +621,6 @@
 	.diw-import-log-summary-grid {
 		flex-direction: column;
 		gap: var(--padding-md);
-	}
-
-	// Let the heading label and its buttons wrap instead of crushing on phones.
-	.import-log-title.diw-import-log-title-row {
-		flex-wrap: wrap;
-	}
-
-	.diw-import-log-summary-actions {
-		flex-wrap: wrap;
-		justify-content: flex-end;
 	}
 
 	.diw-import-progress-hero .diw-import-progress-stats {

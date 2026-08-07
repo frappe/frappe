@@ -1500,7 +1500,14 @@ frappe.ui.form.on("Data Import", {
 					.xcall("frappe.core.doctype.data_import.data_import.stop_data_import", {
 						doc_name: frm.doc.name,
 					})
-					.then(() => {
+					.then((response) => {
+						if (response?.status === "not_running") {
+							frappe.show_alert({
+								message: __("Job is not running."),
+								indicator: "orange",
+							});
+							return;
+						}
 						frappe.show_alert(__("Job Stopped Successfully"));
 						frm.reload_doc();
 					});
@@ -2725,7 +2732,7 @@ frappe.ui.form.on("Data Import", {
 					});
 
 					return `<tr>
-							<td class="diw-import-log-cell-row whitespace-nowrap text-sm align-top border-b py-2 px-4" style="width:72px">${row_number_label}</td>
+							<td class="diw-import-log-cell-row whitespace-nowrap text-sm text-end align-top border-b py-2 px-4" style="width:72px">${row_number_label}</td>
 							<td class="text-sm align-top border-b py-2 px-4">${status_badge}</td>
 							<td class="text-sm align-top border-b py-2 px-4">
 								${html}
@@ -2746,13 +2753,18 @@ frappe.ui.form.on("Data Import", {
 				css_class: "min-h-32",
 			});
 
-			// Summary now reads as two aligned key/value tables — "Result" (the counts)
-			// and "Details" (audit trail) — under one heading, with the row actions
-			// (Go to list / downloads) mounted top-right of the heading below.
-			const kv_row = (label, value_html) =>
+			// Summary rows support optional inline header actions on the left cell.
+			const kv_row = (label, value_html, action_html = "") =>
 				`<tr class="diw-log-kv-row">
-					<td class="diw-log-kv-key text-sm text-muted py-2">${frappe.utils.escape_html(label)}</td>
-					<td class="diw-log-kv-val text-sm text-ink-gray-8 text-end py-2">${value_html}</td>
+					<td class="diw-log-kv-key text-sm text-muted">
+						<div class="diw-log-kv-key-inner flex items-center${action_html ? " gap-2" : ""}">
+							<span>${frappe.utils.escape_html(label)}</span>
+							${action_html}
+						</div>
+					</td>
+					<td class="diw-log-kv-val text-sm text-ink-gray-8 text-end">
+						<div class="diw-log-kv-val-inner flex items-center justify-end">${value_html}</div>
+					</td>
 				</tr>`;
 
 			// Counts read bold; audit values stay regular weight.
@@ -2761,19 +2773,52 @@ frappe.ui.form.on("Data Import", {
 					String(value)
 				)}</span>`;
 
-			const result_rows = [kv_row(__("Total rows"), num(total_rows_in_file))];
+			const total_rows_action = is_import_complete(frm.doc.status)
+				? frappe.ui.button.html({
+						label: __("Go to list"),
+						variant: "ghost",
+						size: "xs",
+						icon_left: "external-link",
+						attrs: { "data-action": "go_to_list" },
+				  })
+				: "";
+			const skipped_rows_action =
+				skipped_rows_count > 0
+					? frappe.ui.button.html({
+							label: __("Skipped"),
+							variant: "ghost",
+							size: "xs",
+							icon_left: "download",
+							attrs: { "data-action": "download_skipped_rows" },
+					  })
+					: "";
+			const failed_rows_action =
+				failed_rows > 0
+					? frappe.ui.button.html({
+							label: __("Failed"),
+							variant: "ghost",
+							size: "xs",
+							icon_left: "download",
+							attrs: { "data-action": "export_errored_rows" },
+					  })
+					: "";
+
+			const result_rows = [
+				kv_row(__("Total rows"), num(total_rows_in_file), total_rows_action),
+			];
 			if (is_upsert || frm.doc.import_type === "Insert New Records") {
 				result_rows.push(kv_row(__("Inserted"), num(inserted_rows)));
 			}
 			if (is_upsert || frm.doc.import_type === "Update Existing Records") {
 				result_rows.push(kv_row(__("Updated"), num(updated_rows)));
 			}
-			result_rows.push(kv_row(__("Skipped"), num(skipped_rows_count)));
-			result_rows.push(kv_row(__("Failed"), num(failed_rows, "text-danger")));
+			result_rows.push(kv_row(__("Skipped"), num(skipped_rows_count), skipped_rows_action));
+			result_rows.push(
+				kv_row(__("Failed"), num(failed_rows, "text-danger"), failed_rows_action)
+			);
 
-			// Relative time ("2 days ago") with the absolute datetime on hover; the
-			// .frappe-timestamp span self-refreshes via frappe.datetime.refresh_when.
-			const fmt_dt = (value) => (value ? frappe.datetime.comment_when(value) : "-");
+			// Show exact user-formatted date/time (instead of relative values like "yesterday").
+			const fmt_dt = (value) => (value ? frappe.datetime.str_to_user(value) : "-");
 			const fmt_user = (value) =>
 				value ? frappe.utils.escape_html(frappe.user.full_name(value) || value) : "-";
 			const detail_rows = [
@@ -2783,8 +2828,8 @@ frappe.ui.form.on("Data Import", {
 				kv_row(__("Last modified on"), fmt_dt(frm.doc.modified)),
 			];
 
-			// No card/heading of its own — it lives under the existing "Import Log"
-			// section heading (the action buttons are mounted onto that heading row).
+			// Summary lives directly under the existing "Import Log" heading.
+			// Result-row actions (Go to list / downloads) are mounted inline per row.
 			const summary_html = `
 				<div class="diw-import-log-summary mb-4">
 					<div class="diw-import-log-summary-grid flex gap-8">
@@ -2811,7 +2856,7 @@ frappe.ui.form.on("Data Import", {
 						? `<table class="diw-import-log-table w-full">
 							<thead>
 								<tr class="text-muted">
-									<th class="text-sm-semibold border-b py-2 px-4" width="10%">${__("Row")}</th>
+										<th class="text-sm-semibold text-end border-b py-2 px-4" width="10%">${__("Row")}</th>
 									<th class="text-sm-semibold border-b py-2 px-4" width="14%">${__("Status")}</th>
 									<th class="text-sm-semibold border-b py-2 px-4" width="76%">${__("Message")}</th>
 								</tr>
@@ -2823,53 +2868,6 @@ frappe.ui.form.on("Data Import", {
 						: `<div class="diw-import-log-empty-state">${empty_state_html}</div>`
 				}
 			`);
-
-			// Small actions sit inline on the right of the "Import Log" heading row:
-			// Download skipped / failed rows (only when present) and Go to list (only
-			// once complete). The heading is a separate HTML field, so rebuild its
-			// title into a flex row (label + actions slot) and mount into that slot.
-			const heading_field = frm.get_field("import_log_heading");
-			const $heading_title = heading_field?.$wrapper?.find(".import-log-title").first();
-			let $summary_actions = $();
-			if ($heading_title?.length) {
-				const heading_label = __(heading_field?.df?.label || "Import Log");
-				$heading_title.addClass("diw-import-log-title-row").html(
-					`<span class="diw-import-log-title-text">${frappe.utils.escape_html(
-						heading_label
-					)}</span>
-					<div class="diw-import-log-summary-actions inline-flex items-center gap-2"></div>`
-				);
-				$summary_actions = $heading_title.find(".diw-import-log-summary-actions");
-			}
-			const add_summary_action = (opts) => {
-				$summary_actions.append(frappe.ui.button({ size: "sm", ...opts }));
-			};
-			if (skipped_rows_count > 0) {
-				add_summary_action({
-					label: __("Skipped"),
-					title: __("Download skipped rows"),
-					variant: "outline",
-					icon_left: "download",
-					onclick: () => frm.trigger("download_skipped_rows"),
-				});
-			}
-			if (failed_rows > 0) {
-				add_summary_action({
-					label: __("Failed"),
-					title: __("Download failed rows"),
-					variant: "outline",
-					icon_left: "download",
-					onclick: () => frm.trigger("export_errored_rows"),
-				});
-			}
-			if (is_import_complete(frm.doc.status)) {
-				add_summary_action({
-					label: __("Go to list"),
-					variant: "outline",
-					icon_left: "external-link",
-					onclick: () => frappe.set_route("List", frm.doc.reference_doctype),
-				});
-			}
 
 			const log_filter = new frappe.ui.TabButtons({
 				label: __("Filter import log"),
@@ -2896,6 +2894,13 @@ frappe.ui.form.on("Data Import", {
 			});
 			wrapper.find(".diw-import-log-filter-tabs").empty().append(log_filter.el);
 
+			wrapper.find(".diw-import-log-filter-actions").empty();
+			frappe.utils.bind_actions_with_object(wrapper, {
+				go_to_list: () => frappe.set_route("List", frm.doc.reference_doctype),
+				download_skipped_rows: () => frm.trigger("download_skipped_rows"),
+				export_errored_rows: () => frm.trigger("export_errored_rows"),
+			});
+
 			if (show_export) {
 				const export_button = frappe.ui.button({
 					label: __("Export Import Log"),
@@ -2904,7 +2909,7 @@ frappe.ui.form.on("Data Import", {
 					icon_left: "download",
 					onclick: () => frm.trigger("export_import_log"),
 				});
-				wrapper.find(".diw-import-log-filter-actions").empty().append(export_button);
+				wrapper.find(".diw-import-log-filter-actions").append(export_button);
 			}
 		};
 

@@ -277,8 +277,15 @@ def stop_data_import(doc_name: str):
 	try:
 		send_stop_job_command(connection=get_redis_conn(), job_id=job_id)
 	except InvalidJobOperation:
-		frappe.msgprint(_("Job is not running."), title=_("Invalid Operation"))
-	return {"status": "success", "message": "Job stopped successfully"}
+		return {"status": "not_running", "message": _("Job is not running.")}
+
+	# RQ stop can terminate the worker before import cleanup writes a final status.
+	# Mark the document terminal here so the UI does not stay in "In Progress".
+	if data_import.status == "In Progress":
+		data_import.db_set("status", "Error")
+
+	frappe.publish_realtime("data_import_refresh", {"data_import": data_import.name})
+	return {"status": "success", "message": _("Job stopped successfully")}
 
 
 def start_import(data_import):

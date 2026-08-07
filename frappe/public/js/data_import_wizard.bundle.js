@@ -289,9 +289,9 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		const vw = window.innerWidth || doc_el.clientWidth || screen.width || 1024;
 		const vh = window.innerHeight || doc_el.clientHeight || screen.height || 768;
 		const is_mobile = vw <= 768;
-		const reserved = is_mobile ? 180 : 220;
-		const floor = is_mobile ? 440 : 560;
-		const ceiling = 760;
+		const reserved = is_mobile ? 145 : 185;
+		const floor = is_mobile ? 480 : 620;
+		const ceiling = 820;
 		const height = Math.max(floor, Math.min(ceiling, vh - reserved));
 		this.$card.css({
 			"min-height": `${height}px`,

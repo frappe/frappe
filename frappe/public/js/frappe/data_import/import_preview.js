@@ -134,7 +134,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					frappe.utils.escape_html(col.header_title) ||
 					`<i>${__("Untitled Column")}</i>`;
 				let column_title = `<span class="diw-preview-col-header diw-preview-col-header--skipped inline-flex items-center gap-2 min-w-0">
-					<span class="diw-preview-col-dot diw-preview-col-dot--skipped inline-flex shrink-0 size-2 rounded-full" aria-hidden="true"></span>
 					<span class="diw-preview-col-title truncate text-muted">${title}</span>
 				</span>`;
 				return {
@@ -142,7 +141,9 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					name:
 						frappe.utils.escape_html(col.header_title) ||
 						(df ? df.label : "Untitled Column"),
-					content: column_title,
+					// Header hosts the inline mapper; the file column title sits in the
+					// first body row directly below it.
+					content: `<span class="diw-col-map-field block min-w-0 w-full" data-col-index="${i}"></span>`,
 					skip_import: true,
 					editable: false,
 					focusable: false,
@@ -150,7 +151,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					width: column_width,
 					format: (value) => {
 						if (value === DIW_MAP_CELL) {
-							return `<span class="diw-col-map-field block min-w-0 w-full" data-col-index="${i}"></span>`;
+							return column_title;
 						}
 						return `<div class="text-muted">${value}</div>`;
 					},
@@ -162,9 +163,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				column_width = Math.max(column_width, 200);
 			}
 
-			// Status dot + sheet title; date columns get a calendar format pill.
+			// Sheet title (no status dot); date columns get a calendar format pill.
 			let column_title = `<span class="diw-preview-col-header inline-flex items-center gap-2 min-w-0 w-full">
-				<span class="diw-preview-col-dot diw-preview-col-dot--mapped inline-flex shrink-0 size-2 rounded-full" aria-hidden="true"></span>
 				<span class="diw-preview-col-title truncate min-w-0">${
 					frappe.utils.escape_html(col.header_title) || df.label
 				}</span>
@@ -178,14 +178,16 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			return {
 				id: df.fieldname,
 				name: frappe.utils.escape_html(col.header_title),
-				content: column_title,
+				// Header hosts the inline mapper; the file column title sits in the
+				// first body row directly below it.
+				content: `<span class="diw-col-map-field block min-w-0 w-full" data-col-index="${i}"></span>`,
 				df: df,
 				editable: false,
 				align: "left",
 				width: column_width,
 				format: (value) => {
 					if (value === DIW_MAP_CELL) {
-						return `<span class="diw-col-map-field block min-w-0 w-full" data-col-index="${i}"></span>`;
+						return column_title;
 					}
 					return value == null ? "" : value;
 				},
@@ -226,10 +228,10 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		});
 
 		// Keep preview table simple, but add a first-row mapper for column mapping.
-		this._has_mapping_row = this.frm?.doc?.status !== "Success";
-		if (this._has_mapping_row) {
-			this.data = [this.build_mapping_row(), ...this.data];
-		}
+		// Shown in every state — after a completed / partial import the mappers are
+		// rendered disabled (see mount_column_map_controls) so the mapping stays visible.
+		this._has_mapping_row = true;
+		this.data = [this.build_mapping_row(), ...this.data];
 	}
 
 	/** Build or refresh the datatable once the pane has a stable width. */
@@ -569,6 +571,18 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			),
 			color: frappe.ui.color.get_color_shade("gray", is_dark ? "extra-light" : "dark"),
 		});
+
+		// The mapper now sits in the datatable header; the first body row carries the
+		// file column titles. Tint it so it reads as the header for the data below.
+		if (this._has_mapping_row) {
+			// The mapper header row is surface-gray-2 (see data_import_wizard.scss);
+			// tint the file-header row one step lighter (surface-gray-1) so the two
+			// stacked header rows read as related but distinct.
+			this.datatable.style.setStyle(".dt-row-0 .dt-cell", {
+				backgroundColor: "var(--surface-gray-1)",
+				fontWeight: "500",
+			});
+		}
 	}
 
 	/**
@@ -580,13 +594,21 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			control.$wrapper?.remove();
 		});
 		this._map_controls = [];
+		// Dropdown lists get reparented to <body> when open (see
+		// setup_mapping_dropdown_portal); remove any we left there so they don't
+		// leak across re-renders.
+		this._portaled_dropdowns?.forEach((ul) => ul.remove());
+		this._portaled_dropdowns = [];
 		if (this._mapping_dropdown_scroll_handler) {
 			document.removeEventListener("scroll", this._mapping_dropdown_scroll_handler, true);
 			this._mapping_dropdown_scroll_handler = null;
 		}
 		this.$table_preview?.off(".diw-map-portal");
 		if (!this.$table_preview?.length) return;
-		if (this.frm?.doc?.status === "Success") return;
+
+		// After a completed (Success / Partial Success) import the mapping is frozen —
+		// still render it so users see how columns were mapped, but disabled.
+		const readonly = ["Success", "Partial Success"].includes(this.frm?.doc?.status);
 
 		const options = [{ label: __("Don't Import"), value: DONT_IMPORT }].concat(
 			get_fields_as_options(this.doctype, get_columns_for_picker(this.doctype))
@@ -598,6 +620,21 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			if (!(i > 0) || !col) return;
 
 			const current = this.get_column_map_value(col);
+
+			// Completed / partial imports: the mapping is frozen. Render it as a
+			// static read-only field (the resolved field label) instead of a live
+			// Autocomplete — avoids the awesomplete/form-control chrome and reads
+			// cleanly as a disabled field.
+			if (readonly) {
+				const label = (options.find((o) => o.value === current) || {}).label || current;
+				$(el).html(
+					`<div class="diw-col-map-readonly truncate" title="${frappe.utils.escape_html(
+						label
+					)}">${frappe.utils.escape_html(label)}</div>`
+				);
+				return;
+			}
+
 			let ready = false;
 			let applied = current;
 			const control = frappe.ui.form.make_control({
@@ -636,20 +673,35 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	/** Shared dropdown positioning for all mapper Autocomplete inputs. */
 	setup_mapping_dropdown_portal() {
 		if (!this.$table_preview?.length) return;
-		const get_dropdown = (input) => $(input).closest(".awesomplete").children("ul").get(0);
+		// Once reparented to <body> (below), the list is no longer a child of
+		// `.awesomplete`, so remember it on the input to keep re-finding it.
+		const get_dropdown = (input) =>
+			input._diw_map_ul || $(input).closest(".awesomplete").children("ul").get(0);
 
 		const position_dropdown = (input) => {
 			// Fixed coords break inside transformed modal contexts; skip there.
 			if (input.closest(".form-in-grid")) return;
 			const ul = get_dropdown(input);
 			if (!ul) return;
+			// The mapper now lives in the datatable header, which uses CSS transforms
+			// for scroll-sync and clips with overflow:hidden — that makes position:fixed
+			// resolve against the header and get clipped, so the open list is invisible.
+			// Reparent the list to <body> so it escapes both the transform and the clip.
+			if (ul.parentNode !== document.body) {
+				ul.classList.add("diw-map-dropdown-portaled");
+				input._diw_map_ul = ul;
+				document.body.appendChild(ul);
+				this._portaled_dropdowns = this._portaled_dropdowns || [];
+				if (!this._portaled_dropdowns.includes(ul)) {
+					this._portaled_dropdowns.push(ul);
+				}
+			}
 			const rect = input.getBoundingClientRect();
 			const list_width = Math.max(rect.width, 250);
-			// Fixed positioning escapes the wizard scroll container clipping.
 			$(ul).css({
 				position: "fixed",
-				left: rect.left,
-				top: rect.bottom,
+				left: `${rect.left}px`,
+				top: `${rect.bottom}px`,
 				width: `${list_width}px`,
 				minWidth: `${list_width}px`,
 				maxWidth: "420px",
@@ -661,7 +713,12 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			"awesomplete-open.diw-map-portal",
 			".diw-col-map-field input",
 			function () {
+				// Position now, then again next frame: reparenting to <body> and the
+				// datatable header's scroll-sync layout settle a tick later, so the
+				// first measurement can be stale (list lands left of its input).
 				position_dropdown(this);
+				const input = this;
+				requestAnimationFrame(() => position_dropdown(input));
 			}
 		);
 		this.$table_preview.on(
@@ -757,9 +814,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.wrapper
 			.find(".table-actions")
 			.html(
-				`<div class="text-base text-muted">${__(
-					"Map each file column to a field. Save to apply changes."
-				)}</div>`
+				`<div class="text-base text-muted">${__("Map each file column to a field.")}</div>`
 			);
 	}
 
