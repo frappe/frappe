@@ -202,7 +202,7 @@ const canvasStore = useCanvasStore()
 
 const getCompletions = useStudioCompletions()
 const componentContextMenu = toRef(store, "componentContextMenu")
-useStudioEvents()
+useStudioEvents(saveFragmentMode)
 
 const pageCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
 const fragmentCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
