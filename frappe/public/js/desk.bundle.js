@@ -24,6 +24,7 @@ import "./frappe/ui/components/hover_card.js";
 import "./frappe/ui/components/tabs.js";
 import "./frappe/ui/components/tab_buttons.js";
 import "./frappe/ui/components/progress.js";
+import "./frappe/ui/components/stepper.js";
 import "./frappe/ui/components/empty_state.js";
 
 import "./frappe/ui/background_tasks/background_tasks.js";

@@ -1,0 +1,148 @@
+/* Espresso Stepper — the step header for multi-step flows (wizards).
+ *
+ * An espresso ORIGINAL: frappe-ui and radix ship no stepper, so this file IS
+ * the contract — designed so a Vue/React port can render the same classes and
+ * data-attributes. If frappe-ui grows a Stepper later, converge there.
+ *
+ * Markup contract (framework-neutral, like every es component):
+ *
+ *   <nav class="es-stepper" aria-label="...">
+ *     <button class="es-stepper__step" data-state="completed">
+ *       <span class="es-stepper__marker">(circle-check)</span>
+ *       <span class="es-stepper__label">Config</span>
+ *     </button>
+ *     <span class="es-stepper__connector" data-completed="true"></span>
+ *     <button class="es-stepper__step" data-state="active" aria-current="step">…</button>
+ *     …
+ *   </nav>
+ *
+ * data-state: active | completed | locked; absent = upcoming.
+ * The state icons are generic and rendered by the JS half — a bare check on
+ * a filled disc (the marker box paints the fill) for completed,
+ * circle-dashed otherwise; steps carry no per-step icon and no chip
+ * background — ink strength (gray-8 active/completed vs gray-4 upcoming)
+ * and label weight carry state.
+ * Locked steps stay focusable (aria-disabled, not disabled) so the flow is
+ * discoverable by keyboard and screen readers — blocking activation is the
+ * owner's job.
+ *
+ * Compact mode (JS option `compact`) renders a one-line progress summary
+ * instead — the frappe.ui.progress interval form with a "Step x of y" hint —
+ * for narrow layouts; same API, so a consumer can mount both and toggle
+ * visibility at its own breakpoint.
+ */
+
+.es-stepper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* a step is a compact icon + label pair — no fills; state shows through
+   ink strength, the label weight, and the completed check's color */
+.es-stepper__step {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: calc(var(--spacing) * 1.5);
+    min-width: 0;
+    padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
+    border: 0;
+    border-radius: var(--radius);
+    background: transparent;
+    appearance: none;
+    cursor: pointer;
+    /* native button resets to the UA font otherwise */
+    font: inherit;
+    outline: none;
+    color: var(--ink-gray-4);
+}
+
+.es-stepper__step:focus-visible {
+    outline: var(--focus-outline-default);
+    outline-offset: 2px;
+}
+
+.es-stepper__step[data-state="active"],
+.es-stepper__step[data-state="completed"] {
+    color: var(--ink-gray-7);
+}
+
+/* completed: a filled disc — the fill lives on the marker BOX (sprite <use>
+   internals can't be part-styled), with a bare white check on top.
+   data-completed is a FACT independent of position (the owner's
+   is_completed), so a revisited done step keeps its check while active */
+.es-stepper__step[data-completed="true"] .es-stepper__marker {
+    border-radius: var(--radius-full);
+    background: var(--surface-gray-9);
+    color: var(--ink-base);
+}
+
+.es-stepper__step[data-completed="true"] .es-stepper__marker .icon,
+.es-stepper__step[data-completed="true"] .es-stepper__marker svg {
+    width: calc(var(--spacing) * 2.5);
+    height: calc(var(--spacing) * 2.5);
+}
+
+/* revisiting a done step: the disc swaps its check for a dot ("you are
+   here" on a finished step). The lucide dot is a radius-1 circle in a 24
+   viewBox — full marker size + a fat stroke (viewBox units) turn the speck
+   into a readable ~6px dot; round linecaps keep it circular */
+.es-stepper__step[data-state="active"][data-completed="true"] .es-stepper__marker .icon,
+.es-stepper__step[data-state="active"][data-completed="true"] .es-stepper__marker svg {
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+    stroke-width: 7px;
+}
+
+.es-stepper__step[data-state="locked"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* the state icon: a fixed 16px box so the completed disc and the dashed
+   circle occupy identical space (no layout shift on state change) */
+.es-stepper__marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+    line-height: 0;
+}
+
+/* sprite icons: size here and pin the margin the global .icon class would
+   add (auto margins drift in flex layouts) */
+.es-stepper__marker .icon,
+.es-stepper__marker svg {
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+    margin: 0;
+    stroke: currentColor;
+}
+
+.es-stepper__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--text-base);
+    line-height: 1.15;
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0.015em;
+}
+
+/* ---- connector: hairline between the chips (nav is center-aligned, so no
+       offset needed); fills a step darker once the step before it is done */
+.es-stepper__connector {
+    flex: 1;
+    min-width: calc(var(--spacing) * 2);
+    height: 1px;
+    margin-inline: calc(var(--spacing) * 1);
+    background: var(--outline-gray-2);
+}
+
+.es-stepper__connector[data-completed="true"] {
+    background: var(--outline-gray-3);
+}

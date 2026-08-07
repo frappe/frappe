@@ -307,7 +307,7 @@ $size-steps: 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16;
 
 /* min-height steps (Tailwind's min-h-*, on the spacing scale) — e.g. giving
    an empty state room to breathe. Bootstrap has no min-h-*, so no collision. */
-$min-h-steps: 8, 24, 32, 40, 48, 64, 80, 96;
+$min-h-steps: 6, 8, 20, 24, 32, 40, 48, 64, 80, 96;
 
 @each $n in $min-h-steps {
 	.min-h-#{$n} {

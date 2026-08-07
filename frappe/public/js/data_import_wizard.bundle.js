@@ -5,10 +5,10 @@
 // behind the `frm._data_import_wizard` interface (set_step / bump_ui / …).
 
 const WIZARD_STEPS = [
-	{ id: "config", label: __("Config"), icon: "settings" },
-	{ id: "preview", label: __("Preview"), icon: "table-2" },
-	{ id: "fix_issues", label: __("Fix issues"), icon: "list-todo" },
-	{ id: "import", label: __("Import"), icon: "flag" },
+	{ id: "config", label: __("Config") },
+	{ id: "preview", label: __("Preview") },
+	{ id: "fix_issues", label: __("Fix issues") },
+	{ id: "import", label: __("Import") },
 ];
 
 const STEP_COUNT = WIZARD_STEPS.length;
@@ -81,12 +81,6 @@ function can_go_to_wizard_step(frm, step, current_step) {
 
 function is_sr_no_column(col) {
 	return col?.header_title === "Sr. No" || col?.header_title === __("Sr. No");
-}
-
-function step_icon(name, size = "sm") {
-	// current_color = true → the icon inherits the standard text colour of its
-	// marker (no bespoke per-step palette; this is the standard Frappe approach).
-	return frappe.utils.icon(name, size, "", "", "", true);
 }
 
 // ---- Config-step upload helpers (dropzone + file/sheet cards) --------------
@@ -235,9 +229,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		this.$root = $(`
 			<div class="data-import-custom-ui flex justify-center w-full">
 				<div class="diw-shell flex flex-col w-full min-w-0 gap-5">
-					<div class="diw-stepper-wrap shrink-0 w-full"><nav class="diw-stepper flex items-start w-full" aria-label="${__(
-						"Import steps"
-					)}"></nav></div>
+					<div class="diw-stepper-wrap shrink-0 w-full"></div>
 					<div class="diw-card flex flex-col w-full min-w-0 overflow-hidden rounded-lg shadow-sm border bg-surface-base">
 						<div class="diw-mobile-step-header shrink-0 pt-4 px-4"></div>
 						<div class="flex flex-col flex-1 min-h-0 min-w-0 w-full"><div class="diw-panels flex flex-col flex-1 min-h-0 min-w-0 w-full"></div></div>
@@ -253,7 +245,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		$(this.wrapper).empty().append(this.$root);
 
 		this.$card = this.$root.find(".diw-card");
-		this.$stepper = this.$root.find(".diw-stepper");
+		this.$stepper_wrap = this.$root.find(".diw-stepper-wrap");
 		this.$mobile_header = this.$root.find(".diw-mobile-step-header");
 		this.$panels = this.$root.find(".diw-panels");
 		this.$status = this.$root.find(".diw-status-area");
@@ -385,62 +377,45 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 	// ---- stepper -----------------------------------------------------------
 
 	render_stepper() {
-		const frm = this.frm;
-		const current = this.current_step;
-		this.$stepper.empty();
-
-		WIZARD_STEPS.forEach((step, index) => {
-			if (index > 0) {
-				const completed = index - 1 < current;
-				this.$stepper.append(
-					`<div class="diw-step-connector flex-1 self-start h-px min-w-2 w-0 bg-surface-gray-2${
-						completed ? " is-completed" : ""
-					}"></div>`
-				);
-			}
-
-			const is_active = index === current;
-			const is_completed = index < current;
-			const is_locked = !can_go_to_wizard_step(frm, index, current);
-			const $btn = $(`
-				<button type="button" class="diw-step flex flex-1 flex-col items-center gap-2 min-w-0 w-0 p-0 text-center cursor-pointer bg-transparent border-0 appearance-none${
-					is_active ? " active" : ""
-				}${is_completed ? " completed" : ""}${
-				is_locked ? " is-locked" : ""
-			}" aria-disabled="${is_locked}">
-					<span class="diw-step-marker shrink-0 flex items-center justify-center size-7 rounded-full border bg-surface-base text-ink-gray-4">${
-						is_completed
-							? `<span class="diw-step-check">${step_icon("check", "xs")}</span>`
-							: `<span class="diw-step-icon">${step_icon(step.icon)}</span>`
-					}</span>
-					<span class="diw-step-label truncate w-full ${
-						is_active
-							? "text-xs-semibold text-ink-gray-9"
-							: "text-xs-medium text-ink-gray-5"
-					}">${frappe.utils.escape_html(step.label)}</span>
-				</button>
-			`);
-			$btn.on("click", () => this.on_step_click(index));
-			this.$stepper.append($btn);
-		});
+		if (!this.stepper) {
+			this.stepper = new frappe.ui.Stepper({
+				steps: WIZARD_STEPS.map((step) => ({ label: step.label })),
+				current: this.current_step,
+				label: __("Import steps"),
+				// re-checked on every render, so lock state follows the wizard
+				is_locked: (index) => !can_go_to_wizard_step(this.frm, index, this.current_step),
+				// completion is factual, so checks survive navigating back:
+				// config/preview/fix are done once the import has started,
+				// the import step once it finished
+				is_completed: (index) => {
+					if (index < this.current_step) return true;
+					if (index <= 2) return Boolean(this.frm.has_import_started?.());
+					return is_import_complete(this.frm.doc?.status);
+				},
+				on_step_click: (index) => this.on_step_click(index),
+				// locked clicks route to the same handler — its can_go check
+				// fails and shows the "complete the earlier steps" alert
+				on_locked_click: (index) => this.on_step_click(index),
+			});
+			this.$stepper_wrap.append(this.stepper.$el);
+			return;
+		}
+		this.stepper.set_current(this.current_step);
 	}
 
 	render_mobile_header() {
-		const step = WIZARD_STEPS[this.current_step];
-		const done = this.current_step + 1;
-		// One es-progress in its interval form: the header gives us the step label +
-		// "Step 2 of 4" counter (label/hint, baseline-aligned and pushed apart), and
-		// the segmented track gives us one segment per step.
-		this.$mobile_header.empty().append(
-			frappe.ui.progress({
-				label: step.label,
-				hint: () => __("Step {0} of {1}", [done, STEP_COUNT]),
-				intervals: true,
-				interval_count: STEP_COUNT,
-				size: "md",
-				value: (done / STEP_COUNT) * 100,
-			})
-		);
+		// the stepper's compact mode: segmented progress + "Step 2 of 4"
+		if (!this.mobile_stepper) {
+			this.mobile_stepper = new frappe.ui.Stepper({
+				steps: WIZARD_STEPS.map((step) => ({ label: step.label })),
+				current: this.current_step,
+				compact: true,
+				label: __("Import steps"),
+			});
+			this.$mobile_header.append(this.mobile_stepper.$el);
+			return;
+		}
+		this.mobile_stepper.set_current(this.current_step);
 	}
 
 	// ---- panels ------------------------------------------------------------

@@ -252,8 +252,8 @@ context("Data Import Wizard", () => {
 
 		// The step label lives in its own span; match it exactly, then act on the
 		// button (which carries the is-locked class).
-		cy.contains(".diw-stepper .diw-step-label", /^Import$/)
-			.closest(".diw-step")
+		cy.contains(".diw-stepper-wrap .es-stepper__label", /^Import$/)
+			.closest(".es-stepper__step")
 			.should("have.class", "is-locked")
 			.click({ force: true });
 		cy.contains("Start the import before opening the Import step.").should("be.visible");
