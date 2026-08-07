@@ -1339,7 +1339,7 @@ def notify_admin_access_to_system_manager(login_manager=None):
 			args={
 				"date_and_time": date_and_time,
 				"ip_address": ip_address,
-				"login_url": get_url("/login"),
+				"change_password_url": get_url("/update-password"),
 			},
 			with_container=True,
 			wrapper="templates/emails/auth_email.html",
