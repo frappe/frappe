@@ -31,6 +31,7 @@ class PrintFormat(Document):
 		default_print_language: DF.Link | None
 		disabled: DF.Check
 		doc_type: DF.Link | None
+		draft_data: DF.Code | None
 		font: DF.Data | None
 		font_size: DF.Int
 		format_data: DF.Code | None
@@ -45,7 +46,7 @@ class PrintFormat(Document):
 		page_number: DF.Literal[
 			"Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"
 		]
-		pdf_generator: DF.Literal["wkhtmltopdf", "chrome"]
+		pdf_generator: DF.Literal["wkhtmltopdf", "chrome", "Typst"]
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
 		print_format_for: DF.Literal["DocType", "Report"]
@@ -85,7 +86,7 @@ class PrintFormat(Document):
 		):
 			self.print_format_builder_beta = 1
 
-		if self.print_format_builder_beta and not self.custom_format:
+		if self.print_format_builder_beta and not self.custom_format and self.pdf_generator != "Typst":
 			self.pdf_generator = "chrome"
 
 	def get_html(self, docname, letterhead=None):
@@ -126,6 +127,25 @@ class PrintFormat(Document):
 
 		self.validate_colors()
 		self.validate_conditions()
+		self.validate_typst_renderer()
+
+	def validate_typst_renderer(self):
+		"""Refuse to save a Typst-flagged format that Typst cannot render — the
+		blockers name exactly what to remove, at edit time instead of print time."""
+		if self.pdf_generator != "Typst":
+			return
+		from frappe.utils.typst_emitter import typst_blockers
+
+		try:
+			layout = frappe.parse_json(self.format_data) if self.format_data else {}
+		except Exception:
+			layout = {}
+		blockers = typst_blockers(self, layout if isinstance(layout, dict) else {})
+		if blockers:
+			frappe.throw(
+				_("This format cannot use the Typst renderer: {0}").format(", ".join(blockers)),
+				title=_("Typst renderer unavailable"),
+			)
 
 	def validate_conditions(self):
 		"""Reject a layout whose visibility conditions cannot compile.
