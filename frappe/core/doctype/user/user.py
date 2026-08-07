@@ -1327,8 +1327,6 @@ def notify_admin_access_to_system_manager(login_manager=None):
 		and login_manager.user == "Administrator"
 		and frappe.local.conf.notify_admin_access_to_system_manager
 	):
-		from frappe.utils import get_url
-
 		date_and_time = format_datetime(now_datetime(), format_string="medium")
 		ip_address = frappe.local.request_ip
 
@@ -1339,7 +1337,6 @@ def notify_admin_access_to_system_manager(login_manager=None):
 			args={
 				"date_and_time": date_and_time,
 				"ip_address": ip_address,
-				"change_password_url": get_url("/update-password"),
 			},
 			with_container=True,
 			wrapper="templates/emails/auth_email.html",
