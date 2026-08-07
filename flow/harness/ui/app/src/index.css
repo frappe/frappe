@@ -1,0 +1,42 @@
+@import "@flow/ui-core/flow.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Dark-theme tuning: frappe-ui's stock dark base is #0F0F0F; lift it to the
+   #171717 the frappe-ui site uses, shifting the neighboring surfaces and
+   outlines coherently. Overriding the themed variables is the supported
+   theming layer — components stay token-pure. */
+[data-theme="dark"] {
+	--surface-white: #171717;
+	--surface-menu-bar: #141414;
+	--surface-gray-1: #1f1f1f;
+	--surface-gray-2: #292929;
+	--surface-gray-3: #383838;
+	--surface-gray-4: #424242;
+	--surface-cards: #1f1f1f;
+	--surface-modal: #292929;
+	--outline-white: #242424;
+	--outline-gray-1: #242424;
+	--outline-gray-2: #383838;
+	--outline-gray-3: #424242;
+}
+
+html,
+body,
+#app {
+	height: 100%;
+	margin: 0;
+}
+
+body {
+	font-family: Inter, system-ui, sans-serif;
+	background: var(--surface-white);
+	-webkit-font-smoothing: antialiased;
+}
+
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--surface-gray-4) transparent;
+}
