@@ -360,6 +360,14 @@ export function getStore(print_format_name) {
 	function get_default_layout() {
 		return create_default_layout(meta.value, print_format.value);
 	}
+	function remove_letterhead() {
+		letterhead.value = null;
+		if (layout.value) {
+			// empty string, not delete: marks "user removed it" so the
+			// system default is not re-applied on the next load
+			layout.value.letter_head = "";
+		}
+	}
 	function change_letterhead(_letterhead, { keep_clean = false } = {}) {
 		return frappe.db.get_doc("Letter Head", _letterhead).then((doc) => {
 			letterhead.value = doc;
@@ -466,6 +474,7 @@ export function getStore(print_format_name) {
 		get_layout,
 		get_default_layout,
 		change_letterhead,
+		remove_letterhead,
 		clipboard,
 		copy_field,
 		copy_section,

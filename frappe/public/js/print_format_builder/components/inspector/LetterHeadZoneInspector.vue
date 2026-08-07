@@ -24,6 +24,13 @@
 						<button class="es-button" data-size="xs" @click="lh_change_letterhead">
 							{{ __("Change Letter Head") }}
 						</button>
+						<button
+							class="es-button"
+							data-size="xs"
+							@click="store.remove_letterhead()"
+						>
+							{{ __("Remove") }}
+						</button>
 					</div>
 					<div v-else class="pfb-lh-actions" style="margin-top: 4px">
 						<p class="pfb-insp-hint text-muted">

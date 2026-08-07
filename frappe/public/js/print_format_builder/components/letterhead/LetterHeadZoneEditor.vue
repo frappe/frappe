@@ -125,7 +125,7 @@ watch(
 );
 
 onMounted(() => {
-	if (props.zone === "header" && !letterhead.value && !layout.value?.letter_head) {
+	if (props.zone === "header" && !letterhead.value && layout.value?.letter_head == null) {
 		const lh_name = frappe.boot.sysdefaults.letter_head;
 		if (lh_name) store.value.change_letterhead(lh_name, { keep_clean: true });
 	}
