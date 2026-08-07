@@ -1,0 +1,222 @@
+// HTTP + SSE client for the flow daemon. fetch-based (not EventSource) so the
+// Authorization header works. This is the only module that talks to the network;
+// Flow's Frappe shell can swap it for a proxy-backed implementation with the
+// same surface.
+
+const enc = encodeURIComponent
+
+export class FlowAPIError extends Error {
+	constructor(status, message, data = null) {
+		super(message)
+		this.status = status
+		this.data = data
+	}
+}
+
+async function raise(response) {
+	let detail = `${response.status} ${response.statusText}`
+	let data = null
+	try {
+		data = await response.json()
+		if (typeof data.detail === "string") detail = data.detail
+		else if (data.detail) detail = JSON.stringify(data.detail)
+	} catch {
+		// non-JSON error body
+	}
+	// this UI never sends a wrong method to its own daemon — a 405 means the
+	// daemon process predates the served bundle
+	if (response.status === 405) {
+		detail = "The daemon is running older code than this UI — restart it and retry."
+	}
+	throw new FlowAPIError(response.status, detail, data)
+}
+
+export class DaemonClient {
+	constructor({ baseUrl = "", token = "" } = {}) {
+		this.baseUrl = baseUrl.replace(/\/+$/, "")
+		this.token = token
+	}
+
+	headers(extra = {}) {
+		const h = { ...extra }
+		if (this.token) h["Authorization"] = `Bearer ${this.token}`
+		return h
+	}
+
+	async request(method, path, { body, params } = {}) {
+		const url = new URL(this.baseUrl + path, window.location.origin)
+		for (const [k, v] of Object.entries(params ?? {})) url.searchParams.set(k, v)
+		const response = await fetch(url, {
+			method,
+			headers: this.headers(body !== undefined ? { "Content-Type": "application/json" } : {}),
+			body: body !== undefined ? JSON.stringify(body) : undefined,
+		})
+		if (!response.ok) await raise(response)
+		return response.json()
+	}
+
+	health() {
+		return this.request("GET", "/healthz")
+	}
+	models() {
+		return this.request("GET", "/models")
+	}
+	sessions() {
+		return this.request("GET", "/sessions")
+	}
+	session(sid) {
+		return this.request("GET", `/sessions/${enc(sid)}`)
+	}
+	// the session's active branch — replay-safe seed for a fresh transcript
+	entries(sid) {
+		return this.request("GET", `/sessions/${enc(sid)}/entries`)
+	}
+	createSession(config) {
+		return this.request("POST", "/sessions", { body: config })
+	}
+	run(sid, message) {
+		return this.request("POST", `/sessions/${enc(sid)}/run`, { body: { message } })
+	}
+	resume(sid, approvalSeq, answers) {
+		return this.request("POST", `/sessions/${enc(sid)}/resume`, {
+			body: { approval_seq: approvalSeq, answers },
+		})
+	}
+	abort(sid) {
+		return this.request("POST", `/sessions/${enc(sid)}/abort`)
+	}
+	cancelPending(sid) {
+		return this.request("POST", `/sessions/${enc(sid)}/cancel_pending`)
+	}
+	rewind(sid, targetSeq) {
+		return this.request("POST", `/sessions/${enc(sid)}/rewind`, { body: { target_seq: targetSeq } })
+	}
+	patchConfig(sid, patch) {
+		return this.request("PATCH", `/sessions/${enc(sid)}/config`, { body: patch })
+	}
+	setModel(sid, { model, credential_id = null, reasoning_effort = null }) {
+		return this.request("POST", `/sessions/${enc(sid)}/model`, {
+			body: { model, credential_id, reasoning_effort },
+		})
+	}
+	compact(sid, instructions = null) {
+		return this.request("POST", `/sessions/${enc(sid)}/compact`, {
+			body: instructions ? { instructions } : {},
+		})
+	}
+	deleteSession(sid) {
+		return this.request("DELETE", `/sessions/${enc(sid)}`)
+	}
+	providers() {
+		return this.request("GET", "/providers")
+	}
+	saveCustomProvider(config) {
+		return this.request("POST", "/providers/custom", { body: config })
+	}
+	saveProviderKey(providerId, key) {
+		return this.request("POST", `/providers/${enc(providerId)}/api-key`, { body: { key } })
+	}
+	deleteProvider(providerId) {
+		return this.request("DELETE", `/providers/${enc(providerId)}`)
+	}
+	oauthStart(providerId) {
+		return this.request("POST", `/providers/${enc(providerId)}/oauth/start`)
+	}
+	oauthStatus(providerId) {
+		return this.request("GET", `/providers/${enc(providerId)}/oauth/status`)
+	}
+	oauthComplete(providerId, callbackUrl) {
+		return this.request("POST", `/providers/${enc(providerId)}/oauth/complete`, {
+			body: { callback_url: callbackUrl },
+		})
+	}
+	fsPick() {
+		return this.request("POST", "/fs/pick")
+	}
+
+	stream(sid, since = 0) {
+		return new EventStream(this, sid, since)
+	}
+}
+
+async function* parseSSE(response) {
+	const reader = response.body.getReader()
+	const decoder = new TextDecoder()
+	let buffer = ""
+	try {
+		for (;;) {
+			const { done, value } = await reader.read()
+			if (done) break
+			buffer += decoder.decode(value, { stream: true })
+			let boundary
+			while ((boundary = buffer.indexOf("\n\n")) !== -1) {
+				const chunk = buffer.slice(0, boundary)
+				buffer = buffer.slice(boundary + 2)
+				const data = chunk
+					.split("\n")
+					.filter((line) => line.startsWith("data:"))
+					.map((line) => line.slice(5).trim())
+					.join("\n")
+				if (data) yield JSON.parse(data)
+			}
+		}
+	} finally {
+		reader.cancel().catch(() => {})
+	}
+}
+
+// Follow-mode event stream with reconnect. Durable events carry `seq`; the
+// cursor advances on those and drops replayed duplicates, so a reconnect is
+// gapless and duplicate-free. Live-only events (deltas) have no seq and pass
+// straight through.
+export class EventStream {
+	constructor(client, sid, since = 0) {
+		this.client = client
+		this.sid = sid
+		this.cursor = since
+		this.closed = false
+		this._controller = null
+	}
+
+	close() {
+		this.closed = true
+		this._controller?.abort()
+	}
+
+	async *[Symbol.asyncIterator]() {
+		let backoff = 500
+		while (!this.closed) {
+			this._controller = new AbortController()
+			try {
+				const url = new URL(this.client.baseUrl + `/sessions/${this.sid}/stream`, window.location.origin)
+				url.searchParams.set("since", String(this.cursor))
+				url.searchParams.set("follow", "true")
+				const response = await fetch(url, {
+					headers: this.client.headers({ Accept: "text/event-stream" }),
+					signal: this._controller.signal,
+				})
+				if (!response.ok) await raise(response)
+				for await (const event of parseSSE(response)) {
+					if (typeof event.seq === "number") {
+						if (event.seq <= this.cursor) continue
+						this.cursor = event.seq
+					}
+					backoff = 500
+					yield event
+				}
+				// In follow mode the server never closes on purpose; treat a clean
+				// close as a drop and reconnect.
+			} catch (error) {
+				if (this.closed) return
+				// only terminal statuses end the stream; a 502/503 from a restarting
+				// daemon or proxy is exactly what the reconnect loop is for
+				if (error instanceof FlowAPIError && [401, 403, 404].includes(error.status)) {
+					throw error
+				}
+			}
+			if (this.closed) return
+			await new Promise((resolve) => setTimeout(resolve, backoff))
+			backoff = Math.min(backoff * 2, 10_000)
+		}
+	}
+}
