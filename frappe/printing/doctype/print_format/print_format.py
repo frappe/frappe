@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import re
+from datetime import datetime
 
 import frappe
 import frappe.utils
@@ -295,7 +296,7 @@ def _draft_payload(data: str | dict | None) -> dict:
 	return {key: value for key, value in data.items() if key in BUILDER_DRAFT_FIELDS}
 
 
-def _writable_format(name: str, modified: str):
+def _writable_format(name: str, modified: str | datetime):
 	"""The format, refusing the write if the caller's copy is behind the database.
 
 	`db_set` skips the timestamp check `save()` would run, so a second editor — or
@@ -319,7 +320,7 @@ def _writable_format(name: str, modified: str):
 
 
 @frappe.whitelist()
-def save_draft(name: str, data: str | dict, modified: str):
+def save_draft(name: str, data: str | dict, modified: str | datetime):
 	"""Store the builder's in-progress changes without touching what prints."""
 	doc = _writable_format(name, modified)
 	doc.db_set("draft_data", frappe.as_json(_draft_payload(data)))
@@ -327,7 +328,7 @@ def save_draft(name: str, data: str | dict, modified: str):
 
 
 @frappe.whitelist()
-def apply_draft(name: str, modified: str, data: str | dict | None = None):
+def apply_draft(name: str, modified: str | datetime, data: str | dict | None = None):
 	"""Copy the draft onto the fields that print, then clear it."""
 	doc = _writable_format(name, modified)
 	for field, value in _draft_payload(data if data is not None else doc.draft_data).items():
@@ -338,7 +339,7 @@ def apply_draft(name: str, modified: str, data: str | dict | None = None):
 
 
 @frappe.whitelist()
-def discard_draft(name: str, modified: str):
+def discard_draft(name: str, modified: str | datetime):
 	"""Throw away the draft; what prints is untouched either way."""
 	doc = _writable_format(name, modified)
 	doc.db_set("draft_data", None)

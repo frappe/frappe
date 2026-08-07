@@ -103,13 +103,16 @@ context("Print Format Builder — create flow", () => {
 			true
 		);
 
-		cy.intercept("POST", "api/method/frappe.client.save").as("save");
+		cy.intercept(
+			"POST",
+			"api/method/frappe.printing.doctype.print_format.print_format.apply_draft"
+		).as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
 		cy.get(".pfb-margin-grid", { timeout: 30000 }).should("be.visible");
 
 		cy.get(".freeze").should("not.exist");
-		cy.get('[data-testid="page-status"]').should("contain", "Saved");
+		cy.get('[data-testid="page-status"]').should("contain", "Applied");
 
 		cy.contains(".pfb-margin-cell label", "Top")
 			.closest(".pfb-margin-cell")
@@ -119,12 +122,12 @@ context("Print Format Builder — create flow", () => {
 			.trigger("change")
 			.blur();
 
-		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
+		cy.contains(".page-actions .primary-action", "Save & Apply").click({ force: true });
 		cy.wait("@save").then((interception) => {
 			expect(interception.response.statusCode).to.equal(200);
 			expect(Number(interception.response.body.message.margin_top)).to.equal(9);
 		});
-		cy.get('[data-testid="page-status"]').should("contain", "Saved");
+		cy.get('[data-testid="page-status"]').should("contain", "Applied");
 	});
 
 	// 4. Layers tab: clicking a section scrolls to it and selects it
@@ -138,7 +141,7 @@ context("Print Format Builder — create flow", () => {
 
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Layers']", { timeout: 30000 }).click();
+		cy.get(".es-tabs__tab[data-tab='layers']", { timeout: 30000 }).click();
 		cy.contains(".pfb-tree-row", "Beta").click();
 
 		cy.get(".pfb-inspector").should("contain", "Section");
@@ -166,7 +169,7 @@ context("Print Format Builder — create flow", () => {
 
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Layers']", { timeout: 30000 }).click();
+		cy.get(".es-tabs__tab[data-tab='layers']", { timeout: 30000 }).click();
 		cy.contains(".pfb-tree-row", "Details").click();
 
 		cy.get(".print-format-container").click();
@@ -187,7 +190,10 @@ context("Print Format Builder — create flow", () => {
 
 		insert_builder_format(PF_NAME, []);
 
-		cy.intercept("POST", "api/method/frappe.client.save").as("save");
+		cy.intercept(
+			"POST",
+			"api/method/frappe.printing.doctype.print_format.print_format.apply_draft"
+		).as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
 		cy.get(".pfb-margin-grid", { timeout: 30000 }).should("be.visible");
@@ -241,7 +247,10 @@ context("Print Format Builder — create flow", () => {
 
 		insert_builder_format(PF_NAME, []);
 
-		cy.intercept("POST", "api/method/frappe.client.save").as("save");
+		cy.intercept(
+			"POST",
+			"api/method/frappe.printing.doctype.print_format.print_format.apply_draft"
+		).as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
 		cy.get(".pfb-margin-grid", { timeout: 30000 }).should("be.visible");
@@ -255,7 +264,7 @@ context("Print Format Builder — create flow", () => {
 			.trigger("change")
 			.blur();
 
-		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
+		cy.contains(".page-actions .primary-action", "Save & Apply").click({ force: true });
 		cy.wait("@save").then((interception) => {
 			expect(interception.response.statusCode).to.equal(200);
 			expect(interception.response.body.message.label_color).to.equal("#c0392b");
@@ -444,8 +453,11 @@ context("Print Format Builder — setup flow", () => {
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 0);
 
 		// explicitly save and verify the saved layout has no sections
-		cy.intercept("POST", "api/method/frappe.client.save").as("save");
-		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
+		cy.intercept(
+			"POST",
+			"api/method/frappe.printing.doctype.print_format.print_format.apply_draft"
+		).as("save");
+		cy.contains(".page-actions .primary-action", "Save & Apply").click({ force: true });
 		cy.wait("@save").then((interception) => {
 			expect(interception.response.statusCode).to.equal(200);
 			const layout = JSON.parse(interception.response.body.message.format_data);
@@ -474,8 +486,11 @@ context("Print Format Builder — setup flow", () => {
 		);
 
 		// explicitly save and verify the saved layout has sections
-		cy.intercept("POST", "api/method/frappe.client.save").as("save");
-		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
+		cy.intercept(
+			"POST",
+			"api/method/frappe.printing.doctype.print_format.print_format.apply_draft"
+		).as("save");
+		cy.contains(".page-actions .primary-action", "Save & Apply").click({ force: true });
 		cy.wait("@save").then((interception) => {
 			expect(interception.response.statusCode).to.equal(200);
 			const layout = JSON.parse(interception.response.body.message.format_data);
@@ -707,7 +722,10 @@ context("Print Format Builder — column width resize", () => {
 	it("dragging the section column handle resizes and persists widths", () => {
 		insert_builder_format(PF_NAME, two_column_section());
 
-		cy.intercept("POST", "api/method/frappe.client.save").as("save");
+		cy.intercept(
+			"POST",
+			"api/method/frappe.printing.doctype.print_format.print_format.apply_draft"
+		).as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
 
@@ -733,7 +751,7 @@ context("Print Format Builder — column width resize", () => {
 				expect(flex_grow).to.be.within(65, 75);
 			});
 
-		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
+		cy.contains(".page-actions .primary-action", "Save & Apply").click({ force: true });
 		cy.wait("@save").then((interception) => {
 			expect(interception.response.statusCode).to.equal(200);
 			const layout = JSON.parse(interception.response.body.message.format_data);
@@ -802,7 +820,10 @@ context("Print Format Builder — column width resize", () => {
 			},
 		]);
 
-		cy.intercept("POST", "api/method/frappe.client.save").as("save");
+		cy.intercept(
+			"POST",
+			"api/method/frappe.printing.doctype.print_format.print_format.apply_draft"
+		).as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
 
@@ -816,7 +837,7 @@ context("Print Format Builder — column width resize", () => {
 				drag_handle(".sections-container .col-resize-handle", -total * 0.2);
 			});
 
-		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
+		cy.contains(".page-actions .primary-action", "Save & Apply").click({ force: true });
 		cy.wait("@save").then((interception) => {
 			expect(interception.response.statusCode).to.equal(200);
 			const layout = JSON.parse(interception.response.body.message.format_data);
@@ -882,14 +903,17 @@ context("Print Format Builder — image and barcode blocks", () => {
 			},
 		]);
 
-		cy.intercept("POST", "api/method/frappe.client.save").as("save");
+		cy.intercept(
+			"POST",
+			"api/method/frappe.printing.doctype.print_format.print_format.apply_draft"
+		).as("save");
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
 
 		// both blocks render in the canvas
 		cy.get('.field img[src*="frappe-framework-logo"]').should("exist");
 
-		cy.contains(".page-actions .primary-action", "Save").click({ force: true });
+		cy.contains(".page-actions .primary-action", "Save & Apply").click({ force: true });
 		cy.wait("@save").then((interception) => {
 			expect(interception.response.statusCode).to.equal(200);
 			const layout = JSON.parse(interception.response.body.message.format_data);
@@ -1000,7 +1024,7 @@ context("Print Format Builder — selection & spacing", () => {
 		three_field_format(PF_NAME);
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Layers']", { timeout: 30000 }).click();
+		cy.get(".es-tabs__tab[data-tab='layers']", { timeout: 30000 }).click();
 		cy.contains(".pfb-tree-row", "Alpha").click();
 
 		cy.get(".pfb-spacing-padding .pfb-space-grip-top").then(($g) => {
@@ -1027,7 +1051,7 @@ context("Print Format Builder — selection & spacing", () => {
 		three_field_format(PF_NAME);
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-tab[title='Layers']", { timeout: 30000 }).click();
+		cy.get(".es-tabs__tab[data-tab='layers']", { timeout: 30000 }).click();
 		cy.contains(".pfb-tree-row", "Alpha").click();
 
 		cy.get(".pfb-radius-handle").should("exist");
