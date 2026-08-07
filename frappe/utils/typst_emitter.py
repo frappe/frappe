@@ -104,6 +104,14 @@ def _walk(layout):
 					yield where, df
 
 
+def typst_font_paths() -> list[str]:
+	"""Directories Typst loads fonts from — the site's cache plus system fonts."""
+	import os
+
+	path = frappe.get_site_path("private", "files", "typst_fonts")
+	return [os.path.abspath(path)] if os.path.isdir(path) else []
+
+
 def q(value) -> str:
 	"""A Typst string literal — every doc value crosses as a quoted string, so
 	document content can never be interpreted as Typst markup."""

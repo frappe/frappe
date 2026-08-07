@@ -357,10 +357,12 @@ class PrintFormatGenerator:
 	# ----- PDF (Chrome) --------------------------------------------------
 
 	def render_pdf(self, password=None):
-		"""Return PDF bytes using the Chromium renderer."""
+		"""Return PDF bytes using the format's renderer — Typst when chosen, else Chromium."""
 		from frappe.utils.pdf import get_chrome_pdf
 
 		pf = self.print_format
+		if pf.get("pdf_generator") == "Typst":
+			return self.render_typst_pdf(password=password)
 		html = self._build_html_for_chrome()
 		options = {
 			"margin-top": f"{pf.margin_top}mm",
@@ -379,6 +381,42 @@ class PrintFormatGenerator:
 			output=None,
 			pdf_generator="chrome",
 		)
+
+	def render_typst_pdf(self, password=None):
+		"""Compile the resolved layout through Typst — ~10-15x faster than Chromium.
+
+		Refuses (rather than silently falling back) when the format uses features
+		Typst cannot express, so the renderer a user chose is the one that runs."""
+		import os
+		import tempfile
+
+		from frappe.utils.typst_emitter import TypstEmitter, typst_blockers, typst_font_paths
+
+		try:
+			import typst
+		except ImportError:
+			frappe.throw(
+				_("The Typst renderer needs the typst package. Run: {0}").format(
+					"<code>bench pip install typst</code>"
+				),
+				title=_("Typst not installed"),
+			)
+
+		blockers = typst_blockers(self.print_format, self.layout)
+		if blockers:
+			frappe.throw(
+				_("This format can no longer render through Typst: {0}").format(", ".join(blockers)),
+				title=_("Typst renderer unavailable"),
+			)
+		if password:
+			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
+
+		source = TypstEmitter(self).emit()
+		with tempfile.TemporaryDirectory() as tmp:
+			path = os.path.join(tmp, "main.typ")
+			with open(path, "w") as f:
+				f.write(source)
+			return typst.compile(path, font_paths=typst_font_paths())
 
 	def _build_html_for_chrome(self):
 		"""Build the body HTML for the Chrome PDF pipeline.
