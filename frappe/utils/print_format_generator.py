@@ -390,7 +390,12 @@ class PrintFormatGenerator:
 		import os
 		import tempfile
 
-		from frappe.utils.typst_emitter import TypstEmitter, typst_blockers, typst_font_paths
+		from frappe.utils.typst_emitter import (
+			TypstEmitter,
+			ensure_typst_fonts,
+			typst_blockers,
+			typst_font_paths,
+		)
 
 		try:
 			import typst
@@ -411,6 +416,7 @@ class PrintFormatGenerator:
 		if password:
 			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
 
+		ensure_typst_fonts(self.print_format.get("font"))
 		source = TypstEmitter(self).emit()
 		with tempfile.TemporaryDirectory() as tmp:
 			path = os.path.join(tmp, "main.typ")

@@ -112,6 +112,44 @@ def typst_font_paths() -> list[str]:
 	return [os.path.abspath(path)] if os.path.isdir(path) else []
 
 
+def ensure_typst_fonts(family: str | None):
+	"""Fetch the format's Google Font as TTFs into the site's font cache.
+
+	Best-effort: offline or unknown families log once and Typst falls back to
+	its bundled font instead of failing the print."""
+	import os
+
+	if not family or family == "Default":
+		return
+	root = frappe.get_site_path("private", "files", "typst_fonts")
+	target = os.path.join(root, family.replace(" ", "_"))
+	if os.path.isdir(target) and os.listdir(target):
+		return
+	try:
+		import requests
+
+		urls = []
+		for weight in (400, 500, 600, 700):
+			css = requests.get(
+				"https://fonts.googleapis.com/css2",
+				params={"family": f"{family}:wght@{weight}"},
+				headers={"User-Agent": "Mozilla/4.0"},
+				timeout=5,
+			).text
+			found = re.findall(r"https://[^)]+\.ttf", css)
+			if found:
+				urls.append((weight, found[0]))
+		if not urls:
+			return
+		os.makedirs(target, exist_ok=True)
+		for weight, url in urls:
+			ttf = requests.get(url, timeout=10).content
+			with open(os.path.join(target, f"{family.replace(' ', '_')}-{weight}.ttf"), "wb") as f:
+				f.write(ttf)
+	except Exception:
+		frappe.log_error(title=f"Typst font fetch failed: {family}")
+
+
 def q(value) -> str:
 	"""A Typst string literal — every doc value crosses as a quoted string, so
 	document content can never be interpreted as Typst markup."""
