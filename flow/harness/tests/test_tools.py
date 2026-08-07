@@ -23,7 +23,7 @@ async def test_write_then_read_roundtrip(tmp_path):
 	res = await write(path="sub/note.txt", content="hello", ctx=ctx)
 	assert isinstance(res, ToolResult)
 	assert "wrote sub/note.txt" in res.content
-	assert res.details == {"path": str(tmp_path / "sub" / "note.txt"), "chars": 5}
+	assert res.details == {"path": str(tmp_path / "sub" / "note.txt"), "chars": 5, "lines": 1}
 	assert (tmp_path / "sub" / "note.txt").read_text() == "hello"
 	assert (await read_file(path="sub/note.txt", ctx=ctx)).content == "hello"
 
@@ -108,6 +108,9 @@ async def test_edit_single_and_errors(tmp_path):
 	res = await edit(path="f.txt", edits=[{"old": "beta", "new": "B"}], ctx=ctx)
 	assert "edited f.txt" in res.content
 	assert res.details["diff"].startswith("---")  # unified diff emitted
+	# the one changed line counts once on each side; diff headers don't count
+	assert res.details["lines_added"] == 1
+	assert res.details["lines_removed"] == 1
 	assert (tmp_path / "f.txt").read_text() == "alpha B alpha"
 
 

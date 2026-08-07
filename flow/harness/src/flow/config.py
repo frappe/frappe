@@ -25,6 +25,9 @@ REDIS_URL = os.environ.get("FLOW_REDIS_URL") or None
 # SessionStore.create so every session-creation path (HTTP, embedded, Flow) is fenced.
 # Entries are `~`-expanded and realpath-resolved by `path_policy.normalize_roots`.
 ALLOWED_ROOTS = [p for p in os.environ.get("FLOW_ALLOWED_ROOTS", "").split(os.pathsep) if p]
+# Browser origins allowed to call the API directly (comma-separated). Empty (the
+# default) sends no CORS headers: browser clients must be same-origin or proxied.
+CORS_ORIGINS = [o.strip() for o in os.environ.get("FLOW_CORS_ORIGINS", "").split(",") if o.strip()]
 # API-key and OAuth credentials live beside the durable session directory. Deployments
 # can still use FLOW_CREDENTIALS_PATH to place them elsewhere.
 CREDENTIALS_PATH = os.path.expanduser(

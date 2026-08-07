@@ -30,7 +30,12 @@ from dataclasses import dataclass, field
 import httpx
 
 from flow.model.catalog import get_provider, provider_for_model
-from flow.model.credentials import ApiKeyCredential, CredentialStore, OAuthCredential
+from flow.model.credentials import (
+	ApiKeyCredential,
+	CredentialStore,
+	CustomProviderCredential,
+	OAuthCredential,
+)
 
 TOKEN_REFRESH_SKEW_MS = 60_000  # refresh this long before actual expiry
 
@@ -247,6 +252,17 @@ async def resolve_model_auth(
 	provider_id: str | None = None,
 ) -> ResolvedModelAuth:
 	"""Resolve a stored credential first, then the provider's environment."""
+	# first: they have no ProviderSpec, and base_url is the only route to the model
+	custom = _custom_credential_for_model(store, model, provider_id)
+	if custom is not None:
+		custom_id, credential = custom
+		return ResolvedModelAuth(
+			api_key=credential.api_key,
+			base_url=credential.base_url,
+			source="Custom endpoint",
+			provider_id=custom_id,
+		)
+
 	spec = get_provider(provider_id) if provider_id else provider_for_model(model)
 	provider_id = provider_id or (spec.id if spec else None)
 
@@ -290,3 +306,21 @@ async def resolve_model_auth(
 		raise AuthError(f"No {methods} credential for {spec.display_name}; run `flow login {spec.id}`.")
 
 	return ResolvedModelAuth(provider_id=provider_id)
+
+
+def _custom_credential_for_model(
+	store: CredentialStore,
+	model: str,
+	provider_id: str | None,
+) -> tuple[str, CustomProviderCredential] | None:
+	"""The pinned endpoint, else the first one listing this model."""
+	if provider_id:
+		credential = store.get_custom(provider_id)
+		return (provider_id, credential) if credential is not None else None
+	for info in store.list():
+		if info.type != "custom":
+			continue
+		credential = store.get_custom(info.provider_id)
+		if credential is not None and model in credential.models:
+			return info.provider_id, credential
+	return None

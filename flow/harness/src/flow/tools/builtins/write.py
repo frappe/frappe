@@ -17,7 +17,8 @@ async def write(path: str, content: str, *, ctx: ToolContext) -> ToolResult:
 	os.makedirs(os.path.dirname(full) or ".", exist_ok=True)
 	with open(full, "w", encoding="utf-8", newline="") as f:
 		f.write(content)
+	lines = len(content.splitlines())
 	return ToolResult(
-		content=f"[wrote {path} ({len(content)} chars)]",
-		details={"path": full, "chars": len(content)},
+		content=f"[wrote {path} ({lines} lines)]",
+		details={"path": full, "chars": len(content), "lines": lines},
 	)

@@ -43,15 +43,25 @@ async def edit(path: str, edits: list[Replacement], *, ctx: ToolContext) -> Tool
 	updated, error = _apply_edits(norm, edits)
 	if error:
 		return ToolResult(content=f"[edit failed: {error}]", is_error=True)
-	diff = "".join(
+	# per-line entries: joining first glues unterminated lines together
+	diff_parts = list(
 		difflib.unified_diff(norm.splitlines(keepends=True), updated.splitlines(keepends=True), full, full)
 	)
+	diff = "".join(diff_parts)
 	result = updated.replace("\n", "\r\n") if ending == "\r\n" else updated
 	with open(full, "w", encoding="utf-8", newline="") as f:
 		f.write(bom + result)
+	added = sum(1 for line in diff_parts if line.startswith("+") and not line.startswith("+++"))
+	removed = sum(1 for line in diff_parts if line.startswith("-") and not line.startswith("---"))
 	return ToolResult(
 		content=f"[edited {path} ({len(edits)} block(s))]",
-		details={"path": full, "edits": len(edits), "diff": diff},
+		details={
+			"path": full,
+			"edits": len(edits),
+			"lines_added": added,
+			"lines_removed": removed,
+			"diff": diff,
+		},
 	)
 
 

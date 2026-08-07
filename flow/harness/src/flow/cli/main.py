@@ -45,6 +45,12 @@ def main() -> None:
 		help="exit when stdin reaches EOF (private-daemon watchdog)",
 	)
 
+	p_web = sub.add_parser("web", help="run the daemon and serve the web UI, opening a browser")
+	p_web.add_argument("--host", default=config.HOST)
+	p_web.add_argument("--port", type=int, default=config.PORT)
+	p_web.add_argument("--data-dir", default=config.DATA_DIR)
+	p_web.add_argument("--no-browser", action="store_true", help="don't open a browser tab")
+
 	p_attach = sub.add_parser("attach", help="attach a TUI to a running daemon; starts nothing")
 	p_attach.add_argument(
 		"--url",
@@ -72,6 +78,8 @@ def main() -> None:
 			_tui(args)
 		elif args.cmd == "serve":
 			_serve(args)
+		elif args.cmd == "web":
+			_web(args)
 		elif args.cmd == "attach":
 			_attach(args)
 		elif args.cmd == "login":
@@ -186,6 +194,53 @@ def _serve(args) -> None:
 	else:
 		banner(f"http://{args.host}:{args.port}")
 		uvicorn.run(app, host=args.host, port=args.port, log_level="warning")
+
+
+def _web(args) -> None:
+	"""`flow web`: the daemon with the built web UI mounted same-origin (no CORS
+	needed), plus a browser tab pointed at it."""
+	if not _is_loopback(args.host) and not config.AUTH_TOKEN:
+		raise AuthError(
+			"Refusing to expose an unauthenticated daemon. Set FLOW_AUTH_TOKEN or bind to a loopback host."
+		)
+	webui = _webui_dist()
+	if webui is None:
+		raise DaemonError(
+			"web UI assets not found — build them first: cd ui && npm install && npm run build -w app"
+		)
+	_warm_litellm()
+
+	import threading
+	import webbrowser
+
+	import uvicorn
+
+	from flow.server import create_app
+	from flow.session.store import SessionStore
+
+	sink = _redis_sink()
+	app = create_app(
+		SessionStore(args.data_dir, event_sink=sink),
+		auth_token=config.AUTH_TOKEN,
+		webui_dir=webui,
+	)
+	# 0.0.0.0 binds every interface but isn't itself browsable
+	browse_host = "127.0.0.1" if args.host in ("0.0.0.0", "::") else args.host
+	url = f"http://{browse_host}:{args.port}"
+	print(f"{GREEN}flow web{RESET} on {url}  {DIM}(data: {args.data_dir}){RESET}")
+	if not args.no_browser:
+		timer = threading.Timer(0.8, webbrowser.open, [url])
+		timer.daemon = True  # a Ctrl-C before it fires must not hold the process
+		timer.start()
+	uvicorn.run(app, host=args.host, port=args.port, log_level="warning")
+
+
+def _webui_dist() -> str | None:
+	"""The built web UI shipped inside the package (ui/app builds into it)."""
+	import flow.server
+
+	path = os.path.join(os.path.dirname(flow.server.__file__), "webui")
+	return path if os.path.isfile(os.path.join(path, "index.html")) else None
 
 
 def _warm_litellm() -> None:

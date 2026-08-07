@@ -17,7 +17,7 @@ from flow.path_policy import canonical_path, is_path_allowed, normalize_roots
 from flow.session.config import SessionConfig
 from flow.session.log import SessionLog
 from flow.session.prompt import build_system_prompt
-from flow.session.session import Session
+from flow.session.session import Session, SessionConflict
 
 # client-provided session ids land in on-disk filenames — keep them to a safe slug so a
 # value like "../../etc/x" can't escape the sessions dir (arbitrary file write)
@@ -35,6 +35,7 @@ class SessionInfo:
 	model: str
 	latest_seq: int
 	cwd: str
+	title: str | None = None
 
 
 class SessionStore:
@@ -84,6 +85,25 @@ class SessionStore:
 	def exists(self, sid: str) -> bool:
 		return sid in self._cache or os.path.isfile(self._meta_path(sid))
 
+	def title(self, sid: str) -> str | None:
+		"""The session's display title: its first user message, read from the log head
+		(the durable row — a compaction's synthetic summary never replaces it)."""
+		return _read_first_user_message(self._log_path(sid))
+
+	def delete(self, sid: str) -> None:
+		"""Remove a session's log and meta files. Refused while its run is active."""
+		if not _SID_RE.match(sid) or not self.exists(sid):
+			raise KeyError(sid)
+		session = self._cache.get(sid)
+		if session is not None and session.is_running:
+			raise SessionConflict("cannot delete a session with an active run")
+		self._cache.pop(sid, None)
+		for path in (self._log_path(sid), self._meta_path(sid)):
+			try:
+				os.unlink(path)
+			except FileNotFoundError:
+				pass
+
 	def list(self) -> builtins.list[SessionInfo]:
 		"""Cheap listing for pickers, newest activity first. Sessions with no durable
 		entries are omitted — there is nothing to resume. Cached sessions report live
@@ -116,6 +136,7 @@ class SessionStore:
 				model=session.model,
 				latest_seq=session.log.latest_seq,
 				cwd=session.config.cwd,
+				title=self.title(sid),
 			)
 		try:
 			with open(self._meta_path(sid), encoding="utf-8") as f:
@@ -135,11 +156,12 @@ class SessionStore:
 			model=config.model,
 			latest_seq=latest_seq,
 			cwd=config.cwd,
+			title=self.title(sid),
 		)
 
 	def save_meta(self, session: Session) -> None:
-		"""Write the session's config to its meta file (config is fixed after create;
-		later model changes live in the log)."""
+		"""Write the session's config to its meta file (called at create and on config
+		patches like `auto_approve`; model changes live in the log instead)."""
 		path = self._meta_path(session.id)
 		fd, tmp = mkstemp(prefix=f".{os.path.basename(path)}.", dir=self.sessions_dir)
 		try:
@@ -174,6 +196,24 @@ class SessionStore:
 			return
 		if not is_path_allowed(canonical_path(cwd), self.allowed_roots):
 			raise ValueError(f"cwd {cwd!r} is not under an allowed root")
+
+
+def _read_first_user_message(path: str) -> str | None:
+	"""First line of the log's first user_message row, from a bounded head read."""
+	try:
+		with open(path, encoding="utf-8") as f:
+			head = f.read(65536)
+	except OSError:
+		return None
+	for line in head.splitlines():
+		try:
+			row = json.loads(line)
+		except json.JSONDecodeError:
+			continue  # the head cut may tear the last line
+		if isinstance(row, dict) and row.get("type") == "user_message":
+			first = str(row.get("content", "")).strip().split("\n")[0]
+			return first[:120] or None
+	return None
 
 
 def _read_last_row(path: str) -> dict | None:
