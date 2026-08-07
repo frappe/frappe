@@ -1,10 +1,12 @@
 /**
  * Extends the Document Queue list-view integration.
  *
- * list_view.js calls frappe.document_queue_review.setup_list_banner(listview)
- * inside after_render() for upload-first doctypes.
- * We hook into that to add a "Review Pending (N)" button using the native
- * frappe.ui.Page.add_inner_button API (which uses the Espresso button system).
+ * frappe.document_queue_review.setup_list_banner(listview) calls
+ * frappe.document_queue_list_action.setup(listview) after confirming the
+ * doctype has upload-first enabled. setup() fetches the pending count and,
+ * if non-zero, prepends a "N Documents ready for review" banner to
+ * .layout-main-section. Clicking the banner lazy-loads and opens
+ * frappe.ui.DocumentQueueModal.
  *
  * Loaded inside list.bundle.js — runs before document_queue_review.js is lazy-loaded.
  */
@@ -23,19 +25,11 @@ frappe.document_queue_list_action = {
 		);
 		if (!count) return;
 
-		// Remove any stale button from a previous render.
-		listview.page.remove_inner_button(__("Review Pending ({0})", [count]));
-		
-		// Remove any existing banner to avoid duplicates
-		listview.$page.find('.document-queue-ready-banner').remove();
-
-		if (frappe.document_queue_review && frappe.document_queue_review.add_styles) {
-			frappe.document_queue_review.add_styles();
-		}
+		frappe.document_queue_review.add_styles();
 
 		const message = __("{0} Documents ready for review", [count]);
 		const $banner = $(`
-			<div class="document-queue-ready-banner" style="cursor: pointer;">
+			<div class="document-queue-ready-banner">
 				<span>${frappe.utils.escape_html(message)}</span>
 				<button class="btn btn-xs btn-default" type="button">${__("View")}</button>
 			</div>
@@ -46,7 +40,12 @@ frappe.document_queue_list_action = {
 			e.stopPropagation();
 			frappe.require(
 				"/assets/frappe/js/frappe/document_queue_review_modal.js",
-				() => new frappe.ui.DocumentQueueModal({ doctype: listview.doctype }).show()
+				() => {
+					if (!listview.document_queue_modal) {
+						listview.document_queue_modal = new frappe.ui.DocumentQueueModal({ doctype: listview.doctype });
+					}
+					listview.document_queue_modal.show();
+				}
 			);
 		});
 

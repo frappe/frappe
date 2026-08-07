@@ -24,8 +24,6 @@ class UnsupportedExtractionFile(frappe.ValidationError):
 
 
 class DocumentQueue(Document):
-	# begin: auto-generated types
-	# This code is auto-generated. Do not modify anything in this block.
 
 	from typing import TYPE_CHECKING
 
@@ -44,7 +42,6 @@ class DocumentQueue(Document):
 		source_file: DF.Attach
 		status: DF.Literal["Draft", "Queued", "Processing", "Ready for Review", "Completed", "Failed"]
 		task: DF.Link | None
-	# end: auto-generated types
 
 	def validate(self):
 		if self.source_file and not (_is_pdf(self.source_file) or _is_image(self.source_file)):
