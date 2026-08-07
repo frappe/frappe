@@ -1,6 +1,6 @@
 <template>
 	<Dialog v-model="show" :options="options">
-		<template #boday-header>
+		<template #body-header>
 			<slot name="body-header"></slot>
 		</template>
 		<template #body-content>
