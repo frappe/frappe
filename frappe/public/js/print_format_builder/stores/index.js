@@ -267,7 +267,13 @@ export function getStore(print_format_name) {
 				})
 			)
 			.then(() => fetch())
-			.then(() => frappe.show_alert({ message: __("Draft discarded"), indicator: "green" }))
+			.then(() => {
+				// discarding is a deliberate reset, so it re-arms autosave the same
+				// way an apply does — otherwise edits after a failure stay in memory
+				autosave_stopped = false;
+				save_failed.value = false;
+				frappe.show_alert({ message: __("Draft discarded"), indicator: "green" });
+			})
 			.finally(() => (applying = false));
 	}
 	// stops after a failure so the error dialog doesn't loop; a manual save re-arms it
