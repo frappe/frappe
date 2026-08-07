@@ -107,18 +107,45 @@ const useCanvasStore = defineStore("canvasStore", () => {
 	}
 
 	// fragment mode
+	type FragmentData = {
+		block: Block
+		saveAction: (block: Block) => void
+		saveActionLabel: string
+		fragmentName: string
+		fragmentId: string
+		cancelAction: Function | null
+		mode: EditingMode
+	}
+
 	const editingMode = ref<EditingMode>("page")
-	const fragmentData = ref({
-		block: <Block | null>null,
-		saveAction: <Function | null>null,
-		saveActionLabel: <string | null>null,
-		fragmentName: <string | null>null,
-		fragmentId: <string | null>null,
-		cancelAction: <Function | null>null,
+	const fragmentStack = ref<FragmentData[]>([])
+	const fragmentData = computed(() => {
+		return (
+			fragmentStack.value[fragmentStack.value.length - 1] || {
+				block: null,
+				saveAction: null,
+				saveActionLabel: null,
+				fragmentName: null,
+				fragmentId: null,
+				cancelAction: null,
+				mode: "page" as EditingMode,
+			}
+		)
 	})
 
 	const showFragmentCanvas = computed(() => {
 		return Boolean(editingMode.value === "fragment" || (editingMode.value === "component" && fragmentData.value?.block))
+	})
+
+	// the fragment canvas always renders one primary surface inline: the fragment
+	// root itself, or — when the root is a wrapper with no content of its own —
+	// its first fragment node. All other fragment nodes collapse into cards.
+	const primaryFragmentId = computed(() => {
+		const rootBlock = fragmentData.value.block
+		if (!rootBlock) return null
+		if (rootBlock.isFragmentNode()) return rootBlock.componentId
+		if (rootBlock.hasNonFragmentContent()) return null
+		return rootBlock.findFirstFragmentNode()?.componentId || null
 	})
 
 	async function editOnCanvas(
@@ -130,35 +157,60 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		mode: EditingMode = "fragment",
 		cancelAction?: Function,
 	) {
+		syncActiveFragmentBlock()
 		const blockCopy = getBlockCopy(block, true)
-		fragmentData.value = {
+		fragmentStack.value.push({
 			block: blockCopy,
 			saveAction,
 			saveActionLabel,
 			fragmentName: fragmentName || block.componentName,
 			fragmentId: fragmentId || block.componentId,
 			cancelAction: cancelAction || null,
-		}
+			mode,
+		})
 		editingMode.value = mode
+	}
+
+	// the fragment canvas edits its own copy of the tree — sync it back into the
+	// active stack entry before drilling down, so edits survive the canvas remount
+	function syncActiveFragmentBlock() {
+		const activeFragment = fragmentStack.value[fragmentStack.value.length - 1]
+		if (activeFragment && activeCanvas.value) {
+			activeFragment.block = activeCanvas.value.getRootBlock()
+		}
+	}
+
+	function popFragment(cancelled: boolean = false) {
+		const exitedFragment = fragmentStack.value.pop()
+		if (cancelled && exitedFragment?.cancelAction) {
+			exitedFragment.cancelAction()
+		}
+		activeCanvas.value?.clearSelection()
+		const activeFragment = fragmentStack.value[fragmentStack.value.length - 1]
+		editingMode.value = activeFragment ? activeFragment.mode : "page"
 	}
 
 	async function exitFragmentMode(e?: Event) {
 		if (editingMode.value === "page") return
 		e?.preventDefault()
+		popFragment(true)
+	}
 
-		if (fragmentData.value?.cancelAction) {
-			fragmentData.value.cancelAction()
+	function popToFragment(index: number) {
+		while (fragmentStack.value.length > index + 1) {
+			popFragment(true)
 		}
-		activeCanvas.value?.clearSelection()
+	}
+
+	function exitAllFragments() {
+		while (fragmentStack.value.length) {
+			popFragment(true)
+		}
+	}
+
+	function resetFragments() {
+		fragmentStack.value = []
 		editingMode.value = "page"
-		fragmentData.value = {
-			block: null,
-			saveAction: null,
-			saveActionLabel: null,
-			fragmentName: null,
-			fragmentId: null,
-			cancelAction: null,
-		}
 	}
 
 	function pushBlocks(blocks: BlockOptions[]) {
@@ -198,9 +250,15 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		// fragment mode
 		editingMode,
 		showFragmentCanvas,
+		fragmentStack,
 		fragmentData,
+		primaryFragmentId,
 		editOnCanvas,
 		exitFragmentMode,
+		popFragment,
+		popToFragment,
+		exitAllFragments,
+		resetFragments,
 		// blocks
 		pushBlocks,
 	}

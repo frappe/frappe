@@ -60,6 +60,7 @@ declare module 'vue' {
     FormDescription: typeof import('./src/components/FormDescription.vue')['default']
     FormDialog: typeof import('./src/components/FormDialog.vue')['default']
     FormInputLabel: typeof import('./src/components/FormInputLabel.vue')['default']
+    FragmentList: typeof import('./src/components/FragmentList.vue')['default']
     GlobeOff: typeof import('./src/components/Icons/GlobeOff.vue')['default']
     Grid: typeof import('./src/components/Grid.vue')['default']
     HTML: typeof import('./src/components/AppLayout/HTML.vue')['default']
@@ -116,6 +117,7 @@ declare module 'vue' {
     StudioRightPanel: typeof import('./src/components/StudioRightPanel.vue')['default']
     StudioSettingsDialog: typeof import('./src/components/StudioSettingsDialog.vue')['default']
     StudioToolbar: typeof import('./src/components/StudioToolbar.vue')['default']
+    SubDialogList: typeof import('./src/components/SubDialogList.vue')['default']
     TextBlock: typeof import('./src/components/AppLayout/TextBlock.vue')['default']
   }
 }

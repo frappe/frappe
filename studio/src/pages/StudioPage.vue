@@ -31,13 +31,22 @@
 						class="absolute left-0 right-0 top-0 z-20 flex items-center justify-between border-b border-outline-gray-2 bg-surface-base p-[0.4rem] text-sm text-ink-gray-8"
 					>
 						<div class="flex items-center gap-1 pl-2 text-xs">
-							<a @click="canvasStore.exitFragmentMode" class="cursor-pointer">
+							<a @click="canvasStore.exitAllFragments" class="cursor-pointer">
 								{{ store.activePage?.page_title }}
 							</a>
-							<FeatherIcon name="chevron-right" class="h-3 w-3" />
-							<span class="flex items-center gap-2">
-								{{ canvasStore.fragmentData.fragmentName }}
-							</span>
+							<template v-for="(fragment, index) in canvasStore.fragmentStack" :key="fragment.fragmentId">
+								<FeatherIcon name="chevron-right" class="h-3 w-3" />
+								<a
+									v-if="index < canvasStore.fragmentStack.length - 1"
+									class="cursor-pointer"
+									@click="canvasStore.popToFragment(index)"
+								>
+									{{ fragment.fragmentName }}
+								</a>
+								<span v-else class="flex items-center gap-2 font-medium">
+									{{ fragment.fragmentName }}
+								</span>
+							</template>
 						</div>
 
 						<div class="ml-auto flex items-center gap-2">
@@ -49,13 +58,16 @@
 							></Button>
 							<Button variant="subtle" class="text-xs" @click="canvasStore.exitFragmentMode">
 								<template #prefix><FeatherIcon name="chevron-left" class="!h-3 !w-3" /></template>
-								Page
+								{{ parentFragmentName }}
 							</Button>
 							<Button variant="solid" class="text-xs" @click="saveFragmentMode">
 								{{ canvasStore.fragmentData.saveActionLabel || "Save" }}
 							</Button>
 						</div>
 					</div>
+				</template>
+				<template v-slot:afterCanvas="{ rootBlock }">
+					<FragmentList v-if="rootBlock" :rootBlock="rootBlock" />
 				</template>
 			</StudioCanvas>
 
@@ -146,7 +158,7 @@
 </template>
 
 <script setup lang="ts">
-import { onActivated, watchEffect, watch, ref, onDeactivated, toRef, nextTick } from "vue"
+import { onActivated, watchEffect, watch, ref, onDeactivated, toRef, nextTick, computed } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
 import { usePageMeta, Dialog } from "frappe-ui"
@@ -157,6 +169,7 @@ import StudioToolbar from "@/components/StudioToolbar.vue"
 import StudioLeftPanel from "@/components/StudioLeftPanel.vue"
 import StudioRightPanel from "@/components/StudioRightPanel.vue"
 import StudioCanvas from "@/components/StudioCanvas.vue"
+import FragmentList from "@/components/FragmentList.vue"
 import Code from "@/components/Code.vue"
 
 import useStudioStore from "@/stores/studioStore"
@@ -196,10 +209,21 @@ watchEffect(() => {
 	}
 })
 
+const parentFragmentName = computed(() => {
+	const parentFragment = canvasStore.fragmentStack[canvasStore.fragmentStack.length - 2]
+	return parentFragment?.fragmentName || "Page"
+})
+
 async function saveFragmentMode() {
-	canvasStore.fragmentData.saveAction?.(fragmentCanvas.value?.getRootBlock())
+	const editedBlock = fragmentCanvas.value?.getRootBlock()
+	if (!editedBlock) return
+	canvasStore.fragmentData.saveAction?.(editedBlock)
 	if (canvasStore.editingMode === "fragment") {
 		toast.success(`${canvasStore.fragmentData.fragmentName} saved successfully`)
+	}
+	// saving a nested fragment returns to its parent fragment canvas
+	if (canvasStore.fragmentStack.length > 1) {
+		canvasStore.popFragment()
 	}
 }
 

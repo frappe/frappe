@@ -241,9 +241,10 @@ class Block implements BlockOptions {
 		return this.parentBlock || null;
 	}
 
+	// children first to match the visual order in the Layers panel
 	getChildrenAndSlotContent(): Block[] {
 		const slotContent = Object.values(this.componentSlots).flatMap((slot) => slot.slotContent);
-		return [...slotContent, ...this.children];
+		return [...this.children, ...slotContent];
 	}
 
 	// nearest block (including self) with the given componentName
@@ -298,8 +299,36 @@ class Block implements BlockOptions {
 		return this.blockName || this.componentName || this.originalElement
 	}
 
+	// fragment mode
 	editInFragmentMode() {
 		return Block.components?.[this.componentName]?.editInFragmentMode
+	}
+
+	isFragmentNode(): boolean {
+		if (this.isStudioComponent) {
+			const componentStore = useComponentStore()
+			return Boolean(componentStore.componentMap.get(this.componentName)?.isFragmentNode())
+		}
+		return Boolean(this.editInFragmentMode())
+	}
+
+	// content that would render inline on a fragment canvas — fragment nodes
+	// collapse into placeholder cards and containers are transparent wrappers
+	hasNonFragmentContent(): boolean {
+		return this.getChildrenAndSlotContent().some((child) => {
+			if (child.isFragmentNode()) return false
+			if (!child.isContainer()) return true
+			return child.hasNonFragmentContent()
+		})
+	}
+
+	findFirstFragmentNode(): Block | null {
+		for (const child of this.getChildrenAndSlotContent()) {
+			if (child.isFragmentNode()) return child
+			const nestedFragment = child.findFirstFragmentNode()
+			if (nestedFragment) return nestedFragment
+		}
+		return null
 	}
 
 	getProxyComponent() {
