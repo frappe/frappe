@@ -255,6 +255,9 @@ export function getStore(print_format_name) {
 			});
 	}
 	function discard_draft() {
+		// freeze like save_changes does — an edit made while the round trip runs
+		// would be silently erased when fetch() replaces the layout
+		frappe.dom.freeze(__("Discarding…"));
 		draft_epoch++;
 		applying = true;
 		return Promise.resolve(autosave_promise)
@@ -273,7 +276,10 @@ export function getStore(print_format_name) {
 				save_failed.value = false;
 				frappe.show_alert({ message: __("Draft discarded"), indicator: "green" });
 			})
-			.finally(() => (applying = false));
+			.finally(() => {
+				applying = false;
+				frappe.dom.unfreeze();
+			});
 	}
 	// stops after a failure so the error dialog doesn't loop; a manual save re-arms it
 	let autosave_stopped = false;
