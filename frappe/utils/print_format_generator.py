@@ -417,14 +417,40 @@ class PrintFormatGenerator:
 			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
 
 		ensure_typst_fonts(self.print_format.get("font"))
-		source, assets = TypstEmitter(self).emit()
+		emitter = TypstEmitter(self)
+		emitter.prepare()
+		repeat = cint(self.print_settings.get("repeat_header_footer"))
+
 		with tempfile.TemporaryDirectory() as tmp:
-			path = os.path.join(tmp, "main.typ")
-			with open(path, "w") as f:
-				f.write(source)
+
+			def write(name, content, mode="w"):
+				path = os.path.join(tmp, name)
+				with open(path, mode) as f:
+					f.write(content)
+				return path
+
+			heights = {"pfhdr": 0.0, "pfftr": 0.0}
+			if repeat and (emitter.header_src or emitter.footer_src):
+				for name, data in emitter.assets.items():
+					write(name, data, "wb")
+				measure_path = write("measure.typ", emitter.measure_source())
+				import json as _json
+
+				for label in list(heights):
+					found = _json.loads(
+						typst.query(measure_path, f"<{label}>", font_paths=typst_font_paths())
+					)
+					if found:
+						heights[label] = float(found[0].get("value") or 0)
+
+			source, assets = emitter.emit(
+				repeat_header_footer=repeat,
+				header_height_pt=heights["pfhdr"],
+				footer_height_pt=heights["pfftr"],
+			)
+			path = write("main.typ", source)
 			for name, data in assets.items():
-				with open(os.path.join(tmp, name), "wb") as f:
-					f.write(data)
+				write(name, data, "wb")
 			return typst.compile(path, font_paths=typst_font_paths())
 
 	def _build_html_for_chrome(self):

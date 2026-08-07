@@ -260,39 +260,94 @@ class TypstEmitter:
 
 	# ── document ────────────────────────────────────────────────
 
-	def emit(self) -> str:
-		lines = [self._page_setup(), self._text_setup(), ""]
-
+	def prepare(self):
+		"""Render zones and body once; assets register as a side effect."""
+		if hasattr(self, "header_src"):
+			return
 		header_zone = self.layout.get("header")
-		if isinstance(header_zone, dict):
-			lines.append(self._section(header_zone, zone=True))
-		for section in self.layout.get("sections") or []:
-			lines.append(self._section(section))
+		self.header_src = self._section(header_zone, zone=True) if isinstance(header_zone, dict) else ""
+		self.body_src = "\n".join(
+			part for part in (self._section(s) for s in self.layout.get("sections") or []) if part
+		)
 		footer_zone = self.layout.get("footer")
-		if isinstance(footer_zone, dict):
-			lines.append(self._section(footer_zone, zone=True))
+		self.footer_src = self._section(footer_zone, zone=True) if isinstance(footer_zone, dict) else ""
+
+	def measure_source(self) -> str:
+		"""A document whose only output is the measured height of each zone, read
+		back with typst.query — how the top/bottom margins learn to make room."""
+		self.prepare()
+		pf = self.print_format
+		inner = round(
+			210 - (frappe.utils.flt(pf.margin_left) or 15) - (frappe.utils.flt(pf.margin_right) or 15), 2
+		)
+		lines = ["#set page(width: 210mm, height: 297mm)", self._text_setup(), ""]
+		for label, src in (("pfhdr", self.header_src), ("pfftr", self.footer_src)):
+			if src:
+				lines.append(
+					f"#context [#metadata(measure(box(width: {inner}mm)[{src}]).height.pt()) <{label}>]"
+				)
+		return "\n".join(lines)
+
+	def emit(self, repeat_header_footer=False, header_height_pt=0, footer_height_pt=0):
+		"""The document source. With repeat on, the zones move into Typst's page
+		header/footer slots (repeated on every page, like Chromium's repeating
+		frame) and the margins grow by their measured heights."""
+		self.prepare()
+		in_page_header = bool(repeat_header_footer and self.header_src)
+		in_page_footer = bool(repeat_header_footer and self.footer_src)
+		lines = [
+			self._page_setup(
+				header_zone=self.header_src if in_page_header else None,
+				footer_zone=self.footer_src if in_page_footer else None,
+				header_height_pt=header_height_pt,
+				footer_height_pt=footer_height_pt,
+			),
+			self._text_setup(),
+			"",
+		]
+		if self.header_src and not in_page_header:
+			lines.append(self.header_src)
+		lines.append(self.body_src)
+		if self.footer_src and not in_page_footer:
+			lines.append(self.footer_src)
 		return "\n".join(line for line in lines if line), self.assets
 
-	def _page_setup(self) -> str:
+	def _page_setup(self, header_zone=None, footer_zone=None, header_height_pt=0, footer_height_pt=0) -> str:
 		pf = self.print_format
+		top = frappe.utils.flt(pf.margin_top) or 15
+		bottom = frappe.utils.flt(pf.margin_bottom) or 15
+		top_expr = f"{top}mm + {round(header_height_pt + 12, 2)}pt" if header_zone else f"{top}mm"
+		bottom_expr = f"{bottom}mm + {round(footer_height_pt + 12, 2)}pt" if footer_zone else f"{bottom}mm"
 		margins = (
-			f"(top: {frappe.utils.flt(pf.margin_top) or 15}mm, "
-			f"bottom: {frappe.utils.flt(pf.margin_bottom) or 15}mm, "
+			f"(top: {top_expr}, bottom: {bottom_expr}, "
 			f"left: {frappe.utils.flt(pf.margin_left) or 15}mm, "
 			f"right: {frappe.utils.flt(pf.margin_right) or 15}mm)"
 		)
 		args = ["width: 210mm", "height: 297mm", f"margin: {margins}"]
+
+		slots = {"header": [], "footer": []}
 		position = PAGE_NUMBER_POSITIONS.get(pf.get("page_number") or "")
 		if position:
 			slot, align = position
-			counter = (
-				f'context [#set text(size: 7pt, fill: rgb("#6b7280"))\n'
+			slots[slot].append(
+				f'[#context [#set text(size: 7pt, fill: rgb("#6b7280"))\n'
 				f"  #set align({align})\n"
-				f'  #counter(page).display("1 of 1", both: true)]'
+				f'  #counter(page).display("1 of 1", both: true)]]'
 			)
-			args.append(f"{slot}: {counter}")
+		if header_zone:
+			slots["header"].append(f"[{header_zone}]")
+		if footer_zone:
+			slots["footer"].insert(0, f"[{footer_zone}]")
+
+		for slot, parts in slots.items():
+			if not parts:
+				continue
+			content = parts[0] if len(parts) == 1 else "stack(spacing: 6pt, " + ", ".join(parts) + ")"
+			args.append(f"{slot}: {content}")
 			if slot == "header":
-				args.append("header-ascent: 30%")
+				args.append("header-ascent: 8pt" if header_zone else "header-ascent: 30%")
+			elif footer_zone:
+				args.append("footer-descent: 8pt")
 		return "#set page(" + ", ".join(args) + ")"
 
 	def _text_setup(self) -> str:
@@ -314,9 +369,7 @@ class TypstEmitter:
 		if not columns:
 			return ""
 		rendered_columns = [self._column(section, c) for c in columns]
-		if section.get("label") and not any(rendered_columns):
-			return ""
-		if not any(rendered_columns) and not zone:
+		if not any(rendered_columns):
 			return ""
 
 		grid = self._columns_grid(section, columns, rendered_columns)
@@ -402,8 +455,7 @@ class TypstEmitter:
 			divided = [cells[0]]
 			for cell in cells[1:]:
 				divided.append(
-					f'grid.cell(stroke: (left: 0.6pt + rgb("#e5e7eb")), inset: (left: {pad}pt))'
-					+ cell
+					f'grid.cell(stroke: (left: 0.6pt + rgb("#e5e7eb")), inset: (left: {pad}pt))' + cell
 				)
 			return (
 				f"#grid(columns: ({', '.join(widths)}), column-gutter: {pad}pt, align: top,\n"
