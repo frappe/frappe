@@ -251,10 +251,12 @@ context("Data Import Wizard", () => {
 		active_step_panel().should("have.attr", "data-step", "2");
 
 		// The step label lives in its own span; match it exactly, then act on the
-		// button (which carries the is-locked class).
+		// button. Locked steps are exposed semantically (aria-disabled/data-state),
+		// not via a styling class.
 		cy.contains(".diw-stepper-wrap .es-stepper__label", /^Import$/)
 			.closest(".es-stepper__step")
-			.should("have.class", "is-locked")
+			.should("have.attr", "aria-disabled", "true")
+			.should("have.attr", "data-state", "locked")
 			.click({ force: true });
 		cy.contains("Start the import before opening the Import step.").should("be.visible");
 		active_step_panel().should("have.attr", "data-step", "2");
