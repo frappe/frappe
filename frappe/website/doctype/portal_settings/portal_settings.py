@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-
 import frappe
 from frappe.model.document import Document
 from frappe.website.path_resolver import validate_path
@@ -27,8 +26,18 @@ class PortalSettings(Document):
 	# end: auto-generated types
 
 	def get_all_menu_items(self):
-		"""Get all menu items (standard + custom) with None-safety"""
+		"""Return standard + custom menu items, tolerating unset (None) tables."""
 		return (self.get("menu") or []) + (self.get("custom_menu") or [])
+
+	def init_menu_tables(self):
+		"""Coerce unset (None) menu tables to empty lists.
+
+		`save()` iterates child tables directly, so a None table blows up in
+		`update_child_table` before any of our own validation runs.
+		"""
+		for fieldname in ("menu", "custom_menu"):
+			if self.get(fieldname) is None:
+				self.set(fieldname, [])
 
 	def add_item(self, item):
 		"""insert new portal menu item if route is not set, or role is different"""
@@ -48,9 +57,9 @@ class PortalSettings(Document):
 		self.menu = []
 		self.sync_menu()
 
-
 	def sync_menu(self):
 		"""Sync portal menu items"""
+		self.init_menu_tables()
 		dirty = False
 		for item in frappe.get_hooks("standard_portal_menu_items"):
 			if item.get("role") and not frappe.db.exists("Role", item.get("role")):

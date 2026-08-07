@@ -6,241 +6,149 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestPortalSettings(IntegrationTestCase):
-	"""Test cases for Portal Settings doctype - bug fixes and edge cases"""
+	"""Portal Settings tolerates menu tables that are None instead of empty lists.
+
+	Older sites can end up with `menu` / `custom_menu` unset, which used to raise a
+	TypeError while syncing the menu. The None state is reproduced here by assigning
+	the attribute directly: `set()` always coerces a falsy value to `[]`, so it cannot
+	build the broken document these tests need.
+	"""
 
 	def setUp(self):
-		"""Set up test fixtures"""
+		super().setUp()
 		self.doc = frappe.get_single("Portal Settings")
+		# start from a known baseline; the stored menu depends on which apps are installed
+		self.doc.set("menu", [])
+		self.doc.set("custom_menu", [])
 
 	def tearDown(self):
-		"""Clean up after tests"""
-		# Reset to clean state
-		self.doc.menu = []
-		self.doc.custom_menu = []
-		self.doc.save()
+		# sync_menu() saves when hooks add items; drop that so the site is left untouched
+		frappe.db.rollback()
+		super().tearDown()
 
 	def test_get_all_menu_items_with_both_none(self):
-		"""Test get_all_menu_items() returns empty list when both menu and custom_menu are None"""
 		self.doc.menu = None
 		self.doc.custom_menu = None
 
-		result = self.doc.get_all_menu_items()
-
-		self.assertIsInstance(result, list)
-		self.assertEqual(result, [])
+		self.assertEqual(self.doc.get_all_menu_items(), [])
 
 	def test_get_all_menu_items_with_menu_none(self):
-		"""Test get_all_menu_items() when only menu is None"""
 		self.doc.menu = None
-		self.doc.custom_menu = [
-			{"title": "Custom Item", "route": "custom", "enabled": 1}
-		]
+		self.doc.set("custom_menu", [{"title": "Custom Item", "route": "/custom"}])
 
-		result = self.doc.get_all_menu_items()
+		items = self.doc.get_all_menu_items()
 
-		self.assertIsInstance(result, list)
-		self.assertEqual(len(result), 1)
-		self.assertEqual(result[0].title, "Custom Item")
+		self.assertEqual([d.title for d in items], ["Custom Item"])
 
 	def test_get_all_menu_items_with_custom_menu_none(self):
-		"""Test get_all_menu_items() when only custom_menu is None"""
-		self.doc.menu = [
-			{"title": "Standard Item", "route": "standard", "enabled": 1}
-		]
+		self.doc.set("menu", [{"title": "Standard Item", "route": "/standard"}])
 		self.doc.custom_menu = None
 
-		result = self.doc.get_all_menu_items()
+		items = self.doc.get_all_menu_items()
 
-		self.assertIsInstance(result, list)
-		self.assertEqual(len(result), 1)
-		self.assertEqual(result[0].title, "Standard Item")
+		self.assertEqual([d.title for d in items], ["Standard Item"])
 
 	def test_get_all_menu_items_with_both_populated(self):
-		"""Test get_all_menu_items() returns combined list when both have items"""
-		self.doc.menu = [
-			{"title": "Standard Item", "route": "standard", "enabled": 1}
-		]
-		self.doc.custom_menu = [
-			{"title": "Custom Item", "route": "custom", "enabled": 1}
-		]
+		self.doc.set("menu", [{"title": "Standard Item", "route": "/standard"}])
+		self.doc.set("custom_menu", [{"title": "Custom Item", "route": "/custom"}])
 
-		result = self.doc.get_all_menu_items()
+		items = self.doc.get_all_menu_items()
 
-		self.assertIsInstance(result, list)
-		self.assertEqual(len(result), 2)
-		titles = [item.title for item in result]
-		self.assertIn("Standard Item", titles)
-		self.assertIn("Custom Item", titles)
+		self.assertEqual([d.title for d in items], ["Standard Item", "Custom Item"])
 
 	def test_get_all_menu_items_with_both_empty(self):
-		"""Test get_all_menu_items() with both fields as empty lists"""
-		self.doc.menu = []
-		self.doc.custom_menu = []
+		self.assertEqual(self.doc.get_all_menu_items(), [])
 
-		result = self.doc.get_all_menu_items()
-
-		self.assertIsInstance(result, list)
-		self.assertEqual(result, [])
-
-	def test_remove_deleted_doctype_items_with_none_fields(self):
-		"""Test remove_deleted_doctype_items() doesn't crash when fields are None"""
-		self.doc.menu = None
-		self.doc.custom_menu = None
-
-		# Should not raise TypeError
-		try:
-			self.doc.remove_deleted_doctype_items()
-		except TypeError as e:
-			self.fail(f"remove_deleted_doctype_items() raised TypeError: {e}")
-
-	def test_remove_deleted_doctype_items_with_mixed_none(self):
-		"""Test remove_deleted_doctype_items() with one None and one populated field"""
-		# Add a custom menu item
-		self.doc.custom_menu = [
-			{"title": "Custom", "route": "custom", "enabled": 1}
-		]
-		self.doc.menu = None
-
-		# Should not raise TypeError
-		try:
-			self.doc.remove_deleted_doctype_items()
-		except TypeError as e:
-			self.fail(f"remove_deleted_doctype_items() raised TypeError: {e}")
-
-	def test_reset_initializes_menu(self):
-		"""Test reset() initializes menu to empty list"""
-		# Start with None value
-		self.doc.menu = None
-
-		self.doc.reset()
-
-		# After reset, menu should be a list
-		self.assertIsNotNone(self.doc.menu)
-		self.assertIsInstance(self.doc.menu, list)
-
-	def test_reset_is_idempotent(self):
-		"""Test calling reset() multiple times doesn't cause errors"""
-		try:
-			self.doc.reset()
-			self.doc.reset()
-			self.doc.reset()
-		except Exception as e:
-			self.fail(f"Multiple reset() calls raised exception: {e}")
-
-	def test_add_item_with_valid_item(self):
-		"""Test add_item() adds new items correctly"""
-		self.doc.menu = []
-
-		item = {"title": "Test Item", "route": "test", "enabled": 1}
-		result = self.doc.add_item(item)
-
-		self.assertTrue(result)
-		self.assertEqual(len(self.doc.menu), 1)
-		self.assertEqual(self.doc.menu[0].title, "Test Item")
-
-	def test_add_item_with_none_menu(self):
-		"""Test add_item() when menu is None"""
-		self.doc.menu = None
-
-		item = {"title": "Test Item", "route": "test", "enabled": 1}
-		result = self.doc.add_item(item)
-
-		self.assertTrue(result)
-		self.assertEqual(len(self.doc.menu), 1)
-		self.assertEqual(self.doc.menu[0].title, "Test Item")
-
-	def test_add_item_prevents_duplicates(self):
-		"""Test add_item() doesn't add duplicate routes"""
-		item = {"title": "Test Item", "route": "test", "enabled": 1}
-
-		self.doc.add_item(item)
-		result = self.doc.add_item(item)
-
-		# Second add_item call should return False (not added)
-		self.assertFalse(result)
-		self.assertEqual(len(self.doc.menu), 1)
-
-	def test_add_item_updates_role_if_different(self):
-		"""Test add_item() updates role if different"""
-		item1 = {"title": "Test Item", "route": "test", "role": "User", "enabled": 1}
-		item2 = {"title": "Test Item", "route": "test", "role": "Guest", "enabled": 1}
-
-		self.doc.add_item(item1)
-		result = self.doc.add_item(item2)
-
-		self.assertTrue(result)  # Should return True because role was updated
-		self.assertEqual(len(self.doc.menu), 1)
-		self.assertEqual(self.doc.menu[0].role, "Guest")
-
-	def test_sync_menu_with_none_fields(self):
-		"""Test sync_menu() doesn't crash when fields are None"""
-		self.doc.menu = None
-		self.doc.custom_menu = None
-
-		# Should not raise TypeError
-		try:
-			self.doc.sync_menu()
-		except TypeError as e:
-			self.fail(f"sync_menu() raised TypeError: {e}")
-
-		# After sync_menu, fields should be populated
-		self.assertIsNotNone(self.doc.menu)
-		self.assertIsInstance(self.doc.menu, list)
-
-	def test_sync_menu_populates_standard_items(self):
-		"""Test sync_menu() populates menu with standard portal items"""
-		self.doc.menu = []
-
-		self.doc.sync_menu()
-
-		# After sync_menu, menu should have standard items
-		# (number depends on frappe hooks, but should be > 0)
-		self.assertGreaterEqual(len(self.doc.menu), 0)
-
-	def test_edge_case_reset_then_sync(self):
-		"""Test reset() followed by sync_menu() works correctly"""
-		self.doc.menu = None
-		self.doc.custom_menu = None
-
-		try:
-			self.doc.reset()  # Includes sync_menu() call
-			self.doc.sync_menu()
-		except Exception as e:
-			self.fail(f"reset() then sync_menu() raised exception: {e}")
-
-	def test_edge_case_none_to_valid_to_none(self):
-		"""Test cycling field states from None to valid to None"""
-		self.doc.menu = None
-		self.doc.custom_menu = None
-
-		# First operation
-		result1 = self.doc.get_all_menu_items()
-		self.assertEqual(result1, [])
-
-		# Set to valid
-		self.doc.menu = [{"title": "Item", "route": "test", "enabled": 1}]
-		result2 = self.doc.get_all_menu_items()
-		self.assertEqual(len(result2), 1)
-
-		# Back to None
-		self.doc.menu = None
-		result3 = self.doc.get_all_menu_items()
-		self.assertEqual(result3, [])
-
-	def test_helper_method_type_consistency(self):
-		"""Test get_all_menu_items() always returns a list regardless of field state"""
-		test_cases = [
+	def test_get_all_menu_items_always_returns_list(self):
+		for menu, custom_menu in (
 			(None, None),
 			([], None),
 			(None, []),
 			([], []),
-			([{"title": "Item", "route": "test", "enabled": 1}], None),
-		]
+		):
+			with self.subTest(menu=menu, custom_menu=custom_menu):
+				self.doc.menu = menu
+				self.doc.custom_menu = custom_menu
 
-		for menu, custom_menu in test_cases:
-			self.doc.menu = menu
-			self.doc.custom_menu = custom_menu
+				self.assertEqual(self.doc.get_all_menu_items(), [])
 
-			result = self.doc.get_all_menu_items()
-			self.assertIsInstance(result, list,
-				f"Failed for menu={menu}, custom_menu={custom_menu}")
+	def test_remove_deleted_doctype_items_with_none_fields(self):
+		self.doc.menu = None
+		self.doc.custom_menu = None
+
+		self.doc.remove_deleted_doctype_items()
+
+		self.assertEqual(self.doc.get_all_menu_items(), [])
+
+	def test_remove_deleted_doctype_items_with_mixed_none(self):
+		self.doc.menu = None
+		self.doc.set(
+			"custom_menu",
+			[
+				{"title": "Kept", "route": "/kept", "reference_doctype": "ToDo"},
+				{"title": "Dropped", "route": "/dropped", "reference_doctype": "Deleted DocType"},
+			],
+		)
+
+		self.doc.remove_deleted_doctype_items()
+
+		self.assertEqual([d.title for d in self.doc.custom_menu], ["Kept"])
+
+	def test_sync_menu_with_none_fields(self):
+		self.doc.menu = None
+		self.doc.custom_menu = None
+
+		self.doc.sync_menu()
+
+		self.assertIsInstance(self.doc.menu, list)
+		self.assertIsInstance(self.doc.custom_menu, list)
+
+	def test_sync_menu_only_keeps_existing_doctypes(self):
+		self.doc.sync_menu()
+
+		existing_doctypes = set(frappe.get_list("DocType", pluck="name"))
+		for item in self.doc.get_all_menu_items():
+			self.assertIn(item.reference_doctype, existing_doctypes)
+
+	def test_add_item_appends_new_item(self):
+		self.assertTrue(self.doc.add_item({"title": "Test Item", "route": "/test"}))
+
+		self.assertEqual([d.title for d in self.doc.menu], ["Test Item"])
+		self.assertTrue(self.doc.menu[0].enabled)
+
+	def test_add_item_with_none_menu(self):
+		self.doc.menu = None
+
+		self.assertTrue(self.doc.add_item({"title": "Test Item", "route": "/test"}))
+
+		self.assertEqual([d.title for d in self.doc.menu], ["Test Item"])
+
+	def test_add_item_ignores_duplicate_route(self):
+		item = {"title": "Test Item", "route": "/test"}
+		self.doc.add_item(item)
+
+		self.assertFalse(self.doc.add_item(item))
+		self.assertEqual(len(self.doc.menu), 1)
+
+	def test_add_item_updates_role_if_different(self):
+		self.doc.add_item({"title": "Test Item", "route": "/test", "role": "System Manager"})
+
+		self.assertTrue(self.doc.add_item({"title": "Test Item", "route": "/test", "role": "Guest"}))
+
+		self.assertEqual(len(self.doc.menu), 1)
+		self.assertEqual(self.doc.menu[0].role, "Guest")
+
+	def test_reset_initializes_menu(self):
+		self.doc.menu = None
+
+		self.doc.reset()
+
+		self.assertIsInstance(self.doc.menu, list)
+
+	def test_reset_is_idempotent(self):
+		self.doc.reset()
+		routes = [d.route for d in self.doc.menu]
+
+		self.doc.reset()
+
+		self.assertEqual([d.route for d in self.doc.menu], routes)
