@@ -1072,6 +1072,12 @@ def get_permission_query_conditions(user: str | None = None) -> str:
 	openly_readable_doctypes, owner_restricted_doctypes = _split_doctypes_by_owner_constraint(
 		get_doctypes_with_read(user), user
 	)
+	# a doctype that requires an owner constraint is never additionally scoped by User
+	# Permissions here - same "if_owner takes priority, else check user permissions" rule
+	# used for normal list queries (see database/query.py::get_permission_conditions)
+	openly_readable_doctypes, user_perm_restricted_doctypes = _split_doctypes_by_user_permissions(
+		openly_readable_doctypes, user
+	)
 
 	conditions = [
 		"(`tabFile`.`is_private` = 0)",
@@ -1087,36 +1093,116 @@ def get_permission_query_conditions(user: str | None = None) -> str:
 	# was individually shared with them.
 	for doctype in owner_restricted_doctypes:
 		table = get_table_name(doctype, wrap_in_backticks=True)
-		shared_names = frappe.share.get_shared(doctype, user)
-		shared_condition = ""
-		if shared_names:
-			shared_list = ", ".join(frappe.db.escape(name, percent=False) for name in shared_names)
-			shared_condition = f" OR `tabFile`.`attached_to_name` IN ({shared_list})"
-
 		conditions.append(
-			f"""(`tabFile`.`attached_to_doctype` = {frappe.db.escape(doctype)}
-				AND (
-					EXISTS (
-						SELECT 1 FROM {table}
-						WHERE {table}.`name` = `tabFile`.`attached_to_name`
-						AND {table}.`owner` = {frappe.db.escape(user)}
-					){shared_condition}
-				))"""
+			_scoped_attachment_condition(doctype, user, f"{table}.`owner` = {frappe.db.escape(user)}")
 		)
+
+	# these doctypes grant unconditional role-level read, but this user is scoped by one or
+	# more User Permissions (e.g. restricted to a specific Company) - only list a file if the
+	# referenced record falls within that scope, or it was individually shared with them
+	for doctype, field_conditions in user_perm_restricted_doctypes.items():
+		conditions.append(_scoped_attachment_condition(doctype, user, " AND ".join(field_conditions)))
 
 	return "(" + " OR ".join(conditions) + ")"
 
 
+def _scoped_attachment_condition(doctype: str, user: str, exists_condition: str) -> str:
+	"""Build `(attached_to_doctype = X AND (EXISTS(...) OR individually shared))`."""
+	table = get_table_name(doctype, wrap_in_backticks=True)
+	shared_names = frappe.share.get_shared(doctype, user)
+	shared_condition = ""
+	if shared_names:
+		shared_list = ", ".join(frappe.db.escape(name, percent=False) for name in shared_names)
+		shared_condition = f" OR `tabFile`.`attached_to_name` IN ({shared_list})"
+
+	return f"""(`tabFile`.`attached_to_doctype` = {frappe.db.escape(doctype)}
+		AND (
+			EXISTS (
+				SELECT 1 FROM {table}
+				WHERE {table}.`name` = `tabFile`.`attached_to_name`
+				AND {exists_condition}
+			){shared_condition}
+		))"""
+
+
 def _split_doctypes_by_owner_constraint(doctypes, user):
-	"""Split doctypes into those the user can read unconditionally vs. only as owner ("if_owner")."""
+	"""Split doctypes into those the user can read unconditionally vs. only as owner ("if_owner").
+
+	Single doctypes have no per-record table (their fields live in `tabSingles`), so they can't
+	be scoped with a `SELECT ... FROM tab<Doctype>` check and are always treated as openly readable.
+	"""
 	openly_readable, owner_restricted = [], []
 	for doctype in doctypes:
+		if frappe.get_meta(doctype).issingle:
+			openly_readable.append(doctype)
+			continue
 		role_permissions = get_role_permissions(doctype, user=user)
 		if requires_owner_constraint(role_permissions):
 			owner_restricted.append(doctype)
 		else:
 			openly_readable.append(doctype)
 	return openly_readable, owner_restricted
+
+
+def _split_doctypes_by_user_permissions(doctypes, user):
+	"""Split doctypes into those unaffected by User Permissions vs. those scoped by them.
+
+	Mirrors the simplified, non-recursive semantics list queries already use for their own
+	doctype (db_query.py::add_user_permissions / database/query.py::get_user_permission_conditions)
+	- not the full has_user_permission() used for single-document checks, which additionally
+	does tree traversal and isn't expressible as a flat SQL condition.
+	"""
+	user_permissions = frappe.permissions.get_user_permissions(user)
+	if not user_permissions:
+		return doctypes, {}
+
+	strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
+
+	unrestricted, restricted = [], {}
+	for doctype in doctypes:
+		if frappe.get_meta(doctype).issingle:
+			unrestricted.append(doctype)
+			continue
+		field_conditions = _get_user_permission_field_conditions(
+			doctype, user_permissions, strict_user_permissions
+		)
+		if field_conditions:
+			restricted[doctype] = field_conditions
+		else:
+			unrestricted.append(doctype)
+	return unrestricted, restricted
+
+
+def _get_user_permission_field_conditions(doctype, user_permissions, strict_user_permissions) -> list[str]:
+	"""SQL conditions (to be AND'd) restricting `doctype` rows to those permitted by `user_permissions`."""
+	link_fields = [{"options": doctype, "fieldname": "name"}, *frappe.get_meta(doctype).get_link_fields()]
+	table = get_table_name(doctype, wrap_in_backticks=True)
+
+	conditions = []
+	for df in link_fields:
+		if df.get("ignore_user_permissions"):
+			continue
+
+		permitted = user_permissions.get(df.get("options"))
+		if not permitted:
+			continue
+
+		docs = [
+			p.get("doc")
+			for p in permitted
+			if not p.get("applicable_for") or p.get("applicable_for") == doctype
+		]
+		if not docs:
+			continue
+
+		field = f"{table}.`{df.get('fieldname')}`"
+		docs_list = ", ".join(frappe.db.escape(doc, percent=False) for doc in docs)
+		if strict_user_permissions:
+			conditions.append(f"{field} IN ({docs_list})")
+		else:
+			conditions.append(f"(ifnull({field}, '') = '' OR {field} IN ({docs_list}))")
+
+	return conditions
 
 
 # Note: kept at the end to not cause circular, partial imports & maintain backwards compatibility
