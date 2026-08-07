@@ -75,6 +75,8 @@ def translate_custom_style(style: str) -> tuple[dict, list[str]]:
 		if prop == "font-weight":
 			if value in ("bold", "600", "700", "800", "900"):
 				effects["bold"] = True
+			else:
+				unknown.append(f"{prop}: {value}")
 		elif prop in ("border-top", "border-bottom"):
 			match = re.match(r"([\d.]+)px\s+\w+\s+(#[0-9a-fA-F]{6}|[a-z]+)", value)
 			if match:
@@ -82,6 +84,8 @@ def translate_custom_style(style: str) -> tuple[dict, list[str]]:
 				color = match.group(2)
 				paint = f'rgb("{color}")' if color.startswith("#") else color
 				effects["stroke_top" if prop == "border-top" else "stroke_bottom"] = f"{width}pt + {paint}"
+			else:
+				unknown.append(f"{prop}: {value}")
 		elif prop in ("margin-top", "padding-top", "padding-bottom", "gap"):
 			match = re.match(r"([\d.]+)(px)?$", value)
 			if match:
@@ -92,6 +96,8 @@ def translate_custom_style(style: str) -> tuple[dict, list[str]]:
 					"gap": "gap",
 				}[prop]
 				effects[key] = round(float(match.group(1)) * PX_TO_PT, 2)
+			else:
+				unknown.append(f"{prop}: {value}")
 		# flex-direction / align-items describe what the structured layout
 		# already does — accepted so they never block, nothing to emit
 	return effects, unknown

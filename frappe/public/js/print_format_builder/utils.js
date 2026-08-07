@@ -48,6 +48,18 @@ export const TYPST_STYLE_PROPS = new Set([
 	"gap",
 ]);
 
+// Value grammars for the props above — a recognized prop with a value the
+// server cannot translate blocks too, it never silently drops
+const TYPST_STYLE_VALUES = {
+	"font-weight": /^(bold|600|700|800|900)$/,
+	"border-top": /^[\d.]+px\s+\w+\s+(#[0-9a-fA-F]{6}|[a-z]+)/,
+	"border-bottom": /^[\d.]+px\s+\w+\s+(#[0-9a-fA-F]{6}|[a-z]+)/,
+	"margin-top": /^[\d.]+(px)?$/,
+	"padding-top": /^[\d.]+(px)?$/,
+	"padding-bottom": /^[\d.]+(px)?$/,
+	gap: /^[\d.]+(px)?$/,
+};
+
 export function typst_blockers_client(print_format, layout, letterhead) {
 	const blockers = [];
 	const add = (reason) => !blockers.includes(reason) && blockers.push(reason);
@@ -71,11 +83,19 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 		}
 		for (const node of nodes) {
 			if ((node.custom_style || "").trim()) {
-				const unknown = node.custom_style
-					.split(";")
-					.filter((d) => d.includes(":"))
-					.map((d) => d.split(":")[0].trim().toLowerCase())
-					.filter((prop) => prop && !TYPST_STYLE_PROPS.has(prop));
+				const unknown = [];
+				for (const declaration of node.custom_style.split(";")) {
+					if (!declaration.includes(":")) continue;
+					const [raw_prop, raw_value] = declaration.split(/:(.+)/);
+					const prop = raw_prop.trim().toLowerCase();
+					const value = (raw_value || "").trim();
+					if (!prop) continue;
+					if (!TYPST_STYLE_PROPS.has(prop)) {
+						unknown.push(prop);
+					} else if (TYPST_STYLE_VALUES[prop] && !TYPST_STYLE_VALUES[prop].test(value)) {
+						unknown.push(`${prop}: ${value}`);
+					}
+				}
 				if (unknown.length) add(__("Untranslatable CSS: {0}", [unknown.join(", ")]));
 			}
 			if (node.fieldtype === "HTML") add(__("Custom HTML block"));

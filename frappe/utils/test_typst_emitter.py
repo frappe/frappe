@@ -295,6 +295,19 @@ class TestTypstTranslation(IntegrationTestCase):
 		self.assertIn("#e5e7eb", effects["stroke_bottom"])
 		self.assertEqual(effects["inset_bottom"], 7.5)
 
+	def test_translate_reports_untranslatable_values(self):
+		"""A recognized property with a value the translator cannot express must
+		block, never silently drop."""
+		for style, reported in (
+			("border-bottom: thin solid red", "border-bottom: thin solid red"),
+			("gap: 1rem", "gap: 1rem"),
+			("font-weight: 300", "font-weight: 300"),
+		):
+			with self.subTest(style=style):
+				effects, unknown = translate_custom_style(style)
+				self.assertEqual(effects, {})
+				self.assertIn(reported, unknown)
+
 	def test_translate_reports_unknown_properties(self):
 		_effects, unknown = translate_custom_style("color: red; font-weight: bold")
 		self.assertEqual(unknown, ["color"])
