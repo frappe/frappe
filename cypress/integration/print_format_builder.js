@@ -1174,7 +1174,7 @@ context("Print Format Builder — draft and Save & Apply", () => {
 		cy.get('[data-testid="page-status"]').should("contain", "Draft");
 
 		cy.get(DISCARD_BTN).click({ force: true });
-		cy.get(".modal-footer .btn-primary:visible").click();
+		cy.get(".modal-footer .btn-modal-primary:visible").click();
 		cy.wait("@discard").its("response.statusCode").should("eq", 200);
 
 		cy.get('[data-testid="page-status"]').should("not.be.visible");
