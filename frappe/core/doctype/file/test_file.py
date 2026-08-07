@@ -1329,3 +1329,141 @@ class TestGuestFileAndAttachments(FrappeTestCase):
 		self.assertEqual(doc_pri.get_content(), content)
 		doc_pri.delete()
 		self.assertFalse(os.path.exists(doc_pri.get_full_path()))
+<<<<<<< HEAD
+=======
+
+
+class TestPublicFileRestriction(IntegrationTestCase):
+	"""Test public file upload restriction for non-System Managers."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		# Create a test user without System Manager role
+		if not frappe.db.exists("User", "test_restricted@example.com"):
+			user = frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": "test_restricted@example.com",
+					"first_name": "Test Restricted",
+					"roles": [{"role": "Website Manager"}],
+				}
+			)
+			user.insert(ignore_permissions=True)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", {"only_allow_system_managers_to_upload_public_files": 1}
+	)
+	def test_non_system_manager_cannot_upload_public_file_when_setting_enabled(self):
+		"""Non-System Manager should not be able to upload public files when setting is enabled."""
+		frappe.set_user("test_restricted@example.com")
+
+		file_doc = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_public_restricted.txt",
+				"content": "Test content",
+				"is_private": 0,
+			}
+		)
+
+		self.assertRaises(frappe.PermissionError, file_doc.insert)
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", {"only_allow_system_managers_to_upload_public_files": 1}
+	)
+	def test_non_system_manager_can_upload_private_file_when_setting_enabled(self):
+		"""Non-System Manager should still be able to upload private files when setting is enabled."""
+		frappe.set_user("test_restricted@example.com")
+
+		file_doc = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_private_allowed.txt",
+				"content": "Test content",
+				"is_private": 1,
+			}
+		)
+
+		file_doc.insert()
+		self.assertTrue(file_doc.is_private)
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", {"only_allow_system_managers_to_upload_public_files": 1}
+	)
+	def test_system_manager_can_upload_public_file_when_setting_enabled(self):
+		"""System Manager should be able to upload public files even when setting is enabled."""
+		frappe.set_user("Administrator")
+
+		file_doc = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_public_admin.txt",
+				"content": "Test content",
+				"is_private": 0,
+			}
+		)
+
+		file_doc.insert()
+		self.assertFalse(file_doc.is_private)
+
+	def test_non_system_manager_can_upload_public_file_when_setting_disabled(self):
+		"""Non-System Manager should be able to upload public files when setting is disabled."""
+		frappe.set_user("test_restricted@example.com")
+
+		file_doc = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_public_allowed.txt",
+				"content": "Test content",
+				"is_private": 0,
+			}
+		)
+
+		file_doc.insert()
+		self.assertFalse(file_doc.is_private)
+
+
+class TestFileListOwnerRestriction(IntegrationTestCase):
+	"""Test file list owner restriction."""
+
+	OWNER = "test1@example.com"
+	OTHER = "test2@example.com"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		other_user = frappe.get_doc("User", self.OTHER)
+		if not any(r.role == "Blogger" for r in other_user.roles):
+			other_user.append("roles", {"role": "Blogger"})
+			other_user.save(ignore_permissions=True)
+
+		frappe.set_user(self.OWNER)
+		pddr = frappe.get_doc({"doctype": "Personal Data Download Request", "user": self.OWNER}).insert(
+			ignore_permissions=True
+		)
+		self.file = frappe.new_doc(
+			"File",
+			file_name="secret_export.json",
+			attached_to_doctype="Personal Data Download Request",
+			attached_to_name=pddr.name,
+			content="secret data",
+			is_private=1,
+		).insert(ignore_permissions=True)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_other_user_file_count_excludes_owner_restricted_file(self):
+		frappe.set_user(self.OTHER)
+		files = frappe.get_list("File", filters={"name": self.file.name})
+		self.assertEqual(len(files), 0)
+
+	def test_owner_file_count_includes_owner_restricted_file(self):
+		frappe.set_user(self.OWNER)
+		files = frappe.get_list("File", filters={"name": self.file.name})
+		self.assertEqual(len(files), 1)
+>>>>>>> 1fba213 (test(file): add test for the ownership check)
