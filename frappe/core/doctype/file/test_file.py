@@ -1499,14 +1499,14 @@ class TestFileListOwnerRestriction(IntegrationTestCase):
 			other_user.save(ignore_permissions=True)
 
 		frappe.set_user(self.OWNER)
-		pddr = frappe.get_doc({"doctype": "Personal Data Download Request", "user": self.OWNER}).insert(
+		self.pddr = frappe.get_doc({"doctype": "Personal Data Download Request", "user": self.OWNER}).insert(
 			ignore_permissions=True
 		)
 		self.file = frappe.new_doc(
 			"File",
 			file_name="secret_export.json",
 			attached_to_doctype="Personal Data Download Request",
-			attached_to_name=pddr.name,
+			attached_to_name=self.pddr.name,
 			content="secret data",
 			is_private=1,
 		).insert(ignore_permissions=True)
@@ -1522,5 +1522,13 @@ class TestFileListOwnerRestriction(IntegrationTestCase):
 
 	def test_owner_file_count_includes_owner_restricted_file(self):
 		frappe.set_user(self.OWNER)
+		files = frappe.get_list("File", filters={"name": self.file.name})
+		self.assertEqual(len(files), 1)
+
+	def test_shared_but_not_owned_document_still_shows_its_file(self):
+		frappe.set_user("Administrator")
+		frappe.share.add_docshare("Personal Data Download Request", self.pddr.name, self.OTHER, read=1)
+
+		frappe.set_user(self.OTHER)
 		files = frappe.get_list("File", filters={"name": self.file.name})
 		self.assertEqual(len(files), 1)

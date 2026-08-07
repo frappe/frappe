@@ -1083,15 +1083,24 @@ def get_permission_query_conditions(user: str | None = None) -> str:
 		conditions.append(f"(`tabFile`.`attached_to_doctype` IN ({readable_doctypes}))")
 
 	# these doctypes only grant "read" to their owner (if_owner), so a File attached to one
-	# of them may only be listed if the requesting user also owns the referenced document
+	# of them may only be listed if the requesting user owns the referenced document or it
+	# was individually shared with them.
 	for doctype in owner_restricted_doctypes:
 		table = get_table_name(doctype, wrap_in_backticks=True)
+		shared_names = frappe.share.get_shared(doctype, user)
+		shared_condition = ""
+		if shared_names:
+			shared_list = ", ".join(frappe.db.escape(name, percent=False) for name in shared_names)
+			shared_condition = f" OR `tabFile`.`attached_to_name` IN ({shared_list})"
+
 		conditions.append(
 			f"""(`tabFile`.`attached_to_doctype` = {frappe.db.escape(doctype)}
-				AND EXISTS (
-					SELECT 1 FROM {table}
-					WHERE {table}.`name` = `tabFile`.`attached_to_name`
-					AND {table}.`owner` = {frappe.db.escape(user)}
+				AND (
+					EXISTS (
+						SELECT 1 FROM {table}
+						WHERE {table}.`name` = `tabFile`.`attached_to_name`
+						AND {table}.`owner` = {frappe.db.escape(user)}
+					){shared_condition}
 				))"""
 		)
 
