@@ -1,0 +1,227 @@
+# Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
+import json
+import re
+import unittest
+from pathlib import Path
+
+import frappe
+from frappe.tests import IntegrationTestCase
+from frappe.utils.typst_emitter import (
+	BLOCKER_FIELDTYPES,
+	TRANSLATABLE_STYLE_PROPS,
+	q,
+	translate_custom_style,
+	typst_blockers,
+)
+
+
+def has_typst():
+	try:
+		import typst
+
+		return True
+	except ImportError:
+		return False
+
+
+def layout_with(*fields, **extra):
+	section = {"label": "", "columns": [{"label": "", "fields": list(fields)}]}
+	section.update(extra.pop("section", {}))
+	return {
+		"sections": [section],
+		"header": {"columns": [{"label": "", "fields": []}]},
+		"footer": {"columns": [{"label": "", "fields": []}]},
+		**extra,
+	}
+
+
+class TestTypstGate(IntegrationTestCase):
+	"""typst_blockers is the single authority on what may render through Typst."""
+
+	def pf(self, **kwargs):
+		defaults = {"custom_format": 0, "print_format_builder_beta": 1, "css": "", "doc_type": "ToDo"}
+		return frappe._dict({**defaults, **kwargs})
+
+	def test_structured_layout_qualifies(self):
+		layout = layout_with(
+			{"fieldtype": "Data", "fieldname": "description", "label": "D"},
+			{"fieldtype": "Divider"},
+			{"fieldtype": "Spacer", "height": 10},
+			{"fieldtype": "Repeater", "source": "items", "repeater_columns": []},
+		)
+		self.assertEqual(typst_blockers(self.pf(), layout), [])
+
+	def test_each_blocker_is_named(self):
+		cases = {
+			"Custom HTML block": {"fieldtype": "HTML", "fieldname": "h", "html": "<b>x</b>"},
+			"Field Template (Jinja HTML)": {"fieldtype": "Field Template", "field_template": "T"},
+			"Barcode (non-QR)": {"fieldtype": "Barcode", "custom": 1, "barcode_format": "CODE128"},
+			"Remote image URL": {"fieldtype": "Image", "custom": 1, "image_url": "https://x.test/a.png"},
+		}
+		for reason, field in cases.items():
+			with self.subTest(reason=reason):
+				self.assertIn(reason, typst_blockers(self.pf(), layout_with(field)))
+
+	def test_qr_barcode_qualifies(self):
+		field = {"fieldtype": "Barcode", "custom": 1, "barcode_format": "QR", "barcode_value": "X"}
+		self.assertEqual(typst_blockers(self.pf(), layout_with(field)), [])
+
+	def test_format_level_blockers(self):
+		self.assertIn("Custom HTML format", typst_blockers(self.pf(custom_format=1), layout_with()))
+		self.assertIn(
+			"Not a builder format", typst_blockers(self.pf(print_format_builder_beta=0), layout_with())
+		)
+		self.assertIn(
+			"Custom CSS on the format", typst_blockers(self.pf(css=".x { color: red }"), layout_with())
+		)
+
+	def test_custom_style_blocks_only_untranslatable_properties(self):
+		ok = {
+			"fieldtype": "Data",
+			"fieldname": "x",
+			"custom_style": "font-weight: bold; padding-bottom: 10px",
+		}
+		self.assertEqual(typst_blockers(self.pf(), layout_with(ok)), [])
+
+		bad = {"fieldtype": "Data", "fieldname": "x", "custom_style": "transform: rotate(3deg)"}
+		blockers = typst_blockers(self.pf(), layout_with(bad))
+		self.assertTrue(any("transform" in b for b in blockers))
+
+	def test_letterhead_with_html_blocks(self):
+		lh = frappe.get_doc(
+			{
+				"doctype": "Letter Head",
+				"letter_head_name": f"_Typst LH {frappe.generate_hash(length=6)}",
+				"content": "<div>hi</div>",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(lh.delete, ignore_permissions=True)
+		layout = layout_with(letter_head=lh.name)
+		self.assertIn("Letterhead with HTML content", typst_blockers(self.pf(), layout))
+
+
+class TestTypstTranslation(IntegrationTestCase):
+	def test_string_values_cannot_become_markup(self):
+		hostile = 'quotes " hash #eval [bracket] $math$ \\ backslash'
+		literal = q(hostile)
+		self.assertTrue(literal.startswith('"') and literal.endswith('"'))
+		self.assertEqual(json.loads(literal), hostile)
+
+	def test_translate_known_properties(self):
+		effects, unknown = translate_custom_style(
+			"font-weight: bold;\nborder-bottom: 1px solid #e5e7eb;\npadding-bottom: 10px;"
+		)
+		self.assertEqual(unknown, [])
+		self.assertTrue(effects["bold"])
+		self.assertIn("#e5e7eb", effects["stroke_bottom"])
+		self.assertEqual(effects["inset_bottom"], 7.5)
+
+	def test_translate_reports_unknown_properties(self):
+		_effects, unknown = translate_custom_style("color: red; font-weight: bold")
+		self.assertEqual(unknown, ["color"])
+
+	def test_style_props_match_the_javascript_mirror(self):
+		"""The client hint must grey out exactly what the server refuses."""
+		source = (Path(frappe.get_app_path("frappe")) / "public/js/print_format_builder/utils.js").read_text()
+		block = re.search(r"export const TYPST_STYLE_PROPS = new Set\(\[(.*?)\]\);", source, re.S)
+		self.assertIsNotNone(block)
+		self.assertEqual(set(re.findall(r'"([^"]+)"', block.group(1))), set(TRANSLATABLE_STYLE_PROPS))
+
+	def test_special_fieldtypes_have_a_deliberate_disposition(self):
+		"""Every non-docfield element the builder can drop is either emitted or a
+		named blocker — a new element must choose, never fall through silently."""
+		emitted = {"Spacer", "Divider", "Table", "Repeater", "Image", "Barcode", "Attach Image"}
+		blocked = set(BLOCKER_FIELDTYPES)
+		builder_elements = {
+			"HTML",
+			"Spacer",
+			"Divider",
+			"Repeater",
+			"Image",
+			"Barcode",
+			"Field Template",
+			"Table",
+		}
+		unhandled = builder_elements - emitted - blocked
+		self.assertEqual(unhandled, set(), f"undeclared for typst: {unhandled}")
+
+
+class TestTypstRender(IntegrationTestCase):
+	def make(self, layout, **kwargs):
+		pf = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Typst Render {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": json.dumps(layout),
+				**kwargs,
+			}
+		).insert()
+		self.addCleanup(pf.delete, ignore_permissions=True)
+		return pf
+
+	def make_todo(self, **kwargs):
+		doc = frappe.get_doc({"doctype": "ToDo", "description": "typst render test", **kwargs}).insert(
+			ignore_permissions=True
+		)
+		self.addCleanup(doc.delete, ignore_permissions=True)
+		return frappe.get_doc("ToDo", doc.name)
+
+	def test_typst_choice_survives_save(self):
+		pf = self.make(
+			layout_with({"fieldtype": "Data", "fieldname": "description", "label": "D"}),
+			pdf_generator="Typst",
+		)
+		pf.reload()
+		self.assertEqual(pf.pdf_generator, "Typst")
+
+	def test_save_refuses_typst_with_blockers(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.make(
+				layout_with({"fieldtype": "HTML", "fieldname": "h", "html": "<b>x</b>"}),
+				pdf_generator="Typst",
+			)
+
+	def test_emission_resolves_conditions_and_values(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		layout = layout_with(
+			{"fieldtype": "Data", "fieldname": "description", "label": "Description"},
+			{"fieldtype": "Data", "fieldname": "priority", "label": "P", "visible_if": "False"},
+		)
+		pf = self.make(layout)
+		todo = self.make_todo(priority="High")
+		source, assets = TypstEmitter(PrintFormatGenerator(pf, todo)).emit()
+		self.assertIn("typst render test", source)
+		self.assertNotIn("High", source, "visible_if=False field must not be emitted")
+		self.assertEqual(assets, {})
+
+	@unittest.skipUnless(has_typst(), "typst not installed")
+	def test_render_pdf_produces_a_pdf(self):
+		pf = self.make(layout_with({"fieldtype": "Data", "fieldname": "description", "label": "D"}))
+		pf.pdf_generator = "Typst"
+		todo = self.make_todo()
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pdf = PrintFormatGenerator(pf, todo).render_pdf()
+		self.assertEqual(pdf[:4], b"%PDF")
+
+		from io import BytesIO
+
+		from pypdf import PdfReader
+
+		text = PdfReader(BytesIO(pdf)).pages[0].extract_text()
+		self.assertIn("typst render test", text)
+
+	@unittest.skipUnless(has_typst(), "typst not installed")
+	def test_render_refuses_a_blocked_format(self):
+		pf = self.make(layout_with({"fieldtype": "HTML", "fieldname": "h", "html": "<b>x</b>"}))
+		pf.pdf_generator = "Typst"
+		todo = self.make_todo()
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		with self.assertRaises(frappe.ValidationError):
+			PrintFormatGenerator(pf, todo).render_pdf()
