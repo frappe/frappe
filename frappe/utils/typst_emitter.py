@@ -30,9 +30,6 @@ EMITTED_FIELDTYPES = frozenset({"Divider", "Spacer", "Table"})
 BLOCKER_FIELDTYPES = {
 	"HTML": _("Custom HTML block"),
 	"Field Template": _("Field Template (Jinja HTML)"),
-	"Image": _("Image block"),
-	"Barcode": _("Barcode"),
-	"Repeater": _("Repeater block"),
 }
 
 PAGE_NUMBER_POSITIONS = {
@@ -82,11 +79,41 @@ def typst_blockers(print_format, layout) -> list[str]:
 			if key not in seen:
 				seen.add(key)
 				blockers.append(_("Custom CSS on {0}").format(where))
-		reason = BLOCKER_FIELDTYPES.get(node.get("fieldtype"))
+		reason = (
+			BLOCKER_FIELDTYPES.get(node.get("fieldtype"))
+			or _barcode_blocker(node, print_format)
+			or _image_blocker(node)
+		)
 		if reason and reason not in seen:
 			seen.add(reason)
 			blockers.append(reason)
 	return blockers
+
+
+def _barcode_blocker(df, print_format):
+	"""Only QR renders server-side; JsBarcode formats need a browser."""
+	if df.get("fieldtype") != "Barcode":
+		return None
+	if df.get("custom"):
+		return None if df.get("barcode_format") == "QR" else _("Barcode (non-QR)")
+	try:
+		meta_df = frappe.get_meta(print_format.doc_type).get_field(df.get("fieldname"))
+	except Exception:
+		meta_df = None
+	from frappe.utils.print_format_generator import is_qr_barcode_options
+
+	if meta_df and is_qr_barcode_options(meta_df.options):
+		return None
+	return _("Barcode (non-QR)")
+
+
+def _image_blocker(df):
+	if df.get("fieldtype") != "Image":
+		return None
+	src = df.get("image_url") or ""
+	if src.startswith(("http://", "https://")):
+		return _("Remote image URL")
+	return None
 
 
 def _walk(layout):
@@ -174,6 +201,7 @@ class TypstEmitter:
 		self.doc = generator.doc
 		self.print_format = generator.print_format
 		self.layout = generator.layout
+		self.assets: dict[str, bytes] = {}
 
 	# ── document ────────────────────────────────────────────────
 
@@ -188,7 +216,7 @@ class TypstEmitter:
 		footer_zone = self.layout.get("footer")
 		if isinstance(footer_zone, dict):
 			lines.append(self._section(footer_zone, zone=True))
-		return "\n".join(line for line in lines if line)
+		return "\n".join(line for line in lines if line), self.assets
 
 	def _page_setup(self) -> str:
 		pf = self.print_format
@@ -345,6 +373,12 @@ class TypstEmitter:
 			return f"#v({round(height * PX_TO_PT, 2)}pt)"
 		if fieldtype == "Table":
 			return self._table(df)
+		if fieldtype == "Barcode":
+			return self._barcode(df)
+		if fieldtype in ("Image", "Attach Image"):
+			return self._image(df)
+		if fieldtype == "Repeater":
+			return self._repeater(df)
 		return self._data_field(section, df)
 
 	def _formatted_value(self, df):
@@ -391,6 +425,134 @@ class TypstEmitter:
 		if align in ("center", "right"):
 			return f"#align({align})[{body}]"
 		return body
+
+	def _asset(self, suffix: str, data: bytes) -> str:
+		name = f"asset_{len(self.assets)}.{suffix}"
+		self.assets[name] = data
+		return name
+
+	def _read_site_file(self, src: str) -> bytes | None:
+		import base64
+		import os
+
+		if src.startswith("data:"):
+			try:
+				return base64.b64decode(src.split(",", 1)[1])
+			except Exception:
+				return None
+		if src.startswith(("http://", "https://")):
+			return None
+		src = src.split("?", 1)[0]
+		if src.startswith("/private/files/"):
+			path = frappe.get_site_path("private", "files", os.path.basename(src))
+		elif src.startswith("/files/"):
+			path = frappe.get_site_path("public", "files", os.path.basename(src))
+		elif src.startswith("/assets/"):
+			path = os.path.join(frappe.get_site_path("..", "assets"), src[len("/assets/") :])
+		else:
+			return None
+		try:
+			with open(path, "rb") as f:
+				return f.read()
+		except OSError:
+			return None
+
+	@staticmethod
+	def _dimension(width) -> str | None:
+		if width in (None, ""):
+			return None
+		value = str(width).strip()
+		if value.endswith(("mm", "cm", "in", "pt")):
+			return value
+		if value.endswith("%"):
+			return value
+		if value.endswith("px"):
+			value = value[:-2]
+		try:
+			return f"{round(float(value) * PX_TO_PT, 2)}pt"
+		except ValueError:
+			return None
+
+	def _image(self, df) -> str:
+		src = df.get("image_url") or (self.doc.get(df.get("fieldname")) if df.get("fieldname") else "")
+		if not src:
+			return ""
+		data = self._read_site_file(str(src))
+		if data is None:
+			frappe.throw(
+				_("The Typst renderer cannot embed this image: {0}").format(frappe.bold(str(src)[:100])),
+				title=_("Typst renderer unavailable"),
+			)
+		suffix = str(src).split("?", 1)[0].rsplit(".", 1)[-1].lower()
+		if suffix not in ("png", "jpg", "jpeg", "svg", "gif", "webp"):
+			suffix = "png"
+		name = self._asset(suffix, data)
+		width = self._dimension(df.get("width")) or "100%"
+		body = f'#image("{name}", width: {width})'
+		if df.get("align") in ("center", "right"):
+			return f"#align({df['align']})[{body}]"
+		return body
+
+	def _barcode(self, df) -> str:
+		data_uri = df.get("_qr_data_uri")
+		if not data_uri:
+			return ""
+		data = self._read_site_file(data_uri)
+		if data is None:
+			return ""
+		name = self._asset("svg", data)
+		width = self._dimension(df.get("width")) or "30mm"
+		body = f'#image("{name}", width: {width})'
+		if df.get("align") in ("center", "right"):
+			return f"#align({df['align']})[{body}]"
+		return body
+
+	def _repeater(self, df) -> str:
+		source = df.get("source")
+		rows = df.get("_rows") if df.get("_rows") is not None else (self.doc.get(source) if source else None)
+		rows = rows or []
+		columns = df.get("repeater_columns") or []
+		if not rows or not columns:
+			return ""
+
+		widths = []
+		for col in columns:
+			width = frappe.utils.flt(col.get("width"))
+			widths.append(f"{round(width, 2)}fr" if width else "1fr")
+		aligns = [
+			col.get("align") if col.get("align") in ("left", "center", "right") else "left" for col in columns
+		]
+
+		cells = []
+		for row in rows:
+			for col in columns:
+				parts = []
+				for tok in col.get("template") or []:
+					if not isinstance(tok, dict):
+						continue
+					if tok.get("t") == "f":
+						parts.append(_text_value(row.get_formatted(tok.get("v"))))
+					else:
+						parts.append(str(tok.get("v") or ""))
+				text = "".join(parts)
+				color = col.get("color")
+				fill = (
+					f'fill: rgb("{color}"), '
+					if isinstance(color, str) and re.fullmatch(r"#[0-9a-fA-F]{6}", color)
+					else ""
+				)
+				cells.append(f"[#text({fill}{q(text)})]" if text else "[]")
+
+		label = ""
+		if df.get("label") and (df.get("show_label") or "show") != "hide":
+			label_color = self.print_format.get("label_color") or "#6b7280"
+			label = f'#text(size: 0.85em, fill: rgb("{label_color}"), {q(_(df["label"]))})\n#v(3pt)\n'
+		return (
+			label
+			+ f"#table(columns: ({', '.join(widths)}), align: ({', '.join(aligns)},), stroke: none, inset: 4pt,\n"
+			+ ",\n".join(cells)
+			+ ")"
+		)
 
 	# ── tables ──────────────────────────────────────────────────
 

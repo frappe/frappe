@@ -417,11 +417,14 @@ class PrintFormatGenerator:
 			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
 
 		ensure_typst_fonts(self.print_format.get("font"))
-		source = TypstEmitter(self).emit()
+		source, assets = TypstEmitter(self).emit()
 		with tempfile.TemporaryDirectory() as tmp:
 			path = os.path.join(tmp, "main.typ")
 			with open(path, "w") as f:
 				f.write(source)
+			for name, data in assets.items():
+				with open(os.path.join(tmp, name), "wb") as f:
+					f.write(data)
 			return typst.compile(path, font_paths=typst_font_paths())
 
 	def _build_html_for_chrome(self):
