@@ -6,12 +6,8 @@
 		<div
 			v-for="block in fragmentNodes"
 			:key="block.componentId"
-			class="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed p-3"
-			:class="
-				block.isStudioComponent
-					? 'border-outline-purple-4 bg-surface-purple-1'
-					: 'border-outline-blue-4 bg-surface-blue-1'
-			"
+			class="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed bg-surface-base p-3"
+			:class="block.isStudioComponent ? 'border-outline-purple-4' : 'border-outline-blue-4'"
 			@click="editFragment(block)"
 		>
 			<div
@@ -21,13 +17,10 @@
 				<component :is="block.getIcon()" class="h-3.5 w-3.5" />
 			</div>
 			<div class="flex min-w-0 flex-1 flex-col">
-				<span
-					class="truncate text-sm font-medium"
-					:class="block.isStudioComponent ? 'text-ink-purple-7' : 'text-ink-gray-8'"
-				>
+				<span class="truncate text-sm font-medium leading-relaxed text-ink-gray-8">
 					{{ block.getBlockDescription() }}
 				</span>
-				<span class="text-xs" :class="block.isStudioComponent ? 'text-ink-purple-6' : 'text-ink-gray-5'">
+				<span class="text-xs text-ink-gray-5">
 					{{ getSubtitle(block) }}
 				</span>
 			</div>
@@ -35,9 +28,8 @@
 				class="flex shrink-0 items-center gap-1 text-xs font-medium"
 				:class="block.isStudioComponent ? 'text-ink-purple-6' : 'text-ink-blue-6'"
 			>
-				<LucidePenLine v-if="block.isStudioComponent" class="h-3 w-3" />
-				{{ block.isStudioComponent ? "Edit component" : "Edit" }}
-				<LucideArrowUpRight v-if="!block.isStudioComponent" class="h-3 w-3" />
+				Edit
+				<LucideArrowUpRight class="h-3 w-3" />
 			</span>
 		</div>
 	</div>
@@ -81,9 +73,9 @@ function collectFragmentNodes(block: Block, found: Block[]) {
 const getSubtitle = (block: Block) => {
 	if (block.isStudioComponent) {
 		const componentRoot = componentStore.componentMap.get(block.componentName)
-		return `${componentRoot?.componentName || "Fragment"} · component`
+		return `${componentRoot?.componentName || "Fragment"} · Studio Component`
 	}
-	return `${block.componentName} · block`
+	return `${block.componentName} · Block`
 }
 
 const editFragment = (block: Block) => {
