@@ -450,12 +450,15 @@ def get_confirm_workflow_action_url(doc, action, user):
 
 
 def is_workflow_action_already_created(doc):
+	# Only an open action means the current state is already being acted upon. Completed ones must not
+	# block, or a document re-entering a state it has left gets no new action and no notification.
 	return frappe.db.exists(
 		{
 			"doctype": "Workflow Action",
 			"reference_name": doc.get("name"),
 			"reference_doctype": doc.get("doctype"),
 			"workflow_state": get_doc_workflow_state(doc),
+			"status": "Open",
 		}
 	)
 
