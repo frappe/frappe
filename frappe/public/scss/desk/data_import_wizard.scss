@@ -414,6 +414,36 @@
 	}
 }
 
+// ---- import log summary (Result / Details key-value tables) ----
+// Buttons sit inline on the right of the "Import Log" heading row.
+.import-log-title.diw-import-log-title-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--padding-sm);
+
+	.diw-import-log-summary-actions {
+		flex-shrink: 0;
+	}
+
+	.es-button {
+		white-space: nowrap;
+	}
+}
+
+.diw-import-log-summary {
+	// Hairline between rows lives on the cells so it spans only the table width,
+	// aligning with the section heading rather than bleeding to the step edge.
+	.diw-log-kv-row:not(:first-child) .diw-log-kv-key,
+	.diw-log-kv-row:not(:first-child) .diw-log-kv-val {
+		border-top: 1px solid var(--outline-gray-2);
+	}
+
+	.diw-log-kv-val {
+		white-space: nowrap;
+	}
+}
+
 // ---- mobile (phones + narrow tablets) ----
 // Layout shifts that are specific to the wizard — keep them here, not in utilities.scss.
 // Use a parent + child selector wherever the markup also has a utility for the same
@@ -468,16 +498,20 @@
 		}
 	}
 
-	.diw-import-log-metrics {
+	// Stack the Result / Details tables on narrow screens.
+	.diw-import-log-summary-grid {
 		flex-direction: column;
+		gap: var(--padding-md);
 	}
 
-	.diw-import-log-metric:not(:first-child) {
-		border-top: 1px solid var(--outline-gray-2);
+	// Let the heading label and its buttons wrap instead of crushing on phones.
+	.import-log-title.diw-import-log-title-row {
+		flex-wrap: wrap;
 	}
 
-	.diw-metric-separator {
-		display: none;
+	.diw-import-log-summary-actions {
+		flex-wrap: wrap;
+		justify-content: flex-end;
 	}
 
 	.diw-import-progress-hero .diw-import-progress-stats {

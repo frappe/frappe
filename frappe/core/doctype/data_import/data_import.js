@@ -2629,6 +2629,7 @@ frappe.ui.form.on("Data Import", {
 			}
 
 			// Server already filtered by tab — do not re-filter client-side.
+			const has_rows = logs.length > 0;
 			let rows = logs
 				.map((log) => {
 					let html = "";
@@ -2733,132 +2734,140 @@ frappe.ui.form.on("Data Import", {
 				})
 				.join("");
 
-			if (!rows) {
-				const empty_message =
-					active_filter === "failed"
-						? __("No failed log entries")
-						: active_filter === "success"
-						? __("No successful log entries")
-						: __("No rows were imported");
-				rows = `<tr><td class="text-center text-muted" colspan=3>${empty_message}</td></tr>`;
-			}
-
-			const metric_html = [];
-			// A metric may carry one action, mounted (as a ghost icon-button) into the
-			// label row after the markup is set — see mount_metric_action below. Only
-			// Failed keeps a colour (red); Inserted/Updated are neutral.
-			const metric_card = (value_html, label, { action = "" } = {}) =>
-				`<div class="diw-import-log-metric flex flex-col flex-1 gap-1 px-4 py-3" role="listitem">
-					<div class="diw-import-log-metric-head min-h-6 flex items-center justify-between gap-2">
-						<div class="diw-import-log-metric-label text-sm text-muted">${label}</div>
-						${
-							action
-								? `<span class="diw-import-log-metric-action inline-flex shrink-0" data-metric-action="${action}"></span>`
-								: ""
-						}
-					</div>${value_html}</div>`;
-			metric_html.push(
-				metric_card(
-					`<div class="diw-import-log-metric-value text-2xl-bold">${total_rows_in_file}</div>`,
-					__("Total rows"),
-					{ action: is_import_complete(frm.doc.status) ? "go_to_list" : "" }
-				)
-			);
-
-			metric_html.push(
-				metric_card(
-					`<div class="diw-import-log-metric-value text-2xl-bold">${skipped_rows_count}</div>`,
-					__("Skipped"),
-					{ action: skipped_rows_count > 0 ? "download_skipped" : "" }
-				)
-			);
-
-			if (is_upsert || frm.doc.import_type === "Insert New Records") {
-				metric_html.push(
-					metric_card(
-						`<div class="diw-import-log-metric-value text-2xl-bold">${inserted_rows}</div>`,
-						__("Inserted")
-					)
-				);
-			}
-
-			if (is_upsert || frm.doc.import_type === "Update Existing Records") {
-				metric_html.push(
-					metric_card(
-						`<div class="diw-import-log-metric-value text-2xl-bold">${updated_rows}</div>`,
-						__("Updated")
-					)
-				);
-			}
-
-			metric_html.push(
-				metric_card(
-					`<div class="diw-import-log-metric-value text-2xl-bold text-danger">${failed_rows}</div>`,
-					__("Failed"),
-					{ action: failed_rows > 0 ? "export_errored" : "" }
-				)
-			);
-
-			// Vertical es-divider between metric columns on desktop; hidden on mobile
-			// via .diw-metric-separator in data_import_wizard.scss.
-			const metric_separator = frappe.ui.divider.html({
-				orientation: "vertical",
-				flex_item: true,
-				css_class: "diw-metric-separator",
+			const empty_message =
+				active_filter === "failed"
+					? __("No failed log entries")
+					: active_filter === "success"
+					? __("No successful log entries")
+					: __("No rows were imported");
+			const empty_state_html = frappe.ui.empty_state.html({
+				icon: "inbox",
+				title: empty_message,
+				css_class: "min-h-32",
 			});
+
+			// Summary now reads as two aligned key/value tables — "Result" (the counts)
+			// and "Details" (audit trail) — under one heading, with the row actions
+			// (Go to list / downloads) mounted top-right of the heading below.
+			const kv_row = (label, value_html) =>
+				`<tr class="diw-log-kv-row">
+					<td class="diw-log-kv-key text-sm text-muted py-2">${frappe.utils.escape_html(label)}</td>
+					<td class="diw-log-kv-val text-sm text-ink-gray-8 text-end py-2">${value_html}</td>
+				</tr>`;
+
+			// Counts read bold; audit values stay regular weight.
+			const num = (value, extra = "") =>
+				`<span class="text-sm-semibold ${extra}">${frappe.utils.escape_html(
+					String(value)
+				)}</span>`;
+
+			const result_rows = [kv_row(__("Total rows"), num(total_rows_in_file))];
+			if (is_upsert || frm.doc.import_type === "Insert New Records") {
+				result_rows.push(kv_row(__("Inserted"), num(inserted_rows)));
+			}
+			if (is_upsert || frm.doc.import_type === "Update Existing Records") {
+				result_rows.push(kv_row(__("Updated"), num(updated_rows)));
+			}
+			result_rows.push(kv_row(__("Skipped"), num(skipped_rows_count)));
+			result_rows.push(kv_row(__("Failed"), num(failed_rows, "text-danger")));
+
+			// Relative time ("2 days ago") with the absolute datetime on hover; the
+			// .frappe-timestamp span self-refreshes via frappe.datetime.refresh_when.
+			const fmt_dt = (value) => (value ? frappe.datetime.comment_when(value) : "-");
+			const fmt_user = (value) =>
+				value ? frappe.utils.escape_html(frappe.user.full_name(value) || value) : "-";
+			const detail_rows = [
+				kv_row(__("Started by"), fmt_user(frm.doc.owner)),
+				kv_row(__("Started on"), fmt_dt(frm.doc.creation)),
+				kv_row(__("Last modified by"), fmt_user(frm.doc.modified_by)),
+				kv_row(__("Last modified on"), fmt_dt(frm.doc.modified)),
+			];
+
+			// No card/heading of its own — it lives under the existing "Import Log"
+			// section heading (the action buttons are mounted onto that heading row).
+			const summary_html = `
+				<div class="diw-import-log-summary mb-4">
+					<div class="diw-import-log-summary-grid flex gap-8">
+						<div class="diw-log-kv-col flex-1 min-w-0">
+							<div class="diw-log-kv-caption text-xs text-muted mb-1">${__("Result")}</div>
+							<table class="diw-log-kv-table w-full">${result_rows.join("")}</table>
+						</div>
+						<div class="diw-log-kv-col flex-1 min-w-0">
+							<div class="diw-log-kv-caption text-xs text-muted mb-1">${__("Details")}</div>
+							<table class="diw-log-kv-table w-full">${detail_rows.join("")}</table>
+						</div>
+					</div>
+				</div>`;
 
 			const wrapper = frm.get_field("import_log_preview").$wrapper;
 			wrapper.html(`
-				<div class="diw-import-log-metrics mb-3 flex w-full" role="list" aria-label="${frappe.utils.escape_html(
-					__("Import metrics")
-				)}">
-					${metric_html.join(metric_separator)}
-				</div>
-				<div class="flex items-center justify-between gap-2">
+				${summary_html}
+				<div class="diw-import-log-filter-row mt-3 mb-3 flex items-center justify-between gap-2">
 					<div class="diw-import-log-filter-tabs"></div>
 					<div class="diw-import-log-filter-actions inline-flex items-center ms-auto"></div>
 				</div>
-				<table class="diw-import-log-table w-full">
-					<thead>
-						<tr class="text-muted">
-							<th class="text-sm-semibold border-b py-2 px-4" width="10%">${__("Row")}</th>
-							<th class="text-sm-semibold border-b py-2 px-4" width="14%">${__("Status")}</th>
-							<th class="text-sm-semibold border-b py-2 px-4" width="76%">${__("Message")}</th>
-						</tr>
-					</thead>
-					<tbody>
-						${rows}
-					</tbody>
-				</table>
+				${
+					has_rows
+						? `<table class="diw-import-log-table w-full">
+							<thead>
+								<tr class="text-muted">
+									<th class="text-sm-semibold border-b py-2 px-4" width="10%">${__("Row")}</th>
+									<th class="text-sm-semibold border-b py-2 px-4" width="14%">${__("Status")}</th>
+									<th class="text-sm-semibold border-b py-2 px-4" width="76%">${__("Message")}</th>
+								</tr>
+							</thead>
+							<tbody>
+								${rows}
+							</tbody>
+						</table>`
+						: `<div class="diw-import-log-empty-state">${empty_state_html}</div>`
+				}
 			`);
 
-			// Mount the per-metric actions (ghost icon-buttons) that replaced the old
-			// navbar buttons: Total → Go to List, Skipped → Download, Failed → Export.
-			const mount_metric_action = (name, opts) => {
-				const $mount = wrapper.find(`[data-metric-action="${name}"]`);
-				if (!$mount.length) return;
-				$mount.empty().append(frappe.ui.button({ variant: "ghost", size: "xs", ...opts }));
-			};
-			if (is_import_complete(frm.doc.status)) {
-				mount_metric_action("go_to_list", {
-					icon: "external-link",
-					title: __("Go to {0} List", [__(frm.doc.reference_doctype)]),
-					onclick: () => frappe.set_route("List", frm.doc.reference_doctype),
-				});
+			// Small actions sit inline on the right of the "Import Log" heading row:
+			// Download skipped / failed rows (only when present) and Go to list (only
+			// once complete). The heading is a separate HTML field, so rebuild its
+			// title into a flex row (label + actions slot) and mount into that slot.
+			const heading_field = frm.get_field("import_log_heading");
+			const $heading_title = heading_field?.$wrapper?.find(".import-log-title").first();
+			let $summary_actions = $();
+			if ($heading_title?.length) {
+				const heading_label = __(heading_field?.df?.label || "Import Log");
+				$heading_title.addClass("diw-import-log-title-row").html(
+					`<span class="diw-import-log-title-text">${frappe.utils.escape_html(
+						heading_label
+					)}</span>
+					<div class="diw-import-log-summary-actions inline-flex items-center gap-2"></div>`
+				);
+				$summary_actions = $heading_title.find(".diw-import-log-summary-actions");
 			}
+			const add_summary_action = (opts) => {
+				$summary_actions.append(frappe.ui.button({ size: "sm", ...opts }));
+			};
 			if (skipped_rows_count > 0) {
-				mount_metric_action("download_skipped", {
-					icon: "download",
-					title: __("Export Skipped Rows"),
+				add_summary_action({
+					label: __("Skipped"),
+					title: __("Download skipped rows"),
+					variant: "outline",
+					icon_left: "download",
 					onclick: () => frm.trigger("download_skipped_rows"),
 				});
 			}
 			if (failed_rows > 0) {
-				mount_metric_action("export_errored", {
-					icon: "download",
-					theme: "red",
-					title: __("Export Errored Rows"),
+				add_summary_action({
+					label: __("Failed"),
+					title: __("Download failed rows"),
+					variant: "outline",
+					icon_left: "download",
 					onclick: () => frm.trigger("export_errored_rows"),
+				});
+			}
+			if (is_import_complete(frm.doc.status)) {
+				add_summary_action({
+					label: __("Go to list"),
+					variant: "outline",
+					icon_left: "external-link",
+					onclick: () => frappe.set_route("List", frm.doc.reference_doctype),
 				});
 			}
 

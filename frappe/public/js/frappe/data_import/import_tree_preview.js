@@ -93,6 +93,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		);
 		const $root_children = $('<ul class="tree-children">').appendTo($tree);
 		roots.forEach((node) => this.render_node(node, $root_children, children_by_parent));
+		this._sync_tree_action_button_states();
 
 		this.wrapper.find(".diw-tree-filter-input input").on("input.diw_tree_filter", (e) => {
 			this.filter_tree(e.target.value);
@@ -119,8 +120,8 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 
 		const warning_label =
 			warning_count === 1
-				? __("1 tree structure warning found.")
-				: __("{0} tree structure warnings found.", [warning_count]);
+				? __("1 warning found.")
+				: __("{0} warnings found.", [warning_count]);
 
 		return this.get_form_message_html({
 			title: warning_label,
@@ -328,6 +329,30 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		$parent.toggleClass("opened", now_open);
 		$children.toggle(now_open);
 		this._sync_row_icons($link, now_open);
+		this._sync_tree_action_button_states();
+	}
+
+	/** Update Expand/Collapse action buttons based on current branch state. */
+	_sync_tree_action_button_states() {
+		const $tree = this.wrapper.find(".tree");
+		const $expand_btn = this.wrapper.find('[data-action="expand_all"]');
+		const $collapse_btn = this.wrapper.find('[data-action="collapse_all"]');
+
+		if (!$tree.length || (!$expand_btn.length && !$collapse_btn.length)) {
+			return;
+		}
+
+		const $branches = $tree
+			.find(".tree-node")
+			.filter((_, el) => $(el).children(".tree-children").children(".tree-node").length > 0);
+
+		const branch_count = $branches.length;
+		const open_count = $branches.filter(".opened").length;
+		const all_expanded = branch_count > 0 && open_count === branch_count;
+		const all_collapsed = branch_count > 0 && open_count === 0;
+
+		$expand_btn.prop("disabled", all_expanded);
+		$collapse_btn.prop("disabled", all_collapsed);
 	}
 
 	/** Keep expand/collapse chevron in sync after toggle. */
@@ -345,6 +370,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		$tree.find(".diw-tree-row-main").each((_, main) => {
 			this._sync_row_icons($(main), true);
 		});
+		this._sync_tree_action_button_states();
 	}
 
 	collapse_all() {
@@ -358,6 +384,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 				this._sync_row_icons($main, false);
 			}
 		});
+		this._sync_tree_action_button_states();
 	}
 
 	/** Filter tree rows by label or sheet row number; keep ancestors of matches visible. */
@@ -370,6 +397,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 
 		if (!query) {
 			$nodes.removeClass("hidden");
+			this._sync_tree_action_button_states();
 			return;
 		}
 
@@ -401,6 +429,8 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 				);
 			}
 		});
+
+		this._sync_tree_action_button_states();
 	}
 
 	// ---- tree editing (move / group toggle) --------------------------------
