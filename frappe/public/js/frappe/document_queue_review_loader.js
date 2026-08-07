@@ -4,9 +4,9 @@ frappe.document_queue_review_loader.script_url =
 	"/assets/frappe/js/frappe/document_queue_review.js";
 
 // Snapshot the queue name immediately on script load to survive Frappe's "New Document" redirect
-const initial_params = new URLSearchParams(window.location.search);
-if (initial_params.get("document_queue")) {
-	frappe.document_queue_review_loader.surviving_queue_name = initial_params.get("document_queue");
+const _initial_queue = frappe.utils.get_query_params().document_queue;
+if (_initial_queue) {
+	frappe.document_queue_review_loader.surviving_queue_name = _initial_queue;
 }
 
 frappe.document_queue_review_loader.load = function () {
@@ -40,7 +40,6 @@ frappe.document_queue_review_loader.has_pending_context = function (frm) {
 
 	const query_params = frappe.utils.get_query_params();
 	if (query_params.document_queue) {
-		frappe.document_queue_review_loader.surviving_queue_name = query_params.document_queue;
 		return true;
 	}
 
@@ -122,7 +121,7 @@ frappe.ui.form.on("*", {
 	},
 	before_save(frm) {
 		if (frm.doc.__document_queue_review_context) {
-			// Save the queue name so we can link it after the server reloads the document state
+			// Preserve queue_name across save so link_after_save can read it post-reload
 			if (frappe.document_queue_review) {
 				frappe.document_queue_review.saving_queue_name =
 					frm.doc.__document_queue_review_context.queue_name;
@@ -140,5 +139,3 @@ frappe.ui.form.on("*", {
 		}
 	},
 });
-
-

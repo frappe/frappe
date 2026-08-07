@@ -4,6 +4,7 @@ frappe.provide("frappe.document_queue_review");
 frappe.document_queue_review.width_storage_key = "frappe.document_queue_review.preview_width";
 frappe.document_queue_review.default_preview_width = 38;
 frappe.document_queue_review.reviewable_statuses = ["Ready for Review", "Failed"];
+frappe.document_queue_review.image_extensions = [".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"];
 
 frappe.document_queue_review.start_from_document_queue = async function (frm) {
 	if (!frappe.document_queue_review.reviewable_statuses.includes(frm.doc.status)) {
@@ -93,6 +94,7 @@ frappe.document_queue_review.fetch_context = function (document_queue) {
 };
 
 
+
 frappe.document_queue_review.is_upload_first_enabled = async function (doctype, frm) {
 	if (!doctype || doctype === "Document Queue") {
 		return false;
@@ -132,7 +134,7 @@ frappe.document_queue_review.is_upload_first_enabled = async function (doctype, 
 			}
 		}
 		return is_enabled;
-	} catch (e) {
+	} catch {
 		return false;
 	}
 };
@@ -149,43 +151,39 @@ frappe.document_queue_review.setup_upload_first = async function (frm) {
 		return;
 	}
 
-	frm.page?.inner_toolbar?.find(`button[data-label="${encodeURIComponent(__("Upload Document"))}"]`)?.remove();
-	frm.page?.wrapper?.find(".document-queue-upload-btn")?.remove();
+	frappe.document_queue_review.add_styles();
 
-	const $btn = frm.add_custom_button(
-		__("Upload Document"),
-		() => {
-			frappe.document_queue_review.open_upload_first_dialog(frm);
-		}
-	);
+	const $page = frm.page.wrapper.find(".page-body");
+	$page.find(".document-queue-upload-first").remove();
 
-	if ($btn && $btn.length) {
-		$btn.addClass("btn-default es-button document-queue-upload-btn");
-		$btn.css({
-			"display": "inline-flex",
-			"align-items": "center",
-			"gap": "6px",
-		});
-		if (!$btn.find("svg.icon").length) {
-			$btn.find(".button-label").before(frappe.utils.icon("upload", "sm") + " ");
-		}
-		if (frm.page.inner_toolbar) {
-			$btn.prependTo(frm.page.inner_toolbar.removeClass("hide"));
-		}
-	}
+	const $banner = $(`
+		<div class="document-queue-upload-first">
+			<div>
+				<div class="document-queue-upload-first-title">${__("Upload Document")}</div>
+				<div class="document-queue-upload-first-description">
+					${__("Upload one PDF or image before creating a draft.")}
+				</div>
+			</div>
+			<button class="btn btn-default btn-sm document-queue-upload-first-button" type="button">
+				${frappe.utils.icon("upload", "sm")}
+				<span>${__("Upload")}</span>
+			</button>
+		</div>
+	`);
 
-	frm.document_queue_upload_first_btn = $btn;
+	$banner.find(".document-queue-upload-first-button").on("click", () => {
+		frappe.document_queue_review.open_upload_first_dialog(frm);
+	});
+
+	$page.prepend($banner);
+	frm.document_queue_upload_first_banner = $banner;
 };
 
 frappe.document_queue_review.remove_upload_first = function (frm) {
-	frm?.document_queue_upload_first_btn?.remove();
-	frm.document_queue_upload_first_btn = null;
-	frm?.page?.inner_toolbar?.find(`button[data-label="${encodeURIComponent(__("Upload Document"))}"]`)?.remove();
-	frm?.page?.wrapper?.find(".document-queue-upload-btn")?.remove();
-	frm?.page?.remove_inner_button?.(__("Upload Document"));
 	frm?.document_queue_upload_first_banner?.remove();
 	frm.document_queue_upload_first_banner = null;
 	frm?.$wrapper?.find(".document-queue-upload-first").remove();
+	frm?.page?.wrapper?.find(".document-queue-upload-first").remove();
 };
 
 frappe.document_queue_review.open_upload_first_dialog = async function (frm) {
@@ -210,7 +208,7 @@ frappe.document_queue_review.open_upload_first_dialog = async function (frm) {
 };
 
 frappe.document_queue_review.create_upload_first_queue = async function (frm, file_name) {
-	frappe.dom.freeze(`<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;"><div class="es-spinner"></div><div>${__("Extracting document...")}</div></div>`);
+	frappe.dom.freeze(`<div class="document-queue-freeze-body"><div class="es-spinner"></div><div>${__("Extracting document...")}</div></div>`);
 	try {
 		const r = await frappe.call({
 			method: "frappe.core.doctype.document_queue.document_queue.create_upload_first_queue",
@@ -271,11 +269,8 @@ frappe.document_queue_review.wait_for_extraction = async function (context) {
 	let is_resolving = false;
 
 	const fetch_context = async () => {
-		const response = await frappe.call({
-			method: "frappe.core.doctype.document_queue.document_queue.get_document_review_context",
-			args: { document_queue: context.queue_name },
-		});
-		latest_context = response.message || latest_context;
+		const result = await frappe.document_queue_review.fetch_context(context.queue_name);
+		latest_context = result || latest_context;
 		return latest_context;
 	};
 
@@ -461,11 +456,10 @@ frappe.document_queue_review.render_panel = function (frm, context) {
 						<span class="collapse-indicator" tabindex="0">${json_icon}</span>
 					</div>
 					<div class="section-body ${open_sections.json ? "" : "hide"}">
-						<pre style="background-color: var(--control-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); font-size: var(--text-sm);">${frappe.utils.escape_html(formatted)}</pre>
-					</div>
+						<pre class="document-queue-review-json-pre">${frappe.utils.escape_html(formatted)}</pre>
 				</div>
 			`;
-		} catch (e) {
+		} catch {
 			// ignore JSON parse errors
 		}
 	}
@@ -683,7 +677,7 @@ frappe.document_queue_review.get_preview_markup = function (file_url, file_name)
 		return `<iframe class="document-queue-review-preview" src="${escaped_url}" title="${escaped_name}"></iframe>`;
 	}
 
-	if ([".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"].some((ext) => lower.endsWith(ext))) {
+	if (frappe.document_queue_review.image_extensions.some((ext) => lower.endsWith(ext))) {
 		return `<img class="document-queue-review-preview-image" src="${escaped_url}" alt="${escaped_name}">`;
 	}
 
@@ -698,7 +692,7 @@ frappe.document_queue_review.get_preview_type = function (file_url) {
 		return "pdf";
 	}
 
-	if ([".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"].some((ext) => lower.endsWith(ext))) {
+	if (frappe.document_queue_review.image_extensions.some((ext) => lower.endsWith(ext))) {
 		return "image";
 	}
 
@@ -749,8 +743,7 @@ frappe.document_queue_review.link_after_save = function (frm) {
 			};
 			frm.doc.__document_queue_review_context = updated_context;
 			delete frm.doc.__document_queue_name;
-			
-			// Clean up URL now that it's completed
+
 			const url = new URL(window.location.href);
 			if (url.searchParams.has("document_queue")) {
 				url.searchParams.delete("document_queue");
@@ -801,6 +794,19 @@ frappe.document_queue_review.refresh_form = async function (frm) {
 frappe.document_queue_review.add_styles = function () {
 	frappe.dom.set_style(
 		`
+		.document-queue-freeze-body {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+		}
+		.document-queue-review-json-pre {
+			background-color: var(--control-bg);
+			border: 1px solid var(--border-color);
+			border-radius: var(--border-radius-sm);
+			font-size: var(--text-sm);
+		}
 		.document-queue-upload-first {
 			display: flex;
 			align-items: center;
@@ -1007,16 +1013,4 @@ $(document).on("form-refresh", async function (event, frm) {
 	frappe.document_queue_review.setup_upload_first(frm);
 });
 
-frappe.ui.form.on("*", {
-	refresh(frm) {
-		frappe.document_queue_review.setup_upload_first(frm);
-	},
 
-	after_save(frm) {
-		return frappe.document_queue_review.link_after_save(frm);
-	},
-
-	on_submit(frm) {
-		return frappe.document_queue_review.link_after_save(frm);
-	},
-});
