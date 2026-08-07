@@ -238,10 +238,10 @@ class Workspace(Document, DeskViews):
 			frappe.throw(_("You need to be Workspace Manager to delete a public workspace."))
 
 	def delete_desktop_icon(self):
-		frappe.delete_doc_if_exists("Desktop Icon", self.title)
+		frappe.delete_doc_if_exists("Desktop Icon", self.name)
 
 	def delete_sidebar(self):
-		frappe.delete_doc_if_exists("Workspace Sidebar", self.title)
+		frappe.delete_doc_if_exists("Workspace Sidebar", self.name)
 
 	def after_delete(self):
 		if disable_saving_as_public():

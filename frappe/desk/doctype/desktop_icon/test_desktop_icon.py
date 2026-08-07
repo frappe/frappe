@@ -36,3 +36,21 @@ class IntegrationTestDesktopIcon(IntegrationTestCase):
 
 		self.assertIsNotNone(frappe.cache.hget("desktop_icons", "someone.else@example.com"))
 		self.assertIsNone(frappe.cache.hget("desktop_icons", frappe.session.user))
+
+	def test_icon_clears_only_the_grids_it_appears_on(self):
+		"""A user's own icon is on no one else's desk, so it must not evict their grids."""
+		other = "someone.else@example.com"
+		icon = frappe.new_doc("Desktop Icon")
+		icon.label = "Cache Scope Test"
+		icon.icon_type = "Link"
+
+		icon.standard = 0
+		icon.owner = "owner@example.com"
+		frappe.cache.hset("desktop_icons", other, [])
+		icon.clear_icon_cache()
+		self.assertIsNotNone(frappe.cache.hget("desktop_icons", other))
+
+		# an Administrator-owned icon is served to every user, so every grid goes
+		icon.owner = "Administrator"
+		icon.clear_icon_cache()
+		self.assertIsNone(frappe.cache.hget("desktop_icons", other))

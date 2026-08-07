@@ -50,9 +50,15 @@ class DesktopIcon(Document):
 			self.label = self.module_name
 
 	def on_trash(self):
-		clear_desktop_icons_cache()
+		self.clear_icon_cache()
 		if frappe.conf.developer_mode and self.standard and self.app:
 			delete_desktop_icon_file(self.app, self.label)
+
+	def clear_icon_cache(self):
+		if self.standard or self.owner == "Administrator":
+			clear_desktop_icons_cache()
+		else:
+			clear_desktop_icons_cache(user=self.owner)
 
 	def check_for_restrict_removal(self):
 		if self.restrict_removal:
@@ -60,7 +66,7 @@ class DesktopIcon(Document):
 
 	def on_update(self):
 		self.export_desktop_icon()
-		clear_desktop_icons_cache()
+		self.clear_icon_cache()
 
 	def after_rename(self, old, new, merge):
 		delete_desktop_icon_file(self.app, old)
@@ -99,7 +105,7 @@ class DesktopIcon(Document):
 	# 		return True
 
 	def after_insert(self):
-		clear_desktop_icons_cache()
+		self.clear_icon_cache()
 
 
 def delete_desktop_icon_file(app, label):
