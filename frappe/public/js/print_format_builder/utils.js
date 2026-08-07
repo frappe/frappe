@@ -48,11 +48,20 @@ export const TYPST_STYLE_PROPS = new Set([
 	"gap",
 ]);
 
-export function typst_blockers_client(print_format, layout) {
+export function typst_blockers_client(print_format, layout, letterhead) {
 	const blockers = [];
 	const add = (reason) => !blockers.includes(reason) && blockers.push(reason);
 	if (print_format?.custom_format) return [__("Custom HTML format")];
 	if ((print_format?.css || "").trim()) add(__("Custom CSS on the format"));
+	if (letterhead) {
+		if ((letterhead.custom_css || "").trim()) add(__("Letterhead with custom CSS"));
+		const header_is_image = letterhead.source === "Image" && letterhead.image;
+		if ((letterhead.content || "").trim() && !header_is_image)
+			add(__("Letterhead with HTML content"));
+		const footer_is_image = letterhead.footer_source === "Image" && letterhead.footer_image;
+		if ((letterhead.footer || "").trim() && !footer_is_image)
+			add(__("Letterhead footer with HTML content"));
+	}
 	const zones = [layout?.header, layout?.footer, ...(layout?.sections || [])];
 	for (const zone of zones) {
 		if (!zone || typeof zone !== "object") continue;

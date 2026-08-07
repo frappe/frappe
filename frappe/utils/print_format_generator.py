@@ -393,6 +393,7 @@ class PrintFormatGenerator:
 		from frappe.utils.typst_emitter import (
 			TypstEmitter,
 			ensure_typst_fonts,
+			letterhead_blockers,
 			typst_blockers,
 			typst_font_paths,
 		)
@@ -408,6 +409,9 @@ class PrintFormatGenerator:
 			)
 
 		blockers = typst_blockers(self.print_format, self.layout)
+		if self.letterhead:
+			# the letter head actually printing may differ from the layout's
+			blockers = list(dict.fromkeys(blockers + letterhead_blockers(self.letterhead.as_dict())))
 		if blockers:
 			frappe.throw(
 				_("This format can no longer render through Typst: {0}").format(", ".join(blockers)),

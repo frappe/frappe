@@ -200,6 +200,53 @@ class TestTypstGate(IntegrationTestCase):
 		self.assertIn("column-gutter: 7.5pt", source)
 		self.assertIn('stroke: (left: 0.6pt + rgb("#e5e7eb"))', source)
 
+	def test_image_letterhead_qualifies_and_is_emitted(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"_typst_lh_{frappe.generate_hash(length=6)}.png",
+				# 1x1 transparent png
+				"content": b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc\xf8\xff\xff?\x00\x05\xfe\x02\xfe\xa75\x81\x84\x00\x00\x00\x00IEND\xaeB`\x82",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(file.delete, ignore_permissions=True)
+		lh = frappe.get_doc(
+			{
+				"doctype": "Letter Head",
+				"letter_head_name": f"_Typst ImgLH {frappe.generate_hash(length=6)}",
+				"source": "Image",
+				"image": file.file_url,
+				"image_width": 200,
+				"align": "Center",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(lh.delete, ignore_permissions=True)
+
+		layout = layout_with({"fieldtype": "Data", "fieldname": "description", "label": "D"})
+		layout["letter_head"] = lh.name
+		self.assertEqual(typst_blockers(self.pf(), layout), [])
+
+		pf_doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Typst LHEmit {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": json.dumps(layout),
+			}
+		).insert()
+		self.addCleanup(pf_doc.delete, ignore_permissions=True)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "x"}).insert(ignore_permissions=True)
+		self.addCleanup(todo.delete, ignore_permissions=True)
+		emitter = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", todo.name), lh.name))
+		source, assets = emitter.emit()
+		self.assertIn("#align(center)[#image(", source)
+		self.assertIn("width: 150.0pt", source)
+		self.assertTrue(assets)
+
 	def test_letterhead_with_html_blocks(self):
 		lh = frappe.get_doc(
 			{

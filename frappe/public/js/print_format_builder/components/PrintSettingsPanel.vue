@@ -85,11 +85,13 @@ import { useStore } from "../stores";
 import { typst_blockers_client } from "../utils";
 
 let store = inject("$store");
-let { print_format } = useStore();
+let { print_format, letterhead } = useStore();
 
 let google_fonts = ref([]);
 
-let typst_blockers = computed(() => typst_blockers_client(print_format.value, store.layout.value));
+let typst_blockers = computed(() =>
+	typst_blockers_client(print_format.value, store.layout.value, letterhead.value)
+);
 let renderer = computed(() =>
 	print_format.value?.pdf_generator === "Typst" ? "Typst" : "chrome"
 );

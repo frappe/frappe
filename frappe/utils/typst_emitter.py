@@ -118,12 +118,13 @@ def typst_blockers(print_format, layout) -> list[str]:
 
 	letter_head = layout.get("letter_head")
 	if letter_head:
-		content, custom_css = frappe.db.get_value("Letter Head", letter_head, ["content", "custom_css"]) or (
-			None,
-			None,
+		lh = frappe.db.get_value(
+			"Letter Head",
+			letter_head,
+			["source", "image", "content", "custom_css", "footer_source", "footer", "footer_image"],
+			as_dict=True,
 		)
-		if (content or "").strip() or (custom_css or "").strip():
-			blockers.append(_("Letterhead with HTML content"))
+		blockers.extend(letterhead_blockers(lh))
 
 	seen = set()
 	for where, node in _walk(layout):
@@ -162,6 +163,22 @@ def _barcode_blocker(df, print_format):
 	if meta_df and is_qr_barcode_options(meta_df.options):
 		return None
 	return _("Barcode (non-QR)")
+
+
+def letterhead_blockers(lh) -> list[str]:
+	"""Image letter heads render natively; only HTML sides block."""
+	if not lh:
+		return []
+	blockers = []
+	if (lh.get("custom_css") or "").strip():
+		blockers.append(_("Letterhead with custom CSS"))
+	header_is_image = lh.get("source") == "Image" and lh.get("image")
+	if (lh.get("content") or "").strip() and not header_is_image:
+		blockers.append(_("Letterhead with HTML content"))
+	footer_is_image = lh.get("footer_source") == "Image" and lh.get("footer_image")
+	if (lh.get("footer") or "").strip() and not footer_is_image:
+		blockers.append(_("Letterhead footer with HTML content"))
+	return blockers
 
 
 def _image_blocker(df):
@@ -281,13 +298,52 @@ class TypstEmitter:
 		"""Render zones and body once; assets register as a side effect."""
 		if hasattr(self, "header_src"):
 			return
+		lh = getattr(self.generator, "letterhead", None)
 		header_zone = self.layout.get("header")
 		self.header_src = self._section(header_zone, zone=True) if isinstance(header_zone, dict) else ""
+		lh_header = self._letterhead_image(lh, "header")
+		if lh_header:
+			self.header_src = "\n".join(p for p in (lh_header, self.header_src) if p)
 		self.body_src = "\n".join(
 			part for part in (self._section(s) for s in self.layout.get("sections") or []) if part
 		)
 		footer_zone = self.layout.get("footer")
 		self.footer_src = self._section(footer_zone, zone=True) if isinstance(footer_zone, dict) else ""
+		lh_footer = self._letterhead_image(lh, "footer")
+		if lh_footer:
+			self.footer_src = "\n".join(p for p in (self.footer_src, lh_footer) if p)
+
+	def _letterhead_image(self, lh, side) -> str:
+		if not lh:
+			return ""
+		prefix = "" if side == "header" else "footer_"
+		if lh.get(f"{prefix}source") != "Image":
+			return ""
+		src = lh.get(f"{prefix}image")
+		if not src:
+			return ""
+		data = self._read_site_file(str(src))
+		if data is None:
+			frappe.throw(
+				_("The Typst renderer cannot embed this image: {0}").format(frappe.bold(str(src)[:100])),
+				title=_("Typst renderer unavailable"),
+			)
+		suffix = str(src).split("?", 1)[0].rsplit(".", 1)[-1].lower()
+		if suffix not in ("png", "jpg", "jpeg", "svg", "gif", "webp"):
+			suffix = "png"
+		name = self._asset(suffix, data)
+		args = [f'"{name}"']
+		width = frappe.utils.flt(lh.get(f"{prefix}image_width"))
+		height = frappe.utils.flt(lh.get(f"{prefix}image_height"))
+		if width:
+			args.append(f"width: {round(width * PX_TO_PT, 2)}pt")
+		elif height:
+			args.append(f"height: {round(height * PX_TO_PT, 2)}pt")
+		body = f"#image({', '.join(args)})"
+		align = (lh.get(f"{prefix}align") or "Left").lower()
+		if align in ("center", "right"):
+			body = f"#align({align})[{body}]"
+		return body
 
 	def measure_source(self) -> str:
 		"""A document whose only output is the measured height of each zone, read
