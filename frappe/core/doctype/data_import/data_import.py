@@ -288,7 +288,12 @@ def stop_data_import(doc_name: str):
 		{"status": "Error"},
 	)
 
-	frappe.publish_realtime("data_import_refresh", {"data_import": data_import.name})
+	frappe.publish_realtime(
+		"data_import_refresh",
+		{"data_import": data_import.name},
+		doctype="Data Import",
+		docname=data_import.name,
+	)
 	return {"status": "success", "message": _("Job stopped successfully")}
 
 
@@ -322,7 +327,12 @@ def start_import(data_import):
 	# A blocked run already published `data_import_blocked`, which reloads the doc client
 	# side; publishing refresh as well would make it reload twice.
 	if not (i and i.blocked_by_warnings):
-		frappe.publish_realtime("data_import_refresh", {"data_import": data_import.name})
+		frappe.publish_realtime(
+			"data_import_refresh",
+			{"data_import": data_import.name},
+			doctype="Data Import",
+			docname=data_import.name,
+		)
 
 
 @frappe.whitelist()
