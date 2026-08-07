@@ -342,11 +342,7 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 	if not ignore_user_permissions:
 		_throw(
 			_("The field {0} in {1} does not allow ignoring user permissions").format(
-<<<<<<< HEAD
-				bold(meta.get_label(link_fieldname)), bold(_(form_doctype))
-=======
 				bold(_(link_field.label or link_fieldname, context=field_doctype)), bold(_(field_doctype))
->>>>>>> d71b8964d9 (fix(search): handle dynamic links and missing doctypes in child table permission check)
 			)
 		)
 
@@ -361,13 +357,8 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 	if found_doctype != link_doctype:
 		_throw(
 			_("The field {0} in {1} links to {2} and not {3}").format(
-<<<<<<< HEAD
-				bold(meta.get_label(link_fieldname)),
-				bold(_(form_doctype)),
-=======
 				bold(_(link_field.label or link_fieldname, context=field_doctype)),
 				bold(_(field_doctype)),
->>>>>>> d71b8964d9 (fix(search): handle dynamic links and missing doctypes in child table permission check)
 				bold(_(found_doctype)),
 				bold(escape_html(link_doctype)),
 			)
