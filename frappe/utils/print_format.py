@@ -124,6 +124,43 @@ def _download_multi_pdf(
 
 	options = frappe.parse_json(options)
 
+	def print_into_writer(print_doctype, print_name):
+		"""Route one document into the shared writer — builder formats through the
+		generator (which dispatches Typst), everything else through get_print."""
+		from frappe.printing.doctype.print_format.classic_converter import (
+			get_default_print_format,
+			uses_beta_renderer,
+		)
+		from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
+		from frappe.www.printview import set_link_titles, validate_print
+
+		pf_doc = _print_format_doc_or_none(format)
+		if not ((pf_doc is None or uses_beta_renderer(pf_doc)) and resolve_pdf_generator(pf_doc) == "chrome"):
+			return frappe.get_print(
+				print_doctype,
+				print_name,
+				format,
+				as_pdf=True,
+				output=pdf_writer,
+				no_letterhead=no_letterhead,
+				letterhead=letterhead,
+				pdf_options=options,
+			)
+
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		doc = frappe.get_doc(print_doctype, print_name)
+		validate_print(doc)
+		set_link_titles(doc)
+		pf = pf_doc or get_default_print_format(print_doctype)
+		generator = PrintFormatGenerator(pf, doc, letterhead, no_letterhead=no_letterhead)
+		pdf = generator.render_pdf(password=(options or {}).get("password"))
+		for page in PdfReader(BytesIO(pdf)).pages:
+			pdf_writer.add_page(page)
+		return pdf_writer
+
 	if not isinstance(doctype, dict):
 		result = frappe.parse_json(name)
 		total_docs = len(result)
@@ -132,16 +169,7 @@ def _download_multi_pdf(
 		# Concatenating pdf files
 		for idx, ss in enumerate(result):
 			try:
-				pdf_writer = frappe.get_print(
-					doctype,
-					ss,
-					format,
-					as_pdf=True,
-					output=pdf_writer,
-					no_letterhead=no_letterhead,
-					letterhead=letterhead,
-					pdf_options=options,
-				)
+				pdf_writer = print_into_writer(doctype, ss)
 			except Exception:
 				if task_id:
 					frappe.publish_realtime(task_id=task_id, message={"message": "Failed"})
@@ -169,16 +197,7 @@ def _download_multi_pdf(
 			filename += f"{doctype_name}_"
 			for doc_name in doctype[doctype_name]:
 				try:
-					pdf_writer = frappe.get_print(
-						doctype_name,
-						doc_name,
-						format,
-						as_pdf=True,
-						output=pdf_writer,
-						no_letterhead=no_letterhead,
-						letterhead=letterhead,
-						pdf_options=options,
-					)
+					pdf_writer = print_into_writer(doctype_name, doc_name)
 				except Exception:
 					if task_id:
 						frappe.publish_realtime(task_id=task_id, message="Failed")
