@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 import threading
+import time
 
 from pydantic import ValidationError
 
@@ -45,7 +46,9 @@ class SessionLog:
 			next_seq = self._seq + 1
 			# default to the previous row; a rewound writer passes its own parent
 			parent_seq = event.parent_seq if event.parent_seq is not None else self._seq
-			persisted = event.model_copy(update={"seq": next_seq, "parent_seq": parent_seq})
+			persisted = event.model_copy(
+				update={"seq": next_seq, "parent_seq": parent_seq, "ts": time.time()}
+			)
 			data = (persisted.model_dump_json(exclude_none=True) + "\n").encode()
 			os.makedirs(os.path.dirname(self.path), mode=0o700, exist_ok=True)
 			fd = os.open(self.path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
@@ -66,6 +69,7 @@ class SessionLog:
 			self._seq = next_seq
 			event.seq = next_seq
 			event.parent_seq = parent_seq
+			event.ts = persisted.ts
 			return next_seq
 
 	def read_since(self, since: int) -> list[dict]:
