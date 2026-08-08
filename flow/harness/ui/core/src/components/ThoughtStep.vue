@@ -43,6 +43,14 @@ const expandable = computed(() => !props.block.redacted && !!props.block.thinkin
 const preview = computed(() => {
 	if (props.block.redacted) return "Thinking is encrypted for this model."
 	const text = props.block.thinking ?? ""
-	return text.split("\n").find((line) => line.trim()) ?? ""
+	const line = text.split("\n").find((l) => l.trim()) ?? ""
+	// markdown syntax is noise at one-line preview size; the panel renders it fully
+	return line
+		.replace(/^#{1,6}\s+/, "")
+		.replace(/\*\*([^*]+)\*\*/g, "$1")
+		.replace(/__([^_]+)__/g, "$1")
+		.replace(/\*([^*]+)\*/g, "$1")
+		.replace(/`([^`]+)`/g, "$1")
+		.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
 })
 </script>
