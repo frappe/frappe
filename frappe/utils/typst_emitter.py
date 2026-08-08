@@ -691,15 +691,18 @@ class TypstEmitter:
 		value_text = f"#text({', '.join(value_args)})"
 
 		align = df.get("align")
+		gap_effect = translate_custom_style(df.get("custom_style") or "")[0].get("gap")
 		if inline and label:
-			gap = df.get("label_gap")
-			gap_pt = round(frappe.utils.flt(gap) * PX_TO_PT, 2) if gap else 4
+			# same precedence as Data.html: custom_style gap overrides label_gap
+			gap_pt = gap_effect
+			if gap_pt is None:
+				gap = df.get("label_gap")
+				gap_pt = round(frappe.utils.flt(gap) * PX_TO_PT, 2) if gap else 4
 			if align in ("right",):
 				body = f"#grid(columns: (1fr, auto), column-gutter: {gap_pt}pt, [{label}], [#align(right)[{value_text}]])"
 			else:
 				body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
 			return body
-		gap_effect = translate_custom_style(df.get("custom_style") or "")[0].get("gap")
 		spacing = gap_effect if gap_effect is not None else 4
 		parts = [f"[{label}]"] if label else []
 		parts.append(f"[{value_text}]")

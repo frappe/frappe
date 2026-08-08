@@ -200,6 +200,38 @@ class TestTypstGate(IntegrationTestCase):
 		self.assertIn("column-gutter: 6.0pt", source)
 		self.assertIn('stroke: (left: 0.6pt + rgb("#e5e7eb"))', source)
 
+	def test_inline_label_gap_precedence_matches_html(self):
+		"""Data.html appends custom_style after the label_gap declaration, so a
+		custom gap wins; label_gap applies only when no custom gap is set."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		pf_doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Typst InlineGap {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": json.dumps(layout_with()),
+			}
+		).insert()
+		self.addCleanup(pf_doc.delete, ignore_permissions=True)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "gap"}).insert(ignore_permissions=True)
+		self.addCleanup(todo.delete, ignore_permissions=True)
+		emitter = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", todo.name)))
+
+		df = {
+			"fieldtype": "Data",
+			"fieldname": "description",
+			"label": "D",
+			"show_label": "inline",
+			"label_gap": 20,
+			"custom_style": "gap: 10px",
+		}
+		self.assertIn("column-gutter: 7.5pt", emitter._data_field({}, df))
+		df.pop("custom_style")
+		self.assertIn("column-gutter: 15.0pt", emitter._data_field({}, df))
+
 	def test_table_image_cells_embed_thumbnails(self):
 		"""Image columns render as images like Table.html, never as path text —
 		merged cells get the square cover thumb, plain columns the contained one,
