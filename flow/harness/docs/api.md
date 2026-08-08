@@ -118,7 +118,8 @@ to switch, use `POST /sessions/{sid}/model` before the run.
   `{"reason", "output", "usage", "pending", "approval_seq"}` (`output` = final
   assistant text; `pending` and `approval_seq` identify the approval batch if
   `reason=="paused"`). A model token-limit stop returns `reason=="length"` rather than
-  being reported as a completed answer.
+  being reported as a completed answer. `usage` contains `input_tokens`,
+  `output_tokens`, `cache_read_tokens`, and `cache_write_tokens`.
 - `409` if the session is paused; resolve that batch through `/resume` (or abandon it
   through `/cancel_pending`) before starting another run. A run that has already
   received `/abort` also rejects new steering with `409` instead of carrying it into a

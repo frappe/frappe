@@ -447,7 +447,7 @@ def _summary(session: Session, from_seq: int) -> dict:
 	usage totals, and any pending approval calls."""
 	text, reason, pending = "", "done", []
 	approval_seq = None
-	input_tokens = output_tokens = 0
+	input_tokens = output_tokens = cache_read_tokens = cache_write_tokens = 0
 	for row in session.log.read_since(from_seq):
 		t = row["type"]
 		if t == "assistant_message":
@@ -457,6 +457,8 @@ def _summary(session: Session, from_seq: int) -> dict:
 		elif t == "usage":
 			input_tokens += row.get("input_tokens", 0)
 			output_tokens += row.get("output_tokens", 0)
+			cache_read_tokens += row.get("cache_read_tokens", 0)
+			cache_write_tokens += row.get("cache_write_tokens", 0)
 		elif t == "approval_required":
 			pending = row.get("calls", [])
 			approval_seq = row.get("seq")
@@ -465,7 +467,12 @@ def _summary(session: Session, from_seq: int) -> dict:
 	return {
 		"reason": reason,
 		"output": text,
-		"usage": {"input_tokens": input_tokens, "output_tokens": output_tokens},
+		"usage": {
+			"input_tokens": input_tokens,
+			"output_tokens": output_tokens,
+			"cache_read_tokens": cache_read_tokens,
+			"cache_write_tokens": cache_write_tokens,
+		},
 		"pending": pending,
 		"approval_seq": approval_seq,
 	}
