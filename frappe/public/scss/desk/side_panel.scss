@@ -92,12 +92,7 @@ body.side-panel-resizing {
 
 .side-panel-doctype,
 .side-panel-sep {
-	color: var(--ink-gray-5);
 	white-space: nowrap;
-}
-
-.side-panel-title {
-	color: var(--ink-gray-8);
 }
 
 .side-panel-actions {
@@ -106,7 +101,6 @@ body.side-panel-resizing {
 }
 
 .side-panel-body {
-	flex: 1;
 	min-height: 0;
 	overflow-y: auto;
 	position: relative;
@@ -128,10 +122,6 @@ body.side-panel-resizing {
 	padding: var(--padding-xl);
 }
 
-.side-panel.is-loading .side-panel-doc {
-	visibility: hidden;
-}
-
 .side-panel-row-dialog {
 	.modal-dialog {
 		max-width: var(--page-max-width);
@@ -143,9 +133,24 @@ body.side-panel-resizing {
 	}
 }
 
-// Child-row dialog. Reuses the form's classes, so only the column row needs styling here —
-// the real .form-column gets its width from bootstrap's col-sm-* grid, which this doesn't use.
 .side-panel-detail {
+	.form-section {
+		padding: var(--padding-md);
+
+		&:not(:first-child) {
+			border-top: 1px solid var(--border-color);
+		}
+
+		.section-head {
+			padding: 0;
+			@include get_textstyle("lg", "medium");
+		}
+
+		.form-column:first-child {
+			padding-left: 0;
+		}
+	}
+
 	.section-body.side-panel-detail-columns {
 		display: flex;
 		flex-wrap: wrap;
@@ -153,14 +158,14 @@ body.side-panel-resizing {
 	}
 
 	.side-panel-detail-column {
-		flex: 1;
 		min-width: 220px;
 	}
-
-	// A Link inside the disabled pill should still read as a link.
 	.control-value.like-disabled-input a {
 		color: var(--text-color);
-		text-decoration: underline;
-		text-underline-offset: 2px;
+
+		&:hover {
+			text-decoration: underline;
+			text-underline-offset: 2px;
+		}
 	}
 }
