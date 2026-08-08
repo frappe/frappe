@@ -96,3 +96,4 @@ warm-up; memory is peak RSS of processes spawned for the render.
 | The very first print after a restart | 1325 ms | 672 ms |
 | Extra RAM used while printing | 257 MB | 39 MB |
 | Size of the PDF (same document) | 78 KB | 21 KB |
+| Bulk print, 10 documents (multi-PDF) | 8.0 s | 0.9 s |
