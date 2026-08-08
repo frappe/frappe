@@ -147,6 +147,8 @@ class Usage(_Event):
 	type: Literal["usage"] = "usage"
 	input_tokens: int = 0
 	output_tokens: int = 0
+	cache_read_tokens: int = 0
+	cache_write_tokens: int = 0
 	cost: float = 0.0
 	context_window: int | None = None
 

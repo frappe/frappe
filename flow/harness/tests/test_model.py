@@ -26,6 +26,7 @@ from flow.model.litellm import (
 	_reasoning_blocks,
 	_reasoning_field,
 	_stop_reason,
+	_usage_event,
 )
 from flow.model.providers.codex import CodexModel
 
@@ -506,3 +507,120 @@ def test_litellm_drops_results_answering_a_dropped_assistant_turn():
 	assert _openai_messages([aborted, repair], LiteLLMModel("openai/gpt"), "system") == [
 		{"role": "system", "content": "system"}
 	]
+
+
+def test_litellm_marks_cache_breakpoints_for_anthropic():
+	tools = [
+		{"type": "function", "function": {"name": "read_file", "parameters": {}}},
+		{"type": "function", "function": {"name": "bash", "parameters": {}}},
+	]
+	request = ModelRequest(messages=[UserMessage(content="hi")], tools=tools, system_prompt="system")
+
+	kwargs = LiteLLMModel("anthropic/claude")._completion_kwargs(request)
+
+	assert kwargs["messages"][0]["cache_control"] == {"type": "ephemeral"}
+	assert kwargs["messages"][-1]["cache_control"] == {"type": "ephemeral"}
+	assert "cache_control" not in kwargs["tools"][0]
+	assert kwargs["tools"][1]["cache_control"] == {"type": "ephemeral"}
+	assert "cache_control" not in tools[1]
+
+
+@pytest.mark.parametrize(
+	("name", "provider"),
+	[
+		("anthropic/claude", "gateway"),
+		("claude-sonnet-4-20250514", None),
+		("bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0", None),
+		("vertex_ai/claude-sonnet-4@20250514", None),
+		("openrouter/anthropic/claude-sonnet-4", None),
+		("openrouter/~anthropic/claude-sonnet-latest", None),
+		("openrouter/google/gemini-2.5-pro", None),
+		("openrouter/minimax/minimax-m2.5", None),
+		("azure_ai/claude-sonnet-4-5", None),
+		("databricks/databricks-claude-sonnet-4", None),
+	],
+)
+def test_litellm_marks_cache_breakpoints_from_the_wire_model(name, provider):
+	request = ModelRequest(messages=[UserMessage(content="hi")], system_prompt="system")
+
+	kwargs = LiteLLMModel(name, provider=provider)._completion_kwargs(request)
+
+	assert all(message["cache_control"] == {"type": "ephemeral"} for message in kwargs["messages"])
+
+
+def test_litellm_cache_breakpoint_lands_on_the_last_tool_result():
+	call = AssistantMessage(
+		content=[ToolCall(id="c1", name="bash", arguments={"command": "ls"})],
+		api="litellm",
+		provider="anthropic",
+		model="anthropic/claude",
+	)
+	result = ToolResult(tool_call_id="c1", name="bash", content="ok")
+	request = ModelRequest(messages=[UserMessage(content="hi"), call, result], system_prompt="system")
+
+	messages = LiteLLMModel("anthropic/claude")._completion_kwargs(request)["messages"]
+
+	assert messages[-1]["role"] == "tool"
+	assert messages[-1]["cache_control"] == {"type": "ephemeral"}
+	assert "cache_control" not in messages[1]
+
+
+@pytest.mark.parametrize(
+	"name",
+	[
+		"openai/gpt",
+		"vertex_ai/gemini-2.5-pro",
+		"openrouter/openai/gpt-5",
+		"databricks/databricks-meta-llama-3-3-70b-instruct",
+	],
+)
+def test_litellm_skips_cache_breakpoints_for_other_providers(name):
+	tools = [{"type": "function", "function": {"name": "bash", "parameters": {}}}]
+	request = ModelRequest(messages=[UserMessage(content="hi")], tools=tools, system_prompt="system")
+
+	kwargs = LiteLLMModel(name)._completion_kwargs(request)
+
+	assert all("cache_control" not in message for message in kwargs["messages"])
+	assert kwargs["tools"] is tools
+	assert "cache_control" not in tools[0]
+
+
+def test_usage_event_maps_anthropic_cache_fields():
+	usage = _usage_event(
+		{
+			"prompt_tokens": 120,
+			"completion_tokens": 5,
+			"cache_read_input_tokens": 100,
+			"cache_creation_input_tokens": 15,
+		},
+		cost=0.01,
+	)
+
+	assert (usage.input_tokens, usage.output_tokens) == (120, 5)
+	assert (usage.cache_read_tokens, usage.cache_write_tokens) == (100, 15)
+
+
+def test_usage_event_falls_back_to_prompt_tokens_details():
+	usage = _usage_event(
+		{
+			"prompt_tokens": 50,
+			"completion_tokens": 3,
+			"prompt_tokens_details": {"cached_tokens": 40, "cache_creation_tokens": 6},
+		},
+		cost=0.0,
+	)
+
+	assert (usage.cache_read_tokens, usage.cache_write_tokens) == (40, 6)
+
+
+def test_usage_event_maps_cache_write_tokens_detail():
+	usage = _usage_event(
+		{
+			"prompt_tokens": 50,
+			"completion_tokens": 3,
+			"prompt_tokens_details": {"cached_tokens": 40, "cache_write_tokens": 6},
+		},
+		cost=0.0,
+	)
+
+	assert (usage.cache_read_tokens, usage.cache_write_tokens) == (40, 6)

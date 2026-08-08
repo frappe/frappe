@@ -60,6 +60,13 @@ class StatusBar(Static):
 			f"↑{compact_number(state.input_tokens)}",
 			f"↓{compact_number(state.output_tokens)}",
 		]
+		if state.cache_read_tokens or state.cache_write_tokens:
+			cache = []
+			if state.cache_read_tokens:
+				cache.append(f"R{compact_number(state.cache_read_tokens)}")
+			if state.cache_write_tokens:
+				cache.append(f"W{compact_number(state.cache_write_tokens)}")
+			parts.append("⚡" + "/".join(cache))
 		if queued:
 			parts.append(f"{queued} queued")
 		if state.retry is not None:

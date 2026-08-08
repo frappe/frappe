@@ -70,6 +70,35 @@ def test_create_prompt_wait_and_entries(tmp_path):
 	assert types[-1] == "run_ended"
 
 
+def test_wait_summary_includes_cache_usage(tmp_path, monkeypatch):
+	class CacheUsageModel(Model):
+		async def run(self, request):
+			yield AssistantMessage(content="cached")
+			yield Usage(
+				input_tokens=100,
+				output_tokens=5,
+				cache_read_tokens=80,
+				cache_write_tokens=10,
+			)
+
+	monkeypatch.setattr("flow.agent.loop.get_model", lambda *args, **kwargs: CacheUsageModel())
+	c = _client(tmp_path)
+	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
+
+	usage = c.post(
+		f"/sessions/{sid}/run",
+		params={"wait": "true"},
+		json={"message": "hello"},
+	).json()["usage"]
+
+	assert usage == {
+		"input_tokens": 100,
+		"output_tokens": 5,
+		"cache_read_tokens": 80,
+		"cache_write_tokens": 10,
+	}
+
+
 def test_set_model_is_a_durable_entry_used_by_later_runs(tmp_path, monkeypatch):
 	resolved = []
 

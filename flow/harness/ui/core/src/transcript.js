@@ -26,7 +26,7 @@ export function initialConversation() {
 		pendingApproval: null, // { seq, calls: [PendingCall], answers: {id: string} }
 		model: null,
 		reasoningEffort: null,
-		usage: { input: 0, output: 0, cost: 0 },
+		usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0 },
 		contextTokens: 0,
 		latestSeq: 0,
 		lastError: null,
@@ -85,6 +85,8 @@ export function applyEvent(s, e) {
 		case "usage":
 			s.usage.input += e.input_tokens ?? 0
 			s.usage.output += e.output_tokens ?? 0
+			s.usage.cacheRead += e.cache_read_tokens ?? 0
+			s.usage.cacheWrite += e.cache_write_tokens ?? 0
 			s.usage.cost += e.cost ?? 0
 			if ((e.input_tokens ?? 0) + (e.output_tokens ?? 0) > 0)
 				s.contextTokens = (e.input_tokens ?? 0) + (e.output_tokens ?? 0)

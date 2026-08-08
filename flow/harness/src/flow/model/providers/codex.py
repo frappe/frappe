@@ -593,9 +593,13 @@ class _ResponseAssembler:
 		if isinstance(response, Mapping):
 			usage = response.get("usage")
 			if isinstance(usage, Mapping):
+				details = usage.get("input_tokens_details")
 				self.usage = Usage(
 					input_tokens=_integer(usage.get("input_tokens")),
 					output_tokens=_integer(usage.get("output_tokens")),
+					cache_read_tokens=_integer(details.get("cached_tokens"))
+					if isinstance(details, Mapping)
+					else 0,
 				)
 			self.response_id = _string(response.get("id")) or None
 			self.response_model = _string(response.get("model")) or None

@@ -230,7 +230,8 @@ async def test_streams_text_tools_and_usage():
 			(
 				'data: {"type":"response.completed","response":{"id":"resp_1",'
 				'"model":"gpt-concrete","usage":'
-				'{"input_tokens":12,"output_tokens":4}}}'
+				'{"input_tokens":12,"output_tokens":4,'
+				'"input_tokens_details":{"cached_tokens":9}}}}'
 			),
 			"data: [DONE]",
 		]
@@ -300,6 +301,7 @@ async def test_streams_text_tools_and_usage():
 	assert message.stop_reason == "tool_use"
 	assert events[-1].input_tokens == 12
 	assert events[-1].output_tokens == 4
+	assert events[-1].cache_read_tokens == 9
 
 
 async def test_parallel_tool_calls_are_not_duplicated_by_their_done_items():
