@@ -59,7 +59,7 @@
 				>{{ line }}</span></pre>
 				<pre
 					v-else
-					class="m-0 max-h-[200px] overflow-auto whitespace-pre px-3 py-2 font-mono text-2xs leading-[1.65] text-ink-gray-6"
+					class="m-0 max-h-[200px] overflow-y-auto whitespace-pre-wrap break-words px-3 py-2 font-mono text-2xs leading-[1.65] text-ink-gray-6"
 				>{{ output }}</pre>
 			</template>
 		</div>

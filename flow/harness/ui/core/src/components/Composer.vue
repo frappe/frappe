@@ -64,7 +64,7 @@
 				<textarea
 					ref="box"
 					v-model="text"
-					:rows="rows"
+					rows="1"
 					placeholder="Ask flow…"
 					class="max-h-40 min-h-[62px] w-full resize-none border-0 bg-transparent px-1.5 pt-1 text-base leading-relaxed text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 					@keydown="onKey"
@@ -236,6 +236,16 @@ watch(text, (value) => {
 	if (paletteView.value === "commands" && value && !value.startsWith("/")) paletteView.value = null
 })
 
+// grow with content (wrapped lines included) up to the CSS max-height, then scroll
+function autosize() {
+	const el = box.value
+	if (!el) return
+	el.style.height = "auto"
+	el.style.height = `${el.scrollHeight}px`
+}
+watch(text, () => nextTick(autosize))
+onMounted(autosize)
+
 // hands land on the keyboard, not the mouse: focus on load and whenever the
 // conversation changes (open, switch, new chat)
 onMounted(() => {
@@ -296,7 +306,6 @@ const currentMode = computed(() => {
 	if (!flow.state.sessionId) return flow.state.prefs.mode
 	return flow.state.session?.config?.auto_approve ? "auto" : "ask"
 })
-const rows = computed(() => Math.min(6, Math.max(1, text.value.split("\n").length)))
 
 const currentModel = computed(() => flow.state.conversation.model ?? flow.state.prefs.lastModel)
 const currentEffort = computed(

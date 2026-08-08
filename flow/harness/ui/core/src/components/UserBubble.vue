@@ -5,7 +5,11 @@
 		<div
 			class="flow-prose max-w-[76%] whitespace-pre-wrap rounded-xl bg-surface-gray-2 px-3.5 py-2.5 text-ink-gray-9"
 		>{{ entry.content }}</div>
-		<span class="absolute bottom-0 right-0.5 flex gap-1">
+		<span class="absolute bottom-0 right-0.5 flex items-center gap-1">
+			<span
+				v-if="time"
+				class="mr-1 text-2xs text-ink-gray-4 opacity-0 transition-opacity group-hover:opacity-100"
+			>{{ time }}</span>
 			<button
 				title="Rewind to this message"
 				class="grid h-6 w-6 place-items-center rounded-md text-ink-gray-4 opacity-0 transition-opacity hover:bg-surface-gray-2 hover:text-ink-gray-8 focus-visible:opacity-100 group-hover:opacity-100"
@@ -22,14 +26,16 @@
 </template>
 
 <script setup>
-import { inject } from "vue"
+import { computed, inject } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
+import { formatTime } from "../transcript.js"
 import CopyButton from "./CopyButton.vue"
 
 const props = defineProps({ entry: { type: Object, required: true } })
 const flow = inject("flow")
+const time = computed(() => formatTime(props.entry.ts))
 
 function confirmRewind() {
 	dialog.confirm({

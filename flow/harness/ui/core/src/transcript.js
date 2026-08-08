@@ -299,9 +299,10 @@ export function buildItems(conversation) {
 	const result = []
 	let turnTexts = []
 	let copyKey = null
+	let copyTs = null
 	const flushCopy = () => {
 		if (turnTexts.length) {
-			result.push({ kind: "turn-copy", key: `tc:${copyKey}`, text: turnTexts.join("\n\n") })
+			result.push({ kind: "turn-copy", key: `tc:${copyKey}`, text: turnTexts.join("\n\n"), ts: copyTs })
 		}
 		turnTexts = []
 	}
@@ -317,6 +318,7 @@ export function buildItems(conversation) {
 			if (item.kind === "text") {
 				turnTexts.push(item.block.text)
 				copyKey = item.key
+				copyTs = item.entry.ts ?? null
 			}
 		}
 	}
@@ -329,6 +331,15 @@ export function conversationTitle(conversation) {
 	if (!first) return null
 	const line = first.content.split("\n")[0].trim()
 	return line.length > 80 ? line.slice(0, 77) + "…" : line
+}
+
+// unix seconds → "14:32", with a date prefix once it's no longer today
+export function formatTime(ts) {
+	if (!ts) return ""
+	const d = new Date(ts * 1000)
+	const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+	if (d.toDateString() === new Date().toDateString()) return time
+	return `${d.toLocaleDateString([], { month: "short", day: "numeric" })}, ${time}`
 }
 
 export function formatTokens(n) {

@@ -34,7 +34,7 @@
 				<!-- the latest turn's copy button stays visible; older ones hover-reveal -->
 				<div
 					v-else-if="item.kind === 'turn-copy'"
-					class="-mt-3 flex"
+					class="-mt-3 flex items-center gap-2"
 					:class="i === lastTurnCopyIndex ? '' : 'flow-turn-copy'"
 				>
 					<CopyButton
@@ -42,6 +42,7 @@
 						title="Copy response"
 						class="grid h-6 w-6 place-items-center rounded-md text-ink-gray-4 hover:bg-surface-gray-2 hover:text-ink-gray-8"
 					/>
+					<span v-if="formatTime(item.ts)" class="text-2xs text-ink-gray-4">{{ formatTime(item.ts) }}</span>
 				</div>
 				<ApprovalCard v-else-if="item.kind === 'approval'" :calls="item.calls" :seq="item.seq" />
 				<div
@@ -70,11 +71,6 @@
 
 			<!-- live region: at most one status element. During a tool phase the
 			     unsealed group above renders the in-place line, so nothing here. -->
-			<ThinkingBlock
-				v-if="conversation.partialThinking && !lastIsOpenGroup"
-				:block="{ thinking: conversation.partialThinking }"
-				live
-			/>
 			<!-- streaming text; a whitespace-only partial renders nothing.
 			     computed: re-parse per token only, not on unrelated re-renders -->
 			<div
@@ -82,10 +78,9 @@
 				class="flow-md flow-prose text-ink-gray-8"
 				v-html="streamingHtml"
 			/>
-			<div
-				v-if="conversation.liveLabel && !conversation.partialThinking && !lastIsOpenGroup"
-				class="text-sm font-medium"
-			>
+			<!-- streamed thinking never renders as its own block — the status line
+			     says "Thinking…" and the thought lands durably in its group -->
+			<div v-if="conversation.liveLabel && !lastIsOpenGroup" class="text-sm font-medium">
 				<span class="flow-shimmer">{{ conversation.liveLabel }}</span>
 			</div>
 
@@ -109,7 +104,7 @@ import { computed, inject, nextTick, ref, watch } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
 import { renderMarkdown } from "../markdown.js"
-import { buildItems } from "../transcript.js"
+import { buildItems, formatTime } from "../transcript.js"
 import ApprovalCard from "./ApprovalCard.vue"
 import AssistantText from "./AssistantText.vue"
 import BrandMark from "./BrandMark.vue"
@@ -135,12 +130,10 @@ const streamingHtml = computed(() => {
 	const text = conversation.value.partialText
 	return text.trim() ? renderMarkdown(text) : ""
 })
+const lastIsGroup = computed(() => items.value[items.value.length - 1]?.kind === "group")
 // a running tool phase: the trailing group renders the single live line
 const lastIsOpenGroup = computed(
-	() =>
-		conversation.value.running &&
-		!hasPartialText.value &&
-		items.value[items.value.length - 1]?.kind === "group",
+	() => conversation.value.running && !hasPartialText.value && lastIsGroup.value,
 )
 
 const scroller = ref(null)

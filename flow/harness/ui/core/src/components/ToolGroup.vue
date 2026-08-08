@@ -21,7 +21,7 @@
 		<div
 			v-if="open"
 			ref="panelEl"
-			class="mt-2 overflow-hidden rounded-[10px] border border-outline-gray-1 bg-surface-gray-1"
+			class="mt-2 max-h-[420px] overflow-y-auto rounded-[10px] border border-outline-gray-1 bg-surface-gray-1"
 		>
 			<template v-for="(step, i) in steps" :key="step.call ? step.call.id : `thought-${i}`">
 				<ThoughtStep
