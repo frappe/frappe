@@ -71,11 +71,6 @@
 
 			<!-- live region: at most one status element. During a tool phase the
 			     unsealed group above renders the in-place line, so nothing here. -->
-			<ThinkingBlock
-				v-if="conversation.partialThinking && !lastIsOpenGroup"
-				:block="{ thinking: conversation.partialThinking }"
-				live
-			/>
 			<!-- streaming text; a whitespace-only partial renders nothing.
 			     computed: re-parse per token only, not on unrelated re-renders -->
 			<div
@@ -83,10 +78,9 @@
 				class="flow-md flow-prose text-ink-gray-8"
 				v-html="streamingHtml"
 			/>
-			<div
-				v-if="conversation.liveLabel && !conversation.partialThinking && !lastIsOpenGroup"
-				class="text-sm font-medium"
-			>
+			<!-- streamed thinking never renders as its own block — the status line
+			     says "Thinking…" and the thought lands durably in its group -->
+			<div v-if="conversation.liveLabel && !lastIsOpenGroup" class="text-sm font-medium">
 				<span class="flow-shimmer">{{ conversation.liveLabel }}</span>
 			</div>
 
@@ -136,12 +130,10 @@ const streamingHtml = computed(() => {
 	const text = conversation.value.partialText
 	return text.trim() ? renderMarkdown(text) : ""
 })
+const lastIsGroup = computed(() => items.value[items.value.length - 1]?.kind === "group")
 // a running tool phase: the trailing group renders the single live line
 const lastIsOpenGroup = computed(
-	() =>
-		conversation.value.running &&
-		!hasPartialText.value &&
-		items.value[items.value.length - 1]?.kind === "group",
+	() => conversation.value.running && !hasPartialText.value && lastIsGroup.value,
 )
 
 const scroller = ref(null)
