@@ -34,7 +34,7 @@
 				<!-- the latest turn's copy button stays visible; older ones hover-reveal -->
 				<div
 					v-else-if="item.kind === 'turn-copy'"
-					class="-mt-3 flex"
+					class="-mt-3 flex items-center gap-2"
 					:class="i === lastTurnCopyIndex ? '' : 'flow-turn-copy'"
 				>
 					<CopyButton
@@ -42,6 +42,7 @@
 						title="Copy response"
 						class="grid h-6 w-6 place-items-center rounded-md text-ink-gray-4 hover:bg-surface-gray-2 hover:text-ink-gray-8"
 					/>
+					<span v-if="formatTime(item.ts)" class="text-2xs text-ink-gray-4">{{ formatTime(item.ts) }}</span>
 				</div>
 				<ApprovalCard v-else-if="item.kind === 'approval'" :calls="item.calls" :seq="item.seq" />
 				<div
@@ -109,7 +110,7 @@ import { computed, inject, nextTick, ref, watch } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
 import { renderMarkdown } from "../markdown.js"
-import { buildItems } from "../transcript.js"
+import { buildItems, formatTime } from "../transcript.js"
 import ApprovalCard from "./ApprovalCard.vue"
 import AssistantText from "./AssistantText.vue"
 import BrandMark from "./BrandMark.vue"
