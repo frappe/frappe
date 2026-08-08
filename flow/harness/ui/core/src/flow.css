@@ -108,14 +108,13 @@
 	}
 }
 
-/* Message body copy. The UI type scale (letter-spacing .02em, weight 420) is
-   tuned for chrome — labels and buttons — and reads loose and thin at
-   paragraph length, so prose gets its own metrics. */
+/* Conversation typography. */
 .flow-prose {
-	font-size: 16px;
+	/* font-family: Inter; */
+	font-size: 15.5px;
 	line-height: 1.72;
-	font-weight: 400;
-	letter-spacing: -0.003em;
+	font-weight: 430;
+	letter-spacing: normal;
 }
 
 /* rendered markdown */
