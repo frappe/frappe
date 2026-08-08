@@ -66,6 +66,19 @@
 		</InspectorSection>
 
 		<InspectorSection :label="__('Layout')" :init-open="false">
+			<div class="pfb-insp-row">
+				<span class="pfb-insp-label">{{ __("Justify") }}</span>
+				<select
+					class="pfb-insp-select"
+					:value="section_justify"
+					@change="set_justify($event.target.value)"
+				>
+					<option value="">{{ __("Normal") }}</option>
+					<option v-for="mode in Object.keys(JUSTIFY_CLASSES)" :key="mode" :value="mode">
+						{{ justify_labels[mode] }}
+					</option>
+				</select>
+			</div>
 			<SegmentedRow
 				:label="__('Mode')"
 				:model-value="section_field_borders"
@@ -124,6 +137,7 @@ import StyleSection from "./StyleSection.vue";
 import ToggleRow from "./ToggleRow.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { mountColorControl } from "./useColorControl";
+import { JUSTIFY_CLASSES } from "../../utils";
 
 let store = inject("$store");
 
@@ -134,6 +148,23 @@ const spacing_props = [
 	{ key: "margin", label: __("Margin") },
 ];
 let preview_doc = computed(() => store.preview_doc.value);
+
+const justify_labels = {
+	"space-between": __("Space Between"),
+	"space-evenly": __("Space Evenly"),
+	center: __("Center"),
+	"right-end": __("Right"),
+};
+
+let section_justify = computed(() => selected_section.value?.justify ?? "");
+
+function set_justify(value) {
+	if (value) {
+		selected_section.value.justify = value;
+	} else {
+		delete selected_section.value.justify;
+	}
+}
 
 let section_orientation = computed(() => selected_section.value?.field_orientation ?? "");
 let section_gap = computed(() => selected_section.value?.gap ?? 20);

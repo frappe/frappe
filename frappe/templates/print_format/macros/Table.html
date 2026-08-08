@@ -14,7 +14,7 @@
 	{%- set _show_label = df.show_label if df.show_label else 'show' -%}
 	{% if df.label and _show_label != 'hide' %}
 	<div class="label">
-		{{ _(df.label) }}
+		{{ _(df.label)|e }}
 	</div>
 	{% endif %}
 	<table class="table"{% if _frame_style %} style="{{ _frame_style|e }}"{% endif %}>
@@ -25,7 +25,7 @@
 				{% for column in columns %}
 				{%- set _merged_col = column.merged_fields and column.merged_fields|length > 0 -%}
 				<th class="column-header{% if _merged_col %} column-value--merged{% endif %}" width="{{ column.width }}%"{% if _cell_style %} style="{{ _cell_style|e }}"{% endif %} {{ field_attributes(column) }}>
-					{{ _(column.label or column.fieldname) }}
+					{{ _(column.label or column.fieldname)|e }}
 				</th>
 				{% endfor %}
 			</tr>

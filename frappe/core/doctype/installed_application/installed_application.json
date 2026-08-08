@@ -7,8 +7,12 @@
   "app_name",
   "app_version",
   "git_branch",
+  "column_break_gfzc",
   "has_setup_wizard",
-  "is_setup_complete"
+  "is_setup_complete",
+  "disabled",
+  "disable_application",
+  "enable_application"
  ],
  "fields": [
   {
@@ -51,12 +55,37 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Is Setup Complete?"
+  },
+  {
+   "columns": 2,
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Disabled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_gfzc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:!doc.disabled && doc.app_name !== 'frappe'",
+   "fieldname": "disable_application",
+   "fieldtype": "Button",
+   "label": "Disable Application"
+  },
+  {
+   "depends_on": "eval:doc.disabled",
+   "fieldname": "enable_application",
+   "fieldtype": "Button",
+   "label": "Enable Application"
   }
  ],
  "grid_page_length": 50,
  "istable": 1,
  "links": [],
- "modified": "2025-05-27 12:26:49.523690",
+ "modified": "2026-08-04 12:40:02.195703",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Installed Application",

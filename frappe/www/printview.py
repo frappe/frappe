@@ -99,6 +99,7 @@ def get_context(context) -> PrintContext:
 			name=frappe.form_dict.name,
 			print_format=print_format,
 			letterhead=letterhead,
+			no_letterhead=frappe.form_dict.no_letterhead,
 			style=frappe.form_dict.style,
 			trigger_print=cint(frappe.form_dict.trigger_print),
 			action_banner=frappe.render_template("templates/print_formats/print_action_banner.html", context),
@@ -139,12 +140,21 @@ def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" 
 
 	if print_format_name == "Standard":
 		return None
-	else:
+
+	def fetch(name):
 		try:
-			return frappe.get_doc("Print Format", print_format_name)
+			return frappe.get_doc("Print Format", name)
 		except frappe.DoesNotExistError:
-			# if old name, return standard!
+			frappe.clear_last_message()
 			return None
+
+	# a renamed or deleted format — or a caller interpolating a missing name into
+	# the url — resolves to the doctype's default, like an omitted name does
+	if doc := fetch(print_format_name):
+		return doc
+	if meta.default_print_format in (None, "", "Standard", print_format_name):
+		return None
+	return fetch(meta.default_print_format)
 
 
 def resolve_print_format(print_format_name: "str | None", meta: "Meta") -> tuple["PrintFormat", bool]:
@@ -336,8 +346,9 @@ def get_html_and_style(
 		generator = PrintFormatGenerator(
 			print_format,
 			document,
-			None if no_letterhead else letterhead,
+			letterhead,
 			settings=frappe.parse_json(settings),
+			no_letterhead=no_letterhead,
 		)
 		html = generator.get_html_preview()
 	else:

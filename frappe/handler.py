@@ -74,6 +74,8 @@ def execute_cmd(cmd, from_async=False):
 
 	try:
 		method = get_attr(cmd)
+	except frappe.AppNotInstalledError:
+		raise
 	except Exception as e:
 		frappe.throw(_("Failed to get method for command {0} with {1}").format(cmd, str(e)))
 

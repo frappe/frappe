@@ -353,7 +353,8 @@ const preview_root = computed(() => {
 	if (df.fieldtype === "Repeater") return { classes: ["pfb-repeater"], style: custom };
 	if (df.fieldtype === "HTML") return { classes: ["custom-html"], style: custom };
 	if (df.fieldtype === "Field Template") return { classes: ["field-template"], style: custom };
-	if (df.fieldtype === "Spacer") return { classes: [], style: { height: "1em", ...custom } };
+	if (df.fieldtype === "Spacer")
+		return { classes: [], style: { height: df.height ? `${df.height}px` : "1em", ...custom } };
 	if (df.fieldtype === "Divider") {
 		return {
 			classes: [],

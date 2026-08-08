@@ -737,6 +737,12 @@ def transform_database(context: CliCtxObj, table, engine, row_format, failfast):
 
 @click.command("serve")
 @click.option("--port", default=8000)
+@click.option(
+	"--host",
+	"bind_addr",
+	default=None,
+	help="Address to bind the development server to. Defaults to 127.0.0.1, use 0.0.0.0 to expose it on all interfaces.",
+)
 @click.option("--profile", is_flag=True, default=False)
 @click.option(
 	"--proxy",
@@ -751,6 +757,7 @@ def transform_database(context: CliCtxObj, table, engine, row_format, failfast):
 def serve(
 	context: CliCtxObj,
 	port=None,
+	bind_addr=None,
 	profile=False,
 	proxy=False,
 	no_reload=False,
@@ -773,6 +780,7 @@ def serve(
 			no_reload = True
 		frappe.app.serve(
 			port=port,
+			bind_addr=bind_addr,
 			profile=profile,
 			proxy=proxy,
 			no_reload=no_reload,

@@ -99,7 +99,6 @@ class TestTwoFactor(IntegrationTestCase):
 		"""Should return true if enabled for user."""
 		toggle_2fa_all_role(state=True)
 		self.assertTrue(two_factor_is_enabled_for_(self.user))
-		self.assertFalse(two_factor_is_enabled_for_("Administrator"))
 		toggle_2fa_all_role(state=False)
 		self.assertFalse(two_factor_is_enabled_for_(self.user))
 

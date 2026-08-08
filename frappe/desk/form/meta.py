@@ -4,6 +4,7 @@ import os
 
 import frappe
 from frappe import _
+from frappe.app_state import get_disabled_modules
 from frappe.build import scrub_html_template
 from frappe.model.meta import Meta
 from frappe.model.utils import render_include
@@ -142,10 +143,14 @@ class FormMeta(Meta):
 	def add_custom_script(self):
 		"""embed all require files"""
 		# custom script
+		filters = {"dt": self.name, "enabled": 1}
+		if disabled_modules := get_disabled_modules():
+			filters["module"] = ["not in", list(disabled_modules)]
+
 		client_scripts = (
 			frappe.get_all(
 				"Client Script",
-				filters={"dt": self.name, "enabled": 1},
+				filters=filters,
 				fields=["name", "script", "view"],
 				order_by="creation asc",
 			)
@@ -203,7 +208,7 @@ class FormMeta(Meta):
 			WHERE doc_type=%s AND docstatus<2 and disabled=0""",
 			(self.name,),
 			as_dict=1,
-			update={"doctype": "Print Format"},
+			update={"doctype": ":Print Format"},
 		)
 
 		self.set("__print_formats", print_formats)
@@ -284,7 +289,7 @@ class FormMeta(Meta):
 
 def get_code_files_via_hooks(hook, name):
 	code_files = []
-	for app_name in frappe.get_installed_apps():
+	for app_name in frappe.get_active_apps():
 		code_hook = frappe.get_hooks(hook, default={}, app_name=app_name)
 		if not code_hook:
 			continue

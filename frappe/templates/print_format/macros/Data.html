@@ -10,7 +10,7 @@
 <div class="field {{ _orientation }}{% if _inline and _orientation != 'left-right' %} field-inline{% endif %}{% if _align %} field-align-{{ _align }}{% endif %}{% if _justify and _orientation == 'left-right' and _align not in ('center', 'right') %} field-justify-{{ _justify }}{% endif %}" {% if _fstyle %}style="{{ _fstyle|e }}"{% endif %} {{ field_attributes(df) }}>
 	{%- block label -%}
 	{%- if _show_label != 'hide' -%}
-	<div class="label"{% if _lbl_style %} style="{{ _lbl_style|e }}"{% endif %}>{{ _(df.label) }}</div>
+	<div class="label"{% if _lbl_style %} style="{{ _lbl_style|e }}"{% endif %}>{{ _(df.label)|e }}</div>
 	{%- endif -%}
 	{%- endblock -%}
 	{%- block value -%}

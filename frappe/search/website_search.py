@@ -112,7 +112,7 @@ def slugs_with_web_view(_items_to_index):
 def get_static_pages_from_all_apps():
 	from glob import glob
 
-	apps = frappe.get_installed_apps()
+	apps = frappe.get_active_apps()
 
 	routes_to_index = []
 	for app in apps:

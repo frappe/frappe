@@ -479,6 +479,115 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		html = generator._render_zone_section(section, todo)
 		self.assertFalse(html.strip())
 
+	def test_letterhead_resolution_precedence(self):
+		"""Beta renders resolve a letter head like templates do, with the layout's own choice on top."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		def make_lh(is_default=0):
+			lh = frappe.get_doc(
+				{
+					"doctype": "Letter Head",
+					"letter_head_name": f"_Test LH {frappe.generate_hash(length=6)}",
+					"source": "HTML",
+					"content": "<p>letterhead</p>",
+					"is_default": is_default,
+				}
+			).insert(ignore_permissions=True)
+			self.addCleanup(lh.delete, ignore_permissions=True)
+			return lh.name
+
+		site_default, from_layout, explicit = make_lh(is_default=1), make_lh(), make_lh()
+		pf = self._make_print_format()
+		todo = self._make_todo()
+
+		def resolved(**kwargs):
+			return (PrintFormatGenerator(pf.name, todo, **kwargs).letterhead or {}).get("name")
+
+		# nothing named anywhere: the site default, as templates do
+		self.assertEqual(resolved(no_letterhead=0), site_default)
+		self.assertIsNone(resolved(no_letterhead=1))
+
+		# the document's own field outranks the site default
+		todo.letter_head = from_layout
+		self.assertEqual(resolved(no_letterhead=0), from_layout)
+		todo.letter_head = None
+
+		# a layout that names one outranks the document
+		layout = json.loads(pf.format_data)
+		layout["letter_head"] = from_layout
+		pf.db_set("format_data", json.dumps(layout), update_modified=False)
+		frappe.clear_cache()
+		self.assertEqual(resolved(no_letterhead=0), from_layout)
+
+		# an explicit argument outranks everything, and "no" still wins
+		self.assertEqual(resolved(letterhead=explicit, no_letterhead=0), explicit)
+		self.assertIsNone(resolved(letterhead=explicit, no_letterhead=1))
+
+		# a deleted letter head degrades instead of raising
+		todo.letter_head = "_Test LH Deleted"
+		layout.pop("letter_head")
+		pf.db_set("format_data", json.dumps(layout), update_modified=False)
+		frappe.clear_cache()
+		self.assertIsNone(resolved(no_letterhead=0))
+
+	def test_download_pdf_without_format_uses_the_doctype_default(self):
+		"""An omitted print_format means the doctype's default, matching
+		frappe.utils.print_format.download_pdf; "Standard" means the built-in one."""
+		from unittest.mock import patch
+
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+		from frappe.utils.print_format_generator import PrintFormatGenerator, download_pdf
+
+		todo = self._make_todo()
+		classic = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test Default Classic {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"custom_format": 1,
+				"html": "<div>classic</div>",
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", classic.name, force=True)
+		ps = make_property_setter(
+			"ToDo", None, "default_print_format", classic.name, "Data", for_doctype=True
+		)
+		self.addCleanup(frappe.delete_doc, "Property Setter", ps.name, force=True)
+		self.addCleanup(frappe.clear_cache, doctype="ToDo")
+		frappe.clear_cache(doctype="ToDo")
+
+		with patch("frappe.utils.print_format.download_pdf") as jinja:
+			download_pdf("ToDo", todo.name)
+		self.assertEqual(jinja.call_args.kwargs["format"], classic.name)
+
+		with (
+			patch("frappe.utils.print_format.download_pdf") as jinja,
+			patch.object(PrintFormatGenerator, "render_pdf", return_value=b""),
+		):
+			download_pdf("ToDo", todo.name, print_format="Standard")
+		jinja.assert_not_called()
+
+	def test_section_justify_only_emits_known_modes(self):
+		"""justify names a CSS class, so a layout can't smuggle markup through it."""
+		from frappe.utils.print_format_generator import get_html
+
+		layout = {
+			"sections": [
+				{"justify": 'x" onmouseover="alert(1)', "columns": [{"fields": []}]},
+				{
+					"justify": "space-between",
+					"columns": [{"fields": [{"fieldtype": "Data", "fieldname": "description"}]}],
+				},
+			],
+			"header": {"justify": 'x" onmouseover="alert(1)', "columns": [{"fields": []}]},
+			"footer": {"columns": [{"fields": []}]},
+		}
+		pf = self._make_print_format(format_data=json.dumps(layout))
+		html = get_html("ToDo", self._make_todo().name, pf.name)
+
+		self.assertNotIn("onmouseover", html)
+		self.assertIn("row-col-space-between", html)
+
 	def test_section_background_in_html(self):
 		"""A section with a background color should have that style in the HTML output."""
 		from frappe.utils.print_format_generator import get_html
@@ -1370,15 +1479,22 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("LETTERHEAD_BOTTOM", tfoot)
 
 	def test_empty_beta_format_renders_via_beta_renderer(self):
-		"""A beta format with empty format_data (e.g. create_custom_format based_on
-		'Standard') must route to the beta renderer, not fall through to the removed
-		classic standard.html and raise TemplateNotFoundError."""
+		"""A beta format with empty format_data must route to the beta renderer, not
+		fall through to the removed classic standard.html and raise
+		TemplateNotFoundError."""
 		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
-		from frappe.printing.doctype.print_format.print_format import create_custom_format
 		from frappe.utils.print_format_generator import get_html
 
 		todo = self._make_todo()
-		pf = create_custom_format("ToDo", f"_Test PFG Empty {frappe.generate_hash(length=6)}")
+		pf = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test PFG Empty {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": "",
+			}
+		).insert()
 		self.addCleanup(pf.delete, ignore_permissions=True)
 
 		self.assertTrue(pf.print_format_builder_beta)
@@ -1386,6 +1502,14 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertTrue(uses_beta_renderer(pf))
 		html = get_html("ToDo", todo.name, pf.name)
 		self.assertIn("print-format-doc", html)
+
+	def test_new_format_is_seeded_with_the_default_layout(self):
+		"""Nothing should print blank before its first Save & Apply."""
+		from frappe.printing.doctype.print_format.print_format import create_custom_format
+
+		pf = create_custom_format("ToDo", f"_Test PFG Seeded {frappe.generate_hash(length=6)}")
+		self.addCleanup(pf.delete, ignore_permissions=True)
+		self.assertTrue(frappe.parse_json(pf.format_data).get("sections"))
 
 	def test_browser_print_no_repeating_frame_when_off(self):
 		"""With repeat_header_footer off, the browser-print HTML is not wrapped in the
@@ -1401,7 +1525,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertNotIn("print-repeating-frame", html)
 		self.assertIn("LETTERHEAD_TOP", html)
 
-	def _user_beta_format(self, layout):
+	def _user_beta_format(self, layout, skip_validation=False):
 		import json
 
 		pf = frappe.get_doc(
@@ -1414,7 +1538,10 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 				"standard": "No",
 				"format_data": json.dumps(layout),
 			}
-		).insert(ignore_permissions=True)
+		)
+		if skip_validation:
+			pf.flags.ignore_validate = True
+		pf.insert(ignore_permissions=True)
 		self.addCleanup(pf.delete, ignore_permissions=True)
 		return pf
 
@@ -1429,7 +1556,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		n = len(user.roles)
 		self.assertGreaterEqual(n, 2)
 
-		def rows_for(condition):
+		def rows_for(condition, skip_validation=False):
 			df = {
 				"fieldtype": "Repeater",
 				"fieldname": "_rep",
@@ -1445,14 +1572,15 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 				"header": {"columns": [{"label": "", "fields": []}]},
 				"footer": {"columns": [{"label": "", "fields": []}]},
 			}
-			html = PrintFormatGenerator(self._user_beta_format(layout), user).get_html_preview()
+			pf = self._user_beta_format(layout, skip_validation=skip_validation)
+			html = PrintFormatGenerator(pf, user).get_html_preview()
 			block = re.search(r"pfb-repeater-table.*?</table>", html, re.S)
 			return len(re.findall(r"<tr>", block.group(0))) if block else 0
 
 		self.assertEqual(rows_for(None), n)
 		self.assertEqual(rows_for("row.idx == 1"), 1)
 		self.assertEqual(rows_for("False"), 0)
-		self.assertEqual(rows_for("this is (( invalid"), n)
+		self.assertEqual(rows_for("this is (( invalid", skip_validation=True), n)
 		# print_settings is in scope alongside doc/row
 		with self.change_settings("Print Settings", pdf_page_size="A4"):
 			self.assertEqual(rows_for("print_settings.pdf_page_size == 'A4'"), n)

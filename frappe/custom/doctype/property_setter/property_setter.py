@@ -25,6 +25,7 @@ class PropertySetter(Document):
 			"", "DocField", "DocType", "DocType Link", "DocType Action", "DocType State"
 		]
 		field_name: DF.Data | None
+		is_app_disabled: DF.Check
 		is_system_generated: DF.Check
 		module: DF.Link | None
 		property: DF.Data

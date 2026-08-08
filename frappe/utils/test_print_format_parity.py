@@ -31,7 +31,8 @@ SERVER_SOURCES = [
 ]
 
 BUILDER_DIR = APP_PATH / "public" / "js" / "print_format_builder"
-CANVAS_SOURCES = sorted(BUILDER_DIR.rglob("*.vue"))
+# utils.js holds class names the components render from, so it speaks the markup too
+CANVAS_SOURCES = [*sorted(BUILDER_DIR.rglob("*.vue")), BUILDER_DIR / "utils.js"]
 
 # Classes that legitimately exist on only one surface.
 SERVER_ONLY_CLASSES = {
@@ -181,6 +182,28 @@ class TestPrintSurfaceMarkupContract(UnitTestCase):
 		):
 			foot = re.search(r"<tfoot>(.*?)</tfoot>", source.read_text(), flags=re.S).group(1)
 			self.assertNotIn("colspan", foot, f"{source.name}: cap must be one cell per column")
+
+	def test_canvas_table_body_holds_only_data_rows(self):
+		"""The shared stylesheet decides where a table's bottom edge lives with
+		`tbody tr:last-child`. The canvas used to append its "No rows" / "+N more
+		rows" note as a <tr> inside <tbody>, so the note became the last row and the
+		real last row kept a border the print surface drops -- a preview-only border
+		break that survived four fixes because every fix was made against the server
+		markup. Notes render after </table>; <tbody> carries data rows only.
+		"""
+		self.assertRegex(SHARED_CSS.read_text(), r"tbody\s+tr:last-child\s+td")
+
+		for source in (
+			BUILDER_DIR / "components" / "editor" / "FieldPreviewTable.vue",
+			BUILDER_DIR / "components" / "editor" / "FieldPreviewRepeater.vue",
+		):
+			text = source.read_text()
+			body = re.search(r"<tbody>(.*?)</tbody>", text, flags=re.S).group(1)
+			rows = re.findall(r"<tr\b[^>]*>", body)
+			self.assertEqual(len(rows), 1, f"{source.name}: <tbody> must hold only the data row")
+			self.assertIn("v-for", rows[0], f"{source.name}: the <tbody> row must be the data row")
+			self.assertNotIn("pfb-table-note", body, f"{source.name}: row notes belong outside the table")
+			self.assertIn("pfb-table-note", text, f"{source.name}: the note itself must survive")
 
 	def test_data_html_field_properties_mirrored_in_canvas(self):
 		"""Every df.* property the regular-field macro reads must be handled by Field.vue."""

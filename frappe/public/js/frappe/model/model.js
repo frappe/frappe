@@ -464,7 +464,7 @@ $.extend(frappe.model, {
 	},
 
 	can_share: function (doctype, frm) {
-		let disable_sharing = cint(frappe.sys_defaults.disable_document_sharing);
+		let disable_sharing = frappe.defaults.is_enabled("disable_document_sharing");
 
 		if (disable_sharing && frappe.session.user !== "Administrator") {
 			return false;
@@ -757,7 +757,7 @@ $.extend(frappe.model, {
 					callback: function (r, rt) {
 						if (!r.exc) {
 							frappe.utils.play_sound("delete");
-							frappe.model.clear_doc(doctype, docname);
+							frappe.model.delete_from_locals(doctype, docname);
 							if (callback) callback(r, rt);
 						}
 					},
@@ -803,13 +803,17 @@ $.extend(frappe.model, {
 				btn: d.get_primary_btn(),
 				callback: function (r, rt) {
 					if (!r.exc) {
+						frappe.model.rename_doc_in_locals(
+							doctype,
+							docname,
+							r.message || args.new_name,
+							args.merge
+						);
 						$(document).trigger("rename", [
 							doctype,
 							docname,
 							r.message || args.new_name,
 						]);
-						if (locals[doctype] && locals[doctype][docname])
-							delete locals[doctype][docname];
 						d.hide();
 						if (callback) callback(r.message);
 					}
