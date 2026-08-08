@@ -165,7 +165,7 @@ class TestTypstGate(IntegrationTestCase):
 		self.assertIn('stroke: (bottom: 0.75pt + rgb("#e5e7eb"))', source)
 		self.assertIn("#v(15.0pt)", source)
 
-	def test_bordered_section_honours_configured_gap(self):
+	def test_bordered_section_ignores_configured_gap_like_html(self):
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 		from frappe.utils.typst_emitter import TypstEmitter
 
@@ -197,8 +197,54 @@ class TestTypstGate(IntegrationTestCase):
 		)
 		self.addCleanup(todo.delete, ignore_permissions=True)
 		source, _assets = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", todo.name))).emit()
-		self.assertIn("column-gutter: 7.5pt", source)
+		self.assertIn("column-gutter: 6.0pt", source)
 		self.assertIn('stroke: (left: 0.6pt + rgb("#e5e7eb"))', source)
+
+	def test_table_image_cells_embed_thumbnails(self):
+		"""Image columns render as images like Table.html, never as path text —
+		merged cells get the square cover thumb, plain columns the contained one,
+		and a missing image falls back to the coloured initials."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		pf_doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Typst TableImg {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": json.dumps(layout_with()),
+			}
+		).insert()
+		self.addCleanup(pf_doc.delete, ignore_permissions=True)
+		row = frappe.get_doc({"doctype": "ToDo", "description": "Widget"}).insert(ignore_permissions=True)
+		self.addCleanup(row.delete, ignore_permissions=True)
+		row.item_image = "data:image/png;base64,iVBORw0KGgo="
+		emitter = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", row.name)))
+
+		merged_col = {
+			"fieldname": "description",
+			"fieldtype": "Data",
+			"image_size": 60,
+			"merged_fields": [{"fieldname": "item_image", "fieldtype": "Attach Image"}],
+		}
+		cell = emitter._table_cell(row, merged_col)
+		self.assertIn('fit: "cover"', cell)
+		self.assertIn("width: 45.0pt, height: 45.0pt", cell)
+		self.assertIn("#grid(columns: (auto, 1fr)", cell)
+		self.assertNotIn("data:image", cell)
+		self.assertTrue(emitter.assets)
+
+		row.item_image = ""
+		fallback = emitter._table_cell(row, merged_col)
+		self.assertIn("color.hsl(", fallback)
+		self.assertIn(q("W"), fallback)
+
+		plain_col = {"fieldname": "item_image", "fieldtype": "Attach Image"}
+		row.item_image = "data:image/png;base64,iVBORw0KGgo="
+		self.assertIn('fit: "contain"', emitter._table_cell(row, plain_col))
+		row.item_image = "/files/does-not-exist.png"
+		self.assertEqual(emitter._table_cell(row, plain_col), "")
 
 	def test_image_letterhead_qualifies_and_is_emitted(self):
 		from frappe.utils.print_format_generator import PrintFormatGenerator
@@ -294,12 +340,18 @@ class TestTypstTranslation(IntegrationTestCase):
 		self.assertTrue(effects["bold"])
 		self.assertIn("#e5e7eb", effects["stroke_bottom"])
 		self.assertEqual(effects["inset_bottom"], 7.5)
+		effects, unknown = translate_custom_style("border-top: 1px solid red; border-bottom: 2px solid #fff")
+		self.assertEqual(unknown, [])
+		self.assertEqual(effects["stroke_top"], "0.75pt + red")
+		self.assertEqual(effects["stroke_bottom"], '1.5pt + rgb("#fff")')
 
 	def test_translate_reports_untranslatable_values(self):
 		"""A recognized property with a value the translator cannot express must
 		block, never silently drop."""
 		for style, reported in (
 			("border-bottom: thin solid red", "border-bottom: thin solid red"),
+			("border-bottom: 1px solid crimson", "border-bottom: 1px solid crimson"),
+			("border-top: 1px solid rgb(255, 0, 0)", "border-top: 1px solid rgb(255, 0, 0)"),
 			("gap: 1rem", "gap: 1rem"),
 			("font-weight: 300", "font-weight: 300"),
 		):

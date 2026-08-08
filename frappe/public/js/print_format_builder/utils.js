@@ -50,10 +50,13 @@ export const TYPST_STYLE_PROPS = new Set([
 
 // Value grammars for the props above — a recognized prop with a value the
 // server cannot translate blocks too, it never silently drops
+const TYPST_BORDER_VALUE =
+	/^[\d.]+px\s+\w+\s+(#([0-9a-fA-F]{3}){1,2}|black|gray|silver|white|navy|blue|aqua|teal|purple|fuchsia|maroon|red|orange|yellow|olive|green|lime)$/;
+
 const TYPST_STYLE_VALUES = {
 	"font-weight": /^(bold|600|700|800|900)$/,
-	"border-top": /^[\d.]+px\s+\w+\s+(#[0-9a-fA-F]{6}|[a-z]+)/,
-	"border-bottom": /^[\d.]+px\s+\w+\s+(#[0-9a-fA-F]{6}|[a-z]+)/,
+	"border-top": TYPST_BORDER_VALUE,
+	"border-bottom": TYPST_BORDER_VALUE,
 	"margin-top": /^[\d.]+(px)?$/,
 	"padding-top": /^[\d.]+(px)?$/,
 	"padding-bottom": /^[\d.]+(px)?$/,

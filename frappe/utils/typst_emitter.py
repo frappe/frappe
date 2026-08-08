@@ -43,6 +43,12 @@ PAGE_NUMBER_POSITIONS = {
 
 RIGHT_ALIGNED_FIELDTYPES = frozenset({"Currency", "Float", "Int", "Percent"})
 
+#: color keywords valid in both CSS and Typst — any other name is a blocker,
+#: because Typst treats it as an undefined variable and the whole compile fails
+TYPST_NAMED_COLORS = frozenset(
+	"black gray silver white navy blue aqua teal purple fuchsia maroon red orange yellow olive green lime".split()
+)
+
 #: the css properties the builder writes into custom_style that we can express in
 #: Typst; anything outside this list keeps the format on Chromium
 TRANSLATABLE_STYLE_PROPS = frozenset(
@@ -78,10 +84,10 @@ def translate_custom_style(style: str) -> tuple[dict, list[str]]:
 			else:
 				unknown.append(f"{prop}: {value}")
 		elif prop in ("border-top", "border-bottom"):
-			match = re.match(r"([\d.]+)px\s+\w+\s+(#[0-9a-fA-F]{6}|[a-z]+)", value)
-			if match:
+			match = re.match(r"([\d.]+)px\s+\w+\s+(#(?:[0-9a-fA-F]{3}){1,2}|[a-z]+)$", value)
+			color = match and match.group(2)
+			if match and (color.startswith("#") or color in TYPST_NAMED_COLORS):
 				width = round(float(match.group(1)) * PX_TO_PT, 2)
-				color = match.group(2)
 				paint = f'rgb("{color}")' if color.startswith("#") else color
 				effects["stroke_top" if prop == "border-top" else "stroke_bottom"] = f"{width}pt + {paint}"
 			else:
@@ -559,7 +565,9 @@ class TypstEmitter:
 			return cells[0][1:-1]
 		if section.get("field_borders") and section.get("grid_borders") != "rows":
 			pad = round((frappe.utils.flt(section.get("cell_padding"), 0) or 8) * PX_TO_PT, 2)
-			gutter = gap_pt if (style_gap is not None or gap is not None) else pad
+			# both HTML surfaces force gap to 0 in bordered mode — spacing comes
+			# from the cell padding on either side of the divider
+			gutter = pad
 			divided = [cells[0]]
 			for cell in cells[1:]:
 				divided.append(
@@ -752,12 +760,23 @@ class TypstEmitter:
 		except ValueError:
 			return None
 
+	def _embed_image(self, src) -> str | None:
+		if not src:
+			return None
+		data = self._read_site_file(str(src))
+		if data is None:
+			return None
+		suffix = str(src).split("?", 1)[0].rsplit(".", 1)[-1].lower()
+		if suffix not in ("png", "jpg", "jpeg", "svg", "gif", "webp"):
+			suffix = "png"
+		return self._asset(suffix, data)
+
 	def _image(self, df) -> str:
 		src = df.get("image_url") or (self.doc.get(df.get("fieldname")) if df.get("fieldname") else "")
 		if not src:
 			return ""
-		data = self._read_site_file(str(src))
-		if data is None:
+		name = self._embed_image(src)
+		if name is None:
 			if df.get("image_url"):
 				frappe.throw(
 					_("The Typst renderer cannot embed this image: {0}").format(frappe.bold(str(src)[:100])),
@@ -766,10 +785,6 @@ class TypstEmitter:
 			# a document's own broken or remote image degrades to nothing,
 			# like a dead <img> in the HTML render — it must not fail bulk email
 			return ""
-		suffix = str(src).split("?", 1)[0].rsplit(".", 1)[-1].lower()
-		if suffix not in ("png", "jpg", "jpeg", "svg", "gif", "webp"):
-			suffix = "png"
-		name = self._asset(suffix, data)
 		width = self._dimension(df.get("width")) or "100%"
 		body = f'#image("{name}", width: {width})'
 		if df.get("align") in ("center", "right"):
@@ -893,6 +908,14 @@ class TypstEmitter:
 		if merged:
 			# the column's own field is the implicit primary line (Table.html:39)
 			merged = [{"fieldname": col.get("fieldname"), "fieldtype": col.get("fieldtype")}, *merged]
+			img_fn = next(
+				(
+					mf.get("fieldname")
+					for mf in merged
+					if mf.get("fieldname") and mf.get("fieldtype") in ("Attach Image", "Attach")
+				),
+				None,
+			)
 			lines = []
 			first_text = True
 			for mf in merged:
@@ -908,15 +931,58 @@ class TypstEmitter:
 				else:
 					lines.append(f'#text(size: 0.85em, fill: rgb("#6b7280"), {q(value)})')
 			if not lines:
-				return ""
-			if len(lines) == 1:
-				return lines[0]
-			if col.get("merge_direction") == "horizontal":
-				return " #h(3pt) ".join(lines)
-			return "#stack(spacing: 3pt, " + ", ".join(f"[{line}]" for line in lines) + ")"
+				body = ""
+			elif len(lines) == 1:
+				body = lines[0]
+			elif col.get("merge_direction") == "horizontal":
+				body = " #h(3pt) ".join(lines)
+			else:
+				body = "#stack(spacing: 3pt, " + ", ".join(f"[{line}]" for line in lines) + ")"
+			if img_fn:
+				thumb = self._table_thumb(row, col, img_fn, merged)
+				if not body:
+					return thumb
+				return f"#grid(columns: (auto, 1fr), column-gutter: 6pt, align: top, [{thumb}], [{body}])"
+			return body
 		fieldname = col.get("fieldname")
 		if not fieldname:
 			return ""
 		if fieldname == "idx":
 			return f"#text({q(row.get('idx'))})"
+		fieldtype = col.get("fieldtype")
+		src = row.get(col.get("options") or "") if fieldtype == "Image" else row.get(fieldname)
+		if fieldtype in ("Attach Image", "Image") or (
+			fieldtype == "Attach" and frappe.utils.is_image(str(src or ""))
+		):
+			name = self._embed_image(src)
+			if not name:
+				return ""
+			return f'#box(width: 100%, height: 75pt)[#image("{name}", width: 100%, height: 100%, fit: "contain")]'
 		return f"#text({q(_text_value(row.get_formatted(fieldname)))})"
+
+	def _table_thumb(self, row, col, img_fn, merged) -> str:
+		size = round((frappe.utils.cint(col.get("image_size")) or 40) * PX_TO_PT, 2)
+		name = self._embed_image(row.get(img_fn))
+		if name:
+			return (
+				f"#box(width: {size}pt, height: {size}pt, radius: 4.5pt, clip: true)"
+				f'[#image("{name}", width: {size}pt, height: {size}pt, fit: "cover")]'
+			)
+		# no readable image: the coloured-initials fallback, same hue formula as
+		# Table.html so all three surfaces show the same placeholder
+		first_txt = next(
+			(
+				str(row.get(mf["fieldname"]) or "")
+				for mf in merged
+				if mf.get("fieldname") and mf["fieldname"] != img_fn
+			),
+			"",
+		)
+		abbr = frappe.utils.get_abbr(first_txt) or "?"
+		idx = "abcdefghijklmnopqrstuvwxyz0123456789".find((abbr[:1] or "a").lower())
+		hue = (max(idx, 0) * 37) % 360
+		return (
+			f"#box(width: {size}pt, height: {size}pt, radius: 4.5pt, fill: color.hsl({hue}deg, 65%, 92%))"
+			f"[#align(center + horizon)[#text(size: {round(size * 0.4, 2)}pt, weight: 600, "
+			f"fill: color.hsl({hue}deg, 55%, 35%), {q(abbr.upper())})]]"
+		)
