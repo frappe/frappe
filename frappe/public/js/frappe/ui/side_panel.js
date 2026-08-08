@@ -34,19 +34,81 @@ function passes_depends_on(expression, doc, parent) {
 	return Array.isArray(value) ? value.length > 0 : Boolean(value);
 }
 
-function get_read_only_docfields(doctype) {
-	const meta = frappe.get_meta(doctype);
+function read_only_status(control) {
+	if (cint(control.df.hidden) || cint(control.df.hidden_due_to_dependency)) return "None";
+	const permlevels = control.layout?.side_panel_permlevels;
+	if (permlevels && !permlevels.includes(cint(control.df.permlevel))) return "None";
+	return "Read";
+}
+
+function force_read_only(fields_list) {
+	for (const control of fields_list || []) {
+		control.get_status = () => read_only_status(control);
+	}
+}
+
+function get_read_only_docfields(doctype, preview) {
+	const meta = preview?.metas?.[doctype];
 
 	return (meta?.fields || []).map((df) => {
-		const clone = { ...df, parent: df.parent || doctype, read_only: 1 };
+		const clone = { ...df, parent: df.parent || doctype };
 
 		// Frm-less, Grid.setup_fields() reads child docfields from df.fields, not the parent meta.
 		if (TABLE_FIELDTYPES.includes(df.fieldtype) && df.options) {
-			clone.fields = get_read_only_docfields(df.options);
+			clone.fields = get_read_only_docfields(df.options, preview);
 		}
 
 		return clone;
 	});
+}
+
+// Statuses we can't classify (custom listview_settings.get_indicator lives in list JS). Blue is
+// visible without implying success/failure, unlike the near-invisible default gray.
+const UNKNOWN_STATUS_COLOR = "blue";
+
+// Same Workflow State style -> colour mapping frappe.get_indicator uses.
+const WORKFLOW_STYLE_COLORS = {
+	Success: "green",
+	Warning: "orange",
+	Danger: "red",
+	Primary: "blue",
+	Inverse: "black",
+	Info: "light-blue",
+};
+
+// Mirrors frappe.get_indicator's chain, fed from the preview instead of locals. Only the custom
+// listview_settings.get_indicator branch is unavailable — that lives in list JS.
+function get_preview_indicator(doctype, preview) {
+	const doc = preview.doc;
+	const meta = preview.metas?.[doctype] || {};
+	const workflow = preview.workflow;
+
+	if (workflow?.workflow_state_field && !cint(workflow.override_status)) {
+		const state = doc[workflow.workflow_state_field];
+		if (state) {
+			const style = workflow.state_styles?.[state];
+			return [
+				__(state, null, doctype),
+				WORKFLOW_STYLE_COLORS[style] || UNKNOWN_STATUS_COLOR,
+			];
+		}
+	}
+
+	if (cint(meta.is_submittable) && cint(doc.docstatus) === 0) {
+		return [__("Draft", null, doctype), "red"];
+	}
+	if (cint(meta.is_submittable) && cint(doc.docstatus) === 2) {
+		return [__("Cancelled", null, doctype), "red"];
+	}
+
+	const state = doc.status && (meta.states || []).find((s) => s.title === doc.status);
+	if (state) return [__(doc.status, null, doctype), frappe.scrub(state.color, "-")];
+
+	if (cint(meta.is_submittable) && cint(doc.docstatus) === 1) {
+		return [__("Submitted", null, doctype), "blue"];
+	}
+
+	return doc.status ? [__(doc.status, null, doctype), UNKNOWN_STATUS_COLOR] : null;
 }
 
 // Child rows render as static formatted values — live controls need a frm/doc for formatting,
@@ -98,15 +160,6 @@ function render_static_field_value($value_el, df, doc) {
 		return;
 	}
 
-	if (df.fieldtype === "Check") {
-		$value_el.html(
-			`<input type="checkbox" disabled class="disabled-${
-				cint(raw) ? "selected" : "deselected"
-			}">`
-		);
-		return;
-	}
-
 	if (STATIC_SAFE_HTML_FIELDTYPES.has(df.fieldtype)) {
 		const formatted = frappe.format(raw, df, { no_icon: true, only_value: true }, doc);
 		$value_el.html(formatted == null ? "" : formatted);
@@ -120,11 +173,11 @@ function render_static_field_value($value_el, df, doc) {
 
 // Reuses the form's own classes (.form-section, .control-label, .like-disabled-input) so it
 // inherits form.scss directly. `parent` is what a child-row depends_on "eval:" sees as `parent`.
-function render_static_doc_fields(container_el, doctype, doc, parent) {
-	const meta = frappe.get_meta(doctype);
+function render_static_doc_fields(container_el, doctype, doc, parent, preview) {
+	const meta = preview?.metas?.[doctype];
 	const $root = $('<div class="side-panel-detail form-layout"></div>').appendTo(container_el);
-	// Child doctypes carry no perms of their own, so permlevels resolve against the parent.
-	const perm = frappe.perm.get_perm(parent?.doctype || doctype, parent || doc);
+	// Child doctypes carry no perms of their own; the parent's permlevels come from the preview.
+	const permlevels = (preview?.permlevels || []).map(cint);
 
 	let $section = null;
 	let $columns = null;
@@ -136,7 +189,7 @@ function render_static_doc_fields(container_el, doctype, doc, parent) {
 	const open_section = (label, ok) => {
 		section_ok = ok;
 		if (!ok) return;
-		$section = $('<div class="form-section card-section"></div>').appendTo($root);
+		$section = $('<div class="form-section"></div>').appendTo($root);
 		if (label) $('<div class="section-head"></div>').text(__(label)).appendTo($section);
 		$columns = $('<div class="section-body side-panel-detail-columns"></div>').appendTo(
 			$section
@@ -145,7 +198,9 @@ function render_static_doc_fields(container_el, doctype, doc, parent) {
 	};
 	const open_column = () => {
 		if (!$section) open_section(null, true);
-		$column = $('<div class="form-column side-panel-detail-column"></div>').appendTo($columns);
+		$column = $('<div class="form-column side-panel-detail-column flex-1"></div>').appendTo(
+			$columns
+		);
 	};
 
 	for (const df of meta?.fields || []) {
@@ -161,10 +216,29 @@ function render_static_doc_fields(container_el, doctype, doc, parent) {
 		}
 		if (STATIC_SKIP_FIELDTYPES.has(df.fieldtype)) continue;
 		if (df.hidden) continue;
-		if (frappe.perm.get_field_display_status(df, doc, perm) === "None") continue;
+		if (!permlevels.includes(cint(df.permlevel))) continue;
 		if (df.depends_on && !passes_depends_on(df.depends_on, doc, parent)) continue;
 
 		if (!$column) open_column();
+
+		// A Check renders as checkbox + inline label, not label-above-a-pill — see
+		// ControlCheck.make_wrapper.
+		if (df.fieldtype === "Check") {
+			const $field = $(`
+				<div class="form-group frappe-control">
+					<div class="checkbox">
+						<label>
+							<span class="input-area"><input type="checkbox" disabled></span>
+							<span class="label-area"></span>
+						</label>
+					</div>
+				</div>
+			`).appendTo($column);
+			$field.find("input").prop("checked", Boolean(cint(doc[df.fieldname])));
+			$field.find(".label-area").text(__(df.label || df.fieldname));
+			continue;
+		}
+
 		// Mirrors base_input.js's make_wrapper so values get the disabled-control pill.
 		const $field = $('<div class="frappe-control"></div>').appendTo($column);
 		const $group = $('<div class="form-group"></div>').appendTo($field);
@@ -336,21 +410,27 @@ frappe.ui.SidePanel = class SidePanel {
 		this.set_header(doctype, docname, null);
 		this.set_state("loading");
 
-		// with_doctype/with_doc wrap frappe.call, whose callback only runs on success, and their
-		// promises never reject — so a failed request would otherwise hang on "Loading" forever.
+		// Not with_doctype/with_doc: those ship and execute form/list/client scripts, run onload,
+		// write a View Log, and seed locals — which would also make a later form view skip loading
+		// its own scripts. get_preview returns just the doc and trimmed metas.
 		const timeout = new Promise((_, reject) => setTimeout(reject, LOAD_TIMEOUT_MS));
 
-		const load = frappe.model
-			.with_doctype(doctype)
-			.then(() => frappe.model.with_doc(doctype, docname));
+		const load = frappe
+			.call({
+				method: "frappe.desk.doc_preview.get_preview",
+				type: "GET",
+				args: { doctype, name: docname },
+			})
+			.then((r) => r?.message);
 
 		Promise.race([load, timeout])
-			.then(() => {
+			.then((preview) => {
 				if (token !== this.token) return;
-				if (!frappe.get_doc(doctype, docname)) throw new Error("not loaded");
+				if (!preview?.doc) throw new Error("not loaded");
 
-				this.render_doc(doctype, docname);
-				this.set_header(doctype, docname, frappe.get_doc(doctype, docname));
+				this.preview = preview;
+				this.render_doc(doctype, preview);
+				this.set_header(doctype, docname, preview);
 				this.set_state("ready");
 			})
 			.catch((e) => {
@@ -360,8 +440,8 @@ frappe.ui.SidePanel = class SidePanel {
 			});
 	}
 
-	render_doc(doctype, docname) {
-		const doc = frappe.get_doc(doctype, docname);
+	render_doc(doctype, preview) {
+		const doc = preview.doc;
 		let entry = this.layouts[doctype];
 
 		if (!entry) {
@@ -370,34 +450,27 @@ frappe.ui.SidePanel = class SidePanel {
 				parent: $wrapper,
 				doctype: doctype,
 				// Explicit fields also avoid get_doctype_fields(), which needs a frm.
-				fields: get_read_only_docfields(doctype),
+				fields: get_read_only_docfields(doctype, preview),
 				doc: doc,
 				card_layout: true,
 			});
 			layout.make();
+			// Override on the controls (persists across refresh); grids stay read-only via
+			// static_rows (prepare_grids).
+			force_read_only(layout.fields_list);
 			entry = this.layouts[doctype] = { layout, $wrapper };
 		}
 
 		this.$body.find(".side-panel-doc").addClass("hidden");
 		entry.$wrapper.removeClass("hidden");
 
+		// Read by read_only_status(), so permlevel-restricted fields stay hidden.
+		entry.layout.side_panel_permlevels = (preview.permlevels || []).map(cint);
 		entry.layout.doc = doc;
 		this.prepare_grids(entry.layout, doc);
 		entry.layout.refresh(doc);
-		this.enforce_read_only(entry.layout);
 		// refresh() rebuilds grid_rows, so the rows to bind only exist now.
 		this.make_rows_openable(entry.layout);
-	}
-
-	// attach_doc_and_docfields() swaps each control's df for the live metadata copy on every
-	// refresh, so read_only is re-applied here — onto a per-control clone, never the shared meta.
-	// Control.perm can't be used: its setter is a no-op that reads frm.perm (base_control.js).
-	enforce_read_only(layout) {
-		for (const field of layout.fields_list || []) {
-			if (!field.df || cint(field.df.read_only)) continue;
-			field.df = { ...field.df, read_only: 1 };
-			field.refresh?.();
-		}
 	}
 
 	// Rows open in a plain Dialog; grid_row_form is an editing surface that needs a live frm.
@@ -430,8 +503,7 @@ frappe.ui.SidePanel = class SidePanel {
 	open_row_dialog(child_doctype, row_doc) {
 		this.row_dialog?.hide();
 
-		const parent_doc =
-			this.current && frappe.get_doc(this.current.doctype, this.current.docname);
+		const parent_doc = this.preview?.doc;
 
 		const dialog = new frappe.ui.Dialog({
 			title: __("Row #{0}", [row_doc.idx]),
@@ -443,7 +515,7 @@ frappe.ui.SidePanel = class SidePanel {
 		// Read-only: no action to offer.
 		dialog.get_primary_btn().hide();
 
-		render_static_doc_fields(dialog.body, child_doctype, row_doc, parent_doc);
+		render_static_doc_fields(dialog.body, child_doctype, row_doc, parent_doc, this.preview);
 
 		$(dialog.body).on("click", "a[data-doctype][data-name]", (e) => {
 			if (e.which !== 1 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
@@ -480,12 +552,12 @@ frappe.ui.SidePanel = class SidePanel {
 		}
 	}
 
-	set_header(doctype, docname, doc) {
+	set_header(doctype, docname, preview) {
 		this.$panel.find(".side-panel-doctype").text(__(doctype));
 		this.$panel.find(".side-panel-title").text(docname);
 
 		const $indicator = this.$panel.find(".side-panel-indicator").empty();
-		const indicator = doc ? frappe.get_indicator(doc, doctype) : null;
+		const indicator = preview ? get_preview_indicator(doctype, preview) : null;
 		if (indicator) {
 			// badge-legacy-colors.css maps arbitrary indicator colour names onto es-badge themes.
 			$indicator.append(
@@ -496,7 +568,6 @@ frappe.ui.SidePanel = class SidePanel {
 
 	set_state(state) {
 		this.$body.find(".side-panel-message").remove();
-		this.$panel.toggleClass("is-loading", state === "loading");
 		this.$body.find(".side-panel-doc").toggleClass("invisible", state !== "ready");
 
 		const message =

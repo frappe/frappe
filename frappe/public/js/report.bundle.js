@@ -1,3 +1,5 @@
+import "./frappe/ui/side_panel.html";
+import "./frappe/ui/side_panel.js";
 import "./frappe/views/reports/report_factory.js";
 import "./frappe/views/reports/report_view.js";
 import "./frappe/views/reports/query_report.js";
