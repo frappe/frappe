@@ -3,8 +3,8 @@ import platform
 import subprocess
 import time
 from pathlib import Path
-from typing import ClassVar
 
+import psutil
 import requests
 
 import frappe
@@ -15,8 +15,6 @@ from frappe.utils.data import cint
 
 class ChromiumManager:
 	_instance = None
-
-	_browsers: ClassVar[list] = []
 
 	def add_browser(self, browser):
 		self._browsers.append(browser)
@@ -43,6 +41,7 @@ class ChromiumManager:
 			return
 		self._initialized = True  # Mark as initialized
 
+		self._browsers = []
 		self._chromium_process = None
 		self._chromium_path = None
 		self._devtools_url = None
@@ -102,6 +101,7 @@ class ChromiumManager:
 		NOTE: dbus issue in docker
 		  https://source.chromium.org/chromium/chromium/src/+/main:content/app/content_main.cc;l=229-241?q=DBUS_SESSION_BUS_ADDRESS&ss=chromium
 		"""
+		self._reap_orphaned_chromium()
 		try:
 			if debug:
 				command_args = [
@@ -194,6 +194,29 @@ class ChromiumManager:
 				command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
 			)
 		return self._chromium_process
+
+	def _reap_orphaned_chromium(self):
+		"""Kill chromium processes leaked by dead workers.
+
+		Cleanup normally happens in the caller's `finally`, but a worker killed
+		mid-render (dev auto-reload, SIGKILL, crash) never runs it and its
+		chromium survives forever. Such processes are reparented to init/launchd
+		(ppid 1), so kill anything running this bench's chromium binary whose
+		parent is gone before starting a new one.
+		"""
+		chromium_path = os.path.realpath(self._chromium_path)
+		for proc in psutil.process_iter(["exe", "ppid", "cmdline"]):
+			try:
+				if (
+					proc.info["ppid"] == 1
+					and proc.info["exe"] == chromium_path
+					and "--headless" in (proc.info["cmdline"] or [])
+				):
+					for child in proc.children(recursive=True):
+						child.kill()
+					proc.kill()
+			except (psutil.NoSuchProcess, psutil.AccessDenied):
+				continue
 
 	def _set_devtools_url(self):
 		"""
