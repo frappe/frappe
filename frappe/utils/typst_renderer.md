@@ -1,16 +1,10 @@
 # Typst PDF renderer — lifecycle
 
 How a builder (beta) print format renders through Typst, call by call. Typst is
-an opt-in `pdf_generator` for builder formats; Chromium stays the default.
-
-## Install
-
-```bash
-bench pip install typst          # or: pip install frappe[typst]
-```
-
-Not installed → choosing Typst throws with this exact command. Nothing else
-changes.
+an opt-in `pdf_generator` for builder formats; Chromium stays the default. The
+`typst` package (a self-contained wheel, no system dependencies) is a regular
+frappe dependency, so every bench — self-hosted, Docker, Frappe Cloud — has it
+after installing requirements.
 
 ## From "Download PDF" to the response
 

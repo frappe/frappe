@@ -396,6 +396,8 @@ class PrintFormatGenerator:
 		import os
 		import tempfile
 
+		import typst
+
 		from frappe.utils.typst_emitter import (
 			TypstEmitter,
 			ensure_typst_fonts,
@@ -403,16 +405,6 @@ class PrintFormatGenerator:
 			typst_blockers,
 			typst_font_paths,
 		)
-
-		try:
-			import typst
-		except ImportError:
-			frappe.throw(
-				_("The Typst renderer needs the typst package. Run: {0}").format(
-					"<code>bench pip install typst</code>"
-				),
-				title=_("Typst not installed"),
-			)
 
 		blockers = typst_blockers(self.print_format, self.layout)
 		if self.letterhead:
