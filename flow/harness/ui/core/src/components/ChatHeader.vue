@@ -13,7 +13,7 @@
 
 		<span class="min-w-2 flex-1" />
 
-		<span class="flex flex-none items-center gap-5">
+		<span class="flex flex-none items-center gap-6">
 			<span
 				v-if="cwd"
 				class="flex min-w-0 max-w-[260px] items-center gap-1.5 text-xs text-ink-gray-5"
@@ -24,37 +24,23 @@
 			</span>
 
 			<span
-				v-if="contextWindow && contextTokens > 0"
-				class="flex items-center gap-1.5 whitespace-nowrap"
-				title="Context used"
+				v-if="contextTokens > 0 || usedTokens > 0"
+				class="flex items-center gap-2 whitespace-nowrap text-xs font-normal tabular-nums text-ink-gray-5"
 			>
-				<span class="h-1 w-[52px] flex-none overflow-hidden rounded-full bg-surface-gray-3">
-					<span
-						class="block h-full bg-surface-gray-6"
-						:style="{ width: Math.min(100, (contextTokens / contextWindow) * 100) + '%' }"
-					/>
+				<span v-if="contextWindow && contextTokens > 0" class="flex items-center gap-1.5" title="Context used">
+					<span class="h-1 w-10 flex-none overflow-hidden rounded-full bg-surface-gray-3">
+						<span
+							class="block h-full rounded-full bg-surface-gray-6"
+							:style="{ width: Math.min(100, (contextTokens / contextWindow) * 100) + '%' }"
+						/>
+					</span>
+					<span>{{ formatTokens(contextTokens) }} / {{ formatTokens(contextWindow) }}</span>
 				</span>
-				<span class="text-xs text-ink-gray-5">
-					{{ formatTokens(contextTokens) }} / {{ formatTokens(contextWindow) }}
+				<span v-else-if="usedTokens > 0" title="Tokens used">{{ formatTokens(usedTokens) }} tokens</span>
+				<span v-if="cost > 0" class="flex items-center gap-2 text-ink-gray-4">
+					<span aria-hidden="true" class="text-ink-gray-3">·</span>
+					<span>${{ cost.toFixed(cost < 1 ? 3 : 2) }}</span>
 				</span>
-			</span>
-			<span
-				v-else-if="usedTokens > 0"
-				class="flex items-center gap-1.5 whitespace-nowrap"
-				title="Tokens used"
-			>
-				<span class="text-xs text-ink-gray-5">Σ {{ formatTokens(usedTokens) }} tok</span>
-				<span v-if="cost > 0" class="text-xs text-ink-gray-4">· ${{ cost.toFixed(cost < 1 ? 3 : 2) }}</span>
-			</span>
-			<span
-				v-if="cacheReadTokens > 0 || cacheWriteTokens > 0"
-				class="whitespace-nowrap text-xs text-ink-gray-5"
-				title="Prompt cache tokens read / written"
-			>
-				⚡
-				<template v-if="cacheReadTokens > 0">R {{ formatTokens(cacheReadTokens) }}</template>
-				<template v-if="cacheReadTokens > 0 && cacheWriteTokens > 0"> · </template>
-				<template v-if="cacheWriteTokens > 0">W {{ formatTokens(cacheWriteTokens) }}</template>
 			</span>
 
 			<button class="flow-icon-btn" title="Toggle theme" @click="toggleTheme">
@@ -92,8 +78,6 @@ const usedTokens = computed(
 	() => flow.state.conversation.usage.input + flow.state.conversation.usage.output,
 )
 const cost = computed(() => flow.state.conversation.usage.cost)
-const cacheReadTokens = computed(() => flow.state.conversation.usage.cacheRead)
-const cacheWriteTokens = computed(() => flow.state.conversation.usage.cacheWrite)
 const contextTokens = computed(() => flow.state.conversation.contextTokens ?? 0)
 const contextWindow = computed(() => flow.state.session?.context_window ?? null)
 
