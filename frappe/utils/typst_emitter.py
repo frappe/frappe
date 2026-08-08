@@ -22,9 +22,6 @@ from frappe.utils.html_utils import unescape_html
 #: px (builder/CSS space) → pt (Typst space)
 PX_TO_PT = 0.75
 
-#: field types the emitter renders; everything else with a plain value goes
-#: through the Data path (label + formatted value), same as macros.html
-
 #: field types that disqualify a format — each with the reason shown to the user
 # translated at use, not import — a module-level _() would pin the first site's language
 BLOCKER_FIELDTYPES = {
@@ -305,6 +302,20 @@ def safe_color(value, default=None):
 	return default
 
 
+def _aligned(body: str, align) -> str:
+	if body and align in ("center", "right"):
+		return f"#align({align})[{body}]"
+	return body
+
+
+def _fr_widths(columns) -> list[str]:
+	widths = []
+	for col in columns:
+		width = frappe.utils.flt(col.get("width"))
+		widths.append(f"{round(width, 2)}fr" if width else "1fr")
+	return widths
+
+
 def _text_value(html_ish: str) -> str:
 	"""Formatted values may carry markup (Text Editor, address_display); keep the
 	line structure, drop the tags."""
@@ -324,6 +335,7 @@ class TypstEmitter:
 		self.print_format = generator.print_format
 		self.layout = generator.layout
 		self.assets: dict[str, bytes] = {}
+		self._embedded: dict[str, str | None] = {}
 
 	# ── document ────────────────────────────────────────────────
 
@@ -355,16 +367,12 @@ class TypstEmitter:
 		src = lh.get(f"{prefix}image")
 		if not src:
 			return ""
-		data = self._read_site_file(str(src))
-		if data is None:
+		name = self._embed_image(src)
+		if name is None:
 			frappe.throw(
 				_("The Typst renderer cannot embed this image: {0}").format(frappe.bold(str(src)[:100])),
 				title=_("Typst renderer unavailable"),
 			)
-		suffix = str(src).split("?", 1)[0].rsplit(".", 1)[-1].lower()
-		if suffix not in ("png", "jpg", "jpeg", "svg", "gif", "webp"):
-			suffix = "png"
-		name = self._asset(suffix, data)
 		args = [f'"{name}"']
 		width = frappe.utils.flt(lh.get(f"{prefix}image_width"))
 		height = frappe.utils.flt(lh.get(f"{prefix}image_height"))
@@ -373,10 +381,7 @@ class TypstEmitter:
 		elif height:
 			args.append(f"height: {round(height * PX_TO_PT, 2)}pt")
 		body = f"#image({', '.join(args)})"
-		align = (lh.get(f"{prefix}align") or "Left").lower()
-		if align in ("center", "right"):
-			body = f"#align({align})[{body}]"
-		return body
+		return _aligned(body, (lh.get(f"{prefix}align") or "Left").lower())
 
 	def measure_source(self) -> str:
 		"""A document whose only output is the measured height of each zone, read
@@ -699,9 +704,7 @@ class TypstEmitter:
 		parts = [f"[{label}]"] if label else []
 		parts.append(f"[{value_text}]")
 		body = f"#stack(spacing: {spacing}pt,\n" + ",\n".join(parts) + ")" if len(parts) > 1 else value_text
-		if align in ("center", "right"):
-			return f"#align({align})[{body}]"
-		return body
+		return _aligned(body, align)
 
 	def _asset(self, suffix: str, data: bytes) -> str:
 		name = f"asset_{len(self.assets)}.{suffix}"
@@ -763,13 +766,19 @@ class TypstEmitter:
 	def _embed_image(self, src) -> str | None:
 		if not src:
 			return None
-		data = self._read_site_file(str(src))
+		src = str(src)
+		if src in self._embedded:
+			return self._embedded[src]
+		data = self._read_site_file(src)
 		if data is None:
-			return None
-		suffix = str(src).split("?", 1)[0].rsplit(".", 1)[-1].lower()
-		if suffix not in ("png", "jpg", "jpeg", "svg", "gif", "webp"):
-			suffix = "png"
-		return self._asset(suffix, data)
+			name = None
+		else:
+			suffix = src.split("?", 1)[0].rsplit(".", 1)[-1].lower()
+			if suffix not in ("png", "jpg", "jpeg", "svg", "gif", "webp"):
+				suffix = "png"
+			name = self._asset(suffix, data)
+		self._embedded[src] = name
+		return name
 
 	def _image(self, df) -> str:
 		src = df.get("image_url") or (self.doc.get(df.get("fieldname")) if df.get("fieldname") else "")
@@ -786,10 +795,7 @@ class TypstEmitter:
 			# like a dead <img> in the HTML render — it must not fail bulk email
 			return ""
 		width = self._dimension(df.get("width")) or "100%"
-		body = f'#image("{name}", width: {width})'
-		if df.get("align") in ("center", "right"):
-			return f"#align({df['align']})[{body}]"
-		return body
+		return _aligned(f'#image("{name}", width: {width})', df.get("align"))
 
 	def _barcode(self, df) -> str:
 		data_uri = df.get("_qr_data_uri")
@@ -800,10 +806,7 @@ class TypstEmitter:
 			return ""
 		name = self._asset("svg", data)
 		width = self._dimension(df.get("width")) or "30mm"
-		body = f'#image("{name}", width: {width})'
-		if df.get("align") in ("center", "right"):
-			return f"#align({df['align']})[{body}]"
-		return body
+		return _aligned(f'#image("{name}", width: {width})', df.get("align"))
 
 	def _repeater(self, df) -> str:
 		source = df.get("source")
@@ -813,17 +816,17 @@ class TypstEmitter:
 		if not rows or not columns:
 			return ""
 
-		widths = []
-		for col in columns:
-			width = frappe.utils.flt(col.get("width"))
-			widths.append(f"{round(width, 2)}fr" if width else "1fr")
+		widths = _fr_widths(columns)
 		aligns = [
 			col.get("align") if col.get("align") in ("left", "center", "right") else "left" for col in columns
+		]
+		fills = [
+			f'fill: rgb("{color}"), ' if (color := safe_color(col.get("color"))) else "" for col in columns
 		]
 
 		cells = []
 		for row in rows:
-			for col in columns:
+			for col, fill in zip(columns, fills, strict=True):
 				parts = []
 				for tok in col.get("template") or []:
 					if not isinstance(tok, dict):
@@ -833,20 +836,10 @@ class TypstEmitter:
 					else:
 						parts.append(str(tok.get("v") or ""))
 				text = "".join(parts)
-				color = col.get("color")
-				fill = (
-					f'fill: rgb("{color}"), '
-					if isinstance(color, str) and re.fullmatch(r"#[0-9a-fA-F]{6}", color)
-					else ""
-				)
 				cells.append(f"[#text({fill}{q(text)})]" if text else "[]")
 
-		label = ""
-		if df.get("label") and (df.get("show_label") or "show") != "hide":
-			label_color = safe_color(self.print_format.get("label_color")) or "#6b7280"
-			label = f'#text(size: 0.85em, fill: rgb("{label_color}"), {q(_(df["label"]))})\n#v(3pt)\n'
 		return (
-			label
+			self._block_label(df)
 			+ f"#table(columns: ({', '.join(widths)}), align: ({', '.join(aligns)},), stroke: none, inset: 4pt,\n"
 			+ ",\n".join(cells)
 			+ ")"
@@ -863,10 +856,7 @@ class TypstEmitter:
 		if not rows:
 			return ""
 
-		widths = []
-		for col in columns:
-			width = frappe.utils.flt(col.get("width"))
-			widths.append(f"{round(width, 2)}fr" if width else "1fr")
+		widths = _fr_widths(columns)
 		aligns = [
 			"right" if (col.get("fieldtype") in RIGHT_ALIGNED_FIELDTYPES) else "left" for col in columns
 		]
@@ -878,11 +868,6 @@ class TypstEmitter:
 		for row in rows:
 			for col in columns:
 				body_cells.append(self._table_cell(row, col))
-
-		label = ""
-		if df.get("show_label") != "hide" and df.get("label"):
-			label_color = safe_color(self.print_format.get("label_color")) or "#6b7280"
-			label = f'#text(size: 0.85em, fill: rgb("{label_color}"), {q(_(df["label"]))})\n#v(3pt)\n'
 
 		bordered = df.get("table_bordered")
 		stroke = '0.6pt + rgb("#e5e7eb")' if bordered is None or bordered else "none"
@@ -901,7 +886,13 @@ class TypstEmitter:
 		else:
 			cells = []
 		cells += [f"[{cell}]" for cell in body_cells]
-		return label + "#table(" + ", ".join(parts) + ",\n" + ",\n".join(cells) + ")"
+		return self._block_label(df) + "#table(" + ", ".join(parts) + ",\n" + ",\n".join(cells) + ")"
+
+	def _block_label(self, df) -> str:
+		if not df.get("label") or (df.get("show_label") or "show") == "hide":
+			return ""
+		label_color = safe_color(self.print_format.get("label_color")) or "#6b7280"
+		return f'#text(size: 0.85em, fill: rgb("{label_color}"), {q(_(df["label"]))})\n#v(3pt)\n'
 
 	def _table_cell(self, row, col) -> str:
 		merged = col.get("merged_fields")

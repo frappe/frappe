@@ -441,17 +441,22 @@ class PrintFormatGenerator:
 					f.write(content)
 				return path
 
+			import json
+
+			written = set()
+
+			def write_assets(assets):
+				for name, data in assets.items():
+					if name not in written:
+						written.add(name)
+						write(name, data, "wb")
+
 			heights = {"pfhdr": 0.0, "pfftr": 0.0}
 			if repeat and (emitter.header_src or emitter.footer_src):
-				for name, data in emitter.assets.items():
-					write(name, data, "wb")
+				write_assets(emitter.assets)
 				measure_path = write("measure.typ", emitter.measure_source())
-				import json as _json
-
 				for label in list(heights):
-					found = _json.loads(
-						typst.query(measure_path, f"<{label}>", font_paths=typst_font_paths())
-					)
+					found = json.loads(typst.query(measure_path, f"<{label}>", font_paths=typst_font_paths()))
 					if found:
 						heights[label] = float(found[0].get("value") or 0)
 
@@ -461,8 +466,7 @@ class PrintFormatGenerator:
 				footer_height_pt=heights["pfftr"],
 			)
 			path = write("main.typ", source)
-			for name, data in assets.items():
-				write(name, data, "wb")
+			write_assets(assets)
 			return typst.compile(path, font_paths=typst_font_paths())
 
 	def _build_html_for_chrome(self):

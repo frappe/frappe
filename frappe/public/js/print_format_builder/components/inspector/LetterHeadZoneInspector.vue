@@ -28,55 +28,51 @@
 
 		<!-- HTML section -->
 		<InspectorSection v-if="letterhead && zone_source === 'HTML'" :label="__('HTML')">
-			<template v-if="letterhead">
-				<div
-					class="pfb-html-preview"
-					v-if="letterhead[html_content_field]"
-					v-html="letterhead[html_content_field]"
-				></div>
-				<div v-else class="pfb-insp-hint text-muted">
-					{{ __("No HTML content yet.") }}
-				</div>
-				<button class="es-button" data-size="xs" @click="edit_html">
-					<span v-html="frappe.utils.icon('pencil', 'xs')"></span>
-					{{ __("Edit HTML") }}
-				</button>
-			</template>
+			<div
+				class="pfb-html-preview"
+				v-if="letterhead[html_content_field]"
+				v-html="letterhead[html_content_field]"
+			></div>
+			<div v-else class="pfb-insp-hint text-muted">
+				{{ __("No HTML content yet.") }}
+			</div>
+			<button class="es-button" data-size="xs" @click="edit_html">
+				<span v-html="frappe.utils.icon('pencil', 'xs')"></span>
+				{{ __("Edit HTML") }}
+			</button>
 		</InspectorSection>
 
 		<!-- Image section -->
 		<InspectorSection v-if="letterhead && zone_source === 'Image'" :label="__('Image')">
-			<template v-if="letterhead">
-				<!-- Alignment -->
-				<SegmentedRow
-					:label="__('Align')"
-					:model-value="zone_align"
-					:options="
-						['Left', 'Center', 'Right'].map((d) => ({
-							value: d,
-							label: __(d),
-						}))
-					"
-					@update:model-value="set_align"
+			<!-- Alignment -->
+			<SegmentedRow
+				:label="__('Align')"
+				:model-value="zone_align"
+				:options="
+					['Left', 'Center', 'Right'].map((d) => ({
+						value: d,
+						label: __(d),
+					}))
+				"
+				@update:model-value="set_align"
+			/>
+			<!-- Size slider -->
+			<div v-if="letterhead[image_field]" class="pfb-insp-row pfb-insp-row--col">
+				<span class="pfb-insp-label">{{ __("Size") }}</span>
+				<input
+					class="pfb-size-slider"
+					type="range"
+					min="20"
+					:max="zone_size_max"
+					:value="zone_size"
+					@input="(e) => set_size(e.target.value)"
 				/>
-				<!-- Size slider -->
-				<div v-if="letterhead[image_field]" class="pfb-insp-row pfb-insp-row--col">
-					<span class="pfb-insp-label">{{ __("Size") }}</span>
-					<input
-						class="pfb-size-slider"
-						type="range"
-						min="20"
-						:max="zone_size_max"
-						:value="zone_size"
-						@input="(e) => set_size(e.target.value)"
-					/>
-				</div>
-				<!-- Image source -->
-				<ImageUploadControl
-					:model-value="letterhead[image_field] || ''"
-					@update:model-value="set_image"
-				/>
-			</template>
+			</div>
+			<!-- Image source -->
+			<ImageUploadControl
+				:model-value="letterhead[image_field] || ''"
+				@update:model-value="set_image"
+			/>
 		</InspectorSection>
 	</div>
 </template>
