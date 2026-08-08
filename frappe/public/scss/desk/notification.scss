@@ -3,6 +3,12 @@
 	height: $h;
 }
 
+// A notification row's unread dot is centred on the row's avatar, so the two
+// sizes are declared together -- changing one without the other would knock the
+// dot off centre.
+$notification-avatar-size: 36px;
+$notification-dot-size: 8px;
+
 .navbar {
 	perspective: 3200px;
 }
@@ -145,8 +151,18 @@
 		}
 	}
 
-	// es-tab-buttons is left exactly as the component ships it -- inline-flex,
-	// sized by its labels, same as every other group in the component explorer.
+	// es-tab-buttons ships inline-flex, sized by its labels. Here it spans the
+	// panel with the tabs sharing the width evenly -- the rail then lines up with
+	// the header and the list below it. Only the box changes; the rail, pill,
+	// sizing and states all still come from the component.
+	.header-items .es-tab-buttons {
+		display: flex;
+
+		.es-pill {
+			flex: 1 1 0;
+			min-width: 0;
+		}
+	}
 }
 
 // Desk host: the panel is a real popover, so .es-popover brings the surface
@@ -195,43 +211,44 @@
 .recent-item.notification-item {
 	padding: 10px 8px;
 	margin: 2px 0px;
-	justify-content: space-between;
 	gap: 8px;
 
-	// --invert-neutral is not part of the Espresso palette, so both affordances below used to
-	// resolve to nothing; they read off the same blue the bell's unread dot uses.
+	// Unread marker on the left. Purely an indicator -- rows are not individually
+	// dismissible, so it has no hover or pressed state. The box is kept on read
+	// rows too, so every row's avatar starts at the same x.
+	//
+	// Pinned to the top and nudged down onto the avatar's midline, rather than
+	// centred on the row: the avatar sits at the top, so a row-centred dot slides
+	// further out of line the more the message wraps.
+	&::before {
+		content: "";
+		flex-shrink: 0;
+		align-self: flex-start;
+		margin-top: ($notification-avatar-size - $notification-dot-size) * 0.5;
+		@include size($notification-dot-size, $notification-dot-size);
+		border-radius: var(--radius-full);
+	}
+
 	&.unread {
-		.mark-as-read {
-			flex-shrink: 0;
-			align-self: center;
-			justify-self: end;
-			width: 8px;
-			height: 8px;
-		}
-
-		&:hover .mark-as-read {
-			border: 2px solid var(--surface-blue-5);
-			border-radius: var(--radius-full);
-		}
-
-		.notification-body::before {
+		// reads off the same blue the bell's unread dot uses
+		&::before {
 			background: var(--surface-blue-5);
+		}
+
+		// Unread rows read a step heavier than the ones already seen -- "medium" is
+		// the weight below semibold on the Espresso scale, so this stays a nudge
+		// rather than a shout. The timestamp opts back out below.
+		.message {
+			@include get_textstyle("base", "medium");
+			color: var(--ink-gray-8);
 		}
 	}
 
 	.notification-body {
 		display: flex;
+		flex: 1;
+		min-width: 0;
 		gap: 10px;
-
-		&::before {
-			content: "";
-			display: inline-block;
-			@include size(6px, 6px);
-			min-width: 6px;
-			margin-top: 16px;
-			margin-left: 2px;
-			border-radius: 10px;
-		}
 
 		.message {
 			max-width: 360px;
@@ -245,7 +262,8 @@
 
 	.notification-timestamp {
 		margin-top: 2px;
-		font-size: var(--text-xs);
+		// nested inside .message, so it opts out of the unread row's heavier weight
+		@include get_textstyle("xs", "regular");
 		color: var(--ink-gray-5);
 	}
 
@@ -253,8 +271,7 @@
 		margin-right: 10px;
 
 		.avatar-frame {
-			height: 36px;
-			width: 36px;
+			@include size($notification-avatar-size, $notification-avatar-size);
 		}
 	}
 }

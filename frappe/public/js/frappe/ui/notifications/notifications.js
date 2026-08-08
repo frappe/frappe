@@ -8,7 +8,6 @@ frappe.ui.Notifications = class Notifications {
 		// The desk bell opens a popover; the sidebar bell slides out a full-height
 		// drawer, which is a different thing and keeps its own show/hide.
 		this.as_popover = opts?.popover || false;
-		this.trigger = opts?.trigger;
 
 		this.wrapper = opts?.wrapper || $(".body-sidebar");
 		this.make();
@@ -41,10 +40,8 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	setup_popover() {
-		let trigger = this.trigger || this.wrapper.find(".desktop-notification-icon");
-
 		this.popover = new frappe.ui.Popover({
-			trigger,
+			trigger: this.wrapper.find(".desktop-notification-icon"),
 			// the same element every time, so the fetched list and the selected tab
 			// survive a close/open round trip
 			content: () => this.dropdown_list[0],
@@ -332,17 +329,6 @@ class NotificationsView extends BaseNotificationsView {
 		}
 	}
 
-	mark_as_read(docname, $el) {
-		frappe
-			.call("frappe.desk.doctype.notification_log.notification_log.mark_as_read", {
-				docname: docname,
-			})
-			.then(() => {
-				$el.removeClass("unread");
-				this.update_count_badge(Math.max(this.unread_count - 1, 0));
-			});
-	}
-
 	insert_into_dropdown() {
 		let new_item = this.dropdown_items[0];
 		let new_item_html = this.get_dropdown_item_html(new_item);
@@ -373,6 +359,8 @@ class NotificationsView extends BaseNotificationsView {
 		let user = notification_log.from_user;
 		let user_avatar = frappe.avatar(user, "avatar-medium user-avatar");
 
+		// Unread is indicated but not individually dismissible -- the only way to
+		// clear it is "Mark all as read" in the header.
 		let item_html = $(`<a class="recent-item notification-item ${read_class}"
 				href="${doc_link}"
 				data-name="${notification_log.name}"
@@ -381,22 +369,9 @@ class NotificationsView extends BaseNotificationsView {
 					${user_avatar}
 					${message_html}
 				</div>
-				<div class="mark-as-read" title="${__("Mark as Read")}">
-				</div>
 			</a>`);
 
-		if (!notification_log.read) {
-			let mark_btn = item_html.find(".mark-as-read");
-			mark_btn.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
-			mark_btn.on("click", (e) => {
-				e.preventDefault();
-				e.stopImmediatePropagation();
-				this.mark_as_read(notification_log.name, item_html);
-			});
-		}
-
 		item_html.on("click", () => {
-			!notification_log.read && this.mark_as_read(notification_log.name, item_html);
 			this.notifications_icon.trigger("click");
 		});
 
