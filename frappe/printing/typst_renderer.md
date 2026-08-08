@@ -91,8 +91,8 @@ warm-up; memory is peak RSS of processes spawned for the render.
 
 | | Chromium | Typst |
 |---|---:|---:|
-| Warm render, median | 808 ms | 109 ms |
-| Warm render, p95 | 892 ms | 112 ms |
-| Cold first render | 1325 ms | 672 ms |
-| Peak extra memory | 257 MB | 39 MB |
-| Output size | 78 KB | 21 KB |
+| A typical print | 808 ms | 109 ms |
+| The slowest print out of 10 | 892 ms | 112 ms |
+| The very first print after a restart | 1325 ms | 672 ms |
+| Extra RAM used while printing | 257 MB | 39 MB |
+| Size of the PDF (same document) | 78 KB | 21 KB |
