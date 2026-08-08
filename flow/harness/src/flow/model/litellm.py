@@ -109,9 +109,13 @@ class LiteLLMModel(Model):
 			yield Usage()
 
 	def _completion_kwargs(self, request: ModelRequest) -> dict[str, Any]:
+		caching = _uses_explicit_prompt_caching(self.name)
+		messages = _openai_messages(request.messages, self, request.system_prompt)
+		if caching:
+			_mark_cache_breakpoints(messages)
 		kwargs: dict[str, Any] = {
 			"model": self.name,
-			"messages": _openai_messages(request.messages, self, request.system_prompt),
+			"messages": messages,
 			**self._params,
 		}
 		if self._api_key:
@@ -121,7 +125,7 @@ class LiteLLMModel(Model):
 		if self._headers:
 			kwargs["extra_headers"] = self._headers
 		if request.tools:
-			kwargs["tools"] = request.tools
+			kwargs["tools"] = _cache_last_tool(request.tools) if caching else request.tools
 		if request.max_output_tokens is not None:
 			kwargs["max_tokens"] = request.max_output_tokens
 		# Flow owns retries so it can emit one event protocol and keep backoff
@@ -418,6 +422,58 @@ def _openai_messages(
 	return out
 
 
+_CACHE_CONTROL = {"type": "ephemeral"}
+
+
+def _uses_explicit_prompt_caching(model: str) -> bool:
+	"""Return whether the model uses explicit cache breakpoints."""
+	prefix = model.split("/", 1)[0]
+	if prefix == "anthropic":
+		return True
+	try:
+		import litellm
+
+		resolved_model, provider, _, _ = litellm.get_llm_provider(model=model)
+	except Exception:
+		return False
+	if provider == "anthropic":
+		return True
+	model_name = resolved_model.lower()
+	if provider == "openrouter":
+		return any(name in model_name for name in ("claude", "gemini", "minimax"))
+	if provider in {"azure_ai", "databricks"}:
+		return "claude" in model_name
+	if provider not in {"bedrock", "vertex_ai"}:
+		return False
+	try:
+		info = litellm.get_model_info(model)
+	except Exception:
+		# Handle new Claude models missing from LiteLLM's catalog.
+		if provider == "vertex_ai":
+			return resolved_model.startswith("claude-")
+		return resolved_model.startswith("anthropic.") or ".anthropic." in resolved_model
+	if provider == "vertex_ai":
+		return info.get("litellm_provider") == "vertex_ai-anthropic_models"
+	return info.get("supports_prompt_caching") is True
+
+
+def _mark_cache_breakpoints(messages: list[dict[str, Any]]) -> None:
+	"""Mark cache boundaries in the prompt."""
+	if messages and messages[0]["role"] == "system" and messages[0]["content"]:
+		messages[0]["cache_control"] = _CACHE_CONTROL
+	for message in reversed(messages):
+		if message["role"] in ("user", "tool"):
+			message["cache_control"] = _CACHE_CONTROL
+			break
+
+
+def _cache_last_tool(tools: list[dict[str, Any]]) -> list[dict[str, Any]]:
+	"""Mark the tool prefix without changing the request schemas."""
+	marked = list(tools)
+	marked[-1] = {**marked[-1], "cache_control": _CACHE_CONTROL}
+	return marked
+
+
 def _assistant_wire(message: AssistantMessage, model: LiteLLMModel) -> dict[str, Any]:
 	same_model = (
 		message.api == model.api and message.provider == model.provider and message.model == model.model
@@ -569,9 +625,18 @@ def _stop_reason(value: str | None, *, has_tools: bool = False) -> StopReason:
 
 
 def _usage_event(usage_obj: Any, cost: float) -> Usage:
+	# LiteLLM includes cached tokens in prompt_tokens.
+	details = _attr(usage_obj, "prompt_tokens_details")
 	return Usage(
 		input_tokens=_attr(usage_obj, "prompt_tokens", 0) or 0,
 		output_tokens=_attr(usage_obj, "completion_tokens", 0) or 0,
+		cache_read_tokens=_attr(usage_obj, "cache_read_input_tokens", 0)
+		or _attr(details, "cached_tokens", 0)
+		or 0,
+		cache_write_tokens=_attr(usage_obj, "cache_creation_input_tokens", 0)
+		or _attr(details, "cache_write_tokens", 0)
+		or _attr(details, "cache_creation_tokens", 0)
+		or 0,
 		cost=cost or 0.0,
 	)
 
