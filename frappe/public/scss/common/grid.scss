@@ -58,6 +58,13 @@
 			// TODO: Align with table grid without overwriting padding if possible
 			padding: 4px 7px 4px 7px !important;
 			background-color: var(--fg-color);
+
+			input {
+				// Firefox and Safari count the input's intrinsic width into the
+				// row's max-content, growing search cells out of column alignment.
+				width: 0;
+				min-width: 100%;
+			}
 		}
 	}
 
