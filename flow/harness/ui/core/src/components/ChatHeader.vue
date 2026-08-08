@@ -46,6 +46,16 @@
 				<span class="text-xs text-ink-gray-5">Σ {{ formatTokens(usedTokens) }} tok</span>
 				<span v-if="cost > 0" class="text-xs text-ink-gray-4">· ${{ cost.toFixed(cost < 1 ? 3 : 2) }}</span>
 			</span>
+			<span
+				v-if="cacheReadTokens > 0 || cacheWriteTokens > 0"
+				class="whitespace-nowrap text-xs text-ink-gray-5"
+				title="Prompt cache tokens read / written"
+			>
+				⚡
+				<template v-if="cacheReadTokens > 0">R {{ formatTokens(cacheReadTokens) }}</template>
+				<template v-if="cacheReadTokens > 0 && cacheWriteTokens > 0"> · </template>
+				<template v-if="cacheWriteTokens > 0">W {{ formatTokens(cacheWriteTokens) }}</template>
+			</span>
 
 			<button class="flow-icon-btn" title="Toggle theme" @click="toggleTheme">
 				<FeatherIcon :name="theme === 'dark' ? 'moon' : 'sun'" class="h-3.5 w-3.5" />
@@ -82,6 +92,8 @@ const usedTokens = computed(
 	() => flow.state.conversation.usage.input + flow.state.conversation.usage.output,
 )
 const cost = computed(() => flow.state.conversation.usage.cost)
+const cacheReadTokens = computed(() => flow.state.conversation.usage.cacheRead)
+const cacheWriteTokens = computed(() => flow.state.conversation.usage.cacheWrite)
 const contextTokens = computed(() => flow.state.conversation.contextTokens ?? 0)
 const contextWindow = computed(() => flow.state.session?.context_window ?? null)
 

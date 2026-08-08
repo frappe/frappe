@@ -185,10 +185,30 @@ def test_rewind_drops_preview_and_pending_approval():
 
 def test_usage_accumulates_across_runs():
 	state = State()
-	state.apply(Usage(input_tokens=100, output_tokens=20, cost=0.01, seq=1))
-	state.apply(Usage(input_tokens=50, output_tokens=5, cost=0.005, seq=2))
+	state.apply(
+		Usage(
+			input_tokens=100,
+			output_tokens=20,
+			cache_read_tokens=80,
+			cache_write_tokens=10,
+			cost=0.01,
+			seq=1,
+		)
+	)
+	state.apply(
+		Usage(
+			input_tokens=50,
+			output_tokens=5,
+			cache_read_tokens=30,
+			cache_write_tokens=5,
+			cost=0.005,
+			seq=2,
+		)
+	)
 	assert state.input_tokens == 150
 	assert state.output_tokens == 25
+	assert state.cache_read_tokens == 110
+	assert state.cache_write_tokens == 15
 	assert state.cost == 0.015
 
 

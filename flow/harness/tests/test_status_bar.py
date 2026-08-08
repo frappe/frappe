@@ -34,8 +34,15 @@ async def test_status_bar_shows_absolute_context_and_unlabelled_effort(tmp_path:
 
 		assert "5k/256k" in line
 		assert "↑12k · ↓3k" in line
+		assert "⚡" not in line
 		assert line.endswith("codex/gpt-5 · high")
 		assert "effort:" not in line
+
+		state.cache_read_tokens = 9_000
+		state.cache_write_tokens = 2_000
+		bar.refresh_from(state)
+		# The rendered line may be clipped.
+		assert "↓3k · ⚡R9k/W2k" in bar._left
 
 
 def test_repository_label_shows_directory_and_branch(tmp_path: Path):

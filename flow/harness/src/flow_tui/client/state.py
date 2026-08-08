@@ -142,6 +142,8 @@ class ConversationState:
 		self.reasoning_effort: ReasoningEffort | None = None
 		self.input_tokens: int = 0
 		self.output_tokens: int = 0
+		self.cache_read_tokens: int = 0
+		self.cache_write_tokens: int = 0
 		self.context_tokens: int = 0
 		self.context_window: int | None = None
 		self.cost: float = 0.0
@@ -249,6 +251,8 @@ class ConversationState:
 		if isinstance(event, Usage):
 			self.input_tokens += event.input_tokens
 			self.output_tokens += event.output_tokens
+			self.cache_read_tokens += event.cache_read_tokens
+			self.cache_write_tokens += event.cache_write_tokens
 			self.context_tokens = event.input_tokens + event.output_tokens
 			if event.context_window is not None:
 				self.context_window = event.context_window
