@@ -520,6 +520,16 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			title_field = frappe.meta.get_field(this.doctype, this.meta.title_field);
 		}
 
+		this.meta.fields.forEach((df) => {
+			const is_valid_field =
+				["Data", "Text", "Small Text", "Text Editor"].includes(df.fieldtype) && !df.hidden;
+
+			if (is_valid_field && !title_field) {
+				// can be mapped to textarea
+				title_field = df;
+			}
+		});
+
 		// quick entry
 		var mandatory = meta.fields.filter((df) => df.reqd && !doc[df.fieldname]);
 

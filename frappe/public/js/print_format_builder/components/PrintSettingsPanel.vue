@@ -1,42 +1,6 @@
 <template>
 	<div class="pfb-settings">
 		<div class="form-group">
-			<label class="control-label">{{ __("Style Preset") }}</label>
-			<div class="pfb-preset-row">
-				<select
-					class="form-control form-control-sm"
-					:value="active_preset"
-					@change="apply_preset($event.target.value)"
-				>
-					<option value="">{{ __("Choose a preset…") }}</option>
-					<option v-for="p in store.style_presets.value" :key="p.name" :value="p.name">
-						{{ p.name }}
-					</option>
-				</select>
-				<button
-					class="es-button"
-					data-size="sm"
-					data-variant="ghost"
-					data-icon-button="true"
-					:title="__('Save current style as a preset')"
-					@click="save_preset"
-					v-html="frappe.utils.icon('save', 'sm')"
-				></button>
-				<button
-					v-if="active_preset"
-					class="es-button"
-					data-size="sm"
-					data-variant="ghost"
-					data-theme="red"
-					data-icon-button="true"
-					:title="__('Delete preset')"
-					@click="delete_preset"
-					v-html="frappe.utils.icon('trash', 'sm')"
-				></button>
-			</div>
-		</div>
-
-		<div class="form-group">
 			<label class="control-label">{{ __("Google Font") }}</label>
 			<Autocomplete
 				:options="font_options"
@@ -97,7 +61,7 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
+import { computed, inject, nextTick, onMounted, ref } from "vue";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
 import { mountColorControl } from "./inspector/useColorControl";
 import { useStore } from "../stores";
@@ -160,55 +124,6 @@ function mount_color_controls() {
 	}
 }
 
-// a preset rewrites the colours behind the widgets' backs
-watch(
-	() => color_settings.map((c) => print_format.value?.[c.fieldname]),
-	() => {
-		for (const c of color_settings) {
-			const ctrl = color_controls[c.fieldname];
-			if (!ctrl) continue;
-			const model = print_format.value?.[c.fieldname] || "";
-			if ((ctrl.get_value() || "") !== model) ctrl.set_value(model);
-		}
-	}
-);
-
-// ── style presets ──────────────────────────────────────────
-let active_preset = ref("");
-
-function apply_preset(name) {
-	active_preset.value = name;
-	if (name) store.apply_style_preset(name);
-}
-
-function save_preset() {
-	frappe.prompt(
-		{
-			label: __("Preset name"),
-			fieldname: "name",
-			fieldtype: "Data",
-			reqd: 1,
-			default: active_preset.value || "",
-		},
-		({ name }) => {
-			store.save_style_preset(name);
-			active_preset.value = name.trim();
-			frappe.show_alert({ message: __("Style preset saved"), indicator: "green" });
-		},
-		__("Save Style Preset"),
-		__("Save")
-	);
-}
-
-function delete_preset() {
-	const name = active_preset.value;
-	if (!name) return;
-	frappe.confirm(__("Delete the style preset '{0}'?", [name]), () => {
-		store.delete_style_preset(name);
-		active_preset.value = "";
-	});
-}
-
 onMounted(() => {
 	nextTick(mount_color_controls);
 	let method = "frappe.printing.page.print_format_builder.print_format_builder.get_google_fonts";
@@ -232,16 +147,6 @@ onMounted(() => {
 
 .pfb-settings :deep(.frappe-control) {
 	margin-bottom: 0;
-}
-
-.pfb-preset-row {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-}
-
-.pfb-preset-row select {
-	flex: 1;
 }
 
 .pfb-margin-grid {
