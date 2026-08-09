@@ -109,7 +109,6 @@ function removeTab(tab: TabEntry) {
 function updateLabel(tab: TabEntry, value: string) {
 	syncBlockNames(tab, value)
 	tab.labelBlock?.setProp("text", value)
-	panelHeader(tab)?.setProp("title", value)
 }
 
 // layer names like "ProfileNavItem"/"ProfilePanel" follow the label,
@@ -123,12 +122,6 @@ function renameBlock(block: Block | null, oldLabel: string, newLabel: string, su
 	if (!block) return
 	const isAutoNamed = !block.blockName || block.blockName === tabBlockName(oldLabel, suffix)
 	if (isAutoNamed) block.blockName = tabBlockName(newLabel, suffix)
-}
-
-function panelHeader(tab: TabEntry) {
-	return (
-		tab.panel?.getChildrenAndSlotContent().find((child) => child.componentName === "SettingsHeader") || null
-	)
 }
 
 function renameValue(tab: TabEntry, next: string) {
