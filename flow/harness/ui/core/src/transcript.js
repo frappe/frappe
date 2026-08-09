@@ -21,6 +21,9 @@ export function initialConversation() {
 		entries: [],
 		partialText: "",
 		partialThinking: "",
+		// Presentation-only calls announced by tool_call_started. The terminal
+		// assistant_message replaces them with complete, durable ToolCall blocks.
+		liveToolCalls: [],
 		running: false,
 		compacting: false,
 		pendingApproval: null, // { seq, calls: [PendingCall], answers: {id: string} }
@@ -45,7 +48,8 @@ export function applyEvent(s, e) {
 		case "run_started":
 			s.running = true
 			s.lastError = null
-			s.liveLabel = "Thinking…"
+			s.liveLabel = "Thinking"
+			s.liveToolCalls = []
 			s.pendingApproval = null // a new run consumes the batch (resume) — same as the server reducer
 			break
 		case "user_message":
@@ -55,6 +59,7 @@ export function applyEvent(s, e) {
 			if (e.type === "assistant_message") {
 				s.partialText = ""
 				s.partialThinking = ""
+				s.liveToolCalls = []
 				// a text blob ends the tool phase; a tool-only message keeps the
 				// current tool label until the next one replaces it
 				if ((e.content ?? []).some((b) => b.type === "text" && b.text)) s.liveLabel = null
@@ -74,6 +79,7 @@ export function applyEvent(s, e) {
 			s.liveLabel = null
 			s.partialText = ""
 			s.partialThinking = ""
+			s.liveToolCalls = []
 			if (e.reason !== "paused") s.pendingApproval = null // a pause outlives its run
 			// abnormal endings leave a durable marker in the transcript flow
 			if (["aborted", "max_turns", "budget", "length"].includes(e.reason)) s.entries.push(e)
@@ -93,6 +99,7 @@ export function applyEvent(s, e) {
 			break
 		case "run_error":
 			s.lastError = e
+			s.liveToolCalls = []
 			s.entries.push(e) // rendered in place, and it survives a reload
 			break
 		case "rewind":
@@ -107,27 +114,33 @@ export function applyEvent(s, e) {
 		case "thinking_delta":
 			s.partialThinking += e.thinking
 			// don't stomp a tool label — between tool calls the line stays put
-			if (!s.liveLabel) s.liveLabel = "Thinking…"
+			if (!s.liveLabel) s.liveLabel = "Thinking"
 			break
 		case "tool_call_started":
 			s.partialThinking = "" // the thought segment ended; it lands durably soon
-			s.liveLabel = stepLabel(e.name) + "…"
+			s.liveLabel = stepLiveLabel({ name: e.name })
+			if (e.id && e.name) {
+				const existing = s.liveToolCalls.find((call) => call.id === e.id)
+				if (existing) existing.name = e.name
+				else s.liveToolCalls.push({ type: "tool_call", id: e.id, name: e.name, arguments: {} })
+			}
 			break
 		case "retry":
 			if (e.status === "started") {
 				// the boundary where a failed attempt's deltas must be discarded.
-				// liveLabel resets too: "Retrying…" must not stick through the new
+				// liveLabel resets too: "Retrying" must not stick through the new
 				// attempt (thinking_delta only fills an empty label)
 				s.partialText = ""
 				s.partialThinking = ""
 				s.liveLabel = null
+				s.liveToolCalls = []
 			} else if (e.status === "scheduled") {
-				s.liveLabel = "Retrying…"
+				s.liveLabel = "Retrying"
 			}
 			break
 		case "compaction_started":
 			s.compacting = true
-			s.liveLabel = "Compacting context…"
+			s.liveLabel = "Compacting context"
 			break
 		case "compaction_ended":
 			s.compacting = false
@@ -153,7 +166,68 @@ const STEP_LABELS = {
 }
 
 export function stepLabel(name) {
-	return STEP_LABELS[name] ?? `Running ${name}`
+	return STEP_LABELS[name] ?? humanizeToolName(name)
+}
+
+export function humanizeToolName(name) {
+	const words = String(name ?? "")
+		.replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+		.replace(/[_-]+/g, " ")
+		.trim()
+		.toLowerCase()
+	return words ? words[0].toUpperCase() + words.slice(1) : "Tool"
+}
+
+function lowerFirst(value) {
+	return value ? value[0].toLowerCase() + value.slice(1) : value
+}
+
+function fileName(path) {
+	return String(path ?? "")
+		.split(/[\\/]/)
+		.filter(Boolean)
+		.pop()
+}
+
+export function stepLiveLabel(call) {
+	const name = call?.name ?? ""
+	const label = stepLabel(name)
+	if (["read_file", "write", "edit"].includes(name)) {
+		const subject = fileName((call.arguments ?? call.args ?? {}).path)
+		return subject ? `${label} ${subject}` : label
+	}
+	if (name in STEP_LABELS) return label
+	return `Running ${lowerFirst(label)}`
+}
+
+export function toolGroupSummary(calls) {
+	const activities = []
+	const counts = new Map()
+	for (const call of calls) {
+		const name = call?.name ?? ""
+		const key =
+			name === "write" || name === "edit"
+				? "files-edited"
+				: name === "read_file"
+					? "files-read"
+					: name === "bash"
+						? "commands"
+						: name === "grep"
+							? "search"
+							: `custom:${name}`
+		if (!counts.has(key)) activities.push({ key, name })
+		counts.set(key, (counts.get(key) ?? 0) + 1)
+	}
+	const phrases = activities.map(({ key, name }) => {
+		const count = counts.get(key)
+		if (key === "files-edited") return count === 1 ? "edited file" : "edited files"
+		if (key === "files-read") return count === 1 ? "read file" : "read files"
+		if (key === "commands") return count === 1 ? "ran command" : "ran commands"
+		if (key === "search") return "searched code"
+		return `used ${lowerFirst(humanizeToolName(name))}`
+	})
+	const summary = phrases.join(", ")
+	return summary ? summary[0].toUpperCase() + summary.slice(1) : "Worked"
 }
 
 // The one-line summary shown next to a step label.
@@ -195,7 +269,7 @@ export function stepStat(step) {
 		return { denied: "denied", cancelled: "cancelled", redirect: "change requested" }[decision.status]
 	}
 	const d = step.result?.details
-	if (!d) return step.result ? "" : "…"
+	if (!d) return ""
 	if (d.exit_code !== undefined && d.exit_code !== null) return `exit ${d.exit_code}`
 	if (d.matches !== undefined) return `${d.matches} matches`
 	if (d.lines_added !== undefined || d.lines_removed !== undefined)
@@ -207,7 +281,7 @@ export function stepStat(step) {
 	return ""
 }
 
-// Folds durable entries into renderable items:
+// Folds durable entries and live tool-call announcements into renderable items:
 //   {kind: "user", entry}
 //   {kind: "text", block, entry}
 //   {kind: "thinking", block, entry}
@@ -285,6 +359,19 @@ export function buildItems(conversation) {
 			flushThoughts()
 			items.push({ kind: "notice", key: `n:${entry.seq}`, text: END_NOTICES[entry.reason] ?? entry.reason })
 		}
+	}
+
+	// A streamed start event carries identity but not arguments. Materialize it as
+	// a real step now; the terminal assistant_message atomically clears this list
+	// and supplies the complete durable call with the same group/step keys.
+	for (const call of conversation.liveToolCalls ?? []) {
+		if (stepsById.has(call.id) || pendingIds.has(call.id)) continue
+		const group = currentGroup(call.id)
+		for (const t of bufferedThoughts) group.steps.push({ thought: t.block })
+		bufferedThoughts = []
+		const step = { call, result: null, aborted: false }
+		stepsById.set(call.id, step)
+		group.steps.push(step)
 	}
 
 	flushThoughts()

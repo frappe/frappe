@@ -79,7 +79,7 @@
 				v-html="streamingHtml"
 			/>
 			<!-- streamed thinking never renders as its own block — the status line
-			     says "Thinking…" and the thought lands durably in its group -->
+			     says "Thinking" and the thought lands durably in its group -->
 			<div v-if="conversation.liveLabel && !lastIsOpenGroup" class="text-sm font-medium">
 				<span class="flow-shimmer">{{ conversation.liveLabel }}</span>
 			</div>
@@ -121,7 +121,7 @@ const empty = computed(() => !flow.state.sessionId && !flow.state.loading)
 const composerHeight = inject("composerHeight", ref(120))
 // boolean computed: flips only on empty↔non-empty, not per streamed token, so
 // the v-for bindings don't re-evaluate on every delta. Only streamed *text*
-// seals a group — inter-step thinking must not collapse it to "Ran N steps".
+// seals a group — inter-step thinking must not collapse it to a completed summary.
 const hasPartialText = computed(() => !!conversation.value.partialText)
 const lastTurnCopyIndex = computed(() =>
 	items.value.findLastIndex((item) => item.kind === "turn-copy"),
@@ -157,6 +157,7 @@ watch(
 		conversation.value.entries.length,
 		conversation.value.partialText,
 		conversation.value.partialThinking,
+		conversation.value.liveToolCalls.length,
 		conversation.value.liveLabel,
 	],
 	async () => {

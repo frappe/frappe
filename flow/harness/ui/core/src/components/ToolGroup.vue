@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<!-- streaming: the header is a single line that changes in place; sealed
-		     (a text blob followed, or the run settled) it becomes "Ran N steps".
+		     (a text blob followed, or the run settled) it summarizes the activity.
 		     Either way it's manually expandable to the individual steps. -->
 		<button
 			class="flex items-center gap-1.5 text-sm hover:text-ink-gray-8"
@@ -39,7 +39,7 @@
 import { computed, nextTick, ref, watch } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
-import { stepLabel } from "../transcript.js"
+import { stepLabel, stepLiveLabel, toolGroupSummary } from "../transcript.js"
 import ThoughtStep from "./ThoughtStep.vue"
 import ToolStep from "./ToolStep.vue"
 
@@ -61,23 +61,29 @@ watch(open, (value) => {
 
 const toolSteps = computed(() => props.steps.filter((s) => s.call))
 const active = computed(() => toolSteps.value.some((s) => !s.result && !s.aborted))
+const completedCount = computed(() => toolSteps.value.filter((s) => s.result || s.aborted).length)
+const completedSuffix = computed(() =>
+	completedCount.value ? ` · ${completedCount.value} completed` : "",
+)
 
 const label = computed(() => {
 	if (active.value) {
 		const running = toolSteps.value.find((s) => !s.result)
-		return running ? stepLabel(running.call.name) : "Working…"
+		return (running ? stepLiveLabel(running.call) : "Working") + completedSuffix.value
 	}
-	return toolSteps.value.length === 1
-		? stepLabel(toolSteps.value[0].call.name)
-		: `Ran ${toolSteps.value.length} steps`
+	return toolGroupSummary(toolSteps.value.map((step) => step.call))
 })
 
 // While streaming: the executing step, else the freshest signal we have. The
-// line holds the last tool label through inter-step thinking — never "Thinking…".
+// line holds the last tool label through inter-step thinking — never "Thinking".
 const liveLine = computed(() => {
 	const running = toolSteps.value.find((s) => !s.result)
-	if (running) return stepLabel(running.call.name) + "…"
+	if (running) return stepLiveLabel(running.call) + completedSuffix.value
 	const last = toolSteps.value[toolSteps.value.length - 1]
-	return props.liveLabel ?? (last ? stepLabel(last.call.name) + "…" : "Working…")
+	const line =
+		last && (!props.liveLabel || props.liveLabel === stepLabel(last.call.name))
+			? stepLiveLabel(last.call)
+			: (props.liveLabel ?? "Working")
+	return line + completedSuffix.value
 })
 </script>
