@@ -27,6 +27,7 @@ class AutomationTriggerQueue(Document):
 		run_after: DF.Datetime | None
 		status: DF.Literal["Pending", "Running", "Done", "Failed", "Skipped"]
 		triggered_at: DF.Datetime | None
+		triggered_by: DF.Link | None
 	# end: auto-generated types
 
 	pass

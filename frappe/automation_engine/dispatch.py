@@ -92,11 +92,7 @@ def matches_rule(rule, doc) -> bool:
 
 
 def _matches(rule, doc) -> bool:
-	return (
-		_field_matches(rule, doc)
-		and _filters_match(rule, doc)
-		and _condition_matches(rule, doc)
-	)
+	return _field_matches(rule, doc) and _filters_match(rule, doc) and _condition_matches(rule, doc)
 
 
 def _field_matches(rule, doc) -> bool:
@@ -139,6 +135,7 @@ def queue_trigger(automation, doctype, docname, run_after=None, payload=None, de
 			"ref_name": docname,
 			"status": "Pending",
 			"triggered_at": frappe.utils.now(),
+			"triggered_by": frappe.session.user,
 			"run_after": run_after,
 			"event_payload": frappe.as_json(payload) if payload else None,
 			"depth": depth,

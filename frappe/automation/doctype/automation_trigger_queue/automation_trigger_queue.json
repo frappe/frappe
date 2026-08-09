@@ -14,6 +14,7 @@
   "run_after",
   "attempt",
   "depth",
+  "triggered_by",
   "section_break_payload",
   "event_payload",
   "section_break_resume",
@@ -81,6 +82,12 @@
    "fieldname": "depth",
    "fieldtype": "Int",
    "label": "Recursion Depth"
+  },
+  {
+   "fieldname": "triggered_by",
+   "fieldtype": "Link",
+   "label": "Triggered By",
+   "options": "User"
   },
   {
    "fieldname": "section_break_payload",
