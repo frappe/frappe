@@ -3,6 +3,9 @@
 	"version": "0.0.0",
 	"description": "Shared Flow chat components, daemon client, and transcript store (Vue 3 + frappe-ui tokens). Consumed from source; the importing app compiles the .vue files and Tailwind classes.",
 	"type": "module",
+	"scripts": {
+		"test": "node --test test/*.test.js"
+	},
 	"exports": {
 		".": "./src/index.js",
 		"./*": "./src/*"

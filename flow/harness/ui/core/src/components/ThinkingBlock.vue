@@ -4,7 +4,7 @@
 			class="flex items-center gap-1.5 text-sm text-ink-gray-5 hover:text-ink-gray-8"
 			@click="open = !open"
 		>
-			<span :class="live ? 'flow-shimmer font-medium' : ''">{{ live ? "Thinking…" : "Thought" }}</span>
+			<span :class="live ? 'flow-shimmer font-medium' : ''">{{ live ? "Thinking" : "Thought" }}</span>
 			<FeatherIcon
 				name="chevron-right"
 				class="h-3.5 w-3.5 transition-transform"
