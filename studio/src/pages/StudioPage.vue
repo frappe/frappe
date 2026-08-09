@@ -193,7 +193,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import { studioPages } from "@/data/studioPages"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
-import { getRootBlock } from "@/utils/serializer"
+import { getBlockCopy, getRootBlock } from "@/utils/serializer"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import { toast } from "frappe-ui"
 
@@ -238,7 +238,8 @@ async function saveFragmentMode() {
 
 	savingFragment.value = true
 	try {
-		await canvasStore.fragmentData.saveAction?.(editedBlock)
+		// pass a copy to avoid mutating the canvas block while saving, marking it dirty
+		await canvasStore.fragmentData.saveAction?.(getBlockCopy(editedBlock, true))
 	} catch {
 		// save failed, stay on this fragment so the edited state isn't lost
 		return
