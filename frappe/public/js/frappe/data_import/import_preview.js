@@ -855,8 +855,11 @@ function get_fields_as_options(doctype, column_map) {
 				let label = __(df.label, null, df.parent);
 				let value = df.fieldname;
 				if (doctype !== key) {
+					// Provider child tables (e.g. "contacts") aren't real docfields on the
+					// parent, so get_docfield returns undefined — fall back to the field's
+					// own parent DocType label (e.g. "Contact") instead of the raw fieldname.
 					const table_field = frappe.meta.get_docfield(doctype, key);
-					const table_label = table_field?.label || key;
+					const table_label = table_field?.label || df.parent || key;
 					label = `${__(df.label, null, df.parent)} (${__(table_label)})`;
 					value = `${key}.${df.fieldname}`;
 				}

@@ -342,6 +342,8 @@ def get_import_fields(doctype: str):
 	Shape: ``{"fields": [<df>, ...], "child_tables": [{"fieldname", "label", "fields": [<df>]}]}``
 	(see ``ImportProvider.get_import_fields``).
 	"""
+	if not doctype:
+		return None
 	frappe.has_permission(doctype, "read", throw=True)
 	from frappe.core.doctype.data_import.import_provider import get_import_provider
 

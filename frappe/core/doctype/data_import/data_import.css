@@ -1,15 +1,6 @@
-.warnings .warning {
-	margin-bottom: 25px;
-}
-
+/* Skipped warnings get a muted appearance — the skip action shows them struck-through. */
 .warnings .warning.skipped .body {
 	opacity: 0.6;
-}
-
-.warnings .warning-row-header {
-	display: flex;
-	align-items: center;
-	gap: 8px;
 }
 
 /* Wizard preview shells (.diw-preview-field-shell) — full-width column layout. */
