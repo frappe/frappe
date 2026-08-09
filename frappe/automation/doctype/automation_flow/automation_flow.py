@@ -12,13 +12,10 @@ from frappe import _
 from frappe.automation_engine.registry import DOC_TRIGGER_TYPES, clear_automation_cache
 from frappe.model.document import Document
 
-# Triggers whose runtime path isn't wired yet (no emitter). They may be saved as drafts,
-# but enabling one would silently never fire — so enable is blocked.
-NON_EXECUTABLE_TRIGGERS = ("Custom Event",)
-
 # "Else" is not a step of its own — an If's two arms are expressed by its children's
 # `branch` field, so a bare Else row would have nothing to execute.
-STEP_TYPES = ("Action", "Wait", "If")
+STEP_TYPES = ("Action", "Wait", "WaitForEvent", "If")
+WAIT_STEP_TYPES = ("Wait", "WaitForEvent")
 WAIT_UNITS = ("Seconds", "Minutes", "Hours", "Days")
 
 
@@ -33,6 +30,7 @@ class AutomationFlow(Document):
 		from frappe.types import DF
 
 		actions: DF.Table[AutomationAction]
+		automation_user: DF.Link | None
 		condition: DF.Code | None
 		cron_expression: DF.Data | None
 		custom_event: DF.Data | None
@@ -46,6 +44,8 @@ class AutomationFlow(Document):
 		from_value: DF.Data | None
 		log_only: DF.Check
 		revalidate_on_run: DF.Check
+		relationships: DF.JSON | None
+		run_as: DF.Literal["Triggering User", "Document Owner", "Automation User"]
 		stop_on_error: DF.Check
 		throttle_per_minute: DF.Int
 		title: DF.Data
@@ -68,36 +68,62 @@ class AutomationFlow(Document):
 	def validate(self):
 		self.validate_document_type()
 		self.validate_trigger_config()
+		self.validate_execution_identity()
 		self.validate_actions()
 		if self.enabled:
 			self.validate_ready_to_enable()
 
 	def validate_ready_to_enable(self):
-		"""Only allow enabling a rule whose every part can actually run today.
-
-		Not-yet-wired triggers are legal to draft, but enabling one would silently
-		never fire, so block enable.
-		"""
+		"""Only allow enabling a rule whose every part can actually run today."""
 		if not self.actions:
 			frappe.throw(_("Enable an Automation Flow only after adding at least one action"))
-		if self.trigger_type in NON_EXECUTABLE_TRIGGERS:
-			frappe.throw(
-				_("{0} triggers are not executable yet — keep this Automation Flow as a draft").format(
-					self.trigger_type
-				)
-			)
 
 	def validate_actions(self):
 		from frappe.automation_engine.actions.base import get_action
 
+		keys = set()
+		targets = self.get_action_targets()
 		for row in self.actions:
+			self.set_step_key(row, keys)
 			self.validate_step(row)
 			self.validate_branch(row)
-			if row.step_type in ("Wait", "If"):
+			self.validate_action_aliases(row, targets)
+			if row.step_type in (*WAIT_STEP_TYPES, "If"):
 				continue
 			action = get_action(row.action_type)
 			self.validate_action_context(action)
-			action.validate(frappe.parse_json(row.params) if row.params else {}, self.document_type)
+			params = frappe.parse_json(row.params) if row.params else {}
+			action.validate(params, targets.get(row.target))
+			targets.update(action.output_targets(params, row.output_alias))
+
+	def get_action_targets(self):
+		from frappe.automation_engine.relationships import get_relationship_targets
+
+		return get_relationship_targets(self.document_type, self.relationships)
+
+	def validate_action_aliases(self, row, targets):
+		from frappe.automation_engine.conditions import validate_related_condition
+
+		row.target = row.target or "trigger"
+		if row.target not in targets:
+			frappe.throw(_("Row {0}: unknown target alias {1}").format(row.idx, row.target))
+		validate_related_condition(row.related_condition, targets)
+		if row.output_alias and row.output_alias in targets:
+			frappe.throw(_("Row {0}: duplicate output alias {1}").format(row.idx, row.output_alias))
+
+	def set_step_key(self, row, keys):
+		row.step_key = row.step_key or f"step_{row.idx}"
+		if row.step_key in keys:
+			frappe.throw(_("Row {0}: Step Key must be unique").format(row.idx))
+		keys.add(row.step_key)
+
+	def validate_execution_identity(self):
+		self.run_as = self.run_as or "Automation User"
+		if self.run_as != "Automation User":
+			return
+		self.automation_user = self.automation_user or "Administrator"
+		if not frappe.db.get_value("User", self.automation_user, "enabled"):
+			frappe.throw(_("Automation User {0} is disabled or missing").format(self.automation_user))
 
 	def validate_branch(self, row):
 		"""A step inside an If must name that If (by idx) and which arm it belongs to."""
@@ -131,6 +157,8 @@ class AutomationFlow(Document):
 			frappe.throw(_("Row {0}: an If step needs a Step Condition").format(row.idx))
 		if row.step_type == "Wait":
 			self.validate_wait(row)
+		if row.step_type == "WaitForEvent":
+			self.validate_event_wait(row)
 
 	def validate_wait(self, row):
 		params = frappe.parse_json(row.params) if row.params else {}
@@ -138,6 +166,11 @@ class AutomationFlow(Document):
 			frappe.throw(_("Wait steps require a duration value and unit"))
 		if params["unit"] not in WAIT_UNITS:
 			frappe.throw(_("Row {0}: Wait unit must be one of {1}").format(row.idx, ", ".join(WAIT_UNITS)))
+
+	def validate_event_wait(self, row):
+		from frappe.automation_engine.events import validate_wait_params
+
+		validate_wait_params(frappe.parse_json(row.params) if row.params else {})
 
 	def validate_document_type(self):
 		if self.document_type and frappe.get_meta(self.document_type).istable:
@@ -169,4 +202,11 @@ class AutomationFlow(Document):
 
 	def on_trash(self):
 		clear_automation_cache(self.document_type)
+		queue = frappe.qb.DocType("Automation Trigger Queue")
+		subscription = frappe.qb.DocType("Automation Event Subscription")
+		frappe.qb.from_(subscription).delete().where(
+			subscription.resume_queue.isin(
+				frappe.qb.from_(queue).select(queue.name).where(queue.automation == self.name)
+			)
+		).run()
 		frappe.db.delete("Automation Trigger Queue", {"automation": self.name})
