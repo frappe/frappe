@@ -60,7 +60,6 @@ declare module 'vue' {
     FormDescription: typeof import('./src/components/FormDescription.vue')['default']
     FormDialog: typeof import('./src/components/FormDialog.vue')['default']
     FormInputLabel: typeof import('./src/components/FormInputLabel.vue')['default']
-    FragmentList: typeof import('./src/components/FragmentList.vue')['default']
     GlobeOff: typeof import('./src/components/Icons/GlobeOff.vue')['default']
     Grid: typeof import('./src/components/Grid.vue')['default']
     HTML: typeof import('./src/components/AppLayout/HTML.vue')['default']
@@ -73,11 +72,9 @@ declare module 'vue' {
     ListBox: typeof import('./src/components/ListBox.vue')['default']
     ListColumnsEditor: typeof import('./src/components/PropEditors/ListColumnsEditor.vue')['default']
     LucideActivity: typeof import('~icons/lucide/activity')['default']
-    LucideBox: typeof import('~icons/lucide/box')['default']
     LucideChevronDown: typeof import('~icons/lucide/chevron-down')['default']
     LucideChevronUp: typeof import('~icons/lucide/chevron-up')['default']
     LucidePaperclip: typeof import('~icons/lucide/paperclip')['default']
-    LucidePenLine: typeof import('~icons/lucide/pen-line')['default']
     MarginHandler: typeof import('./src/components/MarginHandler.vue')['default']
     MarkdownEditor: typeof import('./src/components/AppLayout/MarkdownEditor.vue')['default']
     MissingComponent: typeof import('./src/components/MissingComponent.vue')['default']
@@ -118,7 +115,6 @@ declare module 'vue' {
     StudioRightPanel: typeof import('./src/components/StudioRightPanel.vue')['default']
     StudioSettingsDialog: typeof import('./src/components/StudioSettingsDialog.vue')['default']
     StudioToolbar: typeof import('./src/components/StudioToolbar.vue')['default']
-    SubDialogList: typeof import('./src/components/SubDialogList.vue')['default']
     TextBlock: typeof import('./src/components/AppLayout/TextBlock.vue')['default']
   }
 }

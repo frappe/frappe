@@ -132,7 +132,7 @@ import { isDynamicValue } from "@/utils/code"
 import useCanvasStore from "@/stores/canvasStore"
 import blockController from "@/utils/blockController"
 import useComponentEditorStore from "@/stores/componentEditorStore"
-import type { ComponentProps } from "@/types"
+import type { ComponentProp, ComponentProps } from "@/types"
 import { ComponentInput } from "@/types/Studio/StudioComponent"
 import DynamicValueSelector from "@/components/DynamicValueSelector.vue"
 import useStudioStore from "@/stores/studioStore"
@@ -157,55 +157,53 @@ const openComponentEditor = () => {
 	useComponentEditorStore().editComponent(props.block.componentName)
 }
 
-const componentProps = computed(() => {
+const propConfigs = computed<ComponentProps>(() => {
 	if (!props.block || props.block.isRoot()) return {}
 
-	let propConfig
 	if (props.isTestingComponent) {
 		const componentEditorStore = useComponentEditorStore()
-		propConfig = getStudioComponentProps(componentEditorStore.componentInputs)
-	} else if (props.block.isStudioComponent) {
+		return getStudioComponentProps(componentEditorStore.componentInputs)
+	}
+	if (props.block.isStudioComponent) {
 		const componentStore = useComponentStore()
 		const componentDoc = componentStore.getComponentDoc(props.block.componentName)
-		if (componentDoc?.inputs) {
-			propConfig = getStudioComponentProps(componentDoc?.inputs)
-		}
-	} else if (componentInstance.value) {
-		propConfig = getComponentProps(props.block.componentName, componentInstance.value)
+		return componentDoc?.inputs ? getStudioComponentProps(componentDoc.inputs) : {}
 	}
-	if (!propConfig) return {}
+	if (componentInstance.value) {
+		return getComponentProps(props.block.componentName, componentInstance.value)
+	}
+	return {}
+})
 
-	const currentProps = props.block?.componentProps
-	const filteredProps: typeof propConfig = {}
+const componentProps = computed(() => {
+	const visibleProps: ComponentProps = {}
 
-	Object.entries(propConfig).forEach(([propName, config]) => {
-		const showProp = config.condition ? config.condition(currentProps) : true
-		if (!showProp) {
-			props.block?.removeProp(propName)
-			return
-		}
+	Object.entries(propConfigs.value).forEach(([propName, config]) => {
+		if (!isPropVisible(config)) return
 
-		if (props.block?.componentProps[propName] === undefined) {
-			const defaultValue = typeof config.default === "function" ? config.default() : config.default
-			config.modelValue = defaultValue
-			if (defaultValue !== undefined) {
-				props.block?.setProp(propName, defaultValue)
-			}
-		} else {
-			config.modelValue = props.block.componentProps[propName]
-		}
+		const propConfig = { ...config }
+		const value = props.block?.componentProps[propName]
+		propConfig.modelValue = value === undefined ? resolveDefault(config) : value
 
 		if (
-			(isDynamicValue(config.modelValue) || isVariableBound(config.modelValue)) &&
-			!isCodeField(config.inputType)
+			(isDynamicValue(propConfig.modelValue) || isVariableBound(propConfig.modelValue)) &&
+			!isCodeField(propConfig.inputType)
 		) {
-			config.inputType = "code"
+			propConfig.inputType = "code"
 		}
-		filteredProps[propName] = config
+		visibleProps[propName] = propConfig
 	})
 
-	return filteredProps
+	return visibleProps
 })
+
+const isPropVisible = (config: ComponentProp, block = props.block) => {
+	return config.condition ? config.condition(block?.componentProps) : true
+}
+
+const resolveDefault = (config: ComponentProp) => {
+	return typeof config.default === "function" ? config.default() : config.default
+}
 
 const filteredComponentProps = computed(() => {
 	if (!store.propertyFilter) {
@@ -257,6 +255,24 @@ function setProp(propName: string, value: any) {
 	} else {
 		props.block?.setProp(propName, value)
 	}
+	syncConditionalProps()
+}
+
+// sync conditional non-registered props like select -> options on FormControl
+function syncConditionalProps() {
+	const blocks = props.multiEdit ? blockController.getSelectedBlocks() : [props.block]
+	blocks.forEach((block) => {
+		if (!block) return
+		Object.entries(propConfigs.value).forEach(([propName, config]) => {
+			if (!config.condition) return
+			if (!isPropVisible(config, block)) {
+				block.removeProp(propName)
+			} else if (block.componentProps[propName] === undefined) {
+				const defaultValue = resolveDefault(config)
+				if (defaultValue !== undefined) block.setProp(propName, defaultValue)
+			}
+		})
+	})
 }
 
 function setDynamicValue(propName: string, varName: string, bindVariable: boolean) {
@@ -268,7 +284,10 @@ function setDynamicValue(propName: string, varName: string, bindVariable: boolea
 }
 
 const getRawValue = (propName: string) => {
-	return props.multiEdit ? blockController.getProp(propName) : props.block?.componentProps[propName]
+	if (props.multiEdit) return blockController.getProp(propName)
+	const value = props.block?.componentProps[propName]
+	// unset props fall back to the component default, which is no longer stored on the block
+	return value === undefined ? componentProps.value[propName]?.modelValue : value
 }
 
 const isMixed = (propName: string) => props.multiEdit && getRawValue(propName) === "Mixed"
