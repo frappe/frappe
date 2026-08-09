@@ -19,6 +19,8 @@
 					padding: '40px',
 					display: 'flex',
 					justifyContent: 'center',
+					// overlay proxies render out of flow (float), so they don't give the canvas any height
+					minHeight: canvasStore.primaryOverlayId ? '900px' : null,
 				}"
 				:style="{
 					left: `${store.studioLayout.showLeftPanel ? store.studioLayout.leftPanelWidth : 0}px`,

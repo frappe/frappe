@@ -140,28 +140,7 @@ const isComponentReady = ref(false)
 const editor = ref<InstanceType<typeof ComponentEditor> | InstanceType<typeof HTML> | null>(null)
 
 const classes = computed(() => {
-	const list = [
-		attrs.class,
-		"__studio_component__",
-		"outline-none",
-		"select-none",
-		...props.block.getClasses(),
-	]
-	// a wrapper root with a promoted primary overlay needs a definite width,
-	// otherwise the overlay proxy's w-full collapses inside the shrink-to-fit wrapper
-	if (isPromotedOverlayWrapperRoot.value) {
-		list.push("w-full")
-	}
-	return list
-})
-
-const isPromotedOverlayWrapperRoot = computed(() => {
-	return (
-		canvasStore.editingMode !== "page" &&
-		props.block.componentId === canvasStore.fragmentData.block?.componentId &&
-		Boolean(canvasStore.primaryOverlayId) &&
-		canvasStore.primaryOverlayId !== props.block.componentId
-	)
+	return [attrs.class, "__studio_component__", "outline-none", "select-none", ...props.block.getClasses()]
 })
 const slotClasses = ["__studio_component_slot__", "outline-none", "select-none"]
 

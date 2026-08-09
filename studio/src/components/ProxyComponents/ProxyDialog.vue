@@ -2,6 +2,7 @@
 	<div
 		class="dialog-content my-8 inline-block w-full transform overflow-hidden rounded-xl bg-surface-elevation-1 text-start align-middle shadow-xl focus-visible:outline-none"
 		:class="sizeClass"
+		:style="outOfFlowStyles"
 	>
 		<!-- bare: no chrome, render default slot directly -->
 		<slot v-if="resolved.bare" :close="close" />
@@ -209,6 +210,17 @@ const isDismissible = computed(() => {
 	if (props.disableOutsideClickToClose) return false
 	return props.dismissible !== false
 })
+
+// Mimics teleport-to-body centering against the canvas instead of the viewport
+const outOfFlowStyles = {
+	position: "absolute",
+	left: "1.5rem",
+	right: "1.5rem",
+	top: "50%",
+	width: "auto",
+	margin: "0 auto",
+	transform: "translateY(-50%)",
+} as const
 
 const sizeClass = computed(() => {
 	const size = resolved.value.size
