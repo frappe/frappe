@@ -242,6 +242,7 @@ class Browser:
 		)
 
 		if pdf_page_size == "Custom":
+			options["page-size"] = pdf_page_size
 			# Print Settings stores these in mm; downstream expects px like the
 			# named-size branch in prepare_options_for_pdf.
 			for dimension, fieldname in (
