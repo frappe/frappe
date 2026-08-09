@@ -472,6 +472,7 @@ class _ResponseAssembler:
 	content: list[TextContent | ThinkingContent | _ToolCallBuilder] = field(default_factory=list)
 	positions: dict[str, int] = field(default_factory=dict)
 	calls: dict[str, _ToolCallBuilder] = field(default_factory=dict)  # by item id and call id
+	reasoning_part_keys: dict[str, tuple[str, int]] = field(default_factory=dict)
 	usage: Usage = field(default_factory=Usage)
 	response_id: str | None = None
 	response_model: str | None = None
@@ -573,8 +574,18 @@ class _ResponseAssembler:
 		if block is None:
 			block = ThinkingContent(thinking="")
 			self._place(item_id, block)
-		block.thinking += delta
-		return [ThinkingDelta(thinking=delta)] if self.emit_deltas else []
+		part_key = _reasoning_part_key(raw)
+		previous = self.reasoning_part_keys.get(item_id)
+		separator = (
+			"\n\n"
+			if part_key is not None and previous is not None and part_key != previous and block.thinking
+			else ""
+		)
+		if part_key is not None:
+			self.reasoning_part_keys[item_id] = part_key
+		text = separator + delta
+		block.thinking += text
+		return [ThinkingDelta(thinking=text)] if self.emit_deltas else []
 
 	def _append_text(self, raw: Mapping[str, Any]) -> list[AnyEvent]:
 		delta = raw.get("delta")
@@ -791,14 +802,22 @@ def _reasoning_text(item: Mapping[str, Any]) -> str:
 		parts = item.get(key)
 		if not isinstance(parts, list):
 			continue
-		text = "".join(
+		text = "\n\n".join(
 			part.get("text", "")
 			for part in parts
-			if isinstance(part, Mapping) and isinstance(part.get("text"), str)
+			if isinstance(part, Mapping) and isinstance(part.get("text"), str) and part.get("text")
 		)
 		if text:
 			return text
 	return ""
+
+
+def _reasoning_part_key(raw: Mapping[str, Any]) -> tuple[str, int] | None:
+	"""Identity of one streamed reasoning part, when the provider supplies it."""
+	kind = raw.get("type")
+	index_field = "summary_index" if kind == "response.reasoning_summary_text.delta" else "content_index"
+	index = raw.get(index_field)
+	return (index_field, index) if isinstance(index, int) and not isinstance(index, bool) else None
 
 
 def _message_text(item: Mapping[str, Any]) -> str:

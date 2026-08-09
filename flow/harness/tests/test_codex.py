@@ -411,6 +411,46 @@ async def test_streams_reasoning_summary_deltas():
 	assert thinking.provider_state["item"]["encrypted_content"] == "opaque"
 
 
+async def test_preserves_boundaries_between_reasoning_summary_parts():
+	sse = "\n\n".join(
+		[
+			(
+				'data: {"type":"response.output_item.added","item":'
+				'{"type":"reasoning","id":"reason_1","summary":[]}}'
+			),
+			(
+				'data: {"type":"response.reasoning_summary_text.delta","item_id":"reason_1",'
+				'"summary_index":0,"delta":"**Planning detailed single-file inspections**"}'
+			),
+			(
+				'data: {"type":"response.reasoning_summary_text.delta","item_id":"reason_1",'
+				'"summary_index":1,"delta":"**Starting sequential inspection phase**"}'
+			),
+			(
+				'data: {"type":"response.output_item.done","item":'
+				'{"type":"reasoning","id":"reason_1","summary":['
+				'{"type":"summary_text","text":"**Planning detailed single-file inspections**"},'
+				'{"type":"summary_text","text":"**Starting sequential inspection phase**"}]}}'
+			),
+			'data: {"type":"response.completed","response":{}}',
+		]
+	)
+
+	async with _mock_client(lambda _r: httpx.Response(200, text=sse)) as client:
+		model = CodexModel("codex/gpt-test", api_key="token", client=client)
+		events = await _collect(model, [UserMessage(content="hi")])
+
+	assert [event.thinking for event in events[:2]] == [
+		"**Planning detailed single-file inspections**",
+		"\n\n**Starting sequential inspection phase**",
+	]
+	thinking = events[-2].content[0]
+	assert isinstance(thinking, ThinkingContent)
+	assert thinking.thinking == (
+		"**Planning detailed single-file inspections**\n\n**Starting sequential inspection phase**"
+	)
+
+
 async def test_keeps_streamed_reasoning_when_the_done_item_omits_it():
 	sse = "\n\n".join(
 		[
