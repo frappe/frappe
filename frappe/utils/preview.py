@@ -56,9 +56,7 @@ def capture_screenshot(
 	from frappe.utils.pdf import get_host_url
 
 	image_format = get_image_format(format)
-	generator = ChromiumManager()
-	browser_id = frappe.utils.random_string(10)
-	generator.add_browser(browser_id)
+	generator, browser_id = ChromiumManager.acquire()
 	session = page = None
 	try:
 		try:

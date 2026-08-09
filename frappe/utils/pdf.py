@@ -176,16 +176,14 @@ def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
 		return
 	# scrubbing url to expand url is not required as we have set url.
 	# also, planning to remove network requests anyway 🤞
-	generator = ChromiumManager()
+	generator, token = ChromiumManager.acquire()
 	try:
 		browser = Browser(generator, print_format, html, options)
 		transformer = PDFTransformer(browser)
 		# transforms and merges header, footer into body pdf and returns merged pdf
 		return transformer.transform_pdf(output=output)
-	except Exception:
-		raise
 	finally:
-		generator._close_browser()
+		generator.release(token)
 
 
 def get_file_data_from_writer(writer_obj):

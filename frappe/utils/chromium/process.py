@@ -16,6 +16,28 @@ from frappe.utils.data import cint
 
 class ChromiumManager:
 	_instance = None
+	# Serializes obtain/register/teardown under threaded serving: without it,
+	# one request's per-request teardown can terminate the chromium another
+	# request obtained but hasn't registered a browser on yet.
+	_lock = threading.RLock()
+
+	@classmethod
+	def acquire(cls):
+		"""Return (manager, token) with the token already registered, atomically.
+
+		Holding a registered token keeps _close_browser from tearing chromium
+		down while this request is using it."""
+		with cls._lock:
+			manager = cls()
+			token = frappe.utils.random_string(10)
+			manager.add_browser(token)
+			return manager, token
+
+	def release(self, token):
+		"""Deregister the token and tear chromium down if nobody else holds one."""
+		with ChromiumManager._lock:
+			self.remove_browser(token)
+			self._close_browser()
 
 	def add_browser(self, browser):
 		self._browsers.append(browser)
@@ -189,12 +211,13 @@ class ChromiumManager:
 				command_args,
 				stdout=subprocess.DEVNULL,
 				stderr=subprocess.PIPE,
+				errors="replace",
 				startupinfo=startupinfo,
 				text=True,
 			)
 		else:
 			self._chromium_process = subprocess.Popen(
-				command_args, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True
+				command_args, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, errors="replace"
 			)
 		return self._chromium_process
 
@@ -294,6 +317,10 @@ class ChromiumManager:
 		"""
 		Close the headless Chromium browser.
 		"""
+		with ChromiumManager._lock:
+			self._close_browser_locked()
+
+	def _close_browser_locked(self):
 		if self._browsers:
 			frappe.log("Cannot close Chromium as there are active browser instances.")
 			return

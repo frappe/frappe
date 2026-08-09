@@ -157,3 +157,64 @@ class TestChromePdfGeometry(IntegrationTestCase):
 	def test_oversized_header_footer_raises(self):
 		browser = self.make_browser({"page-size": "A4"}, header_height=1000, footer_height=300)
 		self.assertRaisesRegex(frappe.ValidationError, "no room for content", browser.prepare_options_for_pdf)
+
+
+class TestChromeCdpReliability(IntegrationTestCase):
+	"""Unit tests for CDP failure handling — no chromium process involved."""
+
+	def make_client(self):
+		from frappe.utils.chromium.cdp_connection import CDPSocketClient
+
+		client = CDPSocketClient("ws://never-connected")
+		self.addCleanup(client.loop.close)
+		return client
+
+	def test_fail_pending_messages_resolves_inflight_commands(self):
+		client = self.make_client()
+		future = client.loop.create_future()
+		client.pending_messages = {1: future, ("Page.printToPDF", None, None, None): future}
+
+		client._fail_pending_messages()
+
+		self.assertTrue(future.done())
+		self.assertIsInstance(future.exception(), ConnectionError)
+		self.assertFalse(client.pending_messages)
+
+	def test_send_times_out_when_chromium_never_responds(self):
+		class FakeConnection:
+			async def send(self, message):
+				pass
+
+		client = self.make_client()
+		client.connection = FakeConnection()
+		client.COMMAND_TIMEOUT = 0.05
+
+		with self.assertRaisesRegex(TimeoutError, "did not respond"):
+			client.loop.run_until_complete(client._send("Page.printToPDF"))
+		self.assertFalse(client.pending_messages)
+
+	def test_evaluate_returns_result_when_retry_succeeds(self):
+		from unittest.mock import patch
+
+		from frappe.utils.chromium.page import Page
+
+		class FakeSession:
+			def __init__(self, script):
+				self.script = script
+
+			def send(self, method, params=None, session_id=None, return_future=False):
+				if method == "Runtime.evaluate":
+					return self.script.pop(0)
+				return {}, None
+
+		page = Page.__new__(Page)
+		page.session_id = "sid"
+		page.session = FakeSession([(None, {"message": "boom"}), ({"result": {"value": 2}}, None)])
+
+		with patch("frappe.utils.chromium.page.time.sleep"):
+			result = page.evaluate("1+1")
+		self.assertEqual(result["result"]["value"], 2)
+
+		page.session = FakeSession([(None, {"message": "boom"})] * 4)
+		with patch("frappe.utils.chromium.page.time.sleep"):
+			self.assertRaisesRegex(RuntimeError, "Error evaluating expression", page.evaluate, "1+1")

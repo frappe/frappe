@@ -423,6 +423,8 @@ class Page:
 		# the task resolves when the command is *sent*, so also wait for the
 		# Page.printToPDF response before reading the stream handle
 		self.session.wait_for_event(response_future, timeout=30)
+		if not response_future.done() or response_future.cancelled():
+			raise RuntimeError("Timed out waiting for the Page.printToPDF response")
 		response = response_future.result()
 		stream_id = response["result"]["stream"]
 		return stream_id

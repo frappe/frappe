@@ -11,6 +11,11 @@ class CDPSocketClient:
 	Ensures robust error handling and consistent logging.
 	"""
 
+	# Upper bound for any single CDP command. Generous — page loads and
+	# printToPDF finish in seconds — but keeps a connected-yet-unresponsive
+	# chromium (stuck renderer) from hanging the worker forever.
+	COMMAND_TIMEOUT = 120
+
 	def __init__(self, websocket_url):
 		self.websocket_url = websocket_url
 		self.connection = None
@@ -165,7 +170,15 @@ class CDPSocketClient:
 
 		await self.connection.send(frappe.json.dumps(message))
 		if wait_future_fulfill:
-			await future
+			try:
+				await asyncio.wait_for(future, self.COMMAND_TIMEOUT)
+			except TimeoutError:
+				self.pending_messages = {
+					key: value for key, value in self.pending_messages.items() if value is not future
+				}
+				raise TimeoutError(
+					f"Chromium did not respond to {method} within {self.COMMAND_TIMEOUT}s"
+				) from None
 		return future
 
 	def _destructure_response(self, response):
