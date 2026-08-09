@@ -241,9 +241,10 @@ class Block implements BlockOptions {
 		return this.parentBlock || null;
 	}
 
+	// children first to match the visual order in the Layers panel
 	getChildrenAndSlotContent(): Block[] {
 		const slotContent = Object.values(this.componentSlots).flatMap((slot) => slot.slotContent);
-		return [...slotContent, ...this.children];
+		return [...this.children, ...slotContent];
 	}
 
 	// nearest block (including self) with the given componentName
@@ -298,8 +299,34 @@ class Block implements BlockOptions {
 		return this.blockName || this.componentName || this.originalElement
 	}
 
+	// fragment mode
 	editInFragmentMode() {
 		return Block.components?.[this.componentName]?.editInFragmentMode
+	}
+
+	isOverlayNode(): boolean {
+		if (this.isStudioComponent) {
+			const componentStore = useComponentStore()
+			return Boolean(componentStore.componentMap.get(this.componentName)?.isOverlayNode())
+		}
+		return Boolean(this.editInFragmentMode())
+	}
+
+	hasNonOverlayContent(): boolean {
+		return this.getChildrenAndSlotContent().some((child) => {
+			if (child.isOverlayNode()) return false
+			if (!child.isContainer()) return true
+			return child.hasNonOverlayContent()
+		})
+	}
+
+	findFirstOverlayNode(): Block | null {
+		for (const child of this.getChildrenAndSlotContent()) {
+			if (child.isOverlayNode()) return child
+			const nestedOverlay = child.findFirstOverlayNode()
+			if (nestedOverlay) return nestedOverlay
+		}
+		return null
 	}
 
 	getProxyComponent() {
@@ -821,12 +848,10 @@ class Block implements BlockOptions {
 		this.extendedFromComponent = studioComponent
 
 		function linkParentComponentId(block: Block, studioComponentId: string) {
-			block.children?.forEach((child) => {
+			block.getChildrenAndSlotContent().forEach((child) => {
 				child.isChildOfComponent = studioComponentId
 				child.classes?.push("__studio_component_child__")
-				if (child.children?.length) {
-					linkParentComponentId(child, studioComponentId)
-				}
+				linkParentComponentId(child, studioComponentId)
 			})
 		}
 		linkParentComponentId(this, studioComponent.componentId)

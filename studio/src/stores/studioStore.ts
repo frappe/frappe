@@ -216,7 +216,7 @@ const useStudioStore = defineStore("store", () => {
 		selectedPage.value = page.name
 
 		const canvasStore = useCanvasStore()
-		canvasStore.editingMode = "page"
+		canvasStore.resetFragments()
 		canvasStore.activeCanvas?.setRootBlock(pageBlocks.value[0])
 		canvasStore.activeCanvas?.clearSelection()
 
