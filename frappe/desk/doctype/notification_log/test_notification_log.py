@@ -6,6 +6,7 @@ from frappe.desk.doctype.notification_log.notification_log import (
 	enqueue_create_notification,
 	get_email_header,
 	get_title,
+	mark_as_read,
 )
 from frappe.desk.doctype.notification_type.notification_type import install_notification_types
 from frappe.desk.form.assign_to import add as assign_task
@@ -151,6 +152,37 @@ class TestNotificationLog(IntegrationTestCase):
 			"https://docs.example.com/fix",
 		)
 
+<<<<<<< HEAD
+=======
+	def test_mark_as_read_only_affects_the_opened_notification(self):
+		user = get_user()
+		unread_before = frappe.db.count("Notification Log", {"read": 0, "for_user": user})
+		logs = [
+			frappe.get_doc(
+				doctype="Notification Log",
+				for_user=user,
+				from_user="Administrator",
+				subject=subject,
+			).insert(ignore_permissions=True)
+			for subject in ("Leave application pending", "Expense claim rejected")
+		]
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user(user)
+		mark_as_read(logs[0].name)
+
+		self.assertEqual(frappe.db.get_value("Notification Log", logs[0].name, "read"), 1)
+		self.assertEqual(frappe.db.get_value("Notification Log", logs[1].name, "read"), 0)
+		self.assertEqual(
+			frappe.db.count("Notification Log", {"read": 0, "for_user": user}), unread_before + 1
+		)
+
+	def test_get_title_falls_back_to_docname_when_title_is_empty(self):
+		note = frappe.get_doc({"doctype": "Note", "title": "Notification title"}).insert()
+		frappe.db.set_value("Note", note.name, "title", None, update_modified=False)
+		self.assertEqual(get_title("Note", note.name), note.name)
+
+>>>>>>> 0856706 (test: cover unread count freshness and per-item read)
 	def test_app_derived_from_document_type(self):
 		"""`app` is filled from the reference document's owning app on insert."""
 		install_notification_types()

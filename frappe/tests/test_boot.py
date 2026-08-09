@@ -29,6 +29,68 @@ class TestBootData(IntegrationTestCase):
 		unseen_notes = [d.title for d in get_unseen_notes()]
 		self.assertListEqual(unseen_notes, [])
 
+<<<<<<< HEAD
+=======
+	def test_get_json_request_apps_includes_frappe(self):
+		from frappe.boot import get_json_request_apps
+
+		# frappe opts into native JSON request bodies via `use_json_request_body` in hooks.py
+		apps = get_json_request_apps()
+		self.assertIsInstance(apps, list)
+		self.assertIn("frappe", apps)
+
+	def test_setup_wizard_url_exposed_until_setup_complete(self):
+		from unittest.mock import patch
+
+		from frappe.boot import get_bootinfo
+
+		frappe.set_user("Administrator")
+		with (
+			patch.object(frappe, "is_setup_complete", return_value=False),
+			patch("frappe.boot.get_setup_wizard_url", return_value="/suite/setup") as resolve,
+		):
+			bootinfo = get_bootinfo()
+
+		resolve.assert_called_once()
+		self.assertEqual(bootinfo.setup_wizard_url, "/suite/setup")
+
+	def test_notification_unread_count_is_not_served_from_cached_bootinfo(self):
+		from unittest.mock import patch
+
+		import frappe.sessions
+		from frappe.desk.doctype.notification_log.notification_log import mark_as_read
+
+		frappe.set_user("Administrator")
+		user = frappe.session.user
+		self.addCleanup(frappe.cache.hdel, "bootinfo", user)
+
+		unread_before = frappe.db.count("Notification Log", {"read": 0, "for_user": user})
+		notification = frappe.get_doc(
+			doctype="Notification Log",
+			for_user=user,
+			from_user=user,
+			subject="Quarterly payroll run needs approval",
+		).insert(ignore_permissions=True)
+		self.addCleanup(notification.delete, ignore_permissions=True)
+
+		# a cached blob holding a stale count must not reach the client
+		frappe.cache.hset(
+			"bootinfo",
+			user,
+			frappe._dict({"user": {}, "notification_unread_count": 99}),
+		)
+
+		with patch.dict(frappe.conf, {"disable_session_cache": False}):
+			bootinfo = frappe.sessions.get()
+			self.assertEqual(bootinfo.from_cache, 1)
+			self.assertEqual(bootinfo.notification_unread_count, unread_before + 1)
+
+			mark_as_read(notification.name)
+			bootinfo = frappe.sessions.get()
+			self.assertEqual(bootinfo.from_cache, 1)
+			self.assertEqual(bootinfo.notification_unread_count, unread_before)
+
+>>>>>>> 0856706 (test: cover unread count freshness and per-item read)
 	def test_empty_allowed_views_are_served_from_cache(self):
 		from unittest.mock import patch
 
