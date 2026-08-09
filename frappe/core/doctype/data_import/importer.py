@@ -319,6 +319,15 @@ class Importer:
 					# commit after every successful import
 					frappe.db.commit()
 
+					# Checkpoint status once, as soon as the first row lands, so a worker
+					# crash mid-batch leaves a recoverable "Partial Success" instead of a
+					# doc stuck in "In Progress" forever (single-batch imports never reach
+					# the end-of-batch checkpoint otherwise).
+					if not status_checkpoint_written and self.data_import.name:
+						self.data_import.db_set("status", "Partial Success")
+						frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit -- checkpoint status durability so a mid-batch worker crash stays recoverable
+						status_checkpoint_written = True
+
 				except Exception:
 					messages = frappe.local.message_log
 					frappe.clear_messages()
@@ -360,18 +369,6 @@ class Importer:
 						row_indexes=row_indexes,
 						activity=self._build_error_activity(messages, row_indexes),
 					)
-
-			# Checkpoint status at end of each batch to handle worker crash mid-import.
-			# Without this, a worker death leaves the doc stuck in "In Progress" forever.
-			# Setting "Partial Success" here allows the UI to show recovery state.
-			if (
-				not status_checkpoint_written
-				and self.data_import.name
-				and (inserted_count > 0 or updated_count > 0)
-			):
-				self.data_import.db_set("status", "Partial Success")
-				frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit -- checkpoint status durability before next batch to avoid stale In Progress on worker crash
-				status_checkpoint_written = True
 
 		# Logs are db inserted directly so will have to be fetched again
 		import_log = (
