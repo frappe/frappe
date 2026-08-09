@@ -11,7 +11,7 @@ import { toast } from "frappe-ui"
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
 
-export function useStudioEvents() {
+export function useStudioEvents(saveFragmentMode: () => void) {
 	useEventListener(document, "copy", (e) => {
 		copySelectedBlocksToClipboard(e)
 	})
@@ -95,6 +95,16 @@ export function useStudioEvents() {
 	})
 
 	useEventListener(document, "keydown", (e) => {
+		// save
+		if (e.key === "s" && isCtrlOrCmd(e) && store.selectedPage) {
+			// the page autosaves - just swallow the browser's save dialog in page mode
+			e.preventDefault()
+			if (canvasStore.editingMode !== "page") {
+				saveFragmentMode()
+			}
+			return
+		}
+
 		if (isTargetEditable(e)) return
 
 		// delete

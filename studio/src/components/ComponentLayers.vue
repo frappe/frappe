@@ -78,6 +78,14 @@
 						<!-- toggle visibility -->
 						<div class="ml-auto flex items-center gap-2">
 							<div
+								v-if="element.isStudioComponent"
+								title="Edit component"
+								class="invisible cursor-pointer group-hover:visible"
+								@click.stop="editComponent(element)"
+							>
+								<LucidePenLine class="h-3 w-3" />
+							</div>
+							<div
 								v-if="element.hasVisibilityCondition()"
 								title="Toggle visibility condition"
 								class="invisible cursor-pointer group-hover:visible"
@@ -164,8 +172,10 @@ import ComponentLayers from "@/components/ComponentLayers.vue"
 
 import useCanvasStore from "@/stores/canvasStore"
 import Block from "@/utils/block"
+import useComponentEditorStore from "@/stores/componentEditorStore"
 import SlotIcon from "@/components/Icons/SlotIcon.vue"
 import LucideRepeat from "~icons/lucide/repeat"
+import LucidePenLine from "~icons/lucide/pen-line"
 import type { Slot } from "@/types"
 
 type LayerInstance = InstanceType<typeof ComponentLayers>
@@ -274,8 +284,13 @@ const canShowSlotLayer = (block: Block) => {
 	return isExpanded(block) && block.hasComponentSlots()
 }
 
+const editComponent = (block: Block) => {
+	useComponentEditorStore().editComponent(block.componentName)
+}
+
 const openBlockEditor = (block: Block, e: MouseEvent) => {
-	if (canvasStore.editingMode !== "fragment" && block.editInFragmentMode()) {
+	const isRenderedOnCanvas = block.componentId === canvasStore.primaryOverlayId
+	if (!isRenderedOnCanvas && block.editInFragmentMode()) {
 		const parentBlock = block.getParentBlock()
 		canvasStore.editOnCanvas(
 			block,
