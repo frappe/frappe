@@ -221,6 +221,18 @@ class TestRunner(AutomationRunnerTestCase):
 		self.assertEqual(self.run_status(auto), "Success")
 		self.assertGreaterEqual(Racy.calls, 2)
 
+	def test_triggering_user_is_recorded_as_execution_identity(self):
+		user = frappe.get_doc(
+			{"doctype": "User", "email": "automation-trigger@example.com", "first_name": "Trigger"}
+		).insert(ignore_permissions=True)
+		todo = make_todo()
+		auto = make_automation([set_field("priority", "High")], run_as="Triggering User")
+		row = self.queue_row(auto, todo.name)
+		frappe.db.set_value(QUEUE, row, "triggered_by", user.name, update_modified=False)
+		execute_automation(row)
+		run_user = frappe.db.get_value("Background Task", {"task_name": automation_task_name(auto)}, "user")
+		self.assertEqual(run_user, user.name)
+
 	def test_breaker_skips_pending_backlog(self):
 		todo = make_todo()
 		auto = make_broken_automation(stop_on_error=1)
