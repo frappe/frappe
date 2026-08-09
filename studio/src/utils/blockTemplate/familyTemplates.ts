@@ -282,9 +282,20 @@ export function navItem(value: string, label: string): BlockOptions {
 	// `value` pairs a nav item with the SettingsPanel that shares it.
 	return {
 		componentName: "SettingsNavItem",
+		blockName: tabBlockName(label, "NavItem"),
 		componentProps: { value },
 		children: [textBlock(label)],
 	};
+}
+
+// "User settings" -> "UserSettingsNavItem" — friendly layer names for tab pairs
+export function tabBlockName(label: string, suffix: "NavItem" | "Panel") {
+	const pascal = label
+		.split(/[^a-zA-Z0-9]+/)
+		.filter(Boolean)
+		.map((word) => word[0].toUpperCase() + word.slice(1))
+		.join("");
+	return pascal ? pascal + suffix : suffix;
 }
 
 export function settingsPanel(
@@ -295,6 +306,7 @@ export function settingsPanel(
 ): BlockOptions {
 	return {
 		componentName: "SettingsPanel",
+		blockName: tabBlockName(title, "Panel"),
 		componentProps: { value },
 		children: [
 			{
