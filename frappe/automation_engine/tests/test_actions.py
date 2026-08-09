@@ -6,6 +6,7 @@ from frappe.automation_engine.actions.base import AutomationParamError, get_acti
 from frappe.automation_engine.actions.core import (
 	AssignToUser,
 	CreateDocument,
+	IncrementFieldValue,
 	SendNotification,
 	SetFieldValue,
 )
@@ -27,7 +28,13 @@ class TestActions(IntegrationTestCase):
 
 	def test_registry_contains_core_actions(self):
 		registry = get_action_registry()
-		for action_type in ("SetFieldValue", "CreateDocument", "SendNotification", "AssignToUser"):
+		for action_type in (
+			"SetFieldValue",
+			"IncrementFieldValue",
+			"CreateDocument",
+			"SendNotification",
+			"AssignToUser",
+		):
 			self.assertIn(action_type, registry)
 
 	def test_get_action_throws_for_unknown(self):
@@ -39,15 +46,11 @@ class TestActions(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "High")
 
 	def test_set_field_value_validates_field_exists(self):
-		self.assertRaises(
-			AutomationParamError, SetFieldValue().validate, {"field": "nope_field"}, "ToDo"
-		)
+		self.assertRaises(AutomationParamError, SetFieldValue().validate, {"field": "nope_field"}, "ToDo")
 
 	def test_set_field_value_multiple_fields(self):
 		todo = make_todo(priority="Low", color="#000000")
-		SetFieldValue().execute(
-			todo, {"values": {"priority": "High", "color": "#ED6396"}}, {}
-		)
+		SetFieldValue().execute(todo, {"values": {"priority": "High", "color": "#ED6396"}}, {})
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "High")
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "color"), "#ED6396")
 
@@ -65,7 +68,13 @@ class TestActions(IntegrationTestCase):
 			src, {"doctype": "ToDo", "values": {"description": "created-by-automation"}}, {}
 		)
 		self.assertTrue(frappe.db.exists("ToDo", {"description": "created-by-automation"}))
-		self.assertIn("Created", detail)
+		self.assertIn("Created", detail["detail"])
+
+	def test_increment_field_value(self):
+		flow = frappe.new_doc("Automation Flow")
+		flow.update({"title": "counter", "trigger_type": "Manual", "throttle_per_minute": 2})
+		IncrementFieldValue().execute(flow.insert(), {"field": "throttle_per_minute", "amount": 3}, {})
+		self.assertEqual(frappe.db.get_value("Automation Flow", flow.name, "throttle_per_minute"), 5)
 
 	def test_create_document_requires_existing_doctype(self):
 		self.assertRaises(
