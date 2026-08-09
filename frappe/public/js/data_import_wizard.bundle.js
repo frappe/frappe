@@ -289,7 +289,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		const vw = window.innerWidth || doc_el.clientWidth || screen.width || 1024;
 		const vh = window.innerHeight || doc_el.clientHeight || screen.height || 768;
 		const is_mobile = vw <= 768;
-		const reserved = is_mobile ? 145 : 185;
+		const reserved = is_mobile ? 145 : 205;
 		const floor = is_mobile ? 480 : 620;
 		const ceiling = 820;
 		const height = Math.max(floor, Math.min(ceiling, vh - reserved));
