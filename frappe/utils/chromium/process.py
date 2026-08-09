@@ -1,6 +1,7 @@
 import os
 import platform
 import subprocess
+import threading
 import time
 from pathlib import Path
 
@@ -58,7 +59,7 @@ class ChromiumManager:
 		# only when we want to chromium on separate docker / server ( not implemented/tested yet )
 		self.CHROMIUM_WEBSOCKET_URL = site_config.get("chromium_websocket_url", "")
 		if self.CHROMIUM_WEBSOCKET_URL:
-			frappe.warn("Using external chromium websocket url. Make sure it is accessible.")
+			frappe.logger("pdf").warning("Using external chromium websocket url. Make sure it is accessible.")
 			self._devtools_url = self.CHROMIUM_WEBSOCKET_URL
 			return
 
@@ -177,6 +178,8 @@ class ChromiumManager:
 	# from print_designer.pdf_generator.monitor_subprocess import monitor_subprocess_usage
 	# @monitor_subprocess_usage(interval=0.1)
 	def _start_chromium_process(self, command_args):
+		# stdout is never read, and an unread PIPE fills the OS buffer and blocks
+		# chromium on write; stderr is drained after the DevTools URL is captured.
 		if platform.system().lower() == "windows":
 			# hide cmd window
 			startupinfo = subprocess.STARTUPINFO()
@@ -184,14 +187,14 @@ class ChromiumManager:
 			startupinfo.wShowWindow = subprocess.SW_HIDE
 			self._chromium_process = subprocess.Popen(
 				command_args,
-				stdout=subprocess.PIPE,
+				stdout=subprocess.DEVNULL,
 				stderr=subprocess.PIPE,
 				startupinfo=startupinfo,
 				text=True,
 			)
 		else:
 			self._chromium_process = subprocess.Popen(
-				command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+				command_args, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True
 			)
 		return self._chromium_process
 
@@ -249,9 +252,18 @@ class ChromiumManager:
 					break
 
 		if self._devtools_url:
+			self._drain_stderr(stderr)
 			return
 
 		self._raise_start_failure(output)
+
+	def _drain_stderr(self, stderr):
+		"""Keep reading chromium's stderr for the rest of its lifetime.
+
+		Nothing consumes it after the DevTools URL line, and a chatty chromium
+		(GPU fallback spam, broken resources) blocks on write once the ~64KB
+		pipe buffer fills, hanging the render."""
+		threading.Thread(target=stderr.read, daemon=True).start()
 
 	def _raise_start_failure(self, output):
 		"""Report why Chromium never handed us a DevTools URL, quoting its own stderr.
@@ -285,8 +297,15 @@ class ChromiumManager:
 		if self._browsers:
 			frappe.log("Cannot close Chromium as there are active browser instances.")
 			return
+		if getattr(self, "USE_PERSISTENT_CHROMIUM", False):
+			return
 		if self._chromium_process:
 			self._chromium_process.terminate()
+			try:
+				self._chromium_process.wait(timeout=5)
+			except subprocess.TimeoutExpired:
+				self._chromium_process.kill()
+				self._chromium_process.wait()
 		ChromiumManager._instance = None
 		self._chromium_process = None
 		self._devtools_url = None

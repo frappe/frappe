@@ -51,10 +51,11 @@ class PDFTransformer:
 		# footer and its mediabox restored to the full paper height
 		page_top = header_height + body_height + footer_height
 
-		# Static headers: pre-transform all pages once.
-		# Dynamic headers: transform each page inline (once per body page).
-		# This matches print_designer's pdf_merge.py exactly.
-		if header and not self.is_header_dynamic:
+		# Pre-transform every header page exactly once. A dynamic header can have
+		# fewer pages than the body (pagination rounding), so the merge below
+		# clamps the index like the footer path — transforming inline there would
+		# translate a clamped page multiple times.
+		if header:
 			for h in header.pages:
 				self._transform(h, page_top, header_transform)
 
@@ -63,7 +64,7 @@ class PDFTransformer:
 
 			if header:
 				if self.is_header_dynamic:
-					p.merge_page(self._transform(header.pages[p.page_number], page_top, header_transform))
+					p.merge_page(header.pages[min(p.page_number, len(header.pages) - 1)])
 				elif self.is_print_designer:
 					if p.page_number == 0:
 						p.merge_page(header.pages[0])

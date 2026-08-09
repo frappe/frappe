@@ -39,6 +39,21 @@ class CDPSocketClient:
 				self._handle_message(frappe.json.loads(message))
 		except Exception:
 			frappe.log_error(title="WebSocket listening error:", message=f"{frappe.get_traceback()}")
+		finally:
+			self._fail_pending_messages()
+
+	def _fail_pending_messages(self):
+		"""Resolve every in-flight command with an error once the connection is gone.
+
+		A caller blocked in run_until_complete on one of these futures would
+		otherwise hang the worker forever when chromium crashes mid-command."""
+		pending = {id(future): future for future in self.pending_messages.values()}
+		self.pending_messages.clear()
+		for future in pending.values():
+			if not future.done():
+				future.set_exception(
+					ConnectionError("Chromium CDP connection closed before a response was received")
+				)
 
 	def _handle_message(self, response):
 		method = response.get("method")
@@ -55,14 +70,16 @@ class CDPSocketClient:
 			future = self.pending_messages.pop(message_id)
 			if composite_key in self.pending_messages:
 				self.pending_messages.pop(composite_key)
-			future.set_result(response)
+			if not future.done():
+				future.set_result(response)
 
 		# Handle responses without `id` using a composite key
 		elif method:
 			if composite_key in self.pending_messages:
 				# print("matched using composite_key", composite_key)
 				future = self.pending_messages.pop(composite_key)
-				future.set_result(response)
+				if not future.done():
+					future.set_result(response)
 
 			if method in self.listeners:
 				for callback, future, filters in self.listeners[method]:
@@ -90,6 +107,8 @@ class CDPSocketClient:
 		except Exception:
 			frappe.log_error(title="Error while disconnecting:", message=f"{frappe.get_traceback()}")
 			raise
+		finally:
+			self.loop.close()
 
 	async def _disconnect(self):
 		try:
