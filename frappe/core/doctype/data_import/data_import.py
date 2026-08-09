@@ -274,12 +274,15 @@ def stop_data_import(doc_name: str):
 
 	rq_job_id = f"{frappe.local.site}||data_import||{doc_name}"
 	job_id = rq_job_id.replace(":", "|")  # patching the change in job id format (for timestamp part)
+	job_was_running = True
 	try:
 		send_stop_job_command(connection=get_redis_conn(), job_id=job_id)
 	except InvalidJobOperation:
-		return {"status": "not_running", "message": _("Job is not running.")}
+		# Job already finished or worker crashed — no active job to stop.
+		job_was_running = False
 
 	# RQ stop can terminate the worker before import cleanup writes a final status.
+	# Also handles orphaned "In Progress" when job died without cleanup.
 	# Mark terminal status only if DB is still "In Progress" at update time.
 	# This avoids overwriting a legitimate terminal status written by the worker.
 	frappe.db.set_value(
@@ -294,6 +297,9 @@ def stop_data_import(doc_name: str):
 		doctype="Data Import",
 		docname=data_import.name,
 	)
+
+	if not job_was_running:
+		return {"status": "not_running", "message": _("Job was not running; status updated.")}
 	return {"status": "success", "message": _("Job stopped successfully")}
 
 

@@ -1502,13 +1502,16 @@ frappe.ui.form.on("Data Import", {
 					})
 					.then((response) => {
 						if (response?.status === "not_running") {
+							// Job already finished or worker crashed — server still
+							// transitioned orphaned "In Progress" to "Error".
 							frappe.show_alert({
-								message: __("Job is not running."),
+								message: __("Job was not running; status updated."),
 								indicator: "orange",
 							});
-							return;
+						} else {
+							frappe.show_alert(__("Job Stopped Successfully"));
 						}
-						frappe.show_alert(__("Job Stopped Successfully"));
+						// Always reload to show the updated status from the server.
 						frm.reload_doc();
 					});
 			}
