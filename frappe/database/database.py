@@ -1301,20 +1301,21 @@ class Database:
 
 		return self.get_value(dt, dn, ignore=True, cache=cache, order_by=None, debug=debug)
 
-	def count(self, dt, filters=None, debug=False, cache=False, distinct: bool = True):
+	def count(self, dt, filters=None, debug=False, cache=False, distinct: bool = True, or_filters=None):
 		"""Return `COUNT(*)` for given DocType and filters."""
 		cache_key = "COUNT(*)"
-		if cache and not filters and cache_key in self.value_cache[dt]:
+		if cache and not filters and not or_filters and cache_key in self.value_cache[dt]:
 			return self.value_cache[dt][cache_key]
 
 		count = frappe.qb.get_query(
 			table=dt,
 			filters=filters,
+			or_filters=or_filters,
 			fields=Count("*"),
 			distinct=distinct,
 		).run(debug=debug)[0][0]
 
-		if not filters and cache:
+		if not filters and not or_filters and cache:
 			self.value_cache[dt][cache_key] = count
 		return count
 

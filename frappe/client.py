@@ -80,11 +80,13 @@ def get_count(
 	filters: str | list | dict[str, Any] | None = None,
 	debug: int | bool = False,
 	cache: int | bool = False,
+	or_filters: str | list | dict[str, Any] | None = None,
 ):
 	from frappe.desk.reportview import get_count
 
 	frappe.form_dict.doctype = doctype
 	frappe.form_dict.filters = get_safe_filters(filters)
+	frappe.form_dict.or_filters = get_safe_filters(or_filters)
 	frappe.form_dict.debug = debug
 
 	return get_count()

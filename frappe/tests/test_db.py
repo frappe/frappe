@@ -677,6 +677,14 @@ class TestDB(IntegrationTestCase):
 
 		frappe.get_doc(doctype="Note", title="note3", content="something other").insert()
 
+		# or filters
+		self.assertEqual(
+			frappe.db.count("Note", or_filters={"title": "note1", "content": "something other"}), 2
+		)
+
+		# same condition ANDed
+		self.assertEqual(frappe.db.count("Note", filters={"title": "note1", "content": "something other"}), 0)
+
 		# List of list filters with tables
 		self.assertEqual(
 			(
@@ -687,6 +695,26 @@ class TestDB(IntegrationTestCase):
 			),
 			3,
 		)
+
+		frappe.db.rollback()
+
+	def test_count_with_or_filters_does_not_poison_cache(self):
+		frappe.db.delete("Note")
+
+		frappe.get_doc(doctype="Note", title="note1", content="something").insert()
+		frappe.get_doc(doctype="Note", title="note2", content="someting else").insert()
+		frappe.get_doc(doctype="Note", title="note3", content="something other").insert()
+
+		frappe.db.value_cache.clear()
+
+		# a filtered count requested with cache=True
+		self.assertEqual(
+			frappe.db.count("Note", or_filters={"title": "note1", "content": "something other"}, cache=True),
+			2,
+		)
+
+		# must not have been cached as the unfiltered COUNT(*)
+		self.assertEqual(frappe.db.count("Note", cache=True), 3)
 
 		frappe.db.rollback()
 

@@ -109,14 +109,13 @@ frappe.db = {
 	},
 	count: function (doctype, args = {}, cache = false) {
 		let filters = args.filters || {};
+		let or_filters = args.or_filters || {};
 		let limit = args.limit;
 
 		// has a filter with childtable?
-		const distinct =
-			Array.isArray(filters) &&
-			filters.some((filter) => {
-				return filter[0] !== doctype;
-			});
+		const has_child_filter = (f) =>
+			Array.isArray(f) && f.some((filter) => filter[0] !== doctype);
+		const distinct = has_child_filter(filters) || has_child_filter(or_filters);
 
 		const fields = [];
 
@@ -125,6 +124,7 @@ frappe.db = {
 			{
 				doctype,
 				filters,
+				or_filters,
 				fields,
 				distinct,
 				limit,
