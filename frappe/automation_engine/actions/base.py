@@ -39,9 +39,21 @@ class AutomationAction:
 	requires_document: bool = True
 	supported_trigger_types: list | None = None
 	params_schema: ClassVar[list] = []
+	output_schema: ClassVar[dict | None] = None
 
 	def validate(self, params: dict, doctype: str):
 		"""Override to validate params against `doctype`; raise AutomationParamError."""
+
+	def output_doctype(self, params: dict) -> str | None:
+		"""DocType of the reference this action returns, when it is known at save time.
+
+		Returning it lets a later step targeting this action's `output_alias` validate its
+		params against real metadata instead of skipping validation.
+		"""
+		return None
+
+	def output_targets(self, params: dict, output_alias: str | None) -> dict:
+		return {output_alias: self.output_doctype(params)} if output_alias else {}
 
 	def execute(self, doc, params: dict, context: dict):
 		"""Run the action against `doc`. Return a short detail string for the run log."""
@@ -56,6 +68,7 @@ class AutomationAction:
 			"requires_document": self.requires_document,
 			"supported_trigger_types": self.supported_trigger_types,
 			"params_schema": self.params_schema,
+			"output_schema": self.output_schema,
 		}
 
 

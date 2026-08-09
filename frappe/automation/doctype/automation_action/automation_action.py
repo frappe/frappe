@@ -15,13 +15,17 @@ class AutomationAction(Document):
 
 		action_type: DF.Data | None
 		branch: DF.Literal["", "If", "Else"]
+		output_alias: DF.Data | None
 		params: DF.JSON | None
 		parent: DF.Data
 		parent_step: DF.Int
 		parentfield: DF.Data
 		parenttype: DF.Data
+		related_condition: DF.JSON | None
 		step_condition: DF.Code | None
+		step_key: DF.Data | None
 		step_type: DF.Literal["Action", "Wait", "If", "Else"]
+		target: DF.Data | None
 	# end: auto-generated types
 
 	pass
