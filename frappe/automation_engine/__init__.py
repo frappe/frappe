@@ -6,6 +6,13 @@ from contextlib import contextmanager
 import frappe
 
 
+def emit(event, doc=None, payload=None, correlation_key=None):
+	"""Publish a registered application event to flows and waiting runs."""
+	from frappe.automation_engine.events import emit as emit_event
+
+	return emit_event(event, doc=doc, payload=payload, correlation_key=correlation_key)
+
+
 def is_enabled() -> bool:
 	"""Return whether automations may run for this request."""
 	if frappe.flags.get("skip_automations"):

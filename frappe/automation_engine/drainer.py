@@ -129,3 +129,10 @@ def purge_queue():
 			"modified": ("<", frappe.utils.add_days(frappe.utils.now(), -retention_days)),
 		},
 	)
+	frappe.db.delete(
+		"Automation Event Subscription",
+		{
+			"status": ("in", ("Matched", "Timed Out", "Cancelled")),
+			"modified": ("<", frappe.utils.add_days(frappe.utils.now(), -retention_days)),
+		},
+	)
