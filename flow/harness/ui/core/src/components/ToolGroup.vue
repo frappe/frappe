@@ -61,15 +61,11 @@ watch(open, (value) => {
 
 const toolSteps = computed(() => props.steps.filter((s) => s.call))
 const active = computed(() => toolSteps.value.some((s) => !s.result && !s.aborted))
-const completedCount = computed(() => toolSteps.value.filter((s) => s.result || s.aborted).length)
-const completedSuffix = computed(() =>
-	completedCount.value ? ` · ${completedCount.value} completed` : "",
-)
 
 const label = computed(() => {
 	if (active.value) {
 		const running = toolSteps.value.find((s) => !s.result)
-		return (running ? stepLiveLabel(running.call) : "Working") + completedSuffix.value
+		return running ? stepLiveLabel(running.call) : "Working"
 	}
 	return toolGroupSummary(toolSteps.value.map((step) => step.call))
 })
@@ -78,12 +74,12 @@ const label = computed(() => {
 // line holds the last tool label through inter-step thinking — never "Thinking".
 const liveLine = computed(() => {
 	const running = toolSteps.value.find((s) => !s.result)
-	if (running) return stepLiveLabel(running.call) + completedSuffix.value
+	if (running) return stepLiveLabel(running.call)
 	const last = toolSteps.value[toolSteps.value.length - 1]
-	const line =
+	return (
 		last && (!props.liveLabel || props.liveLabel === stepLabel(last.call.name))
 			? stepLiveLabel(last.call)
 			: (props.liveLabel ?? "Working")
-	return line + completedSuffix.value
+	)
 })
 </script>
