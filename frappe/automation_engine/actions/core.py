@@ -8,6 +8,9 @@ from typing import ClassVar
 import frappe
 from frappe import _
 from frappe.automation_engine.actions.base import AutomationAction, AutomationParamError
+from frappe.utils import flt
+
+NUMERIC_FIELDTYPES = ("Int", "Float", "Currency", "Percent")
 
 
 def _render(value, doc, context=None):
@@ -19,7 +22,15 @@ def _render(value, doc, context=None):
 
 def _render_context(doc, context=None):
 	context = context or {}
-	return {"doc": doc, "payload": context.get("payload") or {}, "context": context}
+	return {
+		# `doc` is the step's target; `trigger` is what started the run, which is the same
+		# document unless the step aims at a relationship alias or an earlier step's output.
+		"doc": doc,
+		"target": doc,
+		"trigger": context.get("trigger_doc") or doc,
+		"payload": context.get("payload") or {},
+		"context": context,
+	}
 
 
 def _require_doc(doc, action_type):
@@ -42,6 +53,8 @@ class SetFieldValue(AutomationAction):
 		pairs = self._pairs(params)
 		if not pairs:
 			raise AutomationParamError(_("Set at least one field"), fieldname="field")
+		if not doctype:
+			return
 		meta = frappe.get_meta(doctype)
 		for field in pairs:
 			if not meta.get_field(field):
@@ -54,7 +67,7 @@ class SetFieldValue(AutomationAction):
 		pairs = self._pairs(params)
 		for field, value in pairs.items():
 			doc.set(field, _render(value, doc, context))
-		doc.save(ignore_permissions=True)
+		doc.save()
 		return _("Set {0}").format(", ".join(pairs))
 
 	def _pairs(self, params) -> dict:
@@ -72,6 +85,7 @@ class CreateDocument(AutomationAction):
 	label = "Create Document"
 	description = "Create a new document, optionally seeded from the triggering document."
 	requires_document = False
+	output_schema: ClassVar[dict] = {"destination_reference": {"doctype": "Dynamic", "cardinality": "one"}}
 	params_schema: ClassVar[list] = [
 		{
 			"fieldname": "doctype",
@@ -89,6 +103,9 @@ class CreateDocument(AutomationAction):
 		if not frappe.db.exists("DocType", params.get("doctype")):
 			raise AutomationParamError(_("Unknown DocType"), fieldname="doctype")
 
+	def output_doctype(self, params):
+		return params.get("doctype")
+
 	def execute(self, doc, params, context):
 		target = frappe.new_doc(params["doctype"])
 		values = (
@@ -98,8 +115,59 @@ class CreateDocument(AutomationAction):
 		)
 		for field, value in (values or {}).items():
 			target.set(field, _render(value, doc, context))
-		target.insert(ignore_permissions=True)
-		return _("Created {0} {1}").format(params["doctype"], target.name)
+		target.insert()
+		return {
+			"detail": _("Created {0} {1}").format(params["doctype"], target.name),
+			"destination_reference": {"doctype": target.doctype, "name": target.name},
+		}
+
+
+class IncrementFieldValue(AutomationAction):
+	action_type = "IncrementFieldValue"
+	label = "Increment Field Value"
+	description = "Atomically add a number to a field on the target document."
+	params_schema: ClassVar[list] = [
+		{
+			"fieldname": "field",
+			"label": "Field",
+			"fieldtype": "Select",
+			"options_source": "doc_fields",
+			"reqd": 1,
+		},
+		{"fieldname": "amount", "label": "Amount", "fieldtype": "Float", "reqd": 1},
+	]
+
+	def validate(self, params, doctype):
+		field = params.get("field")
+		if not field:
+			raise AutomationParamError(_("Field is required"), fieldname="field")
+		if not doctype:
+			return
+		df = frappe.get_meta(doctype).get_field(field)
+		if not df or df.fieldtype not in NUMERIC_FIELDTYPES:
+			raise AutomationParamError(_("Choose a numeric field"), fieldname="field")
+
+	def execute(self, doc, params, context):
+		_require_doc(doc, self.label)
+		field = params["field"]
+		amount = flt(_render(params.get("amount"), doc, context))
+		# Lock the row first, then re-read: two runs incrementing the same document serialize
+		# here instead of both adding to the same stale value.
+		self._lock(doc)
+		doc.reload()
+		old_value = flt(doc.get(field))
+		doc.set(field, old_value + amount)
+		doc.save()
+		return {
+			"detail": _("Changed {0} by {1}").format(field, amount),
+			"old_value": old_value,
+			"new_value": old_value + amount,
+			"delta": amount,
+		}
+
+	def _lock(self, doc):
+		table = frappe.qb.DocType(doc.doctype)
+		frappe.qb.from_(table).select(table.name).where(table.name == doc.name).for_update().run()
 
 
 class SendNotification(AutomationAction):
@@ -216,4 +284,4 @@ class AssignToUser(AutomationAction):
 		return _("Assigned to {0}").format(", ".join(users))
 
 
-CORE_ACTIONS = [SetFieldValue, CreateDocument, SendNotification, AssignToUser]
+CORE_ACTIONS = [SetFieldValue, IncrementFieldValue, CreateDocument, SendNotification, AssignToUser]
