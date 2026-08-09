@@ -77,7 +77,7 @@
 					</div>
 				</template>
 				<template v-slot:afterCanvas="{ rootBlock }">
-					<FragmentList v-if="rootBlock" :rootBlock="rootBlock" />
+					<OverlayList v-if="rootBlock" :rootBlock="rootBlock" />
 				</template>
 			</StudioCanvas>
 
@@ -96,7 +96,7 @@
 				}"
 			>
 				<template v-slot:afterCanvas="{ rootBlock }">
-					<FragmentList v-if="rootBlock" :rootBlock="rootBlock" />
+					<OverlayList v-if="rootBlock" :rootBlock="rootBlock" />
 				</template>
 			</StudioCanvas>
 
@@ -183,7 +183,7 @@ import StudioToolbar from "@/components/StudioToolbar.vue"
 import StudioLeftPanel from "@/components/StudioLeftPanel.vue"
 import StudioRightPanel from "@/components/StudioRightPanel.vue"
 import StudioCanvas from "@/components/StudioCanvas.vue"
-import FragmentList from "@/components/FragmentList.vue"
+import OverlayList from "@/components/OverlayList.vue"
 import Code from "@/components/Code.vue"
 
 import useStudioStore from "@/stores/studioStore"

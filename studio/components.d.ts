@@ -84,6 +84,7 @@ declare module 'vue' {
     ObjectBrowser: typeof import('./src/components/ObjectBrowser.vue')['default']
     ObjectEditor: typeof import('./src/components/ObjectEditor.vue')['default']
     OptionToggle: typeof import('./src/components/OptionToggle.vue')['default']
+    OverlayList: typeof import('./src/components/OverlayList.vue')['default']
     PaddingHandler: typeof import('./src/components/PaddingHandler.vue')['default']
     PageOptions: typeof import('./src/components/PageOptions.vue')['default']
     PageScript: typeof import('./src/components/PageScript.vue')['default']

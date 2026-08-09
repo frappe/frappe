@@ -139,15 +139,13 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		return Boolean(editingMode.value === "fragment" || (editingMode.value === "component" && fragmentData.value?.block))
 	})
 
-	// the fragment canvas always renders one primary surface inline: the fragment
-	// root itself, or — when the root is a wrapper with no content of its own —
-	// its first fragment node. All other fragment nodes collapse into cards.
-	const primaryFragmentId = computed(() => {
+	// the fragment canvas always renders one primary surface inline: the overlay root itself
+	const primaryOverlayId = computed(() => {
 		const rootBlock = fragmentData.value.block
 		if (!rootBlock) return null
-		if (rootBlock.isFragmentNode()) return rootBlock.componentId
-		if (rootBlock.hasNonFragmentContent()) return null
-		return rootBlock.findFirstFragmentNode()?.componentId || null
+		if (rootBlock.isOverlayNode()) return rootBlock.componentId
+		if (rootBlock.hasNonOverlayContent()) return null
+		return rootBlock.findFirstOverlayNode()?.componentId || null
 	})
 
 	async function editOnCanvas(
@@ -288,7 +286,7 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		showFragmentCanvas,
 		fragmentStack,
 		fragmentData,
-		primaryFragmentId,
+		primaryOverlayId,
 		isActiveFragmentDirty,
 		markActiveFragmentClean,
 		editOnCanvas,

@@ -4,9 +4,8 @@
 		<pre class="text-xs">{{ error }}</pre>
 	</div>
 
-	<!-- nested fragment nodes (sub-dialogs) are collapsed into placeholder cards
-	     below the fragment canvas instead of rendering inline -->
-	<template v-else-if="isCollapsedFragmentNode"></template>
+	<!-- nested overlay nodes (sub-dialogs) are collapsed into cards instead of rendering inline -->
+	<template v-else-if="isOverlayNode"></template>
 
 	<StudioComponentWrapper
 		v-else-if="block.isStudioComponent"
@@ -148,20 +147,20 @@ const classes = computed(() => {
 		"select-none",
 		...props.block.getClasses(),
 	]
-	// a wrapper root with a promoted primary fragment needs a definite width,
-	// otherwise the fragment proxy's w-full collapses inside the shrink-to-fit wrapper
-	if (isPromotedFragmentWrapperRoot.value) {
+	// a wrapper root with a promoted primary overlay needs a definite width,
+	// otherwise the overlay proxy's w-full collapses inside the shrink-to-fit wrapper
+	if (isPromotedOverlayWrapperRoot.value) {
 		list.push("w-full")
 	}
 	return list
 })
 
-const isPromotedFragmentWrapperRoot = computed(() => {
+const isPromotedOverlayWrapperRoot = computed(() => {
 	return (
 		canvasStore.editingMode !== "page" &&
 		props.block.componentId === canvasStore.fragmentData.block?.componentId &&
-		Boolean(canvasStore.primaryFragmentId) &&
-		canvasStore.primaryFragmentId !== props.block.componentId
+		Boolean(canvasStore.primaryOverlayId) &&
+		canvasStore.primaryOverlayId !== props.block.componentId
 	)
 })
 const slotClasses = ["__studio_component_slot__", "outline-none", "select-none"]
@@ -180,11 +179,11 @@ const styles = computed(() => {
 	return _styles
 })
 
-const isCollapsedFragmentNode = computed(() => {
+const isOverlayNode = computed(() => {
 	return (
 		canvasStore.editingMode !== "page" &&
-		props.block.isFragmentNode() &&
-		props.block.componentId !== canvasStore.primaryFragmentId
+		props.block.isOverlayNode() &&
+		props.block.componentId !== canvasStore.primaryOverlayId
 	)
 })
 

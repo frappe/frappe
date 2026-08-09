@@ -289,7 +289,7 @@ const editComponent = (block: Block) => {
 }
 
 const openBlockEditor = (block: Block, e: MouseEvent) => {
-	const isRenderedOnCanvas = block.componentId === canvasStore.primaryFragmentId
+	const isRenderedOnCanvas = block.componentId === canvasStore.primaryOverlayId
 	if (!isRenderedOnCanvas && block.editInFragmentMode()) {
 		const parentBlock = block.getParentBlock()
 		canvasStore.editOnCanvas(

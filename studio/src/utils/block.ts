@@ -304,29 +304,27 @@ class Block implements BlockOptions {
 		return Block.components?.[this.componentName]?.editInFragmentMode
 	}
 
-	isFragmentNode(): boolean {
+	isOverlayNode(): boolean {
 		if (this.isStudioComponent) {
 			const componentStore = useComponentStore()
-			return Boolean(componentStore.componentMap.get(this.componentName)?.isFragmentNode())
+			return Boolean(componentStore.componentMap.get(this.componentName)?.isOverlayNode())
 		}
 		return Boolean(this.editInFragmentMode())
 	}
 
-	// content that would render inline on a fragment canvas — fragment nodes
-	// collapse into placeholder cards and containers are transparent wrappers
-	hasNonFragmentContent(): boolean {
+	hasNonOverlayContent(): boolean {
 		return this.getChildrenAndSlotContent().some((child) => {
-			if (child.isFragmentNode()) return false
+			if (child.isOverlayNode()) return false
 			if (!child.isContainer()) return true
-			return child.hasNonFragmentContent()
+			return child.hasNonOverlayContent()
 		})
 	}
 
-	findFirstFragmentNode(): Block | null {
+	findFirstOverlayNode(): Block | null {
 		for (const child of this.getChildrenAndSlotContent()) {
-			if (child.isFragmentNode()) return child
-			const nestedFragment = child.findFirstFragmentNode()
-			if (nestedFragment) return nestedFragment
+			if (child.isOverlayNode()) return child
+			const nestedOverlay = child.findFirstOverlayNode()
+			if (nestedOverlay) return nestedOverlay
 		}
 		return null
 	}

@@ -1,14 +1,12 @@
 <template>
-	<div v-if="fragmentNodes.length" class="mt-5 flex w-full max-w-3xl flex-col gap-2 self-center">
-		<span class="text-xs font-medium text-ink-gray-5">
-			Fragments · {{ fragmentNodes.length }} - not rendered inline
-		</span>
+	<div v-if="overlayNodes.length" class="mt-5 flex w-full max-w-3xl flex-col gap-2 self-center">
+		<span class="text-xs font-medium text-ink-gray-5">Overlays · {{ overlayNodes.length }}</span>
 		<div
-			v-for="block in fragmentNodes"
+			v-for="block in overlayNodes"
 			:key="block.componentId"
 			class="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed bg-surface-base p-3"
 			:class="block.isStudioComponent ? 'border-outline-purple-4' : 'border-outline-blue-4'"
-			@click="editFragment(block)"
+			@click="editOverlay(block)"
 		>
 			<div
 				class="bg-surface-white flex h-7 w-7 shrink-0 items-center justify-center rounded"
@@ -41,7 +39,6 @@ import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useComponentStore from "@/stores/componentStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
-import LucidePenLine from "~icons/lucide/pen-line"
 import LucideArrowUpRight from "~icons/lucide/arrow-up-right"
 
 const props = defineProps<{
@@ -52,20 +49,20 @@ const canvasStore = useCanvasStore()
 const componentStore = useComponentStore()
 const componentEditorStore = useComponentEditorStore()
 
-const fragmentNodes = computed(() => {
+const overlayNodes = computed(() => {
 	const found: Block[] = []
-	collectFragmentNodes(props.rootBlock, found)
+	collectOverlayNodes(props.rootBlock, found)
 	return found
 })
 
-// collect top-level collapsed fragment nodes — the primary fragment renders
+// collect top-level collapsed overlay nodes — the primary overlay renders
 // inline on the canvas, so it's skipped and traversed instead
-function collectFragmentNodes(block: Block, found: Block[]) {
+function collectOverlayNodes(block: Block, found: Block[]) {
 	block.getChildrenAndSlotContent().forEach((child) => {
-		if (child.isFragmentNode() && child.componentId !== canvasStore.primaryFragmentId) {
+		if (child.isOverlayNode() && child.componentId !== canvasStore.primaryOverlayId) {
 			found.push(child)
 		} else {
-			collectFragmentNodes(child, found)
+			collectOverlayNodes(child, found)
 		}
 	})
 }
@@ -73,12 +70,12 @@ function collectFragmentNodes(block: Block, found: Block[]) {
 const getSubtitle = (block: Block) => {
 	if (block.isStudioComponent) {
 		const componentRoot = componentStore.componentMap.get(block.componentName)
-		return `${componentRoot?.componentName || "Fragment"} · Studio Component`
+		return `${componentRoot?.componentName || "Overlay"} · Studio Component`
 	}
 	return `${block.componentName} · Block`
 }
 
-const editFragment = (block: Block) => {
+const editOverlay = (block: Block) => {
 	if (block.isStudioComponent) {
 		componentEditorStore.editComponent(block.componentName)
 		return
