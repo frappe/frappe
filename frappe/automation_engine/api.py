@@ -6,6 +6,8 @@
 import frappe
 from frappe import _
 from frappe.automation_engine.actions.base import AutomationParamError, get_action, get_action_registry
+from frappe.automation_engine.events import registered_events
+from frappe.automation_engine.relationships import get_relationship_definitions
 
 TRIGGER_TYPES = [
 	"Doc Created",
@@ -33,8 +35,9 @@ def get_automation_capabilities(doctype: str | None = None, trigger_type: str | 
 		frappe.has_permission(doctype, throw=True)
 	return {
 		"triggers": TRIGGER_TYPES,
-		"custom_events": frappe.get_hooks("automation_events"),
+		"custom_events": registered_events(),
 		"fields": _doc_fields(doctype) if doctype else [],
+		"relationships": get_relationship_definitions(doctype),
 		"actions": [
 			a.as_dict() for a in get_action_registry().values() if _applies(a, doctype, trigger_type)
 		],
