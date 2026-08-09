@@ -112,14 +112,12 @@ function updateLabel(tab: TabEntry, value: string) {
 	tab.labelBlock?.setProp("text", value)
 }
 
-// only while the title still mirrors the label — a hand-edited title stays
+// only while the title still mirrors the label — a hand-edited (or cleared) title stays
 function syncPanelTitle(tab: TabEntry, label: string) {
 	const header = tab.panel
 		?.getChildrenAndSlotContent()
 		.find((child) => child.componentName === "SettingsHeader")
-	if (!header) return
-	const title = String(header.getProp("title") ?? "")
-	if (!title || title === tab.label) header.setProp("title", label)
+	if (header?.getProp("title") === tab.label) header.setProp("title", label)
 }
 
 // layer names like "ProfileNavItem"/"ProfilePanel" follow the label,
