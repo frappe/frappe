@@ -1064,17 +1064,18 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		const frm = this.frm;
 		const step = this.current_step;
 		const is_finished = is_import_complete(frm.doc.status);
+		const import_started = Boolean(frm.has_import_started?.());
 		const can_import =
 			!frm.is_new() && frm.has_import_file?.() && frm.doc.status !== "Success";
 		const is_dirty = frm.is_dirty();
 		const loading = this._preview_loading;
 
 		const show_back = step !== 0;
-		const show_next = step === 0 || step === 1 || (step === 2 && is_finished);
+		const show_next = step === 0 || step === 1 || (step === 2 && import_started);
 		const next_disabled = loading;
 		// Fix Issues: Save while dirty; Import only when clean.
-		const show_save = step === 2 && can_import && !is_finished && is_dirty;
-		const show_apply = step === 2 && can_import && !is_finished && !is_dirty;
+		const show_save = step === 2 && can_import && !import_started && is_dirty;
+		const show_apply = step === 2 && can_import && !import_started && !is_dirty;
 		const apply_disabled = loading;
 
 		this.$footer_left.empty();

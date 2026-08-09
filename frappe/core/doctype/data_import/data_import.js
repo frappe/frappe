@@ -1553,12 +1553,61 @@ frappe.ui.form.on("Data Import", {
 			.catch(() => false);
 	},
 
+	get_import_provider_schema(frm) {
+		const doctype = frm.doc.reference_doctype;
+		if (!doctype) {
+			return Promise.resolve(null);
+		}
+
+		if (frm._data_import_provider_schema_doctype === doctype) {
+			if (Object.prototype.hasOwnProperty.call(frm, "_data_import_provider_schema")) {
+				return Promise.resolve(frm._data_import_provider_schema || null);
+			}
+			if (frm._data_import_provider_schema_promise) {
+				return frm._data_import_provider_schema_promise;
+			}
+		}
+
+		frm._data_import_provider_schema_doctype = doctype;
+		const schema_request = Promise.resolve(
+			frappe.call({
+				method: "frappe.core.doctype.data_import.data_import.get_import_fields",
+				args: { doctype },
+			})
+		);
+
+		frm._data_import_provider_schema_promise = schema_request
+			.then((r) => {
+				frm._data_import_provider_schema = r.message || null;
+				return frm._data_import_provider_schema;
+			})
+			.catch(() => {
+				frm._data_import_provider_schema = null;
+				return null;
+			})
+			.then((result) => {
+				frm._data_import_provider_schema_promise = null;
+				return result;
+			});
+
+		return frm._data_import_provider_schema_promise;
+	},
+
 	download_template(frm) {
 		frappe.require("data_import_tools.bundle.js", () => {
-			frm.data_exporter = new frappe.data_import.DataExporter(
-				frm.doc.reference_doctype,
-				frm.doc.import_type
-			);
+			const create_exporter = (provider_schema = null) => {
+				frm.data_exporter = new frappe.data_import.DataExporter(
+					frm.doc.reference_doctype,
+					frm.doc.import_type,
+					"CSV",
+					false,
+					provider_schema
+				);
+			};
+
+			frm.events.get_import_provider_schema(frm).then((provider_schema) => {
+				create_exporter(provider_schema);
+			});
 		});
 	},
 
@@ -2140,66 +2189,69 @@ frappe.ui.form.on("Data Import", {
 			"import-preview-count"
 		);
 
-		if (
-			frm.doc.name &&
-			frm.import_preview &&
-			frm.import_preview.doctype === frm.doc.reference_doctype &&
-			frm.import_preview.data_import_name === frm.doc.name
-		) {
-			frm.import_preview.preview_data = preview_data;
-			frm.import_preview.import_log = import_log;
-			frm.import_preview.refresh();
-			refresh_wizard_table_preview(frm, { force: true });
-			$(frm.wrapper).trigger("diw-import-preview-ready");
-			return;
-		}
+		frm.events.get_import_provider_schema(frm).then((provider_schema) => {
+			if (
+				frm.doc.name &&
+				frm.import_preview &&
+				frm.import_preview.doctype === frm.doc.reference_doctype &&
+				frm.import_preview.data_import_name === frm.doc.name
+			) {
+				frm.import_preview.preview_data = preview_data;
+				frm.import_preview.import_log = import_log;
+				frm.import_preview.provider_schema = provider_schema || null;
+				frm.import_preview.refresh();
+				refresh_wizard_table_preview(frm, { force: true });
+				$(frm.wrapper).trigger("diw-import-preview-ready");
+				return;
+			}
 
-		frappe.require("data_import_tools.bundle.js", () => {
-			frm.import_preview = new frappe.data_import.ImportPreview({
-				wrapper: frm.get_field("import_preview").$wrapper,
-				doctype: frm.doc.reference_doctype,
-				preview_data,
-				import_log,
-				frm,
-				events: {
-					remap_column(changed_map) {
-						let template_options = JSON.parse(frm.doc.template_options || "{}");
-						template_options.column_to_field_map =
-							template_options.column_to_field_map || {};
-						const next_changes = Object.fromEntries(
-							Object.entries(changed_map || {}).filter(
-								([index, value]) =>
-									template_options.column_to_field_map[index] !== value
-							)
-						);
-						if (!Object.keys(next_changes).length) {
-							return;
-						}
-						Object.assign(template_options.column_to_field_map, next_changes);
-						// Store on the form only — Save persists, after_save refreshes preview.
-						frm.set_value("template_options", JSON.stringify(template_options));
-						frm._diw_column_map_dirty = true;
+			frappe.require("data_import_tools.bundle.js", () => {
+				frm.import_preview = new frappe.data_import.ImportPreview({
+					wrapper: frm.get_field("import_preview").$wrapper,
+					doctype: frm.doc.reference_doctype,
+					preview_data,
+					import_log,
+					provider_schema,
+					frm,
+					events: {
+						remap_column(changed_map) {
+							let template_options = JSON.parse(frm.doc.template_options || "{}");
+							template_options.column_to_field_map =
+								template_options.column_to_field_map || {};
+							const next_changes = Object.fromEntries(
+								Object.entries(changed_map || {}).filter(
+									([index, value]) =>
+										template_options.column_to_field_map[index] !== value
+								)
+							);
+							if (!Object.keys(next_changes).length) {
+								return;
+							}
+							Object.assign(template_options.column_to_field_map, next_changes);
+							frm.set_value("template_options", JSON.stringify(template_options));
+							frm._diw_column_map_dirty = true;
+						},
+						set_column_date_format(index, date_format) {
+							let template_options = JSON.parse(frm.doc.template_options || "{}");
+							template_options.column_to_date_format_map =
+								template_options.column_to_date_format_map || {};
+							if (template_options.column_to_date_format_map[index] === date_format)
+								return;
+							template_options.column_to_date_format_map[index] = date_format;
+							frm.set_value("template_options", JSON.stringify(template_options));
+							frm._diw_column_map_dirty = true;
+						},
 					},
-					set_column_date_format(index, date_format) {
-						let template_options = JSON.parse(frm.doc.template_options || "{}");
-						template_options.column_to_date_format_map =
-							template_options.column_to_date_format_map || {};
-						if (template_options.column_to_date_format_map[index] === date_format)
-							return;
-						template_options.column_to_date_format_map[index] = date_format;
-						frm.set_value("template_options", JSON.stringify(template_options));
-						frm._diw_column_map_dirty = true;
+					on_ready() {
+						setTimeout(() => {
+							if (frm.import_preview) {
+								frm.import_preview.data_import_name = frm.doc.name;
+							}
+							refresh_wizard_table_preview(frm, { force: true });
+							$(frm.wrapper).trigger("diw-import-preview-ready");
+						}, 0);
 					},
-				},
-				on_ready() {
-					setTimeout(() => {
-						if (frm.import_preview) {
-							frm.import_preview.data_import_name = frm.doc.name;
-						}
-						refresh_wizard_table_preview(frm, { force: true });
-						$(frm.wrapper).trigger("diw-import-preview-ready");
-					}, 0);
-				},
+				});
 			});
 		});
 	},

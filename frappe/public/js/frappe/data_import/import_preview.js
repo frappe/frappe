@@ -63,10 +63,20 @@ function get_date_format_options(fieldtype) {
 }
 
 frappe.data_import.ImportPreview = class ImportPreview {
-	constructor({ wrapper, doctype, preview_data, frm, import_log, events = {}, on_ready } = {}) {
+	constructor({
+		wrapper,
+		doctype,
+		preview_data,
+		provider_schema = null,
+		frm,
+		import_log,
+		events = {},
+		on_ready,
+	} = {}) {
 		this.wrapper = wrapper;
 		this.doctype = doctype;
 		this.preview_data = preview_data;
+		this.provider_schema = provider_schema || null;
 		this.events = events;
 		this.import_log = import_log;
 		this.frm = frm;
@@ -163,7 +173,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				column_width = Math.max(column_width, 200);
 			}
 
-			// Sheet title (no status dot); date columns get a calendar format pill.
+			// Sheet title; date columns get a calendar format pill.
 			let column_title = `<span class="diw-preview-col-header inline-flex items-center gap-2 min-w-0 w-full">
 				<span class="diw-preview-col-title truncate min-w-0">${
 					frappe.utils.escape_html(col.header_title) || df.label
@@ -227,9 +237,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			});
 		});
 
-		// Keep preview table simple, but add a first-row mapper for column mapping.
-		// Shown in every state — after a completed / partial import the mappers are
-		// rendered disabled (see mount_column_map_controls) so the mapping stays visible.
+		// Always prepend the mapping row so column assignments remain visible
+		// after import. Controls are disabled (not hidden) when status is Success.
 		this._has_mapping_row = true;
 		this.data = [this.build_mapping_row(), ...this.data];
 	}
@@ -606,12 +615,13 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.$table_preview?.off(".diw-map-portal");
 		if (!this.$table_preview?.length) return;
 
-		// After a completed (Success / Partial Success) import the mapping is frozen —
-		// still render it so users see how columns were mapped, but disabled.
-		const readonly = ["Success", "Partial Success"].includes(this.frm?.doc?.status);
+		const is_success = this.frm?.doc?.status === "Success";
 
 		const options = [{ label: __("Don't Import"), value: DONT_IMPORT }].concat(
-			get_fields_as_options(this.doctype, get_columns_for_picker(this.doctype))
+			get_fields_as_options(
+				this.doctype,
+				get_column_map_for_preview(this.doctype, this.provider_schema)
+			)
 		);
 
 		this.$table_preview.find(".diw-col-map-field").each((_, el) => {
@@ -620,21 +630,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			if (!(i > 0) || !col) return;
 
 			const current = this.get_column_map_value(col);
-
-			// Completed / partial imports: the mapping is frozen. Render it as a
-			// static read-only field (the resolved field label) instead of a live
-			// Autocomplete — avoids the awesomplete/form-control chrome and reads
-			// cleanly as a disabled field.
-			if (readonly) {
-				const label = (options.find((o) => o.value === current) || {}).label || current;
-				$(el).html(
-					`<div class="diw-col-map-readonly truncate" title="${frappe.utils.escape_html(
-						label
-					)}">${frappe.utils.escape_html(label)}</div>`
-				);
-				return;
-			}
-
 			let ready = false;
 			let applied = current;
 			const control = frappe.ui.form.make_control({
@@ -649,7 +644,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					options,
 					default: current,
 					change: () => {
-						if (!ready) return;
+						if (!ready || is_success) return;
 						const next = control.get_value() || DONT_IMPORT;
 						if (next === applied) return;
 						applied = next;
@@ -662,6 +657,10 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			control.$wrapper.addClass("w-full m-0");
 			control.$wrapper.find(".tooltip-content").addClass("hidden");
 			control.$input.addClass("rounded w-full");
+			// Disable interaction after a completed import.
+			if (is_success) {
+				control.$input.prop("disabled", true);
+			}
 			control.$wrapper.on("mousedown click", (e) => e.stopPropagation());
 			ready = true;
 			this._map_controls.push(control);
@@ -698,6 +697,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			}
 			const rect = input.getBoundingClientRect();
 			const list_width = Math.max(rect.width, 250);
+			// Fixed positioning escapes the wizard scroll container clipping.
 			$(ul).css({
 				position: "fixed",
 				left: `${rect.left}px`,
@@ -754,7 +754,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this._fmt_dropdowns = [];
 
 		if (!this.$table_preview?.length) return;
-		if (this.frm?.doc?.status === "Success") return;
+
+		const is_fmt_success = this.frm?.doc?.status === "Success";
 
 		this.$table_preview.find(".diw-col-map-fmt-mount").each((_, mount) => {
 			const i = cint(mount.getAttribute("data-col-index"));
@@ -773,6 +774,10 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				css_class: "rounded-full shrink-0",
 			});
 			$btn.on("mousedown click", (e) => e.stopPropagation());
+			// Disable the calendar button after a completed import.
+			if (is_fmt_success) {
+				$btn.prop("disabled", true);
+			}
 			$(mount).empty().append($btn);
 
 			const dropdown = new frappe.ui.Dropdown({
@@ -814,7 +819,9 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.wrapper
 			.find(".table-actions")
 			.html(
-				`<div class="text-base text-muted">${__("Map each file column to a field.")}</div>`
+				`<div class="text-base text-muted">${__(
+					"Map each file column to a field. Save to apply changes."
+				)}</div>`
 			);
 	}
 
@@ -826,21 +833,32 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	}
 };
 
-function get_fields_as_options(doctype, column_map) {
-	let keys = [doctype];
-	frappe.meta.get_table_fields(doctype).forEach((df) => {
-		keys.push(df.fieldname);
+function get_column_map_for_preview(doctype, provider_schema = null) {
+	if (!provider_schema) {
+		return get_columns_for_picker(doctype);
+	}
+
+	let out = {};
+	out[doctype] = provider_schema.fields || [];
+	(provider_schema.child_tables || []).forEach((ct) => {
+		out[ct.fieldname] = ct.fields || [];
 	});
+	return out;
+}
+
+function get_fields_as_options(doctype, column_map) {
+	let keys = [doctype, ...Object.keys(column_map).filter((key) => key !== doctype)];
 	// flatten array
 	return [].concat(
 		...keys.map((key) => {
-			return column_map[key].map((df) => {
+			return (column_map[key] || []).map((df) => {
 				let label = __(df.label, null, df.parent);
 				let value = df.fieldname;
 				if (doctype !== key) {
-					let table_field = frappe.meta.get_docfield(doctype, key);
-					label = `${__(df.label, null, df.parent)} (${__(table_field.label)})`;
-					value = `${table_field.fieldname}.${df.fieldname}`;
+					const table_field = frappe.meta.get_docfield(doctype, key);
+					const table_label = table_field?.label || key;
+					label = `${__(df.label, null, df.parent)} (${__(table_label)})`;
+					value = `${key}.${df.fieldname}`;
 				}
 				return {
 					label,

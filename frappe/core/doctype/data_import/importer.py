@@ -95,6 +95,9 @@ class Importer:
 		frappe.flags.mute_emails = self.data_import.mute_emails
 
 		self.data_import.db_set("template_warnings", "")
+		from frappe.core.doctype.data_import.import_provider import get_import_provider
+
+		self.provider = get_import_provider(self.doctype)
 		self._inserted_name_map = {}
 		meta = frappe.get_meta(self.doctype)
 		self._tree_parent_field = meta.nsm_parent_field if meta.is_nested_set() else None
@@ -514,6 +517,10 @@ class Importer:
 
 	def process_doc(self, doc):
 		"""Process one import payload; returns ``(document, import_action)``."""
+		# A Custom Import Provider owns record creation; the framework keeps the loop,
+		# batching, progress, logging, resume and status.
+		if getattr(self, "provider", None):
+			return self.provider.import_row(self, doc)
 		if self.import_type == INSERT:
 			return self.insert_record(doc), None
 		if self.import_type == UPDATE:
@@ -1017,7 +1024,18 @@ class ImportFile:
 		for row in self.data:
 			warnings += row.warnings
 
+		# Custom Import Provider business validation (blocks unless type=info)
+		warnings += self._get_provider_warnings()
+
 		return warnings
+
+	def _get_provider_warnings(self):
+		if "_provider_warnings" not in self.__dict__:
+			from frappe.core.doctype.data_import.import_provider import get_import_provider
+
+			provider = get_import_provider(self.reference_doctype)
+			self._provider_warnings = (provider.validate(self) or []) if provider else []
+		return self._provider_warnings
 
 	def get_all_warnings(self):
 		"""Row/column warnings plus tree-structure warnings used to block import."""
@@ -2051,6 +2069,92 @@ class Column:
 		return d
 
 
+class _HashableTableDF(frappe._dict):
+	"""A synthetic child-table docfield that is hashable (so it survives ``set(doctypes)`` in
+	``Header`` like a real docfield does)."""
+
+	def __hash__(self):
+		return hash((self.get("fieldname"), self.get("options")))
+
+
+def _build_fields_dict_from_schema(parent_doctype, schema):
+	"""Header -> docfield map built from a Custom Import Provider's schema instead of meta.
+
+	Mirrors ``build_fields_dict_for_column_matching`` but sources the groups (parent + child
+	tables) and their fields from ``get_import_fields``. Each child-table group's child DocType
+	is taken from its fields' ``parent`` (they are complete docfields)."""
+	out = {}
+
+	groups = [(parent_doctype, None, schema.get("fields") or [])]
+	for ct in schema.get("child_tables") or []:
+		child_fields = ct.get("fields") or []
+		child_doctype = (child_fields[0].get("parent") if child_fields else None) or ct.get("fieldname")
+		table_df = _HashableTableDF(
+			fieldname=ct["fieldname"], label=ct.get("label") or ct["fieldname"], options=child_doctype
+		)
+		groups.append((child_doctype, table_df, child_fields))
+
+	for doctype, table_df, fields in groups:
+		is_parent = table_df is None
+		table_ref = (table_df.label or table_df.fieldname) if table_df else None
+		translated_table_label = _(table_ref) if table_ref else None
+
+		name_df = frappe._dict(
+			{"fieldtype": "Data", "fieldname": "name", "label": "ID", "reqd": 1, "parent": doctype}
+		)
+		if is_parent:
+			name_headers = ("name", "ID", _("ID"))
+		else:
+			name_headers = (
+				f"{table_df.fieldname}.name",
+				f"ID ({table_ref})",
+				"{} ({})".format(_("ID"), translated_table_label),
+			)
+			name_df.is_child_table_field = True
+			name_df.child_table_df = table_df
+		for header in name_headers:
+			out[header] = name_df
+
+		for df in fields:
+			df = frappe._dict(df)
+			if (df.fieldtype or "Data") in no_value_fields:
+				continue
+			label = (df.label or "").strip()
+			translated_label = _(label)
+			prefer_plain_label = bool(df.get("prefer_plain_label"))
+			import_labels = list(df.get("import_labels") or [])
+
+			if is_parent:
+				for header in (label, translated_label):
+					if header not in out:
+						out[header] = df
+				for header in (
+					df.fieldname,
+					f"{label} ({df.fieldname})",
+					f"{translated_label} ({df.fieldname})",
+				):
+					out[header] = df
+			else:
+				new_df = frappe._dict(df.copy())
+				new_df.is_child_table_field = True
+				new_df.child_table_df = table_df
+				if prefer_plain_label:
+					for header in (label, translated_label, df.fieldname):
+						if header:
+							out[header] = new_df
+				for alias in import_labels:
+					if alias:
+						out[alias] = new_df
+				for header in (
+					f"{table_df.fieldname}.{df.fieldname}",
+					f"{label} ({table_ref})",
+					f"{translated_label} ({translated_table_label})",
+				):
+					out[header] = new_df
+
+	return out
+
+
 def build_fields_dict_for_column_matching(parent_doctype):
 	"""
 	Build a dict with various keys to match with column headers and value as docfield
@@ -2064,6 +2168,12 @@ def build_fields_dict_for_column_matching(parent_doctype):
 	        'Sales Invoice Item:item_code': df3,
 	}
 	"""
+	# A Custom Import Provider supplies its own field schema; map columns against that.
+	from frappe.core.doctype.data_import.import_provider import get_import_provider
+
+	provider = get_import_provider(parent_doctype)
+	if provider and (schema := provider.get_import_fields()):
+		return _build_fields_dict_from_schema(parent_doctype, schema)
 
 	def get_standard_fields(doctype):
 		meta = frappe.get_meta(doctype)

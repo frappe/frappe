@@ -336,6 +336,20 @@ def start_import(data_import):
 
 
 @frappe.whitelist()
+def get_import_fields(doctype: str):
+	"""Custom Import Provider field schema for the picker dialog, or ``None`` (use meta).
+
+	Shape: ``{"fields": [<df>, ...], "child_tables": [{"fieldname", "label", "fields": [<df>]}]}``
+	(see ``ImportProvider.get_import_fields``).
+	"""
+	frappe.has_permission(doctype, "read", throw=True)
+	from frappe.core.doctype.data_import.import_provider import get_import_provider
+
+	provider = get_import_provider(doctype)
+	return provider.get_import_fields() if provider else None
+
+
+@frappe.whitelist()
 def download_template(
 	doctype: str,
 	export_fields: str | dict[str, list[str]] | None = None,
