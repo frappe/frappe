@@ -404,9 +404,7 @@ class Session:
 	def _next_steering(self) -> UserMessage | None:
 		return self._steering_queue.popleft().message if self._steering_queue else None
 
-	def _user_message(
-		self, message: str, attachment_ids: list[str]
-	) -> tuple[UserMessage, tuple[str, ...]]:
+	def _user_message(self, message: str, attachment_ids: list[str]) -> tuple[UserMessage, tuple[str, ...]]:
 		if len(attachment_ids) > MAX_ATTACHMENTS_PER_MESSAGE:
 			raise AttachmentError(f"a message can include at most {MAX_ATTACHMENTS_PER_MESSAGE} attachments")
 		if len(set(attachment_ids)) != len(attachment_ids):
