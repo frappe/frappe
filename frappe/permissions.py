@@ -6,6 +6,7 @@ import functools
 import frappe
 import frappe.share
 from frappe import _, msgprint
+from frappe.app_state import is_module_disabled
 from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
 from frappe.query_builder import DocType
 from frappe.utils import cint, cstr
@@ -129,6 +130,10 @@ def has_permission(
 		)
 
 	meta = frappe.get_meta(doctype)
+
+	if is_module_disabled(meta.module):
+		debug and _debug_log(f"Not allowed because {meta.module} belongs to a disabled app")
+		return False
 
 	# docname == doctype for single doctypes
 	if not doc and meta.issingle:

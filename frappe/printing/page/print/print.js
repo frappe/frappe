@@ -742,10 +742,10 @@ frappe.ui.form.PrintView = class {
 				doctype: this.frm.doc.doctype,
 				name: this.frm.doc.name,
 				letterhead: this.get_letterhead(),
+				// "Standard" when the selector is cleared: an omitted format means
+				// the doctype's default, the same as everywhere else in printing
+				print_format: this.selected_format(),
 			});
-			if (print_format.name) {
-				params.append("print_format", print_format.name);
-			}
 			if (this.additional_settings && Object.keys(this.additional_settings).length) {
 				params.append("settings", JSON.stringify(this.additional_settings));
 			}

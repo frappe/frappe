@@ -530,6 +530,43 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		frappe.clear_cache()
 		self.assertIsNone(resolved(no_letterhead=0))
 
+	def test_download_pdf_without_format_uses_the_doctype_default(self):
+		"""An omitted print_format means the doctype's default, matching
+		frappe.utils.print_format.download_pdf; "Standard" means the built-in one."""
+		from unittest.mock import patch
+
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+		from frappe.utils.print_format_generator import PrintFormatGenerator, download_pdf
+
+		todo = self._make_todo()
+		classic = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test Default Classic {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"custom_format": 1,
+				"html": "<div>classic</div>",
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", classic.name, force=True)
+		ps = make_property_setter(
+			"ToDo", None, "default_print_format", classic.name, "Data", for_doctype=True
+		)
+		self.addCleanup(frappe.delete_doc, "Property Setter", ps.name, force=True)
+		self.addCleanup(frappe.clear_cache, doctype="ToDo")
+		frappe.clear_cache(doctype="ToDo")
+
+		with patch("frappe.utils.print_format.download_pdf") as jinja:
+			download_pdf("ToDo", todo.name)
+		self.assertEqual(jinja.call_args.kwargs["format"], classic.name)
+
+		with (
+			patch("frappe.utils.print_format.download_pdf") as jinja,
+			patch.object(PrintFormatGenerator, "render_pdf", return_value=b""),
+		):
+			download_pdf("ToDo", todo.name, print_format="Standard")
+		jinja.assert_not_called()
+
 	def test_section_justify_only_emits_known_modes(self):
 		"""justify names a CSS class, so a layout can't smuggle markup through it."""
 		from frappe.utils.print_format_generator import get_html
@@ -1442,15 +1479,22 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("LETTERHEAD_BOTTOM", tfoot)
 
 	def test_empty_beta_format_renders_via_beta_renderer(self):
-		"""A beta format with empty format_data (e.g. create_custom_format based_on
-		'Standard') must route to the beta renderer, not fall through to the removed
-		classic standard.html and raise TemplateNotFoundError."""
+		"""A beta format with empty format_data must route to the beta renderer, not
+		fall through to the removed classic standard.html and raise
+		TemplateNotFoundError."""
 		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
-		from frappe.printing.doctype.print_format.print_format import create_custom_format
 		from frappe.utils.print_format_generator import get_html
 
 		todo = self._make_todo()
-		pf = create_custom_format("ToDo", f"_Test PFG Empty {frappe.generate_hash(length=6)}")
+		pf = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test PFG Empty {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": "",
+			}
+		).insert()
 		self.addCleanup(pf.delete, ignore_permissions=True)
 
 		self.assertTrue(pf.print_format_builder_beta)
@@ -1458,6 +1502,14 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertTrue(uses_beta_renderer(pf))
 		html = get_html("ToDo", todo.name, pf.name)
 		self.assertIn("print-format-doc", html)
+
+	def test_new_format_is_seeded_with_the_default_layout(self):
+		"""Nothing should print blank before its first Save & Apply."""
+		from frappe.printing.doctype.print_format.print_format import create_custom_format
+
+		pf = create_custom_format("ToDo", f"_Test PFG Seeded {frappe.generate_hash(length=6)}")
+		self.addCleanup(pf.delete, ignore_permissions=True)
+		self.assertTrue(frappe.parse_json(pf.format_data).get("sections"))
 
 	def test_browser_print_no_repeating_frame_when_off(self):
 		"""With repeat_header_footer off, the browser-print HTML is not wrapped in the

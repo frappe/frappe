@@ -16,10 +16,13 @@ import click
 from semantic_version import Version
 
 import frappe
+from frappe import _
 from frappe.defaults import _clear_cache
 from frappe.utils import cint, is_git_url
 from frappe.utils.dashboard import sync_dashboards
 from frappe.utils.synchronization import filelock
+
+APP_STATE_LOCK = "toggle_app_state"
 
 
 def _is_scheduler_enabled(site) -> bool:
@@ -268,6 +271,30 @@ def parse_app_name(name: str) -> str:
 	return repo
 
 
+def parse_required_app_name(requirement: str) -> str:
+	"""Parse the app name out of a `required_apps` entry.
+
+	Entries can be `erpnext`, `frappe/erpnext`, a git URL or any of those with an `@branch`.
+	Unlike `parse_app_name`, this resolves the name locally, so it is safe to call for an app
+	that is not present on the bench.
+	"""
+	name = requirement.rstrip("/").split("#")[0]
+	name = name.rsplit("/", 1)[-1].rsplit(":", 1)[-1]
+	return name.split("@")[0].removesuffix(".git")
+
+
+def is_required_by(app_name: str, dependent_app: str) -> bool:
+	"""Check if `dependent_app` declares `app_name` in its `required_apps` hook.
+
+	Entries are parsed before comparing. Matching the raw string instead would flag any app whose
+	name happens to be a substring of a requirement, e.g. `appe` against `frappe/erpnext`.
+	"""
+	return any(
+		app_name == parse_required_app_name(required_app)
+		for required_app in frappe.get_hooks("required_apps", app_name=dependent_app)
+	)
+
+
 def install_app(name, verbose=False, set_as_patched=True, force=False):
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 	from frappe.model.sync import sync_for
@@ -294,7 +321,10 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 		raise Exception(f"App {name} not in apps.txt")
 
 	if not force and name in installed_apps:
-		click.secho(f"App {name} already installed", fg="yellow")
+		if name in frappe.get_disabled_apps():
+			enable_app(name)
+		else:
+			click.secho(f"App {name} already installed", fg="yellow")
 		return
 
 	print(f"\nInstalling {name}...")
@@ -376,11 +406,125 @@ def remove_from_installed_apps(app_name):
 		)
 		_clear_cache("__global")
 		frappe.local.doc_events_hooks = None
-		frappe.get_single("Installed Applications").update_versions()
-		frappe.db.commit()
+		with filelock(APP_STATE_LOCK):
+			if app_name in frappe.get_disabled_apps():
+				set_app_disabled(app_name, False)
+			frappe.get_single("Installed Applications").update_versions()
+			frappe.db.commit()
 		if frappe.flags.in_install:
 			post_install()
 		_sync_installed_apps_to_site_config()
+
+
+def set_app_disabled(app_name, disabled):
+	"""Add the app to the `disabled_apps` global, or take it out again.
+
+	The caller holds the `APP_STATE_LOCK` and owns the commit, so that the read and
+	the write below cannot interleave with another toggle.
+	"""
+	# read the global directly: `get_disabled_apps` is request cached and may be stale here
+	disabled_apps = json.loads(frappe.db.get_global("disabled_apps") or "[]")
+
+	if disabled and app_name not in disabled_apps:
+		disabled_apps.append(app_name)
+	elif not disabled and app_name in disabled_apps:
+		disabled_apps.remove(app_name)
+
+	frappe.db.set_global("disabled_apps", json.dumps(disabled_apps))
+	frappe.local.request_cache and frappe.local.request_cache.clear()
+	frappe.get_single("Installed Applications").update_versions()
+
+
+def enable_app(app_name):
+	"""Bring back an app that was disabled, without re-syncing its schema."""
+	if app_name not in frappe.get_installed_apps():
+		frappe.throw(_("App {0} is not installed").format(app_name))
+
+	with filelock(APP_STATE_LOCK):
+		frappe.flags.in_app_toggle = True
+		try:
+			disabled_apps = frappe.get_disabled_apps()
+			for required_app in frappe.get_hooks("required_apps", app_name=app_name):
+				dependency = parse_required_app_name(required_app)
+				if dependency in disabled_apps:
+					frappe.throw(_("App {0} depends on {1}. Enable {1} first.").format(app_name, dependency))
+
+			for before_enable in frappe.get_hooks("before_enable", app_name=app_name):
+				frappe.get_attr(before_enable)()
+
+			set_app_disabled(app_name, False)
+
+			for after_enable in frappe.get_hooks("after_enable", app_name=app_name):
+				frappe.get_attr(after_enable)()
+
+			frappe.db.commit()  # nosemgrep
+		except Exception:
+			frappe.db.rollback()
+			raise
+		finally:
+			frappe.clear_cache()
+			frappe.client_cache.erase_persistent_caches()
+			frappe.flags.in_app_toggle = False
+
+	click.secho(f"App {app_name} enabled on Site {frappe.local.site}", fg="green")
+
+
+def disable_app(app_name):
+	"""Keep the app's schema and data, but stop it from taking effect on this site."""
+	if app_name == "frappe":
+		frappe.throw(_("App frappe cannot be disabled"))
+
+	if app_name not in frappe.get_installed_apps():
+		frappe.throw(_("App {0} is not installed").format(app_name))
+
+	with filelock(APP_STATE_LOCK):
+		frappe.flags.in_app_toggle = True
+		try:
+			for app in frappe.get_active_apps():
+				if app == app_name:
+					continue
+				if is_required_by(app_name, app):
+					frappe.throw(
+						_("App {0} is a dependency of {1}. Disable {1} first.").format(app_name, app)
+					)
+
+			for before_disable in frappe.get_hooks("before_disable", app_name=app_name):
+				frappe.get_attr(before_disable)()
+
+			set_app_disabled(app_name, True)
+
+			for after_disable in frappe.get_hooks("after_disable", app_name=app_name):
+				frappe.get_attr(after_disable)()
+
+			frappe.db.commit()  # nosemgrep
+		except Exception:
+			frappe.db.rollback()
+			raise
+		finally:
+			frappe.clear_cache()
+			frappe.client_cache.erase_persistent_caches()
+			frappe.flags.in_app_toggle = False
+
+	click.secho(f"App {app_name} disabled on Site {frappe.local.site}", fg="green")
+
+
+def reapply_disabled_app_state():
+	"""Run the `before_disable` hooks again for each app that the site disables.
+
+	A migration can create the customizations that an app hid. These hooks run more than
+	once, so they must give the same result each time.
+	"""
+	disabled_apps = frappe.get_disabled_apps()
+	if not disabled_apps:
+		return
+
+	frappe.flags.in_app_toggle = True
+	try:
+		for app_name in disabled_apps:
+			for before_disable in frappe.get_hooks("before_disable", app_name=app_name):
+				frappe.get_attr(before_disable)()
+	finally:
+		frappe.flags.in_app_toggle = False
 
 
 def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False):
@@ -397,11 +541,9 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 	# Don't allow uninstalling if we have dependent apps installed
 	for app in frappe.get_installed_apps():
-		if app != app_name:
-			hooks = frappe.get_hooks(app_name=app)
-			if hooks.required_apps and any(app_name in required_app for required_app in hooks.required_apps):
-				click.secho(f"App {app_name} is a dependency of {app}. Uninstall {app} first.", fg="yellow")
-				return
+		if app != app_name and is_required_by(app_name, app):
+			click.secho(f"App {app_name} is a dependency of {app}. Uninstall {app} first.", fg="yellow")
+			return
 
 	print(f"Uninstalling App {app_name} from Site {site}...")
 
@@ -539,7 +681,7 @@ def post_install(rebuild_website=False):
 		clear_website_cache()
 
 	init_singles()
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep
 	frappe.clear_cache()
 
 
@@ -549,7 +691,7 @@ def set_all_patches_as_completed(app):
 	patches = get_patches_from_app(app)
 	for patch in patches:
 		frappe.get_doc({"doctype": "Patch Log", "patch": patch}).insert(ignore_permissions=True)
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep
 
 
 def init_singles():

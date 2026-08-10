@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 import frappe
 import frappe.share
 from frappe import _dict
+from frappe.app_state import get_disabled_modules
 from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
 from frappe.desk.desk_views import DeskViews
 from frappe.permissions import AUTOMATIC_ROLES, get_rights, get_roles, get_valid_perms
@@ -77,6 +78,7 @@ class UserPermissions:
 		self.doctype_map = {}
 
 		active_domains = frappe.get_active_domains()
+		disabled_modules = get_disabled_modules()
 		all_doctypes = frappe.get_all(
 			"DocType",
 			fields=[
@@ -91,6 +93,9 @@ class UserPermissions:
 		)
 
 		for dt in all_doctypes:
+			if dt.module in disabled_modules:
+				continue
+
 			if not dt.restrict_to_domain or (dt.restrict_to_domain in active_domains):
 				self.doctype_map[dt["name"]] = dt
 
