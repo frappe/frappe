@@ -25,7 +25,7 @@
 					@input="(e) => (selected_field.typst = e.target.value)"
 				></textarea>
 				<div class="pfb-insp-hint text-muted">
-					{{ __("Raw Typst markup — see the result in the PDF preview.") }}
+					{{ __("Write Typst here. Check the PDF preview to see the result.") }}
 				</div>
 			</template>
 			<template v-else-if="is_image_element">
