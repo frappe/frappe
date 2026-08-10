@@ -74,7 +74,8 @@ def resolve_one(source_doc, relationship: str, params=None) -> dict:
 	definition = _definition(source_doc.doctype, relationship)
 	if definition["cardinality"] != "one":
 		frappe.throw(_("Relationship {0} returns multiple records").format(relationship))
-	resolved = definition["provider"].resolve(source_doc, relationship, params or {}) or []
+	name = _provider_name(definition, relationship)
+	resolved = definition["provider"].resolve(source_doc, name, params or {}) or []
 	if len(resolved) != 1:
 		frappe.throw(_("Relationship {0} did not resolve to one record").format(relationship))
 	return _permitted_reference(resolved[0], definition)
@@ -83,7 +84,8 @@ def resolve_one(source_doc, relationship: str, params=None) -> dict:
 def query_related(source_doc, relationship: str, filters=None, limit=MAX_RELATED_ROWS) -> list[dict]:
 	definition = _definition(source_doc.doctype, relationship)
 	limit = min(frappe.utils.cint(limit) or MAX_RELATED_ROWS, MAX_RELATED_ROWS)
-	rows = definition["provider"].query(source_doc, relationship, filters or [], limit)
+	name = _provider_name(definition, relationship)
+	rows = definition["provider"].query(source_doc, name, filters or [], limit)
 	return [_permitted_reference(row, definition) for row in rows or []]
 
 
@@ -98,10 +100,14 @@ def load_record(reference, permission_type=None):
 
 @request_cache
 def _providers() -> list:
+	"""App providers first, then the schema provider — an app definition shadows a derived one."""
+	from frappe.automation_engine.schema_relationships import SchemaRelationshipProvider
+
 	providers = []
 	for path in frappe.get_hooks("automation_relationships"):
 		provider = frappe.get_attr(path)
 		providers.append(provider() if isinstance(provider, type) else provider)
+	providers.append(SchemaRelationshipProvider())
 	return providers
 
 
@@ -109,15 +115,21 @@ def _definitions(source_doctype: str | None) -> list[dict]:
 	"""Every validated definition registered for `source_doctype`."""
 	if not source_doctype:
 		return []
-	definitions = [
-		_validated_definition(provider, source_doctype, item)
-		for provider in _providers()
-		for item in provider.get_definitions(source_doctype) or []
-	]
-	names = [item["name"] for item in definitions]
-	if len(names) != len(set(names)):
+	definitions = {}
+	for provider in _providers():
+		for item in provider.get_definitions(source_doctype) or []:
+			definition = _validated_definition(provider, source_doctype, item)
+			_claim_name(definitions, definition, source_doctype)
+	return list(definitions.values())
+
+
+def _claim_name(definitions, definition, source_doctype):
+	"""First provider to claim a name keeps it; two apps claiming one is a configuration error."""
+	held = definitions.get(definition["name"])
+	if held and not definition.get("derived"):
 		frappe.throw(_("Duplicate automation relationship name on {0}").format(source_doctype))
-	return definitions
+	if not held:
+		definitions[definition["name"]] = definition
 
 
 def _definition(source_doctype: str | None, relationship: str | None) -> dict:
@@ -128,19 +140,57 @@ def _definition(source_doctype: str | None, relationship: str | None) -> dict:
 
 
 def _validated_definition(provider, source_doctype, definition) -> dict:
-	definition = dict(definition)
+	definition = _renamed(dict(definition), source_doctype)
 	if not definition.get("name") or definition.get("cardinality") not in ("one", "many"):
 		frappe.throw(_("Invalid automation relationship definition"))
 	if definition.get("source_doctype") not in (None, source_doctype):
 		frappe.throw(_("Relationship source DocType does not match"))
 	definition["source_doctype"] = source_doctype
-	definition["provider"] = provider
+	definition.setdefault("provider", provider)
 	return definition
 
 
+def _renamed(definition, source_doctype) -> dict:
+	"""`derived_from` gives a schema relationship a stable name and a readable label.
+
+	The app supplies nothing but the two strings — resolution stays with the schema provider,
+	so a rename can't drift from the field that backs it.
+	"""
+	source = definition.pop("derived_from", None)
+	if not source:
+		return definition
+	definition["derived_name"] = source
+	from frappe.automation_engine.schema_relationships import SchemaRelationshipProvider
+
+	derived = dict(_schema_definition(source_doctype, source))
+	derived["provider"] = SchemaRelationshipProvider()
+	derived.pop("derived", None)
+	return {**derived, **definition}
+
+
+def _schema_definition(source_doctype, relationship) -> dict:
+	from frappe.automation_engine.schema_relationships import derived_definitions
+
+	for definition in derived_definitions(source_doctype):
+		if definition["name"] == relationship:
+			return definition
+	frappe.throw(_("Unknown derived relationship: {0} on {1}").format(relationship, source_doctype))
+
+
+INTERNAL_KEYS = (
+	"provider",
+	"kind",
+	"fieldname",
+	"table_fieldname",
+	"child_doctype",
+	"doctype_fieldname",
+	"derived_name",
+)
+
+
 def _public(definition) -> dict:
-	"""Drop the provider instance — definitions cross into API responses and flow validation."""
-	return {key: value for key, value in definition.items() if key != "provider"}
+	"""Drop the provider and its bookkeeping — definitions cross into API responses."""
+	return {key: value for key, value in definition.items() if key not in INTERNAL_KEYS}
 
 
 def _allowed_doctypes(definition) -> list:
@@ -171,6 +221,11 @@ def _validate_alias(item, aliases):
 		frappe.throw(_("Duplicate record alias: {0}").format(item["alias"]))
 	if (item.get("source") or "trigger") not in aliases:
 		frappe.throw(_("Unknown relationship source alias: {0}").format(item.get("source")))
+
+
+def _provider_name(definition, relationship) -> str:
+	"""A renamed relationship is still resolved under the derived name its provider knows."""
+	return definition.get("derived_name") or relationship
 
 
 def _reference(doc) -> dict:
