@@ -57,6 +57,20 @@ def download_pdf(
 	frappe.local.response.type = "pdf"
 
 
+def get_typst_pdf(print_format, html, options, output, pdf_generator=None):
+	"""`pdf_generator` hook: claims builder formats whose renderer is Typst."""
+	if pdf_generator != "Typst":
+		return
+	generator = getattr(frappe.local, "print_format_generator", None)
+	if generator is None:
+		fd = frappe.form_dict
+		doc = fd.doc if fd.get("doc") else frappe.get_doc(fd.doctype, fd.name)
+		generator = PrintFormatGenerator(
+			print_format, doc, fd.get("letterhead"), no_letterhead=fd.get("no_letterhead")
+		)
+	return generator.render_typst_pdf(password=(options or {}).get("password"))
+
+
 def is_qr_barcode_options(options: str | None) -> bool:
 	"""Whether a Barcode docfield's options ask for a QR code — either the bare
 	string "qrcode"/"qr" or JsBarcode-style JSON like {"format": "qrcode"}."""
@@ -363,12 +377,31 @@ class PrintFormatGenerator:
 	# ----- PDF (Chrome) --------------------------------------------------
 
 	def render_pdf(self, password=None):
-		"""Return PDF bytes using the format's renderer — Typst when chosen, else Chromium."""
+		"""Return PDF bytes using the format's renderer.
+
+		Renderers other than the built-in Chromium are resolved through the
+		`pdf_generator` hook, so an app can register its own the same way the
+		Typst renderer is."""
 		from frappe.utils.pdf import get_chrome_pdf
 
 		pf = self.print_format
-		if pf.get("pdf_generator") == "Typst":
-			return self.render_typst_pdf(password=password)
+		generator_name = pf.get("pdf_generator") or "chrome"
+		if generator_name != "chrome":
+			frappe.local.print_format_generator = self
+			try:
+				for hook in frappe.get_hooks("pdf_generator"):
+					pdf = frappe.call(
+						hook,
+						print_format=pf.name,
+						html=None,
+						options={"password": password} if password else {},
+						output=None,
+						pdf_generator=generator_name,
+					)
+					if pdf:
+						return pdf
+			finally:
+				frappe.local.print_format_generator = None
 		from frappe.utils.typst_emitter import has_typst_blocks
 
 		if has_typst_blocks(self.layout):
