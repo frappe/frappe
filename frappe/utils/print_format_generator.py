@@ -390,6 +390,8 @@ class PrintFormatGenerator:
 			frappe.local.print_format_generator = self
 			try:
 				for hook in frappe.get_hooks("pdf_generator"):
+					# hook targets come from installed apps' hooks.py, never from request data
+					# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
 					pdf = frappe.call(
 						hook,
 						print_format=pf.name,
