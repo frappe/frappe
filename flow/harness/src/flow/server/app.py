@@ -366,7 +366,6 @@ def create_app(
 						session.attachment_store.add_bytes,
 						upload.filename or "attachment",
 						data,
-						upload.content_type,
 					)
 				)
 		except Exception:

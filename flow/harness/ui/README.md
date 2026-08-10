@@ -36,8 +36,7 @@ npm run dev -w app
   session detail, `/providers/*`, `GET /fs/pick`).
 - The approval-mode picker applies to sessions created from then on;
   `auto_approve` is fixed at session create.
-- The composer supports file uploads and pasted images.
-  Text/code files and normalized images are snapshotted into session-scoped attachment
-  storage before the message is sent.
+- The composer supports image uploads and pasted images. PNG, JPEG, GIF, WebP, and BMP
+  images are snapshotted into session-scoped attachment storage before the message is sent.
 - Serving the UI from a different origin without a proxy needs
   `FLOW_CORS_ORIGINS=<origin>` on the daemon.

@@ -1,4 +1,4 @@
-"""Session-scoped attachment storage and bounded file/image processing.
+"""Session-scoped attachment storage and bounded image processing.
 
 Attachment bytes live beside the session log, never inside JSONL events. Durable user
 messages carry only immutable attachment metadata; model adapters resolve the bytes at
@@ -52,42 +52,26 @@ class AttachmentStore:
 		self,
 		name: str,
 		data: bytes,
-		declared_mime_type: str | None = None,
 	) -> AttachmentContent:
-		"""Validate and store one browser upload."""
+		"""Validate and store one browser image upload."""
 		if not data:
 			raise AttachmentError("attachment is empty")
 		if len(data) > MAX_SOURCE_BYTES:
 			raise AttachmentError(f"attachment exceeds the {MAX_SOURCE_BYTES // 1024 // 1024} MB limit")
 		name = _safe_name(name)
 		processed = _process_image(data)
-		if processed is not None:
-			data, mime_type, width, height = processed
-			content = AttachmentContent(
-				id=uuid.uuid4().hex[:24],
-				name=name,
-				mime_type=mime_type,
-				size=len(data),
-				kind="image",
-				width=width,
-				height=height,
-			)
-		else:
-			if declared_mime_type and declared_mime_type.startswith("image/"):
-				raise AttachmentError(f"{name} is not a valid supported image")
-			if len(data) > MAX_TEXT_BYTES:
-				raise AttachmentError(f"text attachment exceeds the {MAX_TEXT_BYTES // 1024} KB limit")
-			try:
-				data.decode("utf-8")
-			except UnicodeDecodeError:
-				raise AttachmentError(f"{name} is not a supported text or image file") from None
-			content = AttachmentContent(
-				id=uuid.uuid4().hex[:24],
-				name=name,
-				mime_type=_text_mime_type(declared_mime_type),
-				size=len(data),
-				kind="text",
-			)
+		if processed is None:
+			raise AttachmentError(f"{name} is not a supported image")
+		data, mime_type, width, height = processed
+		content = AttachmentContent(
+			id=uuid.uuid4().hex[:24],
+			name=name,
+			mime_type=mime_type,
+			size=len(data),
+			kind="image",
+			width=width,
+			height=height,
+		)
 		self._write(content, data)
 		return content
 
@@ -201,12 +185,6 @@ def _safe_name(name: str) -> str:
 	if not name or name in {".", ".."}:
 		raise AttachmentError("attachment needs a valid filename")
 	return name
-
-
-def _text_mime_type(declared: str | None) -> str:
-	if declared and (declared.startswith("text/") or declared in {"application/json", "application/xml"}):
-		return declared.split(";", 1)[0]
-	return "text/plain"
 
 
 def _process_image(data: bytes) -> tuple[bytes, str, int, int] | None:

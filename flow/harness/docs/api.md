@@ -129,8 +129,9 @@ to switch, use `POST /sessions/{sid}/model` before the run.
   steering queue, so "steered" would silently delay or lose the message.
 
 ### `POST /sessions/{sid}/attachments`
-Multipart form with one or more `files` fields. Text/code files and supported images are
-validated and stored outside the JSONL log. Images are normalized to provider-safe limits.
+Multipart form with one or more `files` fields. PNG, JPEG, GIF, WebP, and BMP images are
+validated and stored outside the JSONL log. Other file types are rejected. Images are
+normalized to provider-safe limits.
 Returns `{"attachments": [{"id", "name", "mime_type", "size", "kind", ...}]}`.
 
 ### `DELETE /sessions/{sid}/attachments`

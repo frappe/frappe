@@ -1,5 +1,7 @@
 import asyncio
+import base64
 import io
+import json
 import struct
 import zlib
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
@@ -30,16 +32,18 @@ def _png(width: int = 8, height: int = 6) -> bytes:
 
 def test_attachment_store_keeps_bytes_out_of_metadata(tmp_path):
 	store = AttachmentStore(str(tmp_path / "attachments"))
-	attachment = store.add_bytes("notes.txt", b"hello", "text/plain")
+	data = _png()
+	attachment = store.add_bytes("screen.png", data)
+	metadata = json.loads((tmp_path / "attachments" / f"{attachment.id}.json").read_text())
 
-	assert attachment.kind == "text"
-	assert store.read(attachment.id) == b"hello"
-	assert "hello" not in (tmp_path / "attachments" / f"{attachment.id}.json").read_text()
+	assert attachment.kind == "image"
+	assert store.read(attachment.id) == data
+	assert "data" not in metadata
 
 
 def test_attachment_store_detects_images_from_bytes(tmp_path):
 	store = AttachmentStore(str(tmp_path / "attachments"))
-	attachment = store.add_bytes("screenshot.bin", _png(), "application/octet-stream")
+	attachment = store.add_bytes("screenshot.bin", _png())
 
 	assert attachment.kind == "image"
 	assert attachment.mime_type == "image/png"
@@ -48,10 +52,10 @@ def test_attachment_store_detects_images_from_bytes(tmp_path):
 
 def test_attachment_store_resizes_large_images_and_converts_bmp(tmp_path):
 	store = AttachmentStore(str(tmp_path / "attachments"))
-	large = store.add_bytes("wide.png", _png(2_500, 10), "image/png")
+	large = store.add_bytes("wide.png", _png(2_500, 10))
 	bmp_data = io.BytesIO()
 	Image.new("RGB", (4, 3), "blue").save(bmp_data, format="BMP")
-	bmp = store.add_bytes("old.bmp", bmp_data.getvalue(), "image/bmp")
+	bmp = store.add_bytes("old.bmp", bmp_data.getvalue())
 
 	assert large.width == 2_000
 	assert bmp.mime_type == "image/png"
@@ -69,21 +73,22 @@ def test_attachment_store_rejects_oversized_dimensions_before_decode(tmp_path, m
 
 	store = AttachmentStore(str(tmp_path / "attachments"))
 	try:
-		store.add_bytes("bomb.png", compressed, "image/png")
+		store.add_bytes("bomb.png", compressed)
 	except AttachmentError as error:
 		assert "dimensions" in str(error)
 	else:
 		raise AssertionError("oversized image was accepted")
 
 
-def test_attachment_store_rejects_binary_files(tmp_path):
+def test_attachment_store_rejects_non_images(tmp_path):
 	store = AttachmentStore(str(tmp_path / "attachments"))
-	try:
-		store.add_bytes("archive.bin", b"\x00\xff\x00")
-	except AttachmentError as error:
-		assert "supported text or image" in str(error)
-	else:
-		raise AssertionError("binary attachment was accepted")
+	for name, data in (("notes.txt", b"hello"), ("archive.bin", b"\x00\xff\x00")):
+		try:
+			store.add_bytes(name, data)
+		except AttachmentError as error:
+			assert str(error) == f"{name} is not a supported image"
+		else:
+			raise AssertionError(f"non-image attachment was accepted: {name}")
 
 
 def test_non_vision_model_gets_explicit_image_placeholder():
@@ -170,12 +175,12 @@ def test_cleanup_removes_only_unclaimed_attachments(tmp_path):
 	def upload(name: str) -> str:
 		response = client.post(
 			f"/sessions/{sid}/attachments",
-			files=[("files", (name, b"contents", "text/plain"))],
+			files=[("files", (name, _png(), "image/png"))],
 		)
 		return response.json()["attachments"][0]["id"]
 
-	unused = upload("unused.txt")
-	used = upload("used.txt")
+	unused = upload("unused.png")
+	used = upload("used.png")
 	client.post(f"/sessions/{sid}/run", json={"message": "read", "attachments": [used]})
 	response = client.request(
 		"DELETE",
@@ -186,7 +191,7 @@ def test_cleanup_removes_only_unclaimed_attachments(tmp_path):
 	assert response.json() == {"removed": 1}
 	session = store.get(sid)
 	assert session.attachment_store is not None
-	assert session.attachment_store.read(used) == b"contents"
+	assert session.attachment_store.read(used) == _png()
 	try:
 		session.attachment_store.read(unused)
 	except AttachmentError:
@@ -197,7 +202,8 @@ def test_cleanup_removes_only_unclaimed_attachments(tmp_path):
 
 def test_claim_and_cleanup_are_atomic(tmp_path, monkeypatch):
 	store = AttachmentStore(str(tmp_path / "attachments"))
-	attachment = store.add_bytes("notes.txt", b"contents", "text/plain")
+	data = _png()
+	attachment = store.add_bytes("screen.png", data)
 	claim_started = Event()
 	finish_claim = Event()
 	real_write_private = attachment_module._write_private
@@ -223,7 +229,26 @@ def test_claim_and_cleanup_are_atomic(tmp_path, monkeypatch):
 		claim.result(timeout=2)
 		assert cleanup.result(timeout=2) == 0
 
-	assert store.read(attachment.id) == b"contents"
+	assert store.read(attachment.id) == data
+
+
+def test_attachment_http_rejects_non_images_and_cleans_partial_batch(tmp_path):
+	data_dir = tmp_path / "data"
+	store = SessionStore(str(data_dir))
+	client = TestClient(create_app(store))
+	sid = client.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
+
+	response = client.post(
+		f"/sessions/{sid}/attachments",
+		files=[
+			("files", ("screen.png", _png(), "image/png")),
+			("files", ("notes.txt", b"hello", "text/plain")),
+		],
+	)
+
+	assert response.status_code == 400
+	assert response.json() == {"detail": "notes.txt is not a supported image"}
+	assert list((data_dir / "sessions" / f"{sid}.attachments").iterdir()) == []
 
 
 def test_attachment_http_flow_persists_reference_not_bytes(tmp_path):
@@ -234,9 +259,10 @@ def test_attachment_http_flow_persists_reference_not_bytes(tmp_path):
 	project.mkdir()
 
 	sid = client.post("/sessions", json={"cwd": str(project)}).json()["session_id"]
+	image = _png()
 	uploaded = client.post(
 		f"/sessions/{sid}/attachments",
-		files=[("files", ("notes.txt", b"hello attachment", "text/plain"))],
+		files=[("files", ("screen.png", image, "image/png"))],
 	)
 	assert uploaded.status_code == 200
 	attachment = uploaded.json()["attachments"][0]
@@ -249,8 +275,8 @@ def test_attachment_http_flow_persists_reference_not_bytes(tmp_path):
 	assert response.status_code == 200
 	entries = client.get(f"/sessions/{sid}/entries").json()["entries"]
 	user = next(entry for entry in entries if entry["type"] == "user_message")
-	assert user["content"][1]["name"] == "notes.txt"
-	assert "hello attachment" not in (data_dir / "sessions" / f"{sid}.jsonl").read_text()
+	assert user["content"][1]["name"] == "screen.png"
+	assert base64.b64encode(image).decode() not in (data_dir / "sessions" / f"{sid}.jsonl").read_text()
 
 
 async def test_abort_discards_undelivered_steering_attachments(tmp_path):
@@ -273,7 +299,7 @@ async def test_abort_discards_undelivered_steering_attachments(tmp_path):
 	run = await session.run("start", model=model)
 	await asyncio.wait_for(model.started.wait(), timeout=2)
 	assert session.attachment_store is not None
-	attachment = session.attachment_store.add_bytes("later.txt", b"later", "text/plain")
+	attachment = session.attachment_store.add_bytes("later.png", _png())
 
 	steering = await session.run("use this later", attachment_ids=[attachment.id])
 	assert steering.status == "steered"

@@ -71,7 +71,14 @@
 					@keydown="onKey"
 					@paste="onPaste"
 				/>
-				<input ref="fileInput" type="file" multiple class="hidden" @change="onFilesPicked" />
+				<input
+					ref="fileInput"
+					type="file"
+					multiple
+					accept=".png,.jpg,.jpeg,.gif,.webp,.bmp,image/png,image/jpeg,image/gif,image/webp,image/bmp"
+					class="hidden"
+					@change="onFilesPicked"
+				/>
 				<div v-if="attachments.length" class="flex flex-wrap gap-1.5 px-1">
 					<span
 						v-for="(item, i) in attachments"
@@ -122,8 +129,8 @@
 							<button class="flex w-full items-start gap-2.5 rounded-[10px] px-2.5 py-2 text-left hover:bg-surface-gray-2" @click="openFilePicker">
 								<FeatherIcon name="paperclip" class="mt-0.5 h-3.5 w-3.5 flex-none text-ink-gray-5" />
 								<span class="min-w-0 flex-1">
-									<span class="block text-xs font-medium leading-4 text-ink-gray-9">Attach files</span>
-									<span class="mt-1 block text-2xs leading-4 text-ink-gray-5">Text, code, or images</span>
+									<span class="block text-xs font-medium leading-4 text-ink-gray-9">Attach images</span>
+									<span class="mt-1 block text-2xs leading-4 text-ink-gray-5">PNG, JPEG, GIF, WebP, or BMP</span>
 								</span>
 							</button>
 						</PopMenu>
@@ -256,14 +263,21 @@ const attachments = ref([])
 const submitting = ref(false)
 let attachmentKey = 0
 
-function attachmentKind(file) {
-	return file.type.startsWith("image/") ? "image" : "text"
+const SUPPORTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp", "image/bmp"])
+
+function isSupportedImage(file) {
+	const mimeType = file.type.toLowerCase()
+	return SUPPORTED_IMAGE_TYPES.has(mimeType) || (!mimeType && /\.(png|jpe?g|gif|webp|bmp)$/i.test(file.name))
 }
 
 function addLocalFiles(files) {
 	for (const file of files) {
+		if (!isSupportedImage(file)) {
+			flow.notify("Flow currently supports PNG, JPEG, GIF, WebP, and BMP images only.", "error")
+			continue
+		}
 		if (attachments.value.some((item) => item.file && item.file.name === file.name && item.file.size === file.size)) continue
-		attachments.value.push({ key: `local:${attachmentKey++}`, name: file.name, kind: attachmentKind(file), file })
+		attachments.value.push({ key: `local:${attachmentKey++}`, name: file.name, kind: "image", file })
 	}
 }
 
