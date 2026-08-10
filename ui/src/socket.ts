@@ -1,6 +1,6 @@
 import { getCurrentInstance, inject } from "vue";
 
-interface RealtimeSocket {
+export interface RealtimeSocket {
   emit(event: string, ...args: unknown[]): void;
   on(event: string, handler: (...args: unknown[]) => void): void;
   off(event: string, handler: (...args: unknown[]) => void): void;
@@ -25,9 +25,53 @@ export function getSocketInstance(): RealtimeSocket | undefined {
   if (!socket && import.meta.env?.DEV) {
     console.warn(
       "getSocketInstance: no socket found. Expose one via " +
-        "provide('socket'|'$socket', …) or a $socket global."
+        "provide('socket'|'$socket', …) or a $socket global.",
     );
   }
 
   return socket;
+}
+
+// The server's `doc_unsubscribe` is a bare `socket.leave` (realtime/handlers.js), so one
+// consumer leaving a room silently deafens every other consumer on the same document.
+interface DocRoom {
+  doctype: string;
+  docname: string;
+  holders: number;
+}
+
+const rooms = new Map<string, DocRoom>();
+
+/**
+ * Joins a document's realtime room, and leaves only when the last holder releases it.
+ */
+export function subscribeToDoc(
+  socket: RealtimeSocket | undefined,
+  doctype: string,
+  docname: string,
+): () => void {
+  if (!socket) return () => {};
+
+  const key = `${doctype} ${docname}`;
+  const room = rooms.get(key) ?? { doctype, docname, holders: 0 };
+  if (room.holders === 0) socket.emit("doc_subscribe", doctype, docname);
+  room.holders += 1;
+  rooms.set(key, room);
+
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    room.holders -= 1;
+    if (room.holders > 0) return;
+    rooms.delete(key);
+    socket.emit("doc_unsubscribe", doctype, docname);
+  };
+}
+
+/** Rejoins every held room, for a reconnect that dropped the server's membership. */
+export function resubscribeHeldDocs(socket: RealtimeSocket | undefined) {
+  if (!socket) return;
+  for (const room of rooms.values())
+    socket.emit("doc_subscribe", room.doctype, room.docname);
 }
