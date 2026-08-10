@@ -2456,6 +2456,90 @@ class TestQuery(IntegrationTestCase):
 		# Query should succeed and return results (tuple or list)
 		self.assertTrue(len(result) >= 0, "Query should succeed with proper permissions")
 
+	def test_child_table_user_permissions_are_opt_in(self):
+		from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
+
+		test_user = "test2@example.com"
+		test_user_doc = frappe.get_doc("User", test_user)
+		self.ensure_system_manager(test_user_doc, should_have=True)
+		self.addCleanup(lambda: frappe.set_user("Administrator"))
+
+		target_dt = child_dt = parent_dt = None
+		try:
+			target_dt = new_doctype().insert()
+			child_dt = new_doctype(
+				istable=1,
+				fields=[
+					{
+						"fieldname": "linked_document",
+						"fieldtype": "Link",
+						"options": target_dt.name,
+						"label": "Linked Document",
+					}
+				],
+			).insert()
+			parent_dt = new_doctype(
+				fields=[
+					{
+						"fieldname": "rows",
+						"fieldtype": "Table",
+						"options": child_dt.name,
+						"label": "Rows",
+					}
+				],
+			).insert()
+
+			allowed = frappe.new_doc(target_dt.name).insert()
+			restricted = frappe.new_doc(target_dt.name).insert()
+			frappe.get_doc(
+				doctype=parent_dt.name,
+				rows=[{"linked_document": allowed.name}, {"linked_document": restricted.name}],
+			).insert()
+
+			clear_user_permissions_for_doctype(target_dt.name, test_user)
+			add_user_permission(target_dt.name, allowed.name, test_user, ignore_permissions=True)
+			frappe.set_user(test_user)
+
+			query_args = {
+				"fields": ["linked_document"],
+				"parent_doctype": parent_dt.name,
+				"ignore_permissions": False,
+			}
+			default_query = frappe.qb.get_query(child_dt.name, **query_args)
+			explicit_disabled_query = frappe.qb.get_query(
+				child_dt.name, apply_child_user_permissions=False, **query_args
+			)
+			self.assertEqual(str(default_query), str(explicit_disabled_query))
+			self.assertSetEqual(
+				{row.linked_document for row in default_query.run(as_dict=True)},
+				{allowed.name, restricted.name},
+			)
+
+			permission_aware_query = frappe.qb.get_query(
+				child_dt.name, apply_child_user_permissions=True, **query_args
+			)
+			self.assertListEqual(
+				[row.linked_document for row in permission_aware_query.run(as_dict=True)],
+				[allowed.name],
+			)
+
+			ignored_user_permissions_query = frappe.qb.get_query(
+				child_dt.name,
+				apply_child_user_permissions=True,
+				ignore_user_permissions=True,
+				**query_args,
+			)
+			self.assertSetEqual(
+				{row.linked_document for row in ignored_user_permissions_query.run(as_dict=True)},
+				{allowed.name, restricted.name},
+			)
+		finally:
+			frappe.set_user("Administrator")
+			if target_dt:
+				clear_user_permissions_for_doctype(target_dt.name, test_user)
+			for dt in filter(None, [parent_dt, child_dt, target_dt]):
+				frappe.delete_doc("DocType", dt.name, force=True, ignore_permissions=True)
+
 	def test_child_table_filters_orphaned_rows(self):
 		"""Test that child table queries filter out orphaned rows (rows without valid parent)."""
 		test_user = "test2@example.com"

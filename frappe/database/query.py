@@ -232,6 +232,7 @@ class Engine:
 		wait: bool = True,
 		ignore_permissions: bool = True,
 		ignore_user_permissions: bool = False,
+		apply_child_user_permissions: bool = False,
 		user: str | None = None,
 		parent_doctype: str | None = None,
 		reference_doctype: str | None = None,
@@ -245,6 +246,8 @@ class Engine:
 			This is kept optional to not break existing code that relies on the original query builder behaviour.
 			ignore_user_permissions: Ignore user permissions for the query.
 				Useful for link search queries when the link field has `ignore_user_permissions` set.
+			apply_child_user_permissions: Apply user permissions to Link fields on a child DocType
+				when `parent_doctype` is set. Disabled by default to preserve existing query behavior.
 			validate_filters: DEPRECATED. Will be removed in future versions.
 		"""
 
@@ -259,6 +262,7 @@ class Engine:
 		self.reference_doctype = reference_doctype
 		self.apply_permissions = not ignore_permissions
 		self.ignore_user_permissions = ignore_user_permissions
+		self.apply_child_user_permissions = apply_child_user_permissions
 		self.function_aliases = set()
 		self.field_aliases = set()
 		self.db_query_compat = db_query_compat
@@ -1692,6 +1696,11 @@ class Engine:
 			return
 
 		if self.permission_doctype != self.doctype:
+			if self.apply_child_user_permissions:
+				child_user_permissions = self.get_user_permission_conditions(self.doctype, self.table)
+				if child_user_permissions:
+					self.query = self.query.where(Criterion.all(child_user_permissions))
+
 			parent_meta = frappe.get_meta(self.permission_doctype)
 			if parent_meta.issingle:
 				# Child table of single doctype
