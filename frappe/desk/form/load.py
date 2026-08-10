@@ -127,7 +127,7 @@ def get_docinfo(
 			"shared": get_docshares(doc),
 			"views": get_view_logs(doc),
 			"additional_timeline_content": get_additional_timeline_content(doc.doctype, doc.name),
-			"milestones": get_milestones(doc.doctype, doc.name),
+			"milestones": get_milestones(doc.doctype, doc.name, limit=0),
 			"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
 			"tags": get_tags(doc.doctype, doc.name),
 			"document_email": get_document_email(doc.doctype, doc.name),
