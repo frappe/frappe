@@ -45,6 +45,10 @@
       "import": "./src/components/Fields/index.ts",
       "types": "./src/components/Fields/index.ts"
     },
+    "./experimental": {
+      "import": "./src/experimental/index.ts",
+      "types": "./src/experimental/index.ts"
+    },
     "./utils": {
       "import": "./src/utils/index.ts",
       "types": "./src/utils/index.ts"
@@ -67,6 +71,7 @@
   "author": "Frappe Technologies Pvt. Ltd.",
   "license": "MIT",
   "dependencies": {
+    "@vueuse/core": "^10.11.1",
     "dompurify": "^3.4.0",
     "cropperjs": "^2.1.1",
     "leaflet": "^1.9.4",
