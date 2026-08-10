@@ -40,7 +40,9 @@ delta is healed by replaying the durable log.
 
 Provider round-trip data (thinking signatures, Codex response items) rides in the
 opaque `provider_state` field on content blocks — never encoded into ids or semantic
-fields.
+fields. User attachments are durable metadata blocks whose bytes live in a private
+session attachment directory rather than bloating JSONL/SSE. Provider adapters resolve
+those bytes at request time; unsupported images downgrade to an explicit text notice.
 
 ## State is derived, never stored
 
