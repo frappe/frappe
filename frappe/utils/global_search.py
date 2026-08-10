@@ -9,6 +9,7 @@ import redis
 
 import frappe
 from frappe.model.base_document import get_controller
+from frappe.model.utils import is_virtual_doctype
 from frappe.utils import cint, strip_html_tags
 from frappe.utils.data import cstr
 from frappe.utils.html_utils import unescape_html
@@ -41,9 +42,9 @@ def get_doctypes_with_global_search(with_child_tables=True):
 
 	def _get():
 		global_search_doctypes = []
-		filters = {}
+		filters = {"is_virtual": 0}
 		if not with_child_tables:
-			filters = {"istable": ["!=", 1], "issingle": ["!=", 1]}
+			filters.update({"istable": ["!=", 1], "issingle": ["!=", 1]})
 		for d in frappe.get_all("DocType", fields=["name", "module"], filters=filters):
 			meta = frappe.get_meta(d.name)
 			if len(meta.get_global_search_fields()) > 0:
@@ -82,6 +83,9 @@ def rebuild_for_doctype(doctype):
 		return filters
 
 	meta = frappe.get_meta(doctype)
+
+	if meta.is_virtual:
+		return
 
 	if cint(meta.issingle) == 1:
 		return
@@ -249,6 +253,9 @@ def update_global_search(doc):
 	if frappe.local.conf.get("disable_global_search"):
 		return
 
+	if doc.meta.is_virtual:
+		return
+
 	if doc.docstatus > 1 or (doc.meta.has_field("enabled") and not doc.get("enabled")) or doc.get("disabled"):
 		return
 
@@ -402,8 +409,23 @@ def _get_deduped_search_item_values(items):
 	return values_dict.values()
 
 
+def _is_virtual_doctype(doctype: str) -> bool:
+	# Safe wrapper around is_virtual_doctype for the pseudo-doctype case
+	# (e.g. "Static Web Page" from web-page indexing): those identifiers aren't
+	# real DocTypes, so get_meta() raises DoesNotExistError. Treat unknown
+	# identifiers as non-virtual so web-page indexing keeps working.
+	try:
+		return bool(is_virtual_doctype(doctype))
+	except frappe.DoesNotExistError:
+		return False
+
+
 def sync_values(values: list):
 	from pypika.terms import Values
+
+	values = [v for v in values if not _is_virtual_doctype(v[0])]
+	if not values:
+		return
 
 	GlobalSearch = frappe.qb.Table("__global_search")
 	conflict_fields = ["content", "published", "title", "route"]
@@ -439,6 +461,9 @@ def sync_value(value: dict):
 	Sync a given document to global search
 	:param value: dict of { doctype, name, content, published, title, route }
 	"""
+
+	if _is_virtual_doctype(value["doctype"]):
+		return
 
 	frappe.db.multisql(
 		{

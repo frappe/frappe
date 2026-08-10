@@ -24,16 +24,23 @@ class GlobalSearchSettings(Document):
 	# end: auto-generated types
 
 	def validate(self):
-		dts, core_dts, repeated_dts = [], [], []
+		dts, core_dts, virtual_dts, repeated_dts = [], [], [], []
 
 		for dt in self.allowed_in_global_search:
 			if dt.document_type in dts:
 				repeated_dts.append(dt.document_type)
 
-			if frappe.get_meta(dt.document_type).module == "Core":
+			meta = frappe.get_meta(dt.document_type)
+			if meta.module == "Core":
 				core_dts.append(dt.document_type)
+			if meta.is_virtual:
+				virtual_dts.append(dt.document_type)
 
 			dts.append(dt.document_type)
+
+		if virtual_dts:
+			virtual_dts = ", ".join(frappe.bold(dt) for dt in virtual_dts)
+			frappe.throw(_("Virtual DocTypes {0} cannot be searched in Global Search.").format(virtual_dts))
 
 		if core_dts:
 			core_dts = ", ".join(frappe.bold(dt) for dt in core_dts)
@@ -77,7 +84,7 @@ def update_global_search_doctypes():
 			if search_doctypes.get(domain):
 				global_search_doctypes.extend(search_doctypes.get(domain))
 
-	doctype_list = {dt.name for dt in frappe.get_all("DocType")}
+	doctype_list = {dt.name for dt in frappe.get_all("DocType", filters={"is_virtual": 0})}
 	allowed_in_global_search = []
 
 	for dt in global_search_doctypes:
@@ -130,6 +137,11 @@ def get_global_search_field_options(doctype: str | None = None):
 	frappe.only_for("System Manager")
 
 	meta = frappe.get_meta(doctype)
+
+	if meta.is_virtual:
+		frappe.throw(
+			_("{0} is a virtual doctype and does not support global search indexing.").format(_(doctype))
+		)
 
 	options = [
 		{
