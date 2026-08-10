@@ -15,6 +15,9 @@
 			<p v-if="typst_blockers.length" class="pfb-renderer-hint">
 				{{ __("Typst unavailable:") }} {{ typst_blockers.join(", ") }}
 			</p>
+			<p v-else-if="renderer === 'Typst'" class="pfb-renderer-hint">
+				{{ __("Typst is experimental. If a print looks wrong, switch back to Chromium.") }}
+			</p>
 		</div>
 
 		<div class="form-group">
