@@ -267,7 +267,7 @@ def get_email_body_for_2fa(kwargs_dict):
 	"""Get email body for 2fa."""
 	return frappe.render_template(
 		"templates/emails/verification_code.html",
-		{"code": kwargs_dict.get("otp"), "minutes": (frappe.flags.otp_expiry or 180) // 60},
+		{"code": kwargs_dict.get("otp"), "minutes": (frappe.flags.token_expiry or 300) // 60},
 	)
 
 
