@@ -14,6 +14,7 @@ frappe.listview_settings["Print Format"] = {
 		) {
 			return `/desk/print-format-builder/${encodeURIComponent(doc.name)}`;
 		}
+		return `/desk/print-format/${encodeURIComponent(doc.name)}`;
 	},
 
 	primary_action() {
@@ -54,14 +55,16 @@ frappe.listview_settings["Print Format"] = {
 			primary_action_label: __("Create"),
 			primary_action(values) {
 				const for_report = values.print_format_for === "Report";
-				// custom_format is left for the server's before_save — setting it here
-				// would trip the "HTML is required" check before any HTML exists
 				const doc = for_report
 					? {
 							doctype: "Print Format",
 							name: values.print_format_name,
 							print_format_for: "Report",
 							report: values.report,
+							custom_format: 1,
+							html: `<div class="print-format">\n\t<h3>${frappe.utils.escape_html(
+								values.print_format_name
+							)}</h3>\n</div>`,
 					  }
 					: {
 							doctype: "Print Format",
@@ -69,7 +72,7 @@ frappe.listview_settings["Print Format"] = {
 							doc_type: values.doc_type,
 							print_format_builder_beta: 1,
 					  };
-				frappe.db.insert(doc).then((saved) => {
+				return frappe.db.insert(doc).then((saved) => {
 					dialog.hide();
 					if (for_report) {
 						frappe.set_route("Form", "Print Format", saved.name);
