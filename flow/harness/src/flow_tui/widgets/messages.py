@@ -348,7 +348,11 @@ def entry_widgets(
 
 def _render_user(message: UserMessage, *, steered: bool) -> Text:
 	# the tinted background marks a user entry, so a prompt glyph adds nothing
-	text = Text(message.content)
+	body = message.text
+	if message.attachments:
+		labels = " ".join(f"[{item.name}]" for item in message.attachments)
+		body = f"{body}\n{labels}" if body else labels
+	text = Text(body)
 	if steered:
 		text.append("  (steered)", style=STYLE_MUTED)
 	return text

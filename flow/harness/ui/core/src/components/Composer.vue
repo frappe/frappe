@@ -54,7 +54,7 @@
 			>
 				<span class="flex-none text-2xs font-medium text-ink-gray-6">Queued</span>
 				<span class="min-w-0 flex-1 truncate text-xs text-ink-gray-7">{{
-					flow.state.queued.join(" · ")
+					flow.state.queued.map((item) => item.label).join(" · ")
 				}}</span>
 			</div>
 
@@ -65,17 +65,46 @@
 					ref="box"
 					v-model="text"
 					rows="1"
+					:disabled="submitting"
 					placeholder="Ask flow…"
 					class="max-h-40 min-h-[62px] w-full resize-none border-0 bg-transparent px-1.5 pt-1 text-base leading-relaxed text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 					@keydown="onKey"
+					@paste="onPaste"
 				/>
+				<input ref="fileInput" type="file" multiple class="hidden" @change="onFilesPicked" />
+				<div v-if="attachments.length" class="flex flex-wrap gap-1.5 px-1">
+					<span
+						v-for="(item, i) in attachments"
+						:key="item.key"
+						class="flex max-w-[260px] items-center gap-2 rounded-lg border border-outline-gray-2 bg-surface-gray-1 py-1 pl-1 pr-1"
+					>
+						<span
+							class="grid h-6 w-6 flex-none place-items-center rounded-md border border-outline-gray-1 bg-surface-white text-ink-gray-6"
+						>
+							<FeatherIcon :name="item.kind === 'image' ? 'image' : 'file-text'" class="h-3.5 w-3.5" />
+						</span>
+						<span class="min-w-0 flex-1 truncate text-xs font-medium text-ink-gray-8">{{ item.name }}</span>
+						<button
+							class="grid h-5 w-5 flex-none place-items-center rounded-md text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
+							title="Remove attachment"
+							:disabled="submitting"
+							@click="removeAttachment(i)"
+						>
+							<FeatherIcon name="x" class="h-3.5 w-3.5" />
+						</button>
+					</span>
+				</div>
+				<div v-if="visionWarning" class="px-1 text-2xs text-ink-amber-3">
+					The selected model cannot view images. Switch to a vision-capable model before sending.
+				</div>
 				<div class="flex min-w-0 items-center gap-1">
-					<!-- add-context menu: project folder now, file uploads later -->
+					<!-- add-context menu -->
 					<span class="relative flex-none">
 						<button
 							class="grid h-7 w-7 place-items-center rounded-md text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9"
 							:class="plusMenu ? 'bg-surface-gray-2' : ''"
 							title="Add context"
+							:disabled="submitting"
 							@click="plusMenu = !plusMenu"
 						>
 							<FeatherIcon name="plus" class="h-4 w-4" />
@@ -90,13 +119,13 @@
 									</span>
 								</span>
 							</button>
-							<div class="flex w-full cursor-not-allowed items-start gap-2.5 rounded-[10px] px-2.5 py-2 text-left opacity-50">
+							<button class="flex w-full items-start gap-2.5 rounded-[10px] px-2.5 py-2 text-left hover:bg-surface-gray-2" @click="openFilePicker">
 								<FeatherIcon name="paperclip" class="mt-0.5 h-3.5 w-3.5 flex-none text-ink-gray-5" />
 								<span class="min-w-0 flex-1">
 									<span class="block text-xs font-medium leading-4 text-ink-gray-9">Attach files</span>
-									<span class="mt-1 block text-2xs leading-4 text-ink-gray-5">Coming soon</span>
+									<span class="mt-1 block text-2xs leading-4 text-ink-gray-5">Text, code, or images</span>
 								</span>
-							</div>
+							</button>
 						</PopMenu>
 					</span>
 
@@ -222,6 +251,48 @@ const flow = inject("flow")
 
 const text = ref("")
 const box = ref(null)
+const fileInput = ref(null)
+const attachments = ref([])
+const submitting = ref(false)
+let attachmentKey = 0
+
+function attachmentKind(file) {
+	return file.type.startsWith("image/") ? "image" : "text"
+}
+
+function addLocalFiles(files) {
+	for (const file of files) {
+		if (attachments.value.some((item) => item.file && item.file.name === file.name && item.file.size === file.size)) continue
+		attachments.value.push({ key: `local:${attachmentKey++}`, name: file.name, kind: attachmentKind(file), file })
+	}
+}
+
+function openFilePicker() {
+	plusMenu.value = false
+	fileInput.value?.click()
+}
+
+function onFilesPicked(event) {
+	addLocalFiles([...event.target.files])
+	event.target.value = ""
+	// the file dialog moved focus off the textarea; typing should resume immediately
+	nextTick(() => box.value?.focus())
+}
+
+function onPaste(event) {
+	const images = [...(event.clipboardData?.items ?? [])]
+		.filter((item) => item.kind === "file" && item.type.startsWith("image/"))
+		.map((item) => item.getAsFile())
+		.filter(Boolean)
+	if (!images.length) return
+	event.preventDefault()
+	addLocalFiles(images)
+}
+
+function removeAttachment(index) {
+	attachments.value.splice(index, 1)
+	nextTick(() => box.value?.focus())
+}
 // the palette is one stacked surface: commands is the root page, models,
 // thinking and providers are sub-pages whose back arrow returns to it
 const paletteView = ref(null) // null | "commands" | "models" | "thinking" | "providers"
@@ -255,7 +326,10 @@ onMounted(() => {
 onBeforeUnmount(() => window.removeEventListener("keydown", onWindowKey))
 watch(
 	() => flow.state.sessionId,
-	() => nextTick(() => box.value?.focus()),
+	() => {
+		if (!submitting.value) attachments.value = []
+		nextTick(() => box.value?.focus())
+	},
 )
 
 const modeMenu = ref(false)
@@ -298,7 +372,9 @@ const COMMANDS = [
 ]
 
 const running = computed(() => flow.state.conversation.running)
-const canSend = computed(() => text.value.trim().length > 0)
+const canSend = computed(
+	() => !submitting.value && (text.value.trim().length > 0 || attachments.value.length > 0),
+)
 
 // inside a session the button reflects that session's live mode; outside, the
 // preference new chats will be created with
@@ -318,6 +394,13 @@ const modelLabel = computed(() => {
 	return model.split("/").slice(1).join("/") || model
 })
 const effortLabel = computed(() => EFFORT_LABELS[currentEffort.value] ?? "Default")
+const currentImageSupport = computed(() => {
+	if (flow.state.sessionId && flow.state.session) return flow.state.session.supports_images
+	return flow.state.models.find((item) => item.name === currentModel.value)?.supports_images
+})
+const visionWarning = computed(
+	() => attachments.value.some((item) => item.kind === "image") && currentImageSupport.value === false,
+)
 
 // the model button fronts these two palettes; /model and /thinking open the same pages
 const MODEL_MENU = computed(() => [
@@ -423,9 +506,10 @@ const {
 	move: moveMenu,
 } = usePaletteNav(menuItems, { onSelect: pick })
 
-function submit() {
+async function submit() {
+	if (submitting.value) return
 	const value = text.value.trim()
-	if (!value) return
+	if (!value && !attachments.value.length) return
 	if (value.startsWith("/")) {
 		const [name, ...rest] = value.slice(1).split(" ")
 		const command = COMMANDS.find((c) => c.name === name)
@@ -435,8 +519,19 @@ function submit() {
 			return
 		}
 	}
+	const selectedAttachments = attachments.value.map((item) => ({ ...item }))
+	submitting.value = true
+	let sent = false
+	try {
+		sent = await flow.send(value, selectedAttachments)
+	} finally {
+		submitting.value = false
+		// re-enabling the disabled textarea does not restore focus on its own
+		nextTick(() => box.value?.focus())
+	}
+	if (!sent) return
 	text.value = ""
-	flow.send(value)
+	attachments.value = []
 }
 
 // rewinds prefill via the store's draft channel (also fed by per-bubble rewind)
@@ -448,7 +543,11 @@ watch(
 	() => flow.state.draft,
 	(draft) => {
 		if (draft == null) return
-		text.value = draft
+		text.value = typeof draft === "string" ? draft : draft.text
+		attachments.value = (typeof draft === "string" ? [] : draft.attachments ?? []).map((item) => ({
+			...item,
+			key: `stored:${item.id}`,
+		}))
 		flow.setDraft(null)
 		nextTick(() => box.value?.focus())
 	},
