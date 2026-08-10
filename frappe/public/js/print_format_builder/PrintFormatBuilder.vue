@@ -83,7 +83,7 @@ import FieldInspector from "./components/inspector/FieldInspector.vue";
 import ContextMenu from "./components/editor/ContextMenu.vue";
 import { getStore } from "./stores";
 import { field_uid } from "./utils";
-import { computed, ref, onMounted, onUnmounted, provide, nextTick } from "vue";
+import { computed, ref, onMounted, onUnmounted, provide, nextTick, watch } from "vue";
 
 const props = defineProps(["print_format_name"]);
 
@@ -499,10 +499,21 @@ function init_doc_picker() {
 	}
 }
 
+watch(
+	() => $store.value.needs_setup.value,
+	(needs_setup) => {
+		if (!needs_setup && !doc_picker_ctrl.value) nextTick(init_doc_picker);
+	}
+);
+
 onMounted(() => {
 	document.addEventListener("keydown", handle_keydown);
 
 	$store.value.fetch().then(() => {
+		if ($store.value.print_format.value?.custom_format) {
+			frappe.set_route("Form", "Print Format", props.print_format_name);
+			return;
+		}
 		if (!$store.value.layout.value) {
 			$store.value.layout.value = $store.value.get_default_layout();
 			$store.value.save_changes();
