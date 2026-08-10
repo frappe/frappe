@@ -256,6 +256,8 @@ class Engine:
 				Useful for link search queries when the link field has `ignore_user_permissions` set.
 			apply_child_user_permissions: Exclude parent documents with restricted values in child
 				Link fields. Disabled by default to preserve existing query behavior.
+				Virtual child tables have no SQL table and are skipped, so `has_permission`
+				can still reject parents restricted only through them.
 			validate_filters: DEPRECATED. Will be removed in future versions.
 		"""
 
@@ -1710,6 +1712,11 @@ class Engine:
 	def get_restricted_user_permission_condition(
 		self, table: Table, fieldname: str, docs: list[str]
 	) -> Criterion:
+		"""Exact negation of `get_user_permission_condition` — keep the two in sync.
+
+		Not replaceable with `Not(...)`: for a NULL field, `field NOT IN docs` is NULL,
+		so the row would never count as restricted. IfNull keeps NULL rows in play.
+		"""
 		field = functions.IfNull(table[fieldname], "")
 		restricted_value_condition = field.notin(docs)
 		if frappe.get_system_settings("apply_strict_user_permissions"):
