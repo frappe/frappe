@@ -1,0 +1,99 @@
+{
+ "actions": [],
+ "creation": "2026-07-20 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "type",
+  "label",
+  "icon",
+  "view",
+  "dt",
+  "column_break_navitem",
+  "url",
+  "new_tab",
+  "hidden",
+  "overrides"
+ ],
+ "fields": [
+  {
+   "default": "view",
+   "description": "What the item points at. Left empty on an overlay row, which carries a flag for a shared row rather than content of its own.",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "view\ndoctype\nlink"
+  },
+  {
+   "description": "Overrides the linked view's label, so a shared view can read shorter on one user's sidebar without being renamed for everyone. Required for a type with no view to borrow from.",
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label"
+  },
+  {
+   "description": "Overrides the linked view's icon.",
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon"
+  },
+  {
+   "fieldname": "view",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "View",
+   "options": "Saved View"
+  },
+  {
+   "description": "The doctype a doctype item opens the list of. The route it leads to is resolved on read rather than stored.",
+   "fieldname": "dt",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "DocType",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "column_break_navitem",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Where a link item points: an absolute URL, a path in this app, or a hash such as #settings/general.",
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "URL"
+  },
+  {
+   "description": "Derived from the URL when the item is created — another origin opens in a new tab, a path or a hash in place — and stored from then on, so a later edit stands.",
+   "fieldname": "new_tab",
+   "fieldtype": "Check",
+   "label": "New Tab"
+  },
+  {
+   "default": "0",
+   "fieldname": "hidden",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Hidden"
+  },
+  {
+   "description": "On a personal overlay, the shared section row this one carries the user's order and hidden flag for. Empty on any section that is not an overlay.",
+   "fieldname": "overrides",
+   "fieldtype": "Data",
+   "label": "Overrides"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-07-27 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Navigation Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
