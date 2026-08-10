@@ -7,7 +7,7 @@
 			<CollapsibleTrigger
 				v-if="showHeader"
 				as="div"
-				class="flex max-w-fit items-center gap-2 text-ink-gray-9"
+				class="section-header flex max-w-fit items-center gap-2 text-ink-gray-9"
 				:class="{ 'cursor-pointer': collapsible, 'px-3 sm:px-5': hasTabs }"
 			>
 				<span class="text-base-medium">{{ section.label }}</span>
@@ -28,7 +28,10 @@
 				force-mount
 				@animationend.self="animating = false"
 			>
-				<div class="flex sm:flex-row flex-col gap-4" :class="{ 'px-3 sm:px-5': hasTabs }">
+				<div
+					class="section-body flex sm:flex-row flex-col gap-4"
+					:class="{ 'px-3 sm:px-5': hasTabs }"
+				>
 					<FormLayoutColumn
 						v-for="(column, index) in section.columns"
 						:key="column.name ?? index"
