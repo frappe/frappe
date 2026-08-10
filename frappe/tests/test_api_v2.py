@@ -118,6 +118,30 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		response = self.get(self.resource("Website Theme", "Standard", "method", "get_apps"))
 		self.assertEqual(response.json["data"][0]["name"], "frappe")
 
+	def test_execute_doc_method_returns_doc(self):
+		# the method may mutate the doc, so clients need the updated copy alongside the result
+		response = self.post(
+			self.resource("User", "Administrator", "method", "add_comment"),
+			{"text": frappe.generate_hash()},
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertGreaterEqual(len(response.json["docs"]), 1)
+		self.assertEqual(response.json["docs"][0]["name"], "Administrator")
+
+	def test_read_doc_retains_null_fields(self):
+		# unset fields must be present as null instead of being dropped from the payload
+		doc = frappe.get_doc({"doctype": self.DOCTYPE, "description": frappe.mock("paragraph")}).insert()
+		self.addCleanup(frappe.delete_doc_if_exists, self.DOCTYPE, doc.name)
+		frappe.db.commit()
+
+		null_fields = [field for field, value in doc.as_dict().items() if value is None]
+		self.assertTrue(null_fields, "expected the fixture to have at least one unset field")
+
+		response = self.get(self.resource(self.DOCTYPE, doc.name), {"sid": self.sid})
+		self.assertEqual(response.status_code, 200)
+		for fieldname in null_fields:
+			self.assertIn(fieldname, response.json["data"])
+
 	def test_update_document(self):
 		generated_desc = frappe.mock("paragraph")
 		data = {"description": generated_desc, "sid": self.sid}
