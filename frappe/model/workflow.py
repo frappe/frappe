@@ -329,7 +329,7 @@ def print_workflow_log(messages, title, doctype, indicator):
 
 
 @frappe.whitelist()
-def get_common_transition_actions(docs: str | list[dict[str, Any]], doctype: str):
+def get_common_transition_actions(docs: "str | list[dict[str, Any] | Document]", doctype: str):
 	common_actions = []
 	if isinstance(docs, str):
 		docs = json.loads(docs)

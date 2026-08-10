@@ -533,7 +533,7 @@ def make_auto_repeat(
 	docname: str | int,
 	frequency: str = "Daily",
 	start_date: str | datetime | None = None,
-	end_date: str | datetime | None = None
+	end_date: str | datetime | None = None,
 ):
 	if not start_date:
 		start_date = getdate(today())
