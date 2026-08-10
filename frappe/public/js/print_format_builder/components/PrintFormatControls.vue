@@ -447,7 +447,7 @@ const draggable_blocks = computed(() => [
 					typst: "",
 					custom: 1,
 					icon: "code",
-					desc: __("Raw Typst markup — renders only through the Typst renderer"),
+					desc: __("Raw Typst markup"),
 				},
 		  ]
 		: [
