@@ -39,13 +39,29 @@
 						v-html="frappe.utils.icon('chevron-right', 'xs')"
 					></div>
 				</button>
+				<button class="pfb-setup-option" @click="$emit('start-html')">
+					<div
+						class="pfb-setup-option-icon"
+						v-html="frappe.utils.icon('code', 'md')"
+					></div>
+					<div class="pfb-setup-option-body">
+						<div class="pfb-setup-option-label">{{ __("Write HTML") }}</div>
+						<div class="pfb-setup-option-desc">
+							{{ __("Full control with HTML and Jinja, edited on the form.") }}
+						</div>
+					</div>
+					<div
+						class="pfb-setup-option-arrow"
+						v-html="frappe.utils.icon('chevron-right', 'xs')"
+					></div>
+				</button>
 			</div>
 		</div>
 	</div>
 </template>
 
 <script setup>
-defineEmits(["start-default", "start-blank"]);
+defineEmits(["start-default", "start-blank", "start-html"]);
 </script>
 
 <style scoped>

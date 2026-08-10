@@ -12,6 +12,22 @@ frappe.ui.form.on("Print Format", "onload", function (frm) {
 });
 
 frappe.ui.form.on("Print Format", {
+	before_save: function (frm) {
+		frm._created_this_save = frm.is_new();
+	},
+	after_save: function (frm) {
+		// A brand-new builder format has nothing to do on the form — take the
+		// user straight to the builder. Custom/Report formats stay here.
+		if (
+			frm._created_this_save &&
+			frm.doc.print_format_builder_beta &&
+			!frm.doc.custom_format &&
+			frm.doc.print_format_for !== "Report"
+		) {
+			frappe.set_route("print-format-builder", frm.doc.name);
+		}
+		frm._created_this_save = false;
+	},
 	refresh: function (frm) {
 		frm.toggle_enable(["html", "doc_type", "module"], false);
 		if (frappe.session.user === "Administrator" || frm.doc.standard === "No") {
