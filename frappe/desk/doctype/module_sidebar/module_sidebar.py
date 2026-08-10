@@ -45,6 +45,12 @@ BOOT_DEDUPE_FIELDS = ("type", "label", "link_type", "link_to")
 # `source_workspace`. Rows are copied field by field between them, never re-parented.
 WORKSPACE_ITEM_DOCTYPE = "Workspace Sidebar Item"
 
+# Writes that are the system placing app content on a site rather than a person authoring it.
+# A `Module Sidebar` lives in an app's JSON and reaches a site by one of these routes, so each
+# has to keep working with developer mode off -- otherwise installing or updating an app that
+# ships a sidebar would fail on every customer site.
+SYSTEM_WRITE_FLAGS = ("in_import", "in_fixtures", "in_migrate", "in_install", "in_patch")
+
 
 class ModuleSidebar(Document, DeskViews):
 	_DOCTYPE_NAME = "Module Sidebar"
@@ -70,6 +76,8 @@ class ModuleSidebar(Document, DeskViews):
 	# end: auto-generated types
 
 	def validate(self):
+		self.validate_app_content()
+
 		if not self.title:
 			self.title = self.module
 
@@ -77,6 +85,37 @@ class ModuleSidebar(Document, DeskViews):
 		self.validate_home_workspace()
 		assign_keys(self.items)
 		self.validate_unique_keys()
+
+	def validate_app_content(self):
+		"""A `Module Sidebar` is app content, and only developer mode authors app content.
+
+		The invariant this buys is what makes app updates safe: *on a non-developer-mode site
+		every sidebar document arrived by import*, so an app overwriting its own sidebar costs
+		the site nothing. A site that wants a different sidebar says so where site intent
+		already lives -- `Module Sidebar Customization`, at the site-wide layer or the user's
+		own -- and that path is untouched by this gate.
+
+		Developer mode is the whole gate; there is no role check, so any developer on a
+		developer-mode site may author one. Who may reach the doctype at all is the doctype's
+		own permissions, where `Desk User` holds `read` and nothing more.
+
+		Deleting is deliberately not gated here: removing a document cannot put site intent
+		into app content, and the paths that delete one -- a module going away, orphan removal
+		-- have to keep working on a customer site.
+		"""
+		if frappe.conf.developer_mode:
+			return
+
+		if any(frappe.flags.get(flag) for flag in SYSTEM_WRITE_FLAGS):
+			return
+
+		frappe.throw(
+			_(
+				"{0} belongs to its app and can only be edited in developer mode. "
+				"Customize the sidebar instead to change it for this site."
+			).format(frappe.bold(self.module or self.name)),
+			title=_("Not Editable"),
+		)
 
 	def validate_standard(self):
 		"""`standard` means "backed by a JSON file in an app", and only developer mode writes

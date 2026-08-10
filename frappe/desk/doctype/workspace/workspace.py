@@ -509,11 +509,16 @@ def first_module_of_app(app: str | None) -> str | None:
 
 
 def add_to_module_sidebar(workspace):
-	"""Give a new workspace a way in, from its module's sidebar document.
+	"""Give a new workspace a way in, from its module's sidebar.
 
 	`after_insert` already makes it the module's home page when the module has none. When the
 	module does have one, the workspace still needs a link, or it would exist with nothing
 	pointing at it.
+
+	The link goes in the site's customization layer, never in the sidebar document. The
+	document is app content -- on a non-developer-mode site nothing may write to it at all --
+	and a workspace somebody created here is site intent. Writing it into the base is what
+	would make the base unsafe for an app to overwrite on update.
 
 	Only reaches modules that *have* a document, which is now the minority: for the rest the
 	base is computed, and a public workspace turns up in it on its own because
@@ -521,17 +526,21 @@ def add_to_module_sidebar(workspace):
 	used to come from -- D3 replaces that with a derived one, so until then a private page in a
 	document-less module has no sidebar entry.
 	"""
+	from frappe.desk.doctype.module_sidebar_customization.module_sidebar_customization import (
+		add_site_sidebar_item,
+	)
+
 	if not workspace.module or not frappe.db.exists("Module Sidebar", workspace.module):
 		return
 
-	sidebar = frappe.get_doc("Module Sidebar", workspace.module)
+	sidebar = frappe.get_cached_doc("Module Sidebar", workspace.module)
 	if sidebar.home_workspace == workspace.name:
 		return
 	if any(item.link_type == "Workspace" and item.link_to == workspace.name for item in sidebar.items):
 		return
 
-	sidebar.append(
-		"items",
+	add_site_sidebar_item(
+		workspace.module,
 		{
 			"type": "Link",
 			"label": workspace.title,
@@ -540,7 +549,6 @@ def add_to_module_sidebar(workspace):
 			"icon": workspace.icon,
 		},
 	)
-	sidebar.save(ignore_permissions=True)
 
 
 @frappe.whitelist()

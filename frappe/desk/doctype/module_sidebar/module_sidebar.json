@@ -105,7 +105,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-04 11:00:00.000000",
+ "modified": "2026-08-10 21:09:20.203277",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Module Sidebar",
@@ -125,16 +125,8 @@
    "write": 1
   },
   {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
    "read": 1,
-   "report": 1,
-   "role": "Desk User",
-   "share": 1,
-   "write": 1
+   "role": "Desk User"
   }
  ],
  "row_format": "Dynamic",

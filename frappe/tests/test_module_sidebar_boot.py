@@ -8,7 +8,11 @@ from frappe.boot import (
 	get_navigable_modules,
 	get_sidebar_bases,
 )
-from frappe.desk.doctype.module_sidebar.test_module_sidebar import make_report, sidebarless_module
+from frappe.desk.doctype.module_sidebar.test_module_sidebar import (
+	make_report,
+	sidebarless_module,
+	system_write,
+)
 from frappe.tests import IntegrationTestCase
 from frappe.utils.modules import get_visible_modules
 
@@ -67,7 +71,10 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 			make_report(module, "Test Surviving Report")
 			shipped = frappe.get_doc({"doctype": "Module Sidebar", "module": module})
 			shipped.append("items", {"type": "Link", "link_type": "DocType", "link_to": "ToDo"})
-			shipped.insert(ignore_permissions=True)
+			# `system_write`, here and below: a sidebar document is app content, so the way one
+			# reaches a site is the app's import -- which is exactly what these tests stage
+			with system_write():
+				shipped.insert(ignore_permissions=True)
 
 			before = get_module_sidebars()[module]
 			self.assertEqual([item["link_to"] for item in before["items"]], ["ToDo"])
@@ -84,7 +91,8 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 			make_report(module, "Test Uninvited Report")
 			shipped = frappe.get_doc({"doctype": "Module Sidebar", "module": module, "title": "Shipped"})
 			shipped.append("items", {"type": "Link", "link_type": "DocType", "link_to": "ToDo"})
-			shipped.insert(ignore_permissions=True)
+			with system_write():
+				shipped.insert(ignore_permissions=True)
 
 			sidebar = get_module_sidebars()[module]
 
@@ -97,7 +105,10 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 		missing document."""
 		with sidebarless_module("Test Empty Document Module") as module:
 			make_report(module, "Test Filled In Report")
-			frappe.get_doc({"doctype": "Module Sidebar", "module": module}).insert(ignore_permissions=True)
+			with system_write():
+				frappe.get_doc({"doctype": "Module Sidebar", "module": module}).insert(
+					ignore_permissions=True
+				)
 
 			sidebar = get_module_sidebars()[module]
 
@@ -108,9 +119,10 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 		content, so a stub someone created to name it keeps the name and gains contents."""
 		with sidebarless_module("Test Stub Document Module") as module:
 			make_report(module, "Test Stub Report")
-			frappe.get_doc(
-				{"doctype": "Module Sidebar", "module": module, "title": "Stub", "header_icon": "box"}
-			).insert(ignore_permissions=True)
+			with system_write():
+				frappe.get_doc(
+					{"doctype": "Module Sidebar", "module": module, "title": "Stub", "header_icon": "box"}
+				).insert(ignore_permissions=True)
 
 			sidebar = get_module_sidebars()[module]
 
@@ -189,7 +201,8 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 		original = [i.as_dict() for i in doc.items]
 		doc.set("items", [])
 		doc.append("items", {"type": "Section Break", "label": "Only a section"})
-		doc.save(ignore_permissions=True)
+		with system_write():
+			doc.save(ignore_permissions=True)
 
 		try:
 			self.assertNotIn(module, get_module_sidebars())
@@ -197,7 +210,8 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 			doc.set("items", [])
 			for item in original:
 				doc.append("items", item)
-			doc.save(ignore_permissions=True)
+			with system_write():
+				doc.save(ignore_permissions=True)
 
 	def test_legacy_keyspaces_are_gone(self):
 		"""One keyspace, exact-case module name. The desk used to reconcile four for the same

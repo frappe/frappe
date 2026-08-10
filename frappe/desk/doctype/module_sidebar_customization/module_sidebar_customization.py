@@ -242,6 +242,36 @@ def reset_site_sidebar(module: str):
 	return _reset(module, None)
 
 
+def add_site_sidebar_item(module: str, item: dict) -> None:
+	"""Append one item to the site-wide layer, leaving the rest of it alone.
+
+	The caller for this is the system noticing that something on the site needs a way in --
+	a workspace someone just created. That is site intent, and the base is app content the site
+	may not write to, so it lands here.
+
+	Not `save_site_sidebar`, which replaces the whole arrangement: right when a person has just
+	arranged it, wrong when one row is being added, because it would drop every preference the
+	site had recorded. Skips an item already present, so the caller need not remember.
+	"""
+	existing = get_customization(module, None)
+	doc = (
+		frappe.get_doc("Module Sidebar Customization", existing.name)
+		if existing
+		else frappe.new_doc("Module Sidebar Customization").update({"module": module, "user": SITE_LAYER})
+	)
+
+	if any(
+		row.link_type == item.get("link_type") and row.link_to == item.get("link_to")
+		for row in doc.added_items
+	):
+		return
+
+	doc.append("added_items", item)
+	# ignore_permissions: creating a workspace is what earned this row, and the arrangement is
+	# re-filtered through permissions on every boot regardless of what is stored here
+	doc.save(ignore_permissions=True)
+
+
 def _save_customization(module, items, added_items, user):
 	# The module, not its sidebar: most modules have no `Module Sidebar` document at all --
 	# their base is computed from their contents -- and those are customizable on exactly the

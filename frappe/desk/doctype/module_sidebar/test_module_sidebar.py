@@ -9,6 +9,7 @@ import frappe
 from frappe.desk.doctype.module_sidebar.module_sidebar import (
 	COMPUTED_BASE_CACHE_KEY,
 	MODULE_CONTENT_DOCTYPES,
+	SYSTEM_WRITE_FLAGS,
 	assign_keys,
 	build_all,
 	build_module_sidebar,
@@ -51,6 +52,22 @@ def developer_mode():
 
 
 @contextmanager
+def system_write(flag="in_import"):
+	"""The system placing app content on a site, rather than a person authoring it.
+
+	Each of these flags is set by a real route -- an import, a fixture sync, a migrate, an app
+	install, a patch -- and each clears the developer-mode gate, since an app that ships a
+	sidebar has to be installable on a customer site.
+	"""
+	original = frappe.flags.get(flag)
+	frappe.flags[flag] = True
+	try:
+		yield
+	finally:
+		frappe.flags[flag] = original
+
+
+@contextmanager
 def sidebarless_module(name, app="frappe"):
 	"""A `Module Def` with no `Module Sidebar` -- the ordinary state, since nothing writes one.
 
@@ -90,12 +107,17 @@ def make_report(module: str, name: str):
 
 
 def make_sidebar(module: str, **kwargs):
-	"""A site-owned `Module Sidebar`, by hand -- nothing writes one on a module's behalf."""
+	"""A `Module Sidebar` authored by hand -- nothing writes one on a module's behalf.
+
+	In developer mode because that is the only way one is ever authored: the document is app
+	content, and on a customer site every one of them arrived by import.
+	"""
 	doc = frappe.new_doc("Module Sidebar")
 	doc.module = module
 	doc.update(kwargs)
 	doc.append("items", {"type": "Link", "link_type": "DocType", "link_to": "User", "label": "Users"})
-	return doc.insert(ignore_permissions=True)
+	with developer_mode():
+		return doc.insert(ignore_permissions=True)
 
 
 @contextmanager
@@ -318,11 +340,14 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 	def test_build_is_idempotent(self):
 		self.make_workspace("TSM Only", [self.link("User")])
 
-		build_all()
-		first = frappe.get_doc("Module Sidebar", MODULE)
-		first_items = [(i.key, i.link_to) for i in first.items]
+		# in developer mode because the build writes sidebar documents, which is app content;
+		# its real caller is a patch, where `frappe.flags.in_patch` clears the same gate
+		with developer_mode():
+			build_all()
+			first = frappe.get_doc("Module Sidebar", MODULE)
+			first_items = [(i.key, i.link_to) for i in first.items]
 
-		build_all()
+			build_all()
 		second = frappe.get_doc("Module Sidebar", MODULE)
 
 		self.assertEqual(first.creation, second.creation)
@@ -383,7 +408,8 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 			"TSM Export",
 			[self.link("User"), self.link("Role"), {"type": "Section Break", "label": "More"}],
 		)
-		build_all()
+		with developer_mode():
+			build_all()
 
 		doc = frappe.get_doc("Module Sidebar", MODULE)
 		# only a standard row exports; the merge deliberately produces standard=0
@@ -419,7 +445,8 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 
 		self.make_workspace("TSM Only", [self.link("User")])
 		before = frappe.db.count("Workspace Sidebar")
-		build_all()
+		with developer_mode():
+			build_all()
 		self.assertEqual(before, frappe.db.count("Workspace Sidebar"))
 
 
@@ -525,6 +552,183 @@ class TestModuleSidebarStandard(IntegrationTestCase):
 			self.assertEqual(doc.modified, modified)
 
 
+APP_CONTENT_MODULE = "Test App Content Sidebar Module"
+
+
+class TestModuleSidebarIsAppContent(IntegrationTestCase):
+	"""A `Module Sidebar` belongs to an app, not to the site holding it.
+
+	Only developer mode writes one, and the invariant that buys is what makes app updates safe:
+	*on a non-developer-mode site every sidebar document arrived by import*, so overwriting one
+	on an app update costs the site nothing. Site intent has nowhere to hide in the document
+	because it cannot get in.
+
+	It goes where it already went instead -- `Module Sidebar Customization`, at the site-wide
+	layer or the user's own -- which is what closes "two ways to author the same sidebar with no
+	stated boundary".
+	"""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.module = self.enterContext(sidebarless_module(APP_CONTENT_MODULE))
+
+	def new_sidebar(self):
+		doc = frappe.new_doc("Module Sidebar")
+		doc.module = self.module
+		doc.append("items", {"type": "Link", "link_type": "DocType", "link_to": "ToDo"})
+		return doc
+
+	def make_workspace(self, title):
+		doc = frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": title,
+				"label": title,
+				"module": self.module,
+				"public": 1,
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Workspace", doc.name, force=True, ignore_missing=True)
+		return doc
+
+	def roleless_user(self):
+		"""Somebody the old `Workspace Manager` gate would have turned away.
+
+		Made here rather than picked out of the test records: the shared ones carry whatever
+		roles other suites needed, and this test's whole claim is about holding none.
+		"""
+		email = "test-sidebar-nobody@example.com"
+		if not frappe.db.exists("User", email):
+			frappe.get_doc({"doctype": "User", "email": email, "first_name": "Nobody"}).insert(
+				ignore_permissions=True
+			)
+		return email
+
+	def test_a_desk_user_may_only_read_a_sidebar(self):
+		"""An ordinary desk user reads the sidebar the app shipped and writes their own delta
+		instead. Their create/write/delete on this doctype was revoked to `read`."""
+		perms = {perm.role: perm for perm in frappe.get_meta("Module Sidebar").permissions}
+		desk_user = perms.get("Desk User")
+
+		self.assertIsNotNone(desk_user, "Desk User must still be able to read a sidebar")
+		self.assertTrue(desk_user.read)
+		self.assertFalse(desk_user.create)
+		self.assertFalse(desk_user.write)
+		self.assertFalse(desk_user.delete)
+
+	def test_a_customer_site_cannot_write_a_sidebar(self):
+		"""Not even as Administrator, and not with permissions ignored: the gate is developer
+		mode, not who is asking. This is the invariant stated as a test."""
+		with no_developer_mode(), self.assertRaises(frappe.ValidationError):
+			self.new_sidebar().insert(ignore_permissions=True)
+
+		self.assertFalse(frappe.db.exists("Module Sidebar", {"module": self.module}))
+
+	def test_a_system_manager_is_no_more_privileged_than_anyone_else(self):
+		"""'Regardless of role' includes the roles that can do everything else on a site."""
+		self.enterContext(self.set_user("test@example.com"))
+		self.assertIn("System Manager", frappe.get_roles())
+
+		with no_developer_mode(), self.assertRaises(frappe.ValidationError):
+			self.new_sidebar().insert(ignore_permissions=True)
+
+	def test_editing_an_imported_sidebar_is_refused_too(self):
+		"""The gate is on writing, not only on creating. A sidebar that arrived by import stays
+		as the app wrote it, which is the half of the invariant app updates actually rest on."""
+		with system_write():
+			imported = self.new_sidebar().insert(ignore_permissions=True)
+
+		imported.title = "Edited by the site"
+		with no_developer_mode(), self.assertRaises(frappe.ValidationError):
+			imported.save(ignore_permissions=True)
+
+		self.assertEqual(frappe.db.get_value("Module Sidebar", imported.name, "title"), self.module)
+
+	def test_developer_mode_needs_no_role(self):
+		"""The same call the customer site refuses, with developer mode on and nothing else
+		different -- made by a user holding no roles at all, because developer mode is the whole
+		gate and there is no role check behind it."""
+		self.enterContext(self.set_user(self.roleless_user()))
+		self.assertNotIn("Workspace Manager", frappe.get_roles())
+
+		with developer_mode():
+			doc = self.new_sidebar().insert(ignore_permissions=True)
+
+		self.assertTrue(frappe.db.exists("Module Sidebar", doc.name))
+
+	def test_an_import_still_writes_on_a_customer_site(self):
+		"""How every sidebar on a customer site gets there. Each of these routes is the system
+		placing app content, so gating them would mean an app that ships a sidebar could not be
+		installed or updated anywhere."""
+		for flag in SYSTEM_WRITE_FLAGS:
+			with self.subTest(flag=flag):
+				with no_developer_mode(), system_write(flag):
+					doc = self.new_sidebar().insert(ignore_permissions=True)
+
+				self.assertTrue(frappe.db.exists("Module Sidebar", doc.name))
+				frappe.delete_doc("Module Sidebar", doc.name, force=True)
+
+	def test_the_site_keeps_saying_what_it_wants(self):
+		"""The point of shutting the document: site intent has somewhere better to go, and it
+		still goes there on a site that can no longer touch the document at all."""
+		from frappe.desk.doctype.module_sidebar_customization.module_sidebar_customization import (
+			get_customization,
+			save_site_sidebar,
+		)
+
+		with no_developer_mode():
+			save_site_sidebar(self.module, items=[{"item_key": "whatever", "hidden": 1}])
+
+		site_layer = get_customization(self.module, None)
+		self.assertIsNotNone(site_layer)
+		self.addCleanup(
+			frappe.delete_doc,
+			"Module Sidebar Customization",
+			site_layer.name,
+			force=True,
+			ignore_permissions=True,
+		)
+		self.assertEqual([(row.item_key, row.hidden) for row in site_layer.items], [("whatever", 1)])
+
+	def test_a_new_workspace_links_itself_through_the_site_layer(self):
+		"""The one runtime path that used to write the document. Creating a workspace in a
+		module that ships a sidebar has to keep working on a customer site -- and the link it
+		earns is site intent, so it belongs in the site layer rather than in app content."""
+		from frappe.desk.doctype.module_sidebar_customization.module_sidebar_customization import (
+			get_customization,
+		)
+		from frappe.desk.doctype.workspace.workspace import add_to_module_sidebar
+
+		with system_write():
+			shipped = self.new_sidebar().insert(ignore_permissions=True)
+
+		# the first one becomes the module's home page and needs no link; the second is the
+		# case this path exists for
+		self.make_workspace("Test App Content Home")
+		workspace = self.make_workspace("Test App Content Workspace")
+
+		with no_developer_mode():
+			add_to_module_sidebar(workspace)
+
+		site_layer = get_customization(self.module, None)
+		self.assertIsNotNone(site_layer, "the link has to land somewhere")
+		self.addCleanup(
+			frappe.delete_doc,
+			"Module Sidebar Customization",
+			site_layer.name,
+			force=True,
+			ignore_permissions=True,
+		)
+		self.assertEqual(
+			[(row.link_type, row.link_to) for row in site_layer.added_items],
+			[("Workspace", workspace.name)],
+		)
+		# and the app's own sidebar is exactly as the app wrote it
+		shipped.reload()
+		self.assertEqual([row.link_to for row in shipped.items], ["ToDo"])
+
+
 class TestNothingWritesASidebar(IntegrationTestCase):
 	"""No path writes a `Module Sidebar` on a module's behalf.
 
@@ -554,7 +758,8 @@ class TestNothingWritesASidebar(IntegrationTestCase):
 		with sidebarless_module("Test Unbuilt Sidebar Module") as module:
 			make_report(module, "Test Unbuilt Report")
 
-			build_all()
+			with developer_mode():
+				build_all()
 
 			self.assertEqual(self.rows_for(module), [])
 
