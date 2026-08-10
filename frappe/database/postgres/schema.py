@@ -118,6 +118,11 @@ class PostgresTable(DBTable):
 
 	def create_indexes(self):
 		create_index_query = ""
+		if self.meta.get("istable", default=0):
+			index_name = get_single_column_index_name(self.table_name, "parent")
+			create_index_query += (
+				f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`parent`);'
+			)
 		for col in self.columns.values():
 			if (
 				col.set_index
