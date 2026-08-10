@@ -24,7 +24,7 @@ DOC_TRIGGER_TYPES = (
 	"Doc Cancelled",
 )
 
-# Fields dispatch needs to match a rule — actions are loaded later by the runner.
+# Fields dispatch needs to match a rule - actions are loaded later by the runner.
 RULE_FIELDS = (
 	"name",
 	"trigger_type",
@@ -92,7 +92,7 @@ def clear_automation_cache(doctype: str | None = None):
 
 def _clear_request_caches():
 	"""Registered providers and derived relationships are cached per request, and both follow
-	from hooks and schema — installing an app or editing a DocType has to invalidate them."""
+	from hooks and schema - installing an app or editing a DocType has to invalidate them."""
 	from frappe.automation_engine.relationships import _providers
 	from frappe.automation_engine.schema_relationships import _ignored, derived_definitions
 

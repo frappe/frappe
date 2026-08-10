@@ -4,8 +4,8 @@
 """Custom event dispatch and durable event-wait subscriptions.
 
 A `WaitForEvent` step parks its run behind an `Automation Event Subscription` row and queues a
-resume row due at the timeout. Whichever side gets there first — an emitted event or the
-timeout sweep — claims the subscription under a row lock, so exactly one of the two outcomes
+resume row due at the timeout. Whichever side gets there first - an emitted event or the
+timeout sweep - claims the subscription under a row lock, so exactly one of the two outcomes
 is ever recorded and the resumed run reads that outcome rather than racing again.
 """
 
@@ -173,7 +173,7 @@ def _claim_subscription(name, payload) -> int:
 		},
 		update_modified=False,
 	)
-	# Bring the resume row forward — it was scheduled for the (now irrelevant) timeout.
+	# Bring the resume row forward - it was scheduled for the (now irrelevant) timeout.
 	frappe.db.set_value(
 		QUEUE, subscription.resume_queue, "run_after", frappe.utils.now(), update_modified=False
 	)
