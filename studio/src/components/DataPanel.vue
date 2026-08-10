@@ -7,7 +7,12 @@
 					:key="resource_name"
 					class="group/item flex flex-row items-center justify-between"
 				>
-					<ObjectBrowser :object="resource" :name="resource_name" class="-ml-[0.9rem] overflow-hidden" />
+					<div class="-ml-[0.9rem] flex items-center gap-1 overflow-hidden">
+						<ObjectBrowser :object="resource" :name="resource_name" />
+						<Tooltip v-if="!resource" text="No matching document found for the current filters">
+							<span class="lucide-alert-circle h-[14px] w-[14px] cursor-pointer text-ink-amber-6" />
+						</Tooltip>
+					</div>
 					<ItemActions
 						class="-mt-1 self-start"
 						:menuOptions="getResourceMenu(resource, resource_name)"
@@ -133,7 +138,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue"
-import { Dialog } from "frappe-ui"
+import { Dialog, Tooltip } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCodeStore from "@/stores/codeStore"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
