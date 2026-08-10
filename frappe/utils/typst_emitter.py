@@ -319,6 +319,37 @@ def q(value) -> str:
 	return json.dumps(text, ensure_ascii=False)
 
 
+#: every character Typst assigns meaning to in markup mode — Typst accepts a
+#: backslash escape for any punctuation, so escaping renders each literally
+_TYPST_SPECIALS = re.compile(r"([\\#$*_\[\]`~'\"@<>/=+-])")
+
+
+class TypstRaw(str):
+	"""A Jinja value that must reach Typst unescaped: {{ x | typst_raw }}."""
+
+
+def typst_escape(value):
+	if isinstance(value, TypstRaw):
+		return str(value)
+	text = _CONTROL_CHARS.sub("", str(value if value is not None else ""))
+	return _TYPST_SPECIALS.sub(r"\\\1", text)
+
+
+def render_typst_template(markup: str, context: dict) -> str:
+	"""Jinja for Typst blocks — every interpolated value is escaped so document
+	content crosses as text, never as Typst code; the markup around it stays raw."""
+	from frappe.utils.jinja import get_jenv
+
+	env = get_jenv().overlay(finalize=typst_escape, autoescape=False)
+	env.filters = env.filters.copy()
+	env.filters["typst_raw"] = TypstRaw
+	return env.from_string(markup).render(context)
+
+
+def has_jinja(markup: str) -> bool:
+	return "{{" in markup or "{%" in markup
+
+
 # exactly the lengths Typst's rgb() accepts — a 5/7-digit string would abort the compile
 COLOR_PATTERN = re.compile(r"^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")
 
@@ -675,7 +706,7 @@ class TypstEmitter:
 	def _field_body(self, section, df) -> str:
 		fieldtype = df.get("fieldtype") or "Data"
 		if fieldtype == "Typst":
-			return (df.get("typst") or "").strip()
+			return self._typst_block(df)
 		if fieldtype == "Divider":
 			return '#line(length: 100%, stroke: 0.6pt + rgb("#d1d5db"))'
 		if fieldtype == "Spacer":
@@ -690,6 +721,18 @@ class TypstEmitter:
 		if fieldtype == "Repeater":
 			return self._repeater(df)
 		return self._data_field(section, df)
+
+	def _typst_block(self, df) -> str:
+		markup = (df.get("typst") or "").strip()
+		if not markup or not has_jinja(markup):
+			return markup
+		try:
+			return render_typst_template(markup, {"doc": self.doc}).strip()
+		except Exception as e:
+			frappe.throw(
+				_("The Typst block could not render its template: {0}").format(str(e)[:300]),
+				title=_("Invalid Typst block"),
+			)
 
 	def _formatted_value(self, df):
 		fieldname = df.get("fieldname")

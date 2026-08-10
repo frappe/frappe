@@ -186,7 +186,8 @@ class PrintFormat(Document):
 		import os
 		import tempfile
 
-		from frappe.utils.typst_emitter import _walk, has_typst_blocks
+		from frappe.utils.jinja import get_jenv
+		from frappe.utils.typst_emitter import _walk, has_jinja, has_typst_blocks, render_typst_template
 
 		if not has_typst_blocks(layout):
 			return
@@ -194,10 +195,27 @@ class PrintFormat(Document):
 			import typst
 		except ImportError:
 			return
+		sample_doc = None
+		sample_loaded = False
 		for where, df in _walk(layout):
 			markup = (df.get("typst") or "").strip() if df.get("fieldtype") == "Typst" else ""
 			if not markup:
 				continue
+			if has_jinja(markup):
+				if not sample_loaded:
+					sample_doc = self._typst_sample_doc()
+					sample_loaded = True
+				try:
+					if sample_doc is None:
+						# no document to render against — check the template alone
+						get_jenv().parse(markup)
+						continue
+					markup = render_typst_template(markup, {"doc": sample_doc})
+				except Exception as e:
+					frappe.throw(
+						_("The Typst block in {0} has a template error: {1}").format(where, str(e)[:300]),
+						title=_("Invalid Typst markup"),
+					)
 			with tempfile.TemporaryDirectory() as tmp:
 				path = os.path.join(tmp, "block.typ")
 				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
@@ -210,6 +228,12 @@ class PrintFormat(Document):
 						_("The Typst block in {0} does not compile: {1}").format(where, str(e)[:300]),
 						title=_("Invalid Typst markup"),
 					)
+
+	def _typst_sample_doc(self):
+		if not self.doc_type:
+			return None
+		name = frappe.db.get_value(self.doc_type, {}, "name", order_by="modified desc")
+		return frappe.get_doc(self.doc_type, name) if name else None
 
 	def validate_conditions(self):
 		"""Reject a layout whose visibility conditions cannot compile.

@@ -25,7 +25,7 @@
 					@input="(e) => (selected_field.typst = e.target.value)"
 				></textarea>
 				<div class="pfb-insp-hint text-muted">
-					{{ __("Write Typst here. Check the PDF preview to see the result.") }}
+					{{ typst_hint }}
 				</div>
 			</template>
 			<template v-else-if="is_image_element">
@@ -232,6 +232,10 @@ let is_text_field = computed(() => !NON_TEXT_FIELDTYPES.has(selected_field.value
 
 let is_html_field = computed(() => selected_field.value?.fieldtype === "HTML");
 let is_typst_field = computed(() => selected_field.value?.fieldtype === "Typst");
+let typst_hint = __(
+	"Write Typst here. Use {0} for values from the document. Check the PDF preview to see the result.",
+	["{{ doc.field_name }}"]
+);
 // a spacer prints a gap and a divider a rule — neither carries a label to align
 let is_spacer = computed(() => selected_field.value?.fieldtype === "Spacer");
 let is_divider = computed(() => selected_field.value?.fieldtype === "Divider");

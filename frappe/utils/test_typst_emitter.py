@@ -204,6 +204,56 @@ class TestTypstGate(IntegrationTestCase):
 		)
 		self.assertRaisesRegex(frappe.ValidationError, "does not compile", pf_doc.insert)
 
+	def test_typst_block_renders_jinja_with_escaped_values(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		layout = layout_with(
+			{
+				"fieldtype": "Typst",
+				"fieldname": "t",
+				"custom": 1,
+				"typst": "Task: {{ doc.description }}\n{{ '#v(9pt)' | typst_raw }}",
+			}
+		)
+		pf_doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Typst Jinja {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"pdf_generator": "Typst",
+				"format_data": json.dumps(layout),
+			}
+		).insert()
+		self.addCleanup(pf_doc.delete, ignore_permissions=True)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "#import *x* [y]"}).insert(
+			ignore_permissions=True
+		)
+		self.addCleanup(todo.delete, ignore_permissions=True)
+		source, _assets = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", todo.name))).emit()
+		# the doc value crosses escaped — never interpretable as Typst code
+		self.assertIn(r"Task: \#import \*x\* \[y\]", source)
+		# typst_raw is the deliberate escape hatch
+		self.assertIn("#v(9pt)", source)
+
+	@unittest.skipUnless(has_typst(), "typst not installed")
+	def test_typst_block_jinja_error_refused_at_save(self):
+		layout = layout_with(
+			{"fieldtype": "Typst", "fieldname": "t", "custom": 1, "typst": "{% if %}broken{% endif %}"}
+		)
+		pf_doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Typst BadJinja {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"pdf_generator": "Typst",
+				"format_data": json.dumps(layout),
+			}
+		)
+		self.assertRaisesRegex(frappe.ValidationError, "template error", pf_doc.insert)
+
 	def test_typst_block_requires_typst_renderer(self):
 		layout = layout_with({"fieldtype": "Typst", "fieldname": "t", "custom": 1, "typst": "#v(1pt)"})
 		pf_doc = frappe.get_doc(

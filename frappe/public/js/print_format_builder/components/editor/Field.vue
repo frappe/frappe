@@ -545,7 +545,14 @@ function edit_html() {
 function edit_typst() {
 	let d = new frappe.ui.Dialog({
 		title: __("Edit Typst"),
-		fields: [{ label: __("Typst Markup"), fieldname: "typst", fieldtype: "Code" }],
+		fields: [
+			{
+				label: __("Typst Markup"),
+				fieldname: "typst",
+				fieldtype: "Code",
+				description: __("Use {0} for values from the document.", ["{{ doc.field_name }}"]),
+			},
+		],
 		primary_action: ({ typst }) => {
 			props.df["typst"] = typst || "";
 			d.hide();
