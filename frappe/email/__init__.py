@@ -56,10 +56,7 @@ def get_system_managers():
 
 @frappe.whitelist()
 def relink(name: str, reference_doctype: str | None = None, reference_name: str | None = None):
-<<<<<<< HEAD
 	frappe.has_permission("Communication", "write", name, throw=True)
-=======
->>>>>>> 9eef4f6dae (fix: force type check in whitelisted methods (#37044))
 	frappe.db.sql(
 		"""update
 			`tabCommunication`
@@ -76,19 +73,10 @@ def relink(name: str, reference_doctype: str | None = None, reference_name: str 
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-<<<<<<< HEAD
-def get_communication_doctype(doctype, txt, searchfield, start, page_len, filters):
-	can_read = frappe.get_user().get_can_read()
-=======
 def get_communication_doctype(
 	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: str | list | dict
 ):
-	user_perms = frappe.utils.user.UserPermissions(frappe.session.user)
-	user_perms.build_permissions()
-	can_read = user_perms.can_read
-	from frappe import _
-	from frappe.modules import load_doctype_module
->>>>>>> 9eef4f6dae (fix: force type check in whitelisted methods (#37044))
+	can_read = frappe.get_user().get_can_read()
 
 	com_doctypes = frappe.db.get_values(
 		"DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0}, pluck="name"

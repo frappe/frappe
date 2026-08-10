@@ -75,12 +75,8 @@ class FormTour(Document):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def reset_tour(tour_name):
-	frappe.only_for("System Manager")
-=======
 def reset_tour(tour_name: str):
->>>>>>> 9eef4f6dae (fix: force type check in whitelisted methods (#37044))
+	frappe.only_for("System Manager")
 	for user in frappe.get_all("User", pluck="name"):
 		onboarding_status = frappe.parse_json(frappe.db.get_value("User", user, "onboarding_status"))
 		onboarding_status.pop(tour_name, None)
