@@ -19,7 +19,7 @@
 				{{ __("Chromium unavailable: this format uses a Typst block.") }}
 			</p>
 			<p v-else-if="renderer === 'Typst'" class="pfb-renderer-hint">
-				{{ __("Typst is experimental. If a print looks wrong, switch back to Chromium.") }}
+				{{ __("Experimental") }}
 			</p>
 		</div>
 
