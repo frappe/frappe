@@ -191,6 +191,23 @@ def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=No
 	return escaped_html
 
 
+def sanitize_svg(svg: str) -> str:
+	"""Sanitize standalone SVG markup for safe inline rendering (e.g. custom icons).
+
+	Stricter than sanitize_html: only SVG elements and attributes survive, so
+	scripts, event handlers, foreignObject and plain HTML are all stripped.
+	"""
+	if not isinstance(svg, str):
+		return svg
+
+	return nh3.clean(
+		svg,
+		tags=svg_elements,
+		attributes={"*": svg_attributes},
+		strip_comments=True,
+	)
+
+
 def is_json(text):
 	try:
 		json.loads(text)
