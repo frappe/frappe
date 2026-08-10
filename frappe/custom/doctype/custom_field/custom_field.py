@@ -251,7 +251,7 @@ class CustomField(Document):
 
 
 @frappe.whitelist()
-def get_fields_label(doctype=None):
+def get_fields_label(doctype: str | None = None):
 	meta = frappe.get_meta(doctype)
 
 	if doctype in core_doctypes_list:
