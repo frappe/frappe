@@ -41,11 +41,7 @@ def get(args=None):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def add(args=None):
-=======
-def add(args: dict[str, Any] | None = None, *, ignore_permissions: bool | int = False):
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
+def add(args: dict[str, Any] | None = None):
 	"""add in someone's to do list
 	args = {
 	        "assign_to": [],
@@ -185,24 +181,16 @@ def close_all_assignments(doctype, name, ignore_permissions=False):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def remove(doctype, name, assign_to):
+def remove(doctype: str, name: str | int, assign_to: str):
 	return _remove(doctype, name, assign_to, ignore_permissions=False)
 
 
 def _remove(doctype, name, assign_to, ignore_permissions=False):
-=======
-def remove(doctype: str, name: str | int, assign_to: str, ignore_permissions: bool | int = False):
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
 	return set_status(doctype, name, "", assign_to, status="Cancelled", ignore_permissions=ignore_permissions)
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def remove_multiple(doctype, names):
-=======
-def remove_multiple(doctype: str, names: str, ignore_permissions: bool | int = False):
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
+def remove_multiple(doctype: str, names: str):
 	docname_list = json.loads(names)
 
 	for name in docname_list:
@@ -216,11 +204,7 @@ def remove_multiple(doctype: str, names: str, ignore_permissions: bool | int = F
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def close(doctype, name, assign_to):
-=======
-def close(doctype: str, name: str, assign_to: str, ignore_permissions: bool | int = False):
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
+def close(doctype: str, name: str, assign_to: str):
 	if assign_to != frappe.session.user:
 		frappe.throw(_("Only the assignee can complete this to-do."))
 

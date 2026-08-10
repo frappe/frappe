@@ -3,12 +3,8 @@
 
 import json
 import typing
-<<<<<<< HEAD
-from urllib.parse import quote
-=======
 from typing import Any
-from urllib.parse import quote_plus
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
+from urllib.parse import quote
 
 import frappe
 import frappe.defaults

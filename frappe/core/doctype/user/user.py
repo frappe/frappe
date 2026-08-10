@@ -3,12 +3,8 @@
 
 from collections.abc import Iterable
 from datetime import timedelta
-<<<<<<< HEAD
 from functools import cached_property, lru_cache
-=======
-from functools import cached_property
 from typing import Any
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
 
 import frappe
 import frappe.defaults
@@ -1028,12 +1024,9 @@ def has_email_account(email: str):
 
 @frappe.whitelist(allow_guest=False)
 def get_email_awaiting(user: str):
-<<<<<<< HEAD
 	if user != frappe.session.user:
 		frappe.has_permission("User", "read", doc=user, throw=True)
 
-=======
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
 	return frappe.get_all(
 		"User Email",
 		fields=["email_account", "email_id"],
