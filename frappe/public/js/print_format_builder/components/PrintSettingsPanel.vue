@@ -7,13 +7,16 @@
 				:value="renderer"
 				@change="set_renderer($event.target.value)"
 			>
-				<option value="chrome">{{ __("Chromium") }}</option>
+				<option value="chrome" :disabled="has_typst_block">{{ __("Chromium") }}</option>
 				<option value="Typst" :disabled="typst_blockers.length > 0">
 					{{ __("Typst (fast)") }}
 				</option>
 			</select>
 			<p v-if="typst_blockers.length" class="pfb-renderer-hint">
 				{{ __("Typst unavailable:") }} {{ typst_blockers.join(", ") }}
+			</p>
+			<p v-else-if="has_typst_block" class="pfb-renderer-hint">
+				{{ __("Chromium unavailable: this format uses a Typst block.") }}
 			</p>
 			<p v-else-if="renderer === 'Typst'" class="pfb-renderer-hint">
 				{{ __("Typst is experimental. If a print looks wrong, switch back to Chromium.") }}
@@ -98,19 +101,38 @@ let typst_blockers = computed(() =>
 let renderer = computed(() =>
 	print_format.value?.pdf_generator === "Typst" ? "Typst" : "chrome"
 );
+let has_typst_block = computed(() => {
+	const lv = store.layout.value;
+	const zones = [lv?.header, lv?.footer, ...(lv?.sections || [])];
+	return zones.some(
+		(zone) =>
+			zone &&
+			(zone.columns || []).some((col) =>
+				(col?.fields || []).some((df) => df && !df.remove && df.fieldtype === "Typst")
+			)
+	);
+});
 function set_renderer(value) {
+	if (value !== "Typst" && has_typst_block.value) return;
 	print_format.value.pdf_generator = value === "Typst" ? "Typst" : "chrome";
 }
 // a blocker added while Typst is selected drops the format back to Chromium,
-// mirroring the server's save-time refusal instead of failing later
+// mirroring the server's save-time refusal instead of failing later — unless a
+// Typst block pins the format to Typst, where the blocker itself must go
 watch(typst_blockers, (blockers) => {
-	if (blockers.length && print_format.value?.pdf_generator === "Typst") {
-		print_format.value.pdf_generator = "chrome";
+	if (!blockers.length || print_format.value?.pdf_generator !== "Typst") return;
+	if (has_typst_block.value) {
 		frappe.show_alert({
-			message: __("Switched back to Chromium: {0}", [blockers.join(", ")]),
+			message: __("This can't be saved with a Typst block: {0}", [blockers.join(", ")]),
 			indicator: "orange",
 		});
+		return;
 	}
+	print_format.value.pdf_generator = "chrome";
+	frappe.show_alert({
+		message: __("Switched back to Chromium: {0}", [blockers.join(", ")]),
+		indicator: "orange",
+	});
 });
 let font_options = computed(() => [
 	{ label: __("Default"), value: "" },

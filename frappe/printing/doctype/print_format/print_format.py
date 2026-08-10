@@ -155,15 +155,24 @@ class PrintFormat(Document):
 	def validate_typst_renderer(self):
 		"""Refuse to save a Typst-flagged format that Typst cannot render — the
 		blockers name exactly what to remove, at edit time instead of print time."""
-		if self.pdf_generator != "Typst":
-			return
-		from frappe.utils.typst_emitter import typst_blockers
+		from frappe.utils.typst_emitter import has_typst_blocks, typst_blockers
 
 		try:
 			layout = frappe.parse_json(self.format_data) if self.format_data else {}
 		except Exception:
 			layout = {}
-		blockers = typst_blockers(self, layout if isinstance(layout, dict) else {})
+		if not isinstance(layout, dict):
+			layout = {}
+
+		if self.pdf_generator != "Typst":
+			# the mirror gate: raw Typst markup can't render anywhere else
+			if has_typst_blocks(layout):
+				frappe.throw(
+					_("This format uses a Typst block, so its PDF Renderer must be Typst."),
+					title=_("Typst block requires the Typst renderer"),
+				)
+			return
+		blockers = typst_blockers(self, layout)
 		if blockers:
 			frappe.throw(
 				_("This format cannot use the Typst renderer: {0}").format(", ".join(blockers)),

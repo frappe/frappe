@@ -137,6 +137,49 @@ class TestTypstGate(IntegrationTestCase):
 		# no File document registered for this path -> refused even if it existed on disk
 		self.assertIsNone(emitter._read_site_file("/private/files/unregistered.png"))
 
+	def test_typst_block_qualifies_and_emits_verbatim(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter, has_typst_blocks
+
+		markup = "#box(width: 100%, stroke: 0.5pt)[Raw markup]"
+		layout = layout_with(
+			{"fieldtype": "Typst", "fieldname": "typst_block_x", "custom": 1, "typst": markup}
+		)
+		self.assertEqual(typst_blockers(self.pf(), layout), [])
+		self.assertTrue(has_typst_blocks(layout))
+		self.assertFalse(has_typst_blocks(layout_with({"fieldtype": "Data", "fieldname": "d"})))
+
+		pf_doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Typst Block {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"pdf_generator": "Typst",
+				"format_data": json.dumps(layout),
+			}
+		).insert()
+		self.addCleanup(pf_doc.delete, ignore_permissions=True)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "typst block"}).insert(
+			ignore_permissions=True
+		)
+		self.addCleanup(todo.delete, ignore_permissions=True)
+		source, _assets = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", todo.name))).emit()
+		self.assertIn(markup, source)
+
+	def test_typst_block_requires_typst_renderer(self):
+		layout = layout_with({"fieldtype": "Typst", "fieldname": "t", "custom": 1, "typst": "#v(1pt)"})
+		pf_doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Typst BlockGate {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": json.dumps(layout),
+			}
+		)
+		self.assertRaisesRegex(frappe.ValidationError, "must be Typst", pf_doc.insert)
+
 	def test_section_custom_style_is_emitted(self):
 		"""What the gate accepts must reach the output — accepted-but-dropped
 		styling is the failure mode this pins."""

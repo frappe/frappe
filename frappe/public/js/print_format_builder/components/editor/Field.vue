@@ -34,6 +34,10 @@
 				v-else-if="df.fieldtype == 'HTML' && df.html"
 				v-html="rendered_html ?? df.html"
 			></div>
+			<!-- Typst can't render in the HTML canvas — show the markup, the PDF preview shows the output -->
+			<pre v-else-if="df.fieldtype == 'Typst'" class="typst-block-source">{{
+				df.typst || __("Empty Typst block")
+			}}</pre>
 			<!-- Spacer/Divider: the root element itself is the rendered output -->
 			<i
 				v-else-if="df.fieldtype == 'Spacer' || df.fieldtype == 'Divider'"
@@ -189,6 +193,11 @@
 							v-if="df.fieldtype == 'HTML' && df.html"
 							v-html="df.html"
 						></div>
+						<pre
+							v-else-if="df.fieldtype == 'Typst' && df.typst"
+							class="typst-block-source"
+							>{{ df.typst }}</pre
+						>
 						<div class="custom-html" v-else-if="df.fieldtype == 'Field Template'">
 							{{ df.label }}
 						</div>
@@ -199,7 +208,9 @@
 							:alt="df.label || ''"
 						/>
 						<input
-							v-else-if="editing && df.fieldtype != 'HTML'"
+							v-else-if="
+								editing && df.fieldtype != 'HTML' && df.fieldtype != 'Typst'
+							"
 							ref="label_input"
 							class="label-input"
 							type="text"
@@ -222,6 +233,16 @@
 								data-icon-button="true"
 								:title="__('Edit HTML')"
 								@click.stop="edit_html"
+								v-html="frappe.utils.icon('pencil', 'sm')"
+							></button>
+							<button
+								v-if="df.fieldtype == 'Typst'"
+								class="es-button"
+								data-size="xs"
+								data-variant="ghost"
+								data-icon-button="true"
+								:title="__('Edit Typst')"
+								@click.stop="edit_typst"
 								v-html="frappe.utils.icon('pencil', 'sm')"
 							></button>
 							<button
@@ -518,6 +539,19 @@ function edit_html() {
 		},
 	});
 	d.set_value("html", props.df.html);
+	d.show();
+}
+
+function edit_typst() {
+	let d = new frappe.ui.Dialog({
+		title: __("Edit Typst"),
+		fields: [{ label: __("Typst Markup"), fieldname: "typst", fieldtype: "Code" }],
+		primary_action: ({ typst }) => {
+			props.df["typst"] = typst || "";
+			d.hide();
+		},
+	});
+	d.set_value("typst", props.df.typst);
 	d.show();
 }
 
@@ -882,5 +916,17 @@ watch(
 	object-fit: contain;
 	border-radius: var(--radius);
 	vertical-align: middle;
+}
+
+.typst-block-source {
+	margin: 0;
+	font-family: monospace;
+	font-size: var(--text-xs);
+	white-space: pre-wrap;
+	word-break: break-word;
+	color: var(--text-color);
+	background: var(--gray-50);
+	border-radius: var(--radius-sm);
+	padding: 4px 6px;
 }
 </style>

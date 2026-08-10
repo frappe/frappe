@@ -198,6 +198,14 @@ def _image_blocker(df):
 	return None
 
 
+def has_typst_blocks(layout) -> bool:
+	"""True when the layout carries raw Typst markup — such a format can only
+	render through Typst, the mirror image of what blocks Typst itself."""
+	if not isinstance(layout, dict):
+		return False
+	return any(df.get("fieldtype") == "Typst" for _where, df in _walk(layout))
+
+
 def _walk(layout):
 	zones = [
 		(_("Header"), layout.get("header")),
@@ -646,6 +654,8 @@ class TypstEmitter:
 
 	def _field_body(self, section, df) -> str:
 		fieldtype = df.get("fieldtype") or "Data"
+		if fieldtype == "Typst":
+			return (df.get("typst") or "").strip()
 		if fieldtype == "Divider":
 			return '#line(length: 100%, stroke: 0.6pt + rgb("#d1d5db"))'
 		if fieldtype == "Spacer":

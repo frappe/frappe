@@ -369,6 +369,15 @@ class PrintFormatGenerator:
 		pf = self.print_format
 		if pf.get("pdf_generator") == "Typst":
 			return self.render_typst_pdf(password=password)
+		from frappe.utils.typst_emitter import has_typst_blocks
+
+		if has_typst_blocks(self.layout):
+			frappe.throw(
+				_(
+					"This format uses a Typst block, which only the Typst renderer can print. Set the PDF Renderer to Typst or remove the block."
+				),
+				title=_("Chromium renderer unavailable"),
+			)
 		html = self._build_html_for_chrome()
 		options = {
 			"margin-top": f"{pf.margin_top}mm",
@@ -448,7 +457,9 @@ class PrintFormatGenerator:
 				write_assets(emitter.assets)
 				measure_path = write("measure.typ", emitter.measure_source())
 				for label in list(heights):
-					found = json.loads(typst.query(measure_path, f"<{label}>", font_paths=typst_font_paths()))
+					found = json.loads(
+						typst.query(measure_path, f"<{label}>", root=tmp, font_paths=typst_font_paths())
+					)
 					if found:
 						heights[label] = float(found[0].get("value") or 0)
 
@@ -459,7 +470,9 @@ class PrintFormatGenerator:
 			)
 			path = write("main.typ", source)
 			write_assets(assets)
-			return typst.compile(path, font_paths=typst_font_paths())
+			# root pins file access to the tempdir — matters once formats can
+			# carry raw Typst markup (Typst blocks)
+			return typst.compile(path, root=tmp, font_paths=typst_font_paths())
 
 	def _build_html_for_chrome(self):
 		"""Build the body HTML for the Chrome PDF pipeline.
