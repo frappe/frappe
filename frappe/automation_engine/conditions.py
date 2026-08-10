@@ -86,7 +86,7 @@ def _compare(condition, count) -> bool:
 def _render_filters(filters, context):
 	"""Render Jinja in the filter values.
 
-	Only the aliases a template actually names are loaded — a flow with a dozen aliases and a
+	Only the aliases a template actually names are loaded - a flow with a dozen aliases and a
 	filter that mentions one must not fetch (and permission-check) the other eleven.
 	"""
 	templates = list(_templates(filters))
@@ -113,8 +113,7 @@ def _template_context(context, templates) -> dict:
 		if any(alias in template for template in templates)
 	}
 	records = {
-		alias: load_record(reference, permission_type="read")
-		for alias, reference in referenced.items()
+		alias: load_record(reference, permission_type="read") for alias, reference in referenced.items()
 	}
 	return {"context": context, **records}
 

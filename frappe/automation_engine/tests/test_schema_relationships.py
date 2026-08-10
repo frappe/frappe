@@ -48,7 +48,7 @@ class TestSchemaRelationships(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		clear_automation_cache()
-		# A site of any age has thousands of ToDos on Administrator, and queries are capped —
+		# A site of any age has thousands of ToDos on Administrator, and queries are capped -
 		# so every reverse-link assertion here runs against a user owning nothing else.
 		self.user = self._user()
 

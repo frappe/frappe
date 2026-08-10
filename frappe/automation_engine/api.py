@@ -67,7 +67,7 @@ def get_param_options(
 ):
 	"""Resolve dynamic options for a param via its schema-declared resolver only.
 
-	Never dispatches to a client-supplied method path — only the fixed OPTION_RESOLVERS keyed
+	Never dispatches to a client-supplied method path - only the fixed OPTION_RESOLVERS keyed
 	by the param's declared `options_source` are callable.
 	"""
 	_check_config_permission()
@@ -187,7 +187,7 @@ def _user_options(doctype, params, search_text):
 	return frappe.get_all("User", filters=filters, fields=["name", "full_name"], limit=20)
 
 
-# Fixed resolver table — the only server functions get_param_options may call.
+# Fixed resolver table - the only server functions get_param_options may call.
 OPTION_RESOLVERS = {
 	"doc_fields": lambda doctype, params, search_text: _doc_fields(doctype),
 	"users": _user_options,

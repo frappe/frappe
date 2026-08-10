@@ -119,7 +119,7 @@ class TestScheduler(IntegrationTestCase):
 
 
 # The test site carries real ToDos and Events, so every date rule is scoped to the rows
-# these helpers create — otherwise "due today" sweeps up existing site data.
+# these helpers create - otherwise "due today" sweeps up existing site data.
 MARKER = "automation-date-test"
 
 

@@ -3,14 +3,14 @@
 
 """Relationships derived from the schema, so no app has to restate its own link graph.
 
-Link, child-table Link and Dynamic Link edges — in both directions — become relationships
+Link, child-table Link and Dynamic Link edges - in both directions - become relationships
 automatically. Apps only register a provider for the edges the schema does not know about: a
 name matched against a Data field, a union of two lookups, a dynamic reference narrowed to a
 domain. An app definition of the same name wins over a derived one, so an app can also just
 relabel what it inherits.
 
 Incoming edges come from `frappe.desk.form.linked_with`, which is Redis-cached and already
-checks that a Dynamic Link pair really does point at this DocType — deriving those from the
+checks that a Dynamic Link pair really does point at this DocType - deriving those from the
 schema alone offers every dynamic reference in every installed app on every DocType.
 
 Derived names embed the fieldname that backs them (`crm_deal_via_lead`) because the name is
@@ -84,7 +84,7 @@ class SchemaRelationshipProvider(AutomationRelationshipProvider):
 
 
 # ---------------------------------------------------------------------------
-# Outgoing edges — read straight off the loaded document.
+# Outgoing edges - read straight off the loaded document.
 # ---------------------------------------------------------------------------
 def _resolve_link(doc, definition) -> list[dict]:
 	return _references(definition["target_doctype"], [doc.get(definition["fieldname"])])
@@ -166,7 +166,7 @@ def _forward_dynamic_links(source_doctype) -> list[dict]:
 			"name": field.fieldname,
 			"label": _(field.label or field.fieldname),
 			"cardinality": "one",
-			# Unknown until the record is loaded — the builder picks the target it expects.
+			# Unknown until the record is loaded - the builder picks the target it expects.
 			"target_doctype": None,
 			"kind": "dynamic_link",
 			"fieldname": field.fieldname,
@@ -198,8 +198,8 @@ def _incoming(source_doctype) -> list[dict]:
 	"""Reverse Link edges only.
 
 	Reverse Dynamic Links are deliberately left out. Which DocTypes a `reference_doctype` /
-	`reference_name` pair points at is a fact about data, not schema — the framework's own
-	discovery answers it with a query and caches the answer — so deriving them would make a
+	`reference_name` pair points at is a fact about data, not schema - the framework's own
+	discovery answers it with a query and caches the answer - so deriving them would make a
 	relationship appear once some row happened to exist and be missing on a fresh site. Names
 	are persisted in saved flows, so they have to be decided by the schema alone. Apps declare
 	the dynamic references that matter to them.

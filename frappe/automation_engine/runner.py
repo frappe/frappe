@@ -2,11 +2,11 @@
 # License: MIT. See LICENSE
 
 """Executes a claimed outbox row: creates a Background Task, runs each action under its own
-savepoint, and records the outcome. Bookkeeping never saves the Automation Flow doc — the
+savepoint, and records the outcome. Bookkeeping never saves the Automation Flow doc - the
 circuit breaker lives in Redis, and auto-disable uses db.set_value(update_modified=False).
 
 Steps run off an `actions_snapshot` taken at run start and stored in the Background Task's
-arguments, never off the live rule — so a Wait that spans a config edit resumes against the
+arguments, never off the live rule - so a Wait that spans a config edit resumes against the
 plan it started with. `If` steps pick an arm and every step carrying that `parent_step` in
 the other arm is passed over; `Wait` steps park the run and queue a resume row.
 """
@@ -60,7 +60,7 @@ def _execute_plan(rule, row, run, doc, steps, snapshot, event):
 			status = _run_plan(steps, rule, doc, context, snapshot, frappe.utils.cint(row.resume_from_idx))
 		return status, context
 	except Exception:
-		# Setting up the run (identity, trigger access, alias resolution) failed — there is no
+		# Setting up the run (identity, trigger access, alias resolution) failed - there is no
 		# step to hang the error on, so record it as one.
 		_append_step(steps, {"step_key": "setup"}, len(steps), "Failed", frappe.get_traceback(), 0)
 		return "Failed", context
@@ -381,7 +381,7 @@ def _update_context(context, step, entry):
 	"""Publish a finished step's output so later steps and Jinja can read it."""
 	output = entry.get("output") or {}
 	if not _within_output_limit(output):
-		# The action already ran — dropping its output beats failing a run over bookkeeping.
+		# The action already ran - dropping its output beats failing a run over bookkeeping.
 		entry["output"] = output = {"truncated": True}
 	context["steps"][entry["step_key"]] = output
 	alias = step.get("output_alias")
@@ -443,7 +443,7 @@ def _run_values(rule, row, status, steps, error_summary, context=None) -> dict:
 	}
 	if status == "Waiting":
 		# Background Task has no paused state, and this same task is what the resume row
-		# finishes — so it stays Running, with no end time, until the wait elapses.
+		# finishes - so it stays Running, with no end time, until the wait elapses.
 		return {**values, "status": "Running"}
 	return {
 		**values,
@@ -455,7 +455,7 @@ def _run_values(rule, row, status, steps, error_summary, context=None) -> dict:
 
 def _settle_queue_row(row, status):
 	# Completed runs drop their queue row because detail lives in the Background Task result.
-	# A Waiting leg is done too — its future lives on in the resume row schedule_wait queued.
+	# A Waiting leg is done too - its future lives on in the resume row schedule_wait queued.
 	# Failed (stopped) and Skipped rows are retained for the purge sweep.
 	if status in ("Success", "Partially Failed", "Simulated", "Waiting"):
 		frappe.delete_doc(QUEUE, row.name, ignore_permissions=True, force=True)

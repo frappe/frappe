@@ -3,8 +3,8 @@
 
 """Safe, hook-driven record relationship discovery and resolution.
 
-Applications register provider classes through the `automation_relationships` hook — a saved
-workflow only ever names a relationship, never a callable — so configuration can't reach
+Applications register provider classes through the `automation_relationships` hook - a saved
+workflow only ever names a relationship, never a callable - so configuration can't reach
 arbitrary Python. Providers hand back `{doctype, name}` references, which are checked against
 the declared target DocTypes and the current user's read permission before anything is loaded.
 """
@@ -46,7 +46,7 @@ def get_relationship_definition(source_doctype: str, relationship: str) -> dict:
 def get_relationship_targets(source_doctype: str | None, relationships) -> dict[str, str | None]:
 	"""Validate the flow's predeclared aliases and return {alias: target doctype}.
 
-	`None` as a target means "not known until runtime" — the alias is usable, but actions
+	`None` as a target means "not known until runtime" - the alias is usable, but actions
 	can't validate their params against a DocType meta.
 	"""
 	targets = {"trigger": source_doctype}
@@ -100,7 +100,7 @@ def load_record(reference, permission_type=None):
 
 @request_cache
 def _providers() -> list:
-	"""App providers first, then the schema provider — an app definition shadows a derived one."""
+	"""App providers first, then the schema provider - an app definition shadows a derived one."""
 	from frappe.automation_engine.schema_relationships import SchemaRelationshipProvider
 
 	providers = []
@@ -153,7 +153,7 @@ def _validated_definition(provider, source_doctype, definition) -> dict:
 def _renamed(definition, source_doctype) -> dict:
 	"""`derived_from` gives a schema relationship a stable name and a readable label.
 
-	The app supplies nothing but the two strings — resolution stays with the schema provider,
+	The app supplies nothing but the two strings - resolution stays with the schema provider,
 	so a rename can't drift from the field that backs it.
 	"""
 	source = definition.pop("derived_from", None)
@@ -189,7 +189,7 @@ INTERNAL_KEYS = (
 
 
 def _public(definition) -> dict:
-	"""Drop the provider and its bookkeeping — definitions cross into API responses."""
+	"""Drop the provider and its bookkeeping - definitions cross into API responses."""
 	return {key: value for key, value in definition.items() if key not in INTERNAL_KEYS}
 
 
