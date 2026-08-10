@@ -319,13 +319,8 @@ def generate_admin_keys():
 	frappe.db.commit()
 
 
-<<<<<<< HEAD
 @frappe.whitelist()
-def test(*, fail=False, handled=True, message="Failed"):
-=======
-@whitelist_for_tests()
 def test(*, fail: int | bool = False, handled: int | bool = True, message: str = "Failed"):
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
 	if fail:
 		if handled:
 			frappe.throw(message)

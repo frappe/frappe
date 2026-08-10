@@ -27,32 +27,6 @@ if TYPE_CHECKING:
 
 @frappe.whitelist()
 def make(
-<<<<<<< HEAD
-	doctype=None,
-	name=None,
-	content=None,
-	subject=None,
-	sent_or_received="Sent",
-	sender=None,
-	sender_full_name=None,
-	recipients=None,
-	communication_medium="Email",
-	send_email=False,
-	print_html=None,
-	print_format=None,
-	attachments=None,
-	send_me_a_copy=False,
-	cc=None,
-	bcc=None,
-	read_receipt=None,
-	print_letterhead=True,
-	email_template=None,
-	communication_type=None,
-	send_after=None,
-	print_language=None,
-	now=False,
-	in_reply_to=None,
-=======
 	doctype: str | None = None,
 	name: str | int | None = None,
 	content: str | None = None,
@@ -76,10 +50,7 @@ def make(
 	send_after: str | datetime | None = None,
 	print_language: str | None = None,
 	now: int | bool = False,
-	raw_html: int | bool = False,
-	add_css: int | bool = True,
 	in_reply_to: str | None = None,
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
 	**kwargs,
 ) -> dict[str, str]:
 	"""Make a new communication. Checks for email permissions for specified Document.

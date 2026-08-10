@@ -216,14 +216,9 @@ def create_number_card(args: str | dict[str, Any]):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-<<<<<<< HEAD
-def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
-=======
 def get_cards_for_user(
 	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: str | list | dict[str, Any]
 ):
-	doctype = "Number Card"
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
 	meta = frappe.get_meta(doctype)
 	searchfields = meta.get_search_fields()
 	search_conditions = []

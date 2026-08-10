@@ -109,10 +109,6 @@ def add(parent: str, role: str, permlevel: int):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def update(doctype, role, permlevel, ptype, value=None, if_owner=0):
-	"""Update role permission params
-=======
 def update(
 	doctype: str,
 	role: str,
@@ -121,8 +117,7 @@ def update(
 	value: str | int | None = None,
 	if_owner: str | int = 0,
 ) -> str | None:
-	"""Update role permission params.
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
+	"""Update role permission params
 
 	Args:
 	        doctype (str): Name of the DocType to update params for

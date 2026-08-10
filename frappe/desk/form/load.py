@@ -3,12 +3,8 @@
 
 import json
 import typing
-<<<<<<< HEAD
-from urllib.parse import quote
-=======
 from typing import Any
-from urllib.parse import quote_plus
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
+from urllib.parse import quote, quote_plus
 
 import frappe
 import frappe.defaults
@@ -67,11 +63,7 @@ def getdoc(doctype: str, name: str | int):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def getdoctype(doctype, with_parent=False, cached_timestamp=None):
-=======
-def getdoctype(doctype: str, with_parent: int | bool = False):
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
+def getdoctype(doctype: str, with_parent: int | bool = False, cached_timestamp: str | None = None):
 	"""load doctype"""
 
 	docs = []

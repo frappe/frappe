@@ -38,15 +38,8 @@ def get_all_nodes(doctype: str, label: str, parent: str, tree_method: str | None
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def get_children(doctype, parent="", **filters):
+def get_children(doctype: str, parent: str = "", **filters):
 	return _get_children(doctype, parent)
-=======
-def get_children(doctype: str, parent: str = "", include_disabled: str | int | bool = False, **filters):
-	if isinstance(include_disabled, str):
-		include_disabled = frappe.sbool(include_disabled)
-	return _get_children(doctype, parent, include_disabled=include_disabled)
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
 
 
 def _get_children(doctype, parent="", ignore_permissions=False):

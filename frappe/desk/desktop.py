@@ -395,14 +395,9 @@ class Workspace:
 
 @frappe.whitelist()
 @frappe.read_only()
-<<<<<<< HEAD
-def get_desktop_page(page):
+def get_desktop_page(page: str):
 	"""Applies permissions, customizations and returns the configruration for a page
 	on desk.
-=======
-def get_desktop_page(page: str):
-	"""Apply permissions, customizations and return the configuration for a page on desk.
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
 
 	Args:
 	        page (json): page data

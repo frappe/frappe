@@ -291,11 +291,7 @@ def new_page(new_page: str):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def save_page(title, public, new_widgets, blocks):
-=======
-def save_page(name: str, public: str | int, new_widgets: str, blocks: str):
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
+def save_page(title: str, public: str | int, new_widgets: str, blocks: str):
 	public = frappe.parse_json(public)
 
 	filters = {"public": public, "label": title}

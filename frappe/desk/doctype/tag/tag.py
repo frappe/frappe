@@ -176,15 +176,9 @@ def update_tags(doc, tags):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def get_documents_for_tag(tag):
+def get_documents_for_tag(tag: str):
 	"""
 	Search for given text in Tag Link
-=======
-def get_documents_for_tag(tag: str):
-	"""Search for given text in Tag Link.
-
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
 	:param tag: tag to be searched
 	"""
 	# remove hastag `#` from tag

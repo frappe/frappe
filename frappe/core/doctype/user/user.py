@@ -3,12 +3,8 @@
 
 from collections.abc import Iterable
 from datetime import timedelta
-<<<<<<< HEAD
 from functools import cached_property, lru_cache
-=======
-from functools import cached_property
 from typing import Any
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
 
 import frappe
 import frappe.defaults
@@ -815,17 +811,13 @@ def get_all_roles():
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def get_roles(arg=None):
+def get_roles(arg: None = None):
 	"""get roles for a user"""
 	return frappe.get_roles(frappe.form_dict["uid"])
 
 
 @frappe.whitelist()
-def get_perm_info(role):
-=======
 def get_perm_info(role: str):
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
 	"""get permission info"""
 	from frappe.permissions import get_all_perms
 
@@ -888,14 +880,10 @@ def update_password(
 
 
 @frappe.whitelist(allow_guest=True)
-<<<<<<< HEAD
-def test_password_strength(new_password: str, key=None, old_password=None, user_data: tuple | None = None):
-	from frappe.utils.deprecations import deprecation_warning
-=======
 def test_password_strength(
 	new_password: str, key: str | None = None, old_password: str | None = None, user_data: tuple | None = None
 ):
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
+	from frappe.utils.deprecations import deprecation_warning
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
 	if key is not None or old_password is not None:
@@ -934,12 +922,9 @@ def has_email_account(email: str):
 
 @frappe.whitelist(allow_guest=False)
 def get_email_awaiting(user: str):
-<<<<<<< HEAD
 	if user != frappe.session.user:
 		frappe.has_permission("User", "read", doc=user, throw=True)
 
-=======
->>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
 	return frappe.get_all(
 		"User Email",
 		fields=["email_account", "email_id"],
