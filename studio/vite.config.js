@@ -101,7 +101,11 @@ export default defineConfig(async () => {
 			chunkSizeWarningLimit: 1000,
 		},
 		optimizeDeps: {
+			// Pre-bundling frappe-ui splits its module-level state in two: toast()/dialog.*, so imperative toasts/dialogs never show in dev.
+			exclude: ["frappe-ui"],
 			include: [
+				// CommonJS dep reached through the now-unbundled frappe-ui (tailwind/colorPalette.js)
+				"tailwindcss/colors",
 				"feather-icons",
 				"showdown",
 				"engine.io-client",
