@@ -183,7 +183,7 @@ def add_comments(doc, docinfo):
 def get_milestones(doctype, name):
 	return frappe.get_all(
 		"Milestone",
-		fields=["creation", "owner", "track_field", "value"],
+		fields=["name", "creation", "owner", "track_field", "value"],
 		filters=dict(reference_type=doctype, reference_name=str(name)),
 	)
 
