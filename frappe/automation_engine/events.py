@@ -77,9 +77,28 @@ def get_wait_outcome(row) -> dict | None:
 	}
 
 
-def registered_events() -> list[str]:
-	"""Event names apps have declared via the `automation_events` hook."""
-	return sorted(_registered_event_names())
+def registered_events() -> list[dict]:
+	"""Events apps declared via the `automation_events` hook, with their builder metadata.
+
+	An app may register a bare name or a `{name: schema}` map. The schema is what lets a
+	builder offer a readable label and ready-made correlation keys instead of asking someone
+	to hand-write a Jinja expression.
+	"""
+	return [_event_option(name, schema) for name, schema in sorted(_registered_events().items())]
+
+
+def _event_option(name, schema) -> dict:
+	schema = schema if isinstance(schema, dict) else {}
+	return {
+		"value": name,
+		"label": schema.get("label") or _prettify(name),
+		"description": schema.get("description") or "",
+		"correlation_options": schema.get("correlation_options") or [],
+	}
+
+
+def _prettify(name) -> str:
+	return name.split(".")[-1].replace("_", " ").capitalize()
 
 
 def validate_event(event):
@@ -97,17 +116,22 @@ def validate_wait_params(params):
 	if not frappe.utils.cint(params.get("timeout_value")):
 		frappe.throw(_("Wait for Event requires a timeout"))
 	if params.get("timeout_unit") not in TIMEOUT_UNITS:
-		frappe.throw(
-			_("Wait for Event timeout unit must be one of {0}").format(", ".join(TIMEOUT_UNITS))
-		)
+		frappe.throw(_("Wait for Event timeout unit must be one of {0}").format(", ".join(TIMEOUT_UNITS)))
 
 
 def _registered_event_names() -> set[str]:
-	names = set()
+	return set(_registered_events())
+
+
+def _registered_events() -> dict:
+	"""{name: schema}. Apps may register a bare name or a {name: schema} map."""
+	events = {}
 	for value in frappe.get_hooks("automation_events"):
-		# Apps may register a bare name or a {name: schema} map.
-		names.update([value] if isinstance(value, str) else value)
-	return names
+		if isinstance(value, str):
+			events.setdefault(value, {})
+		else:
+			events.update(value)
+	return events
 
 
 def _queue_event_flows(event, doc, payload) -> int:
