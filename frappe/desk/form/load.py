@@ -89,7 +89,11 @@ def get_meta_bundle(doctype):
 
 
 @frappe.whitelist()
-def get_docinfo(doc=None, doctype=None, name=None):
+def get_docinfo(
+	doc: "Document | dict | str | None" = None,
+	doctype: str | None = None,
+	name: str | int | None = None,
+):
 	from frappe.share import _get_users as get_docshares
 
 	if not doc:
