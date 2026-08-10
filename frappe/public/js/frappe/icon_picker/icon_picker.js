@@ -4,7 +4,8 @@ class Picker {
 		this.width = opts.width;
 		this.height = opts.height;
 		this.set_icon(opts.icon);
-		this.icons = opts.icons;
+		// [{ label, icons }] -- a section renders a heading only when it is labelled
+		this.sections = opts.sections;
 		this.include_emoji = opts.include_emoji;
 		this.setup_picker();
 	}
@@ -20,13 +21,11 @@ class Picker {
 					<input type="search" placeholder="${__("Search for icons...")}" class="form-control">
 					<span class="search-icon">${frappe.utils.icon("search", "sm")}</span>
 				</div>
-				<div class="icon-section" id='icon-section'>
-					<div class="icons"></div>
-				</div>
+				<div class="icon-section" id='icon-section'></div>
 			</div>
 		`);
 		this.parent.append(this.icon_picker_wrapper);
-		this.icon_wrapper = this.icon_picker_wrapper.find(".icons");
+		this.icon_section = this.icon_picker_wrapper.find(".icon-section");
 		this.search_input = this.icon_picker_wrapper.find(".search-icons > input");
 		this.refresh();
 		this.setup_icons();
@@ -87,11 +86,32 @@ class Picker {
 		});
 	}
 	setup_icons() {
-		this.icons.forEach((icon) => {
+		this.sections.forEach((section) => {
+			this.setup_section(section);
+		});
+		this.search_input.keyup((e) => {
+			e.preventDefault();
+			this.filter_icons();
+		});
+
+		this.search_input.on("search", () => {
+			this.filter_icons();
+		});
+	}
+
+	setup_section({ label, icons }) {
+		let $group = $(`<div class="icon-group">
+				${label ? `<div class="icon-group-label">${label}</div>` : ""}
+				<div class="icons"></div>
+			</div>`);
+		this.icon_section.append($group);
+
+		let $icons = $group.find(".icons");
+		icons.forEach((icon) => {
 			let $icon = $(
 				`<div id="${icon}" class="icon-wrapper">${frappe.utils.icon(icon, "md")}</div>`
 			);
-			this.icon_wrapper.append($icon);
+			$icons.append($icon);
 			const set_values = () => {
 				this.set_icon(icon);
 				this.update_icon_selected();
@@ -107,24 +127,21 @@ class Picker {
 				}
 			});
 		});
-		this.search_input.keyup((e) => {
-			e.preventDefault();
-			this.filter_icons();
-		});
-
-		this.search_input.on("search", () => {
-			this.filter_icons();
-		});
 	}
 
 	filter_icons() {
 		let value = this.search_input.val();
+		let $icons = this.icon_section.find(".icon-wrapper");
 		if (!value) {
-			this.icon_wrapper.find(".icon-wrapper").removeClass("hidden");
+			$icons.removeClass("hidden");
 		} else {
-			this.icon_wrapper.find(".icon-wrapper").addClass("hidden");
-			this.icon_wrapper.find(`.icon-wrapper[id*='${value}']`).removeClass("hidden");
+			$icons.addClass("hidden");
+			this.icon_section.find(`.icon-wrapper[id*='${value}']`).removeClass("hidden");
 		}
+		// a labelled section with nothing left to show would sit above an empty grid
+		this.icon_section.find(".icon-group").each(function () {
+			$(this).toggleClass("hidden", !$(this).find(".icon-wrapper:not(.hidden)").length);
+		});
 	}
 
 	update_icon_selected(silent) {
