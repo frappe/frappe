@@ -1,12 +1,7 @@
 import time
 from contextlib import suppress
-<<<<<<< HEAD
 from json import JSONDecodeError
-=======
 from typing import Any
-
-from orjson import JSONDecodeError
->>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 
 import frappe
 from frappe.rate_limiter import rate_limit
