@@ -5,6 +5,7 @@ import requests
 
 import frappe
 from frappe.installer import update_site_config
+from frappe.model import no_value_fields
 from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
 
 authorization_token = None
@@ -120,27 +121,39 @@ class TestResourceAPIV2(FrappeAPITestCase):
 
 	def test_execute_doc_method_returns_doc(self):
 		# the method may mutate the doc, so clients need the updated copy alongside the result
-		response = self.post(
-			self.resource("User", "Administrator", "method", "add_comment"),
-			{"text": frappe.generate_hash()},
-		)
+		response = self.get(self.resource("Website Theme", "Standard", "method", "get_apps"))
 		self.assertEqual(response.status_code, 200)
 		self.assertGreaterEqual(len(response.json["docs"]), 1)
-		self.assertEqual(response.json["docs"][0]["name"], "Administrator")
+		self.assertEqual(response.json["docs"][0]["name"], "Standard")
 
-	def test_read_doc_retains_null_fields(self):
+	def test_document_apis_retain_null_fields(self):
 		# unset fields must be present as null instead of being dropped from the payload
-		doc = frappe.get_doc({"doctype": self.DOCTYPE, "description": frappe.mock("paragraph")}).insert()
-		self.addCleanup(frappe.delete_doc_if_exists, self.DOCTYPE, doc.name)
-		frappe.db.commit()
+		create = self.post(
+			self.resource(self.DOCTYPE), {"description": frappe.mock("paragraph"), "sid": self.sid}
+		)
+		self.assertEqual(create.status_code, 200)
+		docname = create.json["data"]["name"]
+		self.addCleanup(frappe.delete_doc_if_exists, self.DOCTYPE, docname)
 
-		null_fields = [field for field, value in doc.as_dict().items() if value is None]
+		# only fields backed by a column, so layout fieldtypes never enter the expectation
+		doc = frappe.get_doc(self.DOCTYPE, docname)
+		null_fields = [
+			df.fieldname
+			for df in frappe.get_meta(self.DOCTYPE).fields
+			if df.fieldtype not in no_value_fields and doc.get(df.fieldname) is None
+		]
 		self.assertTrue(null_fields, "expected the fixture to have at least one unset field")
 
-		response = self.get(self.resource(self.DOCTYPE, doc.name), {"sid": self.sid})
-		self.assertEqual(response.status_code, 200)
-		for fieldname in null_fields:
-			self.assertIn(fieldname, response.json["data"])
+		read = self.get(self.resource(self.DOCTYPE, docname), {"sid": self.sid})
+		update = self.patch(
+			self.resource(self.DOCTYPE, docname),
+			data={"description": frappe.mock("paragraph"), "sid": self.sid},
+		)
+
+		for label, response in (("create", create), ("read", read), ("update", update)):
+			self.assertEqual(response.status_code, 200, label)
+			for fieldname in null_fields:
+				self.assertIn(fieldname, response.json["data"], f"{fieldname} dropped from {label} response")
 
 	def test_update_document(self):
 		generated_desc = frappe.mock("paragraph")
