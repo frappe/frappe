@@ -10,7 +10,7 @@ from frappe.utils import get_url_to_form
 
 
 @frappe.whitelist()
-def update_follow(doctype: str, doc_name: str, following: bool):
+def update_follow(doctype: str, doc_name: str | int, following: bool):
 	if following:
 		return follow_document(doctype, doc_name, frappe.session.user)
 	else:
@@ -58,7 +58,7 @@ def follow_document(doctype, doc_name, user):
 
 	if not is_document_followed(doctype, doc_name, user):
 		doc = frappe.new_doc("Document Follow")
-		doc.update({"ref_doctype": doctype, "ref_docname": doc_name, "user": user})
+		doc.update({"ref_doctype": doctype, "ref_docname": str(doc_name), "user": user})
 		doc.save()
 		return doc
 
@@ -70,7 +70,7 @@ def unfollow_document(doctype, doc_name, user):
 
 	doc = frappe.get_all(
 		"Document Follow",
-		filters={"ref_doctype": doctype, "ref_docname": doc_name, "user": user},
+		filters={"ref_doctype": doctype, "ref_docname": str(doc_name), "user": user},
 		fields=["name"],
 		limit=1,
 	)
