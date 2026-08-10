@@ -506,6 +506,9 @@ frappe.ui.form.PrintView = class {
 			name: this.frm.doc.name,
 			print_format: this.selected_format(),
 		});
+		if (this.lang_code) {
+			params.append("_lang", this.lang_code);
+		}
 		let letterhead = this.get_letterhead();
 		if (letterhead) {
 			params.append("letterhead", letterhead);

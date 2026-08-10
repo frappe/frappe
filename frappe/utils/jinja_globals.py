@@ -158,8 +158,17 @@ def bundled_asset(path, rtl=None):
 
 
 def is_rtl(rtl=None):
-	from frappe import local
+	if rtl is not None:
+		return rtl
 
-	if rtl is None:
-		return local.lang in ["ar", "he", "fa", "ps"]
-	return rtl
+	from frappe import local
+	from frappe.translate import get_parent_language
+
+	# RTL languages Frappe ships in frappe/geo/languages.csv. 
+	# Keep this set in sync with rtl_languages in the JavaScript twin at
+	# frappe/public/js/frappe/utils/utils.js:is_rtl.
+	rtl_languages = {"ar", "fa", "he", "ku", "ps", "ur"}
+
+	lang = local.lang or ""
+	parent_lang = get_parent_language(lang) or ""
+	return lang in rtl_languages or parent_lang in rtl_languages
