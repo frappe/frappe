@@ -106,10 +106,7 @@ def get_permitted_charts(dashboard_name: str):
 
 @frappe.whitelist()
 def get_permitted_cards(dashboard_name: str):
-<<<<<<< HEAD
 	permitted_cards = []
-=======
->>>>>>> 9eef4f6dae (fix: force type check in whitelisted methods (#37044))
 	dashboard = frappe.get_doc("Dashboard", dashboard_name)
 	for card in dashboard.cards:
 		try:
