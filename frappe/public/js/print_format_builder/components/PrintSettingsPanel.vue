@@ -89,7 +89,11 @@ let { print_format } = useStore();
 
 // ── custom css ─────────────────────────────────────────────
 let css_enabled = ref(!!print_format.value.css);
-// a discarded draft or re-fetch can bring css back while the toggle is off
+// a discarded draft or re-fetch replaces the doc — the toggle follows it
+watch(
+	() => print_format.value,
+	(pf) => (css_enabled.value = !!pf?.css)
+);
 watch(
 	() => print_format.value?.css,
 	(v) => {
@@ -97,7 +101,7 @@ watch(
 	}
 );
 // turning the toggle off clears the css from the format, but keep what was
-// typed so flipping it back on within the session restores it
+// typed so flipping it back on restores it while this panel stays mounted
 let stashed_css = "";
 
 function toggle_css(on) {
