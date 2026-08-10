@@ -194,8 +194,9 @@ const useStudioStore = defineStore("store", () => {
 	async function setPage(pageName: string) {
 		settingPage.value = true
 		pageConflict.value = false
-		codeStore.teardownPage()
 		savingPage.value = false
+		codeStore.teardownPage()
+
 		const page = await fetchPage(pageName)
 		if (!page) {
 			settingPage.value = false
