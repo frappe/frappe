@@ -3,12 +3,7 @@ from frappe.model import no_value_fields, table_fields
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def get_preview_data(doctype, docname):
-=======
-@http_cache(max_age=60 * 10)
 def get_preview_data(doctype: str, docname: str | int):
->>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 	preview_fields = []
 	meta = frappe.get_meta(doctype)
 	if not meta.show_preview_popup:

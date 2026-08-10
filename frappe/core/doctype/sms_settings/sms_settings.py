@@ -45,13 +45,8 @@ def validate_receiver_nos(receiver_list):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def get_contact_number(contact_name, ref_doctype, ref_name):
-	"returns mobile number of the contact"
-=======
 def get_contact_number(contact_name: str, ref_doctype: str, ref_name: str):
 	"Return mobile number of the given contact."
->>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 	number = frappe.db.sql(
 		"""select mobile_no, phone from tabContact
 		where name=%s
@@ -66,15 +61,7 @@ def get_contact_number(contact_name: str, ref_doctype: str, ref_name: str):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def send_sms(receiver_list, msg, sender_name="", success_msg=True):
-=======
 def send_sms(receiver_list: str | list[str], msg: str, sender_name: str = "", success_msg: bool = True):
-	send_sms_hook_methods = frappe.get_hooks("send_sms")
-	if send_sms_hook_methods:
-		return frappe.get_attr(send_sms_hook_methods[-1])(receiver_list, msg, sender_name, success_msg)
-
->>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 	import json
 
 	if isinstance(receiver_list, str):

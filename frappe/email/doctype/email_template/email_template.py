@@ -50,13 +50,8 @@ class EmailTemplate(Document):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def get_email_template(template_name, doc):
+def get_email_template(template_name: str, doc: str | dict[str, Any]):
 	"""Returns the processed HTML of a email template with the given doc"""
-=======
-def get_email_template(template_name: str, doc: str | dict[str, Any], sender: str | None = None):
-	"""Return the processed HTML of a email template with the given doc"""
->>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 
 	email_template = frappe.get_doc("Email Template", template_name)
 	email_template.check_permission("read")

@@ -722,14 +722,9 @@ def delete(web_form_name: str, docname: str | int):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def delete_multiple(web_form_name: str, docnames):
+def delete_multiple(web_form_name: str, docnames: str):
 	web_form = frappe.get_doc("Web Form", web_form_name)
 	web_form.raise_if_unpublished()
-=======
-def delete_multiple(web_form_name: str, docnames: str):
-	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
->>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 
 	docnames = json.loads(docnames)
 
@@ -801,12 +796,7 @@ def get_form_data(doctype: str, docname: str | None = None, web_form_name: str |
 	return out
 
 
-<<<<<<< HEAD
 def get_in_list_view_fields(doctype, web_form_name=None):
-=======
-@frappe.whitelist()
-def get_in_list_view_fields(doctype: str):
->>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 	meta = frappe.get_meta(doctype)
 	fields = []
 

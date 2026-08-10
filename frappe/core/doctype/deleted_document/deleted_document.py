@@ -39,10 +39,7 @@ class DeletedDocument(Document):
 
 @frappe.whitelist()
 def restore(name: str | int, alert: bool = True):
-<<<<<<< HEAD
 	frappe.only_for("System Manager")
-=======
->>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 	deleted = frappe.get_doc("Deleted Document", name)
 
 	if deleted.restored:
@@ -101,10 +98,7 @@ def restore(name: str | int, alert: bool = True):
 
 @frappe.whitelist()
 def bulk_restore(docnames: str | list[str]):
-<<<<<<< HEAD
 	frappe.only_for("System Manager")
-=======
->>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 	docnames = frappe.parse_json(docnames)
 	message = _("Restoring Deleted Document")
 	restored, invalid, failed = [], [], []

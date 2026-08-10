@@ -993,10 +993,7 @@ def remove_user_email_inbox(email_account):
 
 @frappe.whitelist()
 def set_email_password(email_account: str, password: str):
-<<<<<<< HEAD
 	frappe.has_permission("Email Account", "write", email_account, throw=True)
-=======
->>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 	account = frappe.get_doc("Email Account", email_account)
 	if account.awaiting_password and account.auth_method != "OAuth":
 		account.awaiting_password = 0

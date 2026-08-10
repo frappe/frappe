@@ -158,16 +158,10 @@ def user_permission_exists(user, allow, for_value, applicable_for=None):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-<<<<<<< HEAD
-def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, filters):
-	linked_doctypes_map = get_linked_doctypes(doctype, True)
-=======
 def get_applicable_for_doctype_list(
 	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict[str, Any]
 ):
-	actual_doctype = filters.get("doctype")
-	linked_doctypes_map = get_linked_doctypes(actual_doctype, True)
->>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
+	linked_doctypes_map = get_linked_doctypes(doctype, True)
 
 	linked_doctypes = []
 	for linked_doctype, linked_doctype_values in linked_doctypes_map.items():

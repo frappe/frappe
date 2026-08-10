@@ -130,13 +130,8 @@ def has_unseen_error_log():
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-<<<<<<< HEAD
-def get_log_doctypes(doctype, txt, searchfield, start, page_len, filters):
-	filters = filters or {}
-=======
 def get_log_doctypes(doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: list):
-	filters = filters or []
->>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
+	filters = filters or {}
 
 	filters.extend(
 		[
