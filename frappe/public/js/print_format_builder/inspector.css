@@ -351,3 +351,11 @@ body.pfb-dragging * {
 	min-height: 120px;
 	margin-bottom: 6px;
 }
+
+/* the canvas draws its own selection and hover rings — the browser's focus
+   ring on these tabbable nodes only duplicates them (any keypress shows it) */
+.print-format-container .print-format-section:focus,
+.print-format-container .field--chip:focus,
+.print-format-container .field--preview:focus {
+	outline: none;
+}

@@ -376,12 +376,6 @@ function handle_keydown(e) {
 	const sf = $store.value.selected_field.value;
 	const ss = $store.value.selected_section.value;
 
-	// the field keeps DOM focus when selection moves up, and the Escape keypress
-	// makes the browser paint its own focus ring next to ours — drop the focus
-	if (document.activeElement?.closest?.(".print-format-container")) {
-		document.activeElement.blur();
-	}
-
 	if (sf) {
 		// Navigate up: field → parent section
 		const lv = $store.value.layout.value;
