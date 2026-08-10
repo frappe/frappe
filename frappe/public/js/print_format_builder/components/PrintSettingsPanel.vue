@@ -57,17 +57,60 @@
 				<option v-for="p in page_number_positions" :value="p.value">{{ p.label }}</option>
 			</select>
 		</div>
+
+		<div class="form-group">
+			<ToggleRow
+				:label="__('Custom CSS')"
+				:model-value="css_enabled"
+				@update:model-value="toggle_css"
+			/>
+			<textarea
+				v-if="css_enabled"
+				class="form-control form-control-sm pfb-css-input"
+				:placeholder="__('.print-format p { margin: 0; }')"
+				spellcheck="false"
+				rows="8"
+				:value="print_format.css || ''"
+				@input="(e) => (print_format.css = e.target.value)"
+			></textarea>
+		</div>
 	</div>
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onMounted, ref } from "vue";
+import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
+import ToggleRow from "./inspector/ToggleRow.vue";
 import { mountColorControl } from "./inspector/useColorControl";
 import { useStore } from "../stores";
 
 let store = inject("$store");
 let { print_format } = useStore();
+
+// ── custom css ─────────────────────────────────────────────
+let css_enabled = ref(!!print_format.value.css);
+// a discarded draft or re-fetch can bring css back while the toggle is off
+watch(
+	() => print_format.value?.css,
+	(v) => {
+		if (v) css_enabled.value = true;
+	}
+);
+// turning the toggle off clears the css from the format, but keep what was
+// typed so flipping it back on within the session restores it
+let stashed_css = "";
+
+function toggle_css(on) {
+	css_enabled.value = on;
+	if (on) {
+		if (stashed_css && !print_format.value.css) {
+			print_format.value.css = stashed_css;
+		}
+	} else {
+		stashed_css = print_format.value.css || "";
+		print_format.value.css = "";
+	}
+}
 
 let google_fonts = ref([]);
 let font_options = computed(() => [
@@ -163,5 +206,14 @@ onMounted(() => {
 
 .pfb-margin-label {
 	font-size: var(--text-tiny);
+}
+
+.pfb-css-input {
+	margin-top: 6px;
+	font-family: monospace;
+	font-size: var(--text-xs);
+	line-height: 1.5;
+	resize: vertical;
+	min-height: 120px;
 }
 </style>

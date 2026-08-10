@@ -188,7 +188,7 @@
    "label": "Value Color"
   },
   {
-   "depends_on": "eval:!doc.raw_printing",
+   "depends_on": "eval:!doc.raw_printing && !doc.print_format_builder_beta",
    "fieldname": "css_section",
    "fieldtype": "Section Break"
   },
@@ -333,7 +333,7 @@
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2026-08-06 22:20:02.304442",
+ "modified": "2026-08-10 08:37:00.660226",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
