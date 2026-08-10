@@ -88,7 +88,7 @@ import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
 import { mountColorControl } from "./inspector/useColorControl";
 import { useStore } from "../stores";
-import { typst_blockers_client } from "../utils";
+import { layout_nodes, typst_blockers_client } from "../utils";
 
 let store = inject("$store");
 let { print_format, letterhead } = useStore();
@@ -102,17 +102,10 @@ let renderer = computed(() =>
 	print_format.value?.pdf_generator === "Typst" ? "Typst" : "chrome"
 );
 let has_typst_block = computed(() => {
-	const lv = store.layout.value;
-	const zones = [lv?.header, lv?.footer, ...(lv?.sections || [])];
-	return zones.some(
-		(zone) =>
-			zone &&
-			(zone.columns || []).some((col) =>
-				(col?.fields || []).some(
-					(df) => df && !df.remove && df.fieldtype === "Typst" && (df.typst || "").trim()
-				)
-			)
-	);
+	for (const node of layout_nodes(store.layout.value)) {
+		if (node.fieldtype === "Typst" && (node.typst || "").trim()) return true;
+	}
+	return false;
 });
 function set_renderer(value) {
 	if (value !== "Typst" && has_typst_block.value) return;

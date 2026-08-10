@@ -63,6 +63,17 @@ const TYPST_STYLE_VALUES = {
 	gap: /^\d+(\.\d+)?(px)?$/,
 };
 
+export function* layout_nodes(layout) {
+	const zones = [layout?.header, layout?.footer, ...(layout?.sections || [])];
+	for (const zone of zones) {
+		if (!zone || typeof zone !== "object") continue;
+		yield zone;
+		for (const col of zone.columns || []) {
+			for (const df of col?.fields || []) if (df && !df.remove) yield df;
+		}
+	}
+}
+
 export function typst_blockers_client(print_format, layout, letterhead) {
 	const blockers = [];
 	const add = (reason) => !blockers.includes(reason) && blockers.push(reason);
@@ -78,47 +89,36 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 		if ((letterhead.footer || "").trim() && !footer_is_image)
 			add(__("Letterhead footer with HTML content"));
 	}
-	const zones = [layout?.header, layout?.footer, ...(layout?.sections || [])];
-	for (const zone of zones) {
-		if (!zone || typeof zone !== "object") continue;
-		const nodes = [zone];
-		for (const col of zone.columns || []) {
-			for (const df of col?.fields || []) if (df && !df.remove) nodes.push(df);
-		}
-		for (const node of nodes) {
-			if ((node.custom_style || "").trim()) {
-				const unknown = [];
-				for (const declaration of node.custom_style.split(";")) {
-					if (!declaration.includes(":")) continue;
-					const [raw_prop, raw_value] = declaration.split(/:(.+)/);
-					const prop = raw_prop.trim().toLowerCase();
-					const value = (raw_value || "").trim();
-					if (!prop) continue;
-					if (!TYPST_STYLE_PROPS.has(prop)) {
-						unknown.push(prop);
-					} else if (TYPST_STYLE_VALUES[prop] && !TYPST_STYLE_VALUES[prop].test(value)) {
-						unknown.push(`${prop}: ${value}`);
-					}
-				}
-				if (unknown.length) add(__("Untranslatable CSS: {0}", [unknown.join(", ")]));
-			}
-			if (node.fieldtype === "HTML") add(__("Custom HTML block"));
-			if (node.fieldtype === "Field Template") add(__("Field Template (Jinja HTML)"));
-			if (node.fieldtype === "Barcode") {
-				if (node.custom) {
-					if (node.barcode_format !== "QR") add(__("Barcode (non-QR)"));
-				} else {
-					const meta_df = frappe.meta.get_docfield(
-						print_format?.doc_type,
-						node.fieldname
-					);
-					if (!meta_df || !is_qr_barcode_options(meta_df.options))
-						add(__("Barcode (non-QR)"));
+	for (const node of layout_nodes(layout)) {
+		if ((node.custom_style || "").trim()) {
+			const unknown = [];
+			for (const declaration of node.custom_style.split(";")) {
+				if (!declaration.includes(":")) continue;
+				const [raw_prop, raw_value] = declaration.split(/:(.+)/);
+				const prop = raw_prop.trim().toLowerCase();
+				const value = (raw_value || "").trim();
+				if (!prop) continue;
+				if (!TYPST_STYLE_PROPS.has(prop)) {
+					unknown.push(prop);
+				} else if (TYPST_STYLE_VALUES[prop] && !TYPST_STYLE_VALUES[prop].test(value)) {
+					unknown.push(`${prop}: ${value}`);
 				}
 			}
-			if (node.fieldtype === "Image" && /^https?:\/\//.test(node.image_url || ""))
-				add(__("Remote image URL"));
+			if (unknown.length) add(__("Untranslatable CSS: {0}", [unknown.join(", ")]));
 		}
+		if (node.fieldtype === "HTML") add(__("Custom HTML block"));
+		if (node.fieldtype === "Field Template") add(__("Field Template (Jinja HTML)"));
+		if (node.fieldtype === "Barcode") {
+			if (node.custom) {
+				if (node.barcode_format !== "QR") add(__("Barcode (non-QR)"));
+			} else {
+				const meta_df = frappe.meta.get_docfield(print_format?.doc_type, node.fieldname);
+				if (!meta_df || !is_qr_barcode_options(meta_df.options))
+					add(__("Barcode (non-QR)"));
+			}
+		}
+		if (node.fieldtype === "Image" && /^https?:\/\//.test(node.image_url || ""))
+			add(__("Remote image URL"));
 	}
 	return blockers;
 }

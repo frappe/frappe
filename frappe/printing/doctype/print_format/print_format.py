@@ -183,11 +183,14 @@ class PrintFormat(Document):
 	def _validate_typst_block_markup(self, layout):
 		"""Compile each raw Typst block on save so a typo fails here, with the
 		block named, instead of breaking every print later."""
-		import os
-		import tempfile
-
 		from frappe.utils.jinja import get_jenv
-		from frappe.utils.typst_emitter import _walk, has_jinja, has_typst_blocks, render_typst_template
+		from frappe.utils.typst_emitter import (
+			_walk,
+			compile_typst_source,
+			has_jinja,
+			has_typst_blocks,
+			render_typst_template,
+		)
 
 		if not has_typst_blocks(layout):
 			return
@@ -216,18 +219,13 @@ class PrintFormat(Document):
 						_("The Typst block in {0} has a template error: {1}").format(where, str(e)[:300]),
 						title=_("Invalid Typst markup"),
 					)
-			with tempfile.TemporaryDirectory() as tmp:
-				path = os.path.join(tmp, "block.typ")
-				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
-				with open(path, "w") as f:
-					f.write(markup)
-				try:
-					typst.compile(path, root=tmp)
-				except Exception as e:
-					frappe.throw(
-						_("The Typst block in {0} does not compile: {1}").format(where, str(e)[:300]),
-						title=_("Invalid Typst markup"),
-					)
+			try:
+				compile_typst_source(markup)
+			except Exception as e:
+				frappe.throw(
+					_("The Typst block in {0} does not compile: {1}").format(where, str(e)[:300]),
+					title=_("Invalid Typst markup"),
+				)
 
 	def _typst_sample_doc(self):
 		if not self.doc_type:

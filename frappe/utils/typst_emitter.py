@@ -22,6 +22,16 @@ from frappe.utils.html_utils import unescape_html
 #: px (builder/CSS space) → pt (Typst space)
 PX_TO_PT = 0.75
 
+#: the hairline stroke and muted ink every surface shares
+HAIRLINE = '0.6pt + rgb("#e5e7eb")'
+MUTED = "#6b7280"
+
+
+def pt(px, default=0.0) -> float:
+	"""A px value from the builder as Typst points; `default` fills empty/zero."""
+	return round((frappe.utils.flt(px) or default) * PX_TO_PT, 2)
+
+
 #: field types that disqualify a format — each with the reason shown to the user
 # translated at use, not import — a module-level _() would pin the first site's language
 BLOCKER_FIELDTYPES = {
@@ -84,7 +94,7 @@ def translate_custom_style(style: str) -> tuple[dict, list[str]]:
 			match = re.match(r"(\d+(?:\.\d+)?)px\s+\w+\s+(#(?:[0-9a-fA-F]{3}){1,2}|[a-z]+)$", value)
 			color = match and match.group(2)
 			if match and (color.startswith("#") or color in TYPST_NAMED_COLORS):
-				width = round(float(match.group(1)) * PX_TO_PT, 2)
+				width = pt(match.group(1))
 				paint = f'rgb("{color}")' if color.startswith("#") else color
 				effects["stroke_top" if prop == "border-top" else "stroke_bottom"] = f"{width}pt + {paint}"
 			else:
@@ -98,7 +108,7 @@ def translate_custom_style(style: str) -> tuple[dict, list[str]]:
 					"padding-bottom": "inset_bottom",
 					"gap": "gap",
 				}[prop]
-				effects[key] = round(float(match.group(1)) * PX_TO_PT, 2)
+				effects[key] = pt(match.group(1))
 			else:
 				unknown.append(f"{prop}: {value}")
 		# flex-direction / align-items describe what the structured layout
@@ -236,6 +246,22 @@ def typst_font_paths() -> list[str]:
 	return [os.path.abspath(path)] if os.path.isdir(path) else []
 
 
+def compile_typst_source(source: str) -> bytes:
+	"""Compile standalone Typst markup in a confined tempdir, against the same
+	font set prints use."""
+	import os
+	import tempfile
+
+	import typst
+
+	with tempfile.TemporaryDirectory() as tmp:
+		path = os.path.join(tmp, "main.typ")
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+		with open(path, "w") as f:
+			f.write(source)
+		return typst.compile(path, root=tmp, font_paths=typst_font_paths())
+
+
 def ensure_typst_fonts(family: str | None):
 	"""Fetch the format's Google Font as TTFs into the site's font cache.
 
@@ -360,6 +386,10 @@ def safe_color(value, default=None):
 	return default
 
 
+def muted_text(text, color=MUTED) -> str:
+	return f'#text(size: 0.85em, fill: rgb("{color}"), {q(text)})'
+
+
 def _aligned(body: str, align) -> str:
 	if body and align in ("center", "right"):
 		return f"#align({align})[{body}]"
@@ -382,7 +412,7 @@ def _text_value(html_ish: str) -> str:
 		return value
 	value = re.sub(r"<br\s*/?>", "\n", value, flags=re.I)
 	value = re.sub(r"</(p|div|tr|li|h[1-6])>", "\n", value, flags=re.I)
-	value = re.sub(r"<[^>]+>", "", value)
+	value = frappe.utils.strip_html(value)
 	return unescape_html(value).strip()
 
 
@@ -434,9 +464,9 @@ class TypstEmitter:
 		width = frappe.utils.flt(lh.get(f"{prefix}image_width"))
 		height = frappe.utils.flt(lh.get(f"{prefix}image_height"))
 		if width:
-			args.append(f"width: {round(width * PX_TO_PT, 2)}pt")
+			args.append(f"width: {pt(width)}pt")
 		elif height:
-			args.append(f"height: {round(height * PX_TO_PT, 2)}pt")
+			args.append(f"height: {pt(height)}pt")
 		body = f"#image({', '.join(args)})"
 		return _aligned(body, (lh.get(f"{prefix}align") or "Left").lower())
 
@@ -500,7 +530,7 @@ class TypstEmitter:
 			# the translated word must stay literal content — inside a display()
 			# pattern, letters like "i" or "v" ("di", "van") count pages
 			slots[slot].append(
-				f'[#context [#set text(size: 7pt, fill: rgb("#6b7280"))\n'
+				f'[#context [#set text(size: 7pt, fill: rgb("{MUTED}"))\n'
 				f"  #set align({align})\n"
 				f'  #counter(page).display("1")#text({q(" " + _("of") + " ")})#counter(page).final().first()]]'
 			)
@@ -522,7 +552,7 @@ class TypstEmitter:
 
 	def _text_setup(self) -> str:
 		pf = self.print_format
-		size_pt = round((frappe.utils.flt(pf.font_size) or 14) * PX_TO_PT, 2)
+		size_pt = pt(pf.font_size, 14)
 		args = [f"size: {size_pt}pt"]
 		if pf.get("font") and pf.font != "Default":
 			args.append(f'font: ({q(pf.font)}, "Libertinus Serif")')
@@ -553,8 +583,8 @@ class TypstEmitter:
 		out = f"#block({', '.join(block_args)})[\n{body}\n]"
 		out = self._apply_style_effects(out, section.get("custom_style"))
 		margin = section.get("margin") or {}
-		top = round(frappe.utils.flt(margin.get("top")) * PX_TO_PT, 2)
-		bottom = round(frappe.utils.flt(margin.get("bottom")) * PX_TO_PT, 2)
+		top = pt(margin.get("top"))
+		bottom = pt(margin.get("bottom"))
 		if top:
 			out = f"#v({top}pt)\n{out}"
 		return out + f"\n#v({bottom + 6}pt)"
@@ -562,10 +592,10 @@ class TypstEmitter:
 	def _section_block_args(self, section) -> list[str]:
 		args = ["width: 100%"]
 		if section.get("field_borders"):
-			args.append('stroke: 0.6pt + rgb("#e5e7eb")')
+			args.append(f"stroke: {HAIRLINE}")
 			args.append("radius: 4pt")
 			pad = frappe.utils.flt(section.get("cell_padding"), 0) or 8
-			args.append(f"inset: {round(pad * PX_TO_PT, 2)}pt")
+			args.append(f"inset: {pt(pad)}pt")
 			args.append("clip: true")
 		background = safe_color(section.get("background"))
 		if background:
@@ -574,14 +604,11 @@ class TypstEmitter:
 		if padding and not section.get("field_borders"):
 			args.append(
 				"inset: (top: {top}pt, bottom: {bottom}pt, left: {left}pt, right: {right}pt)".format(
-					**{
-						k: round(frappe.utils.flt(padding.get(k)) * PX_TO_PT, 2)
-						for k in ("top", "bottom", "left", "right")
-					}
+					**{k: pt(padding.get(k)) for k in ("top", "bottom", "left", "right")}
 				)
 			)
 		if section.get("radius") is not None and not section.get("field_borders"):
-			args.append(f"radius: {round(frappe.utils.flt(section['radius']) * PX_TO_PT, 2)}pt")
+			args.append(f"radius: {pt(section['radius'])}pt")
 		if section.get("keep_together"):
 			args.append("breakable: false")
 		return args
@@ -592,11 +619,8 @@ class TypstEmitter:
 		if style_gap is not None:
 			gap_pt = style_gap
 		else:
-			gap_pt = round(frappe.utils.flt(gap if gap is not None else 20) * PX_TO_PT, 2)
-		widths = []
-		for column in columns:
-			width = frappe.utils.flt(column.get("width"))
-			widths.append(f"{width}fr" if width else "1fr")
+			gap_pt = pt(gap if gap is not None else 20)
+		widths = _fr_widths(columns)
 
 		justify = section.get("justify")
 		cells = [f"[{body or ''}]" for body in rendered_columns]
@@ -628,15 +652,13 @@ class TypstEmitter:
 		if len(cells) == 1:
 			return cells[0][1:-1]
 		if section.get("field_borders") and section.get("grid_borders") != "rows":
-			pad = round((frappe.utils.flt(section.get("cell_padding"), 0) or 8) * PX_TO_PT, 2)
+			pad = pt(section.get("cell_padding"), 8)
 			# both HTML surfaces force gap to 0 in bordered mode — spacing comes
 			# from the cell padding on either side of the divider
 			gutter = pad
 			divided = [cells[0]]
 			for cell in cells[1:]:
-				divided.append(
-					f'grid.cell(stroke: (left: 0.6pt + rgb("#e5e7eb")), inset: (left: {pad}pt))' + cell
-				)
+				divided.append(f"grid.cell(stroke: (left: {HAIRLINE}), inset: (left: {pad}pt))" + cell)
 			return (
 				f"#grid(columns: ({', '.join(widths)}), column-gutter: {gutter}pt, align: top,\n"
 				+ ",\n".join(divided)
@@ -654,9 +676,9 @@ class TypstEmitter:
 		if not parts:
 			return ""
 		if section.get("field_borders") and section.get("grid_borders") != "columns" and len(parts) > 1:
-			pad = round((frappe.utils.flt(section.get("cell_padding"), 0) or 8) * PX_TO_PT, 2)
+			pad = pt(section.get("cell_padding"), 8)
 			ruled = [
-				f'#block(width: 100%, stroke: (bottom: 0.6pt + rgb("#e5e7eb")), inset: (bottom: {pad}pt))[{p}]'
+				f"#block(width: 100%, stroke: (bottom: {HAIRLINE}), inset: (bottom: {pad}pt))[{p}]"
 				for p in parts[:-1]
 			] + [parts[-1]]
 			return f"#stack(spacing: {pad}pt,\n" + ",\n".join(f"[{p}]" for p in ruled) + ")"
@@ -711,7 +733,7 @@ class TypstEmitter:
 			return '#line(length: 100%, stroke: 0.6pt + rgb("#d1d5db"))'
 		if fieldtype == "Spacer":
 			height = frappe.utils.flt(df.get("height")) or 13
-			return f"#v({round(height * PX_TO_PT, 2)}pt)"
+			return f"#v({pt(height)}pt)"
 		if fieldtype == "Table":
 			return self._table(df)
 		if fieldtype == "Barcode":
@@ -745,19 +767,25 @@ class TypstEmitter:
 			return _("Yes") if frappe.utils.cint(value) else _("No")
 		return _text_value(self.doc.get_formatted(fieldname))
 
+	def _label_color(self, df=None) -> str:
+		return (
+			(safe_color(df.get("label_color")) if df else None)
+			or safe_color(self.print_format.get("label_color"))
+			or MUTED
+		)
+
 	def _data_field(self, section, df) -> str:
 		value = self._formatted_value(df)
 		if not value:
 			return ""
-		pf = self.print_format
 		show_label = df.get("show_label") or "show"
 		inline = show_label == "inline" or section.get("field_orientation") == "left-right"
 
-		label_color = safe_color(df.get("label_color")) or safe_color(pf.get("label_color")) or "#6b7280"
+		label_color = self._label_color(df)
 		value_color = safe_color(df.get("value_color"))
 		label = ""
 		if show_label != "hide" and df.get("label"):
-			label = f'#text(size: 0.85em, fill: rgb("{label_color}"), {q(_(df["label"]))})'
+			label = muted_text(_(df["label"]), label_color)
 		value_args = [q(value)]
 		if value_color:
 			value_args.insert(0, f'fill: rgb("{value_color}")')
@@ -770,7 +798,7 @@ class TypstEmitter:
 			gap_pt = gap_effect
 			if gap_pt is None:
 				gap = df.get("label_gap")
-				gap_pt = round(frappe.utils.flt(gap) * PX_TO_PT, 2) if gap else 4
+				gap_pt = pt(gap) if gap else 4
 			if align in ("right",):
 				body = f"#grid(columns: (1fr, auto), column-gutter: {gap_pt}pt, [{label}], [#align(right)[{value_text}]])"
 			else:
@@ -835,7 +863,7 @@ class TypstEmitter:
 		if value.endswith("px"):
 			value = value[:-2]
 		try:
-			return f"{round(float(value) * PX_TO_PT, 2)}pt"
+			return f"{pt(value)}pt"
 		except ValueError:
 			return None
 
@@ -946,7 +974,7 @@ class TypstEmitter:
 				body_cells.append(self._table_cell(row, col))
 
 		bordered = df.get("table_bordered")
-		stroke = '0.6pt + rgb("#e5e7eb")' if bordered is None or bordered else "none"
+		stroke = HAIRLINE if bordered is None or bordered else "none"
 		header_bg = safe_color(df.get("table_header_bg")) or "#f3f4f6"
 		show_header = df.get("table_header") is None or df.get("table_header")
 
@@ -954,7 +982,7 @@ class TypstEmitter:
 			f"columns: ({', '.join(widths)})",
 			f"align: ({', '.join(aligns)},)",
 			f"stroke: {stroke}",
-			f"inset: {round((frappe.utils.flt(df.get('table_cell_padding'), 0) or 8) * PX_TO_PT, 2)}pt",
+			f"inset: {pt(df.get('table_cell_padding'), 8)}pt",
 		]
 		if show_header:
 			parts.append(f'fill: (_, row) => if row == 0 {{ rgb("{header_bg}") }}')
@@ -967,8 +995,7 @@ class TypstEmitter:
 	def _block_label(self, df) -> str:
 		if not df.get("label") or (df.get("show_label") or "show") == "hide":
 			return ""
-		label_color = safe_color(self.print_format.get("label_color")) or "#6b7280"
-		return f'#text(size: 0.85em, fill: rgb("{label_color}"), {q(_(df["label"]))})\n#v(3pt)\n'
+		return muted_text(_(df["label"]), self._label_color()) + "\n#v(3pt)\n"
 
 	def _table_cell(self, row, col) -> str:
 		merged = col.get("merged_fields")
@@ -996,7 +1023,7 @@ class TypstEmitter:
 					lines.append(f"#text(weight: 500, {q(value)})")
 					first_text = False
 				else:
-					lines.append(f'#text(size: 0.85em, fill: rgb("#6b7280"), {q(value)})')
+					lines.append(muted_text(value))
 			if not lines:
 				body = ""
 			elif len(lines) == 1:
@@ -1028,7 +1055,7 @@ class TypstEmitter:
 		return f"#text({q(_text_value(row.get_formatted(fieldname)))})"
 
 	def _table_thumb(self, row, col, img_fn, merged) -> str:
-		size = round((frappe.utils.cint(col.get("image_size")) or 40) * PX_TO_PT, 2)
+		size = pt(frappe.utils.cint(col.get("image_size")), 40)
 		src = str(row.get(img_fn) or "")
 		img_type = next((mf.get("fieldtype") for mf in merged if mf.get("fieldname") == img_fn), None)
 		# a plain Attach can hold any file — embedding a PDF would abort the compile

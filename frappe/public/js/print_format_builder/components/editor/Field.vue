@@ -226,23 +226,13 @@
 						<span class="es-badge">{{ short_fieldtype }}</span>
 						<div class="field-actions">
 							<button
-								v-if="df.fieldtype == 'HTML'"
+								v-if="code_edit"
 								class="es-button"
 								data-size="xs"
 								data-variant="ghost"
 								data-icon-button="true"
-								:title="__('Edit HTML')"
-								@click.stop="edit_html"
-								v-html="frappe.utils.icon('pencil', 'sm')"
-							></button>
-							<button
-								v-if="df.fieldtype == 'Typst'"
-								class="es-button"
-								data-size="xs"
-								data-variant="ghost"
-								data-icon-button="true"
-								:title="__('Edit Typst')"
-								@click.stop="edit_typst"
+								:title="code_edit.title"
+								@click.stop="code_edit.open"
 								v-html="frappe.utils.icon('pencil', 'sm')"
 							></button>
 							<button
@@ -528,38 +518,44 @@ let short_fieldtype = computed(() => {
 	return map[props.df.fieldtype] || props.df.fieldtype?.substring(0, 5) || "";
 });
 
-function edit_html() {
+let code_edit = computed(() => {
+	if (props.df.fieldtype == "HTML") return { title: __("Edit HTML"), open: edit_html };
+	if (props.df.fieldtype == "Typst") return { title: __("Edit Typst"), open: edit_typst };
+	return null;
+});
+
+function edit_code({ title, key, field, clean }) {
 	let d = new frappe.ui.Dialog({
-		title: __("Edit HTML"),
-		fields: [{ label: __("HTML"), fieldname: "html", fieldtype: "Code", options: "HTML" }],
-		primary_action: ({ html }) => {
-			html = frappe.dom.remove_script_and_style(html);
-			props.df["html"] = html;
+		title,
+		fields: [{ fieldname: key, fieldtype: "Code", ...field }],
+		primary_action: (values) => {
+			props.df[key] = clean(values[key]);
 			d.hide();
 		},
 	});
-	d.set_value("html", props.df.html);
+	d.set_value(key, props.df[key]);
 	d.show();
 }
 
-function edit_typst() {
-	let d = new frappe.ui.Dialog({
-		title: __("Edit Typst"),
-		fields: [
-			{
-				label: __("Typst Markup"),
-				fieldname: "typst",
-				fieldtype: "Code",
-				description: __("Use {0} for values from the document.", ["{{ doc.field_name }}"]),
-			},
-		],
-		primary_action: ({ typst }) => {
-			props.df["typst"] = typst || "";
-			d.hide();
-		},
+function edit_html() {
+	edit_code({
+		title: __("Edit HTML"),
+		key: "html",
+		field: { label: __("HTML"), options: "HTML" },
+		clean: (html) => frappe.dom.remove_script_and_style(html),
 	});
-	d.set_value("typst", props.df.typst);
-	d.show();
+}
+
+function edit_typst() {
+	edit_code({
+		title: __("Edit Typst"),
+		key: "typst",
+		field: {
+			label: __("Typst Markup"),
+			description: __("Use {0} for values from the document.", ["{{ doc.field_name }}"]),
+		},
+		clean: (typst) => typst || "",
+	});
 }
 
 function save_as_snippet() {
