@@ -7,48 +7,19 @@
 				{{ __("Choose a starting point for your print format.") }}
 			</p>
 			<div class="pfb-setup-options">
-				<button class="pfb-setup-option" @click="$emit('start-default')">
+				<button
+					v-for="opt in options"
+					:key="opt.event"
+					class="pfb-setup-option"
+					@click="$emit(opt.event)"
+				>
 					<div
 						class="pfb-setup-option-icon"
-						v-html="frappe.utils.icon('list', 'md')"
+						v-html="frappe.utils.icon(opt.icon, 'md')"
 					></div>
 					<div class="pfb-setup-option-body">
-						<div class="pfb-setup-option-label">{{ __("Start from default") }}</div>
-						<div class="pfb-setup-option-desc">
-							{{ __("Pre-filled with all document fields. Customize from there.") }}
-						</div>
-					</div>
-					<div
-						class="pfb-setup-option-arrow"
-						v-html="frappe.utils.icon('chevron-right', 'xs')"
-					></div>
-				</button>
-				<button class="pfb-setup-option" @click="$emit('start-blank')">
-					<div
-						class="pfb-setup-option-icon"
-						v-html="frappe.utils.icon('plus', 'md')"
-					></div>
-					<div class="pfb-setup-option-body">
-						<div class="pfb-setup-option-label">{{ __("Start blank") }}</div>
-						<div class="pfb-setup-option-desc">
-							{{ __("Empty canvas. Drag and drop fields to build from scratch.") }}
-						</div>
-					</div>
-					<div
-						class="pfb-setup-option-arrow"
-						v-html="frappe.utils.icon('chevron-right', 'xs')"
-					></div>
-				</button>
-				<button class="pfb-setup-option" @click="$emit('start-html')">
-					<div
-						class="pfb-setup-option-icon"
-						v-html="frappe.utils.icon('code', 'md')"
-					></div>
-					<div class="pfb-setup-option-body">
-						<div class="pfb-setup-option-label">{{ __("Write HTML") }}</div>
-						<div class="pfb-setup-option-desc">
-							{{ __("Full control with HTML and Jinja, edited on the form.") }}
-						</div>
+						<div class="pfb-setup-option-label">{{ opt.label }}</div>
+						<div class="pfb-setup-option-desc">{{ opt.desc }}</div>
 					</div>
 					<div
 						class="pfb-setup-option-arrow"
@@ -62,6 +33,27 @@
 
 <script setup>
 defineEmits(["start-default", "start-blank", "start-html"]);
+
+const options = [
+	{
+		event: "start-default",
+		icon: "list",
+		label: __("Start from default"),
+		desc: __("Pre-filled with all document fields. Customize from there."),
+	},
+	{
+		event: "start-blank",
+		icon: "plus",
+		label: __("Start blank"),
+		desc: __("Empty canvas. Drag and drop fields to build from scratch."),
+	},
+	{
+		event: "start-html",
+		icon: "code",
+		label: __("Write HTML"),
+		desc: __("Full control with HTML and Jinja, edited on the form."),
+	},
+];
 </script>
 
 <style scoped>
