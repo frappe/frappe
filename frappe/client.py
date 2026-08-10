@@ -95,18 +95,13 @@ def get_count(
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def get(doctype, name=None, filters=None, parent=None):
-	"""Returns a document by name or filters
-=======
 def get(
 	doctype: str,
 	name: str | int | None = None,
 	filters: str | list | dict[str, Any] | None = None,
 	parent: str | None = None,
 ):
-	"""Return a document by name or filters.
->>>>>>> c55ff193a6 (fix: add type hints to whitelisted methods 3 (#37149))
+	"""Returns a document by name or filters
 
 	:param doctype: DocType of the document to be returned
 	:param name: return document of this `name`
@@ -128,10 +123,6 @@ def get(
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, parent=None):
-	"""Returns a value form a document
-=======
 def get_value(
 	doctype: str,
 	fieldname: str | list[str] | dict[str, Any],
@@ -141,7 +132,6 @@ def get_value(
 	parent: str | None = None,
 ):
 	"""Return a value from a document.
->>>>>>> c55ff193a6 (fix: add type hints to whitelisted methods 3 (#37149))
 
 	:param doctype: DocType to be queried
 	:param fieldname: Field to be returned (default `name`)
@@ -449,12 +439,7 @@ def attach_file(
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
 def is_document_amended(doctype: str, docname: str):
-=======
-@http_cache(max_age=10 * 60)
-def is_document_amended(doctype: str, docname: str | int):
->>>>>>> c55ff193a6 (fix: add type hints to whitelisted methods 3 (#37149))
 	if frappe.permissions.has_permission(doctype):
 		try:
 			return frappe.db.exists(doctype, {"amended_from": docname})
@@ -464,25 +449,10 @@ def is_document_amended(doctype: str, docname: str | int):
 	return False
 
 
-<<<<<<< HEAD
 @frappe.whitelist()
 def validate_link(doctype: str, docname: str, fields: list[str] | str | None = None):
 	if not isinstance(doctype, str):
 		frappe.throw(_("DocType must be a string"))
-=======
-@frappe.whitelist(methods=["GET", "POST"])
-def validate_link_and_fetch(
-	doctype: str,
-	docname: str | int,
-	fields_to_fetch: list[str] | str | None = None,
-	# search_widget parameters
-	query: str | None = None,
-	filters: dict | list | str | None = None,
-	**search_args,
-):
-	if not docname:
-		frappe.throw(_("Document Name must not be empty"))
->>>>>>> c55ff193a6 (fix: add type hints to whitelisted methods 3 (#37149))
 
 	if not isinstance(docname, str):
 		frappe.throw(_("Document Name must be a string"))

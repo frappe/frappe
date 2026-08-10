@@ -119,7 +119,6 @@ class Webhook(Document):
 				frappe.throw(_("Invalid Webhook Secret"))
 
 	@frappe.whitelist()
-<<<<<<< HEAD
 	def generate_preview(self):
 		# This function doesn't need to do anything specific as virtual fields
 		# get evaluated automatically.
@@ -127,9 +126,6 @@ class Webhook(Document):
 
 	@property
 	def meets_condition(self):
-=======
-	def preview_meets_condition(self, preview_document: str):
->>>>>>> c55ff193a6 (fix: add type hints to whitelisted methods 3 (#37149))
 		if not self.condition:
 			return _("Yes")
 
@@ -143,16 +139,11 @@ class Webhook(Document):
 			return _("Failed to evaluate conditions: {}").format(str(e))
 		return _("Yes") if met_condition else _("No")
 
-<<<<<<< HEAD
 	@property
 	def preview_request_body(self):
 		if not (self.preview_document and self.webhook_doctype):
 			return _("Select a document to preview request data")
 
-=======
-	@frappe.whitelist()
-	def preview_request_body(self, preview_document: str):
->>>>>>> c55ff193a6 (fix: add type hints to whitelisted methods 3 (#37149))
 		try:
 			doc = frappe.get_cached_doc(self.webhook_doctype, self.preview_document)
 			return frappe.as_json(get_webhook_data(doc, self))

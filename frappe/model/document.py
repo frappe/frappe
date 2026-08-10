@@ -1108,30 +1108,7 @@ class Document(BaseDocument):
 		return self._cancel()
 
 	@frappe.whitelist()
-<<<<<<< HEAD
-	def rename(self, name: str, merge=False, force=False, validate_rename=True):
-=======
-	def discard(self):
-		"""Discard the draft document. Sets `docstatus` = 2 with db_set."""
-		self._action = "discard"
-
-		self.check_if_locked()
-		self.set_user_and_timestamp()
-		self.check_if_latest()
-
-		if not self.docstatus.is_draft():
-			raise frappe.ValidationError(_("Only draft documents can be discarded"), self.docstatus)
-
-		self.check_permission("write")
-
-		self.run_method("before_discard")
-		self.db_set("docstatus", DocStatus.CANCELLED)
-		delattr(self, "_action")
-		self.run_method("on_discard")
-
-	@frappe.whitelist()
 	def rename(self, name: str | int, merge: bool = False, force: bool = False, validate_rename: bool = True):
->>>>>>> c55ff193a6 (fix: add type hints to whitelisted methods 3 (#37149))
 		"""Rename the document to `name`. This transforms the current object."""
 		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
 

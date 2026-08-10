@@ -18,9 +18,6 @@ if TYPE_CHECKING:
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def add(doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, notify=0):
-=======
 def add(
 	doctype: str,
 	name: str | int,
@@ -33,7 +30,6 @@ def add(
 	notify: str | bool | int = 0,
 	**kwargs,
 ):
->>>>>>> c55ff193a6 (fix: add type hints to whitelisted methods 3 (#37149))
 	"""Expose function without flags to the client-side"""
 	return add_docshare(
 		doctype,

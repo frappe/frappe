@@ -154,11 +154,7 @@ def apply_action(
 		return_link_expired_page(doc, doc_workflow_state)
 
 
-<<<<<<< HEAD
 @frappe.whitelist()
-=======
-@frappe.whitelist(allow_guest=True)
->>>>>>> c55ff193a6 (fix: add type hints to whitelisted methods 3 (#37149))
 def confirm_action(doctype: str, docname: str | int, user: str, action: str):
 	if not verify_request():
 		return
