@@ -2604,6 +2604,78 @@ class TestQuery(IntegrationTestCase):
 			for dt in filter(None, [parent_dt, second_child_dt, child_dt, target_dt]):
 				frappe.delete_doc("DocType", dt.name, force=True, ignore_permissions=True)
 
+	def test_child_user_permissions_in_strict_mode(self):
+		from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
+
+		test_user = "test2@example.com"
+		test_user_doc = frappe.get_doc("User", test_user)
+		self.ensure_system_manager(test_user_doc, should_have=True)
+		self.addCleanup(lambda: frappe.set_user("Administrator"))
+
+		target_dt = child_dt = parent_dt = None
+		try:
+			target_dt = new_doctype().insert()
+			child_dt = new_doctype(
+				istable=1,
+				fields=[
+					{
+						"fieldname": "linked_document",
+						"fieldtype": "Link",
+						"options": target_dt.name,
+						"label": "Linked Document",
+					},
+					{"fieldname": "note", "fieldtype": "Data", "label": "Note"},
+				],
+			).insert()
+			parent_dt = new_doctype(
+				fields=[
+					{
+						"fieldname": "rows",
+						"fieldtype": "Table",
+						"options": child_dt.name,
+						"label": "Rows",
+					}
+				],
+			).insert()
+
+			allowed = frappe.new_doc(target_dt.name).insert()
+			linked_parent = frappe.get_doc(
+				doctype=parent_dt.name, rows=[{"linked_document": allowed.name}]
+			).insert()
+			empty_link_parent = frappe.get_doc(doctype=parent_dt.name, rows=[{"note": "empty link"}]).insert()
+
+			clear_user_permissions_for_doctype(target_dt.name, test_user)
+			add_user_permission(
+				target_dt.name,
+				allowed.name,
+				test_user,
+				ignore_permissions=True,
+				applicable_for=parent_dt.name,
+			)
+			frappe.set_user(test_user)
+
+			def visible_parents():
+				return frappe.qb.get_query(
+					parent_dt.name,
+					ignore_permissions=False,
+					apply_child_user_permissions=True,
+					user=test_user,
+				).run(pluck=True)
+
+			with self.change_settings("System Settings", {"apply_strict_user_permissions": 0}):
+				self.assertTrue(frappe.has_permission(parent_dt.name, doc=empty_link_parent, user=test_user))
+				self.assertCountEqual(visible_parents(), [linked_parent.name, empty_link_parent.name])
+
+			with self.change_settings("System Settings", {"apply_strict_user_permissions": 1}):
+				self.assertFalse(frappe.has_permission(parent_dt.name, doc=empty_link_parent, user=test_user))
+				self.assertListEqual(visible_parents(), [linked_parent.name])
+		finally:
+			frappe.set_user("Administrator")
+			if target_dt:
+				clear_user_permissions_for_doctype(target_dt.name, test_user)
+			for dt in filter(None, [parent_dt, child_dt, target_dt]):
+				frappe.delete_doc("DocType", dt.name, force=True, ignore_permissions=True)
+
 	def test_child_table_filters_orphaned_rows(self):
 		"""Test that child table queries filter out orphaned rows (rows without valid parent)."""
 		test_user = "test2@example.com"
