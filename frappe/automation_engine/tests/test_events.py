@@ -5,6 +5,7 @@ import json
 
 import frappe
 from frappe.automation_engine import emit
+from frappe.automation_engine.events import registered_events, validate_event
 from frappe.automation_engine.registry import clear_automation_cache
 from frappe.automation_engine.runner import execute_automation
 from frappe.automation_engine.tests.test_runner import make_automation
@@ -149,3 +150,39 @@ class TestAutomationEvents(IntegrationTestCase):
 			.insert(ignore_permissions=True)
 			.name
 		)
+
+
+class TestRegisteredEvents(IntegrationTestCase):
+	"""Apps may register a bare name or a {name: schema} map; builders read the schema."""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		clear_automation_cache()
+
+	def tearDown(self):
+		clear_automation_cache()
+
+	def _events(self, hooks) -> dict:
+		with self.patch_hooks({"automation_events": hooks}):
+			clear_automation_cache()
+			return {item["value"]: item for item in registered_events()}
+
+	def test_bare_name_gets_a_readable_label(self):
+		events = self._events(["tests.thing_happened"])
+
+		self.assertEqual(events["tests.thing_happened"]["label"], "Thing happened")
+		self.assertEqual(events["tests.thing_happened"]["correlation_options"], [])
+
+	def test_schema_supplies_label_and_correlation_options(self):
+		options = [{"label": "This record", "value": "{{ doc.name }}"}]
+		events = self._events([{"tests.replied": {"label": "They replied", "correlation_options": options}}])
+
+		self.assertEqual(events["tests.replied"]["label"], "They replied")
+		self.assertEqual(events["tests.replied"]["correlation_options"], options)
+
+	def test_a_registered_event_still_validates(self):
+		with self.patch_hooks({"automation_events": [{"tests.replied": {}}]}):
+			clear_automation_cache()
+			validate_event("tests.replied")
+			with self.assertRaises(frappe.ValidationError):
+				validate_event("tests.unknown")
