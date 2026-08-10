@@ -52,7 +52,8 @@ export function subscribeToDoc(
 ): () => void {
   if (!socket) return () => {};
 
-  const key = `${doctype} ${docname}`;
+  // Doctypes and docnames both allow spaces, so a delimited key is ambiguous.
+  const key = JSON.stringify([doctype, docname]);
   const room = rooms.get(key) ?? { doctype, docname, holders: 0 };
   if (room.holders === 0) socket.emit("doc_subscribe", doctype, docname);
   room.holders += 1;
