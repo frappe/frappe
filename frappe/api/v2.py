@@ -65,7 +65,7 @@ def read_doc(doctype: str, name: str):
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
 	doc.apply_fieldlevel_read_permissions()
-	return doc
+	return doc.as_dict()
 
 
 def document_list(doctype: str):
@@ -95,7 +95,7 @@ def create_doc(doctype: str):
 	if (name := data.get("name")) and isinstance(name, str | int):
 		doc.flags.name_set = True
 
-	return doc.insert()
+	return doc.insert().as_dict()
 
 
 def copy_doc(doctype: str, name: str, ignore_no_copy: bool = True):
@@ -122,7 +122,7 @@ def update_doc(doctype: str, name: str):
 	if doc.get("parenttype"):
 		frappe.get_doc(doc.parenttype, doc.parent).save()
 
-	return doc
+	return doc.as_dict()
 
 
 def delete_doc(doctype: str, name: str):
@@ -148,7 +148,10 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	doc.is_whitelisted(method)
 
 	doc.check_permission(PERMISSION_MAP[frappe.request.method])
-	return doc.run_method(method, **frappe.form_dict)
+	result = doc.run_method(method, **frappe.form_dict)
+	doc.apply_fieldlevel_read_permissions()
+	frappe.response.docs.append(doc.as_dict())
+	return result
 
 
 def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
