@@ -3,11 +3,7 @@
 
 import json
 import os
-<<<<<<< HEAD
 from typing import TYPE_CHECKING
-=======
-from typing import Any
->>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 
 import frappe
 from frappe import _, scrub
@@ -743,11 +739,7 @@ def get_web_form_module(doc):
 
 @frappe.whitelist(methods=["POST", "PUT"], allow_guest=True)
 @rate_limit(key="web_form", limit=10, seconds=60)
-<<<<<<< HEAD
 def accept(web_form: str, data: str | dict, web_form_request_key: str | None = None):
-=======
-def accept(web_form: str, data: str):
->>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 	"""Save the web form"""
 	data = frappe._dict(json.loads(data))
 
@@ -920,14 +912,9 @@ def delete(web_form_name: str, docname: str | int, web_form_request_key: str | N
 		frappe.throw(_("Not Allowed"), frappe.PermissionError)
 
 
-<<<<<<< HEAD
 @frappe.whitelist(methods=["POST", "DELETE"])
 @rate_limit(key="web_form_name", limit=10, seconds=60)
 def delete_multiple(web_form_name: str, docnames: str | list):
-=======
-@frappe.whitelist()
-def delete_multiple(web_form_name: str, docnames: str):
->>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
 	web_form.raise_if_unpublished()
 
@@ -1079,7 +1066,6 @@ def get_form_data(
 	return out
 
 
-<<<<<<< HEAD
 def get_web_form_list_fields(web_form_doc: "WebForm", web_form_request_key: str | None = None) -> list[str]:
 	if web_form_doc.list_columns:
 		fields = [col.fieldname for col in web_form_doc.list_columns]
@@ -1096,10 +1082,6 @@ def get_web_form_list_fields(web_form_doc: "WebForm", web_form_request_key: str 
 
 
 def get_in_list_view_fields(doctype, web_form_name=None, web_form_request_key=None, docname=None):
-=======
-@frappe.whitelist()
-def get_in_list_view_fields(doctype: str):
->>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 	meta = frappe.get_meta(doctype)
 	fields = []
 
