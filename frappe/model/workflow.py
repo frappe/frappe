@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 import json
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Union
 
 import frappe
 from frappe import _
@@ -37,7 +37,7 @@ def get_workflow_name(doctype):
 
 @frappe.whitelist()
 def get_transitions(
-	doc: Document | str | dict, workflow: Workflow | None = None, raise_exception: bool = False
+	doc: Union["Document", str, dict], workflow: "Workflow" = None, raise_exception: bool = False
 ) -> list[dict]:
 	"""Return list of possible transitions for the given doc"""
 	from frappe.model.document import Document
@@ -96,7 +96,7 @@ def is_transition_condition_satisfied(transition, doc) -> bool:
 
 
 @frappe.whitelist()
-def apply_workflow(doc: Document | str | dict, action: str):
+def apply_workflow(doc: "Document | str | dict", action: str):
 	"""Allow workflow action on the current doc"""
 	doc = frappe.get_doc(frappe.parse_json(doc))
 	doc.load_from_db()
