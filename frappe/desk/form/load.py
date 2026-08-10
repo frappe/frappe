@@ -180,11 +180,14 @@ def add_comments(doc, docinfo):
 	return comments
 
 
-def get_milestones(doctype, name):
+def get_milestones(doctype, name, limit=10):
+	# Newest first and capped, like versions: a long-lived document accumulates these without end.
 	return frappe.get_all(
 		"Milestone",
 		fields=["name", "creation", "owner", "track_field", "value"],
 		filters=dict(reference_type=doctype, reference_name=str(name)),
+		limit=limit,
+		order_by="creation desc",
 	)
 
 
