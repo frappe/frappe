@@ -2464,20 +2464,20 @@ class TestQuery(IntegrationTestCase):
 		self.ensure_system_manager(test_user_doc, should_have=True)
 		self.addCleanup(lambda: frappe.set_user("Administrator"))
 
-		target_dt = child_dt = parent_dt = None
+		target_dt = child_dt = second_child_dt = parent_dt = None
+		shared_parent = None
 		try:
 			target_dt = new_doctype().insert()
-			child_dt = new_doctype(
-				istable=1,
-				fields=[
-					{
-						"fieldname": "linked_document",
-						"fieldtype": "Link",
-						"options": target_dt.name,
-						"label": "Linked Document",
-					}
-				],
-			).insert()
+			child_fields = [
+				{
+					"fieldname": "linked_document",
+					"fieldtype": "Link",
+					"options": target_dt.name,
+					"label": "Linked Document",
+				}
+			]
+			child_dt = new_doctype(istable=1, fields=child_fields).insert()
+			second_child_dt = new_doctype(istable=1, fields=child_fields).insert()
 			parent_dt = new_doctype(
 				fields=[
 					{
@@ -2485,23 +2485,48 @@ class TestQuery(IntegrationTestCase):
 						"fieldtype": "Table",
 						"options": child_dt.name,
 						"label": "Rows",
-					}
+					},
+					{
+						"fieldname": "second_rows",
+						"fieldtype": "Table",
+						"options": second_child_dt.name,
+						"label": "Second Rows",
+					},
 				],
 			).insert()
 
 			allowed = frappe.new_doc(target_dt.name).insert()
 			restricted = frappe.new_doc(target_dt.name).insert()
-			frappe.get_doc(
+			allowed_parent = frappe.get_doc(
+				doctype=parent_dt.name,
+				rows=[{"linked_document": allowed.name}],
+				second_rows=[{"linked_document": allowed.name}],
+			).insert()
+			mixed_parent = frappe.get_doc(
 				doctype=parent_dt.name,
 				rows=[{"linked_document": allowed.name}, {"linked_document": restricted.name}],
+				second_rows=[{"linked_document": allowed.name}],
+			).insert()
+			restricted_second_child_parent = frappe.get_doc(
+				doctype=parent_dt.name,
+				rows=[{"linked_document": allowed.name}],
+				second_rows=[{"linked_document": restricted.name}],
 			).insert()
 
 			clear_user_permissions_for_doctype(target_dt.name, test_user)
-			add_user_permission(target_dt.name, allowed.name, test_user, ignore_permissions=True)
+			add_user_permission(
+				target_dt.name,
+				allowed.name,
+				test_user,
+				ignore_permissions=True,
+				applicable_for=parent_dt.name,
+			)
 			frappe.set_user(test_user)
+			self.assertTrue(frappe.has_permission(parent_dt.name, doc=allowed_parent, user=test_user))
+			self.assertFalse(frappe.has_permission(parent_dt.name, doc=mixed_parent, user=test_user))
 
 			query_args = {
-				"fields": ["linked_document"],
+				"fields": ["parent", "linked_document"],
 				"parent_doctype": parent_dt.name,
 				"ignore_permissions": False,
 			}
@@ -2510,18 +2535,31 @@ class TestQuery(IntegrationTestCase):
 				child_dt.name, apply_child_user_permissions=False, **query_args
 			)
 			self.assertEqual(str(default_query), str(explicit_disabled_query))
-			self.assertSetEqual(
-				{row.linked_document for row in default_query.run(as_dict=True)},
-				{allowed.name, restricted.name},
+			self.assertCountEqual(
+				[row.parent for row in default_query.run(as_dict=True)],
+				[
+					allowed_parent.name,
+					mixed_parent.name,
+					mixed_parent.name,
+					restricted_second_child_parent.name,
+				],
 			)
 
-			permission_aware_query = frappe.qb.get_query(
+			permission_aware_child_query = frappe.qb.get_query(
 				child_dt.name, apply_child_user_permissions=True, **query_args
 			)
+			self.assertIn("NOT EXISTS", str(permission_aware_child_query))
 			self.assertListEqual(
-				[row.linked_document for row in permission_aware_query.run(as_dict=True)],
-				[allowed.name],
+				[row.parent for row in permission_aware_child_query.run(as_dict=True)],
+				[allowed_parent.name],
 			)
+
+			permission_aware_parent_query = frappe.qb.get_query(
+				parent_dt.name,
+				ignore_permissions=False,
+				apply_child_user_permissions=True,
+			)
+			self.assertListEqual(permission_aware_parent_query.run(pluck=True), [allowed_parent.name])
 
 			ignored_user_permissions_query = frappe.qb.get_query(
 				child_dt.name,
@@ -2529,15 +2567,41 @@ class TestQuery(IntegrationTestCase):
 				ignore_user_permissions=True,
 				**query_args,
 			)
-			self.assertSetEqual(
-				{row.linked_document for row in ignored_user_permissions_query.run(as_dict=True)},
-				{allowed.name, restricted.name},
+			self.assertCountEqual(
+				[row.parent for row in ignored_user_permissions_query.run(as_dict=True)],
+				[
+					allowed_parent.name,
+					mixed_parent.name,
+					mixed_parent.name,
+					restricted_second_child_parent.name,
+				],
+			)
+			ignored_permissions_query = frappe.qb.get_query(
+				parent_dt.name, ignore_permissions=True, apply_child_user_permissions=True
+			)
+			self.assertCountEqual(
+				ignored_permissions_query.run(pluck=True),
+				[allowed_parent.name, mixed_parent.name, restricted_second_child_parent.name],
+			)
+
+			frappe.set_user("Administrator")
+			frappe.share.add(parent_dt.name, mixed_parent.name, test_user)
+			shared_parent = mixed_parent.name
+			frappe.set_user(test_user)
+			shared_child_query = frappe.qb.get_query(
+				child_dt.name, apply_child_user_permissions=True, **query_args
+			)
+			self.assertCountEqual(
+				[row.parent for row in shared_child_query.run(as_dict=True)],
+				[allowed_parent.name, mixed_parent.name, mixed_parent.name],
 			)
 		finally:
 			frappe.set_user("Administrator")
+			if parent_dt and shared_parent:
+				frappe.share.remove(parent_dt.name, shared_parent, test_user)
 			if target_dt:
 				clear_user_permissions_for_doctype(target_dt.name, test_user)
-			for dt in filter(None, [parent_dt, child_dt, target_dt]):
+			for dt in filter(None, [parent_dt, second_child_dt, child_dt, target_dt]):
 				frappe.delete_doc("DocType", dt.name, force=True, ignore_permissions=True)
 
 	def test_child_table_filters_orphaned_rows(self):

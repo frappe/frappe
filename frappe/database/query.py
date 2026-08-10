@@ -6,7 +6,15 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from pypika.enums import Arithmetic
 from pypika.queries import QueryBuilder, Table
-from pypika.terms import AggregateFunction, ArithmeticExpression, Star, Term, ValueWrapper
+from pypika.terms import (
+	AggregateFunction,
+	ArithmeticExpression,
+	Bracket,
+	ExistsCriterion,
+	Star,
+	Term,
+	ValueWrapper,
+)
 
 import frappe
 from frappe import _
@@ -246,8 +254,8 @@ class Engine:
 			This is kept optional to not break existing code that relies on the original query builder behaviour.
 			ignore_user_permissions: Ignore user permissions for the query.
 				Useful for link search queries when the link field has `ignore_user_permissions` set.
-			apply_child_user_permissions: Apply user permissions to Link fields on a child DocType
-				when `parent_doctype` is set. Disabled by default to preserve existing query behavior.
+			apply_child_user_permissions: Exclude parent documents with restricted values in child
+				Link fields. Disabled by default to preserve existing query behavior.
 			validate_filters: DEPRECATED. Will be removed in future versions.
 		"""
 
@@ -1630,33 +1638,84 @@ class Engine:
 			if df.get("ignore_user_permissions"):
 				continue
 
-			user_permission_values = user_permissions.get(df.get("options"), {})
-			if user_permission_values:
-				docs = []
-				for permission in user_permission_values:
-					if not permission.get("applicable_for"):
-						docs.append(permission.get("doc"))
-					# append docs based on user permission applicable on reference doctype
-					# this is useful when getting list of docs from a link field
-					# in this case parent doctype of the link
-					# will be the reference doctype
-					elif df.get("fieldname") == "name" and self.reference_doctype:
-						if permission.get("applicable_for") == self.reference_doctype:
-							docs.append(permission.get("doc"))
-					elif permission.get("applicable_for") == doctype:
-						docs.append(permission.get("doc"))
-
-				if docs:
-					field_name = df.get("fieldname")
-					strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
-					if strict_user_permissions:
-						conditions.append(table[field_name].isin(docs))
-					else:
-						empty_value_condition = functions.IfNull(table[field_name], "") == ""
-						value_condition = table[field_name].isin(docs)
-						conditions.append(empty_value_condition | value_condition)
+			if docs := self.get_user_permission_values(df, doctype, user_permissions):
+				conditions.append(self.get_user_permission_condition(table, df.get("fieldname"), docs))
 
 		return conditions
+
+	def get_child_user_permission_conditions(self, doctype: str, table: Table) -> list[Criterion]:
+		"""Exclude parents that contain a restricted value in any child Link field."""
+		if self.ignore_user_permissions:
+			return []
+
+		user_permissions = frappe.permissions.get_user_permissions(self.user)
+		if not user_permissions:
+			return []
+
+		conditions = []
+		for index, table_field in enumerate(frappe.get_meta(doctype).get_table_fields()):
+			child_meta = frappe.get_meta(table_field.options)
+			if child_meta.is_virtual:
+				continue
+
+			child_table = frappe.qb.DocType(child_meta.name).as_(f"_child_permission_{index}")
+			restricted_value_conditions = []
+			for df in child_meta.get_link_fields():
+				if df.get("ignore_user_permissions"):
+					continue
+
+				if docs := self.get_user_permission_values(df, doctype, user_permissions):
+					restricted_value_condition = self.get_restricted_user_permission_condition(
+						child_table, df.get("fieldname"), docs
+					)
+					restricted_value_conditions.append(restricted_value_condition)
+
+			if not restricted_value_conditions:
+				continue
+
+			restricted_child_query = (
+				frappe.qb.from_(child_table)
+				.select(1)
+				.where(child_table.parent == table.name)
+				.where(child_table.parenttype == doctype)
+				.where(child_table.parentfield == table_field.fieldname)
+				.where(Criterion.any(restricted_value_conditions))
+			)
+			conditions.append(ExistsCriterion(Bracket(restricted_child_query)).negate())
+
+		return conditions
+
+	def get_user_permission_values(self, df, doctype: str, user_permissions) -> list[str]:
+		"""Return values from User Permissions that apply to the given DocType."""
+		docs = []
+		for permission in user_permissions.get(df.get("options"), ()):
+			applicable_for = permission.get("applicable_for")
+			if not applicable_for:
+				docs.append(permission.get("doc"))
+			elif df.get("fieldname") == "name" and self.reference_doctype:
+				if applicable_for == self.reference_doctype:
+					docs.append(permission.get("doc"))
+			elif applicable_for == doctype:
+				docs.append(permission.get("doc"))
+
+		return docs
+
+	def get_user_permission_condition(self, table: Table, fieldname: str, docs: list[str]) -> Criterion:
+		value_condition = table[fieldname].isin(docs)
+		if frappe.get_system_settings("apply_strict_user_permissions"):
+			return value_condition
+
+		return (functions.IfNull(table[fieldname], "") == "") | value_condition
+
+	def get_restricted_user_permission_condition(
+		self, table: Table, fieldname: str, docs: list[str]
+	) -> Criterion:
+		field = functions.IfNull(table[fieldname], "")
+		restricted_value_condition = field.notin(docs)
+		if frappe.get_system_settings("apply_strict_user_permissions"):
+			return restricted_value_condition
+
+		return (field != "") & restricted_value_condition
 
 	def get_doctype_link_fields(self, doctype: str | None = None):
 		doctype = doctype or self.permission_doctype
@@ -1696,11 +1755,6 @@ class Engine:
 			return
 
 		if self.permission_doctype != self.doctype:
-			if self.apply_child_user_permissions:
-				child_user_permissions = self.get_user_permission_conditions(self.doctype, self.table)
-				if child_user_permissions:
-					self.query = self.query.where(Criterion.all(child_user_permissions))
-
 			parent_meta = frappe.get_meta(self.permission_doctype)
 			if parent_meta.issingle:
 				# Child table of single doctype
@@ -1733,8 +1787,10 @@ class Engine:
 		if self.requires_owner_constraint(role_permissions):
 			# skip user perm check if owner constraint is required
 			conditions.append(table.owner == self.user)
-		elif user_perm_conditions := self.get_user_permission_conditions(doctype, table):
-			conditions.extend(user_perm_conditions)
+		else:
+			conditions.extend(self.get_user_permission_conditions(doctype, table))
+			if self.apply_child_user_permissions:
+				conditions.extend(self.get_child_user_permission_conditions(doctype, table))
 
 		conditions.extend(self.get_permission_query_conditions(doctype))
 
