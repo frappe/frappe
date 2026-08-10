@@ -1,5 +1,12 @@
 # Persistence is deferred to the host; the library tops out at a View Snapshot
 
+> **Partially superseded by
+> [ADR-0008](0008-saved-view-is-a-framework-entity-so-the-library-may-own-its-persistence.md).**
+> Everything below about `useListView` still holds — it stays snapshot-only and owns no
+> saving. What no longer holds is the blanket claim that the library never owns a saved
+> **View** entity: `Saved View` is now a Frappe Framework DocType, so the opt-in
+> `useSavedViews` sibling module persists it. Read ADR-0008 for the amended fence.
+
 `useListView` exposes exactly two persistence affordances and **owns no saving
 itself**: a reactive **`snapshot`** computed (a `ListViewSnapshot` — the whole
 view's customizable state, the _save_ half) and a partial-aware **`restore`**

@@ -153,7 +153,7 @@ const fixtures: Array<Activity | CustomActivity> = [
 		key: "log:L1",
 		timestamp: "2026-06-28 11:30:00",
 		author: person("Priya Nair", "priya@example.com"),
-		data: { name: "L1", subtype: "like", text: "Priya Nair liked" },
+		data: { name: "L1", subtype: "like", text: "Priya Nair favourited" },
 	},
 	{
 		type: "feedback",
