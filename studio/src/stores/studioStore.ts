@@ -194,8 +194,7 @@ const useStudioStore = defineStore("store", () => {
 	async function setPage(pageName: string) {
 		settingPage.value = true
 		pageConflict.value = false
-		// leaving the current page: drop its in-flight-save flag so the new page isn't blocked
-		// waiting on a save it doesn't own (that save's own callback no longer clears this flag)
+		codeStore.teardownPage()
 		savingPage.value = false
 		const page = await fetchPage(pageName)
 		if (!page) {
@@ -597,7 +596,6 @@ const useStudioStore = defineStore("store", () => {
 	// value selectors and in completions — no reload. Non-active pages refresh lazily on navigation
 	// (studioPageScripts caches the latest setup).
 	async function setPageData(page: StudioPage) {
-		codeStore.stopResourceWatchers()
 		await codeStore.setPageVariables(page)
 		await codeStore.setPageResources(page, true)
 	}

@@ -498,6 +498,11 @@ const useCodeStore = defineStore("codeStore", () => {
 		resourceWatchers = []
 	}
 
+	function teardownPage() {
+		stopResourceWatchers()
+		disposePageScriptScope()
+	}
+
 	// Evaluate a resource's dynamic input ({{ }} filters/params) now, and call onChange whenever a
 	// route/variable change alters the result. Watching the serialized value keeps context churn
 	// that evaluates to the same input from refetching the resource.
@@ -732,7 +737,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		// resources
 		resources,
 		setPageResources,
-		stopResourceWatchers,
+		teardownPage,
 		// variables
 		variables,
 		setPageVariables,

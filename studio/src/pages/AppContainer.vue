@@ -25,6 +25,7 @@ const page = ref<StudioPage | null>(null)
 
 const rootBlock = ref<Block | null>(null)
 let loadedPath: string | null = null
+let loadToken = 0
 
 async function handleRouteChange() {
 	const currentPath = resolveCurrentPath()
@@ -37,16 +38,19 @@ async function handleRouteChange() {
 }
 
 async function loadPage() {
+	const token = ++loadToken
 	const currentPath = resolveCurrentPath()
 	if (!currentPath) {
 		rootBlock.value = null
 		return
 	}
+	codeStore.teardownPage()
 
 	page.value = await findPageWithRoute(window.app_name, currentPath)
-	if (!page.value) return
+	if (token !== loadToken || !page.value) return
 	await store.setPageData(page.value)
 	await codeStore.setPageScript(page.value, Boolean(page.value.is_standard))
+	if (token !== loadToken) return
 
 	const blocks = window.is_preview
 		? JSON.parse(page.value?.draft_blocks || page.value?.blocks)
