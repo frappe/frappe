@@ -267,6 +267,34 @@ class TestTypstGate(IntegrationTestCase):
 		)
 		self.assertRaisesRegex(frappe.ValidationError, "must be Typst", pf_doc.insert)
 
+	def test_custom_margin_overrides_structured_section_margin(self):
+		"""The html surface puts custom_style after the structured margin in one
+		style attribute, so margin-top replaces it — the emitter must not stack."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		layout = layout_with(
+			{"fieldtype": "Data", "fieldname": "description", "label": "D"},
+			section={"margin": {"top": 20}, "custom_style": "margin-top: 10px"},
+		)
+		pf_doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Typst MarginParity {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": json.dumps(layout),
+			}
+		).insert()
+		self.addCleanup(pf_doc.delete, ignore_permissions=True)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "margin parity"}).insert(
+			ignore_permissions=True
+		)
+		self.addCleanup(todo.delete, ignore_permissions=True)
+		source, _assets = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", todo.name))).emit()
+		self.assertIn("#v(7.5pt)", source)
+		self.assertNotRegex(source, r"#v\(15\.?0?pt\)")
+
 	def test_section_custom_style_is_emitted(self):
 		"""What the gate accepts must reach the output — accepted-but-dropped
 		styling is the failure mode this pins."""

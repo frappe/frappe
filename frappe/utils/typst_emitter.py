@@ -585,6 +585,10 @@ class TypstEmitter:
 		margin = section.get("margin") or {}
 		top = pt(margin.get("top"))
 		bottom = pt(margin.get("bottom"))
+		# on the html surface custom_style comes after the structured margin in the
+		# same style attribute, so a custom margin-top replaces it instead of adding
+		if translate_custom_style(section.get("custom_style") or "")[0].get("space_before") is not None:
+			top = 0
 		if top:
 			out = f"#v({top}pt)\n{out}"
 		return out + f"\n#v({bottom + 6}pt)"
