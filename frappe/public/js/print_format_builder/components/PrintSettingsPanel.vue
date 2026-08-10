@@ -84,51 +84,24 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
+import { computed, inject, nextTick, onMounted, ref } from "vue";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
 import { mountColorControl } from "./inspector/useColorControl";
 import { useStore } from "../stores";
-import { layout_nodes, typst_blockers_client } from "../utils";
 
 let store = inject("$store");
-let { print_format, letterhead } = useStore();
+let { print_format } = useStore();
+let { typst_blockers, has_typst_block } = store;
 
 let google_fonts = ref([]);
 
-let typst_blockers = computed(() =>
-	typst_blockers_client(print_format.value, store.layout.value, letterhead.value)
-);
 let renderer = computed(() =>
 	print_format.value?.pdf_generator === "Typst" ? "Typst" : "chrome"
 );
-let has_typst_block = computed(() => {
-	for (const node of layout_nodes(store.layout.value)) {
-		if (node.fieldtype === "Typst" && (node.typst || "").trim()) return true;
-	}
-	return false;
-});
 function set_renderer(value) {
 	if (value !== "Typst" && has_typst_block.value) return;
 	print_format.value.pdf_generator = value === "Typst" ? "Typst" : "chrome";
 }
-// a blocker added while Typst is selected drops the format back to Chromium,
-// mirroring the server's save-time refusal instead of failing later — unless a
-// Typst block pins the format to Typst, where the blocker itself must go
-watch(typst_blockers, (blockers) => {
-	if (!blockers.length || print_format.value?.pdf_generator !== "Typst") return;
-	if (has_typst_block.value) {
-		frappe.show_alert({
-			message: __("This can't be saved with a Typst block: {0}", [blockers.join(", ")]),
-			indicator: "orange",
-		});
-		return;
-	}
-	print_format.value.pdf_generator = "chrome";
-	frappe.show_alert({
-		message: __("Switched back to Chromium: {0}", [blockers.join(", ")]),
-		indicator: "orange",
-	});
-});
 let font_options = computed(() => [
 	{ label: __("Default"), value: "" },
 	...google_fonts.value.map((f) => ({ label: f, value: f })),

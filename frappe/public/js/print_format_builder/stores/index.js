@@ -1,4 +1,10 @@
-import { clone_plain, create_default_layout, serialize_layout } from "../utils";
+import {
+	clone_plain,
+	create_default_layout,
+	layout_nodes,
+	serialize_layout,
+	typst_blockers_client,
+} from "../utils";
 import { useLayoutHistory } from "./useLayoutHistory";
 import { usePreviewDoc } from "../composables/usePreviewDoc";
 import { useSelection } from "../composables/useSelection";
@@ -417,6 +423,37 @@ export function getStore(print_format_name) {
 	);
 	watch(dirty, (v) => v && autosave());
 
+	const typst_blockers = computed(() =>
+		typst_blockers_client(print_format.value, layout.value, letterhead.value)
+	);
+	const has_typst_block = computed(() => {
+		for (const node of layout_nodes(layout.value)) {
+			if (node.fieldtype === "Typst") return true;
+		}
+		return false;
+	});
+	// a blocker added while Typst is selected drops the format back to Chromium,
+	// mirroring the server's save-time refusal instead of failing later — unless a
+	// Typst block pins the format to Typst, where the blocker itself must go.
+	// Lives in the store so the guard stays active while the settings panel is
+	// unmounted (a field selection replaces it with the field inspector).
+	watch(typst_blockers, (blockers, prev) => {
+		if ((blockers || []).join() === (prev || []).join()) return;
+		if (!blockers.length || print_format.value?.pdf_generator !== "Typst") return;
+		if (has_typst_block.value) {
+			frappe.show_alert({
+				message: __("This can't be saved with a Typst block: {0}", [blockers.join(", ")]),
+				indicator: "orange",
+			});
+			return;
+		}
+		print_format.value.pdf_generator = "chrome";
+		frappe.show_alert({
+			message: __("Switched back to Chromium: {0}", [blockers.join(", ")]),
+			indicator: "orange",
+		});
+	});
+
 	const { clipboard, copy_field, copy_section, copy_selection, paste_clipboard } = useClipboard({
 		selection,
 		layout,
@@ -434,6 +471,8 @@ export function getStore(print_format_name) {
 		letterhead,
 		meta,
 		layout,
+		typst_blockers,
+		has_typst_block,
 		dirty,
 		needs_setup,
 		edit_letterhead,
