@@ -410,9 +410,10 @@ context("Print Format Builder — setup flow", () => {
 
 		cy.get(".pfb-setup", { timeout: 20000 }).should("be.visible");
 		cy.get(".pfb-setup-title").should("contain", "How do you want to start?");
-		cy.get(".pfb-setup-option").should("have.length", 2);
+		cy.get(".pfb-setup-option").should("have.length", 3);
 		cy.contains(".pfb-setup-option-label", "Start from default").should("be.visible");
 		cy.contains(".pfb-setup-option-label", "Start blank").should("be.visible");
+		cy.contains(".pfb-setup-option-label", "Write HTML").should("be.visible");
 	});
 
 	// 8. Format with saved format_data skips the setup screen entirely
