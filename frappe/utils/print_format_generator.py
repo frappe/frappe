@@ -63,11 +63,18 @@ def get_typst_pdf(print_format, html, options, output, pdf_generator=None):
 		return
 	generator = getattr(frappe.local, "print_format_generator", None)
 	if generator is None:
+		from frappe.model.document import Document
+
 		fd = frappe.form_dict
-		doc = fd.doc if fd.get("doc") else frappe.get_doc(fd.doctype, fd.name)
-		generator = PrintFormatGenerator(
-			print_format, doc, fd.get("letterhead"), no_letterhead=fd.get("no_letterhead")
-		)
+		if not print_format or not fd.get("doctype") or not fd.get("name"):
+			return
+		pf = frappe.get_doc("Print Format", print_format)
+		if not pf.get("print_format_builder_beta"):
+			return
+		doc = fd.get("doc")
+		if not isinstance(doc, Document):
+			doc = frappe.get_doc(fd.doctype, fd.name)
+		generator = PrintFormatGenerator(pf, doc, fd.get("letterhead"), no_letterhead=fd.get("no_letterhead"))
 	return generator.render_typst_pdf(password=(options or {}).get("password"))
 
 
@@ -386,7 +393,9 @@ class PrintFormatGenerator:
 
 		pf = self.print_format
 		generator_name = pf.get("pdf_generator") or "chrome"
-		if generator_name != "chrome":
+		# chrome renders below; wkhtmltopdf never reached hooks before this branch either
+		if generator_name not in ("chrome", "wkhtmltopdf"):
+			previous = getattr(frappe.local, "print_format_generator", None)
 			frappe.local.print_format_generator = self
 			try:
 				for hook in frappe.get_hooks("pdf_generator"):
@@ -403,7 +412,7 @@ class PrintFormatGenerator:
 					if pdf:
 						return pdf
 			finally:
-				frappe.local.print_format_generator = None
+				frappe.local.print_format_generator = previous
 		from frappe.utils.typst_emitter import has_typst_blocks
 
 		if has_typst_blocks(self.layout):

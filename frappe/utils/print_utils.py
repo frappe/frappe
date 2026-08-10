@@ -30,12 +30,14 @@ def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -
 	beta format pins itself to Chrome. Everything else honours an explicit choice, then
 	the format's own setting, then the site default in Print Settings.
 
-	A beta format's Typst choice is not dispatched here — PrintFormatGenerator.render_pdf
-	handles it on the generator paths; HTML-pipeline consumers of this value stay on Chrome.
+	A beta format's Typst choice dispatches through the `pdf_generator` hook, so the
+	HTML pipeline's PDF consumers reach the Typst renderer too.
 	"""
 	from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
 
 	if print_format and uses_beta_renderer(print_format):
+		if print_format.get("pdf_generator") == "Typst":
+			return "Typst"
 		return "chrome"
 	if pdf_generator:
 		return pdf_generator

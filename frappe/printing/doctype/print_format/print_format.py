@@ -230,6 +230,8 @@ class PrintFormat(Document):
 	def _typst_sample_doc(self):
 		if not self.doc_type:
 			return None
+		if frappe.get_meta(self.doc_type).issingle:
+			return frappe.get_doc(self.doc_type)
 		name = frappe.db.get_value(self.doc_type, {}, "name", order_by="modified desc")
 		return frappe.get_doc(self.doc_type, name) if name else None
 
