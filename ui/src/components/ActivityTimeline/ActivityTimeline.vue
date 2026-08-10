@@ -134,15 +134,20 @@ const slots = useSlots();
 
 const isFetching = computed(() => !!props.paginate?.isFetchingNextPage);
 
-// "inline" injects a load_more row above the oldest email; top/bottom show a standalone button.
+// "inline" injects a load_more row above the oldest paged row; top/bottom show a standalone button.
 const isInline = computed(() => props.paginate?.loadMore?.position === "inline");
 const showLoadMoreButton = computed(() => !!props.paginate?.hasNextPage && !isInline.value);
 
-// Rows to render: the raw feed, plus an in-feed load_more row above the oldest email when paginating inline.
+// Which rows the next page extends. Emails by default, so a paginate without one behaves as before.
+const isPagedRow = computed(
+	() => props.paginate?.isPagedRow ?? ((a: Activity | CustomActivity) => a.type === "email")
+);
+
+// Rows to render: the raw feed, plus an in-feed load_more row above the oldest paged row.
 const displayActivities = computed<Array<Activity | CustomActivity>>(() => {
 	const list = props.activities;
 	if (!isInline.value || !props.paginate?.hasNextPage) return list;
-	const idx = list.findIndex((a) => a.type === "email");
+	const idx = list.findIndex(isPagedRow.value);
 	if (idx === -1) return list;
 	const loadMore: CustomActivity = {
 		type: "load_more",
