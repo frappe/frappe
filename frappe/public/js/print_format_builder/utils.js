@@ -331,6 +331,7 @@ const FIELD_PLUCK_KEYS = [
 	"table_header_bg",
 	"table_border_color",
 	"html",
+	"typst",
 	"field_template",
 	"source",
 	"repeater_columns",
