@@ -1165,38 +1165,35 @@ context("Print Format Builder — draft and Save & Apply", () => {
 	});
 
 	it("keeps Typst block markup through Save & Apply", () => {
-		cy.insert_doc(
-			"Print Format",
-			{
-				name: PF_NAME,
-				doc_type: "ToDo",
-				print_format_builder_beta: 1,
-				pdf_generator: "Typst",
-				format_data: JSON.stringify(
-					builder_layout([
-						{
-							label: "",
-							columns: [
-								{
-									label: "",
-									fields: [
-										{
-											label: "Typst",
-											fieldname: "typst_block_t",
-											fieldtype: "Typst",
-											custom: 1,
-											typst: "Task: {{ doc.description }}",
-										},
-									],
-								},
-							],
-						},
-					])
-				),
-			},
-			true
-		);
-		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+		const TYPST_PF_NAME = `${PF_NAME} Typst`;
+		cy.insert_doc("Print Format", {
+			name: TYPST_PF_NAME,
+			doc_type: "ToDo",
+			print_format_builder_beta: 1,
+			pdf_generator: "Typst",
+			format_data: JSON.stringify(
+				builder_layout([
+					{
+						label: "",
+						columns: [
+							{
+								label: "",
+								fields: [
+									{
+										label: "Typst",
+										fieldname: "typst_block_t",
+										fieldtype: "Typst",
+										custom: 1,
+										typst: "Task: {{ doc.description }}",
+									},
+								],
+							},
+						],
+					},
+				])
+			),
+		});
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(TYPST_PF_NAME)}`);
 		cy.get(".typst-block-source", { timeout: 30000 }).should("contain", "doc.description");
 
 		cy.intercept(
@@ -1210,7 +1207,7 @@ context("Print Format Builder — draft and Save & Apply", () => {
 
 		cy.call("frappe.client.get_value", {
 			doctype: "Print Format",
-			filters: { name: PF_NAME },
+			filters: { name: TYPST_PF_NAME },
 			fieldname: ["format_data"],
 		}).then((r) => {
 			expect(r.message.format_data).to.contain("Task: {{ doc.description }}");
