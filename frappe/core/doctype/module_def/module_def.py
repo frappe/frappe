@@ -43,12 +43,6 @@ class ModuleDef(Document):
 			self.create_modules_folder()
 			self.add_to_modules_txt()
 
-	def after_insert(self):
-		"""Every Module Def gets a `Module Sidebar`; the desk dock is 1:1 with this doctype."""
-		from frappe.desk.doctype.module_sidebar.module_sidebar import sync_module_sidebars
-
-		sync_module_sidebars(self.name)
-
 	def create_modules_folder(self):
 		"""Creates a folder `[app]/[module]` and adds `__init__.py`"""
 		module_path = frappe.get_app_path(self.app_name, self.name)

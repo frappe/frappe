@@ -456,49 +456,16 @@ def is_workspace_manager() -> bool:
 
 
 # ---------------------------------------------------------------------------------------
-# Generated sidebars -- the other half of "1:1 with Module Def"
+# A module's own contents, which is what a computed base is built out of
 # ---------------------------------------------------------------------------------------
 
-# A sidebar built from a module's contents is a real row now, not a throwaway assembled at
-# boot, so it can afford to list more than the three doctypes the old in-memory fallback
-# showed. Per-user hide deltas trim it from there.
-GENERATED_DOCTYPE_LIMIT = 15
+# How many of a module's doctypes a computed base lists. More than the three the old
+# in-memory fallback showed, since this is the module's whole navigation rather than a
+# stopgap; per-user hide deltas trim it from there.
+COMPUTED_DOCTYPE_LIMIT = 15
 
 # The icon a module that has said nothing about itself gets in the dock.
 DEFAULT_HEADER_ICON = "hammer"
-
-
-def sync_module_sidebars(module: str | None = None) -> list[str]:
-	"""Give every Module Def a `Module Sidebar`, persisting the base computed from its contents.
-
-	Idempotent, and never touches a row that already exists -- so an authored sidebar, or one
-	a user has since edited, is safe. Returns the modules it created rows for.
-	"""
-	filters = {"name": module} if module else {}
-	modules = frappe.get_all("Module Def", filters=filters, pluck="name")
-	existing = set(frappe.get_all("Module Sidebar", pluck="module"))
-
-	created = []
-	for module_name in modules:
-		if module_name in existing:
-			continue
-		try:
-			# the same base boot would have computed, written down instead of resolved
-			base = build_computed_base(module_name)
-			doc = frappe.new_doc("Module Sidebar")
-			doc.module = base.module
-			doc.title = base.title
-			doc.header_icon = base.header_icon
-			doc.standard = 0
-			doc.app = base.app
-			for item in base.rows:
-				doc.append("items", item)
-			doc.insert(ignore_permissions=True)
-			created.append(module_name)
-		except frappe.DoesNotExistError:
-			continue
-
-	return created
 
 
 def get_module_info(module_name: str) -> dict:
@@ -531,7 +498,7 @@ def get_module_info(module_name: str) -> dict:
 			"Page": module_info.get("Page"),
 		}
 
-	module_info["DocType"] = (module_info.get("DocType") or [])[:GENERATED_DOCTYPE_LIMIT]
+	module_info["DocType"] = (module_info.get("DocType") or [])[:COMPUTED_DOCTYPE_LIMIT]
 	return module_info
 
 
@@ -602,13 +569,11 @@ def get_computed_base(module: str) -> frappe._dict:
 	"""The base `module` gets when no app shipped it one, built from the module's contents.
 
 	Per D4 a base has exactly two origins -- an app shipped it as JSON, or the system computed
-	it -- and only the shipped route is meant to persist a document. This is the other route,
-	and it deliberately returns a plain dict rather than inserting a row: with nothing
-	persisted there is nothing to orphan when a module or an app goes away, and an app that
-	*stops* shipping a sidebar falls back here in the same request instead of leaving its
-	module un-navigable until the next migrate. (`sync_module_sidebars` still writes a row per
-	module until that path is removed, so today this route is reached only where one is
-	missing.)
+	it -- and only the shipped route persists a document. This is the other route, and it
+	deliberately returns a plain dict rather than inserting a row: with nothing persisted there
+	is nothing to orphan when a module or an app goes away, and an app that *stops* shipping a
+	sidebar falls back here in the same request instead of leaving its module un-navigable
+	until the next migrate.
 
 	Shaped exactly like a row read by `boot.get_sidebar_bases`, item rows included, so the
 	resolution cannot tell which route a base arrived by. `home_workspace` and
@@ -673,8 +638,11 @@ def clear_computed_base_for(doc: Document) -> None:
 
 
 def build_all(dry_run: bool = False) -> dict:
-	"""Merge every module's authored sidebars into one `Module Sidebar` each, then generate
-	the rest.
+	"""Merge every module's authored sidebars into one `Module Sidebar` each.
+
+	Only a module that authored something gets a row. The rest are named under `computed` and
+	left alone: their base is built from their contents on every read, so a row here would be a
+	frozen copy of it -- and one more thing to clean up when the module goes away.
 
 	`dry_run=True` reports exactly what a real run would produce and writes nothing -- run it
 	before migrating a site whose sidebars matter, since the merge result depends entirely on
@@ -715,14 +683,10 @@ def build_all(dry_run: bool = False) -> dict:
 			doc.append("items", item)
 		doc.insert(ignore_permissions=True)
 
-	generated = []
-	if dry_run:
-		covered = existing | set(by_module)
-		generated = [m for m in frappe.get_all("Module Def", pluck="name") if m not in covered]
-	else:
-		generated = sync_module_sidebars()
+	covered = existing | set(by_module)
+	computed = [m for m in frappe.get_all("Module Def", pluck="name") if m not in covered]
 
-	return {"merged": merged, "generated": generated, "skipped": skipped}
+	return {"merged": merged, "computed": computed, "skipped": skipped}
 
 
 def report():
@@ -743,8 +707,8 @@ def report():
 		if is_merge:
 			click.secho(f"  {'':24} sections: {', '.join(plan['secondaries'])}", fg=colour)
 
-	click.secho(f"\nGenerated (module ships no sidebar): {len(result['generated'])}", bold=True)
-	click.echo("  " + ", ".join(result["generated"][:20]) + (" ..." if len(result["generated"]) > 20 else ""))
+	click.secho(f"\nComputed (module ships no sidebar, no row written): {len(result['computed'])}", bold=True)
+	click.echo("  " + ", ".join(result["computed"][:20]) + (" ..." if len(result["computed"]) > 20 else ""))
 
 	if result["skipped"]:
 		click.secho(f"\nSkipped (row already exists): {len(result['skipped'])}", fg="cyan")
@@ -757,5 +721,5 @@ def report():
 		click.secho(
 			f"      {plan['module']}: {plan['primary']} <- {', '.join(plan['secondaries'])}", fg="yellow"
 		)
-	click.echo(f"  modules getting a generated row : {len(result['generated'])}")
+	click.echo(f"  modules left to a computed base : {len(result['computed'])}")
 	click.echo("")

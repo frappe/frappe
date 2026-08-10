@@ -5,6 +5,7 @@ import json
 
 import frappe
 from frappe.boot import get_module_sidebars
+from frappe.desk.doctype.module_sidebar.test_module_sidebar import make_report, sidebarless_module
 from frappe.desk.doctype.module_sidebar_customization.module_sidebar_customization import (
 	CUSTOMIZED_KEYS_CACHE_KEY,
 	get_customized_keys,
@@ -166,3 +167,43 @@ class TestModuleSidebarCustomization(IntegrationTestCase):
 
 		keys = [i["key"] for i in get_module_sidebars()[MODULE]["items"]]
 		self.assertNotIn("some-forbidden-key", keys)
+
+
+class TestCustomizationTarget(IntegrationTestCase):
+	"""What a customization has to be *of*.
+
+	Not a `Module Sidebar`: most modules have no document at all, their base being computed
+	from their contents, and those are exactly as customizable as a shipped one. The module is
+	the thing that has to exist.
+	"""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+
+	def test_a_module_with_no_sidebar_document_can_be_customized(self):
+		module = "Test Customizable Computed Module"
+		self.addCleanup(frappe.db.delete, "Module Sidebar Customization", {"module": module})
+
+		with sidebarless_module(module):
+			doomed = make_report(module, "Test Customizable Report")
+			# a second one, so hiding the first leaves something navigable behind -- a module
+			# with nothing left but its section headers is dropped from the payload entirely
+			survivor = make_report(module, "Test Surviving Customizable Report")
+
+			# by link, not by position: a computed base leads with a section header
+			def key_for(name):
+				return next(i["key"] for i in get_module_sidebars()[module]["items"] if i["link_to"] == name)
+
+			save_sidebar_customization(module, json.dumps([{"item_key": key_for(doomed.name), "hidden": 1}]))
+
+			links = [i["link_to"] for i in get_module_sidebars()[module]["items"]]
+			self.assertNotIn(doomed.name, links)
+			self.assertIn(survivor.name, links)
+
+	def test_a_module_that_does_not_exist_cannot_be_customized(self):
+		"""Asserted on the message, because the child table's own Link validation would raise
+		a `ValidationError` too -- and that one fires only after the write has been assembled."""
+		with self.assertRaises(frappe.ValidationError) as caught:
+			save_sidebar_customization("Test No Such Module", json.dumps([]))
+
+		self.assertIn("is not a module", str(caught.exception))

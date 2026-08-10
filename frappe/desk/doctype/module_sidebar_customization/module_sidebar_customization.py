@@ -243,8 +243,11 @@ def reset_site_sidebar(module: str):
 
 
 def _save_customization(module, items, added_items, user):
-	if not frappe.db.exists("Module Sidebar", module):
-		frappe.throw(_("{0} has no sidebar.").format(module))
+	# The module, not its sidebar: most modules have no `Module Sidebar` document at all --
+	# their base is computed from their contents -- and those are customizable on exactly the
+	# same terms as a shipped one. What has to exist is the thing the delta is anchored to.
+	if not frappe.db.exists("Module Def", module):
+		frappe.throw(_("{0} is not a module.").format(module))
 
 	items = frappe.parse_json(items) or []
 	added_items = frappe.parse_json(added_items) or []

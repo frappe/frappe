@@ -509,11 +509,17 @@ def first_module_of_app(app: str | None) -> str | None:
 
 
 def add_to_module_sidebar(workspace):
-	"""Give a new workspace a way in, from its module's sidebar.
+	"""Give a new workspace a way in, from its module's sidebar document.
 
 	`after_insert` already makes it the module's home page when the module has none. When the
 	module does have one, the workspace still needs a link, or it would exist with nothing
 	pointing at it.
+
+	Only reaches modules that *have* a document, which is now the minority: for the rest the
+	base is computed, and a public workspace turns up in it on its own because
+	`get_module_info` reads them. A **private** workspace does not, and this is where its link
+	used to come from -- D3 replaces that with a derived one, so until then a private page in a
+	document-less module has no sidebar entry.
 	"""
 	if not workspace.module or not frappe.db.exists("Module Sidebar", workspace.module):
 		return

@@ -17,7 +17,6 @@ from frappe.desk.doctype.module_sidebar.module_sidebar import (
 	get_computed_base,
 	get_module_sidebar_sources,
 	pick_primary,
-	sync_module_sidebars,
 )
 from frappe.tests import IntegrationTestCase
 
@@ -53,14 +52,13 @@ def developer_mode():
 
 @contextmanager
 def sidebarless_module(name, app="frappe"):
-	"""A `Module Def` with no `Module Sidebar` -- the state a sparse-rows world produces.
+	"""A `Module Def` with no `Module Sidebar` -- the ordinary state, since nothing writes one.
 
-	`Module Def.after_insert` still generates a sidebar for every new module, so getting a
-	module without one means taking that back off.
+	Deliberately does not delete any `Module Sidebar` on the way in: `TestNothingWritesASidebar`
+	asserts there is none, and a helper that swept first would launder the thing under test.
 	"""
 	with no_developer_mode():
 		frappe.get_doc({"doctype": "Module Def", "module_name": name, "app_name": app}).insert()
-	frappe.db.delete("Module Sidebar", {"module": name})
 	clear_computed_base_cache(name)
 
 	try:
@@ -89,6 +87,15 @@ def make_report(module: str, name: str):
 			"is_standard": "No",
 		}
 	).insert(ignore_permissions=True)
+
+
+def make_sidebar(module: str, **kwargs):
+	"""A site-owned `Module Sidebar`, by hand -- nothing writes one on a module's behalf."""
+	doc = frappe.new_doc("Module Sidebar")
+	doc.module = module
+	doc.update(kwargs)
+	doc.append("items", {"type": "Link", "link_type": "DocType", "link_to": "User", "label": "Users"})
+	return doc.insert(ignore_permissions=True)
 
 
 @contextmanager
@@ -188,9 +195,6 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 				frappe.get_doc(
 					{"doctype": "Module Def", "module_name": MODULE, "app_name": "frappe"}
 				).insert()
-		# after the Module Def, since its `after_insert` generates a sidebar and every test
-		# here wants to build its own
-		frappe.db.delete("Module Sidebar", {"module": MODULE})
 		self.workspaces = []
 
 	def tearDown(self):
@@ -324,19 +328,10 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 		self.assertEqual(first.creation, second.creation)
 		self.assertEqual(first_items, [(i.key, i.link_to) for i in second.items])
 
-	def test_every_module_def_gets_a_sidebar(self):
-		"""The dock is 1:1 with Module Def, so a module shipping nothing still gets a row."""
-		sync_module_sidebars(MODULE)
-		self.assertTrue(frappe.db.exists("Module Sidebar", MODULE))
-		# built from the module's contents, and site-owned like anything else that is not
-		# shipped by an app
-		self.assertEqual(frappe.db.get_value("Module Sidebar", MODULE, "standard"), 0)
-
-	def test_a_built_row_cannot_be_made_standard_by_hand(self):
+	def test_a_site_owned_row_cannot_be_made_standard_by_hand(self):
 		"""`standard` means backed by a file. Setting it without writing one leaves a row that
 		orphan removal deletes on the next migrate, so validate refuses it outright."""
-		sync_module_sidebars(MODULE)
-		doc = frappe.get_doc("Module Sidebar", MODULE)
+		doc = make_sidebar(MODULE)
 		self.assertEqual(doc.standard, 0)
 		with self.assertRaises(frappe.ValidationError):
 			doc.standard = 1
@@ -347,12 +342,12 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 		definition and must never be mistaken for one whose file went missing."""
 		from frappe.model.sync import remove_orphan_entities
 
-		sync_module_sidebars(MODULE)
+		make_sidebar(MODULE)
 		remove_orphan_entities("Module Sidebar")
 		self.assertTrue(frappe.db.exists("Module Sidebar", MODULE))
 
 	def test_deleting_the_module_removes_its_sidebar(self):
-		sync_module_sidebars(MODULE)
+		make_sidebar(MODULE)
 		frappe.delete_doc("Module Def", MODULE, force=True)
 		self.assertFalse(frappe.db.exists("Module Sidebar", MODULE))
 
@@ -456,19 +451,11 @@ class TestModuleSidebarStandard(IntegrationTestCase):
 		# save of it.
 		frappe.db.commit()
 
-	def make_sidebar(self, **kwargs):
-		doc = frappe.new_doc("Module Sidebar")
-		doc.module = MODULE
-		doc.update(kwargs)
-		doc.append("items", {"type": "Link", "link_type": "DocType", "link_to": "User", "label": "Users"})
-		doc.insert(ignore_permissions=True)
-		return doc
-
 	def test_marking_standard_writes_the_file(self):
 		import os
 
 		with module_resolvable_on_disk(MODULE), developer_mode():
-			doc = self.make_sidebar()
+			doc = make_sidebar(MODULE)
 			self.assertEqual(doc.standard, 0)
 
 			doc.mark_as_standard()
@@ -481,7 +468,7 @@ class TestModuleSidebarStandard(IntegrationTestCase):
 		"""A sidebar built from the module's contents can be promoted -- "this is good, ship
 		it" -- with no separate provenance flag standing in the way."""
 		with module_resolvable_on_disk(MODULE), developer_mode():
-			doc = self.make_sidebar()
+			doc = make_sidebar(MODULE)
 			doc.mark_as_standard()
 
 			self.assertEqual(doc.standard, 1)
@@ -492,7 +479,7 @@ class TestModuleSidebarStandard(IntegrationTestCase):
 		from frappe.model.sync import remove_orphan_entities
 
 		with module_resolvable_on_disk(MODULE), developer_mode():
-			doc = self.make_sidebar()
+			doc = make_sidebar(MODULE)
 			doc.mark_as_standard()
 
 			remove_orphan_entities("Module Sidebar")
@@ -501,12 +488,12 @@ class TestModuleSidebarStandard(IntegrationTestCase):
 	def test_cannot_mark_standard_without_developer_mode(self):
 		"""Only developer mode writes files, so outside it the mark could only produce a row
 		that deletes itself."""
-		doc = self.make_sidebar()
+		doc = make_sidebar(MODULE)
 		with no_developer_mode(), self.assertRaises(frappe.ValidationError):
 			doc.mark_as_standard()
 
 	def test_cannot_mark_standard_when_the_module_has_no_folder(self):
-		doc = self.make_sidebar()
+		doc = make_sidebar(MODULE)
 		with developer_mode(), self.assertRaises(frappe.ValidationError):
 			doc.mark_as_standard()
 
@@ -518,7 +505,7 @@ class TestModuleSidebarStandard(IntegrationTestCase):
 		import os
 
 		with module_resolvable_on_disk(MODULE), developer_mode():
-			doc = self.make_sidebar()
+			doc = make_sidebar(MODULE)
 			doc.mark_as_standard()
 			path = doc.exported_file_path()
 			self.assertTrue(os.path.exists(path))
@@ -530,12 +517,54 @@ class TestModuleSidebarStandard(IntegrationTestCase):
 
 	def test_marking_standard_is_idempotent(self):
 		with module_resolvable_on_disk(MODULE), developer_mode():
-			doc = self.make_sidebar()
+			doc = make_sidebar(MODULE)
 			doc.mark_as_standard()
 			modified = doc.modified
 
 			doc.mark_as_standard()
 			self.assertEqual(doc.modified, modified)
+
+
+class TestNothingWritesASidebar(IntegrationTestCase):
+	"""No path writes a `Module Sidebar` on a module's behalf.
+
+	Persisting a generated row was what made an app that *stops* shipping a sidebar leave its
+	module un-navigable until the next migrate, and it left rows behind to be orphaned when a
+	module or an app went away. The computed base replaced the need for it, so the write is
+	gone: a module either has a document because someone authored or shipped one, or it has
+	none at all.
+	"""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+
+	def rows_for(self, module):
+		return frappe.get_all("Module Sidebar", filters={"module": module}, pluck="name")
+
+	def test_a_new_module_gets_no_sidebar_document(self):
+		"""What installing an app does, one module at a time: the Module Defs land and nothing
+		follows them. The module is navigable regardless -- its base is computed."""
+		with sidebarless_module("Test Unwritten Sidebar Module") as module:
+			self.assertEqual(self.rows_for(module), [])
+			self.assertEqual(get_computed_base(module).module, module)
+
+	def test_a_build_writes_no_row_for_a_module_that_ships_none(self):
+		"""What a migrate does. A module with no authored workspaces has nothing to merge, so
+		the build has nothing to say about it -- and must not invent a row."""
+		with sidebarless_module("Test Unbuilt Sidebar Module") as module:
+			make_report(module, "Test Unbuilt Report")
+
+			build_all()
+
+			self.assertEqual(self.rows_for(module), [])
+
+	def test_the_dry_run_names_the_modules_it_leaves_computed(self):
+		"""The build no longer writes these rows, but the plan still has to account for the
+		modules it is walking past -- otherwise "0 merged" reads as "0 modules"."""
+		with sidebarless_module("Test Reported Sidebar Module") as module:
+			result = build_all(dry_run=True)
+
+			self.assertIn(module, result["computed"])
 
 
 COMPUTED_MODULE = "Test Computed Sidebar Module"

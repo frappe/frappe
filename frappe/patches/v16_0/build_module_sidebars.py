@@ -5,11 +5,11 @@ from frappe.desk.doctype.module_sidebar.module_sidebar import build_all
 
 
 def execute():
-	"""Give every Module Def a `Module Sidebar`, 1:1.
+	"""Carry each module's authored sidebars over into one `Module Sidebar`.
 
 	Merges each module's authored `Workspace.sidebar_items` into one sidebar -- the largest
-	workspace leads, the rest become collapsed sections -- then generates a sidebar for every
-	module that ships none.
+	workspace leads, the rest become collapsed sections. A module that authored none gets no
+	row: its base is computed from its contents on read.
 
 	Runs post_model_sync: `Module Sidebar` is a new doctype, so its schema has to land first.
 	It must also run after `migrate_workspace_sidebar_to_workspace`, which is what populates
@@ -33,7 +33,7 @@ def execute():
 			)
 
 	click.secho(
-		f"Built {len(result['merged'])} Module Sidebar(s) from workspaces, "
-		f"generated {len(result['generated'])}.",
+		f"Built {len(result['merged'])} Module Sidebar(s) from workspaces; "
+		f"{len(result['computed'])} module(s) left to a computed base.",
 		fg="green",
 	)
