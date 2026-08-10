@@ -348,7 +348,7 @@ function get_build_options(files, outdir, plugins) {
 		entryNames: "[dir]/[name].[hash]",
 		target: [ESBUILD_TARGET],
 		outdir,
-		sourcemap: true,
+		sourcemap: !PRODUCTION,
 		bundle: true,
 		metafile: true,
 		minify: PRODUCTION,
