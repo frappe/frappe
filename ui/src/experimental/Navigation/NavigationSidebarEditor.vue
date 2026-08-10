@@ -38,9 +38,18 @@
 						@edit="startEditing"
 						@update="
 							(target, item, naming) =>
-								run(navigation.updateItem(target.name, item.name, naming, forEveryone))
+								run(
+									navigation.updateItem(
+										target.name,
+										item.name,
+										naming,
+										forEveryone
+									)
+								)
 						"
-						@rename="(target, label) => run(navigation.renameSection(target.name, label))"
+						@rename="
+							(target, label) => run(navigation.renameSection(target.name, label))
+						"
 						@delete="confirmingDelete = $event"
 					/>
 				</template>
@@ -441,7 +450,10 @@ function reorderSections(sections: NavigationSection[]) {
 
 function rowsOf(section: NavigationSection): ArrangedRow[] {
 	if (props.flat)
-		return toBoxedRows(shownRows.value[section.name] ?? [], hiddenRows.value[section.name] ?? []);
+		return toBoxedRows(
+			shownRows.value[section.name] ?? [],
+			hiddenRows.value[section.name] ?? []
+		);
 
 	const dragged = draft.value.find((candidate) => candidate.name === section.name);
 	return toRows(dragged?.items ?? section.items);

@@ -11,9 +11,9 @@ from frappe.tests import IntegrationTestCase
 
 
 def make_note(title, public=0):
-	return frappe.get_doc(
-		{"doctype": "Note", "title": title, "public": public}
-	).insert(ignore_permissions=True)
+	return frappe.get_doc({"doctype": "Note", "title": title, "public": public}).insert(
+		ignore_permissions=True
+	)
 
 
 class TestViewCounts(IntegrationTestCase):

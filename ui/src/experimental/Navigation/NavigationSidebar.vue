@@ -7,10 +7,7 @@
 			<Skeleton v-for="n in 3" :key="n" class="h-7 w-full rounded" />
 		</div>
 
-		<div
-			v-else-if="navigation.error.value && !navigation.fetched.value"
-			class="px-2 py-1.5"
-		>
+		<div v-else-if="navigation.error.value && !navigation.fetched.value" class="px-2 py-1.5">
 			<ErrorMessage message="Could not load views" />
 			<Button
 				class="mt-1.5"
@@ -117,12 +114,7 @@ import { isExtrasSection, withExtrasLast } from "./sections";
 import { errorMessage } from "../errorMessage";
 import type { ViewActionKind, SavedView, ViewFormValues } from "../SavedViews";
 import type { ViewName } from "../SavedViews/savedViewApi";
-import type {
-	AddMenuOptions,
-	NavigationItem,
-	NavigationSidebarProps,
-	PoolView,
-} from "./types";
+import type { AddMenuOptions, NavigationItem, NavigationSidebarProps, PoolView } from "./types";
 
 const props = defineProps<NavigationSidebarProps>();
 
@@ -266,7 +258,7 @@ function addOptions(section: string | null): AddMenuOptions {
 								),
 						})),
 					},
-				]
+			  ]
 			: [],
 	};
 }

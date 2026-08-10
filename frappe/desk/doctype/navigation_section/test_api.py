@@ -473,9 +473,7 @@ class TestUpdateItem(IntegrationTestCase):
 
 		update_item(self.mine.name, row, "Handbook", "book")
 
-		self.assertEqual(
-			frappe.db.get_value("Navigation Item", row, ["label", "icon"]), ("Handbook", "book")
-		)
+		self.assertEqual(frappe.db.get_value("Navigation Item", row, ["label", "icon"]), ("Handbook", "book"))
 
 	def test_an_icon_can_be_cleared(self):
 		frappe.set_user(self.member)
@@ -812,7 +810,9 @@ class TestOwnItems(IntegrationTestCase):
 		arrange_items(self.shared.name, [{"name": mine}, {"name": first}])
 
 		row = get_section("Views")[0]
-		self.assertEqual((row["name"], row["label"], row["url"], row["icon"]), (mine, "Mine", "/mine", "star"))
+		self.assertEqual(
+			(row["name"], row["label"], row["url"], row["icon"]), (mine, "Mine", "/mine", "star")
+		)
 
 	def test_an_own_item_can_be_hidden_like_any_other_row(self):
 		frappe.set_user(self.member)
@@ -867,7 +867,9 @@ class TestOwnItems(IntegrationTestCase):
 		frappe.set_user(self.member)
 		add_item(self.shared.name, link("Mine"))
 
-		self.assertEqual([(row["label"], row["own"]) for row in get_section("Views")], [("Docs", 0), ("Mine", 1)])
+		self.assertEqual(
+			[(row["label"], row["own"]) for row in get_section("Views")], [("Docs", 0), ("Mine", 1)]
+		)
 
 	def test_a_row_the_manager_adds_later_still_reaches_a_member_who_has_their_own(self):
 		frappe.set_user(self.member)

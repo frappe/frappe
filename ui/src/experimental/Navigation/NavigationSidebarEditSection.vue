@@ -144,7 +144,11 @@
 						icon="lucide-pencil text-ink-gray-5"
 						:label="`${canEditItem(item) ? 'Edit' : 'Rename'} ${item.label}`"
 						:tooltip="canEditItem(item) ? 'Edit' : 'Rename'"
-						@click="canEditItem(item) ? emit('edit', section, item) : startRenamingItem(item)"
+						@click="
+							canEditItem(item)
+								? emit('edit', section, item)
+								: startRenamingItem(item)
+						"
 					/>
 					<Button
 						v-if="!forEveryone"

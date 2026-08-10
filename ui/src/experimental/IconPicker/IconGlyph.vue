@@ -14,13 +14,13 @@ const props = withDefaults(
 		svg?: string;
 		fallback?: string;
 	}>(),
-	{ fallback: "file" },
+	{ fallback: "file" }
 );
 
 const { svgFor } = useCustomIcons();
 
 const svg = computed(
-	() => props.svg ?? (isCustomIconName(props.name) ? svgFor(props.name) : null),
+	() => props.svg ?? (isCustomIconName(props.name) ? svgFor(props.name) : null)
 );
 
 const glyph = computed(() => (isCustomIconName(props.name) ? props.fallback : props.name));

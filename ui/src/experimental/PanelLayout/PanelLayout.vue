@@ -71,9 +71,7 @@ const sections = computed(() => {
 
 // The panel is always one column, so a section's columns flatten into one list.
 function visibleFields(section: Section) {
-	return section.columns
-		.flatMap((column) => column.fields)
-		.filter((field) => !field.hidden);
+	return section.columns.flatMap((column) => column.fields).filter((field) => !field.hidden);
 }
 
 // The panel opens on a header, so the first section borrows a title where it has none.

@@ -72,7 +72,7 @@ const iconNames = ref<string[]>([]);
 const headerSearch = ref<{ $el?: HTMLElement } | null>(null);
 
 const selectedOption = computed(() =>
-	internalModelValue.value ? optionsByValue.value.get(internalModelValue.value) : undefined,
+	internalModelValue.value ? optionsByValue.value.get(internalModelValue.value) : undefined
 );
 
 watch(
@@ -82,7 +82,7 @@ watch(
 		if (!isOpen.value) {
 			searchTerm.value = newValue ? getLabel(newValue) : "";
 		}
-	},
+	}
 );
 
 watch(isOpen, async (open) => {
@@ -90,8 +90,8 @@ watch(isOpen, async (open) => {
 	searchTerm.value = open
 		? ""
 		: internalModelValue.value
-			? getLabel(internalModelValue.value)
-			: "";
+		? getLabel(internalModelValue.value)
+		: "";
 	if (!open) return;
 	await nextTick();
 	headerSearch.value?.$el?.focus?.();
@@ -134,12 +134,12 @@ const filteredIcons = computed(() => {
 	if (!searchTerm.value) return iconNames.value;
 	const lowerSearch = searchTerm.value.toLowerCase();
 	return iconNames.value.filter((name) =>
-		name.replace(/-/g, " ").toLowerCase().includes(lowerSearch),
+		name.replace(/-/g, " ").toLowerCase().includes(lowerSearch)
 	);
 });
 
 const hasResults = computed(
-	() => filteredIcons.value.length > 0 || filteredSections.value.length > 0,
+	() => filteredIcons.value.length > 0 || filteredSections.value.length > 0
 );
 
 const onUpdateModelValue = (value: string | null) => {
@@ -309,7 +309,11 @@ defineExpose({
 									}"
 									:title="option.label ?? getLabel(option.value)"
 								>
-									<IconGlyph :name="option.value" :svg="option.svg" class="w-4 h-4" />
+									<IconGlyph
+										:name="option.value"
+										:svg="option.svg"
+										class="w-4 h-4"
+									/>
 								</button>
 							</div>
 						</template>

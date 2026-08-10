@@ -72,7 +72,7 @@ const resolved = computed(() => resolveField(props.field.fieldtype));
 const controlField = computed(() => ({ ...props.field, label: undefined }));
 
 const placeholder = computed(() =>
-	interactive.value && !summary.value ? `Add ${props.field.label}...` : "",
+	interactive.value && !summary.value ? `Add ${props.field.label}...` : ""
 );
 
 const display = computed(() => {
@@ -84,7 +84,7 @@ const display = computed(() => {
 				? resolveFieldCurrency(props.field.options, {
 						doc: doc.value,
 						defaultCurrency: defaults.currency,
-					})
+				  })
 				: undefined,
 		numberFormat: defaults.number_format,
 		roundingMethod: defaults.rounding_method,

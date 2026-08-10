@@ -2,7 +2,8 @@
 	<span
 		v-if="isEmoji"
 		class="inline-flex size-4 items-center justify-center text-base leading-none"
-	>{{ icon }}</span>
+		>{{ icon }}</span
+	>
 	<IconGlyph v-else :name="name" fallback="list" class="size-4 text-ink-gray-6" />
 </template>
 
@@ -18,7 +19,5 @@ const name = computed(() =>
 		: (props.icon ?? "").replace(/^lucide-/, "") || "list"
 );
 
-const isEmoji = computed(
-	() => !isCustomIconName(props.icon) && !/^[a-z0-9-]+$/.test(name.value)
-);
+const isEmoji = computed(() => !isCustomIconName(props.icon) && !/^[a-z0-9-]+$/.test(name.value));
 </script>
