@@ -34,7 +34,6 @@ const showFormDialog = ref(false)
 const selectedSlot = ref<string | null>(null)
 const showContextMenu = (e: MouseEvent, refBlock: Block) => {
 	block.value = refBlock
-	if (block.value.isRoot()) return
 	// remember the right-clicked slot so "Add Component" drops into it
 	const slot = canvasStore.activeCanvas?.selectedSlot
 	selectedSlot.value = slot && slot.parentBlockId === refBlock.componentId ? slot.slotName : null
@@ -163,6 +162,12 @@ const contextMenuOptions: ContextMenuOption[] = [
 				newBlock.selectBlock()
 			}
 		},
+		condition: () => Boolean(block.value.getParentBlock()),
+	},
+	{
+		label: "Unwrap",
+		action: () => unwrapBlock(),
+		condition: () => canUnwrap(),
 	},
 	{
 		label: "Repeat Block",
@@ -181,12 +186,13 @@ const contextMenuOptions: ContextMenuOption[] = [
 				toast.warning("Please set data & data key for the repeater block")
 			}
 		},
-		condition: () => !block.value.isRoot() && !block.value.isRepeater(),
+		condition: () => Boolean(block.value.getParentBlock()) && !block.value.isRepeater(),
 	},
 	{ label: "Copy", action: () => document.execCommand("copy") },
 	{
 		label: "Duplicate",
 		action: () => block.value.duplicateBlock(),
+		condition: () => Boolean(block.value.getParentBlock()),
 	},
 	{
 		label: "Save as Component",
@@ -196,7 +202,7 @@ const contextMenuOptions: ContextMenuOption[] = [
 				onCreated: (component) => block.value.extendFromComponent(component.component_id),
 			})
 		},
-		condition: () => !block.value.isStudioComponent,
+		condition: () => !block.value.isStudioComponent && Boolean(block.value.getParentBlock()),
 	},
 	{
 		label: "Edit Component",
@@ -231,6 +237,42 @@ const contextMenuOptions: ContextMenuOption[] = [
 		},
 	},
 ]
+
+function canUnwrap() {
+	const target = block.value
+	if (target.isRoot() || !target?.isContainer() || !target.hasChildren()) return false
+	// a component root has no parent to leave its children with, so only a lone child can take its place
+	return Boolean(target.getParentBlock()) || target.children.length === 1
+}
+
+function unwrapBlock() {
+	const target = block.value
+	const parentBlock = target.getParentBlock()
+	const children = [...target.children]
+
+	if (!parentBlock) {
+		promoteToRoot(children[0], target)
+		return
+	}
+
+	let index = parentBlock.getChildIndex(target) ?? parentBlock.children.length
+	children.forEach((child) => {
+		target.removeChild(child)
+		child.parentSlotName = target.parentSlotName
+		parentBlock.addChild(child, index++, false)
+	})
+	parentBlock.removeChild(target)
+	children[0]?.selectBlock()
+}
+
+function promoteToRoot(newRoot: Block, target: Block) {
+	target.removeChild(newRoot)
+	newRoot.parentBlock = null
+	delete newRoot.parentSlotName
+	// keep the history so unwrapping stays undoable and still marks the canvas dirty
+	canvasStore.activeCanvas?.setRootBlock(newRoot, false, false)
+	newRoot.selectBlock()
+}
 
 defineExpose({
 	showContextMenu,
