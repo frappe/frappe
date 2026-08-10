@@ -87,3 +87,16 @@ def clear_automation_cache(doctype: str | None = None):
 		frappe.client_cache.delete_value(EVENTS_KEY)
 	else:
 		frappe.client_cache.delete_keys(REGISTRY_KEY.format(""))
+	_clear_request_caches()
+
+
+def _clear_request_caches():
+	"""Registered providers and derived relationships are cached per request, and both follow
+	from hooks and schema — installing an app or editing a DocType has to invalidate them."""
+	from frappe.automation_engine.relationships import _providers
+	from frappe.automation_engine.schema_relationships import _ignored, derived_definitions
+
+	cache = getattr(frappe.local, "request_cache", None)
+	for func in (_providers, derived_definitions, _ignored):
+		if cache is not None:
+			cache.pop(getattr(func, "__wrapped__", func), None)
