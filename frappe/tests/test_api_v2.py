@@ -127,22 +127,19 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		self.assertEqual(response.json["docs"][0]["name"], "Standard")
 
 	def test_document_apis_retain_null_fields(self):
-		# unset fields must be present as null instead of being dropped from the payload
+		# unset fields must be present as null instead of being dropped from the payload.
+		# only fields backed by a column, so layout fieldtypes never enter the expectation
+		expected = [
+			df.fieldname for df in frappe.get_meta(self.DOCTYPE).fields if df.fieldtype not in no_value_fields
+		]
+		self.assertTrue(expected, f"{self.DOCTYPE} is expected to have column-backed fields")
+
 		create = self.post(
 			self.resource(self.DOCTYPE), {"description": frappe.mock("paragraph"), "sid": self.sid}
 		)
 		self.assertEqual(create.status_code, 200)
 		docname = create.json["data"]["name"]
-		self.addCleanup(frappe.delete_doc_if_exists, self.DOCTYPE, docname)
-
-		# only fields backed by a column, so layout fieldtypes never enter the expectation
-		doc = frappe.get_doc(self.DOCTYPE, docname)
-		null_fields = [
-			df.fieldname
-			for df in frappe.get_meta(self.DOCTYPE).fields
-			if df.fieldtype not in no_value_fields and doc.get(df.fieldname) is None
-		]
-		self.assertTrue(null_fields, "expected the fixture to have at least one unset field")
+		self.GENERATED_DOCUMENTS.append(docname)
 
 		read = self.get(self.resource(self.DOCTYPE, docname), {"sid": self.sid})
 		update = self.patch(
@@ -152,7 +149,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 
 		for label, response in (("create", create), ("read", read), ("update", update)):
 			self.assertEqual(response.status_code, 200, label)
-			for fieldname in null_fields:
+			for fieldname in expected:
 				self.assertIn(fieldname, response.json["data"], f"{fieldname} dropped from {label} response")
 
 	def test_update_document(self):
