@@ -124,6 +124,12 @@ def _download_multi_pdf(
 
 	options = frappe.parse_json(options)
 
+	if (options or {}).get("password") and format:
+		# Typst can't encrypt — failing here once beats silently dropping
+		# every document inside the loop below
+		if frappe.db.get_value("Print Format", format, "pdf_generator") == "Typst":
+			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
+
 	def print_into_writer(print_doctype, print_name):
 		"""Route one document into the shared writer — builder formats through the
 		generator (which dispatches Typst), everything else through get_print."""
@@ -171,6 +177,11 @@ def _download_multi_pdf(
 			try:
 				pdf_writer = print_into_writer(doctype, ss)
 			except Exception:
+				frappe.log_error(
+					title="Error in Multi PDF download",
+					reference_doctype=doctype,
+					reference_name=ss,
+				)
 				if task_id:
 					frappe.publish_realtime(task_id=task_id, message={"message": "Failed"})
 

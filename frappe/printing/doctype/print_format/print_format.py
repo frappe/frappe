@@ -178,6 +178,38 @@ class PrintFormat(Document):
 				_("This format cannot use the Typst renderer: {0}").format(", ".join(blockers)),
 				title=_("Typst renderer unavailable"),
 			)
+		self._validate_typst_block_markup(layout)
+
+	def _validate_typst_block_markup(self, layout):
+		"""Compile each raw Typst block on save so a typo fails here, with the
+		block named, instead of breaking every print later."""
+		import os
+		import tempfile
+
+		from frappe.utils.typst_emitter import _walk, has_typst_blocks
+
+		if not has_typst_blocks(layout):
+			return
+		try:
+			import typst
+		except ImportError:
+			return
+		for where, df in _walk(layout):
+			markup = (df.get("typst") or "").strip() if df.get("fieldtype") == "Typst" else ""
+			if not markup:
+				continue
+			with tempfile.TemporaryDirectory() as tmp:
+				path = os.path.join(tmp, "block.typ")
+				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+				with open(path, "w") as f:
+					f.write(markup)
+				try:
+					typst.compile(path, root=tmp)
+				except Exception as e:
+					frappe.throw(
+						_("The Typst block in {0} does not compile: {1}").format(where, str(e)[:300]),
+						title=_("Invalid Typst markup"),
+					)
 
 	def validate_conditions(self):
 		"""Reject a layout whose visibility conditions cannot compile.

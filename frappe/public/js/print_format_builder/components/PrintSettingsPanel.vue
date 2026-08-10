@@ -108,7 +108,9 @@ let has_typst_block = computed(() => {
 		(zone) =>
 			zone &&
 			(zone.columns || []).some((col) =>
-				(col?.fields || []).some((df) => df && !df.remove && df.fieldtype === "Typst")
+				(col?.fields || []).some(
+					(df) => df && !df.remove && df.fieldtype === "Typst" && (df.typst || "").trim()
+				)
 			)
 	);
 });

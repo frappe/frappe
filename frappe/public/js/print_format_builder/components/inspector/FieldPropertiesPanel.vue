@@ -275,11 +275,13 @@ function set_image_url(url) {
 		selected_field.value.width = "";
 		return;
 	}
-	get_image_dimensions(url).then(({ width }) => {
-		if (!parseFloat(selected_field.value.width)) {
-			selected_field.value.width = Math.min(width, 300) + "px";
-		}
-	});
+	get_image_dimensions(url)
+		.then(({ width }) => {
+			if (!parseFloat(selected_field.value.width)) {
+				selected_field.value.width = Math.min(width, 300) + "px";
+			}
+		})
+		.catch(() => {});
 }
 
 let current_align = computed(() => selected_field.value?.align ?? "left");

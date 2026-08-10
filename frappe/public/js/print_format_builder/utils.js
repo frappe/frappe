@@ -51,22 +51,23 @@ export const TYPST_STYLE_PROPS = new Set([
 // Value grammars for the props above — a recognized prop with a value the
 // server cannot translate blocks too, it never silently drops
 const TYPST_BORDER_VALUE =
-	/^[\d.]+px\s+\w+\s+(#([0-9a-fA-F]{3}){1,2}|black|gray|silver|white|navy|blue|aqua|teal|purple|fuchsia|maroon|red|orange|yellow|olive|green|lime)$/;
+	/^\d+(\.\d+)?px\s+\w+\s+(#([0-9a-fA-F]{3}){1,2}|black|gray|silver|white|navy|blue|aqua|teal|purple|fuchsia|maroon|red|orange|yellow|olive|green|lime)$/;
 
 const TYPST_STYLE_VALUES = {
 	"font-weight": /^(bold|600|700|800|900)$/,
 	"border-top": TYPST_BORDER_VALUE,
 	"border-bottom": TYPST_BORDER_VALUE,
-	"margin-top": /^[\d.]+(px)?$/,
-	"padding-top": /^[\d.]+(px)?$/,
-	"padding-bottom": /^[\d.]+(px)?$/,
-	gap: /^[\d.]+(px)?$/,
+	"margin-top": /^\d+(\.\d+)?(px)?$/,
+	"padding-top": /^\d+(\.\d+)?(px)?$/,
+	"padding-bottom": /^\d+(\.\d+)?(px)?$/,
+	gap: /^\d+(\.\d+)?(px)?$/,
 };
 
 export function typst_blockers_client(print_format, layout, letterhead) {
 	const blockers = [];
 	const add = (reason) => !blockers.includes(reason) && blockers.push(reason);
 	if (print_format?.custom_format) return [__("Custom HTML format")];
+	if (!print_format?.print_format_builder_beta) return [__("Not a builder format")];
 	if ((print_format?.css || "").trim()) add(__("Custom CSS on the format"));
 	if (letterhead) {
 		if ((letterhead.custom_css || "").trim()) add(__("Letterhead with custom CSS"));
@@ -519,12 +520,6 @@ const SAFE_HTML_ATTRS = new Set([
 	"cellspacing",
 ]);
 
-export function strip_html_to_text(html, fallback = "") {
-	const tmp = document.createElement("div");
-	tmp.innerHTML = html;
-	return tmp.textContent || tmp.innerText || fallback;
-}
-
 export function sanitize_html(html) {
 	const root = document.createElement("div");
 	root.innerHTML = frappe.dom.remove_script_and_style(html || "");
@@ -585,11 +580,13 @@ export function evaluate_visible_if(expr, doc) {
 }
 
 export function get_image_dimensions(src) {
-	return new Promise((resolve) => {
+	return new Promise((resolve, reject) => {
 		let img = new Image();
 		img.onload = function () {
 			resolve({ width: this.width, height: this.height });
 		};
+		// a broken src must reject, not leave the caller hanging forever
+		img.onerror = () => reject(new Error(`could not load image: ${src}`));
 		img.src = src;
 	});
 }

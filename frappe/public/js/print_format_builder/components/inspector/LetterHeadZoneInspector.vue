@@ -112,10 +112,13 @@ const range_field = ref(null);
 onMounted(() => {
 	const img = letterhead.value?.[image_field.value];
 	if (img) {
-		get_image_dimensions(img).then(({ width, height }) => {
-			aspect_ratio.value = width / height;
-			range_field.value = aspect_ratio.value > 1 ? width_field.value : height_field.value;
-		});
+		get_image_dimensions(img)
+			.then(({ width, height }) => {
+				aspect_ratio.value = width / height;
+				range_field.value =
+					aspect_ratio.value > 1 ? width_field.value : height_field.value;
+			})
+			.catch(() => {});
 	} else {
 		range_field.value = width_field.value;
 	}
@@ -162,23 +165,27 @@ function set_image(url) {
 		letterhead.value._dirty = true;
 		return;
 	}
-	get_image_dimensions(url).then(({ width, height }) => {
-		aspect_ratio.value = width / height;
-		range_field.value = aspect_ratio.value > 1 ? width_field.value : height_field.value;
-		let new_width = width > 200 ? 200 : width;
-		let new_height = new_width / aspect_ratio.value;
-		if (new_height > 80) {
-			new_height = 80;
-			new_width = aspect_ratio.value * new_height;
-		}
-		letterhead.value[image_field.value] = url;
-		letterhead.value[width_field.value] = new_width;
-		letterhead.value[height_field.value] = new_height;
-		if (props.zone === "footer") {
-			letterhead.value[source_field.value] = "Image";
-		}
-		letterhead.value._dirty = true;
-	});
+	get_image_dimensions(url)
+		.then(({ width, height }) => {
+			aspect_ratio.value = width / height;
+			range_field.value = aspect_ratio.value > 1 ? width_field.value : height_field.value;
+			let new_width = width > 200 ? 200 : width;
+			let new_height = new_width / aspect_ratio.value;
+			if (new_height > 80) {
+				new_height = 80;
+				new_width = aspect_ratio.value * new_height;
+			}
+			letterhead.value[image_field.value] = url;
+			letterhead.value[width_field.value] = new_width;
+			letterhead.value[height_field.value] = new_height;
+			if (props.zone === "footer") {
+				letterhead.value[source_field.value] = "Image";
+			}
+			letterhead.value._dirty = true;
+		})
+		.catch(() => {
+			frappe.show_alert({ message: __("Could not load this image"), indicator: "orange" });
+		});
 }
 
 function open_html_split_dialog({ title, initial_html, on_save, doctype, docname }) {

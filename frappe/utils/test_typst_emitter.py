@@ -167,6 +167,43 @@ class TestTypstGate(IntegrationTestCase):
 		source, _assets = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", todo.name))).emit()
 		self.assertIn(markup, source)
 
+	def test_safe_color_accepts_only_typst_hex_lengths(self):
+		from frappe.utils.typst_emitter import safe_color
+
+		for ok in ("#abc", "#abcd", "#aabbcc", "#aabbccdd"):
+			self.assertEqual(safe_color(ok), ok)
+		# 5/7 digits abort typst.compile with "color string has wrong length"
+		for bad in ("#12345", "#1234567", "#red"):
+			self.assertIsNone(safe_color(bad))
+
+	def test_remote_letterhead_image_blocks(self):
+		from frappe.utils.typst_emitter import letterhead_blockers
+
+		lh = {"source": "Image", "image": "https://x.test/logo.png", "content": "<img>"}
+		self.assertIn("Letterhead with a remote image URL", letterhead_blockers(lh))
+		self.assertEqual(letterhead_blockers({"source": "Image", "image": "/files/logo.png"}), [])
+
+	def test_empty_typst_block_does_not_pin_renderer(self):
+		from frappe.utils.typst_emitter import has_typst_blocks
+
+		layout = layout_with({"fieldtype": "Typst", "fieldname": "t", "custom": 1, "typst": "  "})
+		self.assertFalse(has_typst_blocks(layout))
+
+	@unittest.skipUnless(has_typst(), "typst not installed")
+	def test_malformed_typst_block_refused_at_save(self):
+		layout = layout_with({"fieldtype": "Typst", "fieldname": "t", "custom": 1, "typst": "#unclosed["})
+		pf_doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Typst BadBlock {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"pdf_generator": "Typst",
+				"format_data": json.dumps(layout),
+			}
+		)
+		self.assertRaisesRegex(frappe.ValidationError, "does not compile", pf_doc.insert)
+
 	def test_typst_block_requires_typst_renderer(self):
 		layout = layout_with({"fieldtype": "Typst", "fieldname": "t", "custom": 1, "typst": "#v(1pt)"})
 		pf_doc = frappe.get_doc(

@@ -81,7 +81,7 @@ def translate_custom_style(style: str) -> tuple[dict, list[str]]:
 			else:
 				unknown.append(f"{prop}: {value}")
 		elif prop in ("border-top", "border-bottom"):
-			match = re.match(r"([\d.]+)px\s+\w+\s+(#(?:[0-9a-fA-F]{3}){1,2}|[a-z]+)$", value)
+			match = re.match(r"(\d+(?:\.\d+)?)px\s+\w+\s+(#(?:[0-9a-fA-F]{3}){1,2}|[a-z]+)$", value)
 			color = match and match.group(2)
 			if match and (color.startswith("#") or color in TYPST_NAMED_COLORS):
 				width = round(float(match.group(1)) * PX_TO_PT, 2)
@@ -90,7 +90,7 @@ def translate_custom_style(style: str) -> tuple[dict, list[str]]:
 			else:
 				unknown.append(f"{prop}: {value}")
 		elif prop in ("margin-top", "padding-top", "padding-bottom", "gap"):
-			match = re.match(r"([\d.]+)(px)?$", value)
+			match = re.match(r"(\d+(?:\.\d+)?)(px)?$", value)
 			if match:
 				key = {
 					"margin-top": "space_before",
@@ -186,6 +186,10 @@ def letterhead_blockers(lh) -> list[str]:
 	footer_is_image = lh.get("footer_source") == "Image" and lh.get("footer_image")
 	if (lh.get("footer") or "").strip() and not footer_is_image:
 		blockers.append(_("Letterhead footer with HTML content"))
+	for image in (header_is_image and lh.get("image"), footer_is_image and lh.get("footer_image")):
+		if image and str(image).startswith(("http://", "https://")):
+			blockers.append(_("Letterhead with a remote image URL"))
+			break
 	return blockers
 
 
@@ -200,10 +204,13 @@ def _image_blocker(df):
 
 def has_typst_blocks(layout) -> bool:
 	"""True when the layout carries raw Typst markup — such a format can only
-	render through Typst, the mirror image of what blocks Typst itself."""
+	render through Typst, the mirror image of what blocks Typst itself.
+	An empty block emits nothing, so it doesn't pin the renderer."""
 	if not isinstance(layout, dict):
 		return False
-	return any(df.get("fieldtype") == "Typst" for _where, df in _walk(layout))
+	return any(
+		df.get("fieldtype") == "Typst" and (df.get("typst") or "").strip() for _where, df in _walk(layout)
+	)
 
 
 def _walk(layout):
@@ -277,13 +284,24 @@ def ensure_typst_fonts(family: str | None):
 		if not urls:
 			mark_unavailable()
 			return
-		os.makedirs(target, exist_ok=True)
-		for weight, url in urls:
-			ttf = requests.get(url, timeout=10).content
-			# safe_family is allowlist-sanitized above; the path cannot leave the cache dir
-			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
-			with open(os.path.join(target, f"{safe_family}-{weight}.ttf"), "wb") as f:
-				f.write(ttf)
+		# fetch into a scratch dir and rename once complete — a download that
+		# dies halfway must not leave a half-populated cache that looks done
+		scratch = f"{target}.partial-{os.getpid()}"
+		os.makedirs(scratch, exist_ok=True)
+		try:
+			for weight, url in urls:
+				ttf = requests.get(url, timeout=10).content
+				# safe_family is allowlist-sanitized above; the path cannot leave the cache dir
+				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+				with open(os.path.join(scratch, f"{safe_family}-{weight}.ttf"), "wb") as f:
+					f.write(ttf)
+			if not os.path.isdir(target):
+				os.rename(scratch, target)
+		finally:
+			if os.path.isdir(scratch):
+				import shutil
+
+				shutil.rmtree(scratch, ignore_errors=True)
 	except Exception:
 		mark_unavailable()
 		frappe.log_error(title=f"Typst font fetch failed: {family}")
@@ -301,7 +319,8 @@ def q(value) -> str:
 	return json.dumps(text, ensure_ascii=False)
 
 
-COLOR_PATTERN = re.compile(r"^#[0-9a-fA-F]{3,8}$")
+# exactly the lengths Typst's rgb() accepts — a 5/7-digit string would abort the compile
+COLOR_PATTERN = re.compile(r"^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")
 
 
 def safe_color(value, default=None):
@@ -377,10 +396,9 @@ class TypstEmitter:
 			return ""
 		name = self._embed_image(src)
 		if name is None:
-			frappe.throw(
-				_("The Typst renderer cannot embed this image: {0}").format(frappe.bold(str(src)[:100])),
-				title=_("Typst renderer unavailable"),
-			)
+			# an unreadable letterhead image degrades like a dead <img> in the
+			# HTML render — a permission gap must not break every print
+			return ""
 		args = [f'"{name}"']
 		width = frappe.utils.flt(lh.get(f"{prefix}image_width"))
 		height = frappe.utils.flt(lh.get(f"{prefix}image_height"))
@@ -448,10 +466,12 @@ class TypstEmitter:
 		position = PAGE_NUMBER_POSITIONS.get(pf.get("page_number") or "")
 		if position:
 			slot, align = position
+			# the translated word must stay literal content — inside a display()
+			# pattern, letters like "i" or "v" ("di", "van") count pages
 			slots[slot].append(
 				f'[#context [#set text(size: 7pt, fill: rgb("#6b7280"))\n'
 				f"  #set align({align})\n"
-				f"  #counter(page).display({q('1 ' + _('of') + ' 1')}, both: true)]]"
+				f'  #counter(page).display("1")#text({q(" " + _("of") + " ")})#counter(page).final().first()]]'
 			)
 		if header_zone:
 			slots["header"].append(f"[{header_zone}]")
@@ -818,7 +838,7 @@ class TypstEmitter:
 		if data is None:
 			return ""
 		name = self._asset("svg", data)
-		width = self._dimension(df.get("width")) or "30mm"
+		width = self._dimension(df.get("width")) or "35mm"
 		return _aligned(f'#image("{name}", width: {width})', df.get("align"))
 
 	def _repeater(self, df) -> str:
@@ -966,7 +986,12 @@ class TypstEmitter:
 
 	def _table_thumb(self, row, col, img_fn, merged) -> str:
 		size = round((frappe.utils.cint(col.get("image_size")) or 40) * PX_TO_PT, 2)
-		name = self._embed_image(row.get(img_fn))
+		src = str(row.get(img_fn) or "")
+		img_type = next((mf.get("fieldtype") for mf in merged if mf.get("fieldname") == img_fn), None)
+		# a plain Attach can hold any file — embedding a PDF would abort the compile
+		name = None
+		if img_type != "Attach" or frappe.utils.is_image(src):
+			name = self._embed_image(src)
 		if name:
 			return (
 				f"#box(width: {size}pt, height: {size}pt, radius: 4.5pt, clip: true)"
