@@ -32,7 +32,7 @@ const { activities, loading } = useActivityTimeline("HD Ticket", route.params.ti
 </template>
 ```
 
-For email pagination, bind `paginate` too — see [Pagination](#pagination).
+For pagination, bind `paginate` too — see [Pagination](#pagination).
 
 > The composable lives in the **consuming app**, not in `@framework/ui` — this keeps the
 > shared renderer decoupled from where activities come from. `useActivityTimeline` binds its
@@ -150,21 +150,23 @@ returns the document's own activities, so you merge yours in yourself — see
 
 ## Pagination
 
-Emails page in oldest-direction on demand. `paginate` is the same object the composable
-returns; pass it through and the component wires the "Load more" control for you.
+Emails and milestones page in oldest-direction on demand; the remaining sources arrive whole
+on the first load. `paginate` is the same object the composable returns; pass it through and
+the component wires the "Load more" control for you. One control advances both paged sources.
 
 | Property             | Details                                                                     |
 | -------------------- | --------------------------------------------------------------------------- |
-| `hasNextPage`        | `boolean` — whether older emails remain                                     |
+| `hasNextPage`        | `boolean` — whether older paged rows remain                                 |
 | `isFetchingNextPage` | `boolean` — a page is in flight                                             |
 | `fetchNextPage()`    | Load and append the next older page                                         |
+| `isPagedRow?`        | `(activity) => boolean` — rows the next page extends; defaults to email rows |
 | `loadMore?`          | Affordance config — `position` (`"top"` \| `"bottom"` \| `"inline"`), `label`, `icon` |
 
-`position: "inline"` injects a `load_more` row directly above the oldest email; `top` /
-`bottom` render a standalone button. Omit `loadMore` for a default top button.
+`position: "inline"` injects a `load_more` row directly above the oldest row `isPagedRow`
+matches; `top` / `bottom` render a standalone button. Omit `loadMore` for a default top button.
 
 The control is configured through the `paginate.loadMore` object you pass. The composable
-bakes in a default (`{ position: "inline", label: "Show previous conversations", icon:
+bakes in a default (`{ position: "inline", label: "Show previous activity", icon:
 "lucide-chevrons-up" }`); override it by spreading the returned `paginate`:
 
 ```vue
@@ -201,7 +203,7 @@ Returns:
 | `activities` | `ComputedRef` — deduped, sorted, and grouped rows ready for the component |
 | `loading`    | `ComputedRef<boolean>`                                                   |
 | `reload()`   | Refetch the feed                                                         |
-| `paginate`   | `Pagination` — email "Load more" controller; bind it to the component only if you want pagination |
+| `paginate`   | `Pagination` — "Load more" controller for emails and milestones; bind it to the component only if you want pagination |
 
 **Realtime.**  While mounted it subscribes to the doc's socket room and
 patches the feed live — new comments/likes/assignments/attachments arrive via

@@ -53,6 +53,9 @@ import LucideInfo from "~icons/lucide/info";
 import LucideEye from "~icons/lucide/eye";
 import LucidePaperclip from "~icons/lucide/paperclip";
 import LucideTrash2 from "~icons/lucide/trash-2";
+import LucidePencil from "~icons/lucide/pencil";
+import LucideUsers from "~icons/lucide/users";
+import LucideFlag from "~icons/lucide/flag";
 import { CommentIcon, DotIcon, LUCIDE_ICON_CLASS } from "./icons";
 import type { Activity, AttachmentLogActivity, CustomActivity, LogActivity } from "./types";
 
@@ -67,6 +70,9 @@ const LOG_SUBTYPE_ICON: Record<string, Component> = {
 	workflow: LucideGitBranch,
 	info: LucideInfo,
 	view: LucideEye,
+	edited: LucidePencil,
+	shared: LucideUsers,
+	milestone: LucideFlag,
 };
 
 // The gutter icon component for a log / attachment_log row (attachment from its
