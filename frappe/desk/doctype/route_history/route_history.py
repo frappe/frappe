@@ -1,6 +1,8 @@
 # Copyright (c) 2022, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from typing import Any
+
 import frappe
 from frappe.deferred_insert import deferred_insert as _deferred_insert
 from frappe.model.document import Document
@@ -29,7 +31,7 @@ class RouteHistory(Document):
 
 
 @frappe.whitelist()
-def deferred_insert(routes):
+def deferred_insert(routes: str | list[dict[str, Any]]):
 	routes = [
 		{
 			"user": frappe.session.user,
