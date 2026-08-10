@@ -72,7 +72,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			options: input.options,
 		}))
 
-		studioComponents.setValue.submit(payload, {
+		return studioComponents.setValue.submit(payload, {
 			onSuccess(data: StudioComponent) {
 				componentStore.cacheComponent(data)
 				resetStudioComponent()

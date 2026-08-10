@@ -4,6 +4,9 @@
 		<pre class="text-xs">{{ error }}</pre>
 	</div>
 
+	<!-- nested overlay nodes (sub-dialogs) are collapsed into cards instead of rendering inline -->
+	<template v-else-if="isOverlayNode"></template>
+
 	<StudioComponentWrapper
 		v-else-if="block.isStudioComponent"
 		:studioComponent="block"
@@ -153,6 +156,14 @@ const styles = computed(() => {
 		}
 	})
 	return _styles
+})
+
+const isOverlayNode = computed(() => {
+	return (
+		canvasStore.editingMode !== "page" &&
+		props.block.isOverlayNode() &&
+		props.block.componentId !== canvasStore.primaryOverlayId
+	)
 })
 
 const componentName = computed(() => {

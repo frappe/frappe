@@ -19,6 +19,8 @@
 					padding: '40px',
 					display: 'flex',
 					justifyContent: 'center',
+					// overlay proxies render out of flow (float), so they don't give the canvas any height
+					minHeight: canvasStore.primaryOverlayId ? '900px' : null,
 				}"
 				:style="{
 					left: `${store.studioLayout.showLeftPanel ? store.studioLayout.leftPanelWidth : 0}px`,
@@ -31,13 +33,32 @@
 						class="absolute left-0 right-0 top-0 z-20 flex items-center justify-between border-b border-outline-gray-2 bg-surface-base p-[0.4rem] text-sm text-ink-gray-8"
 					>
 						<div class="flex items-center gap-1 pl-2 text-xs">
-							<a @click="canvasStore.exitFragmentMode" class="cursor-pointer">
+							<a @click="canvasStore.exitAllFragments" class="cursor-pointer">
 								{{ store.activePage?.page_title }}
 							</a>
-							<FeatherIcon name="chevron-right" class="h-3 w-3" />
-							<span class="flex items-center gap-2">
-								{{ canvasStore.fragmentData.fragmentName }}
-							</span>
+							<template v-for="(fragment, index) in canvasStore.fragmentStack" :key="fragment.fragmentId">
+								<FeatherIcon name="chevron-right" class="h-3 w-3" />
+								<a
+									v-if="index < canvasStore.fragmentStack.length - 1"
+									class="flex cursor-pointer items-center gap-1.5"
+									@click="canvasStore.popToFragment(index)"
+								>
+									{{ fragment.fragmentName }}
+									<span
+										v-if="fragment.dirty"
+										title="Unsaved changes"
+										class="h-1.5 w-1.5 rounded-full bg-surface-amber-6"
+									></span>
+								</a>
+								<span v-else class="flex items-center gap-1.5 font-medium">
+									{{ fragment.fragmentName }}
+									<span
+										v-if="canvasStore.isActiveFragmentDirty"
+										title="Unsaved changes"
+										class="h-1.5 w-1.5 rounded-full bg-surface-amber-6"
+									></span>
+								</span>
+							</template>
 						</div>
 
 						<div class="ml-auto flex items-center gap-2">
@@ -49,13 +70,16 @@
 							></Button>
 							<Button variant="subtle" class="text-xs" @click="canvasStore.exitFragmentMode">
 								<template #prefix><FeatherIcon name="chevron-left" class="!h-3 !w-3" /></template>
-								Page
+								{{ parentFragmentName }}
 							</Button>
-							<Button variant="solid" class="text-xs" @click="saveFragmentMode">
+							<Button variant="solid" class="text-xs" :loading="savingFragment" @click="saveFragmentMode">
 								{{ canvasStore.fragmentData.saveActionLabel || "Save" }}
 							</Button>
 						</div>
 					</div>
+				</template>
+				<template v-slot:afterCanvas="{ rootBlock }">
+					<OverlayList v-if="rootBlock" :rootBlock="rootBlock" />
 				</template>
 			</StudioCanvas>
 
@@ -72,7 +96,11 @@
 					left: `${store.studioLayout.showLeftPanel ? store.studioLayout.leftPanelWidth : 0}px`,
 					right: `${store.studioLayout.showRightPanel ? store.studioLayout.rightPanelWidth : 0}px`,
 				}"
-			/>
+			>
+				<template v-slot:afterCanvas="{ rootBlock }">
+					<OverlayList v-if="rootBlock" :rootBlock="rootBlock" />
+				</template>
+			</StudioCanvas>
 
 			<StudioRightPanel
 				class="no-scrollbar dark:bg-zinc-900 absolute bottom-0 right-0 top-[var(--toolbar-height)] z-20 overflow-auto border-l border-outline-gray-2 bg-surface-base dark:border-outline-gray-7"
@@ -146,7 +174,7 @@
 </template>
 
 <script setup lang="ts">
-import { onActivated, watchEffect, watch, ref, onDeactivated, toRef, nextTick } from "vue"
+import { onActivated, watchEffect, watch, ref, onDeactivated, toRef, nextTick, computed } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
 import { usePageMeta, Dialog } from "frappe-ui"
@@ -157,6 +185,7 @@ import StudioToolbar from "@/components/StudioToolbar.vue"
 import StudioLeftPanel from "@/components/StudioLeftPanel.vue"
 import StudioRightPanel from "@/components/StudioRightPanel.vue"
 import StudioCanvas from "@/components/StudioCanvas.vue"
+import OverlayList from "@/components/OverlayList.vue"
 import Code from "@/components/Code.vue"
 
 import useStudioStore from "@/stores/studioStore"
@@ -164,7 +193,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import { studioPages } from "@/data/studioPages"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
-import { getRootBlock } from "@/utils/serializer"
+import { getBlockCopy, getRootBlock } from "@/utils/serializer"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import { toast } from "frappe-ui"
 
@@ -175,7 +204,7 @@ const canvasStore = useCanvasStore()
 
 const getCompletions = useStudioCompletions()
 const componentContextMenu = toRef(store, "componentContextMenu")
-useStudioEvents()
+useStudioEvents(saveFragmentMode)
 
 const pageCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
 const fragmentCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
@@ -196,10 +225,36 @@ watchEffect(() => {
 	}
 })
 
+const parentFragmentName = computed(() => {
+	const parentFragment = canvasStore.fragmentStack[canvasStore.fragmentStack.length - 2]
+	return parentFragment?.fragmentName || "Page"
+})
+
+const savingFragment = ref(false)
+
 async function saveFragmentMode() {
-	canvasStore.fragmentData.saveAction?.(fragmentCanvas.value?.getRootBlock())
+	const editedBlock = fragmentCanvas.value?.getRootBlock()
+	if (!editedBlock || savingFragment.value) return
+
+	savingFragment.value = true
+	try {
+		// pass a copy to avoid mutating the canvas block while saving, marking it dirty
+		await canvasStore.fragmentData.saveAction?.(getBlockCopy(editedBlock, true))
+	} catch {
+		// save failed, stay on this fragment so the edited state isn't lost
+		return
+	} finally {
+		savingFragment.value = false
+	}
+
 	if (canvasStore.editingMode === "fragment") {
 		toast.success(`${canvasStore.fragmentData.fragmentName} saved successfully`)
+	}
+	// saving a nested fragment returns to its parent fragment canvas
+	if (canvasStore.fragmentStack.length > 1) {
+		canvasStore.popFragment()
+	} else {
+		canvasStore.markActiveFragmentClean()
 	}
 }
 

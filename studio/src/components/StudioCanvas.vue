@@ -12,7 +12,7 @@
 		</Transition>
 
 		<div
-			class="fixed flex gap-40"
+			class="fixed flex flex-col"
 			ref="canvas"
 			:style="{
 				transformOrigin: 'top center',
@@ -37,37 +37,40 @@
 					/>
 				</div>
 			</div>
-			<div
-				class="canvas relative flex bg-surface-base shadow-2xl contain-layout"
-				:class="canvasStore.editingMode === 'page' ? 'min-h-[100dvh]' : ''"
-				:style="{
-					...canvasStyles,
-					background: canvasProps.background,
-					width: `${breakpoint.width}px`,
-				}"
-				v-for="breakpoint in visibleBreakpoints"
-				:key="breakpoint.device"
-			>
+			<div class="flex gap-40">
 				<div
-					class="cursor dark:text-zinc-300 absolute left-0 select-none text-4xl text-ink-gray-6"
+					class="canvas relative flex bg-surface-base shadow-2xl contain-layout"
+					v-for="breakpoint in visibleBreakpoints"
+					:key="breakpoint.device"
+					:class="canvasStore.editingMode === 'page' ? 'min-h-[100dvh]' : ''"
 					:style="{
-						fontSize: `calc(${12}px * 1/${canvasProps.scale})`,
-						top: `calc(${-20}px * 1/${canvasProps.scale})`,
+						...canvasStyles,
+						background: canvasProps.background,
+						width: `${breakpoint.width}px`,
 					}"
-					v-show="!canvasProps.scaling && !canvasProps.panning"
-					@click="activeBreakpoint = breakpoint.device"
 				>
-					{{ breakpoint.displayName }}
+					<div
+						class="cursor dark:text-zinc-300 absolute left-0 select-none text-4xl text-ink-gray-6"
+						:style="{
+							fontSize: `calc(${12}px * 1/${canvasProps.scale})`,
+							top: `calc(${-20}px * 1/${canvasProps.scale})`,
+						}"
+						v-show="!canvasProps.scaling && !canvasProps.panning"
+						@click="activeBreakpoint = breakpoint.device"
+					>
+						{{ breakpoint.displayName }}
+					</div>
+					<StudioComponent
+						:class="canvasStore.editingMode === 'fragment' ? '' : 'h-full min-h-[inherit]'"
+						v-if="showBlocks && rootComponent"
+						:block="rootComponent"
+						:key="rootComponent.componentId"
+						:breakpoint="breakpoint.device"
+						:isEditingComponent="canvasStore.editingMode === 'component'"
+					/>
 				</div>
-				<StudioComponent
-					:class="canvasStore.editingMode === 'fragment' ? '' : 'h-full min-h-[inherit]'"
-					v-if="showBlocks && rootComponent"
-					:block="rootComponent"
-					:key="rootComponent.componentId"
-					:breakpoint="breakpoint.device"
-					:isEditingComponent="canvasStore.editingMode === 'component'"
-				/>
 			</div>
+			<slot name="afterCanvas" :rootBlock="rootComponent"></slot>
 		</div>
 
 		<div
@@ -172,6 +175,7 @@ provide("canvasProps", canvasProps)
 const visibleBreakpoints = computed(() => {
 	return canvasProps.breakpoints.filter((breakpoint) => breakpoint.visible)
 })
+
 watch(
 	() => canvasProps.breakpoints.map((b) => b.visible),
 	() => {

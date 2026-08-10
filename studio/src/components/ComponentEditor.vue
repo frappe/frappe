@@ -15,6 +15,17 @@
 		>
 			<LucideRepeat v-if="block.isRepeater() || block.isRepeated()" class="h-3 w-3 shrink-0" />
 			{{ block.getBlockDescription() }}
+			<template v-if="showEditComponentAction">
+				<span class="mx-2 h-3 w-px bg-current opacity-30"></span>
+				<button
+					class="pointer-events-auto inline-flex cursor-pointer items-center gap-1 font-medium hover:opacity-80"
+					title="Edit component"
+					@click.stop="openComponentEditor"
+				>
+					<LucidePenLine class="h-2.5 w-2.5" />
+					Edit
+				</button>
+			</template>
 		</span>
 
 		<PaddingHandler
@@ -67,10 +78,12 @@ import BoxResizer from "@/components/BoxResizer.vue"
 import PaddingHandler from "@/components/PaddingHandler.vue"
 import MarginHandler from "@/components/MarginHandler.vue"
 import LucideRepeat from "~icons/lucide/repeat"
+import LucidePenLine from "~icons/lucide/pen-line"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
+import useComponentEditorStore from "@/stores/componentEditorStore"
 import trackTarget, { Tracker } from "@/utils/trackTarget"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
@@ -141,6 +154,14 @@ const getStyleClasses = computed(() => {
 	}
 	return classes
 })
+
+const showEditComponentAction = computed(() => {
+	return isBlockSelected.value && props.block.isStudioComponent && !canvasStore.isDragging
+})
+
+const openComponentEditor = () => {
+	useComponentEditorStore().editComponent(props.block.componentName)
+}
 
 const componentLabelClasses = computed(() => {
 	if (isBlockSelected.value) {
