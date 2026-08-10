@@ -5,6 +5,7 @@ import requests
 
 import frappe
 from frappe.installer import update_site_config
+from frappe.model import no_value_fields
 from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
 
 authorization_token = None
@@ -117,6 +118,39 @@ class TestResourceAPIV2(FrappeAPITestCase):
 	def test_execute_doc_method(self):
 		response = self.get(self.resource("Website Theme", "Standard", "method", "get_apps"))
 		self.assertEqual(response.json["data"][0]["name"], "frappe")
+
+	def test_execute_doc_method_returns_doc(self):
+		# the method may mutate the doc, so clients need the updated copy alongside the result
+		response = self.get(self.resource("Website Theme", "Standard", "method", "get_apps"))
+		self.assertEqual(response.status_code, 200)
+		self.assertGreaterEqual(len(response.json["docs"]), 1)
+		self.assertEqual(response.json["docs"][0]["name"], "Standard")
+
+	def test_document_apis_retain_null_fields(self):
+		# unset fields must be present as null instead of being dropped from the payload.
+		# only fields backed by a column, so layout fieldtypes never enter the expectation
+		expected = [
+			df.fieldname for df in frappe.get_meta(self.DOCTYPE).fields if df.fieldtype not in no_value_fields
+		]
+		self.assertTrue(expected, f"{self.DOCTYPE} is expected to have column-backed fields")
+
+		create = self.post(
+			self.resource(self.DOCTYPE), {"description": frappe.mock("paragraph"), "sid": self.sid}
+		)
+		self.assertEqual(create.status_code, 200)
+		docname = create.json["data"]["name"]
+		self.GENERATED_DOCUMENTS.append(docname)
+
+		read = self.get(self.resource(self.DOCTYPE, docname), {"sid": self.sid})
+		update = self.patch(
+			self.resource(self.DOCTYPE, docname),
+			data={"description": frappe.mock("paragraph"), "sid": self.sid},
+		)
+
+		for label, response in (("create", create), ("read", read), ("update", update)):
+			self.assertEqual(response.status_code, 200, label)
+			for fieldname in expected:
+				self.assertIn(fieldname, response.json["data"], f"{fieldname} dropped from {label} response")
 
 	def test_update_document(self):
 		generated_desc = frappe.mock("paragraph")
