@@ -144,7 +144,18 @@ class Controller:
 			data = await self.client.entries(sid, path="all")
 			for entry in reversed(data["entries"]):
 				if entry.get("type") == "user_message":
-					recent.append(entry["content"])
+					content = entry.get("content", "")
+					text = (
+						content
+						if isinstance(content, str)
+						else "".join(
+							block.get("text", "")
+							for block in content
+							if isinstance(block, dict) and block.get("type") == "text"
+						)
+					)
+					if text:
+						recent.append(text)
 					if len(recent) == limit:
 						return list(reversed(recent))
 		return list(reversed(recent))

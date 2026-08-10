@@ -18,10 +18,10 @@ import json
 import secrets
 from collections.abc import AsyncIterator
 from dataclasses import asdict
-from typing import Literal
+from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -30,6 +30,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from flow import config as server_config
 from flow.events import AssistantMessage, ReasoningEffort, parse_event
 from flow.model.auth import AuthError
+from flow.model.catalog import model_supports_images
 from flow.model.discovery import available_models, context_window_for
 from flow.server.fspick import PickerUnavailable, pick_folder
 from flow.server.provider_auth import (
@@ -37,6 +38,11 @@ from flow.server.provider_auth import (
 	create_custom_provider,
 	provider_catalog,
 	require_provider,
+)
+from flow.session.attachments import (
+	MAX_ATTACHMENTS_PER_MESSAGE,
+	MAX_SOURCE_BYTES,
+	AttachmentError,
 )
 from flow.session.config import SessionConfig
 from flow.session.log import SessionLogError
@@ -54,7 +60,8 @@ from flow.session.transcript import active_path
 class RunRequest(BaseModel):
 	model_config = ConfigDict(extra="forbid")
 
-	message: str
+	message: str = ""
+	attachments: list[str] = Field(default_factory=list, max_length=MAX_ATTACHMENTS_PER_MESSAGE)
 
 
 class SetModelRequest(BaseModel):
@@ -106,6 +113,12 @@ class CustomProviderRequest(BaseModel):
 	api_key: str | None = None
 
 
+class AttachmentCleanupRequest(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
+	attachments: list[str] = Field(min_length=1, max_length=MAX_ATTACHMENTS_PER_MESSAGE * 2)
+
+
 class OAuthCompleteRequest(BaseModel):
 	model_config = ConfigDict(extra="forbid")
 
@@ -138,6 +151,10 @@ def create_app(
 	async def state_conflict(request: Request, error: Exception):
 		"""A session verb refused by the session's current state answers 409."""
 		return JSONResponse({"detail": str(error)}, status_code=409)
+
+	@app.exception_handler(AttachmentError)
+	async def attachment_error(request: Request, error: AttachmentError):
+		return JSONResponse({"detail": str(error)}, status_code=400)
 
 	@app.exception_handler(AuthError)
 	async def auth_error(request: Request, error: AuthError):
@@ -320,6 +337,7 @@ def create_app(
 			"title": await asyncio.to_thread(store.title, sid),
 			"context_tokens": session.transcript.context_tokens,
 			"context_window": await asyncio.to_thread(context_window_for, session.model),
+			"supports_images": await asyncio.to_thread(model_supports_images, session.model),
 		}
 
 	@app.delete("/sessions/{sid}")
@@ -330,10 +348,43 @@ def create_app(
 			raise HTTPException(status_code=404, detail="session not found") from None
 		return {"status": "deleted"}
 
+	@app.post("/sessions/{sid}/attachments")
+	async def upload_attachments(sid: str, files: Annotated[list[UploadFile], File()]):
+		session = _get(sid)
+		if not files or len(files) > MAX_ATTACHMENTS_PER_MESSAGE:
+			raise HTTPException(
+				status_code=400,
+				detail=f"upload between 1 and {MAX_ATTACHMENTS_PER_MESSAGE} files",
+			)
+		assert session.attachment_store is not None
+		stored = []
+		try:
+			for upload in files:
+				data = await upload.read(MAX_SOURCE_BYTES + 1)
+				stored.append(
+					await asyncio.to_thread(
+						session.attachment_store.add_bytes,
+						upload.filename or "attachment",
+						data,
+					)
+				)
+		except Exception:
+			for item in stored:
+				session.attachment_store.remove(item.id)
+			raise
+		return {"attachments": [item.model_dump(exclude_none=True) for item in stored]}
+
+	@app.delete("/sessions/{sid}/attachments")
+	async def cleanup_attachments(sid: str, req: AttachmentCleanupRequest):
+		session = _get(sid)
+		assert session.attachment_store is not None
+		removed = session.attachment_store.remove_unclaimed(req.attachments)
+		return {"removed": removed}
+
 	@app.post("/sessions/{sid}/run")
 	async def run(sid: str, req: RunRequest, wait: bool = False):
 		session = _get(sid)
-		handle = await session.run(req.message)
+		handle = await session.run(req.message, attachment_ids=req.attachments)
 		if handle.status == "steered":
 			return {"status": "steered"}
 		return await _finish(session, handle, wait)
@@ -382,6 +433,7 @@ def create_app(
 			"model": session.model,
 			"credential_id": session.credential_id,
 			"reasoning_effort": session.reasoning_effort,
+			"supports_images": await asyncio.to_thread(model_supports_images, session.model),
 		}
 
 	@app.post("/sessions/{sid}/compact")

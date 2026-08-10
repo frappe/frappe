@@ -6,6 +6,10 @@ import { applyEvent, conversationTitle, initialConversation } from "./transcript
 const PREFS_KEY = "flow.ui.prefs"
 const TITLES_KEY = "flow.ui.titles"
 
+function sameArray(left, right) {
+	return left.length === right.length && left.every((value, index) => value === right[index])
+}
+
 function readJSON(key, fallback) {
 	try {
 		return JSON.parse(localStorage.getItem(key)) ?? fallback
@@ -27,7 +31,7 @@ export function createFlowStore(client) {
 		modelErrors: [],
 		loading: false,
 		toast: null,
-		draft: null, // text handed to the composer (e.g. a rewound message)
+		draft: null, // { text, attachments } handed to the composer after rewind
 		prefs: {
 			theme: "light",
 			mode: "ask", // "ask" | "auto" — applied at session create
@@ -158,8 +162,20 @@ export function createFlowStore(client) {
 		}
 		applyEvent(state.conversation, event)
 		if (event.type === "user_message") {
-			// one queued copy per durable message — identical steers must not vanish together
-			const queued = state.queued.indexOf(event.content)
+			// Match structured content: attachment messages are arrays on the wire.
+			const blocks = Array.isArray(event.content) ? event.content : []
+			const text = Array.isArray(event.content)
+				? blocks
+						.filter((block) => block.type === "text")
+						.map((block) => block.text)
+						.join("")
+				: event.content
+			const attachmentIds = blocks
+				.filter((block) => block.type === "attachment")
+				.map((block) => block.id)
+			const queued = state.queued.findIndex(
+				(item) => item.text === text && sameArray(item.attachmentIds, attachmentIds),
+			)
 			if (queued !== -1) state.queued.splice(queued, 1)
 			rememberTitle(sid)
 		}
@@ -209,19 +225,48 @@ export function createFlowStore(client) {
 
 	let creating = null // in-flight lazy session creation; a double-send shares it
 
-	async function send(text) {
+	async function send(text, attachments = []) {
 		const message = text.trim()
-		if (!message) return
+		if (!message && !attachments.length) return false
 		if (!state.sessionId) {
 			creating ??= newSession()
 			try {
-				if (!(await creating)) return
+				if (!(await creating)) return false
 			} finally {
 				creating = null
 			}
 		}
-		const result = await guard(() => client.run(state.sessionId, message))
-		if (result?.status === "steered") state.queued.push(message)
+		const sid = state.sessionId
+		const attachmentIds = attachments.filter((item) => item.id).map((item) => item.id)
+		const createdIds = []
+		let admitted = false
+		try {
+			const uploads = attachments.filter((item) => item.file).map((item) => item.file)
+			if (uploads.length) {
+				const uploaded = await guard(() => client.uploadAttachments(sid, uploads))
+				if (!uploaded) return false
+				const ids = uploaded.attachments.map((item) => item.id)
+				attachmentIds.push(...ids)
+				createdIds.push(...ids)
+			}
+			const result = await guard(() => client.run(sid, message, attachmentIds))
+			if (!result) return false
+			admitted = true
+			if (result.status === "steered" && state.sessionId === sid) {
+				state.queued.push({
+					text: message,
+					attachmentIds,
+					label: message || `${attachments.length} attachment(s)`,
+				})
+			}
+			return true
+		} finally {
+			if (!admitted && createdIds.length) {
+				// A claimed attachment is retained if the run reached the daemon but its
+				// response was lost; only genuinely unclaimed staging data is removed.
+				await client.cleanupAttachments(sid, createdIds).catch(() => {})
+			}
+		}
 	}
 
 	// Approval answers: "Approve" | "Deny" | free text. Resume fires once every
@@ -265,8 +310,15 @@ export function createFlowStore(client) {
 		const target = (entry.parent_seq ?? 1) - 1
 		const ok = await guard(() => client.rewind(state.sessionId, Math.max(target, 0)))
 		if (ok === null) return null
-		setDraft(entry.content)
-		return entry.content
+		const content = Array.isArray(entry.content) ? entry.content : []
+		const text = Array.isArray(entry.content)
+			? content.filter((block) => block.type === "text").map((block) => block.text).join("")
+			: entry.content
+		const attachments = content
+			.filter((block) => block.type === "attachment")
+			.map((block) => ({ ...block }))
+		setDraft({ text, attachments })
+		return text
 	}
 
 	async function rewindLastUserMessage() {
@@ -276,22 +328,27 @@ export function createFlowStore(client) {
 	}
 
 	// One-way channel into the composer (it watches and consumes this).
-	function setDraft(text) {
-		state.draft = text
+	function setDraft(draft) {
+		state.draft = draft
 	}
 
 	async function selectModel(model) {
 		state.prefs.lastModel = model
 		savePrefs()
 		if (!state.sessionId) return
-		await guard(() =>
+		const data = await guard(() =>
 			client.setModel(state.sessionId, {
 				model,
 				reasoning_effort:
 					state.prefs.lastEffort && state.prefs.lastEffort !== "default" ? state.prefs.lastEffort : null,
 			}),
 		)
-		state.conversation.model = model
+		if (!data) return
+		state.conversation.model = data.model
+		if (state.session) {
+			state.session.model = data.model
+			state.session.supports_images = data.supports_images
+		}
 	}
 
 	async function selectEffort(effort) {

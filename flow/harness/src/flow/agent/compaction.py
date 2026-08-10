@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from collections.abc import AsyncIterator, Sequence
+from collections.abc import AsyncIterator, Callable, Sequence
 from dataclasses import dataclass
 
 from flow.events import (
@@ -24,6 +24,7 @@ from flow.events import (
 	UserMessage,
 )
 from flow.model.base import Model, ModelCancelled, ModelRequest, iterate_with_cancellation
+from flow.model.content import attachment_summary
 from flow.session.transcript import COMPACTION_SUMMARY_PREFIX
 
 CHARS_PER_TOKEN = 4
@@ -37,6 +38,7 @@ KEEP_RECENT_TOKENS = 20_000  # the tail an automatic compaction preserves
 # arbitrary per-message cap.
 MAX_TOOL_CONTENT_CHARS_IN_SUMMARY = 2_000
 MAX_SUMMARY_INSTRUCTION_CHARS = 2_000
+ESTIMATED_IMAGE_TOKENS = 6_000
 
 SUMMARIZATION_SYSTEM_PROMPT = (
 	"You are a context summarization assistant. Your task is to read a conversation "
@@ -128,6 +130,7 @@ async def compact_events(
 	compaction_reason: CompactionReason,
 	cancellation: asyncio.Event | None,
 	summary_instructions: str | None = None,
+	resolve_attachment: Callable[[str], bytes] | None = None,
 ) -> AsyncIterator[AnyEvent]:
 	"""Summarize the plan and yield one balanced start/end protocol.
 
@@ -141,6 +144,7 @@ async def compact_events(
 			compaction_plan,
 			cancellation=cancellation,
 			summary_instructions=summary_instructions,
+			resolve_attachment=resolve_attachment,
 		)
 	except ModelCancelled:
 		yield CompactionEnded(reason=compaction_reason, error_message="aborted")
@@ -162,6 +166,7 @@ async def summarize(
 	*,
 	cancellation: asyncio.Event | None,
 	summary_instructions: str | None = None,
+	resolve_attachment: Callable[[str], bytes] | None = None,
 ) -> str:
 	"""One standalone tool-less model call; deltas are consumed here, never yielded.
 	Every prompt part is bounded to the model's window."""
@@ -190,6 +195,7 @@ async def summarize(
 		bounded_compaction_plan,
 		summary_instructions,
 		max_summary_prompt_tokens=max_summary_prompt_tokens,
+		resolve_attachment=resolve_attachment,
 	)
 	summary_request = ModelRequest(
 		messages=[UserMessage(content=summary_prompt)],
@@ -272,8 +278,8 @@ def _split_previous_summary(
 	messages_to_compact: Sequence[TranscriptMessage],
 ) -> tuple[str | None, Sequence[TranscriptMessage]]:
 	first = messages_to_compact[0]
-	if isinstance(first, UserMessage) and first.content.startswith(COMPACTION_SUMMARY_PREFIX):
-		return first.content.removeprefix(COMPACTION_SUMMARY_PREFIX), messages_to_compact[1:]
+	if isinstance(first, UserMessage) and first.text.startswith(COMPACTION_SUMMARY_PREFIX):
+		return first.text.removeprefix(COMPACTION_SUMMARY_PREFIX), messages_to_compact[1:]
 	return None, messages_to_compact
 
 
@@ -321,6 +327,7 @@ def build_summary_prompt(
 	summary_instructions: str | None = None,
 	*,
 	max_summary_prompt_tokens: int | None = None,
+	resolve_attachment: Callable[[str], bytes] | None = None,
 ) -> str:
 	summary_prompt_template = (
 		UPDATE_SUMMARIZATION_PROMPT if compaction_plan.previous_summary is not None else SUMMARIZATION_PROMPT
@@ -330,7 +337,10 @@ def build_summary_prompt(
 	)
 	if max_summary_prompt_tokens is None:
 		return _render_summary_prompt(
-			serialize_messages(compaction_plan.messages_to_summarize),
+			serialize_messages(
+				compaction_plan.messages_to_summarize,
+				resolve_attachment=resolve_attachment,
+			),
 			compaction_plan.previous_summary,
 			summary_prompt_template,
 			summary_instructions,
@@ -363,6 +373,7 @@ def build_summary_prompt(
 	serialized_conversation = serialize_messages(
 		compaction_plan.messages_to_summarize,
 		max_serialized_chars=remaining_summary_prompt_chars,
+		resolve_attachment=resolve_attachment,
 	)
 
 	summary_prompt = _render_summary_prompt(
@@ -391,7 +402,10 @@ def _render_summary_prompt(
 
 
 def serialize_messages(
-	messages: Sequence[TranscriptMessage], *, max_serialized_chars: int | None = None
+	messages: Sequence[TranscriptMessage],
+	*,
+	max_serialized_chars: int | None = None,
+	resolve_attachment: Callable[[str], bytes] | None = None,
 ) -> str:
 	"""Serialize as text so the summarizer reads, not continues, the conversation.
 	Tool payloads are clipped; `max_serialized_chars` drops old messages when necessary."""
@@ -402,7 +416,7 @@ def serialize_messages(
 			else "(no new messages)"
 		)
 	message_blocks = [
-		_serialize_message(message_number, message)
+		_serialize_message(message_number, message, resolve_attachment=resolve_attachment)
 		for message_number, message in enumerate(messages, start=1)
 	]
 	serialized_messages = "\n".join(message_blocks)
@@ -428,12 +442,22 @@ def serialize_messages(
 	return omission_marker + "\n".join(retained_message_blocks)
 
 
-def _serialize_message(message_number: int, message: TranscriptMessage) -> str:
+def _serialize_message(
+	message_number: int,
+	message: TranscriptMessage,
+	*,
+	resolve_attachment: Callable[[str], bytes] | None = None,
+) -> str:
 	lines: list[str] = []
 	if isinstance(message, UserMessage):
 		lines.append(f"<message index={message_number} role=user>")
-		if message.content:
-			lines.append(message.content)
+		content = attachment_summary(
+			message,
+			resolve_attachment=resolve_attachment,
+			include_text_contents=True,
+		)
+		if content:
+			lines.append(content)
 	elif isinstance(message, AssistantMessage):
 		lines.append(f"<message index={message_number} role=assistant>")
 		if message.thinking_text:
@@ -480,7 +504,7 @@ def _fit_text(text: str, max_result_chars: int) -> str:
 
 def _message_preview(message: TranscriptMessage) -> str:
 	if isinstance(message, UserMessage):
-		return message.content
+		return attachment_summary(message)
 	if isinstance(message, AssistantMessage):
 		return message.text or ", ".join(call.name for call in message.tool_calls)
 	return message.content
@@ -506,7 +530,15 @@ def estimate_context_tokens(
 def estimate_message_tokens(message: TranscriptMessage) -> int:
 	estimated_message_tokens = MESSAGE_OVERHEAD_TOKENS
 	if isinstance(message, UserMessage):
-		estimated_message_tokens += estimate_text_tokens(message.content)
+		estimated_message_tokens += estimate_text_tokens(attachment_summary(message))
+		for attachment in message.attachments:
+			# Text bytes become prompt text at the provider boundary. Images use a
+			# conservative fixed estimate because providers tokenize pixels differently.
+			estimated_message_tokens += (
+				max(1, (attachment.size + CHARS_PER_TOKEN - 1) // CHARS_PER_TOKEN)
+				if attachment.kind == "text"
+				else ESTIMATED_IMAGE_TOKENS
+			)
 	elif isinstance(message, AssistantMessage):
 		estimated_message_tokens += estimate_text_tokens(message.text)
 		estimated_message_tokens += estimate_text_tokens(message.thinking_text)

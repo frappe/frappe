@@ -22,6 +22,7 @@ from flow.agent.compaction import (
 )
 from flow.events import (
 	AssistantMessage,
+	AttachmentContent,
 	Compaction,
 	TextContent,
 	ToolCall,
@@ -174,6 +175,53 @@ def test_serialize_renders_calls_and_results_as_text():
 	assert '- read_file: {"path": "a.txt"}' in text
 	assert "role=tool_result name=read_file error=true" in text
 	assert serialize_messages([]) == "(no new messages)"
+
+
+def test_serialization_resolves_text_attachment_contents():
+	attachment = AttachmentContent(
+		id="a" * 24,
+		name="notes.txt",
+		mime_type="text/plain",
+		size=12,
+		kind="text",
+	)
+	message = UserMessage(seq=1, content=[TextContent(text="review"), attachment])
+
+	text = serialize_messages([message], resolve_attachment=lambda _: b"secret notes")
+
+	assert '<file name="notes.txt">\nsecret notes\n</file>' in text
+
+
+async def test_summarize_represents_images_as_text_only():
+	class RecordingModel(MockModel):
+		def __init__(self):
+			super().__init__(replies=[AssistantMessage(content="image summarized")])
+			self.request = None
+
+		async def run(self, request):
+			self.request = request
+			async for event in super().run(request):
+				yield event
+
+	attachment = AttachmentContent(
+		id="b" * 24,
+		name="screen.png",
+		mime_type="image/png",
+		size=3,
+		kind="image",
+		width=1,
+		height=1,
+	)
+	plan = plan_all([UserMessage(seq=1, content=[attachment])])
+	assert plan is not None
+	model = RecordingModel()
+
+	await summarize(model, plan, cancellation=None, resolve_attachment=lambda _: b"png")
+
+	assert model.request is not None
+	assert model.request.messages[0].attachments == ()
+	assert "[Attached image: screen.png]" in model.request.messages[0].text
+	assert model.request.resolve_attachment is None
 
 
 async def test_summarize_returns_the_text():

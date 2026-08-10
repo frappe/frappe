@@ -83,7 +83,7 @@ class MockModel(Model):
 def _last_user(messages: list[TranscriptMessage]) -> str:
 	for message in reversed(messages):
 		if isinstance(message, UserMessage):
-			return message.content
+			return message.text
 	return ""
 
 

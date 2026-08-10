@@ -78,6 +78,7 @@ def configured_providers(store: CredentialStore) -> list[ProviderSpec]:
 class ModelInfo:
 	name: str  # flow model name, e.g. "anthropic/claude-sonnet-4"
 	provider: str  # provider id
+	supports_images: bool | None = None
 
 
 def list_models(store: CredentialStore) -> list[ModelInfo]:
@@ -90,7 +91,43 @@ def list_models(store: CredentialStore) -> list[ModelInfo]:
 	for name, provider_id in _litellm_chat_models():
 		if provider_id in configured:
 			models.setdefault(name, provider_id)
-	return [ModelInfo(name=name, provider=provider) for name, provider in sorted(models.items())]
+	return [
+		ModelInfo(name=name, provider=provider, supports_images=model_supports_images(name))
+		for name, provider in sorted(models.items())
+	]
+
+
+def model_supports_images(name: str) -> bool | None:
+	"""Best-effort image capability; ``None`` means the model is unknown."""
+	prefix, _, remote = name.partition("/")
+	if prefix == "mock":
+		return False
+	if prefix == "codex":
+		from flow.model.providers.codex import codex_supports_images
+
+		return codex_supports_images(remote)
+	if prefix == "opencode-go":
+		from flow.model.providers.opencode import opencode_go_supports_images
+
+		return opencode_go_supports_images(remote)
+	if prefix not in _PROVIDERS_BY_MODEL_PREFIX:
+		# A custom gateway may expose a familiar remote model id with different
+		# capabilities; provider metadata cannot safely be borrowed across surfaces.
+		return None
+	try:
+		import litellm
+
+		# LiteLLM returns False for unknown names as well as known text-only models.
+		# Read explicit catalog metadata first; unlike ``get_model_info``, this is not
+		# affected by LiteLLM's alias/cache resolution.
+		for candidate in (name, remote):
+			spec = litellm.model_cost.get(candidate)
+			if not isinstance(spec, dict):
+				continue
+			return spec.get("supports_vision") is True
+		return None
+	except Exception:
+		return None
 
 
 def _litellm_chat_models() -> Iterator[tuple[str, str]]:

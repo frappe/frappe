@@ -81,7 +81,7 @@ request except `GET /healthz`.
 `→ {"ok": true}`
 
 ### `GET /models`
-`→ {"models": [{"name": "anthropic/claude-sonnet-4", "provider": "anthropic"}, ...],
+`→ {"models": [{"name": "openai/gpt-4o", "provider": "openai", "supports_images": true}, ...],
 "errors": []}`.
 Live discovery: each configured provider — a stored credential or an API-key env var —
 is queried with the user's resolved credential, so the list reflects account- and
@@ -109,7 +109,9 @@ lag a later `model_changed` entry — `GET /sessions/{sid}` reports exact values
 `model_changed` entry on the active branch, else the creation config. `404` if unknown.
 
 ### `POST /sessions/{sid}/run?wait=<bool>`
-Body: `{"message": "..."}`. A run always uses the session's current model selection;
+Body: `{"message": "...", "attachments": ["<attachment-id>", ...]}`. `message` may
+be empty when at least one attachment is present. Upload attachments through the endpoint
+below before running. A run always uses the session's current model selection;
 to switch, use `POST /sessions/{sid}/model` before the run.
 - default (`wait` false): starts the run as a background task → `{"status": "started"}`.
   If a run is already active, the message is queued as steering → `{"status": "steered"}`
@@ -125,6 +127,21 @@ to switch, use `POST /sessions/{sid}/model` before the run.
   received `/abort` also rejects new steering with `409` instead of carrying it into a
   later turn, and so does an active manual compaction — a compaction never reads the
   steering queue, so "steered" would silently delay or lose the message.
+
+### `POST /sessions/{sid}/attachments`
+Multipart form with one or more `files` fields. PNG, JPEG, GIF, WebP, and BMP images are
+validated and stored outside the JSONL log. Other file types are rejected. Images are
+normalized to provider-safe limits.
+Returns `{"attachments": [{"id", "name", "mime_type", "size", "kind", ...}]}`.
+
+### `DELETE /sessions/{sid}/attachments`
+Body: `{"attachments": ["<attachment-id>", ...]}`. Removes staging attachments that
+have not been claimed by an admitted message. Claimed IDs are retained, making cleanup
+safe even when the client lost the response to a successful run request.
+
+Image attachments are sent only when the selected model advertises image input. Text-only
+models receive an explicit omission notice instead of an invalid image request. An unknown
+capability is returned as `null` rather than being mislabeled as text-only.
 
 ### `POST /sessions/{sid}/resume?wait=<bool>`
 Body:
@@ -169,7 +186,9 @@ entry in the log — so it survives restarts and is per-branch: a rewind to befo
 change restores the previous selection. Setting the already-active selection writes
 nothing. `reasoning_effort: null` means the provider's default (no reasoning parameter
 is sent); `"off"` disables thinking where the provider has a switch.
-Provider keys, OAuth tokens, headers, and base URLs are never accepted;
+Returns the effective selection plus `supports_images`, allowing clients to refresh
+attachment warnings immediately after a switch. Provider keys, OAuth tokens, headers,
+and base URLs are never accepted;
 they are resolved inside flow →
 `{"model": "...", "credential_id": ..., "reasoning_effort": ...}` (the now-effective
 selection). `409` while a run is active; allowed while paused (the resume continues on

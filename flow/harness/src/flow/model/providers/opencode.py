@@ -18,6 +18,23 @@ BASE_URL = "https://opencode.ai/zen/go/v1"
 
 # Model families the gateway serves on its Anthropic-compatible endpoint.
 ANTHROPIC_FAMILIES = ("minimax", "qwen")
+# Input modalities from OpenCode Go's catalog. Unknown additions stay text-only
+# until the serving surface advertises them, avoiding invalid image requests.
+_IMAGE_MODELS = {
+	"gpt-5.6-luna",
+	"grok-4.5",
+	"kimi-k2.5",
+	"kimi-k2.6",
+	"kimi-k2.7-code",
+	"kimi-k3",
+	"mimo-v2-omni",
+	"mimo-v2.5",
+	"minimax-m3",
+	"qwen3.5-plus",
+	"qwen3.6-plus",
+	"qwen3.7-plus",
+	"qwen3.8-max",
+}
 
 
 def opencode_go_model(
@@ -41,6 +58,7 @@ def opencode_go_model(
 			params=params,
 			provider=PREFIX,
 			model=name,
+			supports_images=opencode_go_supports_images(model_id),
 		)
 	return LiteLLMModel(
 		f"openai/{model_id}",
@@ -50,7 +68,12 @@ def opencode_go_model(
 		params=params,
 		provider=PREFIX,
 		model=name,
+		supports_images=opencode_go_supports_images(model_id),
 	)
+
+
+def opencode_go_supports_images(model_id: str) -> bool:
+	return model_id in _IMAGE_MODELS
 
 
 def _is_anthropic(model_id: str) -> bool:

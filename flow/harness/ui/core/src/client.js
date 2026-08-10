@@ -74,8 +74,27 @@ export class DaemonClient {
 	createSession(config) {
 		return this.request("POST", "/sessions", { body: config })
 	}
-	run(sid, message) {
-		return this.request("POST", `/sessions/${enc(sid)}/run`, { body: { message } })
+	run(sid, message, attachments = []) {
+		return this.request("POST", `/sessions/${enc(sid)}/run`, {
+			body: { message, attachments },
+		})
+	}
+	async uploadAttachments(sid, files) {
+		const form = new FormData()
+		for (const file of files) form.append("files", file, file.name)
+		const url = new URL(this.baseUrl + `/sessions/${enc(sid)}/attachments`, window.location.origin)
+		const response = await fetch(url, {
+			method: "POST",
+			headers: this.headers(),
+			body: form,
+		})
+		if (!response.ok) await raise(response)
+		return response.json()
+	}
+	cleanupAttachments(sid, attachments) {
+		return this.request("DELETE", `/sessions/${enc(sid)}/attachments`, {
+			body: { attachments },
+		})
 	}
 	resume(sid, approvalSeq, answers) {
 		return this.request("POST", `/sessions/${enc(sid)}/resume`, {

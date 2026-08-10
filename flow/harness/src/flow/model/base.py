@@ -47,6 +47,7 @@ class ModelRequest:
 	stream: bool = True
 	cancellation: asyncio.Event | None = None
 	max_output_tokens: int | None = None
+	resolve_attachment: Callable[[str], bytes] | None = None
 
 
 class ModelCancelled(Exception):
@@ -58,6 +59,11 @@ class Model(abc.ABC):
 	api: str = "unknown"
 	provider: str = "unknown"
 	model: str = "unknown"
+
+	@property
+	def supports_images(self) -> bool:
+		"""Whether this exact serving surface accepts image input."""
+		return False
 
 	@property
 	def context_window(self) -> int | None:

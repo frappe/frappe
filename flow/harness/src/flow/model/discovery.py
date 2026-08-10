@@ -20,7 +20,13 @@ from dataclasses import dataclass
 import httpx
 
 from flow.model.auth import ResolvedModelAuth, resolve_model_auth
-from flow.model.catalog import ModelInfo, configured_providers, get_provider, list_models
+from flow.model.catalog import (
+	ModelInfo,
+	configured_providers,
+	get_provider,
+	list_models,
+	model_supports_images,
+)
 from flow.model.credentials import CredentialStore
 
 MODEL_ENDPOINTS = {
@@ -128,7 +134,15 @@ async def _models_for_provider(
 	else:
 		endpoint = _model_endpoint(provider_id, base)
 		raw = await _http_models(endpoint, auth, client, provider_id=provider_id)
-	return [ModelInfo(name=_qualify(prefix, model), provider=provider_id) for model in raw if model]
+	return [
+		ModelInfo(
+			name=(name := _qualify(prefix, model)),
+			provider=provider_id,
+			supports_images=model_supports_images(name),
+		)
+		for model in raw
+		if model
+	]
 
 
 def _model_endpoint(provider_id: str, api_base: str | None) -> str:

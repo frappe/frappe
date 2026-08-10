@@ -68,6 +68,25 @@ class ThinkingContent(BaseModel):
 
 
 AssistantContent = Annotated[TextContent | ThinkingContent | ToolCall, Field(discriminator="type")]
+
+
+class AttachmentContent(BaseModel):
+	"""Immutable metadata for bytes stored outside the event log."""
+
+	model_config = ConfigDict(extra="forbid")
+
+	type: Literal["attachment"] = "attachment"
+	id: str
+	name: str
+	mime_type: str
+	size: int = Field(ge=0)
+	kind: Literal["text", "image"]
+	width: int | None = Field(default=None, gt=0)
+	height: int | None = Field(default=None, gt=0)
+
+
+UserContent = Annotated[TextContent | AttachmentContent, Field(discriminator="type")]
+
 StopReason = Literal["stop", "length", "tool_use", "error", "aborted"]
 
 
@@ -90,7 +109,19 @@ class RunStarted(_Event):
 
 class UserMessage(_Event):
 	type: Literal["user_message"] = "user_message"
-	content: str
+	content: str | list[UserContent]
+
+	@property
+	def text(self) -> str:
+		if isinstance(self.content, str):
+			return self.content
+		return "".join(block.text for block in self.content if isinstance(block, TextContent))
+
+	@property
+	def attachments(self) -> tuple[AttachmentContent, ...]:
+		if isinstance(self.content, str):
+			return ()
+		return tuple(block for block in self.content if isinstance(block, AttachmentContent))
 
 
 class AssistantMessage(_Event):

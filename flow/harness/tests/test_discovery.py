@@ -48,8 +48,8 @@ async def test_opencode_go_models_come_from_the_gateway(tmp_path, bare_env, monk
 	assert seen["url"] == "https://opencode.ai/zen/go/v1/models"
 	assert seen["auth"] == "Bearer sk-go"
 	assert catalog.models == [
-		ModelInfo(name="opencode-go/grok-4.5", provider="opencode-go"),
-		ModelInfo(name="opencode-go/kimi-k3", provider="opencode-go"),
+		ModelInfo(name="opencode-go/grok-4.5", provider="opencode-go", supports_images=True),
+		ModelInfo(name="opencode-go/kimi-k3", provider="opencode-go", supports_images=True),
 	]
 	assert catalog.errors == []
 
@@ -98,7 +98,7 @@ async def test_codex_queries_with_client_version_and_filters_unlisted(tmp_path, 
 		)
 
 	catalog = await available_models(store, client=_client(handler))
-	assert catalog.models == [ModelInfo(name="codex/gpt-5-codex", provider="codex")]
+	assert catalog.models == [ModelInfo(name="codex/gpt-5-codex", provider="codex", supports_images=True)]
 
 
 async def test_failed_provider_falls_back_to_static_catalog(tmp_path, bare_env, monkeypatch):
@@ -107,7 +107,14 @@ async def test_failed_provider_falls_back_to_static_catalog(tmp_path, bare_env, 
 	monkeypatch.setattr(
 		litellm,
 		"model_cost",
-		{"gpt-4o": {"mode": "chat", "supports_function_calling": True, "litellm_provider": "openai"}},
+		{
+			"gpt-4o": {
+				"mode": "chat",
+				"supports_function_calling": True,
+				"supports_vision": True,
+				"litellm_provider": "openai",
+			}
+		},
 	)
 
 	def handler(request):
@@ -117,8 +124,8 @@ async def test_failed_provider_falls_back_to_static_catalog(tmp_path, bare_env, 
 
 	catalog = await available_models(_store(tmp_path), client=_client(handler))
 	assert catalog.models == [
-		ModelInfo(name="openai/gpt-4o", provider="openai"),
-		ModelInfo(name="opencode-go/kimi-k3", provider="opencode-go"),
+		ModelInfo(name="openai/gpt-4o", provider="openai", supports_images=True),
+		ModelInfo(name="opencode-go/kimi-k3", provider="opencode-go", supports_images=True),
 	]
 	assert len(catalog.errors) == 1 and catalog.errors[0].startswith("openai:")
 

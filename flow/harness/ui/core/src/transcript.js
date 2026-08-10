@@ -413,11 +413,25 @@ export function buildItems(conversation) {
 	return result
 }
 
+export function userText(entry) {
+	if (typeof entry?.content === "string") return entry.content
+	return (entry?.content ?? [])
+		.filter((block) => block.type === "text")
+		.map((block) => block.text ?? "")
+		.join("")
+}
+
+export function userAttachments(entry) {
+	return Array.isArray(entry?.content)
+		? entry.content.filter((block) => block.type === "attachment")
+		: []
+}
+
 export function conversationTitle(conversation) {
 	const first = conversation.entries.find((e) => e.type === "user_message")
 	if (!first) return null
-	const line = first.content.split("\n")[0].trim()
-	return line.length > 80 ? line.slice(0, 77) + "…" : line
+	const line = userText(first).split("\n")[0].trim() || userAttachments(first)[0]?.name || ""
+	return line.length > 80 ? line.slice(0, 77) + "…" : line || null
 }
 
 // unix seconds → "14:32", with a date prefix once it's no longer today

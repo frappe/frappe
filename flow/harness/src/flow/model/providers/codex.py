@@ -13,7 +13,7 @@ import asyncio
 import json
 import sys
 import time
-from collections.abc import AsyncIterator, Mapping
+from collections.abc import AsyncIterator, Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
 from urllib.parse import urlencode
@@ -52,6 +52,7 @@ from flow.model.base import (
 	iterate_with_cancellation,
 	run_with_retries,
 )
+from flow.model.content import resolve_user_content
 from flow.model.credentials import OAuthCredential
 from flow.model.errors import (
 	normalize_provider_error,
@@ -95,6 +96,11 @@ class _CodexModelLimits:
 	context_window: int | None = None
 	max_output_tokens: int | None = None
 	auto_compact_threshold_tokens: int | None = None
+
+
+def codex_supports_images(model: str) -> bool:
+	"""Whether a Codex subscription model accepts Responses ``input_image`` items."""
+	return "spark" not in model.lower()
 
 
 # --- OAuth provider --------------------------------------------------------
@@ -228,6 +234,10 @@ class CodexModel(Model):
 		self._model_limits_loaded = False
 
 	@property
+	def supports_images(self) -> bool:
+		return codex_supports_images(self._remote_model)
+
+	@property
 	def context_window(self) -> int | None:
 		return self._limits.context_window
 
@@ -344,7 +354,11 @@ class CodexModel(Model):
 			"store": False,
 			"stream": True,
 			"instructions": request.system_prompt,
-			"input": _responses_input(request.messages, self),
+			"input": _responses_input(
+				request.messages,
+				self,
+				resolve_attachment=request.resolve_attachment,
+			),
 			"text": {"verbosity": "low"},
 			"include": ["reasoning.encrypted_content"],
 			# codex reasons even without an effort setting; without this the summary
@@ -680,13 +694,27 @@ async def _iter_sse(response: httpx.Response) -> AsyncIterator[dict]:
 # --- transcript -> Responses input ----------------------------------------
 
 
-def _responses_input(messages: list[TranscriptMessage], model: CodexModel) -> list[dict]:
+def _responses_input(
+	messages: list[TranscriptMessage],
+	model: CodexModel,
+	*,
+	resolve_attachment: Callable[[str], bytes] | None = None,
+) -> list[dict]:
 	items: list[dict] = []
 	text_index = 0
 	dropped_calls: set[str] = set()
 	for message in messages:
 		if isinstance(message, UserMessage):
-			items.append({"role": "user", "content": [{"type": "input_text", "text": message.content}]})
+			text, images = resolve_user_content(
+				message,
+				resolve_attachment=resolve_attachment,
+				supports_images=model.supports_images,
+			)
+			content = []
+			if text:
+				content.append({"type": "input_text", "text": text})
+			content.extend({"type": "input_image", "image_url": image.data_url} for image in images)
+			items.append({"role": "user", "content": content})
 		elif isinstance(message, AssistantMessage):
 			if message.stop_reason in {"error", "aborted"}:
 				# drop this turn's results too: an answer without its call is rejected

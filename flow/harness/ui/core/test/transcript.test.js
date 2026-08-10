@@ -8,11 +8,25 @@ import {
 	initialConversation,
 	stepLiveLabel,
 	toolGroupSummary,
+	userAttachments,
+	userText,
 } from "../src/transcript.js"
 
 function toolGroups(conversation) {
 	return buildItems(conversation).filter((item) => item.kind === "group")
 }
+
+test("user content helpers support durable attachment blocks", () => {
+	const entry = {
+		content: [
+			{ type: "text", text: "review this" },
+			{ type: "attachment", id: "a", name: "screen.png", kind: "image" },
+		],
+	}
+	assert.equal(userText(entry), "review this")
+	assert.deepEqual(userAttachments(entry).map((item) => item.name), ["screen.png"])
+	assert.equal(userText({ content: "legacy" }), "legacy")
+})
 
 test("live file-tool labels use only the filename", () => {
 	assert.equal(
