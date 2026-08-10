@@ -238,11 +238,7 @@ def get_openid_configuration():
 	return response
 
 
-<<<<<<< HEAD
 @frappe.whitelist(allow_guest=True, methods=["POST"])
-=======
-@frappe.whitelist(allow_guest=True)
->>>>>>> c55ff193a6 (fix: add type hints to whitelisted methods 3 (#37149))
 def introspect_token(token: str, token_type_hint: str | None = None):
 	if token_type_hint not in ["access_token", "refresh_token"]:
 		token_type_hint = "access_token"

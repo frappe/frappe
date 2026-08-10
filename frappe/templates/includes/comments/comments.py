@@ -24,7 +24,6 @@ def get_limit():
 
 
 @frappe.whitelist(allow_guest=True)
-<<<<<<< HEAD
 @rate_limit(limit=get_limit, seconds=60 * 60)
 def add_comment(
 	comment: str,
@@ -34,11 +33,6 @@ def add_comment(
 	reference_name: str,
 	route: str,
 	web_form: str | None = None,
-=======
-# @rate_limit(key="reference_name", limit=get_limit, seconds=60 * 60)
-def add_comment(
-	comment: str, comment_email: str, comment_by: str, reference_doctype: str, reference_name: str, route: str
->>>>>>> c55ff193a6 (fix: add type hints to whitelisted methods 3 (#37149))
 ):
 	if frappe.session.user == "Guest":
 		allowed_doctypes = ["Web Page"]

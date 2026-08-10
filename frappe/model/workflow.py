@@ -311,13 +311,8 @@ def get_workflow_field_value(workflow_name, field):
 	return frappe.get_cached_value("Workflow", workflow_name, field)
 
 
-<<<<<<< HEAD
 @frappe.whitelist(methods=["POST"])
-def bulk_workflow_approval(docnames, doctype, action):
-=======
-@frappe.whitelist()
 def bulk_workflow_approval(docnames: str, doctype: str, action: str):
->>>>>>> c55ff193a6 (fix: add type hints to whitelisted methods 3 (#37149))
 	docnames = json.loads(docnames)
 	if len(docnames) < 20:
 		_bulk_workflow_action(docnames, doctype, action)

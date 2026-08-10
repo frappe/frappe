@@ -91,12 +91,9 @@ def get_default_path():
 
 @frappe.whitelist()
 def set_app_as_default(app_name: str):
-<<<<<<< HEAD
 	if app_name not in frappe.get_installed_apps():
 		frappe.throw(_("App {} is not installed").format(frappe.bold(app_name)))
 
-=======
->>>>>>> c55ff193a6 (fix: add type hints to whitelisted methods 3 (#37149))
 	if frappe.db.get_value("User", frappe.session.user, "default_app") == app_name:
 		frappe.db.set_value("User", frappe.session.user, "default_app", "")
 	else:
