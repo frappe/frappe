@@ -108,9 +108,10 @@ class Picker {
 
 		let $icons = $group.find(".icons");
 		icons.forEach((icon) => {
-			let $icon = $(
-				`<div id="${icon}" class="icon-wrapper">${frappe.utils.icon(icon, "md")}</div>`
-			);
+			// the name is set as an attribute, not parsed as markup, since custom icons name themselves
+			let $icon = $('<div class="icon-wrapper"></div>')
+				.attr("id", icon)
+				.html(frappe.utils.icon(icon, "md"));
 			$icons.append($icon);
 			const set_values = () => {
 				this.set_icon(icon);

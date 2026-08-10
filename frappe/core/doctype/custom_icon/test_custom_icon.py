@@ -65,6 +65,12 @@ class TestCustomIcon(IntegrationTestCase):
 		self.assertNotIn('height="24"', symbol)
 		self.assertNotIn('stroke="none"', symbol)
 
+	def test_names_that_carry_markup_are_rejected(self):
+		# `<` and `>` never reach validate, since document naming rejects them first
+		for icon_name in ('evil" onload="alert(1)', "<img src=x>", "spaced name", "quote'name"):
+			with self.assertRaises((frappe.ValidationError, frappe.NameError)):
+				frappe.get_doc({"doctype": "Custom Icon", "icon_name": icon_name, "svg": SAFE_SVG}).insert()
+
 	def test_symbol_without_a_stroke_opts_out_of_the_desk_stroke(self):
 		self.assertIn('stroke="none"', to_symbol("test-dot", SAFE_SVG))
 

@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import re
 from xml.etree import ElementTree
 
 import frappe
@@ -10,6 +11,7 @@ from frappe.utils.html_utils import sanitize_svg
 
 SYMBOL_CACHE_KEY = "custom_icon_symbols"
 DROPPED_ATTRIBUTES = ("id", "width", "height")
+ICON_NAME = re.compile(r"^[a-zA-Z0-9_-]+$")
 
 
 class CustomIcon(Document):
@@ -26,6 +28,10 @@ class CustomIcon(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		# the name becomes a DOM id and reaches markup templates unescaped, so keep it inert
+		if not ICON_NAME.match(self.icon_name or ""):
+			frappe.throw(_("Icon Name can only contain letters, numbers, hyphens and underscores"))
+
 		self.svg = sanitize_svg(self.svg or "").strip()
 		if not is_single_svg(self.svg):
 			frappe.throw(_("Content must be a single <svg> element"))
