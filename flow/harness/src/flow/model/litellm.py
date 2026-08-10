@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass, field
 from typing import Any, cast
 
@@ -37,6 +37,7 @@ from flow.model.base import (
 	iterate_with_cancellation,
 	run_with_retries,
 )
+from flow.model.content import resolve_user_content
 from flow.model.errors import normalize_litellm_error
 
 
@@ -52,6 +53,7 @@ class LiteLLMModel(Model):
 		api: str = "litellm",
 		provider: str | None = None,
 		model: str | None = None,
+		supports_images: bool | None = None,
 	):
 		self.name = name
 		self.api = api
@@ -62,6 +64,19 @@ class LiteLLMModel(Model):
 		self._headers = headers or {}
 		self._params = params or {}
 		self._limits: tuple[int | None, int | None] | None = None
+		self._supports_images: bool | None = supports_images
+
+	@property
+	def supports_images(self) -> bool:
+		if self._supports_images is not None:
+			return self._supports_images
+		try:
+			import litellm
+
+			self._supports_images = bool(litellm.supports_vision(model=self.name))
+		except Exception:
+			self._supports_images = False
+		return self._supports_images
 
 	@property
 	def context_window(self) -> int | None:
@@ -110,7 +125,12 @@ class LiteLLMModel(Model):
 
 	def _completion_kwargs(self, request: ModelRequest) -> dict[str, Any]:
 		caching = _uses_explicit_prompt_caching(self.name)
-		messages = _openai_messages(request.messages, self, request.system_prompt)
+		messages = _openai_messages(
+			request.messages,
+			self,
+			request.system_prompt,
+			resolve_attachment=request.resolve_attachment,
+		)
 		if caching:
 			_mark_cache_breakpoints(messages)
 		kwargs: dict[str, Any] = {
@@ -396,13 +416,29 @@ def _openai_messages(
 	messages: list[TranscriptMessage],
 	model: LiteLLMModel,
 	system_prompt: str,
+	*,
+	resolve_attachment: Callable[[str], bytes] | None = None,
 ) -> list[dict[str, Any]]:
 	"""Translate canonical transcript messages at the provider boundary."""
 	out: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
 	dropped_calls: set[str] = set()
 	for message in messages:
 		if isinstance(message, UserMessage):
-			out.append({"role": "user", "content": message.content})
+			text, images = resolve_user_content(
+				message,
+				resolve_attachment=resolve_attachment,
+				supports_images=model.supports_images,
+			)
+			if images:
+				content: str | list[dict[str, Any]] = []
+				if text:
+					content.append({"type": "text", "text": text})
+				content.extend(
+					{"type": "image_url", "image_url": {"url": image.data_url}} for image in images
+				)
+			else:
+				content = text
+			out.append({"role": "user", "content": content})
 		elif isinstance(message, AssistantMessage):
 			if message.stop_reason in {"error", "aborted"}:
 				# drop this turn's results too: an answer without its call is rejected

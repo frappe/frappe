@@ -33,12 +33,20 @@ from flow.events import (
 	Rewind,
 	RunEnded,
 	RunError,
+	TextContent,
 	ToolResult,
+	UserMessage,
 	parse_event,
 )
 from flow.model import Model, ProviderError
 from flow.model.base import ModelCancelled
 from flow.model.credentials import CredentialStore
+from flow.session.attachments import (
+	MAX_ATTACHMENTS_PER_MESSAGE,
+	MAX_TEXT_BYTES,
+	AttachmentError,
+	AttachmentStore,
+)
 from flow.session.config import SessionConfig
 from flow.session.log import SessionLog
 from flow.session.transcript import PendingApproval, Transcript
@@ -101,6 +109,12 @@ class RunHandle:
 	task: asyncio.Task[None] | None = None
 
 
+@dataclass(frozen=True)
+class _QueuedSteering:
+	message: UserMessage
+	owned_attachment_claims: tuple[str, ...] = ()
+
+
 class Session:
 	def __init__(
 		self,
@@ -111,6 +125,7 @@ class Session:
 		event_sink=None,  # optional (session_id, event_dict) callback, e.g. Redis
 		credentials: CredentialStore | None = None,
 		allowed_roots: tuple[str, ...] = (),
+		attachment_store: AttachmentStore | None = None,
 	):
 		self.id = sid
 		self.config = config
@@ -118,12 +133,13 @@ class Session:
 		self.event_sink = event_sink
 		self.credentials = credentials or CredentialStore(server_config.CREDENTIALS_PATH)
 		self.allowed_roots = allowed_roots
+		self.attachment_store = attachment_store
 		self.transcript = Transcript.replay(log)
 		self.abort_signal = asyncio.Event()
 		self._operation_lock = asyncio.Lock()
 		self._task: asyncio.Task[None] | None = None
 		self._operation_type: Literal["run", "compact"] = "run"
-		self._steering_queue: deque[str] = deque()
+		self._steering_queue: deque[_QueuedSteering] = deque()
 		self._subscribers: set[asyncio.Queue[AnyEvent]] = set()
 		# a run this process never settled (daemon crash) left open calls; close them
 		# now, before anything newer can be admitted
@@ -169,6 +185,7 @@ class Session:
 		self,
 		message: str,
 		*,
+		attachment_ids: list[str] | None = None,
 		model: Model | None = None,
 		before_tool_call: BeforeHook | None = None,
 		after_tool_call: AfterHook | None = None,
@@ -183,10 +200,12 @@ class Session:
 				if self._operation_type != "run":
 					# compaction never drains steering; "steered" would delay or lose the message
 					raise SessionConflict("compaction is in progress; run again when it finishes")
-				self._steering_queue.append(message)
+				user_message, owned_attachment_claims = self._user_message(message, attachment_ids or [])
+				self._steering_queue.append(_QueuedSteering(user_message, owned_attachment_claims))
 				return RunHandle(status="steered", from_seq=self.log.latest_seq)
+			user_message, _ = self._user_message(message, attachment_ids or [])
 			inputs = self._loop_inputs(model, before_tool_call, after_tool_call)
-			return self._start_operation(loop.run(message, inputs))
+			return self._start_operation(loop.run(user_message, inputs))
 
 	async def resume(
 		self,
@@ -212,7 +231,7 @@ class Session:
 		if not self.is_running:
 			return False
 		self.abort_signal.set()
-		self._steering_queue.clear()
+		self._discard_steering()
 		return True
 
 	async def rewind(self, target_seq: int) -> None:
@@ -379,10 +398,43 @@ class Session:
 			next_steering=self._next_steering,
 			before_tool_call=before_tool_call,
 			after_tool_call=after_tool_call,
+			resolve_attachment=self.attachment_store.read if self.attachment_store is not None else None,
 		)
 
-	def _next_steering(self) -> str | None:
-		return self._steering_queue.popleft() if self._steering_queue else None
+	def _next_steering(self) -> UserMessage | None:
+		return self._steering_queue.popleft().message if self._steering_queue else None
+
+	def _user_message(
+		self, message: str, attachment_ids: list[str]
+	) -> tuple[UserMessage, tuple[str, ...]]:
+		if len(attachment_ids) > MAX_ATTACHMENTS_PER_MESSAGE:
+			raise AttachmentError(f"a message can include at most {MAX_ATTACHMENTS_PER_MESSAGE} attachments")
+		if len(set(attachment_ids)) != len(attachment_ids):
+			raise AttachmentError("a message cannot include the same attachment twice")
+		if not attachment_ids:
+			if not message.strip():
+				raise AttachmentError("message must not be empty")
+			return UserMessage(content=message), ()
+		if self.attachment_store is None:
+			raise AttachmentError("this session does not have attachment storage")
+		attachments = [self.attachment_store.get(attachment_id) for attachment_id in attachment_ids]
+		if sum(item.size for item in attachments if item.kind == "text") > MAX_TEXT_BYTES:
+			raise AttachmentError(f"text attachments exceed the {MAX_TEXT_BYTES // 1024} KB message limit")
+		content = [TextContent(text=message)] if message else []
+		content.extend(attachments)
+		owned_attachment_claims = self.attachment_store.claim(attachment_ids)
+		return UserMessage(content=content), owned_attachment_claims
+
+	def _discard_steering(self) -> None:
+		claims: list[str] = []
+		for queued in self._steering_queue:
+			claims.extend(queued.owned_attachment_claims)
+		self._steering_queue.clear()
+		if claims and self.attachment_store is not None:
+			try:
+				self.attachment_store.discard_claims(tuple(claims))
+			except OSError:
+				pass  # attachment cleanup must never prevent the run protocol from settling
 
 	async def _drive(
 		self, events: AsyncIterator[AnyEvent], *, operation_type: Literal["run", "compact"]
@@ -413,6 +465,7 @@ class Session:
 	) -> None:
 		"""Close an interrupted run: repairs first (position attaches them to their
 		turn), then the terminal protocol the loop never got to yield."""
+		self._discard_steering()
 		for repair in self.transcript.missing_results():
 			self._commit(repair)
 		if needs_aborted_message:

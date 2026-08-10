@@ -111,7 +111,12 @@ def test_set_model_is_a_durable_entry_used_by_later_runs(tmp_path, monkeypatch):
 	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
 
 	r = c.post(f"/sessions/{sid}/model", json={"model": "mock/v2", "credential_id": "mock-profile"})
-	assert r.json() == {"model": "mock/v2", "credential_id": "mock-profile", "reasoning_effort": None}
+	assert r.json() == {
+		"model": "mock/v2",
+		"credential_id": "mock-profile",
+		"reasoning_effort": None,
+		"supports_images": False,
+	}
 	assert (
 		c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "hi"}).json()["reason"]
 		== "done"
@@ -144,7 +149,12 @@ def test_reasoning_effort_travels_with_the_selection_and_rewinds_with_it(tmp_pat
 
 	# same model, different effort: still a durable selection change
 	r = c.post(f"/sessions/{sid}/model", json={"model": "mock", "reasoning_effort": "high"})
-	assert r.json() == {"model": "mock", "credential_id": None, "reasoning_effort": "high"}
+	assert r.json() == {
+		"model": "mock",
+		"credential_id": None,
+		"reasoning_effort": "high",
+		"supports_images": False,
+	}
 	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "again"})
 	assert captured[-1]["reasoning_effort"] == "high"
 
@@ -851,7 +861,7 @@ def test_models_endpoint_discovers_configured_providers_only(tmp_path, monkeypat
 
 	monkeypatch.setenv("OPENAI_API_KEY", "k")
 	assert c.get("/models").json() == {
-		"models": [{"name": "openai/gpt-4o", "provider": "openai"}],
+		"models": [{"name": "openai/gpt-4o", "provider": "openai", "supports_images": True}],
 		"errors": [],
 	}
 

@@ -96,7 +96,12 @@ async def test_rest_roundtrip(tmp_path, monkeypatch):
 		assert await client.list_models() == {"models": [], "errors": []}
 
 		changed = await client.set_model(sid, "mock/v2", reasoning_effort="high")
-		assert changed == {"model": "mock/v2", "credential_id": None, "reasoning_effort": "high"}
+		assert changed == {
+			"model": "mock/v2",
+			"credential_id": None,
+			"reasoning_effort": "high",
+			"supports_images": False,
+		}
 
 		assert (await client.rewind(sid, rows["entries"][0]["seq"]))["status"] == "rewound"
 		assert (await client.abort(sid))["status"] == "idle"

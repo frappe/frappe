@@ -11,6 +11,8 @@ dependencies = [
     "litellm>=1.60",
     "redis>=5.0",
     "textual>=8.2.8",
+    "pillow>=11.0",
+    "python-multipart>=0.0.20",
 ]
 
 [project.optional-dependencies]

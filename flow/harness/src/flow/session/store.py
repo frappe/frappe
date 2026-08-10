@@ -14,6 +14,7 @@ from tempfile import mkstemp
 from flow import config as server_config
 from flow.model.credentials import CredentialStore
 from flow.path_policy import canonical_path, is_path_allowed, normalize_roots
+from flow.session.attachments import AttachmentStore
 from flow.session.config import SessionConfig
 from flow.session.log import SessionLog
 from flow.session.prompt import build_system_prompt
@@ -103,6 +104,10 @@ class SessionStore:
 				os.unlink(path)
 			except FileNotFoundError:
 				pass
+		attachment_store = session.attachment_store if session is not None else None
+		if attachment_store is None:
+			attachment_store = AttachmentStore(self._attachments_path(sid))
+		attachment_store.remove_all()
 
 	def list(self) -> builtins.list[SessionInfo]:
 		"""Cheap listing for pickers, newest activity first. Sessions with no durable
@@ -181,6 +186,7 @@ class SessionStore:
 			event_sink=self.event_sink,
 			credentials=self.credentials,
 			allowed_roots=self.allowed_roots,
+			attachment_store=AttachmentStore(self._attachments_path(sid)),
 		)
 
 	def _log_path(self, sid: str) -> str:
@@ -188,6 +194,9 @@ class SessionStore:
 
 	def _meta_path(self, sid: str) -> str:
 		return os.path.join(self.sessions_dir, f"{sid}.meta.json")
+
+	def _attachments_path(self, sid: str) -> str:
+		return os.path.join(self.sessions_dir, f"{sid}.attachments")
 
 	def _validate_cwd(self, cwd: str) -> None:
 		"""Fence a session's cwd to `allowed_roots` (realpath-resolved, so symlink/`..`
@@ -211,7 +220,24 @@ def _read_first_user_message(path: str) -> str | None:
 		except json.JSONDecodeError:
 			continue  # the head cut may tear the last line
 		if isinstance(row, dict) and row.get("type") == "user_message":
-			first = str(row.get("content", "")).strip().split("\n")[0]
+			content = row.get("content", "")
+			if isinstance(content, list):
+				blocks = content
+				content = "".join(
+					str(block.get("text", ""))
+					for block in blocks
+					if isinstance(block, dict) and block.get("type") == "text"
+				)
+				if not str(content).strip():
+					content = next(
+						(
+							str(block.get("name", ""))
+							for block in blocks
+							if isinstance(block, dict) and block.get("type") == "attachment"
+						),
+						"",
+					)
+			first = str(content).strip().split("\n")[0]
 			return first[:120] or None
 	return None
 

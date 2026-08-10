@@ -79,7 +79,7 @@ class HookDecision:
 BeforeHook = Callable[[ToolCall, ToolContext], Any]
 AfterHook = Callable[[ToolCall, ToolResult], Any]
 # what a steering drain hands the loop: the next queued message, or None when drained
-NextSteering = Callable[[], str | None]
+NextSteering = Callable[[], UserMessage | None]
 
 
 @dataclass(frozen=True)
@@ -105,6 +105,7 @@ class LoopInputs:
 	next_steering: NextSteering | None = None
 	before_tool_call: BeforeHook | None = None
 	after_tool_call: AfterHook | None = None
+	resolve_attachment: Callable[[str], bytes] | None = None
 
 
 _DENIED = json.dumps({"status": "denied", "message": "User denied this tool call."})
@@ -123,10 +124,10 @@ _TRUNCATED = json.dumps(
 )
 
 
-async def run(message: str, inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
+async def run(message: UserMessage, inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	"""One new run: open the protocol, add the user message, then take turns."""
 	yield RunStarted(run_id=uuid.uuid4().hex[:12])
-	yield UserMessage(content=message)
+	yield message
 	async for event in _loop(inputs):
 		yield event
 
@@ -145,6 +146,7 @@ async def compact(instructions: str | None, inputs: LoopInputs) -> AsyncIterator
 		compaction_reason="manual",
 		cancellation=inputs.abort,
 		summary_instructions=instructions,
+		resolve_attachment=inputs.resolve_attachment,
 	):
 		yield event
 	yield RunEnded(reason="done")
@@ -200,8 +202,8 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	)
 	for _ in range(config.max_turns):
 		_raise_if_aborted(abort)
-		for text in _drain(inputs.next_steering):
-			yield UserMessage(content=text)
+		for message in _drain(inputs.next_steering):
+			yield message
 
 		async for event in _auto_compact(model, inputs, schemas, context):
 			yield event
@@ -213,6 +215,7 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 			system_prompt=config.system_prompt or "",
 			stream=config.stream,
 			cancellation=abort,
+			resolve_attachment=inputs.resolve_attachment,
 		)
 		async for event in _model_turn(model, request, inputs, context):
 			if isinstance(event, AssistantMessage):
@@ -234,9 +237,9 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 
 		if not assistant.tool_calls:
 			steered = False
-			for text in _drain(inputs.next_steering):
+			for message in _drain(inputs.next_steering):
 				steered = True
-				yield UserMessage(content=text)
+				yield message
 			if steered:
 				continue
 			yield RunEnded(reason="length" if assistant.stop_reason == "length" else "done")
@@ -383,6 +386,7 @@ async def _compact_once(
 		plan,
 		compaction_reason=reason,
 		cancellation=inputs.abort,
+		resolve_attachment=inputs.resolve_attachment,
 	):
 		if isinstance(event, Compaction):
 			context.mark_compacted()
@@ -536,7 +540,7 @@ def _tool_context(inputs: LoopInputs) -> ToolContext:
 	return ToolContext(cwd=inputs.config.cwd, allowed_roots=inputs.allowed_roots, abort=inputs.abort)
 
 
-def _drain(next_steering: NextSteering | None) -> Iterator[str]:
+def _drain(next_steering: NextSteering | None) -> Iterator[UserMessage]:
 	if next_steering is None:
 		return
 	while (text := next_steering()) is not None:
