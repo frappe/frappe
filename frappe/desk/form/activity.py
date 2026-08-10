@@ -16,8 +16,9 @@ from frappe.desk.form.load import (
 )
 from frappe.model.document import Document
 
-# Non-email sources load in full; emails are paged newest-first.
+# Emails and milestones are paged newest-first; the remaining sources load in full.
 EMAIL_PAGE_SIZE = 20
+MILESTONE_PAGE_SIZE = 20
 
 
 @frappe.whitelist()
@@ -26,18 +27,24 @@ def get_activity_timeline(doctype: str, name: str | int) -> dict:
 	user_info: dict = {}  # cache user lookups
 
 	emails, has_more_emails = get_email_activities(doc, user_info)
+	milestones, has_more_milestones, next_milestone_start = get_milestone_activities(doc, user_info)
 	activities = [
 		*get_creation_activity(doc, user_info),
 		*get_edit_activity(doc, user_info),
 		*emails,
 		*get_comment_and_log_activities(doc, user_info),
 		*get_view_activities(doc, user_info),
-		*get_milestone_activities(doc, user_info),
+		*milestones,
 		*get_version_activities(doc, user_info),
 	]
 
 	activities.sort(key=lambda a: (a.get("timestamp") or "", a["key"]))
-	return {"activities": activities, "has_more_emails": has_more_emails}
+	return {
+		"activities": activities,
+		"has_more_emails": has_more_emails,
+		"has_more_milestones": has_more_milestones,
+		"next_milestone_start": next_milestone_start,
+	}
 
 
 @frappe.whitelist()
@@ -48,6 +55,22 @@ def get_more_email_activities(doctype: str, name: str | int, start: int) -> dict
 	emails, has_more_emails = get_email_activities(doc, user_info, start=frappe.utils.cint(start))
 	emails.sort(key=lambda a: (a.get("timestamp") or "", a["key"]))
 	return {"activities": emails, "has_more_emails": has_more_emails}
+
+
+@frappe.whitelist()
+def get_more_milestone_activities(doctype: str, name: str | int, start: int) -> dict:
+	doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
+	user_info: dict = {}
+
+	milestones, has_more, next_start = get_milestone_activities(
+		doc, user_info, start=frappe.utils.cint(start)
+	)
+	milestones.sort(key=lambda a: (a.get("timestamp") or "", a["key"]))
+	return {
+		"activities": milestones,
+		"has_more_milestones": has_more,
+		"next_milestone_start": next_start,
+	}
 
 
 def get_creation_activity(doc: "Document", user_info: dict) -> list[dict]:
@@ -353,10 +376,17 @@ def get_view_activities(doc: "Document", user_info: dict) -> list[dict]:
 	return out
 
 
-def get_milestone_activities(doc: "Document", user_info: dict) -> list[dict]:
-	milestones = get_milestones(doc.doctype, doc.name)
+def get_milestone_activities(
+	doc: "Document", user_info: dict, start: int = 0
+) -> tuple[list[dict], bool, int]:
+	# Fetch PAGE_SIZE+1 (DESC); the extra oldest row signals "more exist".
+	milestones = get_milestones(doc.doctype, doc.name, start=start, limit=MILESTONE_PAGE_SIZE + 1)
+	has_more = len(milestones) > MILESTONE_PAGE_SIZE
+	if has_more:
+		milestones = milestones[:MILESTONE_PAGE_SIZE]
+	next_start = start + len(milestones)
 	if not milestones:
-		return []
+		return [], False, next_start
 
 	# A milestone names a field and its value, so it needs the same read check as a version.
 	permitted = set(
@@ -386,7 +416,9 @@ def get_milestone_activities(doc: "Document", user_info: dict) -> list[dict]:
 				},
 			}
 		)
-	return out
+	# next_start counts rows read, not rows returned: a field the user cannot read drops a row here,
+	# so an offset the client derived from what it rendered would skip the rows behind it.
+	return out, has_more, next_start
 
 
 # Fieldtypes shown as "updated {field}" instead of a from → to diff.

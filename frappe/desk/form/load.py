@@ -180,13 +180,14 @@ def add_comments(doc, docinfo):
 	return comments
 
 
-def get_milestones(doctype, name, limit=20):
-	# Newest first and capped: a long-lived document accumulates these without end. The cap sits
-	# above the one on versions because a milestone row is four short columns, not a JSON diff.
+def get_milestones(doctype, name, start=0, limit=20):
+	# Newest first and paged: a long-lived document accumulates these without end. The page runs
+	# larger than the one on versions because a milestone row is four short columns, not a JSON diff.
 	return frappe.get_all(
 		"Milestone",
 		fields=["name", "creation", "owner", "track_field", "value"],
 		filters=dict(reference_type=doctype, reference_name=str(name)),
+		limit_start=start,
 		limit=limit,
 		order_by="creation desc",
 	)
