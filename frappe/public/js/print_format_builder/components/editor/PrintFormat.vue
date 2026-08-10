@@ -10,7 +10,7 @@
 		}"
 	>
 		<component :is="'style'" v-if="color_css">{{ color_css }}</component>
-		<component :is="'style'" v-if="print_format.css">{{ print_format.css }}</component>
+		<component :is="'style'" v-if="user_css">{{ user_css }}</component>
 		<div v-if="!page_number_hidden" class="pfb-page-num" :style="page_number_style">
 			{{ __("1 of 2") }}
 		</div>
@@ -180,6 +180,43 @@ let bodyStyles = computed(() => {
 	if (font) styles.fontFamily = `'${font}', sans-serif`;
 	return styles;
 });
+
+// The format's custom CSS applies to the whole document in the printed PDF;
+// on the canvas that document is this component, so every selector is scoped
+// to it before the style hits the desk DOM
+let user_css = computed(() => scope_css(print_format.value.css, ".print-format-main"));
+
+function scope_css(css, scope) {
+	if (!(css || "").trim()) return "";
+	const style = document.createElement("style");
+	style.media = "not all";
+	style.textContent = css;
+	document.head.appendChild(style);
+	const prefix_rule = (rule) => {
+		if (rule.type === CSSRule.MEDIA_RULE || rule.type === CSSRule.SUPPORTS_RULE) {
+			const inner = [...rule.cssRules].map(prefix_rule).join("\n");
+			const head = rule.cssText.slice(0, rule.cssText.indexOf("{"));
+			return `${head}{\n${inner}\n}`;
+		}
+		if (rule.selectorText) {
+			const scoped = rule.selectorText
+				.split(",")
+				.map((sel) => {
+					sel = sel.trim();
+					const rootless = sel.replace(/^(html|body)(?![\w-])\s*/i, "");
+					return rootless ? `${scope} ${rootless}` : scope;
+				})
+				.join(", ");
+			return rule.cssText.replace(rule.selectorText, scoped);
+		}
+		return rule.cssText;
+	};
+	try {
+		return [...(style.sheet?.cssRules || [])].map(prefix_rule).join("\n");
+	} finally {
+		style.remove();
+	}
+}
 
 // Same scoped colour rules the server appends after the shared stylesheet;
 // rendered as a style element inside the component so it dies with the DOM
