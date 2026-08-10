@@ -1,4 +1,5 @@
 import { useStore } from "./store";
+import { ref } from "vue";
 
 export function create_layout(fields) {
 	let store = useStore();
@@ -318,6 +319,105 @@ export function clone_field(field) {
 	let cloned_field = JSON.parse(JSON.stringify(field));
 	cloned_field.df.name = frappe.utils.get_random(8);
 	return cloned_field;
+}
+
+const COPIED_SECTION_STORAGE_KEY = "frappe-form-builder-copied-section";
+
+export const copied_section_available = ref(
+	Boolean(localStorage.getItem(COPIED_SECTION_STORAGE_KEY))
+);
+
+// keep availability in sync when a section is copied from another tab/window
+window.addEventListener("storage", (e) => {
+	if (e.key === COPIED_SECTION_STORAGE_KEY) {
+		copied_section_available.value = Boolean(e.newValue);
+	}
+});
+
+export function copy_section(section) {
+	let copied_section = {
+		df: section.df,
+		columns: section.columns.map((column) => ({
+			df: column.df,
+			fields: column.fields.map((field) => ({ df: field.df })),
+		})),
+	};
+
+	localStorage.setItem(COPIED_SECTION_STORAGE_KEY, JSON.stringify(copied_section));
+	copied_section_available.value = true;
+
+	frappe.show_alert({
+		message: __(
+			"Section copied. Use 'Paste section below' from the section menu of any form builder to paste it along with its fields."
+		),
+		indicator: "green",
+	});
+}
+
+export function get_pasted_section() {
+	let copied_section = localStorage.getItem(COPIED_SECTION_STORAGE_KEY);
+	if (!copied_section) return null;
+
+	let store = useStore();
+	let section = JSON.parse(copied_section);
+
+	let taken_fieldnames = new Set();
+	store.form.layout.tabs.forEach((tab) => {
+		tab.df.fieldname && taken_fieldnames.add(tab.df.fieldname);
+		tab.sections.forEach((s) => {
+			s.df.fieldname && taken_fieldnames.add(s.df.fieldname);
+			s.columns.forEach((c) => {
+				c.df.fieldname && taken_fieldnames.add(c.df.fieldname);
+				c.fields.forEach((f) => {
+					f.df.fieldname && taken_fieldnames.add(f.df.fieldname);
+				});
+			});
+		});
+	});
+
+	function prepare_df(df) {
+		df.name = frappe.utils.get_random(8);
+		df.__islocal = 1;
+		df.__unsaved = 1;
+		df.owner = frappe.session.user;
+		df.is_system_generated = 0;
+
+		delete df.creation;
+		delete df.modified;
+		delete df.modified_by;
+
+		if (store.is_customize_form) {
+			df.is_custom_field = 1;
+		} else {
+			delete df.is_custom_field;
+		}
+
+		// fieldname already exists in the target form; make it unique
+		if (df.fieldname && taken_fieldnames.has(df.fieldname)) {
+			if (df.label) {
+				df.label = df.label + " Copy";
+			}
+			let fieldname = df.fieldname + "_copy";
+			while (taken_fieldnames.has(fieldname)) {
+				fieldname = df.fieldname + "_copy_" + frappe.utils.get_random(4).toLowerCase();
+			}
+			df.fieldname = fieldname;
+		}
+		df.fieldname && taken_fieldnames.add(df.fieldname);
+	}
+
+	prepare_df(section.df);
+	section.columns.forEach((column) => {
+		prepare_df(column.df);
+		column.fields.forEach((field) => {
+			prepare_df(field.df);
+			if (field.df.fieldtype === "Table") {
+				field.table_columns = get_table_columns(field.df);
+			}
+		});
+	});
+
+	return section;
 }
 
 export function confirm_dialog(

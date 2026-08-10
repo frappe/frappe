@@ -34,11 +34,16 @@
 						v-html="frappe.utils.icon(collapsed ? 'down' : 'up-line', 'sm')"
 					></div>
 				</div>
-				<Dropdown
-					v-if="!store.read_only && !store.is_layout_form"
-					:options="options"
-					@click.stop
-				/>
+				<div v-if="!store.read_only && !store.is_layout_form" class="section-actions">
+					<button
+						class="btn btn-xs btn-icon section-copy-btn"
+						:title="__('Copy section with all its fields')"
+						@click.stop="copy_section_with_fields"
+					>
+						<div v-html="frappe.utils.icon('duplicate', 'sm')"></div>
+					</button>
+					<Dropdown :options="options" @click.stop />
+				</div>
 			</div>
 			<div v-if="section.df.description" class="section-description">
 				{{ section.df.description }}
@@ -85,6 +90,9 @@ import {
 	move_children_to_parent,
 	confirm_dialog,
 	is_touch_screen_device,
+	copy_section,
+	get_pasted_section,
+	copied_section_available,
 } from "../utils";
 import { useMagicKeys, whenever } from "@vueuse/core";
 
@@ -165,6 +173,24 @@ function delete_section(with_children) {
 	// remove section
 	sections.splice(index, 1);
 	store.form.selected_field = null;
+}
+
+function copy_section_with_fields() {
+	copy_section(props.section);
+}
+
+function paste_section_below() {
+	let section = get_pasted_section();
+	if (!section) return;
+
+	let index = props.tab.sections.indexOf(props.section);
+	props.tab.sections.splice(index + 1, 0, section);
+	store.form.selected_field = section.df;
+}
+
+function duplicate_section() {
+	copy_section(props.section);
+	paste_section_below();
 }
 
 function select_section() {
@@ -267,6 +293,20 @@ const options = computed(() => {
 			group: __("Section"),
 			items: [
 				{ label: __("Add section below"), onClick: add_section_below },
+				{
+					label: __("Duplicate section"),
+					tooltip: __("Duplicate section with all its fields"),
+					onClick: duplicate_section,
+				},
+				...(copied_section_available.value
+					? [
+							{
+								label: __("Paste section below"),
+								tooltip: __("Paste copied section with all its fields"),
+								onClick: paste_section_below,
+							},
+					  ]
+					: []),
 				{ label: __("Remove section"), onClick: remove_section },
 			],
 		},
@@ -329,6 +369,10 @@ const options = computed(() => {
 		&.hovered,
 		&.selected {
 			border-color: var(--border-primary);
+
+			.section-copy-btn {
+				opacity: 1;
+			}
 		}
 
 		.section-header {
@@ -362,6 +406,16 @@ const options = computed(() => {
 				display: flex;
 				gap: 4px;
 				align-items: center;
+
+				.section-copy-btn {
+					opacity: 0;
+					box-shadow: none;
+					padding: 2px;
+
+					&:hover {
+						background-color: var(--bg-light-gray);
+					}
+				}
 			}
 
 			// .btn-section {
