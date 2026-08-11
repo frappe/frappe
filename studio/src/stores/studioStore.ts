@@ -439,7 +439,7 @@ const useStudioStore = defineStore("store", () => {
 	async function unpublishApp() {
 		if (!activeApp.value) return
 		const confirmed = await confirm(
-			`Are you sure you want to unpublish the app <b>${activeApp.value.app_name}</b>? It will no longer be publicly accessible.`,
+			`Are you sure you want to unpublish the app "${activeApp.value.app_name}"? It will no longer be publicly accessible.`,
 		)
 		if (!confirmed) {
 			return
