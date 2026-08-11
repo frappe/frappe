@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from datetime import datetime
+
 import frappe
 from frappe import _
 from frappe.desk.form.utils import get_pdf_link
@@ -126,7 +128,14 @@ def process_workflow_actions(doc, state):
 
 
 @frappe.whitelist(allow_guest=True)
-def apply_action(action, doctype, docname, current_state, user=None, last_modified=None):
+def apply_action(
+	action: str,
+	doctype: str,
+	docname: str | int,
+	current_state: str,
+	user: str | None = None,
+	last_modified: str | datetime | None = None,
+):
 	if not verify_request():
 		return
 
