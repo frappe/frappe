@@ -7,7 +7,7 @@
 		ref="panel"
 		tabindex="-1"
 		:aria-label="title"
-		class="flow-palette-panel absolute bottom-[calc(100%+10px)] left-0 z-20 flex max-h-[min(500px,72vh)] w-full flex-col overflow-hidden rounded-lg border border-outline-gray-2 bg-surface-white shadow-[0_18px_50px_rgba(0,0,0,0.14)]"
+		class="flow-palette-panel absolute bottom-[calc(100%+10px)] left-0 z-20 flex max-h-[min(500px,72vh)] w-full flex-col overflow-hidden rounded-lg border border-outline-gray-2 bg-surface-white shadow-[0_18px_50px_rgba(0,0,0,0.14)] outline-none"
 		@pointerover="onPointerOver"
 	>
 		<header class="flex h-11 flex-none items-center gap-2 border-b border-outline-gray-1 px-2">
