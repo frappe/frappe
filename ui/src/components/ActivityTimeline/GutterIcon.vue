@@ -14,7 +14,7 @@
 		<div v-if="activity.type === 'email' || activity.type === 'comment'" class="relative">
 			<Avatar size="lg" :label="activity.author.fullname" :image="activity.author.image" />
 			<span
-				class="absolute -bottom-0.5 -end-1.5 flex size-4.5 items-center justify-center rounded-full bg-surface-white text-ink-gray-5"
+				class="absolute -bottom-0.5 -end-1.5 flex size-4.5 items-center justify-center rounded-full bg-surface-base text-ink-gray-5"
 			>
 				<MailIcon v-if="activity.type === 'email'" class="size-3" />
 				<CommentIcon v-else class="size-3" />
