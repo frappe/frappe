@@ -16,8 +16,9 @@ from contextlib import contextmanager
 
 import frappe
 from frappe import _
+from frappe.automation_engine import WAITING_STATES, queue_status
 from frappe.automation_engine.actions.base import StopAutomation, get_action_registry
-from frappe.automation_engine.conditions import evaluate_related_condition
+from frappe.automation_engine.conditions import condition_values, evaluate_related_condition
 from frappe.automation_engine.dispatch import matches_rule
 from frappe.automation_engine.events import get_wait_outcome, schedule_event_wait
 from frappe.automation_engine.relationships import load_record, resolve_relationships
@@ -41,10 +42,6 @@ def execute_automation(queue_name: str):
 		return _finalize(run, rule, row, "Skipped", steps, error="Target document not found")
 	if rule.revalidate_on_run and doc and not matches_rule(rule, doc):
 		return _finalize(run, rule, row, "Skipped", steps, error="Rule no longer matches")
-	if rule.log_only:
-		_simulate_steps(steps, snapshot)
-		return _finalize(run, rule, row, "Simulated", steps)
-
 	status, context = _execute_plan(rule, row, run, doc, steps, snapshot, event)
 	_finalize(run, rule, row, status, steps, context=context)
 
@@ -229,7 +226,7 @@ def _step_outcome(registry, step, doc, context, pos, start_idx, taken):
 	if pos < start_idx:
 		return None, None, None  # already executed in the leg before the wait
 	if not _step_condition_matches(step, doc, context):
-		return "Skipped", _("Step condition did not match"), 0
+		return "Skipped", _skip_detail(step, doc, context), 0
 	if step_type == "Wait":
 		return _begin_wait(step, context, pos)
 	if step_type == "WaitForEvent":
@@ -293,7 +290,7 @@ def resume_row_values(context, run_after, resume_from_idx) -> dict:
 		"automation": row.automation,
 		"ref_doctype": row.ref_doctype,
 		"ref_name": row.ref_name,
-		"status": "Pending",
+		"status": queue_status(run_after),
 		"triggered_at": frappe.utils.now(),
 		"run_after": run_after,
 		"depth": frappe.utils.cint(row.depth),
@@ -321,6 +318,7 @@ def _run_one(registry, step, doc, context, idx):
 
 def _try_action(handler, step, doc, context, params, savepoint, idx, started):
 	frappe.db.savepoint(savepoint)
+	messages_before = len(frappe.local.message_log)
 	try:
 		target = _target_doc(step, doc, context, permission_type="write")
 		if not handler:
@@ -333,9 +331,44 @@ def _try_action(handler, step, doc, context, params, savepoint, idx, started):
 	except frappe.TimestampMismatchError:
 		frappe.db.rollback(save_point=savepoint)
 		return "Retry", frappe.get_traceback(), _ms(started)
-	except Exception:
+	except Exception as error:
 		frappe.db.rollback(save_point=savepoint)
-		return "Failed", frappe.get_traceback(), _ms(started)
+		return "Failed", _failure_detail(error, messages_before), _ms(started)
+
+
+def _skip_detail(step, doc, context) -> dict:
+	"""Why a gated step was passed over: the condition source, and the values it read."""
+	condition = step.get("step_condition") or ""
+	target = _target_doc(step, doc, context, permission_type="read") if condition else None
+	return {
+		"note": True,
+		"detail": _("Step condition did not match"),
+		"condition": condition or step.get("related_condition") or "",
+		"condition_values": condition_values(condition, {"doc": doc, "target": target}),
+	}
+
+
+def _failure_detail(error, messages_before) -> dict:
+	"""What the step failed with, in the form a human can act on.
+
+	Apps already write their guidance as `frappe.throw(_("..."))`, and every throw lands in
+	frappe.message_log - so the readable half of a failure comes free, for any app, without
+	the engine knowing a thing about what went wrong.
+	"""
+	traceback = frappe.get_traceback()
+	return {
+		"note": True,
+		"detail": traceback,
+		"traceback": traceback,
+		"message": _thrown_message(error, messages_before),
+		"exception": f"{type(error).__module__}.{type(error).__name__}",
+	}
+
+
+def _thrown_message(error, messages_before) -> str:
+	thrown = frappe.local.message_log[messages_before:]
+	messages = [message.get("message") for message in thrown if message.get("message")]
+	return "\n".join(messages) if messages else str(error)
 
 
 def _step_params(step) -> dict:
@@ -354,18 +387,28 @@ def _step_condition_matches(step, doc, context) -> bool:
 
 
 def _append_step(steps, step, idx, status, detail, duration):
-	detail, output = _action_result(detail)
+	note = detail if isinstance(detail, dict) and detail.get("note") else {}
+	detail, output = (note["detail"], None) if note else _action_result(detail)
 	entry = {
 		"step_idx": idx,
 		"step_key": step.get("step_key") or f"step_{idx + 1}",
 		"action_type": step.get("action_type") or step.get("step_type") or "Action",
 		"status": status,
 		"detail": (detail or "")[:5000],
+		"message": _trim(note.get("message")),
+		"exception": note.get("exception"),
+		"traceback": _trim(note.get("traceback")),
+		"condition": note.get("condition"),
+		"condition_values": note.get("condition_values"),
 		"output": output,
 		"duration_ms": duration,
 	}
 	steps.append(entry)
 	return entry
+
+
+def _trim(value):
+	return value[:5000] if value else None
 
 
 def _target_doc(step, trigger_doc, context, permission_type=None):
@@ -401,11 +444,6 @@ def _action_result(result):
 	return str(detail), result
 
 
-def _simulate_steps(steps, snapshot):
-	for idx, step in enumerate(snapshot):
-		_append_step(steps, step, idx, "Skipped", _("Simulated: action was not executed"), 0)
-
-
 def _ms(started) -> int:
 	return int((time.monotonic() - started) * 1000)
 
@@ -420,7 +458,7 @@ def _finalize(run, rule, row, status, steps, error=None, context=None):
 
 	if status == "Failed":
 		_record_failure(rule)
-	elif status in ("Success", "Simulated"):
+	elif status == "Success":
 		_reset_failures(rule)
 
 	_settle_queue_row(row, status)
@@ -457,7 +495,7 @@ def _settle_queue_row(row, status):
 	# Completed runs drop their queue row because detail lives in the Background Task result.
 	# A Waiting leg is done too - its future lives on in the resume row schedule_wait queued.
 	# Failed (stopped) and Skipped rows are retained for the purge sweep.
-	if status in ("Success", "Partially Failed", "Simulated", "Waiting"):
+	if status in ("Success", "Partially Failed", "Waiting"):
 		frappe.delete_doc(QUEUE, row.name, ignore_permissions=True, force=True)
 	else:
 		frappe.db.set_value(QUEUE, row.name, "status", status, update_modified=False)
@@ -478,8 +516,13 @@ def _run_result(rule, row, status, steps, error_summary, context=None) -> dict:
 
 
 def _error_summary(status, steps) -> str | None:
+	"""One line for the run list. The app's own thrown message beats a traceback tail."""
 	if status not in ("Failed", "Partially Failed"):
 		return None
+	failed = next((step for step in steps if step["status"] == "Failed"), None)
+	message = (failed or {}).get("message")
+	if message:
+		return message.splitlines()[0][:140]
 	detail = _first_error_detail(steps)
 	return detail.splitlines()[-1][:140] if detail else "Failed"
 
@@ -514,7 +557,11 @@ def _trip_breaker(rule, threshold):
 	)
 	# Drop the orphaned backlog in one UPDATE, the rule won't run again.
 	frappe.db.set_value(
-		QUEUE, {"automation": rule.name, "status": "Pending"}, "status", "Skipped", update_modified=False
+		QUEUE,
+		{"automation": rule.name, "status": ("in", WAITING_STATES)},
+		"status",
+		"Skipped",
+		update_modified=False,
 	)
 	clear_automation_cache(rule.document_type)
 	frappe.cache.delete(_failure_key(rule.name))

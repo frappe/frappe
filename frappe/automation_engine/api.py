@@ -3,6 +3,8 @@
 
 """Whitelisted, permission-checked endpoints that drive the shared builder UI."""
 
+from contextlib import contextmanager
+
 import frappe
 from frappe import _
 from frappe.automation_engine.actions.base import AutomationParamError, get_action, get_action_registry
@@ -192,3 +194,80 @@ OPTION_RESOLVERS = {
 	"doc_fields": lambda doctype, params, search_text: _doc_fields(doctype),
 	"users": _user_options,
 }
+
+
+TRIAL_SAVEPOINT = "automation_trial"
+
+
+@frappe.whitelist()
+def trial_run(automation: str, docname: str | None = None) -> dict:
+	"""Execute `automation` against `docname` for real, then roll everything back.
+
+	The trace is built in memory by the runner while the writes land in the transaction, so
+	rolling back to the savepoint discards the queue row, the Background Task, the actions'
+	writes and any queued email - and leaves the trace intact to return.
+	"""
+	from frappe.automation_engine.runner import execute_automation
+
+	rule = _trial_target(automation, docname)
+	frappe.db.savepoint(TRIAL_SAVEPOINT)
+	try:
+		with _commits_disarmed():
+			row_name = _trial_queue_row(rule, docname)
+			execute_automation(row_name)
+			return _trial_result(row_name, docname)
+	finally:
+		frappe.db.rollback(save_point=TRIAL_SAVEPOINT)
+
+
+@contextmanager
+def _commits_disarmed():
+	"""An action that commits mid-step would end the transaction and make the trial real."""
+	original = frappe.db.commit
+	frappe.db.commit = lambda *args, **kwargs: None
+	try:
+		yield
+	finally:
+		frappe.db.commit = original
+
+
+def _trial_target(automation: str, docname: str | None):
+	rule = frappe.get_doc("Automation Flow", automation)
+	frappe.has_permission("Automation Flow", "write", doc=rule, throw=True)
+	if rule.document_type and docname:
+		frappe.has_permission(rule.document_type, "read", doc=docname, throw=True)
+	elif docname:
+		frappe.throw(_("Document-less automations do not accept a document name"))
+	return rule
+
+
+def _trial_queue_row(rule, docname) -> str:
+	# Inserted as Running, not Pending: dedup_key is NULL for a claimed row, so a trial never
+	# collides with a genuine pending row for the same document.
+	row = frappe.get_doc(
+		{
+			"doctype": "Automation Trigger Queue",
+			"automation": rule.name,
+			"ref_doctype": rule.document_type,
+			"ref_name": docname,
+			"status": "Running",
+			"triggered_at": frappe.utils.now(),
+			"triggered_by": frappe.session.user,
+			"depth": 1,
+			"event_payload": frappe.as_json({"trial": True}),
+		}
+	).insert(ignore_permissions=True)
+	return row.name
+
+
+def _trial_result(row_name: str, docname: str | None) -> dict:
+	result = frappe.db.get_value("Background Task", {"job_id": row_name}, "result")
+	parsed = frappe.parse_json(result) if result else {}
+	steps = parsed.get("steps") or []
+	status = parsed.get("automation_status") or "Failed"
+	return {
+		"status": status,
+		"document": docname,
+		"steps": steps,
+		"error_summary": parsed.get("error_summary"),
+	}

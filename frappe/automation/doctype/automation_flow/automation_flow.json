@@ -11,7 +11,6 @@
   "document_type",
   "column_break_basic",
   "enabled",
-  "log_only",
   "disabled_reason",
   "trigger_section",
   "trigger_type",
@@ -68,13 +67,6 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Enabled"
-  },
-  {
-   "default": "0",
-   "description": "Check mode: evaluate and log a Simulated run without executing actions.",
-   "fieldname": "log_only",
-   "fieldtype": "Check",
-   "label": "Log Only"
   },
   {
    "depends_on": "disabled_reason",
@@ -246,7 +238,7 @@
   }
  ],
  "links": [],
- "modified": "2026-08-10 14:20:11.000000",
+ "modified": "2026-08-11 20:30:40.732467",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Automation Flow",

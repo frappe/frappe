@@ -10,7 +10,7 @@ job is kicked after commit.
 """
 
 import frappe
-from frappe.automation_engine import is_enabled
+from frappe.automation_engine import WAITING_STATES, is_enabled, queue_status
 from frappe.automation_engine.registry import get_automations_for
 from frappe.utils import cint, cstr
 from frappe.utils.data import evaluate_filters
@@ -133,7 +133,7 @@ def queue_trigger(automation, doctype, docname, run_after=None, payload=None, de
 			"automation": automation,
 			"ref_doctype": doctype,
 			"ref_name": docname,
-			"status": "Pending",
+			"status": queue_status(run_after),
 			"triggered_at": frappe.utils.now(),
 			"triggered_by": frappe.session.user,
 			"run_after": run_after,
@@ -156,7 +156,7 @@ def _pending_row(automation, doctype, docname):
 			"automation": automation,
 			"ref_doctype": doctype,
 			"ref_name": docname,
-			"status": "Pending",
+			"status": ("in", WAITING_STATES),
 			"resume_run": ("is", "not set"),
 		},
 		"name",
@@ -167,7 +167,11 @@ def _touch_row(name, run_after):
 	frappe.db.set_value(
 		"Automation Trigger Queue",
 		name,
-		{"triggered_at": frappe.utils.now(), "run_after": run_after},
+		{
+			"triggered_at": frappe.utils.now(),
+			"run_after": run_after,
+			"status": queue_status(run_after),
+		},
 		update_modified=False,
 	)
 	return name

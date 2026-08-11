@@ -3,7 +3,14 @@
 
 import frappe
 import frappe.automation_engine.drainer as drainer
-from frappe.automation_engine.drainer import claim_batch, drain, requeue_stale_running
+from frappe.automation_engine import queue_status
+from frappe.automation_engine.drainer import (
+	claim_batch,
+	drain,
+	drain_due,
+	promote_due_scheduled,
+	requeue_stale_running,
+)
 from frappe.tests import IntegrationTestCase
 
 QUEUE = "Automation Trigger Queue"
@@ -35,14 +42,14 @@ class TestDrainer(IntegrationTestCase):
 		frappe.db.delete("Automation Flow")
 		frappe.db.commit()
 
-	def add_row(self, ref_name, run_after=None):
+	def add_row(self, ref_name, run_after=None, status=None):
 		row = frappe.get_doc(
 			{
 				"doctype": QUEUE,
 				"automation": self.automation,
 				"ref_doctype": "ToDo",
 				"ref_name": ref_name,
-				"status": "Pending",
+				"status": status or queue_status(run_after),
 				"triggered_at": frappe.utils.now(),
 				"run_after": run_after,
 			}
@@ -66,7 +73,26 @@ class TestDrainer(IntegrationTestCase):
 		self.add_row("later", run_after=frappe.utils.add_to_date(None, days=1))
 		claimed = claim_batch(10)
 		self.assertEqual(len(claimed), 1)
-		self.assertEqual(self.count("Pending"), 1)
+		self.assertEqual(self.count("Pending"), 0)
+		self.assertEqual(self.count("Scheduled"), 1)
+
+	def test_due_scheduled_row_is_promoted_to_pending(self):
+		past = frappe.utils.add_to_date(frappe.utils.now(), minutes=-5)
+		name = self.add_row("was_waiting", run_after=past, status="Scheduled")
+		promote_due_scheduled()
+		frappe.db.commit()
+		self.assertEqual(frappe.db.get_value(QUEUE, name, "status"), "Pending")
+
+	def test_due_scheduled_row_is_claimed_without_promotion(self):
+		past = frappe.utils.add_to_date(frappe.utils.now(), minutes=-5)
+		self.add_row("overdue", run_after=past, status="Scheduled")
+		self.assertEqual(len(claim_batch(10)), 1)
+
+	def test_scheduled_row_stays_put_until_due(self):
+		self.add_row("waiting", run_after=frappe.utils.add_to_date(None, days=2))
+		drain(executor=lambda name: None)
+		self.assertEqual(self.count("Scheduled"), 1)
+		self.assertEqual(self.count("Running"), 0)
 
 	def test_second_claim_excludes_already_running(self):
 		for i in range(4):
@@ -115,6 +141,33 @@ class TestDrainer(IntegrationTestCase):
 
 		self.assertEqual(processed, [])
 		self.assertEqual(self.count("Pending"), 3)
+
+	def test_drain_due_drains_inline_without_kicking_a_job(self):
+		import frappe.automation_engine.runner as runner
+
+		for i in range(3):
+			self.add_row(f"T{i}")
+
+		processed = []
+		kicks = []
+		original_executor = runner.execute_automation
+		original_rekick = drainer._rekick
+
+		def executor(name):
+			processed.append(name)
+			frappe.db.set_value(QUEUE, name, "status", "Done")
+
+		runner.execute_automation = executor
+		drainer._rekick = lambda: kicks.append(1)
+		try:
+			drain_due()
+		finally:
+			runner.execute_automation = original_executor
+			drainer._rekick = original_rekick
+
+		self.assertEqual(len(processed), 3)
+		self.assertEqual(kicks, [])
+		self.assertEqual(self.count("Pending"), 0)
 
 	def test_old_mariadb_uses_plain_for_update(self):
 		original = drainer._mariadb_supports_skip_locked

@@ -1,7 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-"""Drains the outbox: claims due Pending rows in batches and runs them.
+"""Drains the outbox: claims due waiting rows in batches and runs them.
 
 Batches are claimed with FOR UPDATE SKIP LOCKED so multiple drainers run in parallel
 without double-executing a row. Each claim marks its rows Running and commits, releasing
@@ -11,13 +11,14 @@ the locks before the (slower) execution phase.
 import re
 
 import frappe
+from frappe.automation_engine import WAITING_STATES
 
 DEFAULT_BATCH_SIZE = 500
 QUEUE = "Automation Trigger Queue"
 
 
 def drain(batch_size=DEFAULT_BATCH_SIZE, max_batches=None, executor=None):
-	"""Claim and execute due Pending rows until the queue is drained."""
+	"""Claim and execute due waiting rows until the queue is drained."""
 	from frappe.automation_engine import is_enabled
 
 	if not is_enabled():
@@ -25,6 +26,7 @@ def drain(batch_size=DEFAULT_BATCH_SIZE, max_batches=None, executor=None):
 	if executor is None:
 		from frappe.automation_engine.runner import execute_automation as executor
 
+	promote_due_scheduled()
 	batches = 0
 	while True:
 		names = claim_batch(batch_size)
@@ -40,17 +42,36 @@ def drain(batch_size=DEFAULT_BATCH_SIZE, max_batches=None, executor=None):
 		_rekick()
 
 
+def promote_due_scheduled():
+	"""Move rows whose run_after has arrived from Scheduled to Pending.
+
+	Purely a display concern: claim_batch spans both states, so a row that comes due
+	between this and the claim still runs on time.
+	"""
+	frappe.db.sql(
+		f"""
+		UPDATE `tab{QUEUE}` SET status = 'Pending'
+		WHERE status = 'Scheduled' AND run_after IS NOT NULL AND run_after <= %(now)s
+		""",
+		{"now": frappe.utils.now()},
+	)
+
+
 def claim_batch(batch_size=DEFAULT_BATCH_SIZE) -> list[str]:
-	"""Atomically claim up to `batch_size` due Pending rows and mark them Running."""
+	"""Atomically claim up to `batch_size` due waiting rows and mark them Running."""
 	rows = frappe.db.sql(
 		f"""
 		SELECT name FROM `tab{QUEUE}`
-		WHERE status = 'Pending' AND (run_after IS NULL OR run_after <= %(now)s)
+		WHERE status IN %(waiting)s AND (run_after IS NULL OR run_after <= %(now)s)
 		ORDER BY triggered_at
 		LIMIT %(limit)s
 		{_lock_clause()}
 		""",
-		{"now": frappe.utils.now(), "limit": frappe.utils.cint(batch_size)},
+		{
+			"now": frappe.utils.now(),
+			"limit": frappe.utils.cint(batch_size),
+			"waiting": WAITING_STATES,
+		},
 		as_dict=True,
 	)
 	if not rows:
@@ -88,10 +109,10 @@ def _has_due_pending() -> bool:
 		frappe.db.sql(
 			f"""
 			SELECT 1 FROM `tab{QUEUE}`
-			WHERE status = 'Pending' AND (run_after IS NULL OR run_after <= %(now)s)
+			WHERE status IN %(waiting)s AND (run_after IS NULL OR run_after <= %(now)s)
 			LIMIT 1
 			""",
-			{"now": frappe.utils.now()},
+			{"now": frappe.utils.now(), "waiting": WAITING_STATES},
 		)
 	)
 
@@ -103,10 +124,15 @@ def _rekick():
 
 
 def drain_due():
-	"""Scheduler safety net: requeue crashed claims, then kick the drainer if due rows wait."""
+	"""Scheduler safety net: requeue crashed claims, then drain inline.
+
+	This drains in-process instead of kicking the drain job: the job is deduplicated on a
+	fixed id, so a stale Redis job record (a worker killed mid-claim leaves one behind,
+	stuck at status "queued" forever) suppresses every later kick. Draining here keeps the
+	safety net independent of the thing it is meant to rescue.
+	"""
 	requeue_stale_running()
-	if _has_due_pending():
-		_rekick()
+	drain()
 
 
 def requeue_stale_running():

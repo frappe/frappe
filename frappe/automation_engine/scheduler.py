@@ -4,7 +4,7 @@
 from datetime import datetime, timedelta
 
 import frappe
-from frappe.automation_engine import is_enabled
+from frappe.automation_engine import WAITING_STATES, is_enabled
 from frappe.automation_engine.dispatch import kick_drainer, matches_rule, queue_trigger
 from frappe.automation_engine.runner import TASK_METHOD, automation_task_name
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import parse_cron
@@ -49,7 +49,7 @@ def _handled_names(automation: str, fire_at: datetime) -> set[str | None]:
 		QUEUE,
 		filters={
 			"automation": automation,
-			"status": ("in", ("Pending", "Running")),
+			"status": ("in", (*WAITING_STATES, "Running")),
 		},
 		pluck="ref_name",
 	)

@@ -42,7 +42,6 @@ class AutomationFlow(Document):
 		enabled: DF.Check
 		filters: DF.Code | None
 		from_value: DF.Data | None
-		log_only: DF.Check
 		revalidate_on_run: DF.Check
 		relationships: DF.JSON | None
 		run_as: DF.Literal["Triggering User", "Document Owner", "Automation User"]
