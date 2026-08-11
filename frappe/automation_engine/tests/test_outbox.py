@@ -71,7 +71,32 @@ class TestOutbox(IntegrationTestCase):
 			self._raw_pending("TODO-DUP")
 
 	def test_done_and_pending_rows_coexist(self):
-		# dedup_key is NULL for non-Pending rows, so a Done row never blocks a fresh Pending one.
+		# dedup_key is NULL for non-waiting rows, so a Done row never blocks a fresh Pending one.
 		self._raw_pending("TODO-COEXIST", status="Done")
 		self._raw_pending("TODO-COEXIST")
 		self.assertEqual(len(rows(self.automation, ref_name="TODO-COEXIST")), 2)
+
+	def test_future_run_after_queues_as_scheduled(self):
+		later = frappe.utils.add_to_date(frappe.utils.now(), days=2)
+		name = queue_trigger(self.automation, "ToDo", "TODO-LATER", run_after=later)
+		self.assertEqual(frappe.db.get_value("Automation Trigger Queue", name, "status"), "Scheduled")
+
+	def test_scheduled_row_is_deduplicated_like_pending(self):
+		later = frappe.utils.add_to_date(frappe.utils.now(), days=2)
+		first = queue_trigger(self.automation, "ToDo", "TODO-LATER", run_after=later)
+		second = queue_trigger(self.automation, "ToDo", "TODO-LATER", run_after=later)
+		self.assertEqual(first, second)
+		self.assertEqual(len(rows(self.automation, ref_name="TODO-LATER")), 1)
+
+	def test_scheduled_row_index_blocks_duplicate(self):
+		self._raw_pending("TODO-SCHED", status="Scheduled")
+		with self.assertRaises((frappe.UniqueValidationError, frappe.DuplicateEntryError)):
+			self._raw_pending("TODO-SCHED", status="Scheduled")
+
+	def test_retrigger_of_scheduled_row_pulls_it_forward(self):
+		later = frappe.utils.add_to_date(frappe.utils.now(), days=2)
+		name = queue_trigger(self.automation, "ToDo", "TODO-FORWARD", run_after=later)
+		queue_trigger(self.automation, "ToDo", "TODO-FORWARD")
+		row = frappe.db.get_value("Automation Trigger Queue", name, ["status", "run_after"], as_dict=True)
+		self.assertEqual(row.status, "Pending")
+		self.assertIsNone(row.run_after)

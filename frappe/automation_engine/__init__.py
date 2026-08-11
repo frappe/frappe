@@ -5,6 +5,18 @@ from contextlib import contextmanager
 
 import frappe
 
+# Queue rows that still owe work. A row waiting on a future run_after sits in Scheduled so
+# the list view can tell "waiting for its time" apart from "waiting for a worker"; it moves
+# to Pending once it comes due. Both are claimable, so the drainer spans the pair.
+WAITING_STATES = ("Pending", "Scheduled")
+
+
+def queue_status(run_after=None) -> str:
+	"""Resting status for a queue row with this run_after."""
+	if run_after and frappe.utils.get_datetime(run_after) > frappe.utils.now_datetime():
+		return "Scheduled"
+	return "Pending"
+
 
 def emit(event, doc=None, payload=None, correlation_key=None):
 	"""Publish a registered application event to flows and waiting runs."""

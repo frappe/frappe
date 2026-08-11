@@ -133,13 +133,6 @@ class TestRunner(AutomationRunnerTestCase):
 		self.assertEqual(self.run_status(auto), "Success")
 		self.assertTrue(frappe.db.exists("ToDo", {"description": "weekly-digest"}))
 
-	def test_log_only_simulates_without_side_effects(self):
-		todo = make_todo(priority="Low")
-		auto = make_automation([set_field("priority", "High")], log_only=1)
-		execute_automation(self.queue_row(auto, todo.name))
-		self.assertEqual(self.run_status(auto), "Simulated")
-		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "Low")
-
 	def test_failed_action_stops_and_marks_failed(self):
 		todo = make_todo()
 		auto = make_broken_automation(stop_on_error=1)

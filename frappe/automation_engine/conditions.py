@@ -8,6 +8,8 @@ provider's query and only counts what comes back, so an existence check on a lar
 a bounded query.
 """
 
+import ast
+
 import frappe
 from frappe import _
 from frappe.automation_engine.relationships import (
@@ -126,3 +128,26 @@ def _render_value(value, render_context):
 	if isinstance(value, dict):
 		return {key: _render_value(item, render_context) for key, item in value.items()}
 	return value
+
+
+def condition_values(condition: str, scope: dict) -> dict:
+	"""Values of every `doc.x` / `target.x` a condition reads, keyed by the source text.
+
+	Sitting the values a condition actually saw next to its source is what turns "step
+	skipped" into a diagnosis. Reading them off the parse tree keeps it generic: no app
+	knows, no operator table, and anything unparseable simply reports nothing.
+	"""
+	try:
+		tree = ast.parse(condition or "", mode="eval")
+	except (SyntaxError, ValueError):
+		return {}
+
+	values = {}
+	for node in ast.walk(tree):
+		if not isinstance(node, ast.Attribute) or not isinstance(node.value, ast.Name):
+			continue
+		record = scope.get(node.value.id)
+		if record is None:
+			continue
+		values[f"{node.value.id}.{node.attr}"] = record.get(node.attr)
+	return values
