@@ -9,10 +9,6 @@ const IMPORT_TIMEOUT = 5000;
 
 export async function loadFrontendExtensions(entries: string[]) {
 	if (!entries.length) return;
-	if (import.meta.env.DEV) {
-		console.warn("[record-page] frontend extensions load from built assets only; skipped in dev");
-		return;
-	}
 	await assertSharedSingletons();
 	for (const [app, urls] of byApp(entries)) {
 		for (const url of urls.filter(isStylesheet)) injectStylesheet(url);
