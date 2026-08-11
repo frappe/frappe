@@ -34,21 +34,31 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 			self.assertTrue(frappe.db.exists("Module Def", key), f"{key} is not a Module Def")
 
 	def test_resolution_walks_modules_not_rows(self):
-		"""The set being resolved is the site's modules. Under today's 1:1 rows that produces
-		the same payload the row-walk produced -- every module it reaches still has a row -- but
-		the walk is no longer bounded by which rows happen to exist."""
-		modules = set(get_navigable_modules())
-		self.assertTrue(modules, "sanity: the site has modules")
+		"""The set being resolved is the site's modules, and the modules that happen to have a
+		row are a subset of it -- so nothing the old row-walk reached is dropped by the switch,
+		and the walk is no longer bounded by which rows exist.
 
-		row_backed = {
-			row.module
-			for row in frappe.get_all("Module Sidebar", fields=["module"])
-			if frappe.db.exists("Module Def", row.module)
-		}
-		row_backed = set(get_visible_modules(list(row_backed)))
-		self.assertTrue(row_backed, "sanity: the site has module sidebars")
-		self.assertTrue(row_backed <= modules, f"{row_backed - modules} would be dropped by the switch")
-		self.assertTrue(set(get_module_sidebars()) <= modules)
+		The row is staged: nothing ships a `Module Sidebar`, so on a stock site the old walk
+		had nothing to reach and the comparison would hold vacuously.
+		"""
+		with sidebarless_module("Test Row Backed Module") as rowed_module:
+			with system_write():
+				frappe.get_doc(
+					{"doctype": "Module Sidebar", "module": rowed_module, "title": "Rowed"}
+				).insert(ignore_permissions=True)
+
+			modules = set(get_navigable_modules())
+			self.assertTrue(modules, "sanity: the site has modules")
+
+			row_backed = {
+				row.module
+				for row in frappe.get_all("Module Sidebar", fields=["module"])
+				if frappe.db.exists("Module Def", row.module)
+			}
+			row_backed = set(get_visible_modules(list(row_backed)))
+			self.assertIn(rowed_module, row_backed, "sanity: the staged row is visible")
+			self.assertTrue(row_backed <= modules, f"{row_backed - modules} would be dropped by the switch")
+			self.assertTrue(set(get_module_sidebars()) <= modules)
 
 	def test_a_module_with_no_sidebar_document_is_still_navigable(self):
 		"""Nothing shipped this module a sidebar, so the system computes one from its contents
@@ -140,12 +150,19 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 	def test_a_site_of_shipped_documents_pays_nothing_for_the_computed_route(self):
 		"""The fallback runs only for the modules the documents query did not return, so a
 		site whose modules all ship a sidebar reads exactly what it read before: the bases,
-		then their items."""
-		rowed = frappe.get_all("Module Sidebar", pluck="module", limit=5)
-		self.assertTrue(rowed, "sanity: the site has module sidebars")
+		then their items.
 
-		with self.assertQueryCount(2):
-			get_sidebar_bases(rowed)
+		Staged rather than read off the site: nothing ships a `Module Sidebar`, so a stock site
+		has no rows at all and the assertion would be measuring the computed route instead.
+		"""
+		with sidebarless_module("Test All Rowed Module") as module:
+			with system_write():
+				shipped = frappe.get_doc({"doctype": "Module Sidebar", "module": module})
+				shipped.append("items", {"type": "Link", "link_type": "DocType", "link_to": "ToDo"})
+				shipped.insert(ignore_permissions=True)
+
+			with self.assertQueryCount(2):
+				get_sidebar_bases([module])
 
 	def test_a_customization_reshapes_a_computed_base(self):
 		"""A delta reshapes a base; it is not one. With every module now given a base, a

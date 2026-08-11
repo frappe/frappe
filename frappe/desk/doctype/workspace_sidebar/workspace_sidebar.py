@@ -155,12 +155,17 @@ class WorkspaceSidebar(Document, DeskViews):
 			workspace.module_onboarding = self.module_onboarding
 		workspace.standard = self.standard
 
-		# A standard workspace must carry app + module so it can be exported to files. If no app
-		# can be resolved it can't be exported, so keep it as a non-standard workspace instead.
+		# Every workspace needs a module now, an existing one this sidebar is merging into
+		# included -- without it the save below fails outright. A standard one needs it twice
+		# over, since the module decides where the export writes its file; if none can be
+		# resolved it can't be exported, so keep it as a non-standard workspace instead.
+		set_workspace_module(workspace, self)
 		if self.standard:
-			set_app_and_module(workspace, self)
 			workspace.standard = 1 if workspace.module else 0
 
+		# See `get_or_create_workspace`: better a module-less workspace for
+		# `backfill_workspace_module` to finish than a sidebar dropped on the floor.
+		workspace.flags.ignore_mandatory = not workspace.module
 		workspace.save(ignore_permissions=True)
 		frappe.db.commit()  # nosemgrep
 		# `remove_orphan_entities` (run later during migrate) deletes any standard public
@@ -172,16 +177,22 @@ class WorkspaceSidebar(Document, DeskViews):
 		return workspace
 
 
-def set_app_and_module(workspace, sidebar):
-	"""Populate `app`/`module` on `workspace` in place. No-op when no app can be resolved."""
-	app = sidebar.app or workspace.app
-	if not app:
-		return
+def set_workspace_module(workspace, sidebar):
+	"""Populate `module` on `workspace` in place. No-op when none can be resolved.
 
-	workspace.app = app
+	Only the module: a workspace no longer carries an app of its own, so naming the module is
+	the whole of saying which app it belongs to.
+	"""
 	if not workspace.module:
-		modules = frappe.get_module_list(app)
-		workspace.module = modules[0] if modules else None
+		workspace.module = resolve_sidebar_module(sidebar)
+
+
+def resolve_sidebar_module(sidebar) -> str | None:
+	"""The module a sidebar's workspace should carry: its own, else what its items point at,
+	else the first module of the app that shipped it."""
+	from frappe.desk.doctype.workspace.workspace import first_module_of_app
+
+	return sidebar.module or sidebar.get_module_from_items() or first_module_of_app(sidebar.app)
 
 
 def get_or_create_workspace(sidebar):
@@ -200,11 +211,15 @@ def get_or_create_workspace(sidebar):
 			"content": "[]",
 			"public": public,
 			"for_user": sidebar.for_user or "",
-			"module": sidebar.module or None,
-			"app": sidebar.app,
+			"module": resolve_sidebar_module(sidebar),
 			"sequence_id": frappe.db.count("Workspace", {"public": public}),
 		}
 	)
+	# `Workspace.module` is mandatory now, and a sidebar of nothing but URLs in no app can
+	# answer the question with nothing. Let the workspace exist anyway rather than lose it --
+	# the `backfill_workspace_module` patch runs later and has a fuller ladder, ending in a
+	# catch-all module.
+	workspace.flags.ignore_mandatory = not workspace.module
 	workspace.save(ignore_permissions=True)
 	return workspace
 

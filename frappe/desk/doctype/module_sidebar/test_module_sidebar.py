@@ -390,7 +390,9 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 		# User is Core, Report is Core, Workspace is Desk -- none of them this module
 		for item in (self.link("User"), self.link("Report"), self.link("DocType")):
 			sidebar.append("items", item)
-		sidebar.insert(ignore_permissions=True)
+		# authored by hand, so in developer mode -- the document is app content
+		with developer_mode():
+			sidebar.insert(ignore_permissions=True)
 
 		self.assertEqual(len(frappe.get_doc("Module Sidebar", MODULE).items), 3)
 
@@ -486,7 +488,7 @@ class TestModuleSidebarStandard(IntegrationTestCase):
 		# durable and the framework's rollback will not undo it. Commit the cleanup too, or a
 		# standard row for a module with no folder outlives the test and breaks every later
 		# save of it.
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 	def clear_module_content(self):
 		"""Everything these tests put in the module, sidebar and contents alike.
@@ -966,15 +968,19 @@ class TestComputedSidebarBase(IntegrationTestCase):
 		return make_report(self.module, name)
 
 	def make_page(self, name):
-		return frappe.get_doc(
-			{
-				"doctype": "Page",
-				"page_name": name,
-				"title": name,
-				"module": self.module,
-				"standard": "No",
-			}
-		).insert(ignore_permissions=True)
+		# `Page.validate` refuses *any* new page outside developer mode, `standard: No` included,
+		# and the test site does not have it on. Nothing is written to disk: the export is gated
+		# on `standard == "Yes"`.
+		with developer_mode():
+			return frappe.get_doc(
+				{
+					"doctype": "Page",
+					"page_name": name,
+					"title": name,
+					"module": self.module,
+					"standard": "No",
+				}
+			).insert(ignore_permissions=True)
 
 	def links(self, base):
 		return [(row.link_type, row.link_to) for row in base.rows]

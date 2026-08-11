@@ -23,10 +23,18 @@ def execute():
 	workspaces = frappe.get_all(
 		"Workspace",
 		filters={"module": ["in", ["", None]]},
-		fields=["name", "app", "parent_page", "public", "for_user"],
+		fields=["name", "parent_page", "public", "for_user"],
 	)
 	if not workspaces:
 		return
+
+	# `Workspace.app` is not a field any more, so it cannot be selected with the rest. On a site
+	# old enough to need this patch the column is still physically there -- the schema updater
+	# leaves a removed field's column behind -- and it is the most trustworthy rung of the
+	# ladder below, so read it separately and only where it exists.
+	legacy_app = legacy_apps() if frappe.db.has_column("Workspace", "app") else {}
+	for workspace in workspaces:
+		workspace.app = legacy_app.get(workspace.name)
 
 	assigned = Counter()
 	for workspace in workspaces:
@@ -42,6 +50,12 @@ def execute():
 		+ ", ".join(f"{how} {n}" for how, n in assigned.items()),
 		fg="yellow" if assigned.get("catch-all") else "green",
 	)
+
+
+def legacy_apps() -> dict[str, str]:
+	"""`name -> app` straight off the orphaned column, which no longer has a field to read it."""
+	rows = frappe.db.sql("select `name`, `app` from `tabWorkspace`")
+	return {name: app for name, app in rows if app}
 
 
 def resolve_module(workspace) -> tuple[str, str]:

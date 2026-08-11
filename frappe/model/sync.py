@@ -207,7 +207,11 @@ def remove_orphan_entities(entity_types=None):
 	entities = ["Workspace", "Dashboard", "Page", "Report", "Notification", "Module Sidebar"]
 	app_level_entities = ["Workspace Sidebar", "Desktop Icon"]
 	entity_filter_map = {
-		"Workspace": [{"public": 1, "module": ["is", "set"], "app": ["is", "set"]}],
+		# only a standard workspace is backed by a file in an app; a site's own public workspace
+		# is never an orphan. This used to read `app is set`, back when a workspace carried its
+		# app itself -- which also swept up site-created workspaces that the `update_app` patch
+		# had stamped an app onto, and deleted them.
+		"Workspace": {"public": 1, "standard": 1},
 		"Page": {"standard": "Yes"},
 		"Report": {"is_standard": "Yes"},
 		"Dashboard": {"is_standard": True},

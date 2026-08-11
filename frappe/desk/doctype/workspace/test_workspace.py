@@ -77,6 +77,7 @@ class TestWorkspace(IntegrationTestCase):
 		workspace.title = "Duplicate Shortcut Workspace"
 		workspace.public = 0
 		workspace.for_user = frappe.session.user
+		workspace.module = "Test Module"
 		workspace.content = "[]"
 
 		for stats_filter in (
@@ -101,6 +102,7 @@ class TestWorkspace(IntegrationTestCase):
 		workspace.title = "Legacy Duplicate Workspace"
 		workspace.public = 0
 		workspace.for_user = frappe.session.user
+		workspace.module = "Test Module"
 		workspace.content = "[]"
 		workspace.insert()
 

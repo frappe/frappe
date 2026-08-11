@@ -1,5 +1,4 @@
 {
- "app": "frappe",
  "charts": [],
  "content": "[{\"id\":\"3iua9gS06d\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Google Settings\",\"col\":3}},{\"id\":\"G4mkFTN5SN\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Webhook\",\"col\":3}},{\"id\":\"fPZBlLf1Ux\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ij1pcK8jst\",\"type\":\"card\",\"data\":{\"card_name\":\"Google Services\",\"col\":4}},{\"id\":\"aTlMujEHpN\",\"type\":\"card\",\"data\":{\"card_name\":\"Authentication\",\"col\":4}},{\"id\":\"gY5NXKtXss\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}},{\"id\":\"n_CI3GGqW-\",\"type\":\"card\",\"data\":{\"card_name\":\"Push Notifications\",\"col\":4}}]",
  "creation": "2020-03-02 15:16:18.714190",

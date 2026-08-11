@@ -493,7 +493,6 @@ def get_workspaces():
 		"is_hidden",
 		"sequence_id",
 		"standard",
-		"app",
 		"type",
 		"link_type",
 		"link_to",
@@ -524,11 +523,12 @@ def get_workspaces():
 					pages.append(page)
 				page["label"] = _(page.get("name"))
 
-			if not page["app"] and page["module"]:
-				# `None` for a module no app lists, which a site's own module is entitled to be.
-				# Resolving this through `get_module_app` threw for exactly those modules, and
-				# the throw escaped the `PermissionError` handler below with it.
-				page["app"] = get_module_placement(page["module"])
+			# Derived, never stored: there is no `Workspace.app` any more, so the module is the
+			# only answer to which app a workspace belongs to. `None` for a module no app lists,
+			# which a site's own module is entitled to be -- resolving this through
+			# `get_module_app` threw for exactly those modules, and the throw escaped the
+			# `PermissionError` handler below with it.
+			page["app"] = get_module_placement(page["module"]) if page["module"] else None
 			if page["link_type"] == "Report":
 				report_type, ref_doctype = frappe.db.get_value(
 					"Report", page["link_to"], ["report_type", "ref_doctype"]
