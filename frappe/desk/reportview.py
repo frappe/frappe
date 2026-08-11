@@ -17,6 +17,7 @@ from frappe.model import child_table_fields, default_fields, get_permitted_field
 from frappe.model.base_document import get_controller
 from frappe.model.qb_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
+from frappe.model.virtual_doctype import check_permission as check_virtual_doctype_permission
 from frappe.utils import add_user_info, cint, format_duration
 from frappe.utils.data import sbool
 
@@ -31,6 +32,7 @@ def get():
 	args = get_form_params()
 	# If virtual doctype, get data from controller get_list method
 	if is_virtual_doctype(args.doctype):
+		check_virtual_doctype_permission(args.doctype)
 		controller = get_controller(args.doctype)
 		data = compress(frappe.call(controller.get_list, args=args, **args))
 	else:
@@ -44,6 +46,7 @@ def get_list():
 	args = get_form_params()
 
 	if is_virtual_doctype(args.doctype):
+		check_virtual_doctype_permission(args.doctype)
 		controller = get_controller(args.doctype)
 		data = frappe.call(controller.get_list, args=args, **args)
 	else:
@@ -61,6 +64,7 @@ def get_count() -> int | None:
 	args = get_form_params()
 
 	if is_virtual_doctype(args.doctype):
+		check_virtual_doctype_permission(args.doctype)
 		controller = get_controller(args.doctype)
 		return frappe.call(controller.get_count, args=args, **args)
 

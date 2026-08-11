@@ -11,6 +11,7 @@ import frappe.model.meta
 from frappe import _, get_module_path
 from frappe.desk.doctype.tag.tag import delete_tags_for_document
 from frappe.model.docstatus import DocStatus
+from frappe.model.document import Document
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.model.naming import revert_series_if_last
 from frappe.model.utils import is_virtual_doctype
@@ -91,7 +92,17 @@ def delete_doc(
 
 	for name in names or []:
 		if is_virtual:
-			frappe.get_doc(doctype, name).delete()
+			doc = frappe.get_doc(doctype, name)
+
+			if type(doc).delete == Document.delete:
+				frappe.throw(
+					_("Virtual DocType {0} does not implement a delete method.").format(doctype),
+					NotImplementedError,
+				)
+
+			update_flags(doc, flags, ignore_permissions)
+			check_permission_and_not_submitted(doc)
+			doc.delete()
 			continue
 
 		# already deleted..?

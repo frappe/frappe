@@ -6,6 +6,26 @@ from frappe import _
 from frappe.model.base_document import get_controller
 
 
+def check_permission(
+	doctype: str,
+	*,
+	user: str | None = None,
+	parent_doctype: str | None = None,
+	ignore_permissions: bool = False,
+) -> None:
+	"""Raise PermissionError unless the user has select/read access to this virtual doctype.
+
+	Virtual doctypes dispatch straight to their controller instead of going through the
+	QueryBuilder/Engine machinery that normally performs this check for table-backed doctypes,
+	so every entry point that hands off to a virtual controller must call this explicitly.
+	"""
+	if ignore_permissions:
+		return
+
+	ptype = "select" if frappe.only_has_select_perm(doctype, user=user) else "read"
+	frappe.has_permission(doctype, ptype=ptype, parent_doctype=parent_doctype, user=user, throw=True)
+
+
 @runtime_checkable
 class VirtualDoctype(Protocol):
 	"""This class documents requirements that must be met by a doctype controller to function as virtual doctype

@@ -11,6 +11,7 @@ from frappe.database.utils import DefaultOrderBy, FilterValue
 from frappe.deprecation_dumpster import deprecation_warning
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
+from frappe.model.virtual_doctype import check_permission as check_virtual_doctype_permission
 from frappe.query_builder.utils import Column
 from frappe.utils import sbool
 
@@ -122,6 +123,9 @@ class DatabaseQuery:
 
 		# Handle virtual doctypes before any other processing
 		if is_virtual_doctype(self.doctype):
+			check_virtual_doctype_permission(
+				self.doctype, user=user, parent_doctype=parent_doctype, ignore_permissions=ignore_permissions
+			)
 			return self._handle_virtual_doctype(
 				fields,
 				filters,
