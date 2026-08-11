@@ -458,7 +458,7 @@ def get_workspaces():
 	requests (the cache clears when the request ends).
 	"""
 
-	from frappe.modules.utils import get_module_app
+	from frappe.utils.modules import get_module_placement
 
 	has_access = "Workspace Manager" in frappe.get_roles()
 
@@ -525,9 +525,10 @@ def get_workspaces():
 				page["label"] = _(page.get("name"))
 
 			if not page["app"] and page["module"]:
-				page["app"] = frappe.db.get_value("Module Def", page["module"], "app_name") or get_module_app(
-					page["module"]
-				)
+				# `None` for a module no app lists, which a site's own module is entitled to be.
+				# Resolving this through `get_module_app` threw for exactly those modules, and
+				# the throw escaped the `PermissionError` handler below with it.
+				page["app"] = get_module_placement(page["module"])
 			if page["link_type"] == "Report":
 				report_type, ref_doctype = frappe.db.get_value(
 					"Report", page["link_to"], ["report_type", "ref_doctype"]

@@ -29,13 +29,13 @@
    "unique": 1
   },
   {
-   "depends_on": "eval:!doc.custom",
+   "description": "The app whose dock lists this module. A custom module may leave it empty and stand on its own.",
    "fieldname": "app_name",
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "App Name",
-   "reqd": 1,
+   "mandatory_depends_on": "eval:!doc.custom",
    "search_index": 1
   },
   {
@@ -146,7 +146,7 @@
    "link_fieldname": "module"
   }
  ],
- "modified": "2026-08-07 13:26:30.260170",
+ "modified": "2026-08-11 12:10:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Module Def",

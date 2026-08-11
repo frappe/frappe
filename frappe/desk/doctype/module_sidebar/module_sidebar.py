@@ -11,6 +11,7 @@ import frappe
 from frappe import _
 from frappe.desk.desk_views import DeskViews
 from frappe.model.document import Document
+from frappe.utils.modules import get_module_placement
 
 # Fields copied verbatim from a source item row into a `Module Sidebar Item`.
 SIDEBAR_ITEM_FIELDS = (
@@ -249,7 +250,7 @@ def mark_as_standard(module: str) -> str:
 	frappe.db.savepoint(savepoint)
 	try:
 		doc.standard = 1
-		doc.app = get_module_app(module)
+		doc.app = get_module_placement(module)
 		# `save` inserts a materialized base and updates an existing document; either way
 		# `on_update` is what writes the file.
 		doc.save()
@@ -557,7 +558,7 @@ def build_module_sidebar(module: str, workspaces: list[frappe._dict]) -> frappe.
 			"module_onboarding": next(
 				(ws.module_onboarding for ws in workspaces if ws.module_onboarding), None
 			),
-			"app": get_module_app(module),
+			"app": get_module_placement(module),
 			# Deliberately NOT standard, however standard the source workspaces were.
 			# `standard` means "backed by a JSON file in an app", and that is what orphan
 			# removal deletes on: a standard row with no file is an orphan. A merged sidebar
@@ -571,12 +572,6 @@ def build_module_sidebar(module: str, workspaces: list[frappe._dict]) -> frappe.
 			"secondaries": [ws.name for ws in secondaries],
 		}
 	)
-
-
-def get_module_app(module: str) -> str | None:
-	"""The app owning `module`, tolerating a Module Def that exists only in the DB."""
-	app = frappe.local.module_app.get(frappe.scrub(module))
-	return app or frappe.db.get_value("Module Def", module, "app_name")
 
 
 # ---------------------------------------------------------------------------------------
@@ -720,7 +715,7 @@ def build_computed_base(module: str) -> frappe._dict:
 			# no `name`: there is no document. Whatever reads this must not need one.
 			"module": module,
 			"title": module,
-			"app": get_module_app(module),
+			"app": get_module_placement(module),
 			"header_icon": DEFAULT_HEADER_ICON,
 			"module_onboarding": None,
 			"home_workspace": None,

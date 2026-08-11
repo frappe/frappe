@@ -46,7 +46,10 @@ def get_disabled_modules() -> set[str]:
 	return set(
 		frappe.qb.from_(module_def)
 		.select(module_def.name)
-		.where(module_def.app_name.isin(disabled_apps))
+		# `custom = 0`: a site's own module is only *placed* in an app -- turning that app off
+		# takes the app's modules with it, never the site's. Same split as the uninstall filter
+		# in `frappe.installer.get_app_owned_modules`.
+		.where(module_def.app_name.isin(disabled_apps) & (module_def.custom == 0))
 		.run(pluck=True)
 	)
 

@@ -30,9 +30,36 @@ class ModuleDef(Document):
 	# end: auto-generated types
 
 	def validate(self):
-		from frappe.modules.utils import get_module_app
+		self.validate_placement()
 
-		if not self.app_name and not self.custom:
+	def validate_placement(self):
+		"""`app_name` answers *which dock lists this module*, and nothing else.
+
+		It used to answer two unrelated questions at once -- placement and ownership -- so
+		leaving it empty made a module unreachable, and filling it in made an app's uninstall
+		destroy a module the site had built. Ownership is now `custom`'s job alone (see
+		`frappe.installer.get_app_owned_modules`), which frees placement to be optional:
+
+		        app_name set     -> listed in that app's dock, trailing the app's own modules
+		        app_name null    -> unplaced; the module stands on its own
+		        host uninstalled -> cleared, so the module can never become unreachable
+
+		An app's own module still resolves its app from `modules.txt`, which is the app
+		declaring what it ships.
+		"""
+		if self.custom:
+			# not mid-install: the app being installed is not in `installed_apps` until its
+			# install finishes, and a placement into it is not stale, only early.
+			if self.app_name and not frappe.flags.in_install:
+				if self.app_name not in frappe.get_installed_apps():
+					# the app that was to list it is gone; the module is not. Uninstall clears
+					# this too -- here as well, so a placement never outlives its host.
+					self.app_name = None
+			return
+
+		if not self.app_name:
+			from frappe.modules.utils import get_module_app
+
 			self.app_name = get_module_app(self.name)
 
 	def on_update(self):

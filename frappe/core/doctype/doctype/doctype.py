@@ -2109,17 +2109,25 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 		):
 			frappe.get_doc(doctype="Domain", domain=doc.restrict_to_domain).insert()
 
-		if "tabModule Def" in frappe.db.get_tables() and not frappe.db.exists("Module Def", doc.module):
-			m = frappe.get_doc({"doctype": "Module Def", "module_name": doc.module})
-			if frappe.scrub(doc.module) in frappe.local.module_app:
-				m.app_name = frappe.local.module_app[frappe.scrub(doc.module)]
-			else:
-				m.app_name = "frappe"
-			m.flags.ignore_mandatory = m.flags.ignore_permissions = True
-			if frappe.flags.package:
-				m.package = frappe.flags.package.name
-				m.custom = 1
-			m.insert()
+		if "tabModule Def" in frappe.db.get_tables():
+			# A doctype arriving from an app brings its module with it. If the site holds that
+			# name with a custom module of its own, the app wins it and the site's module moves
+			# aside -- otherwise this does nothing, which is every ordinary save.
+			from frappe.installer import reclaim_module_name_for_its_app
+
+			reclaim_module_name_for_its_app(doc.module)
+
+			if not frappe.db.exists("Module Def", doc.module):
+				m = frappe.get_doc({"doctype": "Module Def", "module_name": doc.module})
+				if frappe.scrub(doc.module) in frappe.local.module_app:
+					m.app_name = frappe.local.module_app[frappe.scrub(doc.module)]
+				else:
+					m.app_name = "frappe"
+				m.flags.ignore_mandatory = m.flags.ignore_permissions = True
+				if frappe.flags.package:
+					m.package = frappe.flags.package.name
+					m.custom = 1
+				m.insert()
 
 		roles = [p.role for p in doc.get("permissions") or []] + list(AUTOMATIC_ROLES)
 

@@ -3,6 +3,23 @@ from frappe import _
 from frappe.utils.caching import redis_cache
 
 
+def get_module_placement(module: str) -> str | None:
+	"""The app whose dock lists `module`, or `None` when it is unplaced.
+
+	Placement, never ownership. An app's own module is placed in it because the app declared
+	it in `modules.txt`; a site's custom module is placed by `Module Def.app_name`, which for
+	a custom module is a hint meaning *"list this in that app's dock"* and may be empty.
+
+	`None` is therefore an ordinary answer rather than an error, and that is the difference
+	from `frappe.get_module_app`: that one resolves a module to a **path on disk** and is
+	right to throw when there is none, since a custom module has no folder. Asking it the
+	navigation question is what used to leave a freshly created custom module invisible --
+	the throw was swallowed and the module was skipped.
+	"""
+	app = frappe.local.module_app.get(frappe.scrub(module))
+	return app or frappe.db.get_value("Module Def", module, "app_name") or None
+
+
 def get_blocked_modules(user: str | None = None) -> list[str]:
 	"""Modules hidden from `user`, i.e. their own `User.block_modules`.
 
