@@ -234,7 +234,7 @@ def process_2fa_for_email(user, token, otp_secret, otp_issuer, method="Email"):
 	if method == "OTP App" and not get_default(user + "_otplogin"):
 		"""Sending one-time email for OTP App"""
 		totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(user, issuer_name=otp_issuer)
-		qrcode_link = get_link_for_qrcode(user, totp_uri)
+		qrcode_link = get_link_for_qrcode(user, totp_uri, otp_secret)
 		message = get_email_body_for_qr_code({"qrcode_link": qrcode_link})
 		subject = get_email_subject_for_qr_code({"qrcode_link": qrcode_link})
 		prompt = _(
@@ -281,14 +281,17 @@ def get_email_body_for_qr_code(kwargs_dict):
 	return frappe.render_template("templates/emails/two_factor_setup.html", kwargs_dict)
 
 
-def get_link_for_qrcode(user, totp_uri):
+def get_link_for_qrcode(user, totp_uri, otp_secret=None):
 	"""Get link to temporary page showing QRCode."""
 	key = frappe.generate_hash(length=20)
 	key_user = f"{key}_user"
 	key_uri = f"{key}_uri"
+	key_secret = f"{key}_secret"
 	lifespan = int(frappe.get_system_settings("lifespan_qrcode_image")) or 240
 	frappe.cache.set_value(key_uri, totp_uri, expires_in_sec=lifespan)
 	frappe.cache.set_value(key_user, user, expires_in_sec=lifespan)
+	if otp_secret:
+		frappe.cache.set_value(key_secret, otp_secret, expires_in_sec=lifespan)
 	return get_url(f"/qrcode?k={key}")
 
 

@@ -142,6 +142,27 @@ class TestTwoFactor(IntegrationTestCase):
 		token = int(pyotp.TOTP(otp_secret).now())
 		self.assertTrue(get_verification_obj(self.user, token, otp_secret))
 
+	def test_get_user_svg_from_cache_returns_otp_secret_in_tuple(self):
+		"""get_user_svg_from_cache should return a 3-tuple including otp_secret (line 41 in qrcode.py)."""
+		from frappe.www.qrcode import get_user_svg_from_cache
+
+		key = frappe.generate_hash(length=20)
+		otp_secret = get_otpsecret_for_(self.user)
+		totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(self.user, issuer_name="Frappe")
+
+		frappe.cache.set_value(f"{key}_uri", totp_uri)
+		frappe.cache.set_value(f"{key}_user", self.user)
+		frappe.cache.set_value(f"{key}_secret", otp_secret)
+
+		set_request(method="GET", path="/qrcode", query_string=f"k={key}")
+		result = get_user_svg_from_cache()
+
+		self.assertEqual(len(result), 3)
+		user_doc, svg, returned_secret = result
+		self.assertEqual(user_doc.name, self.user)
+		self.assertIsInstance(svg, str)
+		self.assertEqual(returned_secret, otp_secret)
+
 	def test_render_string_template(self):
 		"""String template renders as expected with variables."""
 		args = {"issuer_name": "Frappe Technologies"}
