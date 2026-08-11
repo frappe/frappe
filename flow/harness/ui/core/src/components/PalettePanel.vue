@@ -4,7 +4,11 @@
 <template>
 	<div class="fixed inset-0 z-10" @click="emit('close')" />
 	<section
-		class="absolute bottom-[calc(100%+10px)] left-0 z-20 flex max-h-[min(500px,72vh)] w-full flex-col overflow-hidden rounded-lg border border-outline-gray-2 bg-surface-white shadow-[0_18px_50px_rgba(0,0,0,0.14)]"
+		ref="panel"
+		tabindex="-1"
+		:aria-label="title"
+		class="flow-palette-panel absolute bottom-[calc(100%+10px)] left-0 z-20 flex max-h-[min(500px,72vh)] w-full flex-col overflow-hidden rounded-lg border border-outline-gray-2 bg-surface-white shadow-[0_18px_50px_rgba(0,0,0,0.14)]"
+		@pointerover="onPointerOver"
 	>
 		<header class="flex h-11 flex-none items-center gap-2 border-b border-outline-gray-1 px-2">
 			<button
@@ -27,19 +31,86 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted } from "vue"
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
-defineProps({
+import { nextNavigationIndex } from "../paletteNav.js"
+
+const props = defineProps({
 	title: { type: String, required: true },
 	back: { type: Boolean, default: false },
+	autofocus: { type: Boolean, default: true },
 })
 const emit = defineEmits(["close", "back"])
+const panel = ref(null)
+let activeItem = null
+let observer = null
 
-// Escape closes the panel wherever focus is — not only inside the composer
-function onEscape(e) {
-	if (e.key === "Escape") emit("close")
+function items() {
+	return [...(panel.value?.querySelectorAll("[data-palette-item]:not(:disabled)") ?? [])]
 }
-onMounted(() => window.addEventListener("keydown", onEscape))
-onBeforeUnmount(() => window.removeEventListener("keydown", onEscape))
+
+function setActive(item) {
+	activeItem?.removeAttribute("data-palette-active")
+	activeItem = item
+	activeItem?.setAttribute("data-palette-active", "true")
+}
+
+function syncItems() {
+	const rows = items()
+	if (!rows.includes(activeItem)) {
+		setActive(rows.find((row) => row.getAttribute("aria-current") === "true") ?? rows[0] ?? null)
+	}
+}
+
+function onPointerOver(event) {
+	const item = event.target.closest?.("[data-palette-item]:not(:disabled)")
+	if (item && panel.value?.contains(item)) setActive(item)
+}
+
+// Capture at window level so palettes work whether focus lives in their search
+// input, their panel, or the composer textarea behind the slash-command list.
+function onKey(event) {
+	if (event.key === "Escape") {
+		event.preventDefault()
+		event.stopPropagation()
+		emit("close")
+		return
+	}
+	const rows = items()
+	const current = rows.indexOf(activeItem)
+	const nextIndex = nextNavigationIndex(current, rows.length, event.key)
+	if (nextIndex !== null) {
+		event.preventDefault()
+		event.stopPropagation()
+		setActive(rows[nextIndex])
+		activeItem.scrollIntoView({ block: "nearest" })
+	} else if (event.key === "Enter" && activeItem) {
+		event.preventDefault()
+		event.stopPropagation()
+		activeItem.click()
+	}
+}
+
+onMounted(async () => {
+	window.addEventListener("keydown", onKey, true)
+	observer = new MutationObserver(syncItems)
+	observer.observe(panel.value, { childList: true, subtree: true })
+	await nextTick()
+	syncItems()
+	// Search palettes focus their input first; list-only palettes focus the panel.
+	if (props.autofocus && !panel.value?.contains(document.activeElement)) {
+		panel.value?.focus({ preventScroll: true })
+	}
+})
+onBeforeUnmount(() => {
+	window.removeEventListener("keydown", onKey, true)
+	observer?.disconnect()
+})
 </script>
+
+<style scoped>
+.flow-palette-panel :deep([data-palette-item][data-palette-active="true"]) {
+	background: var(--surface-gray-2);
+}
+</style>

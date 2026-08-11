@@ -16,18 +16,16 @@
 		</template>
 
 		<template v-if="!selected" #search>
-			<PaletteSearch v-model="query" placeholder="Search providers" autofocus @keydown="onKey" />
+			<PaletteSearch v-model="query" placeholder="Search providers" autofocus />
 		</template>
 
 		<!-- provider list -->
-		<div v-if="!selected" ref="listEl" class="min-h-0 flex-1 overflow-y-auto p-1.5">
+		<div v-if="!selected" class="min-h-0 flex-1 overflow-y-auto p-1.5">
 			<button
-				v-for="(p, i) in filtered"
+				v-for="p in filtered"
 				:key="p.id"
-				:data-palette-active="i === activeIndex"
+				data-palette-item
 				class="flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left hover:bg-surface-gray-2"
-				:class="{ 'bg-surface-gray-2': i === activeIndex }"
-				@mouseenter="activeIndex = i"
 				@click="select(p)"
 			>
 				<span class="flex h-8 w-8 flex-none items-center justify-center">
@@ -48,10 +46,8 @@
 			</button>
 			<!-- pinned at the bottom: local runtimes and private gateways -->
 			<button
-				:data-palette-active="activeIndex === filtered.length"
+				data-palette-item
 				class="mt-1 flex w-full items-center gap-3 rounded-md border-t border-outline-gray-1 px-2.5 py-2 pt-3 text-left hover:bg-surface-gray-2"
-				:class="{ 'bg-surface-gray-2': activeIndex === filtered.length }"
-				@mouseenter="activeIndex = filtered.length"
 				@click="select(CUSTOM_OPTION)"
 			>
 				<span
@@ -245,7 +241,6 @@ import { computed, inject, onBeforeUnmount, ref } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
-import { usePaletteNav } from "../paletteNav.js"
 import PalettePanel from "./PalettePanel.vue"
 import PaletteSearch from "./PaletteSearch.vue"
 import ProviderIcon from "./ProviderIcon.vue"
@@ -341,13 +336,6 @@ function summary(p) {
 	if (p.configured) return p.source
 	return p.auth_methods.includes("oauth") ? "Sign in with OAuth" : "Needs an API key"
 }
-
-// providers plus the custom-endpoint row, so arrows reach it too
-const navRows = computed(() => [...filtered.value, CUSTOM_OPTION])
-const { activeIndex, listEl, onKey } = usePaletteNav(navRows, {
-	onSelect: (row) => select(row),
-	onEscape: () => emit("close"),
-})
 
 function select(p) {
 	stopPolling() // a poll started for another provider must not follow us here

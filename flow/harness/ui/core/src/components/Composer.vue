@@ -4,30 +4,28 @@
 			<ModelPalette
 				v-if="paletteView === 'models'"
 				@close="closePalettes"
-				@back="paletteView = 'commands'"
+				@back="openCommands"
 				@providers="paletteView = 'providers'"
 			/>
 			<ThinkingPalette
 				v-if="paletteView === 'thinking'"
 				@close="closePalettes"
-				@back="paletteView = 'commands'"
+				@back="openCommands"
 			/>
 			<ProvidersDialog
 				v-if="paletteView === 'providers'"
 				@close="closePalettes"
-				@back="paletteView = 'commands'"
+				@back="openCommands"
 			/>
 
 			<!-- slash-command palette -->
-			<PalettePanel v-if="menuOpen" title="Commands" @close="closePalettes">
-				<div ref="menuListEl" class="overflow-y-auto p-1.5">
+			<PalettePanel v-if="menuOpen" title="Commands" :autofocus="false" @close="closePalettes">
+				<div class="overflow-y-auto p-1.5">
 					<button
-						v-for="(m, i) in menuItems"
+						v-for="m in menuItems"
 						:key="m.name"
-						:data-palette-active="i === menuIdx"
+						data-palette-item
 						class="flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left hover:bg-surface-gray-2"
-						:class="{ 'bg-surface-gray-2': i === menuIdx }"
-						@mouseenter="menuIdx = i"
 						@click="pick(m)"
 					>
 						<span
@@ -111,13 +109,19 @@
 							class="grid h-7 w-7 place-items-center rounded-md text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9"
 							:class="plusMenu ? 'bg-surface-gray-2' : ''"
 							title="Add context"
+							aria-haspopup="menu"
+							:aria-expanded="plusMenu"
 							:disabled="submitting"
 							@click="plusMenu = !plusMenu"
 						>
 							<FeatherIcon name="plus" class="h-4 w-4" />
 						</button>
-						<PopMenu :open="plusMenu" :width="266" @close="plusMenu = false">
-							<button class="flex w-full items-start gap-2.5 rounded-[10px] px-2.5 py-2 text-left hover:bg-surface-gray-2" @click="chooseFolder">
+						<PopMenu :open="plusMenu" label="Add context" :width="266" @close="plusMenu = false">
+							<button
+								role="menuitem"
+								class="flex w-full items-start gap-2.5 rounded-[10px] px-2.5 py-2 text-left hover:bg-surface-gray-2"
+								@click="chooseFolder"
+							>
 								<FeatherIcon name="folder" class="mt-0.5 h-3.5 w-3.5 flex-none text-ink-gray-5" />
 								<span class="min-w-0 flex-1">
 									<span class="block text-xs font-medium leading-4 text-ink-gray-9">Project folder</span>
@@ -126,7 +130,11 @@
 									</span>
 								</span>
 							</button>
-							<button class="flex w-full items-start gap-2.5 rounded-[10px] px-2.5 py-2 text-left hover:bg-surface-gray-2" @click="openFilePicker">
+							<button
+								role="menuitem"
+								class="flex w-full items-start gap-2.5 rounded-[10px] px-2.5 py-2 text-left hover:bg-surface-gray-2"
+								@click="openFilePicker"
+							>
 								<FeatherIcon name="paperclip" class="mt-0.5 h-3.5 w-3.5 flex-none text-ink-gray-5" />
 								<span class="min-w-0 flex-1">
 									<span class="block text-xs font-medium leading-4 text-ink-gray-9">Attach images</span>
@@ -142,6 +150,8 @@
 							class="flex h-7 min-w-0 max-w-[360px] items-center gap-1.5 rounded-md px-2 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2"
 							:class="modelMenu ? 'bg-surface-gray-2' : ''"
 							:title="`${currentModel ?? modelLabel} · thinking ${effortLabel}`"
+							aria-haspopup="menu"
+							:aria-expanded="modelMenu"
 							@click="modelMenu = !modelMenu"
 						>
 							<FeatherIcon name="cpu" class="h-3.5 w-3.5 flex-none text-ink-gray-5" />
@@ -152,10 +162,11 @@
 							</template>
 							<FeatherIcon name="chevron-down" class="h-3 w-3 flex-none text-ink-gray-4" />
 						</button>
-						<PopMenu :open="modelMenu" :width="266" @close="modelMenu = false">
+						<PopMenu :open="modelMenu" label="Model and thinking" :width="266" @close="modelMenu = false">
 							<button
 								v-for="entry in MODEL_MENU"
 								:key="entry.view"
+								role="menuitem"
 								class="flex w-full items-start gap-2.5 rounded-[10px] px-2.5 py-2 text-left hover:bg-surface-gray-2"
 								@click="openPalette(entry.view)"
 							>
@@ -187,17 +198,20 @@
 							class="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2"
 							:class="modeMenu ? 'bg-surface-gray-2' : ''"
 							title="Approval mode"
+							aria-haspopup="menu"
+							:aria-expanded="modeMenu"
 							@click="modeMenu = !modeMenu"
 						>
 							{{ currentMode === "auto" ? "Auto-approve" : "Ask for approval" }}
 							<FeatherIcon name="chevron-down" class="h-3 w-3 flex-none text-ink-gray-4" />
 						</button>
-						<PopMenu :open="modeMenu" align="right" :width="266" @close="modeMenu = false">
+						<PopMenu :open="modeMenu" label="Approval mode" align="right" :width="266" @close="modeMenu = false">
 							<button
 								v-for="m in MODES"
 								:key="m.id"
+								role="menuitemradio"
+								:aria-checked="currentMode === m.id"
 								class="flex w-full items-start gap-2 rounded-[10px] px-2.5 py-2 text-left hover:bg-surface-gray-2"
-								:class="currentMode === m.id ? 'bg-surface-gray-2' : ''"
 								@click="chooseMode(m.id)"
 							>
 								<span class="min-w-0 flex-1">
@@ -244,8 +258,6 @@
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
-
-import { usePaletteNav } from "../paletteNav.js"
 
 import { EFFORT_LABELS } from "../transcript.js"
 import ModelPalette from "./ModelPalette.vue"
@@ -314,6 +326,12 @@ const paletteView = ref(null) // null | "commands" | "models" | "thinking" | "pr
 function closePalettes() {
 	paletteView.value = null
 	if (text.value.startsWith("/")) text.value = ""
+	nextTick(() => box.value?.focus())
+}
+
+function openCommands() {
+	paletteView.value = "commands"
+	nextTick(() => box.value?.focus())
 }
 
 // typing a normal message dismisses a commands page left open by back-navigation
@@ -443,23 +461,6 @@ const menuItems = computed(() => {
 })
 
 function onKey(e) {
-	if (menuItems.value.length) {
-		if (e.key === "ArrowDown") {
-			e.preventDefault()
-			moveMenu(1)
-			return
-		}
-		if (e.key === "ArrowUp") {
-			e.preventDefault()
-			moveMenu(-1)
-			return
-		}
-		if (e.key === "Enter" || e.key === "Tab") {
-			e.preventDefault()
-			pick(menuItems.value[menuIdx.value] ?? menuItems.value[0])
-			return
-		}
-	}
 	if (e.key === "Enter" && !e.shiftKey) {
 		e.preventDefault()
 		submit()
@@ -493,7 +494,7 @@ function anyMenuOpen() {
 }
 
 // Escape aborts even when focus is outside the textarea (reading, after a
-// click). Open panels close themselves via their own Escape listeners.
+// click). Open panels and menus own Escape while they hold focus.
 // e.repeat: a held key must not spam abort requests.
 function onWindowKey(e) {
 	if (e.key !== "Escape" || e.repeat || anyMenuOpen()) return
@@ -501,7 +502,6 @@ function onWindowKey(e) {
 }
 
 function pick(command) {
-	menuIdx.value = 0
 	if (command.takesArg) {
 		paletteView.value = null
 		text.value = `/${command.name} `
@@ -513,13 +513,6 @@ function pick(command) {
 	if (!command.stacked) paletteView.value = null
 	command.run()
 }
-
-// same arrow/Enter behaviour as the model and provider palettes
-const {
-	activeIndex: menuIdx,
-	listEl: menuListEl,
-	move: moveMenu,
-} = usePaletteNav(menuItems, { onSelect: pick })
 
 async function submit() {
 	if (submitting.value) return
