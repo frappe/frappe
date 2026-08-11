@@ -145,20 +145,27 @@ frappe.Application = class Application {
 			frappe.msgprint(frappe.boot.messages);
 		}
 
-		if (frappe.user_roles.includes("System Manager")) {
+		if (
+			frappe.user_roles.includes("System Manager") ||
+			frappe.user_roles.includes("Workspace Manager")
+		) {
 			// delayed following requests to make boot faster
 			setTimeout(() => {
-				if (
-					!frappe.ui.maybe_show_legacy_gravatar_cleanup_prompt({
-						onhide: () => {
-							this.show_change_log();
-							this.show_update_available();
-						},
-					})
-				) {
+				// One prompt per boot, in order: whichever has something to say takes the
+				// turn, and the rest of the notices follow whenever it closes.
+				const rest = () => {
 					this.show_change_log();
 					this.show_update_available();
+				};
+				const prompts = [
+					frappe.ui.maybe_show_new_navigation_prompt,
+					frappe.ui.maybe_show_legacy_gravatar_cleanup_prompt,
+				];
+
+				for (const prompt of prompts) {
+					if (prompt({ onhide: rest })) return;
 				}
+				rest();
 			}, 1000);
 		}
 
