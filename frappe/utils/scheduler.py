@@ -17,6 +17,7 @@ from typing import NoReturn
 from croniter import CroniterBadCronError
 from filelock import FileLock, Timeout
 from redis.exceptions import RedisError
+from rq.defaults import DEFAULT_WORKER_TTL
 
 import frappe
 from frappe.utils import cint, get_bench_id, get_bench_path, get_datetime, get_sites, now_datetime
@@ -26,7 +27,7 @@ from frappe.utils.caching import redis_cache
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DEFAULT_SCHEDULER_TICK = 4 * 60
 SCHEDULER_HEARTBEAT_INTERVAL = 30
-SCHEDULER_HEARTBEAT_TTL = 4 * SCHEDULER_HEARTBEAT_INTERVAL
+SCHEDULER_HEARTBEAT_TTL = DEFAULT_WORKER_TTL
 
 
 def cprint(*args, **kwargs):

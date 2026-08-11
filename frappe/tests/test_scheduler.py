@@ -3,6 +3,8 @@ import time
 from datetime import datetime, timedelta
 from unittest.mock import call, patch
 
+from rq.defaults import DEFAULT_WORKER_TTL
+
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType, sync_jobs
 from frappe.tests import IntegrationTestCase, UnitTestCase
@@ -12,7 +14,6 @@ from frappe.utils.doctor import purge_pending_jobs
 from frappe.utils.scheduler import (
 	DEFAULT_SCHEDULER_TICK,
 	SCHEDULER_HEARTBEAT_INTERVAL,
-	SCHEDULER_HEARTBEAT_TTL,
 	enqueue_events,
 	is_dormant,
 	is_schduler_process_running,
@@ -156,7 +157,7 @@ class TestSchedulerHeartbeat(UnitTestCase):
 		redis.set.assert_called_once_with(
 			"test-bench:scheduler:heartbeat",
 			123,
-			ex=SCHEDULER_HEARTBEAT_TTL,
+			ex=DEFAULT_WORKER_TTL,
 		)
 
 		redis.exists.return_value = 1

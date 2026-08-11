@@ -21,8 +21,6 @@ from collections import defaultdict
 from collections.abc import Callable
 from contextlib import contextmanager
 
-from redis.exceptions import RedisError
-
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType
 from frappe.model.document import Document
@@ -77,7 +75,8 @@ def get_scheduler_health_status() -> str:
 
 	try:
 		scheduler_process_running = is_schduler_process_running()
-	except RedisError:
+	except Exception:
+		# get_redis_conn raises Exception when redis_queue is not configured.
 		return "Redis Unavailable"
 
 	if not scheduler_process_running:

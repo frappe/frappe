@@ -3,8 +3,6 @@
 
 from unittest.mock import patch
 
-from redis.exceptions import ConnectionError
-
 import frappe
 from frappe.desk.doctype.system_health_report.system_health_report import get_scheduler_health_status
 from frappe.desk.form.load import getdoc
@@ -38,7 +36,10 @@ class TestSchedulerHealthStatus(UnitTestCase):
 		self.assertEqual(get_scheduler_health_status(), "Process Not Found")
 
 	@patch(f"{HEALTH_REPORT_MODULE}.get_scheduler_status", return_value={"status": "active"})
-	@patch(f"{HEALTH_REPORT_MODULE}.is_schduler_process_running", side_effect=ConnectionError("unavailable"))
+	@patch(
+		f"{HEALTH_REPORT_MODULE}.is_schduler_process_running",
+		side_effect=Exception("redis_queue missing in common_site_config.json"),
+	)
 	def test_redis_unavailable(self, _is_process_running, _get_scheduler_status):
 		self.assertEqual(get_scheduler_health_status(), "Redis Unavailable")
 
