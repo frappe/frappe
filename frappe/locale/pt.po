@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-04 17:32\n"
+"PO-Revision-Date: 2026-08-11 18:25\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese\n"
 "MIME-Version: 1.0\n"
@@ -6134,7 +6134,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:34
 msgid "Create or Edit Print Format"
-msgstr "Criar ou Editar Formato de Impressão"
+msgstr ""
 
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:34
 msgid "Create or Edit Workflow"
@@ -10914,7 +10914,7 @@ msgstr "Seguir"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:124
 msgid "Followed by"
-msgstr "Seguido por"
+msgstr ""
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:132
 msgid "Following Report Filters have missing values:"
@@ -26813,7 +26813,7 @@ msgstr ""
 
 #: frappe/core/doctype/user_type/user_type.py:78
 msgid "The field {0} is mandatory"
-msgstr "O campo {0} é obrigatório"
+msgstr ""
 
 #: frappe/core/doctype/file/file.py:177
 msgid "The fieldname you've specified in Attached To Field is invalid"
@@ -26909,7 +26909,7 @@ msgstr "O recurso que procura não está disponível"
 
 #: frappe/core/doctype/user_type/user_type.py:82
 msgid "The role {0} should be a custom role."
-msgstr "A função {0} deve ser uma função personalizada."
+msgstr ""
 
 #: frappe/utils/response.py:331
 msgid "The system is being updated. Please refresh again after a few moments."
