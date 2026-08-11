@@ -172,5 +172,5 @@ def has_permission(doc, ptype="read", user=None):
 
 
 @frappe.whitelist()
-def new_todo(description):
+def new_todo(description: str):
 	frappe.get_doc({"doctype": "ToDo", "description": description}).insert()

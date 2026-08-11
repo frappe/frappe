@@ -4,6 +4,7 @@
 
 import json
 from datetime import date, datetime
+from typing import Any
 
 import frappe
 from frappe import _
@@ -37,7 +38,7 @@ communication_mapping = {
 	"Other": "Other",
 }
 
-from typing import TYPE_CHECKING, Any, TypeAlias
+from typing import TYPE_CHECKING, TypeAlias
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.communication.communication import Communication
@@ -232,7 +233,7 @@ class Event(Document):
 
 
 @frappe.whitelist()
-def update_attending_status(event_name, attendee, status):
+def update_attending_status(event_name: str, attendee: str, status: str):
 	event_doc = frappe.get_doc("Event", event_name)
 	caller = frappe.session.user
 
@@ -255,7 +256,7 @@ def update_attending_status(event_name, attendee, status):
 
 
 @frappe.whitelist()
-def delete_communication(event, reference_doctype, reference_docname):
+def delete_communication(event: str | dict[str, Any], reference_doctype: str, reference_docname: str | int):
 	if isinstance(event, str):
 		event = json.loads(event)
 

@@ -79,6 +79,7 @@
   "files_tab",
   "files_section",
   "max_file_size",
+  "max_zip_extract_size",
   "allow_guests_to_upload_files",
   "force_web_capture_mode_for_uploads",
   "strip_exif_metadata_from_uploaded_images",
@@ -791,12 +792,19 @@
    "fieldname": "sync_in_batch",
    "fieldtype": "Check",
    "label": "Sync In Batches"
+  },
+  {
+   "description": "Maximum total size a ZIP archive is allowed to expand to when extracted.",
+   "fieldname": "max_zip_extract_size",
+   "fieldtype": "Int",
+   "label": "Max Zip Extract Size (MB)",
+   "non_negative": 1
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-08-03 11:12:47.811078",
+ "modified": "2026-08-06 17:22:18.039321",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

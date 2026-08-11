@@ -5,8 +5,10 @@ import json
 import os
 import shutil
 import tempfile
+import zipfile
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
+from unittest.mock import patch
 
 import frappe
 from frappe import _
@@ -597,6 +599,72 @@ class TestFile(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True)
 		self.assertRaisesRegex(ValidationError, "not a zip file", test_file.unzip)
+
+	def test_file_unzip_respects_dedicated_extract_size_setting(self):
+		file_path = frappe.get_app_path("frappe", "www/_test/assets/file.zip")
+		public_file_path = frappe.get_site_path("public", "files")
+		try:
+			shutil.copy(file_path, public_file_path)
+		except Exception:
+			pass
+
+		test_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_url": "/files/file.zip",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(test_file.delete)
+
+		file_count_before = frappe.db.count("File")
+
+		# a dedicated, tighter zip-extraction budget must be enforced even though
+		# max_file_size (used for ordinary uploads) stays at its generous default
+		with patch.dict(frappe.conf, {"max_zip_extract_size": 1000}):
+			self.assertRaisesRegex(ValidationError, "maximum allowed size", test_file.unzip)
+
+		self.assertTrue(frappe.db.exists("File", test_file.name))
+		self.assertEqual(frappe.db.count("File"), file_count_before)
+
+	def test_file_unzip_rolls_back_children_on_mid_extraction_failure(self):
+		fixture_dir = tempfile.mkdtemp()
+		zip_path = os.path.join(fixture_dir, "corrupt.zip")
+		with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zf:
+			zf.writestr("a.txt", "hello-a")
+			zf.writestr("b.txt", "hello-b")
+			zf.writestr("c.txt", "hello-c")
+
+		# flip a byte in the last member's stored (uncompressed) data so it fails
+		# its CRC check on read, without touching the central directory metadata
+		with open(zip_path, "rb") as f:
+			data = bytearray(f.read())
+		corrupt_offset = data.rfind(b"hello-c")
+		self.assertNotEqual(corrupt_offset, -1)
+		data[corrupt_offset] ^= 0xFF
+		with open(zip_path, "wb") as f:
+			f.write(data)
+
+		public_file_path = frappe.get_site_path("public", "files")
+		shutil.copy(zip_path, public_file_path)
+
+		test_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_url": "/files/corrupt.zip",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(test_file.delete)
+
+		file_count_before = frappe.db.count("File")
+
+		# a.txt and b.txt extract fine and get saved before c.txt fails its CRC check;
+		# the whole call must still roll back to a clean no-op
+		self.assertRaisesRegex(ValidationError, "not a valid zip file", test_file.unzip)
+
+		self.assertTrue(frappe.db.exists("File", test_file.name))
+		self.assertEqual(frappe.db.count("File"), file_count_before)
+		self.assertFalse(frappe.db.exists("File", {"file_name": "a.txt"}))
+		self.assertFalse(frappe.db.exists("File", {"file_name": "b.txt"}))
 
 	def test_create_file_without_file_url(self):
 		test_file = frappe.get_doc(

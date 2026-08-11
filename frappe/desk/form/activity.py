@@ -7,11 +7,18 @@ import re
 import frappe
 import frappe.utils
 from frappe import _
-from frappe.desk.form.load import _get_communications, add_comments, get_versions, get_view_logs
+from frappe.desk.form.load import (
+	_get_communications,
+	add_comments,
+	get_milestones,
+	get_versions,
+	get_view_logs,
+)
 from frappe.model.document import Document
 
-# Non-email sources load in full; emails are paged newest-first.
+# Emails and milestones are paged newest-first; the remaining sources load in full.
 EMAIL_PAGE_SIZE = 20
+MILESTONE_PAGE_SIZE = 20
 
 
 @frappe.whitelist()
@@ -20,16 +27,24 @@ def get_activity_timeline(doctype: str, name: str | int) -> dict:
 	user_info: dict = {}  # cache user lookups
 
 	emails, has_more_emails = get_email_activities(doc, user_info)
+	milestones, has_more_milestones, next_milestone_start = get_milestone_activities(doc, user_info)
 	activities = [
 		*get_creation_activity(doc, user_info),
+		*get_edit_activity(doc, user_info),
 		*emails,
 		*get_comment_and_log_activities(doc, user_info),
 		*get_view_activities(doc, user_info),
+		*milestones,
 		*get_version_activities(doc, user_info),
 	]
 
 	activities.sort(key=lambda a: (a.get("timestamp") or "", a["key"]))
-	return {"activities": activities, "has_more_emails": has_more_emails}
+	return {
+		"activities": activities,
+		"has_more_emails": has_more_emails,
+		"has_more_milestones": has_more_milestones,
+		"next_milestone_start": next_milestone_start,
+	}
 
 
 @frappe.whitelist()
@@ -40,6 +55,22 @@ def get_more_email_activities(doctype: str, name: str | int, start: int) -> dict
 	emails, has_more_emails = get_email_activities(doc, user_info, start=frappe.utils.cint(start))
 	emails.sort(key=lambda a: (a.get("timestamp") or "", a["key"]))
 	return {"activities": emails, "has_more_emails": has_more_emails}
+
+
+@frappe.whitelist()
+def get_more_milestone_activities(doctype: str, name: str | int, start: int) -> dict:
+	doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
+	user_info: dict = {}
+
+	milestones, has_more, next_start = get_milestone_activities(
+		doc, user_info, start=frappe.utils.cint(start)
+	)
+	milestones.sort(key=lambda a: (a.get("timestamp") or "", a["key"]))
+	return {
+		"activities": milestones,
+		"has_more_milestones": has_more,
+		"next_milestone_start": next_start,
+	}
 
 
 def get_creation_activity(doc: "Document", user_info: dict) -> list[dict]:
@@ -66,6 +97,34 @@ def get_creation_msg(owner: str, fullname: str):
 	if frappe.session.user == owner:
 		return _("You created this document")
 	return _("{0} created this document").format(fullname)
+
+
+def get_edit_activity(doc: "Document", user_info: dict) -> list[dict]:
+	"""The last edit, which is the only sign of one on a doctype that tracks no changes."""
+	if not doc.modified or str(doc.modified) == str(doc.creation):
+		return []
+
+	frappe.utils.add_user_info({doc.modified_by}, user_info)
+	author = get_author_info(doc.modified_by, user_info)
+	return [
+		{
+			"type": "log",
+			"key": "edited",
+			"timestamp": str(doc.modified),
+			"author": author,
+			"data": {
+				"name": "edited",
+				"subtype": "edited",
+				"text": get_edit_msg(doc.modified_by, author["fullname"]),
+			},
+		}
+	]
+
+
+def get_edit_msg(modified_by: str, fullname: str):
+	if frappe.session.user == modified_by:
+		return _("You last edited this document")
+	return _("{0} last edited this document").format(fullname)
 
 
 def get_email_activities(doc: "Document", user_info: dict, start: int = 0) -> tuple[list[dict], bool]:
@@ -139,6 +198,7 @@ def get_comment_and_log_activities(doc: "Document", user_info: dict) -> list[dic
 		+ comment_log_data.info_logs
 		+ comment_log_data.like_logs
 		+ comment_log_data.workflow_logs
+		+ comment_log_data.shared
 	)
 	frappe.utils.add_user_info({c.owner for c in all_rows if c.owner}, user_info)
 
@@ -186,6 +246,11 @@ def get_comment_and_log_activities(doc: "Document", user_info: dict) -> list[dic
 	for c in comment_log_data.info_logs:
 		author = get_author_info(c.owner, user_info)
 		out.append(add_activity_record(c, author, "info", f"{author['fullname']} {activity_text(c.content)}"))
+
+	# docshare.py writes these already naming both the actor and who was shared with.
+	for c in comment_log_data.shared:
+		author = get_author_info(c.owner, user_info)
+		out.append(add_activity_record(c, author, "shared", activity_text(c.content)))
 
 	return out
 
@@ -309,6 +374,51 @@ def get_view_activities(doc: "Document", user_info: dict) -> list[dict]:
 			}
 		)
 	return out
+
+
+def get_milestone_activities(
+	doc: "Document", user_info: dict, start: int = 0
+) -> tuple[list[dict], bool, int]:
+	# Fetch PAGE_SIZE+1 (DESC); the extra oldest row signals "more exist".
+	milestones = get_milestones(doc.doctype, doc.name, start=start, limit=MILESTONE_PAGE_SIZE + 1)
+	has_more = len(milestones) > MILESTONE_PAGE_SIZE
+	if has_more:
+		milestones = milestones[:MILESTONE_PAGE_SIZE]
+	next_start = start + len(milestones)
+	if not milestones:
+		return [], False, next_start
+
+	# A milestone names a field and its value, so it needs the same read check as a version.
+	permitted = set(
+		frappe.model.get_permitted_fields(doc.doctype, user=frappe.session.user, permission_type="read")
+	)
+	frappe.utils.add_user_info({m.owner for m in milestones if m.owner}, user_info)
+
+	out = []
+	for m in milestones:
+		df = is_field_visible(doc.meta, permitted, m.track_field)
+		if not df:
+			continue
+
+		author = get_author_info(m.owner, user_info)
+		out.append(
+			{
+				"type": "log",
+				"key": f"milestone:{m.name}",
+				"timestamp": str(m.creation),
+				"author": author,
+				"data": {
+					"name": m.name,
+					"subtype": "milestone",
+					"text": _("{0} changed {1} to {2}").format(
+						author["fullname"], _(df.label or m.track_field), m.value
+					),
+				},
+			}
+		)
+	# next_start counts rows read, not rows returned: a field the user cannot read drops a row here,
+	# so an offset the client derived from what it rendered would skip the rows behind it.
+	return out, has_more, next_start
 
 
 # Fieldtypes shown as "updated {field}" instead of a from → to diff.

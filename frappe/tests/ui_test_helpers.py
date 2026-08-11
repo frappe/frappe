@@ -1,3 +1,6 @@
+import os
+from typing import Any
+
 import frappe
 from frappe import _
 from frappe.permissions import AUTOMATIC_ROLES
@@ -14,7 +17,7 @@ def whitelist_for_tests(fn):
 
 
 @whitelist_for_tests
-def create_if_not_exists(doc):
+def create_if_not_exists(doc: Any):
 	"""Create records if they dont exist.
 	Will check for uniqueness by checking if a record exists with these field value pairs
 
@@ -121,7 +124,7 @@ def create_contact_phone_nos_records():
 
 
 @whitelist_for_tests
-def create_doctype(name, fields):
+def create_doctype(name: str | int, fields: str | list | dict):
 	fields = frappe.parse_json(fields)
 	if frappe.db.exists("DocType", name):
 		return
@@ -138,7 +141,7 @@ def create_doctype(name, fields):
 
 
 @whitelist_for_tests
-def create_child_doctype(name, fields):
+def create_child_doctype(name: str | int, fields: str | list | dict):
 	fields = frappe.parse_json(fields)
 	if frappe.db.exists("DocType", name):
 		return
@@ -300,7 +303,7 @@ def update_webform_to_multistep():
 
 
 @whitelist_for_tests
-def update_child_table(name):
+def update_child_table(name: str | int):
 	doc = frappe.get_doc("DocType", name)
 	if len(doc.fields) == 1:
 		doc.append(
@@ -318,7 +321,7 @@ def update_child_table(name):
 
 
 @whitelist_for_tests
-def insert_doctype_with_child_table_record(name):
+def insert_doctype_with_child_table_record(name: str | int):
 	if frappe.get_all(name, {"title": "Test Grid Search"}):
 		return
 
@@ -425,7 +428,7 @@ def create_blog_post():
 
 
 @whitelist_for_tests
-def create_test_user(username=None):
+def create_test_user(username: str | None = None):
 	name = username or UI_TEST_USER
 
 	if frappe.db.exists("User", name):
@@ -506,7 +509,7 @@ def setup_inbox():
 
 
 @whitelist_for_tests
-def setup_default_view(view, force_reroute=None):
+def setup_default_view(view: Any, force_reroute: int | bool | None = None):
 	frappe.delete_doc_if_exists("Property Setter", "Event-main-default_view")
 	frappe.delete_doc_if_exists("Property Setter", "Event-main-force_re_route_to_default_view")
 
@@ -579,12 +582,12 @@ def create_kanban():
 
 
 @whitelist_for_tests
-def create_todo(description):
+def create_todo(description: str):
 	return frappe.get_doc({"doctype": "ToDo", "description": description}).insert()
 
 
 @whitelist_for_tests
-def create_todo_with_attachment_limit(description):
+def create_todo_with_attachment_limit(description: str):
 	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 
 	make_property_setter("ToDo", None, "max_attachments", 12, "int", for_doctype=True)
@@ -622,7 +625,7 @@ def create_admin_kanban():
 
 
 @whitelist_for_tests
-def add_remove_role(action, user, role):
+def add_remove_role(action: str, user: str, role: str):
 	user_doc = frappe.get_doc("User", user)
 	if action == "remove":
 		user_doc.remove_roles(role)
@@ -632,13 +635,13 @@ def add_remove_role(action, user, role):
 
 @whitelist_for_tests
 def publish_realtime(
-	event=None,
-	message=None,
-	room=None,
-	user=None,
-	doctype=None,
-	docname=None,
-	task_id=None,
+	event: str | None = None,
+	message: str | dict | None = None,
+	room: str | None = None,
+	user: str | None = None,
+	doctype: str | None = None,
+	docname: str | None = None,
+	task_id: str | None = None,
 ):
 	frappe.publish_realtime(
 		event=event,
@@ -652,7 +655,9 @@ def publish_realtime(
 
 
 @whitelist_for_tests
-def publish_progress(duration=3, title=None, doctype=None, docname=None):
+def publish_progress(
+	duration: int = 3, title: str | None = None, doctype: str | None = None, docname: str | None = None
+):
 	# This should consider session user and only show it to current user.
 	frappe.enqueue(slow_task, duration=duration, title=title, doctype=doctype, docname=docname)
 

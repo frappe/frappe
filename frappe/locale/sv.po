@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-30 21:08\n"
+"PO-Revision-Date: 2026-08-06 18:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -4500,7 +4500,7 @@ msgstr "Kan inte redigera standard översikt panel"
 
 #: frappe/email/doctype/notification/notification.py:127
 msgid "Cannot edit Standard Notification. To edit, please disable this and duplicate it"
-msgstr "Kan inte redigera standard avisering. Kopiera och skapa ny"
+msgstr "Kan inte redigera Standard Avisering. För att redigera, inaktivera detta och duplicera det"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:378
 msgid "Cannot edit Standard charts"
@@ -4508,7 +4508,7 @@ msgstr "Kan inte redigera standard diagram"
 
 #: frappe/core/doctype/report/report.py:73
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
-msgstr "Kan inte redigera standard rapport.Kopiera och skapa ny"
+msgstr "Kan inte redigera standard rapport. Duplicera och skapa ny"
 
 #: frappe/model/document.py:918
 msgid "Cannot edit cancelled document"
@@ -6095,7 +6095,7 @@ msgstr "Skapa Anpassade Fält"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:970
 msgid "Create Duplicate"
-msgstr "Skapa Kopia"
+msgstr "Skapa Dubblett"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -7397,7 +7397,7 @@ msgstr "Borttagen DocType"
 #. Name of a DocType
 #: frappe/core/doctype/deleted_document/deleted_document.json
 msgid "Deleted Document"
-msgstr "Papperskorg"
+msgstr "Raderad Dokument"
 
 #. Label of a Link in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
@@ -8612,36 +8612,36 @@ msgstr "Förfallodatum baserat på"
 #: frappe/public/js/frappe/views/workspace/workspace.js:853
 #: frappe/public/js/frappe/views/workspace/workspace.js:1020
 msgid "Duplicate"
-msgstr "Kopiera"
+msgstr "Duplicera"
 
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.py:53
 msgid "Duplicate Entry"
-msgstr "Kopiera Post"
+msgstr "Duplicera Post"
 
 #: frappe/public/js/frappe/list/list_filter.js:137
 msgid "Duplicate Filter Name"
-msgstr "Kopiera Filter Namn"
+msgstr "Duplicera Filter Namn"
 
 #: frappe/model/base_document.py:603 frappe/model/rename_doc.py:111
 msgid "Duplicate Name"
-msgstr "Kopiera Namn"
+msgstr "Duplicera Namn"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:592
 #: frappe/public/js/frappe/views/workspace/workspace.js:854
 msgid "Duplicate Workspace"
-msgstr "Kopiera Arbetsyta"
+msgstr "Duplicera Arbetsyta"
 
 #: frappe/public/js/frappe/form/form.js:208
 msgid "Duplicate current row"
-msgstr "Kopiera Aktuell Rad"
+msgstr "Duplicera aktuell rad"
 
 #: frappe/public/js/form_builder/components/Field.vue:247
 msgid "Duplicate field"
-msgstr "Kopiera fält"
+msgstr "Duplicera fält"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:1035
 msgid "Duplicate of {0} named as {1} is created successfully"
-msgstr "Kopia av {0} med namn {1} är skapad"
+msgstr "Dubblett av {0} med namn {1} är skapad"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of a Float field in DocType 'Recorder'
@@ -19651,7 +19651,7 @@ msgstr "Vänligen Auktorisera OAuth för E-post Konto {}"
 
 #: frappe/website/doctype/website_theme/website_theme.py:75
 msgid "Please Duplicate this Website Theme to customize."
-msgstr "Vänligen Kopiera denna Webbplats Tema för att anpassa."
+msgstr "Duplicera denna Webbplats Tema för att anpassa."
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:162
 msgid "Please Install the ldap3 library via pip to use ldap functionality."
@@ -19751,7 +19751,7 @@ msgstr "Ändra inte mall huvud rubriker."
 
 #: frappe/printing/doctype/print_format/print_format.js:19
 msgid "Please duplicate this to make changes"
-msgstr "Vänligen kopiera detta för att göra ändringar"
+msgstr "Duplicera detta för att göra ändringar"
 
 #: frappe/core/doctype/system_settings/system_settings.py:180
 msgid "Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."
@@ -25157,7 +25157,7 @@ msgstr "Hoppade över"
 
 #: frappe/core/doctype/data_import/importer.py:918
 msgid "Skipping Duplicate Column {0}"
-msgstr "Hoppar över Kolumn Kopia {0}"
+msgstr "Hoppar över Dubblett Kolumn {0}"
 
 #: frappe/core/doctype/data_import/importer.py:947
 msgid "Skipping Untitled Column"
@@ -25474,7 +25474,7 @@ msgstr "Standard Utskrift Format kan inte uppdateras"
 
 #: frappe/printing/doctype/print_style/print_style.py:30
 msgid "Standard Print Style cannot be changed. Please duplicate to edit."
-msgstr "Standard Utskrift Stil kan inte ändras. Kopiera för att redigera."
+msgstr "Standard Utskrift Stil kan inte ändras. Duplicera för att redigera."
 
 #: frappe/desk/reportview.py:336
 msgid "Standard Reports cannot be deleted"
@@ -25491,7 +25491,7 @@ msgstr "Standard Sidofält Meny"
 
 #: frappe/website/doctype/web_form/web_form.js:40
 msgid "Standard Web Forms can not be modified, duplicate the Web Form instead."
-msgstr "Standard Webb Formulär kan inte modifieras, kopiera Webb Formulär istället."
+msgstr "Standard Webb Formulär kan inte modifieras, duplicera Webb Formulär istället."
 
 #: frappe/core/doctype/report/report.py:400
 msgid "Standard reports can only be created in developer mode."

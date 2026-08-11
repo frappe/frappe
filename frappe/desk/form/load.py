@@ -3,7 +3,8 @@
 
 import json
 import typing
-from urllib.parse import quote
+from typing import Any
+from urllib.parse import quote, quote_plus
 
 import frappe
 import frappe.defaults
@@ -11,16 +12,14 @@ import frappe.desk.form.meta
 import frappe.utils
 from frappe import _, _dict
 from frappe.desk.form.document_follow import is_document_followed
+from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import check_doctype_permission, get_doc_permissions
 from frappe.utils.data import cstr
 
-if typing.TYPE_CHECKING:
-	from frappe.model.document import Document
-
 
 @frappe.whitelist()
-def getdoc(doctype, name):
+def getdoc(doctype: str, name: str | int):
 	"""
 	Loads a doclist for a given document. This method is called directly from the client.
 	Requires "doctype", "name" as form variables.
@@ -64,7 +63,7 @@ def getdoc(doctype, name):
 
 
 @frappe.whitelist()
-def getdoctype(doctype, with_parent=False, cached_timestamp=None):
+def getdoctype(doctype: str, with_parent: int | bool = False, cached_timestamp: str | None = None):
 	"""load doctype"""
 
 	docs = []
@@ -97,7 +96,11 @@ def get_meta_bundle(doctype):
 
 
 @frappe.whitelist()
-def get_docinfo(doc=None, doctype=None, name=None):
+def get_docinfo(
+	doc: "Document | dict | str | None" = None,
+	doctype: str | None = None,
+	name: str | int | None = None,
+):
 	from frappe.share import _get_users as get_docshares
 
 	if not doc:
@@ -131,7 +134,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 			"views": get_view_logs(doc),
 			"energy_point_logs": get_point_logs(doc.doctype, doc.name),
 			"additional_timeline_content": get_additional_timeline_content(doc.doctype, doc.name),
-			"milestones": get_milestones(doc.doctype, doc.name),
+			"milestones": get_milestones(doc.doctype, doc.name, limit=0),
 			"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
 			"tags": get_tags(doc.doctype, doc.name),
 			"document_email": get_document_email(doc.doctype, doc.name),
@@ -180,11 +183,16 @@ def add_comments(doc, docinfo):
 	return comments
 
 
-def get_milestones(doctype, name):
+def get_milestones(doctype, name, start=0, limit=20):
+	# Newest first and paged: a long-lived document accumulates these without end. The page runs
+	# larger than the one on versions because a milestone row is four short columns, not a JSON diff.
 	return frappe.get_all(
 		"Milestone",
-		fields=["creation", "owner", "track_field", "value"],
+		fields=["name", "creation", "owner", "track_field", "value"],
 		filters=dict(reference_type=doctype, reference_name=str(name)),
+		limit_start=start,
+		limit=limit,
+		order_by="creation desc",
 	)
 
 
@@ -209,7 +217,7 @@ def get_versions(doc: "Document") -> list[dict]:
 
 
 @frappe.whitelist()
-def get_communications(doctype, name, start=0, limit=20):
+def get_communications(doctype: str, name: str | int, start: str | int = 0, limit: str | int = 20):
 	from frappe.utils import cint
 
 	doc = frappe.get_doc(doctype, name)
@@ -504,7 +512,7 @@ def update_user_info(docinfo, doc=None):
 
 
 @frappe.whitelist()
-def get_user_info_for_viewers(users):
+def get_user_info_for_viewers(users: str):
 	user_info = {}
 	for user in json.loads(users):
 		frappe.utils.add_user_info(user, user_info)
