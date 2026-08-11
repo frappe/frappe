@@ -1,7 +1,7 @@
 <template>
 	<div class="flex flex-col gap-3" @paste="pasteStyles">
 		<div
-			v-for="row in propertyRows"
+			v-for="row in visibleRows"
 			:key="row.property"
 			class="group flex items-center gap-1"
 			:data-style-property="row.styleProperty"
@@ -78,7 +78,7 @@ import { reactive } from "vue"
 // Keyed by block and module-scoped so the list survives section collapse and reselection.
 const addedPropertiesByBlock = reactive(new Map<string, Set<string>>())
 
-const getAddedProperties = (componentId: string) => addedPropertiesByBlock.get(componentId)
+export const getAddedProperties = (componentId: string) => addedPropertiesByBlock.get(componentId)
 
 const addAddedProperty = (componentId: string, property: string) => {
 	if (!addedPropertiesByBlock.has(componentId)) {
@@ -95,6 +95,7 @@ import DynamicStyleSetter from "@/components/DynamicStyleSetter.vue"
 import IconButton from "@/components/IconButton.vue"
 import InlineInput from "@/components/InlineInput.vue"
 import useCanvasStore from "@/stores/canvasStore"
+import useStudioStore from "@/stores/studioStore"
 import blockController from "@/utils/blockController"
 import {
 	getCSSPropertyControl,
@@ -111,6 +112,7 @@ import LucideX from "~icons/lucide/x"
 const props = defineProps<{ controlledProperties: Set<string> }>()
 
 const canvasStore = useCanvasStore()
+const studioStore = useStudioStore()
 const propertySearch = ref("")
 const propertyCombobox = ref<{ reset: () => void } | null>(null)
 
@@ -154,6 +156,20 @@ const propertyRows = computed(() =>
 
 const getRenderedValue = (property: keyof CSSProperties) =>
 	String(selectedBlock.value?.getRenderedStyle(property) ?? "unset")
+
+// narrow rows to the panel-wide property filter; a match on the section itself
+// (e.g. searching "more styles") keeps the full list instead of blanking it
+const visibleRows = computed(() => {
+	const query = studioStore.propertyFilter?.toLowerCase() || ""
+	if (!query) return propertyRows.value
+	const matchingRows = propertyRows.value.filter(
+		(row) =>
+			row.property.includes(query) ||
+			row.styleProperty.toLowerCase().includes(query) ||
+			row.label.toLowerCase().includes(query),
+	)
+	return matchingRows.length ? matchingRows : propertyRows.value
+})
 
 const normalizedPropertySearch = computed(() => normalizeCSSPropertyName(propertySearch.value))
 

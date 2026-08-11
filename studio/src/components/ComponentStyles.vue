@@ -59,6 +59,7 @@ import useStudioStore from "@/stores/studioStore"
 import blockController from "@/utils/blockController"
 import { getEspressoTokens } from "@/utils/espressoTokens"
 import { getStylePropertiesWithoutControls } from "@/utils/stylePropertiesWithoutControls"
+import { kebabToCamelCase, toTitleCase } from "@/utils/helpers"
 import { CSSProperties, computed } from "vue"
 
 import BlockFlexLayoutHandler from "@/components/BlockFlexLayoutHandler.vue"
@@ -69,7 +70,7 @@ import DimensionInput from "@/components/DimensionInput.vue"
 import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import ColorInput from "@/components/ColorInput.vue"
-import MoreStylesPanel from "@/components/MoreStylesPanel.vue"
+import MoreStylesPanel, { getAddedProperties } from "@/components/MoreStylesPanel.vue"
 
 import type { StyleValue } from "@/types"
 import DynamicStyleSelector from "@/components/DynamicStyleSetter.vue"
@@ -87,7 +88,7 @@ export type BlockProperty = {
 	component: any
 	getProps: () => Record<string, unknown>
 	events?: Record<string, unknown>
-	searchKeyWords: string
+	searchKeyWords: string | (() => string)
 	condition?: () => boolean
 	innerText?: string
 	allowDynamicValue?: boolean
@@ -123,9 +124,11 @@ const getFilteredProperties = (section: PropertySection) => {
 			showProperty = property.condition()
 		}
 		if (showProperty && store.propertyFilter) {
+			const searchKeyWords =
+				typeof property.searchKeyWords === "function" ? property.searchKeyWords() : property.searchKeyWords
 			showProperty =
 				section.name.toLowerCase().includes(store.propertyFilter.toLowerCase()) ||
-				property.searchKeyWords.toLowerCase().includes(store.propertyFilter.toLowerCase())
+				searchKeyWords.toLowerCase().includes(store.propertyFilter.toLowerCase())
 		}
 		return showProperty
 	})
@@ -804,7 +807,21 @@ const moreStylesSectionProperties = [
 				controlledProperties: stylePropertiesWithControls,
 			}
 		},
-		searchKeyWords: "More, Styles, Raw, RawStyle, Raw Style, CSS, Property, Properties, Advanced",
+		// also matches the block's own More Styles properties
+		searchKeyWords: () => {
+			const base = "More, Styles, Raw, RawStyle, Raw Style, CSS, Property, Properties, Advanced"
+			if (!blockController.isAnyBlockSelected()) return base
+			const block = blockController.getFirstSelectedBlock()
+			const styles = { ...block.baseStyles, ...block.tabletStyles, ...block.mobileStyles }
+			const properties = getStylePropertiesWithoutControls(styles, stylePropertiesWithControls)
+			getAddedProperties(block.componentId)?.forEach((property) => properties.add(property))
+			const propertyKeywords = Array.from(properties).flatMap((property) => [
+				property,
+				kebabToCamelCase(property),
+				toTitleCase(property),
+			])
+			return [base, ...propertyKeywords].join(", ")
+		},
 	},
 ]
 
