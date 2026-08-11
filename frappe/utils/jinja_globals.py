@@ -164,7 +164,7 @@ def is_rtl(rtl=None):
 	from frappe import local
 	from frappe.translate import get_parent_language
 
-	# RTL languages Frappe ships in frappe/geo/languages.csv. 
+	# RTL languages Frappe ships in frappe/geo/languages.csv.
 	# Keep this set in sync with rtl_languages in the JavaScript twin at
 	# frappe/public/js/frappe/utils/utils.js:is_rtl.
 	rtl_languages = {"ar", "fa", "he", "ku", "ps", "ur"}
