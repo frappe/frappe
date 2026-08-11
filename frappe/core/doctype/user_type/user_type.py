@@ -176,7 +176,9 @@ def get_non_standard_user_types():
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def get_user_linked_doctypes(doctype, txt, searchfield, start, page_len, filters):
+def get_user_linked_doctypes(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict | list | str
+):
 	modules = [d.get("module_name") for d in get_modules_from_app("frappe")]
 
 	filters = [
@@ -212,7 +214,7 @@ def get_user_linked_doctypes(doctype, txt, searchfield, start, page_len, filters
 
 
 @frappe.whitelist()
-def get_user_id(parent):
+def get_user_id(parent: str):
 	data = (
 		frappe.get_all(
 			"DocField",

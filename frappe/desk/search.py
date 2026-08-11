@@ -69,7 +69,7 @@ def search_widget(
 	start: int = 0,
 	page_length: int = 10,
 	filters: str | None | dict | list = None,
-	filter_fields=None,
+	filter_fields: str | None = None,
 	as_dict: bool = False,
 	reference_doctype: str | None = None,
 	ignore_user_permissions: bool = False,
@@ -307,7 +307,7 @@ def filter_translated(values, txt: str, as_dict: bool) -> list:
 
 
 @frappe.whitelist()
-def get_names_for_mentions(search_term):
+def get_names_for_mentions(search_term: str):
 	users_for_mentions = frappe.cache.get_value("users_for_mentions", get_users_for_mentions)
 	user_groups = frappe.cache.get_value("user_groups", get_user_groups)
 
@@ -343,7 +343,7 @@ def get_user_groups():
 
 
 @frappe.whitelist()
-def get_link_title(doctype, docname):
+def get_link_title(doctype: str, docname: str | int):
 	meta = frappe.get_meta(doctype)
 
 	if meta.show_title_field_in_link:
