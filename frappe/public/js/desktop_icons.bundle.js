@@ -509,15 +509,8 @@ class DesktopPage {
 			let awesome_bar = new frappe.search.AwesomeBar();
 			awesome_bar.setup(".desktop-search-wrapper #desktop-navbar-modal-search");
 		}
-		frappe.ui.keys.add_shortcut({
-			shortcut: "ctrl+g",
-			action: function (e) {
-				$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
-				e.preventDefault();
-				return false;
-			},
-			description: __("Open Awesomebar"),
-		});
+		// Only rebind Ctrl/Cmd+K to trigger the desktop-page Awesome Bar wrapper.
+		// Ctrl/Cmd+G is intentionally left alone so the global handler in
 		frappe.ui.keys.add_shortcut({
 			shortcut: "ctrl+k",
 			action: function (e) {
