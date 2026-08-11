@@ -156,6 +156,8 @@ watch(
 		conversation.value.entries.length,
 		partialVersion.value,
 		conversation.value.liveLabel,
+		conversation.value.running,
+		composerHeight.value,
 	],
 	async () => {
 		if (!stick.value) return

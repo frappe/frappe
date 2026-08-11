@@ -139,9 +139,9 @@
 					<!-- model picker: a menu of the two palettes it fronts -->
 					<span class="relative min-w-0">
 						<button
-							class="flex h-7 min-w-0 max-w-[230px] items-center gap-1.5 rounded-md px-2 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2"
+							class="flex h-7 min-w-0 max-w-[360px] items-center gap-1.5 rounded-md px-2 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2"
 							:class="modelMenu ? 'bg-surface-gray-2' : ''"
-							:title="`${modelLabel} · thinking ${effortLabel}`"
+							:title="`${currentModel ?? modelLabel} · thinking ${effortLabel}`"
 							@click="modelMenu = !modelMenu"
 						>
 							<FeatherIcon name="cpu" class="h-3.5 w-3.5 flex-none text-ink-gray-5" />
@@ -401,11 +401,12 @@ const currentModel = computed(() => flow.state.conversation.model ?? flow.state.
 const currentEffort = computed(
 	() => flow.state.conversation.reasoningEffort ?? flow.state.prefs.lastEffort ?? "default",
 )
-// button shows the bare model id; the provider prefix lives in the tooltip
+// The button shows only the final model id; routed names can have multiple
+// namespace segments (for example openrouter/openai/gpt).
 const modelLabel = computed(() => {
 	const model = currentModel.value
 	if (!model) return "choose model"
-	return model.split("/").slice(1).join("/") || model
+	return model.split("/").filter(Boolean).pop() || model
 })
 const effortLabel = computed(() => EFFORT_LABELS[currentEffort.value] ?? "Default")
 const currentImageSupport = computed(() => {
