@@ -1,0 +1,5 @@
+{% set link_html = "<br><br> <a href='" + qrcode_link + "'>" + qrcode_link + "</a>" %}
+<h1 class="email-title">{{ _("Set up your authenticator app") }}</h1>
+<div class="email-body">
+	<p>{{ _("Please click on the following link and follow the instructions on the page. {0}").format(link_html) }}</p>
+</div>
