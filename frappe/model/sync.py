@@ -13,7 +13,6 @@ import frappe
 from frappe.desk.doctype.desktop_icon.desktop_icon import import_desktop_icon_fixtures
 from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import _patch_mode
-from frappe.modules.utils import get_app_level_files
 from frappe.utils import update_progress_bar
 
 IMPORTABLE_DOCTYPES = [
@@ -121,9 +120,10 @@ def sync_for(app_name, force=0, reset_permissions=False):
 		folder = os.path.dirname(frappe.get_module(app_name + "." + module_name).__file__)
 		files = get_doc_files(files=files, start_path=folder)
 
-	app_level_folders = ["workspace_sidebar"]
-	for folder_name in app_level_folders:
-		files.extend(get_app_level_files(folder_name, app_name))
+	# Nothing app-level is imported here any more. `workspace_sidebar` was the last of them and
+	# its fixtures stop arriving with this release: an app ships a `Module Sidebar` now, which
+	# rides the ordinary per-module walk above. An app that has not re-exported yet degrades to
+	# a computed base rather than to nothing, which is what makes dropping them safe.
 
 	l = len(files)
 	if l:
@@ -205,9 +205,16 @@ def remove_orphan_doctypes():
 	print()
 
 
+# What the reaper walks: a standard record here whose file has gone is an orphan and is
+# deleted. `Workspace Sidebar` has left this list -- the archive's files are going away with
+# this release, so left here it would delete the very rows the conversion reads. Icon fixtures
+# stay: their files are staying, and an icon has no computed base to absorb the loss.
+ORPHANABLE_ENTITIES = ["Workspace", "Dashboard", "Page", "Report", "Notification", "Module Sidebar"]
+APP_LEVEL_ENTITIES = ["Desktop Icon"]
+
+
 def remove_orphan_entities(entity_types=None):
-	entities = ["Workspace", "Dashboard", "Page", "Report", "Notification", "Module Sidebar"]
-	app_level_entities = ["Workspace Sidebar", "Desktop Icon"]
+	entities = list(ORPHANABLE_ENTITIES)
 	entity_filter_map = {
 		# only a standard workspace is backed by a file in an app; a site's own public workspace
 		# is never an orphan. This used to read `app is set`, back when a workspace carried its
@@ -217,19 +224,19 @@ def remove_orphan_entities(entity_types=None):
 		"Page": {"standard": "Yes"},
 		"Report": {"is_standard": "Yes"},
 		"Dashboard": {"is_standard": True},
-		"Workspace Sidebar": {"standard": True},
 		"Desktop Icon": {"standard": True},
 		"Notification": {"is_standard": True},
 		# only a standard sidebar is backed by a file; everything else belongs to the site
 		# and is never an orphan
 		"Module Sidebar": {"standard": True},
 	}
-	entity_file_map = create_entity_file_map(entities)
 	if entity_types:
-		if isinstance(entity_types, list):
-			entities = entity_types
-		else:
-			entities = [entity_types]
+		entities = entity_types if isinstance(entity_types, list) else [entity_types]
+
+	# Built from the entities actually being walked. Built from the default list instead, a
+	# caller naming anything outside it got an empty map -- and an empty map means every row
+	# looks like an orphan, so asking to reap one entity deleted all of another.
+	entity_file_map = create_entity_file_map(entities)
 
 	for entity in entities:
 		print(f"Removing orphan {entity}s")
@@ -252,9 +259,9 @@ def remove_orphan_entities(entity_types=None):
 		# save the deleted icons
 		frappe.db.commit()  # nosemgrep
 	#  Remove app level entities
-	if entity_types and not set(entity_types).issubset(set(app_level_entities)):
+	if entity_types and not set(entity_types).issubset(set(APP_LEVEL_ENTITIES)):
 		return
-	for app_entity in app_level_entities:
+	for app_entity in APP_LEVEL_ENTITIES:
 		print(f"Removing orphan {app_entity}s")
 		all_enitities = frappe.get_all(
 			app_entity, filters=entity_filter_map.get(app_entity), fields=["name", "app"]

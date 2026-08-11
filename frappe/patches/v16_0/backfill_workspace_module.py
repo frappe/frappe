@@ -15,7 +15,7 @@ def execute():
 
 	Resolution ladder, most to least trustworthy:
 	  1. the first module of the workspace's mounted `app`
-	  2. the majority module of what its `sidebar_items` link to
+	  2. the majority module of what the v16 archive's sidebar for it links to
 	  3. the majority module of what its `links` and `shortcuts` point at
 	  4. its `parent_page`'s module
 	  5. a catch-all, logged loudly -- someone should look at these
@@ -87,9 +87,18 @@ def resolve_module(workspace) -> tuple[str, str]:
 
 
 def majority_module_of_sidebar_items(workspace: str) -> str | None:
+	"""What the v16 archive's sidebar for this workspace links to.
+
+	v16 named a sidebar after the workspace it was generated for, so the title is the join.
+	Read from the archive rather than from a column on the workspace: that column never
+	shipped, so on a real v16 site this rung only ever had the archive to read.
+	"""
+	if not frappe.db.exists("DocType", "Workspace Sidebar"):
+		return None
+
 	rows = frappe.get_all(
 		"Workspace Sidebar Item",
-		filters={"parenttype": "Workspace", "parentfield": "sidebar_items", "parent": workspace},
+		filters={"parenttype": "Workspace Sidebar", "parentfield": "items", "parent": workspace},
 		fields=["link_type", "link_to"],
 	)
 	return majority_module([(r.link_type, r.link_to) for r in rows])

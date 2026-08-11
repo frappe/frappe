@@ -271,42 +271,54 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 				frappe.get_doc(
 					{"doctype": "Module Def", "module_name": MODULE, "app_name": "frappe"}
 				).insert()
-		self.workspaces = []
+		self.archived = []
 
 	def tearDown(self):
 		# `delete_doc`, not `db.delete`: the latter leaves the item rows behind, and since a
 		# sidebar is named after its module the next one to be inserted adopts the orphans
 		for name in frappe.get_all("Module Sidebar", filters={"module": MODULE}, pluck="name"):
 			frappe.delete_doc("Module Sidebar", name, force=True, ignore_permissions=True)
-		for name in self.workspaces:
-			frappe.delete_doc("Workspace", name, force=True, ignore_missing=True)
+		for name in frappe.get_all("Custom Module Sidebar", filters={"module": MODULE}, pluck="name"):
+			frappe.delete_doc("Custom Module Sidebar", name, force=True, ignore_permissions=True)
+		for name in self.archived:
+			frappe.delete_doc("Workspace Sidebar", name, force=True, ignore_missing=True)
 		with no_developer_mode():
 			frappe.delete_doc("Module Def", MODULE, force=True, ignore_missing=True)
 
-	def make_workspace(self, name, items, sequence_id=1):
-		doc = frappe.get_doc(
-			{
-				"doctype": "Workspace",
-				"title": name,
-				"label": name,
-				"module": MODULE,
-				"public": 1,
-				"content": "[]",
-				"sequence_id": sequence_id,
-				"sidebar_items": items,
-			}
-		).insert(ignore_permissions=True)
-		self.workspaces.append(doc.name)
+	def make_workspace(self, name, items, for_user=None):
+		"""One of this site's authored sidebars, where a v16 site keeps them.
+
+		Inserted under `in_patch` because the archive takes no new entries -- the only writes
+		it still accepts are the system's own, and a fixture standing in for what a v16 site
+		already holds is exactly that.
+		"""
+		with system_write("in_patch"):
+			doc = frappe.get_doc(
+				{
+					"doctype": "Workspace Sidebar",
+					"title": name,
+					"module": MODULE,
+					"for_user": for_user,
+					"items": items,
+				}
+			).insert(ignore_permissions=True)
+		self.archived.append(doc.name)
 		return doc
 
 	def link(self, doctype, label=None):
 		return {"type": "Link", "link_type": "DocType", "link_to": doctype, "label": label or doctype}
 
+	def site_layer(self):
+		return frappe.get_doc(
+			"Custom Module Sidebar",
+			frappe.db.get_value("Custom Module Sidebar", {"module": MODULE, "user": ""}),
+		)
+
 	def test_largest_sidebar_becomes_primary(self):
 		"""`sequence_id` is near-uniform on a real site, so as the primary signal it picks
 		arbitrarily -- it hands Accounts to Invoicing(28) over Accounting(49)."""
-		self.make_workspace("TSM Small", [self.link("User")], sequence_id=1)
-		self.make_workspace("TSM Large", [self.link("Role"), self.link("DocType")], sequence_id=99)
+		self.make_workspace("TSM Small", [self.link("User")])
+		self.make_workspace("TSM Large", [self.link("Role"), self.link("DocType")])
 
 		sources = get_module_sidebar_sources()[MODULE]
 		self.assertEqual(pick_primary(MODULE, sources).name, "TSM Large")
@@ -405,30 +417,48 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 		self.assertEqual(sorted(json.loads(plan["merged_from"])), ["TSM Primary", "TSM Second"])
 		self.assertEqual({i["source_workspace"] for i in plan["items"]}, {"TSM Primary", "TSM Second"})
 
-	def test_merged_row_is_not_standard(self):
-		"""`standard` means "backed by a file in an app". A merged row is derived from this
-		site's workspaces and has none, so marking it standard gets it deleted as an orphan
-		by the very next `bench migrate`."""
+	def test_a_merge_lands_in_the_site_layer(self):
+		"""Not in a `Module Sidebar`. That document means "an app ships this", and a merge is
+		derived from this site's own data -- it is site intent, so it goes where site intent
+		lives and stays a layer over the module's computed base."""
 		self.make_workspace("TSM Only", [self.link("User")])
+		build_all()
 
-		plan = build_module_sidebar(MODULE, get_module_sidebar_sources()[MODULE])
-		self.assertEqual(plan["standard"], 0)
+		self.assertFalse(frappe.db.exists("Module Sidebar", {"module": MODULE}))
+		self.assertTrue(self.site_layer().sidebar_items)
+
+	def test_an_item_the_base_already_has_is_stored_as_a_reference(self):
+		"""Which is what keeps a migrated sidebar maintained rather than frozen: the label and
+		the link keep coming from below, so the app's next relabel still reaches it."""
+		make_report(MODULE, "TSM Migrated Report")
+		clear_computed_base_cache(MODULE)
+		self.make_workspace(
+			"TSM Mixed",
+			[
+				{"type": "Link", "link_type": "Report", "link_to": "TSM Migrated Report", "label": "R"},
+				self.link("User"),
+			],
+		)
+		build_all()
+
+		rows = {row.link_to: row.added for row in self.site_layer().sidebar_items}
+		# in the module's contents, so the base has it -- a reference
+		self.assertEqual(rows["TSM Migrated Report"], 0)
+		# nothing in this module points at User, so there is nothing below to refer to
+		self.assertEqual(rows["User"], 1)
 
 	def test_build_is_idempotent(self):
 		self.make_workspace("TSM Only", [self.link("User")])
 
-		# in developer mode because the build writes sidebar documents, which is app content;
-		# its real caller is a patch, where `frappe.flags.in_patch` clears the same gate
-		with developer_mode():
-			build_all()
-			first = frappe.get_doc("Module Sidebar", MODULE)
-			first_items = [(item_key(i), i.link_to) for i in first.items]
+		build_all()
+		first = self.site_layer()
+		first_items = [(item_key(i), i.link_to) for i in first.sidebar_items]
 
-			build_all()
-		second = frappe.get_doc("Module Sidebar", MODULE)
+		build_all()
+		second = self.site_layer()
 
 		self.assertEqual(first.creation, second.creation)
-		self.assertEqual(first_items, [(item_key(i), i.link_to) for i in second.items])
+		self.assertEqual(first_items, [(item_key(i), i.link_to) for i in second.sidebar_items])
 
 	def test_a_site_owned_row_cannot_be_made_standard_by_hand(self):
 		"""`standard` means backed by a file. Setting it without writing one leaves a row that
@@ -483,15 +513,13 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 
 		from frappe.modules.import_file import import_file_by_path
 
-		self.make_workspace(
-			"TSM Export",
-			[self.link("User"), self.link("Role"), {"type": "Section Break", "label": "More"}],
-		)
+		doc = make_sidebar(MODULE)
 		with developer_mode():
-			build_all()
+			doc.append("items", {"type": "Link", "link_type": "DocType", "link_to": "Role"})
+			doc.append("items", {"type": "Section Break", "label": "More"})
+			doc.save(ignore_permissions=True)
 
-		doc = frappe.get_doc("Module Sidebar", MODULE)
-		# only a standard row exports; the merge deliberately produces standard=0
+		# only a standard row exports
 		doc.db_set("standard", 1, update_modified=False)
 		doc.reload()
 
@@ -516,17 +544,18 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 		self.assertEqual(before, after, "identities must be identical across re-import")
 		self.assertNotEqual(names_before, names_after, "sanity: child row names are regenerated")
 
-	def test_legacy_store_is_untouched(self):
-		"""Phase 1 is non-destructive: the merge reads `Workspace.sidebar_items` and must
-		neither read nor write the legacy `Workspace Sidebar` table."""
-		if not frappe.db.exists("DocType", "Workspace Sidebar"):
-			self.skipTest("legacy doctype already retired")
-
+	def test_the_archive_survives_the_conversion(self):
+		"""The rule the whole upgrade is built on: log when the source survives, refuse only
+		when something is destroyed. Every source row is kept, so the second clause never
+		fires -- and a site migrated by a bad build can be migrated again from the same rows."""
 		self.make_workspace("TSM Only", [self.link("User")])
-		before = frappe.db.count("Workspace Sidebar")
-		with developer_mode():
-			build_all()
-		self.assertEqual(before, frappe.db.count("Workspace Sidebar"))
+		before = frappe.db.count("Workspace Sidebar"), frappe.db.count("Workspace Sidebar Item")
+
+		build_all()
+
+		self.assertEqual(
+			before, (frappe.db.count("Workspace Sidebar"), frappe.db.count("Workspace Sidebar Item"))
+		)
 
 
 class TestModuleSidebarStandard(IntegrationTestCase):

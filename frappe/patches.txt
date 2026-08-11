@@ -267,8 +267,6 @@ frappe.patches.v16_0.backfill_notification_email_type_preferences
 frappe.patches.v16_0.backfill_notification_log_app
 frappe.patches.v16_0.backfill_list_layout_route_signature
 execute:frappe.db.create_sequence_table()  # backfill SQLite sequence emulation table on existing sites
-frappe.patches.v16_0.migrate_workspace_sidebar_to_workspace
-frappe.patches.v16_0.populate_workspace_sidebar_from_shortcuts
 frappe.desk.doctype.workspace.patches.set_standard_flag
 frappe.patches.v16_0.backfill_workspace_module
 frappe.patches.v16_0.build_module_sidebars #2026-08-12 re-run-patch

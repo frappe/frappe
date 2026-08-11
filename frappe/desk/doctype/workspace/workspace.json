@@ -41,9 +41,7 @@
   "custom_blocks_tab",
   "custom_blocks",
   "roles_tab",
-  "roles",
-  "sidebar_tab",
-  "sidebar_items"
+  "roles"
  ],
  "fields": [
   {
@@ -270,24 +268,11 @@
    "fieldtype": "Link",
    "label": "Module Onboarding",
    "options": "Module Onboarding"
-  },
-  {
-   "fieldname": "sidebar_tab",
-   "fieldtype": "Tab Break",
-   "label": "Sidebar"
-  },
-  {
-   "description": "Legacy: the authored sidebar this workspace used to own. Read once by the Module Sidebar migration and not by the desk. Dropped in a later release, after that migration has soaked.",
-   "fieldname": "sidebar_items",
-   "fieldtype": "Table",
-   "label": "Sidebar Items",
-   "options": "Workspace Sidebar Item",
-   "read_only": 1
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2026-08-03 22:30:00.000000",
+ "modified": "2026-08-12 06:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",

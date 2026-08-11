@@ -222,25 +222,25 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 
 	def test_a_sidebar_of_only_section_breaks_is_dropped(self):
 		"""Same rule as the legacy builder, mirrored by `is_icon_permitted`. If these two
-		ever disagree, an icon appears for a sidebar that renders empty."""
-		module = next(iter(get_module_sidebars()), None)
-		self.assertIsNotNone(module, "sanity: at least one module sidebar")
+		ever disagree, an icon appears for a sidebar that renders empty.
 
-		doc = frappe.get_doc("Module Sidebar", module)
-		original = [i.as_dict() for i in doc.items]
-		doc.set("items", [])
-		doc.append("items", {"type": "Section Break", "label": "Only a section"})
-		with system_write():
-			doc.save(ignore_permissions=True)
+		Staged on a module of its own: nothing writes a `Module Sidebar` on a site's behalf,
+		so borrowing whichever one happened to be there would be borrowing nothing.
+		"""
+		with sidebarless_module("Test Sectioned Module") as module:
+			with system_write():
+				doc = frappe.get_doc({"doctype": "Module Sidebar", "module": module})
+				doc.append("items", {"type": "Link", "link_type": "DocType", "link_to": "ToDo"})
+				doc.insert(ignore_permissions=True)
 
-		try:
-			self.assertNotIn(module, get_module_sidebars())
-		finally:
+			self.assertIn(module, get_module_sidebars())
+
 			doc.set("items", [])
-			for item in original:
-				doc.append("items", item)
+			doc.append("items", {"type": "Section Break", "label": "Only a section"})
 			with system_write():
 				doc.save(ignore_permissions=True)
+
+			self.assertNotIn(module, get_module_sidebars())
 
 	def test_legacy_keyspaces_are_gone(self):
 		"""One keyspace, exact-case module name. The desk used to reconcile four for the same

@@ -67,15 +67,16 @@ class TestPatchOrder(IntegrationTestCase):
 		self.assertLess(post.index(BACKFILL), post.index(BUILD_SIDEBARS))
 		self.assertLess(post.index(BACKFILL), post.index(MIGRATE_DOCK))
 
-	def test_the_backfill_runs_after_what_fills_its_input(self):
-		# Its most trustworthy rung after `app` is the module its sidebar items link to, and
-		# those rows are what the two workspace-sidebar patches write.
+	def test_nothing_fills_a_column_ahead_of_the_merge(self):
+		"""The two patches that used to write `Workspace.sidebar_items` for the merge to read
+		back are gone with the column. Their inputs are read where they actually live now --
+		the archive, and a workspace's own shortcuts."""
 		post = post_model_sync_patches()
-		for source in (
+		for retired in (
 			"frappe.patches.v16_0.migrate_workspace_sidebar_to_workspace",
 			"frappe.patches.v16_0.populate_workspace_sidebar_from_shortcuts",
 		):
-			self.assertLess(post.index(source), post.index(BACKFILL))
+			self.assertNotIn(retired, post)
 
 	def test_both_consumers_are_marked_to_re_run(self):
 		"""The reorder only reaches a site that has already run them if they run again.
@@ -139,10 +140,10 @@ class TestV15Upgrade(IntegrationTestCase):
 		cls.seed_workspace(cls.PUBLIC, public=1)
 		cls.seed_workspace(cls.OTHER, public=1)
 
-		# A private page carries no sidebar items: v15 gave them one shared "My Workspaces"
-		# sidebar, which `migrate_workspace_sidebar_to_workspace` deliberately drops. What it
-		# does carry is `links`, which is the rung of the backfill's ladder these land on.
-		cls.seed_workspace(cls.PRIVATE, public=0, for_user=cls.USER, sidebar_items=False)
+		# A private page contributes no sidebar of its own: its link is derived on read from the
+		# workspace itself. What it does carry is `links`, which is the rung of the backfill's
+		# ladder these land on.
+		cls.seed_workspace(cls.PRIVATE, public=0, for_user=cls.USER, shortcuts=False)
 
 		# Things this upgrade must leave alone, seeded before it runs.
 		frappe.db.set_value("Workspace", cls.PUBLIC, "standard", 1, update_modified=False)
@@ -178,14 +179,16 @@ class TestV15Upgrade(IntegrationTestCase):
 		super().tearDownClass()
 
 	@classmethod
-	def seed_workspace(cls, title, public, for_user=None, sidebar_items=True):
-		"""A workspace as v15 left it: something pointing into the module, and no module.
+	def seed_workspace(cls, title, public, for_user=None, shortcuts=True):
+		"""A workspace as v15 left it: widgets pointing into the module, and no module.
 
 		`module` is `reqd`, so the only way to reach the state the backfill exists for is to
 		insert a valid document and blank the column underneath it -- which is exactly what a
 		v15 row looks like once the field lands on it.
+
+		Shortcuts are what a v15 workspace's navigation *was*: it had no sidebar of any kind,
+		so the conversion derives one from them.
 		"""
-		item = {"type": "Link", "label": title, "link_type": "Report", "link_to": cls.REPORT}
 		workspace = frappe.get_doc(
 			{
 				"doctype": "Workspace",
@@ -195,8 +198,8 @@ class TestV15Upgrade(IntegrationTestCase):
 				"public": public,
 				"for_user": for_user,
 				"content": "[]",
-				"sidebar_items": [item] if sidebar_items else [],
-				"links": [] if sidebar_items else [item],
+				"links": [{"type": "Link", "label": title, "link_type": "Report", "link_to": cls.REPORT}],
+				"shortcuts": [{"type": "Report", "label": title, "link_to": cls.REPORT}] if shortcuts else [],
 			}
 		).insert()
 		frappe.db.set_value("Workspace", workspace.name, "module", "", update_modified=False)
@@ -218,9 +221,9 @@ class TestV15Upgrade(IntegrationTestCase):
 			self.assertEqual(frappe.db.get_value("Workspace", title, "module"), self.MODULE)
 
 	def test_the_module_gets_a_sidebar_carrying_what_the_workspaces_authored(self):
-		"""Behind the backfill this row did not exist at all: the merge saw no sources."""
-		sidebar = frappe.get_doc("Module Sidebar", {"module": self.MODULE})
-		self.assertIn(self.REPORT, [item.link_to for item in sidebar.items])
+		"""Behind the backfill this layer did not exist at all: the merge saw no sources."""
+		layer = frappe.get_doc("Custom Module Sidebar", {"module": self.MODULE, "user": ""})
+		self.assertIn(self.REPORT, [item.link_to for item in layer.sidebar_items])
 
 	def test_the_sidebar_reaches_the_navigation_payload(self):
 		payload = self.sidebar_payload("Administrator")
