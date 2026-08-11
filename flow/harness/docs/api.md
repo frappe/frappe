@@ -276,7 +276,7 @@ print(res["output"], res["reason"], res["usage"])
 |---|---|---|
 | `session_id` | generated | client-provided id (must be `[A-Za-z0-9_-]{1,64}`) |
 | `model` | `"mock"` | name string; prefix selects the provider. The initial selection — switch later via `POST /sessions/{sid}/model` (config never mutates) |
-| `reasoning_effort` | `null` | pi's ladder: `"off"`, `"minimal"`, `"low"`, `"medium"`, `"high"`, `"xhigh"`, `"max"`; `null` = provider default (no reasoning parameter sent). Anthropic gets a thinking token budget (xhigh/max clamp to high), Codex a `reasoning.effort`, everything else LiteLLM's unified `reasoning_effort`; `"off"` disables thinking on Anthropic and omits the parameter elsewhere |
+| `reasoning_effort` | `null` | pi's ladder: `"off"`, `"minimal"`, `"low"`, `"medium"`, `"high"`, `"xhigh"`, `"max"`; `null` = provider default (no reasoning parameter sent). Anthropic gets a thinking token budget (xhigh/max clamp to high), Codex a `reasoning.effort`, everything else LiteLLM's unified `reasoning_effort`; OpenCode Go clamps unsupported `minimal` to `low`; `"off"` disables thinking on Anthropic and omits the parameter elsewhere |
 | `system_preamble` | none | replaces the default body (intro, tools list, guidelines) of the composed prompt |
 | `system_suffix` | none | appended after the body, before the project context (the client-injection point) |
 | `system_prompt` | composed | verbatim override; when set, composition is skipped |

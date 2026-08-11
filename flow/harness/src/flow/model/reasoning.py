@@ -9,8 +9,9 @@ is omitted, like pi does, because those APIs have no portable off switch.
 
 On the LiteLLM path the effort is clamped to the nearest level the model supports (per
 litellm's capability flags), dropped for models that cannot reason, and passed through
-for models litellm does not know — gateways behind a custom base clamp or ignore what
-they don't support, while litellm's client-side guard would refuse the request outright.
+for models litellm does not know after applying any serving-surface constraints known to
+Flow. Gateways behind a custom base otherwise clamp or ignore what they don't support,
+while litellm's client-side guard would refuse the request outright.
 """
 
 from __future__ import annotations
@@ -24,6 +25,10 @@ from flow.events import ReasoningEffort
 _ANTHROPIC_BUDGETS: dict[str, int] = {"minimal": 1024, "low": 2048, "medium": 8192, "high": 16384}
 # Anthropic requires budget_tokens < max_tokens; keep at least this much for the answer.
 _MIN_ANSWER_TOKENS = 1024
+# OpenCode Go validates reasoning_effort at its gateway and does not accept `minimal`.
+_PROVIDER_EFFORT_ALIASES: dict[str, dict[ReasoningEffort, ReasoningEffort]] = {
+	"opencode-go": {"minimal": "low"},
+}
 
 
 def reasoning_params(model: str, effort: ReasoningEffort | None) -> dict[str, Any] | None:
@@ -47,6 +52,8 @@ def _litellm_params(model: str, effort: ReasoningEffort) -> dict[str, Any] | Non
 	Models litellm does not know (gateway ids behind a custom base) skip its
 	client-side support guard via allowed_openai_params; the provider decides.
 	"""
+	provider = model.split("/", 1)[0]
+	effort = _PROVIDER_EFFORT_ALIASES.get(provider, {}).get(effort, effort)
 	info = _model_info(model)
 	if info is None:
 		return {"reasoning_effort": effort, "allowed_openai_params": ["reasoning_effort"]}
