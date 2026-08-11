@@ -65,8 +65,8 @@ class User(Document):
 	if TYPE_CHECKING:
 		from frappe.core.doctype.block_module.block_module import BlockModule
 		from frappe.core.doctype.defaultvalue.defaultvalue import DefaultValue
+		from frappe.core.doctype.dock_module.dock_module import DockModule
 		from frappe.core.doctype.has_role.has_role import HasRole
-		from frappe.core.doctype.user_dock_module.user_dock_module import UserDockModule
 		from frappe.core.doctype.user_email.user_email import UserEmail
 		from frappe.core.doctype.user_role_profile.user_role_profile import UserRoleProfile
 		from frappe.core.doctype.user_session_display.user_session_display import UserSessionDisplay
@@ -88,7 +88,7 @@ class User(Document):
 		default_workspace: DF.Link | None
 		defaults: DF.Table[DefaultValue]
 		desk_theme: DF.Literal["Light", "Dark", "Automatic"]
-		dock_modules: DF.Table[UserDockModule]
+		dock_modules: DF.Table[DockModule]
 		document_follow_frequency: DF.Literal["Hourly", "Daily", "Weekly"]
 		document_follow_notify: DF.Check
 		email: DF.Data

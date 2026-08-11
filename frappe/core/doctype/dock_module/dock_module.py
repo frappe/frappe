@@ -4,8 +4,8 @@
 from frappe.model.document import Document
 
 
-class UserDockModule(Document):
-	_DOCTYPE_NAME = "User Dock Module"
+class DockModule(Document):
+	_DOCTYPE_NAME = "Dock Module"
 
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.

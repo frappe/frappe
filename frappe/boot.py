@@ -265,9 +265,10 @@ def load_desktop_data(bootinfo):
 	# were pinned into via `add_to_workspace_dock`, so the companion appears to live inside the
 	# host's rail rather than flipping the desk to a shell of its own.
 	bootinfo.app_rail_host = get_app_rail_host_map()
-	# The user's curated workspace selection (`User.workspaces`), ordered. Kept separate from
-	# `bootinfo.workspaces` (which holds every permitted workspace link) so the workspace selector
-	# can prefer it when set, without it affecting the full workspace listing.
+	# The dock this user sees: the site's arrangement (`Dock Order`) with their own
+	# (`User.dock_modules`) applied on top, ordered, and filtered to modules they may reach. An
+	# arrangement, not the dock's contents -- a module it doesn't name still shows, in its app's
+	# own order, after the ones it does.
 	bootinfo.user_dock_modules = get_user_dock_modules()
 	# Keyed by exact-case module name, so `app_data[].modules` indexes straight in. This
 	# replaced three overlapping payloads -- `workspace_sidebar_item` (keyed by lowercased

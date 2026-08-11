@@ -15,7 +15,7 @@ def execute():
 	outcome. (`Workspace.module` becomes mandatory in a later phase; until then this is
 	possible.)
 	"""
-	if not frappe.db.exists("DocType", "User Dock Module"):
+	if not frappe.db.exists("DocType", "Dock Module"):
 		return
 
 	rows = frappe.get_all(
@@ -40,12 +40,12 @@ def execute():
 
 	migrated = 0
 	for user, user_modules in by_user.items():
-		if frappe.db.exists("User Dock Module", {"parenttype": "User", "parent": user}):
+		if frappe.db.exists("Dock Module", {"parenttype": "User", "parent": user}):
 			continue
 		for idx, module in enumerate(user_modules, start=1):
 			frappe.get_doc(
 				{
-					"doctype": "User Dock Module",
+					"doctype": "Dock Module",
 					"parenttype": "User",
 					"parentfield": "dock_modules",
 					"parent": user,

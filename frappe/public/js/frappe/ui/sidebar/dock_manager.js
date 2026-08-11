@@ -1,12 +1,32 @@
-// Dock manager -- lets the user curate the module dock (rail) for the app they're currently in:
-// which of that app's modules appear on it, and in what order. Two draggable areas: the left is a
-// preview of the dock (their chosen modules, reorderable); the right is the rest of the app's
-// modules, ready to drag in.
+// Dock manager -- arranges the module dock (rail) for the app you're currently in: which of that
+// app's modules appear on it, and in what order. Two draggable areas: the left is a preview of the
+// dock (the chosen modules, reorderable); the right is the rest of the app's modules, ready to drag
+// in.
+//
+// It edits one of the dock's two layers at a time. Everyone has their own; a Workspace Manager can
+// switch to the site's, which everyone sees and which each person's own is then applied on top of.
+// That is the only thing the scope switch changes -- both layers are the same rows, arranged the
+// same way, saved through endpoints that differ only in where they land.
 //
 // Scoped to one app on purpose -- a dock belongs to an app, so there's nothing to choose between
 // here and no app switcher. Modules in other apps are managed from those apps' docks.
-//
-// All data comes from `frappe.boot`; only the selection is saved.
+
+// What differs between the two layers, in one place: where the arrangement is read from, where it
+// is written back to, and what to say once it lands. Everything else -- the picker, the app slice,
+// the shape of a saved row -- is the same work either way.
+const DOCK_SCOPES = {
+	user: {
+		read: "frappe.desk.desktop.get_user_dock_layer",
+		save: "frappe.desk.desktop.save_dock_preferences",
+		saved: () => __("Dock updated"),
+	},
+	site: {
+		read: "frappe.desk.desktop.get_site_dock_layer",
+		save: "frappe.desk.desktop.save_dock_order",
+		saved: () => __("Dock updated for everyone"),
+	},
+};
+
 frappe.ui.DockManager = class DockManager {
 	constructor() {
 		this.make();
@@ -17,19 +37,70 @@ frappe.ui.DockManager = class DockManager {
 		// It is also the only app context there is -- a module belonging to no app has no dock to
 		// arrange, which is why the user menu doesn't offer this there.
 		this.app = frappe.app.sidebar.get_sidebar_app();
-		this.selection = this.initial_selection();
+		this.scope = "user";
+		this.layer = [];
+		this.selection = [];
+		this.can_curate_site = frappe.user.has_role("Workspace Manager");
 
 		this.dialog = new frappe.ui.Dialog({
 			title: this.app ? __("Manage {0} Dock", [__(this.app.app_title)]) : __("Manage Dock"),
 			size: "extra-large",
-			fields: [{ fieldtype: "HTML", fieldname: "picker" }],
+			fields: [
+				...(this.can_curate_site ? [this.scope_field()] : []),
+				{ fieldtype: "HTML", fieldname: "picker" },
+			],
 			primary_action_label: __("Save"),
 			primary_action: () => this.save(),
 		});
 
 		this.$body = $(this.dialog.fields_dict.picker.$wrapper);
-		this.render();
 		this.dialog.show();
+		// say which layer is being edited in the field too, not just in `this.scope` -- a Select
+		// that renders blank reads as "no layer chosen" when one always is
+		if (this.can_curate_site) this.dialog.set_value("scope", this.scope);
+		this.load();
+	}
+
+	scope_field() {
+		return {
+			fieldtype: "Select",
+			fieldname: "scope",
+			label: __("Arranging"),
+			default: "user",
+			options: [
+				{ value: "user", label: __("Just for me") },
+				{ value: "site", label: __("For everyone") },
+			],
+			change: () => this.switch_scope(),
+		};
+	}
+
+	// The control fires `change` while the dialog is still building its inputs, before the select
+	// holds anything -- so a value that isn't a layer is not a switch to it, it is the field
+	// telling us it has nothing yet. Taking it at its word left `this.scope` as "" and every read
+	// through `layer_scope` undefined.
+	switch_scope() {
+		const scope = this.dialog.get_value("scope");
+		if (!DOCK_SCOPES[scope] || scope === this.scope) return;
+		this.scope = scope;
+		this.load();
+	}
+
+	get layer_scope() {
+		return DOCK_SCOPES[this.scope];
+	}
+
+	// Load the layer being edited -- its own stored rows, not the resolved dock in
+	// `frappe.boot.user_dock_modules`. A save replaces the layer whole, so it has to be shown
+	// what it will overwrite: shown the resolved dock, saving as a user would copy the site's
+	// rows into their own layer and freeze them out of every later site change.
+	async load() {
+		this.loaded = false;
+		this.$body.html(`<div class="text-muted">${__("Loading...")}</div>`);
+		this.layer = await frappe.xcall(this.layer_scope.read);
+		this.selection = this.initial_selection();
+		this.loaded = true;
+		this.render();
 	}
 
 	// Every module this app's dock can show, in the server's order. A module absent from the
@@ -38,20 +109,31 @@ frappe.ui.DockManager = class DockManager {
 		return ((this.app && this.app.modules) || []).filter((name) => this.has_meta(name));
 	}
 
-	// The user's curated picks for this app, in their order. `User.workspaces` is a single flat
-	// list across every app, so this app's picks are the ones naming its workspaces. Nothing
-	// curated for this app yet -> start from everything it offers (what the dock shows by
-	// default), so the user trims rather than builds from scratch.
-	// The user's curated picks for this app, in their order. `User.dock_modules` is a single
-	// flat list across every app, so this app's picks are the ones naming its modules. Nothing
-	// curated for this app yet -> start from everything it offers (what the dock shows by
-	// default), so the user trims rather than builds from scratch.
+	// This layer's picks for this app, in their order. A layer is a single flat list across every
+	// app, so this app's picks are the ones naming its modules.
 	initial_selection() {
 		const app_modules = this.app_modules();
-		const curated = (frappe.boot.user_dock_modules || [])
+		const arranged = (this.layer || [])
 			.filter((row) => !row.hidden && app_modules.includes(row.module))
 			.map((row) => row.module);
-		return curated.length ? curated : app_modules;
+		return arranged.length ? arranged : this.unarranged_selection();
+	}
+
+	// Where an untouched layer starts, so the arrangement is a trim rather than a build from
+	// scratch. It has to start from what saving unchanged would produce, because a save writes
+	// the whole app slice: seeded with everything the app offers, a user who merely opens this
+	// and saves would write `hidden: 0` over every module the *site* hid, un-hiding it for
+	// themselves without ever asking to.
+	//
+	//   - the user's layer starts from the dock as it currently renders -- the site's
+	//     arrangement, applied
+	//   - the site's starts from the app's own order, never from the dock this manager happens
+	//     to see, which carries their personal arrangement and is not theirs to publish
+	unarranged_selection() {
+		if (this.scope === "site") return this.app_modules();
+
+		const shown = frappe.app.sidebar.collect_dock_modules(this.app).map((s) => s.module);
+		return shown.length ? shown : this.app_modules();
 	}
 
 	has_meta(name) {
@@ -92,8 +174,9 @@ frappe.ui.DockManager = class DockManager {
 		this.setup_pool_sortable();
 	}
 
-	// An empty selection isn't stored as "an empty dock": the dock falls back to the app's full
-	// list when the user has curated nothing for it, so clearing is a reset to default.
+	// An empty selection isn't stored as "an empty dock": it is saved as no rows for this app at
+	// all, which is what this layer says when it has nothing to say about it -- so clearing is a
+	// reset to the layer below (the site's, or the app's own order).
 	clear_all() {
 		if (!this.selection.length) return;
 		this.selection = [];
@@ -112,7 +195,7 @@ frappe.ui.DockManager = class DockManager {
 		this.selection.forEach((name) => this.$selection.append(this.selection_item(name)));
 	}
 
-	// The pool is the app's workspaces that aren't on the dock yet -- everything droppable in one
+	// The pool is the app's modules that aren't on the dock yet -- everything droppable in one
 	// place, with nothing to filter between.
 	render_pool() {
 		const names = this.app_modules().filter((name) => !this.selection.includes(name));
@@ -200,19 +283,24 @@ frappe.ui.DockManager = class DockManager {
 	}
 
 	async save() {
+		// the layer arrives after the dialog opens; saving before it lands would write an
+		// arrangement nobody has seen yet over the one that is there
+		if (!this.loaded) return;
 		this.sync_order();
 
-		// `User.dock_modules` is one flat list across every app, but a dock belongs to an app --
-		// so replace only this app's entries and leave every other app's curation untouched.
+		// A layer is one flat list across every app, but a dock belongs to an app -- so replace
+		// only this app's entries and leave every other app's arrangement in this layer untouched.
 		const app_modules = new Set(this.app_modules());
-		const others = (frappe.boot.user_dock_modules || []).filter(
-			(row) => !app_modules.has(row.module)
-		);
-		// A module this app offers that the user left out is stored as an explicit `hidden` row,
-		// not simply omitted -- otherwise it would reappear the moment the app adds a module.
-		const hidden = this.app_modules()
-			.filter((name) => !this.selection.includes(name))
-			.map((name) => ({ module: name, hidden: 1 }));
+		const others = (this.layer || []).filter((row) => !app_modules.has(row.module));
+		// A module this app offers that was left out is stored as an explicit `hidden` row, not
+		// simply omitted -- otherwise it would reappear the moment the app adds a module. Nothing
+		// selected at all is the exception: that is Reset, and it stores no row for this app so
+		// the layer below shows through instead of the app being hidden module by module.
+		const hidden = this.selection.length
+			? this.app_modules()
+					.filter((name) => !this.selection.includes(name))
+					.map((name) => ({ module: name, hidden: 1 }))
+			: [];
 
 		const modules = [
 			...others,
@@ -220,13 +308,14 @@ frappe.ui.DockManager = class DockManager {
 			...hidden,
 		];
 
-		frappe.boot.user_dock_modules = await frappe.xcall(
-			"frappe.desk.desktop.save_dock_preferences",
-			{ modules: JSON.stringify(modules) }
-		);
+		// Both saves answer with the resolved dock -- the site's arrangement with this user's own
+		// on top -- so the rail can be redrawn in place whichever layer was written.
+		frappe.boot.user_dock_modules = await frappe.xcall(this.layer_scope.save, {
+			modules: JSON.stringify(modules),
+		});
 
 		this.dialog.hide();
-		frappe.show_alert({ message: __("Dock updated"), indicator: "green" });
+		frappe.show_alert({ message: this.layer_scope.saved(), indicator: "green" });
 		// apply in place -- no reload needed now that the dock reads the returned payload
 		frappe.app.sidebar.refresh_dock();
 	}

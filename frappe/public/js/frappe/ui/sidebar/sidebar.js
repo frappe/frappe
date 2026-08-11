@@ -936,29 +936,35 @@ frappe.ui.Sidebar = class Sidebar {
 			.map((module) => frappe.boot.module_sidebars[module])
 			.filter(Boolean);
 
-		return this.apply_dock_preferences(modules);
+		return this.apply_dock_arrangement(modules);
 	}
 
-	// Apply the user's dock curation (`User.dock_modules`): drop what they hid, and order what
-	// they arranged. Curation is one flat cross-app list, so it is applied *within* this app's
-	// set rather than replacing it -- as a replacement it would put the same rail on every app.
-	// A curation naming none of this app's modules leaves the app's own order alone rather than
-	// rendering an empty rail.
-	apply_dock_preferences(modules) {
-		const preferences = frappe.boot.user_dock_modules || [];
-		if (!preferences.length) return modules;
+	// Apply the dock arrangement in `frappe.boot.user_dock_modules` -- the site's (`Dock Order`)
+	// with this user's own (`User.dock_modules`) already merged on top of it by the server: drop
+	// what it hides, and order what it names. An arrangement is one flat cross-app list, so it is
+	// applied *within* this app's set rather than replacing it -- as a replacement it would put
+	// the same rail on every app. An arrangement naming none of this app's modules leaves the
+	// app's own order alone rather than rendering an empty rail.
+	apply_dock_arrangement(modules) {
+		const arrangement = frappe.boot.user_dock_modules || [];
+		if (!arrangement.length) return modules;
 
-		const hidden = new Set(preferences.filter((p) => p.hidden).map((p) => p.module));
-		const order = new Map(preferences.map((p, idx) => [p.module, idx]));
+		const hidden = new Set(arrangement.filter((p) => p.hidden).map((p) => p.module));
+		const order = new Map(arrangement.map((p, idx) => [p.module, idx]));
 
-		const visible = modules.filter((m) => !hidden.has(m.module));
-		if (!visible.some((m) => order.has(m.module))) return modules;
+		// An arrangement that names nothing in this app says nothing about it -- every module it
+		// does name belongs to some other app's dock. Hiding, though, is honoured even when it
+		// empties the rail: a site that hid an app's whole set meant to.
+		if (!modules.some((m) => order.has(m.module))) return modules;
 
-		// Modules the user never arranged keep their app order and trail the ones they did, so
-		// an app adding a module still surfaces it for someone who has already curated.
-		return visible.sort(
-			(a, b) => (order.get(a.module) ?? Infinity) - (order.get(b.module) ?? Infinity)
-		);
+		// Modules the arrangement never names keep their app order and trail the ones it did, so
+		// installing an app still surfaces its modules on a dock that has already been arranged.
+		// `MAX_SAFE_INTEGER` rather than `Infinity`: two unnamed modules would subtract to `NaN`,
+		// and a comparator that returns `NaN` is only saved by sort stability.
+		const position = (m) => order.get(m.module) ?? Number.MAX_SAFE_INTEGER;
+		return modules
+			.filter((m) => !hidden.has(m.module))
+			.sort((a, b) => position(a) - position(b));
 	}
 
 	// Where an app's icon leads. `app_route` covers apps that declare one; otherwise land on

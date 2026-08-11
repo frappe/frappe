@@ -858,11 +858,11 @@
    "label": "Show navigation buttons"
   },
   {
-   "description": "Ordered modules in this user's desk dock. Empty means uncurated -- the dock shows all of the current app's visible modules.",
+   "description": "This user's own arrangement of the desk dock, applied on top of the site's (`Dock Order`). Empty means uncurated -- the dock shows the site's arrangement, or all of the current app's visible modules where the site has none.",
    "fieldname": "dock_modules",
    "fieldtype": "Table",
    "label": "Dock Modules",
-   "options": "User Dock Module"
+   "options": "Dock Module"
   }
  ],
  "icon": "fa fa-user",
@@ -916,7 +916,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-08-03 22:00:00.000000",
+ "modified": "2026-08-12 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
