@@ -3,7 +3,8 @@
 
 import json
 import typing
-from urllib.parse import quote
+from typing import Any
+from urllib.parse import quote, quote_plus
 
 import frappe
 import frappe.defaults
@@ -11,16 +12,14 @@ import frappe.desk.form.meta
 import frappe.utils
 from frappe import _, _dict
 from frappe.desk.form.document_follow import is_document_followed
+from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import check_doctype_permission, get_doc_permissions
 from frappe.utils.data import cstr
 
-if typing.TYPE_CHECKING:
-	from frappe.model.document import Document
-
 
 @frappe.whitelist()
-def getdoc(doctype, name):
+def getdoc(doctype: str, name: str | int):
 	"""
 	Loads a doclist for a given document. This method is called directly from the client.
 	Requires "doctype", "name" as form variables.
@@ -64,7 +63,7 @@ def getdoc(doctype, name):
 
 
 @frappe.whitelist()
-def getdoctype(doctype, with_parent=False, cached_timestamp=None):
+def getdoctype(doctype: str, with_parent: int | bool = False, cached_timestamp: str | None = None):
 	"""load doctype"""
 
 	docs = []
@@ -218,7 +217,7 @@ def get_versions(doc: "Document") -> list[dict]:
 
 
 @frappe.whitelist()
-def get_communications(doctype, name, start=0, limit=20):
+def get_communications(doctype: str, name: str | int, start: str | int = 0, limit: str | int = 20):
 	from frappe.utils import cint
 
 	doc = frappe.get_doc(doctype, name)
@@ -513,7 +512,7 @@ def update_user_info(docinfo, doc=None):
 
 
 @frappe.whitelist()
-def get_user_info_for_viewers(users):
+def get_user_info_for_viewers(users: str):
 	user_info = {}
 	for user in json.loads(users):
 		frappe.utils.add_user_info(user, user_info)
