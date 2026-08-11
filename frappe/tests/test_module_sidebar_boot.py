@@ -8,6 +8,7 @@ from frappe.boot import (
 	get_navigable_modules,
 	get_sidebar_bases,
 )
+from frappe.desk.doctype.custom_module_sidebar.test_custom_module_sidebar import make_user
 from frappe.desk.doctype.module_sidebar.test_module_sidebar import (
 	make_report,
 	sidebarless_module,
@@ -264,6 +265,20 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 		for entity, module in entity_module.items():
 			self.assertIn(module, modules, f"{entity} -> {module} is not in the payload")
 
+	def test_a_private_page_is_not_in_anyone_elses_module_workspaces(self):
+		"""`workspaces` is the workspaces of a module this *reader* may open, which is what the
+		desk asks it: given a route naming a workspace, which module's shell does it belong to?
+		The reader's own private pages answer that question; nobody else's do."""
+		from frappe.boot import get_module_workspaces
+
+		for module, names in get_module_workspaces().items():
+			for name in names:
+				public, for_user = frappe.db.get_value("Workspace", name, ["public", "for_user"])
+				self.assertTrue(
+					public or for_user == frappe.session.user,
+					f"{module} lists {name}, which belongs to {for_user}",
+				)
+
 	def test_workspace_payload_carries_the_module_keyspace(self):
 		"""Every mutating workspace endpoint returns this for the client to hot-swap."""
 		from frappe.desk.doctype.workspace.workspace import workspace_payload
@@ -272,3 +287,161 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 		for key in ("workspace_pages", "app_data", "module_sidebars", "entity_module"):
 			self.assertIn(key, payload)
 		self.assertNotIn("sidebar_items", payload)
+
+
+class TestPrivateWorkspacesAreDerived(IntegrationTestCase):
+	"""D3: a private workspace's sidebar link is not stored anywhere.
+
+	The workspace already carries its module, its owner, its title and its icon, so the sidebar
+	appends "my private workspaces in this module" on read. What that removes is the layer
+	pollution: the shared document used to accumulate a row per private page, so an admin
+	curating the site's sidebar found strangers' pages in the document they were editing -- and
+	every one of those rows was a second copy of four columns that could change underneath it.
+	"""
+
+	OWNER = "test-derived-private-owner@example.com"
+	STRANGER = "test-derived-private-stranger@example.com"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.module = self.enterContext(sidebarless_module("Test Private Workspace Module"))
+		for email in (self.OWNER, self.STRANGER):
+			make_user(email, ["System Manager"])
+			self.addCleanup(frappe.delete_doc, "User", email, force=True, ignore_missing=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+	def as_user(self, user):
+		frappe.set_user(user)
+		# `get_workspaces` is request-cached and `set_user` does not clear it, so without this
+		# the second reader in a test would be answered with the first one's workspaces
+		if getattr(frappe.local, "request_cache", None):
+			frappe.local.request_cache.clear()
+
+	def make_private_workspace(self, title, for_user, module=None):
+		doc = frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": title,
+				"label": f"{title}-{for_user}",
+				"module": module or self.module,
+				"public": 0,
+				"for_user": for_user,
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Workspace", doc.name, force=True, ignore_missing=True)
+		return doc
+
+	def items_for(self, user):
+		self.as_user(user)
+		return get_module_sidebars().get(self.module, {}).get("items", [])
+
+	def test_the_owner_gets_a_link_to_their_private_page(self):
+		workspace = self.make_private_workspace("Test Derived Private Page", self.OWNER)
+
+		links = [item["link_to"] for item in self.items_for(self.OWNER)]
+
+		self.assertIn(workspace.name, links)
+
+	def test_creating_one_stores_no_row_anywhere(self):
+		"""The write path branches on public and the private branch writes nothing -- so there
+		is no customization holding the link, and no item row naming it in any document."""
+		from frappe.desk.doctype.workspace.workspace import new_page
+
+		with system_write():
+			frappe.get_doc(
+				{
+					"doctype": "Module Sidebar",
+					"module": self.module,
+					"items": [{"type": "Link", "link_type": "DocType", "link_to": "ToDo"}],
+				}
+			).insert(ignore_permissions=True)
+
+		self.as_user(self.OWNER)
+		new_page(
+			{
+				"title": "Test Unstored Private Page",
+				"label": f"Test Unstored Private Page-{self.OWNER}",
+				"content": "[]",
+				"public": 0,
+				"for_user": self.OWNER,
+				"module": self.module,
+				"type": "Workspace",
+			}
+		)
+		name = f"Test Unstored Private Page-{self.OWNER}"
+		self.addCleanup(frappe.delete_doc, "Workspace", name, force=True, ignore_missing=True)
+
+		frappe.set_user("Administrator")
+		self.assertFalse(
+			frappe.db.exists("Custom Module Sidebar", {"module": self.module}),
+			"a private page must not open a customization on the module",
+		)
+		self.assertFalse(
+			frappe.db.exists("Module Sidebar Item", {"link_type": "Workspace", "link_to": name}),
+			"no item row anywhere may name a private page",
+		)
+		# and the derived one is there all the same
+		self.assertIn(name, [item["link_to"] for item in self.items_for(self.OWNER)])
+
+	def test_nobody_else_sees_it(self):
+		"""Owner-scoped by the query that derives it, so it is not a filter that could be
+		forgotten -- a stranger's sidebar is never handed the row in the first place."""
+		make_report(self.module, "Test Derived Private Neighbour Report")
+		workspace = self.make_private_workspace("Test Somebody Elses Page", self.OWNER)
+
+		links = [item["link_to"] for item in self.items_for(self.STRANGER)]
+
+		self.assertIn("Test Derived Private Neighbour Report", links, "sanity: the module resolves")
+		self.assertNotIn(workspace.name, links)
+
+	def test_a_module_whose_only_page_is_private_is_still_navigable(self):
+		"""The derivation runs before the "nothing navigable here" rule drops a module, so a
+		page somebody created in an otherwise empty module does not land on no dock."""
+		workspace = self.make_private_workspace("Test Only Page In The Module", self.OWNER)
+
+		self.assertNotIn(self.module, self.stranger_payload(), "sanity: empty for everyone else")
+
+		self.as_user(self.OWNER)
+		sidebar = get_module_sidebars().get(self.module)
+		self.assertIsNotNone(sidebar)
+		self.assertEqual([item["link_to"] for item in sidebar["items"]], [workspace.name])
+
+	def stranger_payload(self):
+		self.as_user(self.STRANGER)
+		return get_module_sidebars()
+
+	def test_the_link_says_it_is_derived(self):
+		"""What the desk needs in order not to offer it as something to arrange: no document
+		holds it, so no arrangement can name it."""
+		self.make_private_workspace("Test Marked Private Page", self.OWNER)
+
+		item = next(i for i in self.items_for(self.OWNER) if i["link_type"] == "Workspace")
+
+		self.assertEqual(item["derived"], 1)
+
+	def test_a_row_stored_before_the_derivation_is_not_rendered_twice(self):
+		"""A site that stored these links keeps rendering one link, in the position its layer
+		put it -- the derived one is the duplicate, and it is the one that gives way."""
+		from frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar import (
+			CUSTOMIZED_KEYS_CACHE_KEY,
+			add_site_sidebar_item,
+		)
+
+		workspace = self.make_private_workspace("Test Legacy Stored Page", self.OWNER)
+		# stored while it was still public, which is the only way such a row was ever written
+		frappe.db.set_value("Workspace", workspace.name, {"public": 1, "for_user": ""})
+		add_site_sidebar_item(
+			self.module,
+			{"type": "Link", "label": "Stored", "link_type": "Workspace", "link_to": workspace.name},
+		)
+		layer = frappe.db.get_value("Custom Module Sidebar", {"module": self.module})
+		self.addCleanup(frappe.cache.delete_value, CUSTOMIZED_KEYS_CACHE_KEY)
+		self.addCleanup(
+			frappe.delete_doc, "Custom Module Sidebar", layer, force=True, ignore_permissions=True
+		)
+		frappe.db.set_value("Workspace", workspace.name, {"public": 0, "for_user": self.OWNER})
+
+		links = [item["link_to"] for item in self.items_for(self.OWNER)]
+
+		self.assertEqual(links.count(workspace.name), 1)

@@ -493,6 +493,75 @@ class TestUserRowsAreTheUsers(CustomizationTestCase):
 		self.assertTrue(frappe.db.exists("Custom Module Sidebar", {"user": ""}))
 
 
+class TestNoLayerHoldsAPrivatePage(CustomizationTestCase):
+	"""A private workspace's link is derived on read, so no layer ever stores one.
+
+	The derivation is appended to the arrangement the client is shown, which means the client
+	sends it straight back on the next save. Kept, the site layer would fill up with one row
+	per private page of whoever last curated it -- exactly the pollution D3 removes -- and the
+	owner's own layer would hold a second copy of a link that is already derived from the
+	workspace.
+	"""
+
+	def make_workspace(self, title, public, for_user=""):
+		doc = frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": title,
+				"label": f"{title}-{for_user}" if for_user else title,
+				"module": MODULE,
+				"public": public,
+				"for_user": for_user,
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Workspace", doc.name, force=True, ignore_missing=True)
+		return doc
+
+	def stored_links(self, user=None):
+		layer = get_customization(MODULE, user)
+		return [row.link_to for row in layer.sidebar_items] if layer else []
+
+	def row_for(self, workspace):
+		return {
+			"added": 1,
+			"type": "Link",
+			"link_type": "Workspace",
+			"link_to": workspace.name,
+			"label": workspace.title,
+		}
+
+	def test_the_site_layer_drops_a_row_naming_a_private_page(self):
+		private = self.make_workspace("Test Site Layer Private Page", public=0, for_user=USER)
+		public = self.make_workspace("Test Site Layer Public Page", public=1)
+
+		save_site_sidebar(MODULE, json.dumps([self.row_for(private), self.row_for(public)]))
+
+		self.assertEqual(self.stored_links(), [public.name])
+
+	def test_the_owners_own_layer_drops_it_too(self):
+		"""Their own page, but still not their own row: it is derived from the workspace, and a
+		stored copy would outlive the page it names."""
+		private = self.make_workspace("Test Own Layer Private Page", public=0, for_user=USER)
+
+		self.as_user()
+		save_sidebar_customization(MODULE, json.dumps([self.row_for(private)]))
+
+		self.assertEqual(self.stored_links(USER), [])
+
+	def test_a_page_that_turns_private_takes_its_stored_row_out_on_the_next_save(self):
+		"""What retires the rows a site stored before the derivation existed: every write runs
+		the rule, so the next save of that layer takes them with it."""
+		workspace = self.make_workspace("Test Turned Private Page", public=1)
+		save_site_sidebar(MODULE, json.dumps([self.row_for(workspace)]))
+		self.assertEqual(self.stored_links(), [workspace.name])
+
+		frappe.db.set_value("Workspace", workspace.name, {"public": 0, "for_user": USER})
+		save_site_sidebar(MODULE, label="Renamed")
+
+		self.assertEqual(self.stored_links(), [])
+
+
 class TestTheModelSaysWhatItMeans(IntegrationTestCase):
 	def test_the_old_tables_are_gone(self):
 		"""One child table serves base, site and user; the preference table and the separate

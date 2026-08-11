@@ -403,8 +403,15 @@ def new_page(new_page: dict):
 	if not page:
 		return
 
+	# Sharing a page -- with everyone, or with a group of roles -- is the Workspace Manager's
+	# to do; everyone else creates private pages, which is the only level the dialog offers
+	# them. Said out loud rather than returning quietly: a caller that asks for a public page
+	# and is handed `null` cannot tell the refusal apart from a failure.
 	if page.get("public") and not is_workspace_manager():
-		return
+		frappe.throw(
+			_("You need the Workspace Manager role to create a workspace others can see."),
+			frappe.PermissionError,
+		)
 	elif (
 		not page.get("public") and page.get("for_user") != frappe.session.user and not is_workspace_manager()
 	):
@@ -440,9 +447,9 @@ def new_page(new_page: dict):
 
 	# A workspace no longer owns a sidebar -- its module does. So instead of seeding a
 	# self-referencing item on the workspace, add a link to it in the module's sidebar, which
-	# is where it will actually be navigated from.
-	if doc.type == "Workspace":
-		add_to_module_sidebar(doc)
+	# is where it will actually be navigated from. A private one is derived rather than
+	# written; `add_to_module_sidebar` is where that branch lives.
+	add_to_module_sidebar(doc)
 
 	return workspace_payload()
 
@@ -466,7 +473,7 @@ def first_module_of_app(app: str | None) -> str | None:
 
 
 def add_to_module_sidebar(workspace):
-	"""Give a new workspace a way in, from its module's sidebar.
+	"""Give a **shared** workspace a way in, from its module's sidebar.
 
 	A link is the whole of it. A workspace used to also be able to *become* the module's home
 	page on insert, which was a second, silent way of being reachable; now the module opens on
@@ -478,15 +485,30 @@ def add_to_module_sidebar(workspace):
 	and a workspace somebody created here is site intent. Writing it into the base is what
 	would make the base unsafe for an app to overwrite on update.
 
+	**A private workspace gets nothing written for it.** This is the branch D3 asks for: the
+	shared branch writes a link, the private branch writes none, because a private page's link
+	is derived on read from the workspace itself -- module, owner, title and icon are all
+	already on it (`boot.get_private_workspace_rows`). Writing one put a row per private page
+	into the document the whole site shares, and every one of those rows was a second copy of
+	four columns that could change underneath it.
+
+	Called on every write that can leave a workspace shared, not only on insert, since a page
+	that has just been made public needs the link its private form did not store.
+
 	Only reaches modules that *have* a document, which is now the minority: for the rest the
 	base is computed, and a public workspace turns up in it on its own because
-	`get_module_info` reads them. A **private** workspace does not, and this is where its link
-	used to come from -- D3 replaces that with a derived one, so until then a private page in a
-	document-less module has no sidebar entry.
+	`get_module_info` reads them.
 	"""
 	from frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar import (
 		add_site_sidebar_item,
 	)
+
+	# A Link or a URL workspace is a shortcut to somewhere else, and the sidebar already lists
+	# that somewhere else; only a page of its own earns a way in. `type` is empty on pages that
+	# predate the field, and those are ordinary workspaces -- the same reading
+	# `boot.get_private_workspace_rows` gives them.
+	if not workspace.public or (workspace.type and workspace.type != "Workspace"):
+		return
 
 	if not workspace.module or not frappe.db.exists("Module Sidebar", workspace.module):
 		return
@@ -595,6 +617,11 @@ def update_page(name: str, title: str, icon: str, indicator_color: str, parent: 
 
 				if child.name != new_child_name:
 					rename_doc("Workspace", child.name, new_child_name, force=True, ignore_permissions=True)
+
+		# A page that has just stopped being private has stopped having a derived link too, so
+		# this is where it earns a stored one. Reloaded because the rename above renamed the
+		# thing the link has to name.
+		add_to_module_sidebar(frappe.get_doc("Workspace", new_name))
 
 	return {"name": title, "public": public, "label": new_name}
 
@@ -761,6 +788,10 @@ def update_workspace_settings(
 		child_doc.save(ignore_permissions=True)
 		if child.name != new_child_name:
 			rename_doc("Workspace", child.name, new_child_name, force=True, ignore_permissions=True)
+
+	# Same as `update_page`: a workspace this save has made shared needs the link its private
+	# form derived rather than stored.
+	add_to_module_sidebar(frappe.get_doc("Workspace", new_name))
 
 	return workspace_payload(name=new_name)
 

@@ -815,6 +815,7 @@ def get_module_sidebars():
 
 	bases = get_sidebar_bases(modules)
 	workspaces_by_module = get_module_workspaces()
+	private_rows = get_private_workspace_rows(frappe.session.user)
 	onboardings = get_permitted_onboardings()
 
 	from frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar import (
@@ -833,6 +834,11 @@ def get_module_sidebars():
 		# Deltas are applied *after* the permission filter, so a customization can never
 		# resurface an item the user may not see, and an added item has already been checked.
 		filtered, customized = apply_customizations(module, filtered, user)
+
+		# ...and the user's own private pages after *that*, which is what keeps them out of
+		# every stored arrangement: a layer can only name what it was shown when it was saved,
+		# and these arrive later than any of it.
+		filtered = append_derived_items(filtered, private_rows.get(module), perm_ctx)
 
 		# Same rule as the legacy builder: a sidebar with nothing but Section Breaks left is
 		# a sidebar the user cannot use. Mirrored by `is_icon_permitted`; must not drift.
@@ -915,7 +921,14 @@ def get_module_sidebar_items(sidebar_names):
 
 
 def get_module_workspaces():
-	"""Public workspaces per module, in `sequence_id` order.
+	"""The workspaces of each module this user may see, in `sequence_id` order.
+
+	Reachability, not publicness: `get_workspaces` has already answered which workspaces this
+	user may open -- every public one they reach plus their own private ones -- so the filter
+	is membership of that set. A private page belongs to a module like any other page, and the
+	desk reads this to answer "which module does this workspace belong to" when a route names
+	one; answering `None` for a private page left its owner's shell on whatever module it
+	happened to be showing.
 
 	Replaces `Workspace.get_module_wise_workspaces()`, which ordered by `creation` and was
 	not permission-filtered.
@@ -927,7 +940,7 @@ def get_module_workspaces():
 
 	for row in frappe.get_all(
 		"Workspace",
-		filters={"public": 1, "module": ["is", "set"]},
+		filters={"module": ["is", "set"]},
 		fields=["name", "module"],
 		order_by="sequence_id asc, creation asc",
 	):
@@ -935,6 +948,76 @@ def get_module_workspaces():
 			workspaces.setdefault(row.module, []).append(row.name)
 
 	return workspaces
+
+
+def get_private_workspace_rows(user: str) -> dict[str, list[frappe._dict]]:
+	"""`user`'s own private workspaces, per module, shaped as sidebar item rows.
+
+	A private page's sidebar link is **derived, never stored** (D3). Everything a link needs
+	is already on the workspace -- its module, its owner, its title and its icon -- so a stored
+	one was a second copy of all four, and it went into the *shared* document: the site layer
+	accumulated a row per private page, so an admin curating the site's sidebar found
+	strangers' pages in the document they were editing, and every one of those rows had to be
+	kept in step with a workspace that could be renamed or deleted at any time.
+
+	Read off the enumeration the payload is already built from rather than queried for, so the
+	derivation costs a boot nothing -- and, more to the point, it can only ever offer a page
+	`get_workspaces` has already said this user may open. Owner-scoped on top of that, which is
+	what makes it safe to append after the permission filter has run.
+
+	Pages only, mirroring the write path this replaces: a Link or a URL workspace is a shortcut
+	to somewhere the sidebar already lists, and has never had a way in from here.
+	"""
+	from frappe.desk.desktop import get_workspaces
+
+	rows = {}
+	for page in get_workspaces()["pages"]:
+		if page.public or not page.module or page.for_user != user:
+			continue
+		# `type` is empty on pages that predate the field, and those are ordinary workspaces
+		if page.type and page.type != "Workspace":
+			continue
+
+		rows.setdefault(page.module, []).append(
+			frappe._dict(
+				{
+					"type": "Link",
+					"link_type": "Workspace",
+					"link_to": page.name,
+					"label": page.title,
+					"icon": page.icon,
+				}
+			)
+		)
+
+	return rows
+
+
+def append_derived_items(items, rows, perm_ctx):
+	"""Add `rows` to an already-resolved sidebar, skipping anything it already holds.
+
+	Derived items go through the same shaping and the same permission check as a base row --
+	they are items like any other once they are in the payload, and the only thing that makes
+	them different is that no document anywhere holds them.
+
+	The skip is what keeps a site that stored these rows before they were derived rendering one
+	link rather than two: the stored row is already in `items`, in whatever position its layer
+	put it, and the derived one is the duplicate.
+	"""
+	if not rows:
+		return items
+
+	seen = {item["key"] for item in items}
+	for entry in filter_sidebar_items(rows, perm_ctx):
+		if entry["key"] in seen:
+			continue
+		seen.add(entry["key"])
+		# Says why it cannot be arranged or hidden: it is in no document, so no arrangement
+		# can name it. The desk offers it as a link and nothing else.
+		entry["derived"] = 1
+		items.append(entry)
+
+	return items
 
 
 def filter_sidebar_items(items, perm_ctx):

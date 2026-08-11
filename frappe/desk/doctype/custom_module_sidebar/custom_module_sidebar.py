@@ -64,6 +64,7 @@ class CustomModuleSidebar(Document):
 	def validate(self):
 		self.validate_module()
 		self.validate_unique()
+		self.drop_private_workspaces()
 		self.anchor_the_items()
 
 	def validate_module(self):
@@ -86,6 +87,40 @@ class CustomModuleSidebar(Document):
 			frappe.throw(
 				_("A customization for {0} already exists for this layer.").format(self.module),
 				frappe.DuplicateEntryError,
+			)
+
+	def drop_private_workspaces(self):
+		"""No layer stores a row naming a private workspace -- not the site's, not a user's own.
+
+		A private page's link is derived on read (`boot.get_private_workspace_rows`), and the
+		derivation is appended to the arrangement the client is shown, so it comes back with
+		that arrangement on the next save. Kept, it would be exactly the pollution D3 removes:
+		a row per private page in the document the whole site shares, or -- in the owner's own
+		layer -- a second copy of a link that is already derived from the workspace, left
+		pointing nowhere the day the page is deleted.
+
+		Enforced here rather than in the endpoints because every write is a way in: the two save
+		endpoints, `add_site_sidebar_item`, the form, the API. It also retires the rows a site
+		stored before the derivation existed -- the next save of that layer takes them out.
+
+		A *public* workspace is untouched: its link is stored, and arranging or hiding it is
+		what the layers are for.
+		"""
+		named = {row.link_to for row in self.sidebar_items if row.link_type == "Workspace" and row.link_to}
+		if not named:
+			return
+
+		private = set(
+			frappe.get_all("Workspace", filters={"name": ["in", list(named)], "public": 0}, pluck="name")
+		)
+		if private:
+			self.set(
+				"sidebar_items",
+				[
+					row
+					for row in self.sidebar_items
+					if not (row.link_type == "Workspace" and row.link_to in private)
+				],
 			)
 
 	def anchor_the_items(self):

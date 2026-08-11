@@ -980,6 +980,82 @@ class TestModuleSidebarIsAppContent(IntegrationTestCase):
 		shipped.reload()
 		self.assertEqual([row.link_to for row in shipped.items], ["ToDo"])
 
+	def test_a_private_workspace_links_itself_through_nothing(self):
+		"""The other side of the same branch (D3). A private page's link is derived on read
+		from the workspace itself, so writing one would put a row per private page into the
+		document the whole site shares -- and put it there for an admin to find while curating
+		everyone's navigation."""
+		from frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar import (
+			get_customization,
+		)
+		from frappe.desk.doctype.workspace.workspace import add_to_module_sidebar
+
+		with system_write():
+			self.new_sidebar().insert(ignore_permissions=True)
+
+		workspace = frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": "Test Private App Content Workspace",
+				"label": f"Test Private App Content Workspace-{frappe.session.user}",
+				"module": self.module,
+				"public": 0,
+				"for_user": frappe.session.user,
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Workspace", workspace.name, force=True, ignore_missing=True)
+
+		with no_developer_mode():
+			add_to_module_sidebar(workspace)
+
+		self.assertIsNone(get_customization(self.module, None), "nothing may be written for it")
+
+	def test_a_page_that_stops_being_private_earns_the_link_it_never_stored(self):
+		"""The branch is on what the workspace *is*, not on when it was created: a page that
+		has just been shared has stopped having a derived link, so this is where it gains a
+		stored one -- otherwise sharing a page would take away the only way into it."""
+		from frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar import (
+			get_customization,
+		)
+		from frappe.desk.doctype.workspace.workspace import update_workspace_settings
+
+		with system_write():
+			self.new_sidebar().insert(ignore_permissions=True)
+
+		title = "Test Shared After The Fact"
+		workspace = frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": title,
+				"label": f"{title}-{frappe.session.user}",
+				"module": self.module,
+				"public": 0,
+				"for_user": frappe.session.user,
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Workspace", title, force=True, ignore_missing=True)
+		self.addCleanup(frappe.delete_doc, "Workspace", workspace.name, force=True, ignore_missing=True)
+
+		with no_developer_mode():
+			update_workspace_settings(workspace.name, access="public")
+
+		site_layer = get_customization(self.module, None)
+		self.assertIsNotNone(site_layer)
+		self.addCleanup(
+			frappe.delete_doc,
+			"Custom Module Sidebar",
+			site_layer.name,
+			force=True,
+			ignore_permissions=True,
+		)
+		self.assertEqual(
+			[row.link_to for row in site_layer.sidebar_items if row.added],
+			# the shared name, not the one it carried while it was private
+			[title],
+		)
+
 
 class TestNothingWritesASidebar(IntegrationTestCase):
 	"""No path writes a `Module Sidebar` on a module's behalf.
