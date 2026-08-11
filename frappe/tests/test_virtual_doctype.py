@@ -174,3 +174,36 @@ class TestVirtualDoctypes(IntegrationTestCase):
 	def test_controller_validity(self):
 		validate_controller(TEST_DOCTYPE_NAME)
 		validate_controller(TEST_CHILD_DOCTYPE_NAME)
+
+	def test_list_respects_permissions(self):
+		"""Listing a virtual doctype should honor read permissions."""
+		doc = frappe.get_doc(doctype=TEST_DOCTYPE_NAME).insert()
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("Guest")
+
+		self.assertRaises(frappe.PermissionError, frappe.get_list, TEST_DOCTYPE_NAME)
+
+		frappe.set_user("Administrator")
+		listed_docs = {d.name for d in VirtualDoctypeTest.get_list()}
+		self.assertIn(doc.name, listed_docs)
+
+	def test_delete_respects_permissions(self):
+		"""Deleting a virtual doctype record should honor delete permissions."""
+		doc = frappe.get_doc(doctype=TEST_DOCTYPE_NAME).insert()
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("Guest")
+
+		self.assertRaises(frappe.PermissionError, frappe.delete_doc, doc.doctype, doc.name)
+
+		frappe.set_user("Administrator")
+		listed_docs = {d.name for d in VirtualDoctypeTest.get_list()}
+		self.assertIn(doc.name, listed_docs)
+
+	def test_delete_without_override_raises(self):
+		"""Deleting a virtual doctype with no delete() override should raise, not hang."""
+		doc = frappe.get_doc(doctype=TEST_DOCTYPE_NAME).insert()
+
+		with patch.object(VirtualDoctypeTest, "delete", Document.delete):
+			self.assertRaises(NotImplementedError, frappe.delete_doc, doc.doctype, doc.name)
