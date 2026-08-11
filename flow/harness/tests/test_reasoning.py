@@ -98,8 +98,20 @@ def test_litellm_minimal_and_low_clamp_up_only_when_explicitly_disabled(monkeypa
 
 def test_litellm_unknown_model_passes_through_and_bypasses_the_guard(monkeypatch):
 	_catalog(monkeypatch, None)
-	assert reasoning_params("opencode-go/kimi-k3", "max") == {
+	assert reasoning_params("custom-gateway/new-model", "max") == {
 		"reasoning_effort": "max",
+		"allowed_openai_params": ["reasoning_effort"],
+	}
+
+
+def test_opencode_go_clamps_minimal_to_low_without_changing_openrouter(monkeypatch):
+	_catalog(monkeypatch, None)
+	assert reasoning_params("opencode-go/kimi-k2.5", "minimal") == {
+		"reasoning_effort": "low",
+		"allowed_openai_params": ["reasoning_effort"],
+	}
+	assert reasoning_params("openrouter/moonshotai/kimi-k2.5", "minimal") == {
+		"reasoning_effort": "minimal",
 		"allowed_openai_params": ["reasoning_effort"],
 	}
 
