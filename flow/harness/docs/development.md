@@ -43,7 +43,7 @@ hand-maintain style — run the hooks.
 | `FLOW_HOST` | `127.0.0.1` | daemon bind host |
 | `FLOW_PORT` | `8787` | daemon bind port |
 | `FLOW_AUTH_TOKEN` | none | API bearer; required for non-loopback binds |
-| `FLOW_DATA_DIR` | `~/.flow/server` | session logs + metadata |
+| `FLOW_DATA_DIR` | `~/.flow/server` | project-grouped session logs, metadata, and attachments |
 | `FLOW_MODEL` | `mock` | default model name |
 | `FLOW_REDIS_URL` | none | if set, every event is also published to `harness:<sid>` |
 | `FLOW_ALLOWED_ROOTS` | empty | `os.pathsep`-separated roots for session cwd and path-taking builtins; does not sandbox `bash` (empty = unrestricted) |

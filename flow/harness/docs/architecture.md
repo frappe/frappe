@@ -169,7 +169,10 @@ same engine for embedders: subscribe, submit, yield until `run_ended`.
 
 `session/store.py` is disk only: private directories, meta persistence, the
 session-id slug check, and the realpath cwd fence under `FLOW_ALLOWED_ROOTS`,
-enforced in `create` and re-checked on `get` so every path in is fenced.
+enforced in `create` and re-checked on `get` so every path in is fenced. Session
+artifacts are grouped under `sessions/<project-name>--<path-hash>/`; each group
+contains its sessions' JSONL logs, metadata, and attachment directories. The hash
+keeps same-named projects distinct.
 
 ## Dependency direction
 

@@ -5,6 +5,7 @@ import json
 import struct
 import zlib
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
+from pathlib import Path
 from threading import Event
 
 from fastapi.testclient import TestClient
@@ -200,6 +201,31 @@ def test_cleanup_removes_only_unclaimed_attachments(tmp_path):
 		raise AssertionError("unclaimed attachment was retained")
 
 
+def test_cold_session_delete_removes_attachments_and_empty_project_directory(tmp_path):
+	data_dir = tmp_path / "data"
+	project = tmp_path / "project"
+	project.mkdir()
+	store = SessionStore(str(data_dir))
+	client = TestClient(create_app(store))
+	sid = client.post("/sessions", json={"cwd": str(project)}).json()["session_id"]
+	uploaded = client.post(
+		f"/sessions/{sid}/attachments",
+		files=[("files", ("screen.png", _png(), "image/png"))],
+	)
+	assert uploaded.status_code == 200
+	session = store.get(sid)
+	assert session.attachment_store is not None
+	attachments_dir = Path(session.attachment_store.path)
+	project_dir = attachments_dir.parent
+	assert any(attachments_dir.iterdir())
+
+	cold = TestClient(create_app(SessionStore(str(data_dir))))
+	assert cold.delete(f"/sessions/{sid}").json() == {"status": "deleted"}
+
+	assert not attachments_dir.exists()
+	assert not project_dir.exists()
+
+
 def test_claim_and_cleanup_are_atomic(tmp_path, monkeypatch):
 	store = AttachmentStore(str(tmp_path / "attachments"))
 	data = _png()
@@ -248,7 +274,8 @@ def test_attachment_http_rejects_non_images_and_cleans_partial_batch(tmp_path):
 
 	assert response.status_code == 400
 	assert response.json() == {"detail": "notes.txt is not a supported image"}
-	assert list((data_dir / "sessions" / f"{sid}.attachments").iterdir()) == []
+	attachments_dir = next((data_dir / "sessions").rglob(f"{sid}.attachments"))
+	assert list(attachments_dir.iterdir()) == []
 
 
 def test_attachment_http_flow_persists_reference_not_bytes(tmp_path):
@@ -276,7 +303,8 @@ def test_attachment_http_flow_persists_reference_not_bytes(tmp_path):
 	entries = client.get(f"/sessions/{sid}/entries").json()["entries"]
 	user = next(entry for entry in entries if entry["type"] == "user_message")
 	assert user["content"][1]["name"] == "screen.png"
-	assert base64.b64encode(image).decode() not in (data_dir / "sessions" / f"{sid}.jsonl").read_text()
+	log = next((data_dir / "sessions").rglob(f"{sid}.jsonl"))
+	assert base64.b64encode(image).decode() not in log.read_text()
 
 
 async def test_abort_discards_undelivered_steering_attachments(tmp_path):

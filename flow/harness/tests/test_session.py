@@ -4,6 +4,8 @@ and the live event surface."""
 import asyncio
 import json
 import os
+import re
+from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
@@ -48,6 +50,55 @@ def test_store_creates_private_state_directories(tmp_path):
 	assert oct(os.stat(store.sessions_dir).st_mode & 0o777) == "0o700"
 
 
+def test_store_groups_session_artifacts_by_project(tmp_path):
+	data_dir = tmp_path / "state"
+	first_project = tmp_path / "workspace-a" / "app"
+	second_project = tmp_path / "workspace-b" / "app"  # same basename, different path
+	first_project.mkdir(parents=True)
+	second_project.mkdir(parents=True)
+	store = SessionStore(str(data_dir))
+
+	first = store.create(SessionConfig(cwd=str(first_project)))
+	second = store.create(SessionConfig(cwd=str(first_project)))
+	other = store.create(SessionConfig(cwd=str(second_project)))
+	first_dir = Path(first.log.path).parent
+	second_dir = Path(second.log.path).parent
+	other_dir = Path(other.log.path).parent
+
+	assert first_dir == second_dir
+	assert first_dir != other_dir
+	assert first_dir.parent == other_dir.parent == Path(store.sessions_dir)
+	assert re.fullmatch(r"app--[0-9a-f]{12}", first_dir.name)
+	assert oct(first_dir.stat().st_mode & 0o777) == "0o700"
+	assert first.attachment_store is not None
+	assert Path(first.attachment_store.path).parent == first_dir
+	assert {path.name for path in Path(store.sessions_dir).iterdir()} == {
+		first_dir.name,
+		other_dir.name,
+	}
+
+
+def test_delete_removes_session_artifacts_and_prunes_only_empty_project_dirs(tmp_path):
+	project = tmp_path / "project"
+	project.mkdir()
+	store = SessionStore(str(tmp_path / "state"))
+	first = store.create(SessionConfig(cwd=str(project)))
+	second = store.create(SessionConfig(cwd=str(project)))
+	project_dir = Path(first.log.path).parent
+	assert first.attachment_store is not None
+	(Path(first.attachment_store.path) / "marker").write_text("bytes")
+
+	store.delete(first.id)
+
+	assert project_dir.is_dir()
+	assert not Path(first.log.path).exists()
+	assert not Path(first.attachment_store.path).exists()
+	assert store.get(second.id) is second
+
+	store.delete(second.id)
+	assert not project_dir.exists()
+
+
 def test_store_rejects_unsafe_session_ids(tmp_path):
 	store = SessionStore(str(tmp_path))
 	with pytest.raises(ValueError, match="invalid session_id"):
@@ -69,7 +120,7 @@ def test_reload_rejects_tampered_meta(tmp_path):
 	(e.g. an injected api_key) fails loudly instead of being silently accepted."""
 	store = SessionStore(str(tmp_path))
 	session = store.create(SessionConfig(model="mock"))
-	meta = tmp_path / "sessions" / f"{session.id}.meta.json"
+	meta = Path(session.log.path).with_name(f"{session.id}.meta.json")
 	config = json.loads(meta.read_text())
 	config["api_key"] = "injected-secret"
 	meta.write_text(json.dumps(config))

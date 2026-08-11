@@ -156,7 +156,8 @@ def test_store_composes_once_and_persists(tmp_path, monkeypatch):
 	reloaded = SessionStore(data_dir).get(session.id)
 	assert reloaded.config.system_prompt == session.config.system_prompt
 
-	meta = json.loads((tmp_path / "data" / "sessions" / f"{session.id}.meta.json").read_text())
+	meta_path = next((tmp_path / "data" / "sessions").rglob(f"{session.id}.meta.json"))
+	meta = json.loads(meta_path.read_text())
 	assert "project rules" in meta["system_prompt"]
 
 
