@@ -49,8 +49,15 @@ class KanbanBoardSettings {
 					.filter((d) => d.fieldname && d.fieldtype === "Data" && !d.hidden)
 					.map(to_opt)
 			),
+			// Include the doctype's configured image_field even if hidden, since
+			// image fields are often hidden in forms but used in sidebars/cards.
 			image: meta.fields
-				.filter((d) => d.fieldname && d.fieldtype === "Attach Image" && !d.hidden)
+				.filter(
+					(d) =>
+						d.fieldname &&
+						d.fieldtype === "Attach Image" &&
+						(!d.hidden || d.fieldname === meta.image_field)
+				)
 				.map(to_opt),
 			card: meta.fields
 				.filter(

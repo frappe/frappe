@@ -197,9 +197,15 @@ function set_title_image_field_options(frm) {
 			.map(to_option)
 	);
 
+	// Include the doctype's configured image_field even if hidden, since
+	// image fields are often hidden in forms but used in sidebars/cards.
 	var image_options = meta.fields
 		.filter(function (df) {
-			return df.fieldname && df.fieldtype === "Attach Image" && !df.hidden;
+			return (
+				df.fieldname &&
+				df.fieldtype === "Attach Image" &&
+				(!df.hidden || df.fieldname === meta.image_field)
+			);
 		})
 		.map(to_option);
 
