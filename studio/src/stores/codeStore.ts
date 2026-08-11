@@ -110,7 +110,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		const params: any = {
 			doctype: resource.document_type,
 			fields: fields.length ? fields : "*",
-			filters: evaluateAndWatch(
+			filters: useDynamicParams(
 				() => getEvaluatedFilters(resource.filters),
 				(filters) => {
 					listResource.update({ filters })
@@ -135,7 +135,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		const apiResource = createResource({
 			url: resource.url,
 			method: resource.method,
-			params: evaluateAndWatch(
+			params: useDynamicParams(
 				() => getAPIParams(resource.params),
 				(params) => {
 					apiResource.update({ params })
@@ -150,18 +150,16 @@ const useCodeStore = defineStore("codeStore", () => {
 	}
 
 	const addDocumentResource = async (resource: DocumentResource, pageResources: Record<string, any>) => {
-		const createDoc = (docname?: string) =>
-			createDocumentResource({
-				doctype: resource.document_type,
-				name: docname,
-				auto: resource.auto,
-				...getTransforms(resource),
-				...getSuccessErrorHandlers(resource),
-				...getWhitelistedMethods(resource),
-			})
+		const params = {
+			doctype: resource.document_type,
+			auto: resource.auto,
+			...getTransforms(resource),
+			...getSuccessErrorHandlers(resource),
+			...getWhitelistedMethods(resource),
+		}
 
 		if (!resource.fetch_document_using_filters || !resource.filters) {
-			pageResources[resource.resource_name] = createDoc(resource.document_name)
+			pageResources[resource.resource_name] = createDocumentResource({ ...params, name: resource.document_name })
 			return
 		}
 
@@ -177,7 +175,7 @@ const useCodeStore = defineStore("codeStore", () => {
 				pageResources[resource.resource_name] = undefined
 				return
 			}
-			const doc = createDoc(docname) as any
+			const doc = createDocumentResource({ ...params, name: docname })
 			// carry over the editor's config stamps (see setResourceConfig in setPageResources)
 			const oldDoc = pageResources[resource.resource_name]
 			if (oldDoc?.resource_id) {
@@ -187,20 +185,20 @@ const useCodeStore = defineStore("codeStore", () => {
 			pageResources[resource.resource_name] = doc
 		}
 
-		const filters = evaluateAndWatch(() => getEvaluatedFilters(resource.filters) || {}, loadDoc)
+		const filters = useDynamicParams(() => getEvaluatedFilters(resource.filters) || {}, loadDoc)
 		await loadDoc(filters)
 	}
 
-	// Evaluate a resource's dynamic input ({{ }} filters/params) now, and call onChange whenever a
-	// route/variable change alters the result. Watching the serialized value keeps context churn
-	// that evaluates to the same input from refetching the resource.
-	function evaluateAndWatch<T>(evaluate: () => T, onChange: (value: T) => void): T {
+	// Evaluate a resource's dynamic input ({{ }} filters/params) and return the initial value,
+	// then call onChange whenever a route/variable change alters the result
+	function useDynamicParams<T>(evaluate: () => T, onChange: (value: T) => void): T {
+		const evaluated = computed(evaluate)
 		const stop = watch(
-			() => JSON.stringify(evaluate()),
-			() => onChange(evaluate()),
+			() => JSON.stringify(evaluated.value),
+			() => onChange(evaluated.value),
 		)
 		resourceWatchers.push(stop)
-		return evaluate()
+		return evaluated.value
 	}
 
 	const getEvaluatedFilters = (filters: Filters | null = null) => {
