@@ -223,9 +223,6 @@ class KanbanBoardSettings {
 				{
 					fieldtype: "Section Break",
 					label: __("Card Fields"),
-					description: __(
-						"Shown on each card, in order. Add an Icon to show it (label on hover), or leave Icon empty for the Label text. Leave empty to auto-pick."
-					),
 				},
 				{
 					fieldname: "card_fields",
@@ -237,9 +234,6 @@ class KanbanBoardSettings {
 				{
 					fieldtype: "Section Break",
 					label: __("Preview Fields"),
-					description: __(
-						"Shown in the card hover preview, in order. Icon and Label behave like Card Fields. Leave empty to reuse the card fields."
-					),
 				},
 				{
 					fieldname: "preview_fields",
