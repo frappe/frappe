@@ -17,7 +17,9 @@ from frappe.desk.doctype.module_sidebar.module_sidebar import (
 	derive_key,
 	get_computed_base,
 	get_module_sidebar_sources,
+	mark_as_standard,
 	pick_primary,
+	unmark_as_standard,
 )
 from frappe.tests import IntegrationTestCase
 
@@ -451,11 +453,17 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 
 
 class TestModuleSidebarStandard(IntegrationTestCase):
-	"""Marking a sidebar standard has to write its file in the same breath.
+	"""`standard` is the export switch, and marking flips it by writing the file.
 
-	`standard` means "backed by a JSON file in an app", and orphan removal deletes a standard
-	record whose file is missing -- so a half-done mark is a row that destroys itself on the
-	next migrate.
+	Marking a module's sidebar standard is materialize-and-export: it takes the base the module
+	already has -- computed from its contents when no app shipped one -- writes it as a
+	document and exports it, so an author starts from what the desk shows rather than from
+	nothing. Un-marking deletes the document, which hands the module back to that computed
+	base in the same request.
+
+	The file is the whole point. `standard` means "backed by a JSON file in an app", and orphan
+	removal deletes a standard record whose file is missing -- so a half-done mark is a row
+	that destroys itself on the next migrate.
 	"""
 
 	def setUp(self):
@@ -465,11 +473,13 @@ class TestModuleSidebarStandard(IntegrationTestCase):
 				frappe.get_doc(
 					{"doctype": "Module Def", "module_name": MODULE, "app_name": "frappe"}
 				).insert()
-		frappe.db.delete("Module Sidebar", {"module": MODULE})
+		self.clear_module_content()
+		clear_computed_base_cache(MODULE)
+		self.addCleanup(clear_computed_base_cache, MODULE)
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		frappe.db.delete("Module Sidebar", {"module": MODULE})
+		self.clear_module_content()
 		with no_developer_mode():
 			frappe.delete_doc("Module Def", MODULE, force=True, ignore_missing=True)
 		# `remove_orphan_entities` commits, so anything these tests wrote before it is already
@@ -478,78 +488,241 @@ class TestModuleSidebarStandard(IntegrationTestCase):
 		# save of it.
 		frappe.db.commit()
 
-	def test_marking_standard_writes_the_file(self):
+	def clear_module_content(self):
+		"""Everything these tests put in the module, sidebar and contents alike.
+
+		Both ends, because the commit in `tearDown` puts this suite's fixtures beyond the
+		framework's rollback: a Report left behind points at a module that no longer exists and
+		turns up in the next test's computed base.
+
+		`delete_doc`, not `frappe.db.delete`: the sidebar is named after its module, so item
+		rows left behind by a raw delete are inherited by the next document of the same name.
+		"""
+		for name in frappe.get_all("Module Sidebar", filters={"module": MODULE}, pluck="name"):
+			frappe.delete_doc("Module Sidebar", name, force=True, ignore_permissions=True)
+		frappe.db.delete("Report", {"module": MODULE})
+
+	def with_content(self):
+		"""Something for the module's computed base to be built out of."""
+		make_report(MODULE, "Test Standard Sidebar Report")
+		clear_computed_base_cache(MODULE)
+
+	def exported_json(self, path):
+		"""The exported file, minus what the framework stamps on every write.
+
+		Two exports of the same sidebar differ in their timestamps and nothing else, so the
+		comparison has to drop them to say anything about the content.
+		"""
+		with open(path) as f:
+			content = json.load(f)
+		for field in ("creation", "modified", "modified_by", "owner", "docstatus", "idx"):
+			content.pop(field, None)
+		return content
+
+	def test_marking_a_module_with_no_document_ships_its_computed_base(self):
+		"""The materialize half. Nothing persists a base, so the ordinary state of a module is
+		to have no document at all -- and marking it standard has to produce one out of what
+		the desk is already rendering, rather than an empty shell to fill in by hand."""
+		import os
+
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			base = get_computed_base(MODULE)
+			self.assertFalse(frappe.db.exists("Module Sidebar", MODULE))
+
+			name = mark_as_standard(MODULE)
+
+			doc = frappe.get_doc("Module Sidebar", name)
+			self.assertEqual(doc.standard, 1)
+			self.assertEqual(doc.app, "frappe")
+			self.assertTrue(os.path.exists(doc.exported_file_path()))
+			self.assertEqual(doc.title, base.title)
+			self.assertEqual(doc.header_icon, base.header_icon)
+			self.assertEqual(
+				[(row.key, row.type, row.link_to) for row in doc.items],
+				[(row.key, row.type, row.link_to) for row in base.rows],
+			)
+
+	def test_marking_an_authored_document_exports_it_as_it_stands(self):
+		"""A module that already has a document is shipped verbatim: the computed base is what
+		you get when there is nothing to ship, not something that overwrites authored items."""
 		import os
 
 		with module_resolvable_on_disk(MODULE), developer_mode():
 			doc = make_sidebar(MODULE)
 			self.assertEqual(doc.standard, 0)
 
-			doc.mark_as_standard()
+			mark_as_standard(MODULE)
 
+			doc.reload()
 			self.assertEqual(doc.standard, 1)
 			self.assertEqual(doc.app, "frappe")
 			self.assertTrue(os.path.exists(doc.exported_file_path()))
+			self.assertEqual([row.link_to for row in doc.items], ["User"])
 
-	def test_marking_a_built_sidebar_adopts_it(self):
-		"""A sidebar built from the module's contents can be promoted -- "this is good, ship
-		it" -- with no separate provenance flag standing in the way."""
+	def test_marking_a_document_with_no_items_ships_the_computed_base(self):
+		"""An empty items table is not what the desk renders for the module -- boot fills those
+		rows in from the computed base too -- so shipping the document as it stands would ship a
+		file that does not match the navigation it was adopted from."""
 		with module_resolvable_on_disk(MODULE), developer_mode():
-			doc = make_sidebar(MODULE)
-			doc.mark_as_standard()
+			self.with_content()
+			stub = frappe.new_doc("Module Sidebar")
+			stub.module = MODULE
+			stub.title = "Named by hand"
+			stub.insert(ignore_permissions=True)
+			self.assertEqual(stub.items, [])
 
-			self.assertEqual(doc.standard, 1)
-			self.assertEqual(doc.app, "frappe")
+			mark_as_standard(MODULE)
+
+			stub.reload()
+			# its own title stands: that is authored, and only the items were missing
+			self.assertEqual(stub.title, "Named by hand")
+			self.assertEqual(
+				[row.key for row in stub.items], [row.key for row in get_computed_base(MODULE).rows]
+			)
+
+	def test_a_standard_row_whose_file_went_missing_is_written_again(self):
+		"""The mark reports what it verified, so being asked again to ship a sidebar that has
+		lost its file has to write the file rather than report the row as already done -- a
+		standard row without one is deleted by the next migrate."""
+		import os
+		import shutil
+
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			name = mark_as_standard(MODULE)
+			path = frappe.get_doc("Module Sidebar", name).exported_file_path()
+			shutil.rmtree(os.path.dirname(path))
+
+			mark_as_standard(MODULE)
+
+			self.assertTrue(os.path.exists(path))
 
 	def test_standard_row_survives_orphan_removal(self):
 		"""The whole point of writing the file: a standard row without one is an orphan."""
 		from frappe.model.sync import remove_orphan_entities
 
 		with module_resolvable_on_disk(MODULE), developer_mode():
-			doc = make_sidebar(MODULE)
-			doc.mark_as_standard()
+			self.with_content()
+			name = mark_as_standard(MODULE)
 
 			remove_orphan_entities("Module Sidebar")
-			self.assertTrue(frappe.db.exists("Module Sidebar", doc.name))
+			self.assertTrue(frappe.db.exists("Module Sidebar", name))
 
-	def test_cannot_mark_standard_without_developer_mode(self):
+	def test_the_mark_fails_when_the_export_wrote_no_file(self):
+		"""Verified, not assumed. A standard row with nothing backing it is an orphan that the
+		next migrate deletes, so a mark that could not write its file has to leave the module
+		exactly as it found it -- with no document at all."""
+		from unittest.mock import patch
+
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			with patch("frappe.modules.export_file.export_to_files"):
+				with self.assertRaises(frappe.ValidationError):
+					mark_as_standard(MODULE)
+
+		self.assertFalse(frappe.db.exists("Module Sidebar", MODULE))
+
+	def test_marking_needs_developer_mode(self):
 		"""Only developer mode writes files, so outside it the mark could only produce a row
 		that deletes itself."""
-		doc = make_sidebar(MODULE)
 		with no_developer_mode(), self.assertRaises(frappe.ValidationError):
-			doc.mark_as_standard()
+			mark_as_standard(MODULE)
+
+		self.assertFalse(frappe.db.exists("Module Sidebar", MODULE))
+
+	def test_un_marking_needs_developer_mode(self):
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			name = mark_as_standard(MODULE)
+
+			with no_developer_mode(), self.assertRaises(frappe.ValidationError):
+				unmark_as_standard(MODULE)
+
+			self.assertTrue(frappe.db.exists("Module Sidebar", name))
+
+	def test_neither_needs_a_role(self):
+		"""The old `Workspace Manager` gate is gone: developer mode is the whole gate, and what
+		is left is the doctype's own permissions. A System Manager holds no `Workspace Manager`
+		role and is refused nothing here."""
+		self.enterContext(self.set_user("test@example.com"))
+		self.assertNotIn("Workspace Manager", frappe.get_roles())
+
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			name = mark_as_standard(MODULE)
+			self.assertTrue(frappe.db.exists("Module Sidebar", name))
+
+			unmark_as_standard(MODULE)
+			self.assertFalse(frappe.db.exists("Module Sidebar", name))
 
 	def test_cannot_mark_standard_when_the_module_has_no_folder(self):
-		doc = make_sidebar(MODULE)
+		"""No folder, nowhere to write the file -- and a standard row without one is an
+		orphan, so refuse before creating anything."""
 		with developer_mode(), self.assertRaises(frappe.ValidationError):
-			doc.mark_as_standard()
+			mark_as_standard(MODULE)
 
-		self.assertEqual(frappe.db.get_value("Module Sidebar", doc.name, "standard"), 0)
+		self.assertFalse(frappe.db.exists("Module Sidebar", MODULE))
 
-	def test_unmarking_removes_the_exported_file(self):
-		"""Clearing the flag alone would not survive a migrate -- the file would be re-imported
-		and mark the row standard again."""
+	def test_un_marking_deletes_the_document_and_its_file(self):
+		"""Not a cleared flag: a row that is neither app content nor site intent is a frozen
+		copy of a base that has stopped tracking the module. And the file has to go too --
+		left behind, the next `bench migrate` re-imports it and marks the row standard again."""
 		import os
 
 		with module_resolvable_on_disk(MODULE), developer_mode():
-			doc = make_sidebar(MODULE)
-			doc.mark_as_standard()
-			path = doc.exported_file_path()
+			self.with_content()
+			name = mark_as_standard(MODULE)
+			path = frappe.get_doc("Module Sidebar", name).exported_file_path()
 			self.assertTrue(os.path.exists(path))
 
-			doc.unmark_as_standard()
+			unmark_as_standard(MODULE)
 
-			self.assertEqual(doc.standard, 0)
+			self.assertFalse(frappe.db.exists("Module Sidebar", name))
 			self.assertFalse(os.path.exists(path))
+
+	def test_un_marking_returns_the_module_to_its_computed_base(self):
+		"""In the same request. The document going away is not the module losing its
+		navigation -- the base is computed from the module's contents on read."""
+		from frappe.boot import get_sidebar_bases
+
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			mark_as_standard(MODULE)
+			unmark_as_standard(MODULE)
+
+			base = get_sidebar_bases([MODULE])[MODULE]
+
+			self.assertIsNone(base.get("name"), "a computed base has no document")
+			self.assertEqual(
+				[row.key for row in base.rows], [row.key for row in get_computed_base(MODULE).rows]
+			)
+
+	def test_a_round_trip_leaves_no_residue(self):
+		"""Mark, un-mark, mark again: the same file, and nothing accumulated in between."""
+		with module_resolvable_on_disk(MODULE), developer_mode():
+			self.with_content()
+			name = mark_as_standard(MODULE)
+			path = frappe.get_doc("Module Sidebar", name).exported_file_path()
+			first = self.exported_json(path)
+
+			unmark_as_standard(MODULE)
+			self.assertEqual(frappe.get_all("Module Sidebar", filters={"module": MODULE}), [])
+
+			again = mark_as_standard(MODULE)
+
+			self.assertEqual(again, name)
+			self.assertEqual(self.exported_json(path), first)
+			self.assertEqual(len(frappe.get_all("Module Sidebar", filters={"module": MODULE})), 1)
 
 	def test_marking_standard_is_idempotent(self):
 		with module_resolvable_on_disk(MODULE), developer_mode():
-			doc = make_sidebar(MODULE)
-			doc.mark_as_standard()
-			modified = doc.modified
+			self.with_content()
+			name = mark_as_standard(MODULE)
+			modified = frappe.db.get_value("Module Sidebar", name, "modified")
 
-			doc.mark_as_standard()
-			self.assertEqual(doc.modified, modified)
+			mark_as_standard(MODULE)
+			self.assertEqual(frappe.db.get_value("Module Sidebar", name, "modified"), modified)
 
 
 APP_CONTENT_MODULE = "Test App Content Sidebar Module"

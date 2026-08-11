@@ -1,26 +1,34 @@
 // Copyright (c) 2026, Frappe Technologies and contributors
 // For license information, please see license.txt
 
+const API = "frappe.desk.doctype.module_sidebar.module_sidebar";
+
 frappe.ui.form.on("Module Sidebar", {
 	refresh(frm) {
 		if (frm.is_new()) return;
 
-		// `standard` is read-only on the form on purpose: setting it without also writing the
-		// file leaves a row that orphan removal deletes on the next migrate. These actions do
-		// both, or neither.
+		// Both actions are gated on developer mode, since both write to the app on disk: one
+		// writes the sidebar's file, the other removes it. `standard` is read-only on the form
+		// for the same reason -- setting it without writing the file leaves a row that orphan
+		// removal deletes on the next migrate.
+		if (!frappe.boot.developer_mode) return;
+
 		if (frm.doc.standard) {
 			frm.add_custom_button(__("Unmark as Standard"), () => {
 				frappe.confirm(
-					__("Stop shipping {0} with its app? Its exported file will be removed.", [
-						frm.doc.name,
-					]),
-					() => frm.call("unmark_as_standard").then(() => frm.reload_doc())
+					__(
+						"Stop shipping {0} with its app? Its exported file and this document are removed, and {1} goes back to the sidebar computed from its contents.",
+						[frm.doc.name, frm.doc.module]
+					),
+					() =>
+						frappe
+							.xcall(`${API}.unmark_as_standard`, { module: frm.doc.module })
+							// the document is gone, so there is nothing left to reload into
+							.then(() => frappe.set_route("List", "Module Sidebar"))
 				);
 			});
 			return;
 		}
-
-		if (!frappe.boot.developer_mode) return;
 
 		frm.add_custom_button(__("Mark as Standard"), () => {
 			frappe.confirm(
@@ -28,7 +36,10 @@ frappe.ui.form.on("Module Sidebar", {
 					frm.doc.name,
 					frm.doc.app || __("its app"),
 				]),
-				() => frm.call("mark_as_standard").then(() => frm.reload_doc())
+				() =>
+					frappe
+						.xcall(`${API}.mark_as_standard`, { module: frm.doc.module })
+						.then(() => frm.reload_doc())
 			);
 		});
 	},

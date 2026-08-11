@@ -127,10 +127,7 @@ class ModuleSidebar(Document, DeskViews):
 		if not self.standard or not self.has_value_changed("standard"):
 			return
 
-		if not frappe.conf.developer_mode:
-			frappe.throw(
-				_("Enable developer mode to make a sidebar standard -- it has to be written to its app.")
-			)
+		check_developer_mode()
 
 		if not self.module:
 			frappe.throw(_("A standard sidebar needs a module to be written to."))
@@ -196,83 +193,175 @@ class ModuleSidebar(Document, DeskViews):
 			frappe.get_module_path(self.module), "module_sidebar", scrubbed, f"{scrubbed}.json"
 		)
 
-	@frappe.whitelist()
-	def mark_as_standard(self):
-		"""Adopt this sidebar as app-owned content: write it to its module's folder so the app
-		ships it, and let `bench migrate` re-import it from there.
+	def is_exported(self) -> bool:
+		"""Whether the file backing this sidebar is actually there.
 
-		This is the one flag that means anything: standard is app-owned and file-backed,
-		everything else belongs to the site -- whether it was merged from workspaces, built
-		from the module's contents, or edited by hand here.
+		This is the question orphan removal asks, so it is the one `mark_as_standard` has to
+		answer before claiming the sidebar is shipped. A module that resolves to no folder at
+		all answers it the same way: no folder, no file.
 		"""
 		import os
 
-		if not is_workspace_manager():
-			frappe.throw(_("You need to be Workspace Manager to do this."), frappe.PermissionError)
+		if self.is_new() or not self.module:
+			return False
 
-		if self.standard:
-			return self
+		try:
+			return os.path.exists(self.exported_file_path())
+		except Exception:
+			return False
 
-		self.standard = 1
-		self.app = get_module_app(self.module)
-		self.save()
 
-		# Verify rather than assume. If the export silently did nothing, the row is standard with
-		# no file -- an orphan that the next migrate deletes. Raising here rolls the whole thing
-		# back, so the failure is loud and now instead of quiet and later.
-		if not os.path.exists(self.exported_file_path()):
+# ---------------------------------------------------------------------------------------
+# The export switch -- what `standard` means, and the two actions that flip it
+# ---------------------------------------------------------------------------------------
+
+
+@frappe.whitelist()
+def mark_as_standard(module: str) -> str:
+	"""Adopt `module`'s sidebar as app content: write it into the module's folder so the app
+	ships it, and let `bench migrate` re-import it from there. Returns the document's name.
+
+	Materialize *then* export, which is what lets an author start from what the system
+	generated rather than from nothing: a module with no document has a base all the same --
+	computed from its contents by `get_computed_base` -- and that is what gets written. A
+	document with items of its own is shipped as it stands; see `materialize_base` for where
+	the line falls.
+
+	Developer mode is the gate and there is no role check. The old `Workspace Manager` one is
+	gone: what makes this write legitimate is that the site is a developer's, and who may
+	reach the doctype at all is the doctype's own permissions (see `validate_app_content`).
+
+	Verified rather than assumed, and rolled back if it cannot be: a standard row whose file
+	is missing is by definition an orphan, and `remove_orphan_entities` deletes it on the very
+	next `bench migrate`. A mark that wrote no file therefore has to leave no row either.
+	"""
+	check_developer_mode()
+
+	doc = materialize_base(module)
+
+	# Already shipped, so there is nothing to do. Standard *and exported*, though: a standard
+	# row whose file has gone missing is the orphan this action exists to prevent, and it gets
+	# written again rather than reported as done.
+	if doc.standard and doc.is_exported():
+		return doc.name
+
+	savepoint = "mark_module_sidebar_standard"
+	frappe.db.savepoint(savepoint)
+	try:
+		doc.standard = 1
+		doc.app = get_module_app(module)
+		# `save` inserts a materialized base and updates an existing document; either way
+		# `on_update` is what writes the file.
+		doc.save()
+
+		if not doc.is_exported():
 			frappe.throw(
 				_("Could not write {0} to {1}. Left unchanged.").format(
-					frappe.bold(self.name), frappe.bold(self.app or "-")
+					frappe.bold(doc.name), frappe.bold(doc.app or "-")
 				)
 			)
+	except Exception:
+		frappe.db.rollback(save_point=savepoint)
+		raise
+	frappe.db.release_savepoint(savepoint)
 
-		frappe.msgprint(
-			_("{0} is now standard and exported to {1}.").format(
-				frappe.bold(self.name), frappe.bold(self.app)
-			),
-			alert=True,
-			indicator="green",
-		)
-		return self
+	frappe.msgprint(
+		_("{0} is now standard and exported to {1}.").format(frappe.bold(doc.name), frappe.bold(doc.app)),
+		alert=True,
+		indicator="green",
+	)
+	return doc.name
 
-	@frappe.whitelist()
-	def unmark_as_standard(self):
-		"""Hand the sidebar back to the site: stop shipping it and remove its exported file.
 
-		The file has to go. Left behind, the next `bench migrate` re-imports it and marks the
-		row standard again, so clearing the flag alone would not survive a migrate.
-		"""
-		import os
-		import shutil
+@frappe.whitelist()
+def unmark_as_standard(module: str) -> None:
+	"""Hand `module`'s sidebar back to the site: remove its exported file and delete the
+	document.
 
-		if not is_workspace_manager():
-			frappe.throw(_("You need to be Workspace Manager to do this."), frappe.PermissionError)
+	The document goes rather than the flag being cleared. What is left when app content goes
+	away is the *computed* base, produced from the module's contents on read -- so the module
+	is back to its base in this same request. Clearing the flag would instead leave a row
+	nobody owns: not app content (no file), not site intent (that lives in
+	`Module Sidebar Customization`), and a frozen copy of a base that has stopped tracking the
+	module.
 
-		if not self.standard:
-			return self
+	The file has to go with it. Left behind, the next `bench migrate` re-imports it and the
+	row comes back standard, so deleting the document alone would not survive a migrate.
+	"""
+	import os
+	import shutil
 
-		path = None
-		if self.module:
-			try:
-				path = self.exported_file_path()
-			except Exception:
-				path = None
+	check_developer_mode()
 
-		self.standard = 0
-		self.save()
+	doc = get_sidebar(module)
+	# Only a standard sidebar is app content; there is nothing to hand back otherwise, and a
+	# document somebody is still authoring is not this action's to delete.
+	if not doc or not doc.standard:
+		return
 
-		if path and os.path.exists(path):
-			shutil.rmtree(os.path.dirname(path), ignore_errors=True)
+	path = doc.exported_file_path() if doc.is_exported() else None
+	doc.delete()
 
-		frappe.msgprint(
-			_("{0} is no longer standard; its exported file has been removed.").format(
-				frappe.bold(self.name)
-			),
-			alert=True,
-			indicator="orange",
-		)
-		return self
+	# Now, not on commit: un-marking and marking again within one request has to end with the
+	# file the second call wrote, not with a queued delete that removes it afterwards.
+	if path:
+		shutil.rmtree(os.path.dirname(path), ignore_errors=True)
+
+	frappe.msgprint(
+		_("{0} is no longer standard; its exported file has been removed.").format(frappe.bold(doc.name)),
+		alert=True,
+		indicator="orange",
+	)
+
+
+def check_developer_mode() -> None:
+	"""`standard` means a file inside an app, and only a developer's site writes app files."""
+	if frappe.conf.developer_mode:
+		return
+
+	frappe.throw(
+		_(
+			"Enable developer mode to change whether a sidebar is standard -- it is backed by a file in its app."
+		),
+		title=_("Not Editable"),
+	)
+
+
+def get_sidebar(module: str) -> "ModuleSidebar | None":
+	"""`module`'s sidebar document, or `None` -- which is the ordinary state, since nothing
+	persists a base on a module's behalf."""
+	name = frappe.db.get_value("Module Sidebar", {"module": module})
+	return frappe.get_doc("Module Sidebar", name) if name else None
+
+
+def materialize_base(module: str) -> "ModuleSidebar":
+	"""The module's base as a document ready to be exported -- the one place a base crosses
+	from computed to shipped.
+
+	A document with items of its own is authored content and is returned as it stands. Anything
+	else -- no document, or one with an empty items table -- is filled from the computed base,
+	because that is exactly what the desk renders for it (see `boot.get_sidebar_bases`) and
+	shipping it empty would ship a file that does not match the navigation it came from.
+
+	The base carries over verbatim, item `key`s included, which is what keeps existing
+	customization deltas anchored: a user who hid an item keeps it hidden through the adoption.
+	"""
+	doc = get_sidebar(module)
+	if doc and doc.items:
+		return doc
+
+	base = get_computed_base(module)
+	if not doc:
+		doc = frappe.new_doc("Module Sidebar")
+		doc.module = module
+		doc.title = base.title
+		doc.header_icon = base.header_icon
+
+	for row in base.rows:
+		# a copy: `append` writes doctype and parent keys into the dict it is handed, and these
+		# rows belong to the cached base
+		doc.append("items", dict(row))
+	return doc
 
 
 def derive_key(item, counter: Counter) -> str:
@@ -488,10 +577,6 @@ def get_module_app(module: str) -> str | None:
 	"""The app owning `module`, tolerating a Module Def that exists only in the DB."""
 	app = frappe.local.module_app.get(frappe.scrub(module))
 	return app or frappe.db.get_value("Module Def", module, "app_name")
-
-
-def is_workspace_manager() -> bool:
-	return "Workspace Manager" in frappe.get_roles()
 
 
 # ---------------------------------------------------------------------------------------
