@@ -29,14 +29,45 @@
 			/>
 		</div>
 
-		<Autocomplete
-			:key="pickerResetCount"
-			:modelValue="null"
+		<Combobox
+			ref="propertyCombobox"
+			:options="propertyOptions"
 			placeholder="Add CSS property"
-			:getOptions="searchProperties"
-			:allowArbitraryValue="true"
+			empty-text="No matching properties"
+			open-on-focus
+			@update:query="propertySearch = $event"
 			@update:modelValue="addProperty"
-		/>
+		>
+			<template #suffix>
+				<span />
+			</template>
+			<template #item-label="{ item }">
+				<span class="flex min-w-0 flex-col gap-0.5">
+					<span class="truncate text-sm text-ink-gray-8">
+						{{ toTitleCase(item.value) }}
+					</span>
+					<code class="truncate font-mono text-xs text-ink-gray-5">
+						{{ item.value }}
+					</code>
+				</span>
+			</template>
+			<template #item-add-property="{ query }">
+				<span class="flex min-w-0 items-center gap-2">
+					<span class="min-w-0 truncate text-sm text-ink-gray-8">
+						Add
+						<code class="font-mono text-xs text-ink-gray-6">{{ normalizeCSSPropertyName(query) }}</code>
+					</span>
+				</span>
+			</template>
+			<template #item-set-declaration="{ query }">
+				<span class="flex min-w-0 items-center gap-2">
+					<span class="min-w-0 truncate text-sm text-ink-gray-8">
+						Set
+						<code class="font-mono text-xs text-ink-gray-6">{{ query }}</code>
+					</span>
+				</span>
+			</template>
+		</Combobox>
 	</div>
 </template>
 
@@ -58,8 +89,8 @@ const addAddedProperty = (componentId: string, property: string) => {
 </script>
 
 <script setup lang="ts">
+import { Combobox } from "frappe-ui"
 import { computed, nextTick, ref, type CSSProperties } from "vue"
-import Autocomplete from "@/components/Autocomplete.vue"
 import DynamicStyleSetter from "@/components/DynamicStyleSetter.vue"
 import IconButton from "@/components/IconButton.vue"
 import InlineInput from "@/components/InlineInput.vue"
@@ -80,7 +111,8 @@ import LucideX from "~icons/lucide/x"
 const props = defineProps<{ controlledProperties: Set<string> }>()
 
 const canvasStore = useCanvasStore()
-const pickerResetCount = ref(0)
+const propertySearch = ref("")
+const propertyCombobox = ref<{ reset: () => void } | null>(null)
 
 const selectedBlock = computed(() =>
 	blockController.isAnyBlockSelected() ? blockController.getFirstSelectedBlock() : null,
@@ -91,7 +123,10 @@ const activeProperties = computed(() => {
 	const block = selectedBlock.value
 	if (!block) return new Set<string>()
 	const breakpoint = canvasStore.activeCanvas?.activeBreakpoint || "desktop"
-	const properties = getStylePropertiesWithoutControls(block.getStyles(breakpoint), props.controlledProperties)
+	const properties = getStylePropertiesWithoutControls(
+		block.getStyles(breakpoint),
+		props.controlledProperties,
+	)
 	getAddedProperties(block.componentId)?.forEach((property) => properties.add(property))
 	return properties
 })
@@ -120,29 +155,44 @@ const propertyRows = computed(() =>
 const getRenderedValue = (property: keyof CSSProperties) =>
 	String(selectedBlock.value?.getRenderedStyle(property) ?? "unset")
 
-const searchProperties = async (query: string) => {
-	const options = getCSSPropertyOptions(
-		query,
-		new Set([...props.controlledProperties, ...activeProperties.value]),
-	)
-	const arbitraryOption = getArbitraryOption(query)
-	if (arbitraryOption && !options.some((option) => option.value === arbitraryOption.value)) {
-		options.push(arbitraryOption)
-	}
-	return options
-}
+const normalizedPropertySearch = computed(() => normalizeCSSPropertyName(propertySearch.value))
 
-// keeps nonstandard property names and "color: red" declarations addable without
-// echoing controlled properties back as dead options
-const getArbitraryOption = (query: string) => {
-	const trimmed = query.trim()
-	if (!trimmed) return null
-	if (trimmed.includes(":")) {
-		return parseCSSDeclarations(trimmed).length ? { label: `Set "${trimmed}"`, value: trimmed } : null
-	}
-	const property = normalizeCSSPropertyName(trimmed)
-	return canAddProperty(property) ? { label: `Add "${property}"`, value: property } : null
-}
+// labels carry the query so the combobox's substring filter keeps fuzzy matches;
+// the item-label slot renders the clean property name instead
+const searchablePropertyOptions = computed(() =>
+	getCSSPropertyOptions(
+		propertySearch.value,
+		new Set([...props.controlledProperties, ...activeProperties.value]),
+	).map((option) => ({
+		...option,
+		label: normalizedPropertySearch.value
+			? `${option.label} ${normalizedPropertySearch.value}`
+			: option.label,
+	})),
+)
+
+// trailing escape hatches: nonstandard property names and "color: red" declarations
+// stay addable without echoing controlled properties back as dead options
+const propertyOptions = computed(() => [
+	...searchablePropertyOptions.value,
+	{
+		type: "custom" as const,
+		key: "add-property",
+		label: "Add property",
+		slot: "add-property",
+		condition: ({ query }: { query: string }) => canAddProperty(normalizeCSSPropertyName(query)),
+		onClick: ({ query }: { query: string }) => addProperty(query),
+	},
+	{
+		type: "custom" as const,
+		key: "set-declaration",
+		label: "Set declaration",
+		slot: "set-declaration",
+		condition: ({ query }: { query: string }) =>
+			query.includes(":") && parseCSSDeclarations(query).length > 0,
+		onClick: ({ query }: { query: string }) => addProperty(query),
+	},
+])
 
 const canAddProperty = (property: string) =>
 	isValidCSSPropertyName(property) &&
@@ -150,7 +200,8 @@ const canAddProperty = (property: string) =>
 	!activeProperties.value.has(property)
 
 const resetPicker = () => {
-	pickerResetCount.value += 1
+	propertySearch.value = ""
+	nextTick(() => propertyCombobox.value?.reset())
 }
 
 const focusProperty = async (property: string) => {
@@ -162,20 +213,21 @@ const focusProperty = async (property: string) => {
 }
 
 const addProperty = (raw: string | null) => {
-	resetPicker()
 	const block = selectedBlock.value
+	// the null emitted by the combobox's own reset must not reset again (loop)
 	if (!raw || !block) return
 
 	// "color: red" style input sets the value right away; a bare name adds an empty row
 	if (raw.includes(":")) {
 		applyDeclarations(parseCSSDeclarations(raw))
-		return
+	} else {
+		const property = normalizeCSSPropertyName(raw)
+		if (canAddProperty(property)) {
+			addAddedProperty(block.componentId, property)
+			focusProperty(property)
+		}
 	}
-
-	const property = normalizeCSSPropertyName(raw)
-	if (!canAddProperty(property)) return
-	addAddedProperty(block.componentId, property)
-	focusProperty(property)
+	resetPicker()
 }
 
 const removeProperty = (property: string) => {
