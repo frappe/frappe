@@ -415,6 +415,7 @@ def get_formatted_html(
 	with_container=False,
 	raw_html=False,
 	add_css=True,
+	wrapper="templates/emails/standard.html",
 ):
 	email_account = email_account or EmailAccount.find_outgoing(match_by_email=sender)
 
@@ -438,7 +439,7 @@ def get_formatted_html(
 				"footer": get_footer(email_account, footer),
 			}
 		)
-		rendered_email = frappe.get_template("templates/emails/standard.html").render(params)
+		rendered_email = frappe.get_template(wrapper).render(params)
 
 	html = scrub_urls(rendered_email)
 
