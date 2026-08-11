@@ -18,7 +18,7 @@
 -->
 <template>
 	<div
-		class="flex min-h-0 flex-col overflow-hidden rounded-lg border border-outline-gray-1 bg-surface-white"
+		class="flex min-h-0 flex-col overflow-hidden rounded-lg border border-outline-gray-1 bg-surface-base"
 	>
 		<!-- Toolbar region: the home of the list-view controls. The slotted content
 		     owns its own alignment (quick filters left, Filter/Sort right). -->
