@@ -310,6 +310,9 @@ async function loadPage(appID: string, pageID: string) {
 	try {
 		await store.setApp(appID)
 		await store.setPage(pageID)
+	} catch (error) {
+		console.error(`Failed to load page ${pageID}`, error)
+		toast.error("Failed to load the page")
 	} finally {
 		loadingPageID = null
 	}

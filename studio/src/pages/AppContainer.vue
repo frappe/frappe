@@ -25,26 +25,31 @@ const page = ref<StudioPage | null>(null)
 
 const rootBlock = ref<Block | null>(null)
 
-async function loadPage() {
-	let { pageRoute } = route.params as { pageRoute: string[] }
-	const isDynamic = route.meta?.isDynamic
-
-	let currentPath = "/"
-	if (isDynamic) {
-		currentPath = route.matched?.[0]?.path
-	} else if (pageRoute) {
-		currentPath = pageRoute[0]
+let loadedPath: string | null = null
+async function handleRouteChange() {
+	const currentPath = resolveCurrentPath()
+	if (currentPath && currentPath === loadedPath && page.value) {
+		// param-only navigation (/articles/a -> /articles/b)
+		return
 	}
+	await loadPage()
+}
 
+let loadToken = 0
+async function loadPage() {
+	const token = ++loadToken
+	const currentPath = resolveCurrentPath()
 	if (!currentPath) {
 		rootBlock.value = null
 		return
 	}
+	codeStore.teardownPage()
 
 	page.value = await findPageWithRoute(window.app_name, currentPath)
-	if (!page.value) return
+	if (token !== loadToken || !page.value) return
 	await store.setPageData(page.value)
 	await codeStore.setPageScript(page.value, Boolean(page.value.is_standard))
+	if (token !== loadToken) return
 
 	const blocks = window.is_preview
 		? JSON.parse(page.value?.draft_blocks || page.value?.blocks)
@@ -52,9 +57,18 @@ async function loadPage() {
 	if (blocks) {
 		rootBlock.value = getBlockInstance(blocks[0])
 	}
+	loadedPath = currentPath
 }
 
-watch(() => route.path, loadPage, { immediate: true })
+function resolveCurrentPath(): string | undefined {
+	const { pageRoute } = route.params as { pageRoute: string[] }
+	// registered page routes carry isDynamic meta
+	if (route.meta?.isDynamic) return route.matched?.[0]?.path
+	if (pageRoute) return pageRoute[0]
+	return "/"
+}
+
+watch(() => route.path, handleRouteChange, { immediate: true })
 
 if (window.is_preview) useLivePreview(page, loadPage)
 

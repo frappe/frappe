@@ -194,9 +194,9 @@ const useStudioStore = defineStore("store", () => {
 	async function setPage(pageName: string) {
 		settingPage.value = true
 		pageConflict.value = false
-		// leaving the current page: drop its in-flight-save flag so the new page isn't blocked
-		// waiting on a save it doesn't own (that save's own callback no longer clears this flag)
 		savingPage.value = false
+		codeStore.teardownPage()
+
 		const page = await fetchPage(pageName)
 		if (!page) {
 			settingPage.value = false
@@ -536,7 +536,8 @@ const useStudioStore = defineStore("store", () => {
 	const routeObject = computed(() => {
 		if (!activePage.value) return ""
 
-		const newRoute = toRaw(router.currentRoute.value)
+		// copy — mutating the live route object would wipe the editor router's own params (appID/pageID)
+		const newRoute = { ...toRaw(router.currentRoute.value) }
 		// Seed each dynamic param with its design-time test value (empty string when unset),
 		// e.g. "/hr/:employee/:id" -> { employee, id } filled from routeVariables
 		const paramNames = getRouteVariables(activePage.value.route)
