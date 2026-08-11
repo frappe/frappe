@@ -1,7 +1,7 @@
 import click
 
 import frappe
-from frappe.desk.doctype.module_sidebar.module_sidebar import build_all
+from frappe.desk.doctype.module_sidebar.module_sidebar import build_all, plan_summary
 
 
 def execute():
@@ -27,29 +27,47 @@ def execute():
 	result = build_all()
 
 	for plan in result["merged"]:
-		if plan["secondaries"]:
+		if plan["secondaries"] and not plan["skipped"]:
 			click.secho(
 				f"Module '{plan['module']}': merged {plan['primary']} <- {', '.join(plan['secondaries'])}",
 				fg="yellow",
 			)
 
 	for fork in result["personal"]:
-		click.secho(
-			f"Module '{fork['module']}': kept {fork['user']}'s own arrangement "
-			f"from {', '.join(fork['sources'])}",
-			fg="green",
-		)
+		if not fork["skipped"]:
+			click.secho(
+				f"Module '{fork['module']}': kept {fork['user']}'s own arrangement "
+				f"from {', '.join(fork['sources'])}",
+				fg="green",
+			)
 
-	if result["discarded"]:
+	for name in result["discarded"]:
 		click.secho(
-			f"Discarded {len(result['discarded'])} private-workspace container(s); "
-			"those links are derived now.",
+			f"Discarded private-workspace container '{name}'; those links are derived now.",
 			fg="cyan",
 		)
 
+	# Counts, one line per population. A bare total cannot tell an operator whether the thing
+	# they came to check was a merge, a discard or a skip -- and every one of these is a number
+	# they can go and verify, since the source it was computed from is still there.
+	summary = plan_summary(result)
 	click.secho(
-		f"Converted {len(result['merged'])} module sidebar(s) and "
-		f"{len(result['personal'])} personal fork(s); "
-		f"{len(result['computed'])} module(s) left to a computed base.",
+		"Module sidebars: "
+		+ ", ".join(
+			f"{count} {label}"
+			for label, count in (
+				("converted", summary["modules"] - summary["skipped"]),
+				("merged", summary["merges"]),
+				("personal fork(s) kept", summary["personal"]),
+				("container(s) discarded", summary["discarded"]),
+				("already converted", summary["skipped"]),
+				("left computed", summary["computed"]),
+			)
+		)
+		+ ".",
 		fg="green",
+	)
+	click.secho(
+		"  Re-run the detail at any time: bench --site <site> execute "
+		"frappe.desk.doctype.module_sidebar.module_sidebar.report",
 	)

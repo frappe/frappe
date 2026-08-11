@@ -857,18 +857,26 @@ def build_all(dry_run: bool = False) -> dict:
 	be a frozen version of it and one more thing to clean up when the module goes away.
 
 	`dry_run=True` reports exactly what a real run would produce and writes nothing.
+
+	**The plan is computed for every module, run or not.** A module that already carries a
+	layer is planned and then marked `skipped` rather than passed over before there is
+	anything to report -- which is what lets an operator ask what the conversion did, on a
+	site where it has already run, and get the same answer as before it ran. It is
+	re-derivable at all only because the archive survives: the inputs are still there, so the
+	plan is a function of them rather than of a report somebody thought to store.
 	"""
 	by_module = get_module_sidebar_sources()
 	existing = set(site_layer_modules())
 
 	merged, skipped = [], []
 	for module in sorted(by_module):
-		if module in existing:
+		plan = build_module_sidebar(module, by_module[module])
+		plan["skipped"] = module in existing
+		merged.append(plan)
+
+		if plan["skipped"]:
 			skipped.append(module)
 			continue
-
-		plan = build_module_sidebar(module, by_module[module])
-		merged.append(plan)
 
 		if not dry_run:
 			write_layer(module, plan["items"], user=None, label=plan["title"], icon=plan["header_icon"])
@@ -945,12 +953,19 @@ def convert_personal_forks(dry_run: bool = False) -> list[dict]:
 
 	converted = []
 	for (user, module), sources in sorted(by_owner.items()):
-		if get_customization(module, user):
-			continue
-
+		# planned either way, so a re-run reports the same forks it converted the first time
+		already = bool(get_customization(module, user))
 		plan = build_module_sidebar(module, sources)
-		converted.append({"user": user, "module": module, "sources": [f.name for f in sources]})
-		if not dry_run:
+		converted.append(
+			{
+				"user": user,
+				"module": module,
+				"sources": [f.name for f in sources],
+				"skipped": already,
+			}
+		)
+
+		if not already and not dry_run:
 			write_layer(module, plan["items"], user=user, label=plan["title"], icon=plan["header_icon"])
 
 	return converted
@@ -1030,51 +1045,88 @@ def as_layer_rows(module: str, items: list[dict]) -> list[dict]:
 
 
 def report():
-	"""Print what `build_all` would do, without writing. See the module docstring on dry runs.
+	"""Print the conversion plan, without writing. Ask it before migrating, after migrating,
+	or twice -- it recomputes from the archive every time and answers the same.
 
 	bench --site <site> execute frappe.desk.doctype.module_sidebar.module_sidebar.report
+
+	There is no stored report to read instead, deliberately. Keeping the archive made the
+	inputs survive and the conversion deterministic, so the plan is derivable whenever it is
+	asked for -- and a stored row describing a plan computed by two-versions-old code is worse
+	than no report at all.
 	"""
 	result = build_all(dry_run=True)
+	summary = plan_summary(result)
 
-	click.secho("\n=== Module Sidebar build (dry run) ===\n", bold=True)
+	click.secho("\n=== Module sidebar conversion (dry run) ===\n", bold=True)
 
 	for plan in result["merged"]:
 		is_merge = bool(plan["secondaries"])
-		colour = "yellow" if is_merge else None
+		colour = "cyan" if plan["skipped"] else ("yellow" if is_merge else None)
 		sources = json.loads(plan["merged_from"])
-		click.secho(f"  {plan['module']:24} {len(sources)} -> 1   items: {len(plan['items'])}", fg=colour)
+		state = " (already converted)" if plan["skipped"] else ""
+		click.secho(
+			f"  {plan['module']:24} {len(sources)} -> 1   items: {len(plan['items'])}{state}", fg=colour
+		)
 		click.secho(f"  {'':24} primary: {plan['primary']}   displays as: {plan['title']}", fg=colour)
 		if is_merge:
 			click.secho(f"  {'':24} sections: {', '.join(plan['secondaries'])}", fg=colour)
 
-	click.secho(f"\nComputed (module ships no sidebar, no row written): {len(result['computed'])}", bold=True)
-	click.echo("  " + ", ".join(result["computed"][:20]) + (" ..." if len(result["computed"]) > 20 else ""))
-
 	if result["personal"]:
 		click.secho(f"\nPersonal forks -> user layers: {len(result['personal'])}", bold=True)
 		for fork in result["personal"]:
-			click.echo(f"  {fork['module']:24} {fork['user']}   from: {', '.join(fork['sources'])}")
+			state = " (already converted)" if fork["skipped"] else ""
+			click.echo(f"  {fork['module']:24} {fork['user']}   from: {', '.join(fork['sources'])}{state}")
 
 	if result["discarded"]:
-		click.secho(
-			f"\nDiscarded (private-workspace containers, their links are derived now): "
-			f"{len(result['discarded'])}",
-			fg="cyan",
-		)
+		click.secho("\nDiscarded -- private-workspace containers, whose links are derived now:", bold=True)
+		for name in result["discarded"]:
+			click.secho(f"  {name}", fg="cyan")
 
 	if result["adopted"]:
-		click.secho(f"\nAdopted into the site layer (row removed): {len(result['adopted'])}", fg="cyan")
+		click.secho("\nAdopted into the site layer, row removed:", bold=True)
+		for name in result["adopted"]:
+			click.secho(f"  {name}", fg="cyan")
 
-	if result["skipped"]:
-		click.secho(f"\nSkipped (a layer already exists): {len(result['skipped'])}", fg="cyan")
+	click.secho(f"\nComputed -- module says nothing, nothing stored: {summary['computed']}", bold=True)
+	click.echo("  " + ", ".join(result["computed"][:20]) + (" ..." if summary["computed"] > 20 else ""))
 
-	merges = [p for p in result["merged"] if p["secondaries"]]
 	click.secho("\n=== Summary ===", bold=True)
-	click.echo(f"  modules with authored sidebars : {len(result['merged'])}")
-	click.secho(f"  modules that MERGE (>1 source)  : {len(merges)}", fg="yellow" if merges else None)
-	for plan in merges:
-		click.secho(
-			f"      {plan['module']}: {plan['primary']} <- {', '.join(plan['secondaries'])}", fg="yellow"
-		)
-	click.echo(f"  modules left to a computed base : {len(result['computed'])}")
+	for label, count, colour in (
+		("modules with an authored sidebar", summary["modules"], None),
+		("of those, merges (>1 source)", summary["merges"], "yellow" if summary["merges"] else None),
+		("of those, already converted", summary["skipped"], "cyan" if summary["skipped"] else None),
+		("personal forks kept as user layers", summary["personal"], None),
+		("private-workspace containers discarded", summary["discarded"], None),
+		("rows adopted into the site layer", summary["adopted"], None),
+		("modules left to a computed base", summary["computed"], None),
+	):
+		click.secho(f"  {label:40}: {count}", fg=colour)
+
+	for plan in result["merged"]:
+		if plan["secondaries"]:
+			click.secho(
+				f"      {plan['module']}: {plan['primary']} <- {', '.join(plan['secondaries'])}",
+				fg="yellow",
+			)
 	click.echo("")
+
+	return summary
+
+
+def plan_summary(result: dict) -> dict:
+	"""The plan as counts -- what the console prints, and what a caller can assert on.
+
+	Each population counted separately rather than folded into one total: "42 sidebars" tells
+	an operator nothing about whether the one thing they cared about was a merge, a discard or
+	a skip.
+	"""
+	return {
+		"modules": len(result["merged"]),
+		"merges": len([p for p in result["merged"] if p["secondaries"]]),
+		"skipped": len(result["skipped"]),
+		"personal": len(result["personal"]),
+		"discarded": len(result["discarded"]),
+		"adopted": len(result["adopted"]),
+		"computed": len(result["computed"]),
+	}

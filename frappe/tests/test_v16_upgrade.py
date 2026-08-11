@@ -224,6 +224,69 @@ class TestV16Upgrade(IntegrationTestCase):
 
 		return get_module_sidebars().get(self.MODULE)
 
+	# -- asking what it will do, and what it did ----------------------------------------
+	#
+	# An operator can ask at any time -- on a site where the conversion has already run, and
+	# twice in a row.
+
+	def dry_run(self):
+		from frappe.desk.doctype.module_sidebar.module_sidebar import build_all
+
+		return build_all(dry_run=True)
+
+	def report(self):
+		from frappe.desk.doctype.module_sidebar.module_sidebar import report
+
+		with patch("click.secho"), patch("click.echo"):
+			return report()
+
+	def test_it_returns_a_plan_after_the_conversion_has_run(self):
+		"""It used to bail on the "this module already has one" guard, so the one moment an
+		operator most wants to know what happened was the one moment it said nothing."""
+		plan = self.dry_run()
+		mine = [p for p in plan["merged"] if p["module"] == self.MODULE]
+
+		self.assertTrue(mine, "the module is missing from a plan computed after the run")
+		self.assertTrue(mine[0]["skipped"], "an already-converted module should say so")
+		self.assertIn(self.REPORT, [item.get("link_to") for item in mine[0]["items"]])
+
+	def test_running_it_twice_says_the_same_thing(self):
+		self.assertEqual(self.report(), self.report())
+
+	def test_it_names_each_population_with_a_count(self):
+		"""Not a bare total: a number an operator can check, per thing that happened to their
+		data."""
+		summary = self.report()
+
+		self.assertGreaterEqual(summary["merges"], 1)
+		self.assertEqual(summary["personal"], 1)
+		self.assertEqual(summary["discarded"], 1)
+		# everything with a source has a layer by now, so nothing is left to convert
+		self.assertEqual(summary["skipped"], summary["modules"])
+		self.assertGreaterEqual(summary["computed"], 1)
+		self.assertIn(self.QUIET_MODULE, self.dry_run()["computed"])
+
+	def test_neither_entry_point_writes_anything(self):
+		def counts():
+			return (
+				frappe.db.count("Custom Module Sidebar"),
+				frappe.db.count("Module Sidebar"),
+				frappe.db.count("Workspace Sidebar"),
+			)
+
+		before = counts()
+
+		self.dry_run()
+		self.report()
+
+		self.assertEqual(before, counts())
+
+	def test_the_detail_reaches_the_console_at_migrate(self):
+		lines = " ".join(run_conversion())
+		self.assertIn("Module sidebars:", lines)
+		self.assertIn("already converted", lines)
+		self.assertIn("module_sidebar.report", lines)
+
 
 class TestTheArchiveIsInert(IntegrationTestCase):
 	"""Nothing reads it at runtime and nothing writes a row to it."""
