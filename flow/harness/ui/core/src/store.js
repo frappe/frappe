@@ -129,6 +129,9 @@ export function createFlowStore(client) {
 		state.conversation.reasoningEffort = info.reasoning_effort ?? null
 		state.conversation.contextTokens = info.context_tokens ?? 0
 		for (const entry of seed.entries) applyEvent(state.conversation, entry)
+		// A trailing model_changed has no usage yet, so fall back to the selected
+		// model's static limit from the session detail response.
+		state.conversation.contextWindow ??= info.context_window ?? null
 		state.prefs.lastSession = sid // restored on the next page load
 		savePrefs()
 		state.loading = false
@@ -345,8 +348,10 @@ export function createFlowStore(client) {
 		)
 		if (!data) return
 		state.conversation.model = data.model
+		state.conversation.contextWindow = data.context_window ?? null
 		if (state.session) {
 			state.session.model = data.model
+			state.session.context_window = data.context_window ?? null
 			state.session.supports_images = data.supports_images
 		}
 	}

@@ -89,6 +89,26 @@ test("live chat statuses do not use ellipses", () => {
 	assert.equal(conversation.liveLabel, "Compacting context")
 })
 
+test("context window never carries across a model change", () => {
+	const conversation = initialConversation()
+	conversation.model = "codex/gpt-5.6-sol"
+	conversation.contextWindow = 272_000
+
+	applyEvent(conversation, { type: "model_changed", model: "deepseek/deepseek-chat" })
+	assert.equal(conversation.contextWindow, null)
+
+	applyEvent(conversation, { type: "usage", context_window: 1_000_000 })
+	assert.equal(conversation.contextWindow, 1_000_000)
+
+	// Changing only reasoning effort keeps the selected model's known limit.
+	applyEvent(conversation, {
+		type: "model_changed",
+		model: "deepseek/deepseek-chat",
+		reasoning_effort: "high",
+	})
+	assert.equal(conversation.contextWindow, 1_000_000)
+})
+
 test("tool start immediately creates a provisional tool step", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })

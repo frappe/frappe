@@ -79,7 +79,7 @@ const usedTokens = computed(
 )
 const cost = computed(() => flow.state.conversation.usage.cost)
 const contextTokens = computed(() => flow.state.conversation.contextTokens ?? 0)
-const contextWindow = computed(() => flow.state.session?.context_window ?? null)
+const contextWindow = computed(() => flow.state.conversation.contextWindow ?? null)
 
 const theme = computed(() => flow.state.prefs.theme)
 function toggleTheme() {

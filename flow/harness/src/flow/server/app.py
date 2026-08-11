@@ -429,11 +429,16 @@ def create_app(
 		await session.set_model(
 			req.model, credential_id=req.credential_id, reasoning_effort=req.reasoning_effort
 		)
+		context_window, supports_images = await asyncio.gather(
+			asyncio.to_thread(context_window_for, session.model),
+			asyncio.to_thread(model_supports_images, session.model),
+		)
 		return {
 			"model": session.model,
 			"credential_id": session.credential_id,
 			"reasoning_effort": session.reasoning_effort,
-			"supports_images": await asyncio.to_thread(model_supports_images, session.model),
+			"context_window": context_window,
+			"supports_images": supports_images,
 		}
 
 	@app.post("/sessions/{sid}/compact")

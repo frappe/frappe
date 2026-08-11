@@ -29,6 +29,7 @@ export function initialConversation() {
 		reasoningEffort: null,
 		usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0 },
 		contextTokens: 0,
+		contextWindow: null,
 		latestSeq: 0,
 		lastError: null,
 		liveLabel: null,
@@ -93,6 +94,7 @@ export function applyEvent(s, e) {
 			if (["aborted", "max_turns", "budget", "length"].includes(e.reason)) s.entries.push(e)
 			break
 		case "model_changed":
+			if (s.model !== e.model) s.contextWindow = null
 			s.model = e.model
 			s.reasoningEffort = e.reasoning_effort ?? null
 			break
@@ -102,6 +104,7 @@ export function applyEvent(s, e) {
 			s.usage.cacheRead += e.cache_read_tokens ?? 0
 			s.usage.cacheWrite += e.cache_write_tokens ?? 0
 			s.usage.cost += e.cost ?? 0
+			if (e.context_window != null) s.contextWindow = e.context_window
 			if ((e.input_tokens ?? 0) + (e.output_tokens ?? 0) > 0)
 				s.contextTokens = (e.input_tokens ?? 0) + (e.output_tokens ?? 0)
 			break
