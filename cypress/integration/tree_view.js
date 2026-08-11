@@ -27,6 +27,70 @@ context("Tree View", () => {
 			});
 	});
 
+	it("shows Expand All / Collapse All only when the tree's state warrants it", () => {
+		cy.visit("/app/custom-tree/view/tree");
+
+		const tree_view = (win) => win.frappe.views.trees["Custom Tree"];
+		// the menu only ever hides/shows these <li>s via jQuery .hide()/.show()/.toggle(),
+		// which resolves the "visible" state to the tag's native default display
+		// (list-item, not block) — assert against "none" vs. not-"none" instead of
+		// a specific display value
+		const assert_buttons = (expand_visible, collapse_visible) => {
+			cy.window().should((win) => {
+				let tv = tree_view(win);
+				let expand_display = tv.$expand_all_btn.css("display");
+				let collapse_display = tv.$collapse_all_btn.css("display");
+				if (expand_visible) {
+					expect(expand_display).to.not.eq("none");
+				} else {
+					expect(expand_display).to.eq("none");
+				}
+				if (collapse_visible) {
+					expect(collapse_display).to.not.eq("none");
+				} else {
+					expect(collapse_display).to.eq("none");
+				}
+			});
+		};
+		const click_menu_item = (label) => {
+			// the menu button's own .dropdown-menu is a hidden item store (see
+			// page.js build_dropdown_options) — the actual open menu is an
+			// espresso panel with role="menu", portaled elsewhere in the DOM
+			cy.get(".menu-btn-group > button").click();
+			cy.contains('[role="menu"] .es-menu__item', label).click();
+		};
+
+		// root auto-expands; both groups underneath are still collapsed -> only "Expand All"
+		assert_buttons(true, false);
+
+		// expand one group, leave its sibling group collapsed -> mixed, both show
+		cy.get('.tree-link[data-label="Parent Node"]').click();
+		cy.get('.tree-link[data-label="Child Node"]').should("be.visible");
+		assert_buttons(true, true);
+
+		// Expand All -> every node, including the untouched sibling group, opens -> only "Collapse All"
+		click_menu_item("Expand All");
+		cy.get('.tree-link[data-label="Child Node"]').should("be.visible");
+		assert_buttons(false, true);
+
+		// collapsing the root hides every descendant; only "Expand All" should be
+		// offered, regardless of the (now hidden) descendants' own expanded flags
+		cy.get('.tree-link[data-label="All Trees"]').click();
+		cy.get('.tree-link[data-label="Parent Node"]').should("not.be.visible");
+		assert_buttons(true, false);
+
+		// reopening the root restores the descendants exactly as they were left,
+		// so the mixed/all-expanded state from before is visible again
+		cy.get('.tree-link[data-label="All Trees"]').click();
+		cy.get('.tree-link[data-label="Child Node"]').should("be.visible");
+		assert_buttons(false, true);
+
+		// Collapse All -> back to the initial state
+		click_menu_item("Collapse All");
+		cy.get('.tree-link[data-label="Child Node"]').should("not.exist");
+		assert_buttons(true, false);
+	});
+
 	it("restores the scroll position when navigating back to the tree", () => {
 		cy.visit("/app/custom-tree/view/tree");
 

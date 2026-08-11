@@ -129,25 +129,17 @@ frappe.views.TreeView = class TreeView {
 		}
 
 		if (this.opts.show_expand_all) {
-			this.page.add_inner_button(
-				__("Collapse All"),
-				function () {
+			this.$collapse_all_btn = this.page
+				.add_menu_item(__("Collapse All"), function () {
 					me.tree.load_children(me.tree.root_node, false);
-				},
-				__("Expand"),
-				"default",
-				true
-			);
+				})
+				.parent();
 
-			this.page.add_inner_button(
-				__("Expand All"),
-				function () {
+			this.$expand_all_btn = this.page
+				.add_menu_item(__("Expand All"), function () {
 					me.tree.load_children(me.tree.root_node, true);
-				},
-				__("Expand"),
-				"default",
-				true
-			);
+				})
+				.parent();
 		}
 
 		if (this.opts.view_template) {
@@ -254,15 +246,49 @@ frappe.views.TreeView = class TreeView {
 			get_label: this.opts.get_label,
 			on_render: this.opts.onrender,
 			on_get_node: this.opts.on_get_node,
-			on_node_render: this.opts.on_node_render,
+			on_node_render: (node, deep) => {
+				this.opts.on_node_render && this.opts.on_node_render(node, deep);
+				this.update_expand_collapse_buttons();
+			},
 			on_click: (node) => {
 				this.select_node(node);
+				// node.expanded is flipped synchronously right after this callback
+				// runs, so defer the state check to the next tick
+				setTimeout(() => this.update_expand_collapse_buttons(), 0);
 			},
 		});
 
 		cur_tree = this.tree;
 		cur_tree.view_name = "Tree";
 		this.post_render();
+	}
+	get_expandable_nodes() {
+		return Object.values(this.tree.nodes).filter(
+			(node) =>
+				node.expandable && !node.is_root && document.body.contains(node.$tree_link[0])
+		);
+	}
+	update_expand_collapse_buttons() {
+		if (!this.opts.show_expand_all || !this.tree) return;
+
+		if (!this.tree.root_node.expanded) {
+			// root collapsed hides every descendant, so their stale expanded
+			// flags (from before the root was closed) don't reflect what's
+			// actually visible; only offer to expand back out
+			this.$collapse_all_btn && this.$collapse_all_btn.hide();
+			this.$expand_all_btn && this.$expand_all_btn.show();
+			return;
+		}
+
+		let expandable_nodes = this.get_expandable_nodes();
+		let has_expandable_nodes = expandable_nodes.length > 0;
+		let all_expanded = has_expandable_nodes && expandable_nodes.every((node) => node.expanded);
+		let all_collapsed =
+			has_expandable_nodes && expandable_nodes.every((node) => !node.expanded);
+
+		this.$collapse_all_btn &&
+			this.$collapse_all_btn.toggle(has_expandable_nodes && !all_collapsed);
+		this.$expand_all_btn && this.$expand_all_btn.toggle(has_expandable_nodes && !all_expanded);
 	}
 	toggle_label() {
 		console.log("hello");
