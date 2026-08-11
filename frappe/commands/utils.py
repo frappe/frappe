@@ -380,6 +380,39 @@ def export_fixtures(context: CliCtxObj, app=None):
 		raise SiteNotSpecifiedError
 
 
+@click.command("convert-sidebar-fixtures")
+@click.option("--app", default=None, help="Convert one app's fixtures; omit for every installed app")
+@click.option("--dry-run", is_flag=True, default=False, help="Report what would be written")
+@pass_context
+def convert_sidebar_fixtures(context: CliCtxObj, app=None, dry_run=False):
+	"Convert an app's old workspace_sidebar fixtures into per-module Module Sidebar exports"
+	from frappe.desk.doctype.module_sidebar.convert_fixtures import apps_with_old_fixtures, convert_app
+
+	for site in context.sites:
+		try:
+			frappe.init(site)
+			frappe.connect()
+
+			apps = [app] if app else sorted(apps_with_old_fixtures())
+			if not apps:
+				click.secho("No installed app still ships the old sidebar fixtures.", fg="green")
+
+			for name in apps:
+				click.secho(f"\n{name}", bold=True)
+				results = convert_app(name, dry_run=dry_run)
+				if not results:
+					click.echo("  nothing to convert")
+				for result in results:
+					colour = {"converted": "green", "already converted": "cyan"}.get(
+						result["state"], "yellow"
+					)
+					click.secho(f"  {result['state']:18} {result['module'] or result['path']}", fg=colour)
+		finally:
+			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+
 @click.command("import-doc")
 @click.argument(
 	"path",
@@ -1036,6 +1069,7 @@ commands = [
 	build,
 	clear_cache,
 	clear_website_cache,
+	convert_sidebar_fixtures,
 	database,
 	transform_database,
 	jupyter,
