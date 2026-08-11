@@ -1,13 +1,15 @@
-"""Where sessions live on disk: private directories, the log and meta files, the cwd
-fence, and a per-process cache so one session id maps to one live object."""
+"""Project-grouped session storage: private log/meta/attachment paths, the cwd fence,
+and a process cache mapping each id to one live object."""
 
 from __future__ import annotations
 
 import builtins
+import hashlib
 import json
 import os
 import re
 import uuid
+from collections.abc import Iterator
 from dataclasses import dataclass
 from tempfile import mkstemp
 
@@ -25,6 +27,17 @@ from flow.session.session import Session, SessionConflict
 _SID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
 _META_SUFFIX = ".meta.json"
+_PROJECT_SLUG_RE = re.compile(r"[^A-Za-z0-9._-]+")
+_PROJECT_SLUG_LIMIT = 48
+_PROJECT_HASH_LENGTH = 12
+
+
+@dataclass(frozen=True)
+class _SessionPaths:
+	directory: str
+	log: str
+	meta: str
+	attachments: str
 
 
 @dataclass(frozen=True)
@@ -65,7 +78,11 @@ class SessionStore:
 		sid = config.session_id or uuid.uuid4().hex[:16]
 		if not _SID_RE.match(sid):
 			raise ValueError(f"invalid session_id {sid!r} (allowed: letters, digits, - _)")
-		session = self._build(sid, config)
+		if self.exists(sid):
+			raise ValueError(f"session_id {sid!r} already exists")
+		paths = self._project_paths(sid, config.cwd)
+		_make_private_dir(paths.directory)
+		session = self._build(sid, config, paths)
 		self.save_meta(session)
 		self._cache[sid] = session
 		return session
@@ -73,41 +90,60 @@ class SessionStore:
 	def get(self, sid: str) -> Session:
 		if sid in self._cache:
 			return self._cache[sid]
-		meta_path = self._meta_path(sid)
-		if not os.path.isfile(meta_path):
+		paths = self._locate(sid)
+		if paths is None:
 			raise KeyError(sid)
-		with open(meta_path, encoding="utf-8") as f:
+		with open(paths.meta, encoding="utf-8") as f:
 			config = SessionConfig.model_validate(json.load(f))
 		self._validate_cwd(config.cwd)
-		session = self._build(sid, config)
+		session = self._build(sid, config, paths)
 		self._cache[sid] = session
 		return session
 
 	def exists(self, sid: str) -> bool:
-		return sid in self._cache or os.path.isfile(self._meta_path(sid))
+		return sid in self._cache or self._locate(sid) is not None
 
 	def title(self, sid: str) -> str | None:
 		"""The session's display title: its first user message, read from the log head
 		(the durable row — a compaction's synthetic summary never replaces it)."""
-		return _read_first_user_message(self._log_path(sid))
+		session = self._cache.get(sid)
+		if session is not None:
+			return _read_first_user_message(session.log.path)
+		paths = self._locate(sid)
+		return _read_first_user_message(paths.log) if paths is not None else None
 
 	def delete(self, sid: str) -> None:
-		"""Remove a session's log and meta files. Refused while its run is active."""
-		if not _SID_RE.match(sid) or not self.exists(sid):
-			raise KeyError(sid)
+		"""Remove every session artifact, then its empty project directory.
+
+		Deletion is refused while the run is active. Attachment cleanup happens first,
+		so a filesystem failure cannot leave unaddressable bytes after meta deletion.
+		"""
 		session = self._cache.get(sid)
+		paths = (
+			_session_paths(os.path.dirname(session.log.path), sid)
+			if session is not None
+			else self._locate(sid)
+		)
+		if paths is None:
+			raise KeyError(sid)
 		if session is not None and session.is_running:
 			raise SessionConflict("cannot delete a session with an active run")
-		self._cache.pop(sid, None)
-		for path in (self._log_path(sid), self._meta_path(sid)):
+		attachment_store = session.attachment_store if session is not None else None
+		if attachment_store is not None:
+			attachment_store.remove_all()
+		elif os.path.exists(paths.attachments):
+			AttachmentStore(paths.attachments).remove_all()
+		for path in (paths.log, paths.meta):
 			try:
 				os.unlink(path)
 			except FileNotFoundError:
 				pass
-		attachment_store = session.attachment_store if session is not None else None
-		if attachment_store is None:
-			attachment_store = AttachmentStore(self._attachments_path(sid))
-		attachment_store.remove_all()
+		self._cache.pop(sid, None)
+		if paths.directory != self.sessions_dir:
+			try:
+				os.rmdir(paths.directory)
+			except OSError:
+				pass  # another session (or an operator-owned file) still uses the project
 
 	def list(self) -> builtins.list[SessionInfo]:
 		"""Cheap listing for pickers, newest activity first. Sessions with no durable
@@ -116,23 +152,24 @@ class SessionStore:
 		replay), so a cold session's model can lag a later `model_changed` row — use
 		`get` for exact values."""
 		items: builtins.list[tuple[float, SessionInfo]] = []
-		for name in os.listdir(self.sessions_dir):
-			if name.startswith(".") or not name.endswith(_META_SUFFIX):
+		seen: set[str] = set()
+		for paths in self._iter_session_paths():
+			sid = os.path.basename(paths.meta)[: -len(_META_SUFFIX)]
+			if sid in seen:
 				continue
-			sid = name[: -len(_META_SUFFIX)]
-			info = self._describe(sid)
+			seen.add(sid)
+			info = self._describe(sid, paths)
 			if info is None or info.latest_seq == 0:
 				continue
-			log_path = self._log_path(sid)
 			try:
-				mtime = os.path.getmtime(log_path if os.path.isfile(log_path) else self._meta_path(sid))
+				mtime = os.path.getmtime(paths.log if os.path.isfile(paths.log) else paths.meta)
 			except OSError:
 				mtime = 0.0
 			items.append((mtime, info))
 		items.sort(key=lambda item: item[0], reverse=True)
 		return [info for _, info in items]
 
-	def _describe(self, sid: str) -> SessionInfo | None:
+	def _describe(self, sid: str, paths: _SessionPaths) -> SessionInfo | None:
 		session = self._cache.get(sid)
 		if session is not None:
 			return SessionInfo(
@@ -141,14 +178,14 @@ class SessionStore:
 				model=session.model,
 				latest_seq=session.log.latest_seq,
 				cwd=session.config.cwd,
-				title=self.title(sid),
+				title=_read_first_user_message(session.log.path),
 			)
 		try:
-			with open(self._meta_path(sid), encoding="utf-8") as f:
+			with open(paths.meta, encoding="utf-8") as f:
 				config = SessionConfig.model_validate(json.load(f))
 		except (OSError, ValueError):
 			return None  # one broken meta file must not break the whole listing
-		tail = _read_last_row(self._log_path(sid))
+		tail = _read_last_row(paths.log)
 		latest_seq = tail.get("seq") if tail else 0
 		if not isinstance(latest_seq, int):
 			latest_seq = 0
@@ -161,14 +198,15 @@ class SessionStore:
 			model=config.model,
 			latest_seq=latest_seq,
 			cwd=config.cwd,
-			title=self.title(sid),
+			title=_read_first_user_message(paths.log),
 		)
 
 	def save_meta(self, session: Session) -> None:
 		"""Write the session's config to its meta file (called at create and on config
 		patches like `auto_approve`; model changes live in the log instead)."""
-		path = self._meta_path(session.id)
-		fd, tmp = mkstemp(prefix=f".{os.path.basename(path)}.", dir=self.sessions_dir)
+		paths = _session_paths(os.path.dirname(session.log.path), session.id)
+		path = paths.meta
+		fd, tmp = mkstemp(prefix=f".{os.path.basename(path)}.", dir=paths.directory)
 		try:
 			os.chmod(tmp, 0o600)
 			with os.fdopen(fd, "w", encoding="utf-8") as f:
@@ -178,25 +216,41 @@ class SessionStore:
 			if os.path.exists(tmp):
 				os.unlink(tmp)
 
-	def _build(self, sid: str, config: SessionConfig) -> Session:
+	def _build(self, sid: str, config: SessionConfig, paths: _SessionPaths) -> Session:
 		return Session(
 			sid,
 			config,
-			SessionLog(self._log_path(sid)),
+			SessionLog(paths.log),
 			event_sink=self.event_sink,
 			credentials=self.credentials,
 			allowed_roots=self.allowed_roots,
-			attachment_store=AttachmentStore(self._attachments_path(sid)),
+			attachment_store=AttachmentStore(paths.attachments),
 		)
 
-	def _log_path(self, sid: str) -> str:
-		return os.path.join(self.sessions_dir, f"{sid}.jsonl")
+	def _project_paths(self, sid: str, cwd: str) -> _SessionPaths:
+		directory = os.path.join(self.sessions_dir, _project_directory_name(cwd))
+		return _session_paths(directory, sid)
 
-	def _meta_path(self, sid: str) -> str:
-		return os.path.join(self.sessions_dir, f"{sid}.meta.json")
+	def _locate(self, sid: str) -> _SessionPaths | None:
+		if not _SID_RE.match(sid):
+			return None
+		for entry in os.scandir(self.sessions_dir):
+			if entry.name.startswith(".") or not entry.is_dir(follow_symlinks=False):
+				continue
+			paths = _session_paths(entry.path, sid)
+			if os.path.isfile(paths.meta):
+				return paths
+		return None
 
-	def _attachments_path(self, sid: str) -> str:
-		return os.path.join(self.sessions_dir, f"{sid}.attachments")
+	def _iter_session_paths(self) -> Iterator[_SessionPaths]:
+		for entry in os.scandir(self.sessions_dir):
+			if entry.name.startswith(".") or not entry.is_dir(follow_symlinks=False):
+				continue
+			for child in os.scandir(entry.path):
+				if child.is_file(follow_symlinks=False) and child.name.endswith(_META_SUFFIX):
+					sid = child.name[: -len(_META_SUFFIX)]
+					if _SID_RE.match(sid):
+						yield _session_paths(entry.path, sid)
 
 	def _validate_cwd(self, cwd: str) -> None:
 		"""Fence a session's cwd to `allowed_roots` (realpath-resolved, so symlink/`..`
@@ -205,6 +259,23 @@ class SessionStore:
 			return
 		if not is_path_allowed(canonical_path(cwd), self.allowed_roots):
 			raise ValueError(f"cwd {cwd!r} is not under an allowed root")
+
+
+def _project_directory_name(cwd: str) -> str:
+	canonical = canonical_path(cwd)
+	basename = os.path.basename(os.path.normpath(canonical)) or "root"
+	slug = _PROJECT_SLUG_RE.sub("-", basename).strip(".-_")[:_PROJECT_SLUG_LIMIT] or "project"
+	digest = hashlib.sha256(os.fsencode(os.path.normcase(canonical))).hexdigest()[:_PROJECT_HASH_LENGTH]
+	return f"{slug}--{digest}"
+
+
+def _session_paths(directory: str, sid: str) -> _SessionPaths:
+	return _SessionPaths(
+		directory=directory,
+		log=os.path.join(directory, f"{sid}.jsonl"),
+		meta=os.path.join(directory, f"{sid}.meta.json"),
+		attachments=os.path.join(directory, f"{sid}.attachments"),
+	)
 
 
 def _read_first_user_message(path: str) -> str | None:

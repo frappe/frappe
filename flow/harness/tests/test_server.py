@@ -231,7 +231,8 @@ def test_corrupt_log_reports_where_and_spares_other_sessions(tmp_path):
 	broken = c.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
 	healthy = c.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
 	good_line = json.dumps({"seq": 1, "type": "user_message", "content": "ok"}) + "\n"
-	log = tmp_path / "data" / "sessions" / f"{broken}.jsonl"
+	meta = next((tmp_path / "data" / "sessions").rglob(f"{broken}.meta.json"))
+	log = meta.with_name(f"{broken}.jsonl")
 	log.write_text(good_line + '{"seq":2,"type":"bad\n')
 	restarted = _client(tmp_path)  # a fresh store caches nothing
 

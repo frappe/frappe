@@ -129,7 +129,10 @@ class AttachmentStore:
 
 	def remove_all(self) -> None:
 		with self._lock:
-			shutil.rmtree(self.path, ignore_errors=True)
+			try:
+				shutil.rmtree(self.path)
+			except FileNotFoundError:
+				pass
 
 	def _write(self, content: AttachmentContent, data: bytes) -> None:
 		with self._lock:
