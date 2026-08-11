@@ -65,6 +65,9 @@ def _follow_document(doctype: str, doc_name: str, user: str) -> Document | bool:
 		return
 
 	if not is_document_followed(doctype, doc_name, user):
+		if not frappe.has_permission("Document Follow", "create", user=user):
+			return False
+
 		doc = frappe.new_doc("Document Follow")
 <<<<<<< HEAD
 		doc.update({"ref_doctype": doctype, "ref_docname": str(doc_name), "user": user})
