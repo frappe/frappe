@@ -3,9 +3,14 @@
 		<div
 			v-for="row in propertyRows"
 			:key="row.property"
-			class="group flex items-start gap-1"
+			class="group flex items-center gap-1"
 			:data-style-property="row.styleProperty"
 		>
+			<DynamicStyleSetter
+				:block="selectedBlock ?? undefined"
+				:property="row.dynamicValueProperty"
+				@update:modelValue="(expression: string) => blockController.setStyle(row.styleProperty, expression)"
+			/>
 			<InlineInput
 				class="min-w-0 flex-1"
 				:label="row.label"
@@ -19,7 +24,7 @@
 				label="Remove property"
 				size="sm"
 				tooltipPlacement="left"
-				class="mt-[7px] w-4 shrink-0 opacity-0 focus:opacity-100 group-hover:opacity-100"
+				class="w-4 shrink-0 opacity-0 focus:opacity-100 group-hover:opacity-100"
 				@click="removeProperty(row.property)"
 			/>
 		</div>
@@ -55,6 +60,7 @@ const addAddedProperty = (componentId: string, property: string) => {
 <script setup lang="ts">
 import { computed, nextTick, ref, type CSSProperties } from "vue"
 import Autocomplete from "@/components/Autocomplete.vue"
+import DynamicStyleSetter from "@/components/DynamicStyleSetter.vue"
 import IconButton from "@/components/IconButton.vue"
 import InlineInput from "@/components/InlineInput.vue"
 import useCanvasStore from "@/stores/canvasStore"
@@ -91,12 +97,24 @@ const activeProperties = computed(() => {
 })
 
 const propertyRows = computed(() =>
-	Array.from(activeProperties.value).map((property) => ({
-		property,
-		styleProperty: kebabToCamelCase(property) as keyof CSSProperties,
-		label: toTitleCase(property),
-		controlProps: getCSSPropertyControl(property),
-	})),
+	Array.from(activeProperties.value).map((property) => {
+		const styleProperty = kebabToCamelCase(property) as keyof CSSProperties
+		const label = toTitleCase(property)
+		return {
+			property,
+			styleProperty,
+			label,
+			controlProps: getCSSPropertyControl(property),
+			// BlockProperty-shaped descriptor so DynamicStyleSetter can label itself
+			// and read the current value, like it does for curated rows
+			dynamicValueProperty: {
+				component: InlineInput,
+				searchKeyWords: "",
+				getProps: () => ({ label, property: styleProperty }),
+				getValue: () => (blockController.getStyle(styleProperty) ?? null) as string | null,
+			},
+		}
+	}),
 )
 
 const getRenderedValue = (property: keyof CSSProperties) =>
