@@ -3,7 +3,11 @@
 
 import frappe
 from frappe import _
-from frappe.desk.doctype.module_sidebar.module_sidebar import assign_keys
+from frappe.desk.doctype.module_sidebar.module_sidebar import (
+	LINKED_IDENTITY_FIELDS,
+	is_linked,
+	item_key,
+)
 from frappe.model.document import Document
 
 # Cached set of `(module, user)` pairs that have a customization, so the boot path can skip a
@@ -58,8 +62,16 @@ class CustomModuleSidebar(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		self.validate_module()
 		self.validate_unique()
-		self.key_the_items()
+		self.anchor_the_items()
+
+	def validate_module(self):
+		"""A layer is anchored to a module, and this says so in the model rather than leaving it
+		to the endpoints -- `_validate_links` below no longer checks this document's own Link
+		fields either, so nothing else would."""
+		if not frappe.db.exists("Module Def", self.module):
+			frappe.throw(_("{0} is not a module.").format(self.module))
 
 	def validate_unique(self):
 		existing = frappe.db.exists(
@@ -76,18 +88,40 @@ class CustomModuleSidebar(Document):
 				frappe.DuplicateEntryError,
 			)
 
-	def key_the_items(self):
-		"""Every row is matched to a base item by `key`, so every row needs one.
+	def anchor_the_items(self):
+		"""Every row has to name a base item, and name it the way the model names one.
 
-		A reference with no key names nothing, so it is dropped rather than given a derived one
-		-- a derived key would be a coincidence, and coinciding with a real base item is worse
-		than saying nothing. An added row *is* an item and gets its key from the same derivation
-		base items use, which is what keeps it identifiable across saves: the child rows are
-		hash-named and recreated on every save, so anything anchored to a row name would come
-		loose the first time somebody else's layer was written.
+		A reference naming nothing -- no link, no key -- is dropped rather than given a derived
+		one: a derived identity would be a coincidence, and coinciding with a real base item is
+		worse than saying nothing. An added row *is* an item and names itself, out of the same
+		columns a base item is named by. Nothing is ever anchored to a row's `name`: child rows
+		are hash-named and recreated on every save.
+
+		A linked row's stored key is blanked on the way in. Its columns are its identity, and a
+		rename rewrites them for base and delta together -- a key stored beside them would
+		survive that rename still naming what the row used to point at.
 		"""
-		self.set("sidebar_items", [row for row in self.sidebar_items if row.added or row.key])
-		assign_keys(self.sidebar_items)
+		self.set(
+			"sidebar_items",
+			[row for row in self.sidebar_items if row.added or is_linked(row) or row.key],
+		)
+		for row in self.sidebar_items:
+			if is_linked(row):
+				row.key = None
+
+	def _validate_links(self):
+		"""A row *names* a document; it does not reference one.
+
+		Frappe checks a Dynamic Link's target still exists on every save, which here would mean
+		one deleted report turning every later write to this layer into an error -- relabelling
+		the sidebar, a new workspace adding its link, anything. A row naming something that is
+		gone stops applying when the sidebar resolves, which is exactly what an app deleting an
+		item has always done to a delta that named it.
+
+		`ignore_links_on_delete` in hooks is the same call made from the other side of the same
+		link: nobody's sidebar preference may stop a document being deleted either.
+		"""
+		return
 
 	def on_update(self):
 		self.clear_customization_cache()
@@ -175,36 +209,42 @@ def merge_layers(items: list[dict], layers: list["CustomModuleSidebar"]) -> list
 	for layer in layers:
 		resolved = apply_layer(resolved, hidden, layer)
 
-	return [item for item in resolved if not hidden.get(item.get("key"))]
+	return [item for item in resolved if not hidden.get(item_key(item))]
 
 
 def apply_layer(items: list[dict], hidden: dict[str, bool], layer: "CustomModuleSidebar") -> list[dict]:
-	"""One layer's arrangement, folded into `items`. Mutates `hidden`, which spans the layers."""
-	by_key = {item.get("key"): item for item in items}
+	"""One layer's arrangement, folded into `items`. Mutates `hidden`, which spans the layers.
+
+	Both sides are matched by `item_key`, which reads the same columns off a stored row as off
+	a resolved item -- so a rename that rewrote both leaves them still matching, and neither
+	side had to be re-keyed for it.
+	"""
+	by_key = {item_key(item): item for item in items}
 	arranged: list[str] = []
 
 	for row in layer.sidebar_items:
-		# a key named twice is a client sending the same item twice; the first position wins,
-		# because the alternative is rendering the item twice
-		if not row.key or row.key in arranged:
+		key = item_key(row)
+		# an item named twice is a client sending the same one twice; the first position wins,
+		# because the alternative is rendering it twice
+		if key in arranged:
 			continue
 
 		if row.added:
-			by_key[row.key] = shape_added_item(row)
-		elif row.key in by_key:
-			by_key[row.key] = {**by_key[row.key], **overrides(row)}
+			by_key[key] = shape_added_item(row)
+		elif key in by_key:
+			by_key[key] = {**by_key[key], **overrides(row)}
 		else:
 			# an item the app has since deleted, or one this user may not see: skipped, never
 			# raised, and never conjured into the list
 			continue
 
-		hidden[row.key] = bool(row.hidden)
-		arranged.append(row.key)
+		hidden[key] = bool(row.hidden)
+		arranged.append(key)
 
 	# Items the layer never named keep their incoming order and follow the ones it did, so an
 	# app adding an item still surfaces for someone who has already reordered.
 	seen = set(arranged)
-	return [by_key[key] for key in arranged] + [item for item in items if item.get("key") not in seen]
+	return [by_key[key] for key in arranged] + [item for item in items if item_key(item) not in seen]
 
 
 def overrides(row) -> dict:
@@ -217,7 +257,7 @@ def shape_added_item(row) -> dict:
 	item = {field: row.get(field) for field in ADDED_ITEM_FIELDS}
 	item.update(
 		{
-			"key": row.key,
+			"key": item_key(row),
 			"label": _(row.label),
 			"tab": row.navigate_to_tab,
 			"added": 1,
@@ -296,10 +336,7 @@ def add_site_sidebar_item(module: str, item: dict) -> None:
 		else frappe.new_doc("Custom Module Sidebar").update({"module": module, "user": SITE_LAYER})
 	)
 
-	if any(
-		row.added and row.link_type == item.get("link_type") and row.link_to == item.get("link_to")
-		for row in doc.sidebar_items
-	):
+	if any(item_key(row) == item_key(item) for row in doc.sidebar_items):
 		return
 
 	doc.append("sidebar_items", {**item, "added": 1})
@@ -336,7 +373,7 @@ def _save_customization(
 
 	if items is not None:
 		rows = [shape_row(row) for row in (frappe.parse_json(items) or [])]
-		drop_inherited_values(module, rows, user)
+		settle_references(module, rows, user)
 
 		doc.set("sidebar_items", [])
 		for row in rows:
@@ -353,13 +390,18 @@ def _save_customization(
 def shape_row(row: dict) -> dict:
 	"""One row of a saved arrangement, narrowed to what its kind is allowed to carry.
 
-	A reference keeps `key`, `hidden` and the two fields a person can have an opinion about;
-	everything else the client echoed back is dropped here rather than stored. That is the
-	whole defence against the failure mode that killed full-body storage -- a stored body
-	carries the label, icon, link and filters whether or not the user has a view on them, so
-	one reorder would freeze the site's and the app's forever.
+	A reference keeps what names the item it refers to -- its link columns, or the `key` it was
+	shown for a row that has no link -- plus `hidden` and the two fields a person can have an
+	opinion about. Everything else the client echoed back is dropped here rather than stored.
+	That is the whole defence against the failure mode that killed full-body storage -- a
+	stored body carries the label, icon, link and filters whether or not the user has a view on
+	them, so one reorder would freeze the site's and the app's forever.
+
+	The link columns are not a body: they are the row's identity, kept in real columns so a
+	rename repairs the reference and the base item it names in the same statement.
 	"""
 	shaped = {
+		**{field: row.get(field) for field in LINKED_IDENTITY_FIELDS},
 		"key": row.get("key"),
 		"hidden": int(row.get("hidden") or 0),
 		"added": int(row.get("added") or 0),
@@ -374,7 +416,50 @@ def shape_row(row: dict) -> dict:
 	return shaped
 
 
-def drop_inherited_values(module: str, rows: list[dict], user: str | None) -> None:
+def settle_references(module: str, rows: list[dict], user: str | None) -> None:
+	"""Resolve what the layer being saved was looking at, and settle its references against it:
+	what each row *names*, and then what it actually *says*.
+
+	One base resolution for both, and none at all for an arrangement of nothing but added items
+	-- and it happens when a person clicks, not when the desk boots.
+	"""
+	references = [row for row in rows if not row["added"]]
+	if not references:
+		return
+
+	shown = {item_key(item): item for item in merge_layers(base_items(module), layers_below(module, user))}
+	anchor_references(references, shown)
+	drop_inherited_values(references, shown)
+
+
+def anchor_references(rows: list[dict], shown: dict[str, dict]) -> None:
+	"""Store each reference the way the model names the item it refers to.
+
+	A client may name an item however it likes -- echoing the whole row back, or sending only
+	the `key` the payload gave it. What gets *stored* is canonical either way: a linked item's
+	own columns, so that a rename repairs the reference and the base row together in one
+	statement; an unlinked item's key, since it has no columns to be named by.
+
+	A reference to something not in front of the saver is left exactly as it arrived. It names
+	an item that is not there and simply stops applying -- which is also what an app deleting
+	an item does to a delta that survived it.
+	"""
+	for row in rows:
+		item = shown.get(item_key(row))
+		if not item:
+			continue
+
+		row["type"] = item.get("type")
+		if is_linked(item):
+			row.update({field: item.get(field) for field in LINKED_IDENTITY_FIELDS})
+			row["key"] = None
+		else:
+			# nowhere to point, so the columns say nothing and the key says everything
+			row.update(dict.fromkeys(("link_type", "link_to", "url")))
+			row["key"] = item_key(item)
+
+
+def drop_inherited_values(rows: list[dict], shown: dict[str, dict]) -> None:
 	"""Blank out what a reference row only echoes back from the layer below it.
 
 	The client sends the arrangement it is *showing*, which carries the labels and icons it was
@@ -383,18 +468,10 @@ def drop_inherited_values(module: str, rows: list[dict], user: str | None) -> No
 	neither the site's relabel nor the app's would ever reach them again. Equal to what they
 	were shown means they said nothing.
 	"""
-	references = [row for row in rows if not row.get("added") and row.get("key")]
-	if not references:
-		return
-
-	inherited = {
-		item.get("key"): item for item in merge_layers(base_items(module), layers_below(module, user))
-	}
-
-	for row in references:
-		shown = inherited.get(row["key"]) or {}
+	for row in rows:
+		item = shown.get(item_key(row)) or {}
 		for field in REFERENCE_FIELDS:
-			value = shown.get(field)
+			value = item.get(field)
 			if row.get(field) and row[field] in (value, _(value) if value else None):
 				row[field] = None
 

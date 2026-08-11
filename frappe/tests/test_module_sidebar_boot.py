@@ -204,10 +204,20 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 			self.assertIsInstance(sidebar["items"], list)
 
 	def test_items_carry_their_key(self):
-		"""Per-user customization anchors on `key`, so the payload has to carry it."""
+		"""Per-user customization anchors on the item's identity, so the payload has to carry
+		it -- it is what a saved arrangement sends back."""
 		for sidebar in get_module_sidebars().values():
 			for item in sidebar["items"]:
 				self.assertTrue(item.get("key"), f"{sidebar['module']} has an item with no key")
+
+	def test_the_payload_names_each_item_once(self):
+		"""What the deleted uniqueness validator used to promise, kept where it can be: rows
+		arrive here from a shipped document, a computed base and a layer's added rows alike, so
+		the resolution is the only place that sees the whole list. Two items sharing a key
+		would be one item a customization cannot name without naming the other."""
+		for sidebar in get_module_sidebars().values():
+			keys = [item["key"] for item in sidebar["items"]]
+			self.assertEqual(len(set(keys)), len(keys), f"{sidebar['module']} repeats an item")
 
 	def test_a_sidebar_of_only_section_breaks_is_dropped(self):
 		"""Same rule as the legacy builder, mirrored by `is_icon_permitted`. If these two

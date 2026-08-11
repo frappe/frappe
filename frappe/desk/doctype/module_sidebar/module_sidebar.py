@@ -3,7 +3,7 @@
 
 import hashlib
 import json
-from collections import Counter, defaultdict
+from collections import defaultdict
 
 import click
 
@@ -35,10 +35,12 @@ SIDEBAR_ITEM_FIELDS = (
 	"default_workspace",
 )
 
-# How boot decides two authored rows are the same item. Reproduced exactly so a merged
-# sidebar contains what the desk renders today -- the tables carry duplicates boot filters
-# out, and copying rows straight across would surface them.
-BOOT_DEDUPE_FIELDS = ("type", "label", "link_type", "link_to")
+# A linked row's identity *is* these columns, matched directly rather than hashed into one.
+# That is what makes a customization survive a rename: `link_to` is a Dynamic Link, so
+# `rename_dynamic_links` rewrites every `Module Sidebar Item` naming the renamed document in a
+# single statement -- base rows and customization rows together, whichever parent they hang
+# off -- with no hook, no patch and no re-keying. A hash column cannot be repaired that way.
+LINKED_IDENTITY_FIELDS = ("type", "link_type", "link_to", "url")
 
 # The merge reads from `Workspace.sidebar_items` and writes to `Module Sidebar.items`, and the
 # two use different child doctypes: the legacy `Workspace Sidebar Item` is left untouched until
@@ -81,8 +83,19 @@ class ModuleSidebar(Document, DeskViews):
 			self.title = self.module
 
 		self.validate_standard()
-		assign_keys(self.items)
-		self.validate_unique_keys()
+		self.clear_stored_keys()
+
+	def clear_stored_keys(self):
+		"""A base row's identity is derived from its own columns, so it stores no `key`.
+
+		The column is only ever meaningful on a `Custom Module Sidebar` row, where a reference
+		to a Section Break has nothing else to name it by. Left on a base row it would be a
+		second, staler answer to the same question -- and rows shipped before the derivation
+		changed still carry one, so this is what retires them: every import runs `validate`, so
+		an app's next update takes the dead values out with it.
+		"""
+		for item in self.items:
+			item.key = None
 
 	def validate_app_content(self):
 		"""A `Module Sidebar` is app content, and only developer mode authors app content.
@@ -139,12 +152,11 @@ class ModuleSidebar(Document, DeskViews):
 				).format(frappe.bold(self.module))
 			)
 
-	def validate_unique_keys(self):
-		seen = set()
-		for item in self.items:
-			if item.key in seen:
-				frappe.throw(_("Duplicate sidebar item key {0}.").format(item.key))
-			seen.add(item.key)
+	# No uniqueness validator. Identity is now the row's own columns, so two rows that share
+	# one *are* the same item -- something a document may honestly contain (two workspaces of
+	# a module listing the same report) and which nothing downstream has to be protected from:
+	# the resolution keeps the first of them and drops the rest. Refusing the save instead
+	# would reject app content that renders fine.
 
 	def on_update(self):
 		self.export_sidebar()
@@ -324,8 +336,9 @@ def materialize_base(module: str) -> "ModuleSidebar":
 	because that is exactly what the desk renders for it (see `boot.get_sidebar_bases`) and
 	shipping it empty would ship a file that does not match the navigation it came from.
 
-	The base carries over verbatim, item `key`s included, which is what keeps existing
-	customization deltas anchored: a user who hid an item keeps it hidden through the adoption.
+	The base carries over verbatim, which is all it takes to keep existing customization deltas
+	anchored: a row's identity is the columns being copied, so a user who hid an item keeps it
+	hidden through the adoption without anything being re-keyed.
 	"""
 	doc = get_sidebar(module)
 	if doc and doc.items:
@@ -345,51 +358,48 @@ def materialize_base(module: str) -> "ModuleSidebar":
 	return doc
 
 
-def derive_key(item, counter: Counter) -> str:
-	"""Stable identity for a sidebar item, used to anchor per-user customization.
+def is_linked(item) -> bool:
+	"""Whether this row points somewhere. A Section Break or a spacer does not."""
+	return bool(item.get("link_to") or item.get("url"))
 
-	Deliberately excludes `label`, so an app author renaming an item does not orphan every
-	user's delta. The cost is that items differing only by label collide -- a Section Break
-	carries nothing else at all -- so an ordinal suffix separates them within a parent.
 
-	Consequence worth knowing: renaming a section preserves deltas (the point), but
-	inserting or deleting one re-anchors the deltas of every section after it. An author who
-	needs stability across a reshuffle sets `key` explicitly on the row; that pin wins and
-	this derivation is only the fallback.
+def item_key(item) -> str:
+	"""Identity of a sidebar item -- what a customization row names when it names this item.
 
-	Pure, so re-importing the same JSON regenerates the same keys even though the child rows
-	are hash-named and recreated on every import. That is the entire reason the field exists.
+	Two shapes, because the two kinds of row have different identities available to them:
+
+	- a **linked** row is identified by the columns it already carries. Nothing is stored, so
+	  there is no second copy to keep in step with them and nothing for a rename to orphan;
+	  see `LINKED_IDENTITY_FIELDS` for why matching them directly is the whole point.
+	- an **unlinked** row (Section Break, spacer) points nowhere, so it is identified by a hash
+	  of its type and its label. The label is safe to include: computed section labels are code
+	  constants, at most three per module and all distinct.
+
+	Only a *customization* row stores that hash, because a reference to a Section Break has
+	nothing else to name it by and its own label is a field the reference may override. A base
+	row derives it and stores nothing -- `ModuleSidebar.clear_stored_keys` keeps that true, and
+	boot does not even read the column. So a stored key that reaches here is always the
+	customization's, never a leftover of an older derivation.
+
+	Pure, and derived from columns the rows already carry, so re-importing the same JSON
+	produces the same identities even though standard child rows are hash-named and recreated
+	on every import -- which is why a delta can never anchor on a row's `name`.
 	"""
-	base = "|".join(
-		[
-			item.get("type") or "",
-			item.get("link_type") or "",
-			item.get("link_to") or "",
-			item.get("url") or "",
-		]
-	)
-	ordinal = counter[base]
-	counter[base] += 1
-	return f"{hashlib.sha1(base.encode()).hexdigest()[:10]}-{ordinal}"
+	if is_linked(item):
+		return "|".join(item.get(field) or "" for field in LINKED_IDENTITY_FIELDS)
+
+	return item.get("key") or unlinked_key(item)
 
 
-def assign_keys(items):
-	"""Fill in `key` on any row lacking one. An explicitly authored key is left alone."""
-	counter = Counter()
-	pinned = {item.key for item in items if item.get("key")}
+def unlinked_key(item) -> str:
+	"""The key an unlinked row gets when nothing stored one for it.
 
-	for item in items:
-		if item.get("key"):
-			continue
-		key = derive_key(item, counter)
-		# A derived key must never collide with an author's pin.
-		while key in pinned:
-			key = derive_key(item, counter)
-		item.key = key
-
-
-def boot_dedupe_key(item) -> tuple:
-	return tuple(item.get(field) for field in BOOT_DEDUPE_FIELDS)
+	No ordinal. The one the old derivation carried existed to separate rows that collided
+	because `label` was excluded; including the label is what removes the collision, and the
+	ordinal with it -- an ordinal re-anchored every delta after any insertion.
+	"""
+	identity = f"{item.get('type') or ''}|{item.get('label') or ''}"
+	return hashlib.sha1(identity.encode()).hexdigest()[:10]
 
 
 def get_module_sidebar_sources() -> dict[str, list[frappe._dict]]:
@@ -478,25 +488,24 @@ def display_title(module: str, primary: frappe._dict, is_merge: bool) -> str:
 def merge_items(primary: frappe._dict, secondaries: list[frappe._dict]) -> list[dict]:
 	"""Primary's items, then each secondary under a collapsed Section Break of its own.
 
-	Deduped on boot's key across the whole merged list, which drops both the duplicate rows
-	the desk already hides and the genuine overlap between two workspaces of one module.
-	Including `label` in that key is what preserves deliberate duplicates, such as a doctype
-	deliberately listed under two different sections.
+	Deduped on `item_key` across the whole merged list, which drops both the duplicate rows the
+	desk already hides and the genuine overlap between two workspaces of one module. The same
+	identity the resolution uses, so the merge cannot produce a row the desk would then drop:
+	two rows pointing at one target are one item, whatever the two workspaces called it.
 	"""
 	merged = []
 	seen = set()
 
 	def take(item, source: str, force_child=False):
-		key = boot_dedupe_key(item)
+		key = item_key(item)
 		if key in seen:
 			return
 		seen.add(key)
 		row = {field: item.get(field) for field in SIDEBAR_ITEM_FIELDS}
 		row["source_workspace"] = source
-		# An authored key is a pin and must survive the merge; a derived one is re-derived
-		# over the merged list, where the ordinals differ.
-		if item.get("key"):
-			row["key"] = item.get("key")
+		# Nothing to carry across for identity: a linked row's is the columns just copied, and
+		# an unlinked one's falls out of its type and label. There is no key to re-derive.
+		#
 		# Only links nest. A secondary's own Section Breaks stay top-level sections: the desk
 		# renders one level of nesting, so a Section Break marked `child` is an item that
 		# claims a parent the renderer never gives it.
@@ -516,7 +525,7 @@ def merge_items(primary: frappe._dict, secondaries: list[frappe._dict]) -> list[
 			"source_workspace": secondary.name,
 		}
 		merged.append(section)
-		seen.add(boot_dedupe_key(frappe._dict(section)))
+		seen.add(item_key(section))
 		for item in secondary.rows:
 			take(item, secondary.name, force_child=True)
 
@@ -684,7 +693,6 @@ def get_computed_base(module: str) -> frappe._dict:
 def build_computed_base(module: str) -> frappe._dict:
 	"""`get_computed_base` without the cache -- the thing being cached."""
 	items = [frappe._dict(item) for item in generate_items(module)]
-	assign_keys(items)
 
 	return frappe._dict(
 		{

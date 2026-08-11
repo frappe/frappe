@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import json
-from collections import Counter
 from contextlib import contextmanager
 
 import frappe
@@ -10,13 +9,12 @@ from frappe.desk.doctype.module_sidebar.module_sidebar import (
 	COMPUTED_BASE_CACHE_KEY,
 	MODULE_CONTENT_DOCTYPES,
 	SYSTEM_WRITE_FLAGS,
-	assign_keys,
 	build_all,
 	build_module_sidebar,
 	clear_computed_base_cache,
-	derive_key,
 	get_computed_base,
 	get_module_sidebar_sources,
+	item_key,
 	mark_as_standard,
 	pick_primary,
 	unmark_as_standard,
@@ -108,6 +106,25 @@ def make_report(module: str, name: str):
 	).insert(ignore_permissions=True)
 
 
+def make_page(module: str, name: str):
+	"""Something in `module` that can be *renamed* -- a Report cannot be.
+
+	`Page.validate` refuses *any* new page outside developer mode, `standard: No` included,
+	and the test site does not have it on. Nothing is written to disk: the export is gated on
+	`standard == "Yes"`.
+	"""
+	with developer_mode():
+		return frappe.get_doc(
+			{
+				"doctype": "Page",
+				"page_name": name,
+				"title": name,
+				"module": module,
+				"standard": "No",
+			}
+		).insert(ignore_permissions=True)
+
+
 def make_sidebar(module: str, **kwargs):
 	"""A `Module Sidebar` authored by hand -- nothing writes one on a module's behalf.
 
@@ -155,61 +172,96 @@ def module_resolvable_on_disk(module, app="frappe"):
 			frappe.local.app_modules[app].remove(scrubbed)
 
 
-class TestModuleSidebarKeys(IntegrationTestCase):
-	"""The `key` field exists so per-user customization survives an app re-authoring its
-	sidebar. These pin the properties that makes that true."""
+class TestItemIdentity(IntegrationTestCase):
+	"""What makes two sidebar rows the same item, and what that identity is made of.
 
-	def test_key_is_stable_across_regeneration(self):
-		"""Same input rows -> same keys, which is what makes re-import safe.
+	A linked row's four columns *are* its identity, so a rename repairs it. An unlinked row has
+	nothing to repair and keeps a stored key. These pin both halves.
+	"""
 
-		Standard child rows are hash-named and recreated on every import, so a delta can
-		never anchor on `name`. It anchors on `key`, and this is why that works.
-		"""
+	def test_a_linked_row_is_identified_by_its_columns(self):
+		"""No hash, no stored id: the value is the columns, which is what leaves the link
+		column free to be repaired by an ordinary Dynamic Link rename."""
+		row = {"type": "Link", "link_type": "DocType", "link_to": "User", "label": "Users"}
 
-		def keys_for(rows):
-			counter = Counter()
-			return [derive_key(row, counter) for row in rows]
+		self.assertEqual(item_key(row), "Link|DocType|User|")
 
-		rows = [
-			{"type": "Link", "link_type": "DocType", "link_to": "User", "label": "Users"},
-			{"type": "Section Break", "label": "Reports"},
-			{"type": "Link", "link_type": "Report", "link_to": "Permitted Documents For User"},
-			{"type": "Section Break", "label": "Settings"},
-		]
-
-		self.assertEqual(keys_for(rows), keys_for(rows))
-		# and the two Section Breaks, which collide on everything but their ordinal
-		self.assertEqual(len(set(keys_for(rows))), 4)
-
-	def test_key_ignores_label(self):
-		"""Renaming an item must not orphan a user's delta -- the whole point of excluding
-		`label` from the derivation."""
-		counter_a, counter_b = Counter(), Counter()
-		before = derive_key(
-			{"type": "Link", "link_type": "DocType", "link_to": "User", "label": "Users"}, counter_a
+	def test_identity_ignores_the_label_of_a_linked_row(self):
+		"""Renaming an item in the sidebar must not orphan a user's delta."""
+		self.assertEqual(
+			item_key({"type": "Link", "link_type": "DocType", "link_to": "User", "label": "Users"}),
+			item_key({"type": "Link", "link_type": "DocType", "link_to": "User", "label": "People"}),
 		)
-		after = derive_key(
-			{"type": "Link", "link_type": "DocType", "link_to": "User", "label": "People"}, counter_b
-		)
-		self.assertEqual(before, after)
 
-	def test_ordinals_separate_colliding_items(self):
-		"""Excluding the label makes every Section Break collide; the ordinal is what keeps
-		them distinct."""
-		items = [frappe._dict({"type": "Section Break", "label": f"S{i}"}) for i in range(4)]
-		assign_keys(items)
-		self.assertEqual(len({item.key for item in items}), 4)
+	def test_identity_follows_a_renamed_target(self):
+		"""The other half of that: the identity *does* move when the target does, which is why
+		base row and delta row -- both rewritten by the rename -- still match afterwards."""
+		before = item_key({"type": "Link", "link_type": "Report", "link_to": "Old Name"})
+		after = item_key({"type": "Link", "link_type": "Report", "link_to": "New Name"})
 
-	def test_authored_key_wins(self):
-		"""An explicit key is a pin -- the derivation is only the fallback."""
-		items = [
-			frappe._dict({"type": "Link", "link_type": "DocType", "link_to": "User", "key": "pinned"}),
-			frappe._dict({"type": "Link", "link_type": "DocType", "link_to": "Role"}),
-		]
-		assign_keys(items)
-		self.assertEqual(items[0].key, "pinned")
-		self.assertTrue(items[1].key)
-		self.assertNotEqual(items[1].key, "pinned")
+		self.assertNotEqual(before, after)
+
+	def test_a_stored_key_never_beats_a_link(self):
+		"""A key stored beside the columns could only be a staler second answer -- it would
+		survive a rename still naming what the row used to point at."""
+		row = {"type": "Link", "link_type": "DocType", "link_to": "User", "key": "stale-0"}
+
+		self.assertEqual(item_key(row), item_key({k: v for k, v in row.items() if k != "key"}))
+
+	def test_unlinked_rows_are_told_apart_by_their_label(self):
+		"""Every Section Break used to collide, which is what the ordinal was for. Including
+		the label removes the collision instead -- and with it the ordinal, which re-anchored
+		every delta below any insertion."""
+		sections = [{"type": "Section Break", "label": f"S{i}"} for i in range(4)]
+
+		self.assertEqual(len({item_key(row) for row in sections}), 4)
+
+	def test_an_unlinked_row_keeps_a_stored_key(self):
+		"""It is how a *customization* row names a Section Break: there are no link columns to
+		name it by, and its label is a field the customization may itself override."""
+		row = {"type": "Section Break", "label": "Reports", "key": "abc1234567"}
+
+		self.assertEqual(item_key(row), "abc1234567")
+
+	def test_the_key_assignment_pass_is_gone(self):
+		"""Identity is derived from columns the row already carries, so nothing writes a key
+		into a base row on save, and nothing re-keys one on re-authoring."""
+		from frappe.desk.doctype.module_sidebar import module_sidebar
+
+		for retired in ("derive_key", "assign_keys", "boot_dedupe_key", "BOOT_DEDUPE_FIELDS"):
+			self.assertFalse(hasattr(module_sidebar, retired), f"{retired} should have been deleted")
+
+		self.assertFalse(hasattr(frappe.new_doc("Module Sidebar"), "validate_unique_keys"))
+
+	def test_a_base_row_stores_no_key_at_all(self):
+		"""Nothing to keep in step with the columns, so nothing is written -- and a key an
+		older derivation left behind is cleared rather than honoured, so the same section is
+		identified the same way on a site that has been upgraded and one that has not."""
+		with sidebarless_module("Test Unkeyed Rows Module") as module:
+			doc = make_sidebar(module)
+			doc.append("items", {"type": "Section Break", "label": "Reports", "key": "9f8e7d6c5b-2"})
+			with developer_mode():
+				doc.save(ignore_permissions=True)
+
+			self.assertEqual([row.key for row in doc.items], [None, None])
+			self.assertEqual(item_key(doc.items[1]), item_key({"type": "Section Break", "label": "Reports"}))
+
+	def test_boot_does_not_read_a_stale_key_off_a_base_row(self):
+		"""Clearing on save retires them as each app re-imports its sidebar; until then the
+		rows are still in the database, and the resolution must not pick them up."""
+		from frappe.boot import get_sidebar_bases
+
+		with sidebarless_module("Test Stale Key Module") as module:
+			doc = make_sidebar(module)
+			# behind `validate`'s back, the way a row written by the old derivation still looks
+			frappe.db.set_value(
+				"Module Sidebar Item", doc.items[0].name, "key", "9f8e7d6c5b-0", update_modified=False
+			)
+
+			base = get_sidebar_bases([module])[module]
+
+			self.assertIsNone(base.rows[0].get("key"))
+			self.assertEqual(item_key(base.rows[0]), "Link|DocType|User|")
 
 
 class TestModuleSidebarMerge(IntegrationTestCase):
@@ -222,7 +274,10 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 		self.workspaces = []
 
 	def tearDown(self):
-		frappe.db.delete("Module Sidebar", {"module": MODULE})
+		# `delete_doc`, not `db.delete`: the latter leaves the item rows behind, and since a
+		# sidebar is named after its module the next one to be inserted adopts the orphans
+		for name in frappe.get_all("Module Sidebar", filters={"module": MODULE}, pluck="name"):
+			frappe.delete_doc("Module Sidebar", name, force=True, ignore_permissions=True)
 		for name in self.workspaces:
 			frappe.delete_doc("Workspace", name, force=True, ignore_missing=True)
 		with no_developer_mode():
@@ -298,9 +353,16 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 		users = [i for i in plan["items"] if i["link_to"] == "User"]
 		self.assertEqual(len(users), 1)
 
-	def test_differently_labelled_duplicates_survive(self):
-		"""Including `label` in the dedupe key is what preserves a doctype deliberately
-		listed under two sections (erpnext's CRM does this with Lead)."""
+	def test_differently_labelled_duplicates_are_one_item(self):
+		"""A relabelled duplicate used to survive the merge, because the dedupe key included
+		`label`. Identity does not: two rows pointing at one target *are* one item, whatever
+		the two workspaces called it (erpnext's CRM lists Lead twice).
+
+		Keeping the second is no longer possible rather than no longer preferred -- it would
+		share an identity with the first, so no customization could name one without naming the
+		other, and the resolution drops it on the way to the payload regardless. The first
+		wins, which is the label the desk was already showing at that position.
+		"""
 		self.make_workspace(
 			"TSM Deliberate",
 			[self.link("User", label="All Users"), self.link("User", label="Active Users")],
@@ -308,7 +370,20 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 
 		plan = build_module_sidebar(MODULE, get_module_sidebar_sources()[MODULE])
 		users = [i for i in plan["items"] if i["link_to"] == "User"]
-		self.assertEqual(len(users), 2)
+		self.assertEqual([i["label"] for i in users], ["All Users"])
+
+	def test_merging_does_not_re_key_items(self):
+		"""A delta made against a source workspace's item still names it after the merge: the
+		merge copies the columns the identity is made of and derives nothing."""
+		self.make_workspace("TSM Keyed", [self.link("User"), {"type": "Section Break", "label": "More"}])
+
+		sources = get_module_sidebar_sources()[MODULE]
+		plan = build_module_sidebar(MODULE, sources)
+
+		self.assertEqual(
+			[item_key(row) for row in sources[0].rows],
+			[item_key(row) for row in plan["items"]],
+		)
 
 	def test_default_workspace_flag_is_carried(self):
 		"""The legacy merge path dropped it, which silently broke `default_workspace_map`
@@ -347,13 +422,13 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 		with developer_mode():
 			build_all()
 			first = frappe.get_doc("Module Sidebar", MODULE)
-			first_items = [(i.key, i.link_to) for i in first.items]
+			first_items = [(item_key(i), i.link_to) for i in first.items]
 
 			build_all()
 		second = frappe.get_doc("Module Sidebar", MODULE)
 
 		self.assertEqual(first.creation, second.creation)
-		self.assertEqual(first_items, [(i.key, i.link_to) for i in second.items])
+		self.assertEqual(first_items, [(item_key(i), i.link_to) for i in second.items])
 
 	def test_a_site_owned_row_cannot_be_made_standard_by_hand(self):
 		"""`standard` means backed by a file. Setting it without writing one leaves a row that
@@ -396,13 +471,13 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 
 		self.assertEqual(len(frappe.get_doc("Module Sidebar", MODULE).items), 3)
 
-	def test_keys_survive_export_and_reimport(self):
+	def test_identities_survive_export_and_reimport(self):
 		"""Export to JSON, re-import twice, and assert the deltas would still resolve.
 
-		This is the property `key` exists for. `import_doc` is delete-then-insert and child
-		rows are hash-named, so every re-import produces different row `name`s -- a
-		customization anchored on `name` would break on every `bench migrate`. Anchored on
-		`key` it survives, because the derivation is pure.
+		This is the property item identity exists for. `import_doc` is delete-then-insert and
+		child rows are hash-named, so every re-import produces different row `name`s -- a
+		customization anchored on `name` would break on every `bench migrate`. Anchored on the
+		row's own columns it survives, because nothing about them is generated.
 		"""
 		import os
 
@@ -420,7 +495,7 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 		doc.db_set("standard", 1, update_modified=False)
 		doc.reload()
 
-		before = {i.key: i.link_to for i in doc.items}
+		before = {item_key(i): i.link_to for i in doc.items}
 		names_before = {i.name for i in doc.items}
 		self.assertTrue(before, "sanity: the sidebar had items")
 
@@ -435,10 +510,10 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 				import_file_by_path(path, force=True, ignore_version=True)
 
 			after_doc = frappe.get_doc("Module Sidebar", MODULE)
-			after = {i.key: i.link_to for i in after_doc.items}
+			after = {item_key(i): i.link_to for i in after_doc.items}
 			names_after = {i.name for i in after_doc.items}
 
-		self.assertEqual(before, after, "keys must be identical across re-import")
+		self.assertEqual(before, after, "identities must be identical across re-import")
 		self.assertNotEqual(names_before, names_after, "sanity: child row names are regenerated")
 
 	def test_legacy_store_is_untouched(self):
@@ -541,8 +616,8 @@ class TestModuleSidebarStandard(IntegrationTestCase):
 			self.assertEqual(doc.title, base.title)
 			self.assertEqual(doc.header_icon, base.header_icon)
 			self.assertEqual(
-				[(row.key, row.type, row.link_to) for row in doc.items],
-				[(row.key, row.type, row.link_to) for row in base.rows],
+				[(item_key(row), row.type, row.link_to) for row in doc.items],
+				[(item_key(row), row.type, row.link_to) for row in base.rows],
 			)
 
 	def test_marking_an_authored_document_exports_it_as_it_stands(self):
@@ -580,7 +655,8 @@ class TestModuleSidebarStandard(IntegrationTestCase):
 			# its own title stands: that is authored, and only the items were missing
 			self.assertEqual(stub.title, "Named by hand")
 			self.assertEqual(
-				[row.key for row in stub.items], [row.key for row in get_computed_base(MODULE).rows]
+				[item_key(row) for row in stub.items],
+				[item_key(row) for row in get_computed_base(MODULE).rows],
 			)
 
 	def test_a_standard_row_whose_file_went_missing_is_written_again(self):
@@ -697,7 +773,8 @@ class TestModuleSidebarStandard(IntegrationTestCase):
 
 			self.assertIsNone(base.get("name"), "a computed base has no document")
 			self.assertEqual(
-				[row.key for row in base.rows], [row.key for row in get_computed_base(MODULE).rows]
+				[item_key(row) for row in base.rows],
+				[item_key(row) for row in get_computed_base(MODULE).rows],
 			)
 
 	def test_a_round_trip_leaves_no_residue(self):
@@ -968,19 +1045,7 @@ class TestComputedSidebarBase(IntegrationTestCase):
 		return make_report(self.module, name)
 
 	def make_page(self, name):
-		# `Page.validate` refuses *any* new page outside developer mode, `standard: No` included,
-		# and the test site does not have it on. Nothing is written to disk: the export is gated
-		# on `standard == "Yes"`.
-		with developer_mode():
-			return frappe.get_doc(
-				{
-					"doctype": "Page",
-					"page_name": name,
-					"title": name,
-					"module": self.module,
-					"standard": "No",
-				}
-			).insert(ignore_permissions=True)
+		return make_page(self.module, name)
 
 	def links(self, base):
 		return [(row.link_type, row.link_to) for row in base.rows]
@@ -1008,12 +1073,12 @@ class TestComputedSidebarBase(IntegrationTestCase):
 
 		self.assertFalse(frappe.db.exists("Module Sidebar", {"module": self.module}))
 
-	def test_items_carry_keys(self):
-		"""A delta anchors on `key`, so a computed base has to be customizable on the same
-		terms as a shipped one."""
+	def test_items_are_identifiable(self):
+		"""A delta anchors on a row's identity, so a computed base has to be customizable on
+		the same terms as a shipped one -- every row identifiable, and no two alike."""
 		self.make_report("Test Keyed Report")
 
-		keys = [row.key for row in get_computed_base(self.module).rows]
+		keys = [item_key(row) for row in get_computed_base(self.module).rows]
 
 		self.assertTrue(all(keys))
 		self.assertEqual(len(set(keys)), len(keys))

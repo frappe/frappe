@@ -473,6 +473,12 @@ ignore_links_on_delete = [
 	"Access Log",
 	"Permission Log",
 	"Desktop Icon",
+	# Navigation, not references. A sidebar item names a way in to a document; the document
+	# does not belong to it, and a dangling item is already skipped when the sidebar resolves.
+	# Without this a person hiding something in their own sidebar would stop anyone deleting
+	# it -- `Workspace` is on this list for exactly the same reason.
+	"Module Sidebar",
+	"Custom Module Sidebar",
 ]
 
 # Request Hooks

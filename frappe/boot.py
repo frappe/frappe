@@ -887,7 +887,9 @@ def get_module_sidebar_items(sidebar_names):
 		fields=[
 			"parent",
 			"idx",
-			"key",
+			# no `key`: a base row's identity is derived from the columns below, and a value
+			# stored in that column by an older derivation must not out-rank them. Rows written
+			# before the change still hold one until their app next re-imports the sidebar.
 			"type",
 			"label",
 			"link_type",
@@ -936,13 +938,28 @@ def get_module_workspaces():
 
 
 def filter_sidebar_items(items, perm_ctx):
-	"""Shape and permission-filter sidebar item rows for the boot payload."""
+	"""Shape, de-duplicate and permission-filter sidebar item rows for the boot payload.
+
+	The dedupe is what the deleted uniqueness validator used to promise, moved to the one place
+	that can keep the promise: rows reach here from a shipped document, a computed base and a
+	customization's added rows alike, so no single writer could have guaranteed it. Two rows
+	sharing an identity *are* the same item -- there is nothing a customization could say about
+	one and not the other -- and the first position wins, which is what the desk rendered
+	before.
+	"""
 	from frappe import _
+	from frappe.desk.doctype.module_sidebar.module_sidebar import item_key
 
 	filtered = []
+	seen = set()
 	for item in items:
+		key = item_key(item)
+		if key in seen:
+			continue
+		seen.add(key)
+
 		entry = {
-			"key": item.key,
+			"key": key,
 			"label": _(item.label),
 			"link_to": item.link_to,
 			"link_type": item.link_type,

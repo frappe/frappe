@@ -13,7 +13,12 @@ from frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar import (
 	save_sidebar_customization,
 	save_site_sidebar,
 )
-from frappe.desk.doctype.module_sidebar.test_module_sidebar import make_report, sidebarless_module
+from frappe.desk.doctype.module_sidebar.test_module_sidebar import (
+	make_page,
+	make_report,
+	no_developer_mode,
+	sidebarless_module,
+)
 from frappe.tests import IntegrationTestCase
 
 MODULE = "Core"
@@ -272,6 +277,139 @@ class TestAReorderIsNotAnOpinionAboutEverything(CustomizationTestCase):
 		self.assertEqual(item["label"], "Mine")
 
 
+class TestIdentityIsMadeOfRealColumns(CustomizationTestCase):
+	"""D7: a customization survives a rename, and nothing else re-anchors it.
+
+	A delta row and the base row it names are both `Module Sidebar Item` rows carrying a
+	Dynamic Link, so `rename_dynamic_links` rewrites the pair in one statement -- no hook, no
+	patch, no re-keying. These pin that, and the things that used to move an anchor and now
+	must not.
+	"""
+
+	def test_renaming_a_linked_target_moves_base_and_delta_together(self):
+		"""A Page rather than a Report, because a Report cannot be renamed at all."""
+		with sidebarless_module("Test Renamed Target Module") as module:
+			self.addCleanup(self.wipe, module)
+			doomed = make_page(module, "test-renamed-page")
+			# something else navigable, so hiding the page does not drop the module entirely
+			make_report(module, "Test Bystander Report")
+
+			self.as_user()
+			hidden = next(i for i in self.items(module) if i["link_to"] == doomed.name)
+			save_sidebar_customization(module, json.dumps([{**hidden, "hidden": 1}]))
+			self.assertNotIn(doomed.name, [i["link_to"] for i in self.items(module)])
+
+			frappe.set_user("Administrator")
+			frappe.rename_doc("Page", doomed.name, "test-renamed-page-again")
+
+			self.as_user()
+			links = [i["link_to"] for i in self.items(module)]
+			self.assertIn("Test Bystander Report", links, "sanity: the module still resolves")
+			self.assertNotIn(
+				"test-renamed-page-again",
+				links,
+				"the delta stopped naming its item across the rename",
+			)
+
+	def test_the_delta_stores_the_link_rather_than_an_id(self):
+		"""What makes the repair reach it: the stored row carries the real columns, so the
+		rename's `UPDATE ... SET link_to` finds it like any other Dynamic Link."""
+		with sidebarless_module("Test Stored Columns Module") as module:
+			self.addCleanup(self.wipe, module)
+			report = make_report(module, "Test Stored Columns Report")
+
+			self.as_user()
+			target = next(i for i in self.items(module) if i["link_to"] == report.name)
+			# the shorthand a client may send: the key alone, no columns. What is *stored* is
+			# canonical either way, or the guarantee would depend on how the client asked.
+			save_sidebar_customization(module, json.dumps([{"key": target["key"], "hidden": 1}]))
+
+			row = get_customization(module, USER).sidebar_items[0]
+			self.assertEqual((row.link_type, row.link_to), ("Report", report.name))
+			self.assertFalse(row.key, "a linked row stores no id beside its columns")
+
+	def test_hiding_an_item_does_not_stop_anyone_deleting_it(self):
+		"""The price of storing a real Dynamic Link: a link blocks a delete, unless the model
+		says this kind of link is not a reference. It is not -- a sidebar item is a way in, and
+		a dangling one is already skipped on read -- so a person hiding something in their own
+		sidebar must not be able to stop an admin deleting it.
+		"""
+		with sidebarless_module("Test Deletable Target Module") as module:
+			self.addCleanup(self.wipe, module)
+			doomed = make_page(module, "test-deletable-page")
+			make_report(module, "Test Deletable Bystander")
+
+			self.as_user()
+			target = next(i for i in self.items(module) if i["link_to"] == doomed.name)
+			save_sidebar_customization(module, json.dumps([{**target, "hidden": 1}]))
+
+			frappe.set_user("Administrator")
+			frappe.delete_doc("Page", doomed.name)
+
+			self.assertFalse(frappe.db.exists("Page", doomed.name))
+
+	def test_a_stale_reference_does_not_block_the_next_write(self):
+		"""The other half of the same price: a stored link is *validated* on save, so a row
+		left naming a deleted item would turn every later write to that layer into a link
+		error -- renaming the sidebar, adding a workspace's link, anything.
+
+		It stops applying, which is what an item the app has deleted has always done. It does
+		not stop the layer being written.
+		"""
+		with sidebarless_module("Test Stale Reference Module") as module:
+			self.addCleanup(self.wipe, module)
+			doomed = make_page(module, "test-stale-page")
+			make_report(module, "Test Stale Bystander")
+
+			target = next(i for i in self.base_items(module) if i["link_to"] == doomed.name)
+			save_site_sidebar(module, json.dumps([{**target, "hidden": 1}]))
+			frappe.delete_doc("Page", doomed.name)
+
+			# an unrelated write to the same layer, which saves the stale row along with it
+			save_site_sidebar(module, label="Renamed Module")
+
+			self.assertEqual(get_module_sidebars()[module]["label"], "Renamed Module")
+
+	def test_inserting_an_item_does_not_re_anchor_other_deltas(self):
+		"""The ordinal is gone, and with it the thing that made an insertion move every anchor
+		below it."""
+		with sidebarless_module("Test Insertion Module") as module:
+			self.addCleanup(self.wipe, module)
+			make_report(module, "Test Insertion Report A")
+			hidden = make_report(module, "Test Insertion Report B")
+
+			self.as_user()
+			target = next(i for i in self.items(module) if i["link_to"] == hidden.name)
+			save_sidebar_customization(module, json.dumps([{**target, "hidden": 1}]))
+
+			frappe.set_user("Administrator")
+			make_report(module, "Test Insertion Report C")
+			frappe.clear_cache()
+
+			self.as_user()
+			links = [i["link_to"] for i in self.items(module)]
+			self.assertNotIn(hidden.name, links, "an unrelated insertion moved the anchor")
+			self.assertIn("Test Insertion Report C", links)
+
+	def test_a_section_break_still_matches_across_a_recomputation(self):
+		"""An unlinked row has nothing to repair, so it keeps a stored key -- hashed from its
+		type and label, both of which a recomputation reproduces exactly."""
+		with sidebarless_module("Test Section Module") as module:
+			self.addCleanup(self.wipe, module)
+			make_report(module, "Test Section Report A")
+
+			section = next(i for i in self.base_items(module) if i["type"] == "Section Break")
+			save_site_sidebar(module, json.dumps([{**section, "label": "Renamed Section"}]))
+
+			# the module gains content, so its base is computed again from scratch
+			make_report(module, "Test Section Report B")
+			frappe.clear_cache()
+
+			self.as_user()
+			labels = [i["label"] for i in self.items(module) if i["type"] == "Section Break"]
+			self.assertIn("Renamed Section", labels)
+
+
 class TestWhoMayTouchTheSiteLayer(CustomizationTestCase):
 	"""`Workspace Manager`, not System Manager -- the role literally named for curating
 	navigation, granted to nobody by default."""
@@ -416,6 +554,27 @@ class TestCustomizationTarget(CustomizationTestCase):
 			links = [i["link_to"] for i in self.items(module)]
 			self.assertNotIn(doomed.name, links)
 			self.assertIn(survivor.name, links)
+
+	def test_deleting_the_module_takes_its_customizations_with_it(self):
+		"""A layer is anchored to a module, so it goes when the module does -- the same rule
+		the sidebar document already follows.
+
+		It has to be said out loud now. A Link used to refuse the delete on the row's behalf,
+		and navigation links no longer do: `ignore_links_on_delete` covers this doctype so that
+		nobody's sidebar preference can stop a document being deleted. Refusing was never the
+		right answer for a module either -- deleting one now cleans up after itself.
+		"""
+		module = "Test Deleted Module With Customization"
+		with no_developer_mode():
+			frappe.get_doc({"doctype": "Module Def", "module_name": module, "app_name": "frappe"}).insert()
+
+		save_site_sidebar(module, json.dumps([]))
+		self.assertTrue(frappe.db.exists("Custom Module Sidebar", {"module": module}))
+
+		with no_developer_mode():
+			frappe.delete_doc("Module Def", module)
+
+		self.assertFalse(frappe.db.exists("Custom Module Sidebar", {"module": module}))
 
 	def test_a_module_that_does_not_exist_cannot_be_customized(self):
 		"""Asserted on the message, because the child table's own Link validation would raise
