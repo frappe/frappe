@@ -1059,10 +1059,20 @@ frappe.ui.Sidebar = class Sidebar {
 		if (app.app_route) return app.app_route;
 
 		const [module] = this.collect_dock_modules(app);
-		if (!module) return null;
-		return module.home_workspace
-			? frappe.router.slug(module.home_workspace)
-			: this.get_first_sidebar_route(module.module);
+		return module ? this.module_landing_route(module.module) : null;
+	}
+
+	// Where a module leads: its home workspace, else the first navigable item in its sidebar --
+	// the same rule `open_module` navigates by, as a path rather than a route so it can be an
+	// `href`. Shared by the app icons, the standalone module tiles on the desktop and the
+	// header's workspace switcher, so the three cannot disagree about where a module opens.
+	module_landing_route(module) {
+		const sidebar = frappe.boot.module_sidebars[module];
+		if (!sidebar) return null;
+
+		return sidebar.home_workspace
+			? `/desk/${frappe.router.slug(sidebar.home_workspace)}`
+			: this.get_first_sidebar_route(module);
 	}
 
 	// Menu items for the header dropdown: every dock module except the active one.
@@ -1086,9 +1096,7 @@ frappe.ui.Sidebar = class Sidebar {
 		return {
 			name: sidebar.module,
 			label: sidebar.label || sidebar.module,
-			url: sidebar.home_workspace
-				? `/desk/${frappe.router.slug(sidebar.home_workspace)}`
-				: this.get_first_sidebar_route(sidebar.module),
+			url: this.module_landing_route(sidebar.module),
 			icon: sidebar.header_icon,
 			onClick: () => this.select_module(sidebar.module),
 		};

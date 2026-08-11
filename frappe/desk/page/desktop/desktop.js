@@ -86,15 +86,42 @@ class DesktopPage {
 				label: app.app_title,
 				logo_url: app.app_logo_url,
 			};
-			const $icon = $(frappe.render_template("desktop_icon", { icon: icon_data }));
-			if (app.route.startsWith("http")) {
-				$icon.attr("target", "_blank");
-			}
-			$icon.attr("href", app.route);
-			$grid.append($icon);
+			this.add_icon($grid, icon_data, app.route);
 		});
 
+		this.render_standalone_modules($grid);
+
 		$('[data-toggle="tooltip"]').tooltip({ placement: "bottom" });
+	}
+	// A custom module no app's dock lists is the tile -- there is no site tile and no
+	// pseudo-app to group it under. `boot.standalone_modules` is a sibling of `app_data` and
+	// stays one: `app_data` means installed apps, and the desk reads it as such.
+	//
+	// Modules trail the apps, since they are the site's own additions to a screen the installed
+	// apps otherwise define. Their server-side `route` covers the workspace cases; the sidebar
+	// resolves the rest (a doctype list, a report), so ask it first, exactly as the apps do.
+	render_standalone_modules($grid) {
+		(frappe.boot.standalone_modules || [])
+			.map((module) => ({
+				...module,
+				route: frappe.app.sidebar?.module_landing_route(module.module) || module.route,
+			}))
+			.filter((module) => module.route)
+			.forEach((module) => {
+				const icon_data = {
+					label: module.title,
+					icon_name: module.header_icon,
+				};
+				this.add_icon($grid, icon_data, module.route);
+			});
+	}
+	add_icon($grid, icon_data, route) {
+		const $icon = $(frappe.render_template("desktop_icon", { icon: icon_data }));
+		if (route.startsWith("http")) {
+			$icon.attr("target", "_blank");
+		}
+		$icon.attr("href", route);
+		$grid.append($icon);
 	}
 	setup() {
 		$(document).trigger("desktop_screen", { desktop: this });

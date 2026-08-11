@@ -284,6 +284,8 @@ def load_desktop_data(bootinfo):
 		bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
 
 	bootinfo.app_data = get_app_data(allowed_pages)
+	# A *sibling* of `app_data`, never a member of it -- see `get_standalone_modules`.
+	bootinfo.standalone_modules = get_standalone_modules(bootinfo.module_sidebars)
 
 
 def get_app_data(allowed_pages: list[str]) -> list[dict]:
@@ -432,6 +434,75 @@ def get_app_modules(app_name: str) -> list[str]:
 		get_visible_modules(modules),
 		key=lambda module: (declared.get(module, len(declared)), module),
 	)
+
+
+def get_standalone_modules(module_sidebars: dict) -> list[dict]:
+	"""Custom modules with no placement, each of which stands on the desktop as its own tile.
+
+	There is no site tile and no pseudo-app: the module *is* the tile, carrying its own sidebar
+	title, header icon and landing route.
+
+	This is a sibling of `app_data` rather than an entry inside it, and the shape is
+	load-bearing. The desk maps `app_data` to installed app names (`frappe.utils.get_installed_apps`),
+	so a module injected there would have the client reporting a module as an installed app.
+
+	Derived from *custom modules with no placement*, and explicitly **not** from `Desktop Icon`
+	rows: an Apps-mode site holds none of those, so a fresh install would be given no floor at
+	all. The floor is the whole point -- a custom module can never become unreachable, whether
+	it was never placed or was orphaned when the app naming it went away (uninstalling clears
+	the placement, see `frappe.installer.release_custom_module_placements`). A placement naming
+	an app that is no longer active is read as no placement here too, so the floor holds even if
+	the module's row is never saved again.
+
+	Visibility is inherited rather than reinvented: the set is intersected with
+	`module_sidebars`, which has already applied the per-user module gate and already dropped
+	the modules whose sidebar holds nothing the user can navigate to.
+	"""
+	if not module_sidebars:
+		return []
+
+	active_apps = set(frappe.get_active_apps())
+	standalone = []
+
+	# Ordered by name, as `get_navigable_modules` is: nothing about a custom module suggests an
+	# order of its own, and an unstable one would reshuffle the desktop on every edit.
+	for module in frappe.get_all(
+		"Module Def", filters={"custom": 1}, fields=["name", "app_name"], order_by="name asc"
+	):
+		if module.app_name in active_apps:
+			# placed: it is listed in that app's dock, so it is not standing on its own
+			continue
+
+		sidebar = module_sidebars.get(module.name)
+		if not sidebar:
+			continue
+
+		standalone.append(
+			{
+				"module": module.name,
+				"title": sidebar["label"],
+				"header_icon": sidebar["header_icon"],
+				"route": get_module_landing_route(sidebar),
+			}
+		)
+
+	return standalone
+
+
+def get_module_landing_route(sidebar: dict) -> str | None:
+	"""Where a module's tile leads, as far as the server can answer it.
+
+	The rule is the desk's own (`sidebar.open_module`): a module opens on its home workspace,
+	and otherwise on the first navigable item in its sidebar. Only the workspace half is
+	answered here, because a workspace route is a slug and nothing more, while every other item
+	type resolves through `frappe.utils.generate_route` on the client -- doc views, report
+	types, filters as query params. The desktop asks the client's `module_landing_route` first
+	and falls back to this, so this is the floor a tile has before the sidebar object exists,
+	not a second implementation of routing.
+	"""
+	workspace = sidebar.get("home_workspace") or next(iter(sidebar.get("workspaces") or []), None)
+
+	return f"/desk/{frappe.utils.slug(workspace)}" if workspace else None
 
 
 def load_translations(bootinfo):
