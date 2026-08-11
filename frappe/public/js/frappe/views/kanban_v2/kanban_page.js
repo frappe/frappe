@@ -643,13 +643,16 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	 * first Attach Image. Null when none — cards render without a thumb.
 	 */
 	resolve_image_field(meta) {
-		const is_image = (fn) => {
+		const is_attach_image = (fn) => {
 			if (!fn) return false;
 			const df = frappe.meta.get_docfield(this.doctype, fn);
-			return df && df.fieldtype === "Attach Image" && !df.hidden;
+			return df && df.fieldtype === "Attach Image";
 		};
-		if (is_image(this.board_doc.image_field)) return this.board_doc.image_field;
-		if (is_image(meta.image_field)) return meta.image_field;
+		// Board config: trust explicit selection (user chose it knowingly)
+		if (is_attach_image(this.board_doc.image_field)) return this.board_doc.image_field;
+		// Doctype image_field: always allow (it's meant for display elsewhere)
+		if (is_attach_image(meta.image_field)) return meta.image_field;
+		// Fallback: first non-hidden Attach Image
 		const first = meta.fields.find((df) => df.fieldtype === "Attach Image" && !df.hidden);
 		return first ? first.fieldname : null;
 	}
