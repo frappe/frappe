@@ -538,6 +538,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				AND a.attname = %(fieldname)s
 				AND i.indisunique = {"true" if unique else "false"}
 				AND i.indnkeyatts = 1
+				AND i.indisvalid
+				AND i.indisready
+				AND i.indislive
 				AND am.amname = 'btree'
 				AND i.indpred IS NULL
 			LIMIT 1
