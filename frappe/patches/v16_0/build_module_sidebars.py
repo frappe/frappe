@@ -13,7 +13,10 @@ def execute():
 
 	Runs post_model_sync: `Module Sidebar` is a new doctype, so its schema has to land first.
 	It must also run after `migrate_workspace_sidebar_to_workspace`, which is what populates
-	`Workspace.sidebar_items` on a v15 site -- that is this patch's only input.
+	`Workspace.sidebar_items` on a v15 site -- that is this patch's only input -- and after
+	`backfill_workspace_module`, which is what gives those workspaces a module to be grouped
+	under. Ahead of the backfill a v15 site's workspaces are unmoduled, so the merge sees no
+	sources at all and every module is left to a computed base.
 
 	Non-destructive and re-runnable: it reads `Workspace.sidebar_items` and writes only new
 	`Module Sidebar` rows, never touching the source or the legacy `Workspace Sidebar` table.

@@ -270,9 +270,9 @@ execute:frappe.db.create_sequence_table()  # backfill SQLite sequence emulation 
 frappe.patches.v16_0.migrate_workspace_sidebar_to_workspace
 frappe.patches.v16_0.populate_workspace_sidebar_from_shortcuts
 frappe.desk.doctype.workspace.patches.set_standard_flag
-frappe.patches.v16_0.build_module_sidebars
-frappe.patches.v16_0.migrate_user_workspaces_to_dock_modules
 frappe.patches.v16_0.backfill_workspace_module
+frappe.patches.v16_0.build_module_sidebars #2026-08-12 re-run-patch
+frappe.patches.v16_0.migrate_user_workspaces_to_dock_modules #2026-08-12 re-run-patch
 frappe.patches.v16_0.clear_if_owner_above_permlevel_zero
 frappe.patches.v16_0.migrate_classic_print_formats
 frappe.patches.v16_0.rename_lucide_workspace_icons
