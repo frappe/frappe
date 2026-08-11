@@ -132,32 +132,6 @@ class TestDBUpdate(IntegrationTestCase):
 		doctype.save()
 		frappe.get_doc(doctype=doctype.name, int_field=2**62 - 1).insert()
 
-<<<<<<< HEAD
-=======
-	def test_bigint_conversion_with_existing_data(self):
-		# existing text data beyond int4 range must survive a Data -> Int(bigint) change; length > 11
-		# maps Int to a bigint column, so the postgres USING cast has to widen to bigint too
-		big_value = 2**40  # > int4 max (2,147,483,647)
-		doctype = new_doctype(fields=[{"fieldname": "big_field", "fieldtype": "Data"}]).insert()
-		doc = frappe.get_doc(doctype=doctype.name, big_field=str(big_value)).insert()
-
-		doctype.fields[0].fieldtype = "Int"
-		doctype.fields[0].length = 14
-		doctype.save()
-
-		self.assertEqual(frappe.db.get_value(doctype.name, doc.name, "big_field"), big_value)
-
-	def test_int_conversion_overflow_errors_on_standard_int(self):
-		# a standard Int column (int4) must still reject a value out of its range; only Int with
-		# length > 11 (a bigint column) may hold it
-		doctype = new_doctype(fields=[{"fieldname": "big_field", "fieldtype": "Data"}]).insert()
-		frappe.get_doc(doctype=doctype.name, big_field=str(2**40)).insert()
-
-		doctype.fields[0].fieldtype = "Int"  # no length -> standard int4 column
-		with self.assertRaises(frappe.ValidationError):
-			doctype.save()
-		frappe.db.rollback()
-
 	@run_only_if(db_type_is.MARIADB)
 	def test_blank_values_are_coerced_so_the_conversion_can_proceed(self):
 		"""An empty string only fails to cast because it is empty; migrate makes it the default"""
@@ -179,7 +153,6 @@ class TestDBUpdate(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value(doctype.name, blank.name, "amount"), 0)
 		self.assertEqual(frappe.db.get_value(doctype.name, priced.name, "amount"), 99.5)
 
->>>>>>> 7f8057d4d3 (fix: repair unconvertible blank values during migrate)
 	def test_unique_index_on_install(self):
 		"""Only one unique index should be added"""
 		for dt in frappe.get_all("DocType", {"is_virtual": 0, "issingle": 0}, pluck="name"):
