@@ -1113,18 +1113,32 @@ def _get_id_fieldname_from_meta(meta) -> str:
 
 
 def _get_tree_alias_field_from_meta(meta) -> str | None:
-	"""Title field for parent-by-alias tree imports; None when names come from a ``field:`` autoname."""
-	if (
-		not meta.is_nested_set()
-		or (meta.autoname and meta.autoname.startswith("field:"))
-		or not meta.title_field
-	):
+	"""Title field for parent-by-alias tree imports; fallback to first required Data field
+	when names are auto-generated without a title_field.
+
+	Returns None only when names come from a ``field:`` autoname (name is in the file).
+	For tree doctypes with auto-generated names, provides a fallback identifier field
+	so tree preview and same-file parent validation work correctly.
+	"""
+	# Not a tree doctype — no alias needed
+	if not meta.is_nested_set():
 		return None
 
-	if meta.title_field == _get_id_fieldname_from_meta(meta):
+	# Name comes from a field: autoname — the ID column is in the file, no alias needed
+	if meta.autoname and meta.autoname.startswith("field:"):
 		return None
 
-	return meta.title_field
+	# Has a title_field different from the ID field — use it as alias
+	if meta.title_field and meta.title_field != _get_id_fieldname_from_meta(meta):
+		return meta.title_field
+
+	# Fallback for tree doctypes with auto-generated names and no title_field:
+	# Use the first required Data field as the identifier (e.g., account_name for Account)
+	for field in meta.fields:
+		if field.fieldtype == "Data" and field.reqd:
+			return field.fieldname
+
+	return None
 
 
 def get_tree_alias_fieldname(doctype):
