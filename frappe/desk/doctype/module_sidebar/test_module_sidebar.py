@@ -125,6 +125,13 @@ def make_page(module: str, name: str):
 		).insert(ignore_permissions=True)
 
 
+def delete_page(name: str):
+	"""`Page.on_trash` refuses outside developer mode exactly as `validate` refuses the insert,
+	so a page a test created has to be removed the way it was made."""
+	with developer_mode():
+		frappe.delete_doc("Page", name, force=True, ignore_missing=True)
+
+
 def make_sidebar(module: str, **kwargs):
 	"""A `Module Sidebar` authored by hand -- nothing writes one on a module's behalf.
 
@@ -1214,7 +1221,7 @@ class TestComputedSidebarBase(IntegrationTestCase):
 		page = self.make_page("test-doomed-page")
 		self.assertIn(("Page", page.name), self.links(get_computed_base(self.module)))
 
-		frappe.delete_doc("Page", page.name, force=True)
+		delete_page(page.name)
 
 		self.assertNotIn(("Page", page.name), self.links(get_computed_base(self.module)))
 

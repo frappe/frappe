@@ -162,6 +162,10 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 				shipped.append("items", {"type": "Link", "link_type": "DocType", "link_to": "ToDo"})
 				shipped.insert(ignore_permissions=True)
 
+			# once first, so the count below is the route's own queries and not a cold
+			# schema cache: a table's column list is looked up once per site and cached
+			get_sidebar_bases([module])
+
 			with self.assertQueryCount(2):
 				get_sidebar_bases([module])
 

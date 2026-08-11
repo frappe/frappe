@@ -14,6 +14,7 @@ from frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar import (
 	save_site_sidebar,
 )
 from frappe.desk.doctype.module_sidebar.test_module_sidebar import (
+	delete_page,
 	make_page,
 	make_report,
 	no_developer_mode,
@@ -344,7 +345,7 @@ class TestIdentityIsMadeOfRealColumns(CustomizationTestCase):
 			save_sidebar_customization(module, json.dumps([{**target, "hidden": 1}]))
 
 			frappe.set_user("Administrator")
-			frappe.delete_doc("Page", doomed.name)
+			delete_page(doomed.name)
 
 			self.assertFalse(frappe.db.exists("Page", doomed.name))
 
@@ -363,7 +364,7 @@ class TestIdentityIsMadeOfRealColumns(CustomizationTestCase):
 
 			target = next(i for i in self.base_items(module) if i["link_to"] == doomed.name)
 			save_site_sidebar(module, json.dumps([{**target, "hidden": 1}]))
-			frappe.delete_doc("Page", doomed.name)
+			delete_page(doomed.name)
 
 			# an unrelated write to the same layer, which saves the stale row along with it
 			save_site_sidebar(module, label="Renamed Module")
