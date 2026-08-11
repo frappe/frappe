@@ -16,6 +16,10 @@ function toolGroups(conversation) {
 	return buildItems(conversation).filter((item) => item.kind === "group")
 }
 
+function partialToolCalls(conversation) {
+	return conversation.partial.filter((block) => block.type === "tool_call")
+}
+
 test("user content helpers support durable attachment blocks", () => {
 	const entry = {
 		content: [
@@ -108,7 +112,7 @@ test("duplicate tool starts update one provisional step", () => {
 	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read_file" })
 	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "write" })
 
-	assert.equal(conversation.liveToolCalls.length, 1)
+	assert.equal(partialToolCalls(conversation).length, 1)
 	assert.equal(toolGroups(conversation)[0].steps[0].call.name, "write")
 })
 
@@ -129,7 +133,7 @@ test("durable assistant call replaces its provisional step and receives the resu
 		content: [durableCall],
 		stop_reason: "tool_use",
 	})
-	assert.deepEqual(conversation.liveToolCalls, [])
+	assert.deepEqual(conversation.partial, [])
 
 	applyEvent(conversation, {
 		type: "tool_result",
@@ -159,6 +163,80 @@ test("multiple announced calls keep their order and failed attempts leave no gho
 	)
 
 	applyEvent(conversation, { type: "retry", status: "started" })
-	assert.deepEqual(conversation.liveToolCalls, [])
+	assert.deepEqual(conversation.partial, [])
 	assert.deepEqual(toolGroups(conversation), [])
+})
+
+test("streamed thinking joins the trailing tool group's dropdown", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 1,
+		content: [{ type: "tool_call", id: "call-1", name: "grep", arguments: { pattern: "x" } }],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, { type: "tool_result", seq: 2, tool_call_id: "call-1", name: "grep", content: "hit" })
+	applyEvent(conversation, { type: "thinking_delta", thinking: "next I should" })
+
+	assert.equal(conversation.liveLabel, "Thinking")
+	const steps = toolGroups(conversation)[0].steps
+	assert.deepEqual(steps[steps.length - 1].thought, { type: "thinking", thinking: "next I should" })
+	assert.ok(!buildItems(conversation).some((item) => item.kind === "thinking"))
+})
+
+test("streamed thinking keeps its content when a tool call follows", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started" })
+	applyEvent(conversation, { type: "user_message", seq: 1, content: "hi" })
+	applyEvent(conversation, { type: "thinking_delta", thinking: "let me see" })
+
+	const live = buildItems(conversation).find((item) => item.kind === "thinking")
+	assert.ok(live?.live)
+	assert.equal(live.block.thinking, "let me see")
+
+	// Once a tool follows directly, the thought moves into that tool group in the
+	// same order the durable assistant message will use.
+	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read_file" })
+	assert.ok(!buildItems(conversation).some((item) => item.kind === "thinking"))
+	const steps = toolGroups(conversation)[0].steps
+	assert.deepEqual(steps.map((step) => step.thought?.thinking ?? step.call?.id), ["let me see", "call-1"])
+})
+
+test("streamed thought, text, and tool call keep their order until the durable message", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started" })
+	applyEvent(conversation, { type: "user_message", seq: 1, content: "understand the project" })
+	applyEvent(conversation, { type: "thinking_delta", thinking: "I should inspect the repository." })
+	applyEvent(conversation, {
+		type: "text_delta",
+		text: "I'll explore the project structure to understand it thoroughly.",
+	})
+	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "bash" })
+
+	assert.deepEqual(conversation.partial.map((block) => block.type), ["thinking", "text", "tool_call"])
+	assert.equal(conversation.liveLabel, "Running command")
+	const liveItems = buildItems(conversation)
+	assert.deepEqual(liveItems.map((item) => item.kind), ["user", "thinking", "text", "group"])
+	assert.equal(liveItems[1].live, false)
+	assert.equal(liveItems[1].block.thinking, "I should inspect the repository.")
+	assert.equal(liveItems[2].block.text, "I'll explore the project structure to understand it thoroughly.")
+	assert.equal(liveItems[3].steps[0].call.id, "call-1")
+
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 2,
+		content: [
+			{ type: "thinking", thinking: "I should inspect the repository." },
+			{ type: "text", text: "I'll explore the project structure to understand it thoroughly." },
+			{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "ls" } },
+		],
+		stop_reason: "tool_use",
+	})
+
+	assert.deepEqual(conversation.partial, [])
+	const durableItems = buildItems(conversation)
+	assert.deepEqual(durableItems.map((item) => item.kind), ["user", "thinking", "text", "group"])
+	assert.equal(durableItems.filter((item) => item.kind === "group").length, 1)
+	assert.equal(durableItems[3].key, "g:call-1")
 })

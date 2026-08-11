@@ -24,11 +24,11 @@
 			<template v-for="(item, i) in items" :key="item.key">
 				<UserBubble v-if="item.kind === 'user'" :entry="item.entry" />
 				<AssistantText v-else-if="item.kind === 'text'" :block="item.block" />
-				<ThinkingBlock v-else-if="item.kind === 'thinking'" :block="item.block" />
+				<ThinkingBlock v-else-if="item.kind === 'thinking'" :block="item.block" :live="item.live" />
 				<ToolGroup
 					v-else-if="item.kind === 'group'"
 					:steps="item.steps"
-					:sealed="i < items.length - 1 || hasPartialText || !conversation.running"
+					:sealed="i < items.length - 1 || !conversation.running"
 					:live-label="conversation.liveLabel"
 				/>
 				<!-- the latest turn's copy button stays visible; older ones hover-reveal -->
@@ -69,18 +69,9 @@
 				</div>
 			</template>
 
-			<!-- live region: at most one status element. During a tool phase the
-			     unsealed group above renders the in-place line, so nothing here. -->
-			<!-- streaming text; a whitespace-only partial renders nothing.
-			     computed: re-parse per token only, not on unrelated re-renders -->
-			<div
-				v-if="streamingHtml"
-				class="flow-md flow-prose text-ink-gray-8"
-				v-html="streamingHtml"
-			/>
-			<!-- streamed thinking never renders as its own block — the status line
-			     says "Thinking" and the thought lands durably in its group -->
-			<div v-if="conversation.liveLabel && !lastIsOpenGroup" class="text-sm font-medium">
+			<!-- Before the first streamed block (or during retry/compaction), no
+			     transcript item owns the live status, so render one fallback line. -->
+			<div v-if="showStandaloneStatus" class="text-sm font-medium">
 				<span class="flow-shimmer">{{ conversation.liveLabel }}</span>
 			</div>
 
@@ -103,7 +94,6 @@
 import { computed, inject, nextTick, ref, watch } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
-import { renderMarkdown } from "../markdown.js"
 import { buildItems, formatTime } from "../transcript.js"
 import ApprovalCard from "./ApprovalCard.vue"
 import AssistantText from "./AssistantText.vue"
@@ -119,22 +109,31 @@ const items = computed(() => buildItems(conversation.value))
 
 const empty = computed(() => !flow.state.sessionId && !flow.state.loading)
 const composerHeight = inject("composerHeight", ref(120))
-// boolean computed: flips only on empty↔non-empty, not per streamed token, so
-// the v-for bindings don't re-evaluate on every delta. Only streamed *text*
-// seals a group — inter-step thinking must not collapse it to a completed summary.
-const hasPartialText = computed(() => !!conversation.value.partialText)
 const lastTurnCopyIndex = computed(() =>
 	items.value.findLastIndex((item) => item.kind === "turn-copy"),
 )
-const streamingHtml = computed(() => {
-	const text = conversation.value.partialText
-	return text.trim() ? renderMarkdown(text) : ""
-})
-const lastIsGroup = computed(() => items.value[items.value.length - 1]?.kind === "group")
-// a running tool phase: the trailing group renders the single live line
+const lastItem = computed(() => items.value[items.value.length - 1])
+// Streamed thinking and tool groups render their own status. The fallback is
+// reserved for statuses that have no preview item yet.
 const lastIsOpenGroup = computed(
-	() => conversation.value.running && !hasPartialText.value && lastIsGroup.value,
+	() => conversation.value.running && lastItem.value?.kind === "group",
 )
+const lastIsLiveThinking = computed(
+	() => lastItem.value?.kind === "thinking" && lastItem.value.live,
+)
+const showStandaloneStatus = computed(
+	() =>
+		!!conversation.value.liveLabel &&
+		!lastIsOpenGroup.value &&
+		!lastIsLiveThinking.value,
+)
+
+const partialVersion = computed(() => {
+	const partial = conversation.value.partial
+	const tail = partial[partial.length - 1]
+	const streamedLength = tail?.text?.length ?? tail?.thinking?.length ?? 0
+	return `${partial.length}:${tail?.type ?? ""}:${tail?.id ?? ""}:${tail?.name ?? ""}:${streamedLength}`
+})
 
 const scroller = ref(null)
 const stick = ref(true)
@@ -155,9 +154,7 @@ function toBottom() {
 watch(
 	() => [
 		conversation.value.entries.length,
-		conversation.value.partialText,
-		conversation.value.partialThinking,
-		conversation.value.liveToolCalls.length,
+		partialVersion.value,
 		conversation.value.liveLabel,
 	],
 	async () => {

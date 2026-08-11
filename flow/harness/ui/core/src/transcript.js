@@ -19,11 +19,9 @@ export const EFFORT_LABELS = {
 export function initialConversation() {
 	return {
 		entries: [],
-		partialText: "",
-		partialThinking: "",
-		// Presentation-only calls announced by tool_call_started. The terminal
-		// assistant_message replaces them with complete, durable ToolCall blocks.
-		liveToolCalls: [],
+		// Ordered, presentation-only assistant blocks accumulated from streaming
+		// deltas. The terminal assistant_message atomically replaces this preview.
+		partial: [],
 		running: false,
 		compacting: false,
 		pendingApproval: null, // { seq, calls: [PendingCall], answers: {id: string} }
@@ -41,6 +39,20 @@ export function initialConversation() {
 	}
 }
 
+function appendPartialText(partial, text) {
+	if (!text) return
+	const tail = partial[partial.length - 1]
+	if (tail?.type === "text") tail.text += text
+	else partial.push({ type: "text", text })
+}
+
+function appendPartialThinking(partial, thinking) {
+	if (!thinking) return
+	const tail = partial[partial.length - 1]
+	if (tail?.type === "thinking") tail.thinking += thinking
+	else partial.push({ type: "thinking", thinking })
+}
+
 // Applies one wire event. Returns the state for chaining.
 export function applyEvent(s, e) {
 	if (typeof e.seq === "number") s.latestSeq = Math.max(s.latestSeq, e.seq)
@@ -49,7 +61,7 @@ export function applyEvent(s, e) {
 			s.running = true
 			s.lastError = null
 			s.liveLabel = "Thinking"
-			s.liveToolCalls = []
+			s.partial = []
 			s.pendingApproval = null // a new run consumes the batch (resume) — same as the server reducer
 			break
 		case "user_message":
@@ -57,9 +69,7 @@ export function applyEvent(s, e) {
 		case "tool_result":
 		case "compaction":
 			if (e.type === "assistant_message") {
-				s.partialText = ""
-				s.partialThinking = ""
-				s.liveToolCalls = []
+				s.partial = []
 				// a text blob ends the tool phase; a tool-only message keeps the
 				// current tool label until the next one replaces it
 				if ((e.content ?? []).some((b) => b.type === "text" && b.text)) s.liveLabel = null
@@ -77,9 +87,7 @@ export function applyEvent(s, e) {
 		case "run_ended":
 			s.running = false
 			s.liveLabel = null
-			s.partialText = ""
-			s.partialThinking = ""
-			s.liveToolCalls = []
+			s.partial = []
 			if (e.reason !== "paused") s.pendingApproval = null // a pause outlives its run
 			// abnormal endings leave a durable marker in the transcript flow
 			if (["aborted", "max_turns", "budget", "length"].includes(e.reason)) s.entries.push(e)
@@ -99,7 +107,9 @@ export function applyEvent(s, e) {
 			break
 		case "run_error":
 			s.lastError = e
-			s.liveToolCalls = []
+			// A failed tool announcement must not survive as a ghost step. Preserve
+			// any text/thinking preview until the terminal run_ended event clears it.
+			s.partial = s.partial.filter((block) => block.type !== "tool_call")
 			s.entries.push(e) // rendered in place, and it survives a reload
 			break
 		case "rewind":
@@ -108,32 +118,27 @@ export function applyEvent(s, e) {
 			s.needsReload = true
 			break
 		case "text_delta":
-			s.partialText += e.text
+			appendPartialText(s.partial, e.text)
 			s.liveLabel = null
 			break
 		case "thinking_delta":
-			s.partialThinking += e.thinking
-			// don't stomp a tool label — between tool calls the line stays put
-			if (!s.liveLabel) s.liveLabel = "Thinking"
+			appendPartialThinking(s.partial, e.thinking)
+			s.liveLabel = "Thinking"
 			break
 		case "tool_call_started":
-			s.partialThinking = "" // the thought segment ended; it lands durably soon
 			s.liveLabel = stepLiveLabel({ name: e.name })
 			if (e.id && e.name) {
-				const existing = s.liveToolCalls.find((call) => call.id === e.id)
+				const existing = s.partial.find((block) => block.type === "tool_call" && block.id === e.id)
 				if (existing) existing.name = e.name
-				else s.liveToolCalls.push({ type: "tool_call", id: e.id, name: e.name, arguments: {} })
+				else s.partial.push({ type: "tool_call", id: e.id, name: e.name, arguments: {} })
 			}
 			break
 		case "retry":
 			if (e.status === "started") {
 				// the boundary where a failed attempt's deltas must be discarded.
-				// liveLabel resets too: "Retrying" must not stick through the new
-				// attempt (thinking_delta only fills an empty label)
-				s.partialText = ""
-				s.partialThinking = ""
+				// liveLabel resets too: "Retrying" must not stick through the new attempt.
+				s.partial = []
 				s.liveLabel = null
-				s.liveToolCalls = []
 			} else if (e.status === "scheduled") {
 				s.liveLabel = "Retrying"
 			}
@@ -283,8 +288,8 @@ export function stepStat(step) {
 
 // Folds durable entries and live tool-call announcements into renderable items:
 //   {kind: "user", entry}
-//   {kind: "text", block, entry}
-//   {kind: "thinking", block, entry}
+//   {kind: "text", block, entry?, provisional?}
+//   {kind: "thinking", block, entry?, live?}
 //   {kind: "group", steps: [{call, result, aborted} | {thought}]}
 //   {kind: "approval", calls: [...], seq}      (undecided batch)
 //   {kind: "compaction", entry}
@@ -312,9 +317,49 @@ export function buildItems(conversation) {
 	// thoughts not claimed by a tool group render as standalone blocks
 	const flushThoughts = () => {
 		for (const t of bufferedThoughts) {
-			items.push({ kind: "thinking", key: t.key, block: t.block, entry: t.entry })
+			items.push({
+				kind: "thinking",
+				key: t.key,
+				block: t.block,
+				entry: t.entry,
+				live: t.live,
+			})
 		}
 		bufferedThoughts = []
+	}
+	const appendAssistantBlocks = (blocks, { entry = null, provisional = false } = {}) => {
+		for (const [blockIdx, block] of blocks.entries()) {
+			const key = provisional
+				? `p:${blockIdx}`
+				: `${block.type === "thinking" ? "th" : "t"}:${entry.seq}:${blockIdx}`
+			if (block.type === "text" && block.text) {
+				flushThoughts()
+				items.push({ kind: "text", key, block, entry, provisional })
+			} else if (block.type === "thinking") {
+				const last = items[items.length - 1]
+				if (last?.kind === "group") last.steps.push({ thought: block })
+				else {
+					bufferedThoughts.push({
+						block,
+						entry,
+						key,
+						live: provisional && blockIdx === blocks.length - 1,
+					})
+				}
+			} else if (block.type === "tool_call") {
+				if (pendingIds.has(block.id) || stepsById.has(block.id)) continue
+				const group = currentGroup(block.id)
+				for (const thought of bufferedThoughts) group.steps.push({ thought: thought.block })
+				bufferedThoughts = []
+				const step = {
+					call: block,
+					result: null,
+					aborted: !provisional && entry.stop_reason === "aborted",
+				}
+				stepsById.set(block.id, step)
+				group.steps.push(step)
+			}
+		}
 	}
 
 	for (const entry of conversation.entries) {
@@ -322,26 +367,7 @@ export function buildItems(conversation) {
 			flushThoughts()
 			items.push({ kind: "user", key: `u:${entry.seq}`, entry })
 		} else if (entry.type === "assistant_message") {
-			let blockIdx = -1
-			for (const block of entry.content ?? []) {
-				blockIdx += 1
-				if (block.type === "text" && block.text) {
-					flushThoughts()
-					items.push({ kind: "text", key: `t:${entry.seq}:${blockIdx}`, block, entry })
-				} else if (block.type === "thinking") {
-					const last = items[items.length - 1]
-					if (last?.kind === "group") last.steps.push({ thought: block })
-					else bufferedThoughts.push({ block, entry, key: `th:${entry.seq}:${blockIdx}` })
-				} else if (block.type === "tool_call") {
-					if (pendingIds.has(block.id)) continue // rendered as the approval card
-					const group = currentGroup(block.id)
-					for (const t of bufferedThoughts) group.steps.push({ thought: t.block })
-					bufferedThoughts = []
-					const step = { call: block, result: null, aborted: entry.stop_reason === "aborted" }
-					stepsById.set(block.id, step)
-					group.steps.push(step)
-				}
-			}
+			appendAssistantBlocks(entry.content ?? [], { entry })
 		} else if (entry.type === "tool_result") {
 			const step = stepsById.get(entry.tool_call_id)
 			if (step) step.result = entry
@@ -361,19 +387,9 @@ export function buildItems(conversation) {
 		}
 	}
 
-	// A streamed start event carries identity but not arguments. Materialize it as
-	// a real step now; the terminal assistant_message atomically clears this list
-	// and supplies the complete durable call with the same group/step keys.
-	for (const call of conversation.liveToolCalls ?? []) {
-		if (stepsById.has(call.id) || pendingIds.has(call.id)) continue
-		const group = currentGroup(call.id)
-		for (const t of bufferedThoughts) group.steps.push({ thought: t.block })
-		bufferedThoughts = []
-		const step = { call, result: null, aborted: false }
-		stepsById.set(call.id, step)
-		group.steps.push(step)
-	}
-
+	// Render the streamed preview through the same ordered block path as its
+	// durable replacement. Tool groups keep their call-id key across the swap.
+	appendAssistantBlocks(conversation.partial ?? [], { provisional: true })
 	flushThoughts()
 	if (pending) {
 		items.push({ kind: "approval", key: `a:${pending.seq}`, calls: pending.calls, seq: pending.seq })
@@ -402,10 +418,10 @@ export function buildItems(conversation) {
 			result.push(item)
 		} else {
 			result.push(item)
-			if (item.kind === "text") {
+			if (item.kind === "text" && !item.provisional) {
 				turnTexts.push(item.block.text)
 				copyKey = item.key
-				copyTs = item.entry.ts ?? null
+				copyTs = item.entry?.ts ?? null
 			}
 		}
 	}
