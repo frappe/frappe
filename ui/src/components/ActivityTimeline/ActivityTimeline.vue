@@ -28,7 +28,7 @@
 				<div class="grid w-full grid-cols-[30px_minmax(auto,_1fr)] gap-2 px-6 md:px-0">
 					<!-- gutter column: vertical connector line + icon/avatar -->
 					<div
-						class="relative flex justify-center after:absolute after:start-[50%] after:z-0 after:border-s after:border-outline-gray-modals"
+						class="relative flex justify-center after:absolute after:start-[50%] after:z-0 after:border-s after:border-outline-elevation-2"
 						:class="
 							activity.type === 'load_more'
 								? 'after:-top-2 after:h-[calc(100%+1rem)]'
@@ -43,7 +43,7 @@
 						<!-- load_more has no gutter icon — the connector line passes straight through -->
 						<div
 							v-if="activity.type !== 'load_more'"
-							class="relative z-10 flex items-center justify-center self-start bg-surface-white"
+							class="relative z-10 flex items-center justify-center self-start bg-surface-base"
 							:class="[isAvatarActivity(activity) ? 'h-10' : 'h-6 w-6 rounded-full']"
 						>
 							<!-- gutter ladder: #icon-{type} slot > GutterIcon (activity.icon > per-type default) -->
