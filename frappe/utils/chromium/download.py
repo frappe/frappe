@@ -130,9 +130,11 @@ def download_chromium():
 					os.rename(executable_shell, os.path.join(renamed_dir, "headless_shell"))
 				else:
 					raise RuntimeError("Failed to rename executable. Expected chrome-headless-shell.")
-			# Make the `headless_shell` executable
-			exec_path = os.path.join(renamed_dir, executable_path[1])
-			make_chromium_executable(exec_path)
+
+		# zipfile.extractall() does not restore permissions, so the binary always needs a chmod.
+		# Keep this outside the rename branch: the linux-arm64 build already extracts to
+		# chrome-linux/headless_shell and would otherwise be left non-executable.
+		make_chromium_executable(os.path.join(chromium_dir, *executable_path))
 
 		click.echo(f"Chromium is ready to use at: {chromium_dir}")
 	except requests.Timeout:
