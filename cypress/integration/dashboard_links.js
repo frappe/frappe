@@ -98,6 +98,9 @@ context("Dashboard links", () => {
 		cy.fill_field("title", "Test Direct Linking");
 		cy.findByRole("button", { name: "Save" }).click();
 
+		// wait for the dashboard to render before mutating its data
+		cy.get('.document-link[data-doctype="Doctype With Child Table"]');
+
 		cy.window()
 			.its("frappe")
 			.then((frappe) => {
@@ -118,10 +121,8 @@ context("Dashboard links", () => {
 			.should("have.attr", "data-fieldname", "doctype_to_link")
 			.click({ force: true });
 
-		cy.get('.frappe-control[data-fieldname="doctype_to_link"]').should(
-			"contain.text",
-			"Test Direct Linking"
-		);
+		cy.get_field("doctype_to_link").should("have.value", "Test Direct Linking");
+		cy.get_field("secondary_link").should("have.value", "");
 		cy.get(
 			'.frappe-control[data-fieldname="child_table"] .rows .data-row .col[data-fieldname="doctype_to_link"]'
 		).should("not.contain.text", "Test Direct Linking");
