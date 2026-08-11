@@ -124,6 +124,11 @@ permission_query_conditions = {
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.get_permission_query_condition",
 	"File": "frappe.core.doctype.file.file.get_permission_query_conditions",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.get_permission_query_conditions",
+<<<<<<< HEAD
+=======
+	"Document Template": "frappe.desk.doctype.document_template.document_template.get_permission_query_conditions",
+	"Tag Link": "frappe.desk.doctype.tag_link.tag_link.get_permission_query_conditions",
+>>>>>>> 3beb5a1016 (fix: limit Tag Link queries to doctypes the user can read (#41365))
 }
 
 has_permission = {
