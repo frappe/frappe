@@ -105,11 +105,14 @@ pdf_generator = [
 	"frappe.utils.pdf.get_chrome_pdf",
 	"frappe.utils.print_format_generator.get_typst_pdf",
 ]
+# sidebar
+
+# Where the rows of an app-defined navigation item type lead, as `{item name: target}`.
+navigation_item_targets = []
+
 # permissions
 
 saved_view_manager_roles = []
-
-navigation_item_targets = []
 
 permission_query_conditions = {
 	"Report": [

@@ -139,7 +139,7 @@ def add_to_sidebar(view: ViewName, app: str = DEFAULT_APP):
 def remove_from_sidebar(view: ViewName):
 	"""Unplace, not delete — the view drops back to the pool and the + menu offers it."""
 	saved_view = get_readable_view(view)
-	guard_scopes({saved_view.user or ""})
+	guard_scopes({saved_view.user or ""}, "Saved View")
 	unplace(saved_view.name)
 	return saved_view.name
 
@@ -147,7 +147,7 @@ def remove_from_sidebar(view: ViewName):
 @frappe.whitelist()
 def delete_view(view: ViewName):
 	saved_view = get_readable_view(view)
-	guard_scopes({saved_view.user or ""})
+	guard_scopes({saved_view.user or ""}, "Saved View")
 	unplace(saved_view.name)
 	frappe.delete_doc("Saved View", saved_view.name)
 	return saved_view.name
@@ -159,7 +159,7 @@ def move_view(view: ViewName, shared: bool, app: str = DEFAULT_APP):
 	shared = sbool(shared)
 	saved_view = get_readable_view(view)
 
-	guard_scopes({saved_view.user or "", "" if shared else frappe.session.user})
+	guard_scopes({saved_view.user or "", "" if shared else frappe.session.user}, "Saved View")
 
 	saved_view.user = "" if shared else frappe.session.user
 	saved_view.is_default = 0
@@ -177,7 +177,7 @@ def get_pool(reference_doctype: str, app: str = DEFAULT_APP):
 	frappe.has_permission(reference_doctype, throw=True)
 
 	filters = {"reference_doctype": reference_doctype, "is_default": 0}
-	if not can_manage_shared():
+	if not can_manage_shared("Saved View"):
 		filters["user"] = frappe.session.user
 
 	views = frappe.get_all(
@@ -206,7 +206,7 @@ def named_section(name: str | None, scope: Scope):
 def target_section(scope: Scope, shared: bool):
 	"""The section a view lands in, created on first use."""
 	if shared:
-		guard_scopes({""})
+		guard_scopes({""}, "Navigation Section")
 		return get_or_create_section(scope, SHARED_SECTION_LABEL, user="")
 
 	return get_or_create_section(scope, PERSONAL_SECTION_LABEL, user=frappe.session.user)
@@ -314,6 +314,6 @@ def get_default_view(reference_doctype: str):
 
 def get_readable_view(view: ViewName):
 	saved_view = frappe.get_doc("Saved View", view)
-	if saved_view.user and saved_view.user != frappe.session.user and not can_manage_shared():
+	if saved_view.user and saved_view.user != frappe.session.user and not can_manage_shared("Saved View"):
 		frappe.throw(_("You can only change your own views."), frappe.PermissionError)
 	return saved_view

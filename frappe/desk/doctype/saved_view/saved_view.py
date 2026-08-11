@@ -7,6 +7,7 @@ from frappe.desk.doctype.saved_view.permissions import (
 	guard_mutation,
 	guard_scopes,
 	has_access,
+	own_personal_record,
 	query_conditions,
 )
 from frappe.model.document import Document
@@ -39,6 +40,7 @@ class SavedView(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		own_personal_record(self)
 		guard_mutation(self)
 		self.validate_default_is_personal()
 
@@ -48,7 +50,7 @@ class SavedView(Document):
 			frappe.throw(_("A default Saved View must belong to a user."), frappe.ValidationError)
 
 	def on_trash(self):
-		guard_scopes({self.user or ""})
+		guard_scopes({self.user or ""}, self.doctype)
 
 
 def get_permission_query_conditions(user: str | None = None) -> str:

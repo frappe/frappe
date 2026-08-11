@@ -256,7 +256,7 @@ def move_view_to_section(view: ViewName, section: str, index: int | None = None)
 
 	saved_view = get_readable_view(view)
 	shared = not target.user
-	guard_scopes({saved_view.user or "", "" if shared else frappe.session.user})
+	guard_scopes({saved_view.user or "", "" if shared else frappe.session.user}, "Saved View")
 
 	if bool(saved_view.user) == shared:
 		saved_view.user = "" if shared else frappe.session.user
@@ -296,7 +296,7 @@ def arrange_sections(
 	guard_read(reference_doctype)
 	for_everyone = sbool(for_everyone)
 	if for_everyone:
-		guard_scopes({""})
+		guard_scopes({""}, "Navigation Section")
 
 	scope = Scope(app, reference_doctype)
 	for sequence, name in enumerate(frappe.parse_json(sections), start=1):

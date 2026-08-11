@@ -13,6 +13,7 @@ from frappe.desk.doctype.saved_view.permissions import (
 	guard_mutation,
 	guard_scopes,
 	has_access,
+	own_personal_record,
 	query_conditions,
 )
 from frappe.model.document import Document
@@ -74,6 +75,7 @@ class NavigationSection(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		own_personal_record(self)
 		guard_mutation(self)
 		self.validate_overlay_has_owner()
 		self.validate_overlay_target()
@@ -90,7 +92,7 @@ class NavigationSection(Document):
 		return {item.name: item for item in previous.items} if previous else {}
 
 	def on_trash(self):
-		guard_scopes({self.user or ""})
+		guard_scopes({self.user or ""}, self.doctype)
 		self.delete_overlays()
 
 	def delete_overlays(self):
@@ -134,7 +136,7 @@ def get_sidebar(reference_doctype: str = "", app: str = DEFAULT_APP, for_everyon
 	)
 	return {
 		"sections": sidebar,
-		"can_manage_shared": can_manage_shared(),
+		"can_manage_shared": can_manage_shared("Navigation Section"),
 		"default_view": default_view,
 		"default_view_is_stored": is_stored,
 	}

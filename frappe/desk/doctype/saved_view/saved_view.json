@@ -183,7 +183,12 @@
   },
   {
    "create": 1,
+   "read": 1,
+   "role": "Desk User"
+  },
+  {
    "delete": 1,
+   "if_owner": 1,
    "read": 1,
    "role": "Desk User",
    "write": 1
