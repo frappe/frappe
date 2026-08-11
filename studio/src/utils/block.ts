@@ -17,17 +17,6 @@ import type { StyleValue, FrappeUIComponent, FrappeUIComponents } from "@/types"
 import type { ComponentEvent } from "@/types/ComponentEvent"
 
 export type styleProperty = keyof CSSProperties | `__${string}`;
-
-// rawStyles were dropped in favour of baseStyles; older blocks still carry them
-function mergeLegacyRawStyles(baseStyles: BlockStyleMap, rawStyles?: BlockStyleMap) {
-	if (!rawStyles) return baseStyles
-	Object.entries(rawStyles).forEach(([style, value]) => {
-		if (value === null || value === "" || value === undefined) return
-		baseStyles[kebabToCamelCase(style) as styleProperty] = value
-	})
-	return baseStyles
-}
-
 class Block implements BlockOptions {
 	componentId: string
 	componentName: string
@@ -62,7 +51,7 @@ class Block implements BlockOptions {
 		this.componentName = options.componentName
 		this.blockName = options.blockName
 		this.originalElement = options.originalElement
-		this.baseStyles = reactive(mergeLegacyRawStyles({ ...(options.baseStyles || {}) }, options.rawStyles))
+		this.baseStyles = reactive(options.baseStyles || {})
 		this.mobileStyles = reactive(options.mobileStyles || {})
 		this.tabletStyles = reactive(options.tabletStyles || {})
 		this.classes = options.classes || []

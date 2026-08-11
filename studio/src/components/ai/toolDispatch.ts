@@ -83,10 +83,8 @@ export class ToolDispatcher {
 		if (args.props) {
 			for (const [key, value] of Object.entries(args.props)) block.setProp(key, value)
 		}
-		// rstyle is retired but folded into base styles when an older model emits it
-		for (const styles of [args.style, args.rstyle]) {
-			if (!styles) continue
-			for (const [key, value] of Object.entries(styles)) {
+		if (args.style) {
+			for (const [key, value] of Object.entries(args.style)) {
 				block.setBaseStyle(key as styleProperty, value as StyleValue)
 			}
 		}

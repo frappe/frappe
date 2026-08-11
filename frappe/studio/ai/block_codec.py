@@ -31,11 +31,6 @@ class BlockCodec:
 		if style:
 			out["style"] = style
 
-		# legacy: rawStyles are folded into baseStyles on load, but unsaved docs may still carry them
-		raw = block.get("rawStyles") or {}
-		if raw:
-			out["rstyle"] = raw
-
 		mob = block.get("mobileStyles") or {}
 		if mob:
 			out["mstyle"] = mob
@@ -111,8 +106,6 @@ class BlockCodec:
 		block: dict = {
 			"componentName": node.get("name", "container"),
 			"baseStyles": node.get("style") or {},
-			# legacy: rstyle is retired, the frontend folds it into baseStyles
-			"rawStyles": node.get("rstyle") or {},
 			"componentProps": node.get("props") or {},
 			"componentSlots": BlockCodec._expand_slots(node.get("slots") or {}),
 			"mobileStyles": node.get("mstyle") or {},
