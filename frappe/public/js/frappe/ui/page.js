@@ -1011,7 +1011,9 @@ frappe.ui.Page = class Page {
 			title = strip_html(title);
 		}
 		this.title = title;
-		frappe.utils.set_title(tab_title || title);
+		if (this.set_document_title) {
+			frappe.utils.set_title(tab_title || title);
+		}
 		if (icon) {
 			title = `${frappe.utils.icon(icon)} ${title}`;
 		}
