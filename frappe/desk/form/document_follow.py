@@ -22,7 +22,7 @@ def update_follow(doctype: str, doc_name: str, following: bool | str):
 
 @frappe.whitelist()
 def follow_document(doctype: str, doc_name: str):
-	return _follow_document(doctype, doc_name, frappe.session.user, ignore_permissions=False)
+	return _follow_document(doctype, doc_name, frappe.session.user)
 
 
 def _follow_document(doctype: str, doc_name: str, user: str, *, ignore_permissions: bool | int = False):
@@ -67,9 +67,12 @@ def _follow_document(doctype: str, doc_name: str, user: str, *, ignore_permissio
 		return False
 
 	if not is_document_followed(doctype, doc_name, user):
+		if not frappe.has_permission("Document Follow", "create", user=user):
+			return False
+
 		doc = frappe.new_doc("Document Follow")
 		doc.update({"ref_doctype": doctype, "ref_docname": doc_name, "user": user})
-		doc.save(ignore_permissions=ignore_permissions)
+		doc.save(ignore_permissions=True)
 		frappe.toast(_("Following document {0}").format(doc_name))
 		return doc
 
@@ -269,9 +272,9 @@ def is_document_followed(doctype, doc_name, user):
 
 
 @frappe.whitelist()
-def get_follow_users(doctype, doc_name):
+def get_follow_users(doctype: str, doc_name: str | int):
 	return frappe.get_all(
-		"Document Follow", filters={"ref_doctype": doctype, "ref_docname": doc_name}, fields=["user"]
+		"Document Follow", filters={"ref_doctype": doctype, "ref_docname": str(doc_name)}, fields=["user"]
 	)
 
 
