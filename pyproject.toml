@@ -225,7 +225,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { cryptography = false, pyOpenSSL = false } # drop cryptography and pyOpenSSL after 2026-08-08
+exclude-newer-package = { }
 
 [tool.mypy]
 strict = false
