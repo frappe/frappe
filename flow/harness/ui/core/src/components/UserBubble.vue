@@ -3,7 +3,19 @@
 	     absolute buttons can never overlap the next message -->
 	<div class="group relative flex justify-end pb-7">
 		<div class="flow-prose max-w-[76%] rounded-xl bg-surface-gray-2 px-3.5 py-2.5 text-ink-gray-9">
-			<div v-if="text" class="whitespace-pre-wrap">{{ text }}</div>
+			<div
+				v-if="text"
+				ref="textEl"
+				class="whitespace-pre-wrap"
+				:class="expanded ? '' : 'line-clamp-[12]'"
+			>{{ text }}</div>
+			<button
+				v-if="clampable"
+				class="mt-1.5 text-xs font-medium text-ink-gray-5 hover:text-ink-gray-8"
+				@click="expanded = !expanded"
+			>
+				{{ expanded ? "Show less" : "Show more" }}
+			</button>
 			<div v-if="attachments.length" class="flex flex-wrap gap-1.5" :class="text ? 'mt-2' : ''">
 				<span
 					v-for="item in attachments"
@@ -40,7 +52,7 @@
 </template>
 
 <script setup>
-import { computed, inject } from "vue"
+import { computed, inject, onMounted, ref } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
@@ -52,6 +64,15 @@ const flow = inject("flow")
 const time = computed(() => formatTime(props.entry.ts))
 const text = computed(() => userText(props.entry))
 const attachments = computed(() => userAttachments(props.entry))
+
+// show the toggle only when the 12-line clamp actually truncated
+const expanded = ref(false)
+const textEl = ref(null)
+const clampable = ref(false)
+onMounted(() => {
+	const el = textEl.value
+	clampable.value = !!el && el.scrollHeight > el.clientHeight + 1
+})
 
 function confirmRewind() {
 	dialog.confirm({
