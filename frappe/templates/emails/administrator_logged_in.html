@@ -1,3 +1,7 @@
-<p>{{ _("Dear System Manager,") }} </p>
-<p>{{ access_message }}</p>
-<p>{{ _("If you think this is unauthorized, please change the Administrator password.") }}</p>
+<h1 class="email-title">{{ _("New login to the Administrator account") }}</h1>
+<div class="email-body">
+	<p>{{ _("Time:") }} <b>{{ date_and_time }}</b></p>
+	<p>{{ _("IP address:") }} <b>{{ ip_address | e }}</b></p>
+	<p><span class="email-subhead">{{ _("If this was you:") }}</span><br>{{ _("There is nothing else you need to do.") }}</p>
+	<p><span class="email-subhead">{{ _("If this wasn't you:") }}</span><br>{{ _("The Administrator account may be compromised. Change the Administrator password immediately.") }}</p>
+</div>
