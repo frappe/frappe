@@ -11,17 +11,16 @@
 		</template>
 
 		<template #search>
-			<PaletteSearch v-model="query" placeholder="Search models" autofocus @keydown="onKey" />
+			<PaletteSearch v-model="query" placeholder="Search models" autofocus />
 		</template>
 
-		<div ref="listEl" class="min-h-0 flex-1 overflow-y-auto p-1.5">
+		<div class="min-h-0 flex-1 overflow-y-auto p-1.5">
 			<button
-				v-for="(m, i) in options"
+				v-for="m in options"
 				:key="m.name"
-				:data-palette-active="i === activeIndex"
+				data-palette-item
+				:aria-current="m.name === currentModel ? 'true' : undefined"
 				class="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left hover:bg-surface-gray-2"
-				:class="{ 'bg-surface-gray-2': i === activeIndex || m.name === currentModel }"
-				@mouseenter="activeIndex = i"
 				@click="choose(m.name)"
 			>
 				<span
@@ -61,7 +60,6 @@ import { computed, inject, ref } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
-import { usePaletteNav } from "../paletteNav.js"
 import PalettePanel from "./PalettePanel.vue"
 import PaletteSearch from "./PaletteSearch.vue"
 import ProviderIcon from "./ProviderIcon.vue"
@@ -96,10 +94,4 @@ function choose(name) {
 	flow.selectModel(name)
 	emit("close")
 }
-
-// arrow keys / Enter / Escape, shared with the other palettes
-const { activeIndex, listEl, onKey } = usePaletteNav(options, {
-	onSelect: (row) => choose(row.name),
-	onEscape: () => emit("close"),
-})
 </script>

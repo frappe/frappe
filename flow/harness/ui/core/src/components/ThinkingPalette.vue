@@ -4,8 +4,9 @@
 			<button
 				v-for="level in LEVELS"
 				:key="level.id"
+				data-palette-item
+				:aria-current="level.id === currentEffort ? 'true' : undefined"
 				class="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left hover:bg-surface-gray-2"
-				:class="{ 'bg-surface-gray-2': level.id === currentEffort }"
 				@click="choose(level.id)"
 			>
 				<span class="min-w-0 flex-1">
