@@ -29,7 +29,7 @@
 			:modelValue="null"
 			placeholder="Add CSS property"
 			:getOptions="searchProperties"
-			:showInputAsOption="true"
+			:allowArbitraryValue="true"
 			@update:modelValue="addProperty"
 		/>
 	</div>
@@ -102,8 +102,29 @@ const propertyRows = computed(() =>
 const getRenderedValue = (property: keyof CSSProperties) =>
 	String(selectedBlock.value?.getRenderedStyle(property) ?? "unset")
 
-const searchProperties = async (query: string) =>
-	getCSSPropertyOptions(query, new Set([...props.controlledProperties, ...activeProperties.value]))
+const searchProperties = async (query: string) => {
+	const options = getCSSPropertyOptions(
+		query,
+		new Set([...props.controlledProperties, ...activeProperties.value]),
+	)
+	const arbitraryOption = getArbitraryOption(query)
+	if (arbitraryOption && !options.some((option) => option.value === arbitraryOption.value)) {
+		options.push(arbitraryOption)
+	}
+	return options
+}
+
+// keeps nonstandard property names and "color: red" declarations addable without
+// echoing controlled properties back as dead options
+const getArbitraryOption = (query: string) => {
+	const trimmed = query.trim()
+	if (!trimmed) return null
+	if (trimmed.includes(":")) {
+		return parseCSSDeclarations(trimmed).length ? { label: `Set "${trimmed}"`, value: trimmed } : null
+	}
+	const property = normalizeCSSPropertyName(trimmed)
+	return canAddProperty(property) ? { label: `Add "${property}"`, value: property } : null
+}
 
 const canAddProperty = (property: string) =>
 	isValidCSSPropertyName(property) &&
