@@ -65,15 +65,17 @@ context("Dashboard links", () => {
 		cy.select_form_tab("Connections");
 		cy.get('.document-link[data-doctype="Contact"]').contains("Contact");
 		cy.window()
-			.its("cur_frm")
-			.then((cur_frm) => {
-				cur_frm.dashboard.data.reports = [
+			.its("frappe")
+			.then((frappe) => {
+				const frm = frappe.views.formview.User.frm;
+
+				frm.dashboard.data.reports = [
 					{
 						label: "Reports",
 						items: ["Website Analytics"],
 					},
 				];
-				cur_frm.dashboard.render_report_links();
+				frm.dashboard.render_report_links();
 				cy.get('.document-link[data-report="Website Analytics"]')
 					.contains("Website Analytics")
 					.click();
@@ -97,18 +99,19 @@ context("Dashboard links", () => {
 		cy.findByRole("button", { name: "Save" }).click();
 
 		cy.window()
-			.its("cur_frm")
-			.then((cur_frm) => {
-				const group = cur_frm.dashboard.data.transactions.find((group) =>
+			.its("frappe")
+			.then((frappe) => {
+				const frm = frappe.views.formview[doctype_to_link_name].frm;
+				const group = frm.dashboard.data.transactions.find((group) =>
 					group.items.includes("Doctype With Child Table")
 				);
 
 				delete group.fieldnames;
-				cur_frm.dashboard.data.non_standard_fieldnames["Doctype With Child Table"] =
+				frm.dashboard.data.non_standard_fieldnames["Doctype With Child Table"] =
 					"doctype_to_link";
-				cur_frm.dashboard.transactions_area.empty();
-				cur_frm.dashboard.data_rendered = false;
-				cur_frm.dashboard.render_links();
+				frm.dashboard.transactions_area.empty();
+				frm.dashboard.data_rendered = false;
+				frm.dashboard.render_links();
 			});
 
 		cy.get('.document-link[data-doctype="Doctype With Child Table"] .btn-new')
