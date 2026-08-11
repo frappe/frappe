@@ -150,11 +150,7 @@ has_permission = {
 	"Dashboard Settings": "frappe.desk.doctype.dashboard_settings.dashboard_settings.has_permission",
 	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.has_permission",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.has_permission",
-<<<<<<< HEAD
-=======
-	"Document Template": "frappe.desk.doctype.document_template.document_template.has_permission",
 	"Document Follow": "frappe.email.doctype.document_follow.document_follow.has_permission",
->>>>>>> 9a93ca0539 (fix(document_follow): add hooks for perm. chks for doc. follow)
 }
 
 has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}

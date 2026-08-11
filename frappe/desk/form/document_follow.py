@@ -21,19 +21,11 @@ def update_follow(doctype: str, doc_name: str, following: bool | str):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
 def follow_document(doctype: str, doc_name: str):
-	return _follow_document(doctype, doc_name, frappe.session.user, ignore_permissions=False)
-
-
-def _follow_document(doctype: str, doc_name: str, user: str, *, ignore_permissions: bool | int = False):
-=======
-def follow_document(doctype: str, doc_name: str) -> Document | bool:
 	return _follow_document(doctype, doc_name, frappe.session.user)
 
 
-def _follow_document(doctype: str, doc_name: str, user: str) -> Document | bool:
->>>>>>> 9a93ca0539 (fix(document_follow): add hooks for perm. chks for doc. follow)
+def _follow_document(doctype: str, doc_name: str, user: str, *, ignore_permissions: bool | int = False):
 	"""
 	param:
 	Doctype name
