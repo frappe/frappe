@@ -20,7 +20,7 @@ export interface BlockOptions {
 	originalElement?: string
 	children?: Array<Block | BlockOptions>
 	baseStyles?: BlockStyleMap
-	rawStyles?: BlockStyleMap
+	rawStyles?: BlockStyleMap // legacy: folded into baseStyles on load
 	mobileStyles?: BlockStyleMap
 	tabletStyles?: BlockStyleMap
 	blockName?: string // optional user-friendly name for the block

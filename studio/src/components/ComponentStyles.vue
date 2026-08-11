@@ -58,6 +58,7 @@ import OptionToggle from "@/components/OptionToggle.vue"
 import useStudioStore from "@/stores/studioStore"
 import blockController from "@/utils/blockController"
 import { getEspressoTokens } from "@/utils/espressoTokens"
+import { getStylePropertiesWithoutControls } from "@/utils/stylePropertiesWithoutControls"
 import { CSSProperties, computed } from "vue"
 
 import BlockFlexLayoutHandler from "@/components/BlockFlexLayoutHandler.vue"
@@ -68,7 +69,7 @@ import DimensionInput from "@/components/DimensionInput.vue"
 import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import ColorInput from "@/components/ColorInput.vue"
-import ObjectEditor from "@/components/ObjectEditor.vue"
+import MoreStylesPanel from "@/components/MoreStylesPanel.vue"
 
 import type { StyleValue } from "@/types"
 import DynamicStyleSelector from "@/components/DynamicStyleSetter.vue"
@@ -91,6 +92,8 @@ export type BlockProperty = {
 	innerText?: string
 	allowDynamicValue?: boolean
 	getValue?: () => string | null
+	// CSS properties (kebab-case) this control edits, so More Styles doesn't offer them again
+	usedStyleProperties?: string[]
 }
 
 type PropertySection = {
@@ -148,6 +151,7 @@ const layoutSectionProperties = [
 			}
 		},
 		searchKeyWords: "Layout, Display, Flex, Grid, Flexbox, Flex Box, FlexBox",
+		usedStyleProperties: ["display"],
 		events: {
 			"update:modelValue": (val: StyleValue) => {
 				blockController.setStyle("display", val)
@@ -169,15 +173,34 @@ const layoutSectionProperties = [
 	},
 	{
 		component: BlockGridLayoutHandler,
-		getProps: () => {},
+		getProps: () => ({}),
 		searchKeyWords:
 			"Layout, Grid, GridTemplate, Grid Template, GridGap, Grid Gap, GridRow, Grid Row, GridColumn, Grid Column",
+		usedStyleProperties: [
+			"gap",
+			"grid-auto-columns",
+			"grid-auto-rows",
+			"grid-column",
+			"grid-row",
+			"grid-template-columns",
+			"grid-template-rows",
+		],
 	},
 	{
 		component: BlockFlexLayoutHandler,
-		getProps: () => {},
+		getProps: () => ({}),
 		searchKeyWords:
 			"Layout, Flex, Flexbox, Flex Box, FlexBox, Justify, Space Between, Flex Grow, Flex Shrink, Flex Basis, Align Items, Align Content, Align Self, Flex Direction, Flex Wrap, Flex Flow, Flex Grow, Flex Shrink, Flex Basis, Gap",
+		usedStyleProperties: [
+			"align-items",
+			"flex-direction",
+			"flex-grow",
+			"flex-shrink",
+			"flex-wrap",
+			"gap",
+			"justify-content",
+			"order",
+		],
 	},
 	{
 		component: InlineInput,
@@ -191,6 +214,7 @@ const layoutSectionProperties = [
 		},
 		searchKeyWords:
 			"Overflow, X, OverflowX, Overflow X, Auto, Visible, Hide, Scroll, horizontal scroll, horizontalScroll",
+		usedStyleProperties: ["overflow", "overflow-x"],
 		events: {
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("overflowX", val),
 		},
@@ -207,6 +231,7 @@ const layoutSectionProperties = [
 		},
 		searchKeyWords:
 			"Overflow, Y, OverflowY, Overflow Y, Auto, Visible, Hide, Scroll, vertical scroll, verticalScroll",
+		usedStyleProperties: ["overflow", "overflow-y"],
 		events: {
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("overflowY", val),
 		},
@@ -223,6 +248,7 @@ const dimensionSectionProperties = [
 				property: "width",
 			}
 		},
+		usedStyleProperties: ["width"],
 		allowDynamicValue: true,
 		getValue: () => {
 			return blockController.getStyle("width")
@@ -237,6 +263,7 @@ const dimensionSectionProperties = [
 				property: "minWidth",
 			}
 		},
+		usedStyleProperties: ["min-width"],
 		allowDynamicValue: true,
 		getValue: () => {
 			return blockController.getStyle("minWidth")
@@ -251,6 +278,7 @@ const dimensionSectionProperties = [
 				property: "maxWidth",
 			}
 		},
+		usedStyleProperties: ["max-width"],
 		allowDynamicValue: true,
 		getValue: () => {
 			return blockController.getStyle("maxWidth")
@@ -274,6 +302,7 @@ const dimensionSectionProperties = [
 				property: "height",
 			}
 		},
+		usedStyleProperties: ["height"],
 		allowDynamicValue: true,
 		getValue: () => {
 			return blockController.getStyle("height")
@@ -288,6 +317,7 @@ const dimensionSectionProperties = [
 				property: "minHeight",
 			}
 		},
+		usedStyleProperties: ["min-height"],
 		allowDynamicValue: true,
 		getValue: () => {
 			return blockController.getStyle("minHeight")
@@ -302,6 +332,7 @@ const dimensionSectionProperties = [
 				property: "maxHeight",
 			}
 		},
+		usedStyleProperties: ["max-height"],
 		allowDynamicValue: true,
 		getValue: () => {
 			return blockController.getStyle("maxHeight")
@@ -314,7 +345,8 @@ const positionSectionProperties = [
 		component: BlockPositionHandler,
 		searchKeyWords:
 			"Position, Top, Right, Bottom, Left, PositionTop, Position Top, PositionRight, Position Right, PositionBottom, Position Bottom, PositionLeft, Position Left, Free, Fixed, Absolute, Relative, Sticky",
-		getProps: () => {},
+		getProps: () => ({}),
+		usedStyleProperties: ["bottom", "left", "position", "right", "top"],
 	},
 ]
 
@@ -339,6 +371,7 @@ const spacingSectionProperties = [
 		events: {
 			"update:modelValue": (val: string) => blockController.setMargin(val),
 		},
+		usedStyleProperties: ["margin", "margin-bottom", "margin-left", "margin-right", "margin-top"],
 		condition: () => !blockController.isRoot(),
 		allowDynamicValue: true,
 		getValue: () => {
@@ -360,6 +393,7 @@ const spacingSectionProperties = [
 		events: {
 			"update:modelValue": (val: string) => blockController.setPadding(val),
 		},
+		usedStyleProperties: ["padding", "padding-bottom", "padding-left", "padding-right", "padding-top"],
 		allowDynamicValue: true,
 		getValue: () => {
 			return blockController.getPadding()
@@ -383,6 +417,7 @@ const typographySectionProperties = [
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("fontWeight", val),
 		},
 		searchKeyWords: "Font, Weight, FontWeight",
+		usedStyleProperties: ["font-weight"],
 		allowDynamicValue: true,
 	},
 	{
@@ -407,6 +442,7 @@ const typographySectionProperties = [
 			},
 		},
 		searchKeyWords: "Font, Size, FontSize",
+		usedStyleProperties: ["font-size"],
 		condition: () => blockController.isText(),
 		allowDynamicValue: true,
 	},
@@ -424,6 +460,7 @@ const typographySectionProperties = [
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("lineHeight", val),
 		},
 		searchKeyWords: "Font, Height, LineHeight, Line Height",
+		usedStyleProperties: ["line-height"],
 		condition: () => blockController.isText(),
 		allowDynamicValue: true,
 	},
@@ -441,6 +478,7 @@ const typographySectionProperties = [
 		},
 		allowDynamicValue: true,
 		searchKeyWords: "Text, Color, TextColor, Text Color",
+		usedStyleProperties: ["color"],
 	},
 	{
 		component: InlineInput,
@@ -456,6 +494,7 @@ const typographySectionProperties = [
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("letterSpacing", val),
 		},
 		searchKeyWords: "Font, Letter, LetterSpacing, Letter Spacing",
+		usedStyleProperties: ["letter-spacing"],
 		condition: () => blockController.isText(),
 		allowDynamicValue: true,
 	},
@@ -490,6 +529,7 @@ const typographySectionProperties = [
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("textTransform", val),
 		},
 		searchKeyWords: "Font, Transform, TextTransform, Text Transform, Capitalize, Uppercase, Lowercase",
+		usedStyleProperties: ["text-transform"],
 		condition: () => blockController.isText(),
 		allowDynamicValue: true,
 	},
@@ -527,6 +567,7 @@ const typographySectionProperties = [
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("textAlign", val),
 		},
 		searchKeyWords: "Font, Align, TextAlign, Text Align, Left, Center, Right, Justify",
+		usedStyleProperties: ["text-align"],
 		condition: () => blockController.isText(),
 		allowDynamicValue: true,
 	},
@@ -543,6 +584,7 @@ const styleSectionProperties = [
 			}
 		},
 		searchKeyWords: "Background, BackgroundColor, Background Color, BG, BGColor, BG Color",
+		usedStyleProperties: ["background-color"],
 		events: {
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("backgroundColor", val),
 		},
@@ -565,6 +607,7 @@ const styleSectionProperties = [
 		},
 		allowDynamicValue: true,
 		searchKeyWords: "Text, Color, TextColor, Text Color",
+		usedStyleProperties: ["color"],
 	},
 	{
 		component: ColorInput,
@@ -576,6 +619,7 @@ const styleSectionProperties = [
 			}
 		},
 		searchKeyWords: "Border, Color, BorderColor, Border Color",
+		usedStyleProperties: ["border", "border-color"],
 		events: {
 			"update:modelValue": (val: StyleValue) => {
 				blockController.setStyle("borderColor", val)
@@ -607,6 +651,7 @@ const styleSectionProperties = [
 			}
 		},
 		searchKeyWords: "Border, Width, BorderWidth, Border Width",
+		usedStyleProperties: ["border-width"],
 		events: {
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("borderWidth", val),
 		},
@@ -640,6 +685,7 @@ const styleSectionProperties = [
 			}
 		},
 		searchKeyWords: "Border, Style, BorderStyle, Border Style, Solid, Dashed, Dotted",
+		usedStyleProperties: ["border-style"],
 		events: {
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("borderStyle", val),
 		},
@@ -663,6 +709,7 @@ const styleSectionProperties = [
 			}
 		},
 		searchKeyWords: "Border, Radius, BorderRadius, Border Radius",
+		usedStyleProperties: ["border-radius"],
 		events: {
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("borderRadius", val),
 		},
@@ -680,6 +727,7 @@ const styleSectionProperties = [
 			}
 		},
 		searchKeyWords: "Z, Index, ZIndex, Z Index, Z-index, Z-Index",
+		usedStyleProperties: ["z-index"],
 		events: {
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("zIndex", val),
 		},
@@ -703,6 +751,7 @@ const styleSectionProperties = [
 			}
 		},
 		searchKeyWords: "Shadow, BoxShadow, Box Shadow",
+		usedStyleProperties: ["box-shadow"],
 		events: {
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("boxShadow", val),
 		},
@@ -725,31 +774,37 @@ const styleSectionProperties = [
 			}
 		},
 		searchKeyWords: "Cursor, Pointer, Move, Text, Crosshair, NotAllowed, Not Allowed",
+		usedStyleProperties: ["cursor"],
 		events: {
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("cursor", val),
 		},
 	},
 ]
 
-const rawStyleSectionProperties = [
+// properties owned by a dedicated control above, derived from the usedStyleProperties
+// each descriptor declares; More Styles must not offer them again
+const stylePropertiesWithControls = new Set<string>(
+	[
+		layoutSectionProperties,
+		typographySectionProperties,
+		dimensionSectionProperties,
+		positionSectionProperties,
+		spacingSectionProperties,
+		styleSectionProperties,
+	].flatMap((properties) =>
+		properties.flatMap((property) => (property as BlockProperty).usedStyleProperties || []),
+	),
+)
+
+const moreStylesSectionProperties = [
 	{
-		component: ObjectEditor,
+		component: MoreStylesPanel,
 		getProps: () => {
 			return {
-				obj: blockController.getRawStyles() as Record<string, string>,
-				description: `
-					<b>Note:</b>
-					<br />
-					<br />
-					- Raw styles get applied across all devices
-					<br />
-				`,
+				controlledProperties: stylePropertiesWithControls,
 			}
 		},
-		searchKeyWords: "Raw, RawStyle, Raw Style, CSS, Style, Styles",
-		events: {
-			"update:obj": (obj: Record<string, string>) => blockController.setRawStyles(obj),
-		},
+		searchKeyWords: "More, Styles, Raw, RawStyle, Raw Style, CSS, Property, Properties, Advanced",
 	},
 ]
 
@@ -814,10 +869,14 @@ const sections = [
 		properties: styleSectionProperties,
 	},
 	{
-		name: "Raw Style",
-		properties: rawStyleSectionProperties,
+		name: "More Styles",
+		properties: moreStylesSectionProperties,
+		condition: () => !blockController.multipleBlocksSelected(),
 		collapsed: computed(() => {
-			return Object.keys(blockController.getRawStyles()).length === 0
+			if (!blockController.isAnyBlockSelected()) return true
+			const block = blockController.getFirstSelectedBlock()
+			const styles = { ...block.baseStyles, ...block.tabletStyles, ...block.mobileStyles }
+			return getStylePropertiesWithoutControls(styles, stylePropertiesWithControls).size === 0
 		}),
 	},
 	{

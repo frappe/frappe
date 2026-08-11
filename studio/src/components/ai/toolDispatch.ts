@@ -83,12 +83,13 @@ export class ToolDispatcher {
 		if (args.props) {
 			for (const [key, value] of Object.entries(args.props)) block.setProp(key, value)
 		}
-		if (args.style) {
-			for (const [key, value] of Object.entries(args.style)) {
+		// rstyle is retired but folded into base styles when an older model emits it
+		for (const styles of [args.style, args.rstyle]) {
+			if (!styles) continue
+			for (const [key, value] of Object.entries(styles)) {
 				block.setBaseStyle(key as styleProperty, value as StyleValue)
 			}
 		}
-		if (args.rstyle) Object.assign(block.rawStyles, args.rstyle)
 		if (args.mstyle) Object.assign(block.mobileStyles, args.mstyle)
 		if (args.tstyle) Object.assign(block.tabletStyles, args.tstyle)
 		if (args.label !== undefined) block.blockName = args.label

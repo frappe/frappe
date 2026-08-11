@@ -27,10 +27,6 @@ update_block = Tool(
 				"type": "object",
 				"description": 'Panel-editable desktop CSS (camelCase) to merge into baseStyles, e.g. {"color":"var(--ink-red-3)","padding":"12px"}.',
 			},
-			"rstyle": {
-				"type": "object",
-				"description": "Raw CSS for properties not in the style panel (opacity, transform, transition, …) to merge into rawStyles.",
-			},
 			"mstyle": {
 				"type": "object",
 				"description": "Mobile style overrides to merge into mobileStyles.",
@@ -55,7 +51,7 @@ update_blocks = Tool(
 		"Apply edits to MANY blocks in ONE call — the right tool for page-wide changes "
 		"(translate every text block, restyle all buttons, recolour all headings). Pair it "
 		"with query_blocks: query the set, then update it here in a single call. Two modes:\n"
-		"• UNIFORM — set 'component_ids' (a list of ids) plus any of props / style / rstyle / "
+		"• UNIFORM — set 'component_ids' (a list of ids) plus any of props / style / "
 		"mstyle / tstyle. The SAME change is merged into every listed block (e.g. colour all "
 		"headings red).\n"
 		"• PER-BLOCK — set 'patches', a list where each item is {component_id, …same fields as "
@@ -79,7 +75,6 @@ update_blocks = Tool(
 				"type": "object",
 				"description": "UNIFORM mode: desktop styles to merge into every listed block.",
 			},
-			"rstyle": {"type": "object", "description": "UNIFORM mode: raw styles to merge."},
 			"mstyle": {"type": "object", "description": "UNIFORM mode: mobile style overrides to merge."},
 			"tstyle": {"type": "object", "description": "UNIFORM mode: tablet style overrides to merge."},
 			"patches": {
@@ -91,7 +86,6 @@ update_blocks = Tool(
 						"component_id": {"type": "string", "description": "The target block's id."},
 						"props": {"type": "object"},
 						"style": {"type": "object"},
-						"rstyle": {"type": "object"},
 						"mstyle": {"type": "object"},
 						"tstyle": {"type": "object"},
 						"label": {"type": "string"},
@@ -129,11 +123,7 @@ add_block = Tool(
 					},
 					"label": {"type": "string", "description": "Descriptive label for the block."},
 					"props": {"type": "object", "description": "componentProps (text, label, variant, …)."},
-					"style": {"type": "object", "description": "Panel-editable desktop CSS (camelCase)."},
-					"rstyle": {
-						"type": "object",
-						"description": "Raw CSS for properties not in the style panel.",
-					},
+					"style": {"type": "object", "description": "Desktop CSS (camelCase)."},
 					"mstyle": {"type": "object", "description": "Mobile style overrides."},
 					"tstyle": {"type": "object", "description": "Tablet style overrides."},
 					"events": {

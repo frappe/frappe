@@ -79,7 +79,7 @@ AUTOCOMPLETE:
 
 STYLING_RULES = """COMPONENT STYLING RULES:
 STYLE PROPERTY ROUTING — use the correct key:
-- `style:` (panel-editable) — use ONLY these properties:
+- `style:` — any camelCase CSS property. Prefer these panel-native properties:
   Layout: display, flexDirection, justifyContent, alignItems, alignContent, alignSelf, flexWrap, flex, flexGrow, flexShrink, flexBasis, gap, rowGap, columnGap, overflowX, overflowY
   Grid: gridTemplateColumns, gridTemplateRows, gridColumn, gridRow
   Dimension: width, minWidth, maxWidth, height, minHeight, maxHeight
@@ -87,7 +87,7 @@ STYLE PROPERTY ROUTING — use the correct key:
   Spacing: margin, padding (and per-side: marginTop, marginRight, marginBottom, marginLeft, paddingTop, paddingRight, paddingBottom, paddingLeft)
   Typography: fontWeight, lineHeight, color, letterSpacing, textTransform, textAlign
   Visual: backgroundColor, borderColor, borderWidth, borderStyle, borderRadius, boxShadow, cursor
-- `rstyle:` (raw styles) — for ALL other CSS properties not listed above: opacity, objectFit, objectPosition, whiteSpace, textOverflow, textDecoration, fontStyle, fontFamily, transform, transition, animation, wordBreak, overflowWrap, etc. Keep rstyle minimal — only include when genuinely needed.
+  Other CSS properties (opacity, objectFit, whiteSpace, textOverflow, transform, transition, ...) also go in `style` — they surface under the More Styles panel section. Use them only when genuinely needed.
 - `mstyle:` (mobile styles) and `tstyle:` (tablet styles) — same properties as `style`, but for mobile and tablet breakpoints. Only include properties that need to change on mobile/tablet — do not duplicate the entire style object.
 - Make sure entire page is RESPONSIVE - Use %, rem for responsive widths. Top-level sections MUST be 100% width
 
@@ -98,7 +98,7 @@ CSS VARIABLE RULES:
   - borderColor: var(--outline-base) | var(--outline-gray-1..9) | var(--outline-red-1..3) | var(--outline-green-1..2) | var(--outline-amber-1..2) | var(--outline-blue-1) | var(--outline-orange-1)
   - borderRadius: "0px" (none) | "0.25rem" (sm) | "0.5rem" (DEFAULT) | "0.625rem" (md) | "0.75rem" (lg) | "1rem" (xl) | "1.25rem" (2xl) | "9999px" (full)
 - borderRadius — apply borderRadius (0.5rem by default) on cards, panels, containers by default, but NOT on full-width sections that span the entire viewport width.
-- NEVER use the `border` shorthand property or per-side border properties: borderTopColor, borderTopWidth, borderTopStyle, borderLeftColor, borderLeftWidth, borderLeftStyle, borderRightColor, borderRightWidth, borderRightStyle, borderBottomColor, borderBottomWidth, borderBottomStyle — these are NOT in the style panel
+- NEVER use the `border` shorthand property or per-side border properties: borderTopColor, borderTopWidth, borderTopStyle, borderLeftColor, borderLeftWidth, borderLeftStyle, borderRightColor, borderRightWidth, borderRightStyle, borderBottomColor, borderBottomWidth, borderBottomStyle — they fight the panel's border controls
 - For full borders: borderColor, borderWidth (e.g. "1px"), borderStyle — always set all three together
 - For one-sided borders: use CSS shorthand values — e.g. top-only: borderWidth: "4px 0px 0px 0px", borderColor: "var(--outline-blue-1)", borderStyle: "solid"
 - Button: use size prop ("sm"|"md"|"lg"|"xl"|"2xl") for sizing — DO NOT set height in style. NEVER use any other `theme` except gray or default unless prompted. Only use colored themes (blue, red, green) when semantically meaningful: destructive actions → red, success/confirmed → green.
@@ -116,8 +116,7 @@ BLOCK_SCHEMA = """BLOCK SCHEMA (each block is a JSON object with these optional 
 - "originalElement": "div"|"body" — ONLY for layout blocks: REQUIRED on "container" blocks and the root (without it the block and ALL its children fail to render — blank canvas). NEVER put it on a component block (TextInput, Button, TextBlock, …) — a component with originalElement renders as an empty <div> instead of the component.
 - "label": descriptive name
 - "props": { }                  — component-specific props
-- "style": { }                  — panel-editable CSS (see STYLE PROPERTY ROUTING below)
-- "rstyle": { }                 — raw CSS for properties not in the style panel
+- "style": { }                  — camelCase CSS (see STYLE PROPERTY ROUTING below)
 - "mstyle": { }                 — mobile style overrides
 - "tstyle": { }                 — tablet style overrides
 - "events": { }                 — event handlers, eventName → JS script, e.g. {"click":"counter.value++"}. Variables are refs (write with .value); the script also sees data sources and route/router.
@@ -282,7 +281,7 @@ The current page is given as a compact JSON tree using the BLOCK SCHEMA below �
 Send ONLY the fields you are changing — merges are shallow:
 - "props" — merge component props (e.g. {{"text":"Sign up"}} for a TextBlock, {{"label":"Save","variant":"solid"}} for a Button)
 - "style" — merge desktop CSS (e.g. {{"color":"var(--ink-red-3)"}})
-- "rstyle" / "mstyle" / "tstyle" — raw / mobile / tablet overrides
+- "mstyle" / "tstyle" — mobile / tablet overrides
 - "label" — rename the block
 For add_block, pass the new block under "block" using the BLOCK SCHEMA below (name/originalElement/props/style/c) and do NOT include an "id".
 

@@ -9,6 +9,7 @@ export function expandBlock(node: Record<string, any>): BlockOptions {
 	const block: BlockOptions = {
 		componentName: node.name ?? "container",
 		baseStyles: node.style ?? {},
+		// legacy: rstyle is retired, the Block constructor folds it into baseStyles
 		rawStyles: node.rstyle ?? {},
 		componentProps: node.props ?? {},
 		componentSlots: expandSlots(node.slots),

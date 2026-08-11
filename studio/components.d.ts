@@ -78,6 +78,7 @@ declare module 'vue' {
     MarginHandler: typeof import('./src/components/MarginHandler.vue')['default']
     MarkdownEditor: typeof import('./src/components/AppLayout/MarkdownEditor.vue')['default']
     MissingComponent: typeof import('./src/components/MissingComponent.vue')['default']
+    MoreStylesPanel: typeof import('./src/components/MoreStylesPanel.vue')['default']
     ObjectBrowser: typeof import('./src/components/ObjectBrowser.vue')['default']
     ObjectEditor: typeof import('./src/components/ObjectEditor.vue')['default']
     OptionToggle: typeof import('./src/components/OptionToggle.vue')['default']
