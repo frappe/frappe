@@ -8,6 +8,7 @@ import frappe
 from frappe import _
 from frappe.desk.desk_views import DeskViews
 from frappe.desk.desktop import get_workspaces, save_new_widget
+from frappe.desk.doctype.desktop_settings.desktop_settings import is_desktop_icons_page
 from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
@@ -225,8 +226,24 @@ class Workspace(Document, DeskViews):
 		if self.public and not is_workspace_manager():
 			frappe.throw(_("You need to be Workspace Manager to delete a public workspace."))
 
+		self.delete_desktop_icon()
+
 	def delete_desktop_icon(self):
-		frappe.delete_doc_if_exists("Desktop Icon", self.title)
+		"""Take the workspace's icon off the grid with it.
+
+		Gated on the desktop page by construction rather than left to run in both modes: an
+		Apps-mode site holds no icon rows at all, so this used to be harmless only by
+		consequence -- the one place containment did not hold by design.
+
+		Matched on the workspace's name, which is what both writers label the icon with
+		(autoname is `field:label`). Matching on the title would let a private page take a
+		public one's icon down with it, since a private page's name carries an owner suffix
+		its title does not.
+		"""
+		if not is_desktop_icons_page():
+			return
+
+		frappe.delete_doc_if_exists("Desktop Icon", self.name)
 
 	def after_delete(self):
 		if disable_saving_as_public():

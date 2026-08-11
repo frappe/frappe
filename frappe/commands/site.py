@@ -1736,31 +1736,27 @@ def bypass_patch(context: CliCtxObj, patch_name: str, yes: bool):
 @click.command("sync-desktop-icons")
 @pass_context
 def sync_desktop_icons(context: CliCtxObj):
-	from frappe.model.sync import import_file_by_path
-	from frappe.modules.utils import get_app_level_directory_path
-	from frappe.utils import update_progress_bar
+	from frappe.desk.doctype.desktop_icon.desktop_icon import import_desktop_icon_fixtures
+	from frappe.desk.doctype.desktop_settings.desktop_settings import is_desktop_icons_page
 
-	files = []
-	app_level_folders = ["desktop_icon"]
 	for site in context.sites:
-		print("Sycning icons for " + site)
 		frappe.init(site)
 		frappe.connect()
-		for app_name in frappe.get_installed_apps():
-			for folder_name in app_level_folders:
-				directory_path = get_app_level_directory_path(folder_name, app_name)
-				if os.path.exists(directory_path):
-					icon_files = [
-						os.path.join(directory_path, filename) for filename in os.listdir(directory_path)
-					]
-					for doc_path in icon_files:
-						files.append(doc_path)
-		for i, doc_path in enumerate(files):
-			imported = import_file_by_path(doc_path, force=True, ignore_version=True)
-			if imported:
-				frappe.db.commit(chain=True)
+		try:
+			# The import carries the desktop-mode guard, so say why nothing happened rather
+			# than reporting a sync that imported nothing.
+			if not is_desktop_icons_page():
+				click.secho(
+					f"{site} is on the Apps desktop and holds no icon rows; "
+					"switch Desktop Settings -> Desktop Page to sync icons.",
+					fg="yellow",
+				)
+				continue
 
-			update_progress_bar("Updating Desktop Icons", i, len(files))
+			click.secho(f"Syncing icons for {site}")
+			import_desktop_icon_fixtures(force=True)
+		finally:
+			frappe.destroy()
 
 
 commands = [

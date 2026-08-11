@@ -10,9 +10,10 @@ import os
 import re
 
 import frappe
+from frappe.desk.doctype.desktop_icon.desktop_icon import import_desktop_icon_fixtures
 from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import _patch_mode
-from frappe.modules.utils import get_app_level_directory_path
+from frappe.modules.utils import get_app_level_files
 from frappe.utils import update_progress_bar
 
 IMPORTABLE_DOCTYPES = [
@@ -120,13 +121,9 @@ def sync_for(app_name, force=0, reset_permissions=False):
 		folder = os.path.dirname(frappe.get_module(app_name + "." + module_name).__file__)
 		files = get_doc_files(files=files, start_path=folder)
 
-	app_level_folders = ["desktop_icon", "workspace_sidebar"]
+	app_level_folders = ["workspace_sidebar"]
 	for folder_name in app_level_folders:
-		directory_path = get_app_level_directory_path(folder_name, app_name)
-		if os.path.exists(directory_path):
-			icon_files = [os.path.join(directory_path, filename) for filename in os.listdir(directory_path)]
-			for doc_path in icon_files:
-				files.append(doc_path)
+		files.extend(get_app_level_files(folder_name, app_name))
 
 	l = len(files)
 	if l:
@@ -143,6 +140,11 @@ def sync_for(app_name, force=0, reset_permissions=False):
 
 		# print each progress bar on new line
 		print()
+
+	# The icon grid's fixtures go through their own entry point because they carry the
+	# desktop-mode guard: an Apps-mode site holds zero icon rows, shipped or generated, and
+	# flipping to the grid is what imports them.
+	import_desktop_icon_fixtures(app_name, force=force)
 
 
 def get_doc_files(files, start_path):

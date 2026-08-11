@@ -27,18 +27,55 @@ class DesktopSettings(Document):
 	# end: auto-generated types
 
 	def on_update(self):
+		if not self.has_value_changed("desktop_page"):
+			return
+
 		# The desktop page is resolved once per boot and bootinfo is cached per user, so
 		# switching it has to rebuild every user's boot.
-		if self.has_value_changed("desktop_page"):
-			frappe.clear_cache()
+		frappe.clear_cache()
+
+		# Whatever turns the grid on is responsible for there being a grid: both producers
+		# are gated on this setting, so without seeding here a System Manager flipping to it
+		# lands on an empty screen. Enqueued rather than run inline -- seeding walks every
+		# installed app and every public workspace, which is not what a settings save is for.
+		# Flipping the other way deletes nothing, which is what makes the move reversible.
+		if self.desktop_page == DESKTOP_ICONS:
+			frappe.enqueue(seed_desktop_icons, enqueue_after_commit=True)
+
+
+def seed_desktop_icons():
+	"""Fill a freshly switched-on grid: generated rows, then every app's shipped ones.
+
+	Both producers are idempotent -- they skip an icon that already exists -- so repeated
+	flips accumulate nothing.
+	"""
+	from frappe.desk.doctype.desktop_icon.desktop_icon import (
+		create_desktop_icons,
+		import_desktop_icon_fixtures,
+	)
+
+	create_desktop_icons()
+	import_desktop_icon_fixtures()
+
+	# Anyone who booted between the save and this job cached an empty grid, and the rows
+	# themselves bust nothing useful -- a generated icon is not `standard`, so its own
+	# `on_update` only clears the cache of the user the job runs as.
+	frappe.clear_cache()
 
 
 def get_desktop_page() -> str:
 	"""Which page /app/desktop renders. Defaults to `Apps` when unset (fresh install)."""
-	# This runs on every boot, and `get_single_value` throws on a field the doctype doesn't
-	# know about -- so on a site that has pulled the code but not migrated yet, reading this
-	# blind would take down session boot rather than just falling back to the default page.
-	if not frappe.get_meta(DesktopSettings._DOCTYPE_NAME).has_field("desktop_page"):
+	# Asked on every boot, and by the fixture-import guard during an install's own doctype
+	# sync -- so neither the doctype nor the field can be assumed to exist. Reading either
+	# blind would take down the install, or session boot on a site that has pulled the code
+	# but not migrated yet, rather than just falling back to the default page.
+	try:
+		has_field = frappe.get_meta(DesktopSettings._DOCTYPE_NAME).has_field("desktop_page")
+	except frappe.DoesNotExistError:
+		frappe.clear_last_message()
+		return APPS
+
+	if not has_field:
 		return APPS
 
 	page = frappe.db.get_single_value(DesktopSettings._DOCTYPE_NAME, "desktop_page")
