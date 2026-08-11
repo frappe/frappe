@@ -353,13 +353,22 @@ class File(Document):
 				exc=FileExistsError,
 			)
 
-		# Uses os.rename which is an atomic operation
-		shutil.move(source, target)
+		other_refs_exist = self.content_hash and frappe.db.exists(
+			"File",
+			{
+				"content_hash": self.content_hash,
+				"file_url": self.file_url,
+				"name": ["!=", self.name],
+			},
+		)
+		if other_refs_exist:
+			shutil.copy2(source, target)
+		else:
+			shutil.move(source, target)
 		self.flags.original_path = {"old": source, "new": target}
 		frappe.db.after_rollback.add(self.on_rollback)
 
 		self.file_url = updated_file_url
-		update_existing_file_docs(self)
 
 		if (
 			not self.attached_to_doctype
@@ -663,14 +672,13 @@ class File(Document):
 		frappe.throw(msg, frappe.LinkExistsError)
 
 	def _delete_file_on_disk(self):
-		"""If file not attached to any other record, delete it"""
+		"""If no other row references this specific physical file, delete it."""
 		on_disk_file_not_shared = self.content_hash and not frappe.get_all(
 			"File",
 			filters={
 				"content_hash": self.content_hash,
+				"file_url": self.file_url,
 				"name": ["!=", self.name],
-				# NOTE: Some old Files might share file_urls while not sharing the is_private value
-				# "is_private": self.is_private,
 			},
 			limit=1,
 		)
