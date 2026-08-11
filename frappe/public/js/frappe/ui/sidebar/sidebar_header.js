@@ -2,56 +2,8 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	constructor(sidebar) {
 		this.sidebar = sidebar;
 		this.sidebar_wrapper = $(".body-sidebar");
-		this.drop_down_expanded = false;
 		this.title = this.get_display_title();
-		// with the dock active it owns workspace switching, so the header dropdown drops the inline
-		// selector list (the dock has it); the workspace picker dialog is added below in both modes
-		this.dock_active = sidebar.workspace_dock_enabled();
-		this.dropdown_items = this.build_dropdown_items();
 		this.make();
-	}
-	// Workspaces (the shared selector set, owned by Sidebar) then the Apps section, and finally the
-	// "My Workspaces" picker dialog -- the same entry as the user menu, so it's reachable here too.
-	build_dropdown_items() {
-		let items = this.dock_active ? [] : this.sidebar.get_workspace_selector_items();
-
-		let apps_section = this.fetch_apps();
-		if (apps_section) items.push(apps_section);
-		items.push({
-			name: "workspace-selector",
-			label: __("Manage Dock"),
-			icon: "monitor",
-			onClick: () => new frappe.ui.DockManager(),
-		});
-
-		return items;
-	}
-	fetch_apps() {
-		let apps = (frappe.boot.app_data || []).filter((app) => app.on_apps_screen);
-		if (!apps.length) return null;
-
-		let items = apps.map((app) => {
-			let logo = Array.isArray(app.app_logo_url) ? app.app_logo_url[0] : app.app_logo_url;
-			return {
-				name: app.app_name,
-				label: app.app_title,
-				// an app that ships no workspaces has no declared route either -- it lands on its
-				// first module sidebar instead (see app_landing_route)
-				url: this.sidebar.app_landing_route(app),
-				icon_url: logo,
-				// no logo declared -> render an alphabet icon, matching the desktop apps screen
-				icon_html: logo
-					? undefined
-					: frappe.utils.desktop_icon(app.app_title, "gray", "sm", "Solid"),
-			};
-		});
-
-		return {
-			name: "apps",
-			label: __("Apps"),
-			icon: "layout-grid",
-			items,
-		};
 	}
 	get_help_siblings() {
 		const navbar_settings = frappe.boot.navbar_settings;
@@ -106,8 +58,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		$(
 			frappe.render_template("sidebar_header", {
 				workspace_title: this.title,
-				header_icon: this.header_icon,
-				header_bg_color: this.header_stroke_color,
 			})
 		).prependTo(this.sidebar_wrapper);
 		this.wrapper = $(".sidebar-header");
@@ -130,24 +80,15 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			this.sidebar.get_sidebar_app()?.app_title
 		);
 	}
+	// The module's own icon, used by the onboarding widget. An authored `header_icon`, else a
+	// letter icon from its title -- the same pair the rail uses. There is no app-logo fallback:
+	// an app's logo was never this module's icon, and the one that stood in was whichever app
+	// happened to be installed first.
 	set_header_icon() {
 		const sidebar = this.sidebar.sidebar_data;
-		if (sidebar?.header_icon) {
-			this.header_icon = frappe.utils.icon(sidebar.header_icon, "md");
-		} else if (sidebar) {
-			// a generated sidebar carries no authored icon; render a letter icon from the label
-			// (matching the desktop apps screen) instead of the default app logo
-			this.header_icon = frappe.utils.desktop_icon(
-				sidebar.label || this.sidebar.current_module,
-				"gray",
-				"sm"
-			);
-		} else {
-			this.header_icon = `<img src=${this.get_default_icon()}></img>`;
-		}
-	}
-	get_default_icon() {
-		return frappe.boot.app_data[0].app_logo_url;
+		this.header_icon = sidebar?.header_icon
+			? frappe.utils.icon(sidebar.header_icon, "md")
+			: frappe.utils.desktop_icon(this.title || "", "gray", "sm");
 	}
 
 	setup_hover() {

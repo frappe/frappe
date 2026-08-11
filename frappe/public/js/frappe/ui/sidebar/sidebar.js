@@ -37,73 +37,9 @@ frappe.ui.Sidebar = class Sidebar {
 			console.log(e);
 		}
 	}
-	// Resolve the app context from the current route and store it on `frappe.current_app` (plus
-	// the header's subtitle/logo). Driven by the router (called from the `route change` handler),
-	// so the app is decided by where you navigated to -- not as a side-effect of rendering the
-	// header. On a workspace route the app comes from that workspace; on any other route the app
-	// context persists (you stay "in" the app whose sidebar is active).
-	//
-	// The app is read from the workspace's own `app` field (with the sidebar payload's `app` as a
-	// backup), rather than by scanning `app_data.workspaces` for a match. That scan misses
-	// app-less/custom workspaces on a direct page load, which left `frappe.current_app` stale and
-	// made the workspace selector flaky across refreshes.
-	set_current_app() {
-		if (frappe.boot.app_name_style === "Default") return;
-
-		const route = frappe.get_route();
-		if (route[0] === "Workspaces") {
-			// a workspace route names its workspace -> the app comes from the workspace itself.
-			// `app` is the mount point for every kind of workspace: standard ones inherit it from
-			// their module, custom and private ones are mounted explicitly. Only a workspace that
-			// has never been mounted resolves to no app.
-			const name = route[route.length - 1];
-			const workspace = frappe.workspaces[frappe.router.slug(name)];
-			const module = this.module_for_workspace(name);
-			const sidebar = module && frappe.boot.module_sidebars[module];
-			const app_name = (workspace && workspace.app) || (sidebar && sidebar.app);
-			const app =
-				app_name &&
-				frappe.boot.app_data.find((a) => a.app_name === this.rail_host_app(app_name));
-			if (app) {
-				frappe.current_app = app;
-				this.header_subtitle = app.app_title;
-				this.app_logo_url = app.app_logo_url;
-			} else {
-				// unmounted workspace -> clear the app context so the header/selector don't keep
-				// showing the app you came from
-				frappe.current_app = null;
-				this.header_subtitle = frappe.session.user;
-			}
-			return;
-		}
-
-		// any other route -> derive the app from the routed entity (its module's app), the same
-		// way the shell/sidebar is resolved. This is what makes a cold reload onto a
-		// doctype/report figure out the app. If it can't be resolved (meta not loaded yet), keep
-		// the current app context rather than clearing it.
-		const app_name = this.app_from_route(this.entity_from_route(route));
-		const app =
-			app_name &&
-			frappe.boot.app_data.find((a) => a.app_name === this.rail_host_app(app_name));
-		if (app) {
-			frappe.current_app = app;
-			this.header_subtitle = app.app_title;
-			this.app_logo_url = app.app_logo_url;
-		}
-	}
-
-	// The app a route is heading into: the app that owns the routed doctype, resolved via its
-	// module (meta.module -> module_app). Returns undefined when the entity isn't a doctype or its
-	// meta isn't loaded yet, in which case the caller keeps the current app context.
-	app_from_route(entity) {
-		const meta = entity && frappe.get_meta(entity);
-		if (!meta?.module) return undefined;
-		return frappe.boot.module_app[frappe.scrub(meta.module)];
-	}
-
 	// Resolve a companion app to the host app it's pinned into (via the `add_to_workspace_dock` hook,
 	// surfaced as `frappe.boot.app_rail_host`). A companion app has no shell of its own -- its
-	// workspaces live inside the host app's rail -- so its app context (dock + header) is the host's.
+	// workspaces live inside the host app's rail -- so its app context is the host's.
 	// Non-companion apps (and unknown/null names) pass through unchanged.
 	rail_host_app(app_name) {
 		return (frappe.boot.app_rail_host && frappe.boot.app_rail_host[app_name]) || app_name;
@@ -352,9 +288,6 @@ frappe.ui.Sidebar = class Sidebar {
 	setup_events() {
 		const me = this;
 		frappe.router.on("change", function () {
-			// Resolve the app context from the route first, so `frappe.current_app` is correct
-			// before the sidebar/header renders below.
-			frappe.app.sidebar.set_current_app();
 			if (frappe.route_options && frappe.route_options.sidebar) {
 				frappe.app.sidebar.select_module(frappe.route_options.sidebar);
 				frappe.route_options = null;
@@ -363,9 +296,9 @@ frappe.ui.Sidebar = class Sidebar {
 			}
 			// The sidebar's setup() rebuilds the header, but it's skipped when the sidebar didn't
 			// change (e.g. navigating within the same workspace). Refresh the header here so it
-			// always reflects the app context resolved above.
+			// always reflects the module resolved above.
 			frappe.app.sidebar.refresh_header();
-			// Keep the workspace dock in sync with the app context and the active workspace.
+			// Keep the workspace dock in sync with the shown module and the active workspace.
 			frappe.app.sidebar.refresh_dock();
 		});
 
@@ -376,21 +309,24 @@ frappe.ui.Sidebar = class Sidebar {
 		});
 	}
 
-	// Re-render the header so it reflects the current app context (set by set_current_app) even
-	// when the sidebar itself didn't change and setup() -- which builds the header -- wasn't
-	// re-run. SidebarHeader.make() removes the existing header first, so this is safe to repeat.
+	// Re-render the header so it reflects the module currently shown even when the sidebar itself
+	// didn't change and setup() -- which builds the header -- wasn't re-run.
+	// SidebarHeader.make() removes the existing header first, so this is safe to repeat.
 	refresh_header() {
 		if (this.current_module) {
 			this.sidebar_header = new frappe.ui.SidebarHeader(this);
 		}
 	}
 
-	// The app that owns the body sidebar currently on screen, as an app_data entry (or null). The
-	// dock belongs to whichever app's sidebar is shown, so it follows this rather than the
-	// route-derived `frappe.current_app` (the two can diverge -- e.g. a sidebar that curates a
-	// cross-app link keeps its own app while the route entity belongs to another). Resolved from the
-	// shown workspace's `app` (module sidebars carry it on the boot payload). A workspace that
-	// isn't mounted to any app resolves to null.
+	// The app that owns the body sidebar currently on screen, as an app_data entry (or null). This
+	// is the whole of "app context" in the desk: it answers the one question app context is still
+	// asked -- what supplies the rail's items -- and nothing else. A module belonging to no app
+	// (an unplaced or orphaned custom module) resolves to null, which is a complete answer: the
+	// rail wears that module's own icon over an empty items region.
+	//
+	// Resolved from the shown module's own `app` (module sidebars carry it on the boot payload),
+	// so it follows the sidebar on screen rather than the route -- a sidebar may deliberately
+	// curate a cross-app link, and the shell you are in should not change because you followed it.
 	get_sidebar_app() {
 		if (!this.current_module) return null;
 		// A module sidebar carries its app outright, so there is nothing left to reconcile
@@ -424,11 +360,10 @@ frappe.ui.Sidebar = class Sidebar {
 	refresh() {
 		this.apply_page_visibility();
 		if (!this.page_allows_sidebar() && !this.page_allows_dock()) return;
-		// Re-resolve the app context now that the routed doctype's meta is loaded. On a cold/direct
-		// load the router `change` handler ran before the meta was available, so set_current_app()
-		// couldn't derive the app (leaving current_app -- and thus the dock -- unresolved). This
-		// second pass fills it in. All three are idempotent, so re-running is cheap.
-		this.set_current_app();
+		// Re-resolve now that the routed doctype's meta is loaded. On a cold/direct load the router
+		// `change` handler ran before the meta was available, so the entity's module -- and with it
+		// the sidebar, the header and the rail -- couldn't be derived. This second pass fills it
+		// in. All three are idempotent, so re-running is cheap.
 		this.set_workspace_sidebar();
 		this.refresh_header();
 		this.refresh_dock();
@@ -555,6 +490,12 @@ frappe.ui.Sidebar = class Sidebar {
 					name: "workspace-selector",
 					label: __("Manage Dock"),
 					icon: "monitor",
+					// The dock is an app's own modules, so a standalone module has no dock to
+					// arrange -- its items region is empty by construction. Offering the picker
+					// there would invite the user to curate nothing. Evaluated on every open
+					// (frappe.ui.menu re-runs conditions in make()), so it tracks the shell you
+					// are in rather than the one the menu was built in.
+					condition: () => !!me.get_sidebar_app(),
 					onClick: function () {
 						new frappe.ui.DockManager();
 					},
@@ -736,7 +677,6 @@ frappe.ui.Sidebar = class Sidebar {
 			this.wrapper.find(".sidebar-items").append(no_items_message);
 			this.wrapper.find(".collapse-sidebar-link").addClass("hidden");
 		}
-		this.handle_outside_click();
 	}
 	add_standard_items(items) {
 		if (this.standard_items_setup) return;
@@ -875,16 +815,6 @@ frappe.ui.Sidebar = class Sidebar {
 		document.body.style.overflow = "hidden";
 	}
 
-	handle_outside_click() {
-		document.addEventListener("click", (e) => {
-			if (this.sidebar_header.drop_down_expanded) {
-				if (!e.composedPath().includes(this.sidebar_header.app_switcher_dropdown)) {
-					this.sidebar_header.toggle_dropdown_menu();
-				}
-			}
-		});
-	}
-
 	prevent_scroll() {
 		let main_section = $(".main-section");
 		if (this.sidebar_expanded) {
@@ -983,8 +913,8 @@ frappe.ui.Sidebar = class Sidebar {
 		return null;
 	}
 
-	// Switch to a module's sidebar and navigate into it. Shared by the dock, the header
-	// switcher and global search.
+	// Switch to a module's sidebar and navigate into it -- how the dock's items move you between
+	// an app's modules.
 	//
 	// This is where "a module's workspace is its home page" lives: the module opens on its
 	// `home_workspace` if it has one, and otherwise on the first navigable item in its sidebar.
@@ -1004,13 +934,11 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	// ---------------------------------------------------------------------------------------------
-	// Workspace selector set -- the single source of truth for both the header dropdown and the
-	// workspace dock, so the two always offer the same workspaces.
+	// The dock's module set.
 	// ---------------------------------------------------------------------------------------------
 
-	// The ordered set of modules the dock and the header dropdown offer, as module-sidebar
-	// payload entries. The dock renders the whole set (highlighting the active one); the
-	// dropdown drops the active one since you cannot switch to it.
+	// The ordered set of modules an app's dock offers, as module-sidebar payload entries. The dock
+	// renders the whole set, highlighting the active one.
 	//
 	// The set is the app's own modules -- `app_data[].modules`, already permission-filtered
 	// and in `modules.txt` order -- resolved through `module_sidebars`. A module missing from
@@ -1020,9 +948,10 @@ frappe.ui.Sidebar = class Sidebar {
 	// to apps shipping zero workspaces. That gate is exactly why the dock listed modules so
 	// rarely; now it is the only model.
 	//
-	// `app` defaults to the route's current app (used by the header dropdown); the dock passes
-	// the shown sidebar's app so it lists that app's modules.
-	collect_dock_modules(app = frappe.current_app) {
+	// Callers name the app whose set they want; there is no ambient default. No app -- a module
+	// belonging to none -- yields no modules, which is what leaves a standalone module's rail
+	// empty rather than a rail of one.
+	collect_dock_modules(app) {
 		let modules = ((app && app.modules) || [])
 			.map((module) => frappe.boot.module_sidebars[module])
 			.filter(Boolean);
@@ -1064,8 +993,8 @@ frappe.ui.Sidebar = class Sidebar {
 
 	// Where a module leads: its home workspace, else the first navigable item in its sidebar --
 	// the same rule `open_module` navigates by, as a path rather than a route so it can be an
-	// `href`. Shared by the app icons, the standalone module tiles on the desktop and the
-	// header's workspace switcher, so the three cannot disagree about where a module opens.
+	// `href`. Shared by the desktop's app icons and its standalone module tiles, so the two cannot
+	// disagree about where a module opens.
 	module_landing_route(module) {
 		const sidebar = frappe.boot.module_sidebars[module];
 		if (!sidebar) return null;
@@ -1075,31 +1004,12 @@ frappe.ui.Sidebar = class Sidebar {
 			: this.get_first_sidebar_route(module);
 	}
 
-	// Menu items for the header dropdown: every dock module except the active one.
-	get_workspace_selector_items() {
-		return this.collect_dock_modules()
-			.filter((sidebar) => !this.is_active_module(sidebar))
-			.map((sidebar) => this.module_to_item(sidebar))
-			.filter(Boolean);
-	}
-
 	// The module currently shown -- not offered as a switch target, and highlighted on the dock.
 	// A direct comparison now that both sides are exact-case module names; this used to go
 	// through `router.slug`, a third keyspace.
 	is_active_module(sidebar) {
 		if (!sidebar) return false;
 		return sidebar.module === this.current_module;
-	}
-
-	module_to_item(sidebar) {
-		if (!sidebar) return null;
-		return {
-			name: sidebar.module,
-			label: sidebar.label || sidebar.module,
-			url: this.module_landing_route(sidebar.module),
-			icon: sidebar.header_icon,
-			onClick: () => this.select_module(sidebar.module),
-		};
 	}
 
 	initial_sidebar(route) {

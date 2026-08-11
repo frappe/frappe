@@ -194,3 +194,88 @@ class TestVisibilityIsInherited(StandaloneModuleTestCase):
 				sidebar.save(ignore_permissions=True)
 
 			self.assertIsNone(self.entry(module))
+
+
+class TestNoAppContextInsideAStandaloneModule(StandaloneModuleTestCase):
+	"""D15 -- app context survives answering exactly one question, *what supplies the rail's
+	items*, and for a standalone module it answers "nothing". That answer is complete, not
+	degraded, and the boot payload states it rather than leaving the desk to guess:
+
+	    placed      logo = app icon      items = the app's other modules
+	    standalone  logo = module icon   items = (empty)
+	"""
+
+	def sidebar(self, module: str):
+		return get_module_sidebars()[module]
+
+	def app_entry(self, app_name: str):
+		return next(app for app in get_bootinfo()["app_data"] if app["app_name"] == app_name)
+
+	def test_a_placed_module_names_the_app_that_supplies_the_rails_items(self):
+		"""Placed: the rail lists the app's other modules, so the payload has to say which app
+		and that app has to claim the module."""
+		with custom_module("Test Placed Rail Module", app="frappe") as module:
+			make_sidebar(module)
+
+			self.assertEqual(self.sidebar(module)["app"], "frappe")
+			self.assertIn(module, self.app_entry("frappe")["modules"])
+
+	def test_the_rail_and_the_desktop_agree_about_what_placed_means(self):
+		"""Two surfaces read placement -- the rail (`app` on the payload) and the tile list
+		(`Module Def.app_name`) -- and they answer opposite halves of the same question, so a
+		module either has a rail or has a tile. They used to be able to disagree: `app` came
+		straight off the `Module Sidebar` document, an authored field a stub can leave blank,
+		and a module placed in an app by a document that never filled it in got neither."""
+		with custom_module("Test Silent App Field Module", app="frappe") as module:
+			sidebar = make_sidebar(module)
+			self.assertFalse(sidebar.app, "sanity: the document declares no app")
+
+			self.assertEqual(self.sidebar(module)["app"], "frappe", "placed -> it has a rail")
+			self.assertIsNone(self.entry(module), "placed -> it has no tile of its own")
+
+	def test_an_authored_app_declaration_wins_over_placement(self):
+		"""The fallback is a fallback. A companion app ships its module's sidebar mounted into
+		the host app's rail, and that declaration is the whole point of the field."""
+		with custom_module("Test Declared App Module", app="frappe") as module:
+			make_sidebar(module, app="some_other_app")
+
+			self.assertEqual(self.sidebar(module)["app"], "some_other_app")
+
+	def test_a_standalone_module_names_no_app(self):
+		with custom_module("Test Appless Rail Module") as module:
+			make_sidebar(module, title="Field Service", header_icon="tool")
+
+			self.assertFalse(self.sidebar(module)["app"])
+
+	def test_nothing_supplies_a_standalone_modules_rail_items(self):
+		"""The empty items region is a consequence of the data, not a special case in the
+		client: no installed app claims the module, so the set the rail renders is empty
+		whichever app it is asked about."""
+		with custom_module("Test Unclaimed Rail Module") as module:
+			make_sidebar(module)
+
+			for app in get_bootinfo()["app_data"]:
+				self.assertNotIn(module, app["modules"])
+
+	def test_the_icon_needs_no_new_boot_payload(self):
+		"""The rail resolves a standalone module's icon from the module sidebar it already
+		reads -- an authored `header_icon`, else a letter icon built from the label. Both are
+		on the entry, so nothing had to be added to boot to give the slot an icon."""
+		with custom_module("Test Iconed Rail Module") as module:
+			make_sidebar(module, title="Field Service", header_icon="tool")
+
+			sidebar = self.sidebar(module)
+
+			self.assertEqual(sidebar["header_icon"], "tool")
+			self.assertEqual(sidebar["label"], "Field Service")
+
+	def test_a_module_with_no_authored_icon_still_carries_the_label_one_is_built_from(self):
+		"""The letter-icon fallback has nothing to fall back to without a label, so the
+		computed base has to name the module even when nobody titled it."""
+		with custom_module("Test Iconless Rail Module") as module:
+			make_sidebar(module)
+
+			sidebar = self.sidebar(module)
+
+			self.assertFalse(sidebar["header_icon"])
+			self.assertEqual(sidebar["label"], module)

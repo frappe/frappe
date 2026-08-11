@@ -14,9 +14,9 @@ frappe.ui.DockManager = class DockManager {
 
 	make() {
 		// The dock renders for `get_sidebar_app()` (the shown sidebar's app), so curate that one.
-		// Reading `frappe.current_app` here let the picker edit a different app's dock than the
-		// one on screen whenever the two diverged.
-		this.app = frappe.app.sidebar.get_sidebar_app() || frappe.current_app;
+		// It is also the only app context there is -- a module belonging to no app has no dock to
+		// arrange, which is why the user menu doesn't offer this there.
+		this.app = frappe.app.sidebar.get_sidebar_app();
 		this.selection = this.initial_selection();
 
 		this.dialog = new frappe.ui.Dialog({

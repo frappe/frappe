@@ -1,8 +1,13 @@
-// Workspace dock: a slim vertical rail rendered to the left of the body sidebar that lists the
-// current app's workspaces as icons, with the app logo pinned to the corner. It's always on
-// (see Sidebar.workspace_dock_enabled), but hidden until the page on screen allows it
-// (page_allows_dock -- the desktop/apps screen does not). When shown it replaces the header
-// dropdown as the workspace switcher.
+// Workspace dock: a slim vertical rail rendered to the left of the body sidebar. Its top slot says
+// what you are inside and links back out of it; below that it lists the modules you can switch to.
+// Both come from the one question app context is still asked -- which app owns the sidebar on
+// screen (Sidebar.get_sidebar_app):
+//
+//   placed      logo = app icon      items = the app's other modules
+//   standalone  logo = module icon   items = (empty)
+//
+// It's always on (see Sidebar.workspace_dock_enabled), but hidden until the page on screen allows
+// it (page_allows_dock -- the desktop/apps screen does not).
 frappe.ui.WorkspaceDock = class WorkspaceDock {
 	constructor(sidebar) {
 		this.sidebar = sidebar;
@@ -180,15 +185,20 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 		this.render_modules();
 	}
 
-	// App logo pinned to the top corner of the dock; clicking it opens the apps (desktop) screen.
+	// The rail's top slot: what you are inside, and the way out of it. The app's icon when the
+	// module on screen is placed in one, the module's own icon when it is not -- linking the
+	// desktop in both cases, so a module you entered is never a room with no door.
+	//
+	// There is no fallback to the first installed app's logo: no rail wears branding that has
+	// nothing to do with it. Every rail now carries an icon of its own, resolved from data it
+	// already holds.
 	render_logo() {
-		let logo_url = (this.app && this.app.app_logo_url) || frappe.boot.app_data[0].app_logo_url;
-		let title = (this.app && this.app.app_title) || __("Apps");
+		const { icon, title } = this.app ? this.app_logo() : this.module_logo();
 
 		this.$logo.empty();
 		let $link = $(
 			`<a href="/desk" title="${frappe.utils.escape_html(title)}" aria-label="${__("Apps")}">
-				<img src="${frappe.utils.escape_html(logo_url)}" alt="${frappe.utils.escape_html(title)}" />
+				${icon}
 			</a>`
 		);
 		$link.on("click", (e) => {
@@ -198,6 +208,42 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 		this.$logo.append($link);
 	}
 
+	// A placed module wears its app's logo. An app declaring none gets a letter icon, matching
+	// the desktop apps screen.
+	app_logo() {
+		const title = this.app.app_title || this.app.app_name;
+		const logo_url = Array.isArray(this.app.app_logo_url)
+			? this.app.app_logo_url[0]
+			: this.app.app_logo_url;
+
+		const icon = logo_url
+			? `<img src="${frappe.utils.escape_html(logo_url)}" alt="${frappe.utils.escape_html(
+					title
+			  )}" />`
+			: frappe.utils.desktop_icon(title, "gray", "sm");
+
+		return { icon, title };
+	}
+
+	// A module belonging to no app wears its own icon. No new boot payload is needed: the module
+	// sidebar the rail already reads carries both the header icon and the label.
+	module_logo() {
+		let sidebar = frappe.boot.module_sidebars[this.sidebar.current_module] || {};
+		let label = sidebar.label || this.sidebar.current_module || __("Apps");
+		return { icon: this.module_icon(sidebar, label), title: label };
+	}
+
+	// A module's icon: the authored one, else a letter icon from its label. Shared by the top slot
+	// and the items below it so a module looks the same wherever the rail shows it.
+	module_icon(sidebar, label) {
+		return sidebar.header_icon
+			? frappe.utils.icon(sidebar.header_icon, "md")
+			: frappe.utils.desktop_icon(label, "gray", "sm");
+	}
+
+	// Inside a standalone module this renders nothing: collect_dock_modules answers with no
+	// modules, and an empty items region is the right answer rather than a rail of one -- an item
+	// rendered permanently active with no alternatives is a switcher that cannot switch.
 	render_modules() {
 		// dispose tooltips from the previous render before wiping their elements
 		this.$items.find('[data-toggle="tooltip"]').tooltip("dispose");
@@ -220,9 +266,7 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 		let label = sidebar.label || sidebar.module;
 		if (!label) return null;
 		let module = sidebar.module;
-		let icon = sidebar.header_icon
-			? frappe.utils.icon(sidebar.header_icon, "md")
-			: frappe.utils.desktop_icon(label, "gray", "sm");
+		let icon = this.module_icon(sidebar, label);
 
 		let is_active = this.sidebar.is_active_module(sidebar);
 		let $item = $(`<button

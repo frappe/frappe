@@ -100,6 +100,13 @@ class DesktopPage {
 	// Modules trail the apps, since they are the site's own additions to a screen the installed
 	// apps otherwise define. Their server-side `route` covers the workspace cases; the sidebar
 	// resolves the rest (a doctype list, a report), so ask it first, exactly as the apps do.
+	//
+	// Entering goes through `open_module`, not the bare href: a tile has to say *which module you
+	// are entering*, and a route alone does not. A module's landing item is often a doctype some
+	// other module owns -- a survey module linking Task, which Projects owns -- and on a plain
+	// navigation the sidebar resolves cold, finds the entity is not in the last module you were
+	// in, and follows it to its owner. You would click the tile and land in someone else's app.
+	// This is the same verb the rail's items use, so both ways into a module agree.
 	render_standalone_modules($grid) {
 		(frappe.boot.standalone_modules || [])
 			.map((module) => ({
@@ -112,15 +119,29 @@ class DesktopPage {
 					label: module.title,
 					icon_name: module.header_icon,
 				};
-				this.add_icon($grid, icon_data, module.route);
+				// no sidebar to enter through (setup incomplete) -> leave the plain href alone
+				// rather than binding a handler that would swallow the click
+				const enter =
+					frappe.app.sidebar && (() => frappe.app.sidebar.open_module(module.module));
+				this.add_icon($grid, icon_data, module.route, enter);
 			});
 	}
-	add_icon($grid, icon_data, route) {
+	// `on_click` enters a destination that needs more than a route to be entered. The href is kept
+	// either way, so the tile still reads as a link and middle-click/copy-link keep working.
+	add_icon($grid, icon_data, route, on_click) {
 		const $icon = $(frappe.render_template("desktop_icon", { icon: icon_data }));
 		if (route.startsWith("http")) {
 			$icon.attr("target", "_blank");
 		}
 		$icon.attr("href", route);
+		if (on_click) {
+			$icon.on("click", (e) => {
+				// let modified clicks (new tab/window) fall through to the href
+				if (e.which > 1 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+				e.preventDefault();
+				on_click();
+			});
+		}
 		$grid.append($icon);
 	}
 	setup() {

@@ -793,6 +793,7 @@ def get_module_sidebars():
 	alongside `router.slug(name)` and the exact Workspace name.
 	"""
 	from frappe import _
+	from frappe.utils.modules import get_module_placement
 
 	modules = get_navigable_modules()
 	if not modules:
@@ -836,7 +837,14 @@ def get_module_sidebars():
 		payload[module] = {
 			"module": module,
 			"label": _(label),
-			"app": base.app,
+			# The desk's whole notion of app context: the rail asks this one question and lists
+			# that app's other modules, or nothing at all when there is no answer. So it has to
+			# agree with the placement `get_standalone_modules` reads a few lines down -- a module
+			# both surfaces call placed elsewhere would have no rail *and* no tile. A shipped
+			# document declares its app and that stands; a document that doesn't (an authored stub,
+			# a custom module's) falls back to the module's placement, exactly as a computed base
+			# already does.
+			"app": base.app or get_module_placement(module),
 			"header_icon": header_icon,
 			"module_onboarding": base.module_onboarding,
 			"home_workspace": base.home_workspace,

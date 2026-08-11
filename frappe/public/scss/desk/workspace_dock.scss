@@ -50,6 +50,22 @@
 			height: 100%;
 			object-fit: contain;
 		}
+
+		// A module standing in the slot (nothing placed it in an app) wears its own icon rather
+		// than a logo: an authored icon, or the letter tile desktop_icon() builds. Either fills the
+		// same 28px cell an app logo would.
+		.icon-container {
+			width: 100%;
+			height: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		svg {
+			width: 16px;
+			height: 16px;
+		}
 	}
 
 	.workspace-dock-divider {
