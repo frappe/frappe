@@ -555,9 +555,9 @@ def exec_safe_globals():
 			render_template=frappe.render_template,
 			enqueue=safe_enqueue,
 			is_job_queued=is_job_queued,
+			request=getattr(frappe.local, "request", {}),
 		)
 	)
-<<<<<<< HEAD
 	out.frappe.db.update(
 		NamespaceDict(
 			get_list=frappe.get_list,
@@ -582,11 +582,6 @@ def exec_safe_globals():
 		)
 	)
 	return out
-=======
-	result = _update_namespace(render_safe, exec_safe)
-	result["frappe"]["request"] = getattr(frappe.local, "request", {})
-	return result
->>>>>>> 239e83549b (fix(safe_exec): remove request from render globals & place in exec globals)
 
 
 def get_keys_for_autocomplete(
