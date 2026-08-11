@@ -11,7 +11,7 @@ from frappe.desk.doctype.module_sidebar.module_sidebar import (
 from frappe.model.document import Document
 
 # Cached set of `(module, user)` pairs that have a customization, so the boot path can skip a
-# DB hit for the overwhelming majority that have none. Same trick as Workspace Customization.
+# DB hit for the overwhelming majority that have none. Same trick as Custom Workspace.
 CUSTOMIZED_KEYS_CACHE_KEY = "customized_module_sidebars"
 
 SITE_LAYER = ""

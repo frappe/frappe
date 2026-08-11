@@ -94,7 +94,7 @@ class Workspace(Document, DeskViews):
 
 		# Keep standard (app-shipped) workspaces app-owned: their content is only changed by
 		# import (migrate/install) or by an app author in developer mode. Site edits go to a
-		# Workspace Customization delta instead, so they survive app updates.
+		# Custom Workspace delta instead, so they survive app updates.
 		if (
 			self.standard
 			and not self.is_new()
@@ -545,7 +545,7 @@ def save_page(name: str, public: str | int, new_widgets: dict, blocks: str):
 	# layout changes are stored as a delta on top of the live base, so app updates keep
 	# flowing. In developer mode the app author edits the base itself so it exports to JSON.
 	if doc.standard and not frappe.conf.developer_mode:
-		from frappe.desk.doctype.workspace_customization.workspace_customization import (
+		from frappe.desk.doctype.custom_workspace.custom_workspace import (
 			upsert_content_customization,
 		)
 
@@ -579,7 +579,7 @@ def update_page(name: str, title: str, icon: str, indicator_color: str, parent: 
 	# overrides (icon / colour) are captured as a delta. In developer mode the app author
 	# edits the base itself so it exports to JSON.
 	if doc.standard and not frappe.conf.developer_mode:
-		from frappe.desk.doctype.workspace_customization.workspace_customization import (
+		from frappe.desk.doctype.custom_workspace.custom_workspace import (
 			upsert_property_customization,
 		)
 
@@ -657,7 +657,7 @@ def get_workspace_settings(name: str):
 	Resolves the site's customization delta for a standard (app-shipped) workspace so the
 	dialog shows a single truth (base + overrides), matching what the desk renders.
 	"""
-	from frappe.desk.doctype.workspace_customization.workspace_customization import (
+	from frappe.desk.doctype.custom_workspace.custom_workspace import (
 		effective_roles,
 		get_customization,
 	)
@@ -717,7 +717,7 @@ def update_workspace_settings(
 	"""Save appearance + access/roles + module for a workspace from the Manage Workspaces dialog.
 
 	A standard (app-shipped) workspace keeps its app-owned title / route / visibility / module; only
-	its appearance and role gating are captured as a Workspace Customization delta. A custom
+	its appearance and role gating are captured as a Custom Workspace delta. A custom
 	(or developer-mode) workspace is edited in place, with `access` mapped onto the underlying
 	`public` / `for_user` / `roles` fields (mirroring `new_page`).
 	"""
@@ -739,7 +739,7 @@ def update_workspace_settings(
 
 	is_standard = bool(doc.standard) and not frappe.conf.developer_mode
 	if is_standard:
-		from frappe.desk.doctype.workspace_customization.workspace_customization import (
+		from frappe.desk.doctype.custom_workspace.custom_workspace import (
 			upsert_settings_customization,
 		)
 

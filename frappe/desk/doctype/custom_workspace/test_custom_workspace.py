@@ -4,7 +4,7 @@ from json import dumps, loads
 from unittest.mock import patch
 
 import frappe
-from frappe.desk.doctype.workspace_customization.workspace_customization import (
+from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	apply_customization,
 	effective_roles,
 	reset_workspace_customization,
@@ -36,7 +36,7 @@ def make_base_doc():
 
 
 def make_customization(**values):
-	doc = frappe.new_doc("Workspace Customization")
+	doc = frappe.new_doc("Custom Workspace")
 	doc.workspace = "Customization Test"
 	for key, value in values.items():
 		if key in ("added_roles", "removed_roles"):
@@ -49,7 +49,7 @@ def make_customization(**values):
 	return doc
 
 
-class TestWorkspaceCustomizationUnit(IntegrationTestCase):
+class TestCustomWorkspaceUnit(IntegrationTestCase):
 	"""Pure merge logic on in-memory docs (no DB / link validation)."""
 
 	def test_content_snapshot_is_shown_verbatim(self):
@@ -85,8 +85,39 @@ class TestWorkspaceCustomizationUnit(IntegrationTestCase):
 		roles = set(effective_roles(["Stock User", "Stock Manager", "Stock Auditor"], customization))
 		self.assertEqual(roles, {"Stock Manager", "Stock Auditor", "Boss"})
 
+	def test_app_layout_change_reaches_a_workspace_customized_only_for_appearance(self):
+		# the app ships a new block; a site that only set an icon / visibility has no snapshot
+		# holding it back, so the new layout arrives.
+		doc = make_base_doc()
+		doc.content = dumps([*BASE_CONTENT, ADDED_SHORTCUT_BLOCK])
+		apply_customization(doc, make_customization(icon="star", visibility="Hidden"))
+		self.assertEqual(loads(doc.content), [*BASE_CONTENT, ADDED_SHORTCUT_BLOCK])
+		self.assertEqual(doc.icon, "star")
 
-class TestWorkspaceCustomizationIntegration(IntegrationTestCase):
+	def test_customizing_the_layout_freezes_it_but_not_the_roles(self):
+		# the whole split, in one place: the app has since added a block *and* a role. The
+		# site's snapshot keeps the block out (content is a snapshot) while the role still
+		# arrives (roles are a diff on the live base).
+		doc = make_base_doc()
+		doc.content = dumps([*BASE_CONTENT, ADDED_SHORTCUT_BLOCK])
+		doc.append("roles", {"role": "Stock Auditor"})
+
+		apply_customization(doc, make_customization(content=[BASE_CONTENT[0]], added_roles=["Boss"]))
+
+		self.assertEqual(loads(doc.content), [BASE_CONTENT[0]])
+		self.assertIn("Stock Auditor", [r.role for r in doc.roles])
+
+	def test_no_user_layer_exists_for_workspaces(self):
+		# a private workspace is already yours to edit directly and a public one is the site's,
+		# so this doctype is site-only: one row per workspace, with nowhere to name a user.
+		meta = frappe.get_meta("Custom Workspace")
+		self.assertEqual(meta.autoname, "field:workspace")
+		fieldnames = {df.fieldname for df in meta.fields}
+		self.assertNotIn("user", fieldnames)
+		self.assertNotIn("for_user", fieldnames)
+
+
+class TestCustomWorkspaceIntegration(IntegrationTestCase):
 	WORKSPACE = "WC Integration Test"
 
 	def setUp(self):
@@ -102,7 +133,7 @@ class TestWorkspaceCustomizationIntegration(IntegrationTestCase):
 		ws.insert(ignore_if_duplicate=True)
 
 	def tearDown(self):
-		frappe.delete_doc_if_exists("Workspace Customization", self.WORKSPACE)
+		frappe.delete_doc_if_exists("Custom Workspace", self.WORKSPACE)
 		frappe.db.delete("Workspace", {"name": self.WORKSPACE})
 
 	def test_save_page_stores_snapshot_and_leaves_base_untouched(self):
@@ -113,7 +144,7 @@ class TestWorkspaceCustomizationIntegration(IntegrationTestCase):
 		with patch.dict(frappe.conf, {"developer_mode": 0}):
 			save_page(self.WORKSPACE, public=1, new_widgets={}, blocks=dumps(edited))
 
-		customization = frappe.get_doc("Workspace Customization", self.WORKSPACE)
+		customization = frappe.get_doc("Custom Workspace", self.WORKSPACE)
 		self.assertEqual(loads(customization.content), edited)
 		# the app-owned record still has BOTH blocks -- it was never edited in place
 		base_content = loads(frappe.db.get_value("Workspace", self.WORKSPACE, "content"))
@@ -122,7 +153,7 @@ class TestWorkspaceCustomizationIntegration(IntegrationTestCase):
 	def test_get_workspaces_renders_snapshot_content(self):
 		frappe.get_doc(
 			{
-				"doctype": "Workspace Customization",
+				"doctype": "Custom Workspace",
 				"workspace": self.WORKSPACE,
 				"content": dumps([BASE_CONTENT[0]]),
 			}
@@ -136,7 +167,7 @@ class TestWorkspaceCustomizationIntegration(IntegrationTestCase):
 	def test_get_desktop_page_includes_added_widget(self):
 		frappe.get_doc(
 			{
-				"doctype": "Workspace Customization",
+				"doctype": "Custom Workspace",
 				"workspace": self.WORKSPACE,
 				"content": dumps([*BASE_CONTENT, ADDED_SHORTCUT_BLOCK]),
 				"widgets": dumps({"shortcut": [ADDED_SHORTCUT_ITEM]}),
@@ -166,17 +197,38 @@ class TestWorkspaceCustomizationIntegration(IntegrationTestCase):
 				new_widgets={},
 				blocks=dumps([BASE_CONTENT[0], ADDED_SHORTCUT_BLOCK]),
 			)
-		widgets = loads(frappe.db.get_value("Workspace Customization", self.WORKSPACE, "widgets"))
+		widgets = loads(frappe.db.get_value("Custom Workspace", self.WORKSPACE, "widgets"))
 		self.assertEqual([w["label"] for w in widgets["shortcut"]], ["Audit"])
 
 	def test_reset_removes_customization(self):
 		frappe.get_doc(
-			{"doctype": "Workspace Customization", "workspace": self.WORKSPACE, "visibility": "Hidden"}
+			{"doctype": "Custom Workspace", "workspace": self.WORKSPACE, "visibility": "Hidden"}
 		).insert()
-		self.assertTrue(frappe.db.exists("Workspace Customization", self.WORKSPACE))
+		self.assertTrue(frappe.db.exists("Custom Workspace", self.WORKSPACE))
 
 		reset_workspace_customization(self.WORKSPACE)
-		self.assertFalse(frappe.db.exists("Workspace Customization", self.WORKSPACE))
+		self.assertFalse(frappe.db.exists("Custom Workspace", self.WORKSPACE))
+
+	def test_layout_customization_marks_the_page_as_frozen(self):
+		# the desk warns before the save that freezes a layout, so the payload has to say
+		# whether this workspace has a snapshot already -- an appearance-only delta has not
+		# frozen anything and must not be reported as if it had.
+		from frappe.desk.desktop import _overlay_customization_properties
+
+		frappe.get_doc({"doctype": "Custom Workspace", "workspace": self.WORKSPACE, "icon": "star"}).insert()
+
+		page = frappe._dict(name=self.WORKSPACE)
+		_overlay_customization_properties([page])
+		self.assertTrue(page.is_customized)
+		self.assertFalse(page.get("is_layout_customized"))
+
+		customization = frappe.get_doc("Custom Workspace", self.WORKSPACE)
+		customization.content = dumps([BASE_CONTENT[0]])
+		customization.save()
+
+		page = frappe._dict(name=self.WORKSPACE)
+		_overlay_customization_properties([page])
+		self.assertTrue(page.is_layout_customized)
 
 	def test_customization_requires_standard_workspace(self):
 		private = frappe.new_doc("Workspace")
@@ -188,6 +240,31 @@ class TestWorkspaceCustomizationIntegration(IntegrationTestCase):
 		private.insert(ignore_if_duplicate=True)
 		try:
 			with self.assertRaises(frappe.ValidationError):
-				frappe.get_doc({"doctype": "Workspace Customization", "workspace": private.name}).insert()
+				frappe.get_doc({"doctype": "Custom Workspace", "workspace": private.name}).insert()
 		finally:
 			frappe.db.delete("Workspace", {"name": private.name})
+
+
+class TestCustomWorkspaceRename(IntegrationTestCase):
+	"""`Workspace Customization` was renamed to `Custom Workspace`; a site keeps its rows."""
+
+	PATCH = "frappe.patches.v16_0.rename_workspace_customization_to_custom_workspace"
+
+	def test_the_old_name_is_gone(self):
+		self.assertTrue(frappe.db.exists("DocType", "Custom Workspace"))
+		self.assertFalse(frappe.db.exists("DocType", "Workspace Customization"))
+
+	def test_the_rename_patch_runs_before_the_model_sync(self):
+		# after the sync it would be too late: the sync would have created an empty
+		# `Custom Workspace` beside the site's rows, and the rename would find it taken.
+		from frappe.modules.patch_handler import PatchType, get_patches_from_app
+
+		self.assertIn(self.PATCH, get_patches_from_app("frappe", PatchType.pre_model_sync))
+
+	def test_the_rename_patch_is_a_noop_once_the_rename_has_happened(self):
+		# most sites it lands on never had the old doctype at all (a fresh install, or a
+		# re-run after a migrate that failed further down), so it has to sit still.
+		from frappe.patches.v16_0.rename_workspace_customization_to_custom_workspace import execute
+
+		execute()
+		self.assertTrue(frappe.db.exists("DocType", "Custom Workspace"))

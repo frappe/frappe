@@ -491,7 +491,7 @@ frappe.views.Workspace = class Workspace {
 	open_workspace_manager(current_page) {
 		// Two-pane manager: the list of workspaces the user can manage on the left, the
 		// selected workspace's access / appearance settings on the right. Replaces the
-		// old "route to the Workspace / Workspace Customization form" flow.
+		// old "route to the Workspace / Custom Workspace form" flow.
 		//
 		// The list comes from the server, not `frappe.boot.workspaces`: the bootinfo only
 		// carries the user's *own* private workspaces, but a Workspace Manager manages every
@@ -756,10 +756,13 @@ frappe.views.Workspace = class Workspace {
 			),
 			() => {
 				frappe.call({
-					method: "frappe.desk.doctype.workspace_customization.workspace_customization.reset_workspace_customization",
+					method: "frappe.desk.doctype.custom_workspace.custom_workspace.reset_workspace_customization",
 					args: { workspace: page.name },
 					freeze: true,
 					callback: () => {
+						// back on the app's layout, so the next layout save freezes it
+						// afresh and is worth warning about again
+						page.is_layout_customized = 0;
 						frappe.show_alert({
 							message: __("Workspace reset to standard"),
 							indicator: "green",
@@ -802,14 +805,19 @@ frappe.views.Workspace = class Workspace {
 			this.page.set_primary_action(
 				__("Save"),
 				() => {
-					this.clear_page_actions();
-					this.body.removeClass("edit-mode");
-					$("#full-search-button").removeClass("hidden");
-					this.save_page(page).then((saved) => {
-						if (!saved) return;
-						this.undo.readOnly = true;
-						this.editor.readOnly.toggle();
-						this.is_read_only = true;
+					// a standard workspace's first layout save freezes it against app
+					// updates, so it is confirmed before it happens, not reported after
+					this.confirm_layout_freeze(page).then((go_ahead) => {
+						if (!go_ahead) return;
+						this.clear_page_actions();
+						this.body.removeClass("edit-mode");
+						$("#full-search-button").removeClass("hidden");
+						this.save_page(page).then((saved) => {
+							if (!saved) return;
+							this.undo.readOnly = true;
+							this.editor.readOnly.toggle();
+							this.is_read_only = true;
+						});
 					});
 				},
 				null,
@@ -834,6 +842,28 @@ frappe.views.Workspace = class Workspace {
 		}
 		$(this.workspace_actions_button).remove();
 		this.add_workspace_controls = false;
+	}
+
+	// A standard workspace's layout is stored as a *snapshot*, so saving one stops the app's
+	// later layout changes from reaching this site -- while its roles, icon and visibility
+	// keep updating, because those are stored as a diff. Say so at the point the user causes
+	// it. Only the first time: once the snapshot exists there is nothing left to warn about.
+	confirm_layout_freeze(page) {
+		const freezes = page.standard && !page.is_layout_customized && !frappe.boot.developer_mode;
+		if (!freezes) return Promise.resolve(true);
+
+		return new Promise((resolve) => {
+			frappe.confirm(
+				__(
+					"<b>{0}</b> is shipped by its app. Saving this layout keeps your arrangement, and the app's later changes to this page's layout will stop showing up here. Its roles, icon and visibility keep following the app either way, and <b>Reset to Standard</b> undoes this.",
+					[__(page.title)]
+				),
+				() => resolve(true),
+				() => resolve(false),
+				__("Save Layout"),
+				__("Cancel")
+			);
+		});
 	}
 
 	make_blocks_sortable() {
@@ -1260,6 +1290,9 @@ frappe.views.Workspace = class Workspace {
 					},
 					callback: function (res) {
 						if (res.message) {
+							// the layout snapshot now exists, so the freeze has already
+							// happened -- don't warn about it again before the next save
+							page.is_layout_customized = 1;
 							me.discard = true;
 							me.reload();
 							if (window.Cypress) return;

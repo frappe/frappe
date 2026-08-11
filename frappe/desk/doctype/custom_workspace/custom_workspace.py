@@ -24,7 +24,7 @@ WIDGET_PARENTFIELD = {
 CUSTOMIZED_NAMES_CACHE_KEY = "customized_workspace_names"
 
 
-class WorkspaceCustomization(Document):
+class CustomWorkspace(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -82,24 +82,24 @@ def get_customized_workspace_names() -> set[str]:
 	"""Cached set of workspace names that have a customization."""
 	names = frappe.cache.get_value(CUSTOMIZED_NAMES_CACHE_KEY)
 	if names is None:
-		names = frappe.get_all("Workspace Customization", pluck="workspace")
+		names = frappe.get_all("Custom Workspace", pluck="workspace")
 		frappe.cache.set_value(CUSTOMIZED_NAMES_CACHE_KEY, names)
 	return set(names)
 
 
-def get_customization(workspace: str) -> "WorkspaceCustomization | None":
+def get_customization(workspace: str) -> "CustomWorkspace | None":
 	"""Return the customization for a workspace, or None. Cheap when uncustomized."""
 	if workspace not in get_customized_workspace_names():
 		return None
 	# customization name == workspace name (autoname: field:workspace)
 	try:
-		return frappe.get_cached_doc("Workspace Customization", workspace)
+		return frappe.get_cached_doc("Custom Workspace", workspace)
 	except frappe.DoesNotExistError:
 		frappe.clear_last_message()
 		return None
 
 
-def effective_roles(base_roles: list[str], customization: "WorkspaceCustomization") -> list[str]:
+def effective_roles(base_roles: list[str], customization: "CustomWorkspace") -> list[str]:
 	"""(base.roles - removed_roles) | added_roles."""
 	removed = {r.role for r in customization.removed_roles}
 	roles = {r for r in base_roles if r not in removed}
@@ -107,7 +107,7 @@ def effective_roles(base_roles: list[str], customization: "WorkspaceCustomizatio
 	return list(roles)
 
 
-def apply_customization(doc, customization: "WorkspaceCustomization") -> None:
+def apply_customization(doc, customization: "CustomWorkspace") -> None:
 	"""Merge a customization onto a *fresh* (non-cached) Workspace doc, in place.
 
 	The standard record stays the live base and is never written. Roles and visibility
@@ -262,10 +262,10 @@ def upsert_settings_customization(
 	customization.save(ignore_permissions=True)
 
 
-def _get_or_new(workspace: str) -> "WorkspaceCustomization":
-	if frappe.db.exists("Workspace Customization", workspace):
-		return frappe.get_doc("Workspace Customization", workspace)
-	return frappe.get_doc({"doctype": "Workspace Customization", "workspace": workspace})
+def _get_or_new(workspace: str) -> "CustomWorkspace":
+	if frappe.db.exists("Custom Workspace", workspace):
+		return frappe.get_doc("Custom Workspace", workspace)
+	return frappe.get_doc({"doctype": "Custom Workspace", "workspace": workspace})
 
 
 @frappe.whitelist()
@@ -276,4 +276,4 @@ def reset_workspace_customization(workspace: str) -> None:
 	if not is_workspace_manager():
 		frappe.throw(_("You need to be Workspace Manager to reset a workspace."), frappe.PermissionError)
 
-	frappe.delete_doc_if_exists("Workspace Customization", workspace)
+	frappe.delete_doc_if_exists("Custom Workspace", workspace)

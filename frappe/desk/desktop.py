@@ -11,7 +11,7 @@ from frappe.app_state import get_disabled_modules
 from frappe.cache_manager import build_table_count_cache
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.desk_views import DeskViews
-from frappe.desk.doctype.workspace_customization.workspace_customization import (
+from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	apply_customization,
 	get_customization,
 )
@@ -429,6 +429,10 @@ def _overlay_customization_properties(pages: list) -> bool:
 		# saved snapshot verbatim (get_desktop_page applies the same on the doc).
 		if customization.content:
 			page["content"] = customization.content
+			# the layout is a snapshot, so this workspace has stopped receiving the app's
+			# layout changes. The desk warns before the save that causes it, and this is
+			# what tells it the warning has already been earned.
+			page["is_layout_customized"] = 1
 		if customization.visibility == "Hidden":
 			# Hidden for regular users; like the soft `is_hidden` flag, a Workspace Manager
 			# still sees it (the workspace shows an in-page "hidden" banner) so it stays

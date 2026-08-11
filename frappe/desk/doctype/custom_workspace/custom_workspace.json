@@ -3,6 +3,7 @@
  "allow_rename": 0,
  "autoname": "field:workspace",
  "creation": "2026-06-28 00:00:00.000000",
+ "description": "A site's overrides on a standard (app-shipped) workspace. Site-owned and standard-only: there is no user layer, deliberately -- a private workspace is already yours to edit directly, and a public one is the site's. The merge is split on purpose. Roles, icon, visibility and sequence are a true diff, so an app's later changes to them keep flowing through. Content is a snapshot, so customizing the layout freezes it against app updates: workspace content is nested editor blocks where headings, paragraphs and spacers carry no key at all, and a delta cannot be written against unkeyed prose. Do not \"fix\" this into one or the other; `reset_workspace_customization` is the escape hatch.",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -107,7 +108,7 @@
    "label": "Content"
   },
   {
-   "description": "The site's editor.js block layout for this workspace, shown verbatim. Managed by the workspace editor.",
+   "description": "The site's editor.js block layout for this workspace, shown verbatim. Once set, the app's later changes to this workspace's layout stop reaching the site; roles, icon and visibility keep updating. Managed by the workspace editor.",
    "fieldname": "content",
    "fieldtype": "Long Text",
    "label": "Content"
@@ -121,10 +122,10 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-28 22:58:19.132064",
+ "modified": "2026-08-11 19:49:46.000000",
  "modified_by": "Administrator",
  "module": "Desk",
- "name": "Workspace Customization",
+ "name": "Custom Workspace",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
