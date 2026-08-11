@@ -103,7 +103,6 @@ class TestWorkflow(FrappeTestCase):
 		self.assertEqual(len(workflow_actions), 1)
 		self.assertEqual(workflow_actions[0].status, "Completed")
 
-<<<<<<< HEAD
 	def test_if_workflow_actions_were_processed_using_user(self):
 		user = frappe.get_doc("User", "test2@example.com")
 		user.add_roles("Test Approver", "System Manager")
@@ -126,7 +125,7 @@ class TestWorkflow(FrappeTestCase):
 		self.assertEqual(len(workflow_actions), 1)
 		self.assertEqual(workflow_actions[0].status, "Completed")
 		frappe.set_user("Administrator")
-=======
+
 	def add_approver(self):
 		"""Give the workflow a mail recipient other than the document owner."""
 		user = frappe.get_doc("User", "test2@example.com")
@@ -182,7 +181,6 @@ class TestWorkflow(FrappeTestCase):
 			"Workflow Action", filters={"reference_doctype": "ToDo", "reference_name": todo.name}
 		)
 		self.assertEqual(len(actions), 1)
->>>>>>> ce958aefe2 (fix: send workflow email when a document re-enters an approval state)
 
 	def test_if_workflow_set_on_action(self):
 		self.workflow._update_state_docstatus = True
