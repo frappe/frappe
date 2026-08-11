@@ -24,19 +24,18 @@ const codeStore = useCodeStore()
 const page = ref<StudioPage | null>(null)
 
 const rootBlock = ref<Block | null>(null)
-let loadedPath: string | null = null
-let loadToken = 0
 
+let loadedPath: string | null = null
 async function handleRouteChange() {
 	const currentPath = resolveCurrentPath()
 	if (currentPath && currentPath === loadedPath && page.value) {
-		// param-only navigation (/articles/a -> /articles/b): everything stays mounted —
-		// codeStore's resource watchers re-evaluate route-dependent filters/params and reload themselves
+		// param-only navigation (/articles/a -> /articles/b)
 		return
 	}
 	await loadPage()
 }
 
+let loadToken = 0
 async function loadPage() {
 	const token = ++loadToken
 	const currentPath = resolveCurrentPath()

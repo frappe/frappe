@@ -60,6 +60,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		routerObject.value = router
 	}
 
+	// RESOURCES
 	let pendingResources: Record<string, any> | null = null
 	async function setPageResources(page: StudioPage, setResourceConfig: boolean = false) {
 		stopResourceWatchers()
@@ -69,7 +70,6 @@ const useCodeStore = defineStore("codeStore", () => {
 
 		studioPageResources.filters = { parent: page.name }
 		await studioPageResources.reload()
-		// a newer load claimed the slot during the await — don't arm watchers for a page that won't install
 		if (pendingResources !== pageResources) return
 
 		await Promise.all(
@@ -88,6 +88,235 @@ const useCodeStore = defineStore("codeStore", () => {
 		}
 	}
 
+	async function addPageResource(resource: Resource, pageResources: Record<string, any>) {
+		switch (resource.resource_type) {
+			case "Document":
+				return addDocumentResource(resource, pageResources)
+			case "Document List":
+				pageResources[resource.resource_name] = getListResource(resource)
+				break
+			case "API Resource":
+				pageResources[resource.resource_name] = getAPIResource(resource)
+				break
+		}
+	}
+
+	function getListResource(resource: DocumentListResource) {
+		let fields = []
+		if ("fields" in resource && typeof resource.fields === "string") {
+			fields = JSON.parse(resource.fields)
+		}
+
+		const params: any = {
+			doctype: resource.document_type,
+			fields: fields.length ? fields : "*",
+			filters: evaluateAndWatch(
+				() => getEvaluatedFilters(resource.filters),
+				(filters) => {
+					listResource.update({ filters })
+					if (listResource.auto) listResource.reload()
+				},
+			),
+			pageLength: resource.limit,
+			auto: resource.auto,
+			...getTransforms(resource),
+			...getSuccessErrorHandlers(resource),
+		}
+		if (resource.sort_field) {
+			params["orderBy"] = `${resource.sort_field} ${resource.sort_order}`
+		}
+		const listResource = createListResource(params)
+		// initialize listResource.data to an empty array to avoid undefined errors in the UI, frappe-ui sets data to null by default
+		listResource.data = []
+		return listResource
+	}
+
+	function getAPIResource(resource: APIResource) {
+		const apiResource = createResource({
+			url: resource.url,
+			method: resource.method,
+			params: evaluateAndWatch(
+				() => getAPIParams(resource.params),
+				(params) => {
+					apiResource.update({ params })
+					if (apiResource.auto) apiResource.reload()
+				},
+			),
+			auto: resource.auto,
+			...getTransforms(resource),
+			...getSuccessErrorHandlers(resource),
+		})
+		return apiResource
+	}
+
+	const addDocumentResource = async (resource: DocumentResource, pageResources: Record<string, any>) => {
+		const createDoc = (docname?: string) =>
+			createDocumentResource({
+				doctype: resource.document_type,
+				name: docname,
+				auto: resource.auto,
+				...getTransforms(resource),
+				...getSuccessErrorHandlers(resource),
+				...getWhitelistedMethods(resource),
+			})
+
+		if (!resource.fetch_document_using_filters || !resource.filters) {
+			pageResources[resource.resource_name] = createDoc(resource.document_name)
+			return
+		}
+
+		// The docname can't change on an existing document resource (frappe-ui caches them by
+		// doctype+name), so a filter change means re-resolving the docname and replacing the entry.
+		// loadDoc is the entry's only writer; latestRequest keeps only the newest lookup's result.
+		let latestRequest = 0
+		async function loadDoc(currentFilters: Filters) {
+			const request = ++latestRequest
+			const docname = await resolveDocnameFromFilters(resource, currentFilters)
+			if (request !== latestRequest) return
+			if (!docname) {
+				pageResources[resource.resource_name] = undefined
+				return
+			}
+			const doc = createDoc(docname) as any
+			// carry over the editor's config stamps (see setResourceConfig in setPageResources)
+			const oldDoc = pageResources[resource.resource_name]
+			if (oldDoc?.resource_id) {
+				doc.resource_id = oldDoc.resource_id
+				doc.resource_type = oldDoc.resource_type
+			}
+			pageResources[resource.resource_name] = doc
+		}
+
+		const filters = evaluateAndWatch(() => getEvaluatedFilters(resource.filters) || {}, loadDoc)
+		await loadDoc(filters)
+	}
+
+	// Evaluate a resource's dynamic input ({{ }} filters/params) now, and call onChange whenever a
+	// route/variable change alters the result. Watching the serialized value keeps context churn
+	// that evaluates to the same input from refetching the resource.
+	function evaluateAndWatch<T>(evaluate: () => T, onChange: (value: T) => void): T {
+		const stop = watch(
+			() => JSON.stringify(evaluate()),
+			() => onChange(evaluate()),
+		)
+		resourceWatchers.push(stop)
+		return evaluate()
+	}
+
+	const getEvaluatedFilters = (filters: Filters | null = null) => {
+		if (!filters) return
+		if (typeof filters === "string") {
+			filters = JSON.parse(filters)
+		}
+
+		const evaluatedFilters: Filters = {}
+
+		for (const key in filters) {
+			let value = Array.isArray(filters[key]) ? filters[key][1] : filters[key]
+
+			if (isDynamicValue(value)) {
+				// null ?? undefined → undefined, so nullish filters get dropped on serialization
+				evaluatedFilters[key] = getDynamicValue(value, {}) ?? undefined
+			} else {
+				evaluatedFilters[key] = value
+			}
+		}
+
+		return evaluatedFilters
+	}
+
+	function getAPIParams(params: Record<string, any> | string | null = null) {
+		if (!params) return null
+		if (typeof params === "string") {
+			params = JSON.parse(params)
+		}
+		// evaluate on a copy: evaluation re-runs on every context change and must not bake values into the config
+		const evaluated: Record<string, any> = { ...(params as Record<string, any>) }
+		Object.entries(evaluated).forEach(([key, value]) => {
+			if (isDynamicValue(value)) {
+				// null ?? undefined → undefined, so nullish params get dropped on serialization
+				evaluated[key] = getDynamicValue(value, {}) ?? undefined
+			}
+		})
+		return evaluated
+	}
+
+	const resolveDocnameFromFilters = async (resource: DocumentResource, filters: Filters) => {
+		// the common `name = {{ route.params.id }}` case resolves to the docname itself — no server lookup needed
+		const keys = Object.keys(filters)
+		if (keys.length === 1 && keys[0] === "name") {
+			return filters.name
+		}
+		// other filters (e.g. category = tech) need a lookup for one matching doc's name
+		const doc = await call("frappe.client.get_value", {
+			doctype: resource.document_type,
+			fieldname: "name",
+			filters,
+		})
+		return doc?.name
+	}
+
+	const getTransforms = (resource: Resource) => {
+		if (!resource.transform) return {}
+		return {
+			transform: (data: any) => {
+				try {
+					const context = { ...scriptContext.value, data }
+					const transformFn = new Function(
+						"ctx",
+						`with(ctx) {
+							${resource.transform}
+							return transform(data);
+						}`,
+					)
+					return transformFn(context)
+				} catch (error) {
+					console.error(`Error executing transform: ${resource.transform}`, error)
+					return data
+				}
+			},
+		}
+	}
+
+	const getSuccessErrorHandlers = (resource: Resource) => {
+		const handlers: Record<string, Function> = {}
+		if (resource.on_success) {
+			handlers["onSuccess"] = (data: DataResult) => {
+				return handleSuccess(resource.on_success!, data)
+			}
+		}
+		if (resource.on_error) {
+			handlers["onError"] = (error: any) => {
+				return handleError(resource.on_error!, error)
+			}
+		}
+		return handlers
+	}
+
+	const getWhitelistedMethods = (resource: DocumentResource) => {
+		if (resource.whitelisted_methods) {
+			let whitelisted_methods = resource.whitelisted_methods
+			if (typeof resource.whitelisted_methods === "string") {
+				whitelisted_methods = JSON.parse(resource.whitelisted_methods)
+			}
+			const methods: Record<string, string> = {}
+			whitelisted_methods.forEach((method: string) => methods[method] = method)
+			return { whitelistedMethods: methods }
+		}
+		return {}
+	}
+
+	function stopResourceWatchers() {
+		resourceWatchers.forEach((stop) => stop())
+		resourceWatchers = []
+	}
+
+	function teardownPage() {
+		stopResourceWatchers()
+		disposePageScriptScope()
+	}
+
+	// VARIABLES
 	async function setPageVariables(page: StudioPage) {
 		studioVariables.filters = { parent: page.name }
 		await studioVariables.reload()
@@ -123,11 +352,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		setValueInObject(variables.value, variablePath, value)
 	}
 
-	function disposePageScriptScope() {
-		pageScriptScope?.stop()
-		pageScriptScope = null
-	}
-
+	// PAGE SCRIPT
 	async function setPageScript(page: StudioPage, isStandardPage: boolean = false) {
 		disposePageScriptScope()
 		pageScriptBindings.value = {}
@@ -144,6 +369,11 @@ const useCodeStore = defineStore("codeStore", () => {
 		if (!source.trim()) return
 		const bindingNames = getTopLevelBindings(source)
 		pageScriptBindings.value = compilePageScript(source, bindingNames)
+	}
+
+	function disposePageScriptScope() {
+		pageScriptScope?.stop()
+		pageScriptScope = null
 	}
 
 	async function loadCodePageScript(pageName: string): Promise<Record<string, any>> {
@@ -168,24 +398,6 @@ const useCodeStore = defineStore("codeStore", () => {
 			reportPageScriptError(error)
 			return {}
 		}
-	}
-
-	// HMR: the active page's script (or a composable/util it imports) was edited. Re-run its setup
-	// with the freshly hot-loaded module so new refs/computed and changed dependency code take
-	// effect without a reload. (Pinia stores keep their singleton state — they refresh their code
-	// only via their own acceptHMRUpdate.) Registered once here so both the editor and the preview
-	// (each with their own codeStore) hot-apply script edits to the page they're showing.
-	async function applyPageScriptHMR(setup: unknown) {
-		pageScriptError.value = null
-		pageScriptBindings.value = await runPageScriptSetup(setup)
-	}
-	setPageScriptHotUpdateHandler((pageName, setup) => {
-		if (currentPageName.value === pageName) applyPageScriptHMR(setup)
-	})
-
-	function reportPageScriptError(error: unknown) {
-		console.error("Error running page script", error)
-		pageScriptError.value = error instanceof Error ? error.message : String(error)
 	}
 
 	function runInPageScriptScope(run: () => any): any {
@@ -234,6 +446,25 @@ const useCodeStore = defineStore("codeStore", () => {
 		}) || {}
 	}
 
+	function reportPageScriptError(error: unknown) {
+		console.error("Error running page script", error)
+		pageScriptError.value = error instanceof Error ? error.message : String(error)
+	}
+
+	// HMR: the active page's script (or a composable/util it imports) was edited. Re-run its setup
+	// with the freshly hot-loaded module so new refs/computed and changed dependency code take
+	// effect without a reload. (Pinia stores keep their singleton state — they refresh their code
+	// only via their own acceptHMRUpdate.) Registered once here so both the editor and the preview
+	// (each with their own codeStore) hot-apply script edits to the page they're showing.
+	async function applyPageScriptHMR(setup: unknown) {
+		pageScriptError.value = null
+		pageScriptBindings.value = await runPageScriptSetup(setup)
+	}
+	setPageScriptHotUpdateHandler((pageName, setup) => {
+		if (currentPageName.value === pageName) applyPageScriptHMR(setup)
+	})
+
+	// SCRIPT CONTEXTS
 	const evalContext = computed(() => {
 		return {
 			...variables.value,
@@ -279,8 +510,6 @@ const useCodeStore = defineStore("codeStore", () => {
 
 	const currentRoute = proxyToCurrent(() => unref(routeObject.value))
 
-	// A stable object that forwards every read/write to whatever getCurrent() returns right now.
-	// Doesn't rebind methods — fine for frappe-ui resources and routes, which never use `this`.
 	function proxyToCurrent(getCurrent: () => any) {
 		return new Proxy(
 			{},
@@ -301,6 +530,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		)
 	}
 
+	// EXPRESSION EVALUATION
 	function getDynamicValue(value: string, localContext: ExpressionEvaluationContext) {
 		let result = ""
 		let lastIndex = 0
@@ -398,6 +628,28 @@ const useCodeStore = defineStore("codeStore", () => {
 		}
 	}
 
+	function stringToFunction(value: string, localContext: Record<string, any>): Function | string {
+		/**
+		 * Convert a function string to an actual function
+		 * Used for component props that have function values
+		 */
+		const registeredComponents = window.__APP_COMPONENTS__ || {}
+
+		try {
+			const fn = new Function(
+				"h",
+				...Object.keys(registeredComponents),
+				...Object.keys(scriptContext.value),
+				...Object.keys(localContext),
+				`return (${value})`
+			)
+			return fn(h, ...Object.values(registeredComponents), ...Object.values(scriptContext.value), ...Object.values(localContext))
+		} catch (e) {
+			return value
+		}
+	}
+
+	// EVENT SCRIPTS
 	function executeUserScript(
 		script: string,
 		slotScope?: Record<string, any>,
@@ -477,255 +729,6 @@ const useCodeStore = defineStore("codeStore", () => {
 			return errorFn(context)
 		} catch (err) {
 			console.error(`Error executing error script: ${script}`, err)
-		}
-	}
-
-	async function addPageResource(resource: Resource, pageResources: Record<string, any>) {
-		switch (resource.resource_type) {
-			case "Document":
-				return addDocumentResource(resource, pageResources)
-			case "Document List":
-				pageResources[resource.resource_name] = getListResource(resource)
-				break
-			case "API Resource":
-				pageResources[resource.resource_name] = getAPIResource(resource)
-				break
-		}
-	}
-
-	function stopResourceWatchers() {
-		resourceWatchers.forEach((stop) => stop())
-		resourceWatchers = []
-	}
-
-	function teardownPage() {
-		stopResourceWatchers()
-		disposePageScriptScope()
-	}
-
-	// Evaluate a resource's dynamic input ({{ }} filters/params) now, and call onChange whenever a
-	// route/variable change alters the result. Watching the serialized value keeps context churn
-	// that evaluates to the same input from refetching the resource.
-	function evaluateAndWatch<T>(evaluate: () => T, onChange: (value: T) => void): T {
-		const stop = watch(
-			() => JSON.stringify(evaluate()),
-			() => onChange(evaluate()),
-		)
-		resourceWatchers.push(stop)
-		return evaluate()
-	}
-
-	function getListResource(resource: DocumentListResource) {
-		let fields = []
-		if ("fields" in resource && typeof resource.fields === "string") {
-			fields = JSON.parse(resource.fields)
-		}
-
-		const params: any = {
-			doctype: resource.document_type,
-			fields: fields.length ? fields : "*",
-			filters: evaluateAndWatch(
-				() => getEvaluatedFilters(resource.filters),
-				(filters) => {
-					listResource.update({ filters })
-					if (listResource.auto) listResource.reload()
-				},
-			),
-			pageLength: resource.limit,
-			auto: resource.auto,
-			...getTransforms(resource),
-			...getSuccessErrorHandlers(resource),
-		}
-		if (resource.sort_field) {
-			params["orderBy"] = `${resource.sort_field} ${resource.sort_order}`
-		}
-		const listResource = createListResource(params)
-		// initialize listResource.data to an empty array to avoid undefined errors in the UI, frappe-ui sets data to null by default
-		listResource.data = []
-		return listResource
-	}
-
-	function getAPIResource(resource: APIResource) {
-		const apiResource = createResource({
-			url: resource.url,
-			method: resource.method,
-			params: evaluateAndWatch(
-				() => getAPIParams(resource.params),
-				(params) => {
-					apiResource.update({ params })
-					if (apiResource.auto) apiResource.reload()
-				},
-			),
-			auto: resource.auto,
-			...getTransforms(resource),
-			...getSuccessErrorHandlers(resource),
-		})
-		return apiResource
-	}
-
-	function getAPIParams(params: Record<string, any> | string | null = null) {
-		if (!params) return null
-		if (typeof params === "string") {
-			params = JSON.parse(params)
-		}
-		// evaluate on a copy: evaluation re-runs on every context change and must not bake values into the config
-		const evaluated: Record<string, any> = { ...(params as Record<string, any>) }
-		Object.entries(evaluated).forEach(([key, value]) => {
-			if (isDynamicValue(value)) {
-				// null ?? undefined → undefined, so nullish params get dropped on serialization
-				evaluated[key] = getDynamicValue(value, {}) ?? undefined
-			}
-		})
-		return evaluated
-	}
-
-	const addDocumentResource = async (resource: DocumentResource, pageResources: Record<string, any>) => {
-		const createDoc = (docname?: string) =>
-			createDocumentResource({
-				doctype: resource.document_type,
-				name: docname,
-				auto: resource.auto,
-				...getTransforms(resource),
-				...getSuccessErrorHandlers(resource),
-				...getWhitelistedMethods(resource),
-			})
-
-		if (!resource.fetch_document_using_filters || !resource.filters) {
-			pageResources[resource.resource_name] = createDoc(resource.document_name)
-			return
-		}
-
-		// The docname can't change on an existing document resource (frappe-ui caches them by
-		// doctype+name), so a filter change means re-resolving the docname and replacing the entry.
-		// loadDoc is the entry's only writer; latestRequest keeps only the newest lookup's result.
-		let latestRequest = 0
-		async function loadDoc(currentFilters: Filters) {
-			const request = ++latestRequest
-			const docname = await resolveDocnameFromFilters(resource, currentFilters)
-			if (request !== latestRequest) return
-			if (!docname) {
-				pageResources[resource.resource_name] = undefined
-				return
-			}
-			const doc = createDoc(docname) as any
-			// carry over the editor's config stamps (see setResourceConfig in setPageResources)
-			const oldDoc = pageResources[resource.resource_name]
-			if (oldDoc?.resource_id) {
-				doc.resource_id = oldDoc.resource_id
-				doc.resource_type = oldDoc.resource_type
-			}
-			pageResources[resource.resource_name] = doc
-		}
-
-		const filters = evaluateAndWatch(() => getEvaluatedFilters(resource.filters) || {}, loadDoc)
-		await loadDoc(filters)
-	}
-
-	const resolveDocnameFromFilters = async (resource: DocumentResource, filters: Filters) => {
-		// the common `name = {{ route.params.id }}` case resolves to the docname itself — no server lookup needed
-		const keys = Object.keys(filters)
-		if (keys.length === 1 && keys[0] === "name") {
-			return filters.name
-		}
-		// other filters (e.g. category = tech) need a lookup for one matching doc's name
-		const doc = await call("frappe.client.get_value", {
-			doctype: resource.document_type,
-			fieldname: "name",
-			filters,
-		})
-		return doc?.name
-	}
-
-	const getEvaluatedFilters = (filters: Filters | null = null) => {
-		if (!filters) return
-		if (typeof filters === "string") {
-			filters = JSON.parse(filters)
-		}
-
-		const evaluatedFilters: Filters = {}
-
-		for (const key in filters) {
-			let value = Array.isArray(filters[key]) ? filters[key][1] : filters[key]
-
-			if (isDynamicValue(value)) {
-				// null ?? undefined → undefined, so nullish filters get dropped on serialization
-				evaluatedFilters[key] = getDynamicValue(value, {}) ?? undefined
-			} else {
-				evaluatedFilters[key] = value
-			}
-		}
-
-		return evaluatedFilters
-	}
-
-	const getTransforms = (resource: Resource) => {
-		if (!resource.transform) return {}
-		return {
-			transform: (data: any) => {
-				try {
-					const context = { ...scriptContext.value, data }
-					const transformFn = new Function(
-						"ctx",
-						`with(ctx) {
-							${resource.transform}
-							return transform(data);
-						}`,
-					)
-					return transformFn(context)
-				} catch (error) {
-					console.error(`Error executing transform: ${resource.transform}`, error)
-					return data
-				}
-			},
-		}
-	}
-
-	const getSuccessErrorHandlers = (resource: Resource) => {
-		const handlers: Record<string, Function> = {}
-		if (resource.on_success) {
-			handlers["onSuccess"] = (data: DataResult) => {
-				return handleSuccess(resource.on_success!, data)
-			}
-		}
-		if (resource.on_error) {
-			handlers["onError"] = (error: any) => {
-				return handleError(resource.on_error!, error)
-			}
-		}
-		return handlers
-	}
-
-	const getWhitelistedMethods = (resource: DocumentResource) => {
-		if (resource.whitelisted_methods) {
-			let whitelisted_methods = resource.whitelisted_methods
-			if (typeof resource.whitelisted_methods === "string") {
-				whitelisted_methods = JSON.parse(resource.whitelisted_methods)
-			}
-			const methods: Record<string, string> = {}
-			whitelisted_methods.forEach((method: string) => methods[method] = method)
-			return { whitelistedMethods: methods }
-		}
-		return {}
-	}
-
-	function stringToFunction(value: string, localContext: Record<string, any>): Function | string {
-		/**
-		 * Convert a function string to an actual function
-		 * Used for component props that have function values
-		 */
-		const registeredComponents = window.__APP_COMPONENTS__ || {}
-
-		try {
-			const fn = new Function(
-				"h",
-				...Object.keys(registeredComponents),
-				...Object.keys(scriptContext.value),
-				...Object.keys(localContext),
-				`return (${value})`
-			)
-			return fn(h, ...Object.values(registeredComponents), ...Object.values(scriptContext.value), ...Object.values(localContext))
-		} catch (e) {
-			return value
 		}
 	}
 
