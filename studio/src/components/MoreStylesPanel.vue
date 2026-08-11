@@ -3,8 +3,9 @@
 		<div
 			v-for="row in visibleRows"
 			:key="row.property"
-			class="group flex items-center gap-1"
+			class="flex items-center gap-1"
 			:data-style-property="row.styleProperty"
+			@contextmenu="showRemoveContextMenu($event, row.property)"
 		>
 			<DynamicStyleSetter
 				:block="selectedBlock ?? undefined"
@@ -19,15 +20,12 @@
 				:placeholder="getRenderedValue(row.styleProperty)"
 				@update:modelValue="(val: StyleValue) => blockController.setStyle(row.styleProperty, val)"
 			/>
-			<IconButton
-				:icon="LucideX"
-				label="Remove property"
-				size="sm"
-				tooltipPlacement="left"
-				class="w-4 shrink-0 opacity-0 focus:opacity-100 group-hover:opacity-100"
-				@click="removeProperty(row.property)"
-			/>
 		</div>
+		<ContextMenu
+			ref="removeContextMenu"
+			:options="removeContextMenuOptions"
+			@select="(action: CallableFunction) => action()"
+		/>
 
 		<Combobox
 			ref="propertyCombobox"
@@ -91,8 +89,8 @@ const addAddedProperty = (componentId: string, property: string) => {
 <script setup lang="ts">
 import { Combobox } from "frappe-ui"
 import { computed, nextTick, ref, type CSSProperties } from "vue"
+import ContextMenu from "@/components/ContextMenu.vue"
 import DynamicStyleSetter from "@/components/DynamicStyleSetter.vue"
-import IconButton from "@/components/IconButton.vue"
 import InlineInput from "@/components/InlineInput.vue"
 import useCanvasStore from "@/stores/canvasStore"
 import useStudioStore from "@/stores/studioStore"
@@ -103,10 +101,9 @@ import {
 	isValidCSSPropertyName,
 	normalizeCSSPropertyName,
 } from "@/utils/cssMetadata"
-import { kebabToCamelCase, toTitleCase } from "@/utils/helpers"
+import { isTargetEditable, kebabToCamelCase, toTitleCase } from "@/utils/helpers"
 import { getStylePropertiesWithoutControls } from "@/utils/stylePropertiesWithoutControls"
-import type { StyleValue } from "@/types"
-import LucideX from "~icons/lucide/x"
+import type { ContextMenuOption, StyleValue } from "@/types"
 
 // the union of usedStyleProperties declared in ComponentStyles.vue
 const props = defineProps<{ controlledProperties: Set<string> }>()
@@ -249,6 +246,23 @@ const addProperty = (raw: string | null) => {
 const removeProperty = (property: string) => {
 	getAddedProperties(selectedBlock.value?.componentId || "")?.delete(property)
 	blockController.removeStyle(kebabToCamelCase(property) as keyof CSSProperties)
+}
+
+const removeContextMenu = ref<InstanceType<typeof ContextMenu> | null>(null)
+const contextMenuProperty = ref<string | null>(null)
+
+const removeContextMenuOptions: ContextMenuOption[] = [
+	{
+		label: "Remove",
+		action: () => contextMenuProperty.value && removeProperty(contextMenuProperty.value),
+	},
+]
+
+const showRemoveContextMenu = (event: MouseEvent, property: string) => {
+	if (isTargetEditable(event)) return
+	event.preventDefault()
+	contextMenuProperty.value = property
+	removeContextMenu.value?.show(event.pageX, event.pageY)
 }
 
 // accepts "a: b; c: d" text and devtools-style multi-line CSS
