@@ -470,15 +470,34 @@ class TypstEmitter:
 		body = f"#image({', '.join(args)})"
 		return _aligned(body, (lh.get(f"{prefix}align") or "Left").lower())
 
+	def _page_size_mm(self) -> tuple[float, float]:
+		"""(width, height) in mm for the site's configured paper, mirroring the
+		Chromium path's PageSize map so both renderers agree on geometry. Custom
+		sizes fall back to A4 — their cross-renderer unit contract is ambiguous."""
+		from frappe.utils.pdf_generator.browser import PageSize
+
+		ps = getattr(self.generator, "print_settings", None)
+		size = (ps and ps.get("pdf_page_size")) or frappe.db.get_single_value(
+			"Print Settings", "pdf_page_size"
+		)
+		dims = PageSize.get(size) if size and size != "Custom" else None
+		return (dims["width"], dims["height"]) if dims else (210, 297)
+
 	def measure_source(self) -> str:
 		"""A document whose only output is the measured height of each zone, read
 		back with typst.query — how the top/bottom margins learn to make room."""
 		self.prepare()
 		pf = self.print_format
+		page_width, page_height = self._page_size_mm()
 		inner = round(
-			210 - (frappe.utils.flt(pf.margin_left) or 15) - (frappe.utils.flt(pf.margin_right) or 15), 2
+			page_width - (frappe.utils.flt(pf.margin_left) or 15) - (frappe.utils.flt(pf.margin_right) or 15),
+			2,
 		)
-		lines = ["#set page(width: 210mm, height: 297mm)", self._text_setup(), ""]
+		lines = [
+			f"#set page(width: {page_width}mm, height: {page_height}mm)",
+			self._text_setup(),
+			"",
+		]
 		for label, src in (("pfhdr", self.header_src), ("pfftr", self.footer_src)):
 			if src:
 				lines.append(
@@ -521,7 +540,8 @@ class TypstEmitter:
 			f"left: {frappe.utils.flt(pf.margin_left) or 15}mm, "
 			f"right: {frappe.utils.flt(pf.margin_right) or 15}mm)"
 		)
-		args = ["width: 210mm", "height: 297mm", f"margin: {margins}"]
+		page_width, page_height = self._page_size_mm()
+		args = [f"width: {page_width}mm", f"height: {page_height}mm", f"margin: {margins}"]
 
 		slots = {"header": [], "footer": []}
 		position = PAGE_NUMBER_POSITIONS.get(pf.get("page_number") or "")

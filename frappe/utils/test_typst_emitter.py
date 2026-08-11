@@ -267,6 +267,36 @@ class TestTypstGate(IntegrationTestCase):
 		)
 		self.assertRaisesRegex(frappe.ValidationError, "must be Typst", pf_doc.insert)
 
+	def test_page_size_follows_print_settings(self):
+		"""Typst must honour pdf_page_size like the Chromium path, or the two
+		renderers disagree on page geometry on a non-A4 site."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		pf_doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Typst PageSize {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": json.dumps(layout_with()),
+			}
+		).insert()
+		self.addCleanup(pf_doc.delete, ignore_permissions=True)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "page size"}).insert(ignore_permissions=True)
+		self.addCleanup(todo.delete, ignore_permissions=True)
+
+		def page_setup(size):
+			em = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", todo.name)))
+			em.generator.print_settings.pdf_page_size = size
+			return em.emit()[0]
+
+		self.assertIn("width: 210mm, height: 297mm", page_setup("A4"))
+		self.assertIn("width: 216mm, height: 279mm", page_setup("Letter"))
+		self.assertIn("width: 216mm, height: 356mm", page_setup("Legal"))
+		# Custom's cross-renderer unit contract is ambiguous — fall back to A4
+		self.assertIn("width: 210mm, height: 297mm", page_setup("Custom"))
+
 	def test_custom_margin_overrides_structured_section_margin(self):
 		"""The html surface puts custom_style after the structured margin in one
 		style attribute, so margin-top replaces it — the emitter must not stack."""
