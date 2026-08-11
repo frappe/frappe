@@ -302,7 +302,7 @@ def update_webform_to_multistep():
 		_doc.save()
 
 
-@whitelist_for_tests()
+@whitelist_for_tests
 def update_child_table(name: str | int):
 	doc = frappe.get_doc("DocType", name)
 	if len(doc.fields) == 1:
@@ -320,7 +320,7 @@ def update_child_table(name: str | int):
 		doc.save()
 
 
-@whitelist_for_tests()
+@whitelist_for_tests
 def insert_doctype_with_child_table_record(name: str | int):
 	if frappe.get_all(name, {"title": "Test Grid Search"}):
 		return
