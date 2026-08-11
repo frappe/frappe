@@ -738,7 +738,7 @@ class TestModuleSidebarIsAppContent(IntegrationTestCase):
 	on an app update costs the site nothing. Site intent has nowhere to hide in the document
 	because it cannot get in.
 
-	It goes where it already went instead -- `Module Sidebar Customization`, at the site-wide
+	It goes where it already went instead -- `Custom Module Sidebar`, at the site-wide
 	layer or the user's own -- which is what closes "two ways to author the same sidebar with no
 	stated boundary".
 	"""
@@ -847,30 +847,30 @@ class TestModuleSidebarIsAppContent(IntegrationTestCase):
 	def test_the_site_keeps_saying_what_it_wants(self):
 		"""The point of shutting the document: site intent has somewhere better to go, and it
 		still goes there on a site that can no longer touch the document at all."""
-		from frappe.desk.doctype.module_sidebar_customization.module_sidebar_customization import (
+		from frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar import (
 			get_customization,
 			save_site_sidebar,
 		)
 
 		with no_developer_mode():
-			save_site_sidebar(self.module, items=[{"item_key": "whatever", "hidden": 1}])
+			save_site_sidebar(self.module, items=[{"key": "whatever", "hidden": 1}])
 
 		site_layer = get_customization(self.module, None)
 		self.assertIsNotNone(site_layer)
 		self.addCleanup(
 			frappe.delete_doc,
-			"Module Sidebar Customization",
+			"Custom Module Sidebar",
 			site_layer.name,
 			force=True,
 			ignore_permissions=True,
 		)
-		self.assertEqual([(row.item_key, row.hidden) for row in site_layer.items], [("whatever", 1)])
+		self.assertEqual([(row.key, row.hidden) for row in site_layer.sidebar_items], [("whatever", 1)])
 
 	def test_a_new_workspace_links_itself_through_the_site_layer(self):
 		"""The one runtime path that used to write the document. Creating a workspace in a
 		module that ships a sidebar has to keep working on a customer site -- and the link it
 		earns is site intent, so it belongs in the site layer rather than in app content."""
-		from frappe.desk.doctype.module_sidebar_customization.module_sidebar_customization import (
+		from frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar import (
 			get_customization,
 		)
 		from frappe.desk.doctype.workspace.workspace import add_to_module_sidebar
@@ -890,13 +890,13 @@ class TestModuleSidebarIsAppContent(IntegrationTestCase):
 		self.assertIsNotNone(site_layer, "the link has to land somewhere")
 		self.addCleanup(
 			frappe.delete_doc,
-			"Module Sidebar Customization",
+			"Custom Module Sidebar",
 			site_layer.name,
 			force=True,
 			ignore_permissions=True,
 		)
 		self.assertEqual(
-			[(row.link_type, row.link_to) for row in site_layer.added_items],
+			[(row.link_type, row.link_to) for row in site_layer.sidebar_items if row.added],
 			[("Workspace", workspace.name)],
 		)
 		# and the app's own sidebar is exactly as the app wrote it

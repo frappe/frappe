@@ -484,7 +484,7 @@ def add_to_module_sidebar(workspace):
 	used to come from -- D3 replaces that with a derived one, so until then a private page in a
 	document-less module has no sidebar entry.
 	"""
-	from frappe.desk.doctype.module_sidebar_customization.module_sidebar_customization import (
+	from frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar import (
 		add_site_sidebar_item,
 	)
 

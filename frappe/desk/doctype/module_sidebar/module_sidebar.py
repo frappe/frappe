@@ -90,8 +90,8 @@ class ModuleSidebar(Document, DeskViews):
 		The invariant this buys is what makes app updates safe: *on a non-developer-mode site
 		every sidebar document arrived by import*, so an app overwriting its own sidebar costs
 		the site nothing. A site that wants a different sidebar says so where site intent
-		already lives -- `Module Sidebar Customization`, at the site-wide layer or the user's
-		own -- and that path is untouched by this gate.
+		already lives -- `Custom Module Sidebar`, at the site-wide layer or the user's own --
+		and that path is untouched by this gate.
 
 		Developer mode is the whole gate; there is no role check, so any developer on a
 		developer-mode site may author one. Who may reach the doctype at all is the doctype's
@@ -264,8 +264,7 @@ def unmark_as_standard(module: str) -> None:
 	away is the *computed* base, produced from the module's contents on read -- so the module
 	is back to its base in this same request. Clearing the flag would instead leave a row
 	nobody owns: not app content (no file), not site intent (that lives in
-	`Module Sidebar Customization`), and a frozen copy of a base that has stopped tracking the
-	module.
+	`Custom Module Sidebar`), and a frozen copy of a base that has stopped tracking the module.
 
 	The file has to go with it. Left behind, the next `bench migrate` re-imports it and the
 	row comes back standard, so deleting the document alone would not survive a migrate.

@@ -112,10 +112,10 @@ class DerivedHomeTestCase(IntegrationTestCase):
 		"""A sidebar arrangement, at the site layer or one user's own."""
 		doc = frappe.get_doc(
 			{
-				"doctype": "Module Sidebar Customization",
+				"doctype": "Custom Module Sidebar",
 				"module": module,
 				"user": user or "",
-				"items": [{"item_key": key} for key in keys],
+				"sidebar_items": [{"key": key} for key in keys],
 			}
 		).insert(ignore_permissions=True)
 		# `on_trash` clears the cached `(module, user)` set, which a DB rollback would not

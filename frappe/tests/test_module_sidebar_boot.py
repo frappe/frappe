@@ -172,9 +172,11 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 		with sidebarless_module("Test Stranded Delta Module") as module:
 			delta = frappe.get_doc(
 				{
-					"doctype": "Module Sidebar Customization",
+					"doctype": "Custom Module Sidebar",
 					"module": module,
-					"added_items": [{"type": "Link", "link_type": "DocType", "link_to": "ToDo"}],
+					"sidebar_items": [
+						{"added": 1, "type": "Link", "link_type": "DocType", "link_to": "ToDo"}
+					],
 				}
 			).insert(ignore_permissions=True)
 			# `on_trash` clears the cached `(module, user)` set, which a DB rollback would not

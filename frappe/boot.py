@@ -817,7 +817,7 @@ def get_module_sidebars():
 	workspaces_by_module = get_module_workspaces()
 	onboardings = get_permitted_onboardings()
 
-	from frappe.desk.doctype.module_sidebar_customization.module_sidebar_customization import (
+	from frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar import (
 		apply_customizations,
 		get_customization,
 	)

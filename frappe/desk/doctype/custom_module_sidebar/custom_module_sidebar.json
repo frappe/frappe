@@ -1,7 +1,8 @@
 {
  "actions": [],
  "autoname": "hash",
- "creation": "2026-08-03 21:00:00.000000",
+ "creation": "2026-08-11 21:30:00.000000",
+ "description": "Sidebar intent for a module, at either of the two layers a site has. `user` is what tells them apart: blank is the site layer, curated by a Workspace Manager and applying to everyone; a user's name is that person's own arrangement, which is applied on top and wins. The `Custom *` prefix elsewhere in this repo means site-owned override of app-shipped content, and this doctype knowingly overloads it: with the layers structurally identical there is nothing to gain from a second doctype, and `user` makes the layer unambiguous at a glance. Do not \"fix\" this by splitting it.",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -11,9 +12,7 @@
   "label",
   "header_icon",
   "items_section",
-  "items",
-  "added_items_section",
-  "added_items"
+  "sidebar_items"
  ],
  "fields": [
   {
@@ -26,7 +25,7 @@
    "reqd": 1
   },
   {
-   "description": "Blank means the site layer, which applies to everyone and is overridden by each user's own delta.",
+   "description": "Blank means the site layer, which applies to everyone and is overridden by each user's own arrangement.",
    "fieldname": "user",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -53,35 +52,23 @@
   {
    "fieldname": "items_section",
    "fieldtype": "Section Break",
-   "label": "Item Preferences"
+   "label": "Sidebar Items"
   },
   {
-   "description": "Hide, rename and reorder base items. Row order is the arrangement; items not named here keep their base order and follow the ones that are.",
-   "fieldname": "items",
+   "description": "One ordered list holding both references to base items (`added` unset -- non-empty fields override, empty fields mean no opinion) and items this layer added (`added` set -- full items, rendered as they stand). Row order is the arrangement; base items not named here keep their base order and follow the ones that are, which is how a newly installed app's items still reach someone who has already reordered.",
+   "fieldname": "sidebar_items",
    "fieldtype": "Table",
-   "label": "Items",
-   "options": "Module Sidebar Item Preference"
-  },
-  {
-   "fieldname": "added_items_section",
-   "fieldtype": "Section Break",
-   "label": "Added Items"
-  },
-  {
-   "description": "Items added on top of what the module ships. Same shape as a base item, so they render through the same code with no special-casing.",
-   "fieldname": "added_items",
-   "fieldtype": "Table",
-   "label": "Added Items",
+   "label": "Sidebar Items",
    "options": "Module Sidebar Item"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-03 21:00:00.000000",
+ "modified": "2026-08-11 21:30:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
- "name": "Module Sidebar Customization",
+ "name": "Custom Module Sidebar",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
@@ -93,20 +80,16 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "System Manager",
+   "role": "Workspace Manager",
    "share": 1,
    "write": 1
   },
   {
    "create": 1,
    "delete": 1,
-   "email": 1,
-   "export": 1,
    "print": 1,
    "read": 1,
-   "report": 1,
    "role": "Desk User",
-   "share": 1,
    "write": 1
   }
  ],

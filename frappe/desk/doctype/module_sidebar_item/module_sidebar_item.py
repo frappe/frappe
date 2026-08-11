@@ -15,10 +15,12 @@ class ModuleSidebarItem(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		added: DF.Check
 		child: DF.Check
 		collapsible: DF.Check
 		default_workspace: DF.Check
 		filters: DF.Code | None
+		hidden: DF.Check
 		icon: DF.Icon | None
 		indent: DF.Check
 		keep_closed: DF.Check
