@@ -4,4 +4,5 @@
 export * from "./IconPicker";
 export * from "./Navigation";
 export * from "./PanelLayout";
+export * from "./RecordPage";
 export * from "./SavedViews";

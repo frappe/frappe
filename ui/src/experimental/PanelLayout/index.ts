@@ -7,4 +7,5 @@ export {
   isEmptyValue,
   summarize,
 } from "./displayValue";
+export { sectionName } from "./sectionName";
 export type { PanelLayoutProps } from "./types";

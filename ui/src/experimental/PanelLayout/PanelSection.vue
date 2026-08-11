@@ -31,12 +31,14 @@
 		class="flex flex-col gap-2.5 px-4 pb-3 pt-2.5"
 		:class="headerIndex === null && index ? 'border-t border-outline-gray-1' : ''"
 	>
-		<PanelField
-			v-for="field in fields"
-			:key="field.fieldname"
-			:field="field"
-			@expand="$emit('expand', $event)"
-		/>
+		<slot>
+			<PanelField
+				v-for="field in fields"
+				:key="field.fieldname"
+				:field="field"
+				@expand="$emit('expand', $event)"
+			/>
+		</slot>
 	</div>
 </template>
 

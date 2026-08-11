@@ -8,10 +8,14 @@
 //
 // Opt-in: add `frameworkUI()` to a consuming app's vite `plugins`. Apps that do
 // not use @framework/ui need not add it. Pass `{ dedupe: [...] }` to extend the
-// list with app-specific raw-source singletons.
+// list with app-specific raw-source singletons. Pass `{ extensions: true }` if
+// the app hosts runtime extensions: the build then publishes shared-dep entry
+// chunks and an import map (see ./extensionHost.js).
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+import extensionHost from "./extensionHost.js";
 
 const SINGLETONS = ["vue", "vue-router", "frappe-ui", "reka-ui", "dompurify"];
 
@@ -31,6 +35,7 @@ export default function frameworkUI(options = {}) {
 			},
 		},
 		resolveOwnDependencies(),
+		...(options.extensions ? [extensionHost()] : []),
 	];
 }
 
