@@ -876,8 +876,8 @@ class TestModuleSidebarIsAppContent(IntegrationTestCase):
 		with system_write():
 			shipped = self.new_sidebar().insert(ignore_permissions=True)
 
-		# the first one becomes the module's home page and needs no link; the second is the
-		# case this path exists for
+		# two, because the module's landing page is the first item of this list -- so the one
+		# being linked here is deliberately not the one the module opens on
 		self.make_workspace("Test App Content Home")
 		workspace = self.make_workspace("Test App Content Workspace")
 

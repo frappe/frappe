@@ -177,7 +177,6 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 				"app",
 				"header_icon",
 				"module_onboarding",
-				"home_workspace",
 				"workspaces",
 				"items",
 			):

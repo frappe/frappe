@@ -67,11 +67,9 @@ class ModuleSidebar(Document, DeskViews):
 
 		app: DF.Autocomplete | None
 		header_icon: DF.Icon | None
-		home_workspace: DF.Link | None
 		items: DF.Table[ModuleSidebarItem]
 		merged_from: DF.LongText | None
 		module: DF.Link
-		module_onboarding: DF.Link | None
 		standard: DF.Check
 		title: DF.Data | None
 	# end: auto-generated types
@@ -83,7 +81,6 @@ class ModuleSidebar(Document, DeskViews):
 			self.title = self.module
 
 		self.validate_standard()
-		self.validate_home_workspace()
 		assign_keys(self.items)
 		self.validate_unique_keys()
 
@@ -140,22 +137,6 @@ class ModuleSidebar(Document, DeskViews):
 				_(
 					"Module {0} has no folder in an app, so a standard sidebar cannot be written to it."
 				).format(frappe.bold(self.module))
-			)
-
-	def validate_home_workspace(self):
-		if not self.home_workspace:
-			return
-
-		workspace = frappe.db.get_value("Workspace", self.home_workspace, ["public", "module"], as_dict=True)
-		if not workspace:
-			return
-		if not workspace.public:
-			frappe.throw(_("Home Workspace {0} must be public.").format(self.home_workspace))
-		if workspace.module and workspace.module != self.module:
-			frappe.throw(
-				_("Home Workspace {0} belongs to module {1}, not {2}.").format(
-					self.home_workspace, workspace.module, self.module
-				)
 			)
 
 	def validate_unique_keys(self):
@@ -439,7 +420,6 @@ def get_module_sidebar_sources() -> dict[str, list[frappe._dict]]:
 			"sequence_id",
 			"creation",
 			"standard",
-			"module_onboarding",
 		],
 		order_by="sequence_id asc, creation asc",
 	)
@@ -554,10 +534,9 @@ def build_module_sidebar(module: str, workspaces: list[frappe._dict]) -> frappe.
 			"module": module,
 			"title": display_title(module, primary, bool(secondaries)),
 			"header_icon": primary.icon,
-			"home_workspace": primary.name,
-			"module_onboarding": next(
-				(ws.module_onboarding for ws in workspaces if ws.module_onboarding), None
-			),
+			# No home pointer and no onboarding pointer: the merge carries the primary's items
+			# first, and the module opens on the first of them. Which onboarding a module offers
+			# is a question about the reader, answered on read by `get_permitted_onboardings`.
 			"app": get_module_placement(module),
 			# Deliberately NOT standard, however standard the source workspaces were.
 			# `standard` means "backed by a JSON file in an app", and that is what orphan
@@ -695,9 +674,7 @@ def get_computed_base(module: str) -> frappe._dict:
 	until the next migrate.
 
 	Shaped exactly like a row read by `boot.get_sidebar_bases`, item rows included, so the
-	resolution cannot tell which route a base arrived by. `home_workspace` and
-	`module_onboarding` are absent because nothing computes them; the desk already falls back
-	to the first navigable item.
+	resolution cannot tell which route a base arrived by.
 
 	Site-cached, because it is a handful of queries per module and the contents change far
 	less often than the desk boots. See `on_module_content_changed` for what busts it.
@@ -717,8 +694,6 @@ def build_computed_base(module: str) -> frappe._dict:
 			"title": module,
 			"app": get_module_placement(module),
 			"header_icon": DEFAULT_HEADER_ICON,
-			"module_onboarding": None,
-			"home_workspace": None,
 			# not `items`: `frappe._dict` inherits `dict.items()`, so that attribute is the method
 			"rows": items,
 		}
@@ -790,8 +765,6 @@ def build_all(dry_run: bool = False) -> dict:
 					"module",
 					"title",
 					"header_icon",
-					"home_workspace",
-					"module_onboarding",
 					"app",
 					"standard",
 					"merged_from",

@@ -901,35 +901,15 @@ frappe.ui.Sidebar = class Sidebar {
 		if (module) localStorage.setItem("selected_module", module);
 	}
 
-	// Route of the first navigable item in a workspace's sidebar (or null if it has none).
-	get_first_sidebar_route(module) {
-		let sidebar = frappe.boot.module_sidebars[module];
-		if (!sidebar) return null;
-
-		for (let item of sidebar.items || []) {
-			let route = frappe.ui.sidebar_item.get_route(item);
-			if (route) return route;
-		}
-		return null;
-	}
-
 	// Switch to a module's sidebar and navigate into it -- how the dock's items move you between
 	// an app's modules.
-	//
-	// This is where "a module's workspace is its home page" lives: the module opens on its
-	// `home_workspace` if it has one, and otherwise on the first navigable item in its sidebar.
 	open_module(module) {
 		let sidebar = frappe.boot.module_sidebars[module];
 		if (!sidebar) return;
 
 		this.select_module(module);
 
-		if (sidebar.home_workspace) {
-			frappe.set_route(frappe.router.slug(sidebar.home_workspace));
-			return;
-		}
-
-		let route = this.get_first_sidebar_route(module);
+		let route = this.module_landing_route(module);
 		if (route) frappe.set_route(route);
 	}
 
@@ -991,17 +971,25 @@ frappe.ui.Sidebar = class Sidebar {
 		return module ? this.module_landing_route(module.module) : null;
 	}
 
-	// Where a module leads: its home workspace, else the first navigable item in its sidebar --
-	// the same rule `open_module` navigates by, as a path rather than a route so it can be an
-	// `href`. Shared by the desktop's app icons and its standalone module tiles, so the two cannot
-	// disagree about where a module opens.
+	// Where a module leads: the first navigable item in the sidebar *this user* resolved.
+	//
+	// The single definition of a module's home, used by `open_module`, by the desktop's app
+	// icons and by its standalone module tiles -- so no two ways into a module can disagree
+	// about where it opens. It replaces a stored `home_workspace` pointer, and is better than
+	// one in three ways that all come from resolving late: the boot payload is already
+	// permission-filtered, so it can only name something this user can open; it is already
+	// customized, so reordering a sidebar moves the landing page with it, at the site layer for
+	// everyone and at the user's own for them; and a module that has no workspace at all still
+	// has a home.
 	module_landing_route(module) {
 		const sidebar = frappe.boot.module_sidebars[module];
 		if (!sidebar) return null;
 
-		return sidebar.home_workspace
-			? `/desk/${frappe.router.slug(sidebar.home_workspace)}`
-			: this.get_first_sidebar_route(module);
+		for (const item of sidebar.items || []) {
+			const route = frappe.ui.sidebar_item.get_route(item);
+			if (route) return route;
+		}
+		return null;
 	}
 
 	// The module currently shown -- not offered as a switch target, and highlighted on the dock.

@@ -217,25 +217,6 @@ class Workspace(Document, DeskViews):
 		if frappe.conf.developer_mode and self.standard and self.module:
 			export_to_files(record_list=[["Workspace", self.name]], record_module=self.module)
 
-	def after_insert(self):
-		self.claim_home_workspace()
-
-	def claim_home_workspace(self):
-		"""Become the module's home page if it has none yet.
-
-		Keeps "a module's workspace is its home page" true for modules whose workspaces are
-		created after their sidebar -- otherwise the module's dock entry would fall back to
-		its first sidebar item forever.
-		"""
-		if not self.module or not self.public:
-			return
-		if not frappe.db.exists("Module Sidebar", self.module):
-			return
-		if frappe.db.get_value("Module Sidebar", self.module, "home_workspace"):
-			return
-
-		frappe.db.set_value("Module Sidebar", self.module, "home_workspace", self.name)
-
 	def before_export(self, doc):
 		if doc.title != doc.label and doc.label == doc.name:
 			self.name = doc.name = doc.label = doc.title
@@ -243,30 +224,6 @@ class Workspace(Document, DeskViews):
 	def on_trash(self):
 		if self.public and not is_workspace_manager():
 			frappe.throw(_("You need to be Workspace Manager to delete a public workspace."))
-
-		self.release_home_workspace()
-
-	def release_home_workspace(self):
-		"""If this was its module's home page, hand the role to the next workspace.
-
-		A module opens on its `home_workspace`, so leaving a deleted one there would make the
-		module's dock entry lead nowhere.
-		"""
-		if not self.module:
-			return
-		if frappe.db.get_value("Module Sidebar", self.module, "home_workspace") != self.name:
-			return
-
-		successor = frappe.get_all(
-			"Workspace",
-			filters={"module": self.module, "public": 1, "name": ["!=", self.name]},
-			pluck="name",
-			order_by="sequence_id asc, creation asc",
-			limit=1,
-		)
-		frappe.db.set_value(
-			"Module Sidebar", self.module, "home_workspace", successor[0] if successor else None
-		)
 
 	def delete_desktop_icon(self):
 		frappe.delete_doc_if_exists("Desktop Icon", self.title)
@@ -511,9 +468,10 @@ def first_module_of_app(app: str | None) -> str | None:
 def add_to_module_sidebar(workspace):
 	"""Give a new workspace a way in, from its module's sidebar.
 
-	`after_insert` already makes it the module's home page when the module has none. When the
-	module does have one, the workspace still needs a link, or it would exist with nothing
-	pointing at it.
+	A link is the whole of it. A workspace used to also be able to *become* the module's home
+	page on insert, which was a second, silent way of being reachable; now the module opens on
+	the first item of its sidebar, so appearing in that list is the only way in there is, and
+	the last one added is correctly not it.
 
 	The link goes in the site's customization layer, never in the sidebar document. The
 	document is app content -- on a non-developer-mode site nothing may write to it at all --
@@ -534,8 +492,6 @@ def add_to_module_sidebar(workspace):
 		return
 
 	sidebar = frappe.get_cached_doc("Module Sidebar", workspace.module)
-	if sidebar.home_workspace == workspace.name:
-		return
 	if any(item.link_type == "Workspace" and item.link_to == workspace.name for item in sidebar.items):
 		return
 

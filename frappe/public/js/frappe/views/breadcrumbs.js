@@ -208,11 +208,17 @@ frappe.breadcrumbs = {
 				breadcrumbs.module_info = frappe.get_module(breadcrumbs.module);
 
 				// set workspace
-				// the module's home page, not merely its first workspace by creation
+				// The first workspace the module's sidebar links, not merely its first
+				// workspace by creation -- the sidebar is ordered, permission-filtered and
+				// customized, so this is the one that actually names the module for this
+				// user. A breadcrumb needs a workspace specifically, so it cannot just take
+				// `module_landing_route`, whose first item is often a doctype.
 				const module_sidebar = frappe.boot.module_sidebars[breadcrumbs.module];
 				if (breadcrumbs.module_info && module_sidebar) {
-					breadcrumbs.workspace =
-						module_sidebar.home_workspace || module_sidebar.workspaces?.[0];
+					const linked = module_sidebar.items?.find(
+						(item) => item.type === "Link" && item.link_type === "Workspace"
+					);
+					breadcrumbs.workspace = linked?.link_to || module_sidebar.workspaces?.[0];
 				}
 			}
 		}

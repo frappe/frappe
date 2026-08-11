@@ -25,6 +25,26 @@ class StandaloneModuleTestCase(IntegrationTestCase):
 		standalone = get_standalone_modules(get_module_sidebars())
 		return next((m for m in standalone if m["module"] == module), None)
 
+	def sidebar_with_items(self, module: str, items: list[dict]):
+		"""`module`'s sidebar, holding exactly `items` and in that order.
+
+		Order is the whole subject once home is derived, and `make_sidebar` appends a link of
+		its own, so a test about *which item is first* has to say so outright."""
+		sidebar = make_sidebar(module)
+		sidebar.set("items", [])
+		for item in items:
+			sidebar.append("items", item)
+		with system_write():
+			return sidebar.save(ignore_permissions=True)
+
+	def workspace_item(self, workspace):
+		return {
+			"type": "Link",
+			"link_type": "Workspace",
+			"link_to": workspace.name,
+			"label": workspace.title,
+		}
+
 	def make_workspace(self, module: str, name: str, sequence_id: int = 1):
 		doc = frappe.get_doc(
 			{
@@ -64,21 +84,41 @@ class TestAnUnplacedModuleIsTheTile(StandaloneModuleTestCase):
 
 			self.assertIsNone(self.entry(module))
 
-	def test_the_tile_lands_on_the_modules_home_workspace(self):
-		"""The same rule the desk navigates by: a module opens on its home workspace."""
+	def test_the_tile_lands_on_the_first_item_of_the_resolved_sidebar(self):
+		"""The same rule the desk navigates by, now that home is derived: a module opens on
+		the first navigable item in its sidebar."""
 		with custom_module("Test Homed Standalone Module") as module:
 			workspace = self.make_workspace(module, "Test Standalone Home")
-			make_sidebar(module, home_workspace=workspace.name)
+			self.sidebar_with_items(module, [self.workspace_item(workspace)])
 
 			self.assertEqual(self.entry(module)["route"], "/desk/test-standalone-home")
 
-	def test_a_module_with_no_home_lands_on_its_first_workspace(self):
+	def test_the_order_of_the_sidebar_decides_which_workspace(self):
+		"""Not creation order, and not `sequence_id`: the list the user resolved. This is what
+		makes the landing page customizable for free -- reordering is the only mechanism."""
 		with custom_module("Test Homeless Standalone Module") as module:
-			self.make_workspace(module, "Test Standalone First", sequence_id=1)
-			self.make_workspace(module, "Test Standalone Second", sequence_id=2)
-			make_sidebar(module)
+			first = self.make_workspace(module, "Test Standalone First", sequence_id=1)
+			second = self.make_workspace(module, "Test Standalone Second", sequence_id=2)
+			self.sidebar_with_items(module, [self.workspace_item(second), self.workspace_item(first)])
 
-			self.assertEqual(self.entry(module)["route"], "/desk/test-standalone-first")
+			self.assertEqual(self.entry(module)["route"], "/desk/test-standalone-second")
+
+	def test_the_server_stops_at_the_first_item_rather_than_hunting_for_a_workspace(self):
+		"""A tile is a link *and* a click handler, and both have to lead to the same place. A
+		workspace found further down the sidebar would send a middle-click somewhere the
+		ordinary click never goes, so the server declines instead and lets the client -- which
+		can route a doctype -- answer."""
+		with custom_module("Test Second Workspace Module") as module:
+			workspace = self.make_workspace(module, "Test Standalone Buried")
+			self.sidebar_with_items(
+				module,
+				[
+					{"type": "Link", "link_type": "DocType", "link_to": "User", "label": "Users"},
+					self.workspace_item(workspace),
+				],
+			)
+
+			self.assertIsNone(self.entry(module)["route"])
 
 	def test_a_module_with_no_workspace_leaves_the_route_to_the_client(self):
 		"""The server answers the workspace half of the landing rule, because a workspace

@@ -9,8 +9,6 @@
   "title",
   "header_icon",
   "column_break_defn",
-  "home_workspace",
-  "module_onboarding",
   "app",
   "items_section",
   "items",
@@ -45,19 +43,6 @@
   {
    "fieldname": "column_break_defn",
    "fieldtype": "Column Break"
-  },
-  {
-   "description": "The workspace this module opens to. Must be public and belong to this module.",
-   "fieldname": "home_workspace",
-   "fieldtype": "Link",
-   "label": "Home Workspace",
-   "options": "Workspace"
-  },
-  {
-   "fieldname": "module_onboarding",
-   "fieldtype": "Link",
-   "label": "Module Onboarding",
-   "options": "Module Onboarding"
   },
   {
    "fieldname": "app",
@@ -105,7 +90,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-10 21:09:20.203277",
+ "modified": "2026-08-11 19:55:59.367431",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Module Sidebar",

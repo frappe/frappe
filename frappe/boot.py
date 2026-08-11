@@ -492,17 +492,32 @@ def get_standalone_modules(module_sidebars: dict) -> list[dict]:
 def get_module_landing_route(sidebar: dict) -> str | None:
 	"""Where a module's tile leads, as far as the server can answer it.
 
-	The rule is the desk's own (`sidebar.open_module`): a module opens on its home workspace,
-	and otherwise on the first navigable item in its sidebar. Only the workspace half is
-	answered here, because a workspace route is a slug and nothing more, while every other item
-	type resolves through `frappe.utils.generate_route` on the client -- doc views, report
-	types, filters as query params. The desktop asks the client's `module_landing_route` first
-	and falls back to this, so this is the floor a tile has before the sidebar object exists,
-	not a second implementation of routing.
-	"""
-	workspace = sidebar.get("home_workspace") or next(iter(sidebar.get("workspaces") or []), None)
+	The rule is the desk's own (`sidebar.module_landing_route`): a module opens on **the first
+	navigable item in the sidebar this user resolved**. So it reads `items` -- already
+	permission-filtered and already customized -- and not the module's workspaces, which are
+	neither.
 
-	return f"/desk/{frappe.utils.slug(workspace)}" if workspace else None
+	Only the workspace case is answered here, because a workspace route is a slug and nothing
+	more, while every other item type resolves through `frappe.utils.generate_route` on the
+	client -- doc views, report types, filters as query params. The desktop asks the client's
+	`module_landing_route` first and falls back to this, so this is the floor a tile has before
+	the sidebar object exists, not a second implementation of routing.
+
+	It stops at the *first* navigable item rather than scanning on for a workspace it can
+	answer. A tile is a link with a click handler, and the two have to lead to the same place:
+	a route found further down the sidebar would send a middle-click somewhere the ordinary
+	click never goes.
+	"""
+	item = next((item for item in sidebar.get("items") or [] if item.get("type") == "Link"), None)
+	if not item or item.get("link_type") != "Workspace" or not item.get("link_to"):
+		return None
+
+	public = frappe.db.get_value("Workspace", item["link_to"], "public")
+	if public is None:
+		return None
+
+	prefix = "/desk/" if public else "/desk/private/"
+	return prefix + frappe.utils.slug(item["link_to"])
 
 
 def load_translations(bootinfo):
@@ -736,8 +751,8 @@ def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:
 	**A document with no items falls back the same way**, because a sidebar with nothing in it
 	is not navigation -- the module would be dropped from the payload entirely, which is
 	indistinguishable from having no sidebar at all. Only its *rows* are computed: whatever the
-	document says about itself (title, icon, home workspace) is authored content and stands, so
-	a stub someone created to name a module keeps its name and gains contents.
+	document says about itself (title, icon, app) is authored content and stands, so a stub
+	someone created to name a module keeps its name and gains contents.
 
 	Consequence worth knowing: emptying a sidebar's items is no longer a way to hide a module.
 	Hiding belongs to the customization layers and to `User.block_modules`, which run later and
@@ -758,8 +773,6 @@ def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:
 			"title",
 			"app",
 			"header_icon",
-			"module_onboarding",
-			"home_workspace",
 		],
 	)
 
@@ -793,6 +806,7 @@ def get_module_sidebars():
 	alongside `router.slug(name)` and the exact Workspace name.
 	"""
 	from frappe import _
+	from frappe.desk.doctype.module_onboarding.module_onboarding import get_permitted_onboardings
 	from frappe.utils.modules import get_module_placement
 
 	modules = get_navigable_modules()
@@ -801,6 +815,7 @@ def get_module_sidebars():
 
 	bases = get_sidebar_bases(modules)
 	workspaces_by_module = get_module_workspaces()
+	onboardings = get_permitted_onboardings()
 
 	from frappe.desk.doctype.module_sidebar_customization.module_sidebar_customization import (
 		apply_customizations,
@@ -846,8 +861,12 @@ def get_module_sidebars():
 			# already does.
 			"app": base.app or get_module_placement(module),
 			"header_icon": header_icon,
-			"module_onboarding": base.module_onboarding,
-			"home_workspace": base.home_workspace,
+			# Derived, never stored: the onboarding this module offers *this user*, which is the
+			# only form of the question the desk ever asks. A module opens on the first item of
+			# the list below for the same reason -- both used to be pointers on the base, and a
+			# pointer resolved before permission filtering can name something the reader cannot
+			# open.
+			"module_onboarding": onboardings.get(module),
 			"customized": 1 if customized else 0,
 			"workspaces": workspaces_by_module.get(module, []),
 			"items": filtered,
