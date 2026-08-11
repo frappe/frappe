@@ -8,15 +8,6 @@ frappe.ui.form.on("User", {
 				},
 			};
 		});
-
-		frm.set_query("workspace", "workspaces", () => {
-			return {
-				filters: {
-					public: 1,
-					title: ["!=", "Welcome Workspace"],
-				},
-			};
-		});
 	},
 	before_load: function (frm) {
 		let update_tz_options = function () {
