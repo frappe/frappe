@@ -100,6 +100,7 @@ async def test_rest_roundtrip(tmp_path, monkeypatch):
 			"model": "mock/v2",
 			"credential_id": None,
 			"reasoning_effort": "high",
+			"context_window": None,
 			"supports_images": False,
 		}
 

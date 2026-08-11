@@ -58,6 +58,19 @@ const panelEl = ref(null)
 watch(open, (value) => {
 	if (value) nextTick(() => panelEl.value?.scrollIntoView({ block: "nearest", behavior: "smooth" }))
 })
+// follow new steps and streamed thinking when scrolled to the bottom
+watch(
+	() => {
+		const last = props.steps[props.steps.length - 1]
+		return `${props.steps.length}:${last?.thought?.thinking?.length ?? 0}`
+	},
+	() => {
+		const el = panelEl.value
+		if (!open.value || !el) return
+		const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40
+		if (atBottom) nextTick(() => (el.scrollTop = el.scrollHeight))
+	}
+)
 
 const toolSteps = computed(() => props.steps.filter((s) => s.call))
 const active = computed(() => toolSteps.value.some((s) => !s.result && !s.aborted))
@@ -70,8 +83,7 @@ const label = computed(() => {
 	return toolGroupSummary(toolSteps.value.map((step) => step.call))
 })
 
-// While streaming: the executing step, else the freshest signal we have. The
-// line holds the last tool label through inter-step thinking — never "Thinking".
+// While streaming: the executing step, else the freshest live signal.
 const liveLine = computed(() => {
 	const running = toolSteps.value.find((s) => !s.result)
 	if (running) return stepLiveLabel(running.call)

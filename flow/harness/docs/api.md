@@ -186,13 +186,14 @@ entry in the log — so it survives restarts and is per-branch: a rewind to befo
 change restores the previous selection. Setting the already-active selection writes
 nothing. `reasoning_effort: null` means the provider's default (no reasoning parameter
 is sent); `"off"` disables thinking where the provider has a switch.
-Returns the effective selection plus `supports_images`, allowing clients to refresh
-attachment warnings immediately after a switch. Provider keys, OAuth tokens, headers,
-and base URLs are never accepted;
+Returns the effective selection plus `context_window` (a best-effort static limit, or
+`null` when unknown) and `supports_images`, allowing clients to refresh their context
+meter and attachment warnings immediately after a switch. Provider keys, OAuth tokens,
+headers, and base URLs are never accepted;
 they are resolved inside flow →
-`{"model": "...", "credential_id": ..., "reasoning_effort": ...}` (the now-effective
-selection). `409` while a run is active; allowed while paused (the resume continues on
-the new model).
+`{"model": "...", "credential_id": ..., "reasoning_effort": ...,
+"context_window": ..., "supports_images": ...}` (the now-effective selection). `409`
+while a run is active; allowed while paused (the resume continues on the new model).
 
 ### `POST /sessions/{sid}/compact?wait=<bool>`
 Body (optional): `{"instructions": "focus for the summary"}`. Summarizes the whole

@@ -107,6 +107,10 @@ def test_set_model_is_a_durable_entry_used_by_later_runs(tmp_path, monkeypatch):
 		return MockModel()
 
 	monkeypatch.setattr("flow.agent.loop.get_model", spy)
+	monkeypatch.setattr(
+		"flow.server.app.context_window_for",
+		lambda model: 1_000_000 if model == "mock/v2" else None,
+	)
 	c = _client(tmp_path)
 	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
 
@@ -115,6 +119,7 @@ def test_set_model_is_a_durable_entry_used_by_later_runs(tmp_path, monkeypatch):
 		"model": "mock/v2",
 		"credential_id": "mock-profile",
 		"reasoning_effort": None,
+		"context_window": 1_000_000,
 		"supports_images": False,
 	}
 	assert (
@@ -153,6 +158,7 @@ def test_reasoning_effort_travels_with_the_selection_and_rewinds_with_it(tmp_pat
 		"model": "mock",
 		"credential_id": None,
 		"reasoning_effort": "high",
+		"context_window": None,
 		"supports_images": False,
 	}
 	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "again"})
