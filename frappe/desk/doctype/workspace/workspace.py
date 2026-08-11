@@ -337,7 +337,7 @@ def new_page(new_page: str):
 
 
 @frappe.whitelist()
-def save_page(name, public, new_widgets, blocks):
+def save_page(name: str, public: str | int, new_widgets: str | dict, blocks: str):
 	public = frappe.parse_json(public)
 
 	doc = frappe.get_doc("Workspace", name)
@@ -359,7 +359,7 @@ def save_page(name, public, new_widgets, blocks):
 
 
 @frappe.whitelist()
-def update_page(name, title, icon, indicator_color, parent, public):
+def update_page(name: str, title: str, icon: str, indicator_color: str, parent: str, public: str | int):
 	public = frappe.parse_json(public)
 	doc = frappe.get_doc("Workspace", name)
 

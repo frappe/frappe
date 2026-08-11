@@ -13,6 +13,7 @@ from frappe.website.doctype.web_form.web_form import (
 	get_form_data,
 	get_link_options,
 	get_web_form_list,
+	process_link_field,
 )
 from frappe.website.serve import get_response_content
 
@@ -958,6 +959,20 @@ class TestWebForm(IntegrationTestCase):
 
 		with self.assertRaises(frappe.ValidationError):
 			web_form.save()
+
+	def test_link_options_do_not_reload_web_form_per_field(self):
+		self.add_web_form_link_field()
+
+		def link_field():
+			return frappe._dict(
+				{"fieldname": "reference_doctype", "fieldtype": "Link", "options": "Salutation"}
+			)
+
+		process_link_field(link_field(), "manage-events")
+
+		with self.assertQueryCount(6):
+			for _ in range(5):
+				process_link_field(link_field(), "manage-events")
 
 	def test_get_link_options_blocked_for_unauthorized_link_on_guest_key_form(self):
 		self.set_web_form_settings(key_required=1, login_required=0)

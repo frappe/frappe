@@ -6,7 +6,7 @@ from frappe.core.doctype.file.utils import setup_folder_path
 from frappe.utils import cint, cstr
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def unzip_file(name: str):
 	"""Unzip the given file and make file records for each of the extracted files"""
 	file: File = frappe.get_doc("File", name)
@@ -86,6 +86,14 @@ def get_max_file_size() -> int:
 	return (
 		cint(frappe.get_system_settings("max_file_size")) * 1024 * 1024
 		or cint(frappe.conf.get("max_file_size"))
+		or 25 * 1024 * 1024
+	)
+
+
+def get_max_extract_size() -> int:
+	return (
+		cint(frappe.get_system_settings("max_zip_extract_size")) * 1024 * 1024
+		or cint(frappe.conf.get("max_zip_extract_size"))
 		or 25 * 1024 * 1024
 	)
 

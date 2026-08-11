@@ -1,6 +1,8 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from typing import Any
+
 import frappe
 from frappe.model import is_default_field
 from frappe.query_builder import Order
@@ -10,7 +12,7 @@ from frappe.query_builder.utils import DocType
 
 
 @frappe.whitelist()
-def get_list_settings(doctype):
+def get_list_settings(doctype: str):
 	try:
 		return frappe.get_cached_doc("List View Settings", doctype)
 	except frappe.DoesNotExistError:
@@ -18,7 +20,7 @@ def get_list_settings(doctype):
 
 
 @frappe.whitelist()
-def set_list_settings(doctype, values):
+def set_list_settings(doctype: str, values: str | dict[str, Any]):
 	try:
 		doc = frappe.get_doc("List View Settings", doctype)
 	except frappe.DoesNotExistError:

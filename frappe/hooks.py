@@ -129,6 +129,7 @@ permission_query_conditions = {
 	"File": "frappe.core.doctype.file.file.get_permission_query_conditions",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.get_permission_query_conditions",
 	"Tag Link": "frappe.desk.doctype.tag_link.tag_link.get_permission_query_conditions",
+	"Document Follow": "frappe.email.doctype.document_follow.document_follow.get_permission_query_conditions",
 }
 
 has_permission = {
@@ -149,6 +150,7 @@ has_permission = {
 	"Dashboard Settings": "frappe.desk.doctype.dashboard_settings.dashboard_settings.has_permission",
 	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.has_permission",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.has_permission",
+	"Document Follow": "frappe.email.doctype.document_follow.document_follow.has_permission",
 }
 
 has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
@@ -161,6 +163,8 @@ jinja = {
 		"frappe.website.utils.abs_url",
 	],
 }
+
+require_type_annotated_api_methods = True
 
 standard_queries = {"User": "frappe.core.doctype.user.user.user_query"}
 
@@ -281,7 +285,6 @@ scheduler_events = {
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
 		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
-		"frappe.core.doctype.duckdb_sync.duckdb_sync.cleanup_old_syncs",
 	],
 	"weekly_long": [
 		"frappe.desk.form.document_follow.send_weekly_updates",

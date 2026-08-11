@@ -197,11 +197,11 @@ def auto_generate_icons_and_sidebar(app_name=None):
 	try:
 		print("Creating Workspace Sidebars")
 		create_workspace_sidebar_for_workspaces()
+		# every icon is guarded by an existence check, so this is safe to re-run:
+		# it only picks up apps and workspaces that don't have an icon yet
 		print("Creating Desktop Icons")
 		create_desktop_icons()
-		# Save the generated icons
-		frappe.db.commit()  # nosemgrep
-		# Save the genreated sidebar links
+		# Save the generated icons and sidebar links
 		frappe.db.commit()  # nosemgrep
 	except Exception as e:
 		print(f"Error creating icons {e}")
