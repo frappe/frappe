@@ -1,7 +1,13 @@
 import { reactive } from "vue"
 
 import { FlowAPIError } from "./client.js"
-import { applyEvent, conversationTitle, initialConversation } from "./transcript.js"
+import {
+	applyEvent,
+	conversationTitle,
+	initialConversation,
+	normalizeSkillCommand,
+	skillCommand,
+} from "./transcript.js"
 
 const PREFS_KEY = "flow.ui.prefs"
 const TITLES_KEY = "flow.ui.titles"
@@ -29,6 +35,7 @@ export function createFlowStore(client) {
 		queued: [], // steered messages not yet durable
 		models: [],
 		modelErrors: [],
+		skills: [],
 		loading: false,
 		toast: null,
 		draft: null, // { text, attachments } handed to the composer after rewind
@@ -46,6 +53,9 @@ export function createFlowStore(client) {
 
 	let stream = null
 	let streamTask = null
+	let creating = null // in-flight lazy session creation; a double-send shares it
+	let loadingSkills = null // { cwd, promise }
+	let previewedSkillsFor = null
 
 	function savePrefs() {
 		localStorage.setItem(PREFS_KEY, JSON.stringify(state.prefs))
@@ -106,10 +116,16 @@ export function createFlowStore(client) {
 		state.sessionId = sid
 		state.session = null
 		state.queued = []
+		state.skills = []
 		state.conversation = initialConversation()
 		state.loading = true
-		const info = await guard(() => client.session(sid))
-		if (state.sessionId !== sid) return // user opened another session meanwhile
+		const [info, catalog] = await Promise.all([
+			guard(() => client.session(sid)),
+			typeof client.skills === "function"
+				? guard(() => client.skills(sid))
+				: Promise.resolve({ skills: [] }),
+		])
+		if (state.sessionId !== sid) return
 		if (!info) {
 			state.loading = false
 			return
@@ -125,6 +141,7 @@ export function createFlowStore(client) {
 		}
 		if (seed.latest_seq > info.latest_seq) info.latest_seq = seed.latest_seq
 		state.session = info
+		state.skills = catalog?.skills ?? []
 		state.conversation.model = info.model
 		state.conversation.reasoningEffort = info.reasoning_effort ?? null
 		state.conversation.contextTokens = info.context_tokens ?? 0
@@ -165,14 +182,15 @@ export function createFlowStore(client) {
 		}
 		applyEvent(state.conversation, event)
 		if (event.type === "user_message") {
-			// Match structured content: attachment messages are arrays on the wire.
+			// Match attachment messages, whose text is wrapped in content blocks.
 			const blocks = Array.isArray(event.content) ? event.content : []
-			const text = Array.isArray(event.content)
+			const expandedText = Array.isArray(event.content)
 				? blocks
 						.filter((block) => block.type === "text")
 						.map((block) => block.text)
 						.join("")
 				: event.content
+			const text = skillCommand(event) ?? expandedText
 			const attachmentIds = blocks
 				.filter((block) => block.type === "attachment")
 				.map((block) => block.id)
@@ -198,7 +216,9 @@ export function createFlowStore(client) {
 		state.sessionId = null
 		state.session = null
 		state.queued = []
+		state.skills = []
 		state.conversation = initialConversation()
+		previewedSkillsFor = null
 		state.prefs.lastSession = null
 		savePrefs()
 	}
@@ -226,7 +246,26 @@ export function createFlowStore(client) {
 		return data.session_id
 	}
 
-	let creating = null // in-flight lazy session creation; a double-send shares it
+	async function loadSkills() {
+		if (state.sessionId || typeof client.previewSkills !== "function") return
+		const cwd = state.prefs.cwd ?? ""
+		if (previewedSkillsFor === cwd) return
+		const pending =
+			loadingSkills?.cwd === cwd
+				? loadingSkills.promise
+				: guard(() => client.previewSkills(cwd ? { cwd } : {}))
+		loadingSkills = { cwd, promise: pending }
+		try {
+			const catalog = await pending
+			if (!state.sessionId && (state.prefs.cwd ?? "") === cwd && catalog) {
+				state.skills = catalog.skills ?? []
+				previewedSkillsFor = cwd
+			}
+		} finally {
+			if (loadingSkills?.promise === pending) loadingSkills = null
+			if (!state.sessionId && (state.prefs.cwd ?? "") !== cwd) void loadSkills()
+		}
+	}
 
 	async function send(text, attachments = []) {
 		const message = text.trim()
@@ -257,7 +296,7 @@ export function createFlowStore(client) {
 			admitted = true
 			if (result.status === "steered" && state.sessionId === sid) {
 				state.queued.push({
-					text: message,
+					text: normalizeSkillCommand(message) ?? message,
 					attachmentIds,
 					label: message || `${attachments.length} attachment(s)`,
 				})
@@ -314,9 +353,10 @@ export function createFlowStore(client) {
 		const ok = await guard(() => client.rewind(state.sessionId, Math.max(target, 0)))
 		if (ok === null) return null
 		const content = Array.isArray(entry.content) ? entry.content : []
-		const text = Array.isArray(entry.content)
+		const expandedText = Array.isArray(entry.content)
 			? content.filter((block) => block.type === "text").map((block) => block.text).join("")
 			: entry.content
+		const text = skillCommand(entry) ?? expandedText
 		const attachments = content
 			.filter((block) => block.type === "attachment")
 			.map((block) => ({ ...block }))
@@ -395,6 +435,10 @@ export function createFlowStore(client) {
 	// The working directory new chats are created in (until changed again).
 	function setCwd(path) {
 		state.prefs.cwd = path
+		if (!state.sessionId) {
+			state.skills = []
+			previewedSkillsFor = null
+		}
 		savePrefs()
 	}
 
@@ -445,6 +489,7 @@ export function createFlowStore(client) {
 		openSession,
 		startNewChat,
 		newSession,
+		loadSkills,
 		send,
 		answerApproval,
 		abort,

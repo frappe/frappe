@@ -21,24 +21,31 @@
 			<!-- slash-command palette -->
 			<PalettePanel v-if="menuOpen" title="Commands" :autofocus="false" @close="closePalettes">
 				<div class="overflow-y-auto p-1.5">
-					<button
-						v-for="m in menuItems"
-						:key="m.name"
-						data-palette-item
-						class="flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left hover:bg-surface-gray-2"
-						@click="pick(m)"
-					>
-						<span
-							class="flex h-7 w-7 flex-none items-center justify-center rounded-md border border-outline-gray-1 bg-surface-gray-1 text-ink-gray-6"
+					<template v-for="(m, i) in menuItems" :key="m.name">
+						<div
+							v-if="m.section"
+							class="px-2.5 pb-1 text-2xs font-medium text-ink-gray-5"
+							:class="i ? 'mt-1 border-t border-outline-gray-1 pt-2.5' : 'pt-1.5'"
 						>
-							<FeatherIcon :name="m.icon" class="h-3.5 w-3.5" />
-						</span>
-						<span class="min-w-0 flex-1">
-							<span class="block text-xs font-medium leading-4 text-ink-gray-9">{{ m.label }}</span>
-							<span class="mt-1 block truncate text-2xs leading-4 text-ink-gray-5">{{ m.hint }}</span>
-						</span>
-						<code class="text-2xs text-ink-gray-4">/{{ m.name }}</code>
-					</button>
+							{{ m.section }}
+						</div>
+						<button
+							data-palette-item
+							class="flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left hover:bg-surface-gray-2"
+							@click="pick(m)"
+						>
+							<span
+								class="flex h-7 w-7 flex-none items-center justify-center rounded-md border border-outline-gray-1 bg-surface-gray-1 text-ink-gray-6"
+							>
+								<FeatherIcon :name="m.icon" class="h-3.5 w-3.5" />
+							</span>
+							<span class="min-w-0 flex-1">
+								<span class="block text-xs font-medium leading-4 text-ink-gray-9">{{ m.label }}</span>
+								<span class="mt-1 block truncate text-2xs leading-4 text-ink-gray-5">{{ m.hint }}</span>
+							</span>
+							<code class="text-2xs text-ink-gray-4">/{{ m.name }}</code>
+						</button>
+					</template>
 					<div v-if="!menuItems.length" class="px-3 py-8 text-center text-xs text-ink-gray-5">
 						No matching commands
 					</div>
@@ -59,16 +66,30 @@
 			<div
 				class="flex flex-col gap-2 rounded-xl border border-outline-gray-2 bg-surface-white p-2 shadow-[0_1px_3px_rgba(0,0,0,0.035)]"
 			>
-				<textarea
-					ref="box"
-					v-model="text"
-					rows="1"
-					:disabled="submitting"
-					placeholder="Ask flow…"
-					class="max-h-40 min-h-[62px] w-full resize-none border-0 bg-transparent px-1.5 pt-1 text-base leading-relaxed text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
-					@keydown="onKey"
-					@paste="onPaste"
-				/>
+				<div class="relative">
+					<div
+						v-if="skillPrompt"
+						aria-hidden="true"
+						class="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words px-1.5 pt-1 text-base leading-relaxed text-transparent"
+					>
+						<div :style="{ transform: `translateY(-${textScrollTop}px)` }">
+							<span class="text-ink-blue-3">{{ skillPrompt.prefix }}</span><span class="text-ink-gray-9">{{ skillPrompt.rest }}</span>
+						</div>
+					</div>
+					<textarea
+						ref="box"
+						v-model="text"
+						rows="1"
+						:disabled="submitting"
+						placeholder="Ask flow…"
+						style="caret-color: var(--ink-gray-9)"
+						class="relative max-h-40 min-h-[62px] w-full resize-none border-0 bg-transparent px-1.5 pt-1 text-base leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0"
+						:class="skillPrompt ? 'text-transparent' : 'text-ink-gray-9'"
+						@keydown="onKey"
+						@paste="onPaste"
+						@scroll="textScrollTop = $event.currentTarget.scrollTop"
+					/>
+				</div>
 				<input
 					ref="fileInput"
 					type="file"
@@ -273,6 +294,7 @@ const box = ref(null)
 const fileInput = ref(null)
 const attachments = ref([])
 const submitting = ref(false)
+const textScrollTop = ref(0)
 let attachmentKey = 0
 
 const SUPPORTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp", "image/bmp"])
@@ -331,12 +353,16 @@ function closePalettes() {
 
 function openCommands() {
 	paletteView.value = "commands"
+	if (!flow.state.sessionId) void flow.loadSkills?.()
 	nextTick(() => box.value?.focus())
 }
 
 // typing a normal message dismisses a commands page left open by back-navigation
 watch(text, (value) => {
 	if (paletteView.value === "commands" && value && !value.startsWith("/")) paletteView.value = null
+	// Preview the default catalog without creating the otherwise-lazy first session.
+	if (value.startsWith("/") && !flow.state.sessionId)
+		void flow.loadSkills?.()
 })
 
 // grow with content (wrapped lines included) up to the CSS max-height, then scroll
@@ -345,6 +371,7 @@ function autosize() {
 	if (!el) return
 	el.style.height = "auto"
 	el.style.height = `${el.scrollHeight}px`
+	textScrollTop.value = el.scrollTop
 }
 watch(text, () => nextTick(autosize))
 onMounted(autosize)
@@ -403,6 +430,20 @@ const COMMANDS = [
 	{ name: "cwd", label: "Working directory", icon: "folder", hint: "new session in a folder: /cwd [path]", run: cwdCommand, takesArg: true },
 ]
 
+const skillCommands = computed(() =>
+	(flow.state.skills ?? []).map((skill) => ({
+		name: `skill:${skill.name}`,
+		label: skill.name,
+		icon: "book-open",
+		hint: skill.description,
+		takesArg: true,
+	})),
+)
+const skillPrompt = computed(() => {
+	const match = text.value.match(/^\/skill:([^\s]+)(?=\s|$)/)
+	if (!match || !(flow.state.skills ?? []).some((skill) => skill.name === match[1])) return null
+	return { prefix: match[0], rest: text.value.slice(match[0].length) }
+})
 const running = computed(() => flow.state.conversation.running)
 const canSend = computed(
 	() => !submitting.value && (text.value.trim().length > 0 || attachments.value.length > 0),
@@ -457,7 +498,12 @@ const menuOpen = computed(
 const menuItems = computed(() => {
 	if (!menuOpen.value) return []
 	const q = (slash.value?.query ?? "").toLowerCase()
-	return COMMANDS.filter((c) => c.name.startsWith(q))
+	const commands = COMMANDS.filter((c) => c.name.startsWith(q))
+	// skills match with or without the "skill:" prefix, and sit in their own section
+	const skills = skillCommands.value.filter(
+		(c) => c.name.startsWith(q) || c.label.startsWith(q),
+	)
+	return [...commands, ...skills.map((c, i) => (i === 0 ? { ...c, section: "Skills" } : c))]
 })
 
 function onKey(e) {

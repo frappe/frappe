@@ -432,12 +432,46 @@ export function buildItems(conversation) {
 	return result
 }
 
-export function userText(entry) {
+function rawUserText(entry) {
 	if (typeof entry?.content === "string") return entry.content
 	return (entry?.content ?? [])
 		.filter((block) => block.type === "text")
 		.map((block) => block.text ?? "")
 		.join("")
+}
+
+export function skillCommand(entry) {
+	const invocation = parseSkillInvocation(rawUserText(entry))
+	if (!invocation) return null
+	return `/skill:${invocation.name}${invocation.instructions ? ` ${invocation.instructions}` : ""}`
+}
+
+// Pi and Tau persist skill expansions as ordinary user text and recover these
+// presentation fields from the fixed wrapper when rendering history.
+export function parseSkillInvocation(text) {
+	const match = String(text ?? "").match(
+		/^<skill name="([^"]+)" location="([^"]+)">\n([\s\S]*?)\n<\/skill>(?:\n\n([\s\S]+))?$/,
+	)
+	if (!match) return null
+	return { name: match[1], location: match[2], content: match[3], instructions: match[4] ?? null }
+}
+
+// Mirror the server's strip + split(maxsplit=1) normalization for optimistic
+// steering reconciliation. Unlike durable-event detection, this operates only on
+// text the user explicitly entered as a slash command.
+export function normalizeSkillCommand(text) {
+	const match = String(text ?? "").trim().match(/^\/skill:([^\s]+)(?:\s+([\s\S]*))?$/)
+	if (!match) return null
+	const instructions = match[2]?.trim() || ""
+	return `/skill:${match[1]}${instructions ? ` ${instructions}` : ""}`
+}
+
+export function userText(entry) {
+	const text = rawUserText(entry)
+	const invocation = parseSkillInvocation(text)
+	if (!invocation) return text
+	const label = `Using skill: ${invocation.name}`
+	return invocation.instructions ? `${label}\n${invocation.instructions}` : label
 }
 
 export function userAttachments(entry) {
@@ -449,7 +483,10 @@ export function userAttachments(entry) {
 export function conversationTitle(conversation) {
 	const first = conversation.entries.find((e) => e.type === "user_message")
 	if (!first) return null
-	const line = userText(first).split("\n")[0].trim() || userAttachments(first)[0]?.name || ""
+	const raw = rawUserText(first)
+	const invocation = parseSkillInvocation(raw)
+	const titleText = invocation ? invocation.instructions || `/skill:${invocation.name}` : raw
+	const line = titleText.split("\n")[0].trim() || userAttachments(first)[0]?.name || ""
 	return line.length > 80 ? line.slice(0, 77) + "…" : line || null
 }
 
