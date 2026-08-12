@@ -146,6 +146,7 @@ function make_file_node(file) {
 		filename: filename,
 		file_url: file.file_url,
 		value: file.name,
+		is_private: file.is_private,
 		is_leaf: !file.is_folder,
 		fetched: !file.is_folder, // fetched if node is leaf
 		children: [],

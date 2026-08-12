@@ -40,7 +40,7 @@ def get_attached_images(doctype: str, names: list[str] | str) -> frappe._dict:
 
 @frappe.whitelist()
 def get_files_in_folder(folder: str, start: int = 0, page_length: int = 20) -> dict:
-	fields = ["name", "file_name", "file_url", "is_folder", "modified"]
+	fields = ["name", "file_name", "file_url", "is_folder", "modified", "is_private"]
 
 	files = frappe.get_list(
 		"File",
@@ -79,7 +79,7 @@ def get_files_by_search_text(text: str) -> list[dict]:
 	text = "%" + cstr(text).lower() + "%"
 	files = frappe.get_list(
 		"File",
-		fields=["name", "file_name", "file_url", "is_folder", "modified"],
+		fields=["name", "file_name", "file_url", "is_folder", "modified", "is_private"],
 		filters={"is_folder": False},
 		or_filters={
 			"file_name": ("like", text),
