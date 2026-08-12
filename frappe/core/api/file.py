@@ -39,7 +39,9 @@ def get_attached_images(doctype: str, names: list[str] | str) -> frappe._dict:
 
 
 @frappe.whitelist()
-def get_files_in_folder(folder: str, start: int = 0, page_length: int = 20) -> dict:
+def get_files_in_folder(
+	folder: str, start: int = 0, page_length: int = 20, seen_files: list | str | None = None
+) -> dict:
 	fields = ["name", "file_name", "file_url", "is_folder", "modified", "is_private"]
 
 	files = frappe.get_list(
@@ -50,14 +52,15 @@ def get_files_in_folder(folder: str, start: int = 0, page_length: int = 20) -> d
 		limit=page_length + 1,
 	)
 
-	seen_files = set()
+	seen_files = {tuple(file_tuple) for file_tuple in frappe.parse_json(seen_files or "[]")}
 	deduped = []
-	for file in files:
+	for file in files[:page_length]:
 		file_tuple = (file.file_url, file.file_name)
 		if file_tuple not in seen_files and file.name != "Home/Attachments":
 			seen_files.add(file_tuple)
 			deduped.append(file)
 
+	attachment_folder = None
 	if folder == "Home" and start == 0:
 		attachment_folder = frappe.db.get_value(
 			"File",
@@ -67,8 +70,12 @@ def get_files_in_folder(folder: str, start: int = 0, page_length: int = 20) -> d
 		)
 		if attachment_folder:
 			deduped.insert(0, attachment_folder)
-
-	return {"files": deduped[:page_length], "has_more": len(files) > page_length}
+	limit = page_length + 1 if attachment_folder else page_length
+	return {
+		"files": deduped[:limit],
+		"has_more": len(files) > page_length,
+		"seen_files": [list(file_tuple) for file_tuple in seen_files],
+	}
 
 
 @frappe.whitelist()
@@ -76,15 +83,16 @@ def get_files_by_search_text(text: str) -> list[dict]:
 	if not text:
 		return []
 
-	text = "%" + cstr(text).lower() + "%"
+	text = cstr(text).lower()
+	like_text = f"%{text}%"
 	files = frappe.get_list(
 		"File",
 		fields=["name", "file_name", "file_url", "is_folder", "modified", "is_private"],
 		filters={"is_folder": False},
 		or_filters={
-			"file_name": ("like", text),
-			"file_url": text,
-			"name": ("like", text),
+			"file_name": ("like", like_text),
+			"file_url": ("=", text),
+			"name": ("like", like_text),
 		},
 		order_by="creation desc",
 		limit=20,
