@@ -66,6 +66,19 @@ class TestRegistry(IntegrationTestCase):
 		rule.delete()
 		self.assertEqual(get_automations_for("ToDo"), [])
 
+	def test_retargeting_a_rule_invalidates_the_old_doctype(self):
+		rule = make_rule(document_type="ToDo")
+		self.assertEqual(len(get_automations_for("ToDo")), 1)
+
+		rule.document_type = "Note"
+		rule.actions[0].params = '{"field": "title", "value": "moved"}'  # Note has no priority
+		rule.save()
+
+		# Clearing only the new doctype leaves ToDo holding a rule that moved away from it,
+		# and nothing else evicts that entry.
+		self.assertEqual(get_automations_for("ToDo"), [])
+		self.assertEqual(len(get_automations_for("Note")), 1)
+
 	def test_custom_event_map(self):
 		make_enabled_custom_event_rule(custom_event="deal_won")
 		event_map = get_custom_event_map()
