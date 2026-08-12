@@ -9,21 +9,7 @@ const DOC_RIGHTS = ["read", "write", "create", "delete"];
 const SUBMIT_RIGHTS = ["submit", "cancel", "amend"];
 
 frappe.doctype_settings.register("permissions", function (panel, doctype) {
-	const reload = () => draw(panel, doctype);
-	panel.set_view({
-		title: __("Permissions"),
-		description: __("Control who can access {0}.", [doctype]),
-		actions: [
-			{
-				label: __("Add role"),
-				icon: "plus",
-				// Add mode of the shared editor (doctype-centric: doctype fixed, pick the role)
-				// — sets the role + all its rights in one dialog.
-				click: () => new frappe.ui.PermissionDialog(perm_tab(doctype, reload), {}).show(),
-			},
-		],
-		render: reload,
-	});
+	panel.set_view({ render: (p) => draw(p, doctype) });
 });
 
 function perm_call(method, args) {
@@ -42,32 +28,62 @@ function draw(panel, doctype) {
 			fields: ["name"],
 			limit: 1,
 		}),
+		user_perms_apply(doctype),
 	])
-		.then(([r, custom]) => {
+		.then(([r, custom, show_user_perms]) => {
 			const perms = r.message || [];
 			const is_customized = (custom || []).length > 0;
 			render(panel, doctype, {
 				is_customized,
+				show_user_perms,
 				// `source` (Standard vs Custom) drives the edit dialog title + save path.
 				roles: perms.map((p) => ({ ...p, source: is_customized ? "Custom" : "Standard" })),
 			});
 		})
 		.catch((err) =>
-			frappe.doctype_settings.render_error(panel, () => draw(panel, doctype), err)
+			frappe.doctype_settings.render_error(panel, () => draw(panel, doctype), err),
 		);
 }
 
-function render(panel, doctype, { roles, is_customized }) {
+function user_perms_apply(doctype) {
+	return frappe
+		.xcall("frappe.desk.form.linked_with.get_linked_doctypes", {
+			doctype,
+			without_ignore_user_permissions_enabled: 1,
+		})
+		.then((map) => !!map && Object.keys(map).length > 0)
+		.catch(() => false);
+}
+
+function render(panel, doctype, { roles, is_customized, show_user_perms }) {
 	const reload = () => draw(panel, doctype);
 	const $body = panel.body.empty();
 
-	if (is_customized) $body.append(customized_banner(panel, doctype, reload));
+	// ── Roles: who can access this doctype, by role ──
+	const roles_sec = frappe.doctype_settings.section($body, {
+		title: __("Roles"),
+		description: __("Control who can access {0}, by role.", [doctype]),
+	});
+	frappe.ui
+		.button({
+			label: __("Add role"),
+			icon: "plus",
+			onclick: () => new frappe.ui.PermissionDialog(perm_tab(doctype, reload), {}).show(),
+		})
+		.appendTo(roles_sec.$actions);
+	if (is_customized) roles_sec.$body.append(customized_banner(panel, doctype, reload));
+	render_roles_list(roles_sec.$body, doctype, roles, reload);
+	roles_sec.$body.append(footer(panel, doctype));
 
+	if (show_user_perms) render_user_perms(panel, $body, doctype);
+}
+
+function render_roles_list($container, doctype, roles, reload) {
 	const is_submittable = !!(frappe.get_meta(doctype) || {}).is_submittable;
 	const rights = is_submittable ? DOC_RIGHTS.concat(SUBMIT_RIGHTS) : DOC_RIGHTS;
 
 	const list = new frappe.ui.EmbeddedList({
-		wrapper: $("<div></div>").appendTo($body),
+		wrapper: $("<div></div>").appendTo($container),
 		empty_message: __("No roles have access yet."),
 		get_data: () => Promise.resolve(roles),
 		// Clicking a row opens the shared permission editor for that role (same dialog
@@ -102,14 +118,135 @@ function render(panel, doctype, { roles, is_customized }) {
 					cint(row.permlevel) > 0 && !frappe.perm_editor.PERMLEVEL_FLAGS.includes(r)
 						? ""
 						: cint(row[r])
-						? flag_badge()
-						: "",
+							? flag_badge()
+							: "",
 			})),
 		],
 	});
 	list.refresh();
+}
 
-	$body.append(footer(panel, doctype));
+
+function render_user_perms(panel, $parent, doctype) {
+	const sec = frappe.doctype_settings.section($parent, {
+		title: __("User Permissions"),
+		description: __("Restrict specific users to specific {0} records.", [doctype]),
+	});
+	let list;
+	const refresh = () => list.refresh();
+	frappe.ui
+		.button({
+			label: __("Add"),
+			icon: "plus",
+			onclick: () => add_user_permission(doctype, refresh),
+		})
+		.appendTo(sec.$actions);
+
+	list = new frappe.ui.EmbeddedList({
+		wrapper: $("<div></div>").appendTo(sec.$body),
+		empty_message: __("No user is restricted to specific {0} records yet.", [doctype]),
+		get_data: () =>
+			frappe.doctype_settings.get_list("User Permission", {
+				filters: { allow: doctype },
+				fields: [
+					"name",
+					"user",
+					"for_value",
+					"applicable_for",
+					"apply_to_all_doctypes",
+					"is_default",
+				],
+				limit: 0,
+			}),
+		// Row click opens the full User Permission form for editing.
+		on_row_click: (row) => {
+			panel.dialog.hide();
+			frappe.set_route("Form", "User Permission", row.name);
+		},
+		columns: [
+			{
+				label: __("User"),
+				fieldname: "user",
+				// Flag the user's default value with a badge beside their id.
+				render: (row) =>
+					`${frappe.utils.escape_html(row.user)}${
+						cint(row.is_default)
+							? ` ${frappe.ui.badge.html({ label: __("Default"), theme: "green" })}`
+							: ""
+					}`,
+			},
+			{ label: __("For Value"), fieldname: "for_value" },
+			{
+				label: __("Applicable For"),
+				render: (row) =>
+					cint(row.apply_to_all_doctypes)
+						? frappe.ui.badge.html({ label: __("All doctypes") })
+						: row.applicable_for
+							? frappe.utils.escape_html(row.applicable_for)
+							: "",
+			},
+			{
+				type: "actions",
+				actions: [
+					{
+						icon: "trash-2",
+						label: __("Delete"),
+						danger: true,
+						confirm: __("Delete this user permission?"),
+						action: (row, refresh) =>
+							frappe.db.delete_doc("User Permission", row.name).then(() => {
+								frappe.show_alert({ message: __("Deleted"), indicator: "green" });
+								refresh();
+							}),
+					},
+				],
+			},
+		],
+	});
+	list.refresh();
+}
+
+// Quick-add a User Permission (user + a record of this doctype). Standard insert.
+function add_user_permission(doctype, refresh) {
+	const dialog = new frappe.ui.Dialog({
+		title: __("Add User Permission"),
+		fields: [
+			{ fieldtype: "Link", fieldname: "user", label: __("User"), options: "User", reqd: 1 },
+			{
+				fieldtype: "Link",
+				fieldname: "for_value",
+				label: __("For Value"),
+				options: doctype,
+				reqd: 1,
+			},
+			{
+				fieldtype: "Check",
+				fieldname: "is_default",
+				label: __("Mark as default"),
+				description: __("Use this value by default in new documents."),
+			},
+		],
+		primary_action_label: __("Add"),
+		primary_action: (values) => {
+			frappe.db
+				.insert({
+					doctype: "User Permission",
+					user: values.user,
+					allow: doctype,
+					for_value: values.for_value,
+					is_default: values.is_default ? 1 : 0,
+				})
+				.then(() => {
+					dialog.hide();
+					frappe.show_alert({
+						message: __("User permission added"),
+						indicator: "green",
+					});
+					refresh();
+				});
+		},
+	});
+	dialog.show();
 }
 
 // Adapter the shared PermissionDialog drives: doctype-scoped (role varies per row),
@@ -129,8 +266,8 @@ function perm_tab(doctype, reload) {
 					frappe.db.get_value(
 						"Custom DocPerm",
 						{ parent: doctype, role: values.role, permlevel, if_owner: 0 },
-						"name"
-					)
+						"name",
+					),
 				)
 				.then((r) => {
 					const name = r.message && r.message.name;
@@ -142,7 +279,7 @@ function perm_tab(doctype, reload) {
 		perm_data(values) {
 			const data = {};
 			["if_owner", ...frappe.perm_editor.ALL_PERM_FLAGS].forEach(
-				(flag) => (data[flag] = values[flag] ? 1 : 0)
+				(flag) => (data[flag] = values[flag] ? 1 : 0),
 			);
 			return data;
 		},
@@ -170,14 +307,14 @@ function perm_tab(doctype, reload) {
 							permlevel: row.permlevel,
 							if_owner: row.if_owner || 0,
 						},
-						"name"
-					)
+						"name",
+					),
 				)
 				.then((r) => {
 					const name = r.message && r.message.name;
 					if (!name)
 						frappe.throw(
-							__("Permission row not found after conversion. Please refresh.")
+							__("Permission row not found after conversion. Please refresh."),
 						);
 					return frappe.db.set_value("Custom DocPerm", name, data);
 				});
@@ -213,7 +350,7 @@ function customized_banner(panel, doctype, reload) {
 				perm_call("reset", { doctype }).then(() => {
 					frappe.show_alert({ message: __("Permissions reset"), indicator: "green" });
 					reload();
-				})
+				}),
 		);
 
 	return frappe.ui
