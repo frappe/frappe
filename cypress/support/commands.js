@@ -288,6 +288,14 @@ Cypress.Commands.add("clear_cache", () => {
 		});
 });
 
+Cypress.Commands.add("desk_ready", () => {
+	cy.window({ log: false }).should((win) => {
+		expect(win.frappe && win.frappe.app, "desk booted").to.be.ok;
+		expect(win.frappe.request.ajax_count, "no pending requests").to.eq(0);
+	});
+	cy.get(".layout-main-section", { timeout: 30000 }).should("exist");
+});
+
 Cypress.Commands.add("dialog", (opts) => {
 	return cy
 		.window({ log: false })
