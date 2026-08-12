@@ -16,7 +16,7 @@ export {
 	stepSubject,
 	toolGroupSummary,
 } from "./transcript.js"
-export { renderMarkdown } from "./markdown.js"
+export { highlightCode, renderMarkdown, renderMarkdownSegments } from "./markdown.js"
 
 export { default as FlowChat } from "./components/FlowChat.vue"
 export { default as SessionSidebar } from "./components/SessionSidebar.vue"
@@ -28,6 +28,8 @@ export { default as ToolGroup } from "./components/ToolGroup.vue"
 export { default as ToolStep } from "./components/ToolStep.vue"
 export { default as UserBubble } from "./components/UserBubble.vue"
 export { default as AssistantText } from "./components/AssistantText.vue"
+export { default as MarkdownContent } from "./components/MarkdownContent.vue"
+export { default as CodeBlock } from "./components/CodeBlock.vue"
 export { default as ThinkingBlock } from "./components/ThinkingBlock.vue"
 export { default as PalettePanel } from "./components/PalettePanel.vue"
 export { default as PaletteSearch } from "./components/PaletteSearch.vue"

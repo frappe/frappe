@@ -221,3 +221,121 @@
 	border-top: 1px solid var(--outline-gray-2);
 	margin: 1em 0;
 }
+
+/* Rendered-markdown segments (MarkdownContent.vue): each top-level chunk —
+   prose HTML or a code block — spaces itself like a paragraph and trims its
+   own edges, so the .flow-md > :first/:last-child rules keep working. */
+.flow-md-seg {
+	margin: 0.85em 0;
+}
+.flow-md-seg > :first-child {
+	margin-top: 0;
+}
+.flow-md-seg > :last-child {
+	margin-bottom: 0;
+}
+
+/* CodeBlock.vue body: neutralize the generic .flow-md pre/code styling — the
+   component's container owns the border, radius, and background. */
+.flow-md .flow-code pre {
+	margin: 0;
+	padding: 10px 12px;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	font-size: 0.85em;
+	line-height: 1.6;
+}
+.flow-md .flow-code pre code {
+	font-size: 1em;
+	color: var(--ink-gray-8);
+}
+
+/* Syntax highlighting (highlight.js classes). frappe-ui has no code-highlight
+   tokens, so define a GitHub-style pair that follows [data-theme] like the
+   rest of the palette. */
+:root {
+	--flow-hl-keyword: #cf222e;
+	--flow-hl-entity: #8250df;
+	--flow-hl-constant: #0550ae;
+	--flow-hl-string: #0a3069;
+	--flow-hl-comment: #6e7781;
+	--flow-hl-tag: #116329;
+	--flow-hl-markup: #953800;
+}
+[data-theme="dark"] {
+	--flow-hl-keyword: #ff7b72;
+	--flow-hl-entity: #d2a8ff;
+	--flow-hl-constant: #79c0ff;
+	--flow-hl-string: #a5d6ff;
+	--flow-hl-comment: #8b949e;
+	--flow-hl-tag: #7ee787;
+	--flow-hl-markup: #ffa657;
+}
+.flow-code .hljs-doctag,
+.flow-code .hljs-keyword,
+.flow-code .hljs-meta .hljs-keyword,
+.flow-code .hljs-template-tag,
+.flow-code .hljs-template-variable,
+.flow-code .hljs-type,
+.flow-code .hljs-variable.language_ {
+	color: var(--flow-hl-keyword);
+}
+.flow-code .hljs-title,
+.flow-code .hljs-title.class_,
+.flow-code .hljs-title.function_ {
+	color: var(--flow-hl-entity);
+}
+.flow-code .hljs-attr,
+.flow-code .hljs-attribute,
+.flow-code .hljs-built_in,
+.flow-code .hljs-literal,
+.flow-code .hljs-meta,
+.flow-code .hljs-number,
+.flow-code .hljs-operator,
+.flow-code .hljs-selector-attr,
+.flow-code .hljs-selector-class,
+.flow-code .hljs-selector-id,
+.flow-code .hljs-variable {
+	color: var(--flow-hl-constant);
+}
+.flow-code .hljs-meta .hljs-string,
+.flow-code .hljs-regexp,
+.flow-code .hljs-string {
+	color: var(--flow-hl-string);
+}
+.flow-code .hljs-code,
+.flow-code .hljs-comment,
+.flow-code .hljs-formula {
+	color: var(--flow-hl-comment);
+}
+.flow-code .hljs-name,
+.flow-code .hljs-quote,
+.flow-code .hljs-selector-pseudo,
+.flow-code .hljs-selector-tag {
+	color: var(--flow-hl-tag);
+}
+.flow-code .hljs-subst {
+	color: inherit;
+}
+.flow-code .hljs-section {
+	color: var(--flow-hl-constant);
+	font-weight: 600;
+}
+.flow-code .hljs-bullet {
+	color: var(--flow-hl-markup);
+}
+.flow-code .hljs-emphasis {
+	font-style: italic;
+}
+.flow-code .hljs-strong {
+	font-weight: 600;
+}
+.flow-code .hljs-addition {
+	color: var(--ink-green-3);
+	background: var(--surface-green-1);
+}
+.flow-code .hljs-deletion {
+	color: var(--ink-red-3);
+	background: var(--surface-red-1);
+}

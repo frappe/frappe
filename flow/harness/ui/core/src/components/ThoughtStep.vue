@@ -17,9 +17,9 @@
 		</component>
 
 		<div v-if="open" ref="panelEl" class="border-t border-outline-gray-1 bg-surface-white px-3 py-2.5">
-			<div
-				class="flow-md max-h-[260px] overflow-y-auto text-xs leading-relaxed text-ink-gray-6"
-				v-html="renderMarkdown(block.thinking)"
+			<MarkdownContent
+				:text="block.thinking"
+				class="max-h-[260px] overflow-y-auto text-xs leading-relaxed text-ink-gray-6"
 			/>
 		</div>
 	</div>
@@ -29,7 +29,7 @@
 import { computed, nextTick, ref, watch } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
-import { renderMarkdown } from "../markdown.js"
+import MarkdownContent from "./MarkdownContent.vue"
 
 const props = defineProps({ block: { type: Object, required: true } })
 

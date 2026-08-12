@@ -1,15 +1,11 @@
 <template>
-	<div class="flow-md flow-prose text-ink-gray-8" v-html="html" />
+	<MarkdownContent :text="block.text" class="flow-prose text-ink-gray-8" />
 </template>
 
 <script setup>
-import { computed } from "vue"
+import MarkdownContent from "./MarkdownContent.vue"
 
-import { renderMarkdown } from "../markdown.js"
-
-const props = defineProps({
+defineProps({
 	block: { type: Object, required: true },
 })
-
-const html = computed(() => renderMarkdown(props.block.text))
 </script>
