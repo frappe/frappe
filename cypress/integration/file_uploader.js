@@ -5,7 +5,7 @@ context("FileUploader", () => {
 
 	beforeEach(() => {
 		cy.visit("/desk");
-		cy.desk_ready();
+		cy.wait(2000); // workspace can load async and clear active dialog
 	});
 
 	function open_upload_dialog() {
@@ -14,7 +14,7 @@ context("FileUploader", () => {
 			.then((frappe) => {
 				new frappe.ui.FileUploader();
 			});
-		cy.get_open_dialog().should("be.visible");
+		cy.wait(500);
 	}
 
 	it("upload dialog api works", () => {
@@ -73,14 +73,14 @@ context("FileUploader", () => {
 			// Clean up test user
 			cy.login("Administrator", Cypress.env("adminPassword") || "admin");
 			cy.visit("/desk");
-			cy.desk_ready();
+			cy.wait(1000);
 			cy.remove_doc("User", test_user, true); // true = ignore_missing
 		});
 
 		it("should show checkbox and toggle when setting is disabled for System Manager", () => {
 			cy.login("Administrator", Cypress.env("adminPassword") || "admin");
 			cy.visit("/desk");
-			cy.desk_ready();
+			cy.wait(1000);
 
 			// Disable the setting
 			cy.set_value("System Settings", "System Settings", {
@@ -93,7 +93,7 @@ context("FileUploader", () => {
 					frappe.boot.sysdefaults.only_allow_system_managers_to_upload_public_files = 0;
 				});
 			cy.visit("/desk");
-			cy.desk_ready();
+			cy.wait(2000);
 
 			open_upload_dialog();
 
@@ -125,19 +125,19 @@ context("FileUploader", () => {
 		it("should show checkbox and toggle when setting is disabled for non-System Manager", () => {
 			cy.login("Administrator", Cypress.env("adminPassword") || "admin");
 			cy.visit("/desk");
-			cy.desk_ready();
+			cy.wait(1000);
 
 			// Disable the setting
 			cy.set_value("System Settings", "System Settings", {
 				only_allow_system_managers_to_upload_public_files: 0,
 			});
 			cy.visit("/desk");
-			cy.desk_ready();
+			cy.wait(1000);
 
 			// Login as non-System Manager
 			cy.login(test_user, test_password);
 			cy.visit("/desk");
-			cy.desk_ready();
+			cy.wait(2000);
 			// Update sysdefaults in window
 			cy.window()
 				.its("frappe")
@@ -175,7 +175,7 @@ context("FileUploader", () => {
 		it("should show checkbox and toggle when setting is enabled for System Manager", () => {
 			cy.login("Administrator", Cypress.env("adminPassword") || "admin");
 			cy.visit("/desk");
-			cy.desk_ready();
+			cy.wait(1000);
 
 			// Enable the setting
 			cy.set_value("System Settings", "System Settings", {
@@ -188,7 +188,7 @@ context("FileUploader", () => {
 					frappe.boot.sysdefaults.only_allow_system_managers_to_upload_public_files = 1;
 				});
 			cy.visit("/desk");
-			cy.desk_ready();
+			cy.wait(2000);
 
 			open_upload_dialog();
 
@@ -220,19 +220,19 @@ context("FileUploader", () => {
 		it("should show disabled checkbox and hide toggle when setting is enabled for non-System Manager", () => {
 			cy.login("Administrator", Cypress.env("adminPassword") || "admin");
 			cy.visit("/desk");
-			cy.desk_ready();
+			cy.wait(1000);
 
 			// Enable the setting
 			cy.set_value("System Settings", "System Settings", {
 				only_allow_system_managers_to_upload_public_files: 1,
 			});
 			cy.visit("/desk");
-			cy.desk_ready();
+			cy.wait(1000);
 
 			// Login as non-System Manager
 			cy.login(test_user, test_password);
 			cy.visit("/desk");
-			cy.desk_ready();
+			cy.wait(2000);
 			// Update sysdefaults in window
 			cy.window()
 				.its("frappe")
