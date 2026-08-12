@@ -502,7 +502,7 @@ const updateParent = (event) => {
 }
 
 watch(
-	() => canvasStore.activeCanvas?.selectedBlocks,
+	() => canvasStore.activeCanvas?.selectedBlockIds,
 	() => {
 		if (canvasStore.activeCanvas?.selectedBlocks.length) {
 			canvasStore.activeCanvas?.selectedBlocks.forEach((block: Block) => {
