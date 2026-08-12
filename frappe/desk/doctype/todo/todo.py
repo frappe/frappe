@@ -103,6 +103,7 @@ class ToDo(Document):
 				"allocated_to",
 				pluck=True,
 				for_update=True,
+				distinct=True,
 			)
 			assignments.reverse()
 

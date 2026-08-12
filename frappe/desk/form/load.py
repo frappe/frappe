@@ -399,7 +399,7 @@ def get_communication_data(
 
 
 def get_assignments(dt, dn):
-	return frappe.get_all(
+	todos = frappe.get_all(
 		"ToDo",
 		fields=["name", "allocated_to as owner", "description", "status"],
 		filters={
@@ -410,6 +410,12 @@ def get_assignments(dt, dn):
 		},
 	)
 
+	unique_owners = {}
+
+	for todo in todos:
+		unique_owners[todo.owner] = todo
+
+	return list(unique_owners.values())
 
 def run_onload(doc):
 	doc.set("__onload", frappe._dict())
