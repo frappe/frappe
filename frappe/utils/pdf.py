@@ -16,8 +16,6 @@ from pdfkit.pdfkit import PDFKit as OriginalPDFKit
 pdfkit.source.unicode = str  # NOTE: upstream bug; PYTHONOPTIMIZE=1 optimized this away
 from bs4 import BeautifulSoup
 from packaging.version import Version
-from pypdf import PdfReader, PdfWriter, errors
-
 import frappe
 from frappe import _
 from frappe.core.doctype.file.utils import find_file_by_url
@@ -103,7 +101,7 @@ def pdf_footer_html(soup, head, content, styles, html_id, css, path=None):
 	)
 
 
-def get_pdf(html, options=None, output: PdfWriter | None = None):
+def get_pdf(html, options=None, output: "PdfWriter" | None = None):
 	html = scrub_urls(html)
 	html, options = prepare_options(html, options)
 
@@ -116,6 +114,8 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
 	try:
 		# Set filename property to false, so no file is actually created
 		filedata = pdfkit.from_string(html, options=options or {}, verbose=True)
+
+		from pypdf import PdfReader, PdfWriter
 
 		# create in-memory binary streams from filedata and create a PdfReader object
 		reader = PdfReader(io.BytesIO(filedata))
@@ -452,6 +452,8 @@ def pdf_contains_js(file_content: bytes):
 		bool: True if the PDF contains JavaScript, False otherwise and also if the file is encrypted.
 	"""
 	from io import BytesIO
+
+	from pypdf import PdfReader, errors
 
 	reader = PdfReader(BytesIO(file_content))
 
