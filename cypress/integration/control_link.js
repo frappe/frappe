@@ -63,8 +63,6 @@ context("Control Link", () => {
 		cy.get("@input").parent().findByRole("listbox").should("be.visible");
 		cy.wait(200);
 		cy.get("@input").type("todo for link", { delay: 100 });
-		// Wait for dropdown to update with search results
-		cy.wait(500);
 		cy.get("@input").parent().findByRole("listbox").should("be.visible");
 		cy.get("@input").type("{enter}");
 		cy.get("@input").blur();
@@ -159,8 +157,6 @@ context("Control Link", () => {
 		cy.get("@input").parent().findByRole("listbox").should("be.visible");
 		cy.wait(200);
 		cy.get("@input").type("todo for link", { delay: 100 });
-		// Wait for dropdown to update with search results
-		cy.wait(500);
 		cy.get(".frappe-control[data-fieldname=link] ul").should("be.visible");
 		cy.get("@input").type("{enter}");
 		cy.get("@input").blur();
@@ -284,8 +280,6 @@ context("Control Link", () => {
 			cy.get("@input").parent().findByRole("listbox").should("be.visible");
 			cy.wait(200);
 			cy.get("@input").type("Sonstiges", { delay: 100 });
-			// Wait for dropdown to update with search results
-			cy.wait(500);
 			cy.get(".frappe-control[data-fieldname=link] ul").should("be.visible");
 			cy.get(".frappe-control[data-fieldname=link] input").type("{enter}");
 			cy.get(".frappe-control[data-fieldname=link] input").blur();
@@ -317,8 +311,6 @@ context("Control Link", () => {
 		cy.get("@input").parent().findByRole("listbox").should("be.visible");
 		cy.wait(200);
 		cy.get("@input").type("Non-Conforming", { delay: 100 });
-		// Wait for dropdown to update with search results
-		cy.wait(500);
 		cy.get(".frappe-control[data-fieldname=link] ul").should("be.visible");
 		cy.get(".frappe-control[data-fieldname=link] input").type("{enter}");
 		cy.get(".frappe-control[data-fieldname=link] input").blur();
