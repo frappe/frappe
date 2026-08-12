@@ -600,3 +600,14 @@ add_to_apps_screen = [
 		"sequence_id": 1000,
 	}
 ]
+
+# Modules that are a folder of code and nothing else -- kept out of the dock, never out of
+# reach. Each still owns every doctype, report and page it always did; what none of them owns
+# any more is navigation, which lives in the semantic modules instead. Left in the dock they
+# would each show a computed base built from whatever doctypes happen to sit in them -- the
+# grab-bag the split exists to replace. See `frappe.utils.modules.get_code_only_modules`.
+#
+# Nothing is stranded here: `Core`'s navigation went to `System`, `Build Tools`, `Data` and
+# `Users`; `Custom`'s and `Desk`'s went to `Build Tools`, whose sidebar now carries the union of
+# what all three used to offer.
+code_only_modules = ["Core", "Custom", "Desk"]

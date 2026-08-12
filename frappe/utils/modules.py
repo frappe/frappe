@@ -96,6 +96,32 @@ def get_visible_modules(modules: list[str], user: str | None = None) -> list[str
 	return [m for m in modules if m not in blocked and (m not in governed or m in granted)]
 
 
+def get_code_only_modules() -> set[str]:
+	"""Modules their own app says ship no navigation.
+
+	A module is two things at once -- a folder of code and a place in the dock -- and an app
+	splitting its navigation into semantic modules is left holding the first without wanting the
+	second. `frappe.Core` is the case this exists for: its doctypes, reports and pages stay put
+	while `System`, `Build Tools`, `Data` and `Users` carry the navigation, and without this it
+	would keep a dock entry whose computed base is the leftover grab-bag of everything nobody
+	moved.
+
+	Declared in `hooks.py` (`code_only_modules`), so it travels with the app that made the split
+	rather than being site state somebody has to re-apply -- and an existing site gets it on the
+	next boot with no patch to run.
+
+	**Not a permission gate, and deliberately not part of `is_module_visible`.** That one decides
+	whether a module's *contents* may be reached -- `Workspace.is_permitted` falls back to it, as
+	do the module-scoped chart and card pickers -- so folding this in would make Core's workspaces
+	and dashboard records unreachable rather than merely unlisted. This is only about the dock;
+	see `frappe.boot.get_navigable_modules`, its one caller.
+
+	Uncached on purpose: `get_hooks` already caches the merged hook map per site and busts it on
+	migrate, so a second cache here would only add a copy nothing invalidates.
+	"""
+	return set(frappe.get_hooks("code_only_modules") or [])
+
+
 def clear_module_permission_cache():
 	"""Bust the governed-module set. Called whenever a Role's modules table changes."""
 	get_governed_modules.clear_cache()

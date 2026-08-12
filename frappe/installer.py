@@ -877,6 +877,53 @@ def add_module_defs(app, ignore_if_duplicate=False):
 		d.insert(ignore_permissions=True, ignore_if_duplicate=ignore_if_duplicate)
 
 
+def sync_module_defs() -> list[str]:
+	"""Give every module an installed app declares a `Module Def` row. Returns what it added.
+
+	`add_module_defs` runs once, when an app is installed, so a module an app adds *later* never
+	reaches a site that already has that app -- and a module with no row does not exist as far as
+	the site is concerned. Nothing can link to it, which means the workspaces, dashboards and
+	`Module Sidebar` the app ships for it are skipped on import: `module` is a Link field. Every
+	app that ever split its navigation has had to carry a patch calling `add_module_defs` to
+	work around this. Running the sync on every migrate is what retires that patch, for every
+	app at once and for the ones that have not been written yet.
+
+	Only the missing rows are inserted, which is the difference from calling `add_module_defs`
+	here directly. That one re-inserts every module of every app and runs
+	`rename_conflicting_custom_module` over each -- fine as a one-shot at install, but on a
+	migrate it would put a site's custom module through a rename check on every run.
+
+	**Deliberately additive.** A module dropped from `modules.txt` keeps its row: deleting one
+	cascades through `DocType.module` and every link to it, and an app temporarily renaming a
+	module would take the site's data with it. Removal stays a decision an app makes explicitly,
+	in a patch that knows what it is doing.
+
+	App-declared beats site-authored, exactly as at install: a custom module holding a name an
+	app now ships is renamed out of the way (see `rename_conflicting_custom_module`), because the
+	namespace is flat and the app's module has nowhere else to go.
+	"""
+	existing = {row.name: row for row in frappe.get_all("Module Def", fields=["name", "app_name", "custom"])}
+
+	added = []
+	for app in frappe.get_installed_apps():
+		for module in frappe.get_module_list(app):
+			row = existing.get(module)
+			# an app's module already has its row; only a *custom* module holding the name is
+			# something to act on
+			if row and not row.custom:
+				continue
+
+			rename_conflicting_custom_module(module, app)
+
+			doc = frappe.new_doc("Module Def")
+			doc.app_name = app
+			doc.module_name = module
+			doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
+			added.append(module)
+
+	return added
+
+
 def rename_conflicting_custom_module(module: str, app: str) -> str | None:
 	"""Move a site's custom module out of the way of an app that ships `module`.
 

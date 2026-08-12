@@ -730,15 +730,22 @@ def get_navigable_modules() -> list[str]:
 	nothing could have been relying on. Consumers that iterate the payload
 	(`build_entity_module_map`, the desk's `get_modules_linking`) now get a stable one.
 	"""
-	from frappe.utils.modules import get_visible_modules
+	from frappe.utils.modules import get_code_only_modules, get_visible_modules
 
-	# Two independent gates: `get_visible_modules` is the per-user navigation gate (blocked +
-	# role-granted), `get_disabled_modules` is site-level -- the module's app is turned off, so
-	# nobody navigates to it regardless of permissions.
+	# Three independent gates, each answering a different question:
+	# `get_visible_modules` is per-user (blocked + role-granted); `get_disabled_modules` is
+	# site-level -- the module's app is turned off, so nobody navigates to it regardless of
+	# permissions; `get_code_only_modules` is app-level -- the app that owns the module says it
+	# ships no navigation at all, having put its navigation in other modules.
+	#
+	# The code-only gate stops here rather than living in `is_module_visible`, which is the gate
+	# a module's *contents* are behind. A code-only module keeps its workspaces, charts and
+	# cards reachable; it just is not somewhere the dock can take you.
 	disabled = get_disabled_modules()
+	code_only = get_code_only_modules()
 	visible = get_visible_modules(frappe.get_all("Module Def", pluck="name", order_by="name asc"))
 
-	return [module for module in visible if module not in disabled]
+	return [module for module in visible if module not in disabled and module not in code_only]
 
 
 def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:

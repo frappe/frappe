@@ -120,7 +120,15 @@ class SiteMigration:
 
 	@atomic
 	def pre_schema_updates(self):
-		"""Executes `before_migrate` hooks"""
+		"""Registers modules declared since the last migrate, then executes `before_migrate` hooks"""
+		from frappe.installer import sync_module_defs
+
+		# Before the hooks, and before either patch pass, because everything downstream that
+		# names a module -- a patch, a workspace, a module sidebar -- needs the row to exist
+		# first. A module an app added after it was installed has none until this runs.
+		if added := sync_module_defs():
+			print(f"Registered new modules: {comma_and(added, add_quotes=False)}")
+
 		overrides = defaultdict(list)
 		for app in frappe.get_installed_apps():
 			for fn in frappe.get_hooks("before_migrate", app_name=app):

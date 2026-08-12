@@ -1,0 +1,162 @@
+{
+ "app": "frappe",
+ "creation": "2026-08-12 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Module Sidebar",
+ "header_icon": "table",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 0,
+   "icon": "house",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Home",
+   "link_to": "Data",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 0,
+   "icon": "upload",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Data Import",
+   "link_to": "Data Import",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 0,
+   "icon": "download",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Data Export",
+   "link_to": "Data Export",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 0,
+   "icon": "file",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "File",
+   "link_to": "File",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 0,
+   "icon": "refresh-cw",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "DuckDB Sync",
+   "link_to": "DuckDB Sync",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "tag",
+   "indent": 1,
+   "keep_closed": 1,
+   "label": "Naming",
+   "show_arrow": 0,
+   "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 0,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Document Naming Rule",
+   "link_to": "Document Naming Rule",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 0,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Document Naming Settings",
+   "link_to": "Document Naming Settings",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "scroll-text",
+   "indent": 1,
+   "keep_closed": 1,
+   "label": "Logs",
+   "show_arrow": 0,
+   "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 0,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Data Import Log",
+   "link_to": "Data Import Log",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 0,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Prepared Report",
+   "link_to": "Prepared Report",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "table",
+   "indent": 1,
+   "keep_closed": 1,
+   "label": "Reports",
+   "show_arrow": 0,
+   "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 0,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Database Storage Usage By Tables",
+   "link_to": "Database Storage Usage By Tables",
+   "link_type": "Report",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-08-12 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Data",
+ "name": "Data",
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "Data"
+}
