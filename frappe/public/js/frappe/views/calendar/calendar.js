@@ -329,6 +329,16 @@ frappe.views.Calendar = class Calendar {
 			eventDisplay: "block",
 			eventOrder: "_calendar_order",
 			eventOrderStrict: true,
+			eventDidMount: (info) => {
+				const missing_time = info.event.extendedProps._calendar_missing_time;
+				if (missing_time) {
+					const time = info.view.calendar.formatDate(
+						info.event.start,
+						this.cal_options.eventTimeFormat
+					);
+					$(info.el).find(".fc-event-time").text(`${time} · ${missing_time}`);
+				}
+			},
 			// the toolbar is ours (make_toolbar), not FullCalendar's — no
 			// more stripping fc-button classes and re-adding them after every
 			// re-render
@@ -516,9 +526,8 @@ frappe.views.Calendar = class Calendar {
 				const missing_field = missing_start ? me.field_map.start : me.field_map.end;
 				if (missing_start) d.start = d.end;
 				d.end = null;
-				d.title = __("{0} missing: {1}", [
+				d._calendar_missing_time = __("{0} missing", [
 					frappe.meta.get_label(me.doctype, missing_field),
-					d.title,
 				]);
 			} else if (missing_start) {
 				d.start = frappe.datetime.add_days(d.end, -1);
