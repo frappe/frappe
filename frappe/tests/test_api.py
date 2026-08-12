@@ -295,7 +295,7 @@ class TestResourceAPI(FrappeAPITestCase):
 			self.assertIsInstance(data, list)
 			self.assertIsInstance(data[0], dict)
 
-	def test_run_doc_method_v1_validates_http_method(self):
+	def test_run_doc_method_validates_http_method(self):
 		doc = frappe.get_doc("Website Theme", "Standard")
 		method = getattr(doc.get_apps, "__func__", doc.get_apps)
 

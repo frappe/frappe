@@ -1,5 +1,6 @@
 import typing
 from random import choice
+from unittest.mock import patch
 
 import requests
 
@@ -125,10 +126,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		response = self.get(self.resource("Website Theme", "Standard", "method", "get_apps"))
 		self.assertEqual(response.json["data"][0]["name"], "frappe")
 
-<<<<<<< HEAD
-	def test_update_document(self):
-=======
-	def test_execute_doc_method_v2_validates_http_method(self):
+	def test_execute_doc_method_validates_http_method(self):
 		doc = frappe.get_doc("Website Theme", "Standard")
 		method = getattr(doc.get_apps, "__func__", doc.get_apps)
 
@@ -142,8 +140,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 
 		self.assertEqual(response.status_code, 403)
 
-	def test_update_document_v2(self):
->>>>>>> 99cf7d98e7 (fix(api): validate HTTP method for document calls)
+	def test_update_document(self):
 		generated_desc = frappe.mock("paragraph")
 		data = {"description": generated_desc, "sid": self.sid}
 		random_doc = choice(self.GENERATED_DOCUMENTS)

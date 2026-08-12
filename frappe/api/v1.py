@@ -4,11 +4,7 @@ from werkzeug.routing import Rule
 
 import frappe
 from frappe import _
-<<<<<<< HEAD
-=======
-from frappe.database.utils import DefaultOrderBy
 from frappe.handler import is_valid_http_method
->>>>>>> 99cf7d98e7 (fix(api): validate HTTP method for document calls)
 from frappe.utils import attach_expanded_links
 from frappe.utils.data import sbool
 
