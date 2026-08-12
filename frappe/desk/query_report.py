@@ -866,15 +866,9 @@ def save_report(reference_report: str, report_name: str, columns: str, filters: 
 
 	if docname:
 		report = frappe.get_doc("Report", docname)
-<<<<<<< HEAD
-		existing_jd = json.loads(report.json)
+		existing_jd = frappe.parse_json(report.json or "{}")
 		existing_jd["columns"] = json.loads(columns)
 		existing_jd["filters"] = json.loads(filters)
-=======
-		existing_jd = frappe.parse_json(report.json or "{}")
-		existing_jd["columns"] = frappe.parse_json(columns)
-		existing_jd["filters"] = frappe.parse_json(filters)
->>>>>>> dc794e2fa4 (fix(report): handle missing json when updating a custom report)
 		report.update({"json": json.dumps(existing_jd, separators=(",", ":"))})
 		report.save()
 		frappe.msgprint(_("Report updated successfully"))
