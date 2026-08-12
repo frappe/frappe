@@ -47,6 +47,28 @@ def optimize_regex_cache():
 	os.register_at_fork(before=re.purge)
 
 
+def preload_database_drivers():
+	"""Import database drivers before forking so that workers share their memory.
+
+	`FRAPPE_PRELOAD_DATABASE_DRIVERS` takes a comma separated list of driver names, e.g.
+	"mariadb,postgres". Blank loads mariadb, "none" loads nothing.
+	"""
+	value = os.environ.get("FRAPPE_PRELOAD_DATABASE_DRIVERS", "").strip().lower() or "mariadb"
+	if value == "none":
+		return
+
+	drivers = {driver.strip() for driver in value.split(",") if driver.strip()}
+
+	if "mariadb" in drivers:
+		import frappe.database.mariadb.mysqlclient
+
+	if "postgres" in drivers:
+		import frappe.database.postgres.database
+
+	if "sqlite" in drivers:
+		import frappe.database.sqlite.database
+
+
 def register_fault_handler():
 	# Some libraries monkey patch stderr, we need actual fd
 	if isinstance(sys.__stderr__, io.TextIOWrapper):

@@ -48,11 +48,6 @@ import frappe.boot
 import frappe.client
 import frappe.core.doctype.file.file
 import frappe.core.doctype.user.user
-
-# Skipped under the companion manager: the gevent socketio companion forks this
-# master and refuses to start if MySQLdb is already imported. Loaded lazily there.
-if not os.environ.get("FRAPPE_GUNICORN_COMPANION"):
-	import frappe.database.mariadb.mysqlclient  # Load database related utils
 import frappe.database.query
 import frappe.desk.desktop  # workspace
 import frappe.desk.form.save
@@ -68,6 +63,9 @@ import frappe.utils.typing_validations  # any whitelisted method uses this
 import frappe.website.path_resolver  # all the page types and resolver
 import frappe.website.router  # Website router
 import frappe.website.website_generator  # web page doctypes
+from frappe._optimizations import preload_database_drivers
+
+preload_database_drivers()
 
 # end: module pre-loading
 
