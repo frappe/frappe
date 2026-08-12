@@ -1,8 +1,14 @@
-<div class="kanban-column" data-column-value="{{title}}" style="background-color: var(--bg-{{indicator}});">
+<div class="kanban-column" data-column-value="{{title}}" style="background-color: var(--kanban-column-bg);">
 	<div class="kanban-column-header">
 		<span class="kanban-column-title">
+<<<<<<< HEAD
 			<span class="indicator-pill {{indicator}}"></span>
 			<span class="kanban-title ellipsis" title="{{title}}">{{ __(title) }}</span>
+=======
+			<span class="kanban-col-dot indicator {{indicator}}"></span>
+			<span class="kanban-title ellipsis" title="{{title}}">{{ __(title) }}</span>
+			<span class="kanban-column-count es-badge" data-variant="subtle" data-size="sm">0</span>
+>>>>>>> 2661e8cbec (fix(kanban): use colored dot for column indicator instead of background fill)
 		</span>
 		<div class="column-options dropdown pull-right">
 			<a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
