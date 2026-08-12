@@ -13,6 +13,7 @@ vi.mock("frappe-ui", () => ({ call, toast }));
 vi.mock("../evaluatePageScript", () => ({ evaluatePageScript }));
 
 import {
+  canWritePageScripts,
   loadPageScripts,
   reloadPageScripts,
   resetPageScripts,
@@ -110,6 +111,20 @@ describe("the Page Script tier", () => {
     await slow;
 
     expect(sources()).toEqual(["page-script:fresh"]);
+  });
+
+  // The editor's entry affordance is gated on this, and the tier's fetch is the
+  // only thing that asks the server the question (ticket 16).
+  it("publishes whether the session may write Page Scripts", async () => {
+    expect(canWritePageScripts.value).toBe(false);
+
+    respond(["one"], true);
+    await loadPageScripts("CRM Deal");
+    expect(canWritePageScripts.value).toBe(true);
+
+    respond(["one"], false);
+    await reloadPageScripts("CRM Deal");
+    expect(canWritePageScripts.value).toBe(false);
   });
 
   it("leaves the page scriptless when the fetch fails", async () => {

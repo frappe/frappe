@@ -9,6 +9,7 @@ export {
   loadPageScripts,
   reloadPageScripts,
   resetPageScripts,
+  canWritePageScripts,
 } from "./pageScripts";
 export { usePageScripts } from "./usePageScripts";
 export type { UsePageScripts } from "./usePageScripts";
