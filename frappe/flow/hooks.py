@@ -7,8 +7,8 @@ app_license = "agpl-3.0"
 
 export_python_type_annotations = True
 
-# Vite-built (frontend/) AI panel bundle. Served directly from public/ — the
-# /assets path bypasses the desk's esbuild pipeline. Run `yarn build` in frontend/.
+# Vite-built (frontend/src) AI panel bundle. Served directly from public/ — the
+# /assets path bypasses the desk's esbuild pipeline. Run `yarn build` in the app root.
 # /assets URLs get no cache-busting query from Frappe, so append ?v=<mtime>:
 # the stable filename keeps the hook simple while a rebuild invalidates the cache.
 import os as _os

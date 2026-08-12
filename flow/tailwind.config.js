@@ -9,8 +9,7 @@ export default {
 	// Tailwind v3 ignores `content` declared inside presets, so the frappe-ui
 	// source globs must be listed here for its component classes to be emitted.
 	content: [
-		"./index.html",
-		"./src/**/*.{vue,js}",
+		"./frontend/src/**/*.{vue,js}",
 		"./node_modules/frappe-ui/src/components/**/*.{vue,js,ts}",
 		"./node_modules/frappe-ui/src/composables/**/*.{vue,js,ts}",
 		"./node_modules/frappe-ui/src/utils/**/*.{vue,js,ts}",
