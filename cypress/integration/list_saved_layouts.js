@@ -104,7 +104,6 @@ context("List View — Saved Layouts", () => {
 		});
 
 		cy.visit(`${LIST_URL}?status=Open`);
-		cy.wait(1000);
 
 		assertActiveLayout("_cypress_layout_open");
 	});

@@ -84,7 +84,6 @@ context("List View — Column Widths", () => {
 
 		// Reload so fresh render applies the persisted width via setup_columns()
 		cy.reload();
-		cy.wait(500);
 
 		getColumnWidth("module").should("be.closeTo", 180, 15);
 	});
@@ -107,7 +106,6 @@ context("List View — Column Widths", () => {
 		);
 
 		cy.reload();
-		cy.wait(500);
 
 		getColumnWidth("module").should("be.closeTo", 220, 15);
 	});
@@ -118,7 +116,6 @@ context("List View — Column Widths", () => {
 		// BASE_FIELDS seeds module at 150 px, so 150+80=230 — well inside the 400 px cap.
 		getColumnWidth("module").then((initialWidth) => {
 			dragResizeColumn("module", 80);
-			cy.wait(300);
 			getColumnWidth("module").should("be.greaterThan", initialWidth + 40);
 		});
 	});
@@ -132,7 +129,6 @@ context("List View — Column Widths", () => {
 			cy.wait(600);
 
 			cy.reload();
-			cy.wait(500);
 
 			getColumnWidth("module").should("be.greaterThan", initialWidth + 30);
 		});
@@ -142,7 +138,6 @@ context("List View — Column Widths", () => {
 
 	it("enforces minimum column width of 50 px when dragging", () => {
 		dragResizeColumn("module", -2000);
-		cy.wait(300);
 		getColumnWidth("module").should("be.gte", 50);
 	});
 
@@ -150,7 +145,6 @@ context("List View — Column Widths", () => {
 
 	it("enforces maximum column width of 400 px when dragging", () => {
 		dragResizeColumn("module", 2000);
-		cy.wait(300);
 		getColumnWidth("module").should("be.lte", 400);
 	});
 

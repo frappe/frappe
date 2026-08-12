@@ -446,7 +446,6 @@ const add_remove_role = (action, user, role, session_user) => {
 
 Cypress.Commands.add("open_list_filter", () => {
 	cy.get(".filter-section .filter-button").click();
-	cy.wait(300);
 	cy.get(".filter-popover").should("exist");
 });
 
