@@ -23,6 +23,7 @@
   "date_offset",
   "date_direction",
   "cron_expression",
+  "next_run",
   "conditions_section",
   "filters_editor",
   "filters",
@@ -35,8 +36,7 @@
   "settings_section",
   "run_as",
   "automation_user",
-  "stop_on_error",
-  "throttle_per_minute"
+  "stop_on_error"
  ],
  "fields": [
   {
@@ -147,6 +147,16 @@
    "label": "Cron Expression"
   },
   {
+   "depends_on": "eval:doc.trigger_type=='Scheduled'",
+   "description": "Next cron fire this flow is due for. Maintained by the scheduler.",
+   "fieldname": "next_run",
+   "fieldtype": "Datetime",
+   "label": "Next Run",
+   "no_copy": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
    "fieldname": "conditions_section",
    "fieldtype": "Section Break",
    "label": "Conditions"
@@ -228,17 +238,10 @@
    "fieldname": "stop_on_error",
    "fieldtype": "Check",
    "label": "Stop on Error"
-  },
-  {
-   "default": "0",
-   "description": "0 = unlimited. Enforced by the drainer.",
-   "fieldname": "throttle_per_minute",
-   "fieldtype": "Int",
-   "label": "Throttle per Minute"
   }
  ],
  "links": [],
- "modified": "2026-08-11 20:30:40.732467",
+ "modified": "2026-08-12 22:45:34.670401",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Automation Flow",

@@ -72,9 +72,9 @@ class TestActions(IntegrationTestCase):
 
 	def test_increment_field_value(self):
 		flow = frappe.new_doc("Automation Flow")
-		flow.update({"title": "counter", "trigger_type": "Manual", "throttle_per_minute": 2})
-		IncrementFieldValue().execute(flow.insert(), {"field": "throttle_per_minute", "amount": 3}, {})
-		self.assertEqual(frappe.db.get_value("Automation Flow", flow.name, "throttle_per_minute"), 5)
+		flow.update({"title": "counter", "trigger_type": "Manual", "date_offset": 2})
+		IncrementFieldValue().execute(flow.insert(), {"field": "date_offset", "amount": 3}, {})
+		self.assertEqual(frappe.db.get_value("Automation Flow", flow.name, "date_offset"), 5)
 
 	def test_create_document_requires_existing_doctype(self):
 		self.assertRaises(
