@@ -17,7 +17,7 @@ from frappe.model.workflow import (
 	send_email_alert,
 )
 from frappe.query_builder import DocType
-from frappe.utils import get_datetime, get_url
+from frappe.utils import get_datetime, get_url, now_datetime
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.data import get_link_to_form
 from frappe.utils.user import get_users_with_role
@@ -269,6 +269,8 @@ def update_completed_workflow_actions_using_role(user=None, workflow_action=None
 		.set(WorkflowAction.status, "Completed")
 		.set(WorkflowAction.completed_by, user)
 		.set(WorkflowAction.completed_by_role, workflow_action[0].role)
+		.set(WorkflowAction.modified, now_datetime())
+		.set(WorkflowAction.modified_by, user)
 		.where(WorkflowAction.name == workflow_action[0].name)
 	).run()
 
@@ -297,6 +299,8 @@ def update_completed_workflow_actions_using_user(doc, user=None):
 			frappe.qb.update(WorkflowAction)
 			.set(WorkflowAction.status, "Completed")
 			.set(WorkflowAction.completed_by, user)
+			.set(WorkflowAction.modified, now_datetime())
+			.set(WorkflowAction.modified_by, user)
 			.where(
 				(WorkflowAction.reference_name == doc.get("name"))
 				& (WorkflowAction.reference_doctype == doc.get("doctype"))
