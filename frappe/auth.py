@@ -644,17 +644,30 @@ def validate_auth():
 	Authenticate and sets user for the request.
 	"""
 	authorization_header = frappe.get_request_header("Authorization", "").split(" ")
+	oauth_client_auth = _is_oauth_client_auth(authorization_header)
 
 	if len(authorization_header) == 2:
 		validate_oauth(authorization_header)
-		validate_auth_via_api_keys(authorization_header)
+		if not oauth_client_auth:
+			validate_auth_via_api_keys(authorization_header)
 
 	validate_auth_via_hooks()
 
 	# If login via bearer, basic or keypair didn't work then authentication failed and we
 	# should terminate here.
-	if len(authorization_header) == 2 and frappe.session.user in ("", "Guest"):
+	if len(authorization_header) == 2 and not oauth_client_auth and frappe.session.user in ("", "Guest"):
 		raise frappe.AuthenticationError
+
+
+def _is_oauth_client_auth(authorization_header):
+	from frappe.integrations.oauth2 import ENDPOINTS
+
+	path = frappe.request.path.removesuffix("/")
+	return (
+		len(authorization_header) == 2
+		and authorization_header[0].lower() == "basic"
+		and path in {ENDPOINTS["token_endpoint"], ENDPOINTS["revocation_endpoint"]}
+	)
 
 
 def validate_oauth(authorization_header):
