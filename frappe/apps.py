@@ -101,7 +101,7 @@ def set_app_as_default(app_name: str):
 
 
 @frappe.whitelist()
-def get_incomplete_setup_route(current_app, app_route):
+def get_incomplete_setup_route(current_app: str, app_route: str):
 	pending_apps = get_apps_with_incomplete_dependencies(current_app)
 
 	if not pending_apps:

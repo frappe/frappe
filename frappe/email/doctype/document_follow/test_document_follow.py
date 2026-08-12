@@ -22,8 +22,8 @@ class TestDocumentFollow(IntegrationTestCase):
 		event_doc.description = "This is a test description for sending mail"
 		event_doc.save(ignore_version=False)
 
-		document_follow.unfollow_document("Event", event_doc.name, user.name)
-		doc = document_follow.follow_document("Event", event_doc.name, user.name)
+		document_follow._unfollow_document("Event", event_doc.name, user.name)
+		doc = document_follow._follow_document("Event", event_doc.name, user.name)
 		self.assertEqual(doc.user, user.name)
 
 		document_follow.send_hourly_updates()
@@ -38,8 +38,8 @@ class TestDocumentFollow(IntegrationTestCase):
 			event_doc.doctype, event_doc.name, "This is a test comment", "Administrator@example.com", "Bosh"
 		)
 
-		document_follow.unfollow_document("Event", event_doc.name, user.name)
-		doc = document_follow.follow_document("Event", event_doc.name, user.name)
+		document_follow._unfollow_document("Event", event_doc.name, user.name)
+		doc = document_follow._follow_document("Event", event_doc.name, user.name)
 		self.assertEqual(doc.user, user.name)
 
 		document_follow.send_hourly_updates()
@@ -50,8 +50,8 @@ class TestDocumentFollow(IntegrationTestCase):
 		user = get_user()
 		for _ in range(25):
 			event_doc = get_event()
-			document_follow.unfollow_document("Event", event_doc.name, user.name)
-			doc = document_follow.follow_document("Event", event_doc.name, user.name)
+			document_follow._unfollow_document("Event", event_doc.name, user.name)
+			doc = document_follow._follow_document("Event", event_doc.name, user.name)
 			self.assertEqual(doc.user, user.name)
 		self.assertEqual(len(get_document_followed_by_user(user.name)), 20)
 
@@ -135,6 +135,23 @@ class TestDocumentFollow(IntegrationTestCase):
 		documents_followed = get_events_followed_by_user(event.name, user.name)
 		self.assertTrue(documents_followed)
 
+	def test_follow_on_assign_from_low_permission_session(self):
+		assignee = get_user(DocumentFollowConditions(0, 0, 0, 1))
+		event = get_event()
+
+		web_user = get_web_user()
+		frappe.set_user(web_user.name)
+
+		from frappe.desk.form.assign_to import _add
+
+		_add(
+			{"assign_to": [assignee.name], "doctype": event.doctype, "name": event.name},
+			ignore_permissions=True,
+		)
+
+		frappe.set_user("Administrator")
+		self.assertTrue(get_events_followed_by_user(event.name, assignee.name))
+
 	def test_do_not_follow_on_assign(self):
 		user = get_user()
 		frappe.set_user(user.name)
@@ -169,14 +186,14 @@ class TestDocumentFollow(IntegrationTestCase):
 		frappe.share.remove("Event", event_doc.name, user.name)
 
 		frappe.set_user(user.name)
-		result = document_follow.follow_document("Event", event_doc.name, user.name)
+		result = document_follow._follow_document("Event", event_doc.name, user.name)
 		self.assertFalse(result)
 		frappe.set_user("Administrator")
 
 	def test_revoked_access_cleans_up_follow(self):
 		user = get_user()
 		event_doc = get_event()
-		document_follow.follow_document("Event", event_doc.name, user.name)
+		document_follow._follow_document("Event", event_doc.name, user.name)
 
 		self.assertTrue(
 			frappe.db.exists(
@@ -318,6 +335,19 @@ def get_user(document_follow=None):
 	doc.__dict__.update(document_follow.__dict__ if document_follow else {})
 	doc.insert()
 	doc.add_roles("System Manager")
+	return doc
+
+
+def get_web_user():
+	frappe.set_user("Administrator")
+	if frappe.db.exists("User", "webuser@docsub.com"):
+		frappe.delete_doc("User", "webuser@docsub.com")
+	doc = frappe.new_doc("User")
+	doc.email = "webuser@docsub.com"
+	doc.first_name = "Web"
+	doc.user_type = "Website User"
+	doc.send_welcome_email = 0
+	doc.insert()
 	return doc
 
 

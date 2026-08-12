@@ -55,6 +55,7 @@ class SystemSettings(Document):
 		enable_onboarding: DF.Check
 		enable_password_policy: DF.Check
 		enable_scheduler: DF.Check
+		enable_snapshot_reports: DF.Check
 		enable_telemetry: DF.Check
 		enable_two_factor_auth: DF.Check
 		encrypt_backup: DF.Check
@@ -64,6 +65,7 @@ class SystemSettings(Document):
 		float_precision: DF.Literal["", "2", "3", "4", "5", "6", "7", "8", "9"]
 		force_user_to_reset_password: DF.Int
 		force_web_capture_mode_for_uploads: DF.Check
+		frequency: DF.Literal["Hourly", "Daily"]
 		hide_empty_read_only_fields: DF.Check
 		hide_footer_in_auto_email_reports: DF.Check
 		language: DF.Link
@@ -77,6 +79,7 @@ class SystemSettings(Document):
 		max_file_size: DF.Int
 		max_report_rows: DF.Int
 		max_signups_allowed_per_hour: DF.Int
+		max_zip_extract_size: DF.Int
 		minimum_password_score: DF.Literal["1", "2", "3", "4"]
 		number_format: DF.Literal[
 			"#,###.##",
@@ -104,6 +107,8 @@ class SystemSettings(Document):
 		show_external_link_warning: DF.Literal["Never", "Ask", "Always"]
 		store_attached_pdf_document: DF.Check
 		strip_exif_metadata_from_uploaded_images: DF.Check
+		sync_in_batch: DF.Check
+		sync_timeout: DF.Int
 		time_format: DF.Literal["HH:mm:ss", "HH:mm"]
 		time_zone: DF.Literal[None]
 		two_factor_method: DF.Literal["OTP App", "SMS", "Email"]
@@ -160,6 +165,7 @@ class SystemSettings(Document):
 			frappe.msgprint(
 				_("{0} can not be more than {1}").format(label, 50), alert=True, indicator="yellow"
 			)
+		self.validate_snapshot_reports()
 
 	def validate_otp_sms_template(self):
 		if not self.enable_two_factor_auth or self.two_factor_method != "SMS" or not self.otp_sms_template:
@@ -216,6 +222,13 @@ class SystemSettings(Document):
 		if self.language:
 			set_default_language(self.language)
 
+	def validate_snapshot_reports(self):
+		old_doc = self.get_doc_before_save()
+		if (old_doc.enable_snapshot_reports != self.enable_snapshot_reports) or (
+			old_doc.frequency != self.frequency
+		):
+			snapshot_report_scheduler(self.enable_snapshot_reports, self.frequency)
+
 
 def update_last_reset_password_date():
 	frappe.db.sql(
@@ -267,3 +280,41 @@ def clear_system_settings_cache():
 def sync_system_settings():
 	if frappe.db.get_single_value("System Settings", "currency") is None:
 		frappe.db.set_single_value("System Settings", "currency", frappe.defaults.get_defaults()["currency"])
+
+
+def disable_duckdb_cron_job():
+	if event := frappe.db.get_all("Scheduler Event", {"scheduled_against": "DuckDB Sync"}, pluck="name"):
+		event = event[0]
+		frappe.db.delete("Scheduled Job Type", {"scheduler_event": event})
+		frappe.db.delete("Scheduler Event", event)
+
+
+def enable_duckdb_cron_job(frequency: str = "Daily"):
+	cron_format = "0 0 * * *" if frequency == "Daily" else "0 * * * *"
+	method = "frappe.database.duckdb.database.start_duckdb_sync"
+
+	# schedule cron job
+	event = frappe.get_doc(
+		{
+			"doctype": "Scheduler Event",
+			"scheduled_against": "DuckDB Sync",
+			"method": method,
+		}
+	).insert()
+	frappe.get_doc(
+		{
+			"doctype": "Scheduled Job Type",
+			"frequency": "Cron",
+			"scheduler_event": event.name,
+			"cron_format": cron_format,
+			"method": method,
+			"create_log": True,
+		}
+	).insert()
+
+
+def snapshot_report_scheduler(enable: bool = False, frequency: str = "Daily"):
+	# trash old job and recreate
+	disable_duckdb_cron_job()
+	if enable:
+		enable_duckdb_cron_job(frequency)

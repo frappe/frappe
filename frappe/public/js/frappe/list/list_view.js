@@ -771,7 +771,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					col.type == "Subject" ? "list-subject level" : "hidden-xs",
 					col.type == "Tag" ? `tag-col ${!this.tags_shown ? "hide" : ""} ` : "",
 					frappe.model.is_numeric_field(col.df) ? "text-right" : "",
-					col.df?.fieldname,
 				].join(" ");
 
 				let html = "";
@@ -785,7 +784,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					html = `<span ${attrs}>${label}</span>`;
 				}
 
-				return `<div class="${classes}">${html}</div>
+				const fieldname_attr = col.df?.fieldname
+					? `data-fieldname="${col.df.fieldname}"`
+					: "";
+				return `<div class="${classes}" ${fieldname_attr}>${html}</div>
 			`;
 			})
 			.join("");
@@ -1027,7 +1029,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			"list-row-col ellipsis",
 			class_map[col.type],
 			frappe.model.is_numeric_field(df) ? "text-right" : "",
-			fieldname,
 		].join(" ");
 
 		let column_html;
@@ -1068,7 +1069,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		return `
-			<div class="${css_class}">
+			<div class="${css_class}" ${fieldname ? `data-fieldname="${fieldname}"` : ""}>
 				${column_html}
 			</div>
 		`;
@@ -1082,7 +1083,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	apply_column_widths() {
 		if (this.list_view_settings?.disable_scrolling) return;
 		Object.entries(this.column_max_widths).forEach(([fieldname, width]) => {
-			$(`.list-view .frappe-list .result .level-left .list-row-col.${fieldname}`).css({
+			$(
+				`.list-view .frappe-list .result .level-left .list-row-col[data-fieldname="${fieldname}"]`
+			).css({
 				width: width,
 				flex: `1 0 ${width}px`,
 			});

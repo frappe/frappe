@@ -60,6 +60,20 @@
     stroke: var(--text-light);
 }
 
+.desktop-cloud-settings {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-md);
+    color: var(--ink-gray-7);
+}
+
+.desktop-cloud-settings:hover {
+    background: var(--surface-gray-2);
+}
+
 .desktop-container{
     display: flex;
     align-items: center;
@@ -79,11 +93,8 @@
     margin-top: 60px;
     padding: 20px;
 }
-.icons-container:has(.sidebar-card){
+.icons-container:has(.frappe-card){
     margin-top: 20px;
-    .sidebar-card{
-        gap: 6px;
-    }
 }
 .modal
 .modal-body .icons-container, .folder-icon .icons-container {

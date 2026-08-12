@@ -120,6 +120,7 @@ export default class Section {
 
 		if (hide === undefined) {
 			hide = !this.body.hasClass("hide");
+			this.expanded_by_user = !hide;
 		}
 
 		this.body.toggleClass("hide", hide);

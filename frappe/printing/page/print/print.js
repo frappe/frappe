@@ -260,7 +260,10 @@ frappe.ui.form.PrintView = class {
 			print_format.print_format_type === "Jinja";
 
 		if (is_standard_jinja_custom) {
-			let doc = frappe.get_doc("Print Format", print_format.name);
+			let doc = {
+				...frappe.get_doc(":Print Format", print_format.name),
+				doctype: "Print Format",
+			};
 			frappe.model.with_doctype("Print Format", () => {
 				let newdoc = frappe.model.copy_doc(doc);
 				frappe.set_route("Form", "Print Format", newdoc.name);
@@ -271,6 +274,7 @@ frappe.ui.form.PrintView = class {
 		let is_editable = print_format.name && print_format.custom_format;
 
 		if (is_editable) {
+			frappe.model.clear_doc("Print Format", print_format.name);
 			frappe.set_route("Form", "Print Format", print_format.name);
 			return;
 		}
@@ -844,8 +848,8 @@ frappe.ui.form.PrintView = class {
 			format = this.selected_format();
 		}
 
-		if (locals["Print Format"] && locals["Print Format"][format]) {
-			print_format = locals["Print Format"][format];
+		if (locals[":Print Format"] && locals[":Print Format"][format]) {
+			print_format = locals[":Print Format"][format];
 		}
 
 		return print_format;

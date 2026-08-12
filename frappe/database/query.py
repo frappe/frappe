@@ -101,7 +101,7 @@ def _apply_datetime_field_filter_conversion(between_values: tuple | list, doctyp
 	Returns:
 		Tuple with dates expanded to datetime ranges for Datetime fields
 	"""
-	from frappe.model.db_query import _convert_type_for_between_filters
+	from frappe.utils.data import convert_type_for_between_filters
 
 	# Extract field name
 	field_name = field
@@ -121,9 +121,9 @@ def _apply_datetime_field_filter_conversion(between_values: tuple | list, doctyp
 
 	from_val, to_val = between_values
 
-	# Convert to datetime using db_query helper (handles strings, dates, datetimes)
-	from_val = _convert_type_for_between_filters(from_val, set_time=datetime.time())
-	to_val = _convert_type_for_between_filters(to_val, set_time=datetime.time(23, 59, 59, 999999))
+	# Convert to datetime using shared helper (handles strings, dates, datetimes)
+	from_val = convert_type_for_between_filters(from_val, set_time=datetime.time())
+	to_val = convert_type_for_between_filters(to_val, set_time=datetime.time(23, 59, 59, 999999))
 
 	return (from_val, to_val)
 
@@ -2050,10 +2050,13 @@ class LinkTableField(DynamicTableField):
 		table = frappe.qb.DocType(self.doctype)
 		main_table = frappe.qb.DocType(self.parent_doctype)
 		if not query.is_joined(table):
-			query = query.left_join(table).on(table.name == getattr(main_table, self.link_fieldname))
+			clause = table.name == getattr(main_table, self.link_fieldname)
+
 			if engine and engine.apply_permissions:
 				if condition := engine.get_permission_conditions(self.doctype, table):
-					query = query.where(condition)
+					clause &= condition
+
+			query = query.left_join(table).on(clause)
 
 		return query
 

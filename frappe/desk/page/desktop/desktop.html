@@ -24,9 +24,18 @@
             </div>
         {% endif %}
         <div class="flex" style="gap:16px; align-items: center;">
+            <button
+                class="btn-reset nav-link text-muted desktop-cloud-settings hidden"
+                title="{{ _("Cloud settings") |e }}"
+                aria-label="{{ _("Cloud settings") |e }}"
+            >
+                <svg class="icon icon-md">
+                    <use href="#icon-cloud"></use>
+                </svg>
+            </button>
             <div class="desktop-notifications">
                 <div class="dropdown dropdown-notifications">
-                    <button class="btn-reset nav-link text-muted" data-toggle="dropdown" >
+                    <button class="btn-reset nav-link text-muted desktop-notification-icon" data-toggle="dropdown" aria-label="{{ _("Notifications") }}" aria-haspopup="true">
                         <svg
                             class="icon icon-md"
                         >

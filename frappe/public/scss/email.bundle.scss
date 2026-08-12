@@ -28,6 +28,11 @@ $border-radius-lg: 8px;
 $orange-bg: #ffeae1;
 $orange-color: #cb5a2a;
 
+$canvas-bg: #f5f4f2;
+$card-border: #ededed;
+$hairline: #f0f0f0;
+$body-text: #525252;
+
 body {
 	line-height: 1.5;
 	color: $text-color;
@@ -38,12 +43,14 @@ a {
 }
 
 p {
-	margin: 1em 0 !important;
+	margin: 0 0 1em !important;
 }
 
 .with-container {
 	p {
-		margin: 5px 0 !important;
+		margin: 0 0 16px !important;
+		line-height: 1.6;
+		color: $body-text;
 	}
 }
 
@@ -70,14 +77,29 @@ hr {
 	font-size: 14px;
 	line-height: 1.4;
 	.brand-logo {
-		margin: auto;
-		text-align: center;
+		margin: 0 10px 0 0;
+		text-align: left;
 		border: 0;
 		outline: none;
 		text-decoration: none;
-		max-height: 40px;
+		max-height: 28px;
 		width: auto;
-		margin-bottom: 10px;
+		display: inline-block;
+		vertical-align: middle;
+	}
+	.email-masthead a {
+		display: flex;
+		align-items: center;
+		text-decoration: none;
+		color: $gray-900;
+	}
+	.brand-name {
+		display: inline-block;
+		vertical-align: middle;
+		font-size: 15px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		color: $gray-900;
 	}
 	td {
 		font-family: $font-stack;
@@ -98,10 +120,19 @@ hr {
 .email-body {
 	font-size: 14px;
 	color: $text-color;
+	a:not(.btn) {
+		color: $gray-900;
+		font-weight: 600;
+		text-decoration: underline;
+	}
+	.text-muted a {
+		color: $text-muted !important;
+		font-weight: normal !important;
+	}
 	.gray-container {
 		background-color: $gray-50;
 		border-radius: $border-radius-lg;
-		padding: 25px 15px;
+		padding: 16px 20px;
 	}
 }
 
@@ -119,24 +150,50 @@ hr {
 }
 
 .email-header-title {
-	margin-top: 20px !important;
+	margin: 0 0 16px !important;
 	font-size: 20px;
-	font-weight: 600;
+	font-weight: 700;
+	line-height: 1.25;
+	letter-spacing: -0.02em;
+	color: $gray-900;
 }
 
 .body-table.with-container {
-	background-color: $gray-100;
+	background-color: $canvas-bg;
 	color: $text-color;
 	.body-content {
-		padding: 60px 40px;
+		padding: 48px 24px;
 	}
 	.email-container {
 		max-width: 600px;
 		border-spacing: 0;
-		padding: 30px;
-		border-radius: $border-radius-lg;
+		border-radius: 12px;
+		border: 1px solid $card-border;
 		overflow: hidden;
 		background-color: white;
+		.email-masthead {
+			padding: 24px 36px 20px;
+			border-bottom: 1px solid $hairline;
+		}
+		.email-title-cell {
+			padding: 28px 36px 0;
+		}
+		.email-body-cell {
+			padding: 8px 36px 28px;
+		}
+		.email-footer-cell {
+			padding: 0 36px;
+		}
+		.email-footer-cell.filled {
+			background-color: #fafafa;
+			border-top: 1px solid $gray-100;
+			padding: 18px 36px 22px;
+		}
+		.email-footer-cell.filled .email-footer-container.with-divider {
+			margin-top: 0;
+			padding-top: 0;
+			border-top: none;
+		}
 		.email-body {
 			border-radius: 0 0 4px 4px;
 			border-top: none;
@@ -155,21 +212,71 @@ hr {
 @media only screen and (max-width: 700px) {
 	.body-table.with-container {
 		.body-content {
-			padding: 30px 20px;
+			padding: 24px 12px;
 		}
 		.email-container {
-			padding: 20px;
 			width: auto;
+			.email-masthead {
+				padding: 20px 24px 16px;
+			}
+			.email-title-cell {
+				padding: 24px 24px 0;
+			}
+			.email-body-cell {
+				padding: 8px 24px 24px;
+			}
+			.email-footer-cell {
+				padding: 0 24px;
+			}
+			.email-footer-cell.filled {
+				padding: 16px 24px 20px;
+			}
 		}
 	}
 }
 
 .email-footer-container {
-	margin-top: 40px;
+	font-size: 12px;
+	line-height: 1.6;
+	color: $gray-500;
+
+	&.with-divider {
+		margin-top: 24px;
+		padding-top: 16px;
+		border-top: 1px solid $gray-100;
+	}
 
 	& > div:not(:last-child) {
-		margin-bottom: 5px;
+		margin-bottom: 4px;
 	}
+}
+
+.verification-code {
+	display: inline-block;
+	font-family: "SF Mono", "Menlo", "Consolas", monospace;
+	font-size: 32px;
+	font-weight: 700;
+	letter-spacing: 0.18em;
+	color: $gray-900;
+	background-color: $canvas-bg;
+	border: 1px solid #e5e4e1;
+	border-radius: 10px;
+	padding: 18px 26px 18px 32px;
+	margin: 4px 0 20px;
+}
+
+.callout {
+	border-radius: $border-radius-lg;
+	padding: 14px 16px;
+	font-size: 12px;
+	line-height: 1.6;
+	margin: 20px 0 16px;
+}
+
+.callout-warning {
+	background-color: #fff8f0;
+	border: 1px solid #fde8c7;
+	color: #8a5a00;
 }
 
 .email-unsubscribe a {
@@ -181,17 +288,19 @@ hr {
 	text-decoration: none;
 	padding: 4px 20px;
 	font-size: 13px;
+	font-weight: 600;
 	border: 1px solid;
 	border-radius: $border-radius;
-	color: $white;
-	background-color: $gray-500;
+	color: $gray-800;
+	background-color: $gray-100;
 	border-color: transparent;
 	display: inline-block;
 	line-height: 20px;
+	margin: 8px 0;
 
 	&.btn-primary {
 		color: #fff;
-		background-color: $primary;
+		background-color: $gray-900;
 	}
 }
 
@@ -296,6 +405,21 @@ hr {
 /* auto email report */
 .report-title {
 	margin-bottom: 20px;
+}
+
+/* document follow */
+.follow-panel {
+	margin-bottom: 16px;
+}
+
+.follow-panel-title {
+	margin-bottom: 8px;
+	font-weight: 600;
+}
+
+.follow-timeline {
+	margin: 0;
+	line-height: 1.7;
 }
 
 /* csslint ignore:end */
@@ -432,10 +556,10 @@ blockquote {
 
 .indicator {
 	display: inline-block;
-	width: 10px;
-	height: 10px;
+	width: 8px;
+	height: 8px;
 	border-radius: 50%;
-	margin-right: 6px;
+	margin-right: 8px;
 	vertical-align: middle;
 }
 

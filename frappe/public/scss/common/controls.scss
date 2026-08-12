@@ -99,6 +99,8 @@ select.form-control {
 	.status-text {
 		position: absolute;
 		top: 4px;
+		left: 8px;
+		right: 8px;
 	}
 
 	.dropdown-menu {
@@ -386,6 +388,11 @@ textarea.form-control {
 	overflow-wrap: break-word;
 }
 
+.frappe-control[data-fieldtype="Text Editor"] .control-value {
+	max-height: 300px;
+	overflow: auto;
+}
+
 .frappe-control[data-fieldtype="Data"] .control-input,
 .control-value {
 	position: relative;
@@ -584,4 +591,105 @@ button.data-pill {
 	top: 0;
 	right: 0;
 	cursor: pointer;
+}
+
+//switch
+label.switch-control {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 2rem; // gap-8
+	width: 100%;
+	margin-bottom: 0;
+	padding: 0.25rem 0;
+	cursor: pointer;
+}
+
+.switch-control {
+	// Left column: label + description.
+	.switch-text {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+
+	.label-area {
+		font-size: var(--text-base);
+		color: var(--ink-gray-6);
+	}
+
+	// Description sits under the label
+	.help-box {
+		margin: 2px 0 0;
+		font-size: var(--text-sm);
+		line-height: 1.4;
+		color: var(--ink-gray-5);
+	}
+
+	// Keep the checkbox accessible and label-clickable, but visually hidden
+	// (standard sr-only clip pattern — focus moves through it to drive the track).
+	.input-area {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		clip-path: inset(50%);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	.switch-visual {
+		display: inline-flex;
+		align-items: center;
+		flex-shrink: 0;
+		width: 26px;
+		height: 16px;
+		padding: 2px;
+		border-radius: var(--border-radius-full, 999px);
+		background-color: var(--ink-gray-2);
+		transition: background-color 0.15s ease-in-out;
+	}
+
+	.switch-thumb {
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+		background-color: var(--surface-white);
+		box-shadow: var(--shadow-sm);
+		transition: transform 0.15s ease-in-out;
+	}
+
+	// Checked: darken track, slide thumb (26 − 2·2 − 12 = 10px).
+	.input-area:has(input:checked) ~ .switch-visual {
+		background-color: var(--ink-gray-8);
+
+		.switch-thumb {
+			transform: translateX(10px);
+		}
+	}
+
+	// Hover states.
+	&:hover .input-area:not(:has(input:checked)) ~ .switch-visual {
+		background-color: var(--ink-gray-3);
+	}
+	&:hover .input-area:has(input:checked) ~ .switch-visual {
+		background-color: var(--ink-gray-7);
+	}
+
+	// The real input is visually hidden, so surface keyboard focus on the track.
+	.input-area:has(input:focus-visible) ~ .switch-visual {
+		box-shadow: 0 0 0 2px var(--outline-gray-3);
+	}
+
+	// Disabled.
+	&:has(input:disabled) {
+		cursor: not-allowed;
+
+		.switch-visual {
+			background-color: var(--ink-gray-1);
+		}
+	}
 }

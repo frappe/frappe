@@ -57,8 +57,6 @@ frappe.ui.form.DocumentFollow = class DocumentFollow {
 				args: {
 					doctype: this.frm.doctype,
 					doc_name: this.frm.doc.name,
-					user: frappe.session.user,
-					force: true,
 				},
 				callback: (r) => {
 					if (r.message) {
@@ -75,7 +73,6 @@ frappe.ui.form.DocumentFollow = class DocumentFollow {
 				args: {
 					doctype: this.frm.doctype,
 					doc_name: this.frm.doc.name,
-					user: frappe.session.user,
 				},
 				callback: (r) => {
 					if (r.message) {

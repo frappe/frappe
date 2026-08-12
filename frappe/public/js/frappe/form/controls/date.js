@@ -19,6 +19,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		if (!this.datepicker) return;
 		if (!value) {
 			this.datepicker.clear();
+			this.datepicker.date = this.get_now_date();
 			return;
 		}
 

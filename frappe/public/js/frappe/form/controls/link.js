@@ -781,11 +781,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			return obj;
 		};
 
-		// apply link field filters
-		if (this.df.link_filters && !!this.df.link_filters.length) {
-			this.apply_link_field_filters();
-		}
-
 		if (this.get_query || this.df.get_query) {
 			var get_query = this.get_query || this.df.get_query;
 			if ($.isPlainObject(get_query)) {
@@ -847,21 +842,19 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			if (!args.filters) args.filters = {};
 			$.extend(args.filters, this.df.filters);
 		}
+
+		if (this.df.link_filters && !!this.df.link_filters.length) {
+			args.filters = { ...(args.filters || {}), ...this.apply_link_field_filters() };
+		}
 	}
 
 	apply_link_field_filters() {
-		let filters = this.parse_filters(JSON.parse(this.df.link_filters));
-		// take filters from the link field and add to the query
-		const query_filters = this.get_query?.()?.filters || {};
-		if (query_filters) {
-			filters = { ...query_filters, ...filters };
+		try {
+			return this.parse_filters(JSON.parse(this.df.link_filters));
+		} catch (e) {
+			console.error("Invalid link_filters JSON:", this.df.link_filters, e);
+			return {};
 		}
-
-		this.get_query = function () {
-			return {
-				filters,
-			};
-		};
 	}
 
 	parse_filters(link_filters) {

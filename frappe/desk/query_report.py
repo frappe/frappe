@@ -129,7 +129,7 @@ def generate_report_result(
 	if isinstance(filters, dict) and filters.get("translate_data"):
 		result = translate_report_data(result, has_total_row)
 
-	return {
+	return_dict = {
 		"result": result,
 		"columns": columns,
 		"message": message,
@@ -139,6 +139,24 @@ def generate_report_result(
 		"status": None,
 		"execution_time": frappe.cache.hget("report_execution_time", report.name) or 0,
 	}
+
+	if report.snapshot_report and report.doctype_to_sync:
+		if latest_sync := frappe.db.get_all(
+			"DuckDB Sync",
+			filters={"doc_type": report.doctype_to_sync[0].doc_type, "docstatus": 1},
+			fields=["creation"],
+			pluck="creation",
+			order_by="creation desc",
+			limit=1,
+		):
+			return_dict.update(
+				{
+					"snapshot_report": True,
+					"snapshot_at": latest_sync[0],
+				}
+			)
+
+	return return_dict
 
 
 def normalize_result(result, columns):
@@ -158,7 +176,7 @@ def normalize_result(result, columns):
 
 
 @frappe.whitelist()
-def get_script(report_name):
+def get_script(report_name: str):
 	report = get_report_doc(report_name)
 	module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
 
@@ -262,6 +280,8 @@ def _run(
 					filters = json.loads(filters)
 
 				dn = filters.pop("prepared_report_name", None)
+				if dn:
+					frappe.has_permission("Prepared Report", "read", dn, throw=True)
 			else:
 				dn = ""
 			result = get_prepared_report_result(report, filters, dn, user)
@@ -791,7 +811,7 @@ def add_total_row(
 
 
 @frappe.whitelist()
-def get_data_for_custom_field(doctype, field, names=None):
+def get_data_for_custom_field(doctype: str, field: str, names: str | list[str] | None = None):
 	if not frappe.has_permission(doctype, "read"):
 		frappe.throw(_("Not Permitted to read {0}").format(_(doctype)), frappe.PermissionError)
 
@@ -832,7 +852,7 @@ def get_data_for_custom_report(columns, result):
 
 
 @frappe.whitelist()
-def save_report(reference_report, report_name, columns, filters):
+def save_report(reference_report: str, report_name: str, columns: str, filters: str):
 	report_doc = get_report_doc(reference_report)
 
 	docname = frappe.db.exists(

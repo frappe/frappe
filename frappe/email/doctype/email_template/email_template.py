@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+from typing import Any
 
 import frappe
 from frappe.model.document import Document
@@ -66,8 +67,9 @@ class EmailTemplate(Document):
 
 
 @frappe.whitelist()
-def get_email_template(template_name, doc, sender=None):
+def get_email_template(template_name: str, doc: str | dict[str, Any], sender: str | None = None):
 	"""Return the processed HTML of a email template with the given doc"""
 
 	email_template = frappe.get_doc("Email Template", template_name)
+	email_template.check_permission("read")
 	return email_template.get_formatted_email(doc, sender=sender)

@@ -113,13 +113,20 @@ def get_permissions(doctype: str | None = None, role: str | None = None):
 
 
 @frappe.whitelist()
-def add(parent, role, permlevel):
+def add(parent: str, role: str, permlevel: int):
 	frappe.only_for("System Manager")
 	add_permission(parent, role, permlevel)
 
 
 @frappe.whitelist()
-def update(doctype: str, role: str, permlevel: int, ptype: str, value=None, if_owner=0) -> str | None:
+def update(
+	doctype: str,
+	role: str,
+	permlevel: int,
+	ptype: str,
+	value: str | int | None = None,
+	if_owner: str | int = 0,
+) -> str | None:
 	"""Update role permission params.
 
 	Args:
@@ -152,7 +159,7 @@ def update(doctype: str, role: str, permlevel: int, ptype: str, value=None, if_o
 
 
 @frappe.whitelist()
-def remove(doctype, role, permlevel, if_owner=0):
+def remove(doctype: str, role: str, permlevel: int, if_owner: str | int = 0):
 	frappe.only_for("System Manager")
 	setup_custom_perms(doctype)
 
@@ -169,20 +176,20 @@ def remove(doctype, role, permlevel, if_owner=0):
 
 
 @frappe.whitelist()
-def reset(doctype):
+def reset(doctype: str):
 	frappe.only_for("System Manager")
 	reset_perms(doctype)
 	clear_permissions_cache(doctype)
 
 
 @frappe.whitelist()
-def get_users_with_role(role):
+def get_users_with_role(role: str):
 	frappe.only_for("System Manager")
 	return _get_user_with_role(role)
 
 
 @frappe.whitelist()
-def get_standard_permissions(doctype):
+def get_standard_permissions(doctype: str):
 	frappe.only_for("System Manager")
 	meta = frappe.get_meta(doctype)
 	if meta.custom:

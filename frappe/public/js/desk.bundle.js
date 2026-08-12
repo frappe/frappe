@@ -14,8 +14,8 @@ import "./frappe/ui/sidebar/sidebar_header.html";
 import "./frappe/ui/sidebar/sidebar.html";
 import "./frappe/ui/sidebar/sidebar_item.html";
 import "./frappe/ui/sidebar/sidebar.js";
-import "./frappe/ui/sidebar/sidebar_card.html";
-import "./frappe/ui/sidebar/sidebar_card.js";
+import "./frappe/ui/sidebar/card.html";
+import "./frappe/ui/sidebar/card.js";
 import "./frappe/ui/link_preview.js";
 
 import "./frappe/request.js";
@@ -43,6 +43,7 @@ import "./frappe/ui/field_group.js";
 import "./frappe/form/link_selector.js";
 import "./frappe/form/multi_select_dialog.js";
 import "./frappe/ui/dialog.js";
+import "./frappe/ui/settings_dialog.js";
 import "./frappe/ui/menu.js";
 import "./frappe/ui/capture.js";
 import "./frappe/ui/app_icon.js";

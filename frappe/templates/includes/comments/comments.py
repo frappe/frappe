@@ -54,9 +54,6 @@ def add_comment(
 		comment_email = frappe.session.user
 		comment_by = frappe.get_value("User", frappe.session.user, "full_name")
 
-		if frappe.db.exists("User", comment_email):
-			frappe.throw(_("Please login to post a comment."))
-
 	if not comment.strip():
 		frappe.msgprint(_("The comment cannot be empty"))
 		return False

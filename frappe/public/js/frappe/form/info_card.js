@@ -31,7 +31,9 @@ export class InfoCard {
 		this.$info_card = $("<div class='info-card'></div>").appendTo(this.label_span);
 		let card_args = {
 			title: "",
-			message: this.df.show_description_on_click ? this.df.description || "" : "",
+			message: this.df.show_description_on_click
+				? __(this.df.description, null, this.df.parent) || ""
+				: "",
 			parent: this.$info_card,
 			trigger: $(this.label_span).find("svg").get(0),
 			close_button: true,
@@ -47,7 +49,7 @@ export class InfoCard {
 				this.df.documentation_url
 			}" target="_blank">${__("View Documentation")}</a>`;
 		}
-		this.card = new frappe.ui.SidebarCard(card_args);
+		this.card = new frappe.ui.Card(card_args);
 	}
 	setup_click() {
 		const me = this;

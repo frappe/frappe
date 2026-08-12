@@ -9,12 +9,16 @@
   "path",
   "number_of_queries",
   "time_in_queries",
+  "number_of_events",
   "method",
   "column_break_qo53",
   "cmd",
   "time",
   "duration",
   "event_type",
+  "apps_involved",
+  "section_break_timeline",
+  "timeline",
   "section_break_1skt",
   "request_headers",
   "section_break_sgro",
@@ -62,6 +66,12 @@
    "fieldname": "time_in_queries",
    "fieldtype": "Float",
    "label": "Time in Queries"
+  },
+  {
+   "fieldname": "number_of_events",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Number of Events"
   },
   {
    "fieldname": "column_break_qo53",
@@ -112,6 +122,26 @@
    "label": "Event Type"
   },
   {
+   "fieldname": "apps_involved",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Apps Involved",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_timeline",
+   "fieldtype": "Section Break",
+   "label": "Timeline"
+  },
+  {
+   "description": "Ordered timeline of document lifecycle methods and doc_events handlers that ran during this request, attributed to the app(s) that hook them.",
+   "fieldname": "timeline",
+   "fieldtype": "Table",
+   "label": "Timeline",
+   "options": "Recorder Event",
+   "read_only": 1
+  },
+  {
    "fieldname": "section_break_optn",
    "fieldtype": "Section Break"
   },
@@ -134,7 +164,7 @@
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2024-05-14 15:16:55.626656",
+ "modified": "2026-07-30 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Recorder",

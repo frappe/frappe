@@ -320,7 +320,7 @@ class Workspace(DeskViews):
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_desktop_page(page):
+def get_desktop_page(page: str):
 	"""Apply permissions, customizations and return the configuration for a page on desk.
 
 	Args:
@@ -498,7 +498,7 @@ def get_custom_report_list(module):
 def save_new_widget(doc, page, blocks, new_widgets):
 	widgets = _dict()
 	if new_widgets:
-		widgets = _dict(loads(new_widgets))
+		widgets = _dict(frappe.parse_json(new_widgets))
 
 		if widgets.chart:
 			doc.charts.extend(new_widget(widgets.chart, "Workspace Chart", "charts"))

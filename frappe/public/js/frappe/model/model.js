@@ -410,6 +410,24 @@ $.extend(frappe.model, {
 		return frappe.boot.user.can_print.indexOf(doctype) !== -1;
 	},
 
+	can_print_doc: function (frm) {
+		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings");
+		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
+		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
+
+		const docstatus_allows_print =
+			!frappe.model.is_submittable(frm.doc.doctype) ||
+			frm.doc.docstatus == 1 ||
+			(allow_print_for_cancelled && frm.doc.docstatus == 2) ||
+			(allow_print_for_draft && frm.doc.docstatus == 0);
+
+		return !!(
+			docstatus_allows_print &&
+			frappe.model.can_print(null, frm) &&
+			!frm.meta.issingle
+		);
+	},
+
 	can_email: function (doctype, frm) {
 		if (frm) return frm.perm[0].email === 1;
 		return frappe.boot.user.can_email.indexOf(doctype) !== -1;
@@ -693,7 +711,7 @@ $.extend(frappe.model, {
 				callback: function (r, rt) {
 					if (!r.exc) {
 						frappe.utils.play_sound("delete");
-						frappe.model.clear_doc(doctype, docname);
+						frappe.model.delete_from_locals(doctype, docname);
 						if (callback) callback(r, rt);
 					}
 				},
@@ -737,13 +755,17 @@ $.extend(frappe.model, {
 				btn: d.get_primary_btn(),
 				callback: function (r, rt) {
 					if (!r.exc) {
+						frappe.model.rename_doc_in_locals(
+							doctype,
+							docname,
+							r.message || args.new_name,
+							args.merge
+						);
 						$(document).trigger("rename", [
 							doctype,
 							docname,
 							r.message || args.new_name,
 						]);
-						if (locals[doctype] && locals[doctype][docname])
-							delete locals[doctype][docname];
 						d.hide();
 						if (callback) callback(r.message);
 					}

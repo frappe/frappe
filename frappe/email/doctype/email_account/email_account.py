@@ -897,7 +897,14 @@ class EmailAccount(Document):
 
 
 @frappe.whitelist()
-def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
+def get_append_to(
+	doctype: str | None = None,
+	txt: str | None = None,
+	searchfield: str | None = None,
+	start: int | None = None,
+	page_len: int | None = None,
+	filters: list | dict | str | None = None,
+):
 	txt = txt if txt else ""
 
 	filters = {"istable": 0, "issingle": 0, "email_append_to": 1}

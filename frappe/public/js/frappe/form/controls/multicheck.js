@@ -130,7 +130,17 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 	}
 
 	select_all(deselect = false) {
-		$(this.wrapper).find(`:checkbox`).prop("checked", deselect).trigger("click");
+		this.selected_options = [];
+		this.options.forEach((option) => {
+			const checkbox = option.$checkbox.find(":checkbox").get(0);
+			if (!checkbox.disabled) {
+				checkbox.checked = !deselect;
+			}
+			if (checkbox.checked) {
+				this.selected_options.push(option.value);
+			}
+		});
+		this.df.on_change && this.df.on_change();
 	}
 
 	select_options(selected_options) {

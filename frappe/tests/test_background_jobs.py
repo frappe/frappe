@@ -54,6 +54,25 @@ class TestBackgroundJobs(IntegrationTestCase):
 		# lesser is earlier
 		self.assertTrue(high_priority_job.get_position() < low_priority_job.get_position())
 
+	def test_job_translation_resolves_user_language(self):
+		real_get_cached_value = frappe.get_cached_value
+
+		def user_language_de(doctype, name, fieldname=None, *args, **kwargs):
+			if doctype == "User" and fieldname == "language":
+				return "de"
+			return real_get_cached_value(doctype, name, fieldname, *args, **kwargs)
+
+		frappe.local.job = frappe._dict(user="Administrator")
+		self.addCleanup(delattr, frappe.local, "job")
+		original_lang = frappe.local.lang
+		self.addCleanup(setattr, frappe.local, "lang", original_lang)
+		frappe.local.lang = "en"
+
+		with patch("frappe.get_cached_value", side_effect=user_language_de):
+			frappe._("Home")
+
+		self.assertEqual(frappe.local.lang, "de")
+
 	def test_job_hooks(self):
 		self.addCleanup(lambda: _test_JOB_HOOK.clear())
 		with (

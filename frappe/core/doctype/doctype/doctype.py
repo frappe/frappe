@@ -550,6 +550,7 @@ class DocType(Document):
 			and (frappe.conf.developer_mode or frappe.flags.allow_doctype_export)
 		)
 		if allow_doctype_export:
+			self.warn_on_module_change()
 			self.export_doc()
 			self.make_controller_template()
 			self.set_base_class_for_controller()
@@ -862,6 +863,24 @@ class DocType(Document):
 
 		if "field_order" in docdict:
 			del docdict["field_order"]
+
+	def warn_on_module_change(self):
+		"""Warn that the old module folder is left behind after a module change, since export only writes to the new one."""
+		previous = self.get_doc_before_save()
+		if not previous or previous.module == self.module:
+			return
+
+		try:
+			old_path = get_doc_path(previous.module, "doctype", self.name)
+		except Exception:
+			return
+
+		frappe.msgprint(
+			_(
+				"Module changed to {0}. Files in the previous module were not moved and remain at {1}, remove or relocate them manually."
+			).format(frappe.bold(self.module), frappe.bold(str(old_path))),
+			alert=True,
+		)
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/doctype/[name]/[name].json`."""

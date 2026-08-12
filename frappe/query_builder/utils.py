@@ -84,6 +84,7 @@ def mask_fields(
 	fields: list[Any],
 	result: list[dict] | list[tuple],
 	as_dict: bool = True,
+	pluck: bool = False,
 ) -> list[dict] | list[tuple]:
 	"""Mask fields in the result based on the doctype's masked fields.
 
@@ -92,12 +93,12 @@ def mask_fields(
 		fields: List of field objects from the query
 		result: Query results as list of dicts or tuples
 		as_dict: Whether results are dictionaries (True) or tuples (False)
-
+		pluck: Whether results were plucked into a flat list of scalar values
 	Returns:
 		Result with masked field values applied based on user permissions
 	"""
 	from frappe.database.query import CORE_DOCTYPES
-	from frappe.model.utils.mask import mask_dict_results, mask_list_results
+	from frappe.model.utils.mask import mask_dict_results, mask_list_results, mask_pluck_results
 
 	# We can't query meta for core doctypes here
 	if doctype in CORE_DOCTYPES:
@@ -107,6 +108,9 @@ def mask_fields(
 
 	if not masked_fields:
 		return result
+
+	if pluck:
+		return mask_pluck_results(result, masked_fields, fields)
 
 	if not as_dict:
 		field_index_map = {}
@@ -135,7 +139,7 @@ def execute_query(query, *args, **kwargs):
 
 	if result and dt and fields:
 		as_dict = kwargs.get("as_dict", not kwargs.get("as_list", False))
-		result = mask_fields(dt, fields, result, as_dict=as_dict)
+		result = mask_fields(dt, fields, result, as_dict=as_dict, pluck=kwargs.get("pluck", False))
 
 	return result
 

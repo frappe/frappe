@@ -25,6 +25,7 @@ class Report(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.doctype_to_sync.doctype_to_sync import DoctypeToSync
 		from frappe.core.doctype.has_role.has_role import HasRole
 		from frappe.core.doctype.report_column.report_column import ReportColumn
 		from frappe.core.doctype.report_filter.report_filter import ReportFilter
@@ -35,6 +36,8 @@ class Report(Document):
 		columns: DF.Table[ReportColumn]
 		disable_prepared_report_automation: DF.Check
 		disabled: DF.Check
+		doctype_to_sync: DF.Table[DoctypeToSync]
+		documentation_url: DF.Data | None
 		filters: DF.Table[ReportFilter]
 		is_standard: DF.Literal["No", "Yes"]
 		javascript: DF.Code | None
@@ -49,6 +52,7 @@ class Report(Document):
 		report_script: DF.Code | None
 		report_type: DF.Literal["Report Builder", "Query Report", "Script Report", "Custom Report"]
 		roles: DF.Table[HasRole]
+		snapshot_report: DF.Check
 		timeout: DF.Int
 	# end: auto-generated types
 
@@ -196,7 +200,10 @@ class Report(Document):
 		# The JOB
 		try:
 			if self.is_standard == "Yes":
-				res = self.execute_module(filters)
+				if self.snapshot_report:
+					res = self.execute_snapshot_report(filters)
+				else:
+					res = self.execute_module(filters)
 			else:
 				res = self.execute_script(filters)
 		finally:
@@ -209,6 +216,9 @@ class Report(Document):
 		return res
 
 	def get_module_method(self, method):
+		if method not in ("execute", "execute_snapshot_report", "get_xlsx_styles"):
+			raise Exception("Unknown report method")
+
 		module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
 		method_path = get_report_module_dotted_path(module, self.name) + "." + method
 		return frappe.get_attr(method_path)
@@ -225,6 +235,13 @@ class Report(Document):
 			return loc["data"]
 		else:
 			return self.get_columns(), loc["result"]
+
+	def execute_snapshot_report(self, filters):
+		try:
+			execute_snapshot_report = self.get_module_method("execute_snapshot_report")
+		except AttributeError:
+			return [], []
+		return execute_snapshot_report(frappe._dict(filters))
 
 	def get_data(
 		self,

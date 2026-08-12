@@ -224,24 +224,7 @@ frappe.views.Workspace = class Workspace {
 						parent: $(this.workspace_actions_button),
 						open_on_left: true,
 						size: "fit-content",
-						menu_items: [
-							{
-								label: "Edit",
-								icon: "edit",
-								onClick: async () => {
-									if (!this.editor || !this.editor.readOnly) return;
-									this.is_read_only = false;
-									await this.editor.readOnly.toggle();
-									this.editor.isReady.then(() => {
-										this.setup_customization_buttons(this._page);
-										this.make_blocks_sortable();
-									});
-								},
-								condition: () => {
-									return current_page.is_editable;
-								},
-							},
-						],
+						menu_items: menu_items,
 					});
 					this.add_workspace_controls = true;
 				}

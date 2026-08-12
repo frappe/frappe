@@ -3,6 +3,7 @@
 import getpass
 
 import frappe
+from frappe.desk.doctype.notification_type.notification_type import install_notification_types
 from frappe.email.doctype.notification.notification import install_notification_templates
 from frappe.geo.doctype.country.country import import_country_and_currency
 from frappe.utils import cint
@@ -53,6 +54,10 @@ def after_install():
 	_clear_test_log()
 
 	add_standard_navbar_items()
+
+	# standard notification types (must precede templates: the Notification
+	# `notification_type` field defaults to "Alert", so templates link to it)
+	install_notification_types()
 
 	# default templates
 	install_notification_templates()
@@ -158,7 +163,7 @@ def complete_setup_wizard():
 			"country": "United States",
 			"timezone": "America/New_York",
 			"currency": "USD",
-			"enable_telemtry": 1,
+			"enable_telemetry": 1,
 		}
 	)
 
@@ -192,11 +197,11 @@ def auto_generate_icons_and_sidebar(app_name=None):
 	try:
 		print("Creating Workspace Sidebars")
 		create_workspace_sidebar_for_workspaces()
+		# every icon is guarded by an existence check, so this is safe to re-run:
+		# it only picks up apps and workspaces that don't have an icon yet
 		print("Creating Desktop Icons")
 		create_desktop_icons()
-		# Save the generated icons
-		frappe.db.commit()  # nosemgrep
-		# Save the genreated sidebar links
+		# Save the generated icons and sidebar links
 		frappe.db.commit()  # nosemgrep
 	except Exception as e:
 		print(f"Error creating icons {e}")

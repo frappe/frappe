@@ -42,7 +42,7 @@ from frappe.utils.caching import deprecated_local_cache as local_cache
 from frappe.utils.caching import request_cache, site_cache
 from frappe.utils.data import as_unicode, bold, cint, cstr, safe_decode, safe_encode, sbool
 from frappe.utils.local import Local, LocalProxy, release_local
-from frappe.utils.translations import _, _lt, set_user_lang
+from frappe.utils.translations import N_, _, _lt, set_user_lang
 
 # Local application imports
 from .exceptions import *
@@ -55,7 +55,7 @@ from .utils.jinja import (
 	render_template,
 )
 
-__version__ = "16.10.4"
+__version__ = "16.28.0"
 __title__ = "Frappe Framework"
 
 if TYPE_CHECKING:  # pragma: no cover
