@@ -20,8 +20,6 @@ import os
 import typing
 from datetime import datetime, timedelta
 
-import click
-
 import frappe
 from frappe import _, _lt
 from frappe.model import (
@@ -975,6 +973,8 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 	as maintenance since removing a field in a DocType doesn't automatically
 	delete the db field.
 	"""
+	import click
+
 	UPDATED_TABLES = {}
 	filters = {"issingle": 0, "is_virtual": 0}
 	if doctype:
