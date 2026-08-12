@@ -478,7 +478,8 @@ def get_safe_request_session():
 
 def make_safe_request(method: str, url: str, **kwargs):
 	validate_request_url(url)
-	kwargs.setdefault("timeout", SAFE_REQUEST_TIMEOUT)
+	if kwargs.get("timeout") is None:
+		kwargs["timeout"] = SAFE_REQUEST_TIMEOUT
 	return frappe.integrations.utils.make_request(method, url, session=get_safe_request_session(), **kwargs)
 
 
