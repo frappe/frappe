@@ -184,7 +184,16 @@ def get_milestones(doctype, name):
 def get_attachments(dt, dn):
 	attachments = frappe.get_all(
 		"File",
-		fields=["name", "file_name", "file_url", "is_private", "attached_to_field"],
+		fields=[
+			"name",
+			"file_name",
+			"file_url",
+			"file_type",
+			"file_size",
+			"is_private",
+			"attached_to_field",
+			"folder",
+		],
 		filters={"attached_to_name": str(dn), "attached_to_doctype": dt},
 	)
 
@@ -202,9 +211,6 @@ def get_attachments(dt, dn):
 			or a.attached_to_field not in high_permlevel_fields
 			or a.attached_to_field in permitted_fieldnames
 		]
-
-	for a in attachments:
-		a.pop("attached_to_field", None)
 
 	return attachments
 
