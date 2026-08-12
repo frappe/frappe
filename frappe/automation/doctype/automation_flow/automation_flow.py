@@ -42,11 +42,11 @@ class AutomationFlow(Document):
 		enabled: DF.Check
 		filters: DF.Code | None
 		from_value: DF.Data | None
+		next_run: DF.Datetime | None
 		revalidate_on_run: DF.Check
 		relationships: DF.JSON | None
 		run_as: DF.Literal["Triggering User", "Document Owner", "Automation User"]
 		stop_on_error: DF.Check
-		throttle_per_minute: DF.Int
 		title: DF.Data
 		to_value: DF.Data | None
 		trigger_field: DF.Literal[None]
@@ -187,6 +187,16 @@ class AutomationFlow(Document):
 			frappe.throw(_("Custom Event trigger requires an event name"))
 		if self.trigger_type == "Scheduled":
 			self.validate_cron()
+		self.set_next_run()
+
+	def set_next_run(self):
+		"""Seed the scheduler's due-gate so a saved flow is picked up without a first tick."""
+		from frappe.automation_engine.scheduler import next_fire
+
+		if self.trigger_type != "Scheduled":
+			self.next_run = None
+		elif self.has_value_changed("cron_expression") or not self.next_run:
+			self.next_run = next_fire(self.cron_expression, frappe.utils.now_datetime())
 
 	def validate_cron(self):
 		from croniter import croniter

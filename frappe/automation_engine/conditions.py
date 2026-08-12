@@ -130,6 +130,28 @@ def _render_value(value, render_context):
 	return value
 
 
+def condition_fieldnames(condition: str) -> set[str] | None:
+	"""Fieldnames a condition reads off `doc`, or None when a field row cannot answer it.
+
+	None is the "load the real document" signal: the expression does not parse, or it reaches
+	through something other than a bare `doc.<field>` - a method call, a chained attribute,
+	another record. Only the flat case is safe to serve from a bulk column fetch.
+	"""
+	try:
+		tree = ast.parse(condition or "", mode="eval")
+	except (SyntaxError, ValueError):
+		return None
+
+	names = set()
+	for node in ast.walk(tree):
+		if not isinstance(node, ast.Attribute):
+			continue
+		if not isinstance(node.value, ast.Name) or node.value.id != "doc":
+			return None
+		names.add(node.attr)
+	return names
+
+
 def condition_values(condition: str, scope: dict) -> dict:
 	"""Values of every `doc.x` / `target.x` a condition reads, keyed by the source text.
 

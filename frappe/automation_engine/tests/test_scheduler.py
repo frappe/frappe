@@ -3,17 +3,25 @@
 
 import json
 from datetime import datetime, time
+from unittest.mock import patch
 
 import frappe
 from frappe.automation_engine.dispatch import queue_trigger
 from frappe.automation_engine.runner import TASK_METHOD, automation_task_name, execute_automation
-from frappe.automation_engine.scheduler import _handled_names, process_cron, process_date_based
+from frappe.automation_engine.scheduler import (
+	_handled_names,
+	_matching_names,
+	ensure_run_lookup_index,
+	process_cron,
+	process_date_based,
+)
 from frappe.tests import IntegrationTestCase
 
 QUEUE = "Automation Trigger Queue"
 
 
-def make_scheduled_rule(**kwargs):
+def new_scheduled_rule(**kwargs):
+	"""A saved Scheduled rule, left exactly as the framework wrote it."""
 	doc = frappe.new_doc("Automation Flow")
 	doc.title = kwargs.pop("title", "Scheduled Rule")
 	doc.trigger_type = "Scheduled"
@@ -29,10 +37,25 @@ def make_scheduled_rule(**kwargs):
 		},
 	)
 	doc.enabled = 1
-	doc.insert()
+	return doc.insert()
+
+
+def make_scheduled_rule(**kwargs):
+	"""As above, but backdated into the fixed window the cron tests drive `now` through."""
+	next_run = kwargs.pop("next_run", "2026-07-15 10:00:00")
+	doc = new_scheduled_rule(**kwargs)
 	doc.db_set("creation", "2026-07-15 10:00:00", update_modified=False)
 	doc.creation = "2026-07-15 10:00:00"
+	set_next_run(doc, next_run)
 	return doc
+
+
+def set_next_run(rule, value):
+	frappe.db.set_value("Automation Flow", rule.name, "next_run", value, update_modified=False)
+
+
+def stored_next_run(rule):
+	return str(frappe.db.get_value("Automation Flow", rule.name, "next_run"))
 
 
 class TestScheduler(IntegrationTestCase):
@@ -99,6 +122,108 @@ class TestScheduler(IntegrationTestCase):
 		process_cron(datetime(2026, 7, 15, 10, 5, 30))
 		self.assertEqual(len(self.rows(rule)), 0)
 
+	def test_rule_not_yet_due_is_skipped(self):
+		rule = make_scheduled_rule(next_run="2026-07-15 10:10:00")
+		process_cron(datetime(2026, 7, 15, 10, 5))
+		self.assertEqual(self.rows(rule), [])
+
+	def test_rule_not_yet_due_never_scans_its_document_type(self):
+		"""The whole point of the gate: an undue rule must not touch the target table."""
+		self.make_todo()
+		rule = make_scheduled_rule(document_type="ToDo", next_run="2026-07-15 10:10:00")
+		with patch("frappe.automation_engine.scheduler._matching_names") as scan:
+			process_cron(datetime(2026, 7, 15, 10, 5))
+		scan.assert_not_called()
+		self.assertEqual(self.rows(rule), [])
+
+	def test_firing_advances_next_run_past_the_tick(self):
+		rule = make_scheduled_rule(cron_expression="0 10 * * *", next_run="2026-07-15 10:00:00")
+		process_cron(datetime(2026, 7, 15, 10, 5))
+		self.assertEqual(len(self.rows(rule)), 1)
+		self.assertEqual(stored_next_run(rule), "2026-07-16 10:00:00")
+
+	def test_next_run_advances_even_when_the_fire_was_already_handled(self):
+		"""Dedup suppressing the queue row must not leave the rule pinned to a stale next_run."""
+		rule = make_scheduled_rule(cron_expression="0 0 * * *", next_run="2026-07-15 00:00:00")
+		self.make_run(rule)
+		process_cron(datetime(2026, 7, 15, 10, 5))
+		self.assertEqual(self.rows(rule), [])
+		self.assertEqual(stored_next_run(rule), "2026-07-16 00:00:00")
+
+	def test_next_run_advances_when_the_fire_predates_the_rule(self):
+		rule = make_scheduled_rule(cron_expression="0 9 * * *", next_run="2026-07-15 09:00:00")
+		process_cron(datetime(2026, 7, 15, 10, 5))
+		self.assertEqual(self.rows(rule), [])
+		self.assertEqual(stored_next_run(rule), "2026-07-16 09:00:00")
+
+	def test_rule_without_a_next_run_is_treated_as_due(self):
+		"""Flows saved before the field existed must keep firing, not stall."""
+		rule = make_scheduled_rule(next_run=None)
+		process_cron(datetime(2026, 7, 15, 10, 5))
+		self.assertEqual(len(self.rows(rule)), 1)
+
+	def test_saving_a_scheduled_rule_sets_its_next_run(self):
+		rule = new_scheduled_rule(cron_expression="0 0 * * *")
+		self.assertGreater(frappe.utils.get_datetime(stored_next_run(rule)), frappe.utils.now_datetime())
+
+	def test_editing_the_cron_expression_recomputes_next_run(self):
+		rule = new_scheduled_rule(cron_expression="0 0 1 1 *")
+		rule.cron_expression = "*/5 * * * *"
+		rule.save()
+		due = frappe.utils.get_datetime(stored_next_run(rule))
+		self.assertLess(due, frappe.utils.add_to_date(frappe.utils.now_datetime(), minutes=6))
+
+	def test_condition_rule_evaluates_documents_without_loading_each_one(self):
+		"""The condition scan must not cost a query per candidate row."""
+		marker = frappe.generate_hash(length=10)
+		for _ in range(5):
+			self.make_todo(description=marker)
+		rule = make_scheduled_rule(
+			document_type="ToDo",
+			filters=json.dumps([["ToDo", "description", "=", marker]]),
+			condition="doc.priority == 'Medium'",
+		)
+		with self.assertQueryCount(2):
+			names = _matching_names(rule)
+		self.assertEqual(len(names), 5)
+
+	def test_condition_rule_still_selects_only_matching_documents(self):
+		marker = frappe.generate_hash(length=10)
+		self.make_todo(description=marker, priority="Low")
+		wanted = self.make_todo(description=marker, priority="High")
+		rule = make_scheduled_rule(
+			document_type="ToDo",
+			filters=json.dumps([["ToDo", "description", "=", marker]]),
+			condition="doc.priority == 'High'",
+		)
+		self.assertEqual(_matching_names(rule), [wanted.name])
+
+	def test_condition_reading_a_child_table_falls_back_to_a_full_load(self):
+		"""A bulk field fetch cannot answer `doc.event_participants`, so that rule must not use it."""
+		marker = frappe.generate_hash(length=10)
+		event = make_event(f"{frappe.utils.nowdate()} 10:00:00", subject=marker)
+		rule = make_scheduled_rule(
+			document_type="Event",
+			filters=json.dumps([["Event", "subject", "=", marker]]),
+			condition="doc.event_participants == []",
+		)
+		self.assertEqual(_matching_names(rule), [event.name])
+
+	def test_condition_reading_a_missing_field_falls_back_rather_than_matching_everything(self):
+		marker = frappe.generate_hash(length=10)
+		self.make_todo(description=marker)
+		rule = make_scheduled_rule(
+			document_type="ToDo",
+			filters=json.dumps([["ToDo", "description", "=", marker]]),
+			condition="doc.not_a_real_field == 'x'",
+		)
+		self.assertEqual(_matching_names(rule), [])
+
+	def test_run_lookup_index_is_created_and_idempotent(self):
+		ensure_run_lookup_index()
+		ensure_run_lookup_index()
+		self.assertTrue(frappe.db.has_index("tabBackground Task", "automation_run_lookup"))
+
 	def make_todo(self, **kwargs):
 		return frappe.get_doc({"doctype": "ToDo", "description": "x", **kwargs}).insert()
 
@@ -154,9 +279,14 @@ def make_todo(date, **kwargs):
 	return frappe.get_doc({"doctype": "ToDo", "description": MARKER, "date": date, **kwargs}).insert()
 
 
-def make_event(starts_on):
+def make_event(starts_on, subject=None):
 	return frappe.get_doc(
-		{"doctype": "Event", "subject": MARKER, "event_type": "Private", "starts_on": starts_on}
+		{
+			"doctype": "Event",
+			"subject": subject or MARKER,
+			"event_type": "Private",
+			"starts_on": starts_on,
+		}
 	).insert()
 
 
