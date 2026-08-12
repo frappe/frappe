@@ -315,7 +315,7 @@ class NotificationsView extends BaseNotificationsView {
 		}
 
 		item_html.on("click", () => {
-			!notification_log.read && this.mark_as_read(notification_log.name, item_html);
+			item_html.hasClass("unread") && this.mark_as_read(notification_log.name, item_html);
 			this.notifications_icon.trigger("click");
 		});
 
@@ -357,7 +357,6 @@ class NotificationsView extends BaseNotificationsView {
 			method: "frappe.desk.doctype.notification_log.notification_log.get_notification_logs",
 			args: { limit: limit },
 			type: "GET",
-			cache: true,
 		});
 	}
 
