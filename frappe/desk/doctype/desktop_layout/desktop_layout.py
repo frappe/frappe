@@ -1,6 +1,12 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+"""One user's arrangement of the icon grid.
+
+Retiring. It goes with the icon-grid batch, on one of the two triggers written down in
+`frappe/desk/RETIRING.md` -- not on a date, and not on its own.
+"""
+
 import json
 
 import frappe

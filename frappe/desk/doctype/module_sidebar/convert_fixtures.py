@@ -15,6 +15,10 @@ exists.
 
 	bench --site <site> convert-sidebar-fixtures --app erpnext
 
+Retiring: this, the command and the notice go with the icon-grid batch, on one of the two
+triggers written down in `frappe/desk/RETIRING.md` -- by which point an app that has not
+converted has had a whole release line to.
+
 Reads only; the old folder is left exactly where it is, so a conversion can be inspected,
 thrown away, and run again.
 """

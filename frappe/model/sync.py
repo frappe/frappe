@@ -210,6 +210,8 @@ def remove_orphan_doctypes():
 # this release, so left here it would delete the very rows the conversion reads. Icon fixtures
 # stay: their files are staying, and an icon has no computed base to absorb the loss.
 ORPHANABLE_ENTITIES = ["Workspace", "Dashboard", "Page", "Report", "Notification", "Module Sidebar"]
+# Retiring with the icon-grid batch, together with the fixture import it mirrors; see
+# `frappe/desk/RETIRING.md`.
 APP_LEVEL_ENTITIES = ["Desktop Icon"]
 
 

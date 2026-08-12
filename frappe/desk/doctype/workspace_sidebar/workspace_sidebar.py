@@ -9,8 +9,9 @@ v16 site's sidebars actually are: the conversion in
 makes that conversion re-runnable -- a site migrated by a bad build can be migrated again from
 the same source, and nothing anywhere in the upgrade destroys anything.
 
-Retired with the rest of the icon-grid era; see `frappe/desk/doctype/desktop_settings` for what
-else has an end date.
+Retiring, and deliberately not before the rest: while it is here a site migrated by a bad
+build can be migrated again from the same rows. It goes with the icon-grid batch, on one of the
+two triggers written down in `frappe/desk/RETIRING.md`.
 """
 
 import frappe

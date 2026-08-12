@@ -1,6 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
+"""The icon grid's rows: what a site sees when its desktop page is the grid.
+
+Retiring. It goes with the icon-grid batch, on one of the two triggers written down in
+`frappe/desk/RETIRING.md` -- not on a date, and not on its own.
+"""
+
 import json
 import os
 import random

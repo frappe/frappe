@@ -7,6 +7,10 @@ from frappe.model.document import Document
 # The two things the /app/desktop page can be. These strings are the options of the
 # `desktop_page` field, so they are what a system manager sees. This module is the only
 # place either is compared -- everything else asks `is_desktop_icons_page()`.
+#
+# Retiring. The field, the mode check and the seed-on-flip below exist only while the desktop
+# has two forms; with the field gone every caller collapses to the Apps path. They go with the
+# icon-grid batch, on one of the two triggers written down in `frappe/desk/RETIRING.md`.
 APPS = "Apps"
 DESKTOP_ICONS = "Desktop Icons"
 
@@ -45,6 +49,8 @@ class DesktopSettings(Document):
 
 def seed_desktop_icons():
 	"""Fill a freshly switched-on grid: generated rows, then every app's shipped ones.
+
+	Exists only while the flag has two settings; see `frappe/desk/RETIRING.md`.
 
 	Both producers are idempotent -- they skip an icon that already exists -- so repeated
 	flips accumulate nothing.

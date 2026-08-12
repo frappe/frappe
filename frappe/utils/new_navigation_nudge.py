@@ -6,9 +6,10 @@ the new navigation exists never finds it, so they are asked exactly once.
 
 **Temporary by construction, and here is its end.** It exists only for sites that arrive on
 the grid; a fresh install is already on Apps, so the condition is false and no patch is needed
-to make it so. Drop this module -- with the boot flag, the JS, and the `Desktop Icons` option
-itself -- when the grid is removed. Until then, declining costs nothing and is asked again in
-a later release rather than expiring on a date.
+to make it so. It goes with the icon-grid batch -- this module, the boot key in
+`frappe.sessions`, and the JS -- on one of the two triggers written down in
+`frappe/desk/RETIRING.md`. Until then, declining costs nothing: a customer who declines is
+asked again in a later release, which clears the flag, rather than expiring on a date.
 
 Modelled verbatim on `legacy_gravatar_cleanup`, which is the flow this codebase already has
 for "ask a system manager once": a `frappe.defaults` flag and a boot flag, so **no schema
