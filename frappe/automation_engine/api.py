@@ -139,8 +139,16 @@ def _serialize_run(task) -> frappe._dict:
 
 
 def _doc_fields(doctype: str) -> list:
+	# `options` travels with the field so a builder can offer the values a field actually
+	# accepts - the target doctype for a Link, the choices for a Select - instead of a
+	# free text box that only reveals its mistake at run time.
 	return [
-		{"fieldname": df.fieldname, "label": df.label, "fieldtype": df.fieldtype}
+		{
+			"fieldname": df.fieldname,
+			"label": df.label,
+			"fieldtype": df.fieldtype,
+			"options": df.options,
+		}
 		for df in frappe.get_meta(doctype).fields
 		if df.fieldtype not in frappe.model.no_value_fields
 	]
