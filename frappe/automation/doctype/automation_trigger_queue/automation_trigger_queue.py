@@ -6,6 +6,7 @@ from frappe.automation_engine import WAITING_STATES
 from frappe.model.document import Document
 
 TABLE = "tabAutomation Trigger Queue"
+DEDUP_INDEX = "unique_dedup_key"
 
 
 class AutomationTriggerQueue(Document):
@@ -39,13 +40,44 @@ def on_doctype_update():
 
 
 def ensure_dedup_indexes():
-	_ensure_dedup_column()
-	if not frappe.db.has_index(TABLE, "unique_dedup_key"):
-		frappe.db.sql_ddl(f"ALTER TABLE `{TABLE}` ADD UNIQUE INDEX `unique_dedup_key` (`dedup_key`)")
+	"""Enforce "one waiting row per (automation, document)" in the database.
+
+	MariaDB gets a generated column carrying the dedup key plus a unique index on it, because
+	it has no partial indexes. Postgres and SQLite express the same rule directly as a partial
+	unique index, and skip the column entirely - neither can index a virtual column, and
+	CONCAT_WS is not immutable enough for a Postgres generated one.
+	"""
+	if frappe.db.db_type == "mariadb":
+		_ensure_dedup_column()
+		if not frappe.db.has_index(TABLE, DEDUP_INDEX):
+			frappe.db.sql_ddl(f"ALTER TABLE `{TABLE}` ADD UNIQUE INDEX `{DEDUP_INDEX}` (`dedup_key`)")
+	else:
+		_ensure_partial_dedup_index()
+
 	if not frappe.db.has_index(TABLE, "drain_scan"):
 		frappe.db.sql_ddl(
 			f"ALTER TABLE `{TABLE}` ADD INDEX `drain_scan` (`status`, `run_after`, `triggered_at`)"
 		)
+
+
+def _waiting_states_sql() -> str:
+	"""The WAITING_STATES tuple as a SQL list, so the constant stays the single source."""
+	return ", ".join(frappe.db.escape(state) for state in WAITING_STATES)
+
+
+def _ensure_partial_dedup_index():
+	"""Rebuild the partial unique index every time rather than probing its stored predicate.
+
+	Dropping and recreating is cheap on a table the purge sweep keeps short, and it is the
+	only db-agnostic way to guarantee the predicate still matches WAITING_STATES.
+	"""
+	frappe.db.sql_ddl(f"DROP INDEX IF EXISTS `{DEDUP_INDEX}`")
+	frappe.db.sql_ddl(
+		f"""
+		CREATE UNIQUE INDEX `{DEDUP_INDEX}` ON `{TABLE}` (`automation`, `ref_doctype`, `ref_name`)
+		WHERE `status` IN ({_waiting_states_sql()}) AND `resume_run` IS NULL
+		"""
+	)
 
 
 def _ensure_dedup_column():
@@ -70,8 +102,8 @@ def _dedup_column_is_current() -> bool:
 
 
 def _drop_dedup_column():
-	if frappe.db.has_index(TABLE, "unique_dedup_key"):
-		frappe.db.sql_ddl(f"ALTER TABLE `{TABLE}` DROP INDEX `unique_dedup_key`")
+	if frappe.db.has_index(TABLE, DEDUP_INDEX):
+		frappe.db.sql_ddl(f"ALTER TABLE `{TABLE}` DROP INDEX `{DEDUP_INDEX}`")
 	if frappe.db.has_column("Automation Trigger Queue", "dedup_key"):
 		frappe.db.sql_ddl(f"ALTER TABLE `{TABLE}` DROP COLUMN `dedup_key`")
 		# Raw DDL leaves the cached column list stale, and the re-add reads it.
@@ -84,7 +116,7 @@ def _add_dedup_column():
 		ALTER TABLE `{TABLE}`
 		ADD COLUMN `dedup_key` VARCHAR(420)
 		AS (
-			CASE WHEN `status` IN ('Pending', 'Scheduled') AND `resume_run` IS NULL
+			CASE WHEN `status` IN ({_waiting_states_sql()}) AND `resume_run` IS NULL
 			THEN CONCAT_WS(':', `automation`, `ref_doctype`, `ref_name`) END
 		) VIRTUAL
 		"""
