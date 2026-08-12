@@ -124,16 +124,19 @@
    "read_only": 1
   },
   {
+   "description": "Stack trace with local variables. Kept at permlevel 1 so it stays out of reach of the users who can read the queue row itself.",
    "fieldname": "debug_output",
    "fieldtype": "Long Text",
    "label": "Debug Output",
+   "permlevel": 1,
    "read_only": 1
   }
  ],
  "grid_page_length": 50,
+ "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-19 00:00:00.000000",
+ "modified": "2026-08-11 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Document Queue",
@@ -153,7 +156,6 @@
    "write": 1
   },
   {
-   "create": 1,
    "email": 1,
    "export": 1,
    "if_owner": 1,
@@ -161,8 +163,12 @@
    "read": 1,
    "report": 1,
    "role": "Desk User",
-   "share": 1,
-   "write": 1
+   "share": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "System Manager"
   }
  ],
  "row_format": "Dynamic",

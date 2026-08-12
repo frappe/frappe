@@ -25,8 +25,6 @@ frappe.document_queue_list_action = {
 		);
 		if (!count) return;
 
-		frappe.document_queue_review.add_styles();
-
 		const message = __("{0} Documents ready for review", [count]);
 		const $banner = $(`
 			<div class="document-queue-ready-banner">
@@ -35,18 +33,18 @@ frappe.document_queue_list_action = {
 			</div>
 		`);
 
-		// Open modal when the banner is clicked
+		// Open modal when the banner is clicked. Promise form of frappe.require,
+		// matching the feature's other call sites (the callback form is legacy).
 		$banner.on("click", (e) => {
 			e.stopPropagation();
-			frappe.require(
-				"/assets/frappe/js/frappe/document_queue_review_modal.js",
-				() => {
-					if (!listview.document_queue_modal) {
-						listview.document_queue_modal = new frappe.ui.DocumentQueueModal({ doctype: listview.doctype });
-					}
-					listview.document_queue_modal.show();
+			frappe.require("/assets/frappe/js/frappe/document_queue_review_modal.js").then(() => {
+				if (!listview.document_queue_modal) {
+					listview.document_queue_modal = new frappe.ui.DocumentQueueModal({
+						doctype: listview.doctype,
+					});
 				}
-			);
+				listview.document_queue_modal.show();
+			});
 		});
 
 		// Insert the banner

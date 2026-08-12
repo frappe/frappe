@@ -1,53 +1,21 @@
 frappe.provide("frappe.document_queue");
 
-frappe.document_queue.review_script_url = `/assets/frappe/js/frappe/document_queue_review.js?v=${
-	frappe.boot?.assets_version || ""
-}`;
-frappe.document_queue.review_script_fallback_url =
-	"/assets/frappe/js/frappe/document_queue_review.js";
 frappe.document_queue.reviewable_statuses = ["Ready for Review", "Failed"];
 
-frappe.document_queue.load_review_script = function (url) {
-	return new Promise((resolve, reject) => {
-		const script = document.createElement("script");
-		script.src = url;
-		script.onload = resolve;
-		script.onerror = reject;
-		document.head.appendChild(script);
-	});
-};
-
 frappe.document_queue.start_review = function (frm) {
-	const start_review = () => {
-		if (!frappe.document_queue_review?.start_from_document_queue) {
+	// The review module is lazy-loaded only when a review is started.
+	// document_queue_review_loader owns that load (via frappe.require), so this
+	// shares the framework's asset cache with the feature's other two call sites
+	// — the form loader and list_view.js — instead of fetching the script again.
+	return frappe.document_queue_review_loader
+		.load()
+		.then(() => {
+			frappe.document_queue_review.start_from_document_queue(frm);
+		})
+		.catch(() => {
 			frappe.msgprint(
 				__("Document review script could not be loaded. Please refresh and try again.")
 			);
-			return;
-		}
-
-		frappe.document_queue_review.start_from_document_queue(frm);
-	};
-
-	if (frappe.document_queue_review?.start_from_document_queue) {
-		start_review();
-		return;
-	}
-
-	frappe.document_queue
-		.load_review_script(frappe.document_queue.review_script_url)
-		.then(start_review)
-		.catch(() => {
-			frappe.document_queue
-				.load_review_script(frappe.document_queue.review_script_fallback_url)
-				.then(start_review)
-				.catch(() => {
-					frappe.msgprint(
-						__(
-							"Document review script could not be loaded. Please refresh and try again."
-						)
-					);
-				});
 		});
 };
 
