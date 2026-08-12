@@ -37,6 +37,8 @@ export interface RecordPageHost {
   save: () => Promise<void>;
   reload: () => Promise<void>;
   router: Router;
+  /** Resolves when sources that register after mount (Page Scripts) are in. */
+  sourcesReady?: () => Promise<void>;
 }
 
 export interface RecordPageController {
@@ -95,6 +97,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   let vocabularyChecked = false;
 
   async function refresh() {
+    await host.sourcesReady?.();
     warnUnknownHandlers();
     for (const surface of surfaces) surface.reset();
     await fireEvent("refresh");

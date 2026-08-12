@@ -31,6 +31,12 @@ export function registrationsFor(doctype: string): Registration[] {
 	);
 }
 
+/** Drops a source's handlers, so a re-registered tier lands in creation order again. */
+export function unregisterSource(source: string) {
+	for (let index = registrations.length - 1; index >= 0; index--)
+		if (registrations[index].source === source) registrations.splice(index, 1);
+}
+
 function specificity(registration: Registration) {
 	return registration.doctype === ALL_DOCTYPES ? 0 : 1;
 }
