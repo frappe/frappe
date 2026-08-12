@@ -6,7 +6,7 @@ import json
 import mimetypes
 import types
 from contextlib import contextmanager
-from functools import lru_cache
+from functools import cache, lru_cache
 from itertools import chain
 from types import FunctionType, MethodType, ModuleType
 from typing import TYPE_CHECKING, Any
@@ -367,37 +367,139 @@ def safe_render_template(*args, **kwargs):
 
 
 ALLOWED_SCHEMES = frozenset({"http", "https"})
+# (connect, read) — read is the gap between bytes, not the total duration, so a slow
+# but steady download is not cut off.
+SAFE_REQUEST_TIMEOUT = (10, 300)
 
 
-def make_safe_get_request(url: str, **kwargs):
+class BlockedRequest(frappe.ValidationError):
+	pass
+
+
+def validate_request_address(ip: str):
 	import ipaddress
+
+	try:
+		addr = ipaddress.ip_address(ip)
+	except ValueError:
+		raise BlockedRequest(f"Could not parse address: {ip}")
+
+	if not addr.is_global:
+		raise BlockedRequest("Requests to internal network addresses are not permitted")
+
+
+def validate_request_url(url: str):
+	"""Reject anything that isn't a plain http(s) request to a globally routable host."""
 	import socket
 	from urllib.parse import urlparse
 
 	parsed = urlparse(url)
 
 	if parsed.scheme not in ALLOWED_SCHEMES:
-		frappe.throw(f"URL scheme '{parsed.scheme}' is not permitted")
+		raise BlockedRequest(f"URL scheme '{parsed.scheme}' is not permitted")
 
 	hostname = parsed.hostname
 	if not hostname:
-		frappe.throw("Invalid URL: no hostname")
+		raise BlockedRequest("Invalid URL: no hostname")
 
 	try:
-		addr_info = socket.getaddrinfo(hostname, None)
+		port = parsed.port or (443 if parsed.scheme == "https" else 80)
+	except ValueError:
+		raise BlockedRequest("Invalid URL: bad port")
+
+	try:
+		addr_info = socket.getaddrinfo(hostname, port, proto=socket.IPPROTO_TCP)
 	except socket.gaierror:
-		frappe.throw(f"Could not resolve host: {hostname}")
+		raise BlockedRequest(f"Could not resolve host: {hostname}")
+
+	if not addr_info:
+		raise BlockedRequest(f"Could not resolve host: {hostname}")
 
 	for record in addr_info:
-		try:
-			addr = ipaddress.ip_address(record[4][0])
-		except (ValueError, IndexError):
-			continue
+		validate_request_address(record[4][0])
 
-		if not addr.is_global:
-			frappe.throw("Requests to internal network addresses are not permitted")
 
-	return frappe.integrations.utils.make_get_request(url, **kwargs)
+@cache
+def _get_ssrf_guarded_adapter_class():
+	"""Validate at two layers, because checking the URL string once covers neither
+	redirects (the guard never sees hop 1..n) nor DNS rebinding (the name is resolved
+	again, independently, when the socket is opened)."""
+	from requests.adapters import HTTPAdapter
+	from urllib3.connection import HTTPConnection, HTTPSConnection
+	from urllib3.connectionpool import HTTPConnectionPool, HTTPSConnectionPool
+
+	def guarded_connection(base):
+		class GuardedConnection(base):
+			# TODO: pin the already-resolved IP here, keeping server_hostname for TLS.
+			def _new_conn(self):
+				sock = super()._new_conn()
+				try:
+					validate_request_address(sock.getpeername()[0])
+				except Exception:
+					sock.close()
+					raise
+				return sock
+
+		return GuardedConnection
+
+	class GuardedHTTPConnectionPool(HTTPConnectionPool):
+		ConnectionCls = guarded_connection(HTTPConnection)
+
+	class GuardedHTTPSConnectionPool(HTTPSConnectionPool):
+		ConnectionCls = guarded_connection(HTTPSConnection)
+
+	class SSRFGuardedAdapter(HTTPAdapter):
+		def init_poolmanager(self, *args, **kwargs):
+			super().init_poolmanager(*args, **kwargs)
+			self.poolmanager.pool_classes_by_scheme = {
+				"http": GuardedHTTPConnectionPool,
+				"https": GuardedHTTPSConnectionPool,
+			}
+
+		def send(self, request, **kwargs):
+			# Called once per hop, so redirect targets are validated too.
+			if kwargs.get("proxies"):
+				raise BlockedRequest("Proxied requests are not permitted")
+			validate_request_url(request.url)
+			return super().send(request, **kwargs)
+
+	return SSRFGuardedAdapter
+
+
+def get_safe_request_session():
+	from requests.adapters import Retry
+
+	adapter = _get_ssrf_guarded_adapter_class()(max_retries=Retry(total=5, status_forcelist=[500]))
+	session = frappe.utils.get_request_session(adapter=adapter)
+	# Env-configured proxies would send the request somewhere the guard can't see.
+	session.trust_env = False
+	return session
+
+
+def make_safe_request(method: str, url: str, **kwargs):
+	validate_request_url(url)
+	kwargs.setdefault("timeout", SAFE_REQUEST_TIMEOUT)
+	return frappe.integrations.utils.make_request(method, url, session=get_safe_request_session(), **kwargs)
+
+
+def make_safe_get_request(url: str, **kwargs):
+	return make_safe_request("GET", url, **kwargs)
+
+
+def make_safe_post_request(url: str, **kwargs):
+	return make_safe_request("POST", url, **kwargs)
+
+
+def make_safe_put_request(url: str, **kwargs):
+	return make_safe_request("PUT", url, **kwargs)
+
+
+def make_safe_patch_request(url: str, **kwargs):
+	return make_safe_request("PATCH", url, **kwargs)
+
+
+def make_safe_delete_request(url: str, **kwargs):
+	return make_safe_request("DELETE", url, **kwargs)
 
 
 def render_safe_globals():
@@ -571,11 +673,12 @@ def exec_safe_globals():
 			sendmail=frappe.sendmail,
 			get_print=frappe.get_print,
 			attach_print=frappe.attach_print,
-			make_get_request=frappe.integrations.utils.make_get_request,
-			make_post_request=frappe.integrations.utils.make_post_request,
-			make_put_request=frappe.integrations.utils.make_put_request,
-			make_patch_request=frappe.integrations.utils.make_patch_request,
-			make_delete_request=frappe.integrations.utils.make_delete_request,
+			# make_get_request is inherited from render_safe_globals; re-listing the same
+			# object here would trip _update_namespace's identity assert.
+			make_post_request=make_safe_post_request,
+			make_put_request=make_safe_put_request,
+			make_patch_request=make_safe_patch_request,
+			make_delete_request=make_safe_delete_request,
 			log_error=frappe.log_error,
 			get_list=frappe.get_list,
 			get_all=frappe.get_all,

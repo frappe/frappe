@@ -704,12 +704,16 @@ def get_sites(sites_path=None):
 	return sorted(sites)
 
 
-def get_request_session(max_retries=5):
+DEFAULT_MAX_REDIRECTS = 5
+
+
+def get_request_session(max_retries=5, max_redirects=DEFAULT_MAX_REDIRECTS, adapter=None):
 	import requests
 	from requests.adapters import HTTPAdapter, Retry
 
 	session = requests.Session()
-	http_adapter = HTTPAdapter(max_retries=Retry(total=max_retries, status_forcelist=[500]))
+	session.max_redirects = max_redirects
+	http_adapter = adapter or HTTPAdapter(max_retries=Retry(total=max_retries, status_forcelist=[500]))
 
 	session.mount("http://", http_adapter)
 	session.mount("https://", http_adapter)
