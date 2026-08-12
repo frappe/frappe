@@ -69,14 +69,76 @@
 	height: 5.5px;
 	width: 5.5px;
 	transition: opacity 0.2s ease-in-out;
+	opacity: 1;
+}
+
+/* Expanded sidebar: keep the blue unread dot visible next to the bell. */
+.body-sidebar-container.expanded .sidebar-notification .sidebar-item-icon.indicator::before {
+	opacity: 1;
 }
 
 .sidebar-notification:hover .sidebar-item-icon.indicator::before {
 	opacity: 0;
 }
 
+.sidebar-notification-count,
+.sidebar-notification .notification-count {
+	min-width: 20px;
+	padding: 1px 7px;
+	background-color: var(--bg-gray-100);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+	line-height: 1.2;
+	text-align: center;
+	border-radius: 10px;
+	font-variant-numeric: tabular-nums;
+}
+
 .sidebar-notification .standard-sidebar-item .item-anchor {
 	overflow: visible;
+}
+
+/* Keep the unread count pinned to the right of the Notification row. */
+.sidebar-notification {
+	position: relative;
+
+	.sidebar-item-suffix {
+		margin-left: auto;
+		flex-shrink: 0;
+		padding-right: 4px;
+	}
+}
+
+/* Collapsed sidebar (icon-only): show the count on the bell corner. */
+.body-sidebar-container:not(.expanded) .sidebar-notification {
+	.sidebar-item-label,
+	.sidebar-item-control {
+		display: none;
+	}
+
+	.sidebar-item-suffix {
+		position: absolute;
+		top: 0;
+		right: 0;
+		margin: 0;
+		padding: 0;
+		z-index: 2;
+	}
+
+	.sidebar-notification-count,
+	.notification-count {
+		min-width: 16px;
+		padding: 0 4px;
+		font-size: 10px;
+		line-height: 16px;
+		background-color: var(--bg-red-400, #e86c60);
+		color: #fff;
+	}
+
+	/* Number badge replaces the blue unseen dot while collapsed. */
+	.sidebar-item-icon.indicator::before {
+		opacity: 0;
+	}
 }
 
 .mark-read {

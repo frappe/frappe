@@ -131,6 +131,13 @@ frappe.ui.Notifications = class Notifications {
 		e.stopImmediatePropagation();
 		this.dropdown_list.find(".unread").removeClass("unread");
 		frappe.call("frappe.desk.doctype.notification_log.notification_log.mark_all_as_read");
+		const notifications = this.tabs.notifications;
+		if (notifications) {
+			notifications.settings.seen = 1;
+			notifications.update_count_badge(0);
+			notifications.toggle_notification_icon(true);
+		}
+		frappe.boot.notification_unread_count = 0;
 	}
 
 	setup_dropdown_events() {
@@ -225,15 +232,32 @@ class NotificationsView extends BaseNotificationsView {
 			.attr("title", __("Notifications"))
 			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 
+		this.bell_indicator = this.parent.find(".desktop-notification-icon");
+		if (!this.bell_indicator.length) {
+			this.bell_indicator = this.parent
+				.closest(".body-sidebar")
+				?.find(".sidebar-notification .sidebar-item-icon");
+		}
+
 		this.setup_notification_listeners();
-		this.get_notifications_list(this.max_length).then((r) => {
+
+		this.unread_count = frappe.boot.notification_unread_count || 0;
+		this.update_count_badge(this.unread_count);
+		this.refresh_notifications();
+	}
+
+	refresh_notifications() {
+		return this.get_notifications_list(this.max_length).then((r) => {
 			if (!r.message) return;
-			this.dropdown_items = r.message.notification_logs;
+			this.dropdown_items = r.message.notification_logs || [];
 			frappe.update_user_info(r.message.user_info);
 			this.render_notifications_dropdown();
-			if (this.settings.seen == 0 && this.dropdown_items.length > 0) {
-				this.toggle_notification_icon(false);
-			}
+
+			const unread =
+				r.message.unread_count != null
+					? cint(r.message.unread_count)
+					: this.dropdown_items.filter((n) => !n.read).length;
+			this.update_count_badge(unread);
 		});
 	}
 
@@ -264,13 +288,20 @@ class NotificationsView extends BaseNotificationsView {
 	}
 
 	mark_as_read(docname, $el) {
-		frappe
-			.call("frappe.desk.doctype.notification_log.notification_log.mark_as_read", {
-				docname: docname,
-			})
-			.then(() => {
-				$el.removeClass("unread");
-			});
+		// Optimistic UI: don't wait for the request (navigation can abort it /
+		// cached GET responses otherwise keep showing everything as unread).
+		$el?.removeClass("unread");
+		const item = this.dropdown_items?.find((n) => n.name === docname);
+		if (item) {
+			item.read = 1;
+		}
+		const next = Math.max(this.unread_count - 1, 0);
+		this.update_count_badge(next);
+		frappe.boot.notification_unread_count = next;
+
+		frappe.call("frappe.desk.doctype.notification_log.notification_log.mark_as_read", {
+			docname: docname,
+		});
 	}
 
 	insert_into_dropdown() {
@@ -325,8 +356,10 @@ class NotificationsView extends BaseNotificationsView {
 		}
 
 		item_html.on("click", () => {
-			!notification_log.read && this.mark_as_read(notification_log.name, item_html);
-			this.notifications_icon.trigger("click");
+			if (!notification_log.read) {
+				this.mark_as_read(notification_log.name, item_html);
+			}
+			this.parent.addClass("hidden");
 		});
 
 		return item_html;
@@ -367,7 +400,9 @@ class NotificationsView extends BaseNotificationsView {
 			method: "frappe.desk.doctype.notification_log.notification_log.get_notification_logs",
 			args: { limit: limit },
 			type: "GET",
-			cache: true,
+			// Must not cache: mark_as_read updates `read`, and a cached GET would
+			// keep rendering every item as unread after clicks / reload.
+			cache: false,
 		});
 	}
 
@@ -385,8 +420,33 @@ class NotificationsView extends BaseNotificationsView {
 	}
 
 	toggle_notification_icon(seen) {
-		this.notifications_icon.find(".notifications-seen").toggle(seen);
-		this.notifications_icon.find(".notifications-unseen").toggle(!seen);
+		if (!this.bell_indicator?.length) {
+			this.bell_indicator = $(".sidebar-notification .sidebar-item-icon");
+		}
+		this.bell_indicator?.toggleClass("indicator blue", !seen);
+	}
+
+	update_count_badge(count) {
+		this.unread_count = count;
+		frappe.boot.notification_unread_count = count;
+
+		// Prefer the sidebar suffix; fall back to any .notification-count host.
+		const $count = $(
+			".sidebar-notification .sidebar-notification-count, .sidebar-notification .notification-count, .notification-count"
+		);
+		if ($count.length) {
+			if (count > 0) {
+				$count
+					.text(count > 99 ? "99+" : String(count))
+					.attr("aria-label", __("{0} unread notifications", [count]))
+					.removeClass("hidden");
+			} else {
+				$count.text("").removeAttr("aria-label").addClass("hidden");
+			}
+		}
+
+		// Blue bell dot tracks remaining unread logs (not the separate "seen" flag).
+		this.toggle_notification_icon(count === 0);
 	}
 
 	toggle_seen(flag) {
@@ -401,22 +461,26 @@ class NotificationsView extends BaseNotificationsView {
 
 	setup_notification_listeners() {
 		frappe.realtime.on("notification", () => {
+			this.settings.seen = 0;
 			this.toggle_notification_icon(false);
+			this.update_count_badge(this.unread_count + 1);
 			this.update_dropdown();
 		});
 
 		frappe.realtime.on("indicator_hide", () => {
-			this.toggle_notification_icon(true);
+			this.settings.seen = 1;
+			// Keep the blue dot while unread logs remain.
+			if (!this.unread_count) {
+				this.toggle_notification_icon(true);
+			}
 		});
 
 		this.parent.on("show.bs.dropdown", () => {
 			this.toggle_seen(true);
-			if (this.notifications_icon.find(".notifications-unseen").is(":visible")) {
-				this.toggle_notification_icon(true);
-				frappe.call(
-					"frappe.desk.doctype.notification_log.notification_log.trigger_indicator_hide"
-				);
-			}
+			this.settings.seen = 1;
+			// Opening the panel marks notifications as "seen" but does not clear
+			// unread — keep the blue indicator while unread_count > 0.
+			this.refresh_notifications();
 		});
 	}
 }
