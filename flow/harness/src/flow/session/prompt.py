@@ -11,8 +11,10 @@ so a session's prompt never changes after create.
 from __future__ import annotations
 
 import os
+from collections.abc import Sequence
 
 from flow.session.config import SessionConfig
+from flow.session.skills import Skill, format_skills_for_prompt
 from flow.tools.builtins import BUILTIN_TOOLS
 
 DEFAULT_INTRO = (
@@ -30,7 +32,12 @@ TAIL_GUIDELINES = (
 )
 
 
-def build_system_prompt(config: SessionConfig, home: str | None = None) -> str:
+def build_system_prompt(
+	config: SessionConfig,
+	home: str | None = None,
+	*,
+	skills: Sequence[Skill] = (),
+) -> str:
 	"""Resolve the session's system prompt. A verbatim `system_prompt` wins outright;
 	otherwise compose body -> suffix -> <project_context> -> cwd trailer."""
 	if config.system_prompt is not None:
@@ -44,6 +51,10 @@ def build_system_prompt(config: SessionConfig, home: str | None = None) -> str:
 	context = _project_context(config, home)
 	if context is not None:
 		sections.append(context)
+	if "read_file" in config.tools:
+		skill_index = format_skills_for_prompt(skills)
+		if skill_index:
+			sections.append(skill_index)
 	sections.append(f"Current working directory: {config.cwd.replace(os.sep, '/')}")
 	return "\n\n".join(section.strip() for section in sections if section.strip())
 

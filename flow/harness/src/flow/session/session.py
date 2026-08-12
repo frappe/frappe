@@ -49,6 +49,7 @@ from flow.session.attachments import (
 )
 from flow.session.config import SessionConfig
 from flow.session.log import SessionLog
+from flow.session.skills import SkillCatalog, format_skill_invocation, parse_skill_command
 from flow.session.transcript import PendingApproval, Transcript
 
 _CANCELLED = json.dumps({"status": "cancelled", "message": "User cancelled this pending tool call."})
@@ -126,6 +127,7 @@ class Session:
 		credentials: CredentialStore | None = None,
 		allowed_roots: tuple[str, ...] = (),
 		attachment_store: AttachmentStore | None = None,
+		skill_catalog: SkillCatalog | None = None,
 	):
 		self.id = sid
 		self.config = config
@@ -134,6 +136,7 @@ class Session:
 		self.credentials = credentials or CredentialStore(server_config.CREDENTIALS_PATH)
 		self.allowed_roots = allowed_roots
 		self.attachment_store = attachment_store
+		self.skill_catalog = skill_catalog or SkillCatalog()
 		self.transcript = Transcript.replay(log)
 		self.abort_signal = asyncio.Event()
 		self._operation_lock = asyncio.Lock()
@@ -391,6 +394,7 @@ class Session:
 			credential_id=self.credential_id,
 			reasoning_effort=self.reasoning_effort,
 			allowed_roots=self.allowed_roots,
+			read_only_roots=tuple(dict.fromkeys(skill.base_dir for skill in self.skill_catalog.skills)),
 			session_id=self.id,
 			model=model,
 			context_tokens=self.transcript.context_tokens,
@@ -409,7 +413,10 @@ class Session:
 			raise AttachmentError(f"a message can include at most {MAX_ATTACHMENTS_PER_MESSAGE} attachments")
 		if len(set(attachment_ids)) != len(attachment_ids):
 			raise AttachmentError("a message cannot include the same attachment twice")
+		invocation = parse_skill_command(message, self.skill_catalog.skills)
 		if not attachment_ids:
+			if invocation is not None:
+				return UserMessage(content=format_skill_invocation(invocation)), ()
 			if not message.strip():
 				raise AttachmentError("message must not be empty")
 			return UserMessage(content=message), ()
@@ -418,7 +425,11 @@ class Session:
 		attachments = [self.attachment_store.get(attachment_id) for attachment_id in attachment_ids]
 		if sum(item.size for item in attachments if item.kind == "text") > MAX_TEXT_BYTES:
 			raise AttachmentError(f"text attachments exceed the {MAX_TEXT_BYTES // 1024} KB message limit")
-		content = [TextContent(text=message)] if message else []
+		content = (
+			[TextContent(text=format_skill_invocation(invocation))]
+			if invocation is not None
+			else ([TextContent(text=message)] if message else [])
+		)
 		content.extend(attachments)
 		owned_attachment_claims = self.attachment_store.claim(attachment_ids)
 		return UserMessage(content=content), owned_attachment_claims

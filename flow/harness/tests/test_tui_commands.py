@@ -21,7 +21,7 @@ from flow.server import create_app
 from flow.session.config import SessionConfig
 from flow.session.store import SessionStore
 from flow_tui.app import FlowApp
-from flow_tui.client.api import FlowClient
+from flow_tui.client.api import FlowAPIError, FlowClient
 from flow_tui.client.state import Change, ConversationState, StatusChanged
 from flow_tui.commands import REGISTRY, CommandError, parse
 from flow_tui.controller import Controller
@@ -139,6 +139,50 @@ async def test_slash_abort_reaches_controller_and_is_not_a_message():
 		assert pilot.app.query_one(Composer).text == ""
 
 
+async def test_skill_directive_is_submitted_to_the_server():
+	fake = FakeController()
+	async with FlowApp(fake).run_test() as pilot:
+		await _slash(pilot, "/skill:testing add parser tests")
+		assert fake.calls == [("submit", "/skill:testing add parser tests")]
+
+
+async def test_alt_enter_queues_skill_directive_while_running():
+	fake = FakeController()
+	async with FlowApp(fake).run_test() as pilot:
+		fake.feed(RunStarted(run_id="r1", seq=1))
+		pilot.app.query_one(Composer).load_text("/skill:testing later")
+		await pilot.press("alt+enter")
+		await pilot.pause()
+
+		assert fake.queued == ["/skill:testing later"]
+		assert fake.calls == []
+
+
+async def test_rejected_queued_skill_does_not_escape_the_controller():
+	class RejectingClient:
+		def __init__(self):
+			self.messages = []
+
+		async def run(self, sid, message):
+			self.messages.append(message)
+			if message == "/skill:missing":
+				raise FlowAPIError(400, "unknown skill: missing")
+			return {"status": "started"}
+
+	client = RejectingClient()
+	controller = Controller(client, session_id="session-1")  # type: ignore[arg-type]
+	errors = []
+	controller.on_error = errors.append
+	controller.queue("/skill:missing")
+	controller.queue("continue")
+
+	await controller._flush_queue()
+
+	assert controller.queued == []
+	assert client.messages == ["/skill:missing", "continue"]
+	assert [error.detail for error in errors] == ["unknown skill: missing"]
+
+
 async def test_unknown_command_shows_inline_error():
 	fake = FakeController()
 	async with FlowApp(fake).run_test() as pilot:
@@ -191,6 +235,26 @@ async def test_rewind_with_seq_and_default_to_before_last_user_message():
 		assert fake.calls[-1] == ("rewind", 3)
 		# the dropped user message comes back to the composer for a rephrase
 		assert pilot.app.query_one(Composer).text == "second question"
+
+
+async def test_rewind_restores_concise_skill_command():
+	fake = FakeController()
+	expanded = (
+		'<skill name="testing" location="/skills/testing/SKILL.md">\n'
+		"References are relative to /skills/testing.\n\n"
+		"Run tests.\n"
+		"</skill>\n\nfocus parser coverage"
+	)
+	async with FlowApp(fake).run_test() as pilot:
+		fake.feed(
+			UserMessage(
+				content=expanded,
+				seq=2,
+			)
+		)
+		await _slash(pilot, "/rewind")
+
+		assert pilot.app.query_one(Composer).text == "/skill:testing focus parser coverage"
 
 
 async def test_rewind_default_with_no_user_message_errors():

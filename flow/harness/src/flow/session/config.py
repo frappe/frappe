@@ -35,6 +35,8 @@ class SessionConfig(BaseModel):
 		confirm_tools: Extra tools that pause for approval, on top of each tool's own
 			default. `auto_approve` is the only way to switch approval off.
 		auto_approve: Unattended runs (triggers) skip approval.
+		skills_enabled: Discover harness-neutral skills for this session.
+		skill_paths: Additional skill files or directories, resolved from `cwd`.
 		auto_compact: Compact near the model's window; recover from overflow once per run.
 		compact_threshold_tokens: Compact past this estimate; default derives from the window.
 		cwd: Current working directory.
@@ -59,6 +61,8 @@ class SessionConfig(BaseModel):
 	credential_id: str | None = None
 	confirm_tools: list[str] = Field(default_factory=list)
 	auto_approve: bool = False
+	skills_enabled: bool = True
+	skill_paths: list[str] = Field(default_factory=list, max_length=32)
 	auto_compact: bool = True
 	compact_threshold_tokens: int | None = Field(default=None, gt=0)
 	cwd: str = "."

@@ -67,6 +67,18 @@ async def test_submitted_prompt_is_available_immediately():
 		assert pilot.app.query_one(Composer).text == "new prompt"
 
 
+async def test_submitted_skill_prompt_is_available_immediately():
+	fake = FakeController([])
+	async with FlowApp(fake).run_test() as pilot:
+		composer = pilot.app.query_one(Composer)
+		composer.load_text("/skill:review check auth")
+		await pilot.press("enter")
+		await pilot.pause()
+		assert fake.submitted == ["/skill:review check auth"]
+		await pilot.press("up")
+		assert composer.text == "/skill:review check auth"
+
+
 class HistoryClient:
 	def __init__(self):
 		self.entry_calls: list[tuple[str, str]] = []
@@ -83,7 +95,15 @@ class HistoryClient:
 				{"type": "user_message", "content": "current two"},
 			],
 			"previous": [
-				{"type": "user_message", "content": "previous one"},
+				{
+					"type": "user_message",
+					"content": (
+						'<skill name="review" location="/skills/review/SKILL.md">\n'
+						"References are relative to /skills/review.\n\n"
+						"Review carefully.\n"
+						"</skill>\n\ncheck auth"
+					),
+				},
 				{"type": "user_message", "content": "previous two"},
 			],
 		}
@@ -95,7 +115,7 @@ async def test_controller_collects_current_then_previous_session_history():
 	controller = Controller(client, session_id="current")  # type: ignore[arg-type]
 
 	assert await controller.prompt_history() == [
-		"previous one",
+		"/skill:review check auth",
 		"previous two",
 		"current one",
 		"current two",

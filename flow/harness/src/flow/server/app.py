@@ -53,6 +53,7 @@ from flow.session.session import (
 	Session,
 	SessionConflict,
 )
+from flow.session.skills import SkillCatalog, SkillError
 from flow.session.store import SessionStore
 from flow.session.transcript import active_path
 
@@ -153,7 +154,8 @@ def create_app(
 		return JSONResponse({"detail": str(error)}, status_code=409)
 
 	@app.exception_handler(AttachmentError)
-	async def attachment_error(request: Request, error: AttachmentError):
+	@app.exception_handler(SkillError)
+	async def input_error(request: Request, error: Exception):
 		return JSONResponse({"detail": str(error)}, status_code=400)
 
 	@app.exception_handler(AuthError)
@@ -313,10 +315,27 @@ def create_app(
 		infos = await asyncio.to_thread(store.list)  # per-session file reads
 		return {"sessions": [asdict(info) for info in infos]}
 
+	def skill_catalog_payload(skill_catalog: SkillCatalog) -> dict:
+		return {
+			"skills": [
+				{"name": skill.name, "description": skill.description} for skill in skill_catalog.skills
+			],
+			"diagnostics": [{"message": diagnostic.message} for diagnostic in skill_catalog.diagnostics],
+		}
+
+	@app.post("/skills")
+	async def preview_skills(config: SessionConfig):
+		"""Return the catalog a lazy client would get without creating a session."""
+		try:
+			skill_catalog = await store.preview_skill_catalog(config)
+		except ValueError as e:
+			raise HTTPException(status_code=400, detail=str(e)) from None
+		return skill_catalog_payload(skill_catalog)
+
 	@app.post("/sessions")
 	async def create_session(config: SessionConfig):
 		try:
-			session = store.create(config)
+			session = await store.create_async(config)
 		except ValueError as e:
 			raise HTTPException(status_code=400, detail=str(e)) from None
 		return {"session_id": session.id, "config": session.config.redacted()}
@@ -339,6 +358,11 @@ def create_app(
 			"context_window": await asyncio.to_thread(context_window_for, session.model),
 			"supports_images": await asyncio.to_thread(model_supports_images, session.model),
 		}
+
+	@app.get("/sessions/{sid}/skills")
+	async def session_skills(sid: str):
+		session = _get(sid)
+		return skill_catalog_payload(session.skill_catalog)
 
 	@app.delete("/sessions/{sid}")
 	async def delete_session(sid: str):

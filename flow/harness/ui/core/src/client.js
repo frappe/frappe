@@ -67,6 +67,12 @@ export class DaemonClient {
 	session(sid) {
 		return this.request("GET", `/sessions/${enc(sid)}`)
 	}
+	skills(sid) {
+		return this.request("GET", `/sessions/${enc(sid)}/skills`)
+	}
+	previewSkills(config = {}) {
+		return this.request("POST", "/skills", { body: config })
+	}
 	// the session's active branch — replay-safe seed for a fresh transcript
 	entries(sid) {
 		return this.request("GET", `/sessions/${enc(sid)}/entries`)

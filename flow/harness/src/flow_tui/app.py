@@ -124,6 +124,7 @@ class ControllerLike(Protocol):
 	steered_seqs: set[int]
 	session_id: str | None
 	on_changes: Callable[[list[Change]], None]
+	on_error: Callable[[FlowAPIError], None]
 
 	async def connect(self) -> None: ...
 	async def stream_events(self) -> None: ...
@@ -184,6 +185,7 @@ class FlowApp(App):
 			# python interpreter behind the `flow` console script; set it explicitly.
 			self._driver.write("\x1b]0;flow\x07")
 		self.controller.on_changes = self.apply_changes
+		self.controller.on_error = self._notify_controller_error
 		self.query_one(Composer).focus()
 		if self.fatal_check is not None:
 			self.set_interval(1.0, self._check_daemon)
@@ -267,6 +269,9 @@ class FlowApp(App):
 			return
 		if status == "steered":
 			self.notify("steering the active run", severity="information")
+
+	def _notify_controller_error(self, error: FlowAPIError) -> None:
+		self.notify(str(error.detail), severity="error", markup=False)
 
 	def on_composer_edit_requested(self, message: Composer.EditRequested) -> None:
 		self.action_edit_in_editor()

@@ -16,7 +16,8 @@ from collections.abc import Callable
 from flow import settings
 from flow.events import ReasoningEffort, RunEnded, RunStarted, UserMessage
 from flow.session.config import SessionConfig
-from flow_tui.client.api import FlowClient
+from flow.session.skills import parse_skill_invocation
+from flow_tui.client.api import FlowAPIError, FlowClient
 from flow_tui.client.state import (
 	Change,
 	ConversationState,
@@ -40,7 +41,9 @@ class Controller:
 		self.config = config
 		self.state = ConversationState()
 		self.queued: list[str] = []
+		self.skills: list[dict] = []
 		self.on_changes: Callable[[list[Change]], None] = lambda changes: None
+		self.on_error: Callable[[FlowAPIError], None] = lambda error: None
 		# seqs of user messages that steered an active run (any user message after the
 		# run's initiating one, while the run is live) — the view marks them
 		self.steered_seqs: set[int] = set()
@@ -53,6 +56,7 @@ class Controller:
 		if self.session_id is None:
 			self.session_id = await self.client.create_session(self.config or SessionConfig())
 		self.state.seed(await self.client.get_session(self.session_id))
+		self.skills = await self._load_skills(self.session_id)
 		self.on_changes([StatusChanged()])
 
 	async def stream_events(self) -> None:
@@ -145,15 +149,17 @@ class Controller:
 			for entry in reversed(data["entries"]):
 				if entry.get("type") == "user_message":
 					content = entry.get("content", "")
-					text = (
-						content
-						if isinstance(content, str)
-						else "".join(
+					if isinstance(content, str):
+						text = content
+					else:
+						text = "".join(
 							block.get("text", "")
 							for block in content
 							if isinstance(block, dict) and block.get("type") == "text"
 						)
-					)
+					invocation = parse_skill_invocation(text)
+					if invocation is not None:
+						text = invocation.command
 					if text:
 						recent.append(text)
 					if len(recent) == limit:
@@ -183,7 +189,14 @@ class Controller:
 		self._initiator_seen = False
 		self.on_changes([PartialCleared(), EntriesTruncated(target_seq=0), StatusChanged()])
 		self.state.seed(await self.client.get_session(sid))
+		self.skills = await self._load_skills(sid)
 		self.on_changes([StatusChanged()])
+
+	async def _load_skills(self, sid: str) -> list[dict]:
+		load = getattr(self.client, "skills", None)
+		if load is None:
+			return []
+		return (await load(sid)).get("skills", [])
 
 	async def stop(self) -> None:
 		if self._stream is not None:
@@ -191,8 +204,12 @@ class Controller:
 		await self.client.aclose()
 
 	async def _flush_queue(self) -> None:
-		if not self.queued:
+		while self.queued:
+			text = self.queued.pop(0)
+			self.on_changes([StatusChanged()])
+			try:
+				await self.submit(text)
+			except FlowAPIError as error:
+				self.on_error(error)
+				continue
 			return
-		text = self.queued.pop(0)
-		self.on_changes([StatusChanged()])
-		await self.submit(text)

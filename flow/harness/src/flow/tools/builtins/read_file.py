@@ -19,7 +19,7 @@ async def read_file(
 	ctx: ToolContext,
 ) -> ToolResult:
 	"""Read a text file. Use offset/limit to page through large files."""
-	full = resolve(ctx, path)
+	full = resolve(ctx, path, read_only=True)
 	if not os.path.isfile(full):
 		return ToolResult(content=f"[no such file: {path}]", is_error=True)
 	if offset is not None and offset < 1:

@@ -10,7 +10,7 @@ from flow.tools.tool import ToolContext, ToolResult, tool
 @tool(prompt_snippet="Search file contents for regex patterns")
 async def grep(pattern: str, path: str = ".", *, ctx: ToolContext) -> ToolResult:
 	"""Search files for a regex pattern (uses ripgrep if available) and return matches."""
-	target = resolve(ctx, path)
+	target = resolve(ctx, path, read_only=True)
 	rg = shutil.which("rg")
 	# `--` ends the option list: without it a pattern like "-L" is read as a flag, which
 	# shifts `target` out of its slot and searches the daemon's cwd instead of the root.

@@ -4,8 +4,12 @@ import test from "node:test"
 import {
 	applyEvent,
 	buildItems,
+	conversationTitle,
 	humanizeToolName,
 	initialConversation,
+	normalizeSkillCommand,
+	parseSkillInvocation,
+	skillCommand,
 	stepLiveLabel,
 	toolGroupSummary,
 	userAttachments,
@@ -30,6 +34,24 @@ test("user content helpers support durable attachment blocks", () => {
 	assert.equal(userText(entry), "review this")
 	assert.deepEqual(userAttachments(entry).map((item) => item.name), ["screen.png"])
 	assert.equal(userText({ content: "legacy" }), "legacy")
+})
+
+test("expanded skill messages render compactly like Pi and Tau", () => {
+	const expanded =
+		'<skill name="security-review" location="/skills/security-review/SKILL.md">\n' +
+		"References are relative to /skills/security-review.\n\n" +
+		"large model-only instructions\n</skill>\n\ncheck this branch"
+	const entry = {
+		type: "user_message",
+		content: expanded,
+	}
+
+	assert.equal(parseSkillInvocation(expanded).name, "security-review")
+	assert.equal(userText(entry), "Using skill: security-review\ncheck this branch")
+	assert.equal(skillCommand(entry), "/skill:security-review check this branch")
+	assert.equal(conversationTitle({ entries: [entry] }), "check this branch")
+	assert.equal(userText({ content: "ordinary" }), "ordinary")
+	assert.equal(normalizeSkillCommand("/skill:security-review\n\ncheck this branch"), "/skill:security-review check this branch")
 })
 
 test("live file-tool labels use only the filename", () => {
