@@ -108,11 +108,21 @@ lag a later `model_changed` entry — `GET /sessions/{sid}` reports exact values
 `model`/`credential_id`/`reasoning_effort` are the effective selection — the last
 `model_changed` entry on the active branch, else the creation config. `404` if unknown.
 
+### `POST /skills`
+Body: a session config. Returns the Agent Skills catalog that config would discover,
+without creating a session. Lazy clients use this for first-message completion.
+
+### `GET /sessions/{sid}/skills`
+Returns the session's completion-safe Agent Skills catalog and non-fatal diagnostics:
+`{"skills": [{"name", "description"}], "diagnostics": [{"message"}]}`. Skill content
+and internal filesystem-policy fields are not included. See [skills.md](skills.md).
+
 ### `POST /sessions/{sid}/run?wait=<bool>`
 Body: `{"message": "...", "attachments": ["<attachment-id>", ...]}`. `message` may
 be empty when at least one attachment is present. Upload attachments through the endpoint
 below before running. A run always uses the session's current model selection;
-to switch, use `POST /sessions/{sid}/model` before the run.
+to switch, use `POST /sessions/{sid}/model` before the run. A message beginning
+`/skill:<name>` invokes a discovered skill and may include additional instructions.
 - default (`wait` false): starts the run as a background task → `{"status": "started"}`.
   If a run is already active, the message is queued as steering → `{"status": "steered"}`
   (returned immediately even with `?wait=true`).
@@ -244,6 +254,10 @@ response identity, and `stop_reason`. Tool-call input is named `arguments` insid
 array. Provider round-trip data rides in the opaque `provider_state` field on content
 blocks.
 
+An explicitly invoked skill remains a durable `user_message` whose `content` is the
+expanded provider-facing text. Clients may recognize that wrapper to present a compact
+skill item, as Pi and Tau do.
+
 ### Example client
 
 ```python
@@ -287,6 +301,8 @@ print(res["output"], res["reason"], res["usage"])
 | `credential_id` | inferred | named credential selected for the model |
 | `confirm_tools` | `[]` | extra tools that pause for approval, on top of each tool's own default |
 | `auto_approve` | `false` | unattended runs skip approval |
+| `skills_enabled` | `true` | discover `~/.agents/skills` and `<cwd>/.agents/skills` |
+| `skill_paths` | `[]` | additional skill files or directories, resolved relative to `cwd` |
 | `auto_compact` | `true` | compact automatically near the model's context window; recover from a context overflow once per run |
 | `compact_threshold_tokens` | derived | explicit compaction trigger; default uses the provider threshold when available, otherwise the model window with output room reserved |
 | `cwd` | `"."` | tool working dir; cwd and built-in file paths are checked against `ALLOWED_ROOTS` (`bash` is not sandboxed) |
