@@ -232,7 +232,7 @@ def _web(args) -> None:
 		timer = threading.Timer(0.8, webbrowser.open, [url])
 		timer.daemon = True  # a Ctrl-C before it fires must not hold the process
 		timer.start()
-	uvicorn.run(app, host=args.host, port=args.port, log_level="warning")
+	uvicorn.run(app, host=args.host, port=args.port, log_level="warning", timeout_graceful_shutdown=1)
 
 
 def _webui_dist() -> str | None:
