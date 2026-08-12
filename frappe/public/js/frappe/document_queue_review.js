@@ -35,15 +35,7 @@ frappe.document_queue_review.start_from_document_queue = async function (frm) {
 		return;
 	}
 
-	frappe.model.with_doctype(context.document_type, () => {
-		const doc = frappe.model.get_new_doc(context.document_type);
-		frappe.document_queue_review.pending_context = context;
-		frappe.set_route("Form", context.document_type, doc.name).then(() => {
-			let url = new URL(window.location.href);
-			url.searchParams.set("document_queue", context.queue_name);
-			window.history.replaceState(window.history.state, "", url.toString());
-		});
-	});
+	frappe.document_queue_review.route_to_new_document(context);
 };
 
 frappe.document_queue_review.prompt_document_type = function () {
@@ -93,50 +85,48 @@ frappe.document_queue_review.fetch_context = function (document_queue) {
 		.then((r) => r.message || null);
 };
 
-
-
-frappe.document_queue_review.is_upload_first_enabled = async function (doctype, frm) {
-	if (!doctype || doctype === "Document Queue") {
-		return false;
+// frappe.utils covers reading query params (get_query_params) but the framework
+// has no setter, so these two own the write side for the whole feature. Both
+// skip a no-op replaceState, which only some of the former call sites did.
+frappe.document_queue_review.set_query_param = function (name, value) {
+	const url = new URL(window.location.href);
+	if (url.searchParams.get(name) === String(value)) {
+		return;
 	}
 
-	if (cint(frm?.meta?.enable_upload_first_workflow) === 1) {
-		return true;
+	url.searchParams.set(name, value);
+	window.history.replaceState(window.history.state, "", url.toString());
+};
+
+frappe.document_queue_review.clear_query_param = function (name) {
+	const url = new URL(window.location.href);
+	if (!url.searchParams.has(name)) {
+		return;
 	}
 
-	const meta = frappe.get_meta(doctype);
-	if (cint(meta?.enable_upload_first_workflow) === 1) {
-		return true;
-	}
+	url.searchParams.delete(name);
+	window.history.replaceState(window.history.state, "", url.toString());
+};
 
-	if (frappe.boot?.upload_first_doctypes?.includes(doctype)) {
-		return true;
-	}
-
-	try {
-		const res = await frappe.call({
-			method: "frappe.core.doctype.document_queue.document_queue.is_upload_first_workflow_doctype",
-			args: { document_type: doctype },
+// Single owner of "open a new document for this queue context": load the target
+// doctype's meta, create the unsaved doc, hand the context over in memory, route
+// to it, then stamp ?document_queue= so hydrate_context can recover after a
+// reload. Three call sites carried their own copy of this block — the two below
+// and document_queue_review_modal.js's _start_review.
+frappe.document_queue_review.route_to_new_document = function (context) {
+	return new Promise((resolve) => {
+		frappe.model.with_doctype(context.document_type, () => {
+			const doc = frappe.model.get_new_doc(context.document_type);
+			frappe.document_queue_review.pending_context = context;
+			frappe.set_route("Form", context.document_type, doc.name).then(() => {
+				frappe.document_queue_review.set_query_param(
+					"document_queue",
+					context.queue_name
+				);
+				resolve();
+			});
 		});
-		const is_enabled = Boolean(res?.message);
-		if (is_enabled) {
-			if (frappe.boot) {
-				frappe.boot.upload_first_doctypes = frappe.boot.upload_first_doctypes || [];
-				if (!frappe.boot.upload_first_doctypes.includes(doctype)) {
-					frappe.boot.upload_first_doctypes.push(doctype);
-				}
-			}
-			if (meta) {
-				meta.enable_upload_first_workflow = 1;
-			}
-			if (frm?.meta) {
-				frm.meta.enable_upload_first_workflow = 1;
-			}
-		}
-		return is_enabled;
-	} catch {
-		return false;
-	}
+	});
 };
 
 frappe.document_queue_review.setup_upload_first = async function (frm) {
@@ -146,12 +136,14 @@ frappe.document_queue_review.setup_upload_first = async function (frm) {
 		return;
 	}
 
-	const enabled = await frappe.document_queue_review.is_upload_first_enabled(frm.doctype, frm);
+	// The loader owns this gate — it ships in form.bundle.js, so it is always
+	// present, and list_view.js already calls the same copy.
+	const enabled = await frappe.document_queue_review_loader.is_upload_first_enabled(
+		frm.doctype
+	);
 	if (!enabled || frappe.document_queue_review.get_context(frm)) {
 		return;
 	}
-
-	frappe.document_queue_review.add_styles();
 
 	const $page = frm.page.wrapper.find(".page-body");
 	$page.find(".document-queue-upload-first").remove();
@@ -241,18 +233,23 @@ frappe.document_queue_review.create_upload_first_queue = async function (frm, fi
 			});
 		}
 
-		await new Promise(resolve => {
-			frappe.model.with_doctype(context.document_type, () => {
-				const doc = frappe.model.get_new_doc(context.document_type);
-				frappe.document_queue_review.pending_context = context;
-				frappe.set_route("Form", context.document_type, doc.name).then(() => {
-					let url = new URL(window.location.href);
-					url.searchParams.set("document_queue", context.queue_name);
-					window.history.replaceState(window.history.state, "", url.toString());
-					resolve();
-				});
+		// Awaited so the freeze in `finally` only lifts once the new form is up.
+		await frappe.document_queue_review.route_to_new_document(context);
+	} catch (error) {
+		// frappe.call reports HTTP-level failures itself, but a request that never gets
+		// a response (connection dropped mid-upload) matches none of its statusCode
+		// handlers — without this the freeze would just lift and say nothing, and the
+		// rejection would escape unhandled through FileUploader's on_success.
+		if (!error?.status) {
+			frappe.msgprint({
+				title: __("Upload Failed"),
+				message: __(
+					"Could not reach the server. Please check your connection and try again."
+				),
+				indicator: "red",
 			});
-		});
+		}
+		console.error("Document Queue: upload-first flow failed", error);
 	} finally {
 		frappe.dom.unfreeze();
 	}
@@ -266,6 +263,7 @@ frappe.document_queue_review.wait_for_extraction = async function (context) {
 	let latest_context = context;
 	let listener;
 	let timeout;
+	let fallback_interval;
 	let is_resolving = false;
 
 	const fetch_context = async () => {
@@ -274,15 +272,18 @@ frappe.document_queue_review.wait_for_extraction = async function (context) {
 		return latest_context;
 	};
 
+	// Single owner of teardown, so the timer, the interval and the realtime
+	// listener are released on every settle path — resolve *and* reject.
+	const cleanup = () => {
+		clearTimeout(timeout);
+		clearInterval(fallback_interval);
+		if (listener) {
+			frappe.realtime.off("task_update", listener);
+		}
+	};
+
 	try {
 		return await new Promise((resolve, reject) => {
-			let fallback_interval;
-			const finish = (ctx) => {
-				clearTimeout(timeout);
-				if (fallback_interval) clearInterval(fallback_interval);
-				resolve(ctx);
-			};
-
 			timeout = setTimeout(() => {
 				if (is_resolving) return;
 				is_resolving = true;
@@ -293,19 +294,19 @@ frappe.document_queue_review.wait_for_extraction = async function (context) {
 					),
 					indicator: "orange",
 				});
-				fetch_context().then(finish).catch(reject);
+				fetch_context().then(resolve).catch(reject);
 			}, 90000);
 
 			fallback_interval = setInterval(() => {
 				if (is_resolving) return;
 				if (frappe.realtime?.socket?.connected) return;
-				
+
 				fetch_context()
 					.then((ctx) => {
 						if (is_resolving) return;
 						if (["Ready for Review", "Failed"].includes(ctx.status)) {
 							is_resolving = true;
-							finish(ctx);
+							resolve(ctx);
 						}
 					})
 					.catch(() => {});
@@ -315,7 +316,7 @@ frappe.document_queue_review.wait_for_extraction = async function (context) {
 				if (is_resolving) return;
 				if (data.task_id === context.task_id && ["Ready for Review", "Failed"].includes(data.status)) {
 					is_resolving = true;
-					fetch_context().then(finish).catch(reject);
+					fetch_context().then(resolve).catch(reject);
 				}
 			};
 
@@ -327,20 +328,31 @@ frappe.document_queue_review.wait_for_extraction = async function (context) {
 					if (is_resolving) return;
 					if (!["Queued", "Processing"].includes(ctx.status)) {
 						is_resolving = true;
-						finish(ctx);
+						resolve(ctx);
 					}
 				})
 				.catch(reject);
 		});
 	} finally {
-		if (listener) {
-			frappe.realtime.off("task_update", listener);
-		}
+		cleanup();
 	}
 };
 
 frappe.document_queue_review.get_context = function (frm) {
 	return frm.doc.__document_queue_review_context || null;
+};
+
+// Neither obvious carrier survives a save: frappe.model.sync replaces frm.doc for
+// a new document, and rename_notify re-routes to the saved name, which drops
+// ?document_queue= from the URL. frm itself survives both, so before_save copies
+// the context onto it and link_after_save reads it back from there.
+frappe.document_queue_review.get_pending_link = function (frm) {
+	const context = frappe.document_queue_review.get_context(frm);
+	if (!context?.queue_name || !context.document_type) {
+		return null;
+	}
+
+	return { queue_name: context.queue_name, document_type: context.document_type };
 };
 
 frappe.document_queue_review.hydrate_context = async function (frm) {
@@ -369,11 +381,7 @@ frappe.document_queue_review.hydrate_context = async function (frm) {
 	frm.doc.__document_queue_review_context = context;
 	frm.doc.__document_queue_name = context.queue_name;
 
-	const url = new URL(window.location.href);
-	if (url.searchParams.get("document_queue") !== context.queue_name) {
-		url.searchParams.set("document_queue", context.queue_name);
-		window.history.replaceState(window.history.state, "", url.toString());
-	}
+	frappe.document_queue_review.set_query_param("document_queue", context.queue_name);
 };
 
 frappe.document_queue_review.mount = function (frm) {
@@ -388,7 +396,6 @@ frappe.document_queue_review.mount = function (frm) {
 		return;
 	}
 
-	frappe.document_queue_review.add_styles();
 	frappe.document_queue_review.remove_upload_first(frm);
 	const $std = $layout.closest(".std-form-layout");
 	$std.addClass("document-queue-review-layout");
@@ -407,6 +414,8 @@ frappe.document_queue_review.mount = function (frm) {
 frappe.document_queue_review.teardown = function (frm) {
 	const $layout = frm.$wrapper.find(".form-layout").first();
 	$layout.closest(".std-form-layout").removeClass("document-queue-review-layout");
+	frm.document_queue_review_resizer_tooltip?.destroy();
+	frm.document_queue_review_resizer_tooltip = null;
 	frm.document_queue_review_panel?.remove();
 	frm.document_queue_review_panel = null;
 };
@@ -434,12 +443,16 @@ frappe.document_queue_review.render_panel = function (frm, context) {
 
 	let error_alert = "";
 	if (context.status === "Failed" && context.error_message) {
-		error_alert = `
-			<div class="alert alert-danger mb-3">
-				<strong>${__("Extraction Failed")}</strong><br>
-				${frappe.utils.escape_html(context.error_message)}
-			</div>
-		`;
+		// Rendered in the panel shell, above the tabs, rather than inside a tab: why
+		// extraction failed is a state of the whole record, and the only other tab that
+		// could host it is the developer-mode one, which most reviewers never see.
+		// Markup form (`.html`) because the panel is assembled as one HTML string below.
+		// It escapes title and description itself.
+		error_alert = frappe.ui.alert.html({
+			title: __("Extraction Failed"),
+			description: context.error_message,
+			theme: "red",
+		});
 	}
 
 	let raw_json_html = "";
@@ -483,7 +496,6 @@ frappe.document_queue_review.render_panel = function (frm, context) {
 					active_tab === "extraction" ? "active" : ""
 				}" data-panel="extraction">
 					<div class="document-queue-review-sections">
-						${error_alert}
 						<div class="form-section document-queue-review-section">
 							<div class="section-head collapsible document-queue-review-section-head ${
 								open_sections.text ? "" : "collapsed"
@@ -503,6 +515,7 @@ frappe.document_queue_review.render_panel = function (frm, context) {
 
 	frm.document_queue_review_panel.html(`
 		<div class="document-queue-review-shell">
+			${error_alert ? `<div class="document-queue-review-alert">${error_alert}</div>` : ""}
 			<div class="form-tabs-list">
 				<ul class="nav form-tabs" role="tablist">
 					<li class="nav-item">
@@ -525,7 +538,7 @@ ${debug_tab_button}
 ${debug_tab_panel}
 			</div>
 		</div>
-		<div class="document-queue-review-resizer" title="${__("Resize")}"></div>
+		<div class="document-queue-review-resizer"></div>
 	`);
 	frm.document_queue_review_preview_type = preview_type;
 
@@ -569,6 +582,16 @@ frappe.document_queue_review.apply_saved_width = function ($layout) {
 };
 
 frappe.document_queue_review.bind_resizer = function (frm) {
+	// Espresso tooltip instead of a native `title`, matching the tooltips used
+	// elsewhere in desk. render_panel() rebuilds the panel wholesale, so the
+	// handle is a new element on every render: destroy the previous instance
+	// first, or its bubble (which lives on <body>) can outlive its trigger.
+	frm.document_queue_review_resizer_tooltip?.destroy();
+	frm.document_queue_review_resizer_tooltip = new frappe.ui.Tooltip(
+		frm.document_queue_review_panel.find(".document-queue-review-resizer"),
+		{ text: __("Resize") }
+	);
+
 	frm.document_queue_review_panel.off("mousedown.document-queue-review-resizer");
 	frm.document_queue_review_panel.on(
 		"mousedown.document-queue-review-resizer",
@@ -588,11 +611,34 @@ frappe.document_queue_review.bind_resizer = function (frm) {
 				frm.document_queue_review_panel.addClass("document-queue-review-resizing-pdf");
 			}
 
+			// One width update per animation frame (~16ms at 60Hz) — the display
+			// cannot show more than that. Created per drag so the throttle window
+			// never carries over from a previous drag.
+			let is_resizing = true;
+			let has_moved = false;
+			const throttled_resize = frappe.utils.throttle(function (move_event) {
+				// frappe.utils.throttle has no cancel(), so a trailing call can land
+				// after mouseup has already persisted the width; ignore it.
+				if (!is_resizing) {
+					return;
+				}
+				frappe.document_queue_review.resize_preview($layout, move_event);
+			}, 16);
+
 			$(document)
 				.on("mousemove.document-queue-review-resizer", function (move_event) {
-					frappe.document_queue_review.resize_preview($layout, move_event);
+					has_moved = true;
+					throttled_resize(move_event);
 				})
-				.on("mouseup.document-queue-review-resizer", function () {
+				.on("mouseup.document-queue-review-resizer", function (up_event) {
+					is_resizing = false;
+					if (has_moved) {
+						// Apply the release position un-throttled, so the width that
+						// gets persisted is the one actually under the cursor even if
+						// the last frame was throttled away.
+						frappe.document_queue_review.resize_preview($layout, up_event);
+					}
+
 					const width = frappe.document_queue_review.get_current_preview_width($layout);
 					frappe.document_queue_review.save_preview_width(width);
 					$("body").removeClass("document-queue-review-is-resizing");
@@ -664,9 +710,17 @@ frappe.document_queue_review.save_preview_width = function (width) {
 	}
 };
 
+// The two "nothing to preview" branches use frappe.ui.empty_state — the same
+// component the review modal already renders for these exact states
+// (_clear_preview and the unsupported branch of _render_preview), so both halves
+// of the feature show the same thing. `.html` is the markup-string form, which
+// is what this function returns; it escapes title/description itself.
 frappe.document_queue_review.get_preview_markup = function (file_url, file_name) {
 	if (!file_url) {
-		return `<div class="document-queue-review-empty">${__("No source file available.")}</div>`;
+		return frappe.ui.empty_state.html({
+			icon: "file-text",
+			title: __("No source file available."),
+		});
 	}
 
 	const preview_url = frappe.document_queue_review.get_preview_url(file_url);
@@ -682,9 +736,21 @@ frappe.document_queue_review.get_preview_markup = function (file_url, file_name)
 		return `<img class="document-queue-review-preview-image" src="${escaped_url}" alt="${escaped_name}">`;
 	}
 
-	return `<a class="btn btn-default btn-sm" href="${escaped_url}" target="_blank" rel="noopener noreferrer">${__(
-		"Open Source File"
-	)}</a>`;
+	// `href` actions survive the markup-string form (an onclick could not), and
+	// the component applies target/rel and refuses code-running schemes itself.
+	return frappe.ui.empty_state.html({
+		icon: "file-text",
+		title: __("Preview Not Available"),
+		description: __("This file format cannot be previewed directly."),
+		actions: [
+			{
+				label: __("Open Source File"),
+				href: preview_url,
+				icon: "arrow-up-right",
+				variant: "subtle",
+			},
+		],
+	});
 };
 
 frappe.document_queue_review.get_preview_type = function (file_url) {
@@ -700,12 +766,32 @@ frappe.document_queue_review.get_preview_type = function (file_url) {
 	return "unsupported";
 };
 
+// Single source of truth for turning a stored `source_file` into a URL that is
+// safe to use as an iframe/img src. `source_file` is an Attach value, so it is
+// normally "/files/x.pdf" or "/private/files/x.pdf?fid=...", but relative values
+// are normalized too. Also used by document_queue_review_modal.js.
 frappe.document_queue_review.get_preview_url = function (file_url) {
-	if (!file_url || file_url.startsWith("http://") || file_url.startsWith("https://")) {
-		return file_url;
+	if (!file_url) {
+		return "";
 	}
 
-	return encodeURI(file_url);
+	// Deliberately broader than frappe.utils.is_url (which is http/https only):
+	// this also matches protocol-relative URLs, so a real "#fragment" on a web
+	// URL is left alone while a "#" inside a file path is escaped below.
+	const is_web_url = /^(https?:)?\/\//i.test(file_url);
+
+	if (!is_web_url && !file_url.startsWith("/")) {
+		file_url = file_url.startsWith("files/") ? `/${file_url}` : `/files/${file_url}`;
+	}
+
+	file_url = encodeURI(file_url);
+
+	if (!is_web_url) {
+		// encodeURI leaves "#" intact, which would truncate the path at a fragment
+		file_url = file_url.replace(/#/g, "%23");
+	}
+
+	return file_url;
 };
 
 frappe.document_queue_review.get_file_name = function (file_url) {
@@ -718,13 +804,18 @@ frappe.document_queue_review.get_file_name = function (file_url) {
 
 frappe.document_queue_review.link_after_save = function (frm) {
 	const context = frappe.document_queue_review.get_context(frm);
-	const queue_name =
-		frappe.document_queue_review.saving_queue_name ||
-		new URLSearchParams(window.location.search).get("document_queue");
+	// Consumed, not just read: after_save and on_submit both land here for a
+	// submit, and only the first one should link.
+	const pending = frm.__document_queue_pending_link;
+	frm.__document_queue_pending_link = null;
 
-	frappe.document_queue_review.saving_queue_name = null;
+	if (!pending || !frm.doc.name || frm.doc.__document_queue_linked) {
+		return Promise.resolve();
+	}
 
-	if (!queue_name || !frm.doc.name || frm.doc.__document_queue_linked) {
+	// A queue row only ever produces its own target doctype, so a mismatch means
+	// this form is not the document the review was started for.
+	if (pending.document_type !== frm.doctype) {
 		return Promise.resolve();
 	}
 
@@ -732,7 +823,7 @@ frappe.document_queue_review.link_after_save = function (frm) {
 	return frappe.call({
 		method: "frappe.core.doctype.document_queue.document_queue.link_to_document",
 		args: {
-			document_queue: queue_name,
+			document_queue: pending.queue_name,
 			document_type: frm.doctype,
 			document_name: frm.doc.name,
 		},
@@ -745,11 +836,7 @@ frappe.document_queue_review.link_after_save = function (frm) {
 			frm.doc.__document_queue_review_context = updated_context;
 			delete frm.doc.__document_queue_name;
 
-			const url = new URL(window.location.href);
-			if (url.searchParams.has("document_queue")) {
-				url.searchParams.delete("document_queue");
-				window.history.replaceState(window.history.state, "", url.toString());
-			}
+			frappe.document_queue_review.clear_query_param("document_queue");
 
 			frm.sidebar?.reload_docinfo?.();
 			frappe.document_queue_review.teardown(frm);
@@ -765,15 +852,29 @@ frappe.document_queue_review.setup_list_banner = async function (listview) {
 		return;
 	}
 
-	listview.$page.find(".document-queue-ready-banner").remove();
-
-	const enabled = await frappe.document_queue_review.is_upload_first_enabled(listview.doctype);
-	if (!enabled) {
+	// list_view.js calls this from after_render(), which fires on every refresh —
+	// filter, sort, load-more, realtime update. Without this guard two overlapping
+	// refreshes each remove the banner and then each add one back.
+	if (listview.document_queue_banner_pending) {
 		return;
 	}
+	listview.document_queue_banner_pending = true;
 
-	// Inject the primary "Review Pending" button that opens the modal.
-	frappe.document_queue_list_action?.setup(listview);
+	try {
+		const enabled = await frappe.document_queue_review_loader.is_upload_first_enabled(
+			listview.doctype
+		);
+		if (!enabled) {
+			return;
+		}
+
+		listview.$page.find(".document-queue-ready-banner").remove();
+
+		// Inject the primary "Review Pending" button that opens the modal.
+		await frappe.document_queue_list_action?.setup(listview);
+	} finally {
+		listview.document_queue_banner_pending = false;
+	}
 };
 
 frappe.document_queue_review.get_ready_for_review_count = function (doctype) {
@@ -791,227 +892,3 @@ frappe.document_queue_review.refresh_form = async function (frm) {
 	frappe.document_queue_review.mount(frm);
 	frappe.document_queue_review.setup_upload_first(frm);
 };
-
-frappe.document_queue_review.add_styles = function () {
-	frappe.dom.set_style(
-		`
-		.document-queue-freeze-body {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			gap: 8px;
-		}
-		.document-queue-review-json-pre {
-			background-color: var(--control-bg);
-			border: 1px solid var(--border-color);
-			border-radius: var(--border-radius-sm);
-			font-size: var(--text-sm);
-		}
-		.document-queue-upload-first {
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			gap: 16px;
-			padding: 12px 16px;
-			border-bottom: 1px solid var(--border-color);
-			background: var(--fg-color);
-		}
-		.document-queue-upload-first-title {
-			color: var(--text-color);
-			font-weight: 600;
-			line-height: 1.4;
-		}
-		.document-queue-upload-first-description {
-			color: var(--text-muted);
-			font-size: var(--text-sm);
-			line-height: 1.4;
-		}
-		.document-queue-upload-first-button {
-			display: inline-flex;
-			align-items: center;
-			gap: 6px;
-			flex: none;
-		}
-		.document-queue-ready-banner {
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			gap: 12px;
-			min-height: 32px;
-			padding: 6px 12px;
-			margin-bottom: 8px;
-			border: 1px solid var(--border-color);
-			border-top: 0;
-			background: var(--fg-color);
-			color: var(--text-muted);
-			font-size: var(--text-sm);
-			cursor: pointer;
-			transition: background-color 0.2s;
-		}
-		.document-queue-ready-banner:hover {
-			background-color: var(--control-bg);
-		}
-		.std-form-layout.document-queue-review-layout {
-			display: grid;
-			grid-template-columns:
-				minmax(320px, var(--document-queue-review-width, 38%))
-				minmax(0, 1fr);
-			gap: 0;
-			align-items: start;
-		}
-		.document-queue-review-panel {
-			position: sticky;
-			top: var(--page-head-height);
-			height: calc(100vh - var(--page-head-height));
-			margin-top: 0;
-			overflow: visible;
-			border: 1px solid var(--border-color);
-			border-width: 0 1px 1px 0;
-			border-radius: 0;
-			background: var(--fg-color);
-		}
-		.document-queue-review-shell {
-			display: flex;
-			height: 100%;
-			min-height: 0;
-			overflow: hidden;
-			border-radius: 0;
-			flex-direction: column;
-		}
-
-		.document-queue-review-body {
-			min-height: 0;
-			flex: 1;
-			overflow: auto;
-			padding: 12px;
-			margin-top: 0;
-			border-bottom: 1px solid var(--border-color);
-		}
-		.document-queue-review-tab-panel {
-			display: none;
-			height: 100%;
-		}
-		.document-queue-review-tab-panel.active {
-			display: block;
-		}
-		.document-queue-review-tab-panel[data-panel="preview"] {
-			position: relative;
-		}
-		.document-queue-review-resize-overlay {
-			position: absolute;
-			display: none;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			color: var(--text-muted);
-			font-size: var(--text-base);
-			font-weight: 400;
-			pointer-events: none;
-			z-index: 1;
-		}
-		.document-queue-review-preview {
-			width: 100%;
-			height: 100%;
-			border: 0;
-			border-radius: 0;
-			background: #fff;
-		}
-		.document-queue-review-preview-image {
-			width: 100%;
-			height: auto;
-			border-radius: 0;
-		}
-		.document-queue-review-panel.document-queue-review-resizing-pdf .document-queue-review-preview {
-			visibility: hidden;
-		}
-		.document-queue-review-panel.document-queue-review-resizing-pdf .document-queue-review-resize-overlay {
-			display: block;
-		}
-		.document-queue-review-sections {
-			display: flex;
-			flex-direction: column;
-		}
-		.document-queue-review-section {
-			padding: 0;
-			border: 0;
-			background: var(--fg-color);
-		}
-		.document-queue-review-section .section-head,
-		.document-queue-review-section .section-body {
-			max-width: none !important;
-			margin: auto !important;
-		}
-		.document-queue-review-section .section-head {
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			padding: var(--padding-md);
-			border-bottom: 0;
-			color: var(--text-color);
-			font-size: var(--text-md);
-			font-weight: var(--weight-medium);
-		}
-		.document-queue-review-section .collapse-indicator {
-			margin-left: auto;
-		}
-		.document-queue-review-section .section-body {
-			display: block;
-			padding: var(--padding-sm) var(--padding-md) 0;
-		}
-		.document-queue-review-section .section-body.hide {
-			display: none;
-		}
-		.document-queue-review-panel pre {
-			margin: 0;
-			white-space: pre-wrap;
-			word-break: break-word;
-			padding: var(--padding-md);
-			border-radius: 0;
-			border: 0;
-			background: var(--control-bg);
-			font-size: var(--text-sm);
-		}
-		.document-queue-review-resizer {
-			position: absolute;
-			top: 0;
-			right: -2px;
-			bottom: 0;
-			width: 5px;
-			cursor: col-resize;
-			z-index: 2;
-			background: transparent;
-			transition: background-color 120ms ease;
-		}
-		.document-queue-review-resizer:hover {
-			background: var(--border-color);
-		}
-		body.document-queue-review-is-resizing {
-			cursor: col-resize;
-			user-select: none;
-		}
-		@media (max-width: 991px) {
-			.std-form-layout.document-queue-review-layout {
-				display: block;
-			}
-			.document-queue-review-panel {
-				position: static;
-				height: calc(100vh - 96px);
-				margin-bottom: 16px;
-			}
-			.document-queue-review-resizer {
-				display: none;
-			}
-		}
-		`,
-		"document-queue-review-style"
-	);
-};
-
-$(document).on("form-refresh", async function (event, frm) {
-	await frappe.document_queue_review.hydrate_context(frm);
-	frappe.document_queue_review.mount(frm);
-	frappe.document_queue_review.setup_upload_first(frm);
-});
-
-

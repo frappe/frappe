@@ -50,67 +50,35 @@ frappe.document_queue_review_loader.has_pending_context = function (frm) {
 	return false;
 };
 
-frappe.document_queue_review_loader.is_upload_first_enabled = async function (doctype, frm) {
+// `frappe.boot.upload_first_doctypes` is built server-side in boot.py with the
+// same predicate as is_upload_first_workflow_doctype (flag set, not a child
+// table), so the full answer is already on the client. Async only because this
+// gate is awaited/then-ed by its call sites, including list_view.js.
+frappe.document_queue_review_loader.is_upload_first_enabled = async function (doctype) {
 	if (!doctype || doctype === "Document Queue") {
 		return false;
 	}
 
-	if (cint(frm?.meta?.enable_upload_first_workflow) === 1) {
-		return true;
-	}
-
-	const meta = frappe.get_meta(doctype);
-	if (cint(meta?.enable_upload_first_workflow) === 1) {
-		return true;
-	}
-
-	if (frappe.boot?.upload_first_doctypes?.includes(doctype)) {
-		return true;
-	}
-
-	try {
-		const res = await frappe.call({
-			method: "frappe.core.doctype.document_queue.document_queue.is_upload_first_workflow_doctype",
-			args: { document_type: doctype },
-		});
-		const is_enabled = Boolean(res?.message);
-		if (is_enabled) {
-			if (frappe.boot) {
-				frappe.boot.upload_first_doctypes = frappe.boot.upload_first_doctypes || [];
-				if (!frappe.boot.upload_first_doctypes.includes(doctype)) {
-					frappe.boot.upload_first_doctypes.push(doctype);
-				}
-			}
-			if (meta) {
-				meta.enable_upload_first_workflow = 1;
-			}
-			if (frm?.meta) {
-				frm.meta.enable_upload_first_workflow = 1;
-			}
-		}
-		return is_enabled;
-	} catch (e) {
-		return false;
-	}
+	return !!frappe.boot?.upload_first_doctypes?.includes(doctype);
 };
 
+// Single owner of the review lifecycle on a form. Runs on every form refresh
+// (via the "*" handler below) and decides whether the review module is needed,
+// then always hands off to one refresh_form() call.
 frappe.document_queue_review_loader.setup_form = async function (frm) {
 	if (frappe.document_queue_review_loader.has_pending_context(frm)) {
 		await frappe.document_queue_review_loader.load();
-		frappe.document_queue_review.refresh_form(frm);
+	} else if (
+		frm?.is_new?.() &&
+		!frm.in_dialog &&
+		frm.page &&
+		(await frappe.document_queue_review_loader.is_upload_first_enabled(frm.doctype))
+	) {
+		await frappe.document_queue_review_loader.load();
+	} else if (!frappe.document_queue_review?.refresh_form) {
 		return;
 	}
 
-	if (!frm?.is_new?.() || frm.in_dialog || !frm.page) {
-		return;
-	}
-
-	const enabled = await frappe.document_queue_review_loader.is_upload_first_enabled(frm.doctype, frm);
-	if (!enabled) {
-		return;
-	}
-
-	await frappe.document_queue_review_loader.load();
 	frappe.document_queue_review.refresh_form(frm);
 };
 
@@ -119,14 +87,12 @@ frappe.ui.form.on("*", {
 	refresh(frm) {
 		frappe.document_queue_review_loader.setup_form(frm);
 	},
+	// Written on every save, including to null. That is what bounds its lifetime:
+	// a save that fails leaves its value behind, and the next save on this form
+	// overwrites it before after_save can read it.
 	before_save(frm) {
-		if (frm.doc.__document_queue_review_context) {
-			// Preserve queue_name across save so link_after_save can read it post-reload
-			if (frappe.document_queue_review) {
-				frappe.document_queue_review.saving_queue_name =
-					frm.doc.__document_queue_review_context.queue_name;
-			}
-		}
+		frm.__document_queue_pending_link =
+			frappe.document_queue_review?.get_pending_link?.(frm) || null;
 	},
 	after_save(frm) {
 		if (frappe.document_queue_review?.link_after_save) {

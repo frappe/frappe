@@ -1,0 +1,242 @@
+// Styles for the split-screen Document Queue review dialog.
+// Behaviour lives in frappe/public/js/frappe/document_queue_review_modal.js.
+// Imported last in desk/index.scss (after embedded_list.scss) so the pane-local
+// overrides below keep winning equal-specificity ties against the base
+// embedded-list rules by source order. Keep it last — moving this import above
+// embedded_list would silently flip those ties.
+
+// ── Modal Header & Split Screen Spacing ──
+.dq-split-screen {
+	padding: 16px 20px 16px 20px;
+	height: 76vh;
+	max-height: 76vh;
+	overflow: hidden;
+	display: flex;
+	flex-direction: row;
+	gap: 16px;
+	box-sizing: border-box;
+}
+
+// ── Left Pane: List View (55%) ──
+.dq-list-pane {
+	flex: 0 0 calc(55% - 8px);
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	overflow: visible;
+	height: 100%;
+}
+
+.dq-list-wrapper {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	overflow: visible;
+	min-height: 0;
+
+	// ── Embedded List Framework ──
+	.embedded-list {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		overflow: visible;
+		min-height: 0;
+	}
+
+	.embedded-list-header {
+		flex-shrink: 0;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 16px;
+		overflow: visible;
+		min-height: 30px;
+		padding: 0 2px;
+	}
+
+	.embedded-list-header-left {
+		display: flex;
+		align-items: center;
+	}
+
+	.embedded-list-header-actions {
+		display: flex;
+		align-items: center;
+		overflow: visible;
+	}
+
+	// Not the list-view `.filter-section` — that one is only ever styled under
+	// `.page-form`, which the dialog has no ancestor of.
+	.filter-section {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		overflow: visible;
+	}
+
+	.embedded-list-result {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		min-height: 0;
+	}
+
+	// ── List View Table ──
+	.embedded-list-table-wrap {
+		flex: 1;
+		overflow-y: auto;
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius-md, 8px);
+		background: var(--card-bg, #fff);
+		margin-bottom: 0;
+		display: block;
+	}
+
+	// The selected row keeps its own background even while hovered. The `:hover`
+	// variant is what out-ranks embedded_list.scss's `tbody tr:hover`; the plain
+	// selector covers the row the rest of the time.
+	table.embedded-list-table tbody tr.active-row,
+	table.embedded-list-table tbody tr.active-row:hover {
+		background-color: var(--control-bg, #ebf1f6);
+
+		td {
+			font-weight: 500;
+			color: var(--text-color);
+		}
+	}
+
+	.embedded-list > .min-h-48,
+	.embedded-list-loading,
+	.embedded-list-error {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+	}
+
+	// ── Pagination Area (Level Left / Right) ──
+	// Reuses the list-view paging markup, but none of list.scss's paging rules
+	// reach inside the dialog — they all require a `.frappe-list`,
+	// `.layout-main-list` or `.file-view` ancestor.
+	.list-paging-area {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 8px;
+		flex-shrink: 0;
+		min-height: 34px;
+		margin-top: auto;
+
+		.level-left {
+			display: flex;
+			align-items: center;
+		}
+
+		// Espresso's own rules for these are single-class (or class +
+		// attribute) selectors, so these three-class selectors out-rank them.
+		.es-tab-buttons {
+			border-radius: 6px;
+			padding: 1.5px;
+			gap: 2px;
+		}
+
+		.es-pill {
+			font-size: 11px;
+			padding: 3px 7px;
+			line-height: 14px;
+			border-radius: 5px;
+		}
+
+		.level-right {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		.list-count {
+			font-size: 11px;
+			color: var(--text-muted);
+			white-space: nowrap;
+		}
+
+		.btn-more {
+			height: 24px;
+			padding: 2px 8px;
+			font-size: 11px;
+		}
+	}
+}
+
+// ── Right Pane: Preview Pane (45%) ──
+.dq-preview-pane {
+	flex: 0 0 calc(45% - 8px);
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	height: 100%;
+	background: var(--card-bg, #fff);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-md, 8px);
+	box-sizing: border-box;
+	position: relative;
+}
+
+.dq-preview-empty-container {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	height: 100%;
+}
+
+// Content area swapped by _clear_preview/_render_preview; the action row below
+// it is permanent, so selecting a row never changes the pane's geometry.
+.dq-preview-content {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+// Matches the height `.list-paging-area` occupies in the list pane.
+.dq-preview-footer {
+	flex-shrink: 0;
+	min-height: 34px;
+	padding: 8px;
+	border-top: 1px solid var(--border-color);
+}
+
+.dq-preview-body {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: var(--subtle-fg, #f8f9fa);
+	overflow: hidden;
+
+	// No bottom radius: the action row, not the iframe, now meets the pane's
+	// rounded bottom edge.
+	iframe {
+		width: 100%;
+		height: 100%;
+		border: 0;
+		outline: none;
+		background-color: #fff;
+	}
+
+	img {
+		max-width: calc(100% - 32px);
+		max-height: calc(100% - 32px);
+		width: auto;
+		height: auto;
+		border: 0;
+		border-radius: var(--border-radius-md, 8px);
+		box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+	}
+}
