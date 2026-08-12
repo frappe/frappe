@@ -1,7 +1,7 @@
 // Naming tab: two stacked sections — naming series (with live previews) and Document
-// Naming Rules. Each section renders its own header (matching the dialog's panel-title
-// style) over a frappe.ui.EmbeddedList table (used for the list only — its built-in
-// header/search are intentionally not used here). Series reuse the Document Naming
+// Naming Rules. Each is a shared `frappe.doctype_settings.section` scaffold over a
+// frappe.ui.EmbeddedList table (used for the list only — its built-in header/search
+// are intentionally not used here). Series reuse the Document Naming
 // Settings instance methods (the same the settings page uses) by loading that Single
 // into locals; rules use generic db APIs. No custom backend.
 const NAMING_SETTINGS = "Document Naming Settings";
@@ -24,24 +24,13 @@ frappe.doctype_settings.register("naming", function (panel, doctype) {
 	});
 });
 
-// Render a section header (reusing the dialog's panel-title classes for a consistent
-// look) + an EmbeddedList table beneath it. Returns the list so callers can refresh().
+// A titled section (shared scaffold) + an EmbeddedList table beneath it. Returns the
+// list so callers can refresh().
 function make_section($parent, { title, description, add_label, on_add }, list_opts) {
-	const $section = $('<div class="dts-section"></div>').appendTo($parent);
-	const $header = $(`
-		<div class="settings-dialog-panel-header">
-			<div class="settings-dialog-panel-heading">
-				<div class="settings-dialog-panel-title"></div>
-				<div class="settings-dialog-panel-description"></div>
-			</div>
-			<div class="settings-dialog-panel-actions"></div>
-		</div>
-	`).appendTo($section);
-	$header.find(".settings-dialog-panel-title").text(title);
-	$header.find(".settings-dialog-panel-description").text(description);
+	const { $body, $actions } = frappe.doctype_settings.section($parent, { title, description });
 
 	const list = new frappe.ui.EmbeddedList({
-		wrapper: $("<div></div>").appendTo($section),
+		wrapper: $("<div></div>").appendTo($body),
 		...list_opts,
 	});
 	list.refresh();
@@ -53,7 +42,7 @@ function make_section($parent, { title, description, add_label, on_add }, list_o
 				icon: "plus",
 				onclick: () => on_add(() => list.refresh()),
 			})
-			.appendTo($header.find(".settings-dialog-panel-actions"));
+			.appendTo($actions);
 	}
 	return list;
 }

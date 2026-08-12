@@ -137,7 +137,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 					${frappe.ui.badge.html({
 						label: __("Custom"),
 						theme: "blue",
-						css_class: "dts-pf-badge hide",
+						css_class: "dts-pf-badge hidden",
 					})}
 					<button type="button" class="dts-pf-star" data-selected="${
 						is_default ? "true" : "false"
@@ -147,7 +147,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 					</div>
 				</div>
 				<div class="dts-pf-footer">
-					<span class="dts-pf-name ellipsis"></span>
+					<span class="dts-pf-name truncate"></span>
 				</div>
 			</div>
 		`);
@@ -155,7 +155,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 		const $thumb = $card.find(".dts-pf-thumb");
 		const $star = $card.find(".dts-pf-star");
 
-		if (is_custom) $card.find(".dts-pf-badge").removeClass("hide");
+		if (is_custom) $card.find(".dts-pf-badge").removeClass("hidden");
 
 		$thumb.data("pf", f.name);
 
