@@ -204,7 +204,7 @@ class DesktopPage {
 	setup_notifications() {
 		this.notifications = new frappe.ui.Notifications({
 			wrapper: $(".desktop-notifications"),
-			full_height: false,
+			popover: true,
 		});
 	}
 	setup_avatar() {
