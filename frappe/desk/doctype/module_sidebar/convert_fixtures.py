@@ -62,9 +62,9 @@ def read_fixtures(app: str) -> list[frappe._dict]:
 		if not path.endswith(".json"):
 			continue
 
-		# nosemgrep: the path is an installed app's own folder, walked by the operator's own
-		# bench command -- nothing here comes from a request
-		with open(path) as f:
+		# the path is an installed app's own folder, walked by the operator's own bench
+		# command -- nothing here comes from a request
+		with open(path) as f:  # nosemgrep
 			fixture = frappe.parse_json(f.read())
 		if isinstance(fixture, list):
 			fixture = fixture[0] if fixture else None
@@ -175,7 +175,7 @@ def write_export(path: str, module: str, plan, app: str) -> None:
 		],
 	}
 
-	# nosemgrep: `export_path` builds this from `get_module_path`, the same way every other
-	# document export in the framework does
-	with open(path, "w") as f:
+	# `export_path` builds this from `get_module_path`, the same way every other document
+	# export in the framework does
+	with open(path, "w") as f:  # nosemgrep
 		f.write(json.dumps(doc, indent=1, sort_keys=True) + "\n")
