@@ -36,7 +36,6 @@ const keywordControl = (property: string): StyleControlProps => {
 	return {
 		type: "autocomplete",
 		options,
-		getOptions: async (query: string) => filterOptions(options, query),
 		showInputAsOption: true,
 	}
 }
@@ -121,14 +120,6 @@ const getCSSPropertyOptions = (query: string, excludedProperties = new Set<strin
 		.sort((a, b) => a.score - b.score || a.property.localeCompare(b.property))
 		.slice(0, MAX_SEARCH_RESULTS)
 		.map(({ property }) => ({ label: property, value: property }))
-}
-
-const filterOptions = (options: Option[], query: string) => {
-	const normalizedQuery = query.trim().toLowerCase()
-	if (!normalizedQuery) return options.slice(0, MAX_SEARCH_RESULTS)
-	return options
-		.filter((option) => option.value.toLowerCase().includes(normalizedQuery))
-		.slice(0, MAX_SEARCH_RESULTS)
 }
 
 export {
