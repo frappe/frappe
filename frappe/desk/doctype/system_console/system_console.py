@@ -33,14 +33,8 @@ class SystemConsole(Document):
 				safe_exec(self.console, script_filename="System Console")
 				self.output = "\n".join(frappe.debug_log)
 			elif self.type == "SQL":
-<<<<<<< HEAD
-				self.output = frappe.as_json(read_sql(self.console, as_dict=1))
-=======
-				frappe.db.begin(read_only=True)
 				# Use json module directly to preserve key order.
-				frappe.as_json
 				self.output = json.dumps(read_sql(self.console, as_dict=1), default=json_handler)
->>>>>>> 7a6b33613e (fix: Respect select field ordering (#41123))
 		except Exception:
 			self.commit = False
 			self.output = frappe.get_traceback()
