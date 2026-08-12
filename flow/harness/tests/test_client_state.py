@@ -12,6 +12,7 @@ from flow.events import (
 	RunStarted,
 	TextContent,
 	TextDelta,
+	ThinkingContent,
 	ThinkingDelta,
 	ToolCall,
 	ToolCallStarted,
@@ -71,6 +72,21 @@ def test_assistant_message_without_preview_is_an_entry_added():
 	state = State()
 	message = AssistantMessage(content="hi", seq=1)
 	assert state.apply(message) == [EntryAdded(message)]
+
+
+def test_aborted_assistant_message_keeps_the_streamed_content():
+	state = State()
+	state.apply(ThinkingDelta(thinking="checking"))
+	state.apply(TextDelta(text="Partial answer"))
+	durable = AssistantMessage(
+		content=[ThinkingContent(thinking="checking"), TextContent(text="Partial answer")],
+		stop_reason="aborted",
+		seq=1,
+	)
+
+	assert state.apply(durable) == [EntryReplaced(durable)]
+	assert state.partial == []
+	assert state.entries == [durable]
 
 
 def test_retry_started_discards_the_preview():

@@ -17,7 +17,7 @@ import asyncio
 import json
 from collections import deque
 from collections.abc import AsyncGenerator, AsyncIterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Literal
 
@@ -26,14 +26,20 @@ from flow.agent import loop
 from flow.agent.loop import AfterHook, BeforeHook
 from flow.events import (
 	AnyEvent,
+	AssistantContent,
 	AssistantMessage,
 	ModelChanged,
 	ProviderErrorKind,
 	ReasoningEffort,
+	Retry,
 	Rewind,
 	RunEnded,
 	RunError,
 	TextContent,
+	TextDelta,
+	ThinkingContent,
+	ThinkingDelta,
+	ToolCallStarted,
 	ToolResult,
 	UserMessage,
 	parse_event,
@@ -114,6 +120,45 @@ class RunHandle:
 class _QueuedSteering:
 	message: UserMessage
 	owned_attachment_claims: tuple[str, ...] = ()
+
+
+@dataclass
+class _PartialAssistant:
+	"""Displayable blocks seen only as live deltas in the current model attempt.
+
+	Providers normally turn these into the terminal ``AssistantMessage`` themselves.
+	The session also races the provider iterator against abort so a misbehaving adapter
+	cannot hold a run open; if that outer race wins, this is the durable fallback.
+	"""
+
+	content: list[AssistantContent] = field(default_factory=list)
+	_tail_kind: Literal["text", "thinking"] | None = None
+
+	def observe(self, event: AnyEvent) -> None:
+		if isinstance(event, TextDelta):
+			if self._tail_kind == "text" and isinstance(self.content[-1], TextContent):
+				self.content[-1].text += event.text
+			else:
+				self.content.append(TextContent(text=event.text))
+			self._tail_kind = "text"
+		elif isinstance(event, ThinkingDelta):
+			if self._tail_kind == "thinking" and isinstance(self.content[-1], ThinkingContent):
+				self.content[-1].thinking += event.thinking
+			else:
+				self.content.append(ThinkingContent(thinking=event.thinking))
+			self._tail_kind = "thinking"
+		elif isinstance(event, ToolCallStarted):
+			# The announcement has no arguments, so it is not safe to make durable.
+			# It still separates adjacent blocks that appeared on opposite sides of it.
+			self._tail_kind = None
+		elif isinstance(event, Retry) and event.status == "started":
+			# The fresh attempt restreams from scratch.
+			self.content = []
+			self._tail_kind = None
+		elif isinstance(event, AssistantMessage):
+			# The provider supplied the canonical terminal, so no fallback is needed.
+			self.content = []
+			self._tail_kind = None
 
 
 class Session:
@@ -450,8 +495,10 @@ class Session:
 	) -> None:
 		"""Commit the loop's events; when it raises instead, settle the run here."""
 		aborted_terminal = False
+		partial = _PartialAssistant()
 		try:
 			async for event in events:
+				partial.observe(event)
 				if isinstance(event, AssistantMessage) and event.stop_reason == "aborted":
 					aborted_terminal = True
 				self._commit(event)
@@ -459,6 +506,7 @@ class Session:
 			self._settle(
 				reason="aborted",
 				needs_aborted_message=operation_type == "run" and not aborted_terminal,
+				partial_content=partial.content,
 			)
 			if isinstance(cancelled, asyncio.CancelledError):
 				raise
@@ -470,6 +518,7 @@ class Session:
 		*,
 		reason: Literal["aborted", "error"],
 		needs_aborted_message: bool = False,
+		partial_content: list[AssistantContent] | None = None,
 		error: Exception | None = None,
 	) -> None:
 		"""Close an interrupted run: repairs first (position attaches them to their
@@ -480,6 +529,7 @@ class Session:
 		if needs_aborted_message:
 			self._commit(
 				AssistantMessage(
+					content=partial_content or [],
 					provider=self.model.partition("/")[0],
 					model=self.model,
 					stop_reason="aborted",
