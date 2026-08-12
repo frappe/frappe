@@ -15,7 +15,9 @@ import type { FormLayoutsResponse, FormLayoutType } from "./types";
 export interface UseFormLayoutOptions {
 	doctype: MaybeRefOrGetter<string>;
 	type: FormLayoutType;
-	/** The live doc conditions evaluate against; the layout follows its edits. */
+	/** The doc conditions evaluate against. Reactive — the layout re-picks when
+	 *  it changes — so pass the saved snapshot, not the draft, unless a mid-edit
+	 *  remount (and the focus loss it brings) is acceptable. */
 	doc?: Ref<Record<string, any>>;
 }
 
