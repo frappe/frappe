@@ -148,9 +148,22 @@ def add_comments(doc, docinfo):
 
 	comments = frappe.get_all(
 		"Comment",
-		fields=["name", "creation", "content", "owner", "comment_type", "published"],
+		fields=[
+			"name",
+			"creation",
+			"content",
+			"owner",
+			"comment_type",
+			"published",
+			"attached_to_field",
+		],
 		filters={"reference_doctype": doc.doctype, "reference_name": doc.name},
 	)
+
+	# Attachment comments that reference an Attach / Attach Image field the user
+	# has no permlevel access to should be hidden, mirroring get_attachments().
+	high_permlevel_fields = {df.fieldname for df in doc.meta.get_high_permlevel_fields()}
+	permitted_fieldnames = set(doc.meta.get_permitted_fieldnames()) if high_permlevel_fields else set()
 
 	for c in comments:
 		match c.comment_type:
@@ -162,6 +175,13 @@ def add_comments(doc, docinfo):
 			case "Assignment Completed" | "Assigned":
 				docinfo.assignment_logs.append(c)
 			case "Attachment" | "Attachment Removed":
+				if (
+					c.attached_to_field
+					and c.attached_to_field in high_permlevel_fields
+					and c.attached_to_field not in permitted_fieldnames
+				):
+					continue
+				c.pop("attached_to_field", None)
 				docinfo.attachment_logs.append(c)
 			case "Info" | "Edit" | "Label":
 				docinfo.info_logs.append(c)
