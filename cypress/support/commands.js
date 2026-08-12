@@ -293,7 +293,7 @@ Cypress.Commands.add("desk_ready", () => {
 		expect(win.frappe && win.frappe.app, "desk booted").to.be.ok;
 		expect(win.frappe.request.ajax_count, "no pending requests").to.eq(0);
 	});
-	cy.get(".layout-main-section", { timeout: 30000 }).should("exist");
+	cy.get(".layout-main-section").should("exist");
 });
 
 Cypress.Commands.add("dialog", (opts) => {

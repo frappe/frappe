@@ -53,7 +53,7 @@ context("List View — Saved Layouts", () => {
 
 	it("shows default layout and action rows in the menu", () => {
 		cy.visit(LIST_URL);
-		cy.wait(500);
+		cy.desk_ready();
 		cy.clear_filters();
 
 		openLayoutSubmenu();
@@ -70,14 +70,14 @@ context("List View — Saved Layouts", () => {
 		});
 
 		cy.visit(LIST_URL);
-		cy.wait(500);
+		cy.desk_ready();
 		cy.clear_filters();
 
 		selectLayout("_cypress_layout_empty");
 		assertActiveLayout("_cypress_layout_empty");
 
 		cy.visit(LIST_URL);
-		cy.wait(1000);
+		cy.desk_ready();
 		cy.clear_filters();
 
 		assertActiveLayout("_cypress_layout_empty");
@@ -90,7 +90,7 @@ context("List View — Saved Layouts", () => {
 		});
 
 		cy.visit(LIST_URL);
-		cy.wait(1000);
+		cy.desk_ready();
 		cy.clear_filters();
 
 		assertActiveLayout("Default Layout");
@@ -104,6 +104,7 @@ context("List View — Saved Layouts", () => {
 		});
 
 		cy.visit(`${LIST_URL}?status=Open`);
+		cy.desk_ready();
 
 		assertActiveLayout("_cypress_layout_open");
 	});
@@ -116,7 +117,7 @@ context("List View — Saved Layouts", () => {
 		});
 
 		cy.visit(LIST_URL);
-		cy.wait(500);
+		cy.desk_ready();
 		cy.clear_filters();
 
 		selectLayout("_cypress_layout_switch");
@@ -132,7 +133,7 @@ context("List View — Saved Layouts", () => {
 		});
 
 		cy.visit(LIST_URL);
-		cy.wait(500);
+		cy.desk_ready();
 
 		openLayoutSubmenu();
 		cy.contains(".es-menu__item", "Manage Layouts").click();
