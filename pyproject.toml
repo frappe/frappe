@@ -223,6 +223,8 @@ nixpkgs-deps = [
     "redis",
     "nodejs_20",
     "python312",
+    "tesseract",
+    "poppler_utils",
 ]
 
 [tool.uv]

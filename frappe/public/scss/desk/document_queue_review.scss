@@ -1,0 +1,257 @@
+// Styles for the inline Document Queue review panel, the upload-first banner and
+// the list-view "ready for review" banner.
+// Behaviour lives in frappe/public/js/frappe/document_queue_review.js.
+
+.document-queue-freeze-body {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+}
+
+.document-queue-review-json-pre {
+	background-color: var(--control-bg);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-sm);
+	font-size: var(--text-sm);
+}
+
+.document-queue-upload-first {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 12px 16px;
+	border-bottom: 1px solid var(--border-color);
+	background: var(--fg-color);
+}
+
+.document-queue-upload-first-title {
+	color: var(--text-color);
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.document-queue-upload-first-description {
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+	line-height: 1.4;
+}
+
+.document-queue-upload-first-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	flex: none;
+}
+
+.document-queue-ready-banner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	min-height: 32px;
+	padding: 6px 12px;
+	margin-bottom: 8px;
+	border: 1px solid var(--border-color);
+	border-top: 0;
+	background: var(--fg-color);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+	cursor: pointer;
+	transition: background-color 0.2s;
+
+	&:hover {
+		background-color: var(--control-bg);
+	}
+}
+
+.std-form-layout.document-queue-review-layout {
+	display: grid;
+	grid-template-columns:
+		minmax(320px, var(--document-queue-review-width, 38%))
+		minmax(0, 1fr);
+	gap: 0;
+	align-items: start;
+}
+
+.document-queue-review-panel {
+	position: sticky;
+	top: var(--page-head-height);
+	height: calc(100vh - var(--page-head-height));
+	margin-top: 0;
+	overflow: visible;
+	border: 1px solid var(--border-color);
+	border-width: 0 1px 1px 0;
+	border-radius: 0;
+	background: var(--fg-color);
+}
+
+.document-queue-review-shell {
+	display: flex;
+	height: 100%;
+	min-height: 0;
+	overflow: hidden;
+	border-radius: 0;
+	flex-direction: column;
+}
+
+// Sits above the tab bar inside the flex column, so a failed extraction is stated
+// once for the whole panel instead of hiding inside one tab.
+.document-queue-review-alert {
+	flex: none;
+	padding: var(--padding-md) var(--padding-md) 0;
+}
+
+.document-queue-review-body {
+	min-height: 0;
+	flex: 1;
+	overflow: auto;
+	padding: 12px;
+	margin-top: 0;
+	border-bottom: 1px solid var(--border-color);
+}
+
+.document-queue-review-tab-panel {
+	display: none;
+	height: 100%;
+
+	&.active {
+		display: block;
+	}
+
+	&[data-panel="preview"] {
+		position: relative;
+	}
+}
+
+.document-queue-review-resize-overlay {
+	position: absolute;
+	display: none;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	color: var(--text-muted);
+	font-size: var(--text-base);
+	font-weight: 400;
+	pointer-events: none;
+	z-index: 1;
+}
+
+.document-queue-review-preview {
+	width: 100%;
+	height: 100%;
+	border: 0;
+	border-radius: 0;
+	background: #fff;
+}
+
+.document-queue-review-preview-image {
+	width: 100%;
+	height: auto;
+	border-radius: 0;
+}
+
+// While dragging the resizer, hide the PDF iframe (it repaints poorly mid-drag)
+// and show the width overlay in its place.
+.document-queue-review-panel.document-queue-review-resizing-pdf {
+	.document-queue-review-preview {
+		visibility: hidden;
+	}
+
+	.document-queue-review-resize-overlay {
+		display: block;
+	}
+}
+
+.document-queue-review-sections {
+	display: flex;
+	flex-direction: column;
+}
+
+.document-queue-review-section {
+	padding: 0;
+	border: 0;
+	background: var(--fg-color);
+
+	// Core form CSS caps form sections at the page width. The panel is a side
+	// pane, not a form, so it needs the full width of its own column. Core's
+	// rule is more specific than this one, so !important is the only way out.
+	.section-head,
+	.section-body {
+		max-width: none !important;
+	}
+
+	.section-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: var(--padding-md);
+		border-bottom: 0;
+		color: var(--text-color);
+		font-size: var(--text-md);
+		font-weight: var(--weight-medium);
+	}
+
+	.collapse-indicator {
+		margin-left: auto;
+	}
+
+	.section-body {
+		display: block;
+		padding: var(--padding-sm) var(--padding-md) 0;
+	}
+
+	.section-body.hide {
+		display: none;
+	}
+}
+
+.document-queue-review-panel pre {
+	margin: 0;
+	white-space: pre-wrap;
+	word-break: break-word;
+	padding: var(--padding-md);
+	border-radius: 0;
+	border: 0;
+	background: var(--control-bg);
+	font-size: var(--text-sm);
+}
+
+.document-queue-review-resizer {
+	position: absolute;
+	top: 0;
+	right: -2px;
+	bottom: 0;
+	width: 5px;
+	cursor: col-resize;
+	z-index: 2;
+	background: transparent;
+	transition: background-color 120ms ease;
+
+	&:hover {
+		background: var(--border-color);
+	}
+}
+
+body.document-queue-review-is-resizing {
+	cursor: col-resize;
+	user-select: none;
+}
+
+@media (max-width: 991px) {
+	.std-form-layout.document-queue-review-layout {
+		display: block;
+	}
+
+	.document-queue-review-panel {
+		position: static;
+		height: calc(100vh - 96px);
+		margin-bottom: 16px;
+	}
+
+	.document-queue-review-resizer {
+		display: none;
+	}
+}
