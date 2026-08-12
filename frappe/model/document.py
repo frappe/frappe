@@ -1599,6 +1599,7 @@ class Document(BaseDocument, DocRef):
 		text=None,
 		comment_email=None,
 		comment_by=None,
+		attached_to_field: str | None = None,
 	):
 		"""Add a comment to this document.
 
@@ -1613,6 +1614,7 @@ class Document(BaseDocument, DocRef):
 				"reference_doctype": self.doctype,
 				"reference_name": self.name,
 				"content": text or comment_type,
+				"attached_to_field": attached_to_field,
 			}
 		).insert(ignore_permissions=True)
 

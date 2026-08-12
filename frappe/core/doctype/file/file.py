@@ -774,7 +774,7 @@ class File(Document):
 		if self.attached_to_doctype and self.attached_to_name:
 			try:
 				doc = frappe.get_doc(self.attached_to_doctype, self.attached_to_name)
-				doc.add_comment(comment_type, text)
+				doc.add_comment(comment_type, text, attached_to_field=self.attached_to_field)
 			except frappe.DoesNotExistError:
 				frappe.clear_messages()
 

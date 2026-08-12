@@ -15,6 +15,7 @@
   "reference_doctype",
   "reference_name",
   "reference_owner",
+  "attached_to_field",
   "section_break_10",
   "content",
   "ip_address"
@@ -81,6 +82,12 @@
    "read_only": 1
   },
   {
+   "fieldname": "attached_to_field",
+   "fieldtype": "Data",
+   "label": "Attached To Field",
+   "read_only": 1
+  },
+  {
    "fieldname": "section_break_10",
    "fieldtype": "Section Break"
   },
@@ -99,7 +106,7 @@
   }
  ],
  "links": [],
- "modified": "2024-08-14 16:10:15.413830",
+ "modified": "2026-08-12 16:10:15.413830",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Comment",
