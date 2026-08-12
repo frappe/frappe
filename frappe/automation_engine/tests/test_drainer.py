@@ -128,6 +128,40 @@ class TestDrainer(IntegrationTestCase):
 		self.assertEqual(self.count("Pending"), 0)
 		self.assertEqual(self.count("Running"), 0)
 
+	def test_one_failing_row_does_not_stop_the_batch(self):
+		for i in range(3):
+			self.add_row(f"T{i}")
+
+		processed = []
+
+		def executor(name):
+			processed.append(name)
+			if len(processed) == 2:
+				raise ValueError("boom")
+			frappe.db.set_value(QUEUE, name, "status", "Done")
+
+		drain(batch_size=3, executor=executor)
+
+		self.assertEqual(len(processed), 3)
+		self.assertEqual(self.count("Done"), 2)
+		# The failed row keeps its claim; requeue_stale_running() releases it.
+		self.assertEqual(self.count("Running"), 1)
+
+	def test_a_failing_row_does_not_roll_back_the_rows_before_it(self):
+		names = [self.add_row(f"T{i}") for i in range(2)]
+
+		def executor(name):
+			frappe.db.set_value(QUEUE, name, "status", "Done")
+			if name == names[1]:
+				raise ValueError("boom")
+
+		drain(batch_size=2, executor=executor)
+
+		# Without a commit per row, the second row's rollback would take the first one's
+		# write with it and both would sit Running until the stale sweep.
+		self.assertEqual(frappe.db.get_value(QUEUE, names[0], "status"), "Done")
+		self.assertEqual(frappe.db.get_value(QUEUE, names[1], "status"), "Running")
+
 	def test_kill_switch_stops_drain(self):
 		for i in range(3):
 			self.add_row(f"T{i}")
