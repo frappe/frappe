@@ -178,9 +178,10 @@ $notification-dot-size: 8px;
 	.notifications-list {
 		position: static;
 		width: 100%;
-		height: auto;
-		min-height: 0;
-		max-height: min(500px, calc(100vh - var(--navbar-height) - 32px));
+		// fixed, not max-height: the popover must stay the same size across tabs
+		// (e.g. Events has far fewer rows than All) instead of shrinking to fit
+		// whichever tab's content is currently shown.
+		height: min(500px, calc(100vh - var(--navbar-height) - 32px));
 		background: transparent;
 		box-shadow: none;
 	}
