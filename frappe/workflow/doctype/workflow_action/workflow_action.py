@@ -290,6 +290,8 @@ def update_completed_workflow_actions_using_user(doc, user=None):
 			frappe.qb.update(WorkflowAction)
 			.set(WorkflowAction.status, "Completed")
 			.set(WorkflowAction.completed_by, user)
+			.set(WorkflowAction.modified, now_datetime())
+			.set(WorkflowAction.modified_by, user)
 			.where(
 				(WorkflowAction.reference_name == doc.get("name"))
 				& (WorkflowAction.reference_doctype == doc.get("doctype"))
