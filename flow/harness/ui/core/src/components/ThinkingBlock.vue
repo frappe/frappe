@@ -17,7 +17,7 @@
 			class="mt-2 border-l-2 border-outline-gray-2 pl-3 text-sm leading-relaxed text-ink-gray-6"
 		>
 			<span v-if="block.redacted" class="italic">Thinking is encrypted for this model.</span>
-			<div v-else class="flow-md" v-html="renderMarkdown(block.thinking)" />
+			<MarkdownContent v-else :text="block.thinking" />
 		</div>
 	</div>
 </template>
@@ -26,7 +26,7 @@
 import { nextTick, ref, watch } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
-import { renderMarkdown } from "../markdown.js"
+import MarkdownContent from "./MarkdownContent.vue"
 
 defineProps({
 	block: { type: Object, required: true },
