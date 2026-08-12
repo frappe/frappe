@@ -58,6 +58,22 @@ class Engine:
 			self.doctype = table
 			self.table = frappe.qb.DocType(table)
 
+<<<<<<< HEAD
+=======
+		assert isinstance(self.doctype, str) and self.doctype, "doctype must be a non-empty string"
+
+		if frappe.flags.get("ignore_user_permissions_for_doctype") == self.doctype:
+			self.ignore_user_permissions = True
+
+		if self.apply_permissions:
+			self.check_select_permission()
+			self.permission_doctype = parent_doctype or self.doctype
+			self.permission_table = (
+				qb.DocType(self.permission_doctype) if self.permission_doctype != self.doctype else self.table
+			)
+
+		is_select = False
+>>>>>>> 0ab8b231c6 (fix(search): apply ignore_user_permissions to custom link queries)
 		if update:
 			self.query = frappe.qb.update(self.table)
 		elif into:
