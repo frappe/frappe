@@ -9,7 +9,7 @@ module.exports = defineConfig({
 	testUser: "frappe@example.com",
 	defaultCommandTimeout: 20000,
 	pageLoadTimeout: 15000,
-	video: true,
+	video: process.env.RECORD_VIDEO === "true",
 	videosFolder: path.resolve(__dirname, "..", "..") + "/cypressVideos/",
 	viewportHeight: 960,
 	viewportWidth: 1400,
