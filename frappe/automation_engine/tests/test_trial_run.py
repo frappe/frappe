@@ -7,7 +7,7 @@ from contextlib import contextmanager
 import frappe
 from frappe.automation_engine.actions.base import get_action_registry
 from frappe.automation_engine.api import trial_run
-from frappe.automation_engine.runner import automation_task_name
+from frappe.automation_engine.runner import _failure_key, automation_task_name
 from frappe.automation_engine.tests.test_runner import (
 	AutomationRunnerTestCase,
 	make_automation,
@@ -47,6 +47,19 @@ class TestTrialRun(AutomationRunnerTestCase):
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "Low")
 		self.assertFalse(frappe.db.exists(QUEUE, {"automation": auto}))
 		self.assertFalse(frappe.db.exists("Background Task", {"task_name": automation_task_name(auto)}))
+
+	def test_failed_trial_does_not_touch_the_circuit_breaker(self):
+		# The breaker counter lives in Redis, so the savepoint rollback does not undo it.
+		# Trial run is what you reach for while a flow is broken; it must not be what
+		# auto-disables it.
+		todo = make_todo(priority="Low")
+		auto = make_automation([set_field("priority", "Bogus")])
+		self.addCleanup(frappe.cache.delete, _failure_key(auto))
+
+		self.assertEqual(trial_run(auto, todo.name)["status"], "Failed")
+
+		self.assertIsNone(frappe.cache.get_value(_failure_key(auto)))
+		self.assertEqual(frappe.db.get_value("Automation Flow", auto, "enabled"), 1)
 
 	def test_failed_step_reports_the_thrown_message_not_a_traceback(self):
 		todo = make_todo(priority="Low")
@@ -116,6 +129,24 @@ class TestTrialRun(AutomationRunnerTestCase):
 
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "Low")
 		self.assertFalse(frappe.db.exists(QUEUE, {"automation": auto}))
+
+	def test_trial_run_leaves_the_callers_session_intact(self):
+		# The runner switches identity per the flow's run_as, and frappe.set_user overwrites
+		# session.sid with the username. In a background job that is harmless; in a request it
+		# destroys the caller's session and logs them out.
+		todo = make_todo()
+		auto = make_automation([set_field("priority", "High")])
+		original = frappe._dict(frappe.session)
+		frappe.session.sid = "caller-session-id"
+		frappe.session.data.session_country = "Testland"
+		self.addCleanup(lambda: frappe.local.session.update(original))
+
+		trial_run(auto, todo.name)
+
+		self.assertEqual(frappe.session.sid, "caller-session-id")
+		self.assertEqual(frappe.session.user, "Administrator")
+		# local.session IS session_obj.data, which the request persists on the way out.
+		self.assertEqual(frappe.session.data.session_country, "Testland")
 
 	def test_trial_needs_write_on_the_flow(self):
 		todo = make_todo()

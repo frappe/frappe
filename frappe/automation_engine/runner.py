@@ -8,7 +8,9 @@ circuit breaker lives in Redis, and auto-disable uses db.set_value(update_modifi
 Steps run off an `actions_snapshot` taken at run start and stored in the Background Task's
 arguments, never off the live rule - so a Wait that spans a config edit resumes against the
 plan it started with. `If` steps pick an arm and every step carrying that `parent_step` in
-the other arm is passed over; `Wait` steps park the run and queue a resume row.
+the other arm is passed over; `Wait` steps park the run and queue a resume row. The arms an
+`If` chose are recorded with the run for the same reason the snapshot is: they are decisions
+the first leg made, not something to re-derive against a document that has since moved.
 """
 
 import time
@@ -163,17 +165,24 @@ def _context(row, run, rule, doc, event=None) -> dict:
 		"trigger_doc": doc,
 		"steps": result.get("step_outputs") or {},
 		"records": result.get("records") or resolve_relationships(doc, arguments.get("relationships")),
+		"branches": result.get("branches") or {},
 	}
 
 
 @contextmanager
 def _execution_identity(rule, row, doc):
-	previous = frappe.session.user
+	# frappe.set_user rebuilds local.session in place: it overwrites sid and swaps the session
+	# payload for an empty dict. local.session IS session_obj.data, which the request writes
+	# back to tabSessions (with its own commit) on the way out - so a run executed inside a
+	# request would persist an emptied session and log the caller out. Restoring the user
+	# alone is not enough; the whole session has to go back.
+	previous = frappe._dict(frappe.session)
 	frappe.set_user(_execution_user(rule, row, doc))
 	try:
 		yield
 	finally:
-		frappe.set_user(previous)
+		frappe.set_user(previous.user)
+		frappe.local.session.update(previous)
 
 
 def _execution_user(rule, row, doc):
@@ -192,7 +201,7 @@ def _ensure_trigger_access(doc):
 def _run_plan(steps, rule, doc, context, snapshot, start_idx=0) -> str:
 	"""Walk the snapshot once, honouring branch arms and skipping what already ran."""
 	registry = get_action_registry()
-	taken: dict = {}
+	taken = context["branches"]
 	overall = "Success"
 	for pos, step in enumerate(snapshot):
 		status, detail, duration = _safe_step_outcome(registry, step, doc, context, pos, start_idx, taken)
@@ -239,18 +248,34 @@ def _branch_active(step, taken) -> bool:
 	parent = frappe.utils.cint(step.get("parent_step"))
 	if not parent:
 		return True
-	if parent not in taken:
+	arm = taken.get(_branch_key(parent))
+	if arm is None:
 		return False  # the enclosing If was itself on an arm that wasn't taken
-	return (step.get("branch") or "If") == taken[parent]
+	return (step.get("branch") or "If") == arm
+
+
+def _branch_key(idx) -> str:
+	# Keyed by string: this dict round-trips through the run's JSON result, which has no
+	# integer keys, and a resumed leg has to look up what the first one wrote.
+	return str(frappe.utils.cint(idx))
 
 
 def _resolve_if(step, doc, context, pos, start_idx, taken):
-	"""Pick the arm for an If step. Conditions are side-effect free, so a resumed run
-	re-evaluates the ones it already passed rather than persisting the chosen arms."""
-	arm = "If" if _step_condition_matches(step, doc, context) else "Else"
-	taken[frappe.utils.cint(step.get("idx"))] = arm
+	"""Pick the arm for an If step, on the leg that first reaches it.
+
+	The arm is run state, not a derivation. Re-evaluating on resume reads a document that may
+	have changed during the Wait, which strands the arm the first leg committed to halfway
+	through and starts running steps from the arm it never entered.
+	"""
+	key = _branch_key(step.get("idx"))
 	if pos < start_idx:
+		# Already decided, unless this run parked before arms were recorded - then fall back
+		# to the old behaviour of re-deriving rather than skipping the whole arm.
+		if key in taken:
+			return None, None, None
+		taken[key] = "If" if _step_condition_matches(step, doc, context) else "Else"
 		return None, None, None
+	taken[key] = arm = "If" if _step_condition_matches(step, doc, context) else "Else"
 	return "Success", _("Condition took the {0} branch").format(arm), 0
 
 
@@ -455,13 +480,19 @@ def _finalize(run, rule, row, status, steps, error=None, context=None):
 	# Doc Deleted trigger); the task must still record its outcome, so skip link validation.
 	run.flags.ignore_links = True
 	run.save(ignore_permissions=True)
+	_settle_queue_row(row, status)
+
+	# A trial is rolled back whole, but neither of the things below is in the transaction: the
+	# breaker counter lives in Redis and a realtime event has already left. Debugging a broken
+	# flow is exactly when trial run gets used, and it must not be what disables it.
+	if frappe.flags.get("in_automation_trial"):
+		return
 
 	if status == "Failed":
 		_record_failure(rule)
 	elif status == "Success":
 		_reset_failures(rule)
 
-	_settle_queue_row(row, status)
 	_publish_update(run, rule, status)
 
 
@@ -511,7 +542,13 @@ def _run_result(rule, row, status, steps, error_summary, context=None) -> dict:
 		"steps": steps,
 	}
 	if context:
-		result.update({"step_outputs": context["steps"], "records": context["records"]})
+		result.update(
+			{
+				"step_outputs": context["steps"],
+				"records": context["records"],
+				"branches": context["branches"],
+			}
+		)
 	return result
 
 

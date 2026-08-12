@@ -220,7 +220,7 @@ def trial_run(automation: str, docname: str | None = None) -> dict:
 	rule = _trial_target(automation, docname)
 	frappe.db.savepoint(TRIAL_SAVEPOINT)
 	try:
-		with _commits_disarmed():
+		with _trial_mode():
 			row_name = _trial_queue_row(rule, docname)
 			execute_automation(row_name)
 			return _trial_result(row_name, docname)
@@ -229,14 +229,22 @@ def trial_run(automation: str, docname: str | None = None) -> dict:
 
 
 @contextmanager
-def _commits_disarmed():
-	"""An action that commits mid-step would end the transaction and make the trial real."""
+def _trial_mode():
+	"""Keep the trial inside the transaction, and out of the flow's live bookkeeping.
+
+	The rollback only reaches the database: an action that commits mid-step would end the
+	transaction and make the trial real, and the runner's circuit breaker (Redis) and realtime
+	updates are not undone by it either - so the runner is told this is a trial.
+	"""
 	original = frappe.db.commit
+	previous = frappe.flags.get("in_automation_trial")
 	frappe.db.commit = lambda *args, **kwargs: None
+	frappe.flags.in_automation_trial = True
 	try:
 		yield
 	finally:
 		frappe.db.commit = original
+		frappe.flags.in_automation_trial = previous
 
 
 def _trial_target(automation: str, docname: str | None):
