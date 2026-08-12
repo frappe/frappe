@@ -16,6 +16,7 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 				no_match_icon: "search-x",
 				loading_message: __("Loading..."),
 				error_message: __("Failed to load data."),
+				show_search: true,
 				columns: [],
 				filters: {},
 				fields: ["name"],
@@ -69,9 +70,11 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 					attrs: { "data-action": "add-row" },
 			  })
 			: "";
-		const search = `<input type="text" class="form-control form-control-sm embedded-list-search" data-action="search" placeholder="${__(
-			"Search"
-		)}">`;
+		const search = this.show_search
+			? `<input type="text" class="form-control form-control-sm embedded-list-search" data-action="search" placeholder="${__(
+					"Search"
+			  )}">`
+			: "";
 
 		if (!title && !description && !add) {
 			this.$header.hide();
