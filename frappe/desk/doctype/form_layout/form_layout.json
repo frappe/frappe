@@ -33,7 +33,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Type",
-   "options": "Record\nQuick Entry",
+   "options": "Details\nSide Panel\nQuick Entry",
    "reqd": 1
   },
   {

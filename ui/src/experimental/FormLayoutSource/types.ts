@@ -1,7 +1,7 @@
 // The `Form Layout` doctype's wire shapes: `get_form_layouts` returns rows as
 // authored — fieldnames stay strings; the meta join happens client-side.
 
-export type FormLayoutType = "Record" | "Quick Entry";
+export type FormLayoutType = "Details" | "Side Panel" | "Quick Entry";
 
 export interface LayoutTreeColumn {
 	name?: string;

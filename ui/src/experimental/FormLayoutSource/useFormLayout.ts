@@ -19,6 +19,10 @@ export interface UseFormLayoutOptions {
 	 *  it changes — so pass the saved snapshot, not the draft, unless a mid-edit
 	 *  remount (and the focus loss it brings) is acceptable. */
 	doc?: Ref<Record<string, any>>;
+	/** What renders when no row applies: the meta-derived layout (default), or
+	 *  nothing — `"none"` lets the caller chain its own fallback (the side
+	 *  panel falls through to the Details layout). */
+	fallback?: "meta" | "none";
 }
 
 export interface UseFormLayout {
@@ -59,7 +63,10 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 		if (!response || !fields) return [];
 
 		const doc = options.doc?.value ?? {};
-		const tree = chooseLayout(response.layouts, doc) ?? response.fallback;
+		const chosen = chooseLayout(response.layouts, doc);
+		const tree =
+			chosen ?? (options.fallback === "none" ? null : response.fallback);
+		if (!tree) return [];
 
 		const childMetas: Record<string, RawMetaField[]> = {};
 		for (const [name, m] of Object.entries(metas.value))

@@ -8,7 +8,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-FORM_LAYOUT_TYPES = ("Record", "Quick Entry")
+FORM_LAYOUT_TYPES = ("Details", "Side Panel", "Quick Entry")
 
 
 class FormLayout(Document):

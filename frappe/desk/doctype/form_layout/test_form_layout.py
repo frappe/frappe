@@ -9,7 +9,7 @@ from frappe.tests import IntegrationTestCase
 
 
 def make_layout(**kwargs):
-	values = {"doctype": "Form Layout", "dt": "Note", "type": "Record", "layout": "[]"}
+	values = {"doctype": "Form Layout", "dt": "Note", "type": "Details", "layout": "[]"}
 	values.update(kwargs)
 	return frappe.get_doc(values)
 
@@ -65,15 +65,15 @@ class TestFormLayout(IntegrationTestCase):
 		self.assertEqual(tabs[0]["sections"][0]["columns"][0]["name"], "left")
 
 	def test_fallback_is_deterministic(self):
-		first = get_form_layouts("Note", "Record")["fallback"]
-		second = get_form_layouts("Note", "Record")["fallback"]
+		first = get_form_layouts("Note", "Details")["fallback"]
+		second = get_form_layouts("Note", "Details")["fallback"]
 		self.assertTrue(first)
 		self.assertEqual(json.dumps(first, sort_keys=True), json.dumps(second, sort_keys=True))
 
 	def test_rows_come_back_as_authored(self):
 		tree = [{"name": "main", "sections": [{"name": "who", "columns": [{"fields": ["title"]}]}]}]
 		make_layout(layout=json.dumps(tree)).insert()
-		result = get_form_layouts("Note", "Record")
+		result = get_form_layouts("Note", "Details")
 		self.assertEqual(len(result["layouts"]), 1)
 		fields = result["layouts"][0]["layout"][0]["sections"][0]["columns"][0]["fields"]
 		self.assertEqual(fields, ["title"])
