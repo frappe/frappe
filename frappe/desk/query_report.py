@@ -866,7 +866,7 @@ def save_report(reference_report: str, report_name: str, columns: str, filters: 
 
 	if docname:
 		report = frappe.get_doc("Report", docname)
-		existing_jd = json.loads(report.json)
+		existing_jd = frappe.parse_json(report.json or "{}")
 		existing_jd["columns"] = json.loads(columns)
 		existing_jd["filters"] = json.loads(filters)
 		report.update({"json": json.dumps(existing_jd, separators=(",", ":"))})
