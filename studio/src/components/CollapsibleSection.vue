@@ -20,20 +20,19 @@
 	</div>
 </template>
 <script lang="ts" setup>
+import { toValue } from "@vueuse/core"
 import { ref, watch } from "vue"
 
-const props = defineProps({
-	sectionName: {
-		type: String,
-		required: true,
+const props = withDefaults(
+	defineProps<{
+		sectionName: string
+		sectionCollapsed?: boolean
+	}>(),
+	{
+		sectionCollapsed: false,
 	},
-	sectionCollapsed: {
-		type: [Boolean, Object],
-		default: false,
-	},
-})
+)
 
-const propCollapsed = ref(props.sectionCollapsed)
 const collapsed = ref(false)
 
 const toggleCollapsed = () => {
@@ -41,9 +40,9 @@ const toggleCollapsed = () => {
 }
 
 watch(
-	() => propCollapsed.value,
-	(newVal) => {
-		collapsed.value = newVal as boolean
+	() => props.sectionCollapsed,
+	() => {
+		collapsed.value = toValue(props.sectionCollapsed)
 	},
 	{ immediate: true },
 )

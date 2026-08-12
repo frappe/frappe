@@ -4,7 +4,7 @@
 			<CollapsibleSection
 				:sectionName="section.name"
 				v-for="section in filteredSections"
-				:sectionCollapsed="section.collapsed"
+				:sectionCollapsed="toValue(section.collapsed) && !store.propertyFilter"
 			>
 				<template v-for="property in getFilteredProperties(section)">
 					<div v-if="property.allowDynamicValue" class="flex items-center">
@@ -60,7 +60,7 @@ import blockController from "@/utils/blockController"
 import { getEspressoTokens } from "@/utils/espressoTokens"
 import { getStylePropertiesWithoutControls } from "@/utils/stylePropertiesWithoutControls"
 import { kebabToCamelCase, toTitleCase } from "@/utils/helpers"
-import { CSSProperties, computed } from "vue"
+import { CSSProperties, computed, toValue } from "vue"
 
 import BlockFlexLayoutHandler from "@/components/BlockFlexLayoutHandler.vue"
 import BlockGridLayoutHandler from "@/components/BlockGridLayoutHandler.vue"
