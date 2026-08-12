@@ -62,6 +62,8 @@ def read_fixtures(app: str) -> list[frappe._dict]:
 		if not path.endswith(".json"):
 			continue
 
+		# nosemgrep: the path is an installed app's own folder, walked by the operator's own
+		# bench command -- nothing here comes from a request
 		with open(path) as f:
 			fixture = frappe.parse_json(f.read())
 		if isinstance(fixture, list):
@@ -173,5 +175,7 @@ def write_export(path: str, module: str, plan, app: str) -> None:
 		],
 	}
 
+	# nosemgrep: `export_path` builds this from `get_module_path`, the same way every other
+	# document export in the framework does
 	with open(path, "w") as f:
 		f.write(json.dumps(doc, indent=1, sort_keys=True) + "\n")
