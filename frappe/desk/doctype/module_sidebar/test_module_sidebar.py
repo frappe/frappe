@@ -454,6 +454,25 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 		# nothing in this module points at User, so there is nothing below to refer to
 		self.assertEqual(rows["User"], 1)
 
+	def test_a_source_naming_a_module_the_site_no_longer_has_is_left_alone(self):
+		"""A sidebar outlives the app that authored it: the archive keeps the module column of
+		an app that has since been uninstalled, and a layer cannot be anchored to a module that
+		is not there. The conversion has to walk past it -- one such row used to abort the whole
+		patch, and with it every module after the dead one alphabetically."""
+		self.make_workspace("TSM Gone", [self.link("User")])
+		self.make_workspace("TSM Gone Fork", [self.link("Role")], for_user="test@example.com")
+		# `db.delete`, not `delete_doc`: what an uninstall leaves behind is the row's absence,
+		# and delete_doc would refuse while the archive still links to it
+		frappe.db.delete("Module Def", {"name": MODULE})
+
+		result = build_all()
+
+		self.assertNotIn(MODULE, [plan["module"] for plan in result["merged"]])
+		self.assertNotIn(MODULE, [fork["module"] for fork in result["personal"]])
+		self.assertFalse(frappe.db.exists("Custom Module Sidebar", {"module": MODULE}))
+		# the sources stay, so reinstalling the app is what brings them back
+		self.assertEqual(frappe.db.count("Workspace Sidebar", {"module": MODULE}), 2)
+
 	def test_build_is_idempotent(self):
 		self.make_workspace("TSM Only", [self.link("User")])
 

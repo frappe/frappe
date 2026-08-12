@@ -455,7 +455,7 @@ def get_archive_sources() -> dict[str, list[frappe._dict]]:
 		# `creation` order it is read in stands in for it.
 		sidebar.sequence_id = 0
 		module = sidebar.module or majority_module_of(sidebar.rows)
-		if not module or not sidebar.rows:
+		if not is_module(module) or not sidebar.rows:
 			continue
 		by_module[module].append(sidebar)
 	return by_module
@@ -476,6 +476,18 @@ def is_private_container(sidebar) -> bool:
 	return PRIVATE_CONTAINER_TITLE in (sidebar.title or sidebar.name or "").lower()
 
 
+def is_module(module: str | None) -> bool:
+	"""Whether this site still has the module a source names.
+
+	A sidebar outlives the app that authored it: the archive keeps the module column of an app
+	that has since been uninstalled, and a workspace can carry a module the site never had at
+	all (`Private`, which v15 wrote on personal pages). A layer is anchored to a module, so
+	there is nothing for such a source to convert into -- it is left in place instead, and
+	reinstalling the app is what brings it back.
+	"""
+	return bool(module) and bool(frappe.db.exists("Module Def", module))
+
+
 def get_shortcut_sources() -> dict[str, list[frappe._dict]]:
 	"""A v15 workspace's sidebar, which is its shortcuts -- derived here rather than written.
 
@@ -492,7 +504,7 @@ def get_shortcut_sources() -> dict[str, list[frappe._dict]]:
 
 	by_module = defaultdict(list)
 	for workspace in workspaces:
-		if not workspace.module:
+		if not is_module(workspace.module):
 			continue
 		workspace.rows = shortcut_items(workspace)
 		if not workspace.rows:
@@ -945,9 +957,10 @@ def convert_personal_forks(dry_run: bool = False) -> list[dict]:
 		fork.rows = get_archive_items(fork.name)
 		fork.sequence_id = 0
 		module = fork.module or majority_module_of(fork.rows)
-		# A fork whose owner is gone has nobody to be a preference for, and one that names no
-		# module has no layer to be. Left in the archive either way, so nothing is destroyed.
-		if not module or not fork.rows or not frappe.db.exists("User", fork.for_user):
+		# A fork whose owner is gone has nobody to be a preference for, and one whose module is
+		# not on this site has no layer to be. Left in the archive either way, so nothing is
+		# destroyed.
+		if not is_module(module) or not fork.rows or not frappe.db.exists("User", fork.for_user):
 			continue
 		by_owner[(fork.for_user, module)].append(fork)
 
@@ -986,6 +999,10 @@ def convert_authored_sidebars(dry_run: bool = False) -> list[str]:
 	converted = []
 
 	for row in rows:
+		# a row for a module this site no longer has is left where it is: there is no layer for
+		# it to become, and deleting it would destroy the only copy
+		if not is_module(row.module):
+			continue
 		doc = frappe.get_doc("Module Sidebar", row.name)
 		converted.append(row.name)
 		if dry_run:
