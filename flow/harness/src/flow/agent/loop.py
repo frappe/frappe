@@ -98,6 +98,7 @@ class LoopInputs:
 	credential_id: str | None = None
 	reasoning_effort: ReasoningEffort | None = None
 	allowed_roots: tuple[str, ...] = ()
+	read_only_roots: tuple[str, ...] = ()
 	session_id: str = ""
 	model: Model | None = None
 	context_tokens: int | None = None
@@ -537,7 +538,12 @@ def _server_tools(config: SessionConfig) -> dict[str, Tool]:
 
 
 def _tool_context(inputs: LoopInputs) -> ToolContext:
-	return ToolContext(cwd=inputs.config.cwd, allowed_roots=inputs.allowed_roots, abort=inputs.abort)
+	return ToolContext(
+		cwd=inputs.config.cwd,
+		allowed_roots=inputs.allowed_roots,
+		read_only_roots=inputs.read_only_roots,
+		abort=inputs.abort,
+	)
 
 
 def _drain(next_steering: NextSteering | None) -> Iterator[UserMessage]:

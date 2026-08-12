@@ -30,6 +30,8 @@ class ToolContext:
 	# Empty preserves the local-development default: unrestricted filesystem access.
 	# When populated, every path-taking builtin must reject targets outside these roots.
 	allowed_roots: tuple[str, ...] = ()
+	# Extra roots available only to read-only tools (for example global skills).
+	read_only_roots: tuple[str, ...] = ()
 	abort: asyncio.Event = field(default_factory=asyncio.Event)
 	timeout: float = 120.0
 

@@ -3,6 +3,7 @@ and a process cache mapping each id to one live object."""
 
 from __future__ import annotations
 
+import asyncio
 import builtins
 import hashlib
 import json
@@ -21,12 +22,14 @@ from flow.session.config import SessionConfig
 from flow.session.log import SessionLog
 from flow.session.prompt import build_system_prompt
 from flow.session.session import Session, SessionConflict
+from flow.session.skills import SkillCatalog, discover_skills, parse_skill_invocation
 
 # client-provided session ids land in on-disk filenames — keep them to a safe slug so a
 # value like "../../etc/x" can't escape the sessions dir (arbitrary file write)
 _SID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
 _META_SUFFIX = ".meta.json"
+_SKILLS_SUFFIX = ".skills.json"
 _PROJECT_SLUG_RE = re.compile(r"[^A-Za-z0-9._-]+")
 _PROJECT_SLUG_LIMIT = 48
 _PROJECT_HASH_LENGTH = 12
@@ -37,6 +40,7 @@ class _SessionPaths:
 	directory: str
 	log: str
 	meta: str
+	skills: str
 	attachments: str
 
 
@@ -71,10 +75,39 @@ class SessionStore:
 		self._cache: dict[str, Session] = {}
 
 	def create(self, config: SessionConfig) -> Session:
+		self._validate_create_config(config)
+		skill_catalog = self._discover_skills(config)
+		return self._create_with_skills_catalog(config, skill_catalog)
+
+	async def create_async(self, config: SessionConfig) -> Session:
+		"""Create without blocking the server event loop during filesystem discovery."""
+		self._validate_create_config(config)
+		skill_catalog = await asyncio.to_thread(self._discover_skills, config)
+		return self._create_with_skills_catalog(config, skill_catalog)
+
+	async def preview_skill_catalog(self, config: SessionConfig) -> SkillCatalog:
+		"""Discover the catalog for a lazy client without creating a session."""
+		self._validate_create_config(config)
+		return await asyncio.to_thread(self._discover_skills, config)
+
+	def _validate_create_config(self, config: SessionConfig) -> None:
 		self._validate_cwd(config.cwd)
-		# compose once, here; the meta file persists the resolved prompt, so later
-		# AGENTS.md edits never leak into an existing session
-		config = config.model_copy(update={"system_prompt": build_system_prompt(config)})
+		self._validate_skill_paths(config)
+
+	def _discover_skills(self, config: SessionConfig) -> SkillCatalog:
+		return discover_skills(
+			config.cwd,
+			enabled=config.skills_enabled,
+			extra_paths=config.skill_paths,
+			allowed_roots=self.allowed_roots,
+		)
+
+	def _create_with_skills_catalog(self, config: SessionConfig, skill_catalog: SkillCatalog) -> Session:
+		# Catalog metadata and the composed prompt are immutable for this session.
+		# Skill files themselves remain live and are read when used, matching Pi.
+		config = config.model_copy(
+			update={"system_prompt": build_system_prompt(config, skills=skill_catalog.skills)}
+		)
 		sid = config.session_id or uuid.uuid4().hex[:16]
 		if not _SID_RE.match(sid):
 			raise ValueError(f"invalid session_id {sid!r} (allowed: letters, digits, - _)")
@@ -82,7 +115,8 @@ class SessionStore:
 			raise ValueError(f"session_id {sid!r} already exists")
 		paths = self._project_paths(sid, config.cwd)
 		_make_private_dir(paths.directory)
-		session = self._build(sid, config, paths)
+		session = self._build(sid, config, paths, skill_catalog=skill_catalog)
+		self._save_catalog(paths, skill_catalog)
 		self.save_meta(session)
 		self._cache[sid] = session
 		return session
@@ -96,7 +130,8 @@ class SessionStore:
 		with open(paths.meta, encoding="utf-8") as f:
 			config = SessionConfig.model_validate(json.load(f))
 		self._validate_cwd(config.cwd)
-		session = self._build(sid, config, paths)
+		self._validate_skill_paths(config)
+		session = self._build(sid, config, paths, skill_catalog=self._load_catalog(paths))
 		self._cache[sid] = session
 		return session
 
@@ -133,7 +168,7 @@ class SessionStore:
 			attachment_store.remove_all()
 		elif os.path.exists(paths.attachments):
 			AttachmentStore(paths.attachments).remove_all()
-		for path in (paths.log, paths.meta):
+		for path in (paths.log, paths.meta, paths.skills):
 			try:
 				os.unlink(path)
 			except FileNotFoundError:
@@ -216,7 +251,14 @@ class SessionStore:
 			if os.path.exists(tmp):
 				os.unlink(tmp)
 
-	def _build(self, sid: str, config: SessionConfig, paths: _SessionPaths) -> Session:
+	def _build(
+		self,
+		sid: str,
+		config: SessionConfig,
+		paths: _SessionPaths,
+		*,
+		skill_catalog: SkillCatalog,
+	) -> Session:
 		return Session(
 			sid,
 			config,
@@ -225,7 +267,38 @@ class SessionStore:
 			credentials=self.credentials,
 			allowed_roots=self.allowed_roots,
 			attachment_store=AttachmentStore(paths.attachments),
+			skill_catalog=skill_catalog,
 		)
+
+	def _save_catalog(self, paths: _SessionPaths, skill_catalog: SkillCatalog) -> None:
+		fd, tmp = mkstemp(prefix=f".{os.path.basename(paths.skills)}.", dir=paths.directory)
+		try:
+			os.chmod(tmp, 0o600)
+			with os.fdopen(fd, "w", encoding="utf-8") as file:
+				json.dump(skill_catalog.model_dump(mode="json"), file)
+			os.replace(tmp, paths.skills)
+		finally:
+			if os.path.exists(tmp):
+				os.unlink(tmp)
+
+	def _load_catalog(self, paths: _SessionPaths) -> SkillCatalog:
+		try:
+			with open(paths.skills, encoding="utf-8") as file:
+				skill_catalog = SkillCatalog.model_validate(json.load(file))
+		except FileNotFoundError:
+			return SkillCatalog()  # sessions created before skills support
+		self._validate_catalog(skill_catalog)
+		return skill_catalog
+
+	def _validate_catalog(self, skill_catalog: SkillCatalog) -> None:
+		"""Do not let a persisted catalog outlive a tightened filesystem fence."""
+		if not self.allowed_roots:
+			return
+		global_root = canonical_path(os.path.join(os.path.expanduser("~"), ".agents", "skills"))
+		roots = (global_root, *self.allowed_roots)
+		for skill in skill_catalog.skills:
+			if not is_path_allowed(skill.canonical_path, roots):
+				raise ValueError(f"stored skill {skill.name!r} is outside allowed roots")
 
 	def _project_paths(self, sid: str, cwd: str) -> _SessionPaths:
 		directory = os.path.join(self.sessions_dir, _project_directory_name(cwd))
@@ -252,6 +325,19 @@ class SessionStore:
 					if _SID_RE.match(sid):
 						yield _session_paths(entry.path, sid)
 
+	def _validate_skill_paths(self, config: SessionConfig) -> None:
+		"""Explicit skill paths are client input and obey the normal filesystem fence."""
+		for raw in config.skill_paths:
+			value = raw.strip()
+			if not value:
+				raise ValueError("skill_paths entries must not be empty")
+			if not self.allowed_roots:
+				continue
+			expanded = os.path.expanduser(value)
+			path = expanded if os.path.isabs(expanded) else os.path.join(config.cwd, expanded)
+			if not is_path_allowed(canonical_path(path), self.allowed_roots):
+				raise ValueError(f"skill path {raw!r} is not under an allowed root")
+
 	def _validate_cwd(self, cwd: str) -> None:
 		"""Fence a session's cwd to `allowed_roots` (realpath-resolved, so symlink/`..`
 		escapes can't slip past). Empty roots = unrestricted (dev default)."""
@@ -274,6 +360,7 @@ def _session_paths(directory: str, sid: str) -> _SessionPaths:
 		directory=directory,
 		log=os.path.join(directory, f"{sid}.jsonl"),
 		meta=os.path.join(directory, f"{sid}.meta.json"),
+		skills=os.path.join(directory, f"{sid}{_SKILLS_SUFFIX}"),
 		attachments=os.path.join(directory, f"{sid}.attachments"),
 	)
 
@@ -281,8 +368,8 @@ def _session_paths(directory: str, sid: str) -> _SessionPaths:
 def _read_first_user_message(path: str) -> str | None:
 	"""First line of the log's first user_message row, from a bounded head read."""
 	try:
-		with open(path, encoding="utf-8") as f:
-			head = f.read(65536)
+		with open(path, encoding="utf-8") as file:
+			head = file.read(65536)
 	except OSError:
 		return None
 	for line in head.splitlines():
@@ -291,26 +378,34 @@ def _read_first_user_message(path: str) -> str | None:
 		except json.JSONDecodeError:
 			continue  # the head cut may tear the last line
 		if isinstance(row, dict) and row.get("type") == "user_message":
-			content = row.get("content", "")
-			if isinstance(content, list):
-				blocks = content
-				content = "".join(
-					str(block.get("text", ""))
-					for block in blocks
-					if isinstance(block, dict) and block.get("type") == "text"
-				)
-				if not str(content).strip():
-					content = next(
-						(
-							str(block.get("name", ""))
-							for block in blocks
-							if isinstance(block, dict) and block.get("type") == "attachment"
-						),
-						"",
-					)
-			first = str(content).strip().split("\n")[0]
-			return first[:120] or None
+			return _user_message_title(row)
 	return None
+
+
+def _user_message_title(row: dict) -> str | None:
+	content = row.get("content", "")
+	if isinstance(content, list):
+		blocks = content
+		content = "".join(
+			str(block.get("text", ""))
+			for block in blocks
+			if isinstance(block, dict) and block.get("type") == "text"
+		)
+		if not str(content).strip():
+			content = next(
+				(
+					str(block.get("name", ""))
+					for block in blocks
+					if isinstance(block, dict) and block.get("type") == "attachment"
+				),
+				"",
+			)
+	text = str(content).strip()
+	invocation = parse_skill_invocation(text)
+	if invocation is not None:
+		text = invocation.instructions or f"/skill:{invocation.name}"
+	first = text.split("\n")[0]
+	return first[:120] or None
 
 
 def _read_last_row(path: str) -> dict | None:

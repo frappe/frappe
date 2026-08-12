@@ -16,10 +16,12 @@ DEFAULT_MAX_LINES = 2000
 DEFAULT_MAX_BYTES = 50 * 1024
 
 
-def resolve(ctx: ToolContext, path: str) -> str:
+def resolve(ctx: ToolContext, path: str, *, read_only: bool = False) -> str:
 	target = absolute_path(path, base=ctx.cwd)
-	if ctx.allowed_roots and not is_path_allowed(canonical_path(target), ctx.allowed_roots):
-		raise PermissionError(f"path {path!r} resolves outside the configured allowed roots")
+	if ctx.allowed_roots:
+		roots = (*ctx.allowed_roots, *ctx.read_only_roots) if read_only else ctx.allowed_roots
+		if not is_path_allowed(canonical_path(target), roots):
+			raise PermissionError(f"path {path!r} resolves outside the configured allowed roots")
 	return target
 
 
