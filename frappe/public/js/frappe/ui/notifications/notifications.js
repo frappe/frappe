@@ -424,15 +424,10 @@ class EventsView extends BaseNotificationsView {
 					location = `, ${frappe.utils.escape_html(event.location)}`;
 				}
 
-<<<<<<< HEAD
-				return `<a class="recent-item event" href="/app/event/${event.name}">
-					<div class="event-border" style="border-color: ${event.color}"></div>
-=======
-				return `<a class="recent-item event" href="/desk/event/${frappe.utils.escape_html(
+				return `<a class="recent-item event" href="/app/event/${frappe.utils.escape_html(
 					event.name
 				)}">
 					<div class="event-border" style="border-color: ${frappe.utils.escape_html(event.color)}"></div>
->>>>>>> c998317844 (fix(notifications): escape Event fields when rendering events list)
 					<div class="event-item">
 						<div class="event-subject">${frappe.utils.escape_html(event.subject)}</div>
 						<div class="event-time">${time}${location}</div>

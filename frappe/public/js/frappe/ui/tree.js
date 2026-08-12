@@ -276,17 +276,7 @@ frappe.ui.Tree = class {
 		}
 
 		$(icon_html).appendTo(node.$tree_link);
-<<<<<<< HEAD
 		$(`<a class="tree-label"> ${this.get_node_label(node)}</a>`).appendTo(node.$tree_link);
-=======
-		$(
-			`<a class="tree-label" data-doctype="${frappe.utils.escape_html(
-				this.args.doctype
-			)}" data-name="${frappe.utils.escape_html(node.label)}"> ${this.get_node_label(
-				node
-			)}</a>`
-		).appendTo(node.$tree_link);
->>>>>>> 75a907caee (fix(treeview): escape node label, title and doctype when rendering)
 
 		node.$tree_link.on("click", () => {
 			setTimeout(() => {

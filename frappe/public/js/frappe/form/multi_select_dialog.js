@@ -468,27 +468,16 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			let column_label = frappe.utils.escape_html(__(frappe.model.unscrub(column)));
 			let value = frappe.utils.escape_html(__(result[column] || ""));
 			let id_href = frappe.utils.escape_html(
-				"/desk/" + frappe.router.slug(me.doctype) + "/" + (result[column] || "")
+				"/app/" + frappe.router.slug(me.doctype) + "/" + (result[column] || "")
 			);
 			contents += `<div class="list-item__content ellipsis">
 				${
 					head
 						? `<span class="ellipsis text-muted" title="${column_label}">${column_label}</span>`
 						: column !== "name"
-<<<<<<< HEAD
-						? `<span class="ellipsis result-row" title="${__(
-								result[column] || ""
-						  )}">${__(result[column] || "")}</span>`
-						: `<a href="${
-								"/app/" + frappe.router.slug(me.doctype) + "/" + result[column] ||
-								""
-						  }" class="list-id ellipsis" title="${__(result[column] || "")}">
-							${__(result[column] || "")}</a>`
-=======
 						? `<span class="ellipsis result-row" title="${value}">${value}</span>`
 						: `<a href="${id_href}" class="list-id ellipsis" title="${value}">
 							${value}</a>`
->>>>>>> 30d7648d7d (fix(multi-select-dialog): escape field values in result rows)
 				}
 			</div>`;
 		});
@@ -505,13 +494,9 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		head
 			? $row.addClass("list-item--head")
 			: ($row = $(
-<<<<<<< HEAD
-					`<div class="list-item-container" data-item-name="${result.name}"></div>`
-=======
-					`<div class="list-item-container m-0" data-item-name="${frappe.utils.escape_html(
+					`<div class="list-item-container" data-item-name="${frappe.utils.escape_html(
 						result.name
 					)}"></div>`
->>>>>>> 30d7648d7d (fix(multi-select-dialog): escape field values in result rows)
 			  ).append($row));
 
 		return $row;

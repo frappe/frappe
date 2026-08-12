@@ -1216,51 +1216,8 @@ Object.assign(frappe.utils, {
 		},
 		image_path: "/assets/frappe/images/leaflet/",
 	},
-<<<<<<< HEAD
 
 	icon(icon_name, size = "sm", icon_class = "", icon_style = "", svg_class = "") {
-=======
-	desktop_icon(label, color, size, style) {
-		let letter = frappe.utils.escape_html(label.charAt(0).toUpperCase());
-		let icon_size = size ? size : "md";
-		let opacity_hex = "1A";
-		let icon_html = $(`
-			<div class="icon-container">
-				<svg fill="currentColor" class="desktop-alphabet icon text-ink-gray-7 icon-${icon_size}" stroke=none style="" aria-hidden="true">
-				<use class="" href="#${letter}"></use>
-				</svg>
-			</div>
-		`);
-		let pallete_color = this.desktop_pallete[color || "blue"];
-		let bg_color = pallete_color + opacity_hex;
-		let stroke_color = pallete_color;
-		// `style` overrides the global desktop_icon_style for callers that always want a
-		// specific look (e.g. a solid letter icon regardless of the user's setting).
-		if ((style || frappe.boot.desktop_icon_style) == "Solid") {
-			bg_color = stroke_color;
-			stroke_color = "var(--white)";
-		}
-		icon_html.css("backgroundColor", bg_color);
-		icon_html.find("svg").css("color", stroke_color);
-		return icon_html.get(0).outerHTML;
-	},
-	desktop_pallete: {
-		blue: "#0289F7",
-		gray: "#7B808A",
-	},
-	icon(
-		icon_name,
-		size = "sm",
-		icon_class = "",
-		icon_style = "",
-		svg_class = "",
-		current_color = false,
-		stroke_color = null
-	) {
-		if (frappe.utils.is_emoji(icon_name)) {
-			return `<span>${icon_name}</span>`;
-		}
->>>>>>> ff276a7621 (fix(desktop): escape Desktop Icon label when rendering)
 		let size_class = "";
 		let is_espresso = icon_name.startsWith("es-");
 

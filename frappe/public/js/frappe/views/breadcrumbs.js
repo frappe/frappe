@@ -210,17 +210,12 @@ frappe.breadcrumbs = {
 	set_dashboard_breadcrumb(breadcrumbs) {
 		const doctype = breadcrumbs.doctype;
 		const docname = frappe.get_route()[1];
-<<<<<<< HEAD
 		let dashboard_route = `/app/${frappe.router.slug(doctype)}/${docname}`;
-		$(`<li><a href="${dashboard_route}">${__(docname)}</a></li>`).appendTo(this.$breadcrumbs);
-=======
-		let dashboard_route = `/desk/${frappe.router.slug(doctype)}/${docname}`;
 		$(
 			`<li><a href="${frappe.utils.escape_html(dashboard_route)}">${frappe.utils.escape_html(
 				__(docname)
 			)}</a></li>`
 		).appendTo(this.$breadcrumbs);
->>>>>>> e6eeeaaf34 (fix(dashboard): escape docname in breadcrumb)
 	},
 
 	setup_modules() {
