@@ -424,3 +424,29 @@ class TestWaitResume(AutomationRunnerTestCase):
 
 		execute_automation(self.resume_row(auto)[0])
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "status"), "Closed")
+
+	def test_branch_taken_before_a_wait_survives_the_document_changing(self):
+		# The arm is a decision the first leg made. If the resumed leg re-derives it against
+		# the document as it is now, a change during the wait strands the arm it committed to
+		# and starts running steps from the arm it never entered.
+		todo = make_todo(priority="High")
+		auto = make_automation(
+			[
+				if_step("doc.priority == 'High'"),
+				branch(wait(5), 1, "If"),
+				branch(set_field("status", "Closed"), 1, "If"),
+				branch(set_field("status", "Cancelled"), 1, "Else"),
+			]
+		)
+		execute_automation(self.queue_row(auto, todo.name))
+		frappe.db.set_value("ToDo", todo.name, "priority", "Low", update_modified=False)
+
+		execute_automation(self.resume_row(auto)[0])
+
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "status"), "Closed")
+
+	def test_branch_arms_are_recorded_on_the_run(self):
+		todo = make_todo(priority="High")
+		auto = make_automation([if_step("doc.priority == 'High'"), branch(wait(5), 1, "If")])
+		execute_automation(self.queue_row(auto, todo.name))
+		self.assertEqual(self.run_result(auto)["branches"], {"1": "If"})
