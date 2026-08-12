@@ -8,7 +8,6 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 	is_notifications_enabled,
 )
 from frappe.model.document import Document
-from frappe.utils.caching import http_cache
 
 
 class NotificationLog(Document):
@@ -249,7 +248,6 @@ def format_email_header(header_map, language, docname):
 
 
 @frappe.whitelist()
-@http_cache(max_age=60, stale_while_revalidate=60 * 60)
 def get_notification_logs(limit: int = 20):
 	notification_logs = frappe.db.get_list(
 		"Notification Log", fields=["*"], limit=limit, order_by="creation desc"
@@ -262,7 +260,15 @@ def get_notification_logs(limit: int = 20):
 	for user in users:
 		frappe.utils.add_user_info(user, user_info)
 
-	return {"notification_logs": notification_logs, "user_info": user_info}
+	unread_count = frappe.db.count(
+		"Notification Log", {"read": 0, "for_user": frappe.session.user}
+	)
+
+	return {
+		"notification_logs": notification_logs,
+		"user_info": user_info,
+		"unread_count": unread_count,
+	}
 
 
 @frappe.whitelist()

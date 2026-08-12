@@ -522,7 +522,7 @@ frappe.ui.Sidebar = class Sidebar {
 			standard: true,
 			type: "Button",
 			class: "sidebar-notification hidden",
-			suffix: "<span class='sidebar-notification-count hidden' aria-live='polite'></span>",
+			suffix: "<span class='sidebar-notification-count notification-count hidden' aria-live='polite'></span>",
 			onClick: () => {
 				const $dropdown = this.wrapper.find(".dropdown-notifications");
 				$dropdown.toggleClass("hidden");
