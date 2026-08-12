@@ -36,6 +36,7 @@ from flow.events import (
 	TranscriptMessage,
 	UserMessage,
 )
+from flow.session.skills import parse_skill_invocation
 from flow_tui.client.state import PartialPart, PartialText, PartialThinking, PartialToolCall
 from flow_tui.theme import (
 	STYLE_ERROR,
@@ -348,7 +349,13 @@ def entry_widgets(
 
 def _render_user(message: UserMessage, *, steered: bool) -> Text:
 	# the tinted background marks a user entry, so a prompt glyph adds nothing
-	body = message.text
+	invocation = parse_skill_invocation(message.text)
+	if invocation is not None:
+		body = f"Using skill: {invocation.name}"
+		if invocation.instructions:
+			body += f"\n{invocation.instructions}"
+	else:
+		body = message.text
 	if message.attachments:
 		labels = " ".join(f"[{item.name}]" for item in message.attachments)
 		body = f"{body}\n{labels}" if body else labels

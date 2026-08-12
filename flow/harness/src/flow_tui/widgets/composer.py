@@ -1,6 +1,6 @@
 """The message input: a `TextArea` where Enter submits, ctrl+j inserts a newline, and
-alt+enter asks the app to queue the message for after the current run. Lines that
-start with `/` are commands, never conversation — they dispatch immediately.
+alt+enter asks the app to queue the message for after the current run. Local slash
+commands dispatch immediately; `/skill:` directives are submitted prompts.
 
 Up and down browse submitted prompts. `ctrl+x` arms a short-lived chord; `ctrl+e`
 while armed asks the app to open the draft in the external editor."""
@@ -119,7 +119,7 @@ class Composer(TextArea):
 			event.stop()
 			event.prevent_default()
 			text = self.text.strip()
-			if text.startswith("/"):
+			if text.startswith("/") and not text.startswith("/skill:"):
 				self.post_message(self.CommandSubmitted(text))
 				self.clear()
 				self._reset_history_navigation()

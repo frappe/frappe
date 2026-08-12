@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, cast, get_args
 from textual.command import DiscoveryHit, Hit, Hits, Provider
 
 from flow.events import ReasoningEffort, UserMessage
+from flow.session.skills import parse_skill_invocation
 from flow_tui.client.api import FlowAPIError
 from flow_tui.screens.pickers import EffortPicker, ModelPicker, SessionPicker
 
@@ -130,7 +131,8 @@ async def _rewind(app: "FlowApp", arg: str) -> None:
 		default=0,
 	)
 	await app.controller.rewind(target)
-	app.prefill_composer(last_user.text)
+	invocation = parse_skill_invocation(last_user.text)
+	app.prefill_composer(invocation.command if invocation is not None else last_user.text)
 
 
 @command("clear", "start a fresh session (alias for /new)")
@@ -186,6 +188,17 @@ class FlowCommandProvider(Provider):
 
 	async def search(self, query: str) -> Hits:
 		matcher = self.matcher(query)
+		app = cast("FlowApp", self.app)
+		for skill in getattr(app.controller, "skills", []):
+			name = f"/skill:{skill['name']}"
+			score = matcher.match(name)
+			if score > 0:
+				yield Hit(
+					score,
+					matcher.highlight(name),
+					partial(self._insert_skill, skill["name"]),
+					help=skill["description"],
+				)
 		for found in REGISTRY.values():
 			score = matcher.match(f"/{found.name}")
 			if score > 0:
@@ -197,8 +210,18 @@ class FlowCommandProvider(Provider):
 				)
 
 	async def discover(self) -> Hits:
+		app = cast("FlowApp", self.app)
+		for skill in getattr(app.controller, "skills", []):
+			yield DiscoveryHit(
+				f"/skill:{skill['name']}",
+				partial(self._insert_skill, skill["name"]),
+				help=skill["description"],
+			)
 		for found in REGISTRY.values():
 			yield DiscoveryHit(f"/{found.name}", partial(self._execute, found), help=found.description)
+
+	def _insert_skill(self, name: str) -> None:
+		cast("FlowApp", self.app).prefill_composer(f"/skill:{name} ")
 
 	def _execute(self, found: Command) -> None:
 		app = cast("FlowApp", self.app)

@@ -76,6 +76,9 @@ class FlowClient:
 	async def get_session(self, sid: str) -> dict:
 		return await self._request("GET", f"/sessions/{sid}")
 
+	async def skills(self, sid: str) -> dict:
+		return await self._request("GET", f"/sessions/{sid}/skills")
+
 	async def run(self, sid: str, message: str, *, wait: bool = False) -> dict:
 		return await self._request(
 			"POST", f"/sessions/{sid}/run", json={"message": message}, params=_wait(wait)
