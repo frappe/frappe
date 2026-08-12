@@ -208,6 +208,12 @@ class AutomationFlow(Document):
 
 	def on_update(self):
 		clear_automation_cache(self.document_type)
+		# Retargeting a flow leaves the old doctype's cached map holding a rule that no longer
+		# belongs to it, and nothing else evicts that entry - it would keep firing on the
+		# doctype the flow just moved away from.
+		before = self.get_doc_before_save()
+		if before and before.document_type and before.document_type != self.document_type:
+			clear_automation_cache(before.document_type)
 
 	def on_trash(self):
 		clear_automation_cache(self.document_type)
