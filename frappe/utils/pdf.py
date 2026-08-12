@@ -8,7 +8,6 @@ import os
 import subprocess
 from urllib.parse import parse_qs, urlparse
 
-import cssutils
 import pdfkit
 import pdfkit.api
 from pdfkit.pdfkit import PDFKit as OriginalPDFKit
@@ -23,8 +22,6 @@ from frappe.utils import cstr, scrub_urls
 from frappe.utils.caching import redis_cache
 from frappe.utils.data import get_url
 from frappe.utils.jinja_globals import bundled_asset, is_rtl
-
-cssutils.log.setLog(frappe.logger("cssutils"))
 
 PDF_CONTENT_ERRORS = [
 	"ContentNotFoundError",
@@ -287,7 +284,7 @@ def read_options_from_html(html):
 	return str(soup), options
 
 
-def get_print_format_styles(soup: BeautifulSoup) -> list[cssutils.css.Property]:
+def get_print_format_styles(soup: BeautifulSoup) -> list["cssutils.css.Property"]:
 	"""
 	Get styles purely on class 'print-format'.
 	Valid:
@@ -301,6 +298,10 @@ def get_print_format_styles(soup: BeautifulSoup) -> list[cssutils.css.Property]:
 	Returns:
 	[cssutils.css.Property(name='margin-top', value='50mm', priority=''), ...]
 	"""
+	import cssutils
+
+	cssutils.log.setLog(frappe.logger("cssutils"))
+
 	stylesheet = ""
 	style_tags = soup.find_all("style")
 
