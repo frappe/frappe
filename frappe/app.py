@@ -8,7 +8,6 @@ import sys
 
 import orjson
 from werkzeug.exceptions import HTTPException, NotFound
-from werkzeug.middleware.profiler import ProfilerMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.middleware.shared_data import SharedDataMiddleware
 from werkzeug.wrappers import Request, Response  # nosemgrep: frappe-monkey-patching-not-allowed
@@ -40,7 +39,7 @@ _sites_path = os.environ.get("SITES_PATH", ".")
 import gettext
 
 import babel
-import babel.messages
+import babel.dates
 import nh3
 import num2words
 import pydantic
@@ -579,6 +578,8 @@ def serve(
 	from werkzeug.serving import run_simple
 
 	if profile or os.environ.get("USE_PROFILER"):
+		from werkzeug.middleware.profiler import ProfilerMiddleware
+
 		application = ProfilerMiddleware(application, sort_by=("cumtime", "calls"), restrictions=(200,))
 
 	if not os.environ.get("NO_STATICS"):
