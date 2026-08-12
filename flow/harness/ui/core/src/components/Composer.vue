@@ -250,11 +250,11 @@
 
 					<button
 						v-if="running"
-						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-lg border border-outline-gray-2 bg-surface-white text-ink-gray-7 hover:bg-surface-gray-2 hover:text-ink-gray-9"
+						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-lg bg-surface-gray-7 text-ink-white shadow-sm hover:opacity-90"
 						title="Stop"
 						@click="flow.abort()"
 					>
-						<span class="h-2.5 w-2.5 rounded-sm bg-current" />
+						<span class="h-[11px] w-[11px] rounded-[2px] bg-current" />
 					</button>
 					<button
 						v-else
