@@ -5,7 +5,15 @@ import asyncio
 import pytest
 
 from flow.agent.agent import Agent
-from flow.events import AssistantMessage, RunEnded, ToolCall, Usage
+from flow.events import (
+	AssistantMessage,
+	RunEnded,
+	TextDelta,
+	ThinkingContent,
+	ThinkingDelta,
+	ToolCall,
+	Usage,
+)
 from flow.model import Model, ModelRequest
 from flow.model.mock import MockModel
 
@@ -104,6 +112,38 @@ async def test_abort_stops_in_process_run_and_next_run_gets_fresh_signal(tmp_pat
 	second = await _collect(agent.run("try again"))
 	assert [event.text for event in second if event.type == "assistant_message"] == ["recovered"]
 	assert second[-1].reason == "done"
+
+
+async def test_abort_persists_streamed_assistant_content(tmp_path):
+	class PartialThenBlockModel(Model):
+		name = "partial-then-block"
+		provider = "test"
+		model = "partial-then-block"
+
+		def __init__(self):
+			self.started = asyncio.Event()
+
+		async def run(self, request: ModelRequest):
+			yield ThinkingDelta(thinking="checking")
+			yield TextDelta(text="Partial answer")
+			self.started.set()
+			await asyncio.Event().wait()
+			if False:
+				yield
+
+	model = PartialThenBlockModel()
+	agent = Agent(model=model, data_dir=str(tmp_path), cwd=str(tmp_path))
+	run = asyncio.create_task(_collect(agent.run("wait")))
+	await model.started.wait()
+	assert agent.abort() is True
+	events = await asyncio.wait_for(run, timeout=1)
+
+	assistant = next(event for event in events if event.type == "assistant_message")
+	assert assistant.stop_reason == "aborted"
+	assert isinstance(assistant.content[0], ThinkingContent)
+	assert assistant.thinking_text == "checking"
+	assert assistant.text == "Partial answer"
+	assert agent.session.transcript.messages[-1] == assistant
 
 
 async def test_set_model_records_for_a_name_constructed_agent(tmp_path):

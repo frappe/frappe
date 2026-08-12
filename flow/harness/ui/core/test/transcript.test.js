@@ -282,3 +282,22 @@ test("streamed thought, text, and tool call keep their order until the durable m
 	assert.equal(durableItems.filter((item) => item.kind === "group").length, 1)
 	assert.equal(durableItems[3].key, "g:call-1")
 })
+
+test("aborted response keeps its partial assistant content", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started" })
+	applyEvent(conversation, { type: "text_delta", text: "Partial answer" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 1,
+		content: [{ type: "text", text: "Partial answer" }],
+		stop_reason: "aborted",
+	})
+	applyEvent(conversation, { type: "run_ended", seq: 2, reason: "aborted" })
+
+	assert.deepEqual(
+		buildItems(conversation).map((item) => item.kind),
+		["text", "turn-copy", "notice"],
+	)
+	assert.equal(buildItems(conversation)[0].block.text, "Partial answer")
+})
