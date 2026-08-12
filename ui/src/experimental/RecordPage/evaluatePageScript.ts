@@ -6,28 +6,28 @@ import type { PageScriptRow } from "./pageScriptTypes";
 import type { RecordPageHandlers } from "./types";
 
 export async function evaluatePageScript(
-	row: PageScriptRow,
+  row: PageScriptRow,
 ): Promise<RecordPageHandlers> {
-	const url = URL.createObjectURL(
-		new Blob([named(row)], { type: "text/javascript" }),
-	);
-	try {
-		const module = await import(/* @vite-ignore */ url);
-		return handlersOf(module.default);
-	} finally {
-		// Safe once the import has settled: the module map holds the evaluated
-		// module, not the URL.
-		URL.revokeObjectURL(url);
-	}
+  const url = URL.createObjectURL(
+    new Blob([named(row)], { type: "text/javascript" }),
+  );
+  try {
+    const module = await import(/* @vite-ignore */ url);
+    return handlersOf(module.default);
+  } finally {
+    // Safe once the import has settled: the module map holds the evaluated
+    // module, not the URL.
+    URL.revokeObjectURL(url);
+  }
 }
 
 /** Names the module so stack traces and devtools show the script, not a blob id. */
 function named(row: PageScriptRow) {
-	return `${row.script}\n//# sourceURL=page-script/${row.name}.js\n`;
+  return `${row.script}\n//# sourceURL=page-script/${row.name}.js\n`;
 }
 
 function handlersOf(handlers: unknown): RecordPageHandlers {
-	if (!handlers || typeof handlers !== "object")
-		throw new Error("default export is not a handlers object");
-	return handlers as RecordPageHandlers;
+  if (!handlers || typeof handlers !== "object")
+    throw new Error("default export is not a handlers object");
+  return handlers as RecordPageHandlers;
 }

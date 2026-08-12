@@ -4,8 +4,8 @@ import { loadPageScripts, reloadPageScripts } from "./pageScripts";
 import { PAGE_SCRIPT_CHANGED } from "./pageScriptTypes";
 
 export interface UsePageScripts {
-	/** Resolves once the tier has registered; the first replay waits on it. */
-	ready: Promise<void>;
+  /** Resolves once the tier has registered; the first replay waits on it. */
+  ready: Promise<void>;
 }
 
 /**
@@ -14,23 +14,23 @@ export interface UsePageScripts {
  * save-and-walk-back loop needs no reload.
  */
 export function usePageScripts(
-	doctype: string,
-	options: { onChange: () => void },
+  doctype: string,
+  options: { onChange: () => void },
 ): UsePageScripts {
-	const ready = loadPageScripts(doctype);
-	const socket = getSocketInstance();
+  const ready = loadPageScripts(doctype);
+  const socket = getSocketInstance();
 
-	if (socket) {
-		socket.on(PAGE_SCRIPT_CHANGED, onScriptChanged);
-		onScopeDispose(() => socket.off(PAGE_SCRIPT_CHANGED, onScriptChanged));
-	}
+  if (socket) {
+    socket.on(PAGE_SCRIPT_CHANGED, onScriptChanged);
+    onScopeDispose(() => socket.off(PAGE_SCRIPT_CHANGED, onScriptChanged));
+  }
 
-	async function onScriptChanged(...args: unknown[]) {
-		const payload = args[0] as { dt?: string; view?: string } | undefined;
-		if (payload?.dt !== doctype || payload?.view !== "Record") return;
-		await reloadPageScripts(doctype);
-		options.onChange();
-	}
+  async function onScriptChanged(...args: unknown[]) {
+    const payload = args[0] as { dt?: string; view?: string } | undefined;
+    if (payload?.dt !== doctype || payload?.view !== "Record") return;
+    await reloadPageScripts(doctype);
+    options.onChange();
+  }
 
-	return { ready };
+  return { ready };
 }

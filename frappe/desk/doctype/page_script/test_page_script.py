@@ -40,5 +40,9 @@ class TestPageScript(IntegrationTestCase):
 	def test_rejects_an_unknown_view(self):
 		self.assertRaises(frappe.ValidationError, get_page_scripts, "Note", "List")
 
+	def test_rejects_a_doctype_filter_posing_as_a_name(self):
+		make_script("note-script").insert()
+		self.assertRaises(frappe.FrappeTypeError, get_page_scripts, ["!=", ""], "Record")
+
 	def test_reports_write_access_for_the_toast_gate(self):
 		self.assertTrue(get_page_scripts("Note", "Record")["can_write"])

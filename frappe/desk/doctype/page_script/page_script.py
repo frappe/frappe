@@ -28,6 +28,11 @@ class PageScript(Document):
 @frappe.whitelist()
 def get_page_scripts(dt: str, view: str = "Record"):
 	"""Return the scripts a Record page of `dt` runs, in run order (creation asc)."""
+	# Belt and braces: the whitelist decorator already rejects a non-str `dt`, and
+	# one reaching get_all would be a filter operator (`["!=", ""]`) that reads
+	# every doctype's scripts past the permission check below.
+	if not isinstance(dt, str):
+		frappe.throw(_("Document Type must be a name"))
 	if view not in PAGE_SCRIPT_VIEWS:
 		frappe.throw(_("Invalid Page Script view: {0}").format(view))
 	# Reading the doctype is the gate: whoever may open the record receives its
