@@ -49,7 +49,7 @@
 		/>
 		<Input
 			v-else
-			:type="type"
+			:type="inputType"
 			:modelValue="modelValue"
 			:options="inputOptions"
 			@update:modelValue="handleChange"
@@ -64,6 +64,7 @@
 import { isNumber } from "@tiptap/vue-3"
 import { Popover } from "frappe-ui"
 import { computed, StyleValue, useAttrs } from "vue"
+import { isDynamicValue } from "@/utils/code"
 import { extractNumberAndUnit, normalizeValueWithUnits } from "@/utils/helpers"
 import Input from "@/components/Input.vue"
 import Autocomplete from "@/components/Autocomplete.vue"
@@ -115,6 +116,10 @@ type Option = {
 	label: string
 	value: string
 }
+
+const inputType = computed(() =>
+	props.type === "select" && isDynamicValue(props.modelValue as string) ? "text" : props.type,
+)
 
 const inputOptions = computed(() => {
 	return (props.options || []).map((option) => {

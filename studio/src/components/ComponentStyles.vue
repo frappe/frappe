@@ -758,6 +758,10 @@ const styleSectionProperties = [
 		events: {
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("boxShadow", val),
 		},
+		allowDynamicValue: true,
+		getValue: () => {
+			return blockController.getStyle("boxShadow")
+		},
 	},
 	{
 		component: InlineInput,
@@ -780,6 +784,10 @@ const styleSectionProperties = [
 		usedStyleProperties: ["cursor"],
 		events: {
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("cursor", val),
+		},
+		allowDynamicValue: true,
+		getValue: () => {
+			return blockController.getStyle("cursor")
 		},
 	},
 ]
