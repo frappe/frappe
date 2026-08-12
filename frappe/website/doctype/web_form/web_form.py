@@ -840,7 +840,7 @@ def has_link_option(fields, doctype):
 
 
 def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=False):
-	web_form: WebForm = frappe.get_doc("Web Form", web_form_name)
+	web_form: WebForm = frappe.get_cached_doc("Web Form", web_form_name)
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
