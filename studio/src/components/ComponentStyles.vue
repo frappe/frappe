@@ -509,8 +509,8 @@ const typographySectionProperties = [
 				type: "select",
 				options: [
 					{
-						value: null,
-						label: "None",
+						value: "",
+						label: "Unset",
 					},
 					{
 						value: "uppercase",
@@ -525,7 +525,7 @@ const typographySectionProperties = [
 						label: "Capitalize",
 					},
 				],
-				modelValue: blockController.getStyle("textTransform"),
+				modelValue: blockController.getStyle("textTransform") ?? "",
 			}
 		},
 		events: {
@@ -749,7 +749,7 @@ const styleSectionProperties = [
 			return {
 				label: "Shadow",
 				type: "select",
-				options: getEspressoTokens("boxShadow"),
+				options: ["unset", ...getEspressoTokens("boxShadow")],
 				modelValue: blockController.getStyle("boxShadow"),
 			}
 		},
@@ -766,14 +766,14 @@ const styleSectionProperties = [
 				label: "Cursor",
 				type: "select",
 				options: [
-					{ value: null, label: "Default" },
+					{ value: "", label: "Unset" },
 					{ value: "pointer", label: "Pointer" },
 					{ value: "move", label: "Move" },
 					{ value: "text", label: "Text" },
 					{ value: "crosshair", label: "Crosshair" },
 					{ value: "not-allowed", label: "Not Allowed" },
 				],
-				modelValue: blockController.getStyle("cursor"),
+				modelValue: blockController.getStyle("cursor") ?? "",
 			}
 		},
 		searchKeyWords: "Cursor, Pointer, Move, Text, Crosshair, NotAllowed, Not Allowed",

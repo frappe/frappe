@@ -1,7 +1,7 @@
 <template>
 	<!-- prettier-ignore -->
 	<div
-		class="flex [&>div>input]:!bg-surface-red-7 [&>div>input]:pr-6"
+		class="flex"
 		:class="[type === 'textarea' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between', attrs.class]"
 		:style="(attrs.style as StyleValue)"
 	>
