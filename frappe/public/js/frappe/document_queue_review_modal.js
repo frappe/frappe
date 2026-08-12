@@ -10,7 +10,7 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 			(this.doctype ? __("Documents - {0}", [__(this.doctype)]) : __("Documents"));
 		this.sort_by = "creation desc";
 		this.active_status = "Pending";
-		this.page_size = 20;
+		this.page_size = 25;
 		this.list = null;
 		this.selected_row = null;
 		this._build_dialog();
@@ -22,6 +22,9 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 			size: "extra-large",
 			fields: [{ fieldname: "body", fieldtype: "HTML" }],
 		});
+		// "Start Review" is contextual to the previewed row and lives on the
+		// preview pane's own level row, so the dialog's footer stays hidden
+		// rather than reserving a full-width band for a single button.
 		this.dialog.footer.hide();
 		this.dialog.$wrapper.on("shown.bs.modal", () => {
 			this._apply_modal_styles();
@@ -59,259 +62,162 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 			"background-color": "var(--bg-light)",
 			padding: "0",
 		});
-		this.dialog.get_field("body").$wrapper.closest(".form-section").css({ padding: "0", margin: "0", border: "none" });
-		this.dialog.get_field("body").$wrapper.closest(".frappe-control").css({ padding: "0", margin: "0" });
-		$("#dq-modal-styles").remove();
-
-		const $styles = $(`
-			<style id="dq-modal-styles">
-			/* ── Modal Header & Split Screen Spacing ── */
-			.dq-split-screen {
-				padding: 4px 20px 14px 20px !important;
-				height: 76vh;
-				max-height: 76vh;
-				overflow: hidden;
-				display: flex;
-				flex-direction: row;
-				gap: 16px;
-				box-sizing: border-box;
-			}
-
-			/* ── Left Pane: List View (55%) ── */
-			.dq-list-pane {
-				flex: 0 0 calc(55% - 8px);
-				min-width: 0;
-				display: flex;
-				flex-direction: column;
-				overflow: visible;
-				height: 100%;
-			}
-			.dq-list-wrapper {
-				flex: 1;
-				display: flex;
-				flex-direction: column;
-				overflow: visible;
-				min-height: 0;
-			}
-
-			/* ── Embedded List Framework ── */
-			.dq-list-wrapper .embedded-list {
-				flex: 1;
-				display: flex;
-				flex-direction: column;
-				overflow: visible;
-				min-height: 0;
-			}
-			.dq-list-wrapper .embedded-list-header {
-				flex-shrink: 0;
-				display: flex !important;
-				justify-content: space-between !important;
-				align-items: center !important;
-				margin-bottom: 8px !important;
-				overflow: visible !important;
-				min-height: 30px !important;
-				padding: 0 2px !important;
-			}
-			.dq-list-wrapper .embedded-list-heading {
-				display: none !important;
-			}
-			.dq-list-wrapper .embedded-list-header-left {
-				display: flex;
-				align-items: center;
-			}
-			.dq-list-wrapper .embedded-list-header-actions {
-				display: flex !important;
-				align-items: center !important;
-				overflow: visible !important;
-			}
-			.dq-list-wrapper .filter-section {
-				display: inline-flex !important;
-				align-items: center !important;
-				gap: 8px !important;
-				overflow: visible !important;
-			}
-
-			.dq-list-wrapper .embedded-list-result {
-				flex: 1;
-				display: flex;
-				flex-direction: column;
-				overflow: hidden;
-				min-height: 0;
-			}
-
-			/* ── List View Table ── */
-			.dq-list-wrapper .embedded-list-table-wrap {
-				flex: 1;
-				overflow-y: auto;
-				border: 1px solid var(--border-color);
-				border-radius: var(--border-radius-md, 8px);
-				background: var(--card-bg, #fff);
-				margin-bottom: 0 !important;
-				display: block;
-			}
-			.dq-list-wrapper table.embedded-list-table tbody tr.active-row {
-				background-color: var(--control-bg, #ebf1f6) !important;
-			}
-			.dq-list-wrapper table.embedded-list-table tbody tr.active-row td {
-				font-weight: 500;
-				color: var(--text-color);
-			}
-
-			.dq-list-wrapper .embedded-list > .min-h-48,
-			.dq-list-wrapper .embedded-list-loading,
-			.dq-list-wrapper .embedded-list-error {
-				flex: 1;
-				display: flex;
-				flex-direction: column;
-				justify-content: center;
-				align-items: center;
-			}
-
-			/* ── Pagination Area (Level Left / Right) ── */
-			.dq-list-wrapper .list-paging-area {
-				display: flex !important;
-				justify-content: space-between !important;
-				align-items: center !important;
-				padding: 6px 2px 0 2px !important;
-				flex-shrink: 0 !important;
-				min-height: 28px !important;
-				margin-top: auto !important;
-			}
-			.dq-list-wrapper .list-paging-area .level-left {
-				display: flex;
-				align-items: center;
-			} 
-			.dq-list-wrapper .list-paging-area .es-tab-buttons {
-				border-radius: 6px !important;
-				padding: 1.5px !important;
-				gap: 2px !important;
-			}
-			.dq-list-wrapper .list-paging-area .es-pill {
-				font-size: 11px !important;
-				padding: 3px 7px !important;
-				line-height: 14px !important;
-				border-radius: 5px !important;
-			}
-			.dq-list-wrapper .list-paging-area .level-right {
-				display: flex;
-				align-items: center;
-				gap: 10px;
-			}
-			.dq-list-wrapper .list-paging-area .list-count {
-				font-size: 11px !important;
-				color: var(--text-muted) !important;
-				white-space: nowrap;
-			}
-			.dq-list-wrapper .list-paging-area .btn-more {
-				height: 24px !important;
-				padding: 2px 8px !important;
-				font-size: 11px !important;
-			}
-
-			/* ── Right Pane: Preview Pane (45%) ── */
-			.dq-preview-pane {
-				flex: 0 0 calc(45% - 8px);
-				min-width: 0;
-				display: flex;
-				flex-direction: column;
-				overflow: hidden;
-				height: 100%;
-				background: var(--card-bg, #fff);
-				border: 1px solid var(--border-color);
-				border-radius: var(--border-radius-md, 8px);
-				box-sizing: border-box;
-				position: relative;
-			}
-			.dq-preview-empty-container {
-				flex: 1;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				padding: 24px;
-				height: 100%;
-			}
-			.dq-preview-header {
-				flex-shrink: 0;
-				display: flex;
-				align-items: center;
-				justify-content: space-between;
-				padding: 0 10px;
-				height: 36px;
-				background-color: var(--card-bg, #fff);
-				border-bottom: 1px solid var(--border-color);
-				box-sizing: border-box;
-			}
-			.dq-preview-title {
-				display: inline-flex;
-				align-items: center;
-				gap: 6px;
-				font-size: var(--text-sm, 12px);
-				font-weight: 500;
-				color: var(--text-muted, #8d99a6);
-			}
-			.dq-preview-title-icon {
-				display: inline-flex;
-				align-items: center;
-				color: var(--text-muted, #8d99a6);
-			}
-			.dq-preview-title-icon svg {
-				width: 14px;
-				height: 14px;
-			}
-			.dq-preview-actions {
-				display: inline-flex;
-				align-items: center;
-			}
-			.dq-preview-body {
-				position: relative;
-				flex: 1;
-				min-height: 0;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				background-color: var(--subtle-fg, #f8f9fa);
-				overflow: hidden;
-			}
-			.dq-preview-body iframe {
-				width: 100%;
-				height: 100%;
-				border: 0;
-				outline: none;
-				background-color: #fff;
-				border-bottom-left-radius: var(--border-radius-md, 8px);
-				border-bottom-right-radius: var(--border-radius-md, 8px);
-			}
-			.dq-preview-body img {
-				max-width: calc(100% - 32px);
-				max-height: calc(100% - 32px);
-				width: auto;
-				height: auto;
-				border: 0;
-				border-radius: var(--border-radius-md, 8px);
-				box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
-			}
-			</style>
-		`);
-		$("head").append($styles);
+		this.dialog.get_field("body").$wrapper.parentsUntil(".modal-body").css({ padding: "0", margin: "0", border: "none" });
 	}
 
 	_build_screens() {
 		this.$split_screen = $('<div class="dq-split-screen"></div>').appendTo(this.dialog.get_field("body").$wrapper);
 		this.$list_pane = $('<div class="dq-list-pane"></div>').appendTo(this.$split_screen);
 		this.$preview_pane = $('<div class="dq-preview-pane"></div>').appendTo(this.$split_screen);
+
+		// Preview swaps only the content area; the action row below it is built
+		// once so the button keeps its identity and the pane height never jumps.
+		this.$preview_content = $('<div class="dq-preview-content"></div>').appendTo(
+			this.$preview_pane
+		);
+
+		this.$start_review_btn = frappe.ui.button({
+			label: __("Start Review"),
+			variant: "solid",
+			disabled: true,
+			onclick: () => this._start_review(this.selected_row),
+		});
+
+		// Same `level` / `level-left` / `level-right` shape as the list pane's
+		// `.list-paging-area`, so both panes end on a single shared baseline.
+		$(`
+			<div class="dq-preview-footer level">
+				<div class="level-left"></div>
+				<div class="level-right"></div>
+			</div>
+		`)
+			.appendTo(this.$preview_pane)
+			.find(".level-right")
+			.append(this.$start_review_btn);
 	}
 
 	/**
-	 * Initializes the EmbeddedList and monkey-patches its lifecycle methods.
-	 * Native EmbeddedList doesn't support custom TabButton pagination or 
-	 * smooth transitions on refresh, so we override `render_header`, `refresh`,
-	 * `after_render`, and `render_load_more` to inject our custom layout.
+	 * frappe.ui.EmbeddedList only exists once embedded_list.bundle.js has
+	 * loaded, which happens when the modal is first opened — so the subclass is
+	 * declared on first use and cached, rather than at script-eval time.
+	 */
+	_get_list_class() {
+		if (frappe.ui.DocumentQueueEmbeddedList) {
+			return frappe.ui.DocumentQueueEmbeddedList;
+		}
+
+		const EmbeddedList = frappe.ui.EmbeddedList;
+
+		frappe.ui.DocumentQueueEmbeddedList = class DocumentQueueEmbeddedList extends EmbeddedList {
+			// EmbeddedList has no pagination hook — no page-size selector and no
+			// "N of M" footer — so the paging area replaces the default
+			// "Load More" strip wholesale.
+			render_load_more() {
+				this.$result.find(".embedded-list-more").remove();
+
+				const total_count = (this.data || []).length;
+				const rendered_count = Math.min(this.rendered_count || 0, total_count);
+
+				let $paging_area = this.$wrapper.find(".list-paging-area");
+				if (!$paging_area.length) {
+					$paging_area = $(`
+						<div class="list-paging-area level">
+							<div class="level-left"></div>
+							<div class="level-right">
+								<span class="list-count"></span>
+							</div>
+						</div>
+					`).appendTo(this.$wrapper);
+
+					const paging_values = [10, 25, 50, 100];
+					if (frappe.ui.TabButtons) {
+						const tab_buttons = new frappe.ui.TabButtons({
+							label: __("Page Size"),
+							options: paging_values.map((val) => ({
+								label: String(val),
+								value: val,
+							})),
+							value: this.page_size,
+							on_change: (val) => {
+								this.page_size = val;
+								this.modal.page_size = val;
+								this.rendered_count = 0;
+								// render() rebuilds every <tr>, which drops the
+								// imperatively-applied .active-row class, and unlike
+								// _apply_filter() it does not fire after_render().
+								// Call the hook here so the selection highlight,
+								// count and filter label are restored.
+								this.render();
+								this.after_render();
+							},
+						});
+						$paging_area.find(".level-left").append(tab_buttons.$el);
+					}
+				}
+
+				// Update count text
+				$paging_area.find(".list-count").text(`${rendered_count} of ${total_count}`);
+
+				// Add/remove "Load More" button
+				$paging_area.find(".btn-more").remove();
+				if (rendered_count < total_count) {
+					const $more_btn = $(`
+						<button class="btn btn-default btn-sm btn-more" type="button">
+							${__("Load More")}
+						</button>
+					`);
+					$more_btn.on("click", (e) => {
+						e.preventDefault();
+						this.render_more();
+					});
+					$paging_area.find(".level-right").append($more_btn);
+				}
+			}
+
+			after_render() {
+				super.after_render();
+				this.render_load_more();
+				this.modal._update_active_row();
+			}
+
+			// Fade the old rows out while the new ones load, instead of the base
+			// class's blank-and-spinner. before_render()/after_render() can't do
+			// this — both run *after* get_data() resolves — but super.refresh()
+			// does all its DOM setup synchronously before returning its promise,
+			// so restyling right after the call still lands before the fetch does.
+			refresh() {
+				const is_initial = !(this.data && this.data.length > 0);
+				const refreshed = super.refresh();
+
+				this.$loading.hide();
+				this.$result
+					.show()
+					.css({ opacity: is_initial ? "0" : "0.5", transition: "opacity 0.2s ease" });
+
+				return refreshed.finally(() => {
+					requestAnimationFrame(() =>
+						requestAnimationFrame(() => this.$result.css("opacity", "1"))
+					);
+				});
+			}
+		};
+
+		return frappe.ui.DocumentQueueEmbeddedList;
+	}
+
+	/**
+	 * Initializes the EmbeddedList subclass. The custom TabButton pagination and
+	 * the fade-on-refresh are declared as real overrides on that subclass; the
+	 * columns, filters and row-click wiring below are plain configuration.
 	 */
 	_setup_list() {
 		this.$list_wrapper = $('<div class="dq-list-wrapper"></div>').appendTo(this.$list_pane);
 
-		this.list = new frappe.ui.EmbeddedList({
+		const DocumentQueueEmbeddedList = this._get_list_class();
+
+		this.list = new DocumentQueueEmbeddedList({
 			wrapper: this.$list_wrapper,
+			modal: this,
 			doctype: "Document Queue",
 			title: "",
 			page_size: this.page_size,
@@ -332,7 +238,12 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 					label: __("Status"),
 					fieldname: "status",
 					render: (row) => {
-						const short = row.status === "Ready for Review" ? "Review" : row.status;
+						// Shortened because the column is narrow; translated because
+						// these are the raw Select values straight off the row.
+						const short =
+							row.status === "Ready for Review"
+								? __("Review")
+								: __(row.status);
 						const theme =
 							row.status === "Ready for Review" || row.status === "Queued" ? "blue"
 							: row.status === "Completed"  ? "green"
@@ -350,45 +261,7 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 			],
 		});
 
-		this._patch_list_pagination();
 		this.list.render_load_more();
-		this.list.render_header = () => {};
-
-		// Smooth fade on refresh
-		this.list.refresh = () => {
-			this.list.$error.hide();
-			this.list.$no_result.hide();
-			this.list.$loading.hide();
-			const is_initial = !(this.list.data && this.list.data.length > 0);
-			this.list.$result
-				.show()
-				.css({ opacity: is_initial ? "0" : "0.5", transition: "opacity 0.2s ease" });
-			return this.list
-				.get_data()
-				.then((data) => {
-					this.list._all_data = data || [];
-					this.list.before_render();
-					this.list._apply_filter();
-				})
-				.catch((e) => {
-					console.error("EmbeddedList: failed to load data", e);
-					this.list.$result.hide();
-					this.list.$error.text(this.list.error_message).show();
-				})
-				.finally(() => {
-					requestAnimationFrame(() =>
-						requestAnimationFrame(() => this.list.$result.css("opacity", "1"))
-					);
-				});
-		};
-
-		const _orig_after_render = this.list.after_render.bind(this.list);
-		this.list.after_render = () => {
-			_orig_after_render();
-			this.list.render_load_more();
-			this._update_filter_button_label();
-			this._update_active_row();
-		};
 
 		this._setup_native_toolbar();
 	}
@@ -419,11 +292,11 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 	}
 
 	_clear_preview() {
-		if (!this.$preview_pane) return;
-		this.$preview_pane.empty();
+		if (!this.$preview_content) return;
+		this.$preview_content.empty();
 
 		const $empty_wrap = $('<div class="dq-preview-empty-container"></div>').appendTo(
-			this.$preview_pane
+			this.$preview_content
 		);
 
 		const $empty = frappe.ui.empty_state({
@@ -432,39 +305,23 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 			description: __("Select a document from the list to preview."),
 		});
 		$empty_wrap.append($empty);
+
+		this.$start_review_btn.prop("disabled", true);
 	}
 
 	_render_preview(row) {
-		if (!this.$preview_pane) return;
-		this.$preview_pane.empty();
+		if (!this.$preview_content) return;
+		this.$preview_content.empty();
 
-		const file_url = this._get_file_url(row.source_file);
+		const file_url = frappe.document_queue_review.get_preview_url(row.source_file);
 		const file_name =
 			frappe.document_queue_review.get_file_name(row.source_file || "") || file_url;
 		const preview_type = this._get_preview_type(row.source_file);
 
-		// Header (Preview title on left, Start Review button on right)
-		const $header = $(`
-			<div class="dq-preview-header">
-				<div class="dq-preview-title">
-					<span class="dq-preview-title-icon">${frappe.utils.icon("file-text", "sm")}</span>
-					<span>${__("Preview")}</span>
-				</div>
-				<div class="dq-preview-actions"></div>
-			</div>
-		`).appendTo(this.$preview_pane);
-
-		const $start_btn = frappe.ui.button({
-			label: __("Start Review"),
-			icon_right: "arrow-up-right",
-			size: "sm",
-			variant: "outline",
-			onclick: () => this._start_review(row),
-		});
-		$header.find(".dq-preview-actions").append($start_btn);
+		this.$start_review_btn.prop("disabled", false);
 
 		// Body
-		const $body = $('<div class="dq-preview-body"></div>').appendTo(this.$preview_pane);
+		const $body = $('<div class="dq-preview-body"></div>').appendTo(this.$preview_content);
 
 		const escaped_url = frappe.utils.escape_html(file_url);
 		const escaped_name = frappe.utils.escape_html(file_name);
@@ -494,21 +351,17 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 	}
 
 	async _start_review(row) {
+		if (!row) return;
+
 		this.dialog.hide();
 		const queue_name = row.name;
 
 		try {
 			const context = await frappe.document_queue_review.fetch_context(queue_name);
 			if (context && context.document_type) {
-				frappe.model.with_doctype(context.document_type, () => {
-					const doc = frappe.model.get_new_doc(context.document_type);
-					frappe.document_queue_review.pending_context = context;
-					frappe.set_route("Form", context.document_type, doc.name).then(() => {
-						let url = new URL(window.location.href);
-						url.searchParams.set("document_queue", context.queue_name);
-						window.history.replaceState(window.history.state, "", url.toString());
-					});
-				});
+				// Same routing the Document Queue form's "Start Review" performs,
+				// so both entry points stay in step.
+				frappe.document_queue_review.route_to_new_document(context);
 				return;
 			}
 		} catch (e) {
@@ -519,21 +372,6 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 		frappe.set_route("Form", "Document Queue", queue_name);
 	}
 
-	_get_file_url(file_url) {
-		if (!file_url) return "";
-		if (file_url.indexOf("files/") === 0) {
-			file_url = "/" + file_url;
-		} else if (!file_url.startsWith("/") && !/^(https?:)?\/\//i.test(file_url)) {
-			file_url = "/files/" + file_url;
-		}
-		const is_web_url = /^(https?:)?\/\//i.test(file_url);
-		file_url = encodeURI(file_url);
-		if (!is_web_url) {
-			file_url = file_url.replace(/#/g, "%23");
-		}
-		return file_url;
-	}
-
 	_get_preview_type(source_url) {
 		if (!source_url) return "unsupported";
 		const url = String(source_url).split("?")[0].toLowerCase();
@@ -542,65 +380,6 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 		if (ext === "pdf") return "pdf";
 		if (image_exts.includes(ext)) return "image";
 		return "unsupported";
-	}
-
-	_patch_list_pagination() {
-		// Unified render_load_more (Paging Area with TabButtons & Count)
-		this.list.render_load_more = () => {
-			this.list.$result.find(".embedded-list-more").remove();
-
-			const total_count = (this.list.data || []).length;
-			const rendered_count = Math.min(this.list.rendered_count || 0, total_count);
-
-			let $paging_area = this.list.$wrapper.find(".list-paging-area");
-			if (!$paging_area.length) {
-				$paging_area = $(`
-					<div class="list-paging-area level">
-						<div class="level-left"></div>
-						<div class="level-right">
-							<span class="list-count"></span>
-						</div>
-					</div>
-				`).appendTo(this.list.$wrapper);
-
-				const paging_values = [20, 100, 500, 2500];
-				if (frappe.ui.TabButtons) {
-					const tab_buttons = new frappe.ui.TabButtons({
-						label: __("Page Size"),
-						options: paging_values.map((val) => ({
-							label: String(val),
-							value: val,
-						})),
-						value: this.list.page_size,
-						on_change: (val) => {
-							this.list.page_size = val;
-							this.page_size = val;
-							this.list.rendered_count = 0;
-							this.list.render();
-						},
-					});
-					$paging_area.find(".level-left").append(tab_buttons.$el);
-				}
-			}
-
-			// Update count text
-			$paging_area.find(".list-count").text(`${rendered_count} of ${total_count}`);
-
-			// Add/remove "Load More" button
-			$paging_area.find(".btn-more").remove();
-			if (rendered_count < total_count) {
-				const $more_btn = $(`
-					<button class="btn btn-default btn-sm btn-more" type="button">
-						${__("Load More")}
-					</button>
-				`);
-				$more_btn.on("click", (e) => {
-					e.preventDefault();
-					this.list.render_more();
-				});
-				$paging_area.find(".level-right").append($more_btn);
-			}
-		};
 	}
 
 	async _setup_native_toolbar() {
@@ -632,15 +411,15 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 			options: [
 				{
 					label: __("Review Pending"),
-					onclick: () => this._set_status_filter("Pending"),
+					onclick: () => this._set_status_filter("Pending", __("Review Pending")),
 				},
 				{
 					label: __("Completed"),
-					onclick: () => this._set_status_filter("Completed"),
+					onclick: () => this._set_status_filter("Completed", __("Completed")),
 				},
 				{
 					label: __("All"),
-					onclick: () => this._set_status_filter("All"),
+					onclick: () => this._set_status_filter("All", __("All")),
 				},
 			],
 		});
@@ -695,23 +474,15 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 		this.list.refresh();
 	}
 
-	_update_filter_button_label() {
-		if (!this.$status_trigger) return;
-		const count = this.list.data?.length ?? 0;
-		const labels = {
-			Pending: __("Review Pending ({0})", [count]),
-			Completed: __("Completed ({0})", [count]),
-		};
-		const text = labels[this.active_status] ?? __("All ({0})", [count]);
-		frappe.ui.button.dress(this.$status_trigger, { label: text, icon_right: "chevron-down" });
-	}
-
-	_set_status_filter(status) {
+	// The trigger label is a plain status name — the record total is already
+	// shown by the "N of M" count in the paging area.
+	_set_status_filter(status, label) {
 		this.active_status = status;
 		const filters = { document_type: this.doctype };
 		if (status === "Pending") filters.status = "Ready for Review";
 		if (status === "Completed") filters.status = "Completed";
 		this.list.filters = filters;
+		frappe.ui.button.dress(this.$status_trigger, { label, icon_right: "chevron-down" });
 		this.list.refresh();
 	}
 };
