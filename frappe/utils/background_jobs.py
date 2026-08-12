@@ -427,6 +427,8 @@ def start_worker_pool(
 	_start_sentry()
 
 	# If gc.freeze is done then importing modules before forking allows us to share the memory
+	import filelock  # monitor.flush() takes a filelock inside the forked work horse
+
 	import frappe.database.query  # sqlparse and indirect imports
 	import frappe.query_builder  # pypika
 	import frappe.utils  # common utils
