@@ -182,11 +182,31 @@ def get_milestones(doctype, name):
 
 
 def get_attachments(dt, dn):
-	return frappe.get_all(
+	attachments = frappe.get_all(
 		"File",
-		fields=["name", "file_name", "file_url", "is_private"],
+		fields=["name", "file_name", "file_url", "is_private", "attached_to_field"],
 		filters={"attached_to_name": str(dn), "attached_to_doctype": dt},
 	)
+
+	# Hide files uploaded through an Attach / Attach Image field the user has no
+	# permlevel access to. Files attached generically (no `attached_to_field`) or
+	# through a permlevel-0 field stay visible.
+	meta = frappe.get_meta(dt)
+	high_permlevel_fields = {df.fieldname for df in meta.get_high_permlevel_fields()}
+	if high_permlevel_fields:
+		permitted_fieldnames = set(meta.get_permitted_fieldnames())
+		attachments = [
+			a
+			for a in attachments
+			if not a.attached_to_field
+			or a.attached_to_field not in high_permlevel_fields
+			or a.attached_to_field in permitted_fieldnames
+		]
+
+	for a in attachments:
+		a.pop("attached_to_field", None)
+
+	return attachments
 
 
 def get_versions(doc: "Document") -> list[dict]:
