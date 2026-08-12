@@ -13,7 +13,7 @@ from frappe.desk.desktop import (
 	save_dock_order,
 	save_dock_preferences,
 )
-from frappe.desk.doctype.module_sidebar.test_module_sidebar import sidebarless_module
+from frappe.desk.doctype.module_sidebar.test_module_sidebar import make_sidebar, sidebarless_module
 from frappe.tests import IntegrationTestCase
 from frappe.utils.modules import clear_module_permission_cache
 
@@ -271,3 +271,73 @@ class TestDockSiteLayer(IntegrationTestCase):
 		"""One doctype, because the rows are identical -- the parent is what names the layer."""
 		self.assertEqual(frappe.get_meta("User").get_field("dock_modules").options, "Dock Module")
 		self.assertEqual(frappe.get_meta("Dock Order").get_field("modules").options, "Dock Module")
+
+
+class TestTheShippedDockOrder(IntegrationTestCase):
+	"""The layer *below* both of the ones above: what the dock reads before anybody arranges it.
+
+	`Dock Order` and `User.dock_modules` are site and user intent, and they can only rearrange
+	the list they are given. This is that list -- `boot.get_app_modules` -- and until
+	`Module Sidebar.sequence_id` existed the only way an app could state it was the position a
+	module happened to occupy in `modules.txt`.
+	"""
+
+	def app_order(self, app: str = "frappe") -> list[str]:
+		from frappe.boot import get_app_modules
+
+		return get_app_modules(app)
+
+	def position(self, module: str) -> int:
+		return self.app_order().index(module)
+
+	def test_a_sequence_pulls_a_module_in_front_of_one_that_declares_none(self):
+		with (
+			sidebarless_module("Test Sequence Ahead A") as ahead,
+			sidebarless_module("Test Sequence Ahead B") as behind,
+		):
+			# alphabetical to begin with: neither is in modules.txt, so both tie on every key
+			# above the name
+			self.assertLess(self.position(ahead), self.position(behind))
+
+			make_sidebar(behind, sequence_id=1)
+			self.assertLess(self.position(behind), self.position(ahead))
+
+	def test_a_high_sequence_pushes_a_module_behind_one_that_declares_none(self):
+		"""What the *middle* default buys: declaring a sequence can say "after the quiet ones"
+		as well as "before them". A trailing default could only ever say the first."""
+		with (
+			sidebarless_module("Test Sequence Behind A") as pushed,
+			sidebarless_module("Test Sequence Behind B") as quiet,
+		):
+			make_sidebar(pushed, sequence_id=500)
+
+			self.assertLess(self.position(quiet), self.position(pushed))
+
+	def test_modules_txt_still_breaks_a_tie(self):
+		"""The modules an app says nothing about keep exactly the dock they had, because the
+		order it already declared is what the tie falls back to.
+
+		Scoped to the modules with no sidebar document rather than to all of `frappe`'s: the
+		ones that *do* have a document are entitled to state a sequence, and asserting over
+		them would be asserting that no framework sidebar ever does.
+		"""
+		declared = frappe.get_module_list("frappe")
+		sequenced = set(frappe.get_all("Module Sidebar", pluck="module"))
+		quiet = [m for m in self.app_order() if m in declared and m not in sequenced]
+
+		self.assertTrue(quiet, "sanity: some framework module declares no sequence")
+		self.assertEqual(quiet, sorted(quiet, key=declared.index))
+
+	def test_a_module_with_no_sidebar_document_takes_the_default(self):
+		"""Most modules have a computed base and no document at all, so the default is the
+		common case rather than the edge one."""
+		from frappe.boot import DEFAULT_MODULE_SEQUENCE_ID
+
+		with sidebarless_module("Test Sequence Defaulted") as module:
+			self.assertFalse(frappe.db.exists("Module Sidebar", {"module": module}))
+			self.assertIn(module, self.app_order())
+
+			# the same position a document stating the default would put it in
+			without = self.position(module)
+			make_sidebar(module, sequence_id=DEFAULT_MODULE_SEQUENCE_ID)
+			self.assertEqual(self.position(module), without)

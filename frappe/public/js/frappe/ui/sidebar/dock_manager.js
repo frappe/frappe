@@ -8,6 +8,11 @@
 // That is the only thing the scope switch changes -- both layers are the same rows, arranged the
 // same way, saved through endpoints that differ only in where they land.
 //
+// On a developer's site it also authors the layer *below* both of those: "Ship This Order" writes
+// the arrangement on screen into the app's own files, as the order it ships with. Not a third
+// scope, because it is not a layer being edited -- the two layers rearrange the list an app ships,
+// and this is that list. Same arrangement on screen, different place for it to land.
+//
 // Scoped to one app on purpose -- a dock belongs to an app, so there's nothing to choose between
 // here and no app switcher. Modules in other apps are managed from those apps' docks.
 
@@ -41,6 +46,10 @@ frappe.ui.DockManager = class DockManager {
 		this.layer = [];
 		this.selection = [];
 		this.can_curate_site = frappe.user.has_role("Workspace Manager");
+		// Shipping writes files inside the app, so it is offered where app content is authored at
+		// all -- a developer's site -- and nowhere else. Not a role: the two layers above are what
+		// a site rearranges, and neither of them needs this.
+		this.can_ship = !!(frappe.boot.developer_mode && this.app);
 
 		this.dialog = new frappe.ui.Dialog({
 			title: this.app ? __("Manage {0} Dock", [__(this.app.app_title)]) : __("Manage Dock"),
@@ -51,6 +60,12 @@ frappe.ui.DockManager = class DockManager {
 			],
 			primary_action_label: __("Save"),
 			primary_action: () => this.save(),
+			...(this.can_ship
+				? {
+						secondary_action_label: __("Ship This Order"),
+						secondary_action: () => this.ship(),
+				  }
+				: {}),
 		});
 
 		this.$body = $(this.dialog.fields_dict.picker.$wrapper);
@@ -318,5 +333,46 @@ frappe.ui.DockManager = class DockManager {
 		frappe.show_alert({ message: this.layer_scope.saved(), indicator: "green" });
 		// apply in place -- no reload needed now that the dock reads the returned payload
 		frappe.app.sidebar.refresh_dock();
+	}
+
+	// Publish the arrangement on screen as the app's own, by writing `sequence_id` into each
+	// module's `Module Sidebar` and exporting it. Not a third layer: the two layers rearrange the
+	// list the app ships, and this is that list, so the same dialog authors both.
+	//
+	// Confirmed first because it is the one action here that leaves the site -- it writes JSON
+	// into the app's source tree, which is a commit somebody makes rather than a preference they
+	// set. Order only: what is left out of the selection is not hidden, it simply states no
+	// sequence and follows the ones that do.
+	ship() {
+		if (!this.loaded) return;
+		this.sync_order();
+		if (!this.selection.length) {
+			frappe.show_alert({ message: __("Nothing to ship"), indicator: "orange" });
+			return;
+		}
+
+		frappe.confirm(
+			__(
+				"Write this order into {0} as the order it ships with? This edits files in the app.",
+				[frappe.utils.bold(__(this.app.app_title))]
+			),
+			async () => {
+				// the app is derived server-side from the modules themselves -- `app_name` here is
+				// the apps-screen key, which is not always the app a module's files live in
+				this.app.modules = await frappe.xcall(
+					"frappe.desk.doctype.module_sidebar.module_sidebar.ship_dock_order",
+					{ modules: JSON.stringify(this.selection) }
+				);
+
+				this.dialog.hide();
+				frappe.show_alert({
+					message: __("Shipped. {0} now ships this dock order.", [
+						__(this.app.app_title),
+					]),
+					indicator: "green",
+				});
+				frappe.app.sidebar.refresh_dock();
+			}
+		);
 	}
 };

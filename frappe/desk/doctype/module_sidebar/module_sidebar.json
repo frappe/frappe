@@ -10,6 +10,7 @@
   "header_icon",
   "column_break_defn",
   "app",
+  "sequence_id",
   "items_section",
   "items",
   "provenance_section",
@@ -51,6 +52,12 @@
    "options": "Installed Applications"
   },
   {
+   "description": "Where this module sits on its app's dock. Lower shows first; unset (0) reads as 100, the middle default, so a module can be pinned either side of the ones that declare nothing. Ties fall back to the app's modules.txt order.",
+   "fieldname": "sequence_id",
+   "fieldtype": "Float",
+   "label": "Sequence Id"
+  },
+  {
    "fieldname": "items_section",
    "fieldtype": "Section Break",
    "label": "Items"
@@ -90,7 +97,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-11 19:55:59.367431",
+ "modified": "2026-08-12 09:15:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Module Sidebar",

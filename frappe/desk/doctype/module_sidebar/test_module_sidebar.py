@@ -17,6 +17,7 @@ from frappe.desk.doctype.module_sidebar.module_sidebar import (
 	item_key,
 	mark_as_standard,
 	pick_primary,
+	ship_dock_order,
 	unmark_as_standard,
 )
 from frappe.tests import IntegrationTestCase
@@ -1276,4 +1277,161 @@ class TestComputedSidebarBase(IntegrationTestCase):
 			self.assertIsNone(
 				frappe.cache.hget(COMPUTED_BASE_CACHE_KEY, self.module),
 				f"{doctype}.clear_cache() does not bust the computed sidebar base",
+			)
+
+
+class TestShippedDockOrder(IntegrationTestCase):
+	"""`ship_dock_order`: the dock arrangement on screen becoming the one the app ships.
+
+	The two layers a site can arrange -- `Dock Order` and `User.dock_modules` -- rearrange the
+	list an app hands them. This writes that list, so what it produces has to be app content on
+	disk, not site state: `sequence_id` on each module's `Module Sidebar`, exported.
+	"""
+
+	FIRST = "Test Ship Order Alpha"
+	SECOND = "Test Ship Order Beta"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		for module in (self.FIRST, self.SECOND):
+			if not frappe.db.exists("Module Def", module):
+				with no_developer_mode():
+					frappe.get_doc(
+						{"doctype": "Module Def", "module_name": module, "app_name": "frappe"}
+					).insert()
+		self.wipe()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		self.wipe()
+		for module in (self.FIRST, self.SECOND):
+			with no_developer_mode():
+				frappe.delete_doc("Module Def", module, force=True, ignore_missing=True)
+		# same reason as `TestModuleSidebarStandard`: these tests write files and commit, so the
+		# cleanup has to be durable too or a standard row outlives the module it names
+		frappe.db.commit()  # nosemgrep
+
+	def wipe(self):
+		for module in (self.FIRST, self.SECOND):
+			for name in frappe.get_all("Module Sidebar", filters={"module": module}, pluck="name"):
+				frappe.delete_doc("Module Sidebar", name, force=True, ignore_permissions=True)
+			clear_computed_base_cache(module)
+
+	@contextmanager
+	def both_modules_on_disk(self):
+		with module_resolvable_on_disk(self.FIRST), module_resolvable_on_disk(self.SECOND):
+			# something navigable in each, so neither is dropped from the payload for having
+			# nothing the user can reach
+			make_report(self.FIRST, "Test Ship Order Alpha Report")
+			make_report(self.SECOND, "Test Ship Order Beta Report")
+			clear_computed_base_cache(self.FIRST)
+			clear_computed_base_cache(self.SECOND)
+			try:
+				yield
+			finally:
+				frappe.db.delete("Report", {"module": ["in", [self.FIRST, self.SECOND]]})
+
+	def sequence_of(self, module):
+		return frappe.db.get_value("Module Sidebar", {"module": module}, "sequence_id")
+
+	def test_shipping_writes_a_sequence_and_exports_it(self):
+		import os
+
+		with self.both_modules_on_disk(), developer_mode():
+			ship_dock_order([self.SECOND, self.FIRST])
+
+			self.assertEqual(self.sequence_of(self.SECOND), 1)
+			self.assertEqual(self.sequence_of(self.FIRST), 2)
+			for module in (self.FIRST, self.SECOND):
+				doc = frappe.get_doc("Module Sidebar", {"module": module})
+				self.assertEqual(doc.standard, 1)
+				self.assertTrue(os.path.exists(doc.exported_file_path()), "the order has to reach the app")
+
+	def test_the_dock_order_follows(self):
+		"""The point of the whole thing: `get_app_modules` is what the dock renders, so the
+		arrangement has to come back out of it in the order that went in."""
+		from frappe.boot import get_app_modules
+
+		with self.both_modules_on_disk(), developer_mode():
+			# alphabetical to begin with -- neither is in modules.txt, so nothing but the name
+			# separates them
+			order = get_app_modules("frappe")
+			self.assertLess(order.index(self.FIRST), order.index(self.SECOND))
+
+			self.assertEqual(ship_dock_order([self.SECOND, self.FIRST]), get_app_modules("frappe"))
+
+			order = get_app_modules("frappe")
+			self.assertLess(order.index(self.SECOND), order.index(self.FIRST))
+
+	def test_a_module_with_no_sidebar_gets_a_stub_rather_than_a_frozen_copy(self):
+		"""Stating where a module sits must not also freeze what is in it. `mark_as_standard`
+		ships the computed items on purpose; this ships the position and leaves the contents
+		being computed, so the module keeps tracking its own contents afterwards."""
+		with self.both_modules_on_disk(), developer_mode():
+			self.assertFalse(frappe.db.exists("Module Sidebar", {"module": self.FIRST}))
+
+			ship_dock_order([self.FIRST, self.SECOND])
+
+			doc = frappe.get_doc("Module Sidebar", {"module": self.FIRST})
+			self.assertEqual(doc.items, [], "shipping an order must not ship the module's contents")
+
+			# ...and the module still renders the items its contents produce
+			base = get_computed_base(self.FIRST)
+			self.assertIn("Test Ship Order Alpha Report", [row.link_to for row in base.rows])
+
+	def test_an_authored_sidebar_keeps_its_items(self):
+		"""The other side of the same rule: a module that *does* ship its navigation gets a
+		sequence written into the file it already has, and nothing else touched."""
+		with self.both_modules_on_disk(), developer_mode():
+			make_sidebar(self.FIRST)
+
+			ship_dock_order([self.FIRST, self.SECOND])
+
+			doc = frappe.get_doc("Module Sidebar", {"module": self.FIRST})
+			self.assertEqual([row.link_to for row in doc.items], ["User"])
+			self.assertEqual(doc.sequence_id, 1)
+
+	def test_shipping_is_developer_mode_only(self):
+		"""It writes files inside an app, which is the one thing developer mode gates."""
+		with self.both_modules_on_disk(), no_developer_mode():
+			self.assertRaises(frappe.ValidationError, ship_dock_order, [self.FIRST, self.SECOND])
+
+	def test_re_shipping_renumbers_rather_than_accumulates(self):
+		"""An order is the whole arrangement, not a delta, so shipping twice leaves the second
+		one -- the same rule the layers above already run on."""
+		with self.both_modules_on_disk(), developer_mode():
+			ship_dock_order([self.FIRST, self.SECOND])
+			ship_dock_order([self.SECOND, self.FIRST])
+
+			self.assertEqual(self.sequence_of(self.SECOND), 1)
+			self.assertEqual(self.sequence_of(self.FIRST), 2)
+
+	def test_an_empty_order_is_refused(self):
+		with developer_mode():
+			self.assertRaises(frappe.ValidationError, ship_dock_order, [])
+
+	def test_a_module_with_no_folder_is_refused_before_anything_is_written(self):
+		"""Files are not in the transaction, so the check that would fail halfway has to run
+		before the first write instead -- otherwise the rollback leaves the app holding the
+		files for the modules that came first."""
+		import os
+
+		with module_resolvable_on_disk(self.FIRST), developer_mode():
+			make_report(self.FIRST, "Test Ship Order Guard Report")
+			clear_computed_base_cache(self.FIRST)
+			self.addCleanup(frappe.db.delete, "Report", {"module": self.FIRST})
+
+			# SECOND resolves to no folder, and it is named second
+			self.assertRaises(frappe.ValidationError, ship_dock_order, [self.FIRST, self.SECOND])
+
+			self.assertFalse(frappe.db.exists("Module Sidebar", {"module": self.FIRST}))
+			self.assertFalse(
+				os.path.exists(
+					os.path.join(
+						frappe.get_module_path(self.FIRST),
+						"module_sidebar",
+						frappe.scrub(self.FIRST),
+					)
+				),
+				"a refused order still wrote a file into the app",
 			)
