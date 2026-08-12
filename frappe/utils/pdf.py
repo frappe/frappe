@@ -6,6 +6,7 @@ import io
 import mimetypes
 import os
 import subprocess
+from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urlparse
 
 import pdfkit
@@ -15,6 +16,7 @@ from pdfkit.pdfkit import PDFKit as OriginalPDFKit
 pdfkit.source.unicode = str  # NOTE: upstream bug; PYTHONOPTIMIZE=1 optimized this away
 from bs4 import BeautifulSoup
 from packaging.version import Version
+
 import frappe
 from frappe import _
 from frappe.core.doctype.file.utils import find_file_by_url
@@ -22,6 +24,10 @@ from frappe.utils import cstr, scrub_urls
 from frappe.utils.caching import redis_cache
 from frappe.utils.data import get_url
 from frappe.utils.jinja_globals import bundled_asset, is_rtl
+
+if TYPE_CHECKING:
+	import cssutils
+	from pypdf import PdfWriter
 
 PDF_CONTENT_ERRORS = [
 	"ContentNotFoundError",
