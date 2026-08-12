@@ -66,8 +66,12 @@ frappe.doctype_settings.overflow_menu = function (items) {
 };
 
 // Shared loading placeholder: a few skeleton lines instead of bare "Loading" text.
+// Layout via utility classes — no custom CSS.
 frappe.doctype_settings.render_loading = function ($container) {
-	const $wrap = $('<div class="dts-loading" aria-label="' + __("Loading") + '"></div>');
+	const $wrap = $('<div class="flex flex-col gap-3 py-4"></div>').attr(
+		"aria-label",
+		__("Loading")
+	);
 	["40%", "70%", "55%"].forEach((width) => {
 		$wrap.append(frappe.ui.skeleton({ width, height: "14px" }));
 	});
@@ -125,7 +129,7 @@ frappe.doctype_settings.render_error = function (panel, retry_fn, err) {
 		return;
 	}
 	const $err = panel.body.empty();
-	$('<div class="text-muted text-p-sm"></div>')
+	$('<div class="text-ink-gray-5 text-p-sm"></div>')
 		.text(__("Could not load this tab."))
 		.appendTo($err);
 	frappe.ui.button({ label: __("Retry"), size: "xs", onclick: () => retry_fn() }).appendTo($err);

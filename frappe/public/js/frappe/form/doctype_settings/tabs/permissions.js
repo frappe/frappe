@@ -41,7 +41,7 @@ function draw(panel, doctype) {
 			});
 		})
 		.catch((err) =>
-			frappe.doctype_settings.render_error(panel, () => draw(panel, doctype), err),
+			frappe.doctype_settings.render_error(panel, () => draw(panel, doctype), err)
 		);
 }
 
@@ -118,14 +118,13 @@ function render_roles_list($container, doctype, roles, reload) {
 					cint(row.permlevel) > 0 && !frappe.perm_editor.PERMLEVEL_FLAGS.includes(r)
 						? ""
 						: cint(row[r])
-							? flag_badge()
-							: "",
+						? flag_badge()
+						: "",
 			})),
 		],
 	});
 	list.refresh();
 }
-
 
 function render_user_perms(panel, $parent, doctype) {
 	const sec = frappe.doctype_settings.section($parent, {
@@ -182,8 +181,8 @@ function render_user_perms(panel, $parent, doctype) {
 					cint(row.apply_to_all_doctypes)
 						? frappe.ui.badge.html({ label: __("All doctypes") })
 						: row.applicable_for
-							? frappe.utils.escape_html(row.applicable_for)
-							: "",
+						? frappe.utils.escape_html(row.applicable_for)
+						: "",
 			},
 			{
 				type: "actions",
@@ -266,8 +265,8 @@ function perm_tab(doctype, reload) {
 					frappe.db.get_value(
 						"Custom DocPerm",
 						{ parent: doctype, role: values.role, permlevel, if_owner: 0 },
-						"name",
-					),
+						"name"
+					)
 				)
 				.then((r) => {
 					const name = r.message && r.message.name;
@@ -279,7 +278,7 @@ function perm_tab(doctype, reload) {
 		perm_data(values) {
 			const data = {};
 			["if_owner", ...frappe.perm_editor.ALL_PERM_FLAGS].forEach(
-				(flag) => (data[flag] = values[flag] ? 1 : 0),
+				(flag) => (data[flag] = values[flag] ? 1 : 0)
 			);
 			return data;
 		},
@@ -307,14 +306,14 @@ function perm_tab(doctype, reload) {
 							permlevel: row.permlevel,
 							if_owner: row.if_owner || 0,
 						},
-						"name",
-					),
+						"name"
+					)
 				)
 				.then((r) => {
 					const name = r.message && r.message.name;
 					if (!name)
 						frappe.throw(
-							__("Permission row not found after conversion. Please refresh."),
+							__("Permission row not found after conversion. Please refresh.")
 						);
 					return frappe.db.set_value("Custom DocPerm", name, data);
 				});
@@ -350,7 +349,7 @@ function customized_banner(panel, doctype, reload) {
 				perm_call("reset", { doctype }).then(() => {
 					frappe.show_alert({ message: __("Permissions reset"), indicator: "green" });
 					reload();
-				}),
+				})
 		);
 
 	return frappe.ui
@@ -368,9 +367,12 @@ function customized_banner(panel, doctype, reload) {
 }
 
 function footer(panel, doctype) {
-	const $footer = $('<div class="dts-perm-footer"></div>');
-	$("<span></span>").appendTo($footer); // spacer to keep the link right-aligned
-	$('<a href="#" class="dts-perm-footer-link text-base-medium"></a>')
+	const $footer = $(
+		'<div class="flex items-center justify-end gap-4 mt-3 pt-4 border-t"></div>'
+	);
+	$(
+		'<a href="#" class="inline-flex items-center gap-1 text-ink-gray-7 text-base-medium whitespace-nowrap"></a>'
+	)
 		.append($("<span></span>").text(__("Open Role Permissions Manager")))
 		.append(frappe.utils.icon("external-link", "sm"))
 		.appendTo($footer)
