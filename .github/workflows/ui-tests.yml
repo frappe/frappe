@@ -112,16 +112,16 @@ jobs:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
           SPLIT: 4
           SPLIT_INDEX: ${{ strategy.job-index }}
-          RECORD_VIDEO: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'record-video') }}
+          RECORD_VIDEO: ${{ contains(github.event.pull_request.labels.*.name, 'record-video') }}
 
       - name: Compress Cypress Videos
-        if: always() && steps.ui-tests.outcome == 'failure' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'record-video'))
+        if: always() && steps.ui-tests.outcome == 'failure' && contains(github.event.pull_request.labels.*.name, 'record-video')
         run: |
             if find ./cypressVideos -mindepth 1 | read; then
               zip -r cypress_recordings.zip ./cypressVideos
             fi
       - name: Upload Cypress Videos
-        if: always() && steps.ui-tests.outcome == 'failure' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'record-video'))
+        if: always() && steps.ui-tests.outcome == 'failure' && contains(github.event.pull_request.labels.*.name, 'record-video')
         uses: actions/upload-artifact@v7
         with:
           name: Cypress CI Video Recordings
