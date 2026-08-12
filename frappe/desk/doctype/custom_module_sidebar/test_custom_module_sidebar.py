@@ -22,7 +22,10 @@ from frappe.desk.doctype.module_sidebar.test_module_sidebar import (
 )
 from frappe.tests import IntegrationTestCase
 
-MODULE = "Core"
+# Any module the dock can take you to will do -- these tests are about the layers, not about
+# this module. Not `Core`: it is a `code_only_modules` module now, so `get_navigable_modules`
+# skips it and the payload has no key for it at all.
+MODULE = "Users"
 USER = "test-sidebar-custom@example.com"
 MANAGER = "test-sidebar-manager@example.com"
 
