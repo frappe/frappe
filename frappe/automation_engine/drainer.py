@@ -33,13 +33,34 @@ def drain(batch_size=DEFAULT_BATCH_SIZE, max_batches=None, executor=None):
 		if not names:
 			break
 		for name in names:
-			executor(name)
+			execute_claimed(executor, name)
 		batches += 1
 		if max_batches and batches >= max_batches:
 			break
 
 	if _has_due_pending():
 		_rekick()
+
+
+def execute_claimed(executor, name):
+	"""Run one claimed row in a transaction of its own.
+
+	The runner records step failures itself, but not everything reaches it: a flow deleted
+	mid-drain, or a throw while recording the outcome, escapes. Batching those into one
+	transaction would roll back every row that already succeeded alongside the one that
+	failed - and their claims are already committed, so they would sit Running until
+	requeue_stale_running() releases them and re-run work whose non-transactional half
+	(realtime updates, breaker counters) had already happened.
+
+	Committing per row also keeps a batch from holding one row lock per action for the length
+	of the whole batch.
+	"""
+	try:
+		executor(name)
+		frappe.db.commit()
+	except Exception:
+		frappe.db.rollback()
+		frappe.log_error(title=f"Automation run failed: {name}", message=frappe.get_traceback())
 
 
 def promote_due_scheduled():
