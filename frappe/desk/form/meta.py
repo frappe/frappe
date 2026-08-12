@@ -4,7 +4,11 @@ import os
 
 import frappe
 from frappe import _
+<<<<<<< HEAD
 from frappe.bundler import scrub_html_template
+=======
+from frappe.app_state import get_disabled_modules
+>>>>>>> afb3812 (perf: lazy-import bs4, markdownify, and template helpers)
 from frappe.model.meta import Meta
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, load_doctype_module, scrub
@@ -127,6 +131,9 @@ class FormMeta(Meta):
 	def add_html_templates(self, path):
 		if self.custom:
 			return
+
+		from frappe.build import scrub_html_template
+
 		templates = dict()
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):

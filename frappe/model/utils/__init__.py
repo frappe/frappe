@@ -4,7 +4,10 @@ import re
 from functools import wraps
 
 import frappe
+<<<<<<< HEAD
 from frappe.bundler import html_to_js_template
+=======
+>>>>>>> afb3812 (perf: lazy-import bs4, markdownify, and template helpers)
 from frappe.utils import cstr
 from frappe.utils.caching import site_cache
 
@@ -79,6 +82,8 @@ def render_include(content):
 				with open(resolved_path, encoding="utf-8") as f:
 					include = f.read()
 					if path.endswith(".html"):
+						from frappe.build import html_to_js_template
+
 						include = html_to_js_template(path, include)
 
 					content = re.sub(

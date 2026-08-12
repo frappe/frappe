@@ -13,8 +13,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from bs4 import BeautifulSoup
-
 import frappe
 from frappe.model.document import Document
 from frappe.utils import convert_utc_to_system_timezone, get_datetime, now_datetime, update_progress_bar
@@ -1662,6 +1660,8 @@ class SQLiteSearch(ABC):
 		"""Process content to remove HTML tags, links, and images for better indexing quality."""
 		if not content:
 			return ""
+
+		from bs4 import BeautifulSoup
 
 		# Convert to string in case it's a Mock object or other type
 		content = str(content)
