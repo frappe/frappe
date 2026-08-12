@@ -4,7 +4,6 @@ frappe.ui.Notifications = class Notifications {
 	constructor(opts) {
 		this.tabs = {};
 		this.notification_settings = frappe.boot.notification_settings;
-		this.full_height = opts?.full_height || false;
 		// The desk bell opens a popover; the sidebar bell slides out a full-height
 		// drawer, which is a different thing and keeps its own show/hide.
 		this.as_popover = opts?.popover || false;
@@ -60,7 +59,7 @@ frappe.ui.Notifications = class Notifications {
 	close_panel() {
 		if (this.as_popover) {
 			this.popover?.close();
-		} else if (this.full_height && this.dropdown?.length) {
+		} else if (this.dropdown?.length) {
 			this.dropdown.addClass("hidden");
 		}
 	}
@@ -195,7 +194,6 @@ frappe.ui.Notifications = class Notifications {
 	// outside-click, focus-out and repositioning all come from the component.)
 	setup_dropdown_events() {
 		const dropdown = this.dropdown;
-		const full_height = this.full_height;
 
 		// not a real Bootstrap dropdown -- sidebar.js and workspace_dock.js trigger
 		// this event by hand when they un-hide the drawer, and it is the open signal
@@ -207,9 +205,7 @@ frappe.ui.Notifications = class Notifications {
 				$(e.target).closest(".sidebar-notification").length > 0;
 			const isInsideDropdown = $(e.target).closest(".notifications-list").length > 0;
 			if (!isInsideNotificationBtn && !isInsideDropdown) {
-				if (full_height) {
-					dropdown.addClass("hidden");
-				}
+				dropdown.addClass("hidden");
 			}
 		});
 	}
