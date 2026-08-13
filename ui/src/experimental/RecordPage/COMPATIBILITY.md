@@ -131,10 +131,3 @@ are declining to invent.
   Nothing rewrites it for you.
 - **None of this is a security boundary.** Error isolation is not sandboxing, and
   anything a script hides is hidden from the eye, not from the server.
-
-## Not yet built
-
-Three mechanisms this policy describes do not exist yet — curated forwarding on
-`page.dialog.confirm`/`danger`, the tombstone registry with its Error Log and toast
-path, and the narrowed unknown-member warning. They are specified in wayfinder ticket
-20 and built by ticket 34; this section goes away when 34 lands.

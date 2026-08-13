@@ -7,6 +7,7 @@ import type { Router } from "vue-router";
 import { call, toast } from "frappe-ui";
 import { withRunningSource } from "./context";
 import { createPageDialogs, type PageDialogEntry } from "./dialog";
+import { withRemovals } from "./pageCompatibility";
 import { createPagePermissions } from "./pagePermissions";
 import { registrationsFor } from "./registry";
 import { reportCustomizationError } from "./reportError";
@@ -78,7 +79,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   const dialogs = createPageDialogs({ isReplaying: () => replaying > 0 });
   const permissions = createPagePermissions(host);
 
-  const page: RecordPageApi = {
+  const capabilities: RecordPageApi = {
     doctype: host.doctype,
     docname: host.docname,
     get doc() {
@@ -112,6 +113,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     call: (method, params) => call(method, params),
     router: host.router,
   };
+
+  // Nothing has been removed yet, so this hands the same object straight back:
+  // the guard, and its cost on every member read in every handler, exists only
+  // once the removals list has something to say (ticket 20 §4).
+  const page = withRemovals(capabilities);
 
   async function refresh() {
     await Promise.all([host.sourcesReady?.(), permissions.ready()]);

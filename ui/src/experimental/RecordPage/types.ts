@@ -164,6 +164,50 @@ export interface PageDialogOpenOptions {
 }
 
 /**
+ * What a `confirm`/`danger` callback receives: the engine's own object, not
+ * frappe-ui's `DialogControl`. A rename underneath must not change what a stored
+ * script does on an upgrade nobody reviewed.
+ */
+export interface PageDialogControl {
+  /** Closes the dialog; the verb's promise settles from the verb, as ever. */
+  close(): void;
+  /** Shows an inline error and re-enables the buttons; `null` clears it. */
+  setError(message: string | null): void;
+}
+
+/** One button on a `confirm`/`danger` — the five props `page` forwards. */
+export interface PageDialogConfirmAction {
+  label: string;
+  variant?: string;
+  theme?: string;
+  icon?: string;
+  /** Omitted means the button only dismisses, and the verb resolves `null`. */
+  onClick?: (control: PageDialogControl) => any;
+}
+
+/** `confirm`'s options; a key not named here is dropped, not forwarded. */
+export interface PageDialogConfirmOptions {
+  title?: string;
+  message?: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  theme?: string;
+  icon?: string;
+  size?: string;
+  dismissible?: boolean;
+  onConfirm?: (control: PageDialogControl) => any;
+  onCancel?: () => any;
+  /** Custom buttons; when given, the confirm/cancel pair is not rendered. */
+  actions?: PageDialogConfirmAction[];
+}
+
+/** `danger` forces red and its own icon, so it names neither. */
+export type PageDialogDangerOptions = Omit<
+  PageDialogConfirmOptions,
+  "theme" | "icon"
+>;
+
+/**
  * The dialog capability. Every verb resolves `null` when the reader dismissed
  * the dialog — by Esc, the backdrop, the close button, or by navigating off the
  * record — so `if (!result) return` is the idiom. Un-awaited promises are
@@ -179,9 +223,9 @@ export interface PageDialog {
   /** The declarative tier: resolves `{fieldname: value}` on submit. */
   form(options: PageDialogFormOptions): Promise<Record<string, any> | null>;
   /** Resolves `true` when confirmed. */
-  confirm(args: Record<string, any>): Promise<true | null>;
+  confirm(options: PageDialogConfirmOptions): Promise<true | null>;
   /** `confirm` in red, labelled Delete by default. */
-  danger(args: Record<string, any>): Promise<true | null>;
+  danger(options: PageDialogDangerOptions): Promise<true | null>;
 }
 
 /** The curated object every handler mutates — a script's whole capability surface. */

@@ -195,10 +195,8 @@ describe("page.dialog.confirm and danger", () => {
     expect(await cancelled).toBeNull();
   });
 
-  it("routes danger through frappe-ui's danger, keeping its schema", async () => {
-    dangerSpy.mockImplementation(() => {
-      close: vi.fn();
-    });
+  it("routes danger through frappe-ui's danger, forwarding the keys it names", async () => {
+    dangerSpy.mockImplementation(() => ({ close: vi.fn() }));
     const { page } = createRecordPage(makeHost());
     page.dialog.danger({ title: "Delete?", message: "Gone for good" });
 
@@ -206,6 +204,69 @@ describe("page.dialog.confirm and danger", () => {
       title: "Delete?",
       message: "Gone for good",
     });
+  });
+
+  it("drops an option frappe-ui's schema does not name, saying which", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    confirmSpy.mockImplementation(() => ({ close: vi.fn() }));
+    const { page } = createRecordPage(makeHost());
+    page.dialog.confirm({ title: "Sure?", position: "top" } as any);
+
+    expect(confirmSpy.mock.calls[0][0]).not.toHaveProperty("position");
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("with 'position', which it does not forward"),
+    );
+    warn.mockRestore();
+  });
+
+  it("drops theme and icon on danger, which frappe-ui forces for itself", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    dangerSpy.mockImplementation(() => ({ close: vi.fn() }));
+    const { page } = createRecordPage(makeHost());
+    page.dialog.danger({ theme: "blue", icon: "lucide-flag" } as any);
+
+    expect(dangerSpy.mock.calls[0][0]).not.toHaveProperty("theme");
+    expect(dangerSpy.mock.calls[0][0]).not.toHaveProperty("icon");
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("with 'theme'"));
+    warn.mockRestore();
+  });
+
+  it("narrows an action to the props page names, not the whole Button surface", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    confirmSpy.mockImplementation(() => ({ close: vi.fn() }));
+    const { page } = createRecordPage(makeHost());
+    page.dialog.confirm({
+      actions: [{ label: "Flag", variant: "solid", size: "sm" }],
+    } as any);
+
+    const action = confirmSpy.mock.calls[0][0].actions[0];
+    expect(action).toMatchObject({ label: "Flag", variant: "solid" });
+    expect(action).not.toHaveProperty("size");
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("with 'size' on action 'Flag'"),
+    );
+    warn.mockRestore();
+  });
+
+  it("hands a callback the engine's own object, not frappe-ui's control", async () => {
+    confirmSpy.mockImplementation(() => ({ close: vi.fn() }));
+    const close = vi.fn();
+    const setError = vi.fn();
+    const seen: any[] = [];
+    const { page } = createRecordPage(makeHost());
+    page.dialog.confirm({ onConfirm: (control) => seen.push(control) });
+
+    await confirmSpy.mock.calls[0][0].onConfirm({
+      close,
+      setError,
+      internal: "frappe-ui's own",
+    });
+
+    expect(Object.keys(seen[0])).toEqual(["close", "setError"]);
+    seen[0].close();
+    seen[0].setError("nope");
+    expect(close).toHaveBeenCalled();
+    expect(setError).toHaveBeenCalledWith("nope");
   });
 
   it("resolves null for a custom action that only dismisses", async () => {

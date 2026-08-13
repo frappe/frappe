@@ -7,11 +7,16 @@
 //   - the page owns the stack, so navigating off the record cannot strand an
 //     awaiting script behind a dialog the reader can no longer see
 //   - opens are tagged with the running source, so a stuck dialog has a name
+//   - nothing an author writes is forwarded to frappe-ui unnamed, so an option
+//     whose meaning frappe-ui changes cannot change what a stored script does
 import { shallowRef, type Component, type Ref } from "vue";
 import { dialog as frappeDialog } from "frappe-ui";
 import { runningSource } from "./context";
 import type {
   PageDialog,
+  PageDialogConfirmAction,
+  PageDialogConfirmOptions,
+  PageDialogControl,
   PageDialogFormOptions,
   PageDialogOpenOptions,
 } from "./types";
@@ -62,6 +67,33 @@ export interface PageDialogs {
   closeAll: () => void;
 }
 
+// frappe-ui's `ConfirmArgs`, named key by key: `page` forwards an option it names
+// and drops one it does not (COMPATIBILITY.md, ticket 20 §2).
+const CONFIRM_OPTIONS = [
+  "title",
+  "message",
+  "confirmLabel",
+  "cancelLabel",
+  "theme",
+  "icon",
+  "size",
+  "dismissible",
+  "onConfirm",
+  "onCancel",
+  "actions",
+];
+
+// `DangerArgs` is `Omit<ConfirmArgs, 'theme' | 'icon'>` — frappe-ui forces red and
+// its own icon — so passing either here is the mistake the warning exists for.
+const DANGER_OPTIONS = CONFIRM_OPTIONS.filter(
+  (option) => option !== "theme" && option !== "icon",
+);
+
+// frappe-ui's `DialogAction` is `Omit<ButtonProps, 'onClick' | 'loading'>`: a whole
+// component's prop surface, moving on frappe-ui's cadence. These five are the ones
+// `page` means by an action.
+const ACTION_OPTIONS = ["label", "variant", "theme", "icon", "onClick"];
+
 let nextId = 0;
 
 export function createPageDialogs(host: PageDialogHost): PageDialogs {
@@ -98,6 +130,25 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
       verb,
       "during a replay — it will re-open on every refresh. Dialogs belong in `run` and event handlers, not `refresh`.",
     );
+  }
+
+  /** Keeps the named keys and drops the rest, saying which it dropped. */
+  function pick(
+    verb: string,
+    from: Record<string, any>,
+    named: string[],
+    where = "",
+  ) {
+    const kept: Record<string, any> = {};
+    for (const [key, value] of Object.entries(from)) {
+      if (named.includes(key)) kept[key] = value;
+      else
+        warn(
+          verb,
+          `with '${key}'${where}, which it does not forward — dropped. See COMPATIBILITY.md.`,
+        );
+    }
+    return kept;
   }
 
   function mount(
@@ -143,15 +194,20 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
     });
   }
 
-  // `confirm`/`danger` keep frappe-ui's own schema — it is the same object an
-  // author would pass to `dialog.confirm` — and only gain the promise, the page
-  // binding, and the replay warning.
+  // `confirm`/`danger` are curated three layers deep — the options, the nested
+  // actions, and the object each callback receives — so that no part of what an
+  // author writes reaches frappe-ui, or comes back from it, unnamed by `page`.
   function native(
     verb: "confirm" | "danger",
-    args: Record<string, any>,
+    args: PageDialogConfirmOptions,
   ): Promise<true | null> {
     if (detached) return refused(verb) as Promise<null>;
     warnOnReplay(verb);
+    const options = pick(
+      verb,
+      args,
+      verb === "danger" ? DANGER_OPTIONS : CONFIRM_OPTIONS,
+    );
     return new Promise((resolve) => {
       let handle: { close: () => void } | null = null;
       let settled = false;
@@ -168,26 +224,26 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
         settle(null);
       });
       handle = frappeDialog[verb]({
-        ...args,
-        actions: args.actions?.map((action: Record<string, any>) => ({
-          ...action,
-          onClick: async (context: any) => {
+        ...options,
+        actions: args.actions?.map((action: PageDialogConfirmAction) => ({
+          ...pick(verb, action, ACTION_OPTIONS, ` on action '${action.label}'`),
+          onClick: async (control: any) => {
             // An action with no `onClick` is frappe-ui's plain dismiss button;
             // answering `true` for it would read as a confirmation.
             if (!action.onClick) return settle(null);
-            await action.onClick(context);
+            await action.onClick(controlFor(control));
             settle(true);
           },
         })),
-        onConfirm: async (context: any) => {
-          await args.onConfirm?.(context);
+        onConfirm: async (control: any) => {
+          await args.onConfirm?.(controlFor(control));
           settle(true);
         },
         onCancel: () => {
           args.onCancel?.();
           settle(null);
         },
-      });
+      } as any);
     });
   }
 
@@ -206,5 +262,15 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
       detached = true;
       for (const dismiss of [...openDialogs].reverse()) dismiss();
     },
+  };
+}
+
+// The engine's own object rather than frappe-ui's `DialogControl` — the subtlest
+// of the three layers, and the one that matters most to a stored script: a rename
+// under us must not change what the script does on an upgrade nobody reviewed.
+function controlFor(control: any): PageDialogControl {
+  return {
+    close: () => control?.close?.(),
+    setError: (message) => control?.setError?.(message),
   };
 }

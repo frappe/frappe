@@ -36,6 +36,12 @@
 				Anything a script hides is hidden from the eye, not from the server. A user who
 				can't see the button can still make the call.
 			</dd>
+			<dt class="text-ink-gray-5">Compatibility</dt>
+			<dd class="text-ink-gray-7">
+				What <code>page</code> intends to keep, and what it explicitly does not
+				promise, is written in <code>@framework/ui</code>'s
+				<code>src/experimental/RecordPage/COMPATIBILITY.md</code>.
+			</dd>
 			<dt class="text-ink-gray-5">Errors</dt>
 			<dd class="text-ink-gray-7">
 				What a script puts in an error message may be stored in this site's Error Log.

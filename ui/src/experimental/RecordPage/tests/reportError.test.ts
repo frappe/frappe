@@ -131,4 +131,20 @@ describe("the customization error reporter", () => {
     expect(payload().tier).toBe("page_script");
     expect(payload().doctype).toBe("CRM Deal");
   });
+
+  it("files one error once, at whichever site knew most about it", () => {
+    // A tombstone hit reports itself, then throws into the handler catch, which
+    // would otherwise file the same failure again under a duller name.
+    const error = new Error("page.dialog.prompt was removed in 0.3.0");
+    reportCustomizationError(error, {
+      source: "page-script:A",
+      event: "removed:dialog.prompt",
+    });
+    reportCustomizationError(error, {
+      source: "page-script:A",
+      event: "refresh",
+    });
+
+    expect(call).toHaveBeenCalledTimes(1);
+  });
 });

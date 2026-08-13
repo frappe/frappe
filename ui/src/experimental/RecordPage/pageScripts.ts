@@ -19,6 +19,9 @@ const TIER_SOURCE = "page-scripts";
 const tiers = new Map<string, Promise<void>>();
 const sources = new Map<string, string[]>();
 const toasted = new Set<string>();
+// 08 §6's toast as a shared channel: the compatibility layer reports a
+// removal hit through it, keyed by source and removed name.
+const notified = new Set<string>();
 // Two saves in quick succession overlap: the later build must win, and the
 // earlier one must not register its now-stale scripts behind it.
 const builds = new Map<string, number>();
@@ -28,6 +31,17 @@ const builds = new Map<string, number>();
 const writable = ref(false);
 
 export const canWritePageScripts = readonly(writable);
+
+/**
+ * Tells a script author, and only a script author, about a customization failure
+ * — once per key per page session. A reader who cannot edit Page Scripts is being
+ * told about somebody else's bug, so they are not told at all.
+ */
+export function toastScriptError(key: string, message: string) {
+  if (!writable.value || notified.has(key)) return;
+  notified.add(key);
+  toast.error(message);
+}
 
 /** Resolves when the doctype's tier has registered; one fetch per doctype. */
 export function loadPageScripts(doctype: string): Promise<void> {
@@ -47,6 +61,7 @@ export function resetPageScripts() {
   tiers.clear();
   builds.clear();
   toasted.clear();
+  notified.clear();
   resetCustomizationErrorReports();
   writable.value = false;
 }

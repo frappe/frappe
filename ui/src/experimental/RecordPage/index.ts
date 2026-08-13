@@ -21,6 +21,12 @@ export type { RecordPageController, RecordPageHost } from "./createRecordPage";
 export { default as PageDialogs } from "./PageDialogs.vue";
 export { createPageDialogs } from "./dialog";
 export type { PageDialogEntry, PageDialogHost } from "./dialog";
+export {
+  withRemovals,
+  resetRemovalNotices,
+  REMOVALS,
+} from "./pageCompatibility";
+export type { Removal } from "./pageCompatibility";
 export { createPagePermissions } from "./pagePermissions";
 export type { PagePermissions, PagePermissionsHost } from "./pagePermissions";
 export { Surface, BUILTIN } from "./surface";
@@ -35,6 +41,10 @@ export type {
   PageDialogAction,
   PageDialogActionContext,
   PageDialogColumn,
+  PageDialogConfirmAction,
+  PageDialogConfirmOptions,
+  PageDialogControl,
+  PageDialogDangerOptions,
   PageDialogField,
   PageDialogFormOptions,
   PageDialogOpenOptions,
