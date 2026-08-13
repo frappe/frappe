@@ -38,9 +38,9 @@
 		     primary action takes the footer slot Save occupies later, so the
 		     action never moves when the column arrives beside it. -->
 		<div v-else-if="!scripts.length" class="flex min-h-0 flex-1 flex-col">
-			<div class="flex min-h-0 flex-1 flex-col p-4">
+			<div class="code-fill flex min-h-0 flex-1 flex-col p-4">
 				<CodeEditor
-					class="page-script-code min-h-0 flex-1"
+					class="min-h-0 flex-1"
 					:modelValue="EXAMPLE_SCRIPT"
 					language="javascript"
 					disabled
@@ -80,10 +80,10 @@
 			<!-- The editor is the reason the dialog exists, so it takes every pixel
 			     the header, rail and footer leave. -->
 			<div class="relative flex min-w-0 flex-1 flex-col">
-				<div class="flex min-h-0 flex-1 flex-col p-4">
+				<div class="code-fill flex min-h-0 flex-1 flex-col p-4">
 					<CodeEditor
 						v-model="draft"
-						class="page-script-code min-h-0 flex-1"
+						class="min-h-0 flex-1"
 						language="javascript"
 						:style="{ '--cm-max-height': '100%' }"
 						placeholder="export default { refresh(page) {} }"
@@ -232,11 +232,13 @@ function confirmRemove(row: PageScriptDoc) {
 </script>
 
 <style scoped>
-/* CodeEditor publishes only `--cm-max-height`, which caps rather than stretches;
-   filling a flex column needs an explicit height on its root and on the
-   CodeMirror root inside it. */
-.page-script-code,
-.page-script-code :deep(.cm-editor) {
+/* CodeEditor publishes only `--cm-max-height`, which caps rather than stretches,
+   so the CodeMirror root inside it needs a height of its own to fill the column.
+   The selector hangs off this template's own wrapper, not off a class handed to
+   CodeEditor: its root renders through `LabelingWrapper`, whose fragment root
+   never receives this component's scope id, so a scoped rule written against a
+   class passed to CodeEditor silently matches nothing. */
+.code-fill :deep(.cm-editor) {
 	height: 100%;
 }
 </style>
