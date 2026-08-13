@@ -3,6 +3,11 @@
 // tabs render into panel bodies: the shared list panel, the global-search field
 // grid, the print-format card grid, and the shared empty state.
 
+.dts-user-permissions-list.embedded-list .embedded-list-header {
+	justify-content: flex-start;
+	gap: 0;
+}
+
 // ── Global Search tab: inclusion toggle + searchable-field checkbox grid ──
 // The inclusion row is a plain flex container (layout via utilities); only the switch
 // itself is a `.switch-control` label, so clicking the row's empty space does nothing.

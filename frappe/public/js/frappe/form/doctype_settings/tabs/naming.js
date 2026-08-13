@@ -31,6 +31,7 @@ function make_section($parent, { title, description, add_label, on_add }, list_o
 
 	const list = new frappe.ui.EmbeddedList({
 		wrapper: $("<div></div>").appendTo($body),
+		show_search: false,
 		...list_opts,
 	});
 	list.refresh();
