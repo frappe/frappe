@@ -300,7 +300,7 @@ def search_widget(
 		# Sorting the values array so that relevant results always come first
 		# This will first bring elements on top in which query is a prefix of element
 		# Then it will bring the rest of the elements and sort them in lexicographical order
-		values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
+		values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))[:page_length]
 
 		# remove _relevance from results
 		if not meta.translated_doctype:
