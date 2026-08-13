@@ -2353,6 +2353,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return;
 			}
 
+			// When name is not provided (e.g., after bulk import), do a full list refresh
+			// instead of trying to fetch a specific document.
+			if (!data.name) {
+				this.refresh();
+				return;
+			}
+
 			this.pending_document_refreshes.push(data);
 			this.debounced_refresh();
 		});

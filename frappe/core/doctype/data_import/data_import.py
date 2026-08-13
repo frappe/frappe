@@ -340,6 +340,16 @@ def start_import(data_import):
 			docname=data_import.name,
 		)
 
+		# Notify the reference doctype list view to refresh — realtime `list_update` events
+		# are suppressed during import (frappe.flags.in_import) to avoid flooding, so we
+		# publish a single event after import completes to refresh the list.
+		if data_import.reference_doctype and data_import.status in ("Success", "Partial Success"):
+			frappe.publish_realtime(
+				"list_update",
+				{"doctype": data_import.reference_doctype, "name": None, "user": frappe.session.user},
+				after_commit=True,
+			)
+
 
 @frappe.whitelist()
 def get_import_fields(doctype: str):
