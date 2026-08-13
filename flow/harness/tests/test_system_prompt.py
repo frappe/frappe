@@ -172,3 +172,35 @@ def test_server_reports_composed_prompt(tmp_path, monkeypatch):
 	assert "global rules" in prompt
 	got = c.get(f"/sessions/{created['session_id']}").json()
 	assert got["config"]["system_prompt"] == prompt
+
+
+def test_append_lands_after_the_cwd_trailer(tmp_path):
+	home = _home(tmp_path)
+	config = SessionConfig(cwd=str(tmp_path), system_append="stay terse")
+	prompt = build_system_prompt(config, home=str(home))
+	assert prompt.startswith(DEFAULT_INTRO)
+	assert prompt.endswith("stay terse")
+	assert prompt.index(f"Current working directory: {tmp_path}") < prompt.index("stay terse")
+
+
+def test_append_applies_to_a_verbatim_prompt(tmp_path):
+	home = _home(tmp_path)
+	config = SessionConfig(cwd=str(tmp_path), system_prompt="exact prompt", system_append="stay terse")
+	assert build_system_prompt(config, home=str(home)) == "exact prompt\n\nstay terse"
+
+
+def test_blank_append_changes_nothing(tmp_path):
+	home = _home(tmp_path)
+	base = build_system_prompt(SessionConfig(cwd=str(tmp_path)), home=str(home))
+	config = SessionConfig(cwd=str(tmp_path), system_append="  \n")
+	assert build_system_prompt(config, home=str(home)) == base
+
+
+def test_server_append_option_joins_the_client_append(tmp_path, monkeypatch):
+	monkeypatch.setenv("HOME", str(_home(tmp_path)))
+	c = TestClient(create_app(SessionStore(str(tmp_path / "data")), system_append="operator rules"))
+	created = c.post(
+		"/sessions", json={"model": "mock", "cwd": str(tmp_path), "system_append": "client rules"}
+	).json()
+	prompt = created["config"]["system_prompt"]
+	assert prompt.endswith("client rules\n\noperator rules")

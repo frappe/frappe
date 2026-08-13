@@ -322,6 +322,7 @@ def run_app(
 	token: str | None = None,
 	model: str = "mock",
 	session_id: str | None = None,
+	append_system_prompt: str | None = None,
 	fatal_check: Callable[[], str | None] | None = None,
 ) -> str | None:
 	"""Run the TUI against the daemon at `url`, or over the unix socket at `uds`;
@@ -330,7 +331,8 @@ def run_app(
 	With `session_id` the TUI attaches to that session and replays its history
 	(`flow -c`, `flow attach --session`); otherwise it creates a fresh one. The
 	server composes the system prompt (preamble + AGENTS.md); the TUI only adds its
-	client suffix. `auto_approve=True` is the permanent default for TUI sessions;
+	client suffix and the user's `append_system_prompt`, which lands at the very end.
+	`auto_approve=True` is the permanent default for TUI sessions;
 	a `--confirm` flag lands with the approvals UI (phase 12).
 	"""
 	if (url is None) == (uds is None):
@@ -340,6 +342,7 @@ def run_app(
 		cwd=os.getcwd(),
 		auto_approve=True,
 		system_suffix=TUI_SYSTEM_SUFFIX,
+		system_append=append_system_prompt,
 	)
 	client = FlowClient(url or UDS_URL, token=token, uds=uds)
 	controller = Controller(client, session_id=session_id, config=config)

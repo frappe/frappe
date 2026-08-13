@@ -39,9 +39,10 @@ def build_system_prompt(
 	skills: Sequence[Skill] = (),
 ) -> str:
 	"""Resolve the session's system prompt. A verbatim `system_prompt` wins outright;
-	otherwise compose body -> suffix -> <project_context> -> cwd trailer."""
+	otherwise compose body -> suffix -> <project_context> -> cwd trailer. `system_append`
+	lands last either way."""
 	if config.system_prompt is not None:
-		return config.system_prompt
+		return _appended(config.system_prompt, config.system_append)
 	home = os.path.realpath(home if home is not None else os.path.expanduser("~"))
 	sections: list[str] = []
 	body = config.system_preamble if config.system_preamble is not None else _default_body(config)
@@ -56,7 +57,15 @@ def build_system_prompt(
 		if skill_index:
 			sections.append(skill_index)
 	sections.append(f"Current working directory: {config.cwd.replace(os.sep, '/')}")
+	if config.system_append is not None:
+		sections.append(config.system_append)
 	return "\n\n".join(section.strip() for section in sections if section.strip())
+
+
+def _appended(prompt: str, append: str | None) -> str:
+	if not append or not append.strip():
+		return prompt
+	return f"{prompt.strip()}\n\n{append.strip()}" if prompt.strip() else append.strip()
 
 
 def _default_body(config: SessionConfig) -> str:

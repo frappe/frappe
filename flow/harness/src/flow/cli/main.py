@@ -29,6 +29,11 @@ def main() -> None:
 		action="store_true",
 		help="continue the most recent session for this directory",
 	)
+	p_tui.add_argument(
+		"--append-system-prompt",
+		metavar="TEXT",
+		help="append TEXT to the end of the system prompt of new sessions",
+	)
 
 	p_serve = sub.add_parser("serve", help="run the daemon")
 	p_serve.add_argument("--host", default=config.HOST)
@@ -50,6 +55,11 @@ def main() -> None:
 	p_web.add_argument("--port", type=int, default=config.PORT)
 	p_web.add_argument("--data-dir", default=config.DATA_DIR)
 	p_web.add_argument("--no-browser", action="store_true", help="don't open a browser tab")
+	p_web.add_argument(
+		"--append-system-prompt",
+		metavar="TEXT",
+		help="append TEXT to the end of the system prompt of every session the UI creates",
+	)
 
 	p_attach = sub.add_parser("attach", help="attach a TUI to a running daemon; starts nothing")
 	p_attach.add_argument(
@@ -58,6 +68,11 @@ def main() -> None:
 		help="daemon base URL (default: the configured host and port)",
 	)
 	p_attach.add_argument("--session", help="attach to this session id instead of creating a new one")
+	p_attach.add_argument(
+		"--append-system-prompt",
+		metavar="TEXT",
+		help="append TEXT to the end of the system prompt of new sessions",
+	)
 
 	p_login = sub.add_parser("login", help="save an API key or sign in with OAuth")
 	p_login.add_argument("provider", nargs="?")
@@ -118,6 +133,7 @@ def _tui(args) -> None:
 			token=daemon.token,
 			model=settings.resolve_startup_model(),
 			session_id=session_id,
+			append_system_prompt=args.append_system_prompt,
 			fatal_check=lambda: _daemon_death_notice(daemon),
 		)
 	finally:
@@ -223,6 +239,7 @@ def _web(args) -> None:
 		SessionStore(args.data_dir, event_sink=sink),
 		auth_token=config.AUTH_TOKEN,
 		webui_dir=webui,
+		system_append=args.append_system_prompt,
 	)
 	# 0.0.0.0 binds every interface but isn't itself browsable
 	browse_host = "127.0.0.1" if args.host in ("0.0.0.0", "::") else args.host
@@ -279,6 +296,7 @@ def _attach(args) -> None:
 		token=config.AUTH_TOKEN,
 		model=settings.resolve_startup_model(),
 		session_id=args.session,
+		append_system_prompt=args.append_system_prompt,
 	)
 
 
