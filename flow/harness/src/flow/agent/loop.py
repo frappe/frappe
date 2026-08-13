@@ -61,7 +61,7 @@ from flow.model.credentials import CredentialStore
 from flow.model.reasoning import reasoning_params
 from flow.session.config import SessionConfig
 from flow.session.transcript import PendingApproval
-from flow.tools import BUILTIN_TOOLS, Tool, ToolContext
+from flow.tools import Tool, ToolContext
 
 
 @dataclass
@@ -107,6 +107,7 @@ class LoopInputs:
 	before_tool_call: BeforeHook | None = None
 	after_tool_call: AfterHook | None = None
 	resolve_attachment: Callable[[str], bytes] | None = None
+	server_tools: dict[str, Tool] | None = None
 
 
 _DENIED = json.dumps({"status": "denied", "message": "User denied this tool call."})
@@ -162,7 +163,7 @@ async def resume(
 	Each answer maps a tool_call_id to a decision: "Approve" runs the tool, "Deny"
 	halts the run, any other text redirects the model.
 	"""
-	tools = _server_tools(inputs.config)
+	tools = inputs.server_tools or {}
 	ctx = _tool_context(inputs)
 	denied = False
 	for pending in approval.calls:
@@ -192,7 +193,7 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	model = inputs.model or await _authenticated_model(inputs)
 	if config.auto_compact:
 		await model.load_model_limits(abort)
-	tools = _server_tools(config)
+	tools = inputs.server_tools or {}
 	schemas = [tool.to_schema() for tool in tools.values()] + config.client_tools
 	ctx = _tool_context(inputs)
 
@@ -531,10 +532,6 @@ async def _authenticated_model(inputs: LoopInputs) -> Model:
 		params=reasoning_params(inputs.model_name, inputs.reasoning_effort),
 		refresh_auth=auth.refresh,
 	)
-
-
-def _server_tools(config: SessionConfig) -> dict[str, Tool]:
-	return {name: BUILTIN_TOOLS[name] for name in config.tools if name in BUILTIN_TOOLS}
 
 
 def _tool_context(inputs: LoopInputs) -> ToolContext:

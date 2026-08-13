@@ -12,9 +12,11 @@ import re
 import uuid
 from collections.abc import Iterator
 from dataclasses import dataclass
+from pathlib import Path
 from tempfile import mkstemp
 
 from flow import config as server_config
+from flow.extensions import ExtensionRuntime
 from flow.model.credentials import CredentialStore
 from flow.path_policy import canonical_path, is_path_allowed, normalize_roots
 from flow.session.attachments import AttachmentStore
@@ -23,6 +25,8 @@ from flow.session.log import SessionLog
 from flow.session.prompt import build_system_prompt
 from flow.session.session import Session, SessionConflict
 from flow.session.skills import SkillCatalog, discover_skills, parse_skill_invocation
+from flow.tools import Tool
+from flow.tools.builtins import BUILTIN_TOOLS
 
 # client-provided session ids land in on-disk filenames — keep them to a safe slug so a
 # value like "../../etc/x" can't escape the sessions dir (arbitrary file write)
@@ -63,6 +67,8 @@ class SessionStore:
 		event_sink=None,
 		allowed_roots: builtins.list[str] | None = None,
 		credential_store: CredentialStore | None = None,
+		extension_paths: builtins.list[str] | None = None,
+		extensions_enabled: bool = False,
 	):
 		self.data_dir = data_dir
 		self.sessions_dir = os.path.join(data_dir, "sessions")
@@ -72,6 +78,12 @@ class SessionStore:
 		configured_roots = allowed_roots if allowed_roots is not None else server_config.ALLOWED_ROOTS
 		self.allowed_roots = normalize_roots(configured_roots)
 		self.credentials = credential_store or CredentialStore(server_config.CREDENTIALS_PATH)
+		self.extension_runtime = ExtensionRuntime()
+		self.extension_runtime.load(
+			global_dir=Path(server_config.EXTENSIONS_PATH),
+			extra_paths=tuple(Path(path) for path in (extension_paths or ())),
+			include_global_dir=extensions_enabled,
+		)
 		self._cache: dict[str, Session] = {}
 
 	def create(self, config: SessionConfig) -> Session:
@@ -102,11 +114,22 @@ class SessionStore:
 			allowed_roots=self.allowed_roots,
 		)
 
+	def _compose_tools(self, config: SessionConfig) -> dict[str, Tool]:
+		selected = {name: BUILTIN_TOOLS[name] for name in config.tools if name in BUILTIN_TOOLS}
+		return self.extension_runtime.compose_tools(selected)
+
 	def _create_with_skills_catalog(self, config: SessionConfig, skill_catalog: SkillCatalog) -> Session:
 		# Catalog metadata and the composed prompt are immutable for this session.
 		# Skill files themselves remain live and are read when used, matching Pi.
+		server_tools = self._compose_tools(config)
 		config = config.model_copy(
-			update={"system_prompt": build_system_prompt(config, skills=skill_catalog.skills)}
+			update={
+				"system_prompt": build_system_prompt(
+					config,
+					skills=skill_catalog.skills,
+					tools=tuple(server_tools.values()),
+				)
+			}
 		)
 		sid = config.session_id or uuid.uuid4().hex[:16]
 		if not _SID_RE.match(sid):
@@ -115,7 +138,7 @@ class SessionStore:
 			raise ValueError(f"session_id {sid!r} already exists")
 		paths = self._project_paths(sid, config.cwd)
 		_make_private_dir(paths.directory)
-		session = self._build(sid, config, paths, skill_catalog=skill_catalog)
+		session = self._build(sid, config, paths, skill_catalog=skill_catalog, server_tools=server_tools)
 		self._save_catalog(paths, skill_catalog)
 		self.save_meta(session)
 		self._cache[sid] = session
@@ -131,7 +154,13 @@ class SessionStore:
 			config = SessionConfig.model_validate(json.load(f))
 		self._validate_cwd(config.cwd)
 		self._validate_skill_paths(config)
-		session = self._build(sid, config, paths, skill_catalog=self._load_catalog(paths))
+		session = self._build(
+			sid,
+			config,
+			paths,
+			skill_catalog=self._load_catalog(paths),
+			server_tools=self._compose_tools(config),
+		)
 		self._cache[sid] = session
 		return session
 
@@ -258,6 +287,7 @@ class SessionStore:
 		paths: _SessionPaths,
 		*,
 		skill_catalog: SkillCatalog,
+		server_tools: dict[str, Tool],
 	) -> Session:
 		return Session(
 			sid,
@@ -268,6 +298,7 @@ class SessionStore:
 			allowed_roots=self.allowed_roots,
 			attachment_store=AttachmentStore(paths.attachments),
 			skill_catalog=skill_catalog,
+			server_tools=server_tools,
 		)
 
 	def _save_catalog(self, paths: _SessionPaths, skill_catalog: SkillCatalog) -> None:

@@ -5,7 +5,6 @@ import asyncio
 
 import pytest
 
-import flow.agent.loop as agent_loop
 from flow.agent.loop import HookDecision
 from flow.events import AssistantMessage, ToolCall, Usage
 from flow.model import Model, ModelRequest, ProviderError, run_with_retries
@@ -14,7 +13,7 @@ from flow.model.mock import MockModel
 from flow.session.config import SessionConfig
 from flow.session.session import ResumeError, SessionConflict
 from flow.session.store import SessionStore
-from flow.tools import tool
+from flow.tools import BUILTIN_TOOLS, tool
 from flow.tools.tool import ToolResult as RuntimeToolResult
 
 
@@ -599,8 +598,8 @@ async def test_abort_between_tool_calls_prevents_later_tool_from_starting(tmp_pa
 		started.append("second")
 		return RuntimeToolResult(content="second finished")
 
-	monkeypatch.setitem(agent_loop.BUILTIN_TOOLS, "first", first)
-	monkeypatch.setitem(agent_loop.BUILTIN_TOOLS, "second", second)
+	monkeypatch.setitem(BUILTIN_TOOLS, "first", first)
+	monkeypatch.setitem(BUILTIN_TOOLS, "second", second)
 	session, events = _session(tmp_path, tools=["first", "second"], auto_approve=True)
 	model = MockModel(
 		replies=[
@@ -981,7 +980,7 @@ async def test_model_retries_inside_the_adapter_never_rerun_completed_tools(tmp_
 				yield AssistantMessage(content="done")
 				yield Usage()
 
-	monkeypatch.setitem(agent_loop.BUILTIN_TOOLS, "count_once", count_once)
+	monkeypatch.setitem(BUILTIN_TOOLS, "count_once", count_once)
 	monkeypatch.setattr("flow.model.base._retry_delay_seconds", lambda error, retry_index: 0)
 	session, events = _session(tmp_path, tools=["count_once"], auto_approve=True)
 
