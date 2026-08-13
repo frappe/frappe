@@ -106,6 +106,15 @@ class ToDo(Document):
 			)
 			assignments.reverse()
 
+			# A single user can have more than one open ToDo against the same
+			# reference document (e.g. assigned again while a previous ToDo was
+			# still open). Without de-duplicating here, that user's name is
+			# written into `_assign` once per open ToDo, which then shows up as
+			# a repeated avatar/name in the Assigned To sidebar, List View, and
+			# Kanban board. dict.fromkeys() drops the repeats while keeping the
+			# existing most-recent-first ordering intact.
+			assignments = list(dict.fromkeys(assignments))
+
 			if frappe.get_meta(self.reference_type).issingle:
 				frappe.db.set_single_value(
 					self.reference_type,
