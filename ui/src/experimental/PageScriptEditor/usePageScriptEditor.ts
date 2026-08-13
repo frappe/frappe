@@ -8,9 +8,17 @@ import { errorMessage } from "../errorMessage";
 import { pageScriptApi } from "./pageScriptApi";
 import type { PageScriptDoc } from "./pageScriptApi";
 
-export function usePageScriptEditor(doctype: MaybeRefOrGetter<string>) {
+export function usePageScriptEditor(
+  doctype: MaybeRefOrGetter<string>,
+  /**
+   * The script a host addresses from outside — a URL, typically. Unknown and
+   * absent names both fall back here rather than at the host, which has no
+   * script list to check one against.
+   */
+  boundName?: MaybeRefOrGetter<string | undefined>,
+) {
   const scripts = ref<PageScriptDoc[]>([]);
-  const selectedName = ref<string | null>(null);
+  const selectedName = ref<string | null>(toValue(boundName) ?? null);
   // One buffer per script, kept across selection changes and reloads: an edit
   // is only ever dropped by saving it or by deleting the script it belongs to.
   const buffers = reactive(new Map<string, string>());
@@ -37,6 +45,17 @@ export function usePageScriptEditor(doctype: MaybeRefOrGetter<string>) {
 
   watch(() => toValue(doctype), load, { immediate: true });
 
+  watch(
+    () => toValue(boundName),
+    (name) => {
+      if (name === undefined || name === selectedName.value) return;
+      // A name that arrives mid-load is taken on trust: the list it would be
+      // checked against is the one still on its way, and `load` re-checks it.
+      selectedName.value =
+        loading.value || known(name) ? name : (lastName() ?? null);
+    },
+  );
+
   async function load() {
     const build = ++generation;
     loading.value = true;
@@ -61,6 +80,14 @@ export function usePageScriptEditor(doctype: MaybeRefOrGetter<string>) {
 
   function select(name: string | null) {
     selectedName.value = name;
+  }
+
+  function known(name: string) {
+    return scripts.value.some((row) => row.name === name);
+  }
+
+  function lastName() {
+    return scripts.value.at(-1)?.name ?? null;
   }
 
   /** Whether a row carries an unsaved edit — the list marks these. */

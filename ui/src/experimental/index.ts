@@ -8,3 +8,5 @@ export * from "./PageScriptEditor";
 export * from "./PanelLayout";
 export * from "./RecordPage";
 export * from "./SavedViews";
+export { useHashDialog } from "./useHashDialog";
+export type { UseHashDialog } from "./useHashDialog";

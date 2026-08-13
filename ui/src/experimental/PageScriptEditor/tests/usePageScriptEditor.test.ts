@@ -35,6 +35,58 @@ async function editorFor(doctype = ref("CRM Deal")) {
   return editor;
 }
 
+describe("the script a host addresses", () => {
+  beforeEach(() => {
+    list.mockReset();
+    list.mockResolvedValue(rows("oldest", "newest"));
+  });
+
+  it("opens the bound script rather than the last one", async () => {
+    const bound = ref<string | undefined>("oldest");
+    const editor = usePageScriptEditor(ref("CRM Deal"), bound);
+    await vi.waitFor(() => expect(editor.loading.value).toBe(false));
+
+    expect(editor.selectedName.value).toBe("oldest");
+  });
+
+  it("corrects a name no script answers to, so a deleted link still opens", async () => {
+    const bound = ref<string | undefined>("deleted");
+    const editor = usePageScriptEditor(ref("CRM Deal"), bound);
+    await vi.waitFor(() => expect(editor.loading.value).toBe(false));
+
+    expect(editor.selectedName.value).toBe("newest");
+  });
+
+  it("follows the bound name when the host changes it", async () => {
+    const bound = ref<string | undefined>("newest");
+    const editor = usePageScriptEditor(ref("CRM Deal"), bound);
+    await vi.waitFor(() => expect(editor.loading.value).toBe(false));
+
+    bound.value = "oldest";
+    await nextTick();
+
+    expect(editor.selectedName.value).toBe("oldest");
+  });
+
+  it("falls back when the host changes it to a name no script answers to", async () => {
+    const bound = ref<string | undefined>("oldest");
+    const editor = usePageScriptEditor(ref("CRM Deal"), bound);
+    await vi.waitFor(() => expect(editor.loading.value).toBe(false));
+
+    bound.value = "deleted";
+    await nextTick();
+
+    expect(editor.selectedName.value).toBe("newest");
+  });
+
+  it("leaves the selection alone when nothing is bound", async () => {
+    const editor = usePageScriptEditor(ref("CRM Deal"), ref(undefined));
+    await vi.waitFor(() => expect(editor.loading.value).toBe(false));
+
+    expect(editor.selectedName.value).toBe("newest");
+  });
+});
+
 describe("the Page Script editor", () => {
   beforeEach(() => {
     list.mockReset();

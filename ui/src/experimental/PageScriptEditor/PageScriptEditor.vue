@@ -140,7 +140,7 @@
 //
 // Zero, one and many scripts are three layouts rather than one (ticket 23): the
 // same layout lied about two of them.
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { Alert, Button, dialog, ErrorMessage, Skeleton, Tooltip } from "frappe-ui";
 import { CodeEditor } from "frappe-ui/code-editor";
 import NewPageScriptDialog from "./NewPageScriptDialog.vue";
@@ -164,6 +164,11 @@ const props = defineProps<{
 	onClose?: () => void;
 }>();
 
+/** The script a host addresses; it is written back whenever the pane corrects it. */
+const boundScript = defineModel<string | undefined>("script", {
+	default: undefined,
+});
+
 const {
 	scripts,
 	selected,
@@ -180,7 +185,12 @@ const {
 	save,
 	setEnabled,
 	remove,
-} = usePageScriptEditor(() => props.dt);
+} = usePageScriptEditor(
+	() => props.dt,
+	() => boundScript.value,
+);
+
+watch(selectedName, (name) => (boundScript.value = name ?? undefined));
 
 const naming = ref(false);
 const showReference = ref(false);

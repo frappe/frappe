@@ -12,7 +12,12 @@
 		<div
 			class="flex h-[92vh] w-full flex-col overflow-hidden rounded-xl bg-surface-elevation-1"
 		>
-			<PageScriptEditor :dt="dt" :replaysOn="replaysOn" :onClose="close" />
+			<PageScriptEditor
+				v-model:script="script"
+				:dt="dt"
+				:replaysOn="replaysOn"
+				:onClose="close"
+			/>
 		</div>
 	</Dialog>
 </template>
@@ -28,6 +33,9 @@ defineProps<{
 }>();
 
 const isOpen = defineModel<boolean>({ default: false });
+
+/** Passed through to the pane, which owns the fallback when it is stale. */
+const script = defineModel<string | undefined>("script", { default: undefined });
 
 function close() {
 	isOpen.value = false;
