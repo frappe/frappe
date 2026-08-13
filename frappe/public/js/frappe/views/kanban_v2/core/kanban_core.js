@@ -1148,20 +1148,13 @@ export class KanbanCore {
 		} catch (error) {
 			// update_order runs as one request, so a failed set_value rolls the whole
 			// transaction back (frappe/app.py -> db.rollback) and nothing persists.
-			// Resync from the server rather than restoring the optimistic snapshot:
-			// reload() reflects whatever the server actually committed, which stays
-			// correct even for a doctype that commits inside its own save hook.
-			try {
-				await this.reload();
-			} catch (reloadError) {
-				// Only restore snapshot if epoch unchanged (reload already increments epoch,
-				// so this guards against partial state from a failed reload).
-				if (this.boardEpoch === snapshotEpoch) {
-					this.state = snapshot;
-					this.renderColumns(affected);
-				}
-				this.bus.emit("error", reloadError);
-			}
+			// Restore snapshot first so the UI reverts immediately, then try to reload
+			// fresh data from the server. If reload succeeds, it will overwrite with
+			// the actual server state. If reload fails, we're at least back to pre-move.
+			this.state = snapshot;
+			this.renderColumns(affected);
+			// Try to fetch fresh state, but don't block on errors - we've already reverted
+			this.reload();
 			cb.onMoveError && cb.onMoveError(moveErrorArgs, error);
 			this.bus.emit("error", error);
 		}
