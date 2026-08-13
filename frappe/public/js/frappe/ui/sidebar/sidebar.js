@@ -1010,6 +1010,14 @@ frappe.ui.Sidebar = class Sidebar {
 		return this.resolve_initial_sidebar(route).sidebar;
 	}
 
+	// An entity resolves to a MODULE, and only to a module -- this is the one place it happens.
+	// Module space is total: every module has a sidebar, authored or generated, so the answer is
+	// always reachable. Workspace space is not, which is why the two resolvers that used to answer
+	// "which workspace does this doctype live in" (Meta.load_workspaces and the breadcrumb's
+	// set_workspace) both had a silent empty case, and why they were deleted rather than taught
+	// about ownership. A surface that needs a workspace asks the resolved module for one via
+	// module_landing_route(); it does not resolve the entity itself.
+	//
 	// Pick the sidebar to show on cold entry, returning the choice, why it was made, and whether
 	// the answer is provisional (see below).
 	// Precedence:
