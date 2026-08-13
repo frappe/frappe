@@ -68,10 +68,11 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 			list_view: this,
 		};
 		const calendar_name = this.calendar_name;
+		const calendar_settings = frappe.views.calendar[this.doctype];
 
 		return new Promise((resolve) => {
 			if (calendar_name === "default") {
-				Object.assign(options, frappe.views.calendar[this.doctype]);
+				Object.assign(options, calendar_settings);
 				resolve(options);
 			} else {
 				frappe.model.with_doc("Calendar View", calendar_name, () => {
@@ -84,6 +85,10 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 						);
 						frappe.set_route("List", this.doctype, "Calendar", "default");
 						return;
+					}
+					if (calendar_settings?.apply_to_custom_calendar_views) {
+						options.fields = calendar_settings.fields;
+						options.get_css_class = calendar_settings.get_css_class;
 					}
 					Object.assign(options, {
 						field_map: {
@@ -322,6 +327,18 @@ frappe.views.Calendar = class Calendar {
 			},
 			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
 			eventDisplay: "block",
+			eventOrder: "_calendar_order",
+			eventOrderStrict: true,
+			eventDidMount: (info) => {
+				const missing_time = info.event.extendedProps._calendar_missing_time;
+				if (missing_time) {
+					const time = info.view.calendar.formatDate(
+						info.event.start,
+						this.cal_options.eventTimeFormat
+					);
+					$(info.el).find(".fc-event-time").text(`${time} · ${missing_time}`);
+				}
+			},
 			// the toolbar is ours (make_toolbar), not FullCalendar's — no
 			// more stripping fc-button classes and re-adding them after every
 			// re-render
@@ -433,13 +450,24 @@ frappe.views.Calendar = class Calendar {
 		}
 	}
 	get_args(start, end) {
+		const fields = this.fields && [
+			...new Set(
+				this.fields.concat(
+					this.field_map.start,
+					this.field_map.end,
+					this.field_map.title,
+					"name"
+				)
+			),
+		];
 		var args = {
 			doctype: this.doctype,
 			start: this.get_system_datetime(start),
 			end: this.get_system_datetime(end),
-			fields: this.fields,
+			fields,
 			filters: this.list_view.filter_area.get(),
 			field_map: this.field_map,
+			order_by: this.list_view.sort_selector?.get_sql_string(),
 		};
 		return args;
 	}
@@ -449,8 +477,9 @@ frappe.views.Calendar = class Calendar {
 	prepare_events(events) {
 		var me = this;
 
-		return (events || []).map((d) => {
+		return (events || []).map((d, index) => {
 			d.id = d.name;
+			d._calendar_order = index;
 			d.editable = frappe.model.can_write(d.doctype || me.doctype);
 
 			// do not allow submitted/cancelled events to be moved / extended
@@ -483,12 +512,26 @@ frappe.views.Calendar = class Calendar {
 				d.end = frappe.datetime.convert_to_user_tz(d.end);
 			}
 
-			// show event on single day if start or end date is invalid
-			if (!frappe.datetime.validate(d.start) && d.end) {
-				d.start = frappe.datetime.add_days(d.end, -1);
-			}
+			const missing_start = !frappe.datetime.validate(d.start) && d.end;
+			const missing_end = d.start && !frappe.datetime.validate(d.end);
+			const uses_datetime_fields =
+				(missing_start || missing_end) &&
+				[me.field_map.start, me.field_map.end].some(
+					(fieldname) =>
+						frappe.meta.get_docfield(me.doctype, fieldname)?.fieldtype === "Datetime"
+				);
 
-			if (d.start && !frappe.datetime.validate(d.end)) {
+			// Timed events with one missing boundary are shown at the known time.
+			if (uses_datetime_fields) {
+				const missing_field = missing_start ? me.field_map.start : me.field_map.end;
+				if (missing_start) d.start = d.end;
+				d.end = null;
+				d._calendar_missing_time = __("{0} missing", [
+					frappe.meta.get_label(me.doctype, missing_field),
+				]);
+			} else if (missing_start) {
+				d.start = frappe.datetime.add_days(d.end, -1);
+			} else if (missing_end) {
 				d.end = frappe.datetime.add_days(d.start, 1);
 			}
 
