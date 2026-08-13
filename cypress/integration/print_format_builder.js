@@ -1164,6 +1164,56 @@ context("Print Format Builder — draft and Save & Apply", () => {
 		});
 	});
 
+	it("keeps Typst block markup through Save & Apply", () => {
+		const TYPST_PF_NAME = `${PF_NAME} Typst`;
+		cy.insert_doc("Print Format", {
+			name: TYPST_PF_NAME,
+			doc_type: "ToDo",
+			print_format_builder_beta: 1,
+			pdf_generator: "Typst",
+			format_data: JSON.stringify(
+				builder_layout([
+					{
+						label: "",
+						columns: [
+							{
+								label: "",
+								fields: [
+									{
+										label: "Typst",
+										fieldname: "typst_block_t",
+										fieldtype: "Typst",
+										custom: 1,
+										typst: "Task: {{ doc.description }}",
+									},
+								],
+							},
+						],
+					},
+				])
+			),
+		});
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(TYPST_PF_NAME)}`);
+		cy.get(".typst-block-source", { timeout: 30000 }).should("contain", "doc.description");
+
+		cy.intercept(
+			"POST",
+			"api/method/frappe.printing.doctype.print_format.print_format.apply_draft"
+		).as("apply");
+		set_margin_top("18");
+		cy.get('[data-testid="page-status"]').should("contain", "Draft");
+		cy.contains(".page-actions .primary-action", "Save & Apply").click({ force: true });
+		cy.wait("@apply").its("response.statusCode").should("eq", 200);
+
+		cy.call("frappe.client.get_value", {
+			doctype: "Print Format",
+			filters: { name: TYPST_PF_NAME },
+			fieldname: ["format_data"],
+		}).then((r) => {
+			expect(r.message.format_data).to.contain("Task: {{ doc.description }}");
+		});
+	});
+
 	it("Discard Draft throws the draft away and leaves the format as it prints", () => {
 		cy.intercept(
 			"POST",

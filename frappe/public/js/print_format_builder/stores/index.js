@@ -1,4 +1,10 @@
-import { clone_plain, create_default_layout, serialize_layout } from "../utils";
+import {
+	clone_plain,
+	create_default_layout,
+	layout_nodes,
+	serialize_layout,
+	typst_blockers_client,
+} from "../utils";
 import { useLayoutHistory } from "./useLayoutHistory";
 import { usePreviewDoc } from "../composables/usePreviewDoc";
 import { useSelection } from "../composables/useSelection";
@@ -225,14 +231,8 @@ export function getStore(print_format_name) {
 		// explicit save reads the fresh stamp instead of being rejected as stale
 		Promise.resolve(autosave_promise)
 			.catch(() => {})
-			.then(() =>
-				frappe.call("frappe.printing.doctype.print_format.print_format.apply_draft", {
-					name: print_format_name,
-					data: get_preview_format_doc(),
-					modified: print_format.value.modified,
-				})
-			)
 			.then(() => {
+				// the letterhead goes first so apply-time validation reads its live state
 				if (letterhead.value && letterhead.value._dirty) {
 					return frappe
 						.call("frappe.client.save", {
@@ -241,6 +241,13 @@ export function getStore(print_format_name) {
 						.then((r) => (letterhead.value = r.message));
 				}
 			})
+			.then(() =>
+				frappe.call("frappe.printing.doctype.print_format.print_format.apply_draft", {
+					name: print_format_name,
+					data: get_preview_format_doc(),
+					modified: print_format.value.modified,
+				})
+			)
 			.then(() => fetch())
 			.then(() => {
 				autosave_stopped = false;
@@ -360,6 +367,14 @@ export function getStore(print_format_name) {
 	function get_default_layout() {
 		return create_default_layout(meta.value, print_format.value);
 	}
+	function remove_letterhead() {
+		letterhead.value = null;
+		if (layout.value) {
+			// empty string, not delete: marks "user removed it" so the
+			// system default is not re-applied on the next load
+			layout.value.letter_head = "";
+		}
+	}
 	function change_letterhead(_letterhead, { keep_clean = false } = {}) {
 		return frappe.db.get_doc("Letter Head", _letterhead).then((doc) => {
 			letterhead.value = doc;
@@ -408,6 +423,37 @@ export function getStore(print_format_name) {
 	);
 	watch(dirty, (v) => v && autosave());
 
+	const typst_blockers = computed(() =>
+		typst_blockers_client(print_format.value, layout.value, letterhead.value)
+	);
+	const has_typst_block = computed(() => {
+		for (const node of layout_nodes(layout.value)) {
+			if (node.fieldtype === "Typst") return true;
+		}
+		return false;
+	});
+	// a blocker added while Typst is selected drops the format back to Chromium,
+	// mirroring the server's save-time refusal instead of failing later — unless a
+	// Typst block pins the format to Typst, where the blocker itself must go.
+	// Lives in the store so the guard stays active while the settings panel is
+	// unmounted (a field selection replaces it with the field inspector).
+	watch(typst_blockers, (blockers, prev) => {
+		if ((blockers || []).join() === (prev || []).join()) return;
+		if (!blockers.length || print_format.value?.pdf_generator !== "Typst") return;
+		if (has_typst_block.value) {
+			frappe.show_alert({
+				message: __("This can't be saved with a Typst block: {0}", [blockers.join(", ")]),
+				indicator: "orange",
+			});
+			return;
+		}
+		print_format.value.pdf_generator = "chrome";
+		frappe.show_alert({
+			message: __("Switched back to Chromium: {0}", [blockers.join(", ")]),
+			indicator: "orange",
+		});
+	});
+
 	const { clipboard, copy_field, copy_section, copy_selection, paste_clipboard } = useClipboard({
 		selection,
 		layout,
@@ -425,6 +471,8 @@ export function getStore(print_format_name) {
 		letterhead,
 		meta,
 		layout,
+		typst_blockers,
+		has_typst_block,
 		dirty,
 		needs_setup,
 		edit_letterhead,
@@ -466,6 +514,7 @@ export function getStore(print_format_name) {
 		get_layout,
 		get_default_layout,
 		change_letterhead,
+		remove_letterhead,
 		clipboard,
 		copy_field,
 		copy_section,

@@ -79,6 +79,7 @@ dependencies = [
     "tenacity~=9.1.2",
     "terminaltables~=3.1.10",
     "traceback-with-variables~=2.2.1",
+    "typst~=0.15.0",
     "typing_extensions>=4.15.0,<5",
     "xlrd~=2.0.2",
     "zxcvbn~=4.5.0",

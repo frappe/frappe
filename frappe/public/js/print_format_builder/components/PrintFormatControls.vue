@@ -426,7 +426,7 @@ function focus_search() {
 
 // store
 let store = inject("$store");
-let { meta, layout } = useStore();
+let { meta, layout, print_format } = useStore();
 
 // ── blocks tab items ──────────────────────────────────────
 const page_break_block = [
@@ -437,16 +437,30 @@ const page_break_block = [
 	},
 ];
 
-const draggable_blocks = [
-	{
-		label: __("Custom HTML"),
-		fieldname: "custom_html",
-		fieldtype: "HTML",
-		html: "",
-		custom: 1,
-		icon: "code",
-		desc: __("Raw HTML or Jinja template"),
-	},
+const draggable_blocks = computed(() => [
+	...(print_format.value?.pdf_generator === "Typst"
+		? [
+				{
+					label: __("Typst"),
+					fieldname: "typst_block",
+					fieldtype: "Typst",
+					typst: "",
+					custom: 1,
+					icon: "code",
+					desc: __("Raw Typst markup"),
+				},
+		  ]
+		: [
+				{
+					label: __("Custom HTML"),
+					fieldname: "custom_html",
+					fieldtype: "HTML",
+					html: "",
+					custom: 1,
+					icon: "code",
+					desc: __("Raw HTML or Jinja template"),
+				},
+		  ]),
 	{
 		label: __("Spacer"),
 		fieldname: "spacer",
@@ -487,7 +501,7 @@ const draggable_blocks = [
 			{ template: [], align: "right" },
 		],
 	},
-];
+]);
 
 function confirm_delete_snippet(name) {
 	frappe.confirm(__("Delete the snippet '{0}'?", [name]), () => store.delete_snippet(name));
@@ -502,6 +516,7 @@ function clone_field(df) {
 		"options",
 		"table_columns",
 		"html",
+		"typst",
 		"field_template",
 		"source",
 		"repeater_columns",

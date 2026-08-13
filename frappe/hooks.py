@@ -101,7 +101,10 @@ on_logout = "frappe.core.doctype.session_default_settings.session_default_settin
 pdf_header_html = "frappe.utils.pdf.pdf_header_html"
 pdf_body_html = "frappe.utils.pdf.pdf_body_html"
 pdf_footer_html = "frappe.utils.pdf.pdf_footer_html"
-pdf_generator = "frappe.utils.pdf.get_chrome_pdf"
+pdf_generator = [
+	"frappe.utils.pdf.get_chrome_pdf",
+	"frappe.utils.print_format_generator.get_typst_pdf",
+]
 # permissions
 
 permission_query_conditions = {

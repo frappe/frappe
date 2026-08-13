@@ -57,6 +57,27 @@ def download_pdf(
 	frappe.local.response.type = "pdf"
 
 
+def get_typst_pdf(print_format, html, options, output, pdf_generator=None):
+	"""`pdf_generator` hook: claims builder formats whose renderer is Typst."""
+	if pdf_generator != "Typst":
+		return
+	generator = getattr(frappe.local, "print_format_generator", None)
+	if generator is None:
+		from frappe.model.document import Document
+
+		fd = frappe.form_dict
+		if not print_format or not fd.get("doctype") or not fd.get("name"):
+			return
+		pf = frappe.get_doc("Print Format", print_format)
+		if not pf.get("print_format_builder_beta"):
+			return
+		doc = fd.get("doc")
+		if not isinstance(doc, Document):
+			doc = frappe.get_doc(fd.doctype, fd.name)
+		generator = PrintFormatGenerator(pf, doc, fd.get("letterhead"), no_letterhead=fd.get("no_letterhead"))
+	return generator.render_typst_pdf(password=(options or {}).get("password"))
+
+
 def is_qr_barcode_options(options: str | None) -> bool:
 	"""Whether a Barcode docfield's options ask for a QR code — either the bare
 	string "qrcode"/"qr" or JsBarcode-style JSON like {"format": "qrcode"}."""
@@ -274,12 +295,18 @@ class PrintFormatGenerator:
 		if cint(no_letterhead) or letterhead == _("No Letterhead"):
 			return None
 
-		name = (
-			letterhead
-			or (self.layout or {}).get("letter_head")
-			or self.doc.get("letter_head")
-			or frappe.db.get_value("Letter Head", {"is_default": 1}, "name")
-		)
+		name = letterhead
+		if not name:
+			layout = self.layout or {}
+			if "letter_head" in layout:
+				# an empty value is an explicit removal, not an unset field
+				name = layout.get("letter_head")
+				if not name:
+					return None
+			else:
+				name = self.doc.get("letter_head") or frappe.db.get_value(
+					"Letter Head", {"is_default": 1}, "name"
+				)
 		# a stale link shouldn't fail the render — templates degrade to no letter head too
 		if not name or not frappe.db.exists("Letter Head", name):
 			return None
@@ -357,10 +384,44 @@ class PrintFormatGenerator:
 	# ----- PDF (Chrome) --------------------------------------------------
 
 	def render_pdf(self, password=None):
-		"""Return PDF bytes using the Chromium renderer."""
+		"""Return PDF bytes using the format's renderer.
+
+		Renderers other than the built-in Chromium are resolved through the
+		`pdf_generator` hook, so an app can register its own the same way the
+		Typst renderer is."""
 		from frappe.utils.pdf import get_chrome_pdf
 
 		pf = self.print_format
+		generator_name = pf.get("pdf_generator") or "chrome"
+		# chrome renders below; wkhtmltopdf never reached hooks before this branch either
+		if generator_name not in ("chrome", "wkhtmltopdf"):
+			previous = getattr(frappe.local, "print_format_generator", None)
+			frappe.local.print_format_generator = self
+			try:
+				for hook in frappe.get_hooks("pdf_generator"):
+					# hook targets come from installed apps' hooks.py, never from request data
+					# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
+					pdf = frappe.call(
+						hook,
+						print_format=pf.name,
+						html=None,
+						options={"password": password} if password else {},
+						output=None,
+						pdf_generator=generator_name,
+					)
+					if pdf:
+						return pdf
+			finally:
+				frappe.local.print_format_generator = previous
+		from frappe.utils.typst_emitter import has_typst_blocks
+
+		if has_typst_blocks(self.layout):
+			frappe.throw(
+				_(
+					"This format uses a Typst block, which only the Typst renderer can print. Set the PDF Renderer to Typst or remove the block."
+				),
+				title=_("Chromium renderer unavailable"),
+			)
 		html = self._build_html_for_chrome()
 		options = {
 			"margin-top": f"{pf.margin_top}mm",
@@ -379,6 +440,83 @@ class PrintFormatGenerator:
 			output=None,
 			pdf_generator="chrome",
 		)
+
+	def render_typst_pdf(self, password=None):
+		"""Compile the resolved layout through Typst — ~10-15x faster than Chromium.
+
+		Refuses (rather than silently falling back) when the format uses features
+		Typst cannot express, so the renderer a user chose is the one that runs."""
+		import os
+		import tempfile
+
+		import typst
+
+		from frappe.utils.typst_emitter import (
+			TypstEmitter,
+			ensure_typst_fonts,
+			letterhead_blockers,
+			typst_blockers,
+			typst_font_paths,
+		)
+
+		blockers = typst_blockers(self.print_format, self.layout)
+		if self.letterhead:
+			# the letter head actually printing may differ from the layout's
+			blockers = list(dict.fromkeys(blockers + letterhead_blockers(self.letterhead.as_dict())))
+		if blockers:
+			frappe.throw(
+				_("This format can no longer render through Typst: {0}").format(", ".join(blockers)),
+				title=_("Typst renderer unavailable"),
+			)
+		if password:
+			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
+
+		ensure_typst_fonts(self.print_format.get("font"))
+		emitter = TypstEmitter(self)
+		emitter.prepare()
+		repeat = cint(self.print_settings.get("repeat_header_footer"))
+
+		with tempfile.TemporaryDirectory() as tmp:
+
+			def write(name, content, mode="w"):
+				# names are emitter-generated constants inside a fresh tempdir
+				path = os.path.join(tmp, name)
+				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+				with open(path, mode) as f:
+					f.write(content)
+				return path
+
+			import json
+
+			written = set()
+
+			def write_assets(assets):
+				for name, data in assets.items():
+					if name not in written:
+						written.add(name)
+						write(name, data, "wb")
+
+			heights = {"pfhdr": 0.0, "pfftr": 0.0}
+			if repeat and (emitter.header_src or emitter.footer_src):
+				write_assets(emitter.assets)
+				measure_path = write("measure.typ", emitter.measure_source())
+				for label in list(heights):
+					found = json.loads(
+						typst.query(measure_path, f"<{label}>", root=tmp, font_paths=typst_font_paths())
+					)
+					if found:
+						heights[label] = float(found[0].get("value") or 0)
+
+			source, assets = emitter.emit(
+				repeat_header_footer=repeat,
+				header_height_pt=heights["pfhdr"],
+				footer_height_pt=heights["pfftr"],
+			)
+			path = write("main.typ", source)
+			write_assets(assets)
+			# root pins file access to the tempdir — matters once formats can
+			# carry raw Typst markup (Typst blocks)
+			return typst.compile(path, root=tmp, font_paths=typst_font_paths())
 
 	def _build_html_for_chrome(self):
 		"""Build the body HTML for the Chrome PDF pipeline.
@@ -654,6 +792,22 @@ class PrintFormatGenerator:
 			]
 			column["fields"] = fields
 			for df in fields:
+				if df.get("fieldtype") == "Repeater":
+					rows = self.doc.get(df.get("source")) or []
+					if not rows:
+						continue
+					child, child_meta = rows[0], rows[0].meta
+					for col in df.get("repeater_columns") or []:
+						col["template"] = [
+							tok
+							for tok in col.get("template") or []
+							if not (
+								isinstance(tok, dict)
+								and tok.get("t") == "f"
+								and not self.has_field_access(child, child_meta, tok.get("v"))
+							)
+						]
+					continue
 				if df.get("fieldtype") != "Table" or not df.get("table_columns"):
 					continue
 				rows = self.doc.get(df.get("fieldname")) or []
@@ -665,6 +819,13 @@ class PrintFormatGenerator:
 					for col in df["table_columns"]
 					if self.has_field_access(child, child_meta, col.get("fieldname"))
 				]
+				for col in df["table_columns"]:
+					if col.get("merged_fields"):
+						col["merged_fields"] = [
+							mf
+							for mf in col["merged_fields"]
+							if self.has_field_access(child, child_meta, mf.get("fieldname"))
+						]
 		return layout
 
 	def prune_table_columns(self, layout):
