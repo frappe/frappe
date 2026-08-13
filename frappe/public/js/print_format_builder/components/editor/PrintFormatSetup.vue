@@ -1,7 +1,6 @@
 <template>
 	<div class="pfb-setup">
 		<div class="pfb-setup-card">
-			<div class="pfb-setup-icon" v-html="frappe.utils.icon('file', 'xl')"></div>
 			<h3 class="pfb-setup-title">{{ __("How do you want to start?") }}</h3>
 			<p class="pfb-setup-subtitle">
 				{{ __("Choose a starting point for your print format.") }}
@@ -74,11 +73,6 @@ const options = [
 	width: 100%;
 	text-align: center;
 	box-shadow: var(--shadow-sm);
-}
-
-.pfb-setup-icon {
-	color: var(--text-muted);
-	margin-bottom: var(--margin-md);
 }
 
 .pfb-setup-title {
