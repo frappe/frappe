@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
 from frappe.boot import (
 	build_entity_module_map,
@@ -528,3 +530,127 @@ class TestAClaimOnAnAbsentEntityIsInert(IntegrationTestCase):
 			"the absent entity's row is dropped and the readable one is not",
 		)
 		self.assertEqual(build_entity_module_map({self.MODULE: {"items": filtered}}), {"ToDo": self.MODULE})
+
+
+class TestTwoAppsClaimTheSameEntity(IntegrationTestCase):
+	"""The claim comparator: highest install index, then module name ascending.
+
+	The rule replaces a last-write-wins over a dict ordered by module name -- so every case below
+	is chosen where the two orders *disagree*, or it would pass against the defect.
+
+	Staged as payloads rather than fixtures because that is the function's interface (it is handed
+	the whole `module_sidebars` payload) and because a test site cannot install a second app: the
+	install order the rule is about only exists under `patch`. The consequence that is about the
+	payload rather than the comparator -- ownership being per-user -- is staged for real below.
+	"""
+
+	ENTITY = "Test Contested Entity"
+
+	def resolve(self, claims, installed=("frappe", "erpnext", "hrms")):
+		"""`claims` is `(module, app)` pairs, each a sidebar claiming the same entity."""
+		payload = {
+			module: {
+				"module": module,
+				"app": app,
+				"items": [
+					{
+						"type": "Link",
+						"link_type": "DocType",
+						"link_to": self.ENTITY,
+						"label": "Contested",
+						"is_default_module": 1,
+					}
+				],
+			}
+			for module, app in claims
+		}
+		with patch("frappe.get_installed_apps", return_value=list(installed)):
+			return build_entity_module_map(payload).get(self.ENTITY)
+
+	def test_the_last_installed_app_wins(self):
+		"""The `Employee` case: `hrms` requires `erpnext`, so it is installed after it and its
+		claim wins. Alphabetically `Setup` sorts *last*, so the dict-order last-write-wins this
+		replaces gave the entity to `Setup` -- which is the bug, in the shape it shipped in."""
+		self.assertEqual(self.resolve([("Setup", "erpnext"), ("HR Setup", "hrms")]), "HR Setup")
+
+	def test_the_winner_does_not_depend_on_payload_order(self):
+		"""Determinism is the whole fix, so the same two claims in the other order answer the
+		same. The payload's own order is `name asc` and relying on it for precedence was the
+		accident being removed."""
+		self.assertEqual(self.resolve([("HR Setup", "hrms"), ("Setup", "erpnext")]), "HR Setup")
+
+	def test_two_claims_from_one_app_are_separated_by_module_name(self):
+		"""No install order to appeal to, so the tie-break decides -- lowest module name. Again
+		the orders disagree: last-write-wins would have said `Payroll`."""
+		self.assertEqual(self.resolve([("HR Setup", "hrms"), ("Payroll", "hrms")]), "HR Setup")
+
+	def test_an_app_that_is_not_installed_loses_to_one_that_is(self):
+		"""A module placed by `get_module_placement` can name an app this site never installed.
+		It ranks below every installed app rather than raising -- `erpnext` wins here even though
+		`Ghost Module` sorts first."""
+		self.assertEqual(self.resolve([("Setup", "erpnext"), ("Ghost Module", "ghost_app")]), "Setup")
+
+	def test_an_unknown_app_still_resolves_rather_than_raising(self):
+		"""Uncontested, it keeps the entity: an index nobody can compute is not a reason to lose,
+		only a reason to sort last. Boot must not raise on any of it."""
+		self.assertEqual(self.resolve([("Ghost Module", "ghost_app")]), "Ghost Module")
+		self.assertEqual(self.resolve([("Appless Module", None)]), "Appless Module")
+
+
+class TestOwnershipIsPerUser(IntegrationTestCase):
+	"""The comparator runs over an already permission-filtered payload, so the winner is the
+	last-installed app *among the claims this reader can see*.
+
+	Two users can therefore resolve one entity to different modules and both be right. Pinned
+	because it reads like a bug from the outside, and the fix someone would reach for -- resolving
+	ownership before filtering -- would name modules the reader cannot open.
+	"""
+
+	ENTITY = "ToDo"
+	USER = "per-user-ownership@example.com"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		# same app, so the module-name tie-break decides between them, and `Alpha` wins
+		self.winner = self.enterContext(sidebarless_module("Test Claim Alpha Module"))
+		self.runner_up = self.enterContext(sidebarless_module("Test Claim Zeta Module"))
+		for module in (self.winner, self.runner_up):
+			sidebar = frappe.get_doc({"doctype": "Module Sidebar", "module": module, "title": module})
+			sidebar.append(
+				"items",
+				{
+					"type": "Link",
+					"link_type": "DocType",
+					"link_to": self.ENTITY,
+					"label": "ToDo",
+					"is_default_module": 1,
+				},
+			)
+			with system_write():
+				sidebar.insert(ignore_permissions=True)
+
+		make_user(self.USER, ["System Manager"])
+		self.addCleanup(frappe.delete_doc, "User", self.USER, force=True, ignore_missing=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+	def owner_for(self, user):
+		frappe.set_user(user)
+		# `get_module_sidebars` is request-cached and `set_user` does not clear it, so the second
+		# reader would otherwise be answered with the first one's payload
+		if getattr(frappe.local, "request_cache", None):
+			frappe.local.request_cache.clear()
+		return build_entity_module_map(get_module_sidebars()).get(self.ENTITY)
+
+	def test_the_lower_module_name_wins_for_a_reader_who_sees_both(self):
+		self.assertEqual(self.owner_for("Administrator"), self.winner)
+
+	def test_a_reader_who_cannot_see_the_winner_gets_the_next_claim_down(self):
+		user = frappe.get_doc("User", self.USER)
+		user.append("block_modules", {"module": self.winner})
+		user.save(ignore_permissions=True)
+		frappe.clear_cache(user=self.USER)
+
+		self.assertEqual(self.owner_for(self.USER), self.runner_up)
+		self.assertEqual(
+			self.owner_for("Administrator"), self.winner, "same fixtures, and the answer differs by reader"
+		)

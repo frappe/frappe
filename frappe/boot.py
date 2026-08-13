@@ -1127,14 +1127,42 @@ def build_entity_module_map(module_sidebars):
 
 	The module-keyed successor to `default_workspace_map`. Built from the already-filtered
 	payload, so it can never name a module or entity the user cannot see.
+
+	When two sidebars claim the same entity the winner is the **last-installed app**, and two
+	claims from the *same* app are separated by module name ascending. Install order is
+	dependency order wherever a dependency exists -- the installer refuses to install an app
+	before its `required_apps` -- so a claim from the app built on top beats the one underneath
+	it, which is the `hrms` claims `Employee` case. The rule stops here: the desk's
+	`get_modules_linking` orders *curations* and deliberately does not use it.
+
+	Two consequences worth stating, because neither is visible in the loop:
+
+	- **Ownership is per-user.** The payload is permission-filtered before it gets here, so the
+	  winner is the last-installed app *among the claims this user can see*. Two users may
+	  correctly resolve one entity to different modules, and a user who cannot see the winning
+	  module falls to the next claim down rather than to nothing.
+	- **The loser is told nothing**, deliberately -- no log, no report, no `after_migrate` line.
+	  What was wrong with the last-write-wins this replaces was that it was a *coin flip* (over a
+	  dict ordered by module name), not that it was quiet; a rule an author can predict from their
+	  own install order needs no warning. Please don't add one back.
 	"""
-	entity_module = {}
+	# A module placed by `get_module_placement` rather than by a shipped document can name an app
+	# that isn't installed here, so an unknown app ranks below every installed one instead of
+	# raising -- ownership is not worth a broken boot.
+	install_index = {app: index for index, app in enumerate(frappe.get_installed_apps())}
+
+	claims = {}
 	for module, sidebar in module_sidebars.items():
+		claim = (install_index.get(sidebar.get("app"), -1), module)
 		for item in sidebar["items"]:
 			if item.get("link_to") and item.get("is_default_module"):
-				entity_module[item["link_to"]] = module
+				claims.setdefault(item["link_to"], []).append(claim)
 
-	return entity_module
+	# the comparator, stated once: highest install index, then lowest module name
+	return {
+		entity: min(entity_claims, key=lambda claim: (-claim[0], claim[1]))[1]
+		for entity, entity_claims in claims.items()
+	}
 
 
 def get_desktop_icon_urls():
