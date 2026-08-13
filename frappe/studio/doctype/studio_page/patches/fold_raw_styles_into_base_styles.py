@@ -55,4 +55,7 @@ def fold_raw_styles(blocks):
 
 
 def to_camel_case(css_property):
+	# custom properties (--card-color) are case-sensitive identifiers, never camelCased
+	if css_property.startswith("--"):
+		return css_property
 	return re.sub(r"-([a-z])", lambda m: m.group(1).upper(), css_property)
