@@ -102,6 +102,32 @@ context("Cold-entry sidebar resolution", () => {
 		);
 	});
 
+	// The pair below is the entire contract of `is_default_module`, and no shipped fixture can state
+	// it: hrms flags `Employee` in HR Setup, but erpnext's Setup does not list `Employee`, so the
+	// demote already routes it and the flag changes nothing observable. What the flag buys is this
+	// world -- the day Setup DOES list `Employee` -- so it is asserted against a payload written here.
+	// Both cases run with no sticky at all, so step 1 is out of the way and step 2 is measured
+	// against step 3 alone; the test above covers the sticky outranking both.
+	const contested = {
+		sidebars: { Setup: ["Employee", "Company"], "HR Setup": ["Employee"] },
+		metas: { Employee: { module: "Setup" } },
+		route: ["List", "Employee"],
+	};
+
+	it("takes the claim over the entity's own module even when that module lists the entity", () => {
+		resolve({ ...contested, entity_module: { Employee: "HR Setup" } }, (resolved) => {
+			expect(resolved.sidebar).to.equal("HR Setup");
+			expect(resolved.provisional).to.be.false;
+		});
+	});
+
+	it("gives the entity back to its own module when the claim is dropped", () => {
+		resolve(contested, (resolved) => {
+			expect(resolved.sidebar).to.equal("Setup");
+			expect(resolved.provisional).to.be.false;
+		});
+	});
+
 	it("does not keep a sidebar that does not link the entity", () => {
 		resolve(
 			{
@@ -160,6 +186,25 @@ context("Cold-entry sidebar resolution", () => {
 			(resolved) => {
 				expect(resolved.sidebar).to.equal("HR Setup");
 				expect(resolved.provisional).to.be.true;
+			}
+		);
+	});
+
+	// The one thing hrms's shipped flag does change. Without it `Employee` is a step-4 answer, and
+	// step 4 is provisional while the meta is unread, so a cold deep link resolves twice and lands in
+	// HR Setup both times. With it the first pass is final -- same shell, one pass. Step 2 reads boot
+	// data only, so it never has to wait for a meta.
+	it("answers finally on the first pass when the entity is claimed, meta or no meta", () => {
+		resolve(
+			{
+				sidebars: { Setup: ["Company"], "HR Setup": ["Employee"] },
+				metas: {},
+				entity_module: { Employee: "HR Setup" },
+				route: ["List", "Employee"],
+			},
+			(resolved) => {
+				expect(resolved.sidebar).to.equal("HR Setup");
+				expect(resolved.provisional).to.be.false;
 			}
 		);
 	});
