@@ -42,12 +42,16 @@ export const pageScriptApi = {
   },
 
   // `autoname: prompt` — the author types the name, and it is the name that
-  // shows up in stack traces as `page-script/<name>.js`. `script` is left out
-  // so the doctype's own default is the one prefilled.
+  // shows up in stack traces as `page-script/<name>.js`. A new script omits
+  // `script` so the doctype's own default is the one prefilled; a duplicate
+  // passes the body it is copying, and `enabled: 0` so it cannot start running
+  // beside its original before anyone has looked at it.
   create(doc: {
     name: string;
     dt: string;
     view?: string;
+    script?: string;
+    enabled?: 0 | 1;
   }): Promise<PageScriptDoc> {
     return call("frappe.client.insert", {
       doc: {
@@ -55,6 +59,8 @@ export const pageScriptApi = {
         name: doc.name,
         dt: doc.dt,
         view: doc.view ?? "Record",
+        ...(doc.script === undefined ? {} : { script: doc.script }),
+        ...(doc.enabled === undefined ? {} : { enabled: doc.enabled }),
       },
     });
   },

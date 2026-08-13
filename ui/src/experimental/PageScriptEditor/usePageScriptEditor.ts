@@ -89,6 +89,36 @@ export function usePageScriptEditor(doctype: MaybeRefOrGetter<string>) {
     });
   }
 
+  /**
+   * A disabled copy of `row`, carrying the buffer rather than the saved text —
+   * duplicating a script you have been editing copies what you are looking at.
+   * Disabled because an enabled copy would immediately run beside its original,
+   * doubling whatever it does to the live page.
+   */
+  async function duplicate(row: PageScriptDoc) {
+    const text = bufferFor(row);
+    await mutate(async () => {
+      const created = await pageScriptApi.create({
+        name: copyName(row.name),
+        dt: row.dt,
+        view: row.view,
+        script: text,
+        enabled: 0,
+      });
+      selectedName.value = created.name;
+    });
+  }
+
+  /** `<name>-copy`, then `-copy-2`, … — the first one nothing else has taken. */
+  function copyName(name: string) {
+    const taken = new Set(scripts.value.map((row) => row.name));
+    const base = `${name}-copy`;
+    if (!taken.has(base)) return base;
+    let suffix = 2;
+    while (taken.has(`${base}-${suffix}`)) suffix += 1;
+    return `${base}-${suffix}`;
+  }
+
   async function setEnabled(row: PageScriptDoc, enabled: boolean) {
     await mutate(() =>
       pageScriptApi.save({ ...row, enabled: enabled ? 1 : 0 }),
@@ -151,6 +181,7 @@ export function usePageScriptEditor(doctype: MaybeRefOrGetter<string>) {
     load,
     select,
     create,
+    duplicate,
     save,
     setEnabled,
     remove,

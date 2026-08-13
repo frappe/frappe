@@ -1,108 +1,126 @@
 <template>
-	<div class="flex min-h-0 gap-4">
-		<!-- The list is the precedence explanation: creation order is run order, so
-		     the numbers are not decoration — they say who wins. -->
-		<div class="flex w-56 shrink-0 flex-col">
-			<div class="flex items-center justify-between gap-2">
-				<span class="text-p-sm-medium text-ink-gray-7">Run order</span>
+	<div class="flex min-h-0 flex-1 flex-col">
+		<!-- One header, not two (ticket 23). The pane's old header row said the
+		     script's name, its run position and its enabled-ness, all of which the
+		     rail already says; what is left is the doctype and the way to the
+		     reference. -->
+		<div class="flex items-center gap-2 border-b border-outline-gray-1 px-4 py-3">
+			<span class="text-lg font-semibold text-ink-gray-9">Page scripts</span>
+			<span class="text-lg text-ink-gray-4">·</span>
+			<span class="text-lg text-ink-gray-6">{{ dt }}</span>
+			<div class="ml-auto flex items-center gap-1">
+				<Tooltip text="Reference">
+					<Button
+						variant="ghost"
+						iconLeft="lucide-circle-help"
+						aria-label="Reference"
+						@click="showReference = !showReference"
+					/>
+				</Tooltip>
 				<Button
-					iconLeft="lucide-plus"
-					size="sm"
-					label="New"
-					:disabled="loading"
-					@click="naming = true"
+					v-if="onClose"
+					variant="ghost"
+					iconLeft="lucide-x"
+					aria-label="Close"
+					@click="onClose"
 				/>
-			</div>
-			<p class="mt-1 text-p-xs text-ink-gray-5">
-				Scripts run top to bottom. The last one to run wins.
-			</p>
-
-			<!-- FP1 fallback: frappe-ui has no single-select list primitive (ListItem
-			     is a title/subtitle row, Tabs is horizontal), so the roles and the
-			     arrow-key handling below are hand-rolled deliberately. -->
-			<div
-				class="mt-3 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto"
-				role="listbox"
-				aria-label="Page scripts"
-				@keydown.down.prevent="step(1)"
-				@keydown.up.prevent="step(-1)"
-			>
-				<Skeleton v-if="loading" class="h-8 w-full" />
-				<p v-else-if="!scripts.length" class="text-p-sm text-ink-gray-5">
-					No page scripts for {{ dt }} yet.
-				</p>
-				<button
-					v-for="(row, index) in scripts"
-					:key="row.name"
-					type="button"
-					role="option"
-					:aria-selected="row.name === selectedName"
-					class="flex items-center gap-2 rounded px-2 py-1.5 text-left"
-					:class="
-						row.name === selectedName
-							? 'bg-surface-gray-3 text-ink-gray-9'
-							: 'text-ink-gray-7 hover:bg-surface-gray-2'
-					"
-					@click="select(row.name)"
-				>
-					<span class="w-4 shrink-0 text-p-xs text-ink-gray-4">{{ index + 1 }}</span>
-					<span class="truncate text-p-sm" :class="{ 'text-ink-gray-4': !row.enabled }">
-						{{ row.name }}
-					</span>
-					<span class="ml-auto flex shrink-0 items-center gap-1">
-						<Tooltip v-if="isDirty(row)" text="Unsaved changes">
-							<span class="size-1.5 rounded-full bg-surface-amber-5" />
-						</Tooltip>
-						<Badge v-if="!row.enabled" theme="gray" size="sm" label="Off" />
-					</span>
-				</button>
 			</div>
 		</div>
 
-		<div class="flex min-w-0 flex-1 flex-col gap-3">
-			<template v-if="selected">
+		<div v-if="loading" class="flex min-h-0 flex-1 flex-col gap-2 p-4">
+			<Skeleton class="h-6 w-48" />
+			<Skeleton class="min-h-0 w-full flex-1" />
+		</div>
+
+		<!-- Zero scripts: no rail, because a list with nothing in it explains
+		     nothing. The example fills the editor's slot as a read-only editor —
+		     syntax-coloured, so it looks like the thing it teaches — and the
+		     primary action takes the footer slot Save occupies later, so the
+		     action never moves when the column arrives beside it. -->
+		<div v-else-if="!scripts.length" class="flex min-h-0 flex-1 flex-col">
+			<div class="flex min-h-0 flex-1 flex-col p-4">
 				<CodeEditor
-					v-model="draft"
+					class="page-script-code min-h-0 flex-1"
+					:modelValue="EXAMPLE_SCRIPT"
 					language="javascript"
-					:style="{ '--cm-max-height': editorHeight }"
-					placeholder="export default { refresh(page) {} }"
+					disabled
+					:style="{ '--cm-max-height': '100%' }"
 				/>
-				<p class="text-p-xs text-ink-gray-5">
-					An ES module whose default export is an object of event handlers. It may import
-					vue, vue-router, frappe-ui and @framework/ui; nothing else resolves.
+			</div>
+			<div class="flex items-center gap-3 border-t border-outline-gray-1 px-4 py-3">
+				<ErrorMessage v-if="error" :message="error" />
+				<p v-else class="text-p-sm text-ink-gray-5">
+					Nothing customizes {{ dt }} record pages yet — this is an example, and it
+					neither saves nor runs.
 				</p>
-				<p class="text-p-xs text-ink-gray-5">
-					Anything a script hides is hidden from the eye, not from the server. A user who
-					can't see the button can still make the call.
-				</p>
-				<ErrorMessage :message="error" />
-				<div class="flex items-center gap-3">
-					<Switch
-						:modelValue="Boolean(selected.enabled)"
-						size="sm"
-						label="Enabled"
-						:disabled="saving"
-						@update:modelValue="setEnabled(selected!, $event)"
+				<Button
+					class="ml-auto"
+					variant="solid"
+					iconLeft="lucide-plus"
+					label="New script"
+					:disabled="saving"
+					@click="naming = true"
+				/>
+			</div>
+		</div>
+
+		<div v-else class="flex min-h-0 flex-1">
+			<PageScriptRail
+				:scripts="scripts"
+				:selectedName="selectedName"
+				:isDirty="isDirty"
+				:busy="saving"
+				@select="select"
+				@create="naming = true"
+				@toggleEnabled="setEnabled($event, !$event.enabled)"
+				@duplicate="duplicate"
+				@remove="confirmRemove"
+			/>
+
+			<!-- The editor is the reason the dialog exists, so it takes every pixel
+			     the header, rail and footer leave. -->
+			<div class="relative flex min-w-0 flex-1 flex-col">
+				<div class="flex min-h-0 flex-1 flex-col p-4">
+					<CodeEditor
+						v-model="draft"
+						class="page-script-code min-h-0 flex-1"
+						language="javascript"
+						:style="{ '--cm-max-height': '100%' }"
+						placeholder="export default { refresh(page) {} }"
 					/>
-					<Button
-						class="ml-auto"
+					<!-- The import surface is enforced, never stated. Not dismissible:
+					     a lint you can dismiss while it is still true is a lint that
+					     lies. -->
+					<Alert
+						v-if="badImports.length"
+						class="mt-2 shrink-0"
 						theme="red"
-						label="Delete"
-						:disabled="saving"
-						@click="confirmingDelete = true"
+						:dismissible="false"
+						:title="`'${badImports[0]}' won't resolve at runtime`"
+						:description="`Scripts may import ${SHARED_DEPS.join(', ')} — and nothing else, not even a subpath of those.`"
 					/>
+				</div>
+
+				<!-- The footer reports the loop, not the button's own health: Save is
+				     absent rather than disabled when there is nothing to save, so
+				     'clean' can never be misread as 'cannot save'. -->
+				<div class="flex items-center gap-3 border-t border-outline-gray-1 px-4 py-3">
+					<ErrorMessage v-if="error" :message="error" />
+					<p v-else class="flex items-center gap-2 text-p-sm" :class="stateClass">
+						<span v-if="dirty" class="size-1.5 rounded-full bg-surface-amber-5" />
+						<span>{{ stateText }}</span>
+					</p>
 					<Button
+						v-if="dirty"
+						class="ml-auto"
 						variant="solid"
 						label="Save"
 						:loading="saving"
-						:disabled="!dirty"
 						@click="save"
 					/>
 				</div>
-			</template>
-			<div v-else class="flex flex-1 items-center justify-center">
-				<ErrorMessage v-if="error" :message="error" />
-				<p v-else class="text-p-sm text-ink-gray-5">Select a script, or create one.</p>
+
+				<PageScriptReference v-if="showReference" @close="showReference = false" />
 			</div>
 		</div>
 
@@ -111,30 +129,40 @@
 			:taken="scripts.map((row) => row.name)"
 			:onSubmit="create"
 		/>
-		<Dialog v-model="confirmingDelete" :options="deleteOptions" />
 	</div>
 </template>
 
 <script setup lang="ts">
 // The generic Page Script editor: one doctype's scripts, listed in run order,
-// with the selected one open in a code editor. Saving is all it does to the
-// running page — the doctype publishes its change event and any mounted Record
-// page replays the tier on its own.
-import { computed, ref } from "vue";
-import { Badge, Button, Dialog, ErrorMessage, Skeleton, Switch, Tooltip } from "frappe-ui";
+// with the selected one open in a code editor that fills the pane. Saving is all
+// it does to the running page — the doctype publishes its change event and any
+// mounted Record page replays the tier on its own.
+//
+// Zero, one and many scripts are three layouts rather than one (ticket 23): the
+// same layout lied about two of them.
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { Alert, Button, dialog, ErrorMessage, Skeleton, Tooltip } from "frappe-ui";
 import { CodeEditor } from "frappe-ui/code-editor";
 import NewPageScriptDialog from "./NewPageScriptDialog.vue";
+import PageScriptRail from "./PageScriptRail.vue";
+import PageScriptReference from "./PageScriptReference.vue";
+import { EXAMPLE_SCRIPT } from "./exampleScript";
+import { SHARED_DEPS, unresolvableImports } from "./importLint";
 import { usePageScriptEditor } from "./usePageScriptEditor";
+import type { PageScriptDoc } from "./pageScriptApi";
 
-const props = withDefaults(
-	defineProps<{
-		/** The doctype whose Record page scripts these are. */
-		dt: string;
-		/** Cap for the code editor, as a CSS length. */
-		editorHeight?: string;
-	}>(),
-	{ editorHeight: "24rem" },
-);
+const props = defineProps<{
+	/** The doctype whose Record page scripts these are. */
+	dt: string;
+	/**
+	 * The record the author is watching replay behind this editor, if there is
+	 * one — it names what a save just took effect on. Absent on the route, which
+	 * is opened away from any record.
+	 */
+	replaysOn?: string;
+	/** Renders the close button, for a host that can dismiss the pane. */
+	onClose?: () => void;
+}>();
 
 const {
 	scripts,
@@ -148,39 +176,67 @@ const {
 	error,
 	select,
 	create,
+	duplicate,
 	save,
 	setEnabled,
 	remove,
 } = usePageScriptEditor(() => props.dt);
 
 const naming = ref(false);
-const confirmingDelete = ref(false);
+const showReference = ref(false);
 
-const deleteOptions = computed(() => ({
-	title: `Delete ${selectedName.value}?`,
-	message: "The script stops running everywhere. This cannot be undone.",
-	actions: [
-		{
-			label: "Delete",
-			theme: "red",
-			variant: "solid",
-			// The dialog closes either way: a failure is reported on the pane
-			// behind it, which this would otherwise cover.
-			onClick: async () => {
-				try {
-					if (selected.value) await remove(selected.value);
-				} finally {
-					confirmingDelete.value = false;
-				}
+const badImports = computed(() => unresolvableImports(draft.value));
+
+const stateText = computed(() => {
+	if (saving.value) return "Saving…";
+	if (dirty.value) return `Unsaved changes · ${saveChord} to save`;
+	if (!selected.value) return "";
+	return props.replaysOn ? `Saved · replayed on ${props.replaysOn}` : "Saved";
+});
+
+const stateClass = computed(() => (dirty.value ? "text-ink-gray-7" : "text-ink-gray-5"));
+
+// ⌘S has to be caught on the document too: CodeMirror stops the keydown from
+// reaching the pane once focus is inside the editor's own keymap.
+const saveChord = navigator.platform.includes("Mac") ? "⌘S" : "Ctrl+S";
+
+onMounted(() => document.addEventListener("keydown", onSaveChord));
+onBeforeUnmount(() => document.removeEventListener("keydown", onSaveChord));
+
+function onSaveChord(event: KeyboardEvent) {
+	if (event.key !== "s" || !(event.metaKey || event.ctrlKey)) return;
+	if (!dirty.value) return;
+	event.preventDefault();
+	save();
+}
+
+// Destructive actions confirm, and the confirmation is frappe-ui's imperative
+// danger dialog — the same one `page.dialog.danger` routes to (ticket 17), so a
+// script author sees one shape of "are you sure" throughout.
+function confirmRemove(row: PageScriptDoc) {
+	dialog.danger({
+		title: `Delete ${row.name}?`,
+		message: "The script stops running everywhere. This cannot be undone.",
+		actions: [
+			{
+				label: "Delete",
+				theme: "red",
+				variant: "solid",
+				// A failure is reported on the pane behind the dialog, which this
+				// would otherwise cover — so the dialog closes either way.
+				onClick: () => remove(row),
 			},
-		},
-	],
-}));
-
-function step(delta: number) {
-	if (!scripts.value.length) return;
-	const current = scripts.value.findIndex((row) => row.name === selectedName.value);
-	const next = Math.min(Math.max(current + delta, 0), scripts.value.length - 1);
-	select(scripts.value[next].name);
+		],
+	});
 }
 </script>
+
+<style scoped>
+/* CodeEditor publishes only `--cm-max-height`, which caps rather than stretches;
+   filling a flex column needs an explicit height on its root and on the
+   CodeMirror root inside it. */
+.page-script-code,
+.page-script-code :deep(.cm-editor) {
+	height: 100%;
+}
+</style>

@@ -129,6 +129,46 @@ describe("the Page Script editor", () => {
     expect(editor.selectedName.value).toBe("third");
   });
 
+  // Ticket 26: Duplicate arrived with the row's `⋯` menu.
+  it("duplicates a script disabled, so the copy cannot run beside its original", async () => {
+    const editor = await editorFor();
+    create.mockResolvedValue({ name: "oldest-copy" });
+    list.mockResolvedValue(rows("oldest", "newest", "oldest-copy"));
+
+    await editor.duplicate(editor.scripts.value[0]);
+
+    expect(create).toHaveBeenCalledWith({
+      name: "oldest-copy",
+      dt: "CRM Deal",
+      view: "Record",
+      script: "// oldest",
+      enabled: 0,
+    });
+    expect(editor.selectedName.value).toBe("oldest-copy");
+  });
+
+  it("duplicates the buffer, not the saved text — you copy what you are looking at", async () => {
+    const editor = await editorFor();
+    editor.select("oldest");
+    editor.draft.value = "// edited, not saved";
+    create.mockResolvedValue({ name: "oldest-copy" });
+
+    await editor.duplicate(editor.scripts.value[0]);
+
+    expect(create.mock.calls[0][0].script).toBe("// edited, not saved");
+  });
+
+  it("steps the copy's suffix past a name already taken", async () => {
+    const editor = await editorFor(ref("CRM Deal"));
+    list.mockResolvedValue(rows("oldest", "newest", "oldest-copy"));
+    await editor.load();
+    create.mockResolvedValue({ name: "oldest-copy-2" });
+
+    await editor.duplicate(editor.scripts.value[0]);
+
+    expect(create.mock.calls[0][0].name).toBe("oldest-copy-2");
+  });
+
   it("writes the enabled flag as the doctype's 0/1", async () => {
     const editor = await editorFor();
     await editor.setEnabled(editor.scripts.value[0], false);
