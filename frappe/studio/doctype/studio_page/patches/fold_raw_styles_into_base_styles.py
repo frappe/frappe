@@ -46,10 +46,13 @@ def fold_raw_styles(blocks):
 
 		if block.get("children"):
 			block["children"] = fold_raw_styles(block["children"])
-		if block.get("componentSlots"):
+		if isinstance(block.get("componentSlots"), dict):
 			for slot in block["componentSlots"].values():
-				if slot and slot.get("slotContent") and isinstance(slot["slotContent"], list):
-					slot["slotContent"] = fold_raw_styles(slot["slotContent"])
+				# older blocks store the block list directly on the slot, newer ones wrap it
+				# in {slotContent: [...]}; slotContent may also be a plain string (text slot)
+				content = slot.get("slotContent") if isinstance(slot, dict) else slot
+				if isinstance(content, list):
+					fold_raw_styles(content)
 
 	return blocks
 
