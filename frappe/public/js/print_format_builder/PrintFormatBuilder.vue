@@ -51,7 +51,6 @@
 					v-if="$store.needs_setup.value"
 					@start-default="on_start_default"
 					@start-blank="on_start_blank"
-					@start-html="on_start_html"
 				/>
 				<component :is="PrintFormat" v-else />
 			</div>
@@ -256,32 +255,6 @@ function on_start_default() {
 	$store.value.print_format.value.format_data = JSON.stringify(layout);
 	$store.value.dirty.value = true;
 	$store.value.needs_setup.value = false;
-}
-
-// The format was created assuming the builder; the user wants code instead.
-// Flip it to a custom HTML format and hand over to the form, mirroring what
-// checking "Custom Format" on the form does.
-function on_start_html() {
-	const name = props.print_format_name;
-	frappe
-		.call("frappe.client.set_value", {
-			doctype: "Print Format",
-			name,
-			fieldname: {
-				custom_format: 1,
-				print_format_builder_beta: 0,
-				align_labels_right: 0,
-				show_section_headings: 0,
-				line_breaks: 0,
-				// a custom format can't save with empty HTML, so seed a starter
-				html: `<div class="print-format">\n\t<h3>{{ doc.name }}</h3>\n</div>`,
-			},
-		})
-		.then(() => {
-			// the form must fetch the flipped doc, not the stale cached one
-			frappe.model.clear_doc("Print Format", name);
-			frappe.set_route("Form", "Print Format", name);
-		});
 }
 
 function on_start_blank() {

@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-defineEmits(["start-default", "start-blank", "start-html"]);
+defineEmits(["start-default", "start-blank"]);
 
 const options = [
 	{
@@ -45,12 +45,6 @@ const options = [
 		icon: "plus",
 		label: __("Start blank"),
 		desc: __("Empty canvas. Drag and drop fields to build from scratch."),
-	},
-	{
-		event: "start-html",
-		icon: "code",
-		label: __("Write HTML"),
-		desc: __("Full control with HTML and Jinja, edited on the form."),
 	},
 ];
 </script>

@@ -87,14 +87,16 @@
    "oldfieldtype": "Select",
    "options": "No\nYes",
    "reqd": 1,
-   "search_index": 1
+   "search_index": 1,
+   "description": "Save this format as files in an app so it ships with the app and is tracked in version control. Only editable in developer mode \u2014 duplicate a standard format to customize it."
   },
   {
    "default": "0",
    "fieldname": "custom_format",
    "fieldtype": "Check",
    "label": "Custom Format",
-   "read_only_depends_on": "eval:doc.print_format_for===\"Report\";"
+   "read_only_depends_on": "eval:doc.print_format_for===\"Report\";",
+   "description": "Write the format by hand in HTML and Jinja instead of using the visual builder."
   },
   {
    "depends_on": "eval:doc.custom_format || doc.print_format_for == \"Report\"",
@@ -114,7 +116,8 @@
    "depends_on": "custom_format",
    "fieldname": "raw_printing",
    "fieldtype": "Check",
-   "label": "Raw Printing"
+   "label": "Raw Printing",
+   "description": "Send raw commands (e.g. ESC/POS) to a label or thermal printer instead of rendering a PDF."
   },
   {
    "depends_on": "eval:!doc.raw_printing",
@@ -145,19 +148,22 @@
    "default": "0",
    "fieldname": "align_labels_right",
    "fieldtype": "Check",
-   "label": "Align Labels to the Right"
+   "label": "Align Labels to the Right",
+   "hidden": 1
   },
   {
    "default": "0",
    "fieldname": "show_section_headings",
    "fieldtype": "Check",
-   "label": "Show Section Headings"
+   "label": "Show Section Headings",
+   "hidden": 1
   },
   {
    "default": "0",
    "fieldname": "line_breaks",
    "fieldtype": "Check",
-   "label": "Show Line Breaks after Sections"
+   "label": "Show Line Breaks after Sections",
+   "hidden": 1
   },
   {
    "fieldname": "column_break_11",
@@ -249,7 +255,8 @@
    "default": "0",
    "fieldname": "print_format_builder_beta",
    "fieldtype": "Check",
-   "label": "Print Format Builder Beta"
+   "label": "Print Format Builder Beta",
+   "description": "Edit this format in the visual drag-and-drop builder."
   },
   {
    "default": "15",
@@ -333,7 +340,7 @@
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2026-08-10 08:37:00.660226",
+ "modified": "2026-08-13 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
