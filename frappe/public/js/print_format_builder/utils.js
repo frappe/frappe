@@ -74,12 +74,22 @@ export function* layout_nodes(layout) {
 	}
 }
 
+// mirrors safe_color / COLOR_PATTERN: Typst emits rgb("#..."), a non-hex value blocks
+const TYPST_HEX = /^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+function non_hex_color(value) {
+	return value && !TYPST_HEX.test(String(value).trim());
+}
+
 export function typst_blockers_client(print_format, layout, letterhead) {
 	const blockers = [];
 	const add = (reason) => !blockers.includes(reason) && blockers.push(reason);
 	if (print_format?.custom_format) return [__("Custom HTML format")];
 	if (!print_format?.print_format_builder_beta) return [__("Not a builder format")];
 	if ((print_format?.css || "").trim()) add(__("Custom CSS on the format"));
+	for (const key of ["label_color", "value_color"]) {
+		if (non_hex_color(print_format?.[key]))
+			add(__("Format color Typst can't render: {0}", [print_format[key]]));
+	}
 	if (letterhead) {
 		if ((letterhead.custom_css || "").trim()) add(__("Letterhead with custom CSS"));
 		const header_is_image = letterhead.source === "Image" && letterhead.image;
@@ -119,6 +129,10 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 		}
 		if (node.fieldtype === "Image" && /^https?:\/\//.test(node.image_url || ""))
 			add(__("Remote image URL"));
+		for (const key of ["label_color", "value_color"]) {
+			if (non_hex_color(node[key]))
+				add(__("Field color Typst can't render: {0}", [node[key]]));
+		}
 	}
 	return blockers;
 }

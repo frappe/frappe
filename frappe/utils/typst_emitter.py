@@ -144,6 +144,11 @@ def typst_blockers(print_format, layout) -> list[str]:
 		)
 		blockers.extend(letterhead_blockers(lh))
 
+	for key in _COLOR_KEYS:
+		value = print_format.get(key)
+		if value and not safe_color(value):
+			blockers.append(_("Format color Typst can't render: {0}").format(value))
+
 	seen = set()
 	for where, node in _walk(layout):
 		style = node.get("custom_style")
@@ -159,6 +164,7 @@ def typst_blockers(print_format, layout) -> list[str]:
 			(_(fieldtype_reason) if fieldtype_reason else None)
 			or _barcode_blocker(node, print_format)
 			or _image_blocker(node)
+			or _color_blocker(node)
 		)
 		if reason and reason not in seen:
 			seen.add(reason)
@@ -209,6 +215,19 @@ def _image_blocker(df):
 	src = df.get("image_url") or ""
 	if src.startswith(("http://", "https://")):
 		return _("Remote image URL")
+	return None
+
+
+#: color fields Typst emits through rgb("#..."); a non-hex value (named color,
+#: rgb()/hsl()) would abort the compile, so it's gated instead of silently dropped
+_COLOR_KEYS = ("label_color", "value_color")
+
+
+def _color_blocker(df):
+	for key in _COLOR_KEYS:
+		value = df.get(key)
+		if value and not safe_color(value):
+			return _("Field color Typst can't render: {0}").format(value)
 	return None
 
 

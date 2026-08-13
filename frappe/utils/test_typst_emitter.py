@@ -267,6 +267,33 @@ class TestTypstGate(IntegrationTestCase):
 		)
 		self.assertRaisesRegex(frappe.ValidationError, "must be Typst", pf_doc.insert)
 
+	def test_non_hex_colors_block_instead_of_dropping(self):
+		"""HTML renders any CSS color; Typst emits only rgb("#..."), so a non-hex
+		field/format color is gated (falls back to Chromium) rather than dropped."""
+		self.assertIn(
+			"Field color Typst can't render: red",
+			typst_blockers(
+				self.pf(),
+				layout_with({"fieldtype": "Data", "fieldname": "x", "label_color": "red"}),
+			),
+		)
+		self.assertEqual(
+			typst_blockers(
+				self.pf(),
+				layout_with({"fieldtype": "Data", "fieldname": "x", "label_color": "#ff0000"}),
+			),
+			[],
+		)
+		self.assertTrue(
+			any(
+				"Format color" in b
+				for b in typst_blockers(
+					self.pf(value_color="rgb(1,2,3)"),
+					layout_with({"fieldtype": "Data", "fieldname": "x"}),
+				)
+			)
+		)
+
 	def test_falsy_field_values_are_hidden_like_html(self):
 		"""Data.html gates each field on the raw value ({% if value %}), so 0 / 0.0
 		/ False print nothing — Typst must match, not show a formatted zero."""
