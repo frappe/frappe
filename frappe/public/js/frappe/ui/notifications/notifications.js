@@ -348,7 +348,16 @@ class NotificationsView extends BaseNotificationsView {
 		const link_docname = notification_doc.document_name
 			? notification_doc.document_name
 			: notification_doc.name;
-		return frappe.utils.get_form_link(link_doctype, link_docname);
+		const form_link = frappe.utils.get_form_link(link_doctype, link_docname);
+		// the timeline renders each entry with `id="<doctype>-<name>"`, so the
+		// source record anchors the link to the exact spot in the document
+		if (notification_doc.source_doctype && notification_doc.source_name) {
+			const anchor = `${frappe.scrub(notification_doc.source_doctype)}-${
+				notification_doc.source_name
+			}`;
+			return `${form_link}#${anchor}`;
+		}
+		return form_link;
 	}
 
 	toggle_notification_icon(seen) {
