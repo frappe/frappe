@@ -39,6 +39,7 @@ import gettext
 
 import babel
 import babel.dates
+import bs4
 import nh3
 import num2words
 import pydantic
