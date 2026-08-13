@@ -152,9 +152,16 @@ export async function get_table_columns(df, child_doctype) {
 
 	function adjust_column_size(total_colsize, increase) {
 		let passes = 0;
-		let start_condition = increase ? total_colsize < 11 : total_colsize >= 11;
 
-		while (start_condition && passes < 11) {
+		// Evaluated fresh each iteration, not captured once before the loop.
+		// total_colsize changes inside the loop body below, so a value frozen
+		// at the top stays true (for increase) or true (for decrease) long
+		// after the per-pass break has already reached its target — the loop
+		// then burns the rest of its `passes < 11` budget re-scanning
+		// table_columns and breaking on the first field every time, without
+		// changing anything further. Output is unaffected either way; this
+		// only removes the wasted scans.
+		while ((increase ? total_colsize < 11 : total_colsize >= 11) && passes < 11) {
 			for (var i in table_columns) {
 				var _df = table_columns[i][0];
 				var colsize = table_columns[i][1];
