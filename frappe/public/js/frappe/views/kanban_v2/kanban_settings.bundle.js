@@ -277,9 +277,10 @@ class KanbanBoardSettings {
 				},
 			],
 			render: (panel) => {
-				["card_fields", "preview_fields"].forEach((fn) =>
-					this.set_grid_options(panel, fn, this.opts.card)
-				);
+				["card_fields", "preview_fields"].forEach((fn) => {
+					this.set_grid_options(panel, fn, this.opts.card);
+					this.bind_field_label_autofill(panel, fn);
+				});
 			},
 		};
 	}
@@ -302,7 +303,10 @@ class KanbanBoardSettings {
 					fields: this.field_grid_fields(false),
 				},
 			],
-			render: (panel) => this.set_grid_options(panel, "group_by_fields", this.opts.group),
+			render: (panel) => {
+				this.set_grid_options(panel, "group_by_fields", this.opts.group);
+				this.bind_field_label_autofill(panel, "group_by_fields");
+			},
 		};
 	}
 
@@ -342,6 +346,27 @@ class KanbanBoardSettings {
 		if (!grid || !grid.docfields) return;
 		grid.update_docfield_property("fieldname", "options", options);
 		grid.refresh();
+	}
+
+	/** Auto-fill the label column when a field is selected in a grid row. */
+	bind_field_label_autofill(panel, tablefield) {
+		const grid = panel.get_field(tablefield)?.grid;
+		if (!grid) return;
+		// Listen for field changes in grid rows
+		grid.wrapper.on("change", ".frappe-control[data-fieldname='fieldname'] input", (e) => {
+			const fieldname = e.target.value;
+			if (!fieldname) return;
+			const df = frappe.meta.get_field(this.doctype, fieldname);
+			if (!df) return;
+			// Find the row and always update the label to match the field
+			const $row = $(e.target).closest(".grid-row");
+			const rowIdx = $row.data("idx");
+			const row = grid.grid_rows.find((r) => r.doc.idx === rowIdx);
+			if (row) {
+				row.doc.label = df.label || fieldname;
+				row.refresh_field("label");
+			}
+		});
 	}
 
 	/** Mirror the form: picking a new column field seeds the (empty) column list from
