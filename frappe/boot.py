@@ -74,6 +74,13 @@ def get_bootinfo():
 	bootinfo.module_app = {
 		module: app for module, app in frappe.local.module_app.items() if module not in disabled_modules
 	}
+	# Where a code-only module's navigation went, so the desk can resolve an entity whose own
+	# module ships none. Raw and unfiltered on purpose: the client already tests each heir against
+	# `module_sidebars`, which is the per-user payload, so filtering here would say the same thing
+	# twice. Keyed by real module name, unlike module_app above.
+	from frappe.utils.modules import get_code_only_module_heirs
+
+	bootinfo.code_only_module_heirs = get_code_only_module_heirs()
 	bootinfo.single_types = filter_out_disabled_doctypes(
 		frappe.get_all("DocType", {"issingle": 1}, pluck="name")
 	)

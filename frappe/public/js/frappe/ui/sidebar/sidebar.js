@@ -1047,7 +1047,9 @@ frappe.ui.Sidebar = class Sidebar {
 	//   2. an item flagged `is_default_module` names the module that owns the entity — the one
 	//      authored signal, and the thing that decides when nothing above holds you.
 	//   3. the entity's own module, WHILE its sidebar lists the entity. A module that can show the
-	//      entity beats an unrelated sidebar that merely curates a link to it.
+	//      entity beats an unrelated sidebar that merely curates a link to it. A module that ships
+	//      no navigation of its own is read through its declared heirs here, membership first, so
+	//      the rule holds for it unchanged — see sidebar_from_module.
 	//   4. only then the remaining sidebars that link the entity: the first, owner-first per
 	//      get_modules_linking. A link is a weak signal — an entity can be curated into any number
 	//      of foreign sidebars — so it decides only once no one above can show the entity.
@@ -1258,12 +1260,38 @@ frappe.ui.Sidebar = class Sidebar {
 	// module's sidebar could be titled anything (module "Accounts" -> workspace "Accounting").
 	// That scan is what 1:1 eliminates.
 	//
-	// Returns null for an entity whose module ships no navigation at all (`Core`, `Custom`, `Desk`
-	// are declared code_only_modules and are absent from the payload). That is a real gap and not
-	// this function's to close: the module is not a place you can go.
+	// A module that ships no navigation at all (`Core`, `Custom`, `Desk` are declared
+	// code_only_modules and are absent from the payload) answers through its heirs instead: the
+	// app that split its navigation out declares where the navigation went, and the desk picks
+	// among the heirs by the same membership rule everything else uses --
+	//
+	//   the first heir whose sidebar LISTS the entity, else the first heir that EXISTS here.
+	//
+	// A module-level declaration is enough because of that first line: `Core` fans out to five
+	// heirs and never has to say which of them owns `User`, since frappe already curated `User`
+	// into `Users`. Both answers then fall out of gates that already exist, which is why this adds
+	// no step to the stack: an heir that lists the entity is in `candidates`, so step 3's
+	// membership gate passes and it answers there -- ahead of the step 4 alphabet, which is what
+	// handed `User` to erpnext's `Setup`. The default heir is not in `candidates`, so step 3 fails,
+	// step 4 still lets a foreign link win, and otherwise 3b returns it as the last principled
+	// answer before the fallbacks.
+	//
+	// "Exists here" is the per-user half: the payload is permission-filtered, so a user who cannot
+	// see `System` falls to the next heir. Two users can correctly land in different shells.
+	//
+	// Still null when nothing answers -- an undeclared code-only module, or heirs this user has
+	// none of.
 	sidebar_from_module(entity, route) {
 		const module = this.get_module_for_entity(entity, route);
-		return module && frappe.boot.module_sidebars?.[module] ? module : null;
+		if (!module) return null;
+		if (frappe.boot.module_sidebars?.[module]) return module;
+
+		const heirs = (frappe.boot.code_only_module_heirs?.[module] || []).filter(
+			(heir) => frappe.boot.module_sidebars?.[heir]
+		);
+		const linking = this.get_modules_linking(entity);
+
+		return heirs.find((heir) => linking.includes(heir)) || heirs[0] || null;
 	}
 
 	// The module that owns a workspace, from the module payload's `workspaces` list. A direct

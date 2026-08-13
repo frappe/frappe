@@ -83,8 +83,35 @@ def get_code_only_modules() -> set[str]:
 
 	Uncached on purpose: `get_hooks` already caches the merged hook map per site and busts it on
 	migrate, so a second cache here would only add a copy nothing invalidates.
+
+	Only the *names* -- `set()` over the hook's dict yields its keys, so this reads the same
+	answer out of a mapping as it did out of the list the hook used to be. Where the navigation
+	went is `get_code_only_module_heirs`'s question, deliberately kept separate: this one guards
+	the dock and would learn nothing from the values.
 	"""
 	return set(frappe.get_hooks("code_only_modules") or [])
+
+
+def get_code_only_module_heirs() -> dict[str, list[str]]:
+	"""Where each code-only module's navigation went -- module -> the modules that inherited it.
+
+	The other half of the `code_only_modules` declaration. `get_code_only_modules` says a module
+	ships no navigation; this says which modules carry it now, so an entity whose module is
+	code-only resolves against the heirs instead of dead-ending in a module that is not a place
+	you can go. `frappe.Core` fans out to five, and the desk picks among them by membership --
+	which is why a module-level declaration is enough and nobody has to flag 200 entities.
+
+	**Ordered, and the order is read twice** -- earliest heir wins a tie between two that both
+	list the entity, and the first heir this user can see is the home for an entity none of them
+	lists. `append_hook` listifies each value and extends across apps in app order, so the
+	ordering is per-app-merged and stable: an app that took over part of another's navigation
+	appends to the same key from its own `hooks.py`.
+
+	Shipped to the desk raw (`bootinfo.code_only_module_heirs`) rather than filtered to the
+	user's payload -- the client already tests every candidate against `module_sidebars`, and
+	filtering here would put the per-user rule in two places.
+	"""
+	return {module: list(heirs) for module, heirs in (frappe.get_hooks("code_only_modules") or {}).items()}
 
 
 def get_modules_from_all_apps_for_user(user: str | None = None) -> list[dict]:

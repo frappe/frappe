@@ -607,7 +607,25 @@ add_to_apps_screen = [
 # would each show a computed base built from whatever doctypes happen to sit in them -- the
 # grab-bag the split exists to replace. See `frappe.utils.modules.get_code_only_modules`.
 #
-# Nothing is stranded here: `Core`'s navigation went to `System`, `Build Tools`, `Data` and
-# `Users`; `Custom`'s and `Desk`'s went to `Build Tools`, whose sidebar now carries the union of
-# what all three used to offer.
-code_only_modules = ["Core", "Custom", "Desk"]
+# Each key maps to the modules that inherited its navigation, so nothing is stranded: an entity
+# whose module is code-only is resolved against the heirs instead of dead-ending. Naming the
+# heirs is the app's job -- it made the split and is the only one who knows where the navigation
+# went. Without it the desk can only infer, and inference lost `User` to erpnext's `Setup` on
+# every erpnext site.
+#
+# THE ORDER IS LOAD-BEARING, TWICE. This is a list, not a set, and appending to it is a decision:
+#   1. it breaks ties -- when several heirs list the same entity, the earliest declared wins;
+#   2. it names the default home -- an entity no heir lists at all lands in the first heir that
+#      this user can see.
+# `System` leads `Core` deliberately: it is the internals shell (settings, versions, logs, jobs),
+# and leading with `Build Tools` instead would turn the developer-tooling sidebar into the dumping
+# ground for every unplaced `Core` internal.
+#
+# A mapping can rot where an inference cannot: `Email` is here because `Communication` is a `Core`
+# doctype that only frappe's `Email` sidebar links, which the list above this comment used to
+# miss. Keep it swept.
+code_only_modules = {
+	"Core": ["System", "Build Tools", "Data", "Users", "Email"],
+	"Custom": ["Build Tools"],
+	"Desk": ["Build Tools"],
+}

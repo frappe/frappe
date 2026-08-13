@@ -35,6 +35,7 @@ context("Cold-entry sidebar resolution", () => {
 			reports = {},
 			pages = {},
 			dashboards = [],
+			heirs = {},
 			persisted,
 			route,
 		},
@@ -48,6 +49,7 @@ context("Cold-entry sidebar resolution", () => {
 				allowed_reports: frappe.boot.allowed_reports,
 				page_info: frappe.boot.page_info,
 				dashboards: frappe.boot.dashboards,
+				code_only_module_heirs: frappe.boot.code_only_module_heirs,
 				get_meta: frappe.get_meta,
 				selected_module: win.localStorage.getItem("selected_module"),
 			};
@@ -57,6 +59,7 @@ context("Cold-entry sidebar resolution", () => {
 			frappe.boot.allowed_reports = reports;
 			frappe.boot.page_info = pages;
 			frappe.boot.dashboards = dashboards;
+			frappe.boot.code_only_module_heirs = heirs;
 			frappe.get_meta = (name) => metas[name] || null;
 			if (persisted) win.localStorage.setItem("selected_module", persisted);
 			else win.localStorage.removeItem("selected_module");
@@ -72,6 +75,7 @@ context("Cold-entry sidebar resolution", () => {
 				frappe.boot.allowed_reports = real.allowed_reports;
 				frappe.boot.page_info = real.page_info;
 				frappe.boot.dashboards = real.dashboards;
+				frappe.boot.code_only_module_heirs = real.code_only_module_heirs;
 				frappe.get_meta = real.get_meta;
 				if (real.selected_module) {
 					win.localStorage.setItem("selected_module", real.selected_module);
@@ -303,6 +307,109 @@ context("Cold-entry sidebar resolution", () => {
 				expect(resolved.provisional).to.be.false;
 			}
 		);
+	});
+
+	// A code-only module ships no navigation, so it is absent from the payload and its entities used
+	// to dead-end: `User`, `System Settings` and `permission-manager` are all `Core`, and all three
+	// open in erpnext's `Setup` on every erpnext site because erpnext curated a link and frappe's
+	// side of the split was unstated. The heir map states it, and membership picks within it.
+	//
+	// The heir order below is frappe's own, and it is read twice -- it breaks ties among heirs that
+	// both list the entity, and it names the home for an entity none of them lists.
+	const code_only_world = {
+		sidebars: {
+			"Build Tools": ["Module Def", "Translation", "Client Script"],
+			Data: ["Data Import"],
+			Email: ["Communication"],
+			Setup: [
+				"User",
+				"System Settings",
+				"permission-manager",
+				"Deleted Document",
+				"Company",
+			],
+			System: ["System Settings", "Module Def", "Translation", "Log Settings"],
+			Users: ["User", "permission-manager", "Role"],
+		},
+		metas: {
+			User: { module: "Core" },
+			"System Settings": { module: "Core" },
+			"Module Def": { module: "Core" },
+			"Prepared Report": { module: "Core" },
+			"Deleted Document": { module: "Core" },
+		},
+		pages: { "permission-manager": { module: "Core" } },
+		heirs: {
+			Core: ["System", "Build Tools", "Data", "Users", "Email"],
+			Custom: ["Build Tools"],
+			Desk: ["Build Tools"],
+		},
+	};
+
+	// The three that move on a real site. The STEP matters as much as the answer: an heir that lists
+	// the entity has to win at step 3, because step 4 is where erpnext's Setup was taking them.
+	[
+		[["List", "User"], "Users"],
+		[["List", "System Settings"], "System"],
+		[["permission-manager"], "Users"],
+	].forEach(([route, expected]) => {
+		it(`sends ${route.join("/")} to the heir that lists it (${expected}), at step 3`, () => {
+			resolve({ ...code_only_world, route }, (resolved) => {
+				expect(resolved.sidebar).to.equal(expected);
+				expect(resolved.reason).to.contain("and it lists the entity");
+				expect(resolved.provisional).to.be.false;
+			});
+		});
+	});
+
+	// Both System and Build Tools list `Module Def`; the declaration order decides, which is why the
+	// hook is a list and appending to it is a decision rather than a transcription.
+	it("breaks a tie between two listing heirs by declaration order", () => {
+		resolve({ ...code_only_world, route: ["List", "Module Def"] }, (resolved) => {
+			expect(resolved.sidebar).to.equal("System");
+			expect(resolved.reason).to.contain("and it lists the entity");
+		});
+	});
+
+	// The ~40 internals nothing links anywhere. They used to land on the sticky or on whatever
+	// sidebar sorted first; the first declared heir is the same "last principled answer" 3b already
+	// gives a standalone doctype.
+	it("sends a code-only entity that nothing links to the first heir, via 3b", () => {
+		resolve(
+			{ ...code_only_world, persisted: "Setup", route: ["List", "Prepared Report"] },
+			(resolved) => {
+				expect(resolved.sidebar).to.equal("System");
+				expect(resolved.reason).to.contain("no sidebar links the entity at all");
+			}
+		);
+	});
+
+	// The payload is permission-filtered, so "first heir" means first heir THIS user has. Two users
+	// can correctly land in different shells for the same entity -- ownership is per-user.
+	it("skips an heir this user cannot see and takes the next", () => {
+		const { System, ...without_system } = code_only_world.sidebars;
+		resolve(
+			{
+				...code_only_world,
+				sidebars: without_system,
+				persisted: "Setup",
+				route: ["List", "Prepared Report"],
+			},
+			(resolved) => {
+				expect(resolved.sidebar).to.equal("Build Tools");
+				expect(resolved.reason).to.contain("no sidebar links the entity at all");
+			}
+		);
+	});
+
+	// The heirs get no exception from the map's one rule. A sidebar that can actually show you the
+	// entity beats a shell that merely inherited the module, so step 4 still runs before 3b. No
+	// shipped row exercises this today, which is why it is asserted here rather than measured.
+	it("lets a foreign link beat the default heir", () => {
+		resolve({ ...code_only_world, route: ["List", "Deleted Document"] }, (resolved) => {
+			expect(resolved.sidebar).to.equal("Setup");
+			expect(resolved.reason).to.contain("is not listed by its own module's sidebar");
+		});
 	});
 
 	// cold_entry_needs_recheck is deliberately broader than step 3's gate: it fires whenever the

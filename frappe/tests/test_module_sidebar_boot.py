@@ -297,6 +297,71 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 		self.assertNotIn("sidebar_items", payload)
 
 
+class TestCodeOnlyModuleHeirs(IntegrationTestCase):
+	"""The other half of the `code_only_modules` declaration: not just *that* a module ships no
+	navigation, but *where the navigation went*.
+
+	The client resolves an entity against the heirs (see `sidebar_from_module`); the server's whole
+	job is to state them and ship them. What is worth pinning here is that the hook's change of
+	shape did not quietly take the dock gate with it, and that the declaration has not rotted.
+	"""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+
+	def test_the_dock_gate_still_reads_the_same_names(self):
+		"""`get_code_only_modules` is `set()` over the hook, and `set()` over a dict yields its
+		keys -- which is the whole reason the list could become a mapping with no caller change."""
+		from frappe.utils.modules import get_code_only_module_heirs, get_code_only_modules
+
+		heirs = get_code_only_module_heirs()
+		self.assertEqual(get_code_only_modules(), set(heirs))
+
+		navigable = get_navigable_modules()
+		for module in heirs:
+			self.assertNotIn(module, navigable, f"{module} declares no navigation but is in the dock")
+
+	def test_every_heir_is_a_module_that_can_actually_be_landed_in(self):
+		"""The standing cost of declaring where navigation went instead of inferring it: a mapping
+		can rot. It already had -- `Communication` is a `Core` doctype that only `Email` links, and
+		`Email` was missing from the day the declaration was written. This catches the other
+		direction (an heir that was renamed, deleted, or is itself code-only); a name nobody
+		inherited still needs a sweep.
+
+		Checked against `module_app` -- every installed app's `modules.txt` -- rather than against
+		the `Module Def` table, because both sides are then repo facts: a site that has not migrated
+		since the modules were added is missing the rows, and this would fail for staleness rather
+		than for rot."""
+		from frappe.utils.modules import get_code_only_module_heirs, get_code_only_modules
+
+		code_only = get_code_only_modules()
+		declared = frappe.local.module_app
+		for module, heirs in get_code_only_module_heirs().items():
+			self.assertTrue(heirs, f"{module} is code-only and names no heir, so its entities dead-end")
+			for heir in heirs:
+				self.assertIn(frappe.scrub(heir), declared, f"{module} -> {heir}, which no app ships")
+				self.assertNotIn(heir, code_only, f"{module} -> {heir}, which ships no navigation either")
+
+	def test_the_heirs_are_ordered_and_stay_ordered(self):
+		"""`append_hook` listifies each value and extends in app order, so the declaration order is
+		the read order -- which the resolver depends on twice (tie-break, and default home)."""
+		from frappe.utils.modules import get_code_only_module_heirs
+
+		heirs = get_code_only_module_heirs()
+		self.assertIsInstance(heirs.get("Core"), list)
+		self.assertEqual(heirs["Core"][0], "System", "the first heir is Core's default home")
+
+	def test_the_mapping_reaches_the_desk_raw(self):
+		"""One boot key beside `module_app`, unfiltered: the client tests each heir against
+		`module_sidebars`, which is already the per-user payload, so filtering here would put the
+		same rule in two places."""
+		from frappe.boot import get_bootinfo
+		from frappe.utils.modules import get_code_only_module_heirs
+
+		boot = get_bootinfo()
+		self.assertEqual(boot.get("code_only_module_heirs"), get_code_only_module_heirs())
+
+
 class TestPrivateWorkspacesAreDerived(IntegrationTestCase):
 	"""D3: a private workspace's sidebar link is not stored anywhere.
 
