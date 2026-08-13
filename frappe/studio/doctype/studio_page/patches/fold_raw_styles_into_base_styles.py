@@ -27,6 +27,7 @@ def _migrate_doctype(doctype, fields):
 		if updates:
 			doc = frappe.get_doc(doctype, row.name)
 			doc.update(updates)
+			doc.flags.ignore_links = True
 			doc.save()
 
 
