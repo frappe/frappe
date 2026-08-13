@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
+import asyncio
+import json
 import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
@@ -174,6 +176,10 @@ def _make_request(
 	their timeout / redirect / cookie handling cannot drift apart."""
 	origin = read_header(environ, "Origin")
 
+	headers = _auth_headers(credentials, site, secret)
+	if config.embedded:
+		return _make_local_request(headers | {"Origin": origin} if origin else headers)
+
 	async def request(
 		path: str,
 		method: HttpMethod = "GET",
@@ -185,10 +191,59 @@ def _make_request(
 			get_url(origin, path, config),
 			params=params or {},
 			json=body,
-			headers=_auth_headers(credentials, site, secret),
+			headers=headers,
 		)
 		res.raise_for_status()
 		return res.json()
+
+	return request
+
+
+def _get_local_client():
+	"""One client for the whole process, built on first use.
+
+	use_cookies=False leaves the client with no per-request state, so every
+	connection and worker thread can share one — and a jar would otherwise
+	overwrite our Cookie header and replay one user's sid onto the next connect."""
+	global _local_client
+	if _local_client is None:
+		from werkzeug.test import Client
+
+		from frappe.app import application
+
+		_local_client = Client(application, use_cookies=False)
+	return _local_client
+
+
+def _make_local_request(headers: dict[str, str]) -> WebRequest:
+	"""Same request, in this process. Embedded, loopback HTTP re-enters our own
+	process, so a saturated WSGI pool would stall every connect behind it.
+
+	Runs the real WSGI app, keeping session validation, permissions and the socket
+	secret on the code path the HTTP transport uses."""
+	client = _get_local_client()
+
+	def call(path: str, method: HttpMethod, params: dict | None, body: dict | None) -> dict:
+		# json=None is not the same as omitting it: werkzeug would send a "null" body.
+		response = client.open(
+			path,
+			method=method,
+			query_string=params or {},
+			headers=headers,
+			follow_redirects=True,
+			**({"json": body} if body is not None else {}),
+		)
+		if response.status_code >= 400:
+			raise ValueError(f"{method} {path} returned {response.status_code}")
+		return json.loads(response.get_data(as_text=True) or "{}")
+
+	async def request(
+		path: str,
+		method: HttpMethod = "GET",
+		params: dict | None = None,
+		body: dict | None = None,
+	) -> dict:
+		return await asyncio.to_thread(call, path, method, params, body)
 
 	return request
 
@@ -232,6 +287,7 @@ def _make_session(site: str, user_info: dict, request: WebRequest) -> Session:
 
 _secret_client: aioredis.Redis | None = None
 _http_client: httpx.AsyncClient | None = None
+_local_client = None
 
 
 async def get_socketio_secret(redis_url: str) -> str | None:

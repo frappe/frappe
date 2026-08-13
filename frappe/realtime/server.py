@@ -88,13 +88,13 @@ class RealtimeServer:
 	loop uvicorn runs.
 	"""
 
-	def __init__(self, config: RealtimeConfig | None = None):
+	def __init__(self, config: RealtimeConfig | None = None, other_asgi_app=None):
 		self.config = config or get_config()
 		self.sio = create_sio()
 		self.bridge = RedisBridge(self.sio, self.config.redis_queue)
-		# No other_asgi_app: engineio answers non-socket.io traffic with its own 404.
 		self.app = socketio.ASGIApp(
 			self.sio,
+			other_asgi_app=other_asgi_app,
 			on_startup=self._on_startup,
 			on_shutdown=self._on_shutdown,
 		)
@@ -121,14 +121,14 @@ class RealtimeServer:
 		self._server.should_exit = True
 
 	async def _on_startup(self) -> None:
-		# Only when asked: this replaces the executor for the whole loop, and nothing
-		# built in dispatches to a thread.
 		if self.config.worker_threads:
 			asyncio.get_running_loop().set_default_executor(
 				ThreadPoolExecutor(
-					max_workers=self.config.worker_threads, thread_name_prefix="realtime-worker"
+					max_workers=self.config.worker_threads,
+					thread_name_prefix="realtime-worker",
 				)
 			)
+
 		self.bridge.start()
 
 	async def _on_shutdown(self) -> None:

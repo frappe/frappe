@@ -14,6 +14,7 @@ in an integration run.
 """
 
 import asyncio
+import json
 import os
 import sys
 import threading
@@ -363,6 +364,85 @@ class TestSharedHttpClient(unittest.IsolatedAsyncioTestCase):
 		secret_client.aclose.assert_awaited_once()
 
 
+class TestLocalRequest(unittest.IsolatedAsyncioTestCase):
+	"""Embedded, the web callback runs in-process instead of over loopback HTTP."""
+
+	def setUp(self):
+		patcher = patch.object(auth_mod, "get_socketio_secret", new=AsyncMock(return_value="secret"))
+		patcher.start()
+		self.addCleanup(patcher.stop)
+
+	@contextmanager
+	def _wsgi(self, status: str = "200 OK", payload: object = None) -> Iterator[dict]:
+		"""Stand in for frappe.app.application; importing the real one is expensive."""
+		seen: dict = {}
+
+		def application(environ, start_response):
+			seen.update(environ, _thread=threading.get_ident())
+			body = json.dumps({"message": payload} if payload is not None else {}).encode()
+			start_response(status, [("Content-Type", "application/json")])
+			return [body]
+
+		stub = types.ModuleType("frappe.app")
+		stub.application = application
+		with patch.dict(sys.modules, {"frappe.app": stub}), patch.object(auth_mod, "_local_client", None):
+			yield seen
+
+	def _request(self):
+		return auth_mod._make_request(
+			make_environ(site_header="s1"),
+			auth_mod.Credentials(sid="abc"),
+			make_config(embedded=True),
+			"s1",
+			"shared-secret",
+		)
+
+	async def test_request_carries_credential_site_secret_and_origin(self):
+		with self._wsgi(payload=1) as seen:
+			body = await self._request()("/api/method/x", "POST", params={"doctype": "ToDo"})
+
+		self.assertEqual(body["message"], 1)
+		self.assertEqual(seen["REQUEST_METHOD"], "POST")
+		self.assertEqual(seen["PATH_INFO"], "/api/method/x")
+		self.assertEqual(seen["QUERY_STRING"], "doctype=ToDo")
+		self.assertEqual(seen["HTTP_COOKIE"], "sid=abc")
+		self.assertEqual(seen["HTTP_X_FRAPPE_SITE_NAME"], "s1")
+		self.assertEqual(seen["HTTP_X_FRAPPE_SOCKET_SECRET"], "shared-secret")
+		# The web app reads Origin for site resolution, so a local call must carry it.
+		self.assertEqual(seen["HTTP_ORIGIN"], "http://s1")
+
+	async def test_error_status_raises_like_raise_for_status(self):
+		with self._wsgi(status="403 FORBIDDEN"):
+			with self.assertRaises(ValueError):
+				await self._request()("/api/method/x")
+
+	async def test_empty_body_is_omitted_not_sent_as_null(self):
+		with self._wsgi() as seen:
+			await self._request()("/api/method/x")
+
+		self.assertEqual(seen.get("CONTENT_LENGTH") or "0", "0")
+
+	async def test_authenticate_uses_it_end_to_end(self):
+		with self._wsgi(
+			payload={"user": "a@b.com", "user_type": "System User", "installed_apps": ["frappe"]}
+		):
+			session = await auth_mod.authenticate(
+				make_environ(host="s1", origin="http://s1"), "/s1", make_config(embedded=True)
+			)
+
+		self.assertEqual(session.user, "a@b.com")
+		self.assertEqual(session.site, "s1")
+
+	async def test_it_does_not_block_the_loop(self):
+		# The WSGI call is blocking; it must go to a thread or a slow request would
+		# stall every other socket on the loop.
+		caller = threading.get_ident()
+		with self._wsgi() as seen:
+			await self._request()("/api/method/x")
+
+		self.assertNotEqual(seen["_thread"], caller)
+
+
 class TestRegistry(unittest.TestCase):
 	def test_on_registers_with_flags(self):
 		reg = Registry()
@@ -690,6 +770,13 @@ class TestConfig(unittest.TestCase):
 	def test_worker_threads_override(self):
 		self.assertEqual(self._config(socketio_worker_threads="8").worker_threads, 8)
 
+	def test_embedded_is_off_unless_the_backend_says_so(self):
+		self.assertFalse(self._config().embedded)
+		self.assertFalse(self._config(socketio_backend="python").embedded)
+
+	def test_embedded_backend(self):
+		self.assertTrue(self._config(socketio_backend="python-embedded").embedded)
+
 
 class TestServerApp(unittest.IsolatedAsyncioTestCase):
 	"""RealtimeServer wiring; needs the real socketio/uvicorn deps."""
@@ -727,12 +814,23 @@ class TestServerApp(unittest.IsolatedAsyncioTestCase):
 
 		self.assertEqual(seen, ["/bench/sites"])
 
-	async def _startup(self, config: RealtimeConfig) -> MagicMock:
+	def _build(self, config: RealtimeConfig, **kwargs: object):
 		with (
 			patch.object(self.server_mod, "load_handlers", lambda *a, **k: None),
 			patch.object(self.server_mod, "wire", lambda *a, **k: None),
 		):
-			server = self.server_mod.RealtimeServer(config)
+			return self.server_mod.RealtimeServer(config, **kwargs)
+
+	def test_other_asgi_app_receives_non_socketio_traffic(self):
+		# Embedded, this is where the Frappe WSGI app is mounted.
+		sentinel = object()
+		self.assertIs(self._build(make_config(), other_asgi_app=sentinel).app.other_asgi_app, sentinel)
+
+	def test_unset_leaves_engineio_to_answer(self):
+		self.assertIsNone(self._build(make_config()).app.other_asgi_app)
+
+	async def _startup(self, config: RealtimeConfig) -> MagicMock:
+		server = self._build(config)
 		loop = asyncio.get_running_loop()
 		with (
 			patch.object(server.bridge, "start"),
@@ -742,8 +840,8 @@ class TestServerApp(unittest.IsolatedAsyncioTestCase):
 		return set_executor
 
 	async def test_the_loop_executor_is_left_alone_by_default(self):
-		# set_default_executor replaces it for the whole loop, and nothing built in
-		# dispatches to a thread.
+		# set_default_executor replaces it for the whole loop, which embedded is
+		# the host's. Nothing built in dispatches to a thread, so don't touch it.
 		(await self._startup(make_config())).assert_not_called()
 
 	async def test_worker_threads_installs_a_sized_executor(self):
