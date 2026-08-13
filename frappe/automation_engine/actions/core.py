@@ -3,18 +3,15 @@
 
 """Built-in automation actions. Each delegates to existing framework internals."""
 
-from typing import ClassVar
-
 import frappe
 from frappe import _
 from frappe.automation_engine.actions.base import AutomationAction, AutomationParamError
-from frappe.utils import flt
 
-NUMERIC_FIELDTYPES = ("Int", "Float", "Currency", "Percent")
 
-def _render(value, doc, context=None):
+def _render(value, doc):
 	"""Render a Jinja-templated string against the document; pass through non-templates."""
 	if isinstance(value, str) and "{{" in value:
+		return frappe.render_template(value, {"doc": doc})
 	return value
 
 
@@ -81,6 +78,7 @@ class SendNotification(AutomationAction):
 			raise AutomationParamError(_("At least one recipient is required"), fieldname="recipients")
 
 	def execute(self, doc, params, context):
+		subject, message = self._content(params, doc)
 		recipients = params.get("recipients") or []
 		if params.get("channel") == "System":
 			return self._notify_system(doc, recipients, subject, message)
@@ -88,24 +86,21 @@ class SendNotification(AutomationAction):
 			recipients=recipients,
 			subject=subject,
 			message=message,
+			reference_doctype=doc.doctype,
+			reference_name=doc.name,
 		)
 		return _("Emailed {0}").format(", ".join(recipients))
 
-	def _content(self, params, doc, context):
+	def _content(self, params, doc):
 		if params.get("email_template"):
 			template = frappe.get_doc("Email Template", params["email_template"])
 			return (
-				frappe.render_template(template.subject, _render_context(doc, context)),
-				frappe.render_template(
-					template.response or template.response_html or "", _render_context(doc, context)
-				),
+				frappe.render_template(template.subject, {"doc": doc}),
+				frappe.render_template(template.response or template.response_html or "", {"doc": doc}),
 			)
-		return _render(params.get("subject") or "", doc, context), _render(
-			params.get("message") or "", doc, context
-		)
+		return _render(params.get("subject") or "", doc), _render(params.get("message") or "", doc)
 
 	def _notify_system(self, doc, recipients, subject, message):
-		_require_doc(doc, self.label)
 		for user in recipients:
 			frappe.get_doc(
 				{
@@ -125,14 +120,8 @@ class AssignToUser(AutomationAction):
 	action_type = "AssignToUser"
 	label = "Assign to User"
 	description = "Assign the triggering document to one or more users (wraps ToDo assignment)."
-	params_schema: ClassVar[list] = [
-		{
-			"fieldname": "assign_to",
-			"label": "Assign To",
-			"fieldtype": "JSON",
-			"reqd": 1,
-			"options_source": "users",
-		},
+	params_schema = [
+		{"fieldname": "assign_to", "label": "Assign To", "fieldtype": "JSON", "reqd": 1},
 		{"fieldname": "description", "label": "Description", "fieldtype": "Data"},
 	]
 
@@ -143,16 +132,16 @@ class AssignToUser(AutomationAction):
 	def execute(self, doc, params, context):
 		from frappe.desk.form.assign_to import add
 
-		_require_doc(doc, self.label)
 		users = params.get("assign_to") or []
 		add(
 			{
 				"doctype": doc.doctype,
 				"name": doc.name,
 				"assign_to": users,
-				"description": _render(params.get("description"), doc, context) or doc.doctype,
+				"description": _render(params.get("description"), doc) or doc.doctype,
 			}
 		)
 		return _("Assigned to {0}").format(", ".join(users))
 
 
+CORE_ACTIONS = [SetFieldValue, CreateDocument, SendNotification, AssignToUser]
