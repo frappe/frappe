@@ -63,6 +63,21 @@ class TestFullTextSearch(IntegrationTestCase):
 		res = self.index.search("DesktopAccounting")
 		self.assertEqual(res[0], "sw/frappebooks")
 
+	def test_base_get_document_to_index_accepts_a_name(self):
+		# update_index_by_name always calls get_document_to_index(doc_name).
+		# A subclass that doesn't override it should fall through to the base
+		# stub (falsy, so no-op) rather than raise a TypeError from an arity
+		# mismatch between the 0-arg base declaration and the 1-arg call site.
+		bare = BareWrapper("test_frappe_bare_index")
+		bare.update_index_by_name("anything")
+
+
+class BareWrapper(FullTextSearch):
+	"""Deliberately does not override get_document_to_index — exercises the
+	base class's own default, which test_base_get_document_to_index_accepts_a_name
+	covers.
+	"""
+
 
 class TestWrapper(FullTextSearch):
 	def get_items_to_index(self):

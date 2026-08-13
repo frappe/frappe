@@ -33,7 +33,14 @@ class FullTextSearch:
 		"""Get all documents to be indexed conforming to the schema"""
 		return []
 
-	def get_document_to_index(self):
+	def get_document_to_index(self, doc_name):
+		"""Fetch and shape the document named `doc_name` for indexing.
+
+		The base implementation is a stub returning an empty (falsy) document,
+		so a subclass that doesn't override this is a no-op rather than an
+		error — every real subclass (`WebsiteSearch`, and `TestWrapper` in
+		test_full_text_search.py) overrides it with this same signature.
+		"""
 		return {}
 
 	def build(self):
