@@ -58,9 +58,7 @@ frappe.listview_settings["Print Format"] = {
 				options: "Builder\nHTML",
 				default: "Builder",
 				depends_on: 'eval:doc.print_format_for !== "Report"',
-				description: __(
-					"Builder is a visual drag-and-drop editor. HTML lets you write the format by hand with Jinja."
-				),
+				description: __("Builder is visual. HTML is hand-written."),
 			},
 		];
 
@@ -72,9 +70,7 @@ frappe.listview_settings["Print Format"] = {
 					fieldname: "standard",
 					fieldtype: "Check",
 					default: 0,
-					description: __(
-						"Save this format as files in an app so it ships with the app and is tracked in version control. Only available in developer mode."
-					),
+					description: __("Ship as files in an app, tracked in git."),
 				},
 				{
 					label: __("Module"),
@@ -83,7 +79,6 @@ frappe.listview_settings["Print Format"] = {
 					options: "Module Def",
 					depends_on: "standard",
 					mandatory_depends_on: "standard",
-					description: __("The app module the format files are saved under."),
 				}
 			);
 		}

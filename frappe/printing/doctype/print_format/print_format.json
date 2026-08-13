@@ -88,7 +88,7 @@
    "options": "No\nYes",
    "reqd": 1,
    "search_index": 1,
-   "description": "Save this format as files in an app so it ships with the app and is tracked in version control. Only editable in developer mode \u2014 duplicate a standard format to customize it."
+   "description": "Ship as files in an app, tracked in git. Developer mode only; duplicate to edit."
   },
   {
    "default": "0",
@@ -96,7 +96,7 @@
    "fieldtype": "Check",
    "label": "Custom Format",
    "read_only_depends_on": "eval:doc.print_format_for===\"Report\";",
-   "description": "Write the format by hand in HTML and Jinja instead of using the visual builder."
+   "description": "Write the format by hand in HTML and Jinja."
   },
   {
    "depends_on": "eval:doc.custom_format || doc.print_format_for == \"Report\"",
@@ -117,7 +117,7 @@
    "fieldname": "raw_printing",
    "fieldtype": "Check",
    "label": "Raw Printing",
-   "description": "Send raw commands (e.g. ESC/POS) to a label or thermal printer instead of rendering a PDF."
+   "description": "Send raw ESC/POS commands to a label or thermal printer."
   },
   {
    "depends_on": "eval:!doc.raw_printing",
@@ -256,7 +256,7 @@
    "fieldname": "print_format_builder_beta",
    "fieldtype": "Check",
    "label": "Print Format Builder Beta",
-   "description": "Edit this format in the visual drag-and-drop builder."
+   "description": "Edit in the visual builder."
   },
   {
    "default": "15",
