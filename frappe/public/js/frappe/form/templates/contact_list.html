@@ -11,7 +11,7 @@
 		<div class="box-header flex items-center flex-wrap gap-2">
 			<span class="text-base-semibold text-ink-gray-8">{%= frappe.utils.escape_html(contact.first_name) %} {%= frappe.utils.escape_html(contact.last_name) %}</span>
 			{% if (contact.name === primary_name) { %}
-				{%= frappe.ui.badge.html({ label: __("Primary"), theme: "blue", size: "sm" }) %}
+				{%= frappe.ui.badge.html({ label: __("Primary"), size: "sm" }) %}
 			{% } %}
 		</div>
 		{% if (contact.is_billing_contact) { %}
