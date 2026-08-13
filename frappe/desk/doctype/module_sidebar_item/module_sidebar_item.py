@@ -18,11 +18,11 @@ class ModuleSidebarItem(Document):
 		added: DF.Check
 		child: DF.Check
 		collapsible: DF.Check
-		default_workspace: DF.Check
 		filters: DF.Code | None
 		hidden: DF.Check
 		icon: DF.Icon | None
 		indent: DF.Check
+		is_default_module: DF.Check
 		keep_closed: DF.Check
 		key: DF.Data | None
 		label: DF.Data | None

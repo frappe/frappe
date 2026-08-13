@@ -30,10 +30,21 @@ SIDEBAR_ITEM_FIELDS = (
 	"route_options",
 	"navigate_to_tab",
 	"open_in_new_tab",
-	# Carried deliberately: `build_default_workspace_map` and the desk's cold-entry resolution
-	# both read it, and the legacy merge path silently dropped it.
-	"default_workspace",
 )
+
+# `Workspace Sidebar Item.default_workspace` is deliberately NOT in that list: the conversion
+# drops the claim flag rather than carrying it across as `is_default_module`.
+#
+# A claim is an app's opinion, and the app has to be able to retract it. A converted row cannot
+# be retracted by anyone: it exists only in the site database, the patch skips a module that
+# already carries a layer so it never re-derives, and no app ships a fixture that would overwrite
+# it. Copying the flag would hand the one claim on a real site (`Company`, from erpnext's
+# `erpnext_settings` workspace) to an author who could never take it back -- the
+# claim-but-never-un-claim asymmetry, coming back in through the migration.
+#
+# It is also free to drop: `Company` is a member of `Setup`'s converted items, so the entity's
+# own module resolves it either way. An app that wants the claim states it the same way every
+# other app does -- by flagging the row in a `module_sidebar` fixture it ships.
 
 # A linked row's identity *is* these columns, matched directly rather than hashed into one.
 # That is what makes a customization survive a rename: `link_to` is a Dynamic Link, so

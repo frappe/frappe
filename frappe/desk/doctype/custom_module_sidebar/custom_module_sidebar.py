@@ -17,7 +17,14 @@ CUSTOMIZED_KEYS_CACHE_KEY = "customized_module_sidebars"
 SITE_LAYER = ""
 
 # What a row carries when it *is* an item rather than a reference to one. The same fields a
-# base item has, because an added item renders through the same code with no special-casing.
+# base item has, because an added item renders through the same code with no special-casing --
+# with one exception: `is_default_module`. Apps claim, sites do not.
+#
+# Ownership is an app-authored fact about a product, not a site preference, and the layer here
+# is one-way: a site could add a flagged row to claim an entity, but there is no reference field
+# that could ever un-claim one an app shipped (`REFERENCE_FIELDS` is `label` and `icon`). Leaving
+# it in would offer half a mechanism. A site that disagrees about where an entity lives edits the
+# sidebar so the entity is a member of the one it wants -- membership is what routes you.
 ADDED_ITEM_FIELDS = (
 	"type",
 	"label",
@@ -33,7 +40,6 @@ ADDED_ITEM_FIELDS = (
 	"filters",
 	"route_options",
 	"open_in_new_tab",
-	"default_workspace",
 )
 
 # What a *reference* row may say about the base item it names. Deliberately short: a reference

@@ -11,7 +11,7 @@
   "label",
   "link_type",
   "icon",
-  "default_workspace",
+  "is_default_module",
   "column_break_krzu",
   "type",
   "link_to",
@@ -179,9 +179,10 @@
   },
   {
    "default": "0",
-   "fieldname": "default_workspace",
+   "description": "This module is the linked entity's default home — where it opens when nothing else decides — even when another app defines it. A sidebar that already lists the entity still holds you, so this settles cold entry rather than overriding where you are. Flag what you mean to own: a claim is declarative, so set it on the entities your app is about rather than only where you expect the default to disagree with you. Only an app-shipped sidebar may claim.",
+   "fieldname": "is_default_module",
    "fieldtype": "Check",
-   "label": "Default Workspace"
+   "label": "Is Default Module"
   },
   {
    "collapsible": 1,
@@ -229,7 +230,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-08-11 23:20:00.000000",
+ "modified": "2026-08-13 17:05:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Module Sidebar Item",

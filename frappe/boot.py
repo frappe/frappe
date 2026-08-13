@@ -956,7 +956,7 @@ def get_module_sidebar_items(sidebar_names):
 			"route_options",
 			"navigate_to_tab",
 			"open_in_new_tab",
-			"default_workspace",
+			"is_default_module",
 		],
 		order_by="idx asc",
 	):
@@ -1103,7 +1103,7 @@ def filter_sidebar_items(items, perm_ctx):
 			"route_options": item.route_options,
 			"tab": item.navigate_to_tab,
 			"open_in_new_tab": item.open_in_new_tab,
-			"default_workspace": item.default_workspace,
+			"is_default_module": item.is_default_module,
 		}
 		if (
 			item.link_type == "Report"
@@ -1131,7 +1131,7 @@ def build_entity_module_map(module_sidebars):
 	entity_module = {}
 	for module, sidebar in module_sidebars.items():
 		for item in sidebar["items"]:
-			if item.get("link_to") and item.get("default_workspace"):
+			if item.get("link_to") and item.get("is_default_module"):
 				entity_module[item["link_to"]] = module
 
 	return entity_module

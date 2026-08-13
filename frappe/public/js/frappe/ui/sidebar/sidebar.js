@@ -828,7 +828,7 @@ frappe.ui.Sidebar = class Sidebar {
 	// workspace route) and then stays put as you navigate. Two things move it automatically:
 	//   - navigating to an entity that lives in some module's sidebar but NOT the current one
 	//     follows it to the module that owns it. Ownership comes from get_modules_linking() --
-	//     the module whose item is flagged default_workspace wins, else the first that contains it.
+	//     the module whose item is flagged is_default_module wins, else the first that contains it.
 	//   - navigating to an entity that no sidebar links at all (e.g. a custom/standalone doctype)
 	//     falls back to its own module via sidebar_from_module().
 	// Resolving from data (not the DOM/location) keeps it independent of route/render timing, and it
@@ -851,7 +851,7 @@ frappe.ui.Sidebar = class Sidebar {
 				// erpnext-owned ERPNext Settings sidebar), and filtering by the doctype's app would
 				// drop the very sidebar you're on. If the entity isn't already in the current
 				// sidebar, follow it to the one that owns it: get_workspace_sidebars() puts the
-				// default_workspace owner first, else the first sidebar that contains it.
+				// is_default_module owner first, else the first sidebar that contains it.
 				// Cold entry is deliberately NOT app-blind -- there is no "sidebar you're on" to
 				// preserve, so resolve_initial_sidebar leads with the entity's module instead.
 				const entity = this.entity_from_route(route);
@@ -1021,7 +1021,7 @@ frappe.ui.Sidebar = class Sidebar {
 	// Pick the sidebar to show on cold entry, returning the choice, why it was made, and whether
 	// the answer is provisional (see below).
 	// Precedence:
-	//   1. an item flagged `default_workspace` names the entity's owning workspace outright — the
+	//   1. an item flagged `is_default_module` names the entity's owning workspace outright — the
 	//      one authored signal that beats every heuristic below
 	//   2. the last selected sidebar, if it links the entity. Continuity outranks the module: on a
 	//      reload or a deep link you stay in the shell you were working in instead of being
@@ -1059,7 +1059,7 @@ frappe.ui.Sidebar = class Sidebar {
 		if (owner) {
 			return {
 				sidebar: owner,
-				reason: `"${entity}" is flagged default_workspace in "${owner}"`,
+				reason: `"${entity}" is flagged is_default_module in "${owner}"`,
 				provisional: false,
 			};
 		}
@@ -1192,7 +1192,7 @@ frappe.ui.Sidebar = class Sidebar {
 			}
 		});
 
-		// If one of them owns the entity (its item is flagged default_workspace), surface it
+		// If one of them owns the entity (its item is flagged is_default_module), surface it
 		// first so callers taking the top candidate land in the module the entity belongs to.
 		const owner = this.module_for_entity(link_to);
 		if (owner && modules.includes(owner)) {
@@ -1202,7 +1202,7 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	// The module an entity belongs to, or undefined. An entity can appear in several sidebars;
-	// the item flagged `default_workspace` marks its owner. Built server-side
+	// the item flagged `is_default_module` marks its owner. Built server-side
 	// (`bootinfo.entity_module`) from the permission-filtered payload, so it can only ever name
 	// something the user may see.
 	module_for_entity(link_to) {

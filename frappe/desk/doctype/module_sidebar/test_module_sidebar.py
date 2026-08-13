@@ -405,15 +405,20 @@ class TestModuleSidebarMerge(IntegrationTestCase):
 			[item_key(row) for row in plan["items"]],
 		)
 
-	def test_default_workspace_flag_is_carried(self):
-		"""The legacy merge path dropped it, which silently broke `default_workspace_map`
-		and the desk's cold-entry resolution."""
+	def test_claim_flag_is_not_carried(self):
+		"""The conversion drops the claim rather than mapping it to `is_default_module`.
+
+		A converted row is unretractable: it lives only in the site database, the patch skips a
+		module that already carries a layer, and no app ships a fixture that would overwrite it.
+		Carrying the flag would give an app a claim its own author could never take back. An app
+		that wants one flags the row in a `module_sidebar` fixture it ships."""
 		item = self.link("User")
 		item["default_workspace"] = 1
 		self.make_workspace("TSM Default", [item])
 
 		plan = build_module_sidebar(MODULE, get_module_sidebar_sources()[MODULE])
-		self.assertEqual(plan["items"][0]["default_workspace"], 1)
+		self.assertFalse(plan["items"][0].get("is_default_module"))
+		self.assertNotIn("default_workspace", plan["items"][0])
 
 	def test_provenance_is_recorded(self):
 		"""`merged_from` plus per-item `source_workspace` are what make the merge reversible,

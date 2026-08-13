@@ -4,6 +4,7 @@
 import frappe
 from frappe.boot import (
 	build_entity_module_map,
+	filter_sidebar_items,
 	get_module_sidebars,
 	get_navigable_modules,
 	get_sidebar_bases,
@@ -11,6 +12,7 @@ from frappe.boot import (
 from frappe.desk.doctype.custom_module_sidebar.test_custom_module_sidebar import make_user
 from frappe.desk.doctype.module_sidebar.test_module_sidebar import (
 	make_report,
+	no_developer_mode,
 	sidebarless_module,
 	system_write,
 )
@@ -449,3 +451,80 @@ class TestPrivateWorkspacesAreDerived(IntegrationTestCase):
 		links = [item["link_to"] for item in self.items_for(self.OWNER)]
 
 		self.assertEqual(links.count(workspace.name), 1)
+
+
+class TestAClaimOnAnAbsentEntityIsInert(IntegrationTestCase):
+	"""Nothing validates `is_default_module`, so its inertness has to be structural.
+
+	An app claims an entity by flagging the row that links it, and it may ship that claim
+	knowing the defining app is optional -- HRMS claiming `Employee` on a site where erpnext
+	is not installed. No validator guards it, deliberately: `ignore_links` at import and
+	`is_item_allowed` at boot already make such a claim a non-event at both ends, so the work
+	is these tests rather than a check that would have to be kept honest.
+	"""
+
+	MISSING = "Test Entity From An Absent App"
+	MODULE = "Test Absent Claim Module"
+	USER = "absent-app-claim@example.com"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.assertFalse(frappe.db.exists("DocType", self.MISSING), "sanity: the entity is absent")
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def claim_row(self):
+		"""The row an app ships: a link to an entity it does not define, flagged as owned."""
+		return {
+			"type": "Link",
+			"link_type": "DocType",
+			"link_to": self.MISSING,
+			"label": "Absent",
+			"is_default_module": 1,
+		}
+
+	def test_a_claim_on_an_absent_entity_imports(self):
+		"""`bench update` must not fail on a site that lacks the optional app. `import_doc`
+		sets `ignore_links`, so the DynamicLink is never resolved at import time."""
+		from frappe.modules.import_file import import_doc
+
+		with sidebarless_module(self.MODULE) as module, no_developer_mode():
+			doc = import_doc(
+				{
+					"doctype": "Module Sidebar",
+					"module": module,
+					"title": "Absent",
+					"standard": 1,
+					"items": [self.claim_row()],
+				}
+			)
+
+		self.assertEqual(doc.items[0].link_to, self.MISSING)
+		self.assertTrue(doc.items[0].is_default_module, "the flag survives the import")
+
+	def test_the_claim_never_reaches_the_boot_payload(self):
+		"""Having imported, it is dropped by the permission filter before ownership is built,
+		so the claim is invisible rather than dangling -- the "HRMS not installed" behaviour.
+
+		Read as a real user: `is_item_allowed` short-circuits to True for Administrator, so
+		Administrator is the one session that cannot observe this.
+		"""
+		make_user(self.USER, ["System Manager"])
+		frappe.set_user(self.USER)
+
+		# a readable row alongside it, so an empty result is attributable to the absent entity
+		# rather than to a user who can see nothing at all
+		present = frappe._dict(
+			type="Link", link_type="DocType", link_to="ToDo", label="ToDo", is_default_module=1
+		)
+		filtered = filter_sidebar_items(
+			[frappe._dict(self.claim_row()), present], frappe.new_doc("Workspace")
+		)
+
+		self.assertEqual(
+			[item["link_to"] for item in filtered],
+			["ToDo"],
+			"the absent entity's row is dropped and the readable one is not",
+		)
+		self.assertEqual(build_entity_module_map({self.MODULE: {"items": filtered}}), {"ToDo": self.MODULE})
