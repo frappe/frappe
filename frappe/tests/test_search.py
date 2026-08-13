@@ -151,6 +151,46 @@ class TestSearch(FrappeTestCase):
 		finally:
 			frappe.local.lang = "en"
 
+	def test_translated_doctype_search_pagination(self):
+		doctype = "Test Translated Search Paging"
+		if frappe.db.exists("DocType", doctype):
+			frappe.delete_doc("DocType", doctype, force=True)
+		new_doctype(
+			name=doctype,
+			translated_doctype=1,
+			autoname="field:title",
+			sort_field="sequence",
+			sort_order="ASC",
+			fields=[
+				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+				{"label": "Sequence", "fieldname": "sequence", "fieldtype": "Int"},
+			],
+		).insert()
+		self.addCleanup(lambda: frappe.delete_doc("DocType", doctype, force=True, ignore_missing=True))
+
+		# non matching records are stored first, so an offset applied before the translated
+		# filtering would eat into them instead of into the matches
+		titles = [f"Harbour Freight Terminal {i:02d}" for i in range(1, 7)]
+		titles += [f"Northwind Depot {i:02d}" for i in range(1, 10)]
+		for sequence, title in enumerate(titles, start=1):
+			frappe.get_doc({"doctype": doctype, "title": title, "sequence": sequence}).insert()
+
+		expected = [title for title in titles if "Depot" in title]
+
+		for query in (None, "frappe.tests.test_search.paginated_query"):
+			with self.subTest(query=query):
+				pages = [
+					[
+						result[0]
+						for result in search_widget(
+							doctype=doctype, txt="Depot", query=query, start=start, page_length=3
+						)
+					]
+					for start in (0, 3, 6, 9)
+				]
+
+				self.assertEqual(pages, [expected[0:3], expected[3:6], expected[6:9], []])
+
 	def test_validate_and_sanitize_search_inputs(self):
 		# should raise error if searchfield is injectable
 		self.assertRaises(
@@ -408,6 +448,27 @@ def query_by_title(
 	filters: str | list | dict[str, Any],
 ):
 	return frappe.get_list(doctype, filters={"title": ("like", f"%{txt}%")}, as_list=True)
+
+
+@whitelist_for_tests()
+@frappe.validate_and_sanitize_search_inputs
+def paginated_query(
+	doctype: str,
+	txt: str,
+	searchfield: str,
+	start: int,
+	page_len: int,
+	filters: str | list | dict[str, Any],
+):
+	return frappe.get_all(
+		doctype,
+		fields=["name"],
+		filters={"name": ["like", f"%{txt}%"]} if txt else None,
+		order_by="sequence asc",
+		limit_start=start,
+		limit_page_length=page_len,
+		as_list=True,
+	)
 
 
 def setup_test_link_field_order(TestCase):
