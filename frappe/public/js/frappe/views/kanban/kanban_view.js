@@ -637,7 +637,7 @@ frappe.views.KanbanView.show_kanban_dialog = function (doctype) {
 	let dialog = new_kanban_dialog();
 	dialog.show();
 
-	function make_kanban_board(board_name, field_name, project) {
+	function make_kanban_board(board_name, field_name, project, use_kanban_v2) {
 		return frappe.call({
 			method: "frappe.desk.doctype.kanban_board.kanban_board.quick_kanban_board",
 			args: {
@@ -645,6 +645,7 @@ frappe.views.KanbanView.show_kanban_dialog = function (doctype) {
 				board_name,
 				field_name,
 				project,
+				use_kanban_v2,
 			},
 			callback: function (r) {
 				var kb = r.message;
@@ -672,7 +673,12 @@ frappe.views.KanbanView.show_kanban_dialog = function (doctype) {
 		let primary_action = () => {
 			if (to_save) {
 				const values = dialog.get_values();
-				make_kanban_board(values.board_name, values.field_name, values.project).then(
+				make_kanban_board(
+					values.board_name,
+					values.field_name,
+					values.project,
+					cint(values.use_kanban_v2) // Ensure it's 0 or 1, not undefined
+				).then(
 					() => dialog.hide(),
 					(err) => frappe.msgprint(err)
 				);

@@ -708,7 +708,13 @@ def add_card(board_name: str, docname: str, colname: str):
 
 
 @frappe.whitelist()
-def quick_kanban_board(doctype: str, board_name: str, field_name: str, project: str | None = None):
+def quick_kanban_board(
+	doctype: str,
+	board_name: str,
+	field_name: str,
+	project: str | None = None,
+	use_kanban_v2: bool | None = None,
+):
 	"""Create new KanbanBoard quickly with default options"""
 
 	doc = frappe.new_doc("Kanban Board")
@@ -737,6 +743,10 @@ def quick_kanban_board(doctype: str, board_name: str, field_name: str, project: 
 
 	if doctype in ["Note", "ToDo"]:
 		doc.private = 1
+
+	# Explicitly convert to int to handle string/bool/int variants from JS
+	if use_kanban_v2 is not None:
+		doc.use_kanban_v2 = cint(use_kanban_v2)
 
 	doc.save()
 	return doc
