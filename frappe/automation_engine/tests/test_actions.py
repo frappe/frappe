@@ -54,6 +54,16 @@ class TestActions(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "High")
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "color"), "#ED6396")
 
+	def test_single_field_and_values_map_are_both_applied(self):
+		# Filling both boxes must not silently drop one: a doctype whose validation spans two
+		# fields (set a Lost status, give a lost reason) is unsatisfiable if only one lands.
+		todo = make_todo(priority="Low", color="#000000")
+		SetFieldValue().execute(
+			todo, {"field": "priority", "value": "High", "values": {"color": "#ED6396"}}, {}
+		)
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "High")
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "color"), "#ED6396")
+
 	def test_set_field_value_multiple_validates_each_field(self):
 		self.assertRaises(
 			AutomationParamError,
@@ -107,6 +117,47 @@ class TestActions(IntegrationTestCase):
 		)
 		after = frappe.db.count("Notification Log", {"for_user": "Administrator"})
 		self.assertEqual(after, before + 1)
+
+	def test_send_notification_accepts_recipients_as_a_json_string(self):
+		# `recipients` is declared JSON; a builder may store it as the string form. Iterating
+		# that string sends one character per "recipient".
+		todo = make_todo()
+		captured = {}
+		original = frappe.sendmail
+		frappe.sendmail = lambda **kwargs: captured.update(kwargs)
+		try:
+			SendNotification().execute(
+				todo,
+				{"channel": "Email", "recipients": '["a@example.com"]', "subject": "s", "message": "m"},
+				{},
+			)
+		finally:
+			frappe.sendmail = original
+		self.assertEqual(captured["recipients"], ["a@example.com"])
+
+	def test_send_notification_wraps_a_single_bare_recipient(self):
+		todo = make_todo()
+		captured = {}
+		original = frappe.sendmail
+		frappe.sendmail = lambda **kwargs: captured.update(kwargs)
+		try:
+			SendNotification().execute(
+				todo,
+				{"channel": "Email", "recipients": "a@example.com", "subject": "s", "message": "m"},
+				{},
+			)
+		finally:
+			frappe.sendmail = original
+		self.assertEqual(captured["recipients"], ["a@example.com"])
+
+	def test_assign_to_user_accepts_assignees_as_a_json_string(self):
+		note = frappe.get_doc({"doctype": "Note", "title": "assign-me-json", "public": 1}).insert()
+		AssignToUser().execute(note, {"assign_to": '["Administrator"]'}, {})
+		self.assertIn("Administrator", frappe.db.get_value("Note", note.name, "_assign") or "")
+
+	def test_empty_json_string_still_fails_validation(self):
+		self.assertRaises(AutomationParamError, SendNotification().validate, {"recipients": "[]"}, "ToDo")
+		self.assertRaises(AutomationParamError, AssignToUser().validate, {"assign_to": "[]"}, "ToDo")
 
 	def test_send_notification_requires_existing_template(self):
 		self.assertRaises(
