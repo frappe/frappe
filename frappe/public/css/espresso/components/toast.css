@@ -124,7 +124,7 @@
     overflow-wrap: break-word;
 }
 
-/* Links in the message or description have the same problem as 'close' class, 
+/* Links in the message or description have the same problem as 'close' class,
     it's styled directly by the global `a { color: var(--text-color) }`.
     This out-specifies the global styles*/
 .es-toast a,
@@ -132,6 +132,8 @@
 .es-toast a:focus {
     color: var(--ink-base);
 }
+
+
 
 /* extra html passed through the legacy body option */
 .es-toast__body {
