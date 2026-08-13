@@ -132,7 +132,10 @@ def create_app(
 	auth_token: str | None = None,
 	cors_origins: list[str] | None = None,
 	webui_dir: str | None = None,
+	system_append: str | None = None,
 ) -> FastAPI:
+	"""`system_append` is text the operator adds to every session's system prompt
+	(`flow web --append-system-prompt`); it lands after whatever the client sends."""
 	# docs off: those routes would be reachable without a bearer beside the web UI
 	app = FastAPI(title="flow server", version="0.1.0", docs_url=None, redoc_url=None, openapi_url=None)
 	oauth = OAuthCoordinator(store.credentials)
@@ -334,6 +337,9 @@ def create_app(
 
 	@app.post("/sessions")
 	async def create_session(config: SessionConfig):
+		if system_append:
+			joined = "\n\n".join(p for p in (config.system_append, system_append) if p)
+			config = config.model_copy(update={"system_append": joined})
 		try:
 			session = await store.create_async(config)
 		except ValueError as e:

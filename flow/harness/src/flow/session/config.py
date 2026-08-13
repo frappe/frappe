@@ -26,6 +26,8 @@ class SessionConfig(BaseModel):
 		system_prompt: Verbatim system prompt; when set, composition is skipped. When
 			None (default), `SessionStore.create` composes the prompt from the preamble,
 			AGENTS.md files, and suffix, and stores the result here.
+		system_append: Appended to the end of the resolved prompt, composed or verbatim
+			(the `--append-system-prompt` flag of the TUI and the web command).
 		tools: Built-in tools available to the agent.
 		client_tools: Schemas registered by a client.
 		callback_url: Where client tools are dispatched.
@@ -53,6 +55,7 @@ class SessionConfig(BaseModel):
 	system_preamble: str | None = None
 	system_suffix: str | None = None
 	system_prompt: str | None = None
+	system_append: str | None = None
 	tools: list[str] = Field(default_factory=lambda: ["bash", "read_file", "write", "edit", "grep"])
 	client_tools: list[dict] = Field(default_factory=list)
 	callback_url: str | None = None
