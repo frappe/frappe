@@ -6,6 +6,7 @@ import { ref, type Ref } from "vue";
 import type { Router } from "vue-router";
 import { call, toast } from "frappe-ui";
 import { withRunningSource } from "./context";
+import { createPageDialogs, type PageDialogEntry } from "./dialog";
 import { registrationsFor } from "./registry";
 import { Surface } from "./surface";
 import type {
@@ -52,6 +53,10 @@ export interface RecordPageController {
   fireEvent: (event: string) => Promise<void>;
   /** True once the first replay has run — before it, surfaces are only built-ins. */
   ready: Ref<boolean>;
+  /** The `open`/`form` dialogs on screen, for the host's `<PageDialogs>`. */
+  dialogs: Ref<PageDialogEntry[]>;
+  /** Closes them newest-first, each promise resolving `null`. */
+  closeDialogs: () => void;
 }
 
 export function createRecordPage(host: RecordPageHost): RecordPageController {
@@ -62,6 +67,12 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   const surfaces = [quickActions, headerActions, tabs, panelSections];
 
   Object.defineProperty(tabs, "active", { get: () => host.activeTab() });
+
+  const ready = ref(false);
+  let vocabularyChecked = false;
+  let replaying = 0;
+
+  const dialogs = createPageDialogs({ isReplaying: () => replaying > 0 });
 
   const page: RecordPageApi = {
     doctype: host.doctype,
@@ -89,18 +100,22 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       success: (message) => toast.success(message),
       error: (message) => toast.error(message),
     },
+    dialog: dialogs.api,
     call: (method, params) => call(method, params),
     router: host.router,
   };
-
-  const ready = ref(false);
-  let vocabularyChecked = false;
 
   async function refresh() {
     await host.sourcesReady?.();
     warnUnknownHandlers();
     for (const surface of surfaces) surface.reset();
-    await fireEvent("refresh");
+    // Counted, not a boolean: a script's own `page.refresh()` re-enters this.
+    replaying += 1;
+    try {
+      await fireEvent("refresh");
+    } finally {
+      replaying -= 1;
+    }
     ready.value = true;
   }
 
@@ -146,6 +161,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     refresh,
     fireEvent,
     ready,
+    dialogs: dialogs.entries,
+    closeDialogs: dialogs.closeAll,
   };
 }
 

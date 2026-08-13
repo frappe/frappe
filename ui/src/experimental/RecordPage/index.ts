@@ -18,6 +18,9 @@ export { PAGE_SCRIPT_CHANGED, GET_PAGE_SCRIPTS } from "./pageScriptTypes";
 export type { PageScriptRow, PageScriptsResponse } from "./pageScriptTypes";
 export { createRecordPage, RECORD_PAGE_EVENTS } from "./createRecordPage";
 export type { RecordPageController, RecordPageHost } from "./createRecordPage";
+export { default as PageDialogs } from "./PageDialogs.vue";
+export { createPageDialogs } from "./dialog";
+export type { PageDialogEntry, PageDialogHost } from "./dialog";
 export { Surface, BUILTIN } from "./surface";
 export type { ResolvedItem } from "./surface";
 export { loadFrontendExtensions } from "./loader";
@@ -25,6 +28,16 @@ export { withRegisteringSource, HOST_SOURCE } from "./context";
 export type {
   Handler,
   HeaderAction,
+  PageDialog,
+  PageDialogAction,
+  PageDialogActionContext,
+  PageDialogColumn,
+  PageDialogField,
+  PageDialogFormOptions,
+  PageDialogOpenOptions,
+  PageDialogSection,
+  PageDialogTab,
+  PageToast,
   PanelSectionItem,
   Position,
   QuickAction,
