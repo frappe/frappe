@@ -62,7 +62,7 @@ context("List View — Column Widths", () => {
 	beforeEach(() => {
 		resetListViewSettings();
 		cy.visit(LIST_URL);
-		cy.wait(500);
+		cy.desk_ready();
 		cy.clear_filters();
 	});
 
@@ -84,6 +84,7 @@ context("List View — Column Widths", () => {
 
 		// Reload so fresh render applies the persisted width via setup_columns()
 		cy.reload();
+		cy.desk_ready();
 
 		getColumnWidth("module").should("be.closeTo", 180, 15);
 	});
@@ -106,6 +107,7 @@ context("List View — Column Widths", () => {
 		);
 
 		cy.reload();
+		cy.desk_ready();
 
 		getColumnWidth("module").should("be.closeTo", 220, 15);
 	});
@@ -129,6 +131,7 @@ context("List View — Column Widths", () => {
 			cy.wait(600);
 
 			cy.reload();
+			cy.desk_ready();
 
 			getColumnWidth("module").should("be.greaterThan", initialWidth + 30);
 		});
