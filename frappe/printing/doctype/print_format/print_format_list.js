@@ -19,13 +19,19 @@ frappe.listview_settings["Print Format"] = {
 
 	primary_action() {
 		const dev = !!frappe.boot.developer_mode;
+		// carry the list's active doc_type/report filter into the dialog, like New does
+		const active = Object.fromEntries(
+			(cur_list?.filter_area?.get() || [])
+				.filter((f) => ["doc_type", "report"].includes(f[1]) && f[2] === "=")
+				.map((f) => [f[1], f[3]])
+		);
 		const fields = [
 			{
 				label: __("Print Format For"),
 				fieldname: "print_format_for",
 				fieldtype: "Select",
 				options: "DocType\nReport",
-				default: "DocType",
+				default: active.report ? "Report" : "DocType",
 				reqd: 1,
 			},
 			{
@@ -33,6 +39,7 @@ frappe.listview_settings["Print Format"] = {
 				fieldname: "doc_type",
 				fieldtype: "Link",
 				options: "DocType",
+				default: active.doc_type || "",
 				depends_on: 'eval:doc.print_format_for !== "Report"',
 				mandatory_depends_on: 'eval:doc.print_format_for !== "Report"',
 			},
