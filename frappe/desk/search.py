@@ -96,6 +96,10 @@ def search_widget(
 		# not filter or truncate on the untranslated ones
 		query_txt = "" if meta.translated_doctype else txt
 		query_page_length = PAGE_LENGTH_FOR_LINK_VALIDATION if meta.translated_doctype else page_length
+
+		if ignore_user_permissions:
+			frappe.flags.ignore_user_permissions_for_doctype = doctype
+
 		try:
 			is_whitelisted(frappe.get_attr(query))
 			values = frappe.call(
@@ -121,6 +125,8 @@ def search_widget(
 					http_status_code=404,
 				)
 				return []
+		finally:
+			frappe.flags.ignore_user_permissions_for_doctype = None
 
 		if meta.translated_doctype:
 			values = filter_translated(values, txt, as_dict)
