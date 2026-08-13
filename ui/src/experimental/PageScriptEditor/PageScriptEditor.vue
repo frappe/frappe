@@ -74,6 +74,7 @@
 				@create="naming = true"
 				@toggleEnabled="setEnabled($event, !$event.enabled)"
 				@duplicate="duplicate"
+				@reorder="reorder"
 				@remove="confirmRemove"
 			/>
 
@@ -184,6 +185,7 @@ const {
 	duplicate,
 	save,
 	setEnabled,
+	reorder,
 	remove,
 } = usePageScriptEditor(
 	() => props.dt,

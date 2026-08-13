@@ -157,6 +157,36 @@ export function usePageScriptEditor(
     return `${base}-${suffix}`;
   }
 
+  /**
+   * Moves the list to `names` and writes that order through immediately.
+   *
+   * Order is a property of the list, not of a script, so it joins neither the
+   * per-script buffer nor Save: there is no such thing as an unsaved order.
+   * The move lands locally first because the drop has already happened on
+   * screen; a refusal is what puts the rail back, by re-reading the server's
+   * order rather than by remembering the old one — the server's is the order
+   * that is still true.
+   */
+  async function reorder(names: string[]) {
+    const moved = names
+      .map((name) => scripts.value.find((row) => row.name === name))
+      .filter((row): row is PageScriptDoc => row !== undefined);
+    // A list that lost or gained a row between the drag and the drop is not
+    // one this reorder describes; the next load is what corrects it.
+    if (moved.length !== scripts.value.length) return;
+
+    scripts.value = moved;
+    error.value = "";
+    try {
+      await pageScriptApi.reorder(toValue(doctype), names);
+    } catch (exception) {
+      // `load` clears `error` on its way in, so the failure is reported after
+      // the revert, not before it.
+      await load();
+      error.value = errorMessage(exception);
+    }
+  }
+
   async function setEnabled(row: PageScriptDoc, enabled: boolean) {
     await mutate(() =>
       pageScriptApi.save({ ...row, enabled: enabled ? 1 : 0 }),
@@ -222,6 +252,7 @@ export function usePageScriptEditor(
     duplicate,
     save,
     setEnabled,
+    reorder,
     remove,
   };
 }

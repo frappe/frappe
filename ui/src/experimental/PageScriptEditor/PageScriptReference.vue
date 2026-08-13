@@ -20,7 +20,7 @@
 		<dl class="grid grid-cols-[7rem_1fr] gap-x-4 gap-y-2 text-p-sm">
 			<dt class="text-ink-gray-5">Order</dt>
 			<dd class="text-ink-gray-7">
-				Top to bottom, in the order they were created. The last script to run wins.
+				Top to bottom; the last script to run wins. Drag to reorder.
 			</dd>
 			<dt class="text-ink-gray-5">Imports</dt>
 			<dd class="text-ink-gray-7">{{ SHARED_DEPS.join(" · ") }}</dd>

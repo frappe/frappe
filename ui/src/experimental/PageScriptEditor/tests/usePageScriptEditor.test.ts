@@ -2,15 +2,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick, ref } from "vue";
 
-const { list, create, save, remove } = vi.hoisted(() => ({
+const { list, create, save, reorder, remove } = vi.hoisted(() => ({
   list: vi.fn(),
   create: vi.fn(),
   save: vi.fn(),
+  reorder: vi.fn(),
   remove: vi.fn(),
 }));
 
 vi.mock("../pageScriptApi", () => ({
-  pageScriptApi: { list, create, save, remove },
+  pageScriptApi: { list, create, save, reorder, remove },
 }));
 
 import { usePageScriptEditor } from "../usePageScriptEditor";
@@ -87,11 +88,91 @@ describe("the script a host addresses", () => {
   });
 });
 
+// Order is a property of the list, so a drop writes straight through: nothing
+// about it is ever "unsaved" (wayfinder ticket 33).
+describe("dragging a script into a new position", () => {
+  beforeEach(() => {
+    list.mockReset();
+    save.mockReset();
+    reorder.mockReset();
+    list.mockResolvedValue(rows("first", "second", "third"));
+    reorder.mockResolvedValue(undefined);
+  });
+
+  it("moves the row before the server has answered", async () => {
+    const editor = await editorFor();
+    let settle = () => {};
+    reorder.mockReturnValue(
+      new Promise<void>((resolve) => {
+        settle = resolve;
+      }),
+    );
+
+    const written = editor.reorder(["third", "first", "second"]);
+    expect(editor.scripts.value.map((row) => row.name)).toEqual([
+      "third",
+      "first",
+      "second",
+    ]);
+
+    settle();
+    await written;
+  });
+
+  it("writes the whole list in one call, not one call per script", async () => {
+    const editor = await editorFor();
+
+    await editor.reorder(["second", "first", "third"]);
+
+    expect(reorder).toHaveBeenCalledTimes(1);
+    expect(reorder).toHaveBeenCalledWith("CRM Deal", [
+      "second",
+      "first",
+      "third",
+    ]);
+  });
+
+  it("does not touch the buffer, so a drop leaves nothing to save", async () => {
+    const editor = await editorFor();
+    editor.draft.value = "// edited";
+
+    await editor.reorder(["third", "first", "second"]);
+
+    expect(editor.dirty.value).toBe(true);
+    expect(editor.draft.value).toBe("// edited");
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it("puts the rail back to the server's order when the write is refused", async () => {
+    const editor = await editorFor();
+    reorder.mockRejectedValue(new Error("Not permitted"));
+
+    await editor.reorder(["third", "first", "second"]);
+
+    expect(editor.scripts.value.map((row) => row.name)).toEqual([
+      "first",
+      "second",
+      "third",
+    ]);
+    expect(editor.error.value).toBe("Not permitted");
+  });
+
+  it("ignores an order describing a list that has since changed", async () => {
+    const editor = await editorFor();
+
+    await editor.reorder(["first", "second"]);
+
+    expect(reorder).not.toHaveBeenCalled();
+    expect(editor.scripts.value).toHaveLength(3);
+  });
+});
+
 describe("the Page Script editor", () => {
   beforeEach(() => {
     list.mockReset();
     create.mockReset();
     save.mockReset();
+    reorder.mockReset();
     remove.mockReset();
     list.mockResolvedValue(rows("oldest", "newest"));
   });
