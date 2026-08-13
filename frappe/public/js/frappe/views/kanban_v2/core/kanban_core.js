@@ -1146,14 +1146,13 @@ export class KanbanCore {
 					});
 			}
 		} catch (error) {
-			// update_order runs as one request, so a failed set_value rolls the whole
-			// transaction back (frappe/app.py -> db.rollback) and nothing persists.
-			// Restore snapshot first so the UI reverts immediately, then try to reload
-			// fresh data from the server. If reload succeeds, it will overwrite with
-			// the actual server state. If reload fails, we're at least back to pre-move.
-			this.state = snapshot;
-			this.renderColumns(affected);
-			// Try to fetch fresh state, but don't block on errors - we've already reverted
+			// Only restore snapshot if the board hasn't been reloaded since (e.g., by another session).
+			// If epoch changed, newer server state is already displayed — don't overwrite it.
+			if (this.boardEpoch === snapshotEpoch) {
+				this.state = snapshot;
+				this.renderColumns(affected);
+			}
+			// Always try to fetch fresh state — reload will get the actual server state.
 			this.reload();
 			cb.onMoveError && cb.onMoveError(moveErrorArgs, error);
 			this.bus.emit("error", error);
