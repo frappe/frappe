@@ -9,6 +9,12 @@ The one exception is the Record page customization API, whose intent is written
 down because scripts stored in site databases outlive every upgrade:
 [`RecordPage/COMPATIBILITY.md`](./RecordPage/COMPATIBILITY.md).
 
+When a customization fails — a bundled file script, an app extension or a stored
+Page Script — it writes an ordinary **Error Log** row naming its source and tier, and
+desk's Error Log list is the read path (filter `reference_doctype = Page Script`, or
+search `method` for the `Customization: ` prefix). There is no separate console
+listing what customizes a site.
+
 The package exposes one entry, so a call site is honest about what it depends on:
 
 ```ts
