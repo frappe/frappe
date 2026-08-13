@@ -370,6 +370,12 @@ def create_app(
 		session = _get(sid)
 		return skill_catalog_payload(session.skill_catalog)
 
+	@app.get("/sessions/{sid}/extensions")
+	async def session_extensions(sid: str):
+		"""Loaded server extensions, their tools, and non-fatal diagnostics."""
+		_get(sid)
+		return store.extension_runtime.info()
+
 	@app.delete("/sessions/{sid}")
 	async def delete_session(sid: str):
 		try:

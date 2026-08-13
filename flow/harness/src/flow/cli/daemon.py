@@ -45,7 +45,13 @@ class PrivateDaemon:
 	log_path: str
 
 
-def spawn_private(data_dir: str, *, timeout: float = 5.0) -> PrivateDaemon:
+def spawn_private(
+	data_dir: str,
+	*,
+	timeout: float = 5.0,
+	extension_paths: list[str] | None = None,
+	extensions_enabled: bool = True,
+) -> PrivateDaemon:
 	"""Start a private daemon on a unix socket under the data dir and wait until healthy.
 
 	The socket path is chosen up front (per-pid, so concurrent TUIs never collide), so
@@ -63,6 +69,8 @@ def spawn_private(data_dir: str, *, timeout: float = 5.0) -> PrivateDaemon:
 				*_SERVE_ARGV,
 				*("--uds", socket_path, "--data-dir", data_dir),
 				"--parent-watch",
+				*([] if extensions_enabled else ["--no-extensions"]),
+				*[argument for path in (extension_paths or []) for argument in ("--extension", path)],
 			],
 			env={**os.environ, "FLOW_AUTH_TOKEN": token},
 			stdin=subprocess.PIPE,
@@ -78,12 +86,30 @@ def spawn_private(data_dir: str, *, timeout: float = 5.0) -> PrivateDaemon:
 	return PrivateDaemon(process=process, socket_path=socket_path, token=token, log_path=log_path)
 
 
-def spawn_background(host: str, port: int, data_dir: str, *, timeout: float = 5.0) -> str:
+def spawn_background(
+	host: str,
+	port: int,
+	data_dir: str,
+	*,
+	timeout: float = 5.0,
+	extension_paths: list[str] | None = None,
+	extensions_enabled: bool = True,
+) -> str:
 	"""`flow serve --background`: detach a daemon on the configured host/port; returns its base URL."""
 	log_path = _log_path(data_dir, f"{host}-{port}")
 	with open(log_path, "ab") as log_file:
 		process = subprocess.Popen(
-			[*_SERVE_ARGV, "--host", host, "--port", str(port), "--data-dir", data_dir],
+			[
+				*_SERVE_ARGV,
+				"--host",
+				host,
+				"--port",
+				str(port),
+				"--data-dir",
+				data_dir,
+				*([] if extensions_enabled else ["--no-extensions"]),
+				*[argument for path in (extension_paths or []) for argument in ("--extension", path)],
+			],
 			stdin=subprocess.DEVNULL,
 			stdout=log_file,
 			stderr=subprocess.STDOUT,

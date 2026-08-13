@@ -28,6 +28,9 @@ class Agent:
 		data_dir: str = server_config.DATA_DIR,
 		**overrides: Any,
 	):
+		# Extension paths configure executable server resources, not durable session data.
+		extension_paths = overrides.pop("extension_paths", None)
+		extensions_enabled = overrides.pop("extensions_enabled", False)
 		# `model=` may be a name string (goes to config, resolved via get_model) or a
 		# pre-built Model instance (injected directly — used by tests and embedders).
 		injected = overrides.pop("model", None)
@@ -37,7 +40,11 @@ class Agent:
 			self._model = None
 			if injected is not None:
 				overrides["model"] = injected
-		self._session = SessionStore(data_dir).create(config or SessionConfig(**overrides))
+		self._session = SessionStore(
+			data_dir,
+			extension_paths=extension_paths,
+			extensions_enabled=extensions_enabled,
+		).create(config or SessionConfig(**overrides))
 
 	@property
 	def session(self) -> Session:

@@ -34,6 +34,7 @@ def main() -> None:
 		metavar="TEXT",
 		help="append TEXT to the end of the system prompt of new sessions",
 	)
+	_add_extension_options(p_tui)
 
 	p_serve = sub.add_parser("serve", help="run the daemon")
 	p_serve.add_argument("--host", default=config.HOST)
@@ -49,6 +50,7 @@ def main() -> None:
 		action="store_true",
 		help="exit when stdin reaches EOF (private-daemon watchdog)",
 	)
+	_add_extension_options(p_serve)
 
 	p_web = sub.add_parser("web", help="run the daemon and serve the web UI, opening a browser")
 	p_web.add_argument("--host", default=config.HOST)
@@ -60,6 +62,7 @@ def main() -> None:
 		metavar="TEXT",
 		help="append TEXT to the end of the system prompt of every session the UI creates",
 	)
+	_add_extension_options(p_web)
 
 	p_attach = sub.add_parser("attach", help="attach a TUI to a running daemon; starts nothing")
 	p_attach.add_argument(
@@ -111,6 +114,22 @@ def main() -> None:
 		raise SystemExit(130) from None
 
 
+def _add_extension_options(parser: argparse.ArgumentParser) -> None:
+	parser.add_argument(
+		"-e",
+		"--extension",
+		action="append",
+		default=[],
+		metavar="PATH",
+		help="load an extension file or directory (repeatable)",
+	)
+	parser.add_argument(
+		"--no-extensions",
+		action="store_true",
+		help="disable extensions from ~/.flow/extensions (explicit -e paths still load)",
+	)
+
+
 def _with_default_command(argv: list[str], commands: set[str]) -> list[str]:
 	"""Bare `flow` (and `flow -c`) opens the TUI, so the common case needs no verb."""
 	if argv and (argv[0] in commands or argv[0] in ("-h", "--help")):
@@ -123,7 +142,11 @@ def _tui(args) -> None:
 	from flow.cli.daemon import spawn_private, teardown
 	from flow_tui.app import run_app
 
-	daemon = spawn_private(config.DATA_DIR)
+	daemon = spawn_private(
+		config.DATA_DIR,
+		extension_paths=args.extension,
+		extensions_enabled=not args.no_extensions,
+	)
 	session_id: str | None = None
 	try:
 		if args.continue_:
@@ -175,7 +198,13 @@ def _serve(args) -> None:
 	if args.background:
 		from flow.cli.daemon import spawn_background
 
-		base_url = spawn_background(args.host, args.port, args.data_dir)
+		base_url = spawn_background(
+			args.host,
+			args.port,
+			args.data_dir,
+			extension_paths=args.extension,
+			extensions_enabled=not args.no_extensions,
+		)
 		print(f"{GREEN}flow daemon{RESET} on {base_url}  {DIM}(data: {args.data_dir}){RESET}")
 		return
 
@@ -188,7 +217,12 @@ def _serve(args) -> None:
 
 	sink = _redis_sink()
 	app = create_app(
-		SessionStore(args.data_dir, event_sink=sink),
+		SessionStore(
+			args.data_dir,
+			event_sink=sink,
+			extension_paths=args.extension,
+			extensions_enabled=not args.no_extensions,
+		),
 		auth_token=config.AUTH_TOKEN,
 	)
 	if args.parent_watch:
@@ -236,7 +270,12 @@ def _web(args) -> None:
 
 	sink = _redis_sink()
 	app = create_app(
-		SessionStore(args.data_dir, event_sink=sink),
+		SessionStore(
+			args.data_dir,
+			event_sink=sink,
+			extension_paths=args.extension,
+			extensions_enabled=not args.no_extensions,
+		),
 		auth_token=config.AUTH_TOKEN,
 		webui_dir=webui,
 		system_append=args.append_system_prompt,
