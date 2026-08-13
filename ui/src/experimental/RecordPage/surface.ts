@@ -3,6 +3,7 @@
 // built-in that changed underneath both resolve to the same answer.
 import { reactive } from "vue";
 import { runningSource } from "./context";
+import { ensureIcons } from "./iconClasses";
 import type { Position, SurfaceItem, SurfaceVerbs } from "./types";
 
 export interface ResolvedItem<Item extends SurfaceItem = SurfaceItem> {
@@ -25,6 +26,7 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 	private builtins: () => Item[] = () => [];
 
 	add(item: Item, position?: Position) {
+		ensureIcons(item);
 		this.ops.push({ verb: "add", source: runningSource(), item, position });
 	}
 
@@ -37,6 +39,7 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 	}
 
 	update(name: string, patch: Partial<Item>) {
+		ensureIcons(patch);
 		this.ops.push({ verb: "update", source: runningSource(), name, patch });
 	}
 
