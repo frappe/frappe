@@ -229,6 +229,7 @@ from frappe.deprecation_dumpster import read_multi_pdf
 
 
 @frappe.whitelist(allow_guest=True)
+@frappe.concurrent_limit()
 def download_pdf(
 	doctype: str,
 	name: str,
@@ -260,6 +261,7 @@ def download_pdf(
 
 
 @frappe.whitelist()
+@frappe.concurrent_limit()
 def report_to_pdf(html: str, orientation: str = "Landscape"):
 	make_access_log(file_type="PDF", method="PDF", page=html)
 	frappe.local.response.filename = "report.pdf"
