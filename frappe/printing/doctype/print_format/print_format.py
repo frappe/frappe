@@ -70,7 +70,7 @@ class PrintFormat(Document):
 		page_number: DF.Literal[
 			"Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"
 		]
-		pdf_generator: DF.Literal["wkhtmltopdf", "chrome"]
+		pdf_generator: DF.Literal["wkhtmltopdf", "chrome", "Typst"]
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
 		print_format_for: DF.Literal["DocType", "Report"]
@@ -110,7 +110,7 @@ class PrintFormat(Document):
 		):
 			self.print_format_builder_beta = 1
 
-		if self.print_format_builder_beta and not self.custom_format:
+		if self.print_format_builder_beta and not self.custom_format and self.pdf_generator != "Typst":
 			self.pdf_generator = "chrome"
 
 	def get_html(self, docname, letterhead=None):
@@ -151,6 +151,90 @@ class PrintFormat(Document):
 
 		self.validate_colors()
 		self.validate_conditions()
+		self.validate_typst_renderer()
+
+	def validate_typst_renderer(self):
+		"""Refuse to save a Typst-flagged format that Typst cannot render — the
+		blockers name exactly what to remove, at edit time instead of print time."""
+		from frappe.utils.typst_emitter import has_typst_blocks, typst_blockers
+
+		try:
+			layout = frappe.parse_json(self.format_data) if self.format_data else {}
+		except Exception:
+			layout = {}
+		if not isinstance(layout, dict):
+			layout = {}
+
+		if self.pdf_generator != "Typst":
+			# the mirror gate: raw Typst markup can't render anywhere else
+			if has_typst_blocks(layout):
+				frappe.throw(
+					_("This format uses a Typst block, so its PDF Renderer must be Typst."),
+					title=_("Typst block requires the Typst renderer"),
+				)
+			return
+		blockers = typst_blockers(self, layout)
+		if blockers:
+			frappe.throw(
+				_("This format cannot use the Typst renderer: {0}").format(", ".join(blockers)),
+				title=_("Typst renderer unavailable"),
+			)
+		self._validate_typst_block_markup(layout)
+
+	def _validate_typst_block_markup(self, layout):
+		"""Compile each raw Typst block on save so a typo fails here, with the
+		block named, instead of breaking every print later."""
+		from frappe.utils.jinja import get_jenv
+		from frappe.utils.typst_emitter import (
+			_walk,
+			compile_typst_source,
+			has_jinja,
+			has_typst_blocks,
+			render_typst_template,
+		)
+
+		if not has_typst_blocks(layout):
+			return
+		try:
+			import typst
+		except ImportError:
+			return
+		sample_doc = None
+		sample_loaded = False
+		for where, df in _walk(layout):
+			markup = (df.get("typst") or "").strip() if df.get("fieldtype") == "Typst" else ""
+			if not markup:
+				continue
+			if has_jinja(markup):
+				if not sample_loaded:
+					sample_doc = self._typst_sample_doc()
+					sample_loaded = True
+				try:
+					if sample_doc is None:
+						# no document to render against — check the template alone
+						get_jenv().parse(markup)
+						continue
+					markup = render_typst_template(markup, {"doc": sample_doc})
+				except Exception as e:
+					frappe.throw(
+						_("The Typst block in {0} has a template error: {1}").format(where, str(e)[:300]),
+						title=_("Invalid Typst markup"),
+					)
+			try:
+				compile_typst_source(markup)
+			except Exception as e:
+				frappe.throw(
+					_("The Typst block in {0} does not compile: {1}").format(where, str(e)[:300]),
+					title=_("Invalid Typst markup"),
+				)
+
+	def _typst_sample_doc(self):
+		if not self.doc_type:
+			return None
+		if frappe.get_meta(self.doc_type).issingle:
+			return frappe.get_doc(self.doc_type)
+		name = frappe.db.get_value(self.doc_type, {}, "name", order_by="modified desc")
+		return frappe.get_doc(self.doc_type, name) if name else None
 
 	def validate_conditions(self):
 		"""Reject a layout whose visibility conditions cannot compile.

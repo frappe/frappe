@@ -1,6 +1,29 @@
 <template>
 	<div class="pfb-settings">
 		<div class="form-group">
+			<label class="control-label">{{ __("PDF Renderer") }}</label>
+			<select
+				class="form-control form-control-sm"
+				:value="renderer"
+				@change="set_renderer($event.target.value)"
+			>
+				<option value="chrome" :disabled="has_typst_block">{{ __("Chromium") }}</option>
+				<option value="Typst" :disabled="typst_blockers.length > 0">
+					{{ __("Typst (fast)") }}
+				</option>
+			</select>
+			<p v-if="typst_blockers.length" class="pfb-renderer-hint">
+				{{ __("Typst unavailable:") }} {{ typst_blockers.join(", ") }}
+			</p>
+			<p v-else-if="has_typst_block" class="pfb-renderer-hint">
+				{{ __("Chromium unavailable: this format uses a Typst block.") }}
+			</p>
+			<p v-else-if="renderer === 'Typst'" class="pfb-renderer-hint">
+				{{ __("Experimental") }}
+			</p>
+		</div>
+
+		<div class="form-group">
 			<label class="control-label">{{ __("Google Font") }}</label>
 			<Autocomplete
 				:options="font_options"
@@ -86,6 +109,7 @@ import { useStore } from "../stores";
 
 let store = inject("$store");
 let { print_format } = useStore();
+let { typst_blockers, has_typst_block } = store;
 
 // ── custom css ─────────────────────────────────────────────
 let css_enabled = ref(!!print_format.value.css);
@@ -117,6 +141,14 @@ function toggle_css(on) {
 }
 
 let google_fonts = ref([]);
+
+let renderer = computed(() =>
+	print_format.value?.pdf_generator === "Typst" ? "Typst" : "chrome"
+);
+function set_renderer(value) {
+	if (value !== "Typst" && has_typst_block.value) return;
+	print_format.value.pdf_generator = value === "Typst" ? "Typst" : "chrome";
+}
 let font_options = computed(() => [
 	{ label: __("Default"), value: "" },
 	...google_fonts.value.map((f) => ({ label: f, value: f })),
@@ -184,6 +216,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.pfb-renderer-hint {
+	margin: 6px 0 0;
+	font-size: var(--text-tiny);
+	color: var(--text-muted);
+}
+
 .pfb-settings .form-group {
 	margin-bottom: 12px;
 }

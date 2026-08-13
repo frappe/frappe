@@ -95,7 +95,8 @@ frappe.ui.form.on("Print Format", {
 	set_chrome_for_builder: function (frm) {
 		const is_builder = frm.doc.print_format_builder_beta;
 		const is_custom = frm.doc.custom_format;
-		const should_force_chrome = is_builder && (frm.is_new() || !is_custom);
+		const should_force_chrome =
+			is_builder && (frm.is_new() || !is_custom) && frm.doc.pdf_generator !== "Typst";
 		if (should_force_chrome) {
 			frm.set_value("pdf_generator", "chrome");
 		}

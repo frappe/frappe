@@ -285,6 +285,7 @@ frappe.Application = class Application {
 	load_bootinfo() {
 		if (frappe.boot) {
 			this.setup_workspaces();
+			this.load_custom_icons();
 			frappe.model.sync(frappe.boot.docs);
 			this.check_metadata_cache_status();
 			this.set_globals();
@@ -301,6 +302,21 @@ frappe.Application = class Application {
 			this.set_as_guest();
 		}
 		frappe.ui.toolbar.fetch_session_defaults();
+	}
+
+	load_custom_icons() {
+		// Custom Icons join the sprite the bundled icon files are fetched into, so
+		// `frappe.utils.icon()` and the Icon field resolve them like any other icon.
+		let icons = frappe.boot.custom_icons || [];
+		if (!icons.length) return;
+
+		let symbols = icons.map((icon) => icon.symbol).join("");
+		document
+			.getElementById("all-symbols")
+			?.insertAdjacentHTML(
+				"beforeend",
+				`<svg xmlns="http://www.w3.org/2000/svg" style="display: none">${symbols}</svg>`
+			);
 	}
 
 	setup_workspaces() {

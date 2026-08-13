@@ -26,8 +26,11 @@ function activate() {
 }
 </script>
 
+<!-- keyboard-operable row (P12): role + tabindex + Enter/Space, focus ring on keyboard focus.
+  Kept outside <template> so the root stays single: a comment in there is a second root
+  node, and a production build then drops the caller's fallthrough `class` (here the row
+  separator) while dev still applies it. -->
 <template>
-	<!-- keyboard-operable row (P12): role + tabindex + Enter/Space, focus ring on keyboard focus -->
 	<div
 		role="button"
 		tabindex="0"

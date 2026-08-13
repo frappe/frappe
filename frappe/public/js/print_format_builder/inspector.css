@@ -342,3 +342,20 @@ body.pfb-dragging * {
 	user-select: none !important;
 	-webkit-user-select: none !important;
 }
+
+.pfb-typst-input {
+	font-family: monospace;
+	font-size: var(--text-xs);
+	line-height: 1.5;
+	resize: vertical;
+	min-height: 120px;
+	margin-bottom: 6px;
+}
+
+/* the canvas draws its own selection and hover rings — the browser's focus
+   ring on these tabbable nodes only duplicates them (any keypress shows it) */
+.print-format-container .print-format-section:focus,
+.print-format-container .field--chip:focus,
+.print-format-container .field--preview:focus {
+	outline: none;
+}

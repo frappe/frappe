@@ -10,6 +10,7 @@ import frappe
 import frappe.defaults
 import frappe.desk.desk_page
 from frappe.app_state import filter_out_disabled_doctypes, get_disabled_modules
+from frappe.core.doctype.custom_icon.custom_icon import get_symbols
 from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_completed_apps,
 )
@@ -143,6 +144,7 @@ def get_bootinfo():
 	bootinfo.desktop_icon_urls = get_desktop_icon_urls()
 	bootinfo.desktop_icon_style = get_icon_style() or "Subtle"
 	bootinfo.desktop_page = get_desktop_page()
+	bootinfo.custom_icons = get_symbols()
 	if bootinfo.is_fc_site:
 		bootinfo.site_info = current_site_info()
 	return bootinfo

@@ -158,6 +158,9 @@ def search_widget(
 		if sbool(query_filters_as_dict) and isinstance(filters, list):
 			filters = make_dict_from_filter_list(filters)
 
+		if ignore_user_permissions:
+			frappe.flags.ignore_user_permissions_for_doctype = doctype
+
 		try:
 			is_whitelisted(frappe.get_attr(query))
 			values = frappe.call(
@@ -184,6 +187,8 @@ def search_widget(
 					http_status_code=404,
 				)
 				return []
+		finally:
+			frappe.flags.ignore_user_permissions_for_doctype = None
 
 		if not for_link_validation:
 			if meta.translated_doctype:

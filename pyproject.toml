@@ -22,7 +22,7 @@ dependencies = [
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
-    "pypdf==6.14.2",
+    "pypdf==6.15.0",
     "PyPika @ git+https://github.com/frappe/pypika@2c50e6142b2d61d2d243e466fdd5dc03b3d918f2",
     "mysqlclient==2.2.8",
     "PyQRCode~=1.2.1",
@@ -79,6 +79,7 @@ dependencies = [
     "tenacity~=9.1.2",
     "terminaltables~=3.1.10",
     "traceback-with-variables~=2.2.1",
+    "typst~=0.15.0",
     "typing_extensions>=4.15.0,<5",
     "xlrd~=2.0.2",
     "zxcvbn~=4.5.0",
@@ -225,7 +226,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { cryptography = false, pyOpenSSL = false } # drop cryptography and pyOpenSSL after 2026-08-08
+exclude-newer-package = { pypdf = false }
 
 [tool.mypy]
 strict = false

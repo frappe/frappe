@@ -520,7 +520,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 		Cross-db counterpart of the MariaDB implementation (which uses ``SHOW INDEX`` with
 		``Seq_in_index = 1`` and a single-column constraint). Uses the PostgreSQL system
-		catalogs so callers stay db-agnostic.
+		catalogs so callers stay db-agnostic. Only full (non-partial) btree indexes count,
+		like the indexes SHOW INDEX reports on InnoDB -- a hash or partial index cannot
+		serve the ordering and unrestricted lookups callers are checking for.
 		"""
 		result = self.sql(
 			f"""
@@ -528,6 +530,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			FROM pg_index i
 			JOIN pg_class tc ON tc.oid = i.indrelid
 			JOIN pg_class ic ON ic.oid = i.indexrelid
+			JOIN pg_am am ON am.oid = ic.relam
 			JOIN pg_namespace n ON n.oid = tc.relnamespace
 			JOIN pg_attribute a ON a.attrelid = tc.oid AND a.attnum = i.indkey[0]
 			WHERE tc.relname = %(table_name)s
@@ -535,6 +538,11 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				AND a.attname = %(fieldname)s
 				AND i.indisunique = {"true" if unique else "false"}
 				AND i.indnkeyatts = 1
+				AND i.indisvalid
+				AND i.indisready
+				AND i.indislive
+				AND am.amname = 'btree'
+				AND i.indpred IS NULL
 			LIMIT 1
 			""",
 			{"table_name": table_name, "schema": self.db_schema, "fieldname": fieldname},

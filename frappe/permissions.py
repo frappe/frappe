@@ -507,22 +507,27 @@ def get_doctypes_with_read(user: str | None = None):
 	return list({cstr(p.parent) for p in get_valid_perms(user=user) if p.parent and p.read})
 
 
-def get_valid_perms(doctype=None, user=None):
+def get_valid_perms(doctype=None, user=None, roles=None):
 	"""Get valid permissions for the current user from DocPerm and Custom DocPerm"""
-	roles = get_roles(user)
+	roles = roles or get_roles(user)
 
-	perms = get_perms_for(roles)
-	custom_perms = get_perms_for(roles, "Custom DocPerm")
+	filters = {}
+	if doctype:
+		filters["parent"] = doctype
+
+	perms = get_perms_for(roles, filters=filters)
+	custom_perms = get_perms_for(roles, "Custom DocPerm", filters=filters)
 
 	doctypes_with_custom_perms = get_doctypes_with_custom_docperms()
-	for p in perms:
-		if p.parent not in doctypes_with_custom_perms:
-			custom_perms.append(p)
+	if doctype and doctype not in doctypes_with_custom_perms:
+		custom_perms.extend(perms)
 
-	if doctype:
-		return [p for p in custom_perms if p.parent == doctype]
-	else:
-		return custom_perms
+	elif not doctype:
+		for p in perms:
+			if p["parent"] not in doctypes_with_custom_perms:
+				custom_perms.append(p)
+
+	return custom_perms
 
 
 def get_all_perms(role):
@@ -580,10 +585,14 @@ def get_doctype_roles(doctype, access_type="read"):
 	return [d.role for d in meta.get("permissions") if d.get(access_type)]
 
 
-def get_perms_for(roles, perm_doctype="DocPerm"):
+def get_perms_for(roles, perm_doctype="DocPerm", filters=None):
 	"""Get perms for given roles"""
-	filters = {"permlevel": 0, "docstatus": 0, "role": ["in", roles]}
-	return frappe.get_all(perm_doctype, fields=["*"], filters=filters)
+	query_filters = {"permlevel": 0, "docstatus": 0, "role": ["in", roles]}
+
+	if filters:
+		query_filters.update(filters)
+
+	return frappe.get_all(perm_doctype, fields=["*"], filters=query_filters)
 
 
 def get_doctypes_with_custom_docperms():
