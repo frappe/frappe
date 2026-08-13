@@ -725,6 +725,13 @@ frappe.views.KanbanView.show_kanban_dialog = function (doctype) {
 				default: select_fields[0],
 				reqd: 1,
 			},
+			// Check field for use_kanban_v2
+			{
+				fieldtype: "Check",
+				fieldname: "use_kanban_v2",
+				label: __("Use Kanban V2 (New Experience)"),
+				description: __("Enable the new Kanban experience for this board"),
+			},
 		];
 
 		if (doctype === "Task") {
