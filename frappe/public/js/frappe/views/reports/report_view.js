@@ -164,14 +164,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			if (link_title === undefined) return;
 
 			// update visible DOM elements and cell tooltip
-			document
-				.querySelectorAll(`a[data-doctype="${doctype}"][data-name="${value}"]`)
-				.forEach((el) => {
-					if (el.textContent === link_title) return;
-					el.textContent = link_title;
+			document.querySelectorAll("a[data-doctype][data-name]").forEach((el) => {
+				if (el.dataset.doctype !== doctype || el.dataset.name !== value) return;
+				if (el.textContent === link_title) return;
+				el.textContent = link_title;
 
-					$(el).closest(".dt-cell__content").attr("title", link_title);
-				});
+				$(el).closest(".dt-cell__content").attr("title", link_title);
+			});
 
 			let col_indices = col_indices_by_doctype[doctype];
 			if (rows?.length && col_indices?.length) {
