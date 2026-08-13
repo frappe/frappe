@@ -160,6 +160,19 @@ frappe.doctype_settings.set_property = function (doctype, property, value) {
 		.then(() => frappe.show_alert({ message: __("Default updated"), indicator: "green" }));
 };
 
+frappe.doctype_settings.clear_property = function (doctype, property) {
+	return frappe.db
+		.get_list("Property Setter", {
+			filters: { doc_type: doctype, property },
+			fields: ["name"],
+			limit: 1,
+		})
+		.then((rows) =>
+			rows && rows.length ? frappe.db.delete_doc("Property Setter", rows[0].name) : null
+		)
+		.then(() => frappe.show_alert({ message: __("Default removed"), indicator: "green" }));
+};
+
 // Each `condition` hides a tab the user could never load anyway (boot perms are a
 // client-side hint; the server still enforces). A tab that is guaranteed to 403
 // shouldn't be offered at all — see render_error for the residual failure path.
@@ -180,17 +193,27 @@ frappe.doctype_settings.groups = [
 				condition: () => frappe.model.can_read("Workflow"),
 			},
 			{
-				id: "permissions",
-				label: __("Permissions"),
-				icon: "shield-check",
-				// Role permission APIs are System-Manager-only; hide the tab otherwise.
-				condition: () => frappe.user.has_role("System Manager"),
-			},
-			{
 				id: "print-format",
 				label: __("Print Formats"),
 				icon: "printer",
 				condition: () => frappe.model.can_read("Print Format"),
+			},
+		],
+	},
+	{
+		group: __("Permissions"),
+		items: [
+			{
+				id: "roles",
+				label: __("Roles"),
+				icon: "users",
+				condition: () => frappe.user.has_role("System Manager"),
+			},
+			{
+				id: "user-permissions",
+				label: __("User Permissions"),
+				icon: "user-lock",
+				condition: () => frappe.user.has_role("System Manager"),
 			},
 		],
 	},

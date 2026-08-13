@@ -39,7 +39,9 @@ frappe.ui.SettingsDialogPanel = class SettingsDialogPanel {
 				<div class="settings-dialog-panel-actions"></div>
 			</div>
 		`).appendTo(this.$el);
-		this.$body = $('<div class="settings-dialog-panel-body"></div>').appendTo(this.$el);
+		this.$body = $('<div class="settings-dialog-panel-body pt-2 px-2"></div>').appendTo(
+			this.$el
+		);
 		// `body` is the public handle consumers render into.
 		this.body = this.$body;
 	}

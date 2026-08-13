@@ -116,8 +116,16 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 			return;
 		}
 
+		// Default format first (top-left); the rest keep their server order.
+		const ordered = default_pf
+			? [
+					...formats.filter((f) => f.name === default_pf),
+					...formats.filter((f) => f.name !== default_pf),
+			  ]
+			: formats;
+
 		const $grid = $('<div class="dts-pf-grid"></div>').appendTo(panel.body);
-		formats.forEach((f) => $grid.append(make_card(f)));
+		ordered.forEach((f) => $grid.append(make_card(f)));
 
 		// The first screenful renders straight away — waiting on the observer would leave
 		// the visible cards blank until something scrolls. The rest load as they're reached.
