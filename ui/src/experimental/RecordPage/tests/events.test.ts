@@ -6,6 +6,13 @@ import { ref } from "vue";
 vi.mock("frappe-ui", () => ({
   call: vi.fn(),
   toast: { success: vi.fn(), error: vi.fn() },
+  createResource: () => ({
+    data: null,
+    loading: false,
+    fetch() {},
+    reload() {},
+  }),
+  frappeRequest: vi.fn(),
 }));
 
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";

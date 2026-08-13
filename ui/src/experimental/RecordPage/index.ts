@@ -21,11 +21,14 @@ export type { RecordPageController, RecordPageHost } from "./createRecordPage";
 export { default as PageDialogs } from "./PageDialogs.vue";
 export { createPageDialogs } from "./dialog";
 export type { PageDialogEntry, PageDialogHost } from "./dialog";
+export { createPagePermissions } from "./pagePermissions";
+export type { PagePermissions, PagePermissionsHost } from "./pagePermissions";
 export { Surface, BUILTIN } from "./surface";
 export type { ResolvedItem } from "./surface";
 export { loadFrontendExtensions } from "./loader";
 export { withRegisteringSource, HOST_SOURCE } from "./context";
 export type {
+  FieldAccess,
   Handler,
   HeaderAction,
   PageDialog,

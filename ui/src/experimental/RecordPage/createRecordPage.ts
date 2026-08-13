@@ -7,6 +7,7 @@ import type { Router } from "vue-router";
 import { call, toast } from "frappe-ui";
 import { withRunningSource } from "./context";
 import { createPageDialogs, type PageDialogEntry } from "./dialog";
+import { createPagePermissions } from "./pagePermissions";
 import { registrationsFor } from "./registry";
 import { Surface } from "./surface";
 import type {
@@ -31,6 +32,7 @@ export interface RecordPageHost {
   docname: string;
   doc: Ref<Record<string, any>>;
   meta: Ref<any>;
+  /** `docinfo.permissions` as `getdoc` gave it; the engine curates it. */
   perms: () => Record<string, any>;
   isDirty: () => boolean;
   /** The name of the tab the reader is on, as the host's strip resolves it. */
@@ -73,6 +75,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   let replaying = 0;
 
   const dialogs = createPageDialogs({ isReplaying: () => replaying > 0 });
+  const permissions = createPagePermissions(host);
 
   const page: RecordPageApi = {
     doctype: host.doctype,
@@ -84,8 +87,12 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       return host.meta.value;
     },
     get perms() {
-      return host.perms();
+      return permissions.perms();
     },
+    get roles() {
+      return permissions.roles();
+    },
+    fieldAccess: (fieldname) => permissions.fieldAccess(fieldname),
     get isDirty() {
       return host.isDirty();
     },
@@ -106,7 +113,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   };
 
   async function refresh() {
-    await host.sourcesReady?.();
+    await Promise.all([host.sourcesReady?.(), permissions.ready()]);
     warnUnknownHandlers();
     for (const surface of surfaces) surface.reset();
     // Counted, not a boolean: a script's own `page.refresh()` re-enters this.

@@ -2,6 +2,7 @@
 // item schemas the four surfaces accept.
 import type { Component } from "vue";
 import type { Router } from "vue-router";
+import type { FieldAccess } from "../../composables/useDocPermissions";
 
 /** Where an added or moved item lands; absent or unknown anchors append. */
 export type Position = { before?: string; after?: string };
@@ -189,7 +190,15 @@ export interface RecordPageApi {
   docname: string;
   doc: Record<string, any>;
   meta: Record<string, any> | null;
+  /**
+   * Every right frappe would check for this doctype — the 15 standard ones plus
+   * any `Permission Type` registered against it — valued `0` or `1`.
+   */
   perms: Record<string, any>;
+  /** The session user's roles, resolved before any handler runs. */
+  roles: string[];
+  /** What this user may do with a field, by permlevel; an unknown one is `none`. */
+  fieldAccess(fieldname: string): FieldAccess;
   isDirty: boolean;
   quickActions: SurfaceVerbs<QuickAction>;
   headerActions: SurfaceVerbs<HeaderAction>;
@@ -203,6 +212,8 @@ export interface RecordPageApi {
   call(method: string, params?: Record<string, any>): Promise<any>;
   router: Router;
 }
+
+export type { FieldAccess };
 
 export type Handler = (page: RecordPageApi) => any;
 

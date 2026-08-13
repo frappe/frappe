@@ -15,6 +15,13 @@ vi.mock("frappe-ui", () => ({
     confirm: (args: any) => confirmSpy(args),
     danger: (args: any) => dangerSpy(args),
   },
+  createResource: () => ({
+    data: null,
+    loading: false,
+    fetch() {},
+    reload() {},
+  }),
+  frappeRequest: vi.fn(),
 }));
 
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";

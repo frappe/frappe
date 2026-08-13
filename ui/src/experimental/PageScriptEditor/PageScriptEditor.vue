@@ -71,6 +71,10 @@
 					An ES module whose default export is an object of event handlers. It may import
 					vue, vue-router, frappe-ui and @framework/ui; nothing else resolves.
 				</p>
+				<p class="text-p-xs text-ink-gray-5">
+					Anything a script hides is hidden from the eye, not from the server. A user who
+					can't see the button can still make the call.
+				</p>
 				<ErrorMessage :message="error" />
 				<div class="flex items-center gap-3">
 					<Switch
