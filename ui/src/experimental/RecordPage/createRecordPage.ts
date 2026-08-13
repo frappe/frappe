@@ -9,6 +9,7 @@ import { withRunningSource } from "./context";
 import { createPageDialogs, type PageDialogEntry } from "./dialog";
 import { createPagePermissions } from "./pagePermissions";
 import { registrationsFor } from "./registry";
+import { reportCustomizationError } from "./reportError";
 import { Surface } from "./surface";
 import type {
   HeaderAction,
@@ -134,11 +135,23 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
         try {
           await handler(page);
         } catch (error) {
+          // `before_save` rethrows to abort the save, and is the one catch site
+          // that does not report: the user is looking straight at a failed save,
+          // so logging it would file a working veto as an error.
           if (event === "before_save") throw error;
           console.error(
             `[record-page] ${source}.${event} on ${host.doctype} threw`,
             error,
           );
+          // No `route`: the reporter reads `location`, which is the URL an admin
+          // can paste. `router.fullPath` drops the app's base and would make this
+          // one site disagree with the other three.
+          reportCustomizationError(error, {
+            source,
+            event,
+            doctype: host.doctype,
+            record: host.docname,
+          });
         }
       });
     }

@@ -8,6 +8,13 @@ import { evaluatePageScript } from "./evaluatePageScript";
 import { GET_PAGE_SCRIPTS } from "./pageScriptTypes";
 import type { PageScriptRow, PageScriptsResponse } from "./pageScriptTypes";
 import { registerRecordPage, unregisterSource } from "./registry";
+import {
+  reportCustomizationError,
+  resetCustomizationErrorReports,
+} from "./reportError";
+
+// The tier's own fetch has no script to blame, so it reports under its own name.
+const TIER_SOURCE = "page-scripts";
 
 const tiers = new Map<string, Promise<void>>();
 const sources = new Map<string, string[]>();
@@ -40,6 +47,7 @@ export function resetPageScripts() {
   tiers.clear();
   builds.clear();
   toasted.clear();
+  resetCustomizationErrorReports();
   writable.value = false;
 }
 
@@ -67,6 +75,12 @@ async function fetchScripts(
     return await call(GET_PAGE_SCRIPTS, { dt: doctype, view: "Record" });
   } catch (error) {
     console.error(`[page-script] could not load scripts for ${doctype}`, error);
+    reportCustomizationError(error, {
+      source: TIER_SOURCE,
+      tier: "page_script",
+      event: "load",
+      doctype,
+    });
     return null;
   }
 }
@@ -85,12 +99,22 @@ async function addScript(
     );
     sources.get(doctype)?.push(source);
   } catch (error) {
-    reportFailure(row.name, error, canWrite);
+    reportFailure(doctype, row.name, error, canWrite);
   }
 }
 
-function reportFailure(name: string, error: unknown, canWrite: boolean) {
+function reportFailure(
+  doctype: string,
+  name: string,
+  error: unknown,
+  canWrite: boolean,
+) {
   console.error(`[page-script] ${name} failed to load, skipped`, error);
+  reportCustomizationError(error, {
+    source: sourceName(name),
+    event: "load",
+    doctype,
+  });
   if (!canWrite || toasted.has(name)) return;
   toasted.add(name);
   toast.error(`Page Script '${name}' failed to load`);

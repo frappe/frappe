@@ -4,8 +4,13 @@
 // named error and the page renders with that source absent.
 import { reactive } from "vue";
 import { withRegisteringSource } from "./context";
+import { reportCustomizationError } from "./reportError";
 
 const IMPORT_TIMEOUT = 5000;
+
+// The tripwire is a site-wide misconfiguration rather than any one app's bug, so
+// it reports under its own name on the tier it breaks.
+const IMPORT_MAP_SOURCE = "import-map";
 
 export async function loadFrontendExtensions(entries: string[]) {
 	if (!entries.length) return;
@@ -23,19 +28,33 @@ async function importExtension(app: string, url: string) {
 		await withTimeout(import(/* @vite-ignore */ url), `${app} extension timed out`);
 	} catch (error) {
 		console.error(`[record-page] extension from '${app}' failed to load, skipped`, error);
+		reportCustomizationError(error, { source: app, tier: "extension", event: "load" });
 	}
 }
 
 // The tripwire ticket 05 §7 asks for: if the import map hands extensions a vue
-// that is not the host's, every provide/inject seam is already broken.
+// that is not the host's, every provide/inject seam is already broken. Nobody
+// would ever see the console line, which is why it reports.
 async function assertSharedSingletons() {
 	try {
 		const mapped = await import(/* @vite-ignore */ "vue");
-		if (mapped.reactive !== reactive)
-			console.error("[record-page] import map resolves a second vue; extensions will misbehave");
+		if (mapped.reactive !== reactive) {
+			const message = "import map resolves a second vue; extensions will misbehave";
+			console.error(`[record-page] ${message}`);
+			reportTripwire(new Error(message));
+		}
 	} catch (error) {
 		console.error("[record-page] shared deps missing from the import map", error);
+		reportTripwire(error);
 	}
+}
+
+function reportTripwire(error: unknown) {
+	reportCustomizationError(error, {
+		source: IMPORT_MAP_SOURCE,
+		tier: "extension",
+		event: "load",
+	});
 }
 
 /** Boot order is install order; grouping keeps an app's css ahead of its js. */

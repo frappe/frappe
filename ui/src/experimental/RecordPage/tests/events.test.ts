@@ -18,6 +18,8 @@ vi.mock("frappe-ui", () => ({
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { registerRecordPage, resetRegistry } from "../registry";
 import { withRegisteringSource } from "../context";
+import { resetCustomizationErrorReports } from "../reportError";
+import { call as mockedCall } from "frappe-ui";
 
 function makeHost(overrides: Partial<RecordPageHost> = {}): RecordPageHost {
   return {
@@ -35,8 +37,20 @@ function makeHost(overrides: Partial<RecordPageHost> = {}): RecordPageHost {
   };
 }
 
+function reportedFailures() {
+  return (mockedCall as any).mock.calls
+    .filter(([method]: [string]) =>
+      method.includes("report_customization_error"),
+    )
+    .map(([, payload]: [string, any]) => `${payload.source}.${payload.event}`);
+}
+
 describe("fireEvent", () => {
-  beforeEach(() => resetRegistry());
+  beforeEach(() => {
+    resetRegistry();
+    resetCustomizationErrorReports();
+    (mockedCall as any).mockReset();
+  });
 
   it("propagates a before_save throw so the host can abort the save", async () => {
     registerRecordPage("CRM Deal", {
@@ -139,5 +153,26 @@ describe("unknown handler keys", () => {
     await controller.refresh();
     expect(warnings).not.toHaveBeenCalled();
     warnings.mockRestore();
+  });
+
+  it("reports a handler throw, but never a before_save veto (ticket 19 §1)", async () => {
+    withRegisteringSource("page-script:A", async () =>
+      registerRecordPage("CRM Deal", {
+        refresh: () => {
+          throw new Error("boom");
+        },
+        before_save: () => {
+          throw new Error("veto");
+        },
+      }),
+    );
+    const controller = createRecordPage(makeHost());
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    await controller.fireEvent("refresh");
+    await expect(controller.fireEvent("before_save")).rejects.toThrow("veto");
+
+    expect(reportedFailures()).toContain("page-script:A.refresh");
+    expect(reportedFailures()).not.toContain("page-script:A.before_save");
   });
 });

@@ -36,6 +36,10 @@
 				Anything a script hides is hidden from the eye, not from the server. A user who
 				can't see the button can still make the call.
 			</dd>
+			<dt class="text-ink-gray-5">Errors</dt>
+			<dd class="text-ink-gray-7">
+				What a script puts in an error message may be stored in this site's Error Log.
+			</dd>
 		</dl>
 		<p class="text-p-sm font-medium text-ink-gray-7">Example</p>
 		<pre
