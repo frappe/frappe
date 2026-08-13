@@ -6,8 +6,9 @@
 // measured on a site with erpnext and hrms installed: `Employee.module` is "Setup", Setup's sidebar
 // does not list it, and HR Setup links it.
 //
-// The resolver reads three things and nothing else -- frappe.boot.module_sidebars,
-// frappe.boot.entity_module and localStorage.selected_module -- which is why it can be exercised
+// The resolver reads boot data and localStorage and nothing else -- frappe.boot.module_sidebars,
+// frappe.boot.entity_module, the three non-doctype maps DeskViews ships (allowed_reports,
+// page_info, dashboards) and localStorage.selected_module -- which is why it can be exercised
 // directly rather than through a navigation.
 context("Cold-entry sidebar resolution", () => {
 	before(() => {
@@ -26,18 +27,36 @@ context("Cold-entry sidebar resolution", () => {
 
 	// Resolve `route` against a synthetic world, restoring the real one afterwards so the desk this
 	// spec is running in survives the test.
-	function resolve({ sidebars, entity_module = {}, metas = {}, persisted, route }, then) {
+	function resolve(
+		{
+			sidebars,
+			entity_module = {},
+			metas = {},
+			reports = {},
+			pages = {},
+			dashboards = [],
+			persisted,
+			route,
+		},
+		then
+	) {
 		cy.window().then((win) => {
 			const frappe = win.frappe;
 			const real = {
 				module_sidebars: frappe.boot.module_sidebars,
 				entity_module: frappe.boot.entity_module,
+				allowed_reports: frappe.boot.allowed_reports,
+				page_info: frappe.boot.page_info,
+				dashboards: frappe.boot.dashboards,
 				get_meta: frappe.get_meta,
 				selected_module: win.localStorage.getItem("selected_module"),
 			};
 
 			frappe.boot.module_sidebars = payload(sidebars);
 			frappe.boot.entity_module = entity_module;
+			frappe.boot.allowed_reports = reports;
+			frappe.boot.page_info = pages;
+			frappe.boot.dashboards = dashboards;
 			frappe.get_meta = (name) => metas[name] || null;
 			if (persisted) win.localStorage.setItem("selected_module", persisted);
 			else win.localStorage.removeItem("selected_module");
@@ -50,6 +69,9 @@ context("Cold-entry sidebar resolution", () => {
 			} finally {
 				frappe.boot.module_sidebars = real.module_sidebars;
 				frappe.boot.entity_module = real.entity_module;
+				frappe.boot.allowed_reports = real.allowed_reports;
+				frappe.boot.page_info = real.page_info;
+				frappe.boot.dashboards = real.dashboards;
 				frappe.get_meta = real.get_meta;
 				if (real.selected_module) {
 					win.localStorage.setItem("selected_module", real.selected_module);
@@ -143,17 +165,91 @@ context("Cold-entry sidebar resolution", () => {
 		);
 	});
 
+	// `General Ledger` is a Report, so its module comes from frappe.boot.allowed_reports and never
+	// from a meta -- stubbing get_meta for it (as this case originally did) describes a world the
+	// desk cannot produce, and the answer was really coming from step 4. With the report map fed
+	// honestly, step 3 decides it and the answer is final rather than provisional.
 	it("keeps the entity's module ahead of a foreign sidebar when it does list the entity", () => {
 		resolve(
 			{
 				sidebars: { Accounts: ["General Ledger"], Expenses: ["General Ledger"] },
-				metas: { "General Ledger": { module: "Accounts" } },
+				reports: { "General Ledger": { module: "Accounts" } },
 				route: ["query-report", "General Ledger"],
 			},
 			(resolved) => {
 				expect(resolved.sidebar).to.equal("Accounts");
+				expect(resolved.provisional).to.be.false;
 			}
 		);
+	});
+
+	// The population this road exists for: 107 of the Reports, Pages and Dashboards on a site with
+	// erpnext and hrms installed are linked in NO sidebar at all. Before their module was readable
+	// they had no home rather than a bad one, and fell through to whichever sidebar sorted first.
+	it("sends a report that no sidebar links to its own module", () => {
+		resolve(
+			{
+				sidebars: { Accounts: ["General Ledger"], Stock: [] },
+				reports: { "Stock Balance": { module: "Stock" } },
+				route: ["query-report", "Stock Balance"],
+			},
+			(resolved) => {
+				expect(resolved.sidebar).to.equal("Stock");
+				expect(resolved.provisional).to.be.false;
+			}
+		);
+	});
+
+	it("sends a page that no sidebar links to its own module", () => {
+		resolve(
+			{
+				sidebars: { Setup: ["Company"], Website: [] },
+				pages: { "my-page": { module: "Website" } },
+				route: ["my-page"],
+			},
+			(resolved) => {
+				expect(resolved.sidebar).to.equal("Website");
+				expect(resolved.provisional).to.be.false;
+			}
+		);
+	});
+
+	// The demote is the rule non-doctypes could never reach before: a module that cannot show the
+	// entity yields to a sidebar that links it. `BOM Search` is the shipped example -- defined in
+	// Stock, listed only by Manufacturing.
+	it("demotes a report's own module when that module does not list it", () => {
+		resolve(
+			{
+				sidebars: { Stock: ["Item"], Manufacturing: ["BOM Search"] },
+				reports: { "BOM Search": { module: "Stock" } },
+				route: ["query-report", "BOM Search"],
+			},
+			(resolved) => {
+				expect(resolved.sidebar).to.equal("Manufacturing");
+				expect(resolved.provisional).to.be.false;
+			}
+		);
+	});
+
+	// Entity names are not unique across kinds, so the module lookup is selected by the route rather
+	// than probed. `Attendance` is real -- an hrms Dashboard in "Shift and Attendance" and an hrms
+	// DocType in "HR" -- but hrms-only, so it is staged here. `dashboard-view` sits in page_info
+	// because it genuinely is a Page: that is the shadow entity_from_route steps around, and without
+	// it every dashboard route resolved as the page rather than as the dashboard.
+	const attendance_world = {
+		sidebars: { HR: ["Attendance"], "Shift and Attendance": ["Attendance"] },
+		metas: { Attendance: { module: "HR" } },
+		dashboards: [{ name: "Attendance", module: "Shift and Attendance" }],
+		pages: { "dashboard-view": { module: "Core" } },
+	};
+
+	it("resolves a doctype and a dashboard of the same name to different modules", () => {
+		resolve({ ...attendance_world, route: ["List", "Attendance"] }, (resolved) => {
+			expect(resolved.sidebar).to.equal("HR");
+		});
+		resolve({ ...attendance_world, route: ["dashboard-view", "Attendance"] }, (resolved) => {
+			expect(resolved.sidebar).to.equal("Shift and Attendance");
+		});
 	});
 
 	// Step 3b: a standalone doctype is linked by nothing, so a plain membership test would drop it
