@@ -1,0 +1,21 @@
+{
+ "cards": [],
+ "charts": [
+  {
+   "chart": "calendar",
+   "width": "Half"
+  }
+ ],
+ "creation": "2026-03-02 17:39:00.621189",
+ "dashboard_name": "Calendar",
+ "docstatus": 0,
+ "doctype": "Dashboard",
+ "idx": 0,
+ "is_default": 1,
+ "is_standard": 1,
+ "modified": "2026-03-02 17:39:00.621189",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Calendar",
+ "owner": "Administrator"
+}

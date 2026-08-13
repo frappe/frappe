@@ -234,10 +234,13 @@ def get_html(
 	trigger_print=False,
 	settings=None,
 	no_letterhead=None,
+	doc=None,
 ):
 	from frappe.www.printview import validate_print
 
-	doc = frappe.get_doc(doctype, name)
+	# an unsaved document (e.g. a preview built in memory) can only be rendered
+	# from the doc the caller already holds — there is nothing to fetch by name
+	doc = doc or frappe.get_doc(doctype, name)
 	validate_print(doc)
 	generator = PrintFormatGenerator(
 		print_format, doc, letterhead, style=style, settings=settings, no_letterhead=no_letterhead
