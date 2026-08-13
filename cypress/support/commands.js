@@ -291,9 +291,10 @@ Cypress.Commands.add("clear_cache", () => {
 Cypress.Commands.add("desk_ready", () => {
 	cy.window({ log: false }).should((win) => {
 		expect(win.frappe && win.frappe.app, "desk booted").to.be.ok;
-		expect(win.frappe.request.ajax_count, "no pending requests").to.eq(0);
+		expect(win.frappe.get_route_str(), "route resolved").to.not.be.empty;
+		expect(win.frappe.request.ajax_count, "requests settled").to.eq(0);
 	});
-	cy.get(".layout-main-section").should("exist");
+	cy.get(".layout-main-section:visible").should("not.be.empty");
 });
 
 Cypress.Commands.add("dialog", (opts) => {
