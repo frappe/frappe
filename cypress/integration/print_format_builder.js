@@ -410,36 +410,9 @@ context("Print Format Builder — setup flow", () => {
 
 		cy.get(".pfb-setup", { timeout: 20000 }).should("be.visible");
 		cy.get(".pfb-setup-title").should("contain", "How do you want to start?");
-		cy.get(".pfb-setup-option").should("have.length", 3);
+		cy.get(".pfb-setup-option").should("have.length", 2);
 		cy.contains(".pfb-setup-option-label", "Start from default").should("be.visible");
 		cy.contains(".pfb-setup-option-label", "Start blank").should("be.visible");
-		cy.contains(".pfb-setup-option-label", "Write HTML").should("be.visible");
-	});
-
-	it("Write HTML flips the format to custom and opens the form", () => {
-		cy.insert_doc(
-			"Print Format",
-			{ name: PF_NAME, doc_type: "ToDo", print_format_builder_beta: 1 },
-			true
-		);
-
-		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-		cy.get(".pfb-setup", { timeout: 20000 }).should("be.visible");
-		cy.contains(".pfb-setup-option", "Write HTML").click();
-
-		cy.location("pathname", { timeout: 20000 }).should(
-			"match",
-			/\/(app|desk)\/print-format\//
-		);
-		cy.call("frappe.client.get_value", {
-			doctype: "Print Format",
-			filters: { name: PF_NAME },
-			fieldname: ["custom_format", "print_format_builder_beta", "html"],
-		}).then((r) => {
-			expect(Number(r.message.custom_format)).to.equal(1);
-			expect(Number(r.message.print_format_builder_beta)).to.equal(0);
-			expect(r.message.html).to.contain("print-format");
-		});
 	});
 
 	// 8. Format with saved format_data skips the setup screen entirely
