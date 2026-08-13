@@ -57,12 +57,15 @@
 							<span class="size-1.5 shrink-0 rounded-full bg-surface-amber-5" />
 						</Tooltip>
 						<Badge v-if="!row.enabled" theme="gray" size="sm" label="Off" />
+						<!-- The name says which script's menu this opens, and it is
+						     the only route to Disable, Duplicate and Delete. `icon` +
+						     `label` is what names an icon-only Button (ticket 35). -->
 						<Dropdown :options="options(row)" align="end">
 							<Button
 								variant="ghost"
 								size="sm"
-								iconLeft="lucide-ellipsis"
-								:aria-label="`Actions for ${row.name}`"
+								icon="lucide-ellipsis"
+								:label="`Actions for ${row.name}`"
 								class="shrink-0"
 								:class="
 									row.name === selectedName

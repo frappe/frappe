@@ -12,8 +12,8 @@
 			<Button
 				class="ml-auto"
 				variant="ghost"
-				iconLeft="lucide-x"
-				aria-label="Close reference"
+				icon="lucide-x"
+				label="Close reference"
 				@click="emit('close')"
 			/>
 		</div>

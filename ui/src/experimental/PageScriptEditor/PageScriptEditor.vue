@@ -8,20 +8,24 @@
 			<span class="text-lg font-semibold text-ink-gray-9">Page scripts</span>
 			<span class="text-lg text-ink-gray-4">·</span>
 			<span class="text-lg text-ink-gray-6">{{ dt }}</span>
+			<!-- `icon` + `label`, never `iconLeft` + `aria-label`: Button sets
+			     `aria-label` from its own `label` last, so a passed one is
+			     overwritten, and `icon` is the prop that renders bare
+			     (ticket 27, then 35). -->
 			<div class="ml-auto flex items-center gap-1">
 				<Tooltip text="Reference">
 					<Button
 						variant="ghost"
-						iconLeft="lucide-circle-help"
-						aria-label="Reference"
+						icon="lucide-circle-help"
+						label="Reference"
 						@click="showReference = !showReference"
 					/>
 				</Tooltip>
 				<Button
 					v-if="onClose"
 					variant="ghost"
-					iconLeft="lucide-x"
-					aria-label="Close"
+					icon="lucide-x"
+					label="Close"
 					@click="onClose"
 				/>
 			</div>
