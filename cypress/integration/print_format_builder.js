@@ -94,10 +94,13 @@ context("Print Format Builder — create flow", () => {
 		cy.get(".page-head .primary-action", { timeout: 30000 }).should("be.visible").click();
 		cy.get_open_dialog().should("contain", "New Print Format");
 
-		cy.fill_field("doc_type", "ToDo", "Link");
-		cy.fill_field("print_format_name", PF_NAME, "Data");
-		cy.fill_field("start_with", "HTML", "Select");
-		cy.get_open_dialog().findByRole("button", { name: "Create" }).click();
+		// scope fills to the dialog — the list page has its own hidden doc_type field
+		cy.get_open_dialog().within(() => {
+			cy.fill_field("doc_type", "ToDo", "Link");
+			cy.fill_field("print_format_name", PF_NAME, "Data");
+			cy.fill_field("start_with", "HTML", "Select");
+			cy.findByRole("button", { name: "Create" }).click();
+		});
 
 		cy.location("pathname", { timeout: 20000 }).should(
 			"match",
@@ -120,10 +123,13 @@ context("Print Format Builder — create flow", () => {
 		cy.get(".page-head .primary-action", { timeout: 30000 }).should("be.visible").click();
 		cy.get_open_dialog().should("contain", "New Print Format");
 
-		cy.fill_field("doc_type", "ToDo", "Link");
-		cy.fill_field("print_format_name", PF_NAME, "Data");
-		// start_with defaults to Builder
-		cy.get_open_dialog().findByRole("button", { name: "Create" }).click();
+		// scope fills to the dialog — the list page has its own hidden doc_type field
+		cy.get_open_dialog().within(() => {
+			cy.fill_field("doc_type", "ToDo", "Link");
+			cy.fill_field("print_format_name", PF_NAME, "Data");
+			// start_with defaults to Builder
+			cy.findByRole("button", { name: "Create" }).click();
+		});
 
 		cy.location("pathname", { timeout: 20000 }).should(
 			"match",
