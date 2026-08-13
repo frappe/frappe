@@ -1,7 +1,6 @@
 import os
 import shutil
 from pathlib import Path
-
 import frappe
 from frappe.modules import scrub
 from frappe.modules.export_file import strip_default_fields
@@ -13,11 +12,11 @@ def write_document_file(doc, folder=None, exclude_fields=None):
 	doc_export = doc.as_dict(no_nulls=True)
 	doc.run_method("before_export", doc_export)
 	doc_export = strip_default_fields(doc, doc_export)
-
 	# Fields written to a companion file (e.g. a Code field exported as .js) are dropped from JSON.
+	remove_null_fields(doc_export)
 	for field in exclude_fields or []:
 		doc_export.pop(field, None)
-
+		
 	fname = scrub(doc_export.name)
 	path = os.path.join(folder, f"{fname}.json")
 	if Path(path).resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):
@@ -78,11 +77,29 @@ def remove_null_fields(docdict):
 	to_remove = []
 	for attr, value in docdict.items():
 		if isinstance(value, list):
-			for v in value:
-				if isinstance(v, dict):
-					remove_null_fields(v)
+			if not value:
+				to_remove.append(attr)
+			else:
+				for v in value:
+					if isinstance(v, dict):
+						remove_null_fields(v)
+				
+				value[:] = [v for v in value if not (isinstance(v, dict) and not v)]
+				
+				if not value:
+					to_remove.append(attr)
+
+		elif isinstance(value, dict):
+			if not value:
+				to_remove.append(attr)
+			else:
+				remove_null_fields(value)
+				if not value:
+					to_remove.append(attr)
 		elif not value:
 			to_remove.append(attr)
 
 	for attr in to_remove:
 		del docdict[attr]
+
+
