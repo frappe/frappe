@@ -7,9 +7,10 @@ the Node ``node_utils.get_conf`` reads) instead of re-porting the JSON parse.
 Config comes only from common_site_config.json / site_config.json — no env vars.
 
 ``frappe`` is imported lazily so this module can be imported in tests without a
-configured bench, and so import never precedes the gevent monkeypatch in server.py.
+configured bench.
 """
 
+import os
 from dataclasses import dataclass
 
 # node_utils default
@@ -29,13 +30,21 @@ class RealtimeConfig:
 	developer_mode: bool = False
 	webserver_port: int | None = None
 	webserver_host: str | None = None
+	# Only set this if an app registers blocking handlers. Every core handler is
+	# async, and permission checks are coroutines, so nothing built in uses threads.
+	# Each frappe_context handler also holds a DB connection for its whole cycle.
+	# Unset leaves the loop's default executor (min(32, cpu + 4)) in place.
+	worker_threads: int | None = None
+	# Absolute, because serve() changes into sites/ before it builds the server, and a
+	# relative path would then point one level too deep.
+	sites_path: str = "sites"
 
 
 def get_config(sites_path: str | None = None) -> RealtimeConfig:
 	"""Build the realtime config from common_site_config.json."""
 	import frappe
 
-	sites_path = sites_path or getattr(frappe.local, "sites_path", None) or "sites"
+	sites_path = os.path.abspath(sites_path or getattr(frappe.local, "sites_path", None) or "sites")
 	conf = frappe.get_common_site_config(sites_path=sites_path)
 
 	webserver_port = conf.get("webserver_port")
@@ -47,4 +56,6 @@ def get_config(sites_path: str | None = None) -> RealtimeConfig:
 		developer_mode=bool(conf.get("developer_mode")),
 		webserver_port=int(webserver_port) if webserver_port else None,
 		webserver_host=conf.get("webserver_host") or None,
+		worker_threads=int(conf["socketio_worker_threads"]) if conf.get("socketio_worker_threads") else None,
+		sites_path=sites_path,
 	)

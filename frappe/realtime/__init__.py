@@ -235,7 +235,7 @@ def publish_to_room(room: str, event: str, message: dict | None = None, *, after
 # Handler-authoring surface, exposed lazily so the publish helpers above stay
 # import-light. ``Socket`` pulls in the server stack (socketio, via auth); resolving
 # it only on access keeps ``from frappe.realtime import publish_realtime`` (web
-# process) from importing socketio/gevent.
+# process) from importing socketio.
 def __getattr__(name: str) -> object:
 	if name == "realtime":
 		from frappe.realtime.registry import realtime

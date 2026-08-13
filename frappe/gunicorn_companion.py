@@ -18,7 +18,7 @@ def warmup() -> None:
 	worker and scheduler companions can reuse it instead of loading their own copy.
 
 	Called from the gunicorn "on_starting" hook. Socketio is left out on purpose:
-	loading it would pull gevent into the master and break the other companions.
+	the other companions never use it, so loading it here would only cost memory.
 	"""
 	import redis
 	import rq

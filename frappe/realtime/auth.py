@@ -2,13 +2,14 @@
 # License: MIT. See LICENSE
 
 import logging
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
+from http.cookiejar import CookieJar
 from http.cookies import SimpleCookie
 from typing import Literal, NoReturn
 
-import redis
-import requests
+import httpx
+from redis import asyncio as aioredis
 from socketio.exceptions import ConnectionRefusedError
 
 from frappe.realtime.config import RealtimeConfig
@@ -19,7 +20,7 @@ logger = logging.getLogger("frappe.realtime")
 SOCKETIO_SECRET_KEY = "socketio_auth_secret"
 
 HttpMethod = Literal["GET", "POST", "PUT", "PATCH", "DELETE"]
-WebRequest = Callable[..., dict]
+WebRequest = Callable[..., Awaitable[dict]]
 
 
 @dataclass(frozen=True)
@@ -43,7 +44,10 @@ class Session:
 
 	Carries the identity plus an authenticated client toward the web process, so
 	handlers (via Socket) can call back without rebuilding auth. ``data`` is a bag
-	for transient per-socket state (e.g. presence tracking)."""
+	for transient per-socket state (e.g. presence tracking).
+
+	The calls are coroutines, so a permission check never occupies a worker
+	thread. Plain handlers reach them without await, through SyncSocket."""
 
 	site: str
 	user: str
@@ -52,19 +56,19 @@ class Session:
 	request: WebRequest  # authenticated client toward the web process
 	data: dict = field(default_factory=dict)
 
-	def get(self, path: str, params: dict | None = None) -> dict:
-		return self.send_request(path, "GET", params=params)
+	async def get(self, path: str, params: dict | None = None) -> dict:
+		return await self.send_request(path, "GET", params=params)
 
-	def post(self, path: str, body: dict | None = None, params: dict | None = None) -> dict:
-		return self.send_request(path, "POST", params=params, body=body)
+	async def post(self, path: str, body: dict | None = None, params: dict | None = None) -> dict:
+		return await self.send_request(path, "POST", params=params, body=body)
 
-	def put(self, path: str, body: dict | None = None, params: dict | None = None) -> dict:
-		return self.send_request(path, "PUT", params=params, body=body)
+	async def put(self, path: str, body: dict | None = None, params: dict | None = None) -> dict:
+		return await self.send_request(path, "PUT", params=params, body=body)
 
-	def delete(self, path: str, params: dict | None = None) -> dict:
-		return self.send_request(path, "DELETE", params=params)
+	async def delete(self, path: str, params: dict | None = None) -> dict:
+		return await self.send_request(path, "DELETE", params=params)
 
-	def send_request(
+	async def send_request(
 		self,
 		path: str,
 		method: HttpMethod = "GET",
@@ -76,12 +80,12 @@ class Session:
 		method: HTTP verb. params: query string. body: JSON body.
 		Prefer get/post/put/delete for the common cases.
 		"""
-		return self.request(path, method=method, params=params, body=body)
+		return await self.request(path, method=method, params=params, body=body)
 
-	def has_permission(self, doctype: str, name: str | None = None, ptype: str = "read") -> bool:
+	async def has_permission(self, doctype: str, name: str | None = None, ptype: str = "read") -> bool:
 		"""HTTP permission check against the web process (no DB in realtime)."""
 		try:
-			body = self.get(
+			body = await self.get(
 				"/api/method/frappe.realtime.has_permission",
 				params={"doctype": doctype, "name": name or "", "ptype": ptype},
 			)
@@ -90,19 +94,19 @@ class Session:
 		return bool(body.get("message"))
 
 
-def authenticate(environ: dict, namespace: str, config: RealtimeConfig) -> Session:
-	"""Authenticate a connection.
+async def authenticate(environ: dict, namespace: str, config: RealtimeConfig) -> Session:
+	"""Authenticate a connection. Port of realtime/middlewares/authenticate.js.
 
-	Port of realtime/middlewares/authenticate.js. Auth is delegated to the web
-	process over HTTP; the realtime process never resumes a session in-process.
-	Runs the checks in order and refuses the connection as soon as one fails.
+	Auth is delegated to the web process over HTTP (async here, so it never
+	blocks the loop). Refuses the connection as soon as one check fails.
 	"""
 	site = _validate_site(environ, namespace, config)
 	_validate_origin(environ)
 
 	credentials = _read_credentials(environ)
-	request = _make_request(environ, credentials, config, site)
-	user_info = _get_user_info(request)
+	secret = await get_socketio_secret(config.redis_queue)
+	request = _make_request(environ, credentials, config, site, secret)
+	user_info = await _get_user_info(request)
 
 	return _make_session(site, user_info, request)
 
@@ -125,9 +129,9 @@ def _validate_origin(environ: dict) -> None:
 	"""Reject cross-site websocket hijacks."""
 	host = read_header(environ, "Host")
 	origin = read_header(environ, "Origin")
-	if not host or not origin:
-		_reject(f"missing host/origin header (host={host!r}, origin={origin!r})", "Invalid origin")
-	if get_hostname(host) != get_hostname(origin):
+	if not host:
+		_reject("missing host header", "Invalid origin")
+	if origin and get_hostname(host) != get_hostname(origin):
 		_reject(f"origin {origin!r} != host {host!r}", "Invalid origin")
 
 
@@ -161,33 +165,27 @@ def _read_sid(cookie_header: str | None) -> str | None:
 	return sid.value if sid else None
 
 
-def _make_request(environ: dict, credentials: Credentials, config: RealtimeConfig, site: str) -> WebRequest:
+def _make_request(
+	environ: dict, credentials: Credentials, config: RealtimeConfig, site: str, secret: str | None
+) -> WebRequest:
 	"""Build the authenticated request helper toward the web (socket.frappe_request port).
 
-	Forwards the client's credential plus the shared socketio secret (get_user_info
-	returns {} without it); returns the decoded JSON body, raises on non-2xx."""
+	Connect auth and every later permission check share this one coroutine, so
+	their timeout / redirect / cookie handling cannot drift apart."""
 	origin = read_header(environ, "Origin")
-	secret = get_socketio_secret(config.redis_queue)
 
-	def request(
+	async def request(
 		path: str,
 		method: HttpMethod = "GET",
 		params: dict | None = None,
 		body: dict | None = None,
 	) -> dict:
-		headers = credentials.headers()
-		# Carry the tenant so loopback requests route to the right site.
-		headers["X-Frappe-Site-Name"] = site
-		if secret:
-			headers["X-Frappe-Socket-Secret"] = secret
-
-		res = requests.request(
+		res = await get_http_client().request(
 			method,
 			get_url(origin, path, config),
 			params=params or {},
 			json=body,
-			headers=headers,
-			timeout=10,
+			headers=_auth_headers(credentials, site, secret),
 		)
 		res.raise_for_status()
 		return res.json()
@@ -195,14 +193,24 @@ def _make_request(environ: dict, credentials: Credentials, config: RealtimeConfi
 	return request
 
 
-def _get_user_info(request: WebRequest) -> dict:
-	"""Ask the web who the user is; reject on failure or an empty (unauthorized) result."""
+def _auth_headers(credentials: Credentials, site: str, secret: str | None) -> dict[str, str]:
+	"""Web-process request headers: client credential + tenant + shared secret."""
+	headers = credentials.headers()
+	# Carry the tenant so loopback requests route to the right site.
+	headers["X-Frappe-Site-Name"] = site
+	if secret:
+		headers["X-Frappe-Socket-Secret"] = secret
+	return headers
+
+
+async def _get_user_info(request: WebRequest) -> dict:
+	"""Ask the web who the user is; reject on failure or an empty result."""
+	method = "/api/method/frappe.realtime.get_user_info"
 	try:
-		method = "/api/method/frappe.realtime.get_user_info"
-		message = request(method).get("message") or {}
+		message = (await request(method)).get("message") or {}
 		# Non-Guest with empty installed_apps: retry once (matches Node).
 		if message.get("user") and message.get("user") != "Guest" and not message.get("installed_apps"):
-			message = request(method).get("message") or {}
+			message = (await request(method)).get("message") or {}
 	except Exception as e:
 		_reject(f"auth failure ({e})", "Unauthorized")
 
@@ -222,15 +230,50 @@ def _make_session(site: str, user_info: dict, request: WebRequest) -> Session:
 	)
 
 
-_secret_client = None
+_secret_client: aioredis.Redis | None = None
+_http_client: httpx.AsyncClient | None = None
 
 
-def get_socketio_secret(redis_url: str) -> str | None:
+async def get_socketio_secret(redis_url: str) -> str | None:
 	"""Read socketio_auth_secret from the no-auth queue redis (same key the web sets)."""
 	global _secret_client
 	if _secret_client is None:
-		_secret_client = redis.from_url(redis_url)
-	value = _secret_client.get(SOCKETIO_SECRET_KEY)
+		_secret_client = aioredis.from_url(redis_url)
+	value = await _secret_client.get(SOCKETIO_SECRET_KEY)
 	if value is None:
 		return None
 	return value.decode() if isinstance(value, bytes) else value
+
+
+class DiscardingCookieJar(CookieJar):
+	"""Cookie jar that drops every Set-Cookie.
+
+	The client is shared by every connection, so a real jar would replay one
+	user's ``sid`` onto the next connect and authenticate it as that user."""
+
+	def extract_cookies(self, response, request) -> None:
+		pass
+
+
+def get_http_client() -> httpx.AsyncClient:
+	"""Shared process-wide AsyncClient (lazy init, one pool).
+
+	Redirects are followed: httpx otherwise returns the 30x, which
+	raise_for_status turns into a refused connect."""
+	global _http_client
+	if _http_client is None or _http_client.is_closed:
+		_http_client = httpx.AsyncClient(timeout=10, follow_redirects=True, cookies=DiscardingCookieJar())
+	return _http_client
+
+
+async def close_clients() -> None:
+	"""Release the shared HTTP and redis clients.
+
+	Both are bound to the loop that created them, so a restart must rebuild them."""
+	global _http_client, _secret_client
+	if _http_client is not None:
+		await _http_client.aclose()
+		_http_client = None
+	if _secret_client is not None:
+		await _secret_client.aclose()
+		_secret_client = None
