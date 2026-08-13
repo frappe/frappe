@@ -3,10 +3,40 @@
 
 import frappe
 from frappe.contacts.address_and_contact import delink_party
+from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.tests import IntegrationTestCase
+
+PRIMARY_FIELDS = {
+	"ToDo": [
+		{
+			"fieldname": "primary_address",
+			"label": "Primary Address",
+			"fieldtype": "Link",
+			"options": "Address",
+		},
+		{
+			"fieldname": "primary_city",
+			"label": "Primary City",
+			"fieldtype": "Data",
+			"fetch_from": "primary_address.city",
+		},
+	]
+}
 
 
 class TestDelinkParty(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		create_custom_fields(PRIMARY_FIELDS)
+		cls.addClassCleanup(cls.drop_primary_fields)
+
+	@staticmethod
+	def drop_primary_fields():
+		for field in PRIMARY_FIELDS["ToDo"]:
+			frappe.delete_doc("Custom Field", f"ToDo-{field['fieldname']}", force=True)
+		frappe.clear_cache(doctype="ToDo")
+
 	def setUp(self):
 		self.party = frappe.get_doc({"doctype": "ToDo", "description": "_Test Delink Party"}).insert()
 		self.other_party = frappe.get_doc(
@@ -57,6 +87,26 @@ class TestDelinkParty(IntegrationTestCase):
 		address.reload()
 		self.assertEqual(len(address.links), 1)
 		self.assertEqual(frappe.db.get_value("Address", address.name, "modified"), modified_before)
+
+	def test_clears_the_partys_primary_link(self):
+		address = self.create_address([self.link_to(self.party)])
+		self.party.db_set({"primary_address": address.name, "primary_city": "_Test City"})
+
+		delink_party("Address", address.name, self.party.doctype, self.party.name)
+
+		self.party.reload()
+		self.assertIsNone(self.party.primary_address)
+		self.assertIsNone(self.party.primary_city)
+
+	def test_keeps_a_primary_link_to_another_record(self):
+		address = self.create_address([self.link_to(self.party)])
+		other_address = self.create_address([self.link_to(self.party)])
+		self.party.db_set("primary_address", other_address.name)
+
+		delink_party("Address", address.name, self.party.doctype, self.party.name)
+
+		self.party.reload()
+		self.assertEqual(self.party.primary_address, other_address.name)
 
 	def test_rejects_other_doctypes(self):
 		with self.assertRaises(frappe.ValidationError):

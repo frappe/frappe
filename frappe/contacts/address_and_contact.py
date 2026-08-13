@@ -34,6 +34,39 @@ def delink_party(doctype: str, name: str, link_doctype: str, link_name: str) -> 
 	doc.links = remaining
 	doc.save()
 
+	clear_stale_primary_link(doctype, name, link_doctype, link_name)
+
+
+def clear_stale_primary_link(doctype: str, name: str, link_doctype: str, link_name: str) -> None:
+	"""Clear the party's primary Address/Contact field when it points at a record it no longer links to."""
+	meta = frappe.get_meta(link_doctype)
+	primary_fields = [df.fieldname for df in get_primary_link_fields(meta, doctype)]
+	if not primary_fields:
+		return
+
+	values = frappe.db.get_value(link_doctype, link_name, primary_fields, as_dict=True) or {}
+	stale_fields = [fieldname for fieldname in primary_fields if values.get(fieldname) == name]
+	if not stale_fields:
+		return
+
+	frappe.has_permission(link_doctype, "write", doc=link_name, throw=True)
+
+	updates = dict.fromkeys(stale_fields)
+	for df in meta.fields:
+		if df.fetch_from and df.fetch_from.split(".")[0] in stale_fields:
+			updates[df.fieldname] = None
+
+	frappe.db.set_value(link_doctype, link_name, updates)
+
+
+def get_primary_link_fields(meta, doctype: str) -> list:
+	"""Party fields that hold its primary Address or Contact, by the same name convention the form uses."""
+	return [
+		df
+		for df in meta.get("fields", {"fieldtype": "Link", "options": doctype})
+		if "primary" in df.fieldname.lower()
+	]
+
 
 def has_permission(doc, ptype, user):
 	links = get_permitted_and_not_permitted_links(doc.doctype)
