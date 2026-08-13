@@ -1,8 +1,13 @@
 # Experimental
 
 Work in progress. Nothing here is production ready: the APIs, the file layout and
-the backing DocTypes all still move without notice, and none of it is covered by
-the compatibility promise the rest of `@framework/ui` makes.
+the backing DocTypes all still move without notice. Neither is anything else —
+this package is version `0.0.0` and states no compatibility policy anywhere, so
+there is no promise here to be excluded from.
+
+The one exception is the Record page customization API, whose intent is written
+down because scripts stored in site databases outlive every upgrade:
+[`RecordPage/COMPATIBILITY.md`](./RecordPage/COMPATIBILITY.md).
 
 The package exposes one entry, so a call site is honest about what it depends on:
 
