@@ -31,102 +31,126 @@
 			</div>
 		</div>
 
-		<div v-if="loading" class="flex min-h-0 flex-1 flex-col gap-2 p-4">
-			<Skeleton class="h-6 w-48" />
-			<Skeleton class="min-h-0 w-full flex-1" />
-		</div>
+		<!-- The reference covers this, so the three population states share a
+		     positioned wrapper: it is the branch set's sibling rather than any one
+		     branch's child, which is what makes `?` work in every state including
+		     the empty one, and what stops it from drifting back into one of them.
+		     The header stays uncovered — `?` is how the reference closes again.
 
-		<!-- Zero scripts: no rail, because a list with nothing in it explains
-		     nothing. The example fills the editor's slot as a read-only editor —
-		     syntax-coloured, so it looks like the thing it teaches — and the
-		     primary action takes the footer slot Save occupies later, so the
-		     action never moves when the column arrives beside it. -->
-		<div v-else-if="!scripts.length" class="flex min-h-0 flex-1 flex-col">
-			<div class="code-fill flex min-h-0 flex-1 flex-col p-4">
-				<CodeEditor
-					class="min-h-0 flex-1"
-					:modelValue="EXAMPLE_SCRIPT"
-					language="javascript"
-					disabled
-					:style="{ '--cm-max-height': '100%' }"
-				/>
+		     It is also where focus starts, and the `[autofocus]` that says so is
+		     read by the host as well as by this pane: seeing one, frappe-ui's
+		     `Dialog` leaves initial focus alone instead of letting its trap take
+		     the first tabbable element, which is the header's `?` — and a `?`
+		     focused is a black `Reference` tooltip in the author's face, because a
+		     tooltip opens instantly for focus rather than after the hover delay. -->
+		<div
+			ref="pane"
+			autofocus
+			tabindex="-1"
+			class="relative flex min-h-0 flex-1 flex-col outline-none"
+		>
+			<div v-if="loading" class="flex min-h-0 flex-1 flex-col gap-2 p-4">
+				<Skeleton class="h-6 w-48" />
+				<Skeleton class="min-h-0 w-full flex-1" />
 			</div>
-			<div class="flex items-center gap-3 border-t border-outline-gray-1 px-4 py-3">
-				<ErrorMessage v-if="error" :message="error" />
-				<p v-else class="text-p-sm text-ink-gray-5">
-					Nothing customizes {{ dt }} record pages yet — this is an example, and it
-					neither saves nor runs.
-				</p>
-				<Button
-					class="ml-auto"
-					variant="solid"
-					iconLeft="lucide-plus"
-					label="New script"
-					:disabled="saving"
-					@click="naming = true"
-				/>
-			</div>
-		</div>
 
-		<div v-else class="flex min-h-0 flex-1">
-			<PageScriptRail
-				:scripts="scripts"
-				:selectedName="selectedName"
-				:isDirty="isDirty"
-				:busy="saving"
-				@select="select"
-				@create="naming = true"
-				@toggleEnabled="setEnabled($event, !$event.enabled)"
-				@duplicate="duplicate"
-				@reorder="reorder"
-				@remove="confirmRemove"
-			/>
-
-			<!-- The editor is the reason the dialog exists, so it takes every pixel
-			     the header, rail and footer leave. -->
-			<div class="relative flex min-w-0 flex-1 flex-col">
+			<!-- Zero scripts: no rail, because a list with nothing in it explains
+			     nothing. The example fills the editor's slot as a read-only editor —
+			     syntax-coloured, so it looks like the thing it teaches — and the
+			     primary action takes the footer slot Save occupies later, so the
+			     action never moves when the column arrives beside it. -->
+			<div v-else-if="!scripts.length" class="flex min-h-0 flex-1 flex-col">
 				<div class="code-fill flex min-h-0 flex-1 flex-col p-4">
 					<CodeEditor
-						v-model="draft"
 						class="min-h-0 flex-1"
+						:modelValue="EXAMPLE_SCRIPT"
 						language="javascript"
+						disabled
 						:style="{ '--cm-max-height': '100%' }"
-						placeholder="export default { refresh(page) {} }"
-					/>
-					<!-- The import surface is enforced, never stated. Not dismissible:
-					     a lint you can dismiss while it is still true is a lint that
-					     lies. -->
-					<Alert
-						v-if="badImports.length"
-						class="mt-2 shrink-0"
-						theme="red"
-						:dismissible="false"
-						:title="`'${badImports[0]}' won't resolve at runtime`"
-						:description="`Scripts may import ${SHARED_DEPS.join(', ')} — and nothing else, not even a subpath of those.`"
 					/>
 				</div>
-
-				<!-- The footer reports the loop, not the button's own health: Save is
-				     absent rather than disabled when there is nothing to save, so
-				     'clean' can never be misread as 'cannot save'. -->
 				<div class="flex items-center gap-3 border-t border-outline-gray-1 px-4 py-3">
 					<ErrorMessage v-if="error" :message="error" />
-					<p v-else class="flex items-center gap-2 text-p-sm" :class="stateClass">
-						<span v-if="dirty" class="size-1.5 rounded-full bg-surface-amber-5" />
-						<span>{{ stateText }}</span>
+					<p v-else class="text-p-sm text-ink-gray-5">
+						Nothing customizes {{ dt }} record pages yet — this is an example, and it
+						neither saves nor runs.
 					</p>
+					<!-- Focus lands here in this state: the editor beside it is the
+					     read-only example, so the only thing to type into is the one
+					     this button opens. -->
 					<Button
-						v-if="dirty"
 						class="ml-auto"
+						autofocus
 						variant="solid"
-						label="Save"
-						:loading="saving"
-						@click="save"
+						iconLeft="lucide-plus"
+						label="New script"
+						:disabled="saving"
+						@click="naming = true"
 					/>
 				</div>
-
-				<PageScriptReference v-if="showReference" @close="showReference = false" />
 			</div>
+
+			<div v-else class="flex min-h-0 flex-1">
+				<PageScriptRail
+					:scripts="scripts"
+					:selectedName="selectedName"
+					:isDirty="isDirty"
+					:busy="saving"
+					@select="select"
+					@create="naming = true"
+					@toggleEnabled="setEnabled($event, !$event.enabled)"
+					@duplicate="duplicate"
+					@reorder="reorder"
+					@remove="confirmRemove"
+				/>
+
+				<!-- The editor is the reason the dialog exists, so it takes every
+				     pixel the header, rail and footer leave — and, for the same
+				     reason, the focus. -->
+				<div class="flex min-w-0 flex-1 flex-col">
+					<div autofocus class="code-fill flex min-h-0 flex-1 flex-col p-4">
+						<CodeEditor
+							v-model="draft"
+							class="min-h-0 flex-1"
+							language="javascript"
+							:style="{ '--cm-max-height': '100%' }"
+							placeholder="export default { refresh(page) {} }"
+						/>
+						<!-- The import surface is enforced, never stated. Not
+						     dismissible: a lint you can dismiss while it is still true
+						     is a lint that lies. -->
+						<Alert
+							v-if="badImports.length"
+							class="mt-2 shrink-0"
+							theme="red"
+							:dismissible="false"
+							:title="`'${badImports[0]}' won't resolve at runtime`"
+							:description="`Scripts may import ${SHARED_DEPS.join(', ')} — and nothing else, not even a subpath of those.`"
+						/>
+					</div>
+
+					<!-- The footer reports the loop, not the button's own health: Save
+					     is absent rather than disabled when there is nothing to save,
+					     so 'clean' can never be misread as 'cannot save'. -->
+					<div class="flex items-center gap-3 border-t border-outline-gray-1 px-4 py-3">
+						<ErrorMessage v-if="error" :message="error" />
+						<p v-else class="flex items-center gap-2 text-p-sm" :class="stateClass">
+							<span v-if="dirty" class="size-1.5 rounded-full bg-surface-amber-5" />
+							<span>{{ stateText }}</span>
+						</p>
+						<Button
+							v-if="dirty"
+							class="ml-auto"
+							variant="solid"
+							label="Save"
+							:loading="saving"
+							@click="save"
+						/>
+					</div>
+				</div>
+			</div>
+
+			<PageScriptReference v-if="showReference" @close="showReference = false" />
 		</div>
 
 		<NewPageScriptDialog
@@ -145,13 +169,14 @@
 //
 // Zero, one and many scripts are three layouts rather than one (ticket 23): the
 // same layout lied about two of them.
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { Alert, Button, dialog, ErrorMessage, Skeleton, Tooltip } from "frappe-ui";
 import { CodeEditor } from "frappe-ui/code-editor";
 import NewPageScriptDialog from "./NewPageScriptDialog.vue";
 import PageScriptRail from "./PageScriptRail.vue";
 import PageScriptReference from "./PageScriptReference.vue";
 import { EXAMPLE_SCRIPT } from "./exampleScript";
+import { focusableIn } from "./focusTarget";
 import { SHARED_DEPS, unresolvableImports } from "./importLint";
 import { usePageScriptEditor } from "./usePageScriptEditor";
 import type { PageScriptDoc } from "./pageScriptApi";
@@ -200,6 +225,45 @@ watch(selectedName, (name) => (boundScript.value = name ?? undefined));
 
 const naming = ref(false);
 const showReference = ref(false);
+
+// 23 put code first on screen; the same reasoning puts focus there. Left alone,
+// a host's focus trap takes the first tabbable element in its panel, which is
+// the header's `?`, and the first keystroke goes nowhere near the code.
+//
+// Two steps, because the editor is not there to be focused when the dialog
+// opens: the pane takes focus itself on mount — the marker keeps the host from
+// choosing, and `tabindex="-1"` makes a place to park without adding a tab stop
+// — and hands it to the layout's own target once the scripts have arrived. The
+// host's `[autofocus]` pass (frappe-ui's `useAutofocusOnOpen`) cannot do the
+// second step: it runs once, on open, while this pane is still loading.
+//
+// Which element is the target is the layout's business — the read-only example
+// state has nothing to type into, so its `New script` carries the marker
+// instead.
+const pane = ref<HTMLElement>();
+let focusTaken = false;
+
+onMounted(() => pane.value?.focus());
+
+watch(loading, focusEditor, { immediate: true });
+
+async function focusEditor(isLoading: boolean) {
+	if (isLoading || focusTaken) return;
+	// Once per mount only. The dialog remounts this pane on every open, so this
+	// is once per visit — and a later reload (a delete, a refused reorder) must
+	// not yank focus back out of wherever the author has since put it.
+	focusTaken = true;
+	await nextTick();
+	const marker = pane.value?.querySelector<HTMLElement>("[autofocus]");
+	if (!marker) return;
+	const target = await focusableIn(marker);
+	// Not if the author got there first. Anything focused inside the pane by the
+	// time the editor arrives is a click, and a click outranks a default — the
+	// pane's own parking spot excepted, since that is exactly what this relieves.
+	const active = document.activeElement;
+	const claimed = active !== pane.value && pane.value?.contains(active);
+	if (target?.isConnected && !claimed) target.focus();
+}
 
 const badImports = computed(() => unresolvableImports(draft.value));
 
