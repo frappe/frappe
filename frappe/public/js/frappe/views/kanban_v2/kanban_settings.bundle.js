@@ -16,8 +16,41 @@ class KanbanBoardSettings {
 		// grids mutate in place, so `doc.<table>` always holds the current rows.
 		this.doc = $.extend(true, {}, page.board_doc);
 		["columns", "card_fields", "preview_fields", "group_by_fields"].forEach((t) => {
-			this.doc[t] = this.doc[t] || [];
+			// Sanitize child table rows to remove metadata that triggers permission checks.
+			// Without this, controls see doctype/name and try to check permissions which fail
+			// in dialog context (no frm). Keeping only the actual field values.
+			this.doc[t] = (this.doc[t] || []).map((row, i) => this._sanitize_row(row, i + 1));
 		});
+	}
+
+	/**
+	 * Strip metadata properties from a child table row so grid controls treat it
+	 * as a "new" row without triggering permission checks in base_control.get_status().
+	 */
+	_sanitize_row(row, idx) {
+		const clean = { idx, __islocal: true };
+		// Copy only the actual field values, skip framework metadata
+		const skip = new Set([
+			"doctype",
+			"name",
+			"parent",
+			"parenttype",
+			"parentfield",
+			"owner",
+			"creation",
+			"modified",
+			"modified_by",
+			"docstatus",
+			"idx",
+			"__islocal",
+			"__unsaved",
+		]);
+		for (const key in row) {
+			if (!skip.has(key)) {
+				clean[key] = row[key];
+			}
+		}
+		return clean;
 	}
 
 	show() {
@@ -331,25 +364,29 @@ class KanbanBoardSettings {
 	}
 
 	save() {
-		// Merge every panel the user has opened; unopened panels keep the loaded doc
-		// values, and the child-table arrays are the grid-mutated refs on `doc`.
-		const tables = {
-			columns: this.doc.columns,
-			card_fields: this.doc.card_fields,
-			preview_fields: this.doc.preview_fields,
-			group_by_fields: this.doc.group_by_fields,
-		};
+		// Collect values from all opened panels. The Table controls mutate their own
+		// df.data arrays (via filter/push), so we must read from the grid directly.
 		for (const panel of Object.values(this.dialog._panels || {})) {
 			const values = panel.get_values();
 			if (values === null) return; // a mandatory field is empty — control shows the error
 			Object.assign(this.doc, values);
 		}
-		Object.assign(this.doc, tables);
+
+		// Get the current data from each table grid (grids mutate df.data, not this.doc arrays)
+		const tableFields = ["columns", "card_fields", "preview_fields", "group_by_fields"];
+		for (const panel of Object.values(this.dialog._panels || {})) {
+			for (const fieldname of tableFields) {
+				const field = panel.get_field?.(fieldname);
+				if (field?.grid?.df?.data) {
+					this.doc[fieldname] = field.grid.df.data;
+				}
+			}
+		}
 
 		// Drop half-filled rows so the save isn't rejected for an empty mandatory cell.
-		this.doc.columns = this.doc.columns.filter((r) => (r.column_name || "").trim());
+		this.doc.columns = (this.doc.columns || []).filter((r) => (r.column_name || "").trim());
 		["card_fields", "preview_fields", "group_by_fields"].forEach((t) => {
-			this.doc[t] = this.doc[t].filter((r) => (r.fieldname || "").trim());
+			this.doc[t] = (this.doc[t] || []).filter((r) => (r.fieldname || "").trim());
 		});
 
 		frappe.dom.freeze(__("Saving..."));
