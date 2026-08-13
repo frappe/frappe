@@ -88,6 +88,57 @@ context("Print Format Builder — create flow", () => {
 		cy.get(".print-format-main", { timeout: 20000 }).should("exist");
 	});
 
+	// 2b. The New dialog: "HTML" creates a custom format and opens the form
+	it("creates an HTML format from the dialog and opens the form", () => {
+		cy.visit("/app/print-format");
+		cy.get(".page-head .primary-action", { timeout: 30000 }).should("be.visible").click();
+		cy.get_open_dialog().should("contain", "New Print Format");
+
+		cy.fill_field("doc_type", "ToDo", "Link");
+		cy.fill_field("print_format_name", PF_NAME, "Data");
+		cy.fill_field("start_with", "HTML", "Select");
+		cy.get_open_dialog().findByRole("button", { name: "Create" }).click();
+
+		cy.location("pathname", { timeout: 20000 }).should(
+			"match",
+			/\/(app|desk)\/print-format\//
+		);
+		cy.call("frappe.client.get_value", {
+			doctype: "Print Format",
+			filters: { name: PF_NAME },
+			fieldname: ["custom_format", "print_format_builder_beta", "html"],
+		}).then((r) => {
+			expect(Number(r.message.custom_format)).to.equal(1);
+			expect(Number(r.message.print_format_builder_beta)).to.equal(0);
+			expect(r.message.html).to.contain("print-format");
+		});
+	});
+
+	// 2c. The New dialog: "Builder" creates a builder format and opens the builder
+	it("creates a builder format from the dialog and opens the builder", () => {
+		cy.visit("/app/print-format");
+		cy.get(".page-head .primary-action", { timeout: 30000 }).should("be.visible").click();
+		cy.get_open_dialog().should("contain", "New Print Format");
+
+		cy.fill_field("doc_type", "ToDo", "Link");
+		cy.fill_field("print_format_name", PF_NAME, "Data");
+		// start_with defaults to Builder
+		cy.get_open_dialog().findByRole("button", { name: "Create" }).click();
+
+		cy.location("pathname", { timeout: 20000 }).should(
+			"match",
+			/\/(app|desk)\/print-format-builder\//
+		);
+		cy.call("frappe.client.get_value", {
+			doctype: "Print Format",
+			filters: { name: PF_NAME },
+			fieldname: ["custom_format", "print_format_builder_beta"],
+		}).then((r) => {
+			expect(Number(r.message.custom_format)).to.equal(0);
+			expect(Number(r.message.print_format_builder_beta)).to.equal(1);
+		});
+	});
+
 	// 3. Loading the builder for an existing format and saving a change
 	it("loads the builder and Save persists a margin change", () => {
 		cy.visit("/app");
