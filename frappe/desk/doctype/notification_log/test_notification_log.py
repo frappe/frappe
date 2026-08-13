@@ -49,6 +49,30 @@ class TestNotificationLog(IntegrationTestCase):
 		)
 		self.assertTrue(frappe.db.exists("Notification Log", {"for_user": user, "subject": "Self alert"}))
 
+	def test_mention_records_the_comment_it_was_written_in(self):
+		"""The notification is about the document, but a reader needs the comment
+		to land on the mention itself."""
+		install_notification_types()
+		todo = get_todo()
+		recipient = make_recipient("notify_mention_source@example.com")
+		frappe.db.set_value(
+			"User", recipient, {"allowed_in_mentions": 1, "user_type": "System User"}
+		)
+
+		comment = todo.add_comment(
+			"Comment", f'<span class="mention" data-id="{recipient}">@mention</span>'
+		)
+
+		log = frappe.db.get_value(
+			"Notification Log",
+			{"for_user": recipient, "type": "Mention", "document_name": todo.name},
+			["document_type", "source_doctype", "source_name"],
+			as_dict=True,
+		)
+		self.assertEqual(log.document_type, "ToDo")
+		self.assertEqual(log.source_doctype, "Comment")
+		self.assertEqual(log.source_name, comment.name)
+
 	def test_get_email_header_unknown_type_falls_back(self):
 		"""A custom type with no header_map entry must not KeyError."""
 		doc = frappe._dict(type="Some Custom Type", document_name="X", email_header=None)
