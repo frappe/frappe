@@ -11,7 +11,6 @@ from frappe.desk.doctype.module_sidebar.test_module_sidebar import (
 )
 from frappe.installer import release_custom_module_placements
 from frappe.tests import IntegrationTestCase
-from frappe.utils.modules import clear_module_permission_cache
 
 USER = "test-standalone-modules@example.com"
 
@@ -208,7 +207,6 @@ class TestVisibilityIsInherited(StandaloneModuleTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.delete_doc("User", USER, force=True, ignore_missing=True)
-		clear_module_permission_cache()
 
 	def test_a_module_a_user_may_not_reach_has_no_tile_for_them(self):
 		with custom_module("Test Blocked Standalone Module") as module:

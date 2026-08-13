@@ -66,8 +66,7 @@ class Workspace(DeskViews):
 
 		Visibility is gated purely by access (module visibility / roles):
 
-		* Its `module` must be visible to the user -- not blocked, and either ungoverned or
-		  granted by one of their roles.
+		* Its `module` must be visible to the user -- i.e. not one they have blocked.
 		* Then, if the workspace has `roles`, the user must have one of them.
 
 		The module gate runs **before** the roles branch. It used to sit inside the *no-roles*
@@ -454,8 +453,8 @@ def shape_dock_rows(modules: list | str, require_visible: bool) -> list[dict]:
 	produces -- not a delta. Rows may be `"Stock"` or `{"module": "Stock", "hidden": 1}`.
 
 	Existence is checked separately from visibility because `is_module_visible` answers a
-	different question -- an unknown module is "not blocked and not governed", so it passes
-	that check and would then fail link validation on save.
+	different question -- an unknown module is simply "not blocked", so it passes that check
+	and would then fail link validation on save.
 
 	`require_visible` is what the two layers disagree about. A user's own arrangement is
 	filtered by their visibility, so a curation can never resurface a module module permissions

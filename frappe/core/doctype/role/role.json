@@ -26,9 +26,7 @@
   "pages_tab",
   "page_roles_html",
   "workspace_tab",
-  "workspace_roles_html",
-  "modules_tab",
-  "modules"
+  "workspace_roles_html"
  ],
  "fields": [
   {
@@ -142,18 +140,6 @@
    "fieldname": "workspace_roles_html",
    "fieldtype": "HTML",
    "label": "Workspaces"
-  },
-  {
-   "fieldname": "modules_tab",
-   "fieldtype": "Tab Break",
-   "label": "Modules"
-  },
-  {
-   "description": "Modules this role grants access to in desk navigation. A module no role grants stays visible to everyone; a module blocked on a user stays hidden regardless. This never affects document permissions.",
-   "fieldname": "modules",
-   "fieldtype": "Table",
-   "label": "Modules",
-   "options": "Role Module"
   }
  ],
  "icon": "fa fa-bookmark",

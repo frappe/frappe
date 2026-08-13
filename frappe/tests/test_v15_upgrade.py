@@ -19,7 +19,6 @@ from frappe.desk.doctype.module_sidebar.module_sidebar import clear_computed_bas
 from frappe.desk.doctype.module_sidebar.test_module_sidebar import no_developer_mode
 from frappe.modules.patch_handler import PatchType, get_patches_from_app
 from frappe.tests import IntegrationTestCase
-from frappe.utils.modules import clear_module_permission_cache
 
 BACKFILL = "frappe.patches.v16_0.backfill_workspace_module"
 BUILD_SIDEBARS = "frappe.patches.v16_0.build_module_sidebars"
@@ -175,7 +174,6 @@ class TestV15Upgrade(IntegrationTestCase):
 		# The upgrade builds sidebars for the whole site, so the computed bases cached while
 		# reading the payload are not only this module's -- and redis outlives the rollback.
 		frappe.clear_cache()
-		clear_module_permission_cache()
 		super().tearDownClass()
 
 	@classmethod

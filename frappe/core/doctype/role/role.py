@@ -4,7 +4,6 @@
 import frappe
 from frappe.core.page.permission_manager.permission_manager import get_permissions
 from frappe.model.document import Document
-from frappe.utils.modules import clear_module_permission_cache
 from frappe.website.path_resolver import validate_path
 from frappe.website.router import clear_routing_cache
 
@@ -20,14 +19,12 @@ class Role(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.role_module.role_module import RoleModule
 		from frappe.types import DF
 
 		desk_access: DF.Check
 		disabled: DF.Check
 		home_page: DF.Data | None
 		is_custom: DF.Check
-		modules: DF.Table[RoleModule]
 		restrict_to_domain: DF.Link | None
 		role_name: DF.Data
 		two_factor_auth: DF.Check
@@ -71,17 +68,10 @@ class Role(Document):
 
 	def on_update(self):
 		"""update system user desk access if this has changed in this update"""
-		# The set of governed modules is cached site-wide; editing any role's modules table
-		# changes it, and a stale set silently grants or hides modules for everyone.
-		clear_module_permission_cache()
-
 		if frappe.flags.in_install:
 			return
 		if self.has_value_changed("desk_access"):
 			self.update_user_type_on_change()
-
-	def on_trash(self):
-		clear_module_permission_cache()
 
 	def update_user_type_on_change(self):
 		"""When desk access changes, all the users that have this role need to be re-evaluated"""

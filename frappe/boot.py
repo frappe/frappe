@@ -770,7 +770,7 @@ def get_navigable_modules() -> list[str]:
 	from frappe.utils.modules import get_code_only_modules, get_visible_modules
 
 	# Three independent gates, each answering a different question:
-	# `get_visible_modules` is per-user (blocked + role-granted); `get_disabled_modules` is
+	# `get_visible_modules` is per-user (the user's own blocks); `get_disabled_modules` is
 	# site-level -- the module's app is turned off, so nobody navigates to it regardless of
 	# permissions; `get_code_only_modules` is app-level -- the app that owns the module says it
 	# ships no navigation at all, having put its navigation in other modules.

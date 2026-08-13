@@ -39,61 +39,26 @@ def get_blocked_modules(user: str | None = None) -> list[str]:
 	return frappe.get_cached_doc("User", user).get_blocked_modules()
 
 
-MODULE_GRANT_CACHE_KEY = "governed_modules"
-
-
-@redis_cache
-def get_governed_modules() -> set[str]:
-	"""Modules that at least one Role explicitly grants.
-
-	A module no Role names is *ungoverned* and stays visible to everyone. That is what makes
-	this safe to switch on: on an existing site no Role has any modules, so nothing is
-	governed and visibility is unchanged.
-	"""
-	return set(frappe.get_all("Role Module", pluck="module", distinct=True))
-
-
-def get_granted_modules(user: str | None = None) -> set[str]:
-	"""Modules granted to `user` by the roles they hold."""
-	roles = frappe.get_roles(user or frappe.session.user)
-	if not roles:
-		return set()
-	return set(
-		frappe.get_all("Role Module", filters={"parent": ["in", roles]}, pluck="module", distinct=True)
-	)
-
-
 def is_module_visible(module: str | None, user: str | None = None) -> bool:
 	"""Whether `module` may appear in `user`'s desk navigation.
 
-	    visible(m, u) = m not in blocked(u)                          # deny wins
-	                and (m not in governed() or m in granted(u))     # ungoverned = open to all
+	    visible(m, u) = m not in blocked(u)
 
 	**Navigation reach only. Never call this from `has_permission`.** Document access is
 	decided by DocPerm, and routing it through here would turn a navigation preference into a
-	security boundary -- one that a user could widen by acquiring any role that grants the
-	module. Hiding a module hides the way *to* a document, never the document itself.
+	security boundary. Hiding a module hides the way *to* a document, never the document itself.
 	"""
 	if not module:
 		return True
 
-	if module in get_blocked_modules(user):
-		return False
-
-	governed = get_governed_modules()
-	if module not in governed:
-		return True
-
-	return module in get_granted_modules(user)
+	return module not in get_blocked_modules(user)
 
 
 def get_visible_modules(modules: list[str], user: str | None = None) -> list[str]:
 	"""Batched `is_module_visible`, for callers filtering a whole list at once."""
 	blocked = set(get_blocked_modules(user))
-	governed = get_governed_modules()
-	granted = get_granted_modules(user) if governed else set()
 
-	return [m for m in modules if m not in blocked and (m not in governed or m in granted)]
+	return [m for m in modules if m not in blocked]
 
 
 def get_code_only_modules() -> set[str]:
@@ -120,11 +85,6 @@ def get_code_only_modules() -> set[str]:
 	migrate, so a second cache here would only add a copy nothing invalidates.
 	"""
 	return set(frappe.get_hooks("code_only_modules") or [])
-
-
-def clear_module_permission_cache():
-	"""Bust the governed-module set. Called whenever a Role's modules table changes."""
-	get_governed_modules.clear_cache()
 
 
 def get_modules_from_all_apps_for_user(user: str | None = None) -> list[dict]:

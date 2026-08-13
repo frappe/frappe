@@ -32,18 +32,6 @@ class ModuleProfile(Document):
 		return {"fields": ["block_modules"]}
 
 	def on_update(self):
-		# Deprecated in favour of `Role.modules`. A Module Profile is a bundle of *denies*, and
-		# a deny-list does not invert into a grant-list without a policy call: blocking 3 of 40
-		# modules is not the same statement as granting 37. So this is left working rather than
-		# auto-migrated -- see `bench convert-module-profiles`, which prints a suggested grant
-		# set for someone to decide on.
-		from frappe.deprecation_dumpster import deprecation_warning
-
-		deprecation_warning(
-			"unknown",
-			"v18",
-			"Module Profile is deprecated. Grant module access with Role.modules instead.",
-		)
 		self.clear_cache()
 		self.queue_action(
 			"update_all_users",

@@ -15,7 +15,6 @@ from frappe.desk.desktop import (
 )
 from frappe.desk.doctype.module_sidebar.test_module_sidebar import make_sidebar, sidebarless_module
 from frappe.tests import IntegrationTestCase
-from frappe.utils.modules import clear_module_permission_cache
 
 USER = "test-dock-prefs@example.com"
 
@@ -40,7 +39,6 @@ class TestDockPreferences(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.delete_doc("User", USER, force=True, ignore_missing=True)
-		clear_module_permission_cache()
 
 	def test_order_round_trips(self):
 		save_dock_preferences(json.dumps(["Website", "Core", "Email"]))
@@ -117,7 +115,6 @@ class TestDockSiteLayer(IntegrationTestCase):
 		self.set_site_order([])
 		for email in (self.MANAGER, self.DESK_USER):
 			frappe.delete_doc("User", email, force=True, ignore_missing=True)
-		clear_module_permission_cache()
 
 	def make_user(self, email, roles):
 		if frappe.db.exists("User", email):
@@ -144,7 +141,6 @@ class TestDockSiteLayer(IntegrationTestCase):
 		user.append("block_modules", {"module": module})
 		user.save(ignore_permissions=True)
 		frappe.clear_cache(user=email)
-		clear_module_permission_cache()
 
 	def dock_for(self, email):
 		frappe.set_user(email)

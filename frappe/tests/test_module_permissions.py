@@ -3,17 +3,12 @@
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils.modules import (
-	clear_module_permission_cache,
-	get_governed_modules,
-	get_visible_modules,
-	is_module_visible,
-)
+from frappe.utils.modules import get_visible_modules, is_module_visible
 
 ROLE = "Test Module Grant Role"
 USER = "test-module-perms@example.com"
-GOVERNED = "Core"
-UNGOVERNED = "Desk"
+BLOCKED = "Core"
+OPEN = "Desk"
 
 
 class TestModulePermissions(IntegrationTestCase):
@@ -32,23 +27,12 @@ class TestModulePermissions(IntegrationTestCase):
 		self.reset()
 		frappe.delete_doc("Role", ROLE, force=True, ignore_missing=True)
 		frappe.delete_doc("User", USER, force=True, ignore_missing=True)
-		clear_module_permission_cache()
 
 	def reset(self):
-		role = frappe.get_doc("Role", ROLE)
-		role.set("modules", [])
-		role.save()
 		user = frappe.get_doc("User", USER)
 		user.set("block_modules", [])
 		user.save(ignore_permissions=True)
-		clear_module_permission_cache()
 		frappe.clear_cache(user=USER)
-
-	def grant(self, module):
-		role = frappe.get_doc("Role", ROLE)
-		role.append("modules", {"module": module})
-		role.save()
-		clear_module_permission_cache()
 
 	def block(self, module):
 		user = frappe.get_doc("User", USER)
@@ -61,41 +45,20 @@ class TestModulePermissions(IntegrationTestCase):
 		user.add_roles(ROLE)
 		frappe.clear_cache(user=USER)
 
-	def test_ungoverned_module_is_visible_to_everyone(self):
-		"""This is what makes the feature safe to ship: on an existing site no role grants
-		anything, so nothing is governed and visibility is exactly as before."""
-		self.assertEqual(get_governed_modules(), set())
-		self.assertTrue(is_module_visible(UNGOVERNED, USER))
-		self.assertTrue(is_module_visible(GOVERNED, USER))
+	def test_an_unblocked_module_is_visible_to_everyone(self):
+		"""Blocking is the whole gate: a module nobody blocked is open to all."""
+		self.assertTrue(is_module_visible(OPEN, USER))
+		self.assertTrue(is_module_visible(BLOCKED, USER))
 
-	def test_grant_scopes_a_module_to_its_holders(self):
-		self.grant(GOVERNED)
-
-		# governed now, and this user holds no granting role
-		self.assertIn(GOVERNED, get_governed_modules())
-		self.assertFalse(is_module_visible(GOVERNED, USER))
-
-		self.give_role()
-		self.assertTrue(is_module_visible(GOVERNED, USER))
-
-	def test_granting_one_module_does_not_govern_the_others(self):
-		self.grant(GOVERNED)
-		self.assertTrue(is_module_visible(UNGOVERNED, USER))
-
-	def test_block_beats_grant(self):
-		"""Deny wins -- a user's own block is the last word, whatever their roles say."""
-		self.grant(GOVERNED)
-		self.give_role()
-		self.assertTrue(is_module_visible(GOVERNED, USER))
-
-		self.block(GOVERNED)
-		self.assertFalse(is_module_visible(GOVERNED, USER))
+	def test_block_hides_the_module_it_names_and_nothing_else(self):
+		self.block(BLOCKED)
+		self.assertFalse(is_module_visible(BLOCKED, USER))
+		self.assertTrue(is_module_visible(OPEN, USER))
 
 	def test_get_visible_modules_matches_one_by_one(self):
-		self.grant(GOVERNED)
-		self.block(UNGOVERNED)
+		self.block(BLOCKED)
 
-		modules = [GOVERNED, UNGOVERNED, "Custom"]
+		modules = [BLOCKED, OPEN, "Custom"]
 		batched = set(get_visible_modules(modules, USER))
 		one_by_one = {m for m in modules if is_module_visible(m, USER)}
 		self.assertEqual(batched, one_by_one)
@@ -114,7 +77,7 @@ class TestModulePermissions(IntegrationTestCase):
 				"doctype": "Workspace",
 				"title": "TMP Gated Workspace",
 				"label": "TMP Gated Workspace",
-				"module": GOVERNED,
+				"module": BLOCKED,
 				"public": 1,
 				"content": "[]",
 				"roles": [{"role": ROLE}],
@@ -123,7 +86,7 @@ class TestModulePermissions(IntegrationTestCase):
 
 		try:
 			self.give_role()
-			self.block(GOVERNED)
+			self.block(BLOCKED)
 
 			frappe.set_user(USER)
 			self.assertFalse(Workspace(workspace).is_permitted())
@@ -131,7 +94,7 @@ class TestModulePermissions(IntegrationTestCase):
 			frappe.set_user("Administrator")
 			frappe.delete_doc("Workspace", workspace.name, force=True, ignore_missing=True)
 
-	def test_workspace_roles_can_only_narrow_what_the_module_grants(self):
+	def test_workspace_roles_can_only_narrow_what_the_module_allows(self):
 		"""The relationship between the two gates, stated as a test:
 
 		    reach(workspace) = module visible to user
@@ -139,18 +102,18 @@ class TestModulePermissions(IntegrationTestCase):
 
 		They are ANDed, so a workspace's roles are a *narrowing* and never a widening. Here the
 		workspace is gated on a role the user certainly holds -- everybody holds `All` -- while
-		the module is granted to one they do not, and the module still has the last word.
+		the module is blocked for them, and the block still has the last word.
 		"""
 		from frappe.desk.desktop import Workspace
 
-		self.grant(GOVERNED)
+		self.block(BLOCKED)
 
 		workspace = frappe.get_doc(
 			{
 				"doctype": "Workspace",
 				"title": "TMP Widely Gated Workspace",
 				"label": "TMP Widely Gated Workspace",
-				"module": GOVERNED,
+				"module": BLOCKED,
 				"public": 1,
 				"content": "[]",
 				"roles": [{"role": "All"}],
@@ -170,14 +133,14 @@ class TestModulePermissions(IntegrationTestCase):
 		surface is filtered through, so a module the user cannot reach can offer them no page."""
 		from frappe.desk.desktop import get_workspaces
 
-		self.grant(GOVERNED)
+		self.block(BLOCKED)
 
 		workspace = frappe.get_doc(
 			{
 				"doctype": "Workspace",
-				"title": "TMP Ungated Workspace In A Governed Module",
-				"label": "TMP Ungated Workspace In A Governed Module",
-				"module": GOVERNED,
+				"title": "TMP Ungated Workspace In A Blocked Module",
+				"label": "TMP Ungated Workspace In A Blocked Module",
+				"module": BLOCKED,
 				"public": 1,
 				"content": "[]",
 			}
@@ -194,7 +157,7 @@ class TestModulePermissions(IntegrationTestCase):
 
 	def test_resolver_is_not_reachable_from_has_permission(self):
 		"""Navigation reach only. If this ever fails, someone has turned a nav preference
-		into a security boundary -- one a user could widen by acquiring any granting role."""
+		into a security boundary."""
 		import inspect
 
 		import frappe.permissions
