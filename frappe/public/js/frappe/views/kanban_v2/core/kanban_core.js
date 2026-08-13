@@ -940,6 +940,7 @@ export class KanbanCore {
 
 		const affected = sameColumn ? [fromColumn] : [fromColumn, toColumn];
 		const snapshot = this.state;
+		const snapshotEpoch = this.boardEpoch; // Track epoch to avoid restoring stale state
 		// Measure with the hover slot still open, then collapse slot + apply the
 		// new layout in one FLIP so (1) source cards ease up once, (2) target cards
 		// stay put (gap already reserved), (3) the moved card flies source→target.
@@ -964,10 +965,14 @@ export class KanbanCore {
 			this.localMoveGraceUntil = Date.now() + 3000;
 			cb.onAfterCardMove && cb.onAfterCardMove(move);
 		} catch (error) {
-			this.animateMove(affected, () => {
-				this.state = snapshot;
-				this.renderColumns(affected);
-			});
+			// Only restore snapshot if the board hasn't been reloaded since.
+			// If epoch changed, the board has newer server state — don't overwrite it.
+			if (this.boardEpoch === snapshotEpoch) {
+				this.animateMove(affected, () => {
+					this.state = snapshot;
+					this.renderColumns(affected);
+				});
+			}
 			cb.onMoveError && cb.onMoveError(move, error);
 			this.bus.emit("error", error);
 		}
@@ -1022,6 +1027,7 @@ export class KanbanCore {
 
 		const affected = [...new Set([...sourceOf.values(), toColumn])];
 		const snapshot = this.state;
+		const snapshotEpoch = this.boardEpoch; // Track epoch to avoid restoring stale state
 
 		const toPersistedOrder = this.persistedOrder(toColumn);
 		// null means partial load with no saved order — abort to avoid truncating unloaded names.
@@ -1108,8 +1114,11 @@ export class KanbanCore {
 		};
 
 		if (!this.options.provider.updateOrder) {
-			this.state = snapshot;
-			this.renderColumns(affected);
+			// Only restore if board hasn't been reloaded
+			if (this.boardEpoch === snapshotEpoch) {
+				this.state = snapshot;
+				this.renderColumns(affected);
+			}
 			const error = new Error(__("Bulk move is not supported"));
 			cb.onMoveError && cb.onMoveError(moveErrorArgs, error);
 			this.bus.emit("error", error);
@@ -1145,8 +1154,12 @@ export class KanbanCore {
 			try {
 				await this.reload();
 			} catch (reloadError) {
-				this.state = snapshot;
-				this.renderColumns(affected);
+				// Only restore snapshot if epoch unchanged (reload already increments epoch,
+				// so this guards against partial state from a failed reload).
+				if (this.boardEpoch === snapshotEpoch) {
+					this.state = snapshot;
+					this.renderColumns(affected);
+				}
 				this.bus.emit("error", reloadError);
 			}
 			cb.onMoveError && cb.onMoveError(moveErrorArgs, error);
