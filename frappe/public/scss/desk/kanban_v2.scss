@@ -320,11 +320,28 @@
 	padding: 0;
 	overflow: hidden;
 }
+/* Blur-fill banner: blurred cover bg + sharp contained fg for seamless look. */
 .kn-mi-banner {
-	height: 116px;
+	position: relative;
+	height: 180px;
+	overflow: hidden;
+	background-color: var(--bg-light-gray);
+}
+.kn-mi-banner-bg {
+	position: absolute;
+	inset: -20px; /* extend beyond edges so blur doesn't show white corners */
 	background-size: cover;
 	background-position: center;
-	background-color: var(--bg-light-gray);
+	background-repeat: no-repeat;
+	filter: blur(20px) saturate(1.2);
+	opacity: 0.7;
+}
+.kn-mi-banner-fg {
+	position: absolute;
+	inset: 0;
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
 }
 .kn-mi-title,
 .kn-mi-desc {

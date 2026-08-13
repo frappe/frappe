@@ -1691,12 +1691,24 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		wrap.className = "kn-mi flex flex-col w-full";
 
 		// Cover image (board image field), when present.
+		// Uses blur-fill technique: blurred bg (cover) + sharp fg (contain) for a
+		// seamless look regardless of aspect ratio.
 		const image = this.image_field && card[this.image_field];
 		if (image) {
 			const banner = document.createElement("div");
 			banner.className = "kn-mi-banner w-full";
 			// JSON.stringify quotes/escapes so ', (, ) in the URL can't break url(...).
-			banner.style.backgroundImage = `url(${JSON.stringify(String(image))})`;
+			const url = `url(${JSON.stringify(String(image))})`;
+			// Blurred background layer.
+			const bg = document.createElement("div");
+			bg.className = "kn-mi-banner-bg";
+			bg.style.backgroundImage = url;
+			banner.appendChild(bg);
+			// Sharp foreground layer (contained).
+			const fg = document.createElement("div");
+			fg.className = "kn-mi-banner-fg";
+			fg.style.backgroundImage = url;
+			banner.appendChild(fg);
 			wrap.appendChild(banner);
 		}
 
