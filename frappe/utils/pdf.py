@@ -14,7 +14,6 @@ import pdfkit.api
 from pdfkit.pdfkit import PDFKit as OriginalPDFKit
 
 pdfkit.source.unicode = str  # NOTE: upstream bug; PYTHONOPTIMIZE=1 optimized this away
-from bs4 import BeautifulSoup
 from packaging.version import Version
 
 import frappe
@@ -27,6 +26,7 @@ from frappe.utils.jinja_globals import bundled_asset, is_rtl
 
 if TYPE_CHECKING:
 	import cssutils
+	from bs4 import BeautifulSoup
 	from pypdf import PdfWriter
 
 PDF_CONTENT_ERRORS = [
@@ -267,6 +267,8 @@ def get_cookie_options():
 
 def read_options_from_html(html):
 	options = {}
+	from bs4 import BeautifulSoup
+
 	soup = BeautifulSoup(html, "html5lib")
 
 	options.update(prepare_header_footer(soup))
@@ -290,7 +292,7 @@ def read_options_from_html(html):
 	return str(soup), options
 
 
-def get_print_format_styles(soup: BeautifulSoup) -> list["cssutils.css.Property"]:
+def get_print_format_styles(soup: "BeautifulSoup") -> list["cssutils.css.Property"]:
 	"""
 	Get styles purely on class 'print-format'.
 	Valid:
@@ -333,6 +335,8 @@ def get_print_format_styles(soup: BeautifulSoup) -> list["cssutils.css.Property"
 
 
 def inline_private_images(html) -> str:
+	from bs4 import BeautifulSoup
+
 	soup = BeautifulSoup(html, "html.parser")
 	for img in soup.find_all("img"):
 		if b64 := _get_base64_image(img["src"]):
@@ -360,7 +364,7 @@ def _get_base64_image(src):
 		frappe.logger("pdf").error("Failed to convert inline images to base64", exc_info=True)
 
 
-def prepare_header_footer(soup: BeautifulSoup):
+def prepare_header_footer(soup: "BeautifulSoup"):
 	options = {}
 
 	head = soup.find("head").contents
