@@ -785,7 +785,8 @@ class TypstEmitter:
 		if not fieldname:
 			return ""
 		value = self.doc.get(fieldname)
-		if value in (None, ""):
+		# {% if value %} in Data.html gates on the raw value, hiding 0 / 0.0 / False
+		if not value:
 			return ""
 		if df.get("fieldtype") == "Check":
 			return _("Yes") if frappe.utils.cint(value) else _("No")
@@ -997,10 +998,17 @@ class TypstEmitter:
 			for col in columns:
 				body_cells.append(self._table_cell(row, col))
 
-		bordered = df.get("table_bordered")
-		stroke = HAIRLINE if bordered is None or bordered else "none"
-		header_bg = safe_color(df.get("table_header_bg")) or "#f3f4f6"
-		show_header = df.get("table_header") is None or df.get("table_header")
+		# table_header is a mode string, not a flag: "none" drops the header, "plain"
+		# keeps it without a fill (mirrors Table.html)
+		header_mode = df.get("table_header")
+		show_header = header_mode != "none"
+		header_bg = None if header_mode == "plain" else safe_color(df.get("table_header_bg")) or "#f3f4f6"
+		# full grid when explicitly bordered or table_style is bordered; otherwise
+		# lined — horizontal rules between rows, matching the child-table classes
+		if df.get("table_bordered") is not False or df.get("table_style") == "bordered":
+			stroke = HAIRLINE
+		else:
+			stroke = f"(_, y) => if y > 0 {{ (top: {HAIRLINE}) }}"
 
 		parts = [
 			f"columns: ({', '.join(widths)})",
@@ -1009,7 +1017,8 @@ class TypstEmitter:
 			f"inset: {pt(df.get('table_cell_padding'), 8)}pt",
 		]
 		if show_header:
-			parts.append(f'fill: (_, row) => if row == 0 {{ rgb("{header_bg}") }}')
+			if header_bg:
+				parts.append(f'fill: (_, row) => if row == 0 {{ rgb("{header_bg}") }}')
 			cells = ["table.header(" + ", ".join(f"[{cell}]" for cell in header_cells) + ")"]
 		else:
 			cells = []

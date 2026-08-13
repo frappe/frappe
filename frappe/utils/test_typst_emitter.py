@@ -267,6 +267,56 @@ class TestTypstGate(IntegrationTestCase):
 		)
 		self.assertRaisesRegex(frappe.ValidationError, "must be Typst", pf_doc.insert)
 
+	def test_falsy_field_values_are_hidden_like_html(self):
+		"""Data.html gates each field on the raw value ({% if value %}), so 0 / 0.0
+		/ False print nothing — Typst must match, not show a formatted zero."""
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		em = TypstEmitter(frappe._dict(doc=frappe._dict(), print_format=frappe._dict(), layout={}))
+
+		class Doc:
+			def __init__(self, v):
+				self.v = v
+
+			def get(self, f, d=None):
+				return self.v
+
+			def get_formatted(self, f):
+				return str(self.v)
+
+		em.doc = Doc(0)
+		self.assertEqual(em._formatted_value({"fieldname": "x", "fieldtype": "Currency"}), "")
+		self.assertEqual(em._formatted_value({"fieldname": "c", "fieldtype": "Check"}), "")
+		em.doc = Doc(5)
+		self.assertEqual(em._formatted_value({"fieldname": "x", "fieldtype": "Currency"}), "5")
+
+	def test_table_header_and_style_mirror_html(self):
+		"""table_header is a mode string (none/plain), and lined vs bordered are
+		distinct — Typst must not treat the header as a flag or borders as all-or-none."""
+		from frappe.utils.typst_emitter import HAIRLINE, TypstEmitter
+
+		em = TypstEmitter(frappe._dict(doc=frappe._dict(), print_format=frappe._dict(), layout={}))
+
+		class Row:
+			def get_formatted(self, f):
+				return "Widget"
+
+			def get(self, f, d=None):
+				return None
+
+		cols = [{"fieldname": "item", "label": "Item"}]
+
+		def tbl(**extra):
+			return em._table({"fieldname": "items", "table_columns": cols, "_rows": [Row()], **extra})
+
+		self.assertNotIn("table.header", tbl(table_header="none"))
+		plain = tbl(table_header="plain")
+		self.assertIn("table.header", plain)
+		self.assertNotIn("fill:", plain)
+		self.assertIn("fill:", tbl())
+		self.assertIn("(_, y) =>", tbl(table_bordered=False, table_style="lined"))
+		self.assertIn(f"stroke: {HAIRLINE}", tbl(table_bordered=True))
+
 	def test_page_size_follows_print_settings(self):
 		"""Typst must honour pdf_page_size like the Chromium path, or the two
 		renderers disagree on page geometry on a non-A4 site."""
