@@ -85,6 +85,40 @@ deployment that requires security containment must run shell commands in a separ
 container or equivalent sandbox. Confirmation prompts reduce accidental execution but
 are not a containment boundary.
 
+## Python extensions
+
+Flow can load custom server-side tools from `~/.flow/extensions/` or from an
+explicit `flow -e path/to/extension.py` argument. Use `--no-extensions` to skip
+the global directory; explicit `-e` paths still load. The global directory is a
+CLI/daemon behavior: an embedded `SessionStore` or `Agent` loads only what it is
+given (`extension_paths=[...]`, `extensions_enabled=True`).
+
+An extension is a `.py` file with a synchronous `setup(flow)` function:
+
+```python
+from flow.extensions import ExtensionAPI
+from flow.tools import ToolContext, ToolResult, tool
+
+@tool(prompt_snippet="Greet someone by name.")
+async def hello(who: str = "world", *, ctx: ToolContext) -> ToolResult:
+    return ToolResult(content=f"Hello, {who}!")
+
+def setup(flow: ExtensionAPI) -> None:
+    flow.register_tool(hello)
+```
+
+A directory extension uses `extension.py` as its entry point and may use relative
+imports for sibling modules. Load/import/setup errors are non-fatal and available at
+`GET /sessions/{sid}/extensions`. Extension tools override selected built-ins with
+the same name; duplicate extension tool names use the first registration. A session's
+system prompt is composed once at creation: sessions reopened under a different
+extension set run with the daemon's current tools, but keep their original prompt.
+
+**Security:** extensions are ordinary Python code running inside the daemon with its
+full permissions. They are not sandboxed. Only load extensions you trust. Extension
+paths are daemon/embedded configuration and cannot be supplied through session API
+requests.
+
 ## Client-side tools
 
 A client can run its own tools instead of (or alongside) the builtins. It registers
