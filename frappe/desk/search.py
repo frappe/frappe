@@ -96,16 +96,10 @@ def search_widget(
 		# not filter or truncate on the untranslated ones
 		query_txt = "" if meta.translated_doctype else txt
 		query_page_length = PAGE_LENGTH_FOR_LINK_VALIDATION if meta.translated_doctype else page_length
-<<<<<<< HEAD
-=======
-
-		if sbool(query_filters_as_dict) and isinstance(filters, list):
-			filters = make_dict_from_filter_list(filters)
 
 		if ignore_user_permissions:
 			frappe.flags.ignore_user_permissions_for_doctype = doctype
 
->>>>>>> 0ab8b231c6 (fix(search): apply ignore_user_permissions to custom link queries)
 		try:
 			is_whitelisted(frappe.get_attr(query))
 			values = frappe.call(

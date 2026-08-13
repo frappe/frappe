@@ -7,7 +7,9 @@ from typing import Any
 
 import frappe
 from frappe.app import make_form_dict
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.search import get_names_for_mentions, search_link, search_widget
+from frappe.permissions import add_user_permission
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 from frappe.website.serve import get_response
@@ -182,54 +184,23 @@ class TestSearch(FrappeTestCase):
 		result = search(txt="(txt)")
 		self.assertEqual(result, [])
 
-<<<<<<< HEAD
-=======
 	def test_search_link_with_ignore_user_permissions(self):
-		"""Test that ignore_user_permissions works correctly in search_link
-		when the link field has ignore_user_permissions enabled"""
+		if frappe.db.exists("DocType", "Test Search Linked"):
+			frappe.delete_doc("DocType", "Test Search Linked", force=True)
 
-		# Clean up any leftover doctypes from previous test runs
-		for dt in ("Test Search Form", "Test Search Linked"):
-			if frappe.db.exists("DocType", dt):
-				frappe.delete_doc("DocType", dt, force=True)
-
-		# Create a test doctype to link to
 		new_doctype(
 			name="Test Search Linked",
 			fields=[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
 			permissions=[{"role": "System Manager", "read": 1, "write": 1}],
 			search_fields="title",
 		).insert()
-
-		# Create a form doctype with a link field that has ignore_user_permissions
-		new_doctype(
-			name="Test Search Form",
-			fields=[
-				{
-					"label": "Linked Doc",
-					"fieldname": "linked_doc",
-					"fieldtype": "Link",
-					"options": "Test Search Linked",
-					"ignore_user_permissions": 1,
-				}
-			],
-			permissions=[{"role": "System Manager", "read": 1, "write": 1}],
-		).insert()
-
-		self.addCleanup(
-			lambda: frappe.delete_doc("DocType", "Test Search Form", force=True, ignore_missing=True)
-		)
 		self.addCleanup(lambda: frappe.delete_doc("DocType", "Test Search Linked", force=True))
 
-		# Create some test documents
 		allowed_doc = frappe.get_doc({"doctype": "Test Search Linked", "title": "Allowed Document"}).insert()
 		restricted_doc = frappe.get_doc(
 			{"doctype": "Test Search Linked", "title": "Restricted Document"}
 		).insert()
-		self.addCleanup(lambda: frappe.delete_doc("Test Search Linked", allowed_doc.name, force=True))
-		self.addCleanup(lambda: frappe.delete_doc("Test Search Linked", restricted_doc.name, force=True))
 
-		# Create a test user with restricted permissions
 		test_user = "test_search_user@example.com"
 		if not frappe.db.exists("User", test_user):
 			user = frappe.get_doc(
@@ -243,7 +214,6 @@ class TestSearch(FrappeTestCase):
 			user.add_roles("System Manager")
 			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
 
-		# Add user permission to restrict the user to only allowed_doc
 		add_user_permission("Test Search Linked", allowed_doc.name, test_user)
 		self.addCleanup(
 			lambda: frappe.db.delete("User Permission", {"user": test_user, "allow": "Test Search Linked"})
@@ -252,48 +222,12 @@ class TestSearch(FrappeTestCase):
 		frappe.set_user(test_user)
 		self.addCleanup(lambda: frappe.set_user("Administrator"))
 
-		# Without ignore_user_permissions, only allowed_doc should be returned
-		results_without_ignore = search_link(
-			doctype="Test Search Linked",
-			txt="Document",
-			ignore_user_permissions=False,
-		)
-		result_values = [r["value"] for r in results_without_ignore]
-		self.assertIn(allowed_doc.name, result_values)
-		self.assertNotIn(restricted_doc.name, result_values)
-
-		# With ignore_user_permissions + reference_doctype + link_fieldname, both should be returned
-		results_with_ignore = search_link(
-			doctype="Test Search Linked",
-			txt="Document",
-			ignore_user_permissions=True,
-			reference_doctype="Test Search Form",
-			link_fieldname="linked_doc",
-		)
-		result_values = [r["value"] for r in results_with_ignore]
-		self.assertIn(allowed_doc.name, result_values)
-		self.assertIn(restricted_doc.name, result_values)
-
-		# With ignore_user_permissions=True but WITHOUT reference_doctype/link_fieldname,
-		# the flag should be silently ignored and user permissions should apply
-		results_without_context = search_link(
-			doctype="Test Search Linked",
-			txt="Document",
-			ignore_user_permissions=True,
-			# reference_doctype and link_fieldname not provided
-		)
-		result_values = [r["value"] for r in results_without_context]
-		self.assertIn(allowed_doc.name, result_values)
-		self.assertNotIn(restricted_doc.name, result_values)
-
 		# a custom query runs its own frappe.get_list, the flag should still apply
 		results_from_custom_query = search_link(
 			doctype="Test Search Linked",
 			txt="Document",
 			query="frappe.tests.test_search.query_by_title",
 			ignore_user_permissions=True,
-			reference_doctype="Test Search Form",
-			link_fieldname="linked_doc",
 		)
 		result_values = [r["value"] for r in results_from_custom_query]
 		self.assertIn(allowed_doc.name, result_values)
@@ -302,273 +236,6 @@ class TestSearch(FrappeTestCase):
 		# and should not outlive the search call
 		self.assertEqual([d.name for d in frappe.get_list("Test Search Linked")], [allowed_doc.name])
 
-	def test_search_link_ignore_user_permissions_validation(self):
-		"""Test that ignore_user_permissions is validated correctly"""
-
-		# Clean up any leftover doctypes from previous test runs
-		for dt in (
-			"Test Search Form No Ignore",
-			"Test Search Form Wrong Link",
-			"Test Search Form With Ignore",
-			"Test Search Linked2",
-		):
-			if frappe.db.exists("DocType", dt):
-				frappe.delete_doc("DocType", dt, force=True)
-
-		# Create doctypes for testing
-		new_doctype(
-			name="Test Search Linked2",
-			fields=[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
-		).insert()
-
-		# Form with link field WITHOUT ignore_user_permissions
-		new_doctype(
-			name="Test Search Form No Ignore",
-			fields=[
-				{
-					"label": "Linked Doc",
-					"fieldname": "linked_doc",
-					"fieldtype": "Link",
-					"options": "Test Search Linked2",
-					"ignore_user_permissions": 0,
-				}
-			],
-		).insert()
-
-		self.addCleanup(
-			lambda: frappe.delete_doc(
-				"DocType", "Test Search Form No Ignore", force=True, ignore_missing=True
-			)
-		)
-		self.addCleanup(
-			lambda: frappe.delete_doc(
-				"DocType", "Test Search Form Wrong Link", force=True, ignore_missing=True
-			)
-		)
-		self.addCleanup(
-			lambda: frappe.delete_doc("DocType", "Test Search Linked2", force=True, ignore_missing=True)
-		)
-
-		# Should throw when field does not have ignore_user_permissions
-		self.assertRaises(
-			frappe.ValidationError,
-			search_link,
-			doctype="Test Search Linked2",
-			txt="test",
-			ignore_user_permissions=True,
-			reference_doctype="Test Search Form No Ignore",
-			link_fieldname="linked_doc",
-		)
-
-		# Should throw when field doesn't exist
-		self.assertRaises(
-			frappe.ValidationError,
-			search_link,
-			doctype="Test Search Linked2",
-			txt="test",
-			ignore_user_permissions=True,
-			reference_doctype="Test Search Form No Ignore",
-			link_fieldname="nonexistent_field",
-		)
-
-		# Should throw when doctype doesn't match
-		new_doctype(
-			name="Test Search Form Wrong Link",
-			fields=[
-				{
-					"label": "Wrong Link",
-					"fieldname": "wrong_link",
-					"fieldtype": "Link",
-					"options": "User",  # Different doctype
-					"ignore_user_permissions": 1,
-				}
-			],
-		).insert()
-		self.addCleanup(lambda: frappe.delete_doc("DocType", "Test Search Form Wrong Link", force=True))
-
-		self.assertRaises(
-			frappe.ValidationError,
-			search_link,
-			doctype="Test Search Linked2",
-			txt="test",
-			ignore_user_permissions=True,
-			reference_doctype="Test Search Form Wrong Link",
-			link_fieldname="wrong_link",
-		)
-
-		# Should NOT throw when link_fieldname is bogus (e.g. bulk edit sends "value")
-		# but a Link field with ignore_user_permissions exists on the form doctype
-		new_doctype(
-			name="Test Search Form With Ignore",
-			fields=[
-				{
-					"label": "Linked Doc",
-					"fieldname": "linked_doc",
-					"fieldtype": "Link",
-					"options": "Test Search Linked2",
-					"ignore_user_permissions": 1,
-				}
-			],
-		).insert()
-		self.addCleanup(lambda: frappe.delete_doc("DocType", "Test Search Form With Ignore", force=True))
-
-		search_link(
-			doctype="Test Search Linked2",
-			txt="test",
-			ignore_user_permissions=True,
-			reference_doctype="Test Search Form With Ignore",
-			link_fieldname="value",
-		)
-
-	def test_search_link_ignore_user_permissions_child_table(self):
-		"""List view filters target a child table field; the ignore_user_permissions flag
-		lives on the child table's link field, not on the parent."""
-
-		target = "Test Search Child Target"
-		child = "Test Search Child Row"
-		parent = "Test Search Child Parent"
-		parent_dup = "Test Search Child Parent Dup"
-
-		def make_doctype(name, fields, **kwargs):
-			if frappe.db.exists("DocType", name):
-				frappe.delete_doc("DocType", name, force=True)
-			new_doctype(name=name, fields=fields, **kwargs).insert()
-			self.addCleanup(lambda: frappe.delete_doc("DocType", name, force=True, ignore_missing=True))
-
-		def link_to_target(fieldname, label, ignore_user_permissions):
-			return {
-				"label": label,
-				"fieldname": fieldname,
-				"fieldtype": "Link",
-				"options": target,
-				"ignore_user_permissions": ignore_user_permissions,
-			}
-
-		def rows_field():
-			return {"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child}
-
-		make_doctype(
-			target,
-			[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
-			permissions=[{"role": "System Manager", "read": 1, "write": 1}],
-			search_fields="title",
-		)
-		make_doctype(
-			child,
-			[
-				link_to_target("member", "Member", 1),
-				link_to_target("plain_member", "Plain Member", 0),
-				{
-					"label": "Member Doctype",
-					"fieldname": "member_doctype",
-					"fieldtype": "Link",
-					"options": "DocType",
-				},
-				{
-					"label": "Dynamic Member",
-					"fieldname": "dynamic_member",
-					"fieldtype": "Dynamic Link",
-					"options": "member_doctype",
-					"ignore_user_permissions": 1,
-				},
-			],
-			istable=1,
-		)
-		make_doctype(parent, [rows_field()])
-		make_doctype(parent_dup, [link_to_target("member", "Member", 0), rows_field()])
-
-		allowed = frappe.get_doc({"doctype": target, "title": "Allowed Document"}).insert()
-		restricted = frappe.get_doc({"doctype": target, "title": "Restricted Document"}).insert()
-
-		test_user = "test_search_child_user@example.com"
-		if not frappe.db.exists("User", test_user):
-			frappe.get_doc(
-				{
-					"doctype": "User",
-					"email": test_user,
-					"first_name": "Test Search Child User",
-					"user_type": "System User",
-				}
-			).insert(ignore_permissions=True).add_roles("System Manager")
-			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
-
-		add_user_permission(target, allowed.name, test_user)
-		self.addCleanup(lambda: frappe.db.delete("User Permission", {"user": test_user}))
-
-		def values(**kwargs):
-			return [r["value"] for r in search_link(doctype=target, txt="Document", **kwargs)]
-
-		with self.set_user(test_user):
-			self.assertNotIn(restricted.name, values(ignore_user_permissions=False))
-
-			for reference_doctype in (parent, parent_dup):
-				self.assertIn(
-					restricted.name,
-					values(
-						ignore_user_permissions=True,
-						reference_doctype=reference_doctype,
-						link_fieldname="member",
-					),
-				)
-
-			self.assertIn(
-				restricted.name,
-				values(
-					ignore_user_permissions=True,
-					reference_doctype=parent,
-					link_fieldname="dynamic_member",
-				),
-			)
-
-			with self.assertRaisesRegex(frappe.ValidationError, "does not allow ignoring user permissions"):
-				values(ignore_user_permissions=True, reference_doctype=parent, link_fieldname="plain_member")
-
-			with self.assertRaisesRegex(frappe.ValidationError, "not found"):
-				values(ignore_user_permissions=True, reference_doctype=parent, link_fieldname="unknown_field")
-
-	def test_search_link_ignore_user_permissions_dangling_child_table(self):
-		"""A child table pointing at a deleted doctype should not escape as DoesNotExistError."""
-
-		for dt in ("Test Search Dangling Parent", "Test Search Dangling Row"):
-			if frappe.db.exists("DocType", dt):
-				frappe.delete_doc("DocType", dt, force=True)
-
-		new_doctype(
-			name="Test Search Dangling Row",
-			istable=1,
-			fields=[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
-		).insert()
-
-		new_doctype(
-			name="Test Search Dangling Parent",
-			fields=[
-				{
-					"label": "Rows",
-					"fieldname": "rows",
-					"fieldtype": "Table",
-					"options": "Test Search Dangling Row",
-				}
-			],
-		).insert()
-		self.addCleanup(
-			lambda: frappe.delete_doc(
-				"DocType", "Test Search Dangling Parent", force=True, ignore_missing=True
-			)
-		)
-
-		frappe.delete_doc("DocType", "Test Search Dangling Row", force=True)
-		frappe.clear_cache()
-
-		with self.assertRaisesRegex(frappe.ValidationError, "not found"):
-			search_link(
-				doctype="User",
-				txt="test",
-				ignore_user_permissions=True,
-				reference_doctype="Test Search Dangling Parent",
-				link_fieldname="nonexistent_field",
-			)
-
->>>>>>> c509956e1a (test(search): cover ignore_user_permissions with a custom link query)
 
 @frappe.validate_and_sanitize_search_inputs
 def get_data(doctype, txt, searchfield, start, page_len, filters):
@@ -589,7 +256,7 @@ def query_with_reference_doctype(
 	return []
 
 
-@whitelist_for_tests()
+@frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def query_by_title(
 	doctype: str,
