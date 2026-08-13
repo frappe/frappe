@@ -59,13 +59,13 @@ function make_series_section($body, doctype) {
 				[doctype]
 			),
 			add_label: __("Add Series"),
-			on_add: (refresh) => add_series(doctype, refresh),
+			on_add: (refresh) => series_dialog(doctype, null, refresh),
 		},
 		{
 			empty_message: __("This doctype isn't named by a series."),
 			// Clicking a row edits that one series — rename its prefix and/or set the next
 			// number — reusing the Document Naming Settings methods (no bulk dialog).
-			on_row_click: (row) => edit_series(doctype, row, () => list.refresh()),
+			on_row_click: (row) => series_dialog(doctype, row, () => list.refresh()),
 			// Reuse the settings methods: read the options, then preview each series. Calls
 			// share one locals doc, so they run sequentially.
 			get_data: async () => {
@@ -112,129 +112,101 @@ function make_series_section($body, doctype) {
 	return list;
 }
 
-// Add a series by appending to the options list and reusing update_series (the same
-// path the Naming Settings page uses — it validates the series and rejects duplicates).
-function add_series(doctype, refresh) {
-	frappe.prompt(
+// One dialog for both adding and editing a series (`row` is null for add)
+// Naming Settings methods (get_current / preview_series / update_series /
+// update_series_start) — the same the Naming Settings page uses.
+async function series_dialog(doctype, row, refresh) {
+	const is_edit = !!row;
+	const original = is_edit ? row.series : "";
+
+	const doc = await load_settings();
+	doc.transaction_type = doctype;
+	if (is_edit) doc.prefix = original;
+	const current = is_edit ? await settings_call(doc, "get_current") : 0;
+
+	const hint = __("e.g. {0}", ["SO-.YYYY.-"]);
+	const preview_label = (next) => (next ? __("Next: {0}", [next]) : hint);
+
+	const fields = [
 		{
 			fieldtype: "Data",
-			label: __("New series"),
 			fieldname: "series",
+			label: __("Series"),
 			reqd: 1,
-			description: __("e.g. {0}", ["SO-.YYYY.-"]),
+			default: original,
+			// Seed from the row we already have (edit) or the hint (add); refresh live.
+			description: is_edit ? preview_label(row.next) : hint,
+			async onchange() {
+				const value = dialog.get_value("series");
+				if (!value) {
+					dialog.set_df_property("series", "description", hint);
+					return;
+				}
+				doc.try_naming_series = value;
+				const next =
+					((await settings_call(doc, "preview_series")) || "").split("\n")[0] || "";
+				dialog.set_df_property("series", "description", preview_label(next));
+			},
 		},
-		async ({ series }) => {
-			const doc = await load_settings();
-			doc.transaction_type = doctype;
-			const options = (await settings_call(doc, "get_options")) || "";
-			const list_options = options
+	];
+	if (is_edit) {
+		fields.push({
+			fieldtype: "Int",
+			fieldname: "current_value",
+			label: __("Current value"),
+			default: current,
+			description: __("The next generated name continues after this number."),
+		});
+	}
+	fields.push(
+		{ fieldtype: "Section Break", label: __("Rules for configuring series"), collapsible: 1 },
+		{
+			fieldtype: "HTML",
+			fieldname: "series_help",
+			options: frappe.ui.NamingSeriesDialog.help_html(),
+		}
+	);
+
+	const dialog = new frappe.ui.Dialog({
+		title: is_edit ? __("Edit Series") : __("Add Series"),
+		fields,
+		primary_action_label: is_edit ? __("Update") : __("Add"),
+		primary_action: async ({ series, current_value }) => {
+			series = (series || "").trim();
+			if (!series) return;
+
+			const options = ((await settings_call(doc, "get_options")) || "")
 				.split("\n")
 				.map((s) => s.trim())
 				.filter(Boolean);
-			if (list_options.includes(series.trim())) {
-				frappe.show_alert({ message: __("Series already exists"), indicator: "orange" });
-				return;
-			}
-			doc.naming_series_options = [...list_options, series.trim()].join("\n");
-			frappe.call({
-				method: "update_series",
-				doc,
-				callback: () => {
-					frappe.show_alert({ message: __("Series added"), indicator: "green" });
-					refresh();
-				},
-			});
-		},
-		__("Add series")
-	);
-}
 
-// Edit a single series: rename its prefix and/or set its current counter, with a live
-// preview shown in the Series field's description and the shared "rules" help. Reuses the
-// Document Naming Settings methods (get_current / preview_series / update_series /
-// update_series_start) — the same the Naming Settings page uses — instead of the bulk dialog.
-async function edit_series(doctype, row, refresh) {
-	const series = row.series;
-	const doc = await load_settings();
-	doc.transaction_type = doctype;
-	doc.prefix = series;
-	const current = await settings_call(doc, "get_current");
-
-	const preview_label = (next) => (next ? __("Next: {0}", [next]) : "");
-
-	const dialog = new frappe.ui.Dialog({
-		title: __("Edit Series"),
-		fields: [
-			{
-				fieldtype: "Data",
-				fieldname: "series",
-				label: __("Series"),
-				reqd: 1,
-				default: series,
-				// Seed the preview from the row we already have; refresh it live on change.
-				description: preview_label(row.next),
-				async onchange() {
-					const value = dialog.get_value("series");
-					if (!value) {
-						dialog.set_df_property("series", "description", "");
-						return;
-					}
-					doc.try_naming_series = value;
-					const next =
-						((await settings_call(doc, "preview_series")) || "").split("\n")[0] || "";
-					dialog.set_df_property("series", "description", preview_label(next));
-				},
-			},
-			{
-				fieldtype: "Int",
-				fieldname: "current_value",
-				label: __("Current value"),
-				default: current,
-				description: __("The next generated name continues after this number."),
-			},
-			{
-				fieldtype: "Section Break",
-				label: __("Rules for configuring series"),
-				collapsible: 1,
-			},
-			{
-				fieldtype: "HTML",
-				fieldname: "series_help",
-				options: frappe.ui.NamingSeriesDialog.help_html(),
-			},
-		],
-		primary_action_label: __("Update"),
-		primary_action: async ({ series: new_series, current_value }) => {
-			new_series = (new_series || "").trim();
-
-			// Rename: swap the prefix in the options list and reuse update_series (it validates).
-			if (new_series && new_series !== series) {
-				const options = ((await settings_call(doc, "get_options")) || "")
-					.split("\n")
-					.map((s) => s.trim())
-					.filter(Boolean);
-				if (options.includes(new_series)) {
+			if (series !== original) {
+				if (options.includes(series)) {
 					frappe.show_alert({
 						message: __("Series already exists"),
 						indicator: "orange",
 					});
 					return;
 				}
-				doc.naming_series_options = options
-					.map((s) => (s === series ? new_series : s))
-					.join("\n");
+				doc.naming_series_options = (
+					is_edit
+						? options.map((s) => (s === original ? series : s))
+						: [...options, series]
+				).join("\n");
 				await settings_call(doc, "update_series");
 			}
 
-			// Counter: set the current value on the (possibly renamed) series.
-			if (cint(current_value) !== cint(current)) {
-				doc.prefix = new_series || series;
+			if (is_edit && cint(current_value) !== cint(current)) {
+				doc.prefix = series;
 				doc.current_value = cint(current_value);
 				await settings_call(doc, "update_series_start");
 			}
 
 			dialog.hide();
-			frappe.show_alert({ message: __("Series updated"), indicator: "green" });
+			frappe.show_alert({
+				message: is_edit ? __("Series updated") : __("Series added"),
+				indicator: "green",
+			});
 			refresh();
 		},
 	});
