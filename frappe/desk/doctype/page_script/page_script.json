@@ -10,6 +10,7 @@
   "column_break_target",
   "enabled",
   "module",
+  "run_order",
   "script_section",
   "script"
  ],
@@ -49,6 +50,13 @@
    "fieldtype": "Link",
    "label": "Module (for export)",
    "options": "Module Def"
+  },
+  {
+   "default": "0",
+   "description": "Scripts run low to high; ties break on creation order. Set by dragging in the Page Script editor.",
+   "fieldname": "run_order",
+   "fieldtype": "Int",
+   "label": "Run Order"
   },
   {
    "fieldname": "script_section",

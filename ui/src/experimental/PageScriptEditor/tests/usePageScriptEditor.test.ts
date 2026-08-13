@@ -16,14 +16,15 @@ vi.mock("../pageScriptApi", () => ({
 import { usePageScriptEditor } from "../usePageScriptEditor";
 
 function rows(...names: string[]) {
-  return names.map((name) => ({
+  return names.map((name, index) => ({
     name,
     dt: "CRM Deal",
     view: "Record",
     enabled: 1 as const,
     module: null,
     script: `// ${name}`,
-    modified: `2026-08-13 00:00:0${names.indexOf(name)}`,
+    run_order: index + 1,
+    modified: `2026-08-13 00:00:0${index}`,
   }));
 }
 
@@ -125,8 +126,27 @@ describe("the Page Script editor", () => {
 
     await editor.create("third");
 
-    expect(create).toHaveBeenCalledWith({ name: "third", dt: "CRM Deal" });
+    // run_order 3: last, behind the two positioned scripts already loaded.
+    expect(create).toHaveBeenCalledWith({
+      name: "third",
+      dt: "CRM Deal",
+      run_order: 3,
+    });
     expect(editor.selectedName.value).toBe("third");
+  });
+
+  // Ticket 28: without the seed a new script takes the doctype default of 0 and
+  // sorts ahead of every positioned script — the opposite of "the newest wins".
+  it("seeds a new script last even when every script is still unpositioned", async () => {
+    list.mockResolvedValue(
+      rows("oldest", "newest").map((row) => ({ ...row, run_order: 0 })),
+    );
+    const editor = await editorFor();
+    create.mockResolvedValue({ name: "third" });
+
+    await editor.create("third");
+
+    expect(create.mock.calls[0][0].run_order).toBe(1);
   });
 
   // Ticket 26: Duplicate arrived with the row's `⋯` menu.
@@ -143,6 +163,7 @@ describe("the Page Script editor", () => {
       view: "Record",
       script: "// oldest",
       enabled: 0,
+      run_order: 3,
     });
     expect(editor.selectedName.value).toBe("oldest-copy");
   });

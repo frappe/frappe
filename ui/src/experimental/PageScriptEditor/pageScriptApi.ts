@@ -15,8 +15,12 @@ const FIELDS = [
   "enabled",
   "module",
   "script",
+  "run_order",
   "modified",
 ];
+
+/** Scripts run low to high; `creation` breaks the ties, so 0 means "unpositioned". */
+const RUN_ORDER = "run_order asc, creation asc";
 
 export interface PageScriptDoc {
   name: string;
@@ -25,6 +29,8 @@ export interface PageScriptDoc {
   enabled: 0 | 1;
   module: string | null;
   script: string;
+  /** Position within this doctype's list. A pure sort key -- ties are legal. */
+  run_order: number;
   /** The optimistic-lock token; a stale one makes `save` throw. */
   modified: string;
 }
@@ -36,7 +42,7 @@ export const pageScriptApi = {
       doctype: PAGE_SCRIPT_DOCTYPE,
       filters: { dt, view },
       fields: FIELDS,
-      order_by: "creation asc",
+      order_by: RUN_ORDER,
       limit_page_length: 0,
     });
   },
@@ -52,6 +58,7 @@ export const pageScriptApi = {
     view?: string;
     script?: string;
     enabled?: 0 | 1;
+    run_order?: number;
   }): Promise<PageScriptDoc> {
     return call("frappe.client.insert", {
       doc: {
@@ -61,6 +68,7 @@ export const pageScriptApi = {
         view: doc.view ?? "Record",
         ...(doc.script === undefined ? {} : { script: doc.script }),
         ...(doc.enabled === undefined ? {} : { enabled: doc.enabled }),
+        ...(doc.run_order === undefined ? {} : { run_order: doc.run_order }),
       },
     });
   },
@@ -86,6 +94,22 @@ export const pageScriptApi = {
         enabled: doc.enabled,
         modified: doc.modified,
       },
+    });
+  },
+
+  /**
+   * Renumbers the whole list 1..n in one transaction, rather than one save per
+   * script: N separate saves can tear halfway and leave the list numbered
+   * 1,2,3,3,4. Server-side it also collapses N realtime broadcasts into one.
+   *
+   * Order belongs to the list, not to any one script, so this is not part of the
+   * editor's per-script dirty buffer -- a drop calls it straight away.
+   */
+  reorder(dt: string, names: string[], view = "Record"): Promise<unknown> {
+    return call("frappe.desk.doctype.page_script.page_script.reorder", {
+      dt,
+      view,
+      names,
     });
   },
 

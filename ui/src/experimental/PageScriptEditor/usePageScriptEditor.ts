@@ -74,6 +74,7 @@ export function usePageScriptEditor(doctype: MaybeRefOrGetter<string>) {
       const created = await pageScriptApi.create({
         name,
         dt: toValue(doctype),
+        run_order: nextRunOrder(),
       });
       selectedName.value = created.name;
     });
@@ -104,9 +105,19 @@ export function usePageScriptEditor(doctype: MaybeRefOrGetter<string>) {
         view: row.view,
         script: text,
         enabled: 0,
+        run_order: nextRunOrder(),
       });
       selectedName.value = created.name;
     });
+  }
+
+  /**
+   * Where a new script goes: last, which is what keeps "the newest script wins by
+   * default" true once anyone has dragged. Without it a new script takes the
+   * doctype's default of 0 and would sort ahead of every positioned script.
+   */
+  function nextRunOrder() {
+    return Math.max(0, ...scripts.value.map((row) => row.run_order ?? 0)) + 1;
   }
 
   /** `<name>-copy`, then `-copy-2`, … — the first one nothing else has taken. */
