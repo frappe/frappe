@@ -24,6 +24,24 @@ context("Report View Link Titles", () => {
 			},
 			true
 		);
+		cy.insert_doc(
+			doctype_name,
+			{
+				title: "en",
+				display_name: "English localization review",
+			},
+			true
+		);
+		cy.insert_doc(
+			doctype_name,
+			{
+				title: "Localization Handover",
+				display_name: "Localization handover",
+				parent_entry: "en",
+				language: "en",
+			},
+			true
+		);
 	});
 
 	it("skips the link title lookup for a blank Link column", () => {
@@ -39,4 +57,21 @@ context("Report View Link Titles", () => {
 			expect(requested_docnames).to.include("Renewal Reminder");
 		});
 	});
+
+	it("resolves the title of each link against its own doctype", () => {
+		cy.visit(`/desk/List/${doctype_name}/Report`);
+
+		expect_link_titles(`a[data-doctype="Language"][data-name="en"]`, "English");
+		expect_link_titles(
+			`a[data-doctype="${doctype_name}"][data-name="en"]`,
+			"English localization review"
+		);
+	});
 });
+
+function expect_link_titles(selector, title) {
+	cy.get(selector).should((links) => {
+		expect(links).to.have.length.at.least(1);
+		links.each((i, link) => expect(link).to.have.text(title));
+	});
+}
