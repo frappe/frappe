@@ -7,6 +7,7 @@ import os
 FLOW_HOME = os.path.expanduser("~/.flow")
 DEFAULT_DATA_DIR = os.path.join(FLOW_HOME, "server")
 DEFAULT_CREDENTIALS_PATH = os.path.join(DEFAULT_DATA_DIR, "credentials.json")
+EXTENSIONS_PATH = os.path.join(FLOW_HOME, "extensions")
 DATA_DIR = os.path.expanduser(os.environ.get("FLOW_DATA_DIR", DEFAULT_DATA_DIR))
 HOST = os.environ.get("FLOW_HOST", "127.0.0.1")
 PORT = int(os.environ.get("FLOW_PORT", "8787"))
