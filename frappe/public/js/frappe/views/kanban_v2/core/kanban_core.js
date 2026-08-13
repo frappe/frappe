@@ -649,6 +649,9 @@ export class KanbanCore {
 
 	/** Fetch and append one page of cards for a column. */
 	async _appendNextColumnPage(columnId, epoch) {
+		// Early epoch check: if board already reloaded, skip the fetch entirely.
+		// This prevents a stale request from setting loading=true on the new view.
+		if (epoch !== this.boardEpoch) return { fetched: 0, appended: 0 };
 		const view = this.columnViews.get(columnId);
 		const column = this.getColumn(columnId);
 		if (!column) return { fetched: 0, appended: 0 };
