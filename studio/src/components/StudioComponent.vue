@@ -146,7 +146,15 @@ const slotClasses = ["__studio_component_slot__", "outline-none", "select-none"]
 
 const canvasProps = inject("canvasProps") as CanvasProps
 
+const rendersProxy = computed(() => {
+	if (canvasStore.editingMode === "page" || props.block.isContainer()) return false
+	return Boolean(props.block.getProxyComponent())
+})
+
 const styles = computed(() => {
+	// Isolate proxies from block styles entirely since they never reach a teleported overlay at runtime,
+	// and falling through onto a proxy they'd clobber its placement.
+	if (rendersProxy.value) return {}
 	const _styles = { ...props.block.getStyles(props.breakpoint) }
 	Object.entries(_styles).forEach(([key, value]) => {
 		if (value) {
@@ -169,13 +177,7 @@ const isOverlayNode = computed(() => {
 const componentName = computed(() => {
 	if (props.block.isContainer()) return props.block.originalElement || "div"
 
-	let name
-	if (canvasStore.editingMode === "page") {
-		name = props.block.componentName
-	} else {
-		const proxyComponent = props.block.getProxyComponent()
-		name = proxyComponent ? proxyComponent : props.block.componentName
-	}
+	let name = rendersProxy.value ? props.block.getProxyComponent() : props.block.componentName
 
 	if (props.block.isCustomVueComponent) {
 		name = customVueComponentsRegistry.value[name]
