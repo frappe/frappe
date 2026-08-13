@@ -10,6 +10,7 @@ from frappe.app import make_form_dict
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.search import get_names_for_mentions, search_link, search_widget
 from frappe.permissions import add_user_permission
+from frappe.tests.ui_test_helpers import whitelist_for_tests
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 from frappe.website.serve import get_response
@@ -256,7 +257,7 @@ def query_with_reference_doctype(
 	return []
 
 
-@frappe.whitelist()
+@whitelist_for_tests
 @frappe.validate_and_sanitize_search_inputs
 def query_by_title(
 	doctype: str,
