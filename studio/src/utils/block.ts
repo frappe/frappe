@@ -12,11 +12,13 @@ import LucideCode from "~icons/lucide/code"
 import { generateId, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 import { copyObject, getBlockCopy, getComponentBlock } from "@/utils/serializer"
 import { componentHasDefaultSlot, getComponentSlots } from "@/utils/components"
+import { mergeLegacyRawStyles } from "@/patches/mergeLegacyRawStyles"
 
 import type { StyleValue, FrappeUIComponent, FrappeUIComponents } from "@/types"
 import type { ComponentEvent } from "@/types/ComponentEvent"
 
 export type styleProperty = keyof CSSProperties | `__${string}`;
+
 class Block implements BlockOptions {
 	componentId: string
 	componentName: string
@@ -28,7 +30,6 @@ class Block implements BlockOptions {
 	children: Block[]
 	parentBlock: Block | null
 	baseStyles: BlockStyleMap
-	rawStyles: BlockStyleMap
 	mobileStyles: BlockStyleMap
 	tabletStyles: BlockStyleMap
 	visibilityCondition?: string
@@ -52,8 +53,7 @@ class Block implements BlockOptions {
 		this.componentName = options.componentName
 		this.blockName = options.blockName
 		this.originalElement = options.originalElement
-		this.baseStyles = reactive(options.baseStyles || {})
-		this.rawStyles = reactive(options.rawStyles || {});
+		this.baseStyles = reactive(mergeLegacyRawStyles({ ...(options.baseStyles || {}) }, options.rawStyles))
 		this.mobileStyles = reactive(options.mobileStyles || {})
 		this.tabletStyles = reactive(options.tabletStyles || {})
 		this.classes = options.classes || []
@@ -349,7 +349,6 @@ class Block implements BlockOptions {
 				styleObj = { ...styleObj, ...this.mobileStyles }
 			}
 		}
-		styleObj = { ...styleObj, ...this.rawStyles }
 		return styleObj
 	}
 
@@ -404,8 +403,11 @@ class Block implements BlockOptions {
 		}
 	}
 
-	getRawStyles() {
-		return { ...this.rawStyles }
+	removeStyle(style: styleProperty) {
+		style = kebabToCamelCase(style as string) as styleProperty
+		delete this.baseStyles[style]
+		delete this.tabletStyles[style]
+		delete this.mobileStyles[style]
 	}
 
 	getClasses() {

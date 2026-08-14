@@ -88,7 +88,6 @@ export class ToolDispatcher {
 				block.setBaseStyle(key as styleProperty, value as StyleValue)
 			}
 		}
-		if (args.rstyle) Object.assign(block.rawStyles, args.rstyle)
 		if (args.mstyle) Object.assign(block.mobileStyles, args.mstyle)
 		if (args.tstyle) Object.assign(block.tabletStyles, args.tstyle)
 		if (args.label !== undefined) block.blockName = args.label

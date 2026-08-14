@@ -31,10 +31,6 @@ class BlockCodec:
 		if style:
 			out["style"] = style
 
-		raw = block.get("rawStyles") or {}
-		if raw:
-			out["rstyle"] = raw
-
 		mob = block.get("mobileStyles") or {}
 		if mob:
 			out["mstyle"] = mob
@@ -110,7 +106,6 @@ class BlockCodec:
 		block: dict = {
 			"componentName": node.get("name", "container"),
 			"baseStyles": node.get("style") or {},
-			"rawStyles": node.get("rstyle") or {},
 			"componentProps": node.get("props") or {},
 			"componentSlots": BlockCodec._expand_slots(node.get("slots") or {}),
 			"mobileStyles": node.get("mstyle") or {},

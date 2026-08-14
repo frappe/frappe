@@ -8,7 +8,8 @@
 		:reset-search-term-on-blur="false"
 	>
 		<div class="relative" ref="containerRef">
-			<div
+			<!-- the popper-positioned list anchors to this input row -->
+			<ComboboxAnchor
 				class="group form-input flex h-7 flex-1 items-center gap-2 rounded bg-surface-gray-2 p-0 text-sm text-ink-gray-8 transition-colors focus-within:bg-surface-base focus-within:ring-2 focus-within:ring-outline-gray-3"
 			>
 				<div v-if="$slots.prefix" class="flex items-center pl-2">
@@ -31,54 +32,60 @@
 				<Button v-if="hasValue" variant="ghost" @click.stop="clearSelection" class="-ml-2">
 					<CrossIcon class="h-3 w-3" />
 				</Button>
-			</div>
+			</ComboboxAnchor>
 
-			<ComboboxContent
-				class="absolute z-10 mt-1 max-h-80 w-full overflow-hidden rounded-lg border bg-surface-base shadow-xl"
-			>
-				<div class="overflow-y-auto p-1">
-					<template v-for="(option, index) in displayOptions" :key="`${option.value}-${index}`">
-						<ComboboxSeparator
-							v-if="option.value.startsWith('_separator_line')"
-							class="bg-outline-gray-2 mx-2 my-1 h-px"
-						/>
-						<ComboboxLabel
-							v-else-if="option.value.startsWith('_separator')"
-							class="text-xs-semibold px-2 py-1 text-ink-gray-5"
-						>
-							{{ option.label }}
-						</ComboboxLabel>
-						<ComboboxItem
-							v-else
-							:value="option.value"
-							:disabled="option.disabled"
-							class="group flex cursor-default select-none items-center gap-2 rounded px-2 py-1.5 text-sm text-ink-gray-9 transition-colors data-[disabled]:pointer-events-none data-[highlighted]:bg-surface-gray-1 data-[disabled]:opacity-50"
-						>
-							<component v-if="option.prefix" :is="option.prefix" class="h-4 w-4 flex-shrink-0" />
-							<span class="w-full flex-1 truncate">{{ option.label }}</span>
-							<component
-								v-if="option.suffix"
-								:is="option.suffix"
-								class="h-4 min-w-4 flex-shrink-0 opacity-60 group-hover:opacity-100"
-								@mousedown.stop.prevent
-								@click.stop.prevent
+			<!-- portaled with popper positioning so the list never inflates the panel's scroll area -->
+			<ComboboxPortal>
+				<ComboboxContent
+					ref="contentRef"
+					position="popper"
+					:side-offset="4"
+					class="z-50 w-[var(--reka-combobox-trigger-width)] overflow-hidden rounded-lg border bg-surface-base shadow-xl"
+				>
+					<div class="max-h-[min(20rem,var(--reka-combobox-content-available-height))] overflow-y-auto p-1">
+						<template v-for="(option, index) in displayOptions" :key="`${option.value}-${index}`">
+							<ComboboxSeparator
+								v-if="option.value.startsWith('_separator_line')"
+								class="bg-outline-gray-2 mx-2 my-1 h-px"
 							/>
-						</ComboboxItem>
-					</template>
-				</div>
-				<div v-if="actionButton" class="border-t border-outline-gray-2 bg-surface-gray-1">
-					<component v-if="actionButton.component" :is="actionButton.component" @change="refreshOptions" />
-					<Button
-						v-else
-						:icon-left="actionButton.icon"
-						variant="ghost"
-						class="w-full justify-start rounded-none text-sm"
-						@click="actionButton.handler"
-					>
-						{{ actionButton.label }}
-					</Button>
-				</div>
-			</ComboboxContent>
+							<ComboboxLabel
+								v-else-if="option.value.startsWith('_separator')"
+								class="text-xs-semibold px-2 py-1 text-ink-gray-5"
+							>
+								{{ option.label }}
+							</ComboboxLabel>
+							<ComboboxItem
+								v-else
+								:value="option.value"
+								:disabled="option.disabled"
+								class="group flex cursor-default select-none items-center gap-2 rounded px-2 py-1.5 text-sm text-ink-gray-9 transition-colors data-[disabled]:pointer-events-none data-[highlighted]:bg-surface-gray-1 data-[disabled]:opacity-50"
+							>
+								<component v-if="option.prefix" :is="option.prefix" class="h-4 w-4 flex-shrink-0" />
+								<span class="w-full flex-1 truncate">{{ option.label }}</span>
+								<component
+									v-if="option.suffix"
+									:is="option.suffix"
+									class="h-4 min-w-4 flex-shrink-0 opacity-60 group-hover:opacity-100"
+									@mousedown.stop.prevent
+									@click.stop.prevent
+								/>
+							</ComboboxItem>
+						</template>
+					</div>
+					<div v-if="actionButton" class="border-t border-outline-gray-2 bg-surface-gray-1">
+						<component v-if="actionButton.component" :is="actionButton.component" @change="refreshOptions" />
+						<Button
+							v-else
+							:icon-left="actionButton.icon"
+							variant="ghost"
+							class="w-full justify-start rounded-none text-sm"
+							@click="actionButton.handler"
+						>
+							{{ actionButton.label }}
+						</Button>
+					</div>
+				</ComboboxContent>
+			</ComboboxPortal>
 		</div>
 	</ComboboxRoot>
 </template>
@@ -87,10 +94,12 @@
 import { Button } from "frappe-ui"
 import CrossIcon from "@/components/Icons/Cross.vue"
 import {
+	ComboboxAnchor,
 	ComboboxContent,
 	ComboboxInput,
 	ComboboxItem,
 	ComboboxLabel,
+	ComboboxPortal,
 	ComboboxRoot,
 	ComboboxSeparator,
 } from "reka-ui"
@@ -137,6 +146,10 @@ const emit = defineEmits<{
 
 const containerRef = ref<HTMLElement | null>(null)
 const isOpen = ref(false)
+
+const contentRef = ref<InstanceType<typeof ComboboxContent> | null>(null)
+const getContentElement = () => (contentRef.value?.$el ?? null) as HTMLElement | null
+
 const searchQuery = ref("")
 const asyncOptions = ref<Option[]>([])
 const hasValue = computed(() => props.modelValue != null && props.modelValue !== "")
@@ -190,17 +203,10 @@ const submitArbitraryValue = (inputValue: string) => {
 
 const handleEnter = (event: KeyboardEvent) => {
 	if (!props.allowArbitraryValue) return
-	const highlightedItem = containerRef.value?.querySelector("[data-highlighted]")
+	// let the combobox commit what is highlighted
+	if (getContentElement()?.querySelector("[data-highlighted]")) return
 	const inputValue = getInputValue(event)
-	// If there's a highlighted item and user hasn't typed anything different, let the combobox handle it
-	if (highlightedItem && !inputValue) return
-	// If user typed something, check if it matches the highlighted item's value
-	if (highlightedItem && inputValue) {
-		const highlightedValue = highlightedItem.getAttribute("data-value")
-		const matchingOption = allOptions.value.find((opt) => opt.value === highlightedValue)
-		// If input matches highlighted item's label, let combobox handle it
-		if (matchingOption && matchingOption.label.toLowerCase() === inputValue.toLowerCase()) return
-	}
+	if (!inputValue) return
 	event.preventDefault()
 	event.stopPropagation()
 	submitArbitraryValue(inputValue)
@@ -208,7 +214,10 @@ const handleEnter = (event: KeyboardEvent) => {
 
 const handleBlur = (event: FocusEvent) => {
 	const relatedTarget = event.relatedTarget as HTMLElement
-	if (relatedTarget && containerRef.value?.contains(relatedTarget)) {
+	if (
+		relatedTarget &&
+		(containerRef.value?.contains(relatedTarget) || getContentElement()?.contains(relatedTarget))
+	) {
 		emit("blur")
 		return
 	}

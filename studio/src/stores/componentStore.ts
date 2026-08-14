@@ -88,7 +88,7 @@ const useComponentStore = defineStore("componentStore", () => {
 			return
 		}
 		const blockOptions = getBlockObjectCopy(component)
-		const { baseStyles, mobileStyles, tabletStyles, rawStyles, visibilityCondition, classes, componentEvents } =
+		const { baseStyles, mobileStyles, tabletStyles, visibilityCondition, classes, componentEvents } =
 			studioComponent
 
 		if (!isObjectEmpty(baseStyles)) blockOptions.baseStyles = { ...blockOptions.baseStyles, ...baseStyles }
@@ -96,7 +96,6 @@ const useComponentStore = defineStore("componentStore", () => {
 			blockOptions.mobileStyles = { ...blockOptions.mobileStyles, ...mobileStyles }
 		if (!isObjectEmpty(tabletStyles))
 			blockOptions.tabletStyles = { ...blockOptions.tabletStyles, ...tabletStyles }
-		if (!isObjectEmpty(rawStyles)) blockOptions.rawStyles = { ...blockOptions.rawStyles, ...rawStyles }
 		if (visibilityCondition) blockOptions.visibilityCondition = visibilityCondition
 		if (classes?.length) blockOptions.classes = [...(blockOptions.classes || []), ...classes]
 

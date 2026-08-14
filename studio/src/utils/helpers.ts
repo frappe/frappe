@@ -143,6 +143,20 @@ function kebabToCamelCase(str: string) {
 	});
 }
 
+function camelToKebabCase(str: string) {
+	// convert borderColor to border-color
+	return str.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)
+}
+
+function toTitleCase(cssProperty: string) {
+	// convert border-color to Border Color
+	return cssProperty
+		.split("-")
+		.filter(Boolean)
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+		.join(" ")
+}
+
 function areObjectsEqual(obj1: ObjectLiteral, obj2: ObjectLiteral): boolean {
 	const keys1 = Object.keys(obj1)
 	const keys2 = Object.keys(obj2)
@@ -539,6 +553,8 @@ export {
 	extractNumberAndUnit,
 	normalizeValueWithUnits,
 	kebabToCamelCase,
+	camelToKebabCase,
+	toTitleCase,
 	areObjectsEqual,
 	isObjectEmpty,
 	getValueFromObject,
