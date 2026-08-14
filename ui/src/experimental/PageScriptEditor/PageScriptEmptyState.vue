@@ -97,31 +97,42 @@ const emit = defineEmits<{
 const STARTERS = [
 	{
 		label: "Add a quick action to the header",
-		code: "page.quickActions.add({ label, onClick })",
+		code: "page.quickActions.add({ name, label, icon, run })",
 		icon: "lucide-mouse-pointer-click",
 		script: `export default {
   refresh(page) {
     page.quickActions.add({
+      name: 'renew',
       label: 'Renew',
-      onClick: () => page.toast.success('Renewed'),
+      icon: 'lucide-refresh-cw',
+      run: () => page.toast.success('Renewed'),
     })
   },
 }`,
 	},
 	{
+		// `form` is the declarative dialog verb; `open` is the one that takes a
+		// component. Naming fields is `form({ doctype, fieldnames })` — reading
+		// the doctype's meta in the order given.
 		label: "Open a dialog from a button",
-		code: "page.dialog.open({ title, doctype, fieldnames })",
+		code: "page.dialog.form({ title, doctype, fieldnames })",
 		icon: "lucide-square-arrow-out-up-right",
 		script: `export default {
   refresh(page) {
     page.quickActions.add({
+      name: 'log_call',
       label: 'Log a call',
-      onClick: () =>
-        page.dialog.open({
+      icon: 'lucide-phone',
+      run: async () => {
+        const data = await page.dialog.form({
           title: 'Log a call',
-          doctype: page.doc.doctype,
+          doctype: page.doctype,
           fieldnames: ['status'],
-        }),
+        })
+        // Every dialog verb resolves null when it was dismissed.
+        if (!data) return
+        page.toast.success('Logged')
+      },
     })
   },
 }`,
@@ -136,6 +147,8 @@ const STARTERS = [
 		icon: "lucide-eye-off",
 		script: `export default {
   refresh(page) {
+    // Replace 'financials' with a section from this doctype's side panel —
+    // hide() on a name that isn't there is a no-op, not an error.
     // Hiding is not enforcement — the server still decides who may read it.
     if (!page.roles.includes('Sales Manager')) {
       page.panelSections.hide('financials')

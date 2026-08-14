@@ -25,11 +25,27 @@
 			<dt class="text-ink-gray-5">Imports</dt>
 			<dd class="text-ink-gray-7">{{ SHARED_DEPS.join(" · ") }}</dd>
 			<dt class="text-ink-gray-5">Handlers</dt>
-			<dd class="text-ink-gray-7">refresh · before_save · &lt;fieldname&gt;</dd>
+			<dd class="text-ink-gray-7">
+				refresh · before_save (a throw aborts the save) · after_save · on_tab_change ·
+				&lt;fieldname&gt; · &lt;tablefield&gt;_add · &lt;tablefield&gt;_remove
+			</dd>
+			<dt class="text-ink-gray-5">Surfaces</dt>
+			<dd class="text-ink-gray-7">
+				quickActions · headerActions · tabs · panelSections — each with
+				<code>add</code>, <code>hide</code>, <code>show</code>, <code>update</code>,
+				<code>move</code>, <code>has</code>, <code>order</code>. An added item needs a
+				<code>name</code>, and its callback is <code>run</code>.
+			</dd>
 			<dt class="text-ink-gray-5">page</dt>
 			<dd class="text-ink-gray-7">
-				quickActions · headerActions · tabs · panelSections · dialog · doc · perms · roles
-				· fieldAccess
+				doctype · docname · doc · meta · isDirty · perms · roles · fieldAccess · dialog ·
+				toast · call · router · save · reload · refresh
+			</dd>
+			<dt class="text-ink-gray-5">Icons</dt>
+			<dd class="text-ink-gray-7">
+				An <code>icon</code> is a <code>lucide-*</code> name, and only names this site's
+				pages already use will render — an unknown one warns in the console and draws
+				nothing.
 			</dd>
 			<dt class="text-ink-gray-5">Permissions</dt>
 			<dd class="text-ink-gray-7">
@@ -38,8 +54,8 @@
 			</dd>
 			<dt class="text-ink-gray-5">Compatibility</dt>
 			<dd class="text-ink-gray-7">
-				What <code>page</code> intends to keep, and what it explicitly does not
-				promise, is written in <code>@framework/ui</code>'s
+				What <code>page</code> intends to keep, and what it explicitly does not promise, is
+				written in <code>@framework/ui</code>'s
 				<code>src/experimental/RecordPage/COMPATIBILITY.md</code>.
 			</dd>
 			<dt class="text-ink-gray-5">Errors</dt>
