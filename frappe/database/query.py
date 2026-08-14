@@ -240,7 +240,6 @@ class Engine:
 		wait: bool = True,
 		ignore_permissions: bool = True,
 		ignore_user_permissions: bool = False,
-		apply_child_user_permissions: bool = False,
 		user: str | None = None,
 		parent_doctype: str | None = None,
 		reference_doctype: str | None = None,
@@ -254,10 +253,6 @@ class Engine:
 			This is kept optional to not break existing code that relies on the original query builder behaviour.
 			ignore_user_permissions: Ignore user permissions for the query.
 				Useful for link search queries when the link field has `ignore_user_permissions` set.
-			apply_child_user_permissions: Exclude parent documents with restricted values in child
-				Link fields. Disabled by default to preserve existing query behavior.
-				Virtual child tables have no SQL table and are skipped, so `has_permission`
-				can still reject parents restricted only through them.
 			validate_filters: DEPRECATED. Will be removed in future versions.
 		"""
 
@@ -272,7 +267,6 @@ class Engine:
 		self.reference_doctype = reference_doctype
 		self.apply_permissions = not ignore_permissions
 		self.ignore_user_permissions = ignore_user_permissions
-		self.apply_child_user_permissions = apply_child_user_permissions
 		self.function_aliases = set()
 		self.field_aliases = set()
 		self.db_query_compat = db_query_compat
@@ -1646,7 +1640,7 @@ class Engine:
 		return conditions
 
 	def get_child_user_permission_conditions(self, doctype: str, table: Table) -> list[Criterion]:
-		"""Exclude parents that contain a restricted value in any child Link field."""
+		"""Exclude parents that contain a restricted value in a stored child Link field."""
 		if self.ignore_user_permissions:
 			return []
 
@@ -1796,8 +1790,7 @@ class Engine:
 			conditions.append(table.owner == self.user)
 		else:
 			conditions.extend(self.get_user_permission_conditions(doctype, table))
-			if self.apply_child_user_permissions:
-				conditions.extend(self.get_child_user_permission_conditions(doctype, table))
+			conditions.extend(self.get_child_user_permission_conditions(doctype, table))
 
 		conditions.extend(self.get_permission_query_conditions(doctype))
 

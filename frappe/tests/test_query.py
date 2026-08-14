@@ -2456,225 +2456,99 @@ class TestQuery(IntegrationTestCase):
 		# Query should succeed and return results (tuple or list)
 		self.assertTrue(len(result) >= 0, "Query should succeed with proper permissions")
 
-	def test_child_table_user_permissions_are_opt_in(self):
+	def test_ignore_user_permissions_applies_to_child_fields(self):
 		from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 
 		test_user = "test2@example.com"
-		test_user_doc = frappe.get_doc("User", test_user)
-		self.ensure_system_manager(test_user_doc, should_have=True)
-		self.addCleanup(lambda: frappe.set_user("Administrator"))
+		self.ensure_system_manager(frappe.get_doc("User", test_user), should_have=True)
+		user_suffix = frappe.generate_hash(length=6)
+		allowed_user = f"allowed-role-{user_suffix}@example.com"
+		mixed_user = f"mixed-roles-{user_suffix}@example.com"
 
-		target_dt = child_dt = second_child_dt = parent_dt = None
-		shared_parent = None
 		try:
-			target_dt = new_doctype().insert()
-			child_fields = [
-				{
-					"fieldname": "linked_document",
-					"fieldtype": "Link",
-					"options": target_dt.name,
-					"label": "Linked Document",
-				}
-			]
-			child_dt = new_doctype(istable=1, fields=child_fields).insert()
-			second_child_dt = new_doctype(istable=1, fields=child_fields).insert()
-			parent_dt = new_doctype(
-				fields=[
-					{
-						"fieldname": "rows",
-						"fieldtype": "Table",
-						"options": child_dt.name,
-						"label": "Rows",
-					},
-					{
-						"fieldname": "second_rows",
-						"fieldtype": "Table",
-						"options": second_child_dt.name,
-						"label": "Second Rows",
-					},
-				],
-			).insert()
+			for email, roles in (
+				(allowed_user, ["Blogger"]),
+				(mixed_user, ["Blogger", "System Manager"]),
+			):
+				frappe.get_doc(
+					doctype="User",
+					email=email,
+					first_name="Child Permission Test",
+					send_welcome_email=0,
+					roles=[{"role": role} for role in roles],
+				).insert(ignore_permissions=True)
 
-			allowed = frappe.new_doc(target_dt.name).insert()
-			restricted = frappe.new_doc(target_dt.name).insert()
-			allowed_parent = frappe.get_doc(
-				doctype=parent_dt.name,
-				rows=[{"linked_document": allowed.name}],
-				second_rows=[{"linked_document": allowed.name}],
-			).insert()
-			mixed_parent = frappe.get_doc(
-				doctype=parent_dt.name,
-				rows=[{"linked_document": allowed.name}, {"linked_document": restricted.name}],
-				second_rows=[{"linked_document": allowed.name}],
-			).insert()
-			restricted_second_child_parent = frappe.get_doc(
-				doctype=parent_dt.name,
-				rows=[{"linked_document": allowed.name}],
-				second_rows=[{"linked_document": restricted.name}],
-			).insert()
-
-			clear_user_permissions_for_doctype(target_dt.name, test_user)
-			add_user_permission(
-				target_dt.name,
-				allowed.name,
-				test_user,
-				ignore_permissions=True,
-				applicable_for=parent_dt.name,
-			)
+			clear_user_permissions_for_doctype("Role", test_user)
+			add_user_permission("Role", "Blogger", test_user, ignore_permissions=True, applicable_for="User")
 			frappe.set_user(test_user)
-			self.assertTrue(frappe.has_permission(parent_dt.name, doc=allowed_parent, user=test_user))
-			self.assertFalse(frappe.has_permission(parent_dt.name, doc=mixed_parent, user=test_user))
 
-			query_args = {
-				"fields": ["parent", "linked_document"],
-				"parent_doctype": parent_dt.name,
-				"ignore_permissions": False,
-			}
-			default_query = frappe.qb.get_query(child_dt.name, **query_args)
-			explicit_disabled_query = frappe.qb.get_query(
-				child_dt.name, apply_child_user_permissions=False, **query_args
-			)
-			self.assertEqual(str(default_query), str(explicit_disabled_query))
+			def get_visible_users(ignore_user_permissions=False):
+				return frappe.qb.get_query(
+					"Has Role",
+					fields=["parent"],
+					filters={"parent": ["in", [allowed_user, mixed_user]]},
+					distinct=True,
+					parent_doctype="User",
+					ignore_permissions=False,
+					ignore_user_permissions=ignore_user_permissions,
+				).run(pluck=True)
+
+			# A restricted role hides the whole User, not only that role row.
+			self.assertListEqual(get_visible_users(), [allowed_user])
 			self.assertCountEqual(
-				[row.parent for row in default_query.run(as_dict=True)],
-				[
-					allowed_parent.name,
-					mixed_parent.name,
-					mixed_parent.name,
-					restricted_second_child_parent.name,
-				],
-			)
-
-			permission_aware_child_query = frappe.qb.get_query(
-				child_dt.name, apply_child_user_permissions=True, **query_args
-			)
-			self.assertIn("NOT EXISTS", str(permission_aware_child_query))
-			self.assertListEqual(
-				[row.parent for row in permission_aware_child_query.run(as_dict=True)],
-				[allowed_parent.name],
-			)
-
-			permission_aware_parent_query = frappe.qb.get_query(
-				parent_dt.name,
-				ignore_permissions=False,
-				apply_child_user_permissions=True,
-			)
-			self.assertListEqual(permission_aware_parent_query.run(pluck=True), [allowed_parent.name])
-
-			ignored_user_permissions_query = frappe.qb.get_query(
-				child_dt.name,
-				apply_child_user_permissions=True,
-				ignore_user_permissions=True,
-				**query_args,
-			)
-			self.assertCountEqual(
-				[row.parent for row in ignored_user_permissions_query.run(as_dict=True)],
-				[
-					allowed_parent.name,
-					mixed_parent.name,
-					mixed_parent.name,
-					restricted_second_child_parent.name,
-				],
-			)
-			ignored_permissions_query = frappe.qb.get_query(
-				parent_dt.name, ignore_permissions=True, apply_child_user_permissions=True
-			)
-			self.assertCountEqual(
-				ignored_permissions_query.run(pluck=True),
-				[allowed_parent.name, mixed_parent.name, restricted_second_child_parent.name],
-			)
-
-			frappe.set_user("Administrator")
-			frappe.share.add(parent_dt.name, mixed_parent.name, test_user)
-			shared_parent = mixed_parent.name
-			frappe.set_user(test_user)
-			shared_child_query = frappe.qb.get_query(
-				child_dt.name, apply_child_user_permissions=True, **query_args
-			)
-			self.assertCountEqual(
-				[row.parent for row in shared_child_query.run(as_dict=True)],
-				[allowed_parent.name, mixed_parent.name, mixed_parent.name],
+				get_visible_users(ignore_user_permissions=True),
+				[allowed_user, mixed_user],
 			)
 		finally:
 			frappe.set_user("Administrator")
-			if parent_dt and shared_parent:
-				frappe.share.remove(parent_dt.name, shared_parent, test_user)
-			if target_dt:
-				clear_user_permissions_for_doctype(target_dt.name, test_user)
-			for dt in filter(None, [parent_dt, second_child_dt, child_dt, target_dt]):
-				frappe.delete_doc("DocType", dt.name, force=True, ignore_permissions=True)
+			clear_user_permissions_for_doctype("Role", test_user)
+			for user in (allowed_user, mixed_user):
+				if frappe.db.exists("User", user):
+					frappe.delete_doc("User", user, force=True, ignore_permissions=True)
 
 	def test_child_user_permissions_in_strict_mode(self):
 		from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 
 		test_user = "test2@example.com"
-		test_user_doc = frappe.get_doc("User", test_user)
-		self.ensure_system_manager(test_user_doc, should_have=True)
-		self.addCleanup(lambda: frappe.set_user("Administrator"))
+		self.ensure_system_manager(frappe.get_doc("User", test_user), should_have=True)
+		linked_note = empty_link_note = None
 
-		target_dt = child_dt = parent_dt = None
 		try:
-			target_dt = new_doctype().insert()
-			child_dt = new_doctype(
-				istable=1,
-				fields=[
-					{
-						"fieldname": "linked_document",
-						"fieldtype": "Link",
-						"options": target_dt.name,
-						"label": "Linked Document",
-					},
-					{"fieldname": "note", "fieldtype": "Data", "label": "Note"},
-				],
+			linked_note = frappe.get_doc(
+				doctype="Note",
+				title="Allowed child link",
+				public=1,
+				seen_by=[{"user": test_user}],
 			).insert()
-			parent_dt = new_doctype(
-				fields=[
-					{
-						"fieldname": "rows",
-						"fieldtype": "Table",
-						"options": child_dt.name,
-						"label": "Rows",
-					}
-				],
+			empty_link_note = frappe.get_doc(
+				doctype="Note",
+				title="Empty child link",
+				public=1,
+				seen_by=[{"user": None}],
 			).insert()
 
-			allowed = frappe.new_doc(target_dt.name).insert()
-			linked_parent = frappe.get_doc(
-				doctype=parent_dt.name, rows=[{"linked_document": allowed.name}]
-			).insert()
-			empty_link_parent = frappe.get_doc(doctype=parent_dt.name, rows=[{"note": "empty link"}]).insert()
-
-			clear_user_permissions_for_doctype(target_dt.name, test_user)
-			add_user_permission(
-				target_dt.name,
-				allowed.name,
-				test_user,
-				ignore_permissions=True,
-				applicable_for=parent_dt.name,
-			)
+			clear_user_permissions_for_doctype("User", test_user)
+			add_user_permission("User", test_user, test_user, ignore_permissions=True, applicable_for="Note")
 			frappe.set_user(test_user)
 
-			def visible_parents():
+			def get_visible_notes():
 				return frappe.qb.get_query(
-					parent_dt.name,
+					"Note",
+					filters={"name": ["in", [linked_note.name, empty_link_note.name]]},
 					ignore_permissions=False,
-					apply_child_user_permissions=True,
-					user=test_user,
 				).run(pluck=True)
 
 			with self.change_settings("System Settings", {"apply_strict_user_permissions": 0}):
-				self.assertTrue(frappe.has_permission(parent_dt.name, doc=empty_link_parent, user=test_user))
-				self.assertCountEqual(visible_parents(), [linked_parent.name, empty_link_parent.name])
+				self.assertCountEqual(get_visible_notes(), [linked_note.name, empty_link_note.name])
 
 			with self.change_settings("System Settings", {"apply_strict_user_permissions": 1}):
-				self.assertFalse(frappe.has_permission(parent_dt.name, doc=empty_link_parent, user=test_user))
-				self.assertListEqual(visible_parents(), [linked_parent.name])
+				self.assertListEqual(get_visible_notes(), [linked_note.name])
 		finally:
 			frappe.set_user("Administrator")
-			if target_dt:
-				clear_user_permissions_for_doctype(target_dt.name, test_user)
-			for dt in filter(None, [parent_dt, child_dt, target_dt]):
-				frappe.delete_doc("DocType", dt.name, force=True, ignore_permissions=True)
+			clear_user_permissions_for_doctype("User", test_user)
+			for note in (linked_note, empty_link_note):
+				if note:
+					note.delete()
 
 	def test_child_table_filters_orphaned_rows(self):
 		"""Test that child table queries filter out orphaned rows (rows without valid parent)."""
