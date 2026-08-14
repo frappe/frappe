@@ -163,6 +163,7 @@ function mapField(
     options: field.options,
     filters: field.filters,
     reqd: !!field.reqd,
+    default: field.default,
     precision: coercePrecision(field.precision),
     description: field.description,
     hidden: !!field.hidden,

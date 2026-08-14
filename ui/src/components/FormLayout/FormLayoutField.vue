@@ -10,7 +10,8 @@
 			v-bind="field.ui?.props"
 			:field="field"
 			:modelValue="doc[field.fieldname]"
-			@update:modelValue="(value: any) => update(field.fieldname, value)"
+			@update:modelValue="(value: any) => edit(field.fieldname, value)"
+			@change="() => commit.commit(field.fieldname)"
 			v-on="field.ui?.on ?? {}"
 		/>
 	</div>
@@ -18,14 +19,22 @@
 
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import { DocKey, ResolveFieldKey, UpdateKey } from "./types";
+import { CommitKey, DocKey, NO_COMMIT, ResolveFieldKey, UpdateKey } from "./types";
 import type { FieldNode } from "./types";
 
 const props = defineProps<{ field: FieldNode }>();
 
 const doc = inject(DocKey)!;
 const update = inject(UpdateKey)!;
+const commit = inject(CommitKey, NO_COMMIT);
 const resolveField = inject(ResolveFieldKey)!;
+
+// The live write, plus a note that a commit is owed: a save with focus still in
+// the input has to fire the handler before `before_save` sees a stale value.
+function edit(fieldname: string, value: any) {
+	update(fieldname, value);
+	commit.pending(fieldname);
+}
 
 // `ui.component` swaps the control for this one node; otherwise resolve by fieldtype.
 const resolved = computed(() => resolveField(props.field.fieldtype));
