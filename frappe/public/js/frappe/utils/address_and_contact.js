@@ -1,7 +1,9 @@
 frappe.provide("frappe.contacts");
 frappe.provide("frappe.ui.form");
 
-frappe.ui.form.AddressQuickEntryForm = class AddressQuickEntryForm extends frappe.ui.form.QuickEntryForm {
+frappe.ui.form.AddressQuickEntryForm = class AddressQuickEntryForm extends (
+	frappe.ui.form.QuickEntryForm
+) {
 	insert() {
 		if (this.source_frm) {
 			this.dialog.doc.links = [
@@ -17,7 +19,9 @@ frappe.ui.form.AddressQuickEntryForm = class AddressQuickEntryForm extends frapp
 	}
 };
 
-frappe.ui.form.ContactQuickEntryForm = class ContactQuickEntryForm extends frappe.ui.form.AddressQuickEntryForm {
+frappe.ui.form.ContactQuickEntryForm = class ContactQuickEntryForm extends (
+	frappe.ui.form.AddressQuickEntryForm
+) {
 	render_dialog() {
 		const fields = this.get_detail_fields().map(
 			({ table, value_field, primary_flag, ...field }) => field
@@ -215,9 +219,11 @@ class PartyLinkSection {
 				record.name
 			);
 		} else {
-			const previous = this.primary_name;
-			if (previous && previous !== record.name) {
-				await frappe.db.set_value(this.doctype, previous, this.primary_flag, 0);
+			const previously_primary = this.records.filter(
+				(other) => other[this.primary_flag] && other.name !== record.name
+			);
+			for (const previous of previously_primary) {
+				await frappe.db.set_value(this.doctype, previous.name, this.primary_flag, 0);
 			}
 			await frappe.db.set_value(this.doctype, record.name, this.primary_flag, 1);
 		}
