@@ -112,8 +112,8 @@ const commit = inject(CommitKey, NO_COMMIT);
 // The row-edit dialog's FormLayout would otherwise commit the child's fieldnames
 // as if they were the parent's, so its commits are re-addressed to the open row.
 const rowChannel: CommitChannel = {
-	pending: (fieldname) => commit.pending(fieldname, editAddress()),
-	commit: (fieldname) => commit.commit(fieldname, editAddress()),
+	pending: (fieldname, value) => commit.pending(fieldname, value, editAddress()),
+	commit: (fieldname, value) => commit.commit(fieldname, value, editAddress()),
 	rowChanged: (row, change) => commit.rowChanged(row, change),
 };
 provide(CommitKey, rowChannel);
@@ -141,11 +141,11 @@ function editCell(
 	value: any
 ) {
 	update(value);
-	commit.pending(field.fieldname, addressOf(row));
+	commit.pending(field.fieldname, value, addressOf(row));
 }
 
 function onCellCommit({ row, column }: { row: Record<string, any>; column: GridColumn }) {
-	commit.commit(column.fieldname, addressOf(row));
+	commit.commit(column.fieldname, row[column.fieldname], addressOf(row));
 }
 
 function onRowAdd({ row }: { row: Record<string, any> }) {

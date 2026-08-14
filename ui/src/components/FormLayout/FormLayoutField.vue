@@ -11,7 +11,7 @@
 			:field="field"
 			:modelValue="doc[field.fieldname]"
 			@update:modelValue="(value: any) => edit(field.fieldname, value)"
-			@change="onCommit"
+			@change="(value: any) => onCommit(value)"
 			v-on="field.ui?.on ?? {}"
 		/>
 	</div>
@@ -38,11 +38,11 @@ const commits = computed(() => !holdsChildRows(props.field.fieldtype));
 // the input has to fire the handler before `before_save` sees a stale value.
 function edit(fieldname: string, value: any) {
 	update(fieldname, value);
-	if (commits.value) commit.pending(fieldname);
+	if (commits.value) commit.pending(fieldname, value);
 }
 
-function onCommit() {
-	if (commits.value) commit.commit(props.field.fieldname);
+function onCommit(value: any) {
+	if (commits.value) commit.commit(props.field.fieldname, value);
 }
 
 // `ui.component` swaps the control for this one node; otherwise resolve by fieldtype.
