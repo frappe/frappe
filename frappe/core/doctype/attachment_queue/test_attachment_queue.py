@@ -1,4 +1,3 @@
-import subprocess
 from unittest.mock import patch
 from uuid import uuid4
 
@@ -53,7 +52,7 @@ class FakePDFPage:
 		return self.tables
 
 
-class TestDocumentQueue(IntegrationTestCase):
+class TestAttachmentQueue(IntegrationTestCase):
 	def make_file(self, file_name=None, content=None):
 		file_name = file_name or f"document-{uuid4().hex}.pdf"
 		content = content if content is not None else self.make_pdf_content()
@@ -64,23 +63,23 @@ class TestDocumentQueue(IntegrationTestCase):
 	def make_queue(self, file_name=None, content=None, auto_extract=False, document_type="File"):
 		file_doc = self.make_file(file_name, content)
 		queue_doc = frappe.get_doc(
-			{"doctype": "Document Queue", "source_file": file_doc.file_url, "document_type": document_type}
+			{"doctype": "Attachment Queue", "source_file": file_doc.file_url, "document_type": document_type}
 		)
 		if not auto_extract:
 			queue_doc.flags.skip_auto_extraction = True
 		queue_doc.insert()
 		self.addCleanup(
-			lambda: frappe.delete_doc("Document Queue", queue_doc.name, force=True, ignore_permissions=True)
+			lambda: frappe.delete_doc("Attachment Queue", queue_doc.name, force=True, ignore_permissions=True)
 		)
 		return queue_doc
 
 	def make_desk_user(self):
-		email = f"document-queue-user-{uuid4().hex}@example.com"
+		email = f"attachment-queue-user-{uuid4().hex}@example.com"
 		user = frappe.get_doc(
 			{
 				"doctype": "User",
 				"email": email,
-				"first_name": "Document Queue",
+				"first_name": "Attachment Queue",
 				"send_welcome_email": 0,
 			}
 		).insert(ignore_permissions=True)
@@ -127,15 +126,15 @@ class TestDocumentQueue(IntegrationTestCase):
 		writer.write(buffer)
 		return buffer.getvalue()
 
-	def test_creates_document_queue_record(self):
+	def test_creates_attachment_queue_record(self):
 		queue_doc = self.make_queue()
 
 		self.assertEqual(queue_doc.status, "Draft")
 		self.assertTrue(queue_doc.source_file.endswith(".pdf"))
 
-	def test_queues_extraction_when_document_queue_record_is_created(self):
+	def test_queues_extraction_when_attachment_queue_record_is_created(self):
 		with patch(
-			"frappe.core.doctype.document_queue.document_queue.enqueue_document_extraction"
+			"frappe.core.doctype.attachment_queue.attachment_queue.enqueue_document_extraction"
 		) as enqueue_document_extraction:
 			queue_doc = self.make_queue(auto_extract=True)
 
@@ -145,10 +144,10 @@ class TestDocumentQueue(IntegrationTestCase):
 
 	def test_does_not_requeue_extraction_when_unrelated_field_changes(self):
 		queue_doc = self.make_queue()
-		reloaded = frappe.get_doc("Document Queue", queue_doc.name)
+		reloaded = frappe.get_doc("Attachment Queue", queue_doc.name)
 
 		with patch(
-			"frappe.core.doctype.document_queue.document_queue.enqueue_document_extraction"
+			"frappe.core.doctype.attachment_queue.attachment_queue.enqueue_document_extraction"
 		) as enqueue_document_extraction:
 			reloaded.document_type = "File"
 			reloaded.save()
@@ -161,10 +160,10 @@ class TestDocumentQueue(IntegrationTestCase):
 
 		for i, status in enumerate(("Queued", "Processing", "Completed")):
 			queue_doc.db_set("status", status, update_modified=False)
-			reloaded = frappe.get_doc("Document Queue", queue_doc.name)
+			reloaded = frappe.get_doc("Attachment Queue", queue_doc.name)
 
 			with patch(
-				"frappe.core.doctype.document_queue.document_queue.enqueue_document_extraction"
+				"frappe.core.doctype.attachment_queue.attachment_queue.enqueue_document_extraction"
 			) as enqueue_document_extraction:
 				# Alternate source_file so has_value_changed is True, isolating the status guard.
 				reloaded.source_file = alternate_files[i % 2].file_url
@@ -173,7 +172,7 @@ class TestDocumentQueue(IntegrationTestCase):
 			enqueue_document_extraction.assert_not_called()
 
 	def test_extracts_pdf_and_marks_ready_for_review(self):
-		from frappe.core.doctype.document_queue.document_queue import extract_document_queue_record
+		from frappe.core.doctype.attachment_queue.attachment_queue import extract_attachment_queue_record
 
 		queue_doc = self.make_queue()
 		pdfplumber = FakePDFPlumber(
@@ -193,9 +192,9 @@ class TestDocumentQueue(IntegrationTestCase):
 		)
 
 		with patch(
-			"frappe.core.doctype.document_queue.document_queue._get_pdfplumber", return_value=pdfplumber
+			"frappe.core.doctype.attachment_queue.attachment_queue._get_pdfplumber", return_value=pdfplumber
 		):
-			extract_document_queue_record(queue_doc.name)
+			extract_attachment_queue_record(queue_doc.name)
 
 		queue_doc.reload()
 		raw = frappe.parse_json(queue_doc.raw_extraction_json)
@@ -220,7 +219,7 @@ class TestDocumentQueue(IntegrationTestCase):
 		self.assertTrue(queue_doc.extraction_completed_on)
 
 	def test_marks_failed_for_unsupported_file(self):
-		from frappe.core.doctype.document_queue.document_queue import extract_document_queue_record
+		from frappe.core.doctype.attachment_queue.attachment_queue import extract_attachment_queue_record
 
 		queue_doc = self.make_queue(
 			file_name=f"document-{uuid4().hex}.txt",
@@ -228,7 +227,7 @@ class TestDocumentQueue(IntegrationTestCase):
 		)
 
 		with self.assertRaises(Exception):
-			extract_document_queue_record(queue_doc.name)
+			extract_attachment_queue_record(queue_doc.name)
 
 		queue_doc.reload()
 		self.assertEqual(queue_doc.status, "Failed")
@@ -236,16 +235,16 @@ class TestDocumentQueue(IntegrationTestCase):
 		self.assertTrue(queue_doc.debug_output)
 
 	def test_marks_failed_when_pdf_cannot_be_parsed(self):
-		from frappe.core.doctype.document_queue.document_queue import extract_document_queue_record
+		from frappe.core.doctype.attachment_queue.attachment_queue import extract_attachment_queue_record
 
 		queue_doc = self.make_queue()
 
 		with patch(
-			"frappe.core.doctype.document_queue.document_queue._get_pdfplumber",
+			"frappe.core.doctype.attachment_queue.attachment_queue._get_pdfplumber",
 			return_value=FakeCorruptPDFPlumber(),
 		):
 			with self.assertRaises(Exception):
-				extract_document_queue_record(queue_doc.name)
+				extract_attachment_queue_record(queue_doc.name)
 
 		queue_doc.reload()
 		self.assertEqual(queue_doc.status, "Failed")
@@ -255,7 +254,7 @@ class TestDocumentQueue(IntegrationTestCase):
 		self.assertFalse(queue_doc.raw_extraction_json)
 
 	def test_requeue_clears_stale_error_after_failed_extraction(self):
-		from frappe.core.doctype.document_queue.document_queue import extract_document_queue_record
+		from frappe.core.doctype.attachment_queue.attachment_queue import extract_attachment_queue_record
 
 		queue_doc = self.make_queue(
 			file_name=f"document-{uuid4().hex}.txt",
@@ -263,7 +262,7 @@ class TestDocumentQueue(IntegrationTestCase):
 		)
 
 		with self.assertRaises(Exception):
-			extract_document_queue_record(queue_doc.name)
+			extract_attachment_queue_record(queue_doc.name)
 
 		queue_doc.reload()
 		self.assertEqual(queue_doc.status, "Failed")
@@ -275,143 +274,46 @@ class TestDocumentQueue(IntegrationTestCase):
 		self.assertFalse(queue_doc.error_message)
 		self.assertFalse(queue_doc.debug_output)
 
-	def test_extracts_image_with_tesseract(self):
-		from frappe.core.doctype.document_queue.document_queue import extract_document_queue_record
+	def test_accepts_image_without_extracting_text(self):
+		from frappe.core.doctype.attachment_queue.attachment_queue import extract_attachment_queue_record
 
+		# The framework ships no image text extraction. An image is still a valid queue
+		# input: it reaches review with an empty extraction, for the reviewer to read off
+		# the preview pane and key in by hand.
 		queue_doc = self.make_queue(
 			file_name=f"document-{uuid4().hex}.png",
 			content=b"fake image content",
 		)
 
+		extract_attachment_queue_record(queue_doc.name)
+
+		queue_doc.reload()
+		raw = frappe.parse_json(queue_doc.raw_extraction_json)
+
+		self.assertEqual(queue_doc.status, "Ready for Review")
+		self.assertEqual(queue_doc.extraction_method, "Preview Only")
+		self.assertFalse(queue_doc.extracted_text)
+		self.assertEqual(raw["pages"], [])
+		self.assertFalse(queue_doc.error_message)
+
+	def test_completes_when_pdf_has_no_embedded_text_layer(self):
+		from frappe.core.doctype.attachment_queue.attachment_queue import extract_attachment_queue_record
+
+		# A scanned PDF yields nothing from pdfplumber. That is an empty extraction, not a
+		# failure — the row still reaches review so the file can be keyed in from the preview.
+		queue_doc = self.make_queue()
+		pdfplumber = FakePDFPlumber([FakePDFPage(text="", layout_text="", words=[], tables=[])])
+
 		with patch(
-			"frappe.core.doctype.document_queue.document_queue.extract_image_text_with_tesseract",
-			return_value=(
-				"Image OCR text",
-				[{"text": "Image", "x0": 1, "top": 2, "x1": 20, "bottom": 10, "confidence": "95"}],
-				["Image OCR mocked"],
-			),
+			"frappe.core.doctype.attachment_queue.attachment_queue._get_pdfplumber", return_value=pdfplumber
 		):
-			extract_document_queue_record(queue_doc.name)
-
-		queue_doc.reload()
-		raw = frappe.parse_json(queue_doc.raw_extraction_json)
-
-		self.assertEqual(queue_doc.status, "Ready for Review")
-		self.assertEqual(queue_doc.extraction_method, "tesseract")
-		self.assertEqual(queue_doc.extracted_text, "Image OCR text")
-		self.assertEqual(raw["pages"][0]["words"][0]["text"], "Image")
-		self.assertIn("Image OCR mocked", queue_doc.debug_output)
-
-	def test_ocr_fallback_can_be_used_when_embedded_text_is_weak(self):
-		from frappe.core.doctype.document_queue.document_queue import extract_document_queue_record
-
-		queue_doc = self.make_queue()
-		pdfplumber = FakePDFPlumber([FakePDFPage(text="", layout_text="", words=[], tables=[])])
-
-		with (
-			patch(
-				"frappe.core.doctype.document_queue.document_queue._get_pdfplumber", return_value=pdfplumber
-			),
-			patch(
-				"frappe.core.doctype.document_queue.document_queue.extract_pdf_text_with_tesseract",
-				return_value=("OCR fallback text from scanned PDF", ["OCR mocked"]),
-			),
-		):
-			extract_document_queue_record(queue_doc.name)
-
-		queue_doc.reload()
-		raw = frappe.parse_json(queue_doc.raw_extraction_json)
-
-		self.assertEqual(queue_doc.status, "Ready for Review")
-		self.assertEqual(queue_doc.extraction_method, "pdfplumber+tesseract")
-		self.assertEqual(queue_doc.extracted_text, "OCR fallback text from scanned PDF")
-		self.assertEqual(raw["ocr_text"], "OCR fallback text from scanned PDF")
-		self.assertIn("OCR mocked", queue_doc.debug_output)
-
-	def test_completes_without_ocr_when_tesseract_unavailable(self):
-		from frappe.core.doctype.document_queue.document_queue import extract_document_queue_record
-
-		queue_doc = self.make_queue()
-		pdfplumber = FakePDFPlumber([FakePDFPage(text="", layout_text="", words=[], tables=[])])
-
-		# Scanned PDF with no embedded text, but the OCR toolchain isn't installed.
-		with (
-			patch(
-				"frappe.core.doctype.document_queue.document_queue._get_pdfplumber", return_value=pdfplumber
-			),
-			patch("frappe.core.doctype.document_queue.document_queue.shutil.which", return_value=None),
-		):
-			extract_document_queue_record(queue_doc.name)
+			extract_attachment_queue_record(queue_doc.name)
 
 		queue_doc.reload()
 		self.assertEqual(queue_doc.status, "Ready for Review")
 		self.assertEqual(queue_doc.extraction_method, "pdfplumber")
 		self.assertFalse(queue_doc.extracted_text)
-		self.assertIn("OCR skipped", queue_doc.debug_output)
-
-	def test_error_message_includes_ocr_tool_stderr_on_subprocess_failure(self):
-		from frappe.core.doctype.document_queue.document_queue import extract_document_queue_record
-
-		queue_doc = self.make_queue()
-		pdfplumber = FakePDFPlumber([FakePDFPage(text="", layout_text="", words=[], tables=[])])
-		failed_process = subprocess.CompletedProcess(
-			args=["tesseract"], returncode=1, stdout="", stderr="Error opening data file eng.traineddata"
-		)
-
-		with (
-			patch(
-				"frappe.core.doctype.document_queue.document_queue._get_pdfplumber", return_value=pdfplumber
-			),
-			patch(
-				"frappe.core.doctype.document_queue.document_queue.shutil.which", return_value="/usr/bin/tesseract"
-			),
-			patch(
-				"frappe.core.doctype.document_queue.document_queue.subprocess.run", return_value=failed_process
-			),
-		):
-			with self.assertRaises(Exception):
-				extract_document_queue_record(queue_doc.name)
-
-		queue_doc.reload()
-		self.assertEqual(queue_doc.status, "Failed")
-		self.assertIn("Error opening data file eng.traineddata", queue_doc.error_message)
-
-	def test_ocr_fallback_boundary_at_twenty_characters(self):
-		from frappe.core.doctype.document_queue.document_queue import extract_document_queue_record
-
-		# 19 chars is "weak" text and should fall back to OCR; 20 is "useful" and should not.
-		below_threshold = self.make_queue()
-		pdfplumber = FakePDFPlumber([FakePDFPage(text="x" * 19, layout_text="x" * 19)])
-		with (
-			patch(
-				"frappe.core.doctype.document_queue.document_queue._get_pdfplumber", return_value=pdfplumber
-			),
-			patch(
-				"frappe.core.doctype.document_queue.document_queue.extract_pdf_text_with_tesseract",
-				return_value=("OCR text", ["OCR mocked"]),
-			) as extract_pdf_text_with_tesseract,
-		):
-			extract_document_queue_record(below_threshold.name)
-
-		extract_pdf_text_with_tesseract.assert_called_once()
-		below_threshold.reload()
-		self.assertEqual(below_threshold.extraction_method, "pdfplumber+tesseract")
-
-		at_threshold = self.make_queue()
-		pdfplumber = FakePDFPlumber([FakePDFPage(text="x" * 20, layout_text="x" * 20)])
-		with (
-			patch(
-				"frappe.core.doctype.document_queue.document_queue._get_pdfplumber", return_value=pdfplumber
-			),
-			patch(
-				"frappe.core.doctype.document_queue.document_queue.extract_pdf_text_with_tesseract"
-			) as extract_pdf_text_with_tesseract,
-		):
-			extract_document_queue_record(at_threshold.name)
-
-		extract_pdf_text_with_tesseract.assert_not_called()
-		at_threshold.reload()
-		self.assertEqual(at_threshold.extraction_method, "pdfplumber")
+		self.assertFalse(queue_doc.error_message)
 
 	def test_desk_user_cannot_create_queue_row_directly(self):
 		# Queue rows are framework-owned, like Email Queue: they are created for the user by
@@ -423,7 +325,7 @@ class TestDocumentQueue(IntegrationTestCase):
 			file_doc = self.make_file()
 			queue_doc = frappe.get_doc(
 				{
-					"doctype": "Document Queue",
+					"doctype": "Attachment Queue",
 					"source_file": file_doc.file_url,
 					"document_type": target_doctype,
 				}
@@ -434,7 +336,7 @@ class TestDocumentQueue(IntegrationTestCase):
 				queue_doc.insert()
 
 	def test_upload_first_queue_requires_create_on_target_doctype(self):
-		from frappe.core.doctype.document_queue.document_queue import create_upload_first_queue
+		from frappe.core.doctype.attachment_queue.attachment_queue import create_upload_first_queue
 
 		# The row is inserted with ignore_permissions, so create on the target DocType is
 		# the check standing in for it.
@@ -448,7 +350,7 @@ class TestDocumentQueue(IntegrationTestCase):
 				create_upload_first_queue(file_doc.name, target_doctype)
 
 	def test_desk_user_can_create_upload_first_queue_for_permitted_target(self):
-		from frappe.core.doctype.document_queue.document_queue import create_upload_first_queue
+		from frappe.core.doctype.attachment_queue.attachment_queue import create_upload_first_queue
 
 		# Counterpart to the test above: create on the target DocType is what unlocks it.
 		user = self.make_desk_user()
@@ -460,10 +362,10 @@ class TestDocumentQueue(IntegrationTestCase):
 
 		self.addCleanup(
 			lambda: frappe.delete_doc(
-				"Document Queue", context["queue_name"], force=True, ignore_permissions=True
+				"Attachment Queue", context["queue_name"], force=True, ignore_permissions=True
 			)
 		)
-		queue_doc = frappe.get_doc("Document Queue", context["queue_name"])
+		queue_doc = frappe.get_doc("Attachment Queue", context["queue_name"])
 		self.assertEqual(queue_doc.owner, user.name)
 		self.assertEqual(queue_doc.document_type, target_doctype)
 		self.assertEqual(queue_doc.status, "Queued")
@@ -478,7 +380,7 @@ class TestDocumentQueue(IntegrationTestCase):
 		queue_doc.reload()
 
 		with self.set_user(user.name):
-			self.assertTrue(frappe.has_permission("Document Queue", "read", doc=queue_doc))
+			self.assertTrue(frappe.has_permission("Attachment Queue", "read", doc=queue_doc))
 
 			with patch.object(queue_doc, "enqueue_extraction") as enqueue_extraction:
 				with self.assertRaises(frappe.PermissionError):
@@ -522,15 +424,15 @@ class TestDocumentQueue(IntegrationTestCase):
 		self.assertEqual(context["document_type"], "File")
 
 	def test_create_upload_first_queue_queues_extraction_and_returns_review_context(self):
-		from frappe.core.doctype.document_queue.document_queue import create_upload_first_queue
+		from frappe.core.doctype.attachment_queue.attachment_queue import create_upload_first_queue
 
 		self.enable_upload_first_workflow("File")
 		file_doc = self.make_file()
 		context = create_upload_first_queue(file_doc.name, "File")
 
-		queue_doc = frappe.get_doc("Document Queue", context["queue_name"])
+		queue_doc = frappe.get_doc("Attachment Queue", context["queue_name"])
 		self.addCleanup(
-			lambda: frappe.delete_doc("Document Queue", queue_doc.name, force=True, ignore_permissions=True)
+			lambda: frappe.delete_doc("Attachment Queue", queue_doc.name, force=True, ignore_permissions=True)
 		)
 
 		file_doc.reload()
@@ -540,11 +442,11 @@ class TestDocumentQueue(IntegrationTestCase):
 		self.assertEqual(context["document_type"], "File")
 		self.assertEqual(context["source_file"], file_doc.file_url)
 		self.assertEqual(context["status"], "Queued")
-		self.assertEqual(file_doc.attached_to_doctype, "Document Queue")
+		self.assertEqual(file_doc.attached_to_doctype, "Attachment Queue")
 		self.assertEqual(file_doc.attached_to_name, queue_doc.name)
 
 	def test_create_queue_without_file_write_permission(self):
-		from frappe.core.doctype.document_queue.document_queue import create_upload_first_queue
+		from frappe.core.doctype.attachment_queue.attachment_queue import create_upload_first_queue
 
 		self.enable_upload_first_workflow("File")
 
@@ -553,8 +455,8 @@ class TestDocumentQueue(IntegrationTestCase):
 		user = frappe.get_doc(
 			{
 				"doctype": "User",
-				"email": f"document-queue-reader-{uuid4().hex}@example.com",
-				"first_name": "Document Queue Reader",
+				"email": f"attachment-queue-reader-{uuid4().hex}@example.com",
+				"first_name": "Attachment Queue Reader",
 				"send_welcome_email": 0,
 				"roles": [{"role": "All"}],
 			}
@@ -570,7 +472,7 @@ class TestDocumentQueue(IntegrationTestCase):
 				create_upload_first_queue(file_doc.name, "File")
 
 	def test_get_document_review_context(self):
-		from frappe.core.doctype.document_queue.document_queue import get_document_review_context
+		from frappe.core.doctype.attachment_queue.attachment_queue import get_document_review_context
 
 		queue_doc = self.make_queue()
 		queue_doc.db_set(
@@ -600,7 +502,7 @@ class TestDocumentQueue(IntegrationTestCase):
 		self.assertEqual(context["raw_extraction_json"]["pages"][0]["page_number"], 1)
 
 	def test_review_context_carries_the_failure_reason(self):
-		from frappe.core.doctype.document_queue.document_queue import get_document_review_context
+		from frappe.core.doctype.attachment_queue.attachment_queue import get_document_review_context
 
 		# The review panel shows this to whoever is reviewing a Failed row, so it has to
 		# reach them regardless of developer mode.
@@ -614,7 +516,7 @@ class TestDocumentQueue(IntegrationTestCase):
 		self.assertIn("Only PDF and image extraction", context["error_message"])
 
 	def test_link_to_document_marks_completed(self):
-		from frappe.core.doctype.document_queue.document_queue import link_to_document
+		from frappe.core.doctype.attachment_queue.attachment_queue import link_to_document
 
 		queue_doc = self.make_queue()
 		target_file = self.make_file(file_name=f"target-{uuid4().hex}.pdf")
@@ -633,7 +535,7 @@ class TestDocumentQueue(IntegrationTestCase):
 		self.assertEqual(source_file.attached_to_name, target_file.name)
 
 	def test_link_to_document_rejects_mismatched_document_type(self):
-		from frappe.core.doctype.document_queue.document_queue import link_to_document
+		from frappe.core.doctype.attachment_queue.attachment_queue import link_to_document
 
 		# The client can hold a queue name from an earlier, failed save. If it then saves an
 		# unrelated document, this is the check that has to stop it. "Administrator" exists,
@@ -649,7 +551,7 @@ class TestDocumentQueue(IntegrationTestCase):
 		self.assertFalse(queue_doc.created_document)
 
 	def test_link_to_document_rejects_row_that_already_produced_a_document(self):
-		from frappe.core.doctype.document_queue.document_queue import link_to_document
+		from frappe.core.doctype.attachment_queue.attachment_queue import link_to_document
 
 		queue_doc = self.make_queue()
 		first_target = self.make_file(file_name=f"first-{uuid4().hex}.pdf")
@@ -667,7 +569,7 @@ class TestDocumentQueue(IntegrationTestCase):
 		self.assertEqual(queue_doc.created_document, first_target.name)
 
 	def test_review_context_withholds_debug_output_from_non_privileged_owner(self):
-		from frappe.core.doctype.document_queue.document_queue import get_document_review_context
+		from frappe.core.doctype.attachment_queue.attachment_queue import get_document_review_context
 
 		# debug_output is a traceback with local variable values. Being able to read the
 		# queue row is not enough to earn it — permlevel 1 is.
@@ -694,37 +596,35 @@ class TestDocumentQueue(IntegrationTestCase):
 		self.assertEqual(context["status"], "Failed")
 
 	def test_clear_old_logs_deletes_attached_source_file(self):
+		from frappe.core.doctype.attachment_queue.attachment_queue import AttachmentQueue
 		from frappe.utils import add_days, now_datetime
-
-		from frappe.core.doctype.document_queue.document_queue import DocumentQueue
 
 		queue_doc = self.make_queue()
 		file_name = frappe.db.get_value("File", {"file_url": queue_doc.source_file}, "name")
 
 		# Backdate past the retention window instead of using the default 30 days.
-		frappe.db.set_value("Document Queue", queue_doc.name, "creation", add_days(now_datetime(), -31))
+		frappe.db.set_value("Attachment Queue", queue_doc.name, "creation", add_days(now_datetime(), -31))
 
-		DocumentQueue.clear_old_logs(days=30)
+		AttachmentQueue.clear_old_logs(days=30)
 
-		self.assertFalse(frappe.db.exists("Document Queue", queue_doc.name))
+		self.assertFalse(frappe.db.exists("Attachment Queue", queue_doc.name))
 		self.assertFalse(frappe.db.exists("File", file_name))
 
 	def test_clear_old_logs_commits_after_each_batch(self):
+		from frappe.core.doctype.attachment_queue.attachment_queue import AttachmentQueue
 		from frappe.utils import add_days, now_datetime
 
-		from frappe.core.doctype.document_queue.document_queue import DocumentQueue
-
 		queue_doc = self.make_queue()
-		frappe.db.set_value("Document Queue", queue_doc.name, "creation", add_days(now_datetime(), -31))
+		frappe.db.set_value("Attachment Queue", queue_doc.name, "creation", add_days(now_datetime(), -31))
 
 		# A large backlog must not run as one long-held transaction; each batch should commit.
 		with patch("frappe.db.commit", wraps=frappe.db.commit) as commit:
-			DocumentQueue.clear_old_logs(days=30)
+			AttachmentQueue.clear_old_logs(days=30)
 
 		commit.assert_called()
 
 	def test_ready_for_review_count_requires_enabled_doctype(self):
-		from frappe.core.doctype.document_queue.document_queue import get_ready_for_review_count
+		from frappe.core.doctype.attachment_queue.attachment_queue import get_ready_for_review_count
 
 		queue_doc = self.make_queue()
 		queue_doc.db_set({"document_type": "File", "status": "Ready for Review"})
@@ -739,16 +639,14 @@ class TestDocumentQueue(IntegrationTestCase):
 	# DocPerm is if_owner, so db_query already ANDs `owner = user` onto the hook's
 	# document_type filter. The two compose; the hook must not duplicate the owner clause.
 	def test_ready_for_review_count_respects_owner_permissions(self):
-		from frappe.core.doctype.document_queue.document_queue import get_ready_for_review_count
+		from frappe.core.doctype.attachment_queue.attachment_queue import get_ready_for_review_count
 
 		user = self.make_desk_user()
 		owned_queue_doc = self.make_queue()
 		other_queue_doc = self.make_queue()
 		self.enable_upload_first_workflow("File")
 
-		owned_queue_doc.db_set(
-			{"document_type": "File", "status": "Ready for Review", "owner": user.name}
-		)
+		owned_queue_doc.db_set({"document_type": "File", "status": "Ready for Review", "owner": user.name})
 		other_queue_doc.db_set({"document_type": "File", "status": "Ready for Review"})
 
 		self.assertEqual(get_ready_for_review_count("File"), 2)
@@ -757,7 +655,7 @@ class TestDocumentQueue(IntegrationTestCase):
 			self.assertEqual(get_ready_for_review_count("File"), 1)
 
 	def test_desk_user_can_link_document(self):
-		from frappe.core.doctype.document_queue.document_queue import link_to_document
+		from frappe.core.doctype.attachment_queue.attachment_queue import link_to_document
 
 		user = self.make_desk_user()
 
@@ -767,11 +665,7 @@ class TestDocumentQueue(IntegrationTestCase):
 
 		# Create a queue document owned by the desk user
 		queue_doc = self.make_queue()
-		queue_doc.db_set({
-			"document_type": "File",
-			"status": "Ready for Review",
-			"owner": user.name
-		})
+		queue_doc.db_set({"document_type": "File", "status": "Ready for Review", "owner": user.name})
 
 		# The Desk User should be able to invoke link_to_document without PermissionError
 		with self.set_user(user.name):
