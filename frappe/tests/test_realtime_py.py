@@ -52,7 +52,7 @@ from frappe.realtime import bridge as bridge_mod
 from frappe.realtime import dispatch as dispatch_mod
 from frappe.realtime import handlers as handlers_mod
 from frappe.realtime.auth import Session
-from frappe.realtime.config import RealtimeConfig, get_config
+from frappe.realtime.config import DEFAULT_WORKER_THREADS, RealtimeConfig, get_config
 from frappe.realtime.context import frappe_context
 from frappe.realtime.registry import Registry
 from frappe.realtime.socket import Socket, SyncSocket
@@ -788,10 +788,6 @@ class TestConfig(unittest.TestCase):
 		base.update(conf)
 		with patch.object(frappe, "get_common_site_config", return_value=base):
 			return get_config(sites_path=".", embedded=embedded)
-
-	def test_worker_threads_are_unset_by_default(self):
-		# Nothing built in dispatches to a thread, so the loop's own executor stands.
-		self.assertIsNone(self._config().worker_threads)
 
 	def test_sites_path_is_absolute(self):
 		# serve() changes into sites/ after the config is built, so a relative path

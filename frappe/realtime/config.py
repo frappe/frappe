@@ -20,6 +20,10 @@ DEFAULT_SOCKETIO_PORT = 9000
 # is silent on redis_queue, which should not happen in a real bench.
 DEFAULT_REDIS_QUEUE = "redis://127.0.0.1:11311"
 
+# Threads for the blocking work: connect auth, permission checks, sync handlers.
+# A bench with more clients sets socketio_worker_threads.
+DEFAULT_WORKER_THREADS = 4
+
 
 @dataclass(frozen=True)
 class RealtimeConfig:
@@ -30,10 +34,6 @@ class RealtimeConfig:
 	developer_mode: bool = False
 	webserver_port: int | None = None
 	webserver_host: str | None = None
-	# Only set this if an app registers blocking handlers. Every core handler is
-	# async, and permission checks are coroutines, so nothing built in uses threads.
-	# Each frappe_context handler also holds a DB connection for its whole cycle.
-	# Unset leaves the loop's default executor (min(32, cpu + 4)) in place.
 	worker_threads: int | None = None
 	# Absolute, because serve() changes into sites/ before it builds the server, and a
 	# relative path would then point one level too deep.
@@ -60,7 +60,7 @@ def get_config(sites_path: str | None = None, embedded: bool = False) -> Realtim
 		developer_mode=bool(conf.get("developer_mode")),
 		webserver_port=int(webserver_port) if webserver_port else None,
 		webserver_host=conf.get("webserver_host") or None,
-		worker_threads=int(conf["socketio_worker_threads"]) if conf.get("socketio_worker_threads") else None,
+		worker_threads=int(conf.get("socketio_worker_threads") or DEFAULT_WORKER_THREADS),
 		sites_path=sites_path,
 		embedded=embedded,
 	)

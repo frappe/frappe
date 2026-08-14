@@ -16,8 +16,7 @@ from frappe.realtime.config import get_config as get_socketio_config
 from frappe.realtime.server import RealtimeServer
 from frappe.utils.data import sbool
 
-# The number of concurrent web requests. The default of a2wsgi is 10.
-DEFAULT_WEB_THREADS = 16
+DEFAULT_WEB_THREADS = 8
 web_threads = int(os.environ.get("FRAPPE_WEB_THREADS") or DEFAULT_WEB_THREADS)
 
 if sbool(os.environ.get("FRAPPE_SERVE_ASSETS", False)):
