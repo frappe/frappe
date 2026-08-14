@@ -1,13 +1,19 @@
-frappe.provide("frappe.document_queue_review");
+frappe.provide("frappe.attachment_queue_review");
 
+frappe.attachment_queue_review.width_storage_key = "frappe.attachment_queue_review.preview_width";
+frappe.attachment_queue_review.default_preview_width = 38;
+frappe.attachment_queue_review.reviewable_statuses = ["Ready for Review", "Failed"];
+frappe.attachment_queue_review.image_extensions = [
+	".png",
+	".jpg",
+	".jpeg",
+	".webp",
+	".gif",
+	".bmp",
+];
 
-frappe.document_queue_review.width_storage_key = "frappe.document_queue_review.preview_width";
-frappe.document_queue_review.default_preview_width = 38;
-frappe.document_queue_review.reviewable_statuses = ["Ready for Review", "Failed"];
-frappe.document_queue_review.image_extensions = [".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"];
-
-frappe.document_queue_review.start_from_document_queue = async function (frm) {
-	if (!frappe.document_queue_review.reviewable_statuses.includes(frm.doc.status)) {
+frappe.attachment_queue_review.start_from_attachment_queue = async function (frm) {
+	if (!frappe.attachment_queue_review.reviewable_statuses.includes(frm.doc.status)) {
 		frappe.msgprint(__("Only documents that are ready for review can be reviewed."));
 		return;
 	}
@@ -15,7 +21,7 @@ frappe.document_queue_review.start_from_document_queue = async function (frm) {
 	let document_type = frm.doc.document_type;
 
 	if (!document_type) {
-		document_type = await frappe.document_queue_review.prompt_document_type();
+		document_type = await frappe.attachment_queue_review.prompt_document_type();
 		if (!document_type) {
 			return;
 		}
@@ -24,8 +30,8 @@ frappe.document_queue_review.start_from_document_queue = async function (frm) {
 		await frm.reload_doc();
 	}
 
-	const context = await frappe.document_queue_review.fetch_context(frm.doc.name);
-	if (!frappe.document_queue_review.reviewable_statuses.includes(context?.status)) {
+	const context = await frappe.attachment_queue_review.fetch_context(frm.doc.name);
+	if (!frappe.attachment_queue_review.reviewable_statuses.includes(context?.status)) {
 		frappe.msgprint(__("Only documents that are ready for review can be reviewed."));
 		return;
 	}
@@ -35,10 +41,10 @@ frappe.document_queue_review.start_from_document_queue = async function (frm) {
 		return;
 	}
 
-	frappe.document_queue_review.route_to_new_document(context);
+	frappe.attachment_queue_review.route_to_new_document(context);
 };
 
-frappe.document_queue_review.prompt_document_type = function () {
+frappe.attachment_queue_review.prompt_document_type = function () {
 	return new Promise((resolve) => {
 		let resolved = false;
 		const dialog = new frappe.ui.Dialog({
@@ -76,11 +82,11 @@ frappe.document_queue_review.prompt_document_type = function () {
 	});
 };
 
-frappe.document_queue_review.fetch_context = function (document_queue) {
+frappe.attachment_queue_review.fetch_context = function (attachment_queue) {
 	return frappe
 		.call({
-			method: "frappe.core.doctype.document_queue.document_queue.get_document_review_context",
-			args: { document_queue },
+			method: "frappe.core.doctype.attachment_queue.attachment_queue.get_document_review_context",
+			args: { attachment_queue },
 		})
 		.then((r) => r.message || null);
 };
@@ -88,7 +94,7 @@ frappe.document_queue_review.fetch_context = function (document_queue) {
 // frappe.utils covers reading query params (get_query_params) but the framework
 // has no setter, so these two own the write side for the whole feature. Both
 // skip a no-op replaceState, which only some of the former call sites did.
-frappe.document_queue_review.set_query_param = function (name, value) {
+frappe.attachment_queue_review.set_query_param = function (name, value) {
 	const url = new URL(window.location.href);
 	if (url.searchParams.get(name) === String(value)) {
 		return;
@@ -98,7 +104,7 @@ frappe.document_queue_review.set_query_param = function (name, value) {
 	window.history.replaceState(window.history.state, "", url.toString());
 };
 
-frappe.document_queue_review.clear_query_param = function (name) {
+frappe.attachment_queue_review.clear_query_param = function (name) {
 	const url = new URL(window.location.href);
 	if (!url.searchParams.has(name)) {
 		return;
@@ -110,17 +116,17 @@ frappe.document_queue_review.clear_query_param = function (name) {
 
 // Single owner of "open a new document for this queue context": load the target
 // doctype's meta, create the unsaved doc, hand the context over in memory, route
-// to it, then stamp ?document_queue= so hydrate_context can recover after a
+// to it, then stamp ?attachment_queue= so hydrate_context can recover after a
 // reload. Three call sites carried their own copy of this block — the two below
-// and document_queue_review_modal.js's _start_review.
-frappe.document_queue_review.route_to_new_document = function (context) {
+// and attachment_queue_review_modal.js's _start_review.
+frappe.attachment_queue_review.route_to_new_document = function (context) {
 	return new Promise((resolve) => {
 		frappe.model.with_doctype(context.document_type, () => {
 			const doc = frappe.model.get_new_doc(context.document_type);
-			frappe.document_queue_review.pending_context = context;
+			frappe.attachment_queue_review.pending_context = context;
 			frappe.set_route("Form", context.document_type, doc.name).then(() => {
-				frappe.document_queue_review.set_query_param(
-					"document_queue",
+				frappe.attachment_queue_review.set_query_param(
+					"attachment_queue",
 					context.queue_name
 				);
 				resolve();
@@ -129,63 +135,71 @@ frappe.document_queue_review.route_to_new_document = function (context) {
 	});
 };
 
-frappe.document_queue_review.setup_upload_first = async function (frm) {
-	frappe.document_queue_review.remove_upload_first(frm);
+frappe.attachment_queue_review.setup_upload_first = async function (frm) {
+	frappe.attachment_queue_review.remove_upload_first(frm);
 
-	if (!frm?.is_new?.() || frm.in_dialog || !frm.page || frappe.document_queue_review.get_context(frm)) {
+	if (
+		!frm?.is_new?.() ||
+		frm.in_dialog ||
+		!frm.page ||
+		frappe.attachment_queue_review.get_context(frm)
+	) {
 		return;
 	}
 
 	// The loader owns this gate — it ships in form.bundle.js, so it is always
 	// present, and list_view.js already calls the same copy.
-	const enabled = await frappe.document_queue_review_loader.is_upload_first_enabled(
+	const enabled = await frappe.attachment_queue_review_loader.is_upload_first_enabled(
 		frm.doctype
 	);
-	if (!enabled || frappe.document_queue_review.get_context(frm)) {
+	if (!enabled || frappe.attachment_queue_review.get_context(frm)) {
 		return;
 	}
 
 	const $page = frm.page.wrapper.find(".page-body");
-	$page.find(".document-queue-upload-first").remove();
+	$page.find(".attachment-queue-upload-first").remove();
 
 	const $banner = $(`
-		<div class="document-queue-upload-first">
+		<div class="attachment-queue-upload-first">
 			<div>
-				<div class="document-queue-upload-first-title">${__("Upload Document")}</div>
-				<div class="document-queue-upload-first-description">
+				<div class="attachment-queue-upload-first-title">${__("Upload Document")}</div>
+				<div class="attachment-queue-upload-first-description">
 					${__("Upload one PDF or image before creating a draft.")}
 				</div>
 			</div>
-			<button class="btn btn-default btn-sm document-queue-upload-first-button" type="button">
+			<button class="btn btn-default btn-sm attachment-queue-upload-first-button" type="button">
 				${frappe.utils.icon("upload", "sm")}
 				<span>${__("Upload")}</span>
 			</button>
 		</div>
 	`);
 
-	$banner.find(".document-queue-upload-first-button").on("click", () => {
-		frappe.document_queue_review.open_upload_first_dialog(frm);
+	$banner.find(".attachment-queue-upload-first-button").on("click", () => {
+		frappe.attachment_queue_review.open_upload_first_dialog(frm);
 	});
 
 	$page.prepend($banner);
-	frm.document_queue_upload_first_banner = $banner;
+	frm.attachment_queue_upload_first_banner = $banner;
 };
 
-frappe.document_queue_review.remove_upload_first = function (frm) {
-	frm?.document_queue_upload_first_banner?.remove();
-	frm.document_queue_upload_first_banner = null;
-	frm?.$wrapper?.find(".document-queue-upload-first").remove();
-	frm?.page?.wrapper?.find(".document-queue-upload-first").remove();
+frappe.attachment_queue_review.remove_upload_first = function (frm) {
+	frm?.attachment_queue_upload_first_banner?.remove();
+	frm.attachment_queue_upload_first_banner = null;
+	frm?.$wrapper?.find(".attachment-queue-upload-first").remove();
+	frm?.page?.wrapper?.find(".attachment-queue-upload-first").remove();
 };
 
-frappe.document_queue_review.open_upload_first_dialog = async function (frm) {
+frappe.attachment_queue_review.open_upload_first_dialog = async function (frm) {
 	await frappe.require("file_uploader.bundle.js");
 
 	new frappe.ui.FileUploader({
 		allow_multiple: false,
 		allow_web_link: false,
+		// Only what the preview pane below can actually render — the reviewer keys the
+		// document in from that preview, so accepting a format it cannot show (TIFF,
+		// which no browser previews) would strand the upload at review time.
 		restrictions: {
-			allowed_file_types: [".pdf", ".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff"],
+			allowed_file_types: [".pdf", ...frappe.attachment_queue_review.image_extensions],
 		},
 		dialog_title: __("Upload Source Document"),
 		on_success(file_doc) {
@@ -194,16 +208,20 @@ frappe.document_queue_review.open_upload_first_dialog = async function (frm) {
 				return;
 			}
 
-			frappe.document_queue_review.create_upload_first_queue(frm, file_doc.name);
+			frappe.attachment_queue_review.create_upload_first_queue(frm, file_doc.name);
 		},
 	});
 };
 
-frappe.document_queue_review.create_upload_first_queue = async function (frm, file_name) {
-	frappe.dom.freeze(`<div class="document-queue-freeze-body"><div class="es-spinner"></div><div>${__("Extracting document...")}</div></div>`);
+frappe.attachment_queue_review.create_upload_first_queue = async function (frm, file_name) {
+	frappe.dom.freeze(
+		`<div class="attachment-queue-freeze-body"><div class="es-spinner"></div><div>${__(
+			"Extracting document..."
+		)}</div></div>`
+	);
 	try {
 		const r = await frappe.call({
-			method: "frappe.core.doctype.document_queue.document_queue.create_upload_first_queue",
+			method: "frappe.core.doctype.attachment_queue.attachment_queue.create_upload_first_queue",
 			args: {
 				file_name,
 				document_type: frm.doctype,
@@ -212,29 +230,29 @@ frappe.document_queue_review.create_upload_first_queue = async function (frm, fi
 
 		let context = r.message;
 		if (!context?.queue_name) {
-			frappe.msgprint(__("Could not create a Document Queue record."));
+			frappe.msgprint(__("Could not create an Attachment Queue record."));
 			return;
 		}
 
-		context = await frappe.document_queue_review.wait_for_extraction(context);
+		context = await frappe.attachment_queue_review.wait_for_extraction(context);
 
 		if (context.status === "Failed") {
 			frappe.msgprint({
 				title: __("Extraction Failed"),
 				message: __(
-					"The document was queued, but extraction failed. You can still review it from Document Queue."
+					"The document was queued, but extraction failed. You can still review it from Attachment Queue."
 				),
 				indicator: "red",
 			});
 		} else if (context.status === "Ready for Review") {
 			frappe.show_alert({
 				message: __("Extraction Completed"),
-				indicator: "green"
+				indicator: "green",
 			});
 		}
 
 		// Awaited so the freeze in `finally` only lifts once the new form is up.
-		await frappe.document_queue_review.route_to_new_document(context);
+		await frappe.attachment_queue_review.route_to_new_document(context);
 	} catch (error) {
 		// frappe.call reports HTTP-level failures itself, but a request that never gets
 		// a response (connection dropped mid-upload) matches none of its statusCode
@@ -249,13 +267,13 @@ frappe.document_queue_review.create_upload_first_queue = async function (frm, fi
 				indicator: "red",
 			});
 		}
-		console.error("Document Queue: upload-first flow failed", error);
+		console.error("Attachment Queue: upload-first flow failed", error);
 	} finally {
 		frappe.dom.unfreeze();
 	}
 };
 
-frappe.document_queue_review.wait_for_extraction = async function (context) {
+frappe.attachment_queue_review.wait_for_extraction = async function (context) {
 	if (!["Queued", "Processing"].includes(context.status)) {
 		return context;
 	}
@@ -267,7 +285,7 @@ frappe.document_queue_review.wait_for_extraction = async function (context) {
 	let is_resolving = false;
 
 	const fetch_context = async () => {
-		const result = await frappe.document_queue_review.fetch_context(context.queue_name);
+		const result = await frappe.attachment_queue_review.fetch_context(context.queue_name);
 		latest_context = result || latest_context;
 		return latest_context;
 	};
@@ -290,7 +308,7 @@ frappe.document_queue_review.wait_for_extraction = async function (context) {
 				frappe.msgprint({
 					title: __("Extraction Still Running"),
 					message: __(
-						"The document was queued, but extraction is taking longer than expected. You can continue reviewing it from Document Queue when extraction finishes."
+						"The document was queued, but extraction is taking longer than expected. You can continue reviewing it from Attachment Queue when extraction finishes."
 					),
 					indicator: "orange",
 				});
@@ -314,7 +332,10 @@ frappe.document_queue_review.wait_for_extraction = async function (context) {
 
 			listener = (data) => {
 				if (is_resolving) return;
-				if (data.task_id === context.task_id && ["Ready for Review", "Failed"].includes(data.status)) {
+				if (
+					data.task_id === context.task_id &&
+					["Ready for Review", "Failed"].includes(data.status)
+				) {
 					is_resolving = true;
 					fetch_context().then(resolve).catch(reject);
 				}
@@ -338,16 +359,16 @@ frappe.document_queue_review.wait_for_extraction = async function (context) {
 	}
 };
 
-frappe.document_queue_review.get_context = function (frm) {
-	return frm.doc.__document_queue_review_context || null;
+frappe.attachment_queue_review.get_context = function (frm) {
+	return frm.doc.__attachment_queue_review_context || null;
 };
 
 // Neither obvious carrier survives a save: frappe.model.sync replaces frm.doc for
 // a new document, and rename_notify re-routes to the saved name, which drops
-// ?document_queue= from the URL. frm itself survives both, so before_save copies
+// ?attachment_queue= from the URL. frm itself survives both, so before_save copies
 // the context onto it and link_after_save reads it back from there.
-frappe.document_queue_review.get_pending_link = function (frm) {
-	const context = frappe.document_queue_review.get_context(frm);
+frappe.attachment_queue_review.get_pending_link = function (frm) {
+	const context = frappe.attachment_queue_review.get_context(frm);
 	if (!context?.queue_name || !context.document_type) {
 		return null;
 	}
@@ -355,22 +376,24 @@ frappe.document_queue_review.get_pending_link = function (frm) {
 	return { queue_name: context.queue_name, document_type: context.document_type };
 };
 
-frappe.document_queue_review.hydrate_context = async function (frm) {
-	if (frappe.document_queue_review.get_context(frm)) {
+frappe.attachment_queue_review.hydrate_context = async function (frm) {
+	if (frappe.attachment_queue_review.get_context(frm)) {
 		return;
 	}
 
-	let context = frappe.document_queue_review.pending_context;
+	let context = frappe.attachment_queue_review.pending_context;
 	if (context) {
-		frappe.document_queue_review.pending_context = null;
+		frappe.attachment_queue_review.pending_context = null;
 	}
 
 	if (!context?.queue_name) {
 		const queryParams = frappe.utils.get_query_params();
-		let queueName = queryParams.document_queue || frappe.document_queue_review_loader.surviving_queue_name;
+		let queueName =
+			queryParams.attachment_queue ||
+			frappe.attachment_queue_review_loader.surviving_queue_name;
 		if (queueName) {
-			frappe.document_queue_review_loader.surviving_queue_name = null;
-			context = await frappe.document_queue_review.fetch_context(queueName);
+			frappe.attachment_queue_review_loader.surviving_queue_name = null;
+			context = await frappe.attachment_queue_review.fetch_context(queueName);
 		}
 	}
 
@@ -378,16 +401,16 @@ frappe.document_queue_review.hydrate_context = async function (frm) {
 		return;
 	}
 
-	frm.doc.__document_queue_review_context = context;
-	frm.doc.__document_queue_name = context.queue_name;
+	frm.doc.__attachment_queue_review_context = context;
+	frm.doc.__attachment_queue_name = context.queue_name;
 
-	frappe.document_queue_review.set_query_param("document_queue", context.queue_name);
+	frappe.attachment_queue_review.set_query_param("attachment_queue", context.queue_name);
 };
 
-frappe.document_queue_review.mount = function (frm) {
-	const context = frappe.document_queue_review.get_context(frm);
+frappe.attachment_queue_review.mount = function (frm) {
+	const context = frappe.attachment_queue_review.get_context(frm);
 	if (!context?.queue_name) {
-		frappe.document_queue_review.teardown(frm);
+		frappe.attachment_queue_review.teardown(frm);
 		return;
 	}
 
@@ -396,40 +419,42 @@ frappe.document_queue_review.mount = function (frm) {
 		return;
 	}
 
-	frappe.document_queue_review.remove_upload_first(frm);
+	frappe.attachment_queue_review.remove_upload_first(frm);
 	const $std = $layout.closest(".std-form-layout");
-	$std.addClass("document-queue-review-layout");
-	frappe.document_queue_review.apply_saved_width($std);
+	$std.addClass("attachment-queue-review-layout");
+	frappe.attachment_queue_review.apply_saved_width($std);
 
-	if (!frm.document_queue_review_panel) {
-		frm.document_queue_review_panel = $(`<aside class="document-queue-review-panel"></aside>`);
+	if (!frm.attachment_queue_review_panel) {
+		frm.attachment_queue_review_panel = $(
+			`<aside class="attachment-queue-review-panel"></aside>`
+		);
 		$std.length
-			? $std.prepend(frm.document_queue_review_panel)
-			: $layout.before(frm.document_queue_review_panel);
+			? $std.prepend(frm.attachment_queue_review_panel)
+			: $layout.before(frm.attachment_queue_review_panel);
 	}
 
-	frappe.document_queue_review.render_panel(frm, context);
+	frappe.attachment_queue_review.render_panel(frm, context);
 };
 
-frappe.document_queue_review.teardown = function (frm) {
+frappe.attachment_queue_review.teardown = function (frm) {
 	const $layout = frm.$wrapper.find(".form-layout").first();
-	$layout.closest(".std-form-layout").removeClass("document-queue-review-layout");
-	frm.document_queue_review_resizer_tooltip?.destroy();
-	frm.document_queue_review_resizer_tooltip = null;
-	frm.document_queue_review_panel?.remove();
-	frm.document_queue_review_panel = null;
+	$layout.closest(".std-form-layout").removeClass("attachment-queue-review-layout");
+	frm.attachment_queue_review_resizer_tooltip?.destroy();
+	frm.attachment_queue_review_resizer_tooltip = null;
+	frm.attachment_queue_review_panel?.remove();
+	frm.attachment_queue_review_panel = null;
 };
 
-frappe.document_queue_review.render_panel = function (frm, context) {
+frappe.attachment_queue_review.render_panel = function (frm, context) {
 	const dev_mode = cint(frappe.boot.developer_mode);
-	let active_tab = frm.document_queue_review_active_tab || "preview";
+	let active_tab = frm.attachment_queue_review_active_tab || "preview";
 	if (!dev_mode && active_tab === "extraction") {
 		active_tab = "preview";
 	}
 	const source_file_url = context.source_file_url || context.source_file || "";
-	const file_name = frappe.document_queue_review.get_file_name(source_file_url);
-	const preview_type = frappe.document_queue_review.get_preview_type(source_file_url);
-	const open_sections = frm.document_queue_review_open_sections || { text: true, json: false };
+	const file_name = frappe.attachment_queue_review.get_file_name(source_file_url);
+	const preview_type = frappe.attachment_queue_review.get_preview_type(source_file_url);
+	const open_sections = frm.attachment_queue_review_open_sections || { text: true, json: false };
 	const text_icon = frappe.utils.icon(
 		open_sections.text ? "es-line-down" : "chevron-right",
 		"sm",
@@ -458,18 +483,21 @@ frappe.document_queue_review.render_panel = function (frm, context) {
 	let raw_json_html = "";
 	if (context.raw_extraction_json) {
 		try {
-			let parsed = typeof context.raw_extraction_json === "string" ? JSON.parse(context.raw_extraction_json) : context.raw_extraction_json;
+			let parsed =
+				typeof context.raw_extraction_json === "string"
+					? JSON.parse(context.raw_extraction_json)
+					: context.raw_extraction_json;
 			let formatted = JSON.stringify(parsed, null, 4);
 			raw_json_html = `
-				<div class="form-section document-queue-review-section">
-					<div class="section-head collapsible document-queue-review-section-head ${
+				<div class="form-section attachment-queue-review-section">
+					<div class="section-head collapsible attachment-queue-review-section-head ${
 						open_sections.json ? "" : "collapsed"
 					}" data-section="json" tabindex="0">
 						${__("Raw Extraction JSON")}
 						<span class="collapse-indicator" tabindex="0">${json_icon}</span>
 					</div>
 					<div class="section-body ${open_sections.json ? "" : "hide"}">
-						<pre class="document-queue-review-json-pre">${frappe.utils.escape_html(formatted)}</pre>
+						<pre class="attachment-queue-review-json-pre">${frappe.utils.escape_html(formatted)}</pre>
 					</div>
 				</div>
 			`;
@@ -492,12 +520,12 @@ frappe.document_queue_review.render_panel = function (frm, context) {
 					</li>
 		`;
 		debug_tab_panel = `
-				<section class="document-queue-review-tab-panel ${
+				<section class="attachment-queue-review-tab-panel ${
 					active_tab === "extraction" ? "active" : ""
 				}" data-panel="extraction">
-					<div class="document-queue-review-sections">
-						<div class="form-section document-queue-review-section">
-							<div class="section-head collapsible document-queue-review-section-head ${
+					<div class="attachment-queue-review-sections">
+						<div class="form-section attachment-queue-review-section">
+							<div class="section-head collapsible attachment-queue-review-section-head ${
 								open_sections.text ? "" : "collapsed"
 							}" data-section="text" tabindex="0">
 								${__("Extracted Text")}
@@ -513,9 +541,9 @@ frappe.document_queue_review.render_panel = function (frm, context) {
 		`;
 	}
 
-	frm.document_queue_review_panel.html(`
-		<div class="document-queue-review-shell">
-			${error_alert ? `<div class="document-queue-review-alert">${error_alert}</div>` : ""}
+	frm.attachment_queue_review_panel.html(`
+		<div class="attachment-queue-review-shell">
+			${error_alert ? `<div class="attachment-queue-review-alert">${error_alert}</div>` : ""}
 			<div class="form-tabs-list">
 				<ul class="nav form-tabs" role="tablist">
 					<li class="nav-item">
@@ -528,44 +556,44 @@ frappe.document_queue_review.render_panel = function (frm, context) {
 ${debug_tab_button}
 				</ul>
 			</div>
-			<div class="document-queue-review-body">
-				<section class="document-queue-review-tab-panel ${
+			<div class="attachment-queue-review-body">
+				<section class="attachment-queue-review-tab-panel ${
 					active_tab === "preview" ? "active" : ""
 				}" data-panel="preview">
-					<div class="document-queue-review-resize-overlay">${__("Resizing preview...")}</div>
-					${frappe.document_queue_review.get_preview_markup(source_file_url, file_name)}
+					<div class="attachment-queue-review-resize-overlay">${__("Resizing preview...")}</div>
+					${frappe.attachment_queue_review.get_preview_markup(source_file_url, file_name)}
 				</section>
 ${debug_tab_panel}
 			</div>
 		</div>
-		<div class="document-queue-review-resizer"></div>
+		<div class="attachment-queue-review-resizer"></div>
 	`);
-	frm.document_queue_review_preview_type = preview_type;
+	frm.attachment_queue_review_preview_type = preview_type;
 
-	frm.document_queue_review_panel.off("click.document-queue-review");
-	frm.document_queue_review_panel.on(
-		"click.document-queue-review",
+	frm.attachment_queue_review_panel.off("click.attachment-queue-review");
+	frm.attachment_queue_review_panel.on(
+		"click.attachment-queue-review",
 		".form-tabs-list .nav-link",
 		function () {
-			frm.document_queue_review_active_tab = $(this).attr("data-tab") || "preview";
-			frappe.document_queue_review.render_panel(frm, context);
+			frm.attachment_queue_review_active_tab = $(this).attr("data-tab") || "preview";
+			frappe.attachment_queue_review.render_panel(frm, context);
 		}
 	);
-	frm.document_queue_review_panel.on(
-		"click.document-queue-review",
-		".document-queue-review-section-head",
+	frm.attachment_queue_review_panel.on(
+		"click.attachment-queue-review",
+		".attachment-queue-review-section-head",
 		function () {
 			const section = $(this).attr("data-section");
-			frm.document_queue_review_open_sections = {
+			frm.attachment_queue_review_open_sections = {
 				...open_sections,
 				[section]: !open_sections[section],
 			};
-			frappe.document_queue_review.render_panel(frm, context);
+			frappe.attachment_queue_review.render_panel(frm, context);
 		}
 	);
-	frm.document_queue_review_panel.on(
-		"keydown.document-queue-review",
-		".document-queue-review-section-head",
+	frm.attachment_queue_review_panel.on(
+		"keydown.attachment-queue-review",
+		".attachment-queue-review-section-head",
 		function (event) {
 			if (event.key === "Enter" || event.key === " ") {
 				event.preventDefault();
@@ -573,42 +601,42 @@ ${debug_tab_panel}
 			}
 		}
 	);
-	frappe.document_queue_review.bind_resizer(frm);
+	frappe.attachment_queue_review.bind_resizer(frm);
 };
 
-frappe.document_queue_review.apply_saved_width = function ($layout) {
-	const saved_width = frappe.document_queue_review.get_stored_preview_width();
-	$layout.css("--document-queue-review-width", `${saved_width}%`);
+frappe.attachment_queue_review.apply_saved_width = function ($layout) {
+	const saved_width = frappe.attachment_queue_review.get_stored_preview_width();
+	$layout.css("--attachment-queue-review-width", `${saved_width}%`);
 };
 
-frappe.document_queue_review.bind_resizer = function (frm) {
+frappe.attachment_queue_review.bind_resizer = function (frm) {
 	// Espresso tooltip instead of a native `title`, matching the tooltips used
 	// elsewhere in desk. render_panel() rebuilds the panel wholesale, so the
 	// handle is a new element on every render: destroy the previous instance
 	// first, or its bubble (which lives on <body>) can outlive its trigger.
-	frm.document_queue_review_resizer_tooltip?.destroy();
-	frm.document_queue_review_resizer_tooltip = new frappe.ui.Tooltip(
-		frm.document_queue_review_panel.find(".document-queue-review-resizer"),
+	frm.attachment_queue_review_resizer_tooltip?.destroy();
+	frm.attachment_queue_review_resizer_tooltip = new frappe.ui.Tooltip(
+		frm.attachment_queue_review_panel.find(".attachment-queue-review-resizer"),
 		{ text: __("Resize") }
 	);
 
-	frm.document_queue_review_panel.off("mousedown.document-queue-review-resizer");
-	frm.document_queue_review_panel.on(
-		"mousedown.document-queue-review-resizer",
-		".document-queue-review-resizer",
+	frm.attachment_queue_review_panel.off("mousedown.attachment-queue-review-resizer");
+	frm.attachment_queue_review_panel.on(
+		"mousedown.attachment-queue-review-resizer",
+		".attachment-queue-review-resizer",
 		function (event) {
 			event.preventDefault();
 
-			const $layout = frm.document_queue_review_panel.closest(
-				".document-queue-review-layout"
+			const $layout = frm.attachment_queue_review_panel.closest(
+				".attachment-queue-review-layout"
 			);
 			if (!$layout.length) {
 				return;
 			}
 
-			$("body").addClass("document-queue-review-is-resizing");
-			if (frm.document_queue_review_preview_type === "pdf") {
-				frm.document_queue_review_panel.addClass("document-queue-review-resizing-pdf");
+			$("body").addClass("attachment-queue-review-is-resizing");
+			if (frm.attachment_queue_review_preview_type === "pdf") {
+				frm.attachment_queue_review_panel.addClass("attachment-queue-review-resizing-pdf");
 			}
 
 			// One width update per animation frame (~16ms at 60Hz) — the display
@@ -622,36 +650,37 @@ frappe.document_queue_review.bind_resizer = function (frm) {
 				if (!is_resizing) {
 					return;
 				}
-				frappe.document_queue_review.resize_preview($layout, move_event);
+				frappe.attachment_queue_review.resize_preview($layout, move_event);
 			}, 16);
 
 			$(document)
-				.on("mousemove.document-queue-review-resizer", function (move_event) {
+				.on("mousemove.attachment-queue-review-resizer", function (move_event) {
 					has_moved = true;
 					throttled_resize(move_event);
 				})
-				.on("mouseup.document-queue-review-resizer", function (up_event) {
+				.on("mouseup.attachment-queue-review-resizer", function (up_event) {
 					is_resizing = false;
 					if (has_moved) {
 						// Apply the release position un-throttled, so the width that
 						// gets persisted is the one actually under the cursor even if
 						// the last frame was throttled away.
-						frappe.document_queue_review.resize_preview($layout, up_event);
+						frappe.attachment_queue_review.resize_preview($layout, up_event);
 					}
 
-					const width = frappe.document_queue_review.get_current_preview_width($layout);
-					frappe.document_queue_review.save_preview_width(width);
-					$("body").removeClass("document-queue-review-is-resizing");
-					frm.document_queue_review_panel.removeClass(
-						"document-queue-review-resizing-pdf"
+					const width =
+						frappe.attachment_queue_review.get_current_preview_width($layout);
+					frappe.attachment_queue_review.save_preview_width(width);
+					$("body").removeClass("attachment-queue-review-is-resizing");
+					frm.attachment_queue_review_panel.removeClass(
+						"attachment-queue-review-resizing-pdf"
 					);
-					$(document).off(".document-queue-review-resizer");
+					$(document).off(".attachment-queue-review-resizer");
 				});
 		}
 	);
 };
 
-frappe.document_queue_review.resize_preview = function ($layout, event) {
+frappe.attachment_queue_review.resize_preview = function ($layout, event) {
 	const layout = $layout.get(0);
 	if (!layout) {
 		return;
@@ -659,51 +688,51 @@ frappe.document_queue_review.resize_preview = function ($layout, event) {
 
 	const layout_rect = layout.getBoundingClientRect();
 	const width = ((event.clientX - layout_rect.left) / layout_rect.width) * 100;
-	frappe.document_queue_review.set_preview_width($layout, width);
+	frappe.attachment_queue_review.set_preview_width($layout, width);
 };
 
-frappe.document_queue_review.set_preview_width = function ($layout, width) {
-	const preview_width = frappe.document_queue_review.clamp_preview_width(width);
-	$layout.css("--document-queue-review-width", `${preview_width}%`);
+frappe.attachment_queue_review.set_preview_width = function ($layout, width) {
+	const preview_width = frappe.attachment_queue_review.clamp_preview_width(width);
+	$layout.css("--attachment-queue-review-width", `${preview_width}%`);
 };
 
-frappe.document_queue_review.get_current_preview_width = function ($layout) {
+frappe.attachment_queue_review.get_current_preview_width = function ($layout) {
 	const value = (
-		$layout.get(0)?.style.getPropertyValue("--document-queue-review-width") || ""
+		$layout.get(0)?.style.getPropertyValue("--attachment-queue-review-width") || ""
 	).trim();
-	return frappe.document_queue_review.clamp_preview_width(Number(value.replace("%", "")));
+	return frappe.attachment_queue_review.clamp_preview_width(Number(value.replace("%", "")));
 };
 
-frappe.document_queue_review.clamp_preview_width = function (width) {
+frappe.attachment_queue_review.clamp_preview_width = function (width) {
 	const min_preview_width = 25;
 	const max_preview_width = 60;
 	return Math.min(
 		Math.max(
-			Number(width) || frappe.document_queue_review.default_preview_width,
+			Number(width) || frappe.attachment_queue_review.default_preview_width,
 			min_preview_width
 		),
 		max_preview_width
 	);
 };
 
-frappe.document_queue_review.get_stored_preview_width = function () {
+frappe.attachment_queue_review.get_stored_preview_width = function () {
 	try {
 		const stored_width = Number(
-			localStorage.getItem(frappe.document_queue_review.width_storage_key)
+			localStorage.getItem(frappe.attachment_queue_review.width_storage_key)
 		);
-		return frappe.document_queue_review.clamp_preview_width(
-			stored_width || frappe.document_queue_review.default_preview_width
+		return frappe.attachment_queue_review.clamp_preview_width(
+			stored_width || frappe.attachment_queue_review.default_preview_width
 		);
 	} catch {
-		return frappe.document_queue_review.default_preview_width;
+		return frappe.attachment_queue_review.default_preview_width;
 	}
 };
 
-frappe.document_queue_review.save_preview_width = function (width) {
+frappe.attachment_queue_review.save_preview_width = function (width) {
 	try {
 		localStorage.setItem(
-			frappe.document_queue_review.width_storage_key,
-			frappe.document_queue_review.clamp_preview_width(width)
+			frappe.attachment_queue_review.width_storage_key,
+			frappe.attachment_queue_review.clamp_preview_width(width)
 		);
 	} catch {
 		// localStorage can be unavailable in restricted browser contexts.
@@ -715,7 +744,7 @@ frappe.document_queue_review.save_preview_width = function (width) {
 // (_clear_preview and the unsupported branch of _render_preview), so both halves
 // of the feature show the same thing. `.html` is the markup-string form, which
 // is what this function returns; it escapes title/description itself.
-frappe.document_queue_review.get_preview_markup = function (file_url, file_name) {
+frappe.attachment_queue_review.get_preview_markup = function (file_url, file_name) {
 	if (!file_url) {
 		return frappe.ui.empty_state.html({
 			icon: "file-text",
@@ -723,17 +752,17 @@ frappe.document_queue_review.get_preview_markup = function (file_url, file_name)
 		});
 	}
 
-	const preview_url = frappe.document_queue_review.get_preview_url(file_url);
+	const preview_url = frappe.attachment_queue_review.get_preview_url(file_url);
 	const escaped_url = frappe.utils.escape_html(preview_url);
 	const escaped_name = frappe.utils.escape_html(file_name || "");
 	const lower = file_url.toLowerCase().split("?", 1)[0];
 
 	if (lower.endsWith(".pdf")) {
-		return `<iframe class="document-queue-review-preview" src="${escaped_url}" title="${escaped_name}"></iframe>`;
+		return `<iframe class="attachment-queue-review-preview" src="${escaped_url}" title="${escaped_name}"></iframe>`;
 	}
 
-	if (frappe.document_queue_review.image_extensions.some((ext) => lower.endsWith(ext))) {
-		return `<img class="document-queue-review-preview-image" src="${escaped_url}" alt="${escaped_name}">`;
+	if (frappe.attachment_queue_review.image_extensions.some((ext) => lower.endsWith(ext))) {
+		return `<img class="attachment-queue-review-preview-image" src="${escaped_url}" alt="${escaped_name}">`;
 	}
 
 	// `href` actions survive the markup-string form (an onclick could not), and
@@ -753,13 +782,13 @@ frappe.document_queue_review.get_preview_markup = function (file_url, file_name)
 	});
 };
 
-frappe.document_queue_review.get_preview_type = function (file_url) {
+frappe.attachment_queue_review.get_preview_type = function (file_url) {
 	const lower = (file_url || "").toLowerCase().split("?", 1)[0];
 	if (lower.endsWith(".pdf")) {
 		return "pdf";
 	}
 
-	if (frappe.document_queue_review.image_extensions.some((ext) => lower.endsWith(ext))) {
+	if (frappe.attachment_queue_review.image_extensions.some((ext) => lower.endsWith(ext))) {
 		return "image";
 	}
 
@@ -769,8 +798,8 @@ frappe.document_queue_review.get_preview_type = function (file_url) {
 // Single source of truth for turning a stored `source_file` into a URL that is
 // safe to use as an iframe/img src. `source_file` is an Attach value, so it is
 // normally "/files/x.pdf" or "/private/files/x.pdf?fid=...", but relative values
-// are normalized too. Also used by document_queue_review_modal.js.
-frappe.document_queue_review.get_preview_url = function (file_url) {
+// are normalized too. Also used by attachment_queue_review_modal.js.
+frappe.attachment_queue_review.get_preview_url = function (file_url) {
 	if (!file_url) {
 		return "";
 	}
@@ -794,7 +823,7 @@ frappe.document_queue_review.get_preview_url = function (file_url) {
 	return file_url;
 };
 
-frappe.document_queue_review.get_file_name = function (file_url) {
+frappe.attachment_queue_review.get_file_name = function (file_url) {
 	if (!file_url) {
 		return "";
 	}
@@ -802,14 +831,14 @@ frappe.document_queue_review.get_file_name = function (file_url) {
 	return decodeURIComponent(clean.split("/").pop() || clean);
 };
 
-frappe.document_queue_review.link_after_save = function (frm) {
-	const context = frappe.document_queue_review.get_context(frm);
+frappe.attachment_queue_review.link_after_save = function (frm) {
+	const context = frappe.attachment_queue_review.get_context(frm);
 	// Consumed, not just read: after_save and on_submit both land here for a
 	// submit, and only the first one should link.
-	const pending = frm.__document_queue_pending_link;
-	frm.__document_queue_pending_link = null;
+	const pending = frm.__attachment_queue_pending_link;
+	frm.__attachment_queue_pending_link = null;
 
-	if (!pending || !frm.doc.name || frm.doc.__document_queue_linked) {
+	if (!pending || !frm.doc.name || frm.doc.__attachment_queue_linked) {
 		return Promise.resolve();
 	}
 
@@ -819,11 +848,11 @@ frappe.document_queue_review.link_after_save = function (frm) {
 		return Promise.resolve();
 	}
 
-	frm.doc.__document_queue_linked = 1;
+	frm.doc.__attachment_queue_linked = 1;
 	return frappe.call({
-		method: "frappe.core.doctype.document_queue.document_queue.link_to_document",
+		method: "frappe.core.doctype.attachment_queue.attachment_queue.link_to_document",
 		args: {
-			document_queue: pending.queue_name,
+			attachment_queue: pending.queue_name,
 			document_type: frm.doctype,
 			document_name: frm.doc.name,
 		},
@@ -833,21 +862,21 @@ frappe.document_queue_review.link_after_save = function (frm) {
 				status: r.message?.status || "Completed",
 				created_document: frm.doc.name,
 			};
-			frm.doc.__document_queue_review_context = updated_context;
-			delete frm.doc.__document_queue_name;
+			frm.doc.__attachment_queue_review_context = updated_context;
+			delete frm.doc.__attachment_queue_name;
 
-			frappe.document_queue_review.clear_query_param("document_queue");
+			frappe.attachment_queue_review.clear_query_param("attachment_queue");
 
 			frm.sidebar?.reload_docinfo?.();
-			frappe.document_queue_review.teardown(frm);
+			frappe.attachment_queue_review.teardown(frm);
 		},
 		error() {
-			frm.doc.__document_queue_linked = 0;
+			frm.doc.__attachment_queue_linked = 0;
 		},
 	});
 };
 
-frappe.document_queue_review.setup_list_banner = async function (listview) {
+frappe.attachment_queue_review.setup_list_banner = async function (listview) {
 	if (!listview?.doctype || !listview?.$page) {
 		return;
 	}
@@ -855,40 +884,40 @@ frappe.document_queue_review.setup_list_banner = async function (listview) {
 	// list_view.js calls this from after_render(), which fires on every refresh —
 	// filter, sort, load-more, realtime update. Without this guard two overlapping
 	// refreshes each remove the banner and then each add one back.
-	if (listview.document_queue_banner_pending) {
+	if (listview.attachment_queue_banner_pending) {
 		return;
 	}
-	listview.document_queue_banner_pending = true;
+	listview.attachment_queue_banner_pending = true;
 
 	try {
-		const enabled = await frappe.document_queue_review_loader.is_upload_first_enabled(
+		const enabled = await frappe.attachment_queue_review_loader.is_upload_first_enabled(
 			listview.doctype
 		);
 		if (!enabled) {
 			return;
 		}
 
-		listview.$page.find(".document-queue-ready-banner").remove();
+		listview.$page.find(".attachment-queue-ready-banner").remove();
 
 		// Inject the primary "Review Pending" button that opens the modal.
-		await frappe.document_queue_list_action?.setup(listview);
+		await frappe.attachment_queue_list_action?.setup(listview);
 	} finally {
-		listview.document_queue_banner_pending = false;
+		listview.attachment_queue_banner_pending = false;
 	}
 };
 
-frappe.document_queue_review.get_ready_for_review_count = function (doctype) {
+frappe.attachment_queue_review.get_ready_for_review_count = function (doctype) {
 	return frappe
 		.call({
-			method: "frappe.core.doctype.document_queue.document_queue.get_ready_for_review_count",
+			method: "frappe.core.doctype.attachment_queue.attachment_queue.get_ready_for_review_count",
 			args: { document_type: doctype },
 		})
 		.then((r) => cint(r.message) || 0)
 		.catch(() => 0);
 };
 
-frappe.document_queue_review.refresh_form = async function (frm) {
-	await frappe.document_queue_review.hydrate_context(frm);
-	frappe.document_queue_review.mount(frm);
-	frappe.document_queue_review.setup_upload_first(frm);
+frappe.attachment_queue_review.refresh_form = async function (frm) {
+	await frappe.attachment_queue_review.hydrate_context(frm);
+	frappe.attachment_queue_review.mount(frm);
+	frappe.attachment_queue_review.setup_upload_first(frm);
 };
