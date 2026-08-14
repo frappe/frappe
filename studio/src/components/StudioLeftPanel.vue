@@ -152,9 +152,28 @@ watch(
 					.querySelector(`[data-component-layer-id="${block.componentId}"]`)
 					?.classList.add("block-selected")
 			})
+			scrollSelectedLayerIntoView()
 		}
 	},
 	{ deep: true },
+)
+
+const scrollSelectedLayerIntoView = () => {
+	const block = canvasStore.activeCanvas?.selectedBlocks[0]
+	if (!block) return
+	document
+		.querySelector(`[data-component-layer-id="${block.componentId}"] .layer-label`)
+		?.scrollIntoView({ block: "nearest", inline: "nearest" })
+}
+
+watch(
+	() => activeTab.value === "Layers" && store.studioLayout.showLeftPanel,
+	async (layersVisible) => {
+		if (layersVisible) {
+			await nextTick()
+			scrollSelectedLayerIntoView()
+		}
+	},
 )
 
 watch(
