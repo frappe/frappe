@@ -525,8 +525,11 @@ def get_link_title(doctype: str, docname: str | int):
 	meta = frappe.get_meta(doctype)
 
 	if meta.show_title_field_in_link:
-		doc = frappe.get_lazy_doc(doctype, docname)
-		doc.check_permission()
-		return doc.get(meta.title_field)
+		try:
+			doc = frappe.get_lazy_doc(doctype, docname)
+			doc.check_permission()
+			return doc.get(meta.title_field)
+		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
 
 	return docname
