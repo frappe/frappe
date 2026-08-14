@@ -85,8 +85,7 @@
    "fieldtype": "Dynamic Link",
    "label": "Source Document Name",
    "options": "source_doctype",
-   "read_only": 1,
-   "search_index": 1
+   "read_only": 1
   },
   {
    "description": "App that produced this notification; used to scope app-specific panels. Derived from the reference document when not set explicitly.",
