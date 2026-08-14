@@ -732,10 +732,21 @@ def validate_auth_via_api_keys(authorization_header):
 		pass
 
 
+def _log_api_key_auth_failure(message):
+	# Namespaced separately from the password-login IP tracker (which keys on the bare
+	# request_ip) so a flood of bad API keys from a shared IP can't lock out password logins
+	# from that same IP, and vice versa.
+	get_login_attempt_tracker(f"api_key:{frappe.local.request_ip}").add_failure_attempt()
+	add_authentication_log(message, _("Unknown User"), status="Failed")
+	# app.py rolls back the transaction on AuthenticationError, so commit now or the log above is lost
+	frappe.db.commit()  # nosemgrep
+	raise frappe.AuthenticationError
+
+
 def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=None):
 	"""frappe_authorization_source to provide api key and secret for a doctype apart from User"""
 	if not api_key or not api_secret:
-		raise frappe.AuthenticationError
+		_log_api_key_auth_failure("Missing API key or secret")
 
 	doctype = frappe_authorization_source or "User"
 	try:
@@ -743,10 +754,10 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 			doctype=doctype, filters={"api_key": api_key, "enabled": True}, fieldname=["name"]
 		)
 	except Exception:
-		raise frappe.AuthenticationError
+		_log_api_key_auth_failure("Invalid API key")
 
 	if not docname:
-		raise frappe.AuthenticationError
+		_log_api_key_auth_failure("Invalid API key")
 	form_dict = frappe.local.form_dict
 	doc_secret = get_decrypted_password(doctype, docname, fieldname="api_secret", raise_exception=False)
 	if doc_secret and hmac.compare_digest(api_secret.encode(), doc_secret.encode()):
@@ -758,7 +769,7 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 			frappe.set_user(user)
 		frappe.local.form_dict = form_dict
 	else:
-		raise frappe.AuthenticationError
+		_log_api_key_auth_failure("Invalid API secret")
 
 
 def validate_auth_via_hooks():
