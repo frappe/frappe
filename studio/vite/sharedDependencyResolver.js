@@ -5,14 +5,17 @@ import path from "path"
 // node_modules. So @framework/ui source must resolve it to Studio's single copy —
 // unlike the app's real deps (dompurify/vuedraggable/leaflet) which are installed
 // under apps/frappe/ui and resolve by realpath.
-const STUDIO_SHARED_DEPS = ["vue", "vue-router", "pinia", "frappe-ui", "reka-ui"]
+// @tiptap/core is here for the same reason: frappe-ui's TextEditor takes `extensions`
+// built from it, and an app has no copy of its own to build them with — nor should it,
+// since an extension made from a second copy never registers against the editor's schema.
+const STUDIO_SHARED_DEPS = ["vue", "vue-router", "pinia", "frappe-ui", "reka-ui", "@tiptap/core"]
 /**
  * Vite plugin to redirect shared dependency imports from files outside the Studio
  * project (custom Vue components and @framework/ui source) to Studio's own
  * installations.
  *
- * These are singleton deps (vue, vue-router, frappe-ui, reka-ui) that must resolve
- * from Studio to avoid duplicate instances. App-specific deps (including
+ * These are singleton deps (vue, vue-router, frappe-ui, reka-ui, @tiptap/core) that must
+ * resolve from Studio to avoid duplicate instances. App-specific deps (including
  * @framework/ui's own dompurify/vuedraggable/leaflet) resolve normally from the
  * app's own node_modules.
  */
