@@ -5,15 +5,11 @@ export type { RegisterFieldTypeOptions } from "../Fields/fieldTypes";
 
 // The file-upload primitive now lives in its own module — import upload
 // consumers, the headless engine, and the source seam from "@framework/ui/FileUpload".
-export { useDoctypeLayout } from "./useDoctypeLayout";
-export { useScriptedLayout } from "./useScriptedLayout";
 export { useChildRowModel } from "./useChildRowModel";
 export { buildLayoutFromMeta, compose } from "./buildLayoutFromMeta";
 export type { BuildLayoutOptions, Decorator } from "./buildLayoutFromMeta";
 export { fieldsToLayout } from "./fieldsToLayout";
 export { resolveLayout } from "./resolveLayout";
-export { applyMetaScript } from "./applyMetaScript";
-export type { MetaOp } from "./applyMetaScript";
 export { evaluateDependsOn } from "./dependsOn";
 export {
   flt,
@@ -38,12 +34,12 @@ export type {
   Column,
   FieldMeta,
   FieldNode,
+  FieldOverride,
   FieldUI,
   RawMetaField,
   FieldComponentProps,
   FieldComponentEmits,
 } from "./types";
-export type { UseDoctypeLayout } from "./useDoctypeLayout";
 export type {
   FltOptions,
   FormatNumberOptions,
