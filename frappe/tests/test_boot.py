@@ -1,5 +1,6 @@
 import frappe
 from frappe.desk.desk_views import DeskViews
+from frappe.desk.doctype.module_sidebar.test_module_sidebar import developer_mode
 from frappe.desk.doctype.note.note import _get_unseen_notes, get_unseen_notes, mark_as_seen
 from frappe.tests import IntegrationTestCase
 
@@ -120,16 +121,20 @@ class TestDeskViewModules(IntegrationTestCase):
 			self.assertEqual(rows[report.name]["module"], "Desk", msg=report.name)
 
 	def test_pages_carry_their_module(self):
-		page = frappe.get_doc(
-			{
-				"doctype": "Page",
-				"page_name": "test-module-page",
-				"title": "Test Module Page",
-				"module": "Desk",
-				"standard": "No",
-			}
-		)
-		page.insert(ignore_if_duplicate=True)
+		# `Page.validate` refuses *any* new page outside developer mode, `standard: No`
+		# included, and the test site does not have it on. Nothing is written to disk: the
+		# export is gated on `standard == "Yes"`.
+		with developer_mode():
+			page = frappe.get_doc(
+				{
+					"doctype": "Page",
+					"page_name": "test-module-page",
+					"title": "Test Module Page",
+					"module": "Desk",
+					"standard": "No",
+				}
+			)
+			page.insert(ignore_if_duplicate=True)
 
 		rows = DeskViews._build_user_pages_or_reports("Page", frappe.session.user)
 		self.assertEqual(rows[page.name]["module"], "Desk")
