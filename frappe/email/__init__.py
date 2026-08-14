@@ -86,7 +86,11 @@ def relink(name: str, reference_doctype: str | None = None, reference_name: str 
 
 	comm.reference_doctype = reference_doctype
 	comm.reference_name = reference_name
+	comm.status = "Linked"
 	relink_comment_cache(comm, old_reference_doctype, old_reference_name)
+
+	# the update above bypasses Document.save(), so no document event fires on its own
+	comm.run_method("on_communication_relinked")
 
 
 @frappe.whitelist()

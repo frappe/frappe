@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import json
+import textwrap
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
@@ -318,6 +319,58 @@ class TestCommunication(IntegrationTestCase):
 
 		self.assertIsNone(frappe.db.get_value("Communication", comm.name, "reference_name"))
 		self.assertEqual(comment_count("Note", old_note.name), 0)
+
+	def test_relink_runs_server_script(self):
+		"""relink() bypasses Document.save(), so it must announce the change itself for
+		anything to be able to react to a communication being relinked"""
+		frappe.delete_doc_if_exists("Note", "test relink server script - old")
+		frappe.delete_doc_if_exists("Note", "test relink server script - new")
+
+		old_note = frappe.get_doc(
+			{"doctype": "Note", "title": "test relink server script - old", "content": "old"}
+		).insert(ignore_permissions=True)
+		new_note = frappe.get_doc(
+			{"doctype": "Note", "title": "test relink server script - new", "content": "new"}
+		).insert(ignore_permissions=True)
+
+		comm = frappe.get_doc(
+			{
+				"doctype": "Communication",
+				"communication_type": "Communication",
+				"content": "Test relink server script",
+				"reference_doctype": "Note",
+				"reference_name": old_note.name,
+			}
+		).insert(ignore_permissions=True)
+
+		# the doc handed to the script must already carry the new reference and status
+		script_body = textwrap.dedent(
+			"""
+			if doc.status == "Linked":
+				frappe.db.set_value("Note", doc.reference_name, "content", "relinked")
+			"""
+		)
+
+		self.enterContext(self.enable_safe_exec())
+		frappe.get_doc("User", "Administrator").add_roles("Script Manager")
+		script = frappe.get_doc(
+			{
+				"doctype": "Server Script",
+				"name": "test_relink_marks_note",
+				"script_type": "DocType Event",
+				"reference_doctype": "Communication",
+				"doctype_event": "After Communication Relink",
+				"script": script_body,
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.client_cache.delete_value, "server_script_map")
+		self.addCleanup(script.delete, ignore_permissions=True)
+		frappe.client_cache.delete_value("server_script_map")
+
+		relink(comm.name, reference_doctype="Note", reference_name=new_note.name)
+
+		self.assertEqual(frappe.db.get_value("Note", new_note.name, "content"), "relinked")
+		self.assertEqual(frappe.db.get_value("Note", old_note.name, "content"), "old")
 
 	def test_save_updates_comment_count(self):
 		"""changing reference_doctype/reference_name via Document.save() (not just relink())
