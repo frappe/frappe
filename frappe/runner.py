@@ -1,30 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
-"""Frappe runner: the web app, realtime, and the background jobs in one process.
-
-    cd sites && ../env/bin/python -m frappe.runner
-
-Usually nginx sends the static files. Give --serve-assets if there is no proxy in
-front of this process, or set FRAPPE_SERVE_ASSETS=1 in the environment. If you do
-not, the desk UI has no assets.
-
-Uvicorn runs the ASGI app on the main thread. Realtime is part of that app if
-"socketio_backend" is "python-embedded". The background jobs run on a daemon
-thread with the no-fork worker of frappe. That worker also starts the scheduler.
-
-SIGHUP makes a smooth restart. The process stops to accept new work, completes
-the work that is in progress, and then starts itself again. Thus the memory
-starts from zero. SIGTERM and SIGINT do the same, but the process then stops.
-
---restart-after-requests and --restart-after-jobs keep that restart for the next
-quiet time. When the process is at a limit, it waits until it gets no web request
-for --restart-idle-seconds. Then it sends SIGHUP to itself. Set a limit to 0 to
-stop the automatic restart.
-
-Only a 2xx response increases the count of the web requests. The process ignores
-the realtime requests and the health checks in the count and in the idle time. A
-browser and a monitor send those requests continuously, thus a process that
-counts them is never idle.
+"""Frappe runner: the web app, realtime, the jobs, and the scheduler in one process.
+SIGHUP restarts, SIGTERM and SIGINT stop. All the signals support a graceful shutdown of the web app and the jobs.
 """
 
 from __future__ import annotations
@@ -45,6 +22,7 @@ from rq.worker import StopRequested
 
 import frappe
 from frappe.utils.background_jobs import FrappeWorkerNoFork, get_queue_list, get_redis_conn
+from frappe.utils.scheduler import start_scheduler
 
 logger = logging.getLogger("frappe.runner")
 
@@ -68,6 +46,7 @@ class Config:
 	verbose: bool
 	serve_assets: bool
 	web_threads: int
+	job_threads: int
 	restart_after_requests: int
 	restart_after_jobs: int
 	restart_idle_seconds: float
@@ -249,14 +228,35 @@ class Traffic:
 
 
 class BackgroundJobs:
-	"""The no-fork worker of frappe on a daemon thread. It stops between two jobs."""
+	"""The job threads of the runner. Each thread runs one job at a time."""
 
 	def __init__(self, config: Config, traffic: Traffic):
+		self.threads = [JobThread(config, traffic, index) for index in range(config.job_threads)]
+
+	def start(self) -> None:
+		for thread in self.threads:
+			thread.start()
+
+	def stop(self) -> None:
+		for thread in self.threads:
+			thread.stop()
+
+	def wait(self, timeout: float) -> None:
+		"""Wait for the threads. All of them together get the time of the timeout."""
+		deadline = time.monotonic() + timeout
+		for thread in self.threads:
+			thread.wait(max(0.0, deadline - time.monotonic()))
+
+
+class JobThread:
+	"""One no-fork worker of frappe on a daemon thread. It stops between two jobs."""
+
+	def __init__(self, config: Config, traffic: Traffic, index: int):
 		self.config = config
 		self.traffic = traffic
 		self.stopping = threading.Event()
 		self.worker = None
-		self.thread = threading.Thread(target=self._work, name="rq-worker", daemon=True)
+		self.thread = threading.Thread(target=self._work, name=f"rq-worker-{index}", daemon=True)
 
 	def start(self) -> None:
 		self.thread.start()
@@ -278,8 +278,22 @@ class BackgroundJobs:
 		while not self.stopping.is_set():
 			queues = get_queue_list(self.config.queue_names, build_queue_name=True)
 			self.worker = ThreadedWorker(queues, self.traffic, connection=get_redis_conn())
-			logger.info("background jobs on %s", ", ".join(q.name for q in self.worker.queues))
+			logger.info("%s: jobs on %s", self.thread.name, ", ".join(q.name for q in self.worker.queues))
 			self.worker.work(logging_level="INFO" if self.config.verbose else "WARNING")
+
+
+class Scheduler:
+	"""The scheduler of frappe on a daemon thread of its own.
+
+	start_scheduler holds a lock file of the bench. A second scheduler, in this
+	process or in a different one, sees the lock and stops immediately.
+	"""
+
+	def __init__(self):
+		self.thread = threading.Thread(target=start_scheduler, name="scheduler", daemon=True)
+
+	def start(self) -> None:
+		self.thread.start()
 
 
 class ThreadedWorker(FrappeWorkerNoFork):
@@ -317,6 +331,11 @@ class ThreadedWorker(FrappeWorkerNoFork):
 		# parent class sends SIGKILL to the process, and this also stops the web app.
 		logger.warning("kill_horse ignored: the jobs run on a thread, the job continues")
 
+	def start_frappe_scheduler(self):
+		# The Scheduler of the runner owns the scheduler. The method of the parent class
+		# starts one more thread at each maintenance cycle of RQ.
+		pass
+
 	def _install_signal_handlers(self):
 		# signal.signal() causes the error "signal only works in main thread".
 		pass
@@ -330,6 +349,7 @@ class Runner:
 		self.traffic = Traffic()
 		self.web = WebServer(config, self.traffic)
 		self.jobs = BackgroundJobs(config, self.traffic)
+		self.scheduler = Scheduler()
 		self.draining = threading.Event()
 		self.restarting = threading.Event()
 
@@ -340,6 +360,7 @@ class Runner:
 		if self.config.has_restart_limit:
 			RestartWatch(self.config, self.traffic, self.draining).start()
 		self.jobs.start()
+		self.scheduler.start()
 
 		# Uvicorn takes SIGINT and SIGTERM for the time of run(). It sends them to
 		# server.handle_exit, and it sends them again to the process at the end. The
@@ -414,13 +435,17 @@ class RestartWatch:
 				return
 
 
+class HelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
+	"""Show the default of each flag, and keep the line breaks of the description."""
+
+
 def main() -> None:
 	"""Read the command line and run the process. Each flag has the name of a field
 	of Config, thus the namespace of argparse is the config."""
-	parser = argparse.ArgumentParser(description=__doc__)
-	parser.add_argument("--host", default="127.0.0.1")
-	parser.add_argument("--port", type=int, default=8000)
-	parser.add_argument("--queue", help="comma separated queues; all of them when unset")
+	parser = argparse.ArgumentParser(description=__doc__, formatter_class=HelpFormatter)
+	parser.add_argument("--host", default="127.0.0.1", help="address to listen on")
+	parser.add_argument("--port", type=int, default=8000, help="port to listen on")
+	parser.add_argument("--queue", help="comma separated queues; unset means all of them")
 	parser.add_argument("--verbose", action="store_true", help="log each job and each realtime packet")
 	parser.add_argument(
 		"--serve-assets", action="store_true", help="send /assets and /files, as when there is no proxy"
@@ -428,6 +453,7 @@ def main() -> None:
 	parser.add_argument(
 		"--web-threads", type=int, default=0, help="concurrent web requests (0 = the default of frappe.asgi)"
 	)
+	parser.add_argument("--job-threads", type=int, default=1, help="concurrent background jobs")
 	parser.add_argument(
 		"--restart-after-requests", type=int, default=5000, help="web requests before a restart (0 = never)"
 	)
