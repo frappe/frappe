@@ -3,6 +3,7 @@
 
 
 import re
+import time
 
 import frappe
 from frappe.automation_engine import WAITING_STATES
@@ -12,11 +13,21 @@ DEFAULT_COMMIT_EVERY = 50
 QUEUE = "Automation Trigger Queue"
 # The RQ queue the drain job runs on; its timeout is what the drain has to finish inside.
 DRAIN_QUEUE = "default"
+# Share of that timeout a drain will spend claiming, leaving room for the last batch.
+DRAIN_TIME_BUDGET = 0.6
 
 
 def drain(batch_size=DEFAULT_BATCH_SIZE, max_batches=None, executor=None):
-	"""Claim and execute due waiting rows until the queue is drained."""
+	"""Claim and execute due waiting rows until the queue drains or the time budget runs out.
 
+	A drain that outlives its RQ timeout is killed mid-group: the group rolls back, its rows
+	sit Running until requeue_stale_running() releases them, and the _rekick() below never
+	runs - so the backlog stalls until the next scheduler tick. Stopping short of the timeout
+	and letting _rekick() start a fresh job keeps a large backlog moving in clean hops.
+
+	The bound is elapsed time rather than a batch count because no fixed count is safe for
+	both: 500 rows is seconds of SetFieldValue work and minutes of HTTP-calling work.
+	"""
 	from frappe.automation_engine import is_enabled
 
 	if not is_enabled():
@@ -25,6 +36,7 @@ def drain(batch_size=DEFAULT_BATCH_SIZE, max_batches=None, executor=None):
 		from frappe.automation_engine.runner import execute_automation as executor
 
 	promote_due_scheduled()
+	deadline = time.monotonic() + drain_time_budget()
 	batches = 0
 	while True:
 		names = claim_batch(batch_size)
@@ -34,9 +46,28 @@ def drain(batch_size=DEFAULT_BATCH_SIZE, max_batches=None, executor=None):
 		batches += 1
 		if max_batches and batches >= max_batches:
 			break
+		if time.monotonic() >= deadline:
+			break
 
 	if _has_due_pending():
 		_rekick()
+
+
+def drain_time_budget() -> float:
+	"""Seconds a drain may keep claiming new batches, from its queue's configured timeout.
+
+	Deliberately a fraction of the timeout, not all of it: the budget is only checked between
+	batches, so whichever batch is in flight when it expires still has to finish inside what
+	remains. Override with `automation_drain_seconds`.
+	"""
+	from frappe.utils.background_jobs import get_queues_timeout
+
+	# flt, not cint: a sub-second override is what makes this testable, and cint would floor
+	# it to zero and silently hand back the default instead.
+	configured = frappe.utils.flt(frappe.conf.get("automation_drain_seconds"))
+	if configured > 0:
+		return configured
+	return (get_queues_timeout().get(DRAIN_QUEUE) or 300) * DRAIN_TIME_BUDGET
 
 
 def execute_batch(executor, names):
