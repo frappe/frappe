@@ -1,7 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-
 import time
 from contextlib import contextmanager
 
@@ -514,8 +513,13 @@ def _settle_queue_row(row, status):
 	# Completed runs drop their queue row because detail lives in the Background Task result.
 	# A Waiting leg is done too - its future lives on in the resume row schedule_wait queued.
 	# Failed (stopped) and Skipped rows are retained for the purge sweep.
+	#
+	# Deleted with a plain DELETE rather than frappe.delete_doc: the row has no child tables
+	# and no on_trash, so the document path only adds link checks, cache and global search
+	# clearing, a feed entry, and - because `force` is not `delete_permanently` - a Deleted
+	# Document archive holding a copy of every queue row this site ever ran.
 	if status in ("Success", "Partially Failed", "Waiting"):
-		frappe.delete_doc(QUEUE, row.name, ignore_permissions=True, force=True)
+		frappe.db.delete(QUEUE, {"name": row.name})
 	else:
 		frappe.db.set_value(QUEUE, row.name, "status", status, update_modified=False)
 
