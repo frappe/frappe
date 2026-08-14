@@ -1697,6 +1697,7 @@ class Engine:
 		return docs
 
 	def get_user_permission_condition(self, table: Table, fieldname: str, docs: list[str]) -> Criterion:
+		"""Return the condition that allows values permitted for the current user."""
 		value_condition = table[fieldname].isin(docs)
 		if frappe.get_system_settings("apply_strict_user_permissions"):
 			return value_condition
