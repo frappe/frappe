@@ -23,6 +23,29 @@
 		<div
 			class="flex h-[calc(100vh-6rem)] w-full flex-col overflow-hidden rounded-xl bg-surface-elevation-1"
 		>
+			<!-- `bare` renders this slot straight into reka's `DialogContent` and no
+			     `DialogTitle` with it — but reka still points the content's
+			     `aria-labelledby`/`aria-describedby` at the ids a title and a
+			     description *would* have owned. Nothing owns them, so the references
+			     dangle and the dialog computes to the empty name (ticket 38). These
+			     two elements are what own those ids.
+
+			     `sr-only`, duplicating the pane's visible header, rather than wrapping
+			     that header in `Dialog.Title as-child`: the name is the dialog's, the
+			     header is the pane's, and the pane stays free to restyle it (ticket 39)
+			     without silently renaming the dialog or acquiring a hard requirement
+			     for a Dialog ancestor. It is the pattern frappe-ui's own SettingsDialog
+			     uses. -->
+			<Dialog.Title as-child>
+				<h1 class="sr-only">Page scripts · {{ dt }}</h1>
+			</Dialog.Title>
+			<Dialog.Description as-child>
+				<p class="sr-only">
+					Write and order the scripts that customize {{ dt }} record pages. They
+					replay on the record behind this dialog as you save.
+				</p>
+			</Dialog.Description>
+
 			<PageScriptEditor
 				v-model:script="script"
 				:dt="dt"

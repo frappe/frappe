@@ -107,7 +107,11 @@ export interface FileUploadDialogProps {
   transport?: UploadTransport;
   progressMode?: ProgressMode;
   folder?: string;
-  /** Accepted for API compatibility with the tabbed dialog; not rendered here. */
+  /**
+   * Names the dialog. Drawn nowhere on screen — this popover has no visible
+   * header — but rendered `sr-only` as its `DialogTitle`, which is where its
+   * accessible name comes from (ticket 38).
+   */
   title?: string;
   trayLabel?: string;
 }
