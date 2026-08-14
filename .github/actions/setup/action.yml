@@ -91,7 +91,7 @@ runs:
         sudo apt -qq update
         sudo apt -qq remove mysql-server mysql-client
         sudo apt -qq remove -y postgresql-client postgresql-client-16 postgresql-client-common
-        sudo apt -qq install libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev tesseract-ocr poppler-utils
+        sudo apt -qq install libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev
         echo "/usr/lib/postgresql/18/bin" >> $GITHUB_PATH
 
         if [ ! -f /tmp/wkhtmltox.deb ]; then

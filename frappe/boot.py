@@ -83,9 +83,6 @@ def get_bootinfo():
 		frappe.get_all("DocField", {"fieldname": "lft"}, pluck="parent")
 	)
 	bootinfo.tree_view_doctypes = get_tree_view_doctypes()
-	bootinfo.upload_first_doctypes = frappe.get_all(
-		"DocType", {"enable_upload_first_workflow": 1, "istable": 0}, pluck="name"
-	)
 	add_home_page(bootinfo, doclist)
 	load_translations(bootinfo)
 	add_timezone_info(bootinfo)

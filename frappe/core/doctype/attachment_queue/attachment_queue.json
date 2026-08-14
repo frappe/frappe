@@ -139,7 +139,7 @@
  "modified": "2026-08-11 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
- "name": "Document Queue",
+ "name": "Attachment Queue",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [

@@ -1,16 +1,16 @@
-frappe.provide("frappe.document_queue");
+frappe.provide("frappe.attachment_queue");
 
-frappe.document_queue.reviewable_statuses = ["Ready for Review", "Failed"];
+frappe.attachment_queue.reviewable_statuses = ["Ready for Review", "Failed"];
 
-frappe.document_queue.start_review = function (frm) {
+frappe.attachment_queue.start_review = function (frm) {
 	// The review module is lazy-loaded only when a review is started.
-	// document_queue_review_loader owns that load (via frappe.require), so this
+	// attachment_queue_review_loader owns that load (via frappe.require), so this
 	// shares the framework's asset cache with the feature's other two call sites
 	// — the form loader and list_view.js — instead of fetching the script again.
-	return frappe.document_queue_review_loader
+	return frappe.attachment_queue_review_loader
 		.load()
 		.then(() => {
-			frappe.document_queue_review.start_from_document_queue(frm);
+			frappe.attachment_queue_review.start_from_attachment_queue(frm);
 		})
 		.catch(() => {
 			frappe.msgprint(
@@ -19,7 +19,7 @@ frappe.document_queue.start_review = function (frm) {
 		});
 };
 
-frappe.ui.form.on("Document Queue", {
+frappe.ui.form.on("Attachment Queue", {
 	setup(frm) {
 		frm.set_query("document_type", () => ({
 			filters: {
@@ -33,10 +33,10 @@ frappe.ui.form.on("Document Queue", {
 		if (
 			!frm.is_new() &&
 			frm.doc.source_file &&
-			frappe.document_queue.reviewable_statuses.includes(frm.doc.status)
+			frappe.attachment_queue.reviewable_statuses.includes(frm.doc.status)
 		) {
 			frm.add_custom_button(__("Start Review"), () => {
-				frappe.document_queue.start_review(frm);
+				frappe.attachment_queue.start_review(frm);
 			});
 		}
 
