@@ -5,8 +5,10 @@ import frappe
 from frappe.automation_engine import WAITING_STATES
 from frappe.model.document import Document
 
+DOCTYPE = "Automation Trigger Queue"
 TABLE = "tabAutomation Trigger Queue"
 DEDUP_INDEX = "unique_dedup_key"
+LOOKUP_INDEX = "pending_lookup"
 
 
 class AutomationTriggerQueue(Document):
@@ -54,10 +56,15 @@ def ensure_dedup_indexes():
 	else:
 		_ensure_partial_dedup_index()
 
-	if not frappe.db.has_index(TABLE, "drain_scan"):
-		frappe.db.sql_ddl(
-			f"ALTER TABLE `{TABLE}` ADD INDEX `drain_scan` (`status`, `run_after`, `triggered_at`)"
-		)
+	# Claim scan: the drainer's ORDER BY triggered_at over due waiting rows.
+	frappe.db.add_index(DOCTYPE, ["status", "run_after", "triggered_at"], "drain_scan")
+
+	# Enqueue lookup: _pending_row resolves (automation, ref_doctype, ref_name) before every
+	# insert, and neither dedup index can serve it. MariaDB's is on the generated `dedup_key`
+	# column, which the query never names; the partial one elsewhere is only usable when the
+	# planner can match its predicate. Without this the lookup is a full table scan, so
+	# queuing N documents against one flow costs O(N^2) and a bulk schedule never finishes.
+	frappe.db.add_index(DOCTYPE, ["automation", "ref_doctype", "ref_name"], LOOKUP_INDEX)
 
 
 def _waiting_states_sql() -> str:
