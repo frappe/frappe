@@ -1,25 +1,23 @@
 frappe.provide("frappe.contacts");
 frappe.provide("frappe.ui.form");
 
-class PartyQuickEntryForm extends frappe.ui.form.QuickEntryForm {
+frappe.ui.form.AddressQuickEntryForm = class AddressQuickEntryForm extends frappe.ui.form.QuickEntryForm {
 	insert() {
-		if (this.party_frm) {
+		if (this.source_frm) {
 			this.dialog.doc.links = [
-				{ link_doctype: this.party_frm.doctype, link_name: this.party_frm.docname },
+				{ link_doctype: this.source_frm.doctype, link_name: this.source_frm.docname },
 			];
 		}
 		return super.insert();
 	}
 
 	open_form_if_not_list() {
-		if (!this.party_frm) return super.open_form_if_not_list();
-		this.party_frm.reload_doc();
+		if (!this.source_frm) return super.open_form_if_not_list();
+		this.source_frm.reload_doc();
 	}
-}
+};
 
-frappe.ui.form.AddressQuickEntryForm = class AddressQuickEntryForm extends PartyQuickEntryForm {};
-
-frappe.ui.form.ContactQuickEntryForm = class ContactQuickEntryForm extends PartyQuickEntryForm {
+frappe.ui.form.ContactQuickEntryForm = class ContactQuickEntryForm extends frappe.ui.form.AddressQuickEntryForm {
 	render_dialog() {
 		const fields = this.get_detail_fields().map(
 			({ table, value_field, primary_flag, ...field }) => field
@@ -204,7 +202,7 @@ class PartyLinkSection {
 				after_insert: () => frm.reload_doc(),
 			}).show();
 		} else {
-			frappe.new_doc(doctype, null, (quick_entry) => (quick_entry.party_frm = frm));
+			frappe.new_doc(doctype, null, (quick_entry) => (quick_entry.source_frm = frm));
 		}
 	}
 
