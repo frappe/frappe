@@ -1,7 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-"""Built-in automation actions. Each delegates to existing framework internals."""
 
 import frappe
 from frappe import _
@@ -20,7 +19,13 @@ class SetFieldValue(AutomationAction):
 	label = "Set Field Value"
 	description = "Set a field on the triggering document."
 	params_schema = [
-		{"fieldname": "field", "label": "Field", "fieldtype": "Select", "reqd": 1, "options_source": "doc_fields"},
+		{
+			"fieldname": "field",
+			"label": "Field",
+			"fieldtype": "Select",
+			"reqd": 1,
+			"options_source": "doc_fields",
+		},
 		{"fieldname": "value", "label": "Value", "fieldtype": "Data", "reqd": 1},
 	]
 
@@ -29,9 +34,7 @@ class SetFieldValue(AutomationAction):
 		if not field:
 			raise AutomationParamError(_("Field is required"), fieldname="field")
 		if not frappe.get_meta(doctype).get_field(field):
-			raise AutomationParamError(
-				_("{0} has no field {1}").format(doctype, field), fieldname="field"
-			)
+			raise AutomationParamError(_("{0} has no field {1}").format(doctype, field), fieldname="field")
 
 	def execute(self, doc, params, context):
 		field, value = params["field"], _render(params.get("value"), doc)
@@ -45,7 +48,13 @@ class CreateDocument(AutomationAction):
 	label = "Create Document"
 	description = "Create a new document, optionally seeded from the triggering document."
 	params_schema = [
-		{"fieldname": "doctype", "label": "Document Type", "fieldtype": "Link", "options": "DocType", "reqd": 1},
+		{
+			"fieldname": "doctype",
+			"label": "Document Type",
+			"fieldtype": "Link",
+			"options": "DocType",
+			"reqd": 1,
+		},
 		{"fieldname": "values", "label": "Field Values", "fieldtype": "JSON"},
 	]
 
@@ -66,9 +75,20 @@ class SendNotification(AutomationAction):
 	label = "Send Notification"
 	description = "Send an email or system notification, optionally from an Email Template."
 	params_schema = [
-		{"fieldname": "channel", "label": "Channel", "fieldtype": "Select", "options": "Email\nSystem", "reqd": 1},
+		{
+			"fieldname": "channel",
+			"label": "Channel",
+			"fieldtype": "Select",
+			"options": "Email\nSystem",
+			"reqd": 1,
+		},
 		{"fieldname": "recipients", "label": "Recipients", "fieldtype": "JSON", "reqd": 1},
-		{"fieldname": "email_template", "label": "Email Template", "fieldtype": "Link", "options": "Email Template"},
+		{
+			"fieldname": "email_template",
+			"label": "Email Template",
+			"fieldtype": "Link",
+			"options": "Email Template",
+		},
 		{"fieldname": "subject", "label": "Subject", "fieldtype": "Data"},
 		{"fieldname": "message", "label": "Message", "fieldtype": "Text Editor"},
 	]

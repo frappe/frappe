@@ -1,12 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-"""Action base class and hook-driven registry.
-
-Each action declares a `params_schema` that drives both server-side validation and the
-shared Vue builder. Apps contribute actions via the `automation_actions` hook (a list of
-dotted paths to AutomationAction subclasses).
-"""
 
 from typing import ClassVar
 

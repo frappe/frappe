@@ -1,17 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-"""Executes a claimed outbox row: creates a Background Task, runs each action under its own
-savepoint, and records the outcome. Bookkeeping never saves the Automation Flow doc - the
-circuit breaker lives in Redis, and auto-disable uses db.set_value(update_modified=False).
-
-Steps run off an `actions_snapshot` taken at run start and stored in the Background Task's
-arguments, never off the live rule - so a Wait that spans a config edit resumes against the
-plan it started with. `If` steps pick an arm and every step carrying that `parent_step` in
-the other arm is passed over; `Wait` steps park the run and queue a resume row. The arms an
-`If` chose are recorded with the run for the same reason the snapshot is: they are decisions
-the first leg made, not something to re-derive against a document that has since moved.
-"""
 
 import time
 from contextlib import contextmanager
@@ -59,8 +48,7 @@ def _execute_plan(rule, row, run, doc, steps, snapshot, event):
 			status = _run_plan(steps, rule, doc, context, snapshot, frappe.utils.cint(row.resume_from_idx))
 		return status, context
 	except Exception:
-		# Setting up the run (identity, trigger access, alias resolution) failed - there is no
-		# step to hang the error on, so record it as one.
+		# Setting up the run (identity, trigger access, alias resolution) failed .
 		_append_step(steps, {"step_key": "setup"}, len(steps), "Failed", frappe.get_traceback(), 0)
 		return "Failed", context
 	finally:

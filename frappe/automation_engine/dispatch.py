@@ -1,13 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-"""Hot path: match document lifecycle events against cached rules and enqueue the outbox.
-
-Called once from Document.run_method, adjacent to run_notifications / run_webhooks /
-run_server_script_for_doc_event. Nothing here issues a query before the cached map check,
-and queue_trigger runs inside the caller's save transaction; a single deduplicated drainer
-job is kicked after commit.
-"""
 
 import frappe
 from frappe.automation_engine import WAITING_STATES, is_enabled, queue_status

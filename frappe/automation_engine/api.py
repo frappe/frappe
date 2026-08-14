@@ -1,7 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-"""Whitelisted, permission-checked endpoints that drive the shared builder UI."""
 
 from contextlib import contextmanager
 

@@ -1,13 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-"""Custom event dispatch and durable event-wait subscriptions.
-
-A `WaitForEvent` step parks its run behind an `Automation Event Subscription` row and queues a
-resume row due at the timeout. Whichever side gets there first - an emitted event or the
-timeout sweep - claims the subscription under a row lock, so exactly one of the two outcomes
-is ever recorded and the resumed run reads that outcome rather than racing again.
-"""
 
 import frappe
 from frappe import _
