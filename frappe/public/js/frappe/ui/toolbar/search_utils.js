@@ -290,11 +290,11 @@ frappe.search.utils = {
 		var me = this;
 		var out = [];
 		var route;
-		Object.keys(frappe.boot.user.all_reports).forEach(function (item) {
+		Object.keys(frappe.boot.allowed_reports).forEach(function (item) {
 			const search_result = me.fuzzy_search(keywords, item, true);
 			var level = search_result.score;
 			if (level > 0) {
-				var report = frappe.boot.user.all_reports[item];
+				var report = frappe.boot.allowed_reports[item];
 				if (report.report_type == "Report Builder")
 					route = ["List", report.ref_doctype, "Report", item];
 				else route = ["query-report", item];

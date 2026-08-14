@@ -1468,7 +1468,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					if (r.message != this.report_name) {
 						// Rerender the reports dropdown,
 						// so that this report is included in the dropdown as well.
-						frappe.boot.user.all_reports[r.message] = {
+						frappe.boot.allowed_reports[r.message] = {
 							ref_doctype: this.doctype,
 							report_type: "Report Builder",
 							title: r.message,

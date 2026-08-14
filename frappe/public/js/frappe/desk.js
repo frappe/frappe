@@ -289,8 +289,34 @@ frappe.Application = class Application {
 		});
 		d.show();
 	}
+	// `frappe.boot.user.all_reports` held an exact duplicate of `frappe.boot.allowed_reports` --
+	// the same dict from the same call, so ~47 KB of every boot payload was spent twice. The key
+	// is gone from the payload; this getter keeps app code reading it working, and because it
+	// hands back the very same object, writes through it still land where they used to.
+	//
+	// Ends: delete this in the release after the one that ships it, by which point every app has
+	// had a version in which to move to `frappe.boot.allowed_reports`.
+	alias_removed_boot_keys() {
+		if (!frappe.boot.user || "all_reports" in frappe.boot.user) return;
+
+		let warned = false;
+		Object.defineProperty(frappe.boot.user, "all_reports", {
+			configurable: true,
+			get: () => {
+				if (!warned) {
+					warned = true;
+					console.warn(
+						"frappe.boot.user.all_reports is deprecated and will be removed; " +
+							"read frappe.boot.allowed_reports instead."
+					);
+				}
+				return frappe.boot.allowed_reports;
+			},
+		});
+	}
 	load_bootinfo() {
 		if (frappe.boot) {
+			this.alias_removed_boot_keys();
 			this.setup_workspaces();
 			this.load_custom_icons();
 			frappe.model.sync(frappe.boot.docs);
