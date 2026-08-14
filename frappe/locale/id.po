@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-05 21:52\n"
+"PO-Revision-Date: 2026-07-21 13:57\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Indonesian\n"
 "MIME-Version: 1.0\n"
@@ -17613,7 +17613,7 @@ msgstr "Tidak ada dari Kolom"
 #. Label of a Int field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "No of Rows (Max 500)"
-msgstr "Jumlah Baris (Maks 500)"
+msgstr ""
 
 #: frappe/__init__.py:1072 frappe/client.py:126 frappe/client.py:168
 msgid "No permission for {0}"

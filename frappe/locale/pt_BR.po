@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-05 21:52\n"
+"PO-Revision-Date: 2026-08-11 18:25\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -3812,7 +3812,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:128
 msgid "Both DocType and Name required"
-msgstr "Tanto o DocType quanto o Nome são obrigatórios"
+msgstr ""
 
 #: frappe/templates/includes/login/login.js:25
 #: frappe/templates/includes/login/login.js:97
@@ -4939,7 +4939,7 @@ msgstr "Apagar data de término, como não pode ser no passado para páginas pub
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:195
 msgid "Click On Customize to add your first widget"
-msgstr "Clique em Personalizar para adicionar seu primeiro widget"
+msgstr ""
 
 #: frappe/templates/emails/user_invitation.html:8
 msgid "Click below to get started:"
@@ -6094,7 +6094,7 @@ msgstr "Criar E-Mail do Usuário"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_start.html:16
 msgid "Create a New Format"
-msgstr "Criar um Novo Formato"
+msgstr ""
 
 #: frappe/public/js/frappe/form/reminders.js:9
 msgid "Create a Reminder"
@@ -8518,7 +8518,7 @@ msgstr "Arraste as colunas para definir a ordem. A largura da coluna é definida
 
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:3
 msgid "Drag elements from the sidebar to add. Drag them back to trash."
-msgstr "Arraste elementos da barra lateral para adicionar. Arraste-os de volta para a lixeira."
+msgstr ""
 
 #: frappe/public/js/workflow_builder/WorkflowBuilder.vue:296
 msgid "Drag to add state"
@@ -16378,7 +16378,7 @@ msgstr "Celular"
 #: frappe/tests/test_translate.py:89 frappe/tests/test_translate.py:91
 #: frappe/tests/test_translate.py:94
 msgid "Mobile No"
-msgstr "Celular"
+msgstr "Telefone Celular"
 
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
@@ -17556,7 +17556,7 @@ msgstr "Nenhum documento encontrado marcado com {0}"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:21
 msgid "No email account associated with the User. Please add an account under User > Email Inbox."
-msgstr "Nenhuma conta de e-mail associada ao usuário. Por favor, adicione uma conta em Usuário > Caixa de entrada de e-mail."
+msgstr ""
 
 #: frappe/core/api/user_invitation.py:17
 msgid "No email addresses to invite"
@@ -17613,7 +17613,7 @@ msgstr "Nenhuma das Colunas"
 #. Label of a Int field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "No of Rows (Max 500)"
-msgstr "Número de Linhas (Máx. 500)"
+msgstr ""
 
 #: frappe/__init__.py:1072 frappe/client.py:126 frappe/client.py:168
 msgid "No permission for {0}"
@@ -19771,7 +19771,7 @@ msgstr "Por favor, insira seu e-mail e sua mensagem para que possamos retornar o
 
 #: frappe/www/update-password.html:232
 msgid "Please enter the password"
-msgstr "Por favor, insira a senha"
+msgstr ""
 
 #: frappe/public/js/frappe/desk.js:211
 msgctxt "Email Account"
@@ -23772,7 +23772,7 @@ msgstr "Selecione o Logo da Marca primeiro."
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:110
 msgid "Select a DocType to make a new format"
-msgstr "Selecione um Doctype para criar um novo formato"
+msgstr ""
 
 #: frappe/integrations/doctype/webhook/webhook.py:133
 msgid "Select a document to check if it meets conditions."
@@ -27869,7 +27869,7 @@ msgstr "URI do token"
 
 #: frappe/utils/oauth.py:213
 msgid "Token is missing"
-msgstr "O token está ausente"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:744
 msgid "Tomorrow"
@@ -30661,7 +30661,7 @@ msgstr "Você não tem permissão para acessar este recurso. Entre para acessar"
 
 #: frappe/public/js/frappe/form/sidebar/document_follow.js:131
 msgid "You are now following this document. You will receive daily updates via email. You can change this in User Settings."
-msgstr "Agora você está seguindo este documento. Você receberá atualizações diárias via e-mail. Você pode alterar isso nas Configurações do Usuário."
+msgstr ""
 
 #: frappe/core/doctype/installed_applications/installed_applications.py:125
 msgid "You are only allowed to update order, do not remove or add apps."
@@ -30678,7 +30678,7 @@ msgstr "Você anexou {0}"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:743
 msgid "You can add dynamic properties from the document by using Jinja templating."
-msgstr "Você pode adicionar propriedades dinâmicas do documento utilizando templates Jinja."
+msgstr ""
 
 #: frappe/printing/doctype/letter_head/letter_head.js:43
 msgid "You can also access wkhtmltopdf variables (valid only in PDF print):"
@@ -30954,7 +30954,7 @@ msgstr "Você não viu {0}"
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:192
 msgid "You haven't added any Dashboard Charts or Number Cards yet."
-msgstr "Você ainda não adicionou nenhum Gráfico de Painel ou Cartão Numérico."
+msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:508
 msgid "You haven't created a {0} yet"

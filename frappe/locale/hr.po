@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-15 13:51\n"
+"PO-Revision-Date: 2026-07-23 14:34\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -1475,7 +1475,7 @@ msgstr "Dodaj Red Ispod Trenutnog Reda"
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:286
 msgid "Add a {0} Chart"
-msgstr "+ {0} Grafikon"
+msgstr " {0} Grafikon"
 
 #: frappe/public/js/form_builder/components/Section.vue:271
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:115
@@ -1536,7 +1536,7 @@ msgstr "Dodaj ovoj aktivnosti slanjem na {0}"
 
 #: frappe/public/js/frappe/views/kanban/kanban_column.html:20
 msgid "Add {0}"
-msgstr "{0}"
+msgstr "Dodaj {0}"
 
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:66
 msgid "Add/Update Filter"
@@ -3981,7 +3981,7 @@ msgstr "Napravite vlastite izvještaje, formate za ispisivanje i nadzorne ploče
 
 #: frappe/workflow/doctype/workflow/workflow_list.js:18
 msgid "Build {0}"
-msgstr "Izgradnja {0}"
+msgstr "Izgradi {0}"
 
 #: frappe/templates/includes/footer/footer_powered.html:1
 msgid "Built on {0}"
@@ -6157,7 +6157,7 @@ msgstr "Izradi novi zapis"
 #: frappe/public/js/frappe/list/list_view.js:511
 #: frappe/public/js/frappe/web_form/web_form_list.js:230
 msgid "Create a new {0}"
-msgstr "Izradi novi {0}"
+msgstr "Izradi {0}"
 
 #: frappe/www/login.html:161
 msgid "Create a {0} Account"
@@ -6183,7 +6183,7 @@ msgstr "Izradi ili uredite tijek  rada"
 
 #: frappe/public/js/frappe/list/list_view.js:514
 msgid "Create your first {0}"
-msgstr "Izradi svoj prvi {0}"
+msgstr "Izradi {0}"
 
 #: frappe/workflow/doctype/workflow/workflow.js:16
 msgid "Create your workflow visually using the Workflow Builder."
@@ -16092,7 +16092,7 @@ msgstr "Značenje različitih tipova dopuštenja"
 #: frappe/website/doctype/web_page_view/web_page_view.json
 #: frappe/website/report/website_analytics/website_analytics.js:40
 msgid "Medium"
-msgstr "Srednje"
+msgstr "Medij"
 
 #. Option for the 'Type' (Select) field in DocType 'Communication'
 #. Option for the 'Event Category' (Select) field in DocType 'Event'

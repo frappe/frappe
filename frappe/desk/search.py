@@ -17,6 +17,8 @@ from frappe.permissions import has_permission
 from frappe.utils import cint, cstr, unique
 from frappe.utils.data import make_filter_tuple
 
+PAGE_LENGTH_FOR_LINK_VALIDATION = 25_000
+
 
 def sanitize_searchfield(searchfield: str):
 	if not searchfield:
@@ -67,7 +69,7 @@ def search_widget(
 	start: int = 0,
 	page_length: int = 10,
 	filters: str | None | dict | list = None,
-	filter_fields=None,
+	filter_fields: str | None = None,
 	as_dict: bool = False,
 	reference_doctype: str | None = None,
 	ignore_user_permissions: bool = False,
@@ -89,15 +91,24 @@ def search_widget(
 		query = standard_queries[doctype][-1]
 
 	if query:  # Query = custom search query i.e. python function
+		meta = frappe.get_meta(doctype)
+		# translated doctypes are matched against translated values below, so the query must
+		# not filter or truncate on the untranslated ones
+		query_txt = "" if meta.translated_doctype else txt
+		query_page_length = PAGE_LENGTH_FOR_LINK_VALIDATION if meta.translated_doctype else page_length
+
+		if ignore_user_permissions:
+			frappe.flags.ignore_user_permissions_for_doctype = doctype
+
 		try:
 			is_whitelisted(frappe.get_attr(query))
-			return frappe.call(
+			values = frappe.call(
 				query,
 				doctype,
-				txt,
+				query_txt,
 				searchfield,
 				start,
-				page_length,
+				query_page_length,
 				filters,
 				as_dict=as_dict,
 				reference_doctype=reference_doctype,
@@ -114,6 +125,15 @@ def search_widget(
 					http_status_code=404,
 				)
 				return []
+		finally:
+			frappe.flags.ignore_user_permissions_for_doctype = None
+
+		if meta.translated_doctype:
+			values = filter_translated(values, txt, as_dict)
+			values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
+			values = values[:page_length]
+
+		return values
 
 	meta = frappe.get_meta(doctype)
 
@@ -206,15 +226,7 @@ def search_widget(
 	)
 
 	if meta.translated_doctype:
-		# Filtering the values array so that query is included in very element
-		values = (
-			result
-			for result in values
-			if any(
-				re.search(f"{re.escape(txt)}.*", _(cstr(value)) or "", re.IGNORECASE)
-				for value in (result.values() if as_dict else result)
-			)
-		)
+		values = filter_translated(values, txt, as_dict)
 
 	# Sorting the values array so that relevant results always come first
 	# This will first bring elements on top in which query is a prefix of element
@@ -288,8 +300,20 @@ def relevance_sorter(key, query, as_dict):
 	return (cstr(value).casefold().startswith(query.casefold()) is not True, value)
 
 
+def filter_translated(values, txt: str, as_dict: bool) -> list:
+	"""Return only those results where txt matches any translated field value."""
+	return [
+		result
+		for result in values
+		if any(
+			re.search(f"{re.escape(txt)}.*", _(cstr(value)) or "", re.IGNORECASE)
+			for value in (result.values() if as_dict else result)
+		)
+	]
+
+
 @frappe.whitelist()
-def get_names_for_mentions(search_term):
+def get_names_for_mentions(search_term: str):
 	users_for_mentions = frappe.cache.get_value("users_for_mentions", get_users_for_mentions)
 	user_groups = frappe.cache.get_value("user_groups", get_user_groups)
 
@@ -325,10 +349,12 @@ def get_user_groups():
 
 
 @frappe.whitelist()
-def get_link_title(doctype, docname):
+def get_link_title(doctype: str, docname: str | int):
 	meta = frappe.get_meta(doctype)
 
 	if meta.show_title_field_in_link:
-		return frappe.db.get_value(doctype, docname, meta.title_field)
+		doc = frappe.get_lazy_doc(doctype, docname)
+		doc.check_permission()
+		return doc.get(meta.title_field)
 
 	return docname

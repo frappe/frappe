@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-05 21:52\n"
+"PO-Revision-Date: 2026-08-04 17:32\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -4812,7 +4812,7 @@ msgstr "Comprobar enlaces rotos"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:1
 msgid "Check columns to select, drag to set order."
-msgstr "Marque las columnas para seleccionar, arrastrar para establecer el orden."
+msgstr ""
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:457
 msgid "Check the Error Log for more information: {0}"
@@ -4979,7 +4979,7 @@ msgstr "Borrando la fecha de finalización, ya que no puede ser en el pasado par
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:195
 msgid "Click On Customize to add your first widget"
-msgstr "Haga clic en Personalizar para agregar su primer widget"
+msgstr ""
 
 #: frappe/templates/emails/user_invitation.html:8
 msgid "Click below to get started:"
@@ -5007,7 +5007,7 @@ msgstr "Haga clic en un archivo para seleccionarlo."
 
 #: frappe/templates/emails/login_with_email_link.html:19
 msgid "Click on the button to log in to {0}"
-msgstr "Haga clic en el botón para iniciar sesión en {0}"
+msgstr ""
 
 #: frappe/templates/emails/data_deletion_approval.html:2
 msgid "Click on the link below to approve the request"
@@ -8558,7 +8558,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:3
 msgid "Drag elements from the sidebar to add. Drag them back to trash."
-msgstr "Arrastra elementos desde la barra lateral para añadirlos. Arrástralos de vuelta a la papelera."
+msgstr ""
 
 #: frappe/public/js/workflow_builder/WorkflowBuilder.vue:296
 msgid "Drag to add state"
@@ -16401,7 +16401,7 @@ msgstr "Faltan permisos"
 
 #: frappe/www/update-password.html:107 frappe/www/update-password.html:114
 msgid "Missing Value"
-msgstr "Falta un valor"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/field_group.js:164
 #: frappe/public/js/frappe/widgets/widget_dialog.js:349
@@ -18624,7 +18624,7 @@ msgstr "Abrir un módulo o herramienta"
 
 #: frappe/public/js/print_format_builder/Preview.vue:17
 msgid "Open in a new tab"
-msgstr "Abrir en una nueva pestaña"
+msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:1242
 msgctxt "Description of a list view shortcut"
@@ -20312,7 +20312,7 @@ msgstr "Vista previa de los nombres generados"
 
 #: frappe/public/js/print_format_builder/Preview.vue:103
 msgid "Preview type"
-msgstr "Tipo de vista previa"
+msgstr ""
 
 #: frappe/email/doctype/email_group/email_group.js:90
 msgid "Preview:"
@@ -25293,7 +25293,7 @@ msgstr "Rebotes livianos"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:4
 msgid "Some columns might get cut off when printing to PDF. Try to keep number of columns under 10."
-msgstr "Algunas columnas pueden quedar cortadas al imprimir en PDF. Intente mantener el número de columnas por debajo de 10."
+msgstr ""
 
 #. Description of the 'Sent Folder Name' (Data) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_domain/email_domain.json
@@ -30225,7 +30225,7 @@ msgstr "Ancho"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:2
 msgid "Widths can be set in px or %."
-msgstr "La anchura puede fijarse en px o en %."
+msgstr ""
 
 #. Label of a Check field in DocType 'Report Filter'
 #: frappe/core/doctype/report_filter/report_filter.json
@@ -30732,7 +30732,7 @@ msgstr "También puede acceder a las variables wkhtmltopdf (válidas solo en la 
 
 #: frappe/templates/emails/new_user.html:22
 msgid "You can also copy-paste following link in your browser"
-msgstr "También puede copiar y pegar el siguiente enlace en su navegador"
+msgstr ""
 
 #: frappe/templates/emails/download_data.html:9
 msgid "You can also copy-paste this "
@@ -31000,7 +31000,7 @@ msgstr "No has visto a {0}"
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:192
 msgid "You haven't added any Dashboard Charts or Number Cards yet."
-msgstr "Aún no ha añadido ningún Tablero de datos o ningún Widget numérico."
+msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:508
 msgid "You haven't created a {0} yet"

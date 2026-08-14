@@ -51,7 +51,7 @@ from .utils.jinja import (
 )
 from .utils.lazy_loader import lazy_import
 
-__version__ = "15.8.1"
+__version__ = "15.116.0"
 __title__ = "Frappe Framework"
 
 # This if block is never executed when running the code. It is only used for
@@ -725,6 +725,7 @@ def sendmail(
 	email_read_tracker_url=None,
 	x_priority: Literal[1, 3, 5] = 3,
 	email_headers=None,
+	redact_message_after_send=False,
 ) -> Optional["EmailQueue"]:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -754,6 +755,7 @@ def sendmail(
 	:param with_container: Wraps email inside a styled container
 	:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
 	:param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
+	:param redact_message_after_send: Replace the message body with a placeholder once sent, for emails carrying sensitive content.
 	"""
 
 	if recipients is None:
@@ -811,6 +813,7 @@ def sendmail(
 		email_read_tracker_url=email_read_tracker_url,
 		x_priority=x_priority,
 		email_headers=email_headers,
+		redact_message_after_send=redact_message_after_send,
 	)
 
 	# build email queue and send the email if send_now is True.

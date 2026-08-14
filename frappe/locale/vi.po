@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-05 21:52\n"
+"PO-Revision-Date: 2026-08-11 18:25\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Vietnamese\n"
 "MIME-Version: 1.0\n"
@@ -9574,7 +9574,7 @@ msgstr "Nhập loại biểu mẫu"
 #: frappe/public/js/frappe/ui/messages.js:100
 msgctxt "Title of prompt dialog"
 msgid "Enter Value"
-msgstr "Nhập Giá trị"
+msgstr "Giá trị nhập"
 
 #: frappe/public/js/frappe/form/form_tour.js:60
 msgid "Enter a name for this {0}"
@@ -16360,7 +16360,7 @@ msgstr "Thiếu quyền"
 
 #: frappe/www/update-password.html:107 frappe/www/update-password.html:114
 msgid "Missing Value"
-msgstr "Thiếu giá trị"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/field_group.js:164
 #: frappe/public/js/frappe/widgets/widget_dialog.js:349
@@ -17615,7 +17615,7 @@ msgstr "Số cột"
 #. Label of a Int field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "No of Rows (Max 500)"
-msgstr "Số hàng (Tối đa 500)"
+msgstr ""
 
 #: frappe/__init__.py:1072 frappe/client.py:126 frappe/client.py:168
 msgid "No permission for {0}"
@@ -18581,7 +18581,7 @@ msgstr "Mở một mô-đun hoặc công cụ"
 
 #: frappe/public/js/print_format_builder/Preview.vue:17
 msgid "Open in a new tab"
-msgstr "Mở trong tab mới"
+msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:1242
 msgctxt "Description of a list view shortcut"
@@ -20269,7 +20269,7 @@ msgstr "Xem trước tên được tạo"
 
 #: frappe/public/js/print_format_builder/Preview.vue:103
 msgid "Preview type"
-msgstr "Loại xem trước"
+msgstr ""
 
 #: frappe/email/doctype/email_group/email_group.js:90
 msgid "Preview:"
@@ -24358,7 +24358,7 @@ msgstr "Đặt quyền"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:473
 msgid "Set Properties"
-msgstr "Đặt thuộc tính"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Notification'
 #. Label of a Select field in DocType 'Notification'
@@ -25250,7 +25250,7 @@ msgstr "Nảy mềm"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:4
 msgid "Some columns might get cut off when printing to PDF. Try to keep number of columns under 10."
-msgstr "Một số cột có thể bị cắt khi in sang PDF. Cố gắng giữ số cột dưới 10."
+msgstr ""
 
 #. Description of the 'Sent Folder Name' (Data) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_domain/email_domain.json
@@ -26813,7 +26813,7 @@ msgstr ""
 
 #: frappe/core/doctype/user_type/user_type.py:78
 msgid "The field {0} is mandatory"
-msgstr "Trường {0} là bắt buộc"
+msgstr ""
 
 #: frappe/core/doctype/file/file.py:177
 msgid "The fieldname you've specified in Attached To Field is invalid"
@@ -26909,7 +26909,7 @@ msgstr "Tài nguyên bạn đang tìm kiếm không có sẵn"
 
 #: frappe/core/doctype/user_type/user_type.py:82
 msgid "The role {0} should be a custom role."
-msgstr "Vai trò {0} phải là một vai trò tùy chỉnh."
+msgstr ""
 
 #: frappe/utils/response.py:331
 msgid "The system is being updated. Please refresh again after a few moments."
@@ -30181,7 +30181,7 @@ msgstr "Chiều rộng"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:2
 msgid "Widths can be set in px or %."
-msgstr "Chiều rộng có thể đặt bằng px hoặc %."
+msgstr ""
 
 #. Label of a Check field in DocType 'Report Filter'
 #: frappe/core/doctype/report_filter/report_filter.json
@@ -30688,7 +30688,7 @@ msgstr "Bạn cũng có thể truy cập các biến wkhtmltopdf (chỉ hợp l�
 
 #: frappe/templates/emails/new_user.html:22
 msgid "You can also copy-paste following link in your browser"
-msgstr "Bạn cũng có thể sao chép-dán liên kết sau vào trình duyệt của mình"
+msgstr ""
 
 #: frappe/templates/emails/download_data.html:9
 msgid "You can also copy-paste this "
@@ -30956,7 +30956,7 @@ msgstr "Bạn chưa thấy {0}"
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:192
 msgid "You haven't added any Dashboard Charts or Number Cards yet."
-msgstr "Bạn chưa thêm bất kỳ Biểu đồ bảng điều khiển hoặc Thẻ số nào."
+msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:508
 msgid "You haven't created a {0} yet"

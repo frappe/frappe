@@ -192,7 +192,7 @@ def queue_submission(doc: Document, action: str, alert: bool = True):
 
 
 @frappe.whitelist()
-def get_latest_submissions(doctype, docname):
+def get_latest_submissions(doctype: str, docname: str | int):
 	# NOTE: not used creation as orderby intentianlly as we have used update_modified=False everywhere
 	# hence assuming modified will be equal to creation for submission queue documents
 

@@ -11,6 +11,7 @@ import frappe
 from frappe import _
 from frappe.integrations.utils import make_get_request
 from frappe.model.document import Document
+from frappe.www.login import sanitize_redirect
 
 if any((os.getenv("CI"), frappe.conf.developer_mode, frappe.conf.allow_tests)):
 	# Disable mandatory TLS in developer mode and tests
@@ -87,9 +88,13 @@ class ConnectedApp(Document):
 		)
 
 	@frappe.whitelist()
-	def initiate_web_application_flow(self, user=None, success_uri=None):
+	def initiate_web_application_flow(self, user: str | None = None, success_uri: str | None = None):
 		"""Return an authorization URL for the user. Save state in Token Cache."""
 		user = user or frappe.session.user
+		if user != frappe.session.user:
+			self.check_permission("write")
+		success_uri = sanitize_redirect(success_uri) if getattr(frappe.local, "request", None) else None
+
 		oauth = self.get_oauth2_session(user, init=True)
 		query_params = self.get_query_params()
 		authorization_url, state = oauth.authorization_url(self.authorization_uri, **query_params)
@@ -183,7 +188,7 @@ class ConnectedApp(Document):
 
 
 @frappe.whitelist(methods=["GET"], allow_guest=True)
-def callback(code=None, state=None):
+def callback(code: str | None = None, state: str | None = None):
 	"""Handle client's code.
 
 	Called during the oauthorization flow by the remote oAuth2 server to
@@ -222,7 +227,7 @@ def callback(code=None, state=None):
 
 
 @frappe.whitelist()
-def has_token(connected_app, connected_user=None):
+def has_token(connected_app: str, connected_user: str | None = None):
 	app = frappe.get_doc("Connected App", connected_app)
 	token_cache = app.get_token_cache(connected_user or frappe.session.user)
 	return bool(token_cache and token_cache.get_password("access_token", False))

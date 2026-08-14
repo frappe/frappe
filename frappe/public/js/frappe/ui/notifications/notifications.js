@@ -246,16 +246,23 @@ class NotificationsView extends BaseNotificationsView {
 		let doc_link = this.get_item_link(notification_log);
 
 		let read_class = notification_log.read ? "" : "unread";
-		let message = notification_log.subject;
+		// Title/Description are the canonical fields; fall back to the legacy subject/content.
+		let message = notification_log.title || notification_log.subject || "";
 
 		let title = message.match(/<b class="subject-title">(.*?)<\/b>/);
 		message = title
 			? message.replace(title[1], frappe.ellipsis(strip_html(title[1]), 100))
 			: message;
 
+		let description = notification_log.description || "";
+		let description_html = description
+			? `<div class="notification-description text-muted">${description}</div>`
+			: "";
+
 		let timestamp = frappe.datetime.comment_when(notification_log.creation);
 		let message_html = `<div class="message">
 			<div>${message}</div>
+			${description_html}
 			<div class="notification-timestamp text-muted">
 				${timestamp}
 			</div>

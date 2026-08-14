@@ -29,6 +29,7 @@ class ContactUsSettings(Document):
 		phone: DF.Data | None
 		pincode: DF.Data | None
 		query_options: DF.SmallText | None
+		send_acknowledgement_email: DF.Check
 		skype: DF.Data | None
 		state: DF.Data | None
 

@@ -15,6 +15,7 @@ from werkzeug.test import TestResponse
 
 import frappe
 from frappe.installer import update_site_config
+from frappe.tests.ui_test_helpers import whitelist_for_tests
 from frappe.tests.utils import FrappeTestCase, patch_hooks
 from frappe.utils import cint, get_site_url, get_test_client, get_url
 
@@ -376,6 +377,15 @@ class TestMethodAPI(FrappeAPITestCase):
 
 		self.assertEqual(response.json["message"], test_data)
 
+	def test_unserializable_response_v1(self):
+		method = "frappe.tests.test_api.test_unserializable_response"
+
+		with suppress_stdout():
+			response = self.get(self.method(method), {"sid": self.sid})
+
+		self.assertEqual(response.status_code, 500)
+		self.assertEqual(response.json["exc_type"], "TypeError")
+
 
 class TestReadOnlyMode(FrappeAPITestCase):
 	"""During migration if read only mode can be enabled.
@@ -526,7 +536,7 @@ def generate_admin_keys():
 
 
 @frappe.whitelist()
-def test(*, fail=False, handled=True, message="Failed"):
+def test(*, fail: int | bool = False, handled: int | bool = True, message: str = "Failed"):
 	if fail:
 		if handled:
 			frappe.throw(message)
@@ -537,5 +547,10 @@ def test(*, fail=False, handled=True, message="Failed"):
 
 
 @frappe.whitelist(allow_guest=True)
-def test_array(data):
+def test_array(data: typing.Any):
 	return data
+
+
+@whitelist_for_tests
+def test_unserializable_response():
+	frappe.response["value"] = object()

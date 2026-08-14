@@ -251,6 +251,7 @@ frappe.ui.form.PrintView = class {
 		let is_standard_but_editable = print_format.name && print_format.custom_format;
 
 		if (is_standard_but_editable) {
+			frappe.model.clear_doc("Print Format", print_format.name);
 			frappe.set_route("Form", "Print Format", print_format.name);
 			return;
 		}
@@ -775,8 +776,8 @@ frappe.ui.form.PrintView = class {
 			format = this.selected_format();
 		}
 
-		if (locals["Print Format"] && locals["Print Format"][format]) {
-			print_format = locals["Print Format"][format];
+		if (locals[":Print Format"] && locals[":Print Format"][format]) {
+			print_format = locals[":Print Format"][format];
 		}
 
 		return print_format;

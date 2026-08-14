@@ -5,7 +5,7 @@ import json
 import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
-from frappe.website.doctype.web_form.web_form import accept
+from frappe.website.doctype.web_form.web_form import accept, get_link_options
 from frappe.website.serve import get_response_content
 
 test_dependencies = ["Web Form"]
@@ -76,3 +76,31 @@ class TestWebForm(FrappeTestCase):
 			self.normalize_html('<meta property="og:image" content="https://frappe.io/files/frappe.png">'),
 			content,
 		)
+
+	def test_link_options_do_not_reload_web_form(self):
+		web_form = frappe.get_doc(
+			{
+				"doctype": "Web Form",
+				"title": "Team Meeting Signup",
+				"route": "team-meeting-signup",
+				"doc_type": "Event",
+				"published": 1,
+				"login_required": 1,
+				"web_form_fields": [
+					{
+						"doctype": "Web Form Field",
+						"fieldname": "reference_doctype",
+						"fieldtype": "Link",
+						"label": "Reference Document Type",
+						"options": "DocType",
+					}
+				],
+			}
+		).insert()
+		self.addCleanup(frappe.clear_document_cache, "Web Form", web_form.name)
+
+		get_link_options(web_form.name, "DocType")
+
+		with self.assertQueryCount(6):
+			for _ in range(5):
+				get_link_options(web_form.name, "DocType")

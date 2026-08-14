@@ -173,7 +173,7 @@ def normalize_result(result, columns):
 
 
 @frappe.whitelist()
-def get_script(report_name):
+def get_script(report_name: str):
 	report = get_report_doc(report_name)
 	module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
 
@@ -272,6 +272,8 @@ def _run(
 					filters = json.loads(filters)
 
 				dn = filters.pop("prepared_report_name", None)
+				if dn:
+					frappe.has_permission("Prepared Report", "read", dn, throw=True)
 			else:
 				dn = ""
 			result = get_prepared_report_result(report, filters, dn, user)
@@ -654,7 +656,7 @@ def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
 
 
 @frappe.whitelist()
-def get_data_for_custom_field(doctype, field, names=None):
+def get_data_for_custom_field(doctype: str, field: str, names: str | list[str] | None = None):
 	if not frappe.has_permission(doctype, "read"):
 		frappe.throw(_("Not Permitted to read {0}").format(_(doctype)), frappe.PermissionError)
 
@@ -701,7 +703,7 @@ def get_data_for_custom_report(columns, result):
 
 
 @frappe.whitelist()
-def save_report(reference_report, report_name, columns, filters):
+def save_report(reference_report: str, report_name: str, columns: str, filters: str):
 	report_doc = get_report_doc(reference_report)
 
 	docname = frappe.db.exists(

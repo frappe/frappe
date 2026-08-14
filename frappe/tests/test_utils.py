@@ -227,6 +227,47 @@ class TestFilters(FrappeTestCase):
 		}
 		self.assertFalse(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "today")]))
 
+	def test_between_operator(self):
+		"""Test 'between' operator for inclusive range checks."""
+		# Numbers
+		self.assertTrue(compare(5, "between", [1, 10]))
+		self.assertTrue(compare(1, "between", [1, 10]))
+		self.assertTrue(compare(10, "between", [1, 10]))
+		self.assertFalse(compare(0, "between", [1, 10]))
+		self.assertFalse(compare(11, "between", [1, 10]))
+		self.assertFalse(compare(None, "between", [1, 10]))
+
+		# Numbers with fieldtype casting
+		self.assertTrue(compare("5", "between", ["1", "10"], "Int"))
+		self.assertFalse(compare("0", "between", ["1", "10"], "Int"))
+
+		# Dates
+		self.assertTrue(compare("2024-06-15", "between", ["2024-01-01", "2024-12-31"], "Date"))
+		self.assertTrue(compare("2024-01-01", "between", ["2024-01-01", "2024-12-31"], "Date"))
+		self.assertTrue(compare("2024-12-31", "between", ["2024-01-01", "2024-12-31"], "Date"))
+		self.assertFalse(compare("2023-12-31", "between", ["2024-01-01", "2024-12-31"], "Date"))
+		self.assertFalse(compare(None, "between", ["2024-01-01", "2024-12-31"], "Date"))
+
+		# Datetime: date-only upper bound includes the full final day (matches DB between)
+		self.assertTrue(compare("2024-12-31 15:30:00", "between", ["2024-01-01", "2024-12-31"], "Datetime"))
+		self.assertTrue(compare("2024-12-31 23:59:59", "between", ["2024-01-01", "2024-12-31"], "Datetime"))
+		self.assertFalse(compare("2025-01-01 00:00:00", "between", ["2024-01-01", "2024-12-31"], "Datetime"))
+		# Explicit datetime upper bound is not expanded to end-of-day
+		self.assertFalse(
+			compare(
+				"2024-12-31 15:30:00",
+				"between",
+				["2024-01-01 00:00:00", "2024-12-31 12:00:00"],
+				"Datetime",
+			)
+		)
+
+		# evaluate_filters: API lowercase and UI capitalized form
+		doc = {"doctype": "User", "birth_date": "2024-06-15"}
+		self.assertTrue(evaluate_filters(doc, [("birth_date", "between", ["2024-01-01", "2024-12-31"])]))
+		self.assertTrue(evaluate_filters(doc, [("birth_date", "Between", ["2024-01-01", "2024-12-31"])]))
+		self.assertFalse(evaluate_filters(doc, [("birth_date", "between", ["2025-01-01", "2025-12-31"])]))
+
 	def test_is_operator(self):
 		"""Test 'is' operator for checking if values are set or not set."""
 		# Test "is set" with different fieldtypes and values

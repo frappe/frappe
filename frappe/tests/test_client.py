@@ -177,6 +177,15 @@ class TestClient(FrappeTestCase):
 				validate_link("User", "Guest", fields=["enabled"]), {"name": "Guest", "enabled": 1}
 			)
 
+	def test_validate_link_fetches_child_table_field(self):
+		from frappe.client import validate_link
+
+		role_row = frappe.get_doc("User", "Administrator").roles[0]
+		self.assertEqual(
+			validate_link("Has Role", role_row.name, fields=["role"]),
+			{"name": role_row.name, "role": role_row.role},
+		)
+
 	def test_client_insert(self):
 		from frappe.client import insert
 

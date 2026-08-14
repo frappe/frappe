@@ -198,7 +198,7 @@ def get_allowed_report_names(cache=False) -> set[str]:
 def get_user_pages_or_reports(parent, cache=False):
 	if cache:
 		has_role = frappe.cache.get_value("has_role:" + parent, user=frappe.session.user)
-		if has_role:
+		if has_role is not None:
 			return has_role
 
 	roles = frappe.get_roles()
@@ -286,7 +286,9 @@ def get_user_pages_or_reports(parent, cache=False):
 
 	if is_report:
 		if not has_permission("Report", raise_exception=False):
-			return {}
+			has_role = {}
+			frappe.cache.set_value("has_role:" + parent, has_role, frappe.session.user, 21600)
+			return has_role
 
 		reports = frappe.get_list(
 			"Report",

@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-07 22:11\n"
+"PO-Revision-Date: 2026-08-11 18:25\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2036,7 +2036,7 @@ msgstr "مجاز در ثبت سریع"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Allow on Submit"
-msgstr "در ارسال اجازه دهید"
+msgstr "در ارسال مجاز است"
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -8521,7 +8521,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:3
 msgid "Drag elements from the sidebar to add. Drag them back to trash."
-msgstr "برای افزودن عناصر را از نوار کناری بکشید. آنها را به سطل زباله برگردانید."
+msgstr ""
 
 #: frappe/public/js/workflow_builder/WorkflowBuilder.vue:296
 msgid "Drag to add state"
@@ -10915,7 +10915,7 @@ msgstr "دنبال کردن"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:124
 msgid "Followed by"
-msgstr "به دنبال"
+msgstr ""
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:132
 msgid "Following Report Filters have missing values:"
@@ -25252,7 +25252,7 @@ msgstr "بازگشت نرم"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:4
 msgid "Some columns might get cut off when printing to PDF. Try to keep number of columns under 10."
-msgstr "برخی از ستون‌ها ممکن است هنگام چاپ به PDF قطع شوند. سعی کنید تعداد ستون‌ها کمتر از 10 باشد."
+msgstr ""
 
 #. Description of the 'Sent Folder Name' (Data) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_domain/email_domain.json

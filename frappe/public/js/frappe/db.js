@@ -91,7 +91,12 @@ frappe.db = {
 	},
 	delete_doc: function (doctype, name) {
 		return new Promise((resolve) => {
-			frappe.call("frappe.client.delete", { doctype, name }, (r) => resolve(r.message));
+			frappe.call("frappe.client.delete", { doctype, name }, (r) => {
+				if (!r.exc) {
+					frappe.model.delete_from_locals(doctype, name);
+				}
+				resolve(r.message);
+			});
 		});
 	},
 	count: function (doctype, args = {}) {

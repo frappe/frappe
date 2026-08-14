@@ -3,10 +3,14 @@
 
 import re
 from functools import partial
+from typing import Any
 
 import frappe
 from frappe.app import make_form_dict
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.search import get_names_for_mentions, search_link, search_widget
+from frappe.permissions import add_user_permission
+from frappe.tests.ui_test_helpers import whitelist_for_tests
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 from frappe.website.serve import get_response
@@ -181,6 +185,58 @@ class TestSearch(FrappeTestCase):
 		result = search(txt="(txt)")
 		self.assertEqual(result, [])
 
+	def test_search_link_with_ignore_user_permissions(self):
+		if frappe.db.exists("DocType", "Test Search Linked"):
+			frappe.delete_doc("DocType", "Test Search Linked", force=True)
+
+		new_doctype(
+			name="Test Search Linked",
+			fields=[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
+			permissions=[{"role": "System Manager", "read": 1, "write": 1}],
+			search_fields="title",
+		).insert()
+		self.addCleanup(lambda: frappe.delete_doc("DocType", "Test Search Linked", force=True))
+
+		allowed_doc = frappe.get_doc({"doctype": "Test Search Linked", "title": "Allowed Document"}).insert()
+		restricted_doc = frappe.get_doc(
+			{"doctype": "Test Search Linked", "title": "Restricted Document"}
+		).insert()
+
+		test_user = "test_search_user@example.com"
+		if not frappe.db.exists("User", test_user):
+			user = frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": test_user,
+					"first_name": "Test Search User",
+					"user_type": "System User",
+				}
+			).insert(ignore_permissions=True)
+			user.add_roles("System Manager")
+			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
+
+		add_user_permission("Test Search Linked", allowed_doc.name, test_user)
+		self.addCleanup(
+			lambda: frappe.db.delete("User Permission", {"user": test_user, "allow": "Test Search Linked"})
+		)
+
+		frappe.set_user(test_user)
+		self.addCleanup(lambda: frappe.set_user("Administrator"))
+
+		# a custom query runs its own frappe.get_list, the flag should still apply
+		results_from_custom_query = search_link(
+			doctype="Test Search Linked",
+			txt="Document",
+			query="frappe.tests.test_search.query_by_title",
+			ignore_user_permissions=True,
+		)
+		result_values = [r["value"] for r in results_from_custom_query]
+		self.assertIn(allowed_doc.name, result_values)
+		self.assertIn(restricted_doc.name, result_values)
+
+		# and should not outlive the search call
+		self.assertEqual([d.name for d in frappe.get_list("Test Search Linked")], [allowed_doc.name])
+
 
 @frappe.validate_and_sanitize_search_inputs
 def get_data(doctype, txt, searchfield, start, page_len, filters):
@@ -189,8 +245,29 @@ def get_data(doctype, txt, searchfield, start, page_len, filters):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def query_with_reference_doctype(doctype, txt, searchfield, start, page_len, filters, reference_doctype=None):
+def query_with_reference_doctype(
+	doctype: str,
+	txt: str,
+	searchfield: str,
+	start: int,
+	page_len: int,
+	filters: str | list | dict[str, Any],
+	reference_doctype: str | None = None,
+):
 	return []
+
+
+@whitelist_for_tests
+@frappe.validate_and_sanitize_search_inputs
+def query_by_title(
+	doctype: str,
+	txt: str,
+	searchfield: str,
+	start: int,
+	page_len: int,
+	filters: str | list | dict[str, Any],
+):
+	return frappe.get_list(doctype, filters={"title": ("like", f"%{txt}%")}, as_list=True)
 
 
 def setup_test_link_field_order(TestCase):
