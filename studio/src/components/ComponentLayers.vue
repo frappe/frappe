@@ -55,7 +55,7 @@
 							}"
 						/>
 						<span
-							class="layer-label min-h-[1em] min-w-[2em] max-w-64 truncate"
+							class="layer-label min-h-[1em] min-w-[2em] max-w-64 scroll-my-16 truncate"
 							:class="{
 								'text-ink-purple-6 opacity-80 dark:opacity-100 dark:brightness-125 dark:saturate-[0.3]':
 									element.isStudioComponent,
