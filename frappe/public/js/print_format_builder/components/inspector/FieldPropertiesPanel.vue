@@ -15,6 +15,19 @@
 					{{ __("Edit HTML") }}
 				</button>
 			</template>
+			<template v-else-if="is_typst_field">
+				<textarea
+					class="form-control form-control-sm pfb-typst-input"
+					:placeholder="'#text(weight: \'bold\')[Hello]'"
+					spellcheck="false"
+					rows="8"
+					:value="selected_field.typst || ''"
+					@input="(e) => (selected_field.typst = e.target.value)"
+				></textarea>
+				<div class="pfb-insp-hint text-muted">
+					{{ typst_hint }}
+				</div>
+			</template>
 			<template v-else-if="is_image_element">
 				<ImageUploadControl
 					:model-value="selected_field.image_url"
@@ -218,6 +231,11 @@ const NON_TEXT_FIELDTYPES = new Set([
 let is_text_field = computed(() => !NON_TEXT_FIELDTYPES.has(selected_field.value?.fieldtype));
 
 let is_html_field = computed(() => selected_field.value?.fieldtype === "HTML");
+let is_typst_field = computed(() => selected_field.value?.fieldtype === "Typst");
+let typst_hint = __(
+	"Write Typst here. Use {0} for values from the document. Check the PDF preview to see the result.",
+	["{{ doc.field_name }}"]
+);
 // a spacer prints a gap and a divider a rule — neither carries a label to align
 let is_spacer = computed(() => selected_field.value?.fieldtype === "Spacer");
 let is_divider = computed(() => selected_field.value?.fieldtype === "Divider");
@@ -261,11 +279,13 @@ function set_image_url(url) {
 		selected_field.value.width = "";
 		return;
 	}
-	get_image_dimensions(url).then(({ width }) => {
-		if (!parseFloat(selected_field.value.width)) {
-			selected_field.value.width = Math.min(width, 300) + "px";
-		}
-	});
+	get_image_dimensions(url)
+		.then(({ width }) => {
+			if (!parseFloat(selected_field.value.width)) {
+				selected_field.value.width = Math.min(width, 300) + "px";
+			}
+		})
+		.catch(() => {});
 }
 
 let current_align = computed(() => selected_field.value?.align ?? "left");

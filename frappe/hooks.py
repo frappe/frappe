@@ -101,19 +101,34 @@ on_logout = "frappe.core.doctype.session_default_settings.session_default_settin
 pdf_header_html = "frappe.utils.pdf.pdf_header_html"
 pdf_body_html = "frappe.utils.pdf.pdf_body_html"
 pdf_footer_html = "frappe.utils.pdf.pdf_footer_html"
-pdf_generator = "frappe.utils.pdf.get_chrome_pdf"
+pdf_generator = [
+	"frappe.utils.pdf.get_chrome_pdf",
+	"frappe.utils.print_format_generator.get_typst_pdf",
+]
 # permissions
 
 permission_query_conditions = {
-	"Report": "frappe.core.doctype.report.report.get_permission_query_conditions",
+	"Report": [
+		"frappe.core.doctype.report.report.get_permission_query_conditions",
+		"frappe.app_state.get_module_permission_query_conditions",
+	],
 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 	"ToDo": "frappe.desk.doctype.todo.todo.get_permission_query_conditions",
 	"User": "frappe.core.doctype.user.user.get_permission_query_conditions",
 	"Dashboard Settings": "frappe.desk.doctype.dashboard_settings.dashboard_settings.get_permission_query_conditions",
 	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.get_permission_query_conditions",
-	"Dashboard": "frappe.desk.doctype.dashboard.dashboard.get_permission_query_conditions",
-	"Dashboard Chart": "frappe.desk.doctype.dashboard_chart.dashboard_chart.get_permission_query_conditions",
-	"Number Card": "frappe.desk.doctype.number_card.number_card.get_permission_query_conditions",
+	"Dashboard": [
+		"frappe.desk.doctype.dashboard.dashboard.get_permission_query_conditions",
+		"frappe.app_state.get_module_permission_query_conditions",
+	],
+	"Dashboard Chart": [
+		"frappe.desk.doctype.dashboard_chart.dashboard_chart.get_permission_query_conditions",
+		"frappe.app_state.get_module_permission_query_conditions",
+	],
+	"Number Card": [
+		"frappe.desk.doctype.number_card.number_card.get_permission_query_conditions",
+		"frappe.app_state.get_module_permission_query_conditions",
+	],
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.get_permission_query_conditions",
 	"Note": "frappe.desk.doctype.note.note.get_permission_query_conditions",
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.get_permission_query_conditions",
@@ -126,6 +141,18 @@ permission_query_conditions = {
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.get_permission_query_conditions",
 	"Document Template": "frappe.desk.doctype.document_template.document_template.get_permission_query_conditions",
 	"Tag Link": "frappe.desk.doctype.tag_link.tag_link.get_permission_query_conditions",
+	"Document Follow": "frappe.email.doctype.document_follow.document_follow.get_permission_query_conditions",
+	"Scheduled Job Type": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.get_permission_query_conditions",
+	"DocType": "frappe.app_state.get_module_permission_query_conditions",
+	"Page": "frappe.app_state.get_module_permission_query_conditions",
+	"Workspace": "frappe.app_state.get_module_permission_query_conditions",
+	"Workspace Sidebar": "frappe.app_state.get_module_permission_query_conditions",
+	"Print Format": "frappe.app_state.get_module_permission_query_conditions",
+	"Notification": "frappe.app_state.get_module_permission_query_conditions",
+	"Web Form": "frappe.app_state.get_module_permission_query_conditions",
+	"Client Script": "frappe.app_state.get_module_permission_query_conditions",
+	"Server Script": "frappe.app_state.get_module_permission_query_conditions",
+	"Desktop Icon": "frappe.app_state.get_app_permission_query_conditions",
 }
 
 has_permission = {
@@ -148,6 +175,7 @@ has_permission = {
 	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.has_permission",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.has_permission",
 	"Document Template": "frappe.desk.doctype.document_template.document_template.has_permission",
+	"Document Follow": "frappe.email.doctype.document_follow.document_follow.has_permission",
 }
 
 has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
@@ -280,7 +308,6 @@ scheduler_events = {
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
 		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
-		"frappe.core.doctype.duckdb_sync.duckdb_sync.cleanup_old_syncs",
 		"frappe.integrations.doctype.oauth_client.oauth_client.delete_unused_dynamic_clients",
 		"frappe.core.doctype.security_settings.security_settings_alert.check_security_txt_expiry",
 	],

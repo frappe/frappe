@@ -116,6 +116,7 @@ class DocType(Document):
 		default_email_template: DF.Link | None
 		default_print_format: DF.Data | None
 		default_view: DF.Literal[None]
+		deprecated: DF.Check
 		description: DF.SmallText | None
 		document_type: DF.Literal["", "Document", "Setup", "System", "Other"]
 		documentation: DF.Data | None

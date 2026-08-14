@@ -28,12 +28,10 @@ def update_follow(doctype: str, doc_name: str, following: bool | str):
 
 @frappe.whitelist()
 def follow_document(doctype: str, doc_name: str) -> Document | bool:
-	return _follow_document(doctype, doc_name, frappe.session.user, ignore_permissions=False)
+	return _follow_document(doctype, doc_name, frappe.session.user)
 
 
-def _follow_document(
-	doctype: str, doc_name: str, user: str, *, ignore_permissions: bool | int = False
-) -> Document | bool:
+def _follow_document(doctype: str, doc_name: str, user: str) -> Document | bool:
 	"""
 	param:
 	Doctype name
@@ -75,9 +73,12 @@ def _follow_document(
 		return False
 
 	if not is_document_followed(doctype, doc_name, user):
+		if not frappe.has_permission("Document Follow", "create", user=user):
+			return False
+
 		doc = frappe.new_doc("Document Follow")
 		doc.update({"ref_doctype": doctype, "ref_docname": doc_name, "user": user})
-		doc.save(ignore_permissions=ignore_permissions)
+		doc.save(ignore_permissions=True)
 		frappe.toast(_("Following document {0}").format(doc_name))
 		return doc
 
@@ -157,6 +158,7 @@ def get_user_list(frequency):
 		.on(DocumentFollow.user == User.name)
 		.where(User.document_follow_notify == 1)
 		.where(User.document_follow_frequency == frequency)
+		.where(User.enabled == 1)
 		.select(DocumentFollow.user)
 		.groupby(DocumentFollow.user)
 	).run(pluck="user")
@@ -272,15 +274,6 @@ def get_comments(doctype, doc_name, frequency, user):
 def is_document_followed(doctype, doc_name, user):
 	return frappe.db.exists(
 		"Document Follow", {"ref_doctype": doctype, "ref_docname": str(doc_name), "user": user}
-	)
-
-
-@frappe.whitelist()
-def get_follow_users(doctype: str, doc_name: str):
-	frappe.has_permission(doctype, "read", doc=doc_name, throw=True)
-
-	return frappe.get_all(
-		"Document Follow", filters={"ref_doctype": doctype, "ref_docname": doc_name}, fields=["user"]
 	)
 
 

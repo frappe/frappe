@@ -49,7 +49,7 @@ def get_doctypes_with_global_search(with_child_tables=True):
 			if len(meta.get_global_search_fields()) > 0:
 				global_search_doctypes.append(d)
 
-		installed_apps = frappe.get_installed_apps()
+		installed_apps = frappe.get_active_apps()
 		module_app = frappe.local.module_app
 
 		doctypes = [
@@ -299,7 +299,7 @@ def update_global_search_for_all_web_pages():
 
 
 def get_routes_to_index():
-	apps = frappe.get_installed_apps()
+	apps = frappe.get_active_apps()
 
 	routes_to_index = []
 	for app in apps:

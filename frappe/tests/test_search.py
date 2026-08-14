@@ -286,6 +286,22 @@ class TestSearch(IntegrationTestCase):
 		self.assertIn(allowed_doc.name, result_values)
 		self.assertNotIn(restricted_doc.name, result_values)
 
+		# a custom query runs its own frappe.get_list, the flag should still apply
+		results_from_custom_query = search_link(
+			doctype="Test Search Linked",
+			txt="Document",
+			query="frappe.tests.test_search.query_by_title",
+			ignore_user_permissions=True,
+			reference_doctype="Test Search Form",
+			link_fieldname="linked_doc",
+		)
+		result_values = [r["value"] for r in results_from_custom_query]
+		self.assertIn(allowed_doc.name, result_values)
+		self.assertIn(restricted_doc.name, result_values)
+
+		# and should not outlive the search call
+		self.assertEqual([d.name for d in frappe.get_list("Test Search Linked")], [allowed_doc.name])
+
 	def test_search_link_ignore_user_permissions_validation(self):
 		"""Test that ignore_user_permissions is validated correctly"""
 
@@ -570,6 +586,19 @@ def query_with_reference_doctype(
 	reference_doctype: str | None = None,
 ):
 	return []
+
+
+@whitelist_for_tests()
+@frappe.validate_and_sanitize_search_inputs
+def query_by_title(
+	doctype: str,
+	txt: str,
+	searchfield: str,
+	start: int,
+	page_len: int,
+	filters: str | list | dict[str, Any],
+):
+	return frappe.get_list(doctype, filters={"title": ("like", f"%{txt}%")}, as_list=True)
 
 
 def setup_test_link_field_order(TestCase):

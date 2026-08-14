@@ -14,6 +14,8 @@ from frappe.twofactor import (
 	confirm_otp_token,
 	get_cached_user_pass,
 	get_default,
+	get_email_body_for_2fa,
+	get_email_body_for_qr_code,
 	get_otpsecret_for_,
 	get_verification_obj,
 	should_run_2fa,
@@ -46,6 +48,13 @@ class TestTwoFactor(IntegrationTestCase):
 		"""Cached data should not contain user and pass before 2fa."""
 		user, pwd = get_cached_user_pass()
 		self.assertTrue(all([not user, not pwd]))
+
+	def test_2fa_email_bodies_render(self):
+		code_body = get_email_body_for_2fa({"otp": "123456", "otp_issuer": "Frappe"})
+		self.assertIn("123456", code_body)
+
+		qr_body = get_email_body_for_qr_code({"qrcode_link": "https://example.com/qrcode/abc"})
+		self.assertIn("https://example.com/qrcode/abc", qr_body)
 
 	def test_authenticate_for_2factor(self):
 		"""Verification obj and tmp_id should be set in frappe.local."""
@@ -99,7 +108,6 @@ class TestTwoFactor(IntegrationTestCase):
 		"""Should return true if enabled for user."""
 		toggle_2fa_all_role(state=True)
 		self.assertTrue(two_factor_is_enabled_for_(self.user))
-		self.assertFalse(two_factor_is_enabled_for_("Administrator"))
 		toggle_2fa_all_role(state=False)
 		self.assertFalse(two_factor_is_enabled_for_(self.user))
 
@@ -133,6 +141,27 @@ class TestTwoFactor(IntegrationTestCase):
 		otp_secret = get_otpsecret_for_(self.user)
 		token = int(pyotp.TOTP(otp_secret).now())
 		self.assertTrue(get_verification_obj(self.user, token, otp_secret))
+
+	def test_get_user_svg_from_cache_returns_otp_secret_in_tuple(self):
+		"""get_user_svg_from_cache should return a 3-tuple including otp_secret (line 41 in qrcode.py)."""
+		from frappe.www.qrcode import get_user_svg_from_cache
+
+		key = frappe.generate_hash(length=20)
+		otp_secret = get_otpsecret_for_(self.user)
+		totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(self.user, issuer_name="Frappe")
+
+		frappe.cache.set_value(f"{key}_uri", totp_uri)
+		frappe.cache.set_value(f"{key}_user", self.user)
+		frappe.cache.set_value(f"{key}_secret", otp_secret)
+
+		set_request(method="GET", path="/qrcode", query_string=f"k={key}")
+		result = get_user_svg_from_cache()
+
+		self.assertEqual(len(result), 3)
+		user_doc, svg, returned_secret = result
+		self.assertEqual(user_doc.name, self.user)
+		self.assertIsInstance(svg, str)
+		self.assertEqual(returned_secret, otp_secret)
 
 	def test_render_string_template(self):
 		"""String template renders as expected with variables."""

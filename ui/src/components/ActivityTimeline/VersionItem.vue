@@ -86,7 +86,7 @@
 					class="relative ms-2 flex flex-col gap-2 ps-4"
 				>
 					<!-- inset half a row (leading-6 ÷ 2) so the line spans first→last entry centers -->
-					<div class="absolute inset-y-3 start-0 w-px bg-[var(--outline-gray-modals)]" />
+					<div class="absolute inset-y-3 start-0 w-px bg-[var(--outline-elevation-2)]" />
 					<div
 						v-for="(historyEntry, idx) in historyOf(change)"
 						:key="idx"

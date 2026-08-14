@@ -34,8 +34,111 @@ export function write_json(key, value) {
 	}
 }
 
+// Mirrors typst_emitter.py: TRANSLATABLE_STYLE_PROPS + typst_blockers — a UX
+// hint only; the server list is the authority and refuses at save/render
+export const TYPST_STYLE_PROPS = new Set([
+	"font-weight",
+	"border-top",
+	"border-bottom",
+	"margin-top",
+	"padding-top",
+	"padding-bottom",
+	"flex-direction",
+	"align-items",
+	"gap",
+]);
+
+// Value grammars for the props above — a recognized prop with a value the
+// server cannot translate blocks too, it never silently drops
+const TYPST_BORDER_VALUE =
+	/^\d+(\.\d+)?px\s+\w+\s+(#([0-9a-fA-F]{3}){1,2}|black|gray|silver|white|navy|blue|aqua|teal|purple|fuchsia|maroon|red|orange|yellow|olive|green|lime)$/;
+
+const TYPST_STYLE_VALUES = {
+	"font-weight": /^(bold|600|700|800|900)$/,
+	"border-top": TYPST_BORDER_VALUE,
+	"border-bottom": TYPST_BORDER_VALUE,
+	"margin-top": /^\d+(\.\d+)?(px)?$/,
+	"padding-top": /^\d+(\.\d+)?(px)?$/,
+	"padding-bottom": /^\d+(\.\d+)?(px)?$/,
+	gap: /^\d+(\.\d+)?(px)?$/,
+};
+
+export function* layout_nodes(layout) {
+	const zones = [layout?.header, layout?.footer, ...(layout?.sections || [])];
+	for (const zone of zones) {
+		if (!zone || typeof zone !== "object") continue;
+		yield zone;
+		for (const col of zone.columns || []) {
+			for (const df of col?.fields || []) if (df && !df.remove) yield df;
+		}
+	}
+}
+
+// mirrors safe_color / COLOR_PATTERN: Typst emits rgb("#..."), a non-hex value blocks
+const TYPST_HEX = /^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+function non_hex_color(value) {
+	return value && !TYPST_HEX.test(String(value).trim());
+}
+
+export function typst_blockers_client(print_format, layout, letterhead) {
+	const blockers = [];
+	const add = (reason) => !blockers.includes(reason) && blockers.push(reason);
+	if (print_format?.custom_format) return [__("Custom HTML format")];
+	if (!print_format?.print_format_builder_beta) return [__("Not a builder format")];
+	if ((print_format?.css || "").trim()) add(__("Custom CSS on the format"));
+	for (const key of ["label_color", "value_color"]) {
+		if (non_hex_color(print_format?.[key]))
+			add(__("Format color Typst can't render: {0}", [print_format[key]]));
+	}
+	if (letterhead) {
+		if ((letterhead.custom_css || "").trim()) add(__("Letterhead with custom CSS"));
+		const header_is_image = letterhead.source === "Image" && letterhead.image;
+		if ((letterhead.content || "").trim() && !header_is_image)
+			add(__("Letterhead with HTML content"));
+		const footer_is_image = letterhead.footer_source === "Image" && letterhead.footer_image;
+		if ((letterhead.footer || "").trim() && !footer_is_image)
+			add(__("Letterhead footer with HTML content"));
+	}
+	for (const node of layout_nodes(layout)) {
+		if ((node.custom_style || "").trim()) {
+			const unknown = [];
+			for (const declaration of node.custom_style.split(";")) {
+				if (!declaration.includes(":")) continue;
+				const [raw_prop, raw_value] = declaration.split(/:(.+)/);
+				const prop = raw_prop.trim().toLowerCase();
+				const value = (raw_value || "").trim();
+				if (!prop) continue;
+				if (!TYPST_STYLE_PROPS.has(prop)) {
+					unknown.push(prop);
+				} else if (TYPST_STYLE_VALUES[prop] && !TYPST_STYLE_VALUES[prop].test(value)) {
+					unknown.push(`${prop}: ${value}`);
+				}
+			}
+			if (unknown.length) add(__("Untranslatable CSS: {0}", [unknown.join(", ")]));
+		}
+		if (node.fieldtype === "HTML") add(__("Custom HTML block"));
+		if (node.fieldtype === "Field Template") add(__("Field Template (Jinja HTML)"));
+		if (node.fieldtype === "Barcode") {
+			if (node.custom) {
+				if (node.barcode_format !== "QR") add(__("Barcode (non-QR)"));
+			} else {
+				const meta_df = frappe.meta.get_docfield(print_format?.doc_type, node.fieldname);
+				if (!meta_df || !is_qr_barcode_options(meta_df.options))
+					add(__("Barcode (non-QR)"));
+			}
+		}
+		if (node.fieldtype === "Image" && /^https?:\/\//.test(node.image_url || ""))
+			add(__("Remote image URL"));
+		for (const key of ["label_color", "value_color"]) {
+			if (non_hex_color(node[key]))
+				add(__("Field color Typst can't render: {0}", [node[key]]));
+		}
+	}
+	return blockers;
+}
+
 // Blocks the builder invents — they never map to a docfield on the document type
-export const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater"]);
+export const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater", "HTML"]);
 
 // Mirrors PrintFormatGenerator.JUSTIFY_MODES; the class names are spelled out so
 // both surfaces can be grepped for them
@@ -242,6 +345,7 @@ const FIELD_PLUCK_KEYS = [
 	"table_header_bg",
 	"table_border_color",
 	"html",
+	"typst",
 	"field_template",
 	"source",
 	"repeater_columns",
@@ -431,12 +535,6 @@ const SAFE_HTML_ATTRS = new Set([
 	"cellspacing",
 ]);
 
-export function strip_html_to_text(html, fallback = "") {
-	const tmp = document.createElement("div");
-	tmp.innerHTML = html;
-	return tmp.textContent || tmp.innerText || fallback;
-}
-
 export function sanitize_html(html) {
 	const root = document.createElement("div");
 	root.innerHTML = frappe.dom.remove_script_and_style(html || "");
@@ -497,11 +595,13 @@ export function evaluate_visible_if(expr, doc) {
 }
 
 export function get_image_dimensions(src) {
-	return new Promise((resolve) => {
+	return new Promise((resolve, reject) => {
 		let img = new Image();
 		img.onload = function () {
 			resolve({ width: this.width, height: this.height });
 		};
+		// a broken src must reject, not leave the caller hanging forever
+		img.onerror = () => reject(new Error(`could not load image: ${src}`));
 		img.src = src;
 	});
 }

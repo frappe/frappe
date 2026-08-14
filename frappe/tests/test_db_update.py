@@ -1,5 +1,6 @@
 import random
 from unittest.case import skipIf
+from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
@@ -200,6 +201,27 @@ class TestDBUpdate(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			doctype.save()
 		frappe.db.rollback()
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_blank_values_are_coerced_so_the_conversion_can_proceed(self):
+		"""An empty string only fails to cast because it is empty; migrate makes it the default"""
+
+		doctype = new_doctype(fields=[{"fieldname": "amount", "fieldtype": "Data"}]).insert()
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.db.sql_ddl, f"DROP TABLE IF EXISTS `tab{doctype.name}`")
+		self.addCleanup(doctype.delete)
+
+		blank = frappe.get_doc(doctype=doctype.name, amount="").insert()
+		priced = frappe.get_doc(doctype=doctype.name, amount="99.5").insert()
+		frappe.db.commit()  # nosemgrep
+
+		doctype.fields[0].fieldtype = "Currency"
+		with patch.dict(frappe.flags, {"in_migrate": True}):
+			doctype.save()
+
+		self.assertIn("decimal", frappe.db.get_column_type(doctype.name, "amount"))
+		self.assertEqual(frappe.db.get_value(doctype.name, blank.name, "amount"), 0)
+		self.assertEqual(frappe.db.get_value(doctype.name, priced.name, "amount"), 99.5)
 
 	def test_unique_index_on_install(self):
 		"""Only one unique index should be added"""

@@ -246,14 +246,15 @@ class Page:
 			# retry if error in 500ms for 3 times (just safe guard as i had few edge cases where it failed).
 			# waiting for network is still slower than this.
 			for _i in range(3):
-				print(f"Error evaluating expression: {error}. Retrying in 500ms")
 				time.sleep(0.5)
 				result, error = self.send(
 					"Runtime.evaluate", {"expression": expression, "awaitPromise": await_promise}
 				)
 				if not error:
 					break
-			raise RuntimeError(f"Error evaluating expression: {error}")
+			if error:
+				self.send("Runtime.disable")
+				raise RuntimeError(f"Error evaluating expression: {error}")
 
 		self.send("Runtime.disable")
 		return result
@@ -416,12 +417,16 @@ class Page:
 		return self.get_pdf_from_stream(result["stream"], raw)
 
 	def get_pdf_stream_id(self):
-		# wait for task to complete
+		# wait for the send task to complete; its result is the response future
 		self.session.wait_for_event(self.wait_for_pdf)
-		# wait for event to complete
-		task = self.wait_for_pdf.result()
-		future = task.result()
-		stream_id = future["result"]["stream"]
+		response_future = self.wait_for_pdf.result()
+		# the task resolves when the command is *sent*, so also wait for the
+		# Page.printToPDF response before reading the stream handle
+		self.session.wait_for_event(response_future, timeout=30)
+		if not response_future.done() or response_future.cancelled():
+			raise RuntimeError("Timed out waiting for the Page.printToPDF response")
+		response = response_future.result()
+		stream_id = response["result"]["stream"]
 		return stream_id
 
 	def get_pdf_from_stream(self, stream_id, raw=False):

@@ -115,7 +115,7 @@
 									style="
 										background: linear-gradient(
 											to left,
-											var(--surface-white, white),
+											var(--surface-base, white),
 											transparent
 										);
 									"
