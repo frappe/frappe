@@ -36,12 +36,34 @@ export interface FieldUI {
 }
 
 /**
- * A field as it sits in the layout tree: its portable meta plus an optional,
- * app-supplied UI overlay. Extends `FieldMeta`, so every existing read
- * (`f.hidden`, `f.fieldname`) and every `{ ...f }` spread keeps working and the
- * `ui` key rides along untouched.
+ * The three field properties an app can override *per render*, applied by
+ * `resolveFieldConditionals` after it has resolved the `depends_on` family —
+ * so an override wins over a conditional expression, which no other override
+ * in this pipeline does (every other one is monotonic-restrictive).
+ *
+ * Only these three need the carrier: `label`, `options`, `precision`,
+ * `placeholder`, `description` and `filters` are set once when the node is
+ * built and never recomputed, so an app applies those at build time instead.
+ *
+ * Plain data, deliberately: it keeps `FormLayout` an independent component that
+ * takes a schema and knows nothing about whoever wrote the override.
  */
-export type FieldNode = FieldMeta & { ui?: FieldUI };
+export interface FieldOverride {
+  hidden?: boolean;
+  readOnly?: boolean;
+  reqd?: boolean;
+}
+
+/**
+ * A field as it sits in the layout tree: its portable meta plus an optional,
+ * app-supplied UI overlay and an optional per-render property override.
+ * Extends `FieldMeta`, so every existing read (`f.hidden`, `f.fieldname`) and
+ * every `{ ...f }` spread keeps working and the extra keys ride along untouched.
+ */
+export type FieldNode = FieldMeta & {
+  ui?: FieldUI;
+  override?: FieldOverride;
+};
 
 /**
  * The subset of a Frappe DocField (as returned by `getdoctype`) that
@@ -57,6 +79,17 @@ export interface RawMetaField {
   precision?: number | string;
   hidden?: boolean | 0 | 1;
   read_only?: boolean | 0 | 1;
+  /** Field-level permission level; access is DocPerm rows × user roles. */
+  permlevel?: number;
+  /**
+   * Set by whoever applied the permlevel gate, on the fields it actually
+   * denied. The denial itself is written as `hidden` / `read_only`, which is
+   * indistinguishable from a meta-hidden or meta-read-only field — and a
+   * `permlevel` alone does not mean denied, since a reader who *has* the level
+   * is left untouched. This flag is the difference, and it is what
+   * `resolveFieldConditionals` refuses to let an override lift.
+   */
+  perm_denied?: boolean | 0 | 1;
   /** Whether a child-table field shows as a grid column. */
   in_list_view?: boolean | 0 | 1;
   /** Whether the field is surfaced as a default Quick Filter input (the
