@@ -7,7 +7,7 @@
 		"dev": "node scripts/unlink-frappe-ui.mjs && yarn install-framework-ui && vite",
 		"dev:frappe-ui": "node scripts/link-frappe-ui.mjs && yarn install-framework-ui && vite",
 		"build": "node scripts/unlink-frappe-ui.mjs && yarn install-framework-ui && vite build --base=/assets/studio/frontend/ && yarn copy-html-entry && yarn copy-studio-renderer",
-		"build-studio-app": "yarn install-framework-ui && node src/scripts/build.js",
+		"build-studio-app": "node scripts/unlink-frappe-ui.mjs && yarn install-framework-ui && node src/scripts/build.js",
 		"install-framework-ui": "[ ! -d ../../frappe/ui ] || [ -d ../../frappe/ui/node_modules/leaflet ] || yarn --cwd ../../frappe/ui install",
 		"copy-html-entry": "cp ../studio/public/frontend/index.html ../studio/www/studio.html",
 		"copy-studio-renderer": "cp ../studio/public/frontend/renderer.html ../studio/templates/generators/studio_renderer.html",
