@@ -49,16 +49,15 @@
 						/>
 					</template>
 
-					<span class="flex min-w-0 items-center gap-1.5">
-						<!-- The mark reads *before* the title, in the label's own flow,
-						     so it costs no suffix width and is the first thing the eye
-						     reaches on the row (ticket 37, item 4 option D). It is the
-						     same dot the header's `Unsaved` badge carries as its prefix
-						     — the header says this editor has an unsaved script, the
-						     rail says which ones. -->
-						<Tooltip v-if="isDirty(row)" text="Unsaved changes">
-							<span class="size-1.5 shrink-0 rounded-full bg-surface-amber-5" />
-						</Tooltip>
+					<span class="flex min-w-0 items-center">
+						<!-- No unsaved dot here: the header's `Unsaved` badge already
+						     says the editor holds an unsaved script, and saying it twice
+						     on one screen is what 23's footer line did. This **amends
+						     37**, whose item 4 gave the row a mark of its own so the
+						     rail could say *which* scripts are dirty — the trade is that
+						     with a buffer per script, several can be dirty at once and
+						     only the open one now shows it. Accepted: the rail is a list
+						     of scripts, not a list of edits. -->
 						<!-- Disabled-ness is carried by the dimmed label alone — no `Off`
 						     badge (amends 23). That leaves the suffix to the `⋯`, which
 						     is also the only place Enable/Disable lives, so the state and
@@ -122,7 +121,7 @@
 // The row is frappe-ui's `SidebarItem` — the same primitive the app's own left
 // nav draws with (ticket 37 item 2, which amends 23's `ItemListRow`).
 import { computed } from "vue";
-import { Button, Dropdown, SidebarItem, Tooltip } from "frappe-ui";
+import { Button, Dropdown, SidebarItem } from "frappe-ui";
 // @ts-ignore — vuedraggable ships no bundled types
 import Draggable from "vuedraggable";
 import { rowActions } from "./rowActions";
@@ -131,8 +130,6 @@ import type { PageScriptDoc } from "./pageScriptApi";
 const props = defineProps<{
 	scripts: PageScriptDoc[];
 	selectedName: string | null;
-	/** Whether a row carries an unsaved edit — the row marks these. */
-	isDirty: (row: PageScriptDoc) => boolean;
 	/** A write is in flight; the list stays readable but adds nothing new. */
 	busy?: boolean;
 }>();

@@ -59,6 +59,30 @@
 			</p>
 
 			<div class="ml-auto flex shrink-0 items-center gap-1">
+				<!-- Save leads the cluster rather than closing it, and a rule holds
+				     it off the icons: the commit and the three ghost glyphs are
+				     different kinds of thing, and the one that changes the document
+				     should not be read as the last of a row of them. It also puts
+				     the whole icon group between Save and the `×` that discards what
+				     Save commits — 23 moved Delete out of the footer on exactly that
+				     principle.
+
+				     Save is absent rather than disabled when there is nothing to
+				     save (ticket 23), so 'clean' can never be misread as 'cannot
+				     save' — which is why the rule is Save's own and disappears with
+				     it. -->
+				<template v-if="dirty">
+					<Button variant="solid" label="Save" :loading="saving" @click="save" />
+					<!-- A border, not a background: `bg-` does not accept the
+					     `outline-` family and emits nothing at all for it, so
+					     `bg-outline-gray-2` laid out a 1px gap that painted no
+					     pixels. `border-l` takes the same token the header's own
+					     rule does. -->
+					<span
+						class="mx-1 h-7 shrink-0 border-l border-outline-gray-2"
+						aria-hidden="true"
+					/>
+				</template>
 				<!-- The open script's own actions, beside everything else about it.
 				     The rail's rows keep theirs — a row's `⋯` is the only way to
 				     reach a script you have not opened — so this is the same menu
@@ -82,16 +106,16 @@
 						@click="showReference = !showReference"
 					/>
 				</Tooltip>
-				<!-- Save is absent rather than disabled when there is nothing to
-				     save (ticket 23), so 'clean' can never be misread as 'cannot
-				     save'. Help sits beside the work; the primary action is the
-				     last thing on the line. -->
+				<!-- `×` is back, asked for after 37 dropped it. That resolves the one
+				     thing 37 left standing — Escape, the overlay and Back all closed
+				     the dialog but nothing visible said so — and it sits last on the
+				     line, the width of the icon group away from Save. -->
 				<Button
-					v-if="dirty"
-					variant="solid"
-					label="Save"
-					:loading="saving"
-					@click="save"
+					v-if="onClose"
+					variant="ghost"
+					icon="lucide-x"
+					label="Close"
+					@click="onClose"
 				/>
 			</div>
 		</div>
@@ -136,7 +160,6 @@
 				<PageScriptRail
 					:scripts="scripts"
 					:selectedName="selectedName"
-					:isDirty="isDirty"
 					:busy="saving"
 					@select="select"
 					@create="startFrom()"
@@ -229,6 +252,8 @@ const props = defineProps<{
 	 * (ticket 37: the line is what keeps the dialog honest about it).
 	 */
 	record?: string;
+	/** Renders the close button, for a host that can dismiss the pane. */
+	onClose?: () => void;
 }>();
 
 /**

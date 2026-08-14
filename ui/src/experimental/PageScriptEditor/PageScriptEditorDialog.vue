@@ -20,9 +20,10 @@
 	     overlay's padding is the other fix and is not ours to make — it is what
 	     keeps a panel off the screen edge everywhere else.
 
-	     Nothing here closes the pane any more: ticket 37 dropped the header's `×`,
-	     so Escape, the overlay and Back (the hash route, tickets 31/32) are the
-	     ways out and Dialog already owns all three. -->
+	     The header's `×` is back after 37 dropped it, so this owns four ways out:
+	     the button, Escape, the overlay and Back (the hash route, tickets 31/32).
+	     Dialog already owned the last three; what the button adds is one that is
+	     visible. -->
 	<Dialog v-model="isOpen" bare size="7xl">
 		<div
 			class="flex h-[calc(100vh-6rem)] w-full flex-col overflow-hidden rounded-xl bg-surface-elevation-1"
@@ -55,6 +56,7 @@
 				v-model:script="script"
 				:replaysOn="replaysOn"
 				:record="record"
+				:onClose="close"
 			/>
 		</div>
 	</Dialog>
@@ -84,4 +86,8 @@ const dt = defineModel<string>("dt", { required: true });
 
 /** Passed through to the pane, which owns the fallback when it is stale. */
 const script = defineModel<string | undefined>("script", { default: undefined });
+
+function close() {
+	isOpen.value = false;
+}
 </script>
