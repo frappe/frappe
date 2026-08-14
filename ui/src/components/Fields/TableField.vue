@@ -43,7 +43,7 @@
 							:field="f"
 							:modelValue="value"
 							:row="row"
-							@update:modelValue="update"
+							@update:modelValue="(v: any) => editCell(update, f, row, v)"
 							@change="commit"
 							v-bind="f.ui?.props"
 							v-on="cellListeners(f, row)"
@@ -56,7 +56,7 @@
 						:field="f"
 						:modelValue="value"
 						:row="row"
-						@update:modelValue="update"
+						@update:modelValue="(v: any) => editCell(update, f, row, v)"
 						@change="commit"
 						v-bind="f.ui?.props"
 						v-on="cellListeners(f, row)"
@@ -131,6 +131,17 @@ function newRow(): Record<string, any> {
 		? layoutFields(props.field.childLayout)
 		: (props.field.childFields ?? []);
 	return newRowValues(fields);
+}
+
+// A cell being typed owes a commit too: a save mid-edit must fire its handler.
+function editCell(
+	update: (value: any) => void,
+	field: FieldNode,
+	row: Record<string, any>,
+	value: any
+) {
+	update(value);
+	commit.pending(field.fieldname, addressOf(row));
 }
 
 function onCellCommit({ row, column }: { row: Record<string, any>; column: GridColumn }) {

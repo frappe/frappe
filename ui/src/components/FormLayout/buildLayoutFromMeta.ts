@@ -8,6 +8,7 @@ import type {
   Section,
   Tab,
 } from "./types";
+import { holdsChildRows } from "../Fields/rowIdentity";
 
 /**
  * Build a render-ready `FormLayoutSchema` from a doctype's flat meta `fields`,
@@ -22,10 +23,6 @@ const TAB_BREAK = "Tab Break";
 const SECTION_BREAK = "Section Break";
 const COLUMN_BREAK = "Column Break";
 const TABLE = "Table";
-const TABLE_MULTISELECT = "Table MultiSelect";
-
-/** Fieldtypes whose value lives in a child table; both resolve `childFields`. */
-const CHILD_TABLE_TYPES = new Set([TABLE, TABLE_MULTISELECT]);
 
 /** Layout-break fieldtypes never render as a value/grid column. */
 const LAYOUT_BREAKS = new Set([TAB_BREAK, SECTION_BREAK, COLUMN_BREAK]);
@@ -181,7 +178,7 @@ function mapField(
     mandatoryDependsOn: field.mandatory_depends_on,
     readOnlyDependsOn: field.read_only_depends_on,
     // Child-table columns. Nested grids aren't supported (no deeper childMetas).
-    ...(CHILD_TABLE_TYPES.has(field.fieldtype)
+    ...(holdsChildRows(field.fieldtype)
       ? { childFields: resolveChildFields(field, childMetas, decorate) }
       : {}),
     // The row-edit dialog renders the full child form; `Table MultiSelect` has
