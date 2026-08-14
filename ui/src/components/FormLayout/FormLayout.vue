@@ -33,7 +33,8 @@ import type { ComponentPublicInstance } from "vue";
 import FormLayoutSection from "./FormLayoutSection.vue";
 import { useFieldTypes } from "./useFieldTypes";
 import { resolveLayout } from "./resolveLayout";
-import { DocKey, HasTabsKey, ParentDocKey, ResolveFieldKey, UpdateKey } from "./types";
+import { CommitKey, DocKey, HasTabsKey, ParentDocKey, ResolveFieldKey, UpdateKey } from "./types";
+import { warnMissingCommit } from "./warnMissingCommit";
 import type { FormLayoutProps } from "./types";
 
 const props = defineProps<FormLayoutProps>();
@@ -91,6 +92,10 @@ function update(fieldname: string, value: any) {
 }
 
 const { resolve } = useFieldTypes();
+
+// Asserted, not consumed: commits travel from each field straight to whoever
+// owns them, and this component still emits nothing.
+warnMissingCommit("FormLayout", inject(CommitKey, null));
 
 provide(DocKey, doc);
 provide(UpdateKey, update);

@@ -34,6 +34,7 @@ const targetDoctype = computed(() => linkField.value?.options ?? "");
 const value = useChildRowModel(
 	() => props.modelValue,
 	() => linkField.value?.fieldname ?? "",
-	emit
+	emit,
+	() => props.field.fieldname
 );
 </script>
