@@ -8,6 +8,7 @@ import frappe
 from frappe.automation_engine import WAITING_STATES
 
 DEFAULT_BATCH_SIZE = 500
+DEFAULT_COMMIT_EVERY = 50
 QUEUE = "Automation Trigger Queue"
 # The RQ queue the drain job runs on; its timeout is what the drain has to finish inside.
 DRAIN_QUEUE = "default"
@@ -29,14 +30,78 @@ def drain(batch_size=DEFAULT_BATCH_SIZE, max_batches=None, executor=None):
 		names = claim_batch(batch_size)
 		if not names:
 			break
-		for name in names:
-			execute_claimed(executor, name)
+		execute_batch(executor, names)
 		batches += 1
 		if max_batches and batches >= max_batches:
 			break
 
 	if _has_due_pending():
 		_rekick()
+
+
+def execute_batch(executor, names):
+	"""Run a claimed batch in commit groups rather than one transaction per row.
+
+	The runner records step failures itself, but not everything reaches it: a flow deleted
+	mid-drain, or a throw while recording the outcome, escapes. Such a row is rolled back to
+	its own savepoint, so the rows already run in this group survive it - the guarantee the
+	old per-row commit gave, for a fraction of the fsyncs.
+
+	What a savepoint cannot cover is the group commit failing as a whole (deadlock, lock wait
+	timeout, a dropped connection). That rolls the group back, and the rows are re-run one at
+	a time so a single poisoned row cannot take the rest down with it.
+	"""
+	for group in _commit_groups(names):
+		_execute_group(executor, group)
+
+
+def _commit_groups(names):
+	size = max(1, frappe.utils.cint(frappe.conf.get("automation_commit_every")) or DEFAULT_COMMIT_EVERY)
+	for start in range(0, len(names), size):
+		yield names[start : start + size]
+
+
+def _execute_group(executor, names):
+	for position, name in enumerate(names):
+		_execute_in_savepoint(executor, name, position)
+	try:
+		frappe.db.commit()
+	except Exception:
+		frappe.db.rollback()
+		frappe.log_error(title="Automation batch commit failed", message=frappe.get_traceback())
+		_execute_serially(executor, names)
+
+
+def _execute_in_savepoint(executor, name, position):
+	savepoint = f"auto_row_{position}"
+	frappe.db.savepoint(savepoint)
+	try:
+		executor(name)
+	except Exception:
+		frappe.db.rollback(save_point=savepoint)
+		frappe.log_error(title=f"Automation run failed: {name}", message=frappe.get_traceback())
+
+
+def _execute_serially(executor, names):
+	"""Re-run a group whose commit failed, one transaction per row.
+
+	The rollback restored every queue row in the group, so the database work is genuinely
+	redone rather than duplicated. What the rollback could not reach is the non-transactional
+	half of a run that had already finished: its realtime update has been sent, and a failure
+	has been counted against the circuit breaker. A retried row can double-count there.
+	"""
+	for name in names:
+		execute_claimed(executor, name)
+
+
+def execute_claimed(executor, name):
+	"""Run one claimed row in a transaction of its own."""
+	try:
+		executor(name)
+		frappe.db.commit()
+	except Exception:
+		frappe.db.rollback()
+		frappe.log_error(title=f"Automation run failed: {name}", message=frappe.get_traceback())
 
 
 def promote_due_scheduled():

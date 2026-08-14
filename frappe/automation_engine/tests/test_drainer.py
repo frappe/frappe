@@ -162,6 +162,58 @@ class TestDrainer(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value(QUEUE, names[0], "status"), "Done")
 		self.assertEqual(frappe.db.get_value(QUEUE, names[1], "status"), "Running")
 
+	def test_group_commit_failure_reruns_the_group_one_row_at_a_time(self):
+		names = [self.add_row(f"T{i}") for i in range(3)]
+		claimed = claim_batch(len(names))
+		attempts = []
+
+		def executor(name):
+			attempts.append(name)
+			frappe.db.set_value(QUEUE, name, "status", "Done")
+
+		original_commit = frappe.db.commit
+		calls = []
+
+		def flaky_commit(*args, **kwargs):
+			calls.append(1)
+			if len(calls) == 1:
+				raise Exception("connection lost")
+			return original_commit(*args, **kwargs)
+
+		frappe.db.commit = flaky_commit
+		try:
+			drainer.execute_batch(executor, claimed)
+		finally:
+			frappe.db.commit = original_commit
+
+		# Every row ran once in the group and again on the serial retry, and the retry is
+		# what actually landed: the group's writes went out with the failed commit.
+		self.assertEqual(len(attempts), 2 * len(names))
+		self.assertEqual(self.count("Done"), len(names))
+
+	def test_commit_every_bounds_the_group(self):
+		for i in range(4):
+			self.add_row(f"T{i}")
+		claimed = claim_batch(4)
+
+		original_commit = frappe.db.commit
+		commits = []
+
+		def counting_commit(*args, **kwargs):
+			commits.append(1)
+			return original_commit(*args, **kwargs)
+
+		frappe.db.commit = counting_commit
+		frappe.conf.automation_commit_every = 2
+		try:
+			drainer.execute_batch(lambda name: None, claimed)
+		finally:
+			frappe.db.commit = original_commit
+			frappe.conf.pop("automation_commit_every", None)
+
+		# Four rows at two per group is two commits, not four.
+		self.assertEqual(len(commits), 2)
+
 	def test_kill_switch_stops_drain(self):
 		for i in range(3):
 			self.add_row(f"T{i}")
