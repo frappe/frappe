@@ -9,7 +9,18 @@ export type {
   FieldComponentProps,
   FieldComponentEmits,
 } from "../Fields/types";
-export { DocKey, ParentDocKey, UpdateKey } from "../Fields/types";
+export {
+  CommitKey,
+  DocKey,
+  NO_COMMIT,
+  ParentDocKey,
+  UpdateKey,
+} from "../Fields/types";
+export type {
+  CommitChannel,
+  RowAddress,
+  RowChange,
+} from "../Fields/types";
 
 /**
  * App-supplied presentation/behavior for one field's *layout node* — not part of

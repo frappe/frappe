@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 import { useChildRowModel } from "../useChildRowModel";
+import { ROW_ID } from "../../Fields/rowIdentity";
 
 describe("useChildRowModel", () => {
   it("reads link values out of the stored child rows", () => {
@@ -30,10 +31,10 @@ describe("useChildRowModel", () => {
       emit
     );
     value.value = ["a@x.com"];
-    expect(emit).toHaveBeenCalledWith("update:modelValue", [
-      { user: "a@x.com" },
-    ]);
-    expect(emit).toHaveBeenCalledWith("change", [{ user: "a@x.com" }]);
+    const [event, rows] = emit.mock.calls[0];
+    expect(event).toBe("update:modelValue");
+    expect(rows[0].user).toBe("a@x.com");
+    expect(emit).toHaveBeenCalledWith("change", rows);
   });
 
   it("reuses the existing row object for values that stay selected", () => {
@@ -47,9 +48,10 @@ describe("useChildRowModel", () => {
     // re-select the same value plus a new one
     value.value = ["a@x.com", "b@x.com"];
     const next = emit.mock.calls.find((c) => c[0] === "update:modelValue")![1];
-    // existing row preserved by reference (name/doctype survive); new one minted
+    // existing row preserved by reference (name/doctype survive); new one minted an id
     expect(next[0]).toBe(kept);
-    expect(next[1]).toEqual({ user: "b@x.com" });
+    expect(next[1][ROW_ID]).toBeTruthy();
+    expect(next[1].user).toBe("b@x.com");
   });
 
   it("is reactive to the underlying rows ref", () => {

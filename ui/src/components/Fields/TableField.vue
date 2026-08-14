@@ -6,7 +6,11 @@
 		:label="field.label"
 		:description="field.description"
 		:required="field.reqd"
+		:newRow="newRow"
 		@change="(r: Record<string, any>[]) => emit('change', r)"
+		@commit="onCellCommit"
+		@add="onRowAdd"
+		@remove="onRowRemove"
 		@edit="openEdit"
 	>
 		<template #cell="{ row, column, value, update, commit }">
@@ -80,8 +84,11 @@ import { Grid } from "../Grid";
 import type { GridColumn } from "../Grid";
 import { fieldsToLayout } from "../FormLayout/fieldsToLayout";
 import { resolveFieldConditionals } from "../FormLayout/resolveLayout";
-import { DocKey, ParentDocKey } from "./types";
+import { layoutFields, newRowValues } from "../FormLayout/newRowValues";
+import { CommitKey, DocKey, NO_COMMIT, ParentDocKey } from "./types";
+import { identify, rowKey } from "./rowIdentity";
 import { ResolveFieldKey } from "../FormLayout/types";
+import type { CommitChannel, RowAddress } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import type { FieldNode, FormLayoutSchema } from "../FormLayout/types";
 
@@ -99,6 +106,44 @@ const resolveField = inject(ResolveFieldKey)!;
 // currency formatting from the grid. Null at the top level.
 const parentDoc = inject(DocKey, null);
 provide(ParentDocKey, parentDoc);
+
+const commit = inject(CommitKey, NO_COMMIT);
+
+// The row-edit dialog's FormLayout would otherwise commit the child's fieldnames
+// as if they were the parent's, so its commits are re-addressed to the open row.
+const rowChannel: CommitChannel = {
+	pending: (fieldname) => commit.pending(fieldname, editAddress()),
+	commit: (fieldname) => commit.commit(fieldname, editAddress()),
+	rowChanged: (row, change) => commit.rowChanged(row, change),
+};
+provide(CommitKey, rowChannel);
+
+function editAddress(): RowAddress | undefined {
+	return editRow.value ? addressOf(editRow.value) : undefined;
+}
+
+function addressOf(row: Record<string, any>): RowAddress {
+	return { parentfield: props.field.fieldname, key: rowKey(identify(row))! };
+}
+
+function newRow(): Record<string, any> {
+	const fields = props.field.childLayout
+		? layoutFields(props.field.childLayout)
+		: (props.field.childFields ?? []);
+	return newRowValues(fields);
+}
+
+function onCellCommit({ row, column }: { row: Record<string, any>; column: GridColumn }) {
+	commit.commit(column.fieldname, addressOf(row));
+}
+
+function onRowAdd({ row }: { row: Record<string, any> }) {
+	commit.rowChanged(addressOf(row), "add");
+}
+
+function onRowRemove({ rows: removed }: { rows: Record<string, any>[] }) {
+	for (const row of removed) commit.rowChanged(addressOf(row), "remove");
+}
 
 // Per-fieldtype alignment, applied to header + cells so they agree. Numeric
 // right-aligns (desk); checkbox/rating center.

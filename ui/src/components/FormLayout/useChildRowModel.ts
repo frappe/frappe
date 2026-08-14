@@ -1,5 +1,7 @@
-import { computed } from "vue";
+import { computed, getCurrentInstance, inject } from "vue";
 import type { WritableComputedRef } from "vue";
+import { CommitKey, NO_COMMIT } from "../Fields/types";
+import { identify, rowKey } from "../Fields/rowIdentity";
 
 /**
  * Bridge a `Table MultiSelect` field's stored value (an array of child rows,
@@ -22,12 +24,23 @@ type ChildRowEmit = {
 export function useChildRowModel(
   modelValue: () => unknown,
   linkFieldname: () => string,
-  emit: ChildRowEmit
+  emit: ChildRowEmit,
+  parentfield?: () => string
 ): WritableComputedRef<string[]> {
   const rows = computed<Record<string, any>[]>(() => {
     const v = modelValue();
     return Array.isArray(v) ? v : [];
   });
+
+  // The second place in the stack that creates a child row, so it mints
+  // identity and signals the structural edit the same way the grid does.
+  const commit = getCurrentInstance() ? inject(CommitKey, NO_COMMIT) : NO_COMMIT;
+
+  function signal(row: Record<string, any>, change: "add" | "remove") {
+    const table = parentfield?.();
+    if (!table) return;
+    commit.rowChanged({ parentfield: table, key: rowKey(identify(row))! }, change);
+  }
 
   return computed<string[]>({
     get: () => rows.value.map((r) => r[linkFieldname()]).filter(Boolean),
@@ -37,9 +50,15 @@ export function useChildRowModel(
       // "" would corrupt the child table, so skip the write entirely.
       if (!fn) return;
       const byValue = new Map(rows.value.map((r) => [r[fn], r]));
-      const next = selected.map((v) => byValue.get(v) ?? { [fn]: v });
+      const kept = new Set(selected);
+      const next = selected.map((v) => byValue.get(v) ?? identify({ [fn]: v }));
+      // Captured before the emit, which repoints `rows` at the new array.
+      const removed = rows.value.filter((row) => !kept.has(row[fn]));
+      const added = next.filter((row) => !byValue.has(row[fn]));
       emit("update:modelValue", next);
       emit("change", next);
+      for (const row of removed) signal(row, "remove");
+      for (const row of added) signal(row, "add");
     },
   });
 }
