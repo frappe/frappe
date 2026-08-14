@@ -40,7 +40,8 @@ const entries = memoizedState((doctype: string) => doctype, buildEntry);
 /**
  * Fetch a doctype's meta via `frappe.desk.form.load.getdoctype` (`with_parent: 1`)
  * and expose it as a name-keyed map plus the requested doctype's own meta.
- * Fetch-only — building the layout schema is `useDoctypeLayout`'s job.
+ * Fetch-only — building the layout schema is `buildLayoutFromMeta`'s job
+ * (or `joinLayout`'s, on the stored Form Layout path).
  */
 export function useDoctypeMeta(
   doctype: MaybeRefOrGetter<string>

@@ -40,6 +40,20 @@ export interface FieldMeta {
   placeholder?: string;
   /** Static visibility; `resolveLayout` may flip this from `dependsOn`. */
   hidden?: boolean;
+  /** Field-level permission level, carried through from the DocField. Read for
+   *  reporting only — on its own it does not mean the reader was denied. */
+  permlevel?: number;
+  /**
+   * Whether the permlevel gate actually denied this reader. The denial is
+   * expressed as a static `hidden` / `readOnly`, indistinguishable from a
+   * meta-hidden or meta-read-only field, so this flag is what marks the
+   * permission floor `resolveLayout` will not let an override lift.
+   *
+   * Only whoever applied the gate can set it — a `permlevel` alone is not a
+   * denial (a reader who has the level is left untouched), and a layout built
+   * without any gate has no floor to defend.
+   */
+  permDenied?: boolean;
   /** Static read-only; `resolveLayout` may flip this from `readOnlyDependsOn`. */
   readOnly?: boolean;
   /**
