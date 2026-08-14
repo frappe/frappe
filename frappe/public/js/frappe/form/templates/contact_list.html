@@ -1,7 +1,7 @@
 {% if (contact_list.length) { %}
-	<p>
+	<div class="card-list-actions">
 		{%= frappe.ui.button.html({ label: __("Contact"), icon: "plus", size: "sm", css_class: "btn-contact" }) %}
-	</p>
+	</div>
 {% } %}
 
 <div class="clearfix"></div>
@@ -15,35 +15,35 @@
 			{% } %}
 		</div>
 		{% if (contact.is_billing_contact) { %}
-			<p class="box-subtitle text-sm text-ink-gray-5">{%= __("Billing") %}</p>
+			<div class="box-subtitle text-sm text-ink-gray-5">{%= __("Billing") %}</div>
 		{% } %}
 		{% let mobile_no = contact.mobile_no !== contact.phone ? contact.mobile_no : ""; %}
 		{% if (contact.designation) { %}
-			<p class="contact-line flex items-center gap-2 text-ink-gray-7" title="{%= __("Designation") %}">
+			<div class="contact-line flex items-center gap-2 text-ink-gray-7" title="{%= __("Designation") %}">
 				{%= frappe.utils.icon("briefcase", "sm", "", "", "text-ink-gray-5", true) %}
 				<span>{%= frappe.utils.escape_html(contact.designation) %}</span>
-			</p>
+			</div>
 		{% } %}
 		{% if (contact.phone) { %}
-			<p class="contact-line flex items-center gap-2 text-ink-gray-7">
+			<div class="contact-line flex items-center gap-2 text-ink-gray-7">
 				{%= frappe.utils.icon("phone", "sm", "", "", "text-ink-gray-5", true) %}
 				<a href="tel:{%= frappe.utils.escape_html(contact.phone) %}" title="{%= __("Primary Phone") %}">{%= frappe.utils.escape_html(contact.phone) %}</a>
-			</p>
+			</div>
 		{% } %}
 		{% if (mobile_no) { %}
-			<p class="contact-line flex items-center gap-2 text-ink-gray-7">
+			<div class="contact-line flex items-center gap-2 text-ink-gray-7">
 				{%= frappe.utils.icon("smartphone", "sm", "", "", "text-ink-gray-5", true) %}
 				<a href="tel:{%= frappe.utils.escape_html(mobile_no) %}" title="{%= __("Primary Mobile") %}">{%= frappe.utils.escape_html(mobile_no) %}</a>
-			</p>
+			</div>
 		{% } %}
 		{% if (contact.email_id) { %}
-			<p class="contact-line flex items-center gap-2 text-ink-gray-7">
+			<div class="contact-line flex items-center gap-2 text-ink-gray-7">
 				{%= frappe.utils.icon("mail", "sm", "", "", "text-ink-gray-5", true) %}
 				<a href="mailto:{%= frappe.utils.escape_html(contact.email_id) %}" title="{%= __("Primary Email") %}">{%= frappe.utils.escape_html(contact.email_id) %}</a>
-			</p>
+			</div>
 		{% } %}
 		{% if (!contact.designation && !contact.phone && !mobile_no && !contact.email_id) { %}
-			<p class="contact-line text-sm text-ink-gray-4">{%= __("No contact details") %}</p>
+			<div class="contact-line text-sm text-ink-gray-4">{%= __("No contact details") %}</div>
 		{% } %}
 	</div>
 {% } %}

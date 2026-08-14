@@ -1,7 +1,7 @@
 {% if (addr_list.length) { %}
-	<p>
+	<div class="card-list-actions">
 		{%= frappe.ui.button.html({ label: __("Address"), icon: "plus", size: "sm", css_class: "btn-address" }) %}
-	</p>
+	</div>
 {% } %}
 
 <div class="clearfix"></div>
@@ -16,9 +16,9 @@
 		</div>
 		{% const tags = [addr.address_type !== "Other" ? frappe.utils.escape_html(__(addr.address_type)) : null, addr.is_shipping_address ? __("Shipping") : null, addr.disabled ? __("Disabled") : null].filter(Boolean).join(" · "); %}
 		{% if (tags) { %}
-			<p class="box-subtitle text-sm text-ink-gray-5">{%= tags %}</p>
+			<div class="box-subtitle text-sm text-ink-gray-5">{%= tags %}</div>
 		{% } %}
-		<p class="text-ink-gray-7">{%= addr.display %}</p>
+		<div class="address-display text-ink-gray-7">{%= addr.display %}</div>
 	</div>
 {% } %}
 

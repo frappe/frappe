@@ -169,6 +169,10 @@ select.form-control {
 		background-color: var(--surface-base);
 	}
 
+	.card-list-actions {
+		margin-bottom: var(--margin-sm);
+	}
+
 	.address-box,
 	.contact-box {
 		background-color: var(--card-bg);
@@ -179,13 +183,19 @@ select.form-control {
 		word-wrap: break-word;
 		position: relative;
 
-		p:last-child {
+		> :last-child {
 			margin-bottom: 0;
 		}
 
 		.box-header {
 			padding-inline-end: 1.5rem;
 			margin-bottom: var(--margin-sm);
+		}
+
+		.box-subtitle,
+		.contact-line,
+		.address-display {
+			line-height: 1.4;
 		}
 
 		.box-subtitle {
@@ -198,11 +208,6 @@ select.form-control {
 			top: var(--padding-sm);
 			inset-inline-end: var(--padding-sm);
 		}
-	}
-
-	.address-box p,
-	.contact-box p {
-		line-height: 1.4;
 	}
 
 	.contact-box .contact-line {
