@@ -13,13 +13,17 @@
 			@focusout="onFocusout"
 			@keydown.escape="editing = false"
 		>
+			<!-- `ui.props` binds FIRST so it cannot clobber `field` or
+			     `modelValue`; listeners are order-independent (Vue merges
+			     duplicate handlers into an array, so `ui.on.change` and the
+			     panel's own close-on-commit both fire). -->
 			<component
 				:is="field.ui?.component ?? resolved"
+				v-bind="field.ui?.props"
 				:field="controlField"
 				:modelValue="doc[field.fieldname]"
 				@update:modelValue="(value: any) => update(field.fieldname, value)"
 				@change="editing = false"
-				v-bind="field.ui?.props"
 				v-on="field.ui?.on ?? {}"
 			/>
 		</div>

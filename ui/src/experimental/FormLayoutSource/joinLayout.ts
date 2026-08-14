@@ -1,13 +1,17 @@
 import { mapField } from "../../components/FormLayout/buildLayoutFromMeta";
+import type { Decorator } from "../../components/FormLayout/buildLayoutFromMeta";
 import type {
 	Column,
 	FieldNode,
+	FieldOverride,
 	FormLayoutSchema,
 	RawMetaField,
 	Section,
 	Tab,
 } from "../../components/FormLayout/types";
 import type { FieldAccess } from "../../composables/useDocPermissions";
+import { withAccess } from "./fieldAccess";
+import { buildColumn, buildSection } from "./section";
 import type { LayoutTree, LayoutTreeColumn, LayoutTreeSection } from "./types";
 
 export interface JoinLayoutOptions {
@@ -15,6 +19,20 @@ export interface JoinLayoutOptions {
 	childMetas?: Record<string, RawMetaField[]>;
 	/** Permlevel gate per field; `read` demotes to read-only, `none` hides. */
 	fieldAccess?: (field: RawMetaField) => FieldAccess;
+	/**
+	 * Per-field UI overlay hook, inherited by nested grid columns. This is what
+	 * makes a `Button` field do anything: an undecorated Button renders with no
+	 * handler (`ButtonField.vue`), so an app that wants clickable Buttons passes
+	 * a decorator here.
+	 */
+	decorate?: Decorator;
+	/**
+	 * Per-render field property overrides, keyed by fieldname. Plain data on
+	 * purpose — `FormLayout` reads it off the schema and knows nothing about who
+	 * wrote it. Applied last by `resolveFieldConditionals`, so an override beats
+	 * `depends_on` but never a permlevel denial.
+	 */
+	overrides?: Record<string, FieldOverride>;
 }
 
 const LAYOUT_BREAKS = new Set(["Tab Break", "Section Break", "Column Break"]);
@@ -47,18 +65,12 @@ function joinSection(
 	byName: Map<string, RawMetaField>,
 	options: JoinLayoutOptions
 ): Section {
-	return {
-		name: section.name,
-		label: section.label,
-		hideLabel: Boolean(section.hideLabel),
-		hideBorder: Boolean(section.hideBorder),
-		collapsible: Boolean(section.collapsible),
-		opened: section.opened !== false,
-		dependsOn: section.dependsOn,
-		columns: (section.columns ?? []).map((column) =>
+	return buildSection(
+		section,
+		(section.columns ?? []).map((column) =>
 			joinColumn(column, byName, options)
-		),
-	};
+		)
+	);
 }
 
 function joinColumn(
@@ -66,13 +78,12 @@ function joinColumn(
 	byName: Map<string, RawMetaField>,
 	options: JoinLayoutOptions
 ): Column {
-	return {
-		name: column.name,
-		label: column.label,
-		fields: (column.fields ?? []).flatMap((fieldname) =>
+	return buildColumn(
+		column,
+		(column.fields ?? []).flatMap((fieldname) =>
 			joinField(fieldname, byName, options)
-		),
-	};
+		)
+	);
 }
 
 function joinField(
@@ -82,16 +93,11 @@ function joinField(
 ): FieldNode[] {
 	const raw = byName.get(fieldname);
 	if (!raw || LAYOUT_BREAKS.has(raw.fieldtype)) return [];
-	return [mapField(withAccess(raw, options.fieldAccess), options.childMetas ?? {})];
-}
-
-function withAccess(
-	field: RawMetaField,
-	fieldAccess?: (field: RawMetaField) => FieldAccess
-): RawMetaField {
-	const access = fieldAccess?.(field);
-	if (!access || access === "write") return field;
-	return access === "read"
-		? { ...field, read_only: 1 }
-		: { ...field, hidden: 1 };
+	const node = mapField(
+		withAccess(raw, options.fieldAccess),
+		options.childMetas ?? {},
+		options.decorate
+	);
+	const override = options.overrides?.[fieldname];
+	return [override ? { ...node, override } : node];
 }

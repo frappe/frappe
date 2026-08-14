@@ -2,9 +2,11 @@ import { computed, toValue } from "vue";
 import type { ComputedRef, MaybeRefOrGetter, Ref } from "vue";
 import { createResource, frappeRequest } from "frappe-ui";
 import type {
+	FieldOverride,
 	FormLayoutSchema,
 	RawMetaField,
 } from "../../components/FormLayout/types";
+import type { Decorator } from "../../components/FormLayout/buildLayoutFromMeta";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { useDocPermissions } from "../../composables/useDocPermissions";
 import { memoizedState } from "../../utils/sharedState";
@@ -23,6 +25,20 @@ export interface UseFormLayoutOptions {
 	 *  nothing — `"none"` lets the caller chain its own fallback (the side
 	 *  panel falls through to the Details layout). */
 	fallback?: "meta" | "none";
+	/** Per-field UI overlay hook; what makes a `Button` field clickable. */
+	decorate?: Decorator;
+	/**
+	 * Per-render field property overrides, keyed by fieldname. Plain data:
+	 * nothing here knows who wrote the override.
+	 *
+	 * Reactive — pass a getter and the layout re-joins when the app changes its
+	 * mind — but note *re-joins*: changing one boolean re-runs the whole meta
+	 * join, re-invokes `decorate` for every field and rebuilds every child
+	 * table's columns and row layout. Cheap for a handful of fields on a load;
+	 * if a caller ever flips these per keystroke, attach them in a shallow pass
+	 * over an already-joined tree instead.
+	 */
+	overrides?: MaybeRefOrGetter<Record<string, FieldOverride>>;
 }
 
 export interface UseFormLayout {
@@ -72,7 +88,12 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 		for (const [name, m] of Object.entries(metas.value))
 			if (m.fields) childMetas[name] = m.fields;
 
-		return joinLayout(tree, fields, { childMetas, fieldAccess });
+		return joinLayout(tree, fields, {
+			childMetas,
+			fieldAccess,
+			decorate: options.decorate,
+			overrides: toValue(options.overrides),
+		});
 	});
 
 	return {

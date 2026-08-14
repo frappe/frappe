@@ -81,7 +81,8 @@ export interface PageDialogField {
   mandatory_depends_on?: string;
   read_only_depends_on?: string;
   description?: string;
-  [key: string]: any;
+  /** Closed on purpose: `page.fields`' patch vocabulary is enumerated too, so
+   *  the two script-facing field types agree on what a script may write. */
 }
 
 /** One column of a `tabs` layout; its fields are written, not named. */

@@ -6,7 +6,6 @@ import { mapField } from "../../components/FormLayout/buildLayoutFromMeta";
 import { fieldsToLayout } from "../../components/FormLayout/fieldsToLayout";
 import { resolveLayout } from "../../components/FormLayout/resolveLayout";
 import type {
-  Column,
   FieldNode,
   FormLayoutSchema,
   RawMetaField,
@@ -14,6 +13,11 @@ import type {
   Tab,
 } from "../../components/FormLayout/types";
 import type { FieldAccess } from "../../composables/useDocPermissions";
+// The same permlevel gate and section constructor the meta path uses, so a
+// dialog cannot hand a script an editable field the reader may not write and
+// a section cannot open here but close there.
+import { withAccess } from "../FormLayoutSource/fieldAccess";
+import { buildColumn, buildSection } from "../FormLayoutSource/section";
 import type {
   PageDialogField,
   PageDialogFormOptions,
@@ -92,19 +96,6 @@ export function pickMetaFields(
   );
 }
 
-// The permlevel gate `joinLayout` applies on the meta path, so a dialog cannot
-// hand a script an editable field the reader may not write.
-function withAccess(
-  field: RawMetaField,
-  fieldAccess?: (field: RawMetaField) => FieldAccess,
-): RawMetaField {
-  const access = fieldAccess?.(field);
-  if (!access || access === "write") return field;
-  return access === "read"
-    ? { ...field, read_only: 1 }
-    : { ...field, hidden: 1 };
-}
-
 /** Force `required` fieldnames mandatory, whatever the layout said. */
 export function applyRequired(
   layout: FormLayoutSchema,
@@ -165,20 +156,22 @@ export function formData(
 }
 
 function toSection(section: PageDialogSection): Section {
-  return {
-    name: section.name,
-    label: section.label,
-    hideLabel: Boolean(section.hideLabel),
-    hideBorder: Boolean(section.hideBorder),
-    collapsible: Boolean(section.collapsible),
-    opened: section.opened !== false,
-    dependsOn: section.depends_on,
-    columns: (section.columns ?? []).map((column): Column => ({
-      name: column.name,
-      label: column.label,
-      fields: (column.fields ?? []).map(toFieldNode),
-    })),
-  };
+  // Listed key by key rather than spread: a spread is not excess-checked, so a
+  // rename in `PageDialogSection` would silently stop reaching `buildSection`.
+  return buildSection(
+    {
+      name: section.name,
+      label: section.label,
+      hideLabel: section.hideLabel,
+      hideBorder: section.hideBorder,
+      collapsible: section.collapsible,
+      opened: section.opened,
+      dependsOn: section.depends_on,
+    },
+    (section.columns ?? []).map((column) =>
+      buildColumn(column, (column.fields ?? []).map(toFieldNode)),
+    ),
+  );
 }
 
 // A script writes DocField vocabulary (`reqd: 1`, `depends_on`); `mapField` is
