@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-09 09:44+0000\n"
-"PO-Revision-Date: 2026-08-11 18:22\n"
+"PO-Revision-Date: 2026-08-13 18:37\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -76,11 +76,11 @@ msgstr "'*' är endast tillåtet i {0} SQL funktion(er)"
 
 #: frappe/public/js/form_builder/store.js:206
 msgid "'In Global Search' is not allowed for field {0} of type {1}"
-msgstr "\"I Global Sök\" är inte tillåtet för fält {0} av typ {1}"
+msgstr "\"I System Sök\" är inte tillåtet för fält {0} av typ {1}"
 
 #: frappe/core/doctype/doctype/doctype.py:1409
 msgid "'In Global Search' not allowed for type {0} in row {1}"
-msgstr "\"I Global Sökning\" är otillåtet för {0} på rad {1}"
+msgstr "\"I System Sökning\" är otillåtet för {0} på rad {1}"
 
 #: frappe/public/js/form_builder/store.js:198
 msgid "'In List View' is not allowed for field {0} of type {1}"
@@ -4424,7 +4424,7 @@ msgstr "Kan inte ändra till/från automatisk ökning av automatisk name i Anpas
 
 #: frappe/desk/doctype/global_search_settings/global_search_settings.py:176
 msgid "Cannot configure Core DocTypes for Global Search."
-msgstr "Kan inte konfigurera System DocTypes för Global Sökning."
+msgstr "Kan inte konfigurera System DocTypes för System Sökning."
 
 #: frappe/core/doctype/communication/communication.py:169
 msgid "Cannot create a {0} against a child document: {1}"
@@ -6005,7 +6005,7 @@ msgstr "System DocType kan inte anpassas."
 
 #: frappe/desk/doctype/global_search_settings/global_search_settings.py:38
 msgid "Core Modules {0} cannot be searched in Global Search."
-msgstr "System Moduler {0} kan inte sökas i Global Sök."
+msgstr "System Moduler {0} kan inte sökas i System Sök."
 
 #: frappe/printing/page/print/print.js:680
 msgid "Correct version :"
@@ -10719,7 +10719,7 @@ msgstr "Hämta vid Spara om Tom"
 
 #: frappe/desk/doctype/global_search_settings/global_search_settings.py:63
 msgid "Fetching default Global Search documents."
-msgstr "Hämtar standard Global Sökning dokument."
+msgstr "Hämtar standard System Sökning dokument."
 
 #: frappe/website/doctype/web_form/web_form.js:164
 msgid "Fetching fields from {0}..."
@@ -12085,7 +12085,7 @@ msgstr "Avisera när e-post meddelande tas emot om någon av dokument som tillde
 #. Description of the 'User Image' (Attach Image) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Get your globally recognized avatar from Gravatar.com"
-msgstr "Hämta globalt erkänd avatar från Gravatar.com"
+msgstr "Hämta system erkänd avatar från Gravatar.com"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar.html:47
 #: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:235
@@ -12110,16 +12110,16 @@ msgstr "Github influerad markdown syntax"
 #. Name of a DocType
 #: frappe/desk/doctype/global_search_doctype/global_search_doctype.json
 msgid "Global Search DocType"
-msgstr "Global Sökning DocType"
+msgstr "System Sökning DocType"
 
 #: frappe/desk/doctype/global_search_settings/global_search_settings.js:99
 msgid "Global Search Document Types Reset."
-msgstr "Global Sökning Dokument Typ Återställning."
+msgstr "System Sökning Dokument Typ Återställning."
 
 #. Name of a DocType
 #: frappe/desk/doctype/global_search_settings/global_search_settings.json
 msgid "Global Search Settings"
-msgstr "Global Sökning Inställningar"
+msgstr "System Sökning Inställningar"
 
 #: frappe/public/js/frappe/ui/keyboard.js:136
 msgid "Global Shortcuts"
@@ -12128,7 +12128,7 @@ msgstr "Standard Genvägar"
 #. Label of the global_unsubscribe (Check) field in DocType 'Email Unsubscribe'
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.json
 msgid "Global Unsubscribe"
-msgstr "Globalt Avregistrering"
+msgstr "System Avregistrering"
 
 #: frappe/public/js/frappe/form/toolbar.js:900
 msgid "Go"
@@ -13738,7 +13738,7 @@ msgstr "I Filter"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "In Global Search"
-msgstr "I Global Sök"
+msgstr "I System Sök"
 
 #: frappe/core/doctype/doctype/doctype.js:88
 msgid "In Grid View"
@@ -14771,7 +14771,7 @@ msgstr "Är Mapp"
 
 #: frappe/public/js/frappe/list/list_filter.js:113
 msgid "Is Global"
-msgstr "Är Global"
+msgstr "Är System"
 
 #: frappe/public/js/frappe/views/treeview.js:436
 msgid "Is Group"
@@ -16555,7 +16555,7 @@ msgstr "Stora"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Make \"name\" searchable in Global Search"
-msgstr "'namn' sökbar i Global Sökning"
+msgstr "'namn' sökbar i System Sökning"
 
 #. Label of the make_attachment_public (Check) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
@@ -19532,7 +19532,7 @@ msgstr "Öppna Support"
 
 #: frappe/public/js/frappe/ui/keyboard.js:228
 msgid "Open Global Search"
-msgstr "Öppna Global Sökning"
+msgstr "Öppna System Sökning"
 
 #: frappe/public/js/frappe/form/controls/data.js:84
 #: frappe/public/js/frappe/form/controls/link.js:20
@@ -25707,7 +25707,7 @@ msgstr "Ange denna Adress Mall som standard eftersom det inte finns någon annan
 
 #: frappe/desk/doctype/global_search_settings/global_search_settings.py:88
 msgid "Setting up Global Search documents."
-msgstr "Konfigurerar Global Sökning Dokument."
+msgstr "Konfigurerar System Sökning Dokument."
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:314
 msgid "Setting up your system"
@@ -33441,7 +33441,7 @@ msgstr "för att öppna Awesome Bar"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:57
 msgid "to open Global Search"
-msgstr "för att öppna Global Sökning"
+msgstr "för att öppna System Sökning"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:49
 msgid "to select"
