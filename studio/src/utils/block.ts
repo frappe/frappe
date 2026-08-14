@@ -12,11 +12,13 @@ import LucideCode from "~icons/lucide/code"
 import { generateId, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 import { copyObject, getBlockCopy, getComponentBlock } from "@/utils/serializer"
 import { componentHasDefaultSlot, getComponentSlots } from "@/utils/components"
+import { mergeLegacyRawStyles } from "@/patches/mergeLegacyRawStyles"
 
 import type { StyleValue, FrappeUIComponent, FrappeUIComponents } from "@/types"
 import type { ComponentEvent } from "@/types/ComponentEvent"
 
 export type styleProperty = keyof CSSProperties | `__${string}`;
+
 class Block implements BlockOptions {
 	componentId: string
 	componentName: string
@@ -51,7 +53,7 @@ class Block implements BlockOptions {
 		this.componentName = options.componentName
 		this.blockName = options.blockName
 		this.originalElement = options.originalElement
-		this.baseStyles = reactive(options.baseStyles || {})
+		this.baseStyles = reactive(mergeLegacyRawStyles({ ...(options.baseStyles || {}) }, options.rawStyles))
 		this.mobileStyles = reactive(options.mobileStyles || {})
 		this.tabletStyles = reactive(options.tabletStyles || {})
 		this.classes = options.classes || []
