@@ -1,18 +1,19 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
-"""ASGI entry point: the Frappe web application, plus realtime when embedded.
+"""ASGI entry point: the web application of Frappe, and realtime if it is embedded.
 
     uvicorn frappe.asgi:application
 
-With "socketio_backend" set to "python-embedded", "/socket.io/" is served by the
-realtime server in this process and everything else by the web app. Under any
-other backend this is the web app alone, and realtime keeps its own process.
+If "socketio_backend" is "python-embedded", the realtime server in this process
+answers "/socket.io/", and the web app answers all the other requests. With a
+different backend this app is only the web app, and realtime keeps its own process.
 
-/assets and /files are nginx's job, so they are left out; set FRAPPE_SERVE_ASSETS
-to serve them from this process instead, as with no proxy in front.
+Usually nginx sends /assets and /files, thus this app does not. Set
+FRAPPE_SERVE_ASSETS to send them from this process, as when there is no proxy.
 
-a2wsgi runs the WSGI app in a thread pool. Binding, worker counts, supervision and
-the working directory belong to whatever starts uvicorn.
+a2wsgi runs the WSGI app in a thread pool. The program that starts uvicorn
+controls the address, the number of workers, the supervision, and the work
+directory.
 """
 
 import os
@@ -24,7 +25,7 @@ from frappe.app import application_with_statics
 from frappe.realtime.config import get_config as get_socketio_config
 from frappe.utils.data import sbool
 
-# Concurrent web requests; a2wsgi would otherwise apply its own default of 10.
+# The number of concurrent web requests. The default of a2wsgi is 10.
 DEFAULT_WEB_THREADS = 16
 web_threads = int(os.environ.get("FRAPPE_WEB_THREADS") or DEFAULT_WEB_THREADS)
 

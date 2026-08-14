@@ -37,6 +37,13 @@ from frappe.realtime.dispatch import wire
 
 logger = logging.getLogger("frappe.realtime")
 
+# socketio and engineio log one line for each packet, and a client sends a ping
+# every 25 seconds. That is a debug tool, thus it gets a logger of its own and
+# stays quiet. Set this logger to INFO to see the packets.
+packet_logger = logging.getLogger("frappe.realtime.packets")
+if packet_logger.level == logging.NOTSET:
+	packet_logger.setLevel(logging.WARNING)
+
 
 class TolerantManager(socketio.AsyncManager):
 	"""Re-ack a duplicate namespace connect instead of rejecting it.
@@ -62,8 +69,8 @@ def create_sio() -> socketio.AsyncServer:
 		cors_credentials=True,
 		namespaces="*",
 		client_manager=TolerantManager(),
-		logger=logger,
-		engineio_logger=logger,
+		logger=packet_logger,
+		engineio_logger=packet_logger,
 	)
 
 
