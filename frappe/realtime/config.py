@@ -20,8 +20,6 @@ DEFAULT_SOCKETIO_PORT = 9000
 # is silent on redis_queue, which should not happen in a real bench.
 DEFAULT_REDIS_QUEUE = "redis://127.0.0.1:11311"
 
-EMBEDDED_BACKEND = "python-embedded"
-
 
 @dataclass(frozen=True)
 class RealtimeConfig:
@@ -41,11 +39,12 @@ class RealtimeConfig:
 	# relative path would then point one level too deep.
 	sites_path: str = "sites"
 	# Sharing a process with the web app: call back in-process rather than looping
-	# HTTP back into ourselves.
+	# HTTP back into ourselves. This is a property of the process, not of the site
+	# config; the process that embeds realtime sets it. See frappe.asgi.
 	embedded: bool = False
 
 
-def get_config(sites_path: str | None = None) -> RealtimeConfig:
+def get_config(sites_path: str | None = None, embedded: bool = False) -> RealtimeConfig:
 	"""Build the realtime config from common_site_config.json."""
 	import frappe
 
@@ -63,5 +62,5 @@ def get_config(sites_path: str | None = None) -> RealtimeConfig:
 		webserver_host=conf.get("webserver_host") or None,
 		worker_threads=int(conf["socketio_worker_threads"]) if conf.get("socketio_worker_threads") else None,
 		sites_path=sites_path,
-		embedded=conf.get("socketio_backend") == EMBEDDED_BACKEND,
+		embedded=embedded,
 	)

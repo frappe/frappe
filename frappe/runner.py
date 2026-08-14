@@ -110,17 +110,12 @@ class TrafficMiddleware:
 		if config.web_threads:
 			os.environ["FRAPPE_WEB_THREADS"] = str(config.web_threads)
 
-		# Do this before the import of frappe.asgi. That module reads
-		# common_site_config to know if it must add realtime, and it reads
-		# FRAPPE_SERVE_ASSETS to know if it must send the static files. frappe.app also
-		# needs an initialized frappe.
+		# Do this before the import of frappe.asgi. That module reads FRAPPE_SERVE_ASSETS
+		# to know if it must send the static files, and it builds the embedded realtime
+		# server. frappe.app also needs an initialized frappe.
 		frappe.init(site="")
 
 		from frappe.asgi import application
-		from frappe.realtime.config import get_config
-
-		if not get_config().embedded:
-			logger.warning('socketio_backend is not "python-embedded": the runner serves only the web app')
 
 		return cls(application, traffic)
 

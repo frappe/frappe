@@ -745,13 +745,13 @@ class TestFrappeContext(unittest.IsolatedAsyncioTestCase):
 
 
 class TestConfig(unittest.TestCase):
-	def _config(self, **conf: object) -> RealtimeConfig:
+	def _config(self, embedded: bool = False, **conf: object) -> RealtimeConfig:
 		import frappe
 
 		base = {"socketio_port": 9000, "redis_queue": "redis://127.0.0.1:11311"}
 		base.update(conf)
 		with patch.object(frappe, "get_common_site_config", return_value=base):
-			return get_config(sites_path=".")
+			return get_config(sites_path=".", embedded=embedded)
 
 	def test_worker_threads_are_unset_by_default(self):
 		# Nothing built in dispatches to a thread, so the loop's own executor stands.
@@ -770,12 +770,15 @@ class TestConfig(unittest.TestCase):
 	def test_worker_threads_override(self):
 		self.assertEqual(self._config(socketio_worker_threads="8").worker_threads, 8)
 
-	def test_embedded_is_off_unless_the_backend_says_so(self):
+	def test_embedded_is_off_by_default(self):
+		# The process decides, not the site config: socketio_backend only names the
+		# realtime server of a bench that runs realtime apart.
 		self.assertFalse(self._config().embedded)
 		self.assertFalse(self._config(socketio_backend="python").embedded)
+		self.assertFalse(self._config(socketio_backend="node").embedded)
 
-	def test_embedded_backend(self):
-		self.assertTrue(self._config(socketio_backend="python-embedded").embedded)
+	def test_embedded_comes_from_the_caller(self):
+		self.assertTrue(self._config(embedded=True).embedded)
 
 
 class TestServerApp(unittest.IsolatedAsyncioTestCase):
