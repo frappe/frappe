@@ -1,8 +1,8 @@
-// Styles for the inline Document Queue review panel, the upload-first banner and
+// Styles for the inline Attachment Queue review panel, the upload-first banner and
 // the list-view "ready for review" banner.
-// Behaviour lives in frappe/public/js/frappe/document_queue_review.js.
+// Behaviour lives in frappe/public/js/frappe/attachment_queue_review.js.
 
-.document-queue-freeze-body {
+.attachment-queue-freeze-body {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -10,14 +10,14 @@
 	gap: 8px;
 }
 
-.document-queue-review-json-pre {
+.attachment-queue-review-json-pre {
 	background-color: var(--control-bg);
 	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius-sm);
 	font-size: var(--text-sm);
 }
 
-.document-queue-upload-first {
+.attachment-queue-upload-first {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -27,26 +27,26 @@
 	background: var(--fg-color);
 }
 
-.document-queue-upload-first-title {
+.attachment-queue-upload-first-title {
 	color: var(--text-color);
 	font-weight: 600;
 	line-height: 1.4;
 }
 
-.document-queue-upload-first-description {
+.attachment-queue-upload-first-description {
 	color: var(--text-muted);
 	font-size: var(--text-sm);
 	line-height: 1.4;
 }
 
-.document-queue-upload-first-button {
+.attachment-queue-upload-first-button {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
 	flex: none;
 }
 
-.document-queue-ready-banner {
+.attachment-queue-ready-banner {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -67,16 +67,14 @@
 	}
 }
 
-.std-form-layout.document-queue-review-layout {
+.std-form-layout.attachment-queue-review-layout {
 	display: grid;
-	grid-template-columns:
-		minmax(320px, var(--document-queue-review-width, 38%))
-		minmax(0, 1fr);
+	grid-template-columns: minmax(320px, var(--attachment-queue-review-width, 38%)) minmax(0, 1fr);
 	gap: 0;
 	align-items: start;
 }
 
-.document-queue-review-panel {
+.attachment-queue-review-panel {
 	position: sticky;
 	top: var(--page-head-height);
 	height: calc(100vh - var(--page-head-height));
@@ -88,7 +86,7 @@
 	background: var(--fg-color);
 }
 
-.document-queue-review-shell {
+.attachment-queue-review-shell {
 	display: flex;
 	height: 100%;
 	min-height: 0;
@@ -99,12 +97,12 @@
 
 // Sits above the tab bar inside the flex column, so a failed extraction is stated
 // once for the whole panel instead of hiding inside one tab.
-.document-queue-review-alert {
+.attachment-queue-review-alert {
 	flex: none;
 	padding: var(--padding-md) var(--padding-md) 0;
 }
 
-.document-queue-review-body {
+.attachment-queue-review-body {
 	min-height: 0;
 	flex: 1;
 	overflow: auto;
@@ -113,7 +111,7 @@
 	border-bottom: 1px solid var(--border-color);
 }
 
-.document-queue-review-tab-panel {
+.attachment-queue-review-tab-panel {
 	display: none;
 	height: 100%;
 
@@ -126,7 +124,7 @@
 	}
 }
 
-.document-queue-review-resize-overlay {
+.attachment-queue-review-resize-overlay {
 	position: absolute;
 	display: none;
 	top: 50%;
@@ -139,7 +137,7 @@
 	z-index: 1;
 }
 
-.document-queue-review-preview {
+.attachment-queue-review-preview {
 	width: 100%;
 	height: 100%;
 	border: 0;
@@ -147,7 +145,7 @@
 	background: #fff;
 }
 
-.document-queue-review-preview-image {
+.attachment-queue-review-preview-image {
 	width: 100%;
 	height: auto;
 	border-radius: 0;
@@ -155,22 +153,22 @@
 
 // While dragging the resizer, hide the PDF iframe (it repaints poorly mid-drag)
 // and show the width overlay in its place.
-.document-queue-review-panel.document-queue-review-resizing-pdf {
-	.document-queue-review-preview {
+.attachment-queue-review-panel.attachment-queue-review-resizing-pdf {
+	.attachment-queue-review-preview {
 		visibility: hidden;
 	}
 
-	.document-queue-review-resize-overlay {
+	.attachment-queue-review-resize-overlay {
 		display: block;
 	}
 }
 
-.document-queue-review-sections {
+.attachment-queue-review-sections {
 	display: flex;
 	flex-direction: column;
 }
 
-.document-queue-review-section {
+.attachment-queue-review-section {
 	padding: 0;
 	border: 0;
 	background: var(--fg-color);
@@ -208,7 +206,7 @@
 	}
 }
 
-.document-queue-review-panel pre {
+.attachment-queue-review-panel pre {
 	margin: 0;
 	white-space: pre-wrap;
 	word-break: break-word;
@@ -219,7 +217,7 @@
 	font-size: var(--text-sm);
 }
 
-.document-queue-review-resizer {
+.attachment-queue-review-resizer {
 	position: absolute;
 	top: 0;
 	right: -2px;
@@ -235,23 +233,23 @@
 	}
 }
 
-body.document-queue-review-is-resizing {
+body.attachment-queue-review-is-resizing {
 	cursor: col-resize;
 	user-select: none;
 }
 
 @media (max-width: 991px) {
-	.std-form-layout.document-queue-review-layout {
+	.std-form-layout.attachment-queue-review-layout {
 		display: block;
 	}
 
-	.document-queue-review-panel {
+	.attachment-queue-review-panel {
 		position: static;
 		height: calc(100vh - 96px);
 		margin-bottom: 16px;
 	}
 
-	.document-queue-review-resizer {
+	.attachment-queue-review-resizer {
 		display: none;
 	}
 }

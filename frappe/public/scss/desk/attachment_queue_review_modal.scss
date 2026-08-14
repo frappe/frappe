@@ -1,12 +1,12 @@
-// Styles for the split-screen Document Queue review dialog.
-// Behaviour lives in frappe/public/js/frappe/document_queue_review_modal.js.
+// Styles for the split-screen Attachment Queue review dialog.
+// Behaviour lives in frappe/public/js/frappe/attachment_queue_review_modal.js.
 // Imported last in desk/index.scss (after embedded_list.scss) so the pane-local
 // overrides below keep winning equal-specificity ties against the base
 // embedded-list rules by source order. Keep it last — moving this import above
 // embedded_list would silently flip those ties.
 
 // ── Modal Header & Split Screen Spacing ──
-.dq-split-screen {
+.aq-split-screen {
 	padding: 16px 20px 16px 20px;
 	height: 76vh;
 	max-height: 76vh;
@@ -18,7 +18,7 @@
 }
 
 // ── Left Pane: List View (55%) ──
-.dq-list-pane {
+.aq-list-pane {
 	flex: 0 0 calc(55% - 8px);
 	min-width: 0;
 	display: flex;
@@ -27,7 +27,7 @@
 	height: 100%;
 }
 
-.dq-list-wrapper {
+.aq-list-wrapper {
 	flex: 1;
 	display: flex;
 	flex-direction: column;
@@ -170,7 +170,7 @@
 }
 
 // ── Right Pane: Preview Pane (45%) ──
-.dq-preview-pane {
+.aq-preview-pane {
 	flex: 0 0 calc(45% - 8px);
 	min-width: 0;
 	display: flex;
@@ -184,7 +184,7 @@
 	position: relative;
 }
 
-.dq-preview-empty-container {
+.aq-preview-empty-container {
 	flex: 1;
 	display: flex;
 	align-items: center;
@@ -195,7 +195,7 @@
 
 // Content area swapped by _clear_preview/_render_preview; the action row below
 // it is permanent, so selecting a row never changes the pane's geometry.
-.dq-preview-content {
+.aq-preview-content {
 	flex: 1;
 	min-height: 0;
 	display: flex;
@@ -203,14 +203,14 @@
 }
 
 // Matches the height `.list-paging-area` occupies in the list pane.
-.dq-preview-footer {
+.aq-preview-footer {
 	flex-shrink: 0;
 	min-height: 34px;
 	padding: 8px;
 	border-top: 1px solid var(--border-color);
 }
 
-.dq-preview-body {
+.aq-preview-body {
 	position: relative;
 	flex: 1;
 	min-height: 0;

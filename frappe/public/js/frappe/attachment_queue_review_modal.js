@@ -1,7 +1,7 @@
-// Embedded split-screen modal for reviewing Document Queue items.
+// Embedded split-screen modal for reviewing Attachment Queue items.
 // Left pane: embedded list of queue records. Right pane: file preview.
 
-frappe.ui.DocumentQueueModal = class DocumentQueueModal {
+frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 	/** @param {{ doctype: string, title?: string }} options */
 	constructor(options = {}) {
 		this.doctype = options.doctype;
@@ -62,17 +62,22 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 			"background-color": "var(--bg-light)",
 			padding: "0",
 		});
-		this.dialog.get_field("body").$wrapper.parentsUntil(".modal-body").css({ padding: "0", margin: "0", border: "none" });
+		this.dialog
+			.get_field("body")
+			.$wrapper.parentsUntil(".modal-body")
+			.css({ padding: "0", margin: "0", border: "none" });
 	}
 
 	_build_screens() {
-		this.$split_screen = $('<div class="dq-split-screen"></div>').appendTo(this.dialog.get_field("body").$wrapper);
-		this.$list_pane = $('<div class="dq-list-pane"></div>').appendTo(this.$split_screen);
-		this.$preview_pane = $('<div class="dq-preview-pane"></div>').appendTo(this.$split_screen);
+		this.$split_screen = $('<div class="aq-split-screen"></div>').appendTo(
+			this.dialog.get_field("body").$wrapper
+		);
+		this.$list_pane = $('<div class="aq-list-pane"></div>').appendTo(this.$split_screen);
+		this.$preview_pane = $('<div class="aq-preview-pane"></div>').appendTo(this.$split_screen);
 
 		// Preview swaps only the content area; the action row below it is built
 		// once so the button keeps its identity and the pane height never jumps.
-		this.$preview_content = $('<div class="dq-preview-content"></div>').appendTo(
+		this.$preview_content = $('<div class="aq-preview-content"></div>').appendTo(
 			this.$preview_pane
 		);
 
@@ -86,7 +91,7 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 		// Same `level` / `level-left` / `level-right` shape as the list pane's
 		// `.list-paging-area`, so both panes end on a single shared baseline.
 		$(`
-			<div class="dq-preview-footer level">
+			<div class="aq-preview-footer level">
 				<div class="level-left"></div>
 				<div class="level-right"></div>
 			</div>
@@ -102,13 +107,15 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 	 * declared on first use and cached, rather than at script-eval time.
 	 */
 	_get_list_class() {
-		if (frappe.ui.DocumentQueueEmbeddedList) {
-			return frappe.ui.DocumentQueueEmbeddedList;
+		if (frappe.ui.AttachmentQueueEmbeddedList) {
+			return frappe.ui.AttachmentQueueEmbeddedList;
 		}
 
 		const EmbeddedList = frappe.ui.EmbeddedList;
 
-		frappe.ui.DocumentQueueEmbeddedList = class DocumentQueueEmbeddedList extends EmbeddedList {
+		frappe.ui.AttachmentQueueEmbeddedList = class AttachmentQueueEmbeddedList extends (
+			EmbeddedList
+		) {
 			// EmbeddedList has no pagination hook — no page-size selector and no
 			// "N of M" footer — so the paging area replaces the default
 			// "Load More" strip wholesale.
@@ -202,7 +209,7 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 			}
 		};
 
-		return frappe.ui.DocumentQueueEmbeddedList;
+		return frappe.ui.AttachmentQueueEmbeddedList;
 	}
 
 	/**
@@ -211,14 +218,14 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 	 * columns, filters and row-click wiring below are plain configuration.
 	 */
 	_setup_list() {
-		this.$list_wrapper = $('<div class="dq-list-wrapper"></div>').appendTo(this.$list_pane);
+		this.$list_wrapper = $('<div class="aq-list-wrapper"></div>').appendTo(this.$list_pane);
 
-		const DocumentQueueEmbeddedList = this._get_list_class();
+		const AttachmentQueueEmbeddedList = this._get_list_class();
 
-		this.list = new DocumentQueueEmbeddedList({
+		this.list = new AttachmentQueueEmbeddedList({
 			wrapper: this.$list_wrapper,
 			modal: this,
-			doctype: "Document Queue",
+			doctype: "Attachment Queue",
 			title: "",
 			page_size: this.page_size,
 			fields: ["name", "status", "source_file", "document_type", "creation"],
@@ -230,7 +237,9 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 					label: __("Source File"),
 					fieldname: "source_file",
 					render: (row) => {
-						const name = frappe.document_queue_review.get_file_name(row.source_file || "");
+						const name = frappe.attachment_queue_review.get_file_name(
+							row.source_file || ""
+						);
 						return frappe.utils.escape_html(name || "—");
 					},
 				},
@@ -241,15 +250,17 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 						// Shortened because the column is narrow; translated because
 						// these are the raw Select values straight off the row.
 						const short =
-							row.status === "Ready for Review"
-								? __("Review")
-								: __(row.status);
+							row.status === "Ready for Review" ? __("Review") : __(row.status);
 						const theme =
-							row.status === "Ready for Review" || row.status === "Queued" ? "blue"
-							: row.status === "Completed"  ? "green"
-							: row.status === "Processing" ? "orange"
-							: row.status === "Failed"     ? "red"
-							: "gray";
+							row.status === "Ready for Review" || row.status === "Queued"
+								? "blue"
+								: row.status === "Completed"
+								? "green"
+								: row.status === "Processing"
+								? "orange"
+								: row.status === "Failed"
+								? "red"
+								: "gray";
 						return frappe.ui.badge.html({ label: short, theme });
 					},
 				},
@@ -295,7 +306,7 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 		if (!this.$preview_content) return;
 		this.$preview_content.empty();
 
-		const $empty_wrap = $('<div class="dq-preview-empty-container"></div>').appendTo(
+		const $empty_wrap = $('<div class="aq-preview-empty-container"></div>').appendTo(
 			this.$preview_content
 		);
 
@@ -313,15 +324,15 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 		if (!this.$preview_content) return;
 		this.$preview_content.empty();
 
-		const file_url = frappe.document_queue_review.get_preview_url(row.source_file);
+		const file_url = frappe.attachment_queue_review.get_preview_url(row.source_file);
 		const file_name =
-			frappe.document_queue_review.get_file_name(row.source_file || "") || file_url;
+			frappe.attachment_queue_review.get_file_name(row.source_file || "") || file_url;
 		const preview_type = this._get_preview_type(row.source_file);
 
 		this.$start_review_btn.prop("disabled", false);
 
 		// Body
-		const $body = $('<div class="dq-preview-body"></div>').appendTo(this.$preview_content);
+		const $body = $('<div class="aq-preview-body"></div>').appendTo(this.$preview_content);
 
 		const escaped_url = frappe.utils.escape_html(file_url);
 		const escaped_name = frappe.utils.escape_html(file_name);
@@ -357,19 +368,19 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 		const queue_name = row.name;
 
 		try {
-			const context = await frappe.document_queue_review.fetch_context(queue_name);
+			const context = await frappe.attachment_queue_review.fetch_context(queue_name);
 			if (context && context.document_type) {
-				// Same routing the Document Queue form's "Start Review" performs,
+				// Same routing the Attachment Queue form's "Start Review" performs,
 				// so both entry points stay in step.
-				frappe.document_queue_review.route_to_new_document(context);
+				frappe.attachment_queue_review.route_to_new_document(context);
 				return;
 			}
 		} catch (e) {
 			console.error("Failed to fetch document review context", e);
 		}
 
-		// Fallback to Document Queue form
-		frappe.set_route("Form", "Document Queue", queue_name);
+		// Fallback to Attachment Queue form
+		frappe.set_route("Form", "Attachment Queue", queue_name);
 	}
 
 	_get_preview_type(source_url) {
@@ -383,12 +394,14 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 	}
 
 	async _setup_native_toolbar() {
-		await frappe.model.with_doctype("Document Queue");
+		await frappe.model.with_doctype("Attachment Queue");
 
 		const $header = this.list.$header;
 		$header.show().empty().html(`
 			<div class="embedded-list-header-left">
-				<input type="text" class="form-control form-control-sm embedded-list-search" data-action="search" placeholder="${__("Search")}">
+				<input type="text" class="form-control form-control-sm embedded-list-search" data-action="search" placeholder="${__(
+					"Search"
+				)}">
 			</div>
 			<div class="embedded-list-header-actions">
 				<div class="filter-section"></div>
@@ -441,7 +454,11 @@ frappe.ui.DocumentQueueModal = class DocumentQueueModal {
 					label: __("Newest First"),
 					icon: "arrow-down-wide-narrow",
 					onclick: () =>
-						this._set_sort("creation desc", __("Newest First"), "arrow-down-wide-narrow"),
+						this._set_sort(
+							"creation desc",
+							__("Newest First"),
+							"arrow-down-wide-narrow"
+						),
 				},
 				{
 					label: __("Oldest First"),
