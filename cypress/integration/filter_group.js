@@ -1,11 +1,11 @@
 context("Filter Group", () => {
-	before(() => {
+	beforeEach(() => {
 		cy.login();
-		cy.visit("/app/website");
+		cy.visit("/app/");
 	});
 
 	it("preserves numeric filter values with a comma decimal separator", () => {
-		cy.window().its("frappe").should("exist");
+		cy.window().its("frappe.ui.FilterGroup").should("exist");
 
 		cy.window().then(async (win) => {
 			const frappe = win.frappe;
@@ -29,8 +29,12 @@ context("Filter Group", () => {
 					7.95
 				);
 
-				expect(filter_group.get_filters()).to.deep.equal([
-					["Currency", "smallest_currency_fraction_value", "=", 7.95],
+				const [doctype, fieldname, condition, value] = filter_group.get_filters()[0];
+				expect([doctype, fieldname, condition, value]).to.deep.equal([
+					"Currency",
+					"smallest_currency_fraction_value",
+					"=",
+					7.95,
 				]);
 			} finally {
 				$parent.remove();
