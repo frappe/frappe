@@ -1,7 +1,7 @@
 // One customizable region of a Record page. Verbs record ops; the rendered list
 // is those ops replayed over the host's built-ins, so a refresh replay and a
 // built-in that changed underneath both resolve to the same answer.
-import { reactive } from "vue";
+import { markRaw, reactive } from "vue";
 import { runningSource } from "./context";
 import { ensureIcons } from "./iconClasses";
 import type { Position, SurfaceItem, SurfaceVerbs } from "./types";
@@ -27,6 +27,7 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 
 	add(item: Item, position?: Position) {
 		ensureIcons(item);
+		keepComponentRaw(item);
 		this.ops.push({ verb: "add", source: runningSource(), item, position });
 	}
 
@@ -40,6 +41,7 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 
 	update(name: string, patch: Partial<Item>) {
 		ensureIcons(patch);
+		keepComponentRaw(patch);
 		this.ops.push({ verb: "update", source: runningSource(), name, patch });
 	}
 
@@ -81,6 +83,13 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 			.filter((entry) => !entry.hidden)
 			.map((entry) => entry.item);
 	}
+}
+
+// `ops` is reactive, so a component stored on an item would be deep-reactified
+// on its way in -- which Vue warns about, and pays for proxying a whole render
+// function. The item's own keys stay reactive; only the component opts out.
+function keepComponentRaw<Item extends SurfaceItem>(item: Partial<Item>) {
+	if (item.component) item.component = markRaw(item.component);
 }
 
 function apply<Item extends SurfaceItem>(items: ResolvedItem<Item>[], op: Op<Item>) {
