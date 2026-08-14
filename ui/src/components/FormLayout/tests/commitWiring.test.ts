@@ -36,19 +36,19 @@ afterEach(() => {
 
 interface Recorded {
   channel: CommitChannel;
-  pending: string[];
-  committed: string[];
+  pending: [string, any][];
+  committed: [string, any][];
 }
 
 function recorder(): Recorded {
-  const pending: string[] = [];
-  const committed: string[] = [];
+  const pending: [string, any][] = [];
+  const committed: [string, any][] = [];
   return {
     pending,
     committed,
     channel: {
-      pending: (fieldname) => pending.push(fieldname),
-      commit: (fieldname) => committed.push(fieldname),
+      pending: (fieldname, value) => pending.push([fieldname, value]),
+      commit: (fieldname, value) => committed.push([fieldname, value]),
       rowChanged: () => {},
     },
   };
@@ -88,11 +88,11 @@ describe("commit wiring", () => {
 
     type(host, "10");
     expect(doc.qty).toBe("10");
-    expect(recorded.pending).toEqual(["qty"]);
+    expect(recorded.pending).toEqual([["qty", "10"]]);
     expect(recorded.committed).toEqual([]);
 
     blur(host);
-    expect(recorded.committed).toEqual(["qty"]);
+    expect(recorded.committed).toEqual([["qty", "10"]]);
   });
 
   it("commits once per commit, however many keystrokes preceded it", () => {
@@ -101,7 +101,7 @@ describe("commit wiring", () => {
     type(host, "1");
     type(host, "10");
     blur(host);
-    expect(recorded.committed).toEqual(["qty"]);
+    expect(recorded.committed).toEqual([["qty", "10"]]);
   });
 
   it("a child table commits through its rows, not under its own fieldname", () => {
