@@ -104,6 +104,18 @@ describe("commit wiring", () => {
     expect(recorded.committed).toEqual(["qty"]);
   });
 
+  it("a child table commits through its rows, not under its own fieldname", () => {
+    const recorded = recorder();
+    const { host } = render(
+      [{ fieldname: "products", fieldtype: "Table" }],
+      recorded.channel
+    );
+    type(host, "anything");
+    blur(host);
+    expect(recorded.pending).toEqual([]);
+    expect(recorded.committed).toEqual([]);
+  });
+
   it("still syncs the doc when no channel is provided", () => {
     const { host, doc } = render([qty]);
     type(host, "7");

@@ -11,7 +11,7 @@
 			:field="field"
 			:modelValue="doc[field.fieldname]"
 			@update:modelValue="(value: any) => edit(field.fieldname, value)"
-			@change="() => commit.commit(field.fieldname)"
+			@change="onCommit"
 			v-on="field.ui?.on ?? {}"
 		/>
 	</div>
@@ -20,6 +20,7 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import { CommitKey, DocKey, NO_COMMIT, ResolveFieldKey, UpdateKey } from "./types";
+import { holdsChildRows } from "../Fields/rowIdentity";
 import type { FieldNode } from "./types";
 
 const props = defineProps<{ field: FieldNode }>();
@@ -29,11 +30,19 @@ const update = inject(UpdateKey)!;
 const commit = inject(CommitKey, NO_COMMIT);
 const resolveField = inject(ResolveFieldKey)!;
 
+// A child table commits through its rows, never under its own fieldname, which
+// ticket 45 retired as a handler key.
+const commits = computed(() => !holdsChildRows(props.field.fieldtype));
+
 // The live write, plus a note that a commit is owed: a save with focus still in
 // the input has to fire the handler before `before_save` sees a stale value.
 function edit(fieldname: string, value: any) {
 	update(fieldname, value);
-	commit.pending(fieldname);
+	if (commits.value) commit.pending(fieldname);
+}
+
+function onCommit() {
+	if (commits.value) commit.commit(props.field.fieldname);
 }
 
 // `ui.component` swaps the control for this one node; otherwise resolve by fieldtype.

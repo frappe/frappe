@@ -441,11 +441,13 @@ function addRow() {
 }
 
 function deleteSelected() {
-	const removed = rows.value.filter((row) => selected.value.has(keyOf(row)));
-	rows.value = rows.value.filter((row) => !selected.value.has(keyOf(row)));
+	const isRemoved = (row: Record<string, any>) => selected.value.has(keyOf(row));
+	const removed = rows.value.filter(isRemoved);
+	const next = rows.value.filter((row) => !isRemoved(row));
+	rows.value = next;
 	selected.value = new Set();
 	emit("remove", { rows: removed });
-	emit("change", rows.value);
+	emit("change", next);
 }
 
 // Draggable hands back the reordered array (same row objects, so keys/selection
