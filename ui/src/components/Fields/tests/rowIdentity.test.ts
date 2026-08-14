@@ -1,9 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { ROW_ID, identify, rowKey } from "../rowIdentity";
+import { ROW_ID, identify, mintRowId, rowKey } from "../rowIdentity";
 
 describe("rowIdentity", () => {
   it("prefers the server name over a minted id", () => {
-    expect(rowKey({ name: "abc", [ROW_ID]: "row-1" })).toBe("abc");
+    expect(rowKey({ name: "abc", [ROW_ID]: "row-1" })).toBe("name:abc");
+  });
+
+  it("keeps server names and client ids in separate keyspaces", () => {
+    // `validate_name` forbids only `<` and `>`, so a child doctype named by a
+    // field or a series can produce a name that reads exactly like a minted id.
+    // Sharing one keyspace would make the grid select — and delete — both rows.
+    const named = { name: mintRowId() };
+    const fresh = identify({});
+    expect(rowKey(named)).not.toBe(rowKey(fresh));
   });
 
   it("mints an id only for a row that has neither", () => {

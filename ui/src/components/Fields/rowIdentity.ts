@@ -13,9 +13,17 @@ export function mintRowId(): string {
   return `row-${++minted}`;
 }
 
-/** The row's stable key, once it has one. */
+/**
+ * The row's stable key, once it has one. A server name and a client id are
+ * different kinds of identifier, so they get different keyspaces: `validate_name`
+ * forbids only `<` and `>`, so a child doctype named by a field or a series can
+ * legitimately produce a name equal to a minted id — and two rows sharing one
+ * key read as one selection, and delete as one row.
+ */
 export function rowKey(row: Record<string, any>): string | undefined {
-  return row?.name ?? row?.[ROW_ID];
+  if (row?.name) return `name:${row.name}`;
+  const id = row?.[ROW_ID];
+  return id ? `new:${id}` : undefined;
 }
 
 /** Fieldtypes whose value is rows: they commit through those, never themselves. */
