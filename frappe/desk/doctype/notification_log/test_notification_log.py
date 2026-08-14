@@ -55,13 +55,9 @@ class TestNotificationLog(IntegrationTestCase):
 		install_notification_types()
 		todo = get_todo()
 		recipient = make_recipient("notify_mention_source@example.com")
-		frappe.db.set_value(
-			"User", recipient, {"allowed_in_mentions": 1, "user_type": "System User"}
-		)
+		frappe.db.set_value("User", recipient, {"allowed_in_mentions": 1, "user_type": "System User"})
 
-		comment = todo.add_comment(
-			"Comment", f'<span class="mention" data-id="{recipient}">@mention</span>'
-		)
+		comment = todo.add_comment("Comment", f'<span class="mention" data-id="{recipient}">@mention</span>')
 
 		log = frappe.db.get_value(
 			"Notification Log",
