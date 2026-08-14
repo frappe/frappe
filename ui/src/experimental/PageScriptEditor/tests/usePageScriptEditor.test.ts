@@ -1,6 +1,6 @@
 // The Page Script editor's state (wayfinder ticket 16) as executable claims.
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { nextTick, ref } from "vue";
+import { nextTick, ref, watch } from "vue";
 
 const { list, create, save, reorder, remove } = vi.hoisted(() => ({
   list: vi.fn(),
@@ -295,6 +295,67 @@ describe("the Page Script editor", () => {
     await editor.create("third");
 
     expect(create.mock.calls[0][0]).not.toHaveProperty("script");
+  });
+
+  // Ticket 39: `loading` drives a `v-if` over the whole pane body, so raising it
+  // for the reload after a write unmounted the rail and the editor and rebuilt
+  // them — CodeMirror losing its undo history, cursor and scroll on every save.
+  it("does not blank the pane for the reload that follows a save", async () => {
+    const editor = await editorFor();
+    editor.draft.value = "// edited";
+    save.mockResolvedValue({
+      ...rows("oldest", "newest")[1],
+      script: "// edited",
+    });
+    list.mockResolvedValue(rows("oldest", "newest"));
+
+    const seen: boolean[] = [];
+    const stop = watch(editor.loading, (value) => seen.push(value));
+    await editor.save();
+    stop();
+
+    expect(seen).toEqual([]);
+    expect(editor.loading.value).toBe(false);
+  });
+
+  // The one reload that *should* blank it: the list on screen belongs to the
+  // doctype being left, so keeping it up would be showing the wrong scripts.
+  it("does blank the pane when the doctype changes", async () => {
+    const doctype = ref("CRM Deal");
+    const editor = await editorFor(doctype);
+
+    const seen: boolean[] = [];
+    const stop = watch(editor.loading, (value) => seen.push(value));
+    list.mockResolvedValue(rows("lead-one"));
+    doctype.value = "CRM Lead";
+    await vi.waitFor(() =>
+      expect(editor.scripts.value[0].name).toBe("lead-one"),
+    );
+    stop();
+
+    expect(seen).toContain(true);
+  });
+
+  // The buffer is dropped only once the saved document is in the list, or
+  // `draft` falls back to the pre-save text for the length of the reload —
+  // which the skeleton used to hide and no longer does.
+  it("never shows the pre-save text while the reload is in flight", async () => {
+    const editor = await editorFor();
+    editor.draft.value = "// edited";
+    const saved = { ...rows("oldest", "newest")[1], script: "// edited" };
+    let duringReload = "";
+    save.mockResolvedValue(saved);
+    list.mockImplementation(async () => {
+      duringReload = editor.draft.value;
+      return rows("oldest", "newest").map((row) =>
+        row.name === saved.name ? saved : row,
+      );
+    });
+
+    await editor.save();
+
+    expect(duringReload).toBe("// edited");
+    expect(editor.draft.value).toBe("// edited");
   });
 
   // Ticket 28: without the seed a new script takes the doctype default of 0 and

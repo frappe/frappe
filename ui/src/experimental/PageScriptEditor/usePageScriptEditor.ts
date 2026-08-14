@@ -43,7 +43,13 @@ export function usePageScriptEditor(
 
   const dirty = computed(() => isDirty(selected.value));
 
-  watch(() => toValue(doctype), load, { immediate: true });
+  // A doctype change is the one reload that *should* blank the pane: the list
+  // on screen belongs to the doctype being left.
+  watch(
+    () => toValue(doctype),
+    () => load(true),
+    { immediate: true },
+  );
 
   watch(
     () => toValue(boundName),
@@ -56,9 +62,20 @@ export function usePageScriptEditor(
     },
   );
 
-  async function load() {
+  /**
+   * `cold` means there is nothing on screen worth keeping, and it is the only
+   * thing that raises `loading`.
+   *
+   * The distinction matters because `loading` drives a `v-if` over the whole
+   * pane body: raising it for the reload that follows every write unmounted the
+   * rail and the editor and rebuilt them, which threw away CodeMirror's undo
+   * history, cursor, scroll and selection on each save. A reload that already
+   * has a list keeps rendering it and swaps the rows when they land; `saving`
+   * is what says a write is in flight.
+   */
+  async function load(cold = false) {
     const build = ++generation;
-    loading.value = true;
+    loading.value = cold || scripts.value.length === 0;
     error.value = "";
     try {
       const rows = await pageScriptApi.list(toValue(doctype));
@@ -120,9 +137,30 @@ export function usePageScriptEditor(
     if (!row || !dirty.value) return;
     const text = draft.value;
     await mutate(async () => {
-      await pageScriptApi.save({ ...row, script: text });
+      const saved = await pageScriptApi.save({ ...row, script: text });
+      // The saved document goes into the list *before* the buffer is dropped.
+      // Otherwise `draft` falls back to this row's stale pre-save text for the
+      // length of the reload — a visible revert-and-jump now that the reload no
+      // longer blanks the pane. It also carries the fresh `modified` forward, so
+      // a second save in that window is not refused by its own first one.
+      absorb(saved);
       buffers.delete(row.name);
     });
+  }
+
+  /**
+   * Folds a just-written document into the list the pane is still rendering.
+   *
+   * Tolerates a response without one rather than throwing: this runs inside the
+   * save path, so a server that answers something unexpected would otherwise
+   * take the whole save down — the buffer would never clear and the edit would
+   * read as unsaved after a write that succeeded. The reload behind it is what
+   * makes the list right in the end; this only spares the gap.
+   */
+  function absorb(doc: PageScriptDoc | undefined) {
+    if (!doc?.name) return;
+    const at = scripts.value.findIndex((row) => row.name === doc.name);
+    if (at !== -1) scripts.value[at] = { ...scripts.value[at], ...doc };
   }
 
   /**
