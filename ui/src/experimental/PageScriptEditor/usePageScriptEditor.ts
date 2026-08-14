@@ -95,13 +95,21 @@ export function usePageScriptEditor(
     return row !== null && bufferFor(row) !== row.script;
   }
 
-  // Rethrows so the naming dialog can keep itself open and show why.
-  async function create(name: string) {
+  /**
+   * Rethrows so the naming dialog can keep itself open and show why.
+   *
+   * `script` is the body the new script opens with — the empty state's starters
+   * pass a working one for the verb they teach (ticket 37), so the author lands
+   * in something that already runs. Omitted, the doctype's own default is what
+   * prefills, which is what "start from an empty script" means.
+   */
+  async function create(name: string, script?: string) {
     await run(async () => {
       const created = await pageScriptApi.create({
         name,
         dt: toValue(doctype),
         run_order: nextRunOrder(),
+        ...(script === undefined ? {} : { script }),
       });
       selectedName.value = created.name;
     });

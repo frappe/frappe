@@ -1,18 +1,79 @@
 <template>
 	<div class="flex min-h-0 flex-1 flex-col">
-		<!-- One header, not two (ticket 23). The pane's old header row said the
-		     script's name, its run position and its enabled-ness, all of which the
-		     rail already says; what is left is the doctype and the way to the
-		     reference. -->
-		<div class="flex items-center gap-2 border-b border-outline-gray-1 px-4 py-3">
-			<span class="text-lg font-semibold text-ink-gray-9">Page scripts</span>
-			<span class="text-lg text-ink-gray-4">·</span>
-			<span class="text-lg text-ink-gray-6">{{ dt }}</span>
-			<!-- `icon` + `label`, never `iconLeft` + `aria-label`: Button sets
-			     `aria-label` from its own `label` last, so a passed one is
-			     overwritten, and `icon` is the prop that renders bare
-			     (ticket 27, then 35). -->
-			<div class="ml-auto flex items-center gap-1">
+		<!-- One header, and only one (ticket 37, round 14). It holds everything
+		     about the open script — where it is, what it is called, whether it
+		     runs, whether it is saved, and what you can do to it — and the rail
+		     holds everything about the others.
+
+		     It reads as two zones that both carry weight: the trail and the state
+		     hard-left, `⋯` `?` `Save` hard-right. That is the decision underneath
+		     rounds 10–13, which kept failing on the same thing — the void in the
+		     middle was never spacing, it was a right-hand cluster with nothing in
+		     it. There is no `×`: Escape, the overlay and Back all still close the
+		     dialog. -->
+		<div class="flex shrink-0 items-center gap-2 border-b border-outline-gray-1 p-4">
+			<PageScriptTrail :doctype="dt" :script="selectedName" @update:doctype="dt = $event" />
+
+			<!-- The rail's dimmed label says *which* scripts are off, but the row
+			     you are editing is the selected one, whose label is the least
+			     visible thing in the list — so the open script's disabled-ness is
+			     stated where its name is (ticket 37, amendment 3). -->
+			<Badge
+				v-if="selected && !selected.enabled"
+				class="ml-1 shrink-0"
+				theme="gray"
+				variant="outline"
+				size="md"
+				label="Disabled"
+			/>
+
+			<!-- The state reads straight after the trail: it is a fact about what
+			     the trail just named. A failure takes the same slot — it is the
+			     same question, answered badly. -->
+			<ErrorMessage v-if="error" class="ml-1 min-w-0 shrink" :message="error" />
+			<Badge
+				v-else-if="dirty && !saving"
+				class="ml-1 shrink-0"
+				theme="amber"
+				variant="outline"
+				size="md"
+				label="Unsaved"
+			>
+				<!-- Literally the mark a dirty row draws in the rail, so the two
+				     placements are one system: this says the editor has an unsaved
+				     script, the rail's dot says which ones. -->
+				<template #prefix>
+					<span class="size-1.5 rounded-full bg-surface-amber-5" aria-hidden="true" />
+				</template>
+			</Badge>
+			<p
+				v-else-if="stateText"
+				class="ml-1 flex min-w-0 items-center gap-2 text-p-sm text-ink-gray-5"
+			>
+				<span
+					v-if="!saving"
+					class="lucide-check size-3.5 shrink-0 text-ink-green-8"
+					aria-hidden="true"
+				/>
+				<span class="truncate">{{ stateText }}</span>
+			</p>
+
+			<div class="ml-auto flex shrink-0 items-center gap-1">
+				<!-- The open script's own actions, beside everything else about it.
+				     The rail's rows keep theirs — a row's `⋯` is the only way to
+				     reach a script you have not opened — so this is the same menu
+				     addressed to the selected one (ticket 37, amendment 4). -->
+				<Dropdown v-if="selected" :options="selectedActions" align="end">
+					<Button
+						variant="ghost"
+						icon="lucide-ellipsis"
+						:label="`Actions for ${selected.name}`"
+					/>
+				</Dropdown>
+				<!-- `icon` + `label`, never `iconLeft` + `aria-label`: Button sets
+				     `aria-label` from its own `label` last, so a passed one is
+				     overwritten, and `icon` is the prop that renders bare and square
+				     (ticket 27, then 35). -->
 				<Tooltip text="Reference">
 					<Button
 						variant="ghost"
@@ -21,12 +82,16 @@
 						@click="showReference = !showReference"
 					/>
 				</Tooltip>
+				<!-- Save is absent rather than disabled when there is nothing to
+				     save (ticket 23), so 'clean' can never be misread as 'cannot
+				     save'. Help sits beside the work; the primary action is the
+				     last thing on the line. -->
 				<Button
-					v-if="onClose"
-					variant="ghost"
-					icon="lucide-x"
-					label="Close"
-					@click="onClose"
+					v-if="dirty"
+					variant="solid"
+					label="Save"
+					:loading="saving"
+					@click="save"
 				/>
 			</div>
 		</div>
@@ -40,9 +105,10 @@
 		     It is also where focus starts, and the `[autofocus]` that says so is
 		     read by the host as well as by this pane: seeing one, frappe-ui's
 		     `Dialog` leaves initial focus alone instead of letting its trap take
-		     the first tabbable element, which is the header's `?` — and a `?`
-		     focused is a black `Reference` tooltip in the author's face, because a
-		     tooltip opens instantly for focus rather than after the hover delay. -->
+		     the first tabbable element — which is now the doctype crumb, a
+		     Combobox trigger that would open a picker in the author's face
+		     (ticket 36, and 37 flagged the crumb as a new tab stop ahead of the
+		     code). -->
 		<div
 			ref="pane"
 			autofocus
@@ -54,40 +120,16 @@
 				<Skeleton class="min-h-0 w-full flex-1" />
 			</div>
 
-			<!-- Zero scripts: no rail, because a list with nothing in it explains
-			     nothing. The example fills the editor's slot as a read-only editor —
-			     syntax-coloured, so it looks like the thing it teaches — and the
-			     primary action takes the footer slot Save occupies later, so the
-			     action never moves when the column arrives beside it. -->
-			<div v-else-if="!scripts.length" class="flex min-h-0 flex-1 flex-col">
-				<div class="code-fill flex min-h-0 flex-1 flex-col p-4">
-					<CodeEditor
-						class="min-h-0 flex-1"
-						:modelValue="EXAMPLE_SCRIPT"
-						language="javascript"
-						disabled
-						:style="{ '--cm-max-height': '100%' }"
-					/>
-				</div>
-				<div class="flex items-center gap-3 border-t border-outline-gray-1 px-4 py-3">
-					<ErrorMessage v-if="error" :message="error" />
-					<p v-else class="text-p-sm text-ink-gray-5">
-						Nothing customizes {{ dt }} record pages yet — this is an example, and it
-						neither saves nor runs.
-					</p>
-					<!-- Focus lands here in this state: the editor beside it is the
-					     read-only example, so the only thing to type into is the one
-					     this button opens. -->
-					<Button
-						class="ml-auto"
-						autofocus
-						variant="solid"
-						iconLeft="lucide-plus"
-						label="New script"
-						:disabled="saving"
-						@click="naming = true"
-					/>
-				</div>
+			<!-- Zero scripts: no rail, and the pane teaches rather than showing a
+			     read-only example (ticket 37, item 3 option D). Focus lands on the
+			     first starter — the only thing there is to act on. -->
+			<div v-else-if="!scripts.length" autofocus class="flex min-h-0 flex-1 flex-col">
+				<PageScriptEmptyState
+					:dt="dt"
+					:busy="saving"
+					@create="startFrom"
+					@reference="showReference = true"
+				/>
 			</div>
 
 			<div v-else class="flex min-h-0 flex-1">
@@ -97,7 +139,7 @@
 					:isDirty="isDirty"
 					:busy="saving"
 					@select="select"
-					@create="naming = true"
+					@create="startFrom()"
 					@toggleEnabled="setEnabled($event, !$event.enabled)"
 					@duplicate="duplicate"
 					@reorder="reorder"
@@ -105,8 +147,8 @@
 				/>
 
 				<!-- The editor is the reason the dialog exists, so it takes every
-				     pixel the header, rail and footer leave — and, for the same
-				     reason, the focus. -->
+				     pixel the header and rail leave — and, for the same reason, the
+				     focus. With the footer gone it runs to the panel's bottom edge. -->
 				<div class="flex min-w-0 flex-1 flex-col">
 					<div autofocus class="code-fill flex min-h-0 flex-1 flex-col p-4">
 						<CodeEditor
@@ -128,25 +170,6 @@
 							:description="`Scripts may import ${SHARED_DEPS.join(', ')} — and nothing else, not even a subpath of those.`"
 						/>
 					</div>
-
-					<!-- The footer reports the loop, not the button's own health: Save
-					     is absent rather than disabled when there is nothing to save,
-					     so 'clean' can never be misread as 'cannot save'. -->
-					<div class="flex items-center gap-3 border-t border-outline-gray-1 px-4 py-3">
-						<ErrorMessage v-if="error" :message="error" />
-						<p v-else class="flex items-center gap-2 text-p-sm" :class="stateClass">
-							<span v-if="dirty" class="size-1.5 rounded-full bg-surface-amber-5" />
-							<span>{{ stateText }}</span>
-						</p>
-						<Button
-							v-if="dirty"
-							class="ml-auto"
-							variant="solid"
-							label="Save"
-							:loading="saving"
-							@click="save"
-						/>
-					</div>
 				</div>
 			</div>
 
@@ -156,7 +179,7 @@
 		<NewPageScriptDialog
 			v-model="naming"
 			:taken="scripts.map((row) => row.name)"
-			:onSubmit="create"
+			:onSubmit="createNamed"
 		/>
 	</div>
 </template>
@@ -170,29 +193,50 @@
 // Zero, one and many scripts are three layouts rather than one (ticket 23): the
 // same layout lied about two of them.
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { Alert, Button, dialog, ErrorMessage, Skeleton, Tooltip } from "frappe-ui";
+import {
+	Alert,
+	Badge,
+	Button,
+	dialog,
+	Dropdown,
+	ErrorMessage,
+	Skeleton,
+	Tooltip,
+} from "frappe-ui";
 import { CodeEditor } from "frappe-ui/code-editor";
 import NewPageScriptDialog from "./NewPageScriptDialog.vue";
+import PageScriptEmptyState from "./PageScriptEmptyState.vue";
 import PageScriptRail from "./PageScriptRail.vue";
 import PageScriptReference from "./PageScriptReference.vue";
-import { EXAMPLE_SCRIPT } from "./exampleScript";
+import PageScriptTrail from "./PageScriptTrail.vue";
 import { focusableIn } from "./focusTarget";
 import { SHARED_DEPS, unresolvableImports } from "./importLint";
+import { rowActions } from "./rowActions";
 import { usePageScriptEditor } from "./usePageScriptEditor";
 import type { PageScriptDoc } from "./pageScriptApi";
 
 const props = defineProps<{
-	/** The doctype whose Record page scripts these are. */
-	dt: string;
 	/**
 	 * The record the author is watching replay behind this editor, if there is
 	 * one — it names what a save just took effect on. Absent on the route, which
-	 * is opened away from any record.
+	 * is opened away from any record, and absent once the doctype being edited
+	 * is no longer that record's.
 	 */
 	replaysOn?: string;
-	/** Renders the close button, for a host that can dismiss the pane. */
-	onClose?: () => void;
+	/**
+	 * The record behind the dialog whatever its doctype, so that switching the
+	 * doctype can *withdraw* the replay claim rather than silently dropping it
+	 * (ticket 37: the line is what keeps the dialog honest about it).
+	 */
+	record?: string;
 }>();
+
+/**
+ * The doctype whose Record page scripts these are. A model rather than a prop:
+ * the trail's doctype crumb switches it, and the host is what turns that into
+ * `#page-scripts/<doctype>` (tickets 31/32).
+ */
+const dt = defineModel<string>("dt", { required: true });
 
 /** The script a host addresses; it is written back whenever the pane corrects it. */
 const boundScript = defineModel<string | undefined>("script", {
@@ -217,7 +261,7 @@ const {
 	reorder,
 	remove,
 } = usePageScriptEditor(
-	() => props.dt,
+	() => dt.value,
 	() => boundScript.value,
 );
 
@@ -226,9 +270,38 @@ watch(selectedName, (name) => (boundScript.value = name ?? undefined));
 const naming = ref(false);
 const showReference = ref(false);
 
+// What the empty state's starters carry: the body the new script opens with, so
+// the author lands in something that already runs rather than in a blank page.
+// It survives the naming dialog, which is what stands between the click and the
+// script existing (Page Script is `autoname: prompt`).
+const pendingScript = ref<string | undefined>(undefined);
+
+function startFrom(script?: string) {
+	pendingScript.value = script;
+	naming.value = true;
+}
+
+function createNamed(name: string) {
+	return create(name, pendingScript.value);
+}
+
+const selectedActions = computed(() =>
+	selected.value
+		? rowActions(
+				selected.value,
+				{
+					toggleEnabled: (row) => setEnabled(row, !row.enabled),
+					duplicate,
+					remove: confirmRemove,
+				},
+				saving.value,
+			)
+		: [],
+);
+
 // 23 put code first on screen; the same reasoning puts focus there. Left alone,
 // a host's focus trap takes the first tabbable element in its panel, which is
-// the header's `?`, and the first keystroke goes nowhere near the code.
+// the header's doctype crumb, and the first keystroke opens a doctype picker.
 //
 // Two steps, because the editor is not there to be focused when the dialog
 // opens: the pane takes focus itself on mount — the marker keeps the host from
@@ -237,9 +310,8 @@ const showReference = ref(false);
 // host's `[autofocus]` pass (frappe-ui's `useAutofocusOnOpen`) cannot do the
 // second step: it runs once, on open, while this pane is still loading.
 //
-// Which element is the target is the layout's business — the read-only example
-// state has nothing to type into, so its `New script` carries the marker
-// instead.
+// Which element is the target is the layout's business — the empty state has
+// nothing to type into, so its first starter carries the marker instead.
 const pane = ref<HTMLElement>();
 let focusTaken = false;
 
@@ -269,17 +341,24 @@ const badImports = computed(() => unresolvableImports(draft.value));
 
 const stateText = computed(() => {
 	if (saving.value) return "Saving…";
-	if (dirty.value) return `Unsaved changes · ${saveChord} to save`;
 	if (!selected.value) return "";
-	return props.replaysOn ? `Saved · replayed on ${props.replaysOn}` : "Saved";
+	// A disabled script is saved but replayed nowhere, so it cannot claim a
+	// replay — the `Disabled` badge beside this says why, and the line just
+	// stops claiming (ticket 37, amendment 3).
+	if (!selected.value.enabled) return "Saved · not running";
+	if (props.replaysOn) return `Saved · replayed on ${props.replaysOn}`;
+	// The claim is only true while the doctype being edited is the record's own.
+	// Switching the crumb can put the author on a Deal editing Lead scripts, and
+	// watching the record replay is the whole reason this is a dialog — so the
+	// line withdraws the claim out loud rather than going quiet.
+	if (props.record) return `Saved · not replayed here — you are on ${props.record}`;
+	return "Saved";
 });
 
-const stateClass = computed(() => (dirty.value ? "text-ink-gray-7" : "text-ink-gray-5"));
-
 // ⌘S has to be caught on the document too: CodeMirror stops the keydown from
-// reaching the pane once focus is inside the editor's own keymap.
-const saveChord = navigator.platform.includes("Mac") ? "⌘S" : "Ctrl+S";
-
+// reaching the pane once focus is inside the editor's own keymap. The header no
+// longer says so — `⌘S to save` was instruction where a state line belongs
+// (ticket 37, rounds 6, 9 and 11) — but the chord still saves.
 onMounted(() => document.addEventListener("keydown", onSaveChord));
 onBeforeUnmount(() => document.removeEventListener("keydown", onSaveChord));
 

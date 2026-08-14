@@ -268,6 +268,35 @@ describe("the Page Script editor", () => {
     expect(editor.selectedName.value).toBe("third");
   });
 
+  // Ticket 37: the empty state's starters teach a verb by creating a script that
+  // already uses it, so the body travels with the name through the naming dialog.
+  it("creates a script with the body a starter carries", async () => {
+    const editor = await editorFor();
+    create.mockResolvedValue({ name: "third" });
+    list.mockResolvedValue(rows("oldest", "newest", "third"));
+
+    await editor.create("third", "export default { refresh(page) {} }");
+
+    expect(create).toHaveBeenCalledWith({
+      name: "third",
+      dt: "CRM Deal",
+      run_order: 3,
+      script: "export default { refresh(page) {} }",
+    });
+  });
+
+  // "Start from an empty script" is not the same as an empty script: omitting the
+  // body leaves the doctype's own default to prefill it.
+  it("omits script entirely when no body is given, so the doctype default wins", async () => {
+    const editor = await editorFor();
+    create.mockResolvedValue({ name: "third" });
+    list.mockResolvedValue(rows("oldest", "newest", "third"));
+
+    await editor.create("third");
+
+    expect(create.mock.calls[0][0]).not.toHaveProperty("script");
+  });
+
   // Ticket 28: without the seed a new script takes the doctype default of 0 and
   // sorts ahead of every positioned script — the opposite of "the newest wins".
   it("seeds a new script last even when every script is still unpositioned", async () => {
