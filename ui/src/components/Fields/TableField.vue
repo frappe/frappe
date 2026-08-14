@@ -129,7 +129,7 @@ function addressOf(row: Record<string, any>): RowAddress {
 function newRow(): Record<string, any> {
 	const fields = props.field.childLayout
 		? layoutFields(props.field.childLayout)
-		: (props.field.childFields ?? []);
+		: props.field.childFields ?? [];
 	return newRowValues(fields);
 }
 
