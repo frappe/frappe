@@ -72,6 +72,7 @@
 <script setup lang="ts">
 import blockController from "@/utils/blockController"
 import { computed, watch } from "vue"
+import Input from "@/components/Input.vue"
 
 const position = computed({
 	get() {

@@ -147,11 +147,11 @@
 import { ref, markRaw, computed } from "vue"
 import { Combobox, Popover, FormControl } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
-import type { SelectOption } from "@/types"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
 import Code from "@/components/Code.vue"
 import ColorInput from "@/components/ColorInput.vue"
 import PropsEditor from "@/components/PropsEditor.vue"
+import SectionContainer from "@/components/SectionContainer.vue"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import { isCtrlOrCmd } from "@/utils/helpers"
 

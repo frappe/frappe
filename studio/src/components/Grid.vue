@@ -105,6 +105,7 @@ import Draggable from "vuedraggable"
 import { Link } from "frappe-ui/frappe"
 import { generateId } from "@/utils/helpers"
 import FormInputLabel from "@/components/FormInputLabel.vue"
+import Code from "@/components/Code.vue"
 import type { GridColumn, GridRow } from "@/types/doctype"
 
 const props = defineProps<{

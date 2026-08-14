@@ -103,6 +103,7 @@
 <script setup lang="ts">
 import blockController from "@/utils/blockController"
 import { computed, StyleValue } from "vue"
+import InputLabel from "@/components/InputLabel.vue"
 
 defineProps<{ label?: string }>()
 

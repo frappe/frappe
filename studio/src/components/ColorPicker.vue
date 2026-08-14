@@ -117,6 +117,7 @@
 import { Ref, StyleValue, computed, nextTick, ref, watch } from "vue"
 import { Popover, Tabs } from "frappe-ui"
 import EyeDropperIcon from "@/components/Icons/EyeDropper.vue"
+import ListBox from "@/components/ListBox.vue"
 import useCanvasStore from "@/stores/canvasStore"
 import { HSVToHex, HexToHSV, getRGB } from "@/utils/helpers"
 import { clamp, useEyeDropper } from "@vueuse/core"
