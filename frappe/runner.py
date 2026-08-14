@@ -59,7 +59,7 @@ class Config:
 
 	@property
 	def has_restart_limit(self) -> bool:
-		return bool(self.restart_after_requests or self.restart_after_jobs)
+		return bool(self.restart_after_requests or self.restart_after_jobs or self.restart_idle_seconds)
 
 
 class WebServer:
@@ -395,7 +395,7 @@ class Runner:
 
 
 class RestartWatch:
-	"""Send SIGHUP to the process when it is at a limit and the web side is quiet."""
+	"""Send SIGHUP when the process is at a limit, or idle, and nothing is in flight."""
 
 	def __init__(self, config: Config, traffic: Traffic, draining: threading.Event):
 		self.config = config
@@ -415,14 +415,22 @@ class RestartWatch:
 		)
 
 	@property
-	def is_quiet(self) -> bool:
-		return not self.traffic.in_flight and self.traffic.idle_seconds >= self.config.restart_idle_seconds
+	def is_idle(self) -> bool:
+		"""No web request for the configured time, after some work. A process that did
+		nothing holds nothing to release, thus an unused bench does not restart."""
+		return bool(
+			self.config.restart_idle_seconds
+			and any(self.traffic.counts.values())
+			and self.traffic.idle_seconds >= self.config.restart_idle_seconds
+		)
 
 	def _watch(self) -> None:
 		while not self.draining.wait(RESTART_CHECK_SECONDS):
-			if self.is_limit_reached and self.is_quiet:
+			if self.traffic.in_flight:
+				continue
+			if self.is_limit_reached or self.is_idle:
 				logger.info(
-					"limit reached (%s), idle %.0fs: restart",
+					"restart (%s), idle %.0fs",
 					self.traffic.summary,
 					self.traffic.idle_seconds,
 				)
@@ -456,7 +464,10 @@ def main() -> None:
 		"--restart-after-jobs", type=int, default=500, help="jobs before a restart (0 = never)"
 	)
 	parser.add_argument(
-		"--restart-idle-seconds", type=float, default=300, help="quiet time to wait for before a restart"
+		"--restart-idle-seconds",
+		type=float,
+		default=300,
+		help="time without a web request before a restart (0 = never)",
 	)
 	parser.add_argument(
 		"--request-drain-seconds", type=float, default=60, help="how long to wait for the open requests"
