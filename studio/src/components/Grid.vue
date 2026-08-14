@@ -99,7 +99,7 @@
 
 <script setup lang="ts">
 import { reactive, computed } from "vue"
-import { FormControl, Checkbox } from "frappe-ui"
+import { FormControl, Checkbox, Button } from "frappe-ui"
 import Draggable from "vuedraggable"
 
 import { Link } from "frappe-ui/frappe"

@@ -197,7 +197,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import { createResource, Dialog, FormControl, Checkbox } from "frappe-ui"
+import { createResource, Dialog, FormControl, Checkbox, ErrorMessage, Button } from "frappe-ui"
 import { Link } from "frappe-ui/frappe"
 import ScriptSection from "@/components/ScriptSection.vue"
 import Filters from "@/components/Filters.vue"

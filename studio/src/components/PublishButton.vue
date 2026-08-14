@@ -81,7 +81,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue"
-import { Dropdown } from "frappe-ui"
+import { Dropdown, Button } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import LucideCircleDashed from "~icons/lucide/circle-dashed"
 import LucideGlobe from "~icons/lucide/globe"

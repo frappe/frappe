@@ -40,6 +40,7 @@
 
 <script setup lang="ts">
 import { useEventListener } from "@vueuse/core"
+import { Button } from "frappe-ui"
 import { nextTick, onMounted, Ref, ref } from "vue"
 
 const popover = ref(null) as Ref<HTMLElement | null>

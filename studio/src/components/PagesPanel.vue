@@ -59,7 +59,7 @@ import useStudioStore from "@/stores/studioStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { isObjectEmpty } from "@/utils/helpers"
 import { useRouter } from "vue-router"
-import { Dropdown, Button, Badge, Tooltip } from "frappe-ui"
+import { Dropdown, Button, Badge, Tooltip, FeatherIcon } from "frappe-ui"
 
 const store = useStudioStore()
 const router = useRouter()

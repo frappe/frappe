@@ -157,7 +157,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { Tooltip, Popover, Dropdown } from "frappe-ui"
+import { Tooltip, Popover, Dropdown, FeatherIcon, Button } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 

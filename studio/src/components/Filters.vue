@@ -79,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { Combobox, FeatherIcon, FormControl } from "frappe-ui"
+import { Combobox, FeatherIcon, FormControl, Button } from "frappe-ui"
 import { computed, h, ref, watch } from "vue"
 import { Link } from "frappe-ui/frappe"
 

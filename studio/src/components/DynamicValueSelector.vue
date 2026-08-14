@@ -45,7 +45,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import { Autocomplete, Switch, Tooltip } from "frappe-ui"
+import { Autocomplete, Switch, Tooltip, FeatherIcon } from "frappe-ui"
 import IconButton from "@/components/IconButton.vue"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"

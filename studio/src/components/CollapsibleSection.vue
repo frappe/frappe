@@ -21,6 +21,7 @@
 </template>
 <script lang="ts" setup>
 import { toValue } from "@vueuse/core"
+import { Button } from "frappe-ui"
 import { ref, watch } from "vue"
 
 const props = withDefaults(

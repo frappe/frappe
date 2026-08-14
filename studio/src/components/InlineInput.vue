@@ -62,7 +62,7 @@
 
 <script setup lang="ts">
 import { isNumber } from "@tiptap/vue-3"
-import { Popover } from "frappe-ui"
+import { Popover, FeatherIcon } from "frappe-ui"
 import { computed, StyleValue, useAttrs } from "vue"
 import { isDynamicValue } from "@/utils/code"
 import { extractNumberAndUnit, normalizeValueWithUnits } from "@/utils/helpers"

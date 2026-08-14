@@ -138,7 +138,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue"
-import { Dialog, Tooltip } from "frappe-ui"
+import { Dialog, Tooltip, Button, FormControl } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCodeStore from "@/stores/codeStore"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"

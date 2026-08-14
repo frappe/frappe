@@ -117,6 +117,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
+import { Button } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
 import Block from "@/utils/block"
 

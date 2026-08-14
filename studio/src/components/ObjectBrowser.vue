@@ -51,6 +51,7 @@
 
 <script setup lang="ts">
 import { copyToClipboard } from "@/utils/helpers"
+import { FeatherIcon } from "frappe-ui"
 import { ref, computed } from "vue"
 import IconButton from "@/components/IconButton.vue"
 import LucideCopy from "~icons/lucide/copy"

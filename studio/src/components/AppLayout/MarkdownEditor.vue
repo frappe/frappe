@@ -27,6 +27,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from "vue"
+import { Button } from "frappe-ui"
 import { useDark } from "@vueuse/core"
 import { marked } from "marked"
 import ace from "ace-builds"

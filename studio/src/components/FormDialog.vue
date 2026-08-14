@@ -77,7 +77,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import { createResource, Dialog, FormControl } from "frappe-ui"
+import { createResource, Dialog, FormControl, Button } from "frappe-ui"
 import Block from "@/utils/block"
 import { getComponentBlock } from "@/utils/serializer"
 import type { DocTypeField, SelectOption } from "@/types"

@@ -177,7 +177,7 @@
 import { onActivated, watchEffect, watch, ref, onDeactivated, toRef, nextTick, computed } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
-import { usePageMeta, Dialog } from "frappe-ui"
+import { usePageMeta, Dialog, FeatherIcon, Button } from "frappe-ui"
 import type { CompletionContext } from "@codemirror/autocomplete"
 
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"

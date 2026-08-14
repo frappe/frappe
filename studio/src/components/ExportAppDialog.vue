@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue"
-import { Button } from "frappe-ui"
+import { Button, Dialog } from "frappe-ui"
 import { toast } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import { studioApps } from "@/data/studioApps"

@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { Dropdown } from "frappe-ui"
+import { Dropdown, FeatherIcon } from "frappe-ui"
 
 defineProps<{
 	menuOptions: Array<{

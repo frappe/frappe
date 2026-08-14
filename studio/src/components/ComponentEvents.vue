@@ -147,7 +147,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
-import { Combobox, FormControl, createResource, Dialog, TabButtons } from "frappe-ui"
+import { Combobox, FormControl, createResource, Dialog, TabButtons, Button } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"

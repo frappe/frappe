@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { Button } from "frappe-ui"
+import { Button, FeatherIcon } from "frappe-ui"
 import Code from "@/components/Code.vue"
 import type { CompletionContext } from "@codemirror/autocomplete"
 

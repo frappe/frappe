@@ -96,7 +96,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { Button } from "frappe-ui"
+import { Button, FeatherIcon } from "frappe-ui"
 import { IconPicker } from "frappe-ui/icons"
 import Input from "@/components/Input.vue"
 import InputLabel from "@/components/InputLabel.vue"

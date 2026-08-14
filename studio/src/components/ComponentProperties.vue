@@ -109,6 +109,7 @@
 
 <script setup lang="ts">
 import { ref, computed, toValue, watchEffect } from "vue"
+import { Combobox, Button, Tooltip, Badge, FeatherIcon } from "frappe-ui"
 import Block from "@/utils/block"
 import { getComponentSlots } from "@/utils/components"
 import PropsEditor from "@/components/PropsEditor.vue"

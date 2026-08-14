@@ -38,7 +38,7 @@
 
 <script lang="ts" setup>
 import { ref, watch } from "vue"
-import { Dialog, FormControl, ErrorMessage } from "frappe-ui"
+import { Dialog, FormControl, ErrorMessage, Button } from "frappe-ui"
 import { toast } from "frappe-ui"
 import { studioSettings } from "@/data/studioSettings"
 

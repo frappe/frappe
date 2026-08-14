@@ -145,7 +145,7 @@
 
 <script setup lang="ts">
 import { ref, markRaw, computed } from "vue"
-import { Combobox, Popover, FormControl } from "frappe-ui"
+import { Combobox, Popover, FormControl, Button, FeatherIcon } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
 import Code from "@/components/Code.vue"
