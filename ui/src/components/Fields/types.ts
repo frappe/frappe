@@ -117,13 +117,15 @@ export type RowChange = "add" | "remove";
  * a child table's structural edits out to whoever owns events, so they are
  * dispatched at the mutation site instead of diffed out of the document.
  *
- * No value travels with a commit: `update` has already written it, so the doc
- * is the single reading of what was committed.
+ * The value travels even though the doc already holds it: a control that
+ * re-emits its value on commit (frappe-ui's `TextInput` binds `@input` and
+ * `@change` to the same handler) would otherwise leave an edit looking pending
+ * forever, and the next save would fire the handler a second time.
  */
 export interface CommitChannel {
   /** A live edit whose commit has not arrived yet; `flush` fires it on save. */
-  pending(fieldname: string, row?: RowAddress): void;
-  commit(fieldname: string, row?: RowAddress): void;
+  pending(fieldname: string, value: any, row?: RowAddress): void;
+  commit(fieldname: string, value: any, row?: RowAddress): void;
   rowChanged(row: RowAddress, change: RowChange): void;
 }
 
