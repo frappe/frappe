@@ -792,7 +792,7 @@ def get_installed_apps_info():
 			"version": version_details.get("branch_version") or version_details.get("version"),
 			"branch": version_details.get("branch"),
 		}
-		for app, version_details in get_versions().items()
+		for app, version_details in get_versions(include_disabled=True).items()
 	)
 	return out
 

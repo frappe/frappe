@@ -17,8 +17,9 @@ class InstalledApplication(Document):
 		from frappe.types import DF
 
 		app_name: DF.Data
-		app_version: DF.Data
-		git_branch: DF.Data
+		app_version: DF.Data | None
+		disabled: DF.Check
+		git_branch: DF.Data | None
 		has_setup_wizard: DF.Check
 		is_setup_complete: DF.Check
 		parent: DF.Data

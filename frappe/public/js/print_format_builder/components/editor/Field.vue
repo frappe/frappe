@@ -34,6 +34,10 @@
 				v-else-if="df.fieldtype == 'HTML' && df.html"
 				v-html="rendered_html ?? df.html"
 			></div>
+			<!-- Typst can't render in the HTML canvas — show the markup, the PDF preview shows the output -->
+			<pre v-else-if="df.fieldtype == 'Typst'" class="typst-block-source">{{
+				df.typst || __("Empty Typst block")
+			}}</pre>
 			<!-- Spacer/Divider: the root element itself is the rendered output -->
 			<i
 				v-else-if="df.fieldtype == 'Spacer' || df.fieldtype == 'Divider'"
@@ -189,6 +193,11 @@
 							v-if="df.fieldtype == 'HTML' && df.html"
 							v-html="df.html"
 						></div>
+						<pre
+							v-else-if="df.fieldtype == 'Typst' && df.typst"
+							class="typst-block-source"
+							>{{ df.typst }}</pre
+						>
 						<div class="custom-html" v-else-if="df.fieldtype == 'Field Template'">
 							{{ df.label }}
 						</div>
@@ -199,7 +208,9 @@
 							:alt="df.label || ''"
 						/>
 						<input
-							v-else-if="editing && df.fieldtype != 'HTML'"
+							v-else-if="
+								editing && df.fieldtype != 'HTML' && df.fieldtype != 'Typst'
+							"
 							ref="label_input"
 							class="label-input"
 							type="text"
@@ -215,13 +226,13 @@
 						<span class="es-badge">{{ short_fieldtype }}</span>
 						<div class="field-actions">
 							<button
-								v-if="df.fieldtype == 'HTML'"
+								v-if="code_edit"
 								class="es-button"
 								data-size="xs"
 								data-variant="ghost"
 								data-icon-button="true"
-								:title="__('Edit HTML')"
-								@click.stop="edit_html"
+								:title="code_edit.title"
+								@click.stop="code_edit.open"
 								v-html="frappe.utils.icon('pencil', 'sm')"
 							></button>
 							<button
@@ -353,7 +364,8 @@ const preview_root = computed(() => {
 	if (df.fieldtype === "Repeater") return { classes: ["pfb-repeater"], style: custom };
 	if (df.fieldtype === "HTML") return { classes: ["custom-html"], style: custom };
 	if (df.fieldtype === "Field Template") return { classes: ["field-template"], style: custom };
-	if (df.fieldtype === "Spacer") return { classes: [], style: { height: "1em", ...custom } };
+	if (df.fieldtype === "Spacer")
+		return { classes: [], style: { height: df.height ? `${df.height}px` : "1em", ...custom } };
 	if (df.fieldtype === "Divider") {
 		return {
 			classes: [],
@@ -506,18 +518,44 @@ let short_fieldtype = computed(() => {
 	return map[props.df.fieldtype] || props.df.fieldtype?.substring(0, 5) || "";
 });
 
-function edit_html() {
+let code_edit = computed(() => {
+	if (props.df.fieldtype == "HTML") return { title: __("Edit HTML"), open: edit_html };
+	if (props.df.fieldtype == "Typst") return { title: __("Edit Typst"), open: edit_typst };
+	return null;
+});
+
+function edit_code({ title, key, field, clean }) {
 	let d = new frappe.ui.Dialog({
-		title: __("Edit HTML"),
-		fields: [{ label: __("HTML"), fieldname: "html", fieldtype: "Code", options: "HTML" }],
-		primary_action: ({ html }) => {
-			html = frappe.dom.remove_script_and_style(html);
-			props.df["html"] = html;
+		title,
+		fields: [{ fieldname: key, fieldtype: "Code", ...field }],
+		primary_action: (values) => {
+			props.df[key] = clean(values[key]);
 			d.hide();
 		},
 	});
-	d.set_value("html", props.df.html);
+	d.set_value(key, props.df[key]);
 	d.show();
+}
+
+function edit_html() {
+	edit_code({
+		title: __("Edit HTML"),
+		key: "html",
+		field: { label: __("HTML"), options: "HTML" },
+		clean: (html) => frappe.dom.remove_script_and_style(html),
+	});
+}
+
+function edit_typst() {
+	edit_code({
+		title: __("Edit Typst"),
+		key: "typst",
+		field: {
+			label: __("Typst Markup"),
+			description: __("Use {0} for values from the document.", ["{{ doc.field_name }}"]),
+		},
+		clean: (typst) => typst || "",
+	});
 }
 
 function save_as_snippet() {
@@ -881,5 +919,17 @@ watch(
 	object-fit: contain;
 	border-radius: var(--radius);
 	vertical-align: middle;
+}
+
+.typst-block-source {
+	margin: 0;
+	font-family: monospace;
+	font-size: var(--text-xs);
+	white-space: pre-wrap;
+	word-break: break-word;
+	color: var(--text-color);
+	background: var(--gray-50);
+	border-radius: var(--radius-sm);
+	padding: 4px 6px;
 }
 </style>

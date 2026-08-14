@@ -1,19 +1,23 @@
 <template>
 	<div class="pfb-sidebar">
-		<!-- Tab bar -->
-		<div class="pfb-tabbar" role="tablist">
-			<button
-				v-for="tab in tabs"
-				:key="tab.id"
-				class="pfb-tab"
-				:class="{ active: activeTab === tab.id }"
-				:title="tab.label"
-				role="tab"
-				:aria-selected="activeTab === tab.id"
-				@click="activeTab = tab.id"
-			>
-				<span class="pfb-tab-label">{{ tab.label }}</span>
-			</button>
+		<!-- Tab bar: the Espresso tabs contract (es-tabs), same markup the desk's
+		     frappe.ui.Tabs and frappe-ui's Tabs.vue render -->
+		<div class="es-tabs" data-orientation="horizontal">
+			<div class="es-tabs__list" role="tablist" ref="tablist">
+				<button
+					v-for="tab in tabs"
+					:key="tab.id"
+					class="es-tabs__tab"
+					:data-tab="tab.id"
+					:data-state="activeTab === tab.id ? 'active' : 'inactive'"
+					role="tab"
+					:aria-selected="activeTab === tab.id"
+					@click="activeTab = tab.id"
+				>
+					{{ tab.label }}
+				</button>
+				<span class="es-tabs__indicator" :style="indicator_style"></span>
+			</div>
 		</div>
 
 		<!-- ── Fields ────────────────────────────────────────── -->
@@ -224,15 +228,16 @@
 
 		<!-- ── Layers ─────────────────────────────────────────── -->
 		<div v-else-if="activeTab === 'layers'" class="pfb-tab-body pfb-tree" role="tree">
-			<div v-if="!layout || !layout.sections.length" class="pfb-empty">
+			<div v-if="!layout" class="pfb-empty">
 				{{ __("No sections yet. Add sections to the canvas.") }}
 			</div>
 			<draggable
 				v-else
-				v-model="layout.sections"
+				v-model="tree_sections"
 				group="pfb-tree-sections"
 				handle=".pfb-drag-handle"
 				item-key="id"
+				:move="(e) => !!e.related?.querySelector('.pfb-drag-handle')"
 				v-bind="DRAG_OPTIONS"
 				@start="setDragging(true)"
 				@end="setDragging(false)"
@@ -240,10 +245,11 @@
 				<template #item="{ element: section }">
 					<div class="pfb-tree-node">
 						<div
-							class="pfb-tree-row pfb-drag-handle"
+							class="pfb-tree-row"
 							@mouseenter="store.hovered_section.value = section"
 							@mouseleave="store.hovered_section.value = null"
 							:class="{
+								'pfb-drag-handle': !zone_of(section),
 								active: store.selected_sections.value.includes(section),
 								'pfb-tree-hover': store.hovered_node.value === section,
 							}"
@@ -266,7 +272,7 @@
 								v-html="frappe.utils.icon('rectangle-horizontal', 'sm')"
 							></span>
 							<span class="pfb-tree-label">
-								{{ section.label || __("Untitled section") }}
+								{{ section.label || zone_of(section) || __("Untitled section") }}
 							</span>
 						</div>
 						<div v-if="!is_collapsed(section)" class="pfb-tree-children">
@@ -280,11 +286,8 @@
 								<div
 									v-if="section.columns.length > 1"
 									class="pfb-tree-row"
-									:class="{ 'pfb-tree-hover': store.hovered_node.value === col }"
 									role="treeitem"
 									tabindex="0"
-									@mouseenter="store.hovered_column.value = col"
-									@mouseleave="store.hovered_column.value = null"
 									@click="select_section(section)"
 									@keydown.enter.prevent="select_section(section)"
 									@keydown.space.prevent="select_section(section)"
@@ -373,6 +376,9 @@
 					</div>
 				</template>
 			</draggable>
+			<div v-if="layout && !layout.sections.length" class="pfb-empty">
+				{{ __("No sections yet. Add sections to the canvas.") }}
+			</div>
 		</div>
 	</div>
 </template>
@@ -420,7 +426,7 @@ function focus_search() {
 
 // store
 let store = inject("$store");
-let { meta, layout } = useStore();
+let { meta, layout, print_format } = useStore();
 
 // ── blocks tab items ──────────────────────────────────────
 const page_break_block = [
@@ -431,21 +437,36 @@ const page_break_block = [
 	},
 ];
 
-const draggable_blocks = [
-	{
-		label: __("Custom HTML"),
-		fieldname: "custom_html",
-		fieldtype: "HTML",
-		html: "",
-		custom: 1,
-		icon: "code",
-		desc: __("Raw HTML or Jinja template"),
-	},
+const draggable_blocks = computed(() => [
+	...(print_format.value?.pdf_generator === "Typst"
+		? [
+				{
+					label: __("Typst"),
+					fieldname: "typst_block",
+					fieldtype: "Typst",
+					typst: "",
+					custom: 1,
+					icon: "code",
+					desc: __("Raw Typst markup"),
+				},
+		  ]
+		: [
+				{
+					label: __("Custom HTML"),
+					fieldname: "custom_html",
+					fieldtype: "HTML",
+					html: "",
+					custom: 1,
+					icon: "code",
+					desc: __("Raw HTML or Jinja template"),
+				},
+		  ]),
 	{
 		label: __("Spacer"),
 		fieldname: "spacer",
 		fieldtype: "Spacer",
 		custom: 1,
+		height: 10,
 		icon: "minus",
 		desc: __("Vertical whitespace"),
 	},
@@ -480,7 +501,7 @@ const draggable_blocks = [
 			{ template: [], align: "right" },
 		],
 	},
-];
+]);
 
 function confirm_delete_snippet(name) {
 	frappe.confirm(__("Delete the snippet '{0}'?", [name]), () => store.delete_snippet(name));
@@ -495,12 +516,14 @@ function clone_field(df) {
 		"options",
 		"table_columns",
 		"html",
+		"typst",
 		"field_template",
 		"source",
 		"repeater_columns",
 		"custom",
 		"image_url",
 		"width",
+		"height",
 		"barcode_field",
 		"barcode_value",
 		"barcode_format",
@@ -608,6 +631,20 @@ const FIELD_ICONS = {
 };
 function field_icon(f) {
 	return FIELD_ICONS[f.fieldtype] || "type";
+}
+
+// the zones are sections too, so the tree lists them alongside the body ones —
+// only their order is fixed, since a header can't become a body section
+let tree_sections = computed({
+	get: () =>
+		[layout.value.header, ...layout.value.sections, layout.value.footer].filter(Boolean),
+	set: (v) => (layout.value.sections = v.filter((s) => !zone_of(s))),
+});
+
+function zone_of(section) {
+	if (section && section === layout.value?.header) return __("Header");
+	if (section && section === layout.value?.footer) return __("Footer");
+	return "";
 }
 
 let collapsed_nodes = ref(new Set());
@@ -730,9 +767,23 @@ function enter_tab(tab) {
 	if (tab === "library") fetch_templates();
 }
 
+// the indicator is the moving bar under the active tab; espresso's tabs.css
+// reads its offset and width from these two custom properties
+let tablist = ref(null);
+let indicator_style = ref({});
+function move_indicator() {
+	const tab = tablist.value?.querySelector('[data-state="active"]');
+	if (!tab) return;
+	indicator_style.value = {
+		"--es-tabs-indicator-x": `${tab.offsetLeft}px`,
+		"--es-tabs-indicator-w": `${tab.offsetWidth}px`,
+	};
+}
+
 watch(activeTab, (tab) => {
 	localStorage.setItem(TAB_STORE_KEY, tab);
 	enter_tab(tab);
+	nextTick(move_indicator);
 });
 
 let print_templates_list = computed(() => {
@@ -768,6 +819,7 @@ onMounted(() => {
 
 	// the watcher only fires on change, so a restored tab needs its setup run here
 	enter_tab(activeTab.value);
+	nextTick(move_indicator);
 });
 
 onUnmounted(() => {
@@ -800,55 +852,20 @@ function handle_slash_key(e) {
 	background: var(--fg-color);
 }
 
-/* ── Tab bar ─────────────────────────────────────────────── */
-.pfb-tabbar {
-	display: flex;
-	padding: 6px 6px 0;
-	gap: 2px;
-	border-bottom: 1px solid var(--border-color);
+/* the tab bar itself is styled by espresso/components/tabs.css; the sidebar is
+   narrower than a page, so it takes a tighter rhythm than the default */
+.es-tabs {
 	flex-shrink: 0;
 }
 
-.pfb-tab {
-	flex: 1;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 8px 2px;
-	border: none;
-	background: transparent;
-	border-radius: var(--radius) var(--radius) 0 0;
-	color: var(--text-muted);
-	cursor: pointer;
-	transition: color 0.12s, background 0.12s;
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-medium);
-	position: relative;
+.es-tabs__list {
+	gap: calc(var(--spacing) * 3);
+	padding-inline: calc(var(--spacing) * 3);
 }
 
-.pfb-tab:hover {
-	color: var(--text-color);
-	background: var(--gray-100);
-}
-
-.pfb-tab.active {
-	color: var(--primary);
-	background: var(--fg-color);
-}
-
-.pfb-tab.active::after {
-	content: "";
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	height: 2px;
-	background: var(--primary);
-	border-radius: 2px 2px 0 0;
-}
-
-.pfb-tab-label {
-	line-height: 1;
+.es-tabs__tab {
+	padding-block: calc(var(--spacing) * 2);
+	font-size: var(--text-sm);
 }
 
 /* ── Tab body ─────────────────────────────────────────────── */

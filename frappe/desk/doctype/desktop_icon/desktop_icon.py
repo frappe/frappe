@@ -156,7 +156,7 @@ def is_icon_permitted(icon, bootinfo, roles: list[str], icon_module: str | None)
 
 
 def _has_app_permission(icon) -> bool:
-	for a in frappe.get_installed_apps():
+	for a in frappe.get_active_apps():
 		# an app needn't declare `app_title`; asking for the hook by name returns [] instead
 		# of raising, so one such app can't abort the whole grid's permission check
 		app_title = (frappe.get_hooks("app_title", app_name=a) or [None])[0]

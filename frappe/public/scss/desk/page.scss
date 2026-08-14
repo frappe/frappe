@@ -41,6 +41,11 @@
 		display: inline-flex;
 		align-items: center;
 
+		.deprecated-badge {
+			margin-left: var(--margin-sm);
+			flex-shrink: 0;
+		}
+
 		.page-indicator-pill {
 			margin-left: var(--margin-sm);
 

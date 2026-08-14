@@ -755,24 +755,9 @@ body {
 			}
 		}
 
-		&:hover {
-			.widget-head .widget-control {
-				width: auto;
-				visibility: visible;
-				opacity: 1;
-			}
-		}
-
 		.widget-head {
 			.widget-label {
 				padding-left: 6px;
-			}
-
-			.widget-control {
-				width: 0px;
-				visibility: hidden;
-				opacity: 0;
-				transition: visibility 0s, opacity 0.5s ease-in-out;
 			}
 		}
 

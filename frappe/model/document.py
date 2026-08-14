@@ -1726,11 +1726,16 @@ class Document(BaseDocument):
 
 		def _get_notifications():
 			"""Return enabled notifications for the current doctype."""
+			from frappe.app_state import get_disabled_modules
+
+			filters = {"enabled": 1, "document_type": self.doctype}
+			if disabled_modules := get_disabled_modules():
+				filters["module"] = ["not in", list(disabled_modules)]
 
 			return frappe.get_all(
 				"Notification",
 				fields=["name", "event", "method"],
-				filters={"enabled": 1, "document_type": self.doctype},
+				filters=filters,
 			)
 
 		notifications = frappe.client_cache.get_value(
@@ -1864,7 +1869,7 @@ class Document(BaseDocument):
 	def load_doc_before_save(self, *, raise_exception: bool = False):
 		"""load existing document from db before saving"""
 
-		self._doc_before_save = None
+		self._doc_before_save: "Self | None" = None
 
 		if self.is_new():
 			return

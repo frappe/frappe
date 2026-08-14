@@ -24,6 +24,7 @@ class CustomDocPerm(Document):
 		email: DF.Check
 		export: DF.Check
 		if_owner: DF.Check
+		is_app_disabled: DF.Check
 		mask: DF.Check
 		parent: DF.Data | None
 		permlevel: DF.Int
