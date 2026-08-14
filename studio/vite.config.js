@@ -107,7 +107,6 @@ export default defineConfig(async () => {
 				// CommonJS dep reached through the now-unbundled frappe-ui (tailwind/colorPalette.js)
 				"tailwindcss/colors",
 				"feather-icons",
-				"showdown",
 				"engine.io-client",
 				"highlight.js/lib/core",
 				"interactjs",
