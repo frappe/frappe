@@ -9,10 +9,13 @@ from frappe.automation_engine import WAITING_STATES
 
 DEFAULT_BATCH_SIZE = 500
 QUEUE = "Automation Trigger Queue"
+# The RQ queue the drain job runs on; its timeout is what the drain has to finish inside.
+DRAIN_QUEUE = "default"
 
 
 def drain(batch_size=DEFAULT_BATCH_SIZE, max_batches=None, executor=None):
 	"""Claim and execute due waiting rows until the queue is drained."""
+
 	from frappe.automation_engine import is_enabled
 
 	if not is_enabled():
@@ -34,27 +37,6 @@ def drain(batch_size=DEFAULT_BATCH_SIZE, max_batches=None, executor=None):
 
 	if _has_due_pending():
 		_rekick()
-
-
-def execute_claimed(executor, name):
-	"""Run one claimed row in a transaction of its own.
-
-	The runner records step failures itself, but not everything reaches it: a flow deleted
-	mid-drain, or a throw while recording the outcome, escapes. Batching those into one
-	transaction would roll back every row that already succeeded alongside the one that
-	failed - and their claims are already committed, so they would sit Running until
-	requeue_stale_running() releases them and re-run work whose non-transactional half
-	(realtime updates, breaker counters) had already happened.
-
-	Committing per row also keeps a batch from holding one row lock per action for the length
-	of the whole batch.
-	"""
-	try:
-		executor(name)
-		frappe.db.commit()
-	except Exception:
-		frappe.db.rollback()
-		frappe.log_error(title=f"Automation run failed: {name}", message=frappe.get_traceback())
 
 
 def promote_due_scheduled():
@@ -103,11 +85,18 @@ def claim_batch(batch_size=DEFAULT_BATCH_SIZE) -> list[str]:
 
 
 def _lock_clause() -> str:
+	return "FOR UPDATE SKIP LOCKED" if supports_skip_locked() else "FOR UPDATE"
+
+
+def supports_skip_locked() -> bool:
+	"""Whether concurrent claimers can step over each other's locked rows.
+
+	Without it they queue behind one another instead, so running more than one drain shard
+	buys lock waits rather than throughput.
+	"""
 	if frappe.db.db_type != "mariadb":
-		return "FOR UPDATE SKIP LOCKED"
-	if _mariadb_supports_skip_locked():
-		return "FOR UPDATE SKIP LOCKED"
-	return "FOR UPDATE"
+		return True
+	return _mariadb_supports_skip_locked()
 
 
 def _mariadb_supports_skip_locked() -> bool:

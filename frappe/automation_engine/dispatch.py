@@ -1,7 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-
 import frappe
 from frappe.automation_engine import WAITING_STATES, is_enabled, queue_status
 from frappe.automation_engine.registry import get_automations_for
@@ -20,6 +19,7 @@ METHOD_TRIGGER = {
 }
 
 DEFAULT_MAX_DEPTH = 3
+DEFAULT_DRAIN_SHARDS = 4
 
 
 def run_automations(doc, method):
@@ -171,10 +171,32 @@ def _touch_row(name, run_after):
 
 
 def kick_drainer():
-	"""Enqueue a single deduplicated drain job (registered via after_commit)."""
-	frappe.enqueue(
-		"frappe.automation_engine.drainer.drain",
-		queue="default",
-		job_id=f"automation_drain::{frappe.local.site}",
-		deduplicate=True,
-	)
+	"""Enqueue the deduplicated drain shards (registered via after_commit).
+
+	Each shard is deduplicated on its own job id, so a kick tops up whichever shards are
+	idle and never runs the same one twice. The shards are not given a slice of the queue:
+	claim_batch is atomic, so they compete for rows and a slow shard cannot strand work
+	that was assigned to it.
+	"""
+	from frappe.automation_engine.drainer import DRAIN_QUEUE
+
+	for shard in range(drain_shard_count()):
+		frappe.enqueue(
+			"frappe.automation_engine.drainer.drain",
+			queue=DRAIN_QUEUE,
+			job_id=f"automation_drain::{frappe.local.site}::{shard}",
+			deduplicate=True,
+		)
+
+
+def drain_shard_count() -> int:
+	"""How many drain shards may run at once, from `automation_drain_shards`.
+
+	Held at one where the database cannot skip locked rows, because there the shards would
+	serialize on each other's claims and only add lock waits.
+	"""
+	from frappe.automation_engine.drainer import supports_skip_locked
+
+	if not supports_skip_locked():
+		return 1
+	return max(1, cint(frappe.conf.get("automation_drain_shards")) or DEFAULT_DRAIN_SHARDS)
