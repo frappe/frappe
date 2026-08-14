@@ -17,8 +17,8 @@ def load_address_and_contact(doc, key=None) -> None:
 
 
 @frappe.whitelist()
-def delink_party(doctype: str, name: str, link_doctype: str, link_name: str) -> None:
-	"""Remove the link between an Address or Contact and the given party."""
+def remove_link(doctype: str, name: str, link_doctype: str, link_name: str) -> None:
+	"""Remove the link between an Address or Contact and the document it is linked to."""
 	if doctype not in ("Address", "Contact"):
 		frappe.throw(_("Can only unlink an Address or a Contact"))
 
@@ -38,7 +38,7 @@ def delink_party(doctype: str, name: str, link_doctype: str, link_name: str) -> 
 
 
 def clear_stale_primary_link(doctype: str, name: str, link_doctype: str, link_name: str) -> None:
-	"""Clear the party's primary Address/Contact field when it points at a record it no longer links to."""
+	"""Clear the document's primary Address/Contact field when it points at a record it no longer links to."""
 	meta = frappe.get_meta(link_doctype)
 	primary_fields = [df.fieldname for df in get_primary_link_fields(meta, doctype)]
 	if not primary_fields:
@@ -60,7 +60,7 @@ def clear_stale_primary_link(doctype: str, name: str, link_doctype: str, link_na
 
 
 def get_primary_link_fields(meta, doctype: str) -> list:
-	"""Party fields that hold its primary Address or Contact, by the same name convention the form uses."""
+	"""Document fields that hold its primary Address or Contact, by the same name convention the form uses."""
 	return [
 		df
 		for df in meta.get("fields", {"fieldtype": "Link", "options": doctype})

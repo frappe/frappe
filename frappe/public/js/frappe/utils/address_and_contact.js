@@ -78,7 +78,7 @@ frappe.ui.form.ContactQuickEntryForm = class ContactQuickEntryForm extends (
 	}
 };
 
-const PARTY_LINK_SECTIONS = [
+const ADDRESS_CONTACT_GROUPS = [
 	{
 		doctype: "Address",
 		wrapper_field: "address_html",
@@ -97,7 +97,7 @@ const PARTY_LINK_SECTIONS = [
 	},
 ];
 
-class PartyLinkSection {
+class AddressContactController {
 	constructor(
 		frm,
 		{ doctype, wrapper_field, onload_key, template, button_selector, primary_flag }
@@ -255,19 +255,19 @@ class PartyLinkSection {
 
 	unlink(record) {
 		const record_label = frappe.utils.bold(record.name);
-		const party_label = frappe.utils.bold(this.frm.docname);
+		const document_label = frappe.utils.bold(this.frm.docname);
 		const message = __("Unlink {0} {1} from {2}?", [
 			__(this.doctype),
 			record_label,
-			party_label,
+			document_label,
 		]);
 
-		frappe.confirm(message, () => this.delink_party(record));
+		frappe.confirm(message, () => this.remove_link(record));
 	}
 
-	delink_party(record) {
+	remove_link(record) {
 		return frappe
-			.xcall("frappe.contacts.address_and_contact.delink_party", {
+			.xcall("frappe.contacts.address_and_contact.remove_link", {
 				doctype: this.doctype,
 				name: record.name,
 				link_doctype: this.frm.doctype,
@@ -291,9 +291,9 @@ $.extend(frappe.contacts, {
 	},
 
 	render_address_and_contact: function (frm) {
-		for (const options of PARTY_LINK_SECTIONS) {
-			const section = new PartyLinkSection(frm, options);
-			if (section.is_loaded) section.render();
+		for (const options of ADDRESS_CONTACT_GROUPS) {
+			const controller = new AddressContactController(frm, options);
+			if (controller.is_loaded) controller.render();
 		}
 	},
 

@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.contacts.address_and_contact import delink_party
+from frappe.contacts.address_and_contact import remove_link
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.tests import IntegrationTestCase
 
@@ -24,7 +24,7 @@ PRIMARY_FIELDS = {
 }
 
 
-class TestDelinkParty(IntegrationTestCase):
+class TestRemoveLink(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -38,9 +38,9 @@ class TestDelinkParty(IntegrationTestCase):
 		frappe.clear_cache(doctype="ToDo")
 
 	def setUp(self):
-		self.party = frappe.get_doc({"doctype": "ToDo", "description": "_Test Delink Party"}).insert()
-		self.other_party = frappe.get_doc(
-			{"doctype": "ToDo", "description": "_Test Delink Other Party"}
+		self.document = frappe.get_doc({"doctype": "ToDo", "description": "_Test Remove Link"}).insert()
+		self.other_document = frappe.get_doc(
+			{"doctype": "ToDo", "description": "_Test Remove Link Other"}
 		).insert()
 
 	def create_address(self, links):
@@ -59,55 +59,55 @@ class TestDelinkParty(IntegrationTestCase):
 	def link_to(self, doc):
 		return {"link_doctype": doc.doctype, "link_name": doc.name}
 
-	def test_removes_only_the_given_party(self):
-		address = self.create_address([self.link_to(self.party), self.link_to(self.other_party)])
+	def test_removes_only_the_given_document(self):
+		address = self.create_address([self.link_to(self.document), self.link_to(self.other_document)])
 
-		delink_party("Address", address.name, self.party.doctype, self.party.name)
+		remove_link("Address", address.name, self.document.doctype, self.document.name)
 
 		address.reload()
 		self.assertEqual(
 			[(link.link_doctype, link.link_name) for link in address.links],
-			[(self.other_party.doctype, self.other_party.name)],
+			[(self.other_document.doctype, self.other_document.name)],
 		)
 
 	def test_keeps_the_address_itself(self):
-		address = self.create_address([self.link_to(self.party)])
+		address = self.create_address([self.link_to(self.document)])
 
-		delink_party("Address", address.name, self.party.doctype, self.party.name)
+		remove_link("Address", address.name, self.document.doctype, self.document.name)
 
 		self.assertTrue(frappe.db.exists("Address", address.name))
 		self.assertEqual(frappe.get_doc("Address", address.name).links, [])
 
-	def test_unknown_party_is_a_no_op(self):
-		address = self.create_address([self.link_to(self.party)])
+	def test_unknown_document_is_a_no_op(self):
+		address = self.create_address([self.link_to(self.document)])
 		modified_before = frappe.db.get_value("Address", address.name, "modified")
 
-		delink_party("Address", address.name, self.other_party.doctype, self.other_party.name)
+		remove_link("Address", address.name, self.other_document.doctype, self.other_document.name)
 
 		address.reload()
 		self.assertEqual(len(address.links), 1)
 		self.assertEqual(frappe.db.get_value("Address", address.name, "modified"), modified_before)
 
-	def test_clears_the_partys_primary_link(self):
-		address = self.create_address([self.link_to(self.party)])
-		self.party.db_set({"primary_address": address.name, "primary_city": "_Test City"})
+	def test_clears_the_documents_primary_link(self):
+		address = self.create_address([self.link_to(self.document)])
+		self.document.db_set({"primary_address": address.name, "primary_city": "_Test City"})
 
-		delink_party("Address", address.name, self.party.doctype, self.party.name)
+		remove_link("Address", address.name, self.document.doctype, self.document.name)
 
-		self.party.reload()
-		self.assertIsNone(self.party.primary_address)
-		self.assertIsNone(self.party.primary_city)
+		self.document.reload()
+		self.assertIsNone(self.document.primary_address)
+		self.assertIsNone(self.document.primary_city)
 
 	def test_keeps_a_primary_link_to_another_record(self):
-		address = self.create_address([self.link_to(self.party)])
-		other_address = self.create_address([self.link_to(self.party)])
-		self.party.db_set("primary_address", other_address.name)
+		address = self.create_address([self.link_to(self.document)])
+		other_address = self.create_address([self.link_to(self.document)])
+		self.document.db_set("primary_address", other_address.name)
 
-		delink_party("Address", address.name, self.party.doctype, self.party.name)
+		remove_link("Address", address.name, self.document.doctype, self.document.name)
 
-		self.party.reload()
-		self.assertEqual(self.party.primary_address, other_address.name)
+		self.document.reload()
+		self.assertEqual(self.document.primary_address, other_address.name)
 
 	def test_rejects_other_doctypes(self):
 		with self.assertRaises(frappe.ValidationError):
-			delink_party("ToDo", self.party.name, self.party.doctype, self.party.name)
+			remove_link("ToDo", self.document.name, self.document.doctype, self.document.name)
