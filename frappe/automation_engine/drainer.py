@@ -1,12 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-"""Drains the outbox: claims due waiting rows in batches and runs them.
-
-Batches are claimed with FOR UPDATE SKIP LOCKED so multiple drainers run in parallel
-without double-executing a row. Each claim marks its rows Running and commits, releasing
-the locks before the (slower) execution phase.
-"""
 
 import re
 

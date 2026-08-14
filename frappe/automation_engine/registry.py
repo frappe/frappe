@@ -1,14 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-"""Cached lookup of automation rules, keyed per-doctype.
-
-Reuses frappe.client_cache (the frappe.local + redis two-tier cache with cross-process
-invalidation already solved), mirroring the `notifications::{doctype}` pattern in
-Document.run_notifications. Per-doctype keys keep invalidation and deserialization scoped
-to a single doctype; the empty list is cached too, so the no-op path stays a local dict hit.
-"""
-
 import frappe
 
 REGISTRY_KEY = "automations::{}"

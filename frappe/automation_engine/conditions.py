@@ -1,13 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-"""Structured conditions over registered, related records.
-
-A related condition never loads the related documents: it compiles the filters through the
-provider's query and only counts what comes back, so an existence check on a large table stays
-a bounded query.
-"""
-
 import ast
 
 import frappe

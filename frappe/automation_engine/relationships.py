@@ -1,14 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-"""Safe, hook-driven record relationship discovery and resolution.
-
-Applications register provider classes through the `automation_relationships` hook - a saved
-workflow only ever names a relationship, never a callable - so configuration can't reach
-arbitrary Python. Providers hand back `{doctype, name}` references, which are checked against
-the declared target DocTypes and the current user's read permission before anything is loaded.
-"""
-
 import frappe
 from frappe import _
 from frappe.utils.caching import request_cache
