@@ -132,18 +132,19 @@ SOCKETIO_SECRET_KEY = "socketio_auth_secret"
 
 
 def get_socketio_secret():
-	"""Generate socket.io secret and store in redis"""
+	"""Read the shared realtime secret, and make it if it is not there yet.
+
+	nx: the first writer wins, thus two processes cannot store two secrets and refuse
+	each other's clients. The realtime server writes the key the same way."""
 
 	from frappe.utils.background_jobs import get_redis_connection_without_auth
 
 	r = get_redis_connection_without_auth()
 	secret = r.get(SOCKETIO_SECRET_KEY)
-	if secret:
-		return secret.decode()
-
-	secret = frappe.generate_hash(length=32)
-	r.set(SOCKETIO_SECRET_KEY, secret)
-	return secret
+	if secret is None:
+		r.set(SOCKETIO_SECRET_KEY, frappe.generate_hash(length=32), nx=True)
+		secret = r.get(SOCKETIO_SECRET_KEY)
+	return secret.decode()
 
 
 @frappe.whitelist(allow_guest=True)  # nosemgrep

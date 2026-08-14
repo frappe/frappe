@@ -281,6 +281,42 @@ class TestAuthenticate(unittest.IsolatedAsyncioTestCase):
 		)
 
 
+class FakeRedis:
+	"""The two commands that get_socketio_secret() uses."""
+
+	def __init__(self, value: bytes | None):
+		self.value = value
+		self.writes = []
+
+	async def get(self, key: str) -> bytes | None:
+		return self.value
+
+	async def set(self, key: str, value: str, nx: bool = False) -> None:
+		self.writes.append((value, nx))
+		self.value = value.encode()
+
+
+class TestSocketioSecret(unittest.IsolatedAsyncioTestCase):
+	def _redis(self, value: bytes | None) -> FakeRedis:
+		client = FakeRedis(value)
+		patcher = patch.object(auth_mod, "_secret_client", client)
+		patcher.start()
+		self.addCleanup(patcher.stop)
+		return client
+
+	async def test_an_existing_secret_is_read(self):
+		client = self._redis(b"from-the-web")
+		self.assertEqual(await auth_mod.get_socketio_secret("redis://x"), "from-the-web")
+		self.assertEqual(client.writes, [])
+
+	async def test_a_missing_secret_is_made(self):
+		# A boot with an empty redis: a side that could only read would send no secret.
+		# nx keeps one value if the web writes its own at the same moment.
+		client = self._redis(None)
+		secret = await auth_mod.get_socketio_secret("redis://x")
+		self.assertEqual(client.writes, [(secret, True)])
+
+
 class TestSharedHttpClient(unittest.IsolatedAsyncioTestCase):
 	"""The AsyncClient is shared by every connection, so it must stay stateless."""
 

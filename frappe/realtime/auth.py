@@ -14,12 +14,12 @@ import httpx
 from redis import asyncio as aioredis
 from socketio.exceptions import ConnectionRefusedError
 
+import frappe
+from frappe.realtime import SOCKETIO_SECRET_KEY
 from frappe.realtime.config import RealtimeConfig
 from frappe.realtime.util import get_hostname, get_url, read_header, resolve_site_name
 
 logger = logging.getLogger("frappe.realtime")
-
-SOCKETIO_SECRET_KEY = "socketio_auth_secret"
 
 HttpMethod = Literal["GET", "POST", "PUT", "PATCH", "DELETE"]
 WebRequest = Callable[..., Awaitable[dict]]
@@ -104,8 +104,8 @@ async def authenticate(environ: dict, namespace: str, config: RealtimeConfig) ->
 	"""
 	site = _validate_site(environ, namespace, config)
 	_validate_origin(environ)
-
 	credentials = _read_credentials(environ)
+
 	secret = await get_socketio_secret(config.redis_queue)
 	request = _make_request(environ, credentials, config, site, secret)
 	user_info = await _get_user_info(request)
@@ -168,7 +168,7 @@ def _read_sid(cookie_header: str | None) -> str | None:
 
 
 def _make_request(
-	environ: dict, credentials: Credentials, config: RealtimeConfig, site: str, secret: str | None
+	environ: dict, credentials: Credentials, config: RealtimeConfig, site: str, secret: str
 ) -> WebRequest:
 	"""Build the authenticated request helper toward the web (socket.frappe_request port).
 
@@ -248,14 +248,10 @@ def _make_local_request(headers: dict[str, str]) -> WebRequest:
 	return request
 
 
-def _auth_headers(credentials: Credentials, site: str, secret: str | None) -> dict[str, str]:
+def _auth_headers(credentials: Credentials, site: str, secret: str) -> dict[str, str]:
 	"""Web-process request headers: client credential + tenant + shared secret."""
-	headers = credentials.headers()
-	# Carry the tenant so loopback requests route to the right site.
-	headers["X-Frappe-Site-Name"] = site
-	if secret:
-		headers["X-Frappe-Socket-Secret"] = secret
-	return headers
+	# X-Frappe-Site-Name carries the tenant, so loopback requests route to the right site.
+	return credentials.headers() | {"X-Frappe-Site-Name": site, "X-Frappe-Socket-Secret": secret}
 
 
 async def _get_user_info(request: WebRequest) -> dict:
@@ -290,14 +286,18 @@ _http_client: httpx.AsyncClient | None = None
 _local_client = None
 
 
-async def get_socketio_secret(redis_url: str) -> str | None:
-	"""Read socketio_auth_secret from the no-auth queue redis (same key the web sets)."""
+async def get_socketio_secret(redis_url: str) -> str:
+	"""Read the shared realtime secret, and make it if it is not there yet.
+
+	The web makes the same key at its first get_user_info(). A side that could only
+	read would send no secret on a boot with an empty redis, and get {} back."""
 	global _secret_client
 	if _secret_client is None:
 		_secret_client = aioredis.from_url(redis_url)
 	value = await _secret_client.get(SOCKETIO_SECRET_KEY)
 	if value is None:
-		return None
+		await _secret_client.set(SOCKETIO_SECRET_KEY, frappe.generate_hash(length=32), nx=True)
+		value = await _secret_client.get(SOCKETIO_SECRET_KEY)
 	return value.decode() if isinstance(value, bytes) else value
 
 
