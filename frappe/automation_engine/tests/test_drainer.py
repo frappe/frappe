@@ -214,6 +214,32 @@ class TestDrainer(IntegrationTestCase):
 		# Four rows at two per group is two commits, not four.
 		self.assertEqual(len(commits), 2)
 
+	def test_time_budget_stops_claiming_and_rekicks(self):
+		for i in range(4):
+			self.add_row(f"T{i}")
+
+		kicks = []
+		original_rekick = drainer._rekick
+		drainer._rekick = lambda: kicks.append(1)
+		# A budget this small expires during the first batch, so the second is never claimed.
+		frappe.conf.automation_drain_seconds = 0.001
+		processed = []
+		try:
+			drain(batch_size=2, executor=processed.append)
+		finally:
+			drainer._rekick = original_rekick
+			frappe.conf.pop("automation_drain_seconds", None)
+
+		self.assertEqual(len(processed), 2)
+		# Two rows are still due, so the drain hands off to a fresh job instead of running on.
+		self.assertEqual(kicks, [1])
+		self.assertEqual(self.count("Pending"), 2)
+
+	def test_budget_is_a_fraction_of_the_queue_timeout(self):
+		frappe.conf.pop("automation_drain_seconds", None)
+		self.assertLess(drainer.drain_time_budget(), 300)
+		self.assertGreater(drainer.drain_time_budget(), 0)
+
 	def test_kill_switch_stops_drain(self):
 		for i in range(3):
 			self.add_row(f"T{i}")
