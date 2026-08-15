@@ -209,9 +209,11 @@ export function createFlowStore(client) {
 		}
 	}
 
-	// Reset to the blank "new chat" state. No server call — the session is
-	// created lazily by send(), so abandoned new-chat clicks leave nothing behind.
-	function startNewChat() {
+	// Reset to the blank "new chat" state, carrying the active project's cwd
+	// unless the caller supplies one. No server call — send() creates it lazily.
+	function startNewChat({ cwd = null } = {}) {
+		const listedSession = state.sessions.find((session) => session.session_id === state.sessionId)
+		const nextCwd = cwd ?? state.session?.config?.cwd ?? listedSession?.cwd
 		closeStream()
 		state.sessionId = null
 		state.session = null
@@ -220,6 +222,7 @@ export function createFlowStore(client) {
 		state.conversation = initialConversation()
 		previewedSkillsFor = null
 		state.prefs.lastSession = null
+		if (nextCwd) state.prefs.cwd = nextCwd
 		savePrefs()
 	}
 

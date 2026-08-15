@@ -26,7 +26,7 @@
 		<div class="px-2.5 pb-1.5">
 			<button
 				class="flex h-9 w-full items-center gap-2 rounded-lg px-2.5 text-xs font-medium text-ink-gray-8 transition-colors hover:bg-surface-gray-2"
-				@click="flow.startNewChat()"
+				@click="startNewChat"
 			>
 				<FeatherIcon name="plus" class="h-4 w-4 text-ink-gray-6" />
 				New chat
@@ -55,13 +55,62 @@
 			</div>
 		</div>
 
-		<div class="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2.5 pb-2.5">
-			<div
-				v-if="filtered.length"
-				class="px-2.5 pb-1 pt-3 text-2xs font-medium text-ink-gray-5"
-			>
-				Recent sessions
+		<div
+			v-if="flow.state.sessions.length"
+			class="flex items-center justify-between px-5 pb-1 pt-2 text-2xs font-medium text-ink-gray-5"
+		>
+			<span>Sessions</span>
+			<div class="relative min-w-0">
+				<button
+					class="flex max-w-[128px] items-center gap-1 rounded-md px-1.5 py-1 font-normal text-ink-gray-6 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-8"
+					title="Filter sessions by project"
+					aria-haspopup="menu"
+					:aria-expanded="projectMenu"
+					@click="projectMenu = !projectMenu"
+				>
+					<span class="truncate">{{ selectedProjectLabel }}</span>
+					<FeatherIcon name="chevron-down" class="h-3 w-3 flex-none" />
+				</button>
+				<PopMenu
+					:open="projectMenu"
+					label="Filter sessions by project"
+					align="right"
+					placement="bottom"
+					:width="220"
+					@close="projectMenu = false"
+				>
+					<button
+						role="menuitemradio"
+						:aria-checked="selectedProject === null"
+						class="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs text-ink-gray-8 hover:bg-surface-gray-2"
+						@click="selectProject(null)"
+					>
+						<FeatherIcon name="folder" class="h-3.5 w-3.5 flex-none text-ink-gray-5" />
+						<span class="min-w-0 flex-1 truncate">All projects</span>
+						<FeatherIcon v-if="selectedProject === null" name="check" class="h-3.5 w-3.5 flex-none" />
+					</button>
+					<button
+						v-for="project in projects"
+						:key="project.cwd"
+						role="menuitemradio"
+						:aria-checked="selectedProject === project.cwd"
+						:title="project.cwd"
+						class="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs text-ink-gray-8 hover:bg-surface-gray-2"
+						@click="selectProject(project.cwd)"
+					>
+						<FeatherIcon name="folder" class="h-3.5 w-3.5 flex-none text-ink-gray-5" />
+						<span class="min-w-0 flex-1 truncate">{{ project.name }}</span>
+						<FeatherIcon
+							v-if="selectedProject === project.cwd"
+							name="check"
+							class="h-3.5 w-3.5 flex-none"
+						/>
+					</button>
+				</PopMenu>
 			</div>
+		</div>
+
+		<div class="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2.5 pb-2.5">
 			<div
 				v-for="s in filtered"
 				:key="s.session_id"
@@ -100,7 +149,7 @@
 				</button>
 			</div>
 			<div v-if="filtered.length === 0" class="px-2.5 py-8 text-center text-xs text-ink-gray-5">
-				{{ query ? "No matches." : "No chats yet — start one." }}
+				{{ emptyMessage }}
 			</div>
 		</div>
 
@@ -121,13 +170,14 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref } from "vue"
+import { computed, inject, onMounted, ref, watch } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
 import { dialog } from "frappe-ui/src/utils/dialog"
 
 import { useDebouncedValue } from "../debounce.js"
 import BrandMark from "./BrandMark.vue"
+import PopMenu from "./PopMenu.vue"
 
 const props = defineProps({ open: { type: Boolean, default: true } })
 const emit = defineEmits(["close"])
@@ -135,6 +185,40 @@ const flow = inject("flow")
 
 const query = ref("")
 const debouncedQuery = useDebouncedValue(query, 150)
+const projectMenu = ref(false)
+const selectedProject = ref(null)
+
+function projectName(cwd) {
+	return cwd.replace(/[\\/]+$/, "").split(/[\\/]/).filter(Boolean).pop() ?? cwd
+}
+
+const projects = computed(() => {
+	const unique = new Map()
+	for (const session of flow.state.sessions) {
+		const cwd = session.cwd?.trim()
+		if (cwd && !unique.has(cwd)) unique.set(cwd, { cwd, name: projectName(cwd) })
+	}
+	return [...unique.values()].sort((left, right) => left.name.localeCompare(right.name))
+})
+
+const selectedProjectLabel = computed(() =>
+	selectedProject.value ? projectName(selectedProject.value) : "All projects",
+)
+
+function selectProject(cwd) {
+	selectedProject.value = cwd
+	projectMenu.value = false
+}
+
+function startNewChat() {
+	flow.startNewChat({ cwd: selectedProject.value })
+}
+
+watch(projects, (available) => {
+	if (selectedProject.value && !available.some((project) => project.cwd === selectedProject.value)) {
+		selectedProject.value = null
+	}
+})
 
 // dialog.confirm, not dialog.danger: danger's red theme injects a header
 // icon; the destructive styling lives on the action button instead
@@ -161,8 +245,16 @@ onMounted(() => requestAnimationFrame(() => (ready.value = true)))
 
 const filtered = computed(() => {
 	const q = debouncedQuery.value.trim().toLowerCase()
-	if (!q) return flow.state.sessions
-	return flow.state.sessions.filter((s) => flow.sessionTitle(s).toLowerCase().includes(q))
+	return flow.state.sessions.filter((session) => {
+		if (selectedProject.value && session.cwd !== selectedProject.value) return false
+		return !q || flow.sessionTitle(session).toLowerCase().includes(q)
+	})
+})
+
+const emptyMessage = computed(() => {
+	if (query.value) return "No matches."
+	if (selectedProject.value) return "No chats in this project."
+	return "No chats yet — start one."
 })
 
 const daemonUrl = computed(() => {

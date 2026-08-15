@@ -468,9 +468,9 @@ async function chooseFolder() {
 	plusMenu.value = false
 	const path = await flow.pickFolder()
 	if (!path) return
-	flow.setCwd(path)
 	// a running session's cwd is frozen; the new folder applies from the next chat
-	if (flow.state.sessionId) flow.startNewChat()
+	if (flow.state.sessionId) flow.startNewChat({ cwd: path })
+	else flow.setCwd(path)
 }
 
 const MODES = [
@@ -674,8 +674,7 @@ watch(
 async function cwdCommand(arg) {
 	const cwd = arg || (await flow.pickFolder()) // no arg: the daemon's native folder dialog
 	if (!cwd) return
-	flow.setCwd(cwd)
-	flow.startNewChat() // the session itself is created on the first message
+	flow.startNewChat({ cwd }) // the session itself is created on the first message
 }
 
 function chooseMode(mode) {

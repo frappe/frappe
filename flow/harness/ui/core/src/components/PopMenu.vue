@@ -5,8 +5,11 @@
 			ref="menuEl"
 			role="menu"
 			:aria-label="label"
-			class="flow-pop-menu absolute bottom-full z-20 mb-2.5 flex flex-col gap-0.5 rounded-[10px] border border-outline-gray-2 bg-surface-white p-1 shadow-xl outline-none"
-			:class="align === 'right' ? 'right-0' : 'left-0'"
+			class="flow-pop-menu absolute z-20 flex flex-col gap-0.5 rounded-[10px] border border-outline-gray-2 bg-surface-white p-1 shadow-xl outline-none"
+			:class="[
+				align === 'right' ? 'right-0' : 'left-0',
+				placement === 'bottom' ? 'top-full mt-2.5' : 'bottom-full mb-2.5',
+			]"
 			:style="{ width: width + 'px' }"
 			@keydown="onKey"
 		>
@@ -23,6 +26,7 @@ import { nextNavigationIndex } from "../paletteNav.js"
 const props = defineProps({
 	open: { type: Boolean, default: false },
 	align: { type: String, default: "left" },
+	placement: { type: String, default: "top" },
 	width: { type: Number, default: 244 },
 	label: { type: String, default: "Menu" },
 })
