@@ -305,16 +305,23 @@ const rows = computed<Record<string, any>[]>({
 // row is re-found by `name ?? __row_id` on every access — the shape `page.rows`'
 // handles use. `editKey` null = dialog closed.
 const editKey = ref<string | null>(null);
-// Where the row sat when the dialog opened. Only a tiebreak, never the address:
-// a script that duplicates a saved row (`{ ...products[0] }`) copies its `name`,
-// and two rows answering to one key would otherwise both resolve to the first.
-let openedAt = -1;
+// The row object the reader clicked. Only a tiebreak, never the address: a
+// script that duplicates a saved row (`{ ...products[0] }`) copies its `name`,
+// so two rows can answer to one key and a bare first-match would open on the
+// wrong one. Deliberately NOT a position — a reorder leaves the index pointing
+// at the other row while its key still matches, which is the same wrong answer
+// arrived at more confidently. A save replaces every row object, so this goes
+// stale by design; the key is what survives it.
+let openedRow: Record<string, any> | null = null;
 
 const editIndex = computed(() => {
 	if (editKey.value === null) return -1;
-	const matches = (row: Record<string, any>) => rowKey(row) === editKey.value;
-	if (matches(rows.value[openedAt] ?? {})) return openedAt;
-	return rows.value.findIndex(matches);
+	const first = rows.value.findIndex((row) => rowKey(row) === editKey.value);
+	if (first === -1) return -1;
+	const clicked = openedRow ? rows.value.indexOf(openedRow) : -1;
+	// The clicked row still has to answer to the address: a script can rename a
+	// row under the dialog, and then it is no longer the row that was opened.
+	return clicked !== -1 && rowKey(rows.value[clicked]) === editKey.value ? clicked : first;
 });
 
 // Writable, though `FormLayout` only ever mutates it: a getter-only computed
@@ -347,7 +354,7 @@ watch(editRow, (row) => {
 
 function closeEdit() {
 	editKey.value = null;
-	openedAt = -1;
+	openedRow = null;
 }
 
 const dialogTitle = computed(() =>
@@ -382,7 +389,7 @@ function openEdit({ row, index }: { row: Record<string, any>; index: number }) {
 	// session, so the document is already dirty, and `__row_id` never reaches the
 	// server (`rowIdentity.ts`).
 	editKey.value = addressOf(row).key;
-	openedAt = index;
+	openedRow = row;
 }
 
 // There is no write-back: `FormLayout` mutates `doc.value[fieldname]` and never
