@@ -63,8 +63,10 @@ def tool_label(name: str) -> Text:
 	return Text().append(TOOL_LABELS.get(name, name), style=STYLE_TOOL_NAME)
 
 
-def call_line(name: str, args: dict | None) -> Text:
+def call_line(name: str, args: dict | None, display: str | None = None) -> Text:
 	"""Collapsed one-liner for a tool call with presentation-safe arguments."""
+	if display:
+		return Text(display)
 	line = tool_label(name)
 	if args is None:
 		return line.append(" …", style=STYLE_MUTED)
@@ -222,7 +224,7 @@ class ToolCallView(Static):
 		else:
 			glyph, style = None, ""  # a settled call carries no mark, and no gutter for one
 		if self.call is not None:
-			line = call_line(self.call.name, self.call.arguments)
+			line = call_line(self.call.name, self.call.arguments, self.call.display)
 		else:
 			assert result is not None  # a call-less view always carries its result
 			line = result_line(result)
@@ -325,7 +327,7 @@ class PartialAssistantView(Static):
 			elif isinstance(part, PartialText):
 				text.append(part.text)
 			elif isinstance(part, PartialToolCall):
-				text.append_text(call_line(part.name, part.arguments))
+				text.append_text(call_line(part.name, part.arguments, part.display))
 		text.append("▌", style=STYLE_MUTED)
 		self.update(text)
 
