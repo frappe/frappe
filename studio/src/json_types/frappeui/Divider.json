@@ -29,16 +29,18 @@
             "label": {
               "type": "string"
             },
+            "onClick": {
+              "type": "object"
+            },
             "handler": {
-              "$comment": "() => any"
+              "type": "object"
             },
             "loading": {
               "type": "boolean"
             }
           },
           "required": [
-            "label",
-            "handler"
+            "label"
           ],
           "additionalProperties": false
         }

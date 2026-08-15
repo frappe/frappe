@@ -1,12 +1,14 @@
-import { computed } from "vue"
+import { computed, unref, isRef } from "vue"
 import useCodeStore from "@/stores/codeStore"
 import type { CompletionSource } from "@/types"
 import { isPrivateKey } from "@/utils/helpers"
+import { getBindingType } from "@/utils/parseCode"
 import { getCompletions } from "./autocompletions"
+import { vueApiSources } from "./vueApiCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
 import * as globalUtils from "@/utils/globalUtils"
 
-export const useStudioCompletions = (canEditValues: boolean = false) => {
+export const useStudioCompletions = (canEditValues: boolean = false, includeVueApis: boolean = false) => {
 	const codeStore = useCodeStore()
 
 	const completionSources = computed(() => {
@@ -83,6 +85,33 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 			})
 		}
 
+		Object.entries(codeStore.pageScriptBindings || {}).forEach(([name, binding]) => {
+			const unwrapped = unref(binding)
+			const isFunction = typeof unwrapped === "function"
+			const refLike = isRef(binding)
+			const detail = getBindingType(binding)
+			// In script context, surface a ref as `{ value }` so `name.value` member completion works.
+			const item = canEditValues && refLike ? { value: unwrapped } : unwrapped
+			sources.push({
+				item,
+				completion: {
+					label: name,
+					type: isFunction ? "function" : "variable",
+					detail,
+					apply(view, completion, from, to) {
+						let insertText = completion.label as string
+						if (isFunction) insertText = `${insertText}()`
+						else if (canEditValues && refLike) insertText = `${insertText}.value`
+						const cursorPos = isFunction ? from + insertText.length - 1 : from + insertText.length
+						view.dispatch({
+							changes: { from, to, insert: insertText },
+							selection: { anchor: cursorPos },
+						})
+					},
+				},
+			})
+		})
+
 		Object.entries(globalUtils).forEach(([funcName, func]) => {
 			if (isPrivateKey(funcName)) {
 				return
@@ -106,6 +135,12 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 				}
 			})
 		})
+
+		// Only the interpreted page script has the Vue reactivity APIs injected into its scope; other
+		// editors (event/callback/transform handlers, dynamic-value expressions) don't.
+		if (includeVueApis) {
+			sources.push(...vueApiSources())
+		}
 
 		return sources
 	})

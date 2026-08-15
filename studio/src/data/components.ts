@@ -1,15 +1,14 @@
 import { defineAsyncComponent } from "vue"
-import { FRAPPE_UI_COMPONENTS } from "@/utils/constants"
+import { FRAPPE_UI_COMPONENTS, FRAPPE_UI_MOLECULES, FRAMEWORK_UI_COMPONENTS } from "@/utils/constants"
+import { COMPONENT_FAMILIES } from "@/data/componentFamilies"
 
 import type { FrappeUIComponents, FrappeUIComponent } from "@/types"
 
 import LucideCircleAlert from "~icons/lucide/circle-alert"
-import LucideTextSearch from "~icons/lucide/text-search"
 import LucideUser from "~icons/lucide/user"
 import LucideChevronsRight from "~icons/lucide/chevrons-right"
 import LucideBadgeCheck from "~icons/lucide/badge-check"
 import LucideRectangleHorizontal from "~icons/lucide/rectangle-horizontal"
-import LucideIdCard from "~icons/lucide/id-card"
 import LucideCircleCheck from "~icons/lucide/circle-check"
 import LucideCalendar from "~icons/lucide/calendar"
 import LucideClock from "~icons/lucide/clock"
@@ -39,7 +38,6 @@ import LucideListTree from "~icons/lucide/list-tree"
 import LucideCode from "~icons/lucide/code"
 import LucideRepeat from "~icons/lucide/repeat"
 import LucideFrame from "~icons/lucide/frame"
-import LucideSidebar from "~icons/lucide/sidebar"
 import LucideImage from "~icons/lucide/image"
 import LucideList from "~icons/lucide/list"
 import LucideLink from "~icons/lucide/link"
@@ -48,6 +46,29 @@ import LucideDollarSign from "~icons/lucide/dollar-sign"
 import LucideChartLine from "~icons/lucide/chart-line"
 import LucideChartPie from "~icons/lucide/chart-pie"
 import LucideListFilter from "~icons/lucide/list-filter"
+import LucideSquareMousePointer from "~icons/lucide/square-mouse-pointer"
+import LucideTimer from "~icons/lucide/timer"
+import LucideLoaderCircle from "~icons/lucide/loader-circle"
+import LucideSlidersHorizontal from "~icons/lucide/sliders-horizontal"
+// @framework/ui component icons
+import LucideLayoutTemplate from "~icons/lucide/layout-template"
+import LucideLayoutGrid from "~icons/lucide/layout-grid"
+import LucidePhone from "~icons/lucide/phone"
+import LucideTableProperties from "~icons/lucide/table-properties"
+import LucideBell from "~icons/lucide/bell"
+import LucideBellDot from "~icons/lucide/bell-dot"
+import LucideHistory from "~icons/lucide/history"
+import LucideMail from "~icons/lucide/mail"
+import LucideMessageCircle from "~icons/lucide/message-circle"
+import LucideMailPlus from "~icons/lucide/mail-plus"
+import LucideMessageSquarePlus from "~icons/lucide/message-square-plus"
+import LucideArrowUpDown from "~icons/lucide/arrow-up-down"
+import LucideFilter from "~icons/lucide/filter"
+import LucideColumns3 from "~icons/lucide/columns-3"
+import LucideRows3 from "~icons/lucide/rows-3"
+import LucideUpload from "~icons/lucide/upload"
+import LucidePaperclip from "~icons/lucide/paperclip"
+import LucideInbox from "~icons/lucide/inbox"
 
 export const COMPONENTS: FrappeUIComponents = {
 	TextBlock: {
@@ -68,46 +89,6 @@ export const COMPONENTS: FrappeUIComponents = {
 			title: "This user is inactive",
 			description: "Please enable the user to allow login access.",
 			theme: "yellow",
-		},
-	},
-	Autocomplete: {
-		name: "Autocomplete",
-		title: "Autocomplete",
-		icon: LucideTextSearch,
-		initialState: {
-			placeholder: "Select Person",
-			options: [
-				{
-					label: "John Doe",
-					value: "john-doe",
-					image: "https://randomuser.me/api/portraits/men/59.jpg",
-				},
-				{
-					label: "Jane Doe",
-					value: "jane-doe",
-					image: "https://randomuser.me/api/portraits/women/58.jpg",
-				},
-				{
-					label: "John Smith",
-					value: "john-smith",
-					image: "https://randomuser.me/api/portraits/men/59.jpg",
-				},
-				{
-					label: "Jane Smith",
-					value: "jane-smith",
-					image: "https://randomuser.me/api/portraits/women/59.jpg",
-				},
-				{
-					label: "John Wayne",
-					value: "john-wayne",
-					image: "https://randomuser.me/api/portraits/men/57.jpg",
-				},
-				{
-					label: "Jane Wayne",
-					value: "jane-wayne",
-					image: "https://randomuser.me/api/portraits/women/51.jpg",
-				},
-			],
 		},
 	},
 	Avatar: {
@@ -158,15 +139,6 @@ export const COMPONENTS: FrappeUIComponents = {
 			variant: "solid",
 		},
 	},
-	Card: {
-		name: "Card",
-		title: "Card",
-		icon: LucideIdCard,
-		initialState: {
-			title: "John Doe",
-			subtitle: "Engineering Lead",
-		},
-	},
 	Checkbox: {
 		name: "Checkbox",
 		title: "Checkbox",
@@ -175,6 +147,27 @@ export const COMPONENTS: FrappeUIComponents = {
 			label: "Enable feature",
 			padding: true,
 			checked: true,
+		},
+	},
+	CodeEditor: {
+		name: "CodeEditor",
+		title: "Code Editor",
+		icon: LucideCode,
+		initialState: {
+			modelValue: "console.log('Hello, world!')",
+			language: "javascript",
+		},
+	},
+	ContextMenu: {
+		name: "ContextMenu",
+		title: "Context Menu",
+		icon: LucideSquareMousePointer,
+		initialState: {
+			options: [
+				{ label: "Open", icon: "lucide-folder-open", onClick: () => {} },
+				{ label: "Rename", icon: "lucide-pencil", onClick: () => {} },
+				{ label: "Delete", icon: "lucide-trash", onClick: () => {} },
+			],
 		},
 	},
 	Combobox: {
@@ -356,18 +349,16 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideAppWindowMac,
 		initialState: {
 			modelValue: false,
-			options: {
-				title: "Confirm",
-				message: "Are you sure you want to confirm this action?",
-				size: "xl",
-				actions: [
-					{
-						label: "Confirm",
-						variant: "solid",
-						onClick: () => {},
-					},
-				],
-			},
+			title: "Confirm",
+			message: "Are you sure you want to confirm this action?",
+			size: "xl",
+			actions: [
+				{
+					label: "Confirm",
+					variant: "solid",
+					onClick: () => {},
+				},
+			],
 		},
 		editInFragmentMode: true,
 		proxyComponent: defineAsyncComponent(() => import("@/components/ProxyComponents/ProxyDialog.vue")),
@@ -386,20 +377,29 @@ export const COMPONENTS: FrappeUIComponents = {
 				{
 					label: "Edit Title",
 					onClick: () => {},
-					icon: "edit-2",
+					icon: "lucide-edit-2",
 				},
 				{
 					label: "Manage Members",
 					onClick: () => {},
-					icon: "users",
+					icon: "lucide-users",
 				},
 				{
 					label: "Delete this project",
 					onClick: () => {},
-					icon: "trash",
+					icon: "lucide-trash",
 				},
 			],
 			button: { label: "Actions" },
+		},
+	},
+	Duration: {
+		name: "Duration",
+		title: "Duration",
+		icon: LucideTimer,
+		initialState: {
+			modelValue: 5445,
+			format: "short",
 		},
 	},
 	ErrorMessage: {
@@ -426,17 +426,6 @@ export const COMPONENTS: FrappeUIComponents = {
 		initialState: {
 			label: "Upload File",
 			fileTypes: "['image/*']",
-		},
-	},
-	Filter: {
-		name: "Filter",
-		title: "Filter",
-		icon: LucideListFilter,
-		initialState: {
-			doctype: "User",
-			filters: {
-				enabled: 1,
-			},
 		},
 	},
 	FormControl: {
@@ -511,17 +500,6 @@ export const COMPONENTS: FrappeUIComponents = {
 				},
 			],
 			rowKey: "id",
-		},
-	},
-	Link: {
-		name: "Link",
-		title: "Link",
-		icon: LucideLink,
-		initialState: {
-			doctype: "User",
-			filters: {
-				enabled: 1,
-			},
 		},
 	},
 	MultiSelect: {
@@ -603,43 +581,24 @@ export const COMPONENTS: FrappeUIComponents = {
 			],
 		},
 	},
-	Sidebar: {
-		name: "Sidebar",
-		title: "Sidebar",
-		icon: LucideSidebar,
+	Slider: {
+		name: "Slider",
+		title: "Slider",
+		icon: LucideSlidersHorizontal,
 		initialState: {
-			header: {
-				title: "Frappe",
-				subtitle: "Jane Doe",
-				menuItems: [
-					{
-						label: "Help",
-						to: "/help",
-						icon: "{{ getIcon('circle-question-mark') }}",
-						onClick: () => alert("Help clicked!"),
-					},
-					{
-						label: "Logout",
-						to: "/log-out",
-						icon: "{{ getIcon('log-out') }}",
-						onClick: () => alert("Logging out..."),
-					},
-				],
-			},
-			sections: [
-				{
-					label: "",
-					items: [{ label: "Notifications", icon: "{{ getIcon('bell') }}", to: "" }],
-				},
-				{
-					label: "",
-					items: [
-						{ label: "Home", icon: "{{ getIcon('house') }}", to: "" },
-						{ label: "Profile", icon: "{{ getIcon('user-pen') }}", to: "" },
-						{ label: "Settings", icon: "{{ getIcon('settings') }}", to: "" },
-					],
-				},
-			],
+			modelValue: [40],
+			min: 0,
+			max: 100,
+			step: 1,
+		},
+	},
+	Spinner: {
+		name: "Spinner",
+		title: "Spinner",
+		icon: LucideLoaderCircle,
+		initialState: {
+			size: "md",
+			theme: "gray",
 		},
 	},
 	Switch: {
@@ -667,7 +626,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Tab Buttons",
 		icon: LucideArrowRightLeft,
 		initialState: {
-			buttons: [
+			options: [
 				{
 					label: "My Tasks",
 					value: "mytasks",
@@ -956,6 +915,250 @@ export const COMPONENTS: FrappeUIComponents = {
 			},
 		},
 	},
+	// @framework/ui components
+	Link: {
+		name: "Link",
+		title: "Link",
+		icon: LucideLink,
+		initialState: {
+			doctype: "User",
+			filters: {
+				enabled: 1,
+			},
+		},
+	},
+	Filter: {
+		name: "Filter",
+		title: "Filter",
+		icon: LucideListFilter,
+		initialState: {
+			doctype: "User",
+		},
+	},
+	FormLayout: {
+		name: "FormLayout",
+		title: "Form Layout",
+		icon: LucideLayoutTemplate,
+		initialState: {
+			layout: [
+				{
+					label: "Details",
+					sections: [
+						{
+							columns: [
+								{
+									fields: [
+										{ fieldname: "first_name", fieldtype: "Data", label: "First Name" },
+										{ fieldname: "email", fieldtype: "Data", label: "Email" },
+									],
+								},
+							],
+						},
+					],
+				},
+			],
+			doc: {},
+		},
+	},
+	Grid: {
+		name: "Grid",
+		title: "Grid",
+		icon: LucideLayoutGrid,
+		initialState: {
+			label: "Items",
+			columns: [
+				{ fieldname: "item", label: "Item" },
+				{ fieldname: "qty", label: "Qty", align: "right" },
+			],
+			modelValue: [
+				{ item: "Apple", qty: 2 },
+				{ item: "Orange", qty: 5 },
+			],
+		},
+	},
+	Phone: {
+		name: "Phone",
+		title: "Phone",
+		icon: LucidePhone,
+		initialState: {
+			label: "Phone",
+			placeholder: "Enter phone number",
+		},
+	},
+	TableMultiSelect: {
+		name: "TableMultiSelect",
+		title: "Table Multi Select",
+		icon: LucideTableProperties,
+		initialState: {
+			doctype: "User",
+			label: "Users",
+			placeholder: "Select users",
+		},
+	},
+	SortBy: {
+		name: "SortBy",
+		title: "Sort By",
+		icon: LucideArrowUpDown,
+		initialState: {
+			doctype: "User",
+		},
+	},
+	QuickFilter: {
+		name: "QuickFilter",
+		title: "Quick Filter",
+		icon: LucideFilter,
+		initialState: {
+			doctype: "User",
+		},
+	},
+	ColumnSettings: {
+		name: "ColumnSettings",
+		title: "Column Settings",
+		icon: LucideColumns3,
+		initialState: {
+			doctype: "User",
+		},
+	},
+	ListViewShell: {
+		name: "ListViewShell",
+		title: "List View Shell",
+		icon: LucideRows3,
+		initialState: {
+			doctype: "User",
+		},
+	},
+	NotificationPanel: {
+		name: "NotificationPanel",
+		title: "Notification Panel",
+		icon: LucideBell,
+		initialState: {
+			title: "Notifications",
+			hasNextPage: false,
+			unreadCount: 1,
+			notifications: [
+				{
+					name: "1",
+					title: "Welcome to Studio",
+					description: "Your app is ready to build.",
+					read: 0,
+				},
+			],
+		},
+	},
+	NotificationItem: {
+		name: "NotificationItem",
+		title: "Notification Item",
+		icon: LucideBellDot,
+		initialState: {
+			notification: {
+				name: "1",
+				title: "Welcome to Studio",
+				description: "Your app is ready to build.",
+				read: 0,
+			},
+		},
+	},
+	ActivityTimeline: {
+		name: "ActivityTimeline",
+		title: "Activity Timeline",
+		icon: LucideHistory,
+		initialState: {
+			activities: [
+				{
+					type: "comment",
+					key: "comment:1",
+					timestamp: "2024-07-08 10:30:00",
+					author: { fullname: "Jane Doe" },
+					data: { name: "1", content: "Looks good to me!" },
+				},
+				{
+					type: "log",
+					key: "log:1",
+					timestamp: "2024-07-08 09:00:00",
+					author: { fullname: "John Doe" },
+					data: { name: "2", subtype: "created", text: "created this document" },
+				},
+			],
+		},
+	},
+	EmailItem: {
+		name: "EmailItem",
+		title: "Email Item",
+		icon: LucideMail,
+		initialState: {
+			email: {
+				type: "email",
+				key: "email:1",
+				timestamp: "2024-07-08 11:00:00",
+				author: { fullname: "Jane Doe", email: "jane@doe.com" },
+				data: {
+					name: "1",
+					subject: "Project update",
+					sender: "jane@doe.com",
+					to: "john@doe.com",
+					content: "<p>Here is the latest update.</p>",
+				},
+			},
+		},
+	},
+	CommentItem: {
+		name: "CommentItem",
+		title: "Comment Item",
+		icon: LucideMessageCircle,
+		initialState: {
+			comment: {
+				type: "comment",
+				key: "comment:1",
+				timestamp: "2024-07-08 10:30:00",
+				author: { fullname: "Jane Doe" },
+				data: { name: "1", content: "Looks good to me!" },
+			},
+		},
+	},
+	EmailComposer: {
+		name: "EmailComposer",
+		title: "Email Composer",
+		icon: LucideMailPlus,
+		initialState: {
+			placeholder: "Write your email...",
+			submitLabel: "Send",
+			headerFields: ["to", "cc", "bcc"],
+		},
+	},
+	CommentComposer: {
+		name: "CommentComposer",
+		title: "Comment Composer",
+		icon: LucideMessageSquarePlus,
+		initialState: {
+			placeholder: "This message is only visible to your team.",
+			submitLabel: "Comment",
+		},
+	},
+	FileUploadDialog: {
+		name: "FileUploadDialog",
+		title: "File Upload Dialog",
+		icon: LucideUpload,
+		initialState: {
+			open: false,
+		},
+	},
+	AttachmentsList: {
+		name: "AttachmentsList",
+		title: "Attachments List",
+		icon: LucidePaperclip,
+		initialState: {
+			modelValue: [],
+		},
+	},
+	UploadTray: {
+		name: "UploadTray",
+		title: "Upload Tray",
+		icon: LucideInbox,
+		initialState: {
+			side: "right",
+		},
+	},
+	...COMPONENT_FAMILIES,
 }
 
 const proxyComponentMap = new Map<string, any>()
@@ -966,7 +1169,38 @@ Object.values(COMPONENTS).forEach((component: FrappeUIComponent) => {
 })
 
 function isFrappeUIComponent(name: string) {
-	return FRAPPE_UI_COMPONENTS.includes(name)
+	return FRAPPE_UI_COMPONENTS.includes(name) || FRAPPE_UI_MOLECULES.includes(name)
+}
+
+function isFrameworkUIComponent(name: string) {
+	return FRAMEWORK_UI_COMPONENTS.includes(name)
+}
+
+// True when @framework/ui (apps/frappe/ui) is present in this build. Older frappe
+// versions don't ship it, so its components are hidden from the panel. Guard the
+// build-time constant with typeof so non-vite tooling (type extraction) doesn't throw.
+function isFrameworkUIAvailable() {
+	return typeof __FRAMEWORK_UI_AVAILABLE__ === "undefined" || __FRAMEWORK_UI_AVAILABLE__
+}
+
+function getComponentGroups(list: FrappeUIComponent[]) {
+	const inFrappe = (c: FrappeUIComponent) => isFrappeUIComponent(c.name)
+	const inFramework = (c: FrappeUIComponent) => isFrameworkUIComponent(c.name)
+
+	const groups = [
+		{ label: "Core", components: list.filter((c) => !inFrappe(c) && !inFramework(c)) },
+		{ label: "Frappe UI", components: list.filter(inFrappe) },
+	]
+	if (isFrameworkUIAvailable()) {
+		groups.push({ label: "Framework UI", components: list.filter(inFramework) })
+	}
+	return groups.filter((group) => group.components.length)
+}
+
+// A family's parts are the components whose `group` names this primary. The primary tile
+// drops the whole tree (via blockTemplate); each part is droppable on its own.
+function getParts(primaryName: string) {
+	return Object.values(COMPONENTS).filter((c) => c.group === primaryName)
 }
 
 function getProxyComponent(name: string) {
@@ -983,6 +1217,10 @@ export default {
 	names: Object.keys(COMPONENTS),
 	getProxyComponent,
 	isFrappeUIComponent,
+	isFrameworkUIComponent,
+	isFrameworkUIAvailable,
+	getComponentGroups,
+	getParts,
 	get,
 }
 

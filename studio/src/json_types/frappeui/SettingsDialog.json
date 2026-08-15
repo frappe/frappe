@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/SettingsDialogProps",
+  "definitions": {
+    "SettingsDialogProps": {
+      "type": "object",
+      "properties": {
+        "size": {
+          "type": "string",
+          "enum": [
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "4xl",
+            "5xl",
+            "6xl",
+            "7xl"
+          ]
+        },
+        "shortcut": {
+          "type": "boolean"
+        },
+        "unmountOnHide": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

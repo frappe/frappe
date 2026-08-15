@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "EmailComposerProps": {
+      "type": "object",
+      "properties": {
+        "placeholder": {
+          "type": "string"
+        },
+        "submitLabel": {
+          "type": "string"
+        },
+        "uploadFunction": {
+          "type": "object"
+        },
+        "headerFields": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "from",
+              "to",
+              "subject",
+              "cc",
+              "bcc"
+            ]
+          }
+        },
+        "senders": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "image": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "email"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "searchRecipients": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EmailComposerSlots": {
+      "type": "object",
+      "properties": {
+        "header": {
+          "type": "object"
+        },
+        "actions": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -19,6 +19,8 @@ export interface StudioPage {
 	blocks?: any
 	/**	Draft Blocks : JSON	*/
 	draft_blocks?: any
+	/**	Page Script : Code	*/
+	script?: string
 	/**	Title : Data	*/
 	page_title?: string
 	[key: string]: any

@@ -1,4 +1,4 @@
-import type { FunctionalComponent } from "vue"
+import type { Component, FunctionalComponent } from "vue"
 import Block from "../utils/block"
 import type { VuePropDefault } from "@/types/vue"
 import type { Completion } from "@codemirror/autocomplete"
@@ -20,10 +20,9 @@ export interface BlockOptions {
 	originalElement?: string
 	children?: Array<Block | BlockOptions>
 	baseStyles?: BlockStyleMap
-	rawStyles?: BlockStyleMap
 	mobileStyles?: BlockStyleMap
 	tabletStyles?: BlockStyleMap
-	blockName?: string
+	blockName?: string // optional user-friendly name for the block
 	parentBlock?: Block | null
 	classes?: string[]
 	parentSlotName?: string // for top-level blocks inside a slot
@@ -42,7 +41,7 @@ export type StudioMode = "select" | "container"
 export interface Slot {
 	slotId: string
 	slotName: string
-	slotContent: string | Block[]
+	slotContent: Block[]
 	parentBlockId: string
 }
 
@@ -55,15 +54,25 @@ export interface SlotConfig {
 
 export interface ContextMenuOption {
 	label: string
-	action: CallableFunction
+	action?: CallableFunction
 	condition?: () => boolean
 	disabled?: () => boolean
+	icon?: any
+	theme?: "gray" | "red"
+	// when present, the option expands into a nested (grouped) submenu on hover
+	submenu?: ContextMenuGroup[]
+}
+
+export interface ContextMenuGroup {
+	label?: string
+	options: ContextMenuOption[]
 }
 
 export type ComponentProp = {
 	type: string
 	default?: VuePropDefault
 	inputType: string
+	editor?: Component // custom prop editor
 	modelValue?: any
 	required?: boolean
 	props?: Record<string, any>
@@ -96,6 +105,10 @@ export interface FrappeUIComponent {
 	expandArrayProps?: boolean // whether to render array props optimally using ArrayInput instead of as Code
 	blockTemplate?: string // to specify a block template to be used instead of a vue component when this component is dragged into the canvas
 	isCustomVueComponent?: boolean // whether this is a dynamically registered custom Vue component
+	isGroup?: boolean // marks a family's root, a stacked tile that drops a whole working block template (e.g. List, SettingsDialog)
+	group?: string // name of the family primary this component is a part of
+	isStandalone?: boolean // false = can't mount outside its family root
+	onSelect?: (block: Block) => void // editor hook — runs when a block of this component is selected on canvas/layers
 }
 
 export interface FrappeUIComponents {
@@ -149,7 +162,7 @@ export type Filter = {
 	field: DocTypeField
 }
 
-export type LeftPanelOptions = "Pages" | "Add Component" | "Layers" | "Data" | "Code"
+export type LeftPanelOptions = "Pages" | "Add Component" | "Layers" | "Data" | "Code" | "AI Assistant"
 export type RightPanelOptions = "Properties" | "Styles" | "Events" | "Interface"
 export type leftPanelComponentTabOptions = "Standard" | "Custom"
 
@@ -158,12 +171,8 @@ export type HashString = `#${string}`
 
 export type RGBString = `rgb(${number}, ${number}, ${number})`
 
-// repeater
-export type RepeaterContext = {
-	dataItem: Record<string, any>
-	dataIndex: number
-	dataKey?: string
-}
+// scoped slots
+export type SlotScope = Record<string, any>
 
 // completions
 export type CompletionSource = {

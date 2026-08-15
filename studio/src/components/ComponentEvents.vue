@@ -1,13 +1,13 @@
 <template>
 	<div class="flex flex-col">
-		<div v-if="block" class="flex flex-col gap-3">
+		<div v-if="block && !multipleBlocksSelected" class="flex flex-col gap-3">
 			<div class="flex w-full flex-col space-y-1" v-if="!isObjectEmpty(block?.componentEvents)">
 				<div
 					v-for="(event, name) in block?.componentEvents"
 					:key="name"
-					class="group/item flex w-full cursor-pointer flex-row items-center justify-between gap-2 rounded border-[1px] border-gray-300 px-2 py-2"
+					class="group/item flex w-full cursor-pointer flex-row items-center justify-between gap-2 rounded border-[1px] border-outline-gray-2 px-2 py-2"
 				>
-					<div class="gap-1 self-center truncate text-base text-gray-700">{{ name }}</div>
+					<div class="gap-1 self-center truncate text-base text-ink-gray-6">{{ name }}</div>
 					<ItemActions :menuOptions="getEventMenu(event)" @edit="openEvent(event)" />
 				</div>
 			</div>
@@ -17,36 +17,28 @@
 			<Button class="mt-2" icon-left="plus" @click="showAddEventDialog = true">Add Event</Button>
 			<Dialog
 				v-model="showAddEventDialog"
-				:options="{
-					title: (newEvent.isEditing ? 'Edit Event' : 'Add Event') + ' - ' + block.getBlockDescription(),
-					size: '3xl',
-					actions: [
-						{
-							label: newEvent.isEditing ? 'Update' : 'Add',
-							variant: 'solid',
-							onClick: () => saveEvent(newEvent),
-						},
-					],
-				}"
-				:disableOutsideClickToClose="true"
+				:title="(newEvent.isEditing ? 'Edit Event' : 'Add Event') + ' - ' + block.getBlockDescription()"
+				size="3xl"
+				:actions="[
+					{
+						label: newEvent.isEditing ? 'Update' : 'Add',
+						variant: 'solid',
+						onClick: () => saveEvent(newEvent),
+					},
+				]"
+				:dismissible="false"
 				@after-leave="newEvent = { ...emptyEvent, fields: [], isEditing: false }"
 			>
-				<template #body-content>
+				<template #default>
 					<div class="flex flex-col gap-3">
-						<FormControl
-							type="autocomplete"
+						<Combobox
 							:options="eventOptions"
+							:allowCustomValue="true"
 							label="Event"
-							:modelValue="newEvent.event"
-							@update:modelValue="(val: SelectOption) => (newEvent.event = val.value)"
+							v-model="newEvent.event"
+							description="Type any event, optionally with modifiers — e.g. keydown.enter, click.prevent, submit.prevent.stop"
 						/>
-						<FormControl
-							type="autocomplete"
-							:options="Object.keys(actions)"
-							label="Action"
-							:modelValue="newEvent.action"
-							@update:modelValue="(val: SelectOption) => (newEvent.action = val.value as Actions)"
-						/>
+						<Combobox :options="Object.keys(actions)" label="Action" v-model="newEvent.action" />
 						<component
 							v-for="control in actionControls"
 							:key="control.component.name"
@@ -58,9 +50,9 @@
 
 						<template v-if="showSuccessFailureOptions">
 							<!-- Success Section -->
-							<div class="border-t border-gray-200 pt-4">
+							<div class="border-t border-outline-elevation-2 pt-4">
 								<div class="mb-3">
-									<h3 class="mb-2 text-sm font-medium text-gray-900">On Success</h3>
+									<h3 class="text-sm-medium mb-2 text-ink-gray-8">On Success</h3>
 									<TabButtons
 										:buttons="[
 											{ label: 'Message', value: 'message' },
@@ -97,9 +89,9 @@
 							</div>
 
 							<!-- Failure Section -->
-							<div class="border-t border-gray-200 pt-4">
+							<div class="border-t border-outline-elevation-2 pt-4">
 								<div class="mb-3">
-									<h3 class="mb-2 text-sm font-medium text-gray-900">On Failure</h3>
+									<h3 class="text-sm-medium mb-2 text-ink-gray-8">On Failure</h3>
 									<TabButtons
 										:buttons="[
 											{ label: 'Message', value: 'message' },
@@ -144,28 +136,33 @@
 			</Dialog>
 		</div>
 
-		<EmptyState v-else message="Select a block to edit events" />
+		<EmptyState
+			v-else
+			:message="
+				multipleBlocksSelected ? 'Select a single block to edit events' : 'Select a block to edit events'
+			"
+		/>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
-import { FormControl, createResource, Dialog, TabButtons } from "frappe-ui"
+import { Combobox, FormControl, createResource, Dialog, TabButtons, Button } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
 import ItemActions from "@/components/ItemActions.vue"
+import blockController from "@/utils/blockController"
 
-import { isObjectEmpty, confirm, getParamsArray, getParamsObj } from "@/utils/helpers"
+import { isObjectEmpty, confirm } from "@/utils/helpers"
 
-import type { SelectOption } from "@/types"
-import type { Actions, ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
+import type { ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
 import { Link } from "frappe-ui/frappe"
 import Grid from "@/components/Grid.vue"
 import Code from "@/components/Code.vue"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import type { DocTypeField } from "@/types"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 import type { CompletionContext } from "@codemirror/autocomplete"
 import useCodeStore from "@/stores/codeStore"
 import useComponentInstance from "@/utils/useComponentInstance"
@@ -175,17 +172,12 @@ const props = defineProps<{
 }>()
 const store = useStudioStore()
 const getEditorCompletions = useStudioCompletions(true)
-const getCompletions = useStudioCompletions()
+const multipleBlocksSelected = computed(() => blockController.multipleBlocksSelected())
 
 const showAddEventDialog = ref(false)
 const emptyEvent: ComponentEvent = {
 	event: "click",
 	action: "Run Script",
-	page: "",
-	url: "",
-	// call api
-	api_endpoint: "",
-	params: [],
 	// insert document
 	doctype: "",
 	fields: [],
@@ -266,6 +258,7 @@ const actions: ActionConfigurations = {
 			getProps: () => {
 				return {
 					label: "Script",
+					isFormInput: true,
 					language: "javascript",
 					modelValue: newEvent.value.script,
 					height: "400px",
@@ -281,48 +274,6 @@ const actions: ActionConfigurations = {
 					newEvent.value.script = val
 				},
 				save: () => saveEvent(newEvent.value),
-			},
-		},
-	],
-	"Call API": [
-		{
-			component: FormControl,
-			getProps: () => {
-				return {
-					type: "input",
-					label: "API Endpoint",
-					modelValue: newEvent.value.api_endpoint,
-					autocomplete: "off",
-				}
-			},
-			events: {
-				"update:modelValue": (val: string) => {
-					newEvent.value.api_endpoint = val
-				},
-			},
-		},
-		{
-			component: Grid,
-			getProps: () => {
-				return {
-					label: "Parameters",
-					columns: [
-						{ label: "Key", fieldname: "key", fieldtype: "Data" },
-						{
-							label: "Value",
-							fieldname: "value",
-							fieldtype: "Code",
-							completions: getCompletions,
-						},
-					],
-					rows: newEvent.value.params || [],
-					showDeleteBtn: true,
-				}
-			},
-			events: {
-				"update:rows": (val: any) => {
-					newEvent.value.params = val
-				},
 			},
 		},
 	],
@@ -354,7 +305,7 @@ const actions: ActionConfigurations = {
 							label: "Variable",
 							fieldname: "value",
 							fieldtype: "select",
-							options: store.variableOptions,
+							options: [...store.variableOptions, ...store.pageScriptBindingOptions],
 						},
 					],
 					rows: newEvent.value.fields,
@@ -368,46 +319,6 @@ const actions: ActionConfigurations = {
 			},
 		},
 	],
-	"Switch App Page": [
-		{
-			component: FormControl,
-			getProps: () => {
-				return {
-					type: "autocomplete",
-					options: Object.values(store.appPages || [])?.map((page) => {
-						return {
-							value: page.name,
-							label: page.page_title,
-						}
-					}),
-					label: "Page",
-					modelValue: newEvent.value.page,
-				}
-			},
-			events: {
-				"update:modelValue": (val: SelectOption) => {
-					newEvent.value.page = val.value
-				},
-			},
-		},
-	],
-	"Open Webpage": [
-		{
-			component: FormControl,
-			getProps: () => {
-				return {
-					type: "input",
-					label: "URL",
-					modelValue: newEvent.value.url,
-				}
-			},
-			events: {
-				"update:modelValue": (val: string) => {
-					newEvent.value.url = val
-				},
-			},
-		},
-	],
 }
 
 const actionControls = computed(() => {
@@ -415,10 +326,7 @@ const actionControls = computed(() => {
 })
 
 const showSuccessFailureOptions = computed(() => {
-	return (
-		(newEvent.value.action === "Insert a Document" && newEvent.value.doctype) ||
-		newEvent.value.action === "Call API"
-	)
+	return newEvent.value.action === "Insert a Document" && newEvent.value.doctype
 })
 
 function getFnBoilerplate(event: "success" | "error") {
@@ -448,22 +356,10 @@ function getEvent(event: ComponentEvent): ComponentEvent {
 	}
 	if (event.action === "Run Script") {
 		_event.script = event.script || ""
-	} else if (event.action === "Call API") {
-		_event.api_endpoint = event.api_endpoint
-		setEventCallbackFields(_event, event)
-		if (Array.isArray(event.params)) {
-			_event.params = getParamsObj(event.params)
-		}
 	} else if (event.action === "Insert a Document") {
 		_event.doctype = event.doctype
 		_event.fields = event.fields
 		setEventCallbackFields(_event, event)
-	} else if (event.action === "Switch App Page") {
-		if (event.page) {
-			_event.page = store.getAppPageRoute(event.page)
-		}
-	} else if (event.action === "Open Webpage") {
-		_event.url = event.url
 	}
 
 	if (event.oldEvent) {
@@ -513,7 +409,6 @@ const openEvent = (event: ComponentEvent) => {
 		...event,
 		isEditing: true,
 		oldEvent: event.event,
-		params: getParamsArray(event.params),
 	}
 	showAddEventDialog.value = true
 }
@@ -536,7 +431,7 @@ const getEventMenu = (event: ComponentEvent) => {
 	return [
 		{
 			label: "Delete",
-			icon: "trash",
+			icon: "lucide-trash",
 			theme: "red",
 			onClick: () => deleteEvent(event),
 		},

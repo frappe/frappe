@@ -1,7 +1,7 @@
 import { CSSProperties } from "vue"
 import Block from "./block"
 
-import type { StyleValue, BlockStyleMap } from "@/types"
+import type { StyleValue } from "@/types"
 import useCanvasStore from "@/stores/canvasStore"
 
 const canvasStore = useCanvasStore()
@@ -17,6 +17,12 @@ const blockController = {
 	},
 	multipleBlocksSelected: () => {
 		return canvasStore.activeCanvas?.selectedBlocks && canvasStore.activeCanvas?.selectedBlocks.length > 1
+	},
+	selectedBlocksHaveSameType: () => {
+		const blocks = blockController.getSelectedBlocks()
+		if (blocks.length <= 1) return true
+		const type = blocks[0].componentName
+		return blocks.every((block) => block.componentName === type)
 	},
 	getFirstSelectedBlock: () => {
 		return canvasStore.activeCanvas?.selectedBlocks[0] as Block
@@ -75,6 +81,17 @@ const blockController = {
 		});
 		return styleValue;
 	},
+	getRenderedStyle: (style: styleProperty) => {
+		let styleValue = "__initial__" as StyleValue;
+		canvasStore.activeCanvas?.selectedBlocks.forEach((block) => {
+			if (styleValue === "__initial__") {
+				styleValue = block.getRenderedStyle(style);
+			} else if (styleValue !== block.getRenderedStyle(style)) {
+				styleValue = "Mixed";
+			}
+		});
+		return styleValue;
+	},
 	setStyle: (style: styleProperty, value: StyleValue) => {
 		if (value === "unset") {
 			value = null
@@ -88,17 +105,9 @@ const blockController = {
 			block.setBaseStyle(style, value);
 		});
 	},
-	getRawStyles: () => {
-		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().getRawStyles()
-	},
-	setRawStyles: (rawStyles: BlockStyleMap) => {
+	removeStyle: (style: styleProperty) => {
 		canvasStore.activeCanvas?.selectedBlocks.forEach((block) => {
-			Object.keys(block.rawStyles).forEach((key) => {
-				if (!rawStyles[key]) {
-					delete block.rawStyles[key];
-				}
-			})
-			Object.assign(block.rawStyles, rawStyles)
+			block.removeStyle(style)
 		})
 	},
 	getPadding: () => {

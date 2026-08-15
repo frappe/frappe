@@ -5,6 +5,50 @@
     "SliderProps": {
       "type": "object",
       "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "stack": {
+                  "type": "string"
+                },
+                "messages": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "message",
+                "name"
+              ]
+            }
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
         "step": {
           "type": "number"
         },
@@ -13,6 +57,16 @@
         },
         "min": {
           "type": "number"
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md"
+          ]
+        },
+        "disabled": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false

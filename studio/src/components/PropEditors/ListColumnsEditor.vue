@@ -1,0 +1,129 @@
+<template>
+	<div class="flex w-full flex-col gap-2">
+		<ArrayInput
+			:modelValue="columnWidths"
+			:label="label"
+			addLabel="Add Column"
+			newItemValue="8rem"
+			@update:modelValue="setColumnWidths"
+			@add="addCells"
+			@remove="removeCells"
+			@move="moveCells"
+		/>
+
+		<!-- the tree drifted from `columns` (hand-edited header/rows) -->
+		<div v-if="mismatch.length" class="flex items-center gap-1.5 text-xs text-ink-amber-6">
+			<span class="size-[5px] flex-none rounded-full bg-surface-amber-5"></span>
+			{{ mismatch.join(" · ") }}
+		</div>
+	</div>
+</template>
+
+<script setup lang="ts">
+import { computed } from "vue"
+import ArrayInput from "@/components/ArrayInput.vue"
+import Block from "@/utils/block"
+import { listCell, listHeaderCell } from "@/utils/blockTemplate/familyTemplates"
+
+const props = defineProps<{ block: Block; label?: string }>()
+
+const HEADER_CELL_NAMES = ["ListHeaderCell", "ListHeaderCellSort"]
+
+const columnWidths = computed<string[]>(() => {
+	const value = props.block.getProp("columns")
+	return Array.isArray(value) ? value : []
+})
+
+function setColumnWidths(next: string[]) {
+	props.block.setProp("columns", next)
+}
+
+// A column lives in three places — a width entry in `columns`, a header cell, and a cell
+// in every row template — kept in step positionally so header and rows never drift.
+// ArrayInput edits the widths; `add`/`remove` mirror the operation onto the cells.
+function addCells() {
+	headerBlock.value?.addChild(listHeaderCell(`Column ${columnWidths.value.length}`), null, false)
+	rowBlocks.value.forEach((row) => row.addChild(listCell("—"), null, false))
+}
+
+function removeCells(index: number) {
+	removeCellAt(headerBlock.value, HEADER_CELL_NAMES, index)
+	rowBlocks.value.forEach((row) => removeCellAt(row, ["ListCell"], index))
+}
+
+function moveCells({ from, to }: { from: number; to: number }) {
+	moveCellAt(headerBlock.value, HEADER_CELL_NAMES, from, to)
+	rowBlocks.value.forEach((row) => moveCellAt(row, ["ListCell"], from, to))
+}
+
+const mismatch = computed(() => {
+	const expected = columnWidths.value.length
+	const problems: string[] = []
+	if (headerBlock.value) {
+		const count = cellsOf(headerBlock.value, HEADER_CELL_NAMES).length
+		if (count !== expected) problems.push(`Header has ${count} of ${expected} cells`)
+	}
+	const offRows = rowBlocks.value.filter((row) => cellsOf(row, ["ListCell"]).length !== expected)
+	if (offRows.length) {
+		problems.push(`${offRows.length} row${offRows.length === 1 ? "" : "s"} with a mismatched cell count`)
+	}
+	const invalid = columnWidths.value.filter((width) => !isValidWidth(width))
+	if (invalid.length) {
+		problems.push(
+			`Invalid width${invalid.length === 1 ? "" : "s"}: ${invalid.map((width) => `"${width}"`).join(", ")}`,
+		)
+	}
+	return problems
+})
+
+function isValidWidth(width: string) {
+	// dynamic bindings resolve at render time — nothing to validate here
+	if (typeof width !== "string" || width.includes("{{")) return true
+	return CSS.supports("grid-template-columns", width)
+}
+
+const headerBlock = computed(
+	() => props.block.children.find((child) => child.componentName === "ListHeader") || null,
+)
+
+// ListRow templates under ListRows — as direct children or slot content, including
+// rows nested inside ListGroups.
+const rowBlocks = computed(() => {
+	const rows: Block[] = []
+	const collect = (blocks: Block[]) => {
+		blocks.forEach((child) => {
+			if (child.componentName === "ListRow") rows.push(child)
+			if (child.componentName === "ListGroup") collect(child.getChildrenAndSlotContent())
+		})
+	}
+	const listRows = props.block.children.find((child) => child.componentName === "ListRows")
+	if (listRows) collect(listRows.getChildrenAndSlotContent())
+	return rows
+})
+
+function cellsOf(parent: Block, names: string[]): Block[] {
+	return parent.getChildrenAndSlotContent().filter((child) => names.includes(child.componentName))
+}
+
+function removeCellAt(parent: Block | null, names: string[], index: number) {
+	if (!parent) return
+	const cell = cellsOf(parent, names)[index]
+	if (cell) parent.removeChild(cell)
+}
+
+function moveCellAt(parent: Block | null, names: string[], from: number, to: number) {
+	if (!parent) return
+	const cell = cellsOf(parent, names)[from]
+	if (!cell) return
+	parent.removeChild(cell)
+	const remaining = cellsOf(parent, names)
+	const anchor = remaining[to]
+	const lastCell = remaining.at(-1)
+	const index = anchor
+		? parent.getChildIndex(anchor)
+		: lastCell
+			? (parent.getChildIndex(lastCell) ?? -1) + 1
+			: undefined
+	parent.addChild(cell, index, false)
+}
+</script>

@@ -1,83 +1,109 @@
 <template>
 	<div
-		class="dialog-content inline-block w-full transform overflow-hidden rounded-xl bg-surface-modal text-left align-middle shadow-xl"
-		:class="{
-			'max-w-7xl': options.size === '7xl',
-			'max-w-6xl': options.size === '6xl',
-			'max-w-5xl': options.size === '5xl',
-			'max-w-4xl': options.size === '4xl',
-			'max-w-3xl': options.size === '3xl',
-			'max-w-2xl': options.size === '2xl',
-			'max-w-xl': options.size === 'xl',
-			'max-w-lg': options.size === 'lg' || !options.size,
-			'max-w-md': options.size === 'md',
-			'max-w-sm': options.size === 'sm',
-			'max-w-xs': options.size === 'xs',
-		}"
+		class="dialog-content my-8 inline-block w-full transform overflow-hidden rounded-xl bg-surface-elevation-1 text-start align-middle shadow-xl focus-visible:outline-none"
+		:class="sizeClass"
+		:style="outOfFlowStyles"
 	>
-		<slot name="body">
-			<slot name="body-main">
-				<div class="bg-surface-modal px-4 pb-6 pt-5 sm:px-6">
-					<div class="flex">
-						<div class="w-full flex-1">
-							<slot name="body-header">
-								<div class="mb-6 flex items-center justify-between">
-									<div class="flex items-center space-x-2">
-										<div
-											v-if="icon"
-											class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full"
-											:class="dialogIconBgClasses"
-										>
-											<FeatherIcon
-												:name="icon.name"
-												class="h-4 w-4"
-												:class="dialogIconClasses"
-												aria-hidden="true"
-											/>
-										</div>
-										<header>
-											<slot name="body-title">
-												<h3 class="text-2xl font-semibold leading-6 text-ink-gray-9">
-													{{ options.title || "Untitled" }}
-												</h3>
-											</slot>
-										</header>
-									</div>
-									<Button variant="ghost" @click="close">
-										<template #icon>
-											<LucideX class="h-4 w-4 text-ink-gray-9" />
-										</template>
-									</Button>
+		<!-- bare: no chrome, render default slot directly -->
+		<slot v-if="resolved.bare" :close="close" />
+
+		<!-- legacy `#body` slot: full layout override (deprecated) -->
+		<slot v-else-if="$slots.body" name="body" />
+
+		<template v-else>
+			<!-- legacy `#body-main`: full middle override (deprecated) -->
+			<slot v-if="$slots['body-main']" name="body-main" />
+			<div v-else class="bg-surface-elevation-1 px-4 pb-6 pt-5 sm:px-6">
+				<div class="flex">
+					<div class="w-full flex-1">
+						<!-- legacy `#body-header` -->
+						<slot v-if="$slots['body-header']" name="body-header" />
+						<div v-else-if="showHeader" class="mb-6 flex items-center justify-between">
+							<div class="flex flex-1 items-center space-x-2">
+								<div
+									v-if="resolvedIcon"
+									class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full"
+									:class="dialogIconBgClasses"
+								>
+									<span
+										v-if="isLucide(resolvedIcon.name)"
+										:class="[resolvedIcon.name, 'size-4', dialogIconClasses]"
+										aria-hidden="true"
+									/>
+									<FeatherIcon
+										v-else
+										:name="resolvedIcon.name"
+										class="h-4 w-4"
+										:class="dialogIconClasses"
+										aria-hidden="true"
+									/>
+								</div>
+								<header class="flex-1">
+									<slot name="title" :close="close">
+										<slot name="body-title">
+											<h3 v-if="resolved.title" class="text-2xl-semibold leading-6 text-ink-gray-8">
+												{{ resolved.title }}
+											</h3>
+										</slot>
+									</slot>
+								</header>
+							</div>
+							<div v-if="resolved.showCloseButton">
+								<Button variant="ghost" label="Close" @click="close">
+									<template #icon>
+										<span class="lucide-x size-4 text-ink-gray-9" />
+									</template>
+								</Button>
+							</div>
+						</div>
+
+						<slot name="body-content">
+							<slot :close="close">
+								<div v-if="resolved.message">
+									<p class="text-p-base text-ink-gray-7">
+										{{ resolved.message }}
+									</p>
 								</div>
 							</slot>
-
-							<slot name="body-content">
-								<p class="text-p-base text-ink-gray-7" v-if="options.message">
-									{{ options.message }}
-								</p>
-							</slot>
-						</div>
+						</slot>
 					</div>
 				</div>
-			</slot>
-			<div class="px-4 pb-7 pt-4 sm:px-6" v-if="actions.length || $slots.actions">
-				<slot name="actions" v-bind="{ close }">
-					<div class="space-y-2">
-						<Button class="w-full" v-for="action in actions" :key="action.label" v-bind="action">
+			</div>
+
+			<div v-if="reactiveActions.length || $slots.actions" class="px-4 pb-7 pt-4 sm:px-6">
+				<slot name="actions" v-bind="{ close, actions: reactiveActions }">
+					<div :class="isSingleActionFullWidth ? '' : 'flex justify-end gap-2'">
+						<Button
+							v-for="action in reactiveActions"
+							:key="action.label"
+							:class="isSingleActionFullWidth ? 'w-full' : ''"
+							:disabled="action.disabled"
+							v-bind="action"
+						>
 							{{ action.label }}
 						</Button>
 					</div>
 				</slot>
 			</div>
-		</slot>
+		</template>
+
+		<!-- close button when auto-header is suppressed -->
+		<div
+			v-if="
+				resolved.showCloseButton && !showHeader && !resolved.bare && !$slots['body'] && !$slots['body-header']
+			"
+		>
+			<Button class="absolute right-4 top-4 z-10" variant="ghost" label="Close" @click="close">
+				<template #icon>
+					<span class="lucide-x size-4 text-ink-gray-9" />
+				</template>
+			</Button>
+		</div>
 	</div>
 </template>
-
 <script setup lang="ts">
-import { computed, reactive, type Component } from "vue"
-import { type RouteLocation } from "vue-router"
+import { computed, reactive, ref, useSlots, watchEffect } from "vue"
 import { Button, FeatherIcon } from "frappe-ui"
-import LucideX from "~icons/lucide/x"
 
 type Theme = "gray" | "blue" | "green" | "red"
 type Size = "sm" | "md" | "lg" | "xl" | "2xl"
@@ -88,30 +114,23 @@ interface ButtonProps {
 	size?: Size
 	variant?: Variant
 	label?: string
-	icon?: string | Component
-	iconLeft?: string | Component
-	iconRight?: string | Component
+	icon?: any
+	iconLeft?: any
+	iconRight?: any
 	loading?: boolean
 	loadingText?: string
 	disabled?: boolean
-	route?: RouteLocation
+	route?: any
 	link?: string
 }
 
+type DialogIconAppearance = "warning" | "info" | "danger" | "success"
+type DialogTheme = "blue" | "green" | "red" | "yellow"
+
 type DialogIcon = {
 	name: string
-	appearance?: "warning" | "info" | "danger" | "success"
-}
-
-type DialogOptions = {
-	title?: string
-	message?: string
-	// default size = 'lg'
-	size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "6xl" | "7xl"
-	icon?: DialogIcon | string
-	actions?: Array<DialogAction>
-	// default position = 'center'
-	position?: "top" | "center"
+	appearance?: DialogIconAppearance
+	theme?: DialogTheme
 }
 
 type DialogActionContext = {
@@ -121,34 +140,189 @@ type DialogAction = ButtonProps & {
 	onClick?: (context: DialogActionContext) => void | Promise<void>
 }
 
-interface DialogProps {
-	modelValue: boolean
-	options?: DialogOptions
-	disableOutsideClickToClose?: boolean
+type DialogOptions = {
+	title?: string
+	message?: string
+	size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "6xl" | "7xl"
+	icon?: DialogIcon | string
+	actions?: Array<DialogAction>
+	position?: "top" | "center"
+	paddingTop?: string
 }
 
-// Type for dialog action with reactive loading state
-type ReactiveDialogAction = DialogAction & {
+type DialogReactiveAction = DialogAction & {
 	loading: boolean
 }
 
+interface DialogProps {
+	open?: boolean
+	modelValue?: boolean
+	options?: DialogOptions
+	title?: string
+	message?: string
+	icon?: DialogIcon | string
+	size?: string
+	position?: string
+	paddingTop?: string
+	actions?: Array<DialogAction>
+	disableOutsideClickToClose?: boolean
+	dismissible?: boolean
+	showCloseButton?: boolean
+	bare?: boolean
+}
+
 const props = withDefaults(defineProps<DialogProps>(), {
-	options: () => ({}),
-	disableOutsideClickToClose: false,
+	open: undefined,
+	modelValue: undefined,
+	disableOutsideClickToClose: undefined,
+	size: undefined,
+	position: undefined,
+	dismissible: true,
+	showCloseButton: true,
+	bare: false,
 })
 
 const emit = defineEmits<{
+	(event: "update:open", value: boolean): void
 	(event: "update:modelValue", value: boolean): void
 	(event: "close"): void
 	(event: "after-leave"): void
 }>()
 
-const actions = computed((): ReactiveDialogAction[] => {
-	let actions = props.options.actions
-	if (!actions?.length) return []
+const allSlots = useSlots()
 
-	return actions.map((action) => {
-		let _action = reactive({
+const resolved = computed(() => {
+	const o = props.options || ({} as DialogOptions)
+	return {
+		title: props.title ?? o.title,
+		message: props.message ?? o.message,
+		icon: props.icon ?? o.icon,
+		size: props.size ?? o.size ?? "lg",
+		position: props.position ?? o.position ?? "center",
+		paddingTop: props.paddingTop ?? o.paddingTop,
+		actions: props.actions ?? o.actions ?? [],
+		showCloseButton: props.showCloseButton,
+		bare: props.bare,
+	}
+})
+
+const isDismissible = computed(() => {
+	if (props.disableOutsideClickToClose) return false
+	return props.dismissible !== false
+})
+
+// Mimics teleport-to-body centering against the canvas instead of the viewport
+const outOfFlowStyles = {
+	position: "absolute",
+	left: "1.5rem",
+	right: "1.5rem",
+	top: "50%",
+	width: "auto",
+	margin: "0 auto",
+	transform: "translateY(-50%)",
+} as const
+
+const sizeClass = computed(() => {
+	const size = resolved.value.size
+	const map: Record<string, string> = {
+		xs: "max-w-xs",
+		sm: "max-w-sm",
+		md: "max-w-md",
+		lg: "max-w-lg",
+		xl: "max-w-xl",
+		"2xl": "max-w-2xl",
+		"3xl": "max-w-3xl",
+		"4xl": "max-w-4xl",
+		"5xl": "max-w-5xl",
+		"6xl": "max-w-6xl",
+		"7xl": "max-w-7xl",
+	}
+	return map[size] || "max-w-lg"
+})
+
+const isOpen = computed({
+	get() {
+		if (props.open !== undefined) return !!props.open
+		return !!props.modelValue
+	},
+	set(val: boolean) {
+		emit("update:open", val)
+		emit("update:modelValue", val)
+		if (!val) emit("close")
+	},
+})
+
+function close() {
+	isOpen.value = false
+}
+
+const resolvedIcon = computed<DialogIcon | null>(() => {
+	const raw = resolved.value.icon
+	if (!raw) return null
+	if (typeof raw === "string") return { name: raw }
+	return raw
+})
+
+const iconTheme = computed<DialogTheme | null>(() => {
+	const icon = resolvedIcon.value
+	if (!icon) return null
+	if (icon.theme) return icon.theme
+	const map: Record<DialogIconAppearance, DialogTheme> = {
+		warning: "yellow",
+		info: "blue",
+		danger: "red",
+		success: "green",
+	}
+	return icon.appearance ? map[icon.appearance] : null
+})
+
+const dialogIconBgClasses = computed(() => {
+	const theme = iconTheme.value
+	if (!theme) return "bg-surface-gray-2"
+	const map: Record<DialogTheme, string> = {
+		yellow: "bg-surface-amber-2",
+		blue: "bg-surface-blue-2",
+		red: "bg-surface-red-2",
+		green: "bg-surface-green-2",
+	}
+	return map[theme]
+})
+
+const dialogIconClasses = computed(() => {
+	const theme = iconTheme.value
+	if (!theme) return "text-ink-gray-5"
+	const map: Record<DialogTheme, string> = {
+		yellow: "text-ink-amber-6",
+		blue: "text-ink-blue-6",
+		red: "text-ink-red-8",
+		green: "text-ink-green-6",
+	}
+	return map[theme]
+})
+
+const dialogPositionClasses = computed(() => {
+	if (resolved.value.paddingTop) return ""
+	const position = resolved.value.position
+	const map: Record<string, string> = {
+		center: "justify-center",
+		top: "pt-[20vh]",
+	}
+	return map[position] || "justify-center"
+})
+
+const dialogPositionStyles = computed(() => {
+	if (resolved.value.paddingTop) {
+		return { paddingTop: resolved.value.paddingTop }
+	}
+	return {}
+})
+
+const reactiveActions = computed((): DialogReactiveAction[] => {
+	if (resolved.value.bare) return []
+	const list = resolved.value.actions
+	if (!list?.length) return []
+	return list.map((action) => {
+		const _action = reactive({
 			...action,
 			loading: false,
 			onClick: !action.onClick
@@ -156,20 +330,12 @@ const actions = computed((): ReactiveDialogAction[] => {
 				: async () => {
 						_action.loading = true
 						try {
-							if (action.onClick) {
-								// deprecated: uncomment this when we remove the backwards compatibility
-								// let context: DialogActionContext = { close }
-								type BackwardsCompatibleDialogActionContext = (() => void) & DialogActionContext
-
-								let backwardsCompatibleContext = (() => {
-									console.warn(
-										"Value passed to onClick is a context object. Please use context.close() instead of context() to close the dialog.",
-									)
-									close()
-								}) as BackwardsCompatibleDialogActionContext
-								backwardsCompatibleContext.close = close
-								await action.onClick(backwardsCompatibleContext)
-							}
+							type LegacyContext = (() => void) & DialogActionContext
+							const ctx = (() => {
+								close()
+							}) as LegacyContext
+							ctx.close = close
+							await action.onClick!(ctx)
 						} finally {
 							_action.loading = false
 						}
@@ -179,66 +345,21 @@ const actions = computed((): ReactiveDialogAction[] => {
 	})
 })
 
-const isOpen = computed({
-	get() {
-		return props.modelValue
-	},
-	set(val: boolean) {
-		emit("update:modelValue", val)
-		if (!val) {
-			emit("close")
-		}
-	},
+const isSingleActionFullWidth = computed(() => {
+	const smallSizes = ["xs", "sm", "md"]
+	return reactiveActions.value.length === 1 && smallSizes.includes(resolved.value.size as string)
 })
 
-function handleOpenChange(open: boolean) {
-	isOpen.value = open
+const showHeader = computed(() => {
+	if (resolved.value.bare) return false
+	if (allSlots.title || allSlots["body-title"]) return true
+	if (resolved.value.title) return true
+	return false
+})
+
+function isLucide(name: string | undefined) {
+	return name && name.startsWith("lucide-")
 }
 
-function close() {
-	isOpen.value = false
-}
-
-const icon = computed(() => {
-	if (!props.options?.icon) return null
-
-	let icon = props.options.icon
-	if (typeof icon === "string") {
-		icon = { name: icon }
-	}
-	return icon as DialogIcon
-})
-
-const dialogPositionClasses = computed(() => {
-	const position = props.options?.position || "center"
-	const classMap: Record<string, string> = {
-		center: "justify-center",
-		top: "pt-[20vh]",
-	}
-	return classMap[position]
-})
-
-const dialogIconBgClasses = computed(() => {
-	const appearance = icon.value?.appearance
-	if (!appearance) return "bg-surface-gray-2"
-	const classMap: Record<string, string> = {
-		warning: "bg-surface-amber-2",
-		info: "bg-surface-blue-2",
-		danger: "bg-surface-red-2",
-		success: "bg-surface-green-2",
-	}
-	return classMap[appearance]
-})
-
-const dialogIconClasses = computed(() => {
-	const appearance = icon.value?.appearance
-	if (!appearance) return "text-ink-gray-5"
-	const classMap: Record<string, string> = {
-		warning: "text-ink-amber-3",
-		info: "text-ink-blue-3",
-		danger: "text-ink-red-4",
-		success: "text-ink-green-3",
-	}
-	return classMap[appearance]
-})
+defineExpose({ close })
 </script>

@@ -28,7 +28,7 @@
 					<Button
 						@click="togglePopover"
 						variant="outline"
-						icon="filter"
+						icon="lucide-filter"
 						label="Filters"
 						:class="[
 							'flex items-center gap-2 text-sm',
@@ -37,7 +37,7 @@
 					>
 						<span
 							v-if="selectedFiltersCount > 0"
-							class="bg-ink-gray-7 ml-1 rounded-full px-2 py-0.5 text-xs text-white"
+							class="bg-ink-gray-7 ml-1 rounded-full px-2 py-0.5 text-xs text-ink-base"
 						>
 							{{ selectedFiltersCount }}
 						</span>
@@ -45,8 +45,8 @@
 					</Button>
 				</template>
 				<template #body>
-					<div class="w-48 rounded-lg bg-surface-white py-2 shadow-lg ring-1 ring-black ring-opacity-5">
-						<div class="px-3 py-2 text-xs font-medium text-ink-gray-5">Filter search results by:</div>
+					<div class="w-48 rounded-lg bg-surface-base py-2 shadow-lg ring-1 ring-black ring-opacity-5">
+						<div class="text-xs-medium px-3 py-2 text-ink-gray-5">Filter search results by:</div>
 						<div class="space-y-1 px-2">
 							<label
 								v-for="filter in filters"
@@ -115,7 +115,7 @@
 				<div class="mb-4 flex size-16 items-center justify-center rounded-full bg-surface-gray-2">
 					<FeatherIcon name="search" class="size-8 text-ink-gray-4" />
 				</div>
-				<h3 class="mb-2 text-sm font-medium text-ink-gray-6">Search your blocks</h3>
+				<h3 class="text-sm-medium mb-2 text-ink-gray-6">Search your blocks</h3>
 			</div>
 		</div>
 
@@ -150,7 +150,7 @@
 			<!-- No Results State -->
 			<div class="flex flex-col items-center justify-center py-6">
 				<FeatherIcon name="search" class="mb-3 size-6 text-ink-gray-4" />
-				<h3 class="mb-1 text-sm font-medium text-ink-gray-6">No results found</h3>
+				<h3 class="text-sm-medium mb-1 text-ink-gray-6">No results found</h3>
 				<p class="text-xs text-ink-gray-5">Try different keywords or adjust your filters</p>
 			</div>
 		</div>
@@ -162,7 +162,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import { watchDebounced } from "@vueuse/core"
 import { FeatherIcon, Popover, Input, Button } from "frappe-ui"
 import { computed, nextTick, onMounted, Ref, ref } from "vue"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 import OptionToggle from "@/components/OptionToggle.vue"
 import { jsToJson } from "@/utils/serializer"
 
@@ -435,9 +435,7 @@ const searchWithFilters = (searchTerm: string): Block[] => {
 
 		if (block.componentSlots) {
 			Object.values(block.componentSlots).forEach((slot) => {
-				if (Array.isArray(slot.slotContent)) {
-					slot.slotContent.forEach((child) => searchInBlock(child))
-				}
+				slot.slotContent.forEach((child) => searchInBlock(child))
 			})
 		}
 	}

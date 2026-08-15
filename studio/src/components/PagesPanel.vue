@@ -1,21 +1,21 @@
 <template>
-	<div class="flex h-full flex-col">
-		<div class="flex flex-col space-y-1">
+	<div class="flex h-full flex-col overflow-hidden">
+		<div class="flex flex-col space-y-1 overflow-y-auto hide-scrollbar">
 			<div class="w-full" v-for="page in store.appPages" :key="page.name">
 				<div
 					@click="openPage(page)"
 					class="group flex cursor-pointer items-center gap-2 truncate rounded px-2 py-2 transition duration-300 ease-in-out"
-					:class="[isPageActive(page) ? 'border-[1px] border-gray-300' : 'hover:bg-gray-50']"
+					:class="[isPageActive(page) ? 'border-[1px] border-outline-gray-2' : 'hover:bg-surface-gray-1']"
 				>
 					<Tooltip :text="page.published ? 'Published' : 'Draft'" placement="top">
 						<div
 							class="h-2 w-2 flex-shrink-0 rounded-full"
-							:class="page.published ? 'bg-green-500' : 'bg-gray-400'"
+							:class="page.published ? 'bg-surface-green-6' : 'bg-surface-gray-5'"
 						></div>
 					</Tooltip>
 					<div
 						class="flex items-center gap-1 truncate text-base"
-						:class="[isPageActive(page) ? 'font-medium text-gray-700' : 'text-gray-500']"
+						:class="[isPageActive(page) ? 'font-medium text-ink-gray-6' : 'text-ink-gray-4']"
 					>
 						{{ page.page_title }} -
 						<span class="text-xs">{{ page.route }}</span>
@@ -26,12 +26,12 @@
 
 					<!-- Menu -->
 					<div
-						class="invisible ml-auto flex items-center gap-1.5 text-gray-600 group-hover:visible has-[.active-item]:visible"
+						class="invisible ml-auto flex items-center gap-1.5 text-ink-gray-5 group-hover:visible has-[.active-item]:visible"
 					>
 						<Dropdown :options="getPageMenu(page)" trigger="click">
 							<template v-slot="{ open }">
 								<button
-									class="flex cursor-pointer items-center rounded-sm p-0.5 text-gray-700 hover:bg-gray-300"
+									class="flex cursor-pointer items-center rounded-sm p-0.5 text-ink-gray-6 hover:bg-surface-gray-4"
 									:class="open ? 'active-item' : ''"
 								>
 									<FeatherIcon name="more-horizontal" class="h-4 w-4" />
@@ -43,12 +43,14 @@
 			</div>
 		</div>
 
-		<router-link
-			v-if="store.activeApp"
-			:to="{ name: 'StudioPage', params: { appID: store.activeApp?.name, pageID: 'new' } }"
-		>
-			<Button icon-left="plus" class="mt-5 w-full">New Page</Button>
-		</router-link>
+		<div class="mt-4 flex-shrink-0">
+			<router-link
+				v-if="store.activeApp"
+				:to="{ name: 'StudioPage', params: { appID: store.activeApp?.name, pageID: 'new' } }"
+			>
+				<Button icon-left="plus" class="w-full">New Page</Button>
+			</router-link>
+		</div>
 	</div>
 </template>
 
@@ -57,7 +59,7 @@ import useStudioStore from "@/stores/studioStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { isObjectEmpty } from "@/utils/helpers"
 import { useRouter } from "vue-router"
-import { Dropdown, Button, Badge, Tooltip } from "frappe-ui"
+import { Dropdown, Button, Badge, Tooltip, FeatherIcon } from "frappe-ui"
 
 const store = useStudioStore()
 const router = useRouter()
@@ -73,7 +75,7 @@ const getPageMenu = (page: StudioPage) => {
 	return [
 		{
 			label: "Set as App Home",
-			icon: "home",
+			icon: "lucide-home",
 			condition: () => !isAppHome(page),
 			onClick: () => {
 				store.updateActiveApp("app_home", page.name)
@@ -81,12 +83,12 @@ const getPageMenu = (page: StudioPage) => {
 		},
 		{
 			label: "Duplicate",
-			icon: "copy",
+			icon: "lucide-copy",
 			onClick: () => store.duplicateAppPage(app.name, page),
 		},
 		{
 			label: "Delete",
-			icon: "trash",
+			icon: "lucide-trash",
 			theme: "red",
 			condition: () => !isAppHome(page),
 			onClick: async () => {

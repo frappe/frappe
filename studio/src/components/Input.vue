@@ -6,6 +6,7 @@
 			:modelValue="data"
 			@update:modelValue="(value: string) => (data = value as typeof data)"
 			v-bind="attrs"
+			class="w-full"
 		/>
 		<FormControl
 			v-else

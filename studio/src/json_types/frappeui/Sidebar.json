@@ -25,7 +25,7 @@
                   },
                   "icon": {},
                   "onClick": {
-                    "$comment": "() => void"
+                    "type": "object"
                   }
                 },
                 "required": [
@@ -78,7 +78,7 @@
                       "type": "boolean"
                     },
                     "onClick": {
-                      "$comment": "() => void"
+                      "type": "object"
                     }
                   },
                   "required": [

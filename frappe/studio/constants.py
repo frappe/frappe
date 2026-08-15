@@ -6,12 +6,10 @@ DEFAULT_COMPONENTS = ["FeatherIcon"]
 STANDARD_COMPONENT_NAMES = {
 	# frappe-ui
 	"Alert",
-	"Autocomplete",
 	"Avatar",
 	"Badge",
 	"Button",
 	"Breadcrumbs",
-	"Card",
 	"Checkbox",
 	"Calendar",
 	"Combobox",

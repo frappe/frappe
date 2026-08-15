@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/DurationProps",
+  "definitions": {
+    "DurationProps": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "stack": {
+                  "type": "string"
+                },
+                "messages": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "message",
+                "name"
+              ]
+            }
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
+        "modelValue": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "short",
+                "long",
+                "colon"
+              ]
+            }
+          ]
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg",
+            "xl"
+          ]
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "subtle",
+            "outline",
+            "ghost"
+          ]
+        },
+        "disabled": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

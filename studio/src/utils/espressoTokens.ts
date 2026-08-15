@@ -1,9 +1,39 @@
-import resolveConfig from "tailwindcss/resolveConfig"
-import tailwindConfig from "../../tailwind.config.js"
+import defaultTheme from "tailwindcss/defaultTheme"
 import { computed } from "vue"
 import { objToArray } from "@/utils/helpers.js"
+import {
+	borderRadius,
+	boxShadow,
+	fontSize,
+	generateCSSVariables,
+	generateSemanticColors,
+} from "frappe-ui/tailwind/tokens.js"
 
-const designTokens = resolveConfig(tailwindConfig).theme
+// frappe-ui exposes semantic colors as { category: { name: cssValue } }. Use the names and reference the CSS variable its plugin defines on :root. The
+// resolved light value is baked in as a fallback (var(--surface-base, #ffffff)),
+// exactly like frappe-ui's own utilities, so the color still renders in contexts that don't load frappe-ui's stylesheet (e.g. exported markup).
+const semanticColors = generateSemanticColors()
+const lightVars: Record<string, string> = generateCSSVariables()[":root"]
+
+const toColorOptions = (category: "surface" | "outline" | "ink") =>
+	Object.keys(semanticColors[category]).map((name) => {
+		const variable = `--${category}-${name}`
+		const fallback = lightVars[variable]
+		return {
+			label: name,
+			value: fallback ? `var(${variable}, ${fallback})` : `var(${variable})`,
+		}
+	})
+
+const designTokens = {
+	boxShadow: boxShadow,
+	borderRadius: borderRadius,
+	fontSize: fontSize,
+	fontWeight: defaultTheme.fontWeight,
+	lineHeight: defaultTheme.lineHeight,
+	letterSpacing: defaultTheme.letterSpacing,
+}
+
 const tokens = computed(() => {
 	const fontSizes = Object.keys(designTokens?.fontSize || {}).map((key) => {
 		if (!key) return
@@ -14,9 +44,9 @@ const tokens = computed(() => {
 	})
 
 	return {
-		backgroundColor: objToArray(designTokens?.backgroundColor?.surface as Record<string, string> | undefined),
-		borderColor: objToArray(designTokens?.borderColor?.outline as Record<string, string> | undefined),
-		textColor: objToArray(designTokens?.textColor?.ink as Record<string, string> | undefined),
+		backgroundColor: toColorOptions("surface"),
+		borderColor: toColorOptions("outline"),
+		textColor: toColorOptions("ink"),
 		boxShadow: objToArray(designTokens?.boxShadow),
 		borderRadius: objToArray(designTokens?.borderRadius),
 		fontSize: fontSizes,

@@ -1,10 +1,10 @@
 <template>
-	<div class="studio isolate h-screen flex-col overflow-hidden bg-gray-100">
+	<div class="studio isolate h-screen flex-col overflow-hidden bg-surface-gray-2">
 		<ComponentContextMenu ref="componentContextMenu"></ComponentContextMenu>
 		<StudioToolbar class="relative z-30" />
 		<div class="flex flex-col">
 			<StudioLeftPanel
-				class="absolute bottom-0 left-0 top-[var(--toolbar-height)] z-20 overflow-auto bg-white"
+				class="absolute bottom-0 left-0 top-[var(--toolbar-height)] z-20 overflow-auto bg-surface-base"
 			/>
 
 			<StudioCanvas
@@ -19,6 +19,8 @@
 					padding: '40px',
 					display: 'flex',
 					justifyContent: 'center',
+					// overlay proxies render out of flow (float), so they don't give the canvas any height
+					minHeight: canvasStore.primaryOverlayId ? '900px' : null,
 				}"
 				:style="{
 					left: `${store.studioLayout.showLeftPanel ? store.studioLayout.leftPanelWidth : 0}px`,
@@ -28,34 +30,56 @@
 			>
 				<template v-slot:header>
 					<div
-						class="absolute left-0 right-0 top-0 z-20 flex items-center justify-between bg-white p-[0.4rem] text-sm text-ink-gray-8 shadow-sm"
+						class="absolute left-0 right-0 top-0 z-20 flex items-center justify-between border-b border-outline-gray-2 bg-surface-base p-[0.4rem] text-sm text-ink-gray-8"
 					>
 						<div class="flex items-center gap-1 pl-2 text-xs">
-							<a @click="canvasStore.exitFragmentMode" class="cursor-pointer">
+							<a @click="canvasStore.exitAllFragments" class="cursor-pointer">
 								{{ store.activePage?.page_title }}
 							</a>
-							<FeatherIcon name="chevron-right" class="h-3 w-3" />
-							<span class="flex items-center gap-2">
-								{{ canvasStore.fragmentData.fragmentName }}
-							</span>
+							<template v-for="(fragment, index) in canvasStore.fragmentStack" :key="fragment.fragmentId">
+								<FeatherIcon name="chevron-right" class="h-3 w-3" />
+								<a
+									v-if="index < canvasStore.fragmentStack.length - 1"
+									class="flex cursor-pointer items-center gap-1.5"
+									@click="canvasStore.popToFragment(index)"
+								>
+									{{ fragment.fragmentName }}
+									<span
+										v-if="fragment.dirty"
+										title="Unsaved changes"
+										class="h-1.5 w-1.5 rounded-full bg-surface-amber-6"
+									></span>
+								</a>
+								<span v-else class="flex items-center gap-1.5 font-medium">
+									{{ fragment.fragmentName }}
+									<span
+										v-if="canvasStore.isActiveFragmentDirty"
+										title="Unsaved changes"
+										class="h-1.5 w-1.5 rounded-full bg-surface-amber-6"
+									></span>
+								</span>
+							</template>
 						</div>
 
 						<div class="ml-auto flex items-center gap-2">
 							<Button
 								v-if="canvasStore.editingMode === 'component'"
 								variant="subtle"
-								icon="settings"
+								icon="lucide-settings"
 								@click.prevent="store.studioLayout.rightPanelActiveTab = 'Interface'"
 							></Button>
 							<Button variant="subtle" class="text-xs" @click="canvasStore.exitFragmentMode">
 								<template #prefix><FeatherIcon name="chevron-left" class="!h-3 !w-3" /></template>
-								Page
+								{{ parentFragmentName }}
 							</Button>
-							<Button variant="solid" class="text-xs" @click="saveFragmentMode">
+							<Button variant="solid" class="text-xs" :loading="savingFragment" @click="saveFragmentMode">
 								{{ canvasStore.fragmentData.saveActionLabel || "Save" }}
 							</Button>
 						</div>
 					</div>
+				</template>
+				<template v-slot:afterCanvas="{ rootBlock }">
+					<OverlayList v-if="rootBlock" :rootBlock="rootBlock" />
 				</template>
 			</StudioCanvas>
 
@@ -63,7 +87,7 @@
 				v-show="canvasStore.editingMode === 'page'"
 				ref="pageCanvas"
 				v-if="store.pageBlocks[0]"
-				class="canvas-container absolute bottom-0 top-[var(--toolbar-height)] flex justify-center overflow-hidden bg-gray-200 p-10"
+				class="canvas-container absolute bottom-0 top-[var(--toolbar-height)] flex justify-center overflow-hidden bg-surface-gray-3 p-10"
 				:componentTree="store.pageBlocks[0]"
 				:canvas-styles="{
 					minHeight: '1000px',
@@ -72,22 +96,27 @@
 					left: `${store.studioLayout.showLeftPanel ? store.studioLayout.leftPanelWidth : 0}px`,
 					right: `${store.studioLayout.showRightPanel ? store.studioLayout.rightPanelWidth : 0}px`,
 				}"
-			/>
+			>
+				<template v-slot:afterCanvas="{ rootBlock }">
+					<OverlayList v-if="rootBlock" :rootBlock="rootBlock" />
+				</template>
+			</StudioCanvas>
 
 			<StudioRightPanel
-				class="no-scrollbar dark:bg-zinc-900 absolute bottom-0 right-0 top-[var(--toolbar-height)] z-20 overflow-auto border-l-[1px] bg-white shadow-lg dark:border-gray-800"
+				class="no-scrollbar dark:bg-zinc-900 absolute bottom-0 right-0 top-[var(--toolbar-height)] z-20 overflow-auto border-l border-outline-gray-2 bg-surface-base dark:border-outline-gray-7"
 			/>
+
+			<!-- File explorer teleport for code editor -->
+			<div id="studio-code-editor-outlet"></div>
 		</div>
 
 		<Dialog
 			v-model="canvasStore.showHTMLDialog"
 			class="overscroll-none"
-			:options="{
-				title: `Edit HTML - ${canvasStore.editableBlock?.componentName}`,
-				size: '7xl',
-			}"
+			:title="`Edit HTML - ${canvasStore.editableBlock?.componentName}`"
+			size="7xl"
 		>
-			<template #body-content>
+			<template #default>
 				<Code
 					:modelValue="canvasStore.editableBlock?.getHTML()"
 					language="html"
@@ -114,12 +143,10 @@
 		<Dialog
 			v-model="canvasStore.showCodeDialog"
 			class="overscroll-none"
-			:options="{
-				title: `Edit ${canvasStore.editableBlock?.componentName} prop - ${canvasStore.editableCode.propName}`,
-				size: '7xl',
-			}"
+			:title="`Edit ${canvasStore.editableBlock?.componentName} prop - ${canvasStore.editableCode.propName}`"
+			size="7xl"
 		>
-			<template #body-content>
+			<template #default>
 				<Code
 					:modelValue="canvasStore.editableCode.code"
 					language="javascript"
@@ -147,10 +174,10 @@
 </template>
 
 <script setup lang="ts">
-import { onActivated, watchEffect, watch, ref, onDeactivated, toRef, nextTick } from "vue"
+import { onActivated, watchEffect, watch, ref, onDeactivated, toRef, nextTick, computed } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
-import { usePageMeta, Dialog } from "frappe-ui"
+import { usePageMeta, Dialog, FeatherIcon, Button } from "frappe-ui"
 import type { CompletionContext } from "@codemirror/autocomplete"
 
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
@@ -158,6 +185,7 @@ import StudioToolbar from "@/components/StudioToolbar.vue"
 import StudioLeftPanel from "@/components/StudioLeftPanel.vue"
 import StudioRightPanel from "@/components/StudioRightPanel.vue"
 import StudioCanvas from "@/components/StudioCanvas.vue"
+import OverlayList from "@/components/OverlayList.vue"
 import Code from "@/components/Code.vue"
 
 import useStudioStore from "@/stores/studioStore"
@@ -165,9 +193,9 @@ import useCanvasStore from "@/stores/canvasStore"
 import { studioPages } from "@/data/studioPages"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
-import { getRootBlock } from "@/utils/serializer"
+import { getBlockCopy, getRootBlock } from "@/utils/serializer"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 
 const route = useRoute()
 const router = useRouter()
@@ -176,7 +204,7 @@ const canvasStore = useCanvasStore()
 
 const getCompletions = useStudioCompletions()
 const componentContextMenu = toRef(store, "componentContextMenu")
-useStudioEvents()
+useStudioEvents(saveFragmentMode)
 
 const pageCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
 const fragmentCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
@@ -197,10 +225,36 @@ watchEffect(() => {
 	}
 })
 
+const parentFragmentName = computed(() => {
+	const parentFragment = canvasStore.fragmentStack[canvasStore.fragmentStack.length - 2]
+	return parentFragment?.fragmentName || "Page"
+})
+
+const savingFragment = ref(false)
+
 async function saveFragmentMode() {
-	canvasStore.fragmentData.saveAction?.(fragmentCanvas.value?.getRootBlock())
+	const editedBlock = fragmentCanvas.value?.getRootBlock()
+	if (!editedBlock || savingFragment.value) return
+
+	savingFragment.value = true
+	try {
+		// pass a copy to avoid mutating the canvas block while saving, marking it dirty
+		await canvasStore.fragmentData.saveAction?.(getBlockCopy(editedBlock, true))
+	} catch {
+		// save failed, stay on this fragment so the edited state isn't lost
+		return
+	} finally {
+		savingFragment.value = false
+	}
+
 	if (canvasStore.editingMode === "fragment") {
 		toast.success(`${canvasStore.fragmentData.fragmentName} saved successfully`)
+	}
+	// saving a nested fragment returns to its parent fragment canvas
+	if (canvasStore.fragmentStack.length > 1) {
+		canvasStore.popFragment()
+	} else {
+		canvasStore.markActiveFragmentClean()
 	}
 }
 
@@ -212,7 +266,9 @@ watch(
 			store.selectedPage &&
 			!pageCanvas.value?.canvasProps?.settingCanvas &&
 			!store.settingPage &&
-			!store.savingPage
+			!store.savingPage &&
+			!store.pageConflict &&
+			!canvasStore.isAIStreaming
 		) {
 			store.savingPage = true
 			if (canvasStore.editingMode === "page") {
@@ -226,10 +282,13 @@ watch(
 )
 
 async function setPage() {
-	if (route.params.pageID === store.selectedPage) return
-
+	// capture route params up front — `setApp` is awaited below, and the route may change
+	// during that await (e.g. navigating away), so we must not re-read route.params after it
 	const appID = route.params.appID as string
-	if (route.params.pageID === "new") {
+	const pageID = route.params.pageID as string
+	if (!pageID || pageID === store.selectedPage) return
+
+	if (pageID === "new") {
 		await studioPages.insert
 			.submit({
 				draft_blocks: [getRootBlock()],
@@ -237,20 +296,32 @@ async function setPage() {
 			})
 			.then(async (data: StudioPage) => {
 				router.push({ name: "StudioPage", params: { appID: appID, pageID: data.name }, force: true })
-				store.setApp(appID)
-				await store.setPage(data.name)
+				await loadPage(appID, data.name)
 			})
 	} else {
-		store.setApp(appID)
-		await store.setPage(route.params.pageID as string)
+		await loadPage(appID, pageID)
 	}
 }
 
-onActivated(() => {
+let loadingPageID: string | null = null
+async function loadPage(appID: string, pageID: string) {
+	if (loadingPageID === pageID) return
+	loadingPageID = pageID
+	try {
+		await store.setApp(appID)
+		await store.setPage(pageID)
+	} catch (error) {
+		console.error(`Failed to load page ${pageID}`, error)
+		toast.error("Failed to load the page")
+	} finally {
+		loadingPageID = null
+	}
+}
+
+onActivated(async () => {
 	const pageID = route.params.pageID
 	if (pageID && pageID !== store.selectedPage && pageID !== "new") {
-		store.setApp(route.params.appID as string)
-		store.setPage(pageID as string)
+		await loadPage(route.params.appID as string, pageID as string)
 	}
 })
 

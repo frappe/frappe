@@ -55,6 +55,7 @@ const props = withDefaults(
 	}>(),
 	{
 		modelValue: null,
+		property: "textColor",
 	},
 )
 const emit = defineEmits(["update:modelValue"])

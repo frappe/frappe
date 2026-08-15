@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "PhoneProps": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "stack": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "message"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg",
+            "xl"
+          ]
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "subtle",
+            "outline"
+          ]
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "disabled": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PhoneSlots": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "object"
+        },
+        "description": {
+          "type": "object"
+        },
+        "suffix": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

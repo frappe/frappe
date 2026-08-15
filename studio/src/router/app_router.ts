@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router"
 import AppContainer from "@/pages/AppContainer.vue"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 
 const routes = [
 	{

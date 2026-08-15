@@ -1,0 +1,1295 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/ContextMenuProps",
+  "definitions": {
+    "ContextMenuProps": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "icon": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "selected": {
+                    "type": "boolean"
+                  },
+                  "disabled": {
+                    "type": "boolean"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "gray",
+                      "red"
+                    ]
+                  },
+                  "slot": {
+                    "type": "string"
+                  },
+                  "slots": {
+                    "type": "object"
+                  },
+                  "condition": {
+                    "type": "object"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "route": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object"
+                      }
+                    ]
+                  },
+                  "onClick": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "label"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "icon": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "selected": {
+                    "type": "boolean"
+                  },
+                  "disabled": {
+                    "type": "boolean"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "gray",
+                      "red"
+                    ]
+                  },
+                  "slot": {
+                    "type": "string"
+                  },
+                  "slots": {
+                    "type": "object"
+                  },
+                  "condition": {
+                    "type": "object"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "switch": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "switchValue": {
+                    "type": "boolean"
+                  },
+                  "onClick": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "label",
+                  "switch"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "icon": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "selected": {
+                    "type": "boolean"
+                  },
+                  "disabled": {
+                    "type": "boolean"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "gray",
+                      "red"
+                    ]
+                  },
+                  "slot": {
+                    "type": "string"
+                  },
+                  "slots": {
+                    "type": "object"
+                  },
+                  "condition": {
+                    "type": "object"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "submenu": {
+                    "$ref": "#/definitions/alias-188344743-3751-3793-188344743-0-5750"
+                  }
+                },
+                "required": [
+                  "label",
+                  "submenu"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "icon": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "selected": {
+                    "type": "boolean"
+                  },
+                  "disabled": {
+                    "type": "boolean"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "gray",
+                      "red"
+                    ]
+                  },
+                  "slot": {
+                    "type": "string"
+                  },
+                  "slots": {
+                    "type": "object"
+                  },
+                  "condition": {
+                    "type": "object"
+                  },
+                  "component": {},
+                  "label": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "component"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": [
+                      "string",
+                      "number"
+                    ]
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "options": {
+                    "type": "array",
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "icon": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "selected": {
+                              "type": "boolean"
+                            },
+                            "disabled": {
+                              "type": "boolean"
+                            },
+                            "theme": {
+                              "type": "string",
+                              "enum": [
+                                "gray",
+                                "red"
+                              ]
+                            },
+                            "slot": {
+                              "type": "string"
+                            },
+                            "slots": {
+                              "type": "object"
+                            },
+                            "condition": {
+                              "type": "object"
+                            },
+                            "label": {
+                              "type": "string"
+                            },
+                            "route": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "object"
+                                }
+                              ]
+                            },
+                            "onClick": {
+                              "type": "object"
+                            }
+                          },
+                          "required": [
+                            "label"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "icon": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "selected": {
+                              "type": "boolean"
+                            },
+                            "disabled": {
+                              "type": "boolean"
+                            },
+                            "theme": {
+                              "type": "string",
+                              "enum": [
+                                "gray",
+                                "red"
+                              ]
+                            },
+                            "slot": {
+                              "type": "string"
+                            },
+                            "slots": {
+                              "type": "object"
+                            },
+                            "condition": {
+                              "type": "object"
+                            },
+                            "label": {
+                              "type": "string"
+                            },
+                            "switch": {
+                              "type": "boolean",
+                              "const": true
+                            },
+                            "switchValue": {
+                              "type": "boolean"
+                            },
+                            "onClick": {
+                              "type": "object"
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "switch"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "icon": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "selected": {
+                              "type": "boolean"
+                            },
+                            "disabled": {
+                              "type": "boolean"
+                            },
+                            "theme": {
+                              "type": "string",
+                              "enum": [
+                                "gray",
+                                "red"
+                              ]
+                            },
+                            "slot": {
+                              "type": "string"
+                            },
+                            "slots": {
+                              "type": "object"
+                            },
+                            "condition": {
+                              "type": "object"
+                            },
+                            "label": {
+                              "type": "string"
+                            },
+                            "submenu": {
+                              "$ref": "#/definitions/alias-188344743-3751-3793-188344743-0-5750"
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "submenu"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "icon": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "selected": {
+                              "type": "boolean"
+                            },
+                            "disabled": {
+                              "type": "boolean"
+                            },
+                            "theme": {
+                              "type": "string",
+                              "enum": [
+                                "gray",
+                                "red"
+                              ]
+                            },
+                            "slot": {
+                              "type": "string"
+                            },
+                            "slots": {
+                              "type": "object"
+                            },
+                            "condition": {
+                              "type": "object"
+                            },
+                            "component": {},
+                            "label": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "component"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "icon": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "selected": {
+                              "type": "boolean"
+                            },
+                            "disabled": {
+                              "type": "boolean"
+                            },
+                            "theme": {
+                              "type": "string",
+                              "enum": [
+                                "gray",
+                                "red"
+                              ]
+                            },
+                            "slot": {
+                              "type": "string"
+                            },
+                            "slots": {
+                              "type": "object"
+                            },
+                            "condition": {
+                              "type": "object"
+                            },
+                            "label": {
+                              "type": "string"
+                            },
+                            "route": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "object"
+                                }
+                              ]
+                            },
+                            "onClick": {
+                              "type": "object"
+                            }
+                          },
+                          "required": [
+                            "label"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "icon": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "selected": {
+                              "type": "boolean"
+                            },
+                            "disabled": {
+                              "type": "boolean"
+                            },
+                            "theme": {
+                              "type": "string",
+                              "enum": [
+                                "gray",
+                                "red"
+                              ]
+                            },
+                            "slot": {
+                              "type": "string"
+                            },
+                            "slots": {
+                              "type": "object"
+                            },
+                            "condition": {
+                              "type": "object"
+                            },
+                            "label": {
+                              "type": "string"
+                            },
+                            "switch": {
+                              "type": "boolean",
+                              "const": true
+                            },
+                            "switchValue": {
+                              "type": "boolean"
+                            },
+                            "onClick": {
+                              "type": "object"
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "switch"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "icon": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "selected": {
+                              "type": "boolean"
+                            },
+                            "disabled": {
+                              "type": "boolean"
+                            },
+                            "theme": {
+                              "type": "string",
+                              "enum": [
+                                "gray",
+                                "red"
+                              ]
+                            },
+                            "slot": {
+                              "type": "string"
+                            },
+                            "slots": {
+                              "type": "object"
+                            },
+                            "condition": {
+                              "type": "object"
+                            },
+                            "label": {
+                              "type": "string"
+                            },
+                            "submenu": {
+                              "$ref": "#/definitions/alias-188344743-3751-3793-188344743-0-5750"
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "submenu"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "icon": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "selected": {
+                              "type": "boolean"
+                            },
+                            "disabled": {
+                              "type": "boolean"
+                            },
+                            "theme": {
+                              "type": "string",
+                              "enum": [
+                                "gray",
+                                "red"
+                              ]
+                            },
+                            "slot": {
+                              "type": "string"
+                            },
+                            "slots": {
+                              "type": "object"
+                            },
+                            "condition": {
+                              "type": "object"
+                            },
+                            "component": {},
+                            "label": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "component"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "hideLabel": {
+                    "type": "boolean"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "gray",
+                      "red"
+                    ]
+                  }
+                },
+                "required": [
+                  "group"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "open": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "alias-188344743-3751-3793-188344743-0-5750": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "icon": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "description": {
+                "type": "string"
+              },
+              "selected": {
+                "type": "boolean"
+              },
+              "disabled": {
+                "type": "boolean"
+              },
+              "theme": {
+                "type": "string",
+                "enum": [
+                  "gray",
+                  "red"
+                ]
+              },
+              "slot": {
+                "type": "string"
+              },
+              "slots": {
+                "type": "object"
+              },
+              "condition": {
+                "type": "object"
+              },
+              "label": {
+                "type": "string"
+              },
+              "route": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object"
+                  }
+                ]
+              },
+              "onClick": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "label"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "icon": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "description": {
+                "type": "string"
+              },
+              "selected": {
+                "type": "boolean"
+              },
+              "disabled": {
+                "type": "boolean"
+              },
+              "theme": {
+                "type": "string",
+                "enum": [
+                  "gray",
+                  "red"
+                ]
+              },
+              "slot": {
+                "type": "string"
+              },
+              "slots": {
+                "type": "object"
+              },
+              "condition": {
+                "type": "object"
+              },
+              "label": {
+                "type": "string"
+              },
+              "switch": {
+                "type": "boolean",
+                "const": true
+              },
+              "switchValue": {
+                "type": "boolean"
+              },
+              "onClick": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "label",
+              "switch"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "icon": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "description": {
+                "type": "string"
+              },
+              "selected": {
+                "type": "boolean"
+              },
+              "disabled": {
+                "type": "boolean"
+              },
+              "theme": {
+                "type": "string",
+                "enum": [
+                  "gray",
+                  "red"
+                ]
+              },
+              "slot": {
+                "type": "string"
+              },
+              "slots": {
+                "type": "object"
+              },
+              "condition": {
+                "type": "object"
+              },
+              "label": {
+                "type": "string"
+              },
+              "submenu": {
+                "$ref": "#/definitions/alias-188344743-3751-3793-188344743-0-5750"
+              }
+            },
+            "required": [
+              "label",
+              "submenu"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "icon": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "description": {
+                "type": "string"
+              },
+              "selected": {
+                "type": "boolean"
+              },
+              "disabled": {
+                "type": "boolean"
+              },
+              "theme": {
+                "type": "string",
+                "enum": [
+                  "gray",
+                  "red"
+                ]
+              },
+              "slot": {
+                "type": "string"
+              },
+              "slots": {
+                "type": "object"
+              },
+              "condition": {
+                "type": "object"
+              },
+              "component": {},
+              "label": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "component"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": [
+                  "string",
+                  "number"
+                ]
+              },
+              "group": {
+                "type": "string"
+              },
+              "options": {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "icon": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "selected": {
+                          "type": "boolean"
+                        },
+                        "disabled": {
+                          "type": "boolean"
+                        },
+                        "theme": {
+                          "type": "string",
+                          "enum": [
+                            "gray",
+                            "red"
+                          ]
+                        },
+                        "slot": {
+                          "type": "string"
+                        },
+                        "slots": {
+                          "type": "object"
+                        },
+                        "condition": {
+                          "type": "object"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "route": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "object"
+                            }
+                          ]
+                        },
+                        "onClick": {
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "label"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "icon": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "selected": {
+                          "type": "boolean"
+                        },
+                        "disabled": {
+                          "type": "boolean"
+                        },
+                        "theme": {
+                          "type": "string",
+                          "enum": [
+                            "gray",
+                            "red"
+                          ]
+                        },
+                        "slot": {
+                          "type": "string"
+                        },
+                        "slots": {
+                          "type": "object"
+                        },
+                        "condition": {
+                          "type": "object"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "switch": {
+                          "type": "boolean",
+                          "const": true
+                        },
+                        "switchValue": {
+                          "type": "boolean"
+                        },
+                        "onClick": {
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "label",
+                        "switch"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "icon": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "selected": {
+                          "type": "boolean"
+                        },
+                        "disabled": {
+                          "type": "boolean"
+                        },
+                        "theme": {
+                          "type": "string",
+                          "enum": [
+                            "gray",
+                            "red"
+                          ]
+                        },
+                        "slot": {
+                          "type": "string"
+                        },
+                        "slots": {
+                          "type": "object"
+                        },
+                        "condition": {
+                          "type": "object"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "submenu": {
+                          "$ref": "#/definitions/alias-188344743-3751-3793-188344743-0-5750"
+                        }
+                      },
+                      "required": [
+                        "label",
+                        "submenu"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "icon": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "selected": {
+                          "type": "boolean"
+                        },
+                        "disabled": {
+                          "type": "boolean"
+                        },
+                        "theme": {
+                          "type": "string",
+                          "enum": [
+                            "gray",
+                            "red"
+                          ]
+                        },
+                        "slot": {
+                          "type": "string"
+                        },
+                        "slots": {
+                          "type": "object"
+                        },
+                        "condition": {
+                          "type": "object"
+                        },
+                        "component": {},
+                        "label": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "component"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "icon": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "selected": {
+                          "type": "boolean"
+                        },
+                        "disabled": {
+                          "type": "boolean"
+                        },
+                        "theme": {
+                          "type": "string",
+                          "enum": [
+                            "gray",
+                            "red"
+                          ]
+                        },
+                        "slot": {
+                          "type": "string"
+                        },
+                        "slots": {
+                          "type": "object"
+                        },
+                        "condition": {
+                          "type": "object"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "route": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "object"
+                            }
+                          ]
+                        },
+                        "onClick": {
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "label"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "icon": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "selected": {
+                          "type": "boolean"
+                        },
+                        "disabled": {
+                          "type": "boolean"
+                        },
+                        "theme": {
+                          "type": "string",
+                          "enum": [
+                            "gray",
+                            "red"
+                          ]
+                        },
+                        "slot": {
+                          "type": "string"
+                        },
+                        "slots": {
+                          "type": "object"
+                        },
+                        "condition": {
+                          "type": "object"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "switch": {
+                          "type": "boolean",
+                          "const": true
+                        },
+                        "switchValue": {
+                          "type": "boolean"
+                        },
+                        "onClick": {
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "label",
+                        "switch"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "icon": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "selected": {
+                          "type": "boolean"
+                        },
+                        "disabled": {
+                          "type": "boolean"
+                        },
+                        "theme": {
+                          "type": "string",
+                          "enum": [
+                            "gray",
+                            "red"
+                          ]
+                        },
+                        "slot": {
+                          "type": "string"
+                        },
+                        "slots": {
+                          "type": "object"
+                        },
+                        "condition": {
+                          "type": "object"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "submenu": {
+                          "$ref": "#/definitions/alias-188344743-3751-3793-188344743-0-5750"
+                        }
+                      },
+                      "required": [
+                        "label",
+                        "submenu"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "icon": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "selected": {
+                          "type": "boolean"
+                        },
+                        "disabled": {
+                          "type": "boolean"
+                        },
+                        "theme": {
+                          "type": "string",
+                          "enum": [
+                            "gray",
+                            "red"
+                          ]
+                        },
+                        "slot": {
+                          "type": "string"
+                        },
+                        "slots": {
+                          "type": "object"
+                        },
+                        "condition": {
+                          "type": "object"
+                        },
+                        "component": {},
+                        "label": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "component"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "hideLabel": {
+                "type": "boolean"
+              },
+              "theme": {
+                "type": "string",
+                "enum": [
+                  "gray",
+                  "red"
+                ]
+              }
+            },
+            "required": [
+              "group"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  }
+}

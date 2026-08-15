@@ -9,6 +9,7 @@ import { usePageMeta } from "frappe-ui"
 
 import { findPageWithRoute } from "@/utils/helpers"
 import { getBlockInstance } from "@/utils/serializer"
+import { useLivePreview } from "@/utils/useLivePreview"
 import AppComponent from "@/components/AppComponent.vue"
 
 import useAppStore from "@/stores/appStore"
@@ -24,38 +25,52 @@ const page = ref<StudioPage | null>(null)
 
 const rootBlock = ref<Block | null>(null)
 
-watch(
-	() => route.path,
-	async () => {
-		let { pageRoute } = route.params as { pageRoute: string[] }
-		const isDynamic = route.meta?.isDynamic
+let loadedPath: string | null = null
+async function handleRouteChange() {
+	const currentPath = resolveCurrentPath()
+	if (currentPath && currentPath === loadedPath && page.value) {
+		// param-only navigation (/articles/a -> /articles/b)
+		return
+	}
+	await loadPage()
+}
 
-		let currentPath = "/"
-		if (isDynamic) {
-			currentPath = route.matched?.[0]?.path
-		} else if (pageRoute) {
-			currentPath = pageRoute[0]
-		}
+let loadToken = 0
+async function loadPage() {
+	const token = ++loadToken
+	const currentPath = resolveCurrentPath()
+	if (!currentPath) {
+		rootBlock.value = null
+		return
+	}
+	codeStore.teardownPage()
 
-		if (currentPath) {
-			page.value = await findPageWithRoute(window.app_name, currentPath)
-			if (!page.value) return
-			await codeStore.cleanupWatchers()
-			await store.setPageData(page.value)
-			await codeStore.setPageWatchers(page.value)
+	page.value = await findPageWithRoute(window.app_name, currentPath)
+	if (token !== loadToken || !page.value) return
+	await store.setPageData(page.value)
+	await codeStore.setPageScript(page.value, Boolean(page.value.is_standard))
+	if (token !== loadToken) return
 
-			const blocks = window.is_preview
-				? JSON.parse(page.value?.draft_blocks || page.value?.blocks)
-				: JSON.parse(page.value?.blocks)
-			if (blocks) {
-				rootBlock.value = getBlockInstance(blocks[0])
-			}
-		} else {
-			rootBlock.value = null
-		}
-	},
-	{ immediate: true },
-)
+	const blocks = window.is_preview
+		? JSON.parse(page.value?.draft_blocks || page.value?.blocks)
+		: JSON.parse(page.value?.blocks)
+	if (blocks) {
+		rootBlock.value = getBlockInstance(blocks[0])
+	}
+	loadedPath = currentPath
+}
+
+function resolveCurrentPath(): string | undefined {
+	const { pageRoute } = route.params as { pageRoute: string[] }
+	// registered page routes carry isDynamic meta
+	if (route.meta?.isDynamic) return route.matched?.[0]?.path
+	if (pageRoute) return pageRoute[0]
+	return "/"
+}
+
+watch(() => route.path, handleRouteChange, { immediate: true })
+
+if (window.is_preview) useLivePreview(page, loadPage)
 
 usePageMeta(() => {
 	return {

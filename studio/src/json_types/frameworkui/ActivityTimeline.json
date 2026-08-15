@@ -1,0 +1,760 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "ActivityTimelineProps": {
+      "type": "object",
+      "properties": {
+        "activities": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "email"
+                  },
+                  "key": {
+                    "type": "string"
+                  },
+                  "timestamp": {
+                    "type": "string"
+                  },
+                  "author": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string"
+                      },
+                      "fullname": {
+                        "type": "string"
+                      },
+                      "image": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "icon": {
+                    "type": [
+                      "string"
+                    ]
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "subject": {
+                        "type": "string"
+                      },
+                      "sender": {
+                        "type": "string"
+                      },
+                      "to": {
+                        "type": "string"
+                      },
+                      "cc": {
+                        "type": "string"
+                      },
+                      "bcc": {
+                        "type": "string"
+                      },
+                      "content": {
+                        "type": "string"
+                      },
+                      "deliveryStatus": {
+                        "type": "string"
+                      },
+                      "attachments": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "file_url": {
+                              "type": "string"
+                            },
+                            "is_private": {
+                              "type": "number",
+                              "enum": [
+                                0,
+                                1
+                              ]
+                            },
+                            "file_name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "file_url"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "sender",
+                      "content"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "type",
+                  "key",
+                  "data"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "comment"
+                  },
+                  "key": {
+                    "type": "string"
+                  },
+                  "timestamp": {
+                    "type": "string"
+                  },
+                  "author": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string"
+                      },
+                      "fullname": {
+                        "type": "string"
+                      },
+                      "image": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "icon": {
+                    "type": [
+                      "string"
+                    ]
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "content": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "content"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "type",
+                  "key",
+                  "data"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "attachment_log"
+                  },
+                  "key": {
+                    "type": "string"
+                  },
+                  "timestamp": {
+                    "type": "string"
+                  },
+                  "author": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string"
+                      },
+                      "fullname": {
+                        "type": "string"
+                      },
+                      "image": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "icon": {
+                    "type": [
+                      "string"
+                    ]
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "added",
+                          "removed"
+                        ]
+                      },
+                      "fileName": {
+                        "type": "string"
+                      },
+                      "fileUrl": {
+                        "type": "string"
+                      },
+                      "isPrivate": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "action",
+                      "fileName",
+                      "isPrivate"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "type",
+                  "key",
+                  "data"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "log"
+                  },
+                  "key": {
+                    "type": "string"
+                  },
+                  "timestamp": {
+                    "type": "string"
+                  },
+                  "author": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string"
+                      },
+                      "fullname": {
+                        "type": "string"
+                      },
+                      "image": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "icon": {
+                    "type": [
+                      "string"
+                    ]
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "subtype": {
+                        "type": "string",
+                        "enum": [
+                          "like",
+                          "assigned",
+                          "assignment_completed",
+                          "workflow",
+                          "info",
+                          "view",
+                          "created"
+                        ]
+                      },
+                      "text": {
+                        "type": "string"
+                      },
+                      "assignee": {
+                        "type": "string"
+                      },
+                      "assignees": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "subtype",
+                      "text"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "type",
+                  "key",
+                  "data"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "version"
+                  },
+                  "key": {
+                    "type": "string"
+                  },
+                  "timestamp": {
+                    "type": "string"
+                  },
+                  "author": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string"
+                      },
+                      "fullname": {
+                        "type": "string"
+                      },
+                      "image": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "icon": {
+                    "type": [
+                      "string"
+                    ]
+                  },
+                  "data": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "group": {
+                            "type": "array",
+                            "items": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "fieldname": {
+                                      "type": [
+                                        "string",
+                                        "null"
+                                      ]
+                                    },
+                                    "timestamp": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string",
+                                      "const": "diff"
+                                    },
+                                    "prefix": {
+                                      "type": "string"
+                                    },
+                                    "from": {
+                                      "type": "string"
+                                    },
+                                    "to": {
+                                      "type": "string"
+                                    },
+                                    "history": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "from": {
+                                            "type": "string"
+                                          },
+                                          "to": {
+                                            "type": "string"
+                                          },
+                                          "timestamp": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "required": [
+                                          "from",
+                                          "to",
+                                          "timestamp"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "prefix",
+                                    "to",
+                                    "type"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "fieldname": {
+                                      "type": [
+                                        "string",
+                                        "null"
+                                      ]
+                                    },
+                                    "timestamp": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string",
+                                      "const": "phrase"
+                                    },
+                                    "text": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "text",
+                                    "type"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              ]
+                            }
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "fieldname": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "timestamp": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string",
+                            "const": "diff"
+                          },
+                          "prefix": {
+                            "type": "string"
+                          },
+                          "from": {
+                            "type": "string"
+                          },
+                          "to": {
+                            "type": "string"
+                          },
+                          "history": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "from": {
+                                  "type": "string"
+                                },
+                                "to": {
+                                  "type": "string"
+                                },
+                                "timestamp": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "from",
+                                "to",
+                                "timestamp"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "prefix",
+                          "to",
+                          "type"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "group": {
+                            "type": "array",
+                            "items": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "fieldname": {
+                                      "type": [
+                                        "string",
+                                        "null"
+                                      ]
+                                    },
+                                    "timestamp": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string",
+                                      "const": "diff"
+                                    },
+                                    "prefix": {
+                                      "type": "string"
+                                    },
+                                    "from": {
+                                      "type": "string"
+                                    },
+                                    "to": {
+                                      "type": "string"
+                                    },
+                                    "history": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "from": {
+                                            "type": "string"
+                                          },
+                                          "to": {
+                                            "type": "string"
+                                          },
+                                          "timestamp": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "required": [
+                                          "from",
+                                          "to",
+                                          "timestamp"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "prefix",
+                                    "to",
+                                    "type"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "fieldname": {
+                                      "type": [
+                                        "string",
+                                        "null"
+                                      ]
+                                    },
+                                    "timestamp": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string",
+                                      "const": "phrase"
+                                    },
+                                    "text": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "text",
+                                    "type"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              ]
+                            }
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "fieldname": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "timestamp": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string",
+                            "const": "phrase"
+                          },
+                          "text": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "text",
+                          "type"
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "key",
+                  "data"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "key": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "timestamp": {
+                    "type": "string"
+                  },
+                  "author": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string"
+                      },
+                      "fullname": {
+                        "type": "string"
+                      },
+                      "image": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "icon": {
+                    "type": "string"
+                  },
+                  "data": {}
+                },
+                "required": [
+                  "data",
+                  "type"
+                ]
+              }
+            ]
+          }
+        },
+        "loading": {
+          "type": "boolean"
+        },
+        "paginate": {
+          "type": "object",
+          "properties": {
+            "hasNextPage": {
+              "type": "boolean"
+            },
+            "isFetchingNextPage": {
+              "type": "boolean"
+            },
+            "fetchNextPage": {
+              "type": "object"
+            },
+            "loadMore": {
+              "type": "object",
+              "properties": {
+                "position": {
+                  "type": "string",
+                  "enum": [
+                    "top",
+                    "bottom",
+                    "inline"
+                  ]
+                },
+                "label": {
+                  "type": "string"
+                },
+                "icon": {
+                  "type": [
+                    "string"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "hasNextPage",
+            "isFetchingNextPage",
+            "fetchNextPage"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "activities"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

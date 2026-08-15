@@ -1,4 +1,4 @@
-import type { BlockOptions, BlockStyleMap, CompletionSource, Slot } from "@/types"
+import type { BlockOptions, BlockStyleMap, CompletionSource, Slot, SlotScope } from "@/types"
 import { clamp } from "@vueuse/core"
 import { reactive, CSSProperties, nextTick } from 'vue'
 
@@ -11,11 +11,14 @@ import LucideCode from "~icons/lucide/code"
 
 import { generateId, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 import { copyObject, getBlockCopy, getComponentBlock } from "@/utils/serializer"
+import { componentHasDefaultSlot, getComponentSlots } from "@/utils/components"
+import { mergeLegacyRawStyles } from "@/patches/mergeLegacyRawStyles"
 
-import type { StyleValue, FrappeUIComponents } from "@/types"
+import type { StyleValue, FrappeUIComponent, FrappeUIComponents } from "@/types"
 import type { ComponentEvent } from "@/types/ComponentEvent"
 
 export type styleProperty = keyof CSSProperties | `__${string}`;
+
 class Block implements BlockOptions {
 	componentId: string
 	componentName: string
@@ -27,7 +30,6 @@ class Block implements BlockOptions {
 	children: Block[]
 	parentBlock: Block | null
 	baseStyles: BlockStyleMap
-	rawStyles: BlockStyleMap
 	mobileStyles: BlockStyleMap
 	tabletStyles: BlockStyleMap
 	visibilityCondition?: string
@@ -41,7 +43,7 @@ class Block implements BlockOptions {
 	extendedFromComponent?: Block // for the component root
 	isCustomVueComponent?: boolean // custom vue component from frappe app
 	// temporary properties
-	repeaterDataItem?: Record<string, any> | null
+	slotScope?: SlotScope | null
 	componentContext?: Record<string, any> | null
 
 	// @editor-only
@@ -51,8 +53,7 @@ class Block implements BlockOptions {
 		this.componentName = options.componentName
 		this.blockName = options.blockName
 		this.originalElement = options.originalElement
-		this.baseStyles = reactive(options.baseStyles || {})
-		this.rawStyles = reactive(options.rawStyles || {});
+		this.baseStyles = reactive(mergeLegacyRawStyles({ ...(options.baseStyles || {}) }, options.rawStyles))
 		this.mobileStyles = reactive(options.mobileStyles || {})
 		this.tabletStyles = reactive(options.tabletStyles || {})
 		this.classes = options.classes || []
@@ -72,6 +73,8 @@ class Block implements BlockOptions {
 		}
 		if (options.isCustomVueComponent) {
 			this.isCustomVueComponent = options.isCustomVueComponent
+			// Warm the slot cache so canHaveChildren() knows this component's default slot
+			void getComponentSlots(this.componentName, true)
 		}
 
 		// get component props
@@ -94,8 +97,8 @@ class Block implements BlockOptions {
 		this.initializeSlots()
 
 		// Define as non-reactive property
-		Object.defineProperty(this, "repeaterDataItem", {
-			value: options.repeaterDataItem || null,
+		Object.defineProperty(this, "slotScope", {
+			value: options.slotScope || null,
 			writable: true,
 			enumerable: false,
 			configurable: true
@@ -138,7 +141,7 @@ class Block implements BlockOptions {
 		}
 	}
 
-	addChild(child: BlockOptions, index?: number | null) {
+	addChild(child: BlockOptions, index?: number | null, select = true) {
 		if (child.parentSlotName) {
 			return this.updateSlot(child.parentSlotName, child, index)
 		}
@@ -147,7 +150,9 @@ class Block implements BlockOptions {
 		const childBlock = reactive(new Block(child))
 		childBlock.parentBlock = this
 		this.children.splice(index, 0, childBlock)
-		childBlock.selectBlock()
+		if (select) {
+			childBlock.selectBlock()
+		}
 		return childBlock
 	}
 
@@ -156,14 +161,7 @@ class Block implements BlockOptions {
 		if (index === -1) return
 
 		if (child.isSlotBlock()) {
-			let slotContent = this.getSlotContent(child.parentSlotName!)
-			if (!Array.isArray(slotContent)) return
-
-			if (slotContent.length === 1) {
-				this.updateSlot(child.parentSlotName!, "")
-			} else {
-				slotContent.splice(index, 1)
-			}
+			this.getSlotContent(child.parentSlotName!)?.splice(index, 1)
 		} else {
 			this.children.splice(index, 1)
 		}
@@ -182,11 +180,21 @@ class Block implements BlockOptions {
 
 	getChildIndex(child: Block) {
 		if (child.parentSlotName) {
-			return (
-				this.getSlotContent(child.parentSlotName) as Block[]
-			)?.findIndex((block) => block.componentId === child.componentId)
+			return this.getSlotContent(child.parentSlotName)
+				?.findIndex((block) => block.componentId === child.componentId)
 		}
 		return this.children.findIndex((block) => block.componentId === child.componentId)
+	}
+
+	// Find a direct child by id, searching the regular children AND every named slot's content.
+	getChildById(componentId: string): Block | null {
+		const child = this.children.find((block) => block.componentId === componentId)
+		if (child) return child
+		for (const slot of Object.values(this.componentSlots)) {
+			const found = slot.slotContent.find((block) => block.componentId === componentId)
+			if (found) return found
+		}
+		return null
 	}
 
 	getValidIndex(index: number | null | undefined, arrayLength: number): number {
@@ -206,8 +214,19 @@ class Block implements BlockOptions {
 	}
 
 	canHaveChildren() {
-		if (this.isRoot() || this.isContainer() || this.hasComponentSlots()) return true
+		if (
+			this.isRoot() ||
+			this.isContainer() ||
+			this.hasComponentSlots() ||
+			this.hasChildren() ||
+			this.hasDefaultSlot()
+		)
+			return true
 		return false
+	}
+
+	hasDefaultSlot() {
+		return componentHasDefaultSlot(this.componentName)
 	}
 
 	isRoot() {
@@ -215,28 +234,46 @@ class Block implements BlockOptions {
 	}
 
 	isContainer() {
-		return this.originalElement === "div" || this.componentName === "FitContainer" || this.originalElement === "header"
+		return this.originalElement === "div" || this.originalElement === "header" || this.componentName === "FitContainer" || this.componentName === "Container";
 	}
 
 	getParentBlock(): Block | null {
 		return this.parentBlock || null;
 	}
 
-	getSiblingBlock(direction: "next" | "previous") {
-		const parentBlock = this.getParentBlock();
-		let sibling = null as Block | null;
-		if (parentBlock) {
-			const index = parentBlock.getChildIndex(this);
-			if (direction === "next") {
-				sibling = parentBlock.children[index + 1];
-			} else {
-				sibling = parentBlock.children[index - 1];
-			}
-			if (sibling) {
-				return sibling;
-			}
+	// children first to match the visual order in the Layers panel
+	getChildrenAndSlotContent(): Block[] {
+		const slotContent = Object.values(this.componentSlots).flatMap((slot) => slot.slotContent);
+		return [...this.children, ...slotContent];
+	}
+
+	// nearest block (including self) with the given componentName
+	closest(componentName: string): Block | null {
+		let current: Block | null = this;
+		while (current) {
+			if (current.componentName === componentName) return current;
+			current = current.getParentBlock();
 		}
 		return null;
+	}
+
+	// whether a component can mount under this block — non-standalone family parts crash outside their family root
+	canAddChild(component: FrappeUIComponent): boolean {
+		if (component.isStandalone === false && component.group) {
+			return Boolean(this.closest(component.group));
+		}
+		return true;
+	}
+
+	getSiblingBlock(direction: "next" | "previous") {
+		const parentBlock = this.getParentBlock();
+		if (!parentBlock) return null;
+		const siblings = this.parentSlotName
+			? (parentBlock.getSlotContent(this.parentSlotName) as Block[])
+			: parentBlock.children;
+		const index = parentBlock.getChildIndex(this);
+		const sibling = direction === "next" ? siblings[index + 1] : siblings[index - 1];
+		return sibling || null;
 	}
 
 	getIcon() {
@@ -262,8 +299,34 @@ class Block implements BlockOptions {
 		return this.blockName || this.componentName || this.originalElement
 	}
 
+	// fragment mode
 	editInFragmentMode() {
 		return Block.components?.[this.componentName]?.editInFragmentMode
+	}
+
+	isOverlayNode(): boolean {
+		if (this.isStudioComponent) {
+			const componentStore = useComponentStore()
+			return Boolean(componentStore.componentMap.get(this.componentName)?.isOverlayNode())
+		}
+		return Boolean(this.editInFragmentMode())
+	}
+
+	hasNonOverlayContent(): boolean {
+		return this.getChildrenAndSlotContent().some((child) => {
+			if (child.isOverlayNode()) return false
+			if (!child.isContainer()) return true
+			return child.hasNonOverlayContent()
+		})
+	}
+
+	findFirstOverlayNode(): Block | null {
+		for (const child of this.getChildrenAndSlotContent()) {
+			if (child.isOverlayNode()) return child
+			const nestedOverlay = child.findFirstOverlayNode()
+			if (nestedOverlay) return nestedOverlay
+		}
+		return null
 	}
 
 	getProxyComponent() {
@@ -286,7 +349,6 @@ class Block implements BlockOptions {
 				styleObj = { ...styleObj, ...this.mobileStyles }
 			}
 		}
-		styleObj = { ...styleObj, ...this.rawStyles }
 		return styleObj
 	}
 
@@ -341,8 +403,11 @@ class Block implements BlockOptions {
 		}
 	}
 
-	getRawStyles() {
-		return { ...this.rawStyles }
+	removeStyle(style: styleProperty) {
+		style = kebabToCamelCase(style as string) as styleProperty
+		delete this.baseStyles[style]
+		delete this.tabletStyles[style]
+		delete this.mobileStyles[style]
 	}
 
 	getClasses() {
@@ -413,11 +478,30 @@ class Block implements BlockOptions {
 	}
 
 	isFlex() {
-		return this.getStyle("display") === "flex"
+		return this.getRenderedStyle("display") === "flex"
 	}
 
 	isGrid() {
-		return this.getStyle("display") === "grid"
+		return this.getRenderedStyle("display") === "grid"
+	}
+
+	// detect actual layout type directly from rendered element if not set in block styles
+	getRenderedStyle(style: styleProperty): StyleValue {
+		const configuredStyle = this.getStyle(style)
+		if (configuredStyle || typeof document === "undefined") return configuredStyle
+		const element = this.getRenderedElement()
+		if (!element) return undefined
+		return (getComputedStyle(element) as unknown as Record<string, StyleValue>)[style] || undefined
+	}
+
+	getRenderedElement(): HTMLElement | null {
+		const activeCanvas = useCanvasStore().activeCanvas
+		const breakpoint = activeCanvas?.activeBreakpoint
+		if (!breakpoint) return null
+		const scope: ParentNode = activeCanvas?.canvasContainer || document
+		return scope.querySelector(
+			`.__studio_component__[data-component-id="${this.componentId}"][data-breakpoint="${breakpoint}"]`,
+		)
 	}
 
 	getPadding() {
@@ -625,12 +709,10 @@ class Block implements BlockOptions {
 			}
 			slot.parentBlockId = this.componentId
 
-			if (Array.isArray(slot.slotContent)) {
-				slot.slotContent = slot.slotContent.map((block) => {
-					block.parentBlock = this
-					return reactive(new Block(block))
-				})
-			}
+			slot.slotContent = (Array.isArray(slot.slotContent) ? slot.slotContent : []).map((block) => {
+				block.parentBlock = this
+				return reactive(new Block(block))
+			})
 		})
 	}
 
@@ -638,7 +720,7 @@ class Block implements BlockOptions {
 		this.componentSlots[slotName] = {
 			slotName: slotName,
 			slotId: this.generateSlotId(slotName),
-			slotContent: "",
+			slotContent: [],
 			parentBlockId: this.componentId
 		}
 		nextTick(() => {
@@ -647,24 +729,16 @@ class Block implements BlockOptions {
 		})
 	}
 
-	updateSlot(slotName: string, content: string | Block | BlockOptions, index?: number | null) {
-		if (typeof content === "string") {
-			this.componentSlots[slotName].slotContent = content
-		} else {
-			if (!Array.isArray(this.componentSlots[slotName].slotContent)) {
-				this.componentSlots[slotName].slotContent = []
-			}
-
-			// for top-level blocks inside a slot
-			content.parentSlotName = slotName
-			content.parentBlock = this
-			const slotContent = this.componentSlots[slotName].slotContent as Block[]
-			index = this.getValidIndex(index, slotContent.length)
-			const childBlock = reactive(new Block(content))
-			slotContent.splice(index, 0, childBlock)
-			childBlock.selectBlock()
-			return childBlock
-		}
+	updateSlot(slotName: string, content: Block | BlockOptions, index?: number | null) {
+		// for top-level blocks inside a slot
+		content.parentSlotName = slotName
+		content.parentBlock = this
+		const slotContent = this.componentSlots[slotName].slotContent
+		index = this.getValidIndex(index, slotContent.length)
+		const childBlock = reactive(new Block(content))
+		slotContent.splice(index, 0, childBlock)
+		childBlock.selectBlock()
+		return childBlock
 	}
 
 	removeSlot(slotName: string) {
@@ -687,16 +761,6 @@ class Block implements BlockOptions {
 		return `${this.componentId}:${slotName}`
 	}
 
-	isSlotEditable(slot: Slot | undefined | null) {
-		if (!slot) return false
-
-		return Boolean(
-			!this.isRoot()
-			&& slot.slotId
-			&& typeof slot.slotContent === "string"
-		)
-	}
-
 	isSlotBlock() {
 		return Boolean(this.parentSlotName)
 	}
@@ -706,35 +770,23 @@ class Block implements BlockOptions {
 		return this.componentName === "Repeater"
 	}
 
-	setRepeaterDataItem(repeaterDataItem: Record<string, any>) {
-		// temporarily set repeater data item on selected block for autocompletions
-		this.repeaterDataItem = repeaterDataItem
+	isRepeated(): boolean {
+		let current = this.getParentBlock()
+		while (current) {
+			if (current.isRepeater()) return true
+			current = current.getParentBlock()
+		}
+		return false
+	}
+
+	// scoped slots
+	setSlotScope(slotScope: SlotScope | null) {
+		// temporarily set the enclosing scoped slot props on selected block for autocompletions
+		this.slotScope = slotScope
 	}
 
 	getCompletions(): CompletionSource[] {
-		const completions = []
-		if (this.repeaterDataItem) {
-			completions.push(
-				{
-					item: this.repeaterDataItem,
-					completion: {
-						label: "dataItem",
-						type: "data",
-						detail: "Repeater Data Item",
-					}
-				}
-			)
-			completions.push(
-				{
-					item: "dataIndex",
-					completion: {
-						label: "dataIndex",
-						type: "data",
-						detail: "Repeater Data Index",
-					}
-				}
-			)
-		}
+		const completions = this.getSlotScopeCompletions()
 		if (this.componentContext) {
 			completions.push(
 				{
@@ -749,6 +801,18 @@ class Block implements BlockOptions {
 		}
 
 		return completions
+	}
+
+	getSlotScopeCompletions(): CompletionSource[] {
+		const detail = this.isRepeated() ? "Repeater Scope" : "Slot Scope"
+		return Object.entries(this.slotScope || {}).map(([name, value]) => ({
+			item: value,
+			completion: {
+				label: name,
+				type: "data",
+				detail,
+			},
+		}))
 	}
 
 	// events
@@ -786,12 +850,10 @@ class Block implements BlockOptions {
 		this.extendedFromComponent = studioComponent
 
 		function linkParentComponentId(block: Block, studioComponentId: string) {
-			block.children?.forEach((child) => {
+			block.getChildrenAndSlotContent().forEach((child) => {
 				child.isChildOfComponent = studioComponentId
 				child.classes?.push("__studio_component_child__")
-				if (child.children?.length) {
-					linkParentComponentId(child, studioComponentId)
-				}
+				linkParentComponentId(child, studioComponentId)
 			})
 		}
 		linkParentComponentId(this, studioComponent.componentId)

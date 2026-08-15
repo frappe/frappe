@@ -1,10 +1,8 @@
 <template>
 	<Dialog
 		v-model="showDialog"
-		:options="{
-			title: isEditing ? 'Edit App' : 'New App',
-			width: 'md',
-		}"
+		:title="isEditing ? 'Edit App' : 'New App'"
+		width="md"
 		@after-leave="
 			() => {
 				activeApp = { ...emptyAppState }
@@ -12,7 +10,7 @@
 			}
 		"
 	>
-		<template #body-content>
+		<template #default>
 			<div class="flex flex-col gap-3">
 				<FormControl
 					label="Title"
@@ -31,12 +29,19 @@
 					:placeholder="activeApp.app_name_placeholder"
 					:disabled="isEditing"
 				/>
+
+				<AppExportSettings
+					v-if="!isEditing && isDeveloperMode"
+					v-model:enableExport="enableExport"
+					v-model:targetApp="targetApp"
+					:app-name="activeApp.app_name || activeApp.app_name_placeholder"
+				/>
 			</div>
 		</template>
 
 		<template #actions>
-			<div class="space-y-1">
-				<ErrorMessage class="mb-2" :message="error" />
+			<div class="space-y-2">
+				<ErrorMessage :message="error" />
 				<Button
 					variant="solid"
 					:label="isEditing ? 'Update' : 'Create'"
@@ -52,9 +57,10 @@
 import { computed, ref, watch } from "vue"
 import { useRouter } from "vue-router"
 import { studioApps } from "@/data/studioApps"
-import { Dialog, FormControl } from "frappe-ui"
+import { Dialog, FormControl, ErrorMessage, Button } from "frappe-ui"
 import type { StudioApp } from "@/types/Studio/StudioApp"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
+import AppExportSettings from "@/components/AppExportSettings.vue"
 
 const props = defineProps<{ app?: StudioApp | null }>()
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
@@ -67,9 +73,16 @@ const emptyAppState = {
 	name: "",
 }
 const activeApp = ref({ ...emptyAppState })
+
+const enableExport = ref(false)
+const targetApp = ref("")
+const isDeveloperMode = Boolean(window.is_developer_mode)
+
 watch(
 	() => showDialog.value,
 	() => {
+		enableExport.value = false
+		targetApp.value = ""
 		if (props.app?.name) {
 			activeApp.value = {
 				app_title: props.app.app_title,
@@ -100,11 +113,17 @@ function handleSave() {
 
 const createStudioApp = () => {
 	const { app_title, route, app_name } = activeApp.value
+	if (enableExport.value && !targetApp.value) {
+		error.value = "Select a Frappe App to export to, or disable app export."
+		return
+	}
 	studioApps.insert.submit(
 		{
 			app_title: app_title,
 			route: route,
 			app_name: app_name,
+			is_standard: enableExport.value ? 1 : 0,
+			frappe_app: enableExport.value ? targetApp.value : null,
 		},
 		{
 			onSuccess(res: StudioApp) {
@@ -112,8 +131,8 @@ const createStudioApp = () => {
 				error.value = ""
 				router.push({ name: "StudioApp", params: { appID: res.name } })
 			},
-			onError(error: any) {
-				error.value = error.messages.join(", ")
+			onError(reqError: any) {
+				error.value = reqError.messages.join(", ")
 			},
 		},
 	)

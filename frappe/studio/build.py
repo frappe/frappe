@@ -21,6 +21,7 @@ class StudioAppBuilder:
 		self.components = set(DEFAULT_COMPONENTS)
 		self.studio_component_blocks = {}
 		self.custom_vue_components: dict[str, str] = {}  # {ComponentName: absolute_path}
+		self.page_scripts: list[dict] = []  # [{page_name, file_path}]
 
 		if self.is_standard:
 			"""Build a standard (exported) studio app.
@@ -40,9 +41,41 @@ class StudioAppBuilder:
 	def build(self):
 		if self.is_standard:
 			self.get_app_components_from_files()
+			self.get_page_scripts_from_files()
 		else:
 			self.get_app_components()
 		self._run_vite_build()
+
+	def get_app_folder(self) -> str:
+		return os.path.join(get_studio_folder(self.frappe_app), frappe.scrub(self.app_name))
+
+	def get_page_scripts_from_files(self):
+		"""Collect the <page>.ts code files for the app's published pages, so the build bundles a
+		`setup()` module per page (code mode)."""
+		page_folder = os.path.join(self.get_app_folder(), "studio_page")
+		if not page_folder or not os.path.isdir(page_folder):
+			return
+
+		scripts = []
+		# each page is a folder holding <stem>.json + <stem>.ts
+		for entry in sorted(os.listdir(page_folder)):
+			page_dir = os.path.join(page_folder, entry)
+			if not os.path.isdir(page_dir):
+				continue
+			ts_path = os.path.join(page_dir, f"{entry}.ts")
+			json_path = os.path.join(page_dir, f"{entry}.json")
+			if not (os.path.exists(ts_path) and os.path.exists(json_path)):
+				continue
+			try:
+				with open(json_path) as f:
+					page_name = json.load(f).get("page_name")
+			except (OSError, json.JSONDecodeError):
+				continue
+			if page_name:
+				scripts.append({"page_name": page_name, "file_path": ts_path})
+
+		self.page_scripts = scripts
+		return scripts
 
 	def _run_vite_build(self) -> None:
 		"""Execute the yarn build-studio-app command with the given parameters."""
@@ -64,6 +97,10 @@ class StudioAppBuilder:
 		if self.custom_vue_components:
 			custom_json = json.dumps(self.custom_vue_components)
 			command += f" --custom-components '{custom_json}'"
+
+		if self.page_scripts:
+			page_scripts_json = json.dumps(self.page_scripts)
+			command += f" --page-scripts '{page_scripts_json}'"
 
 		studio_app_path = frappe.get_app_source_path("studio")
 		popen(command, cwd=studio_app_path, env=get_node_env(), raise_err=True)
@@ -90,24 +127,26 @@ class StudioAppBuilder:
 		"""Extract component names from exported JSON files on disk instead of DB records,
 		used during `bench build` when there's no DB access.
 		"""
-		studio_folder = get_studio_folder(self.frappe_app)
-		app_folder = os.path.join(studio_folder, self.app_name)
+		app_folder = self.get_app_folder()
 		page_folder = os.path.join(app_folder, "studio_page")
 		if not os.path.exists(page_folder):
 			return self.components
 
 		self._load_studio_components_from_files(app_folder)
 
-		for page_file in os.listdir(page_folder):
-			if not page_file.endswith(".json"):
+		# each page is a folder holding <stem>.json + <stem>.ts
+		for entry in os.listdir(page_folder):
+			page_dir = os.path.join(page_folder, entry)
+			if not os.path.isdir(page_dir):
 				continue
-
-			page_path = os.path.join(page_folder, page_file)
+			page_path = os.path.join(page_dir, f"{entry}.json")
+			if not os.path.exists(page_path):
+				continue
 			try:
 				with open(page_path) as f:
 					page_data = json.load(f)
 			except (json.JSONDecodeError, OSError) as e:
-				click.secho(f"Warning: Could not read {page_file}: {e}", fg="yellow")
+				click.secho(f"Warning: Could not read {page_path}: {e}", fg="yellow")
 				continue
 
 			blocks = page_data.get("blocks")
@@ -141,9 +180,10 @@ class StudioAppBuilder:
 
 		if slots := block.get("componentSlots"):
 			for slot in slots.values():
-				if isinstance(slot.get("slotContent"), str):
+				content = slot.get("slotContent")
+				if not isinstance(content, list):
 					continue
-				for slot_child in slot.get("slotContent"):
+				for slot_child in content:
 					self._add_block_components(slot_child)
 
 	def _add_studio_components(self, block: dict):
@@ -187,11 +227,7 @@ class StudioAppBuilder:
 		if not componentName or not self.frappe_app:
 			return
 
-		studio_folder = get_studio_folder(self.frappe_app)
-		if not studio_folder:
-			return
-
-		app_dir = os.path.join(studio_folder, self.app_name)
+		app_dir = self.get_app_folder()
 		for dirpath, _dirnames, filenames in os.walk(app_dir):
 			if f"{componentName}.vue" in filenames:
 				self.custom_vue_components[componentName] = os.path.join(dirpath, f"{componentName}.vue")

@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/*",
+  "$ref": "#/definitions/TabsProps",
   "definitions": {
-    "*": {
+    "TabsProps": {
       "type": "object",
       "properties": {
         "as": {
@@ -17,7 +17,9 @@
                 "type": "string"
               },
               "icon": {
-                "type": "string"
+                "type": [
+                  "string"
+                ]
               },
               "route": {
                 "type": "string"
@@ -31,6 +33,19 @@
         },
         "vertical": {
           "type": "boolean"
+        },
+        "modelValue": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "dir": {
+          "type": "string",
+          "enum": [
+            "rtl",
+            "ltr"
+          ]
         }
       },
       "required": [

@@ -5,7 +5,7 @@
 			<div class="fixed" @mousedown.stop>
 				<div
 					ref="popoverContent"
-					class="fixed flex flex-col gap-1 overflow-hidden rounded-lg border border-outline-gray-2 bg-surface-white shadow-2xl"
+					class="fixed flex flex-col gap-1 overflow-hidden rounded-lg border border-outline-gray-2 bg-surface-base shadow-2xl"
 					:style="{
 						width: width + 'px',
 						minHeight: height + 'px',
@@ -26,7 +26,7 @@
 								:label="actionLabel"
 								variant="solid"
 							></Button>
-							<Button @click="togglePopup" icon="x" variant="subtle"></Button>
+							<Button @click="togglePopup" icon="lucide-x" variant="subtle"></Button>
 						</div>
 					</div>
 					<div class="flex-1 px-3 pb-3">
@@ -40,6 +40,7 @@
 
 <script setup lang="ts">
 import { useEventListener } from "@vueuse/core"
+import { Button } from "frappe-ui"
 import { nextTick, onMounted, Ref, ref } from "vue"
 
 const popover = ref(null) as Ref<HTMLElement | null>

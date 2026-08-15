@@ -1,12 +1,13 @@
 import { defineStore } from "pinia"
 import { ref } from "vue"
+import { dialog } from "frappe-ui"
 import { studioComponents } from "@/data/studioComponents"
 import { confirm } from "@/utils/helpers"
 import getBlockTemplate from "@/utils/blockTemplate"
 import { getBlockObjectCopy, getBlockInstance, getComponentBlock } from "@/utils/serializer"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 import type { StudioComponent, ComponentInput } from "@/types/Studio/StudioComponent"
 import useComponentStore from "@/stores/componentStore"
 import useStudioStore from "./studioStore"
@@ -41,6 +42,21 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		})
 	}
 
+	function promptNewComponent(options: {
+		block?: Block | null
+		onCreated: (component: StudioComponent) => void
+	}) {
+		dialog.prompt({
+			title: "Create Component",
+			confirmLabel: "Create",
+			fields: [{ name: "componentName", label: "Component Name", required: true }],
+			onConfirm: async ({ values }: { values: Record<string, any> }) => {
+				const component = await createComponent(values.componentName, options.block)
+				if (component) options.onCreated(component)
+			},
+		})
+	}
+
 	function saveComponent(block: Block, componentName: string) {
 		const payload: any = {
 			name: componentName,
@@ -56,7 +72,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			options: input.options,
 		}))
 
-		studioComponents.setValue.submit(payload, {
+		return studioComponents.setValue.submit(payload, {
 			onSuccess(data: StudioComponent) {
 				componentStore.cacheComponent(data)
 				resetStudioComponent()
@@ -181,6 +197,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		studioComponentBlock,
 		componentInputs,
 		createComponent,
+		promptNewComponent,
 		editComponent,
 		deleteComponent,
 		// inputs

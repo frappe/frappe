@@ -1,8 +1,13 @@
 <template>
-	<EmptyState
-		v-if="isObjectEmpty(componentProps)"
-		:message="`${block?.getBlockDescription()} has no editable properties`"
-	/>
+	<template v-if="isObjectEmpty(componentProps)">
+		<EmptyState v-if="showComponentEditorLink">
+			<span>
+				No editable properties yet. Add inputs inside the
+				<button class="cursor-pointer underline" @click="openComponentEditor">component editor</button>
+			</span>
+		</EmptyState>
+		<EmptyState v-else :message="`${block?.getBlockDescription()} has no editable properties`" />
+	</template>
 	<div v-else class="mt-3 flex flex-col gap-3">
 		<div
 			v-for="(config, propName) in filteredComponentProps"
@@ -13,7 +18,7 @@
 				v-if="!isTestingComponent"
 				:block="block"
 				@update:modelValue="(value, bindVariable) => setDynamicValue(propName, value, bindVariable)"
-				:class="{ 'mt-1 self-start': isCodeField(config.inputType) }"
+				:class="{ 'mt-1 self-start': isCodeField(config.inputType) || Boolean(config.editor) }"
 				:isVariableBound="isVariableBound(config.modelValue)"
 			/>
 
@@ -22,6 +27,7 @@
 				:label="propName"
 				language="html"
 				:modelValue="getFormattedValue(propName)"
+				:placeholder="isMixed(propName) ? 'Mixed' : undefined"
 				@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 				:required="config.required"
 				:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
@@ -29,7 +35,7 @@
 				height="250px"
 				class="overflow-hidden"
 				:actionButton="{
-					icon: 'maximize',
+					icon: 'lucide-maximize',
 					label: 'Expand',
 					handler: () => {
 						if (!props.block) return
@@ -45,7 +51,7 @@
 						variant="ghost"
 						size="sm"
 						@click="toggleArrayInputs(propName)"
-						:icon="arrayInputs[propName] === 'code' ? 'table' : 'code'"
+						:icon="arrayInputs[propName] === 'code' ? 'lucide-table' : 'lucide-code'"
 						class="absolute right-0 top-0 z-10 hover:bg-transparent"
 						:tooltip="arrayInputs[propName] === 'code' ? 'Switch to table editor' : 'Switch to code editor'"
 					></Button>
@@ -54,13 +60,14 @@
 						:label="propName"
 						language="javascript"
 						:modelValue="getFormattedValue(propName)"
+						:placeholder="isMixed(propName) ? 'Mixed' : undefined"
 						@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 						:required="config.required"
 						:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
 						:showLineNumbers="false"
 						class="overflow-hidden"
 						:actionButton="{
-							icon: 'maximize',
+							icon: 'lucide-maximize',
 							label: 'Expand',
 							handler: () => {
 								if (!props.block) return
@@ -68,16 +75,30 @@
 							},
 						}"
 					/>
+					<component
+						v-else-if="config.editor && block"
+						:is="config.editor"
+						:label="propName"
+						:block="block"
+					/>
 					<ArrayInput
 						v-else-if="config.inputType === 'array'"
 						:label="propName"
 						:required="config.required"
 						:modelValue="getFormattedValue(propName)"
+						:emptyMessage="isMixed(propName) ? 'Mixed' : undefined"
 						@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 						:itemTypes="config.itemTypes"
 					/>
 				</div>
 			</template>
+			<component
+				v-else-if="config.editor && block"
+				:is="config.editor"
+				:label="propName"
+				:block="block"
+				class="min-w-0 flex-1"
+			/>
 			<InlineInput
 				v-else
 				:label="propName"
@@ -85,6 +106,7 @@
 				:options="config.options"
 				:required="config.required"
 				:modelValue="getFormattedValue(propName)"
+				:placeholder="isMixed(propName) ? 'Mixed' : undefined"
 				@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 				class="flex-1"
 				v-bind="config.props"
@@ -95,6 +117,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
+import { Button } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
 import Block from "@/utils/block"
 
@@ -108,8 +131,9 @@ import useComponentStore from "@/stores/componentStore"
 import { getComponentProps } from "@/utils/components"
 import { isDynamicValue } from "@/utils/code"
 import useCanvasStore from "@/stores/canvasStore"
+import blockController from "@/utils/blockController"
 import useComponentEditorStore from "@/stores/componentEditorStore"
-import type { ComponentProps } from "@/types"
+import type { ComponentProp, ComponentProps } from "@/types"
 import { ComponentInput } from "@/types/Studio/StudioComponent"
 import DynamicValueSelector from "@/components/DynamicValueSelector.vue"
 import useStudioStore from "@/stores/studioStore"
@@ -118,6 +142,7 @@ import useComponentInstance from "@/utils/useComponentInstance"
 const props = defineProps<{
 	block?: Block
 	isTestingComponent?: boolean
+	multiEdit?: boolean
 }>()
 
 const getCompletions = useStudioCompletions()
@@ -126,55 +151,60 @@ const store = useStudioStore()
 
 const componentInstance = useComponentInstance(() => props.block)
 
-const componentProps = computed(() => {
+const showComponentEditorLink = computed(() => props.block?.isStudioComponent && !props.isTestingComponent)
+
+const openComponentEditor = () => {
+	if (!props.block) return
+	useComponentEditorStore().editComponent(props.block.componentName)
+}
+
+const propConfigs = computed<ComponentProps>(() => {
 	if (!props.block || props.block.isRoot()) return {}
 
-	let propConfig
 	if (props.isTestingComponent) {
 		const componentEditorStore = useComponentEditorStore()
-		propConfig = getStudioComponentProps(componentEditorStore.componentInputs)
-	} else if (props.block.isStudioComponent) {
+		return getStudioComponentProps(componentEditorStore.componentInputs)
+	}
+	if (props.block.isStudioComponent) {
 		const componentStore = useComponentStore()
 		const componentDoc = componentStore.getComponentDoc(props.block.componentName)
-		if (componentDoc?.inputs) {
-			propConfig = getStudioComponentProps(componentDoc?.inputs)
-		}
-	} else if (componentInstance.value) {
-		propConfig = getComponentProps(props.block.componentName, componentInstance.value)
+		return componentDoc?.inputs ? getStudioComponentProps(componentDoc.inputs) : {}
 	}
-	if (!propConfig) return {}
+	if (componentInstance.value) {
+		return getComponentProps(props.block.componentName, componentInstance.value)
+	}
+	return {}
+})
 
-	const currentProps = props.block?.componentProps
-	const filteredProps: typeof propConfig = {}
+const componentProps = computed(() => {
+	const visibleProps: ComponentProps = {}
 
-	Object.entries(propConfig).forEach(([propName, config]) => {
-		const showProp = config.condition ? config.condition(currentProps) : true
-		if (!showProp) {
-			props.block?.removeProp(propName)
-			return
-		}
+	Object.entries(propConfigs.value).forEach(([propName, config]) => {
+		if (!isPropVisible(config)) return
 
-		if (props.block?.componentProps[propName] === undefined) {
-			const defaultValue = typeof config.default === "function" ? config.default() : config.default
-			config.modelValue = defaultValue
-			if (defaultValue !== undefined) {
-				props.block?.setProp(propName, defaultValue)
-			}
-		} else {
-			config.modelValue = props.block.componentProps[propName]
-		}
+		const propConfig = { ...config }
+		const value = props.block?.componentProps[propName]
+		propConfig.modelValue = value === undefined ? resolveDefault(config) : value
 
 		if (
-			(isDynamicValue(config.modelValue) || isVariableBound(config.modelValue)) &&
-			["select", "checkbox", "number"].includes(config.inputType)
+			(isDynamicValue(propConfig.modelValue) || isVariableBound(propConfig.modelValue)) &&
+			!isCodeField(propConfig.inputType)
 		) {
-			config.inputType = "text"
+			propConfig.inputType = "code"
 		}
-		filteredProps[propName] = config
+		visibleProps[propName] = propConfig
 	})
 
-	return filteredProps
+	return visibleProps
 })
+
+const isPropVisible = (config: ComponentProp, block = props.block) => {
+	return config.condition ? config.condition(block?.componentProps) : true
+}
+
+const resolveDefault = (config: ComponentProp) => {
+	return typeof config.default === "function" ? config.default() : config.default
+}
 
 const filteredComponentProps = computed(() => {
 	if (!store.propertyFilter) {
@@ -220,16 +250,53 @@ const isCodeField = (inputType: string) => {
 	return ["code", "html", "array"].includes(inputType)
 }
 
+function setProp(propName: string, value: any) {
+	if (props.multiEdit) {
+		blockController.setProp(propName, value)
+	} else {
+		props.block?.setProp(propName, value)
+	}
+	syncConditionalProps()
+}
+
+// sync conditional non-registered props like select -> options on FormControl
+function syncConditionalProps() {
+	const blocks = props.multiEdit ? blockController.getSelectedBlocks() : [props.block]
+	blocks.forEach((block) => {
+		if (!block) return
+		Object.entries(propConfigs.value).forEach(([propName, config]) => {
+			if (!config.condition) return
+			if (!isPropVisible(config, block)) {
+				block.removeProp(propName)
+			} else if (block.componentProps[propName] === undefined) {
+				const defaultValue = resolveDefault(config)
+				if (defaultValue !== undefined) block.setProp(propName, defaultValue)
+			}
+		})
+	})
+}
+
 function setDynamicValue(propName: string, varName: string, bindVariable: boolean) {
 	if (bindVariable) {
-		props.block?.setProp(propName, { $type: "variable", name: varName })
+		setProp(propName, { $type: "variable", name: varName })
 	} else {
-		props.block?.setProp(propName, `{{ ${varName} }}`)
+		setProp(propName, `{{ ${varName} }}`)
 	}
 }
 
-const getFormattedValue = (propName: string) => {
+const getRawValue = (propName: string) => {
+	if (props.multiEdit) return blockController.getProp(propName)
 	const value = props.block?.componentProps[propName]
+	// unset props fall back to the component default, which is no longer stored on the block
+	return value === undefined ? componentProps.value[propName]?.modelValue : value
+}
+
+const isMixed = (propName: string) => props.multiEdit && getRawValue(propName) === "Mixed"
+
+const getFormattedValue = (propName: string) => {
+	const value = getRawValue(propName)
+	// mixed values across a multi-selection are surfaced via a placeholder, not a real value
+	if (isMixed(propName)) return ""
 	if (value?.$type === "variable") {
 		return `{{ ${value.name} }}`
 	}
@@ -237,7 +304,7 @@ const getFormattedValue = (propName: string) => {
 }
 
 const handlePropUpdate = (propName: string, newValue: any) => {
-	props.block?.setProp(propName, newValue)
+	setProp(propName, newValue)
 }
 
 const isVariableBound = (value: any) => {

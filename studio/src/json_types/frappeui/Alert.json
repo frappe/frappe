@@ -27,7 +27,7 @@
         "description": {
           "type": "string"
         },
-        "dismissable": {
+        "dismissible": {
           "type": "boolean"
         }
       },

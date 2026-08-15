@@ -10,10 +10,22 @@
 		<!-- Component name label -->
 		<span
 			v-if="!props.block.isRoot()"
-			class="absolute -top-3 left-0 inline-block text-xs"
+			class="absolute -top-3 left-0 inline-flex items-center gap-1 text-xs"
 			:class="componentLabelClasses"
 		>
+			<LucideRepeat v-if="block.isRepeater() || block.isRepeated()" class="h-3 w-3 shrink-0" />
 			{{ block.getBlockDescription() }}
+			<template v-if="showEditComponentAction">
+				<span class="mx-2 h-3 w-px bg-current opacity-30"></span>
+				<button
+					class="pointer-events-auto inline-flex cursor-pointer items-center gap-1 font-medium hover:opacity-80"
+					title="Edit component"
+					@click.stop="openComponentEditor"
+				>
+					<LucidePenLine class="h-2.5 w-2.5" />
+					Edit
+				</button>
+			</template>
 		</span>
 
 		<PaddingHandler
@@ -42,62 +54,36 @@
 				:data-slot-name="slotName"
 				:data-slot-id="slot.slotId"
 				:data-component-id="block.componentId"
-				class="pointer-events-none fixed ring-2 ring-inset ring-purple-500"
+				class="pointer-events-none fixed ring-2 ring-inset ring-outline-purple-5"
 				:class="isSlotSelected(slot.slotId) ? 'opacity-100' : 'opacity-65'"
 				:style="{
-					// set min height and width so that slots without content are visible
-					minWidth: `calc(${12}px * ${canvasProps.scale})`,
-					minHeight: `calc(${12}px * ${canvasProps.scale})`,
+					minWidth: `calc(${20}px * ${canvasProps.scale})`,
+					minHeight: `calc(${20}px * ${canvasProps.scale})`,
 				}"
 			>
 				<span
-					class="absolute -top-3 left-0 inline-block text-nowrap text-xs text-white"
-					:class="isSlotSelected(slot.slotId) ? 'bg-purple-500' : 'bg-purple-500/65'"
+					class="absolute -top-3 left-0 inline-block text-nowrap text-xs text-ink-base"
+					:class="isSlotSelected(slot.slotId) ? 'bg-surface-purple-6' : 'bg-surface-purple-6/65'"
 				>
 					#{{ slotName }}
 				</span>
 			</div>
 		</template>
 	</div>
-
-	<Dialog
-		v-if="canvasStore.activeCanvas?.selectedSlot?.slotId"
-		v-model="store.showSlotEditorDialog"
-		class="overscroll-none"
-		:options="{
-			title: `Edit #${canvasStore.activeCanvas?.selectedSlot?.slotName} slot for ${block.componentName}`,
-			size: '3xl',
-		}"
-	>
-		<template #body-content>
-			<Code
-				:modelValue="block.getSlotContent(canvasStore.activeCanvas?.selectedSlot?.slotName) || ''"
-				language="html"
-				height="60vh"
-				:showSaveButton="true"
-				@save="
-					(val) => {
-						if (!canvasStore.activeCanvas?.selectedSlot) return
-						props.block.updateSlot(canvasStore.activeCanvas?.selectedSlot?.slotName, val)
-						store.showSlotEditorDialog = false
-					}
-				"
-			/>
-		</template>
-	</Dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, Ref, watchEffect, nextTick, inject, watch } from "vue"
-import { Dialog } from "frappe-ui"
 import BoxResizer from "@/components/BoxResizer.vue"
 import PaddingHandler from "@/components/PaddingHandler.vue"
 import MarginHandler from "@/components/MarginHandler.vue"
-import Code from "@/components/Code.vue"
+import LucideRepeat from "~icons/lucide/repeat"
+import LucidePenLine from "~icons/lucide/pen-line"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
+import useComponentEditorStore from "@/stores/componentEditorStore"
 import trackTarget, { Tracker } from "@/utils/trackTarget"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
@@ -155,9 +141,9 @@ const getStyleClasses = computed(() => {
 	const classes = []
 
 	if (props.block.isStudioComponent) {
-		classes.push("ring-purple-400")
+		classes.push("ring-outline-purple-4")
 	} else {
-		classes.push("ring-blue-400")
+		classes.push("ring-outline-blue-4")
 	}
 
 	if (isBlockSelected.value && !props.block.isRoot() && !canvasStore.isDragging) {
@@ -169,11 +155,21 @@ const getStyleClasses = computed(() => {
 	return classes
 })
 
+const showEditComponentAction = computed(() => {
+	return isBlockSelected.value && props.block.isStudioComponent && !canvasStore.isDragging
+})
+
+const openComponentEditor = () => {
+	useComponentEditorStore().editComponent(props.block.componentName)
+}
+
 const componentLabelClasses = computed(() => {
 	if (isBlockSelected.value) {
-		return props.block.isStudioComponent ? "bg-purple-500 text-white" : "bg-blue-500 text-white"
+		return props.block.isStudioComponent
+			? "bg-surface-purple-6 text-ink-base"
+			: "bg-surface-blue-6 text-ink-base"
 	} else {
-		return props.block.isStudioComponent ? "text-purple-500" : "text-blue-500"
+		return props.block.isStudioComponent ? "text-ink-purple-6" : "text-ink-blue-6"
 	}
 })
 
@@ -256,32 +252,30 @@ const setSlotOverlayRefs = (slotName: string, element: HTMLElement | null) => {
 const updateSlotOverlayRefs = () => {
 	if (!props.target) return
 
-	// Find all slot elements within the target
+	const slotIDs = new Set(Object.values(props.block.componentSlots).map((slot) => slot.slotId))
 	const slotElements = props.target.querySelectorAll("[data-slot-name]")
-	const handledSlots = new Set<string>()
+	const elementsBySlot: Record<string, HTMLElement[]> = {}
 
-	slotElements.forEach((element) => {
-		const slotName = (element as HTMLElement).dataset.slotName
-		if (!slotName || !slotOverlays.value[slotName]) return
+	slotElements.forEach((el) => {
+		const element = el as HTMLElement
+		const slotName = element.dataset.slotName
+		const slotId = element.dataset.slotId
+		if (!slotName || !slotId || !slotIDs.has(slotId) || !slotOverlays.value[slotName]) return
 
-		handledSlots.add(slotName)
+		if (!elementsBySlot[slotName]) elementsBySlot[slotName] = []
+		elementsBySlot[slotName].push(element)
+	})
 
+	Object.entries(elementsBySlot).forEach(([slotName, elements]) => {
 		// always clean up existing tracker and create a new one since underlying
 		// slot elements might completely change, unlike the main component editor
-		if (slotTrackers.value[slotName]) {
-			slotTrackers.value[slotName].cleanup()
-		}
-
-		slotTrackers.value[slotName] = trackTarget(
-			element as HTMLElement,
-			slotOverlays.value[slotName],
-			canvasProps,
-		)
+		slotTrackers.value[slotName]?.cleanup()
+		slotTrackers.value[slotName] = trackTarget(elements, slotOverlays.value[slotName], canvasProps)
 	})
 
 	// Clean up trackers for removed slots
 	Object.keys(slotTrackers.value).forEach((slotName) => {
-		if (!handledSlots.has(slotName)) {
+		if (!elementsBySlot[slotName]) {
 			slotTrackers.value[slotName].cleanup()
 			delete slotTrackers.value[slotName]
 		}

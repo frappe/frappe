@@ -1,24 +1,20 @@
 <template>
-	<div class="flex flex-row overflow-auto shadow-lg">
+	<div class="flex flex-row overflow-auto border-r border-outline-gray-2">
 		<!-- Primary Menu -->
-		<div class="relative flex h-full w-12 flex-col space-y-2 border-r border-gray-200 bg-white p-3">
-			<div
-				class="flex items-center"
-				v-for="tab in sidebarMenu"
-				:key="tab.label"
-				@click="setActiveTab(tab.label as LeftPanelOptions)"
-			>
-				<Tooltip placement="right" :text="tab.label" :hover-delay="0.1">
-					<div
-						class="flex cursor-pointer items-center justify-center gap-2 truncate rounded px-3 py-1 transition duration-300 ease-in-out"
-						:class="
-							activeTab === tab.label ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:text-gray-700'
-						"
-					>
-						<FeatherIcon :name="tab.icon" class="h-5 w-5" />
-					</div>
-				</Tooltip>
-			</div>
+		<div
+			class="flex h-full w-12 flex-col items-center space-y-2 border-r border-outline-elevation-2 bg-surface-base p-3"
+		>
+			<Tooltip v-for="tab in sidebarMenu" :key="tab.label" placement="right" :text="tab.label">
+				<Button
+					:icon="tab.icon"
+					size="md"
+					:variant="store.studioLayout.leftPanelActiveTab === tab.label ? 'subtle' : 'ghost'"
+					:class="{
+						'!text-ink-gray-6': store.studioLayout.leftPanelActiveTab !== tab.label,
+					}"
+					@click.stop="setActiveTab(tab.label as LeftPanelOptions)"
+				/>
+			</Tooltip>
 		</div>
 
 		<!-- Secondary Menu -->
@@ -30,7 +26,7 @@
 			<div
 				v-show="store.studioLayout.showLeftPanel"
 				:style="{ width: `${store.studioLayout.leftPanelWidth - 48}px` }"
-				class="overflow-auto border-r-[1px] pb-5 hide-scrollbar"
+				class="flex flex-col overflow-auto border-r-[1px] hide-scrollbar"
 			>
 				<PanelResizer
 					:dimension="store.studioLayout.leftPanelWidth"
@@ -39,11 +35,11 @@
 					@resize="(width) => (store.studioLayout.leftPanelWidth = width)"
 				/>
 				<div
-					class="sticky top-0 z-[12] flex justify-between border-b-[1px] border-gray-200 bg-white p-3 text-base font-semibold text-gray-800"
+					class="text-base-semibold sticky left-0 top-0 z-[12] flex w-full shrink-0 justify-between border-b-[1px] border-outline-elevation-2 bg-surface-base p-3 text-ink-gray-7"
 				>
 					{{ activeTab }}
 					<IconButton
-						icon="chevrons-left"
+						:icon="LucideChevronsLeft"
 						label="Collapse"
 						@click="store.studioLayout.showLeftPanel = false"
 					/>
@@ -63,8 +59,10 @@
 				<DataPanel v-show="activeTab === 'Data'" />
 
 				<div v-show="activeTab === 'Code'">
-					<CodePanel class="p-4" v-if="store.activePage" :page="store.activePage" :key="store.selectedPage" />
+					<CodePanel class="p-3" v-if="store.activePage" />
 				</div>
+
+				<AIChatPanel v-show="activeTab === 'AI Assistant'" />
 			</div>
 		</transition>
 	</div>
@@ -72,7 +70,7 @@
 
 <script setup lang="ts">
 import { watch, computed, nextTick } from "vue"
-import { Tooltip, FeatherIcon } from "frappe-ui"
+import { Tooltip, Button } from "frappe-ui"
 
 import PagesPanel from "@/components/PagesPanel.vue"
 import PanelResizer from "@/components/PanelResizer.vue"
@@ -81,6 +79,8 @@ import ComponentLayers from "@/components/ComponentLayers.vue"
 import DataPanel from "@/components/DataPanel.vue"
 import CodePanel from "@/components/CodePanel.vue"
 import IconButton from "@/components/IconButton.vue"
+import LucideChevronsLeft from "~icons/lucide/chevrons-left"
+import AIChatPanel from "@/components/AIChatPanel.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
@@ -90,23 +90,27 @@ import type { LeftPanelOptions } from "@/types"
 const sidebarMenu = [
 	{
 		label: "Pages",
-		icon: "book",
+		icon: "lucide-book",
 	},
 	{
 		label: "Add Component",
-		icon: "plus-circle",
+		icon: "lucide-plus-circle",
 	},
 	{
 		label: "Layers",
-		icon: "layers",
+		icon: "lucide-layers",
 	},
 	{
 		label: "Data",
-		icon: "database",
+		icon: "lucide-database",
 	},
 	{
 		label: "Code",
-		icon: "code",
+		icon: "lucide-code",
+	},
+	{
+		label: "AI Assistant",
+		icon: "lucide-sparkle",
 	},
 ]
 const store = useStudioStore()
@@ -148,9 +152,28 @@ watch(
 					.querySelector(`[data-component-layer-id="${block.componentId}"]`)
 					?.classList.add("block-selected")
 			})
+			scrollSelectedLayerIntoView()
 		}
 	},
 	{ deep: true },
+)
+
+const scrollSelectedLayerIntoView = () => {
+	const block = canvasStore.activeCanvas?.selectedBlocks[0]
+	if (!block) return
+	document
+		.querySelector(`[data-component-layer-id="${block.componentId}"] .layer-label`)
+		?.scrollIntoView({ block: "nearest", inline: "nearest" })
+}
+
+watch(
+	() => activeTab.value === "Layers" && store.studioLayout.showLeftPanel,
+	async (layersVisible) => {
+		if (layersVisible) {
+			await nextTick()
+			scrollSelectedLayerIntoView()
+		}
+	},
 )
 
 watch(

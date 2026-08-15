@@ -3,7 +3,9 @@ import Block from "@/utils/block"
 import { getBlockInstance, getComponentBlock } from "@/utils/serializer"
 import getBlockTemplate from "@/utils/blockTemplate"
 import { useDropZone } from "@vueuse/core"
+import { toast } from "frappe-ui"
 import { Ref } from "vue"
+import { FrappeUIComponent } from "@/types"
 
 const canvasStore = useCanvasStore()
 type LayoutDirection = "row" | "column"
@@ -24,6 +26,8 @@ export function useCanvasDropZone(
 			if (!componentName) return
 
 			const componentDef = Block.getComponents()?.[componentName]
+			if (componentDef && !canDrop(componentDef, parentComponent)) return
+
 			let newBlock: Block
 
 			if (componentDef?.blockTemplate) {
@@ -180,6 +184,13 @@ export function useCanvasDropZone(
 		canvasStore.dropTarget.slotName = slotName
 		canvasStore.dropTarget.x = ev.x
 		canvasStore.dropTarget.y = ev.y
+	}
+
+	const canDrop = (componentDef: FrappeUIComponent, parentComponent: Block) => {
+		if (parentComponent.canAddChild(componentDef)) return true
+		const familyRoot = Block.getComponents()?.[componentDef.group as string]
+		toast.warning(`${componentDef.title} can only be placed inside a ${familyRoot?.title || componentDef.group}`)
+		return false
 	}
 
 	return { isOverDropZone }

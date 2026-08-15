@@ -39,7 +39,7 @@
               "type": "string"
             },
             "onClick": {
-              "$comment": "() => void"
+              "type": "object"
             }
           },
           "required": [

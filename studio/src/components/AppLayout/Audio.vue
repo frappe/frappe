@@ -9,19 +9,19 @@
 		<div class="mb-6 flex items-center justify-center space-x-8">
 			<button
 				@click="previousTrack"
-				class="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-50 focus:outline-none"
+				class="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-gray-1 focus:outline-none"
 			>
 				<FeatherIcon name="skip-back" class="h-6 w-6 fill-gray-800 stroke-gray-800" />
 			</button>
 			<button
 				@click="togglePlay"
-				class="flex h-16 w-16 items-center justify-center rounded-full bg-gray-800 focus:outline-none"
+				class="flex h-16 w-16 items-center justify-center rounded-full bg-surface-gray-9 focus:outline-none"
 			>
 				<FeatherIcon :name="isPlaying ? 'pause' : 'play'" class="h-6 w-6 fill-white stroke-white" />
 			</button>
 			<button
 				@click="nextTrack"
-				class="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-50 focus:outline-none"
+				class="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-gray-1 focus:outline-none"
 			>
 				<FeatherIcon name="skip-forward" class="h-6 w-6 fill-gray-800 stroke-gray-800" />
 			</button>
@@ -33,10 +33,10 @@
 				:max="duration"
 				:value="currentTime"
 				@input="seek"
-				class="h-2 w-full cursor-pointer rounded-lg bg-gray-200 accent-gray-800 dark:bg-gray-700"
+				class="h-2 w-full cursor-pointer rounded-lg bg-surface-gray-3 accent-gray-800 dark:bg-surface-gray-8"
 			/>
 		</div>
-		<div class="mt-2 flex justify-between text-sm text-gray-700">
+		<div class="mt-2 flex justify-between text-sm text-ink-gray-6">
 			<span>{{ formatTime(currentTime) }}</span>
 			<span>{{ formatTime(duration) }}</span>
 		</div>

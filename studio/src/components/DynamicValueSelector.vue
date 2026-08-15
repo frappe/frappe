@@ -19,9 +19,9 @@
 			/>
 			<IconButton
 				v-else
-				icon="plus-circle"
+				:icon="LucideCirclePlus"
 				label="Click to set dynamic value"
-				placement="bottom"
+				placement="left"
 				class="mr-1"
 				size="sm"
 				:tabIndex="-1"
@@ -33,7 +33,7 @@
 			<span class="text-ink-gray-4">{{ option.type?.toLowerCase() }}</span>
 		</template>
 		<template #footer v-if="dynamicValueOptions.length > 0">
-			<div class="flex items-center gap-1 p-2" @mousedown.prevent>
+			<div class="flex items-center gap-1 px-2" @mousedown.prevent>
 				<Tooltip text="Changing the selected variable value will change the prop value and vice versa">
 					<FeatherIcon name="info" class="size-3 text-ink-gray-5" />
 				</Tooltip>
@@ -45,7 +45,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import { Autocomplete, Switch, Tooltip } from "frappe-ui"
+import { Autocomplete, Switch, Tooltip, FeatherIcon } from "frappe-ui"
 import IconButton from "@/components/IconButton.vue"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
@@ -53,9 +53,12 @@ import useComponentEditorStore from "@/stores/componentEditorStore"
 import Block from "@/utils/block"
 import type { VariableOption } from "@/types/Studio/StudioPageVariable"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
+import type { SlotScope } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
+import { getBindingType } from "@/utils/parseCode"
 import useCodeStore from "@/stores/codeStore"
 import Link2 from "~icons/lucide/link-2"
+import LucideCirclePlus from "~icons/lucide/circle-plus"
 
 const props = defineProps<{ block?: Block; isVariableBound?: string | null }>()
 const emit = defineEmits<{
@@ -102,6 +105,16 @@ const dynamicValueOptions = computed(() => {
 				items: store.variableOptions,
 			})
 		}
+
+		// Scoped slot props exposed by the enclosing component (Repeater's dataItem, List's item, ...)
+		const slotScopeOptions = getSlotScopeOptions(props.block?.slotScope)
+		if (slotScopeOptions.length) {
+			groups.push({
+				group: props.block?.isRepeated() ? "Repeater Scope" : "Slot Scope",
+				items: slotScopeOptions,
+			})
+		}
+
 		// Data Sources group
 		const dataSourceOptions = Object.keys(codeStore.resources).map((resourceName) => {
 			const completion =
@@ -120,22 +133,38 @@ const dynamicValueOptions = computed(() => {
 				items: dataSourceOptions,
 			})
 		}
-	}
 
-	// Repeater Data Item group
-	const repeaterContext = props.block?.repeaterDataItem
-	if (!isObjectEmpty(repeaterContext)) {
-		const repeaterOptions = Object.keys(repeaterContext!).map((key) => ({
-			value: `dataItem.${key}`,
-			label: `dataItem.${key}`,
-			type: typeof repeaterContext![key],
-		}))
-		groups.push({
-			group: "Repeater",
-			items: repeaterOptions,
+		// Page script bindings group (refs/reactive/computed/functions
+		const pageScriptOptions = Object.entries(codeStore.pageScriptBindings).map(([name, binding]) => {
+			const bindingType = getBindingType(binding)
+			const value = bindingType === "function" ? `${name}()` : name
+			return {
+				value,
+				label: name,
+				type: bindingType,
+			}
 		})
+		if (pageScriptOptions.length > 0) {
+			groups.push({
+				group: "Page Script",
+				items: pageScriptOptions,
+			})
+		}
 	}
 
 	return groups
 })
+
+function getSlotScopeOptions(slotScope?: SlotScope | null): VariableOption[] {
+	return Object.entries(slotScope || {}).flatMap(([name, value]) => {
+		if (value && typeof value === "object" && !Array.isArray(value)) {
+			return Object.keys(value).map((key) => ({
+				value: `${name}.${key}`,
+				label: `${name}.${key}`,
+				type: typeof value[key],
+			}))
+		}
+		return [{ value: name, label: name, type: typeof value }]
+	})
+}
 </script>

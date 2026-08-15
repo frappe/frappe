@@ -9,14 +9,14 @@
 		@click.stop
 	>
 		<div
-			class="padding-handler pointer-events-none absolute flex w-full bg-purple-400"
+			class="padding-handler pointer-events-none absolute flex w-full bg-surface-purple-5"
 			:style="{
 				height: topPaddingHandlerHeight + 'px',
 			}"
 			ref="topPaddingHandler"
 		>
 			<div
-				class="pointer-events-auto absolute left-[50%] rounded-full border-2 border-purple-500 bg-purple-400 hover:scale-125"
+				class="pointer-events-auto absolute left-[50%] rounded-full border-2 border-outline-purple-5 bg-surface-purple-5 hover:scale-125"
 				v-show="canvasProps.scale > 0.5"
 				:style="{
 					borderWidth: handleBorderWidth,
@@ -31,19 +31,19 @@
 				}"
 				@mousedown.stop="handlePadding($event, Position.Top)"
 			/>
-			<div class="m-auto text-sm text-purple-900" v-show="updating">
+			<div class="m-auto text-sm text-ink-purple-10" v-show="updating">
 				{{ blockStyles.paddingTop }}
 			</div>
 		</div>
 		<div
-			class="padding-handler pointer-events-none absolute bottom-0 flex w-full bg-purple-400"
+			class="padding-handler pointer-events-none absolute bottom-0 flex w-full bg-surface-purple-5"
 			:style="{
 				height: bottomPaddingHandlerHeight + 'px',
 			}"
 			ref="bottomPaddingHandler"
 		>
 			<div
-				class="pointer-events-auto absolute left-[50%] rounded-full border-2 border-purple-500 bg-purple-400 hover:scale-125"
+				class="pointer-events-auto absolute left-[50%] rounded-full border-2 border-outline-purple-5 bg-surface-purple-5 hover:scale-125"
 				v-show="canvasProps.scale > 0.5"
 				:style="{
 					borderWidth: handleBorderWidth,
@@ -58,19 +58,19 @@
 				}"
 				@mousedown.stop="handlePadding($event, Position.Bottom)"
 			/>
-			<div class="m-auto text-sm text-purple-900" v-show="updating">
+			<div class="m-auto text-sm text-ink-purple-10" v-show="updating">
 				{{ blockStyles.paddingBottom }}
 			</div>
 		</div>
 		<div
-			class="padding-handler pointer-events-none absolute left-0 flex h-full bg-purple-400"
+			class="padding-handler pointer-events-none absolute left-0 flex h-full bg-surface-purple-5"
 			:style="{
 				width: leftPaddingHandlerWidth + 'px',
 			}"
 			ref="leftPaddingHandler"
 		>
 			<div
-				class="pointer-events-auto absolute top-[50%] rounded-full border-2 border-purple-500 bg-purple-400 hover:scale-125"
+				class="pointer-events-auto absolute top-[50%] rounded-full border-2 border-outline-purple-5 bg-surface-purple-5 hover:scale-125"
 				v-show="canvasProps.scale > 0.5"
 				:style="{
 					borderWidth: handleBorderWidth,
@@ -85,19 +85,19 @@
 				}"
 				@mousedown.stop="handlePadding($event, Position.Left)"
 			/>
-			<div class="m-auto text-sm text-purple-900" v-show="updating">
+			<div class="m-auto text-sm text-ink-purple-10" v-show="updating">
 				{{ blockStyles.paddingLeft }}
 			</div>
 		</div>
 		<div
-			class="padding-handler pointer-events-none absolute right-0 flex h-full bg-purple-400"
+			class="padding-handler pointer-events-none absolute right-0 flex h-full bg-surface-purple-5"
 			:style="{
 				width: rightPaddingHandlerWidth + 'px',
 			}"
 			ref="rightPaddingHandler"
 		>
 			<div
-				class="pointer-events-auto absolute top-[50%] rounded-full border-2 border-purple-500 bg-purple-400 hover:scale-125"
+				class="pointer-events-auto absolute top-[50%] rounded-full border-2 border-outline-purple-5 bg-surface-purple-5 hover:scale-125"
 				v-show="canvasProps.scale > 0.5"
 				:style="{
 					borderWidth: handleBorderWidth,
@@ -112,7 +112,7 @@
 				}"
 				@mousedown.stop="handlePadding($event, Position.Right)"
 			/>
-			<div class="m-auto text-sm text-purple-900" v-show="updating">
+			<div class="m-auto text-sm text-ink-purple-10" v-show="updating">
 				{{ blockStyles.paddingRight }}
 			</div>
 		</div>

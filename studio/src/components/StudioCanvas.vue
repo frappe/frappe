@@ -1,82 +1,80 @@
 <template>
-	<div ref="canvasContainer">
+	<div ref="canvasContainer" @click="handleClick">
 		<slot name="header"></slot>
-		<div
-			class="overlay absolute"
-			:class="{ 'pointer-events-none': isOverDropZone }"
-			id="overlay"
-			ref="overlay"
-		/>
+		<div class="overlay absolute" :class="{ 'pointer-events-none': isOverDropZone }" ref="overlay" />
 		<Transition name="fade">
 			<div
-				class="absolute bottom-0 left-0 right-0 top-0 z-[19] grid w-full place-items-center bg-gray-50"
+				class="absolute bottom-0 left-0 right-0 top-0 z-[19] grid w-full place-items-center bg-surface-gray-1"
 				v-show="store.settingPage"
 			>
-				<LoadingIndicator class="h-5 w-5 text-gray-700" />
+				<LoadingIndicator class="h-5 w-5 text-ink-gray-6" />
 			</div>
 		</Transition>
 
 		<div
-			class="fixed flex gap-40"
-			:class="canvasStore.editingMode === 'page' ? 'h-full' : ''"
+			class="fixed flex flex-col"
 			ref="canvas"
 			:style="{
 				transformOrigin: 'top center',
 				transform: `scale(${canvasProps.scale}) translate(${canvasProps.translateX}px, ${canvasProps.translateY}px)`,
 			}"
 		>
-			<div class="dark:bg-zinc-900 absolute right-0 top-[-60px] flex rounded-md bg-white px-3">
+			<div class="dark:bg-zinc-900 absolute right-0 top-[-60px] flex rounded-md bg-surface-base px-3">
 				<div
 					v-show="!canvasProps.scaling && !canvasProps.panning"
 					class="w-auto cursor-pointer p-2"
 					v-for="breakpoint in canvasProps.breakpoints"
 					:key="breakpoint.device"
-					@click.stop="breakpoint.visible = !breakpoint.visible"
+					@click.stop="selectBreakpoint(breakpoint)"
 				>
 					<FeatherIcon
 						:name="breakpoint.icon"
 						class="h-8 w-6"
 						:class="{
-							'dark:text-zinc-50 text-gray-700': breakpoint.visible,
-							'dark:text-zinc-500 text-gray-300': !breakpoint.visible,
+							'dark:text-zinc-50 text-ink-gray-6': breakpoint.visible,
+							'dark:text-zinc-500 text-ink-gray-2': !breakpoint.visible,
 						}"
 					/>
 				</div>
 			</div>
-			<div
-				class="canvas relative flex h-full bg-surface-white shadow-2xl contain-layout"
-				:style="{
-					...canvasStyles,
-					background: canvasProps.background,
-					width: `${breakpoint.width}px`,
-				}"
-				v-for="breakpoint in visibleBreakpoints"
-				:key="breakpoint.device"
-			>
+			<div class="flex gap-40">
 				<div
-					class="cursor dark:text-zinc-300 absolute left-0 select-none text-3xl text-gray-700"
+					class="canvas relative flex bg-surface-base shadow-2xl contain-layout"
+					v-for="breakpoint in visibleBreakpoints"
+					:key="breakpoint.device"
+					:class="canvasStore.editingMode === 'page' ? 'min-h-[100dvh]' : ''"
 					:style="{
-						fontSize: `calc(${12}px * 1/${canvasProps.scale})`,
-						top: `calc(${-20}px * 1/${canvasProps.scale})`,
+						...canvasStyles,
+						background: canvasProps.background,
+						width: `${breakpoint.width}px`,
 					}"
-					v-show="!canvasProps.scaling && !canvasProps.panning"
-					@click="activeBreakpoint = breakpoint.device"
 				>
-					{{ breakpoint.displayName }}
+					<div
+						class="cursor dark:text-zinc-300 absolute left-0 select-none text-4xl text-ink-gray-6"
+						:style="{
+							fontSize: `calc(${12}px * 1/${canvasProps.scale})`,
+							top: `calc(${-20}px * 1/${canvasProps.scale})`,
+						}"
+						v-show="!canvasProps.scaling && !canvasProps.panning"
+						@click="activeBreakpoint = breakpoint.device"
+					>
+						{{ breakpoint.displayName }}
+					</div>
+					<StudioComponent
+						:class="canvasStore.editingMode === 'fragment' ? '' : 'h-full min-h-[inherit]'"
+						v-if="showBlocks && rootComponent"
+						:block="rootComponent"
+						:key="rootComponent.componentId"
+						:breakpoint="breakpoint.device"
+						:isEditingComponent="canvasStore.editingMode === 'component'"
+					/>
 				</div>
-				<StudioComponent
-					class="h-full min-h-[inherit]"
-					v-if="showBlocks && rootComponent"
-					:block="rootComponent"
-					:key="rootComponent.componentId"
-					:breakpoint="breakpoint.device"
-					:isEditingComponent="canvasStore.editingMode === 'component'"
-				/>
 			</div>
+			<slot name="afterCanvas" :rootBlock="rootComponent"></slot>
 		</div>
 
 		<div
-			class="fixed bottom-12 left-[50%] z-40 flex translate-x-[-50%] cursor-default items-center justify-center gap-2 rounded-lg bg-white px-3 py-2 text-center text-sm font-semibold text-gray-600 shadow-md"
+			class="text-sm-semibold fixed bottom-12 left-[50%] z-40 flex translate-x-[-50%] cursor-default items-center justify-center gap-2 rounded-lg bg-surface-base px-3 py-2 text-center text-ink-gray-5 shadow-md"
 			v-show="!canvasProps.panning"
 		>
 			{{ Math.round(canvasProps.scale * 100) + "%" }}
@@ -102,7 +100,7 @@
 
 <script setup lang="ts">
 import { Ref, ref, watch, reactive, computed, onMounted, provide } from "vue"
-import { LoadingIndicator } from "frappe-ui"
+import { LoadingIndicator, FeatherIcon } from "frappe-ui"
 import StudioComponent from "@/components/StudioComponent.vue"
 import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
 import DraggablePopup from "@/components/DraggablePopup.vue"
@@ -175,8 +173,9 @@ const canvasProps = reactive({
 provide("canvasProps", canvasProps)
 
 const visibleBreakpoints = computed(() => {
-	return canvasProps.breakpoints.filter((breakpoint) => breakpoint.visible || breakpoint.device === "desktop")
+	return canvasProps.breakpoints.filter((breakpoint) => breakpoint.visible)
 })
+
 watch(
 	() => canvasProps.breakpoints.map((b) => b.visible),
 	() => {
@@ -186,6 +185,12 @@ watch(
 		setScaleAndTranslate()
 	},
 )
+function selectBreakpoint(breakpoint: BreakpointConfig) {
+	breakpoint.visible = !breakpoint.visible
+	if (canvasProps.breakpoints.filter((bp) => bp.visible).length === 0) {
+		breakpoint.visible = true
+	}
+}
 
 // clone props.block into canvas data to avoid mutating them
 const rootComponent = ref(getBlockCopy(props.componentTree, true))
@@ -207,6 +212,8 @@ function setActiveBreakpoint(breakpoint: string | null) {
 }
 
 const selectedBlockIds = ref<Set<string>>(new Set())
+// anchor for shift-click range selection, set by plain/multi clicks and held fixed across shift-clicks
+const selectionAnchorId = ref<string | null>(null)
 const selectedBlocks = computed(() => {
 	return (
 		Array.from(selectedBlockIds.value)
@@ -216,20 +223,25 @@ const selectedBlocks = computed(() => {
 	)
 }) as Ref<Block[]>
 
-function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false, setBreakpoint = true) {
+function selectBlock(block: Block, e: MouseEvent | null, setBreakpoint = true) {
 	if (store.settingPage) return
 
-	selectBlockById(block.componentId, e, multiSelect)
+	if (e && e.shiftKey) {
+		selectBlockRange(block)
+	} else if (e && (e.metaKey || e.ctrlKey)) {
+		toggleBlockSelection(block)
+	} else {
+		selectBlockById(block.componentId)
+		// family-specific selection behavior (e.g. selecting a nav item activates its tab)
+		Block.getComponents()?.[block.componentName]?.onSelect?.(block)
+	}
+
 	if (setBreakpoint && e) {
 		const { breakpoint } = getBlockInfo(e)
 		setActiveBreakpoint(breakpoint)
 	}
 
-	if (block.isContainer()) {
-		store.studioLayout.leftPanelActiveTab = "Layers"
-	}
-
-	if (block.isText() || block.isContainer()) {
+	if (block.isRoot() || block.isText() || block.isContainer()) {
 		// combined props and styles
 		store.studioLayout.rightPanelActiveTab = "Styles"
 	} else {
@@ -237,16 +249,55 @@ function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false, se
 	}
 }
 
-function selectBlockById(blockId: string, e: MouseEvent | null, multiSelect = false) {
-	if (multiSelect) {
-		selectedBlockIds.value.add(blockId)
+function selectBlockById(blockId: string) {
+	selectedBlockIds.value = new Set([blockId])
+	selectionAnchorId.value = blockId
+}
+
+function toggleBlockSelection(block: Block) {
+	if (selectedBlockIds.value.has(block.componentId)) {
+		selectedBlockIds.value.delete(block.componentId)
 	} else {
-		selectedBlockIds.value = new Set([blockId])
+		selectedBlockIds.value.add(block.componentId)
+	}
+	selectionAnchorId.value = block.componentId
+}
+
+function selectBlockRange(block: Block) {
+	const anchor = selectionAnchorId.value ? findBlock(selectionAnchorId.value) : null
+	const parent = anchor?.getParentBlock()
+	// range selection only works among siblings sharing a parent AND slot; otherwise fall back to single select
+	if (
+		!anchor ||
+		!parent ||
+		parent !== block.getParentBlock() ||
+		anchor.parentSlotName !== block.parentSlotName
+	) {
+		selectBlockById(block.componentId)
+		return
+	}
+	const siblings = anchor.parentSlotName
+		? (parent.getSlotContent(anchor.parentSlotName) as Block[])
+		: parent.children
+	// replace the selection with the anchor→block range so repeated shift-clicks grow/shrink it
+	const start = parent.getChildIndex(anchor)
+	const end = parent.getChildIndex(block)
+	const range = siblings.slice(Math.min(start, end), Math.max(start, end) + 1)
+	selectedBlockIds.value = new Set(range.map((child) => child.componentId))
+}
+
+const handleClick = (ev: MouseEvent) => {
+	const target = document.elementFromPoint(ev.clientX, ev.clientY)
+	// hack to ensure if click is on canvas-container
+	// TODO: Still clears selection if space handlers are dragged over canvas-container
+	if (target?.classList.contains("canvas-container")) {
+		clearSelection()
 	}
 }
 
 function clearSelection() {
 	selectedBlockIds.value = new Set()
+	selectionAnchorId.value = null
 }
 
 const isRootSelected = computed(() => {
@@ -259,7 +310,7 @@ const isRootSelected = computed(() => {
 const selectedSlot = ref<Slot | null>()
 function selectSlot(slot: Slot) {
 	selectedSlot.value = slot
-	selectBlockById(slot.parentBlockId, null)
+	selectBlockById(slot.parentBlockId)
 }
 
 const activeSlotIds = computed(() => {
@@ -331,6 +382,7 @@ defineExpose({
 	history,
 	rootComponent,
 	canvasProps,
+	canvasContainer,
 	// canvas utils
 	findBlock,
 	removeBlock,
@@ -348,6 +400,8 @@ defineExpose({
 	selectBlock,
 	scrollBlockIntoView,
 	selectBlockById,
+	toggleBlockSelection,
+	selectBlockRange,
 	clearSelection,
 	isRootSelected,
 	// slots
@@ -359,21 +413,21 @@ defineExpose({
 
 <style>
 .hovered-block {
-	@apply border-blue-300 text-gray-700 dark:border-blue-900 dark:text-gray-500;
+	@apply border-outline-blue-3 text-ink-gray-6 dark:border-outline-blue-9 dark:text-ink-gray-4;
 }
 .block-selected {
-	@apply border-blue-400 text-gray-900 dark:border-blue-700 dark:text-gray-200;
+	@apply border-outline-blue-4 text-ink-gray-8 dark:border-outline-blue-7 dark:text-ink-gray-1;
 }
 .slot-selected {
-	@apply border-purple-400 text-gray-900;
+	@apply border-outline-purple-4 text-ink-gray-8;
 }
 #placeholder {
 	@apply transition-all;
 }
 .vertical-placeholder {
-	@apply mx-4 h-full min-h-5 w-auto border-l-2 border-dashed border-blue-500;
+	@apply mx-4 h-full min-h-5 w-auto border-l-2 border-dashed border-outline-blue-5;
 }
 .horizontal-placeholder {
-	@apply my-4 h-auto w-full border-t-2 border-dashed border-blue-500;
+	@apply my-4 h-auto w-full border-t-2 border-dashed border-outline-blue-5;
 }
 </style>

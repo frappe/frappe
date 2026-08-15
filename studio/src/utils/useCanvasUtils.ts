@@ -2,9 +2,9 @@ import type { CanvasProps } from "@/types/StudioCanvas"
 import Block from "@/utils/block"
 
 import { nextTick, reactive, Ref } from "vue"
-import { useCanvasHistory } from "@/utils/useCanvasHistory"
+import { useCanvasHistory, type PauseId } from "@/utils/useCanvasHistory"
 import { useElementBounding } from "@vueuse/core"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 import useCanvasStore from "@/stores/canvasStore"
 import type { StudioMode } from "@/types"
 
@@ -57,9 +57,9 @@ export function useCanvasUtils(
 		return rootComponent.value;
 	}
 
-	function setRootBlock(newBlock: Block, resetCanvas = false) {
+	function setRootBlock(newBlock: Block, resetCanvas = false, resetHistory = true) {
 		rootComponent.value = newBlock
-		if (canvasHistory.value) {
+		if (canvasHistory.value && resetHistory) {
 			canvasHistory.value.dispose();
 			setupHistory();
 		}
@@ -85,10 +85,8 @@ export function useCanvasUtils(
 
 			if (block.componentSlots) {
 				for (const slot of Object.values(block.componentSlots)) {
-					if (Array.isArray(slot.slotContent)) {
-						const found = findBlock(componentId, slot.slotContent)
-						if (found) return found
-					}
+					const found = findBlock(componentId, slot.slotContent)
+					if (found) return found
 				}
 			}
 		}
@@ -111,10 +109,8 @@ export function useCanvasUtils(
 			block.toggleVisibility(false)
 		}
 		nextTick(() => {
-			if (parentBlock.children.length) {
-				if (nextSibling) {
-					nextSibling.selectBlock()
-				}
+			if (nextSibling) {
+				nextSibling.selectBlock()
 			}
 		})
 	}

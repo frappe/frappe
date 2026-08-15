@@ -11,8 +11,10 @@
             "gray",
             "blue",
             "green",
-            "orange",
-            "red"
+            "amber",
+            "red",
+            "violet",
+            "orange"
           ]
         },
         "size": {

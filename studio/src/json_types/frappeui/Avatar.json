@@ -29,6 +29,17 @@
             "circle",
             "square"
           ]
+        },
+        "theme": {
+          "type": "string",
+          "enum": [
+            "gray",
+            "blue",
+            "green",
+            "amber",
+            "red",
+            "violet"
+          ]
         }
       },
       "additionalProperties": false

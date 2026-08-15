@@ -4,15 +4,15 @@
 			<!-- inputs -->
 			<SectionContainer title="Inputs">
 				<template #actions>
-					<Autocomplete
+					<Combobox
 						:options="fieldTypeOptions"
-						@update:modelValue="(option: SelectOption) => showAddInputPopover(option.value)"
+						@update:modelValue="(value: string) => showAddInputPopover(value)"
 						class="!w-auto"
 					>
-						<template #target="{ togglePopover }">
-							<Button @click="togglePopover" size="sm" variant="ghost" icon="plus" />
+						<template #trigger>
+							<Button size="sm" variant="ghost" icon="lucide-plus" />
 						</template>
-					</Autocomplete>
+					</Combobox>
 				</template>
 
 				<div class="flex flex-col gap-1" v-if="componentInputs.length > 0">
@@ -29,15 +29,15 @@
 					>
 						<template #target>
 							<div
-								class="group flex flex-1 cursor-pointer justify-between rounded border border-gray-300 px-2 py-1 hover:bg-gray-50"
+								class="group flex flex-1 cursor-pointer justify-between rounded border border-outline-gray-2 px-2 py-1 hover:bg-surface-gray-1"
 								@click="editInput(input, index)"
 							>
 								<div class="flex items-center gap-2">
-									<FeatherIcon :name="getFieldTypeIcon(input.type)" class="h-4 w-4 text-gray-500" />
-									<span class="text-sm text-gray-800">{{ input.input_name }}</span>
+									<FeatherIcon :name="getFieldTypeIcon(input.type)" class="h-4 w-4 text-ink-gray-4" />
+									<span class="text-sm text-ink-gray-7">{{ input.input_name }}</span>
 								</div>
 								<button
-									class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 opacity-0 transition-opacity hover:text-gray-900 group-hover:opacity-100"
+									class="flex cursor-pointer items-center rounded-sm p-1 text-ink-gray-6 opacity-0 transition-opacity hover:text-ink-gray-8 group-hover:opacity-100"
 									@click.stop="componentEditorStore.removeComponentInput(index)"
 								>
 									<FeatherIcon name="x" class="h-4 w-4" />
@@ -59,16 +59,14 @@
 									:required="true"
 								/>
 								<FormControl
-									type="autocomplete"
+									type="combobox"
 									label="Type"
 									:options="fieldTypeOptions"
-									:modelValue="
-										editingInput ? fieldTypeOptions.find((opt) => opt.value === editingInput!.type) : null
-									"
+									:modelValue="editingInput ? editingInput.type : null"
 									@update:modelValue="
-										(option: SelectOption) => {
+										(val: string) => {
 											if (editingInput) {
-												editingInput.type = option.value
+												editingInput.type = val
 												setInputControl()
 											}
 										}
@@ -78,11 +76,11 @@
 									<template #prefix>
 										<FeatherIcon
 											:name="editingInput ? getFieldTypeIcon(editingInput.type) : 'help-circle'"
-											class="mr-1 h-3 w-3 text-gray-500"
+											class="mr-1 h-3 w-3 text-ink-gray-4"
 										/>
 									</template>
-									<template #item-prefix="{ option }">
-										<FeatherIcon :name="getFieldTypeIcon(option.value)" class="h-3 w-3 text-gray-500" />
+									<template #item-prefix="{ item }">
+										<FeatherIcon :name="getFieldTypeIcon(item.value)" class="h-3 w-3 text-ink-gray-4" />
 									</template>
 								</FormControl>
 								<FormControl
@@ -118,11 +116,11 @@
 									<Button variant="solid" @click="saveInput">Save</Button>
 									<Button variant="outline" @click="cancelEdit">Cancel</Button>
 								</div>
-								<div class="text-xs text-gray-500">
+								<div class="text-xs text-ink-gray-4">
 									Press
-									<kbd class="rounded bg-gray-100 px-1 py-0.5">⌘</kbd>
+									<kbd class="rounded bg-surface-gray-2 px-1 py-0.5">⌘</kbd>
 									+
-									<kbd class="rounded bg-gray-100 px-1 py-0.5">S</kbd>
+									<kbd class="rounded bg-surface-gray-2 px-1 py-0.5">S</kbd>
 									to save
 								</div>
 							</div>
@@ -147,13 +145,13 @@
 
 <script setup lang="ts">
 import { ref, markRaw, computed } from "vue"
-import { Autocomplete, Popover, FormControl } from "frappe-ui"
+import { Combobox, Popover, FormControl, Button, FeatherIcon } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
-import type { SelectOption } from "@/types"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
 import Code from "@/components/Code.vue"
 import ColorInput from "@/components/ColorInput.vue"
 import PropsEditor from "@/components/PropsEditor.vue"
+import SectionContainer from "@/components/SectionContainer.vue"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import { isCtrlOrCmd } from "@/utils/helpers"
 

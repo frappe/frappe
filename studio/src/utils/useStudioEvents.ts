@@ -6,12 +6,12 @@ import { isCtrlOrCmd, isTargetEditable, setClipboardData, numberToPx, isHTML } f
 import { getBlockCopy, getBlockCopyWithoutParent, getComponentBlock, isJSONString } from "@/utils/serializer"
 import Block from "@/utils/block"
 import type { BlockOptions } from "@/types"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
 
-export function useStudioEvents() {
+export function useStudioEvents(saveFragmentMode: () => void) {
 	useEventListener(document, "copy", (e) => {
 		copySelectedBlocksToClipboard(e)
 	})
@@ -76,7 +76,10 @@ export function useStudioEvents() {
 			const blockId = target.dataset.componentLayerId || target.dataset.componentId
 			const block = canvasStore.activeCanvas?.findBlock(blockId as string)
 			if (block) {
-				canvasStore.activeCanvas?.selectBlock(block, null)
+				const alreadyInSelection = canvasStore.activeCanvas?.selectedBlockIds.has(block.componentId)
+				if (!(blockController.multipleBlocksSelected() && alreadyInSelection)) {
+					canvasStore.activeCanvas?.selectBlock(block, null)
+				}
 
 				const slotName = target.dataset.slotName
 				if (slotName) {
@@ -92,16 +95,37 @@ export function useStudioEvents() {
 	})
 
 	useEventListener(document, "keydown", (e) => {
+		// save
+		if (e.key === "s" && isCtrlOrCmd(e) && store.selectedPage) {
+			// the page autosaves - just swallow the browser's save dialog in page mode
+			e.preventDefault()
+			if (canvasStore.editingMode !== "page") {
+				saveFragmentMode()
+			}
+			return
+		}
+
 		if (isTargetEditable(e)) return
 
 		// delete
-		if ((e.key === "Backspace" || e.key === "Delete") && blockController.isAnyBlockSelected()) {
-			for (const block of blockController.getSelectedBlocks()) {
-				canvasStore.activeCanvas?.removeBlock(block, e.shiftKey)
+		if (e.key === "Backspace" || e.key === "Delete") {
+			// a selected slot takes precedence over its (also-selected) parent block
+			const selectedSlot = canvasStore.activeCanvas?.selectedSlot
+			if (selectedSlot) {
+				const parent = canvasStore.activeCanvas?.findBlock(selectedSlot.parentBlockId)
+				parent?.removeSlot(selectedSlot.slotName)
+				e.stopPropagation()
+				return
 			}
-			clearSelection()
-			e.stopPropagation()
-			return
+
+			if (blockController.isAnyBlockSelected()) {
+				for (const block of blockController.getSelectedBlocks()) {
+					canvasStore.activeCanvas?.removeBlock(block, e.shiftKey)
+				}
+				clearSelection()
+				e.stopPropagation()
+				return
+			}
 		}
 
 		// duplicate

@@ -1,8 +1,8 @@
 <template>
 	<div class="flex flex-col">
-		<div v-if="label" class="mb-1.5 text-xs text-gray-600">{{ label }}</div>
-		<div class="flex h-auto min-h-40 flex-col overflow-hidden rounded-lg border border-gray-200">
-			<div class="flex gap-2 border-b border-gray-200 bg-gray-50 p-2">
+		<div v-if="label" class="mb-1.5 text-xs text-ink-gray-5">{{ label }}</div>
+		<div class="flex h-auto min-h-40 flex-col overflow-hidden rounded-lg border border-outline-elevation-2">
+			<div class="flex gap-2 border-b border-outline-elevation-2 bg-surface-gray-1 p-2">
 				<Button
 					v-for="tool in tools"
 					:key="tool.id"
@@ -17,7 +17,7 @@
 
 			<div class="flex flex-1">
 				<div ref="editorContainer" class="flex-1"></div>
-				<div v-if="showPreview" class="flex-1 overflow-y-auto border-l border-gray-200 p-4">
+				<div v-if="showPreview" class="flex-1 overflow-y-auto border-l border-outline-elevation-2 p-4">
 					<span v-html="compiledMarkdown"></span>
 				</div>
 			</div>
@@ -27,6 +27,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from "vue"
+import { Button } from "frappe-ui"
 import { useDark } from "@vueuse/core"
 import { marked } from "marked"
 import ace from "ace-builds"

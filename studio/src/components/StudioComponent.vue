@@ -1,8 +1,11 @@
 <template>
-	<div v-if="error" class="border-ink-red-3 flex flex-col gap-2 border p-2 text-ink-red-3" ref="componentRef">
-		<p class="text-sm font-semibold">An error occurred while rendering {{ block.componentName }}:</p>
+	<div v-if="error" class="border-ink-red-6 flex flex-col gap-2 border p-2 text-ink-red-6" ref="componentRef">
+		<p class="text-sm-semibold">An error occurred while rendering {{ block.componentName }}:</p>
 		<pre class="text-xs">{{ error }}</pre>
 	</div>
+
+	<!-- nested overlay nodes (sub-dialogs) are collapsed into cards instead of rendering inline -->
+	<template v-else-if="isOverlayNode"></template>
 
 	<StudioComponentWrapper
 		v-else-if="block.isStudioComponent"
@@ -16,7 +19,7 @@
 		:breakpoint="breakpoint"
 	/>
 
-	<template v-else-if="block.canHaveChildren()">
+	<template v-else-if="block.hasChildren() || block.hasComponentSlots()">
 		<component
 			v-if="showComponent"
 			:is="componentName"
@@ -26,9 +29,6 @@
 			:data-breakpoint="breakpoint"
 			:style="styles"
 			:class="classes"
-			@mouseover="handleMouseOver"
-			@mouseleave="handleMouseLeave"
-			@click="handleClick"
 			ref="componentRef"
 		>
 			<!-- Dynamically render named slots -->
@@ -37,38 +37,28 @@
 				:key="slotName"
 				v-slot:[slotName]="slotProps"
 			>
-				<template v-if="Array.isArray(slot.slotContent)">
+				<SlotScopeProvider v-if="slot.slotContent.length" :scope="slotProps" v-slot="forwardedAttrs">
 					<StudioComponent
-						v-for="slotBlock in slot?.slotContent"
+						v-for="slotBlock in slot.slotContent"
 						:key="slotBlock.componentId"
 						:block="slotBlock"
-						:class="slotClasses"
-						:data-slot-id="slot.slotId"
-						:data-slot-name="slotName"
-						:data-component-id="block.componentId"
-						v-bind="slotProps"
-					/>
-				</template>
-				<template v-else-if="isHTML(slot.slotContent)">
-					<component
-						v-memo="[slot.slotContent]"
-						:is="{ template: slot.slotContent }"
+						v-bind="forwardedAttrs"
 						:class="slotClasses"
 						:data-slot-id="slot.slotId"
 						:data-slot-name="slotName"
 						:data-component-id="block.componentId"
 					/>
-				</template>
-				<template v-else>
-					<div
-						:class="[slotClasses, !slot.slotContent ? 'min-h-5 w-full' : '']"
-						:data-slot-id="slot.slotId"
-						:data-slot-name="slotName"
-						:data-component-id="block.componentId"
-					>
-						{{ slot.slotContent }}
-					</div>
-				</template>
+				</SlotScopeProvider>
+				<!-- drop target for an empty slot: fill the slot's available space so the
+				     overlay spans it (w-full for width; grow/self-stretch fill flex slot areas) -->
+				<div
+					v-else
+					:class="[slotClasses, 'min-h-5 w-full grow self-stretch']"
+					:data-slot-id="slot.slotId"
+					:data-slot-name="slotName"
+					:data-component-id="block.componentId"
+					:data-breakpoint="breakpoint"
+				/>
 			</template>
 
 			<StudioComponent
@@ -91,14 +81,11 @@
 			:data-breakpoint="breakpoint"
 			:style="styles"
 			:class="classes"
-			@mouseover="handleMouseOver"
-			@mouseleave="handleMouseLeave"
-			@click="handleClick"
 			ref="componentRef"
 		/>
 	</template>
 
-	<teleport to="#overlay" v-if="canvasProps?.overlayElement">
+	<teleport :to="canvasProps.overlayElement" v-if="canvasProps?.overlayElement">
 		<!-- prettier-ignore -->
 		<ComponentEditor
 			v-if="loadEditor"
@@ -114,17 +101,20 @@
 <script setup lang="ts">
 import { computed, ref, watch, useAttrs, inject, ComputedRef, onErrorCaptured, h } from "vue"
 import type { ComponentPublicInstance } from "vue"
+import { useEventListener } from "@vueuse/core"
 import StudioComponentWrapper from "@/components/StudioComponentWrapper.vue"
+import SlotScopeProvider from "@/components/SlotScopeProvider.vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
+import StudioComponentEditorWrapper from "@/components/StudioComponentEditorWrapper.vue"
 import { customVueComponentsRegistry } from "@/globals"
 
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
-import { getComponentRoot, isHTML, isObjectEmpty } from "@/utils/helpers"
+import { getComponentRoot, isObjectEmpty } from "@/utils/helpers"
 import { isDynamicValue } from "@/utils/code"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
-import type { RepeaterContext } from "@/types"
+import type { SlotScope } from "@/types"
 import type HTML from "@/components/AppLayout/HTML.vue"
 import MissingComponent from "@/components/MissingComponent.vue"
 import useCodeStore from "@/stores/codeStore"
@@ -157,7 +147,15 @@ const slotClasses = ["__studio_component_slot__", "outline-none", "select-none"]
 
 const canvasProps = inject("canvasProps") as CanvasProps
 
+const rendersProxy = computed(() => {
+	if (canvasStore.editingMode === "page" || props.block.isContainer()) return false
+	return Boolean(props.block.getProxyComponent())
+})
+
 const styles = computed(() => {
+	// Isolate proxies from block styles entirely since they never reach a teleported overlay at runtime,
+	// and falling through onto a proxy they'd clobber its placement.
+	if (rendersProxy.value) return {}
 	const _styles = { ...props.block.getStyles(props.breakpoint) }
 	Object.entries(_styles).forEach(([key, value]) => {
 		if (value) {
@@ -169,16 +167,18 @@ const styles = computed(() => {
 	return _styles
 })
 
+const isOverlayNode = computed(() => {
+	return (
+		canvasStore.editingMode !== "page" &&
+		props.block.isOverlayNode() &&
+		props.block.componentId !== canvasStore.primaryOverlayId
+	)
+})
+
 const componentName = computed(() => {
 	if (props.block.isContainer()) return props.block.originalElement || "div"
 
-	let name
-	if (canvasStore.editingMode === "page") {
-		name = props.block.componentName
-	} else {
-		const proxyComponent = props.block.getProxyComponent()
-		name = proxyComponent ? proxyComponent : props.block.componentName
-	}
+	let name = rendersProxy.value ? props.block.getProxyComponent() : props.block.componentName
 
 	if (props.block.isCustomVueComponent) {
 		name = customVueComponentsRegistry.value[name]
@@ -187,11 +187,11 @@ const componentName = computed(() => {
 	return name
 })
 
-const repeaterContext = inject<ComputedRef<RepeaterContext> | null>("repeaterContext", null)
+const slotScope = inject<ComputedRef<SlotScope> | null>("slotScope", null)
 const componentContext = inject<ComputedRef | null>("componentContext", null)
 const evaluationContext = computed(() => {
 	return {
-		...repeaterContext?.value,
+		...slotScope?.value,
 		...componentContext?.value,
 	}
 })
@@ -230,9 +230,12 @@ const vModelListeners = computed(() => {
 
 const attrs = useAttrs()
 const componentProps = computed(() => {
+	// exclude class/style here so they don't clobber the block's own
+	// class/style props (e.g. an icon's `h-6 w-6` sizing), which would render it invisible.
+	const { class: _class, style: _style, ...restAttrs } = attrs
 	return {
 		...getComponentProps(),
-		...attrs,
+		...restAttrs,
 	}
 })
 
@@ -250,9 +253,27 @@ const showComponent = computed(() => {
 const isHovered = ref(false)
 const isSelected = computed(() => canvasStore.activeCanvas?.selectedBlockIds?.has(props.block.componentId))
 
+watch(
+	isSelected,
+	(selected) => {
+		if (selected && slotScope?.value && !props.block.slotScope) {
+			props.block.setSlotScope(slotScope.value)
+		} else if (!selected && props.block.slotScope) {
+			props.block.setSlotScope(null)
+		}
+	},
+	{ immediate: true },
+)
+
 const target = computed<HTMLElement | null>(() => {
 	if (!componentRef.value) return null
-	return getComponentRoot(componentRef)
+	const root = getComponentRoot(componentRef)
+	if (root instanceof HTMLElement || root instanceof SVGElement) return root as HTMLElement
+	// Fallback for renderless-root components (Popover root) with $el/$rootRef is undefined/not a DOM element
+	// return the real DOM element so the ComponentEditor can anchor to it.
+	return document.querySelector(
+		`[data-component-id="${props.block.componentId}"][data-breakpoint="${props.breakpoint}"]`,
+	) as HTMLElement | null
 })
 
 const loadEditor = computed(() => {
@@ -284,7 +305,7 @@ const handleMouseLeave = (e: MouseEvent) => {
 const getClickedComponent = (e: MouseEvent) => {
 	const targetElement = e.target as HTMLElement
 	const componentId = targetElement
-		.closest("[data-component-id]:not(.__studio_component_child__)")
+		?.closest?.("[data-component-id]:not(.__studio_component_child__)")
 		?.getAttribute("data-component-id")
 	if (componentId) {
 		return canvasStore.activeCanvas?.findBlock(componentId)
@@ -294,8 +315,8 @@ const getClickedComponent = (e: MouseEvent) => {
 const handleClick = (e: MouseEvent) => {
 	const block = getClickedComponent(e) || props.block
 	canvasStore.activeCanvas?.selectBlock(block, e)
-	if (repeaterContext?.value) {
-		block.setRepeaterDataItem((repeaterContext.value as RepeaterContext).dataItem)
+	if (slotScope?.value) {
+		block.setSlotScope(slotScope.value)
 	}
 
 	const slotName = (e.target as HTMLElement).dataset.slotName
@@ -309,6 +330,12 @@ const handleClick = (e: MouseEvent) => {
 	e.stopPropagation()
 	e.preventDefault()
 }
+
+// Selection/hover listen natively on the rendered root, NOT via template events — those become
+// event props and can't attach when the component renders a fragment root (e.g. ListRows)
+useEventListener(target, "click", handleClick)
+useEventListener(target, "mouseover", handleMouseOver)
+useEventListener(target, "mouseleave", handleMouseLeave)
 
 watch(
 	() => canvasStore.activeCanvas?.hoveredBlock,
@@ -325,7 +352,7 @@ watch(
 	() => componentRef.value,
 	() => {
 		if (!componentRef.value) return
-		// set data-component-id on update since some frappeui components have inheritAttrs: false
+		// set data attrs for the components which only bind styles and class to the actual root element
 		if (target.value && target.value instanceof Element) {
 			target.value?.setAttribute("data-component-id", props.block.componentId)
 			target.value?.setAttribute("data-breakpoint", props.breakpoint)
@@ -348,7 +375,8 @@ watch(
 const error = ref<Error | null>(null)
 onErrorCaptured((err, _instance, info) => {
 	const isRouterError = err.message.includes("No match for")
-	if (isRouterError) {
+	if (isRouterError || canvasStore.isAIStreaming) {
+		error.value = null
 		return false
 	}
 	console.error(

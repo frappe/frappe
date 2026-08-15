@@ -5,69 +5,54 @@
     "TreeProps": {
       "type": "object",
       "properties": {
-        "node": {
-          "type": "object",
-          "properties": {
-            "label": {
-              "type": "string"
-            },
-            "children": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/alias-1572818682-0-219-1572818682-0-987"
-              }
-            }
-          },
-          "required": [
-            "label",
-            "children"
-          ],
-          "additionalProperties": {
-            "anyOf": [
-              {
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
                 "type": "string"
               },
-              {
-                "type": "number"
-              },
-              {
+              "children": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/definitions/alias-1572818682-0-219-1572818682-0-987"
+                  "$ref": "#/definitions/alias-1572818682-160-612-1572818682-0-4032"
                 }
+              },
+              "expanded": {
+                "type": "boolean"
               }
-            ]
+            },
+            "additionalProperties": {}
           }
         },
         "nodeKey": {
           "type": "string"
         },
-        "options": {
-          "type": "object",
-          "properties": {
-            "rowHeight": {
-              "type": "string"
-            },
-            "indentWidth": {
-              "type": "string"
-            },
-            "showIndentationGuides": {
-              "type": "boolean"
-            },
-            "defaultCollapsed": {
-              "type": "boolean"
-            }
-          },
-          "additionalProperties": false
+        "draggable": {
+          "type": "boolean"
+        },
+        "move": {
+          "type": "object"
+        },
+        "guides": {
+          "type": "string",
+          "enum": [
+            "connectors",
+            "lines",
+            "none"
+          ]
+        },
+        "disabled": {
+          "type": "boolean"
         }
       },
       "required": [
-        "node",
-        "nodeKey"
+        "nodes"
       ],
       "additionalProperties": false
     },
-    "alias-1572818682-0-219-1572818682-0-987": {
+    "alias-1572818682-160-612-1572818682-0-4032": {
       "type": "object",
       "properties": {
         "label": {
@@ -76,30 +61,14 @@
         "children": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/alias-1572818682-0-219-1572818682-0-987"
+            "$ref": "#/definitions/alias-1572818682-160-612-1572818682-0-4032"
           }
+        },
+        "expanded": {
+          "type": "boolean"
         }
       },
-      "required": [
-        "label",
-        "children"
-      ],
-      "additionalProperties": {
-        "anyOf": [
-          {
-            "type": "string"
-          },
-          {
-            "type": "number"
-          },
-          {
-            "type": "array",
-            "items": {
-              "$ref": "#/definitions/alias-1572818682-0-219-1572818682-0-987"
-            }
-          }
-        ]
-      }
+      "additionalProperties": {}
     }
   }
 }

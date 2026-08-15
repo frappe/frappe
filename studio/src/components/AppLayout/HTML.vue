@@ -12,10 +12,7 @@ const props = defineProps<HTMLProps>()
 
 const _html = computed(() => {
 	if (isEditor()) {
-		return `
-			<div class="absolute top-0 bottom-0 right-0 left-0"></div>
-			${props.html}
-		`
+		return `<div class="absolute top-0 bottom-0 right-0 left-0"></div>${props.html}`
 	}
 	return props.html
 })

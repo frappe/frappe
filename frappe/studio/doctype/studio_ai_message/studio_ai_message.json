@@ -1,0 +1,107 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-06-29 12:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "session",
+  "role",
+  "message_type",
+  "status",
+  "content",
+  "task_type",
+  "component_id",
+  "metadata_json"
+ ],
+ "fields": [
+  {
+   "fieldname": "session",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Session",
+   "options": "Studio AI Session",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "role",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Role",
+   "options": "user\nassistant",
+   "reqd": 1
+  },
+  {
+   "default": "chat",
+   "fieldname": "message_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Message Type",
+   "options": "chat\nclarification\nstatus"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status"
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Long Text",
+   "label": "Content"
+  },
+  {
+   "fieldname": "task_type",
+   "fieldtype": "Data",
+   "label": "Task Type"
+  },
+  {
+   "fieldname": "component_id",
+   "fieldtype": "Data",
+   "label": "Component ID"
+  },
+  {
+   "fieldname": "metadata_json",
+   "fieldtype": "Long Text",
+   "label": "Metadata JSON"
+  }
+ ],
+ "grid_page_length": 50,
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-06-29 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Studio",
+ "name": "Studio AI Message",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Studio User",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "ASC",
+ "states": []
+}

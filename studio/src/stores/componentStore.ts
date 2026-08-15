@@ -62,6 +62,14 @@ const useComponentStore = defineStore("componentStore", () => {
 		}
 	}
 
+	async function reloadComponent(componentName: string) {
+		try {
+			cacheComponent(await fetchComponent(componentName))
+		} catch {
+			removeCachedComponent(componentName)
+		}
+	}
+
 	function cacheComponent(componentDoc: StudioComponent) {
 		componentDocMap.set(componentDoc.component_id, componentDoc)
 		if (componentDoc.block) {
@@ -80,7 +88,7 @@ const useComponentStore = defineStore("componentStore", () => {
 			return
 		}
 		const blockOptions = getBlockObjectCopy(component)
-		const { baseStyles, mobileStyles, tabletStyles, rawStyles, visibilityCondition, classes, componentEvents } =
+		const { baseStyles, mobileStyles, tabletStyles, visibilityCondition, classes, componentEvents } =
 			studioComponent
 
 		if (!isObjectEmpty(baseStyles)) blockOptions.baseStyles = { ...blockOptions.baseStyles, ...baseStyles }
@@ -88,7 +96,6 @@ const useComponentStore = defineStore("componentStore", () => {
 			blockOptions.mobileStyles = { ...blockOptions.mobileStyles, ...mobileStyles }
 		if (!isObjectEmpty(tabletStyles))
 			blockOptions.tabletStyles = { ...blockOptions.tabletStyles, ...tabletStyles }
-		if (!isObjectEmpty(rawStyles)) blockOptions.rawStyles = { ...blockOptions.rawStyles, ...rawStyles }
 		if (visibilityCondition) blockOptions.visibilityCondition = visibilityCondition
 		if (classes?.length) blockOptions.classes = [...(blockOptions.classes || []), ...classes]
 
@@ -103,6 +110,7 @@ const useComponentStore = defineStore("componentStore", () => {
 		componentMap,
 		componentDocMap,
 		loadComponent,
+		reloadComponent,
 		getComponent,
 		getComponentDoc,
 		getComponentName,

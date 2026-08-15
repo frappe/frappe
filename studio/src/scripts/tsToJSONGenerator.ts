@@ -2,15 +2,41 @@ import tsToJSON from "../utils/tsToJSON"
 import fs from "fs"
 import path from "path"
 
+// A source folder is a plain path, or an object overriding the module's scan flags
+// for that folder alone (e.g. frappe-ui molecules use the perComponent layout while
+// its components use folderScan).
+type SourceFolder = string | { path: string; folderScan?: boolean; perComponent?: boolean; skipFolders?: string[] }
+
 const configMap: Record<string, any> = {
 	frappeui: {
 		srcFolders: [
 			"../node_modules/frappe-ui/src/components",
 			"../node_modules/frappe-ui/frappe",
+			// molecules (List family): several components per folder, keyed off the .vue
+			// files whose `<Component>Props` is exported from the folder's types.ts
+			{ path: "../node_modules/frappe-ui/src/molecules", perComponent: true, skipFolders: ["stories"] },
 		],
 		destFolder: "src/json_types/frappeui",
-		tsconfigPath: "../node_modules/frappe-ui/tsconfig.json",
-		skipFolders: ["drive"]
+		tsconfigPath: "../node_modules/frappe-ui/tsconfig.base.json",
+		// Filter and Link now ship from @framework/ui (see the frameworkui config),
+		// so skip the frappe-ui/frappe versions to avoid duplicate json_types exports.
+		skipFolders: ["drive", "Filter", "Link"],
+		// component-per-folder layout: scan for `types.ts`, key by folder name
+		folderScan: true,
+	},
+	// @framework/ui (apps/frappe/ui). Extracted per-component (a folder can hold
+	// several components), keyed off the `.vue` files: each component that exports
+	// `<Component>Props` (and optionally `<Component>Slots`) in its folder's `types.ts`
+	// gets one `<Component>.json`.
+	frameworkui: {
+		srcFolders: ["../../frappe/ui/src/components"],
+		destFolder: "src/json_types/frameworkui",
+		tsconfigPath: "../node_modules/frappe-ui/tsconfig.base.json",
+		skipFolders: ["stories", "tests"],
+		// ComposerEditor is the private editing core shared by Email/CommentComposer —
+		// it exports Props (for the composers to extend) but is not a studio block.
+		skipComponents: ["ComposerEditor"],
+		perComponent: true,
 	},
 	studio: {
 		srcFolders: ["src/types/studio_components"],
@@ -30,10 +56,40 @@ if (!moduleName || !configMap[moduleName]) {
 }
 
 /* 1. Generate JSON types */
-const { srcFolders, destFolder, tsconfigPath, skipFolders } = configMap[moduleName]
-srcFolders.forEach((srcFolder: string) => {
-	tsToJSON(srcFolder, destFolder, skipFolders, tsconfigPath, moduleName === "frappeui")
+const { srcFolders, destFolder, tsconfigPath, skipFolders, folderScan, perComponent, skipComponents } =
+	configMap[moduleName]
+
+// Generate in place (no upfront wipe). Aggregate which components exist in source
+// (`expected`) across all source folders, so a component whose schema fails to
+// generate this run keeps its previously-committed JSON instead of vanishing — a
+// frappe-ui bump that breaks extraction degrades to a stale schema, not a missing
+// one. Only truly gone components (renamed/removed upstream) are pruned below.
+const expected = new Set<string>()
+srcFolders.forEach((srcFolder: SourceFolder) => {
+	const folder = typeof srcFolder === "string" ? { path: srcFolder } : srcFolder
+	const result = tsToJSON(
+		folder.path,
+		destFolder,
+		folder.skipFolders ?? skipFolders,
+		tsconfigPath,
+		Boolean(folder.folderScan ?? folderScan),
+		Boolean(folder.perComponent ?? perComponent),
+		skipComponents,
+	)
+	result.expected.forEach((name) => expected.add(name))
 })
+
+// Prune stale JSON: drop only files whose component no longer exists in source, so
+// renamed/removed components don't linger in the index. Failed-but-still-present
+// components are in `expected`, so their old JSON is kept.
+if (fs.existsSync(destFolder)) {
+	for (const file of fs.readdirSync(destFolder)) {
+		if (file.endsWith(".json") && !expected.has(path.parse(file).name)) {
+			fs.rmSync(path.join(destFolder, file))
+			console.log(`Pruned ${file} (no matching component in source)`)
+		}
+	}
+}
 
 /* 2. Update index file */
 const indexFilePath = "src/json_types/index.ts"

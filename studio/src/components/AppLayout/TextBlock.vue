@@ -9,7 +9,6 @@ import type { TextBlockProps } from "@/types/studio_components/TextBlock"
 
 withDefaults(defineProps<TextBlockProps>(), {
 	tag: "span",
-	text: "Text Block",
 	fontSize: "text-base",
 })
 </script>

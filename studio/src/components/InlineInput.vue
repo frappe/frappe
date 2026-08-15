@@ -1,7 +1,7 @@
 <template>
 	<!-- prettier-ignore -->
 	<div
-		class="flex [&>div>input]:!bg-red-600 [&>div>input]:pr-6"
+		class="flex"
 		:class="[type === 'textarea' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between', attrs.class]"
 		:style="(attrs.style as StyleValue)"
 	>
@@ -9,7 +9,7 @@
 			:description="label"
 			:class="[
 				enableSlider ? 'cursor-ns-resize' : '',
-				required ? `after:text-red-600 after:content-['_*']` : '',
+				required ? `after:text-ink-red-7 after:content-['_*']` : '',
 			]"
 			@mousedown="handleMouseDown"
 		>
@@ -17,12 +17,12 @@
 
 			<Popover trigger="hover" v-if="description" placement="top">
 				<template #target>
-					<FeatherIcon name="info" class="ml-1 h-[12px] w-[12px] text-gray-500" />
+					<FeatherIcon name="info" class="ml-1 h-[12px] w-[12px] text-ink-gray-4" />
 				</template>
 				<template #body>
 					<slot name="body">
 						<div
-							class="w-fit max-w-52 rounded bg-gray-800 px-2 py-1 text-center text-xs text-white shadow-xl"
+							class="w-fit max-w-52 rounded bg-surface-gray-9 px-2 py-1 text-center text-xs text-ink-base shadow-xl"
 							v-html="description"
 						></div>
 					</slot>
@@ -49,7 +49,7 @@
 		/>
 		<Input
 			v-else
-			:type="type"
+			:type="inputType"
 			:modelValue="modelValue"
 			:options="inputOptions"
 			@update:modelValue="handleChange"
@@ -62,8 +62,9 @@
 
 <script setup lang="ts">
 import { isNumber } from "@tiptap/vue-3"
-import { Popover } from "frappe-ui"
+import { Popover, FeatherIcon } from "frappe-ui"
 import { computed, StyleValue, useAttrs } from "vue"
+import { isDynamicValue } from "@/utils/code"
 import { extractNumberAndUnit, normalizeValueWithUnits } from "@/utils/helpers"
 import Input from "@/components/Input.vue"
 import Autocomplete from "@/components/Autocomplete.vue"
@@ -115,6 +116,10 @@ type Option = {
 	label: string
 	value: string
 }
+
+const inputType = computed(() =>
+	props.type === "select" && isDynamicValue(props.modelValue as string) ? "text" : props.type,
+)
 
 const inputOptions = computed(() => {
 	return (props.options || []).map((option) => {

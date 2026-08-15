@@ -7,7 +7,7 @@
 			class="flex cursor-pointer items-center gap-0.5 font-bold"
 		>
 			<FeatherIcon :name="isExpanded('root') ? 'chevron-down' : 'chevron-right'" class="h-3 w-3" />
-			<span class="text-pink-700">{{ name }}</span>
+			<span class="text-ink-pink-8">{{ name }}</span>
 		</div>
 
 		<!-- object properties -->
@@ -19,19 +19,19 @@
 						:name="isExpanded(key) ? 'chevron-down' : 'chevron-right'"
 						class="-ml-0.5 h-3 w-3"
 					/>
-					<span class="text-pink-700">{{ key }}:</span>
+					<span class="text-ink-pink-8">{{ key }}:</span>
 					<span
 						:class="[
 							// wrap truncated text on expansion to display the entire value
 							!isObject(value) && isExpanded(key) ? 'whitespace-normal text-wrap break-all' : 'truncate',
-							'text-violet-700',
+							'text-ink-violet-8',
 						]"
 					>
 						{{ formatValue(value) }}
 					</span>
 
 					<IconButton
-						icon="copy"
+						:icon="LucideCopy"
 						label="Copy object path"
 						class="invisible ml-auto px-2 hover:visible group-hover/key:visible"
 						size="sm"
@@ -51,8 +51,10 @@
 
 <script setup lang="ts">
 import { copyToClipboard } from "@/utils/helpers"
+import { FeatherIcon } from "frappe-ui"
 import { ref, computed } from "vue"
 import IconButton from "@/components/IconButton.vue"
+import LucideCopy from "~icons/lucide/copy"
 
 const props = withDefaults(
 	defineProps<{

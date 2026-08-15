@@ -1,7 +1,7 @@
 <template>
 	<div class="flex flex-col gap-1.5">
-		<span v-if="label" class="block text-xs text-gray-600">{{ label }}</span>
-		<div class="rounded-lg border border-gray-200 bg-white">
+		<FormInputLabel v-if="label">{{ label }}</FormInputLabel>
+		<div class="rounded-lg border border-outline-elevation-2 bg-surface-base">
 			<div class="min-w-[400px] p-2">
 				<div
 					v-if="filters.length"
@@ -11,18 +11,13 @@
 					class="mb-3 flex items-center justify-between gap-2"
 				>
 					<div class="flex flex-1 items-center gap-2">
-						<div class="w-13 flex-shrink-0 pl-2 text-end text-base text-gray-600">
+						<div class="w-13 flex-shrink-0 pl-2 text-end text-base text-ink-gray-5">
 							{{ i == 0 ? "Where" : "And" }}
 						</div>
-						<div id="fieldname" class="!min-w-[120px] flex-1">
-							<Autocomplete
-								:modelValue="filter.fieldname"
-								:options="fields"
-								@update:modelValue="filter.fieldname = $event.value"
-								placeholder="Filter by..."
-							/>
+						<div id="fieldname" class="!min-w-[120px]">
+							<Combobox :options="fields" v-model="filter.fieldname" placeholder="Filter by..." />
 						</div>
-						<div id="operator" class="!min-w-[120px] flex-shrink-0">
+						<div id="operator" class="flex-shrink-0">
 							<FormControl
 								type="select"
 								:modelValue="filter.operator"
@@ -49,30 +44,30 @@
 						</div>
 					</div>
 					<div class="flex-shrink-0">
-						<Button variant="ghost" icon="x" @click="removeFilter(i)" />
+						<Button variant="ghost" icon="lucide-x" @click="removeFilter(i)" />
 					</div>
 				</div>
-				<div v-else class="mb-3 flex h-7 items-center px-3 text-sm text-gray-600">
+				<div v-else class="mb-3 flex h-7 items-center px-3 text-sm text-ink-gray-5">
 					Empty - Choose a field to filter by
 				</div>
 				<div class="flex items-center justify-between gap-2">
-					<Autocomplete
+					<Combobox
 						:modelValue="''"
 						:options="fields"
-						@update:modelValue="(field: DocTypeField) => addFilter(field.value)"
+						@update:modelValue="(value: string) => addFilter(value)"
 						placeholder="Filter by..."
 					>
-						<template #target="{ togglePopover }">
-							<Button class="!text-gray-600" variant="ghost" @click="togglePopover()" label="Add filter">
+						<template #trigger>
+							<Button class="!text-ink-gray-5" variant="ghost" label="Add filter">
 								<template #prefix>
 									<FeatherIcon name="plus" class="h-4" />
 								</template>
 							</Button>
 						</template>
-					</Autocomplete>
+					</Combobox>
 					<Button
 						v-if="filters.length"
-						class="!text-gray-600"
+						class="!text-ink-gray-5"
 						variant="ghost"
 						label="Clear all filter"
 						@click="filters = []"
@@ -84,10 +79,11 @@
 </template>
 
 <script setup lang="ts">
-import { Autocomplete, FeatherIcon, FormControl } from "frappe-ui"
+import { Combobox, FeatherIcon, FormControl, Button } from "frappe-ui"
 import { computed, h, ref, watch } from "vue"
 import { Link } from "frappe-ui/frappe"
 
+import FormInputLabel from "@/components/FormInputLabel.vue"
 import type { DocTypeField, Fieldtype, Filter, Operators } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
 import type { Filters } from "@/types/Studio/StudioResource"
@@ -150,11 +146,12 @@ watch(
 function makeFiltersList(filtersDict: Filters) {
 	if (!fields.value.length || isObjectEmpty(filtersDict)) return []
 
-	return Object.entries(filtersDict).map(([fieldname, [operator, value]]) => {
+	return Object.entries(filtersDict).map(([fieldname, rawFilter]) => {
 		const field = getField(fieldname)
 		if (!field) {
 			throw new Error(`Field not found: ${fieldname}`)
 		}
+		const [operator, value] = Array.isArray(rawFilter) ? rawFilter : ["=" as Operators, rawFilter]
 		return {
 			fieldname,
 			operator,
@@ -229,7 +226,13 @@ function getDefaultOperator(fieldtype: Fieldtype): Operators {
 
 function getValueSelector(fieldtype: Fieldtype, options: string = "") {
 	if (typeSelect.includes(fieldtype) || typeCheck.includes(fieldtype)) {
-		const _options = fieldtype == "Check" ? ["Yes", "No"] : getSelectOptions(options)
+		const _options =
+			fieldtype == "Check"
+				? [
+						{ label: "Yes", value: 1 },
+						{ label: "No", value: 0 },
+					]
+				: getSelectOptions(options)
 		return h(FormControl, {
 			type: "select",
 			options: _options,

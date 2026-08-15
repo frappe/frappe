@@ -104,10 +104,8 @@ function getBlockInstance(options: BlockOptions | string, retainId = true): Bloc
 
 			// clear componentId of slot children
 			for (let slot of Object.values(block.componentSlots || {})) {
-				if (Array.isArray(slot.slotContent)) {
-					for (let child of slot.slotContent) {
-						deleteComponentId(child)
-					}
+				for (let child of slot.slotContent || []) {
+					deleteComponentId(child)
 				}
 			}
 		}
@@ -146,16 +144,14 @@ function getBlockCopyWithoutParent(block: BlockOptions | Block) {
 	const rawBlock = toRaw(block)
 	const blockCopy = deepCloneObject(rawBlock, ["parentBlock"]) as BlockOptions
 	delete blockCopy.parentBlock
-	delete blockCopy.repeaterDataItem
+	delete blockCopy.slotScope
 	delete blockCopy.componentContext
 
 	blockCopy.children = blockCopy.children?.map((child) => getBlockCopyWithoutParent(child))
 
 	// remove parentBlock reference for slot children
 	for (const slot of Object.values(blockCopy.componentSlots || {})) {
-		if (Array.isArray(slot.slotContent)) {
-			slot.slotContent = slot.slotContent.map((child) => getBlockCopyWithoutParent(child))
-		}
+		slot.slotContent = slot.slotContent.map(getBlockCopyWithoutParent) as Block[]
 	}
 
 	return blockCopy

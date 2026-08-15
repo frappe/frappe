@@ -1,8 +1,11 @@
 <template>
 	<div class="group relative flex h-full w-full flex-col gap-1.5">
-		<InputLabel v-if="label" :class="[required ? `after:text-red-600 after:content-['_*']` : '']">
-			{{ label }}
-		</InputLabel>
+		<template v-if="label">
+			<FormInputLabel v-if="isFormInput">{{ label }}</FormInputLabel>
+			<InputLabel v-else :class="[required ? `after:text-ink-red-7 after:content-['_*']` : '']">
+				{{ label }}
+			</InputLabel>
+		</template>
 		<div v-if="actionButton" class="absolute bottom-[3px] right-[3px] z-10 flex gap-1">
 			<Button
 				@click="actionButton?.handler"
@@ -40,17 +43,18 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
-import { Button } from "frappe-ui"
+import { Button, ErrorMessage } from "frappe-ui"
 import { Codemirror } from "vue-codemirror"
 import {
 	autocompletion,
 	closeBrackets,
 	type CompletionContext,
 	type Completion,
+	type CompletionSource,
 } from "@codemirror/autocomplete"
 import { Compartment, Extension } from "@codemirror/state"
-import { indentService, LRLanguage } from "@codemirror/language"
-import { EditorView, keymap } from "@codemirror/view"
+import { indentService, indentUnit, LRLanguage } from "@codemirror/language"
+import { EditorView, keymap, placeholder as placeholderExtension } from "@codemirror/view"
 import { indentMore, indentLess } from "@codemirror/commands"
 import { indentationMarkers } from "@replit/codemirror-indentation-markers"
 import { tomorrow } from "thememirror"
@@ -60,10 +64,11 @@ import { normalizeCode } from "@/utils/code"
 import { jsonReplacer, parseObjectString } from "@/utils/serializer"
 
 import InputLabel from "@/components/InputLabel.vue"
+import FormInputLabel from "@/components/FormInputLabel.vue"
 
 const props = withDefaults(
 	defineProps<{
-		language?: "json" | "javascript" | "html" | "css"
+		language?: "json" | "javascript" | "html" | "css" | "vue"
 		modelValue?: string | object | Array<string | object> | null
 		height?: string
 		maxHeight?: string
@@ -73,6 +78,7 @@ const props = withDefaults(
 		completions?: Function | null
 		label?: string
 		description?: string
+		placeholder?: string
 		required?: boolean
 		readonly?: boolean
 		borderless?: boolean
@@ -82,6 +88,7 @@ const props = withDefaults(
 			label: string
 			handler: () => void
 		}
+		isFormInput?: boolean
 	}>(),
 	{
 		language: "javascript",
@@ -140,36 +147,37 @@ const syncToParent = () => {
 // -- Language Extension --
 let languageConf = new Compartment()
 const loadLanguage = async (type: string): Promise<Extension> => {
-	const getJSCompletions = (language: LRLanguage) => {
+	// The user-provided completion source (page-script bindings, etc.), scoped to a sublanguage.
+	const customCompletions = (language: LRLanguage) => {
 		if (!props.completions) return []
-		return language.data.of({
-			autocomplete: props.completions,
-		})
+		return language.data.of({ autocomplete: props.completions })
 	}
+
+	// Completions inside a <script>/JS region: the custom source plus window globals (private keys
+	// filtered out), keyed to the JS sublanguage so they don't fire in the surrounding template.
+	const scriptCompletions = (javascriptLanguage: LRLanguage, windowScopeSource: CompletionSource) => [
+		customCompletions(javascriptLanguage),
+		javascriptLanguage.data.of({
+			autocomplete: async (context: CompletionContext) => {
+				const result = await windowScopeSource(context)
+				if (result?.options) {
+					result.options = result.options.filter((option: Completion) => !isPrivateKey(option.label))
+				}
+				return result
+			},
+		}),
+	]
 
 	switch (type) {
 		case "javascript": {
 			const { javascript, javascriptLanguage, scopeCompletionSource } = await import(
 				"@codemirror/lang-javascript"
 			)
-			const windowCompletionSource = scopeCompletionSource(window)
-			return [
-				javascript(),
-				getJSCompletions(javascriptLanguage),
-				javascriptLanguage.data.of({
-					autocomplete: async (context: CompletionContext) => {
-						const result = await windowCompletionSource(context)
-						if (result && result.options) {
-							result.options = result.options.filter((option: Completion) => !isPrivateKey(option.label))
-						}
-						return result
-					},
-				}),
-			]
+			return [javascript(), ...scriptCompletions(javascriptLanguage, scopeCompletionSource(window))]
 		}
 		case "html": {
 			const { html, htmlLanguage } = await import("@codemirror/lang-html")
-			return [html(), getJSCompletions(htmlLanguage)]
+			return [html(), customCompletions(htmlLanguage)]
 		}
 		case "css": {
 			const { css } = await import("@codemirror/lang-css")
@@ -178,6 +186,17 @@ const loadLanguage = async (type: string): Promise<Extension> => {
 		case "json": {
 			const { json } = await import("@codemirror/lang-json")
 			return json()
+		}
+		case "vue": {
+			const { vue } = await import("@codemirror/lang-vue")
+			const { javascript, javascriptLanguage, scopeCompletionSource } = await import(
+				"@codemirror/lang-javascript"
+			)
+			return [
+				vue(),
+				javascript().support,
+				...scriptCompletions(javascriptLanguage, scopeCompletionSource(window)),
+			]
 		}
 		default:
 			return []
@@ -208,6 +227,7 @@ watch(code, () => {
 const extensions = computed(() => {
 	const baseExtensions = [
 		languageConf.of([]),
+		indentUnit.of("\t"),
 		closeBrackets(),
 		indentationMarkers(),
 		getAutocompletionOptions(),
@@ -241,6 +261,7 @@ const extensions = computed(() => {
 			},
 		}),
 		keymap.of([{ key: "Tab", run: indentMore, shift: indentLess }]),
+		props.placeholder ? placeholderExtension(props.placeholder) : [],
 	]
 	if (!props.readonly) {
 		baseExtensions.push(
@@ -266,7 +287,7 @@ const getAutocompletionOptions = () => {
 		maxRenderedOptions: 10,
 		closeOnBlur: false,
 		icons: false,
-		optionClass: () => "flex h-7 !px-2 items-center rounded !text-gray-600",
+		optionClass: () => "flex h-7 !px-2 items-center rounded !text-ink-gray-5",
 	})
 }
 

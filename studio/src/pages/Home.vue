@@ -1,26 +1,25 @@
 <template>
-	<div class="isolate h-screen flex-col overflow-hidden bg-white">
+	<div class="isolate h-screen flex-col overflow-hidden bg-surface-base">
 		<div
-			class="toolbar sticky top-0 z-10 flex h-14 items-center justify-between bg-white px-3 py-2 shadow-sm"
+			class="toolbar sticky top-0 z-10 flex h-14 items-center justify-between border-b border-outline-gray-2 bg-surface-base px-3 py-2"
 		>
-			<Dropdown :options="[{ label: 'Logout', icon: 'log-out', onClick: () => session.logout() }]">
+			<Dropdown :options="[{ label: 'Logout', icon: 'lucide-log-out', onClick: () => session.logout() }]">
 				<template v-slot="{ open }">
 					<div class="flex cursor-pointer items-center gap-2">
 						<StudioLogo class="h-7 w-7"></StudioLogo>
 						<router-link class="flex items-center gap-2" :to="{ name: 'Home' }">
-							<h1 class="text-md mt-[2px] font-semibold leading-5 text-gray-800">Studio</h1>
+							<h1 class="text-md-semibold mt-[2px] leading-5 text-ink-gray-7">Studio</h1>
 						</router-link>
-						<FeatherIcon :name="open ? 'chevron-up' : 'chevron-down'" class="h-4 w-4 text-gray-700" />
+						<FeatherIcon :name="open ? 'chevron-up' : 'chevron-down'" class="h-4 w-4 text-ink-gray-6" />
 					</div>
 				</template>
 			</Dropdown>
-
-			<Button variant="solid" icon-left="plus" @click="showAppDialog = true">New App</Button>
+			<Button variant="solid" icon-left="lucide-plus" @click="showAppDialog = true">New App</Button>
 		</div>
 
 		<div class="flex h-full flex-col items-center px-20 py-10">
 			<div class="flex w-full flex-row justify-between">
-				<div class="text-lg font-semibold text-gray-800">All Apps</div>
+				<div class="text-lg-semibold text-ink-gray-7">All Apps</div>
 				<div class="relative flex">
 					<Input
 						class="w-48"
@@ -36,7 +35,7 @@
 						"
 					>
 						<template #prefix>
-							<FeatherIcon name="search" class="h-4 w-4 text-gray-500" />
+							<FeatherIcon name="search" class="h-4 w-4 text-ink-gray-4" />
 						</template>
 					</Input>
 				</div>
@@ -44,12 +43,12 @@
 
 			<section class="mt-5 w-full">
 				<div v-if="!studioApps.data?.length && !searchFilter" class="col-span-full">
-					<p class="mt-4 text-base text-gray-500">
+					<p class="mt-4 text-base text-ink-gray-4">
 						You don't have any apps yet. Click on the "+ New App" button to create a new app
 					</p>
 				</div>
 				<div v-else-if="!studioApps.data?.length" class="col-span-full">
-					<p class="mt-4 text-base text-gray-500">No matching apps found</p>
+					<p class="mt-4 text-base text-ink-gray-4">No matching apps found</p>
 				</div>
 				<div v-else class="grid w-full grid-cols-5 items-start gap-5">
 					<router-link
@@ -59,7 +58,7 @@
 						:key="app.name"
 					>
 						<div class="group flex flex-row justify-between">
-							<div class="font-semibold text-gray-800">{{ app.app_title }}</div>
+							<div class="font-semibold text-ink-gray-7">{{ app.app_title }}</div>
 							<div class="invisible shrink-0 group-hover:visible has-[[data-state=open]]:visible">
 								<Dropdown
 									:options="[
@@ -69,28 +68,28 @@
 												activeApp = app
 												showAppDialog = true
 											},
-											icon: 'edit',
+											icon: 'lucide-edit',
 										},
-										{ label: 'View in Desk', onClick: () => openInDesk(app), icon: 'arrow-up-right' },
+										{ label: 'View in Desk', onClick: () => openInDesk(app), icon: 'lucide-arrow-up-right' },
 										{
 											label: 'Delete',
 											onClick: () => store.deleteApp(app.name, app.app_title),
-											icon: 'trash-2',
+											icon: 'lucide-trash-2',
 											theme: 'red',
 										},
 									]"
 									:button="{
-										icon: 'more-horizontal',
+										icon: 'lucide-more-horizontal',
 										label: 'App Options',
 										variant: 'ghost',
 									}"
 									size="sm"
-									placement="right"
+									side="right"
 								/>
 							</div>
 						</div>
 						<UseTimeAgo v-slot="{ timeAgo }" :time="app.creation">
-							<p class="mt-1 block text-xs text-gray-500">Created {{ timeAgo }}</p>
+							<p class="mt-1 block text-xs text-ink-gray-4">Created {{ timeAgo }}</p>
 						</UseTimeAgo>
 					</router-link>
 				</div>
@@ -103,9 +102,11 @@
 
 <script setup lang="ts">
 import { ref } from "vue"
+import { Dropdown, FeatherIcon, Button } from "frappe-ui"
 import { studioApps } from "@/data/studioApps"
 import { UseTimeAgo } from "@vueuse/components"
 import Input from "@/components/Input.vue"
+import AppDialog from "@/components/AppDialog.vue"
 import StudioLogo from "@/components/Icons/StudioLogo.vue"
 import session from "@/utils/session"
 import { watchDebounced } from "@vueuse/core"

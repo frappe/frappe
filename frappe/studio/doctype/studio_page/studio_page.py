@@ -1,12 +1,29 @@
 # Copyright (c) 2024, Frappe Technologies Pvt Ltd and contributors
 # For license information, please see license.txt
+import os
+import re
+
 import frappe
 from frappe import _
+from frappe.exceptions import TimestampMismatchError
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
+from frappe.utils import get_datetime
 
-from studio.export import can_export, delete_file, parse_json, remove_null_fields, write_document_file
-from studio.utils import camel_case_to_kebab_case
+from studio.export import (
+	can_export,
+	delete_folder,
+	parse_json,
+	remove_null_fields,
+	write_code_file,
+	write_document_file,
+)
+from studio.realtime import publish_doc_change
+from studio.utils import camel_case_to_kebab_case, has_page_write_perm
+
+# A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
+# name must be a bare JS identifier.
+VARIABLE_NAME_REGEX = re.compile(r"^[A-Za-z_$][A-Za-z0-9_$]*$")
 
 
 class StudioPage(Document):
@@ -18,15 +35,10 @@ class StudioPage(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		from studio.studio.doctype.studio_page_client_script.studio_page_client_script import (
-			StudioPageClientScript,
-		)
 		from studio.studio.doctype.studio_page_resource.studio_page_resource import StudioPageResource
 		from studio.studio.doctype.studio_page_variable.studio_page_variable import StudioPageVariable
-		from studio.studio.doctype.studio_page_watcher.studio_page_watcher import StudioPageWatcher
 
 		blocks: DF.LongText | None
-		client_scripts: DF.TableMultiSelect[StudioPageClientScript]
 		draft_blocks: DF.LongText | None
 		frappe_app: DF.Literal[None]
 		is_standard: DF.Check
@@ -35,9 +47,9 @@ class StudioPage(Document):
 		published: DF.Check
 		resources: DF.Table[StudioPageResource]
 		route: DF.Data | None
+		script: DF.Code | None
 		studio_app: DF.Link | None
 		variables: DF.Table[StudioPageVariable]
-		watchers: DF.Table[StudioPageWatcher]
 	# end: auto-generated types
 
 	def autoname(self):
@@ -75,32 +87,67 @@ class StudioPage(Document):
 			self.route = f"/{self.route}"
 
 	def validate(self):
-		if hasattr(self, "_skip_validate"):
-			# passed from the frontend for faster page saves when variables & resources are not changed
-			return
-
-		self.validate_variables()
-		self.process_resources()
+		# passed from the frontend for faster page saves when variables & resources are not changed
+		if not hasattr(self, "_skip_validate"):
+			self.validate_variables()
+			self.process_resources()
 
 	def on_update(self):
 		self.export_page()
+		publish_doc_change("Studio Page", self.name, self.studio_app)
 
 	def export_page(self):
 		if can_export(self):
-			write_document_file(self, folder=self.get_folder_path())
-			self.delete_old_page_file()
+			# each page lives in its own folder: studio/<app>/studio_page/<scrubbed_title>/
+			frappe.create_folder(self.get_folder_path())
+			# script lives in the companion .ts (code mode), so keep it out of the JSON
+			write_document_file(self, folder=self.get_folder_path(), exclude_fields=["script"])
+			self.relocate_on_retitle()
 			self.export_components()
 
-	def delete_old_page_file(self):
-		if self.has_value_changed("page_title"):
-			doc_before_save = self.get_doc_before_save()
-			if doc_before_save:
-				delete_file(self.get_folder_path(), f"{frappe.scrub(doc_before_save.page_title)}.json")
+	def export_script_to_file(self):
+		"""Move the page script into its companion <page>.ts and clear the DB `script` field. Called on enabling exports"""
+		if not self.script:
+			return
+		folder = self.get_folder_path()
+		frappe.create_folder(folder)
+		stem = self.get_export_docname()
+		if not os.path.exists(os.path.join(folder, f"{stem}.ts")):
+			write_code_file(self, folder, code_field="script", extension="ts", filename=stem)
+		self.db_set("script", None, update_modified=False)
+
+	def restore_script_from_file(self):
+		"""Load the exported <page>.ts back into the `script` field, so the code survives in DB-only
+		mode (called before the export folder is deleted on un-export)."""
+		ts_path = os.path.join(self.get_folder_path(), f"{self.get_export_docname()}.ts")
+		if os.path.exists(ts_path):
+			self.db_set("script", frappe.read_file(ts_path), update_modified=False)
+
+	def relocate_on_retitle(self):
+		"""The page folder and its files are named after the page title, so a retitle relocates them.
+		The JSON is regenerated under the new name; carry the companion <page>.ts over too, then
+		remove the old folder."""
+		if not self.has_value_changed("page_title"):
+			return
+		doc_before_save = self.get_doc_before_save()
+		if not doc_before_save:
+			return
+
+		old_stem = frappe.scrub(doc_before_save.page_title)
+		old_folder = frappe.get_app_source_path(
+			self.frappe_app, "studio", self.studio_app, "studio_page", old_stem
+		)
+		old_page_script = os.path.join(old_folder, f"{old_stem}.ts")
+		if os.path.exists(old_page_script):
+			os.rename(
+				old_page_script, os.path.join(self.get_folder_path(), f"{self.get_export_docname()}.ts")
+			)
+		delete_folder(old_folder)
 
 	def export_components(self):
 		if components := self.get_studio_components():
 			folder = self.get_component_folder_path()
-			frappe.create_folder(folder, with_init=True)
+			frappe.create_folder(folder)
 			for component in components:
 				doc = frappe.get_doc("Studio Component", component)
 				write_document_file(doc, folder=folder)
@@ -117,9 +164,10 @@ class StudioPage(Document):
 
 			if slots := block.get("componentSlots"):
 				for slot in slots.values():
-					if isinstance(slot.get("slotContent"), str):
+					content = slot.get("slotContent")
+					if not isinstance(content, list):
 						continue
-					for slot_child in slot.get("slotContent"):
+					for slot_child in content:
 						add_component(slot_child)
 
 		def get_root_block(blocks):
@@ -145,9 +193,13 @@ class StudioPage(Document):
 		return False
 
 	def on_trash(self):
+		self.delete_ai_sessions()
 		if can_export(self):
-			path = self.get_folder_path(with_filename=True)
-			delete_file(path)
+			delete_folder(self.get_folder_path())
+
+	def delete_ai_sessions(self):
+		for session in frappe.get_all("Studio AI Session", filters={"page": self.name}, pluck="name"):
+			frappe.delete_doc("Studio AI Session", session, ignore_missing=True)
 
 	def validate_variables(self):
 		# check for duplicate variable names and show the duplicate variable name
@@ -155,6 +207,14 @@ class StudioPage(Document):
 		duplicate_variable_names = set(x for x in variable_names if variable_names.count(x) > 1)
 		if duplicate_variable_names:
 			frappe.throw(_("Duplicate variable name: {0}").format(", ".join(duplicate_variable_names)))
+
+		for variable in self.variables:
+			if not VARIABLE_NAME_REGEX.match(variable.variable_name or ""):
+				frappe.throw(
+					_(
+						"Invalid variable name '{0}' — use letters, digits and underscores, starting with a letter."
+					).format(variable.variable_name)
+				)
 
 	def process_resources(self):
 		for resource in self.resources:
@@ -215,7 +275,43 @@ class StudioPage(Document):
 		return frappe.scrub(self.page_title)
 
 	@frappe.whitelist()
-	def publish(self, **kwargs):
+	def save_draft(self, draft_blocks: str, known_modified: str | None = None):
+		"""Persist the editor's working blocks under the optimistic lock (see reject_if_stale)."""
+		self.reject_if_stale(known_modified)
+		self.draft_blocks = draft_blocks
+		self._skip_validate = True  # blocks only change
+		self.save()
+		return self.modified
+
+	@frappe.whitelist()
+	def save_page_field(self, fieldname: str, value, known_modified: str | None = None):
+		"""Set a single editor-owned field (title/route/script) under the same optimistic lock as
+		save_draft, so a field edit can't silently overwrite a page the DB has moved past either."""
+		FIELDS = ["page_title", "route", "script"]
+		if fieldname not in FIELDS:
+			frappe.throw(_("Field {0} is not editable outside the Studio editor").format(fieldname))
+		self.reject_if_stale(known_modified)
+		self.set(fieldname, value)
+		self._skip_validate = True
+		self.save()
+		return self.modified
+
+	def reject_if_stale(self, known_modified: str | None):
+		"""Refuse an editor write if the page changed in the DB (a disk sync by the watcher, an AI
+		edit) after the editor loaded it — otherwise the write would silently overwrite that newer
+		version. The editor turns the raised conflict into a "refresh to load the latest" prompt."""
+		if known_modified and get_datetime(known_modified) != get_datetime(self.modified):
+			frappe.throw(
+				_(
+					"This page was changed outside the editor. Refresh to load the latest version before editing."
+				),
+				exc=TimestampMismatchError,
+				title=_("Page changed"),
+			)
+
+	@frappe.whitelist()
+	def publish(self, known_modified: str | None = None, **kwargs):
+		self.reject_if_stale(known_modified)
 		frappe.form_dict.update(kwargs)
 		self.validate_conflicts_with_other_pages()
 		self.published = 1
@@ -228,6 +324,14 @@ class StudioPage(Document):
 	def unpublish(self):
 		self.published = 0
 		self.save()
+
+	@frappe.whitelist()
+	def revert(self, known_modified: str | None = None):
+		self.reject_if_stale(known_modified)
+		self.draft_blocks = None
+		self._skip_validate = True  # blocks only change
+		self.save()
+		return self.modified
 
 	def validate_conflicts_with_other_pages(self):
 		other_pages = frappe.get_all(
@@ -247,7 +351,8 @@ class StudioPage(Document):
 			)
 
 	def get_folder_path(self, with_filename: bool = False) -> str:
-		path = ["studio", self.studio_app, "studio_page"]
+		# each page exports to its own folder: studio/<app>/studio_page/<scrubbed_title>/
+		path = ["studio", self.studio_app, "studio_page", self.get_export_docname()]
 		if with_filename:
 			path.append(self.get_file_name())
 		return frappe.get_app_source_path(self.frappe_app, *path)

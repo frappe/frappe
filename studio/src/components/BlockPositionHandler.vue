@@ -1,19 +1,20 @@
 <!-- Extracted from Builder -->
 <template>
 	<div class="flex w-full flex-col items-center gap-5">
-		<OptionToggle
+		<Input
+			type="select"
+			class="w-full"
 			:modelValue="position"
-			@update:modelValue="position = $event"
+			@update:modelValue="(value: string) => (position = value)"
+			:hideClearButton="true"
 			:options="[
 				{ label: 'Auto', value: 'static' },
 				{ label: 'Free', value: 'absolute' },
-				{
-					label: 'Fixed',
-					value: 'fixed',
-				},
+				{ label: 'Relative', value: 'relative' },
+				{ label: 'Fixed', value: 'fixed' },
 				{ label: 'Sticky', value: 'sticky' },
 			]"
-		></OptionToggle>
+		/>
 		<div class="grid-rows grid grid-cols-3 gap-4" v-if="showHandler">
 			<div class="col-span-1 col-start-2 w-16 self-center">
 				<Input
@@ -32,20 +33,20 @@
 				/>
 			</div>
 			<div
-				class="grid-col-3 dark:bg-zinc-800 grid h-16 w-16 grid-rows-3 gap-1 self-center justify-self-center rounded bg-gray-50 p-2"
+				class="grid-col-3 dark:bg-zinc-800 grid h-16 w-16 grid-rows-3 gap-1 self-center justify-self-center rounded bg-surface-gray-1 p-2"
 			>
 				<div
-					class="col-span-3 row-start-1 h-2 w-[2px] self-center justify-self-center rounded bg-gray-100"
+					class="col-span-3 row-start-1 h-2 w-[2px] self-center justify-self-center rounded bg-surface-gray-2"
 				></div>
 				<div
-					class="col-span-3 row-start-3 h-2 w-[2px] self-center justify-self-center rounded bg-gray-100"
+					class="col-span-3 row-start-3 h-2 w-[2px] self-center justify-self-center rounded bg-surface-gray-2"
 				></div>
-				<div class="h-5 w-5 self-center justify-self-center rounded bg-gray-400"></div>
+				<div class="h-5 w-5 self-center justify-self-center rounded bg-surface-gray-5"></div>
 				<div
-					class="col-span-1 col-start-1 row-start-2 h-[2px] w-2 self-center justify-self-center rounded bg-gray-100"
+					class="col-span-1 col-start-1 row-start-2 h-[2px] w-2 self-center justify-self-center rounded bg-surface-gray-2"
 				></div>
 				<div
-					class="col-span-1 col-start-3 row-start-2 h-[2px] w-2 self-center justify-self-center rounded bg-gray-100"
+					class="col-span-1 col-start-3 row-start-2 h-[2px] w-2 self-center justify-self-center rounded bg-surface-gray-2"
 				></div>
 			</div>
 			<div class="col-span-1 col-start-3 w-16 self-center">
@@ -69,17 +70,13 @@
 </template>
 
 <script setup lang="ts">
-import OptionToggle from "@/components/OptionToggle.vue"
 import blockController from "@/utils/blockController"
 import { computed, watch } from "vue"
+import Input from "@/components/Input.vue"
 
 const position = computed({
 	get() {
-		const pos = (blockController.getStyle("position") as string) || "static"
-		if (["relative", "static"].includes(pos)) {
-			return "static"
-		}
-		return pos
+		return (blockController.getStyle("position") as string) || "static"
 	},
 	set(value: string) {
 		if (value === "static") {

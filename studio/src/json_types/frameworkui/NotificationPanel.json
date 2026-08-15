@@ -1,0 +1,145 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "NotificationPanelProps": {
+      "type": "object",
+      "properties": {
+        "notifications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "subject": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "app": {
+                "type": "string"
+              },
+              "read": {
+                "type": [
+                  "number",
+                  "boolean"
+                ]
+              },
+              "from_user": {
+                "type": "string"
+              },
+              "from_user_image": {
+                "type": "string"
+              },
+              "document_type": {
+                "type": "string"
+              },
+              "document_name": {
+                "type": "string"
+              },
+              "link": {
+                "type": "string"
+              },
+              "creation": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "read",
+              "creation"
+            ],
+            "additionalProperties": {}
+          }
+        },
+        "unreadCount": {
+          "type": "number"
+        },
+        "hasNextPage": {
+          "type": "boolean"
+        },
+        "loading": {
+          "type": "boolean"
+        },
+        "error": {},
+        "tabs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              },
+              "filter": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": {}
+                  },
+                  {
+                    "type": "object"
+                  }
+                ]
+              },
+              "count": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "const": "unread"
+                  },
+                  {
+                    "type": "object"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "label"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "notifications",
+        "hasNextPage"
+      ],
+      "additionalProperties": false
+    },
+    "NotificationPanelSlots": {
+      "type": "object",
+      "properties": {
+        "header": {
+          "type": "object"
+        },
+        "default": {
+          "type": "object"
+        },
+        "item": {
+          "type": "object"
+        },
+        "error": {
+          "type": "object"
+        },
+        "empty": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

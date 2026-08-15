@@ -33,6 +33,7 @@ export type FieldTypes =
 	| "Rating"
 	| "Icon"
 	| "Autocomplete"
+	| "Combobox"
 
 // Grid
 export interface GridColumn {

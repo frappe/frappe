@@ -1,13 +1,14 @@
 <!-- Extracted from Builder -->
 <template>
 	<div>
-		<div class="flex items-center justify-between text-sm font-medium">
-			<h3 class="cursor-pointer text-base text-ink-gray-9" @click="toggleCollapsed">
+		<div class="text-sm-medium flex items-center justify-between">
+			<h3 class="flex cursor-pointer items-center gap-1.5 text-base text-ink-gray-9" @click="toggleCollapsed">
 				{{ sectionName }}
+				<slot name="title-suffix" />
 			</h3>
 			<Button
 				class="text-ink-gray-6 hover:bg-surface-gray-2"
-				:icon="collapsed ? 'chevron-right' : 'chevron-down'"
+				:icon="collapsed ? 'lucide-chevron-right' : 'lucide-chevron-down'"
 				:variant="'ghost'"
 				size="sm"
 				@click="toggleCollapsed"
@@ -19,20 +20,20 @@
 	</div>
 </template>
 <script lang="ts" setup>
+import { toValue } from "@vueuse/core"
+import { Button } from "frappe-ui"
 import { ref, watch } from "vue"
 
-const props = defineProps({
-	sectionName: {
-		type: String,
-		required: true,
+const props = withDefaults(
+	defineProps<{
+		sectionName: string
+		sectionCollapsed?: boolean
+	}>(),
+	{
+		sectionCollapsed: false,
 	},
-	sectionCollapsed: {
-		type: [Boolean, Object],
-		default: false,
-	},
-})
+)
 
-const propCollapsed = ref(props.sectionCollapsed)
 const collapsed = ref(false)
 
 const toggleCollapsed = () => {
@@ -40,9 +41,9 @@ const toggleCollapsed = () => {
 }
 
 watch(
-	() => propCollapsed.value,
-	(newVal) => {
-		collapsed.value = newVal as boolean
+	() => props.sectionCollapsed,
+	() => {
+		collapsed.value = toValue(props.sectionCollapsed)
 	},
 	{ immediate: true },
 )

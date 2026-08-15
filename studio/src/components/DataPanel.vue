@@ -7,11 +7,16 @@
 					:key="resource_name"
 					class="group/item flex flex-row items-center justify-between"
 				>
-					<ObjectBrowser :object="resource" :name="resource_name" class="-ml-[0.9rem] overflow-hidden" />
+					<div class="-ml-[0.9rem] flex items-center gap-1 overflow-hidden">
+						<ObjectBrowser :object="resource" :name="resource_name" />
+						<Tooltip v-if="!resource" text="No matching document found for the current filters">
+							<span class="lucide-alert-circle h-[14px] w-[14px] cursor-pointer text-ink-amber-6" />
+						</Tooltip>
+					</div>
 					<ItemActions
 						class="-mt-1 self-start"
 						:menuOptions="getResourceMenu(resource, resource_name)"
-						@edit="openResource(resource)"
+						@edit="openResource(resource_name)"
 					/>
 				</div>
 			</div>
@@ -44,10 +49,10 @@
 						class="-ml-[0.9rem] overflow-hidden"
 					/>
 					<div v-else class="flex flex-row justify-between font-mono text-xs">
-						<div class="font-semibold text-pink-700">{{ variable_name }}</div>
+						<div class="font-semibold text-ink-pink-8">{{ variable_name }}</div>
 						<template v-if="value !== ''">
-							<div class="text-gray-600">&nbsp;=&nbsp;</div>
-							<div class="text-violet-700">{{ value }}</div>
+							<div class="text-ink-gray-5">&nbsp;=&nbsp;</div>
+							<div class="text-ink-violet-8">{{ value }}</div>
 						</template>
 					</div>
 					<ItemActions
@@ -64,9 +69,7 @@
 				<Button icon-left="plus" @click="showVariableDialog = true">Add Variable</Button>
 				<Dialog
 					v-model="showVariableDialog"
-					:options="{
-						title: variableRef?.name ? 'Edit Variable' : 'Add Variable',
-					}"
+					:title="variableRef?.name ? 'Edit Variable' : 'Add Variable'"
 					@after-leave="
 						() =>
 							(variableRef = {
@@ -77,7 +80,7 @@
 							})
 					"
 				>
-					<template #body-content>
+					<template #default>
 						<div class="flex flex-col space-y-4">
 							<FormControl
 								label="Variable Name"
@@ -135,7 +138,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue"
-import { Dialog } from "frappe-ui"
+import { Dialog, Tooltip, Button, FormControl } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCodeStore from "@/stores/codeStore"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
@@ -150,7 +153,7 @@ import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
 import type { Resource } from "@/types/Studio/StudioResource"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 
 /**
  * Insert resource into DB
@@ -182,37 +185,41 @@ const addResource = (resource: Resource) => {
 			parenttype: "Studio Page",
 			parentfield: "resources",
 		})
-		.then(async () => {
+		.then(async (data: any) => {
 			if (store.activePage) {
 				await codeStore.setPageResources(store.activePage, true)
+				store.syncPageModified(data)
 			}
 			showResourceDialog.value = false
 		})
 }
 
-const deleteResource = async (resource: Resource, resource_name: string) => {
+const deleteResource = async (resource_name: string) => {
 	const confirmed = await confirm(`Are you sure you want to delete the data source ${resource_name}?`)
-	if (confirmed) {
-		studioPageResources.delete
-			.submit(resource.resource_id)
-			.then(async () => {
-				if (store.activePage) {
-					await codeStore.setPageResources(store.activePage, true)
-				}
-				toast.success(`Data Source ${resource_name} deleted successfully`)
-			})
-			.catch(() => {
-				toast.error(`Failed to delete data source ${resource_name}`)
-			})
-	}
+	if (!confirmed) return
+	const stored = await getStoredResource(resource_name)
+	if (!stored) return
+	studioPageResources.delete
+		.submit(stored.resource_id)
+		.then(async () => {
+			if (store.activePage) {
+				await codeStore.setPageResources(store.activePage, true)
+				await store.refreshActivePageModified()
+			}
+			toast.success(`Data Source ${resource_name} deleted successfully`)
+		})
+		.catch(() => {
+			toast.error(`Failed to delete data source ${resource_name}`)
+		})
 }
 
 const editResource = async (resource: Resource) => {
 	return studioPageResources.setValue
 		.submit(getResourceValues(resource))
-		.then(async () => {
+		.then(async (data: any) => {
 			if (store.activePage) {
 				await codeStore.setPageResources(store.activePage, true)
+				store.syncPageModified(data)
 			}
 			toast.success(`Data Source ${resource.resource_name} updated successfully`)
 			showResourceDialog.value = false
@@ -232,28 +239,31 @@ const getResourceValues = (resource: Resource) => {
 	}
 }
 
-const openResource = async (resource: Resource) => {
+const openResource = async (resource_name: string) => {
+	existingResource.value = await getStoredResource(resource_name)
+	showResourceDialog.value = true
+}
+
+const getStoredResource = async (resource_name: string) => {
 	studioPageResources.filters = {
 		parent: store.activePage?.name,
-		name: resource.resource_id,
+		resource_name: resource_name,
 	}
 	await studioPageResources.reload()
-
-	existingResource.value = studioPageResources.data[0]
-	showResourceDialog.value = true
+	return studioPageResources.data[0]
 }
 
 const getResourceMenu = (resource: Resource, resource_name: string) => {
 	return [
 		{
 			label: "Delete",
-			icon: "trash",
+			icon: "lucide-trash",
 			theme: "red",
-			onClick: () => deleteResource(resource, resource_name),
+			onClick: () => deleteResource(resource_name),
 		},
 		{
 			label: "Copy Object",
-			icon: "copy",
+			icon: "lucide-copy",
 			onClick: () => {
 				copyToClipboard(resource)
 			},
@@ -311,9 +321,10 @@ const addVariable = (variable: Variable) => {
 			parentfield: "variables",
 		},
 		{
-			async onSuccess() {
+			async onSuccess(data: any) {
 				if (store.activePage) {
 					await codeStore.setPageVariables(store.activePage)
+					store.syncPageModified(data)
 				}
 				showVariableDialog.value = false
 			},
@@ -335,9 +346,10 @@ const editVariable = (variable: Variable) => {
 			variable_type: variable.variable_type,
 			initial_value: initial_value,
 		})
-		.then(async () => {
+		.then(async (data: any) => {
 			if (store.activePage) {
 				await codeStore.setPageVariables(store.activePage)
+				store.syncPageModified(data)
 			}
 			showVariableDialog.value = false
 		})
@@ -351,6 +363,7 @@ const deleteVariable = async (variable: Variable) => {
 			.then(async () => {
 				if (store.activePage) {
 					await codeStore.setPageVariables(store.activePage)
+					await store.refreshActivePageModified()
 				}
 				toast.success(`Variable ${variable.variable_name} deleted successfully`)
 			})
@@ -370,7 +383,7 @@ const getVariableMenu = (variable_name: string, value: any) => {
 	return [
 		{
 			label: "Delete",
-			icon: "trash",
+			icon: "lucide-trash",
 			theme: "red",
 			onClick: () => {
 				const variableConfig = store.variableConfigs[variable_name]
@@ -379,14 +392,14 @@ const getVariableMenu = (variable_name: string, value: any) => {
 		},
 		{
 			label: "Copy Name",
-			icon: "copy",
+			icon: "lucide-copy",
 			onClick: () => {
 				copyToClipboard(variable_name)
 			},
 		},
 		{
 			label: "Copy Value",
-			icon: "copy",
+			icon: "lucide-copy",
 			onClick: () => {
 				copyToClipboard(value)
 			},

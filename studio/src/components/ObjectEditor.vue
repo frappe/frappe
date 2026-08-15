@@ -15,7 +15,7 @@
 			<Button
 				class="flex-shrink-0 text-xs"
 				variant="subtle"
-				icon="x"
+				icon="lucide-x"
 				@click="deleteObjectKey(key as string)"
 			></Button>
 		</div>

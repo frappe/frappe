@@ -22,9 +22,9 @@
 					:data-component-layer-id="element.componentId"
 					:data-indent="indent"
 					:title="element.componentId"
-					class="component-layer-item relative min-w-24 cursor-pointer select-none rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
+					class="component-layer-item relative min-w-24 cursor-pointer select-none rounded border border-transparent bg-surface-base bg-opacity-50 text-base text-ink-gray-6"
 					:class="{
-						'border-blue-500 !bg-blue-100 dark:!bg-blue-900':
+						'border-outline-blue-5 !bg-surface-blue-2 dark:!bg-surface-blue-10':
 							canvasStore.layerDraggingOverBlock === element.componentId,
 					}"
 					@click.stop="openBlockEditor(element, $event)"
@@ -50,14 +50,14 @@
 							:is="element.getIcon()"
 							class="h-3 w-3"
 							:class="{
-								'text-purple-500 opacity-80 dark:opacity-100 dark:brightness-125 dark:saturate-[0.3]':
+								'text-ink-purple-6 opacity-80 dark:opacity-100 dark:brightness-125 dark:saturate-[0.3]':
 									element.isStudioComponent,
 							}"
 						/>
 						<span
-							class="layer-label min-h-[1em] min-w-[2em] max-w-64 truncate"
+							class="layer-label min-h-[1em] min-w-[2em] max-w-64 scroll-my-16 truncate"
 							:class="{
-								'text-purple-500 opacity-80 dark:opacity-100 dark:brightness-125 dark:saturate-[0.3]':
+								'text-ink-purple-6 opacity-80 dark:opacity-100 dark:brightness-125 dark:saturate-[0.3]':
 									element.isStudioComponent,
 							}"
 							:contenteditable="element.editable"
@@ -69,8 +69,22 @@
 							{{ element.getBlockDescription() }}
 						</span>
 
+						<LucideRepeat
+							v-if="element.isRepeated()"
+							title="Repeated for each data item"
+							class="h-3 w-3 shrink-0 text-ink-gray-4"
+						/>
+
 						<!-- toggle visibility -->
 						<div class="ml-auto flex items-center gap-2">
+							<div
+								v-if="element.isStudioComponent"
+								title="Edit component"
+								class="invisible cursor-pointer group-hover:visible"
+								@click.stop="editComponent(element)"
+							>
+								<LucidePenLine class="h-3 w-3" />
+							</div>
 							<div
 								v-if="element.hasVisibilityCondition()"
 								title="Toggle visibility condition"
@@ -86,7 +100,7 @@
 								@click.stop="element.toggleVisibility()"
 							/>
 						</div>
-						<span v-if="element.isRoot()" class="ml-auto mr-2 text-sm capitalize text-gray-500">
+						<span v-if="element.isRoot()" class="ml-auto mr-2 text-sm capitalize text-ink-gray-4">
 							{{ canvasStore.activeCanvas?.activeBreakpoint }}
 						</span>
 					</span>
@@ -104,8 +118,14 @@
 							v-for="(slot, slotName) in element.componentSlots"
 							:key="slot.slotId"
 							:data-slot-layer-id="slot.slotId"
+							:data-slot-name="slotName"
+							:data-slot-parent-id="slot.parentBlockId"
 							:title="slot.slotName"
-							class="relative min-w-24 cursor-pointer select-none rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
+							class="relative min-w-24 cursor-pointer select-none rounded border border-transparent bg-surface-base bg-opacity-50 text-base text-ink-gray-6"
+							:class="{
+								'border-outline-blue-5 !bg-surface-blue-2 dark:!bg-surface-blue-10':
+									canvasStore.layerDraggingOverSlot === slot.slotId,
+							}"
 							@click.stop="canvasStore.activeCanvas?.selectSlot(slot)"
 						>
 							<div
@@ -113,7 +133,7 @@
 								:style="{ paddingLeft: `${childIndent}px` }"
 							>
 								<FeatherIcon
-									v-if="isSlotExpandable(slot, element)"
+									v-if="isSlotExpandable(slot)"
 									:name="isSlotExpanded(slot) ? 'chevron-down' : 'chevron-right'"
 									class="h-3 w-3"
 									@click.stop="toggleSlotExpanded(slot)"
@@ -122,7 +142,7 @@
 								<span class="min-h-[1em] min-w-[2em] truncate" :title="slot.slotName">#{{ slotName }}</span>
 							</div>
 
-							<div v-if="Array.isArray(slot.slotContent) && isSlotExpanded(slot)">
+							<div v-if="isSlotExpanded(slot)">
 								<ComponentLayers :blocks="slot.slotContent" ref="slotLayer" :indent="slotIndent" />
 							</div>
 						</div>
@@ -133,7 +153,7 @@
 		<!-- Drop indicator line -->
 		<div
 			v-if="showDropIndicator"
-			class="pointer-events-none absolute h-0.5 bg-blue-500 transition-none"
+			class="pointer-events-none absolute h-0.5 bg-surface-blue-6 transition-none"
 			:style="{
 				top: dropIndicatorTop + 'px',
 				left: dropIndicatorLeft + 'px',
@@ -152,7 +172,10 @@ import ComponentLayers from "@/components/ComponentLayers.vue"
 
 import useCanvasStore from "@/stores/canvasStore"
 import Block from "@/utils/block"
+import useComponentEditorStore from "@/stores/componentEditorStore"
 import SlotIcon from "@/components/Icons/SlotIcon.vue"
+import LucideRepeat from "~icons/lucide/repeat"
+import LucidePenLine from "~icons/lucide/pen-line"
 import type { Slot } from "@/types"
 
 type LayerInstance = InstanceType<typeof ComponentLayers>
@@ -245,8 +268,8 @@ const isSlotExpanded = (slot: Slot) => {
 	return expandedSlots.value.has(slot.slotId)
 }
 
-const isSlotExpandable = (slot: Slot, block: Block) => {
-	return !block.isSlotEditable(slot) && slot.slotContent?.length > 0
+const isSlotExpandable = (slot: Slot) => {
+	return slot.slotContent.length > 0
 }
 
 const toggleSlotExpanded = (slot: Slot) => {
@@ -261,8 +284,13 @@ const canShowSlotLayer = (block: Block) => {
 	return isExpanded(block) && block.hasComponentSlots()
 }
 
+const editComponent = (block: Block) => {
+	useComponentEditorStore().editComponent(block.componentName)
+}
+
 const openBlockEditor = (block: Block, e: MouseEvent) => {
-	if (canvasStore.editingMode !== "fragment" && block.editInFragmentMode()) {
+	const isRenderedOnCanvas = block.componentId === canvasStore.primaryOverlayId
+	if (!isRenderedOnCanvas && block.editInFragmentMode()) {
 		const parentBlock = block.getParentBlock()
 		canvasStore.editOnCanvas(
 			block,
@@ -270,7 +298,7 @@ const openBlockEditor = (block: Block, e: MouseEvent) => {
 			`Save ${block.componentName}`,
 		)
 	} else {
-		canvasStore.activeCanvas?.selectBlock(block, e, false, false)
+		canvasStore.activeCanvas?.selectBlock(block, e, false)
 	}
 }
 
@@ -279,16 +307,22 @@ interface DragState {
 	draggedElement: HTMLElement | null
 	hoverTarget: HTMLElement | null
 	hoverPosition: "before" | "after" | "inside" | null
+	hoverSlot: { parentId: string; slotName: string } | null
 }
 
 const showDropIndicator = ref(false)
 const dropIndicatorTop = ref(0)
 const dropIndicatorLeft = ref(0)
-const dragState: DragState = { draggedElement: null, hoverTarget: null, hoverPosition: null }
+const dragState: DragState = { draggedElement: null, hoverTarget: null, hoverPosition: null, hoverSlot: null }
+
+const clearDragState = () => {
+	Object.assign(dragState, { draggedElement: null, hoverTarget: null, hoverPosition: null, hoverSlot: null })
+}
 
 const resetDropIndicators = () => {
 	showDropIndicator.value = false
 	canvasStore.layerDraggingOverBlock = null
+	canvasStore.layerDraggingOverSlot = null
 }
 
 const checkMove = () => false // Prevent automatic reordering
@@ -320,10 +354,18 @@ const onMouseMove = (event: MouseEvent) => {
 	if (!draggedElement) return
 
 	const target = document.elementFromPoint(event.clientX, event.clientY)
+	const slotRow = target?.closest("[data-slot-layer-id]") as HTMLElement | null
 	const layerItem = target?.closest(".component-layer-item") as HTMLElement | null
+
+	// Hovering a slot header row (deeper than the nearest block row) targets the slot itself
+	if (slotRow && (!layerItem || layerItem.contains(slotRow)) && !draggedElement.contains(slotRow)) {
+		hoverSlot(slotRow)
+		return
+	}
 
 	if (!layerItem || layerItem === draggedElement || draggedElement.contains(layerItem)) {
 		resetDropIndicators()
+		dragState.hoverSlot = null
 		return
 	}
 
@@ -341,6 +383,7 @@ const onMouseMove = (event: MouseEvent) => {
 	const isInCenterZone = relativeY > elementHeight * 0.25 && relativeY < elementHeight * 0.75
 
 	dragState.hoverTarget = layerItem
+	dragState.hoverSlot = null
 
 	if (block.canHaveChildren() && isInCenterZone) {
 		// Highlight parent block for nested drop
@@ -354,11 +397,32 @@ const onMouseMove = (event: MouseEvent) => {
 	}
 }
 
+const hoverSlot = (slotRow: HTMLElement) => {
+	resetDropIndicators()
+	canvasStore.layerDraggingOverSlot = slotRow.dataset.slotLayerId!
+	dragState.hoverTarget = null
+	dragState.hoverPosition = null
+	dragState.hoverSlot = {
+		parentId: slotRow.dataset.slotParentId!,
+		slotName: slotRow.dataset.slotName!,
+	}
+}
+
 const removeFromParent = (block: Block) => {
 	const parent = block.getParentBlock()
 	if (parent) {
 		parent.removeChild(block)
 	}
+}
+
+const moveBlockIntoSlot = (draggedBlock: Block, parentBlock: Block, slotName: string) => {
+	const slot = parentBlock.getSlot(slotName)
+	if (!slot) return
+	removeFromParent(draggedBlock)
+	draggedBlock.parentBlock = parentBlock
+	draggedBlock.parentSlotName = slotName
+	if (!Array.isArray(slot.slotContent)) slot.slotContent = []
+	slot.slotContent.push(draggedBlock)
 }
 
 const moveBlockInside = (draggedBlock: Block, targetBlock: Block) => {
@@ -380,10 +444,7 @@ const moveBlockAdjacent = (draggedBlock: Block, targetBlock: Block, position: "b
 	draggedBlock.parentBlock = targetParent
 	if (targetBlock.isSlotBlock()) {
 		draggedBlock.parentSlotName = targetBlock.parentSlotName
-		let slotContent = targetParent.getSlotContent(targetBlock.parentSlotName!)
-		if (Array.isArray(slotContent)) {
-			slotContent.splice(insertIndex, 0, draggedBlock)
-		}
+		targetParent.getSlotContent(targetBlock.parentSlotName!)?.splice(insertIndex, 0, draggedBlock)
 	} else {
 		delete draggedBlock.parentSlotName
 		targetParent.children.splice(insertIndex, 0, draggedBlock)
@@ -395,27 +456,34 @@ const onDragEnd = (e: DragEvent) => {
 	resetDropIndicators()
 	document.removeEventListener("mousemove", onMouseMove)
 
-	const { draggedElement, hoverTarget, hoverPosition } = dragState
-	if (!draggedElement || !hoverTarget || !hoverPosition || draggedElement.contains(hoverTarget)) {
-		Object.assign(dragState, { draggedElement: null, hoverTarget: null, hoverPosition: null })
+	const { draggedElement, hoverTarget, hoverPosition, hoverSlot } = dragState
+	clearDragState()
+
+	const draggedBlock =
+		draggedElement && canvasStore.activeCanvas?.findBlock(draggedElement.dataset.componentLayerId!)
+	if (!draggedBlock) return
+
+	if (hoverSlot) {
+		const parentBlock = canvasStore.activeCanvas?.findBlock(hoverSlot.parentId)
+		if (parentBlock && parentBlock !== draggedBlock) {
+			moveBlockIntoSlot(draggedBlock, parentBlock, hoverSlot.slotName)
+			canvasStore.activeCanvas?.selectBlock(draggedBlock, e)
+		}
 		return
 	}
 
-	const draggedBlock = canvasStore.activeCanvas?.findBlock(draggedElement.dataset.componentLayerId!)
-	const targetBlock = canvasStore.activeCanvas?.findBlock(hoverTarget.dataset.componentLayerId!)
+	if (!hoverTarget || !hoverPosition || draggedElement!.contains(hoverTarget)) return
 
-	if (draggedBlock && targetBlock && draggedBlock !== targetBlock) {
+	const targetBlock = canvasStore.activeCanvas?.findBlock(hoverTarget.dataset.componentLayerId!)
+	if (targetBlock && draggedBlock !== targetBlock) {
 		if (hoverPosition === "inside") {
 			moveBlockInside(draggedBlock, targetBlock)
 		} else {
 			moveBlockAdjacent(draggedBlock, targetBlock, hoverPosition)
 		}
-
 		// Select the moved block
 		canvasStore.activeCanvas?.selectBlock(draggedBlock, e)
 	}
-
-	Object.assign(dragState, { draggedElement: null, hoverTarget: null, hoverPosition: null })
 }
 
 // @ts-ignore
@@ -434,7 +502,7 @@ const updateParent = (event) => {
 }
 
 watch(
-	() => canvasStore.activeCanvas?.selectedBlocks,
+	() => canvasStore.activeCanvas?.selectedBlockIds,
 	() => {
 		if (canvasStore.activeCanvas?.selectedBlocks.length) {
 			canvasStore.activeCanvas?.selectedBlocks.forEach((block: Block) => {

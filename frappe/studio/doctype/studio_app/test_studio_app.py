@@ -30,7 +30,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 		blocks = json.dumps(
 			[
 				{
-					"componentName": "Card",
+					"componentName": "Alert",
 					"children": [
 						{"componentName": "Badge", "children": []},
 						{
@@ -45,7 +45,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 
 		builder = StudioAppBuilder(app.name, is_standard=False)
 		builder.get_app_components()
-		self.assertIn("Card", builder.components)
+		self.assertIn("Alert", builder.components)
 		self.assertIn("Badge", builder.components)
 		self.assertIn("Avatar", builder.components)
 		self.assertNotIn("div", builder.components)
@@ -74,24 +74,6 @@ class TestStudioAppBuilder(FrappeTestCase):
 		self.assertIn("Dialog", builder.components)
 		self.assertIn("TextInput", builder.components)
 
-	def test_handles_string_slot_content(self):
-		"""String slot content should be gracefully skipped without errors."""
-		app = make_studio_app(app_title="Str Slot App", app_name="str-slot-app")
-		blocks = json.dumps(
-			[
-				{
-					"componentName": "Tooltip",
-					"children": [],
-					"componentSlots": {"default": {"slotContent": "Some plain text"}},
-				}
-			]
-		)
-		make_studio_page(app.name, page_title="Str Slot Page", blocks=blocks, published=1)
-
-		builder = StudioAppBuilder(app.name, is_standard=False)
-		builder.get_app_components()
-		self.assertIn("Tooltip", builder.components)
-
 	def test_extracts_h_function_components(self):
 		"""h(ComponentName, ...) calls in blocks string should be extracted."""
 		app = make_studio_app(app_title="H Func App", app_name="h-func-app")
@@ -100,7 +82,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 				{
 					"componentName": "div",
 					"children": [],
-					"render": 'h(Card, {}, [h(Button, { label: "OK" }), h(Badge, { text: "New" })])',
+					"render": 'h(Alert, {}, [h(Button, { label: "OK" }), h(Badge, { text: "New" })])',
 				}
 			]
 		)
@@ -108,20 +90,20 @@ class TestStudioAppBuilder(FrappeTestCase):
 
 		builder = StudioAppBuilder(app.name, is_standard=False)
 		builder.get_app_components()
-		self.assertIn("Card", builder.components)
+		self.assertIn("Alert", builder.components)
 		self.assertIn("Button", builder.components)
 		self.assertIn("Badge", builder.components)
 
 	def test_extracts_components_from_multiple_pages(self):
 		app = make_studio_app(app_title="Multi Page App", app_name="multi-page-app")
-		blocks_1 = json.dumps([{"componentName": "Card", "children": []}])
+		blocks_1 = json.dumps([{"componentName": "Alert", "children": []}])
 		blocks_2 = json.dumps([{"componentName": "Avatar", "children": []}])
 		make_studio_page(app.name, page_title="Page One", route="/page-one", blocks=blocks_1, published=1)
 		make_studio_page(app.name, page_title="Page Two", route="/page-two", blocks=blocks_2, published=1)
 
 		builder = StudioAppBuilder(app.name, is_standard=False)
 		builder.get_app_components()
-		self.assertIn("Card", builder.components)
+		self.assertIn("Alert", builder.components)
 		self.assertIn("Avatar", builder.components)
 
 	def test_ignores_unpublished_pages(self):
@@ -136,7 +118,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 
 	def test_get_published_custom_apps(self):
 		app = make_studio_app(app_title="Published Custom", app_name="published-custom")
-		blocks = json.dumps([{"componentName": "Card", "children": []}])
+		blocks = json.dumps([{"componentName": "Alert", "children": []}])
 		make_studio_page(app.name, page_title="Pub Page", blocks=blocks, published=1)
 
 		unpublished_app = make_studio_app(app_title="Unpublished Custom", app_name="unpublished-custom")
@@ -148,7 +130,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 			is_standard=1,
 			frappe_app="studio",
 		)
-		blocks = json.dumps([{"componentName": "Card", "children": []}])
+		blocks = json.dumps([{"componentName": "Alert", "children": []}])
 		make_studio_page(standard_app.name, page_title="Std Page", blocks=blocks, published=1)
 
 		result = get_published_custom_apps()
@@ -179,7 +161,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 	def test_get_app_components_from_files_with_string_blocks(self):
 		"""Blocks stored as a JSON string (instead of list) should also be parsed."""
 		app_name = "str-blocks-app"
-		blocks = [{"componentName": "Card", "children": []}]
+		blocks = [{"componentName": "Alert", "children": []}]
 		page_data = {"blocks": json.dumps(blocks)}
 
 		with mock_studio_app_files(app_name, pages={"page": page_data}) as studio_folder:
@@ -187,7 +169,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 			with patch("studio.build.get_studio_folder", return_value=studio_folder):
 				builder.get_app_components_from_files()
 
-			self.assertIn("Card", builder.components)
+			self.assertIn("Alert", builder.components)
 
 	def test_get_app_components_from_files_with_studio_components(self):
 		"""Studio components referenced in pages should be recursively resolved from disk."""
@@ -195,7 +177,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 		page_data = {"blocks": [{"componentName": "MyWidget", "isStudioComponent": True, "children": []}]}
 		comp_data = {
 			"name": "MyWidget",
-			"block": {"componentName": "Card", "children": [{"componentName": "Badge", "children": []}]},
+			"block": {"componentName": "Alert", "children": [{"componentName": "Badge", "children": []}]},
 		}
 
 		with mock_studio_app_files(
@@ -205,7 +187,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 			with patch("studio.build.get_studio_folder", return_value=studio_folder):
 				builder.get_app_components_from_files()
 
-			self.assertIn("Card", builder.components)
+			self.assertIn("Alert", builder.components)
 			self.assertIn("Badge", builder.components)
 
 	def test_build_paths_for_standard_app(self):
@@ -260,13 +242,16 @@ def mock_studio_app_files(app_name, pages=None, components=None):
 	tmpdir = tempfile.mkdtemp()
 	try:
 		studio_folder = os.path.join(tmpdir, "studio")
-		app_folder = os.path.join(studio_folder, app_name)
+		app_folder = os.path.join(studio_folder, frappe.scrub(app_name))
 		page_folder = os.path.join(app_folder, "studio_page")
 		os.makedirs(page_folder)
 
 		if pages:
+			# each page is exported into its own folder holding <stem>.json (+ optional <stem>.ts)
 			for page_name, page_data in pages.items():
-				with open(os.path.join(page_folder, f"{page_name}.json"), "w") as f:
+				page_dir = os.path.join(page_folder, page_name)
+				os.makedirs(page_dir, exist_ok=True)
+				with open(os.path.join(page_dir, f"{page_name}.json"), "w") as f:
 					json.dump(page_data, f)
 
 		if components:

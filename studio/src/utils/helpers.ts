@@ -1,6 +1,6 @@
 import { Ref } from "vue"
-import { createDocumentResource, createResource, confirmDialog } from "frappe-ui"
-import { toast } from "vue-sonner"
+import { createDocumentResource, createResource, dialog } from "frappe-ui"
+import { toast } from "frappe-ui"
 
 import type { ObjectLiteral, StyleValue, SelectOption, HashString, RGBString } from "@/types"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
@@ -143,6 +143,20 @@ function kebabToCamelCase(str: string) {
 	});
 }
 
+function camelToKebabCase(str: string) {
+	// convert borderColor to border-color
+	return str.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)
+}
+
+function toTitleCase(cssProperty: string) {
+	// convert border-color to Border Color
+	return cssProperty
+		.split("-")
+		.filter(Boolean)
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+		.join(" ")
+}
+
 function areObjectsEqual(obj1: ObjectLiteral, obj2: ObjectLiteral): boolean {
 	const keys1 = Object.keys(obj1)
 	const keys2 = Object.keys(obj2)
@@ -248,6 +262,7 @@ function isHTML(content: any) {
 
 // app
 async function fetchApp(appName: string) {
+	if (!appName) return null
 	const appResource = createDocumentResource({
 		doctype: "Studio App",
 		name: appName,
@@ -262,6 +277,7 @@ function openInDesk(app: StudioApp) {
 
 // page
 async function fetchPage(pageName: string) {
+	if (!pageName) return null
 	const pageResource = createDocumentResource({
 		doctype: "Studio Page",
 		name: pageName,
@@ -279,6 +295,17 @@ async function findPageWithRoute(appName: string, pageRoute: string) {
 	await pageName.fetch()
 	pageName = pageName.data
 	return fetchPage(pageName)
+}
+
+// extract dynamic route variables from a vue-router route, e.g. "/articles/:category" -> ["category"]
+function getRouteVariables(route: string): string[] {
+	const variables = [] as string[]
+	route.split("/").forEach((part) => {
+		if (part.startsWith(":") && part.length > 1) {
+			variables.push(part.slice(1))
+		}
+	})
+	return variables
 }
 
 // data
@@ -328,13 +355,11 @@ const getInitialVariableValue = (variable: Variable) => {
 // dialogs
 async function confirm(message: string, title: string = "Confirm"): Promise<boolean> {
 	return new Promise((resolve) => {
-		confirmDialog({
+		dialog.confirm({
 			title: title,
 			message: message,
-			onConfirm: ({ hideDialog }: { hideDialog: Function }) => {
-				resolve(true);
-				hideDialog();
-			},
+			onConfirm: () => resolve(true),
+			onCancel: () => resolve(false),
 		});
 	});
 }
@@ -528,6 +553,8 @@ export {
 	extractNumberAndUnit,
 	normalizeValueWithUnits,
 	kebabToCamelCase,
+	camelToKebabCase,
+	toTitleCase,
 	areObjectsEqual,
 	isObjectEmpty,
 	getValueFromObject,
@@ -547,6 +574,7 @@ export {
 	// page
 	fetchPage,
 	findPageWithRoute,
+	getRouteVariables,
 	// data
 	getAutocompleteValues,
 	getParamsObj,

@@ -8,6 +8,5 @@
 	"printWidth": 110,
 	"arrowParens": "always",
 	"trailingComma": "all",
-	"plugins": ["prettier-plugin-tailwindcss"],
 	"tailwindConfig": "./tailwind.config.js"
 }

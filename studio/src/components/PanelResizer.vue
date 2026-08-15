@@ -9,7 +9,7 @@
 			'right-0': side === 'right',
 			'top-0': side === 'top',
 			'bottom-0': side === 'bottom',
-			'bg-gray-300': dragActive,
+			'bg-surface-gray-4': dragActive,
 		}"
 		@mousedown.prevent="resize"
 	>

@@ -7,13 +7,12 @@
 				</keep-alive>
 			</router-view>
 		</FrappeUIProvider>
-
-		<Toaster :visible-toasts="2" position="bottom-right" richColors closeButton />
-		<Dialogs></Dialogs>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { Dialogs, FrappeUIProvider } from "frappe-ui"
-import { Toaster } from "vue-sonner"
+import { FrappeUIProvider } from "frappe-ui"
+import { useLiveEditor } from "@/utils/useLiveEditor"
+
+useLiveEditor()
 </script>

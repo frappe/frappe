@@ -5,30 +5,203 @@
     "MultiSelectProps": {
       "type": "object",
       "properties": {
-        "placeholder": {
+        "label": {
           "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "stack": {
+                  "type": "string"
+                },
+                "messages": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "message",
+                "name"
+              ]
+            }
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
+        "modelValue": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "options": {
           "type": "array",
           "items": {
-            "type": "object",
-            "properties": {
-              "label": {
-                "type": "string"
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  },
+                  "icon": {
+                    "type": [
+                      "string"
+                    ]
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "disabled": {
+                    "type": "boolean"
+                  },
+                  "slot": {
+                    "type": "string"
+                  },
+                  "slots": {
+                    "type": "object"
+                  },
+                  "slotName": {
+                    "type": "string"
+                  },
+                  "render": {
+                    "anyOf": [
+                      {
+                        "type": "object"
+                      },
+                      {
+                        "type": "object"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "label",
+                  "value"
+                ]
               },
-              "value": {
-                "type": "string"
-              },
-              "disabled": {
-                "type": "boolean"
+              {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": [
+                      "string",
+                      "number"
+                    ]
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "hideLabel": {
+                    "type": "boolean"
+                  },
+                  "options": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": "string"
+                        },
+                        "icon": {
+                          "type": [
+                            "string"
+                          ]
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "disabled": {
+                          "type": "boolean"
+                        },
+                        "slot": {
+                          "type": "string"
+                        },
+                        "slots": {
+                          "type": "object"
+                        },
+                        "slotName": {
+                          "type": "string"
+                        },
+                        "render": {
+                          "anyOf": [
+                            {
+                              "type": "object"
+                            },
+                            {
+                              "type": "object"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "label",
+                        "value"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "group",
+                  "options"
+                ],
+                "additionalProperties": false
               }
-            },
-            "required": [
-              "label",
-              "value"
-            ],
-            "additionalProperties": false
+            ]
           }
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "subtle",
+            "outline",
+            "ghost"
+          ]
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg",
+            "xl"
+          ]
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "open": {
+          "type": "boolean"
         },
         "hideSearch": {
           "type": "boolean"
@@ -36,64 +209,38 @@
         "loading": {
           "type": "boolean"
         },
+        "emptyText": {
+          "type": "string"
+        },
+        "side": {
+          "type": "string",
+          "enum": [
+            "top",
+            "right",
+            "bottom",
+            "left"
+          ]
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end"
+          ]
+        },
+        "offset": {
+          "type": "number"
+        },
+        "portalTo": {
+          "type": [
+            "string"
+          ]
+        },
         "compareFn": {
-          "$comment": "(a: MultiSelectOption, b: MultiSelectOption) => boolean",
-          "type": "object",
-          "properties": {
-            "namedArgs": {
-              "type": "object",
-              "properties": {
-                "a": {
-                  "type": "object",
-                  "properties": {
-                    "label": {
-                      "type": "string"
-                    },
-                    "value": {
-                      "type": "string"
-                    },
-                    "disabled": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": [
-                    "label",
-                    "value"
-                  ],
-                  "additionalProperties": false
-                },
-                "b": {
-                  "type": "object",
-                  "properties": {
-                    "label": {
-                      "type": "string"
-                    },
-                    "value": {
-                      "type": "string"
-                    },
-                    "disabled": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": [
-                    "label",
-                    "value"
-                  ],
-                  "additionalProperties": false
-                }
-              },
-              "required": [
-                "a",
-                "b"
-              ],
-              "additionalProperties": false
-            }
-          }
+          "type": "object"
         }
       },
-      "required": [
-        "options"
-      ],
       "additionalProperties": false
     }
   }
