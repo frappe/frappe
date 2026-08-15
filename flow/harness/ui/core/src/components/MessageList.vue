@@ -23,6 +23,12 @@
 		>
 			<template v-for="(item, i) in items" :key="item.key">
 				<UserBubble v-if="item.kind === 'user'" :entry="item.entry" />
+				<TurnFold
+					v-else-if="item.kind === 'turn-fold'"
+					:label="item.label"
+					:expanded="item.expanded"
+					@toggle="toggleTurn(item.turnKey)"
+				/>
 				<AssistantText v-else-if="item.kind === 'text'" :block="item.block" />
 				<ThinkingBlock v-else-if="item.kind === 'thinking'" :block="item.block" :live="item.live" />
 				<ToolGroup
@@ -101,11 +107,13 @@ import BrandMark from "./BrandMark.vue"
 import CopyButton from "./CopyButton.vue"
 import ThinkingBlock from "./ThinkingBlock.vue"
 import ToolGroup from "./ToolGroup.vue"
+import TurnFold from "./TurnFold.vue"
 import UserBubble from "./UserBubble.vue"
 
 const flow = inject("flow")
 const conversation = computed(() => flow.state.conversation)
-const items = computed(() => buildItems(conversation.value))
+const expandedTurnKeys = ref(new Set())
+const items = computed(() => buildItems(conversation.value, expandedTurnKeys.value))
 
 const empty = computed(() => !flow.state.sessionId && !flow.state.loading)
 const composerHeight = inject("composerHeight", ref(120))
@@ -151,6 +159,13 @@ function toBottom() {
 	stick.value = true
 }
 
+function toggleTurn(turnKey) {
+	const next = new Set(expandedTurnKeys.value)
+	if (next.has(turnKey)) next.delete(turnKey)
+	else next.add(turnKey)
+	expandedTurnKeys.value = next
+}
+
 watch(
 	() => [
 		conversation.value.entries.length,
@@ -169,6 +184,9 @@ watch(
 
 watch(
 	() => flow.state.sessionId,
-	() => (stick.value = true),
+	() => {
+		stick.value = true
+		expandedTurnKeys.value = new Set()
+	},
 )
 </script>

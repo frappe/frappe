@@ -293,6 +293,11 @@ def test_attachment_http_flow_persists_reference_not_bytes(tmp_path):
 	)
 	assert uploaded.status_code == 200
 	attachment = uploaded.json()["attachments"][0]
+	preview = client.get(f"/sessions/{sid}/attachments/{attachment['id']}")
+	assert preview.status_code == 200
+	assert preview.content == image
+	assert preview.headers["content-type"] == "image/png"
+	assert preview.headers["cache-control"] == "private, max-age=31536000, immutable"
 
 	response = client.post(
 		f"/sessions/{sid}/run",

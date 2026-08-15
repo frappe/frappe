@@ -55,6 +55,18 @@ test("skill previews do not reuse a request from another working directory", asy
 	assert.deepEqual(flow.state.skills, [{ name: "second" }])
 })
 
+test("new chats inherit the active session cwd and accept a project override", () => {
+	const flow = createFlowStore({})
+	flow.state.sessions = [{ session_id: "session-1", cwd: "/projects/active" }]
+	flow.state.sessionId = "session-1"
+
+	flow.startNewChat()
+	assert.equal(flow.state.prefs.cwd, "/projects/active")
+
+	flow.startNewChat({ cwd: "/projects/selected" })
+	assert.equal(flow.state.prefs.cwd, "/projects/selected")
+})
+
 test("multiline skill steering uses the expanded event's canonical queue key", async () => {
 	const client = {
 		async run() {

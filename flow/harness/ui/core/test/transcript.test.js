@@ -5,12 +5,14 @@ import {
 	applyEvent,
 	buildItems,
 	conversationTitle,
+	formatDuration,
 	humanizeToolName,
 	initialConversation,
 	normalizeSkillCommand,
 	parseSkillInvocation,
 	skillCommand,
 	stepLiveLabel,
+	toolGroupLiveLabel,
 	toolGroupSummary,
 	userAttachments,
 	userText,
@@ -94,6 +96,26 @@ test("completed tool groups summarize unique activity kinds in order", () => {
 	assert.equal(
 		toolGroupSummary([{ name: "read_file" }, { name: "grep" }, { name: "send_email_now" }]),
 		"Read file, searched code, used send email now",
+	)
+})
+
+test("trivial thinking does not replace the latest meaningful tool status", () => {
+	const finished = {
+		call: { name: "read_file", arguments: { path: "src/flow/events.py" } },
+		result: { content: "contents" },
+	}
+	assert.equal(toolGroupLiveLabel([finished], "Thinking"), "Working")
+	assert.equal(toolGroupLiveLabel([finished], "Reading file events.py"), "Working")
+	assert.equal(toolGroupLiveLabel([finished], "Retrying"), "Retrying")
+	assert.equal(
+		toolGroupLiveLabel(
+			[
+				finished,
+				{ call: { name: "edit", arguments: { path: "ui/App.vue" } }, result: null },
+			],
+			"Thinking",
+		),
+		"Editing file App.vue",
 	)
 })
 
@@ -296,6 +318,160 @@ test("streamed thought, text, and tool call keep their order until the durable m
 	assert.deepEqual(durableItems.map((item) => item.kind), ["user", "thinking", "text", "group"])
 	assert.equal(durableItems.filter((item) => item.kind === "group").length, 1)
 	assert.equal(durableItems[3].key, "g:call-1")
+})
+
+test("duration formatting matches compact t3code-style buckets", () => {
+	assert.equal(formatDuration(350), "350ms")
+	assert.equal(formatDuration(2_440), "2s")
+	assert.equal(formatDuration(21_600), "22s")
+	assert.equal(formatDuration(125_000), "2m 5s")
+})
+
+test("settled turns collapse intermediate work and preserve the final response", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 100 })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 101, content: "Fix it" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		ts: 103,
+		content: [
+			{ type: "thinking", thinking: "I should inspect it." },
+			{ type: "text", text: "I'll inspect the implementation." },
+			{ type: "tool_call", id: "call-1", name: "read_file", arguments: { path: "src/app.js" } },
+		],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, {
+		type: "tool_result",
+		seq: 4,
+		ts: 107,
+		tool_call_id: "call-1",
+		name: "read_file",
+		content: "contents",
+	})
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 5,
+		ts: 113,
+		content: [{ type: "text", text: "Fixed the implementation." }],
+		stop_reason: "stop",
+	})
+	applyEvent(conversation, { type: "run_ended", seq: 6, ts: 113.4, reason: "done" })
+
+	const collapsed = buildItems(conversation)
+	assert.deepEqual(collapsed.map((item) => item.kind), ["user", "turn-fold", "text", "turn-copy"])
+	assert.equal(collapsed[1].label, "Worked for 12s")
+	assert.equal(collapsed[2].block.text, "Fixed the implementation.")
+	assert.equal(collapsed[3].text, "Fixed the implementation.")
+
+	const expanded = buildItems(conversation, new Set([collapsed[1].turnKey]))
+	assert.deepEqual(expanded.map((item) => item.kind), [
+		"user",
+		"turn-fold",
+		"thinking",
+		"text",
+		"group",
+		"text",
+		"turn-copy",
+	])
+	assert.equal(expanded[1].expanded, true)
+	assert.equal(expanded[2].block.thinking, "I should inspect it.")
+	assert.equal(expanded[3].block.text, "I'll inspect the implementation.")
+	assert.equal(expanded[4].steps[0].call.id, "call-1")
+})
+
+test("the active turn never folds while previous settled turns remain collapsed", () => {
+	const conversation = initialConversation()
+	for (const entry of [
+		{ type: "user_message", seq: 1, ts: 10, content: "First" },
+		{
+			type: "assistant_message",
+			seq: 2,
+			ts: 12,
+			content: [
+				{ type: "thinking", thinking: "First thought" },
+				{ type: "text", text: "First answer" },
+			],
+			stop_reason: "stop",
+		},
+	]) applyEvent(conversation, entry)
+	applyEvent(conversation, { type: "run_started", seq: 3, ts: 20 })
+	applyEvent(conversation, { type: "user_message", seq: 4, ts: 20, content: "Second" })
+	applyEvent(conversation, { type: "thinking_delta", thinking: "Still working" })
+
+	const items = buildItems(conversation)
+	assert.deepEqual(items.map((item) => item.kind), [
+		"user",
+		"turn-fold",
+		"text",
+		"turn-copy",
+		"user",
+		"thinking",
+	])
+	assert.equal(items.at(-1).live, true)
+})
+
+test("a paused approval turn stays fully visible until the user resolves it", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "Change it" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		ts: 12,
+		content: [
+			{ type: "thinking", thinking: "This needs approval." },
+			{ type: "tool_call", id: "call-1", name: "write", arguments: { path: "src/app.js" } },
+		],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, {
+		type: "approval_required",
+		seq: 4,
+		ts: 12.1,
+		calls: [{ id: "call-1", name: "write", args: { path: "src/app.js" } }],
+	})
+	applyEvent(conversation, { type: "run_ended", seq: 5, ts: 12.2, reason: "paused" })
+
+	const items = buildItems(conversation)
+	assert.ok(!items.some((item) => item.kind === "turn-fold"))
+	assert.ok(items.some((item) => item.kind === "thinking"))
+	assert.ok(items.some((item) => item.kind === "approval"))
+})
+
+test("settled work without timestamps falls back to a plain Worked label", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "user_message", seq: 1, content: "Inspect" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 2,
+		content: [
+			{ type: "thinking", thinking: "Inspecting" },
+			{ type: "text", text: "Done" },
+		],
+		stop_reason: "stop",
+	})
+
+	assert.equal(buildItems(conversation).find((item) => item.kind === "turn-fold")?.label, "Worked")
+})
+
+test("interrupted turns use t3code's stopped-duration label", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 30 })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 31, content: "Start" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		ts: 35,
+		content: [{ type: "thinking", thinking: "Working" }],
+		stop_reason: "aborted",
+	})
+	applyEvent(conversation, { type: "run_ended", seq: 4, ts: 36, reason: "aborted" })
+
+	const items = buildItems(conversation)
+	assert.equal(items.find((item) => item.kind === "turn-fold")?.label, "You stopped after 5s")
+	assert.ok(items.some((item) => item.kind === "notice"))
 })
 
 test("aborted response keeps its partial assistant content", () => {

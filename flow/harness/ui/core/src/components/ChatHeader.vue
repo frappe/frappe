@@ -9,20 +9,21 @@
 			</button>
 		</template>
 
-		<span class="min-w-0 truncate text-sm font-medium text-ink-gray-8" :title="title">{{ title }}</span>
+		<div class="flex min-w-0 items-center gap-2" :title="headerTitle">
+			<span
+				v-if="cwd"
+				class="flex min-w-0 flex-none items-center gap-1.5 text-sm text-ink-gray-5"
+			>
+				<FeatherIcon name="folder" class="h-3.5 w-3.5 flex-none" />
+				<span class="max-w-[220px] truncate">{{ cwdName }}</span>
+			</span>
+			<span v-if="cwd" aria-hidden="true" class="flex-none text-sm text-ink-gray-3">/</span>
+			<span class="min-w-0 truncate text-sm font-medium text-ink-gray-9">{{ title }}</span>
+		</div>
 
 		<span class="min-w-2 flex-1" />
 
 		<span class="flex flex-none items-center gap-6">
-			<span
-				v-if="cwd"
-				class="flex min-w-0 max-w-[260px] items-center gap-1.5 text-xs text-ink-gray-5"
-				:title="cwd"
-			>
-				<FeatherIcon name="folder" class="h-3.5 w-3.5 flex-none" />
-				<span class="truncate">{{ cwdName }}</span>
-			</span>
-
 			<span
 				v-if="contextTokens > 0 || cost > 0"
 				class="flex items-center gap-2 whitespace-nowrap text-xs font-normal tabular-nums text-ink-gray-5"
@@ -75,6 +76,7 @@ const title = computed(() => {
 	return flow.state.session?.title ?? conversationTitle(flow.state.conversation) ?? "New chat"
 })
 const cwdName = computed(() => (cwd.value ?? "").split("/").filter(Boolean).pop() ?? "")
+const headerTitle = computed(() => (cwd.value ? `${cwd.value} / ${title.value}` : title.value))
 
 const cost = computed(() => flow.state.conversation.usage.cost)
 const contextTokens = computed(() => flow.state.conversation.contextTokens ?? 0)

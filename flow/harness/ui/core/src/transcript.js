@@ -214,6 +214,25 @@ export function stepLiveLabel(call) {
 	return `Running ${lowerFirst(label)}`
 }
 
+// Keep the live header on meaningful work. Reasoning deltas remain available
+// inside the expanded group, but a generic "Thinking" signal should not replace
+// the latest actionable tool metadata.
+export function toolGroupLiveLabel(steps, liveLabel) {
+	const toolSteps = steps.filter((step) => step.call)
+	const running = toolSteps.find((step) => !step.result && !step.aborted)
+	if (running) return stepLiveLabel(running.call)
+	const last = toolSteps.at(-1)
+	if (
+		last &&
+		(!liveLabel ||
+			liveLabel === "Thinking" ||
+			liveLabel === stepLabel(last.call.name) ||
+			liveLabel === stepLiveLabel(last.call))
+	)
+		return "Working"
+	return liveLabel ?? "Working"
+}
+
 export function toolGroupSummary(calls) {
 	const activities = []
 	const counts = new Map()
@@ -295,11 +314,77 @@ export function stepStat(step) {
 	return ""
 }
 
-// Folds durable entries and live tool-call announcements into renderable items:
+// Matches t3code's compact elapsed-time buckets without relying on wall-clock
+// timers for settled history.
+export function formatDuration(durationMs) {
+	if (!Number.isFinite(durationMs) || durationMs < 0) return "0ms"
+	if (durationMs < 1_000) return `${Math.max(1, Math.round(durationMs))}ms`
+	const roundedSeconds = Math.round(durationMs / 1_000)
+	if (roundedSeconds < 60) return `${roundedSeconds}s`
+	const minutes = Math.floor(roundedSeconds / 60)
+	const seconds = roundedSeconds % 60
+	if (seconds === 0) return `${minutes}m`
+	return `${minutes}m ${seconds}s`
+}
+
+function deriveTurns(entries) {
+	const turns = new Map()
+	const turnByEntry = new Map()
+	let current = null
+
+	for (const [index, entry] of entries.entries()) {
+		if (entry.type === "user_message") {
+			current = {
+				key: `turn:${entry.seq ?? index}`,
+				hasUser: true,
+				startedAt: Number.isFinite(entry.ts) ? entry.ts : null,
+				endedAt: Number.isFinite(entry.ts) ? entry.ts : null,
+				terminalAssistant: null,
+				interrupted: false,
+			}
+			turns.set(current.key, current)
+		} else if (!current && entry.type === "assistant_message") {
+			// Preserve copy/timestamp behavior for legacy or synthetic transcripts
+			// that contain assistant output without a user boundary. These are never
+			// folded because their start time is ambiguous.
+			current = {
+				key: `turn:implicit:${entry.seq ?? index}`,
+				hasUser: false,
+				startedAt: Number.isFinite(entry.ts) ? entry.ts : null,
+				endedAt: Number.isFinite(entry.ts) ? entry.ts : null,
+				terminalAssistant: null,
+				interrupted: false,
+			}
+			turns.set(current.key, current)
+		}
+
+		if (!current) continue
+		turnByEntry.set(entry, current.key)
+		if (Number.isFinite(entry.ts)) {
+			current.endedAt = current.endedAt == null ? entry.ts : Math.max(current.endedAt, entry.ts)
+		}
+		if (entry.type === "assistant_message") current.terminalAssistant = entry
+		if (entry.type === "run_ended" && entry.reason === "aborted") current.interrupted = true
+	}
+
+	return { turns, turnByEntry, latestTurnKey: [...turns.keys()].at(-1) ?? null }
+}
+
+function foldLabel(turn) {
+	const elapsed =
+		turn.startedAt != null && turn.endedAt != null
+			? formatDuration(Math.max(0, turn.endedAt - turn.startedAt) * 1_000)
+			: null
+	if (turn.interrupted) return elapsed ? `You stopped after ${elapsed}` : "You stopped this response"
+	return elapsed ? `Worked for ${elapsed}` : "Worked"
+}
+
+// Folds durable entries and the streaming preview into renderable items:
 //   {kind: "user", entry}
 //   {kind: "text", block, entry?, provisional?}
 //   {kind: "thinking", block, entry?, live?}
 //   {kind: "group", steps: [{call, result, aborted} | {thought}]}
+//   {kind: "turn-fold", turnKey, label, expanded}
 //   {kind: "approval", calls: [...], seq}      (undecided batch)
 //   {kind: "compaction", entry}
 //   {kind: "error", error}
@@ -309,17 +394,19 @@ export function stepStat(step) {
 // Thinking never splits a group: a thought adjacent to tool calls becomes a
 // {thought} row inside the group, and stands alone only when no tools surround
 // it (a pure thinking + text turn).
-export function buildItems(conversation) {
+export function buildItems(conversation, expandedTurnKeys = new Set()) {
 	const items = []
 	const stepsById = new Map()
 	const pending = conversation.pendingApproval
 	const pendingIds = new Set(pending?.calls.map((c) => c.id) ?? [])
+	const { turns, turnByEntry, latestTurnKey } = deriveTurns(conversation.entries)
+	let currentTurnKey = null
 	let bufferedThoughts = []
 
 	const currentGroup = (firstCallId) => {
 		const last = items[items.length - 1]
 		if (last?.kind === "group") return last
-		const group = { kind: "group", key: `g:${firstCallId}`, steps: [] }
+		const group = { kind: "group", key: `g:${firstCallId}`, turnKey: currentTurnKey, steps: [] }
 		items.push(group)
 		return group
 	}
@@ -329,6 +416,7 @@ export function buildItems(conversation) {
 			items.push({
 				kind: "thinking",
 				key: t.key,
+				turnKey: t.turnKey,
 				block: t.block,
 				entry: t.entry,
 				live: t.live,
@@ -343,7 +431,7 @@ export function buildItems(conversation) {
 				: `${block.type === "thinking" ? "th" : "t"}:${entry.seq}:${blockIdx}`
 			if (block.type === "text" && block.text) {
 				flushThoughts()
-				items.push({ kind: "text", key, block, entry, provisional })
+				items.push({ kind: "text", key, turnKey: currentTurnKey, block, entry, provisional })
 			} else if (block.type === "thinking") {
 				const last = items[items.length - 1]
 				if (last?.kind === "group") last.steps.push({ thought: block })
@@ -352,6 +440,7 @@ export function buildItems(conversation) {
 						block,
 						entry,
 						key,
+						turnKey: currentTurnKey,
 						live: provisional && blockIdx === blocks.length - 1,
 					})
 				}
@@ -372,6 +461,7 @@ export function buildItems(conversation) {
 	}
 
 	for (const entry of conversation.entries) {
+		currentTurnKey = turnByEntry.get(entry) ?? currentTurnKey
 		if (entry.type === "user_message") {
 			flushThoughts()
 			items.push({ kind: "user", key: `u:${entry.seq}`, entry })
@@ -382,17 +472,22 @@ export function buildItems(conversation) {
 			if (step) step.result = entry
 		} else if (entry.type === "compaction") {
 			flushThoughts()
-			items.push({ kind: "compaction", key: `c:${entry.seq}`, entry })
+			items.push({ kind: "compaction", key: `c:${entry.seq}`, turnKey: currentTurnKey, entry })
 		} else if (entry.type === "run_error") {
 			flushThoughts()
 			if (conversation.liveErrorSeqs.includes(entry.seq)) {
-				items.push({ kind: "error", key: `e:${entry.seq}`, error: entry })
+				items.push({ kind: "error", key: `e:${entry.seq}`, turnKey: currentTurnKey, error: entry })
 			} else {
-				items.push({ kind: "notice", key: `n:${entry.seq}`, text: "Run failed" })
+				items.push({ kind: "notice", key: `n:${entry.seq}`, turnKey: currentTurnKey, text: "Run failed" })
 			}
 		} else if (entry.type === "run_ended") {
 			flushThoughts()
-			items.push({ kind: "notice", key: `n:${entry.seq}`, text: END_NOTICES[entry.reason] ?? entry.reason })
+			items.push({
+				kind: "notice",
+				key: `n:${entry.seq}`,
+				turnKey: currentTurnKey,
+				text: END_NOTICES[entry.reason] ?? entry.reason,
+			})
 		}
 	}
 
@@ -401,40 +496,83 @@ export function buildItems(conversation) {
 	appendAssistantBlocks(conversation.partial ?? [], { provisional: true })
 	flushThoughts()
 	if (pending) {
-		items.push({ kind: "approval", key: `a:${pending.seq}`, calls: pending.calls, seq: pending.seq })
+		items.push({
+			kind: "approval",
+			key: `a:${pending.seq}`,
+			turnKey: currentTurnKey,
+			calls: pending.calls,
+			seq: pending.seq,
+		})
 	}
 	const filtered = items.filter((i) => i.kind !== "group" || i.steps.some((s) => s.call))
+	const unsettledTurnKey = conversation.running || pending ? latestTurnKey : null
 
-	// one copy row per assistant turn, after the turn's LAST item (text, tools,
-	// whatever an interrupted run left behind); the streaming turn gets its row
-	// only once the run settles
-	const result = []
-	let turnTexts = []
-	let copyKey = null
-	let copyTs = null
-	const flushCopy = () => {
-		if (turnTexts.length) {
-			result.push({ kind: "turn-copy", key: `tc:${copyKey}`, text: turnTexts.join("\n\n"), ts: copyTs })
-		}
-		turnTexts = []
-	}
+	// Only the terminal assistant message is the response. Earlier assistant
+	// text is commentary and belongs inside the completed-work fold.
+	const terminalTextByTurn = new Map()
 	for (const item of filtered) {
-		if (item.kind === "user") {
-			flushCopy()
-			result.push(item)
-		} else if (item.kind === "notice" || item.kind === "error") {
-			flushCopy() // the copy row belongs to the content, above the marker
-			result.push(item)
-		} else {
-			result.push(item)
-			if (item.kind === "text" && !item.provisional) {
-				turnTexts.push(item.block.text)
-				copyKey = item.key
-				copyTs = item.entry?.ts ?? null
-			}
+		const turn = turns.get(item.turnKey)
+		if (
+			item.kind === "text" &&
+			!item.provisional &&
+			item.turnKey !== unsettledTurnKey &&
+			turn?.terminalAssistant === item.entry
+		) {
+			const terminal = terminalTextByTurn.get(item.turnKey) ?? { items: [], text: [] }
+			terminal.items.push(item)
+			terminal.text.push(item.block.text)
+			terminalTextByTurn.set(item.turnKey, terminal)
 		}
 	}
-	if (!conversation.running) flushCopy()
+	const lastTerminalKeyByTurn = new Map(
+		[...terminalTextByTurn].map(([turnKey, terminal]) => [turnKey, terminal.items.at(-1)?.key]),
+	)
+	const withCopyRows = []
+	for (const item of filtered) {
+		withCopyRows.push(item)
+		if (lastTerminalKeyByTurn.get(item.turnKey) !== item.key) continue
+		const terminal = terminalTextByTurn.get(item.turnKey)
+		withCopyRows.push({
+			kind: "turn-copy",
+			key: `tc:${item.key}`,
+			turnKey: item.turnKey,
+			text: terminal.text.join("\n\n"),
+			ts: item.entry?.ts ?? null,
+		})
+	}
+
+	const foldableByTurn = new Map()
+	for (const item of withCopyRows) {
+		const turn = turns.get(item.turnKey)
+		if (!turn?.hasUser || item.turnKey === unsettledTurnKey) continue
+		const foldable =
+			["group", "thinking", "compaction"].includes(item.kind) ||
+			(item.kind === "text" && !item.provisional && item.entry !== turn.terminalAssistant)
+		if (!foldable) continue
+		const foldableItems = foldableByTurn.get(item.turnKey) ?? []
+		foldableItems.push(item)
+		foldableByTurn.set(item.turnKey, foldableItems)
+	}
+
+	const firstFoldableKeyByTurn = new Map(
+		[...foldableByTurn].map(([turnKey, foldableItems]) => [turnKey, foldableItems[0].key]),
+	)
+	const foldableKeys = new Set([...foldableByTurn.values()].flat().map((item) => item.key))
+	const result = []
+	for (const item of withCopyRows) {
+		if (firstFoldableKeyByTurn.get(item.turnKey) === item.key) {
+			const turn = turns.get(item.turnKey)
+			result.push({
+				kind: "turn-fold",
+				key: `tf:${item.turnKey}`,
+				turnKey: item.turnKey,
+				label: foldLabel(turn),
+				expanded: expandedTurnKeys.has(item.turnKey),
+			})
+		}
+		if (foldableKeys.has(item.key) && !expandedTurnKeys.has(item.turnKey)) continue
+		result.push(item)
+	}
 	return result
 }
 
