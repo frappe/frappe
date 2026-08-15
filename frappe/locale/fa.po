@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-09 09:44+0000\n"
-"PO-Revision-Date: 2026-08-11 18:23\n"
+"PO-Revision-Date: 2026-08-15 18:56\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -11619,7 +11619,7 @@ msgstr "برون‌بُرد داده‌ها"
 #: frappe/core/doctype/data_import/data_import.js:343
 #: frappe/public/js/frappe/data_import/import_preview.js:238
 msgid "Export Errored Rows"
-msgstr "صادر کردن ردیف های خطا"
+msgstr "برون‌بُرد ردیف‌های دارای خطا"
 
 #. Label of the export_from (Data) field in DocType 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
@@ -26697,7 +26697,7 @@ msgstr "ردیف‌ها افزوده شدند"
 #: frappe/core/doctype/audit_trail/audit_trail.json
 #: frappe/core/doctype/version/version_view.html:96
 msgid "Rows Removed"
-msgstr "ردیف ها حذف شدند"
+msgstr "ردیف‌ها حذف شدند"
 
 #. Label of the rows_threshold_for_grid_search (Int) field in DocType 'DocType'
 #. Label of the rows_threshold_for_grid_search (Int) field in DocType
@@ -30262,7 +30262,7 @@ msgstr "تاریخ و زمانی که آخرین کلید بازنشانی رم�
 
 #: frappe/utils/password_strength.py:97
 msgid "Straight rows of keys are easy to guess"
-msgstr "ردیف های مستقیم کلیدها به راحتی قابل حدس زدن هستند"
+msgstr "ردیف‌های مستقیم کلیدها به راحتی قابل حدس زدن هستند"
 
 #: frappe/www/update-password.html:42
 msgid "Strength:"
