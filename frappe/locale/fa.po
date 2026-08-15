@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-11 18:25\n"
+"PO-Revision-Date: 2026-08-15 18:56\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2573,7 +2573,7 @@ msgstr "آیا مطمئن هستید که می‌خواهید دعوت را لغ
 
 #: frappe/public/js/frappe/form/grid.js:306
 msgid "Are you sure you want to delete all rows?"
-msgstr "آیا مطمئن هستید که می‌خواهید همه ردیف ها را حذف کنید؟"
+msgstr "آیا مطمئن هستید که می‌خواهید همه ردیف‌ها را حذف کنید؟"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:930
 msgid "Are you sure you want to delete page {0}?"
@@ -10009,7 +10009,7 @@ msgstr "برون‌بُرد داده‌ها"
 #: frappe/core/doctype/data_import/data_import.js:86
 #: frappe/public/js/frappe/data_import/import_preview.js:201
 msgid "Export Errored Rows"
-msgstr "صادر کردن ردیف های خطا"
+msgstr "صادر کردن ردیف‌های خطا"
 
 #. Label of a Data field in DocType 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
@@ -18986,7 +18986,7 @@ msgstr "ارتفاع صفحه (بر حسب میلی‌متر)"
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:5
 msgid "Page Margins"
-msgstr ""
+msgstr "حاشیه‌های صفحه"
 
 #. Label of a Data field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
@@ -22807,7 +22807,7 @@ msgstr "ردیف‌ها افزوده شدند"
 #: frappe/core/doctype/audit_trail/audit_trail.json
 #: frappe/core/doctype/version/version_view.html:96
 msgid "Rows Removed"
-msgstr "ردیف ها حذف شدند"
+msgstr "ردیف‌ها حذف شدند"
 
 #. Label of a Int field in DocType 'DocType'
 #. Label of a Int field in DocType 'Customize Form'
@@ -25730,7 +25730,7 @@ msgstr "تاریخ تولید آخرین کلید گذرواژه بازنشان�
 
 #: frappe/utils/password_strength.py:91
 msgid "Straight rows of keys are easy to guess"
-msgstr "ردیف های مستقیم کلیدها به راحتی قابل حدس زدن هستند"
+msgstr "ردیف‌های مستقیم کلیدها به راحتی قابل حدس زدن هستند"
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
