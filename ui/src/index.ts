@@ -18,6 +18,7 @@ export * from "./components/TableMultiSelect";
 export * from "./components/Notifications";
 export * from "./components/ActivityTimeline";
 export * from "./components/InviteUser";
+export * from "./components/AutomationCanvas";
 // Moved out of `frappe-ui/frappe` (frappe/frappe-ui#923). They all know about
 // a Frappe backend or Frappe Cloud, so they sit here rather than in frappe-ui.
 // Everything lands on the root barrel: apps imported the whole set from one
