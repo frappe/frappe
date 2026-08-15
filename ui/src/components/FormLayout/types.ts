@@ -9,7 +9,18 @@ export type {
   FieldComponentProps,
   FieldComponentEmits,
 } from "../Fields/types";
-export { DocKey, ParentDocKey, UpdateKey } from "../Fields/types";
+export {
+  CommitKey,
+  DocKey,
+  NO_COMMIT,
+  ParentDocKey,
+  UpdateKey,
+} from "../Fields/types";
+export type {
+  CommitChannel,
+  RowAddress,
+  RowChange,
+} from "../Fields/types";
 
 /**
  * App-supplied presentation/behavior for one field's *layout node* — not part of
@@ -125,12 +136,31 @@ export interface Section {
   columns: Column[];
 }
 
+/**
+ * The two tab properties an app can override *per render*, applied by
+ * `applyTabOverride` after `resolveLayout` has baked the `depends_on` — so an
+ * override wins over a conditional expression, exactly as `FieldOverride` does.
+ *
+ * Applied where the strip is drawn rather than in `resolveLayout`, because it
+ * addresses the strip: `PanelLayout` renders the same layout as one flat list
+ * with no strip at all, where hiding a tab would silently drop its rows.
+ *
+ * Plain data, deliberately: it keeps `FormLayout` an independent component that
+ * takes a schema and knows nothing about whoever wrote the override.
+ */
+export interface TabOverride {
+  hidden?: boolean;
+  label?: string;
+}
+
 export interface Tab {
   name?: string;
   label?: string;
   hidden?: boolean;
   /** Conditional visibility; `resolveLayout` bakes it into `hidden`. */
   dependsOn?: string;
+  /** Per-render override; the last word on visibility and label. */
+  override?: TabOverride;
   sections: Section[];
 }
 

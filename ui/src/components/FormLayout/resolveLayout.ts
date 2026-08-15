@@ -172,12 +172,43 @@ export function resolveLayout(
   });
 
   const resolveTab = (t: Tab): Tab => ({
-    ...t,
-    hidden:
-      t.hidden ||
-      (!!t.dependsOn && !evaluateDependsOn(t.dependsOn, doc, parent)),
+    ...resolveTabConditionals(t, doc, parent),
     sections: t.sections.map(resolveSection),
   });
 
   return schema.map(resolveTab);
+}
+
+/**
+ * Bake one tab's conditional visibility against `doc`, returning a **fresh**
+ * `Tab` with `hidden` resolved: static `hidden` OR `depends_on` false. Pure.
+ *
+ * Exported because the Record page's `page.formTabs` answers "is this one tab on
+ * screen" without resolving the whole form, and the two must not drift.
+ */
+export function resolveTabConditionals(
+  t: Tab,
+  doc: Record<string, any>,
+  parent: Record<string, any> = doc
+): Tab {
+  return {
+    ...t,
+    hidden:
+      t.hidden ||
+      (!!t.dependsOn && !evaluateDependsOn(t.dependsOn, doc, parent)),
+  };
+}
+
+/**
+ * A tab's visibility and label as the strip shows them: the values resolved
+ * above, with a per-render `override` as the last word — the only thing here
+ * that can lift a `depends_on`, mirroring `FieldOverride`.
+ *
+ * Applied by `FormLayout` rather than by `resolveLayout`: see `TabOverride`.
+ */
+export function applyTabOverride(t: Tab): { hidden: boolean; label: string } {
+  return {
+    hidden: t.override?.hidden ?? !!t.hidden,
+    label: t.override?.label ?? t.label ?? "",
+  };
 }

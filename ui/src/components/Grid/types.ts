@@ -42,6 +42,9 @@ export interface GridProps {
   error?: string | GridError;
   /** Renders a `*` next to the label. */
   required?: boolean;
+  /** Seeds a newly added row. The grid sees only the columns, so whoever knows
+   *  the whole child form supplies its docfield defaults. */
+  newRow?: () => Record<string, any>;
 }
 
 export type GridEmits = {
@@ -51,6 +54,16 @@ export type GridEmits = {
    * signal, distinct from the live `v-model` sync (the slot's `update`).
    */
   change: [rows: Record<string, any>[]];
+  /**
+   * One cell was committed. Distinct from `change`, which says only that the
+   * rows array moved: this names the row and the column, so a consumer can
+   * dispatch a per-row event without diffing to work out what moved.
+   */
+  commit: [payload: { row: Record<string, any>; column: GridColumn }];
+  /** A row was added, carrying the row so a consumer can address it. */
+  add: [payload: { row: Record<string, any> }];
+  /** Rows were deleted, carrying them as they last were. */
+  remove: [payload: { rows: Record<string, any>[] }];
   /**
    * The user clicked a row's edit action (last column). Carries the row and its
    * index. `Grid` stays oblivious to *how* a row is edited — the consumer (e.g.

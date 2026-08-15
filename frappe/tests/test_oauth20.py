@@ -9,6 +9,7 @@ from werkzeug.test import TestResponse
 
 import frappe
 from frappe.integrations.oauth2 import encode_params
+from frappe.oauth import OAuthWebRequestValidator
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import get_test_client, make_request, suppress_stdout
 from frappe.tests.utils import make_test_records
@@ -98,6 +99,49 @@ class TestOAuth20(FrappeRequestTestCase):
 	def tearDown(self):
 		self.oauth_client.delete(force=True)
 		frappe.db.rollback()
+
+	def _make_bearer_token(self):
+		access_token = frappe.generate_hash()
+		token = frappe.get_doc(
+			doctype="OAuth Bearer Token",
+			access_token=access_token,
+			client=self.client_id,
+			expires_in=3600,
+			scopes=self.scope,
+			status="Active",
+			user="test@example.com",
+		).insert(ignore_permissions=True)
+		return access_token, token
+
+	def test_bearer_token_rejects_disabled_owner(self):
+		access_token, _token = self._make_bearer_token()
+		frappe.db.set_value("User", "test@example.com", "enabled", 0)
+		request = frappe._dict()
+
+		self.assertFalse(OAuthWebRequestValidator().validate_bearer_token(access_token, ["openid"], request))
+		self.assertNotIn("user", request)
+
+	def test_bearer_token_rejects_missing_owner(self):
+		access_token, token = self._make_bearer_token()
+		frappe.db.set_value("OAuth Bearer Token", token.name, "user", "missing@example.com")
+		request = frappe._dict()
+
+		self.assertFalse(OAuthWebRequestValidator().validate_bearer_token(access_token, ["openid"], request))
+		self.assertNotIn("user", request)
+
+	def test_openid_profile_post_body_token(self):
+		access_token, _token = self._make_bearer_token()
+		# The HTTP request runs in another thread and only sees committed fixtures.
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+
+		openid_response = self.post(
+			"/api/method/frappe.integrations.oauth2.openid_profile",
+			headers=self.form_header,
+			data={"access_token": access_token},
+		)
+
+		self.assertEqual(openid_response.status_code, 200)
+		self.assertEqual(openid_response.json.get("email"), "test@example.com")
 
 	def test_invalid_login(self):
 		with suppress_stdout():

@@ -10,6 +10,8 @@ export { buildLayoutFromMeta, compose } from "./buildLayoutFromMeta";
 export type { BuildLayoutOptions, Decorator } from "./buildLayoutFromMeta";
 export { fieldsToLayout } from "./fieldsToLayout";
 export { resolveLayout } from "./resolveLayout";
+export { CommitKey, NO_COMMIT } from "./types";
+export { newRowValues, layoutFields } from "./newRowValues";
 export { evaluateDependsOn } from "./dependsOn";
 export {
   flt,
@@ -35,10 +37,14 @@ export type {
   FieldMeta,
   FieldNode,
   FieldOverride,
+  TabOverride,
   FieldUI,
   RawMetaField,
   FieldComponentProps,
   FieldComponentEmits,
+  CommitChannel,
+  RowAddress,
+  RowChange,
 } from "./types";
 export type {
   FltOptions,
