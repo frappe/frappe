@@ -37,6 +37,7 @@ export type {
   FieldMeta,
   FieldNode,
   FieldOverride,
+  TabOverride,
   FieldUI,
   RawMetaField,
   FieldComponentProps,

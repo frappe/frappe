@@ -29,22 +29,30 @@
 
 <script setup lang="ts">
 import { Tabs } from "frappe-ui";
-import { computed, inject, provide } from "vue";
+import { computed, inject, provide, watch } from "vue";
 import type { ComponentPublicInstance } from "vue";
 import FormLayoutSection from "./FormLayoutSection.vue";
 import { useFieldTypes } from "./useFieldTypes";
-import { resolveLayout } from "./resolveLayout";
-import { identifyTabs } from "./tabIdentity";
+import { applyTabOverride, resolveLayout } from "./resolveLayout";
+import { identifyTabs, tabStripLabel } from "./tabIdentity";
 import { CommitKey, DocKey, HasTabsKey, ParentDocKey, ResolveFieldKey, UpdateKey } from "./types";
 import { warnMissingCommit } from "./warnMissingCommit";
 import type { FormLayoutProps } from "./types";
 
 const props = defineProps<FormLayoutProps>();
 
-// `FormLayout` is render-only and emits nothing: its sole outward channel is
-// `v-model:doc`. A consumer that wants "react to any change" uses `watch(doc, …)`;
-// per-field actions/side-effects are baked into the layout via `field.ui.on`.
+// The document channel is `v-model:doc` alone: a consumer that wants "react to
+// any change" uses `watch(doc, …)`, and per-field actions/side-effects are baked
+// into the layout via `field.ui.on`. The strip has two channels of its own —
+// `v-model:tab` below, and `update:activeTab` at the foot of this block.
 const doc = defineModel<Record<string, any>>("doc", { required: true });
+
+// The identity of the tab actually **shown**, announced whenever it changes and
+// once on mount. `tab` above is the reader's *intent* and only the reader writes
+// it; this is the resolution, which a `depends_on` moves without touching the
+// intent — so a host that has to know where the reader ended up cannot get it
+// from the model, and re-deriving it host-side would put one rule in two repos.
+const emit = defineEmits<{ "update:activeTab": [identity: string] }>();
 
 // The tab the reader last *chose*, by identity — an intent, not a position, and
 // the only piece of strip state there is. It falls back to an internal ref, so a
@@ -63,18 +71,21 @@ const resolvedLayout = computed(() =>
 );
 
 const visibleTabs = computed(() => {
-	// Identity is resolved over the *whole* layout and before the label fallback
-	// below, both deliberately. Resolving it over the visible subset would make
-	// the positional fallback shift when a `depends_on` neighbour hides — the
-	// very bug identity exists to kill — and resolving it after the fallback
-	// would collapse every unlabelled tab onto "details".
-	const tabs = identifyTabs(resolvedLayout.value).filter((tab) => !tab.hidden);
-	// With multiple tabs the strip is always shown, so an unlabelled tab would
-	// render a blank button — fall back to "Details" so every tab reads clearly.
+	// Identity is resolved over the *whole* layout, before the override and before
+	// the label fallback, all three deliberately. Resolving it over the visible
+	// subset would make the positional fallback shift when a `depends_on`
+	// neighbour hides — the very bug identity exists to kill — resolving it after
+	// the fallback would collapse every unlabelled tab onto "details", and
+	// resolving it after a relabel would move the address a script wrote.
+	// The override lands after `resolveLayout` baked the `depends_on`, which is
+	// what lets it lift one.
+	const tabs = identifyTabs(resolvedLayout.value)
+		.map((tab) => ({ ...tab, ...applyTabOverride(tab) }))
+		.filter((tab) => !tab.hidden);
 	const multipleTabs = tabs.length > 1;
 	return tabs.map((tab) => ({
 		...tab,
-		label: tab.label || (multipleTabs ? "Details" : ""),
+		label: tabStripLabel(tab.label, multipleTabs),
 		sections: tab.sections.filter((section) => !section.hidden),
 	}));
 });
@@ -86,6 +97,15 @@ const visibleTabs = computed(() => {
 // `desired` alone. Nothing writes state in response to visibility changing.
 const active = computed(
 	() => visibleTabs.value.find((tab) => tab.identity === desired.value) ?? visibleTabs.value[0]
+);
+
+// Announced, never stored: the resolution leaves the component but does not come
+// back, so `desired` stays the reader's alone and a tab that returns still brings
+// them with it.
+watch(
+	() => active.value?.identity ?? "",
+	(identity) => emit("update:activeTab", identity),
+	{ immediate: true }
 );
 
 // frappe-ui's `Tabs` addresses its tabs by index. That index is a wire format
@@ -122,7 +142,7 @@ function update(fieldname: string, value: any) {
 const { resolve } = useFieldTypes();
 
 // Asserted, not consumed: commits travel from each field straight to whoever
-// owns them, and this component still emits nothing.
+// owns them, on their own channel rather than through this component.
 warnMissingCommit("FormLayout", inject(CommitKey, null));
 
 provide(DocKey, doc);
