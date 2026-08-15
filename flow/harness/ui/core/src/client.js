@@ -97,6 +97,15 @@ export class DaemonClient {
 		if (!response.ok) await raise(response)
 		return response.json()
 	}
+	async attachmentBlob(sid, attachmentId) {
+		const url = new URL(
+			this.baseUrl + `/sessions/${enc(sid)}/attachments/${enc(attachmentId)}`,
+			window.location.origin,
+		)
+		const response = await fetch(url, { headers: this.headers() })
+		if (!response.ok) await raise(response)
+		return response.blob()
+	}
 	cleanupAttachments(sid, attachments) {
 		return this.request("DELETE", `/sessions/${enc(sid)}/attachments`, {
 			body: { attachments },

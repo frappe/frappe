@@ -64,8 +64,48 @@
 			</div>
 
 			<div
-				class="flex flex-col gap-2 rounded-xl border border-outline-gray-2 bg-surface-white p-2 shadow-[0_1px_3px_rgba(0,0,0,0.035)]"
+				class="flow-composer-surface flex flex-col gap-2 rounded-xl border border-outline-gray-1 p-2 shadow-[0_1px_3px_rgba(0,0,0,0.035)]"
 			>
+				<div v-if="attachments.length" class="flex flex-wrap items-start gap-2 px-1 pt-0.5">
+					<template v-for="(item, i) in attachments" :key="item.key">
+						<figure
+							v-if="item.kind === 'image' && item.previewUrl"
+							class="group/attachment relative h-[72px] w-[72px] flex-none overflow-hidden rounded-lg border border-outline-gray-2 bg-surface-white shadow-sm"
+							:title="item.name"
+						>
+							<img :src="item.previewUrl" :alt="item.name" class="h-full w-full object-cover" />
+							<button
+								class="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full border border-outline-gray-2 bg-surface-white/90 text-ink-gray-6 shadow-sm opacity-90 backdrop-blur-sm transition hover:bg-surface-gray-2 hover:text-ink-gray-9 group-hover/attachment:opacity-100"
+								title="Remove attachment"
+								:aria-label="`Remove ${item.name}`"
+								:disabled="submitting"
+								@click="removeAttachment(i)"
+							>
+								<FeatherIcon name="x" class="h-3 w-3" />
+							</button>
+						</figure>
+						<span
+							v-else
+							class="flex max-w-[260px] items-center gap-2 rounded-lg border border-outline-gray-2 bg-surface-white py-1 pl-1 pr-1"
+						>
+							<span
+								class="grid h-6 w-6 flex-none place-items-center rounded-md border border-outline-gray-1 bg-surface-gray-1 text-ink-gray-6"
+							>
+								<FeatherIcon :name="item.kind === 'image' ? 'image' : 'file-text'" class="h-3.5 w-3.5" />
+							</span>
+							<span class="min-w-0 flex-1 truncate text-xs font-medium text-ink-gray-8">{{ item.name }}</span>
+							<button
+								class="grid h-5 w-5 flex-none place-items-center rounded-md text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
+								title="Remove attachment"
+								:aria-label="`Remove ${item.name}`"
+								:disabled="submitting"
+								@click="removeAttachment(i)"
+							>
+								<FeatherIcon name="x" class="h-3.5 w-3.5" />
+							</button>
+						</span>
+					</template>
+				</div>
 				<div class="relative">
 					<div
 						v-if="skillPrompt"
@@ -98,28 +138,6 @@
 					class="hidden"
 					@change="onFilesPicked"
 				/>
-				<div v-if="attachments.length" class="flex flex-wrap gap-1.5 px-1">
-					<span
-						v-for="(item, i) in attachments"
-						:key="item.key"
-						class="flex max-w-[260px] items-center gap-2 rounded-lg border border-outline-gray-2 bg-surface-gray-1 py-1 pl-1 pr-1"
-					>
-						<span
-							class="grid h-6 w-6 flex-none place-items-center rounded-md border border-outline-gray-1 bg-surface-white text-ink-gray-6"
-						>
-							<FeatherIcon :name="item.kind === 'image' ? 'image' : 'file-text'" class="h-3.5 w-3.5" />
-						</span>
-						<span class="min-w-0 flex-1 truncate text-xs font-medium text-ink-gray-8">{{ item.name }}</span>
-						<button
-							class="grid h-5 w-5 flex-none place-items-center rounded-md text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
-							title="Remove attachment"
-							:disabled="submitting"
-							@click="removeAttachment(i)"
-						>
-							<FeatherIcon name="x" class="h-3.5 w-3.5" />
-						</button>
-					</span>
-				</div>
 				<div v-if="visionWarning" class="px-1 text-2xs text-ink-amber-3">
 					The selected model cannot view images. Switch to a vision-capable model before sending.
 				</div>
@@ -296,6 +314,7 @@ const attachments = ref([])
 const submitting = ref(false)
 const textScrollTop = ref(0)
 let attachmentKey = 0
+let previewGeneration = 0
 
 const SUPPORTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp", "image/bmp"])
 
@@ -311,8 +330,44 @@ function addLocalFiles(files) {
 			continue
 		}
 		if (attachments.value.some((item) => item.file && item.file.name === file.name && item.file.size === file.size)) continue
-		attachments.value.push({ key: `local:${attachmentKey++}`, name: file.name, kind: "image", file })
+		attachments.value.push({
+			key: `local:${attachmentKey++}`,
+			name: file.name,
+			kind: "image",
+			file,
+			previewUrl: URL.createObjectURL(file),
+		})
 	}
+}
+
+function revokePreview(item) {
+	if (item?.previewUrl) URL.revokeObjectURL(item.previewUrl)
+}
+
+function clearAttachments() {
+	previewGeneration++
+	for (const item of attachments.value) revokePreview(item)
+	attachments.value = []
+}
+
+async function loadStoredPreviews(items, sessionId, generation) {
+	await Promise.all(
+		items.map(async (item) => {
+			if (item.kind !== "image" || !item.id) return
+			try {
+				const blob = await flow.client.attachmentBlob(sessionId, item.id)
+				const previewUrl = URL.createObjectURL(blob)
+				const current = attachments.value.find((candidate) => candidate.key === item.key)
+				if (generation !== previewGeneration || flow.state.sessionId !== sessionId || !current) {
+					URL.revokeObjectURL(previewUrl)
+					return
+				}
+				current.previewUrl = previewUrl
+			} catch {
+				// A missing historical attachment falls back to its compact filename badge.
+			}
+		}),
+	)
 }
 
 function openFilePicker() {
@@ -338,7 +393,8 @@ function onPaste(event) {
 }
 
 function removeAttachment(index) {
-	attachments.value.splice(index, 1)
+	const [removed] = attachments.value.splice(index, 1)
+	revokePreview(removed)
 	nextTick(() => box.value?.focus())
 }
 // the palette is one stacked surface: commands is the root page, models,
@@ -382,11 +438,14 @@ onMounted(() => {
 	box.value?.focus()
 	window.addEventListener("keydown", onWindowKey)
 })
-onBeforeUnmount(() => window.removeEventListener("keydown", onWindowKey))
+onBeforeUnmount(() => {
+	window.removeEventListener("keydown", onWindowKey)
+	clearAttachments()
+})
 watch(
 	() => flow.state.sessionId,
 	() => {
-		if (!submitting.value) attachments.value = []
+		if (!submitting.value) clearAttachments()
 		nextTick(() => box.value?.focus())
 	},
 )
@@ -585,7 +644,7 @@ async function submit() {
 	}
 	if (!sent) return
 	text.value = ""
-	attachments.value = []
+	clearAttachments()
 }
 
 // rewinds prefill via the store's draft channel (also fed by per-bubble rewind)
@@ -598,10 +657,15 @@ watch(
 	(draft) => {
 		if (draft == null) return
 		text.value = typeof draft === "string" ? draft : draft.text
-		attachments.value = (typeof draft === "string" ? [] : draft.attachments ?? []).map((item) => ({
+		clearAttachments()
+		const restored = (typeof draft === "string" ? [] : draft.attachments ?? []).map((item) => ({
 			...item,
 			key: `stored:${item.id}`,
 		}))
+		attachments.value = restored
+		const sessionId = flow.state.sessionId
+		const generation = previewGeneration
+		if (sessionId) void loadStoredPreviews(restored, sessionId, generation)
 		flow.setDraft(null)
 		nextTick(() => box.value?.focus())
 	},

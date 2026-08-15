@@ -2,6 +2,13 @@
    consuming app, after Tailwind's layers. Colors come exclusively from
    frappe-ui's themed CSS variables so dark mode follows [data-theme]. */
 
+.flow-composer-surface {
+	background: color-mix(in srgb, var(--surface-white) 90%, var(--surface-gray-1));
+}
+[data-theme="dark"] .flow-composer-surface {
+	background: var(--surface-gray-1);
+}
+
 .flow-icon-btn {
 	display: grid;
 	place-items: center;

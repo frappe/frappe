@@ -23,7 +23,7 @@ from urllib.parse import urlsplit
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -409,6 +409,19 @@ def create_app(
 				session.attachment_store.remove(item.id)
 			raise
 		return {"attachments": [item.model_dump(exclude_none=True) for item in stored]}
+
+	@app.get("/sessions/{sid}/attachments/{attachment_id}")
+	async def read_attachment(sid: str, attachment_id: str):
+		"""Return a session-owned image for composer previews and other local clients."""
+		session = _get(sid)
+		assert session.attachment_store is not None
+		metadata = await asyncio.to_thread(session.attachment_store.get, attachment_id)
+		data = await asyncio.to_thread(session.attachment_store.read, attachment_id)
+		return Response(
+			content=data,
+			media_type=metadata.mime_type,
+			headers={"Cache-Control": "private, max-age=31536000, immutable"},
+		)
 
 	@app.delete("/sessions/{sid}/attachments")
 	async def cleanup_attachments(sid: str, req: AttachmentCleanupRequest):
