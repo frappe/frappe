@@ -102,7 +102,13 @@ def build(
 		run_after_build_hook(apps)
 
 
-def run_after_build_hook(built_apps):
+def run_after_build_hook(built_apps: list[str]):
+	"""Run build hooks after assets are built.
+
+	- `after_build`: self-referential - runs only for apps that were just built, called with no arguments.
+	- `after_app_build`: cross-app - runs for every app on the bench, called with the list of built apps,
+	  so an app can react to another app's build (e.g. compile frontends it owns for that app).
+	"""
 	from importlib import import_module
 
 	def _get_method(fn):
@@ -110,12 +116,10 @@ def run_after_build_hook(built_apps):
 		methodname = fn.split(".")[-1]
 		return getattr(import_module(modulename), methodname)
 
-	# after_build: self-referential hook, runs only for built apps, no args
 	for app in built_apps:
 		for fn in frappe.get_hooks("after_build", app_name=app):
 			_get_method(fn)()
 
-	# after_app_build: cross-app hook, runs for ALL apps, receives the list of built apps
 	for app in frappe.get_all_apps():
 		for fn in frappe.get_hooks("after_app_build", app_name=app):
 			_get_method(fn)(built_apps)
