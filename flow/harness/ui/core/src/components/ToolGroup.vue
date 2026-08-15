@@ -77,8 +77,8 @@ const active = computed(() => toolSteps.value.some((s) => !s.result && !s.aborte
 
 const label = computed(() => {
 	if (active.value) {
-		const running = toolSteps.value.find((s) => !s.result)
-		return running ? stepLiveLabel(running.call) : "Working"
+		const running = toolSteps.value.find((s) => !s.result && !s.aborted)
+		return stepLiveLabel(running.call)
 	}
 	return toolGroupSummary(toolSteps.value.map((step) => step.call))
 })

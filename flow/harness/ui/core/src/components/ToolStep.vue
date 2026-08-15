@@ -6,11 +6,16 @@
 			:class="expandable ? 'cursor-pointer hover:bg-surface-gray-2' : ''"
 			@click="expandable && (open = !open)"
 		>
-			<span class="flex-none text-xs font-medium text-ink-gray-9">{{ label }}</span>
-			<span
-				class="min-w-0 flex-1 truncate text-xs text-ink-gray-5"
-				:class="step.call.name === 'bash' ? 'font-mono text-2xs' : ''"
-			>{{ subject }}</span>
+			<span v-if="customDisplay" class="min-w-0 flex-1 truncate text-xs font-medium text-ink-gray-9">
+				{{ customDisplay }}
+			</span>
+			<template v-else>
+				<span class="flex-none text-xs font-medium text-ink-gray-9">{{ label }}</span>
+				<span
+					class="min-w-0 flex-1 truncate text-xs text-ink-gray-5"
+					:class="step.call.name === 'bash' ? 'font-mono text-2xs' : ''"
+				>{{ subject }}</span>
+			</template>
 			<!-- edits get a Codex-style colored diffstat; everything else the plain stat -->
 			<span v-if="diffStat" class="flex-none font-mono text-2xs">
 				<span class="text-ink-green-3">+{{ diffStat.added }}</span>
@@ -77,6 +82,8 @@ const props = defineProps({ step: { type: Object, required: true } })
 
 const open = ref(false)
 const panelEl = ref(null)
+
+const customDisplay = computed(() => props.step.call.display || "")
 
 // an expansion near the viewport bottom scrolls itself clear of the composer
 // (the scroller's scroll-padding accounts for the floating card)
