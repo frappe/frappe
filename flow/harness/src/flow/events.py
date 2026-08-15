@@ -270,6 +270,16 @@ class ToolCallStarted(_Event):
 	name: str
 
 
+class ToolCallReady(_Event):
+	"""Small, presentation-safe metadata parsed from a streamed tool call."""
+
+	durable: ClassVar[bool] = False
+	type: Literal["tool_call_ready"] = "tool_call_ready"
+	id: str
+	name: str
+	arguments: dict[str, str]
+
+
 class Retry(_Event):
 	"""Provider retry progress: an attempt was scheduled, started, or given up on."""
 
@@ -321,6 +331,7 @@ AnyEvent = (
 	| TextDelta
 	| ThinkingDelta
 	| ToolCallStarted
+	| ToolCallReady
 	| Retry
 	| CompactionStarted
 	| CompactionEnded

@@ -20,6 +20,7 @@ from flow.model import (
 	get_model,
 	register_provider,
 )
+from flow.model.base import extract_tool_call_display_metadata
 from flow.model.litellm import (
 	_build_tool_call,
 	_openai_messages,
@@ -50,6 +51,13 @@ async def _collect(gen):
 	return [ev async for ev in gen]
 
 
+def test_tool_call_display_metadata_is_early_and_bounded():
+	partial = '{"path":"ui/App.vue","edits":[{"old":"' + ("x" * 10_000)
+
+	assert extract_tool_call_display_metadata(partial) == {"path": "ui/App.vue"}
+	assert extract_tool_call_display_metadata({"command": "x" * 1_000}) == {"command": "x" * 512}
+
+
 async def test_mock_streaming_sequence():
 	events = await _collect(MockModel().run(ModelRequest(messages=[UserMessage(content="hi there")])))
 	types = [e.type for e in events]
@@ -72,9 +80,15 @@ async def test_mock_scripted_replies_multi_turn():
 	model = MockModel(replies=[AssistantMessage(content=[call]), AssistantMessage(content="done")])
 
 	first = await _collect(model.run(ModelRequest(messages=[UserMessage(content="go")])))
-	assert [e.type for e in first] == ["tool_call_started", "assistant_message", "usage"]
+	assert [e.type for e in first] == [
+		"tool_call_started",
+		"tool_call_ready",
+		"assistant_message",
+		"usage",
+	]
 	assert first[0].id == "c1" and first[0].name == "bash"
-	assert first[1].tool_calls[0].args == {"command": "ls"}
+	assert first[1].arguments == {"command": "ls"}
+	assert first[2].tool_calls[0].args == {"command": "ls"}
 
 	second = await _collect(model.run(ModelRequest(messages=[UserMessage(content="go")])))
 	assert second[-2].text == "done"
@@ -263,6 +277,73 @@ async def test_litellm_streaming_truncated_tool_call_reports_length(monkeypatch)
 	assistant = next(e for e in events if isinstance(e, AssistantMessage))
 	assert assistant.tool_calls[0].id == "c1"
 	assert assistant.stop_reason == "length"
+
+
+async def test_litellm_emits_metadata_before_large_arguments_finish(monkeypatch):
+	_stream(
+		monkeypatch,
+		[
+			_chunk(
+				{
+					"tool_calls": [
+						{
+							"index": 0,
+							"id": "c1",
+							"function": {
+								"name": "edit",
+								"arguments": '{"path":"a.py","edits":[',
+							},
+						}
+					]
+				}
+			),
+			_chunk(
+				{
+					"tool_calls": [
+						{
+							"index": 0,
+							"function": {"arguments": '{"old":"x","new":"y"}]}'},
+						}
+					]
+				}
+			),
+			_chunk({}, "tool_calls"),
+		],
+	)
+
+	events = await _collect(LiteLLMModel("gpt-4").run(ModelRequest(messages=[UserMessage(content="hi")])))
+
+	assert [event.type for event in events] == [
+		"tool_call_started",
+		"tool_call_ready",
+		"assistant_message",
+		"usage",
+	]
+	assert events[1].arguments == {"path": "a.py"}
+	assert events[2].tool_calls[0].arguments == {
+		"path": "a.py",
+		"edits": [{"old": "x", "new": "y"}],
+	}
+
+
+async def test_litellm_emits_ready_for_a_no_argument_tool_at_stream_end(monkeypatch):
+	_stream(
+		monkeypatch,
+		[
+			_chunk({"tool_calls": [{"index": 0, "id": "c1", "function": {"name": "refresh"}}]}),
+			_chunk({}, "tool_calls"),
+		],
+	)
+
+	events = await _collect(LiteLLMModel("gpt-4").run(ModelRequest(messages=[UserMessage(content="hi")])))
+
+	assert [event.type for event in events] == [
+		"tool_call_started",
+		"tool_call_ready",
+		"assistant_message",
+		"usage",
+	]
+	assert events[1].arguments == {}
 
 
 def test_build_tool_call_valid():

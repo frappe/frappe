@@ -1,8 +1,9 @@
 """The provider contract: one `Model.run` call is one streamed model turn.
 
-An adapter yields `TextDelta` / `ThinkingDelta` / `ToolCallStarted` while streaming and
-always terminates with an `AssistantMessage` followed by a `Usage`. Everything that can
-go wrong with a provider is owned here too, so the agent loop never has to care:
+An adapter yields `TextDelta` / `ThinkingDelta` / `ToolCallStarted` / `ToolCallReady`
+while streaming, then always terminates with an `AssistantMessage` followed by a `Usage`.
+Everything that can go wrong with a provider is owned here too, so the agent loop never
+has to care:
 
   - failures are raised as a typed `ProviderError` (see `errors.py`);
   - transient failures are retried inside the stream by `run_with_retries`, which
@@ -17,10 +18,12 @@ from __future__ import annotations
 import abc
 import asyncio
 import random
-from collections.abc import AsyncIterator, Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from contextlib import suppress
 from dataclasses import dataclass
 from typing import Any
+
+from pydantic_core import from_json
 
 from flow.events import AnyEvent, AssistantMessage, Retry, TranscriptMessage
 from flow.model.errors import ProviderError, credential_refresh_error
@@ -31,6 +34,36 @@ _RETRY_MAX_BACKOFF_SECONDS = 8.0
 # retrying at all.
 _RETRY_MAX_PROVIDER_DELAY_SECONDS = 60.0
 _MAX_TRANSIENT_RETRIES = 2
+_TOOL_METADATA_PREFIX_CHARS = 4096
+_TOOL_METADATA_VALUE_CHARS = 512
+
+
+def extract_tool_call_display_metadata(
+	arguments: str | Mapping[str, Any], *, allow_empty: bool = False
+) -> dict[str, str] | None:
+	"""Extract complete top-level strings from a bounded prefix of streamed JSON.
+
+	Labels need small fields such as ``path`` or ``command``, not a second copy of a
+	potentially large edit payload. Partial parsing exposes those fields as soon as
+	their string closes while the prefix bound keeps repeated chunk handling cheap.
+	"""
+	if isinstance(arguments, str):
+		if not arguments:
+			return {} if allow_empty else None
+		try:
+			parsed = from_json(arguments[:_TOOL_METADATA_PREFIX_CHARS], allow_partial=True)
+		except ValueError:
+			return None
+	else:
+		parsed = arguments
+	if not isinstance(parsed, Mapping):
+		return None
+	metadata = {
+		str(key): value[:_TOOL_METADATA_VALUE_CHARS]
+		for key, value in parsed.items()
+		if isinstance(value, str) and value
+	}
+	return metadata if metadata or allow_empty else None
 
 
 @dataclass(slots=True)

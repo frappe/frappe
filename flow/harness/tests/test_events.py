@@ -15,6 +15,7 @@ from flow.events import (
 	ThinkingContent,
 	ThinkingDelta,
 	ToolCall,
+	ToolCallReady,
 	ToolCallStarted,
 	ToolResult,
 	Usage,
@@ -36,7 +37,7 @@ def test_durable_classification():
 		RunEnded,
 		RunError,
 	]
-	live = [TextDelta, ThinkingDelta, ToolCallStarted, Retry]
+	live = [TextDelta, ThinkingDelta, ToolCallStarted, ToolCallReady, Retry]
 
 	assert all(event.durable for event in durable)
 	assert not any(event.durable for event in live)
@@ -99,3 +100,17 @@ def test_retry_event_shape():
 		"kind": "overloaded",
 	}
 	assert Retry(status="exhausted", attempt=3).max_attempts is None
+
+
+def test_tool_call_ready_round_trips_as_live_metadata():
+	event = parse_event(
+		{
+			"type": "tool_call_ready",
+			"id": "c1",
+			"name": "edit",
+			"arguments": {"path": "src/app.py"},
+		}
+	)
+	assert isinstance(event, ToolCallReady)
+	assert event.arguments["path"] == "src/app.py"
+	assert event.durable is False

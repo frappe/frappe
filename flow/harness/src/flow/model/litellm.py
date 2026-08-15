@@ -23,6 +23,7 @@ from flow.events import (
 	ThinkingContent,
 	ThinkingDelta,
 	ToolCall,
+	ToolCallReady,
 	ToolCallStarted,
 	ToolResult,
 	TranscriptMessage,
@@ -34,6 +35,7 @@ from flow.model.base import (
 	ModelCancelled,
 	ModelRequest,
 	await_with_cancellation,
+	extract_tool_call_display_metadata,
 	iterate_with_cancellation,
 	run_with_retries,
 )
@@ -221,6 +223,7 @@ class _ResponseAssembler:
 	blocks: list[TextContent | ThinkingContent | int] = field(default_factory=list)
 	partial_calls: dict[int, dict[str, str]] = field(default_factory=dict)
 	announced_calls: set[int] = field(default_factory=set)
+	ready_calls: set[int] = field(default_factory=set)
 	placed_calls: set[int] = field(default_factory=set)
 	thinking_open: bool = False
 	raw_usage: Any = None
@@ -242,6 +245,8 @@ class _ResponseAssembler:
 			events += self._add_reasoning(delta)
 			events += self._add_text(delta)
 			events += self._add_tool_calls(delta)
+			if self.finish_reason is not None:
+				events += self._ready_tool_calls(allow_empty=True)
 		chunk_usage = _attr(chunk, "usage")
 		if chunk_usage is not None:
 			self.raw_usage = chunk_usage
@@ -300,6 +305,19 @@ class _ResponseAssembler:
 			if position not in self.announced_calls and parts["id"] and parts["name"]:
 				self.announced_calls.add(position)
 				events.append(ToolCallStarted(id=parts["id"], name=parts["name"]))
+		events += self._ready_tool_calls()
+		return events
+
+	def _ready_tool_calls(self, *, allow_empty: bool = False) -> list[AnyEvent]:
+		events: list[AnyEvent] = []
+		for position, parts in sorted(self.partial_calls.items()):
+			if position in self.ready_calls:
+				continue
+			ready = _ready_tool_call(parts, allow_empty=allow_empty)
+			if ready is None:
+				continue
+			self.ready_calls.add(position)
+			events.append(ready)
 		return events
 
 	def assistant_message(self, model: LiteLLMModel) -> AssistantMessage:
@@ -370,6 +388,16 @@ def _finalize_tool_calls(partial_calls: dict[int, dict[str, str]]) -> dict[int, 
 			continue
 		calls[position] = _build_tool_call(parts["id"], parts["name"], parts["arguments"])
 	return calls
+
+
+def _ready_tool_call(parts: dict[str, str], *, allow_empty: bool = False) -> ToolCallReady | None:
+	"""Return a live call once its accumulated JSON exposes useful metadata."""
+	if not parts["id"] or not parts["name"]:
+		return None
+	arguments = extract_tool_call_display_metadata(parts["arguments"], allow_empty=allow_empty)
+	if arguments is None:
+		return None
+	return ToolCallReady(id=parts["id"], name=parts["name"], arguments=arguments)
 
 
 def _message_tool_calls(message: Any) -> list[ToolCall]:

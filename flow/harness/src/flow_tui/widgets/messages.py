@@ -64,8 +64,7 @@ def tool_label(name: str) -> Text:
 
 
 def call_line(name: str, args: dict | None) -> Text:
-	"""Collapsed one-liner for a tool call. `args is None` means only the live
-	ToolCallStarted has been seen; the line upgrades once the durable call lands."""
+	"""Collapsed one-liner for a tool call with presentation-safe arguments."""
 	line = tool_label(name)
 	if args is None:
 		return line.append(" …", style=STYLE_MUTED)
@@ -314,6 +313,8 @@ class PartialAssistantView(Static):
 	def update_parts(self, parts: list[PartialPart], *, show_thinking: bool = False) -> None:
 		text = Text()
 		for part in parts:
+			if isinstance(part, PartialToolCall) and part.arguments is None:
+				continue
 			if text:
 				text.append("\n")
 			if isinstance(part, PartialThinking):
@@ -324,7 +325,7 @@ class PartialAssistantView(Static):
 			elif isinstance(part, PartialText):
 				text.append(part.text)
 			elif isinstance(part, PartialToolCall):
-				text.append_text(call_line(part.name, None))
+				text.append_text(call_line(part.name, part.arguments))
 		text.append("▌", style=STYLE_MUTED)
 		self.update(text)
 

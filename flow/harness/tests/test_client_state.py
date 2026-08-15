@@ -15,6 +15,7 @@ from flow.events import (
 	ThinkingContent,
 	ThinkingDelta,
 	ToolCall,
+	ToolCallReady,
 	ToolCallStarted,
 	ToolResult,
 	Usage,
@@ -52,13 +53,20 @@ def test_deltas_accumulate_and_durable_message_replaces_them():
 	state.apply(TextDelta(text="Hel"))
 	state.apply(TextDelta(text="lo"))
 	state.apply(ToolCallStarted(id="c1", name="bash"))
+	state.apply(
+		ToolCallReady(
+			id="c1",
+			name="bash",
+			arguments={"command": "pwd"},
+		)
+	)
 	state.apply(TextDelta(text="tail"))
 
 	# consecutive same-kind deltas merge; a kind switch starts a new part
 	assert state.partial == [
 		PartialThinking("hmm ok"),
 		PartialText("Hello"),
-		PartialToolCall(id="c1", name="bash"),
+		PartialToolCall(id="c1", name="bash", arguments={"command": "pwd"}),
 		PartialText("tail"),
 	]
 
