@@ -115,9 +115,11 @@ test("context window never carries across a model change", () => {
 	const conversation = initialConversation()
 	conversation.model = "codex/gpt-5.6-sol"
 	conversation.contextWindow = 272_000
+	conversation.contextTokens = 80_000
 
 	applyEvent(conversation, { type: "model_changed", model: "deepseek/deepseek-chat" })
 	assert.equal(conversation.contextWindow, null)
+	assert.equal(conversation.contextTokens, 0)
 
 	applyEvent(conversation, { type: "usage", context_window: 1_000_000 })
 	assert.equal(conversation.contextWindow, 1_000_000)
@@ -129,6 +131,19 @@ test("context window never carries across a model change", () => {
 		reasoning_effort: "high",
 	})
 	assert.equal(conversation.contextWindow, 1_000_000)
+})
+
+test("usage keeps cumulative spend separate from the current context", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "usage", input_tokens: 70_000, output_tokens: 1_000 })
+	applyEvent(conversation, { type: "usage", input_tokens: 80_000, output_tokens: 2_000 })
+
+	assert.equal(conversation.usage.input + conversation.usage.output, 153_000)
+	assert.equal(conversation.contextTokens, 82_000)
+
+	applyEvent(conversation, { type: "compaction", seq: 1, compact_up_to_seq: 0 })
+	assert.equal(conversation.usage.input + conversation.usage.output, 153_000)
+	assert.equal(conversation.contextTokens, 0)
 })
 
 test("tool start immediately creates a provisional tool step", () => {
