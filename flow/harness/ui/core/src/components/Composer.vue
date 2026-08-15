@@ -64,7 +64,7 @@
 			</div>
 
 			<div
-				class="flow-composer-surface flex flex-col gap-2 rounded-xl border border-outline-gray-1 p-2 shadow-[0_1px_3px_rgba(0,0,0,0.035)]"
+				class="flow-composer-surface flex flex-col gap-2 rounded-xl border border-outline-gray-2 p-2 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)] dark:border-outline-gray-1"
 			>
 				<div v-if="attachments.length" class="flex flex-wrap items-start gap-2 px-1 pt-0.5">
 					<template v-for="(item, i) in attachments" :key="item.key">
