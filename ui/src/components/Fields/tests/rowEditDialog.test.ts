@@ -238,6 +238,22 @@ describe("row-edit dialog", () => {
     expect(rows.value[0].qty).toBe("A");
   });
 
+  it("still edits the clicked row when two rows share a key AND reorder", async () => {
+    // The tiebreak cannot be positional: a reorder leaves the remembered index
+    // pointing at the OTHER row whose key matches, so the dialog would swap rows
+    // underneath the reader mid-edit.
+    const first = { name: "dup", qty: "A" };
+    const second = { name: "dup", qty: "B" };
+    const { rows } = render([first, second]);
+    await openRow(1);
+
+    rows.value = [second, first];
+    await nextTick();
+    typeInDialog("qty", "Z");
+    expect(second.qty).toBe("Z");
+    expect(first.qty).toBe("A");
+  });
+
   it("closes when its row is removed", async () => {
     const { rows } = render([{ name: "r1", qty: "1" }, { name: "r2", qty: "2" }]);
     await openRow(0);
