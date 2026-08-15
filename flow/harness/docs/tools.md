@@ -5,7 +5,11 @@ Tools are async Python functions exposed to the model as function schemas. They 
 ```python
 from flow.tools import ToolContext, ToolResult, tool
 
-@tool(requires_confirmation=True, prompt_snippet="Rename a file")
+@tool(
+    requires_confirmation=True,
+    prompt_snippet="Rename a file",
+    display="Renaming {{ path }} to {{ to }}",
+)
 async def rename(path: str, to: str, *, ctx: ToolContext) -> ToolResult:
     """Rename a file."""
     # Do the work here.
@@ -13,6 +17,8 @@ async def rename(path: str, to: str, *, ctx: ToolContext) -> ToolResult:
 ```
 
 `@tool` derives the JSON schema from the signature and docstring. The injected `ctx` argument is not visible to the model. Use `Annotated[T, "description"]` for parameter descriptions. Arguments are validated before the function runs.
+
+`display` controls the tool activity text shown by clients. It accepts simple Jinja-style argument placeholders such as `{{ path }}`. Flow waits until every referenced argument is complete before streaming the rendered text, and rejects templates that reference arguments not present in the function signature. Display templates are UI metadata and are not sent to the model provider.
 
 `ToolContext` provides `cwd`, allowed read/write roots, an abort event, and a timeout. `ToolResult.content` goes to the model; `details` is for clients and logs only. Return `ToolResult(is_error=True, content="...")` for an expected failure.
 
@@ -45,7 +51,7 @@ An extension is a `.py` file, or a directory with `extension.py`, exposing a syn
 ```python
 from flow.tools import ToolContext, ToolResult, tool
 
-@tool(prompt_snippet="Greet a person")
+@tool(prompt_snippet="Greet a person", display="Greeting {{ name }}")
 async def hello(name: str, *, ctx: ToolContext) -> ToolResult:
     return ToolResult(content=f"Hello, {name}!")
 

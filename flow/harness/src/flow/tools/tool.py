@@ -12,7 +12,9 @@ from __future__ import annotations
 import asyncio
 import functools
 import inspect
+import json
 import operator
+import re
 import types
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
@@ -20,6 +22,35 @@ from enum import Enum
 from typing import Any, Literal, Union, get_args, get_origin, get_type_hints, overload
 
 from pydantic import BaseModel, ConfigDict, validate_call
+
+_DISPLAY_VARIABLE = re.compile(r"{{\s*([A-Za-z_][A-Za-z0-9_]*)\s*}}")
+_DISPLAY_VALUE_CHARS = 512
+
+
+def display_template_variables(template: str) -> tuple[str, ...]:
+	"""Return the simple ``{{ argument }}`` variables used by a display template."""
+	variables = tuple(dict.fromkeys(_DISPLAY_VARIABLE.findall(template)))
+	remainder = _DISPLAY_VARIABLE.sub("", template)
+	if "{{" in remainder or "}}" in remainder:
+		raise ValueError("tool display supports only simple {{ argument }} placeholders")
+	return variables
+
+
+def render_tool_display(template: str, arguments: dict[str, Any]) -> str | None:
+	"""Render a display template once all of its referenced arguments are available."""
+	variables = display_template_variables(template)
+	if any(name not in arguments for name in variables):
+		return None
+
+	def replace(match: re.Match[str]) -> str:
+		value = arguments[match.group(1)]
+		if value is None:
+			return ""
+		if isinstance(value, (dict, list)):
+			return json.dumps(value, ensure_ascii=False, separators=(",", ":"))[:_DISPLAY_VALUE_CHARS]
+		return str(value)[:_DISPLAY_VALUE_CHARS]
+
+	return _DISPLAY_VARIABLE.sub(replace, template)
 
 
 @dataclass
@@ -60,8 +91,20 @@ class Tool:
 	# (deduped) into the prompt's "Guidelines" section.
 	prompt_snippet: str | None = None
 	prompt_guidelines: tuple[str, ...] = ()
+	# User-facing activity text. Simple ``{{ argument }}`` placeholders are filled
+	# from streamed call arguments as soon as all referenced values are complete.
+	display: str | None = None
 
 	def __post_init__(self) -> None:
+		if self.display is not None:
+			if not self.display.strip():
+				raise ValueError("tool display must not be empty")
+			unknown = set(display_template_variables(self.display)) - set(
+				self.parameters.get("properties", {})
+			)
+			if unknown:
+				names = ", ".join(sorted(unknown))
+				raise ValueError(f"tool display references unknown argument(s): {names}")
 		self._validated = validate_call(config=ConfigDict(arbitrary_types_allowed=True))(self.func)
 
 	def __call__(self, **kwargs: Any) -> Awaitable[ToolResult]:
@@ -91,6 +134,7 @@ def tool(
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
 	prompt_snippet: str | None = None,
 	prompt_guidelines: tuple[str, ...] = (),
+	display: str | None = None,
 ) -> Callable[[Callable[..., Awaitable[ToolResult]]], Tool]: ...
 
 
@@ -103,6 +147,7 @@ def tool(
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
 	prompt_snippet: str | None = None,
 	prompt_guidelines: tuple[str, ...] = (),
+	display: str | None = None,
 ) -> Tool | Callable[[Callable[..., Awaitable[ToolResult]]], Tool]:
 	def wrap(f: Callable[..., Awaitable[ToolResult]]) -> Tool:
 		return Tool(
@@ -114,6 +159,7 @@ def tool(
 			confirm_prompt=confirm_prompt,
 			prompt_snippet=prompt_snippet,
 			prompt_guidelines=prompt_guidelines,
+			display=display,
 		)
 
 	return wrap(func) if func is not None else wrap

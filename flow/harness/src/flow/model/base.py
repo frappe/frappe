@@ -1,6 +1,6 @@
 """The provider contract: one `Model.run` call is one streamed model turn.
 
-An adapter yields `TextDelta` / `ThinkingDelta` / `ToolCallStarted` / `ToolCallReady`
+An adapter yields `TextDelta` / `ThinkingDelta` / `ToolCallStarted` / `ToolCallDisplayReady`
 while streaming, then always terminates with an `AssistantMessage` followed by a `Usage`.
 Everything that can go wrong with a provider is owned here too, so the agent loop never
 has to care:
@@ -20,13 +20,14 @@ import asyncio
 import random
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from contextlib import suppress
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from pydantic_core import from_json
 
-from flow.events import AnyEvent, AssistantMessage, Retry, TranscriptMessage
+from flow.events import AnyEvent, AssistantMessage, Retry, ToolCall, ToolCallDisplayReady, TranscriptMessage
 from flow.model.errors import ProviderError, credential_refresh_error
+from flow.tools.tool import display_template_variables, render_tool_display
 
 _RETRY_BASE_DELAY_SECONDS = 0.5
 _RETRY_MAX_BACKOFF_SECONDS = 8.0
@@ -38,6 +39,23 @@ _TOOL_METADATA_PREFIX_CHARS = 4096
 _TOOL_METADATA_VALUE_CHARS = 512
 
 
+def _tool_call_arguments(
+	arguments: str | Mapping[str, Any], *, complete: bool = False
+) -> Mapping[str, Any] | None:
+	if not isinstance(arguments, str):
+		return arguments
+	if not arguments:
+		return {}
+	try:
+		parsed = from_json(
+			arguments if complete else arguments[:_TOOL_METADATA_PREFIX_CHARS],
+			allow_partial=not complete,
+		)
+	except ValueError:
+		return None
+	return parsed if isinstance(parsed, Mapping) else None
+
+
 def extract_tool_call_display_metadata(
 	arguments: str | Mapping[str, Any], *, allow_empty: bool = False
 ) -> dict[str, str] | None:
@@ -47,16 +65,8 @@ def extract_tool_call_display_metadata(
 	potentially large edit payload. Partial parsing exposes those fields as soon as
 	their string closes while the prefix bound keeps repeated chunk handling cheap.
 	"""
-	if isinstance(arguments, str):
-		if not arguments:
-			return {} if allow_empty else None
-		try:
-			parsed = from_json(arguments[:_TOOL_METADATA_PREFIX_CHARS], allow_partial=True)
-		except ValueError:
-			return None
-	else:
-		parsed = arguments
-	if not isinstance(parsed, Mapping):
+	parsed = _tool_call_arguments(arguments)
+	if parsed is None:
 		return None
 	metadata = {
 		str(key): value[:_TOOL_METADATA_VALUE_CHARS]
@@ -64,6 +74,87 @@ def extract_tool_call_display_metadata(
 		if isinstance(value, str) and value
 	}
 	return metadata if metadata or allow_empty else None
+
+
+def render_tool_call_display(
+	template: str, arguments: str | Mapping[str, Any], *, complete: bool = False
+) -> str | None:
+	"""Render a tool's display template when all referenced arguments are complete."""
+	parsed = _tool_call_arguments(arguments, complete=complete)
+	if parsed is None:
+		return None
+	return _render_parsed_tool_display(
+		template,
+		parsed,
+		partial=isinstance(arguments, str) and not complete,
+	)
+
+
+def _render_parsed_tool_display(template: str, arguments: Mapping[str, Any], *, partial: bool) -> str | None:
+	# Partial JSON parsing reliably tells us when a string closes. Numbers and
+	# containers can still grow in a later chunk, so render those only from a
+	# complete payload (or an already-materialized mapping, as used by MockModel).
+	if partial:
+		for name in display_template_variables(template):
+			if name in arguments and not isinstance(arguments[name], str):
+				return None
+	return render_tool_display(template, dict(arguments))
+
+
+def tool_call_display_ready_event(
+	call_id: str,
+	name: str,
+	arguments: str | Mapping[str, Any],
+	*,
+	display_template: str | None = None,
+	complete: bool = False,
+) -> ToolCallDisplayReady | None:
+	"""Build the first useful live event for a streamed tool call."""
+	if not call_id or not name:
+		return None
+	complete = complete or not isinstance(arguments, str)
+	parsed = _tool_call_arguments(arguments, complete=complete)
+	if parsed is None:
+		if not complete:
+			return None
+		# Preserve any safe string metadata from a malformed final payload. The
+		# durable ToolCall will carry the provider parse error.
+		metadata = extract_tool_call_display_metadata(arguments, allow_empty=True)
+		if metadata is None:
+			return None
+		return ToolCallDisplayReady(id=call_id, name=name, arguments=metadata)
+
+	display = None
+	if display_template is not None:
+		display = _render_parsed_tool_display(
+			display_template,
+			parsed,
+			partial=isinstance(arguments, str) and not complete,
+		)
+		if display is None and not complete:
+			return None
+	metadata = extract_tool_call_display_metadata(parsed, allow_empty=complete or display is not None)
+	if metadata is None:
+		return None
+	return ToolCallDisplayReady(id=call_id, name=name, arguments=metadata, display=display)
+
+
+def with_tool_call_displays(message: AssistantMessage, templates: Mapping[str, str]) -> AssistantMessage:
+	"""Render configured display text onto the durable tool calls in a message."""
+	content = None
+	for index, block in enumerate(message.content):
+		if not isinstance(block, ToolCall) or block.error is not None:
+			continue
+		template = templates.get(block.name)
+		if template is None:
+			continue
+		display = render_tool_display(template, block.arguments)
+		if display == block.display:
+			continue
+		if content is None:
+			content = list(message.content)
+		content[index] = block.model_copy(update={"display": display})
+	return message if content is None else message.model_copy(update={"content": content})
 
 
 @dataclass(slots=True)
@@ -81,6 +172,7 @@ class ModelRequest:
 	cancellation: asyncio.Event | None = None
 	max_output_tokens: int | None = None
 	resolve_attachment: Callable[[str], bytes] | None = None
+	tool_display_templates: Mapping[str, str] = field(default_factory=dict)
 
 
 class ModelCancelled(Exception):

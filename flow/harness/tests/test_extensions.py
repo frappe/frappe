@@ -17,7 +17,7 @@ from flow.tools import ToolContext
 HELLO_EXTENSION = """
 from flow.tools import ToolResult, tool
 
-@tool(prompt_snippet="Greet someone by name.")
+@tool(prompt_snippet="Greet someone by name.", display="Greeting {{ who }}")
 async def hello(who: str = "world", *, ctx):
     return ToolResult(content=f"Hello, {who}!")
 
@@ -95,6 +95,7 @@ async def test_extension_tool_executes_with_normal_context(tmp_path):
 	store = SessionStore(str(tmp_path / "data"), extension_paths=[str(extension)])
 	session = store.create(SessionConfig(cwd=str(tmp_path), tools=[], auto_approve=True))
 	tool = session.server_tools["hello"]
+	assert tool.display == "Greeting {{ who }}"
 
 	result = await tool(who="Flow", ctx=ToolContext(cwd=str(tmp_path)))
 

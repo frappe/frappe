@@ -14,13 +14,17 @@ from flow.events import (
 	AssistantMessage,
 	TextContent,
 	TextDelta,
-	ToolCallReady,
 	ToolCallStarted,
 	TranscriptMessage,
 	Usage,
 	UserMessage,
 )
-from flow.model.base import Model, ModelRequest, extract_tool_call_display_metadata
+from flow.model.base import (
+	Model,
+	ModelRequest,
+	tool_call_display_ready_event,
+	with_tool_call_displays,
+)
 
 
 class MockModel(Model):
@@ -54,12 +58,15 @@ class MockModel(Model):
 				yield TextDelta(text=piece)
 			for call in reply.tool_calls:
 				yield ToolCallStarted(id=call.id, name=call.name)
-				yield ToolCallReady(
-					id=call.id,
-					name=call.name,
-					arguments=extract_tool_call_display_metadata(call.arguments, allow_empty=True) or {},
+				ready = tool_call_display_ready_event(
+					call.id,
+					call.name,
+					call.arguments,
+					display_template=request.tool_display_templates.get(call.name),
 				)
-		yield reply.model_copy(
+				if ready is not None:
+					yield ready
+		message = reply.model_copy(
 			update={
 				"api": self.api,
 				"provider": self.provider,
@@ -71,6 +78,7 @@ class MockModel(Model):
 				),
 			}
 		)
+		yield with_tool_call_displays(message, request.tool_display_templates)
 		yield Usage(
 			input_tokens=_estimate(_last_user(request.messages)),
 			output_tokens=_estimate(reply.text),

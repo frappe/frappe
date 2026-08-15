@@ -37,6 +37,9 @@ class ToolCall(BaseModel):
 	id: str
 	name: str
 	arguments: dict
+	# Rendered user-facing activity text declared by the tool. This is presentation
+	# metadata only and is never included in provider tool-call arguments.
+	display: str | None = None
 	# Set when the model emitted unparseable arguments; fed back so it can retry.
 	error: str | None = None
 	# Opaque provider round-trip data (e.g. a Responses item id). Never shown to the
@@ -270,14 +273,15 @@ class ToolCallStarted(_Event):
 	name: str
 
 
-class ToolCallReady(_Event):
+class ToolCallDisplayReady(_Event):
 	"""Small, presentation-safe metadata parsed from a streamed tool call."""
 
 	durable: ClassVar[bool] = False
-	type: Literal["tool_call_ready"] = "tool_call_ready"
+	type: Literal["tool_call_display_ready"] = "tool_call_display_ready"
 	id: str
 	name: str
 	arguments: dict[str, str]
+	display: str | None = None
 
 
 class Retry(_Event):
@@ -331,7 +335,7 @@ AnyEvent = (
 	| TextDelta
 	| ThinkingDelta
 	| ToolCallStarted
-	| ToolCallReady
+	| ToolCallDisplayReady
 	| Retry
 	| CompactionStarted
 	| CompactionEnded

@@ -105,13 +105,35 @@ def test_tool_decorator_derives_name_and_description():
 
 
 def test_tool_decorator_overrides_and_confirmation():
-	@tool(name="custom", description="d", requires_confirmation=True)
+	@tool(
+		name="custom",
+		description="d",
+		requires_confirmation=True,
+		display="Running custom tool",
+	)
 	async def _f(*, ctx: ToolContext) -> str:
 		return "ok"
 
 	assert _f.name == "custom"
 	assert _f.description == "d"
 	assert _f.requires_confirmation is True
+	assert _f.display == "Running custom tool"
+
+
+def test_tool_display_accepts_argument_placeholders_but_rejects_unknown_arguments():
+	@tool(display="Searching the web for {{ query }}")
+	async def web_search(query: str, *, ctx: ToolContext) -> str:
+		return query
+
+	assert web_search.display == "Searching the web for {{ query }}"
+	assert "display" not in web_search.to_schema()
+	assert "display" not in web_search.to_schema()["function"]
+
+	with pytest.raises(ValueError, match=r"unknown argument.*missing"):
+
+		@tool(display="Searching for {{ missing }}")
+		async def invalid(query: str, *, ctx: ToolContext) -> str:
+			return query
 
 
 def test_tool_to_schema_shape():

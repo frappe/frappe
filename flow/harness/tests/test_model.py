@@ -20,7 +20,11 @@ from flow.model import (
 	get_model,
 	register_provider,
 )
-from flow.model.base import extract_tool_call_display_metadata
+from flow.model.base import (
+	extract_tool_call_display_metadata,
+	render_tool_call_display,
+	tool_call_display_ready_event,
+)
 from flow.model.litellm import (
 	_build_tool_call,
 	_openai_messages,
@@ -58,6 +62,33 @@ def test_tool_call_display_metadata_is_early_and_bounded():
 	assert extract_tool_call_display_metadata({"command": "x" * 1_000}) == {"command": "x" * 512}
 
 
+def test_tool_call_display_waits_for_every_referenced_argument():
+	template = "Searching {{ source }} for {{ query }}"
+
+	assert render_tool_call_display(template, '{"source":"the web","query":"Flo') is None
+	assert (
+		render_tool_call_display(template, '{"source":"the web","query":"Flow","options":[')
+		== "Searching the web for Flow"
+	)
+	assert render_tool_call_display("Opening page {{ page }}", '{"page":1') is None
+	assert (
+		render_tool_call_display("Opening page {{ page }}", '{"page":10}', complete=True) == "Opening page 10"
+	)
+
+
+def test_static_tool_display_is_ready_before_arguments_arrive():
+	event = tool_call_display_ready_event(
+		"call-1",
+		"bash",
+		"",
+		display_template="Running command",
+	)
+
+	assert event is not None
+	assert event.arguments == {}
+	assert event.display == "Running command"
+
+
 async def test_mock_streaming_sequence():
 	events = await _collect(MockModel().run(ModelRequest(messages=[UserMessage(content="hi there")])))
 	types = [e.type for e in events]
@@ -75,6 +106,23 @@ async def test_mock_non_streaming_has_no_deltas():
 	assert [e.type for e in events] == ["assistant_message", "usage"]
 
 
+async def test_mock_renders_custom_tool_display_in_live_and_durable_calls():
+	model = MockModel(
+		replies=[
+			AssistantMessage(content=[ToolCall(id="c1", name="web_search", arguments={"query": "Flow"})])
+		]
+	)
+	request = ModelRequest(
+		messages=[UserMessage(content="search")],
+		tool_display_templates={"web_search": "Searching the web for {{ query }}"},
+	)
+
+	events = await _collect(model.run(request))
+
+	assert events[1].display == "Searching the web for Flow"
+	assert events[2].tool_calls[0].display == "Searching the web for Flow"
+
+
 async def test_mock_scripted_replies_multi_turn():
 	call = ToolCall(id="c1", name="bash", arguments={"command": "ls"})
 	model = MockModel(replies=[AssistantMessage(content=[call]), AssistantMessage(content="done")])
@@ -82,7 +130,7 @@ async def test_mock_scripted_replies_multi_turn():
 	first = await _collect(model.run(ModelRequest(messages=[UserMessage(content="go")])))
 	assert [e.type for e in first] == [
 		"tool_call_started",
-		"tool_call_ready",
+		"tool_call_display_ready",
 		"assistant_message",
 		"usage",
 	]
@@ -311,19 +359,28 @@ async def test_litellm_emits_metadata_before_large_arguments_finish(monkeypatch)
 		],
 	)
 
-	events = await _collect(LiteLLMModel("gpt-4").run(ModelRequest(messages=[UserMessage(content="hi")])))
+	events = await _collect(
+		LiteLLMModel("gpt-4").run(
+			ModelRequest(
+				messages=[UserMessage(content="hi")],
+				tool_display_templates={"edit": "Editing file {{ path }}"},
+			)
+		)
+	)
 
 	assert [event.type for event in events] == [
 		"tool_call_started",
-		"tool_call_ready",
+		"tool_call_display_ready",
 		"assistant_message",
 		"usage",
 	]
 	assert events[1].arguments == {"path": "a.py"}
+	assert events[1].display == "Editing file a.py"
 	assert events[2].tool_calls[0].arguments == {
 		"path": "a.py",
 		"edits": [{"old": "x", "new": "y"}],
 	}
+	assert events[2].tool_calls[0].display == "Editing file a.py"
 
 
 async def test_litellm_emits_ready_for_a_no_argument_tool_at_stream_end(monkeypatch):
@@ -339,7 +396,7 @@ async def test_litellm_emits_ready_for_a_no_argument_tool_at_stream_end(monkeypa
 
 	assert [event.type for event in events] == [
 		"tool_call_started",
-		"tool_call_ready",
+		"tool_call_display_ready",
 		"assistant_message",
 		"usage",
 	]
