@@ -316,13 +316,27 @@ let openedRow: Record<string, any> | null = null;
 
 const editIndex = computed(() => {
 	if (editKey.value === null) return -1;
-	const first = rows.value.findIndex((row) => rowKey(row) === editKey.value);
-	if (first === -1) return -1;
+	const matching = answering();
+	if (matching.length <= 1) return matching[0] ?? -1;
 	const clicked = openedRow ? rows.value.indexOf(openedRow) : -1;
 	// The clicked row still has to answer to the address: a script can rename a
 	// row under the dialog, and then it is no longer the row that was opened.
-	return clicked !== -1 && rowKey(rows.value[clicked]) === editKey.value ? clicked : first;
+	if (clicked !== -1 && rowKey(rows.value[clicked]) === editKey.value) return clicked;
+	// Two rows answer to this address and the object that told them apart is gone
+	// (a save replaces every row object). There is no answer left, only a guess —
+	// and guessing is how the reader silently edits the other row, so the dialog
+	// closes on the same rule as a row that has vanished.
+	return -1;
 });
+
+/** Every row currently answering to the open address, by index. */
+function answering(): number[] {
+	const found: number[] = [];
+	rows.value.forEach((row, index) => {
+		if (rowKey(row) === editKey.value) found.push(index);
+	});
+	return found;
+}
 
 // Writable, though `FormLayout` only ever mutates it: a getter-only computed
 // would swallow a reassignment in production and warn only in dev.
@@ -349,7 +363,19 @@ const showEdit = computed({
 // save-conflict path does routinely (it repaints the server's rows, then
 // re-applies the reader's).
 watch(editRow, (row) => {
-	if (!row) closeEdit();
+	if (row) return;
+	// An ambiguous close looks identical to a removal from the outside, so say so:
+	// the rows are still there, and the reader's edits stopped landing.
+	if (import.meta.env?.DEV && answering().length > 1) {
+		console.warn(
+			`[TableField] closed the row-edit dialog for "${props.field.fieldname}": ` +
+				`${answering().length} rows answer to ${editKey.value}, and the row that was ` +
+				`opened is no longer among them. Rows that share a name cannot be told apart ` +
+				`once a save replaces them — give a copied row a fresh identity instead of ` +
+				`reusing its name.`
+		);
+	}
+	closeEdit();
 });
 
 function closeEdit() {
