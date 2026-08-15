@@ -297,6 +297,15 @@ class CompactionEnded(_Event):
 	error_message: str | None = None
 
 
+class TitleChanged(_Event):
+	"""The session's generated display title landed; it lives in session meta, not the
+	log, so late subscribers read it from the session detail instead of replay."""
+
+	durable: ClassVar[bool] = False
+	type: Literal["title_changed"] = "title_changed"
+	title: str
+
+
 AnyEvent = (
 	RunStarted
 	| UserMessage
@@ -315,6 +324,7 @@ AnyEvent = (
 	| Retry
 	| CompactionStarted
 	| CompactionEnded
+	| TitleChanged
 )
 
 Event = Annotated[AnyEvent, Field(discriminator="type")]

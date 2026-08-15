@@ -168,13 +168,21 @@ class SessionStore:
 		return sid in self._cache or self._locate(sid) is not None
 
 	def title(self, sid: str) -> str | None:
-		"""The session's display title: its first user message, read from the log head
-		(the durable row — a compaction's synthetic summary never replaces it)."""
+		"""The session's display title: the generated title when one exists, else its
+		first user message read from the log head (the durable row — a compaction's
+		synthetic summary never replaces it)."""
 		session = self._cache.get(sid)
 		if session is not None:
-			return _read_first_user_message(session.log.path)
+			return session.config.title or _read_first_user_message(session.log.path)
 		paths = self._locate(sid)
-		return _read_first_user_message(paths.log) if paths is not None else None
+		if paths is None:
+			return None
+		try:
+			with open(paths.meta, encoding="utf-8") as file:
+				config = SessionConfig.model_validate(json.load(file))
+		except (OSError, ValueError):
+			return _read_first_user_message(paths.log)
+		return config.title or _read_first_user_message(paths.log)
 
 	def delete(self, sid: str) -> None:
 		"""Remove every session artifact, then its empty project directory.
@@ -192,6 +200,8 @@ class SessionStore:
 			raise KeyError(sid)
 		if session is not None and session.is_running:
 			raise SessionConflict("cannot delete a session with an active run")
+		if session is not None:
+			session.cancel_titling()  # a late title write must not resurrect the meta file
 		attachment_store = session.attachment_store if session is not None else None
 		if attachment_store is not None:
 			attachment_store.remove_all()
@@ -242,7 +252,7 @@ class SessionStore:
 				model=session.model,
 				latest_seq=session.log.latest_seq,
 				cwd=session.config.cwd,
-				title=_read_first_user_message(session.log.path),
+				title=session.config.title or _read_first_user_message(session.log.path),
 			)
 		try:
 			with open(paths.meta, encoding="utf-8") as f:
@@ -262,7 +272,7 @@ class SessionStore:
 			model=config.model,
 			latest_seq=latest_seq,
 			cwd=config.cwd,
-			title=_read_first_user_message(paths.log),
+			title=config.title or _read_first_user_message(paths.log),
 		)
 
 	def save_meta(self, session: Session) -> None:
@@ -299,6 +309,7 @@ class SessionStore:
 			attachment_store=AttachmentStore(paths.attachments),
 			skill_catalog=skill_catalog,
 			server_tools=server_tools,
+			persist_meta=self.save_meta,
 		)
 
 	def _save_catalog(self, paths: _SessionPaths, skill_catalog: SkillCatalog) -> None:

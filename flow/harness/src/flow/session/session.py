@@ -16,7 +16,7 @@ from __future__ import annotations
 import asyncio
 import json
 from collections import deque
-from collections.abc import AsyncGenerator, AsyncIterator
+from collections.abc import AsyncGenerator, AsyncIterator, Callable
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Literal
@@ -39,14 +39,17 @@ from flow.events import (
 	TextDelta,
 	ThinkingContent,
 	ThinkingDelta,
+	TitleChanged,
 	ToolCallStarted,
 	ToolResult,
 	UserMessage,
 	parse_event,
 )
-from flow.model import Model, ProviderError
+from flow.model import Model, ProviderError, get_model
+from flow.model.auth import resolve_model_auth
 from flow.model.base import ModelCancelled
 from flow.model.credentials import CredentialStore
+from flow.session import titling
 from flow.session.attachments import (
 	MAX_ATTACHMENTS_PER_MESSAGE,
 	MAX_TEXT_BYTES,
@@ -175,6 +178,7 @@ class Session:
 		attachment_store: AttachmentStore | None = None,
 		skill_catalog: SkillCatalog | None = None,
 		server_tools: dict[str, Tool] | None = None,
+		persist_meta: Callable[[Session], None] | None = None,
 	):
 		self.id = sid
 		self.config = config
@@ -185,10 +189,12 @@ class Session:
 		self.attachment_store = attachment_store
 		self.skill_catalog = skill_catalog or SkillCatalog()
 		self.server_tools = server_tools
+		self._persist_meta = persist_meta
 		self.transcript = Transcript.replay(log)
 		self.abort_signal = asyncio.Event()
 		self._operation_lock = asyncio.Lock()
 		self._task: asyncio.Task[None] | None = None
+		self._title_task: asyncio.Task[None] | None = None
 		self._operation_type: Literal["run", "compact"] = "run"
 		self._steering_queue: deque[_QueuedSteering] = deque()
 		self._subscribers: set[asyncio.Queue[AnyEvent]] = set()
@@ -255,8 +261,12 @@ class Session:
 				self._steering_queue.append(_QueuedSteering(user_message, owned_attachment_claims))
 				return RunHandle(status="steered", from_seq=self.log.latest_seq)
 			user_message, _ = self._user_message(message, attachment_ids or [])
+			should_title = self._should_title()
 			inputs = self._loop_inputs(model, before_tool_call, after_tool_call)
-			return self._start_operation(loop.run(user_message, inputs))
+			handle = self._start_operation(loop.run(user_message, inputs))
+			if should_title:
+				self._start_titling(user_message.text)
+			return handle
 
 	async def resume(
 		self,
@@ -553,6 +563,52 @@ class Session:
 				)
 			)
 		self._commit(RunEnded(reason=reason))
+
+	# --- background titling -----------------------------------------------
+
+	def _should_title(self) -> bool:
+		"""Title once, on the first message of an untitled session. Mock sessions keep
+		the first-message fallback — a mock 'title' would be scripted noise."""
+		return (
+			self.config.title is None
+			and self.model.partition("/")[0] != "mock"
+			and not any(isinstance(m, UserMessage) for m in self.transcript.messages)
+		)
+
+	def _start_titling(self, first_message: str) -> None:
+		task = asyncio.create_task(self._title_session(first_message))
+		task.add_done_callback(_mark_retrieved)
+		self._title_task = task
+
+	def cancel_titling(self) -> None:
+		if self._title_task is not None and not self._title_task.done():
+			self._title_task.cancel()
+
+	async def _title_session(self, first_message: str) -> None:
+		"""Runs alongside the first turn on its own model instance, so it never blocks
+		or steals the run's stream. Best-effort: any failure leaves the fallback."""
+		try:
+			auth = await resolve_model_auth(self.model, self.credentials, provider_id=self.credential_id)
+			model = get_model(
+				self.model,
+				api_key=auth.api_key,
+				api_base=auth.base_url,
+				headers=auth.headers,
+				refresh_auth=auth.refresh,
+			)
+			title = await titling.generate_title(model, first_message)
+			if title is None or self.config.title is not None:
+				return
+			self.config.title = title
+			if self._persist_meta is not None:
+				try:
+					self._persist_meta(self)
+				except Exception:
+					self.config.title = None
+					return
+			self._commit(TitleChanged(title=title))
+		except Exception:
+			pass  # titling must never disturb the run
 
 
 def _mark_retrieved(task: asyncio.Task[None]) -> None:

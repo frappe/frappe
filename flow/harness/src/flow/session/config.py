@@ -14,6 +14,8 @@ class SessionConfig(BaseModel):
 	Attributes:
 		session_id: Client-provided id (else generated); lets a client keep one identity
 			across its own store and the daemon (e.g. Flow Session name).
+		title: Display title. Generated in the background from the first user message;
+			a client-set value suppresses generation.
 		model: The model to use.
 		reasoning_effort: How hard the model should think, on pi's ladder
 			(off/minimal/low/medium/high/xhigh/max). None = provider default (no
@@ -50,6 +52,7 @@ class SessionConfig(BaseModel):
 	model_config = ConfigDict(extra="forbid")
 
 	session_id: str | None = None
+	title: str | None = None
 	model: str = "mock"
 	reasoning_effort: ReasoningEffort | None = None
 	system_preamble: str | None = None

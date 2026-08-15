@@ -177,6 +177,12 @@ export function createFlowStore(client) {
 	}
 
 	function handleEvent(sid, event) {
+		if (event.type === "title_changed") {
+			if (state.session) state.session.title = event.title
+			const listed = state.sessions.find((info) => info.session_id === sid)
+			if (listed) listed.title = event.title
+			return
+		}
 		if (event.type === "run_error" && event.seq > (state.session?.latest_seq ?? 0)) {
 			state.conversation.liveErrorSeqs.push(event.seq)
 		}
