@@ -29,6 +29,10 @@
       "import": "./src/experimental/List/index.ts",
       "types": "./src/experimental/List/index.ts"
     },
+    "./AutomationCanvas": {
+      "import": "./src/components/AutomationCanvas/index.ts",
+      "types": "./src/components/AutomationCanvas/index.ts"
+    },
     "./ListView": {
       "import": "./src/components/ListView/index.ts",
       "types": "./src/components/ListView/index.ts"
@@ -91,6 +95,8 @@
   "author": "Frappe Technologies Pvt. Ltd.",
   "license": "MIT",
   "dependencies": {
+    "@vue-flow/background": "^1.3.2",
+    "@vue-flow/core": "^1.48.2",
     "cropperjs": "^2.1.1",
     "dompurify": "^3.4.0",
     "leaflet": "^1.9.4",
