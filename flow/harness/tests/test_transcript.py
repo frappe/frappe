@@ -403,16 +403,31 @@ def test_active_path_rejects_bad_targets():
 	]
 	with pytest.raises(ValueError, match="does not exist"):
 		active_path(rows, leaf_seq=99)
-	with pytest.raises(ValueError, match="rewind marker"):
-		active_path(rows, leaf_seq=3)
 	with pytest.raises(ValueError, match="does not exist"):
 		active_path([], leaf_seq=1)
+	cyclic = [{"seq": 1, "type": "rewind", "target_seq": 1}]
+	with pytest.raises(ValueError, match="points forward"):
+		active_path(cyclic, leaf_seq=1)
 	forward = [
 		{"seq": 1, "type": "user_message", "parent_seq": 2},
 		{"seq": 2, "type": "run_ended", "parent_seq": 1},
 	]
 	with pytest.raises(ValueError, match="points forward"):
 		active_path(forward)
+
+
+def test_a_marker_leaf_means_the_branch_it_moved_to():
+	rows = [
+		{"seq": 1, "type": "run_started"},
+		{"seq": 2, "type": "user_message", "parent_seq": 1},
+		{"seq": 3, "type": "rewind", "target_seq": 1, "parent_seq": 2},
+		{"seq": 4, "type": "user_message", "parent_seq": 1},
+	]
+
+	assert [row["seq"] for row in active_path(rows, leaf_seq=3)] == [1]
+	assert [row["seq"] for row in active_path(rows, leaf_seq=4)] == [1, 4]
+	rows.append({"seq": 5, "type": "rewind", "target_seq": 0, "parent_seq": 4})
+	assert active_path(rows, leaf_seq=5) == []
 
 
 def test_rewind_to_the_root_starts_over(tmp_path):
