@@ -4,6 +4,7 @@ from pydantic import ValidationError
 from flow.events import (
 	ApprovalRequired,
 	AssistantMessage,
+	DisplaySegment,
 	ModelChanged,
 	Retry,
 	Rewind,
@@ -109,10 +110,19 @@ def test_tool_call_display_ready_round_trips_as_live_metadata():
 			"id": "c1",
 			"name": "edit",
 			"arguments": {"path": "src/app.py"},
-			"display": "Editing file src/app.py",
+			"display": [{"text": "Editing file "}, {"text": "src/app.py", "arg": "path"}],
 		}
 	)
 	assert isinstance(event, ToolCallDisplayReady)
 	assert event.arguments["path"] == "src/app.py"
-	assert event.display == "Editing file src/app.py"
+	assert event.display == [
+		DisplaySegment(text="Editing file "),
+		DisplaySegment(text="src/app.py", arg="path"),
+	]
 	assert event.durable is False
+
+	# a display persisted by an early flat-string build reads as one plain segment
+	legacy = ToolCall.model_validate(
+		{"id": "c1", "name": "edit", "arguments": {}, "display": "Editing file src/app.py"}
+	)
+	assert legacy.display == [DisplaySegment(text="Editing file src/app.py")]

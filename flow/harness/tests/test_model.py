@@ -5,6 +5,7 @@ import pytest
 
 from flow.events import (
 	AssistantMessage,
+	DisplaySegment,
 	TextContent,
 	ThinkingContent,
 	ToolCall,
@@ -22,7 +23,6 @@ from flow.model import (
 )
 from flow.model.base import (
 	extract_tool_call_display_metadata,
-	render_tool_call_display,
 	tool_call_display_ready_event,
 )
 from flow.model.litellm import (
@@ -65,15 +65,18 @@ def test_tool_call_display_metadata_is_early_and_bounded():
 def test_tool_call_display_waits_for_every_referenced_argument():
 	template = "Searching {{ source }} for {{ query }}"
 
-	assert render_tool_call_display(template, '{"source":"the web","query":"Flo') is None
-	assert (
-		render_tool_call_display(template, '{"source":"the web","query":"Flow","options":[')
-		== "Searching the web for Flow"
-	)
-	assert render_tool_call_display("Opening page {{ page }}", '{"page":1') is None
-	assert (
-		render_tool_call_display("Opening page {{ page }}", '{"page":10}', complete=True) == "Opening page 10"
-	)
+	def ready(template, arguments, **kwargs):
+		event = tool_call_display_ready_event(
+			"call-1", "web_search", arguments, display_template=template, **kwargs
+		)
+		if event is None or event.display is None:
+			return None
+		return "".join(segment.text for segment in event.display)
+
+	assert ready(template, '{"source":"the web","query":"Flo') is None
+	assert ready(template, '{"source":"the web","query":"Flow","options":[') == "Searching the web for Flow"
+	assert ready("Opening page {{ page }}", '{"page":1') is None
+	assert ready("Opening page {{ page }}", '{"page":10}', complete=True) == "Opening page 10"
 
 
 def test_static_tool_display_is_ready_before_arguments_arrive():
@@ -86,7 +89,7 @@ def test_static_tool_display_is_ready_before_arguments_arrive():
 
 	assert event is not None
 	assert event.arguments == {}
-	assert event.display == "Running command"
+	assert event.display == [DisplaySegment(text="Running command")]
 
 
 async def test_mock_streaming_sequence():
@@ -119,8 +122,12 @@ async def test_mock_renders_custom_tool_display_in_live_and_durable_calls():
 
 	events = await _collect(model.run(request))
 
-	assert events[1].display == "Searching the web for Flow"
-	assert events[2].tool_calls[0].display == "Searching the web for Flow"
+	display = [
+		DisplaySegment(text="Searching the web for "),
+		DisplaySegment(text="Flow", arg="query"),
+	]
+	assert events[1].display == display
+	assert events[2].tool_calls[0].display == display
 
 
 async def test_mock_scripted_replies_multi_turn():
@@ -374,13 +381,14 @@ async def test_litellm_emits_metadata_before_large_arguments_finish(monkeypatch)
 		"assistant_message",
 		"usage",
 	]
+	display = [DisplaySegment(text="Editing file "), DisplaySegment(text="a.py", arg="path")]
 	assert events[1].arguments == {"path": "a.py"}
-	assert events[1].display == "Editing file a.py"
+	assert events[1].display == display
 	assert events[2].tool_calls[0].arguments == {
 		"path": "a.py",
 		"edits": [{"old": "x", "new": "y"}],
 	}
-	assert events[2].tool_calls[0].display == "Editing file a.py"
+	assert events[2].tool_calls[0].display == display
 
 
 async def test_litellm_emits_ready_for_a_no_argument_tool_at_stream_end(monkeypatch):

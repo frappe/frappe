@@ -10,6 +10,7 @@ import pytest
 
 from flow.events import (
 	AssistantMessage,
+	DisplaySegment,
 	TextContent,
 	ThinkingContent,
 	ToolCall,
@@ -286,7 +287,10 @@ async def test_streams_text_tools_and_usage():
 		"usage",
 	]
 	assert events[2].arguments == {"command": "pwd"}
-	assert events[2].display == "Running pwd"
+	assert events[2].display == [
+		DisplaySegment(text="Running "),
+		DisplaySegment(text="pwd", arg="command"),
+	]
 	message = events[-2]
 	assert message.text == "hello "
 	assert [block.type for block in message.content] == ["text", "thinking", "tool_call"]
@@ -299,7 +303,10 @@ async def test_streams_text_tools_and_usage():
 	assert call.id == "call_1"  # the plain provider call id, usable by ToolResult as-is
 	assert call.provider_state == {"item_id": "item_1"}
 	assert call.args == {"command": "pwd"}
-	assert call.display == "Running pwd"
+	assert call.display == [
+		DisplaySegment(text="Running "),
+		DisplaySegment(text="pwd", arg="command"),
+	]
 	assert message.api == "openai-codex-responses"
 	assert message.provider == "codex"
 	assert message.model == "codex/gpt-test"

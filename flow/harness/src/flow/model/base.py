@@ -25,9 +25,17 @@ from typing import Any
 
 from pydantic_core import from_json
 
-from flow.events import AnyEvent, AssistantMessage, Retry, ToolCall, ToolCallDisplayReady, TranscriptMessage
+from flow.events import (
+	AnyEvent,
+	AssistantMessage,
+	DisplaySegment,
+	Retry,
+	ToolCall,
+	ToolCallDisplayReady,
+	TranscriptMessage,
+)
 from flow.model.errors import ProviderError, credential_refresh_error
-from flow.tools.tool import display_template_variables, render_tool_display
+from flow.tools.tool import _DISPLAY_VALUE_CHARS, display_template_variables, render_tool_display
 
 _RETRY_BASE_DELAY_SECONDS = 0.5
 _RETRY_MAX_BACKOFF_SECONDS = 8.0
@@ -36,7 +44,6 @@ _RETRY_MAX_BACKOFF_SECONDS = 8.0
 _RETRY_MAX_PROVIDER_DELAY_SECONDS = 60.0
 _MAX_TRANSIENT_RETRIES = 2
 _TOOL_METADATA_PREFIX_CHARS = 4096
-_TOOL_METADATA_VALUE_CHARS = 512
 
 
 def _tool_call_arguments(
@@ -69,28 +76,16 @@ def extract_tool_call_display_metadata(
 	if parsed is None:
 		return None
 	metadata = {
-		str(key): value[:_TOOL_METADATA_VALUE_CHARS]
+		str(key): value[:_DISPLAY_VALUE_CHARS]
 		for key, value in parsed.items()
 		if isinstance(value, str) and value
 	}
 	return metadata if metadata or allow_empty else None
 
 
-def render_tool_call_display(
-	template: str, arguments: str | Mapping[str, Any], *, complete: bool = False
-) -> str | None:
-	"""Render a tool's display template when all referenced arguments are complete."""
-	parsed = _tool_call_arguments(arguments, complete=complete)
-	if parsed is None:
-		return None
-	return _render_parsed_tool_display(
-		template,
-		parsed,
-		partial=isinstance(arguments, str) and not complete,
-	)
-
-
-def _render_parsed_tool_display(template: str, arguments: Mapping[str, Any], *, partial: bool) -> str | None:
+def _render_parsed_tool_display(
+	template: str, arguments: Mapping[str, Any], *, partial: bool
+) -> list[DisplaySegment] | None:
 	# Partial JSON parsing reliably tells us when a string closes. Numbers and
 	# containers can still grow in a later chunk, so render those only from a
 	# complete payload (or an already-materialized mapping, as used by MockModel).

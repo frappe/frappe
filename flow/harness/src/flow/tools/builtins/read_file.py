@@ -10,6 +10,7 @@ from flow.tools.tool import ToolContext, ToolResult, tool
 @tool(
 	prompt_snippet="Read file contents",
 	prompt_guidelines=("Use read_file to examine files instead of cat or sed.",),
+	display="Reading file {{ path }}",
 )
 async def read_file(
 	path: str,

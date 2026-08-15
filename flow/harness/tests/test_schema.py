@@ -4,7 +4,8 @@ from typing import Annotated, Literal
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from flow.tools.tool import Tool, ToolContext, build_schema, tool
+from flow.events import DisplaySegment
+from flow.tools.tool import Tool, ToolContext, build_schema, render_tool_display, tool
 
 
 def test_primitives_and_required():
@@ -134,6 +135,17 @@ def test_tool_display_accepts_argument_placeholders_but_rejects_unknown_argument
 		@tool(display="Searching for {{ missing }}")
 		async def invalid(query: str, *, ctx: ToolContext) -> str:
 			return query
+
+
+def test_tool_display_renders_template_text_and_values_as_segments():
+	segments = render_tool_display("Reading file {{ path }}", {"path": "docs/architecture.md"})
+	assert segments == [
+		DisplaySegment(text="Reading file "),
+		DisplaySegment(text="docs/architecture.md", arg="path"),
+	]
+
+	with pytest.raises(ValueError, match="placeholders"):
+		render_tool_display("Reading {{ path | basename }}", {"path": "a.md"})
 
 
 def test_tool_to_schema_shape():

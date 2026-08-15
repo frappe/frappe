@@ -23,6 +23,8 @@ from typing import Any, Literal, Union, get_args, get_origin, get_type_hints, ov
 
 from pydantic import BaseModel, ConfigDict, validate_call
 
+from flow.events import DisplaySegment
+
 _DISPLAY_VARIABLE = re.compile(r"{{\s*([A-Za-z_][A-Za-z0-9_]*)\s*}}")
 _DISPLAY_VALUE_CHARS = 512
 
@@ -36,21 +38,30 @@ def display_template_variables(template: str) -> tuple[str, ...]:
 	return variables
 
 
-def render_tool_display(template: str, arguments: dict[str, Any]) -> str | None:
-	"""Render a display template once all of its referenced arguments are available."""
+def render_tool_display(template: str, arguments: dict[str, Any]) -> list[DisplaySegment] | None:
+	"""Render a display template into segments once every referenced argument is available."""
 	variables = display_template_variables(template)
 	if any(name not in arguments for name in variables):
 		return None
 
-	def replace(match: re.Match[str]) -> str:
-		value = arguments[match.group(1)]
-		if value is None:
-			return ""
-		if isinstance(value, (dict, list)):
-			return json.dumps(value, ensure_ascii=False, separators=(",", ":"))[:_DISPLAY_VALUE_CHARS]
-		return str(value)[:_DISPLAY_VALUE_CHARS]
+	segments: list[DisplaySegment] = []
+	position = 0
+	for match in _DISPLAY_VARIABLE.finditer(template):
+		if match.start() > position:
+			segments.append(DisplaySegment(text=template[position : match.start()]))
+		segments.append(DisplaySegment(text=_display_value(arguments[match.group(1)]), arg=match.group(1)))
+		position = match.end()
+	if position < len(template):
+		segments.append(DisplaySegment(text=template[position:]))
+	return segments
 
-	return _DISPLAY_VARIABLE.sub(replace, template)
+
+def _display_value(value: Any) -> str:
+	if value is None:
+		return ""
+	if isinstance(value, (dict, list)):
+		return json.dumps(value, ensure_ascii=False, separators=(",", ":"))[:_DISPLAY_VALUE_CHARS]
+	return str(value)[:_DISPLAY_VALUE_CHARS]
 
 
 @dataclass
