@@ -14,12 +14,13 @@ from flow.events import (
 	AssistantMessage,
 	TextContent,
 	TextDelta,
+	ToolCallReady,
 	ToolCallStarted,
 	TranscriptMessage,
 	Usage,
 	UserMessage,
 )
-from flow.model.base import Model, ModelRequest
+from flow.model.base import Model, ModelRequest, extract_tool_call_display_metadata
 
 
 class MockModel(Model):
@@ -53,6 +54,11 @@ class MockModel(Model):
 				yield TextDelta(text=piece)
 			for call in reply.tool_calls:
 				yield ToolCallStarted(id=call.id, name=call.name)
+				yield ToolCallReady(
+					id=call.id,
+					name=call.name,
+					arguments=extract_tool_call_display_metadata(call.arguments, allow_empty=True) or {},
+				)
 		yield reply.model_copy(
 			update={
 				"api": self.api,

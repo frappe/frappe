@@ -278,9 +278,11 @@ async def test_streams_text_tools_and_usage():
 	assert [event.type for event in events] == [
 		"text_delta",
 		"tool_call_started",
+		"tool_call_ready",
 		"assistant_message",
 		"usage",
 	]
+	assert events[2].arguments == {"command": "pwd"}
 	message = events[-2]
 	assert message.text == "hello "
 	assert [block.type for block in message.content] == ["text", "thinking", "tool_call"]

@@ -22,10 +22,6 @@ function toolGroups(conversation) {
 	return buildItems(conversation).filter((item) => item.kind === "group")
 }
 
-function partialToolCalls(conversation) {
-	return conversation.partial.filter((block) => block.type === "tool_call")
-}
-
 test("user content helpers support durable attachment blocks", () => {
 	const entry = {
 		content: [
@@ -122,11 +118,18 @@ test("trivial thinking does not replace the latest meaningful tool status", () =
 test("live chat statuses do not use ellipses", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })
-	assert.equal(conversation.liveLabel, "Thinking")
+	assert.equal(conversation.liveLabel, "Working")
 	applyEvent(conversation, { type: "tool_call_started", name: "read_file" })
-	assert.equal(conversation.liveLabel, "Reading file")
+	assert.equal(conversation.liveLabel, "Working")
+	applyEvent(conversation, {
+		type: "tool_call_ready",
+		id: "call-1",
+		name: "read_file",
+		arguments: { path: "src/events.py" },
+	})
+	assert.equal(conversation.liveLabel, "Reading file events.py")
 	applyEvent(conversation, { type: "tool_call_started", name: "send_email_now" })
-	assert.equal(conversation.liveLabel, "Running send email now")
+	assert.equal(conversation.liveLabel, "Working")
 	applyEvent(conversation, { type: "retry", status: "scheduled" })
 	assert.equal(conversation.liveLabel, "Retrying")
 	applyEvent(conversation, { type: "compaction_started" })
@@ -168,34 +171,79 @@ test("usage keeps cumulative spend separate from the current context", () => {
 	assert.equal(conversation.contextTokens, 0)
 })
 
-test("tool start immediately creates a provisional tool step", () => {
+test("identity-only tool starts stay hidden until actionable arguments arrive", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })
 	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read_file" })
 
-	const groups = toolGroups(conversation)
-	assert.equal(groups.length, 1)
-	assert.equal(groups[0].key, "g:call-1")
-	assert.deepEqual(groups[0].steps, [
-		{
-			call: { type: "tool_call", id: "call-1", name: "read_file", arguments: {} },
-			result: null,
-			aborted: false,
-		},
+	assert.deepEqual(conversation.partial, [
+		{ type: "tool_call", id: "call-1", name: "read_file", arguments: null },
 	])
+	assert.deepEqual(toolGroups(conversation), [])
+	assert.equal(conversation.liveLabel, "Working")
 })
 
-test("duplicate tool starts update one provisional step", () => {
+test("ready tool metadata creates one exact provisional step", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started" })
+	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "edit" })
+	applyEvent(conversation, {
+		type: "tool_call_ready",
+		id: "call-1",
+		name: "edit",
+		arguments: { path: "ui/App.vue" },
+	})
+	applyEvent(conversation, {
+		type: "tool_call_ready",
+		id: "call-1",
+		name: "edit",
+		arguments: { path: "ui/Renamed.vue" },
+	})
+
+	assert.equal(conversation.partial.length, 1)
+	assert.equal(conversation.liveLabel, "Editing file Renamed.vue")
+	const groups = toolGroups(conversation)
+	assert.equal(groups.length, 1)
+	assert.equal(groups[0].steps[0].call.arguments.path, "ui/Renamed.vue")
+})
+
+test("repeated identity-only tool starts never create ghost steps", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })
 	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read_file" })
 	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "write" })
 
-	assert.equal(partialToolCalls(conversation).length, 1)
-	assert.equal(toolGroups(conversation)[0].steps[0].call.name, "write")
+	assert.deepEqual(conversation.partial, [
+		{ type: "tool_call", id: "call-1", name: "write", arguments: null },
+	])
+	assert.deepEqual(toolGroups(conversation), [])
 })
 
-test("durable assistant call replaces its provisional step and receives the result", () => {
+test("ready metadata preserves the provider order for parallel calls", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started" })
+	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read_file" })
+	applyEvent(conversation, { type: "tool_call_started", id: "call-2", name: "bash" })
+	applyEvent(conversation, {
+		type: "tool_call_ready",
+		id: "call-2",
+		name: "bash",
+		arguments: { command: "pwd" },
+	})
+	applyEvent(conversation, {
+		type: "tool_call_ready",
+		id: "call-1",
+		name: "read_file",
+		arguments: { path: "README.md" },
+	})
+
+	assert.deepEqual(
+		toolGroups(conversation)[0].steps.map((step) => step.call.id),
+		["call-1", "call-2"],
+	)
+})
+
+test("durable assistant call creates the first visible step and receives the result", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })
 	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read_file" })
@@ -230,16 +278,13 @@ test("durable assistant call replaces its provisional step and receives the resu
 	assert.equal(groups[0].steps[0].result.content, "contents")
 })
 
-test("multiple announced calls keep their order and failed attempts leave no ghost steps", () => {
+test("announced calls stay hidden and failed attempts leave no ghost steps", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })
 	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "grep" })
 	applyEvent(conversation, { type: "tool_call_started", id: "call-2", name: "bash" })
 
-	assert.deepEqual(
-		toolGroups(conversation)[0].steps.map((step) => step.call.id),
-		["call-1", "call-2"],
-	)
+	assert.deepEqual(toolGroups(conversation), [])
 
 	applyEvent(conversation, { type: "retry", status: "started" })
 	assert.deepEqual(conversation.partial, [])
@@ -264,7 +309,7 @@ test("streamed thinking joins the trailing tool group's dropdown", () => {
 	assert.ok(!buildItems(conversation).some((item) => item.kind === "thinking"))
 })
 
-test("streamed thinking keeps its content when a tool call follows", () => {
+test("streamed thinking stays visible until the actionable tool call arrives", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })
 	applyEvent(conversation, { type: "user_message", seq: 1, content: "hi" })
@@ -274,12 +319,38 @@ test("streamed thinking keeps its content when a tool call follows", () => {
 	assert.ok(live?.live)
 	assert.equal(live.block.thinking, "let me see")
 
-	// Once a tool follows directly, the thought moves into that tool group in the
-	// same order the durable assistant message will use.
+	// Identity alone does not hide the thought or announce a metadata-free tool.
 	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read_file" })
+	assert.equal(buildItems(conversation).find((item) => item.kind === "thinking")?.block.thinking, "let me see")
+	assert.deepEqual(toolGroups(conversation), [])
+
+	// Complete live metadata arrives before execution and moves the thought into
+	// the group with its filename available.
+	applyEvent(conversation, {
+		type: "tool_call_ready",
+		id: "call-1",
+		name: "read_file",
+		arguments: { path: "src/app.js" },
+	})
 	assert.ok(!buildItems(conversation).some((item) => item.kind === "thinking"))
-	const steps = toolGroups(conversation)[0].steps
+	let steps = toolGroups(conversation)[0].steps
 	assert.deepEqual(steps.map((step) => step.thought?.thinking ?? step.call?.id), ["let me see", "call-1"])
+	assert.equal(stepLiveLabel(steps[1].call), "Reading file app.js")
+
+	// The durable call atomically replaces the provisional copy without duplicating it.
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 2,
+		content: [
+			{ type: "thinking", thinking: "let me see" },
+			{ type: "tool_call", id: "call-1", name: "read_file", arguments: { path: "src/app.js" } },
+		],
+		stop_reason: "tool_use",
+	})
+	assert.ok(!buildItems(conversation).some((item) => item.kind === "thinking"))
+	steps = toolGroups(conversation)[0].steps
+	assert.deepEqual(steps.map((step) => step.thought?.thinking ?? step.call?.id), ["let me see", "call-1"])
+	assert.equal(stepLiveLabel(steps[1].call), "Reading file app.js")
 })
 
 test("streamed thought, text, and tool call keep their order until the durable message", () => {
@@ -294,13 +365,21 @@ test("streamed thought, text, and tool call keep their order until the durable m
 	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "bash" })
 
 	assert.deepEqual(conversation.partial.map((block) => block.type), ["thinking", "text", "tool_call"])
-	assert.equal(conversation.liveLabel, "Running command")
+	assert.equal(conversation.liveLabel, "Working")
 	const liveItems = buildItems(conversation)
-	assert.deepEqual(liveItems.map((item) => item.kind), ["user", "thinking", "text", "group"])
+	assert.deepEqual(liveItems.map((item) => item.kind), ["user", "thinking", "text"])
 	assert.equal(liveItems[1].live, false)
 	assert.equal(liveItems[1].block.thinking, "I should inspect the repository.")
 	assert.equal(liveItems[2].block.text, "I'll explore the project structure to understand it thoroughly.")
-	assert.equal(liveItems[3].steps[0].call.id, "call-1")
+
+	applyEvent(conversation, {
+		type: "tool_call_ready",
+		id: "call-1",
+		name: "bash",
+		arguments: { command: "ls" },
+	})
+	assert.deepEqual(conversation.partial.map((block) => block.type), ["thinking", "text", "tool_call"])
+	assert.deepEqual(buildItems(conversation).map((item) => item.kind), ["user", "thinking", "text", "group"])
 
 	applyEvent(conversation, {
 		type: "assistant_message",

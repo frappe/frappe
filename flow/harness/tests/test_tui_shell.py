@@ -24,6 +24,7 @@ from flow.events import (
 	ThinkingContent,
 	ThinkingDelta,
 	ToolCall,
+	ToolCallStarted,
 	ToolResult,
 	Usage,
 	UserMessage,
@@ -34,7 +35,11 @@ from flow.session.config import SessionConfig
 from flow.session.store import SessionStore
 from flow_tui.app import SPINNER_FRAMES, FlowApp, Spinner
 from flow_tui.client.api import FlowClient
-from flow_tui.client.state import Change, ConversationState, StatusChanged
+from flow_tui.client.state import (
+	Change,
+	ConversationState,
+	StatusChanged,
+)
 from flow_tui.controller import Controller
 from flow_tui.widgets.composer import Composer
 from flow_tui.widgets.conversation import ConversationView
@@ -102,6 +107,19 @@ def _renderable_str(rendered) -> str:
 	if isinstance(rendered, Group):
 		return "\n".join(_renderable_str(part) for part in rendered.renderables)
 	return rendered.code if isinstance(rendered, Syntax) else str(rendered)
+
+
+async def test_partial_tool_identity_is_invisible_without_adding_layout_space():
+	fake = FakeController()
+	async with FlowApp(fake).run_test() as pilot:
+		fake.feed(RunStarted(run_id="r1", seq=1))
+		fake.feed(TextDelta(text="before"))
+		fake.feed(ToolCallStarted(id="c1", name="edit"))
+		fake.feed(TextDelta(text="after"))
+		await pilot.pause()
+
+		partial = pilot.app.query_one(PartialAssistantView)
+		assert _widget_text(partial) == "before\nafter▌"
 
 
 async def test_renders_entries_and_swaps_partial_for_durable():

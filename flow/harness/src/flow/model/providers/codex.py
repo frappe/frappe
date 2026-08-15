@@ -29,6 +29,7 @@ from flow.events import (
 	ThinkingContent,
 	ThinkingDelta,
 	ToolCall,
+	ToolCallReady,
 	ToolCallStarted,
 	ToolResult,
 	TranscriptMessage,
@@ -49,6 +50,7 @@ from flow.model.base import (
 	ModelCancelled,
 	ModelRequest,
 	await_with_cancellation,
+	extract_tool_call_display_metadata,
 	iterate_with_cancellation,
 	run_with_retries,
 )
@@ -459,7 +461,7 @@ class _ToolCallBuilder:
 		self.item_id = _string(item.get("id"))
 		self.call_id = _string(item.get("call_id")) or "call_0"
 		self.name = _string(item.get("name"))
-		self.arguments = ""
+		self.arguments = _string(item.get("arguments"))
 
 	def build(self) -> ToolCall:
 		state = {"item_id": self.item_id} if self.item_id else None
@@ -472,6 +474,14 @@ class _ToolCallBuilder:
 			error = f"Arguments for {self.name!r} must be a JSON object."
 			return ToolCall(id=self.call_id, name=self.name, arguments={}, error=error, provider_state=state)
 		return ToolCall(id=self.call_id, name=self.name, arguments=parsed, provider_state=state)
+
+	def ready(self, *, allow_empty: bool = False) -> ToolCallReady | None:
+		if not self.name:
+			return None
+		arguments = extract_tool_call_display_metadata(self.arguments, allow_empty=allow_empty)
+		if arguments is None:
+			return None
+		return ToolCallReady(id=self.call_id, name=self.name, arguments=arguments)
 
 
 @dataclass(slots=True)
@@ -486,6 +496,7 @@ class _ResponseAssembler:
 	content: list[TextContent | ThinkingContent | _ToolCallBuilder] = field(default_factory=list)
 	positions: dict[str, int] = field(default_factory=dict)
 	calls: dict[str, _ToolCallBuilder] = field(default_factory=dict)  # by item id and call id
+	ready_calls: set[str] = field(default_factory=set)
 	reasoning_part_keys: dict[str, tuple[str, int]] = field(default_factory=dict)
 	usage: Usage = field(default_factory=Usage)
 	response_id: str | None = None
@@ -503,10 +514,12 @@ class _ResponseAssembler:
 			call = _find_call(self.calls, raw.get("item_id"), raw.get("call_id"))
 			if call is not None and isinstance(raw.get("delta"), str):
 				call.arguments += raw["delta"]
+				return self._ready_event(call)
 		elif kind == "response.function_call_arguments.done":
 			call = _find_call(self.calls, raw.get("item_id"), raw.get("call_id"))
 			if call is not None and isinstance(raw.get("arguments"), str):
 				call.arguments = raw["arguments"]
+				return self._ready_event(call, allow_empty=True)
 		elif kind in {"response.reasoning_summary_text.delta", "response.reasoning_text.delta"}:
 			return self._append_thinking(raw)
 		elif kind == "response.output_text.delta":
@@ -516,6 +529,7 @@ class _ResponseAssembler:
 				return self._close_item(item)
 		elif kind in {"response.completed", "response.done", "response.incomplete"}:
 			self._finish(raw, truncated=kind == "response.incomplete")
+			return self._ready_events(allow_empty=True)
 		return []
 
 	def _open_item(self, item: Mapping[str, Any]) -> list[AnyEvent]:
@@ -534,8 +548,11 @@ class _ResponseAssembler:
 			call = _ToolCallBuilder(item)
 			self._register(call)
 			self.content.append(call)
+			events: list[AnyEvent] = []
 			if self.emit_deltas:
-				return [ToolCallStarted(id=call.call_id, name=call.name)]
+				events.append(ToolCallStarted(id=call.call_id, name=call.name))
+			events.extend(self._ready_event(call))
+			return events
 		return []
 
 	def _close_item(self, item: Mapping[str, Any]) -> list[AnyEvent]:
@@ -560,9 +577,26 @@ class _ResponseAssembler:
 				self.content.append(call)
 			if isinstance(item.get("arguments"), str):
 				call.arguments = item["arguments"]
+			return self._ready_event(call, allow_empty=True)
 		elif item_type == "message":
 			return self._close_message(item)
 		return []
+
+	def _ready_event(self, call: _ToolCallBuilder, *, allow_empty: bool = False) -> list[AnyEvent]:
+		if not self.emit_deltas or call.call_id in self.ready_calls:
+			return []
+		event = call.ready(allow_empty=allow_empty)
+		if event is None:
+			return []
+		self.ready_calls.add(call.call_id)
+		return [event]
+
+	def _ready_events(self, *, allow_empty: bool = False) -> list[AnyEvent]:
+		events: list[AnyEvent] = []
+		for block in self.content:
+			if isinstance(block, _ToolCallBuilder):
+				events.extend(self._ready_event(block, allow_empty=allow_empty))
+		return events
 
 	def _close_message(self, item: Mapping[str, Any]) -> list[AnyEvent]:
 		item_id = _string(item.get("id"))

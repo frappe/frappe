@@ -61,7 +61,7 @@ export function applyEvent(s, e) {
 		case "run_started":
 			s.running = true
 			s.lastError = null
-			s.liveLabel = "Thinking"
+			s.liveLabel = "Working"
 			s.partial = []
 			s.pendingApproval = null // a new run consumes the batch (resume) — same as the server reducer
 			break
@@ -135,13 +135,23 @@ export function applyEvent(s, e) {
 			s.liveLabel = "Thinking"
 			break
 		case "tool_call_started":
-			s.liveLabel = stepLiveLabel({ name: e.name })
+			// Preserve the provider's block order without rendering a metadata-free
+			// tool row. tool_call_ready upgrades this placeholder in place.
 			if (e.id && e.name) {
 				const existing = s.partial.find((block) => block.type === "tool_call" && block.id === e.id)
 				if (existing) existing.name = e.name
-				else s.partial.push({ type: "tool_call", id: e.id, name: e.name, arguments: {} })
+				else s.partial.push({ type: "tool_call", id: e.id, name: e.name, arguments: null })
 			}
+			s.liveLabel = "Working"
 			break
+		case "tool_call_ready": {
+			const call = { type: "tool_call", id: e.id, name: e.name, arguments: e.arguments ?? {} }
+			const index = s.partial.findIndex((block) => block.type === "tool_call" && block.id === e.id)
+			if (index === -1) s.partial.push(call)
+			else s.partial[index] = call
+			s.liveLabel = stepLiveLabel(call)
+			break
+		}
 		case "retry":
 			if (e.status === "started") {
 				// the boundary where a failed attempt's deltas must be discarded.
@@ -445,6 +455,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set()) {
 					})
 				}
 			} else if (block.type === "tool_call") {
+				if (provisional && block.arguments == null) continue
 				if (pendingIds.has(block.id) || stepsById.has(block.id)) continue
 				const group = currentGroup(block.id)
 				for (const thought of bufferedThoughts) group.steps.push({ thought: thought.block })

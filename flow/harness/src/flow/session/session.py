@@ -40,6 +40,7 @@ from flow.events import (
 	ThinkingContent,
 	ThinkingDelta,
 	TitleChanged,
+	ToolCallReady,
 	ToolCallStarted,
 	ToolResult,
 	UserMessage,
@@ -151,9 +152,9 @@ class _PartialAssistant:
 			else:
 				self.content.append(ThinkingContent(thinking=event.thinking))
 			self._tail_kind = "thinking"
-		elif isinstance(event, ToolCallStarted):
-			# The announcement has no arguments, so it is not safe to make durable.
-			# It still separates adjacent blocks that appeared on opposite sides of it.
+		elif isinstance(event, (ToolCallStarted, ToolCallReady)):
+			# These are presentation-only; the provider's terminal message remains the
+			# single canonical tool call. Both still separate adjacent streamed blocks.
 			self._tail_kind = None
 		elif isinstance(event, Retry) and event.status == "started":
 			# The fresh attempt restreams from scratch.
