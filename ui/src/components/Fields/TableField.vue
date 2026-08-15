@@ -71,9 +71,11 @@
 		</template>
 	</Grid>
 
-	<!-- Row-edit: render the full row as a FormLayout form (Grid only emits `edit`). -->
+	<!-- Row-edit: render the full row as a FormLayout form (Grid only emits `edit`).
+	     The row object itself is the model — the dialog writes through, the way a
+	     grid cell already does. -->
 	<Dialog v-model:open="showEdit" :title="dialogTitle" size="3xl">
-		<FormLayout v-if="editIndex !== null" v-model:doc="editDoc" :layout="editLayout" />
+		<FormLayout v-if="editRow" v-model:doc="editRow" :layout="editLayout" />
 	</Dialog>
 </template>
 
@@ -111,15 +113,25 @@ const commit = inject(CommitKey, NO_COMMIT);
 
 // The row-edit dialog's FormLayout would otherwise commit the child's fieldnames
 // as if they were the parent's, so its commits are re-addressed to the open row.
+// Without an address the channel would fall back to the bare fieldname, firing
+// the PARENT's handler for a child field — the misfire this wrapper exists to
+// prevent — so a commit arriving with no open row is dropped instead.
 const rowChannel: CommitChannel = {
-	pending: (fieldname, value) => commit.pending(fieldname, value, editAddress()),
-	commit: (fieldname, value) => commit.commit(fieldname, value, editAddress()),
+	pending: (fieldname, value) => withAddress((row) => commit.pending(fieldname, value, row)),
+	commit: (fieldname, value) => withAddress((row) => commit.commit(fieldname, value, row)),
 	rowChanged: (row, change) => commit.rowChanged(row, change),
 };
 provide(CommitKey, rowChannel);
 
+function withAddress(dispatch: (row: RowAddress) => void) {
+	const row = editAddress();
+	if (row) dispatch(row);
+}
+
 function editAddress(): RowAddress | undefined {
-	return editRow.value ? addressOf(editRow.value) : undefined;
+	return editKey.value === null
+		? undefined
+		: { parentfield: props.field.fieldname, key: editKey.value };
 }
 
 function addressOf(row: Record<string, any>): RowAddress {
@@ -288,24 +300,58 @@ const rows = computed<Record<string, any>[]>({
 
 // --- Row-edit dialog ---------------------------------------------------------
 
-// `editIndex` null = dialog closed. `editDoc` is a clone so the dialog edits in
-// isolation; commits copy it back into the rows array.
-const editIndex = ref<number | null>(null);
-const editDoc = ref<Record<string, any>>({});
-// The row object being edited, tracked by identity so write-back survives a
-// parent re-sort/filter of the rows array between watcher fires (a cached
-// positional index would point at the wrong row after reorder).
-const editRow = ref<Record<string, any> | null>(null);
+// The dialog holds an ADDRESS, not a row reference: a save replaces every row
+// object (`paintSaved`) and the parent may reorder the array underneath, so the
+// row is re-found by `name ?? __row_id` on every access — the shape `page.rows`'
+// handles use. `editKey` null = dialog closed.
+const editKey = ref<string | null>(null);
+// Where the row sat when the dialog opened. Only a tiebreak, never the address:
+// a script that duplicates a saved row (`{ ...products[0] }`) copies its `name`,
+// and two rows answering to one key would otherwise both resolve to the first.
+let openedAt = -1;
 
-const showEdit = computed({
-	get: () => editIndex.value !== null,
-	set: (open) => {
-		if (!open) editIndex.value = null;
+const editIndex = computed(() => {
+	if (editKey.value === null) return -1;
+	const matches = (row: Record<string, any>) => rowKey(row) === editKey.value;
+	if (matches(rows.value[openedAt] ?? {})) return openedAt;
+	return rows.value.findIndex(matches);
+});
+
+// Writable, though `FormLayout` only ever mutates it: a getter-only computed
+// would swallow a reassignment in production and warn only in dev.
+const editRow = computed<Record<string, any> | null>({
+	get: () => (editIndex.value === -1 ? null : rows.value[editIndex.value]),
+	set: (row) => {
+		if (row && editIndex.value !== -1) rows.value[editIndex.value] = row;
 	},
 });
 
+// Open exactly while the address resolves. When it stops — the row is removed,
+// reordered out by the parent, or detached by a save (the server strips
+// `__row_id`, so a row added this session has neither identifier afterwards) —
+// the dialog closes, rather than staying open with every keystroke going nowhere.
+const showEdit = computed({
+	get: () => editRow.value !== null,
+	set: (open) => {
+		if (!open) closeEdit();
+	},
+});
+
+// Closing is a WRITE, not a derivation: leaving `editKey` set would re-open the
+// dialog by itself the moment a row answering to that key came back — which the
+// save-conflict path does routinely (it repaints the server's rows, then
+// re-applies the reader's).
+watch(editRow, (row) => {
+	if (!row) closeEdit();
+});
+
+function closeEdit() {
+	editKey.value = null;
+	openedAt = -1;
+}
+
 const dialogTitle = computed(() =>
-	editIndex.value === null ? "" : `${props.field.label ?? "Row"} — Row ${editIndex.value + 1}`
+	editIndex.value === -1 ? "" : `${props.field.label ?? "Row"} — Row ${editIndex.value + 1}`
 );
 
 // Dialog renders the child's full form via `childLayout`; fall back to a flat form of
@@ -329,42 +375,20 @@ function readOnlyLayout(schema: FormLayoutSchema): FormLayoutSchema {
 	}));
 }
 
-function openEdit({ index }: { row: Record<string, any>; index: number }) {
-	// Seeding the clone reassigns `editDoc`, which would trip the write-back watch
-	// (a no-op echo of the unedited row that needlessly churns the row's identity
-	// and emits a phantom change). Suppress that one open-time fire.
-	skipWriteBack = true;
-	editRow.value = rows.value[index];
-	editDoc.value = { ...editRow.value };
-	editIndex.value = index;
+function openEdit({ row, index }: { row: Record<string, any>; index: number }) {
+	// `identify` covers a row that reached the table with neither a name nor an id
+	// (a script's own `push({})`), which would otherwise have no address at all.
+	// The stamp is safe to write: such a row can only have been pushed this
+	// session, so the document is already dirty, and `__row_id` never reaches the
+	// server (`rowIdentity.ts`).
+	editKey.value = addressOf(row).key;
+	openedAt = index;
 }
 
-// Write the working copy back into the row. `FormLayout` emits nothing now, so we
-// watch the dialog's reactive doc (deep) instead of an `@change` event; the doc
-// syncs live, so this writes back as the user edits (vs. the old commit-only
-// `@change`), flowing through the same `update:modelValue`/`change` the grid expects.
-let skipWriteBack = false;
-watch(
-	editDoc,
-	() => {
-		if (editIndex.value === null) return;
-		if (skipWriteBack) {
-			skipWriteBack = false;
-			return;
-		}
-		const next = rows.value.slice();
-		// Locate the row by identity, not the cached index: the parent may have
-		// re-sorted/filtered `rows` since open, so the positional index can now
-		// point at a different row.
-		const i = editRow.value ? next.indexOf(editRow.value) : -1;
-		if (i === -1) return; // row was removed/reordered out externally
-		// Mutate the row in place (vs. replacing it) so its object reference is
-		// preserved — the Grid keys rows by identity via a WeakMap, so a fresh
-		// object would re-key and re-mount the row, dropping its selection state.
-		Object.assign(next[i], editDoc.value);
-		emit("update:modelValue", next);
-		emit("change", next);
-	},
-	{ deep: true }
-);
+// There is no write-back: `FormLayout` mutates `doc.value[fieldname]` and never
+// reassigns `doc.value` (FormLayout.vue:88-90), so binding the row object edits
+// the row in the parent's array directly — the same in-place write the grid cells
+// have always done. Nothing here reassigns the array either, so the dialog emits
+// no `update:modelValue`/`change` for the whole table; `change` still fires from
+// the Grid on cell commit, add, remove and reorder, so it keeps its meaning.
 </script>
