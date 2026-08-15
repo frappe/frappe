@@ -176,7 +176,7 @@ def revoke_token(*args, **kwargs):
 	return
 
 
-@frappe.whitelist(methods=["GET", "POST"])
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
 def openid_profile(*args, **kwargs):
 	try:
 		r = frappe.request
