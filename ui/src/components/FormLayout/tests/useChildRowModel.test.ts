@@ -54,6 +54,22 @@ describe("useChildRowModel", () => {
     expect(next[1].user).toBe("b@x.com");
   });
 
+  it("seeds a minted row from `newRow`, with the pick beating the seed's empty", () => {
+    const emit = vi.fn();
+    const value = useChildRowModel(
+      () => [],
+      () => "user",
+      emit,
+      undefined,
+      () => ({ user: "", full_name: "", notify: false })
+    );
+    value.value = ["a@x.com"];
+    const next = emit.mock.calls.find((c) => c[0] === "update:modelValue")![1];
+    expect(next[0].user).toBe("a@x.com");
+    expect(next[0].full_name).toBe("");
+    expect(next[0].notify).toBe(false);
+  });
+
   it("is reactive to the underlying rows ref", () => {
     const rows = ref<Record<string, any>[]>([{ user: "a@x.com" }]);
     const value = useChildRowModel(
