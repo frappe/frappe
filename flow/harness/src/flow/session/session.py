@@ -309,7 +309,8 @@ class Session:
 				raise RewindError(str(error)) from None
 			if candidate.missing_results() or candidate.pending_approval is not None:
 				raise RewindError(f"entry {target_seq} leaves tool calls unanswered")
-			self._commit(Rewind(target_seq=target_seq))
+			# the branch point the target resolved to: a marker never anchors a chain
+			self._commit(Rewind(target_seq=candidate.leaf_seq))
 			self.transcript = candidate
 
 	async def set_model(

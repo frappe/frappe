@@ -61,20 +61,23 @@ def active_path(rows: list[dict], leaf_seq: int | None = None) -> list[dict]:
 
 	Leaf 0 is the empty root — the branch point before everything. Rows off the
 	branch stay in the log but are not part of the conversation.
+
+	A rewind marker is not a conversation entry, so naming one means the branch it
+	moved to — the row a client sees just before the first run of that branch.
 	"""
 	by_seq = {row["seq"]: row for row in rows}
-	if leaf_seq is None:  # the last row, or where its rewind points
+	if leaf_seq is None:  # the last row
 		if not rows:
 			return []
-		last = rows[-1]
-		leaf_seq = last["target_seq"] if last["type"] == "rewind" else last["seq"]
+		leaf_seq = rows[-1]["seq"]
+	while (marker := by_seq.get(leaf_seq)) is not None and marker["type"] == "rewind":
+		if marker["target_seq"] >= leaf_seq:
+			raise ValueError(f"entry {leaf_seq} points forward to {marker['target_seq']}")
+		leaf_seq = marker["target_seq"]
 	if leaf_seq == 0:
 		return []
-	leaf = by_seq.get(leaf_seq)
-	if leaf is None:
+	if leaf_seq not in by_seq:
 		raise ValueError(f"entry {leaf_seq} does not exist")
-	if leaf["type"] == "rewind":
-		raise ValueError(f"entry {leaf_seq} is a rewind marker, not a conversation entry")
 
 	path: list[dict] = []
 	seq = leaf_seq

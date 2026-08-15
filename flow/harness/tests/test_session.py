@@ -407,6 +407,39 @@ async def test_rewind_to_zero_replaces_the_first_run(tmp_path):
 	]
 
 
+async def test_rewinding_twice_lands_on_the_branch_the_first_marker_moved_to(tmp_path):
+	"""A client that rewinds "to just before the last user message" aims at the row
+	before its run_started — which, for the first run after a rewind, is the marker."""
+	from flow.session.transcript import active_path
+
+	def target_before_last_user_message(session):
+		rows = active_path(session.log.read_since(0))
+		last_user = [r for r in rows if r["type"] == "user_message"][-1]
+		return max(last_user["parent_seq"] - 1, 0)
+
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(cwd=str(tmp_path)))
+	for text, reply in (("A", "X"), ("B", "Y")):
+		handle = await session.run(text, model=MockModel(replies=[AssistantMessage(content=reply)]))
+		assert handle.task is not None
+		await handle.task
+
+	await session.rewind(target_before_last_user_message(session))  # drops "B"
+	handle = await session.run("C", model=MockModel(replies=[AssistantMessage(content="Z")]))
+	assert handle.task is not None
+	await handle.task
+	await session.rewind(target_before_last_user_message(session))  # the marker's seq
+
+	assert [getattr(m, "text", None) or m.content for m in session.transcript.messages] == ["A", "X"]
+	handle = await session.run("D", model=MockModel(replies=[AssistantMessage(content="W")]))
+	assert handle.task is not None
+	await handle.task
+	texts = [getattr(m, "text", None) or m.content for m in session.transcript.messages]
+	assert texts == ["A", "X", "D", "W"]
+	reloaded = SessionStore(str(tmp_path)).get(session.id)
+	assert [getattr(m, "text", None) or m.content for m in reloaded.transcript.messages] == texts
+
+
 async def test_set_model_is_rejected_while_running(tmp_path):
 	from flow.session.session import SessionConflict
 
