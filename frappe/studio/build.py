@@ -240,7 +240,7 @@ def build_standard_apps(apps: list[str] | None = None) -> None:
 	This function works without DB access — it reads component data from
 	exported JSON files on disk.
 	"""
-	for frappe_app in apps:
+	for frappe_app in apps or frappe.get_all_apps():
 		studio_folder = get_studio_folder(frappe_app)
 		if not os.path.exists(studio_folder):
 			continue
