@@ -1,48 +1,43 @@
 # Skills
 
-Flow supports harness-neutral [Agent Skills](https://agentskills.io/) from:
+Skills are reusable task instructions stored in `SKILL.md` files. Flow discovers them when a session is created.
+
+## Locations and precedence
+
+Flow looks in these locations:
 
 ```text
 ~/.agents/skills/<name>/SKILL.md
 <cwd>/.agents/skills/<name>/SKILL.md
 ```
 
-Project skills override global skills with the same name. A skill needs YAML
-frontmatter followed by its instructions, and the frontmatter name must match
-the directory containing `SKILL.md`:
+Project skills override global skills with the same name. `SessionConfig.skill_paths` can add files or directories; relative paths are resolved from `cwd`. Set `skills_enabled: false` to disable the default locations.
+
+## File format
+
+The directory name and frontmatter name must match. The frontmatter needs a description.
 
 ```markdown
 ---
 name: security-review
-description: Review code changes for security issues.
+description: Review code changes for security problems.
 ---
 
-Inspect authentication, authorization, and untrusted input boundaries.
+Inspect authentication, authorization, and untrusted-input boundaries.
 ```
 
-At session creation, Flow adds only each skill's name, description, and path to
-the system prompt. The model can load the full file with `read_file` when its
-description matches a task.
+Names use lowercase letters, digits, and single hyphens.
 
-Invoke a skill explicitly with:
+## How Flow uses a skill
+
+At session creation, Flow records the selected skill catalog and adds model-invocable skill names, descriptions, and locations to the system prompt. The model can use `read_file` to load an applicable skill.
+
+Users can invoke one directly:
 
 ```text
-/skill:security-review check this branch
+/skill:security-review review the current changes
 ```
 
-Flow expands the skill on the server and stores the expanded text as an ordinary
-user message in the session log. Clients recognize that expanded form to render a
-compact skill item, following Pi and Tau. The catalog is fixed for a session, so
-start a new session after adding, removing, or changing a skill's metadata. Like Pi,
-Flow reads the current `SKILL.md` contents when the skill is used, so instruction
-edits can affect an existing session.
+Flow reads and expands the skill on the server, then saves that expanded text as the user message. The catalog remains fixed for the session, but edits to the instruction body affect later explicit invocations. Start a new session after changing skill names or descriptions.
 
-Symlinked skill directories are supported. Project and explicitly configured
-skills still resolve through the server's allowed-path policy; global skills are
-available through a read-only tool root.
-
-Set `skills_enabled: false` when creating a session to disable default discovery.
-Additional skill files or directories can be supplied with `skill_paths`.
-
-Skills are instructions and may direct the model to run bundled scripts. Only use
-project skills from repositories you trust.
+Skill files may contain scripts or instructions that lead to code execution. Treat skills, especially project-provided ones, as trusted content.

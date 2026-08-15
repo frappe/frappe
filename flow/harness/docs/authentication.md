@@ -1,57 +1,39 @@
 # Authentication
 
-The flow server owns user-global provider credentials. Clients select a model and may select
-a named credential; provider secrets and endpoints never belong in session or run
-payloads.
+Flow keeps provider credentials outside sessions. Clients select a model and, when needed, a credential id; they never send provider secrets in a run request.
 
-## CLI
+## Set up a provider
 
 ```bash
 flow providers
 flow login openai
-flow login anthropic
 flow login codex
 flow logout openai
 ```
 
-API-key login prompts without echo and stores the key in
-`~/.flow/server/credentials.json`. Codex login uses OAuth PKCE and captures the redirect
-on `127.0.0.1:1455`. For a headless environment, use `flow login codex --manual` and
-paste the full callback URL.
+API-key providers prompt for a key. `codex` uses OAuth; `flow login codex --manual` prints the authorization URL and accepts a pasted callback URL for headless environments.
 
-Built-in API-key providers are `openai`, `anthropic`, `gemini`, `openrouter`, `xai`,
-`groq`, `deepseek`, `mistral`, `cerebras`, and `opencode-go`. `codex` is the native
-ChatGPT subscription provider; use a model name such as `codex/gpt-5.4`.
+The built-in providers are OpenAI, Anthropic, Gemini, OpenRouter, xAI, Groq, DeepSeek, Mistral, Cerebras, Codex, and OpenCode Go. The provider list is the source of truth for the current set:
 
-## Resolution
+```bash
+flow providers
+```
 
-For every run, `resolve_model_auth` resolves in this order:
+The HTTP API offers the same setup flow through `/providers`, including custom OpenAI-compatible endpoints and OAuth start/status/complete routes. See [api.md](api.md).
 
-1. A stored provider credential (`api_key` or `oauth`).
-2. The provider's standard environment variable.
+## Credential resolution
 
-The provider is inferred from the model prefix. Set `credential_id` on a session to use
-a differently named credential, such as a key for a custom proxy. A stored credential
-owns that provider: refresh or type errors are surfaced and never silently fall back to
-another account.
+For a standard model, Flow chooses credentials in this order:
 
-OAuth resolution (`resolve_oauth`) refreshes tokens that are expired or within a
-60-second skew of expiring, and hands the model adapter a one-shot `refresh` hook so a
-token the provider rejects mid-run is refreshed exactly once and the request retried
-(see `run_with_retries` in [architecture.md](architecture.md)).
+1. A stored credential for the selected provider or explicit `credential_id`.
+2. That provider's configured API-key environment variable.
 
-Clients send only `model` and, when needed, `credential_id`. API keys must go through
-`flow login`; Codex tokens come from its OAuth flow. `api_key` and `api_base` are
-rejected on both session creation and run requests.
+Custom endpoints are stored credentials containing their base URL, declared model ids, and optional key. An explicit `credential_id` pins a run to that endpoint; otherwise Flow uses an endpoint that declares the selected model.
 
-## Storage security
+OAuth credentials are refreshed shortly before expiry. If a provider rejects an access token, Flow refreshes once and retries the request. A stored credential error is reported; Flow does not silently switch to another account.
 
-The credential directory is created as `0700`; its JSON and lock files are `0600`.
-Writes are validated, locked, and atomically replaced. OAuth refresh is
-serialized per provider within the daemon so concurrent sessions do not consume the
-same rotating refresh token.
+## Storage and daemon access
 
-The daemon binds to `127.0.0.1` by default. Set `FLOW_AUTH_TOKEN` to require
-`Authorization: Bearer <token>` on every endpoint except `/healthz`. `flow serve`
-refuses a non-loopback bind unless this token is configured; embedders calling
-`create_app` directly must pass `auth_token=` themselves.
+Credentials default to `~/.flow/server/credentials.json`. Flow creates the credential directory with owner-only permissions, locks writes, and replaces the JSON atomically. Set `FLOW_CREDENTIALS_PATH` to store them elsewhere.
+
+The daemon binds to `127.0.0.1` by default. Set `FLOW_AUTH_TOKEN` to require `Authorization: Bearer <token>` for API requests other than `/healthz`. `flow serve` refuses a non-loopback TCP bind without that token.
