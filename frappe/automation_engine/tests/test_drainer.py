@@ -1,9 +1,10 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
 import frappe.automation_engine.drainer as drainer
-from frappe.automation_engine import queue_status
 from frappe.automation_engine.drainer import (
 	claim_batch,
 	drain,
@@ -11,9 +12,8 @@ from frappe.automation_engine.drainer import (
 	promote_due_scheduled,
 	requeue_stale_running,
 )
+from frappe.automation_engine.queue import QUEUE, queue_status
 from frappe.tests import IntegrationTestCase
-
-QUEUE = "Automation Trigger Queue"
 
 
 def make_automation():
@@ -204,12 +204,11 @@ class TestDrainer(IntegrationTestCase):
 			return original_commit(*args, **kwargs)
 
 		frappe.db.commit = counting_commit
-		frappe.conf.automation_commit_every = 2
 		try:
-			drainer.execute_batch(lambda name: None, claimed)
+			with self.change_settings("Automation Settings", commit_every=2):
+				drainer.execute_batch(lambda name: None, claimed)
 		finally:
 			frappe.db.commit = original_commit
-			frappe.conf.pop("automation_commit_every", None)
 
 		# Four rows at two per group is two commits, not four.
 		self.assertEqual(len(commits), 2)
@@ -218,29 +217,36 @@ class TestDrainer(IntegrationTestCase):
 		for i in range(4):
 			self.add_row(f"T{i}")
 
-		kicks = []
-		original_rekick = drainer._rekick
-		drainer._rekick = lambda: kicks.append(1)
-		# A budget this small expires during the first batch, so the second is never claimed.
-		frappe.conf.automation_drain_seconds = 0.001
 		processed = []
-		try:
+		# A budget this small expires during the first batch, so the second is never claimed.
+		with (
+			patch.object(drainer, "kick_drainer") as kick,
+			self.change_settings("Automation Settings", drain_seconds=0.001),
+		):
 			drain(batch_size=2, executor=processed.append)
-		finally:
-			drainer._rekick = original_rekick
-			frappe.conf.pop("automation_drain_seconds", None)
 
 		self.assertEqual(len(processed), 2)
 		# Two rows are still due, so the drain hands off to a fresh job instead of running on.
-		self.assertEqual(kicks, [1])
+		self.assertEqual(kick.call_count, 1)
 		self.assertEqual(self.count("Pending"), 2)
 
 	def test_budget_is_a_fraction_of_the_queue_timeout(self):
-		frappe.conf.pop("automation_drain_seconds", None)
-		self.assertLess(drainer.drain_time_budget(), 300)
-		self.assertGreater(drainer.drain_time_budget(), 0)
+		with self.change_settings("Automation Settings", drain_seconds=0):
+			self.assertLess(drainer.drain_time_budget(), 300)
+			self.assertGreater(drainer.drain_time_budget(), 0)
 
 	def test_kill_switch_stops_drain(self):
+		for i in range(3):
+			self.add_row(f"T{i}")
+
+		processed = []
+		with self.change_settings("Automation Settings", disable_automations=1):
+			drain(executor=lambda name: processed.append(name))
+
+		self.assertEqual(processed, [])
+		self.assertEqual(self.count("Pending"), 3)
+
+	def test_site_config_kill_switch_overrides_settings(self):
 		for i in range(3):
 			self.add_row(f"T{i}")
 
@@ -249,7 +255,7 @@ class TestDrainer(IntegrationTestCase):
 		try:
 			drain(executor=lambda name: processed.append(name))
 		finally:
-			frappe.conf.automation_disabled = False
+			frappe.conf.pop("automation_disabled", None)
 
 		self.assertEqual(processed, [])
 		self.assertEqual(self.count("Pending"), 3)
@@ -261,33 +267,27 @@ class TestDrainer(IntegrationTestCase):
 			self.add_row(f"T{i}")
 
 		processed = []
-		kicks = []
-		original_executor = runner.execute_automation
-		original_rekick = drainer._rekick
 
 		def executor(name):
 			processed.append(name)
 			frappe.db.set_value(QUEUE, name, "status", "Done")
 
-		runner.execute_automation = executor
-		drainer._rekick = lambda: kicks.append(1)
-		try:
+		with (
+			patch.object(runner, "execute_automation", executor),
+			patch.object(drainer, "kick_drainer") as kick,
+		):
 			drain_due()
-		finally:
-			runner.execute_automation = original_executor
-			drainer._rekick = original_rekick
 
 		self.assertEqual(len(processed), 3)
-		self.assertEqual(kicks, [])
+		self.assertEqual(kick.call_count, 0)
 		self.assertEqual(self.count("Pending"), 0)
 
 	def test_old_mariadb_uses_plain_for_update(self):
-		original = drainer._mariadb_supports_skip_locked
 		original_db_type = frappe.db.db_type
-		drainer._mariadb_supports_skip_locked = lambda: False
 		frappe.db.db_type = "mariadb"
 		try:
-			self.assertEqual(drainer._lock_clause(), "FOR UPDATE")
+			with patch.object(frappe.db, "sql", return_value=[("10.5.21-MariaDB",)]):
+				self.assertFalse(drainer.supports_skip_locked())
+				self.assertEqual(drainer._lock_clause(), "FOR UPDATE")
 		finally:
-			drainer._mariadb_supports_skip_locked = original
 			frappe.db.db_type = original_db_type

@@ -1,16 +1,17 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-
 import re
 import time
 
 import frappe
-from frappe.automation_engine import WAITING_STATES
+from frappe.automation_engine import runner, settings
+from frappe.automation_engine.dispatch import kick_drainer
+from frappe.automation_engine.queue import QUEUE, WAITING_STATES
+from frappe.utils import add_days, add_to_date, cint, now
+from frappe.utils.background_jobs import get_queues_timeout
 
 DEFAULT_BATCH_SIZE = 500
-DEFAULT_COMMIT_EVERY = 50
-QUEUE = "Automation Trigger Queue"
 # The RQ queue the drain job runs on; its timeout is what the drain has to finish inside.
 DRAIN_QUEUE = "default"
 # Share of that timeout a drain will spend claiming, leaving room for the last batch.
@@ -20,20 +21,13 @@ DRAIN_TIME_BUDGET = 0.6
 def drain(batch_size=DEFAULT_BATCH_SIZE, max_batches=None, executor=None):
 	"""Claim and execute due waiting rows until the queue drains or the time budget runs out.
 
-	A drain that outlives its RQ timeout is killed mid-group: the group rolls back, its rows
-	sit Running until requeue_stale_running() releases them, and the _rekick() below never
-	runs - so the backlog stalls until the next scheduler tick. Stopping short of the timeout
-	and letting _rekick() start a fresh job keeps a large backlog moving in clean hops.
-
-	The bound is elapsed time rather than a batch count because no fixed count is safe for
-	both: 500 rows is seconds of SetFieldValue work and minutes of HTTP-calling work.
+	Stopping short of the RQ timeout matters: a drain killed mid-group leaves its rows Running
+	until requeue_stale_running() releases them, and never hands off to a fresh job.
 	"""
-	from frappe.automation_engine import is_enabled
-
-	if not is_enabled():
+	if not settings.is_enabled():
 		return
-	if executor is None:
-		from frappe.automation_engine.runner import execute_automation as executor
+	# Resolved on the module, not imported by name: the tests swap runner.execute_automation out.
+	executor = executor or runner.execute_automation
 
 	promote_due_scheduled()
 	deadline = time.monotonic() + drain_time_budget()
@@ -50,49 +44,34 @@ def drain(batch_size=DEFAULT_BATCH_SIZE, max_batches=None, executor=None):
 			break
 
 	if _has_due_pending():
-		_rekick()
+		kick_drainer()
 
 
 def drain_time_budget() -> float:
 	"""Seconds a drain may keep claiming new batches, from its queue's configured timeout.
 
-	Deliberately a fraction of the timeout, not all of it: the budget is only checked between
-	batches, so whichever batch is in flight when it expires still has to finish inside what
-	remains. Override with `automation_drain_seconds`.
+	A fraction of the timeout, not all of it: the budget is only checked between batches, so the
+	batch in flight when it expires still has to finish inside what remains.
 	"""
-	from frappe.utils.background_jobs import get_queues_timeout
-
-	# flt, not cint: a sub-second override is what makes this testable, and cint would floor
-	# it to zero and silently hand back the default instead.
-	configured = frappe.utils.flt(frappe.conf.get("automation_drain_seconds"))
+	configured = settings.get("drain_seconds")
 	if configured > 0:
 		return configured
 	return (get_queues_timeout().get(DRAIN_QUEUE) or 300) * DRAIN_TIME_BUDGET
 
 
 def execute_batch(executor, names):
-	"""Run a claimed batch in commit groups rather than one transaction per row.
-
-	The runner records step failures itself, but not everything reaches it: a flow deleted
-	mid-drain, or a throw while recording the outcome, escapes. Such a row is rolled back to
-	its own savepoint, so the rows already run in this group survive it - the guarantee the
-	old per-row commit gave, for a fraction of the fsyncs.
-
-	What a savepoint cannot cover is the group commit failing as a whole (deadlock, lock wait
-	timeout, a dropped connection). That rolls the group back, and the rows are re-run one at
-	a time so a single poisoned row cannot take the rest down with it.
-	"""
-	for group in _commit_groups(names):
-		_execute_group(executor, group)
-
-
-def _commit_groups(names):
-	size = max(1, frappe.utils.cint(frappe.conf.get("automation_commit_every")) or DEFAULT_COMMIT_EVERY)
+	"""Run a claimed batch in commit groups rather than one transaction per row."""
+	size = max(1, cint(settings.get("commit_every")))
 	for start in range(0, len(names), size):
-		yield names[start : start + size]
+		_execute_group(executor, names[start : start + size])
 
 
 def _execute_group(executor, names):
+	"""Run one commit group. Each row gets a savepoint so a failure cannot take the group down.
+
+	A group commit that fails as a whole (deadlock, lock wait, dropped connection) rolls every row
+	back, so they are re-run one at a time instead.
+	"""
 	for position, name in enumerate(names):
 		_execute_in_savepoint(executor, name, position)
 	try:
@@ -116,10 +95,9 @@ def _execute_in_savepoint(executor, name, position):
 def _execute_serially(executor, names):
 	"""Re-run a group whose commit failed, one transaction per row.
 
-	The rollback restored every queue row in the group, so the database work is genuinely
-	redone rather than duplicated. What the rollback could not reach is the non-transactional
-	half of a run that had already finished: its realtime update has been sent, and a failure
-	has been counted against the circuit breaker. A retried row can double-count there.
+	The rollback could not reach the non-transactional half of a run that had already finished: its
+	realtime update has been sent, and a failure counted against the circuit breaker. A retried row
+	can double-count there.
 	"""
 	for name in names:
 		execute_claimed(executor, name)
@@ -138,20 +116,21 @@ def execute_claimed(executor, name):
 def promote_due_scheduled():
 	"""Move rows whose run_after has arrived from Scheduled to Pending.
 
-	Purely a display concern: claim_batch spans both states, so a row that comes due
-	between this and the claim still runs on time.
+	Purely a display concern: claim_batch spans both states.
 	"""
-	frappe.db.sql(
-		f"""
-		UPDATE `tab{QUEUE}` SET status = 'Pending'
-		WHERE status = 'Scheduled' AND run_after IS NOT NULL AND run_after <= %(now)s
-		""",
-		{"now": frappe.utils.now()},
-	)
+	queue = frappe.qb.DocType(QUEUE)
+	(
+		frappe.qb.update(queue)
+		.set(queue.status, "Pending")
+		.where(queue.status == "Scheduled")
+		.where(queue.run_after.notnull())
+		.where(queue.run_after <= now())
+	).run()
 
 
 def claim_batch(batch_size=DEFAULT_BATCH_SIZE) -> list[str]:
 	"""Atomically claim up to `batch_size` due waiting rows and mark them Running."""
+	# Raw SQL: the query builder has no way to express FOR UPDATE SKIP LOCKED.
 	rows = frappe.db.sql(
 		f"""
 		SELECT name FROM `tab{QUEUE}`
@@ -161,8 +140,8 @@ def claim_batch(batch_size=DEFAULT_BATCH_SIZE) -> list[str]:
 		{_lock_clause()}
 		""",
 		{
-			"now": frappe.utils.now(),
-			"limit": frappe.utils.cint(batch_size),
+			"now": now(),
+			"limit": cint(batch_size),
 			"waiting": WAITING_STATES,
 		},
 		as_dict=True,
@@ -171,11 +150,14 @@ def claim_batch(batch_size=DEFAULT_BATCH_SIZE) -> list[str]:
 		return []
 
 	names = [row.name for row in rows]
-	# Stamp modified so a crashed claim can be spotted by requeue_stale_running().
-	frappe.db.sql(
-		f"UPDATE `tab{QUEUE}` SET status = 'Running', modified = %(now)s WHERE name IN %(names)s",
-		{"names": names, "now": frappe.utils.now()},
-	)
+	queue = frappe.qb.DocType(QUEUE)
+	(
+		frappe.qb.update(queue)
+		.set(queue.status, "Running")
+		# Stamp modified so a crashed claim can be spotted by requeue_stale_running().
+		.set(queue.modified, now())
+		.where(queue.name.isin(names))
+	).run()
 	frappe.db.commit()
 	return names
 
@@ -187,49 +169,31 @@ def _lock_clause() -> str:
 def supports_skip_locked() -> bool:
 	"""Whether concurrent claimers can step over each other's locked rows.
 
-	Without it they queue behind one another instead, so running more than one drain shard
-	buys lock waits rather than throughput.
+	Without it they queue behind one another, so extra drain shards buy lock waits, not throughput.
 	"""
 	if frappe.db.db_type != "mariadb":
 		return True
-	return _mariadb_supports_skip_locked()
-
-
-def _mariadb_supports_skip_locked() -> bool:
 	version = frappe.db.sql("SELECT VERSION()")[0][0]
-	return _version_tuple(version) >= (10, 6)
-
-
-def _version_tuple(version) -> tuple[int, ...]:
-	return tuple(int(part) for part in re.findall(r"\d+", version)[:3])
+	return tuple(int(part) for part in re.findall(r"\d+", version)[:3]) >= (10, 6)
 
 
 def _has_due_pending() -> bool:
+	queue = frappe.qb.DocType(QUEUE)
 	return bool(
-		frappe.db.sql(
-			f"""
-			SELECT 1 FROM `tab{QUEUE}`
-			WHERE status IN %(waiting)s AND (run_after IS NULL OR run_after <= %(now)s)
-			LIMIT 1
-			""",
-			{"now": frappe.utils.now(), "waiting": WAITING_STATES},
-		)
+		frappe.qb.from_(queue)
+		.select(queue.name)
+		.where(queue.status.isin(WAITING_STATES))
+		.where(queue.run_after.isnull() | (queue.run_after <= now()))
+		.limit(1)
+		.run()
 	)
-
-
-def _rekick():
-	from frappe.automation_engine.dispatch import kick_drainer
-
-	kick_drainer()
 
 
 def drain_due():
 	"""Scheduler safety net: requeue crashed claims, then drain inline.
 
-	This drains in-process instead of kicking the drain job: the job is deduplicated on a
-	fixed id, so a stale Redis job record (a worker killed mid-claim leaves one behind,
-	stuck at status "queued" forever) suppresses every later kick. Draining here keeps the
-	safety net independent of the thing it is meant to rescue.
+	Drains in-process rather than kicking the drain job, because a stale Redis job record left by a
+	worker killed mid-claim suppresses every later kick on that fixed job id.
 	"""
 	requeue_stale_running()
 	drain()
@@ -237,28 +201,21 @@ def drain_due():
 
 def requeue_stale_running():
 	"""Flip Running rows stuck past the claim timeout back to Pending"""
-	minutes = frappe.conf.get("automation_stale_running_minutes") or 30
-	cutoff = frappe.utils.add_to_date(frappe.utils.now(), minutes=-minutes)
-	frappe.db.sql(
-		f"UPDATE `tab{QUEUE}` SET status = 'Pending' WHERE status = 'Running' AND modified < %(cutoff)s",
-		{"cutoff": cutoff},
-	)
+	cutoff = add_to_date(now(), minutes=-cint(settings.get("stale_running_minutes")))
+	queue = frappe.qb.DocType(QUEUE)
+	(
+		frappe.qb.update(queue)
+		.set(queue.status, "Pending")
+		.where(queue.status == "Running")
+		.where(queue.modified < cutoff)
+	).run()
 
 
 def purge_queue():
 	"""Sweep terminal-but-retained rows (Failed/Skipped) older than retention."""
-	retention_days = frappe.conf.get("automation_queue_retention_days") or 7
-	frappe.db.delete(
-		QUEUE,
-		{
-			"status": ("in", ("Failed", "Skipped")),
-			"modified": ("<", frappe.utils.add_days(frappe.utils.now(), -retention_days)),
-		},
-	)
+	cutoff = add_days(now(), -cint(settings.get("queue_retention_days")))
+	frappe.db.delete(QUEUE, {"status": ("in", ("Failed", "Skipped")), "modified": ("<", cutoff)})
 	frappe.db.delete(
 		"Automation Event Subscription",
-		{
-			"status": ("in", ("Matched", "Timed Out", "Cancelled")),
-			"modified": ("<", frappe.utils.add_days(frappe.utils.now(), -retention_days)),
-		},
+		{"status": ("in", ("Matched", "Timed Out", "Cancelled")), "modified": ("<", cutoff)},
 	)

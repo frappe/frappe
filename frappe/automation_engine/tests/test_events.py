@@ -4,8 +4,7 @@
 import json
 
 import frappe
-from frappe.automation_engine import emit
-from frappe.automation_engine.events import registered_events, validate_event
+from frappe.automation_engine.events import emit, registered_events, validate_event
 from frappe.automation_engine.registry import clear_automation_cache
 from frappe.automation_engine.runner import execute_automation
 from frappe.automation_engine.tests.test_runner import make_automation

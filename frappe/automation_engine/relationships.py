@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from frappe.utils import cint
 from frappe.utils.caching import request_cache
 
 MAX_RELATED_ROWS = 1000
@@ -71,7 +72,7 @@ def resolve_one(source_doc, relationship: str, params=None) -> dict:
 
 def query_related(source_doc, relationship: str, filters=None, limit=MAX_RELATED_ROWS) -> list[dict]:
 	definition = _definition(source_doc.doctype, relationship)
-	limit = min(frappe.utils.cint(limit) or MAX_RELATED_ROWS, MAX_RELATED_ROWS)
+	limit = min(cint(limit) or MAX_RELATED_ROWS, MAX_RELATED_ROWS)
 	name = _provider_name(definition, relationship)
 	rows = definition["provider"].query(source_doc, name, filters or [], limit)
 	return [_permitted_reference(row, definition) for row in rows or []]
