@@ -57,6 +57,7 @@ from flow.session.config import SessionConfig
 from flow.session.log import SessionLog
 from flow.session.skills import SkillCatalog, format_skill_invocation, parse_skill_command
 from flow.session.transcript import PendingApproval, Transcript
+from flow.tools import Tool
 
 _CANCELLED = json.dumps({"status": "cancelled", "message": "User cancelled this pending tool call."})
 
@@ -173,6 +174,7 @@ class Session:
 		allowed_roots: tuple[str, ...] = (),
 		attachment_store: AttachmentStore | None = None,
 		skill_catalog: SkillCatalog | None = None,
+		server_tools: dict[str, Tool] | None = None,
 	):
 		self.id = sid
 		self.config = config
@@ -182,6 +184,7 @@ class Session:
 		self.allowed_roots = allowed_roots
 		self.attachment_store = attachment_store
 		self.skill_catalog = skill_catalog or SkillCatalog()
+		self.server_tools = server_tools
 		self.transcript = Transcript.replay(log)
 		self.abort_signal = asyncio.Event()
 		self._operation_lock = asyncio.Lock()
@@ -448,6 +451,7 @@ class Session:
 			before_tool_call=before_tool_call,
 			after_tool_call=after_tool_call,
 			resolve_attachment=self.attachment_store.read if self.attachment_store is not None else None,
+			server_tools=self.server_tools,
 		)
 
 	def _next_steering(self) -> UserMessage | None:

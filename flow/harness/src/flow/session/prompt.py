@@ -15,6 +15,7 @@ from collections.abc import Sequence
 
 from flow.session.config import SessionConfig
 from flow.session.skills import Skill, format_skills_for_prompt
+from flow.tools import Tool
 from flow.tools.builtins import BUILTIN_TOOLS
 
 DEFAULT_INTRO = (
@@ -37,6 +38,7 @@ def build_system_prompt(
 	home: str | None = None,
 	*,
 	skills: Sequence[Skill] = (),
+	tools: Sequence[Tool] | None = None,
 ) -> str:
 	"""Resolve the session's system prompt. A verbatim `system_prompt` wins outright;
 	otherwise compose body -> suffix -> <project_context> -> cwd trailer. `system_append`
@@ -45,7 +47,7 @@ def build_system_prompt(
 		return _appended(config.system_prompt, config.system_append)
 	home = os.path.realpath(home if home is not None else os.path.expanduser("~"))
 	sections: list[str] = []
-	body = config.system_preamble if config.system_preamble is not None else _default_body(config)
+	body = config.system_preamble if config.system_preamble is not None else _default_body(config, tools)
 	sections.append(body)
 	if config.system_suffix is not None:
 		sections.append(config.system_suffix)
@@ -68,11 +70,15 @@ def _appended(prompt: str, append: str | None) -> str:
 	return f"{prompt.strip()}\n\n{append.strip()}" if prompt.strip() else append.strip()
 
 
-def _default_body(config: SessionConfig) -> str:
-	tools = [BUILTIN_TOOLS[name] for name in config.tools if name in BUILTIN_TOOLS]
-	snippets = [f"- {t.name}: {t.prompt_snippet}" for t in tools if t.prompt_snippet]
+def _default_body(config: SessionConfig, tools: Sequence[Tool] | None = None) -> str:
+	active_tools = (
+		list(tools)
+		if tools is not None
+		else [BUILTIN_TOOLS[name] for name in config.tools if name in BUILTIN_TOOLS]
+	)
+	snippets = [f"- {tool.name}: {tool.prompt_snippet}" for tool in active_tools if tool.prompt_snippet]
 	guidelines: list[str] = []
-	for t in tools:
+	for t in active_tools:
 		for guideline in t.prompt_guidelines:
 			if guideline not in guidelines:
 				guidelines.append(guideline)

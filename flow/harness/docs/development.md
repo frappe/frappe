@@ -1,98 +1,59 @@
 # Development
 
-## Setup
+## Setup and checks
+
+Flow requires Python 3.14 or newer.
 
 ```bash
 uv sync --extra dev
 uvx pre-commit install
-```
-
-Python ≥ 3.14.
-
-## Tests
-
-```bash
 uv run pytest
+uv run ruff check .
+uv run ty check
 ```
 
-- Tests are async (`asyncio_mode = "auto"` in pyproject); write `async def test_...`
-  with no marker needed.
-- The keyless **`mock`** model drives loop/server tests with no provider. Script exact
-  turns with `MockModel(replies=[AssistantMessage(...), ...])` (one consumed per model
-  call) and inject it via `Agent(model=mock)`, `session.run(model=mock)`, or by
-  monkeypatching `flow.agent.loop.get_model` for HTTP-level tests.
-- Live SSE cannot be tested through `httpx.ASGITransport` or the Starlette
-  `TestClient` — both buffer whole response bodies. The live-stream test runs a real
-  uvicorn server on an ephemeral port; completed-stream tests can use `TestClient`.
+Tests use `pytest-asyncio` automatic mode. Use the keyless `mock` model for loop and server tests. For a live SSE test, start a real Uvicorn server on an ephemeral port; in-process ASGI transports buffer streaming responses.
 
-Formatting, lint, and types are enforced by pre-commit (ruff + ty). Do not
-hand-maintain style — run the hooks.
+Formatting and static checks use Ruff and ty. The codebase uses tabs, double quotes, and a 110-character Ruff line limit.
 
-## Conventions
-
-- **Conventional commits**, atomic and semantic: `feat(scope): …`, `fix(...)`,
-  `test(...)`, `docs: …`, `chore: …`. One coherent change per commit.
-- Keep comments/docstrings short and precise. No speculative abstractions or config.
-- Fixes land in the layer that owns the behavior — see the dependency direction and
-  guardrails in [architecture.md](architecture.md) and [rebuild.md](rebuild.md).
-
-## Configuration (env vars)
-
-| Var | Default | Purpose |
-|---|---|---|
-| `FLOW_HOST` | `127.0.0.1` | daemon bind host |
-| `FLOW_PORT` | `8787` | daemon bind port |
-| `FLOW_AUTH_TOKEN` | none | API bearer; required for non-loopback binds |
-| `FLOW_DATA_DIR` | `~/.flow/server` | project-grouped session logs, metadata, and attachments |
-| `FLOW_MODEL` | `mock` | default model name |
-| `FLOW_REDIS_URL` | none | if set, every event is also published to `harness:<sid>` |
-| `FLOW_ALLOWED_ROOTS` | empty | `os.pathsep`-separated roots for session cwd and path-taking builtins; does not sandbox `bash` (empty = unrestricted) |
-| `FLOW_CREDENTIALS_PATH` | `~/.flow/server/credentials.json` | API-key/OAuth store (0600) |
-
-Cross-repo wire identifiers are intentionally kept as `harness:*` (Redis channel,
-`X-Harness-Token` header) — they're a contract shared with Flow's bridge.
-
-## Roadmap
-
-**Part 1 — the daemon (done, rebuilt):** durable event substrate → model core → auth +
-providers → tools → loop + session → HTTP API + `flow`. The rebuild's contract and
-parity audit live in [rebuild.md](rebuild.md).
-
-**Part 2 — client UIs:** a TUI that dogfoods the HTTP/SSE API; a shared
-transport-agnostic conversation core; a standalone Vue web shell. End of Part 2 = a
-usable standalone coding-agent product.
-
-Part 2 makes the daemon an implementation detail of the client. The CLI surface:
+## Run Flow
 
 | Command | Behavior |
-|---|---|
-| `flow` | Start a private daemon on a unix socket under the data dir, open the TUI, and attach to it. Each invocation gets its own daemon; it never adopts one started by `flow serve`. The daemon dies when the TUI exits; quit during an active run aborts and drains without a prompt. `flow -c` continues the most recent session for the current directory instead of creating one. `--append-system-prompt TEXT` adds TEXT to the end of the system prompt of each new session. |
-| `flow serve` | Run the daemon in the foreground on the configured host and port. `--background` detaches it, prints its address, and returns. |
-| `flow web` | Run the daemon with the built web UI mounted same-origin and open a browser tab. Needs `ui/` built first (`cd ui && npm install && npm run build -w app`); `--no-browser` skips the tab. `--append-system-prompt TEXT` adds TEXT to the end of the system prompt of every session the UI creates. |
-| `flow attach` | Open the TUI against a daemon that is already running — the configured host and port by default, `--url` for any other, `--session` to reopen an existing session, `--append-system-prompt` as in `flow`. It starts nothing. |
-| `flow login` / `logout` / `providers` | Unchanged apart from the program name. |
+| --- | --- |
+| `flow` or `flow tui` | Starts a private Unix-socket daemon and opens the Textual UI. |
+| `flow -c` | Opens the most recent session for the current directory. |
+| `flow serve` | Runs the daemon on the configured host and port. |
+| `flow serve --background` | Starts a detached daemon and prints its address. |
+| `flow web` | Serves the built Vue UI and opens a browser. Use `--no-browser` to suppress it. |
+| `flow attach` | Opens the TUI against an existing daemon. `--session` selects a session. |
+| `flow login`, `flow logout`, `flow providers` | Manage provider credentials. |
 
-Daemon lifecycle notes:
+The private daemon used by `flow` has a fresh bearer token, a private socket, and exits when its parent TUI exits. It is POSIX-only. `flow serve` is the long-lived option; closing an attached client never stops its run.
 
-- The private daemon is a subprocess of the TUI (`flow serve --uds
-  <data-dir>/daemon-<pid>.sock --parent-watch`), authenticated with a fresh
-  `FLOW_AUTH_TOKEN` even though the socket is local and chmod 0600. Its
-  stdout and stderr go to a log file under `FLOW_DATA_DIR/logs/`. If the TUI dies —
-  even by SIGKILL — the daemon's stdin pipe hits EOF and it exits, so orphans cannot
-  accumulate. POSIX-only for now.
-- A daemon crash is fatal to the TUI: it exits with the log path. There is no
-  auto-respawn; sessions are durable, so rerun `flow -c`.
-- Discovery of private daemons by `flow attach` is out of scope by design.
-- **Accepted risk:** two daemons can open the same session file (for example `flow -c`
-  in two terminals). Two writers on one append-only log can corrupt it. This is
-  documented, not prevented; a future mitigation is a per-session `fcntl.flock`.
+Build the web UI before `flow web` if packaged assets are unavailable:
 
-The daemon stays the durable side in the `flow serve` + `flow attach` mode: closing
-the TUI detaches the client, it does not end the run.
+```bash
+cd ui
+npm install
+npm run build -w app
+```
 
-**Part 3 — Flow integration:** Flow adopts the daemon as a client (Frappe proxy
-endpoints + a Redis→realtime bridge + the shared core via a Frappe adapter), with Flow's
-behavior unchanged.
+## Environment
 
-App-layer features (project instructions, skills, slash-commands) are deferred to
-post-v1.
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `FLOW_HOST` | `127.0.0.1` | TCP bind host for `flow serve`. |
+| `FLOW_PORT` | `8787` | TCP port. |
+| `FLOW_DATA_DIR` | `~/.flow/server` | Session data and daemon logs. |
+| `FLOW_AUTH_TOKEN` | unset | Bearer token for the daemon API; required for non-loopback TCP binds. |
+| `FLOW_CREDENTIALS_PATH` | `~/.flow/server/credentials.json` | Credential-store path. |
+| `FLOW_MODEL` | `mock` | Initial model for a new TUI session; a saved TUI choice is used when it is unset. |
+| `FLOW_ALLOWED_ROOTS` | unset | `os.pathsep`-separated roots for session directories and path-taking tools. It does not sandbox `bash`. |
+| `FLOW_CORS_ORIGINS` | unset | Comma-separated browser origins allowed to call the API. |
+| `FLOW_REDIS_URL` | unset | Publishes every event to `harness:<session-id>`. |
+
+Use `-e PATH` to load a Python extension and `--no-extensions` to omit the global extension directory. See [tools.md](tools.md).
+
+## Change boundaries
+
+Keep behavior in the layer that owns it: provider protocols in adapters, model/tool control flow in the loop, durability and state transitions in `Session`, and HTTP/TUI presentation at their edges. Update tests and the relevant concise documentation with behavior changes.
