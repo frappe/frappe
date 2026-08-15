@@ -9,10 +9,15 @@ import { identify, rowKey } from "../Fields/rowIdentity";
  * flat `string[]` of link values the `TableMultiSelect` control speaks.
  *
  * On write it reuses the existing row object for values that stay selected (so
- * `doctype`/`name` and any other cells survive) and mints `{ [linkFieldname]:
- * value }` for new ones — then emits both `update:modelValue` and `change`
- * (a selection is a commit for a picker). Shared by the lib field and any app
- * override field so neither re-implements the bridge.
+ * `doctype`/`name` and any other cells survive) and mints a fresh row for new
+ * ones — then emits both `update:modelValue` and `change` (a selection is a
+ * commit for a picker). Shared by the lib field and any app override field so
+ * neither re-implements the bridge.
+ *
+ * A minted row is seeded by `newRow`, the same way `Grid` takes its seed from
+ * whoever knows the whole child form: a picked row is otherwise the one row
+ * shape in the stack that carries a single key, where every other row — loaded,
+ * or added through the grid — carries every field.
  */
 /** The emit shape both field wrappers have (a subset of `FieldComponentEmits`).
  *  Overloaded form, not a union arg, so Vue's `defineEmits()` value is assignable. */
@@ -25,7 +30,8 @@ export function useChildRowModel(
   modelValue: () => unknown,
   linkFieldname: () => string,
   emit: ChildRowEmit,
-  parentfield?: () => string
+  parentfield?: () => string,
+  newRow?: () => Record<string, any>
 ): WritableComputedRef<string[]> {
   const rows = computed<Record<string, any>[]>(() => {
     const v = modelValue();
@@ -51,7 +57,9 @@ export function useChildRowModel(
       if (!fn) return;
       const byValue = new Map(rows.value.map((r) => [r[fn], r]));
       const kept = new Set(selected);
-      const next = selected.map((v) => byValue.get(v) ?? identify({ [fn]: v }));
+      // The pick overwrites the seed's own empty for the link field.
+      const mint = (v: string) => identify({ ...newRow?.(), [fn]: v });
+      const next = selected.map((v) => byValue.get(v) ?? mint(v));
       // Captured before the emit, which repoints `rows` at the new array.
       const removed = rows.value.filter((row) => !kept.has(row[fn]));
       const added = next.filter((row) => !byValue.has(row[fn]));
