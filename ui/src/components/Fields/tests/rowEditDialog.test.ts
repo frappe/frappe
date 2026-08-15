@@ -254,6 +254,26 @@ describe("row-edit dialog", () => {
     expect(first.qty).toBe("A");
   });
 
+  it("closes rather than guessing when a save leaves two rows sharing its key", async () => {
+    // Identity is what tells duplicates apart, and a save replaces every row
+    // object — so after the repaint the address answers twice and means neither.
+    const { rows } = render([
+      { name: "dup", qty: "A" },
+      { name: "dup", qty: "B" },
+    ]);
+    await openRow(1);
+    expect(dialog()).not.toBeNull();
+
+    rows.value = [
+      { name: "dup", qty: "A" },
+      { name: "dup", qty: "B" },
+    ];
+    await nextTick();
+    expect(dialog()).toBeNull();
+    // Emphatically not: reopened on row 0 and writing into it.
+    expect(rows.value[0].qty).toBe("A");
+  });
+
   it("closes when its row is removed", async () => {
     const { rows } = render([{ name: "r1", qty: "1" }, { name: "r2", qty: "2" }]);
     await openRow(0);
