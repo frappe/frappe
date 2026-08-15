@@ -4,11 +4,13 @@
 
 import frappe
 from frappe import _
+from frappe.automation_engine import settings
 from frappe.automation_engine.dispatch import kick_drainer, matches_rule, queue_trigger
+from frappe.automation_engine.queue import QUEUE
 from frappe.automation_engine.registry import get_custom_event_map
+from frappe.utils import add_to_date, cint, get_datetime, now, now_datetime
 
 SUBSCRIPTION = "Automation Event Subscription"
-QUEUE = "Automation Trigger Queue"
 TIMEOUT_UNITS = {"Seconds": 1, "Minutes": 60, "Hours": 3600, "Days": 86400}
 
 
@@ -26,6 +28,7 @@ def emit(event, doc=None, payload=None, correlation_key=None) -> dict:
 
 def schedule_event_wait(context, params, step_key, resume_from_idx):
 	"""Park the run: insert the subscription and the resume row due at the timeout."""
+	# Deferred: runner imports this module at load time.
 	from frappe.automation_engine.runner import resume_row_values
 
 	validate_wait_params(params)
@@ -33,7 +36,7 @@ def schedule_event_wait(context, params, step_key, resume_from_idx):
 	if not correlation:
 		frappe.throw(_("Wait for Event correlation key rendered empty"))
 
-	expires_at = frappe.utils.add_to_date(frappe.utils.now(), seconds=_timeout_seconds(params))
+	expires_at = add_to_date(now(), seconds=_timeout_seconds(params))
 	queue = frappe.get_doc(resume_row_values(context, expires_at, resume_from_idx)).insert(
 		ignore_permissions=True
 	)
@@ -71,12 +74,7 @@ def get_wait_outcome(row) -> dict | None:
 
 
 def registered_events() -> list[dict]:
-	"""Events apps declared via the `automation_events` hook, with their builder metadata.
-
-	An app may register a bare name or a `{name: schema}` map. The schema is what lets a
-	builder offer a readable label and ready-made correlation keys instead of asking someone
-	to hand-write a Jinja expression.
-	"""
+	"""Events apps declared via the `automation_events` hook, with their builder metadata."""
 	return [_event_option(name, schema) for name, schema in sorted(_registered_events().items())]
 
 
@@ -95,9 +93,9 @@ def _prettify(name) -> str:
 
 
 def validate_event(event):
-	if event in _registered_event_names():
+	if event in _registered_events():
 		return
-	if frappe.conf.get("allow_unregistered_automation_events"):
+	if settings.get("allow_unregistered_events"):
 		return
 	frappe.throw(_("Unregistered automation event: {0}").format(event))
 
@@ -106,14 +104,10 @@ def validate_wait_params(params):
 	validate_event(params.get("event_name"))
 	if not params.get("correlation_key"):
 		frappe.throw(_("Wait for Event requires a correlation key"))
-	if not frappe.utils.cint(params.get("timeout_value")):
+	if not cint(params.get("timeout_value")):
 		frappe.throw(_("Wait for Event requires a timeout"))
 	if params.get("timeout_unit") not in TIMEOUT_UNITS:
 		frappe.throw(_("Wait for Event timeout unit must be one of {0}").format(", ".join(TIMEOUT_UNITS)))
-
-
-def _registered_event_names() -> set[str]:
-	return set(_registered_events())
 
 
 def _registered_events() -> dict:
@@ -158,7 +152,7 @@ def _claim_subscription(name, payload) -> int:
 	subscription = _lock_subscription(name)
 	if subscription.status != "Waiting":
 		return 0  # the timeout, or a concurrent emission, already claimed it
-	matched = frappe.utils.get_datetime(subscription.expires_at) > frappe.utils.now_datetime()
+	matched = get_datetime(subscription.expires_at) > now_datetime()
 	subscription.db_set(
 		{
 			"status": "Matched" if matched else "Timed Out",
@@ -168,7 +162,7 @@ def _claim_subscription(name, payload) -> int:
 	)
 	# Bring the resume row forward - it was scheduled for the (now irrelevant) timeout.
 	frappe.db.set_value(
-		QUEUE, subscription.resume_queue, "run_after", frappe.utils.now(), update_modified=False
+		QUEUE, subscription.resume_queue, "run_after", now(), update_modified=False
 	)
 	return 1 if matched else 0
 
@@ -180,7 +174,7 @@ def _lock_subscription(name):
 
 
 def _timeout_seconds(params) -> int:
-	return frappe.utils.cint(params["timeout_value"]) * TIMEOUT_UNITS[params["timeout_unit"]]
+	return cint(params["timeout_value"]) * TIMEOUT_UNITS[params["timeout_unit"]]
 
 
 def _render(value, context):
@@ -197,6 +191,5 @@ def _render(value, context):
 
 
 def _validate_payload_size(payload):
-	limit = frappe.conf.get("automation_event_payload_limit") or 65536
-	if len(frappe.as_json(payload).encode()) > limit:
+	if len(frappe.as_json(payload).encode()) > settings.get("event_payload_limit"):
 		frappe.throw(_("Automation event payload is too large"))

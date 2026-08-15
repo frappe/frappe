@@ -7,8 +7,12 @@ from contextlib import contextmanager
 import frappe
 from frappe import _
 from frappe.automation_engine.actions.base import AutomationParamError, get_action, get_action_registry
+from frappe.automation_engine.dispatch import kick_drainer, queue_trigger
 from frappe.automation_engine.events import registered_events
+from frappe.automation_engine.queue import QUEUE
 from frappe.automation_engine.relationships import get_relationship_definitions
+from frappe.automation_engine.runner import TASK_METHOD, execute_automation
+from frappe.utils import now
 
 TRIGGER_TYPES = [
 	"Doc Created",
@@ -85,8 +89,6 @@ def get_param_options(
 @frappe.whitelist()
 def run_manually(automation: str, docname: str | None = None) -> dict:
 	"""Queue a one-off run of `automation` against `docname` (Manual trigger / test button)."""
-	from frappe.automation_engine.dispatch import kick_drainer, queue_trigger
-
 	rule = frappe.get_doc("Automation Flow", automation)
 	frappe.has_permission("Automation Flow", "write", doc=rule, throw=True)
 	if rule.document_type:
@@ -103,8 +105,6 @@ def run_manually(automation: str, docname: str | None = None) -> dict:
 @frappe.whitelist()
 def get_runs(reference_doctype: str, reference_name: str) -> list:
 	"""Return the run history for a document (timeline feed)."""
-	from frappe.automation_engine.runner import TASK_METHOD
-
 	frappe.has_permission(reference_doctype, "read", doc=reference_name, throw=True)
 	tasks = frappe.get_all(
 		"Background Task",
@@ -210,12 +210,9 @@ TRIAL_SAVEPOINT = "automation_trial"
 def trial_run(automation: str, docname: str | None = None) -> dict:
 	"""Execute `automation` against `docname` for real, then roll everything back.
 
-	The trace is built in memory by the runner while the writes land in the transaction, so
-	rolling back to the savepoint discards the queue row, the Background Task, the actions'
-	writes and any queued email - and leaves the trace intact to return.
+	The runner builds its trace in memory, so the rollback discards every write the run made
+	and still leaves the trace to return.
 	"""
-	from frappe.automation_engine.runner import execute_automation
-
 	rule = _trial_target(automation, docname)
 	frappe.db.savepoint(TRIAL_SAVEPOINT)
 	try:
@@ -231,9 +228,8 @@ def trial_run(automation: str, docname: str | None = None) -> dict:
 def _trial_mode():
 	"""Keep the trial inside the transaction, and out of the flow's live bookkeeping.
 
-	The rollback only reaches the database: an action that commits mid-step would end the
-	transaction and make the trial real, and the runner's circuit breaker (Redis) and realtime
-	updates are not undone by it either - so the runner is told this is a trial.
+	An action that commits mid-step would make the trial real, and the circuit breaker (Redis)
+	and realtime updates are not covered by a rollback either.
 	"""
 	original = frappe.db.commit
 	previous = frappe.flags.get("in_automation_trial")
@@ -261,12 +257,12 @@ def _trial_queue_row(rule, docname) -> str:
 	# collides with a genuine pending row for the same document.
 	row = frappe.get_doc(
 		{
-			"doctype": "Automation Trigger Queue",
+			"doctype": QUEUE,
 			"automation": rule.name,
 			"ref_doctype": rule.document_type,
 			"ref_name": docname,
 			"status": "Running",
-			"triggered_at": frappe.utils.now(),
+			"triggered_at": now(),
 			"triggered_by": frappe.session.user,
 			"depth": 1,
 			"event_payload": frappe.as_json({"trial": True}),

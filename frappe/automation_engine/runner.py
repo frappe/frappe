@@ -6,17 +6,18 @@ from contextlib import contextmanager
 
 import frappe
 from frappe import _
-from frappe.automation_engine import WAITING_STATES, queue_status
+from frappe.automation_engine import settings
 from frappe.automation_engine.actions.base import StopAutomation, get_action_registry
 from frappe.automation_engine.conditions import condition_values, evaluate_related_condition
 from frappe.automation_engine.dispatch import matches_rule
 from frappe.automation_engine.events import get_wait_outcome, schedule_event_wait
+from frappe.automation_engine.queue import QUEUE, WAITING_STATES, queue_status
+from frappe.automation_engine.registry import clear_automation_cache
 from frappe.automation_engine.relationships import load_record, resolve_relationships
+from frappe.utils import add_to_date, cint, now
 
-QUEUE = "Automation Trigger Queue"
 TASK_METHOD = "frappe.automation_engine.runner.execute_automation"
 TASK_NAME_PREFIX = "Automation Flow: "
-DEFAULT_FAILURE_THRESHOLD = 10
 WAIT_UNIT_SECONDS = {"Seconds": 1, "Minutes": 60, "Hours": 3600, "Days": 86400}
 
 
@@ -38,16 +39,16 @@ def execute_automation(queue_name: str):
 
 def _execute_plan(rule, row, run, doc, steps, snapshot, event):
 	previous_depth = frappe.flags.get("automation_depth", 0)
-	frappe.flags.automation_depth = frappe.utils.cint(row.depth)
+	frappe.flags.automation_depth = cint(row.depth)
 	context = None
 	try:
 		with _execution_identity(rule, row, doc):
 			_ensure_trigger_access(doc)
 			context = _context(row, run, rule, doc, event)
-			status = _run_plan(steps, rule, doc, context, snapshot, frappe.utils.cint(row.resume_from_idx))
+			status = _run_plan(steps, rule, doc, context, snapshot, cint(row.resume_from_idx))
 		return status, context
 	except Exception:
-		# Setting up the run (identity, trigger access, alias resolution) failed .
+		# Setting up the run (identity, trigger access, alias resolution) failed.
 		_append_step(steps, {"step_key": "setup"}, len(steps), "Failed", frappe.get_traceback(), 0)
 		return "Failed", context
 	finally:
@@ -99,7 +100,7 @@ def _task_values(rule, row, snapshot, doc) -> dict:
 		"queue": "default",
 		"ref_doctype": row.ref_doctype,
 		"ref_docname": row.ref_name,
-		"started_at": frappe.utils.now(),
+		"started_at": now(),
 		"arguments": frappe.as_json(_task_arguments(rule, row, snapshot)),
 		"show_progress_bar": 0,
 		"allow_user_cancellation": 0,
@@ -111,7 +112,7 @@ def _task_arguments(rule, row, snapshot) -> dict:
 	return {
 		"automation": rule.name,
 		"automation_title": rule.title,
-		"depth": frappe.utils.cint(row.depth),
+		"depth": cint(row.depth),
 		"event_payload": frappe.parse_json(row.event_payload) if row.event_payload else {},
 		"actions_snapshot": snapshot,
 		"relationships": frappe.parse_json(rule.relationships) if rule.relationships else [],
@@ -120,7 +121,7 @@ def _task_arguments(rule, row, snapshot) -> dict:
 
 def _action_snapshot(action) -> dict:
 	return {
-		"idx": frappe.utils.cint(action.idx),
+		"idx": cint(action.idx),
 		"step_type": action.step_type or "Action",
 		"action_type": action.action_type,
 		"params": action.params,
@@ -129,7 +130,7 @@ def _action_snapshot(action) -> dict:
 		"step_key": action.step_key or f"step_{action.idx}",
 		"target": action.target or "trigger",
 		"output_alias": action.output_alias,
-		"parent_step": frappe.utils.cint(action.parent_step),
+		"parent_step": cint(action.parent_step),
 		"branch": action.branch or "",
 	}
 
@@ -158,11 +159,9 @@ def _context(row, run, rule, doc, event=None) -> dict:
 
 @contextmanager
 def _execution_identity(rule, row, doc):
-	# frappe.set_user rebuilds local.session in place: it overwrites sid and swaps the session
-	# payload for an empty dict. local.session IS session_obj.data, which the request writes
-	# back to tabSessions (with its own commit) on the way out - so a run executed inside a
-	# request would persist an emptied session and log the caller out. Restoring the user
-	# alone is not enough; the whole session has to go back.
+	# frappe.set_user rebuilds local.session in place, and local.session IS session_obj.data,
+	# which the request writes back to tabSessions on the way out. Restoring the user alone
+	# would persist an emptied session and log the caller out; the whole session has to go back.
 	previous = frappe._dict(frappe.session)
 	frappe.set_user(_execution_user(rule, row, doc))
 	try:
@@ -232,7 +231,7 @@ def _step_outcome(registry, step, doc, context, pos, start_idx, taken):
 
 def _branch_active(step, taken) -> bool:
 	"""True when the enclosing If (if any) chose the arm this step sits in."""
-	parent = frappe.utils.cint(step.get("parent_step"))
+	parent = cint(step.get("parent_step"))
 	if not parent:
 		return True
 	arm = taken.get(_branch_key(parent))
@@ -244,20 +243,17 @@ def _branch_active(step, taken) -> bool:
 def _branch_key(idx) -> str:
 	# Keyed by string: this dict round-trips through the run's JSON result, which has no
 	# integer keys, and a resumed leg has to look up what the first one wrote.
-	return str(frappe.utils.cint(idx))
+	return str(cint(idx))
 
 
 def _resolve_if(step, doc, context, pos, start_idx, taken):
 	"""Pick the arm for an If step, on the leg that first reaches it.
 
-	The arm is run state, not a derivation. Re-evaluating on resume reads a document that may
-	have changed during the Wait, which strands the arm the first leg committed to halfway
-	through and starts running steps from the arm it never entered.
+	The arm is run state, not a derivation: the document may have changed during the Wait.
 	"""
 	key = _branch_key(step.get("idx"))
 	if pos < start_idx:
-		# Already decided, unless this run parked before arms were recorded - then fall back
-		# to the old behaviour of re-deriving rather than skipping the whole arm.
+		# Already decided, unless this run parked before arms were recorded.
 		if key in taken:
 			return None, None, None
 		taken[key] = "If" if _step_condition_matches(step, doc, context) else "Else"
@@ -281,20 +277,20 @@ def _begin_event_wait(step, context, pos):
 
 def _wait_seconds(params) -> int:
 	unit = params.get("unit") or "Minutes"
-	return frappe.utils.cint(params.get("value")) * WAIT_UNIT_SECONDS.get(unit, 60)
+	return cint(params.get("value")) * WAIT_UNIT_SECONDS.get(unit, 60)
 
 
 def schedule_wait(context, seconds: int, resume_from_idx: int):
 	"""Queue the resume row that picks this run up once the wait elapses."""
-	run_after = frappe.utils.add_to_date(frappe.utils.now(), seconds=seconds)
+	run_after = add_to_date(now(), seconds=seconds)
 	frappe.get_doc(resume_row_values(context, run_after, resume_from_idx)).insert(ignore_permissions=True)
 
 
 def resume_row_values(context, run_after, resume_from_idx) -> dict:
 	"""The queue row that continues a parked run at `run_after`.
 
-	The outbox dedup key is NULL whenever resume_run is set, so resume rows never collide
-	with a fresh trigger for the same document (or with each other).
+	dedup_key is NULL whenever resume_run is set, so resume rows never collide with a fresh
+	trigger for the same document, or with each other.
 	"""
 	row = context["queue_row"]
 	return {
@@ -303,9 +299,9 @@ def resume_row_values(context, run_after, resume_from_idx) -> dict:
 		"ref_doctype": row.ref_doctype,
 		"ref_name": row.ref_name,
 		"status": queue_status(run_after),
-		"triggered_at": frappe.utils.now(),
+		"triggered_at": now(),
 		"run_after": run_after,
-		"depth": frappe.utils.cint(row.depth),
+		"depth": cint(row.depth),
 		"triggered_by": row.triggered_by,
 		"event_payload": row.event_payload,
 		"resume_run": context["run"].name,
@@ -361,12 +357,7 @@ def _skip_detail(step, doc, context) -> dict:
 
 
 def _failure_detail(error, messages_before) -> dict:
-	"""What the step failed with, in the form a human can act on.
-
-	Apps already write their guidance as `frappe.throw(_("..."))`, and every throw lands in
-	frappe.message_log - so the readable half of a failure comes free, for any app, without
-	the engine knowing a thing about what went wrong.
-	"""
+	"""What the step failed with: the traceback, plus anything the action threw as a message."""
 	traceback = frappe.get_traceback()
 	return {
 		"note": True,
@@ -436,7 +427,7 @@ def _update_context(context, step, entry):
 	"""Publish a finished step's output so later steps and Jinja can read it."""
 	output = entry.get("output") or {}
 	if not _within_output_limit(output):
-		# The action already ran - dropping its output beats failing a run over bookkeeping.
+		# The action already ran, so oversized output is dropped rather than failing the run.
 		entry["output"] = output = {"truncated": True}
 	context["steps"][entry["step_key"]] = output
 	alias = step.get("output_alias")
@@ -445,8 +436,7 @@ def _update_context(context, step, entry):
 
 
 def _within_output_limit(output) -> bool:
-	limit = frappe.conf.get("automation_step_output_limit") or 65536
-	return len(frappe.as_json(output).encode()) <= limit
+	return len(frappe.as_json(output).encode()) <= settings.get("step_output_limit")
 
 
 def _action_result(result):
@@ -469,9 +459,8 @@ def _finalize(run, rule, row, status, steps, error=None, context=None):
 	run.save(ignore_permissions=True)
 	_settle_queue_row(row, status)
 
-	# A trial is rolled back whole, but neither of the things below is in the transaction: the
-	# breaker counter lives in Redis and a realtime event has already left. Debugging a broken
-	# flow is exactly when trial run gets used, and it must not be what disables it.
+	# Neither of the things below is in the transaction a trial rolls back: the breaker counter
+	# lives in Redis, and a realtime event has already left.
 	if frappe.flags.get("in_automation_trial"):
 		return
 
@@ -498,26 +487,20 @@ def _run_values(rule, row, status, steps, error_summary, context=None) -> dict:
 		"exception": _first_error_detail(steps) if status == "Failed" else None,
 	}
 	if status == "Waiting":
-		# Background Task has no paused state, and this same task is what the resume row
-		# finishes - so it stays Running, with no end time, until the wait elapses.
+		# Background Task has no paused state, and the resume row finishes this same task.
 		return {**values, "status": "Running"}
 	return {
 		**values,
 		"status": "Failed" if status == "Failed" else "Completed",
-		"ended_at": frappe.utils.now(),
+		"ended_at": now(),
 		"progress": 100,
 	}
 
 
 def _settle_queue_row(row, status):
-	# Completed runs drop their queue row because detail lives in the Background Task result.
-	# A Waiting leg is done too - its future lives on in the resume row schedule_wait queued.
-	# Failed (stopped) and Skipped rows are retained for the purge sweep.
-	#
-	# Deleted with a plain DELETE rather than frappe.delete_doc: the row has no child tables
-	# and no on_trash, so the document path only adds link checks, cache and global search
-	# clearing, a feed entry, and - because `force` is not `delete_permanently` - a Deleted
-	# Document archive holding a copy of every queue row this site ever ran.
+	# Completed and Waiting rows are dropped; Failed and Skipped are kept for the purge sweep.
+	# Plain DELETE rather than frappe.delete_doc, which would archive a Deleted Document copy of
+	# every queue row this site ever ran.
 	if status in ("Success", "Partially Failed", "Waiting"):
 		frappe.db.delete(QUEUE, {"name": row.name})
 	else:
@@ -529,7 +512,7 @@ def _run_result(rule, row, status, steps, error_summary, context=None) -> dict:
 		"automation": rule.name,
 		"automation_title": rule.title,
 		"automation_status": status,
-		"depth": frappe.utils.cint(row.depth),
+		"depth": cint(row.depth),
 		"error_summary": error_summary,
 		"steps": steps,
 	}
@@ -568,7 +551,7 @@ def _failure_key(rule_name) -> str:
 
 
 def _record_failure(rule):
-	threshold = frappe.conf.get("automation_failure_threshold") or DEFAULT_FAILURE_THRESHOLD
+	threshold = settings.get("failure_threshold")
 	if frappe.cache.incr(_failure_key(rule.name)) >= threshold:
 		_trip_breaker(rule, threshold)
 
@@ -578,8 +561,6 @@ def _reset_failures(rule):
 
 
 def _trip_breaker(rule, threshold):
-	from frappe.automation_engine.registry import clear_automation_cache
-
 	reason = _("Auto-disabled after {0} consecutive failures").format(threshold)
 	frappe.db.set_value(
 		"Automation Flow", rule.name, {"enabled": 0, "disabled_reason": reason}, update_modified=False

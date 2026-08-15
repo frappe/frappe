@@ -10,6 +10,7 @@ from frappe.automation_engine.relationships import (
 	load_record,
 	query_related,
 )
+from frappe.utils import cint
 
 EXISTENCE_OPERATORS = ("RelatedExists", "RelatedNotExists")
 OPERATORS = (*EXISTENCE_OPERATORS, "RelatedCount")
@@ -63,7 +64,7 @@ def _parse(stored) -> dict | None:
 		"relationship": condition["relationship"],
 		"filters": condition.get("filters") or [],
 		"comparison": condition.get("comparison") or ">=",
-		"value": frappe.utils.cint(condition.get("value", 1)),
+		"value": cint(condition.get("value", 1)),
 	}
 
 

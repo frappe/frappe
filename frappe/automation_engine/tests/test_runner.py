@@ -230,30 +230,26 @@ class TestRunner(AutomationRunnerTestCase):
 		todo = make_todo()
 		auto = make_broken_automation(stop_on_error=1)
 		frappe.cache.delete(_failure_key(auto))
-		original = frappe.conf.get("automation_failure_threshold")
-		frappe.conf.automation_failure_threshold = 1
 		try:
-			backlog = [self.queue_row(auto, f"OTHER-{i}") for i in range(2)]
-			execute_automation(self.queue_row(auto, todo.name))
-			for name in backlog:
-				self.assertEqual(frappe.db.get_value(QUEUE, name, "status"), "Skipped")
+			with self.change_settings("Automation Settings", failure_threshold=1):
+				backlog = [self.queue_row(auto, f"OTHER-{i}") for i in range(2)]
+				execute_automation(self.queue_row(auto, todo.name))
+				for name in backlog:
+					self.assertEqual(frappe.db.get_value(QUEUE, name, "status"), "Skipped")
 		finally:
-			frappe.conf.automation_failure_threshold = original
 			frappe.cache.delete(_failure_key(auto))
 
 	def test_circuit_breaker_disables_after_threshold(self):
 		todo = make_todo()
 		auto = make_broken_automation(stop_on_error=1)
 		frappe.cache.delete(_failure_key(auto))
-		original = frappe.conf.get("automation_failure_threshold")
-		frappe.conf.automation_failure_threshold = 2
 		try:
-			for _ in range(2):
-				execute_automation(self.queue_row(auto, todo.name))
-			self.assertEqual(frappe.db.get_value("Automation Flow", auto, "enabled"), 0)
-			self.assertTrue(frappe.db.get_value("Automation Flow", auto, "disabled_reason"))
+			with self.change_settings("Automation Settings", failure_threshold=2):
+				for _ in range(2):
+					execute_automation(self.queue_row(auto, todo.name))
+				self.assertEqual(frappe.db.get_value("Automation Flow", auto, "enabled"), 0)
+				self.assertTrue(frappe.db.get_value("Automation Flow", auto, "disabled_reason"))
 		finally:
-			frappe.conf.automation_failure_threshold = original
 			frappe.cache.delete(_failure_key(auto))
 
 
