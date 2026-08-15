@@ -6,8 +6,19 @@
 			:class="expandable ? 'cursor-pointer hover:bg-surface-gray-2' : ''"
 			@click="expandable && (open = !open)"
 		>
-			<span v-if="customDisplay" class="min-w-0 flex-1 truncate text-xs font-medium text-ink-gray-9">
-				{{ customDisplay }}
+			<!-- template text renders like a label, argument values like a subject -->
+			<span v-if="displaySegments.length" class="min-w-0 flex-1 truncate text-xs">
+				<span
+					v-for="(segment, j) in displaySegments"
+					:key="j"
+					:class="
+						!segment.arg
+							? 'font-medium text-ink-gray-9'
+							: step.call.name === 'bash'
+								? 'font-mono text-2xs text-ink-gray-5'
+								: 'text-ink-gray-5'
+					"
+				>{{ segment.text }}</span>
 			</span>
 			<template v-else>
 				<span class="flex-none text-xs font-medium text-ink-gray-9">{{ label }}</span>
@@ -83,7 +94,7 @@ const props = defineProps({ step: { type: Object, required: true } })
 const open = ref(false)
 const panelEl = ref(null)
 
-const customDisplay = computed(() => props.step.call.display || "")
+const displaySegments = computed(() => props.step.call.display ?? [])
 
 // an expansion near the viewport bottom scrolls itself clear of the composer
 // (the scroller's scroll-padding accounts for the floating card)

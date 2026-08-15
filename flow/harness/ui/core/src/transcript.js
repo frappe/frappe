@@ -221,9 +221,20 @@ function fileName(path) {
 		.pop()
 }
 
+export function displayText(display) {
+	return display.map((segment) => segment.text).join("")
+}
+
 export function stepLiveLabel(call) {
-	if (call?.display) return call.display
 	const name = call?.name ?? ""
+	if (call?.display?.length) {
+		// the live line shows only the file name for file tools; the dropdown keeps the full path
+		if (["read_file", "write", "edit"].includes(name))
+			return call.display
+				.map((segment) => (segment.arg === "path" ? fileName(segment.text) : segment.text))
+				.join("")
+		return displayText(call.display)
+	}
 	const label = stepLabel(name)
 	if (["read_file", "write", "edit"].includes(name)) {
 		const subject = fileName((call.arguments ?? call.args ?? {}).path)

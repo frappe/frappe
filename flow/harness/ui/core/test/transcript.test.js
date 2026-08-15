@@ -5,6 +5,7 @@ import {
 	applyEvent,
 	buildItems,
 	conversationTitle,
+	displayText,
 	formatDuration,
 	humanizeToolName,
 	initialConversation,
@@ -53,14 +54,16 @@ test("expanded skill messages render compactly like Pi and Tau", () => {
 })
 
 test("declarative tool displays drive live labels", () => {
+	const display = [
+		{ text: "Reading file " },
+		{ text: "src/flow/model/base.py", arg: "path" },
+	]
+	// the live line shortens read paths to the file name; the full path stays in displayText
 	assert.equal(
-		stepLiveLabel({
-			name: "read_file",
-			arguments: { path: "src/flow/model/base.py" },
-			display: "Reading file src/flow/model/base.py",
-		}),
-		"Reading file src/flow/model/base.py",
+		stepLiveLabel({ name: "read_file", arguments: { path: "src/flow/model/base.py" }, display }),
+		"Reading file base.py",
 	)
+	assert.equal(displayText(display), "Reading file src/flow/model/base.py")
 })
 
 test("known tools retain generic fallbacks for older events", () => {
@@ -81,7 +84,7 @@ test("unknown tool names are humanized for future custom tools", () => {
 		stepLiveLabel({
 			name: "web_search",
 			arguments: { query: "Flow" },
-			display: "Searching the web for Flow",
+			display: [{ text: "Searching the web for " }, { text: "Flow", arg: "query" }],
 		}),
 		"Searching the web for Flow",
 	)
@@ -108,15 +111,12 @@ test("trivial thinking does not replace the latest meaningful tool status", () =
 		call: {
 			name: "read_file",
 			arguments: { path: "src/flow/events.py" },
-			display: "Reading file src/flow/events.py",
+			display: [{ text: "Reading file " }, { text: "src/flow/events.py", arg: "path" }],
 		},
 		result: { content: "contents" },
 	}
-	assert.equal(toolGroupLiveLabel([finished], "Thinking"), "Reading file src/flow/events.py")
-	assert.equal(
-		toolGroupLiveLabel([finished], "Reading file src/flow/events.py"),
-		"Reading file src/flow/events.py",
-	)
+	assert.equal(toolGroupLiveLabel([finished], "Thinking"), "Reading file events.py")
+	assert.equal(toolGroupLiveLabel([finished], "Reading file events.py"), "Reading file events.py")
 	assert.equal(toolGroupLiveLabel([finished], "Retrying"), "Retrying")
 	assert.equal(
 		toolGroupLiveLabel(
@@ -126,14 +126,14 @@ test("trivial thinking does not replace the latest meaningful tool status", () =
 					call: {
 						name: "edit",
 						arguments: { path: "ui/App.vue" },
-						display: "Editing file ui/App.vue",
+						display: [{ text: "Editing file " }, { text: "ui/App.vue", arg: "path" }],
 					},
 					result: null,
 				},
 			],
 			"Thinking",
 		),
-		"Editing file ui/App.vue",
+		"Editing file App.vue",
 	)
 })
 
@@ -148,10 +148,13 @@ test("live chat statuses do not use ellipses", () => {
 		id: "call-1",
 		name: "read_file",
 		arguments: { path: "src/events.py" },
-		display: "Inspecting src/events.py",
+		display: [{ text: "Inspecting " }, { text: "src/events.py", arg: "path" }],
 	})
-	assert.equal(conversation.liveLabel, "Inspecting src/events.py")
-	assert.equal(conversation.partial[0].display, "Inspecting src/events.py")
+	assert.equal(conversation.liveLabel, "Inspecting events.py")
+	assert.deepEqual(conversation.partial[0].display, [
+		{ text: "Inspecting " },
+		{ text: "src/events.py", arg: "path" },
+	])
 	applyEvent(conversation, { type: "tool_call_started", name: "send_email_now" })
 	assert.equal(conversation.liveLabel, "Running send email now")
 	applyEvent(conversation, { type: "retry", status: "scheduled" })
@@ -216,18 +219,18 @@ test("ready tool metadata creates one exact provisional step", () => {
 		id: "call-1",
 		name: "edit",
 		arguments: { path: "ui/App.vue" },
-		display: "Editing file ui/App.vue",
+		display: [{ text: "Editing file " }, { text: "ui/App.vue", arg: "path" }],
 	})
 	applyEvent(conversation, {
 		type: "tool_call_display_ready",
 		id: "call-1",
 		name: "edit",
 		arguments: { path: "ui/Renamed.vue" },
-		display: "Editing file ui/Renamed.vue",
+		display: [{ text: "Editing file " }, { text: "ui/Renamed.vue", arg: "path" }],
 	})
 
 	assert.equal(conversation.partial.length, 1)
-	assert.equal(conversation.liveLabel, "Editing file ui/Renamed.vue")
+	assert.equal(conversation.liveLabel, "Editing file Renamed.vue")
 	const groups = toolGroups(conversation)
 	assert.equal(groups.length, 1)
 	assert.equal(groups[0].steps[0].call.arguments.path, "ui/Renamed.vue")
@@ -357,12 +360,12 @@ test("streamed thinking stays visible until the actionable tool call arrives", (
 		id: "call-1",
 		name: "read_file",
 		arguments: { path: "src/app.js" },
-		display: "Reading file src/app.js",
+		display: [{ text: "Reading file " }, { text: "src/app.js", arg: "path" }],
 	})
 	assert.ok(!buildItems(conversation).some((item) => item.kind === "thinking"))
 	let steps = toolGroups(conversation)[0].steps
 	assert.deepEqual(steps.map((step) => step.thought?.thinking ?? step.call?.id), ["let me see", "call-1"])
-	assert.equal(stepLiveLabel(steps[1].call), "Reading file src/app.js")
+	assert.equal(stepLiveLabel(steps[1].call), "Reading file app.js")
 
 	// The durable call atomically replaces the provisional copy without duplicating it.
 	applyEvent(conversation, {
@@ -375,7 +378,7 @@ test("streamed thinking stays visible until the actionable tool call arrives", (
 				id: "call-1",
 				name: "read_file",
 				arguments: { path: "src/app.js" },
-				display: "Reading file src/app.js",
+				display: [{ text: "Reading file " }, { text: "src/app.js", arg: "path" }],
 			},
 		],
 		stop_reason: "tool_use",
@@ -383,7 +386,7 @@ test("streamed thinking stays visible until the actionable tool call arrives", (
 	assert.ok(!buildItems(conversation).some((item) => item.kind === "thinking"))
 	steps = toolGroups(conversation)[0].steps
 	assert.deepEqual(steps.map((step) => step.thought?.thinking ?? step.call?.id), ["let me see", "call-1"])
-	assert.equal(stepLiveLabel(steps[1].call), "Reading file src/app.js")
+	assert.equal(stepLiveLabel(steps[1].call), "Reading file app.js")
 })
 
 test("streamed thought, text, and tool call keep their order until the durable message", () => {
