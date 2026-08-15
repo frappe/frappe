@@ -35,7 +35,7 @@ const resolveField = inject(ResolveFieldKey)!;
 const commits = computed(() => !holdsChildRows(props.field.fieldtype));
 
 // The live write, plus a note that a commit is owed: a save with focus still in
-// the input has to fire the handler before `before_save` sees a stale value.
+// the input has to fire the handler before `beforeSave` sees a stale value.
 function edit(fieldname: string, value: any) {
 	update(fieldname, value);
 	if (commits.value) commit.pending(fieldname, value);
