@@ -9,12 +9,8 @@ from werkzeug.test import TestResponse
 
 import frappe
 from frappe.integrations.oauth2 import encode_params
-<<<<<<< HEAD
-from frappe.test_runner import make_test_records
-=======
 from frappe.oauth import OAuthWebRequestValidator
-from frappe.tests import IntegrationTestCase
->>>>>>> ee58f845d7 (fix(oauth2): authenticate UserInfo bearer tokens (#41545))
+from frappe.test_runner import make_test_records
 from frappe.tests.test_api import get_test_client, make_request, suppress_stdout
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.oauth import build_oauth_url
