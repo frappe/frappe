@@ -30,6 +30,7 @@ vi.mock("frappe-ui", async (importOriginal) => ({
           ...(props.tabs as any[]).map((tab, index) =>
             h("button", {
               "data-tab": tab.identity,
+              "data-label": tab.label,
               onClick: () => emit("update:modelValue", index),
             })
           ),
@@ -68,21 +69,28 @@ const LAYOUT: FormLayoutSchema = [
  * the arrangement the whole design rests on, since the form itself does not
  * survive a save.
  */
-function mount(doc: Ref<Record<string, any>>, tab: Ref<string>) {
+function mount(
+  doc: Ref<Record<string, any>>,
+  tab: Ref<string>,
+  layout: Ref<FormLayoutSchema> = ref(LAYOUT)
+) {
   host = document.createElement("div");
   document.body.appendChild(host);
   const shown = ref(true);
+  const announced: string[] = [];
   app = createApp(
     defineComponent({
       setup() {
         return () =>
           shown.value
             ? h(FormLayout, {
-                layout: LAYOUT,
+                layout: layout.value,
                 doc: doc.value,
                 "onUpdate:doc": (value: any) => (doc.value = value),
                 tab: tab.value,
                 "onUpdate:tab": (identity: string) => (tab.value = identity),
+                "onUpdate:activeTab": (identity: string) =>
+                  announced.push(identity),
               })
             : h("div");
       },
@@ -92,6 +100,9 @@ function mount(doc: Ref<Record<string, any>>, tab: Ref<string>) {
 
   const triggers = () => [...host!.querySelectorAll("[data-tab]")];
   return {
+    labels: () => triggers().map((el) => el.getAttribute("data-label")),
+    /** Every `update:activeTab` since mount, in order. */
+    announced: () => announced,
     identities: () => triggers().map((el) => el.getAttribute("data-tab")),
     activeIdentity: () => {
       const index = Number(
@@ -250,6 +261,36 @@ describe("the reader keeps their place", () => {
     expect(tab.value).toBe("contacts");
   });
 
+  it("announces the resolved identity, on mount and on every move", async () => {
+    const doc = ref<Record<string, any>>({ extra: 1 });
+    const strip = mount(doc, ref(""));
+
+    // On mount, so a host that has just been rebuilt is told where the reader
+    // landed without having to re-derive the resolution itself.
+    expect(strip.announced()).toEqual(["organization"]);
+
+    await strip.click("products");
+    doc.value.extra = 0;
+    await nextTick();
+
+    // The `depends_on` miss moved the reader without touching their intent —
+    // the case the model alone cannot report.
+    expect(strip.announced()).toEqual([
+      "organization",
+      "products",
+      "organization",
+    ]);
+  });
+
+  it("announces the same identity after a rebuild, so nothing reads as a move", async () => {
+    const strip = mount(ref({ extra: 1 }), ref(""));
+
+    await strip.click("contacts");
+    await strip.remount();
+
+    expect(strip.announced()).toEqual(["organization", "contacts", "contacts"]);
+  });
+
   it("works standalone, with no host holding the model", async () => {
     host = document.createElement("div");
     document.body.appendChild(host);
@@ -273,5 +314,78 @@ describe("the reader keeps their place", () => {
     expect(
       host.querySelector("[data-active-index]")!.getAttribute("data-active-index")
     ).toBe("2");
+  });
+});
+
+/**
+ * The per-render override: plain data on the tab, applied where the strip is
+ * drawn. `FormLayout` knows nothing about who wrote it — on the Record page it
+ * is a Page Script's `page.formTabs`, which is what makes these two rules load
+ * bearing rather than incidental.
+ */
+describe("a per-render tab override", () => {
+  const overridden = (override: Record<string, any>) =>
+    ref(
+      LAYOUT.map((tab) =>
+        tab.name === "products" ? { ...tab, override } : tab
+      ) as FormLayoutSchema
+    );
+
+  it("hides a tab the layout shows", async () => {
+    const strip = mount(ref({ extra: 1 }), ref(""), overridden({ hidden: true }));
+
+    expect(strip.identities()).toEqual(["organization", "contacts"]);
+  });
+
+  it("shows a tab its `depends_on` hides", async () => {
+    // The whole reason the override is applied here and not folded in as a
+    // static `hidden` at build time: `resolveLayout` ORs that with the
+    // expression, so a `show()` written that way would be silently inert.
+    const strip = mount(
+      ref({ extra: 0 }),
+      ref(""),
+      overridden({ hidden: false })
+    );
+
+    expect(strip.identities()).toEqual([
+      "organization",
+      "products",
+      "contacts",
+    ]);
+  });
+
+  it("relabels a tab without moving its identity", async () => {
+    // An unnamed tab's identity is its label slugified, so a relabelling that
+    // ran before identity would rename the very address the override was
+    // written against.
+    const layout = ref([
+      { label: "Organization", sections: [] },
+      { label: "Products", sections: [] },
+    ] as FormLayoutSchema);
+    const strip = mount(ref({}), ref(""), layout);
+    expect(strip.identities()).toEqual(["organization", "products"]);
+
+    layout.value = [
+      layout.value[0],
+      { ...layout.value[1], override: { label: "Items" } },
+    ];
+    await nextTick();
+
+    expect(strip.identities()).toEqual(["organization", "products"]);
+    expect(strip.labels()).toEqual(["Organization", "Items"]);
+  });
+
+  it("brings the reader back when the tab they were on is shown again", async () => {
+    const layout = overridden({ hidden: false });
+    const strip = mount(ref({ extra: 0 }), ref(""), layout);
+
+    await strip.click("products");
+    layout.value = LAYOUT;
+    await nextTick();
+    expect(strip.activeIdentity()).toBe("organization");
+
+    layout.value = overridden({ hidden: false }).value;
+    await nextTick();
+    expect(strip.activeIdentity()).toBe("products");
   });
 });
