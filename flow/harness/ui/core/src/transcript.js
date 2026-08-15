@@ -68,7 +68,6 @@ export function applyEvent(s, e) {
 		case "user_message":
 		case "assistant_message":
 		case "tool_result":
-		case "compaction":
 			if (e.type === "assistant_message") {
 				s.partial = []
 				// a text blob ends the tool phase; a tool-only message keeps the
@@ -81,6 +80,12 @@ export function applyEvent(s, e) {
 				s.pendingApproval = calls.length ? { ...s.pendingApproval, calls } : null
 			}
 			s.entries.push(e)
+			break
+		case "compaction":
+			s.entries.push(e)
+			// The compacted summary has a different context size. Until the next
+			// provider report arrives, the old pre-compaction count is invalid.
+			s.contextTokens = 0
 			break
 		case "approval_required":
 			s.pendingApproval = { seq: e.seq, calls: e.calls, answers: {} }
@@ -97,6 +102,7 @@ export function applyEvent(s, e) {
 			if (s.model !== e.model) s.contextWindow = null
 			s.model = e.model
 			s.reasoningEffort = e.reasoning_effort ?? null
+			s.contextTokens = 0
 			break
 		case "usage":
 			s.usage.input += e.input_tokens ?? 0

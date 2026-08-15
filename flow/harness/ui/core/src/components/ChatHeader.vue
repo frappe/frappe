@@ -24,7 +24,7 @@
 			</span>
 
 			<span
-				v-if="contextTokens > 0 || usedTokens > 0"
+				v-if="contextTokens > 0 || cost > 0"
 				class="flex items-center gap-2 whitespace-nowrap text-xs font-normal tabular-nums text-ink-gray-5"
 			>
 				<span v-if="contextWindow && contextTokens > 0" class="flex items-center gap-1.5" title="Context used">
@@ -36,7 +36,9 @@
 					</span>
 					<span>{{ formatTokens(contextTokens) }} / {{ formatTokens(contextWindow) }}</span>
 				</span>
-				<span v-else-if="usedTokens > 0" title="Tokens used">{{ formatTokens(usedTokens) }} tokens</span>
+				<span v-else-if="contextTokens > 0" title="Current context">
+					{{ formatTokens(contextTokens) }} tokens
+				</span>
 				<span v-if="cost > 0" class="flex items-center gap-2 text-ink-gray-4">
 					<span aria-hidden="true" class="text-ink-gray-3">·</span>
 					<span>${{ cost.toFixed(cost < 1 ? 3 : 2) }}</span>
@@ -74,9 +76,6 @@ const title = computed(() => {
 })
 const cwdName = computed(() => (cwd.value ?? "").split("/").filter(Boolean).pop() ?? "")
 
-const usedTokens = computed(
-	() => flow.state.conversation.usage.input + flow.state.conversation.usage.output,
-)
 const cost = computed(() => flow.state.conversation.usage.cost)
 const contextTokens = computed(() => flow.state.conversation.contextTokens ?? 0)
 const contextWindow = computed(() => flow.state.conversation.contextWindow ?? null)
