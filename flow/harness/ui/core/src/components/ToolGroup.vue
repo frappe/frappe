@@ -39,7 +39,7 @@
 import { computed, nextTick, ref, watch } from "vue"
 import FeatherIcon from "frappe-ui/src/components/FeatherIcon.vue"
 
-import { stepLabel, stepLiveLabel, toolGroupSummary } from "../transcript.js"
+import { stepLiveLabel, toolGroupLiveLabel, toolGroupSummary } from "../transcript.js"
 import ThoughtStep from "./ThoughtStep.vue"
 import ToolStep from "./ToolStep.vue"
 
@@ -85,13 +85,6 @@ const label = computed(() => {
 
 // While streaming: the executing step, else the freshest live signal.
 const liveLine = computed(() => {
-	const running = toolSteps.value.find((s) => !s.result)
-	if (running) return stepLiveLabel(running.call)
-	const last = toolSteps.value[toolSteps.value.length - 1]
-	return (
-		last && (!props.liveLabel || props.liveLabel === stepLabel(last.call.name))
-			? stepLiveLabel(last.call)
-			: (props.liveLabel ?? "Working")
-	)
+	return toolGroupLiveLabel(props.steps, props.liveLabel)
 })
 </script>
