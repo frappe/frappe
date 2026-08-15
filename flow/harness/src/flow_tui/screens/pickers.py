@@ -110,7 +110,11 @@ class SessionPicker(FilterPicker):
 
 	def options(self, needle: str) -> Iterable[Option]:
 		for info in self._sessions:
-			label = f"{info['session_id'][:8]}  {info['state']:<7}  {info['model']}  {info['cwd']}"
+			parts = [info["session_id"][:8], f"{info['state']:<7}", info["model"]]
+			if info.get("title"):
+				parts.append(info["title"][:40])
+			parts.append(info["cwd"])
+			label = "  ".join(parts)
 			if info["session_id"] == self._current:
 				label += "  ← current"
 			if needle in label.lower():
