@@ -14,7 +14,7 @@ class AutomationRelationshipProvider:
 		raise NotImplementedError
 
 	def resolve(self, source_doc, relationship: str, params: dict) -> list[dict]:
-		"""Return zero or more {doctype, name} references."""
+		"""Return zero or more {doctype, name} references"""
 		raise NotImplementedError
 
 	def query(self, source_doc, relationship: str, filters: list, limit: int) -> list[dict]:
@@ -36,11 +36,7 @@ def get_relationship_definition(source_doctype: str, relationship: str) -> dict:
 
 
 def get_relationship_targets(source_doctype: str | None, relationships) -> dict[str, str | None]:
-	"""Validate the flow's predeclared aliases and return {alias: target doctype}.
-
-	`None` as a target means "not known until runtime" - the alias is usable, but actions
-	can't validate their params against a DocType meta.
-	"""
+	"""Validate the flow's predeclared aliases and return {alias: target doctype}"""
 	targets = {"trigger": source_doctype}
 	for item in _parse_relationships(relationships):
 		_validate_alias(item, targets)
@@ -143,11 +139,7 @@ def _validated_definition(provider, source_doctype, definition) -> dict:
 
 
 def _renamed(definition, source_doctype) -> dict:
-	"""`derived_from` gives a schema relationship a stable name and a readable label.
-
-	The app supplies nothing but the two strings - resolution stays with the schema provider,
-	so a rename can't drift from the field that backs it.
-	"""
+	"""`derived_from` gives a schema relationship a stable name and a readable label."""
 	source = definition.pop("derived_from", None)
 	if not source:
 		return definition

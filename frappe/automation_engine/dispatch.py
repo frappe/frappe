@@ -7,8 +7,6 @@ from frappe.automation_engine.registry import get_automations_for
 from frappe.utils import cint, cstr
 from frappe.utils.data import evaluate_filters
 
-# Document lifecycle method -> trigger type. A save fires both on_update and on_change,
-# so "Doc Updated" and "Field Value Changed" rules stay on distinct methods (no double-queue).
 METHOD_TRIGGER = {
 	"after_insert": "Doc Created",
 	"on_update": "Doc Updated",
@@ -19,7 +17,6 @@ METHOD_TRIGGER = {
 }
 
 DEFAULT_MAX_DEPTH = 3
-DEFAULT_DRAIN_SHARDS = 4
 
 
 def run_automations(doc, method):
@@ -28,7 +25,7 @@ def run_automations(doc, method):
 	if not trigger_type or not _dispatch_allowed():
 		return
 
-	# on_update also fires during insert; the insert path is owned by "Doc Created".
+	# on_update also fires during insert
 	if trigger_type == "Doc Updated" and doc.flags.get("in_insert"):
 		return
 
@@ -42,7 +39,6 @@ def run_automations(doc, method):
 
 	# Enforce recursion depth only once we know there's real work to do. Checking earlier
 	# would log a refusal for every unrelated save (Run logs, ToDos, Notification Logs)
-	# that happens inside a max-depth automation context.
 	depth = cint(frappe.flags.get("automation_depth")) + 1
 	max_depth = frappe.conf.get("automation_max_depth") or DEFAULT_MAX_DEPTH
 	if depth > max_depth:
@@ -171,32 +167,10 @@ def _touch_row(name, run_after):
 
 
 def kick_drainer():
-	"""Enqueue the deduplicated drain shards (registered via after_commit).
-
-	Each shard is deduplicated on its own job id, so a kick tops up whichever shards are
-	idle and never runs the same one twice. The shards are not given a slice of the queue:
-	claim_batch is atomic, so they compete for rows and a slow shard cannot strand work
-	that was assigned to it.
-	"""
-	from frappe.automation_engine.drainer import DRAIN_QUEUE
-
-	for shard in range(drain_shard_count()):
-		frappe.enqueue(
-			"frappe.automation_engine.drainer.drain",
-			queue=DRAIN_QUEUE,
-			job_id=f"automation_drain::{frappe.local.site}::{shard}",
-			deduplicate=True,
-		)
-
-
-def drain_shard_count() -> int:
-	"""How many drain shards may run at once, from `automation_drain_shards`.
-
-	Held at one where the database cannot skip locked rows, because there the shards would
-	serialize on each other's claims and only add lock waits.
-	"""
-	from frappe.automation_engine.drainer import supports_skip_locked
-
-	if not supports_skip_locked():
-		return 1
-	return max(1, cint(frappe.conf.get("automation_drain_shards")) or DEFAULT_DRAIN_SHARDS)
+	"""Enqueue a single deduplicated drain job (registered via after_commit)."""
+	frappe.enqueue(
+		"frappe.automation_engine.drainer.drain",
+		queue="default",
+		job_id=f"automation_drain::{frappe.local.site}",
+		deduplicate=True,
+	)

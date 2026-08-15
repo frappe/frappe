@@ -68,16 +68,10 @@ def ensure_dedup_indexes():
 
 
 def _waiting_states_sql() -> str:
-	"""The WAITING_STATES tuple as a SQL list, so the constant stays the single source."""
 	return ", ".join(frappe.db.escape(state) for state in WAITING_STATES)
 
 
 def _ensure_partial_dedup_index():
-	"""Rebuild the partial unique index every time rather than probing its stored predicate.
-
-	Dropping and recreating is cheap on a table the purge sweep keeps short, and it is the
-	only db-agnostic way to guarantee the predicate still matches WAITING_STATES.
-	"""
 	frappe.db.sql_ddl(f"DROP INDEX IF EXISTS `{DEDUP_INDEX}`")
 	frappe.db.sql_ddl(
 		f"""
@@ -113,7 +107,7 @@ def _drop_dedup_column():
 		frappe.db.sql_ddl(f"ALTER TABLE `{TABLE}` DROP INDEX `{DEDUP_INDEX}`")
 	if frappe.db.has_column("Automation Trigger Queue", "dedup_key"):
 		frappe.db.sql_ddl(f"ALTER TABLE `{TABLE}` DROP COLUMN `dedup_key`")
-		# Raw DDL leaves the cached column list stale, and the re-add reads it.
+		# Raw DDL leaves the cached column list stale  and the re-add reads it.
 		frappe.client_cache.delete_value(f"table_columns::{TABLE}")
 
 
