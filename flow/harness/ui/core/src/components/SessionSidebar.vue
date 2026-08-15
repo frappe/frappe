@@ -67,41 +67,37 @@
 				:key="s.session_id"
 				role="button"
 				tabindex="0"
-				class="group flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 hover:bg-surface-gray-2 focus-visible:bg-surface-gray-2 focus-visible:outline-none"
+				class="group relative flex cursor-pointer items-center rounded-lg px-2.5 py-2 hover:bg-surface-gray-2 focus-visible:bg-surface-gray-2 focus-visible:outline-none"
 				:class="s.session_id === flow.state.sessionId ? 'bg-surface-gray-3' : ''"
 				@click="flow.openSession(s.session_id)"
 				@keydown.enter.prevent="flow.openSession(s.session_id)"
 				@keydown.space.prevent="flow.openSession(s.session_id)"
 			>
 				<span
-					class="min-w-0 flex-1 truncate text-xs leading-snug"
+					class="session-title block min-w-0 w-full truncate text-xs leading-snug"
 					:class="s.session_id === flow.state.sessionId ? 'font-medium text-ink-gray-9' : 'text-ink-gray-8'"
 				>
 					{{ flow.sessionTitle(s) }}
 				</span>
-				<!-- dot and delete share one fixed slot; only opacity swaps, so the
-				     row never reflows on hover -->
-				<span class="relative h-5 w-5 flex-none">
+				<span
+					class="absolute right-2 top-1/2 grid h-5 w-5 -translate-y-1/2 place-items-center text-2xs text-ink-gray-5 transition-opacity group-hover:opacity-0"
+				>
 					<span
-						class="absolute inset-0 grid place-items-center text-2xs text-ink-gray-5 group-hover:opacity-0"
-					>
-						<span
-							v-if="s.state === 'running'"
-							class="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-surface-green-3"
-							title="Running"
-						/>
-						<span v-else-if="s.state === 'paused'" title="Waiting for approval">⏸</span>
-					</span>
-					<button
-						class="absolute inset-0 grid place-items-center rounded-[5px] text-ink-gray-5 opacity-0 hover:bg-surface-gray-4 hover:text-ink-gray-8 focus-visible:opacity-100 group-hover:opacity-100"
-						title="Delete session"
-						@click.stop="confirmDelete(s)"
-						@keydown.enter.stop
-						@keydown.space.stop
-					>
-						<FeatherIcon name="trash-2" class="h-[13px] w-[13px]" />
-					</button>
+						v-if="s.state === 'running'"
+						class="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-surface-green-3"
+						title="Running"
+					/>
+					<span v-else-if="s.state === 'paused'" title="Waiting for approval">⏸</span>
 				</span>
+				<button
+					class="absolute right-1 top-1/2 z-10 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md bg-transparent text-ink-gray-5 opacity-0 transition-[color,background-color,opacity] hover:bg-surface-gray-4 hover:text-ink-gray-8 focus-visible:bg-surface-gray-4 focus-visible:opacity-100 group-hover:opacity-100"
+					title="Delete session"
+					@click.stop="confirmDelete(s)"
+					@keydown.enter.stop
+					@keydown.space.stop
+				>
+					<FeatherIcon name="trash-2" class="h-[13px] w-[13px]" />
+				</button>
 			</div>
 			<div v-if="filtered.length === 0" class="px-2.5 py-8 text-center text-xs text-ink-gray-5">
 				{{ query ? "No matches." : "No chats yet — start one." }}
@@ -183,5 +179,11 @@ const daemonUrl = computed(() => {
 .flow-backdrop-enter-from,
 .flow-backdrop-leave-to {
 	opacity: 0;
+}
+
+.group:hover .session-title,
+.group:focus-within .session-title {
+	-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
+	mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
 }
 </style>
