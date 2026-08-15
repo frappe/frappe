@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import traceback
 
 import click
 import frappe
@@ -240,6 +241,7 @@ def build_standard_apps(apps: list[str] | None = None) -> None:
 	This function works without DB access — it reads component data from
 	exported JSON files on disk.
 	"""
+	failed_apps = []
 	for frappe_app in apps or frappe.get_all_apps():
 		studio_folder = get_studio_folder(frappe_app)
 		if not os.path.exists(studio_folder):
@@ -263,7 +265,12 @@ def build_standard_apps(apps: list[str] | None = None) -> None:
 				StudioAppBuilder(studio_app, is_standard=True, frappe_app=frappe_app).build()
 				click.echo(click.style("✔", fg="green") + f" Built {studio_app}")
 			except Exception:
+				traceback.print_exc()
 				click.echo(click.style("✖", fg="red") + f" Build failed for {studio_app}")
+				failed_apps.append(studio_app)
+
+	if failed_apps:
+		raise RuntimeError(f"Studio app builds failed: {', '.join(failed_apps)}")
 
 
 def build_custom_apps() -> None:
