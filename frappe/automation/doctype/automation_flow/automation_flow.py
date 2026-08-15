@@ -1,19 +1,11 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-# IMP: the runner/drainer must NEVER call `rule.save()` on an Automation Flow.
-# Bookkeeping (circuit-breaker state, "last run", etc.) goes to Redis or
-# frappe.db.set_value(..., update_modified=False).
-# A controller save fires on_update then invalidate case then rebuild registry thrash
-# also TimestampMismatch against concurrent config editors.
-
 import frappe
 from frappe import _
 from frappe.automation_engine.registry import DOC_TRIGGER_TYPES, clear_automation_cache
 from frappe.model.document import Document
 
-# "Else" is not a step of its own — an If's two arms are expressed by its children's
-# `branch` field, so a bare Else row would have nothing to execute.
 STEP_TYPES = ("Action", "Wait", "WaitForEvent", "If")
 WAIT_STEP_TYPES = ("Wait", "WaitForEvent")
 WAIT_UNITS = ("Seconds", "Minutes", "Hours", "Days")
@@ -190,7 +182,6 @@ class AutomationFlow(Document):
 		self.set_next_run()
 
 	def set_next_run(self):
-		"""Seed the scheduler's due-gate so a saved flow is picked up without a first tick."""
 		from frappe.automation_engine.scheduler import next_fire
 
 		if self.trigger_type != "Scheduled":
@@ -209,8 +200,6 @@ class AutomationFlow(Document):
 	def on_update(self):
 		clear_automation_cache(self.document_type)
 		# Retargeting a flow leaves the old doctype's cached map holding a rule that no longer
-		# belongs to it, and nothing else evicts that entry - it would keep firing on the
-		# doctype the flow just moved away from.
 		before = self.get_doc_before_save()
 		if before and before.document_type and before.document_type != self.document_type:
 			clear_automation_cache(before.document_type)
