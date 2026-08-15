@@ -17,6 +17,16 @@ function baseIdentity(tab: Pick<Tab, "name" | "label">, index: number): string {
   return tab.name || slug(tab.label ?? "") || `tab-${index + 1}`;
 }
 
+/**
+ * What the strip actually shows for a tab. With more than one tab the strip is
+ * always on screen, so an unlabelled tab would render a blank button — it reads
+ * "Details" instead. Exported because anything that *reports* a tab's label has
+ * to agree with the button the reader is looking at.
+ */
+export function tabStripLabel(label: string, multipleTabs: boolean): string {
+  return label || (multipleTabs ? "Details" : "");
+}
+
 function slug(label: string): string {
   return label
     .toLowerCase()
