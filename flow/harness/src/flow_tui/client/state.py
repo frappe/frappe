@@ -26,6 +26,7 @@ from flow.events import (
 	ApprovalRequired,
 	AssistantMessage,
 	Compaction,
+	DisplaySegment,
 	ModelChanged,
 	PendingCall,
 	ReasoningEffort,
@@ -119,7 +120,7 @@ class PartialToolCall:
 	id: str
 	name: str
 	arguments: dict[str, str] | None = None
-	display: str | None = None
+	display: list[DisplaySegment] | None = None
 
 
 PartialPart = PartialText | PartialThinking | PartialToolCall

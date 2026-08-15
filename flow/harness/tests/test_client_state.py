@@ -3,6 +3,7 @@
 from flow.events import (
 	ApprovalRequired,
 	AssistantMessage,
+	DisplaySegment,
 	ModelChanged,
 	PendingCall,
 	Retry,
@@ -67,7 +68,12 @@ def test_deltas_accumulate_and_durable_message_replaces_them():
 	assert state.partial == [
 		PartialThinking("hmm ok"),
 		PartialText("Hello"),
-		PartialToolCall(id="c1", name="bash", arguments={"command": "pwd"}, display="Running pwd"),
+		PartialToolCall(
+			id="c1",
+			name="bash",
+			arguments={"command": "pwd"},
+			display=[DisplaySegment(text="Running pwd")],
+		),
 		PartialText("tail"),
 	]
 

@@ -29,6 +29,7 @@ from textual.widgets import Markdown, Static
 
 from flow.events import (
 	AssistantMessage,
+	DisplaySegment,
 	TextContent,
 	ThinkingContent,
 	ToolCall,
@@ -63,10 +64,13 @@ def tool_label(name: str) -> Text:
 	return Text().append(TOOL_LABELS.get(name, name), style=STYLE_TOOL_NAME)
 
 
-def call_line(name: str, args: dict | None, display: str | None = None) -> Text:
+def call_line(name: str, args: dict | None, display: list[DisplaySegment] | None = None) -> Text:
 	"""Collapsed one-liner for a tool call with presentation-safe arguments."""
 	if display:
-		return Text(display)
+		line = Text()
+		for segment in display:
+			line.append(segment.text, style=STYLE_TOOL_NAME if segment.arg is None else "")
+		return line
 	line = tool_label(name)
 	if args is None:
 		return line.append(" …", style=STYLE_MUTED)
