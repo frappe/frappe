@@ -130,6 +130,14 @@ def _add_extension_options(parser: argparse.ArgumentParser) -> None:
 	)
 
 
+def _report_extension_diagnostics(store) -> None:
+	"""Extension load problems are non-fatal; stderr is the only place a CLI user sees them."""
+	for diagnostic in store.extension_runtime.diagnostics:
+		location = diagnostic.path or diagnostic.extension
+		suffix = f" ({location})" if location else ""
+		print(f"flow: extension {diagnostic.severity}: {diagnostic.message}{suffix}", file=sys.stderr)
+
+
 def _with_default_command(argv: list[str], commands: set[str]) -> list[str]:
 	"""Bare `flow` (and `flow -c`) opens the TUI, so the common case needs no verb."""
 	if argv and (argv[0] in commands or argv[0] in ("-h", "--help")):
@@ -216,15 +224,14 @@ def _serve(args) -> None:
 	from flow.session.store import SessionStore
 
 	sink = _redis_sink()
-	app = create_app(
-		SessionStore(
-			args.data_dir,
-			event_sink=sink,
-			extension_paths=args.extension,
-			extensions_enabled=not args.no_extensions,
-		),
-		auth_token=config.AUTH_TOKEN,
+	store = SessionStore(
+		args.data_dir,
+		event_sink=sink,
+		extension_paths=args.extension,
+		extensions_enabled=not args.no_extensions,
 	)
+	_report_extension_diagnostics(store)
+	app = create_app(store, auth_token=config.AUTH_TOKEN)
 	if args.parent_watch:
 		from flow.cli.daemon import watch_parent_stdin
 
@@ -269,13 +276,15 @@ def _web(args) -> None:
 	from flow.session.store import SessionStore
 
 	sink = _redis_sink()
+	store = SessionStore(
+		args.data_dir,
+		event_sink=sink,
+		extension_paths=args.extension,
+		extensions_enabled=not args.no_extensions,
+	)
+	_report_extension_diagnostics(store)
 	app = create_app(
-		SessionStore(
-			args.data_dir,
-			event_sink=sink,
-			extension_paths=args.extension,
-			extensions_enabled=not args.no_extensions,
-		),
+		store,
 		auth_token=config.AUTH_TOKEN,
 		webui_dir=webui,
 		system_append=args.append_system_prompt,
