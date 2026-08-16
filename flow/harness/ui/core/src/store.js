@@ -322,10 +322,17 @@ export function createFlowStore(client) {
 
 	// Approval answers: "Approve" | "Deny" | free text. Resume fires once every
 	// undecided call in the batch has an answer (the server validates exactness).
+	// A deny stops the run, so it settles the batch: undecided calls deny with it
+	// (explicit answers stand, matching the server's approve-then-halt order).
 	async function answerApproval(callId, answer) {
 		const pending = state.conversation.pendingApproval
 		if (!pending) return
 		pending.answers[callId] = answer
+		if (answer === "Deny") {
+			for (const call of pending.calls) {
+				if (!(call.id in pending.answers)) pending.answers[call.id] = "Deny"
+			}
+		}
 		const undecided = pending.calls.filter((c) => !(c.id in pending.answers))
 		if (undecided.length > 0) return
 		const answers = { ...pending.answers }
