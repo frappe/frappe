@@ -58,7 +58,6 @@ export class KanbanCore {
 		this.providerUnsub = null;
 		this.resizeObserver = null;
 		this.dropSlotEl = null;
-		this.dropAnchor = null;
 		this.dropCommitPending = false;
 		this.dragSourceColumn = null;
 		this.dragPreview = null;
@@ -957,18 +956,26 @@ export class KanbanCore {
 		// Measure with the hover slot still open, then collapse slot + apply the
 		// new layout in one FLIP so (1) source cards ease up once, (2) target cards
 		// stay put (gap already reserved), (3) the moved card flies source→target.
-		this.animateMove(affected, () => {
-			this.clearDropIndicator();
-			this.setColumnOrder(fromColumn, fromNames, sameColumn ? 0 : -1);
-			if (sameColumn) {
-				// Keep the loaded list in visual order (display uses it while paginated).
-				this.reorderLoaded(fromColumn, cardId, toIndex);
-			} else {
-				this.setColumnOrder(toColumn, toNames, 1);
-				this.moveCardBucket(cardId, fromColumn, toColumn, toIndex);
-			}
-			this.renderColumns(affected);
-		});
+		// Anchor the moved card's FLIP to where it was released (set during drag),
+		// so it eases from the drop point into its slot instead of from origin.
+		const releaseAnchor = this.dragReleaseRect ? { cardId, rect: this.dragReleaseRect } : null;
+		this.dragReleaseRect = null;
+		this.animateMove(
+			affected,
+			() => {
+				this.clearDropIndicator();
+				this.setColumnOrder(fromColumn, fromNames, sameColumn ? 0 : -1);
+				if (sameColumn) {
+					// Keep the loaded list in visual order (display uses it while paginated).
+					this.reorderLoaded(fromColumn, cardId, toIndex);
+				} else {
+					this.setColumnOrder(toColumn, toNames, 1);
+					this.moveCardBucket(cardId, fromColumn, toColumn, toIndex);
+				}
+				this.renderColumns(affected);
+			},
+			releaseAnchor
+		);
 		this.bus.emit("card:move", move);
 		cb.onCardMove && cb.onCardMove(move);
 
@@ -985,6 +992,8 @@ export class KanbanCore {
 					this.renderColumns(affected);
 				});
 			}
+			// Refetch server state so a failed move never lingers and a concurrent reload is not lost.
+			this.reload();
 			cb.onMoveError && cb.onMoveError(move, error);
 			this.bus.emit("error", error);
 		}
@@ -1190,7 +1199,7 @@ export class KanbanCore {
 	 * mutation. Used after a real drop and while the hover drop-slot moves so
 	 * sibling cards ease into place instead of jumping.
 	 */
-	flipCards(bodies, mutate) {
+	flipCards(bodies, mutate, anchor) {
 		const parents = [...new Set((bodies || []).filter(Boolean))];
 		const first = new Map();
 		for (const parent of parents) {
@@ -1202,6 +1211,10 @@ export class KanbanCore {
 				first.set(el.dataset.name, el.getBoundingClientRect());
 			});
 		}
+
+		// Start the dragged card's FLIP from where it was released, not its
+		// pre-drag slot, so it settles into place instead of snapping to origin.
+		if (anchor && anchor.rect) first.set(anchor.cardId, anchor.rect);
 
 		mutate();
 
@@ -1235,14 +1248,14 @@ export class KanbanCore {
 	}
 
 	/** FLIP across columns, then drop the hover slot after mutate. */
-	animateMove(ids, mutate) {
+	animateMove(ids, mutate, anchor) {
 		const bodies = [...new Set(ids)]
 			.map((id) => {
 				const view = this.columnViews.get(id);
 				return view && view.body;
 			})
 			.filter(Boolean);
-		this.flipCards(bodies, mutate);
+		this.flipCards(bodies, mutate, anchor);
 	}
 
 	/**
@@ -1280,6 +1293,7 @@ export class KanbanCore {
 			dx: input ? input.clientX - rect.left : rect.width / 2,
 			dy: input ? input.clientY - rect.top : 24,
 			h: rect.height,
+			w: rect.width,
 			// Multi-drag reserves N card heights so the post-drop FLIP doesn't
 			// have to shove target cards further after release.
 			count,
@@ -1315,6 +1329,9 @@ export class KanbanCore {
 		const left = x - this.dragGrab.dx;
 		const top = y - this.dragGrab.dy;
 		this.dragPreview.style.transform = `translate(${left}px, ${top}px) rotate(3deg)`;
+		// Remember where the card was released so the post-drop FLIP settles from
+		// here into its slot, instead of snapping back to the original position.
+		this.dragReleaseRect = { left, top, width: this.dragGrab.w, height: this.dragGrab.h };
 	}
 
 	/** Remove the custom drag preview from the document. */
@@ -1340,7 +1357,6 @@ export class KanbanCore {
 			this.clearDropIndicator({ animate: true });
 			return;
 		}
-		this.dropAnchor = el;
 		const slot = this.dropSlotEl || (this.dropSlotEl = this.buildDropSlot());
 		if (this.dragGrab && this.dragGrab.h) {
 			const n = this.dragGrab.count || 1;
@@ -1372,7 +1388,6 @@ export class KanbanCore {
 	 *        post-drop animateMove owns the motion.
 	 */
 	clearDropIndicator(opts = {}) {
-		this.dropAnchor = null;
 		if (!(this.dropSlotEl && this.dropSlotEl.parentNode)) return;
 		const parent = this.dropSlotEl.parentNode;
 		const remove = () => parent.removeChild(this.dropSlotEl);
