@@ -55,24 +55,50 @@ export function groupActivities(activities: Activity[]): Activity[] {
   return _activities;
 }
 
-// Fold each run of consecutive same-author version rows into one summary; others pass through.
+// Fold same-author version rows chained ≤15m apart into one summary, regardless of
+// interleaved rows — an activity log or comment between two saves must not split a
+// fold. The summary sits where the cluster's last row was, so order stays chronological.
 export function groupVersionActivities(activities: Activity[]): Activity[] {
-  return groupActivityByOwner(
-    activities,
-    (a): a is VersionActivity => a.type === "version",
-    (run) => {
-      const summary = summarizeVersions(run);
-      return summary ? [summary] : [];
-    },
-    true // group by time gap too
-  );
+  interface Cluster {
+    rows: VersionActivity[];
+    lastIndex: number;
+  }
+  const open = new Map<string, Cluster>(); // author email → growing cluster
+  const clusterAt = new Map<number, Cluster>(); // index of a cluster's last row
+  activities.forEach((a, i) => {
+    if (a.type !== "version") return;
+    const author = a.author?.email ?? "";
+    const cluster = open.get(author);
+    if (cluster && withinGap(cluster.rows[cluster.rows.length - 1], a)) {
+      clusterAt.delete(cluster.lastIndex);
+      cluster.rows.push(a);
+      cluster.lastIndex = i;
+      clusterAt.set(i, cluster);
+    } else {
+      const started = { rows: [a], lastIndex: i };
+      open.set(author, started);
+      clusterAt.set(i, started);
+    }
+  });
+
+  const out: Activity[] = [];
+  activities.forEach((a, i) => {
+    if (a.type !== "version") {
+      out.push(a);
+      return;
+    }
+    const cluster = clusterAt.get(i);
+    if (!cluster) return; // folded into a later row of its cluster
+    const summary = summarizeVersions(cluster.rows);
+    if (summary) out.push(summary);
+  });
+  return out;
 }
 
 function groupActivityByOwner<T extends Activity>(
   activities: Activity[],
   isMember: (a: Activity) => a is T,
-  summarize: (run: T[]) => Activity[],
-  groupByTime = false
+  summarize: (run: T[]) => Activity[]
 ): Activity[] {
   const out: Activity[] = [];
   let runStart = 0;
@@ -87,8 +113,7 @@ function groupActivityByOwner<T extends Activity>(
     while (
       runEnd < activities.length &&
       isMember(activities[runEnd]) &&
-      activities[runEnd].author?.email === first.author?.email &&
-      (!groupByTime || withinGap(activities[runEnd - 1], activities[runEnd]))
+      activities[runEnd].author?.email === first.author?.email
     ) {
       runEnd++;
     }
@@ -104,7 +129,7 @@ export function summarizeVersions(
   versions: VersionActivity[]
 ): VersionActivity | null {
   const changes: VersionChange[] = []; // one net change per field, in first-seen order
-  const byField = new Map<string, { change: VersionChange; index: number }>();
+  const byField = new Map<string, VersionChange>();
 
   for (const row of versions) {
     const change = row.data;
@@ -115,7 +140,17 @@ export function summarizeVersions(
     }
 
     const seen = byField.get(change.fieldname);
-    if (!seen) {
+    if (seen && seen.type === "diff" && change.type === "diff") {
+      // advance the net "to" (keep the first row's "from") and record the hop + newest time
+      seen.to = change.to;
+      seen.timestamp = row.timestamp;
+      seen.history = [
+        ...(seen.history ?? []),
+        { from: change.from ?? "", to: change.to, timestamp: row.timestamp },
+      ];
+    } else {
+      // first change for this field — or its kind changed mid-run (edited then
+      // cleared): keep the earlier entry and start a new one, so nothing is erased
       const seeded: VersionChange =
         change.type === "diff"
           ? {
@@ -130,43 +165,24 @@ export function summarizeVersions(
               ],
             }
           : { ...change, timestamp: row.timestamp };
-      byField.set(change.fieldname, { change: seeded, index: changes.length });
+      byField.set(change.fieldname, seeded);
       changes.push(seeded);
-    } else if (seen.change.type === "diff" && change.type === "diff") {
-      // advance the net "to" (keep the first row's "from") and record the hop + newest time
-      seen.change.to = change.to;
-      seen.change.timestamp = row.timestamp;
-      seen.change.history = [
-        ...(seen.change.history ?? []),
-        { from: change.from ?? "", to: change.to, timestamp: row.timestamp },
-      ];
-    } else {
-      // type changed mid-run (e.g. value edited then cleared) — take the latest
-      const replacement: VersionChange = {
-        ...change,
-        timestamp: row.timestamp,
-      };
-      changes[seen.index] = replacement;
-      byField.set(change.fieldname, { change: replacement, index: seen.index });
     }
   }
 
-  // drop fields that churned back to their starting value (net no-op)
-  const visible = changes.filter(
-    (c) => !(c.type === "diff" && c.from === c.to)
-  );
-  if (visible.length === 0) return null;
+  // net no-ops (Bug → Incident → Bug) stay visible; the chevron shows the round trip
+  if (changes.length === 0) return null;
 
   // net changes list oldest-first by each field's latest hop (first-seen order otherwise)
-  visible.sort((a, b) => timeValue(a.timestamp) - timeValue(b.timestamp));
+  changes.sort((a, b) => timeValue(a.timestamp) - timeValue(b.timestamp));
 
   // key off the first row so Vue reuses the item (keeps expanded state); timestamp from last
   const first = versions[0];
   const last = versions[versions.length - 1];
   const data =
-    visible.length === 1
-      ? { ...visible[0] }
-      : { ...visible[0], group: visible };
+    changes.length === 1
+      ? { ...changes[0] }
+      : { ...changes[0], group: changes };
   return { ...last, key: first.key, data };
 }
 

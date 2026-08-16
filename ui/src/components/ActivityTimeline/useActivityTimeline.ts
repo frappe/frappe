@@ -1,12 +1,7 @@
 import { createResource } from "frappe-ui";
 import { computed, onMounted, onUnmounted, reactive, ref, type Ref } from "vue";
 import { getSocketInstance } from "../../socket";
-import type {
-  Activity,
-  CustomActivity,
-  Pagination,
-  UserInfo,
-} from "./types";
+import type { Activity, CustomActivity, Pagination, UserInfo } from "./types";
 import {
   compareActivities,
   dropDuplicateKeys,
@@ -36,18 +31,36 @@ function pagingState<T>(
   return state;
 }
 
-export function useActivityTimeline(doctype: string, docname: string) {
-  const cacheKey = `${doctype}:${docname}`;
+/** e.g. ["email", "comment", { version: ["status", "priority"] }] */
+export type VisibleTypes = Array<Activity["type"] | { version: string[] }>;
+
+export function useActivityTimeline(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+) {
+  // filters are part of the cache identity
+  const cacheKey = `${doctype}:${docname}:${
+    visibleTypes ? JSON.stringify(visibleTypes) : "*"
+  }`;
+  const visibleTypeNames = visibleTypes?.flatMap((t) =>
+    typeof t === "string" ? [t] : Object.keys(t)
+  );
 
   const hasMoreEmails = pagingState(hasMoreEmailsByKey, cacheKey, true);
-  const hasMoreMilestones = pagingState(hasMoreMilestonesByKey, cacheKey, false);
+  const hasMoreMilestones = pagingState(
+    hasMoreMilestonesByKey,
+    cacheKey,
+    false
+  );
   const milestoneStart = pagingState(milestoneStartByKey, cacheKey, 0);
 
   let resource = resources.get(cacheKey);
   if (!resource) {
     resource = createResource({
       url: "frappe.desk.form.activity.get_activity_timeline",
-      params: { doctype, name: docname },
+      // filtered server-side so pagination math stays correct
+      params: { doctype, name: docname, visible_types: visibleTypes },
       cache: `activities:${cacheKey}`,
       auto: true,
       // transform sets resource.data; onSuccess still sees the raw response, so the
@@ -81,7 +94,7 @@ export function useActivityTimeline(doctype: string, docname: string) {
     resources.set(cacheKey, resource);
   }
 
-  subscribeToLiveUpdates(doctype, docname, resource);
+  subscribeToLiveUpdates(doctype, docname, resource, visibleTypeNames);
 
   const activities = computed<Array<Activity | CustomActivity>>(() => {
     const fetched = (resource.data as Activity[] | undefined) ?? [];
@@ -106,7 +119,9 @@ export function useActivityTimeline(doctype: string, docname: string) {
 function isPagedRow(activity: Activity | CustomActivity): boolean {
   if (activity.type === "email") return true;
   if (activity.type !== "log") return false;
-  return (activity.data as { subtype?: string } | null)?.subtype === "milestone";
+  return (
+    (activity.data as { subtype?: string } | null)?.subtype === "milestone"
+  );
 }
 
 // History paging: fetch the next older page of each paged source and append; activities re-sorts.
@@ -191,7 +206,8 @@ function createHistoryPagination(
 function subscribeToLiveUpdates(
   doctype: string,
   docname: string,
-  resource: ReturnType<typeof createResource>
+  resource: ReturnType<typeof createResource>,
+  visibleTypes: string[] | undefined
 ) {
   const socket = getSocketInstance();
   if (!socket) return;
@@ -216,6 +232,8 @@ function subscribeToLiveUpdates(
 
     const activity = normalizeLiveActivity(key, doc, resolveAuthor);
     if (!activity) return;
+    // mirror the server-side visibleTypes filter
+    if (visibleTypes && !visibleTypes.includes(activity.type)) return;
 
     const current = (resource.data as Activity[] | undefined) ?? [];
     if (action === "add") {
