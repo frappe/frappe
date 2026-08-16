@@ -11,6 +11,13 @@ LOOKUP_INDEX = "pending_lookup"
 
 
 class AutomationTriggerQueue(Document):
+	"""A pending trigger waiting for a drain to pick it up.
+
+	`ref_name` is plain Data rather than a Dynamic Link so a queued row
+	survives the referenced document being deleted. `resume_run` points at the
+	Background Task a row is resuming after a wait.
+	"""
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
