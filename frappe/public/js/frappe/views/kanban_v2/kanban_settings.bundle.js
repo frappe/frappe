@@ -114,10 +114,14 @@ class KanbanBoardSettings {
 
 	make_tabs() {
 		return [
-			{ group: __("General"), items: [this.config_item()] },
 			{
-				group: __("Layout"),
-				items: [this.columns_item(), this.cards_item(), this.swimlanes_item()],
+				group: __("Kanban Settings"),
+				items: [
+					this.config_item(),
+					this.columns_item(),
+					this.cards_item(),
+					this.swimlanes_item(),
+				],
 			},
 		];
 	}
@@ -135,32 +139,13 @@ class KanbanBoardSettings {
 			description: __("How cards look in the new Kanban experience."),
 			actions: [this.save_action()],
 			fields: [
+				// Row 1: Board Name | Footer Date
 				{
 					fieldname: "kanban_board_name",
 					fieldtype: "Data",
 					label: __("Board Name"),
 					default: this.doc.kanban_board_name,
 					read_only: 1,
-				},
-				{
-					fieldname: "title_field",
-					fieldtype: "Autocomplete",
-					label: __("Title Field"),
-					options: this.opts.title,
-					default: this.doc.title_field,
-					description: __(
-						"Field shown as the card title. Only Name (ID) or Data fields."
-					),
-				},
-				{
-					fieldname: "image_field",
-					fieldtype: "Autocomplete",
-					label: __("Image Field"),
-					options: this.opts.image,
-					default: this.doc.image_field,
-					description: __(
-						"Attach Image field shown as a thumbnail before the card title."
-					),
 				},
 				{ fieldtype: "Column Break" },
 				{
@@ -171,12 +156,34 @@ class KanbanBoardSettings {
 					default: this.doc.footer_date_field || "Modified",
 					description: __("Which timestamp to show in the card footer."),
 				},
+				// Row 2: Title Field | Image Field
+				{ fieldtype: "Section Break" },
+				{
+					fieldname: "title_field",
+					fieldtype: "Autocomplete",
+					label: __("Title Field"),
+					options: this.opts.title,
+					default: this.doc.title_field,
+					description: __("Only Name (ID) or Data fields."),
+				},
+				{ fieldtype: "Column Break" },
+				{
+					fieldname: "image_field",
+					fieldtype: "Autocomplete",
+					label: __("Image Field"),
+					options: this.opts.image,
+					default: this.doc.image_field,
+					description: __("Attach Image field for card thumbnail."),
+				},
+				// Row 3: Checkboxes
+				{ fieldtype: "Section Break" },
 				{
 					fieldname: "show_assigned_to",
 					fieldtype: "Check",
 					label: __("Show Assigned To"),
 					default: this.doc.show_assigned_to,
 				},
+				{ fieldtype: "Column Break" },
 				{
 					fieldname: "show_tags_on_card",
 					fieldtype: "Check",

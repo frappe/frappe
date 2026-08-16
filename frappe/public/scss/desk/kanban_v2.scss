@@ -104,9 +104,6 @@
 }
 
 /* ---- page: card footer -------------------------------------------------- */
-.kn-card-foot-left {
-	min-height: 24px;
-}
 
 /* ---- engine: card states ------------------------------------------------- */
 /* Cards sit flat on the column and lift only on hover. */
@@ -366,6 +363,29 @@
 	content: " ";
 }
 .kn-mi-desc :where(img, table, hr) {
+	display: none;
+}
+/* Rich text preview fields — rendered as full-width sections with proper HTML structure. */
+.kn-mi-rich-content {
+	max-height: 150px;
+	overflow: hidden;
+	/* Headings and paragraphs keep their block structure for readability. */
+}
+.kn-mi-rich-content :where(h1, h2, h3, h4, h5, h6) {
+	font-weight: 600;
+	margin: 0 0 0.25rem 0;
+	font-size: inherit;
+}
+.kn-mi-rich-content :where(p, ul, ol, blockquote, pre) {
+	margin: 0 0 0.5rem 0;
+}
+.kn-mi-rich-content :where(p, li, blockquote, pre):last-child {
+	margin-bottom: 0;
+}
+.kn-mi-rich-content :where(ul, ol) {
+	padding-left: 1.25rem;
+}
+.kn-mi-rich-content :where(img, table, hr) {
 	display: none;
 }
 /* Grid + custom gaps have no utility equivalent. */
