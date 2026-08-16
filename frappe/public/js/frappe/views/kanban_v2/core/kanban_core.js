@@ -106,6 +106,7 @@ export class KanbanCore {
 	/** Fetch board data and re-render; responses from an earlier reload are ignored. */
 	async reload() {
 		const reloadSeq = ++this.reloadSeq;
+		this._reloadInFlight = true;
 		this.setLoading(true);
 		// First load has no columns yet — show placeholder columns instead of a
 		// blank panel while loadBoard() runs. render() replaces them with real data.
@@ -119,7 +120,10 @@ export class KanbanCore {
 		} catch (error) {
 			if (reloadSeq === this.reloadSeq) this.bus.emit("error", error);
 		} finally {
-			if (reloadSeq === this.reloadSeq) this.setLoading(false);
+			if (reloadSeq === this.reloadSeq) {
+				this._reloadInFlight = false;
+				this.setLoading(false);
+			}
 		}
 	}
 
@@ -985,15 +989,17 @@ export class KanbanCore {
 			this.ignoreRemoteUpdatesUntil = Date.now() + 3000;
 			cb.onAfterCardMove && cb.onAfterCardMove(move);
 		} catch (error) {
-			// Skip rollback if a reload has since replaced this state.
+			// No reload since this move started — the pre-move snapshot is server truth.
 			if (this.reloadSeq === reloadSeqAtSnapshot) {
 				this.animateMove(affected, () => {
 					this.state = snapshot;
 					this.renderColumns(affected);
 				});
+			} else if (!this._reloadInFlight) {
+				// A reload already replaced this state; refetch only when none is in flight
+				// — canceling an in-flight reload would discard its fresh response.
+				this.reload();
 			}
-			// Refetch server state so a failed move never lingers and a concurrent reload is not lost.
-			this.reload();
 			cb.onMoveError && cb.onMoveError(move, error);
 			this.bus.emit("error", error);
 		}
@@ -1167,13 +1173,14 @@ export class KanbanCore {
 					});
 			}
 		} catch (error) {
-			// Skip rollback if a reload (e.g. from another session) has since replaced this state.
 			if (this.reloadSeq === reloadSeqAtSnapshot) {
 				this.state = snapshot;
 				this.renderColumns(affected);
+			} else if (!this._reloadInFlight) {
+				// A reload already replaced this state; refetch only when none is in
+				// flight — canceling an in-flight reload would discard its fresh data.
+				this.reload();
 			}
-			// Refetch the actual server state.
-			this.reload();
 			cb.onMoveError && cb.onMoveError(moveErrorArgs, error);
 			this.bus.emit("error", error);
 		}
