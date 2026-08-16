@@ -67,7 +67,7 @@ from flow.model.credentials import CredentialStore
 from flow.model.reasoning import reasoning_params
 from flow.session.config import SessionConfig
 from flow.session.transcript import PendingApproval
-from flow.tools import Tool, ToolContext
+from flow.tools import StoreImage, Tool, ToolContext
 
 if TYPE_CHECKING:
 	from flow.extensions import ExtensionRuntime
@@ -116,6 +116,7 @@ class LoopInputs:
 	before_tool_call: BeforeHook | None = None
 	after_tool_call: AfterHook | None = None
 	resolve_attachment: Callable[[str], bytes] | None = None
+	store_image: StoreImage | None = None
 	server_tools: dict[str, Tool] | None = None
 	extension_runtime: ExtensionRuntime | None = None
 
@@ -605,6 +606,7 @@ def _tool_context(inputs: LoopInputs) -> ToolContext:
 		allowed_roots=inputs.allowed_roots,
 		read_only_roots=inputs.read_only_roots,
 		abort=inputs.abort,
+		store_image=inputs.store_image,
 	)
 
 
