@@ -181,7 +181,7 @@ async def resume(
 		yield result
 
 	if denied:  # a rejected action stops the run rather than continuing
-		yield RunEnded(reason="done")
+		yield RunEnded(reason="denied")
 		return
 	async for event in _loop(inputs):
 		yield event

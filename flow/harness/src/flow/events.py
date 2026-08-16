@@ -221,7 +221,7 @@ class ApprovalRequired(_Event):
 	calls: list[PendingCall] = Field(default_factory=list)
 
 
-RunEndReason = Literal["done", "length", "max_turns", "budget", "aborted", "error", "paused"]
+RunEndReason = Literal["done", "length", "max_turns", "budget", "aborted", "error", "paused", "denied"]
 
 
 class RunEnded(_Event):

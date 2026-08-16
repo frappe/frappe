@@ -182,7 +182,7 @@ async def test_resume_deny_stops_run(tmp_path):
 	tr = _of(events, "tool_result")[0]
 	assert tr["is_error"] is True
 	assert "denied" in tr["content"]
-	assert _of(events, "run_ended")[-1]["reason"] == "done"
+	assert _of(events, "run_ended")[-1]["reason"] == "denied"
 	assert mock._turn == 1  # the model was NOT called again after denial
 
 

@@ -96,7 +96,8 @@ export function applyEvent(s, e) {
 			s.partial = []
 			if (e.reason !== "paused") s.pendingApproval = null // a pause outlives its run
 			// abnormal endings leave a durable marker in the transcript flow
-			if (["aborted", "max_turns", "budget", "length"].includes(e.reason)) s.entries.push(e)
+			if (["aborted", "max_turns", "budget", "length", "denied"].includes(e.reason))
+				s.entries.push(e)
 			break
 		case "model_changed":
 			if (s.model !== e.model) s.contextWindow = null
@@ -184,6 +185,7 @@ export function applyEvent(s, e) {
 
 const END_NOTICES = {
 	aborted: "Interrupted by user",
+	denied: "Tool call denied by user",
 	max_turns: "Stopped — turn limit reached",
 	budget: "Stopped — output budget reached",
 	length: "Stopped — model hit its length limit",
