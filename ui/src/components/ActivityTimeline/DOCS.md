@@ -42,6 +42,13 @@ For pagination, bind `paginate` too — see [Pagination](#pagination).
 > shared renderer decoupled from where activities come from. `useActivityTimeline` binds its
 > args once; remount with a `:key` to switch documents.
 
+### Prefetching
+
+`prefetchActivityTimeline(doctype, docname, visibleTypes?)` starts (or reuses) the same
+shared fetch without mounting anything, and returns the resource. Call it from a page
+shell so a top-level loading gate can wait on `.fetched` — the timeline then mounts with
+its data already there, avoiding a second in-panel loading state.
+
 ## The component
 
 `<ActivityTimeline>` — renders the feed and the "Load more" affordance.
@@ -51,7 +58,8 @@ For pagination, bind `paginate` too — see [Pagination](#pagination).
 | **Props**   | `activities: Array<Activity \| CustomActivity>` (required), `loading?: boolean`, `paginate?: Pagination`                                                                                                                                                                                                                                                                                     |
 | **Loading** | First-load spinner shows only while `loading` **and** `activities` is empty; cached rows stay visible during revalidation                                                                                                                                                                                                                                                                    |
 | **Empty**   | Renders a built-in "No activity found" state when `activities` is empty and not loading; replace it via the `#empty` slot                                                                                                                                                                                                                                                                    |
-| **Exposes** | `scrollToRow(key: string): boolean` — scrolls the row with that key into view and flashes it (deep links); returns `false` if the key isn't rendered. `scrollToLatest()` — jumps to the newest row (no flash); call it on reveal if your timeline mounts hidden (e.g. inactive tab panels), where the automatic open-at-bottom can't engage |
+| **Scrolling** | The component is its own scroll container (`column-reverse`): give it a bounded height (`flex-1 min-h-0`) and it opens anchored at the newest row, stays pinned as content grows, and keeps the viewport still when older pages prepend — all natively, no scroll scripting. Unbounded, an ancestor scrolls it like any block. DOM order stays chronological |
+| **Exposes** | `scrollToRow(key: string): boolean` — scrolls the row with that key into view and flashes it (deep links); returns `false` if the key isn't rendered. `scrollToLatest()` — jumps to the newest row (no flash) |
 
 ### Slots
 
