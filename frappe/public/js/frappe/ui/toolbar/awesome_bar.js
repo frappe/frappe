@@ -26,6 +26,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			const input = search_modal.find("#navbar-search").get(0);
 			setTimeout(() => input.focus(), 10);
 		});
+		search_modal.on("hide.bs.modal", () => {
+			this._hook_search_seq = (this._hook_search_seq || 0) + 1;
+		});
 
 		let search_modal_body = `<div class="align-baseline flex p-2 relative navbar-modal-wrapper">
 			<input
@@ -134,7 +137,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			item: function (item, term) {
 				const d = this.get_item(item.value);
 				let target = "#";
-				if (d.route) {
+				if (is_external_url(d.route)) {
+					target = Array.isArray(d.route) ? d.route[0] : d.route;
+				} else if (d.route) {
 					target = frappe.router.make_url(
 						frappe.router.convert_from_standard_route(
 							frappe.router.get_route_from_arguments(
@@ -238,8 +243,8 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				if (event.ctrlKey || event.metaKey) {
 					frappe.open_in_new_tab = true;
 				}
-				if (item.route && item.route[0].startsWith("https://")) {
-					window.open(item.route[0], "_blank");
+				if (is_external_url(item.route)) {
+					window.open(Array.isArray(item.route) ? item.route[0] : item.route, "_blank");
 					return;
 				}
 				frappe.set_route(item.route);
@@ -518,3 +523,8 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		});
 	}
 };
+
+function is_external_url(route) {
+	const first = Array.isArray(route) ? route[0] : route;
+	return typeof first === "string" && (first.startsWith("https://") || first.startsWith("http://"));
+}

@@ -605,20 +605,42 @@ class TestSearch(IntegrationTestCase):
 				],
 			)
 
+			http_results = awesomebar_search("intranet")
+			self.assertEqual(
+				http_results,
+				[
+					{
+						"label": "Intranet",
+						"value": "Intranet",
+						"index": 40,
+						"route": ["http://docs.local"],
+					},
+				],
+			)
+
 			self.assertEqual(awesomebar_search("unrelated"), [])
 
 
 def _awesomebar_help(txt):
-	if "help" not in txt.lower():
-		return []
-	return [
-		{
-			"label": "Open Help",
-			"description": "Docs",
-			"route": "https://docs.example.com",
-			"index": 50,
-		}
-	]
+	query = txt.lower()
+	if "help" in query:
+		return [
+			{
+				"label": "Open Help",
+				"description": "Docs",
+				"route": "https://docs.example.com",
+				"index": 50,
+			}
+		]
+	if "intranet" in query:
+		return [
+			{
+				"label": "Intranet",
+				"route": "http://docs.local",
+				"index": 40,
+			}
+		]
+	return []
 
 
 def _awesomebar_broken(txt):

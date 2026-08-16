@@ -527,7 +527,7 @@ def awesomebar_search(txt: str) -> list[dict]:
 	Each hooked method receives `txt` and should return a list of dicts with:
 	- `label` (or `value`): title shown in the dropdown
 	- `description`: optional snippet under the title
-	- `route`: desk route list, or a URL string (`https://…` opens in a new tab)
+	- `route`: desk route list, or a URL string (`http://` / `https://` opens in a new tab)
 	- `index`: optional ranking score (higher ranks first; built-in Search is 100)
 	- `route_options`: optional dict passed to `frappe.route_options` on select
 	"""
