@@ -398,6 +398,10 @@ function deriveTurns(entries) {
 		}
 		if (entry.type === "assistant_message") current.terminalAssistant = entry
 		if (entry.type === "run_ended" && entry.reason === "aborted") current.interrupted = true
+		// a user-terminated turn (abort/deny) has no terminal response: its last
+		// text folds with the work instead of standing as the answer
+		if (entry.type === "run_ended" && ["aborted", "denied"].includes(entry.reason))
+			current.terminalAssistant = null
 	}
 
 	return { turns, turnByEntry, latestTurnKey: [...turns.keys()].at(-1) ?? null }
