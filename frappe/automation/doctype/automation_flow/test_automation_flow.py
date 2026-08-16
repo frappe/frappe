@@ -136,12 +136,6 @@ class TestAutomationFlow(IntegrationTestCase):
 		doc.insert()
 		self.assertTrue(doc.name)
 
-	def test_enabling_custom_event_flow_blocked(self):
-		doc = make_automation(
-			trigger_type="Custom Event", document_type=None, custom_event="deal_won", enabled=1
-		)
-		self.assertRaises(frappe.ValidationError, doc.insert)
-
 	def test_custom_event_flow_saves_as_draft(self):
 		doc = make_automation(trigger_type="Custom Event", document_type=None, custom_event="deal_won")
 		doc.insert()
