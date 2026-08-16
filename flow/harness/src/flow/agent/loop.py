@@ -163,6 +163,7 @@ async def resume(
 	Each answer maps a tool_call_id to a decision: "Approve" runs the tool, "Deny"
 	halts the run, any other text redirects the model.
 	"""
+	yield RunStarted(run_id=uuid.uuid4().hex[:12])
 	tools = inputs.server_tools or {}
 	ctx = _tool_context(inputs)
 	denied = False

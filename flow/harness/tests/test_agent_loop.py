@@ -170,6 +170,7 @@ async def test_pause_and_resume(tmp_path):
 	await _resume(session, {"c1": "Approve"}, model=mock)
 	assert _of(events, "tool_result")[0]["content"] == "SECRET"
 	assert _of(events, "run_ended")[-1]["reason"] == "done"
+	assert len(_of(events, "run_started")) == 2  # the resumed run announces itself
 
 
 async def test_resume_deny_stops_run(tmp_path):
