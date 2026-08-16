@@ -413,6 +413,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		// same-doctype board switches, so it can hold the previous board's set).
 		this.sync_filter_group_to_board();
 		this.setup_group_button();
+		this.setup_quick_filters();
 	}
 
 	/**
@@ -774,6 +775,172 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.sync_board_height();
 	}
 
+	/**
+	 * Quick filters on the left of the header — the doctype's `in_standard_filter`
+	 * fields (same source as List View), excluding the column field and the active
+	 * swimlane field, capped at 4 so the single-row header never wraps. Applied at
+	 * query time alongside the Filter popover.
+	 */
+	setup_quick_filters() {
+		const page = this.page;
+		if (!this.$quick_filters) {
+			this.$quick_filters = $(
+				'<div class="standard-filter-section kanban-v2-quick-filters flex"></div>'
+			).insertBefore(this.$filter_section);
+		}
+		// Preserve any active values so re-rendering (board/swimlane change) does
+		// not silently drop the filters the user has typed.
+		const preserved = {};
+		(this._quick_filter_fields || []).forEach((fn) => {
+			const f = page.fields_dict[fn];
+			if (f) {
+				const v = f.get_value();
+				if (v) preserved[fn] = v;
+				f.$wrapper && f.$wrapper.remove();
+				delete page.fields_dict[fn];
+			}
+		});
+		this.$quick_filters.empty();
+		this._quick_filter_fields = [];
+
+		const excluded = new Set([this.field_name, this.group_by_field].filter(Boolean));
+		const meta = frappe.get_meta(this.doctype);
+		const dfs = (meta?.fields || [])
+			.filter(
+				(df) =>
+					df.in_standard_filter &&
+					frappe.model.is_value_type(df.fieldtype) &&
+					!excluded.has(df.fieldname) &&
+					frappe.perm.has_perm(this.doctype, df.permlevel)
+			)
+			.slice(0, 4); // keep the header a single row
+
+		dfs.forEach((df) => {
+			page.add_field(this.quick_filter_config(df), this.$quick_filters);
+			this._quick_filter_fields.push(df.fieldname);
+		});
+
+		this.seed_quick_filters();
+
+		// Restore preserved values for fields that are still present.
+		this._seeding_quick = true;
+		try {
+			Object.keys(preserved).forEach((fn) => {
+				const field = page.fields_dict[fn];
+				if (field) field.set_value(preserved[fn]);
+			});
+		} finally {
+			this._seeding_quick = false;
+		}
+	}
+
+	/** Page-field config for a quick filter (mirrors List View's standard filters). */
+	quick_filter_config(df) {
+		let fieldtype = df.fieldtype;
+		let condition = "=";
+		let options = df.options;
+		if (
+			[
+				"Text",
+				"Small Text",
+				"Text Editor",
+				"HTML Editor",
+				"Markdown Editor",
+				"Data",
+				"Code",
+				"Phone",
+				"JSON",
+				"Read Only",
+			].includes(fieldtype)
+		) {
+			fieldtype = "Data";
+			condition = "like";
+		}
+		if (df.fieldtype === "Select" && df.options) {
+			options = df.options.split("\n");
+			if (options.length && options[0] !== "") options.unshift("");
+			options = options.join("\n");
+		}
+		return {
+			fieldtype,
+			label: __(df.label, null, df.parent),
+			options,
+			fieldname: df.fieldname,
+			condition,
+			is_filter: 1,
+			ignore_link_validation: fieldtype === "Dynamic Link",
+			onchange: () => this.on_quick_filter_change(),
+		};
+	}
+
+	/** Reflect any active board filter on a quick-filter field back into its input. */
+	seed_quick_filters() {
+		const set = new Set(this._quick_filter_fields || []);
+		this._seeding_quick = true;
+		try {
+			(this.filters || []).forEach(([, fn, cond, val]) => {
+				if (!set.has(fn)) return;
+				const field = this.page.fields_dict[fn];
+				if (!field) return;
+				let v = val;
+				if (cond === "like" && typeof v === "string") v = v.replace(/^%+|%+$/g, "");
+				field.df.match_type = cond === "like" ? "like" : "=";
+				field.set_value(v);
+			});
+		} finally {
+			this._seeding_quick = false;
+		}
+	}
+
+	/** Current quick-filter inputs as filter tuples (List View get_standard_filters). */
+	get_quick_filters() {
+		const out = [];
+		(this._quick_filter_fields || []).forEach((fn) => {
+			const field = this.page.fields_dict[fn];
+			if (!field) return;
+			let value = field.get_value();
+			if (value === undefined || value === null || value === "") return;
+			const match = field.df.match_type || field.df.condition || "=";
+			let condition = "=";
+			if (match === "like") {
+				condition = "like";
+				if (typeof value === "string" && !value.includes("%")) value = "%" + value + "%";
+			} else if (match === "=") {
+				if (typeof value === "string") value = value.replace(/^%+|%+$/g, "");
+			} else {
+				condition = field.df.condition || match;
+			}
+			out.push([this.doctype, fn, condition, value]);
+		});
+		return out;
+	}
+
+	/** Popover filters (minus quick-filter fields) + quick filters + any extras. */
+	get_effective_filters(extra) {
+		const qf = new Set(this._quick_filter_fields || []);
+		const base = (this.filters || []).filter((f) => !qf.has(f[1]));
+		const eff = base.concat(this.get_quick_filters());
+		return extra && extra.length ? eff.concat(extra) : eff;
+	}
+
+	on_quick_filter_change() {
+		if (this._seeding_quick) return;
+		this._quick_reload =
+			this._quick_reload || frappe.utils.debounce(() => this.reload_board_filters(), 300);
+		this._quick_reload();
+	}
+
+	/** Reload the board for the current effective filter set. */
+	reload_board_filters() {
+		if (this.group_by_field) {
+			this.mount_board(); // swimlanes depend on the filtered set
+			return;
+		}
+		if (!this.provider) return;
+		this.provider.setFilters(this.get_effective_filters());
+		this.board.refresh();
+	}
+
 	/** Settings button — opens Board Settings (kanban_settings.bundle.js). */
 	setup_settings_button($parent) {
 		// Espresso button (Filter stays Bootstrap for FilterGroup chrome).
@@ -859,6 +1026,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		if (next === (this.group_by_field || null)) return;
 		this.group_by_field = next;
 		this.setup_group_button(); // update the dropdown checkmarks + label
+		this.setup_quick_filters(); // drop the now-active swimlane field from quick filters
 		this.sync_board_height();
 		this.mount_board(); // swap between the flat board and swimlanes
 	}
@@ -978,7 +1146,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			return;
 		}
 		if (!this.provider) return;
-		this.provider.setFilters(this.filters);
+		this.provider.setFilters(this.get_effective_filters());
 		this.board.refresh();
 	}
 
@@ -1014,9 +1182,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	/** A data provider, optionally with extra (swimlane) filters merged in. */
 	make_provider(extra_filters) {
-		const filters = extra_filters
-			? [...(this.filters || []), ...extra_filters]
-			: this.filters || [];
+		const filters = this.get_effective_filters(extra_filters);
 		return new frappe.kanban_v2.FrappeDataProvider({
 			doctype: this.doctype,
 			board_name: this.current_board,
@@ -1224,34 +1390,33 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.bind_context_menu(el, card);
 	}
 
-	/** The card's last row: assignees on the left, last activity on the right. */
+	/** The card's last row: assignees + tags on left, date on right. */
 	card_footer(card) {
 		const foot = document.createElement("div");
-		// No divider: the extra top margin alone sets the footer apart, so the
-		// card stays one quiet block instead of two boxed halves.
 		foot.className = "flex items-center justify-between gap-2 mt-3";
 
 		const left = document.createElement("div");
-		left.className = "kn-card-foot-left inline-flex items-center gap-2 min-w-0";
+		left.className = "inline-flex items-center gap-2 min-w-0";
+
 		if (this.show_assigned_to) {
 			left.appendChild(this.assign_button(card));
 		}
 		const tags = this.card_tags(card);
 		if (tags) left.appendChild(tags);
+
 		if (left.childNodes.length) foot.appendChild(left);
 
 		const age = this.age_badge(card);
 		if (age) {
-			// Keep the date on the right when assignees are hidden.
 			if (!left.childNodes.length) age.classList.add("ms-auto");
 			foot.appendChild(age);
 		}
-		// No assignees/tags/date → omit an empty strip under the fields.
+
 		if (!foot.childNodes.length) return document.createDocumentFragment();
 		return foot;
 	}
 
-	/** Standard badge tags on cards, kept compact. */
+	/** Standard badge tags on cards. Shows 1 tag (truncated) + "+N" with hover tooltip. */
 	card_tags(card) {
 		if (!this.show_tags_on_card) return null;
 		const tags = String(card._user_tags || "")
@@ -1261,17 +1426,18 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		if (!tags.length) return null;
 
 		const wrap = document.createElement("div");
-		wrap.className = "inline-flex items-center gap-1 min-w-0";
+		wrap.className = "inline-flex items-center gap-1";
 
-		const shown = tags.slice(0, 2);
-		shown.forEach((tag) => {
-			wrap.appendChild(this.tag_badge(tag, "lg"));
-		});
+		// Show first tag as simple badge.
+		wrap.appendChild(this.tag_badge(tags[0], "lg"));
 
-		if (tags.length > shown.length) {
+		// "+N" count with tooltip showing remaining tags.
+		if (tags.length > 1) {
 			const more = document.createElement("span");
-			more.className = "kn-card-tag-more text-xs text-ink-gray-5";
-			more.textContent = `+${tags.length - shown.length}`;
+			more.className = "text-xs text-ink-gray-5 cursor-default";
+			more.textContent = `+${tags.length - 1}`;
+			const rest = tags.slice(1).join(", ");
+			frappe.ui.tooltip(more, { text: rest, side: "top", delay: 100 });
 			wrap.appendChild(more);
 		}
 
@@ -1290,11 +1456,14 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	/** Standard frappe badge element for a tag. */
 	tag_badge(tag, size = "md") {
+		// Truncate tag text to prevent overflow; full tag shown via tooltip.
+		const MAX_TAG_CHARS = 15;
+		const label = tag.length > MAX_TAG_CHARS ? tag.slice(0, MAX_TAG_CHARS) + "…" : tag;
 		const $badge = frappe.ui.badge({
-			label: tag,
+			label,
 			theme: this.hash_theme(tag),
 			size,
-			title: tag,
+			title: tag, // Full tag in tooltip
 		});
 		return $badge[0];
 	}
@@ -1470,9 +1639,20 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	plain_text(value, fieldtype) {
 		let text = value == null ? "" : String(value);
 		if (!text) return "";
+		// Decode literal escape sequences stored in some rich-text fields.
+		if (text.includes("\\n")) {
+			text = text
+				.replace(/\\n/g, "\n")
+				.replace(/\\t/g, "\t")
+				.replace(/\\([*_`])/g, "$1");
+		}
+		// Convert legacy textile headings ("h4. …") to markdown before rendering.
+		text = text.replace(/^\s*h([1-6])\.\s+/gm, (_m, n) => "#".repeat(+n) + " ");
 		// Markdown is nearly plain already, but "## Title" / "**bold**" is noise
 		// on a card — render it, then strip it like any other HTML.
-		if (fieldtype === "Markdown Editor") text = frappe.markdown(text);
+		if (fieldtype === "Markdown Editor" || this.is_rich_text(fieldtype)) {
+			text = frappe.markdown(text);
+		}
 		// Code is text by definition: "<div>" in it is content, not markup.
 		// html2text also decodes entities (&amp; → &), which stripping cannot.
 		if (fieldtype !== "Code" && /<[a-z!/][^>]*>/i.test(text)) {
@@ -1744,19 +1924,34 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		header.appendChild(htext);
 		wrap.appendChild(header);
 
-		// Description snippet.
-		if (this.desc_field) {
+		// Check if preview_fields includes a rich-text field — if so, skip built-in desc_field
+		// to avoid duplication. Rich text fields in preview are rendered separately below.
+		const preview_has_rich_text = this.preview_field_list.some((fn) => {
+			const df = frappe.meta.get_docfield(this.doctype, fn);
+			return df && this.is_rich_text(df.fieldtype);
+		});
+		if (this.desc_field && !preview_has_rich_text) {
 			const d = this.description_el(card);
 			if (d) wrap.appendChild(d);
 		}
 
-		// Two-column property grid — only fields that actually have a value.
-		// Preview has room: icon (if set) + label text side by side.
-		const props = document.createElement("div");
-		props.className = "kn-mi-props px-4 pt-3 w-full";
+		// Split preview fields into short (grid) and rich-text (full-width below).
+		const short_fields = [];
+		const rich_fields = [];
 		for (const fn of this.preview_field_list) {
 			const df = frappe.meta.get_docfield(this.doctype, fn);
 			if (!df) continue;
+			if (this.is_rich_text(df.fieldtype)) {
+				rich_fields.push({ fn, df });
+			} else {
+				short_fields.push({ fn, df });
+			}
+		}
+
+		// Two-column property grid — only short fields that have a value.
+		const props = document.createElement("div");
+		props.className = "kn-mi-props px-4 pt-3 w-full";
+		for (const { fn, df } of short_fields) {
 			const value = this.field_value(card, df, { plain_select: true });
 			if (!value) continue;
 			const cell = document.createElement("div");
@@ -1787,6 +1982,14 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		}
 		if (props.childNodes.length) wrap.appendChild(props);
 
+		// Rich-text fields — render as sanitized HTML, full width, below the grid.
+		for (const { fn, df } of rich_fields) {
+			const val = card[fn];
+			if (val === undefined || val === null || val === "") continue;
+			const section = this.rich_text_preview_section(val, df, fn);
+			if (section) wrap.appendChild(section);
+		}
+
 		const foot = this.preview_footer(card);
 		if (foot) {
 			wrap.appendChild(foot);
@@ -1795,6 +1998,55 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			wrap.lastElementChild.classList.add("pb-3");
 		}
 		return wrap;
+	}
+
+	/**
+	 * Render a rich-text field as a full-width section with label and sanitized HTML.
+	 * Used for Text Editor, HTML, Markdown fields in preview — they get their own
+	 * block instead of being crammed into the 2-column grid.
+	 */
+	rich_text_preview_section(val, df, fieldname) {
+		let raw = String(val);
+		// Decode literal escapes stored in some rich-text fields.
+		if (raw.includes("\\n")) {
+			raw = raw
+				.replace(/\\n/g, "\n")
+				.replace(/\\t/g, "\t")
+				.replace(/\\([*_`])/g, "$1");
+		}
+		// Convert legacy textile headings ("h4. …") to markdown.
+		raw = raw.replace(/^\s*h([1-6])\.\s+/gm, (_m, n) => "#".repeat(+n) + " ");
+		// Always render as markdown (handles both pure markdown and mixed HTML).
+		const html = frappe.markdown(raw);
+		if (!html || !html.trim()) return null;
+
+		const section = document.createElement("div");
+		section.className = "kn-mi-rich px-4 pt-3 w-full";
+
+		// Label header with icon if configured.
+		const label = this.preview_field_labels[fieldname] || __(df.label || df.fieldname);
+		const icon = (this.preview_field_icons || {})[fieldname];
+		const header = document.createElement("div");
+		header.className = "text-sm text-ink-gray-5 flex items-center gap-1 mb-1";
+		if (icon) {
+			const span = document.createElement("span");
+			span.className =
+				"kn-ficon inline-flex items-center justify-center shrink-0 size-4 text-ink-gray-4";
+			span.innerHTML = this.safe_icon(icon);
+			header.appendChild(span);
+		}
+		const text = document.createElement("span");
+		text.textContent = label;
+		header.appendChild(text);
+		section.appendChild(header);
+
+		// Sanitized HTML content — clamped to ~3 lines via CSS.
+		const content = document.createElement("div");
+		content.className = "kn-mi-rich-content text-p-sm text-ink-gray-6";
+		content.innerHTML = this.safe_html(html);
+		section.appendChild(content);
+
+		return section;
 	}
 
 	/**
@@ -1872,18 +2124,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 					.replace(/\\t/g, "\t")
 					.replace(/\\([*_`])/g, "$1");
 			}
-			let html;
-			if (/<[a-z!/][^>]*>/i.test(raw)) {
-				// Real HTML (a normal Text Editor value) — sanitize, then render.
-				html = raw;
-			} else {
-				// Non-HTML content in a rich-text field: render as markdown so
-				// headings/lists/emphasis format instead of showing their symbols.
-				// Also convert legacy textile headings ("h4. …") to markdown ones.
-				raw = raw.replace(/^\s*h([1-6])\.\s+/gm, (_m, n) => "#".repeat(+n) + " ");
-				html = frappe.markdown(raw);
-			}
-			d.innerHTML = this.safe_html(html);
+			// Convert legacy textile headings ("h4. …") to markdown.
+			raw = raw.replace(/^\s*h([1-6])\.\s+/gm, (_m, n) => "#".repeat(+n) + " ");
+			// frappe.markdown handles both pure markdown and mixed HTML+markdown.
+			d.innerHTML = this.safe_html(frappe.markdown(raw));
 		} else {
 			d.textContent = frappe.ellipsis(this.plain_text(val, ft), 160);
 		}
@@ -1899,36 +2143,46 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const tags = String(card._user_tags || "")
 			.split(",")
 			.map((t) => t.trim())
-			.filter(Boolean)
-			.slice(0, 3);
+			.filter(Boolean);
 		const comments = this.parse_json_list(card._comments).length;
 		const likes = this.parse_json_list(card._liked_by).length;
 		// Nothing on either side → skip the footer so the card ends on content.
 		if (!assignees && !tags.length && !comments && !likes) return null;
 
 		const foot = document.createElement("div");
-		// Spacing (not a border) separates body from footer when the band is present.
-		foot.className =
-			"kn-mi-foot flex items-center justify-between gap-3 px-4 pb-2 mt-3 w-full";
-		if (assignees) foot.appendChild(assignees);
+		// Single row: assignees (left, fixed) | tags + stats (right, wrapping).
+		foot.className = "kn-mi-foot flex items-start gap-3 px-4 pb-2 mt-3 w-full";
 
-		const right = document.createElement("div");
-		// Tags / comments / likes stay on the right even when assignees are off.
-		right.className = `flex items-center gap-2 text-ink-gray-5 min-w-0${
-			assignees ? "" : " ms-auto"
-		}`;
-		if (tags.length) {
-			// A tag icon, then standard badge tags.
-			const group = document.createElement("span");
-			group.className = "inline-flex items-center gap-1 min-w-0";
-			group.innerHTML = frappe.utils.icon("tag", "sm");
-			tags.forEach((tag) => {
-				group.appendChild(this.tag_badge(tag, "md"));
-			});
-			right.appendChild(group);
+		// Assignees on the left, don't shrink.
+		if (assignees) {
+			assignees.classList.add("shrink-0");
+			foot.appendChild(assignees);
 		}
-		if (comments) right.appendChild(this.preview_stat("message-square", comments));
-		if (likes) right.appendChild(this.preview_stat("heart", likes));
+
+		// Right side: tags (wrapping) + stats, taking remaining space.
+		const right = document.createElement("div");
+		right.className = `flex flex-wrap items-center gap-1.5 min-w-0${
+			assignees ? " flex-1 justify-end" : " ms-auto"
+		}`;
+
+		// Tags with icon.
+		if (tags.length) {
+			const icon = document.createElement("span");
+			icon.className = "text-ink-gray-5 shrink-0";
+			icon.innerHTML = frappe.utils.icon("tag", "sm");
+			right.appendChild(icon);
+			tags.forEach((tag) => right.appendChild(this.tag_badge(tag, "md")));
+		}
+
+		// Stats (comments/likes) after tags.
+		if (comments || likes) {
+			const stats = document.createElement("span");
+			stats.className = "inline-flex items-center gap-2 text-ink-gray-5 shrink-0";
+			if (comments) stats.appendChild(this.preview_stat("message-square", comments));
+			if (likes) stats.appendChild(this.preview_stat("heart", likes));
+			right.appendChild(stats);
+		}
+
 		if (right.childNodes.length) foot.appendChild(right);
 		return foot;
 	}
@@ -1961,8 +2215,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			group.addEventListener("click", (e) => e.stopPropagation());
 		}
 
-		const shown = users.slice(0, 3);
-		const extra = users.slice(3);
+		const shown = users.slice(0, 2);
+		const extra = users.slice(2);
 		shown.forEach((user) => {
 			const av = this.assignee_avatar(user, "md");
 			av.classList.add("kn-stack-av");
