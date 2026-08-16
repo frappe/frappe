@@ -221,9 +221,7 @@ class UsersTab extends RoleTab {
 							label: __("Remove"),
 							icon: "x",
 							danger: true,
-							confirm: __("Remove {0} from this role?"),
-							confirm_field: "full_name",
-							action: (row, refresh) => this.remove(row.name).then(refresh),
+							action: (row, refresh) => this.remove_user(row, refresh),
 						},
 					],
 				},
@@ -270,28 +268,144 @@ class UsersTab extends RoleTab {
 				},
 			],
 			primary_action_label: __("Add"),
-			primary_action: (values) => {
-				this.add_role(values.user)
-					.then(() => {
-						dialog.hide();
-						frappe.show_alert({ message: __("User added."), indicator: "green" });
-						this.refresh();
-					})
-					.catch((e) => {
-						frappe.show_alert({
-							message: e.message || __("Failed to add user."),
-							indicator: "red",
-						});
-					});
-			},
+			primary_action: (values) => this.add_existing_user(values.user, dialog),
 		});
+		dialog.fields_dict.user.new_doc = () => {
+			dialog.hide();
+			this.create_new_user();
+		};
 		dialog.show();
+	}
+
+	add_existing_user(user_name, dialog) {
+		this.get_user_role_profiles(user_name).then((profiles) => {
+			if (profiles.length) return this.notify_profile_managed(user_name, profiles);
+			this.add_role(user_name)
+				.then(() => {
+					dialog.hide();
+					frappe.show_alert({ message: __("User added."), indicator: "green" });
+					this.refresh();
+				})
+				.catch((e) => {
+					frappe.show_alert({
+						message: e.message || __("Failed to add user."),
+						indicator: "red",
+					});
+				});
+		});
+	}
+
+	create_new_user() {
+		this.eligible_role_profiles().then((eligible) => {
+			const dialog = new frappe.ui.Dialog({
+				title: __("Create New User"),
+				fields: [
+					{ label: __("Email"), fieldname: "email", fieldtype: "Data", reqd: 1 },
+					{
+						label: __("First Name"),
+						fieldname: "first_name",
+						fieldtype: "Data",
+						reqd: 1,
+					},
+					{
+						label: __("Role Profile"),
+						fieldname: "role_profile",
+						fieldtype: "Link",
+						options: "Role Profile",
+						description: __("Leave empty to grant {0} directly.", [this.role]),
+						get_query: () => ({
+							filters: { name: ["in", eligible.length ? eligible : [""]] },
+						}),
+					},
+				],
+				primary_action_label: __("Create"),
+				primary_action: (values) => this.insert_user(values, dialog),
+			});
+			dialog.add_custom_action(__("Edit Full Form"), () => this.edit_full_form(dialog));
+			dialog.show();
+		});
+	}
+
+	insert_user(values, dialog) {
+		const doc = { doctype: "User", email: values.email, first_name: values.first_name };
+		if (values.role_profile) doc.role_profiles = [{ role_profile: values.role_profile }];
+		else doc.roles = [{ role: this.role }];
+		frappe.db
+			.insert(doc)
+			.then(() => {
+				dialog.hide();
+				frappe.show_alert({ message: __("User created."), indicator: "green" });
+				this.refresh();
+			})
+			.catch((e) => {
+				frappe.show_alert({
+					message: e.message || __("Failed to create user."),
+					indicator: "red",
+				});
+			});
+	}
+
+	edit_full_form(dialog) {
+		const values = dialog.get_values(true) || {};
+		const doc = frappe.model.get_new_doc("User");
+		doc.email = values.email;
+		doc.first_name = values.first_name;
+		if (values.role_profile) {
+			frappe.model.add_child(doc, "User Role Profile", "role_profiles").role_profile =
+				values.role_profile;
+		} else {
+			frappe.model.add_child(doc, "Has Role", "roles").role = this.role;
+		}
+		dialog.hide();
+		frappe.set_route("Form", "User", doc.name);
+	}
+
+	notify_profile_managed(user_name, profiles) {
+		frappe.msgprint({
+			title: __("Role Managed by Role Profile"),
+			message: __("{0}'s roles come from the Role Profile {1}. Edit that to change this.", [
+				frappe.utils.escape_html(user_name),
+				frappe.utils.comma_and(profiles.map((p) => frappe.utils.escape_html(p))),
+			]),
+			indicator: "orange",
+		});
+	}
+
+	eligible_role_profiles() {
+		return frappe.db
+			.get_list("Has Role", {
+				filters: { role: this.role, parenttype: "Role Profile" },
+				fields: ["parent"],
+				limit: 0,
+				parent_doctype: "Role Profile",
+			})
+			.then((rows) => unique_parents(rows));
+	}
+
+	get_user_role_profiles(user_name) {
+		return frappe.db
+			.get_list("User Role Profile", {
+				filters: { parenttype: "User", parent: user_name },
+				fields: ["role_profile"],
+				limit: 0,
+				parent_doctype: "User",
+			})
+			.then((rows) => rows.map((r) => r.role_profile));
 	}
 
 	add_role(user_name) {
 		return this.save_roles_on_doc("User", user_name, (roles) => {
 			if (!roles.find((r) => r.role === this.role)) roles.push({ role: this.role });
 			return roles;
+		});
+	}
+
+	remove_user(row, refresh) {
+		this.get_user_role_profiles(row.name).then((profiles) => {
+			if (profiles.length) return this.notify_profile_managed(row.name, profiles);
+			frappe.confirm(__("Remove {0} from this role?", [row.full_name || row.name]), () =>
+				this.remove(row.name).then(refresh)
+			);
 		});
 	}
 
