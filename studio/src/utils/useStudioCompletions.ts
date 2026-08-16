@@ -3,9 +3,11 @@ import useCodeStore from "@/stores/codeStore"
 import type { CompletionSource } from "@/types"
 import { isPrivateKey } from "@/utils/helpers"
 import { getBindingType } from "@/utils/parseCode"
-import { getCompletions, isInsideDynamicValue, isInsideFunctionExpression } from "./autocompletions"
+import { getCompletions } from "./autocompletions"
 import { vueApiSources } from "./vueApiCompletions"
-import type { Completion, CompletionContext } from "@codemirror/autocomplete"
+import type { CompletionContext, CompletionSource as CMCompletionSource } from "@codemirror/autocomplete"
+import { syntaxTree } from "@codemirror/language"
+import type { SyntaxNode } from "@lezer/common"
 import * as globalUtils from "@/utils/globalUtils"
 
 export const useStudioCompletions = (canEditValues: boolean = false, includeVueApis: boolean = false) => {
@@ -150,17 +152,45 @@ export const useStudioCompletions = (canEditValues: boolean = false, includeVueA
 	}
 }
 
-// For static prop values (code/array fieldtypes): suggest only inside the contexts that are
-// evaluated at render time — {{ }} expressions and inline function values. Window globals are
-// included since those contexts evaluate in the normal scope chain.
+// For static prop values (code/array fieldtypes): completion sources that only fire inside the
+// contexts evaluated at render time — {{ }} expressions and inline function values. Window globals
+// are included since those contexts evaluate in the normal scope chain.
 export const useDynamicValueCompletions = () => {
 	const getStudioCompletions = useStudioCompletions()
 
-	return async (context: CompletionContext, customSources: CompletionSource[] = []) => {
-		if (!isInsideDynamicValue(context) && !isInsideFunctionExpression(context)) return null
-		const studioResult = getStudioCompletions(context, customSources)
-		return mergeCompletionResults(studioResult, await getWindowCompletions(context))
+	return (getCustomSources: () => CompletionSource[] | undefined = () => []): CMCompletionSource[] => [
+		(context) => {
+			if (!isInsideDynamicContext(context)) return null
+			return getStudioCompletions(context, getCustomSources() ?? [])
+		},
+		(context) => {
+			if (!isInsideDynamicContext(context)) return null
+			return getWindowCompletions(context)
+		},
+	]
+}
+
+const isInsideDynamicContext = (context: CompletionContext) => {
+	return isInsideDynamicValue(context) || isInsideFunctionExpression(context)
+}
+
+export const isInsideDynamicValue = (context: CompletionContext) => {
+	const textBeforeCursor = context.state.doc.sliceString(0, context.pos)
+	const lastOpening = textBeforeCursor.lastIndexOf("{{")
+	if (lastOpening === -1) return false
+	return textBeforeCursor.lastIndexOf("}}") < lastOpening
+}
+
+// matches the function-expression prop values evaluated by stringToFunction at render time
+const FUNCTION_NODE_NAMES = ["ArrowFunction", "FunctionExpression", "FunctionDeclaration"]
+
+export const isInsideFunctionExpression = (context: CompletionContext) => {
+	let node: SyntaxNode | null = syntaxTree(context.state).resolveInner(context.pos, -1)
+	while (node) {
+		if (FUNCTION_NODE_NAMES.includes(node.name)) return true
+		node = node.parent
 	}
+	return false
 }
 
 const getWindowCompletions = async (context: CompletionContext) => {
@@ -169,15 +199,4 @@ const getWindowCompletions = async (context: CompletionContext) => {
 	const result = await scopeCompletionSource(window)(context)
 	if (!result) return null
 	return { ...result, options: result.options.filter((option) => !isPrivateKey(option.label)) }
-}
-
-const mergeCompletionResults = <T extends { from: number; options: readonly Completion[] }>(
-	a: T | null,
-	b: T | null,
-) => {
-	if (!a) return b
-	if (!b) return a
-	// results anchored at different positions can't be combined; prefer studio completions
-	if (a.from !== b.from) return a
-	return { ...a, options: [...a.options, ...b.options] }
 }

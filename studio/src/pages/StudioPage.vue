@@ -153,10 +153,7 @@
 					label="Edit Code"
 					:showLineNumbers="true"
 					:showSaveButton="true"
-					:completions="
-						(context: CompletionContext) =>
-							getDynamicValueCompletions(context, canvasStore.editableBlock?.getCompletions())
-					"
+					:completions="getDynamicValueCompletions(() => canvasStore.editableBlock?.getCompletions())"
 					:overrideCompletions="true"
 					@save="
 						(val) => {

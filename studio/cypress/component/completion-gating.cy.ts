@@ -3,8 +3,11 @@ import { EditorState } from "@codemirror/state"
 import { CompletionContext } from "@codemirror/autocomplete"
 import { ensureSyntaxTree } from "@codemirror/language"
 import { javascript } from "@codemirror/lang-javascript"
-import { isInsideDynamicValue, isInsideFunctionExpression } from "@/utils/autocompletions"
-import { useDynamicValueCompletions } from "@/utils/useStudioCompletions"
+import {
+	isInsideDynamicValue,
+	isInsideFunctionExpression,
+	useDynamicValueCompletions,
+} from "@/utils/useStudioCompletions"
 import { pinia } from "../support/component"
 
 // "|" marks the cursor position
@@ -74,21 +77,24 @@ describe("prop editor completion gating", () => {
 	describe("useDynamicValueCompletions", () => {
 		before(() => setActivePinia(pinia))
 
-		it("returns nothing in static text", async () => {
-			const getCompletions = useDynamicValueCompletions()
-			expect(await getCompletions(contextAt('{ icon: "sta|r" }'))).to.be.null
+		const getSources = () => useDynamicValueCompletions()()
+
+		it("no source fires in static text", async () => {
+			for (const source of getSources()) {
+				expect(await source(contextAt('{ icon: "sta|r" }'))).to.be.null
+			}
 		})
 
-		it("includes window globals inside {{ }}", async () => {
-			const getCompletions = useDynamicValueCompletions()
-			const result = await getCompletions(contextAt("{{ setTime| }}"))
+		it("window source suggests globals inside {{ }}", async () => {
+			const [, windowSource] = getSources()
+			const result = await windowSource(contextAt("{{ setTime| }}"))
 			const labels = result!.options.map((option) => option.label)
 			expect(labels).to.include("setTimeout")
 		})
 
-		it("includes studio sources inside {{ }}", async () => {
-			const getCompletions = useDynamicValueCompletions()
-			const result = await getCompletions(contextAt("{{ rou| }}"))
+		it("studio source suggests route/router inside {{ }}", async () => {
+			const [studioSource] = getSources()
+			const result = await studioSource(contextAt("{{ rou| }}"))
 			const labels = result!.options.map((option) => option.label)
 			expect(labels).to.include("route").and.to.include("router")
 		})

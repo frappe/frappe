@@ -63,9 +63,7 @@
 						:placeholder="isMixed(propName) ? 'Mixed' : undefined"
 						@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 						:required="config.required"
-						:completions="
-							(context: CompletionContext) => getDynamicValueCompletions(context, block?.getCompletions())
-						"
+						:completions="getDynamicValueCompletions(() => block?.getCompletions())"
 						:overrideCompletions="true"
 						:showLineNumbers="false"
 						class="overflow-hidden"
