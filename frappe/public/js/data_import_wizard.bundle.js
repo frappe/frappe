@@ -483,6 +483,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 			"delimiter_options",
 			"use_csv_sniffer",
 		].forEach((fn) => this.reparent_field($options, fn));
+		this.maybe_render_pending_imports_banner($settings);
 		$step.append($settings);
 
 		// Upload file — header with Download Template, source tabs, then panes.
@@ -571,6 +572,66 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 	has_import_settings() {
 		const doc = this.frm.doc;
 		return Boolean(doc?.reference_doctype && doc?.import_type);
+	}
+
+	/** In the dialog, on a brand-new import, nudge the user to resume an existing Pending
+	 *  import for this DocType (file attached) instead of starting a duplicate. Rendered
+	 *  just below the "Import settings" heading. */
+	maybe_render_pending_imports_banner($settings) {
+		const frm = this.frm;
+		const doctype = frm.doc?.reference_doctype;
+		if (!frm.in_dialog || !frm.is_new() || !doctype) return;
+
+		const $slot = $('<div class="diw-pending-imports-banner mb-4"></div>');
+		$settings.find(".diw-config-head").after($slot);
+
+		frappe.db
+			.count("Data Import", {
+				filters: {
+					reference_doctype: doctype,
+					status: "Pending",
+					import_file: ["is", "set"],
+				},
+			})
+			.then((count) => {
+				count = cint(count);
+				// Drop a stale async result (doctype changed, saved, or left the Config step).
+				if (
+					!count ||
+					!frm.is_new() ||
+					frm.doc.reference_doctype !== doctype ||
+					this.current_step !== 0
+				) {
+					$slot.remove();
+					return;
+				}
+				const message =
+					count === 1
+						? __("You have 1 pending {0} import with a file attached.", [__(doctype)])
+						: __("You have {0} pending {1} imports with files attached.", [
+								count,
+								__(doctype),
+						  ]);
+				const $link = frappe.ui.button({
+					label: __("Review pending imports"),
+					variant: "outline",
+					size: "xs",
+					icon_right: "arrow-right",
+					onclick: () => {
+						frm._data_import_dialog?.hide?.();
+						// Pending imports of this DocType that have a file — matches the count.
+						frappe.set_route("List", "Data Import", {
+							reference_doctype: doctype,
+							status: "Pending",
+							import_file: ["is", "set"],
+						});
+					},
+				});
+				$slot
+					.empty()
+					.append(frappe.ui.alert({ title: message, theme: "blue", footer: $link }));
+			})
+			.catch(() => $slot.remove());
 	}
 
 	/**

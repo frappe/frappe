@@ -209,9 +209,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	/**
 	 * "Import" nested submenu inside the page (⋯) menu — same place the old flat "Import"
-	 * menu item lived, but expandable (like the Kanban view switcher). Lists the 4 most
-	 * recent Data Imports for this DocType (open in a dialog), plus "Create Import" (new
-	 * import dialog) and "Show All" (filtered list). Gated on the same can_import meta.
+	 * menu item lived, but expandable (like the Kanban view switcher). Holds "New Import"
+	 * (new import dialog) and "Show All" (filtered list). Gated on the same can_import meta.
 	 * The wizard/dialog bundle is loaded lazily, only when an item is clicked.
 	 *
 	 * A (⋯)-menu item whose <li> carries data("menu_submenu", {group, label}) is rendered
@@ -222,11 +221,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const doctype = this.doctype;
 		const group = __("Import", null, "Button in list view menu");
-
-		// Re-entrancy guard: skip while a build is in flight (add_menu_item dedupes by
-		// label, so a later rebuild won't duplicate rows).
-		if (this._import_menu_building) return;
-		this._import_menu_building = true;
 
 		const open_dialog = (args) => {
 			frappe.require("data_import_tools.bundle.js", () => {
@@ -242,36 +236,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return $item;
 		};
 
-		const build = (recent) => {
-			(recent || []).forEach((di) => {
-				const label = di.status ? `${di.name} · ${__(di.status)}` : di.name;
-				add_sub_item(label, () => open_dialog({ data_import: di.name }));
-			});
-			// Divider above "New Import" — only when recent imports sit above it.
-			// Tagged so build_dropdown_options splits the Import submenu (not the parent menu).
-			if (recent && recent.length && !this.page.menu.find("li.di-import-divider").length) {
-				$('<li class="dropdown-divider di-import-divider"></li>')
-					.data("menu_submenu_divider", group)
-					.appendTo(this.page.menu);
-			}
-			add_sub_item(__("New Import"), () =>
-				open_dialog({ reference_doctype: doctype, import_type: "Insert New Records" })
-			);
-			add_sub_item(__("Show All"), () =>
-				frappe.set_route("list", "data-import", { reference_doctype: doctype })
-			);
-		};
-
-		frappe.db
-			.get_list("Data Import", {
-				filters: { reference_doctype: doctype },
-				fields: ["name", "status"],
-				order_by: "modified desc",
-				limit: 4,
-			})
-			.then(build)
-			.catch(() => build([]))
-			.finally(() => (this._import_menu_building = false));
+		add_sub_item(__("New Import"), () =>
+			open_dialog({ reference_doctype: doctype, import_type: "Insert New Records" })
+		);
+		add_sub_item(__("Show All"), () =>
+			frappe.set_route("list", "data-import", { reference_doctype: doctype })
+		);
 	}
 
 	set_actions_menu_items() {
