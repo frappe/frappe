@@ -18,7 +18,7 @@ def execute():
 	hold a non-empty folder** -- an author whose app is already converted is told nothing at
 	all. The docs are the net for anyone who installs a stale app later.
 	"""
-	from frappe.desk.doctype.module_sidebar.convert_fixtures import apps_with_old_fixtures
+	from frappe.desk.doctype.sidebar.convert_fixtures import apps_with_old_fixtures
 
 	counts = apps_with_old_fixtures()
 	if not counts:

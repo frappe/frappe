@@ -99,15 +99,15 @@ class ModuleDef(Document):
 		"""Delete module name from modules.txt"""
 		# The sidebar is this module's content, so it goes with it. Unconditional -- the
 		# developer_mode guard below is about editing modules.txt on disk, not about data.
-		frappe.delete_doc("Module Sidebar", self.name, ignore_missing=True, force=True)
+		frappe.delete_doc("Sidebar", self.name, ignore_missing=True, force=True)
 
 		# ...and so do the site's and every user's customizations of it, which are anchored to
 		# the module rather than to that document. Said out loud because nothing else says it:
 		# navigation links are in `ignore_links_on_delete`, so no Link refuses this delete on a
 		# customization's behalf -- and refusing was never the right answer for a module going
 		# away anyway.
-		for name in frappe.get_all("Custom Module Sidebar", filters={"module": self.name}, pluck="name"):
-			frappe.delete_doc("Custom Module Sidebar", name, ignore_permissions=True, force=True)
+		for name in frappe.get_all("Custom Sidebar", filters={"module": self.name}, pluck="name"):
+			frappe.delete_doc("Custom Sidebar", name, ignore_permissions=True, force=True)
 
 		if not frappe.conf.get("developer_mode") or frappe.flags.in_uninstall or self.custom:
 			return

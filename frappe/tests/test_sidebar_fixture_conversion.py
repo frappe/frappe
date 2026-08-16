@@ -16,13 +16,13 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
-from frappe.desk.doctype.module_sidebar.convert_fixtures import (
+from frappe.desk.doctype.sidebar.convert_fixtures import (
 	OLD_FIXTURE_FOLDER,
 	apps_with_old_fixtures,
 	convert_app,
 	export_path,
 )
-from frappe.desk.doctype.module_sidebar.test_module_sidebar import (
+from frappe.desk.doctype.sidebar.test_sidebar import (
 	module_resolvable_on_disk,
 	no_developer_mode,
 )
@@ -103,7 +103,7 @@ class TestSidebarFixtureConversion(IntegrationTestCase):
 			self.assertTrue(os.path.exists(path), f"nothing written to {path}")
 
 			written = json.loads(open(path).read())
-			self.assertEqual(written["doctype"], "Module Sidebar")
+			self.assertEqual(written["doctype"], "Sidebar")
 			self.assertEqual(written["name"], MODULE)
 			self.assertEqual(written["standard"], 1)
 			# both fixtures' content survives; the second becomes a collapsed section
@@ -121,7 +121,7 @@ class TestSidebarFixtureConversion(IntegrationTestCase):
 			convert_app("frappe")
 			import_file_by_path(export_path(MODULE), force=True, ignore_version=True)
 
-		doc = frappe.get_doc("Module Sidebar", MODULE)
+		doc = frappe.get_doc("Sidebar", MODULE)
 		self.assertEqual([item.link_to for item in doc.items], ["User"])
 		self.assertEqual(doc.standard, 1)
 
@@ -162,6 +162,54 @@ class TestSidebarFixtureConversion(IntegrationTestCase):
 			self.assertFalse(os.path.exists(export_path(MODULE)))
 
 
+class TestAnAppThatHasNotFollowedTheRename(IntegrationTestCase):
+	"""`Module Sidebar` is `Sidebar`, and an app's fixtures moved with it -- but only frappe's.
+
+	hrms and erpnext convert on their own branches, so in between they ship
+	`<module>/module_sidebar/` naming a doctype this site no longer has. That has to be
+	*ignored*: a migrate that tried to import one would fail on every site holding a stale app,
+	which is a far worse outcome than the module falling back to a computed base.
+	"""
+
+	def test_the_old_folder_is_not_walked(self):
+		import shutil
+
+		from frappe.model.sync import get_doc_files
+
+		with module_resolvable_on_disk(MODULE) as module_path:
+			stale = os.path.join(module_path, "module_sidebar", "stale")
+			os.makedirs(stale)
+			with open(os.path.join(stale, "stale.json"), "w") as f:
+				f.write(json.dumps({"doctype": "Module Sidebar", "name": "stale", "module": MODULE}))
+
+			try:
+				self.assertEqual(
+					[path for path in get_doc_files(files=[], start_path=module_path) if "stale" in path],
+					[],
+				)
+			finally:
+				shutil.rmtree(os.path.join(module_path, "module_sidebar"), ignore_errors=True)
+
+	def test_the_new_folder_is(self):
+		"""The other half of the same fact: the walk found nothing above because it looks in
+		`sidebar/` now, not because it stopped looking."""
+		import shutil
+
+		from frappe.model.sync import get_doc_files
+
+		with module_resolvable_on_disk(MODULE) as module_path:
+			fresh = os.path.join(module_path, "sidebar", "fresh")
+			os.makedirs(fresh)
+			path = os.path.join(fresh, "fresh.json")
+			with open(path, "w") as f:
+				f.write(json.dumps({"doctype": "Sidebar", "name": "fresh", "module": MODULE}))
+
+			try:
+				self.assertIn(path, get_doc_files(files=[], start_path=module_path))
+			finally:
+				shutil.rmtree(os.path.join(module_path, "sidebar"), ignore_errors=True)
+
+
 class TestTheNotice(IntegrationTestCase):
 	"""It names the apps that actually still hold a folder, and says nothing when none do."""
 
@@ -184,7 +232,7 @@ class TestTheNotice(IntegrationTestCase):
 
 	def test_it_says_nothing_when_every_app_has_converted(self):
 		with patch(
-			"frappe.desk.doctype.module_sidebar.convert_fixtures.apps_with_old_fixtures",
+			"frappe.desk.doctype.sidebar.convert_fixtures.apps_with_old_fixtures",
 			return_value={},
 		):
 			self.assertEqual(self.run_patch(), [])

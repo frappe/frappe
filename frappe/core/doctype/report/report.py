@@ -117,10 +117,10 @@ class Report(Document):
 		delete_custom_role("report", self.name)
 
 	def clear_cache(self):
-		from frappe.desk.doctype.module_sidebar.module_sidebar import clear_computed_base_for
+		from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_for
 
 		self.update_report_cache()
-		# a module with no `Module Sidebar` has its sidebar computed from reports like this one
+		# a module with no `Sidebar` has its sidebar computed from reports like this one
 		clear_computed_base_for(self)
 		return super().clear_cache()
 

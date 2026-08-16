@@ -7,8 +7,8 @@ import frappe
 from frappe.app_state import get_disabled_modules
 from frappe.boot import get_app_modules
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.desk.doctype.module_sidebar.module_sidebar import clear_computed_base_cache, resolve_sidebar
-from frappe.desk.doctype.module_sidebar.test_module_sidebar import make_report, make_sidebar
+from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_cache, resolve_sidebar
+from frappe.desk.doctype.sidebar.test_sidebar import make_report, make_sidebar
 from frappe.installer import (
 	get_app_owned_modules,
 	reclaim_module_name_for_its_app,
@@ -193,7 +193,7 @@ class TestAnAppWinsTheName(IntegrationTestCase):
 				self.assertEqual(renamed, f"{first} (Custom 2)")
 
 	def test_the_modules_sidebar_moves_with_it(self):
-		"""A `Module Sidebar` is named after its module, so the link cascade is not enough: left
+		"""A `Sidebar` is named after its module, so the link cascade is not enough: left
 		on the old name, it is what the app's own sidebar collides with on import."""
 		with custom_module("Test Sidebarred Module") as module:
 			make_sidebar(module)
@@ -201,8 +201,8 @@ class TestAnAppWinsTheName(IntegrationTestCase):
 			renamed = rename_conflicting_custom_module(module, "frappe")
 			self.addCleanup(frappe.delete_doc, "Module Def", renamed, force=True, ignore_missing=True)
 
-			self.assertFalse(frappe.db.exists("Module Sidebar", module), "the name is free for the app")
-			self.assertEqual(frappe.db.get_value("Module Sidebar", renamed, "module"), renamed)
+			self.assertFalse(frappe.db.exists("Sidebar", module), "the name is free for the app")
+			self.assertEqual(frappe.db.get_value("Sidebar", renamed, "module"), renamed)
 
 	def test_an_apps_own_module_is_left_where_it_is(self):
 		"""Only a *custom* module moves aside. A module the app already owns is the app

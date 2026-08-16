@@ -4,8 +4,8 @@
 import frappe
 from frappe.boot import get_bootinfo, get_module_sidebars, get_standalone_modules
 from frappe.core.doctype.module_def.test_module_def import custom_module
-from frappe.desk.doctype.module_sidebar.module_sidebar import resolve_sidebar
-from frappe.desk.doctype.module_sidebar.test_module_sidebar import (
+from frappe.desk.doctype.sidebar.sidebar import resolve_sidebar
+from frappe.desk.doctype.sidebar.test_sidebar import (
 	make_report,
 	make_sidebar,
 	system_write,
@@ -263,7 +263,7 @@ class TestNoAppContextInsideAStandaloneModule(StandaloneModuleTestCase):
 		"""Two surfaces read placement -- the rail (`app` on the payload) and the tile list
 		(`Module Def.app_name`) -- and they answer opposite halves of the same question, so a
 		module either has a rail or has a tile. They used to be able to disagree: `app` came
-		straight off the `Module Sidebar` document, an authored field a stub can leave blank,
+		straight off the `Sidebar` document, an authored field a stub can leave blank,
 		and a module placed in an app by a document that never filled it in got neither."""
 		with custom_module("Test Silent App Field Module", app="frappe") as module:
 			sidebar = make_sidebar(module)
@@ -297,7 +297,7 @@ class TestNoAppContextInsideAStandaloneModule(StandaloneModuleTestCase):
 				self.assertNotIn(module, app["modules"])
 
 	def test_the_icon_needs_no_new_boot_payload(self):
-		"""The rail resolves a standalone module's icon from the module sidebar it already
+		"""The rail resolves a standalone module's icon from the sidebar it already
 		reads -- an authored `header_icon`, else a letter icon built from the label. Both are
 		on the entry, so nothing had to be added to boot to give the slot an icon."""
 		with custom_module("Test Iconed Rail Module") as module:

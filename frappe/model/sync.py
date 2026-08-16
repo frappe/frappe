@@ -33,7 +33,7 @@ IMPORTABLE_DOCTYPES = [
 	("printing", "print_style"),
 	("desk", "workspace"),
 	("desk", "workspace_sidebar"),
-	("desk", "module_sidebar"),
+	("desk", "sidebar"),
 	("desk", "onboarding_step"),
 	("desk", "module_onboarding"),
 	("desk", "form_tour"),
@@ -106,8 +106,8 @@ def sync_for(app_name, force=0, reset_permissions=False):
 			"workspace",
 			"workspace_sidebar",
 			"workspace_sidebar_item",
-			"module_sidebar_item",
-			"module_sidebar",
+			"sidebar_item",
+			"sidebar",
 		]:
 			files.append(os.path.join(FRAPPE_PATH, "desk", "doctype", desk_module, f"{desk_module}.json"))
 
@@ -121,7 +121,7 @@ def sync_for(app_name, force=0, reset_permissions=False):
 		files = get_doc_files(files=files, start_path=folder)
 
 	# Nothing app-level is imported here any more. `workspace_sidebar` was the last of them and
-	# its fixtures stop arriving with this release: an app ships a `Module Sidebar` now, which
+	# its fixtures stop arriving with this release: an app ships a `Sidebar` now, which
 	# rides the ordinary per-module walk above. An app that has not re-exported yet degrades to
 	# a computed base rather than to nothing, which is what makes dropping them safe.
 
@@ -209,7 +209,7 @@ def remove_orphan_doctypes():
 # deleted. `Workspace Sidebar` has left this list -- the archive's files are going away with
 # this release, so left here it would delete the very rows the conversion reads. Icon fixtures
 # stay: their files are staying, and an icon has no computed base to absorb the loss.
-ORPHANABLE_ENTITIES = ["Workspace", "Dashboard", "Page", "Report", "Notification", "Module Sidebar"]
+ORPHANABLE_ENTITIES = ["Workspace", "Dashboard", "Page", "Report", "Notification", "Sidebar"]
 # Retiring with the icon-grid batch, together with the fixture import it mirrors; see
 # `frappe/desk/RETIRING.md`.
 APP_LEVEL_ENTITIES = ["Desktop Icon"]
@@ -230,7 +230,7 @@ def remove_orphan_entities(entity_types=None):
 		"Notification": {"is_standard": True},
 		# only a standard sidebar is backed by a file; everything else belongs to the site
 		# and is never an orphan
-		"Module Sidebar": {"standard": True},
+		"Sidebar": {"standard": True},
 	}
 	if entity_types:
 		entities = entity_types if isinstance(entity_types, list) else [entity_types]
@@ -299,10 +299,11 @@ def create_entity_file_map(entities):
 	for app in frappe.get_installed_apps():
 		app_path = frappe.get_app_path(app)
 		for entity in entities:
-			# `scrub`, not `lower`: a multi-word entity lives in a snake_case folder, so
-			# "Module Sidebar" must look in `module_sidebar/`, not `module sidebar/`. Every
-			# entity here used to be a single word, which kept the difference invisible --
-			# and would have made every Module Sidebar look like an orphan.
+			# `scrub`, not `lower`: a multi-word entity lives in a snake_case folder, so one
+			# would have to be looked for in `custom_sidebar/`, not `custom sidebar/`. Every
+			# entity here is a single word today, which keeps the difference invisible -- and
+			# `lower` would have made every record of the first multi-word one look like an
+			# orphan.
 			entity_folder = frappe.scrub(entity)
 			if entity_folder == "dashboard":
 				entity_folder = f"*_{entity_folder}"

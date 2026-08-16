@@ -385,8 +385,8 @@ def export_fixtures(context: CliCtxObj, app=None):
 @click.option("--dry-run", is_flag=True, default=False, help="Report what would be written")
 @pass_context
 def convert_sidebar_fixtures(context: CliCtxObj, app=None, dry_run=False):
-	"Convert an app's old workspace_sidebar fixtures into per-module Module Sidebar exports"
-	from frappe.desk.doctype.module_sidebar.convert_fixtures import apps_with_old_fixtures, convert_app
+	"Convert an app's old workspace_sidebar fixtures into per-module Sidebar exports"
+	from frappe.desk.doctype.sidebar.convert_fixtures import apps_with_old_fixtures, convert_app
 
 	for site in context.sites:
 		try:

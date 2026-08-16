@@ -883,7 +883,7 @@ def sync_module_defs() -> list[str]:
 	`add_module_defs` runs once, when an app is installed, so a module an app adds *later* never
 	reaches a site that already has that app -- and a module with no row does not exist as far as
 	the site is concerned. Nothing can link to it, which means the workspaces, dashboards and
-	`Module Sidebar` the app ships for it are skipped on import: `module` is a Link field. Every
+	`Sidebar` the app ships for it are skipped on import: `module` is a Link field. Every
 	app that ever split its navigation has had to carry a patch calling `add_module_defs` to
 	work around this. Running the sync on every migrate is what retires that patch, for every
 	app at once and for the ones that have not been written yet.
@@ -957,12 +957,12 @@ def rename_conflicting_custom_module(module: str, app: str) -> str | None:
 		show_alert=False,
 	)
 
-	# A `Module Sidebar` is named after its module (`autoname: field:module`), so renaming the
+	# A `Sidebar` is named after its module (`autoname: field:module`), so renaming the
 	# module updates the sidebar's link to it but leaves the sidebar sitting on the name the app
 	# is about to take -- and the app's own sidebar would collide with it on import.
-	if frappe.db.exists("Module Sidebar", module):
+	if frappe.db.exists("Sidebar", module):
 		rename_doc(
-			doctype="Module Sidebar",
+			doctype="Sidebar",
 			old=module,
 			new=new_name,
 			force=True,

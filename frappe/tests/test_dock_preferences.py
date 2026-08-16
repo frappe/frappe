@@ -13,7 +13,7 @@ from frappe.desk.desktop import (
 	save_dock_order,
 	save_dock_preferences,
 )
-from frappe.desk.doctype.module_sidebar.test_module_sidebar import make_sidebar, sidebarless_module
+from frappe.desk.doctype.sidebar.test_sidebar import make_sidebar, sidebarless_module
 from frappe.tests import IntegrationTestCase
 
 USER = "test-dock-prefs@example.com"
@@ -274,7 +274,7 @@ class TestTheShippedDockOrder(IntegrationTestCase):
 
 	`Dock Order` and `User.dock_modules` are site and user intent, and they can only rearrange
 	the list they are given. This is that list -- `boot.get_app_modules` -- and until
-	`Module Sidebar.sequence_id` existed the only way an app could state it was the position a
+	`Sidebar.sequence_id` existed the only way an app could state it was the position a
 	module happened to occupy in `modules.txt`.
 	"""
 
@@ -318,7 +318,7 @@ class TestTheShippedDockOrder(IntegrationTestCase):
 		them would be asserting that no framework sidebar ever does.
 		"""
 		declared = frappe.get_module_list("frappe")
-		sequenced = set(frappe.get_all("Module Sidebar", pluck="module"))
+		sequenced = set(frappe.get_all("Sidebar", pluck="module"))
 		quiet = [m for m in self.app_order() if m in declared and m not in sequenced]
 
 		self.assertTrue(quiet, "sanity: some framework module declares no sequence")
@@ -330,7 +330,7 @@ class TestTheShippedDockOrder(IntegrationTestCase):
 		from frappe.boot import DEFAULT_MODULE_SEQUENCE_ID
 
 		with sidebarless_module("Test Sequence Defaulted") as module:
-			self.assertFalse(frappe.db.exists("Module Sidebar", {"module": module}))
+			self.assertFalse(frappe.db.exists("Sidebar", {"module": module}))
 			self.assertIn(module, self.app_order())
 
 			# the same position a document stating the default would put it in

@@ -143,7 +143,7 @@ permission_query_conditions = {
 	"Tag Link": "frappe.desk.doctype.tag_link.tag_link.get_permission_query_conditions",
 	"Document Follow": "frappe.email.doctype.document_follow.document_follow.get_permission_query_conditions",
 	"Scheduled Job Type": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.get_permission_query_conditions",
-	"Custom Module Sidebar": "frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar.get_permission_query_conditions",
+	"Custom Sidebar": "frappe.desk.doctype.custom_sidebar.custom_sidebar.get_permission_query_conditions",
 	"DocType": "frappe.app_state.get_module_permission_query_conditions",
 	"Page": "frappe.app_state.get_module_permission_query_conditions",
 	"Workspace": "frappe.app_state.get_module_permission_query_conditions",
@@ -177,7 +177,7 @@ has_permission = {
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.has_permission",
 	"Document Template": "frappe.desk.doctype.document_template.document_template.has_permission",
 	"Document Follow": "frappe.email.doctype.document_follow.document_follow.has_permission",
-	"Custom Module Sidebar": "frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar.has_permission",
+	"Custom Sidebar": "frappe.desk.doctype.custom_sidebar.custom_sidebar.has_permission",
 }
 
 has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
@@ -477,8 +477,8 @@ ignore_links_on_delete = [
 	# does not belong to it, and a dangling item is already skipped when the sidebar resolves.
 	# Without this a person hiding something in their own sidebar would stop anyone deleting
 	# it -- `Workspace` is on this list for exactly the same reason.
-	"Module Sidebar",
-	"Custom Module Sidebar",
+	"Sidebar",
+	"Custom Sidebar",
 ]
 
 # Request Hooks

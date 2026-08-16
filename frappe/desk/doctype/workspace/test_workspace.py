@@ -3,7 +3,7 @@
 import json
 
 import frappe
-from frappe.desk.doctype.module_sidebar.test_module_sidebar import sidebarless_module
+from frappe.desk.doctype.sidebar.test_sidebar import sidebarless_module
 from frappe.tests import IntegrationTestCase
 
 

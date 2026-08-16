@@ -15,8 +15,8 @@ actually boots from.
 from unittest.mock import patch
 
 import frappe
-from frappe.desk.doctype.module_sidebar.module_sidebar import clear_computed_base_cache
-from frappe.desk.doctype.module_sidebar.test_module_sidebar import no_developer_mode
+from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_cache
+from frappe.desk.doctype.sidebar.test_sidebar import no_developer_mode
 from frappe.tests import IntegrationTestCase
 
 
@@ -134,10 +134,10 @@ class TestV16Upgrade(IntegrationTestCase):
 		super().tearDownClass()
 
 	def site_layer(self):
-		return frappe.get_doc("Custom Module Sidebar", {"module": self.MODULE, "user": ""})
+		return frappe.get_doc("Custom Sidebar", {"module": self.MODULE, "user": ""})
 
 	def user_layer(self):
-		return frappe.get_doc("Custom Module Sidebar", {"module": self.MODULE, "user": self.USER})
+		return frappe.get_doc("Custom Sidebar", {"module": self.MODULE, "user": self.USER})
 
 	# -- the drop this whole conversion exists to fix -----------------------------------
 
@@ -211,17 +211,17 @@ class TestV16Upgrade(IntegrationTestCase):
 	def test_a_module_whose_app_never_re_exported_gets_a_computed_sidebar(self):
 		"""App-shipped sidebar fixtures stop arriving. That is only safe because the base is
 		computed: the module degrades to a generated sidebar, not to nothing."""
-		self.assertFalse(frappe.db.exists("Custom Module Sidebar", {"module": self.QUIET_MODULE}))
-		self.assertFalse(frappe.db.exists("Module Sidebar", {"module": self.QUIET_MODULE}))
+		self.assertFalse(frappe.db.exists("Custom Sidebar", {"module": self.QUIET_MODULE}))
+		self.assertFalse(frappe.db.exists("Sidebar", {"module": self.QUIET_MODULE}))
 
-		from frappe.desk.doctype.module_sidebar.module_sidebar import get_sidebar_bases
+		from frappe.desk.doctype.sidebar.sidebar import get_sidebar_bases
 
 		base = get_sidebar_bases([self.QUIET_MODULE])[self.QUIET_MODULE]
 		self.assertEqual(base.module, self.QUIET_MODULE)
 
 	def resolved(self):
 		"""What the module resolves to for the session user, asked of the resolver itself."""
-		from frappe.desk.doctype.module_sidebar.module_sidebar import resolve_sidebar
+		from frappe.desk.doctype.sidebar.sidebar import resolve_sidebar
 
 		return resolve_sidebar(self.MODULE, frappe.session.user)
 
@@ -231,12 +231,12 @@ class TestV16Upgrade(IntegrationTestCase):
 	# twice in a row.
 
 	def dry_run(self):
-		from frappe.desk.doctype.module_sidebar.module_sidebar import build_all
+		from frappe.desk.doctype.sidebar.sidebar import build_all
 
 		return build_all(dry_run=True)
 
 	def report(self):
-		from frappe.desk.doctype.module_sidebar.module_sidebar import report
+		from frappe.desk.doctype.sidebar.sidebar import report
 
 		with patch("click.secho"), patch("click.echo"):
 			return report()
@@ -270,8 +270,8 @@ class TestV16Upgrade(IntegrationTestCase):
 	def test_neither_entry_point_writes_anything(self):
 		def counts():
 			return (
-				frappe.db.count("Custom Module Sidebar"),
-				frappe.db.count("Module Sidebar"),
+				frappe.db.count("Custom Sidebar"),
+				frappe.db.count("Sidebar"),
 				frappe.db.count("Workspace Sidebar"),
 			)
 
@@ -286,7 +286,7 @@ class TestV16Upgrade(IntegrationTestCase):
 		lines = " ".join(run_conversion())
 		self.assertIn("Module sidebars:", lines)
 		self.assertIn("already converted", lines)
-		self.assertIn("module_sidebar.report", lines)
+		self.assertIn("sidebar.report", lines)
 
 
 class TestTheArchiveIsInert(IntegrationTestCase):
@@ -307,7 +307,7 @@ class TestTheArchiveIsInert(IntegrationTestCase):
 		self.assertFalse([perm for perm in meta.permissions if perm.create or perm.write])
 
 	def test_its_fixtures_are_no_longer_imported(self):
-		"""An app ships a `Module Sidebar` now, which rides the ordinary per-module walk."""
+		"""An app ships a `Sidebar` now, which rides the ordinary per-module walk."""
 		import inspect
 
 		from frappe.model import sync

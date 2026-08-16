@@ -53,7 +53,7 @@ Remove all of it together, on either trigger:
 - `frappe/utils/new_navigation_nudge.py`, its boot key in `frappe/sessions.py` and
   `frappe/public/js/frappe/new_navigation_nudge.js` — there is nothing to invite anyone to
   once there is only one navigation.
-- `frappe/desk/doctype/module_sidebar/convert_fixtures.py`, the
+- `frappe/desk/doctype/sidebar/convert_fixtures.py`, the
   `convert-sidebar-fixtures` command and
   `frappe/patches/v16_0/notify_apps_to_convert_sidebar_fixtures.py` — the remedy and the
   notice for app authors who have not re-exported.

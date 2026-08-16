@@ -6,8 +6,8 @@ from contextlib import contextmanager
 import frappe
 from frappe.core.doctype.module_def.test_module_def import custom_module
 from frappe.desk.doctype.module_onboarding.module_onboarding import get_permitted_onboardings
-from frappe.desk.doctype.module_sidebar.module_sidebar import resolve_sidebar
-from frappe.desk.doctype.module_sidebar.test_module_sidebar import (
+from frappe.desk.doctype.sidebar.sidebar import resolve_sidebar
+from frappe.desk.doctype.sidebar.test_sidebar import (
 	make_sidebar,
 	no_developer_mode,
 	system_write,
@@ -116,7 +116,7 @@ class DerivedHomeTestCase(IntegrationTestCase):
 		"""A sidebar arrangement, at the site layer or one user's own."""
 		doc = frappe.get_doc(
 			{
-				"doctype": "Custom Module Sidebar",
+				"doctype": "Custom Sidebar",
 				"module": module,
 				"user": user or "",
 				"sidebar_items": [{"key": key} for key in keys],
@@ -132,7 +132,7 @@ class TestHomeIsTheFirstNavigableItem(DerivedHomeTestCase):
 		"""Not moved to the customization -- removed. Both questions are now answered from
 		what the module already holds, so there is nothing left to store, validate, hand off
 		when its target is deleted, or keep in step with permissions."""
-		fieldnames = {df.fieldname for df in frappe.get_meta("Module Sidebar").fields}
+		fieldnames = {df.fieldname for df in frappe.get_meta("Sidebar").fields}
 
 		self.assertNotIn("home_workspace", fieldnames)
 		self.assertNotIn("module_onboarding", fieldnames)

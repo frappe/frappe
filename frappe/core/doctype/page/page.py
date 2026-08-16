@@ -107,9 +107,9 @@ class Page(Document):
 		return d
 
 	def clear_cache(self):
-		from frappe.desk.doctype.module_sidebar.module_sidebar import clear_computed_base_for
+		from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_for
 
-		# a module with no `Module Sidebar` has its sidebar computed from pages like this one
+		# a module with no `Sidebar` has its sidebar computed from pages like this one
 		clear_computed_base_for(self)
 		return super().clear_cache()
 

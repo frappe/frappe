@@ -26,7 +26,7 @@ BATCH = (
 	"frappe/desk/doctype/desktop_layout/desktop_layout.py",
 	"frappe/desk/doctype/workspace_sidebar/workspace_sidebar.py",
 	"frappe/desk/doctype/desktop_settings/desktop_settings.py",
-	"frappe/desk/doctype/module_sidebar/convert_fixtures.py",
+	"frappe/desk/doctype/sidebar/convert_fixtures.py",
 	"frappe/model/sync.py",
 	"frappe/modules/utils.py",
 	"frappe/utils/new_navigation_nudge.py",

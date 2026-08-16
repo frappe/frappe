@@ -1,7 +1,7 @@
 import click
 
 import frappe
-from frappe.desk.doctype.module_sidebar.module_sidebar import build_all, plan_summary
+from frappe.desk.doctype.sidebar.sidebar import build_all, plan_summary
 
 
 def execute():
@@ -12,7 +12,7 @@ def execute():
 	user layer for every personal fork the archive holds, which is what that population's
 	customizations actually are.
 
-	Runs post_model_sync: `Custom Module Sidebar` is a new doctype, so its schema has to land
+	Runs post_model_sync: `Custom Sidebar` is a new doctype, so its schema has to land
 	first. It must also run after `backfill_workspace_module`, which is what gives a v15 site's
 	workspaces a module to be grouped under; ahead of the backfill the shortcut route sees no
 	sources at all and every module is left to a computed base.
@@ -21,7 +21,7 @@ def execute():
 	exactly as it was, and a module that already carries a layer is skipped. Undo is deleting
 	the rows it created.
 	"""
-	if not frappe.db.exists("DocType", "Custom Module Sidebar"):
+	if not frappe.db.exists("DocType", "Custom Sidebar"):
 		return
 
 	result = build_all()
@@ -69,5 +69,5 @@ def execute():
 	)
 	click.secho(
 		"  Re-run the detail at any time: bench --site <site> execute "
-		"frappe.desk.doctype.module_sidebar.module_sidebar.report",
+		"frappe.desk.doctype.sidebar.sidebar.report",
 	)

@@ -71,7 +71,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	// "Frappe Framework" whether you were in Core, Website or Integrations.
 	//
 	// The app is still identifiable from the logo and the dock; the header is where the module
-	// goes. `label` is the Module Sidebar's title, which an app (or a customization) may override,
+	// goes. `label` is the Sidebar's title, which an app (or a customization) may override,
 	// falling back to the module name itself.
 	get_display_title() {
 		return (

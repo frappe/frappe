@@ -41,6 +41,34 @@ A disable or an enable is one transaction. If a hook fails, the site keeps the s
 1. `add_to_apps_screen` - list of dicts, one per app to place on the apps screen
 1. `add_app_to_rail` - map of app to host app, for an app that pins its workspaces into another app's dock
 
+#### Navigation an app ships
+
+A sidebar belongs to a **module**. An app ships one `Sidebar` per module at
+`<app>/<module>/sidebar/<module>/<module>.json`, exported by turning on `standard` in
+developer mode. A module whose app ships none is not without navigation: its sidebar is
+computed from what the module contains — its workspaces, doctypes, reports, dashboards and
+pages — and stays in step with them.
+
+Two folders an app used to ship are no longer read:
+
+- **`<app>/workspace_sidebar/*.json`** — the flat, app-level sidebar fixtures. These stop
+  being imported. Convert them with
+
+  ```bash
+  bench --site <site> convert-sidebar-fixtures --app <app>
+  ```
+
+  which merges each module's fixtures into one per-module export and writes it where the
+  ordinary doc-files walk will find it. It never overwrites a file that is already there, so
+  it is safe to run against an app part-way through converting by hand, and `--dry-run`
+  reports without writing. The old folder is left alone; delete it once you are happy with the
+  result. Until an app converts, its modules fall back to computed sidebars.
+
+- **`<app>/desktop_icon/*.json`** — the icon-grid fixtures. These are still imported, but only
+  onto a site that has chosen the icon grid, and the grid is being retired. Use
+  `add_to_apps_screen` to place an app on the apps screen, and `add_app_to_rail` to pin a
+  companion app's workspaces into a host app's dock.
+
 #### Notifications
 
 1. `notification_config` - method to get notification configuration

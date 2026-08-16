@@ -187,10 +187,10 @@ class Workspace(Document, DeskViews):
 			)
 
 	def clear_cache(self):
-		from frappe.desk.doctype.module_sidebar.module_sidebar import clear_computed_base_for
+		from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_for
 
 		super().clear_cache()
-		# a module with no `Module Sidebar` has its sidebar computed from workspaces like this one
+		# a module with no `Sidebar` has its sidebar computed from workspaces like this one
 		clear_computed_base_for(self)
 		if self.for_user:
 			frappe.cache.hdel("bootinfo", self.for_user)
@@ -463,8 +463,8 @@ def new_page(new_page: dict):
 	# A workspace no longer owns a sidebar -- its module does. So instead of seeding a
 	# self-referencing item on the workspace, add a link to it in the module's sidebar, which
 	# is where it will actually be navigated from. A private one is derived rather than
-	# written; `add_to_module_sidebar` is where that branch lives.
-	add_to_module_sidebar(doc)
+	# written; `add_to_sidebar` is where that branch lives.
+	add_to_sidebar(doc)
 
 	return workspace_payload()
 
@@ -487,7 +487,7 @@ def first_module_of_app(app: str | None) -> str | None:
 	return modules[0] if modules else None
 
 
-def add_to_module_sidebar(workspace):
+def add_to_sidebar(workspace):
 	"""Give a **shared** workspace a way in, from its module's sidebar.
 
 	A link is the whole of it. A workspace used to also be able to *become* the module's home
@@ -503,7 +503,7 @@ def add_to_module_sidebar(workspace):
 	**A private workspace gets nothing written for it.** This is the branch D3 asks for: the
 	shared branch writes a link, the private branch writes none, because a private page's link
 	is derived on read from the workspace itself -- module, owner, title and icon are all
-	already on it (`module_sidebar.get_private_workspaces`). Writing one put a row per private page
+	already on it (`sidebar.get_private_workspaces`). Writing one put a row per private page
 	into the document the whole site shares, and every one of those rows was a second copy of
 	four columns that could change underneath it.
 
@@ -514,21 +514,21 @@ def add_to_module_sidebar(workspace):
 	base is computed, and a public workspace turns up in it on its own because
 	`get_module_info` reads them.
 	"""
-	from frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar import (
+	from frappe.desk.doctype.custom_sidebar.custom_sidebar import (
 		add_site_sidebar_item,
 	)
 
 	# A Link or a URL workspace is a shortcut to somewhere else, and the sidebar already lists
 	# that somewhere else; only a page of its own earns a way in. `type` is empty on pages that
 	# predate the field, and those are ordinary workspaces -- the same reading
-	# `module_sidebar.get_private_workspaces` gives them.
+	# `sidebar.get_private_workspaces` gives them.
 	if not workspace.public or (workspace.type and workspace.type != "Workspace"):
 		return
 
-	if not workspace.module or not frappe.db.exists("Module Sidebar", workspace.module):
+	if not workspace.module or not frappe.db.exists("Sidebar", workspace.module):
 		return
 
-	sidebar = frappe.get_cached_doc("Module Sidebar", workspace.module)
+	sidebar = frappe.get_cached_doc("Sidebar", workspace.module)
 	if any(item.link_type == "Workspace" and item.link_to == workspace.name for item in sidebar.items):
 		return
 
@@ -636,7 +636,7 @@ def update_page(name: str, title: str, icon: str, indicator_color: str, parent: 
 		# A page that has just stopped being private has stopped having a derived link too, so
 		# this is where it earns a stored one. Reloaded because the rename above renamed the
 		# thing the link has to name.
-		add_to_module_sidebar(frappe.get_doc("Workspace", new_name))
+		add_to_sidebar(frappe.get_doc("Workspace", new_name))
 
 	return {"name": title, "public": public, "label": new_name}
 
@@ -806,7 +806,7 @@ def update_workspace_settings(
 
 	# Same as `update_page`: a workspace this save has made shared needs the link its private
 	# form derived rather than stored.
-	add_to_module_sidebar(frappe.get_doc("Workspace", new_name))
+	add_to_sidebar(frappe.get_doc("Workspace", new_name))
 
 	return workspace_payload(name=new_name)
 

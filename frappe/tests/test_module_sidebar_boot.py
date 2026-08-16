@@ -5,8 +5,8 @@ from unittest.mock import patch
 
 import frappe
 from frappe.boot import build_entity_module_map, get_module_sidebars
-from frappe.desk.doctype.custom_module_sidebar.test_custom_module_sidebar import make_user
-from frappe.desk.doctype.module_sidebar.module_sidebar import (
+from frappe.desk.doctype.custom_sidebar.test_custom_sidebar import make_user
+from frappe.desk.doctype.sidebar.sidebar import (
 	SidebarContext,
 	filter_sidebar_items,
 	get_module_landing_route,
@@ -14,7 +14,7 @@ from frappe.desk.doctype.module_sidebar.module_sidebar import (
 	get_sidebar_bases,
 	resolve_sidebar,
 )
-from frappe.desk.doctype.module_sidebar.test_module_sidebar import (
+from frappe.desk.doctype.sidebar.test_sidebar import (
 	make_report,
 	no_developer_mode,
 	sidebarless_module,
@@ -95,7 +95,7 @@ class TestTheResolverSeam(IntegrationTestCase):
 			).insert(ignore_permissions=True)
 			self.addCleanup(frappe.delete_doc, "Workspace", workspace.name, force=True, ignore_missing=True)
 
-			doc = frappe.get_doc({"doctype": "Module Sidebar", "module": module})
+			doc = frappe.get_doc({"doctype": "Sidebar", "module": module})
 			doc.append(
 				"items",
 				{"type": "Link", "link_type": "Workspace", "link_to": workspace.name, "label": "Home"},
@@ -116,7 +116,7 @@ class TestTheResolverSeam(IntegrationTestCase):
 			self.assertNotIn("landing", entry)
 
 
-class TestModuleSidebarBoot(IntegrationTestCase):
+class TestSidebarBoot(IntegrationTestCase):
 	"""The module-keyed boot payload -- now the only navigation payload."""
 
 	def setUp(self):
@@ -126,7 +126,7 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 		"""The point of the switch: `app_data[].modules` holds exact Module Def names, so it
 		must index straight into this payload. The legacy key is `title.lower()`."""
 		payload = get_module_sidebars()
-		self.assertTrue(payload, "sanity: the site has module sidebars")
+		self.assertTrue(payload, "sanity: the site has sidebars")
 
 		for key, sidebar in payload.items():
 			self.assertEqual(key, sidebar["module"])
@@ -137,21 +137,21 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 		row are a subset of it -- so nothing the old row-walk reached is dropped by the switch,
 		and the walk is no longer bounded by which rows exist.
 
-		The row is staged: nothing ships a `Module Sidebar`, so on a stock site the old walk
+		The row is staged: nothing ships a `Sidebar`, so on a stock site the old walk
 		had nothing to reach and the comparison would hold vacuously.
 		"""
 		with sidebarless_module("Test Row Backed Module") as rowed_module:
 			with system_write():
-				frappe.get_doc(
-					{"doctype": "Module Sidebar", "module": rowed_module, "title": "Rowed"}
-				).insert(ignore_permissions=True)
+				frappe.get_doc({"doctype": "Sidebar", "module": rowed_module, "title": "Rowed"}).insert(
+					ignore_permissions=True
+				)
 
 			modules = set(get_navigable_modules())
 			self.assertTrue(modules, "sanity: the site has modules")
 
 			row_backed = {
 				row.module
-				for row in frappe.get_all("Module Sidebar", fields=["module"])
+				for row in frappe.get_all("Sidebar", fields=["module"])
 				if frappe.db.exists("Module Def", row.module)
 			}
 			row_backed = set(get_visible_modules(list(row_backed)))
@@ -178,7 +178,7 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 		dissolves -- an app that stops shipping a sidebar used to un-navigate its module."""
 		with sidebarless_module("Test Deleted Document Module") as module:
 			make_report(module, "Test Surviving Report")
-			shipped = frappe.get_doc({"doctype": "Module Sidebar", "module": module})
+			shipped = frappe.get_doc({"doctype": "Sidebar", "module": module})
 			shipped.append("items", {"type": "Link", "link_type": "DocType", "link_to": "ToDo"})
 			# `system_write`, here and below: a sidebar document is app content, so the way one
 			# reaches a site is the app's import -- which is exactly what these tests stage
@@ -198,7 +198,7 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 		sidebar is exactly what the app authored."""
 		with sidebarless_module("Test Shipped Document Module") as module:
 			make_report(module, "Test Uninvited Report")
-			shipped = frappe.get_doc({"doctype": "Module Sidebar", "module": module, "title": "Shipped"})
+			shipped = frappe.get_doc({"doctype": "Sidebar", "module": module, "title": "Shipped"})
 			shipped.append("items", {"type": "Link", "link_type": "DocType", "link_to": "ToDo"})
 			with system_write():
 				shipped.insert(ignore_permissions=True)
@@ -215,9 +215,7 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 		with sidebarless_module("Test Empty Document Module") as module:
 			make_report(module, "Test Filled In Report")
 			with system_write():
-				frappe.get_doc({"doctype": "Module Sidebar", "module": module}).insert(
-					ignore_permissions=True
-				)
+				frappe.get_doc({"doctype": "Sidebar", "module": module}).insert(ignore_permissions=True)
 
 			sidebar = get_module_sidebars()[module]
 
@@ -230,7 +228,7 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 			make_report(module, "Test Stub Report")
 			with system_write():
 				frappe.get_doc(
-					{"doctype": "Module Sidebar", "module": module, "title": "Stub", "header_icon": "box"}
+					{"doctype": "Sidebar", "module": module, "title": "Stub", "header_icon": "box"}
 				).insert(ignore_permissions=True)
 
 			sidebar = get_module_sidebars()[module]
@@ -251,12 +249,12 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 		site whose modules all ship a sidebar reads exactly what it read before: the bases,
 		then their items.
 
-		Staged rather than read off the site: nothing ships a `Module Sidebar`, so a stock site
+		Staged rather than read off the site: nothing ships a `Sidebar`, so a stock site
 		has no rows at all and the assertion would be measuring the computed route instead.
 		"""
 		with sidebarless_module("Test All Rowed Module") as module:
 			with system_write():
-				shipped = frappe.get_doc({"doctype": "Module Sidebar", "module": module})
+				shipped = frappe.get_doc({"doctype": "Sidebar", "module": module})
 				shipped.append("items", {"type": "Link", "link_type": "DocType", "link_to": "ToDo"})
 				shipped.insert(ignore_permissions=True)
 
@@ -269,13 +267,13 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 
 	def test_a_customization_reshapes_a_computed_base(self):
 		"""A delta reshapes a base; it is not one. With every module now given a base, a
-		customization whose `Module Sidebar` was deleted out from under it lands on the
+		customization whose `Sidebar` was deleted out from under it lands on the
 		computed one -- so the entry it produces carries a title and an app like any other,
 		rather than the empty shell a baseless module would have conjured."""
 		with sidebarless_module("Test Stranded Delta Module") as module:
 			delta = frappe.get_doc(
 				{
-					"doctype": "Custom Module Sidebar",
+					"doctype": "Custom Sidebar",
 					"module": module,
 					"sidebar_items": [
 						{"added": 1, "type": "Link", "link_type": "DocType", "link_to": "ToDo"}
@@ -326,12 +324,12 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 		"""Same rule as the legacy builder, mirrored by `is_icon_permitted`. If these two
 		ever disagree, an icon appears for a sidebar that renders empty.
 
-		Staged on a module of its own: nothing writes a `Module Sidebar` on a site's behalf,
+		Staged on a module of its own: nothing writes a `Sidebar` on a site's behalf,
 		so borrowing whichever one happened to be there would be borrowing nothing.
 		"""
 		with sidebarless_module("Test Sectioned Module") as module:
 			with system_write():
-				doc = frappe.get_doc({"doctype": "Module Sidebar", "module": module})
+				doc = frappe.get_doc({"doctype": "Sidebar", "module": module})
 				doc.append("items", {"type": "Link", "link_type": "DocType", "link_to": "ToDo"})
 				doc.insert(ignore_permissions=True)
 
@@ -371,7 +369,7 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 		"""`workspaces` is the workspaces of a module this *reader* may open, which is what the
 		desk asks it: given a route naming a workspace, which module's shell does it belong to?
 		The reader's own private pages answer that question; nobody else's do."""
-		from frappe.desk.doctype.module_sidebar.module_sidebar import get_module_workspaces
+		from frappe.desk.doctype.sidebar.sidebar import get_module_workspaces
 
 		for module, names in get_module_workspaces().items():
 			for name in names:
@@ -518,7 +516,7 @@ class TestPrivateWorkspacesAreDerived(IntegrationTestCase):
 		with system_write():
 			frappe.get_doc(
 				{
-					"doctype": "Module Sidebar",
+					"doctype": "Sidebar",
 					"module": self.module,
 					"items": [{"type": "Link", "link_type": "DocType", "link_to": "ToDo"}],
 				}
@@ -541,11 +539,11 @@ class TestPrivateWorkspacesAreDerived(IntegrationTestCase):
 
 		frappe.set_user("Administrator")
 		self.assertFalse(
-			frappe.db.exists("Custom Module Sidebar", {"module": self.module}),
+			frappe.db.exists("Custom Sidebar", {"module": self.module}),
 			"a private page must not open a customization on the module",
 		)
 		self.assertFalse(
-			frappe.db.exists("Module Sidebar Item", {"link_type": "Workspace", "link_to": name}),
+			frappe.db.exists("Sidebar Item", {"link_type": "Workspace", "link_to": name}),
 			"no item row anywhere may name a private page",
 		)
 		# and the derived one is there all the same
@@ -590,7 +588,7 @@ class TestPrivateWorkspacesAreDerived(IntegrationTestCase):
 	def test_a_row_stored_before_the_derivation_is_not_rendered_twice(self):
 		"""A site that stored these links keeps rendering one link, in the position its layer
 		put it -- the derived one is the duplicate, and it is the one that gives way."""
-		from frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar import (
+		from frappe.desk.doctype.custom_sidebar.custom_sidebar import (
 			CUSTOMIZED_KEYS_CACHE_KEY,
 			add_site_sidebar_item,
 		)
@@ -602,11 +600,9 @@ class TestPrivateWorkspacesAreDerived(IntegrationTestCase):
 			self.module,
 			{"type": "Link", "label": "Stored", "link_type": "Workspace", "link_to": workspace.name},
 		)
-		layer = frappe.db.get_value("Custom Module Sidebar", {"module": self.module})
+		layer = frappe.db.get_value("Custom Sidebar", {"module": self.module})
 		self.addCleanup(frappe.cache.delete_value, CUSTOMIZED_KEYS_CACHE_KEY)
-		self.addCleanup(
-			frappe.delete_doc, "Custom Module Sidebar", layer, force=True, ignore_permissions=True
-		)
+		self.addCleanup(frappe.delete_doc, "Custom Sidebar", layer, force=True, ignore_permissions=True)
 		frappe.db.set_value("Workspace", workspace.name, {"public": 0, "for_user": self.OWNER})
 
 		links = [item["link_to"] for item in self.items_for(self.OWNER)]
@@ -653,7 +649,7 @@ class TestAClaimOnAnAbsentEntityIsInert(IntegrationTestCase):
 		with sidebarless_module(self.MODULE) as module, no_developer_mode():
 			doc = import_doc(
 				{
-					"doctype": "Module Sidebar",
+					"doctype": "Sidebar",
 					"module": module,
 					"title": "Absent",
 					"standard": 1,
@@ -774,7 +770,7 @@ class TestOwnershipIsPerUser(IntegrationTestCase):
 		self.winner = self.enterContext(sidebarless_module("Test Claim Alpha Module"))
 		self.runner_up = self.enterContext(sidebarless_module("Test Claim Zeta Module"))
 		for module in (self.winner, self.runner_up):
-			sidebar = frappe.get_doc({"doctype": "Module Sidebar", "module": module, "title": module})
+			sidebar = frappe.get_doc({"doctype": "Sidebar", "module": module, "title": module})
 			sidebar.append(
 				"items",
 				{

@@ -11,7 +11,7 @@ from frappe.app_state import get_disabled_modules
 from frappe.cache_manager import build_table_count_cache
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.desk_views import DeskViews
-from frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar import check_workspace_manager
+from frappe.desk.doctype.custom_sidebar.custom_sidebar import check_workspace_manager
 from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	apply_customization,
 	get_customization,

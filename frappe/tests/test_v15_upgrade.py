@@ -3,7 +3,7 @@
 
 """What a v15 customer gets from `bench update`.
 
-They have no `Module Sidebar`, no `Workspace.module`, no `Desktop Icon` -- the whole
+They have no `Sidebar`, no `Workspace.module`, no `Desktop Icon` -- the whole
 navigation model arrives in one migrate. These tests seed that shape and walk it through the
 same patches, in the same order, that `patches.txt` runs them in, then read the result off the
 surfaces the desk actually boots from.
@@ -15,8 +15,8 @@ from unittest.mock import patch
 import frappe
 from frappe.desk.desktop import get_user_dock_modules
 from frappe.desk.doctype.desktop_settings.desktop_settings import APPS, DESKTOP_ICONS, get_desktop_page
-from frappe.desk.doctype.module_sidebar.module_sidebar import clear_computed_base_cache
-from frappe.desk.doctype.module_sidebar.test_module_sidebar import no_developer_mode
+from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_cache
+from frappe.desk.doctype.sidebar.test_sidebar import no_developer_mode
 from frappe.modules.patch_handler import PatchType, get_patches_from_app
 from frappe.tests import IntegrationTestCase
 
@@ -220,7 +220,7 @@ class TestV15Upgrade(IntegrationTestCase):
 
 	def test_the_module_gets_a_sidebar_carrying_what_the_workspaces_authored(self):
 		"""Behind the backfill this layer did not exist at all: the merge saw no sources."""
-		layer = frappe.get_doc("Custom Module Sidebar", {"module": self.MODULE, "user": ""})
+		layer = frappe.get_doc("Custom Sidebar", {"module": self.MODULE, "user": ""})
 		self.assertIn(self.REPORT, [item.link_to for item in layer.sidebar_items])
 
 	def test_the_sidebar_reaches_the_navigation_payload(self):

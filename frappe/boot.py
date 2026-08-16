@@ -439,7 +439,7 @@ def get_app_modules(app_name: str) -> list[str]:
 
 	The order is stated, then inherited, then alphabetical:
 
-	1. **`Module Sidebar.sequence_id`** -- the app saying outright where a module sits, in the
+	1. **`Sidebar.sequence_id`** -- the app saying outright where a module sits, in the
 	   document it already ships to say what the module is called and what is in it. Lower
 	   first. Unset reads as `DEFAULT_MODULE_SEQUENCE_ID`, so a module can be pinned in front
 	   of the modules that declare nothing or behind them.
@@ -450,7 +450,7 @@ def get_app_modules(app_name: str) -> list[str]:
 	   UI, never written to `modules.txt`), which trail the declared ones alphabetically.
 
 	A module whose sidebar is *computed* rather than shipped has no document to carry a
-	sequence and therefore takes the default. Authoring a stub `Module Sidebar` is how it gets
+	sequence and therefore takes the default. Authoring a stub `Sidebar` is how it gets
 	one -- the same document that would give it a title and an icon.
 	"""
 	from frappe.utils.modules import get_visible_modules
@@ -466,7 +466,7 @@ def get_app_modules(app_name: str) -> list[str]:
 	sequences = {
 		row.module: row.sequence_id or DEFAULT_MODULE_SEQUENCE_ID
 		for row in frappe.get_all(
-			"Module Sidebar", filters={"module": ["in", modules]}, fields=["module", "sequence_id"]
+			"Sidebar", filters={"module": ["in", modules]}, fields=["module", "sequence_id"]
 		)
 	}
 
@@ -502,7 +502,7 @@ def get_standalone_modules(module_sidebars: dict) -> list[dict]:
 	`module_sidebars`, which has already applied the per-user module gate and already dropped
 	the modules whose sidebar holds nothing the user can navigate to.
 	"""
-	from frappe.desk.doctype.module_sidebar.module_sidebar import get_module_landing_route
+	from frappe.desk.doctype.sidebar.sidebar import get_module_landing_route
 
 	if not module_sidebars:
 		return []
@@ -735,7 +735,7 @@ def get_sentry_dsn():
 def get_module_sidebars():
 	"""Build `bootinfo.module_sidebars` by resolving each of the site's modules to its sidebar.
 
-	Resolution walks **modules**, not `Module Sidebar` rows (see `get_navigable_modules`), and
+	Resolution walks **modules**, not `Sidebar` rows (see `get_navigable_modules`), and
 	each one is handed to `resolve_sidebar`, which is where every rule that shapes an answer
 	lives. This function chooses the set and assembles the payload; it decides nothing about
 	what a module resolves to.
@@ -745,7 +745,7 @@ def get_module_sidebars():
 	now indexes straight in. The legacy payload is keyed by `title.lower()`, a third keyspace
 	alongside `router.slug(name)` and the exact Workspace name.
 	"""
-	from frappe.desk.doctype.module_sidebar.module_sidebar import (
+	from frappe.desk.doctype.sidebar.sidebar import (
 		SidebarContext,
 		get_navigable_modules,
 		resolve_sidebar,

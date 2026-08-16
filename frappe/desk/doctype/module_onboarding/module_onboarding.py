@@ -98,7 +98,7 @@ IMPLICIT_ROLE = "System Manager"
 def get_permitted_onboardings() -> dict[str, str]:
 	"""The onboarding each module offers *this user*, keyed by module.
 
-	This replaces the `Module Sidebar.module_onboarding` pointer, and is strictly better than
+	This replaces the `Sidebar.module_onboarding` pointer, and is strictly better than
 	it: a stored pointer names one onboarding regardless of who is looking, so it either
 	bypassed the role check the onboarding itself declares or showed a panel that then refused
 	to load. Asking which onboardings the user's roles allow answers both questions at once,

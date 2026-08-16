@@ -1,0 +1,128 @@
+{
+ "actions": [],
+ "autoname": "field:module",
+ "creation": "2026-08-03 17:10:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "module",
+  "title",
+  "header_icon",
+  "column_break_defn",
+  "app",
+  "sequence_id",
+  "items_section",
+  "items",
+  "provenance_section",
+  "standard",
+  "column_break_prov",
+  "merged_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Module",
+   "options": "Module Def",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "Label shown in the dock. Defaults to the module name.",
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title"
+  },
+  {
+   "fieldname": "header_icon",
+   "fieldtype": "Icon",
+   "label": "Header Icon",
+   "options": "Emojis"
+  },
+  {
+   "fieldname": "column_break_defn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "app",
+   "fieldtype": "Autocomplete",
+   "label": "App",
+   "options": "Installed Applications"
+  },
+  {
+   "description": "Where this module sits on its app's dock. Lower shows first; unset (0) reads as 100, the middle default, so a module can be pinned either side of the ones that declare nothing. Ties fall back to the app's modules.txt order.",
+   "fieldname": "sequence_id",
+   "fieldtype": "Float",
+   "label": "Sequence Id"
+  },
+  {
+   "fieldname": "items_section",
+   "fieldtype": "Section Break",
+   "label": "Items"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Sidebar Item"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "provenance_section",
+   "fieldtype": "Section Break",
+   "label": "Provenance"
+  },
+  {
+   "default": "0",
+   "description": "Owned by an app: exported to its module's folder and re-imported by migrate. Set via the Mark as Standard action, not by hand -- a standard sidebar with no exported file is an orphan and gets deleted on the next migrate. Everything else belongs to this site, however it got here.",
+   "fieldname": "standard",
+   "fieldtype": "Check",
+   "label": "Standard",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_prov",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Workspaces whose sidebars were merged to build this one. Read by the module-split tool.",
+   "fieldname": "merged_from",
+   "fieldtype": "Long Text",
+   "label": "Merged From",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-08-12 09:15:00.000000",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Sidebar",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Desk User"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

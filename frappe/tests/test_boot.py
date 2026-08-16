@@ -1,7 +1,7 @@
 import frappe
 from frappe.desk.desk_views import DeskViews
-from frappe.desk.doctype.module_sidebar.test_module_sidebar import developer_mode
 from frappe.desk.doctype.note.note import _get_unseen_notes, get_unseen_notes, mark_as_seen
+from frappe.desk.doctype.sidebar.test_sidebar import developer_mode
 from frappe.tests import IntegrationTestCase
 
 

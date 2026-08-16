@@ -336,7 +336,7 @@ frappe.ui.DockManager = class DockManager {
 	}
 
 	// Publish the arrangement on screen as the app's own, by writing `sequence_id` into each
-	// module's `Module Sidebar` and exporting it. Not a third layer: the two layers rearrange the
+	// module's `Sidebar` and exporting it. Not a third layer: the two layers rearrange the
 	// list the app ships, and this is that list, so the same dialog authors both.
 	//
 	// Confirmed first because it is the one action here that leaves the site -- it writes JSON
@@ -360,7 +360,7 @@ frappe.ui.DockManager = class DockManager {
 				// the app is derived server-side from the modules themselves -- `app_name` here is
 				// the apps-screen key, which is not always the app a module's files live in
 				this.app.modules = await frappe.xcall(
-					"frappe.desk.doctype.module_sidebar.module_sidebar.ship_dock_order",
+					"frappe.desk.doctype.sidebar.sidebar.ship_dock_order",
 					{ modules: JSON.stringify(this.selection) }
 				);
 

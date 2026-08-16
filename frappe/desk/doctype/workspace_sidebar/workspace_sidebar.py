@@ -5,7 +5,7 @@
 
 Nothing reads this at runtime and nothing writes a row to it. It stays because it is where a
 v16 site's sidebars actually are: the conversion in
-`frappe.desk.doctype.module_sidebar.module_sidebar` reads these rows, and keeping them is what
+`frappe.desk.doctype.sidebar.sidebar` reads these rows, and keeping them is what
 makes that conversion re-runnable -- a site migrated by a bad build can be migrated again from
 the same source, and nothing anywhere in the upgrade destroys anything.
 
