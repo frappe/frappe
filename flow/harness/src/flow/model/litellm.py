@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncIterator, Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Any, cast
 
@@ -23,7 +23,6 @@ from flow.events import (
 	ThinkingContent,
 	ThinkingDelta,
 	ToolCall,
-	ToolCallReady,
 	ToolCallStarted,
 	ToolResult,
 	TranscriptMessage,
@@ -35,9 +34,10 @@ from flow.model.base import (
 	ModelCancelled,
 	ModelRequest,
 	await_with_cancellation,
-	extract_tool_call_display_metadata,
 	iterate_with_cancellation,
 	run_with_retries,
+	tool_call_display_ready_event,
+	with_tool_call_displays,
 )
 from flow.model.content import resolve_user_content
 from flow.model.errors import normalize_litellm_error
@@ -111,8 +111,10 @@ class LiteLLMModel(Model):
 
 		def start_attempt() -> AsyncIterator[AnyEvent]:
 			if request.stream:
-				return self._stream_response(dict(kwargs), request.cancellation)
-			return self._response(dict(kwargs), request.cancellation)
+				return self._stream_response(
+					dict(kwargs), request.cancellation, request.tool_display_templates
+				)
+			return self._response(dict(kwargs), request.cancellation, request.tool_display_templates)
 
 		try:
 			async for event in run_with_retries(
@@ -156,7 +158,10 @@ class LiteLLMModel(Model):
 		return kwargs
 
 	async def _response(
-		self, kwargs: dict[str, Any], cancellation: asyncio.Event | None
+		self,
+		kwargs: dict[str, Any],
+		cancellation: asyncio.Event | None,
+		tool_display_templates: Mapping[str, str],
 	) -> AsyncIterator[AnyEvent]:
 		import litellm
 
@@ -169,7 +174,7 @@ class LiteLLMModel(Model):
 		choice = (_attr(response, "choices") or [None])[0]
 		message = _attr(choice, "message")
 		content = _message_content(message)
-		yield AssistantMessage(
+		result = AssistantMessage(
 			content=content,
 			api=self.api,
 			provider=self.provider,
@@ -181,16 +186,20 @@ class LiteLLMModel(Model):
 				has_tools=any(isinstance(block, ToolCall) for block in content),
 			),
 		)
+		yield with_tool_call_displays(result, tool_display_templates)
 		yield _usage_event(_attr(response, "usage"), _cost(response))
 
 	async def _stream_response(
-		self, kwargs: dict[str, Any], cancellation: asyncio.Event | None
+		self,
+		kwargs: dict[str, Any],
+		cancellation: asyncio.Event | None,
+		tool_display_templates: Mapping[str, str],
 	) -> AsyncIterator[AnyEvent]:
 		import litellm
 
 		kwargs["stream"] = True
 		kwargs["stream_options"] = {"include_usage": True}
-		assembler = _ResponseAssembler()
+		assembler = _ResponseAssembler(tool_display_templates=tool_display_templates)
 		try:
 			# acompletion returns `ModelResponse | CustomStreamWrapper` and picks at
 			# runtime from the `stream` value, which is inside our kwargs dict — so the
@@ -221,6 +230,7 @@ class _ResponseAssembler:
 	"""
 
 	blocks: list[TextContent | ThinkingContent | int] = field(default_factory=list)
+	tool_display_templates: Mapping[str, str] = field(default_factory=dict)
 	partial_calls: dict[int, dict[str, str]] = field(default_factory=dict)
 	announced_calls: set[int] = field(default_factory=set)
 	ready_calls: set[int] = field(default_factory=set)
@@ -313,7 +323,13 @@ class _ResponseAssembler:
 		for position, parts in sorted(self.partial_calls.items()):
 			if position in self.ready_calls:
 				continue
-			ready = _ready_tool_call(parts, allow_empty=allow_empty)
+			ready = tool_call_display_ready_event(
+				parts["id"],
+				parts["name"],
+				parts["arguments"],
+				display_template=self.tool_display_templates.get(parts["name"]),
+				complete=allow_empty,
+			)
 			if ready is None:
 				continue
 			self.ready_calls.add(position)
@@ -331,7 +347,7 @@ class _ResponseAssembler:
 			else:
 				content.append(block)
 		actual = self.response_model
-		return AssistantMessage(
+		message = AssistantMessage(
 			content=content,
 			api=model.api,
 			provider=model.provider,
@@ -344,6 +360,7 @@ class _ResponseAssembler:
 				else _stop_reason(self.finish_reason, has_tools=bool(calls_by_position))
 			),
 		)
+		return with_tool_call_displays(message, self.tool_display_templates)
 
 	def usage(self) -> Usage:
 		return _usage_event(self.raw_usage, self.cost)
@@ -388,16 +405,6 @@ def _finalize_tool_calls(partial_calls: dict[int, dict[str, str]]) -> dict[int, 
 			continue
 		calls[position] = _build_tool_call(parts["id"], parts["name"], parts["arguments"])
 	return calls
-
-
-def _ready_tool_call(parts: dict[str, str], *, allow_empty: bool = False) -> ToolCallReady | None:
-	"""Return a live call once its accumulated JSON exposes useful metadata."""
-	if not parts["id"] or not parts["name"]:
-		return None
-	arguments = extract_tool_call_display_metadata(parts["arguments"], allow_empty=allow_empty)
-	if arguments is None:
-		return None
-	return ToolCallReady(id=parts["id"], name=parts["name"], arguments=arguments)
 
 
 def _message_tool_calls(message: Any) -> list[ToolCall]:

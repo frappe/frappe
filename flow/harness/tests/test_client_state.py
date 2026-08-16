@@ -3,6 +3,7 @@
 from flow.events import (
 	ApprovalRequired,
 	AssistantMessage,
+	DisplaySegment,
 	ModelChanged,
 	PendingCall,
 	Retry,
@@ -15,7 +16,7 @@ from flow.events import (
 	ThinkingContent,
 	ThinkingDelta,
 	ToolCall,
-	ToolCallReady,
+	ToolCallDisplayReady,
 	ToolCallStarted,
 	ToolResult,
 	Usage,
@@ -54,10 +55,11 @@ def test_deltas_accumulate_and_durable_message_replaces_them():
 	state.apply(TextDelta(text="lo"))
 	state.apply(ToolCallStarted(id="c1", name="bash"))
 	state.apply(
-		ToolCallReady(
+		ToolCallDisplayReady(
 			id="c1",
 			name="bash",
 			arguments={"command": "pwd"},
+			display="Running pwd",
 		)
 	)
 	state.apply(TextDelta(text="tail"))
@@ -66,7 +68,12 @@ def test_deltas_accumulate_and_durable_message_replaces_them():
 	assert state.partial == [
 		PartialThinking("hmm ok"),
 		PartialText("Hello"),
-		PartialToolCall(id="c1", name="bash", arguments={"command": "pwd"}),
+		PartialToolCall(
+			id="c1",
+			name="bash",
+			arguments={"command": "pwd"},
+			display=[DisplaySegment(text="Running pwd")],
+		),
 		PartialText("tail"),
 	]
 

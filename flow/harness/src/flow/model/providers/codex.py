@@ -29,7 +29,6 @@ from flow.events import (
 	ThinkingContent,
 	ThinkingDelta,
 	ToolCall,
-	ToolCallReady,
 	ToolCallStarted,
 	ToolResult,
 	TranscriptMessage,
@@ -50,9 +49,10 @@ from flow.model.base import (
 	ModelCancelled,
 	ModelRequest,
 	await_with_cancellation,
-	extract_tool_call_display_metadata,
 	iterate_with_cancellation,
 	run_with_retries,
+	tool_call_display_ready_event,
+	with_tool_call_displays,
 )
 from flow.model.content import resolve_user_content
 from flow.model.credentials import OAuthCredential
@@ -322,7 +322,10 @@ class CodexModel(Model):
 					body=body,
 					headers=response.headers,
 				)
-			assembler = _ResponseAssembler(emit_deltas=request.stream)
+			assembler = _ResponseAssembler(
+				emit_deltas=request.stream,
+				tool_display_templates=request.tool_display_templates,
+			)
 			try:
 				async for raw in iterate_with_cancellation(_iter_sse(response), request.cancellation):
 					if raw.get("type") in {"error", "response.failed"}:
@@ -473,15 +476,12 @@ class _ToolCallBuilder:
 		if not isinstance(parsed, dict):
 			error = f"Arguments for {self.name!r} must be a JSON object."
 			return ToolCall(id=self.call_id, name=self.name, arguments={}, error=error, provider_state=state)
-		return ToolCall(id=self.call_id, name=self.name, arguments=parsed, provider_state=state)
-
-	def ready(self, *, allow_empty: bool = False) -> ToolCallReady | None:
-		if not self.name:
-			return None
-		arguments = extract_tool_call_display_metadata(self.arguments, allow_empty=allow_empty)
-		if arguments is None:
-			return None
-		return ToolCallReady(id=self.call_id, name=self.name, arguments=arguments)
+		return ToolCall(
+			id=self.call_id,
+			name=self.name,
+			arguments=parsed,
+			provider_state=state,
+		)
 
 
 @dataclass(slots=True)
@@ -493,6 +493,7 @@ class _ResponseAssembler:
 	"""
 
 	emit_deltas: bool
+	tool_display_templates: Mapping[str, str] = field(default_factory=dict)
 	content: list[TextContent | ThinkingContent | _ToolCallBuilder] = field(default_factory=list)
 	positions: dict[str, int] = field(default_factory=dict)
 	calls: dict[str, _ToolCallBuilder] = field(default_factory=dict)  # by item id and call id
@@ -585,7 +586,13 @@ class _ResponseAssembler:
 	def _ready_event(self, call: _ToolCallBuilder, *, allow_empty: bool = False) -> list[AnyEvent]:
 		if not self.emit_deltas or call.call_id in self.ready_calls:
 			return []
-		event = call.ready(allow_empty=allow_empty)
+		event = tool_call_display_ready_event(
+			call.call_id,
+			call.name,
+			call.arguments,
+			display_template=self.tool_display_templates.get(call.name),
+			complete=allow_empty,
+		)
 		if event is None:
 			return []
 		self.ready_calls.add(call.call_id)
@@ -669,7 +676,7 @@ class _ResponseAssembler:
 		content = [block.build() if isinstance(block, _ToolCallBuilder) else block for block in self.content]
 		has_calls = any(isinstance(block, ToolCall) for block in content)
 		actual = self.response_model
-		return AssistantMessage(
+		message = AssistantMessage(
 			content=content,
 			api=model.api,
 			provider=model.provider,
@@ -680,6 +687,7 @@ class _ResponseAssembler:
 			# possibly-truncated calls are never executed
 			stop_reason="tool_use" if has_calls and self.stop_reason == "stop" else self.stop_reason,
 		)
+		return with_tool_call_displays(message, self.tool_display_templates)
 
 	def _place(self, item_id: str, block: TextContent | ThinkingContent) -> None:
 		self.positions[item_id] = len(self.content)

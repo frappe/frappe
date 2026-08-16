@@ -5,6 +5,7 @@ import {
 	applyEvent,
 	buildItems,
 	conversationTitle,
+	displayText,
 	formatDuration,
 	humanizeToolName,
 	initialConversation,
@@ -52,22 +53,24 @@ test("expanded skill messages render compactly like Pi and Tau", () => {
 	assert.equal(normalizeSkillCommand("/skill:security-review\n\ncheck this branch"), "/skill:security-review check this branch")
 })
 
-test("live file-tool labels use only the filename", () => {
+test("declarative tool displays drive live labels", () => {
+	const display = [
+		{ text: "Reading file " },
+		{ text: "src/flow/model/base.py", arg: "path" },
+	]
+	// the live line shortens read paths to the file name; the full path stays in displayText
 	assert.equal(
-		stepLiveLabel({ name: "read_file", arguments: { path: "src/flow/model/base.py" } }),
+		stepLiveLabel({ name: "read_file", arguments: { path: "src/flow/model/base.py" }, display }),
 		"Reading file base.py",
 	)
-	assert.equal(
-		stepLiveLabel({ name: "write", arguments: { path: "docs/plan.md" } }),
-		"Writing file plan.md",
-	)
-	assert.equal(
-		stepLiveLabel({ name: "edit", arguments: { path: "src\\flow\\events.py" } }),
-		"Editing file events.py",
-	)
+	assert.equal(displayText(display), "Reading file src/flow/model/base.py")
 })
 
-test("bash and grep labels stay generic", () => {
+test("known tools retain generic fallbacks for older events", () => {
+	assert.equal(
+		stepLiveLabel({ name: "read_file", arguments: { path: "src/app.py" } }),
+		"Reading file app.py",
+	)
 	assert.equal(stepLiveLabel({ name: "bash", arguments: { command: "git status" } }), "Running command")
 	assert.equal(stepLiveLabel({ name: "grep", arguments: { pattern: "TODO" } }), "Searching code")
 })
@@ -77,6 +80,14 @@ test("unknown tool names are humanized for future custom tools", () => {
 	assert.equal(humanizeToolName("create-calendar-event"), "Create calendar event")
 	assert.equal(humanizeToolName("fetchAccountDetails"), "Fetch account details")
 	assert.equal(stepLiveLabel({ name: "send_email_now", arguments: {} }), "Running send email now")
+	assert.equal(
+		stepLiveLabel({
+			name: "web_search",
+			arguments: { query: "Flow" },
+			display: [{ text: "Searching the web for " }, { text: "Flow", arg: "query" }],
+		}),
+		"Searching the web for Flow",
+	)
 })
 
 test("completed tool groups summarize unique activity kinds in order", () => {
@@ -97,17 +108,28 @@ test("completed tool groups summarize unique activity kinds in order", () => {
 
 test("trivial thinking does not replace the latest meaningful tool status", () => {
 	const finished = {
-		call: { name: "read_file", arguments: { path: "src/flow/events.py" } },
+		call: {
+			name: "read_file",
+			arguments: { path: "src/flow/events.py" },
+			display: [{ text: "Reading file " }, { text: "src/flow/events.py", arg: "path" }],
+		},
 		result: { content: "contents" },
 	}
-	assert.equal(toolGroupLiveLabel([finished], "Thinking"), "Working")
-	assert.equal(toolGroupLiveLabel([finished], "Reading file events.py"), "Working")
+	assert.equal(toolGroupLiveLabel([finished], "Thinking"), "Reading file events.py")
+	assert.equal(toolGroupLiveLabel([finished], "Reading file events.py"), "Reading file events.py")
 	assert.equal(toolGroupLiveLabel([finished], "Retrying"), "Retrying")
 	assert.equal(
 		toolGroupLiveLabel(
 			[
 				finished,
-				{ call: { name: "edit", arguments: { path: "ui/App.vue" } }, result: null },
+				{
+					call: {
+						name: "edit",
+						arguments: { path: "ui/App.vue" },
+						display: [{ text: "Editing file " }, { text: "ui/App.vue", arg: "path" }],
+					},
+					result: null,
+				},
 			],
 			"Thinking",
 		),
@@ -118,18 +140,24 @@ test("trivial thinking does not replace the latest meaningful tool status", () =
 test("live chat statuses do not use ellipses", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })
-	assert.equal(conversation.liveLabel, "Working")
+	assert.equal(conversation.liveLabel, "Thinking")
+	// a name-only start keeps the current status; no generic label flash
 	applyEvent(conversation, { type: "tool_call_started", name: "read_file" })
-	assert.equal(conversation.liveLabel, "Working")
+	assert.equal(conversation.liveLabel, "Thinking")
 	applyEvent(conversation, {
-		type: "tool_call_ready",
+		type: "tool_call_display_ready",
 		id: "call-1",
 		name: "read_file",
 		arguments: { path: "src/events.py" },
+		display: [{ text: "Inspecting " }, { text: "src/events.py", arg: "path" }],
 	})
-	assert.equal(conversation.liveLabel, "Reading file events.py")
+	assert.equal(conversation.liveLabel, "Inspecting events.py")
+	assert.deepEqual(conversation.partial[0].display, [
+		{ text: "Inspecting " },
+		{ text: "src/events.py", arg: "path" },
+	])
 	applyEvent(conversation, { type: "tool_call_started", name: "send_email_now" })
-	assert.equal(conversation.liveLabel, "Working")
+	assert.equal(conversation.liveLabel, "Inspecting events.py")
 	applyEvent(conversation, { type: "retry", status: "scheduled" })
 	assert.equal(conversation.liveLabel, "Retrying")
 	applyEvent(conversation, { type: "compaction_started" })
@@ -180,7 +208,7 @@ test("identity-only tool starts stay hidden until actionable arguments arrive", 
 		{ type: "tool_call", id: "call-1", name: "read_file", arguments: null },
 	])
 	assert.deepEqual(toolGroups(conversation), [])
-	assert.equal(conversation.liveLabel, "Working")
+	assert.equal(conversation.liveLabel, "Thinking")
 })
 
 test("ready tool metadata creates one exact provisional step", () => {
@@ -188,16 +216,18 @@ test("ready tool metadata creates one exact provisional step", () => {
 	applyEvent(conversation, { type: "run_started" })
 	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "edit" })
 	applyEvent(conversation, {
-		type: "tool_call_ready",
+		type: "tool_call_display_ready",
 		id: "call-1",
 		name: "edit",
 		arguments: { path: "ui/App.vue" },
+		display: [{ text: "Editing file " }, { text: "ui/App.vue", arg: "path" }],
 	})
 	applyEvent(conversation, {
-		type: "tool_call_ready",
+		type: "tool_call_display_ready",
 		id: "call-1",
 		name: "edit",
 		arguments: { path: "ui/Renamed.vue" },
+		display: [{ text: "Editing file " }, { text: "ui/Renamed.vue", arg: "path" }],
 	})
 
 	assert.equal(conversation.partial.length, 1)
@@ -225,13 +255,13 @@ test("ready metadata preserves the provider order for parallel calls", () => {
 	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read_file" })
 	applyEvent(conversation, { type: "tool_call_started", id: "call-2", name: "bash" })
 	applyEvent(conversation, {
-		type: "tool_call_ready",
+		type: "tool_call_display_ready",
 		id: "call-2",
 		name: "bash",
 		arguments: { command: "pwd" },
 	})
 	applyEvent(conversation, {
-		type: "tool_call_ready",
+		type: "tool_call_display_ready",
 		id: "call-1",
 		name: "read_file",
 		arguments: { path: "README.md" },
@@ -327,10 +357,11 @@ test("streamed thinking stays visible until the actionable tool call arrives", (
 	// Complete live metadata arrives before execution and moves the thought into
 	// the group with its filename available.
 	applyEvent(conversation, {
-		type: "tool_call_ready",
+		type: "tool_call_display_ready",
 		id: "call-1",
 		name: "read_file",
 		arguments: { path: "src/app.js" },
+		display: [{ text: "Reading file " }, { text: "src/app.js", arg: "path" }],
 	})
 	assert.ok(!buildItems(conversation).some((item) => item.kind === "thinking"))
 	let steps = toolGroups(conversation)[0].steps
@@ -343,7 +374,13 @@ test("streamed thinking stays visible until the actionable tool call arrives", (
 		seq: 2,
 		content: [
 			{ type: "thinking", thinking: "let me see" },
-			{ type: "tool_call", id: "call-1", name: "read_file", arguments: { path: "src/app.js" } },
+			{
+				type: "tool_call",
+				id: "call-1",
+				name: "read_file",
+				arguments: { path: "src/app.js" },
+				display: [{ text: "Reading file " }, { text: "src/app.js", arg: "path" }],
+			},
 		],
 		stop_reason: "tool_use",
 	})
@@ -365,7 +402,7 @@ test("streamed thought, text, and tool call keep their order until the durable m
 	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "bash" })
 
 	assert.deepEqual(conversation.partial.map((block) => block.type), ["thinking", "text", "tool_call"])
-	assert.equal(conversation.liveLabel, "Working")
+	assert.equal(conversation.liveLabel, null)
 	const liveItems = buildItems(conversation)
 	assert.deepEqual(liveItems.map((item) => item.kind), ["user", "thinking", "text"])
 	assert.equal(liveItems[1].live, false)
@@ -373,7 +410,7 @@ test("streamed thought, text, and tool call keep their order until the durable m
 	assert.equal(liveItems[2].block.text, "I'll explore the project structure to understand it thoroughly.")
 
 	applyEvent(conversation, {
-		type: "tool_call_ready",
+		type: "tool_call_display_ready",
 		id: "call-1",
 		name: "bash",
 		arguments: { command: "ls" },

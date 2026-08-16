@@ -40,7 +40,7 @@ from flow.events import (
 	ThinkingContent,
 	ThinkingDelta,
 	TitleChanged,
-	ToolCallReady,
+	ToolCallDisplayReady,
 	ToolCallStarted,
 	ToolResult,
 	UserMessage,
@@ -152,7 +152,7 @@ class _PartialAssistant:
 			else:
 				self.content.append(ThinkingContent(thinking=event.thinking))
 			self._tail_kind = "thinking"
-		elif isinstance(event, (ToolCallStarted, ToolCallReady)):
+		elif isinstance(event, (ToolCallStarted, ToolCallDisplayReady)):
 			# These are presentation-only; the provider's terminal message remains the
 			# single canonical tool call. Both still separate adjacent streamed blocks.
 			self._tail_kind = None

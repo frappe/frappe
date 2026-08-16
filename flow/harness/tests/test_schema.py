@@ -4,7 +4,8 @@ from typing import Annotated, Literal
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from flow.tools.tool import Tool, ToolContext, build_schema, tool
+from flow.events import DisplaySegment
+from flow.tools.tool import Tool, ToolContext, build_schema, render_tool_display, tool
 
 
 def test_primitives_and_required():
@@ -105,13 +106,46 @@ def test_tool_decorator_derives_name_and_description():
 
 
 def test_tool_decorator_overrides_and_confirmation():
-	@tool(name="custom", description="d", requires_confirmation=True)
+	@tool(
+		name="custom",
+		description="d",
+		requires_confirmation=True,
+		display_template="Running custom tool",
+	)
 	async def _f(*, ctx: ToolContext) -> str:
 		return "ok"
 
 	assert _f.name == "custom"
 	assert _f.description == "d"
 	assert _f.requires_confirmation is True
+	assert _f.display_template == "Running custom tool"
+
+
+def test_tool_display_accepts_argument_placeholders_but_rejects_unknown_arguments():
+	@tool(display_template="Searching the web for {{ query }}")
+	async def web_search(query: str, *, ctx: ToolContext) -> str:
+		return query
+
+	assert web_search.display_template == "Searching the web for {{ query }}"
+	assert "display_template" not in web_search.to_schema()
+	assert "display_template" not in web_search.to_schema()["function"]
+
+	with pytest.raises(ValueError, match=r"unknown argument.*missing"):
+
+		@tool(display_template="Searching for {{ missing }}")
+		async def invalid(query: str, *, ctx: ToolContext) -> str:
+			return query
+
+
+def test_tool_display_renders_template_text_and_values_as_segments():
+	segments = render_tool_display("Reading file {{ path }}", {"path": "docs/architecture.md"})
+	assert segments == [
+		DisplaySegment(text="Reading file "),
+		DisplaySegment(text="docs/architecture.md", arg="path"),
+	]
+
+	with pytest.raises(ValueError, match="placeholders"):
+		render_tool_display("Reading {{ path | basename }}", {"path": "a.md"})
 
 
 def test_tool_to_schema_shape():

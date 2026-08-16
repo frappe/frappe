@@ -12,7 +12,9 @@ from __future__ import annotations
 import asyncio
 import functools
 import inspect
+import json
 import operator
+import re
 import types
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
@@ -20,6 +22,46 @@ from enum import Enum
 from typing import Any, Literal, Union, get_args, get_origin, get_type_hints, overload
 
 from pydantic import BaseModel, ConfigDict, validate_call
+
+from flow.events import DisplaySegment
+
+_DISPLAY_VARIABLE = re.compile(r"{{\s*([A-Za-z_][A-Za-z0-9_]*)\s*}}")
+_DISPLAY_VALUE_CHARS = 512
+
+
+def display_template_variables(template: str) -> tuple[str, ...]:
+	"""Return the simple ``{{ argument }}`` variables used by a display template."""
+	variables = tuple(dict.fromkeys(_DISPLAY_VARIABLE.findall(template)))
+	remainder = _DISPLAY_VARIABLE.sub("", template)
+	if "{{" in remainder or "}}" in remainder:
+		raise ValueError("tool display supports only simple {{ argument }} placeholders")
+	return variables
+
+
+def render_tool_display(template: str, arguments: dict[str, Any]) -> list[DisplaySegment] | None:
+	"""Render a display template into segments once every referenced argument is available."""
+	variables = display_template_variables(template)
+	if any(name not in arguments for name in variables):
+		return None
+
+	segments: list[DisplaySegment] = []
+	position = 0
+	for match in _DISPLAY_VARIABLE.finditer(template):
+		if match.start() > position:
+			segments.append(DisplaySegment(text=template[position : match.start()]))
+		segments.append(DisplaySegment(text=_display_value(arguments[match.group(1)]), arg=match.group(1)))
+		position = match.end()
+	if position < len(template):
+		segments.append(DisplaySegment(text=template[position:]))
+	return segments
+
+
+def _display_value(value: Any) -> str:
+	if value is None:
+		return ""
+	if isinstance(value, (dict, list)):
+		return json.dumps(value, ensure_ascii=False, separators=(",", ":"))[:_DISPLAY_VALUE_CHARS]
+	return str(value)[:_DISPLAY_VALUE_CHARS]
 
 
 @dataclass
@@ -60,8 +102,20 @@ class Tool:
 	# (deduped) into the prompt's "Guidelines" section.
 	prompt_snippet: str | None = None
 	prompt_guidelines: tuple[str, ...] = ()
+	# User-facing activity text. Simple ``{{ argument }}`` placeholders are filled
+	# from streamed call arguments as soon as all referenced values are complete.
+	display_template: str | None = None
 
 	def __post_init__(self) -> None:
+		if self.display_template is not None:
+			if not self.display_template.strip():
+				raise ValueError("tool display template must not be empty")
+			unknown = set(display_template_variables(self.display_template)) - set(
+				self.parameters.get("properties", {})
+			)
+			if unknown:
+				names = ", ".join(sorted(unknown))
+				raise ValueError(f"tool display references unknown argument(s): {names}")
 		self._validated = validate_call(config=ConfigDict(arbitrary_types_allowed=True))(self.func)
 
 	def __call__(self, **kwargs: Any) -> Awaitable[ToolResult]:
@@ -91,6 +145,7 @@ def tool(
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
 	prompt_snippet: str | None = None,
 	prompt_guidelines: tuple[str, ...] = (),
+	display_template: str | None = None,
 ) -> Callable[[Callable[..., Awaitable[ToolResult]]], Tool]: ...
 
 
@@ -103,6 +158,7 @@ def tool(
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
 	prompt_snippet: str | None = None,
 	prompt_guidelines: tuple[str, ...] = (),
+	display_template: str | None = None,
 ) -> Tool | Callable[[Callable[..., Awaitable[ToolResult]]], Tool]:
 	def wrap(f: Callable[..., Awaitable[ToolResult]]) -> Tool:
 		return Tool(
@@ -114,6 +170,7 @@ def tool(
 			confirm_prompt=confirm_prompt,
 			prompt_snippet=prompt_snippet,
 			prompt_guidelines=prompt_guidelines,
+			display_template=display_template,
 		)
 
 	return wrap(func) if func is not None else wrap

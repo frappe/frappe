@@ -4,11 +4,13 @@
 		     (a text blob followed, or the run settled) it summarizes the activity.
 		     Either way it's manually expandable to the individual steps. -->
 		<button
-			class="flex items-center gap-1.5 text-sm hover:text-ink-gray-8"
+			class="flex w-full items-center gap-1.5 text-left text-sm hover:text-ink-gray-8"
 			:class="open ? 'font-medium text-ink-gray-8' : 'text-ink-gray-5'"
 			@click="open = !open"
 		>
-			<span :class="!sealed || active ? 'flow-shimmer font-medium' : ''">
+			<!-- min-w-0 + truncate keep arbitrarily long labels (full bash commands,
+			     deep paths) on one clipped line instead of a centered wrap -->
+			<span class="min-w-0 truncate" :class="!sealed || active ? 'flow-shimmer font-medium' : ''">
 				{{ sealed ? label : liveLine }}
 			</span>
 			<FeatherIcon
@@ -77,8 +79,8 @@ const active = computed(() => toolSteps.value.some((s) => !s.result && !s.aborte
 
 const label = computed(() => {
 	if (active.value) {
-		const running = toolSteps.value.find((s) => !s.result)
-		return running ? stepLiveLabel(running.call) : "Working"
+		const running = toolSteps.value.find((s) => !s.result && !s.aborted)
+		return stepLiveLabel(running.call)
 	}
 	return toolGroupSummary(toolSteps.value.map((step) => step.call))
 })

@@ -57,6 +57,32 @@ async def test_full_turn_no_tools(tmp_path):
 	assert session.transcript.messages[0].content == "hi"
 
 
+async def test_custom_tool_display_template_reaches_the_model_request(tmp_path):
+	@tool(display_template="Searching the web for {{ query }}")
+	async def web_search(query: str, *, ctx) -> RuntimeToolResult:
+		del ctx
+		return RuntimeToolResult(content=query)
+
+	class RecordingMock(MockModel):
+		def __init__(self):
+			super().__init__(replies=[AssistantMessage(content="done")])
+			self.requests: list[ModelRequest] = []
+
+		async def run(self, request):
+			self.requests.append(request)
+			async for event in super().run(request):
+				yield event
+
+	session, _ = _session(tmp_path)
+	assert session.server_tools is not None
+	session.server_tools[web_search.name] = web_search
+	model = RecordingMock()
+
+	await _run(session, "search", model=model)
+
+	assert model.requests[0].tool_display_templates["web_search"] == ("Searching the web for {{ query }}")
+
+
 async def test_tool_call_runs_and_completes(tmp_path):
 	(tmp_path / "a.txt").write_text("FILE-A")
 	session, events = _session(tmp_path)

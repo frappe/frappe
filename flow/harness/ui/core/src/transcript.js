@@ -61,7 +61,7 @@ export function applyEvent(s, e) {
 		case "run_started":
 			s.running = true
 			s.lastError = null
-			s.liveLabel = "Working"
+			s.liveLabel = "Thinking"
 			s.partial = []
 			s.pendingApproval = null // a new run consumes the batch (resume) — same as the server reducer
 			break
@@ -136,16 +136,24 @@ export function applyEvent(s, e) {
 			break
 		case "tool_call_started":
 			// Preserve the provider's block order without rendering a metadata-free
-			// tool row. tool_call_ready upgrades this placeholder in place.
+			// tool row. tool_call_display_ready upgrades this placeholder in place.
 			if (e.id && e.name) {
 				const existing = s.partial.find((block) => block.type === "tool_call" && block.id === e.id)
 				if (existing) existing.name = e.name
 				else s.partial.push({ type: "tool_call", id: e.id, name: e.name, arguments: null })
 			}
-			s.liveLabel = "Working"
+			// Keep the current status until tool_call_display_ready renders the full
+			// label; a name-only generic label here would flash for a fraction of a
+			// second before the arguments arrive.
 			break
-		case "tool_call_ready": {
-			const call = { type: "tool_call", id: e.id, name: e.name, arguments: e.arguments ?? {} }
+		case "tool_call_display_ready": {
+			const call = {
+				type: "tool_call",
+				id: e.id,
+				name: e.name,
+				arguments: e.arguments ?? {},
+				display: e.display ?? null,
+			}
 			const index = s.partial.findIndex((block) => block.type === "tool_call" && block.id === e.id)
 			if (index === -1) s.partial.push(call)
 			else s.partial[index] = call
@@ -213,8 +221,20 @@ function fileName(path) {
 		.pop()
 }
 
+export function displayText(display) {
+	return display.map((segment) => segment.text).join("")
+}
+
 export function stepLiveLabel(call) {
 	const name = call?.name ?? ""
+	if (call?.display?.length) {
+		// the live line shows only the file name for file tools; the dropdown keeps the full path
+		if (["read_file", "write", "edit"].includes(name))
+			return call.display
+				.map((segment) => (segment.arg === "path" ? fileName(segment.text) : segment.text))
+				.join("")
+		return displayText(call.display)
+	}
 	const label = stepLabel(name)
 	if (["read_file", "write", "edit"].includes(name)) {
 		const subject = fileName((call.arguments ?? call.args ?? {}).path)
@@ -232,15 +252,16 @@ export function toolGroupLiveLabel(steps, liveLabel) {
 	const running = toolSteps.find((step) => !step.result && !step.aborted)
 	if (running) return stepLiveLabel(running.call)
 	const last = toolSteps.at(-1)
+	const lastLabel = last ? stepLiveLabel(last.call) : null
 	if (
 		last &&
 		(!liveLabel ||
 			liveLabel === "Thinking" ||
 			liveLabel === stepLabel(last.call.name) ||
-			liveLabel === stepLiveLabel(last.call))
+			liveLabel === lastLabel)
 	)
-		return "Working"
-	return liveLabel ?? "Working"
+		return lastLabel
+	return liveLabel ?? lastLabel
 }
 
 export function toolGroupSummary(calls) {

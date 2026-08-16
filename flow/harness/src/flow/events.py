@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any, ClassVar, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, TypeAdapter, model_validator
 
 ReasoningEffort = Literal["off", "minimal", "low", "medium", "high", "xhigh", "max"]
 
@@ -28,6 +28,24 @@ ProviderErrorKind = Literal[
 # --- assistant content blocks ---------------------------------------------
 
 
+class DisplaySegment(BaseModel):
+	"""One piece of rendered tool display text. ``arg`` names the argument a value
+	segment came from; template text otherwise."""
+
+	model_config = ConfigDict(extra="forbid")
+
+	text: str
+	arg: str | None = None
+
+
+def _legacy_display(value: object) -> object:
+	# Early builds rendered display as one flat string; read it as a single segment.
+	return [{"text": value}] if isinstance(value, str) else value
+
+
+ToolDisplay = Annotated[list[DisplaySegment] | None, BeforeValidator(_legacy_display)]
+
+
 class ToolCall(BaseModel):
 	"""A tool invocation in the assistant's ordered content."""
 
@@ -37,6 +55,9 @@ class ToolCall(BaseModel):
 	id: str
 	name: str
 	arguments: dict
+	# Rendered user-facing activity text declared by the tool. This is presentation
+	# metadata only and is never included in provider tool-call arguments.
+	display: ToolDisplay = None
 	# Set when the model emitted unparseable arguments; fed back so it can retry.
 	error: str | None = None
 	# Opaque provider round-trip data (e.g. a Responses item id). Never shown to the
@@ -270,14 +291,15 @@ class ToolCallStarted(_Event):
 	name: str
 
 
-class ToolCallReady(_Event):
+class ToolCallDisplayReady(_Event):
 	"""Small, presentation-safe metadata parsed from a streamed tool call."""
 
 	durable: ClassVar[bool] = False
-	type: Literal["tool_call_ready"] = "tool_call_ready"
+	type: Literal["tool_call_display_ready"] = "tool_call_display_ready"
 	id: str
 	name: str
 	arguments: dict[str, str]
+	display: ToolDisplay = None
 
 
 class Retry(_Event):
@@ -331,7 +353,7 @@ AnyEvent = (
 	| TextDelta
 	| ThinkingDelta
 	| ToolCallStarted
-	| ToolCallReady
+	| ToolCallDisplayReady
 	| Retry
 	| CompactionStarted
 	| CompactionEnded

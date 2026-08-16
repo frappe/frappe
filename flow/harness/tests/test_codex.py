@@ -10,6 +10,7 @@ import pytest
 
 from flow.events import (
 	AssistantMessage,
+	DisplaySegment,
 	TextContent,
 	ThinkingContent,
 	ToolCall,
@@ -48,6 +49,7 @@ async def _collect(
 	stream=True,
 	cancellation=None,
 	max_output_tokens=None,
+	tool_display_templates=None,
 ):
 	return [
 		event
@@ -59,6 +61,7 @@ async def _collect(
 				stream=stream,
 				cancellation=cancellation,
 				max_output_tokens=max_output_tokens,
+				tool_display_templates=tool_display_templates or {},
 			)
 		)
 	]
@@ -266,6 +269,7 @@ async def test_streams_text_tools_and_usage():
 			],
 			system_prompt="be useful",
 			max_output_tokens=12_345,
+			tool_display_templates={"bash": "Running {{ command }}"},
 		)
 
 	assert captured["url"] == "https://example.test/backend-api/codex/responses"
@@ -278,11 +282,15 @@ async def test_streams_text_tools_and_usage():
 	assert [event.type for event in events] == [
 		"text_delta",
 		"tool_call_started",
-		"tool_call_ready",
+		"tool_call_display_ready",
 		"assistant_message",
 		"usage",
 	]
 	assert events[2].arguments == {"command": "pwd"}
+	assert events[2].display == [
+		DisplaySegment(text="Running "),
+		DisplaySegment(text="pwd", arg="command"),
+	]
 	message = events[-2]
 	assert message.text == "hello "
 	assert [block.type for block in message.content] == ["text", "thinking", "tool_call"]
@@ -295,6 +303,10 @@ async def test_streams_text_tools_and_usage():
 	assert call.id == "call_1"  # the plain provider call id, usable by ToolResult as-is
 	assert call.provider_state == {"item_id": "item_1"}
 	assert call.args == {"command": "pwd"}
+	assert call.display == [
+		DisplaySegment(text="Running "),
+		DisplaySegment(text="pwd", arg="command"),
+	]
 	assert message.api == "openai-codex-responses"
 	assert message.provider == "codex"
 	assert message.model == "codex/gpt-test"

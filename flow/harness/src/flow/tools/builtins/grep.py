@@ -7,7 +7,10 @@ from flow.tools.builtins.common import resolve, truncate
 from flow.tools.tool import ToolContext, ToolResult, tool
 
 
-@tool(prompt_snippet="Search file contents for regex patterns")
+@tool(
+	prompt_snippet="Search file contents for regex patterns",
+	display_template="Searching code for {{ pattern }}",
+)
 async def grep(pattern: str, path: str = ".", *, ctx: ToolContext) -> ToolResult:
 	"""Search files for a regex pattern (uses ripgrep if available) and return matches."""
 	target = resolve(ctx, path, read_only=True)

@@ -26,6 +26,7 @@ from flow.events import (
 	ApprovalRequired,
 	AssistantMessage,
 	Compaction,
+	DisplaySegment,
 	ModelChanged,
 	PendingCall,
 	ReasoningEffort,
@@ -36,7 +37,7 @@ from flow.events import (
 	RunStarted,
 	TextDelta,
 	ThinkingDelta,
-	ToolCallReady,
+	ToolCallDisplayReady,
 	ToolCallStarted,
 	ToolResult,
 	TranscriptMessage,
@@ -72,7 +73,7 @@ class EntriesTruncated:
 class StreamDelta:
 	"""The streamed preview grew; `state.partial` holds the accumulated parts."""
 
-	event: TextDelta | ThinkingDelta | ToolCallStarted | ToolCallReady
+	event: TextDelta | ThinkingDelta | ToolCallStarted | ToolCallDisplayReady
 
 
 @dataclass(frozen=True)
@@ -119,6 +120,7 @@ class PartialToolCall:
 	id: str
 	name: str
 	arguments: dict[str, str] | None = None
+	display: list[DisplaySegment] | None = None
 
 
 PartialPart = PartialText | PartialThinking | PartialToolCall
@@ -281,8 +283,13 @@ class ConversationState:
 			self.partial.append(PartialToolCall(id=event.id, name=event.name))
 			return [StreamDelta(event)]
 
-		if isinstance(event, ToolCallReady):
-			ready = PartialToolCall(id=event.id, name=event.name, arguments=event.arguments)
+		if isinstance(event, ToolCallDisplayReady):
+			ready = PartialToolCall(
+				id=event.id,
+				name=event.name,
+				arguments=event.arguments,
+				display=event.display,
+			)
 			for index in range(len(self.partial) - 1, -1, -1):
 				part = self.partial[index]
 				if isinstance(part, PartialToolCall) and part.id == event.id:
