@@ -80,6 +80,52 @@ test("multiline skill steering uses the expanded event's canonical queue key", a
 	assert.equal(flow.state.queued[0].text, "/skill:review check auth")
 })
 
+function approvalStore(resumes) {
+	const client = {
+		async resume(sessionId, seq, answers) {
+			resumes.push({ seq, answers })
+			return {}
+		},
+	}
+	const flow = createFlowStore(client)
+	flow.state.sessionId = "session-1"
+	flow.state.conversation.pendingApproval = {
+		seq: 7,
+		calls: [{ id: "c1" }, { id: "c2" }],
+		answers: {},
+	}
+	return flow
+}
+
+test("denying one call in a batch denies the undecided rest and resumes", async () => {
+	const resumes = []
+	const flow = approvalStore(resumes)
+
+	await flow.answerApproval("c1", "Deny")
+
+	assert.deepEqual(resumes, [{ seq: 7, answers: { c1: "Deny", c2: "Deny" } }])
+})
+
+test("a deny keeps earlier explicit answers", async () => {
+	const resumes = []
+	const flow = approvalStore(resumes)
+
+	await flow.answerApproval("c1", "Approve")
+	assert.equal(resumes.length, 0) // still waiting on c2
+
+	await flow.answerApproval("c2", "Deny")
+	assert.deepEqual(resumes, [{ seq: 7, answers: { c1: "Approve", c2: "Deny" } }])
+})
+
+test("an approve alone still waits for the rest of the batch", async () => {
+	const resumes = []
+	const flow = approvalStore(resumes)
+
+	await flow.answerApproval("c1", "Approve")
+
+	assert.equal(resumes.length, 0)
+})
+
 test("successful model selection replaces the header context window", async () => {
 	const client = {
 		async setModel(sessionId, selection) {
