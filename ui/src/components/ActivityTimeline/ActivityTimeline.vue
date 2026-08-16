@@ -4,13 +4,14 @@
 		<div v-if="loading && !activities.length" class="flex justify-center py-8">
 			<LoadingIndicator class="size-5 text-ink-gray-5" />
 		</div>
-		<div
-			v-else-if="!activities.length"
-			class="flex flex-col items-center justify-center gap-3 py-8"
-		>
-			<LucideActivity class="h-7 w-7 text-ink-gray-4" />
-			<span class="text-lg font-medium text-ink-gray-8">No activity yet</span>
-		</div>
+		<template v-else-if="!activities.length">
+			<slot name="empty">
+				<div class="flex flex-col items-center justify-center gap-3 py-8">
+					<LucideActivity class="h-7 w-7 text-ink-gray-4" />
+					<span class="text-md font-medium text-ink-gray-8">No activity yet</span>
+				</div>
+			</slot>
+		</template>
 		<div v-else class="activities flex flex-col gap-2 mt-2" :tabindex="0">
 			<!-- LoadMore for Pagination -->
 			<div
@@ -124,6 +125,8 @@ defineSlots<
 		[name: `item-${string}`]: (props: { activity: Activity | CustomActivity }) => any;
 		[name: `icon-${string}`]: (props: { activity: Activity | CustomActivity }) => any;
 		default?: (props: { item: Activity | CustomActivity }) => any;
+		// replaces the built-in "No activity yet" state
+		empty?: () => any;
 		// override the default "Load more" control
 		load_more?: (props: { loading: boolean; loadMore: () => void }) => any;
 	}
@@ -143,7 +146,7 @@ const isPagedRow = computed(
 	() => props.paginate?.isPagedRow ?? ((a: Activity | CustomActivity) => a.type === "email")
 );
 
-// Rows to render: the raw feed, plus an in-feed load_more row above the oldest paged row.
+// Rows to render: the feed, plus an in-feed load_more row above the oldest paged row.
 const displayActivities = computed<Array<Activity | CustomActivity>>(() => {
 	const list = props.activities;
 	if (!isInline.value || !props.paginate?.hasNextPage) return list;
@@ -173,7 +176,7 @@ const loadMoreAtBottom = computed(() => props.paginate?.loadMore?.position === "
 // Which row to re-pin after older rows patch in, so the viewport doesn't move.
 
 // scroll-to-bottom + anchor restore on Load More live in the composable
-const { captureAnchor } = useTimelineScroll(
+const { captureAnchor, scrollToLatest } = useTimelineScroll(
 	rootEl,
 	computed(() => displayActivities.value.length),
 	() => !!props.paginate
@@ -203,6 +206,23 @@ function getKey(activity: Activity | CustomActivity, index: number): string {
 	);
 }
 
+// Deep-link affordance: scroll a row (by its key/id) into view and flash it.
+function scrollToRow(key: string): boolean {
+	const row = rootEl.value?.querySelector<HTMLElement>(`[id="${CSS.escape(key)}"]`);
+	if (!row) return false;
+	row.scrollIntoView({ block: "center" });
+	row.classList.remove("timeline-row-flash");
+	// restart the animation if the row was already flashing
+	void row.offsetWidth;
+	row.classList.add("timeline-row-flash");
+	row.addEventListener("animationend", () => row.classList.remove("timeline-row-flash"), {
+		once: true,
+	});
+	return true;
+}
+
+defineExpose({ scrollToRow, scrollToLatest });
+
 // email + comment show the author avatar on the axis instead of a gutter icon
 function isAvatarActivity(activity: Activity): boolean {
 	return activity.type === "email" || activity.type === "comment";
@@ -217,3 +237,34 @@ function isOneLinerActivity(activity: Activity): boolean {
 	);
 }
 </script>
+
+<style scoped>
+/* card rows flash the card ring below instead of a row background */
+.timeline-row-flash:not(:has(.timeline-card)) {
+	animation: timeline-row-flash 2s ease-out;
+	border-radius: 0.5rem;
+}
+@keyframes timeline-row-flash {
+	0%,
+	40% {
+		background-color: var(--surface-gray-2);
+	}
+	100% {
+		background-color: transparent;
+	}
+}
+
+/* card rows paint their own background over the row, so ring the card instead */
+.timeline-row-flash :deep(.timeline-card) {
+	animation: timeline-card-flash 2s ease-out;
+}
+@keyframes timeline-card-flash {
+	0%,
+	40% {
+		box-shadow: 0 0 0 2px var(--outline-gray-3);
+	}
+	100% {
+		box-shadow: 0 0 0 2px transparent;
+	}
+}
+</style>

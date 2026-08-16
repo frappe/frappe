@@ -11,7 +11,8 @@ fetching, caching, realtime updates, and email pagination.
    It never fetches, never subscribes, never persists. Give it rows, it draws the thread.
 2. **Composable owns the data layer.** `useActivityTimeline(doctype, docname)` fetches the
    feed, keeps it live over the socket (`doc_subscribe` / `docinfo_update` / `doc_update`),
-   caches per `doctype:docname`, and hands back a ready-to-spread props object.
+   caches per `doctype:docname` (and per `visibleTypes` filter), and hands back a
+   ready-to-spread props object.
 3. **Slots for everything custom.** Any row can be overridden by type, and consumer-defined
    activity types render through `#item-{type}` — so an app can drop its own events into the
    same thread without touching this component.
@@ -24,7 +25,10 @@ fetching, caching, realtime updates, and email pagination.
 <script setup lang="ts">
 import { ActivityTimeline, useActivityTimeline } from "@framework/ui";
 
-const { activities, loading } = useActivityTimeline("HD Ticket", route.params.ticketId);
+const { activities, loading } = useActivityTimeline(
+  "HD Ticket",
+  route.params.ticketId
+);
 </script>
 
 <template>
@@ -42,22 +46,24 @@ For pagination, bind `paginate` too — see [Pagination](#pagination).
 
 `<ActivityTimeline>` — renders the feed and the "Load more" affordance.
 
-| Property     | Details                                                                            |
-| ------------ | --------------------------------------------------------------------------------- |
-| **Props**    | `activities: Array<Activity \| CustomActivity>` (required), `loading?: boolean`, `paginate?: Pagination` |
-| **Loading**  | First-load spinner shows only while `loading` **and** `activities` is empty; cached rows stay visible during revalidation |
-| **Empty**    | Renders a built-in "No activity found" state when `activities` is empty and not loading |
+| Property    | Details                                                                                                                                                                                                                                                                                                                                                                                      |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Props**   | `activities: Array<Activity \| CustomActivity>` (required), `loading?: boolean`, `paginate?: Pagination`                                                                                                                                                                                                                                                                                     |
+| **Loading** | First-load spinner shows only while `loading` **and** `activities` is empty; cached rows stay visible during revalidation                                                                                                                                                                                                                                                                    |
+| **Empty**   | Renders a built-in "No activity found" state when `activities` is empty and not loading; replace it via the `#empty` slot                                                                                                                                                                                                                                                                    |
+| **Exposes** | `scrollToRow(key: string): boolean` — scrolls the row with that key into view and flashes it (deep links); returns `false` if the key isn't rendered. `scrollToLatest()` — jumps to the newest row (no flash); call it on reveal if your timeline mounts hidden (e.g. inactive tab panels), where the automatic open-at-bottom can't engage |
 
 ### Slots
 
 Every slot receives the row it renders, so overrides stay type-safe.
 
-| Slot              | Payload                            | Use                                                          |
-| ----------------- | ---------------------------------- | ----------------------------------------------------------- |
-| `#item-{type}`    | `{ activity }`                     | Replace the body for one activity type (built-in or custom) |
-| `#icon-{type}`    | `{ activity }`                     | Replace the gutter icon/avatar for one type                 |
-| `#default`        | `{ item }`                         | Replace the body for **every** row (full custom renderer)   |
-| `#load_more`      | `{ loading, loadMore }`            | Replace the default "Load more" control                     |
+| Slot           | Payload                 | Use                                                         |
+| -------------- | ----------------------- | ----------------------------------------------------------- |
+| `#item-{type}` | `{ activity }`          | Replace the body for one activity type (built-in or custom) |
+| `#icon-{type}` | `{ activity }`          | Replace the gutter icon/avatar for one type                 |
+| `#default`     | `{ item }`              | Replace the body for **every** row (full custom renderer)   |
+| `#empty`       | —                       | Replace the built-in "No activity yet" state                |
+| `#load_more`   | `{ loading, loadMore }` | Replace the default "Load more" control                     |
 
 ```vue
 <ActivityTimeline :activities="activities">
@@ -77,13 +83,13 @@ Every slot receives the row it renders, so overrides stay type-safe.
 Each row is a discriminated union on `type`; the discriminant picks the default renderer and
 the `#item-{type}` / `#icon-{type}` slot names.
 
-| `type`           | Renders                | `data` highlights                                    |
-| ---------------- | ---------------------- | ---------------------------------------------------- |
-| `email`          | `EmailItem`            | `subject`, `sender`, `content`, `attachments`        |
-| `comment`        | `CommentItem`          | `content`                                            |
-| `log`            | `LogItem`              | `subtype` (like / assigned / workflow / …), `text`   |
-| `attachment_log` | `LogItem`              | `action` (added / removed), `fileName`, `fileUrl`    |
-| `version`        | `VersionItem`          | folded field changes (`prefix`, `from`→`to`, `group`)|
+| `type`           | Renders       | `data` highlights                                     |
+| ---------------- | ------------- | ----------------------------------------------------- |
+| `email`          | `EmailItem`   | `subject`, `sender`, `content`, `attachments`         |
+| `comment`        | `CommentItem` | `content`, `attachments`                              |
+| `log`            | `LogItem`     | `subtype` (like / assigned / workflow / …), `text`    |
+| `attachment_log` | `LogItem`     | `action` (added / removed), `fileName`, `fileUrl`     |
+| `version`        | `VersionItem` | folded field changes (`prefix`, `from`→`to`, `group`) |
 
 Every activity also carries `key` (v-for key + scroll anchor, prefixed by type, e.g.
 `comment:42`), an optional `timestamp`, `author`, and `icon`.
@@ -122,6 +128,7 @@ with a typed `data` payload:
   data: {
     name: string;          // Comment docname
     content: string;       // HTML
+    attachments?: { file_url: string; file_name?: string; is_private?: 0 | 1 }[];
   },
 }
 ```
@@ -132,10 +139,16 @@ with a typed `data` payload:
 a region. Render one inside its `#item-{type}` slot and fill its region slots (`#actions` is
 rendered only when you supply it — neither ships default buttons).
 
-| Component     | Props                    | Emits                          | Region slots                          |
-| ------------- | ------------------------ | ------------------------------ | ------------------------------------- |
-| `EmailItem`   | `{ email }`              | —                              | `#header` (`{ email }`), `#actions`, `#footer` (`{ email }`) |
-| `CommentItem` | `{ comment, editable? }` | `save(content)`, `discard()`   | `#header` (`{ comment }`), `#actions`, `#footer` (`{ comment }`) |
+| Component     | Props                                                   | Emits                        | Region slots                                                     |
+| ------------- | ------------------------------------------------------- | ---------------------------- | ---------------------------------------------------------------- |
+| `EmailItem`   | `{ email }`                                             | —                            | `#header` (`{ email }`), `#actions`, `#footer` (`{ email }`)     |
+| `CommentItem` | `{ comment, editable?, editorClass?, uploadFunction? }` | `save(content)`, `discard()` | `#header` (`{ comment }`), `#actions`, `#footer` (`{ comment }`) |
+
+`CommentItem` renders through frappe-ui's `Editor` + `CommentKit` (from
+`frappe-ui/editor`). While editing it autofocuses at the end of the text and saves on
+Ctrl/⌘-Enter; Discard reverts to the saved content. `editorClass` (default
+`"prose-sm max-w-none"`) lands on the editor content, `uploadFunction` (image uploads)
+passes through to the editor.
 
 `LogItem` / `VersionItem` are one-liners with no regions — replace the whole row via
 `#item-{type}` if you need to change them.
@@ -154,12 +167,12 @@ Emails and milestones page in oldest-direction on demand; the remaining sources 
 on the first load. `paginate` is the same object the composable returns; pass it through and
 the component wires the "Load more" control for you. One control advances both paged sources.
 
-| Property             | Details                                                                     |
-| -------------------- | --------------------------------------------------------------------------- |
-| `hasNextPage`        | `boolean` — whether older paged rows remain                                 |
-| `isFetchingNextPage` | `boolean` — a page is in flight                                             |
-| `fetchNextPage()`    | Load and append the next older page                                         |
-| `isPagedRow?`        | `(activity) => boolean` — rows the next page extends; defaults to email rows |
+| Property             | Details                                                                               |
+| -------------------- | ------------------------------------------------------------------------------------- |
+| `hasNextPage`        | `boolean` — whether older paged rows remain                                           |
+| `isFetchingNextPage` | `boolean` — a page is in flight                                                       |
+| `fetchNextPage()`    | Load and append the next older page                                                   |
+| `isPagedRow?`        | `(activity) => boolean` — rows the next page extends; defaults to email rows          |
 | `loadMore?`          | Affordance config — `position` (`"top"` \| `"bottom"` \| `"inline"`), `label`, `icon` |
 
 `position: "inline"` injects a `load_more` row directly above the oldest row `isPagedRow`
@@ -172,7 +185,10 @@ bakes in a default (`{ position: "inline", label: "Show previous activity", icon
 ```vue
 <ActivityTimeline
   :activities="activities"
-  :paginate="{ ...paginate, loadMore: { ...paginate.loadMore, position: 'bottom' } }"
+  :paginate="{
+    ...paginate,
+    loadMore: { ...paginate.loadMore, position: 'bottom' },
+  }"
 />
 ```
 
@@ -189,23 +205,40 @@ To replace the control entirely (at every position it renders), use the `#load_m
 
 ## The composable
 
-`useActivityTimeline(doctype, docname)` → the data layer.
+`useActivityTimeline(doctype, docname, visibleTypes?)` → the data layer.
 
-| Argument   | Details    |
-| ---------- | ---------- |
-| `doctype`  | `string`   |
-| `docname`  | `string`   |
+| Argument        | Details                                                                                                              |
+| --------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `doctype`       | `string`                                                                                                             |
+| `docname`       | `string`                                                                                                             |
+| `visibleTypes?` | `VisibleTypes` = `Array<Activity["type"] \| { version: string[] }>` — only these activity types; omit for everything |
+
+**Filtering.** `visibleTypes` is applied **server-side** (it reaches
+`get_activity_timeline`): pagination runs over the merged feed, so client-side filtering
+would break page math and ship rows that are never shown. Realtime-spliced rows pass
+through the same filter for feed consistency. An entry may be a type name, or
+`{ version: [...fieldnames] }` to narrow version rows to those fields — the allowlist
+means _only these fields_, so doc-level version rows (submit/cancel) drop too. Child-table
+changes carry the table's fieldname, so listing it keeps its row adds/removes/edits:
+
+```ts
+const { activities } = useActivityTimeline("HD Ticket", name, [
+  "email",
+  "comment",
+  { version: ["status", "priority"] },
+]);
+```
 
 Returns:
 
-| Member       | Details                                                                 |
-| ------------ | ----------------------------------------------------------------------- |
-| `activities` | `ComputedRef` — deduped, sorted, and grouped rows ready for the component |
-| `loading`    | `ComputedRef<boolean>`                                                   |
-| `reload()`   | Refetch the feed                                                         |
+| Member       | Details                                                                                                               |
+| ------------ | --------------------------------------------------------------------------------------------------------------------- |
+| `activities` | `ComputedRef` — deduped, sorted, and grouped rows ready for the component                                             |
+| `loading`    | `ComputedRef<boolean>`                                                                                                |
+| `reload()`   | Refetch the feed                                                                                                      |
 | `paginate`   | `Pagination` — "Load more" controller for emails and milestones; bind it to the component only if you want pagination |
 
-**Realtime.**  While mounted it subscribes to the doc's socket room and
+**Realtime.** While mounted it subscribes to the doc's socket room and
 patches the feed live — new comments/likes/assignments/attachments arrive via
 `docinfo_update`, and field changes trigger a reload via `doc_update`. It unsubscribes on
 unmount.
@@ -219,13 +252,16 @@ change as structured, already-translated data** (what kind of change it is + the
 and the **frontend owns all cross-row merging, before→after layout, and truncation**,
 because merging is a cross-row decision that must recompute on every reload.
 
-**Version folding** — a run of consecutive same-author `version` rows collapses into one
-summary (`VersionItem` renders it as a "+N changes" group):
+**Version folding** — same-author `version` rows chained ≤15 min apart collapse into one
+summary (`VersionItem` renders it as an "N changes over M minutes" session group). One
+sentence: _changes by the
+same author within 15 minutes fold into one row._
 
 - **Same field across saves** → net `first.from → last.to`; every hop is kept in `history`
-  (revealed by a chevron).
-- **No-op churn** (`H→B→C→H` — ends where it started) → dropped entirely.
-- A run **ends at any non-version row** and **splits on a >15 min gap** between saves.
+  (revealed by a chevron). **No-op churn** (`H→B→H`) stays visible — the chevron shows
+  the round trip.
+- Interleaved non-version rows (comments, activity logs) **don't split a fold**; only a
+  **>15 min gap** between saves does. The summary sits at the cluster's last row.
 - Row **identity keys off the first row** (stable as the run grows, so Vue keeps its
   expanded state); the timestamp comes from the last.
 
@@ -234,13 +270,13 @@ assignee (+1 assigned, −1 removed): anyone who nets to zero (assigned then una
 within the run) is **dropped**, and named survivors **merge into one comma-joined row per
 direction** (assigned / removed).
 
-| input | output |
-| --- | --- |
-| `status H→B→C→H` | *(nothing — net no-op)* |
-| `status H→B→C→D` | `changed status H → D` (3 hops under the chevron) |
+| input                                      | output                                                |
+| ------------------------------------------ | ----------------------------------------------------- |
+| `status H→B→C→H`                           | `changed status H → H` (3 hops under the chevron)     |
+| `status H→B→C→D`                           | `changed status H → D` (3 hops under the chevron)     |
 | `status B→H`, `priority→Low`, `status H→A` | `+3 changes` → `status B → A` / `set priority to Low` |
 
-The backend decides each change's *kind* (`format_version_change` → `diff` vs `phrase`)
+The backend decides each change's _kind_ (`format_version_change` → `diff` vs `phrase`)
 and applies field-level read permissions (`get_permitted_fields` / `is_field_visible`)
 before the frontend folds — see `frappe/desk/form/activity.py`. The `VersionChange`
 data shape is in [`types.ts`](./types.ts).
@@ -256,11 +292,18 @@ Built-in rendering, no customization — the composable feeds the component.
 import { ActivityTimeline, useActivityTimeline } from "@framework/ui";
 
 const props = defineProps<{ ticketId: string }>();
-const { activities, loading, paginate } = useActivityTimeline("HD Ticket", props.ticketId);
+const { activities, loading, paginate } = useActivityTimeline(
+  "HD Ticket",
+  props.ticketId
+);
 </script>
 
 <template>
-  <ActivityTimeline :activities="activities" :loading="loading" :paginate="paginate" />
+  <ActivityTimeline
+    :activities="activities"
+    :loading="loading"
+    :paginate="paginate"
+  />
 </template>
 ```
 
@@ -392,7 +435,11 @@ function onSave(activity, content: string) {
       >
         <!-- shown only when NOT editing -->
         <template #actions>
-          <Button variant="ghost" icon="edit-2" @click="editingKey = activity.key" />
+          <Button
+            variant="ghost"
+            icon="edit-2"
+            @click="editingKey = activity.key"
+          />
         </template>
       </CommentItem>
     </template>

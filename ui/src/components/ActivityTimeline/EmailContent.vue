@@ -135,6 +135,11 @@ const htmlContent = computed(
         margin: 0;
       }
       .email-content {
+        /* normalize with the 14px comment body; iframe otherwise falls back to browser defaults */
+        font-family: "Inter Variable", InterVar, ui-sans-serif, system-ui, -apple-system,
+          "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.6;
         word-break: break-word;
         /* flow-root contains child margins; padding-top adds breathing room that scrolls away */
         display: flow-root;

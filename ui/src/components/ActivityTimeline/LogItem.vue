@@ -21,7 +21,7 @@
 					v-if="activity.data.fileUrl"
 					:href="activity.data.fileUrl"
 					target="_blank"
-					class="font-medium text-ink-gray-8 hover:text-ink-blue-2"
+					class="font-medium text-ink-gray-8 hover:text-ink-blue-5"
 				>
 					{{ activity.data.fileName }}
 				</a>

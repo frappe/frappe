@@ -14,7 +14,7 @@
 
 		<Dialog v-if="preview && url" v-model:open="previewOpen" :title="label" size="4xl">
 			<template #default>
-				<div v-if="error" class="text-sm text-ink-red-3">
+				<div v-if="error" class="text-sm text-ink-red-6">
 					Couldn't load this file: {{ error }}
 				</div>
 				<div
