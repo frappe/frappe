@@ -11,12 +11,10 @@ from frappe.app_state import get_disabled_modules
 from frappe.cache_manager import build_table_count_cache
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.desk_views import DeskViews
-from frappe.desk.doctype.custom_sidebar.custom_sidebar import check_workspace_manager
 from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	apply_customization,
 	get_customization,
 )
-from frappe.desk.layers import resolve_layers
 from frappe.desk.utils import is_item_allowed
 from frappe.utils.caching import request_cache
 
@@ -74,10 +72,10 @@ class Workspace(DeskViews):
 		branch, which meant a role-gated workspace in a blocked module stayed visible -- the
 		block silently did nothing for exactly the workspaces someone bothered to restrict.
 
-		Neither dock layer -- the site's (`Dock Order`) nor the user's own (`User.dock_modules`)
-		-- is an access filter. Both are arrangements, applied client-side from
-		`frappe.boot.user_dock_modules`. Keeping them out of here ensures the full permitted pool
-		stays available for the picker to choose from.
+		No dock layer -- the app's fragment, the site's arrangement or a person's own -- is an
+		access filter. All three are arrangements, applied client-side from `frappe.boot.dock`.
+		Keeping them out of here ensures the full permitted pool stays available for the picker
+		to choose from.
 		"""
 		from frappe.utils import has_common
 		from frappe.utils.modules import is_module_visible
@@ -365,192 +363,6 @@ def get_desktop_page(page: str | dict):
 	except DoesNotExistError:
 		frappe.log_error("Workspace Missing")
 		return {}
-
-
-# ---------------------------------------------------------------------------------------
-# The dock, in two layers
-# ---------------------------------------------------------------------------------------
-#
-# The site's arrangement (`Dock Order`, a Workspace Manager's) and the user's own
-# (`User.dock_modules`), the second applied on top of the first. Both are ordered lists of the
-# same rows -- `Dock Module` -- because there is nothing to tell them apart but who they are
-# stored on.
-#
-# Ordering and hiding only, never pinning, and never a permission gate: a module a user may not
-# reach is dropped from the resolved dock regardless of what either layer says about it.
-#
-# The merge itself is not here: it is `frappe.desk.layers`, which the sidebar's layers resolve
-# through as well. What is the dock's own is `dock_key` and `apply_dock_row` below -- the two
-# things the merge asks a surface to answer for itself.
-
-
-def get_dock_order() -> list[dict]:
-	"""The site's arrangement (`Dock Order.modules`), in row order."""
-	return _dock_rows(frappe.get_cached_doc("Dock Order").modules)
-
-
-def get_dock_curation() -> list[dict]:
-	"""The session user's own arrangement (`User.dock_modules`), in row order.
-
-	What the dock manager round-trips: it replaces only the current app's slice of an
-	arrangement, so it has to see the layer it is editing rather than the resolved dock, which
-	carries the site's rows too and would copy them into the user's own layer on the next save.
-	"""
-	return _dock_rows(frappe.get_cached_doc("User", frappe.session.user).dock_modules)
-
-
-def _dock_rows(rows) -> list[dict]:
-	return [{"module": row.module, "hidden": int(row.hidden or 0)} for row in rows if row.module]
-
-
-def get_user_dock_modules() -> list[dict]:
-	"""The dock as this user sees it: the site's arrangement with their own applied on top.
-
-	One flat list across every app -- a dock renders per app, but an arrangement is stored
-	whole, so an app's slice can be replaced without disturbing the rest.
-
-	A module neither layer names is *absent from this list*, not appended to it: the client
-	keeps it in its app's default order, trailing the modules the arrangement did name. That is
-	what makes installing an app safe on a site that has already ordered its dock -- the new
-	app's modules appear at the end of the dock rather than vanishing for want of a row.
-
-	Resolved through `frappe.desk.layers`, the merge the sidebar's layers run on, with no base
-	arrangement under them: no app ships a dock yet, so the site's layer is the first there is.
-	A module left hidden is *kept*, carrying its flag -- the dock renders a hidden entry rather
-	than dropping it, which is the one thing it does differently from a sidebar.
-	"""
-	from frappe.utils.modules import is_module_visible
-
-	resolved, hidden = resolve_layers(
-		[], [get_dock_order(), get_dock_curation()], key=dock_key, apply_row=apply_dock_row
-	)
-	# Applied last, so neither layer can name its way past module visibility -- an arrangement
-	# is navigation reach, and reach is decided by the module gate alone.
-	return [
-		{"module": row["module"], "hidden": int(hidden.get(row["module"], 0))}
-		for row in resolved
-		if is_module_visible(row["module"])
-	]
-
-
-def dock_key(entry) -> str:
-	"""What a dock entry is identified by: the module it points at.
-
-	The degenerate case of the sidebar's `item_key`. That one has two shapes because a sidebar
-	row may point nowhere and needs an identity anyway; a dock entry always points somewhere, so
-	a module *is* its key and nothing is stored.
-	"""
-	return entry["module"]
-
-
-def apply_dock_row(row, entry: dict | None) -> dict:
-	"""What one layer row does to the dock entry it names: it is the entry.
-
-	Never skipped, unlike a sidebar row, because there is no base arrangement a row could name
-	its way outside of -- the layers are all there is, so a module one of them names is a module
-	the dock has. And nothing to override: the row carries a module and a hidden flag, and the
-	flag is the merge's business rather than the entry's.
-	"""
-	return {"module": row["module"]}
-
-
-def shape_dock_rows(modules: list | str, require_visible: bool) -> list[dict]:
-	"""One saved arrangement, narrowed to rows that can be stored.
-
-	`modules` is the whole ordered arrangement the client is showing -- the shape a Sortable
-	produces -- not a delta. Rows may be `"Stock"` or `{"module": "Stock", "hidden": 1}`.
-
-	Existence is checked separately from visibility because `is_module_visible` answers a
-	different question -- an unknown module is simply "not blocked", so it passes that check
-	and would then fail link validation on save.
-
-	`require_visible` is what the two layers disagree about. A user's own arrangement is
-	filtered by their visibility, so a curation can never resurface a module module permissions
-	hide. The site's is not: it is written for everyone, and dropping the rows the saver
-	personally cannot see would let one Workspace Manager's blocked module quietly delete the
-	site's intent for it. Visibility is applied to the *resolved* dock either way.
-	"""
-	from frappe.utils.modules import is_module_visible
-
-	known = set(frappe.get_all("Module Def", pluck="name"))
-	shaped, seen = [], set()
-
-	for row in frappe.parse_json(modules) or []:
-		module = row.get("module") if isinstance(row, dict) else row
-		hidden = int(row.get("hidden") or 0) if isinstance(row, dict) else 0
-		if not module or module in seen or module not in known:
-			continue
-		if require_visible and not is_module_visible(module):
-			continue
-		seen.add(module)
-		shaped.append({"module": module, "hidden": hidden})
-
-	return shaped
-
-
-@frappe.whitelist()
-def save_dock_preferences(modules: list | str):
-	"""Persist this user's own arrangement into `User.dock_modules`."""
-	user_doc = frappe.get_doc("User", frappe.session.user)
-	user_doc.dock_modules = []
-	for row in shape_dock_rows(modules, require_visible=True):
-		user_doc.append("dock_modules", row)
-
-	# ignore_permissions: same reasoning as `save_workspace_preferences` -- a user arranging
-	# their own dock need not hold write access to the User doctype. Only the session user's
-	# own record is touched, only its `dock_modules` table, and only with modules already
-	# visible to them.
-	#
-	# ignore_links: arranging a dock saves the whole User document, so every Link on it is
-	# revalidated -- including rows this endpoint never touches. A role left behind by an
-	# uninstalled app is enough to make the save fail with "Could not find Row #4: Role: ...",
-	# which is a true statement about the user's roles and no reason to refuse them a dock.
-	# The rows written here are checked against `Module Def` in `shape_dock_rows` already.
-	user_doc.flags.ignore_links = True
-	user_doc.save(ignore_permissions=True)
-
-	return get_user_dock_modules()
-
-
-@frappe.whitelist()
-def save_dock_order(modules: list | str):
-	"""Persist the site's arrangement into `Dock Order`, for everyone.
-
-	The site layer's whole point: "Accounts first, for everyone" is not expressible by any
-	number of per-user arrangements. A user's own arrangement still lands on top of it.
-	"""
-	check_workspace_manager(_("You need to be Workspace Manager to change the dock for everyone."))
-
-	doc = frappe.get_single("Dock Order")
-	doc.modules = []
-	for row in shape_dock_rows(modules, require_visible=False):
-		doc.append("modules", row)
-
-	# ignore_permissions: the role check above *is* the gate, and it is the same one the
-	# doctype's permissions hold -- this saves through it rather than around it.
-	doc.save(ignore_permissions=True)
-
-	return get_user_dock_modules()
-
-
-# A layer's raw rows, for the editor that is about to replace them. Not the resolved dock: an
-# editor saves back the whole arrangement, so it has to be shown the layer it will overwrite.
-# Kept out of the boot payload because it is only wanted the moment someone opens the manager.
-#
-# One endpoint per layer, each carrying its own gate, like the sidebar's saves and resets -- a
-# single endpoint taking "which layer" would carry the gate in a branch instead.
-
-
-@frappe.whitelist()
-def get_user_dock_layer() -> list[dict]:
-	"""This user's own arrangement. No gate: it is theirs, and it is all they can read."""
-	return get_dock_curation()
-
-
-@frappe.whitelist()
-def get_site_dock_layer() -> list[dict]:
-	check_workspace_manager(_("You need to be Workspace Manager to see the dock's site layer."))
-	return get_dock_order()
 
 
 def _overlay_customization_properties(pages: list) -> bool:

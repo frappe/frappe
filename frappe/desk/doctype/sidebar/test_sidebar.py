@@ -1288,8 +1288,8 @@ class TestComputedSidebarBase(IntegrationTestCase):
 class TestShippedDockOrder(IntegrationTestCase):
 	"""`ship_dock_order`: the dock arrangement on screen becoming the one the app ships.
 
-	The two layers a site can arrange -- `Dock Order` and `User.dock_modules` -- rearrange the
-	list an app hands them. This writes that list, so what it produces has to be app content on
+	The two layers a site can arrange -- the site's `Dock` and each person's own -- rearrange
+	the list an app hands them. This writes that list, so what it produces has to be app content on
 	disk, not site state: `sequence_id` on each module's `Sidebar`, exported.
 	"""
 

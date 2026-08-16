@@ -271,18 +271,18 @@ DEFAULT_MODULE_SEQUENCE_ID = 100
 
 
 def load_desktop_data(bootinfo):
-	from frappe.desk.desktop import get_user_dock_modules
+	from frappe.desk.doctype.dock.dock import resolve_dock
 
 	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
 	# A companion app's workspaces resolve their app context (dock + header) to the host app they
 	# were pinned into via `add_to_workspace_dock`, so the companion appears to live inside the
 	# host's rail rather than flipping the desk to a shell of its own.
 	bootinfo.app_rail_host = get_app_rail_host_map()
-	# The dock this user sees: the site's arrangement (`Dock Order`) with their own
-	# (`User.dock_modules`) applied on top, ordered, and filtered to modules they may reach. An
-	# arrangement, not the dock's contents -- a module it doesn't name still shows, in its app's
-	# own order, after the ones it does.
-	bootinfo.user_dock_modules = get_user_dock_modules()
+	# The dock this user sees: each app's fragment, with the site's arrangement and then their
+	# own applied on top, filtered to what they may reach. An arrangement, not the dock's
+	# contents -- an entry it doesn't name still shows, in its app's own order, after the ones
+	# it does.
+	bootinfo.dock = resolve_dock()
 	# Keyed by exact-case module name, so `app_data[].modules` indexes straight in. This
 	# replaced three overlapping payloads -- `workspace_sidebar_item` (keyed by lowercased
 	# workspace title), `default_workspace_map` and `module_wise_workspaces` -- which between

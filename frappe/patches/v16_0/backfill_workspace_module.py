@@ -20,10 +20,9 @@ def execute():
 	  4. its `parent_page`'s module
 	  5. a catch-all, logged loudly -- someone should look at these
 
-	Runs *before* `build_module_sidebars` and `migrate_user_workspaces_to_dock_modules`, both
-	of which read `Workspace.module` and can only skip what has none. On a v15 site that is
-	every workspace, so behind them this patch is worth nothing: the sidebar merge would find
-	no sources and the dock curation would map to nothing.
+	Runs *before* `build_module_sidebars`, which reads `Workspace.module` and can only skip what
+	has none. On a v15 site that is every workspace, so behind it this patch is worth nothing:
+	the sidebar merge would find no sources at all.
 	"""
 	workspaces = frappe.get_all(
 		"Workspace",

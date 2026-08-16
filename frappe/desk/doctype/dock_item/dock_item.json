@@ -1,0 +1,54 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "creation": "2026-08-16 20:30:00.000000",
+ "description": "One entry on the dock -- what it points at, its order (`idx`) and whether it is hidden. The same rows at all three layers: an app's fragment, the site's arrangement and one person's own are told apart by the parent `Dock`, never by the row. What an entry points at *is* its identity, so there is no stored key and no `type` column: exactly one of `module` and `workspace` is filled, and which one is filled is what kind of entry it is.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "module",
+  "workspace",
+  "hidden"
+ ],
+ "fields": [
+  {
+   "description": "The module this entry opens. Blank when the entry names a workspace instead.",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Module",
+   "options": "Module Def"
+  },
+  {
+   "description": "The workspace this entry opens -- how a companion app's page is pinned into a dock. Blank when the entry names a module instead.",
+   "fieldname": "workspace",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Workspace",
+   "options": "Workspace"
+  },
+  {
+   "default": "0",
+   "description": "Kept in the row so an explicitly hidden entry stays hidden when its app later adds modules, instead of reappearing because it is simply absent.",
+   "fieldname": "hidden",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Hidden"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-08-16 20:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Dock Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

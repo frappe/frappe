@@ -86,7 +86,6 @@
   "user_emails",
   "workspace_section",
   "default_workspace",
-  "dock_modules",
   "app_section",
   "default_app",
   "sb2",
@@ -856,13 +855,6 @@
    "fieldname": "form_navigation_buttons",
    "fieldtype": "Check",
    "label": "Show navigation buttons"
-  },
-  {
-   "description": "This user's own arrangement of the desk dock, applied on top of the site's (`Dock Order`). Empty means uncurated -- the dock shows the site's arrangement, or all of the current app's visible modules where the site has none.",
-   "fieldname": "dock_modules",
-   "fieldtype": "Table",
-   "label": "Dock Modules",
-   "options": "Dock Module"
   }
  ],
  "icon": "fa fa-user",
@@ -916,7 +908,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-08-12 10:00:00.000000",
+ "modified": "2026-08-16 20:30:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

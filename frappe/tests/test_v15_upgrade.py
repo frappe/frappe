@@ -13,7 +13,6 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
-from frappe.desk.desktop import get_user_dock_modules
 from frappe.desk.doctype.desktop_settings.desktop_settings import APPS, DESKTOP_ICONS, get_desktop_page
 from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_cache
 from frappe.desk.doctype.sidebar.test_sidebar import no_developer_mode
@@ -22,7 +21,6 @@ from frappe.tests import IntegrationTestCase
 
 BACKFILL = "frappe.patches.v16_0.backfill_workspace_module"
 BUILD_SIDEBARS = "frappe.patches.v16_0.build_module_sidebars"
-MIGRATE_DOCK = "frappe.patches.v16_0.migrate_user_workspaces_to_dock_modules"
 PIN_DESKTOP = "frappe.patches.v16_0.keep_existing_sites_on_desktop_icons"
 
 
@@ -40,10 +38,10 @@ def upgrade_sequence() -> list[str]:
 	"""The navigation patches, in the order the site will actually run them.
 
 	Read off `patches.txt` rather than listed here on purpose: a line drifting back below its
-	consumers then fails what the customer loses -- their sidebars, their dock -- and not only
-	the order assertion in `TestPatchOrder`.
+	consumer then fails what the customer loses -- their sidebars -- and not only the order
+	assertion in `TestPatchOrder`.
 	"""
-	wanted = {BACKFILL, BUILD_SIDEBARS, MIGRATE_DOCK}
+	wanted = {BACKFILL, BUILD_SIDEBARS}
 	return [p for p in post_model_sync_patches() if p in wanted]
 
 
@@ -59,12 +57,11 @@ def run_patches(patches) -> list[str]:
 class TestPatchOrder(IntegrationTestCase):
 	"""The reorder itself, stated where a line drifting back would be noticed."""
 
-	def test_the_backfill_runs_before_its_consumers(self):
-		# Both consumers read `Workspace.module` and can only skip a workspace that has none,
-		# which on a v15 site is all of them -- behind the backfill they are silent no-ops.
+	def test_the_backfill_runs_before_its_consumer(self):
+		# The merge reads `Workspace.module` and can only skip a workspace that has none, which
+		# on a v15 site is all of them -- behind the backfill it is a silent no-op.
 		post = post_model_sync_patches()
 		self.assertLess(post.index(BACKFILL), post.index(BUILD_SIDEBARS))
-		self.assertLess(post.index(BACKFILL), post.index(MIGRATE_DOCK))
 
 	def test_nothing_fills_a_column_ahead_of_the_merge(self):
 		"""The two patches that used to write `Workspace.sidebar_items` for the merge to read
@@ -77,18 +74,15 @@ class TestPatchOrder(IntegrationTestCase):
 		):
 			self.assertNotIn(retired, post)
 
-	def test_both_consumers_are_marked_to_re_run(self):
-		"""The reorder only reaches a site that has already run them if they run again.
+	def test_the_consumer_is_marked_to_re_run(self):
+		"""The reorder only reaches a site that has already run it if it runs again.
 
-		Both are guarded -- the merge skips a module that already has a sidebar, the dock
-		migration skips a user who already has rows -- so a second pass repairs the sites
-		that skipped everything and leaves the rest, including anyone who has since curated
-		their own dock, exactly as they are.
+		It is guarded -- the merge skips a module that already has a sidebar -- so a second
+		pass repairs the sites that skipped everything and leaves the rest exactly as they are.
 		"""
 		lines = get_patches_from_app("frappe", PatchType.post_model_sync)
-		for consumer in (BUILD_SIDEBARS, MIGRATE_DOCK):
-			line = next(p for p in lines if p.split(maxsplit=1)[0] == consumer)
-			self.assertIn("re-run-patch", line, f"{consumer} would not reach an already-migrated site")
+		line = next(p for p in lines if p.split(maxsplit=1)[0] == BUILD_SIDEBARS)
+		self.assertIn("re-run-patch", line, f"{BUILD_SIDEBARS} would not reach an already-migrated site")
 
 
 class TestV15Upgrade(IntegrationTestCase):
@@ -153,19 +147,6 @@ class TestV15Upgrade(IntegrationTestCase):
 			cls.custom_module = frappe.get_doc(
 				{"doctype": "Module Def", "module_name": cls.CUSTOM_MODULE, "custom": 1}
 			).insert()
-
-		# v15's per-user dock curation: workspace names, in the order the user left them.
-		for idx, workspace in enumerate((cls.PUBLIC, cls.OTHER, "V15 Deleted Page"), start=1):
-			frappe.get_doc(
-				{
-					"doctype": "User Workspaces",
-					"parenttype": "User",
-					"parentfield": "workspaces",
-					"parent": cls.USER,
-					"workspace": workspace,
-					"idx": idx,
-				}
-			).db_insert()
 
 		cls.output = run_patches(upgrade_sequence())
 
@@ -237,42 +218,6 @@ class TestV15Upgrade(IntegrationTestCase):
 		# and stays the owner's: nobody else's sidebar carries it
 		payload = self.sidebar_payload("Administrator")
 		self.assertNotIn(self.PRIVATE, [item["link_to"] for item in payload["items"]])
-
-	# -- the dock they curated ----------------------------------------------------------
-
-	def test_per_user_dock_curation_survives_the_upgrade(self):
-		"""The skip this ticket removes: behind the backfill every row here mapped to nothing."""
-		rows = frappe.get_all(
-			"Dock Module",
-			filters={"parenttype": "User", "parent": self.USER},
-			fields=["module"],
-			order_by="idx asc",
-		)
-		self.assertEqual([row.module for row in rows], [self.MODULE])
-
-		frappe.set_user(self.USER)
-		try:
-			self.assertIn(self.MODULE, [row["module"] for row in get_user_dock_modules()])
-		finally:
-			frappe.set_user("Administrator")
-
-	def test_the_migration_says_how_much_curation_moved(self):
-		self.assertIn("Migrated 1 dock module(s) for 1 user(s).", self.output)
-
-	def test_the_migration_names_what_it_deduplicated(self):
-		"""Two curated workspaces sharing a module is one dock entry -- said, not swallowed."""
-		folded = [line for line in self.output if "deduplicated" in line and self.OTHER in line]
-		self.assertTrue(folded, f"deduplication not named in output: {self.output}")
-
-	def test_the_migration_names_what_it_could_not_map(self):
-		dropped = [line for line in self.output if "dropped" in line and "V15 Deleted Page" in line]
-		self.assertTrue(dropped, f"unmapped curation not named in output: {self.output}")
-
-	def test_a_second_run_reports_nothing_it_did_not_do(self):
-		"""A user already holding dock rows is left out of the run, not filtered out of the
-		report -- otherwise a re-run names their drops again and describes loss twice."""
-		again = run_patches([MIGRATE_DOCK])
-		self.assertEqual([line for line in again if self.USER in line], [])
 
 	# -- what the upgrade must not touch ------------------------------------------------
 

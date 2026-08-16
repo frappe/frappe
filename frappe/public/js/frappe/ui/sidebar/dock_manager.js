@@ -21,13 +21,13 @@
 // the shape of a saved row -- is the same work either way.
 const DOCK_SCOPES = {
 	user: {
-		read: "frappe.desk.desktop.get_user_dock_layer",
-		save: "frappe.desk.desktop.save_dock_preferences",
+		read: "frappe.desk.doctype.dock.dock.get_user_dock_layer",
+		save: "frappe.desk.doctype.dock.dock.save_user_dock",
 		saved: () => __("Dock updated"),
 	},
 	site: {
-		read: "frappe.desk.desktop.get_site_dock_layer",
-		save: "frappe.desk.desktop.save_dock_order",
+		read: "frappe.desk.doctype.dock.dock.get_site_dock_layer",
+		save: "frappe.desk.doctype.dock.dock.save_site_dock",
 		saved: () => __("Dock updated for everyone"),
 	},
 };
@@ -106,7 +106,7 @@ frappe.ui.DockManager = class DockManager {
 	}
 
 	// Load the layer being edited -- its own stored rows, not the resolved dock in
-	// `frappe.boot.user_dock_modules`. A save replaces the layer whole, so it has to be shown
+	// `frappe.boot.dock`. A save replaces the layer whole, so it has to be shown
 	// what it will overwrite: shown the resolved dock, saving as a user would copy the site's
 	// rows into their own layer and freeze them out of every later site change.
 	async load() {
@@ -323,10 +323,11 @@ frappe.ui.DockManager = class DockManager {
 			...hidden,
 		];
 
-		// Both saves answer with the resolved dock -- the site's arrangement with this user's own
-		// on top -- so the rail can be redrawn in place whichever layer was written.
-		frappe.boot.user_dock_modules = await frappe.xcall(this.layer_scope.save, {
-			modules: JSON.stringify(modules),
+		// Both saves answer with the resolved dock -- every app's fragment with the site's
+		// arrangement and this user's own on top -- so the rail can be redrawn in place
+		// whichever layer was written.
+		frappe.boot.dock = await frappe.xcall(this.layer_scope.save, {
+			items: JSON.stringify(modules),
 		});
 
 		this.dialog.hide();

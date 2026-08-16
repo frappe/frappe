@@ -144,6 +144,7 @@ permission_query_conditions = {
 	"Document Follow": "frappe.email.doctype.document_follow.document_follow.get_permission_query_conditions",
 	"Scheduled Job Type": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.get_permission_query_conditions",
 	"Custom Sidebar": "frappe.desk.doctype.custom_sidebar.custom_sidebar.get_permission_query_conditions",
+	"Dock": "frappe.desk.doctype.dock.dock.get_permission_query_conditions",
 	"DocType": "frappe.app_state.get_module_permission_query_conditions",
 	"Page": "frappe.app_state.get_module_permission_query_conditions",
 	"Workspace": "frappe.app_state.get_module_permission_query_conditions",
@@ -178,6 +179,7 @@ has_permission = {
 	"Document Template": "frappe.desk.doctype.document_template.document_template.has_permission",
 	"Document Follow": "frappe.email.doctype.document_follow.document_follow.has_permission",
 	"Custom Sidebar": "frappe.desk.doctype.custom_sidebar.custom_sidebar.has_permission",
+	"Dock": "frappe.desk.doctype.dock.dock.has_permission",
 }
 
 has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
@@ -479,6 +481,7 @@ ignore_links_on_delete = [
 	# it -- `Workspace` is on this list for exactly the same reason.
 	"Sidebar",
 	"Custom Sidebar",
+	"Dock",
 ]
 
 # Request Hooks

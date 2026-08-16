@@ -953,14 +953,17 @@ frappe.ui.Sidebar = class Sidebar {
 		return this.apply_dock_arrangement(modules);
 	}
 
-	// Apply the dock arrangement in `frappe.boot.user_dock_modules` -- the site's (`Dock Order`)
-	// with this user's own (`User.dock_modules`) already merged on top of it by the server: drop
-	// what it hides, and order what it names. An arrangement is one flat cross-app list, so it is
+	// Apply the dock arrangement in `frappe.boot.dock` -- each app's fragment with the site's
+	// arrangement and this user's own already merged on top of it by the server: drop what it
+	// hides, and order what it names. An arrangement is one flat cross-app list, so it is
 	// applied *within* this app's set rather than replacing it -- as a replacement it would put
 	// the same rail on every app. An arrangement naming none of this app's modules leaves the
 	// app's own order alone rather than rendering an empty rail.
+	//
+	// Entries naming a workspace rather than a module are skipped: this is the module rail, and
+	// a pinned workspace reaches it through `app_data[].workspaces` instead.
 	apply_dock_arrangement(modules) {
-		const arrangement = frappe.boot.user_dock_modules || [];
+		const arrangement = (frappe.boot.dock || []).filter((p) => p.module);
 		if (!arrangement.length) return modules;
 
 		const hidden = new Set(arrangement.filter((p) => p.hidden).map((p) => p.module));

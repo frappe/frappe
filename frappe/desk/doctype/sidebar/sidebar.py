@@ -333,8 +333,8 @@ def ship_dock_order(modules: list | str) -> list[str]:
 
 	Returns the app's resulting module order, which is what the manager redraws from.
 
-	The dock has two layers a site can arrange -- `Dock Order` for everyone, `User.dock_modules`
-	for one person -- and both of them can only rearrange the list they are handed. This writes
+	The dock has two layers a site can arrange -- a `Dock` for everyone, another for one person
+	-- and both of them can only rearrange the list they are handed. This writes
 	*that list*: an author arranges the dock in the manager, presses ship, and the arrangement
 	becomes app content instead of site state, so it is what a fresh install starts from.
 
