@@ -77,7 +77,7 @@ const useCodeStore = defineStore("codeStore", () => {
 			studioPageResources.filters = { parent: page.name }
 			await studioPageResources.reload()
 			if (pendingResources !== pageResources) return
-			resourceRows = studioPageResources.data
+			resourceRows = studioPageResources.data as Resource[]
 		}
 
 		await Promise.all(
@@ -328,7 +328,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		if (!variableRows) {
 			studioVariables.filters = { parent: page.name }
 			await studioVariables.reload()
-			variableRows = studioVariables.data
+			variableRows = studioVariables.data as Variable[]
 		}
 		variables.value = {}
 
