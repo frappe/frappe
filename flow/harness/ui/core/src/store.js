@@ -350,6 +350,15 @@ export function createFlowStore(client) {
 		await guard(() => client.compact(state.sessionId))
 	}
 
+	async function reloadExtensions() {
+		const info = await guard(() => client.reloadExtensions())
+		if (info === null) return
+		const names = info.extensions.map((extension) => extension.name)
+		const errors = info.diagnostics.filter((diagnostic) => diagnostic.severity === "error")
+		if (errors.length) notify(`Extension error: ${errors[0].message}`, "error")
+		else notify(names.length ? `Extensions reloaded: ${names.join(", ")}` : "Extensions reloaded: none loaded")
+	}
+
 	// Rewind to just before a user message: everything after it leaves the
 	// active branch, and its text lands in the composer draft for rephrasing.
 	async function rewindToMessage(entry) {
@@ -504,6 +513,7 @@ export function createFlowStore(client) {
 		abort,
 		cancelPending,
 		compact,
+		reloadExtensions,
 		rewindToMessage,
 		rewindLastUserMessage,
 		setDraft,

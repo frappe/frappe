@@ -133,6 +133,9 @@ class Controller:
 	async def list_models(self) -> dict:
 		return await self.client.list_models()
 
+	async def reload_extensions(self) -> dict:
+		return await self.client.reload_extensions()
+
 	async def prompt_history(self, limit: int = 100) -> list[str]:
 		"""Return recent prompts, oldest first, with the active session first in
 		reverse navigation and then earlier sessions by recent activity."""
