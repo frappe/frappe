@@ -16,6 +16,7 @@ from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	apply_customization,
 	get_customization,
 )
+from frappe.desk.layers import resolve_layers
 from frappe.desk.utils import is_item_allowed
 from frappe.utils.caching import request_cache
 
@@ -377,6 +378,10 @@ def get_desktop_page(page: str | dict):
 #
 # Ordering and hiding only, never pinning, and never a permission gate: a module a user may not
 # reach is dropped from the resolved dock regardless of what either layer says about it.
+#
+# The merge itself is not here: it is `frappe.desk.layers`, which the sidebar's layers resolve
+# through as well. What is the dock's own is `dock_key` and `apply_dock_row` below -- the two
+# things the merge asks a surface to answer for itself.
 
 
 def get_dock_order() -> list[dict]:
@@ -408,42 +413,45 @@ def get_user_dock_modules() -> list[dict]:
 	keeps it in its app's default order, trailing the modules the arrangement did name. That is
 	what makes installing an app safe on a site that has already ordered its dock -- the new
 	app's modules appear at the end of the dock rather than vanishing for want of a row.
+
+	Resolved through `frappe.desk.layers`, the merge the sidebar's layers run on, with no base
+	arrangement under them: no app ships a dock yet, so the site's layer is the first there is.
+	A module left hidden is *kept*, carrying its flag -- the dock renders a hidden entry rather
+	than dropping it, which is the one thing it does differently from a sidebar.
 	"""
 	from frappe.utils.modules import is_module_visible
 
-	resolved = merge_dock_layers([get_dock_order(), get_dock_curation()])
+	resolved, hidden = resolve_layers(
+		[], [get_dock_order(), get_dock_curation()], key=dock_key, apply_row=apply_dock_row
+	)
 	# Applied last, so neither layer can name its way past module visibility -- an arrangement
 	# is navigation reach, and reach is decided by the module gate alone.
-	return [row for row in resolved if is_module_visible(row["module"])]
+	return [
+		{"module": row["module"], "hidden": int(hidden.get(row["module"], 0))}
+		for row in resolved
+		if is_module_visible(row["module"])
+	]
 
 
-def merge_dock_layers(layers: list[list[dict]]) -> list[dict]:
-	"""Fold each layer into the one below it. Later layers win, on order and on hiding alike.
+def dock_key(entry) -> str:
+	"""What a dock entry is identified by: the module it points at.
 
-	The rule the sidebar's layers already run on (`apply_layer`), on a list that needs no item
-	identity -- a module *is* its key. A layer moves the modules it names to the front in its
-	own order and leaves the rest of the arrangement following in the order it inherited, so a
-	user who reorders two of an app's modules does not un-order the site's arrangement of the
-	others, and their `hidden: 0` un-hides what the site hid.
+	The degenerate case of the sidebar's `item_key`. That one has two shapes because a sidebar
+	row may point nowhere and needs an identity anyway; a dock entry always points somewhere, so
+	a module *is* its key and nothing is stored.
 	"""
-	resolved: list[str] = []
-	hidden: dict[str, int] = {}
+	return entry["module"]
 
-	for rows in layers:
-		arranged: list[str] = []
-		for row in rows:
-			module = row["module"]
-			# a module named twice is a client sending the same one twice; the first position
-			# wins, because the alternative is rendering it twice
-			if module in arranged:
-				continue
-			hidden[module] = int(row.get("hidden") or 0)
-			arranged.append(module)
 
-		named = set(arranged)
-		resolved = arranged + [module for module in resolved if module not in named]
+def apply_dock_row(row, entry: dict | None) -> dict:
+	"""What one layer row does to the dock entry it names: it is the entry.
 
-	return [{"module": module, "hidden": hidden[module]} for module in resolved]
+	Never skipped, unlike a sidebar row, because there is no base arrangement a row could name
+	its way outside of -- the layers are all there is, so a module one of them names is a module
+	the dock has. And nothing to override: the row carries a module and a hidden flag, and the
+	flag is the merge's business rather than the entry's.
+	"""
+	return {"module": row["module"]}
 
 
 def shape_dock_rows(modules: list | str, require_visible: bool) -> list[dict]:

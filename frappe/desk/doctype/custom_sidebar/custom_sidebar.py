@@ -8,6 +8,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	is_linked,
 	item_key,
 )
+from frappe.desk.layers import resolve_layers
 from frappe.model.document import Document
 
 # Cached set of `(module, user)` pairs that have a customization, so the boot path can skip a
@@ -236,56 +237,38 @@ def apply_customizations(module: str, items: list[dict], user: str) -> tuple[lis
 def merge_layers(items: list[dict], layers: list["CustomSidebar"]) -> list[dict]:
 	"""Fold each layer into `items`, in order, and drop what is left hidden.
 
-	Hiding is resolved across all the layers before anything is removed rather than layer by
-	layer, which is what makes un-hiding possible at all: a user's `hidden: 0` has to find the
-	item the site hid still in the list to say anything about it.
-
-	Unknown keys are silently skipped rather than errored. That is what makes an app
-	re-authoring its sidebar non-fatal -- some rows survive by coincidence, the rest simply
-	stop applying.
+	The merge itself is `frappe.desk.layers`, which the dock resolves through too. What is the
+	sidebar's own is the two things it hands over -- how an item is identified (`item_key`) and
+	what a row does to the item it names (`apply_sidebar_row`) -- and this last line: an item
+	left hidden across all the layers is *removed* here, rather than rendered as hidden the way
+	the dock renders one.
 	"""
-	resolved = [dict(item) for item in items]
-	hidden: dict[str, bool] = {}
-
-	for layer in layers:
-		resolved = apply_layer(resolved, hidden, layer)
+	resolved, hidden = resolve_layers(
+		items,
+		[layer.sidebar_items for layer in layers],
+		key=item_key,
+		apply_row=apply_sidebar_row,
+	)
 
 	return [item for item in resolved if not hidden.get(item_key(item))]
 
 
-def apply_layer(items: list[dict], hidden: dict[str, bool], layer: "CustomSidebar") -> list[dict]:
-	"""One layer's arrangement, folded into `items`. Mutates `hidden`, which spans the layers.
+def apply_sidebar_row(row, item: dict | None) -> dict | None:
+	"""What one customization row does to the base item it names.
 
-	Both sides are matched by `item_key`, which reads the same columns off a stored row as off
-	a resolved item -- so a rename that rewrote both leaves them still matching, and neither
-	side had to be re-keyed for it.
+	An `added` row *is* an item, so it stands in for whatever the list holds under that key --
+	usually nothing. A reference row states an opinion about an item that is already there, and
+	`overrides` keeps that opinion short: a reference stores an opinion, never a copy.
+
+	A reference naming an item the list does not hold returns `None` and is skipped rather than
+	errored. That is what makes an app re-authoring its sidebar non-fatal -- some rows survive by
+	coincidence, the rest simply stop applying -- and it is the same answer for a row naming an
+	item this user may not see, since the layers are applied after permission filtering.
 	"""
-	by_key = {item_key(item): item for item in items}
-	arranged: list[str] = []
+	if row.added:
+		return shape_added_item(row)
 
-	for row in layer.sidebar_items:
-		key = item_key(row)
-		# an item named twice is a client sending the same one twice; the first position wins,
-		# because the alternative is rendering it twice
-		if key in arranged:
-			continue
-
-		if row.added:
-			by_key[key] = shape_added_item(row)
-		elif key in by_key:
-			by_key[key] = {**by_key[key], **overrides(row)}
-		else:
-			# an item the app has since deleted, or one this user may not see: skipped, never
-			# raised, and never conjured into the list
-			continue
-
-		hidden[key] = bool(row.hidden)
-		arranged.append(key)
-
-	# Items the layer never named keep their incoming order and follow the ones it did, so an
-	# app adding an item still surfaces for someone who has already reordered.
-	seen = set(arranged)
-	return [by_key[key] for key in arranged] + [item for item in items if item_key(item) not in seen]
+	return {**item, **overrides(row)} if item is not None else None
 
 
 def overrides(row) -> dict:
