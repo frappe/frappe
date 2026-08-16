@@ -6,10 +6,15 @@ from typing import Annotated
 from flow.tools.builtins.common import resolve, truncate
 from flow.tools.tool import ToolContext, ToolResult, tool
 
+_IMAGE_EXTENSIONS = frozenset({".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"})
+# Guards against loading an enormous file into memory before the attachment store can
+# reject it. The store enforces the authoritative size policy; this is only a ceiling.
+_MAX_IMAGE_READ_BYTES = 20 * 1024 * 1024
+
 
 @tool(
 	prompt_snippet="Read file contents",
-	prompt_guidelines=("Use read_file to examine files instead of cat or sed.",),
+	prompt_guidelines=("Use read_file to examine files and images instead of cat or sed.",),
 	display_template="Reading file {{ path }}",
 )
 async def read_file(
@@ -19,10 +24,12 @@ async def read_file(
 	*,
 	ctx: ToolContext,
 ) -> ToolResult:
-	"""Read a text file. Use offset/limit to page through large files."""
+	"""Read a text or image file. Use offset/limit to page through large text files."""
 	full = resolve(ctx, path, read_only=True)
 	if not os.path.isfile(full):
 		return ToolResult(content=f"[no such file: {path}]", is_error=True)
+	if os.path.splitext(full)[1].lower() in _IMAGE_EXTENSIONS:
+		return await _read_image(full, path, ctx)
 	if offset is not None and offset < 1:
 		return ToolResult(content="[offset must be >= 1]", is_error=True)
 	if limit is not None and limit < 1:
@@ -48,6 +55,35 @@ async def read_file(
 	limited_end = end if end < len(lines) else None
 	content = body + _notice(start, trunc, total, limited_end)
 	return ToolResult(content=content, details={"path": full, "truncation": trunc})
+
+
+async def _read_image(full: str, path: str, ctx: ToolContext) -> ToolResult:
+	"""Hand an image to the session's attachment store; the model sees only a summary.
+
+	The bytes travel as an attachment rather than in the result text, so they stay out
+	of the event log. Storing also validates: format sniffing, size and dimension caps,
+	and decode-bomb protection all come from the same path browser uploads take.
+	"""
+	if ctx.store_image is None:
+		return ToolResult(content=f"[image file: {path} — images are unavailable in this session]")
+	if os.path.getsize(full) > _MAX_IMAGE_READ_BYTES:
+		return ToolResult(content=f"[image too large to read: {path}]", is_error=True)
+	try:
+		with open(full, "rb") as f:
+			data = f.read()
+	except OSError as e:
+		return ToolResult(content=f"[cannot read {path}: {e.strerror or e}]", is_error=True)
+	try:
+		# AttachmentError subclasses ValueError; catching the base keeps tools/ from
+		# importing session/, which the dependency direction forbids.
+		stored = await ctx.store_image(os.path.basename(full), data)
+	except ValueError as e:
+		return ToolResult(content=f"[cannot read image {path}: {e}]", is_error=True)
+	return ToolResult(
+		content=f"[Image: {path} ({stored.mime_type}, {stored.width}x{stored.height})]",
+		details={"path": full},
+		attachments=[stored],
+	)
 
 
 def _notice(start: int, trunc: dict, total: int, limited_end: int | None) -> str:
