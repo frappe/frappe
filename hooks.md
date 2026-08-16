@@ -37,7 +37,7 @@ A disable or an enable is one transaction. If a hook fails, the site keeps the s
 #### Desktop
 
 1. `get_desktop_icons` - method to get list of desktop icons
-1. `awesomebar_search` - method(txt) returning extra Awesome Bar results (`label`, `description`, `route`, `index`)
+1. `awesomebar_search` - method(txt) returning extra Awesome Bar results (`label`, `description`, `route`, `index`). `route` may be a desk route list, an in-app path (`/desk/...`), or an `http(s)://` URL.
 
 #### Notifications
 

@@ -569,6 +569,7 @@ use_json_request_body = True
 # Awesome Bar
 # -----------
 # Extra search results: list of dicts with label, description, route, index.
+# route: ["List", "ToDo"], "/desk/docs/some/page", or "https://example.com"
 # awesomebar_search = ["{app_name}.search.awesomebar_results"]
 
 # Permissions

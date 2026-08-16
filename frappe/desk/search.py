@@ -527,7 +527,8 @@ def awesomebar_search(txt: str) -> list[dict]:
 	Each hooked method receives `txt` and should return a list of dicts with:
 	- `label` (or `value`): title shown in the dropdown
 	- `description`: optional snippet under the title
-	- `route`: desk route list, or a URL string (`http://` / `https://` opens in a new tab)
+	- `route`: desk route list (`["List", "ToDo"]`), in-app path (`/desk/docs/some/page`),
+	  or URL string (`http://` / `https://` opens in a new tab)
 	- `index`: optional ranking score (higher ranks first; built-in Search is 100)
 	- `route_options`: optional dict passed to `frappe.route_options` on select
 	"""
@@ -566,7 +567,9 @@ def _normalize_awesomebar_result(item) -> dict | None:
 	else:
 		return None
 
-	if not route or (":" in route[0] and not route[0].startswith(("http://", "https://"))):
+	if not route or route[0].startswith("//"):
+		return None
+	if ":" in route[0] and not route[0].startswith(("http://", "https://")):
 		return None
 
 	result = {

@@ -618,6 +618,19 @@ class TestSearch(IntegrationTestCase):
 				],
 			)
 
+			inapp_results = awesomebar_search("inapp")
+			self.assertEqual(
+				inapp_results,
+				[
+					{
+						"label": "Desk Docs",
+						"value": "Desk Docs",
+						"index": 30,
+						"route": ["/desk/docs/some/page"],
+					},
+				],
+			)
+
 			self.assertEqual(awesomebar_search("unrelated"), [])
 
 
@@ -640,6 +653,14 @@ def _awesomebar_help(txt):
 				"index": 40,
 			}
 		]
+	if "inapp" in query:
+		return [
+			{
+				"label": "Desk Docs",
+				"route": "/desk/docs/some/page",
+				"index": 30,
+			}
+		]
 	return []
 
 
@@ -654,6 +675,7 @@ def _awesomebar_bad_items(txt):
 		"not a dict",
 		{},
 		{"label": "JS", "route": "javascript:alert(1)"},
+		{"label": "Proto", "route": "//evil.com"},
 		{"label": "ToDo List", "route": ["List", "ToDo"]},
 	]
 

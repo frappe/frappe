@@ -137,8 +137,8 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			item: function (item, term) {
 				const d = this.get_item(item.value);
 				let target = "#";
-				if (is_external_url(d.route)) {
-					target = Array.isArray(d.route) ? d.route[0] : d.route;
+				if (is_external_url(d.route) || is_in_app_path(d.route)) {
+					target = first_route(d.route);
 				} else if (d.route) {
 					target = frappe.router.make_url(
 						frappe.router.convert_from_standard_route(
@@ -239,7 +239,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			if (item.onclick) {
 				item.onclick(item.match);
 			} else if (is_external_url(item.route)) {
-				window.open(Array.isArray(item.route) ? item.route[0] : item.route, "_blank");
+				window.open(first_route(item.route), "_blank");
+			} else if (is_in_app_path(item.route)) {
+				navigate_in_app_path(first_route(item.route), o.originalEvent);
 			} else {
 				let event = o.originalEvent;
 				if (event.ctrlKey || event.metaKey) {
@@ -522,7 +524,39 @@ frappe.search.AwesomeBar = class AwesomeBar {
 	}
 };
 
+function first_route(route) {
+	return Array.isArray(route) ? route[0] : route;
+}
+
 function is_external_url(route) {
-	const first = Array.isArray(route) ? route[0] : route;
+	const first = first_route(route);
 	return typeof first === "string" && (first.startsWith("https://") || first.startsWith("http://"));
+}
+
+function is_in_app_path(route) {
+	const first = first_route(route);
+	return typeof first === "string" && first.startsWith("/") && !first.startsWith("//");
+}
+
+function is_desk_path(path) {
+	const pathname = path.split(/[?#]/)[0];
+	return (
+		pathname === "/desk" ||
+		pathname.startsWith("/desk/") ||
+		pathname === "/app" ||
+		pathname.startsWith("/app/")
+	);
+}
+
+function navigate_in_app_path(path, event) {
+	if (is_desk_path(path)) {
+		if (event.ctrlKey || event.metaKey) {
+			frappe.open_in_new_tab = true;
+		}
+		frappe.set_route(path);
+	} else if (event.ctrlKey || event.metaKey) {
+		window.open(path, "_blank");
+	} else {
+		window.location.href = path;
+	}
 }
