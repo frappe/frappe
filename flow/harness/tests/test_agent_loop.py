@@ -58,7 +58,7 @@ async def test_full_turn_no_tools(tmp_path):
 
 
 async def test_custom_tool_display_template_reaches_the_model_request(tmp_path):
-	@tool(display="Searching the web for {{ query }}")
+	@tool(display_template="Searching the web for {{ query }}")
 	async def web_search(query: str, *, ctx) -> RuntimeToolResult:
 		del ctx
 		return RuntimeToolResult(content=query)

@@ -9,7 +9,7 @@ from flow.extensions import ExtensionAPI
 from flow.tools import ToolContext, ToolResult, tool
 
 
-@tool(prompt_snippet="Greet someone by name.", display="Greeting {{ who }}")
+@tool(prompt_snippet="Greet someone by name.", display_template="Greeting {{ who }}")
 async def hello(who: str = "world", *, ctx: ToolContext) -> ToolResult:
 	"""Greet someone by name."""
 	del ctx

@@ -23,7 +23,7 @@ class Replacement(BaseModel):
 		"Each edits[].old is matched against the original file, not after earlier edits are applied. Do not emit overlapping edits; merge nearby changes into one edit.",
 		"Keep edits[].old as small as possible while still being unique in the file. Do not pad with large unchanged regions.",
 	),
-	display="Editing file {{ path }}",
+	display_template="Editing file {{ path }}",
 )
 async def edit(path: str, edits: list[Replacement], *, ctx: ToolContext) -> ToolResult:
 	"""Apply one or more exact-string replacements to a file. Each `old` must occur

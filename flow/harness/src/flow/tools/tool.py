@@ -104,13 +104,13 @@ class Tool:
 	prompt_guidelines: tuple[str, ...] = ()
 	# User-facing activity text. Simple ``{{ argument }}`` placeholders are filled
 	# from streamed call arguments as soon as all referenced values are complete.
-	display: str | None = None
+	display_template: str | None = None
 
 	def __post_init__(self) -> None:
-		if self.display is not None:
-			if not self.display.strip():
-				raise ValueError("tool display must not be empty")
-			unknown = set(display_template_variables(self.display)) - set(
+		if self.display_template is not None:
+			if not self.display_template.strip():
+				raise ValueError("tool display template must not be empty")
+			unknown = set(display_template_variables(self.display_template)) - set(
 				self.parameters.get("properties", {})
 			)
 			if unknown:
@@ -145,7 +145,7 @@ def tool(
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
 	prompt_snippet: str | None = None,
 	prompt_guidelines: tuple[str, ...] = (),
-	display: str | None = None,
+	display_template: str | None = None,
 ) -> Callable[[Callable[..., Awaitable[ToolResult]]], Tool]: ...
 
 
@@ -158,7 +158,7 @@ def tool(
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
 	prompt_snippet: str | None = None,
 	prompt_guidelines: tuple[str, ...] = (),
-	display: str | None = None,
+	display_template: str | None = None,
 ) -> Tool | Callable[[Callable[..., Awaitable[ToolResult]]], Tool]:
 	def wrap(f: Callable[..., Awaitable[ToolResult]]) -> Tool:
 		return Tool(
@@ -170,7 +170,7 @@ def tool(
 			confirm_prompt=confirm_prompt,
 			prompt_snippet=prompt_snippet,
 			prompt_guidelines=prompt_guidelines,
-			display=display,
+			display_template=display_template,
 		)
 
 	return wrap(func) if func is not None else wrap

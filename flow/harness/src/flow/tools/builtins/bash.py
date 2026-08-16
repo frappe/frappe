@@ -13,7 +13,7 @@ from flow.tools.tool import ToolContext, ToolResult, tool
 	requires_confirmation=True,
 	prompt_snippet="Execute bash commands (git, tests, build steps, etc.)",
 	prompt_guidelines=("Use bash for file operations like ls, find, and mv.",),
-	display="Running command {{ command }}",
+	display_template="Running command {{ command }}",
 )
 async def bash(
 	command: str,

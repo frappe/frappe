@@ -195,7 +195,9 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 		await model.load_model_limits(abort)
 	tools = inputs.server_tools or {}
 	schemas = [tool.to_schema() for tool in tools.values()] + config.client_tools
-	tool_display_templates = {tool.name: tool.display for tool in tools.values() if tool.display is not None}
+	tool_display_templates = {
+		tool.name: tool.display_template for tool in tools.values() if tool.display_template is not None
+	}
 	ctx = _tool_context(inputs)
 
 	output_tokens = 0

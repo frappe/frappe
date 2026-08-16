@@ -10,7 +10,7 @@ from flow.tools.tool import ToolContext, ToolResult, tool
 	requires_confirmation=True,
 	prompt_snippet="Create or overwrite files",
 	prompt_guidelines=("Use write only for new files or complete rewrites.",),
-	display="Writing file {{ path }}",
+	display_template="Writing file {{ path }}",
 )
 async def write(path: str, content: str, *, ctx: ToolContext) -> ToolResult:
 	"""Create or overwrite a file with the given text content."""
