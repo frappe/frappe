@@ -10,6 +10,7 @@ import frappe
 
 # Backward compatbility
 from frappe import _, bold, is_whitelisted
+from frappe.app_state import get_disabled_modules
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.db_query import get_order_by
 from frappe.permissions import has_permission
@@ -157,6 +158,9 @@ def search_widget(
 		if sbool(query_filters_as_dict) and isinstance(filters, list):
 			filters = make_dict_from_filter_list(filters)
 
+		if ignore_user_permissions:
+			frappe.flags.ignore_user_permissions_for_doctype = doctype
+
 		try:
 			is_whitelisted(frappe.get_attr(query))
 			values = frappe.call(
@@ -183,6 +187,8 @@ def search_widget(
 					http_status_code=404,
 				)
 				return []
+		finally:
+			frappe.flags.ignore_user_permissions_for_doctype = None
 
 		if not for_link_validation:
 			if meta.translated_doctype:
@@ -264,6 +270,13 @@ def search_widget(
 		_relevance = {"IFNULL": [_relevance_expr, -9999], "as": "_relevance"}
 		formatted_fields.append(_relevance)
 		order_by = f"_relevance desc, {order_by}"
+
+	# DocType searches run with ignore_permissions, so exclude disabled apps explicitly
+	if doctype == "DocType" and (disabled_modules := get_disabled_modules()):
+		if isinstance(filters, dict):
+			filters["module"] = ["not in", list(disabled_modules)]
+		elif isinstance(filters, list):
+			filters.append(["module", "not in", list(disabled_modules)])
 
 	values = frappe.get_list(
 		doctype,
@@ -512,8 +525,11 @@ def get_link_title(doctype: str, docname: str | int):
 	meta = frappe.get_meta(doctype)
 
 	if meta.show_title_field_in_link:
-		doc = frappe.get_lazy_doc(doctype, docname)
-		doc.check_permission()
-		return doc.get(meta.title_field)
+		try:
+			doc = frappe.get_lazy_doc(doctype, docname)
+			doc.check_permission()
+			return doc.get(meta.title_field)
+		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
 
 	return docname

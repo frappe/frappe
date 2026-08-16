@@ -556,6 +556,7 @@ def get_kanban_column_page():
 def add_column(board_name: str, column_title: str):
 	"""Adds new column to Kanban Board"""
 	doc = frappe.get_doc("Kanban Board", board_name)
+	doc.check_permission("write")
 	for col in doc.columns:
 		if column_title == col.column_name:
 			frappe.throw(_("Column <b>{0}</b> already exist.").format(column_title))
@@ -569,6 +570,7 @@ def add_column(board_name: str, column_title: str):
 def archive_restore_column(board_name: str, column_title: str, status: str):
 	"""Set column's status to status"""
 	doc = frappe.get_doc("Kanban Board", board_name)
+	doc.check_permission("write")
 	for col in doc.columns:
 		if column_title == col.column_name:
 			col.status = status
@@ -764,6 +766,7 @@ def get_order_for_column(board, colname):
 def update_column_order(board_name: str, order: str | list):
 	"""Set the order of columns in Kanban Board"""
 	board = frappe.get_doc("Kanban Board", board_name)
+	board.check_permission("write")
 	order = frappe.parse_json(order)
 	old_columns = board.columns
 	new_columns = []
@@ -796,6 +799,7 @@ def update_column_order(board_name: str, order: str | list):
 def set_indicator(board_name: str, column_name: str, indicator: str):
 	"""Set the indicator color of column"""
 	board = frappe.get_doc("Kanban Board", board_name)
+	board.check_permission("write")
 
 	for column in board.columns:
 		if column.column_name == column_name:
@@ -809,6 +813,7 @@ def set_indicator(board_name: str, column_name: str, indicator: str):
 def save_settings(board_name: str, settings: str | dict) -> Document:
 	settings = frappe.parse_json(settings) or {}
 	doc = frappe.get_doc("Kanban Board", board_name)
+	doc.check_permission("write")
 
 	fields = settings.get("fields", [])
 	if not isinstance(fields, str):

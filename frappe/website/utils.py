@@ -10,6 +10,7 @@ import yaml
 from werkzeug.wrappers import Response
 
 import frappe
+from frappe.app_state import get_disabled_doctypes
 from frappe.apps import get_apps, get_default_path, is_desk_apps
 from frappe.model.document import Document
 from frappe.utils import (
@@ -466,8 +467,13 @@ def get_portal_sidebar_items():
 		roles = frappe.get_roles()
 		portal_settings = frappe.get_doc("Portal Settings", "Portal Settings")
 
+		disabled_doctypes = get_disabled_doctypes()
+
 		def add_items(sidebar_items, items):
 			for d in items:
+				if d.get("reference_doctype") in disabled_doctypes:
+					continue
+
 				if d.get("enabled") and ((not d.get("role")) or d.get("role") in roles):
 					sidebar_items.append(d.as_dict() if isinstance(d, Document) else d)
 

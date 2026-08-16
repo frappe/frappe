@@ -85,13 +85,8 @@
 					<div v-if="i > 0 && !preview_doc" class="column-divider"></div>
 					<div
 						class="column"
-						:class="{
-							col: !!preview_doc,
-							'pfb-column-hover': store.hovered_node.value === column,
-						}"
+						:class="{ col: !!preview_doc }"
 						:style="column.width ? { flex: `${column.width} 1 0%` } : {}"
-						@mouseenter="store.hovered_column.value = column"
-						@mouseleave="store.hovered_column.value = null"
 					>
 						<div
 							v-if="i < section.columns.length - 1"
@@ -176,6 +171,7 @@ import { computed, inject } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
 import {
 	DRAG_OPTIONS,
+	JUSTIFY_CLASSES,
 	evaluate_visible_if,
 	parse_inline_style,
 	setDragging,
@@ -217,6 +213,7 @@ let is_grid = computed(() => !!props.section.field_borders);
 // Mirrors the row layout class print_format.html picks for right-aligned
 // columns; the server computes it for body sections only, never header/footer
 let row_layout = computed(() => {
+	if (JUSTIFY_CLASSES[props.section.justify]) return JUSTIFY_CLASSES[props.section.justify];
 	if (props.is_header) return "";
 	const cols = props.section.columns || [];
 	if (!cols.some((c) => c.align === "right")) return "";
@@ -402,8 +399,8 @@ function remove_column(index) {
 <style scoped>
 .print-format-section-container {
 	position: relative;
-	/* flow-root keeps the section's own margin inside this box, so selection
-	   outlines drawn on the container enclose the margin area */
+	/* flow-root keeps the section's own margin inside this box, so the spacing
+	   handles can be positioned against it */
 	display: flow-root;
 }
 
@@ -413,20 +410,18 @@ function remove_column(index) {
 
 /* One ring for every active section state — selected, hover (canvas), and
    layer-hover all look identical. The :has() guard keeps hover on the innermost
-   element: when a field inside is hovered, the field's ring shows, not this. */
+   element: when a field inside is hovered, the field's ring shows, not this.
+   Drawn on the container with no offset: square corners (an outline always
+   follows the element's own radius) and flush against the section's border. */
 .print-format-section-container.pfb-section-active,
 .print-format-section-container.pfb-layer-hover,
 .print-format-section-container:hover:not(:has(.field--preview:hover, .field--chip:hover)) {
 	outline: var(--pfb-ring);
-	outline-offset: 2px;
-	border-radius: var(--radius);
 }
 
 .section-container--condition-hidden {
 	opacity: 0.35;
 	outline: 2px dashed var(--gray-400);
-	outline-offset: 2px;
-	border-radius: var(--radius);
 }
 
 .print-format-section {
@@ -527,16 +522,6 @@ function remove_column(index) {
 	display: flex;
 	flex-direction: column;
 	position: relative;
-}
-
-/* same ring as every other hover/selection state (--pfb-ring); drawn inside the
-   15px bootstrap gutter — the column box bleeds past the section edge */
-.column.pfb-column-hover::after {
-	content: "";
-	position: absolute;
-	inset: 0 15px;
-	border: var(--pfb-ring);
-	pointer-events: none;
 }
 
 .column-divider {

@@ -523,6 +523,17 @@ use_json_request_body = True
 # before_uninstall = "{app_name}.uninstall.before_uninstall"
 # after_uninstall = "{app_name}.uninstall.after_uninstall"
 
+# Disable / Enable
+# ----------------
+# Called when this app is logically disabled or re-enabled on a site,
+# without uninstalling it. Use this to hide/restore fields this app adds
+# to other apps' doctypes.
+
+# before_disable = "{app_name}.uninstall.before_disable"
+# after_disable = "{app_name}.uninstall.after_disable"
+# before_enable = "{app_name}.install.before_enable"
+# after_enable = "{app_name}.install.after_enable"
+
 # Integration Setup
 # ------------------
 # To set up dependencies/integrations with other apps
@@ -544,6 +555,11 @@ use_json_request_body = True
 # To hook into the build process
 
 # after_build = "{app_name}.build.after_build"
+
+# To hook into the build process of other apps
+# The list of apps being built is passed as an argument
+
+# after_app_build = "{app_name}.build.after_app_build"
 
 # Desk Notifications
 # ------------------

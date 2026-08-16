@@ -523,11 +523,8 @@ if (frappe.views.KanbanView) {
 				}, show_empty_state)
 			);
 
-			// Order sync on load is expensive for large boards (10k+ DB lookups server-side).
 			requestAnimationFrame(() => {
-				if (store.cards.length <= LARGE_BOARD_ORDER_SYNC_LIMIT) {
-					store.update_order();
-				}
+				store.update_order();
 			});
 		}
 
@@ -1376,6 +1373,39 @@ if (frappe.views.KanbanView) {
 		return self;
 	};
 
+	const FIELD_TYPE_ICONS = {
+		Data: "type",
+		"Small Text": "text-align-start",
+		Text: "text-align-start",
+		"Long Text": "text-align-start",
+		"Text Editor": "text-align-start",
+		Code: "code",
+		Link: "link",
+		"Dynamic Link": "link",
+		Select: "list",
+		Date: "calendar",
+		Datetime: "calendar-clock",
+		Time: "clock",
+		Currency: "banknote",
+		Float: "hash",
+		Int: "hash",
+		Percent: "percent",
+		Check: "square-check",
+		Phone: "phone",
+		Rating: "star",
+		Color: "palette",
+		Duration: "timer",
+		Attach: "paperclip",
+		"Attach Image": "image",
+		Geolocation: "map-pin",
+	};
+
+	function get_field_icon(field) {
+		if (field.fieldtype === "Data" && field.options === "Email") return "mail";
+		if (field.fieldtype === "Data" && field.options === "Phone") return "phone";
+		return FIELD_TYPE_ICONS[field.fieldtype] || "info";
+	}
+
 	frappe.views.KanbanBoardCard = function (card, wrapper) {
 		var self = {};
 
@@ -1386,13 +1416,22 @@ if (frappe.views.KanbanView) {
 		}
 
 		function make_dom() {
+			const title = frappe.utils.escape_html(frappe.utils.html2text(card.title));
+			const image_url = cur_list.get_image_url(card);
 			var opts = {
 				name: card.name,
-				title: frappe.utils.escape_html(frappe.utils.html2text(card.title)),
+				title: title,
 				disable_click: card._disable_click ? "disable-click" : "",
 				creation: card.creation,
 				doc_content: get_doc_content(card),
-				image_url: cur_list.get_image_url(card),
+				avatar_html: image_url
+					? frappe.ui.avatar.html({
+							label: title,
+							image: image_url,
+							size: "lg",
+							shape: "square",
+					  })
+					: "",
 				form_link: frappe.utils.get_form_link(card.doctype, card.name),
 			};
 
@@ -1406,6 +1445,7 @@ if (frappe.views.KanbanView) {
 
 		function get_doc_content(card) {
 			let fields = [];
+			const show_labels = get_kanban_board_show_labels();
 			const field_names = get_kanban_board_fields();
 			for (let field_name of field_names) {
 				const fieldname =
@@ -1415,20 +1455,34 @@ if (frappe.views.KanbanView) {
 					frappe.meta.docfield_map[card.doctype]?.[fieldname] ||
 					frappe.model.get_std_field(fieldname);
 				if (!field) continue;
-				let label = get_kanban_board_show_labels()
-					? `<span>${__(field.label, null, field.parent)}: </span>`
-					: "";
-				let rendered_value = card.doc[fieldname];
+
+				let raw = card.doc[fieldname];
 				if (field.fieldtype === "Data") {
-					rendered_value = frappe.utils.escape_html(rendered_value);
+					raw = frappe.utils.escape_html(raw);
 				}
-				let value = frappe.format(rendered_value, field);
-				fields.push(`
-					<div class="text-muted text-truncate">
-						${label}
-						<span>${value}</span>
-					</div>
-				`);
+				let value =
+					raw === null || raw === undefined || raw === ""
+						? ""
+						: frappe.format(raw, field);
+				if (value === "" || value == null) value = "-";
+
+				if (show_labels) {
+					fields.push(`
+						<div class="kanban-doc-field truncate text-muted">
+							<span>${__(field.label, null, field.parent)}: </span>
+							<span>${value}</span>
+						</div>
+					`);
+				} else {
+					const label = frappe.utils.escape_html(__(field.label, null, field.parent));
+					const icon = frappe.utils.icon(get_field_icon(field), "sm");
+					fields.push(`
+						<div class="kanban-doc-field flex items-center text-muted">
+							<span class="kanban-doc-icon shrink-0" title="${label}">${icon}</span>
+							<span class="truncate">${value}</span>
+						</div>
+					`);
+				}
 			}
 
 			return fields.join("");
@@ -1451,18 +1505,11 @@ if (frappe.views.KanbanView) {
 			`;
 
 			if (card.color && frappe.ui.color.validate_hex(card.color)) {
-				const $div = $("<div>");
-				$("<div></div>")
-					.css({
-						width: "30px",
-						height: "4px",
-						borderRadius: "2px",
-						marginBottom: "8px",
-						backgroundColor: card.color,
-					})
-					.appendTo($div);
-
-				self.$card.find(".kanban-card .kanban-title-area").prepend($div);
+				// Left accent border — does not change card height (unlike a bar).
+				self.$card
+					.find(".kanban-card")
+					.addClass("has-color")
+					.css("--kanban-card-accent", card.color);
 			}
 
 			self.$card
@@ -1643,12 +1690,12 @@ if (frappe.views.KanbanView) {
 		return col.status !== "Archived";
 	}
 
-	/** Update column background and badge theme without rebuilding cards. */
+	/** Update column dot indicator without rebuilding cards. */
 	function apply_column_indicator($column, indicator) {
 		if (!$column?.length) return;
 		const theme = frappe.scrub(indicator || "gray", "-");
-		$column.css("background-color", `var(--bg-${theme})`);
-		$column.find(".kanban-column-header .es-badge").attr("data-theme", theme);
+		const $dot = $column.find(".kanban-col-dot");
+		$dot.attr("class", `kanban-col-dot indicator ${theme}`);
 	}
 
 	/** Align card column fields with saved board column order (mutates cards in place). */
@@ -1863,7 +1910,9 @@ if (frappe.views.KanbanView) {
 		}
 	}
 
-	/** Full column order for drag/save — saved order plus loaded cards not in it yet. */
+	/** Full column order for drag/save — saved order plus loaded cards not in it yet.
+	 * Deduplicated so a corrupt saved order (same card listed twice) is never
+	 * re-persisted or rendered twice. */
 	function get_column_full_order(column, cards_index) {
 		const saved = parse_column_order(column);
 		const column_cards = cards_index?.by_column[column.title] || [];
@@ -1871,22 +1920,26 @@ if (frappe.views.KanbanView) {
 		if (!saved.length) {
 			return column_cards.map((card) => card.name);
 		}
-		if (!column_cards.length) {
-			return saved.slice();
+
+		const seen = new Set();
+		const ordered_names = [];
+		for (let i = 0; i < saved.length; i++) {
+			if (!seen.has(saved[i])) {
+				seen.add(saved[i]);
+				ordered_names.push(saved[i]);
+			}
 		}
-
-		const saved_set = new Set(saved);
-		const ordered_names = saved.slice();
-
 		for (let i = 0; i < column_cards.length; i++) {
-			if (!saved_set.has(column_cards[i].name)) {
+			if (!seen.has(column_cards[i].name)) {
+				seen.add(column_cards[i].name);
 				ordered_names.push(column_cards[i].name);
 			}
 		}
 		return ordered_names;
 	}
 
-	/** Column card order for display / sync — saved order first, then cards missing from it. */
+	/** Column card order for display / sync — saved order first, then cards missing
+	 * from it. Deduplicated so a duplicated saved order never renders a card twice. */
 	function get_column_display_order(column, cards_index) {
 		const column_cards = cards_index?.by_column[column.title] || [];
 		if (!column_cards.length) return [];
@@ -1895,14 +1948,18 @@ if (frappe.views.KanbanView) {
 		if (!saved.length) return column_cards.map((card) => card.name);
 
 		const names_in_column = new Set(column_cards.map((card) => card.name));
-		const saved_set = new Set(saved);
+		const seen = new Set();
 		const ordered_names = [];
 
 		for (let i = 0; i < saved.length; i++) {
-			if (names_in_column.has(saved[i])) ordered_names.push(saved[i]);
+			if (names_in_column.has(saved[i]) && !seen.has(saved[i])) {
+				seen.add(saved[i]);
+				ordered_names.push(saved[i]);
+			}
 		}
 		for (let i = 0; i < column_cards.length; i++) {
-			if (!saved_set.has(column_cards[i].name)) {
+			if (!seen.has(column_cards[i].name)) {
+				seen.add(column_cards[i].name);
 				ordered_names.push(column_cards[i].name);
 			}
 		}

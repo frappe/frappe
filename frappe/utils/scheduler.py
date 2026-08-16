@@ -133,8 +133,14 @@ def enqueue_events_for_site(site: str) -> None:
 
 def enqueue_events() -> list[str] | None:
 	if schedule_jobs_based_on_activity():
+		from frappe.core.doctype.scheduled_job_type.scheduled_job_type import get_disabled_app_job_methods
+
 		enqueued_jobs = []
-		all_jobs = frappe.get_docs("Scheduled Job Type", filters={"stopped": 0})
+		filters = {"stopped": 0}
+		if disabled_methods := get_disabled_app_job_methods():
+			filters["method"] = ["not in", disabled_methods]
+
+		all_jobs = frappe.get_docs("Scheduled Job Type", filters=filters)
 		random.shuffle(all_jobs)
 		for job_type in all_jobs:
 			try:

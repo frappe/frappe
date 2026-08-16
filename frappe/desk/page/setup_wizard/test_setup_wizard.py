@@ -24,6 +24,7 @@ class TestSetupWizardUrl(UnitTestCase):
 	def resolve(self, apps):
 		with (
 			patch.object(frappe, "get_installed_apps", return_value=list(apps)),
+			patch.object(frappe, "get_active_apps", return_value=list(apps)),
 			patch.object(frappe, "get_hooks", side_effect=fake_hooks(apps)),
 		):
 			url = setup_wizard.get_setup_wizard_url()

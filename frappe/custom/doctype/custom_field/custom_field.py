@@ -97,6 +97,7 @@ class CustomField(Document):
 		in_preview: DF.Check
 		in_standard_filter: DF.Check
 		insert_after: DF.Literal[None]
+		is_app_disabled: DF.Check
 		is_system_generated: DF.Check
 		is_virtual: DF.Check
 		label: DF.Data | None

@@ -1,22 +1,14 @@
-<h1 class="email-header-title">{{ _("Complete your registration") }}</h1>
-<p>
-	{{_("Hello")}} {{ first_name | e }}{% if last_name %} {{ last_name | e }}{% endif %},
-</p>
 {% set site_link = "<a href='" + site_url + "'>" + site_url + "</a>" %}
-<p>
-	{{_("A new account has been created for you at {0}.").format(site_link)}}
-	{{_("Your login ID is:")}} <b>{{ user }}</b>
-</p>
-<p>{{_("Click the button below to complete your registration and set a new password.")}}</p>
-<p>
-	<a href="{{ link }}" rel="nofollow" class="btn btn-primary">{{ _("Complete Registration") }}</a>
-</p>
-{% if created_by != "Administrator" %}
-<p>
-	{{_("Thanks")}},<br>
-	{{ created_by }}
-</p>
-{% endif %}
-<p class="text-muted text-small">
-	{{_("Or copy and paste this link:")}} <a href="{{ link }}">{{ link }}</a>
-</p>
+<h1 class="email-title">{{ _("Welcome to {0}").format(app_name) }}</h1>
+<div class="email-body">
+	<p>{{ _("Hi {0}, an account has been created for you at {1}. Before you can log in, you'll need to set your password.").format(first_name | e, site_link) }}</p>
+	<p>{{ _("Your login ID is:") }} {{ user }}</p>
+	<div class="email-action">
+		<a class="email-btn email-btn-primary" href="{{ link }}">{{ _("Complete registration") }}</a>
+	</div>
+	<div class="email-copy">
+		<p>{{ _("Or copy and paste:") }}</p>
+		<a href="{{ link }}">{{ link }}</a>
+	</div>
+	<p class="email-ignore">{{ _("If you weren't expecting this account, you can safely ignore this email.") }}</p>
+</div>

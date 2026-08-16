@@ -148,6 +148,7 @@ def sendmail(
 	raw_html=False,
 	add_css=True,
 	redact_message_after_send=False,
+	wrapper=None,
 ) -> EmailQueue | None:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -244,6 +245,7 @@ def sendmail(
 		raw_html=raw_html,
 		add_css=add_css,
 		redact_message_after_send=redact_message_after_send,
+		wrapper=wrapper,
 	)
 
 	# build email queue and send the email if send_now is True.

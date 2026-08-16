@@ -64,7 +64,7 @@ def update_global_search_doctypes():
 	global_search_doctypes = []
 	show_message(1, _("Fetching default Global Search documents."))
 
-	installed_apps = [app for app in frappe.get_installed_apps() if app]
+	installed_apps = [app for app in frappe.get_active_apps() if app]
 	active_domains = [domain for domain in frappe.get_active_domains() if domain]
 	active_domains.append("Default")
 

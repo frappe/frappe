@@ -44,6 +44,15 @@
 				}) %}
 			</div>
 			{% endif %}
+			{% if frm.meta.deprecated %}
+			<div class="pt-1">
+				{%= frappe.ui.badge.html({
+					label: __("Deprecated"),
+					theme: "red",
+					title: __("This feature is deprecated and may be removed in a future release"),
+				}) %}
+			</div>
+			{% endif %}
 			{% if (title && title !== frm.doc.name) { %}
 			<div class="form-name-container mt-1 flex justify-between form-name-copy" data-copy="{%= frappe.utils.escape_html(frappe.utils.html2text(frm.doc.name)) %}" title="{%= frappe.utils.escape_html(frappe.utils.html2text(frm.doc.name)) %}" >
 				<span class="ellipsis mr-3">{%= frappe.utils.escape_html(frappe.utils.html2text(frm.doc.name)) %}</span>
@@ -152,20 +161,6 @@
 			}) %}
 		</span>
 		<div class="shares"></div>
-	</div>
-</div>
-<div class="sidebar-section followed-by-section hidden">
-	<div class="sidebar-label followed-by-label">
-		{%= __("Followed by") %}
-	</div>
-	<div class="followed-by"></div>
-	<div class="document-follow">
-		<a class="badge-hover follow-document-link hidden">
-			{%= __("Follow") %}
-		</a>
-		<a class="badge-hover unfollow-document-link hidden">
-			{%= __("Unfollow") %}
-		</a>
 	</div>
 </div>
 <div class="sidebar-section hidden">

@@ -22,42 +22,12 @@
    "type": "Card Break"
   },
   {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Google Services",
-   "link_count": 0,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Google Settings",
    "link_count": 0,
    "link_to": "Google Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Google Settings",
-   "link_count": 0,
-   "link_to": "Google Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Google Contacts",
-   "link_count": 0,
-   "link_to": "Google Contacts",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -85,42 +55,12 @@
    "type": "Link"
   },
   {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Google Calendar",
-   "link_count": 0,
-   "link_to": "Google Calendar",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
    "hidden": 0,
    "is_query_report": 0,
    "label": "Settings",
    "link_count": 0,
    "onboard": 0,
    "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Settings",
-   "link_count": 0,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Webhook",
-   "link_count": 0,
-   "link_to": "Webhook",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
   },
   {
    "dependencies": "",
@@ -148,28 +88,6 @@
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Slack Webhook URL",
-   "link_count": 0,
-   "link_to": "Slack Webhook URL",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "SMS Settings",
-   "link_count": 0,
-   "link_to": "SMS Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "SMS Settings",
    "link_count": 0,
    "link_to": "SMS Settings",
@@ -186,42 +104,12 @@
    "type": "Card Break"
   },
   {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Authentication",
-   "link_count": 4,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Social Login Key",
    "link_count": 0,
    "link_to": "Social Login Key",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Social Login Key",
-   "link_count": 0,
-   "link_to": "Social Login Key",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "LDAP Settings",
-   "link_count": 0,
-   "link_to": "LDAP Settings",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -252,28 +140,6 @@
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "OAuth Client",
-   "link_count": 0,
-   "link_to": "OAuth Client",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "OAuth Provider Settings",
-   "link_count": 0,
-   "link_to": "OAuth Provider Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "OAuth Provider Settings",
    "link_count": 0,
    "link_to": "OAuth Provider Settings",
@@ -289,25 +155,6 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Push Notifications",
-   "link_count": 1,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Push Notification Settings",
-   "link_count": 0,
-   "link_to": "Push Notification Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
   },
   {
    "hidden": 0,
@@ -320,7 +167,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-06 18:21:45.545054",
+ "modified": "2026-08-05 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",
@@ -338,21 +185,6 @@
    "doc_view": "List",
    "label": "Google Settings",
    "link_to": "Google Settings",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Google Settings",
-   "link_to": "Google Settings",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Webhook",
-   "link_to": "Webhook",
-   "stats_filter": "[]",
    "type": "DocType"
   },
   {

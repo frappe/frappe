@@ -422,7 +422,7 @@ class DesktopPage {
 	setup_notifications() {
 		this.notifications = new frappe.ui.Notifications({
 			wrapper: $(".desktop-notifications"),
-			full_height: false,
+			popover: true,
 		});
 	}
 
@@ -509,15 +509,7 @@ class DesktopPage {
 			let awesome_bar = new frappe.search.AwesomeBar();
 			awesome_bar.setup(".desktop-search-wrapper #desktop-navbar-modal-search");
 		}
-		frappe.ui.keys.add_shortcut({
-			shortcut: "ctrl+g",
-			action: function (e) {
-				$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
-				e.preventDefault();
-				return false;
-			},
-			description: __("Open Awesomebar"),
-		});
+		// Only rebind Ctrl/Cmd+K to trigger the desktop-page Awesome Bar wrapper.
 		frappe.ui.keys.add_shortcut({
 			shortcut: "ctrl+k",
 			action: function (e) {
