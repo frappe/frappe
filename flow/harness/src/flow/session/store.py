@@ -16,7 +16,7 @@ from pathlib import Path
 from tempfile import mkstemp
 
 from flow import config as server_config
-from flow.extensions import ExtensionRuntime
+from flow.extensions import ExtensionRuntime, unload_extension_modules
 from flow.model.credentials import CredentialStore
 from flow.path_policy import canonical_path, is_path_allowed, normalize_roots
 from flow.session.attachments import AttachmentStore
@@ -78,13 +78,30 @@ class SessionStore:
 		configured_roots = allowed_roots if allowed_roots is not None else server_config.ALLOWED_ROOTS
 		self.allowed_roots = normalize_roots(configured_roots)
 		self.credentials = credential_store or CredentialStore(server_config.CREDENTIALS_PATH)
-		self.extension_runtime = ExtensionRuntime()
-		self.extension_runtime.load(
-			global_dir=Path(server_config.EXTENSIONS_PATH),
-			extra_paths=tuple(Path(path) for path in (extension_paths or ())),
-			include_global_dir=extensions_enabled,
-		)
+		self._extension_paths = tuple(extension_paths or ())
+		self._extensions_enabled = extensions_enabled
+		self.extension_runtime = self._load_extensions()
 		self._cache: dict[str, Session] = {}
+
+	def _load_extensions(self) -> ExtensionRuntime:
+		runtime = ExtensionRuntime()
+		runtime.load(
+			global_dir=Path(server_config.EXTENSIONS_PATH),
+			extra_paths=tuple(Path(path) for path in self._extension_paths),
+			include_global_dir=self._extensions_enabled,
+		)
+		return runtime
+
+	def reload_extensions(self) -> None:
+		"""Re-discover and re-import all extensions into a fresh runtime.
+
+		Cached sessions get the recomposed tools for their next run; an active run
+		keeps the tools it started with, and prompts stay as composed at creation.
+		"""
+		unload_extension_modules()
+		self.extension_runtime = self._load_extensions()
+		for session in list(self._cache.values()):
+			session.server_tools = self._compose_tools(session.config)
 
 	def create(self, config: SessionConfig) -> Session:
 		self._validate_create_config(config)

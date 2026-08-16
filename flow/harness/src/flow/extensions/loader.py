@@ -16,6 +16,8 @@ from inspect import iscoroutinefunction
 from pathlib import Path
 from uuid import uuid4
 
+_MODULE_PREFIX = "flow_extension"
+
 
 @dataclass(frozen=True, slots=True)
 class ExtensionDiagnostic:
@@ -168,7 +170,7 @@ def _discover_in_dir(directory: Path) -> Iterator[DiscoveredExtension]:
 def _load_extension(
 	entry: DiscoveredExtension,
 ) -> tuple[LoadedExtension | None, ExtensionDiagnostic | None]:
-	module_name = f"flow_extension_{_slugify(entry.name)}_{uuid4().hex}"
+	module_name = f"{_MODULE_PREFIX}_{_slugify(entry.name)}_{uuid4().hex}"
 	search_locations = [str(entry.package_dir)] if entry.package_dir is not None else None
 	spec = spec_from_file_location(
 		module_name,
@@ -200,6 +202,17 @@ def _remove_module_tree(module_name: str) -> None:
 	for name in tuple(sys.modules):
 		if name == module_name or name.startswith(f"{module_name}."):
 			del sys.modules[name]
+
+
+def unload_extension_modules() -> None:
+	"""Drop every imported extension module so a reload imports fresh objects.
+
+	In-flight tool calls keep working: their functions hold references to the old
+	module objects, which only leave `sys.modules`, not memory.
+	"""
+	for name in tuple(sys.modules):
+		if name.startswith(f"{_MODULE_PREFIX}_"):
+			sys.modules.pop(name, None)
 
 
 def _error(entry: DiscoveredExtension, message: str) -> ExtensionDiagnostic:

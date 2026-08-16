@@ -376,6 +376,12 @@ def create_app(
 		_get(sid)
 		return store.extension_runtime.info()
 
+	@app.post("/extensions/reload")
+	async def reload_extensions():
+		"""Re-import all extensions; returns the fresh info payload."""
+		await asyncio.to_thread(store.reload_extensions)  # imports run arbitrary setup code
+		return store.extension_runtime.info()
+
 	@app.delete("/sessions/{sid}")
 	async def delete_session(sid: str):
 		try:
