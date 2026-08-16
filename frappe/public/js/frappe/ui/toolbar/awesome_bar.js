@@ -238,12 +238,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 			if (item.onclick) {
 				item.onclick(item.match);
+			} else if (is_external_url(item.route)) {
+				window.open(Array.isArray(item.route) ? item.route[0] : item.route, "_blank");
 			} else {
 				let event = o.originalEvent;
-				if (is_external_url(item.route)) {
-					window.open(Array.isArray(item.route) ? item.route[0] : item.route, "_blank");
-					return;
-				}
 				if (event.ctrlKey || event.metaKey) {
 					frappe.open_in_new_tab = true;
 				}
