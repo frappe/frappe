@@ -174,3 +174,18 @@ def setup(flow):
 	session = store.create(SessionConfig(cwd=str(tmp_path), tools=["read_file"]))
 
 	assert session.server_tools["read_file"].func.__module__.startswith("flow_extension_override_")
+
+
+def test_cli_reports_extension_diagnostics_on_stderr(tmp_path, capsys):
+	from flow.cli.main import _report_extension_diagnostics
+
+	missing = tmp_path / "missing.py"
+	broken = _write_extension(tmp_path / "extensions", "broken", "raise RuntimeError('boom')\n")
+	store = SessionStore(str(tmp_path / "data"), extension_paths=[str(missing), str(broken)])
+
+	_report_extension_diagnostics(store)
+
+	stderr = capsys.readouterr().err
+	assert f"flow: extension error: explicit extension path does not exist ({missing})" in stderr
+	assert "flow: extension error: failed to import extension" in stderr
+	assert str(broken) in stderr
