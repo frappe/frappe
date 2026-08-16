@@ -19,7 +19,7 @@ const CARD_GAP = 8;
 /** Prefetch the next page when the rendered window is within N rows of loaded end. */
 const PREFETCH_ROWS = 8;
 
-/** Unique id per KanbanCore so swimlane boards do not accept each other's drops. */
+// Counter for building each board's unique instanceId (see constructor).
 let _kanban_instance_seq = 0;
 
 const CLS = {
@@ -66,11 +66,11 @@ export class KanbanCore {
 		this.lastSelected = null;
 		this.pointer = { x: 0, y: 0 };
 		this.autoScrollRAF = null;
-		this.localMoveGraceUntil = 0;
+		this.ignoreRemoteUpdatesUntil = 0;
 		this.columnSortable = null;
-		// Monotonic board snapshot id. Bumped on every reload so late async
-		// responses from older snapshots can be ignored safely.
-		this.boardEpoch = 0;
+		// Incremented on every reload so a late response from an earlier reload
+		// can be discarded instead of overwriting fresher data.
+		this.reloadSeq = 0;
 	}
 
 	/** Mount into `container`, wire DnD/scroll, and load the board. */
@@ -84,7 +84,7 @@ export class KanbanCore {
 		if (this.options.provider.onRemoteUpdate) {
 			this.providerUnsub = this.options.provider.onRemoteUpdate(() => {
 				// Ignore the realtime echo of our own move (already applied optimistically).
-				if (Date.now() < this.localMoveGraceUntil) return;
+				if (Date.now() < this.ignoreRemoteUpdatesUntil) return;
 				this.bus.emit("remote:update");
 				this.reload();
 			});
@@ -104,23 +104,23 @@ export class KanbanCore {
 		this.reload();
 	}
 
-	/** Fetch board data and re-render; stale responses (older boardEpoch) are ignored. */
+	/** Fetch board data and re-render; responses from an earlier reload are ignored. */
 	async reload() {
-		const epoch = ++this.boardEpoch;
+		const reloadSeq = ++this.reloadSeq;
 		this.setLoading(true);
 		// First load has no columns yet — show placeholder columns instead of a
 		// blank panel while loadBoard() runs. render() replaces them with real data.
 		if (!this.state.columns.length) this.renderSkeleton();
 		try {
 			const { columns, cards } = await this.options.provider.loadBoard();
-			if (epoch !== this.boardEpoch) return;
+			if (reloadSeq !== this.reloadSeq) return;
 			this.state = { ...this.state, columns, cards };
 			this.render();
 			this.bus.emit("state:change", this.getState());
 		} catch (error) {
-			if (epoch === this.boardEpoch) this.bus.emit("error", error);
+			if (reloadSeq === this.reloadSeq) this.bus.emit("error", error);
 		} finally {
-			if (epoch === this.boardEpoch) this.setLoading(false);
+			if (reloadSeq === this.reloadSeq) this.setLoading(false);
 		}
 	}
 
@@ -315,8 +315,14 @@ export class KanbanCore {
 		if (!this.options.virtualization) return;
 		for (const view of this.columnViews.values()) {
 			if (view.virtualizer.count === 0) continue;
-			const vr = view.virtualizer.range(view.body.scrollTop, view.body.clientHeight || 600);
-			if (vr.start !== view.renderedRange.start || vr.end !== view.renderedRange.end) {
+			const visibleRange = view.virtualizer.range(
+				view.body.scrollTop,
+				view.body.clientHeight || 600
+			);
+			if (
+				visibleRange.start !== view.renderedRange.start ||
+				visibleRange.end !== view.renderedRange.end
+			) {
 				this.renderWindow(view);
 			}
 		}
@@ -388,31 +394,31 @@ export class KanbanCore {
 		const viewport = this.options.virtualization
 			? view.body.clientHeight || 600
 			: view.virtualizer.totalHeight;
-		const vr = this.options.virtualization
+		const visibleRange = this.options.virtualization
 			? view.virtualizer.range(view.body.scrollTop, viewport)
 			: { start: 0, end: ordered.length, padTop: 0, padBottom: 0 };
 
 		this.flushList(view.cardCleanups);
 		const nodes = [];
-		for (let i = vr.start; i < vr.end; i++) {
+		for (let i = visibleRange.start; i < visibleRange.end; i++) {
 			nodes.push(this.createCardEl(view.column, ordered[i], i, view.cardCleanups));
 		}
-		view.topSpacer.style.height = `${vr.padTop}px`;
-		view.bottomSpacer.style.height = `${vr.padBottom}px`;
+		view.topSpacer.style.height = `${visibleRange.padTop}px`;
+		view.bottomSpacer.style.height = `${visibleRange.padBottom}px`;
 		view.body.replaceChildren(view.topSpacer, ...nodes, view.bottomSpacer);
-		view.renderedRange = { start: vr.start, end: vr.end };
+		view.renderedRange = { start: visibleRange.start, end: visibleRange.end };
 
 		if (this.options.virtualization) {
 			let changed = false;
 			nodes.forEach((node, k) => {
 				const h = node.getBoundingClientRect().height + CARD_GAP;
-				if (view.virtualizer.measure(vr.start + k, h)) changed = true;
+				if (view.virtualizer.measure(visibleRange.start + k, h)) changed = true;
 			});
 			if (changed) {
 				view.virtualizer.rebuild();
-				view.topSpacer.style.height = `${view.virtualizer.offsetOf(vr.start)}px`;
+				view.topSpacer.style.height = `${view.virtualizer.offsetOf(visibleRange.start)}px`;
 				view.bottomSpacer.style.height = `${
-					view.virtualizer.totalHeight - view.virtualizer.offsetOf(vr.end)
+					view.virtualizer.totalHeight - view.virtualizer.offsetOf(visibleRange.end)
 				}px`;
 			}
 		}
@@ -512,7 +518,7 @@ export class KanbanCore {
 	}
 
 	/** Create one card element and bind drag / drop / click handlers. */
-	createCardEl(column, card, index, sink) {
+	createCardEl(column, card, index, cleanups) {
 		const el = document.createElement("div");
 		el.className = CLS.card;
 		el.dataset.name = card.name;
@@ -521,7 +527,7 @@ export class KanbanCore {
 		if (selected) el.classList.add("kn-selected");
 
 		const cleanup = this.options.renderCard(card, el, { column, index, selected });
-		if (typeof cleanup === "function") sink.push(cleanup);
+		if (typeof cleanup === "function") cleanups.push(cleanup);
 
 		const dragData = {
 			kind: "card",
@@ -530,7 +536,7 @@ export class KanbanCore {
 			index,
 			boardId: this.instanceId,
 		};
-		sink.push(
+		cleanups.push(
 			bindCardDrag(el, dragData, {
 				onStart: (input) => {
 					this.dragSourceColumn = column.id;
@@ -589,8 +595,14 @@ export class KanbanCore {
 		if (!this.columnViews.has(view.column.id)) return;
 
 		if (this.options.virtualization) {
-			const vr = view.virtualizer.range(view.body.scrollTop, view.body.clientHeight || 600);
-			if (vr.start !== view.renderedRange.start || vr.end !== view.renderedRange.end) {
+			const visibleRange = view.virtualizer.range(
+				view.body.scrollTop,
+				view.body.clientHeight || 600
+			);
+			if (
+				visibleRange.start !== view.renderedRange.start ||
+				visibleRange.end !== view.renderedRange.end
+			) {
 				this.renderWindow(view);
 			}
 		}
@@ -633,13 +645,13 @@ export class KanbanCore {
 	 * appends are de-duped by card name as a backstop. Resolves to
 	 * `{ fetched, appended }`.
 	 */
-	loadColumnPageOnce(columnId, epoch = this.boardEpoch) {
+	loadColumnPageOnce(columnId, reloadSeq = this.reloadSeq) {
 		if (!this._pageLoads) this._pageLoads = {};
 		const prev = this._pageLoads[columnId] || Promise.resolve();
 		// Chain onto any in-flight load for this column (continue even if it threw).
 		const next = prev
 			.catch(() => {})
-			.then(() => this._appendNextColumnPage(columnId, epoch))
+			.then(() => this._appendNextColumnPage(columnId, reloadSeq))
 			.finally(() => {
 				if (this._pageLoads[columnId] === next) delete this._pageLoads[columnId];
 			});
@@ -648,10 +660,10 @@ export class KanbanCore {
 	}
 
 	/** Fetch and append one page of cards for a column. */
-	async _appendNextColumnPage(columnId, epoch) {
-		// Early epoch check: if board already reloaded, skip the fetch entirely.
+	async _appendNextColumnPage(columnId, reloadSeq) {
+		// If the board already reloaded, skip the fetch entirely.
 		// This prevents a stale request from setting loading=true on the new view.
-		if (epoch !== this.boardEpoch) return { fetched: 0, appended: 0 };
+		if (reloadSeq !== this.reloadSeq) return { fetched: 0, appended: 0 };
 		const view = this.columnViews.get(columnId);
 		const column = this.getColumn(columnId);
 		if (!column) return { fetched: 0, appended: 0 };
@@ -665,7 +677,8 @@ export class KanbanCore {
 				this.options.pageLength
 			);
 			// Reload replaced board state while this request was in-flight.
-			if (epoch !== this.boardEpoch) return { fetched: (cards || []).length, appended: 0 };
+			if (reloadSeq !== this.reloadSeq)
+				return { fetched: (cards || []).length, appended: 0 };
 			const existing = this.state.cards[columnId] || [];
 			// De-dupe by name: a racing fetch (or a re-fetched offset) can't append a
 			// card the column already holds.
@@ -700,18 +713,18 @@ export class KanbanCore {
 	 * usable, false only if the column vanished or the backend stops returning rows.
 	 */
 	async ensureOrderKnown(columnId) {
-		const epoch = this.boardEpoch;
+		const reloadSeq = this.reloadSeq;
 		if (this.persistedOrder(columnId)) return true;
 		while (!this.persistedOrder(columnId)) {
-			if (epoch !== this.boardEpoch) return false;
+			if (reloadSeq !== this.reloadSeq) return false;
 			const column = this.getColumn(columnId);
 			if (!column) return false;
 			const loaded = (this.state.cards[columnId] || []).length;
 			if (loaded >= (column.total || 0)) break;
 			// Same serialized loader as the scroll prefetch, so a drag and a scroll
 			// can't fetch the same offset and double-append the remaining pages.
-			const { fetched } = await this.loadColumnPageOnce(columnId, epoch);
-			if (epoch !== this.boardEpoch) return false;
+			const { fetched } = await this.loadColumnPageOnce(columnId, reloadSeq);
+			if (reloadSeq !== this.reloadSeq) return false;
 			if (!fetched) break; // no progress — avoid an infinite loop
 		}
 		return !!this.persistedOrder(columnId);
@@ -940,7 +953,7 @@ export class KanbanCore {
 
 		const affected = sameColumn ? [fromColumn] : [fromColumn, toColumn];
 		const snapshot = this.state;
-		const snapshotEpoch = this.boardEpoch; // Track epoch to avoid restoring stale state
+		const reloadSeqAtSnapshot = this.reloadSeq;
 		// Measure with the hover slot still open, then collapse slot + apply the
 		// new layout in one FLIP so (1) source cards ease up once, (2) target cards
 		// stay put (gap already reserved), (3) the moved card flies source→target.
@@ -959,15 +972,14 @@ export class KanbanCore {
 		this.bus.emit("card:move", move);
 		cb.onCardMove && cb.onCardMove(move);
 
-		this.localMoveGraceUntil = Date.now() + 3000;
+		this.ignoreRemoteUpdatesUntil = Date.now() + 3000;
 		try {
 			await this.options.provider.moveCard(move);
-			this.localMoveGraceUntil = Date.now() + 3000;
+			this.ignoreRemoteUpdatesUntil = Date.now() + 3000;
 			cb.onAfterCardMove && cb.onAfterCardMove(move);
 		} catch (error) {
-			// Only restore snapshot if the board hasn't been reloaded since.
-			// If epoch changed, the board has newer server state — don't overwrite it.
-			if (this.boardEpoch === snapshotEpoch) {
+			// Skip rollback if a reload has since replaced this state.
+			if (this.reloadSeq === reloadSeqAtSnapshot) {
 				this.animateMove(affected, () => {
 					this.state = snapshot;
 					this.renderColumns(affected);
@@ -1027,7 +1039,7 @@ export class KanbanCore {
 
 		const affected = [...new Set([...sourceOf.values(), toColumn])];
 		const snapshot = this.state;
-		const snapshotEpoch = this.boardEpoch; // Track epoch to avoid restoring stale state
+		const reloadSeqAtSnapshot = this.reloadSeq;
 
 		const toPersistedOrder = this.persistedOrder(toColumn);
 		// null means partial load with no saved order — abort to avoid truncating unloaded names.
@@ -1114,8 +1126,8 @@ export class KanbanCore {
 		};
 
 		if (!this.options.provider.updateOrder) {
-			// Only restore if board hasn't been reloaded
-			if (this.boardEpoch === snapshotEpoch) {
+			// Skip rollback if a reload has since replaced this state.
+			if (this.reloadSeq === reloadSeqAtSnapshot) {
 				this.state = snapshot;
 				this.renderColumns(affected);
 			}
@@ -1125,10 +1137,10 @@ export class KanbanCore {
 			return;
 		}
 
-		this.localMoveGraceUntil = Date.now() + 3000;
+		this.ignoreRemoteUpdatesUntil = Date.now() + 3000;
 		try {
 			await this.options.provider.updateOrder(orderPayload);
-			this.localMoveGraceUntil = Date.now() + 3000;
+			this.ignoreRemoteUpdatesUntil = Date.now() + 3000;
 			for (const name of selectedOrdered) {
 				const from = sourceOf.get(name);
 				cb.onAfterCardMove &&
@@ -1146,13 +1158,12 @@ export class KanbanCore {
 					});
 			}
 		} catch (error) {
-			// Only restore snapshot if the board hasn't been reloaded since (e.g., by another session).
-			// If epoch changed, newer server state is already displayed — don't overwrite it.
-			if (this.boardEpoch === snapshotEpoch) {
+			// Skip rollback if a reload (e.g. from another session) has since replaced this state.
+			if (this.reloadSeq === reloadSeqAtSnapshot) {
 				this.state = snapshot;
 				this.renderColumns(affected);
 			}
-			// Always try to fetch fresh state — reload will get the actual server state.
+			// Refetch the actual server state.
 			this.reload();
 			cb.onMoveError && cb.onMoveError(moveErrorArgs, error);
 			this.bus.emit("error", error);

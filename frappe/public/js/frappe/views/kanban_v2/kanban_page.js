@@ -162,7 +162,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			}
 		};
 		this._selection_done = done;
-		this.$selection_bar.find(".kn-sel-clear").on("click", () => done());
+		// Clear button only deselects — no refresh needed (unlike Edit/Assign/etc.)
+		this.$selection_bar.find(".kn-sel-clear").on("click", () => this.clear_selection());
 		this.$selection_bar.find(".kn-sel-edit").on("click", () => this.bulk_edit(done));
 		this.$selection_bar
 			.find(".kn-sel-assign")
@@ -899,7 +900,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			const field = this.page.fields_dict[fn];
 			if (!field) return;
 			let value = field.get_value();
-			if (value === undefined || value === null || value === "") return;
+			// Skip empty/falsy values (matches List View); also lets Check/0 clear.
+			if (!value) return;
 			const match = field.df.match_type || field.df.condition || "=";
 			let condition = "=";
 			if (match === "like") {
@@ -915,11 +917,14 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return out;
 	}
 
-	/** Popover filters (minus quick-filter fields) + quick filters + any extras. */
+	/** Popover filters + quick filters + any extras. A quick filter overrides a
+	 * popover filter on the same field only when it actually has a value, so a
+	 * popover filter on a quick-filter field is not dropped when the input is empty. */
 	get_effective_filters(extra) {
-		const qf = new Set(this._quick_filter_fields || []);
-		const base = (this.filters || []).filter((f) => !qf.has(f[1]));
-		const eff = base.concat(this.get_quick_filters());
+		const quick = this.get_quick_filters();
+		const active = new Set(quick.map((f) => f[1]));
+		const base = (this.filters || []).filter((f) => !active.has(f[1]));
+		const eff = base.concat(quick);
 		return extra && extra.length ? eff.concat(extra) : eff;
 	}
 
@@ -932,6 +937,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	/** Reload the board for the current effective filter set. */
 	reload_board_filters() {
+		// Quick filters aren't part of this.filters, so clear apply_filters'
+		// change-detection key to keep a later popover edit from being skipped.
+		this._loaded_key = null;
 		if (this.group_by_field) {
 			this.mount_board(); // swimlanes depend on the filtered set
 			return;
@@ -1629,6 +1637,22 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	}
 
 	/**
+	 * Prep a rich-text value for markdown rendering: decode literal escape
+	 * sequences (\n, \t, \*) and convert legacy textile headings ("h4. …") to
+	 * markdown. Only used for rich-text fields, never plain field values.
+	 */
+	normalize_rich_text(raw) {
+		let text = String(raw);
+		if (text.includes("\\n")) {
+			text = text
+				.replace(/\\n/g, "\n")
+				.replace(/\\t/g, "\t")
+				.replace(/\\([*_`])/g, "$1");
+		}
+		return text.replace(/^\s*h([1-6])\.\s+/gm, (_m, n) => "#".repeat(+n) + " ");
+	}
+
+	/**
 	 * Readable single-line text for a value that may carry markup: markdown is
 	 * turned into HTML first, then tags are dropped and entities decoded, and
 	 * the line breaks / indentation the markup leaves behind are squashed into
@@ -1639,19 +1663,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	plain_text(value, fieldtype) {
 		let text = value == null ? "" : String(value);
 		if (!text) return "";
-		// Decode literal escape sequences stored in some rich-text fields.
-		if (text.includes("\\n")) {
-			text = text
-				.replace(/\\n/g, "\n")
-				.replace(/\\t/g, "\t")
-				.replace(/\\([*_`])/g, "$1");
-		}
-		// Convert legacy textile headings ("h4. …") to markdown before rendering.
-		text = text.replace(/^\s*h([1-6])\.\s+/gm, (_m, n) => "#".repeat(+n) + " ");
 		// Markdown is nearly plain already, but "## Title" / "**bold**" is noise
-		// on a card — render it, then strip it like any other HTML.
+		// on a card — render it (rich-text fields only), then strip it like any HTML.
 		if (fieldtype === "Markdown Editor" || this.is_rich_text(fieldtype)) {
-			text = frappe.markdown(text);
+			text = frappe.markdown(this.normalize_rich_text(text));
 		}
 		// Code is text by definition: "<div>" in it is content, not markup.
 		// html2text also decodes entities (&amp; → &), which stripping cannot.
@@ -1905,8 +1920,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			header.appendChild(icon);
 		}
 
-		const htext = document.createElement("div");
-		htext.className = "min-w-0 flex-1";
+		const header_text = document.createElement("div");
+		header_text.className = "min-w-0 flex-1";
 		const title = document.createElement("div");
 		title.className = "kn-mi-title text-base-semibold text-ink-gray-9 cursor-pointer";
 		const title_df = frappe.meta.get_docfield(this.doctype, this.title_field);
@@ -1916,12 +1931,12 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			close && close();
 			frappe.set_route("Form", this.doctype, card.name);
 		});
-		htext.appendChild(title);
+		header_text.appendChild(title);
 		const id = document.createElement("div");
 		id.className = "text-xs text-ink-gray-5 mt-1";
 		id.textContent = card.name;
-		htext.appendChild(id);
-		header.appendChild(htext);
+		header_text.appendChild(id);
+		header.appendChild(header_text);
 		wrap.appendChild(header);
 
 		// Check if preview_fields includes a rich-text field — if so, skip built-in desc_field
@@ -2006,18 +2021,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	 * block instead of being crammed into the 2-column grid.
 	 */
 	rich_text_preview_section(val, df, fieldname) {
-		let raw = String(val);
-		// Decode literal escapes stored in some rich-text fields.
-		if (raw.includes("\\n")) {
-			raw = raw
-				.replace(/\\n/g, "\n")
-				.replace(/\\t/g, "\t")
-				.replace(/\\([*_`])/g, "$1");
-		}
-		// Convert legacy textile headings ("h4. …") to markdown.
-		raw = raw.replace(/^\s*h([1-6])\.\s+/gm, (_m, n) => "#".repeat(+n) + " ");
 		// Always render as markdown (handles both pure markdown and mixed HTML).
-		const html = frappe.markdown(raw);
+		const html = frappe.markdown(this.normalize_rich_text(val));
 		if (!html || !html.trim()) return null;
 
 		const section = document.createElement("div");
@@ -2116,18 +2121,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const d = document.createElement("div");
 		d.className = "kn-mi-desc text-p-sm text-ink-gray-6 px-4 pt-2 w-full";
 		if (ft === "Markdown Editor" || this.is_rich_text(ft)) {
-			let raw = String(val);
-			// Some data stores literal escapes (\n, \t) — decode so it isn't one blob.
-			if (raw.includes("\\n")) {
-				raw = raw
-					.replace(/\\n/g, "\n")
-					.replace(/\\t/g, "\t")
-					.replace(/\\([*_`])/g, "$1");
-			}
-			// Convert legacy textile headings ("h4. …") to markdown.
-			raw = raw.replace(/^\s*h([1-6])\.\s+/gm, (_m, n) => "#".repeat(+n) + " ");
 			// frappe.markdown handles both pure markdown and mixed HTML+markdown.
-			d.innerHTML = this.safe_html(frappe.markdown(raw));
+			d.innerHTML = this.safe_html(frappe.markdown(this.normalize_rich_text(val)));
 		} else {
 			d.textContent = frappe.ellipsis(this.plain_text(val, ft), 160);
 		}
@@ -2467,7 +2462,7 @@ frappe.views.KanbanV2GroupedBoard = class KanbanV2GroupedBoard {
 		if (!entry || entry.board || entry._queued) return;
 		entry._queued = true;
 		this._mount_queue.push(index);
-		this.pump_mount_queue();
+		this.drain_mount_queue();
 	}
 
 	/**
@@ -2475,7 +2470,7 @@ frappe.views.KanbanV2GroupedBoard = class KanbanV2GroupedBoard {
 	 * Each slot is held briefly after creating the engine so loadBoard
 	 * requests stagger instead of all starting in one tick.
 	 */
-	pump_mount_queue() {
+	drain_mount_queue() {
 		if (this._destroyed) return;
 		while (this._mounting_count < this._max_concurrent_mounts && this._mount_queue.length) {
 			const index = this._mount_queue.shift();
@@ -2485,7 +2480,7 @@ frappe.views.KanbanV2GroupedBoard = class KanbanV2GroupedBoard {
 			// don't open N network loads in the same tick.
 			requestAnimationFrame(() => {
 				this._mounting_count--;
-				this.pump_mount_queue();
+				this.drain_mount_queue();
 			});
 		}
 	}
