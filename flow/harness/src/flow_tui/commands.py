@@ -164,6 +164,16 @@ async def _resume(app: "FlowApp", arg: str) -> None:
 	app.notify(f"switched to {sid[:8]}", markup=False)
 
 
+@command("reload", "reload server extensions; new tools apply from the next run")
+async def _reload(app: "FlowApp", arg: str) -> None:
+	info = await app.controller.reload_extensions()
+	names = [extension["name"] for extension in info["extensions"]]
+	app.notify(f"extensions reloaded: {', '.join(names) if names else 'none loaded'}", markup=False)
+	for diagnostic in info["diagnostics"]:
+		if diagnostic.get("severity") == "error":
+			app.notify(f"extension error: {diagnostic['message']}", severity="warning", markup=False)
+
+
 @command("editor", "edit the draft in $VISUAL/$EDITOR (ctrl+x ctrl+e); the editor must block, e.g. `code -w`")
 async def _editor(app: "FlowApp", arg: str) -> None:
 	app.action_edit_in_editor()

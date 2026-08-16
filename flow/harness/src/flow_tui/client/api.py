@@ -97,6 +97,9 @@ class FlowClient:
 	async def abort(self, sid: str) -> dict:
 		return await self._request("POST", f"/sessions/{sid}/abort")
 
+	async def reload_extensions(self) -> dict:
+		return await self._request("POST", "/extensions/reload")
+
 	async def rewind(self, sid: str, target_seq: int) -> dict:
 		return await self._request("POST", f"/sessions/{sid}/rewind", json={"target_seq": target_seq})
 

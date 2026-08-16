@@ -65,6 +65,7 @@ The server resolves credentials and prompt context itself. Do not send API keys,
 | `DELETE /sessions/{sid}` | Permanently deletes an idle session and its attachments. |
 | `GET /sessions/{sid}/skills` | Returns the session's skill catalog and diagnostics. |
 | `GET /sessions/{sid}/extensions` | Returns loaded server extensions and diagnostics. |
+| `POST /extensions/reload` | Re-imports all extensions and returns the fresh info payload. |
 | `POST /skills` | Previews the skills a supplied `SessionConfig` would discover. |
 | `PATCH /sessions/{sid}/config` | Currently updates `{"auto_approve": true|false}`. |
 | `POST /sessions/{sid}/model` | Sets `model`, optional `credential_id`, and optional `reasoning_effort`. |

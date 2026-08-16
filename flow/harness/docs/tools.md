@@ -61,6 +61,8 @@ def setup(flow) -> None:
 
 Extension load errors are diagnostics, not daemon failures. Extension tools override selected built-ins with the same name; the first extension to register a duplicate name wins. Extensions are trusted Python code with the daemon's permissions.
 
+`POST /extensions/reload` (TUI and web UI: `/reload`) re-discovers and re-imports all extensions. Sessions use the recomposed tools from their next run — an active run finishes with the tools it started with, and system prompts stay as composed at session creation.
+
 ## Client-side tools and hooks
 
 A client can provide JSON schemas in `SessionConfig.client_tools` with a `callback_url`, optional `callback_token`, and `user_context`. Flow sends `execute` or `confirm` callbacks containing the session id, tool, arguments, and user context. The token is sent as `X-Harness-Token`. A callback may return its result directly or in `{"message": ...}`.

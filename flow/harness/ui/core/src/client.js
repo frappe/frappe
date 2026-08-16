@@ -141,6 +141,9 @@ export class DaemonClient {
 	deleteSession(sid) {
 		return this.request("DELETE", `/sessions/${enc(sid)}`)
 	}
+	reloadExtensions() {
+		return this.request("POST", "/extensions/reload")
+	}
 	providers() {
 		return this.request("GET", "/providers")
 	}

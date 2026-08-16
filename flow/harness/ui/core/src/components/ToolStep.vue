@@ -140,12 +140,13 @@ const diffStat = computed(() => {
 })
 
 // dumping file contents inline is noise; expand only where the payload is the
-// point (command output, search hits, diffs) or the user intervened
+// point (command output, search hits, diffs, custom tool results) or the user intervened
 const expandable = computed(() => {
 	if (!props.step.result) return false
 	if (decision.value) return true
 	if (diffLines.value) return true
-	return ["bash", "grep"].includes(props.step.call.name) && !!output.value
+	if (["read_file", "write", "edit"].includes(props.step.call.name)) return false
+	return !!output.value
 })
 
 const duration = computed(() =>

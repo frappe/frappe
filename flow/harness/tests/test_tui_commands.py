@@ -109,6 +109,7 @@ def test_registry_has_the_initial_command_set():
 		"new",
 		"clear",
 		"resume",
+		"reload",
 		"editor",
 		"help",
 		"quit",
