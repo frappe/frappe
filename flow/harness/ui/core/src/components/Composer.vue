@@ -55,7 +55,7 @@
 			<!-- queued steering -->
 			<div
 				v-if="flow.state.queued.length"
-				class="-mb-1 flex items-baseline gap-2 rounded-t-[10px] border border-b-0 border-outline-gray-2 bg-surface-gray-2 px-3 pb-3 pt-2"
+				class="mx-3.5 -mb-1.5 flex items-baseline gap-2 rounded-t-[10px] border border-b-0 border-outline-gray-2 bg-surface-gray-2 px-3 pb-3.5 pt-2"
 			>
 				<span class="flex-none text-2xs font-medium text-ink-gray-6">Queued</span>
 				<span class="min-w-0 flex-1 truncate text-xs text-ink-gray-7">{{
