@@ -608,3 +608,18 @@ test("aborted response keeps its partial assistant content", () => {
 	)
 	assert.equal(buildItems(conversation)[0].block.text, "Partial answer")
 })
+
+test("streamed thinking stays live while a started tool call has no arguments yet", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started" })
+	applyEvent(conversation, { type: "thinking_delta", thinking: "planning the call" })
+
+	let thinking = buildItems(conversation).find((item) => item.kind === "thinking")
+	assert.equal(thinking.live, true)
+
+	// the argument-less start renders nothing, so it must not demote the thinking
+	// block and re-summon the standalone status line (a duplicate "Thinking")
+	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "add" })
+	thinking = buildItems(conversation).find((item) => item.kind === "thinking")
+	assert.equal(thinking.live, true)
+})

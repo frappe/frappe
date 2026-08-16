@@ -456,6 +456,17 @@ export function buildItems(conversation, expandedTurnKeys = new Set()) {
 		bufferedThoughts = []
 	}
 	const appendAssistantBlocks = (blocks, { entry = null, provisional = false } = {}) => {
+		// a streamed tool call renders nothing until its arguments land (or while it
+		// awaits approval / already has a durable step), so it must not steal the live
+		// flag from the thinking block above it — that re-summons the standalone
+		// status line and shows "Thinking" twice
+		const lastLiveIdx = provisional
+			? blocks.findLastIndex(
+					(b) =>
+						b.type !== "tool_call" ||
+						(b.arguments != null && !pendingIds.has(b.id) && !stepsById.has(b.id)),
+				)
+			: -1
 		for (const [blockIdx, block] of blocks.entries()) {
 			const key = provisional
 				? `p:${blockIdx}`
@@ -472,7 +483,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set()) {
 						entry,
 						key,
 						turnKey: currentTurnKey,
-						live: provisional && blockIdx === blocks.length - 1,
+						live: provisional && blockIdx === lastLiveIdx,
 					})
 				}
 			} else if (block.type === "tool_call") {
