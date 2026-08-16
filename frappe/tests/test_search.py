@@ -5,10 +5,11 @@ import re
 from contextlib import contextmanager
 from functools import partial
 from typing import Any
+from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.desk.search import get_names_for_mentions, search_link, search_widget
+from frappe.desk.search import awesomebar_search, get_names_for_mentions, search_link, search_widget
 from frappe.permissions import add_user_permission
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
@@ -567,6 +568,72 @@ class TestSearch(IntegrationTestCase):
 				reference_doctype="Test Search Dangling Parent",
 				link_fieldname="nonexistent_field",
 			)
+
+	def test_awesomebar_search_hook(self):
+		real_get_hooks = frappe.get_hooks
+
+		def get_hooks(hook=None, *args, **kwargs):
+			if hook == "awesomebar_search":
+				return [
+					"frappe.tests.test_search._awesomebar_help",
+					"frappe.tests.test_search._awesomebar_broken",
+					"frappe.tests.test_search._awesomebar_bad_items",
+				]
+			return real_get_hooks(hook, *args, **kwargs)
+
+		with patch.object(frappe, "get_hooks", side_effect=get_hooks):
+			self.assertEqual(awesomebar_search(""), [])
+			self.assertEqual(awesomebar_search("   "), [])
+
+			results = awesomebar_search("help")
+			self.assertEqual(
+				results,
+				[
+					{
+						"label": "Open Help",
+						"value": "Open Help",
+						"index": 50,
+						"route": ["https://docs.example.com"],
+						"description": "Docs",
+					},
+					{
+						"label": "ToDo List",
+						"value": "ToDo List",
+						"index": 0,
+						"route": ["List", "ToDo"],
+					},
+				],
+			)
+
+			self.assertEqual(awesomebar_search("unrelated"), [])
+
+
+def _awesomebar_help(txt):
+	if "help" not in txt.lower():
+		return []
+	return [
+		{
+			"label": "Open Help",
+			"description": "Docs",
+			"route": "https://docs.example.com",
+			"index": 50,
+		}
+	]
+
+
+def _awesomebar_broken(txt):
+	raise RuntimeError("boom")
+
+
+def _awesomebar_bad_items(txt):
+	if "help" not in txt.lower():
+		return []
+	return [
+		"not a dict",
+		{},
+		{"label": "JS", "route": "javascript:alert(1)"},
+		{"label": "ToDo List", "route": ["List", "ToDo"]},
+	]
 
 
 @frappe.validate_and_sanitize_search_inputs

@@ -172,6 +172,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				var txt = value.trim().replace(/\s\s+/g, " ");
 				var last_space = txt.lastIndexOf(" ");
 				me.global_results = [];
+				me._hook_search_seq = (me._hook_search_seq || 0) + 1;
 
 				me.options = [];
 
@@ -182,6 +183,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					me.add_defaults(txt);
 					me.options = me.options.concat(me.build_options(txt));
 					me.options = me.options.concat(me.global_results);
+					if (frappe.boot.has_awesomebar_search) {
+						me.fetch_hook_results(txt, me._hook_search_seq);
+					}
 				} else {
 					me.options = me.options.concat(
 						me.deduplicate(frappe.search.utils.get_recent_pages(txt || ""))
@@ -342,6 +346,24 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 	set_global_results(global_results, txt) {
 		this.global_results = this.global_results.concat(global_results);
+	}
+
+	fetch_hook_results(txt, seq) {
+		frappe.call({
+			method: "frappe.desk.search.awesomebar_search",
+			args: { txt },
+			callback: (r) => {
+				if (seq !== this._hook_search_seq || !r.message?.length) return;
+				this.options = this.deduplicate(this.options.concat(r.message));
+				this.options.sort((a, b) => b.index - a.index);
+				$(this.awesomplete.ul).toggleClass("p-0 m-0", cint(this.options?.length) == 0);
+				this.search_modal
+					.find(".cool-awesomebar-modal-footer")
+					.toggleClass("hide", cint(this.options?.length) == 0);
+				this.awesomplete.options_with_desc = this.create_options_with_descriptions(this.options);
+				this.awesomplete.list = this.options;
+			},
+		});
 	}
 
 	make_global_search(txt) {
