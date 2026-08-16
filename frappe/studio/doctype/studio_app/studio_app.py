@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 import json
 import os
+from urllib.parse import quote
 
 import frappe
 from frappe import _
@@ -14,6 +15,13 @@ from studio.realtime import publish_doc_change
 
 
 class StudioAppRenderer(DocumentPage):
+	def render(self):
+		# redirect guests to login instead of serving a dead page.
+		if frappe.session.user == "Guest":
+			frappe.flags.redirect_location = f"/login?redirect-to=/{quote(self.path)}"
+			raise frappe.Redirect(http_status_code=302)
+		return super().render()
+
 	def can_render(self):
 		if app := self.find_app_for_path():
 			self.doctype = "Studio App"

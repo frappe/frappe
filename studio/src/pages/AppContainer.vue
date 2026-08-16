@@ -45,15 +45,13 @@ async function loadPage() {
 	}
 	codeStore.teardownPage()
 
-	page.value = await findPageWithRoute(window.app_name, currentPath)
+	page.value = await findPageWithRoute(window.app_name, currentPath, Boolean(window.is_preview))
 	if (token !== loadToken || !page.value) return
 	await store.setPageData(page.value)
 	await codeStore.setPageScript(page.value, Boolean(page.value.is_standard))
 	if (token !== loadToken) return
 
-	const blocks = window.is_preview
-		? JSON.parse(page.value?.draft_blocks || page.value?.blocks)
-		: JSON.parse(page.value?.blocks)
+	const blocks = JSON.parse(page.value?.blocks)
 	if (blocks) {
 		rootBlock.value = getBlockInstance(blocks[0])
 	}

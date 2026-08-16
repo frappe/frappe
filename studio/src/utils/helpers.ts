@@ -286,15 +286,20 @@ async function fetchPage(pageName: string) {
 	return pageResource.doc
 }
 
-async function findPageWithRoute(appName: string, pageRoute: string) {
-	let pageName = createResource({
-		url: "studio.studio.doctype.studio_page.studio_page.find_page_with_route",
+// Fetches the page definition (blocks + resources + variables) in one unprivileged call.
+// Data the page renders stays permission-checked by the endpoints its resources call.
+async function findPageWithRoute(appName: string, pageRoute: string, preview: boolean = false) {
+	const page = createResource({
+		url: "studio.studio.doctype.studio_page.studio_page.get_page",
 		method: "GET",
-		params: { app_name: appName, page_route: pageRoute },
+		params: { app_name: appName, page_route: pageRoute, preview },
 	})
-	await pageName.fetch()
-	pageName = pageName.data
-	return fetchPage(pageName)
+	try {
+		await page.fetch()
+	} catch (error) {
+		return null
+	}
+	return page.data
 }
 
 // extract dynamic route variables from a vue-router route, e.g. "/articles/:category" -> ["category"]
