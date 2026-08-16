@@ -39,7 +39,6 @@
    "search_index": 1
   },
   {
-   "description": "Plain Data, not a Dynamic Link",
    "fieldname": "ref_name",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -106,7 +105,6 @@
    "label": "Wait Resume"
   },
   {
-   "description": "Background Task being resumed after a wait.",
    "fieldname": "resume_run",
    "fieldtype": "Data",
    "label": "Resume Run"
@@ -119,7 +117,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2026-08-11 19:25:39.294405",
+ "modified": "2026-08-17 01:35:11.457428",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Automation Trigger Queue",

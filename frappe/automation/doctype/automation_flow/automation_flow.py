@@ -12,6 +12,13 @@ WAIT_UNITS = ("Seconds", "Minutes", "Hours", "Days")
 
 
 class AutomationFlow(Document):
+	"""A trigger, its filters, and the steps that run when it matches.
+
+	`relationships` names record aliases that steps can target; each alias is
+	resolved through a provider an app registered with the automation engine.
+	`next_run` is the scheduler's stored due time for cron flows.
+	"""
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
