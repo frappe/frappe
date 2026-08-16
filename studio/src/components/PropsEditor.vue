@@ -63,7 +63,10 @@
 						:placeholder="isMixed(propName) ? 'Mixed' : undefined"
 						@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 						:required="config.required"
-						:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
+						:completions="
+							(context: CompletionContext) => getDynamicValueCompletions(context, block?.getCompletions())
+						"
+						:exclusiveCompletions="true"
 						:showLineNumbers="false"
 						class="overflow-hidden"
 						:actionButton="{
@@ -125,7 +128,7 @@ import InlineInput from "@/components/InlineInput.vue"
 import ArrayInput from "@/components/ArrayInput.vue"
 import { isObjectEmpty } from "@/utils/helpers"
 import Code from "@/components/Code.vue"
-import { useStudioCompletions } from "@/utils/useStudioCompletions"
+import { useStudioCompletions, useDynamicValueCompletions } from "@/utils/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
 import useComponentStore from "@/stores/componentStore"
 import { getComponentProps } from "@/utils/components"
@@ -146,6 +149,7 @@ const props = defineProps<{
 }>()
 
 const getCompletions = useStudioCompletions()
+const getDynamicValueCompletions = useDynamicValueCompletions()
 const canvasStore = useCanvasStore()
 const store = useStudioStore()
 

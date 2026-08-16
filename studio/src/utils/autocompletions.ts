@@ -1,5 +1,26 @@
 import type { Completion, CompletionContext } from "@codemirror/autocomplete"
+import { syntaxTree } from "@codemirror/language"
+import type { SyntaxNode } from "@lezer/common"
 import type { CompletionSource } from "@/types"
+
+export const isInsideDynamicValue = (context: CompletionContext) => {
+	const textBeforeCursor = context.state.doc.sliceString(0, context.pos)
+	const lastOpening = textBeforeCursor.lastIndexOf("{{")
+	if (lastOpening === -1) return false
+	return textBeforeCursor.lastIndexOf("}}") < lastOpening
+}
+
+// matches the function-expression prop values evaluated by stringToFunction at render time
+const FUNCTION_NODE_NAMES = ["ArrowFunction", "FunctionExpression", "FunctionDeclaration"]
+
+export const isInsideFunctionExpression = (context: CompletionContext) => {
+	let node: SyntaxNode | null = syntaxTree(context.state).resolveInner(context.pos, -1)
+	while (node) {
+		if (FUNCTION_NODE_NAMES.includes(node.name)) return true
+		node = node.parent
+	}
+	return false
+}
 
 export const getCompletions = (context: CompletionContext, sources?: CompletionSource[]) => {
 	const line = context.state.doc.lineAt(context.pos)

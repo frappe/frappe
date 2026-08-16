@@ -155,8 +155,9 @@
 					:showSaveButton="true"
 					:completions="
 						(context: CompletionContext) =>
-							getCompletions(context, canvasStore.editableBlock?.getCompletions())
+							getDynamicValueCompletions(context, canvasStore.editableBlock?.getCompletions())
 					"
+					:exclusiveCompletions="true"
 					@save="
 						(val) => {
 							canvasStore.editableBlock?.setProp(canvasStore.editableCode.propName, val)
@@ -194,7 +195,7 @@ import { studioPages } from "@/data/studioPages"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
 import { getBlockCopy, getRootBlock } from "@/utils/serializer"
-import { useStudioCompletions } from "@/utils/useStudioCompletions"
+import { useStudioCompletions, useDynamicValueCompletions } from "@/utils/useStudioCompletions"
 import { toast } from "frappe-ui"
 
 const route = useRoute()
@@ -203,6 +204,7 @@ const store = useStudioStore()
 const canvasStore = useCanvasStore()
 
 const getCompletions = useStudioCompletions()
+const getDynamicValueCompletions = useDynamicValueCompletions()
 const componentContextMenu = toRef(store, "componentContextMenu")
 useStudioEvents(saveFragmentMode)
 

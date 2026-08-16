@@ -82,6 +82,8 @@ const props = withDefaults(
 		required?: boolean
 		readonly?: boolean
 		borderless?: boolean
+		// use only the provided completions, suppressing built-in sources (language snippets, window scope)
+		exclusiveCompletions?: boolean
 		emitOnChange?: boolean
 		actionButton?: {
 			icon: string
@@ -288,7 +290,12 @@ const getAutocompletionOptions = () => {
 		closeOnBlur: false,
 		icons: false,
 		optionClass: () => "flex h-7 !px-2 items-center rounded !text-ink-gray-5",
+		...(props.exclusiveCompletions && { override: [exclusiveCompletionSource] }),
 	})
+}
+
+const exclusiveCompletionSource = (context: CompletionContext) => {
+	return props.completions?.(context) ?? null
 }
 
 const customIndent = indentService.of((context: any, pos: number) => {

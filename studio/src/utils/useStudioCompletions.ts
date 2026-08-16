@@ -3,7 +3,7 @@ import useCodeStore from "@/stores/codeStore"
 import type { CompletionSource } from "@/types"
 import { isPrivateKey } from "@/utils/helpers"
 import { getBindingType } from "@/utils/parseCode"
-import { getCompletions } from "./autocompletions"
+import { getCompletions, isInsideDynamicValue, isInsideFunctionExpression } from "./autocompletions"
 import { vueApiSources } from "./vueApiCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
 import * as globalUtils from "@/utils/globalUtils"
@@ -147,5 +147,16 @@ export const useStudioCompletions = (canEditValues: boolean = false, includeVueA
 
 	return (context: CompletionContext, customSources: CompletionSource[] = []) => {
 		return getCompletions(context, [...completionSources.value, ...customSources])
+	}
+}
+
+// For static prop values (code/array fieldtypes): suggest only inside the contexts that are
+// evaluated at render time — {{ }} expressions and inline function values.
+export const useDynamicValueCompletions = () => {
+	const getStudioCompletions = useStudioCompletions()
+
+	return (context: CompletionContext, customSources: CompletionSource[] = []) => {
+		if (!isInsideDynamicValue(context) && !isInsideFunctionExpression(context)) return null
+		return getStudioCompletions(context, customSources)
 	}
 }
