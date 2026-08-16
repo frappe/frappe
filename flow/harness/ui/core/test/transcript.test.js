@@ -638,9 +638,82 @@ test("aborted response keeps its partial assistant content", () => {
 
 	assert.deepEqual(
 		buildItems(conversation).map((item) => item.kind),
-		["text", "turn-copy", "notice"],
+		["text", "notice"],
 	)
 	assert.equal(buildItems(conversation)[0].block.text, "Partial answer")
+})
+
+test("a denied turn folds its narration with the work", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "Create it" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		ts: 14,
+		content: [
+			{ type: "text", text: "Let me create it now." },
+			{ type: "tool_call", id: "call-1", name: "write", arguments: { path: "hello.html" } },
+		],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, {
+		type: "approval_required",
+		seq: 4,
+		ts: 14,
+		calls: [{ id: "call-1", name: "write", args: { path: "hello.html" } }],
+	})
+	applyEvent(conversation, { type: "run_ended", seq: 5, ts: 14, reason: "paused" })
+	applyEvent(conversation, { type: "run_started", seq: 6, ts: 17 })
+	applyEvent(conversation, {
+		type: "tool_result",
+		seq: 7,
+		ts: 17,
+		tool_call_id: "call-1",
+		content: '{"status": "denied", "message": "User denied this tool call."}',
+		is_error: true,
+	})
+	applyEvent(conversation, { type: "run_ended", seq: 8, ts: 17, reason: "denied" })
+
+	const collapsed = buildItems(conversation)
+	assert.deepEqual(collapsed.map((item) => item.kind), ["user", "turn-fold", "notice"])
+	assert.equal(collapsed[1].label, "Worked for 7s")
+
+	const expanded = buildItems(conversation, new Set([collapsed[1].turnKey]))
+	assert.deepEqual(expanded.map((item) => item.kind), ["user", "turn-fold", "text", "group", "notice"])
+})
+
+test("an aborted turn folds its partial response with the stopped work", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 30 })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 30, content: "Do it" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		ts: 32,
+		content: [
+			{ type: "text", text: "I will run a command." },
+			{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "echo hi" } },
+		],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, { type: "tool_result", seq: 4, ts: 33, tool_call_id: "call-1", content: "hi" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 5,
+		ts: 36,
+		content: [{ type: "text", text: "Partial resp" }],
+		stop_reason: "aborted",
+	})
+	applyEvent(conversation, { type: "run_ended", seq: 6, ts: 36, reason: "aborted" })
+
+	const collapsed = buildItems(conversation)
+	assert.deepEqual(collapsed.map((item) => item.kind), ["user", "turn-fold", "notice"])
+	assert.equal(collapsed[1].label, "You stopped after 6s")
+
+	// expanding reveals the commentary, the tool group, and the aborted partial
+	const expanded = buildItems(conversation, new Set([collapsed[1].turnKey]))
+	assert.deepEqual(expanded.map((item) => item.kind), ["user", "turn-fold", "text", "group", "text", "notice"])
 })
 
 test("streamed thinking stays live while a started tool call has no arguments yet", () => {

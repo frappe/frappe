@@ -13,7 +13,8 @@ from flow.model.base import Model, ModelRequest
 
 MAX_TITLE_CHARS = 50
 MAX_INPUT_CHARS = 2_000
-MAX_TITLE_OUTPUT_TOKENS = 100
+# generous: reasoning models spend output tokens thinking before the one-line title
+MAX_TITLE_OUTPUT_TOKENS = 2_000
 
 TITLE_SYSTEM_PROMPT = (
 	"You generate a title for a coding-agent session. Output ONLY the title: one "
@@ -40,7 +41,7 @@ async def generate_title(model: Model, first_message: str) -> str | None:
 	async for event in model.run(request):
 		if isinstance(event, AssistantMessage):
 			response = event
-	if response is None or response.stop_reason not in ("stop", "length"):
+	if response is None or response.stop_reason != "stop":
 		return None
 	return sanitize_title(response.text)
 
