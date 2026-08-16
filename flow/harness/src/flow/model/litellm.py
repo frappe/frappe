@@ -456,7 +456,6 @@ def _openai_messages(
 			text, images = resolve_user_content(
 				message,
 				resolve_attachment=resolve_attachment,
-				supports_images=model.supports_images,
 			)
 			if images:
 				content: str | list[dict[str, Any]] = []

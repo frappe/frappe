@@ -744,7 +744,6 @@ def _responses_input(
 			text, images = resolve_user_content(
 				message,
 				resolve_attachment=resolve_attachment,
-				supports_images=model.supports_images,
 			)
 			content = []
 			if text:

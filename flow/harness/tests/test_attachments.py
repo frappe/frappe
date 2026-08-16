@@ -14,7 +14,7 @@ from PIL import Image
 from flow.events import AssistantMessage, AttachmentContent, TextContent, Usage, UserMessage
 from flow.model.base import Model
 from flow.model.catalog import model_supports_images
-from flow.model.content import NON_VISION_IMAGE_PLACEHOLDER, resolve_user_content
+from flow.model.content import resolve_user_content
 from flow.model.litellm import LiteLLMModel, _openai_messages
 from flow.model.providers.codex import CodexModel, _responses_input
 from flow.model.providers.opencode import opencode_go_model
@@ -131,7 +131,9 @@ def test_attachment_store_add_file_rejects_empty_oversized_and_binary(tmp_path):
 		raise AssertionError("non-UTF8 attachment was accepted")
 
 
-def test_non_vision_model_gets_explicit_image_placeholder():
+def test_images_resolve_without_consulting_model_capability():
+	"""Capability metadata is unreliable — LiteLLM reports "no vision" for any model it
+	holds no catalog entry for. Resolution must not drop an image on that basis."""
 	attachment = AttachmentContent(
 		id="a" * 24,
 		name="screen.png",
@@ -140,15 +142,12 @@ def test_non_vision_model_gets_explicit_image_placeholder():
 		kind="image",
 	)
 	message = UserMessage(content=[TextContent(text="inspect this"), attachment])
-	text, images = resolve_user_content(
-		message,
-		resolve_attachment=lambda _: b"png",
-		supports_images=False,
-	)
+	text, images = resolve_user_content(message, resolve_attachment=lambda _: b"png")
 
-	assert images == []
-	assert NON_VISION_IMAGE_PLACEHOLDER in text
-	assert "screen.png" in text
+	assert [(image.name, image.mime_type, image.data) for image in images] == [
+		("screen.png", "image/png", b"png")
+	]
+	assert text == "inspect this"
 
 
 def test_litellm_wire_contains_text_file_and_image_data_url():

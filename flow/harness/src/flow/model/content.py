@@ -8,7 +8,6 @@ from dataclasses import dataclass
 
 from flow.events import AttachmentContent, UserMessage
 
-NON_VISION_IMAGE_PLACEHOLDER = "(image contents unavailable to the current model)"
 MISSING_ATTACHMENT_PLACEHOLDER = "(attachment unavailable: {name})"
 
 
@@ -28,9 +27,14 @@ def resolve_user_content(
 	message: UserMessage,
 	*,
 	resolve_attachment: Callable[[str], bytes] | None,
-	supports_images: bool,
 ) -> tuple[str, list[ResolvedImage]]:
-	"""Return provider-ready text and images, with a safe text-only downgrade."""
+	"""Return provider-ready text and images.
+
+	Images are always resolved. Provider capability metadata is too unreliable to gate
+	on — LiteLLM reports "no vision" for any model missing from its catalog, which
+	silently replaced real images with a placeholder and left the model describing
+	something it was never shown. A provider that cannot accept an image says so.
+	"""
 	text = message.text
 	images: list[ResolvedImage] = []
 	for attachment in message.attachments:
@@ -45,10 +49,8 @@ def resolve_user_content(
 				text = _append(text, MISSING_ATTACHMENT_PLACEHOLDER.format(name=attachment.name))
 				continue
 			text = _append(text, f'<file name="{_xml_attr(attachment.name)}">\n{body}\n</file>')
-		elif supports_images:
-			images.append(ResolvedImage(attachment.name, attachment.mime_type, data))
 		else:
-			text = _append(text, f"[Attached image: {attachment.name}]\n{NON_VISION_IMAGE_PLACEHOLDER}")
+			images.append(ResolvedImage(attachment.name, attachment.mime_type, data))
 	return text, images
 
 
