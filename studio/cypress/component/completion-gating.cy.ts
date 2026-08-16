@@ -1,8 +1,11 @@
+import { setActivePinia } from "pinia"
 import { EditorState } from "@codemirror/state"
 import { CompletionContext } from "@codemirror/autocomplete"
 import { ensureSyntaxTree } from "@codemirror/language"
 import { javascript } from "@codemirror/lang-javascript"
 import { isInsideDynamicValue, isInsideFunctionExpression } from "@/utils/autocompletions"
+import { useDynamicValueCompletions } from "@/utils/useStudioCompletions"
+import { pinia } from "../support/component"
 
 // "|" marks the cursor position
 function contextAt(docWithCursor: string): CompletionContext {
@@ -65,6 +68,29 @@ describe("prop editor completion gating", () => {
 
 		it("is false outside the function in the same document", () => {
 			expect(isInsideFunctionExpression(contextAt('{ formatter: (row) => row.status, icon: "sta|r" }'))).to.be.false
+		})
+	})
+
+	describe("useDynamicValueCompletions", () => {
+		before(() => setActivePinia(pinia))
+
+		it("returns nothing in static text", async () => {
+			const getCompletions = useDynamicValueCompletions()
+			expect(await getCompletions(contextAt('{ icon: "sta|r" }'))).to.be.null
+		})
+
+		it("includes window globals inside {{ }}", async () => {
+			const getCompletions = useDynamicValueCompletions()
+			const result = await getCompletions(contextAt("{{ setTime| }}"))
+			const labels = result!.options.map((option) => option.label)
+			expect(labels).to.include("setTimeout")
+		})
+
+		it("includes studio sources inside {{ }}", async () => {
+			const getCompletions = useDynamicValueCompletions()
+			const result = await getCompletions(contextAt("{{ rou| }}"))
+			const labels = result!.options.map((option) => option.label)
+			expect(labels).to.include("route").and.to.include("router")
 		})
 	})
 })

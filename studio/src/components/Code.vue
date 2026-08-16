@@ -76,14 +76,14 @@ const props = withDefaults(
 		showSaveButton?: boolean
 		showLineNumbers?: boolean
 		completions?: Function | null
+		// when set, `completions` replaces ALL built-in sources (language snippets, window scope)
+		overrideCompletions?: boolean
 		label?: string
 		description?: string
 		placeholder?: string
 		required?: boolean
 		readonly?: boolean
 		borderless?: boolean
-		// use only the provided completions, suppressing built-in sources (language snippets, window scope)
-		exclusiveCompletions?: boolean
 		emitOnChange?: boolean
 		actionButton?: {
 			icon: string
@@ -290,11 +290,11 @@ const getAutocompletionOptions = () => {
 		closeOnBlur: false,
 		icons: false,
 		optionClass: () => "flex h-7 !px-2 items-center rounded !text-ink-gray-5",
-		...(props.exclusiveCompletions && { override: [exclusiveCompletionSource] }),
+		...(props.overrideCompletions && { override: [overrideCompletionSource] }),
 	})
 }
 
-const exclusiveCompletionSource = (context: CompletionContext) => {
+const overrideCompletionSource = (context: CompletionContext) => {
 	return props.completions?.(context) ?? null
 }
 

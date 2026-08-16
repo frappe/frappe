@@ -66,7 +66,7 @@
 						:completions="
 							(context: CompletionContext) => getDynamicValueCompletions(context, block?.getCompletions())
 						"
-						:exclusiveCompletions="true"
+						:overrideCompletions="true"
 						:showLineNumbers="false"
 						class="overflow-hidden"
 						:actionButton="{

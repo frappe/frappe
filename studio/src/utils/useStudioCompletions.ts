@@ -5,7 +5,7 @@ import { isPrivateKey } from "@/utils/helpers"
 import { getBindingType } from "@/utils/parseCode"
 import { getCompletions, isInsideDynamicValue, isInsideFunctionExpression } from "./autocompletions"
 import { vueApiSources } from "./vueApiCompletions"
-import type { CompletionContext } from "@codemirror/autocomplete"
+import type { Completion, CompletionContext } from "@codemirror/autocomplete"
 import * as globalUtils from "@/utils/globalUtils"
 
 export const useStudioCompletions = (canEditValues: boolean = false, includeVueApis: boolean = false) => {
@@ -151,12 +151,33 @@ export const useStudioCompletions = (canEditValues: boolean = false, includeVueA
 }
 
 // For static prop values (code/array fieldtypes): suggest only inside the contexts that are
-// evaluated at render time — {{ }} expressions and inline function values.
+// evaluated at render time — {{ }} expressions and inline function values. Window globals are
+// included since those contexts evaluate in the normal scope chain.
 export const useDynamicValueCompletions = () => {
 	const getStudioCompletions = useStudioCompletions()
 
-	return (context: CompletionContext, customSources: CompletionSource[] = []) => {
+	return async (context: CompletionContext, customSources: CompletionSource[] = []) => {
 		if (!isInsideDynamicValue(context) && !isInsideFunctionExpression(context)) return null
-		return getStudioCompletions(context, customSources)
+		const studioResult = getStudioCompletions(context, customSources)
+		return mergeCompletionResults(studioResult, await getWindowCompletions(context))
 	}
+}
+
+const getWindowCompletions = async (context: CompletionContext) => {
+	// dynamic import to keep lang-javascript out of the main bundle, matching Code.vue
+	const { scopeCompletionSource } = await import("@codemirror/lang-javascript")
+	const result = await scopeCompletionSource(window)(context)
+	if (!result) return null
+	return { ...result, options: result.options.filter((option) => !isPrivateKey(option.label)) }
+}
+
+const mergeCompletionResults = <T extends { from: number; options: readonly Completion[] }>(
+	a: T | null,
+	b: T | null,
+) => {
+	if (!a) return b
+	if (!b) return a
+	// results anchored at different positions can't be combined; prefer studio completions
+	if (a.from !== b.from) return a
+	return { ...a, options: [...a.options, ...b.options] }
 }

@@ -157,7 +157,7 @@
 						(context: CompletionContext) =>
 							getDynamicValueCompletions(context, canvasStore.editableBlock?.getCompletions())
 					"
-					:exclusiveCompletions="true"
+					:overrideCompletions="true"
 					@save="
 						(val) => {
 							canvasStore.editableBlock?.setProp(canvasStore.editableCode.propName, val)
