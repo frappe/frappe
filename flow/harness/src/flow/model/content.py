@@ -6,9 +6,13 @@ import base64
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from flow.events import AttachmentContent, UserMessage
+from flow.events import AttachmentContent, ToolResult, UserMessage
 
 MISSING_ATTACHMENT_PLACEHOLDER = "(attachment unavailable: {name})"
+# Neither chat-completions nor the Responses API accepts image parts inside a tool
+# result, so tool images ride in a following user turn. This labels that turn so the
+# model reads the images as tool output rather than as something the user just sent.
+TOOL_IMAGE_PREFACE = "Images returned by the tool calls above:"
 
 
 @dataclass(frozen=True)
@@ -52,6 +56,24 @@ def resolve_user_content(
 		else:
 			images.append(ResolvedImage(attachment.name, attachment.mime_type, data))
 	return text, images
+
+
+def resolve_tool_images(
+	message: ToolResult,
+	*,
+	resolve_attachment: Callable[[str], bytes] | None,
+) -> list[ResolvedImage]:
+	"""Return the images a tool produced, skipping any whose bytes have gone missing.
+
+	A missing image needs no placeholder: the tool's own result text already names what
+	it read, so the model is told about the image either way.
+	"""
+	images: list[ResolvedImage] = []
+	for attachment in message.attachments:
+		data = _resolve(attachment, resolve_attachment)
+		if data is not None:
+			images.append(ResolvedImage(attachment.name, attachment.mime_type, data))
+	return images
 
 
 def attachment_summary(

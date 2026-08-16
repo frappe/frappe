@@ -31,7 +31,12 @@ from flow.events import (
 )
 from flow.model.base import Model, ModelRequest
 from flow.model.cancellation import ModelCancelled, await_with_cancellation, iterate_with_cancellation
-from flow.model.content import resolve_user_content
+from flow.model.content import (
+	TOOL_IMAGE_PREFACE,
+	ResolvedImage,
+	resolve_tool_images,
+	resolve_user_content,
+)
 from flow.model.errors import normalize_litellm_error
 from flow.model.retry import run_with_retries
 from flow.model.tool_display import tool_call_display_ready_event, with_tool_call_displays
@@ -451,7 +456,31 @@ def _openai_messages(
 	"""Translate canonical transcript messages at the provider boundary."""
 	out: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
 	dropped_calls: set[str] = set()
+	# Images a run of tool results produced. A `tool` message must follow its
+	# `tool_calls` assistant message with nothing in between, so images cannot be
+	# emitted inline; they are flushed as one user turn once the run ends.
+	pending_images: list[ResolvedImage] = []
+
+	def flush_images() -> None:
+		if not pending_images:
+			return
+		out.append(
+			{
+				"role": "user",
+				"content": [
+					{"type": "text", "text": TOOL_IMAGE_PREFACE},
+					*(
+						{"type": "image_url", "image_url": {"url": image.data_url}}
+						for image in pending_images
+					),
+				],
+			}
+		)
+		pending_images.clear()
+
 	for message in messages:
+		if not isinstance(message, ToolResult):
+			flush_images()
 		if isinstance(message, UserMessage):
 			text, images = resolve_user_content(
 				message,
@@ -483,6 +512,8 @@ def _openai_messages(
 					"content": message.content,
 				}
 			)
+			pending_images.extend(resolve_tool_images(message, resolve_attachment=resolve_attachment))
+	flush_images()
 	return out
 
 
