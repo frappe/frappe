@@ -556,6 +556,40 @@ test("a paused approval turn stays fully visible until the user resolves it", ()
 	assert.ok(items.some((item) => item.kind === "approval"))
 })
 
+test("a denied tool call leaves a durable notice like an abort", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "Change it" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		ts: 12,
+		content: [{ type: "tool_call", id: "call-1", name: "write", arguments: { path: "src/app.js" } }],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, {
+		type: "approval_required",
+		seq: 4,
+		ts: 12.1,
+		calls: [{ id: "call-1", name: "write", args: { path: "src/app.js" } }],
+	})
+	applyEvent(conversation, { type: "run_ended", seq: 5, ts: 12.2, reason: "paused" })
+	applyEvent(conversation, {
+		type: "tool_result",
+		seq: 6,
+		ts: 14,
+		tool_call_id: "call-1",
+		content: '{"status": "denied", "message": "User denied this tool call."}',
+		is_error: true,
+	})
+	applyEvent(conversation, { type: "run_ended", seq: 7, ts: 14.1, reason: "denied" })
+
+	const items = buildItems(conversation)
+	assert.ok(!items.some((item) => item.kind === "approval"))
+	const notice = items.find((item) => item.kind === "notice")
+	assert.equal(notice?.text, "Tool call denied by user")
+})
+
 test("settled work without timestamps falls back to a plain Worked label", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "user_message", seq: 1, content: "Inspect" })
