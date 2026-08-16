@@ -98,7 +98,7 @@ class CustomModuleSidebar(Document):
 	def drop_private_workspaces(self):
 		"""No layer stores a row naming a private workspace -- not the site's, not a user's own.
 
-		A private page's link is derived on read (`boot.get_private_workspace_rows`), and the
+		A private page's link is derived on read (`module_sidebar.get_private_workspaces`), and the
 		derivation is appended to the arrangement the client is shown, so it comes back with
 		that arrangement on the next save. Kept, it would be exactly the pollution D3 removes:
 		a row per private page in the document the whole site shares, or -- in the owner's own
@@ -528,7 +528,7 @@ def base_items(module: str) -> list[dict]:
 	Not permission-filtered, and not meant to be: this is only ever compared against, so an
 	item the saver cannot see simply never matches a row they sent.
 	"""
-	from frappe.boot import get_sidebar_bases
+	from frappe.desk.doctype.module_sidebar.module_sidebar import get_sidebar_bases
 
 	return [dict(row) for row in get_sidebar_bases([module])[module].rows]
 

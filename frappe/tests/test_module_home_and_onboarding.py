@@ -4,9 +4,9 @@
 from contextlib import contextmanager
 
 import frappe
-from frappe.boot import get_module_landing_route, get_module_sidebars
 from frappe.core.doctype.module_def.test_module_def import custom_module
 from frappe.desk.doctype.module_onboarding.module_onboarding import get_permitted_onboardings
+from frappe.desk.doctype.module_sidebar.module_sidebar import resolve_sidebar
 from frappe.desk.doctype.module_sidebar.test_module_sidebar import (
 	make_sidebar,
 	no_developer_mode,
@@ -100,13 +100,17 @@ class DerivedHomeTestCase(IntegrationTestCase):
 			"label": workspace.title,
 		}
 
+	def resolved(self, module: str):
+		"""What `module` resolves to for the session user -- label, icon, Landing, entries."""
+		return resolve_sidebar(module, frappe.session.user)
+
 	def home(self, module: str) -> str | None:
 		"""Where `module` opens for the session user, by the rule the desk navigates by."""
-		sidebar = get_module_sidebars().get(module)
-		return get_module_landing_route(sidebar) if sidebar else None
+		resolved = self.resolved(module)
+		return resolved.landing if resolved else None
 
 	def item_keys(self, module: str) -> list[str]:
-		return [item["key"] for item in get_module_sidebars()[module]["items"]]
+		return [item["key"] for item in self.resolved(module).items]
 
 	def reorder(self, module: str, keys: list[str], user: str | None = None):
 		"""A sidebar arrangement, at the site layer or one user's own."""
@@ -244,7 +248,8 @@ class TestOnboardingIsOfferedByRole(DerivedHomeTestCase):
 		frappe.db.set_value("Module Onboarding", name, "creation", creation, update_modified=False)
 
 	def onboarding_of(self, module: str) -> str | None:
-		return get_module_sidebars().get(module, {}).get("module_onboarding")
+		resolved = self.resolved(module)
+		return resolved.module_onboarding if resolved else None
 
 	def test_a_module_with_no_onboarding_offers_none(self):
 		with custom_module("Test No Onboarding Module") as module:

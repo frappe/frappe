@@ -257,7 +257,7 @@ class TestItemIdentity(IntegrationTestCase):
 	def test_boot_does_not_read_a_stale_key_off_a_base_row(self):
 		"""Clearing on save retires them as each app re-imports its sidebar; until then the
 		rows are still in the database, and the resolution must not pick them up."""
-		from frappe.boot import get_sidebar_bases
+		from frappe.desk.doctype.module_sidebar.module_sidebar import get_sidebar_bases
 
 		with sidebarless_module("Test Stale Key Module") as module:
 			doc = make_sidebar(module)
@@ -823,7 +823,7 @@ class TestModuleSidebarStandard(IntegrationTestCase):
 	def test_un_marking_returns_the_module_to_its_computed_base(self):
 		"""In the same request. The document going away is not the module losing its
 		navigation -- the base is computed from the module's contents on read."""
-		from frappe.boot import get_sidebar_bases
+		from frappe.desk.doctype.module_sidebar.module_sidebar import get_sidebar_bases
 
 		with module_resolvable_on_disk(MODULE), developer_mode():
 			self.with_content()

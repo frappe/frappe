@@ -4,14 +4,16 @@
 from unittest.mock import patch
 
 import frappe
-from frappe.boot import (
-	build_entity_module_map,
+from frappe.boot import build_entity_module_map, get_module_sidebars
+from frappe.desk.doctype.custom_module_sidebar.test_custom_module_sidebar import make_user
+from frappe.desk.doctype.module_sidebar.module_sidebar import (
+	SidebarContext,
 	filter_sidebar_items,
-	get_module_sidebars,
+	get_module_landing_route,
 	get_navigable_modules,
 	get_sidebar_bases,
+	resolve_sidebar,
 )
-from frappe.desk.doctype.custom_module_sidebar.test_custom_module_sidebar import make_user
 from frappe.desk.doctype.module_sidebar.test_module_sidebar import (
 	make_report,
 	no_developer_mode,
@@ -20,6 +22,98 @@ from frappe.desk.doctype.module_sidebar.test_module_sidebar import (
 )
 from frappe.tests import IntegrationTestCase
 from frappe.utils.modules import get_visible_modules
+
+
+class TestTheResolverSeam(IntegrationTestCase):
+	"""`resolve_sidebar` -- what a Scope resolves to, for one person.
+
+	Everything that shapes an answer lives behind this one call: the permission filter, the
+	layers, the private-page append, and the rule that drops a Scope holding nothing
+	navigable. The boot payload is then assembly, and every other reader of a resolved
+	arrangement -- the desktop tile, a Scope fetched on arrival -- asks the same question the
+	same way instead of reaching into a payload built for somebody else.
+	"""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+
+	def test_the_payload_is_the_seams_answers_and_nothing_else(self):
+		"""The builder chooses the set and assembles; it decides nothing. So every key in the
+		payload is one resolution, and every module missing from it resolved to `None`."""
+		user = frappe.session.user
+		payload = get_module_sidebars()
+
+		for module in get_navigable_modules():
+			resolved = resolve_sidebar(module, user)
+			if resolved is None:
+				self.assertNotIn(module, payload, f"{module} resolved to nothing but is in the payload")
+			else:
+				self.assertEqual(payload[module], resolved.as_boot_entry())
+
+	def test_a_scope_resolves_the_same_alone_as_it_does_in_a_batch(self):
+		"""The context is a batching detail and nothing more -- resolving seventy Scopes must
+		not be able to answer differently from resolving one."""
+		with sidebarless_module("Test Seam Batching Module") as module:
+			make_report(module, "Test Seam Batching Report")
+			user = frappe.session.user
+
+			batched = resolve_sidebar(module, user, SidebarContext.for_modules([module], user))
+			alone = resolve_sidebar(module, user)
+
+			self.assertEqual(alone.as_boot_entry(), batched.as_boot_entry())
+
+	def test_a_context_cannot_answer_for_a_second_reader(self):
+		"""Half of what a context batches is one person's -- their private pages, the
+		onboardings their roles allow -- so lending it to another reader would hand out
+		somebody else's private workspaces. Checked rather than documented."""
+		with sidebarless_module("Test Seam Borrowed Context Module") as module:
+			make_report(module, "Test Seam Borrowed Context Report")
+			context = SidebarContext.for_modules([module], "Administrator")
+
+			with self.assertRaises(ValueError):
+				resolve_sidebar(module, "somebody-else@example.com", context)
+
+	def test_a_scope_holding_nothing_navigable_resolves_to_nothing(self):
+		"""`None` is the seam's way of saying "dropped", which is what the payload's missing
+		key means. Stated once, here, rather than by each reader re-checking the items."""
+		with sidebarless_module("Test Seam Empty Module") as module:
+			self.assertIsNone(resolve_sidebar(module, frappe.session.user))
+
+	def test_the_seam_answers_where_the_scope_opens(self):
+		"""Landing is part of the arrangement, not something a caller derives afterwards: it
+		can only honestly be read off the list *this* reader resolved."""
+		with sidebarless_module("Test Seam Landing Module") as module:
+			workspace = frappe.get_doc(
+				{
+					"doctype": "Workspace",
+					"title": "Test Seam Landing Page",
+					"label": "Test Seam Landing Page",
+					"module": module,
+					"public": 1,
+					"content": "[]",
+				}
+			).insert(ignore_permissions=True)
+			self.addCleanup(frappe.delete_doc, "Workspace", workspace.name, force=True, ignore_missing=True)
+
+			doc = frappe.get_doc({"doctype": "Module Sidebar", "module": module})
+			doc.append(
+				"items",
+				{"type": "Link", "link_type": "Workspace", "link_to": workspace.name, "label": "Home"},
+			)
+			with system_write():
+				doc.insert(ignore_permissions=True)
+
+			resolved = resolve_sidebar(module, frappe.session.user)
+
+			self.assertEqual(resolved.landing, "/desk/test-seam-landing-page")
+			self.assertEqual(resolved.landing, get_module_landing_route(resolved.items))
+
+	def test_the_landing_is_derived_rather_than_carried(self):
+		"""Boot never asks for it -- seventy modules would be seventy lookups to answer a
+		question the desk asks about the one it is opening -- so it is not in the payload and
+		the tile list derives it for the handful of modules it lists."""
+		for entry in get_module_sidebars().values():
+			self.assertNotIn("landing", entry)
 
 
 class TestModuleSidebarBoot(IntegrationTestCase):
@@ -277,7 +371,7 @@ class TestModuleSidebarBoot(IntegrationTestCase):
 		"""`workspaces` is the workspaces of a module this *reader* may open, which is what the
 		desk asks it: given a route naming a workspace, which module's shell does it belong to?
 		The reader's own private pages answer that question; nobody else's do."""
-		from frappe.boot import get_module_workspaces
+		from frappe.desk.doctype.module_sidebar.module_sidebar import get_module_workspaces
 
 		for module, names in get_module_workspaces().items():
 			for name in names:

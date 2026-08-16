@@ -5,9 +5,9 @@ from unittest.mock import patch
 
 import frappe
 from frappe.app_state import get_disabled_modules
-from frappe.boot import get_app_modules, get_module_sidebars
+from frappe.boot import get_app_modules
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.desk.doctype.module_sidebar.module_sidebar import clear_computed_base_cache
+from frappe.desk.doctype.module_sidebar.module_sidebar import clear_computed_base_cache, resolve_sidebar
 from frappe.desk.doctype.module_sidebar.test_module_sidebar import make_report, make_sidebar
 from frappe.installer import (
 	get_app_owned_modules,
@@ -84,10 +84,10 @@ class TestCustomModuleIsSiteOwned(IntegrationTestCase):
 			self.assertIsNone(get_module_placement(module))
 
 			make_report(module, "Test Unresolvable Module Report")
-			sidebar = get_module_sidebars().get(module)
+			sidebar = resolve_sidebar(module, frappe.session.user)
 
 			self.assertIsNotNone(sidebar, "an unplaced module must still resolve to a sidebar")
-			self.assertIsNone(sidebar["app"])
+			self.assertIsNone(sidebar.app)
 
 	def test_a_placed_custom_module_is_listed_in_the_dock_of_the_app_it_names(self):
 		"""Creating it is the whole of the work: the module appears in the desk with no sidebar
@@ -97,10 +97,10 @@ class TestCustomModuleIsSiteOwned(IntegrationTestCase):
 
 			self.assertIn(module, get_app_modules("frappe"))
 
-			sidebar = get_module_sidebars().get(module)
+			sidebar = resolve_sidebar(module, frappe.session.user)
 			self.assertIsNotNone(sidebar)
-			self.assertEqual(sidebar["app"], "frappe")
-			self.assertIn("Test Placed Module Report", [item["link_to"] for item in sidebar["items"]])
+			self.assertEqual(sidebar.app, "frappe")
+			self.assertIn("Test Placed Module Report", [item["link_to"] for item in sidebar.items])
 
 	def test_a_custom_module_can_own_doctypes(self):
 		"""Owning doctypes is *why* custom modules exist -- `DocType.module` has always been

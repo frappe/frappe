@@ -4,7 +4,6 @@
 import json
 
 import frappe
-from frappe.boot import get_module_sidebars
 from frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar import (
 	CUSTOMIZED_KEYS_CACHE_KEY,
 	get_customization,
@@ -13,6 +12,7 @@ from frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar import (
 	save_sidebar_customization,
 	save_site_sidebar,
 )
+from frappe.desk.doctype.module_sidebar.module_sidebar import resolve_sidebar
 from frappe.desk.doctype.module_sidebar.test_module_sidebar import (
 	delete_page,
 	make_page,
@@ -61,12 +61,16 @@ class CustomizationTestCase(IntegrationTestCase):
 		frappe.cache.delete_value(CUSTOMIZED_KEYS_CACHE_KEY)
 		frappe.clear_cache(user=USER)
 
+	def resolved(self, module: str = MODULE):
+		"""What `module` resolves to for the session user -- the seam every layer lands in."""
+		return resolve_sidebar(module, frappe.session.user)
+
 	def base_items(self, module: str = MODULE):
 		frappe.set_user("Administrator")
-		return get_module_sidebars()[module]["items"]
+		return self.resolved(module).items
 
 	def items(self, module: str = MODULE):
-		return get_module_sidebars()[module]["items"]
+		return self.resolved(module).items
 
 	def keys(self, module: str = MODULE):
 		return [item["key"] for item in self.items(module)]
@@ -80,8 +84,7 @@ class TestModuleSidebarCustomization(CustomizationTestCase):
 		"""The cost-control story: an uncustomized site pays one redis read, not a query per
 		module."""
 		self.assertEqual(get_customized_keys(), set())
-		sidebars = get_module_sidebars()
-		self.assertEqual(sidebars[MODULE].get("customized"), 0)
+		self.assertFalse(self.resolved().customized)
 
 	def test_hidden_item_disappears(self):
 		items = self.base_items()
@@ -132,7 +135,7 @@ class TestModuleSidebarCustomization(CustomizationTestCase):
 		self.as_user()
 		save_sidebar_customization(MODULE, json.dumps(rows))
 
-		self.assertNotIn(MODULE, get_module_sidebars())
+		self.assertIsNone(self.resolved())
 
 	def test_user_layer_overrides_site_layer(self):
 		"""A user's `hidden: 0` un-hides what the site hid -- which is the whole reason `hidden`
@@ -216,12 +219,12 @@ class TestModuleSidebarCustomization(CustomizationTestCase):
 		save_site_sidebar(MODULE, label="Site Label", header_icon="star")
 
 		self.as_user()
-		sidebar = get_module_sidebars()[MODULE]
-		self.assertEqual(sidebar["label"], "Site Label")
-		self.assertEqual(sidebar["header_icon"], "star")
+		sidebar = self.resolved()
+		self.assertEqual(sidebar.label, "Site Label")
+		self.assertEqual(sidebar.header_icon, "star")
 
 		save_sidebar_customization(MODULE, label="My Label")
-		self.assertEqual(get_module_sidebars()[MODULE]["label"], "My Label")
+		self.assertEqual(self.resolved().label, "My Label")
 
 
 class TestAReorderIsNotAnOpinionAboutEverything(CustomizationTestCase):
@@ -372,7 +375,7 @@ class TestIdentityIsMadeOfRealColumns(CustomizationTestCase):
 			# an unrelated write to the same layer, which saves the stale row along with it
 			save_site_sidebar(module, label="Renamed Module")
 
-			self.assertEqual(get_module_sidebars()[module]["label"], "Renamed Module")
+			self.assertEqual(self.resolved(module).label, "Renamed Module")
 
 	def test_inserting_an_item_does_not_re_anchor_other_deltas(self):
 		"""The ordinal is gone, and with it the thing that made an insertion move every anchor

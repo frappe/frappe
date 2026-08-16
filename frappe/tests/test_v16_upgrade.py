@@ -180,9 +180,9 @@ class TestV16Upgrade(IntegrationTestCase):
 	# -- what the customer sees ----------------------------------------------------------
 
 	def test_the_sidebar_carries_the_same_items(self):
-		payload = self.payload()
-		self.assertIsNotNone(payload)
-		links = [item["link_to"] for item in payload["items"]]
+		resolved = self.resolved()
+		self.assertIsNotNone(resolved)
+		links = [item["link_to"] for item in resolved.items]
 		for expected in (self.REPORT, self.OTHER_REPORT, "ToDo"):
 			self.assertIn(expected, links)
 
@@ -214,15 +214,16 @@ class TestV16Upgrade(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Custom Module Sidebar", {"module": self.QUIET_MODULE}))
 		self.assertFalse(frappe.db.exists("Module Sidebar", {"module": self.QUIET_MODULE}))
 
-		from frappe.boot import get_sidebar_bases
+		from frappe.desk.doctype.module_sidebar.module_sidebar import get_sidebar_bases
 
 		base = get_sidebar_bases([self.QUIET_MODULE])[self.QUIET_MODULE]
 		self.assertEqual(base.module, self.QUIET_MODULE)
 
-	def payload(self):
-		from frappe.boot import get_module_sidebars
+	def resolved(self):
+		"""What the module resolves to for the session user, asked of the resolver itself."""
+		from frappe.desk.doctype.module_sidebar.module_sidebar import resolve_sidebar
 
-		return get_module_sidebars().get(self.MODULE)
+		return resolve_sidebar(self.MODULE, frappe.session.user)
 
 	# -- asking what it will do, and what it did ----------------------------------------
 	#

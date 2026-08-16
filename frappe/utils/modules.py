@@ -79,7 +79,7 @@ def get_code_only_modules() -> set[str]:
 	whether a module's *contents* may be reached -- `Workspace.is_permitted` falls back to it, as
 	do the module-scoped chart and card pickers -- so folding this in would make Core's workspaces
 	and dashboard records unreachable rather than merely unlisted. This is only about the dock;
-	see `frappe.boot.get_navigable_modules`, its one caller.
+	see `frappe.desk.doctype.module_sidebar.module_sidebar.get_navigable_modules`, its one caller.
 
 	Uncached on purpose: `get_hooks` already caches the merged hook map per site and busts it on
 	migrate, so a second cache here would only add a copy nothing invalidates.

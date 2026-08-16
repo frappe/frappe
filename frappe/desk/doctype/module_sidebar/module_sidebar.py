@@ -4,12 +4,16 @@
 import hashlib
 import json
 from collections import Counter, defaultdict
+from dataclasses import dataclass, field
+from functools import cached_property
 
 import click
 
 import frappe
 from frappe import _
+from frappe.app_state import get_disabled_modules
 from frappe.desk.desk_views import DeskViews
+from frappe.desk.utils import is_item_allowed
 from frappe.model.document import Document
 from frappe.utils.modules import get_module_placement
 
@@ -61,7 +65,7 @@ ARCHIVE_ITEM_DOCTYPE = "Workspace Sidebar Item"
 
 # v16 gave a user's *private* workspaces a sidebar of their own to hang off, titled "My
 # Workspaces". Nothing in it was authored -- every row was a link to a page the user owns -- and
-# those links are derived on read now (`boot.get_private_workspace_rows`), so the container is
+# those links are derived on read now (`get_private_workspaces`), so the container is
 # discarded rather than converted. Matched on the title because that is all it ever had.
 PRIVATE_CONTAINER_TITLE = "my workspaces"
 
@@ -345,7 +349,7 @@ def ship_dock_order(modules: list | str) -> list[str]:
 	Deliberately not `materialize_base`, which is `mark_as_standard`'s job: that one fills in the
 	computed items because adopting a sidebar means shipping the navigation it renders, whereas
 	stating a position should not quietly freeze a module's contents into a file as well. An
-	itemless document is a supported shape -- `boot.get_sidebar_bases` computes the rows of one
+	itemless document is a supported shape -- `get_sidebar_bases` computes the rows of one
 	and keeps whatever the document says about itself.
 
 	Sequences are `1..n`, always below `DEFAULT_MODULE_SEQUENCE_ID`, so an arranged module leads
@@ -474,7 +478,7 @@ def materialize_base(module: str) -> "ModuleSidebar":
 
 	A document with items of its own is authored content and is returned as it stands. Anything
 	else -- no document, or one with an empty items table -- is filled from the computed base,
-	because that is exactly what the desk renders for it (see `boot.get_sidebar_bases`) and
+	because that is exactly what the desk renders for it (see `get_sidebar_bases`) and
 	shipping it empty would ship a file that does not match the navigation it came from.
 
 	The base carries over verbatim, which is all it takes to keep existing customization deltas
@@ -925,7 +929,7 @@ def get_computed_base(module: str) -> frappe._dict:
 	sidebar falls back here in the same request instead of leaving its module un-navigable
 	until the next migrate.
 
-	Shaped exactly like a row read by `boot.get_sidebar_bases`, item rows included, so the
+	Shaped exactly like a row read by `get_sidebar_bases`, item rows included, so the
 	resolution cannot tell which route a base arrived by.
 
 	Site-cached, because it is a handful of queries per module and the contents change far
@@ -975,6 +979,470 @@ def clear_computed_base_for(doc: Document) -> None:
 	for module in modules:
 		if module:
 			clear_computed_base_cache(module)
+
+
+# ---------------------------------------------------------------------------------------
+# Resolution -- what a Scope resolves to, for one person
+# ---------------------------------------------------------------------------------------
+
+
+@dataclass
+class SidebarContext:
+	"""The site-wide reads a resolution needs, gathered once for a set of Scopes.
+
+	`resolve_sidebar` answers for one Scope, but three of the four things it reads --
+	the user's workspaces, their private pages, the onboardings their roles allow -- are
+	answered for the whole site in one go or not at all. Handing the resolver a context is
+	what keeps resolving 70 modules the same handful of queries as resolving one, without
+	the resolver itself having to know it is being called in a loop.
+
+	Built for exactly the modules *and the person* it will be asked about: `bases` is keyed by
+	module, so resolving a module the context was not built for is a caller error rather than
+	a silently missing base, and `user` is checked rather than trusted -- half of what is
+	batched here (the private pages, the onboardings) is one person's, and lending it to
+	another reader would be handing out somebody else's private workspaces.
+	"""
+
+	user: str
+	bases: dict[str, frappe._dict] = field(default_factory=dict)
+	workspaces: dict[str, list[str]] = field(default_factory=dict)
+	private_rows: dict[str, list[frappe._dict]] = field(default_factory=dict)
+	onboardings: dict[str, str] = field(default_factory=dict)
+	perm_ctx: DeskViews | None = None
+
+	@classmethod
+	def for_modules(cls, modules: list[str], user: str) -> "SidebarContext":
+		from frappe.desk.doctype.module_onboarding.module_onboarding import get_permitted_onboardings
+
+		return cls(
+			user=user,
+			bases=get_sidebar_bases(modules),
+			workspaces=get_module_workspaces(),
+			private_rows=get_private_workspaces(user),
+			onboardings=get_permitted_onboardings(),
+			# `is_item_allowed` lives on `DeskViews`; one throwaway instance is the shared context.
+			perm_ctx=frappe.new_doc("Workspace"),
+		)
+
+
+@dataclass
+class ResolvedSidebar:
+	"""What one Scope resolves to for one person: a label, an icon, a Landing, and entries.
+
+	The arrangement itself, not the boot payload's shape -- `as_boot_entry` is one consumer of
+	it and the desk will grow others. Everything on it has already been resolved *for this
+	reader*: the entries are permission-filtered, layered and appended to, and the label and
+	icon are whatever the layers left standing.
+	"""
+
+	module: str
+	label: str
+	app: str | None
+	header_icon: str | None
+	module_onboarding: str | None
+	customized: bool
+	workspaces: list[str]
+	items: list[dict]
+
+	@cached_property
+	def landing(self) -> str | None:
+		"""Where this arrangement opens -- the first entry that leads anywhere.
+
+		Derived rather than stored, and derived *here* rather than by the caller, because the
+		only list it can honestly be derived from is the one this reader resolved. Lazy
+		because boot never asks: the payload it builds carries no landing, and the tile list
+		asks for a handful of modules out of seventy.
+		"""
+		return get_module_landing_route(self.items)
+
+	def as_boot_entry(self) -> dict:
+		"""This arrangement as `bootinfo.module_sidebars[module]`."""
+		return {
+			"module": self.module,
+			"label": self.label,
+			"app": self.app,
+			"header_icon": self.header_icon,
+			"module_onboarding": self.module_onboarding,
+			"customized": 1 if self.customized else 0,
+			"workspaces": self.workspaces,
+			"items": self.items,
+		}
+
+
+def resolve_sidebar(module: str, user: str, context: SidebarContext | None = None) -> ResolvedSidebar | None:
+	"""What `module`'s sidebar resolves to for `user`, or `None` if it resolves to nothing.
+
+	The seam. One question -- *what does this Scope resolve to, for this person* -- answered
+	in one place, so that everything which shapes an answer (the permission filter, the
+	customization merge, the private-page append, and the rule that drops a Scope holding
+	nothing navigable) is applied in one order by one reader. The boot payload is then
+	assembly and nothing more.
+
+	`context` is a batching detail: pass one when resolving many Scopes, leave it out and the
+	Scope is resolved on its own. The answer is the same either way.
+	"""
+	from frappe.desk.doctype.custom_module_sidebar.custom_module_sidebar import (
+		apply_customizations,
+		get_customization,
+	)
+
+	if context is None:
+		context = SidebarContext.for_modules([module], user)
+	elif context.user != user:
+		raise ValueError(f"sidebar context is {context.user}'s, and cannot answer for {user}")
+
+	base = context.bases[module]
+	filtered = filter_sidebar_items(base.rows, context.perm_ctx)
+
+	# Deltas are applied *after* the permission filter, so a customization can never
+	# resurface an item the user may not see, and an added item has already been checked.
+	filtered, customized = apply_customizations(module, filtered, user)
+
+	# ...and the user's own private pages after *that*, which is what keeps them out of
+	# every stored arrangement: a layer can only name what it was shown when it was saved,
+	# and these arrive later than any of it.
+	filtered = append_derived_items(filtered, context.private_rows.get(module), context.perm_ctx)
+
+	# Same rule as the legacy builder: a sidebar with nothing but Section Breaks left is
+	# a sidebar the user cannot use. Mirrored by `is_icon_permitted`; must not drift.
+	# Runs after the deltas, so hiding every item genuinely hides the module.
+	if not any(i["type"] != "Section Break" for i in filtered):
+		return None
+
+	label = base.title or module
+	header_icon = base.header_icon
+	if customized:
+		for layer in (get_customization(module, None), get_customization(module, user)):
+			if layer and layer.label:
+				label = layer.label
+			if layer and layer.header_icon:
+				header_icon = layer.header_icon
+
+	return ResolvedSidebar(
+		module=module,
+		label=_(label),
+		# The desk's whole notion of app context: the rail asks this one question and lists
+		# that app's other modules, or nothing at all when there is no answer. So it has to
+		# agree with the placement `get_standalone_modules` reads -- a module both surfaces
+		# call placed elsewhere would have no rail *and* no tile. A shipped document declares
+		# its app and that stands; a document that doesn't (an authored stub, a custom
+		# module's) falls back to the module's placement, exactly as a computed base already
+		# does.
+		app=base.app or get_module_placement(module),
+		header_icon=header_icon,
+		# Derived, never stored: the onboarding this module offers *this user*, which is the
+		# only form of the question the desk ever asks. `landing` is derived for the same
+		# reason -- both used to be pointers on the base, and a pointer resolved before
+		# permission filtering can name something the reader cannot open.
+		module_onboarding=context.onboardings.get(module),
+		customized=customized,
+		workspaces=context.workspaces.get(module, []),
+		items=filtered,
+	)
+
+
+def get_navigable_modules() -> list[str]:
+	"""The site's modules, minus the ones this user may not navigate to.
+
+	This is the set `get_module_sidebars` walks. It is deliberately *every* `Module Def` and
+	not "every module that has a `Module Sidebar` row": a module the walk never enumerates can
+	never be handed a sidebar, however that sidebar might be produced.
+
+	Ordered by name. The row-driven walk it replaces inherited `get_all`'s default
+	`modified desc`, so the payload reshuffled whenever anyone edited any sidebar -- an order
+	nothing could have been relying on. Consumers that iterate the payload
+	(`build_entity_module_map`, the desk's `get_modules_linking`) now get a stable one.
+	"""
+	from frappe.utils.modules import get_code_only_modules, get_visible_modules
+
+	# Three independent gates, each answering a different question:
+	# `get_visible_modules` is per-user (the user's own blocks); `get_disabled_modules` is
+	# site-level -- the module's app is turned off, so nobody navigates to it regardless of
+	# permissions; `get_code_only_modules` is app-level -- the app that owns the module says it
+	# ships no navigation at all, having put its navigation in other modules.
+	#
+	# The code-only gate stops here rather than living in `is_module_visible`, which is the gate
+	# a module's *contents* are behind. A code-only module keeps its workspaces, charts and
+	# cards reachable; it just is not somewhere the dock can take you.
+	disabled = get_disabled_modules()
+	code_only = get_code_only_modules()
+	visible = get_visible_modules(frappe.get_all("Module Def", pluck="name", order_by="name asc"))
+
+	return [module for module in visible if module not in disabled and module not in code_only]
+
+
+def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:
+	"""The sidebar base for each of `modules`, keyed by module, its item rows included.
+
+	Two origins and only two, per D4: an app shipped a `Module Sidebar` document, or the system
+	computed one from the module's own contents. A module with no document is therefore not
+	baseless -- it is computed and site-cached, in the same shape, so the resolution below
+	cannot tell which route a base arrived by.
+
+	**A document with no items falls back the same way**, because a sidebar with nothing in it
+	is not navigation -- the module would be dropped from the payload entirely, which is
+	indistinguishable from having no sidebar at all. Only its *rows* are computed: whatever the
+	document says about itself (title, icon, app) is authored content and stands, so a stub
+	someone created to name a module keeps its name and gains contents.
+
+	Consequence worth knowing: emptying a sidebar's items is no longer a way to hide a module.
+	Hiding belongs to the customization layers and to `User.block_modules`, which run later and
+	are per-user; an empty base reads as unfinished, not as intent.
+
+	The documents come back in one query for the whole set, and the computed route costs a site
+	whose modules all ship a populated document nothing at all: it runs only for the modules
+	that query did not return, and for the ones it returned empty.
+	"""
+	bases = frappe.get_all(
+		"Module Sidebar",
+		filters={"module": ["in", modules]},
+		fields=[
+			"name",
+			"module",
+			"title",
+			"app",
+			"header_icon",
+		],
+	)
+
+	items_by_sidebar = get_module_sidebar_items([base.name for base in bases])
+	for base in bases:
+		# not `items`: `frappe._dict` inherits `dict.items()`, so that attribute is the method
+		base.rows = items_by_sidebar.get(base.name, [])
+
+	resolved = {base.module: base for base in bases}
+	for module in modules:
+		base = resolved.get(module)
+		if base is None:
+			resolved[module] = get_computed_base(module)
+		elif not base.rows:
+			base.rows = get_computed_base(module).rows
+
+	return resolved
+
+
+def get_module_sidebar_items(sidebar_names):
+	"""Every `Module Sidebar Item` row for the given sidebars, grouped by parent."""
+	if not sidebar_names:
+		return {}
+
+	items = {}
+	for item in frappe.get_all(
+		"Module Sidebar Item",
+		filters={"parenttype": "Module Sidebar", "parent": ["in", sidebar_names]},
+		fields=[
+			"parent",
+			"idx",
+			# no `key`: a base row's identity is derived from the columns below, and a value
+			# stored in that column by an older derivation must not out-rank them. Rows written
+			# before the change still hold one until their app next re-imports the sidebar.
+			"type",
+			"label",
+			"link_type",
+			"link_to",
+			"icon",
+			"child",
+			"indent",
+			"collapsible",
+			"keep_closed",
+			"url",
+			"show_arrow",
+			"filters",
+			"route_options",
+			"navigate_to_tab",
+			"open_in_new_tab",
+			"is_default_module",
+		],
+		order_by="idx asc",
+	):
+		items.setdefault(item.parent, []).append(item)
+
+	return items
+
+
+def get_module_workspaces():
+	"""The workspaces of each module this user may see, in `sequence_id` order.
+
+	Reachability, not publicness: `get_workspaces` has already answered which workspaces this
+	user may open -- every public one they reach plus their own private ones -- so the filter
+	is membership of that set. A private page belongs to a module like any other page, and the
+	desk reads this to answer "which module does this workspace belong to" when a route names
+	one; answering `None` for a private page left its owner's shell on whatever module it
+	happened to be showing.
+
+	Replaces `Workspace.get_module_wise_workspaces()`, which ordered by `creation` and was
+	not permission-filtered.
+	"""
+	from frappe.desk.desktop import get_workspaces
+
+	workspaces = {}
+	allowed = {p.name for p in get_workspaces()["pages"]}
+
+	for row in frappe.get_all(
+		"Workspace",
+		filters={"module": ["is", "set"]},
+		fields=["name", "module"],
+		order_by="sequence_id asc, creation asc",
+	):
+		if row.name in allowed:
+			workspaces.setdefault(row.module, []).append(row.name)
+
+	return workspaces
+
+
+def get_private_workspaces(user: str) -> dict[str, list[frappe._dict]]:
+	"""`user`'s own private workspaces, per module, shaped as sidebar item rows.
+
+	A private page's sidebar link is **derived, never stored** (D3). Everything a link needs
+	is already on the workspace -- its module, its owner, its title and its icon -- so a stored
+	one was a second copy of all four, and it went into the *shared* document: the site layer
+	accumulated a row per private page, so an admin curating the site's sidebar found
+	strangers' pages in the document they were editing, and every one of those rows had to be
+	kept in step with a workspace that could be renamed or deleted at any time.
+
+	Read off the enumeration the payload is already built from rather than queried for, so the
+	derivation costs a boot nothing -- and, more to the point, it can only ever offer a page
+	`get_workspaces` has already said this user may open. Owner-scoped on top of that, which is
+	what makes it safe to append after the permission filter has run.
+
+	Pages only, mirroring the write path this replaces: a Link or a URL workspace is a shortcut
+	to somewhere the sidebar already lists, and has never had a way in from here.
+	"""
+	from frappe.desk.desktop import get_workspaces
+
+	rows = {}
+	for page in get_workspaces()["pages"]:
+		if page.public or not page.module or page.for_user != user:
+			continue
+		# `type` is empty on pages that predate the field, and those are ordinary workspaces
+		if page.type and page.type != "Workspace":
+			continue
+
+		rows.setdefault(page.module, []).append(
+			frappe._dict(
+				{
+					"type": "Link",
+					"link_type": "Workspace",
+					"link_to": page.name,
+					"label": page.title,
+					"icon": page.icon,
+				}
+			)
+		)
+
+	return rows
+
+
+def filter_sidebar_items(items, perm_ctx):
+	"""Shape, de-duplicate and permission-filter sidebar item rows for the boot payload.
+
+	The dedupe is what the deleted uniqueness validator used to promise, moved to the one place
+	that can keep the promise: rows reach here from a shipped document, a computed base and a
+	customization's added rows alike, so no single writer could have guaranteed it. Two rows
+	sharing an identity *are* the same item -- there is nothing a customization could say about
+	one and not the other -- and the first position wins, which is what the desk rendered
+	before.
+	"""
+	filtered = []
+	seen = set()
+	for item in items:
+		key = item_key(item)
+		if key in seen:
+			continue
+		seen.add(key)
+
+		entry = {
+			"key": key,
+			"label": _(item.label),
+			"link_to": item.link_to,
+			"link_type": item.link_type,
+			"type": item.type,
+			"icon": item.icon,
+			"child": item.child,
+			"collapsible": item.collapsible,
+			"indent": item.indent,
+			"keep_closed": item.keep_closed,
+			"url": item.url,
+			"show_arrow": item.show_arrow,
+			"filters": item.filters,
+			"route_options": item.route_options,
+			"tab": item.navigate_to_tab,
+			"open_in_new_tab": item.open_in_new_tab,
+			"is_default_module": item.is_default_module,
+		}
+		if (
+			item.link_type == "Report"
+			and item.link_to
+			and frappe.db.exists("Report", item.link_to)
+			and not frappe.db.get_value("Report", item.link_to, "disabled")
+		):
+			report_type, ref_doctype = frappe.db.get_value(
+				"Report", item.link_to, ["report_type", "ref_doctype"]
+			)
+			entry["report"] = {"report_type": report_type, "ref_doctype": ref_doctype}
+
+		if item.type == "Section Break" or is_item_allowed(item.link_to, item.link_type, perm_ctx):
+			filtered.append(entry)
+
+	return filtered
+
+
+def append_derived_items(items, rows, perm_ctx):
+	"""Add `rows` to an already-resolved sidebar, skipping anything it already holds.
+
+	Derived items go through the same shaping and the same permission check as a base row --
+	they are items like any other once they are in the payload, and the only thing that makes
+	them different is that no document anywhere holds them.
+
+	The skip is what keeps a site that stored these rows before they were derived rendering one
+	link rather than two: the stored row is already in `items`, in whatever position its layer
+	put it, and the derived one is the duplicate.
+	"""
+	if not rows:
+		return items
+
+	seen = {item["key"] for item in items}
+	for entry in filter_sidebar_items(rows, perm_ctx):
+		if entry["key"] in seen:
+			continue
+		seen.add(entry["key"])
+		# Says why it cannot be arranged or hidden: it is in no document, so no arrangement
+		# can name it. The desk offers it as a link and nothing else.
+		entry["derived"] = 1
+		items.append(entry)
+
+	return items
+
+
+def get_module_landing_route(items: list[dict]) -> str | None:
+	"""Where a module's tile leads, as far as the server can answer it.
+
+	The rule is the desk's own (`sidebar.module_landing_route`): a module opens on **the first
+	navigable item in the sidebar this user resolved**. So it is handed the resolved entries --
+	already permission-filtered and already customized -- and not the module's workspaces,
+	which are neither.
+
+	Only the workspace case is answered here, because a workspace route is a slug and nothing
+	more, while every other item type resolves through `frappe.utils.generate_route` on the
+	client -- doc views, report types, filters as query params. The desktop asks the client's
+	`module_landing_route` first and falls back to this, so this is the floor a tile has before
+	the sidebar object exists, not a second implementation of routing.
+
+	It stops at the *first* navigable item rather than scanning on for a workspace it can
+	answer. A tile is a link with a click handler, and the two have to lead to the same place:
+	a route found further down the sidebar would send a middle-click somewhere the ordinary
+	click never goes.
+	"""
+	item = next((item for item in items or [] if item.get("type") == "Link"), None)
+	if not item or item.get("link_type") != "Workspace" or not item.get("link_to"):
+		return None
+
+	public = frappe.db.get_value("Workspace", item["link_to"], "public")
+	if public is None:
+		return None
+
+	prefix = "/desk/" if public else "/desk/private/"
+	return prefix + frappe.utils.slug(item["link_to"])
 
 
 # ---------------------------------------------------------------------------------------

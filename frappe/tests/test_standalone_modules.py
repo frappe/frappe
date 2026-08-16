@@ -4,6 +4,7 @@
 import frappe
 from frappe.boot import get_bootinfo, get_module_sidebars, get_standalone_modules
 from frappe.core.doctype.module_def.test_module_def import custom_module
+from frappe.desk.doctype.module_sidebar.module_sidebar import resolve_sidebar
 from frappe.desk.doctype.module_sidebar.test_module_sidebar import (
 	make_report,
 	make_sidebar,
@@ -244,7 +245,7 @@ class TestNoAppContextInsideAStandaloneModule(StandaloneModuleTestCase):
 	"""
 
 	def sidebar(self, module: str):
-		return get_module_sidebars()[module]
+		return resolve_sidebar(module, frappe.session.user)
 
 	def app_entry(self, app_name: str):
 		return next(app for app in get_bootinfo()["app_data"] if app["app_name"] == app_name)
@@ -255,7 +256,7 @@ class TestNoAppContextInsideAStandaloneModule(StandaloneModuleTestCase):
 		with custom_module("Test Placed Rail Module", app="frappe") as module:
 			make_sidebar(module)
 
-			self.assertEqual(self.sidebar(module)["app"], "frappe")
+			self.assertEqual(self.sidebar(module).app, "frappe")
 			self.assertIn(module, self.app_entry("frappe")["modules"])
 
 	def test_the_rail_and_the_desktop_agree_about_what_placed_means(self):
@@ -268,7 +269,7 @@ class TestNoAppContextInsideAStandaloneModule(StandaloneModuleTestCase):
 			sidebar = make_sidebar(module)
 			self.assertFalse(sidebar.app, "sanity: the document declares no app")
 
-			self.assertEqual(self.sidebar(module)["app"], "frappe", "placed -> it has a rail")
+			self.assertEqual(self.sidebar(module).app, "frappe", "placed -> it has a rail")
 			self.assertIsNone(self.entry(module), "placed -> it has no tile of its own")
 
 	def test_an_authored_app_declaration_wins_over_placement(self):
@@ -277,13 +278,13 @@ class TestNoAppContextInsideAStandaloneModule(StandaloneModuleTestCase):
 		with custom_module("Test Declared App Module", app="frappe") as module:
 			make_sidebar(module, app="some_other_app")
 
-			self.assertEqual(self.sidebar(module)["app"], "some_other_app")
+			self.assertEqual(self.sidebar(module).app, "some_other_app")
 
 	def test_a_standalone_module_names_no_app(self):
 		with custom_module("Test Appless Rail Module") as module:
 			make_sidebar(module, title="Field Service", header_icon="tool")
 
-			self.assertFalse(self.sidebar(module)["app"])
+			self.assertFalse(self.sidebar(module).app)
 
 	def test_nothing_supplies_a_standalone_modules_rail_items(self):
 		"""The empty items region is a consequence of the data, not a special case in the
@@ -304,8 +305,8 @@ class TestNoAppContextInsideAStandaloneModule(StandaloneModuleTestCase):
 
 			sidebar = self.sidebar(module)
 
-			self.assertEqual(sidebar["header_icon"], "tool")
-			self.assertEqual(sidebar["label"], "Field Service")
+			self.assertEqual(sidebar.header_icon, "tool")
+			self.assertEqual(sidebar.label, "Field Service")
 
 	def test_a_module_with_no_authored_icon_still_carries_the_label_one_is_built_from(self):
 		"""The letter-icon fallback has nothing to fall back to without a label, so the
@@ -315,5 +316,5 @@ class TestNoAppContextInsideAStandaloneModule(StandaloneModuleTestCase):
 
 			sidebar = self.sidebar(module)
 
-			self.assertFalse(sidebar["header_icon"])
-			self.assertEqual(sidebar["label"], module)
+			self.assertFalse(sidebar.header_icon)
+			self.assertEqual(sidebar.label, module)

@@ -503,7 +503,7 @@ def add_to_module_sidebar(workspace):
 	**A private workspace gets nothing written for it.** This is the branch D3 asks for: the
 	shared branch writes a link, the private branch writes none, because a private page's link
 	is derived on read from the workspace itself -- module, owner, title and icon are all
-	already on it (`boot.get_private_workspace_rows`). Writing one put a row per private page
+	already on it (`module_sidebar.get_private_workspaces`). Writing one put a row per private page
 	into the document the whole site shares, and every one of those rows was a second copy of
 	four columns that could change underneath it.
 
@@ -521,7 +521,7 @@ def add_to_module_sidebar(workspace):
 	# A Link or a URL workspace is a shortcut to somewhere else, and the sidebar already lists
 	# that somewhere else; only a page of its own earns a way in. `type` is empty on pages that
 	# predate the field, and those are ordinary workspaces -- the same reading
-	# `boot.get_private_workspace_rows` gives them.
+	# `module_sidebar.get_private_workspaces` gives them.
 	if not workspace.public or (workspace.type and workspace.type != "Workspace"):
 		return
 
