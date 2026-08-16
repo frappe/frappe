@@ -1,9 +1,9 @@
 <template>
 	<!-- ps-[13px] aligns row text with the card text (1px border + px-3) -->
 	<div
-		class="flex flex-1 flex-col gap-2 ps-[13px] text-sm font-medium leading-6 text-ink-gray-6"
+		class="flex flex-1 flex-col gap-1.5 ps-[13px] text-sm font-medium leading-6 text-ink-gray-6"
 	>
-		<!-- grouped: collapsible "Show +N changes" header -->
+		<!-- grouped: collapsible session header, e.g. "Administrator made 4 changes over 3 minutes" -->
 		<div v-if="changes.length > 1" class="flex items-center gap-1.5">
 			<button
 				type="button"
@@ -11,12 +11,10 @@
 				@click="expanded = !expanded"
 			>
 				<span class="text-ink-gray-5">
-					<span>Show</span>
-					<span class="font-medium text-ink-gray-8">
-						+{{ changes.length }} changes
-					</span>
-					from
 					<span class="font-medium text-ink-gray-8">{{ authorName }}</span>
+					made
+					<span class="font-medium text-ink-gray-8"> {{ changes.length }} changes </span>
+					<span v-if="sessionSpan">over {{ sessionSpan }}</span>
 				</span>
 				<LucideChevronUp v-if="expanded" class="size-3.5" />
 				<LucideChevronDown v-else class="size-3.5" />
@@ -24,8 +22,8 @@
 		</div>
 
 		<!-- change list: single shown always, group on expand -->
-		<div v-if="changes.length === 1 || expanded" class="flex flex-col gap-2">
-			<div v-for="change in changes" :key="change.name" class="flex flex-col gap-2">
+		<div v-if="changes.length === 1 || expanded" class="flex flex-col gap-1.5">
+			<div v-for="change in changes" :key="change.name" class="flex flex-col gap-1.5">
 				<div class="flex items-start gap-1.5">
 					<!-- author leads only for a single change; the group header names them -->
 					<span v-if="changes.length === 1" class="font-medium text-ink-gray-8">{{
@@ -83,7 +81,7 @@
 				<!-- field history: revealed by the chevron; single continuous line, no dots -->
 				<div
 					v-if="isOpen(change.name) && hasHistory(change)"
-					class="relative ms-2 flex flex-col gap-2 ps-4"
+					class="relative ms-2 flex flex-col gap-1.5 ps-4"
 				>
 					<!-- inset half a row (leading-6 ÷ 2) so the line spans first→last entry centers -->
 					<div class="absolute inset-y-3 start-0 w-px bg-[var(--outline-elevation-2)]" />
@@ -121,6 +119,7 @@
 <script setup lang="ts">
 import { Tooltip } from "frappe-ui";
 import { computed, reactive, ref } from "vue";
+import { timeValue } from "./grouping";
 import TimeAgo from "./TimeAgo.vue";
 import type { FieldChange, VersionChange, VersionItemProps } from "./types";
 import { truncate } from "./utils";
@@ -134,8 +133,25 @@ const changes = computed<VersionChange[]>(
 
 const authorName = computed(() => props.activity?.author?.fullname ?? "");
 
-// collapsible "+N changes" group toggle
+// collapsible group toggle
 const expanded = ref(false);
+
+// first→last edit span of the folded session; empty under a minute
+const sessionSpan = computed(() => {
+	const times: number[] = [];
+	for (const c of changes.value) {
+		if (c.type === "diff" && c.history?.length)
+			times.push(...c.history.map((h) => timeValue(h.timestamp)));
+		else if (c.timestamp) times.push(timeValue(c.timestamp));
+	}
+	if (times.length < 2) return "";
+	const span = Math.max(...times) - Math.min(...times);
+	if (span < 60_000) return "";
+	const minutes = Math.round(span / 60_000);
+	if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"}`;
+	const hours = Math.round(minutes / 60);
+	return `${hours} hour${hours === 1 ? "" : "s"}`;
+});
 
 // per-change history panels, keyed by change.name
 const openChanges = reactive(new Set<string>());
