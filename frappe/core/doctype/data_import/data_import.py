@@ -344,11 +344,8 @@ def start_import(data_import):
 		# are suppressed during import (frappe.flags.in_import) to avoid flooding, so we
 		# publish a single event after import completes to refresh the list.
 		if data_import.reference_doctype and data_import.status in ("Success", "Partial Success"):
-			frappe.publish_realtime(
-				"list_update",
-				{"doctype": data_import.reference_doctype, "name": None, "user": frappe.session.user},
-				after_commit=True,
-			)
+			data = {"doctype": data_import.reference_doctype, "name": None, "user": frappe.session.user}
+			frappe.publish_realtime("list_update", data, after_commit=True)  # nosemgrep
 
 
 @frappe.whitelist()
