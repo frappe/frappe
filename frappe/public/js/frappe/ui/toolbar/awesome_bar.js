@@ -365,7 +365,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				this.search_modal
 					.find(".cool-awesomebar-modal-footer")
 					.toggleClass("hide", cint(this.options?.length) == 0);
-				this.awesomplete.options_with_desc = this.create_options_with_descriptions(this.options);
+				this.awesomplete.options_with_desc = this.create_options_with_descriptions(
+					this.options
+				);
 				this.awesomplete.list = this.options;
 			},
 		});
@@ -530,7 +532,9 @@ function first_route(route) {
 
 function is_external_url(route) {
 	const first = first_route(route);
-	return typeof first === "string" && (first.startsWith("https://") || first.startsWith("http://"));
+	return (
+		typeof first === "string" && (first.startsWith("https://") || first.startsWith("http://"))
+	);
 }
 
 function is_in_app_path(route) {
