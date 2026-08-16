@@ -23,7 +23,7 @@ from typing import Any, Literal, Union, get_args, get_origin, get_type_hints, ov
 
 from pydantic import BaseModel, ConfigDict, validate_call
 
-from flow.events import DisplaySegment
+from flow.events import AttachmentContent, DisplaySegment
 
 _DISPLAY_VARIABLE = re.compile(r"{{\s*([A-Za-z_][A-Za-z0-9_]*)\s*}}")
 DISPLAY_VALUE_CHARS = 512
@@ -86,6 +86,8 @@ class ToolResult:
 	content: str
 	details: dict[str, Any] = field(default_factory=dict)
 	is_error: bool = False
+	# images the tool produced; the loop copies these onto the durable event
+	attachments: list[AttachmentContent] = field(default_factory=list)
 
 
 @dataclass

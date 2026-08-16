@@ -45,6 +45,7 @@ from flow.events import (
 	AnyEvent,
 	ApprovalRequired,
 	AssistantMessage,
+	AttachmentContent,
 	Compaction,
 	CompactionReason,
 	PendingCall,
@@ -529,7 +530,13 @@ async def _dispatch(
 		tool = tools.get(call.name)
 		if tool is not None:
 			outcome = await tool(**call.args, ctx=ctx)  # Tool.__call__ validates/coerces args
-			return _result(call, outcome.content, is_error=outcome.is_error, details=outcome.details)
+			return _result(
+				call,
+				outcome.content,
+				is_error=outcome.is_error,
+				details=outcome.details,
+				attachments=outcome.attachments,
+			)
 		if inputs.config.callback_url:
 			response = await call_client(inputs.config, inputs.session_id, call, mode="execute")
 			return _result(call, response.get("content", ""), is_error=bool(response.get("is_error", False)))
@@ -624,10 +631,20 @@ def _redirect(feedback: str) -> str:
 
 
 def _result(
-	call: ToolCall, content: str, *, is_error: bool = False, details: dict | None = None
+	call: ToolCall,
+	content: str,
+	*,
+	is_error: bool = False,
+	details: dict | None = None,
+	attachments: list[AttachmentContent] | None = None,
 ) -> ToolResult:
 	return ToolResult(
-		tool_call_id=call.id, name=call.name, content=content, is_error=is_error, details=details or {}
+		tool_call_id=call.id,
+		name=call.name,
+		content=content,
+		is_error=is_error,
+		details=details or {},
+		attachments=attachments or [],
 	)
 
 
