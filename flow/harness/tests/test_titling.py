@@ -31,6 +31,20 @@ async def test_generate_title_rejects_empty_input_and_error_stops():
 	assert await generate_title(model, "hello") is None
 
 
+async def test_generate_title_rejects_truncated_reasoning():
+	# a reasoning model that burns the budget thinking gets cut mid-ramble; its
+	# first line must not become the session title
+	model = MockModel(
+		replies=[
+			AssistantMessage(
+				content="The user wants me to generate a title for a coding-agent session",
+				stop_reason="length",
+			)
+		]
+	)
+	assert await generate_title(model, "create a hello world html") is None
+
+
 def _titling_session(tmp_path, monkeypatch, replies):
 	store = SessionStore(str(tmp_path / "state"))
 	session = store.create(SessionConfig(model="titled/model", cwd=str(tmp_path)))
