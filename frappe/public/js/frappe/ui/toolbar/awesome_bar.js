@@ -240,12 +240,12 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				item.onclick(item.match);
 			} else {
 				let event = o.originalEvent;
-				if (event.ctrlKey || event.metaKey) {
-					frappe.open_in_new_tab = true;
-				}
 				if (is_external_url(item.route)) {
 					window.open(Array.isArray(item.route) ? item.route[0] : item.route, "_blank");
 					return;
+				}
+				if (event.ctrlKey || event.metaKey) {
+					frappe.open_in_new_tab = true;
 				}
 				frappe.set_route(item.route);
 			}
