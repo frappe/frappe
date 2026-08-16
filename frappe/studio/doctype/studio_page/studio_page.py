@@ -377,6 +377,59 @@ def find_page_with_route(app_name: str, page_route: str) -> str | None:
 		pass
 
 
+PAGE_RESOURCE_FIELDS = (
+	"resource_type",
+	"resource_name",
+	"auto",
+	"fields",
+	"filters",
+	"limit",
+	"sort_field",
+	"sort_order",
+	"document_type",
+	"document_name",
+	"fetch_document_using_filters",
+	"url",
+	"method",
+	"params",
+	"whitelisted_methods",
+	"transform",
+	"on_success",
+	"on_error",
+)
+
+PAGE_VARIABLE_FIELDS = ("variable_name", "variable_type", "initial_value")
+
+
+@frappe.whitelist(methods=["GET"])
+def get_page(app_name: str, page_route: str, preview: bool = False) -> dict:
+	"""Serve a page definition to the app renderer in a single call, without DocType
+	permission checks — a page definition is markup; the data it fetches stays
+	permission-checked by the endpoints its resources call."""
+	page_name = find_page_with_route(app_name, page_route)
+	if not page_name:
+		frappe.throw(_("Page not found"), frappe.DoesNotExistError)
+
+	page = frappe.get_cached_doc("Studio Page", page_name)
+	return {
+		"name": page.name,
+		"page_title": page.page_title,
+		"route": page.route,
+		"studio_app": page.studio_app,
+		"is_standard": page.is_standard,
+		"script": page.script,
+		"blocks": (page.draft_blocks or page.blocks) if preview else page.blocks,
+		"resources": [
+			{"resource_id": row.name, **{field: row.get(field) for field in PAGE_RESOURCE_FIELDS}}
+			for row in page.resources
+		],
+		"variables": [
+			{"name": row.name, **{field: row.get(field) for field in PAGE_VARIABLE_FIELDS}}
+			for row in page.variables
+		],
+	}
+
+
 @frappe.whitelist()
 def duplicate_page(page_name: str, app_name: str | None):
 	if not frappe.has_permission("Studio Page", ptype="write"):

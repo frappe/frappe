@@ -62,18 +62,26 @@ const useCodeStore = defineStore("codeStore", () => {
 
 	// RESOURCES
 	let pendingResources: Record<string, any> | null = null
-	async function setPageResources(page: StudioPage, setResourceConfig: boolean = false) {
+	async function setPageResources(
+		page: StudioPage,
+		setResourceConfig: boolean = false,
+		preloadedResources?: Resource[],
+	) {
 		stopResourceWatchers()
 		// Each load uses its own map, so old async updates cannot change the current page resources.
 		const pageResources = reactive({}) as Record<string, any>
 		pendingResources = pageResources
 
-		studioPageResources.filters = { parent: page.name }
-		await studioPageResources.reload()
-		if (pendingResources !== pageResources) return
+		let resourceRows = preloadedResources
+		if (!resourceRows) {
+			studioPageResources.filters = { parent: page.name }
+			await studioPageResources.reload()
+			if (pendingResources !== pageResources) return
+			resourceRows = studioPageResources.data
+		}
 
 		await Promise.all(
-			studioPageResources.data.map(async (resource: Resource) => {
+			resourceRows.map(async (resource: Resource) => {
 				await addPageResource(resource, pageResources)
 				const newResource = pageResources[resource.resource_name]
 				if (setResourceConfig && newResource) {
@@ -315,12 +323,16 @@ const useCodeStore = defineStore("codeStore", () => {
 	}
 
 	// VARIABLES
-	async function setPageVariables(page: StudioPage) {
-		studioVariables.filters = { parent: page.name }
-		await studioVariables.reload()
+	async function setPageVariables(page: StudioPage, preloadedVariables?: Variable[]) {
+		let variableRows = preloadedVariables
+		if (!variableRows) {
+			studioVariables.filters = { parent: page.name }
+			await studioVariables.reload()
+			variableRows = studioVariables.data
+		}
 		variables.value = {}
 
-		studioVariables.data.map((variable: Variable) => {
+		variableRows.map((variable: Variable) => {
 			variables.value[variable.variable_name] = getInitialVariableValue(variable)
 		})
 	}
