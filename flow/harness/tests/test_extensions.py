@@ -189,3 +189,44 @@ def test_cli_reports_extension_diagnostics_on_stderr(tmp_path, capsys):
 	assert f"flow: extension error: explicit extension path does not exist ({missing})" in stderr
 	assert "flow: extension error: failed to import extension" in stderr
 	assert str(broken) in stderr
+
+
+def test_reload_swaps_tools_for_store_and_cached_sessions(tmp_path):
+	path = _write_extension(tmp_path / "extensions", "hello", HELLO_EXTENSION)
+	store = SessionStore(str(tmp_path / "data"), extension_paths=[str(path)])
+	session = store.create(SessionConfig(cwd=str(tmp_path), tools=[]))
+	assert list(session.server_tools) == ["hello"]
+
+	path.write_text(HELLO_EXTENSION.replace("hello", "howdy_tool"))
+	store.reload_extensions()
+
+	assert list(store.extension_runtime.tools) == ["howdy_tool"]
+	assert list(session.server_tools) == ["howdy_tool"]
+	assert store.extension_runtime.diagnostics == ()
+
+
+def test_reload_unloads_previous_extension_modules(tmp_path):
+	import sys
+
+	path = _write_extension(tmp_path / "extensions", "hello", HELLO_EXTENSION)
+	store = SessionStore(str(tmp_path / "data"), extension_paths=[str(path)])
+	before = {name for name in sys.modules if name.startswith("flow_extension_")}
+
+	store.reload_extensions()
+
+	after = {name for name in sys.modules if name.startswith("flow_extension_")}
+	assert not before & after
+	assert len(after) == 1
+
+
+def test_reload_endpoint_reports_fresh_diagnostics(tmp_path):
+	path = _write_extension(tmp_path / "extensions", "hello", HELLO_EXTENSION)
+	store = SessionStore(str(tmp_path / "data"), extension_paths=[str(path)])
+	client = TestClient(create_app(store))
+	path.write_text("def setup(flow):\n    raise RuntimeError('boom')\n")
+
+	payload = client.post("/extensions/reload").json()
+
+	assert payload["extensions"] == []
+	assert any(diagnostic["severity"] == "error" for diagnostic in payload["diagnostics"])
+	assert store.extension_runtime.tools == {}
