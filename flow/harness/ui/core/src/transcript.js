@@ -142,9 +142,9 @@ export function applyEvent(s, e) {
 				if (existing) existing.name = e.name
 				else s.partial.push({ type: "tool_call", id: e.id, name: e.name, arguments: null })
 			}
-			// The tool name alone already names the activity; streamed arguments
-			// upgrade it to the richer display once tool_call_display_ready lands.
-			s.liveLabel = stepLiveLabel({ name: e.name })
+			// Keep the current status until tool_call_display_ready renders the full
+			// label; a name-only generic label here would flash for a fraction of a
+			// second before the arguments arrive.
 			break
 		case "tool_call_display_ready": {
 			const call = {

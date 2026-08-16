@@ -141,8 +141,9 @@ test("live chat statuses do not use ellipses", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })
 	assert.equal(conversation.liveLabel, "Thinking")
+	// a name-only start keeps the current status; no generic label flash
 	applyEvent(conversation, { type: "tool_call_started", name: "read_file" })
-	assert.equal(conversation.liveLabel, "Reading file")
+	assert.equal(conversation.liveLabel, "Thinking")
 	applyEvent(conversation, {
 		type: "tool_call_display_ready",
 		id: "call-1",
@@ -156,7 +157,7 @@ test("live chat statuses do not use ellipses", () => {
 		{ text: "src/events.py", arg: "path" },
 	])
 	applyEvent(conversation, { type: "tool_call_started", name: "send_email_now" })
-	assert.equal(conversation.liveLabel, "Running send email now")
+	assert.equal(conversation.liveLabel, "Inspecting events.py")
 	applyEvent(conversation, { type: "retry", status: "scheduled" })
 	assert.equal(conversation.liveLabel, "Retrying")
 	applyEvent(conversation, { type: "compaction_started" })
@@ -207,7 +208,7 @@ test("identity-only tool starts stay hidden until actionable arguments arrive", 
 		{ type: "tool_call", id: "call-1", name: "read_file", arguments: null },
 	])
 	assert.deepEqual(toolGroups(conversation), [])
-	assert.equal(conversation.liveLabel, "Reading file")
+	assert.equal(conversation.liveLabel, "Thinking")
 })
 
 test("ready tool metadata creates one exact provisional step", () => {
@@ -401,7 +402,7 @@ test("streamed thought, text, and tool call keep their order until the durable m
 	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "bash" })
 
 	assert.deepEqual(conversation.partial.map((block) => block.type), ["thinking", "text", "tool_call"])
-	assert.equal(conversation.liveLabel, "Running command")
+	assert.equal(conversation.liveLabel, null)
 	const liveItems = buildItems(conversation)
 	assert.deepEqual(liveItems.map((item) => item.kind), ["user", "thinking", "text"])
 	assert.equal(liveItems[1].live, false)
