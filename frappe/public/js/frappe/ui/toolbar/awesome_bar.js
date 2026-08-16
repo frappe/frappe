@@ -14,6 +14,104 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		this.options = [];
 		this.global_results = [];
 
+<<<<<<< HEAD
+=======
+		this.setup_search_modal(element);
+
+		frappe.search.utils.setup_recent();
+		this.setup_page_change_event();
+	}
+
+	setup_search_modal(element) {
+		let $search_element = $(element);
+
+		let search_modal = new frappe.get_modal("Search", "");
+		this.search_modal = search_modal;
+		search_modal.removeClass("fade");
+		search_modal.on("shown.bs.modal", () => {
+			const input = search_modal.find("#navbar-search").get(0);
+			setTimeout(() => input.focus(), 10);
+		});
+		search_modal.on("hide.bs.modal", () => {
+			this._hook_search_seq = (this._hook_search_seq || 0) + 1;
+		});
+
+		let search_modal_body = `<div class="align-baseline flex p-2 relative navbar-modal-wrapper">
+			<input
+				id="navbar-search"
+				type="text"
+				class="form-control bg-transparent shadow-none" aria-haspopup="true"
+				placeholder="${__("Search or type a command")}" autocomplete="off"
+			/>
+			<div class="modal-divider"></div>
+		</div>`;
+
+		let search_modal_footer = `<div class="awesomebar-modal-footer flex justify-between w-100">
+			<div class="help-navigation">
+				<span class="help-item-navigate">
+					<span class="help-item">${frappe.utils.icon("arrow-up", "xs")}</span>
+					<span class="help-item">${frappe.utils.icon("arrow-down", "xs")}</span>
+					<span>${__("to navigate")}</span>
+				</span>
+				<span class="help-item-navigate">
+					<span class="help-item">${frappe.utils.icon("corner-down-left", "xs")}</span>
+					<span>${__("to select")}</span>
+				</span>
+				<span class="help-item-navigate">
+					<span class="help-item help-item-escape">${frappe.utils.is_mac() ? "⌘K" : "Ctrl+K"}</span>
+					<span>${__("to close")}</span>
+				</span>
+				<span class="help-item-navigate">
+					<span class="help-item help-item-escape">${frappe.utils.is_mac() ? "⌘G" : "Ctrl+G"}</span>
+					<span>${__("to open Global Search")}</span>
+				</span>
+			</div>
+		</div>`;
+
+		search_modal.find(".modal-body").css("padding", "0").html(search_modal_body);
+		search_modal.find(".modal-header").css("display", "none");
+		search_modal
+			.find(".modal-footer")
+			.removeClass("hide")
+			.addClass("cool-awesomebar-modal-footer")
+			.html(search_modal_footer);
+
+		$(document).on("click", element, () => {
+			if (this.is_open()) {
+				this.close();
+				return;
+			}
+			search_modal.modal("show");
+			this.setup_event_listeners(search_modal);
+		});
+	}
+
+	open(search_modal) {
+		const modal = search_modal || this.search_modal;
+		if (!modal) return;
+		modal.modal("show");
+		this.setup_event_listeners(modal);
+	}
+
+	close() {
+		if (!this.is_open()) return;
+		this.search_modal.modal("hide");
+	}
+
+	is_open() {
+		return Boolean(this.search_modal?.hasClass("show"));
+	}
+
+	setup_event_listeners(search_modal) {
+		// Listeners and the Awesomplete dropdown only need to be set up once.
+		// Re-running this on every open creates duplicate dropdowns and shows results twice.
+		if (this.awesomplete) return;
+
+		var me = this;
+		let $input = search_modal.find("#navbar-search");
+		let input = $input.get(0);
+
+>>>>>>> fcd0f672fd (feat(awesomebar): let apps add search results via hook (#41925))
 		var awesomplete = new Awesomplete(input, {
 			minChars: 0,
 			maxItems: 99,
@@ -31,7 +129,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			item: function (item, term) {
 				const d = this.get_item(item.value);
 				let target = "#";
-				if (d.route) {
+				if (is_external_url(d.route) || is_in_app_path(d.route)) {
+					target = first_route(d.route);
+				} else if (d.route) {
 					target = frappe.router.make_url(
 						frappe.router.convert_from_standard_route(
 							frappe.router.get_route_from_arguments(
@@ -69,6 +169,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				var txt = value.trim().replace(/\s\s+/g, " ");
 				var last_space = txt.lastIndexOf(" ");
 				me.global_results = [];
+				me._hook_search_seq = (me._hook_search_seq || 0) + 1;
 
 				me.options = [];
 
@@ -79,6 +180,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					me.add_defaults(txt);
 					me.options = me.options.concat(me.build_options(txt));
 					me.options = me.options.concat(me.global_results);
+					if (frappe.boot.has_awesomebar_search) {
+						me.fetch_hook_results(txt, me._hook_search_seq);
+					}
 				} else {
 					me.options = me.options.concat(
 						me.deduplicate(frappe.search.utils.get_recent_pages(txt || ""))
@@ -117,15 +221,22 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 			if (item.onclick) {
 				item.onclick(item.match);
+			} else if (is_external_url(item.route)) {
+				window.open(first_route(item.route), "_blank");
+			} else if (is_in_app_path(item.route)) {
+				navigate_in_app_path(first_route(item.route), o.originalEvent);
 			} else {
 				let event = o.originalEvent;
 				if (event.ctrlKey || event.metaKey) {
 					frappe.open_in_new_tab = true;
 				}
+<<<<<<< HEAD
 				if (item.route[0].startsWith("https://")) {
 					window.open(item.route[0], "_blank");
 					return;
 				}
+=======
+>>>>>>> fcd0f672fd (feat(awesomebar): let apps add search results via hook (#41925))
 				frappe.set_route(item.route);
 			}
 			$input.val("");
@@ -264,6 +375,26 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		this.global_results = this.global_results.concat(global_results);
 	}
 
+	fetch_hook_results(txt, seq) {
+		frappe.call({
+			method: "frappe.desk.search.awesomebar_search",
+			args: { txt },
+			callback: (r) => {
+				if (seq !== this._hook_search_seq || !r.message?.length) return;
+				this.options = this.deduplicate(this.options.concat(r.message));
+				this.options.sort((a, b) => b.index - a.index);
+				$(this.awesomplete.ul).toggleClass("p-0 m-0", cint(this.options?.length) == 0);
+				this.search_modal
+					.find(".cool-awesomebar-modal-footer")
+					.toggleClass("hide", cint(this.options?.length) == 0);
+				this.awesomplete.options_with_desc = this.create_options_with_descriptions(
+					this.options
+				);
+				this.awesomplete.list = this.options;
+			},
+		});
+	}
+
 	make_global_search(txt) {
 		// let search_text = $(this.awesomplete.ul).find('.search-text');
 
@@ -380,3 +511,42 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		}
 	}
 };
+
+function first_route(route) {
+	return Array.isArray(route) ? route[0] : route;
+}
+
+function is_external_url(route) {
+	const first = first_route(route);
+	return (
+		typeof first === "string" && (first.startsWith("https://") || first.startsWith("http://"))
+	);
+}
+
+function is_in_app_path(route) {
+	const first = first_route(route);
+	return typeof first === "string" && first.startsWith("/") && !first.startsWith("//");
+}
+
+function is_desk_path(path) {
+	const pathname = path.split(/[?#]/)[0];
+	return (
+		pathname === "/desk" ||
+		pathname.startsWith("/desk/") ||
+		pathname === "/app" ||
+		pathname.startsWith("/app/")
+	);
+}
+
+function navigate_in_app_path(path, event) {
+	if (is_desk_path(path)) {
+		if (event.ctrlKey || event.metaKey) {
+			frappe.open_in_new_tab = true;
+		}
+		frappe.set_route(path);
+	} else if (event.ctrlKey || event.metaKey) {
+		window.open(path, "_blank");
+	} else {
+		window.location.href = path;
+	}
+}
