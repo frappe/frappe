@@ -4,10 +4,11 @@
 			<div class="ps-3" :class="$slots.actions ? 'pe-1.5' : 'pe-3'">
 				<slot name="header" :email="email">
 					<!-- 40px header; its center aligns with the gutter avatar -->
-					<div class="flex h-10 items-center justify-between gap-2">
+					<!-- min-h + wrap: on narrow widths the time/actions drop below the name -->
+					<div class="flex min-h-10 flex-wrap items-center justify-between gap-2">
 						<!-- sender email is hidden; surfaced on hover via tooltip -->
 						<Tooltip :text="email.data.sender">
-							<span class="text-base font-medium text-ink-gray-6">{{
+							<span class="min-w-0 truncate text-base font-medium text-ink-gray-6">{{
 								email?.author?.fullname || "Guest"
 							}}</span>
 						</Tooltip>
