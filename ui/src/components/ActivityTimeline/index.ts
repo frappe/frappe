@@ -3,7 +3,10 @@ export { default as EmailItem } from "./EmailItem.vue";
 export { default as CommentItem } from "./CommentItem.vue";
 export { default as LogItem } from "./LogItem.vue";
 export { default as VersionItem } from "./VersionItem.vue";
-export { useActivityTimeline } from "./useActivityTimeline";
+export {
+  prefetchActivityTimeline,
+  useActivityTimeline,
+} from "./useActivityTimeline";
 export type { VisibleTypes } from "./useActivityTimeline";
 export type {
   Activity,

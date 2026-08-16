@@ -1,100 +1,109 @@
 <template>
-	<div ref="rootEl" class="activity-timeline">
-		<!-- spinner only on first load; cached data stays visible during revalidation -->
-		<div v-if="loading && !activities.length" class="flex justify-center py-8">
-			<LoadingIndicator class="size-5 text-ink-gray-5" />
-		</div>
-		<template v-else-if="!activities.length">
-			<slot name="empty">
-				<div class="flex flex-col items-center justify-center gap-3 py-8">
-					<LucideActivity class="h-7 w-7 text-ink-gray-4" />
-					<span class="text-md font-medium text-ink-gray-8">No activity yet</span>
-				</div>
-			</slot>
-		</template>
-		<div v-else class="activities flex flex-col gap-2 mt-2" :tabindex="0">
-			<!-- LoadMore for Pagination -->
-			<div
-				v-if="showLoadMoreButton && !loadMoreAtBottom"
-				class="mb-1 flex w-full justify-center"
-			>
-				<LoadMore />
+	<!-- column-reverse scroller: opens pinned to the newest row natively; needs a bounded height -->
+	<div ref="rootEl" class="activity-timeline flex flex-col-reverse overflow-y-auto">
+		<!-- min-h-full keeps short feeds at the top; shrink-0 keeps the overflow -->
+		<div class="min-h-full shrink-0">
+			<!-- spinner only on first load; cached data stays visible during revalidation -->
+			<div v-if="loading && !activities.length" class="flex justify-center py-8">
+				<LoadingIndicator class="size-5 text-ink-gray-5" />
 			</div>
-			<div
-				v-for="(activity, i) in displayActivities"
-				:key="getKey(activity, i)"
-				:id="getKey(activity, i)"
-				class="activity"
-			>
-				<div class="grid w-full grid-cols-[30px_minmax(auto,_1fr)] gap-2 px-6 md:px-0">
-					<!-- gutter column: vertical connector line + icon/avatar -->
-					<div
-						class="relative flex justify-center after:absolute after:start-[50%] after:z-0 after:border-s after:border-outline-elevation-2"
-						:class="
-							activity.type === 'load_more'
-								? 'after:-top-2 after:h-[calc(100%+1rem)]'
-								: [
-										i != displayActivities.length - 1 && 'after:h-full',
-										isOneLinerActivity(activity)
-											? 'after:top-6'
-											: 'after:top-3',
-								  ]
-						"
-					>
-						<!-- load_more has no gutter icon — the connector line passes straight through -->
+			<template v-else-if="!activities.length">
+				<slot name="empty">
+					<div class="flex flex-col items-center justify-center gap-3 py-8">
+						<LucideActivity class="h-7 w-7 text-ink-gray-4" />
+						<span class="text-md font-medium text-ink-gray-8">No activity yet</span>
+					</div>
+				</slot>
+			</template>
+			<div v-else class="activities flex flex-col gap-2 mt-2" :tabindex="0">
+				<!-- LoadMore for Pagination -->
+				<div
+					v-if="showLoadMoreButton && !loadMoreAtBottom"
+					class="mb-1 flex w-full justify-center"
+				>
+					<LoadMore />
+				</div>
+				<div
+					v-for="(activity, i) in displayActivities"
+					:key="getKey(activity, i)"
+					:id="getKey(activity, i)"
+					class="activity"
+				>
+					<div class="grid w-full grid-cols-[30px_minmax(auto,_1fr)] gap-2 px-6 md:px-0">
+						<!-- gutter column: vertical connector line + icon/avatar -->
 						<div
-							v-if="activity.type !== 'load_more'"
-							class="relative z-10 flex items-center justify-center self-start bg-surface-base"
-							:class="[isAvatarActivity(activity) ? 'h-10' : 'h-6 w-6 rounded-full']"
+							class="relative flex justify-center after:absolute after:start-[50%] after:z-0 after:border-s after:border-outline-elevation-2"
+							:class="
+								activity.type === 'load_more'
+									? 'after:-top-2 after:h-[calc(100%+1rem)]'
+									: [
+											i != displayActivities.length - 1 && 'after:h-full',
+											isOneLinerActivity(activity)
+												? 'after:top-6'
+												: 'after:top-3',
+									  ]
+							"
 						>
-							<!-- gutter ladder: #icon-{type} slot > GutterIcon (activity.icon > per-type default) -->
-							<slot :name="`icon-${activity.type}`" :activity="activity">
-								<GutterIcon :activity="activity" />
+							<!-- load_more has no gutter icon — the connector line passes straight through -->
+							<div
+								v-if="activity.type !== 'load_more'"
+								class="relative z-10 flex items-center justify-center self-start bg-surface-base"
+								:class="[
+									isAvatarActivity(activity) ? 'h-10' : 'h-6 w-6 rounded-full',
+								]"
+							>
+								<!-- gutter ladder: #icon-{type} slot > GutterIcon (activity.icon > per-type default) -->
+								<slot :name="`icon-${activity.type}`" :activity="activity">
+									<GutterIcon :activity="activity" />
+								</slot>
+							</div>
+						</div>
+						<div
+							class="mb-4 flex flex-1"
+							:class="[i == displayActivities.length - 1 && 'mb-5']"
+							:data-type="activity.type"
+						>
+							<!-- Load More in activity -->
+							<div
+								v-if="activity.type === 'load_more'"
+								class="flex w-full justify-center"
+							>
+								<LoadMore />
+							</div>
+							<slot v-else :name="`item-${activity.type}`" :activity="activity">
+								<!-- default slot: full per-row override, exposes the row as { item } -->
+								<slot :item="activity">
+									<EmailItem
+										v-if="activity.type === 'email'"
+										:email="activity"
+									/>
+									<CommentItem
+										v-else-if="activity.type === 'comment'"
+										:comment="activity"
+									/>
+									<LogItem
+										v-else-if="
+											activity.type === 'log' ||
+											activity.type === 'attachment_log'
+										"
+										:activity="activity"
+									/>
+									<VersionItem
+										v-else-if="activity.type === 'version'"
+										:activity="activity"
+									/>
+								</slot>
 							</slot>
 						</div>
 					</div>
-					<div
-						class="mb-4 flex flex-1"
-						:class="[i == displayActivities.length - 1 && 'mb-5']"
-						:data-type="activity.type"
-					>
-						<!-- Load More in activity -->
-						<div
-							v-if="activity.type === 'load_more'"
-							class="flex w-full justify-center"
-						>
-							<LoadMore />
-						</div>
-						<slot v-else :name="`item-${activity.type}`" :activity="activity">
-							<!-- default slot: full per-row override, exposes the row as { item } -->
-							<slot :item="activity">
-								<EmailItem v-if="activity.type === 'email'" :email="activity" />
-								<CommentItem
-									v-else-if="activity.type === 'comment'"
-									:comment="activity"
-								/>
-								<LogItem
-									v-else-if="
-										activity.type === 'log' ||
-										activity.type === 'attachment_log'
-									"
-									:activity="activity"
-								/>
-								<VersionItem
-									v-else-if="activity.type === 'version'"
-									:activity="activity"
-								/>
-							</slot>
-						</slot>
-					</div>
 				</div>
-			</div>
-			<!-- standalone Load More (bottom): a UI control, not a timeline row -->
-			<div
-				v-if="showLoadMoreButton && loadMoreAtBottom"
-				class="mt-4 flex w-full justify-center"
-			>
-				<LoadMore />
+				<!-- standalone Load More (bottom): a UI control, not a timeline row -->
+				<div
+					v-if="showLoadMoreButton && loadMoreAtBottom"
+					class="mt-4 flex w-full justify-center"
+				>
+					<LoadMore />
+				</div>
 			</div>
 		</div>
 	</div>
@@ -109,7 +118,6 @@ import GutterIcon from "./GutterIcon.vue";
 import LoadMoreButton from "./LoadMoreButton.vue";
 import LogItem from "./LogItem.vue";
 import type { Activity, ActivityTimelineProps, CustomActivity } from "./types";
-import { useTimelineScroll } from "./useTimelineScroll";
 import VersionItem from "./VersionItem.vue";
 
 const props = withDefaults(defineProps<ActivityTimelineProps>(), {
@@ -173,27 +181,14 @@ const LoadMore = () =>
 		  });
 
 const loadMoreAtBottom = computed(() => props.paginate?.loadMore?.position === "bottom");
-// Which row to re-pin after older rows patch in, so the viewport doesn't move.
-
-// scroll-to-bottom + anchor restore on Load More live in the composable
-const { captureAnchor, scrollToLatest } = useTimelineScroll(
-	rootEl,
-	computed(() => displayActivities.value.length),
-	() => !!props.paginate
-);
 
 function loadMore() {
-	captureAnchor(anchorRowKey());
 	props.paginate?.fetchNextPage();
 }
-function anchorRowKey(): string | null {
-	const list = displayActivities.value;
-	// in-feed load_more: pin the row just below it
-	const idx = list.findIndex((a) => a.type === "load_more");
-	if (idx !== -1) return list[idx + 1] ? getKey(list[idx + 1], idx + 1) : null;
-	// standalone button: bottom appends (no re-pin); top prepends, so pin the first row
-	if (loadMoreAtBottom.value) return null;
-	return list[0] ? getKey(list[0], 0) : null;
+
+// column-reverse: scrollTop 0 is the newest row
+function scrollToLatest() {
+	if (rootEl.value) rootEl.value.scrollTop = 0;
 }
 
 // Stable v-for key / scroll-target id; custom rows may omit `key`.

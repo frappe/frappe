@@ -34,15 +34,84 @@ function pagingState<T>(
 /** e.g. ["email", "comment", { version: ["status", "priority"] }] */
 export type VisibleTypes = Array<Activity["type"] | { version: string[] }>;
 
+// filters are part of the cache identity
+const timelineCacheKey = (
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+) =>
+  `${doctype}:${docname}:${visibleTypes ? JSON.stringify(visibleTypes) : "*"}`;
+
+function getTimelineResource(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+) {
+  const cacheKey = timelineCacheKey(doctype, docname, visibleTypes);
+  const existing = resources.get(cacheKey);
+  if (existing) return existing;
+
+  const hasMoreEmails = pagingState(hasMoreEmailsByKey, cacheKey, true);
+  const hasMoreMilestones = pagingState(
+    hasMoreMilestonesByKey,
+    cacheKey,
+    false
+  );
+  const milestoneStart = pagingState(milestoneStartByKey, cacheKey, 0);
+
+  const resource: ReturnType<typeof createResource> = createResource({
+    url: "frappe.desk.form.activity.get_activity_timeline",
+    // filtered server-side so pagination math stays correct
+    params: { doctype, name: docname, visible_types: visibleTypes },
+    cache: `activities:${cacheKey}`,
+    auto: true,
+    // transform sets resource.data; onSuccess still sees the raw response, so the
+    // has_more_* flags are read there (not from transform's output). On reload
+    // (e.g. a doc_update), re-append the older pages the user has already loaded.
+    transform: (res: { activities: Activity[] }) => {
+      const oldActivities = (resource.data as Activity[] | undefined) ?? [];
+
+      const newActivities = res.activities;
+      const newActivityKeys = new Set(newActivities.map((a) => a.key));
+
+      const paginatedOlderRows = oldActivities.filter(
+        (a) => isPagedRow(a) && !newActivityKeys.has(a.key)
+      );
+      return [...newActivities, ...paginatedOlderRows];
+    },
+    onSuccess: (res: {
+      has_more_emails?: boolean;
+      has_more_milestones?: boolean;
+      next_milestone_start?: number;
+    }) => {
+      hasMoreEmails.value = !!res.has_more_emails;
+      // This response only carries the first milestone page. Once the user has paged past it
+      // the transform above keeps those older rows, so page one's flag and offset are stale.
+      if (milestoneStart.value === 0) {
+        hasMoreMilestones.value = !!res.has_more_milestones;
+        milestoneStart.value = res.next_milestone_start ?? 0;
+      }
+    },
+  });
+  resources.set(cacheKey, resource);
+  return resource;
+}
+
+/** Start (or reuse) the shared feed fetch without mounting anything; gate on `.fetched`. */
+export function prefetchActivityTimeline(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+) {
+  return getTimelineResource(doctype, docname, visibleTypes);
+}
+
 export function useActivityTimeline(
   doctype: string,
   docname: string,
   visibleTypes?: VisibleTypes
 ) {
-  // filters are part of the cache identity
-  const cacheKey = `${doctype}:${docname}:${
-    visibleTypes ? JSON.stringify(visibleTypes) : "*"
-  }`;
+  const cacheKey = timelineCacheKey(doctype, docname, visibleTypes);
   const visibleTypeNames = visibleTypes?.flatMap((t) =>
     typeof t === "string" ? [t] : Object.keys(t)
   );
@@ -55,44 +124,7 @@ export function useActivityTimeline(
   );
   const milestoneStart = pagingState(milestoneStartByKey, cacheKey, 0);
 
-  let resource = resources.get(cacheKey);
-  if (!resource) {
-    resource = createResource({
-      url: "frappe.desk.form.activity.get_activity_timeline",
-      // filtered server-side so pagination math stays correct
-      params: { doctype, name: docname, visible_types: visibleTypes },
-      cache: `activities:${cacheKey}`,
-      auto: true,
-      // transform sets resource.data; onSuccess still sees the raw response, so the
-      // has_more_* flags are read there (not from transform's output). On reload
-      // (e.g. a doc_update), re-append the older pages the user has already loaded.
-      transform: (res: { activities: Activity[] }) => {
-        const oldActivities = (resource.data as Activity[] | undefined) ?? [];
-
-        const newActivities = res.activities;
-        const newActivityKeys = new Set(newActivities.map((a) => a.key));
-
-        const paginatedOlderRows = oldActivities.filter(
-          (a) => isPagedRow(a) && !newActivityKeys.has(a.key)
-        );
-        return [...newActivities, ...paginatedOlderRows];
-      },
-      onSuccess: (res: {
-        has_more_emails?: boolean;
-        has_more_milestones?: boolean;
-        next_milestone_start?: number;
-      }) => {
-        hasMoreEmails.value = !!res.has_more_emails;
-        // This response only carries the first milestone page. Once the user has paged past it
-        // the transform above keeps those older rows, so page one's flag and offset are stale.
-        if (milestoneStart.value === 0) {
-          hasMoreMilestones.value = !!res.has_more_milestones;
-          milestoneStart.value = res.next_milestone_start ?? 0;
-        }
-      },
-    });
-    resources.set(cacheKey, resource);
-  }
+  const resource = getTimelineResource(doctype, docname, visibleTypes);
 
   subscribeToLiveUpdates(doctype, docname, resource, visibleTypeNames);
 
