@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-11 18:25\n"
+"PO-Revision-Date: 2026-08-17 19:41\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -26670,7 +26670,7 @@ msgstr "Editor de Texto"
 
 #: frappe/templates/emails/password_reset.html:5
 msgid "Thank you"
-msgstr "Obrigado"
+msgstr ""
 
 #: frappe/www/contact.py:47
 msgid "Thank you for reaching out to us. We will get back to you at the earliest.\n\n\n"
