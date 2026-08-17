@@ -362,7 +362,6 @@
  "module": "System",
  "name": "System",
  "owner": "Administrator",
- "sequence_id": 0.0,
  "standard": 1,
  "title": "System"
 }

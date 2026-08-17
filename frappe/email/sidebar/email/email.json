@@ -115,7 +115,6 @@
  "module": "Email",
  "name": "Email",
  "owner": "Administrator",
- "sequence_id": 3.0,
  "standard": 1,
  "title": "Email"
 }

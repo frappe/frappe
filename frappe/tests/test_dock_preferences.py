@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+import typing
 from contextlib import ExitStack, contextmanager
 from unittest.mock import patch
 
@@ -983,13 +984,12 @@ class TestEmitDockHook(DockTestCase):
 			self.assertRaises(frappe.ValidationError, emit_dock_hook, app=self.APP, items=payload(ALPHA))
 
 
-class TestTheShippedModuleOrder(IntegrationTestCase):
-	"""The order an app's modules take when no layer arranges them.
+class TestTheAppsEntrySet(IntegrationTestCase):
+	"""The order an app's modules take when nothing arranges them.
 
-	The site's `Dock` and each person's own are site and user intent, and they can only
-	rearrange the list they are given. This is that list -- `boot.get_app_modules` -- and until
-	`Sidebar.sequence_id` existed the only way an app could state it was the position a
-	module happened to occupy in `modules.txt`.
+	Not the arrangement: where a module *sits* is `add_to_dock`, an ordered list in the app's
+	`hooks.py`. This is the entry set that list orders, and an entry it never names trails the
+	ones it does, in this order.
 	"""
 
 	def app_order(self, app: str = "frappe") -> list[str]:
@@ -997,57 +997,92 @@ class TestTheShippedModuleOrder(IntegrationTestCase):
 
 		return get_app_modules(app)
 
-	def position(self, module: str) -> int:
-		return self.app_order().index(module)
-
-	def test_a_sequence_pulls_a_module_in_front_of_one_that_declares_none(self):
-		with (
-			sidebarless_module("Test Sequence Ahead A") as ahead,
-			sidebarless_module("Test Sequence Ahead B") as behind,
-		):
-			# alphabetical to begin with: neither is in modules.txt, so both tie on every key
-			# above the name
-			self.assertLess(self.position(ahead), self.position(behind))
-
-			make_sidebar(behind, sequence_id=1)
-			self.assertLess(self.position(behind), self.position(ahead))
-
-	def test_a_high_sequence_pushes_a_module_behind_one_that_declares_none(self):
-		"""What the *middle* default buys: declaring a sequence can say "after the quiet ones"
-		as well as "before them". A trailing default could only ever say the first."""
-		with (
-			sidebarless_module("Test Sequence Behind A") as pushed,
-			sidebarless_module("Test Sequence Behind B") as quiet,
-		):
-			make_sidebar(pushed, sequence_id=500)
-
-			self.assertLess(self.position(quiet), self.position(pushed))
-
-	def test_modules_txt_still_breaks_a_tie(self):
-		"""The modules an app says nothing about keep exactly the dock they had, because the
-		order it already declared is what the tie falls back to.
-
-		Scoped to the modules with no sidebar document rather than to all of `frappe`'s: the
-		ones that *do* have a document are entitled to state a sequence, and asserting over
-		them would be asserting that no framework sidebar ever does.
-		"""
+	def test_modules_txt_position_leads_and_the_name_breaks_the_tie(self):
+		"""Two tiers, not three. Collapsing to name alone would alphabetise the trailing set,
+		which would be a behaviour change smuggled into a field deletion."""
 		declared = frappe.get_module_list("frappe")
-		sequenced = set(frappe.get_all("Sidebar", pluck="module"))
-		quiet = [m for m in self.app_order() if m in declared and m not in sequenced]
+		order = self.app_order()
 
-		self.assertTrue(quiet, "sanity: some framework module declares no sequence")
-		self.assertEqual(quiet, sorted(quiet, key=declared.index))
+		in_txt = [module for module in order if module in declared]
+		self.assertEqual(in_txt, sorted(in_txt, key=declared.index))
 
-	def test_a_module_with_no_sidebar_document_takes_the_default(self):
-		"""Most modules have a computed base and no document at all, so the default is the
-		common case rather than the edge one."""
-		from frappe.boot import DEFAULT_MODULE_SEQUENCE_ID
+		with (
+			sidebarless_module("Test Entry Set B") as second,
+			sidebarless_module("Test Entry Set A") as first,
+		):
+			# neither is in modules.txt, so both land in the trailing tier and the name decides
+			order = self.app_order()
+			self.assertLess(order.index(first), order.index(second))
 
-		with sidebarless_module("Test Sequence Defaulted") as module:
+	def test_a_module_with_no_sidebar_document_is_in_the_set(self):
+		"""Most modules have a computed base and no document at all. Stating where one sits no
+		longer needs a stub `Sidebar` to carry a float -- an ordered list needs no document."""
+		with sidebarless_module("Test Entry Set Computed") as module:
 			self.assertFalse(frappe.db.exists("Sidebar", {"module": module}))
 			self.assertIn(module, self.app_order())
 
-			# the same position a document stating the default would put it in
-			without = self.position(module)
-			make_sidebar(module, sequence_id=DEFAULT_MODULE_SEQUENCE_ID)
-			self.assertEqual(self.position(module), without)
+	def test_the_sidebar_no_longer_carries_a_sequence(self):
+		"""`Sidebar.sequence_id` did not order a sidebar -- it ordered modules on the dock, from
+		a document homed on something else. It and its middle default came out together, because
+		they are one mechanism."""
+		import frappe.boot as boot
+
+		self.assertIsNone(frappe.get_meta("Sidebar").get_field("sequence_id"))
+		self.assertFalse(hasattr(boot, "DEFAULT_MODULE_SEQUENCE_ID"))
+		# the apps-screen one stays: it orders the thing it lives on
+		self.assertTrue(hasattr(boot, "DEFAULT_APP_SEQUENCE_ID"))
+
+
+class TestTheFrameworksTen(IntegrationTestCase):
+	"""The framework declaring its own dock order as ten typed rows.
+
+	A transcription, not an extension: the ten are what the framework already declared through
+	eleven exported `Sidebar` documents, and `Geo` and `System` stay unnamed and trail exactly as
+	they did -- System's exported value read as the default, so it trailed beside Geo. The dock
+	renders identically before and after.
+	"""
+
+	TEN: typing.ClassVar[list[str]] = [
+		"Build Tools",
+		"Users",
+		"Email",
+		"Website",
+		"Data",
+		"Workflow",
+		"Printing",
+		"Integrations",
+		"Contacts",
+		"Automation",
+	]
+
+	def test_frappe_declares_its_ten(self):
+		self.assertEqual(
+			frappe.get_hooks("add_to_dock", app_name="frappe"),
+			[{"type": "Sidebar", "name": module} for module in self.TEN],
+		)
+
+	def test_the_walked_case_renders_the_same_dock(self):
+		"""Fifteen modules in, ten named, three code-only dropped by the client, Geo and System
+		trailing -- in `modules.txt` order, which is where they already were."""
+		from frappe.boot import get_app_modules
+		from frappe.utils.modules import get_code_only_modules
+
+		frappe.set_user("Administrator")
+		clear_arrangements()
+
+		resolved = [row["name"] for row in resolve_dock() if row["type"] == "Sidebar"]
+		entry_set = get_app_modules("frappe")
+
+		# the ten lead, in the order the hook declares them
+		self.assertEqual([name for name in resolved if name in self.TEN], self.TEN)
+
+		# ...and the entries nothing names are absent from the arrangement, so the client keeps
+		# them in the app's own order behind the ten. Code-only modules are filtered client-side,
+		# as they already were, so they are still in the entry set here.
+		#
+		# Narrowed to the modules `modules.txt` declares: a bench that has run the full suite
+		# carries stray `Module Def` rows, and this is an assertion about the framework's fifteen.
+		declared = set(frappe.get_module_list("frappe"))
+		unnamed = [name for name in entry_set if name in declared and name not in self.TEN]
+		self.assertEqual([name for name in resolved if name in unnamed], [])
+		self.assertEqual([name for name in unnamed if name not in get_code_only_modules()], ["Geo", "System"])

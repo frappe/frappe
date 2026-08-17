@@ -98,7 +98,6 @@
  "module": "Automation",
  "name": "Automation",
  "owner": "Administrator",
- "sequence_id": 10.0,
  "standard": 1,
  "title": "Automation"
 }

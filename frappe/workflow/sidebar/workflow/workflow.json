@@ -103,7 +103,6 @@
  "module": "Workflow",
  "name": "Workflow",
  "owner": "Administrator",
- "sequence_id": 6.0,
  "standard": 1,
  "title": "Workflow"
 }

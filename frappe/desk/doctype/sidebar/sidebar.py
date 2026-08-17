@@ -93,7 +93,6 @@ class Sidebar(Document, DeskViews):
 		items: DF.Table[SidebarItem]
 		merged_from: DF.LongText | None
 		module: DF.Link
-		sequence_id: DF.Float
 		standard: DF.Check
 		title: DF.Data | None
 	# end: auto-generated types
@@ -325,129 +324,6 @@ def unmark_as_standard(module: str) -> None:
 		alert=True,
 		indicator="orange",
 	)
-
-
-@frappe.whitelist()
-def ship_dock_order(modules: list | str) -> list[str]:
-	"""Write `modules` back into their app's own files as the dock order it ships.
-
-	Returns the app's resulting module order, which is what the manager redraws from.
-
-	The dock has two layers a site can arrange -- a `Dock` for everyone, another for one person
-	-- and both of them can only rearrange the list they are handed. This writes
-	*that list*: an author arranges the dock in the manager, presses ship, and the arrangement
-	becomes app content instead of site state, so it is what a fresh install starts from.
-
-	It lands on `Sidebar.sequence_id`, one document per module, rather than in a document
-	of its own. A module already ships the file that says what it is called and what is in it,
-	so where it sits is one more thing that file can say -- and being per module is what lets an
-	app add a module later and place it without republishing an order for all of them.
-
-	**A module with no sidebar document gets a stub**, carrying the sequence and nothing else.
-	Deliberately not `materialize_base`, which is `mark_as_standard`'s job: that one fills in the
-	computed items because adopting a sidebar means shipping the navigation it renders, whereas
-	stating a position should not quietly freeze a module's contents into a file as well. An
-	itemless document is a supported shape -- `get_sidebar_bases` computes the rows of one
-	and keeps whatever the document says about itself.
-
-	Sequences are `1..n`, always below `DEFAULT_MODULE_SEQUENCE_ID`, so an arranged module leads
-	the ones that state nothing. `sequence_id` is a Float, so there is room to hand-insert
-	between two of them afterwards without renumbering the file.
-
-	Ordering only: a shipped arrangement cannot hide a module. Hiding at ship time is the
-	`code_only_modules` hook, or a sidebar with nothing navigable in it -- both of which say
-	*this module is not somewhere to go*, where a hidden row would only say *not right now*,
-	which is site intent and belongs in the layers above.
-	"""
-	check_developer_mode()
-
-	if isinstance(modules, str):
-		modules = frappe.parse_json(modules)
-	# rows may arrive in the manager's `{module, hidden}` shape; only the order is read
-	ordered = [row.get("module") if isinstance(row, dict) else row for row in modules]
-	ordered = [module for module in ordered if module]
-	if not ordered:
-		frappe.throw(_("There is no order to ship."))
-
-	# The app is derived from the modules rather than taken from the caller: a dock is one app's,
-	# so the arrangement already says which, and the client's notion of an app name is the *title
-	# key* from `add_to_apps_screen` -- which an app may set to something other than its own name.
-	# Reading it here means this cannot be talked into writing files inside a different app.
-	apps = {get_module_placement(module) for module in ordered}
-	if len(apps) > 1 or None in apps:
-		frappe.throw(
-			_("A dock order belongs to one app, but these modules are placed in {0}.").format(
-				frappe.bold(", ".join(sorted(str(app) for app in apps)))
-			)
-		)
-	app = apps.pop()
-
-	# Checked for every module before a single file is written. `validate_standard` refuses a
-	# module with no folder in an app, and meeting that halfway through an order would leave the
-	# app holding files for the modules that came first -- which the database rollback below
-	# cannot reach, files not being in the transaction.
-	for module in ordered:
-		try:
-			frappe.get_module_path(module)
-		except Exception:
-			frappe.throw(
-				_("Module {0} has no folder in an app, so an order cannot be shipped for it.").format(
-					frappe.bold(module)
-				)
-			)
-
-	# The documents this call brings into existence, as opposed to the ones it updates. Only these
-	# have a file that has to be taken back out by hand if the write fails: left behind, the next
-	# `bench migrate` re-imports a row the rollback had just removed.
-	created = [module for module in ordered if not get_sidebar(module)]
-
-	savepoint = "ship_module_dock_order"
-	frappe.db.savepoint(savepoint)
-	try:
-		for sequence, module in enumerate(ordered, start=1):
-			doc = get_sidebar(module)
-			if not doc:
-				doc = frappe.new_doc("Sidebar")
-				doc.module = module
-
-			doc.standard = 1
-			doc.app = doc.app or get_module_placement(module)
-			doc.sequence_id = sequence
-			# `on_update` is what writes the file, for a fresh stub and an existing sidebar alike
-			doc.save()
-
-			if not doc.is_exported():
-				frappe.throw(
-					_("Could not write {0} to {1}.").format(
-						frappe.bold(doc.name), frappe.bold(doc.app or "-")
-					)
-				)
-	except Exception:
-		frappe.db.rollback(save_point=savepoint)
-		discard_exported_stubs(created)
-		raise
-	frappe.db.release_savepoint(savepoint)
-
-	# the dock order is read out of `app_data`, which is in everybody's boot
-	frappe.cache.delete_key("bootinfo")
-
-	from frappe.boot import get_app_modules
-
-	return get_app_modules(app)
-
-
-def discard_exported_stubs(modules: list[str]) -> None:
-	"""Remove the files written for `modules`, after their rows have been rolled back.
-
-	The counterpart to `unmark_as_standard`'s cleanup, for the same reason: a standard record is
-	its file, so a file with no row is what the next `bench migrate` turns back into a row.
-	"""
-	import os
-	import shutil
-
-	for module in modules:
-		path = os.path.join(frappe.get_module_path(module), "sidebar", frappe.scrub(module))
-		shutil.rmtree(path, ignore_errors=True)
 
 
 def check_developer_mode() -> None:

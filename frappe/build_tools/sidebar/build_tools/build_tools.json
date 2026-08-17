@@ -695,7 +695,6 @@
  "module": "Build Tools",
  "name": "Build Tools",
  "owner": "Administrator",
- "sequence_id": 1.0,
  "standard": 1,
  "title": "Build"
 }

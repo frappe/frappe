@@ -242,14 +242,12 @@ def get_app_rail_host_map():
 
 # Fallback apps-screen sort order for apps that don't declare a `sequence_id` in their
 # `add_to_apps_screen` hook. Sits below Framework (1000) so it always trails real apps.
+#
+# This one stays. It orders the thing it lives on -- the app's slot on the apps screen -- and it
+# is what makes the dock read in the same order as the screen people reach it from. Its
+# module-level counterpart is gone: where a module sits on the dock is `add_to_dock`, an ordered
+# list, which has no unset state to need a default.
 DEFAULT_APP_SEQUENCE_ID = 100
-
-# The same idea one level down: where a module sits on its app's dock when its sidebar declares
-# no `sequence_id`. A *middle* default rather than a trailing one, so declaring a sequence can
-# pull a module in front of the undeclared ones or push it behind them -- with a trailing
-# default the only expressible statement would be "after everything", which is where a module
-# already is. See `get_app_modules`.
-DEFAULT_MODULE_SEQUENCE_ID = 100
 
 
 def load_desktop_data(bootinfo):
@@ -388,7 +386,7 @@ def get_app_data(allowed_pages: list[str]) -> list[dict]:
 			dict(
 				# whether the app opts into the apps screen via the add_to_apps_screen hook. An app
 				# that pins into a host app's dock never takes a slot of its own, even if it still
-				# declares add_to_apps_screen from before the dock existed -- the dock hook wins.
+				# declares add_to_apps_screen from before the dock existed -- the pin wins.
 				on_apps_screen=bool(apps) and app_name not in app_rail_host,
 				# Sort order for the apps (desktop) screen; lower shows first, Framework is pinned
 				# last (sequence_id 1000). Apps that don't declare one fall to a middle default.
@@ -423,28 +421,21 @@ def get_app_data(allowed_pages: list[str]) -> list[dict]:
 
 
 def get_app_modules(app_name: str) -> list[str]:
-	"""The app's modules the user may see, in the order its dock should list them.
+	"""The app's modules the user may see, in the order its dock offers them.
 
-	Modules are a desk-level concept of their own for an app that ships no workspaces (common
-	enough for smaller apps in the ecosystem): its dock lists the modules' computed sidebars
-	instead of workspaces, so this list is what gets rendered and it has to be both
-	permission-filtered and stably ordered.
+	This is the *entry set*, not the arrangement. Where a module actually sits is
+	`add_to_dock` -- an ordered list in the app's `hooks.py`, resolved through the site's and
+	each person's layers -- and a module that list never names simply trails the ones it does,
+	in this order. So this has to be permission-filtered and stably ordered, and nothing more.
 
-	The order is stated, then inherited, then alphabetical:
+	Two tiers:
 
-	1. **`Sidebar.sequence_id`** -- the app saying outright where a module sits, in the
-	   document it already ships to say what the module is called and what is in it. Lower
-	   first. Unset reads as `DEFAULT_MODULE_SEQUENCE_ID`, so a module can be pinned in front
-	   of the modules that declare nothing or behind them.
-	2. **`modules.txt` position** -- the order the app declares its modules in, which is what
-	   this used to be entirely. Still the tiebreaker, so an app that says nothing about
-	   sequence keeps exactly the dock it had.
-	3. **name** -- for modules that exist only in the database (a `Module Def` added from the
+	1. **`modules.txt` position** -- the order the app declares its modules in.
+	2. **name** -- for modules that exist only in the database (a `Module Def` added from the
 	   UI, never written to `modules.txt`), which trail the declared ones alphabetically.
 
-	A module whose sidebar is *computed* rather than shipped has no document to carry a
-	sequence and therefore takes the default. Authoring a stub `Sidebar` is how it gets
-	one -- the same document that would give it a title and an icon.
+	Collapsing these to name alone would alphabetise the trailing set, which is a behaviour
+	change and not one anybody asked for.
 	"""
 	from frappe.utils.modules import get_visible_modules
 
@@ -453,24 +444,8 @@ def get_app_modules(app_name: str) -> list[str]:
 		return []
 
 	declared = {name: idx for idx, name in enumerate(frappe.get_module_list(app_name))}
-	# `or DEFAULT`, not `if is None`: `sequence_id` is a Float, so an unset one is 0 and there is
-	# no third state to tell "never authored" from "authored as zero". Same reading as the
-	# apps-screen `sequence_id` above, which is the field this mirrors.
-	sequences = {
-		row.module: row.sequence_id or DEFAULT_MODULE_SEQUENCE_ID
-		for row in frappe.get_all(
-			"Sidebar", filters={"module": ["in", modules]}, fields=["module", "sequence_id"]
-		)
-	}
 
-	return sorted(
-		modules,
-		key=lambda module: (
-			sequences.get(module, DEFAULT_MODULE_SEQUENCE_ID),
-			declared.get(module, len(declared)),
-			module,
-		),
-	)
+	return sorted(modules, key=lambda module: (declared.get(module, len(declared)), module))
 
 
 def get_standalone_modules(module_sidebars: dict) -> list[dict]:

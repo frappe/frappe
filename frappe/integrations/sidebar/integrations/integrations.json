@@ -215,7 +215,6 @@
  "module": "Integrations",
  "name": "Integrations",
  "owner": "Administrator",
- "sequence_id": 8.0,
  "standard": 1,
  "title": "Integrations"
 }
