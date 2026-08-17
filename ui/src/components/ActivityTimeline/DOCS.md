@@ -67,7 +67,7 @@ its data already there, avoiding a second in-panel loading state.
 | **Loading**   | First-load spinner shows only while `loading` **and** `activities` is empty; cached rows stay visible during revalidation                                                                                                                                                                                                                                                                                                        |
 | **Empty**     | Renders a built-in "No activity found" state when `activities` is empty and not loading; replace it via the `#empty` slot                                                                                                                                                                                                                                                                                                        |
 | **Scrolling** | The component is its own scroll container (`column-reverse`): give it a bounded height — wrap it in `TimelineContainer`, or `flex-1 min-h-0` by hand — and it opens anchored at the newest row, stays pinned as content grows, and keeps the viewport still when older pages prepend — all natively, no scroll scripting. Unbounded, an ancestor scrolls it like any block and none of that works. DOM order stays chronological |
-| **Exposes**   | `scrollToRow(key: string): boolean` — scrolls the row with that key into view and flashes it (deep links); returns `false` if the key isn't rendered. `scrollToLatest()` — jumps to the newest row (no flash)                                                                                                                                                                                                                    |
+| **Exposes**   | `scrollToRow(key: string): boolean` — scrolls the row with that key into view and flashes it (deep links); returns `false` if the key isn't rendered. `scrollToLatest()` — jumps to the newest row (no flash); works in both scroll modes, so page-scroll layouts can call it on mount to open at the bottom                                                                                                                     |
 
 ### Height and scrolling
 
@@ -75,7 +75,9 @@ The timeline scrolls itself, so something must bound its height — otherwise it
 full content height, an ancestor scrolls it, and the bottom-anchored behavior can't work.
 `TimelineContainer` is that something: drop it between your page's header and composer
 and it fills the leftover space, handing the timeline a real height. Its one requirement:
-the page root it sits in is a bounded flex column (`flex h-full flex-col`).
+its parent has a height. In a flex column (`flex h-full flex-col`) it takes the leftover
+space between siblings; in any other bounded parent it fills it. Equivalent to putting
+`flex-1 min-h-0` on the timeline yourself — use whichever reads better.
 
 ```vue
 <div class="flex h-full flex-col">
@@ -87,9 +89,10 @@ the page root it sits in is a bounded flex column (`flex h-full flex-col`).
 </div>
 ```
 
-It's equivalent to putting `flex-1 min-h-0` on the timeline yourself — use whichever
-reads better. Skip both only when you want an ancestor to own the scroll (and are fine
-losing open-at-bottom, pinning, and stable prepends).
+On a page that scrolls as a document (no bounded height anywhere), the timeline degrades
+gracefully — the page scrolls it like any block and it opens at the top; call
+`scrollToLatest()` on mount to open at the bottom. Pinning and stable prepends need the
+bounded layout above.
 
 ### Slots
 
@@ -187,6 +190,10 @@ rendered only when you supply it — neither ships default buttons).
 Ctrl/⌘-Enter; Discard reverts to the saved content. `editorClass` (default
 `"prose-sm max-w-none"`) lands on the editor content, `uploadFunction` (image uploads)
 passes through to the editor.
+
+`EmailItem`'s default header is responsive: from `sm` up it's one row (name, status,
+time, actions); below that the time moves to its own line under the name, with
+To/Cc/Bcc following.
 
 `LogItem` / `VersionItem` are one-liners with no regions — replace the whole row via
 `#item-{type}` if you need to change them.
