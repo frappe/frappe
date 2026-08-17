@@ -13,6 +13,10 @@
       "import": "./src/components/FormLayout/index.ts",
       "types": "./src/components/FormLayout/index.ts"
     },
+    "./ActivityTimeline": {
+      "import": "./src/components/ActivityTimeline/index.ts",
+      "types": "./src/components/ActivityTimeline/index.ts"
+    },
     "./FileUpload": {
       "import": "./src/components/FileUpload/index.ts",
       "types": "./src/components/FileUpload/index.ts"
