@@ -50,13 +50,6 @@ gives the timeline the bounded height its scroller needs — see
 > shared renderer decoupled from where activities come from. `useActivityTimeline` binds its
 > args once; remount with a `:key` to switch documents.
 
-### Prefetching
-
-`prefetchActivityTimeline(doctype, docname, visibleTypes?)` starts (or reuses) the same
-shared fetch without mounting anything, and returns the resource. Call it from a page
-shell so a top-level loading gate can wait on `.fetched` — the timeline then mounts with
-its data already there, avoiding a second in-panel loading state.
-
 ## The component
 
 `<ActivityTimeline>` — renders the feed and the "Load more" affordance.
