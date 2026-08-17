@@ -4,20 +4,16 @@
 import json
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 from frappe.website.doctype.web_form_request.web_form_request import (
 	InvalidFieldsInValuesError,
 	get_web_form_request_query,
 )
 
-# On IntegrationTestCase, the doctype test records and all
-# link-field test record dependencies are recursively loaded
-# Use these module variables to add/remove to/from that list
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Web Form"]
-IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
+test_dependencies = ["Web Form"]
 
 
-class TestWebFormRequest(IntegrationTestCase):
+class TestWebFormRequest(FrappeTestCase):
 	def test_web_form_values_must_match_web_form_fields(self):
 		with self.assertRaises(InvalidFieldsInValuesError) as ctx:
 			self.create_web_form_request(web_form_values={"invalid_web_form_field": "value"})
