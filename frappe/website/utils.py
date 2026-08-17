@@ -105,10 +105,18 @@ def get_home_page():
 		# for user
 		if frappe.session.user != "Guest":
 			# by role
-			for role in frappe.get_roles():
-				home_page = frappe.db.get_value("Role", role, "home_page")
-				if home_page:
-					break
+			# For most of scenarios,Role table have `home_page` as NULL for all rows/roles, so we do a batch query to reduce DB calls.
+			# and later check if got the `home_page`for any of the roles.
+			all_roles = frappe.get_roles()
+			all_home_pages = frappe.db.get_values("Role", all_roles, "home_page", pluck=True)
+			assert isinstance(all_home_pages, list)
+			if all_home_pages.count(None) == len(all_home_pages):
+				pass
+			else:
+				for x in all_home_pages:
+					if x is not None:
+						home_page = x
+						break
 
 			# portal default
 			if not home_page:
@@ -131,7 +139,7 @@ def get_home_page():
 		if home_page == "me" and is_portal_user():
 			home_page = "portal"
 
-		default_workspace = frappe.get_user().load_user().default_workspace
+		default_workspace = frappe.get_user().load_user_default_workspace()
 		if default_workspace:
 			home_page = get_url_to_workspace(default_workspace["name"], default_workspace["public"])
 			return home_page
