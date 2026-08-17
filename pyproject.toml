@@ -9,8 +9,13 @@ readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # core dependencies
+<<<<<<< HEAD
     "Babel~=2.13.1",
     "Click~=8.2.0",
+=======
+    "Babel~=2.16.0",
+    "Click~=8.4.1",
+>>>>>>> 253ca47b64 (chore: bump click to 8.4.1 (#41957))
     "filelock~=3.20.1",
     "filetype~=1.2.0",
     "GitPython~=3.1.34",
