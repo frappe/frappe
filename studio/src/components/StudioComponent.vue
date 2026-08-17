@@ -93,6 +93,7 @@
 			:block="block.extendedFromComponent || block"
 			:breakpoint="breakpoint"
 			:isSelected="isSelected"
+			:isPrimaryInstance="isPrimaryInstance"
 			:target="(target as HTMLElement)"
 		/>
 	</teleport>
@@ -264,6 +265,13 @@ watch(
 	},
 	{ immediate: true },
 )
+
+// Show component editor only on the first instance; the rest render as faint outlines
+const isPrimaryInstance = computed(() => {
+	if (!props.block.isRepeated()) return true
+	const instanceIndex = slotScope?.value?.dataIndex
+	return instanceIndex === undefined || instanceIndex === 0
+})
 
 const target = computed<HTMLElement | null>(() => {
 	if (!componentRef.value) return null

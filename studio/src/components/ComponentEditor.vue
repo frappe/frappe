@@ -9,7 +9,7 @@
 	>
 		<!-- Component name label -->
 		<span
-			v-if="!props.block.isRoot()"
+			v-if="!props.block.isRoot() && isPrimaryInstance"
 			class="absolute -top-3 left-0 inline-flex items-center gap-1 text-xs"
 			:class="componentLabelClasses"
 		>
@@ -105,6 +105,10 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	isPrimaryInstance: {
+		type: Boolean,
+		default: true,
+	},
 })
 
 const store = useStudioStore()
@@ -116,11 +120,18 @@ const tracker = ref<Tracker>()
 const canvasProps = inject("canvasProps") as CanvasProps
 
 const showMarginPaddingHandlers = computed(() => {
-	return isBlockSelected.value && !props.block.isRoot() && !resizing.value && !canvasStore.isDragging
+	return (
+		props.isPrimaryInstance &&
+		isBlockSelected.value &&
+		!props.block.isRoot() &&
+		!resizing.value &&
+		!canvasStore.isDragging
+	)
 })
 
 const showResizer = computed(() => {
 	return (
+		props.isPrimaryInstance &&
 		!props.block.isRoot() &&
 		isBlockSelected.value &&
 		!canvasStore.isDragging &&
@@ -144,6 +155,11 @@ const getStyleClasses = computed(() => {
 		classes.push("ring-outline-purple-4")
 	} else {
 		classes.push("ring-outline-blue-4")
+	}
+
+	if (!props.isPrimaryInstance) {
+		classes.push("opacity-40")
+		return classes
 	}
 
 	if (isBlockSelected.value && !props.block.isRoot() && !canvasStore.isDragging) {
@@ -231,7 +247,12 @@ watchEffect(() => {
 
 // Slot overlay tracking
 const showSlotOverlays = computed(() => {
-	return isBlockSelected.value && !props.block.isRoot() && Object.keys(props.block.componentSlots).length > 0
+	return (
+		props.isPrimaryInstance &&
+		isBlockSelected.value &&
+		!props.block.isRoot() &&
+		Object.keys(props.block.componentSlots).length > 0
+	)
 })
 
 const slotOverlays = ref<Record<string, HTMLElement>>({})
