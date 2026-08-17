@@ -932,6 +932,7 @@ def get_web_form_list(
 	``references`` child table — no more, no less.
 	"""
 	web_form_doc: WebForm = frappe.get_lazy_doc("Web Form", web_form)
+	web_form_doc.raise_if_unpublished()
 	if web_form_doc.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("You must login to use this form"), frappe.PermissionError)
 
