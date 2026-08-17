@@ -1,5 +1,6 @@
 export { default as ActivityTimeline } from "./ActivityTimeline.vue";
 export { default as TimelineContainer } from "./TimelineContainer.vue";
+export { default as AttachmentChip } from "./AttachmentChip.vue";
 export { default as EmailItem } from "./EmailItem.vue";
 export { default as CommentItem } from "./CommentItem.vue";
 export { default as LogItem } from "./LogItem.vue";
