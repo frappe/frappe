@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-08-09 09:44+0000\n"
-"PO-Revision-Date: 2026-08-11 18:20\n"
+"POT-Creation-Date: 2026-08-16 09:39+0000\n"
+"PO-Revision-Date: 2026-08-17 19:36\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Czech\n"
 "MIME-Version: 1.0\n"
@@ -34,7 +34,7 @@ msgstr ""
 msgid "\"Company History\""
 msgstr "\"Historie společnosti\""
 
-#: frappe/core/doctype/data_export/exporter.py:202
+#: frappe/core/doctype/data_export/exporter.py:203
 msgid "\"Parent\" signifies the parent table in which this row must be added"
 msgstr "\"Nadřazený\" označuje nadřazenou tabulku, do které musí být tento řádek přidán"
 
@@ -48,7 +48,7 @@ msgstr "\"Členové týmu\" nebo \"Vedení\""
 msgid "\"amended_from\" field must be present to do an amendment."
 msgstr "Pro provedení opravy musí být přítomno pole \"amended_from\"."
 
-#: frappe/utils/csvutils.py:246
+#: frappe/utils/csvutils.py:247
 msgid "\"{0}\" is not a valid Google Sheets URL"
 msgstr "\"{0}\" není platná adresa URL Google Sheets"
 
@@ -70,7 +70,7 @@ msgstr "&copy; Frappe Technologies Pvt. Ltd. a přispěvatelé"
 msgid "&lt;head&gt; HTML"
 msgstr ""
 
-#: frappe/database/query.py:2366
+#: frappe/database/query.py:2369
 msgid "'*' is only allowed in {0} SQL function(s)"
 msgstr "'*' je povoleno pouze ve funkcích SQL {0}"
 
@@ -152,7 +152,7 @@ msgstr "0 - příliš uhodnutelné: rizikové heslo.\n"
 msgid "0 is highest"
 msgstr "0 je nejvyšší"
 
-#: frappe/public/js/frappe/form/grid_row.js:914
+#: frappe/public/js/frappe/form/grid_row.js:926
 msgid "1 = True & 0 = False"
 msgstr "1 = Pravda & 0 = Nepravda"
 
@@ -1356,7 +1356,7 @@ msgstr "Přidat parametry dotazu"
 msgid "Add Reply-To header"
 msgstr "Přidat hlavičku Reply-To"
 
-#: frappe/core/doctype/user/user.py:873
+#: frappe/core/doctype/user/user.py:874
 msgid "Add Roles"
 msgstr "Přidat role"
 
@@ -1623,7 +1623,7 @@ msgstr "Šablona adresy"
 msgid "Address Title"
 msgstr "Název adresy"
 
-#: frappe/contacts/doctype/address/address.py:71
+#: frappe/contacts/doctype/address/address.py:73
 msgid "Address Title is mandatory."
 msgstr "Název adresy je povinný."
 
@@ -1638,7 +1638,7 @@ msgstr "Typ adresy"
 msgid "Address and other legal information you may want to put in the footer."
 msgstr "Adresa a další právní informace, které můžete chtít uvést v zápatí."
 
-#: frappe/contacts/doctype/address/address.py:205
+#: frappe/contacts/doctype/address/address.py:207
 msgid "Addresses"
 msgstr "Adresy"
 
@@ -1692,11 +1692,11 @@ msgstr "Přidá vlastní pole k typu dokumentu"
 msgid "Administrator"
 msgstr "Administrátor"
 
-#: frappe/core/doctype/user/user.py:1304
+#: frappe/core/doctype/user/user.py:1301
 msgid "Administrator Logged In"
 msgstr "Administrátor se přihlásil"
 
-#: frappe/core/doctype/user/user.py:1298
+#: frappe/core/doctype/user/user.py:1295
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "Administrátor přistoupil k {0} dne {1} přes IP adresu {2}."
 
@@ -1717,8 +1717,8 @@ msgstr "Pokročilé"
 msgid "Advanced Control"
 msgstr "Pokročilé řízení"
 
-#: frappe/public/js/frappe/form/controls/link.js:529
-#: frappe/public/js/frappe/form/controls/link.js:531
+#: frappe/public/js/frappe/form/controls/link.js:530
+#: frappe/public/js/frappe/form/controls/link.js:532
 msgid "Advanced Search"
 msgstr "Rozšířené vyhledávání"
 
@@ -1777,7 +1777,7 @@ msgstr "Po odeslání"
 msgid "After Submit"
 msgstr "Po odeslání"
 
-#: frappe/desk/doctype/number_card/number_card.py:63
+#: frappe/desk/doctype/number_card/number_card.py:66
 msgid "Aggregate Field is required to create a number card"
 msgstr "Pole agregace je vyžadováno pro vytvoření číselné karty"
 
@@ -1790,11 +1790,11 @@ msgstr "Pole agregace je vyžadováno pro vytvoření číselné karty"
 msgid "Aggregate Function Based On"
 msgstr "Agregační funkce na základě"
 
-#: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:413
+#: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:416
 msgid "Aggregate Function field is required to create a dashboard chart"
 msgstr "Pole agregační funkce je vyžadováno pro vytvoření grafu na nástěnce"
 
-#: frappe/database/query.py:2415
+#: frappe/database/query.py:2418
 msgid "Alias must be a string"
 msgstr "Alias musí být řetězec"
 
@@ -1860,7 +1860,7 @@ msgstr "Vše"
 #. Label of the all_day (Check) field in DocType 'Event'
 #: frappe/desk/doctype/calendar_view/calendar_view.json
 #: frappe/desk/doctype/event/event.json
-#: frappe/public/js/frappe/ui/notifications/notifications.js:485
+#: frappe/public/js/frappe/ui/notifications/notifications.js:494
 msgid "All Day"
 msgstr "Celý den"
 
@@ -2294,7 +2294,7 @@ msgstr ""
 msgid "Allows users to enable the mask property for any field of the respective doctype."
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1105
+#: frappe/core/doctype/user/user.py:1102
 msgid "Already Registered"
 msgstr "Již registrováno"
 
@@ -2302,7 +2302,7 @@ msgstr "Již registrováno"
 msgid "Already amended as {0}"
 msgstr "Již změněno jako {0}"
 
-#: frappe/desk/form/assign_to.py:143
+#: frappe/desk/form/assign_to.py:142
 msgid "Already in the following Users ToDo list:{0}"
 msgstr "Již v seznamu úkolů následujících uživatelů:{0}"
 
@@ -2817,7 +2817,7 @@ msgstr ""
 msgid "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User."
 msgstr "Jako osvědčený postup nepřiřazujte stejnou sadu pravidel oprávnění různým rolím. Místo toho přiřaďte více rolí stejnému uživateli."
 
-#: frappe/desk/form/assign_to.py:111
+#: frappe/desk/form/assign_to.py:112
 msgid "As document sharing is disabled, please give them the required permissions before assigning."
 msgstr "Protože je sdílení dokumentů zakázáno, udělte jim prosím požadovaná oprávnění před přiřazením."
 
@@ -2954,15 +2954,15 @@ msgstr ""
 msgid "Assignment Rules"
 msgstr "Pravidla přiřazení"
 
-#: frappe/desk/doctype/notification_log/notification_log.py:235
+#: frappe/desk/doctype/notification_log/notification_log.py:237
 msgid "Assignment Update on {0}"
 msgstr "Aktualizace přiřazení u {0}"
 
-#: frappe/desk/form/assign_to.py:82
+#: frappe/desk/form/assign_to.py:83
 msgid "Assignment for {0} {1}"
 msgstr "Přiřazení pro {0} {1}"
 
-#: frappe/desk/doctype/todo/todo.py:62 frappe/desk/form/activity.py:222
+#: frappe/desk/doctype/todo/todo.py:62 frappe/desk/form/activity.py:287
 msgid "Assignment of {0} removed by {1}"
 msgstr "Přiřazení uživatele {0} odstraněno uživatelem {1}"
 
@@ -3789,6 +3789,10 @@ msgstr "Před odesláním"
 msgid "Before Validate"
 msgstr "Před ověřením"
 
+#: frappe/public/js/frappe/ui/awesomplete.js:8
+msgid "Begin typing for results."
+msgstr ""
+
 #. Option for the 'Level' (Select) field in DocType 'Help Article'
 #: frappe/website/doctype/help_article/help_article.json
 msgid "Beginner"
@@ -3803,7 +3807,7 @@ msgstr "Začíná na"
 msgid "Beta"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1321 frappe/utils/password_strength.py:73
+#: frappe/core/doctype/user/user.py:1318 frappe/utils/password_strength.py:73
 msgid "Better add a few more letters or another word"
 msgstr "Přidejte několik dalších písmen nebo další slovo"
 
@@ -4014,11 +4018,11 @@ msgstr "Hromadná úprava"
 msgid "Bulk Edit {0}"
 msgstr "Hromadná úprava {0}"
 
-#: frappe/desk/reportview.py:705
+#: frappe/desk/reportview.py:706
 msgid "Bulk Operation Failed"
 msgstr "Hromadná operace selhala"
 
-#: frappe/desk/reportview.py:710
+#: frappe/desk/reportview.py:711
 msgid "Bulk Operation Successful"
 msgstr "Hromadná operace úspěšná"
 
@@ -4037,11 +4041,11 @@ msgstr "Hromadná aktualizace"
 msgid "Bulk approval only support up to 500 documents."
 msgstr "Hromadné schvalování podporuje pouze do 500 dokumentů."
 
-#: frappe/desk/doctype/bulk_update/bulk_update.py:57
+#: frappe/desk/doctype/bulk_update/bulk_update.py:65
 msgid "Bulk operation is enqueued in background."
 msgstr "Hromadná operace byla zařazena do fronty na pozadí."
 
-#: frappe/desk/doctype/bulk_update/bulk_update.py:69
+#: frappe/desk/doctype/bulk_update/bulk_update.py:77
 msgid "Bulk operations only support up to 500 documents."
 msgstr "Hromadné operace podporují pouze do 500 dokumentů."
 
@@ -4131,7 +4135,7 @@ msgstr "Obejít kontrolu omezené IP adresy, pokud je povoleno dvoufaktorové ov
 msgid "C5E"
 msgstr ""
 
-#: frappe/templates/print_formats/standard_macros.html:219
+#: frappe/templates/print_formats/standard_macros.html:221
 msgid "CANCELLED"
 msgstr "ZRUŠENO"
 
@@ -4245,7 +4249,7 @@ msgid "Camera"
 msgstr "Fotoaparát"
 
 #. Label of the campaign (Data) field in DocType 'Web Page View'
-#: frappe/public/js/frappe/utils/utils.js:2035
+#: frappe/public/js/frappe/utils/utils.js:2030
 #: frappe/website/doctype/web_page_view/web_page_view.json
 #: frappe/website/report/website_analytics/website_analytics.js:39
 msgid "Campaign"
@@ -4333,7 +4337,7 @@ msgstr "Zrušit {0} dokumentů?"
 #: frappe/core/doctype/comment/comment.json
 #: frappe/core/doctype/user_invitation/user_invitation.json
 #: frappe/desk/doctype/event/event.json frappe/desk/doctype/todo/todo.json
-#: frappe/desk/form/save.py:64
+#: frappe/desk/form/save.py:69
 #: frappe/integrations/doctype/integration_request/integration_request.json
 #: frappe/public/js/frappe/model/indicator.js:78
 #: frappe/public/js/frappe/ui/filters/filter.js:553
@@ -4349,11 +4353,11 @@ msgctxt "Freeze message while cancelling a document"
 msgid "Cancelling"
 msgstr "Rušení"
 
-#: frappe/desk/form/linked_with.py:386
+#: frappe/desk/form/linked_with.py:388
 msgid "Cancelling documents"
 msgstr "Stornování dokumentů"
 
-#: frappe/desk/doctype/bulk_update/bulk_update.py:93
+#: frappe/desk/doctype/bulk_update/bulk_update.py:101
 msgid "Cancelling {0}"
 msgstr "Stornování {0}"
 
@@ -4361,11 +4365,11 @@ msgstr "Stornování {0}"
 msgid "Cannot Download Report due to insufficient permissions"
 msgstr "Sestavu nelze stáhnout kvůli nedostatečným oprávněním"
 
-#: frappe/client.py:504
+#: frappe/client.py:521
 msgid "Cannot Fetch Values"
 msgstr "Nelze načíst hodnoty"
 
-#: frappe/core/page/permission_manager/permission_manager.py:166
+#: frappe/core/page/permission_manager/permission_manager.py:173
 msgid "Cannot Remove"
 msgstr "Nelze odebrat"
 
@@ -4401,7 +4405,7 @@ msgstr "Nelze změnit docstatus z 0 (Koncept) na 2 (Stornováno)"
 msgid "Cannot change docstatus from 1 (Submitted) to 0 (Draft)"
 msgstr "Nelze změnit docstatus z 1 (Odesláno) na 0 (Koncept)"
 
-#: frappe/database/mariadb/schema.py:177
+#: frappe/database/mariadb/schema.py:189
 msgid "Cannot change field type in {0}: some existing values cannot be converted to the new type"
 msgstr ""
 
@@ -4484,7 +4488,7 @@ msgstr "Nelze upravovat standardní řídicí panely"
 msgid "Cannot edit Standard Notification. To edit, please disable this and duplicate it"
 msgstr "Nelze upravovat standardní oznámení. Pro úpravu jej prosím zakažte a vytvořte jeho kopii"
 
-#: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:391
+#: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:394
 msgid "Cannot edit Standard charts"
 msgstr "Nelze upravovat standardní grafy"
 
@@ -4505,7 +4509,7 @@ msgstr "Nelze upravit filtry pro standardní grafy"
 msgid "Cannot edit filters for standard number cards"
 msgstr "Nelze upravit filtry pro standardní číselné karty"
 
-#: frappe/client.py:176
+#: frappe/client.py:193
 msgid "Cannot edit standard fields"
 msgstr "Nelze upravit standardní pole"
 
@@ -4521,7 +4525,7 @@ msgstr "Soubor {} nebyl nalezen na disku"
 msgid "Cannot get file contents of a Folder"
 msgstr "Nelze získat obsah souboru ze složky"
 
-#: frappe/printing/page/print/print.js:919
+#: frappe/printing/page/print/print.js:926
 msgid "Cannot have multiple printers mapped to a single print format."
 msgstr "Nelze přiřadit více tiskáren k jednomu tiskovému formátu."
 
@@ -4533,7 +4537,7 @@ msgstr "Nelze importovat tabulku s více než 5000 řádky."
 msgid "Cannot link cancelled document: {0}"
 msgstr "Nelze propojit zrušený dokument: {0}"
 
-#: frappe/model/mapper.py:177
+#: frappe/model/mapper.py:180
 msgid "Cannot map because following condition fails:"
 msgstr "Nelze mapovat, protože následující podmínka není splněna:"
 
@@ -4553,7 +4557,7 @@ msgstr ""
 msgid "Cannot remove ID field"
 msgstr "Nelze odebrat pole ID"
 
-#: frappe/core/page/permission_manager/permission_manager.py:142
+#: frappe/core/page/permission_manager/permission_manager.py:149
 msgid "Cannot set 'Report' permission if 'Only If Creator' permission is set"
 msgstr "Nelze nastavit oprávnění 'Sestava', pokud je nastaveno oprávnění 'Pouze pokud je tvůrce'"
 
@@ -4871,7 +4875,7 @@ msgstr "Podřízená tabulka {0} pro pole {1} musí být virtuální"
 msgid "Child Tables are shown as a Grid in other DocTypes"
 msgstr "Podřízené tabulky se zobrazují jako mřížka v jiných DocTypes"
 
-#: frappe/database/query.py:1175
+#: frappe/database/query.py:1178
 msgid "Child query fields for '{0}' must be a list or tuple."
 msgstr "Podřízená pole dotazu pro '{0}' musí být seznam nebo n-tice."
 
@@ -4944,7 +4948,7 @@ msgstr "Vymazat protokoly chyb"
 msgid "Clear Filters"
 msgstr "Vymazat filtry"
 
-#: frappe/public/js/frappe/form/controls/link.js:17
+#: frappe/public/js/frappe/form/controls/link.js:18
 msgid "Clear Link"
 msgstr ""
 
@@ -5321,12 +5325,12 @@ msgstr "Sloupec <b>{0}</b> již existuje."
 msgid "Column Break"
 msgstr "Zalomení sloupce"
 
-#: frappe/core/doctype/data_export/exporter.py:140
+#: frappe/core/doctype/data_export/exporter.py:141
 msgid "Column Labels:"
 msgstr "Popisky sloupců:"
 
 #. Label of the column_name (Data) field in DocType 'Kanban Board Column'
-#: frappe/core/doctype/data_export/exporter.py:25
+#: frappe/core/doctype/data_export/exporter.py:26
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Column Name"
 msgstr "Název sloupce"
@@ -5486,7 +5490,7 @@ msgstr "Protokoly komunikace"
 msgid "Communication Type"
 msgstr "Typ komunikace"
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:32
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:34
 msgid "Communication secret not set"
 msgstr "Komunikační tajný klíč není nastaven"
 
@@ -5535,7 +5539,7 @@ msgstr "Dokončit"
 msgid "Complete By"
 msgstr "Dokončit do"
 
-#: frappe/core/doctype/user/user.py:532
+#: frappe/core/doctype/user/user.py:533
 #: frappe/templates/emails/new_user.html:12
 msgid "Complete Registration"
 msgstr "Dokončit registraci"
@@ -5880,7 +5884,7 @@ msgstr "Obsahuje {0} bezpečnostních oprav"
 #. Label of the content (Data) field in DocType 'Web Page View'
 #: frappe/core/doctype/comment/comment.json frappe/desk/doctype/note/note.json
 #: frappe/desk/doctype/workspace/workspace.json
-#: frappe/public/js/frappe/utils/utils.js:2051
+#: frappe/public/js/frappe/utils/utils.js:2046
 #: frappe/website/doctype/help_article/help_article.json
 #: frappe/website/doctype/web_page/web_page.json
 #: frappe/website/doctype/web_page_view/web_page_view.json
@@ -6002,7 +6006,7 @@ msgstr "Základní typy dokumentů nelze přizpůsobit."
 msgid "Core Modules {0} cannot be searched in Global Search."
 msgstr "Základní moduly {0} nelze vyhledávat v globálním vyhledávání."
 
-#: frappe/printing/page/print/print.js:680
+#: frappe/printing/page/print/print.js:687
 msgid "Correct version :"
 msgstr "Správná verze:"
 
@@ -6018,7 +6022,7 @@ msgstr "Nelze najít {0}"
 msgid "Could not map column {0} to field {1}"
 msgstr "Nelze namapovat sloupec {0} na pole {1}"
 
-#: frappe/database/query.py:1078
+#: frappe/database/query.py:1081
 msgid "Could not parse field: {0}"
 msgstr "Nelze analyzovat pole: {0}"
 
@@ -6218,8 +6222,8 @@ msgctxt "Description of a list view shortcut"
 msgid "Create a new document"
 msgstr ""
 
-#: frappe/public/js/frappe/form/controls/link.js:505
-#: frappe/public/js/frappe/form/controls/link.js:507
+#: frappe/public/js/frappe/form/controls/link.js:506
+#: frappe/public/js/frappe/form/controls/link.js:508
 #: frappe/public/js/frappe/form/link_selector.js:146
 #: frappe/public/js/frappe/list/list_view.js:547
 #: frappe/public/js/frappe/web_form/web_form_list.js:253
@@ -6720,7 +6724,7 @@ msgstr "SESTUPNĚ"
 msgid "DLE"
 msgstr ""
 
-#: frappe/templates/print_formats/standard_macros.html:214
+#: frappe/templates/print_formats/standard_macros.html:216
 msgid "DRAFT"
 msgstr "KONCEPT"
 
@@ -6918,11 +6922,11 @@ msgstr "Import dat"
 msgid "Data Import Log"
 msgstr "Protokol importu dat"
 
-#: frappe/core/doctype/data_export/exporter.py:174
+#: frappe/core/doctype/data_export/exporter.py:175
 msgid "Data Import Template"
 msgstr "Šablona importu dat"
 
-#: frappe/core/doctype/data_import/data_import.py:77
+#: frappe/core/doctype/data_import/data_import.py:78
 msgid "Data Import is not allowed for {0}. Enable 'Allow Import' in DocType settings."
 msgstr "Import dat není povolen pro {0}. Povolte 'Povolit Import' v nastavení Doctype."
 
@@ -7283,7 +7287,7 @@ msgstr ""
 msgid "Default value for {0} must be in the list of options."
 msgstr "Výchozí hodnota pro {0} musí být v seznamu voleb."
 
-#: frappe/core/doctype/session_default_settings/session_default_settings.py:38
+#: frappe/core/doctype/session_default_settings/session_default_settings.py:39
 msgid "Default {0}"
 msgstr "Výchozí {0}"
 
@@ -7347,7 +7351,7 @@ msgstr "Zpožděno"
 #: frappe/public/js/frappe/form/grid.js:92
 #: frappe/public/js/frappe/form/grid_row_form.js:62
 #: frappe/public/js/frappe/form/toolbar.js:508
-#: frappe/public/js/frappe/views/reports/report_view.js:1857
+#: frappe/public/js/frappe/views/reports/report_view.js:1851
 #: frappe/public/js/frappe/views/treeview.js:347
 #: frappe/public/js/frappe/web_form/web_form_list.js:312
 #: frappe/templates/discussions/reply_card.html:35
@@ -7375,6 +7379,10 @@ msgstr "Smazat účet"
 msgid "Delete Background Exported Reports After (Hours)"
 msgstr "Smazat exportované reporty na pozadí po (hodinách)"
 
+#: frappe/public/js/frappe/form/controls/text_editor.js:178
+msgid "Delete Column"
+msgstr "Smazat sloupec"
+
 #: frappe/public/js/form_builder/components/Section.vue:196
 msgctxt "Title of confirmation dialog"
 msgid "Delete Column"
@@ -7393,6 +7401,10 @@ msgstr ""
 msgid "Delete Kanban Board"
 msgstr "Smazat Kanban nástěnku"
 
+#: frappe/public/js/frappe/form/controls/text_editor.js:177
+msgid "Delete Row"
+msgstr ""
+
 #: frappe/public/js/form_builder/components/Section.vue:125
 msgctxt "Title of confirmation dialog"
 msgid "Delete Section"
@@ -7402,6 +7414,10 @@ msgstr "Smazat sekci"
 msgctxt "Title of confirmation dialog"
 msgid "Delete Tab"
 msgstr "Smazat záložku"
+
+#: frappe/public/js/frappe/form/controls/text_editor.js:179
+msgid "Delete Table"
+msgstr ""
 
 #: frappe/public/js/frappe/form/grid.js:100
 msgid "Delete all"
@@ -7499,7 +7515,7 @@ msgstr "Smazaný dokument"
 msgid "Deleted Name"
 msgstr "Smazaný název"
 
-#: frappe/desk/reportview.py:710
+#: frappe/desk/reportview.py:711
 msgid "Deleted all documents successfully"
 msgstr ""
 
@@ -7507,7 +7523,7 @@ msgstr ""
 msgid "Deleted!"
 msgstr "Smazáno!"
 
-#: frappe/desk/reportview.py:686
+#: frappe/desk/reportview.py:687
 msgid "Deleting {0}"
 msgstr "Mazání {0}"
 
@@ -7536,7 +7552,7 @@ msgstr "Smazání tohoto dokumentu je povoleno pouze v režimu vývojáře."
 msgid "Delimiter Options"
 msgstr "Možnosti oddělovače"
 
-#: frappe/utils/csvutils.py:76
+#: frappe/utils/csvutils.py:77
 msgid "Delimiter detection failed. Try to enable custom delimiters and adjust the delimiter options as per your data."
 msgstr "Detekce oddělovače selhala. Zkuste povolit vlastní oddělovače a upravit možnosti oddělovače podle vašich dat."
 
@@ -7942,7 +7958,7 @@ msgstr "Zahodit {0}"
 msgid "Discard?"
 msgstr "Zahodit?"
 
-#: frappe/desk/form/save.py:75
+#: frappe/desk/form/save.py:80
 msgid "Discarded"
 msgstr "Zahozeno"
 
@@ -8099,7 +8115,7 @@ msgstr "DocStatus následujících stavů byl změněn:<br><strong>{0}</strong><
 #. Label of a Workspace Sidebar Item
 #: frappe/core/doctype/amended_document_naming_settings/amended_document_naming_settings.json
 #: frappe/core/doctype/audit_trail/audit_trail.json
-#: frappe/core/doctype/data_export/exporter.py:26
+#: frappe/core/doctype/data_export/exporter.py:27
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/core/doctype/doctype_to_sync/doctype_to_sync.json
 #: frappe/core/doctype/module_def/module_def.json
@@ -8282,7 +8298,7 @@ msgstr "Akce dokumentu"
 msgid "Document Follow"
 msgstr "Sledování dokumentu"
 
-#: frappe/desk/form/document_follow.py:110
+#: frappe/desk/form/document_follow.py:113
 msgid "Document Follow Notification"
 msgstr "Oznámení o sledování dokumentu"
 
@@ -8337,7 +8353,7 @@ msgstr "Název dokumentu"
 msgid "Document Name (ID)"
 msgstr ""
 
-#: frappe/client.py:420
+#: frappe/client.py:437
 msgid "Document Name must not be empty"
 msgstr "Název dokumentu nesmí být prázdný"
 
@@ -8480,7 +8496,7 @@ msgstr "Název dokumentu"
 msgid "Document Type"
 msgstr "Typ dokumentu"
 
-#: frappe/desk/doctype/number_card/number_card.py:60
+#: frappe/desk/doctype/number_card/number_card.py:63
 msgid "Document Type and Function are required to create a number card"
 msgstr "Typ dokumentu a Funkce jsou vyžadovány pro vytvoření číselné karty"
 
@@ -8526,7 +8542,7 @@ msgstr "Typy dokumentů a oprávnění"
 msgid "Document Unlocked"
 msgstr "Dokument odemčen"
 
-#: frappe/database/query.py:575
+#: frappe/database/query.py:578
 msgid "Document cannot be used as a filter value"
 msgstr "Dokument nelze použít jako hodnotu filtru"
 
@@ -8562,7 +8578,7 @@ msgstr "Dokument přejmenován z {0} na {1}"
 msgid "Document renaming from {0} to {1} has been queued"
 msgstr "Přejmenování dokumentu z {0} na {1} bylo zařazeno do fronty"
 
-#: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:400
+#: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:403
 msgid "Document type is required to create a dashboard chart"
 msgstr "Pro vytvoření grafu na nástěnce je vyžadován typ dokumentu"
 
@@ -8570,7 +8586,7 @@ msgstr "Pro vytvoření grafu na nástěnce je vyžadován typ dokumentu"
 msgid "Document {0} Already Restored"
 msgstr "Dokument {0} již byl obnoven"
 
-#: frappe/workflow/doctype/workflow_action/workflow_action.py:197
+#: frappe/workflow/doctype/workflow_action/workflow_action.py:206
 msgid "Document {0} has been set to state {1} by {2}"
 msgstr "Dokument {0} byl nastaven do stavu {1} uživatelem {2}"
 
@@ -9240,7 +9256,7 @@ msgstr "E-mailový účet byl deaktivován."
 msgid "Email Account Name"
 msgstr "Název e-mailového účtu"
 
-#: frappe/core/doctype/user/user.py:803
+#: frappe/core/doctype/user/user.py:804
 msgid "Email Account added multiple times"
 msgstr "E-mailový účet byl přidán vícekrát"
 
@@ -9312,7 +9328,7 @@ msgstr "Záhlaví e-mailu"
 #. Label of the email_id (Data) field in DocType 'Contact Email'
 #. Label of the email_id (Data) field in DocType 'User Email'
 #. Label of the email_id (Data) field in DocType 'Email Rule'
-#: frappe/contacts/doctype/contact/contact.py:128
+#: frappe/contacts/doctype/contact/contact.py:130
 #: frappe/contacts/doctype/contact_email/contact_email.json
 #: frappe/core/doctype/user_email/user_email.json
 #: frappe/email/doctype/email_rule/email_rule.json
@@ -9483,7 +9499,7 @@ msgstr "Odeslání e-mailu bylo vráceno zpět"
 msgid "Email size {0:.2f} MB exceeds the maximum allowed size of {1:.2f} MB"
 msgstr "Velikost e-mailu {0:.2f} MB přesahuje maximální povolenou velikost {1:.2f} MB"
 
-#: frappe/core/doctype/communication/email.py:350
+#: frappe/core/doctype/communication/email.py:351
 msgid "Email undo window is over. Cannot undo email."
 msgstr "Okno pro vrácení e-mailu vypršelo. E-mail nelze vrátit zpět."
 
@@ -9497,7 +9513,7 @@ msgstr "E-maily"
 msgid "Emails Pulled"
 msgstr "E-maily staženy"
 
-#: frappe/email/doctype/email_account/email_account.py:1033
+#: frappe/email/doctype/email_account/email_account.py:1040
 msgid "Emails are already being pulled from this account."
 msgstr "E-maily jsou z tohoto účtu již stahovány."
 
@@ -9514,7 +9530,7 @@ msgstr "E-maily budou odeslány s dalšími možnými akcemi workflow"
 msgid "Embed code copied"
 msgstr "Kód pro vložení zkopírován"
 
-#: frappe/database/query.py:2419
+#: frappe/database/query.py:2422
 msgid "Empty alias is not allowed"
 msgstr "Prázdný alias není povolen"
 
@@ -9522,7 +9538,7 @@ msgstr "Prázdný alias není povolen"
 msgid "Empty column"
 msgstr "Prázdný sloupec"
 
-#: frappe/database/query.py:2360
+#: frappe/database/query.py:2363
 msgid "Empty string arguments are not allowed"
 msgstr "Prázdné řetězcové argumenty nejsou povoleny"
 
@@ -9758,7 +9774,7 @@ msgstr "Aktivováno"
 msgid "Enabled Scheduler"
 msgstr "Plánovač povolen"
 
-#: frappe/email/doctype/email_account/email_account.py:1109
+#: frappe/email/doctype/email_account/email_account.py:1116
 msgid "Enabled email inbox for user {0}"
 msgstr "Povolena e-mailová schránka pro uživatele {0}"
 
@@ -10044,11 +10060,11 @@ msgstr "Chyba ve formátu tisku na řádku {0}: {1}"
 msgid "Error in {0}.get_list: {1}"
 msgstr "Chyba v {0}.get_list: {1}"
 
-#: frappe/database/query.py:461
+#: frappe/database/query.py:464
 msgid "Error parsing nested filters: {0}. {1}"
 msgstr "Chyba při analýze vnořených filtrů: {0}. {1}"
 
-#: frappe/desk/search.py:280
+#: frappe/desk/search.py:285
 msgid "Error validating \"Ignore User Permissions\""
 msgstr ""
 
@@ -10276,7 +10292,7 @@ msgstr "Rozbalit"
 msgid "Expand All"
 msgstr "Rozbalit vše"
 
-#: frappe/database/query.py:729
+#: frappe/database/query.py:732
 msgid "Expected 'and' or 'or' operator, found: {0}"
 msgstr "Očekáván operátor 'and' nebo 'or', nalezeno: {0}"
 
@@ -10349,7 +10365,7 @@ msgstr "Doba platnosti stránky obrázku QR kódu"
 #: frappe/public/js/frappe/data_import/data_exporter.js:92
 #: frappe/public/js/frappe/data_import/data_exporter.js:247
 #: frappe/public/js/frappe/views/reports/query_report.js:1978
-#: frappe/public/js/frappe/views/reports/report_view.js:1737
+#: frappe/public/js/frappe/views/reports/report_view.js:1731
 #: frappe/public/js/frappe/widgets/chart_widget.js:320
 msgid "Export"
 msgstr ""
@@ -10398,11 +10414,11 @@ msgstr "Exportovat sestavu: {0}"
 msgid "Export Type"
 msgstr "Typ exportu"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1748
+#: frappe/public/js/frappe/views/reports/report_view.js:1742
 msgid "Export all matching rows?"
 msgstr "Exportovat všechny odpovídající řádky?"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1758
+#: frappe/public/js/frappe/views/reports/report_view.js:1752
 msgid "Export all {0} rows?"
 msgstr "Exportovat všech {0} řádků?"
 
@@ -10552,7 +10568,7 @@ msgid "Failed to change password."
 msgstr "Změna hesla se nezdařila."
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:261
-#: frappe/desk/page/setup_wizard/setup_wizard.py:43
+#: frappe/desk/page/setup_wizard/setup_wizard.py:44
 msgid "Failed to complete setup"
 msgstr "Dokončení nastavení se nezdařilo"
 
@@ -10573,11 +10589,11 @@ msgstr "Dekódování tokenu se nezdařilo, zadejte prosím platný token kódov
 msgid "Failed to decrypt key {0}"
 msgstr "Dešifrování klíče {0} se nezdařilo"
 
-#: frappe/core/doctype/communication/email.py:345
+#: frappe/core/doctype/communication/email.py:346
 msgid "Failed to delete communication"
 msgstr "Smazání komunikace se nezdařilo"
 
-#: frappe/desk/reportview.py:703
+#: frappe/desk/reportview.py:704
 msgid "Failed to delete {0} documents: {1}"
 msgstr "Smazání {0} dokumentů se nezdařilo: {1}"
 
@@ -10626,7 +10642,7 @@ msgstr "Vykreslení zprávy se nezdařilo: {}"
 msgid "Failed to render subject: {}"
 msgstr "Vykreslení předmětu se nezdařilo: {}"
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:101
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:103
 msgid "Failed to request login to Frappe Cloud"
 msgstr "Žádost o přihlášení do Frappe Cloud se nezdařila"
 
@@ -10638,15 +10654,15 @@ msgstr "Nepodařilo se načíst seznam IMAP složek ze serveru. Ujistěte se, ž
 msgid "Failed to send email with subject:"
 msgstr "Odeslání e-mailu s předmětem se nezdařilo:"
 
-#: frappe/desk/doctype/notification_log/notification_log.py:66
+#: frappe/desk/doctype/notification_log/notification_log.py:68
 msgid "Failed to send notification email"
 msgstr "Odeslání e-mailu s oznámením se nezdařilo"
 
-#: frappe/desk/page/setup_wizard/setup_wizard.py:25
+#: frappe/desk/page/setup_wizard/setup_wizard.py:26
 msgid "Failed to update global settings"
 msgstr "Aktualizace globálního nastavení se nezdařila"
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:81
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:83
 msgid "Failed while calling API {0}"
 msgstr "Selhání při volání API {0}"
 
@@ -10756,7 +10772,7 @@ msgstr "Pole \"title\" je povinné, pokud je nastaveno \"Website Search Field\".
 msgid "Field \"value\" is mandatory. Please specify value to be updated"
 msgstr "Pole \"value\" je povinné. Zadejte prosím hodnotu, která má být aktualizována"
 
-#: frappe/desk/search.py:318
+#: frappe/desk/search.py:323
 msgid "Field <code>{0}</code> not found in {1}"
 msgstr "Pole <code>{0}</code> nebylo nalezeno v {1}"
 
@@ -10795,7 +10811,7 @@ msgstr "Šablona pole"
 msgid "Field Type"
 msgstr "Typ pole"
 
-#: frappe/desk/reportview.py:207
+#: frappe/desk/reportview.py:208
 msgid "Field not permitted in query"
 msgstr "Pole není povoleno v dotazu"
 
@@ -10928,7 +10944,7 @@ msgstr "Pole `file_name` nebo `file_url` musí být nastavena pro Soubor"
 msgid "Fields must be a list or tuple when as_list is enabled"
 msgstr "Pole musí být seznam nebo tuple, pokud je as_list povoleno"
 
-#: frappe/database/query.py:1124
+#: frappe/database/query.py:1127
 msgid "Fields must be a string, list, tuple, pypika Field, or pypika Function"
 msgstr "Pole musí být řetězec, seznam, tuple, pypika Field nebo pypika Function"
 
@@ -11028,7 +11044,7 @@ msgstr "Záloha souborů je připravena"
 msgid "File name cannot have {0}"
 msgstr "Název souboru nesmí obsahovat {0}"
 
-#: frappe/utils/csvutils.py:28
+#: frappe/utils/csvutils.py:29
 msgid "File not attached"
 msgstr "Soubor není připojen"
 
@@ -11107,11 +11123,11 @@ msgstr "Název filtru"
 msgid "Filter Values"
 msgstr "Hodnoty filtru"
 
-#: frappe/database/query.py:735
+#: frappe/database/query.py:738
 msgid "Filter condition missing after operator: {0}"
 msgstr "Podmínka filtru chybí za operátorem: {0}"
 
-#: frappe/database/query.py:822
+#: frappe/database/query.py:825
 msgid "Filter fields have invalid backtick notation: {0}"
 msgstr "Pole filtru mají neplatný zápis se zpětnými uvozovkami: {0}"
 
@@ -11134,7 +11150,7 @@ msgstr "Filtrované záznamy"
 msgid "Filtered by \"{0}\""
 msgstr "Filtrováno podle \"{0}\""
 
-#: frappe/public/js/frappe/form/controls/link.js:759
+#: frappe/public/js/frappe/form/controls/link.js:760
 msgid "Filtered by: {0}."
 msgstr "Filtrováno podle: {0}."
 
@@ -11205,7 +11221,7 @@ msgstr "Filtry budou přístupné přes <code>filters</code>. <br><br>Odešlete 
 msgid "Filters {0}"
 msgstr ""
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1526
+#: frappe/public/js/frappe/views/reports/report_view.js:1520
 msgid "Filters:"
 msgstr "Filtry:"
 
@@ -11273,7 +11289,7 @@ msgstr "První zpráva o úspěchu"
 msgid "First Used On"
 msgstr ""
 
-#: frappe/core/doctype/data_export/exporter.py:185
+#: frappe/core/doctype/data_export/exporter.py:186
 msgid "First data column must be blank."
 msgstr "První sloupec dat musí být prázdný."
 
@@ -11373,7 +11389,7 @@ msgstr "Sledováno uživateli"
 msgid "Following Report Filters have missing values:"
 msgstr "Následující filtry sestavy mají chybějící hodnoty:"
 
-#: frappe/desk/form/document_follow.py:73
+#: frappe/desk/form/document_follow.py:76
 msgid "Following document {0}"
 msgstr "Sledování dokumentu {0}"
 
@@ -11593,7 +11609,7 @@ msgstr "Pro více informací {0}."
 msgid "For multiple addresses, enter the address on different line. e.g. test@test.com ⏎ test1@test.com"
 msgstr "Pro více adres zadejte každou adresu na jiný řádek. např. test@test.com ⏎ test1@test.com"
 
-#: frappe/core/doctype/data_export/exporter.py:197
+#: frappe/core/doctype/data_export/exporter.py:198
 msgid "For updating, you can update only selective columns."
 msgstr "Při aktualizaci můžete aktualizovat pouze vybrané sloupce."
 
@@ -11929,7 +11945,7 @@ msgstr "Funkce na základě"
 msgid "Function {0} is not whitelisted."
 msgstr "Funkce {0} není na seznamu povolených."
 
-#: frappe/database/query.py:2264
+#: frappe/database/query.py:2267
 msgid "Function {0} requires arguments but none were provided"
 msgstr "Funkce {0} vyžaduje argumenty, ale žádné nebyly poskytnuty"
 
@@ -12009,7 +12025,7 @@ msgid "Generate Separate Documents For Each Assignee"
 msgstr "Generovat samostatné dokumenty pro každého příjemce"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar.js:551
-#: frappe/public/js/frappe/utils/utils.js:2096
+#: frappe/public/js/frappe/utils/utils.js:2091
 msgid "Generate Tracking URL"
 msgstr "Vygenerovat sledovací URL"
 
@@ -12061,7 +12077,7 @@ msgstr "Získat položky"
 msgid "Get OpenID Configuration"
 msgstr "Získat konfiguraci OpenID"
 
-#: frappe/www/printview.html:22
+#: frappe/www/printview.html:23
 msgid "Get PDF"
 msgstr "Stáhnout PDF"
 
@@ -12347,11 +12363,11 @@ msgstr "Služby Google"
 msgid "Google Settings"
 msgstr "Nastavení Google"
 
-#: frappe/utils/csvutils.py:226
+#: frappe/utils/csvutils.py:227
 msgid "Google Sheets URL is invalid or not publicly accessible."
 msgstr "Adresa URL Google Sheets je neplatná nebo není veřejně přístupná."
 
-#: frappe/utils/csvutils.py:231
+#: frappe/utils/csvutils.py:232
 msgid "Google Sheets URL must end with \"gid={number}\". Copy and paste the URL from the browser address bar and try again."
 msgstr "Adresa URL Google Sheets musí končit na \"gid={number}\". Zkopírujte a vložte adresu URL z adresního řádku prohlížeče a zkuste to znovu."
 
@@ -12439,11 +12455,11 @@ msgstr "Seskupit podle na základě"
 msgid "Group By Type"
 msgstr "Typ seskupení"
 
-#: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:411
+#: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:414
 msgid "Group By field is required to create a dashboard chart"
 msgstr "Pro vytvoření grafu na nástěnce je vyžadováno pole Seskupit podle"
 
-#: frappe/database/query.py:1312
+#: frappe/database/query.py:1315
 msgid "Group By must be a string"
 msgstr "Seskupit podle musí být řetězec"
 
@@ -12690,6 +12706,30 @@ msgstr "Záhlaví musí být slovník"
 msgid "Heading"
 msgstr "Nadpis"
 
+#: frappe/public/js/frappe/form/controls/text_editor.js:164
+msgid "Heading 1"
+msgstr ""
+
+#: frappe/public/js/frappe/form/controls/text_editor.js:165
+msgid "Heading 2"
+msgstr ""
+
+#: frappe/public/js/frappe/form/controls/text_editor.js:166
+msgid "Heading 3"
+msgstr ""
+
+#: frappe/public/js/frappe/form/controls/text_editor.js:167
+msgid "Heading 4"
+msgstr ""
+
+#: frappe/public/js/frappe/form/controls/text_editor.js:168
+msgid "Heading 5"
+msgstr ""
+
+#: frappe/public/js/frappe/form/controls/text_editor.js:169
+msgid "Heading 6"
+msgstr ""
+
 #. Description of the 'Notification Title' (Data) field in DocType
 #. 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -12776,7 +12816,7 @@ msgstr ""
 msgid "Helvetica Neue"
 msgstr ""
 
-#: frappe/public/js/frappe/utils/utils.js:2093
+#: frappe/public/js/frappe/utils/utils.js:2088
 msgid "Here's your tracking URL"
 msgstr "Zde je vaše sledovací URL"
 
@@ -13080,8 +13120,8 @@ msgstr ""
 msgid "ID"
 msgstr ""
 
-#: frappe/desk/reportview.py:573
-#: frappe/public/js/frappe/views/reports/report_view.js:1085
+#: frappe/desk/reportview.py:574
+#: frappe/public/js/frappe/views/reports/report_view.js:1079
 msgctxt "Label of name column in report"
 msgid "ID"
 msgstr ""
@@ -13381,7 +13421,7 @@ msgstr "Pokud tyto pokyny nebyly užitečné, přidejte prosím své návrhy na 
 msgid "If this email is registered with us, a download link will be sent to it."
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1173
+#: frappe/core/doctype/user/user.py:1170
 msgid "If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
 msgstr "Pokud je tento e-mail u nás registrován, odeslali jsme na něj pokyny k resetování hesla. Zkontrolujte prosím svou schránku."
 
@@ -13408,15 +13448,15 @@ msgstr "Pokud není zaškrtnuto, hodnota bude vždy znovu načtena při uložen�
 msgid "If user is the owner"
 msgstr "Pokud je uživatel vlastníkem"
 
-#: frappe/core/doctype/data_export/exporter.py:204
+#: frappe/core/doctype/data_export/exporter.py:205
 msgid "If you are updating, please select \"Overwrite\" else existing rows will not be deleted."
 msgstr "Pokud aktualizujete, vyberte \"Přepsat\", jinak existující řádky nebudou smazány."
 
-#: frappe/core/doctype/data_export/exporter.py:188
+#: frappe/core/doctype/data_export/exporter.py:189
 msgid "If you are uploading new records, \"Naming Series\" becomes mandatory, if present."
 msgstr "Pokud nahráváte nové záznamy, \"Naming Series\" se stává povinné, pokud je přítomno."
 
-#: frappe/core/doctype/data_export/exporter.py:186
+#: frappe/core/doctype/data_export/exporter.py:187
 msgid "If you are uploading new records, leave the \"name\" (ID) column blank."
 msgstr "Pokud nahráváte nové záznamy, ponechte sloupec \"name\" (ID) prázdný."
 
@@ -13696,7 +13736,7 @@ msgstr "Šablona importu musí obsahovat záhlaví a alespoň jeden řádek."
 msgid "Import timed out, please re-try."
 msgstr "Import vypršel, zkuste to prosím znovu."
 
-#: frappe/core/doctype/data_import/data_import.py:72
+#: frappe/core/doctype/data_import/data_import.py:73
 msgid "Importing {0} is not allowed."
 msgstr "Import {0} není povolen."
 
@@ -13910,7 +13950,7 @@ msgstr "Nastavení příchozí pošty"
 msgid "Incoming email account not correct"
 msgstr "Příchozí e-mailový účet není správný"
 
-#: frappe/database/mariadb/schema.py:180
+#: frappe/database/mariadb/schema.py:192
 msgid "Incompatible Values"
 msgstr ""
 
@@ -13926,7 +13966,7 @@ msgstr "Neúplné přihlašovací údaje"
 msgid "Incorrect Configuration"
 msgstr "Nesprávná konfigurace"
 
-#: frappe/utils/csvutils.py:234
+#: frappe/utils/csvutils.py:235
 msgid "Incorrect URL"
 msgstr "Nesprávná URL"
 
@@ -13959,7 +13999,7 @@ msgstr "Odsazení"
 #: frappe/custom/doctype/custom_field/custom_field.json frappe/model/meta.py:55
 #: frappe/public/js/frappe/model/meta.js:211
 #: frappe/public/js/frappe/model/model.js:124
-#: frappe/public/js/frappe/views/reports/report_view.js:1106
+#: frappe/public/js/frappe/views/reports/report_view.js:1100
 msgid "Index"
 msgstr ""
 
@@ -14012,7 +14052,7 @@ msgstr "Barva ukazatele"
 msgid "Info"
 msgstr "Informace"
 
-#: frappe/core/doctype/data_export/exporter.py:144
+#: frappe/core/doctype/data_export/exporter.py:145
 msgid "Info:"
 msgstr "Informace:"
 
@@ -14062,6 +14102,14 @@ msgstr "Vložit pod"
 msgid "Insert Column Before {0}"
 msgstr "Vložit sloupec před {0}"
 
+#: frappe/public/js/frappe/form/controls/text_editor.js:176
+msgid "Insert Column Left"
+msgstr ""
+
+#: frappe/public/js/frappe/form/controls/text_editor.js:175
+msgid "Insert Column Right"
+msgstr ""
+
 #: frappe/public/js/frappe/form/controls/markdown_editor.js:82
 msgid "Insert Image in Markdown"
 msgstr "Vložit obrázek do Markdown"
@@ -14071,10 +14119,22 @@ msgstr "Vložit obrázek do Markdown"
 msgid "Insert New Records"
 msgstr "Vložit nové záznamy"
 
+#: frappe/public/js/frappe/form/controls/text_editor.js:173
+msgid "Insert Row Above"
+msgstr ""
+
+#: frappe/public/js/frappe/form/controls/text_editor.js:174
+msgid "Insert Row Below"
+msgstr ""
+
 #. Label of the insert_style (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Insert Style"
 msgstr "Vložit styl"
+
+#: frappe/public/js/frappe/form/controls/text_editor.js:172
+msgid "Insert Table"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:685
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:686
@@ -14107,15 +14167,15 @@ msgstr "Pokyny"
 msgid "Insufficient Permission Level for {0}"
 msgstr "Nedostatečná úroveň oprávnění pro {0}"
 
-#: frappe/database/query.py:1372
+#: frappe/database/query.py:1375
 msgid "Insufficient Permission for {0}"
 msgstr "Nedostatečné oprávnění pro {0}"
 
-#: frappe/desk/reportview.py:373
+#: frappe/desk/reportview.py:374
 msgid "Insufficient Permissions for deleting Report"
 msgstr "Nedostatečná oprávnění pro smazání sestavy"
 
-#: frappe/desk/reportview.py:337
+#: frappe/desk/reportview.py:338
 msgid "Insufficient Permissions for editing Report"
 msgstr "Nedostatečná oprávnění pro úpravu sestavy"
 
@@ -14231,7 +14291,7 @@ msgid "Invalid"
 msgstr "Neplatný"
 
 #: frappe/public/js/form_builder/utils.js:218
-#: frappe/public/js/frappe/form/grid_row.js:871
+#: frappe/public/js/frappe/form/grid_row.js:883
 #: frappe/public/js/frappe/form/layout.js:806
 #: frappe/public/js/frappe/views/reports/report_view.js:817
 msgid "Invalid \"depends_on\" expression"
@@ -14249,11 +14309,11 @@ msgstr "Neplatný výraz \"mandatory_depends_on\""
 msgid "Invalid Action"
 msgstr "Neplatná akce"
 
-#: frappe/utils/csvutils.py:37
+#: frappe/utils/csvutils.py:38
 msgid "Invalid CSV Format"
 msgstr "Neplatný formát CSV"
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:118
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:120
 msgid "Invalid Code. Please try again."
 msgstr "Neplatný kód. Zkuste to prosím znovu."
 
@@ -14299,8 +14359,8 @@ msgstr "Neplatný název pole"
 msgid "Invalid File URL"
 msgstr "Neplatná URL souboru"
 
-#: frappe/database/query.py:824 frappe/database/query.py:851
-#: frappe/database/query.py:861
+#: frappe/database/query.py:827 frappe/database/query.py:854
+#: frappe/database/query.py:864
 msgid "Invalid Filter"
 msgstr "Neplatný filtr"
 
@@ -14344,7 +14404,7 @@ msgstr "Neplatný poštovní server. Opravte nastavení a zkuste to znovu."
 msgid "Invalid Naming Series: {}"
 msgstr "Neplatná řada pojmenování: {}"
 
-#: frappe/core/doctype/data_import/data_import.py:183
+#: frappe/core/doctype/data_import/data_import.py:184
 #: frappe/core/doctype/prepared_report/prepared_report.py:222
 #: frappe/core/doctype/rq_job/rq_job.py:113
 #: frappe/core/doctype/rq_job/rq_job.py:122
@@ -14404,7 +14464,7 @@ msgstr "Neplatný přechod"
 #: frappe/core/doctype/file/file.py:311
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:551
 #: frappe/public/js/frappe/widgets/widget_dialog.js:602
-#: frappe/utils/csvutils.py:226 frappe/utils/csvutils.py:247
+#: frappe/utils/csvutils.py:227 frappe/utils/csvutils.py:248
 msgid "Invalid URL"
 msgstr "Neplatná adresa URL"
 
@@ -14430,11 +14490,11 @@ msgstr "Neplatný Webhook Secret"
 msgid "Invalid action"
 msgstr ""
 
-#: frappe/desk/reportview.py:193
+#: frappe/desk/reportview.py:194
 msgid "Invalid aggregate function"
 msgstr "Neplatná agregační funkce"
 
-#: frappe/database/query.py:2425
+#: frappe/database/query.py:2428
 msgid "Invalid alias format: {0}. Alias must be a simple identifier."
 msgstr "Neplatný formát aliasu: {0}. Alias musí být jednoduchý identifikátor."
 
@@ -14442,11 +14502,11 @@ msgstr "Neplatný formát aliasu: {0}. Alias musí být jednoduchý identifikát
 msgid "Invalid app"
 msgstr "Neplatná aplikace"
 
-#: frappe/database/query.py:2385 frappe/database/query.py:2401
+#: frappe/database/query.py:2388 frappe/database/query.py:2404
 msgid "Invalid argument format: {0}. Only quoted string literals or simple field names are allowed."
 msgstr "Neplatný formát argumentu: {0}. Jsou povoleny pouze řetězcové literály v uvozovkách nebo jednoduché názvy polí."
 
-#: frappe/database/query.py:2349
+#: frappe/database/query.py:2352
 msgid "Invalid argument type: {0}. Only strings, numbers, dicts, and None are allowed."
 msgstr "Neplatný typ argumentu: {0}. Jsou povoleny pouze řetězce, čísla, slovníky a None."
 
@@ -14454,7 +14514,7 @@ msgstr "Neplatný typ argumentu: {0}. Jsou povoleny pouze řetězce, čísla, sl
 msgid "Invalid backup path"
 msgstr ""
 
-#: frappe/database/query.py:857
+#: frappe/database/query.py:860
 msgid "Invalid characters in fieldname: {0}. Only letters, numbers, and underscores are allowed."
 msgstr "Neplatné znaky v názvu pole: {0}. Jsou povolena pouze písmena, čísla a podtržítka."
 
@@ -14462,7 +14522,7 @@ msgstr "Neplatné znaky v názvu pole: {0}. Jsou povolena pouze písmena, čísl
 msgid "Invalid column"
 msgstr "Neplatný sloupec"
 
-#: frappe/database/query.py:758
+#: frappe/database/query.py:761
 msgid "Invalid condition type in nested filters: {0}"
 msgstr "Neplatný typ podmínky ve vnořených filtrech: {0}"
 
@@ -14470,7 +14530,7 @@ msgstr "Neplatný typ podmínky ve vnořených filtrech: {0}"
 msgid "Invalid credentials, try again."
 msgstr ""
 
-#: frappe/database/query.py:1356
+#: frappe/database/query.py:1359
 msgid "Invalid direction in Order By: {0}. Must be 'ASC' or 'DESC'."
 msgstr "Neplatný směr v řazení: {0}. Musí být 'ASC' nebo 'DESC'."
 
@@ -14490,11 +14550,11 @@ msgstr ""
 msgid "Invalid expression set in filter {0} ({1})"
 msgstr "Neplatný výraz nastaven ve filtru {0} ({1})"
 
-#: frappe/database/query.py:2152
+#: frappe/database/query.py:2155
 msgid "Invalid field format for SELECT: {0}. Field names must be simple, backticked, table-qualified, aliased, or '*'."
 msgstr "Neplatný formát pole pro VYBRAT: {0}. Názvy polí musí být jednoduché, v obrácených uvozovkách, kvalifikované tabulkou, s aliasem nebo '*'."
 
-#: frappe/database/query.py:1297
+#: frappe/database/query.py:1300
 msgid "Invalid field format in {0}: {1}. Use 'field', 'link_field.field', or 'child_table.field'."
 msgstr "Neplatný formát pole v {0}: {1}. Použijte 'field', 'link_field.field' nebo 'child_table.field'."
 
@@ -14502,7 +14562,7 @@ msgstr "Neplatný formát pole v {0}: {1}. Použijte 'field', 'link_field.field'
 msgid "Invalid field name {0}"
 msgstr "Neplatný název pole {0}"
 
-#: frappe/database/query.py:1183
+#: frappe/database/query.py:1186
 msgid "Invalid field type: {0}"
 msgstr "Neplatný typ pole: {0}"
 
@@ -14514,11 +14574,11 @@ msgstr "Neplatný název pole '{0}' v autoname"
 msgid "Invalid file path: {0}"
 msgstr "Neplatná cesta souboru: {0}"
 
-#: frappe/database/query.py:741
+#: frappe/database/query.py:744
 msgid "Invalid filter condition: {0}. Expected a list or tuple."
 msgstr "Neplatná podmínka filtru: {0}. Očekáván seznam nebo tuple."
 
-#: frappe/database/query.py:847
+#: frappe/database/query.py:850
 msgid "Invalid filter field format: {0}. Use 'fieldname' or 'link_fieldname.target_fieldname'."
 msgstr "Neplatný formát pole filtru: {0}. Použijte 'fieldname' nebo 'link_fieldname.target_fieldname'."
 
@@ -14530,7 +14590,7 @@ msgstr "Neplatný filtr: {0}"
 msgid "Invalid format. Supported formats are {0}"
 msgstr ""
 
-#: frappe/database/query.py:2269
+#: frappe/database/query.py:2272
 msgid "Invalid function argument type: {0}. Only strings, numbers, lists, and None are allowed."
 msgstr "Neplatný typ argumentu funkce: {0}. Povoleny jsou pouze řetězce, čísla, seznamy a None."
 
@@ -14539,7 +14599,7 @@ msgid "Invalid input"
 msgstr "Neplatný vstup"
 
 #: frappe/desk/doctype/dashboard/dashboard.py:67
-#: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:427
+#: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:430
 msgid "Invalid json added in the custom options: {0}"
 msgstr "Neplatný JSON přidán ve vlastních možnostech: {0}"
 
@@ -14555,7 +14615,7 @@ msgstr "Neplatná řada pojmenování {}: chybí tečka (.)"
 msgid "Invalid naming series {}: dot (.) missing before the numeric placeholders. Kindly use a format like <b>ABCD.#####</b>."
 msgstr "Neplatná řada pojmenování {}: chybí tečka (.) před číselnými zástupnými znaky. Použijte prosím formát jako <b>ABCD.#####</b>."
 
-#: frappe/database/query.py:2341
+#: frappe/database/query.py:2344
 msgid "Invalid nested expression: dictionary must represent a function or operator"
 msgstr "Neplatný vnořený výraz: slovník musí představovat funkci nebo operátor"
 
@@ -14583,11 +14643,11 @@ msgstr "Neplatné tělo požadavku"
 msgid "Invalid role"
 msgstr "Neplatná role"
 
-#: frappe/database/query.py:798
+#: frappe/database/query.py:801
 msgid "Invalid simple filter format: {0}"
 msgstr "Neplatný jednoduchý formát filtru: {0}"
 
-#: frappe/database/query.py:718
+#: frappe/database/query.py:721
 msgid "Invalid start for filter condition: {0}. Expected a list or tuple."
 msgstr "Neplatný začátek podmínky filtru: {0}. Očekáván seznam nebo n-tice."
 
@@ -14613,7 +14673,7 @@ msgctxt "Error message in web form"
 msgid "Invalid values for fields:"
 msgstr "Neplatné hodnoty pro pole:"
 
-#: frappe/printing/page/print/print.js:674
+#: frappe/printing/page/print/print.js:681
 msgid "Invalid wkhtmltopdf version"
 msgstr "Neplatná verze wkhtmltopdf"
 
@@ -14621,7 +14681,7 @@ msgstr "Neplatná verze wkhtmltopdf"
 msgid "Invalid {0} condition"
 msgstr "Neplatná podmínka {0}"
 
-#: frappe/database/query.py:2230
+#: frappe/database/query.py:2233
 msgid "Invalid {0} dictionary format"
 msgstr "Neplatný formát slovníku {0}"
 
@@ -14948,7 +15008,7 @@ msgstr "Je standardní"
 msgid "It is risky to delete this file: {0}. Please contact your System Manager."
 msgstr "Smazání tohoto souboru je rizikové: {0}. Kontaktujte prosím správce systému."
 
-#: frappe/core/doctype/communication/email.py:360
+#: frappe/core/doctype/communication/email.py:361
 msgid "It is too late to undo this email. It is already being sent."
 msgstr "Je příliš pozdě na zrušení tohoto e-mailu. Již se odesílá."
 
@@ -15074,7 +15134,7 @@ msgstr "Úloha úspěšně zastavena"
 msgid "Job is in {0} state and can't be cancelled"
 msgstr "Úloha je ve stavu {0} a nelze ji zrušit"
 
-#: frappe/core/doctype/data_import/data_import.py:183
+#: frappe/core/doctype/data_import/data_import.py:184
 #: frappe/core/doctype/prepared_report/prepared_report.py:222
 #: frappe/core/doctype/rq_job/rq_job.py:113
 msgid "Job is not running."
@@ -15904,7 +15964,7 @@ msgstr "Líbí se"
 msgid "Limit"
 msgstr ""
 
-#: frappe/database/query.py:298
+#: frappe/database/query.py:301
 msgid "Limit must be a non-negative integer"
 msgstr "Limit musí být nezáporné celé číslo"
 
@@ -15977,7 +16037,7 @@ msgid "Link Document Type"
 msgstr "Propojený Typ Dokumentu"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:407
-#: frappe/workflow/doctype/workflow_action/workflow_action.py:196
+#: frappe/workflow/doctype/workflow_action/workflow_action.py:205
 msgid "Link Expired"
 msgstr "Odkaz Vypršel"
 
@@ -16644,7 +16704,7 @@ msgctxt "Error message in web form"
 msgid "Mandatory fields required:"
 msgstr "Povinná pole jsou vyžadována:"
 
-#: frappe/core/doctype/data_export/exporter.py:142
+#: frappe/core/doctype/data_export/exporter.py:143
 msgid "Mandatory:"
 msgstr "Povinné:"
 
@@ -16875,7 +16935,7 @@ msgstr ""
 #. Label of the medium (Data) field in DocType 'Web Page View'
 #: frappe/desk/doctype/todo/todo.json
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:232
-#: frappe/public/js/frappe/utils/utils.js:2043
+#: frappe/public/js/frappe/utils/utils.js:2038
 #: frappe/website/doctype/web_page_view/web_page_view.json
 #: frappe/website/report/website_analytics/website_analytics.js:40
 msgid "Medium"
@@ -17093,7 +17153,7 @@ msgstr "Metoda"
 msgid "Method Not Allowed"
 msgstr "Metoda není povolena"
 
-#: frappe/desk/doctype/number_card/number_card.py:74
+#: frappe/desk/doctype/number_card/number_card.py:77
 msgid "Method is required to create a number card"
 msgstr "Pro vytvoření číselné karty je vyžadována metoda"
 
@@ -17192,7 +17252,7 @@ msgstr "Chybějící pole"
 msgid "Missing Filters Required"
 msgstr "Chybějící povinné filtry"
 
-#: frappe/desk/form/assign_to.py:114
+#: frappe/desk/form/assign_to.py:115
 msgid "Missing Permission"
 msgstr "Chybějící oprávnění"
 
@@ -17777,7 +17837,7 @@ msgstr ""
 msgid "Negative Value"
 msgstr "Záporná hodnota"
 
-#: frappe/database/query.py:710
+#: frappe/database/query.py:713
 msgid "Nested filters must be provided as a list or tuple."
 msgstr "Vnořené filtry musí být zadány jako seznam nebo n-tice."
 
@@ -17842,7 +17902,7 @@ msgstr "Nový vlastní formát tisku"
 msgid "New Document Form"
 msgstr "Formulář nového dokumentu"
 
-#: frappe/desk/doctype/notification_log/notification_log.py:236
+#: frappe/desk/doctype/notification_log/notification_log.py:238
 msgid "New Document Shared {0}"
 msgstr "Nový dokument sdílen {0}"
 
@@ -17872,7 +17932,7 @@ msgstr "Nová Kanban nástěnka"
 msgid "New Links"
 msgstr "Nové Odkazy"
 
-#: frappe/desk/doctype/notification_log/notification_log.py:234
+#: frappe/desk/doctype/notification_log/notification_log.py:236
 msgid "New Mention on {0}"
 msgstr "Nová Zmínka v {0}"
 
@@ -17887,7 +17947,7 @@ msgstr "Nová zpráva z kontaktní stránky webu"
 msgid "New Name"
 msgstr "Nový název"
 
-#: frappe/desk/doctype/notification_log/notification_log.py:233
+#: frappe/desk/doctype/notification_log/notification_log.py:235
 msgid "New Notification"
 msgstr "Nové oznámení"
 
@@ -17913,7 +17973,7 @@ msgstr "Název nového formátu tisku"
 msgid "New Quick List"
 msgstr "Nový rychlý seznam"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1483
+#: frappe/public/js/frappe/views/reports/report_view.js:1477
 msgid "New Report name"
 msgstr "Název nové sestavy"
 
@@ -18022,7 +18082,7 @@ msgstr "Nový {0}: {1}"
 msgid "New {} releases for the following apps are available"
 msgstr "Nová {} vydání pro následující aplikace jsou dostupná"
 
-#: frappe/core/doctype/user/user.py:869
+#: frappe/core/doctype/user/user.py:870
 msgid "Newly created user {0} has no roles enabled."
 msgstr "Nově vytvořený uživatel {0} nemá povolené žádné role."
 
@@ -18160,7 +18220,7 @@ msgstr "Další po kliknutí"
 #: frappe/integrations/doctype/webhook/webhook.py:132
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/public/js/form_builder/utils.js:338
-#: frappe/public/js/frappe/form/controls/link.js:604
+#: frappe/public/js/frappe/form/controls/link.js:605
 #: frappe/public/js/frappe/list/base_list.js:970
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:170
 #: frappe/public/js/frappe/views/reports/query_report.js:47
@@ -18191,7 +18251,7 @@ msgstr "Žádné aktivní relace"
 msgid "No Copy"
 msgstr "Bez kopírování"
 
-#: frappe/core/doctype/data_export/exporter.py:162
+#: frappe/core/doctype/data_export/exporter.py:163
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:311
 #: frappe/public/js/form_builder/components/controls/TableControl.vue:64
 #: frappe/public/js/frappe/data_import/import_preview.js:148
@@ -18256,8 +18316,8 @@ msgstr "Nebyl nalezen žádný LDAP uživatel pro e-mail: {0}"
 msgid "No Label"
 msgstr "Bez popisku"
 
-#: frappe/printing/page/print/print.js:778
-#: frappe/printing/page/print/print.js:859
+#: frappe/printing/page/print/print.js:785
+#: frappe/printing/page/print/print.js:866
 #: frappe/public/js/frappe/list/bulk_operations.js:98
 #: frappe/public/js/frappe/list/bulk_operations.js:170
 #: frappe/utils/weasyprint.py:52
@@ -18284,11 +18344,11 @@ msgstr "Pro tato kritéria nejsou nastavena oprávnění."
 msgid "No Preview"
 msgstr "Žádný náhled"
 
-#: frappe/printing/page/print/print.js:783
+#: frappe/printing/page/print/print.js:790
 msgid "No Preview Available"
 msgstr "Náhled není k dispozici"
 
-#: frappe/printing/page/print/print.js:937
+#: frappe/printing/page/print/print.js:944
 msgid "No Printer is Available."
 msgstr "Žádná tiskárna není k dispozici."
 
@@ -18304,7 +18364,7 @@ msgstr "Žádné výsledky"
 msgid "No Results found"
 msgstr "Nebyly nalezeny žádné výsledky"
 
-#: frappe/core/doctype/user/user.py:870
+#: frappe/core/doctype/user/user.py:871
 msgid "No Roles Specified"
 msgstr "Nejsou zadány role"
 
@@ -18316,11 +18376,11 @@ msgstr "Nebylo nalezeno pole pro výběr"
 msgid "No Suggestions"
 msgstr "Žádné návrhy"
 
-#: frappe/desk/reportview.py:776 frappe/public/js/frappe/list/base_list.js:1071
+#: frappe/desk/reportview.py:779 frappe/public/js/frappe/list/base_list.js:1071
 msgid "No Tags"
 msgstr "Žádné štítky"
 
-#: frappe/public/js/frappe/ui/notifications/notifications.js:525
+#: frappe/public/js/frappe/ui/notifications/notifications.js:534
 msgid "No Upcoming Events"
 msgstr "Žádné nadcházející události"
 
@@ -18384,7 +18444,7 @@ msgstr "Žádná data k exportu"
 msgid "No data to perform this action"
 msgstr "Žádná data pro provedení této akce"
 
-#: frappe/contacts/doctype/address/address.py:245
+#: frappe/contacts/doctype/address/address.py:247
 msgid "No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template."
 msgstr "Nebyla nalezena výchozí šablona adresy. Vytvořte prosím novou v nastavení > Tisk a branding > Šablona adresy."
 
@@ -18476,7 +18536,7 @@ msgstr "Počet Odeslaných SMS"
 msgid "No other document types."
 msgstr ""
 
-#: frappe/__init__.py:643 frappe/client.py:119 frappe/client.py:161
+#: frappe/__init__.py:643 frappe/client.py:136 frappe/client.py:178
 msgid "No permission for {0}"
 msgstr "Nemáte oprávnění pro {0}"
 
@@ -18489,7 +18549,7 @@ msgstr "Nemáte oprávnění k '{0}' {1}"
 msgid "No permission to read {0}"
 msgstr "Nemáte oprávnění číst {0}"
 
-#: frappe/share.py:223
+#: frappe/share.py:241
 msgid "No permission to {0} {1} {2}"
 msgstr "Nemáte oprávnění pro {0} {1} {2}"
 
@@ -18512,6 +18572,10 @@ msgstr "Žádné záznamy nebyly označeny."
 #: frappe/public/js/frappe/data_import/data_exporter.js:229
 msgid "No records will be exported"
 msgstr "Žádné záznamy nebudou exportovány"
+
+#: frappe/public/js/frappe/ui/awesomplete.js:15
+msgid "No results found"
+msgstr "Nebyly nalezeny žádné výsledky"
 
 #: frappe/public/js/frappe/form/grid.js:82
 msgid "No rows"
@@ -18593,6 +18657,10 @@ msgstr "Žádné: Konec pracovního postupu"
 msgid "Noop Source"
 msgstr ""
 
+#: frappe/public/js/frappe/form/controls/text_editor.js:163
+msgid "Normal"
+msgstr ""
+
 #. Label of the normalized_copies (Int) field in DocType 'Recorder Query'
 #: frappe/core/doctype/recorder_query/recorder_query.json
 msgid "Normalized Copies"
@@ -18603,7 +18671,7 @@ msgstr "Normalizované kopie"
 msgid "Normalized Query"
 msgstr "Normalizovaný dotaz"
 
-#: frappe/core/doctype/user/user.py:1100 frappe/utils/oauth.py:320
+#: frappe/core/doctype/user/user.py:1097 frappe/utils/oauth.py:320
 #: frappe/website/doctype/web_form/web_form.py:895
 #: frappe/website/doctype/web_form/web_form.py:912
 msgid "Not Allowed"
@@ -18647,7 +18715,7 @@ msgstr "Nepropojeno s žádným záznamem"
 msgid "Not Nullable"
 msgstr "Nesmí být prázdné"
 
-#: frappe/__init__.py:570 frappe/app.py:388 frappe/desk/calendar.py:28
+#: frappe/__init__.py:570 frappe/app.py:388 frappe/desk/calendar.py:29
 #: frappe/public/js/frappe/web_form/webform_script.js:15
 #: frappe/website/doctype/web_form/web_form.py:1033
 #: frappe/website/page_renderers/not_permitted_page.py:22
@@ -18700,11 +18768,11 @@ msgstr "Nenastaveno"
 msgid "Not Used"
 msgstr ""
 
-#: frappe/utils/csvutils.py:102
+#: frappe/utils/csvutils.py:103
 msgid "Not a valid Comma Separated Value (CSV File)"
 msgstr "Neplatný soubor s hodnotami oddělenými čárkami (CSV soubor)"
 
-#: frappe/core/doctype/user/user.py:318
+#: frappe/core/doctype/user/user.py:319
 msgid "Not a valid User Image."
 msgstr "Neplatný obrázek uživatele."
 
@@ -18819,11 +18887,11 @@ msgstr "Poznámka: Toto bude sdíleno s uživatelem."
 msgid "Note: Your request for account deletion will be fulfilled within {0} hours."
 msgstr "Poznámka: Váš požadavek na smazání účtu bude splněn do {0} hodin."
 
-#: frappe/core/doctype/data_export/exporter.py:183
+#: frappe/core/doctype/data_export/exporter.py:184
 msgid "Notes:"
 msgstr "Poznámky:"
 
-#: frappe/public/js/frappe/ui/notifications/notifications.js:574
+#: frappe/public/js/frappe/ui/notifications/notifications.js:583
 msgid "Nothing New"
 msgstr "Nic nového"
 
@@ -19232,7 +19300,7 @@ msgstr "Odsazení X"
 msgid "Offset Y"
 msgstr "Odsazení Y"
 
-#: frappe/database/query.py:303
+#: frappe/database/query.py:306
 msgid "Offset must be a non-negative integer"
 msgstr "Odsazení musí být nezáporné celé číslo"
 
@@ -19363,11 +19431,11 @@ msgstr "Poslední krok"
 msgid "One Time Password (OTP) Registration Code from {}"
 msgstr "Registrační kód jednorázového hesla (OTP) od {}"
 
-#: frappe/core/doctype/data_export/exporter.py:331
+#: frappe/core/doctype/data_export/exporter.py:332
 msgid "One of"
 msgstr "Jedno z"
 
-#: frappe/client.py:223
+#: frappe/client.py:240
 msgid "Only 200 inserts allowed in one request"
 msgstr "V jednom požadavku je povoleno pouze 200 vložení"
 
@@ -19437,12 +19505,12 @@ msgstr "Zahozeny mohou být pouze koncepty dokumentů"
 msgid "Only for"
 msgstr "Pouze pro"
 
-#: frappe/core/doctype/data_export/exporter.py:192
+#: frappe/core/doctype/data_export/exporter.py:193
 msgid "Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish."
 msgstr "Pro nové záznamy jsou nutná pouze povinná pole. Nepovinné sloupce můžete smazat, pokud si přejete."
 
-#: frappe/contacts/doctype/contact/contact.py:128
-#: frappe/contacts/doctype/contact/contact.py:155
+#: frappe/contacts/doctype/contact/contact.py:130
+#: frappe/contacts/doctype/contact/contact.py:157
 msgid "Only one {0} can be set as primary."
 msgstr "Pouze jeden {0} může být nastaven jako primární."
 
@@ -19450,11 +19518,11 @@ msgstr "Pouze jeden {0} může být nastaven jako primární."
 msgid "Only pending invitations can be resent"
 msgstr ""
 
-#: frappe/desk/reportview.py:370
+#: frappe/desk/reportview.py:371
 msgid "Only reports of type Report Builder can be deleted"
 msgstr "Smazat lze pouze reporty typu Tvůrce reportů"
 
-#: frappe/desk/reportview.py:334
+#: frappe/desk/reportview.py:335
 msgid "Only reports of type Report Builder can be edited"
 msgstr "Upravovat lze pouze reporty typu Tvůrce reportů"
 
@@ -19466,7 +19534,7 @@ msgstr "Pouze standardní DocTypy mohou být přizpůsobeny z Přizpůsobit form
 msgid "Only the Administrator can delete a standard DocType."
 msgstr "Pouze Administrátor může smazat standardní DocType."
 
-#: frappe/desk/form/assign_to.py:208
+#: frappe/desk/form/assign_to.py:207
 msgid "Only the assignee can complete this to-do."
 msgstr "Pouze přiřazená osoba může dokončit tento úkol."
 
@@ -19530,7 +19598,7 @@ msgid "Open Global Search"
 msgstr ""
 
 #: frappe/public/js/frappe/form/controls/data.js:84
-#: frappe/public/js/frappe/form/controls/link.js:20
+#: frappe/public/js/frappe/form/controls/link.js:21
 msgid "Open Link"
 msgstr "Otevřít odkaz"
 
@@ -19622,7 +19690,7 @@ msgstr "Operace"
 msgid "Operator must be one of {0}"
 msgstr "Operátor musí být jeden z {0}"
 
-#: frappe/database/query.py:2297
+#: frappe/database/query.py:2300
 msgid "Operator {0} requires exactly 2 arguments (left and right operands)"
 msgstr "Operátor {0} vyžaduje přesně 2 argumenty (levý a pravý operand)"
 
@@ -19737,7 +19805,7 @@ msgstr "Oranžová"
 msgid "Order"
 msgstr "Pořadí"
 
-#: frappe/database/query.py:1328
+#: frappe/database/query.py:1331
 msgid "Order By must be a string"
 msgstr "Řadit podle musí být textový řetězec"
 
@@ -19849,7 +19917,7 @@ msgstr ""
 msgid "PDF"
 msgstr ""
 
-#: frappe/utils/print_format.py:149 frappe/utils/print_format.py:193
+#: frappe/utils/print_format.py:150 frappe/utils/print_format.py:194
 msgid "PDF Generation in Progress"
 msgstr "Probíhá generování PDF"
 
@@ -19880,7 +19948,7 @@ msgstr "Šířka stránky PDF (v mm)"
 msgid "PDF Settings"
 msgstr "Nastavení PDF"
 
-#: frappe/utils/print_format.py:378
+#: frappe/utils/print_format.py:387
 msgid "PDF generation failed"
 msgstr "Generování PDF selhalo"
 
@@ -19888,11 +19956,11 @@ msgstr "Generování PDF selhalo"
 msgid "PDF generation failed because of broken image links"
 msgstr "Generování PDF selhalo kvůli nefunkčním odkazům na obrázky"
 
-#: frappe/printing/page/print/print.js:676
+#: frappe/printing/page/print/print.js:683
 msgid "PDF generation may not work as expected."
 msgstr "Generování PDF nemusí fungovat podle očekávání."
 
-#: frappe/printing/page/print/print.js:594
+#: frappe/printing/page/print/print.js:601
 msgid "PDF printing via \"Raw Print\" is not supported."
 msgstr "Tisk PDF prostřednictvím \"Přímý tisk\" není podporován."
 
@@ -20104,7 +20172,7 @@ msgstr "Nadřazený DocType"
 msgid "Parent Document Type"
 msgstr "Nadřazený typ dokumentu"
 
-#: frappe/desk/doctype/number_card/number_card.py:66
+#: frappe/desk/doctype/number_card/number_card.py:69
 msgid "Parent Document Type is required to create a number card"
 msgstr "Nadřazený typ dokumentu je vyžadován pro vytvoření číselné karty"
 
@@ -20148,15 +20216,15 @@ msgstr "Chybí nadřazený"
 msgid "Parent Page"
 msgstr "Nadřazená stránka"
 
-#: frappe/core/doctype/data_export/exporter.py:24
+#: frappe/core/doctype/data_export/exporter.py:25
 msgid "Parent Table"
 msgstr "Nadřazená tabulka"
 
-#: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:407
+#: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:410
 msgid "Parent document type is required to create a dashboard chart"
 msgstr "Nadřazený typ dokumentu je vyžadován pro vytvoření grafu na nástěnce"
 
-#: frappe/core/doctype/data_export/exporter.py:253
+#: frappe/core/doctype/data_export/exporter.py:254
 msgid "Parent is the name of the document to which the data will get added to."
 msgstr "Nadřazený je název dokumentu, ke kterému budou data přidána."
 
@@ -20168,7 +20236,7 @@ msgstr "Seskupování nadřazený-podřízený nebo podřízený-jiný podříze
 msgid "Parentfield not specified in {0}: {1}"
 msgstr "Parentfield není specifikováno v {0}: {1}"
 
-#: frappe/client.py:519
+#: frappe/client.py:536
 msgid "Parenttype, Parent and Parentfield are required to insert a child record"
 msgstr "Parenttype, Parent a Parentfield jsou vyžadovány pro vložení podřízeného záznamu"
 
@@ -20224,7 +20292,7 @@ msgstr "Pasivní"
 msgid "Password"
 msgstr "Heslo"
 
-#: frappe/core/doctype/user/user.py:512 frappe/core/doctype/user/user.py:1176
+#: frappe/core/doctype/user/user.py:513 frappe/core/doctype/user/user.py:1173
 msgid "Password Reset"
 msgstr "Resetování hesla"
 
@@ -20233,7 +20301,7 @@ msgstr "Resetování hesla"
 msgid "Password Reset Link Generation Limit"
 msgstr "Limit generování odkazů pro resetování hesla"
 
-#: frappe/public/js/frappe/form/grid_row.js:918
+#: frappe/public/js/frappe/form/grid_row.js:930
 msgid "Password cannot be filtered"
 msgstr "Heslo nelze filtrovat"
 
@@ -20262,7 +20330,7 @@ msgstr "Heslo chybí v E-mailovém účtu"
 msgid "Password not found for {0} {1} {2}"
 msgstr "Heslo nebylo nalezeno pro {0} {1} {2}"
 
-#: frappe/core/doctype/user/user.py:1338
+#: frappe/core/doctype/user/user.py:1335
 msgid "Password requirements not met"
 msgstr "Požadavky na heslo nebyly splněny"
 
@@ -20274,7 +20342,7 @@ msgstr "Heslo nastaveno"
 msgid "Password size exceeded the maximum allowed size"
 msgstr "Velikost hesla překročila maximální povolenou velikost"
 
-#: frappe/core/doctype/user/user.py:947
+#: frappe/core/doctype/user/user.py:942
 msgid "Password size exceeded the maximum allowed size."
 msgstr "Velikost hesla překročila maximální povolenou velikost."
 
@@ -20443,7 +20511,7 @@ msgstr "Trvale smazat {0}?"
 msgid "Permission"
 msgstr ""
 
-#: frappe/database/query.py:996 frappe/database/query.py:1371
+#: frappe/database/query.py:999 frappe/database/query.py:1374
 #: frappe/desk/doctype/workspace/workspace.py:109
 msgid "Permission Error"
 msgstr "Chyba oprávnění"
@@ -20617,8 +20685,8 @@ msgid "Phone Number {0} set in field {1} is not valid."
 msgstr "Telefonní číslo {0} zadané v poli {1} není platné."
 
 #: frappe/public/js/frappe/form/print_utils.js:70
-#: frappe/public/js/frappe/views/reports/report_view.js:1674
-#: frappe/public/js/frappe/views/reports/report_view.js:1677
+#: frappe/public/js/frappe/views/reports/report_view.js:1668
+#: frappe/public/js/frappe/views/reports/report_view.js:1671
 msgid "Pick Columns"
 msgstr "Vybrat sloupce"
 
@@ -20693,7 +20761,7 @@ msgstr "Prosím nastavte graf"
 msgid "Please Update SMS Settings"
 msgstr "Prosím aktualizujte nastavení SMS"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:615
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:623
 msgid "Please add a subject to your email"
 msgstr "Prosím přidejte předmět k vašemu e-mailu"
 
@@ -20709,7 +20777,7 @@ msgstr ""
 msgid "Please adjust filters to include some data"
 msgstr "Prosím upravte filtry tak, aby zahrnovaly nějaká data"
 
-#: frappe/core/doctype/user/user.py:1147
+#: frappe/core/doctype/user/user.py:1144
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "Požádejte svého administrátora o ověření vaší registrace"
 
@@ -20737,7 +20805,7 @@ msgstr "Zkontrolujte hodnoty filtrů nastavené pro graf na nástěnce: {}"
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "Zkontrolujte prosím hodnotu \"Načíst z\" nastavenou pro pole {0}"
 
-#: frappe/core/doctype/user/user.py:1145
+#: frappe/core/doctype/user/user.py:1142
 msgid "Please check your email for verification"
 msgstr "Zkontrolujte prosím svůj e-mail pro ověření"
 
@@ -20769,7 +20837,7 @@ msgstr "Klikněte prosím na následující odkaz a postupujte podle pokynů na 
 msgid "Please confirm your action to {0} this document."
 msgstr "Potvrďte prosím svou akci pro {0} tohoto dokumentu."
 
-#: frappe/printing/page/print/print.js:678
+#: frappe/printing/page/print/print.js:685
 msgid "Please contact your system manager to install correct version."
 msgstr "Kontaktujte prosím správce systému pro instalaci správné verze."
 
@@ -20785,7 +20853,7 @@ msgstr "Nejprve vytvořte graf"
 msgid "Please delete the field from {0} or add the required doctype."
 msgstr "Prosím smažte pole z {0} nebo přidejte požadovaný doctype."
 
-#: frappe/core/doctype/data_export/exporter.py:184
+#: frappe/core/doctype/data_export/exporter.py:185
 msgid "Please do not change the template headings."
 msgstr "Neměňte prosím záhlaví šablony."
 
@@ -20799,8 +20867,8 @@ msgstr "Před zakázáním přihlášení pomocí uživatelského jména/hesla p
 
 #: frappe/desk/doctype/notification_log/notification_log.js:51
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:17
-#: frappe/printing/page/print/print.js:698
-#: frappe/printing/page/print/print.js:743
+#: frappe/printing/page/print/print.js:705
+#: frappe/printing/page/print/print.js:750
 #: frappe/public/js/frappe/list/bulk_operations.js:161
 #: frappe/public/js/frappe/utils/utils.js:1723
 msgid "Please enable pop-ups"
@@ -20904,7 +20972,7 @@ msgstr "Ujistěte se prosím, že dokumenty Reference Communication nejsou cykli
 msgid "Please refresh to get the latest document."
 msgstr "Prosím obnovte stránku pro získání nejnovějšího dokumentu."
 
-#: frappe/printing/page/print/print.js:595
+#: frappe/printing/page/print/print.js:602
 msgid "Please remove the printer mapping in Printer Settings and try again."
 msgstr "Odeberte prosím mapování tiskáren v Nastavení tiskárny a zkuste to znovu."
 
@@ -20924,7 +20992,7 @@ msgstr "Prosím uložte dokument před odebráním přiřazení"
 msgid "Please save the form before previewing the message"
 msgstr "Před zobrazením náhledu zprávy prosím uložte formulář"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1826
+#: frappe/public/js/frappe/views/reports/report_view.js:1820
 msgid "Please save the report first"
 msgstr "Prosím nejdříve uložte sestavu"
 
@@ -21006,11 +21074,11 @@ msgstr "Vyberte prosím používaný LDAP adresář"
 msgid "Please select {0}"
 msgstr "Vyberte prosím {0}"
 
-#: frappe/contacts/doctype/contact/contact.py:295
+#: frappe/contacts/doctype/contact/contact.py:297
 msgid "Please set Email Address"
 msgstr "Nastavte prosím e-mailovou adresu"
 
-#: frappe/printing/page/print/print.js:609
+#: frappe/printing/page/print/print.js:616
 msgid "Please set a printer mapping for this print format in the Printer Settings"
 msgstr "Nastavte prosím mapování tiskárny pro tento formát tisku v Nastavení tiskárny"
 
@@ -21042,7 +21110,7 @@ msgstr "Nastavte prosím SMS před nastavením jako metody ověření, prostřed
 msgid "Please setup a message first"
 msgstr "Nejprve prosím nastavte zprávu"
 
-#: frappe/core/doctype/user/user.py:477
+#: frappe/core/doctype/user/user.py:478
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
 msgstr "Nastavte prosím výchozí odchozí e-mailový účet v Nastavení > E-mailový účet"
 
@@ -21407,7 +21475,7 @@ msgstr "Primární mobil"
 msgid "Primary Phone"
 msgstr "Primární telefon"
 
-#: frappe/database/mariadb/schema.py:193 frappe/database/postgres/schema.py:273
+#: frappe/database/mariadb/schema.py:232 frappe/database/postgres/schema.py:273
 #: frappe/database/sqlite/schema.py:141
 msgid "Primary key of doctype {0} can not be changed as there are existing values."
 msgstr "Primární klíč Doctype {0} nelze změnit, protože existují existující hodnoty."
@@ -21427,8 +21495,8 @@ msgstr "Primární klíč Doctype {0} nelze změnit, protože existují existuj�
 #: frappe/public/js/frappe/form/toolbar.js:465
 #: frappe/public/js/frappe/list/bulk_operations.js:95
 #: frappe/public/js/frappe/views/reports/query_report.js:1942
-#: frappe/public/js/frappe/views/reports/report_view.js:1636
-#: frappe/public/js/frappe/views/treeview.js:510 frappe/www/printview.html:18
+#: frappe/public/js/frappe/views/reports/report_view.js:1630
+#: frappe/public/js/frappe/views/treeview.js:510 frappe/www/printview.html:19
 msgid "Print"
 msgstr "Tisk"
 
@@ -21452,7 +21520,7 @@ msgstr "Tisk dokumentů"
 #: frappe/email/doctype/notification/notification.json
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/printing/page/print/print.js:115
-#: frappe/printing/page/print/print.js:896
+#: frappe/printing/page/print/print.js:903
 #: frappe/public/js/frappe/form/print_utils.js:32
 #: frappe/public/js/frappe/list/bulk_operations.js:59
 #: frappe/website/doctype/web_form/web_form.json
@@ -21603,11 +21671,11 @@ msgstr "Tisk dokumentu"
 msgid "Print with letterhead"
 msgstr "Tisk s hlavičkou"
 
-#: frappe/printing/page/print/print.js:905
+#: frappe/printing/page/print/print.js:912
 msgid "Printer"
 msgstr "Tiskárna"
 
-#: frappe/printing/page/print/print.js:882
+#: frappe/printing/page/print/print.js:889
 msgid "Printer Mapping"
 msgstr "Mapování tiskáren"
 
@@ -21617,11 +21685,11 @@ msgstr "Mapování tiskáren"
 msgid "Printer Name"
 msgstr "Název tiskárny"
 
-#: frappe/printing/page/print/print.js:874
+#: frappe/printing/page/print/print.js:881
 msgid "Printer Settings"
 msgstr "Nastavení tiskárny"
 
-#: frappe/printing/page/print/print.js:608
+#: frappe/printing/page/print/print.js:615
 msgid "Printer mapping not set."
 msgstr "Mapování tiskárny není nastaveno."
 
@@ -21631,7 +21699,7 @@ msgstr "Mapování tiskárny není nastaveno."
 msgid "Printing"
 msgstr ""
 
-#: frappe/utils/print_format.py:380
+#: frappe/utils/print_format.py:389
 msgid "Printing failed"
 msgstr "Tisk selhal"
 
@@ -22084,7 +22152,7 @@ msgstr "Zařazeno do fronty pro zálohování. Obdržíte e-mail s odkazem ke st
 msgid "Queues"
 msgstr "Fronty"
 
-#: frappe/desk/doctype/bulk_update/bulk_update.py:87
+#: frappe/desk/doctype/bulk_update/bulk_update.py:95
 msgid "Queuing {0} for Submission"
 msgstr "Zařazování {0} do fronty k odeslání"
 
@@ -22179,7 +22247,7 @@ msgstr "Přímé příkazy"
 msgid "Raw Email"
 msgstr "Nezpracovaný e-mail"
 
-#: frappe/core/doctype/communication/email.py:100
+#: frappe/core/doctype/communication/email.py:101
 msgid "Raw HTML can be used only with Email Templates having 'Use HTML' checked. Proceeding with plain text email."
 msgstr ""
 
@@ -22230,7 +22298,7 @@ msgstr ""
 #. Label of the read (Check) field in DocType 'User Document Type'
 #. Label of the read (Check) field in DocType 'Notification Log'
 #. Option for the 'Action' (Select) field in DocType 'Email Flag Queue'
-#: frappe/client.py:502 frappe/core/doctype/communication/communication.json
+#: frappe/client.py:519 frappe/core/doctype/communication/communication.json
 #: frappe/core/doctype/custom_docperm/custom_docperm.json
 #: frappe/core/doctype/docperm/docperm.json
 #: frappe/core/doctype/docshare/docshare.json
@@ -22777,7 +22845,7 @@ msgstr "Obnovování"
 msgid "Refreshing..."
 msgstr "Obnovování..."
 
-#: frappe/core/doctype/user/user.py:1107
+#: frappe/core/doctype/user/user.py:1104
 msgid "Registered but disabled"
 msgstr "Registrováno, ale zakázáno"
 
@@ -23201,7 +23269,7 @@ msgstr "Správce sestav"
 msgid "Report Name"
 msgstr "Název sestavy"
 
-#: frappe/desk/doctype/number_card/number_card.py:70
+#: frappe/desk/doctype/number_card/number_card.py:73
 msgid "Report Name, Report Field and Fucntion are required to create a number card"
 msgstr "Název sestavy, Pole sestavy a Funkce jsou povinné pro vytvoření číselné karty"
 
@@ -23265,7 +23333,7 @@ msgstr "Časový limit sestavy vypršel."
 msgid "Report updated successfully"
 msgstr "Sestava byla úspěšně aktualizována"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1456
+#: frappe/public/js/frappe/views/reports/report_view.js:1450
 msgid "Report was not saved (there were errors)"
 msgstr "Sestava nebyla uložena (vyskytly se chyby)"
 
@@ -23278,7 +23346,7 @@ msgstr "Sestava s více než 10 sloupci vypadá lépe v režimu na šířku."
 msgid "Report {0}"
 msgstr "Sestava {0}"
 
-#: frappe/desk/reportview.py:377
+#: frappe/desk/reportview.py:378
 msgid "Report {0} deleted"
 msgstr "Sestava {0} odstraněna"
 
@@ -23286,7 +23354,7 @@ msgstr "Sestava {0} odstraněna"
 msgid "Report {0} is disabled"
 msgstr "Sestava {0} je zakázána"
 
-#: frappe/desk/reportview.py:354
+#: frappe/desk/reportview.py:355
 msgid "Report {0} saved"
 msgstr "Sestava {0} uložena"
 
@@ -23556,7 +23624,7 @@ msgstr "Záhlaví odpovědi"
 msgid "Response Type"
 msgstr "Typ odpovědi"
 
-#: frappe/public/js/frappe/ui/notifications/notifications.js:491
+#: frappe/public/js/frappe/ui/notifications/notifications.js:500
 msgid "Rest of the day"
 msgstr "Zbytek dne"
 
@@ -23723,7 +23791,6 @@ msgstr ""
 #: frappe/core/doctype/role/role.json
 #: frappe/core/doctype/user_role/user_role.json
 #: frappe/core/doctype/user_type/user_type.json
-#: frappe/core/doctype/user_type/user_type.py:79
 #: frappe/core/page/permission_manager/permission_manager.js:220
 #: frappe/core/page/permission_manager/permission_manager.js:508
 #: frappe/desk/doctype/onboarding_permission/onboarding_permission.json
@@ -23802,7 +23869,7 @@ msgstr "Replikace rolí"
 msgid "Role and Level"
 msgstr "Role a úroveň"
 
-#: frappe/core/doctype/user/user.py:426
+#: frappe/core/doctype/user/user.py:427
 msgid "Role has been set as per the user type {0}"
 msgstr "Role byla nastavena podle typu uživatele {0}"
 
@@ -24130,7 +24197,7 @@ msgstr "SQL výstup"
 msgid "SQL Queries"
 msgstr "SQL dotazy"
 
-#: frappe/database/query.py:2142
+#: frappe/database/query.py:2145
 msgid "SQL functions are not allowed as strings in SELECT: {0}. Use dict syntax like {{'COUNT': '*'}} instead."
 msgstr "SQL funkce nejsou povoleny jako řetězce v SELECT: {0}. Použijte místo toho dict syntaxi jako {{'COUNT': '*'}}."
 
@@ -24228,7 +24295,7 @@ msgstr "Sobota"
 #: frappe/desk/doctype/global_search_settings/global_search_settings.js:31
 #: frappe/desk/page/desktop/desktop.html:74
 #: frappe/email/doctype/notification/notification.json
-#: frappe/printing/page/print/print.js:933
+#: frappe/printing/page/print/print.js:940
 #: frappe/printing/page/print_format_builder/print_format_builder.js:162
 #: frappe/public/js/frappe/form/footer/form_timeline.js:678
 #: frappe/public/js/frappe/form/quick_entry.js:186
@@ -24241,7 +24308,7 @@ msgstr "Sobota"
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:189
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:389
 #: frappe/public/js/frappe/views/reports/query_report.js:2122
-#: frappe/public/js/frappe/views/reports/report_view.js:1843
+#: frappe/public/js/frappe/views/reports/report_view.js:1837
 #: frappe/public/js/frappe/views/workspace/workspace.js:367
 #: frappe/public/js/frappe/widgets/base_widget.js:143
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:120
@@ -24254,8 +24321,8 @@ msgstr "Uložit"
 msgid "Save Anyway"
 msgstr "Přesto uložit"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1487
-#: frappe/public/js/frappe/views/reports/report_view.js:1850
+#: frappe/public/js/frappe/views/reports/report_view.js:1481
+#: frappe/public/js/frappe/views/reports/report_view.js:1844
 msgid "Save As"
 msgstr "Uložit jako"
 
@@ -24412,7 +24479,7 @@ msgstr "Plánovač"
 msgid "Scheduler Event"
 msgstr "Událost plánovače"
 
-#: frappe/core/doctype/data_import/data_import.py:125
+#: frappe/core/doctype/data_import/data_import.py:126
 msgid "Scheduler Inactive"
 msgstr "Neaktivní plánovač"
 
@@ -24425,7 +24492,7 @@ msgstr "Stav plánovače"
 msgid "Scheduler can not be re-enabled when maintenance mode is active."
 msgstr "Plánovač nelze znovu povolit, když je aktivní režim údržby."
 
-#: frappe/core/doctype/data_import/data_import.py:125
+#: frappe/core/doctype/data_import/data_import.py:126
 msgid "Scheduler is inactive. Cannot import data."
 msgstr "Plánovač je neaktivní. Data nelze importovat."
 
@@ -24529,7 +24596,7 @@ msgstr "Skripty"
 #: frappe/public/js/frappe/ui/sidebar/sidebar.js:508
 #: frappe/public/js/frappe/ui/toolbar/search.js:96
 #: frappe/public/js/frappe/ui/toolbar/search.js:106
-#: frappe/public/js/frappe/views/reports/report_view.js:1723
+#: frappe/public/js/frappe/views/reports/report_view.js:1717
 #: frappe/templates/discussions/search.html:2
 #: frappe/templates/includes/search_template.html:26
 msgid "Search"
@@ -24667,11 +24734,11 @@ msgstr "Název sekce"
 msgid "Section must have at least one column"
 msgstr "Sekce musí mít alespoň jeden sloupec"
 
-#: frappe/core/doctype/user/user.py:1497
+#: frappe/core/doctype/user/user.py:1494
 msgid "Security Alert: Your account is being impersonated"
 msgstr "Bezpečnostní upozornění: Někdo se vydává za váš účet"
 
-#: frappe/core/doctype/user/user.py:399
+#: frappe/core/doctype/user/user.py:400
 msgid "Security Alert: Your password has been changed."
 msgstr "Bezpečnostní upozornění: Vaše heslo bylo změněno."
 
@@ -24767,7 +24834,7 @@ msgstr "Tabulka zobrazení"
 #: frappe/core/page/permission_manager/permission_manager_help.html:26
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
-#: frappe/printing/page/print/print.js:662
+#: frappe/printing/page/print/print.js:669
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Select"
@@ -24780,7 +24847,7 @@ msgstr "Vyberte"
 #: frappe/public/js/frappe/list/list_view.js:760
 #: frappe/public/js/frappe/list/list_view.js:827
 #: frappe/public/js/frappe/views/file/file_view.js:359
-#: frappe/public/js/frappe/views/reports/report_view.js:1711
+#: frappe/public/js/frappe/views/reports/report_view.js:1705
 msgid "Select All"
 msgstr "Vybrat vše"
 
@@ -24885,7 +24952,7 @@ msgstr "Vyberte filtry"
 msgid "Select Google Calendar to which event should be synced."
 msgstr "Vyberte Google Calendar, se kterým se má událost synchronizovat."
 
-#: frappe/contacts/doctype/contact/contact.py:74
+#: frappe/contacts/doctype/contact/contact.py:76
 msgid "Select Google Contacts to which contact should be synced."
 msgstr "Vyberte Google Contacts, se kterými se má kontakt synchronizovat."
 
@@ -24915,7 +24982,7 @@ msgid "Select Module"
 msgstr "Vybrat modul"
 
 #: frappe/printing/page/print/print.js:196
-#: frappe/printing/page/print/print.js:645
+#: frappe/printing/page/print/print.js:652
 msgid "Select Network Printer"
 msgstr "Vyberte síťovou tiskárnu"
 
@@ -25759,7 +25826,7 @@ msgid "Setup > User Permissions"
 msgstr "Nastavení > Uživatelská oprávnění"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1984
-#: frappe/public/js/frappe/views/reports/report_view.js:1821
+#: frappe/public/js/frappe/views/reports/report_view.js:1815
 msgid "Setup Auto Email"
 msgstr "Nastavení automatického e-mailu"
 
@@ -25810,7 +25877,7 @@ msgstr "Sdílet {0} s"
 msgid "Shared"
 msgstr "Sdíleno"
 
-#: frappe/desk/form/assign_to.py:138
+#: frappe/desk/form/assign_to.py:137
 msgid "Shared with the following Users with Read access:{0}"
 msgstr "Sdíleno s následujícími uživateli s přístupem ke čtení:{0}"
 
@@ -26048,7 +26115,7 @@ msgstr "Zobrazit název"
 msgid "Show Title in Link Fields"
 msgstr "Zobrazit Název v odkazových polích"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1626
+#: frappe/public/js/frappe/views/reports/report_view.js:1620
 msgid "Show Totals"
 msgstr "Zobrazit součty"
 
@@ -26239,7 +26306,7 @@ msgstr ""
 msgid "Sign Up and Confirmation"
 msgstr "Registrace a potvrzení"
 
-#: frappe/core/doctype/user/user.py:1100
+#: frappe/core/doctype/user/user.py:1097
 msgid "Sign Up is disabled"
 msgstr "Registrace je zakázána"
 
@@ -26604,7 +26671,7 @@ msgstr "Pole řazení {0} musí být platný název pole"
 
 #. Label of the source (Data) field in DocType 'Web Page View'
 #. Label of the source (Small Text) field in DocType 'Website Route Redirect'
-#: frappe/public/js/frappe/utils/utils.js:2026
+#: frappe/public/js/frappe/utils/utils.js:2021
 #: frappe/website/doctype/web_page_view/web_page_view.json
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json
 #: frappe/website/report/website_analytics/website_analytics.js:38
@@ -26614,6 +26681,16 @@ msgstr "Zdroj"
 #: frappe/public/js/frappe/ui/toolbar/about.js:22
 msgid "Source Code"
 msgstr "Zdrojový kód"
+
+#. Label of the source_name (Dynamic Link) field in DocType 'Notification Log'
+#: frappe/desk/doctype/notification_log/notification_log.json
+msgid "Source Document Name"
+msgstr ""
+
+#. Label of the source_doctype (Link) field in DocType 'Notification Log'
+#: frappe/desk/doctype/notification_log/notification_log.json
+msgid "Source Document Type"
+msgstr ""
 
 #. Label of the source_name (Data) field in DocType 'Dashboard Chart Source'
 #: frappe/desk/doctype/dashboard_chart_source/dashboard_chart_source.json
@@ -26673,7 +26750,7 @@ msgstr "Zadejte domény nebo zdroje, které mají povoleno vkládat tento formul
 msgid "Splash Image"
 msgstr "Úvodní obrázek"
 
-#: frappe/desk/reportview.py:469
+#: frappe/desk/reportview.py:470
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:162
 #: frappe/public/js/frappe/web_form/web_form_list.js:198
 #: frappe/templates/print_formats/standard_macros.html:44
@@ -26733,11 +26810,11 @@ msgstr "Standardní formát tisku nelze aktualizovat"
 msgid "Standard Print Style cannot be changed. Please duplicate to edit."
 msgstr "Standardní styl tisku nelze změnit. Pro úpravy jej prosím duplikujte."
 
-#: frappe/desk/reportview.py:367
+#: frappe/desk/reportview.py:368
 msgid "Standard Reports cannot be deleted"
 msgstr "Standardní sestavy nelze smazat"
 
-#: frappe/desk/reportview.py:331
+#: frappe/desk/reportview.py:332
 msgid "Standard Reports cannot be edited"
 msgstr "Standardní sestavy nelze upravovat"
 
@@ -26767,7 +26844,7 @@ msgstr "Standardní role nelze zakázat"
 msgid "Standard roles cannot be renamed"
 msgstr "Standardní role nelze přejmenovat"
 
-#: frappe/core/doctype/user_type/user_type.py:60
+#: frappe/core/doctype/user_type/user_type.py:59
 msgid "Standard user type {0} can not be deleted."
 msgstr "Standardní typ uživatele {0} nelze smazat."
 
@@ -26811,7 +26888,7 @@ msgstr "Čas zahájení"
 msgid "Start a new discussion"
 msgstr "Zahájit novou diskusi"
 
-#: frappe/core/doctype/data_export/exporter.py:22
+#: frappe/core/doctype/data_export/exporter.py:23
 msgid "Start entering data below this line"
 msgstr "Začněte zadávat data pod tímto řádkem"
 
@@ -26947,7 +27024,7 @@ msgstr "Časový interval statistik"
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 #: frappe/public/js/frappe/list/list_settings.js:365
 #: frappe/public/js/frappe/list/list_view.js:2492
-#: frappe/public/js/frappe/views/reports/report_view.js:1076
+#: frappe/public/js/frappe/views/reports/report_view.js:1070
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
@@ -27221,7 +27298,7 @@ msgctxt "Freeze message while submitting a document"
 msgid "Submitting"
 msgstr "Odesílání"
 
-#: frappe/desk/doctype/bulk_update/bulk_update.py:90
+#: frappe/desk/doctype/bulk_update/bulk_update.py:98
 msgid "Submitting {0}"
 msgstr "Odesílání {0}"
 
@@ -27258,7 +27335,7 @@ msgstr "Jemný"
 #: frappe/templates/includes/login/login.js:307
 #: frappe/templates/includes/login/login.js:315
 #: frappe/templates/pages/integrations/gcalendar-success.html:9
-#: frappe/workflow/doctype/workflow_action/workflow_action.py:161
+#: frappe/workflow/doctype/workflow_action/workflow_action.py:170
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Success"
 msgstr "Úspěch"
@@ -27318,7 +27395,7 @@ msgstr "Úspěšně importováno {0} z {1} záznamů."
 msgid "Successfully reset onboarding status for all users."
 msgstr "Stav úvodního nastavení byl úspěšně resetován pro všechny uživatele."
 
-#: frappe/core/doctype/user/user.py:1516
+#: frappe/core/doctype/user/user.py:1513
 msgid "Successfully signed out"
 msgstr "Úspěšně odhlášeno"
 
@@ -27343,7 +27420,7 @@ msgstr "Navrhnout optimalizace"
 msgid "Suggested Indexes"
 msgstr "Navrhované indexy"
 
-#: frappe/core/doctype/user/user.py:787
+#: frappe/core/doctype/user/user.py:788
 msgid "Suggested Username: {0}"
 msgstr "Navrhované uživatelské jméno: {0}"
 
@@ -27791,7 +27868,7 @@ msgstr "Popisek záložky"
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #. Label of the table (Data) field in DocType 'System Health Report Tables'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
-#: frappe/core/doctype/data_export/exporter.py:23
+#: frappe/core/doctype/data_export/exporter.py:24
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/core/doctype/duckdb_sync_item/duckdb_sync_item.json
 #: frappe/core/doctype/recorder_suggested_index/recorder_suggested_index.json
@@ -27799,6 +27876,7 @@ msgstr "Popisek záložky"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/desk/doctype/system_health_report_tables/system_health_report_tables.json
 #: frappe/printing/page/print_format_builder/print_format_builder_field.html:39
+#: frappe/public/js/frappe/form/controls/text_editor.js:192
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Table"
 msgstr "Tabulka"
@@ -27835,7 +27913,7 @@ msgstr "Tabulka HTML"
 msgid "Table MultiSelect"
 msgstr "Tabulka MultiSelect"
 
-#: frappe/desk/search.py:331
+#: frappe/desk/search.py:336
 msgid "Table MultiSelect requires a table with at least one Link field, but none was found in {0}"
 msgstr "Table MultiSelect vyžaduje tabulku s alespoň jedním polem typu Link, ale žádné nebylo nalezeno v {0}"
 
@@ -27964,7 +28042,7 @@ msgstr "Varování šablony"
 msgid "Templates"
 msgstr "Šablony"
 
-#: frappe/core/doctype/user/user.py:1113
+#: frappe/core/doctype/user/user.py:1110
 msgid "Temporarily Disabled"
 msgstr "Dočasně zakázáno"
 
@@ -28058,7 +28136,7 @@ msgstr "Děkujeme"
 msgid "The Auto Repeat for this document has been disabled."
 msgstr "Automatické opakování pro tento dokument bylo zakázáno."
 
-#: frappe/desk/doctype/bulk_update/bulk_update.py:41
+#: frappe/desk/doctype/bulk_update/bulk_update.py:43
 msgid "The Bulk Update could not happen due to <b>{0}</b>"
 msgstr "Hromadná aktualizace se nezdařila kvůli <b>{0}</b>"
 
@@ -28172,17 +28250,13 @@ msgstr "Vybraný typ dokumentu je podřízená tabulka, proto je vyžadován nad
 msgid "The email button is enabled for the user in the document."
 msgstr ""
 
-#: frappe/desk/search.py:344
+#: frappe/desk/search.py:349
 msgid "The field {0} in {1} does not allow ignoring user permissions"
 msgstr "Pole {0} v {1} nepovoluje ignorování uživatelských oprávnění"
 
-#: frappe/desk/search.py:359
+#: frappe/desk/search.py:364
 msgid "The field {0} in {1} links to {2} and not {3}"
 msgstr "Pole {0} v {1} odkazuje na {2} a ne na {3}"
-
-#: frappe/core/doctype/user_type/user_type.py:79
-msgid "The field {0} is mandatory"
-msgstr "Pole {0} je povinné"
 
 #: frappe/core/doctype/file/file.py:197
 msgid "The fieldname you've specified in Attached To Field is invalid"
@@ -28256,21 +28330,17 @@ msgstr "Číslo projektu získané z Google Cloud Console v části <a href=\"ht
 msgid "The report you requested has been generated.<br><br>Click here to download:<br><a href='{0}'>{0}</a><br><br>This link will expire in {1} hours."
 msgstr "Sestava, kterou jste požadovali, byla vygenerována.<br><br>Klikněte zde pro stažení:<br><a href='{0}'>{0}</a><br><br>Platnost tohoto odkazu vyprší za {1} hodin."
 
-#: frappe/core/doctype/user/user.py:1071
+#: frappe/core/doctype/user/user.py:1068
 msgid "The reset password link has been expired"
 msgstr "Odkaz pro obnovení hesla vypršel"
 
-#: frappe/core/doctype/user/user.py:1073
+#: frappe/core/doctype/user/user.py:1070
 msgid "The reset password link has either been used before or is invalid"
 msgstr "Odkaz pro obnovení hesla byl již použit nebo je neplatný"
 
 #: frappe/app.py:396 frappe/public/js/frappe/request.js:147
 msgid "The resource you are looking for is not available"
 msgstr "Prostředek, který hledáte, není dostupný"
-
-#: frappe/core/doctype/user_type/user_type.py:83
-msgid "The role {0} should be a custom role."
-msgstr "Role {0} by měla být vlastní role."
 
 #: frappe/core/doctype/audit_trail/audit_trail.py:46
 msgid "The selected document {0} is not a {1}."
@@ -28361,7 +28431,7 @@ msgstr "URL motivu"
 msgid "There are documents which have workflow states that do not exist in this Workflow. It is recommended that you add these states to the Workflow and change their states before removing these states."
 msgstr "Existují dokumenty se stavy pracovního postupu, které v tomto Pracovním postupu neexistují. Doporučuje se přidat tyto stavy do Pracovního postupu a změnit jejich stavy před odstraněním těchto stavů."
 
-#: frappe/public/js/frappe/ui/notifications/notifications.js:527
+#: frappe/public/js/frappe/ui/notifications/notifications.js:536
 msgid "There are no upcoming events for you."
 msgstr "Nemáte žádné nadcházející události."
 
@@ -28382,11 +28452,11 @@ msgstr "Ve webovém formuláři může být pouze 9 polí konce stránky"
 msgid "There can be only one Fold in a form"
 msgstr "Ve formuláři může být pouze jedno Sbalení"
 
-#: frappe/contacts/doctype/address/address.py:182
+#: frappe/contacts/doctype/address/address.py:184
 msgid "There is an error in your Address Template {0}"
 msgstr "Ve vaší šabloně adresy {0} je chyba"
 
-#: frappe/core/doctype/data_export/exporter.py:162
+#: frappe/core/doctype/data_export/exporter.py:163
 msgid "There is no data to be exported"
 msgstr "Nejsou žádná data k exportu"
 
@@ -28394,7 +28464,7 @@ msgstr "Nejsou žádná data k exportu"
 msgid "There is no task called \"{}\""
 msgstr "Neexistuje žádný úkol s názvem \"{}\""
 
-#: frappe/public/js/frappe/ui/notifications/notifications.js:576
+#: frappe/public/js/frappe/ui/notifications/notifications.js:585
 msgid "There is nothing new to show you right now."
 msgstr "Momentálně pro vás není nic nového."
 
@@ -28406,7 +28476,7 @@ msgstr "Vyskytl se problém s URL souboru: {0}"
 msgid "There is {0} with the same filters already in the queue:"
 msgstr "Ve frontě se již nachází {0} se stejnými filtry:"
 
-#: frappe/core/page/permission_manager/permission_manager.py:166
+#: frappe/core/page/permission_manager/permission_manager.py:173
 msgid "There must be atleast one permission rule."
 msgstr "Musí existovat alespoň jedno pravidlo oprávnění."
 
@@ -28754,7 +28824,7 @@ msgstr "Tím se tato prohlídka resetuje a zobrazí se všem uživatelům. Jste 
 msgid "This will terminate the job immediately and might be dangerous, are you sure?"
 msgstr "Toto okamžitě ukončí úlohu a může být nebezpečné, jste si jistí?"
 
-#: frappe/core/doctype/user/user.py:1347
+#: frappe/core/doctype/user/user.py:1344
 msgid "Throttled"
 msgstr "Omezeno"
 
@@ -28863,7 +28933,7 @@ msgstr "Čas v dotazech"
 msgid "Time in seconds to retain QR code image on server. Min:<strong>240</strong>"
 msgstr "Čas v sekundách pro uchování obrázku QR kódu na serveru. Min:<strong>240</strong>"
 
-#: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:416
+#: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:419
 msgid "Time series based on is required to create a dashboard chart"
 msgstr "Pro vytvoření grafu na nástěnce je vyžadována časová řada založená na"
 
@@ -29111,7 +29181,7 @@ msgstr "Pro více informací klikněte {0}"
 msgid "To print output use <code>print(text)</code>"
 msgstr "Pro tisk výstupu použijte <code>print(text)</code>"
 
-#: frappe/core/doctype/user_type/user_type.py:260
+#: frappe/core/doctype/user_type/user_type.py:250
 msgid "To set the role {0} in the user {1}, kindly set the {2} field as {3} in one of the {4} record."
 msgstr "Pro nastavení role {0} u uživatele {1} laskavě nastavte pole {2} jako {3} v jednom ze záznamů {4}."
 
@@ -29155,7 +29225,7 @@ msgstr "Dnes"
 msgid "Toggle Awesomebar"
 msgstr "Přepnout Awesomebar"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1670
+#: frappe/public/js/frappe/views/reports/report_view.js:1664
 msgid "Toggle Chart"
 msgstr "Přepnout graf"
 
@@ -29211,7 +29281,7 @@ msgstr "URI tokenu"
 msgid "Tomorrow"
 msgstr ""
 
-#: frappe/desk/doctype/bulk_update/bulk_update.py:69
+#: frappe/desk/doctype/bulk_update/bulk_update.py:77
 #: frappe/model/workflow.py:331
 msgid "Too Many Documents"
 msgstr "Příliš mnoho dokumentů"
@@ -29232,7 +29302,7 @@ msgstr "Příliš mnoho úloh na pozadí ve frontě ({0}). Zkuste to prosím po 
 msgid "Too many requests. Please try again later."
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1114
+#: frappe/core/doctype/user/user.py:1111
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "V poslední době se zaregistrovalo příliš mnoho uživatelů, registrace je proto zakázána. Zkuste to prosím znovu za hodinu"
 
@@ -29296,7 +29366,7 @@ msgstr "Téma"
 #: frappe/desk/query_report.py:807
 #: frappe/public/js/frappe/views/reports/print_grid.html:50
 #: frappe/public/js/frappe/views/reports/query_report.js:1396
-#: frappe/public/js/frappe/views/reports/report_view.js:1651
+#: frappe/public/js/frappe/views/reports/report_view.js:1645
 msgid "Total"
 msgstr "Celkový počet"
 
@@ -29346,11 +29416,11 @@ msgstr "Celkový počet e-mailů k synchronizaci při počáteční synchronizac
 msgid "Total:"
 msgstr "Celkem:"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1355
+#: frappe/public/js/frappe/views/reports/report_view.js:1349
 msgid "Totals"
 msgstr "Součty"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1330
+#: frappe/public/js/frappe/views/reports/report_view.js:1324
 msgid "Totals Row"
 msgstr "Řádek součtů"
 
@@ -29413,7 +29483,7 @@ msgstr "Sledování, zda byl váš e-mail otevřen příjemcem.\n"
 msgid "Track milestones for any document"
 msgstr "Sledování milníků pro jakýkoli dokument"
 
-#: frappe/public/js/frappe/utils/utils.js:2090
+#: frappe/public/js/frappe/utils/utils.js:2085
 msgid "Tracking URL generated and copied to clipboard"
 msgstr "Sledovací URL vygenerováno a zkopírováno do schránky"
 
@@ -29464,7 +29534,7 @@ msgstr "Přeložit data"
 msgid "Translate Link Fields"
 msgstr "Přeložit pole odkazů"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1766
+#: frappe/public/js/frappe/views/reports/report_view.js:1760
 msgid "Translate values"
 msgstr "Přeložit hodnoty"
 
@@ -29650,7 +29720,11 @@ msgstr "Zadejte název"
 msgid "Type your reply here..."
 msgstr "Napište svou odpověď zde..."
 
-#: frappe/core/doctype/data_export/exporter.py:143
+#: frappe/public/js/frappe/ui/awesomplete.js:7
+msgid "Type {0} or more characters for results."
+msgstr ""
+
+#: frappe/core/doctype/data_export/exporter.py:144
 msgid "Type:"
 msgstr "Typ:"
 
@@ -29797,7 +29871,7 @@ msgstr "UTM zdroj"
 msgid "UUID"
 msgstr ""
 
-#: frappe/desk/form/document_follow.py:95
+#: frappe/desk/form/document_follow.py:98
 msgid "Un-following document {0}"
 msgstr "Přestáváte sledovat dokument {0}"
 
@@ -29813,7 +29887,7 @@ msgstr "Nelze načíst fotoaparát."
 msgid "Unable to load: {0}"
 msgstr "Nelze načíst: {0}"
 
-#: frappe/utils/csvutils.py:37
+#: frappe/utils/csvutils.py:38
 msgid "Unable to open attached file. Did you export it as CSV?"
 msgstr "Nelze otevřít přiložený soubor. Exportovali jste jej jako CSV?"
 
@@ -29821,7 +29895,7 @@ msgstr "Nelze otevřít přiložený soubor. Exportovali jste jej jako CSV?"
 msgid "Unable to read file format for {0}"
 msgstr "Nelze přečíst formát souboru pro {0}"
 
-#: frappe/core/doctype/communication/email.py:212
+#: frappe/core/doctype/communication/email.py:213
 msgid "Unable to send mail because of a missing email account. Please setup default Email Account from Settings > Email Account"
 msgstr "Nelze odeslat e-mail z důvodu chybějícího e-mailového účtu. Nastavte prosím výchozí E-mailový účet v Nastavení > E-mailový účet"
 
@@ -29906,7 +29980,7 @@ msgstr "Neznámá metoda zaokrouhlování: {}"
 msgid "Unknown User"
 msgstr "Neznámý uživatel"
 
-#: frappe/utils/csvutils.py:54
+#: frappe/utils/csvutils.py:55
 msgid "Unknown file encoding. Tried to use: {0}"
 msgstr "Neznámé kódování souboru. Bylo vyzkoušeno: {0}"
 
@@ -29941,7 +30015,7 @@ msgstr "Nebezpečný SQL dotaz"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:164
 #: frappe/public/js/frappe/form/controls/multicheck.js:187
-#: frappe/public/js/frappe/views/reports/report_view.js:1712
+#: frappe/public/js/frappe/views/reports/report_view.js:1706
 msgid "Unselect All"
 msgstr "Zrušit výběr všech"
 
@@ -29978,11 +30052,11 @@ msgstr "Odhlášeno"
 msgid "Unsupported file format: {0}"
 msgstr ""
 
-#: frappe/database/query.py:1168
+#: frappe/database/query.py:1171
 msgid "Unsupported function or operator: {0}"
 msgstr "Nepodporovaná funkce nebo operátor: {0}"
 
-#: frappe/database/query.py:2233
+#: frappe/database/query.py:2236
 msgid "Unsupported {0}: {1}"
 msgstr "Nepodporovaný {0}: {1}"
 
@@ -30141,7 +30215,7 @@ msgstr "Aktualizace stavů fronty e-mailů. E-maily budou zpracovány při pří
 msgid "Updating counter may lead to document name conflicts if not done properly"
 msgstr "Aktualizace čítače může vést ke konfliktům názvů dokumentů, pokud není provedena správně"
 
-#: frappe/desk/page/setup_wizard/setup_wizard.py:24
+#: frappe/desk/page/setup_wizard/setup_wizard.py:25
 msgid "Updating global settings"
 msgstr "Aktualizace globálního nastavení"
 
@@ -30157,7 +30231,7 @@ msgstr "Aktualizace souvisejících polí..."
 msgid "Updating search index"
 msgstr ""
 
-#: frappe/desk/doctype/bulk_update/bulk_update.py:118
+#: frappe/desk/doctype/bulk_update/bulk_update.py:126
 msgid "Updating {0}"
 msgstr "Aktualizace {0}"
 
@@ -30491,7 +30565,7 @@ msgstr "ID uživatele"
 msgid "User Id Field"
 msgstr "Pole ID uživatele"
 
-#: frappe/core/doctype/user_type/user_type.py:252
+#: frappe/core/doctype/user_type/user_type.py:242
 msgid "User Id Field is mandatory in the user type {0}"
 msgstr "Pole ID uživatele je povinné v typu uživatele {0}"
 
@@ -30526,7 +30600,7 @@ msgstr "Uživatelské oprávnění"
 #: frappe/core/page/permission_manager/permission_manager_help.html:97
 #: frappe/core/workspace/users/users.json
 #: frappe/public/js/frappe/views/reports/query_report.js:2109
-#: frappe/public/js/frappe/views/reports/report_view.js:1869
+#: frappe/public/js/frappe/views/reports/report_view.js:1863
 msgid "User Permissions"
 msgstr "Uživatelská oprávnění"
 
@@ -30615,7 +30689,7 @@ msgstr "Uživatel je pro sdílení povinný"
 msgid "User must always select"
 msgstr "Uživatel musí vždy vybrat"
 
-#: frappe/core/doctype/user_permission/user_permission.py:60
+#: frappe/core/doctype/user_permission/user_permission.py:61
 msgid "User permission already exists"
 msgstr "Oprávnění uživatele již existuje"
 
@@ -30627,15 +30701,15 @@ msgstr "Uživatel s e-mailovou adresou {0} neexistuje"
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 msgstr "Uživatel s e-mailem: {0} v systému neexistuje. Požádejte prosím správce systému, aby vám uživatele vytvořil."
 
-#: frappe/core/doctype/user/user.py:592
+#: frappe/core/doctype/user/user.py:593
 msgid "User {0} cannot be deleted"
 msgstr "Uživatel {0} nemůže být smazán"
 
-#: frappe/core/doctype/user/user.py:375
+#: frappe/core/doctype/user/user.py:376
 msgid "User {0} cannot be disabled"
 msgstr "Uživatel {0} nemůže být zakázán"
 
-#: frappe/core/doctype/user/user.py:665
+#: frappe/core/doctype/user/user.py:666
 msgid "User {0} cannot be renamed"
 msgstr "Uživatel {0} nemůže být přejmenován"
 
@@ -30656,11 +30730,11 @@ msgstr "Uživatel {0} nemá oprávnění k vytvoření Pracovního prostoru."
 msgid "User {0} has requested for data deletion"
 msgstr "Uživatel {0} požádal o smazání dat"
 
-#: frappe/core/doctype/user/user.py:1491
+#: frappe/core/doctype/user/user.py:1488
 msgid "User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
 msgstr "Uživatel {0} zahájil relaci, ve které se vydává za vás. <br><br><b>Uvedený důvod:</b> {1}"
 
-#: frappe/core/doctype/user/user.py:1474
+#: frappe/core/doctype/user/user.py:1471
 msgid "User {0} impersonated as {1}"
 msgstr "Uživatel {0} se vydával za {1}"
 
@@ -30672,7 +30746,7 @@ msgstr "Uživatel {0} je zakázán"
 msgid "User {0} is disabled. Please contact your System Manager."
 msgstr "Uživatel {0} je zakázán. Kontaktujte prosím správce systému."
 
-#: frappe/desk/form/assign_to.py:108
+#: frappe/desk/form/assign_to.py:109
 msgid "User {0} is not permitted to access this document."
 msgstr "Uživatel {0} nemá oprávnění přistupovat k tomuto dokumentu."
 
@@ -30689,7 +30763,7 @@ msgstr "URI uživatelských informací"
 msgid "Username"
 msgstr "Uživatelské jméno"
 
-#: frappe/core/doctype/user/user.py:754
+#: frappe/core/doctype/user/user.py:755
 msgid "Username {0} already exists"
 msgstr "Uživatelské jméno {0} již existuje"
 
@@ -31264,7 +31338,7 @@ msgstr "Webová stránka"
 msgid "Web Page Block"
 msgstr "Blok webové stránky"
 
-#: frappe/public/js/frappe/utils/utils.js:2018
+#: frappe/public/js/frappe/utils/utils.js:2013
 msgid "Web Page URL"
 msgstr "URL webové stránky"
 
@@ -31605,7 +31679,7 @@ msgstr "Uvítací URL"
 msgid "Welcome Workspace"
 msgstr "Uvítací pracovní prostor"
 
-#: frappe/core/doctype/user/user.py:469
+#: frappe/core/doctype/user/user.py:470
 msgid "Welcome email sent"
 msgstr "Uvítací e-mail byl odeslán"
 
@@ -31617,7 +31691,7 @@ msgstr "Vítejte ve Frappe!"
 msgid "Welcome to the {0} workspace"
 msgstr "Vítejte v pracovním prostoru {0}"
 
-#: frappe/core/doctype/user/user.py:530
+#: frappe/core/doctype/user/user.py:531
 msgid "Welcome to {0}"
 msgstr "Vítejte na {0}"
 
@@ -31734,7 +31808,7 @@ msgstr "Pracovní postup"
 
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
-#: frappe/workflow/doctype/workflow_action/workflow_action.py:481
+#: frappe/workflow/doctype/workflow_action/workflow_action.py:493
 msgid "Workflow Action"
 msgstr "Akce pracovního postupu"
 
@@ -31951,7 +32025,7 @@ msgstr "Chcete tento komentář zveřejnit? To znamená, že bude viditelný pro
 msgid "Would you like to unpublish this comment? This means it will no longer be visible to website/portal users."
 msgstr "Chcete zrušit publikování tohoto komentáře? To znamená, že již nebude viditelný pro uživatele webových stránek/portálu."
 
-#: frappe/desk/page/setup_wizard/setup_wizard.py:42
+#: frappe/desk/page/setup_wizard/setup_wizard.py:43
 msgid "Wrapping up"
 msgstr "Dokončování"
 
@@ -32073,7 +32147,7 @@ msgstr "Žlutá"
 #: frappe/integrations/doctype/webhook/webhook.py:132
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/public/js/form_builder/utils.js:333
-#: frappe/public/js/frappe/form/controls/link.js:604
+#: frappe/public/js/frappe/form/controls/link.js:605
 #: frappe/public/js/frappe/list/base_list.js:970
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:170
 #: frappe/public/js/frappe/views/reports/query_report.js:47
@@ -32120,7 +32194,7 @@ msgstr "Chystáte se otevřít externí odkaz. Pro potvrzení klikněte na odkaz
 msgid "You are connected to internet."
 msgstr "Jste připojeni k internetu."
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:28
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:30
 msgid "You are not allowed to access this resource"
 msgstr "Nemáte oprávnění k přístupu k tomuto zdroji"
 
@@ -32152,9 +32226,9 @@ msgstr "Nemáte oprávnění smazat standardní téma webu"
 msgid "You are not allowed to edit the report."
 msgstr "Nemáte oprávnění upravit tuto sestavu."
 
-#: frappe/core/doctype/data_import/exporter.py:123
-#: frappe/core/doctype/data_import/exporter.py:127
-#: frappe/desk/reportview.py:458 frappe/desk/reportview.py:461
+#: frappe/core/doctype/data_import/exporter.py:132
+#: frappe/core/doctype/data_import/exporter.py:136
+#: frappe/desk/reportview.py:459 frappe/desk/reportview.py:462
 #: frappe/permissions.py:653
 msgid "You are not allowed to export {} doctype"
 msgstr "Nemáte povolení exportovat Doctype {}"
@@ -32175,7 +32249,7 @@ msgstr ""
 msgid "You are not allowed to update this Web Form Document"
 msgstr "Nemáte oprávnění aktualizovat tento dokument webového formuláře"
 
-#: frappe/core/doctype/communication/email.py:342
+#: frappe/core/doctype/communication/email.py:343
 msgid "You are not authorized to undo this email"
 msgstr "Nejste oprávněni zrušit tento e-mail"
 
@@ -32256,7 +32330,7 @@ msgstr "Limit můžete zvýšit v Systémových nastaveních."
 msgid "You can manually remove the lock if you think it's safe: {}"
 msgstr "Zámek můžete ručně odstranit, pokud si myslíte, že je to bezpečné: {}"
 
-#: frappe/website/doctype/discussion_topic/discussion_topic.py:30
+#: frappe/website/doctype/discussion_topic/discussion_topic.py:37
 msgid "You can only edit your own replies."
 msgstr ""
 
@@ -32272,7 +32346,7 @@ msgstr "Najednou můžete vytisknout pouze {0} dokumentů"
 msgid "You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."
 msgstr "Můžete nahrát pouze soubory JPG, PNG, GIF, PDF, TXT, CSV nebo dokumenty Microsoft."
 
-#: frappe/core/doctype/data_export/exporter.py:199
+#: frappe/core/doctype/data_export/exporter.py:200
 msgid "You can only upload upto 5000 records in one go. (may be less in some cases)"
 msgstr "Najednou můžete nahrát maximálně 5000 záznamů. (v některých případech může být méně)"
 
@@ -32316,11 +32390,11 @@ msgctxt "Form timeline"
 msgid "You cancelled this document {1}"
 msgstr "Zrušili jste tento dokument {1}"
 
-#: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:420
+#: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:423
 msgid "You cannot create a dashboard chart from single DocTypes"
 msgstr "Z jednotlivých DocTypes nelze vytvořit graf na nástěnce"
 
-#: frappe/share.py:243
+#: frappe/share.py:261
 msgid "You cannot share `{0}` on {1} `{2}` as you do not have `{0}` permission on `{1}`"
 msgstr "Nemůžete sdílet `{0}` na {1} `{2}`, protože nemáte oprávnění `{0}` na `{1}`"
 
@@ -32353,7 +32427,7 @@ msgstr "Změnili jste {0} na {1}"
 msgid "You created this"
 msgstr "Toto jste vytvořili"
 
-#: frappe/desk/form/activity.py:67
+#: frappe/desk/form/activity.py:98
 msgid "You created this document"
 msgstr "Vytvořili jste tento dokument"
 
@@ -32374,15 +32448,15 @@ msgstr "Nemáte dostatečná oprávnění pro přístup k tomuto prostředku. Ko
 msgid "You do not have enough permissions to complete the action"
 msgstr "Nemáte dostatečná oprávnění k dokončení akce"
 
-#: frappe/core/doctype/data_import/data_import.py:84
+#: frappe/core/doctype/data_import/data_import.py:85
 msgid "You do not have import permission for {0}"
 msgstr "Nemáte oprávnění k importu pro {0}"
 
-#: frappe/database/query.py:979
+#: frappe/database/query.py:982
 msgid "You do not have permission to access child table field: {0}"
 msgstr "Nemáte oprávnění přistupovat k poli podřízené tabulky: {0}"
 
-#: frappe/database/query.py:992
+#: frappe/database/query.py:995
 msgid "You do not have permission to access field: {0}"
 msgstr "Nemáte oprávnění přistupovat k poli: {0}"
 
@@ -32419,11 +32493,11 @@ msgstr "Nemáte oprávnění přistupovat k Doctype {0}."
 msgid "You don't have permission to access this file"
 msgstr "Nemáte oprávnění pro přístup k tomuto souboru"
 
-#: frappe/desk/reportview.py:340
+#: frappe/desk/reportview.py:341
 msgid "You don't have permission to create Report records."
 msgstr ""
 
-#: frappe/desk/reportview.py:343
+#: frappe/desk/reportview.py:344
 msgid "You don't have permission to create report for {0}"
 msgstr ""
 
@@ -32483,6 +32557,10 @@ msgstr ""
 #: frappe/public/js/frappe/form/footer/form_timeline.js:151
 msgid "You last edited this"
 msgstr "Naposledy jste toto upravili"
+
+#: frappe/desk/form/activity.py:126
+msgid "You last edited this document"
+msgstr ""
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:352
 msgid "You must add atleast one link."
@@ -32550,7 +32628,7 @@ msgstr "Pro fungování vaší aplikace musíte povolit JavaScript."
 msgid "You need to have \"Share\" permission"
 msgstr "Musíte mít oprávnění \"Sdílet\""
 
-#: frappe/utils/print_format.py:357
+#: frappe/utils/print_format.py:366
 msgid "You need to install pycups to use this feature!"
 msgstr "Pro použití této funkce je nutné nainstalovat pycups!"
 
@@ -32574,7 +32652,7 @@ msgstr "Pro přejmenování potřebujete oprávnění k zápisu na {0} {1}"
 msgid "You need write permissions to add attachments to this record."
 msgstr ""
 
-#: frappe/client.py:501
+#: frappe/client.py:518
 msgid "You need {0} permission to fetch values from {1} {2}"
 msgstr "Pro načtení hodnot z {1} {2} potřebujete oprávnění {0}"
 
@@ -32674,7 +32752,7 @@ msgstr "Váš účet byl smazán"
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr "Váš účet byl uzamčen a bude obnoven po {0} sekundách"
 
-#: frappe/desk/form/assign_to.py:289
+#: frappe/desk/form/assign_to.py:288
 msgid "Your assignment on {0} {1} has been removed by {2}"
 msgstr "Váš úkol pro {0} {1} byl odebrán uživatelem {2}"
 
@@ -32736,7 +32814,7 @@ msgstr "Vaše staré heslo je nesprávné."
 msgid "Your organization name and address for the email footer."
 msgstr "Název a adresa vaší organizace pro zápatí e-mailu."
 
-#: frappe/core/doctype/user/user.py:393
+#: frappe/core/doctype/user/user.py:394
 msgid "Your password has been changed and you might have been logged out of all systems.<br>Please contact the Administrator for further assistance."
 msgstr "Vaše heslo bylo změněno a možná jste byli odhlášeni ze všech systémů.<br>Pro další pomoc kontaktujte Administrátora."
 
@@ -32748,7 +32826,7 @@ msgstr ""
 msgid "Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail."
 msgstr "Váš dotaz byl přijat. Brzy Vám odpovíme. Pokud máte jakékoli další informace, odpovězte prosím na tento e-mail."
 
-#: frappe/desk/query_report.py:401 frappe/desk/reportview.py:409
+#: frappe/desk/query_report.py:401 frappe/desk/reportview.py:410
 msgid "Your report is being generated in the background. You will receive an email on {0} with a download link once it is ready."
 msgstr "Vaše sestava se generuje na pozadí. Jakmile bude připravena, obdržíte e-mail na adresu {0} s odkazem ke stažení."
 
@@ -32786,7 +32864,7 @@ msgstr ""
 msgid "`job_id` paramater is required for deduplication."
 msgstr "Pro deduplikaci je vyžadován parametr `job_id`."
 
-#: frappe/desk/form/activity.py:362
+#: frappe/desk/form/activity.py:472
 msgid "added {0} row(s) to {1}"
 msgstr ""
 
@@ -32845,11 +32923,11 @@ msgstr "zrušit"
 msgid "canceled"
 msgstr "zrušeno"
 
-#: frappe/desk/form/activity.py:352
+#: frappe/desk/form/activity.py:462
 msgid "cancelled this document"
 msgstr "zrušil(a) tento dokument"
 
-#: frappe/desk/form/activity.py:443
+#: frappe/desk/form/activity.py:553
 msgid "changed {0}"
 msgstr ""
 
@@ -32864,7 +32942,7 @@ msgstr ""
 msgid "clear"
 msgstr ""
 
-#: frappe/desk/form/activity.py:436
+#: frappe/desk/form/activity.py:546
 msgid "cleared {0}"
 msgstr ""
 
@@ -33003,7 +33081,7 @@ msgstr "e-mailová schránka"
 msgid "empty"
 msgstr "prázdné"
 
-#: frappe/public/js/frappe/form/controls/link.js:624
+#: frappe/public/js/frappe/form/controls/link.js:625
 msgctxt "Comparison value is empty"
 msgid "empty"
 msgstr "prázdné"
@@ -33086,17 +33164,17 @@ msgstr "ikona"
 msgid "import"
 msgstr "Import"
 
-#: frappe/public/js/frappe/form/controls/link.js:661
-#: frappe/public/js/frappe/form/controls/link.js:666
-#: frappe/public/js/frappe/form/controls/link.js:679
-#: frappe/public/js/frappe/form/controls/link.js:686
+#: frappe/public/js/frappe/form/controls/link.js:662
+#: frappe/public/js/frappe/form/controls/link.js:667
+#: frappe/public/js/frappe/form/controls/link.js:680
+#: frappe/public/js/frappe/form/controls/link.js:687
 msgid "is disabled"
 msgstr "je zakázáno"
 
-#: frappe/public/js/frappe/form/controls/link.js:660
-#: frappe/public/js/frappe/form/controls/link.js:667
-#: frappe/public/js/frappe/form/controls/link.js:680
-#: frappe/public/js/frappe/form/controls/link.js:685
+#: frappe/public/js/frappe/form/controls/link.js:661
+#: frappe/public/js/frappe/form/controls/link.js:668
+#: frappe/public/js/frappe/form/controls/link.js:681
+#: frappe/public/js/frappe/form/controls/link.js:686
 msgid "is enabled"
 msgstr "je aktivováno"
 
@@ -33274,7 +33352,7 @@ msgstr "číst"
 msgid "red"
 msgstr "červená"
 
-#: frappe/desk/form/activity.py:363
+#: frappe/desk/form/activity.py:473
 msgid "removed {0} row(s) from {1}"
 msgstr ""
 
@@ -33342,11 +33420,11 @@ msgstr "naplánováno"
 msgid "select"
 msgstr "vyberte"
 
-#: frappe/desk/form/activity.py:450
+#: frappe/desk/form/activity.py:560
 msgid "set {0} to"
 msgstr ""
 
-#: frappe/desk/form/activity.py:402
+#: frappe/desk/form/activity.py:512
 msgid "set {0} to {1} in row #{2}"
 msgstr ""
 
@@ -33416,7 +33494,7 @@ msgstr "řetězcová hodnota, např. {0} nebo uid={0},ou=users,dc=example,dc=com
 msgid "submit"
 msgstr "odeslat"
 
-#: frappe/desk/form/activity.py:350
+#: frappe/desk/form/activity.py:460
 msgid "submitted this document"
 msgstr "odeslal(a) tento dokument"
 
@@ -33462,7 +33540,7 @@ msgstr ""
 msgid "updated to {0}"
 msgstr "aktualizováno na {0}"
 
-#: frappe/desk/form/activity.py:434
+#: frappe/desk/form/activity.py:544
 msgid "updated {0}"
 msgstr ""
 
@@ -33479,7 +33557,7 @@ msgstr "hodnoty oddělené čárkami"
 msgid "version_table"
 msgstr ""
 
-#: frappe/automation/doctype/assignment_rule/assignment_rule.py:411
+#: frappe/automation/doctype/assignment_rule/assignment_rule.py:412
 msgid "via Assignment Rule"
 msgstr "prostřednictvím Pravidla přiřazení"
 
@@ -33532,7 +33610,7 @@ msgstr "po kliknutí na element se zaměří na vyskakovací okno, pokud je př�
 msgid "wkhtmltopdf"
 msgstr ""
 
-#: frappe/printing/page/print/print.js:682
+#: frappe/printing/page/print/print.js:689
 msgid "wkhtmltopdf 0.12.x (with patched qt)."
 msgstr "wkhtmltopdf 0.12.x (s opravenou qt)."
 
@@ -33713,11 +33791,11 @@ msgstr "{0} právě {1}"
 msgid "{0} are required"
 msgstr "{0} jsou povinné"
 
-#: frappe/desk/form/assign_to.py:296
+#: frappe/desk/form/assign_to.py:295
 msgid "{0} assigned a new task {1} {2} to you"
 msgstr "{0} vám přiřadil/a nový úkol {1} {2}"
 
-#: frappe/desk/doctype/todo/todo.py:48 frappe/desk/form/activity.py:217
+#: frappe/desk/doctype/todo/todo.py:48 frappe/desk/form/activity.py:282
 msgid "{0} assigned {1}: {2}"
 msgstr "{0} přiřadil/a {1}: {2}"
 
@@ -33763,6 +33841,10 @@ msgstr "{0} změnil(a) hodnoty pro {1}"
 msgid "{0} changed the values for {1} {2}"
 msgstr "{0} změnil(a) hodnoty pro {1} {2}"
 
+#: frappe/desk/form/activity.py:413
+msgid "{0} changed {1} to {2}"
+msgstr "{0} změnil(a) {1} na {2}"
+
 #: frappe/public/js/frappe/form/footer/form_timeline.js:444
 msgctxt "Form timeline"
 msgid "{0} changed {1} to {2}"
@@ -33776,7 +33858,7 @@ msgstr "{0} obsahuje neplatný výraz Načíst z, Načíst z nemůže odkazovat 
 msgid "{0} contains invalid field(s): {1}"
 msgstr ""
 
-#: frappe/public/js/frappe/form/controls/link.js:699
+#: frappe/public/js/frappe/form/controls/link.js:700
 msgid "{0} contains {1}"
 msgstr "{0} obsahuje {1}"
 
@@ -33788,7 +33870,7 @@ msgstr "{0} úspěšně vytvořeno"
 msgid "{0} created this"
 msgstr "{0} toto vytvořil/a"
 
-#: frappe/desk/form/activity.py:68
+#: frappe/desk/form/activity.py:99
 msgid "{0} created this document"
 msgstr "{0} vytvořili tento dokument"
 
@@ -33805,7 +33887,7 @@ msgstr ""
 msgid "{0} days ago"
 msgstr "před {0} dní"
 
-#: frappe/public/js/frappe/form/controls/link.js:701
+#: frappe/public/js/frappe/form/controls/link.js:702
 msgid "{0} does not contain {1}"
 msgstr "{0} neobsahuje {1}"
 
@@ -33818,11 +33900,11 @@ msgstr ""
 msgid "{0} does not exist in row {1}"
 msgstr "{0} neexistuje v řádku {1}"
 
-#: frappe/public/js/frappe/form/controls/link.js:674
+#: frappe/public/js/frappe/form/controls/link.js:675
 msgid "{0} equals {1}"
 msgstr "{0} se rovná {1}"
 
-#: frappe/database/mariadb/schema.py:170 frappe/database/postgres/schema.py:258
+#: frappe/database/mariadb/schema.py:178 frappe/database/postgres/schema.py:258
 msgid "{0} field cannot be set as unique in {1}, as there are non-unique existing values"
 msgstr "Pole {0} nelze nastavit jako jedinečné v {1}, protože existují nejedinečné hodnoty"
 
@@ -33842,11 +33924,11 @@ msgstr "{0} z {1} na {2} v řádku #{3}"
 msgid "{0} h"
 msgstr ""
 
-#: frappe/core/doctype/user_permission/user_permission.py:77
+#: frappe/core/doctype/user_permission/user_permission.py:78
 msgid "{0} has already assigned default value for {1}."
 msgstr "{0} již přiřadilo výchozí hodnotu pro {1}."
 
-#: frappe/database/query.py:1272
+#: frappe/database/query.py:1275
 msgid "{0} has invalid backtick notation: {1}"
 msgstr "{0} má neplatný zápis se zpětnými uvozovkami: {1}"
 
@@ -33871,7 +33953,7 @@ msgstr "{0} v řádku {1} nemůže mít současně URL a podřízené prvky"
 msgid "{0} is a built-in Notification Type and cannot be deleted. Disable it instead."
 msgstr ""
 
-#: frappe/public/js/frappe/form/controls/link.js:740
+#: frappe/public/js/frappe/form/controls/link.js:741
 msgid "{0} is a descendant of {1}"
 msgstr "{0} je potomkem {1}"
 
@@ -33883,11 +33965,11 @@ msgstr "{0} je povinné pole"
 msgid "{0} is a not a valid zip file"
 msgstr "{0} není platný soubor zip"
 
-#: frappe/public/js/frappe/form/controls/link.js:704
+#: frappe/public/js/frappe/form/controls/link.js:705
 msgid "{0} is after {1}"
 msgstr "{0} je po {1}"
 
-#: frappe/public/js/frappe/form/controls/link.js:742
+#: frappe/public/js/frappe/form/controls/link.js:743
 msgid "{0} is an ancestor of {1}"
 msgstr "{0} je předkem {1}"
 
@@ -33899,16 +33981,16 @@ msgstr "{0} je neplatné datové pole."
 msgid "{0} is an invalid email address in 'Recipients'"
 msgstr "{0} je neplatná e-mailová adresa v poli 'Příjemci'"
 
-#: frappe/public/js/frappe/form/controls/link.js:709
+#: frappe/public/js/frappe/form/controls/link.js:710
 msgid "{0} is before {1}"
 msgstr "{0} je před {1}"
 
-#: frappe/public/js/frappe/form/controls/link.js:738
+#: frappe/public/js/frappe/form/controls/link.js:739
 msgid "{0} is between {1}"
 msgstr "{0} je mezi {1}"
 
-#: frappe/public/js/frappe/form/controls/link.js:735
-#: frappe/public/js/frappe/views/reports/report_view.js:1567
+#: frappe/public/js/frappe/form/controls/link.js:736
+#: frappe/public/js/frappe/views/reports/report_view.js:1561
 msgid "{0} is between {1} and {2}"
 msgstr "{0} je mezi {1} a {2}"
 
@@ -33917,41 +33999,41 @@ msgstr "{0} je mezi {1} a {2}"
 msgid "{0} is currently {1}"
 msgstr "{0} právě {1}"
 
-#: frappe/public/js/frappe/form/controls/link.js:672
-#: frappe/public/js/frappe/form/controls/link.js:690
+#: frappe/public/js/frappe/form/controls/link.js:673
+#: frappe/public/js/frappe/form/controls/link.js:691
 msgid "{0} is disabled"
 msgstr "{0} je zakázáno"
 
-#: frappe/public/js/frappe/form/controls/link.js:671
-#: frappe/public/js/frappe/form/controls/link.js:691
+#: frappe/public/js/frappe/form/controls/link.js:672
+#: frappe/public/js/frappe/form/controls/link.js:692
 msgid "{0} is enabled"
 msgstr "{0} je aktivováno"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1536
+#: frappe/public/js/frappe/views/reports/report_view.js:1530
 msgid "{0} is equal to {1}"
 msgstr "{0} je rovno {1}"
 
-#: frappe/public/js/frappe/form/controls/link.js:716
-#: frappe/public/js/frappe/views/reports/report_view.js:1556
+#: frappe/public/js/frappe/form/controls/link.js:717
+#: frappe/public/js/frappe/views/reports/report_view.js:1550
 msgid "{0} is greater than or equal to {1}"
 msgstr "{0} je větší než nebo rovno {1}"
 
-#: frappe/public/js/frappe/form/controls/link.js:706
-#: frappe/public/js/frappe/views/reports/report_view.js:1546
+#: frappe/public/js/frappe/form/controls/link.js:707
+#: frappe/public/js/frappe/views/reports/report_view.js:1540
 msgid "{0} is greater than {1}"
 msgstr "{0} je větší než {1}"
 
-#: frappe/public/js/frappe/form/controls/link.js:721
-#: frappe/public/js/frappe/views/reports/report_view.js:1561
+#: frappe/public/js/frappe/form/controls/link.js:722
+#: frappe/public/js/frappe/views/reports/report_view.js:1555
 msgid "{0} is less than or equal to {1}"
 msgstr "{0} je menší než nebo rovno {1}"
 
-#: frappe/public/js/frappe/form/controls/link.js:711
-#: frappe/public/js/frappe/views/reports/report_view.js:1551
+#: frappe/public/js/frappe/form/controls/link.js:712
+#: frappe/public/js/frappe/views/reports/report_view.js:1545
 msgid "{0} is less than {1}"
 msgstr "{0} je menší než {1}"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1586
+#: frappe/public/js/frappe/views/reports/report_view.js:1580
 msgid "{0} is like {1}"
 msgstr "{0} je podobné {1}"
 
@@ -33959,7 +34041,7 @@ msgstr "{0} je podobné {1}"
 msgid "{0} is mandatory"
 msgstr "{0} je povinné"
 
-#: frappe/public/js/frappe/form/controls/link.js:744
+#: frappe/public/js/frappe/form/controls/link.js:745
 msgid "{0} is not a descendant of {1}"
 msgstr "{0} není potomkem {1}"
 
@@ -34004,7 +34086,7 @@ msgstr "{0} není platné telefonní číslo"
 msgid "{0} is not a valid Workflow State. Please update your Workflow and try again."
 msgstr "{0} není platný Stav workflow. Proveďte prosím aktualizaci svého Pracovního postupu a zkuste to znovu."
 
-#: frappe/desk/calendar.py:54
+#: frappe/desk/calendar.py:62
 msgid "{0} is not a valid field of {1}"
 msgstr ""
 
@@ -34028,26 +34110,26 @@ msgstr "{0} není soubor zip"
 msgid "{0} is not an allowed role for {1}"
 msgstr "{0} není povolená role pro {1}"
 
-#: frappe/public/js/frappe/form/controls/link.js:746
+#: frappe/public/js/frappe/form/controls/link.js:747
 msgid "{0} is not an ancestor of {1}"
 msgstr "{0} není předkem {1}"
 
-#: frappe/public/js/frappe/form/controls/link.js:693
-#: frappe/public/js/frappe/views/reports/report_view.js:1541
+#: frappe/public/js/frappe/form/controls/link.js:694
+#: frappe/public/js/frappe/views/reports/report_view.js:1535
 msgid "{0} is not equal to {1}"
 msgstr "{0} není rovno {1}"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1588
+#: frappe/public/js/frappe/views/reports/report_view.js:1582
 msgid "{0} is not like {1}"
 msgstr "{0} není podobné {1}"
 
-#: frappe/public/js/frappe/form/controls/link.js:697
-#: frappe/public/js/frappe/views/reports/report_view.js:1582
+#: frappe/public/js/frappe/form/controls/link.js:698
+#: frappe/public/js/frappe/views/reports/report_view.js:1576
 msgid "{0} is not one of {1}"
 msgstr "{0} není jedním z {1}"
 
-#: frappe/public/js/frappe/form/controls/link.js:727
-#: frappe/public/js/frappe/views/reports/report_view.js:1592
+#: frappe/public/js/frappe/form/controls/link.js:728
+#: frappe/public/js/frappe/views/reports/report_view.js:1586
 msgid "{0} is not set"
 msgstr "{0} není nastaveno"
 
@@ -34055,16 +34137,16 @@ msgstr "{0} není nastaveno"
 msgid "{0} is now default print format for {1} doctype"
 msgstr "{0} je nyní výchozí formát tisku pro Doctype {1}"
 
-#: frappe/public/js/frappe/form/controls/link.js:714
+#: frappe/public/js/frappe/form/controls/link.js:715
 msgid "{0} is on or after {1}"
 msgstr "{0} je k nebo po {1}"
 
-#: frappe/public/js/frappe/form/controls/link.js:719
+#: frappe/public/js/frappe/form/controls/link.js:720
 msgid "{0} is on or before {1}"
 msgstr "{0} je {1} nebo dříve"
 
-#: frappe/public/js/frappe/form/controls/link.js:695
-#: frappe/public/js/frappe/views/reports/report_view.js:1575
+#: frappe/public/js/frappe/form/controls/link.js:696
+#: frappe/public/js/frappe/views/reports/report_view.js:1569
 msgid "{0} is one of {1}"
 msgstr "{0} je jedním z {1}"
 
@@ -34072,7 +34154,7 @@ msgstr "{0} je jedním z {1}"
 #: frappe/model/naming.py:224
 #: frappe/printing/doctype/print_format/print_format.py:101
 #: frappe/printing/doctype/print_format/print_format.py:104
-#: frappe/utils/csvutils.py:156
+#: frappe/utils/csvutils.py:157
 msgid "{0} is required"
 msgstr "{0} je povinné"
 
@@ -34080,17 +34162,17 @@ msgstr "{0} je povinné"
 msgid "{0} is required."
 msgstr "{0} je povinné."
 
-#: frappe/public/js/frappe/form/controls/link.js:724
-#: frappe/public/js/frappe/views/reports/report_view.js:1591
+#: frappe/public/js/frappe/form/controls/link.js:725
+#: frappe/public/js/frappe/views/reports/report_view.js:1585
 msgid "{0} is set"
 msgstr "{0} je nastaveno"
 
-#: frappe/public/js/frappe/form/controls/link.js:748
-#: frappe/public/js/frappe/views/reports/report_view.js:1570
+#: frappe/public/js/frappe/form/controls/link.js:749
+#: frappe/public/js/frappe/views/reports/report_view.js:1564
 msgid "{0} is within {1}"
 msgstr "{0} je v rámci {1}"
 
-#: frappe/public/js/frappe/form/controls/link.js:729
+#: frappe/public/js/frappe/form/controls/link.js:730
 msgid "{0} is {1}"
 msgstr "{0} je {1}"
 
@@ -34098,7 +34180,7 @@ msgstr "{0} je {1}"
 msgid "{0} items selected"
 msgstr "{0} položek vybráno"
 
-#: frappe/core/doctype/user/user.py:1483
+#: frappe/core/doctype/user/user.py:1480
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr "{0} se právě vydával(a) za vás. Uvedl(a) tento důvod: {1}"
 
@@ -34106,7 +34188,11 @@ msgstr "{0} se právě vydával(a) za vás. Uvedl(a) tento důvod: {1}"
 msgid "{0} last edited this"
 msgstr "{0} naposledy upravil/a toto"
 
-#: frappe/desk/form/activity.py:164
+#: frappe/desk/form/activity.py:127
+msgid "{0} last edited this document"
+msgstr ""
+
+#: frappe/desk/form/activity.py:224
 msgid "{0} liked"
 msgstr "{0} – líbí se"
 
@@ -34122,7 +34208,7 @@ msgstr "{0} se odhlásil(a): {1}"
 msgid "{0} m"
 msgstr ""
 
-#: frappe/desk/notifications.py:407
+#: frappe/desk/notifications.py:412
 msgid "{0} mentioned you in a comment in {1} {2}"
 msgstr "{0} vás zmínil/a v komentáři v {1} {2}"
 
@@ -34150,7 +34236,7 @@ msgstr ""
 msgid "{0} must be none of {1}"
 msgstr ""
 
-#: frappe/model/document.py:1689 frappe/utils/csvutils.py:161
+#: frappe/model/document.py:1689 frappe/utils/csvutils.py:162
 msgid "{0} must be one of {1}"
 msgstr "{0} musí být jedna z hodnot {1}"
 
@@ -34233,7 +34319,7 @@ msgctxt "Form timeline"
 msgid "{0} removed attachment {1}"
 msgstr "{0} odstranil přílohu {1}"
 
-#: frappe/desk/doctype/todo/todo.py:58 frappe/desk/form/activity.py:221
+#: frappe/desk/doctype/todo/todo.py:58 frappe/desk/form/activity.py:286
 msgid "{0} removed their assignment."
 msgstr "{0} odstranil(a) svůj úkol."
 
@@ -34248,6 +34334,10 @@ msgstr "{0} omezený dokument"
 #: frappe/public/js/frappe/form/linked_with.js:94
 msgid "{0} restricted documents"
 msgstr "{0} omezených dokumentů"
+
+#: frappe/public/js/frappe/ui/awesomplete.js:14
+msgid "{0} results found"
+msgstr ""
 
 #: frappe/public/js/frappe/roles_editor.js:90
 msgid "{0} role does not have permission on any doctype"
@@ -34271,11 +34361,11 @@ msgstr "{0} řádků do {1}"
 msgid "{0} saved successfully"
 msgstr "{0} úspěšně uloženo"
 
-#: frappe/desk/doctype/todo/todo.py:44 frappe/desk/form/activity.py:216
+#: frappe/desk/doctype/todo/todo.py:44 frappe/desk/form/activity.py:281
 msgid "{0} self assigned this task: {1}"
 msgstr "{0} si přiřadil(a) tento úkol: {1}"
 
-#: frappe/share.py:259
+#: frappe/share.py:277
 msgid "{0} shared a document {1} {2} with you"
 msgstr "{0} s vámi sdílel/a dokument {1} {2}"
 
@@ -34323,7 +34413,7 @@ msgstr "{0} do {1}"
 msgid "{0} un-shared this document with {1}"
 msgstr "{0} zrušil sdílení tohoto dokumentu s {1}"
 
-#: frappe/public/js/frappe/ui/notifications/notifications.js:421
+#: frappe/public/js/frappe/ui/notifications/notifications.js:430
 msgid "{0} unread notifications"
 msgstr "{0} nepřečtených oznámení"
 
@@ -34335,7 +34425,7 @@ msgstr "{0} aktualizováno"
 msgid "{0} values selected"
 msgstr "Vybráno {0} hodnot"
 
-#: frappe/desk/form/activity.py:307
+#: frappe/desk/form/activity.py:372
 #: frappe/public/js/frappe/form/footer/form_timeline.js:184
 msgid "{0} viewed this"
 msgstr "{0} si toto zobrazil(a)"
@@ -34400,12 +34490,16 @@ msgstr "{0} {1}: Odeslaný záznam nelze smazat. Nejprve jej musíte {2} Zrušit
 msgid "{0}, Row {1}"
 msgstr "{0}, řádek {1}"
 
+#: frappe/public/js/frappe/ui/awesomplete.js:22
+msgid "{0}, list item {1} of {2}"
+msgstr ""
+
 #: frappe/utils/data.py:1582
 msgctxt "Money in words"
 msgid "{0}."
 msgstr "{0}."
 
-#: frappe/utils/print_format.py:150 frappe/utils/print_format.py:194
+#: frappe/utils/print_format.py:151 frappe/utils/print_format.py:195
 msgid "{0}/{1} complete | Please leave this tab open until completion."
 msgstr "{0}/{1} dokončeno | Ponechte prosím tuto záložku otevřenou do dokončení."
 
@@ -34515,7 +34609,7 @@ msgstr "{0}: název pole nemůže být nastaven na vyhrazené klíčové slovo {
 msgid "{0}: {1}"
 msgstr ""
 
-#: frappe/workflow/doctype/workflow_action/workflow_action.py:162
+#: frappe/workflow/doctype/workflow_action/workflow_action.py:171
 msgid "{0}: {1} is set to state {2}"
 msgstr "{0}: {1} je nastaveno na stav {2}"
 
