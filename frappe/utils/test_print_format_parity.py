@@ -44,6 +44,9 @@ SERVER_ONLY_CLASSES = {
 	# per-section "page break" is page-break-after:always — likewise pagination-only;
 	# the canvas renders a separate .page-break-indicator element, not this class
 	"page-break",
+	# per-field "split across pages" flips break-inside to auto — pagination-only,
+	# invisible on the continuously-scrolled canvas
+	"field--breakable",
 }
 CANVAS_ONLY_CLASSES = set()
 

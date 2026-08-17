@@ -34,6 +34,13 @@
 	page-break-inside: avoid;
 }
 
+/* Long-content fields (Terms, notes) opt into flowing across a page boundary
+   instead of jumping whole and leaving the previous page half empty */
+.print-format-doc .field.field--breakable {
+	break-inside: auto;
+	page-break-inside: auto;
+}
+
 /* Stacked (default): muted label above value */
 .print-format-doc .field .label {
 	font-size: 1em;

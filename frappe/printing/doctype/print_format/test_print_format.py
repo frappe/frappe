@@ -102,6 +102,11 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 		# no source -> block is skipped entirely
 		self.assertNotIn("print-image", self.render(df | {"image_url": ""}))
 
+	def test_allow_page_break_marks_field_breakable(self):
+		df = {"fieldname": "first_name", "fieldtype": "Data", "label": "First Name"}
+		self.assertNotIn("field--breakable", self.render(df))
+		self.assertIn("field--breakable", self.render(df | {"allow_page_break": 1}))
+
 	def test_barcode_element(self):
 		df = {"fieldname": "barcode_test", "fieldtype": "Barcode", "custom": 1, "label": ""}
 
