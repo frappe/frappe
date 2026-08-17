@@ -57,7 +57,7 @@
 		<EmailContent :content="email.data.content" />
 		<slot name="footer" :email="email">
 			<div v-if="email.data?.attachments?.length" class="mt-2 flex flex-wrap gap-2">
-				<Attachment
+				<AttachmentChip
 					v-for="a in email.data.attachments"
 					:key="a.file_url"
 					:label="a.file_name"
@@ -71,7 +71,7 @@
 <script setup lang="ts">
 import { Badge, Tooltip } from "frappe-ui";
 import { computed } from "vue";
-import Attachment from "./Attachment.vue";
+import AttachmentChip from "./AttachmentChip.vue";
 import EmailContent from "./EmailContent.vue";
 import TimeAgo from "./TimeAgo.vue";
 import TimelineCard from "./TimelineCard.vue";

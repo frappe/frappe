@@ -45,7 +45,7 @@
 		</div>
 		<slot v-else name="footer" :comment="comment">
 			<div v-if="comment.data.attachments?.length" class="mt-2 flex flex-wrap gap-2">
-				<Attachment
+				<AttachmentChip
 					v-for="a in comment.data.attachments"
 					:key="a.file_url"
 					:label="a.file_name"
@@ -61,7 +61,7 @@ import { Button } from "frappe-ui";
 import { CommentKit, Editor, EditorContent } from "frappe-ui/editor";
 import "frappe-ui/editor-style.css";
 import { nextTick, ref, watch } from "vue";
-import Attachment from "./Attachment.vue";
+import AttachmentChip from "./AttachmentChip.vue";
 import TimeAgo from "./TimeAgo.vue";
 import TimelineCard from "./TimelineCard.vue";
 import type { CommentItemProps } from "./types";
