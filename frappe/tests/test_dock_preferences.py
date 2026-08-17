@@ -2,7 +2,8 @@
 # License: MIT. See LICENSE
 
 import json
-from contextlib import ExitStack
+from contextlib import ExitStack, contextmanager
+from unittest.mock import patch
 
 import frappe
 from frappe.desk.doctype.dock.dock import (
@@ -50,17 +51,6 @@ def payload(*rows) -> str:
 	return json.dumps([sidebar(row) if isinstance(row, str) else row for row in rows])
 
 
-def stored(module, hidden=0) -> dict:
-	"""The same row as a `Dock` document holds it: the name half lands in the `link_name` column,
-	because a child row's own `name` is its primary key and the link cannot live there.
-
-	Derived from `sidebar()` rather than spelled out again, so the two cannot drift apart -- this
-	translation is the module's one seam and the tests should exercise it, not restate it.
-	"""
-	row = sidebar(module, hidden=hidden)
-	return {"type": row["type"], "link_name": row["name"], "hidden": row["hidden"]}
-
-
 def names(rows) -> list[str]:
 	return [row["name"] for row in rows]
 
@@ -91,18 +81,52 @@ def dock_for(email=None, among=TRIO):
 
 
 def clear_arrangements():
-	"""The site's layer and every person's own, gone. App fragments are left standing.
+	"""The site's layer and every person's own, gone.
 
 	A layer outlives the person it belongs to -- `Dock` is in `ignore_links_on_delete`, so
 	deleting a User leaves theirs behind, the same way `Custom Sidebar` does -- and these suites
 	reuse the same addresses, so one left standing is the next test's mystery entry.
 
-	App fragments are not a suite's to remove. They are ordinary site data that somebody else
-	authored, and reaping them here once quietly deleted one.
+	Nothing an app ships is touched: an app's fragment is a hook, not a document, and a suite
+	that wants one declares it with `shipped_dock`.
 	"""
-	for row in frappe.get_all("Dock", fields=["name", "app"]):
-		if not row.app:
-			frappe.delete_doc("Dock", row.name, force=True, ignore_permissions=True)
+	for name in frappe.get_all("Dock", pluck="name"):
+		frappe.delete_doc("Dock", name, force=True, ignore_permissions=True)
+
+
+@contextmanager
+def shipped_dock(fragments: dict[str, list[dict]]):
+	"""Declare `add_to_dock` for named apps, as if they had it in their `hooks.py`.
+
+	    shipped_dock({"zz-dock-suite": [sidebar(ALPHA)], "zz-dock-suite-companion": [...]})
+
+	The built-in `patch_hooks` is no use here: it ignores `app_name`, so every installed app
+	would answer with the same fragment and the base would repeat it once per app. Whose fragment
+	a row is in is the whole subject of these suites, so the patcher has to keep the distinction.
+
+	An app named here that is not installed is *invented* for the duration -- it joins the
+	installed list and answers every other hook with nothing, because it has no `hooks.py` to
+	import. That is what lets a suite own its fragments: the framework's own are patched away
+	inside the block, and the assertions do not depend on which apps this bench happens to carry.
+	"""
+	real_hooks = frappe.get_hooks
+	real_apps = frappe.get_active_apps
+	invented = [app for app in fragments if app not in real_apps()]
+
+	def patched_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
+		if hook == "add_to_dock":
+			if app_name:
+				return fragments.get(app_name, [])
+			return [row for rows in fragments.values() for row in rows]
+		if app_name in invented:
+			return []
+		return real_hooks(hook, default, app_name)
+
+	with (
+		patch.object(frappe, "get_hooks", patched_hooks),
+		patch.object(frappe, "get_active_apps", lambda *a, **k: [*real_apps(), *invented]),
+	):
+		yield
 
 
 class DockTestCase(IntegrationTestCase):
@@ -404,37 +428,33 @@ class TestDockSiteLayer(DockTestCase):
 		self.assertEqual(carried, [BETA, ALPHA])
 
 	def test_every_layer_is_one_shape(self):
-		"""One doctype at all three layers, because the rows are identical -- `app` and `user`
-		are the whole difference, and the parent is what names the layer."""
+		"""One doctype at both stored layers, because the rows are identical -- `user` is the
+		whole difference, and the parent is what names the layer."""
 		self.set_site_order(ALPHA)
 
 		frappe.set_user(self.DESK_USER)
 		save_user_dock(payload(BETA))
 		frappe.set_user("Administrator")
 
-		layers = frappe.get_all("Dock", fields=["app", "user"])
-		self.assertEqual(
-			sorted((row.app or "", row.user or "") for row in layers if not row.app),
-			[("", ""), ("", self.DESK_USER)],
-		)
+		layers = frappe.get_all("Dock", fields=["user"])
+		self.assertEqual(sorted(row.user or "" for row in layers), ["", self.DESK_USER])
 		self.assertEqual(frappe.get_meta("Dock").get_field("items").options, "Dock Item")
-
-	def test_a_layer_belongs_to_an_app_or_a_person_never_both(self):
-		doc = frappe.new_doc("Dock").update({"app": "frappe", "user": self.DESK_USER})
-		self.assertRaises(frappe.ValidationError, doc.insert)
+		self.assertIsNone(frappe.get_meta("Dock").get_field("app"), "the app layer is a hook now")
 
 	def test_a_layer_exists_once(self):
-		"""Two documents at one address would give the merge two answers for the same layer."""
+		"""Two documents at one address would give the merge two answers for the same layer, so
+		the constraint is an index rather than a `validate` hook a bulk write can be talked past.
+		"""
 		self.set_site_order(ALPHA)
-		self.assertRaises(frappe.DuplicateEntryError, frappe.new_doc("Dock").insert)
+		self.assertRaises(frappe.UniqueValidationError, frappe.new_doc("Dock").insert)
 
 
 class TestTheAppLayer(DockTestCase):
 	"""The layer below both writable ones: what an app ships, which the other two rearrange.
 
-	The fragments are shipped under app names no real app has. A `Dock` is unique per app, so
-	shipping one as `frappe` would collide the day the framework ships its own -- and a suite
-	that owns a real app's fragment is a suite that deletes it on the way out.
+	An app declares it as a hook rather than a document, so nothing here is inserted, exported or
+	reaped -- the fragments are declared for the length of a `with` block and are gone after it.
+	The app names are ones no real app has, and `shipped_dock` invents them for the duration.
 	"""
 
 	APP = "zz-dock-suite"
@@ -457,96 +477,90 @@ class TestTheAppLayer(DockTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		clear_arrangements()
-		for app in (self.APP, self.OTHER_APP):
-			for name in frappe.get_all("Dock", filters={"app": app}, pluck="name"):
-				frappe.delete_doc("Dock", name, force=True, ignore_permissions=True)
 		frappe.delete_doc("User", self.USER, force=True, ignore_missing=True)
 
 	def ship(self, *items, app=None):
-		doc = frappe.new_doc("Dock")
-		doc.app = app or self.APP
-		for item in items:
-			doc.append("items", item if isinstance(item, dict) else stored(item))
-		doc.insert(ignore_permissions=True)
+		"""One app's fragment, declared for the length of the `with` block."""
+		rows = [item if isinstance(item, dict) else sidebar(item) for item in items]
+		return shipped_dock({app or self.APP: rows})
 
 	def test_the_app_layer_is_the_base_the_dock_resolves_from(self):
-		self.ship(BETA, ALPHA)
-		self.assertEqual(names(dock_for(self.USER)), [BETA, ALPHA])
+		with self.ship(BETA, ALPHA):
+			self.assertEqual(names(dock_for(self.USER)), [BETA, ALPHA])
+
+	def test_the_base_is_the_hook_rather_than_a_document(self):
+		"""Nothing is exported, imported or materialised: an app-layer row accumulates no state a
+		hook cannot express, so there is no mirror record to drift and no orphan to reap."""
+		with self.ship(BETA, ALPHA):
+			self.assertEqual(names(dock_for(self.USER)), [BETA, ALPHA])
+			self.assertFalse(frappe.get_all("Dock"), "an app's fragment stores nothing")
 
 	def test_each_apps_fragment_follows_the_one_before_it(self):
 		"""A fragment says nothing about another app's, so the base is the fragments concatenated.
 
 		The order is the apps screen's -- the `sequence_id` an app declares in
-		`add_to_apps_screen`, then install position, then name. Neither of these is installed, so
-		both take the default sequence and the tie falls to the name: `zz-dock-suite` leads
-		`zz-dock-suite-companion`, and each fragment stays whole rather than interleaving.
+		`add_to_apps_screen`, then install position. Both of these are invented at the end of the
+		installed list, in the order they were named, and each fragment stays whole rather than
+		interleaving.
 		"""
-		self.ship(BETA, ALPHA)
-		self.ship(GAMMA, app=self.OTHER_APP)
-
-		self.assertEqual(names(dock_for(self.USER)), [BETA, ALPHA, GAMMA])
+		with shipped_dock({self.APP: [sidebar(BETA), sidebar(ALPHA)], self.OTHER_APP: [sidebar(GAMMA)]}):
+			self.assertEqual(names(dock_for(self.USER)), [BETA, ALPHA, GAMMA])
 
 	def test_two_fragments_naming_one_module_render_it_once(self):
 		"""The base is copied into the merge whole, so a duplicate there is never deduped above
 		it. The first fragment to name an entry keeps it, as a layer does for a row it sees
 		twice."""
-		self.ship(BETA, ALPHA)
-		self.ship(ALPHA, GAMMA, app=self.OTHER_APP)
-
-		self.assertEqual(names(dock_for(self.USER)), [BETA, ALPHA, GAMMA])
+		with shipped_dock(
+			{
+				self.APP: [sidebar(BETA), sidebar(ALPHA)],
+				self.OTHER_APP: [sidebar(ALPHA), sidebar(GAMMA)],
+			}
+		):
+			self.assertEqual(names(dock_for(self.USER)), [BETA, ALPHA, GAMMA])
 
 	def test_the_site_arranges_what_the_app_shipped(self):
-		self.ship(BETA, ALPHA, GAMMA)
-		save_site_dock(payload(GAMMA))
+		with self.ship(BETA, ALPHA, GAMMA):
+			save_site_dock(payload(GAMMA))
 
-		# what the site named comes first; the app's order of the rest survives underneath
-		self.assertEqual(names(dock_for(self.USER)), [GAMMA, BETA, ALPHA])
+			# what the site named comes first; the app's order of the rest survives underneath
+			self.assertEqual(names(dock_for(self.USER)), [GAMMA, BETA, ALPHA])
 
 	def test_a_person_arranges_what_the_site_left(self):
-		self.ship(BETA, ALPHA, GAMMA)
-		save_site_dock(payload(GAMMA))
+		with self.ship(BETA, ALPHA, GAMMA):
+			save_site_dock(payload(GAMMA))
 
-		frappe.set_user(self.USER)
-		save_user_dock(payload(ALPHA))
-		frappe.set_user("Administrator")
+			frappe.set_user(self.USER)
+			save_user_dock(payload(ALPHA))
+			frappe.set_user("Administrator")
 
-		self.assertEqual(names(dock_for(self.USER)), [ALPHA, GAMMA, BETA])
+			self.assertEqual(names(dock_for(self.USER)), [ALPHA, GAMMA, BETA])
 
 	def test_a_module_the_app_added_later_still_reaches_someone_who_has_arranged(self):
 		"""An entry no layer names trails the ones they did, rather than dropping out."""
-		self.ship(BETA, ALPHA, GAMMA)
-		save_site_dock(payload(GAMMA, BETA))
+		with self.ship(BETA, ALPHA, GAMMA):
+			save_site_dock(payload(GAMMA, BETA))
 
-		self.assertEqual(names(dock_for(self.USER)), [GAMMA, BETA, ALPHA])
+			self.assertEqual(names(dock_for(self.USER)), [GAMMA, BETA, ALPHA])
 
 	def test_hiding_survives_the_app_adding_a_module(self):
 		"""Hiding is a decision, not the absence of a row -- so a later fragment cannot undo it."""
-		self.ship(BETA, ALPHA)
-		save_site_dock(payload(sidebar(BETA, hidden=1)))
+		with self.ship(BETA, ALPHA):
+			save_site_dock(payload(sidebar(BETA, hidden=1)))
 
-		hidden = hidden_by_name(dock_for(self.USER))
-		self.assertEqual(hidden[BETA], 1)
-		self.assertEqual(hidden[ALPHA], 0)
+			hidden = hidden_by_name(dock_for(self.USER))
+			self.assertEqual(hidden[BETA], 1)
+			self.assertEqual(hidden[ALPHA], 0)
 
-	def test_an_entry_names_a_kind_the_dock_has(self):
-		"""`type` is an open Link to `DocType`, so the whitelist is what closes the set -- and a
-		row naming a kind the dock does not have is refused rather than quietly stored."""
-		doc = frappe.new_doc("Dock")
-		doc.app = self.APP
-		doc.append("items", {"type": "User", "link_name": "Administrator"})
-		self.assertRaises(frappe.ValidationError, doc.insert)
+	def test_a_row_naming_a_kind_the_dock_does_not_have_is_dropped_from_the_base(self):
+		"""`type` is an open Link to `DocType`, so the whitelist is what closes the set at every
+		layer -- including the one an app writes by hand."""
+		with shipped_dock({self.APP: [{"type": "User", "name": "Administrator"}, sidebar(ALPHA)]}):
+			self.assertEqual(names(dock_for(self.USER)), [ALPHA])
 
-	def test_a_row_missing_half_the_pair_is_dropped_rather_than_stored(self):
+	def test_a_base_row_missing_half_the_pair_says_nothing(self):
 		"""Both halves are the entry, so either one missing says nothing at all."""
-		doc = frappe.new_doc("Dock")
-		doc.app = self.APP
-		doc.append("items", stored(ALPHA))
-		doc.append("items", {"hidden": 1})
-		doc.append("items", {"type": "Sidebar"})
-		doc.append("items", {"link_name": BETA})
-		doc.insert(ignore_permissions=True)
-
-		self.assertEqual([row.link_name for row in doc.items], [ALPHA])
+		with shipped_dock({self.APP: [sidebar(ALPHA), {"type": "Sidebar"}, {"name": BETA}, BETA]}):
+			self.assertEqual(names(dock_for(self.USER)), [ALPHA])
 
 	def test_a_module_with_no_sidebar_document_is_still_nameable(self):
 		"""Most modules have a computed base and no `Sidebar` document at all, so a row is proved
@@ -554,11 +568,20 @@ class TestTheAppLayer(DockTestCase):
 		`Dock` row is a deliberate no-op for the same reason."""
 		self.assertFalse(frappe.db.exists("Sidebar", ALPHA), "sanity: this module ships no sidebar")
 
-		self.ship(ALPHA)
-		self.assertEqual(names(dock_for(self.USER)), [ALPHA])
+		with self.ship(ALPHA):
+			self.assertEqual(names(dock_for(self.USER)), [ALPHA])
 
 		save_site_dock(payload(ALPHA))
 		self.assertEqual(names(get_site_dock()), [ALPHA])
+
+	def test_a_site_whose_apps_declare_nothing_resolves_an_empty_base(self):
+		"""Adopting the hook is a choice: an app that declares none leaves the site layer as the
+		first there is, exactly as it was before the base existed."""
+		with shipped_dock({}):
+			self.assertEqual(dock_for(self.USER, among=None), [])
+
+			save_site_dock(payload(BETA, ALPHA))
+			self.assertEqual(names(dock_for(self.USER)), [BETA, ALPHA])
 
 	def test_a_sidebar_and_a_workspace_of_the_same_name_are_different_entries(self):
 		"""Identity is the pair, so one name under two kinds is two entries rather than one."""

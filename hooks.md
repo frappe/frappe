@@ -39,7 +39,7 @@ A disable or an enable is one transaction. If a hook fails, the site keeps the s
 1. `get_desktop_icons` - method to get list of desktop icons
 1. `awesomebar_search` - method(txt) returning extra Awesome Bar results (`label`, `description`, `route`, `index`). `route` may be a desk route list, an in-app path (`/desk/...`), or an `http(s)://` URL.
 1. `add_to_apps_screen` - list of dicts, one per app to place on the apps screen
-1. `add_app_to_rail` - map of app to host app, for an app that pins its workspaces into another app's dock
+1. `add_to_dock` - ordered list of dicts, one per entry, stating where an app's entries sit on the dock
 
 #### Navigation an app ships
 
@@ -66,8 +66,31 @@ Two folders an app used to ship are no longer read:
 
 - **`<app>/desktop_icon/*.json`** — the icon-grid fixtures. These are still imported, but only
   onto a site that has chosen the icon grid, and the grid is being retired. Use
-  `add_to_apps_screen` to place an app on the apps screen, and `add_app_to_rail` to pin a
-  companion app's workspaces into a host app's dock.
+  `add_to_apps_screen` to place an app on the apps screen, and `add_to_dock` to state where its
+  entries sit on the dock.
+
+#### The dock an app ships
+
+The dock (the rail down the left of the desk) lists an app's modules, and `add_to_dock` is where
+an app states the order they appear in. It is an ordered **list of dicts**, each a typed row —
+never a map, and there is no fixture behind it:
+
+```python
+# <app>/hooks.py
+add_to_dock = [
+	{"type": "Sidebar", "name": "Stock"},
+	{"type": "Sidebar", "name": "Accounts"},
+	{"type": "Sidebar", "name": "Assets", "hidden": 1},
+]
+```
+
+`type` is `Sidebar` (a module — a sidebar's name is its module's name) or `Workspace`. An entry
+the list never names simply trails the ones it does, in the app's own order, so adding a module
+later does not mean re-authoring the block. A row shipped `hidden` is off by default; a site or a
+person can bring it back with one drag in the dock manager.
+
+The site's arrangement and each person's own are laid over this, and they only order and hide —
+they never add.
 
 #### Notifications
 

@@ -2,26 +2,15 @@
  "actions": [],
  "autoname": "hash",
  "creation": "2026-08-16 20:30:00.000000",
- "description": "The dock at one of its three layers. `app` and `user` are what tell them apart: `app` set is an app's own fragment, the base every site starts from; `user` set is that person's own arrangement, applied last and winning; neither set is the site layer, curated by a Workspace Manager and applying to everyone. An app's fragment names only its own entries -- the site and user layers span every app and name none. Same shape at all three, because the rows are identical and the parent is what says whose they are; see `Custom Sidebar`, which layers the same way.",
+ "description": "One of the dock's two stored layers. `user` is what tells them apart: set means that person's own arrangement, applied last and winning; blank means the site layer, curated by a Workspace Manager and applying to everyone. Both span every app and name none. The layer below them is not a document at all -- an app declares its fragment through the `add_to_dock` hook, because a dock row accumulates no state a hook cannot express. Same shape at both stored layers, because the rows are identical and the parent is what says whose they are; see `Custom Sidebar`, which layers the same way.",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "app",
   "user",
-  "column_break_head",
   "items_section",
   "items"
  ],
  "fields": [
-  {
-   "description": "The app whose fragment this is. Set only on the app layer -- the site's and a person's own arrangement span every app and leave this blank.",
-   "fieldname": "app",
-   "fieldtype": "Autocomplete",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "App",
-   "options": "Installed Applications"
-  },
   {
    "description": "The person whose own arrangement this is. Blank means the site layer, which applies to everyone and is overridden by each user's own.",
    "fieldname": "user",
@@ -30,10 +19,6 @@
    "in_standard_filter": 1,
    "label": "User",
    "options": "User"
-  },
-  {
-   "fieldname": "column_break_head",
-   "fieldtype": "Column Break"
   },
   {
    "fieldname": "items_section",
@@ -51,7 +36,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-16 20:30:00.000000",
+ "modified": "2026-08-17 18:10:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dock",

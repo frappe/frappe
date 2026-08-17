@@ -7,14 +7,26 @@ from frappe.desk.doctype.custom_sidebar.custom_sidebar import check_workspace_ma
 from frappe.desk.layers import resolve_layers
 from frappe.model.document import Document
 
-# Cached `(app, user) -> name` for every `Dock` on the site, so resolving one costs a redis read
-# rather than a query. The same trick as `Custom Sidebar`'s customized-keys cache, and it earns
-# more here: a site nobody has arranged holds no `Dock` at all, so the whole surface is free.
+# Cached `user` for every `Dock` on the site, so resolving one costs a redis read rather than a
+# query. The same trick as `Custom Sidebar`'s customized-keys cache, and it earns more here: a
+# site nobody has arranged holds no `Dock` at all, so the whole surface is free.
 DOCK_LAYERS_CACHE_KEY = "dock_layers"
 
-# A blank `app` and a blank `user` -- the site layer's address, spelled out so the layer reads as
-# a value rather than as two falsy strings.
+# A blank `user` -- the site layer's address, spelled out so the layer reads as a value rather
+# than as a falsy string.
 SITE_LAYER = ""
+
+# The hook an app declares its own dock fragment through: an ordered list of typed rows.
+#
+#   add_to_dock = [
+#       {"type": "Sidebar", "name": "Stock"},
+#       {"type": "Workspace", "name": "GST", "app": "erpnext"},
+#   ]
+#
+# A row carrying `app` joins *that* app's fragment -- how a companion pins a workspace onto a
+# host's rail. Absent means "my own fragment". Rows are dicts, never bare strings: a name on its
+# own no longer says what kind of thing it names.
+DOCK_HOOK = "add_to_dock"
 
 # The kinds of thing a dock entry may name, and what proves the thing it names exists.
 #
@@ -39,11 +51,16 @@ DOCK_TYPES = frozenset(PROVED_BY)
 
 
 class Dock(Document):
-	"""One layer of the dock: an app's fragment, the site's arrangement, or one person's own.
+	"""One of the dock's two stored layers: the site's arrangement, or one person's own.
 
-	The three are the same shape because the rows are identical -- `app` and `user` are the whole
-	difference, and the parent is what says whose an entry is. See `Custom Sidebar`, which layers
-	the sidebar the same way and for the same reason.
+	The two are the same shape because the rows are identical -- `user` is the whole difference,
+	and the parent is what says whose an entry is. See `Custom Sidebar`, which layers the sidebar
+	the same way and for the same reason.
+
+	The layer below both of these is not a document at all: an app declares its fragment through
+	the `add_to_dock` hook (see `get_app_dock`). The asymmetry with `Sidebar` / `Custom Sidebar`
+	is deliberate -- a dock row accumulates no state a hook cannot express, whereas a sidebar
+	carries sections, links and icons.
 	"""
 
 	_DOCTYPE_NAME = "Dock"
@@ -57,39 +74,16 @@ class Dock(Document):
 		from frappe.desk.doctype.dock_item.dock_item import DockItem
 		from frappe.types import DF
 
-		app: DF.Autocomplete | None
 		items: DF.Table[DockItem]
 		user: DF.Link | None
 	# end: auto-generated types
 
 	def validate(self):
-		self.validate_layer()
-		self.validate_unique()
+		# One spelling of "the site's layer", so the unique index below can see two of them. A
+		# `Link` left unset stores as `NULL`, and every NULL is distinct to an index -- which
+		# would let the site layer exist twice while reading as one address to `layer_filter`.
+		self.user = self.user or SITE_LAYER
 		self.anchor_the_items()
-
-	def validate_layer(self):
-		"""A document is exactly one layer, and the two columns are the address of which one.
-
-		An app's fragment covers that app's own entries; the site's arrangement and a person's
-		own span every app and name none. A document carrying both would be claiming to be two
-		layers at once, and the merge would have no answer for where it goes.
-		"""
-		if self.app and self.user:
-			frappe.throw(
-				_("A dock belongs to an app or to a person, not to both."),
-				title=_("Which Layer?"),
-			)
-
-	def validate_unique(self):
-		existing = frappe.db.exists(
-			self._DOCTYPE_NAME,
-			{**layer_filter(self.app, self.user), "name": ["!=", self.name]},
-		)
-		if existing:
-			frappe.throw(
-				_("A dock for this layer already exists."),
-				frappe.DuplicateEntryError,
-			)
 
 	def anchor_the_items(self):
 		"""Every entry points at exactly one thing, and the typed pair is what says which.
@@ -145,39 +139,44 @@ class Dock(Document):
 			frappe.cache.delete_key("bootinfo")
 
 
-def layer_filter(app: str | None, user: str | None) -> dict:
+def on_doctype_update():
+	"""One layer per address, enforced by the schema rather than by a `validate` hook.
+
+	A `validate` hook is bypassable -- `db_insert`, a bulk write, anything that skips the
+	document -- and two documents at one address would give the merge two answers for the same
+	layer. The same constraint `Custom Sidebar` keeps, in the same place.
+	"""
+	frappe.db.add_unique("Dock", ["user"], constraint_name="unique_dock_layer")
+
+
+def layer_filter(user: str | None) -> dict:
 	"""The filter naming one layer. A blank column is stored as `''` or `NULL` depending on how
 	the row was written, so both spellings of "unset" have to match."""
-	return {
-		"app": app or ["in", ["", None]],
-		"user": user or ["in", ["", None]],
-	}
+	return {"user": user or ["in", ["", None]]}
 
 
-def get_dock_layers() -> set[tuple[str, str]]:
-	"""Cached `(app, user)` addresses of every layer the site holds.
+def get_dock_layers() -> set[str]:
+	"""Cached addresses of every layer the site holds -- each person who has arranged their
+	dock, plus `SITE_LAYER` if anyone has arranged the site's.
 
-	This is the cost-control story: a boot on a site nobody has arranged answers all three
-	layers out of one redis read, instead of a query apiece. The addresses rather than the
-	names, so a stale cache can only ever cost a lookup that finds nothing -- the same negative
-	filter `Custom Sidebar` keeps, and for the same reason.
+	This is the cost-control story: a boot on a site nobody has arranged answers both layers out
+	of one redis read, instead of a query apiece. The addresses rather than the names, so a stale
+	cache can only ever cost a lookup that finds nothing -- the same negative filter
+	`Custom Sidebar` keeps, and for the same reason.
 	"""
 	layers = frappe.cache.get_value(DOCK_LAYERS_CACHE_KEY)
 	if layers is None:
-		layers = [
-			(row.app or SITE_LAYER, row.user or SITE_LAYER)
-			for row in frappe.get_all("Dock", fields=["app", "user"])
-		]
+		layers = [row.user or SITE_LAYER for row in frappe.get_all("Dock", fields=["user"])]
 		frappe.cache.set_value(DOCK_LAYERS_CACHE_KEY, layers)
-	return {tuple(layer) for layer in layers}
+	return set(layers)
 
 
-def get_dock(app: str | None = None, user: str | None = None) -> "Dock | None":
+def get_dock(user: str | None = None) -> "Dock | None":
 	"""The document holding one layer, or None. Cheap when there is none."""
-	if (app or SITE_LAYER, user or SITE_LAYER) not in get_dock_layers():
+	if (user or SITE_LAYER) not in get_dock_layers():
 		return None
 
-	name = frappe.db.exists("Dock", layer_filter(app, user))
+	name = frappe.db.exists("Dock", layer_filter(user))
 	return frappe.get_cached_doc("Dock", name) if name else None
 
 
@@ -198,8 +197,59 @@ def dock_rows(dock: "Dock | None") -> list[dict]:
 	]
 
 
+def hook_row(row, declared_by: str) -> dict | None:
+	"""One `add_to_dock` entry as the merge takes it, or None if it says nothing storable.
+
+	Rows are dicts, never bare strings -- a name on its own no longer says what kind of thing it
+	names. `declared_by` rides along because the walk already knows it: the projection Ship emits
+	is then exact rather than derived from where a module's files happen to live.
+
+	Hiding travels with the row, which is what lets an app ship an entry off by default. The
+	layers above may bring it back; see `resolve_layers`, which seeds its hidden map from here.
+	"""
+	if not isinstance(row, dict):
+		return None
+
+	entry = points_at(row)
+	if entry["type"] not in DOCK_TYPES or not entry["name"]:
+		return None
+
+	return {**entry, "hidden": int(row.get("hidden") or 0), "declared_by": declared_by}
+
+
+def dock_fragments() -> dict[str, list[dict]]:
+	"""Each app's fragment: the rows it declared for itself, then the pins aimed at it.
+
+	A row carrying `app` joins *that* app's fragment rather than its declarer's, which is how a
+	companion's workspace reaches a host's rail. It is appended after the host's own entries
+	rather than positioned among them -- a companion is not asserting a default into an
+	arrangement that is not its, and two companions pinning into one host land in installation
+	order rather than fighting for a slot.
+
+	Attribution is forced rather than chosen: a row grouped under its declarer would never render
+	on the host's rail at all, which is precisely the bug the pin has always had.
+	"""
+	installed = frappe.get_active_apps()
+	own: dict[str, list[dict]] = {}
+	pinned: dict[str, list[dict]] = {}
+
+	for app in installed:
+		for raw in frappe.get_hooks(DOCK_HOOK, app_name=app) or []:
+			row = hook_row(raw, declared_by=app)
+			if not row:
+				continue
+			# a pin at a host that is not here names no fragment, so it joins none -- the same
+			# silence a row naming a workspace nobody may open resolves to
+			host = raw.get("app")
+			if host and host not in installed:
+				continue
+			(pinned if host else own).setdefault(host or app, []).append(row)
+
+	return {app: own.get(app, []) + pinned.get(app, []) for app in own.keys() | pinned.keys()}
+
+
 def get_app_dock() -> list[dict]:
-	"""The base every site starts from: each app's own fragment, concatenated.
+	"""The base every site starts from: each app's fragment, concatenated.
 
 	An app orders its own entries and says nothing about another app's, so the fragments are
 	meant not to overlap and concatenation is the whole composition. Apps-screen order decides
@@ -207,22 +257,21 @@ def get_app_dock() -> list[dict]:
 	it from.
 
 	*Meant* not to overlap: an entry belongs to one app, but nothing enforces that two fragments
-	name different ones, and a fragment left behind by an app that is gone is free to name
-	anything. Two rows under one key would render the entry twice -- the layers above dedupe
-	their own rows and would not catch it, because the base is copied in whole -- so the first
-	fragment to name an entry keeps it, which is the rule a layer already follows for a row it
-	sees twice.
+	name different ones. Two rows under one key would render the entry twice -- the layers above
+	dedupe their own rows and would not catch it, because the base is copied in whole -- so the
+	first fragment to name an entry keeps it, which is the rule a layer already follows for a row
+	it sees twice.
 
-	Empty on a site where no app ships one, which is every site until an app does -- and then
-	the site's layer is simply the first there is, exactly as it was before this base existed.
+	Empty on a site where no app declares one -- and then the site's layer is simply the first
+	there is, exactly as it was before this base existed.
 	"""
-	fragments = {app for app, _user in get_dock_layers() if app}
+	fragments = dock_fragments()
 	if not fragments:
 		return []
 
 	rows, seen = [], set()
 	for app in sorted(fragments, key=apps_screen_sort_key()):
-		for row in dock_rows(get_dock(app=app)):
+		for row in fragments[app]:
 			key = dock_key(row)
 			if key in seen:
 				continue
@@ -237,25 +286,18 @@ def apps_screen_sort_key():
 	The same two keys that screen sorts on -- the `sequence_id` an app declares in
 	`add_to_apps_screen`, then installation order for the apps that declare none.
 
-	An app that is not installed is asked nothing: `get_hooks` imports the app to read them, so
-	asking would raise rather than answer. It takes the default and trails, which is the right
-	answer anyway -- a fragment left behind by an app that is gone is not one to lead the dock.
+	Only installed apps are ever asked: a fragment is a hook, and a hook belongs to an app that
+	is here to declare it.
 	"""
 	from frappe.boot import DEFAULT_APP_SEQUENCE_ID
 
 	installed = frappe.get_active_apps()
 
 	def sequence(app: str) -> float:
-		if app not in installed:
-			return DEFAULT_APP_SEQUENCE_ID
-
 		declared = frappe.get_hooks("add_to_apps_screen", app_name=app)
 		return (declared and declared[0].get("sequence_id")) or DEFAULT_APP_SEQUENCE_ID
 
-	def position(app: str) -> int:
-		return installed.index(app) if app in installed else len(installed)
-
-	return lambda app: (sequence(app), position(app), app)
+	return lambda app: (sequence(app), installed.index(app), app)
 
 
 def get_site_dock() -> list[dict]:

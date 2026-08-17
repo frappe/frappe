@@ -430,15 +430,13 @@ use_json_request_body = True
 # 	}}
 # ]
 
-# Companion apps that extend a host app (instead of taking their own apps-screen icon) can pin
-# their workspaces into the host app's workspace dock (rail) with this hook. Declaring it keeps
-# the app off the apps screen, so it takes precedence over any add_to_apps_screen above. Who can
-# see a pinned workspace is controlled by that workspace's own Roles table.
-# add_to_workspace_dock = [
-# 	{{
-# 		"app": "erpnext",
-# 		"workspace": "My Workspace",
-# 	}}
+# Where this app's entries sit on the dock (the rail down the left of the desk), as an ordered
+# list of typed rows. A `Sidebar` names a module -- a sidebar's name is its module's name. An
+# entry you don't name simply trails the ones you do, in the app's own order, so adding a module
+# later doesn't mean re-authoring this. A row shipped `"hidden": 1` is off by default, and a site
+# or a person can bring it back.
+# add_to_dock = [
+# 	{{"type": "Sidebar", "name": "{app_title}"}},
 # ]
 
 # Includes in <head>
