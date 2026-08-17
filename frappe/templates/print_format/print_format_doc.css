@@ -34,6 +34,13 @@
 	page-break-inside: avoid;
 }
 
+/* Long-content fields (Terms, notes) opt into flowing across a page boundary
+   instead of jumping whole and leaving the previous page half empty */
+.print-format-doc .field.field--breakable {
+	break-inside: auto;
+	page-break-inside: auto;
+}
+
 /* Stacked (default): muted label above value */
 .print-format-doc .field .label {
 	font-size: 1em;
@@ -210,11 +217,14 @@
 	border-bottom-right-radius: var(--pfb-radius, 0);
 }
 
-.print-format-doc .child-table .table tbody tr:last-child td:first-child {
+/* bordered tables close their bottom corners through the .table-foot cap, so
+   the last body row must not also round them — two curved closes stack into a
+   doubled bottom edge otherwise */
+.print-format-doc .child-table:not(.child-table--bordered) .table tbody tr:last-child td:first-child {
 	border-bottom-left-radius: var(--pfb-radius, 0);
 }
 
-.print-format-doc .child-table .table tbody tr:last-child td:last-child {
+.print-format-doc .child-table:not(.child-table--bordered) .table tbody tr:last-child td:last-child {
 	border-bottom-right-radius: var(--pfb-radius, 0);
 }
 
