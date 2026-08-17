@@ -357,6 +357,20 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 
 	sync_for(name, force=force, reset_permissions=True)
 
+	if name == "frappe":
+		# The framework's own rows can only be written *after* the sync: a bare site has no
+		# `tabModule Def` for them to go in, which is why the call above skips `frappe`.
+		#
+		# Until now they arrived as a side effect of `make_module_and_roles`, which gives a
+		# module a row when one of its doctypes is synced -- so a module shipping no doctype at
+		# all got none. That was every module until the framework split its navigation, and a
+		# nav-only module carrying a workspace and a sidebar now falls straight through it. The
+		# fixtures still import (`import_file` ignores links), but a module with no row does not
+		# exist as far as the site is concerned: it is absent from every module list the desk
+		# builds, so the module is missing from the dock on a fresh site and present on a
+		# migrated one, which is the same site rendering two different desks.
+		add_module_defs(name, ignore_if_duplicate=True)
+
 	add_to_installed_apps(name)
 
 	frappe.get_doc("Portal Settings", "Portal Settings").sync_menu()
