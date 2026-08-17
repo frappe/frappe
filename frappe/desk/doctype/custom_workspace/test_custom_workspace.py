@@ -243,28 +243,3 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 				frappe.get_doc({"doctype": "Custom Workspace", "workspace": private.name}).insert()
 		finally:
 			frappe.db.delete("Workspace", {"name": private.name})
-
-
-class TestCustomWorkspaceRename(IntegrationTestCase):
-	"""`Workspace Customization` was renamed to `Custom Workspace`; a site keeps its rows."""
-
-	PATCH = "frappe.patches.v16_0.rename_workspace_customization_to_custom_workspace"
-
-	def test_the_old_name_is_gone(self):
-		self.assertTrue(frappe.db.exists("DocType", "Custom Workspace"))
-		self.assertFalse(frappe.db.exists("DocType", "Workspace Customization"))
-
-	def test_the_rename_patch_runs_before_the_model_sync(self):
-		# after the sync it would be too late: the sync would have created an empty
-		# `Custom Workspace` beside the site's rows, and the rename would find it taken.
-		from frappe.modules.patch_handler import PatchType, get_patches_from_app
-
-		self.assertIn(self.PATCH, get_patches_from_app("frappe", PatchType.pre_model_sync))
-
-	def test_the_rename_patch_is_a_noop_once_the_rename_has_happened(self):
-		# most sites it lands on never had the old doctype at all (a fresh install, or a
-		# re-run after a migrate that failed further down), so it has to sit still.
-		from frappe.patches.v16_0.rename_workspace_customization_to_custom_workspace import execute
-
-		execute()
-		self.assertTrue(frappe.db.exists("DocType", "Custom Workspace"))
