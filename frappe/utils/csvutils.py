@@ -29,6 +29,10 @@ def unescape_formula_injection(value):
 	A leading single quote in front of a formula-trigger character is a display-only
 	marker, not part of the value, so re-importing our own export must not bake it in
 	permanently (e.g. phone numbers, negative quantities stored as text).
+
+	Trade-off: a value that genuinely starts with a quote, e.g. "'+S-001", loses that
+	quote too - CSV has no way to tell the two cases apart. Assumes the input came from
+	escape_formula_injection, not an arbitrary external CSV.
 	"""
 	if (
 		isinstance(value, str)
