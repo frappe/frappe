@@ -2,11 +2,7 @@ import { createResource } from "frappe-ui";
 import { computed, onMounted, onUnmounted, reactive, ref, type Ref } from "vue";
 import { getSocketInstance } from "../../socket";
 import type { Activity, CustomActivity, Pagination, UserInfo } from "./types";
-import {
-  compareActivities,
-  dropDuplicateKeys,
-  groupActivities,
-} from "./grouping";
+import { compareActivities, dropDuplicateKeys } from "./grouping";
 import { getAssignee, stripHtml } from "./utils";
 
 // One resource per doctype:docname for the session, so reopening a doc is instant.
@@ -128,11 +124,13 @@ export function useActivityTimeline(
 
   subscribeToLiveUpdates(doctype, docname, resource, visibleTypeNames);
 
+  // deduped + sorted, but ungrouped: the component folds version runs at render
+  // time, after the consumer's own filtering/merging
   const activities = computed<Array<Activity | CustomActivity>>(() => {
     const fetched = (resource.data as Activity[] | undefined) ?? [];
     const uniqueActivities = dropDuplicateKeys(fetched);
     uniqueActivities.sort(compareActivities);
-    return groupActivities(uniqueActivities);
+    return uniqueActivities;
   });
 
   return {
