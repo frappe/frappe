@@ -68,6 +68,10 @@ frappe.ui.SettingsDialogPanel = class SettingsDialogPanel {
 			label: action.label || "",
 			icon: action.icon,
 			variant: action.variant,
+			// so a destructive action can read as one -- `theme: "red"` is the button's own
+			// spelling of that, and without it a panel could only get there by hand-rolling a
+			// css_class the component doesn't know about
+			theme: action.theme,
 			css_class: action.class,
 			// `this` and the first argument are both the panel, so actions can mutate it.
 			onclick: action.click && (() => action.click.call(this, this)),

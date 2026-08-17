@@ -5,10 +5,10 @@ import Undo from "editorjs-undo";
 // rendered for Workspace Managers but stripped before the content is saved.
 const HIDDEN_NOTICE_MARKER = "workspace-hidden-notice";
 
-// The framework's fallback workspace, shown only when a user has no other workspace at all
-// (see get_workspaces). It's special-cased out of workspace listings across the codebase; here
-// it's kept out of the "not in any app" triage list, since it isn't a workspace anyone mounts.
-const WELCOME_WORKSPACE = "Welcome Workspace";
+// Rail id for the Manage Workspaces group holding workspaces with no module at all. Every tab
+// there is identified by its module name, and "" is not usable as one: `SettingsDialog` keys its
+// items by id and treats a falsy one as "no tab".
+const NO_MODULE_TAB = "__no_module__";
 
 // "Access" options in the New Workspace dialog -- a virtual field that maps to the
 // underlying `public` / `for_user` / `roles` fields:
@@ -93,10 +93,12 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	// Modules are grouped by app in the label, since two apps can ship similarly named modules.
+	// A module the site owns is placed into no app's dock and has no app to name, so it reads as
+	// itself rather than claiming one.
 	module_select_options(modules) {
 		return modules.map((m) => ({
 			value: m.module,
-			label: `${__(m.label)} (${__(m.app_title)})`,
+			label: m.app_title ? `${__(m.label)} (${__(m.app_title)})` : __(m.label),
 		}));
 	}
 
@@ -488,93 +490,212 @@ frappe.views.Workspace = class Workspace {
 		d.show();
 	}
 
-	open_workspace_manager(current_page) {
-		// Two-pane manager: the list of workspaces the user can manage on the left, the
-		// selected workspace's access / appearance settings on the right. Replaces the
-		// old "route to the Workspace / Custom Workspace form" flow.
+	async open_workspace_manager(current_page) {
+		// Two-pane manager, shaped like the schema it manages: **modules** on the left, and the
+		// selected module's workspaces listed on the right. A workspace's module is what decides
+		// which dock lists it and whose sidebar carries it, so moving one between modules is the
+		// management task -- which makes the module, not the workspace, the thing to organise by.
+		// The old rail listed every workspace under Standard / Custom / Private, three groups
+		// that say nothing about where a workspace appears.
 		//
 		// The list comes from the server, not `frappe.boot.workspaces`: the bootinfo only
 		// carries the user's *own* private workspaces, but a Workspace Manager manages every
 		// workspace (including other users' private ones).
-		frappe
-			.call({
-				method: "frappe.desk.doctype.workspace.workspace.get_manageable_workspaces",
-			})
-			.then((r) => {
-				const manageable = r.message || [];
-				if (!manageable.length) return;
-
-				// "Not in any app" first -- those workspaces are on no dock, so this is the
-				// list to triage. Then Standard = public app-shipped, Custom = public but
-				// user-created, Private = per-user workspaces.
-				const unmounted = (p) => !p.module && !p.standard && p.title !== WELCOME_WORKSPACE;
-				const groups = [
-					{ label: __("Not in any module"), filter: unmounted },
-					{ label: __("Standard"), filter: (p) => p.public && p.standard },
-					{
-						label: __("Custom"),
-						filter: (p) => p.public && !p.standard && !unmounted(p),
-					},
-					{ label: __("Private"), filter: (p) => !p.public && !unmounted(p) },
-				];
-				const tabs = [];
-				groups.forEach(({ label, filter }) => {
-					const pages = manageable.filter(filter);
-					if (pages.length) {
-						tabs.push({
-							group: label,
-							items: pages.map((p) => this.workspace_manager_item(p)),
-						});
-					}
-				});
-
-				const has_current =
-					current_page && manageable.some((p) => p.name === current_page.name);
-				this.workspace_manager = new frappe.ui.SettingsDialog({
-					title: __("Manage Workspaces"),
-					tabs,
-					default_tab: has_current ? current_page.name : undefined,
-				});
-				this.workspace_manager.show();
-			});
-	}
-
-	workspace_manager_item(page) {
-		// a manager may see private workspaces owned by other users -- label whose they are
-		const owned_by_other =
-			!page.public && page.for_user && page.for_user !== frappe.session.user;
-		const label = owned_by_other ? `${__(page.title)} (${page.for_user})` : __(page.title);
-		return {
-			id: page.name,
-			label,
-			icon: page.icon || "layout-grid",
-			render: (panel) => this.render_workspace_manager_panel(panel, page),
-		};
-	}
-
-	async render_workspace_manager_panel(panel, page) {
-		panel.set_header({ title: __(page.title) });
-		panel.body.html(`<div class="text-muted">${__("Loading...")}</div>`);
-
-		const [settings, apps] = await Promise.all([
-			frappe.xcall("frappe.desk.doctype.workspace.workspace.get_workspace_settings", {
-				name: page.name,
-			}),
+		// `EmbeddedList` is a lazy bundle rather than part of the desk one, so it has to be here
+		// before a module panel renders. Loaded alongside the two reads rather than after them,
+		// and awaited as one so the first panel builds synchronously when the dialog opens.
+		const [manageable, modules] = await Promise.all([
+			frappe.xcall("frappe.desk.doctype.workspace.workspace.get_manageable_workspaces"),
 			this.get_assignable_modules(),
+			frappe.require("embedded_list.bundle.js").catch((e) => {
+				// eslint-disable-next-line no-console
+				console.error("Manage Workspaces: failed to load embedded_list.bundle.js", e);
+				frappe.ui.toast({
+					message: __("The workspace list may not load. Please refresh the page."),
+					type: "warning",
+				});
+			}),
 		]);
+		if (!manageable || !manageable.length) return;
+
+		this.manager_modules = modules;
+		const tabs = this.workspace_manager_tabs(manageable, modules);
+
+		this.workspace_manager = new frappe.ui.SettingsDialog({
+			title: __("Manage Workspaces"),
+			tabs,
+			default_tab: this.manager_tab_for(tabs, current_page && current_page.module),
+		});
+		this.workspace_manager.show();
+	}
+
+	// One rail item per module that holds something. Deliberately not every module on the site:
+	// the rail is how you *find* a workspace, and moving one into a module that holds none is the
+	// Module field's job, which offers the full list.
+	workspace_manager_tabs(manageable, modules) {
+		const meta = {};
+		(modules || []).forEach((m) => (meta[m.module] = m));
+
+		const by_module = new Map();
+		manageable.forEach((page) => {
+			page._access = page.standard
+				? __("Standard")
+				: page.public
+				? __("Everyone")
+				: page.for_user
+				? __("Private")
+				: __("Shared");
+			const key = page.module || "";
+			if (!by_module.has(key)) by_module.set(key, []);
+			by_module.get(key).push(page);
+		});
+
+		// Rank decides which lists lead, and the leaders are the ones worth triaging. Two states
+		// share the top: a workspace with no module at all, and one naming a module that isn't
+		// there -- a `Link` the database doesn't enforce, so a module can be renamed or deleted
+		// out from under one. Both are equally unreachable and both are fixed the same way, by
+		// the Module field, so they share a group. The site's own modules come next (where the
+		// migration parks anything that never declared one), then each app's.
+		const missing = (key) => Boolean(key) && !meta[key];
+		const rank = (key) => {
+			if (!key || missing(key)) return 0;
+			return meta[key].app_title ? 2 : 1;
+		};
+		const group_of = (key) => {
+			if (!key || missing(key)) return __("Needs a module");
+			return meta[key].app_title ? __(meta[key].app_title) : __("Site");
+		};
+
+		const keys = [...by_module.keys()].sort((a, b) => {
+			const am = meta[a] || {};
+			const bm = meta[b] || {};
+			return (
+				rank(a) - rank(b) ||
+				(am.app_title || "").localeCompare(bm.app_title || "") ||
+				(am.label || a).localeCompare(bm.label || b)
+			);
+		});
+
+		const groups = new Map();
+		keys.forEach((key) => {
+			// A workspace whose module can't be offered still has to appear, or it would drop
+			// out of the only dialog that can move it. `missing` also covers a module this
+			// particular user may not see (a block hides it), which is a different cause with
+			// the same consequence for them: they cannot navigate to it.
+			const module = meta[key] || {
+				module: key,
+				label: key || __("No module"),
+				app_title: null,
+				missing: Boolean(key),
+			};
+			const group = group_of(key);
+			if (!groups.has(group)) groups.set(group, []);
+			groups.get(group).push({
+				id: key || NO_MODULE_TAB,
+				label: __(module.label),
+				icon: module.missing || !key ? "alert-circle" : "folder-normal",
+				render: (panel) => this.render_module_panel(panel, module, by_module.get(key)),
+			});
+		});
+
+		return [...groups].map(([group, items]) => ({ group, items }));
+	}
+
+	// `SettingsDialog.activate` silently does nothing for an id it has no item for, which would
+	// leave the dialog open on a blank panel -- so a module is only offered as the landing tab
+	// once it's confirmed to be one.
+	manager_tab_for(tabs, module) {
+		const wanted = module || NO_MODULE_TAB;
+		const found = tabs.some((group) => group.items.some((item) => item.id === wanted));
+		return found ? wanted : undefined;
+	}
+
+	// A module's workspaces. The list and the per-workspace form are two views of the *same*
+	// panel (`set_view` swaps it whole, `refresh()` restores the list), so drilling in doesn't
+	// stack a second dialog over the first.
+	render_module_panel(panel, module, pages) {
+		const rows = pages || [];
+		panel.set_view({
+			title: __(module.label),
+			render: (p) => {
+				new frappe.ui.EmbeddedList({
+					wrapper: $('<div class="workspace-manager-list"></div>').appendTo(p.body),
+					// The line belongs to the list rather than the panel header above it: the
+					// list draws no header at all without a title, description or Add button,
+					// and the search box rides in that header -- so a bare list silently loses
+					// the one control a long module needs.
+					description: module.missing
+						? __(
+								"{0} workspace(s) name the module {1}, which doesn't exist on this site — nothing can navigate to them. Give each one a module below.",
+								[rows.length, module.module]
+						  )
+						: !module.module
+						? __(
+								"{0} workspace(s) have no module, so nothing can navigate to them. Give each one a module below.",
+								[rows.length]
+						  )
+						: module.app_title
+						? __("{0} workspace(s) in this module, which {1} ships.", [
+								rows.length,
+								__(module.app_title),
+						  ])
+						: __("{0} workspace(s) in this module, which this site owns.", [
+								rows.length,
+						  ]),
+					empty_message: __("No workspaces in this module."),
+					empty_icon: "layout-grid",
+					get_data: () => Promise.resolve(rows),
+					on_row_click: (row) => this.open_workspace_settings(panel, row),
+					columns: [
+						{
+							label: __("Workspace"),
+							fieldname: "title",
+							render: (row) => frappe.utils.escape_html(__(row.title)),
+						},
+						{
+							label: __("Access"),
+							fieldname: "_access",
+							type: "badge",
+							color: (row) =>
+								row.standard ? "blue" : row.public ? "green" : "gray",
+						},
+						// a manager sees private workspaces owned by other people -- whose they
+						// are is the column that tells them apart, since the titles won't
+						{ label: __("Owner"), fieldname: "for_user" },
+					],
+				}).refresh();
+			},
+		});
+	}
+
+	// The selected workspace's settings, in place of the list.
+	async open_workspace_settings(panel, page) {
+		panel.set_view({
+			title: __(page.title),
+			render: (p) => p.body.html(`<div class="text-muted">${__("Loading...")}</div>`),
+		});
+
+		const settings = await frappe.xcall(
+			"frappe.desk.doctype.workspace.workspace.get_workspace_settings",
+			{ name: page.name }
+		);
 		if (!settings) return;
 
-		const actions = [];
+		// Back before anything destructive, and it returns to the list rather than closing:
+		// sorting a module's workspaces means going in and out of this view repeatedly.
+		const actions = [
+			{ label: __("Back"), icon: "chevron-left", click: () => panel.refresh() },
+		];
 		if (!settings.standard) {
 			actions.push({
 				label: __("Delete"),
-				class: "btn-danger",
+				theme: "red",
 				click: () => this.delete_workspace_from_manager(page),
 			});
 		}
 		actions.push({
 			label: __("Save"),
-			primary: true,
+			variant: "solid",
 			click: (p) => this.save_workspace_from_manager(p, settings),
 		});
 
@@ -586,8 +707,25 @@ frappe.views.Workspace = class Workspace {
 				  )
 				: __("Control who can see this workspace and how it appears."),
 			actions,
-			fields: this.workspace_manager_fields(settings, apps),
+			fields: this.workspace_manager_fields(settings, this.manager_modules),
 		});
+	}
+
+	// Rebuild the rail after a change that can move a workspace between modules, and land on
+	// whichever module it went to -- watching it arrive is the point of doing this here.
+	async refresh_workspace_manager(module) {
+		if (!this.workspace_manager) return;
+
+		const manageable = await frappe.xcall(
+			"frappe.desk.doctype.workspace.workspace.get_manageable_workspaces"
+		);
+		if (!manageable || !manageable.length) {
+			this.workspace_manager.hide();
+			return;
+		}
+
+		const tabs = this.workspace_manager_tabs(manageable, this.manager_modules);
+		this.workspace_manager.reset(tabs, this.manager_tab_for(tabs, module));
 	}
 
 	workspace_manager_fields(settings, apps) {
@@ -701,7 +839,10 @@ frappe.views.Workspace = class Workspace {
 				if (!r.message) return;
 				this.apply_manager_changes(r.message);
 				frappe.show_alert({ message: __("Workspace updated"), indicator: "green" });
-				this.workspace_manager && this.workspace_manager.hide();
+				// Stay open on the module it now belongs to. Saving used to close the dialog,
+				// which made moving several workspaces a matter of reopening it each time --
+				// and left the one thing worth seeing, where it landed, unshown.
+				this.refresh_workspace_manager(values.module || settings.module);
 			},
 		});
 	}
@@ -721,7 +862,8 @@ frappe.views.Workspace = class Workspace {
 							message: __("Workspace {0} deleted", [__(page.title)]),
 							indicator: "green",
 						});
-						this.workspace_manager && this.workspace_manager.hide();
+						// back to the module it was in, which is where the next one to look at is
+						this.refresh_workspace_manager(page.module);
 					},
 				});
 			}

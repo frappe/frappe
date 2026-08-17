@@ -17,6 +17,8 @@ from frappe.desk.doctype.desktop_settings.desktop_settings import APPS, DESKTOP_
 from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_cache
 from frappe.desk.doctype.sidebar.test_sidebar import no_developer_mode
 from frappe.modules.patch_handler import PatchType, get_patches_from_app
+from frappe.patches.v16_0.backfill_workspace_module import CUSTOM_MODULE as CUSTOM_BUCKET
+from frappe.patches.v16_0.backfill_workspace_module import PRIVATE_MODULE as PRIVATE_BUCKET
 from frappe.tests import IntegrationTestCase
 
 BACKFILL = "frappe.patches.v16_0.backfill_workspace_module"
@@ -107,8 +109,9 @@ class TestV15Upgrade(IntegrationTestCase):
 			).insert()
 		clear_computed_base_cache(cls.MODULE)
 
-		# Something in the module for a sidebar item to point at -- which is also what the
-		# backfill reads the module *off*, since a v15 workspace doesn't declare one.
+		# Something in the module for a sidebar item to point at. The backfill does *not* read
+		# the module off it: a v15 workspace declares no module and nothing here is allowed to
+		# guess one for it. This is what the derived sidebar items end up pointing to.
 		frappe.get_doc(
 			{
 				"doctype": "Report",
@@ -134,8 +137,7 @@ class TestV15Upgrade(IntegrationTestCase):
 		cls.seed_workspace(cls.OTHER, public=1)
 
 		# A private page contributes no sidebar of its own: its link is derived on read from the
-		# workspace itself. What it does carry is `links`, which is the rung of the backfill's
-		# ladder these land on.
+		# workspace itself. `for_user` is the only thing about it the backfill reads.
 		cls.seed_workspace(cls.PRIVATE, public=0, for_user=cls.USER, shortcuts=False)
 
 		# Things this upgrade must leave alone, seeded before it runs.
@@ -184,40 +186,75 @@ class TestV15Upgrade(IntegrationTestCase):
 		frappe.db.set_value("Workspace", workspace.name, "module", "", update_modified=False)
 		return workspace.name
 
-	def sidebar_payload(self, user):
+	def sidebar_payload(self, user, module):
 		from frappe.boot import get_module_sidebars
 
 		frappe.set_user(user)
 		try:
-			return get_module_sidebars().get(self.MODULE)
+			return get_module_sidebars().get(module)
 		finally:
 			frappe.set_user("Administrator")
 
+	def items_of(self, user, module) -> list[str]:
+		"""What `user`'s sidebar for `module` links to -- empty when it resolves to nothing.
+
+		A module that resolves to nothing for someone is absent from the payload rather than
+		present and empty, and "nothing to show you" is the answer these tests want to make
+		assertions against either way.
+		"""
+		payload = self.sidebar_payload(user, module)
+		return [item["link_to"] for item in payload["items"]] if payload else []
+
 	# -- the navigation they land with --------------------------------------------------
 
-	def test_every_v15_workspace_reaches_a_module(self):
-		for title in (self.PUBLIC, self.OTHER, self.PRIVATE):
-			self.assertEqual(frappe.db.get_value("Workspace", title, "module"), self.MODULE)
+	def test_a_shared_v15_workspace_lands_in_the_custom_bucket(self):
+		"""Not the module its shortcuts point at. Nothing here knows what these pages are about
+		-- `Test V15 Module` is where the *report* lives, which is a fact about the link target
+		and not about the page -- so they go somewhere honest and stay reachable."""
+		for title in (self.PUBLIC, self.OTHER):
+			self.assertEqual(frappe.db.get_value("Workspace", title, "module"), CUSTOM_BUCKET)
 
-	def test_the_module_gets_a_sidebar_carrying_what_the_workspaces_authored(self):
+	def test_a_private_v15_workspace_lands_in_the_private_bucket(self):
+		self.assertEqual(frappe.db.get_value("Workspace", self.PRIVATE, "module"), PRIVATE_BUCKET)
+
+	def test_the_buckets_are_the_sites_own_and_placed_nowhere(self):
+		"""`custom` is what stops an app's uninstall taking a module full of the site's
+		workspaces; no `app_name` is what makes each stand on the desktop as its own tile."""
+		for module in (CUSTOM_BUCKET, PRIVATE_BUCKET):
+			bucket = frappe.get_doc("Module Def", module)
+			self.assertEqual(bucket.custom, 1, f"{module} would be treated as an app's own module")
+			self.assertFalse(bucket.app_name, f"{module} was placed into an app's dock")
+
+	def test_the_bucket_gets_a_sidebar_carrying_what_the_workspaces_authored(self):
 		"""Behind the backfill this layer did not exist at all: the merge saw no sources."""
-		layer = frappe.get_doc("Custom Sidebar", {"module": self.MODULE, "user": ""})
+		layer = frappe.get_doc("Custom Sidebar", {"module": CUSTOM_BUCKET, "user": ""})
 		self.assertIn(self.REPORT, [item.link_to for item in layer.sidebar_items])
 
 	def test_the_sidebar_reaches_the_navigation_payload(self):
-		payload = self.sidebar_payload("Administrator")
+		payload = self.sidebar_payload("Administrator", CUSTOM_BUCKET)
 		self.assertIsNotNone(payload, "the upgraded module is missing from bootinfo.module_sidebars")
 		self.assertIn(self.REPORT, [item["link_to"] for item in payload["items"]])
 
 	def test_a_private_workspace_appears_in_its_owners_sidebar(self):
 		"""Derived, not stored -- and only derivable once the page has a module."""
-		payload = self.sidebar_payload(self.USER)
-		self.assertIsNotNone(payload)
-		self.assertIn(self.PRIVATE, [item["link_to"] for item in payload["items"]])
+		self.assertIn(self.PRIVATE, self.items_of(self.USER, PRIVATE_BUCKET))
 
-		# and stays the owner's: nobody else's sidebar carries it
-		payload = self.sidebar_payload("Administrator")
-		self.assertNotIn(self.PRIVATE, [item["link_to"] for item in payload["items"]])
+		# and stays the owner's: the shared bucket is one module for the whole site, so this is
+		# what says a second reader is not handed somebody else's pages through it
+		self.assertNotIn(self.PRIVATE, self.items_of("Administrator", PRIVATE_BUCKET))
+
+	def test_running_the_backfill_again_moves_nothing(self):
+		"""It reads only module-less workspaces, so a second migrate is a no-op -- including
+		over anything a site has since moved out of the bucket by hand."""
+		frappe.db.set_value("Workspace", self.OTHER, "module", self.MODULE, update_modified=False)
+		self.addCleanup(
+			frappe.db.set_value, "Workspace", self.OTHER, "module", CUSTOM_BUCKET, update_modified=False
+		)
+
+		run_patches([BACKFILL])
+
+		self.assertEqual(frappe.db.get_value("Workspace", self.OTHER, "module"), self.MODULE)
+		self.assertEqual(frappe.db.get_value("Workspace", self.PUBLIC, "module"), CUSTOM_BUCKET)
 
 	# -- what the upgrade must not touch ------------------------------------------------
 

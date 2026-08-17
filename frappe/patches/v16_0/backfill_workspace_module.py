@@ -1,24 +1,43 @@
-from collections import Counter
-
 import click
 
 import frappe
 
-CATCH_ALL_MODULE = "Desk"
+# Where a workspace the site made goes when nothing says where it belongs. Both are custom
+# modules the site owns rather than modules any app ships -- see `ensure_module`.
+PRIVATE_MODULE = "Private"
+CUSTOM_MODULE = "Custom Workspaces"
 
 
 def execute():
-	"""Give every Workspace a module, so `Workspace.module` can become mandatory.
+	"""Give every module-less Workspace a module, so `Workspace.module` can become mandatory.
 
 	The dock is module-shaped now, so a workspace with no module belongs nowhere: it cannot
 	appear on any dock and its sidebar items cannot be merged into any module's sidebar.
 
-	Resolution ladder, most to least trustworthy:
-	  1. the first module of the workspace's mounted `app`
-	  2. the majority module of what the v16 archive's sidebar for it links to
-	  3. the majority module of what its `links` and `shortcuts` point at
-	  4. its `parent_page`'s module
-	  5. a catch-all, logged loudly -- someone should look at these
+	**No heuristic.** Every signal available here -- the workspace's old `app`, the module its
+	links happen to point at, its parent's module -- answers a different question than the one
+	being asked. `app` in particular records where the person was standing when they hit
+	"Create Workspace" (the dialog made it mandatory and defaulted it to the current app), not
+	what the page is about, so guessing from it files a page full of leave applications under
+	Accounts and does it confidently. And a guess that lands is worth little either way: whoever
+	made these workspaces is going to arrange them where they want them regardless. So they go
+	somewhere honest and stay reachable, and moving them is the site's business.
+
+	Two destinations, and `for_user` is the whole of the choice:
+
+	  * `for_user` set -- one person's own page, so it goes to `Private`, which resolves per
+	    reader (see below) and shows nobody anyone else's pages.
+	  * everything else -- a shared page the site made, so it goes to `Custom Workspaces`, a
+	    triage list a workspace manager redistributes from.
+
+	`for_user` rather than `public`, because `public = 0` with no `for_user` is a third state
+	and `frappe.desk.desktop.get_workspaces` reads it as *shared*, not private.
+
+	`standard` does not come into the choice at all, and could not: a workspace an app ships is
+	backed by a file under that app's module folder and carries the `module` its JSON declares,
+	so nothing standard has any business reaching a patch that only ever reads module-less rows.
+	A row here carrying `standard = 1` is carrying it wrongly -- which the old `set_standard_flag`
+	produced, on develop benches only, that patch never having been in a release.
 
 	Runs *before* `build_module_sidebars`, which reads `Workspace.module` and can only skip what
 	has none. On a v15 site that is every workspace, so behind it this patch is worth nothing:
@@ -27,113 +46,45 @@ def execute():
 	workspaces = frappe.get_all(
 		"Workspace",
 		filters={"module": ["in", ["", None]]},
-		fields=["name", "parent_page", "public", "for_user"],
+		fields=["name", "for_user"],
 	)
 	if not workspaces:
 		return
 
-	# `Workspace.app` is not a field any more, so it cannot be selected with the rest. On a site
-	# old enough to need this patch the column is still physically there -- the schema updater
-	# leaves a removed field's column behind -- and it is the most trustworthy rung of the
-	# ladder below, so read it separately and only where it exists.
-	legacy_app = legacy_apps() if frappe.db.has_column("Workspace", "app") else {}
-	for workspace in workspaces:
-		workspace.app = legacy_app.get(workspace.name)
+	buckets = {
+		PRIVATE_MODULE: [w.name for w in workspaces if w.for_user],
+		CUSTOM_MODULE: [w.name for w in workspaces if not w.for_user],
+	}
 
-	assigned = Counter()
-	for workspace in workspaces:
-		module, how = resolve_module(workspace)
-		frappe.db.set_value("Workspace", workspace.name, "module", module, update_modified=False)
-		assigned[how] += 1
+	for module, names in buckets.items():
+		# Only ever created for workspaces that need it: a site with none of one kind should
+		# not be given an empty module standing on its desktop.
+		if not names:
+			continue
 
-		colour = "red" if how == "catch-all" else None
-		click.secho(f"  {workspace.name} -> {module} ({how})", fg=colour)
-
-	click.secho(
-		f"Backfilled Workspace.module for {len(workspaces)} workspace(s): "
-		+ ", ".join(f"{how} {n}" for how, n in assigned.items()),
-		fg="yellow" if assigned.get("catch-all") else "green",
-	)
+		ensure_module(module)
+		frappe.db.set_value("Workspace", {"name": ["in", names]}, "module", module, update_modified=False)
+		click.secho(f"  {len(names)} workspace(s) -> {module}", fg="green")
 
 
-def legacy_apps() -> dict[str, str]:
-	"""`name -> app` straight off the orphaned column, which no longer has a field to read it."""
-	rows = frappe.db.sql("select `name`, `app` from `tabWorkspace`")
-	return {name: app for name, app in rows if app}
+def ensure_module(module: str) -> None:
+	"""The destination module, as a module the *site* owns.
 
+	`custom` is ownership: it keeps an app's uninstall from taking a module full of the site's
+	workspaces with it (`frappe.installer.get_app_owned_modules` filters on exactly this), and
+	it keeps `ModuleDef.on_update` from writing a folder and a `modules.txt` line for a module
+	no app ships.
 
-def resolve_module(workspace) -> tuple[str, str]:
-	if workspace.app:
-		modules = frappe.get_all("Module Def", filters={"app_name": workspace.app}, pluck="name")
-		if modules:
-			declared = frappe.get_module_list(workspace.app) if workspace.app else []
-			return (declared[0] if declared else sorted(modules)[0]), "app"
-
-	module = majority_module_of_sidebar_items(workspace.name)
-	if module:
-		return module, "sidebar items"
-
-	module = majority_module_of_widgets(workspace.name)
-	if module:
-		return module, "links/shortcuts"
-
-	if workspace.parent_page:
-		module = frappe.db.get_value("Workspace", workspace.parent_page, "module")
-		if module:
-			return module, "parent page"
-
-	return ensure_catch_all(), "catch-all"
-
-
-def majority_module_of_sidebar_items(workspace: str) -> str | None:
-	"""What the v16 archive's sidebar for this workspace links to.
-
-	v16 named a sidebar after the workspace it was generated for, so the title is the join.
-	Read from the archive rather than from a column on the workspace: that column never
-	shipped, so on a real v16 site this rung only ever had the archive to read.
+	`app_name` is placement, and it is deliberately left unset: no app has a claim on these, and
+	an unplaced custom module is not stranded -- it stands on the desktop as its own tile
+	(`frappe.boot.get_standalone_modules`), for the people whose sidebar for it resolves to
+	anything. That is what makes `Private` work as one shared module: its rows are derived per
+	reader from that reader's own pages (`sidebar.get_private_workspaces`), so the tile appears
+	only for someone who has private workspaces, and only ever holds their own.
 	"""
-	if not frappe.db.exists("DocType", "Workspace Sidebar"):
-		return None
+	if frappe.db.exists("Module Def", module):
+		return
 
-	rows = frappe.get_all(
-		"Workspace Sidebar Item",
-		filters={"parenttype": "Workspace Sidebar", "parentfield": "items", "parent": workspace},
-		fields=["link_type", "link_to"],
+	frappe.get_doc({"doctype": "Module Def", "module_name": module, "custom": 1}).insert(
+		ignore_permissions=True
 	)
-	return majority_module([(r.link_type, r.link_to) for r in rows])
-
-
-def majority_module_of_widgets(workspace: str) -> str | None:
-	targets = []
-	for doctype, type_field in (("Workspace Link", "link_type"), ("Workspace Shortcut", "type")):
-		if not frappe.db.exists("DocType", doctype):
-			continue
-		for row in frappe.get_all(
-			doctype, filters={"parent": workspace}, fields=[f"{type_field} as link_type", "link_to"]
-		):
-			targets.append((row.link_type, row.link_to))
-	return majority_module(targets)
-
-
-def majority_module(targets) -> str | None:
-	"""The module most of these link targets belong to, ignoring what can't be resolved."""
-	modules = []
-	for link_type, link_to in targets:
-		if not link_to or link_type in (None, "URL"):
-			continue
-		if not frappe.db.exists("DocType", link_type):
-			continue
-		module = frappe.db.get_value(link_type, link_to, "module")
-		if module:
-			modules.append(module)
-
-	counts = Counter(modules)
-	return counts.most_common(1)[0][0] if counts else None
-
-
-def ensure_catch_all() -> str:
-	if not frappe.db.exists("Module Def", CATCH_ALL_MODULE):
-		frappe.get_doc(
-			{"doctype": "Module Def", "module_name": CATCH_ALL_MODULE, "app_name": "frappe"}
-		).insert(ignore_permissions=True)
-	return CATCH_ALL_MODULE

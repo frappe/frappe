@@ -843,7 +843,15 @@ def get_assignable_modules():
 	for row in frappe.get_all("Module Def", fields=["name", "app_name"], order_by="app_name asc, name asc"):
 		if not is_module_visible(row.name):
 			continue
-		app_title = (frappe.get_hooks("app_title", app_name=row.app_name) or [row.app_name])[0]
+		# An unplaced module is in no app's dock and has no app to be titled after. Asking
+		# `get_hooks` without an app name does not answer "no app" -- it returns the hook merged
+		# across every installed one, so every module the site owns came back titled after
+		# whichever app happened to be first.
+		app_title = (
+			(frappe.get_hooks("app_title", app_name=row.app_name) or [row.app_name])[0]
+			if row.app_name
+			else None
+		)
 		modules.append(
 			{
 				"module": row.name,
