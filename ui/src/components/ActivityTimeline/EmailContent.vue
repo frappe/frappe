@@ -36,12 +36,23 @@ const REPLY_QUOTE_SELECTORS = [
 
 function collapseReplyQuotes(html: string): string {
 	const doc = new DOMParser().parseFromString(html, "text/html");
+	stripActiveContent(doc);
 	for (const { selector, forGmail } of REPLY_QUOTE_SELECTORS) {
 		if (!doc.querySelector(selector)) continue;
 		doc.querySelectorAll(selector).forEach((el) => collapseQuote(doc, el, forGmail));
 		break;
 	}
 	return doc.body.innerHTML;
+}
+
+// drop scripts + on* handlers at parse time; the sandbox/CSP stay as the runtime backstop
+function stripActiveContent(doc: Document) {
+	doc.querySelectorAll("script").forEach((el) => el.remove());
+	doc.querySelectorAll("*").forEach((el) => {
+		for (const attr of [...el.attributes]) {
+			if (attr.name.toLowerCase().startsWith("on")) el.removeAttribute(attr.name);
+		}
+	});
 }
 
 // wrap the quote in .replied-content: a label + checkbox reveal it via pure CSS, no JS
