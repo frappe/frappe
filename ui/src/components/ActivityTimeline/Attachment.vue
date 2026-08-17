@@ -3,14 +3,26 @@
 		<!-- previewable (image/text) opens a dialog; else a plain download link -->
 		<component :is="wrapper.tag" v-bind="wrapper.attrs" class="inline-flex max-w-full">
 			<Button
-				class="max-w-full"
+				class="group max-w-full"
 				:label="label"
 				theme="gray"
 				variant="outline"
 				@click="openPreview"
 			>
 				<template #prefix>
-					<LucidePaperclip class="h-4 w-4" />
+					<LucidePaperclip
+						class="h-4 w-4"
+						:class="preview && url && 'group-hover:hidden'"
+					/>
+					<a
+						v-if="preview && url"
+						:href="url"
+						:download="label"
+						class="hidden text-ink-gray-5 hover:text-ink-gray-8 group-hover:grid"
+						@click.stop
+					>
+						<LucideDownload class="h-4 w-4" />
+					</a>
 				</template>
 				<template #suffix>
 					<slot name="suffix" />
