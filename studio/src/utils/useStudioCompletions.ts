@@ -193,10 +193,15 @@ export const isInsideFunctionExpression = (context: CompletionContext) => {
 	return false
 }
 
+let windowCompletionSource: CMCompletionSource | null = null
+
 const getWindowCompletions = async (context: CompletionContext) => {
-	// dynamic import to keep lang-javascript out of the main bundle, matching Code.vue
-	const { scopeCompletionSource } = await import("@codemirror/lang-javascript")
-	const result = await scopeCompletionSource(window)(context)
+	if (!windowCompletionSource) {
+		// dynamic import to keep lang-javascript out of the main bundle, matching Code.vue
+		const { scopeCompletionSource } = await import("@codemirror/lang-javascript")
+		windowCompletionSource = scopeCompletionSource(window)
+	}
+	const result = await windowCompletionSource(context)
 	if (!result) return null
 	return { ...result, options: result.options.filter((option) => !isPrivateKey(option.label)) }
 }

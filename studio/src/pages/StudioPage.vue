@@ -153,7 +153,7 @@
 					label="Edit Code"
 					:showLineNumbers="true"
 					:showSaveButton="true"
-					:completions="getDynamicValueCompletions(() => canvasStore.editableBlock?.getCompletions())"
+					:completions="dynamicValueCompletions"
 					:overrideCompletions="true"
 					@save="
 						(val) => {
@@ -202,6 +202,8 @@ const canvasStore = useCanvasStore()
 
 const getCompletions = useStudioCompletions()
 const getDynamicValueCompletions = useDynamicValueCompletions()
+// created once: a fresh array here would make Code.vue rebuild its extensions on every re-render
+const dynamicValueCompletions = getDynamicValueCompletions(() => canvasStore.editableBlock?.getCompletions())
 const componentContextMenu = toRef(store, "componentContextMenu")
 useStudioEvents(saveFragmentMode)
 
