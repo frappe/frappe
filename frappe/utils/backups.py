@@ -132,20 +132,31 @@ class BackupGenerator:
 		self.partial = (self.backup_includes or self.backup_excludes) and not self.ignore_conf
 
 	def set_backup_tables_from_config(self):
-		"""Set self.backup_includes, self.backup_excludes based on site config"""
+		"""Set self.backup_includes, self.backup_excludes based on site config.
+
+		Uses `strict=False` when resolving config entries: stale doctype
+		names (e.g. from an uninstalled app) log a warning and are skipped
+		rather than aborting the scheduled backup. If the config resolves
+		to entirely-unknown doctypes, `_get_tables` takes a full backup with
+		warning message.
+		"""
 		if self.ignore_conf:
 			return
 
 		backup_conf = frappe.conf.get("backup", {})
 		self._set_existing_tables()
 		if not self.backup_includes:
-			if specified_tables := _get_tables(backup_conf.get("includes", []), self._existing_tables):
+			if specified_tables := _get_tables(
+				backup_conf.get("includes", []), self._existing_tables, strict=False
+			):
 				self.backup_includes = specified_tables + base_tables
 			else:
 				self.backup_includes = []
 
 		if not self.backup_excludes:
-			self.backup_excludes = _get_tables(backup_conf.get("excludes", []), self._existing_tables)
+			self.backup_excludes = _get_tables(
+				backup_conf.get("excludes", []), self._existing_tables, strict=False
+			)
 
 	@property
 	def site_config_backup_path(self):
@@ -530,15 +541,66 @@ download only after 24 hours."""
 			self.add_to_rollback(lambda: os.remove(path))
 
 
-def _get_tables(doctypes: list[str], existing_tables: list[str]) -> list[str]:
-	"""Return a list of tables for the given doctypes that exist in the database."""
+def _get_tables(doctypes: list[str], existing_tables: list[str], strict: bool = True) -> list[str]:
+	"""Return tables for the given doctypes.
+
+	`strict=True` (default; CLI / programmatic direct callers): raise
+	    ValidationError if any input doctype doesn't resolve. Caller can
+	    fix the input immediately.
+
+	`strict=False` (site-config-driven paths): scheduled backups shouldn't
+	    break on stale config left over from an app uninstall / doctype
+	    rename, but we should also not silently take the wrong backup.
+	    Two sub-cases, both warn explicitly so the admin sees what
+	    happened:
+	      - partial-resolve: some entries valid, some not → continue with
+	        the valid subset, warn about the missing ones
+	      - all-invalid:  no entries valid → return empty list (flows
+	        through as a full backup) and warn LOUDLY that a full backup
+	        is being taken as a fallback.
+	"""
 	tables = []
+	missing = []
 	for doctype in doctypes:
+		doctype = (doctype or "").strip()
 		if not doctype:
 			continue
 		table = frappe.utils.get_table_name(doctype)
 		if table in existing_tables:
 			tables.append(table)
+		else:
+			missing.append(doctype)
+
+	if missing:
+		if strict:
+			frappe.throw(
+				_(
+					"Backup requested for unknown DocType(s): {0}. "
+					"Check for typos or use the exact DocType name (case-sensitive). "
+					"Aborting to avoid taking a full backup instead of the requested subset."
+				).format(", ".join(missing)),
+				exc=frappe.ValidationError,
+			)
+		elif not tables:
+			# All entries invalid. Fall back to full backup rather than
+			# aborting the scheduled run — but warn LOUDLY so admin knows
+			# the requested subset couldn't be produced.
+			frappe.logger().warning(
+				f"Backup: site config backup.includes/excludes references only "
+				f"unknown DocType(s): {', '.join(missing)}. "
+				f"Falling back to FULL BACKUP — no partial subset could be produced. "
+				f"Fix the site config entries to restore partial backup behavior."
+			)
+		else:
+			# Partial resolve — tolerated maintenance case. Warn about
+			# skipped entries so admin knows the backup no longer covers
+			# those doctypes.
+			frappe.logger().warning(
+				f"Backup: skipping unknown DocType(s) from site config: {', '.join(missing)}. "
+				f"Continuing with {len(tables)} valid entries — the resulting backup "
+				f"will NOT contain data for the skipped doctypes."
+			)
+
 	return tables
 
 

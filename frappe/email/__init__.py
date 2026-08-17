@@ -61,7 +61,17 @@ def get_system_managers():
 
 @frappe.whitelist()
 def relink(name: str, reference_doctype: str | None = None, reference_name: str | None = None):
+	from frappe.core.doctype.comment.comment import relink_comment_cache
+
 	frappe.has_permission("Communication", "write", name, throw=True)
+
+	comm = frappe.get_doc("Communication", name)
+	if comm.communication_type != "Communication":
+		return
+
+	old_reference_doctype = comm.reference_doctype
+	old_reference_name = comm.reference_name
+
 	frappe.db.sql(
 		"""update
 			`tabCommunication`
@@ -70,10 +80,13 @@ def relink(name: str, reference_doctype: str | None = None, reference_name: str 
 			reference_name = %s,
 			status = "Linked"
 		where
-			communication_type = "Communication" and
 			name = %s""",
 		(reference_doctype, reference_name, name),
 	)
+
+	comm.reference_doctype = reference_doctype
+	comm.reference_name = reference_name
+	relink_comment_cache(comm, old_reference_doctype, old_reference_name)
 
 
 @frappe.whitelist()
@@ -81,34 +94,13 @@ def relink(name: str, reference_doctype: str | None = None, reference_name: str 
 def get_communication_doctype(
 	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: str | list | dict
 ):
-	user_perms = frappe.utils.user.UserPermissions(frappe.session.user)
-	user_perms.build_permissions()
-	can_read = user_perms.can_read
-	from frappe import _
-	from frappe.modules import load_doctype_module
+	can_read = frappe.get_user().get_can_read()
 
-	com_doctypes = []
-	if len(txt) < 2:
-		for name in frappe.get_hooks("communication_doctypes"):
-			try:
-				module = load_doctype_module(name, suffix="_dashboard")
-				if hasattr(module, "get_data"):
-					for i in module.get_data()["transactions"]:
-						com_doctypes += i["items"]
-			except ImportError:
-				pass
-	else:
-		com_doctypes = [
-			d[0] for d in frappe.db.get_values("DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0})
-		]
+	com_doctypes = frappe.db.get_values(
+		"DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0}, pluck="name"
+	)
 
-	results = []
-	txt_lower = txt.lower().replace("%", "")
-
-	for dt in list(set(com_doctypes)):
-		if dt in can_read:
-			if txt_lower in dt.lower() or txt_lower in _(dt).lower():
-				results.append([dt])
+	results = [[dt] for dt in list(set(com_doctypes)) if dt in can_read]
 
 	return results
 
@@ -155,6 +147,8 @@ def sendmail(
 	email_headers=None,
 	raw_html=False,
 	add_css=True,
+	redact_message_after_send=False,
+	wrapper=None,
 ) -> EmailQueue | None:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -188,6 +182,7 @@ def sendmail(
 	    :param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
 	    :param raw_html: Whether to treat email template as a complete HTML file
 	    :param add_css: Whether to add CSS from hooks/email_css to the email template
+	    :param redact_message_after_send: Replace the message body with a placeholder once sent, for emails carrying sensitive content.
 	"""
 
 	from frappe.utils.jinja import get_email_from_template
@@ -249,6 +244,8 @@ def sendmail(
 		email_headers=email_headers,
 		raw_html=raw_html,
 		add_css=add_css,
+		redact_message_after_send=redact_message_after_send,
+		wrapper=wrapper,
 	)
 
 	# build email queue and send the email if send_now is True.

@@ -2791,6 +2791,10 @@ class TestQuery(IntegrationTestCase):
 		self.assertFalse(index_exists)
 
 		# test for unique index backed by no constraint created at field alteration post creation
+		from frappe.database.postgres.schema import get_unique_index_name
+
+		unique_index_name = get_unique_index_name(f"tab{trial_dt.name}", "field_one")
+
 		for field in trial_dt.fields:
 			if field.fieldname == "field_one":
 				field.unique = 1
@@ -2806,7 +2810,7 @@ class TestQuery(IntegrationTestCase):
 			""",
 			(
 				f"tab{trial_dt.name}",
-				"unique_field_one",
+				unique_index_name,
 			),
 		)
 		self.assertTrue(index_exists)
@@ -2830,7 +2834,7 @@ class TestQuery(IntegrationTestCase):
 			""",
 			(
 				f"tab{trial_dt.name}",
-				"unique_field_one",
+				unique_index_name,
 			),
 		)
 		self.assertFalse(index_exists)

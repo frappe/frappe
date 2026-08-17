@@ -1,10 +1,35 @@
 import hashlib
+import re
 
 import frappe
 from frappe import _
 from frappe.database.schema import DbColumn, DBTable, get_definition
-from frappe.utils import cint, flt
+from frappe.utils import cint, cstr, flt
 from frappe.utils.defaults import get_not_null_defaults
+
+# Separators *outside* quoted tokens, so `id  >  0` and `id > 0` hash alike while `x = 'a  b'`
+# and `x = 'a b'` stay distinct -- collapsing inside a quoted token would give two different
+# predicates one name, and the second index would then be silently skipped. A comment is
+# whitespace to SQL, so a whole run of the two collapses to one space: that keeps the newline
+# ending a line comment significant, since it decides whether what follows is code or comment.
+PREDICATE_SEPARATOR_PATTERN = re.compile(
+	r"""
+	  (?P<quoted>
+	      (?<!\w)[eE]'(?:[^'\\]|''|\\.)*'    # escape string: a \' does not end it
+	    | '(?:[^']|'')*'                     # string literal (only '' escapes a quote)
+	    | "(?:[^"]|"")*"                     # quoted identifier
+	    | \$(?P<tag>\w*)\$.*?\$(?P=tag)\$    # dollar-quoted string
+	  )
+	| (?: \s | --[^\n]* | /\*.*?\*/ )+       # whitespace and comments, in any mix
+	""",
+	re.DOTALL | re.VERBOSE,
+)
+
+
+def _normalise_predicate(where: str | None) -> str:
+	if not where:
+		return ""
+	return PREDICATE_SEPARATOR_PATTERN.sub(lambda match: match.group("quoted") or " ", where).strip()
 
 
 # PostgreSQL index names are unique per *schema*, not per table like MariaDB. Naming an index
@@ -12,10 +37,20 @@ from frappe.utils.defaults import get_not_null_defaults
 # company, posting_date, lft/rgt, ...) and `CREATE INDEX IF NOT EXISTS` silently skips all but
 # the first -- so most tables never get that index. Qualify the name with the table so it is
 # schema-unique, hashing if it would exceed postgres's 63-byte identifier cap.
-def get_qualified_index_name(table_name: str, fields: list[str], suffix: str | None = None) -> str:
+def get_qualified_index_name(
+	table_name: str,
+	fields: list[str],
+	suffix: str | None = None,
+	*,
+	where: str | None = None,
+	include: list[str] | None = None,
+) -> str:
 	base = f"{table_name}_" + "_".join(fields)
 	if suffix:
 		base += f"_{suffix}"
+	if where or include:
+		variant = f"{_normalise_predicate(where)}|{','.join(include or ())}"
+		base += "_" + hashlib.md5(variant.encode()).hexdigest()[:10]
 	name = f"{base}_index"
 	if len(name.encode()) > 63:
 		digest = hashlib.md5(base.encode()).hexdigest()[:10]
@@ -25,6 +60,10 @@ def get_qualified_index_name(table_name: str, fields: list[str], suffix: str | N
 
 def get_single_column_index_name(table_name: str, fieldname: str) -> str:
 	return get_qualified_index_name(table_name, [fieldname])
+
+
+def get_unique_index_name(table_name: str, fieldname: str) -> str:
+	return get_qualified_index_name(table_name, [fieldname], "unique")
 
 
 class PostgresTable(DBTable):
@@ -78,20 +117,31 @@ class PostgresTable(DBTable):
 		frappe.db.commit()
 
 	def create_indexes(self):
-		create_index_query = ""
-		for col in self.columns.values():
+		if self.meta.get("istable", default=0):
+			index_fields = ["parent"]
+		else:
+			index_fields = ["creation"]
+			if self.meta.sort_field == "modified":
+				index_fields.append("modified")
+
+		index_fields += [
+			col.fieldname
+			for col in self.columns.values()
 			if (
 				col.set_index
 				and col.fieldtype in frappe.db.type_map
 				and frappe.db.type_map.get(col.fieldtype)[0] not in ("text", "longtext")
-			):
-				index_name = get_single_column_index_name(self.table_name, col.fieldname)
-				create_index_query += (
-					f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`{col.fieldname}`);'
-				)
-		if create_index_query:
-			# nosemgrep
-			frappe.db.sql(create_index_query)
+			)
+		]
+
+		create_index_query = ""
+		for fieldname in index_fields:
+			index_name = get_single_column_index_name(self.table_name, fieldname)
+			create_index_query += (
+				f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`{fieldname}`);'
+			)
+		# nosemgrep
+		frappe.db.sql(create_index_query)
 
 	def alter(self):
 		for col in self.columns.values():
@@ -162,6 +212,11 @@ class PostgresTable(DBTable):
 				# nullable types (e.g. Duration, Rating) keep their NULL default
 				col_default = "NULL"
 
+			elif col.default in frappe.db.DEFAULT_SHORTCUTS or cstr(col.default).startswith(":"):
+				# frappe resolves these per document (Today, Now, __user, :fieldname, ...). Emitting
+				# them as literals would make postgres freeze one value at migration time.
+				col_default = "NULL"
+
 			else:
 				col_default = f"{frappe.db.escape(col.default)}"
 
@@ -175,12 +230,19 @@ class PostgresTable(DBTable):
 				f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`{col.fieldname}`);'
 			)
 
+		if self.meta.sort_field == "modified" and not frappe.db.get_column_index(
+			self.table_name, "modified", unique=False
+		):
+			index_name = get_single_column_index_name(self.table_name, "modified")
+			create_contraint_query += (
+				f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`modified`);'
+			)
+
 		for col in self.add_unique:
 			# if index key not exists
 			if col.fieldname not in new_column_names:
-				create_contraint_query += 'CREATE UNIQUE INDEX IF NOT EXISTS "unique_{index_name}" ON `{table_name}`(`{field}`);'.format(
-					index_name=col.fieldname, table_name=self.table_name, field=col.fieldname
-				)
+				index_name = get_unique_index_name(self.table_name, col.fieldname)
+				create_contraint_query += f'CREATE UNIQUE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`{col.fieldname}`);'
 
 		# logic to drop unique constraint for fields deleted from a doctype
 		meta_columns = set(self.columns.keys())
@@ -197,13 +259,14 @@ class PostgresTable(DBTable):
 					SELECT 1
 					FROM pg_indexes
 					WHERE tablename = %s
-					AND indexname IN (%s, %s)
+					AND indexname IN (%s, %s, %s)
 					LIMIT 1
 					""",
 					(
 						self.table_name,
 						f"{self.table_name}_{col}_key",
 						f"unique_{col}",
+						get_unique_index_name(self.table_name, col),
 					),
 				)
 
@@ -252,21 +315,22 @@ class PostgresTable(DBTable):
 					drop_contraint_query += f'ALTER TABLE "{self.table_name}" DROP CONSTRAINT IF EXISTS "{self.table_name}_{col.fieldname}_key" ;'
 
 				# drop the unique index backed by no constraint directly
-				unique_index_exists = frappe.db.sql(
-					"""
-					SELECT 1
-					FROM pg_indexes
-					WHERE tablename = %s
-					AND indexname = %s
-					""",
-					(
-						self.table_name,
-						f"unique_{col.fieldname}",
-					),
-				)
+				for unique_index in (
+					get_unique_index_name(self.table_name, col.fieldname),
+					f"unique_{col.fieldname}",
+				):
+					unique_index_exists = frappe.db.sql(
+						"""
+						SELECT 1
+						FROM pg_indexes
+						WHERE tablename = %s
+						AND indexname = %s
+						""",
+						(self.table_name, unique_index),
+					)
 
-				if unique_index_exists:
-					drop_contraint_query += f'DROP INDEX IF EXISTS "unique_{col.fieldname}" ;'
+					if unique_index_exists:
+						drop_contraint_query += f'DROP INDEX IF EXISTS "{unique_index}" ;'
 
 		change_nullability = []
 		for col in self.change_nullability:

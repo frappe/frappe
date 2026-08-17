@@ -3,11 +3,11 @@ context("List View Settings", () => {
 		cy.login();
 		cy.visit("/desk/website");
 		cy.visit("/desk/List/DocType/List");
-		cy.wait(300);
+		cy.desk_ready();
 		cy.clear_filters();
 		cy.wait(300);
 		cy.get(".menu-btn-group button").click({ force: true });
-		cy.get(".dropdown-menu li").filter(":visible").contains("List Settings").click();
+		cy.get(".es-menu").contains('[role="menuitem"]', "List Settings").click();
 		cy.get(".modal-dialog").should("contain", "DocType List View Settings");
 		cy.findByLabelText("Disable Count").uncheck({ force: true });
 		cy.findByLabelText("Disable Comment Count").uncheck({ force: true });
@@ -22,7 +22,7 @@ context("List View Settings", () => {
 		cy.get(".list-count").should("contain", "20 of");
 		cy.get(".frappe-list .comment-count svg.icon").should("be.visible");
 		cy.get(".menu-btn-group button").click();
-		cy.get(".dropdown-menu li").filter(":visible").contains("List Settings").click();
+		cy.get(".es-menu").contains('[role="menuitem"]', "List Settings").click();
 		cy.get(".modal-dialog").should("contain", "DocType List View Settings");
 
 		cy.findByLabelText("Disable Count").check({ force: true });
@@ -37,7 +37,7 @@ context("List View Settings", () => {
 		cy.get(".frappe-list .comment-count").should("not.exist");
 
 		cy.get(".menu-btn-group button").click({ force: true });
-		cy.get(".dropdown-menu li").filter(":visible").contains("List Settings").click();
+		cy.get(".es-menu").contains('[role="menuitem"]', "List Settings").click();
 		cy.get(".modal-dialog").should("contain", "DocType List View Settings");
 		cy.findByLabelText("Disable Count").uncheck({ force: true });
 		cy.findByLabelText("Disable Comment Count").uncheck({ force: true });

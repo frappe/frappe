@@ -67,22 +67,12 @@ def get_context(context) -> PrintContext:
 
 	meta = frappe.get_meta(doc.doctype)
 
-	print_format = get_print_format_doc(None, meta=meta)
-
-	from frappe.printing.doctype.print_format.classic_converter import (
-		get_default_print_format,
-		uses_beta_renderer,
-	)
-
-	if print_format is None:
-		print_format = get_default_print_format(doc.doctype)
+	print_format, standalone = resolve_print_format(None, meta)
 
 	print_format_name = getattr(print_format, "name", "Standard")
 	pdf_generator = frappe.form_dict.get(
 		"pdf_generator", getattr(print_format, "pdf_generator", "wkhtmltopdf")
 	)
-
-	standalone = uses_beta_renderer(print_format)
 
 	context = {
 		"standalone": standalone,
@@ -109,9 +99,11 @@ def get_context(context) -> PrintContext:
 			name=frappe.form_dict.name,
 			print_format=print_format,
 			letterhead=letterhead,
+			no_letterhead=frappe.form_dict.no_letterhead,
 			style=frappe.form_dict.style,
 			trigger_print=cint(frappe.form_dict.trigger_print),
 			action_banner=frappe.render_template("templates/print_formats/print_action_banner.html", context),
+			settings=settings,
 		)
 	else:
 		body = get_rendered_template(
@@ -148,12 +140,33 @@ def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" 
 
 	if print_format_name == "Standard":
 		return None
-	else:
+
+	def fetch(name):
 		try:
-			return frappe.get_doc("Print Format", print_format_name)
+			return frappe.get_doc("Print Format", name)
 		except frappe.DoesNotExistError:
-			# if old name, return standard!
+			frappe.clear_last_message()
 			return None
+
+	# a renamed or deleted format — or a caller interpolating a missing name into
+	# the url — resolves to the doctype's default, like an omitted name does
+	if doc := fetch(print_format_name):
+		return doc
+	if meta.default_print_format in (None, "", "Standard", print_format_name):
+		return None
+	return fetch(meta.default_print_format)
+
+
+def resolve_print_format(print_format_name: "str | None", meta: "Meta") -> tuple["PrintFormat", bool]:
+	"""Resolve a print format name to its document — falling back to the doctype's
+	default beta format — and whether it renders through the beta renderer."""
+	from frappe.printing.doctype.print_format.classic_converter import (
+		get_default_print_format,
+		uses_beta_renderer,
+	)
+
+	print_format = get_print_format_doc(print_format_name, meta=meta) or get_default_print_format(meta.name)
+	return print_format, uses_beta_renderer(print_format)
 
 
 def get_rendered_template(
@@ -168,7 +181,7 @@ def get_rendered_template(
 	validate_print_permission(doc)
 
 	print_settings = frappe.get_single("Print Settings").as_dict()
-	print_settings.update(settings or {})
+	print_settings.update(get_allowed_print_settings_override(doc, settings))
 
 	if isinstance(no_letterhead, str):
 		no_letterhead = cint(no_letterhead)
@@ -176,12 +189,9 @@ def get_rendered_template(
 	elif no_letterhead is None:
 		no_letterhead = not cint(print_settings.with_letterhead)
 
-	doc.flags.in_print = True
-	doc.flags.print_settings = print_settings
-
 	validate_print_for_docstatus(doc, print_settings)
 
-	doc.run_method("before_print", print_settings)
+	run_before_print(doc, print_settings)
 
 	if not hasattr(doc, "print_heading"):
 		doc.print_heading = None
@@ -326,23 +336,20 @@ def get_html_and_style(
 	else:
 		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
 
-	print_format = get_print_format_doc(print_format, meta=document.meta)
 	set_link_titles(document)
+	print_format, is_beta = resolve_print_format(print_format, document.meta)
 
-	from frappe.printing.doctype.print_format.classic_converter import (
-		get_default_print_format,
-		uses_beta_renderer,
-	)
-
-	if print_format is None:
-		print_format = get_default_print_format(document.doctype)
-
-	if uses_beta_renderer(print_format):
+	if is_beta:
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 
-		validate_print_permission(document)
-		validate_print_for_docstatus(document)
-		generator = PrintFormatGenerator(print_format, document, None if no_letterhead else letterhead)
+		validate_print(document)
+		generator = PrintFormatGenerator(
+			print_format,
+			document,
+			letterhead,
+			settings=frappe.parse_json(settings),
+			no_letterhead=no_letterhead,
+		)
 		html = generator.get_html_preview()
 	else:
 		try:
@@ -383,6 +390,15 @@ def get_rendered_raw_commands(
 	return {
 		"raw_commands": get_rendered_template(doc=document, print_format=print_format, meta=document.meta)
 	}
+
+
+def get_allowed_print_settings_override(doc: "Document", settings: dict | None) -> dict:
+	"""Keep only the Print Settings a caller may override: the doctype's own print toggles,
+	never unrelated flags like allow_print_for_draft that the docstatus guard reads."""
+	if not settings:
+		return {}
+	allowed = set(doc.get_print_settings() or []) if hasattr(doc, "get_print_settings") else set()
+	return {key: value for key, value in settings.items() if key in allowed}
 
 
 def validate_print_for_docstatus(doc: "Document", print_settings: dict | None = None) -> None:
@@ -426,6 +442,22 @@ def validate_print_permission(doc: "Document") -> None:
 			return
 
 	doc._handle_permission_failure("print")
+
+
+def validate_print(doc: "Document", print_settings: dict | None = None) -> None:
+	"""Run both print gates for a document: permission, then draft/cancelled docstatus."""
+	validate_print_permission(doc)
+	validate_print_for_docstatus(doc, print_settings)
+
+
+def run_before_print(doc: "Document", print_settings: dict) -> None:
+	"""Flag the document as printing and fire its ``before_print`` hook.
+
+	Shared by the legacy template renderer and the builder generator so both
+	prepare the document the same way before rendering."""
+	doc.flags.in_print = True
+	doc.flags.print_settings = print_settings
+	doc.run_method("before_print", print_settings)
 
 
 def validate_key(key: str, doc: "Document") -> None:

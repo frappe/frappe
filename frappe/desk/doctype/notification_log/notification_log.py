@@ -33,6 +33,8 @@ class NotificationLog(Document):
 		from_user: DF.Link | None
 		link: DF.SmallText | None
 		read: DF.Check
+		source_doctype: DF.Link | None
+		source_name: DF.DynamicLink | None
 		subject: DF.Text | None
 		title: DF.SmallText | None
 		type: DF.Link | None
@@ -109,6 +111,12 @@ def get_permission_query_conditions(for_user):
 		return
 
 	return f"""(`tabNotification Log`.for_user = {frappe.db.escape(for_user)})"""
+
+
+def has_permission(doc, ptype="read", user=None):
+	user = user or frappe.session.user
+
+	return user == "Administrator" or doc.for_user == user
 
 
 def get_title(doctype, docname, title_field=None):
@@ -263,28 +271,27 @@ def get_notification_logs(limit: int = 20):
 
 @frappe.whitelist()
 def mark_all_as_read():
-	unread_docs_list = frappe.get_all(
-		"Notification Log", filters={"read": 0, "for_user": frappe.session.user}
+	frappe.db.set_value(
+		"Notification Log",
+		{"read": 0, "for_user": frappe.session.user},
+		"read",
+		1,
+		update_modified=False,
 	)
-	unread_docnames = [doc.name for doc in unread_docs_list]
-	if unread_docnames:
-		filters = {"name": ["in", unread_docnames]}
-		frappe.db.set_value("Notification Log", filters, "read", 1, update_modified=False)
 
 
 @frappe.whitelist()
 def mark_as_read(docname: str):
-	if frappe.flags.read_only:
+	if frappe.flags.read_only or not docname:
 		return
 
-	if docname:
-		frappe.db.set_value(
-			"Notification Log",
-			{"name": str(docname), "for_user": frappe.session.user},
-			"read",
-			1,
-			update_modified=False,
-		)
+	frappe.db.set_value(
+		"Notification Log",
+		{"name": str(docname), "for_user": frappe.session.user, "read": 0},
+		"read",
+		1,
+		update_modified=False,
+	)
 
 
 @frappe.whitelist()

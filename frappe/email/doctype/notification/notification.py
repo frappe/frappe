@@ -796,15 +796,24 @@ def trigger_daily_alerts():
 	trigger_notifications(None, "daily")
 
 
+def get_scheduled_notifications(events: tuple[str, ...]) -> list[dict]:
+	"""Return the enabled notifications for these events, minus those of a disabled app."""
+	from frappe.app_state import get_disabled_modules
+
+	filters = {"event": ("in", events), "enabled": 1}
+	if disabled_modules := get_disabled_modules():
+		filters["module"] = ("not in", list(disabled_modules))
+
+	return frappe.get_all("Notification", filters=filters)
+
+
 def trigger_notifications(doc, method=None):
 	if frappe.flags.in_import or frappe.flags.in_patch:
 		# don't send notifications while syncing or patching
 		return
 
 	if method == "daily":
-		doc_list = frappe.get_all(
-			"Notification", filters={"event": ("in", ("Days Before", "Days After")), "enabled": 1}
-		)
+		doc_list = get_scheduled_notifications(("Days Before", "Days After"))
 		for d in doc_list:
 			alert = frappe.get_doc("Notification", d.name)
 
@@ -814,9 +823,7 @@ def trigger_notifications(doc, method=None):
 				frappe.db.commit()  # nosemgrep
 
 	elif method == "offset":
-		doc_list = frappe.get_all(
-			"Notification", filters={"event": ("in", ("Minutes Before", "Minutes After")), "enabled": 1}
-		)
+		doc_list = get_scheduled_notifications(("Minutes Before", "Minutes After"))
 		for d in doc_list:
 			alert = frappe.get_doc("Notification", d.name)
 

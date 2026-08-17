@@ -81,6 +81,7 @@ class SystemSettings(Document):
 		max_file_size: DF.Int
 		max_report_rows: DF.Int
 		max_signups_allowed_per_hour: DF.Int
+		max_zip_extract_size: DF.Int
 		minimum_password_score: DF.Literal["1", "2", "3", "4"]
 		number_format: DF.Literal[
 			"#,###.##",
@@ -108,6 +109,7 @@ class SystemSettings(Document):
 		show_external_link_warning: DF.Literal["Never", "Ask", "Always"]
 		store_attached_pdf_document: DF.Check
 		strip_exif_metadata_from_uploaded_images: DF.Check
+		sync_in_batch: DF.Check
 		sync_timeout: DF.Int
 		time_format: DF.Literal["HH:mm:ss", "HH:mm"]
 		time_zone: DF.Literal[None]
@@ -161,7 +163,7 @@ class SystemSettings(Document):
 
 		if self.link_field_results_limit > 50:
 			self.link_field_results_limit = 50
-			label = _(self.meta.get_label("link_field_results_limit"))
+			label = _(self.meta.get_label("link_field_results_limit"), context=self.doctype)
 			frappe.msgprint(
 				_("{0} can not be more than {1}").format(label, 50), alert=True, indicator="yellow"
 			)

@@ -17,7 +17,7 @@
 	{% endif %}
 </head>
 <body>
-	{% include "templates/print_formats/print_action_banner.html" %}
+	{% if not no_action_banner %}{% include "templates/print_formats/print_action_banner.html" %}{% endif %}
 	<div class="print-format-gutter">
 		<div class="print-format">
 			{{ body }}

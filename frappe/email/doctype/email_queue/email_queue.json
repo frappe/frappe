@@ -26,7 +26,8 @@
   "attachments",
   "retry",
   "email_account",
-  "raw_html"
+  "raw_html",
+  "redact_message_after_send"
  ],
  "fields": [
   {
@@ -157,13 +158,21 @@
    "fieldtype": "Check",
    "label": "Send As Raw HTML",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "Replace the message body with a placeholder once the email has been sent, so that sensitive content like password reset links is not retained in the queue.",
+   "fieldname": "redact_message_after_send",
+   "fieldtype": "Check",
+   "label": "Redact Message After Send",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-envelope",
  "idx": 1,
  "in_create": 1,
  "links": [],
- "modified": "2026-01-06 05:45:35.503215",
+ "modified": "2026-07-16 07:11:53.229233",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Queue",

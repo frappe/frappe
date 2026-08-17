@@ -113,39 +113,57 @@ export default class Grid {
 				<div class="small form-clickable-section grid-footer">
 					<div class="flex justify-between">
 						<div class="grid-buttons">
-							<button type="button" class="btn btn-xs btn-danger grid-remove-rows hidden"
-								data-action="delete_rows">
-								${__("Delete")}
-							</button>
-							<button type="button" class="btn btn-xs btn-secondary grid-edit-rows hidden"
-								data-action="bulk_edit_rows">
-								${__("Edit")}
-							</button>
-							<button type="button" class="btn btn-xs btn-danger grid-remove-all-rows hidden"
-							data-action="delete_all_rows">
-							${__("Delete all")}
-							</button>
-							<button type="button" class="btn btn-xs btn-secondary grid-duplicate-rows hidden"
-								data-action="duplicate_rows">
-								${__("Duplicate rows")}
-							</button>
+							${frappe.ui.button.html({
+								label: __("Delete"),
+								size: "sm",
+								theme: "red",
+								css_class: "grid-remove-rows hidden",
+								attrs: { "data-action": "delete_rows" },
+							})}
+							${frappe.ui.button.html({
+								label: __("Edit"),
+								size: "sm",
+								css_class: "grid-edit-rows hidden",
+								attrs: { "data-action": "bulk_edit_rows" },
+							})}
+							${frappe.ui.button.html({
+								label: __("Delete all"),
+								size: "sm",
+								theme: "red",
+								css_class: "grid-remove-all-rows hidden",
+								attrs: { "data-action": "delete_all_rows" },
+							})}
+							${frappe.ui.button.html({
+								label: __("Duplicate rows"),
+								size: "sm",
+								css_class: "grid-duplicate-rows hidden",
+								attrs: { "data-action": "duplicate_rows" },
+							})}
 							<!-- hack to allow firefox include this in tabs -->
-							<button type="button" class="btn btn-xs btn-secondary grid-add-row">
-								${__("Add row")}
-							</button>
-							<button type="button" class="grid-add-multiple-rows btn btn-xs btn-secondary hidden">
-								${__("Add multiple")}</a>
-							</button>
+							${frappe.ui.button.html({
+								label: __("Add row"),
+								size: "sm",
+								css_class: "grid-add-row",
+							})}
+							${frappe.ui.button.html({
+								label: __("Add multiple"),
+								size: "sm",
+								css_class: "grid-add-multiple-rows hidden",
+							})}
 						</div>
 						<div class="grid-pagination">
 						</div>
 						<div class="grid-bulk-actions text-right">
-							<button type="button" class="grid-download btn btn-xs btn-secondary hidden">
-								${__("Download")}
-							</button>
-							<button type="button" class="grid-upload btn btn-xs btn-secondary hidden">
-								${__("Upload")}
-							</button>
+							${frappe.ui.button.html({
+								label: __("Download"),
+								size: "sm",
+								css_class: "grid-download hidden",
+							})}
+							${frappe.ui.button.html({
+								label: __("Upload"),
+								size: "sm",
+								css_class: "grid-upload hidden",
+							})}
 						</div>
 					</div>
 				</div>
@@ -287,13 +305,22 @@ export default class Grid {
 
 			// update "Delete" and "Duplicate" button labels
 			if (num_selected_rows == 1) {
-				this.remove_rows_button.text(__("Delete row"));
-				this.edit_rows_button.text(__("Edit row"));
-				this.duplicate_rows_button.text(__("Duplicate row"));
+				this.set_button_label(this.remove_rows_button, __("Delete row"));
+				this.set_button_label(this.edit_rows_button, __("Edit row"));
+				this.set_button_label(this.duplicate_rows_button, __("Duplicate row"));
 			} else {
-				this.remove_rows_button.text(__("Delete {0} rows", [num_selected_rows]));
-				this.edit_rows_button.text(__("Edit {0} rows", [num_selected_rows]));
-				this.duplicate_rows_button.text(__("Duplicate {0} rows", [num_selected_rows]));
+				this.set_button_label(
+					this.remove_rows_button,
+					__("Delete {0} rows", [num_selected_rows])
+				);
+				this.set_button_label(
+					this.edit_rows_button,
+					__("Edit {0} rows", [num_selected_rows])
+				);
+				this.set_button_label(
+					this.duplicate_rows_button,
+					__("Duplicate {0} rows", [num_selected_rows])
+				);
 			}
 
 			this.refresh_remove_rows_button();
@@ -421,8 +448,17 @@ export default class Grid {
 		this.remove_all_rows_button.toggleClass("hidden", !show_delete_all_btn);
 
 		if (show_delete_all_btn) {
-			this.remove_all_rows_button.text(__("Delete all {0} rows", [this.data.length]));
+			this.set_button_label(
+				this.remove_all_rows_button,
+				__("Delete all {0} rows", [this.data.length])
+			);
 		}
+	}
+
+	set_button_label($btn, label) {
+		// es buttons keep their label in a span; .text() on the button itself
+		// would wipe the spinner and loading-label structure
+		$btn.find(".es-button__label").text(label);
 	}
 
 	refresh_edit_rows_button() {
@@ -515,6 +551,9 @@ export default class Grid {
 		// Unique namespace per grid so multiple grids don't unbind each other.
 		let ns =
 			this._resize_ns || (this._resize_ns = "grid-col-resize-" + this.get_random_name());
+		// In RTL the handle sits on the inline-end (left) edge, so dragging
+		// left grows the column — the mouse delta must be inverted.
+		let dir = frappe.utils.is_rtl() ? -1 : 1;
 
 		this.wrapper.off(`mousedown.${ns}`);
 		this.wrapper.on(
@@ -534,7 +573,9 @@ export default class Grid {
 				// Bind document listeners only for the drag, so they don't outlive it.
 				$(document)
 					.on(`mousemove.${ns}`, function (ev) {
-						let width = me.clamp_column_width(start_width + (ev.pageX - start_x));
+						let width = me.clamp_column_width(
+							start_width + dir * (ev.pageX - start_x)
+						);
 						me.wrapper.find(`.grid-static-col[data-fieldname="${fieldname}"]`).css({
 							width: `${width}px`,
 							flex: `0 0 ${width}px`,
@@ -545,7 +586,7 @@ export default class Grid {
 						$("body").removeClass("grid-col-resizing");
 						me.save_column_width(
 							fieldname,
-							me.clamp_column_width(start_width + (ev.pageX - start_x))
+							me.clamp_column_width(start_width + dir * (ev.pageX - start_x))
 						);
 					});
 			}
@@ -914,7 +955,12 @@ export default class Grid {
 			handle: ".sortable-handle",
 			draggable: ".grid-row",
 			animation: 100,
-			filter: "li, a",
+			filter: (evt) => {
+				if (evt.target.closest(".ql-editor")) {
+					return false;
+				}
+				return !!evt.target.closest("li, a");
+			},
 			onMove: (event) => {
 				// don't move if editable
 				if (!this.is_editable()) {
@@ -1277,18 +1323,38 @@ export default class Grid {
 			return;
 		}
 
+		// One child row drives Link get_query(cb, doc, cdt, cdn) / locals lookups in bulk-edit dialog.
+		// Multiple rows selected may diverge — filters follow the first selected row only.
+		const bulk_edit_reference_row = selected_children[0];
+		const parent_doc = this.frm?.doc;
+		const perm_reference_doc = parent_doc
+			? Object.assign({ doctype: this.doctype }, bulk_edit_reference_row, {
+					docstatus: parent_doc.docstatus,
+			  })
+			: null;
+
+		/** Match grid editability, including allow-on-submit fields after parent submit. */
 		const is_field_editable = (field_doc) => {
-			const parent_docstatus = this.frm?.doc?.docstatus;
-			const is_submitted_or_cancelled = [1, 2].includes(parent_docstatus);
+			if (
+				!field_doc.fieldname ||
+				!frappe.model.is_value_type(field_doc) ||
+				field_doc.fieldtype === "Read Only" ||
+				field_doc.hidden ||
+				field_doc.is_virtual
+			) {
+				return false;
+			}
+
+			if (!perm_reference_doc) {
+				return !field_doc.read_only;
+			}
 
 			return (
-				field_doc.fieldname &&
-				frappe.model.is_value_type(field_doc) &&
-				field_doc.fieldtype !== "Read Only" &&
-				!field_doc.hidden &&
-				!field_doc.read_only &&
-				!field_doc.is_virtual &&
-				(!is_submitted_or_cancelled || field_doc.allow_on_submit)
+				frappe.perm.get_field_display_status(
+					field_doc,
+					perm_reference_doc,
+					this.frm.perm
+				) === "Write"
 			);
 		};
 
@@ -1320,17 +1386,8 @@ export default class Grid {
 			field_options.find((value) => status_regex.test(value)) ||
 			field_options.find((value) => field_mappings[value]?.fieldtype === "Select");
 
-		// One child row drives Link get_query(cb, doc, cdt, cdn) / locals lookups in bulk-edit dialog.
-		// Multiple rows selected may diverge — filters follow the first selected row only.
-		const bulk_edit_reference_row = selected_children[0];
-
 		const dialog = new frappe.ui.Dialog({
 			title: __("Bulk Edit"),
-			...(bulk_edit_reference_row && {
-				frm: this.frm,
-				doc: bulk_edit_reference_row,
-				doctype: bulk_edit_reference_row.doctype,
-			}),
 			fields: [
 				{
 					fieldtype: "Autocomplete",
@@ -1407,11 +1464,21 @@ export default class Grid {
 			}
 
 			dialogObj.replace_field("value", new_df);
-			// replace_field does not re-run attach_doc; Link needs docname + doctype for set_query third arg.
-			if (bulk_edit_reference_row) {
-				dialogObj.attach_doc_and_docfields(true);
-			}
+			setup_bulk_edit_value_field(dialogObj);
 			show_help_text();
+		}
+
+		function setup_bulk_edit_value_field(dialogObj) {
+			const value_control = dialogObj.fields_dict.value;
+			if (!value_control || !bulk_edit_reference_row) return;
+
+			// Scope child doc to the value control only. Attaching it on the dialog
+			// re-runs submit/read perm checks and hides every field on submitted forms.
+			value_control.frm = grid.frm;
+			value_control.doc = bulk_edit_reference_row;
+			value_control.docname = bulk_edit_reference_row.name;
+			value_control.doctype = bulk_edit_reference_row.doctype;
+			value_control.refresh();
 		}
 
 		function show_help_text() {
@@ -1692,8 +1759,8 @@ export default class Grid {
 		const $wrapper = position === "top" ? this.grid_custom_buttons : this.grid_buttons;
 		let $btn = this.custom_buttons[label];
 		if (!$btn) {
-			$btn = $(`<button type="button" class="btn btn-secondary btn-xs btn-custom">`)
-				.html(__(label))
+			$btn = frappe.ui
+				.button({ label: __(label), size: "sm", css_class: "btn-custom" })
 				.prependTo($wrapper)
 				.on("click", click);
 			this.custom_buttons[label] = $btn;

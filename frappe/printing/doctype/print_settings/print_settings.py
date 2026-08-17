@@ -65,7 +65,6 @@ class PrintSettings(Document):
 		print_style: DF.Link | None
 		repeat_header_footer: DF.Check
 		send_print_as_pdf: DF.Check
-		show_label_colon: DF.Check
 		with_letterhead: DF.Check
 	# end: auto-generated types
 

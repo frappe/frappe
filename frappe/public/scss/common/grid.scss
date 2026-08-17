@@ -58,6 +58,13 @@
 			// TODO: Align with table grid without overwriting padding if possible
 			padding: 4px 7px 4px 7px !important;
 			background-color: var(--fg-color);
+
+			input {
+				// Firefox and Safari count the input's intrinsic width into the
+				// row's max-content, growing search cells out of column alignment.
+				width: 0;
+				min-width: 100%;
+			}
 		}
 	}
 
@@ -588,12 +595,6 @@
 		}
 	}
 
-	.grid-delete-row {
-		.icon use {
-			stroke: var(--fg-color);
-		}
-	}
-
 	.grid-append-row {
 		margin-top: calc(-1 * var(--margin-xs));
 	}
@@ -727,10 +728,6 @@
 	padding: 0;
 }
 
-.grid-footer {
-	margin-top: var(--margin-sm);
-}
-
 .grid-footer,
 .grid-custom-buttons {
 	padding: var(--padding-sm) 0px;
@@ -742,7 +739,8 @@
 		margin-bottom: -3px;
 	}
 
-	.btn:not(:last-child) {
+	.btn:not(:last-child),
+	.es-button:not(:last-child) {
 		margin-right: 4px;
 	}
 }
@@ -750,6 +748,7 @@
 .grid-pagination {
 	padding: 0;
 	display: flex;
+	align-items: center;
 
 	.last-page {
 		margin-left: 5px;
@@ -773,13 +772,6 @@
 	}
 }
 
-.prev-page,
-.next-page {
-	.icon {
-		width: 10px;
-	}
-}
-
 .prev-page {
 	margin-left: var(--margin-xs);
 	text-decoration: none;
@@ -797,11 +789,6 @@
 
 .grid-footer-toolbar {
 	padding: var(--padding-md) var(--padding-sm) var(--padding-xs) var(--padding-sm);
-
-	// border-top: 1px solid var(--border-color);
-	span {
-		margin-right: var(--margin-xs);
-	}
 
 	button {
 		margin-left: var(--margin-xs);
@@ -862,7 +849,8 @@
 
 .form-grid {
 	// Pin action and index columns so wide grids stay usable.
-	.grid-row > .row .col:last-child,
+	// :not(.grid-data-last) excludes the case where the last column is data field (table in a dialog)
+	.grid-row > .row .col:last-child:not(.grid-data-last),
 	.grid-row > .dialog-assignment-row .col:first-child,
 	.grid-row > .dialog-assignment-row .col:last-child {
 		max-width: 30px;
@@ -892,7 +880,7 @@
 
 .grid-col-resize-handle {
 	position: absolute;
-	right: -3px;
+	inset-inline-end: -3px;
 	top: 0;
 	bottom: 0;
 	width: 7px;
@@ -906,7 +894,7 @@
 		position: absolute;
 		top: 0;
 		bottom: 0;
-		right: 3px;
+		inset-inline-end: 3px;
 		width: 2px;
 		background-color: var(--gray-400);
 		opacity: 0;

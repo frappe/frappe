@@ -45,6 +45,8 @@
   {
    "fieldname": "filename",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Filename"
   },
   {
@@ -56,7 +58,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-06-24 13:22:03.530667",
+ "modified": "2026-07-16 12:04:25.120678",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DuckDB Sync",

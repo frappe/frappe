@@ -719,6 +719,48 @@ class TestPermissions(IntegrationTestCase):
 		doc = user.append("defaults")
 		self.assertRaises(frappe.PermissionError, doc.check_permission)
 
+	def test_child_permission_error_reports_parent_doctype(self):
+		with self.set_user("Administrator"):
+			child_doctype = new_doctype(istable=1).insert().name
+			parent_doctype = (
+				new_doctype(
+					fields=[
+						{
+							"label": "Rows",
+							"fieldname": "rows",
+							"fieldtype": "Table",
+							"options": child_doctype,
+							"permlevel": 1,
+						}
+					],
+					permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1}],
+				)
+				.insert()
+				.name
+			)
+			parent = frappe.new_doc(parent_doctype)
+			parent.append("rows", {})
+			parent.insert()
+
+		row = parent.rows[0]
+
+		# no access to the parent doctype at all
+		with self.set_user("test@example.com"):
+			frappe.local.message_log = []
+			self.assertRaises(frappe.PermissionError, row.check_permission, "delete")
+
+			self.assertIn(parent_doctype, frappe.local.message_log[-1]["message"])
+			self.assertIn(parent_doctype, frappe.flags.error_message)
+
+		# access to the parent doctype, denied on the table's permlevel
+		with self.set_user("test1@example.com"):
+			self.assertRaises(frappe.PermissionError, row.check_permission, "delete")
+
+			self.assertIn(parent_doctype, frappe.flags.error_message)
+			self.assertIn(parent.name, frappe.flags.error_message)
+			self.assertNotIn(child_doctype, frappe.flags.error_message)
+			self.assertNotIn(row.name, frappe.flags.error_message)
+
 	def test_select_user(self):
 		"""If test3@example.com is restricted by a User Permission to see only
 		users linked to a certain doctype (in this case: Gender "Female"), he

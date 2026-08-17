@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 import frappe
 import frappe.share
 from frappe import _dict
+from frappe.app_state import get_disabled_modules
 from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
 from frappe.desk.desk_views import DeskViews
 from frappe.permissions import AUTOMATIC_ROLES, get_rights, get_roles, get_valid_perms
@@ -77,6 +78,7 @@ class UserPermissions:
 		self.doctype_map = {}
 
 		active_domains = frappe.get_active_domains()
+		disabled_modules = get_disabled_modules()
 		all_doctypes = frappe.get_all(
 			"DocType",
 			fields=[
@@ -91,6 +93,9 @@ class UserPermissions:
 		)
 
 		for dt in all_doctypes:
+			if dt.module in disabled_modules:
+				continue
+
 			if not dt.restrict_to_domain or (dt.restrict_to_domain in active_domains):
 				self.doctype_map[dt["name"]] = dt
 
@@ -215,6 +220,27 @@ class UserPermissions:
 		if not self.can_read:
 			self.build_permissions()
 		return self.can_read
+
+	def load_user_default_workspace(self):
+		"""
+		Note: ideally it should leverage existing `load_user` routine, through some specific flag aka `workspace_only` (aka ability to query only a specific attribute as required).
+		"""
+		user_data = frappe.db.get_value("User", self.name, ["default_workspace"], as_dict=True)
+		if user_data is None:
+			# NOTE: `user_data` shouldn't be None, as both "User" (as table) and "self.name" (as column) are expected to be Present always ??
+			return None
+
+		if user_data.get("default_workspace"):
+			try:
+				workspace = frappe.get_cached_doc("Workspace", user_data.default_workspace)
+				user_data.default_workspace = {
+					"name": workspace.name,
+					"public": workspace.public,
+					"title": workspace.title,
+				}
+			except frappe.DoesNotExistError:
+				user_data.default_workspace = None
+		return user_data.default_workspace
 
 	def load_user(self):
 		d = frappe.db.get_value(

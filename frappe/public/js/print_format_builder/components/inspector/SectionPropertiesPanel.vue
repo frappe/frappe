@@ -1,8 +1,6 @@
 <template>
 	<div class="pfb-insp-body">
-		<!-- SECTION properties -->
 		<InspectorSection :label="__('Section')">
-			<!-- Title -->
 			<LabelField
 				v-model="selected_section.label"
 				:label="__('Title')"
@@ -13,7 +11,6 @@
 				@update:show="(v) => (selected_section.show_label = v)"
 			/>
 
-			<!-- Columns -->
 			<SegmentedRow
 				:label="__('Columns')"
 				:model-value="selected_section.columns.length"
@@ -21,7 +18,6 @@
 				@update:model-value="set_columns"
 			/>
 
-			<!-- Orientation -->
 			<SegmentedRow
 				:label="__('Label side')"
 				:model-value="section_orientation === 'left-right' ? 'left-right' : 'top'"
@@ -36,7 +32,6 @@
 				"
 			/>
 
-			<!-- Gap -->
 			<StepperRow
 				:label="__('Gap')"
 				:model-value="section_gap"
@@ -47,12 +42,19 @@
 			/>
 		</InspectorSection>
 
-		<!-- BACKGROUND -->
 		<InspectorSection :label="__('Background')" :init-open="false">
 			<div ref="bg_color_host"></div>
+			<StepperRow
+				v-if="section_has_box"
+				:label="__('Radius')"
+				:model-value="section_radius"
+				unit="px"
+				:placeholder="__('none')"
+				allow-empty
+				@update:model-value="set_section_radius"
+			/>
 		</InspectorSection>
 
-		<!-- SPACING -->
 		<InspectorSection :label="__('Spacing')" :init-open="false">
 			<SpacingRow
 				v-for="prop in spacing_props"
@@ -63,9 +65,20 @@
 			/>
 		</InspectorSection>
 
-		<!-- LAYOUT -->
 		<InspectorSection :label="__('Layout')" :init-open="false">
-			<!-- Layout mode -->
+			<div class="pfb-insp-row">
+				<span class="pfb-insp-label">{{ __("Justify") }}</span>
+				<select
+					class="pfb-insp-select"
+					:value="section_justify"
+					@change="set_justify($event.target.value)"
+				>
+					<option value="">{{ __("Normal") }}</option>
+					<option v-for="mode in Object.keys(JUSTIFY_CLASSES)" :key="mode" :value="mode">
+						{{ justify_labels[mode] }}
+					</option>
+				</select>
+			</div>
 			<SegmentedRow
 				:label="__('Mode')"
 				:model-value="section_field_borders"
@@ -75,7 +88,6 @@
 				]"
 				@update:model-value="toggle_field_borders"
 			/>
-			<!-- Grid borders -->
 			<SegmentedRow
 				v-if="section_field_borders"
 				:label="__('Borders')"
@@ -87,7 +99,6 @@
 				]"
 				@update:model-value="set_grid_borders"
 			/>
-			<!-- Cell padding -->
 			<StepperRow
 				:label="__('Cell padding')"
 				:model-value="section_cell_padding"
@@ -97,12 +108,18 @@
 			/>
 		</InspectorSection>
 
-		<!-- STYLE -->
+		<InspectorSection :label="__('Print')" :init-open="false">
+			<ToggleRow
+				:label="__('Keep together')"
+				:model-value="!!selected_section.keep_together"
+				@update:model-value="(v) => (selected_section.keep_together = v)"
+			/>
+		</InspectorSection>
+
 		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
 			<StyleSection v-model="selected_section.custom_style" />
 		</InspectorSection>
 
-		<!-- VISIBILITY -->
 		<InspectorSection :label="__('Visibility')" :init-open="false" :padded="false">
 			<VisibilitySection v-model="selected_section.visible_if" :previewDoc="preview_doc" />
 		</InspectorSection>
@@ -117,8 +134,10 @@ import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
 import SpacingRow from "./SpacingRow.vue";
 import StyleSection from "./StyleSection.vue";
+import ToggleRow from "./ToggleRow.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { mountColorControl } from "./useColorControl";
+import { JUSTIFY_CLASSES } from "../../utils";
 
 let store = inject("$store");
 
@@ -130,10 +149,36 @@ const spacing_props = [
 ];
 let preview_doc = computed(() => store.preview_doc.value);
 
+const justify_labels = {
+	"space-between": __("Space Between"),
+	"space-evenly": __("Space Evenly"),
+	center: __("Center"),
+	"right-end": __("Right"),
+};
+
+let section_justify = computed(() => selected_section.value?.justify ?? "");
+
+function set_justify(value) {
+	if (value) {
+		selected_section.value.justify = value;
+	} else {
+		delete selected_section.value.justify;
+	}
+}
+
 let section_orientation = computed(() => selected_section.value?.field_orientation ?? "");
 let section_gap = computed(() => selected_section.value?.gap ?? 20);
 let section_field_borders = computed(() => !!selected_section.value?.field_borders);
 let section_cell_padding = computed(() => selected_section.value?.cell_padding ?? 8);
+let section_radius = computed(() => selected_section.value?.radius ?? null);
+let section_has_box = computed(
+	() => !!(selected_section.value?.background || selected_section.value?.field_borders)
+);
+
+function set_section_radius(v) {
+	if (v === null) delete selected_section.value.radius;
+	else selected_section.value.radius = v;
+}
 
 const bg_color_host = ref(null);
 

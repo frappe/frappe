@@ -148,6 +148,9 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def set_execution_timeout(self, seconds: int):
 		self.sql(f"PRAGMA busy_timeout = {int(seconds) * 1000}")
 
+	def set_session_time_zone(self, timezone: str):
+		pass
+
 	def setup_type_map(self):
 		self.db_type = "sqlite"
 		self.type_map = {
@@ -478,6 +481,16 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			pass
 
 		return self._cursor.execute(query, values or ())
+
+	def log_query(self, query, query_type, values, debug):
+		# sqlite3 cursors expose no equivalent of the executed statement, so the
+		# mogrified query is what `last_query` reports. MariaDB and Postgres both
+		# publish this attribute; without it anything reading `db.last_query`
+		# (e.g. IntegrationTestCase.assertQueryCount) breaks only on SQLite.
+		mogrified_query = self.lazy_mogrify(query, values)
+		self.last_query = mogrified_query
+		self._log_query(mogrified_query, query_type, debug, query)
+		return mogrified_query
 
 	def sql(self, *args, **kwargs):
 		if args:

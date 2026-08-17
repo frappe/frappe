@@ -2,6 +2,7 @@
 	display: flex;
 	align-items: center;
 	padding: 0 15px;
+	min-width: 0;
 
 	.sidebar-toggle-btn {
 		display: flex;
@@ -39,6 +40,11 @@
 	.title-area {
 		display: inline-flex;
 		align-items: center;
+
+		.deprecated-badge {
+			margin-left: var(--margin-sm);
+			flex-shrink: 0;
+		}
 
 		.page-indicator-pill {
 			margin-left: var(--margin-sm);
@@ -92,8 +98,28 @@
 		padding: 4px 8px;
 	}
 
+	// the header buttons are es-buttons now; they style themselves, but the
+	// spacing between siblings still comes from here (until the layout moves
+	// to gap in the header-skeleton PR)
+	.es-button {
+		margin-left: var(--margin-sm, 8px);
+	}
+
+	// below md, a button whose label is breakpoint-hidden (hidden-xs) with no
+	// short-label swap (hidden-lg) is icon-only — square it like an icon
+	// button instead of leaving a lone icon with text padding
+	@include media-breakpoint-down(sm) {
+		.es-button:has(> .es-button__label.hidden-xs):not(:has(> .es-button__label.hidden-lg)) {
+			padding-inline: 0;
+			width: var(--es-bt-h);
+			min-width: 0;
+		}
+	}
+
 	.btn-primary,
-	.btn-secondary {
+	.btn-secondary,
+	.primary-action,
+	.secondary-action {
 		min-width: 40px;
 	}
 
@@ -181,38 +207,13 @@ body[data-route^="Form"] {
 	}
 }
 
+// these groups hold only the trigger button and a hidden item store now —
+// the visible menus are es-menu panels portaled to <body> (see page.js)
 .menu-btn-group,
 .custom-btn-group,
 .actions-btn-group,
 .page-icon-group {
 	display: flex;
-
-	.dropdown-menu {
-		width: max-content;
-	}
-
-	.dropdown-item {
-		display: flex;
-		align-items: center;
-	}
-
-	.menu-item-label {
-		margin-right: var(--margin-md);
-	}
-
-	.menu-item-shortcut {
-		margin-left: auto;
-		color: var(--ink-gray-4, #999999);
-		font-size: var(--text-sm);
-		font-weight: 420;
-		line-height: 1.15;
-		letter-spacing: 0.02em;
-		white-space: nowrap;
-	}
-
-	.menu-item-icon {
-		margin-right: var(--margin-sm);
-	}
 }
 
 .layout-main {

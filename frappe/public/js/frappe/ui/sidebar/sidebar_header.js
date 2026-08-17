@@ -9,7 +9,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.dock_active = sidebar.workspace_dock_enabled();
 		this.dropdown_items = this.build_dropdown_items();
 		this.make();
-		this.setup_app_switcher();
 	}
 	// Workspaces (the shared selector set, owned by Sidebar) then the Apps section, and finally the
 	// "My Workspaces" picker dialog -- the same entry as the user menu, so it's reachable here too.
@@ -20,9 +19,9 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		if (apps_section) items.push(apps_section);
 		items.push({
 			name: "workspace-selector",
-			label: __("Workspaces"),
+			label: __("Manage Dock"),
 			icon: "monitor",
-			onClick: () => new frappe.ui.WorkspacePicker(),
+			onClick: () => new frappe.ui.DockManager(),
 		});
 
 		return items;
@@ -36,7 +35,9 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			return {
 				name: app.app_name,
 				label: app.app_title,
-				url: app.app_route,
+				// an app that ships no workspaces has no declared route either -- it lands on its
+				// first module sidebar instead (see app_landing_route)
+				url: this.sidebar.app_landing_route(app),
 				icon_url: logo,
 				// no logo declared -> render an alphabet icon, matching the desktop apps screen
 				icon_html: logo
@@ -141,23 +142,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	}
 	get_default_icon() {
 		return frappe.boot.app_data[0].app_logo_url;
-	}
-
-	setup_app_switcher() {
-		frappe.ui.create_menu({
-			parent: this.wrapper,
-			menu_items: this.dropdown_items,
-			onShow: this.toggle_active,
-			onHide: this.toggle_active,
-			onItemClick: this.toggle_active,
-		});
-	}
-
-	toggle_active(wrapper) {
-		$(wrapper).toggleClass("active-sidebar");
-		if (!frappe.app.sidebar.sidebar_expanded) {
-			$(wrapper).removeClass("active-sidebar");
-		}
 	}
 
 	setup_hover() {

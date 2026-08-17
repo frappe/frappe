@@ -36,6 +36,40 @@ class TestBootData(IntegrationTestCase):
 		self.assertIsInstance(apps, list)
 		self.assertIn("frappe", apps)
 
+	def test_setup_wizard_url_exposed_until_setup_complete(self):
+		from unittest.mock import patch
+
+		from frappe.boot import get_bootinfo
+
+		frappe.set_user("Administrator")
+		with (
+			patch.object(frappe, "is_setup_complete", return_value=False),
+			patch("frappe.boot.get_setup_wizard_url", return_value="/suite/setup") as resolve,
+		):
+			bootinfo = get_bootinfo()
+
+		resolve.assert_called_once()
+		self.assertEqual(bootinfo.setup_wizard_url, "/suite/setup")
+
+	def test_empty_allowed_views_are_served_from_cache(self):
+		from unittest.mock import patch
+
+		# An empty allowed-set is a valid result and must be a cache hit; otherwise the
+		# sidebar rebuilds it once per workspace on every desk/login load.
+		frappe.set_user("Administrator")
+		user = frappe.session.user
+		frappe.cache.delete_value("has_role:Report", user=user)
+
+		with patch.object(DeskViews, "_build_user_pages_or_reports", return_value={}) as build:
+			self.assertEqual(DeskViews.get_allowed_reports(cache=True), {})
+			self.assertEqual(build.call_count, 1)
+
+			# fresh request: process-local cache cleared, redis cache stays warm
+			frappe.local.cache.clear()
+
+			self.assertEqual(DeskViews.get_allowed_reports(cache=True), {})
+			self.assertEqual(build.call_count, 1)
+
 
 class TestPermissionQueries(IntegrationTestCase):
 	@classmethod

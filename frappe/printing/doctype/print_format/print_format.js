@@ -5,7 +5,6 @@ frappe.ui.form.on("Print Format", "onload", function (frm) {
 	frm.add_fetch("doc_type", "module", "module");
 	frm.add_fetch("report", "module", "module");
 
-	// For new non-custom formats: default to Print Format Builder Beta + Chrome PDF
 	if (frm.is_new() && !frm.doc.custom_format) {
 		frm.set_value("print_format_builder_beta", 1);
 		frm.set_value("pdf_generator", "chrome");
@@ -80,7 +79,8 @@ frappe.ui.form.on("Print Format", {
 	set_chrome_for_builder: function (frm) {
 		const is_builder = frm.doc.print_format_builder_beta;
 		const is_custom = frm.doc.custom_format;
-		const should_force_chrome = is_builder && (frm.is_new() || !is_custom);
+		const should_force_chrome =
+			is_builder && (frm.is_new() || !is_custom) && frm.doc.pdf_generator !== "Typst";
 		if (should_force_chrome) {
 			frm.set_value("pdf_generator", "chrome");
 		}

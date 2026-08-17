@@ -74,6 +74,14 @@
     color: var(--bt-fg);
 }
 
+/* the class is element-neutral: links dressed as buttons (empty-state links,
+   attachment preview actions) must not pick up anchor underlines */
+a.es-button,
+a.es-button:hover,
+a.es-button:focus {
+    text-decoration: none;
+}
+
 /* subtle is the default; scope hover/active to default-or-explicit subtle so
        they don't leak onto the other variants. */
 .es-button:not([data-variant]):hover,
@@ -223,9 +231,14 @@
     display: none;
 }
 
-/* while busy, a loading label replaces the normal label + icon */
-.es-button[aria-busy="true"]:has(> .es-button__loading-label) > .es-button__label,
-.es-button[aria-busy="true"]:has(> .es-button__loading-label) > svg {
+/* while busy, the spinner replaces the icons — always, with or without a
+   loading label (otherwise spinner and icon show side by side) */
+.es-button[aria-busy="true"] > svg {
+    display: none;
+}
+
+/* and a loading label, when present, replaces the normal label */
+.es-button[aria-busy="true"]:has(> .es-button__loading-label) > .es-button__label {
     display: none;
 }
 
@@ -237,4 +250,23 @@
     flex-shrink: 0;
     width: var(--es-bt-icon);
     height: var(--es-bt-icon);
+}
+/* ---- legacy compat shims (remove in v17 with the bootstrap button CSS) ----
+   External desk apps poke bootstrap-era classes onto held dialog-button
+   references (found by the selector gate): india_compliance adds .disabled
+   to guard double submits, erpnext adds .btn-danger for destructive
+   primaries. Map both onto the es contract so the behavior survives until
+   those call sites migrate. */
+.es-button.disabled {
+    pointer-events: none;
+    background: var(--bt-disabled-bg);
+    color: var(--bt-disabled-fg);
+    border-color: var(--bt-disabled-border);
+}
+
+.es-button.btn-danger {
+    --bt-bg: var(--surface-red-5);
+    --bt-fg: var(--ink-white);
+    --bt-hover-bg: var(--surface-red-6);
+    --bt-active-bg: var(--surface-red-7);
 }

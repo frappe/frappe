@@ -1,9 +1,4 @@
-<span style = "display: block; margin-bottom: 1.5rem;">
-  {{ _("Hello,") }}
-</span>
-<span style = "display: block; margin-bottom: 1rem;">
-  {{ _("Your invitation to join {0} has been cancelled by the site administrator.").format(title) }}
-</span>
-<span style = "display: block;">
-  {{ _("If this was a mistake or you need access again, please reach out to your team.") }}
-</span>
+<h1 class="email-title">{{ _("Your invitation has been cancelled") }}</h1>
+<div class="email-body">
+	<p>{{ _("Your invitation to join {0} was cancelled by the site administrator. If this was a mistake, reach out to your team to request a new invitation.").format(title) }}</p>
+</div>

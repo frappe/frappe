@@ -48,6 +48,7 @@ class WorkspaceSidebar(Document, DeskViews):
 
 		app: DF.Autocomplete | None
 		for_user: DF.Link | None
+		header_icon: DF.Icon | None
 		items: DF.Table[WorkspaceSidebarItem]
 		module: DF.Text | None
 		module_onboarding: DF.Link | None
@@ -266,8 +267,14 @@ def create_workspace_sidebar_for_workspaces():
 @site_cache()
 def auto_generate_sidebar_from_module():
 	"""Auto generate sidebar from module"""
+	from frappe.app_state import get_disabled_modules
+
 	sidebars = []
+	disabled_modules = get_disabled_modules()
 	for module in frappe.get_all("Module Def", fields=["name", "app_name"]):
+		if module.name in disabled_modules:
+			continue
+
 		# Skip modules whose public workspace already carries authored sidebar items -- that
 		# workspace's sidebar is built from `Workspace.sidebar_items` (the source of truth), so a
 		# generated fallback would be redundant.

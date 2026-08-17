@@ -30,7 +30,10 @@ export default class ListSettings {
 		let list_view_settings = frappe.get_meta("List View Settings");
 
 		me.dialog = new frappe.ui.Dialog({
-			title: __("{0} List View Settings", [__(me.doctype)]),
+			title:
+				me.doctype === "List View Settings"
+					? __("List View Settings")
+					: __("{0} List View Settings", [__(me.doctype)]),
 			fields: list_view_settings.fields,
 		});
 		me.dialog.set_values(me.settings);
@@ -61,8 +64,10 @@ export default class ListSettings {
 				if (layout && me.listview.list_filter.can_edit_layout(layout)) {
 					me.listview.list_filter
 						.update_layout_columns(layout, me.fields, { debounce: false })
-						.then(() => {
-							me.listview.setup_columns(me.fields);
+						.then(async () => {
+							// setup_columns is async (may load linked doctype meta for
+							// link-title columns); wait before rendering the header.
+							await me.listview.setup_columns(me.fields);
 							me.listview.render_header(true);
 							me.listview.apply_column_widths?.();
 							me.dialog.hide();

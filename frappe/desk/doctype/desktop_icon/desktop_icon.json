@@ -4,6 +4,7 @@
  "allow_rename": 1,
  "autoname": "field:label",
  "creation": "2016-02-22 03:47:45.387068",
+ "deprecated": 1,
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -151,7 +152,7 @@
   }
  ],
  "links": [],
- "modified": "2026-02-04 13:59:30.578370",
+ "modified": "2026-07-30 13:29:53.139874",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desktop Icon",

@@ -79,7 +79,12 @@ var all_perms = standard_perms.concat(custom_perms);
 		{% } %}
 	</div>
 	<div>
-		<button class="btn btn-primary btn-sm btn-add-share" style="margin-top: 12px;">{{ __("Add") }}</button>
+		{%= frappe.ui.button.html({
+		label: __("Add"),
+		variant: "solid",
+		css_class: "btn-add-share",
+		attrs: { style: "margin-top: 12px;" },
+	}) %}
 	</div>
 	{% endif %}
 </div>

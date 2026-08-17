@@ -8,16 +8,17 @@
 			<div v-else-if="preview_doc" v-html="rendered_content ?? zone_content"></div>
 			<div v-else v-html="zone_content"></div>
 		</div>
-		<div v-else class="lh-zone-empty">
+		<div v-else-if="letterhead" class="lh-zone-empty">
 			<span v-html="frappe.utils.icon('image', 'sm')"></span>
 			<span>{{ empty_label }}</span>
 		</div>
+		<div v-else class="lh-zone-blank"></div>
 	</div>
 </template>
 
 <script setup>
 import { useStore } from "../../stores";
-import { get_image_dimensions, render_jinja_html } from "../../utils";
+import { render_jinja_html } from "../../utils";
 import { ref, watch, onMounted, inject, computed } from "vue";
 
 const props = defineProps({
@@ -60,21 +61,11 @@ let is_selected = computed(() =>
 		: raw_store.selected_lh_footer.value
 );
 let empty_label = computed(() =>
-	props.zone === "header"
-		? __("No Letter Head — click to add")
-		: __("No Letter Head Footer — click to add")
+	letterhead.value ? __("{0} is empty — click to add", [letterhead.value.name]) : ""
 );
 
 function select_zone() {
-	if (props.zone === "header") {
-		raw_store.selected_letterhead.value = true;
-		raw_store.selected_lh_footer.value = false;
-	} else {
-		raw_store.selected_lh_footer.value = true;
-		raw_store.selected_letterhead.value = false;
-	}
-	raw_store.selected_field.value = null;
-	raw_store.selected_section.value = null;
+	raw_store.select_letterhead({ footer: props.zone !== "header" });
 }
 
 async function refresh_rendered_content() {
@@ -102,16 +93,13 @@ async function refresh_rendered_content() {
 watch([preview_doc, zone_content], refresh_rendered_content, { immediate: true });
 
 // ── Image-based content builder ───────────────────────────
-let aspect_ratio = ref(null);
-let range_input_field = ref(null);
-
 function build_image_content() {
 	if (!letterhead.value) return;
 	const lh = letterhead.value;
 	const f = F.value;
 	if (!lh[f.image] || !lh[f.width] || !lh[f.height]) return;
 	const dim = lh[f.width] > lh[f.height] ? "width" : "height";
-	const dim_val = lh[`${f[dim === "width" ? "width" : "height"]}`];
+	const dim_val = lh[f[dim]];
 	lh[f.content] = `<div style="text-align:${(lh[f.align] || "Left").toLowerCase()}">
 <img src="${lh[f.image]}" alt="${lh.name}" ${dim}="${dim_val}" style="${dim}:${dim_val}px">
 </div>`;
@@ -132,30 +120,12 @@ watch(
 	{ deep: true }
 );
 
-watch(
-	letterhead,
-	(lh) => {
-		if (!lh) return;
-		const img = lh[F.value.image];
-		if (img) {
-			get_image_dimensions(img).then(({ width, height }) => {
-				aspect_ratio.value = width / height;
-				range_input_field.value = aspect_ratio.value > 1 ? F.value.width : F.value.height;
-			});
-		}
-	},
-	{ immediate: true }
-);
-
 onMounted(() => {
-	if (props.zone === "header" && !letterhead.value && !layout.value?.letter_head) {
+	if (props.zone === "header" && !letterhead.value && layout.value?.letter_head == null) {
 		const lh_name = frappe.boot.sysdefaults.letter_head;
 		if (lh_name) store.value.change_letterhead(lh_name, { keep_clean: true });
 	}
 });
-
-// Expose for inspector
-defineExpose({ aspect_ratio, range_input_field, F });
 </script>
 
 <style scoped>
@@ -183,6 +153,10 @@ defineExpose({ aspect_ratio, range_input_field, F });
 	color: var(--text-muted);
 	font-size: var(--text-sm);
 	padding: 0.5rem 0;
+}
+
+.lh-zone:has(.lh-zone-blank) {
+	padding: 0.25rem;
 }
 
 .lh-zone :deep(img) {

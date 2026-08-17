@@ -18,7 +18,6 @@ context("Grid Configuration", () => {
 		cy.get('[data-fieldname="parent_label"]').invoke("attr", "value", "1");
 		cy.get('.form-control.column-width[data-fieldname="parent_label"]').trigger("change");
 		cy.findByRole("button", { name: "Update" }).click();
-		cy.wait(200);
 		cy.get('[title="Align Right"').should("be.visible");
 	});
 });

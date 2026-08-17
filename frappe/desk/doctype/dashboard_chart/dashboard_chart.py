@@ -419,6 +419,8 @@ class DashboardChart(Document):
 		else:
 			if not self.based_on:
 				frappe.throw(_("Time series based on is required to create a dashboard chart"))
+			if self.chart_type in ["Sum", "Average"] and not self.value_based_on:
+				frappe.throw(_("Value Based On field is required to create a dashboard chart"))
 
 	def check_document_type(self):
 		if frappe.get_meta(self.document_type).issingle:

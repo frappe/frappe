@@ -3,6 +3,8 @@
 
 frappe.provide("frappe.perm");
 
+const boot_backed_rights = ["select", "write", "delete", "submit", "cancel"];
+
 // backward compatibilty
 Object.assign(window, {
 	READ: "read",
@@ -58,45 +60,49 @@ $.extend(frappe.perm, {
 			return frappe.perm._get_perm(doctype, doc);
 		}
 
-		return (frappe.perm.doctype_perm[doctype] ??= frappe.perm._get_perm(doctype));
+		if (frappe.perm.doctype_perm[doctype]) {
+			return frappe.perm.doctype_perm[doctype];
+		}
+
+		const perm = frappe.perm._get_perm(doctype);
+
+		// don't cache a perm computed before the meta loads; it's degraded (read only)
+		// and would stay pinned for the session
+		if (frappe.get_meta(doctype)) {
+			frappe.perm.doctype_perm[doctype] = perm;
+		}
+
+		return perm;
 	},
 
 	_get_perm: (doctype, doc) => {
 		const user = frappe.session.user;
 		let meta = frappe.get_meta(doctype);
 
-		// Administrator should get all rights (consistent with Python has_permission/get_role_permissions)
-		if (user === "Administrator" || frappe.user_roles.includes("Administrator")) {
-			// Default permission level
-			let permlevels = [0];
+		let perm = [{ read: 0, permlevel: 0, rights_without_if_owner: new Set() }];
 
-			// Get all unique permission levels from the doctype's permissions
-			// Always include level 0 (default level) and sort in ascending order
-			if (meta && meta.permissions) {
-				const levels = meta.permissions.map((permission) => cint(permission.permlevel));
-				// used Set for "unique" levels
-				permlevels = [...new Set([0, ...levels])].sort();
-			}
-			const rights = frappe.perm.get_rights(doctype);
-			const admin_perm = [];
-			permlevels.forEach((level) => {
-				const p = {
-					permlevel: level,
-					rights_without_if_owner: new Set(rights),
-				};
-				rights.forEach((right) => {
-					p[right] = 1;
-				});
-				admin_perm[level] = p;
-			});
-			return admin_perm;
+		if (user === "Administrator" || frappe.user_roles.includes("Administrator")) {
+			perm[0].read = 1;
 		}
 
-		let perm = [{ read: 0, permlevel: 0 }];
-
 		if (!meta) {
-			if (frappe.boot.user.can_read.includes(doctype)) {
+			if (frappe.boot.user?.all_read?.includes(doctype)) {
 				perm[0].read = 1;
+			}
+
+			if (!doc) {
+				for (const right of boot_backed_rights) {
+					if (frappe.boot.user?.["can_" + right]?.includes(doctype)) {
+						perm[0][right] = 1;
+					}
+				}
+
+				if (
+					frappe.boot.user?.can_create?.includes(doctype) ||
+					frappe.boot.user?.in_create?.includes(doctype)
+				) {
+					perm[0].create = 1;
+				}
 			}
 			return perm;
 		}
@@ -159,7 +165,7 @@ $.extend(frappe.perm, {
 		}
 		*/
 
-		let perm = [{ read: 0, permlevel: 0 }];
+		let perm = [{ read: 0, permlevel: 0, rights_without_if_owner: new Set() }];
 		const rights = frappe.perm.get_rights(meta.name);
 
 		(meta.permissions || []).forEach((p) => {

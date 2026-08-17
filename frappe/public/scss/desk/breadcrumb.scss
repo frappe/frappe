@@ -32,6 +32,16 @@
 		}
 	}
 
+	li {
+		min-width: 0;
+	}
+
+	li:last-child > a {
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
 	&.mobile-no-divider {
 		a:before {
 			display: none;

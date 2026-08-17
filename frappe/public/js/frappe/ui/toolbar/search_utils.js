@@ -369,12 +369,17 @@ frappe.search.utils = {
 		return out;
 	},
 
+	// Search covers every workspace the user is permitted (`frappe.workspaces`), not just those
+	// carrying sidebar items. That matters because the dock only lists workspaces mounted to an
+	// app -- for an unmounted one, search is the way back to it.
 	get_workspaces: function (keywords) {
 		var me = this;
 		var out = [];
-		const sidebars = frappe.boot.workspace_sidebar_item || {};
-		Object.keys(sidebars).forEach(function (key) {
-			const title = sidebars[key].label || key;
+		Object.values(frappe.workspaces || {}).forEach(function (workspace) {
+			const name = workspace.name;
+			const title = workspace.title || workspace.label || name;
+			if (!title) return;
+
 			const search_result = me.fuzzy_search(keywords, title, true);
 			const level = search_result.score;
 			if (level > 0) {
@@ -383,9 +388,10 @@ frappe.search.utils = {
 					label: __("Open {0} Workspace", [search_result.marked_string || __(title)]),
 					value: __("Open {0} Workspace", [__(title)]),
 					index: level,
-					// open the workspace's sidebar and land on its first item
+					// open the workspace's sidebar and land on its first item; falls back to the
+					// workspace's own route when it has no sidebar items
 					onclick: function () {
-						frappe.app.sidebar.open_workspace(title);
+						frappe.app.sidebar.open_workspace(name);
 					},
 				});
 			}
@@ -727,9 +733,9 @@ function hide_navbar_search_modal() {
 frappe.search.open_global_search_from_navbar_shortcut = function (e) {
 	const from_bar = ($("#navbar-search").val() || "").trim();
 	const dlg = frappe.searchdialog?.search;
-	if (dlg?.open_global_search_dialog) {
+	if (dlg?.toggle_global_search_dialog) {
 		hide_navbar_search_modal();
-		dlg.open_global_search_dialog(from_bar);
+		dlg.toggle_global_search_dialog(from_bar);
 	}
 	if (e) {
 		e.preventDefault();

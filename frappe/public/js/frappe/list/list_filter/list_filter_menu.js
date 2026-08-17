@@ -1,55 +1,70 @@
 import LayoutDialog from "./layout_dialog";
 import ManageLayoutsDialog from "./manage_layouts_dialog";
 
-/** Saved Layout menu rendering and layout dialog actions. */
+/** Saved Layout data + menu items (rendered by the view switcher's submenu). */
 export const ListFilterMenu = {
-	/** Group label shown in page inner button for saved layouts menu. */
-	get saved_layout_group_label() {
-		return __("Default Layout");
-	},
-
-	/** Create the Saved Layouts button and populate the dropdown menu. */
+	/** Fetch layouts and restore the active one. The view switcher renders
+	 *  the menu fresh from get_layout_menu_items() on every open, so no DOM
+	 *  is built or synced here. */
 	setup_layout_menu({ refetch = true, initial_setup = false } = {}) {
-		if (frappe.is_mobile()) return Promise.resolve();
-
-		this.ensure_layout_menu_group();
-
 		const fetch_promise = refetch ? this.get_list_filters() : Promise.resolve();
 
-		return fetch_promise
-			.then(() => {
-				if (!this._default_layout_snapshot) {
-					this.capture_default_layout_state();
-				}
-				if (!initial_setup) {
-					return this.restore_layout_from_route_signature({ refresh: true });
-				}
-			})
-			.then(() => {
-				if (!initial_setup) {
-					this.update_layout_menu_selection({ rerender_menu: true });
-				}
-			});
+		return fetch_promise.then(() => {
+			if (!this._default_layout_snapshot) {
+				this.capture_default_layout_state();
+			}
+			if (!initial_setup) {
+				return this.restore_layout_from_route_signature({ refresh: true });
+			}
+		});
 	},
 
-	/** Create the inner button group once (first item is replaced on render). */
-	ensure_layout_menu_group() {
-		if (this.layout_menu_group) return;
+	/** The saved-layouts submenu, as menu items: Default, then the global and
+	 *  personal layouts (grouped), then the create/manage actions. Called by
+	 *  the view switcher on every open, so active-state is always current. */
+	get_layout_menu_items() {
+		const active = String(this.active_layout_name || "default_layout");
+		const layout_row = (layout) => ({
+			label: __(layout.filter_name),
+			selected: String(layout.name) === active,
+			onclick: () => this.select_layout(layout.name, layout.filter_name),
+		});
 
-		this.list_view.page.add_inner_button(
-			this.default_layout_label,
-			() => {},
-			this.saved_layout_group_label
-		);
-		this.layout_menu_group = this.list_view.page.get_inner_group_button(
-			this.saved_layout_group_label
-		);
-	},
+		const global_layouts = (this.filters || []).filter((f) => !f.for_user).map(layout_row);
+		const user_layouts = (this.filters || [])
+			.filter((f) => f.for_user === frappe.session.user)
+			.map(layout_row);
 
-	/** Live dropdown menu element (do not cache items — menu is re-rendered). */
-	get_layout_menu() {
-		this.ensure_layout_menu_group();
-		return this.layout_menu_group.find(".dropdown-menu");
+		const items = [
+			{
+				label: this.default_layout_label,
+				selected: active === "default_layout",
+				onclick: () => this.select_layout("default_layout", this.default_layout_label),
+			},
+		];
+		if (global_layouts.length) {
+			items.push({ group: __("Global Layouts"), options: global_layouts });
+		}
+		if (user_layouts.length) {
+			items.push({ group: __("Your Layouts"), options: user_layouts });
+		}
+		items.push({
+			group: "",
+			hide_label: true,
+			options: [
+				{
+					label: __("Create Layout"),
+					icon: "plus",
+					onclick: () => this.open_layout_dialog(),
+				},
+				{
+					label: __("Manage Layouts"),
+					icon: "settings",
+					onclick: () => this.open_manage_layouts_dialog(),
+				},
+			],
+		});
+		return items;
 	},
 
 	/** Normalize filter query params into a stable signature (matches list view URL encoding). */
@@ -156,7 +171,8 @@ export const ListFilterMenu = {
 	restore_layout_from_route_signature({ refresh = true } = {}) {
 		const finish = () => {
 			this._initial_layout_restored = true;
-			this.update_layout_menu_selection({ rerender_menu: true });
+			// the view switcher's trigger shows the active layout name
+			this.list_view.views_list?.refresh_trigger?.();
 		};
 
 		if (this._user_selected_layout) {
@@ -192,60 +208,8 @@ export const ListFilterMenu = {
 		return this.apply_saved_layout(matched_layout, { refresh }).then(finish, finish);
 	},
 
-	/** Render default, global, user, and action rows in the dropdown menu. */
-	render_saved_filters() {
-		const $menu = this.get_layout_menu();
-		$menu.empty();
-
-		const $default_item = this.filter_template({
-			name: "default_layout",
-			filter_name: this.default_layout_label,
-		});
-		$default_item.find(".dropdown-item").on("click", (e) => {
-			e.preventDefault();
-			this.select_layout("default_layout", this.default_layout_label);
-		});
-		$menu.append($default_item);
-		$menu.append('<li class="dropdown-divider"></li>');
-
-		const global_filters = (this.filters || []).filter((filter) => !filter.for_user);
-		const user_filters = (this.filters || []).filter(
-			(filter) => filter.for_user === frappe.session.user
-		);
-
-		if (global_filters.length) {
-			$menu.append(`<li class="dropdown-header">${__("Global Layouts")}</li>`);
-			this.append_filter_items($menu, global_filters);
-		}
-
-		if (user_filters.length) {
-			if (global_filters.length) {
-				$menu.append('<li class="dropdown-divider"></li>');
-			}
-			$menu.append(`<li class="dropdown-header">${__("Your Layouts")}</li>`);
-			this.append_filter_items($menu, user_filters);
-		}
-
-		if (global_filters.length || user_filters.length) {
-			$menu.append('<li class="dropdown-divider"></li>');
-		}
-
-		this.append_layout_action_items($menu);
-	},
-
-	/** Append saved layout rows and update button label on selection. */
-	append_filter_items($menu, filters) {
-		(filters || []).forEach((filter) => {
-			const $item = this.filter_template(filter);
-			$item.find(".dropdown-item").on("click", (e) => {
-				e.preventDefault();
-				this.select_layout(filter.name, filter.filter_name);
-			});
-			$menu.append($item);
-		});
-	},
-
-	/** Remember selected layout, apply its state, and reflect it on the button. */
+	/** Remember the selected layout and apply its state. The switcher's menu
+	 *  shows the new selection by itself — it renders fresh on every open. */
 	select_layout(name, label) {
 		if (name === this.active_layout_name) return Promise.resolve();
 
@@ -257,30 +221,15 @@ export const ListFilterMenu = {
 		this.active_layout_label = label;
 		this._user_selected_layout = true;
 		this.save_active_layout_preference(name);
-		this.update_layout_menu_selection();
+		// the view switcher's trigger shows the active layout name
+		this.list_view.views_list?.refresh_trigger?.();
 
 		const apply_promise =
 			name === "default_layout"
 				? this.apply_default_layout()
 				: this.apply_saved_layout((this.filters || []).find((row) => row.name === name));
 
-		return Promise.resolve(apply_promise).then(() => {
-			this.update_active_filter_label();
-			this.update_active_filter_indicators();
-		});
-	},
-
-	/** Sync button label and menu tick with the active layout. */
-	update_layout_menu_selection({ rerender_menu = false } = {}) {
-		if (!this.layout_menu_group) return;
-
-		this.update_active_filter_label();
-
-		if (rerender_menu) {
-			this.render_saved_filters();
-		} else {
-			this.update_active_filter_indicators();
-		}
+		return Promise.resolve(apply_promise);
 	},
 
 	/** Snapshot default layout state from user settings or the live list view. */
@@ -375,10 +324,9 @@ export const ListFilterMenu = {
 						lv.column_max_widths[col.fieldname] = cint(col.width);
 					}
 				});
-				lv.setup_columns(columns);
-			} else {
-				lv.setup_columns();
+				return lv.setup_columns(columns);
 			}
+			return lv.setup_columns();
 		};
 
 		const finish = () => {
@@ -388,12 +336,12 @@ export const ListFilterMenu = {
 		const filter_area = lv.filter_area;
 		if (!filter_area) {
 			lv.filters = filters || [];
-			apply_columns();
-			if (refresh) {
-				return lv.refresh(true).then(finish, finish);
-			}
-			finish();
-			return Promise.resolve();
+			return apply_columns().then(() => {
+				if (refresh) {
+					return lv.refresh(true).then(finish, finish);
+				}
+				finish();
+			}, finish);
 		}
 
 		filter_area.trigger_refresh = false;
@@ -403,38 +351,11 @@ export const ListFilterMenu = {
 			.then(() => {
 				filter_area.trigger_refresh = true;
 				lv.filters = filters || [];
-				apply_columns();
-				if (refresh) return lv.refresh(true);
+				return apply_columns().then(() => {
+					if (refresh) return lv.refresh(true);
+				});
 			})
 			.then(finish, finish);
-	},
-
-	/** Set Saved Layouts button text to the active layout name. */
-	update_active_filter_label() {
-		if (!this.layout_menu_group) return;
-
-		const label = this.active_layout_label || this.default_layout_label;
-		const label_node = $(
-			`.inner-group-button[data-label="${encodeURIComponent(
-				this.saved_layout_group_label
-			)}"] button`
-		)
-			.contents()
-			.first()[0];
-		if (!label_node) return;
-		label_node.textContent = label;
-	},
-
-	/** Show tick on the currently selected layout row. */
-	update_active_filter_indicators() {
-		const active_name = String(this.active_layout_name || "default_layout");
-		this.get_layout_menu()
-			.find(".saved-filter-item")
-			.each((_, el) => {
-				const $el = $(el);
-				const is_active = String($el.attr("data-name")) === active_name;
-				$el.find(".filter-check").toggleClass("invisible", !is_active);
-			});
 	},
 
 	/** Build current visible columns state for layout persistence. */
@@ -464,22 +385,6 @@ export const ListFilterMenu = {
 			.filter(Boolean);
 	},
 
-	/** Append Create / Manage action rows. */
-	append_layout_action_items($menu) {
-		const $create_item = this.layout_action_template(__("Create Layout"), "plus");
-		$create_item.find(".dropdown-item").on("click", (e) => {
-			e.preventDefault();
-			this.open_layout_dialog();
-		});
-		$menu.append($create_item);
-		const $manage_item = this.layout_action_template(__("Manage Layouts"), "settings");
-		$manage_item.find(".dropdown-item").on("click", (e) => {
-			e.preventDefault();
-			this.open_manage_layouts_dialog();
-		});
-		$menu.append($manage_item);
-	},
-
 	open_manage_layouts_dialog() {
 		new ManageLayoutsDialog({ list_filter: this });
 	},
@@ -492,36 +397,5 @@ export const ListFilterMenu = {
 			duplicate_from,
 			on_save: () => this.setup_layout_menu({ refetch: true }),
 		});
-	},
-
-	/** Build one static action menu row. */
-	layout_action_template(label, icon) {
-		return $(`
-			<li class="saved-layout-action-item">
-				<a class="dropdown-item d-flex align-items-center">
-					<span class="mr-2 flex align-items-center">${frappe.utils.icon(icon)}</span>
-					<span>${frappe.utils.escape_html(label)}</span>
-				</a>
-			</li>
-		`);
-	},
-
-	/** Build one saved layout dropdown row. */
-	filter_template(filter) {
-		const is_active = filter.name === (this.active_layout_name || "default_layout");
-		return $(`
-			<li class="saved-filter-item" data-name="${filter.name}">
-				<a class="dropdown-item d-flex justify-content-between align-items-center">
-					<span class="d-flex align-items-center">
-						<span class="filter-check mr-2 ${is_active ? "" : "invisible"}">
-							${frappe.utils.icon("check", "xs")}
-						</span>
-						<span class="filter-label">
-							${frappe.utils.escape_html(__(filter.filter_name))}
-						</span>
-					</span>
-				</a>
-			</li>
-		`);
 	},
 };

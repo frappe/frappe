@@ -4,12 +4,19 @@
 // grid, the print-format card grid, and the shared empty state.
 
 // ── Global Search tab: inclusion toggle + searchable-field checkbox grid ──
-// Selector carries `.switch-control` too, to beat `label.switch-control`'s padding /
-// margin-bottom from controls.scss (otherwise the divider hugs the search bar).
-.switch-control.dts-gs-switch {
+// The inclusion row is a plain flex container (layout via utilities); only the switch
+// itself is a `.switch-control` label, so clicking the row's empty space does nothing.
+.dts-gs-switch {
 	padding-bottom: var(--padding-md);
 	margin-bottom: var(--padding-md);
 	border-bottom: 1px solid var(--border-color);
+}
+
+// Bare toggle: neutralise label.switch-control's full-width/padding so it hugs its
+// switch instead of stretching across the row (same as .dts-setting-toggle).
+.dts-gs-toggle.switch-control {
+	width: auto;
+	padding: 0;
 }
 
 .dts-gs-search {
@@ -30,7 +37,6 @@
 	gap: var(--padding-sm);
 	margin: 0;
 	padding: var(--padding-xs) 0;
-	font-weight: var(--weight-regular);
 	cursor: pointer;
 
 	input {
@@ -60,6 +66,31 @@
 	}
 }
 
+.dts-settings-group-heading {
+	display: flex;
+	align-items: center;
+	gap: var(--margin-xs);
+	margin-top: var(--margin-xl);
+	margin-bottom: var(--margin-xs);
+
+	&:first-child {
+		margin-top: 0;
+		padding-top: 12px; // match the panel body's own padding-top
+	}
+}
+
+// Icon-only arrow beside the section title, linking to the source single's form.
+.dts-settings-group-link {
+	display: inline-flex;
+	align-items: center;
+	flex-shrink: 0;
+	color: var(--ink-gray-5);
+
+	&:hover {
+		color: var(--ink-gray-8);
+	}
+}
+
 // Related Settings: a uniform settings row — label + description on the left, a compact
 // control on the right — so toggles, selects and inputs all read the same way.
 .dts-setting {
@@ -68,9 +99,10 @@
 	justify-content: space-between;
 	gap: var(--margin-lg);
 	padding: var(--padding-md) 0;
+	border-bottom: 1px solid var(--border-color);
 
-	& + & {
-		border-top: 1px solid var(--border-color);
+	&:last-child {
+		border-bottom: none;
 	}
 }
 
@@ -79,14 +111,11 @@
 }
 
 .dts-setting-label {
-	font-size: var(--text-base);
 	color: var(--ink-gray-8);
 }
 
 .dts-setting-description {
 	margin-top: 2px;
-	font-size: var(--text-sm);
-	line-height: 1.4;
 	color: var(--ink-gray-5);
 }
 
@@ -127,8 +156,6 @@
 .dts-list-head {
 	padding: 0 0 var(--padding-sm);
 	color: var(--ink-gray-5);
-	font-size: var(--text-sm);
-	font-weight: var(--weight-medium);
 	border-bottom: 1px solid var(--border-color);
 }
 
@@ -177,10 +204,8 @@
 	min-width: 0;
 }
 
-// Truncation comes from the shared `.ellipsis` utility on the element.
 .dts-list-primary {
 	color: var(--ink-gray-8);
-	font-weight: var(--weight-medium);
 	min-width: 0;
 
 	&.dts-list-link {
@@ -196,7 +221,6 @@
 .dts-list-secondary {
 	margin-top: 2px;
 	color: var(--ink-gray-5);
-	font-size: var(--text-sm);
 }
 
 .dts-list-state {
@@ -213,62 +237,18 @@
 	cursor: pointer;
 }
 
-// Overflow "…" menu trigger — open/close + positioning handled by Bootstrap's dropdown.
-.dts-actions .dts-actions-btn {
-	line-height: 1;
-	font-weight: var(--weight-bold);
-}
-
-// Overflow menu item: icon + label grouped left (zero any inherited margins that
-// otherwise push the label to the right edge).
-.dts-action-item.dropdown-item {
+.dts-loading {
 	display: flex;
-	align-items: center;
-	justify-content: flex-start;
-	gap: var(--padding-sm);
-	text-align: left;
-
-	.icon {
-		flex-shrink: 0;
-		margin: 0;
-	}
-
-	> span {
-		margin: 0;
-	}
+	flex-direction: column;
+	gap: var(--margin-sm);
+	padding: var(--padding-md) 0;
 }
 
 // ── Permissions tab: EmbeddedList of roles with rights badges + customized banner
 // + footer link ──
-// "Customized" notice with a reset action. Color/padding/radius come from the
-// framework's `.alert.alert-warning`; only the inline row layout is local.
+// "Customized" notice is the espresso alert component; only the outer margin is local.
 .dts-perm-banner {
-	display: flex;
-	align-items: center;
-	gap: var(--padding-sm);
 	margin-bottom: var(--margin-sm);
-	font-size: var(--text-sm);
-
-	// Keep the warning glyph small and from shrinking.
-	.icon {
-		flex: 0 0 auto;
-		width: 14px;
-		height: 14px;
-	}
-
-	// Text fills the space and stays left-aligned beside the icon.
-	.dts-perm-banner-text {
-		flex: 1;
-		min-width: 0;
-	}
-
-	.dts-perm-banner-action {
-		flex: 0 0 auto;
-		color: inherit;
-		font-weight: var(--weight-medium);
-		text-decoration: underline;
-		white-space: nowrap;
-	}
 }
 
 // Granted-right badge: a compact green pill holding just the check icon.
@@ -289,20 +269,12 @@
 	padding-top: var(--padding-md);
 	border-top: 1px solid var(--border-color);
 
-	.dts-perm-footer-note {
-		display: flex;
-		align-items: center;
-		gap: var(--padding-xs);
-		color: var(--ink-gray-5);
-		font-size: var(--text-sm);
-	}
-
+	// Weight comes from the espresso `text-base-medium` utility in the markup.
 	.dts-perm-footer-link {
 		display: inline-flex;
 		align-items: center;
 		gap: var(--padding-xs);
 		color: var(--ink-gray-7);
-		font-weight: var(--weight-medium);
 		white-space: nowrap;
 	}
 }
@@ -333,6 +305,7 @@
 
 // The page peeking up from the bottom of the preview region.
 .dts-pf-thumb {
+	position: relative;
 	display: flex;
 	align-items: flex-start;
 	justify-content: center;
@@ -344,11 +317,17 @@
 	cursor: pointer;
 }
 
-.dts-pf-img {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-	object-position: top center;
+// The card renders the format itself at page width, scaled down to fit; the frame is
+// inert, so clicks reach the thumbnail behind it and open the full preview.
+.dts-pf-frame {
+	// a scaled element keeps its full layout box, so it is pinned rather than laid out
+	position: absolute;
+	top: 0;
+	left: 0;
+	transform-origin: top left;
+	border: 0;
+	pointer-events: none;
+	background-color: var(--surface-base);
 }
 
 .dts-pf-placeholder {
@@ -406,7 +385,6 @@
 // Truncation comes from the shared `.ellipsis` utility on the element.
 .dts-pf-name {
 	display: block;
-	font-weight: var(--weight-regular);
 	color: var(--ink-gray-8);
 	cursor: pointer;
 

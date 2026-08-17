@@ -1,26 +1,15 @@
 <template>
 	<div class="pfb-inspector" @click.stop>
-		<!-- Header -->
-		<div class="pfb-inspector-head">
+		<!-- Header — hidden on the canvas (settings) view -->
+		<div v-if="has_selection" class="pfb-inspector-head">
 			<div class="pfb-inspector-title">
 				<span class="pfb-inspector-kind">{{ inspector_kind }}</span>
-				<span
-					class="pfb-inspector-name"
-					v-if="
-						selected_field ||
-						selected_section ||
-						selected_letterhead ||
-						selected_lh_footer
-					"
-				>
-					{{ inspector_subtitle }}
-				</span>
-				<span v-else class="pfb-inspector-eyebrow-inline">{{ __("Inspector") }}</span>
+				<span class="pfb-inspector-name">{{ inspector_subtitle }}</span>
 			</div>
 		</div>
 
 		<!-- Breadcrumb: navigate up to parent section when a field is selected -->
-		<div v-if="selected_field && parent_section" class="pfb-breadcrumb">
+		<div v-if="selected_field && parent_section && !is_multi_select" class="pfb-breadcrumb">
 			<button
 				class="pfb-breadcrumb-btn"
 				@click="select_parent_section"
@@ -34,22 +23,9 @@
 			</button>
 		</div>
 
-		<!-- Letter Head notice — shown whenever the letterhead is selected -->
-		<div v-if="selected_letterhead || selected_lh_footer" class="pfb-lh-notice">
-			{{ __("Edits here update the Letter Head document directly.") }}
-		</div>
-
-		<!-- Empty state -->
-		<div
-			v-if="
-				!selected_field && !selected_section && !selected_letterhead && !selected_lh_footer
-			"
-			class="pfb-inspector-empty"
-		>
-			<svg class="icon icon-md text-muted" style="margin-bottom: 8px">
-				<use href="#icon-text-cursor"></use>
-			</svg>
-			<p class="text-muted">{{ __("Click a field to edit its properties") }}</p>
+		<!-- Nothing selected: canvas-wide print settings -->
+		<div v-if="!has_selection" class="pfb-insp-body pfb-canvas-settings">
+			<PrintSettingsPanel />
 		</div>
 
 		<!-- ── Letter Head Footer inspector ──────────────────────── -->
@@ -61,6 +37,9 @@
 		<template v-else-if="selected_letterhead">
 			<LetterHeadZoneInspector zone="header" />
 		</template>
+
+		<!-- ── Multi-select bulk inspector ─────────────────────── -->
+		<BulkPropertiesPanel v-else-if="is_multi_select" />
 
 		<!-- ── Table field inspector ───────────────────────────────── -->
 		<TableFieldInspector v-else-if="selected_field && is_table_field" />
@@ -84,19 +63,33 @@ import SectionPropertiesPanel from "./SectionPropertiesPanel.vue";
 import RepeaterFieldInspector from "./RepeaterFieldInspector.vue";
 import TableFieldInspector from "./TableFieldInspector.vue";
 import FieldPropertiesPanel from "./FieldPropertiesPanel.vue";
+import BulkPropertiesPanel from "./BulkPropertiesPanel.vue";
+import PrintSettingsPanel from "../PrintSettingsPanel.vue";
 
 let store = inject("$store");
-let { letterhead, layout } = useStore();
+let { letterhead, layout, print_format } = useStore();
 
 let selected_field = computed(() => store.selected_field.value);
+let selected_count = computed(
+	() => store.selected_fields.value.length + store.selected_sections.value.length
+);
+let is_multi_select = computed(() => store.is_multi_select.value);
 let selected_section = computed(() => store.selected_section.value);
 let selected_letterhead = computed(() => store.selected_letterhead.value);
 let selected_lh_footer = computed(() => store.selected_lh_footer.value);
+let has_selection = computed(
+	() =>
+		selected_field.value ||
+		selected_section.value ||
+		selected_letterhead.value ||
+		selected_lh_footer.value
+);
 
 let is_table_field = computed(() => selected_field.value?.fieldtype === "Table");
 let is_repeater_field = computed(() => selected_field.value?.fieldtype === "Repeater");
 
 let inspector_kind = computed(() => {
+	if (is_multi_select.value) return __("Selection");
 	if (selected_lh_footer.value) return __("Letter Head");
 	if (selected_letterhead.value) return __("Letter Head");
 	if (selected_field.value) {
@@ -108,9 +101,18 @@ let inspector_kind = computed(() => {
 });
 
 let inspector_subtitle = computed(() => {
+	if (is_multi_select.value) {
+		return store.selected_sections.value.length
+			? __("{0} items", [selected_count.value])
+			: __("{0} fields", [selected_count.value]);
+	}
 	if (selected_lh_footer.value) return __("Footer");
 	if (selected_letterhead.value) return letterhead.value?.name || "";
-	if (selected_field.value) return selected_field.value.label || selected_field.value.fieldname;
+	if (selected_field.value) {
+		const df = selected_field.value;
+		if (df.custom) return df.label || df.fieldname;
+		return frappe.meta.get_label(print_format.value.doc_type, df.fieldname);
+	}
 	if (selected_section.value) return selected_section.value.label || __("Untitled section");
 	return "";
 });
@@ -190,12 +192,6 @@ let field_is_inline = computed(() => parent_section.value?.field_orientation ===
 	opacity: 0.4;
 }
 
-.pfb-inspector-eyebrow-inline {
-	font-size: var(--text-sm);
-	font-weight: var(--weight-medium);
-	color: var(--text-muted);
-}
-
 /* ── Breadcrumb ──────────────────────────────────────────── */
 .pfb-breadcrumb {
 	padding: 4px 10px;
@@ -233,29 +229,8 @@ let field_is_inline = computed(() => parent_section.value?.field_orientation ===
 	white-space: nowrap;
 }
 
-/* ── Empty state ─────────────────────────────────────────── */
-.pfb-inspector-empty {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	padding: 24px;
-	text-align: center;
-	font-size: var(--text-sm);
-}
-
-/* ── Letter Head notice ──────────────────────────────────── */
-.pfb-lh-notice {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	font-size: var(--text-tiny);
-	color: var(--yellow-800);
-	background: var(--yellow-50);
-	border-bottom: 1px solid var(--yellow-200);
-	padding: 7px 14px;
-	flex-shrink: 0;
-	line-height: 1.4;
+/* ── Canvas settings (nothing selected) ──────────────────── */
+.pfb-canvas-settings {
+	padding: 12px 14px;
 }
 </style>

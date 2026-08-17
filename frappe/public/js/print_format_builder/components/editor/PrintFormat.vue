@@ -1,13 +1,16 @@
 <template>
 	<div
-		class="print-format-main"
+		class="print-format-main print-format"
+		data-theme="light"
 		:style="rootStyles"
 		:class="{
 			'pfb-clean-preview': !!store.preview_doc.value,
 			'print-format-doc': !!store.preview_doc.value,
+			'show-label-colon': !!print_format.show_label_colon,
 		}"
 	>
 		<component :is="'style'" v-if="color_css">{{ color_css }}</component>
+		<component :is="'style'" v-if="print_format.css">{{ print_format.css }}</component>
 		<div v-if="!page_number_hidden" class="pfb-page-num" :style="page_number_style">
 			{{ __("1 of 2") }}
 		</div>
@@ -16,18 +19,7 @@
 
 		<!-- Body wrapper: font size/family applied here so letterhead zones are unaffected -->
 		<div class="pfb-body" :style="bodyStyles">
-			<div class="zone-divider">
-				<span class="zone-divider-label">
-					{{ __("Header") }}
-					<span v-if="repeat_header_footer" class="zone-divider-hint"
-						>· {{ __("repeats on all pages") }}</span
-					>
-				</span>
-			</div>
 			<PrintFormatSection :section="layout.header" :is_header="true" zone="header" />
-			<div class="zone-divider">
-				<span class="zone-divider-label">{{ __("Body") }}</span>
-			</div>
 
 			<draggable
 				class="sections-container"
@@ -37,6 +29,9 @@
 				item-key="id"
 				handle=".section-drag-handle"
 				filter=".section-columns, .column, .field"
+				v-bind="DRAG_OPTIONS"
+				@start="setDragging(true)"
+				@end="setDragging(false)"
 				@add="on_section_add"
 			>
 				<template #item="{ element, index }">
@@ -46,18 +41,25 @@
 					</div>
 				</template>
 				<template #footer>
-					<SectionInsert @insert="add_section_at(layout.sections.length)" />
+					<SectionInsert
+						v-if="layout.sections && layout.sections.length"
+						@insert="add_section_at(layout.sections.length)"
+					/>
 				</template>
 			</draggable>
 
-			<div class="zone-divider">
-				<span class="zone-divider-label">
-					{{ __("Footer") }}
-					<span v-if="repeat_header_footer" class="zone-divider-hint"
-						>· {{ __("repeats on all pages") }}</span
-					>
+			<button
+				v-if="!layout.sections || !layout.sections.length"
+				class="body-empty"
+				@click="add_section_at(0)"
+			>
+				<span class="body-empty-icon" v-html="frappe.utils.icon('plus', 'md')"></span>
+				<span class="body-empty-title">{{ __("Add a section") }}</span>
+				<span class="body-empty-hint">
+					{{ __("Sections hold the columns and fields of your document.") }}
 				</span>
-			</div>
+			</button>
+
 			<PrintFormatSection :section="layout.footer" :is_header="true" zone="footer" />
 		</div>
 
@@ -70,6 +72,7 @@ import draggable from "vuedraggable";
 import LetterHeadZoneEditor from "../letterhead/LetterHeadZoneEditor.vue";
 import PrintFormatSection from "./PrintFormatSection.vue";
 import SectionInsert from "./SectionInsert.vue";
+import { DRAG_OPTIONS, setDragging, field_uid } from "../../utils";
 import { useStore } from "../../stores";
 import { computed, inject, watch, nextTick, onMounted, onUnmounted, ref } from "vue";
 
@@ -107,16 +110,24 @@ watch(
 onUnmounted(() => document.getElementById(CUSTOM_CSS_ID)?.remove());
 
 watch(
-	() => store.scroll_to_section.value,
-	(section) => {
-		if (!section) return;
+	() => store.scroll_target.value,
+	(target) => {
+		if (!target) return;
 		nextTick(() => {
-			const els = document.querySelectorAll("[data-pfb-section]");
-			const idx = layout.value.sections.indexOf(section);
-			if (idx >= 0 && els[idx]) {
-				els[idx].scrollIntoView({ behavior: "smooth", block: "start" });
+			// a field carries a fieldtype; a section carries columns — a field
+			// scrolls to its own node so the exact row lands on screen, not just
+			// the section it lives in
+			if (target.columns) {
+				const els = document.querySelectorAll("[data-pfb-section]");
+				const idx = layout.value.sections.indexOf(target);
+				if (idx >= 0 && els[idx]) {
+					els[idx].scrollIntoView({ behavior: "smooth", block: "start" });
+				}
+			} else {
+				const el = document.querySelector(`[data-field-uid="${field_uid(target)}"]`);
+				el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 			}
-			store.scroll_to_section.value = null;
+			store.scroll_target.value = null;
 		});
 	}
 );
@@ -165,7 +176,7 @@ let rootStyles = computed(() => {
 let bodyStyles = computed(() => {
 	const { font_size, font } = print_format.value;
 	const styles = {};
-	if (font_size) styles.fontSize = `${parseFloat(font_size)}px`;
+	styles.fontSize = `${parseFloat(font_size) || 14}px`;
 	if (font) styles.fontFamily = `'${font}', sans-serif`;
 	return styles;
 });
@@ -187,10 +198,6 @@ let color_css = computed(() => {
 	}
 	return css;
 });
-
-let repeat_header_footer = computed(
-	() => !!frappe.model.get_doc(":Print Settings", "Print Settings")?.repeat_header_footer
-);
 
 let page_number_hidden = computed(() => print_format.value.page_number.includes("Hide"));
 
@@ -214,9 +221,6 @@ let page_number_style = computed(() => {
 	}
 	return style;
 });
-
-watch(layout, () => (store.dirty.value = true), { deep: true });
-watch(print_format, () => (store.dirty.value = true), { deep: true });
 </script>
 
 <style scoped>
@@ -243,35 +247,47 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	margin-bottom: 1rem;
 }
 
-/* ── Zone dividers ────────────────────────────────────────── */
-.zone-divider {
+/* ── Empty-body call to action ────────────────────────────── */
+.body-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	width: 100%;
+	padding: 2rem 1rem;
+	border: 1px dashed var(--gray-300);
+	border-radius: var(--radius);
+	background: var(--gray-50);
+	color: var(--text-muted);
+	cursor: pointer;
+	transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.body-empty:hover {
+	border-color: var(--gray-500);
+	background: var(--gray-100);
+	color: var(--text-color);
+}
+
+.body-empty-icon {
 	display: flex;
 	align-items: center;
-	gap: 12px;
-	margin: 0.75rem 0 0.5rem;
-}
-
-.zone-divider::before,
-.zone-divider::after {
-	content: "";
-	flex: 1;
-	height: 1px;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	margin-bottom: 2px;
+	border-radius: 50%;
 	background: var(--gray-200);
+	color: var(--gray-700);
 }
 
-.zone-divider-label {
-	font-size: var(--text-tiny);
+.body-empty-title {
+	font-size: var(--text-md);
 	font-weight: var(--weight-medium);
-	text-transform: uppercase;
-	letter-spacing: 0.12em;
-	white-space: nowrap;
-	color: var(--gray-400);
 }
 
-.zone-divider-hint {
-	text-transform: none;
-	font-weight: var(--weight-regular);
-	letter-spacing: 0.02em;
+.body-empty-hint {
+	font-size: var(--text-sm);
 }
 
 .section-with-insert {
@@ -299,18 +315,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	transition: border-color 0.1s;
 }
 
-/* Outlines live on the container so they enclose the section's margin too */
-.pfb-clean-preview :deep(.print-format-section-container:hover) {
-	outline: 1px dashed var(--gray-400);
-	outline-offset: 2px;
-	border-radius: var(--radius);
-}
-
-.pfb-clean-preview :deep(.print-format-section-container:has(.section--selected)) {
-	outline: 1px solid var(--gray-400);
-	outline-offset: 2px;
-	border-radius: var(--radius);
-}
+/* section hover/selection rings live in one place — PrintFormatSection.vue */
 
 .pfb-clean-preview :deep(.print-format-section-container) {
 	margin-bottom: 0;
@@ -339,9 +344,8 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-clean-preview :deep(.print-format-section-container:hover .section-preview-actions),
-.pfb-clean-preview :deep(.print-format-section.section--selected ~ .section-preview-actions),
 .pfb-clean-preview
-	:deep(.print-format-section-container:has(.section--selected) .section-preview-actions) {
+	:deep(.print-format-section-container.pfb-section-active .section-preview-actions) {
 	opacity: 1;
 }
 

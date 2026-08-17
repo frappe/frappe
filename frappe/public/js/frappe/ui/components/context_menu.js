@@ -5,7 +5,7 @@ frappe.provide("frappe.ui");
 /**
  * @typedef {Object} ContextMenuOpts
  * @property {Element|JQuery} target Right-clicking anywhere in this element opens the menu at the cursor.
- * @property {Array|function} options Same menu items/groups as frappe.ui.Dropdown. A function is called fresh on every open — handy for menus that depend on which row was clicked.
+ * @property {Array|function} options Same menu items/groups as frappe.ui.Dropdown. A function is called fresh on every open — handy for menus that depend on which row was clicked — and may return a Promise of the items (the menu opens with a loading row and fills in when it settles).
  * @property {string} [empty_text] Shown when no items are visible.
  * @property {function} [on_open] Called with the contextmenu event, before the menu renders — set per-row options here.
  * @property {function} [on_close] Called with the reason: "activate" | "escape" | "outside" | "tab" | "owner".

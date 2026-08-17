@@ -97,6 +97,7 @@ frappe.router = {
 		image: "Image",
 		inbox: "Inbox",
 		file: "Home",
+		home: "Home",
 		map: "Map",
 	},
 	layout_mapped: {},
@@ -128,6 +129,13 @@ frappe.router = {
 
 		if (frappe.boot.setup_complete) {
 			!frappe.re_route["setup-wizard"] && (frappe.re_route["setup-wizard"] = "app");
+		} else if (
+			frappe.boot.setup_wizard_url &&
+			!frappe.boot.setup_wizard_url.startsWith("/app/") &&
+			!frappe.boot.setup_wizard_url.startsWith("/desk/")
+		) {
+			window.location.replace(frappe.boot.setup_wizard_url);
+			return;
 		} else if (!sub_path.startsWith("setup-wizard")) {
 			frappe.re_route["setup-wizard"] && delete frappe.re_route["setup-wizard"];
 			frappe.set_route(["setup-wizard"]);

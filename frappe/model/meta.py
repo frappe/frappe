@@ -23,7 +23,8 @@ from datetime import datetime
 import click
 
 import frappe
-from frappe import _, _lt
+from frappe import N_, _
+from frappe.app_state import is_disabled_app_filtering_active, is_module_disabled
 from frappe.model import (
 	NO_VALUE_FIELDS,
 	child_table_fields,
@@ -49,17 +50,17 @@ ListOrTuple = list | tuple
 SerializableTypes = str | int | float | datetime
 
 DEFAULT_FIELD_LABELS = {
-	"name": _lt("ID"),
-	"creation": _lt("Created On"),
-	"docstatus": _lt("Document Status"),
-	"idx": _lt("Index"),
-	"modified": _lt("Last Updated On"),
-	"modified_by": _lt("Last Updated By"),
-	"owner": _lt("Created By"),
-	"_user_tags": _lt("Tags"),
-	"_liked_by": _lt("Liked By"),
-	"_comments": _lt("Comments"),
-	"_assign": _lt("Assigned To"),
+	"name": N_("ID"),
+	"creation": N_("Created On"),
+	"docstatus": N_("Document Status"),
+	"idx": N_("Index"),
+	"modified": N_("Last Updated On"),
+	"modified_by": N_("Last Updated By"),
+	"owner": N_("Created By"),
+	"_user_tags": N_("Tags"),
+	"_liked_by": N_("Liked By"),
+	"_comments": N_("Comments"),
+	"_assign": N_("Assigned To"),
 }
 
 # When number of rows in a table exceeds this number, we disable certain features automatically.
@@ -302,12 +303,12 @@ class Meta(Document):
 		return fieldname in self._fields
 
 	def get_label(self, fieldname):
-		"""Return label of the given fieldname."""
+		"""Return the untranslated source label of the given fieldname."""
 		if df := self.get_field(fieldname):
 			return df.get("label")
 
 		if fieldname in DEFAULT_FIELD_LABELS:
-			return str(DEFAULT_FIELD_LABELS[fieldname])
+			return DEFAULT_FIELD_LABELS[fieldname]
 
 		return "No Label"
 
@@ -418,6 +419,8 @@ class Meta(Document):
 		if not custom_fields:
 			return
 
+		custom_fields = [field for field in custom_fields if not is_field_hidden_by_app(field)]
+
 		self.extend("fields", custom_fields)
 
 	def apply_property_setters(self):
@@ -433,6 +436,13 @@ class Meta(Document):
 
 		if not property_setters:
 			return
+
+		hide_disabled = is_disabled_app_filtering_active()
+		property_setters = [
+			ps
+			for ps in property_setters
+			if not ((hide_disabled and ps.get("is_app_disabled")) or is_module_disabled(ps.module))
+		]
 
 		for ps in property_setters:
 			if ps.doctype_or_field == "DocType":
@@ -645,6 +655,10 @@ class Meta(Document):
 				filters=dict(parent=self.name),
 				update=dict(doctype="Custom DocPerm"),
 			)
+
+			if is_disabled_app_filtering_active():
+				custom_perms = [d for d in custom_perms if not d.get("is_app_disabled")]
+
 			if custom_perms:
 				self.permissions = [Document(d) for d in custom_perms]
 
@@ -849,6 +863,27 @@ class Meta(Document):
 
 
 #######
+
+
+def is_field_hidden_by_app(df) -> bool:
+	"""Return True for a customization belonging to, or pointing at, a disabled app.
+
+	A Link or Table field whose target is concealed cannot work, so it is hidden
+	regardless of which app declared it.
+	"""
+	from frappe.app_state import get_disabled_doctypes
+
+	# The app that owns this field sets the flag in its `before_disable` hook.
+	if df.get("is_app_disabled") and is_disabled_app_filtering_active():
+		return True
+
+	if is_module_disabled(df.get("module")):
+		return True
+
+	return (
+		df.get("fieldtype") in ("Link", "Table", "Table MultiSelect")
+		and df.get("options") in get_disabled_doctypes()
+	)
 
 
 def get_parent_dt(dt):
