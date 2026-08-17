@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-04 17:32\n"
+"PO-Revision-Date: 2026-08-17 19:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -4692,7 +4692,7 @@ msgstr "Cambiar Etiqueta (a través de Traducción Personalizada)"
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:45
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:141
 msgid "Change Letter Head"
-msgstr "Cambiar membrete"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -6102,7 +6102,7 @@ msgstr "Crear entrada"
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:59
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:195
 msgid "Create Letter Head"
-msgstr "Crear membrete"
+msgstr ""
 
 #. Label of a Check field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
