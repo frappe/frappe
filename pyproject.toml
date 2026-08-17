@@ -70,10 +70,17 @@ dependencies = [
     "rq==1.15.1",
     "rsa>=4.1",
     "semantic-version~=2.10.0",
+<<<<<<< HEAD
     "sentry-sdk~=1.45.1",
     "sqlparse~=0.5.4",
     "sql_metadata~=2.11.0",
     "tenacity~=8.2.2",
+=======
+    "sentry-sdk~=2.60.0",
+    "sqlparse~=0.6.0",
+    "sql_metadata~=3.0.1",
+    "tenacity~=9.1.2",
+>>>>>>> 6ddb86d695 (chore: bump sqlparse and sql_metadata (#41956))
     "terminaltables~=3.1.10",
     "traceback-with-variables~=2.0.4",
     "typing_extensions>=4.6.1,<5",
@@ -165,3 +172,89 @@ nixpkgs-deps = [
     "nodejs_20",
     "python312",
 ]
+<<<<<<< HEAD
+=======
+
+[tool.uv]
+exclude-newer = "7 days"
+exclude-newer-package = { sqlparse = false } # drop sqlparse after 2026-08-20
+
+[tool.mypy]
+strict = false
+pretty = true
+incremental = true
+sqlite_cache = true
+files = [
+    # start small, with a lot of multiplication potential
+    "frappe/types/__init__.py",
+    "frappe/types/DF.py",
+    "frappe/types/frappedict.py",
+    "frappe/types/filter.py",
+]
+exclude = [
+    # permanent excludes
+    "^frappe/patches",
+    '/test_.+\.py$',
+    "^frappe/tests/ui_test_helpers.py",
+    "^frappe/parallel_test_runner.py",
+    "^frappe/deprecation_dumpster.py",
+]
+disable_error_code = [
+]
+
+[[tool.mypy.overrides]]
+module = "frappe"
+# Too many for a start
+disable_error_code = [
+    "no-any-expr",
+    "no-untyped-def",
+    "no-untyped-call",
+    "no-untyped-usage",
+]
+
+# External libraries without types
+[[tool.mypy.overrides]]
+module = [
+    "bleach_allowlist",
+    "cssutils",
+    "cups",
+    "email_reply_parser",
+    "filetype",
+    "google",
+    "googleapiclient.discovery",
+    "googleapiclient.errors",
+    "google.oauth2",
+    "google.oauth2.credentials",
+    "markdown2",
+    "markdownify",
+    "num2words",
+    "pdfkit",
+    "premailer",
+    "pyngrok",
+    "pypika",
+    "pypika.dialects",
+    "pypika.functions",
+    "pypika.queries",
+    "pypika.terms",
+    "pypika.utils",
+    "pyqrcode",
+    "rauth",
+    "requests_oauthlib",
+    "RestrictedPython",
+    "RestrictedPython.Guards",
+    "RestrictedPython.transformer",
+    "semantic_version",
+    "sql_metadata",
+    "sqlparse",
+    "terminaltables",
+    "traceback_with_variables",
+    "whoosh.fields",
+    "whoosh.index",
+    "whoosh.qparser",
+    "whoosh.query",
+    "whoosh.writing",
+    "xlrd",
+    "xmlrunner",
+]
+ignore_missing_imports = true
+>>>>>>> 6ddb86d695 (chore: bump sqlparse and sql_metadata (#41956))
