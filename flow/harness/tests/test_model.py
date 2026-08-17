@@ -485,6 +485,20 @@ def test_litellm_does_not_replay_unsigned_thinking_as_a_block():
 	assert wire["reasoning_content"] == "plan"
 
 
+def test_litellm_omits_reasoning_content_for_groq():
+	source = AssistantMessage(
+		content=[ThinkingContent(thinking="plan"), TextContent(text="answer")],
+		api="litellm",
+		provider="groq",
+		model="groq/openai/gpt-oss-120b",
+	)
+	model = LiteLLMModel("groq/openai/gpt-oss-120b")
+	wire = _openai_messages([source], model, "system")[1]
+
+	assert "reasoning_content" not in wire
+	assert wire["content"] == "answer"
+
+
 def test_litellm_only_persists_actual_reasoning_signatures():
 	assert _reasoning_field({"reasoning_content": "plan"}) == ("plan", None)
 	assert _reasoning_field({"reasoning": {"content": "plan", "signature": "opaque"}}) == (
