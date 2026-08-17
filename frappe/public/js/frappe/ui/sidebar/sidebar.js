@@ -50,9 +50,9 @@ frappe.ui.Sidebar = class Sidebar {
 			console.log(e);
 		}
 	}
-	// Resolve a companion app to the host app it's pinned into (via the `add_to_workspace_dock` hook,
-	// surfaced as `frappe.boot.app_rail_host`). A companion app has no shell of its own -- its
-	// workspaces live inside the host app's rail -- so its app context is the host's.
+	// Resolve a companion app to the host app it's pinned into (an `add_to_dock` row carrying
+	// `app`, surfaced as `frappe.boot.app_rail_host`). A companion app has no shell of its own --
+	// its workspaces live inside the host app's dock -- so its app context is the host's.
 	// Non-companion apps (and unknown/null names) pass through unchanged.
 	rail_host_app(app_name) {
 		return (frappe.boot.app_rail_host && frappe.boot.app_rail_host[app_name]) || app_name;
@@ -928,66 +928,127 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	// ---------------------------------------------------------------------------------------------
-	// The dock's module set.
+	// The dock's entry set.
 	// ---------------------------------------------------------------------------------------------
 
-	// The ordered set of modules an app's dock offers, as module-sidebar payload entries. The dock
-	// renders the whole set, highlighting the active one.
+	// The ordered set of entries an app's dock offers, each resolved to what the rail renders it
+	// as. The dock renders the whole set, highlighting the active one.
 	//
-	// The set is the app's own modules -- `app_data[].modules`, already permission-filtered
-	// and in `modules.txt` order -- resolved through `module_sidebars`. A module missing from
-	// that payload is one whose every item the user may not see, so it is correctly absent.
-	//
-	// This replaces the old workspace-shaped set and its module fallback, which only applied
-	// to apps shipping zero workspaces. That gate is exactly why the dock listed modules so
-	// rarely; now it is the only model.
+	// The set is `app_data[].dock` -- one ordered typed list, already permission-filtered: the
+	// app's own modules as `Sidebar` rows, then the workspaces an `add_to_dock` row put on this
+	// app's fragment, including the ones companion apps pinned onto it. It replaces a separate
+	// module list and workspace list that the rail had to reconcile, and that the pin fell
+	// between.
 	//
 	// Callers name the app whose set they want; there is no ambient default. No app -- a module
-	// belonging to none -- yields no modules, which is what leaves a standalone module's rail
+	// belonging to none -- yields no entries, which is what leaves a standalone module's rail
 	// empty rather than a rail of one.
-	collect_dock_modules(app) {
-		let modules = ((app && app.modules) || [])
-			.map((module) => frappe.boot.module_sidebars[module])
+	collect_dock_entries(app) {
+		const entries = ((app && app.dock) || [])
+			.map((row) => this.dock_entry(row))
 			.filter(Boolean);
 
-		return this.apply_dock_arrangement(modules);
+		return this.apply_dock_arrangement(entries);
+	}
+
+	// One typed row resolved to what the rail needs: a label, an icon, the sidebar it selects and
+	// where clicking it goes. Both kinds answer out of a payload the boot already carries, so a
+	// `Workspace` entry needs no machinery of its own.
+	//
+	// An entry that resolves to nothing is dropped: a module whose every item this user may not
+	// see is absent from `module_sidebars`, and a workspace they may not open is absent from
+	// `workspaces.pages`.
+	dock_entry(row) {
+		if (!row || !row.name) return null;
+
+		if (row.type === "Sidebar") {
+			const sidebar = frappe.boot.module_sidebars[row.name];
+			if (!sidebar) return null;
+			return {
+				type: row.type,
+				name: row.name,
+				module: row.name,
+				label: sidebar.label || row.name,
+				icon: sidebar.header_icon,
+			};
+		}
+
+		if (row.type === "Workspace") {
+			const page = (frappe.boot.workspaces?.pages || []).find((p) => p.name === row.name);
+			if (!page) return null;
+			return {
+				type: row.type,
+				name: row.name,
+				// the sidebar a pinned workspace selects is the one of the module that owns it,
+				// which is what lands a person in the companion's shell while the host's rail
+				// stays on screen
+				module: this.module_for_workspace(row.name) || page.module,
+				label: page.title || row.name,
+				icon: page.icon,
+				page,
+			};
+		}
+
+		return null;
 	}
 
 	// Apply the dock arrangement in `frappe.boot.dock` -- each app's fragment with the site's
 	// arrangement and this user's own already merged on top of it by the server: drop what it
 	// hides, and order what it names. An arrangement is one flat cross-app list, so it is
 	// applied *within* this app's set rather than replacing it -- as a replacement it would put
-	// the same rail on every app. An arrangement naming none of this app's modules leaves the
+	// the same rail on every app. An arrangement naming none of this app's entries leaves the
 	// app's own order alone rather than rendering an empty rail.
 	//
-	// Entries are typed pairs, so the arrangement is keyed on both halves -- a `Workspace` and a
-	// `Sidebar` of one name are two entries and must not match each other. Only `Sidebar` entries
-	// are rendered: this is the module rail, and a pinned workspace has nowhere to appear on it
-	// yet.
-	apply_dock_arrangement(modules) {
-		const arrangement = (frappe.boot.dock || []).filter((p) => p.type === "Sidebar");
-		if (!arrangement.length) return modules;
+	// Entries are typed pairs and the arrangement is keyed on both halves, so a `Workspace` and a
+	// `Sidebar` of one name are two entries and never match each other. Both kinds are ordered,
+	// hidden and rendered the same way -- a pin is an entry on the dock, not a fixture on it.
+	//
+	// The layers above the app only order and hide; they never add. An arrangement row naming
+	// something outside this set resolves to nothing here, which is what stops a person pinning
+	// an arbitrary workspace onto their own rail.
+	apply_dock_arrangement(entries) {
+		const arrangement = frappe.boot.dock || [];
+		if (!arrangement.length) return entries;
 
 		const hidden = new Set(
 			arrangement.filter((p) => p.hidden).map((p) => this.dock_key(p.type, p.name))
 		);
 		const order = new Map(arrangement.map((p, idx) => [this.dock_key(p.type, p.name), idx]));
-		// a module's entry on the dock -- the sidebar the rail renders it as
-		const key = (m) => this.dock_key("Sidebar", m.module);
+		const key = (e) => this.dock_key(e.type, e.name);
 
-		// An arrangement that names nothing in this app says nothing about it -- every module it
+		// An arrangement that names nothing in this app says nothing about it -- every entry it
 		// does name belongs to some other app's dock. Hiding, though, is honoured even when it
 		// empties the rail: a site that hid an app's whole set meant to.
-		if (!modules.some((m) => order.has(key(m)))) return modules;
+		if (!entries.some((e) => order.has(key(e)))) return entries;
 
-		// Modules the arrangement never names keep their app order and trail the ones it did, so
+		// Entries the arrangement never names keep their app order and trail the ones it did, so
 		// installing an app still surfaces its modules on a dock that has already been arranged.
-		// `MAX_SAFE_INTEGER` rather than `Infinity`: two unnamed modules would subtract to `NaN`,
+		// `MAX_SAFE_INTEGER` rather than `Infinity`: two unnamed entries would subtract to `NaN`,
 		// and a comparator that returns `NaN` is only saved by sort stability.
-		const position = (m) => order.get(key(m)) ?? Number.MAX_SAFE_INTEGER;
-		return modules
-			.filter((m) => !hidden.has(key(m)))
+		const position = (e) => order.get(key(e)) ?? Number.MAX_SAFE_INTEGER;
+		return entries
+			.filter((e) => !hidden.has(key(e)))
 			.sort((a, b) => position(a) - position(b));
+	}
+
+	// Go where a dock entry points, and select the sidebar it belongs to. A module opens at its
+	// own landing route; a workspace opens at itself, and the sidebar that comes with it is the
+	// one of the module that owns it.
+	open_dock_entry(entry) {
+		if (!entry) return;
+
+		if (entry.type === "Workspace") {
+			this.select_module(entry.module);
+			const route = frappe.ui.sidebar_item.get_route({
+				type: "Link",
+				link_type: "Workspace",
+				link_to: entry.name,
+			});
+			if (route) frappe.set_route(route);
+			return;
+		}
+
+		this.open_module(entry.module);
 	}
 
 	// What identifies a dock entry, client-side: the same pair, joined the same way, as
@@ -997,13 +1058,13 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	// Where an app's icon leads. `app_route` covers apps that declare one; otherwise land on
-	// the first entry of its module dock -- the same place clicking that entry would go.
+	// the first entry of its dock -- the same place clicking that entry would go.
 	app_landing_route(app) {
 		if (!app) return null;
 		if (app.app_route) return app.app_route;
 
-		const [module] = this.collect_dock_modules(app);
-		return module ? this.module_landing_route(module.module) : null;
+		const [entry] = this.collect_dock_entries(app);
+		return entry ? this.module_landing_route(entry.module) : null;
 	}
 
 	// Where a module leads: the first navigable item in the sidebar *this user* resolved.
@@ -1027,12 +1088,17 @@ frappe.ui.Sidebar = class Sidebar {
 		return null;
 	}
 
-	// The module currently shown -- not offered as a switch target, and highlighted on the dock.
-	// A direct comparison now that both sides are exact-case module names; this used to go
-	// through `router.slug`, a third keyspace.
-	is_active_module(sidebar) {
-		if (!sidebar) return false;
-		return sidebar.module === this.current_module;
+	// Whether a dock entry is the one on screen -- not offered as a switch target, and highlighted
+	// on the rail. A module entry is active while its sidebar is the one shown; a workspace entry
+	// only while the route is that workspace, because several of an app's entries can share a
+	// module and highlighting all of them would say nothing.
+	is_active_entry(entry) {
+		if (!entry) return false;
+		if (entry.type === "Workspace") {
+			const route = frappe.get_route();
+			return route[0] === "Workspaces" && route[route.length - 1] === entry.name;
+		}
+		return entry.module === this.current_module;
 	}
 
 	initial_sidebar(route) {

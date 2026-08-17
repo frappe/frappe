@@ -248,6 +248,23 @@ def dock_fragments() -> dict[str, list[dict]]:
 	return {app: own.get(app, []) + pinned.get(app, []) for app in own.keys() | pinned.keys()}
 
 
+def get_dock_workspaces() -> dict[str, list[str]]:
+	"""App -> the workspaces its fragment names, in fragment order.
+
+	What folds a companion's pin into the host's entry set, and the whole of what the pin needed:
+	a row grouped under its declarer would never render on the host's dock at all, which is the
+	bug the hook has carried since it was written. An app's own `Workspace` rows land here too --
+	the pin is a row-level difference, not a second mechanism.
+
+	Names only, because that is all the boot payload's entry set is. Whether a person may open one
+	is the caller's to apply, so a pin is gated by its workspace's own Roles table like any other.
+	"""
+	return {
+		app: list(dict.fromkeys(row["name"] for row in rows if row["type"] == "Workspace"))
+		for app, rows in dock_fragments().items()
+	}
+
+
 def get_app_dock() -> list[dict]:
 	"""The base every site starts from: each app's fragment, concatenated.
 

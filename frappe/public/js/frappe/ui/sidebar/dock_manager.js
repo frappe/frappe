@@ -1,7 +1,10 @@
-// Dock manager -- arranges the module dock (rail) for the app you're currently in: which of that
-// app's modules appear on it, and in what order. Two draggable areas: the left is a preview of the
-// dock (the chosen modules, reorderable); the right is the rest of the app's modules, ready to drag
-// in.
+// Dock manager -- arranges the dock (rail) for the app you're currently in: which of that app's
+// entries appear on it, and in what order. Two draggable areas: the left is a preview of the dock
+// (the chosen entries, reorderable); the right is the rest of the app's entries, ready to drag in.
+//
+// An entry is a typed pair -- a `Sidebar` (a module) or a `Workspace` (one of the app's own, or
+// one a companion app pinned onto it) -- and both kinds are arranged the same way, because a pin
+// is an entry on the dock rather than a fixture on it.
 //
 // It edits one of the dock's two layers at a time. Everyone has their own; a Workspace Manager can
 // switch to the site's, which everyone sees and which each person's own is then applied on top of.
@@ -112,39 +115,51 @@ frappe.ui.DockManager = class DockManager {
 	async load() {
 		this.loaded = false;
 		this.$body.html(`<div class="text-muted">${__("Loading...")}</div>`);
+		this.load_entries();
 		this.layer = await frappe.xcall(this.layer_scope.read);
 		this.selection = this.initial_selection();
 		this.loaded = true;
 		this.render();
 	}
 
-	// Every module this app's dock can show, in the server's order. A module absent from the
-	// payload is one the user may see nothing in, so it is not offerable.
-	app_modules() {
-		return ((this.app && this.app.modules) || []).filter((name) => this.has_meta(name));
+	// Every entry this app's dock can show, in the server's order, each resolved to the label and
+	// icon it renders as. An entry the boot payload doesn't carry is one the user may see nothing
+	// in -- a module whose every item is blocked, a workspace they may not open -- so it is not
+	// offerable. Keyed by the typed pair, which is also what a layer row names.
+	load_entries() {
+		this.entries = new Map();
+		((this.app && this.app.dock) || []).forEach((row) => {
+			const entry = frappe.app.sidebar.dock_entry(row);
+			if (entry) this.entries.set(this.key(entry), entry);
+		});
+	}
+
+	// This app's entries, as keys in the server's order.
+	app_keys() {
+		return [...this.entries.keys()];
+	}
+
+	// What identifies an entry here, on the server and on the rail: the typed pair. Both halves,
+	// because a `Sidebar` and a `Workspace` of one name are two entries.
+	key(row) {
+		return frappe.app.sidebar.dock_key(row.type, row.name);
 	}
 
 	// This layer's picks for this app, in their order. A layer is a single flat list across every
-	// app and across both kinds of entry, so this app's picks are the `Sidebar` rows naming its
-	// modules -- a `Workspace` row of the same name is a different entry and not one of them.
+	// app and across both kinds of entry, so this app's picks are the rows naming entries it
+	// offers.
 	initial_selection() {
-		const app_modules = new Set(this.app_modules());
+		const mine = new Set(this.app_keys());
 		const arranged = (this.layer || [])
-			.filter((row) => !row.hidden && this.is_app_module(row, app_modules))
-			.map((row) => row.name);
+			.filter((row) => !row.hidden && mine.has(this.key(row)))
+			.map((row) => this.key(row));
 		return arranged.length ? arranged : this.unarranged_selection();
 	}
 
-	// Whether a layer row is one of this app's modules -- the pair, never the name alone. The
-	// set is passed in rather than rebuilt here, so scanning a layer costs one build of it.
-	is_app_module(row, app_modules) {
-		return row.type === "Sidebar" && app_modules.has(row.name);
-	}
-
-	// One row as a layer stores it: a module is named through its `Sidebar`, which is what the
-	// rail renders and what a module's name is a sidebar's name.
-	sidebar_row(name, hidden) {
-		return { type: "Sidebar", name, hidden };
+	// One row as a layer stores it, from the key the panes work in.
+	stored_row(key, hidden) {
+		const entry = this.entries.get(key);
+		return { type: entry.type, name: entry.name, hidden };
 	}
 
 	// Where an untouched layer starts, so the arrangement is a trim rather than a build from
@@ -158,18 +173,12 @@ frappe.ui.DockManager = class DockManager {
 	//   - the site's starts from the app's own order, never from the dock this manager happens
 	//     to see, which carries their personal arrangement and is not theirs to publish
 	unarranged_selection() {
-		if (this.scope === "site") return this.app_modules();
+		if (this.scope === "site") return this.app_keys();
 
-		const shown = frappe.app.sidebar.collect_dock_modules(this.app).map((s) => s.module);
-		return shown.length ? shown : this.app_modules();
-	}
-
-	has_meta(name) {
-		return !!(frappe.boot.module_sidebars || {})[name];
-	}
-
-	get_ws(name) {
-		return (frappe.boot.module_sidebars || {})[name] || { module: name, label: name };
+		const shown = frappe.app.sidebar
+			.collect_dock_entries(this.app)
+			.map((entry) => this.key(entry));
+		return shown.length ? shown : this.app_keys();
 	}
 
 	render() {
@@ -216,44 +225,44 @@ frappe.ui.DockManager = class DockManager {
 		this.$selection.empty();
 		if (!this.selection.length) {
 			this.$selection.append(
-				`<div class="ws-empty text-muted">${__("Drag modules here")}</div>`
+				`<div class="ws-empty text-muted">${__("Drag entries here")}</div>`
 			);
 			return;
 		}
-		this.selection.forEach((name) => this.$selection.append(this.selection_item(name)));
+		this.selection.forEach((key) => this.$selection.append(this.selection_item(key)));
 	}
 
-	// The pool is the app's modules that aren't on the dock yet -- everything droppable in one
+	// The pool is the app's entries that aren't on the dock yet -- everything droppable in one
 	// place, with nothing to filter between.
 	render_pool() {
-		const names = this.app_modules().filter((name) => !this.selection.includes(name));
+		const keys = this.app_keys().filter((key) => !this.selection.includes(key));
 
 		this.$pool.empty();
-		if (!names.length) {
+		if (!keys.length) {
 			this.$pool.append(
 				`<div class="ws-empty text-muted">${__("Everything is on the dock")}</div>`
 			);
 			return;
 		}
-		names.forEach((name) => this.$pool.append(this.pool_item(name)));
+		keys.forEach((key) => this.$pool.append(this.pool_item(key)));
 	}
 
-	item(name, cls) {
-		const sidebar = this.get_ws(name);
-		const label = sidebar.label || name;
-		const icon = sidebar.header_icon
-			? frappe.utils.icon(sidebar.header_icon, "md")
+	item(key, cls) {
+		const entry = this.entries.get(key);
+		const label = entry.label;
+		const icon = entry.icon
+			? frappe.utils.icon(entry.icon, "md")
 			: frappe.utils.desktop_icon(label, "gray", "sm", "Solid");
 		return $(`
-			<div class="ws-item ${cls || ""}" data-name="${frappe.utils.escape_html(name)}">
+			<div class="ws-item ${cls || ""}" data-key="${frappe.utils.escape_html(key)}">
 				<span class="ws-item-icon">${icon}</span>
 				<span class="ws-item-label">${frappe.utils.escape_html(label)}</span>
 			</div>
 		`);
 	}
 
-	selection_item(name) {
-		let $el = this.item(name, "ws-selection-item");
+	selection_item(key) {
+		let $el = this.item(key, "ws-selection-item");
 		$el.prepend(
 			`<span class="ws-item-handle">${frappe.utils.icon("grip-vertical", "sm")}</span>`
 		);
@@ -263,13 +272,13 @@ frappe.ui.DockManager = class DockManager {
 				"sm"
 			)}</button>`
 		);
-		$remove.on("click", () => this.remove_from_selection(name));
+		$remove.on("click", () => this.remove_from_selection(key));
 		$el.append($remove);
 		return $el;
 	}
 
-	pool_item(name) {
-		return this.item(name, "ws-pool-item");
+	pool_item(key) {
+		return this.item(key, "ws-pool-item");
 	}
 
 	setup_selection_sortable() {
@@ -281,9 +290,9 @@ frappe.ui.DockManager = class DockManager {
 			// a workspace dragged in from the pool: capture its name, drop the cloned node, and
 			// re-render both lists from `this.selection` (our single source of truth)
 			onAdd: (evt) => {
-				const name = $(evt.item).attr("data-name");
+				const key = $(evt.item).attr("data-key");
 				$(evt.item).remove();
-				if (name && !this.selection.includes(name)) this.selection.push(name);
+				if (key && !this.selection.includes(key)) this.selection.push(key);
 				this.render_selection();
 				this.render_pool();
 			},
@@ -301,11 +310,11 @@ frappe.ui.DockManager = class DockManager {
 	}
 
 	sync_order() {
-		this.selection = $.map(this.$selection.find(".ws-item"), (el) => $(el).attr("data-name"));
+		this.selection = $.map(this.$selection.find(".ws-item"), (el) => $(el).attr("data-key"));
 	}
 
-	remove_from_selection(name) {
-		this.selection = this.selection.filter((n) => n !== name);
+	remove_from_selection(key) {
+		this.selection = this.selection.filter((k) => k !== key);
 		this.render_selection();
 		this.render_pool();
 	}
@@ -320,22 +329,22 @@ frappe.ui.DockManager = class DockManager {
 		// only this app's entries and leave every other app's arrangement in this layer untouched.
 		// Rows are typed pairs, so an entry of another kind that happens to share a module's name
 		// is one of the ones left alone.
-		const app_modules = this.app_modules();
-		const in_app = new Set(app_modules);
-		const others = (this.layer || []).filter((row) => !this.is_app_module(row, in_app));
-		// A module this app offers that was left out is stored as an explicit `hidden` row, not
-		// simply omitted -- otherwise it would reappear the moment the app adds a module. Nothing
+		const app_keys = this.app_keys();
+		const mine = new Set(app_keys);
+		const others = (this.layer || []).filter((row) => !mine.has(this.key(row)));
+		// An entry this app offers that was left out is stored as an explicit `hidden` row, not
+		// simply omitted -- otherwise it would reappear the moment the app adds an entry. Nothing
 		// selected at all is the exception: that is Reset, and it stores no row for this app so
-		// the layer below shows through instead of the app being hidden module by module.
+		// the layer below shows through instead of the app being hidden entry by entry.
 		const hidden = this.selection.length
-			? app_modules
-					.filter((name) => !this.selection.includes(name))
-					.map((name) => this.sidebar_row(name, 1))
+			? app_keys
+					.filter((key) => !this.selection.includes(key))
+					.map((key) => this.stored_row(key, 1))
 			: [];
 
-		const modules = [
+		const rows = [
 			...others,
-			...this.selection.map((name) => this.sidebar_row(name, 0)),
+			...this.selection.map((key) => this.stored_row(key, 0)),
 			...hidden,
 		];
 
@@ -343,7 +352,7 @@ frappe.ui.DockManager = class DockManager {
 		// arrangement and this user's own on top -- so the rail can be redrawn in place
 		// whichever layer was written.
 		frappe.boot.dock = await frappe.xcall(this.layer_scope.save, {
-			items: JSON.stringify(modules),
+			items: JSON.stringify(rows),
 		});
 
 		this.dialog.hide();
@@ -375,11 +384,24 @@ frappe.ui.DockManager = class DockManager {
 			),
 			async () => {
 				// the app is derived server-side from the modules themselves -- `app_name` here is
-				// the apps-screen key, which is not always the app a module's files live in
-				this.app.modules = await frappe.xcall(
+				// the apps-screen key, which is not always the app a module's files live in. Only
+				// the `Sidebar` entries: a pinned workspace is declared in the companion's own
+				// files and is not this app's to write.
+				const ordered = await frappe.xcall(
 					"frappe.desk.doctype.sidebar.sidebar.ship_dock_order",
-					{ modules: JSON.stringify(this.selection) }
+					{
+						modules: JSON.stringify(
+							this.selection
+								.map((key) => this.entries.get(key))
+								.filter((entry) => entry.type === "Sidebar")
+								.map((entry) => entry.name)
+						),
+					}
 				);
+				this.app.dock = [
+					...ordered.map((name) => ({ type: "Sidebar", name })),
+					...(this.app.dock || []).filter((row) => row.type !== "Sidebar"),
+				];
 
 				this.dialog.hide();
 				frappe.show_alert({

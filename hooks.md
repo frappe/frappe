@@ -92,6 +92,22 @@ person can bring it back with one drag in the dock manager.
 The site's arrangement and each person's own are laid over this, and they only order and hide —
 they never add.
 
+A **companion app** — one that extends a host app rather than standing on its own — pins a
+workspace onto the host's dock with the same hook, by naming the host in `app`:
+
+```python
+# india_compliance/hooks.py
+add_to_dock = [
+	{"type": "Workspace", "name": "GST", "app": "erpnext"},
+]
+```
+
+The pin is appended after the host's own entries rather than positioned among them, and it is
+permission-checked like any other workspace. Declaring one keeps the companion off the apps
+screen — pinning into a host costs the slot, so it takes precedence over `add_to_apps_screen`.
+Declaring your *own* order costs nothing. A companion whose other workspaces should also keep the
+host's dock on screen declares `app_rail_host` as well.
+
 #### Notifications
 
 1. `notification_config` - method to get notification configuration

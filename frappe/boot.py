@@ -216,43 +216,25 @@ def get_boot_module_app():
 	return module_app
 
 
-def get_app_rail_map():
-	"""Workspaces that companion apps pin into another app's workspace dock (the rail).
-
-	A companion app (e.g. India Compliance for ERPNext, India Payroll for HRMS) stays off the
-	apps screen and instead surfaces its workspaces inside a host app's rail via the
-	`add_to_workspace_dock` hook. Each entry names the host `app` and the `workspace` to pin.
-	Returns a map of host app name -> ordered list of workspace names.
-
-	Nothing is permission-filtered here: the caller keeps only workspaces the user is allowed to
-	see, so a pinned workspace is gated by its own Roles table like any other workspace."""
-	rail_map = {}
-
-	for entry in frappe.get_hooks("add_to_workspace_dock") or []:
-		if not isinstance(entry, dict):
-			continue
-
-		host_app = entry.get("app")
-		workspace = entry.get("workspace")
-		if not host_app or not workspace:
-			continue
-
-		rail_map.setdefault(host_app, []).append(workspace)
-
-	return rail_map
-
-
 def get_app_rail_host_map():
-	"""Map of companion app -> the host app it pins into via `add_to_workspace_dock`.
+	"""Map of companion app -> the host app it pins into with an `add_to_dock` row.
 
-	A companion app has no shell of its own; its workspaces live inside the host app's rail. This
-	map lets the desk resolve the app context (dock + header) of a companion app's workspaces to
-	the host app, so you stay "in" the host's rail while using the companion. When a companion pins
-	into more than one host, the first host wins."""
+	A companion app (e.g. India Compliance for ERPNext, India Payroll for HRMS) has no shell of
+	its own; its workspaces live inside the host app's dock. This map lets the desk resolve the
+	app context (dock + header) of a companion app's workspaces to the host app, so you stay "in"
+	the host's dock while using the companion. When a companion pins into more than one host, the
+	first host wins.
+
+	Derived from the **rows carrying `app`**, never from the hook's mere presence. Every app
+	declares `add_to_dock` now, so a presence check would delete each adopting app from the apps
+	screen. Pinning into a host costs the slot; declaring your own order does not.
+	"""
+	from frappe.desk.doctype.dock.dock import DOCK_HOOK
+
 	host_map = {}
-	for app_name in frappe.get_installed_apps():
-		for entry in frappe.get_hooks("add_to_workspace_dock", app_name=app_name) or []:
-			if isinstance(entry, dict) and entry.get("app") and entry.get("workspace"):
+	for app_name in frappe.get_active_apps():
+		for entry in frappe.get_hooks(DOCK_HOOK, app_name=app_name) or []:
+			if isinstance(entry, dict) and entry.get("app") and entry.get("app") != app_name:
 				host_map[app_name] = entry["app"]
 				break
 	return host_map
@@ -275,15 +257,18 @@ def load_desktop_data(bootinfo):
 
 	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
 	# A companion app's workspaces resolve their app context (dock + header) to the host app they
-	# were pinned into via `add_to_workspace_dock`, so the companion appears to live inside the
-	# host's rail rather than flipping the desk to a shell of its own.
+	# pinned into, so the companion appears to live inside the host's dock rather than flipping
+	# the desk to a shell of its own. Not redundant with the pin being in the host's entry set:
+	# only the pinned workspace is derivable from that, and a companion's *other* workspaces need
+	# the host's dock on screen too.
 	bootinfo.app_rail_host = get_app_rail_host_map()
 	# The dock this user sees: each app's fragment, with the site's arrangement and then their
 	# own applied on top, filtered to what they may reach. An arrangement, not the dock's
 	# contents -- an entry it doesn't name still shows, in its app's own order, after the ones
 	# it does.
 	bootinfo.dock = resolve_dock()
-	# Keyed by exact-case module name, so `app_data[].modules` indexes straight in. This
+	# Keyed by exact-case module name, so a `Sidebar` row in `app_data[].dock` indexes straight
+	# in. This
 	# replaced three overlapping payloads -- `workspace_sidebar_item` (keyed by lowercased
 	# workspace title), `default_workspace_map` and `module_wise_workspaces` -- which between
 	# them made the desk reconcile four keyspaces for one identity.
@@ -303,21 +288,27 @@ def load_desktop_data(bootinfo):
 
 
 def get_app_data(allowed_pages: list[str]) -> list[dict]:
-	"""The apps the desk knows about, each with the workspaces that belong to it.
+	"""The apps the desk knows about, each with the ordered set of entries its dock offers.
 
-	This is what backs the apps (desktop) screen and the workspace dock: the dock lists
-	`app_data[app].workspaces` for whichever app is in context. Kept as its own function so
-	anything that re-mounts a workspace can hand the client a fresh copy without duplicating
-	the grouping rules (see `mount_workspace`).
+	This is what backs the apps (desktop) screen and the workspace dock: the dock renders
+	`app_data[app].dock` for whichever app is in context, ordered by the arrangement in
+	`frappe.boot.dock`. One typed list rather than the separate module and workspace lists it
+	replaces -- the client used to reconcile the two to render a single rail, and the pin landed
+	in the one the rail never read. Kept as its own function so anything that re-mounts a
+	workspace can hand the client a fresh copy without duplicating the grouping rules (see
+	`mount_workspace`).
 
 	`allowed_pages` is the set of workspace names the user may see -- `bootinfo.workspaces.pages`,
 	i.e. every public workspace they're permitted plus their own private ones.
 	"""
+	from frappe.desk.doctype.dock.dock import get_dock_workspaces
+
 	app_data = []
 
-	# Companion apps pin their workspaces into a host app's dock (rail) via `add_to_workspace_dock`,
-	# instead of taking an apps-screen slot of their own. Resolved once, merged per host app below.
-	rail_map = get_app_rail_map()
+	# Workspaces named by an `add_to_dock` row on this app's fragment -- its own, and the ones
+	# companion apps pinned onto it instead of taking an apps-screen slot of their own. Resolved
+	# once, folded into each host's list below.
+	pinned = get_dock_workspaces()
 	app_rail_host = get_app_rail_host_map()
 
 	Workspace = frappe.qb.DocType("Workspace")
@@ -331,11 +322,11 @@ def get_app_data(allowed_pages: list[str]) -> list[dict]:
 			app_info = apps[0]
 			has_permission = app_info.get("has_permission")
 			if has_permission and not frappe.get_attr(has_permission)():
-				# The user can't access this app, so we don't expose its routes, workspaces or
-				# modules. We still surface its name/title so things that reference the app can be
-				# labelled (e.g. the sidebar header subtitle) instead of falling back to the user's
-				# name. on_apps_screen stays False so it never shows on the apps screen, and an
-				# empty `workspaces` keeps the desk-side lookups from breaking.
+				# The user can't access this app, so we don't expose its routes or its dock. We
+				# still surface its name/title so things that reference the app can be labelled
+				# (e.g. the sidebar header subtitle) instead of falling back to the user's name.
+				# on_apps_screen stays False so it never shows on the apps screen, and an empty
+				# `dock` keeps the desk-side lookups from breaking.
 				app_data.append(
 					dict(
 						on_apps_screen=False,
@@ -348,16 +339,16 @@ def get_app_data(allowed_pages: list[str]) -> list[dict]:
 						app_logo_url=app_info.get("logo")
 						or frappe.get_hooks("app_logo_url", app_name=app_name)
 						or frappe.get_hooks("app_logo_url", app_name="frappe"),
-						modules=[],
-						workspaces=[],
+						dock=[],
 					)
 				)
 				continue
 
-		# A workspace belongs to this app if its module is the app's (standard, app-shipped
-		# workspaces) or its `app` field points at it (custom workspaces have no module). Use a
-		# left join so module-less custom workspaces aren't dropped. Ordered by `sequence_id` so
-		# the dock lists them in the workspace record's configured order.
+		# The app's own workspaces. Not shipped: this list stopped being part of the payload when
+		# the dock became one typed list, and the only thing left asking for it is the landing
+		# route below. A workspace belongs to this app if its module is the app's; the left join
+		# keeps module-less custom workspaces from being dropped, and `sequence_id` is the
+		# workspace record's own configured order.
 		#
 		# Private workspaces are included on the same footing as public ones: a private workspace
 		# mounted to an app belongs on that app's dock, and nowhere else. Restricting to the
@@ -383,12 +374,15 @@ def get_app_data(allowed_pages: list[str]) -> list[dict]:
 			if r[0] in allowed_pages
 		]
 
-		# Fold in workspaces that companion apps pinned to this app's rail (see get_app_rail_map).
-		# They are permission-filtered like the app's own workspaces and de-duplicated, so the dock
-		# lists them alongside the host app's without a companion app claiming an apps-screen icon.
-		for rail_workspace in rail_map.get(app_name, []):
-			if rail_workspace in allowed_pages and rail_workspace not in workspaces:
-				workspaces.append(rail_workspace)
+		# One ordered typed list: the app's own modules as `Sidebar` rows, then every `Workspace`
+		# an `add_to_dock` row put on this app's fragment -- its own, and the ones companions
+		# pinned onto it. A pin is *appended* rather than positioned: a companion is not
+		# asserting a default into an arrangement that is not its, and where it sits is Layer
+		# business. Permission-filtered like anything else that reaches the dock.
+		dock = [{"type": "Sidebar", "name": module} for module in get_app_modules(app_name)]
+		for workspace in pinned.get(app_name, []):
+			if workspace in allowed_pages:
+				dock.append({"type": "Workspace", "name": workspace})
 
 		app_data.append(
 			dict(
@@ -421,8 +415,7 @@ def get_app_data(allowed_pages: list[str]) -> list[dict]:
 				app_logo_url=app_info.get("logo")
 				or frappe.get_hooks("app_logo_url", app_name=app_name)
 				or None,
-				modules=get_app_modules(app_name),
-				workspaces=workspaces,
+				dock=dock,
 			)
 		)
 
@@ -741,8 +734,8 @@ def get_module_sidebars():
 	what a module resolves to.
 
 	Keyed by **exact-case module name**, which is the fix for the desk's long-standing
-	keyspace problem: `app_data[].modules` is already a list of exact Module Def names, so it
-	now indexes straight in. The legacy payload is keyed by `title.lower()`, a third keyspace
+	keyspace problem: a `Sidebar` row in `app_data[].dock` already names an exact Module Def, so
+	it now indexes straight in. The legacy payload is keyed by `title.lower()`, a third keyspace
 	alongside `router.slug(name)` and the exact Workspace name.
 	"""
 	from frappe.desk.doctype.sidebar.sidebar import (

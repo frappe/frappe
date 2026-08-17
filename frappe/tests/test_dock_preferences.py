@@ -108,6 +108,10 @@ def shipped_dock(fragments: dict[str, list[dict]]):
 	installed list and answers every other hook with nothing, because it has no `hooks.py` to
 	import. That is what lets a suite own its fragments: the framework's own are patched away
 	inside the block, and the assertions do not depend on which apps this bench happens to carry.
+
+	An invented app is deliberately absent from `_ensure_on_bench=True`, which asks for the apps
+	that exist as directories. It does not, and callers who ask that question mean it -- the
+	template loader imports every app it is handed.
 	"""
 	real_hooks = frappe.get_hooks
 	real_apps = frappe.get_active_apps
@@ -122,9 +126,13 @@ def shipped_dock(fragments: dict[str, list[dict]]):
 			return []
 		return real_hooks(hook, default, app_name)
 
+	def patched_apps(*args, _ensure_on_bench=False, **kwargs):
+		apps = real_apps(*args, _ensure_on_bench=_ensure_on_bench, **kwargs)
+		return apps if _ensure_on_bench else [*apps, *invented]
+
 	with (
 		patch.object(frappe, "get_hooks", patched_hooks),
-		patch.object(frappe, "get_active_apps", lambda *a, **k: [*real_apps(), *invented]),
+		patch.object(frappe, "get_active_apps", patched_apps),
 	):
 		yield
 
@@ -619,6 +627,169 @@ class TestTheAppLayer(DockTestCase):
 			[(r["type"], r["name"]) for r in dock_for(among=None) if r["name"] == ALPHA],
 			[("Workspace", ALPHA), ("Sidebar", ALPHA)],
 		)
+
+
+class TestThePin(DockTestCase):
+	"""A companion app's workspace reaching the host app's dock.
+
+	The fix the pinning hook was built for and never delivered: the pin used to land in a per-app
+	workspace list while the rail rendered a per-app module list, so installing a companion took
+	away its apps-screen slot and gave it a dock entry nobody could see.
+	"""
+
+	HOST = "frappe"
+	COMPANION = "zz-dock-companion"
+	OTHER_COMPANION = "zz-dock-companion-two"
+	USER = "test-dock-pin@example.com"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		if not frappe.db.exists("User", self.USER):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": self.USER,
+					"first_name": "Dock Pin",
+					"send_welcome_email": 0,
+					"roles": [{"role": "System Manager"}],
+				}
+			).insert(ignore_permissions=True)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		clear_arrangements()
+		frappe.delete_doc("User", self.USER, force=True, ignore_missing=True)
+
+	def make_workspace(self, title, module, public=1, roles=None):
+		doc = frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": title,
+				"label": title,
+				"module": module,
+				"public": public,
+				"content": "[]",
+				"roles": [{"role": role} for role in roles or []],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Workspace", doc.name, force=True, ignore_missing=True)
+		return doc.name
+
+	def pin(self, workspace, app=None, host=None):
+		return {"type": "Workspace", "name": workspace, "app": host or self.HOST}
+
+	def host_dock(self, email=None):
+		"""The host app's one typed list, as `email` sees it in the boot payload.
+
+		`get_app_data` rather than a whole boot: an invented app is not a directory on the bench,
+		and several other things a boot does walk the installed apps and import each one.
+		"""
+		from frappe.boot import get_app_data
+		from frappe.desk.desktop import get_workspaces
+
+		if email:
+			frappe.set_user(email)
+		try:
+			app_data = get_app_data([page.name for page in get_workspaces()["pages"]])
+		finally:
+			if email:
+				frappe.set_user("Administrator")
+
+		entry = next(app for app in app_data if app["app_name"] == self.HOST)
+		return entry["dock"]
+
+	def test_the_boot_payload_carries_one_typed_list_per_app(self):
+		"""Both old fields are gone: the client stops reconciling a module list against a
+		workspace list to render a single rail, which is the gap the pin fell into."""
+		from frappe.boot import get_bootinfo
+
+		for app in get_bootinfo()["app_data"]:
+			self.assertIn("dock", app)
+			self.assertNotIn("modules", app)
+			self.assertNotIn("workspaces", app)
+			self.assertTrue(all({*row} == {"type", "name"} for row in app["dock"]))
+
+	def test_a_pin_folds_into_the_hosts_list_behind_its_own_entries(self):
+		"""Attribution is forced rather than chosen: a row grouped under the companion would
+		never render on the host's dock at all. Appended rather than positioned -- where it sits
+		is Layer business, not the companion's to assert."""
+		workspace = self.make_workspace("Test Dock Pinned", ALPHA)
+
+		with shipped_dock({self.COMPANION: [self.pin(workspace)]}):
+			dock = self.host_dock()
+
+		self.assertEqual(dock[-1], {"type": "Workspace", "name": workspace})
+		self.assertTrue(all(row["type"] == "Sidebar" for row in dock[:-1]))
+
+	def test_two_companions_pinning_into_one_host_order_by_installation(self):
+		first = self.make_workspace("Test Dock Pin One", ALPHA)
+		second = self.make_workspace("Test Dock Pin Two", BETA)
+
+		with shipped_dock(
+			{
+				self.COMPANION: [self.pin(first)],
+				self.OTHER_COMPANION: [self.pin(second)],
+			}
+		):
+			pinned = [row["name"] for row in self.host_dock() if row["type"] == "Workspace"]
+
+		self.assertEqual(pinned, [first, second])
+
+	def test_a_pinned_workspace_the_person_may_not_open_is_absent(self):
+		"""Permission-filtered like any other workspace, so pinning cannot leak a page's
+		existence to someone who may not open it."""
+		workspace = self.make_workspace("Test Dock Pin Blocked", ALPHA, roles=["Workspace Manager"])
+
+		with shipped_dock({self.COMPANION: [self.pin(workspace)]}):
+			# `get_workspaces` is request-cached, and this suite asks it as two different people
+			# inside one request
+			frappe.local.request_cache.clear()
+			allowed = [row["name"] for row in self.host_dock(self.USER) if row["type"] == "Workspace"]
+
+		self.assertNotIn(workspace, allowed)
+
+	def test_pinning_costs_the_apps_screen_slot_but_declaring_your_own_does_not(self):
+		"""The rule reads the rows, not the hook. Every app declares `add_to_dock` now, so a
+		presence check would delete each adopting app from the apps screen."""
+		from frappe.boot import get_app_rail_host_map
+
+		workspace = self.make_workspace("Test Dock Pin Slot", ALPHA)
+
+		with shipped_dock(
+			{
+				self.COMPANION: [self.pin(workspace)],
+				self.OTHER_COMPANION: [sidebar(BETA)],
+			}
+		):
+			hosts = get_app_rail_host_map()
+
+		self.assertEqual(hosts.get(self.COMPANION), self.HOST)
+		self.assertNotIn(self.OTHER_COMPANION, hosts)
+
+	def test_a_pin_is_arranged_and_hidden_like_any_other_entry(self):
+		workspace = self.make_workspace("Test Dock Pin Arranged", ALPHA)
+		pin_row = {"type": "Workspace", "name": workspace}
+
+		with shipped_dock({self.COMPANION: [self.pin(workspace)], self.HOST: [sidebar(ALPHA)]}):
+			save_site_dock(json.dumps([pin_row, sidebar(ALPHA)]))
+			resolved = [
+				(r["type"], r["name"], r["hidden"])
+				for r in dock_for(self.USER, among=None)
+				if r["name"] in (workspace, ALPHA)
+			]
+
+		self.assertEqual(resolved, [("Workspace", workspace, 0), ("Sidebar", ALPHA, 0)])
+
+	def test_a_layer_row_naming_a_workspace_outside_the_set_adds_nothing(self):
+		"""The layers above the app order and hide; they never add. The entry set is the server's,
+		and an arrangement naming something outside it names nothing the dock renders."""
+		workspace = self.make_workspace("Test Dock Pin Unpinned", ALPHA)
+
+		with shipped_dock({}):
+			save_site_dock(json.dumps([{"type": "Workspace", "name": workspace}]))
+			pinned = [row["name"] for row in self.host_dock() if row["type"] == "Workspace"]
+
+		self.assertNotIn(workspace, pinned)
 
 
 class TestTheShippedModuleOrder(IntegrationTestCase):

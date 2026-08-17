@@ -439,6 +439,15 @@ use_json_request_body = True
 # 	{{"type": "Sidebar", "name": "{app_title}"}},
 # ]
 
+# A companion app that extends a host app pins a workspace onto the host's dock with the same
+# hook: one row naming the host `app`. The pin is appended after the host's own entries, and it
+# keeps this app off the apps screen -- pinning into a host costs the slot, so it takes
+# precedence over any add_to_apps_screen above. Who can see a pinned workspace is controlled by
+# that workspace's own Roles table.
+# add_to_dock = [
+# 	{{"type": "Workspace", "name": "My Workspace", "app": "erpnext"}},
+# ]
+
 # Includes in <head>
 # ------------------
 

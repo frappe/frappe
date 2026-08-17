@@ -250,6 +250,10 @@ class TestNoAppContextInsideAStandaloneModule(StandaloneModuleTestCase):
 	def app_entry(self, app_name: str):
 		return next(app for app in get_bootinfo()["app_data"] if app["app_name"] == app_name)
 
+	def dock_modules(self, app: dict) -> list[str]:
+		"""The `Sidebar` half of an app's one typed dock list -- its modules."""
+		return [row["name"] for row in app["dock"] if row["type"] == "Sidebar"]
+
 	def test_a_placed_module_names_the_app_that_supplies_the_rails_items(self):
 		"""Placed: the rail lists the app's other modules, so the payload has to say which app
 		and that app has to claim the module."""
@@ -257,7 +261,7 @@ class TestNoAppContextInsideAStandaloneModule(StandaloneModuleTestCase):
 			make_sidebar(module)
 
 			self.assertEqual(self.sidebar(module).app, "frappe")
-			self.assertIn(module, self.app_entry("frappe")["modules"])
+			self.assertIn(module, self.dock_modules(self.app_entry("frappe")))
 
 	def test_the_rail_and_the_desktop_agree_about_what_placed_means(self):
 		"""Two surfaces read placement -- the rail (`app` on the payload) and the tile list
@@ -294,7 +298,7 @@ class TestNoAppContextInsideAStandaloneModule(StandaloneModuleTestCase):
 			make_sidebar(module)
 
 			for app in get_bootinfo()["app_data"]:
-				self.assertNotIn(module, app["modules"])
+				self.assertNotIn(module, self.dock_modules(app))
 
 	def test_the_icon_needs_no_new_boot_payload(self):
 		"""The rail resolves a standalone module's icon from the sidebar it already

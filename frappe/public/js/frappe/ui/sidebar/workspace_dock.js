@@ -182,7 +182,7 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 		}
 		this.$dock.removeClass("hidden");
 		this.render_logo();
-		this.render_modules();
+		this.render_entries();
 	}
 
 	// The rail's top slot: what you are inside, and the way out of it. The app's icon when the
@@ -230,31 +230,32 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 	module_logo() {
 		let sidebar = frappe.boot.module_sidebars[this.sidebar.current_module] || {};
 		let label = sidebar.label || this.sidebar.current_module || __("Apps");
-		return { icon: this.module_icon(sidebar, label), title: label };
+		return { icon: this.entry_icon(sidebar.header_icon, label), title: label };
 	}
 
-	// A module's icon: the authored one, else a letter icon from its label. Shared by the top slot
-	// and the items below it so a module looks the same wherever the rail shows it.
-	module_icon(sidebar, label) {
-		return sidebar.header_icon
-			? frappe.utils.icon(sidebar.header_icon, "md")
+	// A dock entry's icon: the authored one, else a letter icon from its label. Shared by the top
+	// slot and the items below it, so a module looks the same wherever the rail shows it and a
+	// pinned workspace wears its own icon on the same terms.
+	entry_icon(icon, label) {
+		return icon
+			? frappe.utils.icon(icon, "md")
 			: frappe.utils.desktop_icon(label, "gray", "sm");
 	}
 
-	// Inside a standalone module this renders nothing: collect_dock_modules answers with no
-	// modules, and an empty items region is the right answer rather than a rail of one -- an item
+	// Inside a standalone module this renders nothing: collect_dock_entries answers with no
+	// entries, and an empty items region is the right answer rather than a rail of one -- an item
 	// rendered permanently active with no alternatives is a switcher that cannot switch.
-	render_modules() {
+	render_entries() {
 		// dispose tooltips from the previous render before wiping their elements
 		this.$items.find('[data-toggle="tooltip"]').tooltip("dispose");
 		this.$items.empty();
 
-		this.sidebar.collect_dock_modules(this.app).forEach((sidebar) => {
-			let $item = this.make_module_item(sidebar);
+		this.sidebar.collect_dock_entries(this.app).forEach((entry) => {
+			let $item = this.make_dock_item(entry);
 			if ($item) this.$items.append($item);
 		});
 
-		// the rail is icon-only, so surface each workspace's name as a hover tooltip
+		// the rail is icon-only, so surface each entry's name as a hover tooltip
 		this.$items.find('[data-toggle="tooltip"]').tooltip({
 			boundary: "window",
 			container: "body",
@@ -262,13 +263,15 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 		});
 	}
 
-	make_module_item(sidebar) {
-		let label = sidebar.label || sidebar.module;
+	// One rail button, for either kind of entry. A pinned workspace needs no markup of its own:
+	// `dock_entry` resolved its label and icon out of the boot payload the same way a module's
+	// come from its sidebar, so from here down the two are one thing.
+	make_dock_item(entry) {
+		let label = entry.label;
 		if (!label) return null;
-		let module = sidebar.module;
-		let icon = this.module_icon(sidebar, label);
+		let icon = this.entry_icon(entry.icon, label);
 
-		let is_active = this.sidebar.is_active_module(sidebar);
+		let is_active = this.sidebar.is_active_entry(entry);
 		let $item = $(`<button
 			class="workspace-dock-item ${is_active ? "active" : ""}"
 			title="${frappe.utils.escape_html(label)}"
@@ -278,7 +281,7 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 			${is_active ? 'aria-current="page"' : ""}
 		>${icon}</button>`);
 
-		$item.on("click", () => this.sidebar.open_module(module));
+		$item.on("click", () => this.sidebar.open_dock_entry(entry));
 		return $item;
 	}
 };

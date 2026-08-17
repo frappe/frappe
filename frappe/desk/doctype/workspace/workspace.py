@@ -366,8 +366,8 @@ def disable_saving_as_public():
 def workspace_payload(**extra):
 	"""The desk state a workspace write invalidates, for the caller to swap into `frappe.boot`.
 
-	`app_data` is in here because the dock is app-scoped: it lists `app_data[app].workspaces`, so
-	a workspace that just gained or changed its `app` only moves once that mapping is rebuilt.
+	`app_data` is in here because the dock is app-scoped: it renders `app_data[app].dock`, so a
+	workspace that just gained or changed its module only moves once that mapping is rebuilt.
 	Without it the desk needs a full reload to show the change.
 	"""
 	from frappe.boot import build_entity_module_map, get_app_data, get_module_sidebars

@@ -735,8 +735,8 @@ frappe.views.Workspace = class Workspace {
 		this.setup_pages(frappe.boot.workspaces.pages);
 		if (message.module_sidebars) frappe.boot.module_sidebars = message.module_sidebars;
 		if (message.entity_module) frappe.boot.entity_module = message.entity_module;
-		// The dock is app-scoped: it lists `app_data[app].workspaces`. A workspace that just
-		// changed app (or gained one) only moves docks once this mapping is swapped in.
+		// The dock is app-scoped: it renders `app_data[app].dock`. A workspace that just changed
+		// app (or gained one) only moves docks once this mapping is swapped in.
 		if (message.app_data) frappe.boot.app_data = message.app_data;
 		this.reload();
 		// reload() re-derives the current page synchronously; re-render its sidebar so a rename
@@ -1086,23 +1086,11 @@ frappe.views.Workspace = class Workspace {
 								frappe.boot.entity_module = r.message.entity_module;
 						}
 
-						// Surface the new workspace in the selector right away (the boot.py fix
-						// makes it durable across reloads). Public ones are listed via their app's
-						// workspace list; private ones are auto-listed from frappe.workspaces.
-						const new_page_app =
-							new_page.module &&
-							frappe.boot.module_app[frappe.router.slug(new_page.module)];
-						if (new_page.public && new_page_app) {
-							let app = (frappe.boot.app_data || []).find(
-								(a) => a.app_name === new_page_app
-							);
-							if (app && !app.workspaces.includes(new_page.name)) {
-								app.workspaces.push(new_page.name);
-							}
-						}
-
 						// Switch the shell to the module the new workspace belongs to, so it
-						// reflects the just-created workspace.
+						// reflects the just-created workspace. Nothing is pushed onto the rail:
+						// the dock lists an app's modules and the workspaces an `add_to_dock` row
+						// names, and a new workspace reaches the shell through its module's
+						// sidebar instead.
 						const module = frappe.app.sidebar.module_for_workspace(new_page.name);
 						if (module) {
 							frappe.app.sidebar.setup(module);

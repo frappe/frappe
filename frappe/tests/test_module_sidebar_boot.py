@@ -123,7 +123,8 @@ class TestSidebarBoot(IntegrationTestCase):
 		frappe.set_user("Administrator")
 
 	def test_keyed_by_exact_case_module_name(self):
-		"""The point of the switch: `app_data[].modules` holds exact Module Def names, so it
+		"""The point of the switch: a `Sidebar` row in `app_data[].dock` holds an exact
+		Module Def name, so it
 		must index straight into this payload. The legacy key is `title.lower()`."""
 		payload = get_module_sidebars()
 		self.assertTrue(payload, "sanity: the site has sidebars")
