@@ -58,11 +58,15 @@ class StudioComponent(Document):
 COMPONENT_INPUT_FIELDS = ("input_name", "type", "description", "options", "required", "default")
 
 
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 def get_component(component_name: str) -> dict:
 	"""Serve a component definition to the app renderer without a DocType permission
 	check — like page definitions (see get_page), a component is markup with no draft
-	state; the data it renders stays permission-checked by the endpoints serving it."""
+	state; the data it renders stays permission-checked by the endpoints serving it.
+
+	Deliberately guest-readable: component definitions are treated as public assets
+	(like the standard components shipped in the JS bundle), so guest pages can
+	render them without gating."""
 	component = frappe.get_cached_doc("Studio Component", component_name)
 	return {
 		"name": component.name,
