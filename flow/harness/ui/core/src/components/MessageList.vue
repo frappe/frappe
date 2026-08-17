@@ -145,11 +145,18 @@ const partialVersion = computed(() => {
 
 const scroller = ref(null)
 const stick = ref(true)
+let lastScrollTop = 0
 
 function onScroll() {
 	const el = scroller.value
 	if (!el) return
-	stick.value = el.scrollHeight - el.scrollTop - el.clientHeight < 80
+	const distance = el.scrollHeight - el.scrollTop - el.clientHeight
+	const goingUp = el.scrollTop < lastScrollTop
+	lastScrollTop = el.scrollTop
+	// any upward scroll unsticks; only scrolling down near the bottom re-sticks
+	if (distance < 1) stick.value = true
+	else if (goingUp) stick.value = false
+	else stick.value = distance < 80
 }
 
 function toBottom() {
