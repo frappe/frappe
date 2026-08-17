@@ -21,6 +21,9 @@ class TestParseVisibleTypes(FrappeTestCase):
 		self.assertEqual(types, {"email", "version"})
 		self.assertIsNone(fields)
 
+	def test_all_malformed_means_no_filter(self):
+		self.assertEqual(parse_visible_types([42, True]), (None, None))
+
 	def test_non_string_fields_are_dropped(self):
 		_types, fields = parse_visible_types([{"version": ["status", 5, None]}])
 		self.assertEqual(fields, ["status"])
