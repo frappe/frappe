@@ -55,43 +55,30 @@ export function groupActivities(activities: Activity[]): Activity[] {
   return _activities;
 }
 
-// Fold same-author version rows chained ≤15m apart into one summary, regardless of
-// interleaved rows — an activity log or comment between two saves must not split a
-// fold. The summary sits where the cluster's last row was, so order stays chronological.
+// Fold consecutive same-author version rows ≤15m apart; any other row splits the run.
 export function groupVersionActivities(activities: Activity[]): Activity[] {
-  interface Cluster {
-    rows: VersionActivity[];
-    lastIndex: number;
-  }
-  const open = new Map<string, Cluster>(); // author email → growing cluster
-  const clusterAt = new Map<number, Cluster>(); // index of a cluster's last row
-  activities.forEach((a, i) => {
-    if (a.type !== "version") return;
-    const author = a.author?.email ?? "";
-    const cluster = open.get(author);
-    if (cluster && withinGap(cluster.rows[cluster.rows.length - 1], a)) {
-      clusterAt.delete(cluster.lastIndex);
-      cluster.rows.push(a);
-      cluster.lastIndex = i;
-      clusterAt.set(i, cluster);
-    } else {
-      const started = { rows: [a], lastIndex: i };
-      open.set(author, started);
-      clusterAt.set(i, started);
-    }
-  });
-
   const out: Activity[] = [];
-  activities.forEach((a, i) => {
-    if (a.type !== "version") {
-      out.push(a);
-      return;
-    }
-    const cluster = clusterAt.get(i);
-    if (!cluster) return; // folded into a later row of its cluster
-    const summary = summarizeVersions(cluster.rows);
+  let run: VersionActivity[] = [];
+  const flush = () => {
+    if (!run.length) return;
+    const summary = summarizeVersions(run);
     if (summary) out.push(summary);
-  });
+    run = [];
+  };
+  for (const a of activities) {
+    const last = run[run.length - 1];
+    if (
+      a.type === "version" &&
+      (!last || (last.author?.email === a.author?.email && withinGap(last, a)))
+    ) {
+      run.push(a);
+      continue;
+    }
+    flush();
+    if (a.type === "version") run.push(a);
+    else out.push(a);
+  }
+  flush();
   return out;
 }
 
