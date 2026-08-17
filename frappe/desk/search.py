@@ -483,6 +483,73 @@ def get_user_groups():
 
 
 @frappe.whitelist()
+def awesomebar_search(txt: str) -> list[dict]:
+	"""Collect extra Awesome Bar results from the `awesomebar_search` hook.
+
+	Each hooked method receives `txt` and should return a list of dicts with:
+	- `label` (or `value`): title shown in the dropdown
+	- `description`: optional snippet under the title
+	- `route`: desk route list (`["List", "ToDo"]`), in-app path (`/desk/docs/some/page`),
+	  or URL string (`http://` / `https://` opens in a new tab)
+	- `index`: optional ranking score (higher ranks first; built-in Search is 100)
+	- `route_options`: optional dict passed to `frappe.route_options` on select
+	"""
+	txt = cstr(txt).strip()
+	if not txt:
+		return []
+
+	results = []
+	for method in frappe.get_hooks("awesomebar_search"):
+		try:
+			items = frappe.get_attr(method)(txt) or []
+		except Exception:
+			frappe.logger("awesomebar").error(f"awesomebar_search hook failed: {method}", exc_info=True)
+			continue
+		if not isinstance(items, list | tuple):
+			continue
+		for item in items[:20]:
+			if normalized := _normalize_awesomebar_result(item):
+				results.append(normalized)
+	return results
+
+
+def _normalize_awesomebar_result(item) -> dict | None:
+	if not isinstance(item, dict):
+		return None
+
+	label = cstr(item.get("label") or item.get("value"))
+	if not label:
+		return None
+
+	route = item.get("route")
+	if isinstance(route, str):
+		route = [route]
+	elif route:
+		route = [cstr(part) for part in route]
+	else:
+		return None
+
+	if not route or route[0].startswith("//"):
+		return None
+	if ":" in route[0] and not route[0].startswith(("http://", "https://")):
+		return None
+
+	result = {
+		"label": label,
+		"value": cstr(item.get("value") or label),
+		"index": cint(item.get("index")),
+		"route": route,
+	}
+	if description := item.get("description"):
+		result["description"] = cstr(description)
+	if result_type := item.get("type"):
+		result["type"] = cstr(result_type)
+	if (route_options := item.get("route_options")) and isinstance(route_options, dict):
+		result["route_options"] = route_options
+	return result
+
+
+@frappe.whitelist()
 def get_link_title(doctype: str, docname: str | int):
 	meta = frappe.get_meta(doctype)
 
