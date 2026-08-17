@@ -21,13 +21,8 @@ dependencies = [
     "pyarrow~=25.0.0",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
-<<<<<<< HEAD
     "PyMySQL==1.1.1",
-    "pypdf==6.13.3",
-=======
-    "PyMySQL==1.1.2",
     "pypdf==6.15.0",
->>>>>>> 4e10005b36 (chore: update pypdf)
     "PyPika @ git+https://github.com/frappe/pypika@2c50e6142b2d61d2d243e466fdd5dc03b3d918f2",
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.2",
@@ -170,89 +165,3 @@ nixpkgs-deps = [
     "nodejs_20",
     "python312",
 ]
-<<<<<<< HEAD
-=======
-
-[tool.uv]
-exclude-newer = "7 days"
-exclude-newer-package = { pypdf = false }
-
-[tool.mypy]
-strict = false
-pretty = true
-incremental = true
-sqlite_cache = true
-files = [
-    # start small, with a lot of multiplication potential
-    "frappe/types/__init__.py",
-    "frappe/types/DF.py",
-    "frappe/types/frappedict.py",
-    "frappe/types/filter.py",
-]
-exclude = [
-    # permanent excludes
-    "^frappe/patches",
-    '/test_.+\.py$',
-    "^frappe/tests/ui_test_helpers.py",
-    "^frappe/parallel_test_runner.py",
-    "^frappe/deprecation_dumpster.py",
-]
-disable_error_code = [
-]
-
-[[tool.mypy.overrides]]
-module = "frappe"
-# Too many for a start
-disable_error_code = [
-    "no-any-expr",
-    "no-untyped-def",
-    "no-untyped-call",
-    "no-untyped-usage",
-]
-
-# External libraries without types
-[[tool.mypy.overrides]]
-module = [
-    "bleach_allowlist",
-    "cssutils",
-    "cups",
-    "email_reply_parser",
-    "filetype",
-    "google",
-    "googleapiclient.discovery",
-    "googleapiclient.errors",
-    "google.oauth2",
-    "google.oauth2.credentials",
-    "markdown2",
-    "markdownify",
-    "num2words",
-    "pdfkit",
-    "premailer",
-    "pyngrok",
-    "pypika",
-    "pypika.dialects",
-    "pypika.functions",
-    "pypika.queries",
-    "pypika.terms",
-    "pypika.utils",
-    "pyqrcode",
-    "rauth",
-    "requests_oauthlib",
-    "RestrictedPython",
-    "RestrictedPython.Guards",
-    "RestrictedPython.transformer",
-    "semantic_version",
-    "sql_metadata",
-    "sqlparse",
-    "terminaltables",
-    "traceback_with_variables",
-    "whoosh.fields",
-    "whoosh.index",
-    "whoosh.qparser",
-    "whoosh.query",
-    "whoosh.writing",
-    "xlrd",
-    "xmlrunner",
-]
-ignore_missing_imports = true
->>>>>>> a48aeacaa0 (fix: exclude pypdf from newer package)
