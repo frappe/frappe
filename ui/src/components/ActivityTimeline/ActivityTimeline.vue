@@ -190,9 +190,12 @@ function loadMore() {
 	props.paginate?.fetchNextPage();
 }
 
-// column-reverse: scrollTop 0 is the newest row
+// column-reverse: scrollTop 0 is the newest row; unbounded, the scrolling ancestor jumps instead
 function scrollToLatest() {
-	if (rootEl.value) rootEl.value.scrollTop = 0;
+	const el = rootEl.value;
+	if (!el) return;
+	if (el.scrollHeight > el.clientHeight) el.scrollTop = 0;
+	else el.scrollIntoView({ block: "end" });
 }
 
 // Stable v-for key / scroll-target id; custom rows may omit `key`.

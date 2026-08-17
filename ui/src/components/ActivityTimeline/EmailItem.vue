@@ -3,9 +3,8 @@
 		<template #header>
 			<div class="ps-3" :class="$slots.actions ? 'pe-1.5' : 'pe-3'">
 				<slot name="header" :email="email">
-					<!-- 40px header; its center aligns with the gutter avatar -->
-					<!-- min-h + wrap: on narrow widths the time/actions drop below the name -->
-					<div class="flex min-h-10 flex-wrap items-center justify-between gap-2">
+					<!-- 40px header row; its center aligns with the gutter avatar -->
+					<div class="flex items-center justify-between gap-2 pt-2 sm:min-h-10 sm:pt-0">
 						<!-- sender email is hidden; surfaced on hover via tooltip -->
 						<Tooltip :text="email.data.sender">
 							<span class="min-w-0 truncate text-base font-medium text-ink-gray-6">{{
@@ -19,11 +18,18 @@
 								variant="subtle"
 								:theme="status.color"
 							/>
-							<TimeAgo :timestamp="email.timestamp" class="text-sm" />
+							<!-- time sits inline from sm up; below it, on its own line under the name -->
+							<TimeAgo
+								:timestamp="email.timestamp"
+								class="hidden text-sm sm:block"
+							/>
 							<div v-if="$slots.actions" class="flex items-center gap-1">
 								<slot name="actions" />
 							</div>
 						</div>
+					</div>
+					<div class="pb-1 sm:hidden">
+						<TimeAgo :timestamp="email.timestamp" class="text-sm" />
 					</div>
 					<div
 						v-if="email.data.to || email.data.cc || email.data.bcc"
