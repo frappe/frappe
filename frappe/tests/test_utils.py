@@ -589,7 +589,7 @@ class TestHTMLUtils(IntegrationTestCase):
 		# tag-free content (including JSON) is returned unchanged
 		self.assertEqual(sanitize_html('[["name", "=", "x"]]'), '[["name", "=", "x"]]')
 		self.assertEqual(sanitize_html("plain text"), "plain text")
-    
+
 	def test_sanitize_svg(self):
 		from frappe.utils.html_utils import sanitize_svg
 
