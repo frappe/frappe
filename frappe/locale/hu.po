@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-03 16:56\n"
+"PO-Revision-Date: 2026-08-16 19:27\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -16813,7 +16813,7 @@ msgstr "MyISAM"
 #: frappe/public/js/frappe/widgets/number_card_widget.js:226
 msgctxt "Number not available"
 msgid "N/A"
-msgstr ""
+msgstr "N/A"
 
 #: frappe/workflow/doctype/workflow/workflow.js:19
 msgid "NOTE: If you add states or transitions in the table, it will be reflected in the Workflow Builder but you will have to position them manually. Also Workflow Builder is currently in <b>BETA</b>."
