@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.automation_engine import settings
-from frappe.automation_engine.queue import QUEUE, WAITING_STATES, queue_status
+from frappe.automation_engine.queue import DRAIN_QUEUE, QUEUE, WAITING_STATES, queue_status
 from frappe.automation_engine.registry import get_automations_for
 from frappe.utils import cint, cstr, now
 from frappe.utils.data import evaluate_filters
@@ -161,7 +161,7 @@ def kick_drainer():
 	"""Enqueue a single deduplicated drain job (registered via after_commit)."""
 	frappe.enqueue(
 		"frappe.automation_engine.drainer.drain",
-		queue="default",
+		queue=DRAIN_QUEUE,
 		job_id=f"automation_drain::{frappe.local.site}",
 		deduplicate=True,
 	)

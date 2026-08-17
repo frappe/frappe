@@ -7,14 +7,12 @@ import time
 import frappe
 from frappe.automation_engine import runner, settings
 from frappe.automation_engine.dispatch import kick_drainer
-from frappe.automation_engine.queue import QUEUE, WAITING_STATES
+from frappe.automation_engine.queue import DRAIN_QUEUE, QUEUE, WAITING_STATES
 from frappe.utils import add_days, add_to_date, cint, now
 from frappe.utils.background_jobs import get_queues_timeout
 
 DEFAULT_BATCH_SIZE = 500
-# The RQ queue the drain job runs on; its timeout is what the drain has to finish inside.
-DRAIN_QUEUE = "default"
-# Share of that timeout a drain will spend claiming, leaving room for the last batch.
+# Share of the drain queue's timeout a drain will spend claiming, leaving room for the last batch.
 DRAIN_TIME_BUDGET = 0.6
 
 
