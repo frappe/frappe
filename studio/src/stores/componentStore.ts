@@ -1,6 +1,6 @@
 import { defineStore } from "pinia"
 import { markRaw, reactive } from "vue"
-import { createDocumentResource } from "frappe-ui"
+import { createResource } from "frappe-ui"
 import Block from "@/utils/block"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
 import { isObjectEmpty } from "@/utils/helpers"
@@ -13,13 +13,13 @@ const useComponentStore = defineStore("componentStore", () => {
 	const fetchingComponent = reactive<Set<string>>(new Set())
 
 	async function fetchComponent(componentName: string) {
-		const componentDoc = await createDocumentResource({
-			doctype: "Studio Component",
-			name: componentName,
-			auto: true,
+		const componentDoc = createResource({
+			url: "studio.studio.doctype.studio_component.studio_component.get_component",
+			method: "GET",
+			params: { component_name: componentName },
 		})
-		await componentDoc.get.promise
-		return componentDoc.doc as StudioComponent
+		await componentDoc.fetch()
+		return componentDoc.data as StudioComponent
 	}
 
 	async function getComponent(componentName: string): Promise<Block | undefined> {
