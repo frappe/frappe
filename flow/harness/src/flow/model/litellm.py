@@ -545,6 +545,10 @@ def _cache_last_tool(tools: list[dict[str, Any]]) -> list[dict[str, Any]]:
 	return marked
 
 
+# Providers that reject `reasoning_content` on an assistant message they authored.
+_NO_REASONING_REPLAY = {"groq"}
+
+
 def _assistant_wire(message: AssistantMessage, model: LiteLLMModel) -> dict[str, Any]:
 	same_model = (
 		message.api == model.api and message.provider == model.provider and message.model == model.model
@@ -579,7 +583,7 @@ def _assistant_wire(message: AssistantMessage, model: LiteLLMModel) -> dict[str,
 			}
 			for call in message.tool_calls
 		]
-	if reasoning_parts:
+	if reasoning_parts and model.provider not in _NO_REASONING_REPLAY:
 		assistant["reasoning_content"] = "".join(reasoning_parts)
 	# Anthropic-family providers read thinking only from `thinking_blocks`; without
 	# them litellm silently drops the `thinking` parameter next turn.
