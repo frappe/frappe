@@ -21,6 +21,7 @@ declare global {
 		app_name: string
 		app_route: string
 		app_pages: Page[]
+		is_guest?: boolean
 	}
 }
 
@@ -58,6 +59,13 @@ router.beforeEach((to, _, next) => {
 		}
 	}
 	if (!to.matched.length) {
+		if (window.is_guest) {
+			// guests only get public pages in app_pages — an unmatched route may just
+			// need a login, so bounce through it and back to the same URL
+			const redirectTo = encodeURIComponent(`/${window.app_route}${to.fullPath}`)
+			window.location.href = `/login?redirect-to=${redirectTo}`
+			return false
+		}
 		toast.error(`Failed to navigate to ${to.fullPath}`, {
 			description: "Page does not exist or is not published"
 		})

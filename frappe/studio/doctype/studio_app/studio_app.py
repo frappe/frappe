@@ -17,10 +17,17 @@ from studio.realtime import publish_doc_change
 class StudioAppRenderer(DocumentPage):
 	def render(self):
 		# redirect guests to login instead of serving a dead page.
-		if frappe.session.user == "Guest":
+		if frappe.session.user == "Guest" and not self.can_render_for_guest():
 			frappe.flags.redirect_location = f"/login?redirect-to=/{quote(self.path)}"
 			raise frappe.Redirect(http_status_code=302)
 		return super().render()
+
+	def can_render_for_guest(self):
+		if self.is_preview():
+			return False
+		return bool(
+			frappe.db.exists("Studio Page", dict(studio_app=self.docname, published=1, allow_guest=1))
+		)
 
 	def can_render(self):
 		if app := self.find_app_for_path():
@@ -103,9 +110,11 @@ class StudioApp(WebsiteGenerator):
 		context.app_title = self.app_title
 		context.frappe_app = self.frappe_app or ""
 		context.base_url = frappe.utils.get_url(self.route)
-		context.app_pages = frappe.get_all(
-			"Studio Page", dict(studio_app=self.name, published=1), ["name", "page_title", "route"]
-		)
+		context.is_guest = frappe.session.user == "Guest"
+		page_filters = dict(studio_app=self.name, published=1)
+		if context.is_guest:
+			page_filters["allow_guest"] = 1
+		context.app_pages = frappe.get_all("Studio Page", page_filters, ["name", "page_title", "route"])
 		context.is_developer_mode = frappe.utils.cint(frappe.conf.developer_mode)
 		context.vite_dev_server_host = get_vite_dev_server_host()
 

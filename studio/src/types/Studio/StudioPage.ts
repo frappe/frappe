@@ -13,6 +13,8 @@ export interface StudioPage {
 	page_name: string
 	/**	Published : Check	*/
 	published?: 0 | 1
+	/**	Allow Guest Access : Check	*/
+	allow_guest?: 0 | 1
 	/**	Route : Data	*/
 	route: string
 	/**	Blocks : JSON	*/

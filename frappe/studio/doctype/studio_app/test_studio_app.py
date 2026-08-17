@@ -231,6 +231,7 @@ def make_studio_page(studio_app, **kwargs):
 			"route": kwargs.get("route", "/test-page"),
 			"blocks": kwargs.get("blocks", "[]"),
 			"published": kwargs.get("published", 1),
+			"allow_guest": kwargs.get("allow_guest", 0),
 		}
 	)
 	page.insert()

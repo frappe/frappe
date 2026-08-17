@@ -6,12 +6,13 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "studio_app",
   "page_name",
   "page_title",
-  "studio_app",
+  "route",
   "column_break_zpqw",
   "published",
-  "route",
+  "allow_guest",
   "section_break_qtyt",
   "blocks",
   "draft_blocks",
@@ -20,7 +21,6 @@
   "variables",
   "scripts_tab",
   "script",
-  "section_break_fmxt",
   "export_tab",
   "is_standard",
   "frappe_app"
@@ -68,6 +68,14 @@
    "label": "Published"
   },
   {
+   "default": "0",
+   "description": "Render this page for logged-out visitors. Its layout and script become publicly readable; data it fetches stays permission-checked.",
+   "fieldname": "allow_guest",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Allow Guest Access"
+  },
+  {
    "fieldname": "draft_blocks",
    "fieldtype": "Long Text",
    "label": "Draft Blocks"
@@ -110,10 +118,6 @@
    "options": "JS"
   },
   {
-   "fieldname": "section_break_fmxt",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "export_tab",
    "fieldtype": "Tab Break",
    "label": "Export"
@@ -138,7 +142,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-08 17:26:13.130136",
+ "modified": "2026-08-17 17:44:03.928540",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page",
