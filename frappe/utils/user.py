@@ -230,9 +230,6 @@ class UserPermissions:
 			# NOTE: `user_data` shouldn't be None, as both "User" (as table) and "self.name" (as column) are expected to be Present always ??
 			return None
 
-		if not self.can_read:
-			self.build_permissions()
-
 		if user_data.get("default_workspace"):
 			try:
 				workspace = frappe.get_cached_doc("Workspace", user_data.default_workspace)
