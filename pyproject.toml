@@ -226,7 +226,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { pypdf = false }
+exclude-newer-package = { }
 
 [tool.mypy]
 strict = false
