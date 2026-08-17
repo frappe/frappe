@@ -5,27 +5,17 @@ import type { Activity, CustomActivity, Pagination, UserInfo } from "./types";
 import { compareActivities, dropDuplicateKeys } from "./grouping";
 import { getAssignee, stripHtml } from "./utils";
 
-// One resource per doctype:docname for the session, so reopening a doc is instant.
-const resources = new Map<string, ReturnType<typeof createResource>>();
-
-// Paging state per source, kept outside the resource so it survives cached remounts: "older rows
-// remain" for each, plus the offset the backend reports for the next milestone page.
-const hasMoreEmailsByKey = new Map<string, Ref<boolean>>();
-const hasMoreMilestonesByKey = new Map<string, Ref<boolean>>();
-const milestoneStartByKey = new Map<string, Ref<number>>();
-
-function pagingState<T>(
-  states: Map<string, Ref<T>>,
-  cacheKey: string,
-  initial: T
-): Ref<T> {
-  let state = states.get(cacheKey);
-  if (!state) {
-    state = ref(initial) as Ref<T>;
-    states.set(cacheKey, state);
-  }
-  return state;
+// One store per cache key for the session, so reopening a doc is instant and
+// paging state survives cached remounts.
+interface TimelineStore {
+  resource: ReturnType<typeof createResource>;
+  // "older rows remain" per paged source, plus the backend-reported offset of
+  // the next milestone page
+  hasMoreEmails: Ref<boolean>;
+  hasMoreMilestones: Ref<boolean>;
+  milestoneStart: Ref<number>;
 }
+const stores = new Map<string, TimelineStore>();
 
 /** e.g. ["email", "comment", { version: ["status", "priority"] }] */
 export type VisibleTypes = Array<Activity["type"] | { version: string[] }>;
@@ -38,22 +28,18 @@ const timelineCacheKey = (
 ) =>
   `${doctype}:${docname}:${visibleTypes ? JSON.stringify(visibleTypes) : "*"}`;
 
-function getTimelineResource(
+function getTimelineStore(
   doctype: string,
   docname: string,
   visibleTypes?: VisibleTypes
-) {
+): TimelineStore {
   const cacheKey = timelineCacheKey(doctype, docname, visibleTypes);
-  const existing = resources.get(cacheKey);
+  const existing = stores.get(cacheKey);
   if (existing) return existing;
 
-  const hasMoreEmails = pagingState(hasMoreEmailsByKey, cacheKey, true);
-  const hasMoreMilestones = pagingState(
-    hasMoreMilestonesByKey,
-    cacheKey,
-    false
-  );
-  const milestoneStart = pagingState(milestoneStartByKey, cacheKey, 0);
+  const hasMoreEmails = ref(true);
+  const hasMoreMilestones = ref(false);
+  const milestoneStart = ref(0);
 
   const resource: ReturnType<typeof createResource> = createResource({
     url: "frappe.desk.form.activity.get_activity_timeline",
@@ -89,8 +75,15 @@ function getTimelineResource(
       }
     },
   });
-  resources.set(cacheKey, resource);
-  return resource;
+
+  const store: TimelineStore = {
+    resource,
+    hasMoreEmails,
+    hasMoreMilestones,
+    milestoneStart,
+  };
+  stores.set(cacheKey, store);
+  return store;
 }
 
 /** Start (or reuse) the shared feed fetch without mounting anything; gate on `.fetched`. */
@@ -99,7 +92,7 @@ export function prefetchActivityTimeline(
   docname: string,
   visibleTypes?: VisibleTypes
 ) {
-  return getTimelineResource(doctype, docname, visibleTypes);
+  return getTimelineStore(doctype, docname, visibleTypes).resource;
 }
 
 export function useActivityTimeline(
@@ -107,20 +100,12 @@ export function useActivityTimeline(
   docname: string,
   visibleTypes?: VisibleTypes
 ) {
-  const cacheKey = timelineCacheKey(doctype, docname, visibleTypes);
   const visibleTypeNames = visibleTypes?.flatMap((t) =>
     typeof t === "string" ? [t] : Object.keys(t)
   );
 
-  const hasMoreEmails = pagingState(hasMoreEmailsByKey, cacheKey, true);
-  const hasMoreMilestones = pagingState(
-    hasMoreMilestonesByKey,
-    cacheKey,
-    false
-  );
-  const milestoneStart = pagingState(milestoneStartByKey, cacheKey, 0);
-
-  const resource = getTimelineResource(doctype, docname, visibleTypes);
+  const store = getTimelineStore(doctype, docname, visibleTypes);
+  const { resource } = store;
 
   subscribeToLiveUpdates(doctype, docname, resource, visibleTypeNames);
 
@@ -137,11 +122,7 @@ export function useActivityTimeline(
     activities,
     loading: computed<boolean>(() => resource.loading),
     reload: () => resource.reload(),
-    paginate: createHistoryPagination(doctype, docname, resource, {
-      hasMoreEmails,
-      hasMoreMilestones,
-      milestoneStart,
-    }),
+    paginate: createHistoryPagination(doctype, docname, store),
   };
 }
 
@@ -158,13 +139,9 @@ function isPagedRow(activity: Activity | CustomActivity): boolean {
 function createHistoryPagination(
   doctype: string,
   docname: string,
-  resource: ReturnType<typeof createResource>,
-  state: {
-    hasMoreEmails: Ref<boolean>;
-    hasMoreMilestones: Ref<boolean>;
-    milestoneStart: Ref<number>;
-  }
+  store: TimelineStore
 ): Pagination {
+  const { resource } = store;
   const append = (activities: Activity[]) => {
     const loaded = (resource.data as Activity[] | undefined) ?? [];
     resource.data = [...loaded, ...activities];
@@ -175,7 +152,7 @@ function createHistoryPagination(
     auto: false,
     onSuccess: (res: { activities: Activity[]; has_more_emails?: boolean }) => {
       append(res.activities);
-      state.hasMoreEmails.value = !!res.has_more_emails;
+      store.hasMoreEmails.value = !!res.has_more_emails;
     },
   });
 
@@ -188,11 +165,11 @@ function createHistoryPagination(
       next_milestone_start?: number;
     }) => {
       append(res.activities);
-      state.hasMoreMilestones.value = !!res.has_more_milestones;
+      store.hasMoreMilestones.value = !!res.has_more_milestones;
       // backend-supplied: a milestone on a field the user cannot read is counted but not
       // returned, so an offset counted from the rendered rows would skip the rows behind it
-      state.milestoneStart.value =
-        res.next_milestone_start ?? state.milestoneStart.value;
+      store.milestoneStart.value =
+        res.next_milestone_start ?? store.milestoneStart.value;
     },
   });
 
@@ -201,17 +178,17 @@ function createHistoryPagination(
   // One control, both sources: a row is older history whichever source it came from.
   const fetchNextPage = () => {
     if (isFetching()) return;
-    if (state.hasMoreEmails.value) {
+    if (store.hasMoreEmails.value) {
       const loaded = (resource.data as Activity[] | undefined) ?? [];
       // count-based offset: emails are only appended, so the loaded count is the next start
       const emailsLoaded = loaded.filter((a) => a.type === "email").length;
       olderEmails.submit({ doctype, name: docname, start: emailsLoaded });
     }
-    if (state.hasMoreMilestones.value) {
+    if (store.hasMoreMilestones.value) {
       olderMilestones.submit({
         doctype,
         name: docname,
-        start: state.milestoneStart.value,
+        start: store.milestoneStart.value,
       });
     }
   };
@@ -219,7 +196,7 @@ function createHistoryPagination(
   // reactive() so the refs unwrap when read through the `paginate` prop.
   return reactive({
     hasNextPage: computed(
-      () => state.hasMoreEmails.value || state.hasMoreMilestones.value
+      () => store.hasMoreEmails.value || store.hasMoreMilestones.value
     ),
     isFetchingNextPage: computed(() => isFetching()),
     fetchNextPage,
