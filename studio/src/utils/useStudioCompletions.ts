@@ -5,7 +5,9 @@ import { isPrivateKey } from "@/utils/helpers"
 import { getBindingType } from "@/utils/parseCode"
 import { getCompletions } from "./autocompletions"
 import { vueApiSources } from "./vueApiCompletions"
-import type { CompletionContext } from "@codemirror/autocomplete"
+import type { CompletionContext, CompletionSource as CMCompletionSource } from "@codemirror/autocomplete"
+import { syntaxTree } from "@codemirror/language"
+import type { SyntaxNode } from "@lezer/common"
 import * as globalUtils from "@/utils/globalUtils"
 
 export const useStudioCompletions = (canEditValues: boolean = false, includeVueApis: boolean = false) => {
@@ -148,4 +150,58 @@ export const useStudioCompletions = (canEditValues: boolean = false, includeVueA
 	return (context: CompletionContext, customSources: CompletionSource[] = []) => {
 		return getCompletions(context, [...completionSources.value, ...customSources])
 	}
+}
+
+// For static prop values (code/array fieldtypes): completion sources that only fire inside the
+// contexts evaluated at render time — {{ }} expressions and inline function values. Window globals
+// are included since those contexts evaluate in the normal scope chain.
+export const useDynamicValueCompletions = () => {
+	const getStudioCompletions = useStudioCompletions()
+
+	return (getCustomSources: () => CompletionSource[] | undefined = () => []): CMCompletionSource[] => [
+		(context) => {
+			if (!isInsideDynamicContext(context)) return null
+			return getStudioCompletions(context, getCustomSources() ?? [])
+		},
+		(context) => {
+			if (!isInsideDynamicContext(context)) return null
+			return getWindowCompletions(context)
+		},
+	]
+}
+
+const isInsideDynamicContext = (context: CompletionContext) => {
+	return isInsideDynamicValue(context) || isInsideFunctionExpression(context)
+}
+
+export const isInsideDynamicValue = (context: CompletionContext) => {
+	const textBeforeCursor = context.state.doc.sliceString(0, context.pos)
+	const lastOpening = textBeforeCursor.lastIndexOf("{{")
+	if (lastOpening === -1) return false
+	return textBeforeCursor.lastIndexOf("}}") < lastOpening
+}
+
+// matches the function-expression prop values evaluated by stringToFunction at render time
+const FUNCTION_NODE_NAMES = ["ArrowFunction", "FunctionExpression", "FunctionDeclaration"]
+
+export const isInsideFunctionExpression = (context: CompletionContext) => {
+	let node: SyntaxNode | null = syntaxTree(context.state).resolveInner(context.pos, -1)
+	while (node) {
+		if (FUNCTION_NODE_NAMES.includes(node.name)) return true
+		node = node.parent
+	}
+	return false
+}
+
+let windowCompletionSource: CMCompletionSource | null = null
+
+const getWindowCompletions = async (context: CompletionContext) => {
+	if (!windowCompletionSource) {
+		// dynamic import to keep lang-javascript out of the main bundle, matching Code.vue
+		const { scopeCompletionSource } = await import("@codemirror/lang-javascript")
+		windowCompletionSource = scopeCompletionSource(window)
+	}
+	const result = await windowCompletionSource(context)
+	if (!result) return null
+	return { ...result, options: result.options.filter((option) => !isPrivateKey(option.label)) }
 }

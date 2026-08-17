@@ -153,10 +153,8 @@
 					label="Edit Code"
 					:showLineNumbers="true"
 					:showSaveButton="true"
-					:completions="
-						(context: CompletionContext) =>
-							getCompletions(context, canvasStore.editableBlock?.getCompletions())
-					"
+					:completions="dynamicValueCompletions"
+					:overrideCompletions="true"
 					@save="
 						(val) => {
 							canvasStore.editableBlock?.setProp(canvasStore.editableCode.propName, val)
@@ -194,7 +192,7 @@ import { studioPages } from "@/data/studioPages"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
 import { getBlockCopy, getRootBlock } from "@/utils/serializer"
-import { useStudioCompletions } from "@/utils/useStudioCompletions"
+import { useStudioCompletions, useDynamicValueCompletions } from "@/utils/useStudioCompletions"
 import { toast } from "frappe-ui"
 
 const route = useRoute()
@@ -203,6 +201,9 @@ const store = useStudioStore()
 const canvasStore = useCanvasStore()
 
 const getCompletions = useStudioCompletions()
+const getDynamicValueCompletions = useDynamicValueCompletions()
+// created once: a fresh array here would make Code.vue rebuild its extensions on every re-render
+const dynamicValueCompletions = getDynamicValueCompletions(() => canvasStore.editableBlock?.getCompletions())
 const componentContextMenu = toRef(store, "componentContextMenu")
 useStudioEvents(saveFragmentMode)
 
