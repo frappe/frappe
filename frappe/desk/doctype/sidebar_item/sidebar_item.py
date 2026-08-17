@@ -35,7 +35,6 @@ class SidebarItem(Document):
 		parenttype: DF.Data
 		route_options: DF.Code | None
 		show_arrow: DF.Check
-		source_workspace: DF.Data | None
 		type: DF.Literal["Link", "Section Break"]
 		url: DF.Data | None
 	# end: auto-generated types

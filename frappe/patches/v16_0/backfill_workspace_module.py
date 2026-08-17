@@ -11,8 +11,9 @@ CUSTOM_MODULE = "Custom Workspaces"
 def execute():
 	"""Give every module-less Workspace a module, so `Workspace.module` can become mandatory.
 
-	The dock is module-shaped now, so a workspace with no module belongs nowhere: it cannot
-	appear on any dock and its sidebar items cannot be merged into any module's sidebar.
+	The dock is module-shaped now, so a workspace with no module belongs nowhere: no dock tile
+	carries it, and no module's sidebar lists it -- a sidebar is built from what its module
+	contains, and a module-less workspace is contained by nothing.
 
 	**No heuristic.** Every signal available here -- the workspace's old `app`, the module its
 	links happen to point at, its parent's module -- answers a different question than the one
@@ -39,9 +40,9 @@ def execute():
 	A row here carrying `standard = 1` is carrying it wrongly -- which the old `set_standard_flag`
 	produced, on develop benches only, that patch never having been in a release.
 
-	Runs *before* `build_module_sidebars`, which reads `Workspace.module` and can only skip what
-	has none. On a v15 site that is every workspace, so behind it this patch is worth nothing:
-	the sidebar merge would find no sources at all.
+	Nothing has to run after it: a module's sidebar is computed from the module's contents on
+	every read (`sidebar.get_computed_base`), so a workspace is listed the moment this patch
+	gives it a module, with no second pass to store the result.
 	"""
 	workspaces = frappe.get_all(
 		"Workspace",

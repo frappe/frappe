@@ -9,14 +9,10 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	COMPUTED_BASE_CACHE_KEY,
 	MODULE_CONTENT_DOCTYPES,
 	SYSTEM_WRITE_FLAGS,
-	build_all,
-	build_sidebar,
 	clear_computed_base_cache,
 	get_computed_base,
-	get_sidebar_sources,
 	item_key,
 	mark_as_standard,
-	pick_primary,
 	unmark_as_standard,
 )
 from frappe.tests import IntegrationTestCase
@@ -271,225 +267,27 @@ class TestItemIdentity(IntegrationTestCase):
 			self.assertEqual(item_key(base.rows[0]), "Link|DocType|User|")
 
 
-class TestSidebarMerge(IntegrationTestCase):
+class TestSidebarDocument(IntegrationTestCase):
+	"""A `Sidebar` is app content: authored in developer mode, backed by a file when standard,
+	and owned by its module for as long as the module is there."""
+
 	def setUp(self):
 		if not frappe.db.exists("Module Def", MODULE):
 			with no_developer_mode():
 				frappe.get_doc(
 					{"doctype": "Module Def", "module_name": MODULE, "app_name": "frappe"}
 				).insert()
-		self.archived = []
 
 	def tearDown(self):
 		# `delete_doc`, not `db.delete`: the latter leaves the item rows behind, and since a
 		# sidebar is named after its module the next one to be inserted adopts the orphans
 		for name in frappe.get_all("Sidebar", filters={"module": MODULE}, pluck="name"):
 			frappe.delete_doc("Sidebar", name, force=True, ignore_permissions=True)
-		for name in frappe.get_all("Custom Sidebar", filters={"module": MODULE}, pluck="name"):
-			frappe.delete_doc("Custom Sidebar", name, force=True, ignore_permissions=True)
-		for name in self.archived:
-			frappe.delete_doc("Workspace Sidebar", name, force=True, ignore_missing=True)
 		with no_developer_mode():
 			frappe.delete_doc("Module Def", MODULE, force=True, ignore_missing=True)
 
-	def make_workspace(self, name, items, for_user=None):
-		"""One of this site's authored sidebars, where a v16 site keeps them.
-
-		Inserted under `in_patch` because the archive takes no new entries -- the only writes
-		it still accepts are the system's own, and a fixture standing in for what a v16 site
-		already holds is exactly that.
-		"""
-		with system_write("in_patch"):
-			doc = frappe.get_doc(
-				{
-					"doctype": "Workspace Sidebar",
-					"title": name,
-					"module": MODULE,
-					"for_user": for_user,
-					"items": items,
-				}
-			).insert(ignore_permissions=True)
-		self.archived.append(doc.name)
-		return doc
-
 	def link(self, doctype, label=None):
 		return {"type": "Link", "link_type": "DocType", "link_to": doctype, "label": label or doctype}
-
-	def site_layer(self):
-		return frappe.get_doc(
-			"Custom Sidebar",
-			frappe.db.get_value("Custom Sidebar", {"module": MODULE, "user": ""}),
-		)
-
-	def test_largest_sidebar_becomes_primary(self):
-		"""`sequence_id` is near-uniform on a real site, so as the primary signal it picks
-		arbitrarily -- it hands Accounts to Invoicing(28) over Accounting(49)."""
-		self.make_workspace("TSM Small", [self.link("User")])
-		self.make_workspace("TSM Large", [self.link("Role"), self.link("DocType")])
-
-		sources = get_sidebar_sources()[MODULE]
-		self.assertEqual(pick_primary(MODULE, sources).name, "TSM Large")
-
-	def test_secondary_becomes_collapsed_section(self):
-		self.make_workspace("TSM Primary", [self.link("User"), self.link("Role")])
-		self.make_workspace("TSM Second", [self.link("DocType")])
-
-		plan = build_sidebar(MODULE, get_sidebar_sources()[MODULE])
-		sections = [i for i in plan["items"] if i["type"] == "Section Break"]
-
-		self.assertEqual(len(sections), 1)
-		self.assertEqual(sections[0]["label"], "TSM Second")
-		self.assertEqual(sections[0]["keep_closed"], 1)
-		# the secondary's own items are nested under it
-		nested = [i for i in plan["items"] if i["source_workspace"] == "TSM Second" and i["type"] == "Link"]
-		self.assertTrue(all(i["child"] == 1 for i in nested))
-
-	def test_merged_title_is_the_module_name(self):
-		"""The union of several sidebars is not any one source's title."""
-		self.make_workspace("TSM Primary", [self.link("User"), self.link("Role")])
-		self.make_workspace("TSM Second", [self.link("DocType")])
-
-		plan = build_sidebar(MODULE, get_sidebar_sources()[MODULE])
-		self.assertEqual(plan["title"], MODULE)
-
-	def test_unmerged_title_keeps_the_workspace_label(self):
-		"""A module with one sidebar must look exactly as it does today (`Loan Management`
-		still reads "Lending")."""
-		self.make_workspace("TSM Only", [self.link("User")])
-
-		plan = build_sidebar(MODULE, get_sidebar_sources()[MODULE])
-		self.assertEqual(plan["title"], "TSM Only")
-
-	def test_boot_duplicates_are_dropped(self):
-		"""The tables carry rows boot dedupes away; copying them straight across would show
-		copies the desk does not. erpnext.site has 160 such rows, 72 in Core alone."""
-		self.make_workspace(
-			"TSM Dupes",
-			[self.link("User"), self.link("User"), self.link("Role")],
-		)
-
-		plan = build_sidebar(MODULE, get_sidebar_sources()[MODULE])
-		users = [i for i in plan["items"] if i["link_to"] == "User"]
-		self.assertEqual(len(users), 1)
-
-	def test_differently_labelled_duplicates_are_one_item(self):
-		"""A relabelled duplicate used to survive the merge, because the dedupe key included
-		`label`. Identity does not: two rows pointing at one target *are* one item, whatever
-		the two workspaces called it (erpnext's CRM lists Lead twice).
-
-		Keeping the second is no longer possible rather than no longer preferred -- it would
-		share an identity with the first, so no customization could name one without naming the
-		other, and the resolution drops it on the way to the payload regardless. The first
-		wins, which is the label the desk was already showing at that position.
-		"""
-		self.make_workspace(
-			"TSM Deliberate",
-			[self.link("User", label="All Users"), self.link("User", label="Active Users")],
-		)
-
-		plan = build_sidebar(MODULE, get_sidebar_sources()[MODULE])
-		users = [i for i in plan["items"] if i["link_to"] == "User"]
-		self.assertEqual([i["label"] for i in users], ["All Users"])
-
-	def test_merging_does_not_re_key_items(self):
-		"""A delta made against a source workspace's item still names it after the merge: the
-		merge copies the columns the identity is made of and derives nothing."""
-		self.make_workspace("TSM Keyed", [self.link("User"), {"type": "Section Break", "label": "More"}])
-
-		sources = get_sidebar_sources()[MODULE]
-		plan = build_sidebar(MODULE, sources)
-
-		self.assertEqual(
-			[item_key(row) for row in sources[0].rows],
-			[item_key(row) for row in plan["items"]],
-		)
-
-	def test_claim_flag_is_not_carried(self):
-		"""The conversion drops the claim rather than mapping it to `is_default_module`.
-
-		A converted row is unretractable: it lives only in the site database, the patch skips a
-		module that already carries a layer, and no app ships a fixture that would overwrite it.
-		Carrying the flag would give an app a claim its own author could never take back. An app
-		that wants one flags the row in a `sidebar` fixture it ships."""
-		item = self.link("User")
-		item["default_workspace"] = 1
-		self.make_workspace("TSM Default", [item])
-
-		plan = build_sidebar(MODULE, get_sidebar_sources()[MODULE])
-		self.assertFalse(plan["items"][0].get("is_default_module"))
-		self.assertNotIn("default_workspace", plan["items"][0])
-
-	def test_provenance_is_recorded(self):
-		"""`merged_from` plus per-item `source_workspace` are what make the merge reversible,
-		so splitting a module later is a command rather than a second migration."""
-		self.make_workspace("TSM Primary", [self.link("User"), self.link("Role")])
-		self.make_workspace("TSM Second", [self.link("DocType")])
-
-		plan = build_sidebar(MODULE, get_sidebar_sources()[MODULE])
-		self.assertEqual(sorted(json.loads(plan["merged_from"])), ["TSM Primary", "TSM Second"])
-		self.assertEqual({i["source_workspace"] for i in plan["items"]}, {"TSM Primary", "TSM Second"})
-
-	def test_a_merge_lands_in_the_site_layer(self):
-		"""Not in a `Sidebar`. That document means "an app ships this", and a merge is
-		derived from this site's own data -- it is site intent, so it goes where site intent
-		lives and stays a layer over the module's computed base."""
-		self.make_workspace("TSM Only", [self.link("User")])
-		build_all()
-
-		self.assertFalse(frappe.db.exists("Sidebar", {"module": MODULE}))
-		self.assertTrue(self.site_layer().sidebar_items)
-
-	def test_an_item_the_base_already_has_is_stored_as_a_reference(self):
-		"""Which is what keeps a migrated sidebar maintained rather than frozen: the label and
-		the link keep coming from below, so the app's next relabel still reaches it."""
-		make_report(MODULE, "TSM Migrated Report")
-		clear_computed_base_cache(MODULE)
-		self.make_workspace(
-			"TSM Mixed",
-			[
-				{"type": "Link", "link_type": "Report", "link_to": "TSM Migrated Report", "label": "R"},
-				self.link("User"),
-			],
-		)
-		build_all()
-
-		rows = {row.link_to: row.added for row in self.site_layer().sidebar_items}
-		# in the module's contents, so the base has it -- a reference
-		self.assertEqual(rows["TSM Migrated Report"], 0)
-		# nothing in this module points at User, so there is nothing below to refer to
-		self.assertEqual(rows["User"], 1)
-
-	def test_a_source_naming_a_module_the_site_no_longer_has_is_left_alone(self):
-		"""A sidebar outlives the app that authored it: the archive keeps the module column of
-		an app that has since been uninstalled, and a layer cannot be anchored to a module that
-		is not there. The conversion has to walk past it -- one such row used to abort the whole
-		patch, and with it every module after the dead one alphabetically."""
-		self.make_workspace("TSM Gone", [self.link("User")])
-		self.make_workspace("TSM Gone Fork", [self.link("Role")], for_user="test@example.com")
-		# `db.delete`, not `delete_doc`: what an uninstall leaves behind is the row's absence,
-		# and delete_doc would refuse while the archive still links to it
-		frappe.db.delete("Module Def", {"name": MODULE})
-
-		result = build_all()
-
-		self.assertNotIn(MODULE, [plan["module"] for plan in result["merged"]])
-		self.assertNotIn(MODULE, [fork["module"] for fork in result["personal"]])
-		self.assertFalse(frappe.db.exists("Custom Sidebar", {"module": MODULE}))
-		# the sources stay, so reinstalling the app is what brings them back
-		self.assertEqual(frappe.db.count("Workspace Sidebar", {"module": MODULE}), 2)
-
-	def test_build_is_idempotent(self):
-		self.make_workspace("TSM Only", [self.link("User")])
-
-		build_all()
-		first = self.site_layer()
-		first_items = [(item_key(i), i.link_to) for i in first.sidebar_items]
-
-		build_all()
-		second = self.site_layer()
-
-		self.assertEqual(first.creation, second.creation)
-		self.assertEqual(first_items, [(item_key(i), i.link_to) for i in second.sidebar_items])
 
 	def test_a_site_owned_row_cannot_be_made_standard_by_hand(self):
 		"""`standard` means backed by a file. Setting it without writing one leaves a row that
@@ -574,19 +372,6 @@ class TestSidebarMerge(IntegrationTestCase):
 
 		self.assertEqual(before, after, "identities must be identical across re-import")
 		self.assertNotEqual(names_before, names_after, "sanity: child row names are regenerated")
-
-	def test_the_archive_survives_the_conversion(self):
-		"""The rule the whole upgrade is built on: log when the source survives, refuse only
-		when something is destroyed. Every source row is kept, so the second clause never
-		fires -- and a site migrated by a bad build can be migrated again from the same rows."""
-		self.make_workspace("TSM Only", [self.link("User")])
-		before = frappe.db.count("Workspace Sidebar"), frappe.db.count("Workspace Sidebar Item")
-
-		build_all()
-
-		self.assertEqual(
-			before, (frappe.db.count("Workspace Sidebar"), frappe.db.count("Workspace Sidebar Item"))
-		)
 
 
 class TestSidebarStandard(IntegrationTestCase):
@@ -1140,24 +925,14 @@ class TestNothingWritesASidebar(IntegrationTestCase):
 			self.assertEqual(self.rows_for(module), [])
 			self.assertEqual(get_computed_base(module).module, module)
 
-	def test_a_build_writes_no_row_for_a_module_that_ships_none(self):
-		"""What a migrate does. A module with no authored workspaces has nothing to merge, so
-		the build has nothing to say about it -- and must not invent a row."""
+	def test_gaining_content_writes_no_row_either(self):
+		"""The other half of it: a module that gains something navigable is navigable through a
+		base computed on the next read, and nothing anywhere materializes that into a row."""
 		with sidebarless_module("Test Unbuilt Sidebar Module") as module:
 			make_report(module, "Test Unbuilt Report")
 
-			with developer_mode():
-				build_all()
-
 			self.assertEqual(self.rows_for(module), [])
-
-	def test_the_dry_run_names_the_modules_it_leaves_computed(self):
-		"""The build no longer writes these rows, but the plan still has to account for the
-		modules it is walking past -- otherwise "0 merged" reads as "0 modules"."""
-		with sidebarless_module("Test Reported Sidebar Module") as module:
-			result = build_all(dry_run=True)
-
-			self.assertIn(module, result["computed"])
+			self.assertIn("Test Unbuilt Report", [row.link_to for row in get_computed_base(module).rows])
 
 
 COMPUTED_MODULE = "Test Computed Sidebar Module"

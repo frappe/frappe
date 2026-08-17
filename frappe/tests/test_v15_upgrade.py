@@ -22,7 +22,6 @@ from frappe.patches.v16_0.backfill_workspace_module import PRIVATE_MODULE as PRI
 from frappe.tests import IntegrationTestCase
 
 BACKFILL = "frappe.patches.v16_0.backfill_workspace_module"
-BUILD_SIDEBARS = "frappe.patches.v16_0.build_module_sidebars"
 PIN_DESKTOP = "frappe.patches.v16_0.keep_existing_sites_on_desktop_icons"
 
 
@@ -39,11 +38,11 @@ def post_model_sync_patches() -> list[str]:
 def upgrade_sequence() -> list[str]:
 	"""The navigation patches, in the order the site will actually run them.
 
-	Read off `patches.txt` rather than listed here on purpose: a line drifting back below its
-	consumer then fails what the customer loses -- their sidebars -- and not only the order
-	assertion in `TestPatchOrder`.
+	Read off `patches.txt` rather than listed here on purpose: what the customer lands with is a
+	function of the lines that are actually there, so a line that goes missing fails these tests
+	rather than a list somebody kept in step by hand.
 	"""
-	wanted = {BACKFILL, BUILD_SIDEBARS}
+	wanted = {BACKFILL}
 	return [p for p in post_model_sync_patches() if p in wanted]
 
 
@@ -56,35 +55,24 @@ def run_patches(patches) -> list[str]:
 	return lines
 
 
-class TestPatchOrder(IntegrationTestCase):
-	"""The reorder itself, stated where a line drifting back would be noticed."""
+class TestNothingBuildsASidebar(IntegrationTestCase):
+	"""Nothing derives a module's sidebar on the way in, and nothing is meant to start.
 
-	def test_the_backfill_runs_before_its_consumer(self):
-		# The merge reads `Workspace.module` and can only skip a workspace that has none, which
-		# on a v15 site is all of them -- behind the backfill it is a silent no-op.
-		post = post_model_sync_patches()
-		self.assertLess(post.index(BACKFILL), post.index(BUILD_SIDEBARS))
+	A module's sidebar is computed from the module's contents on every read, so the upgrade's
+	whole job is giving a v15 workspace a module -- there is no second pass that stores the
+	result, and each of these patches was one. (`convert_sidebar_forks` is not one of them: it
+	carries a v16 user's own *arrangement* across, and a v15 site has none to carry.) Named so a
+	reintroduction has to argue with a test rather than land quietly.
+	"""
 
-	def test_nothing_fills_a_column_ahead_of_the_merge(self):
-		"""The two patches that used to write `Workspace.sidebar_items` for the merge to read
-		back are gone with the column. Their inputs are read where they actually live now --
-		the archive, and a workspace's own shortcuts."""
+	def test_no_patch_builds_a_sidebar(self):
 		post = post_model_sync_patches()
 		for retired in (
+			"frappe.patches.v16_0.build_module_sidebars",
 			"frappe.patches.v16_0.migrate_workspace_sidebar_to_workspace",
 			"frappe.patches.v16_0.populate_workspace_sidebar_from_shortcuts",
 		):
 			self.assertNotIn(retired, post)
-
-	def test_the_consumer_is_marked_to_re_run(self):
-		"""The reorder only reaches a site that has already run it if it runs again.
-
-		It is guarded -- the merge skips a module that already has a sidebar -- so a second
-		pass repairs the sites that skipped everything and leaves the rest exactly as they are.
-		"""
-		lines = get_patches_from_app("frappe", PatchType.post_model_sync)
-		line = next(p for p in lines if p.split(maxsplit=1)[0] == BUILD_SIDEBARS)
-		self.assertIn("re-run-patch", line, f"{BUILD_SIDEBARS} would not reach an already-migrated site")
 
 
 class TestV15Upgrade(IntegrationTestCase):
@@ -167,8 +155,8 @@ class TestV15Upgrade(IntegrationTestCase):
 		insert a valid document and blank the column underneath it -- which is exactly what a
 		v15 row looks like once the field lands on it.
 
-		Shortcuts are what a v15 workspace's navigation *was*: it had no sidebar of any kind,
-		so the conversion derives one from them.
+		Shortcuts are what a v15 workspace's navigation *was*, and they stay exactly where they
+		are: the page still renders them, and the module's sidebar lists the page.
 		"""
 		workspace = frappe.get_doc(
 			{
@@ -225,15 +213,27 @@ class TestV15Upgrade(IntegrationTestCase):
 			self.assertEqual(bucket.custom, 1, f"{module} would be treated as an app's own module")
 			self.assertFalse(bucket.app_name, f"{module} was placed into an app's dock")
 
-	def test_the_bucket_gets_a_sidebar_carrying_what_the_workspaces_authored(self):
-		"""Behind the backfill this layer did not exist at all: the merge saw no sources."""
-		layer = frappe.get_doc("Custom Sidebar", {"module": CUSTOM_BUCKET, "user": ""})
-		self.assertIn(self.REPORT, [item.link_to for item in layer.sidebar_items])
+	def test_the_bucket_gets_a_sidebar_without_anything_storing_one(self):
+		"""Nothing is written on the way in. The bucket's sidebar is computed from what the
+		bucket now contains -- which is exactly what the backfill just put in it -- so the
+		workspaces are listed, and no row anywhere holds a copy of that list."""
+		self.assertFalse(frappe.db.exists("Custom Sidebar", {"module": CUSTOM_BUCKET, "user": ""}))
+		self.assertFalse(frappe.db.exists("Sidebar", {"module": CUSTOM_BUCKET}))
+
+		items = self.items_of("Administrator", CUSTOM_BUCKET)
+		self.assertIn(self.PUBLIC, items)
+		self.assertIn(self.OTHER, items)
 
 	def test_the_sidebar_reaches_the_navigation_payload(self):
 		payload = self.sidebar_payload("Administrator", CUSTOM_BUCKET)
 		self.assertIsNotNone(payload, "the upgraded module is missing from bootinfo.module_sidebars")
-		self.assertIn(self.REPORT, [item["link_to"] for item in payload["items"]])
+		self.assertIn(self.PUBLIC, [item["link_to"] for item in payload["items"]])
+
+	def test_the_shortcuts_are_left_where_they_are(self):
+		"""A v15 workspace's shortcuts are its own content and stay on the page. Nothing
+		flattens them into the sidebar, so nothing can drop one on the way."""
+		workspace = frappe.get_doc("Workspace", self.PUBLIC)
+		self.assertEqual([s.link_to for s in workspace.shortcuts], [self.REPORT])
 
 	def test_a_private_workspace_appears_in_its_owners_sidebar(self):
 		"""Derived, not stored -- and only derivable once the page has a module."""

@@ -22,6 +22,7 @@ from frappe.desk.doctype.sidebar.convert_fixtures import (
 	convert_app,
 	export_path,
 )
+from frappe.desk.doctype.sidebar.sidebar import build_sidebar, item_key, pick_primary
 from frappe.desk.doctype.sidebar.test_sidebar import (
 	module_resolvable_on_disk,
 	no_developer_mode,
@@ -160,6 +161,145 @@ class TestSidebarFixtureConversion(IntegrationTestCase):
 
 			self.assertEqual([r for r in results if r["module"] == MODULE], [])
 			self.assertFalse(os.path.exists(export_path(MODULE)))
+
+
+class TestTheMerge(IntegrationTestCase):
+	"""One module, several of the app's old files -- and one sidebar out the other end.
+
+	The merge is reached only from here now: a module that shipped four workspace fixtures still
+	ships one sidebar. Its sources are read off disk rather than out of any table, so these
+	build them the way `read_fixtures` hands them over.
+	"""
+
+	def source(self, title, items, **extra):
+		"""A fixture in the shape `convert_app` passes down -- see `read_fixtures`."""
+		return frappe._dict(
+			{
+				"name": title,
+				"title": title,
+				"icon": "hammer",
+				"module": MODULE,
+				"rows": [frappe._dict(item) for item in items],
+				"sequence_id": 0,
+				"creation": title,
+				**extra,
+			}
+		)
+
+	def labelled(self, doctype, label):
+		return {**link(doctype), "label": label}
+
+	def test_largest_sidebar_becomes_primary(self):
+		"""`sequence_id` is near-uniform on a real site, so as the primary signal it picks
+		arbitrarily -- it hands Accounts to Invoicing(28) over Accounting(49)."""
+		sources = [
+			self.source("Merge Small", [link("User")]),
+			self.source("Merge Large", [link("Role"), link("DocType")]),
+		]
+
+		self.assertEqual(pick_primary(MODULE, sources).name, "Merge Large")
+
+	def test_secondary_becomes_collapsed_section(self):
+		plan = build_sidebar(
+			MODULE,
+			[
+				self.source("Merge Primary", [link("User"), link("Role")]),
+				self.source("Merge Second", [link("DocType")]),
+			],
+		)
+		sections = [i for i in plan["items"] if i["type"] == "Section Break"]
+
+		self.assertEqual(len(sections), 1)
+		self.assertEqual(sections[0]["label"], "Merge Second")
+		self.assertEqual(sections[0]["keep_closed"], 1)
+		# the secondary's own items follow it, nested under it
+		after = plan["items"][plan["items"].index(sections[0]) + 1 :]
+		self.assertTrue(after, "the secondary contributed no items")
+		self.assertTrue(all(i["child"] == 1 for i in after if i["type"] == "Link"))
+
+	def test_merged_title_is_the_module_name(self):
+		"""The union of several sidebars is not any one source's title."""
+		plan = build_sidebar(
+			MODULE,
+			[
+				self.source("Merge Primary", [link("User"), link("Role")]),
+				self.source("Merge Second", [link("DocType")]),
+			],
+		)
+
+		self.assertEqual(plan["title"], MODULE)
+
+	def test_unmerged_title_keeps_the_fixture_label(self):
+		"""A module with one fixture must look exactly as it does today (`Loan Management`
+		still reads "Lending")."""
+		plan = build_sidebar(MODULE, [self.source("Merge Only", [link("User")])])
+
+		self.assertEqual(plan["title"], "Merge Only")
+
+	def test_duplicate_rows_are_dropped(self):
+		"""The tables carry rows boot dedupes away; copying them straight across would show
+		copies the desk does not. erpnext.site has 160 such rows, 72 in Core alone."""
+		plan = build_sidebar(MODULE, [self.source("Merge Dupes", [link("User"), link("User"), link("Role")])])
+
+		self.assertEqual(len([i for i in plan["items"] if i["link_to"] == "User"]), 1)
+
+	def test_differently_labelled_duplicates_are_one_item(self):
+		"""A relabelled duplicate used to survive the merge, because the dedupe key included
+		`label`. Identity does not: two rows pointing at one target *are* one item, whatever
+		the two files called it (erpnext's CRM lists Lead twice).
+
+		Keeping the second is no longer possible rather than no longer preferred -- it would
+		share an identity with the first, so no customization could name one without naming the
+		other, and the resolution drops it on the way to the payload regardless. The first
+		wins, which is the label the desk was already showing at that position.
+		"""
+		plan = build_sidebar(
+			MODULE,
+			[
+				self.source(
+					"Merge Deliberate",
+					[self.labelled("User", "All Users"), self.labelled("User", "Active Users")],
+				)
+			],
+		)
+
+		users = [i for i in plan["items"] if i["link_to"] == "User"]
+		self.assertEqual([i["label"] for i in users], ["All Users"])
+
+	def test_merging_does_not_re_key_items(self):
+		"""A delta made against a source's item still names it after the merge: the merge copies
+		the columns the identity is made of and derives nothing."""
+		sources = [self.source("Merge Keyed", [link("User"), {"type": "Section Break", "label": "More"}])]
+		plan = build_sidebar(MODULE, sources)
+
+		self.assertEqual(
+			[item_key(row) for row in sources[0].rows],
+			[item_key(row) for row in plan["items"]],
+		)
+
+	def test_claim_flag_is_not_carried(self):
+		"""The conversion drops the claim rather than mapping it to `is_default_module`.
+
+		A claim is an app's opinion and the app has to be able to retract it -- which it can,
+		by flagging the row in the `sidebar` fixture it ships from here on."""
+		item = {**link("User"), "default_workspace": 1}
+		plan = build_sidebar(MODULE, [self.source("Merge Default", [item])])
+
+		self.assertFalse(plan["items"][0].get("is_default_module"))
+		self.assertNotIn("default_workspace", plan["items"][0])
+
+	def test_the_sources_are_recorded(self):
+		"""`merged_from` names every file that went into the export, so an author reading the
+		converted JSON can see which of their old fixtures produced it."""
+		plan = build_sidebar(
+			MODULE,
+			[
+				self.source("Merge Primary", [link("User"), link("Role")]),
+				self.source("Merge Second", [link("DocType")]),
+			],
+		)
+
+		self.assertEqual(sorted(json.loads(plan["merged_from"])), ["Merge Primary", "Merge Second"])
 
 
 class TestAnAppThatHasNotFollowedTheRename(IntegrationTestCase):
