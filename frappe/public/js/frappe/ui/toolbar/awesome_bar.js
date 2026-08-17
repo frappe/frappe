@@ -20,6 +20,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		let $search_element = $(element);
 
 		let search_modal = new frappe.get_modal("Search", "");
+		this.search_modal = search_modal;
 
 		search_modal.removeClass("fade");
 		search_modal.on("shown.bs.modal", () => {
@@ -337,14 +338,11 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				if (seq !== this._hook_search_seq || !r.message?.length) return;
 				this.options = this.deduplicate(this.options.concat(r.message));
 				this.options.sort((a, b) => b.index - a.index);
+				this.awesomplete.list = this.options;
 				$(this.awesomplete.ul).toggleClass("p-0 m-0", cint(this.options?.length) == 0);
 				this.search_modal
 					.find(".cool-awesomebar-modal-footer")
 					.toggleClass("hide", cint(this.options?.length) == 0);
-				this.awesomplete.options_with_desc = this.create_options_with_descriptions(
-					this.options
-				);
-				this.awesomplete.list = this.options;
 			},
 		});
 	}
