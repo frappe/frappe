@@ -226,7 +226,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { }
+exclude-newer-package = { sqlparse = false } # drop sqlparse after 2026-08-20
 
 [tool.mypy]
 strict = false
