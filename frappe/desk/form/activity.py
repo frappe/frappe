@@ -79,7 +79,8 @@ def parse_visible_types(visible_types) -> tuple[set[str] | None, list[str] | Non
 					version_fields = [f for f in fields if isinstance(f, str)]
 		elif isinstance(entry, str):
 			types.add(entry)
-	return types, version_fields
+	# an all-malformed list must mean "no filter", not "show nothing"
+	return types or None, version_fields
 
 
 @frappe.whitelist()
@@ -648,7 +649,8 @@ def readable_permlevels(meta, parenttype: str | None = None) -> set[int] | None:
 	if not meta.get_permissions(parenttype):
 		return None
 	levels = set(meta.get_permlevel_access("read", parenttype, user=frappe.session.user))
-	# reads granted via a share carry no role row; they see permlevel-0 fields
+	# shared reads carry no role row; the doctype-wide get_shared check suffices —
+	# a role-less reader only passes check_permission via a share on this document
 	if 0 not in levels and frappe.share.get_shared(
 		parenttype or meta.name, frappe.session.user, rights=["read"], limit=1
 	):
