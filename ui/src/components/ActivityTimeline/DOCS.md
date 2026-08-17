@@ -23,7 +23,11 @@ fetching, caching, realtime updates, and email pagination.
 
 ```vue
 <script setup lang="ts">
-import { ActivityTimeline, useActivityTimeline } from "@framework/ui";
+import {
+  ActivityTimeline,
+  TimelineContainer,
+  useActivityTimeline,
+} from "@framework/ui";
 
 const { activities, loading } = useActivityTimeline(
   "HD Ticket",
@@ -32,11 +36,15 @@ const { activities, loading } = useActivityTimeline(
 </script>
 
 <template>
-  <ActivityTimeline :activities="activities" :loading="loading" />
+  <TimelineContainer>
+    <ActivityTimeline :activities="activities" :loading="loading" />
+  </TimelineContainer>
 </template>
 ```
 
-For pagination, bind `paginate` too — see [Pagination](#pagination).
+For pagination, bind `paginate` too — see [Pagination](#pagination). `TimelineContainer`
+gives the timeline the bounded height its scroller needs — see
+[Height and scrolling](#height-and-scrolling).
 
 > The composable lives in the **consuming app**, not in `@framework/ui` — this keeps the
 > shared renderer decoupled from where activities come from. `useActivityTimeline` binds its
@@ -53,13 +61,35 @@ its data already there, avoiding a second in-panel loading state.
 
 `<ActivityTimeline>` — renders the feed and the "Load more" affordance.
 
-| Property    | Details                                                                                                                                                                                                                                                                                                                                                                                      |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Props**   | `activities: Array<Activity \| CustomActivity>` (required), `loading?: boolean`, `paginate?: Pagination`                                                                                                                                                                                                                                                                                     |
-| **Loading** | First-load spinner shows only while `loading` **and** `activities` is empty; cached rows stay visible during revalidation                                                                                                                                                                                                                                                                    |
-| **Empty**   | Renders a built-in "No activity found" state when `activities` is empty and not loading; replace it via the `#empty` slot                                                                                                                                                                                                                                                                    |
-| **Scrolling** | The component is its own scroll container (`column-reverse`): give it a bounded height (`flex-1 min-h-0`) and it opens anchored at the newest row, stays pinned as content grows, and keeps the viewport still when older pages prepend — all natively, no scroll scripting. Unbounded, an ancestor scrolls it like any block. DOM order stays chronological |
-| **Exposes** | `scrollToRow(key: string): boolean` — scrolls the row with that key into view and flashes it (deep links); returns `false` if the key isn't rendered. `scrollToLatest()` — jumps to the newest row (no flash) |
+| Property      | Details                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Props**     | `activities: Array<Activity \| CustomActivity>` (required), `loading?: boolean`, `paginate?: Pagination`                                                                                                                                                                                                                                                                                                                         |
+| **Loading**   | First-load spinner shows only while `loading` **and** `activities` is empty; cached rows stay visible during revalidation                                                                                                                                                                                                                                                                                                        |
+| **Empty**     | Renders a built-in "No activity found" state when `activities` is empty and not loading; replace it via the `#empty` slot                                                                                                                                                                                                                                                                                                        |
+| **Scrolling** | The component is its own scroll container (`column-reverse`): give it a bounded height — wrap it in `TimelineContainer`, or `flex-1 min-h-0` by hand — and it opens anchored at the newest row, stays pinned as content grows, and keeps the viewport still when older pages prepend — all natively, no scroll scripting. Unbounded, an ancestor scrolls it like any block and none of that works. DOM order stays chronological |
+| **Exposes**   | `scrollToRow(key: string): boolean` — scrolls the row with that key into view and flashes it (deep links); returns `false` if the key isn't rendered. `scrollToLatest()` — jumps to the newest row (no flash)                                                                                                                                                                                                                    |
+
+### Height and scrolling
+
+The timeline scrolls itself, so something must bound its height — otherwise it grows to
+full content height, an ancestor scrolls it, and the bottom-anchored behavior can't work.
+`TimelineContainer` is that something: drop it between your page's header and composer
+and it fills the leftover space, handing the timeline a real height. Its one requirement:
+the page root it sits in is a bounded flex column (`flex h-full flex-col`).
+
+```vue
+<div class="flex h-full flex-col">
+  <TicketHeader />
+  <TimelineContainer>
+    <ActivityTimeline :activities="activities" />
+  </TimelineContainer>
+  <ReplyComposer />
+</div>
+```
+
+It's equivalent to putting `flex-1 min-h-0` on the timeline yourself — use whichever
+reads better. Skip both only when you want an ancestor to own the scroll (and are fine
+losing open-at-bottom, pinning, and stable prepends).
 
 ### Slots
 
@@ -299,7 +329,11 @@ Built-in rendering, no customization — the composable feeds the component.
 
 ```vue
 <script setup lang="ts">
-import { ActivityTimeline, useActivityTimeline } from "@framework/ui";
+import {
+  ActivityTimeline,
+  TimelineContainer,
+  useActivityTimeline,
+} from "@framework/ui";
 
 const props = defineProps<{ ticketId: string }>();
 const { activities, loading, paginate } = useActivityTimeline(
@@ -309,11 +343,13 @@ const { activities, loading, paginate } = useActivityTimeline(
 </script>
 
 <template>
-  <ActivityTimeline
-    :activities="activities"
-    :loading="loading"
-    :paginate="paginate"
-  />
+  <TimelineContainer>
+    <ActivityTimeline
+      :activities="activities"
+      :loading="loading"
+      :paginate="paginate"
+    />
+  </TimelineContainer>
 </template>
 ```
 
