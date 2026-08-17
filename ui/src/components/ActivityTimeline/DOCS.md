@@ -253,23 +253,25 @@ unmount.
 
 ## Smart folding
 
-`activities` is not the raw feed. The composable **re-derives a folded view** on every
-load and live update: dedupe by `key` → sort oldest-first → fold version runs → fold
-assignment runs. The split of responsibility is deliberate — the **backend ships each
-change as structured, already-translated data** (what kind of change it is + the words),
-and the **frontend owns all cross-row merging, before→after layout, and truncation**,
-because merging is a cross-row decision that must recompute on every reload.
+The composable returns the feed deduped by `key` and sorted oldest-first, but
+**ungrouped** — the component folds version and assignment runs at render time, over the
+rows the consumer actually passes in (after its own filtering and merging). The split of
+responsibility is deliberate — the **backend ships each change as structured,
+already-translated data** (what kind of change it is + the words), and the **frontend
+owns all cross-row merging, before→after layout, and truncation**, because merging is a
+cross-row decision that must recompute on every reload.
 
-**Version folding** — same-author `version` rows chained ≤15 min apart collapse into one
-summary (`VersionItem` renders it as an "N changes over M minutes" session group). One
-sentence: _changes by the
-same author within 15 minutes fold into one row._
+**Version folding** — consecutive same-author `version` rows ≤15 min apart collapse into
+one summary (`VersionItem` renders it as an "N changes over M minutes" session group).
+One sentence: _consecutive changes by the same author within 15 minutes fold into one
+row._
 
 - **Same field across saves** → net `first.from → last.to`; every hop is kept in `history`
   (revealed by a chevron). **No-op churn** (`H→B→H`) stays visible — the chevron shows
   the round trip.
-- Interleaved non-version rows (comments, activity logs) **don't split a fold**; only a
-  **>15 min gap** between saves does. The summary sits at the cluster's last row.
+- **Any visible row in between** (a comment, a call) **splits the fold**, as does a
+  **>15 min gap** — the feed never reorders against other rows. Rows the consumer
+  filters out before rendering can't split anything.
 - Row **identity keys off the first row** (stable as the run grows, so Vue keeps its
   expanded state); the timestamp comes from the last.
 

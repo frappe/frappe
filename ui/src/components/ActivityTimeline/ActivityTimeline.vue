@@ -53,9 +53,9 @@
 									isAvatarActivity(activity) ? 'h-10' : 'h-6 w-6 rounded-full',
 								]"
 							>
-								<!-- gutter ladder: #icon-{type} slot > GutterIcon (activity.icon > per-type default) -->
+								<!-- gutter ladder: #icon-{type} slot > DotIcon (activity.icon > per-type default) -->
 								<slot :name="`icon-${activity.type}`" :activity="activity">
-									<GutterIcon :activity="activity" />
+									<DotIcon :activity="activity" />
 								</slot>
 							</div>
 						</div>
@@ -115,7 +115,8 @@ import { LoadingIndicator } from "frappe-ui";
 import { computed, h, ref, useSlots } from "vue";
 import CommentItem from "./CommentItem.vue";
 import EmailItem from "./EmailItem.vue";
-import GutterIcon from "./GutterIcon.vue";
+import DotIcon from "./DotIcon.vue";
+import { groupActivities } from "./grouping";
 import LoadMoreButton from "./LoadMoreButton.vue";
 import LogItem from "./LogItem.vue";
 import type { Activity, ActivityTimelineProps, CustomActivity } from "./types";
@@ -157,7 +158,9 @@ const isPagedRow = computed(
 
 // Rows to render: the feed, plus an in-feed load_more row above the oldest paged row.
 const displayActivities = computed<Array<Activity | CustomActivity>>(() => {
-	const list = props.activities;
+	// grouped here, over the final rendered feed — a visible row between two saves
+	// splits the fold, so summaries never reorder against comments/calls
+	const list = groupActivities(props.activities as Activity[]);
 	if (!isInline.value || !props.paginate?.hasNextPage) return list;
 	const idx = list.findIndex(isPagedRow.value);
 	if (idx === -1) return list;
