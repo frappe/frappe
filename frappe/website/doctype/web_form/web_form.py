@@ -721,7 +721,7 @@ def get_context(context):
 
 
 def process_link_field(field, web_form_name, web_form_request_key=None, docname=None):
-	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
+	web_form = frappe.get_cached_doc("Web Form", web_form_name)
 	ensure_guest_key_link_doctype_allowed(web_form, field.options)
 
 	field.fieldtype = "Autocomplete"
@@ -1150,7 +1150,7 @@ def get_link_options(
 	web_form_request_key=None,
 	docname=None,
 ):
-	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
+	web_form: WebForm = frappe.get_cached_doc("Web Form", web_form_name)
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
@@ -1201,4 +1201,4 @@ def get_link_options(
 
 @redis_cache(ttl=60 * 60)
 def get_published_web_forms() -> dict[str, str]:
-	return frappe.get_all("Web Form", ["name", "route", "modified"], {"published": 1})
+	return frappe.get_all("Web Form", ["name", "route", "modified", "module"], {"published": 1})

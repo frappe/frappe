@@ -164,6 +164,11 @@ def get_doc_files(files, start_path):
 		if doc_path not in files:
 			files.append(doc_path)
 
+	# DocType Settings Maps: doctype_settings_map/{name}.json
+	for doc_path in glob.glob(os.path.join(start_path, "doctype_settings_map", "*.json")):
+		if doc_path not in files:
+			files.append(doc_path)
+
 	return files
 
 

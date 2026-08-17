@@ -463,7 +463,6 @@ def render_safe_globals():
 			full_name=frappe.local.session.data.full_name
 			if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
 			else "Guest",
-			request=getattr(frappe.local, "request", {}),
 			session=frappe._dict(
 				user=user,
 				csrf_token=frappe.local.session.data.csrf_token
@@ -601,7 +600,9 @@ def exec_safe_globals():
 			),
 		),
 	)
-	return _update_namespace(render_safe, exec_safe)
+	result = _update_namespace(render_safe, exec_safe)
+	result["frappe"]["request"] = getattr(frappe.local, "request", {})
+	return result
 
 
 def get_keys_for_autocomplete(

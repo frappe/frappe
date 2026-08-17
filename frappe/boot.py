@@ -9,6 +9,8 @@ import os
 import frappe
 import frappe.defaults
 import frappe.desk.desk_page
+from frappe.app_state import filter_out_disabled_doctypes, get_disabled_modules
+from frappe.core.doctype.custom_icon.custom_icon import get_symbols
 from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_completed_apps,
 )
@@ -69,9 +71,17 @@ def get_bootinfo():
 	bootinfo.all_domains = frappe.get_all("Domain", pluck="name")
 	add_layouts(bootinfo)
 
-	bootinfo.module_app = get_boot_module_app()
-	bootinfo.single_types = frappe.get_all("DocType", {"issingle": 1}, pluck="name")
-	bootinfo.nested_set_doctypes = frappe.get_all("DocField", {"fieldname": "lft"}, pluck="parent")
+	# module_app is keyed by scrubbed module name
+	disabled_modules = {frappe.scrub(module) for module in get_disabled_modules()}
+	bootinfo.module_app = {
+		module: app for module, app in frappe.local.module_app.items() if module not in disabled_modules
+	}
+	bootinfo.single_types = filter_out_disabled_doctypes(
+		frappe.get_all("DocType", {"issingle": 1}, pluck="name")
+	)
+	bootinfo.nested_set_doctypes = filter_out_disabled_doctypes(
+		frappe.get_all("DocField", {"fieldname": "lft"}, pluck="parent")
+	)
 	bootinfo.tree_view_doctypes = get_tree_view_doctypes()
 	add_home_page(bootinfo, doclist)
 	load_translations(bootinfo)
@@ -107,6 +117,7 @@ def get_bootinfo():
 	bootinfo.error_report_email = frappe.conf.error_report_email
 	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
 	bootinfo.treeviews = frappe.get_hooks("treeviews") or []
+	bootinfo.has_awesomebar_search = bool(hooks.awesomebar_search)
 	bootinfo.lang_dict = get_lang_dict()
 	bootinfo.success_action = get_success_action()
 	bootinfo.update(get_email_accounts(user=frappe.session.user))
@@ -134,6 +145,7 @@ def get_bootinfo():
 	bootinfo.desktop_icon_urls = get_desktop_icon_urls()
 	bootinfo.desktop_icon_style = get_icon_style() or "Subtle"
 	bootinfo.desktop_page = get_desktop_page()
+	bootinfo.custom_icons = get_symbols()
 	if bootinfo.is_fc_site:
 		bootinfo.site_info = current_site_info()
 	return bootinfo
@@ -297,8 +309,7 @@ def get_app_data(allowed_pages: list[str]) -> list[dict]:
 	Workspace = frappe.qb.DocType("Workspace")
 	Module = frappe.qb.DocType("Module Def")
 
-	installed_apps = frappe.get_installed_apps()
-	for app_name in installed_apps:
+	for app_name in frappe.get_active_apps():
 		# get app details from app_info (/apps)
 		apps = frappe.get_hooks("add_to_apps_screen", app_name=app_name)
 		app_info = {}
@@ -500,7 +511,7 @@ def get_link_preview_doctypes():
 		else:
 			link_preview_doctypes.append(custom.doc_type)
 
-	return link_preview_doctypes
+	return filter_out_disabled_doctypes(link_preview_doctypes)
 
 
 def get_additional_filters_from_hooks():
@@ -557,7 +568,7 @@ def get_link_title_doctypes():
 		{"property": "show_title_field_in_link", "value": "1"},
 		["doc_type as name"],
 	)
-	return [d.name for d in dts + custom_dts if d]
+	return filter_out_disabled_doctypes([d.name for d in dts + custom_dts if d])
 
 
 def set_time_zone(bootinfo):
@@ -601,7 +612,7 @@ def load_currency_docs(bootinfo):
 
 @redis_cache
 def get_tree_view_doctypes():
-	return frappe.get_all("DocType", {"default_view": "Tree"}, pluck="name")
+	return filter_out_disabled_doctypes(frappe.get_all("DocType", {"default_view": "Tree"}, pluck="name"))
 
 
 def add_subscription_conf():
@@ -672,6 +683,7 @@ def get_sidebar_items():
 	authored workspace sidebar fall back to one generated on the fly. The legacy
 	`Workspace Sidebar` doctype is no longer read here.
 	"""
+	from frappe.app_state import get_disabled_modules
 	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import auto_generate_sidebar_from_module
 	from frappe.utils.modules import get_blocked_modules
 
@@ -679,6 +691,7 @@ def get_sidebar_items():
 	# `Workspace` instance as a shared permission context for filtering every item.
 	perm_ctx = frappe.new_doc("Workspace")
 	sidebar_items = {}
+	disabled_modules = get_disabled_modules()
 
 	# Primary source: authored `Workspace.sidebar_items` (the post-merge model). Everything the
 	# boot needs is fetched in batch instead of per workspace doc: `get_workspaces()` already
@@ -688,6 +701,8 @@ def get_sidebar_items():
 	items_by_workspace = get_authored_sidebar_items([w.name for w in workspaces])
 	module_onboarding = get_workspace_module_onboarding([w.name for w in workspaces])
 	for workspace in workspaces:
+		if workspace.module in disabled_modules:
+			continue
 		add_sidebar_entry(
 			sidebar_items,
 			title=workspace.name,
@@ -858,7 +873,7 @@ def add_sidebar_entry(
 def get_desktop_icon_urls():
 	icons_map = {}
 
-	for app in frappe.get_installed_apps():
+	for app in frappe.get_active_apps():
 		app_path = frappe.get_app_path(app)
 		icons_dir = os.path.join(app_path, "public", "icons", "desktop_icons")
 

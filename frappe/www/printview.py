@@ -140,12 +140,21 @@ def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" 
 
 	if print_format_name == "Standard":
 		return None
-	else:
+
+	def fetch(name):
 		try:
-			return frappe.get_doc("Print Format", print_format_name)
+			return frappe.get_doc("Print Format", name)
 		except frappe.DoesNotExistError:
-			# if old name, return standard!
+			frappe.clear_last_message()
 			return None
+
+	# a renamed or deleted format — or a caller interpolating a missing name into
+	# the url — resolves to the doctype's default, like an omitted name does
+	if doc := fetch(print_format_name):
+		return doc
+	if meta.default_print_format in (None, "", "Standard", print_format_name):
+		return None
+	return fetch(meta.default_print_format)
 
 
 def resolve_print_format(print_format_name: "str | None", meta: "Meta") -> tuple["PrintFormat", bool]:

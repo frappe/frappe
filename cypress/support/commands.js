@@ -288,6 +288,14 @@ Cypress.Commands.add("clear_cache", () => {
 		});
 });
 
+Cypress.Commands.add("desk_ready", () => {
+	cy.window({ log: false }).should((win) => {
+		expect(win.frappe && win.frappe.app, "desk booted").to.be.ok;
+		expect(win.frappe.request.ajax_count, "requests settled").to.eq(0);
+	});
+	cy.get(".layout-main-section:visible").should("not.be.empty");
+});
+
 Cypress.Commands.add("dialog", (opts) => {
 	return cy
 		.window({ log: false })
@@ -446,7 +454,6 @@ const add_remove_role = (action, user, role, session_user) => {
 
 Cypress.Commands.add("open_list_filter", () => {
 	cy.get(".filter-section .filter-button").click();
-	cy.wait(300);
 	cy.get(".filter-popover").should("exist");
 });
 

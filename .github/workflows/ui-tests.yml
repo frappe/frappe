@@ -81,14 +81,6 @@ jobs:
           path: ~/.cache/Cypress
           key: ${{ runner.os }}-cypress
 
-      - name: Instrument Source Code
-        run: |
-          cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}
-          npx nyc instrument \
-            -x '${{ github.event.repository.name }}/public/dist/**' \
-            -x '${{ github.event.repository.name }}/public/js/lib/**' \
-            -x '**/*.bundle.js' --compact=false --in-place ${{ github.event.repository.name }}
-
       - name: Site Setup
         run: |
           bench --site test_site execute frappe.utils.install.complete_setup_wizard
@@ -103,7 +95,6 @@ jobs:
         run: |
           bench --site test_site \
             run-ui-tests ${{ github.event.repository.name }} \
-              --with-coverage \
               --headless \
               --browser ${{ env.BROWSER_PATH }} \
               --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT \

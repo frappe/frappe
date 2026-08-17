@@ -50,7 +50,7 @@ class TemplatePage(BaseTemplatePage):
 		and /templates/pages folders and sets path if match is found
 		"""
 		folders = get_start_folders()
-		for app in reversed(frappe.get_installed_apps()):
+		for app in reversed(frappe.get_active_apps()):
 			app_path = frappe.get_app_path(app)
 
 			for dirname in folders:

@@ -1,5 +1,5 @@
 import { computed } from "vue";
-import { sanitize_html, strip_html_to_text, thumb_hue } from "../utils";
+import { sanitize_html, thumb_hue } from "../utils";
 
 const IMAGE_FIELDTYPES = new Set(["Attach Image", "Image", "Attach"]);
 const IMAGE_EXTENSIONS = /\.(png|jpe?g|gif|webp|svg|bmp|ico)(\?.*)?$/i;
@@ -21,7 +21,7 @@ export function useFieldFormat(props, store, preview_doc) {
 				preview_doc.value
 			);
 			if (typeof formatted === "string" && formatted.includes("<")) {
-				return strip_html_to_text(formatted, String(raw));
+				return frappe.utils.html2text(formatted) || String(raw);
 			}
 			return formatted;
 		} catch {
@@ -65,7 +65,7 @@ export function useFieldFormat(props, store, preview_doc) {
 				if (tok.t === "s") return tok.v || "";
 				const server = store.preview_child_values.value?.[props.df.source]?.[i]?.[tok.v];
 				if (server !== null && server !== undefined && server !== "") {
-					return strip_html_to_text(String(server));
+					return frappe.utils.html2text(String(server));
 				}
 				const child_df = repeater_child_df(tok.v);
 				return child_df ? format_cell(row || {}, child_df) : row?.[tok.v] ?? "";
@@ -84,7 +84,7 @@ export function useFieldFormat(props, store, preview_doc) {
 	function multiselect_display(df) {
 		const server = store.preview_values.value?.[df.fieldname];
 		if (server !== null && server !== undefined && server !== "") {
-			return strip_html_to_text(String(server));
+			return frappe.utils.html2text(String(server));
 		}
 		const rows = preview_doc.value?.[df.fieldname] || [];
 		if (!rows.length) return "—";
@@ -113,7 +113,7 @@ export function useFieldFormat(props, store, preview_doc) {
 		try {
 			const formatted = frappe.format(raw, col, { only_value: true }, row);
 			if (typeof formatted === "string" && formatted.includes("<")) {
-				return strip_html_to_text(formatted, String(raw));
+				return frappe.utils.html2text(formatted) || String(raw);
 			}
 			return formatted;
 		} catch {
@@ -148,7 +148,7 @@ export function useFieldFormat(props, store, preview_doc) {
 	function format_merged(row, i, fieldname) {
 		const server = store.preview_child_values.value?.[props.df.fieldname]?.[i]?.[fieldname];
 		if (server !== null && server !== undefined && server !== "") {
-			return strip_html_to_text(String(server)).trim();
+			return frappe.utils.html2text(String(server)).trim();
 		}
 		const dcol = frappe.meta.get_docfield(props.df.options, fieldname) || {
 			fieldname,
@@ -156,7 +156,7 @@ export function useFieldFormat(props, store, preview_doc) {
 		};
 		const val = format_cell(row, dcol);
 		if (typeof val === "string" && val.includes("<")) {
-			return strip_html_to_text(val).trim();
+			return frappe.utils.html2text(val).trim();
 		}
 		return val;
 	}
@@ -168,8 +168,7 @@ export function useFieldFormat(props, store, preview_doc) {
 	}
 
 	function thumb_box(col) {
-		const s = (col.image_size || 40) + "px";
-		return { width: s, height: s };
+		return { "--thumb-size": (col.image_size || 40) + "px" };
 	}
 
 	// Initials fallback when an image field is merged but the row has no image.

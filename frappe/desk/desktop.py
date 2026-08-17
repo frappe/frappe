@@ -7,6 +7,7 @@ from json import JSONDecodeError, dumps, loads
 
 import frappe
 from frappe import DoesNotExistError, ValidationError, _, _dict
+from frappe.app_state import get_disabled_modules
 from frappe.cache_manager import build_table_count_cache
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.desk_views import DeskViews
@@ -454,12 +455,18 @@ def get_workspaces():
 	# adding None to allowed_domains to include pages without domain restriction
 	allowed_domains = [None, *frappe.get_active_domains()]
 
+	# a disabled app stays hidden even from Workspace Managers
+	disabled_modules = list(get_disabled_modules())
+
 	filters = {
 		"restrict_to_domain": ["in", allowed_domains],
 	}
 
 	if has_access:
-		filters = []
+		filters = {}
+
+	if disabled_modules:
+		filters["module"] = ["not in", disabled_modules]
 
 	# pages sorted based on sequence id
 	order_by = "sequence_id asc"
@@ -746,7 +753,7 @@ def update_onboarding_step(name: str | int, field: str, value: int | str):
 
 @frappe.whitelist()
 def get_installed_apps():
-	return frappe.get_installed_apps()
+	return frappe.get_active_apps()
 
 
 @frappe.whitelist()

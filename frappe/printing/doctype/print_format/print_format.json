@@ -43,6 +43,7 @@
   "section_break_13",
   "print_format_help",
   "format_data",
+  "draft_data",
   "classic_format_data",
   "print_format_builder",
   "print_format_builder_beta"
@@ -300,7 +301,7 @@
    "fieldname": "pdf_generator",
    "fieldtype": "Select",
    "label": "PDF Generator",
-   "options": "wkhtmltopdf\nchrome"
+   "options": "wkhtmltopdf\nchrome\nTypst"
   },
   {
    "default": "DocType",
@@ -319,12 +320,20 @@
    "label": "Report",
    "mandatory_depends_on": "eval:doc.print_format_for == \"Report\"",
    "options": "Report"
+  },
+  {
+   "fieldname": "draft_data",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Draft Data",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2026-08-04 21:51:41.795390",
+ "modified": "2026-08-07 21:43:00.939226",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
@@ -350,6 +359,5 @@
  "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": [],
- "track_changes": 1
+ "states": []
 }

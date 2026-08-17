@@ -373,6 +373,16 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		self.assertEqual(job.reload().frequency, "Cron")
 		self.assertEqual(job.reload().cron_format, script.cron_format)
 
+		script.queue = "long"
+		script.save()
+		self.assertEqual(job.reload().queue, "long")
+		self.assertEqual(job.get_queue_name(), "long")
+
+		script.queue = ""
+		script.save()
+		self.assertFalse(job.reload().queue)
+		self.assertEqual(job.get_queue_name(), "default")
+
 		# manually disable
 
 		script.disabled = 1

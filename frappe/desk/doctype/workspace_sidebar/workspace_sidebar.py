@@ -267,8 +267,14 @@ def create_workspace_sidebar_for_workspaces():
 @site_cache()
 def auto_generate_sidebar_from_module():
 	"""Auto generate sidebar from module"""
+	from frappe.app_state import get_disabled_modules
+
 	sidebars = []
+	disabled_modules = get_disabled_modules()
 	for module in frappe.get_all("Module Def", fields=["name", "app_name"]):
+		if module.name in disabled_modules:
+			continue
+
 		# Skip modules whose public workspace already carries authored sidebar items -- that
 		# workspace's sidebar is built from `Workspace.sidebar_items` (the source of truth), so a
 		# generated fallback would be redundant.
