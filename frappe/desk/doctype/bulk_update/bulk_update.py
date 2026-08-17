@@ -50,7 +50,7 @@ class BulkUpdate(Document):
 		)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def submit_cancel_or_update_docs(
 	doctype: str,
 	docnames: str | list[str],

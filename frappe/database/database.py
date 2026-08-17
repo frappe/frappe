@@ -39,6 +39,7 @@ from frappe.utils import (
 	CallbackManager,
 	cint,
 	get_datetime,
+	get_system_timezone,
 	get_table_name,
 	getdate,
 	now,
@@ -62,6 +63,7 @@ ALLOWED_TYPES_FOR_VALUES = tuple | list | dict
 
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
+DROP_INDEX_PATTERN = re.compile(r"\s*DROP\s+INDEX\s", flags=re.IGNORECASE)
 SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
 MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
 
@@ -157,9 +159,18 @@ class Database:
 		except Exception as e:
 			self.logger.warning(f"Couldn't set execution timeout {e}")
 
+		try:
+			self.set_session_time_zone(get_system_timezone())
+		except Exception as e:
+			self.logger.warning(f"Couldn't set session time zone {e}")
+
 	def set_execution_timeout(self, seconds: int):
 		"""Set session speicifc timeout on exeuction of statements.
 		If any statement takes more time it will be killed along with entire transaction."""
+		raise NotImplementedError
+
+	def set_session_time_zone(self, timezone: str):
+		"""Set session time zone so database clock functions match the system timezone."""
 		raise NotImplementedError
 
 	def use(self, db_name):
@@ -1471,6 +1482,12 @@ class Database:
 
 	def log_touched_tables(self, query, query_type):
 		if query_type not in QUERY_TYPES_FOR_LOG_TOUCHED_TABLES:
+			return
+
+		# `DROP INDEX <name>` never names its table, and on postgres the index name is
+		# table-qualified ("tabToDo_reference_type_index"), which the patterns below would read as
+		# a table. Index DDL touches no rows, and CREATE INDEX is already excluded by query_type.
+		if DROP_INDEX_PATTERN.match(query):
 			return
 
 		# single_word_regex is designed to match following patterns

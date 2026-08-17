@@ -18,7 +18,9 @@ frappe.ui.Tags = class {
 
 		this.$inputWrapper = this.get_list_element(this.$input);
 		this.$placeholder =
-			$(`<button class="add-tags-btn text-muted btn btn-link icon-btn" id="add_tags">
+			$(`<button type="button" class="es-button add-tags-btn" data-variant="ghost" data-icon-button="true" title="${__(
+				"Add Tags"
+			)}" aria-label="${__("Add Tags")}">
 				${__(placeholder)}
 			</button>`);
 		this.$placeholder.appendTo(this.$ul.find(".form-sidebar-items"));
@@ -112,22 +114,51 @@ frappe.ui.Tags = class {
 	}
 
 	get_tag(label) {
-		let colored = true;
-		let $tag = frappe.get_data_pill(
-			label,
-			label,
-			(target, pill_wrapper) => {
-				this.removeTag(target);
-				pill_wrapper.closest(".form-tag-row").remove();
-			},
-			null,
-			colored
-		);
+		let $tag = frappe.ui.badge({
+			label: label,
+			theme: this.get_tag_theme(label),
+			size: "lg",
+			icon_right: "x",
+			css_class: "form-tag",
+			title: label,
+		});
+
+		// wrap the label text so truncation can engage (a bare text node in a
+		// flex container can't ellipsize); also the onTagClick target
+		$tag.contents()
+			.filter((_, node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim())
+			.wrap('<span class="pill-label ellipsis"></span>');
+
+		// the ✕ is the only click target — the badge itself stays inert
+		const $remove = $tag.find(".es-badge__affix");
+		$remove
+			.attr({ role: "button", tabindex: 0, "aria-label": __("Remove") })
+			.on("click", () => {
+				this.removeTag(label);
+				$tag.closest(".form-tag-row").remove();
+			})
+			.on("keydown", (e) => {
+				if (e.key === "Enter" || e.key === " ") {
+					e.preventDefault();
+					$remove.trigger("click");
+				}
+			});
+
 		if (this.onTagClick) {
 			$tag.on("click", ".pill-label", () => {
 				this.onTagClick(label);
 			});
 		}
 		return $tag;
+	}
+
+	get_tag_theme(label) {
+		// same tag → same color, spread over the badge's curated themes
+		const themes = ["blue", "green", "amber", "red", "violet"];
+		let hash = 0;
+		for (let i = 0; i < label.length; i++) {
+			hash = (hash * 31 + label.charCodeAt(i)) % 997;
+		}
+		return themes[hash % themes.length];
 	}
 };

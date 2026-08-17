@@ -10,6 +10,7 @@
 		<div class="pfb-insp-section">
 			<div class="pfb-insp-section-body" style="padding-top: 10px">
 				<SegmentedRow
+					v-if="letterhead"
 					:label="__('Based on')"
 					:model-value="zone_source"
 					:options="[
@@ -18,95 +19,66 @@
 					]"
 					@update:model-value="set_source"
 				/>
-				<!-- Letter head selection buttons — always visible for header zone -->
-				<template v-if="zone === 'header'">
-					<div v-if="letterhead" class="pfb-lh-actions" style="margin-top: 4px">
-						<button class="es-button" data-size="xs" @click="lh_change_letterhead">
-							{{ __("Change Letter Head") }}
-						</button>
-					</div>
-					<div v-else class="pfb-lh-actions" style="margin-top: 4px">
-						<p class="pfb-insp-hint text-muted">
-							{{ __("No letter head selected.") }}
-						</p>
-						<button class="es-button" data-size="xs" @click="lh_create_letterhead">
-							{{ __("Create Letter Head") }}
-						</button>
-						<button class="es-button" data-size="xs" @click="lh_change_letterhead">
-							{{ __("Select Letter Head") }}
-						</button>
-					</div>
-				</template>
+				<div v-if="zone === 'header'" class="pfb-insp-row pfb-insp-row--col">
+					<span class="pfb-insp-label">{{ __("Letter Head") }}</span>
+					<div ref="lh_link_ref"></div>
+				</div>
 			</div>
 		</div>
 
 		<!-- HTML section -->
-		<InspectorSection v-if="zone_source === 'HTML'" :label="__('HTML')">
-			<template v-if="letterhead">
-				<div
-					class="pfb-html-preview"
-					v-if="letterhead[html_content_field]"
-					v-html="letterhead[html_content_field]"
-				></div>
-				<div v-else class="pfb-insp-hint text-muted">
-					{{ __("No HTML content yet.") }}
-				</div>
-				<button class="es-button" data-size="xs" @click="edit_html">
-					<span v-html="frappe.utils.icon('pencil', 'xs')"></span>
-					{{ __("Edit HTML") }}
-				</button>
-			</template>
-			<template v-else>
-				<p class="pfb-insp-hint text-muted">
-					{{ __("No letter head selected.") }}
-				</p>
-			</template>
+		<InspectorSection v-if="letterhead && zone_source === 'HTML'" :label="__('HTML')">
+			<div
+				class="pfb-html-preview"
+				v-if="letterhead[html_content_field]"
+				v-html="letterhead[html_content_field]"
+			></div>
+			<div v-else class="pfb-insp-hint text-muted">
+				{{ __("No HTML content yet.") }}
+			</div>
+			<button class="es-button" data-size="xs" @click="edit_html">
+				<span v-html="frappe.utils.icon('pencil', 'xs')"></span>
+				{{ __("Edit HTML") }}
+			</button>
 		</InspectorSection>
 
 		<!-- Image section -->
-		<InspectorSection v-if="zone_source === 'Image'" :label="__('Image')">
-			<template v-if="letterhead">
-				<!-- Alignment -->
-				<SegmentedRow
-					:label="__('Align')"
-					:model-value="zone_align"
-					:options="
-						['Left', 'Center', 'Right'].map((d) => ({
-							value: d,
-							label: __(d),
-						}))
-					"
-					@update:model-value="set_align"
+		<InspectorSection v-if="letterhead && zone_source === 'Image'" :label="__('Image')">
+			<!-- Alignment -->
+			<SegmentedRow
+				:label="__('Align')"
+				:model-value="zone_align"
+				:options="
+					['Left', 'Center', 'Right'].map((d) => ({
+						value: d,
+						label: __(d),
+					}))
+				"
+				@update:model-value="set_align"
+			/>
+			<!-- Size slider -->
+			<div v-if="letterhead[image_field]" class="pfb-insp-row pfb-insp-row--col">
+				<span class="pfb-insp-label">{{ __("Size") }}</span>
+				<input
+					class="pfb-size-slider"
+					type="range"
+					min="20"
+					:max="zone_size_max"
+					:value="zone_size"
+					@input="(e) => set_size(e.target.value)"
 				/>
-				<!-- Size slider -->
-				<div v-if="letterhead[image_field]" class="pfb-insp-row pfb-insp-row--col">
-					<span class="pfb-insp-label">{{ __("Size") }}</span>
-					<input
-						class="pfb-lh-slider"
-						type="range"
-						min="20"
-						:max="zone_size_max"
-						:value="zone_size"
-						@input="(e) => set_size(e.target.value)"
-					/>
-				</div>
-				<!-- Image source -->
-				<ImageUploadControl
-					:model-value="letterhead[image_field] || ''"
-					@update:model-value="set_image"
-				/>
-			</template>
-			<template v-else>
-				<p class="pfb-insp-hint text-muted">
-					{{ __("No letter head selected.") }}
-				</p>
-			</template>
+			</div>
+			<!-- Image source -->
+			<ImageUploadControl
+				:model-value="letterhead[image_field] || ''"
+				@update:model-value="set_image"
+			/>
 		</InspectorSection>
 	</div>
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref } from "vue";
+import { computed, inject, onMounted, ref, watch } from "vue";
 import { useStore } from "../../stores";
 import { get_image_dimensions, render_jinja_html } from "../../utils";
 import SegmentedRow from "./SegmentedRow.vue";
@@ -140,10 +112,13 @@ const range_field = ref(null);
 onMounted(() => {
 	const img = letterhead.value?.[image_field.value];
 	if (img) {
-		get_image_dimensions(img).then(({ width, height }) => {
-			aspect_ratio.value = width / height;
-			range_field.value = aspect_ratio.value > 1 ? width_field.value : height_field.value;
-		});
+		get_image_dimensions(img)
+			.then(({ width, height }) => {
+				aspect_ratio.value = width / height;
+				range_field.value =
+					aspect_ratio.value > 1 ? width_field.value : height_field.value;
+			})
+			.catch(() => {});
 	} else {
 		range_field.value = width_field.value;
 	}
@@ -190,23 +165,27 @@ function set_image(url) {
 		letterhead.value._dirty = true;
 		return;
 	}
-	get_image_dimensions(url).then(({ width, height }) => {
-		aspect_ratio.value = width / height;
-		range_field.value = aspect_ratio.value > 1 ? width_field.value : height_field.value;
-		let new_width = width > 200 ? 200 : width;
-		let new_height = new_width / aspect_ratio.value;
-		if (new_height > 80) {
-			new_height = 80;
-			new_width = aspect_ratio.value * new_height;
-		}
-		letterhead.value[image_field.value] = url;
-		letterhead.value[width_field.value] = new_width;
-		letterhead.value[height_field.value] = new_height;
-		if (props.zone === "footer") {
-			letterhead.value[source_field.value] = "Image";
-		}
-		letterhead.value._dirty = true;
-	});
+	get_image_dimensions(url)
+		.then(({ width, height }) => {
+			aspect_ratio.value = width / height;
+			range_field.value = aspect_ratio.value > 1 ? width_field.value : height_field.value;
+			let new_width = width > 200 ? 200 : width;
+			let new_height = new_width / aspect_ratio.value;
+			if (new_height > 80) {
+				new_height = 80;
+				new_width = aspect_ratio.value * new_height;
+			}
+			letterhead.value[image_field.value] = url;
+			letterhead.value[width_field.value] = new_width;
+			letterhead.value[height_field.value] = new_height;
+			if (props.zone === "footer") {
+				letterhead.value[source_field.value] = "Image";
+			}
+			letterhead.value._dirty = true;
+		})
+		.catch(() => {
+			frappe.show_alert({ message: __("Could not load this image"), indicator: "orange" });
+		});
 }
 
 function open_html_split_dialog({ title, initial_html, on_save, doctype, docname }) {
@@ -221,7 +200,7 @@ function open_html_split_dialog({ title, initial_html, on_save, doctype, docname
 					.pfb-lh-split{display:flex;height:480px;gap:0;overflow:hidden;margin:-15px}
 					.pfb-lh-split-pane{display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden}
 					.pfb-lh-split-divider{width:1px;background:var(--border-color);flex-shrink:0}
-					.pfb-lh-split-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);padding:10px 12px 8px;border-bottom:1px solid var(--border-color);flex-shrink:0}
+					.pfb-lh-split-label{font-size:11px;font-weight:700;color:var(--text-muted);padding:10px 12px 8px;border-bottom:1px solid var(--border-color);flex-shrink:0}
 					.pfb-lh-split-ctrl{flex:1;overflow:hidden}
 					.pfb-lh-split-ctrl .pfb-html-ctrl-host{height:100%}
 					.pfb-lh-preview-iframe{flex:1;width:100%;border:none;background:#fff}
@@ -322,40 +301,35 @@ function edit_html() {
 	});
 }
 
-function lh_change_letterhead() {
-	let d = new frappe.ui.Dialog({
-		title: __("Change Letter Head"),
-		fields: [
-			{
-				label: __("Letter Head"),
-				fieldname: "letterhead",
-				fieldtype: "Link",
-				options: "Letter Head",
-			},
-		],
-		primary_action: ({ letterhead: lh }) => {
-			if (lh) store.change_letterhead(lh);
-			d.hide();
-		},
-	});
-	d.show();
-}
+const lh_link_ref = ref(null);
+let lh_link_ctrl = null;
 
-function lh_create_letterhead() {
-	let d = new frappe.ui.Dialog({
-		title: __("Create Letter Head"),
-		fields: [{ label: __("Letter Head Name"), fieldname: "name", fieldtype: "Data" }],
-		primary_action: ({ name }) => {
-			return frappe.db
-				.insert({ doctype: "Letter Head", letter_head_name: name, source: "Image" })
-				.then((doc) => {
-					d.hide();
-					store.change_letterhead(doc.name);
-				});
+onMounted(() => {
+	if (props.zone !== "header" || !lh_link_ref.value) return;
+	lh_link_ctrl = frappe.ui.form.make_control({
+		parent: lh_link_ref.value,
+		df: {
+			fieldname: "letter_head",
+			fieldtype: "Link",
+			options: "Letter Head",
+			placeholder: __("No letter head"),
+			change: () => {
+				const name = lh_link_ctrl.get_value() || "";
+				if (name === (letterhead.value?.name || "")) return;
+				name ? store.change_letterhead(name) : store.remove_letterhead();
+			},
 		},
+		render_input: true,
 	});
-	d.show();
-}
+	lh_link_ctrl.set_value(letterhead.value?.name || "");
+	lh_link_ref.value.querySelector(".control-label")?.remove();
+	lh_link_ref.value.querySelector(".form-group")?.style.setProperty("margin", "0");
+});
+
+watch(
+	() => letterhead.value?.name,
+	(name) => lh_link_ctrl?.set_value(name || "")
+);
 </script>
 
 <style scoped>
@@ -365,23 +339,11 @@ function lh_create_letterhead() {
 	gap: 6px;
 	font-size: var(--text-tiny);
 	font-weight: var(--weight-semibold);
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
-	color: var(--blue-500);
-	background: var(--blue-50);
-	border-bottom: 1px solid var(--blue-200);
+	letter-spacing: 0;
+	color: var(--gray-600);
+	background: var(--gray-50);
+	border-bottom: 1px solid var(--gray-200);
 	padding: 7px 14px;
 	flex-shrink: 0;
-}
-
-.pfb-lh-slider {
-	width: 100%;
-	accent-color: var(--primary);
-}
-
-.pfb-lh-actions {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
 }
 </style>

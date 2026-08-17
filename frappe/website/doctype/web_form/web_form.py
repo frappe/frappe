@@ -152,6 +152,12 @@ class WebForm(WebsiteGenerator):
 					HiddenAndMandatoryWithoutDefaultError,
 				)
 
+	def raise_if_unpublished(self):
+		"""Unpublishing is the only control that takes a web form offline, so it must
+		hold for direct API calls too, not just for the rendered page."""
+		if not self.published:
+			frappe.throw(_("Not permitted"), frappe.PermissionError)
+
 	def reset_field_parent(self):
 		"""Convert link fields to select with names as options."""
 		for df in self.web_form_fields:
@@ -715,7 +721,7 @@ def get_context(context):
 
 
 def process_link_field(field, web_form_name, web_form_request_key=None, docname=None):
-	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
+	web_form = frappe.get_cached_doc("Web Form", web_form_name)
 	ensure_guest_key_link_doctype_allowed(web_form, field.options)
 
 	field.fieldtype = "Autocomplete"
@@ -744,6 +750,7 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 	files_to_delete = []
 
 	web_form = frappe.get_lazy_doc("Web Form", web_form)
+	web_form.raise_if_unpublished()
 	doctype = web_form.doc_type
 	user = frappe.session.user
 	web_form_request = web_form.get_web_form_request(
@@ -875,6 +882,7 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 @rate_limit(key="web_form_name", limit=10, seconds=60)
 def delete(web_form_name: str, docname: str | int, web_form_request_key: str | None = None):
 	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
+	web_form.raise_if_unpublished()
 	web_form_request: "WebFormRequest | None" = web_form.get_web_form_request(
 		web_form_request_key,
 		docname=docname,
@@ -911,6 +919,7 @@ def delete(web_form_name: str, docname: str | int, web_form_request_key: str | N
 @rate_limit(key="web_form_name", limit=10, seconds=60)
 def delete_multiple(web_form_name: str, docnames: str | list):
 	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
+	web_form.raise_if_unpublished()
 
 	docnames = frappe.parse_json(docnames)
 
@@ -947,6 +956,7 @@ def check_webform_perm(doctype, name):
 @frappe.read_only()
 def get_web_form_filters(web_form_name: str):
 	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form.raise_if_unpublished()
 	return [field for field in web_form.web_form_fields if field.show_in_filter]
 
 
@@ -966,6 +976,7 @@ def get_web_form_list(
 	``references`` child table — no more, no less.
 	"""
 	web_form_doc: WebForm = frappe.get_lazy_doc("Web Form", web_form)
+	web_form_doc.raise_if_unpublished()
 	if web_form_doc.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("You must login to use this form"), frappe.PermissionError)
 
@@ -1019,6 +1030,7 @@ def get_form_data(
 	web_form_request_key: str | None = None,
 ):
 	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form.raise_if_unpublished()
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
@@ -1138,7 +1150,7 @@ def get_link_options(
 	web_form_request_key=None,
 	docname=None,
 ):
-	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
+	web_form: WebForm = frappe.get_cached_doc("Web Form", web_form_name)
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
@@ -1189,4 +1201,4 @@ def get_link_options(
 
 @redis_cache(ttl=60 * 60)
 def get_published_web_forms() -> dict[str, str]:
-	return frappe.get_all("Web Form", ["name", "route", "modified"], {"published": 1})
+	return frappe.get_all("Web Form", ["name", "route", "modified", "module"], {"published": 1})

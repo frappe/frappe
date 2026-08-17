@@ -29,8 +29,7 @@
   "print_style_preview",
   "section_break_8",
   "font",
-  "font_size",
-  "show_label_colon"
+  "font_size"
  ],
  "fields": [
   {
@@ -160,13 +159,6 @@
    "fieldname": "font_size",
    "fieldtype": "Float",
    "label": "Font Size"
-  },
-  {
-   "default": "0",
-   "description": "Show a colon after field labels (e.g. \"Name:\"), matching the older print style.",
-   "fieldname": "show_label_colon",
-   "fieldtype": "Check",
-   "label": "Show Colon After Field Labels"
   },
   {
    "depends_on": "eval:doc.pdf_page_size == \"Custom\"",

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, nextTick, computed } from "vue";
+import { ref, nextTick } from "vue";
 import { useStore } from "../store";
 let store = useStore();
 
@@ -17,17 +17,6 @@ const props = defineProps({
 
 let editing = ref(false);
 let input_text = ref(null);
-let hidden_text = ref(null);
-let hidden_placeholder = ref(null);
-
-let hidden_span_width = computed(() => {
-	if (hidden_text.value && props.text) {
-		return hidden_text.value.offsetWidth + 15 + "px";
-	} else if (!props.text) {
-		return hidden_placeholder.value.offsetWidth + 15 + "px";
-	}
-	return "40px";
-});
 
 function focus_on_label() {
 	if (!store.read_only) {
@@ -49,7 +38,6 @@ defineExpose({ focus_on_label });
 			type="text"
 			:placeholder="__(placeholder)"
 			:value="text"
-			:style="{ width: hidden_span_width }"
 			@input="(event) => $emit('update:modelValue', event.target.value)"
 			@keydown.enter="editing = false"
 			@blur="editing = false"
@@ -59,16 +47,21 @@ defineExpose({ focus_on_label });
 		<i v-else class="text-muted">
 			{{ __(empty_label) }}
 		</i>
-		<span class="hidden-span" ref="hidden_text" v-html="text"></span>
-		<span class="hidden-span" ref="hidden_placeholder">{{ __(placeholder) }}</span>
 	</div>
 </template>
 
 <style lang="scss" scoped>
 .input-text {
+	width: 180px;
+	max-width: 100%;
+
 	border: none;
-	min-width: 50px;
 	padding: 0px !important;
+	@supports (field-sizing: content) {
+		field-sizing: content;
+		width: auto;
+		min-width: 50px;
+	}
 
 	&:focus {
 		outline: none;
@@ -79,11 +72,5 @@ defineExpose({ focus_on_label });
 		font-style: italic;
 		font-weight: normal;
 	}
-}
-
-.hidden-span {
-	visibility: hidden;
-	position: absolute;
-	width: max-content;
 }
 </style>

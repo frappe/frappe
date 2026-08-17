@@ -213,7 +213,11 @@ class EmailAccount(Document):
 
 		if self.notify_if_unreplied:
 			if not self.send_notification_to:
-				frappe.throw(_("{0} is mandatory").format(self.meta.get_label("send_notification_to")))
+				frappe.throw(
+					_("{0} is mandatory").format(
+						_(self.meta.get_label("send_notification_to"), context=self.doctype)
+					)
+				)
 			for e in self.get_unreplied_notification_emails():
 				validate_email_address(e, True)
 

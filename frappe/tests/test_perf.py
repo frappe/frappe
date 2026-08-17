@@ -241,7 +241,7 @@ class TestOverheadCalls(FrappeAPITestCase):
 	Every call increase here is an actual increase in cost!
 	"""
 
-	BASE_SQL_CALLS = 2  # rollback + begin
+	BASE_SQL_CALLS = 3  # rollback + begin + session time zone on connect
 
 	def test_ping_overheads(self):
 		self.get(self.method("ping"), {"sid": "Guest"})

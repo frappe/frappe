@@ -15,7 +15,7 @@
  "label": "Printing",
  "link_type": "DocType",
  "links": [],
- "modified": "2026-07-15 00:51:27.452467",
+ "modified": "2026-08-03 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Printing",
@@ -62,19 +62,6 @@
    "label": "Letter Head",
    "link_to": "Letter Head",
    "link_type": "DocType",
-   "open_in_new_tab": 1,
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
-   "icon": "pen-tool",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Print Format Builder",
-   "link_to": "print-format-builder",
-   "link_type": "Page",
    "open_in_new_tab": 1,
    "show_arrow": 0,
    "type": "Link"

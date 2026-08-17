@@ -6,6 +6,7 @@
 // icons use the `tile` treatment (filled cell + left indicator bar when active) and the bell uses
 // the `ghost` treatment (transparent until hovered).
 .workspace-dock {
+	position: relative;
 	flex: 0 0 50px;
 	width: 50px;
 	height: 100vh;
@@ -59,9 +60,33 @@
 		background: var(--outline-gray-1);
 	}
 
-	// the divider right below the logo hugs the navbar-height band, no extra top gap
+	// The divider right below the logo hugs the navbar-height band -- the logo is already centred in
+	// its 48px band, so no extra top margin is stacked on top of it; its 8px bottom margin then
+	// matches the gap on every other divider, keeping the rhythm even.
 	.workspace-dock-logo + .workspace-dock-divider {
 		margin-top: 0;
+	}
+
+	// Icon shortcuts (search, notifications) pinned under the logo, bracketed by a divider above and
+	// below. A centred icon column whose 8px gap matches the dividers' margins, so every gap in the
+	// top of the rail reads the same. Collapses to nothing when no shortcut is enabled.
+	.workspace-dock-shortcuts {
+		flex: 0 0 auto;
+		width: 100%;
+
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+
+		&:empty {
+			display: none;
+		}
+	}
+
+	// with no shortcuts, drop the divider that would sit under them so two dividers don't stack up
+	.workspace-dock-shortcuts:empty + .workspace-dock-divider {
+		display: none;
 	}
 
 	.workspace-dock-items {
@@ -81,22 +106,8 @@
 		}
 	}
 
-	.workspace-dock-actions {
-		flex: 0 0 auto;
-		width: 100%;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 12px;
-
-		&.hidden {
-			display: none;
-		}
-	}
-
 	.workspace-dock-user {
 		flex: 0 0 auto;
-		margin-top: 4px;
 		padding: 0;
 		border: none;
 		background: transparent;
@@ -159,7 +170,7 @@
 		}
 
 		// unread indicator — a small dot on the bell's top-right corner (mirrors <RailItemBadge> dot)
-		.sidebar-notification-count {
+		.notification-count {
 			position: absolute;
 			top: 5px;
 			right: 5px;
@@ -168,7 +179,7 @@
 			padding: 0;
 			border-radius: 50%;
 			border: 1px solid var(--surface-base);
-			background: var(--surface-red-6);
+			background: var(--surface-blue-5);
 			// dot only — hide any count text the shared notifications view sets on it
 			font-size: 0;
 			color: transparent;
@@ -178,20 +189,11 @@
 				display: none;
 			}
 		}
-
-		// re-place the shared unseen dot on the bell's top-right corner for the 16px icon
-		.sidebar-item-icon.indicator::before {
-			top: -1px;
-			right: -1px;
-			height: 8px;
-			width: 8px;
-			border-radius: 50%;
-		}
 	}
 
-	// The notification bell is a shortcut, not a workspace — mirror <RailItem variant="ghost">:
+	// Search / notification shortcuts are not workspaces — mirror <RailItem variant="ghost">:
 	// transparent until hovered, 8px radius.
-	.workspace-dock-actions .workspace-dock-item {
+	.workspace-dock-shortcuts .workspace-dock-item {
 		background: transparent;
 		border-radius: 8px;
 
@@ -207,6 +209,81 @@ body.workspace-dock-active .body-sidebar {
 	.sidebar-notification {
 		display: none;
 	}
+}
+
+// Right-edge handle that reopens the collapsed body sidebar -- the mirror of the sidebar's own
+// .sidebar-resize-handle. Only present while collapsed (body.sidebar-collapsed), so it doesn't
+// offer an expand affordance when the sidebar is already open.
+.workspace-dock-resize-handle {
+	position: absolute;
+	top: 0;
+	right: -4px;
+	width: 8px;
+	height: 100%;
+	z-index: 1022;
+	cursor: e-resize;
+	display: none;
+
+	&::after {
+		content: "";
+		position: absolute;
+		left: 50%;
+		top: 0;
+		transform: translateX(-50%);
+		width: 2px;
+		height: 100%;
+		background: transparent;
+		transition: background 0.15s ease;
+	}
+
+	&:hover::after {
+		background: var(--ink-gray-2);
+	}
+}
+
+body.sidebar-collapsed .workspace-dock-resize-handle {
+	display: block;
+}
+
+// The visible twin of the handle above, mirroring .body-sidebar .sidebar-toggle-btn so the expand
+// affordance lands in the same spot and looks the same as the collapse one it replaces.
+.workspace-dock-toggle-btn {
+	position: absolute;
+	right: -12px;
+	bottom: 80px;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	border: 1px solid var(--sidebar-border-color);
+	background: var(--surface-sidebar);
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	padding: 0;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.15s ease, visibility 0.15s ease;
+	z-index: 1023;
+	display: none;
+
+	svg {
+		width: 12px;
+		height: 12px;
+	}
+
+	&:hover {
+		background: var(--sidebar-hover-color);
+	}
+}
+
+body.sidebar-collapsed .workspace-dock-toggle-btn {
+	display: flex;
+}
+
+body.sidebar-collapsed .workspace-dock:hover .workspace-dock-toggle-btn {
+	opacity: 1;
+	visibility: visible;
 }
 
 // mirror the body sidebar: the rail collapses away on mobile

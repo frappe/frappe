@@ -164,19 +164,19 @@ $.extend(frappe, {
 
 		if (data._server_messages) {
 			var server_messages = JSON.parse(data._server_messages || "[]");
-			server_messages
-				.map((msg) => {
-					// temp fix for messages sent as dict
-					try {
-						return JSON.parse(msg);
-					} catch (e) {
-						return msg;
-					}
-				})
-				.join("<br>");
 
 			if (opts.error_msg) {
-				$(opts.error_msg).html(server_messages).toggle(true);
+				var message_html = server_messages
+					.map((msg) => {
+						try {
+							const parsed = JSON.parse(msg);
+							return parsed && typeof parsed === "object" ? parsed.message : parsed;
+						} catch (e) {
+							return msg;
+						}
+					})
+					.join("<br>");
+				$(opts.error_msg).html(message_html).toggle(true);
 			} else {
 				frappe.msgprint(server_messages);
 			}

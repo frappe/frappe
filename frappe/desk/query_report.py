@@ -281,6 +281,8 @@ def _run(
 					filters = json.loads(filters)
 
 				dn = filters.pop("prepared_report_name", None)
+				if dn:
+					frappe.has_permission("Prepared Report", "read", dn, throw=True)
 			else:
 				dn = ""
 			result = get_prepared_report_result(report, filters, dn, user)
@@ -869,7 +871,7 @@ def save_report(reference_report: str, report_name: str, columns: str | list, fi
 
 	if docname:
 		report = frappe.get_doc("Report", docname)
-		existing_jd = json.loads(report.json)
+		existing_jd = frappe.parse_json(report.json or "{}")
 		existing_jd["columns"] = frappe.parse_json(columns)
 		existing_jd["filters"] = frappe.parse_json(filters)
 		report.update({"json": json.dumps(existing_jd, separators=(",", ":"))})

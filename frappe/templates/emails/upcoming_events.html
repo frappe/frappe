@@ -1,7 +1,7 @@
 {% for e in events %}
 <p>
 	<span class="text-bold">{{ e.starts_on }}: </span><span>{{ e.subject }}</span>
-	<div>{{ e.description or '' }}</div>
+	{% if e.description %}<br><span class="text-muted">{{ e.description }}</span>{% endif %}
 </p>
 {% endfor %}
 <p class="more-info">

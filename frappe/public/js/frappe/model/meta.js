@@ -205,17 +205,17 @@ $.extend(frappe.meta, {
 
 	get_label: function (dt, fn, dn) {
 		var standard = {
-			name: __("ID"),
-			creation: __("Created On"),
-			docstatus: __("Document Status"),
-			idx: __("Index"),
-			modified: __("Last Updated On"),
-			modified_by: __("Last Updated By"),
-			owner: __("Created By"),
-			_user_tags: __("Tags"),
-			_liked_by: __("Liked By"),
-			_comments: __("Comments"),
-			_assign: __("Assigned To"),
+			name: "ID",
+			creation: "Created On",
+			docstatus: "Document Status",
+			idx: "Index",
+			modified: "Last Updated On",
+			modified_by: "Last Updated By",
+			owner: "Created By",
+			_user_tags: "Tags",
+			_liked_by: "Liked By",
+			_comments: "Comments",
+			_assign: "Assigned To",
 		};
 		if (standard[fn]) {
 			return standard[fn];
@@ -269,7 +269,7 @@ $.extend(frappe.meta, {
 			"Print Settings"
 		).enable_raw_printing;
 		var print_formats = frappe
-			.get_list("Print Format", { doc_type: doctype })
+			.get_list(":Print Format", { doc_type: doctype })
 			.sort(function (a, b) {
 				return a > b ? 1 : -1;
 			});

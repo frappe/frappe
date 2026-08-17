@@ -15,7 +15,9 @@ frappe.ui.SortSelector = class SortSelector {
 	make() {
 		this.prepare_args();
 		this.parent.find(".sort-selector").remove();
-		this.wrapper = $(frappe.render_template("sort_selector", this.args)).appendTo(this.parent);
+		this.wrapper = $(
+			frappe.render_template("sort_selector", { ...this.args, doctype: this.doctype })
+		).appendTo(this.parent);
 		this.bind_events();
 	}
 	bind_events() {
@@ -41,7 +43,7 @@ frappe.ui.SortSelector = class SortSelector {
 
 		if (this.sort_by !== sort_by) {
 			this.sort_by = sort_by;
-			$text.html(__(this.get_label(sort_by)));
+			$text.html(__(this.get_label(sort_by), null, this.doctype));
 		}
 		if (this.sort_order !== sort_order) {
 			this.sort_order = sort_order;

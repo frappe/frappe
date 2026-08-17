@@ -922,7 +922,10 @@ frappe.ui.form.Form = class FrappeForm {
 	save(save_action, callback, btn, on_error) {
 		let me = this;
 		return new Promise((resolve, reject) => {
-			btn && $(btn).prop("disabled", true);
+			// aria-busy mirrors the disabled handling here and in save.js —
+			// see the note in frappe.ui.form.save (this promise doesn't settle
+			// on every validation-error path)
+			btn && $(btn).prop("disabled", true).attr("aria-busy", "true");
 			frappe.ui.form.close_grid_form();
 			me.validate_and_save(save_action, callback, btn, on_error, resolve, reject);
 		})
@@ -974,7 +977,7 @@ frappe.ui.form.Form = class FrappeForm {
 			if (e) {
 				console.error(e);
 			}
-			btn && $(btn).prop("disabled", false);
+			btn && $(btn).prop("disabled", false).removeAttr("aria-busy");
 			if (on_error) {
 				on_error();
 				reject();
@@ -1068,7 +1071,7 @@ frappe.ui.form.Form = class FrappeForm {
 				method: "frappe.desk.form.linked_with.get_submitted_linked_docs",
 				args: {
 					doctype: me.doc.doctype,
-					name: me.doc.name,
+					name: cstr(me.doc.name),
 					ignore_doctypes_on_cancel_all: me.ignore_doctypes_on_cancel_all,
 				},
 				freeze: true,
@@ -1185,11 +1188,23 @@ frappe.ui.form.Form = class FrappeForm {
 		if (skip_confirm) {
 			cancel_doc();
 		} else {
-			frappe.confirm(
+			// destructive: red primary via frappe.warn
+			const d = frappe.warn(
+				__("Confirm"),
 				__("Permanently Cancel {0}?", [this.docname]),
 				cancel_doc,
-				me.handle_save_fail(btn, on_error)
+				__("Yes"),
+				false,
+				__("No")
 			);
+			// declined (No / Escape / close): re-enable the button. A
+			// confirmed-but-failed cancellation calls handle_save_fail from
+			// inside cancel_doc — this must not double up with that.
+			d.onhide = () => {
+				if (!d.primary_action_fulfilled) {
+					me.handle_save_fail(btn, on_error);
+				}
+			};
 		}
 	}
 
@@ -1341,7 +1356,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	handle_save_fail(btn, on_error) {
-		$(btn).prop("disabled", false);
+		$(btn).prop("disabled", false).removeAttr("aria-busy");
 		if (on_error) {
 			on_error();
 		}
@@ -2327,6 +2342,10 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 
 			this.timeline && this.timeline.refresh();
+
+			if (key === "attachments") {
+				this.attachments && this.attachments.refresh();
+			}
 
 			if (["add", "delete"].includes(action) && doc.doctype === "Comment") {
 				this.footer.refresh_comments_count();

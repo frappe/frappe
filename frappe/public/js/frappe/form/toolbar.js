@@ -28,7 +28,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 		} else {
 			if (this.frm.doc.__islocal) {
 				this.page.hide_menu();
-				this.print_icon && this.print_icon.addClass("hide");
 			} else {
 				const is_children_visible =
 					this.page.menu.children().filter(function () {
@@ -42,7 +41,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 				} else {
 					this.page.hide_menu();
 				}
-				this.print_icon && this.print_icon.removeClass("hide");
 			}
 		}
 	}
@@ -158,9 +156,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 				)
 				.then((new_docname) => {
 					const reload_form = (input_name) => {
+						frappe.model.rename_doc_in_locals(doctype, docname, input_name, merge);
 						$(document).trigger("rename", [doctype, docname, input_name]);
-						if (locals[doctype] && locals[doctype][docname])
-							delete locals[doctype][docname];
 						this.frm.reload_doc();
 					};
 
@@ -338,9 +335,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		this.page.clear_icons();
 		this.page.clear_menu();
 
-		if (frappe.boot.desk_settings.form_sidebar) {
-			this.make_menu_items();
-		}
+		this.make_menu_items();
 
 		if (frappe.boot.desk_settings.form_navigation_buttons) {
 			this.make_navigation();
@@ -370,7 +365,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	make_menu_items() {
-		// Print
+		this.add_print();
 		this.add_discard();
 		this.add_open_sidebar();
 		this.add_email();
@@ -476,8 +471,21 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 	}
 
+	add_print() {
+		if (frappe.model.can_print_doc(this.frm)) {
+			let menu_item = this.page.add_menu_item(
+				__("Print"),
+				() => {
+					this.frm.print_doc();
+				},
+				true
+			);
+			menu_item.parent().addClass("hidden-xl");
+		}
+	}
+
 	add_open_sidebar() {
-		if (this.page.hide_sidebar) {
+		if (this.page.hide_sidebar || !frappe.boot.desk_settings.form_sidebar) {
 			return;
 		}
 		this.page.add_menu_item(
@@ -643,7 +651,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 			let doctype = is_doctype_form ? this.frm.docname : this.frm.doctype;
 			let is_core_doctype = frappe.model.core_doctypes_list.includes(doctype);
 
-			if (!is_core_doctype && this.frm.meta.issingle === 0) {
+			if (!is_core_doctype && !frappe.model.is_single(doctype)) {
 				this.page.add_menu_item(
 					__("Settings"),
 					() => {
@@ -887,6 +895,16 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	show_jump_to_field_dialog() {
+		// Reuse the existing Jump to Field dialog if it's already open.
+		const existing_dialog = frappe.ui.open_dialogs.find(
+			(dialog) => dialog.dialog_type === "jump_to_field" && dialog.display
+		);
+
+		if (existing_dialog) {
+			existing_dialog.hide();
+			return;
+		}
+
 		let visible_fields_filter = (f) =>
 			!["Section Break", "Column Break", "Tab Break"].includes(f.df.fieldtype) &&
 			!f.df.hidden &&
@@ -923,6 +941,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 			},
 			animate: false,
 		});
+
+		dialog.dialog_type = "jump_to_field";
 
 		dialog.show();
 	}

@@ -31,6 +31,27 @@ class TestTranslation(IntegrationTestCase):
 			frappe.delete_doc(doctype, docname)
 			self.assertEqual(_(source_string, context=doctype), original_translation)
 
+	def test_meta_get_label_returns_source_strings(self):
+		doctype = "Translation"
+		meta = frappe.get_meta(doctype)
+		labels = {
+			"translated_text": "Translated Text",
+			"creation": "Created On",
+			"missing_field": "No Label",
+		}
+
+		for source_string in labels.values():
+			create_translation("de", source_string, f"Translated {source_string}", context=doctype)
+
+		frappe.local.lang = "de"
+		for fieldname, source_string in labels.items():
+			with self.subTest(fieldname=fieldname):
+				self.assertEqual(meta.get_label(fieldname), source_string)
+				self.assertEqual(
+					_(meta.get_label(fieldname), context=doctype),
+					f"Translated {source_string}",
+				)
+
 	def test_parent_language(self):
 		data = {
 			"Test Data": {

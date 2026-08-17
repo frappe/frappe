@@ -30,73 +30,35 @@
 						<svg class="icon icon-sm"><use href="#icon-search"></use></svg>
 					</span>
 				</button>
-				{% if(!frappe.is_mobile()) { %}
-				<button id="full-search-button" class="btn btn-default navbar-modal-search-mobile search-widget-button hidden" aria-label="{{ __("Search") }}">
-					<span class="search-widget-icon">
-						{{ frappe.utils.icon("search") }}
-					</span>
-					<span class="search-widget-label">{%= __("Search") %}</span>
-					<span class="search-widget-shortcut">
-					{% if(frappe.utils.is_mac()) { %}
-						⌘K
-					{% } else { %}
-						Ctrl+K
-					{% } %}
-					</span>
-				</button>
-
-				{% } %}
 				<div class="flex col page-actions justify-content-end {% if frappe.is_mobile() %} pl-0 {% endif %}">
 					<!-- buttons -->
-					{% if (frappe.boot.read_only) { %}
-					{%= frappe.ui.badge.html({
-						label: __("Read Only Mode"),
-						theme: "amber",
-						css_class: "ml-2 read-only-banner",
-						title: __("Your site is undergoing maintenance or being updated."),
-					}) %}
-					{% } %}
-					{% if (frappe.boot.user.impersonated_by) { %}
-					{%= frappe.ui.badge.html({
-						label: __("Impersonating {0}", [frappe.boot.user.name]),
-						theme: "red",
-						css_class: "ml-2",
-						title: __("You are impersonating as another user."),
-					}) %}
-					{% } %}
 					<div class="filters flex"></div>
 					<div class="custom-actions hide hidden-xs hidden-md"></div>
 					<div class="custom-mobile-actions"></div>
 					<div class="standard-actions flex">
 						<span class="page-icon-group hide hidden-xs hidden-sm"></span>
 						<div class="menu-btn-group hide">
-							<button type="button" class="btn btn-default icon-btn menu-more-button" data-toggle="dropdown" aria-expanded="false" aria-label="{{ __("Menu") }}">
-								<span>
-									<span class="menu-btn-group-label">
-										<svg class="icon icon-sm">
-											<use href="#icon-ellipsis">
-											</use>
-										</svg>
-									</span>
-								</span>
-							</button>
-							<ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>
+							{%= frappe.ui.button.html({
+								icon: "ellipsis",
+								title: __("Menu"),
+								css_class: "icon-btn menu-more-button",
+							}) %}
+							<!-- hidden item store, not UI: add_dropdown_item writes <li><a> here
+							(the returned jQuery is public API); frappe.ui.Dropdown snapshots it
+							into menu rows on every open — see page.js build_dropdown_options -->
+							<ul class="dropdown-menu dropdown-menu-right" role="presentation"></ul>
 						</div>
-						<button class="btn btn-secondary btn-default btn-sm hide"></button>
+						{%= frappe.ui.button.html({ css_class: "secondary-action hide" }) %}
 						<div class="actions-btn-group hide">
-							<button type="button" class="btn btn-primary btn-sm justify-center" data-toggle="dropdown" aria-expanded="false">
-								<span>
-									<span class="hidden-xs actions-btn-group-label">{%= __("Actions") %}</span>
-									<svg class="icon icon-xs">
-										<use href="#icon-chevrons-up-down">
-										</use>
-									</svg>
-								</span>
-							</button>
-							<ul class="dropdown-menu dropdown-menu-right" role="menu">
+							{%= frappe.ui.button.html({
+								label: __("Actions"),
+								icon_right: "chevrons-up-down",
+								variant: "solid",
+							}) %}
+							<ul class="dropdown-menu dropdown-menu-right" role="presentation">
 							</ul>
 						</div>
-						<button class="btn btn-primary btn-sm hide primary-action"></button>
+						{%= frappe.ui.button.html({ variant: "solid", css_class: "primary-action hide" }) %}
 					</div>
 				</div>
 			</div>

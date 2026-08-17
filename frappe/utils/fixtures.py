@@ -8,6 +8,10 @@ import click
 import frappe
 from frappe.core.doctype.data_import.data_import import export_json, import_doc
 
+# these doctypes are only meant to be created
+# via desk in developer mode
+DISALLOWED_FIXTURE_DOCTYPES = ["DocType", "Page"]
+
 
 def sync_fixtures(app=None):
 	"""Import, overwrite fixtures from `[app]/fixtures`"""
@@ -78,6 +82,16 @@ def export_fixtures(app=None):
 				or_filters = fixture.get("or_filters")
 				prefix = fixture.get("prefix")
 				fixture = fixture.get("doctype") or fixture.get("dt")
+
+			if fixture in DISALLOWED_FIXTURE_DOCTYPES:
+				click.secho(
+					f'Cannot export "{fixture}" doctype as a fixture, since it can only be created in developer mode from desk.\n'
+					f'Remove the fixture for "{fixture}" doctype with {(filters if filters else or_filters)} filters from {app}/hooks.py.',
+					fg="red",
+					err=True,
+				)
+				raise click.exceptions.Exit(1)
+
 			print(f"Exporting {fixture} app {app} filters {(filters if filters else or_filters)}")
 			if not os.path.exists(frappe.get_app_path(app, "fixtures")):
 				os.mkdir(frappe.get_app_path(app, "fixtures"))

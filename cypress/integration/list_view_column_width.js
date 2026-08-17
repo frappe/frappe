@@ -11,7 +11,7 @@ const BASE_FIELDS = JSON.stringify([
 // Helper — open List View Settings modal for the current list
 function openListSettings() {
 	cy.get(".menu-btn-group button").click({ force: true });
-	cy.get(".dropdown-menu li").filter(":visible").contains("List Settings").click();
+	cy.get(".es-menu").contains('[role="menuitem"]', "List Settings").click();
 	cy.get(".modal-dialog").should("contain", `${DOCTYPE} List View Settings`);
 }
 
@@ -62,7 +62,7 @@ context("List View — Column Widths", () => {
 	beforeEach(() => {
 		resetListViewSettings();
 		cy.visit(LIST_URL);
-		cy.wait(500);
+		cy.desk_ready();
 		cy.clear_filters();
 	});
 
@@ -84,7 +84,7 @@ context("List View — Column Widths", () => {
 
 		// Reload so fresh render applies the persisted width via setup_columns()
 		cy.reload();
-		cy.wait(500);
+		cy.desk_ready();
 
 		getColumnWidth("module").should("be.closeTo", 180, 15);
 	});
@@ -107,7 +107,7 @@ context("List View — Column Widths", () => {
 		);
 
 		cy.reload();
-		cy.wait(500);
+		cy.desk_ready();
 
 		getColumnWidth("module").should("be.closeTo", 220, 15);
 	});
@@ -118,7 +118,6 @@ context("List View — Column Widths", () => {
 		// BASE_FIELDS seeds module at 150 px, so 150+80=230 — well inside the 400 px cap.
 		getColumnWidth("module").then((initialWidth) => {
 			dragResizeColumn("module", 80);
-			cy.wait(300);
 			getColumnWidth("module").should("be.greaterThan", initialWidth + 40);
 		});
 	});
@@ -132,7 +131,7 @@ context("List View — Column Widths", () => {
 			cy.wait(600);
 
 			cy.reload();
-			cy.wait(500);
+			cy.desk_ready();
 
 			getColumnWidth("module").should("be.greaterThan", initialWidth + 30);
 		});
@@ -142,7 +141,6 @@ context("List View — Column Widths", () => {
 
 	it("enforces minimum column width of 50 px when dragging", () => {
 		dragResizeColumn("module", -2000);
-		cy.wait(300);
 		getColumnWidth("module").should("be.gte", 50);
 	});
 
@@ -150,7 +148,6 @@ context("List View — Column Widths", () => {
 
 	it("enforces maximum column width of 400 px when dragging", () => {
 		dragResizeColumn("module", 2000);
-		cy.wait(300);
 		getColumnWidth("module").should("be.lte", 400);
 	});
 

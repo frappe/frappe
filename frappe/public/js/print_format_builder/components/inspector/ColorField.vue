@@ -1,7 +1,10 @@
 <template>
 	<div class="pfb-insp-row">
 		<span class="pfb-insp-label">{{ label }}</span>
-		<div ref="host"></div>
+		<div class="pfb-insp-color">
+			<div ref="host" class="pfb-insp-color-input"></div>
+			<slot />
+		</div>
 	</div>
 </template>
 
@@ -29,7 +32,6 @@ onMounted(() => {
 	});
 });
 
-// Reflect external changes (e.g. selecting a different field) into the control
 watch(
 	() => props.modelValue,
 	(value) => {
@@ -45,5 +47,14 @@ watch(
    which unbalances the row's vertical centering against the label */
 .pfb-insp-row :deep(.form-group) {
 	margin-bottom: 0;
+}
+.pfb-insp-color {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+.pfb-insp-color-input {
+	flex: 1;
+	min-width: 0;
 }
 </style>

@@ -3,6 +3,7 @@ import time
 import urllib
 
 import frappe
+from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.utils.pdf import get_host_url
 
 """
@@ -123,6 +124,7 @@ class Page:
 		bench_sites = os.path.abspath(os.path.join(frappe.utils.get_bench_path(), "sites"))
 		asset_path = os.path.abspath(os.path.join(bench_sites, "assets"))
 		site_public_root = os.path.realpath(frappe.utils.get_site_path("public"))
+		site_private_files_root = os.path.realpath(frappe.utils.get_site_path("private/files"))
 
 		def on_request_paused_event(future, response):
 			"""Callback for when a request is paused (intercepted)."""
@@ -134,10 +136,33 @@ class Page:
 				if isinstance(url, str) and url.startswith(get_host_url()):
 					parsed = urllib.parse.urlparse(url)
 					clean_path = urllib.parse.unquote(parsed.path).lstrip("/")
+					query_params = urllib.parse.parse_qs(parsed.query)
 
 					if clean_path.startswith("assets/"):
 						final_system_path = os.path.abspath(os.path.join(bench_sites, clean_path))
 						is_safe = os.path.commonpath([final_system_path, asset_path]) == asset_path
+					elif clean_path.startswith("private/files/"):
+						# Covers private files, but we need to check if the user has permission to read the file.
+						# Based on frappe.utils.response.download_private_file
+
+						can_read = False
+						if frappe.session.user == "Administrator":
+							can_read = True
+						elif frappe.session.user != "Guest":
+							# Determine whether the user has permission to read the file based on the fid in the query parameters.
+							# If missing, then all "File" documents with the same path will be checked for a match, which is less efficient.
+							# Normalize file_url to start with a leading slash for comparison.
+							fid: str | None = query_params.get("fid", [None])[0]
+							if find_file_by_url("/" + clean_path, name=fid):
+								can_read = True
+
+						# Resolve the final system path and check if it's within the site_private_files_root.
+						file_path = clean_path.removeprefix("private/files/")
+						final_system_path = os.path.realpath(os.path.join(site_private_files_root, file_path))
+						is_safe = can_read and (
+							os.path.commonpath([final_system_path, site_private_files_root])
+							== site_private_files_root
+						)
 					else:
 						# Covers files/, builder_assets/, etc... under public root.
 						final_system_path = os.path.realpath(os.path.join(site_public_root, clean_path))
@@ -221,14 +246,15 @@ class Page:
 			# retry if error in 500ms for 3 times (just safe guard as i had few edge cases where it failed).
 			# waiting for network is still slower than this.
 			for _i in range(3):
-				print(f"Error evaluating expression: {error}. Retrying in 500ms")
 				time.sleep(0.5)
 				result, error = self.send(
 					"Runtime.evaluate", {"expression": expression, "awaitPromise": await_promise}
 				)
 				if not error:
 					break
-			raise RuntimeError(f"Error evaluating expression: {error}")
+			if error:
+				self.send("Runtime.disable")
+				raise RuntimeError(f"Error evaluating expression: {error}")
 
 		self.send("Runtime.disable")
 		return result
@@ -391,12 +417,16 @@ class Page:
 		return self.get_pdf_from_stream(result["stream"], raw)
 
 	def get_pdf_stream_id(self):
-		# wait for task to complete
+		# wait for the send task to complete; its result is the response future
 		self.session.wait_for_event(self.wait_for_pdf)
-		# wait for event to complete
-		task = self.wait_for_pdf.result()
-		future = task.result()
-		stream_id = future["result"]["stream"]
+		response_future = self.wait_for_pdf.result()
+		# the task resolves when the command is *sent*, so also wait for the
+		# Page.printToPDF response before reading the stream handle
+		self.session.wait_for_event(response_future, timeout=30)
+		if not response_future.done() or response_future.cancelled():
+			raise RuntimeError("Timed out waiting for the Page.printToPDF response")
+		response = response_future.result()
+		stream_id = response["result"]["stream"]
 		return stream_id
 
 	def get_pdf_from_stream(self, stream_id, raw=False):

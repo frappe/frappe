@@ -4,23 +4,49 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		if (!this.datepicker) return;
 		if (!value) {
 			this.datepicker.clear();
+			this.datepicker.date = this.get_now_date();
 			return;
 		} else if (value.toLowerCase() === "today") {
 			value = this.get_now_date();
 		} else if (value.toLowerCase() === "now") {
 			value = frappe.datetime.now_datetime();
 		}
-		const raw_value = value;
-		let should_refresh = this.last_value && this.last_value !== value;
+		const should_refresh = this.last_value && this.last_value !== value;
 		value = this.format_for_input(value);
 		this.$input && this.$input.val(value);
 		if (should_refresh) {
 			this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
-		} else if (value && !this.datepicker.selectedDates.length) {
-			const date_obj = frappe.datetime.str_to_obj(raw_value);
-			this.datepicker.selectedDates = [date_obj];
-			this.datepicker.viewDate = date_obj;
-			this.datepicker.lastSelectedDate = date_obj;
+		} else if (value) {
+			this.sync_datepicker_state(frappe.datetime.user_to_obj(value));
+		}
+	}
+
+	sync_datepicker_state(date) {
+		const selected_date = this.datepicker.selectedDates[0];
+		const last_selected_date = this.datepicker.lastSelectedDate;
+		const timepicker = this.datepicker.timepicker;
+		const date_value = date.getTime();
+		const has_stale_time =
+			timepicker &&
+			(Number(timepicker.hours) !== date.getHours() ||
+				Number(timepicker.minutes) !== date.getMinutes() ||
+				Number(timepicker.seconds) !== date.getSeconds());
+		const has_stale_state =
+			!selected_date ||
+			selected_date.getTime() !== date_value ||
+			!last_selected_date ||
+			last_selected_date.getTime() !== date_value ||
+			has_stale_time;
+
+		if (!has_stale_state) return;
+
+		this.datepicker.selectedDates = [date];
+		this.datepicker.lastSelectedDate = date;
+		this.datepicker.date = date;
+
+		if (timepicker) {
+			timepicker._setTime(date);
+			timepicker.update();
 		}
 	}
 
@@ -63,7 +89,9 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		return frappe.datetime.str_to_user(value, false);
 	}
 	set_description() {
-		const description = this.df.description;
+		const description = this.df.description
+			? __(this.df.description, null, this.df.parent)
+			: this.df.description;
 		const time_zone = this.get_user_time_zone();
 
 		if (!this.df.hide_timezone) {
@@ -73,7 +101,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 			if (!description) {
 				this.df.description = time_zone;
 			} else if (!description.includes(time_zone)) {
-				this.df.description += "<br>" + time_zone;
+				this.df.description = description + "<br>" + time_zone;
 			}
 		}
 		super.set_description();

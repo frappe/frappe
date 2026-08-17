@@ -19,6 +19,20 @@
 				:show="selected_field.show_label"
 				@update:show="(v) => (selected_field.show_label = v)"
 			/>
+			<div class="pfb-insp-row--col" style="margin-top: 8px">
+				<label class="pfb-insp-label">{{ __("Show row when") }}</label>
+				<input
+					class="pfb-insp-input"
+					type="text"
+					:placeholder="__('e.g. row.qty > 0')"
+					:value="selected_field.row_condition || ''"
+					@input="selected_field.row_condition = $event.target.value"
+				/>
+				<p class="pfb-insp-hint text-muted">
+					{{ __("Leave blank to show every row. Reference the row with") }}
+					<code>row.fieldname</code>.
+				</p>
+			</div>
 		</InspectorSection>
 
 		<InspectorSection :label="__('Columns')">

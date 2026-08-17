@@ -22,11 +22,17 @@ frappe.doctype_settings.register = function (tab_id, builder) {
 	frappe.doctype_settings.builders[tab_id] = builder;
 };
 
+frappe.doctype_settings.get_list = function (doctype, args) {
+	args = Object.assign({ fields: ["name"], limit: 20 }, args, { doctype });
+	return frappe
+		.call({ method: "frappe.desk.reportview.get_list", args, type: "GET" })
+		.then((r) => r.message);
+};
+
 /**
- * Shared overflow "…" menu used by list rows and custom tabs.
- *
- * Uses Bootstrap's native dropdown (`data-toggle="dropdown"`), which handles
- * open/close and outside-click on its own — no manual toggling.
+ * Shared overflow "…" menu used by list rows and custom tabs, built on the
+ * espresso Dropdown component (open/close, positioning, keyboard handling all
+ * come from it).
  *
  * `items`: [{ label, icon, danger, onclick() }] — falsy entries are skipped.
  * Returns the actions cell ($div) ready to append to a row. Callers that need a
@@ -37,37 +43,35 @@ frappe.doctype_settings.overflow_menu = function (items) {
 	const $cell = $('<div class="dts-list-cell dts-list-cell-actions"></div>');
 	if (!items.length) return $cell;
 
-	const $wrap = $('<div class="dropdown dts-actions"></div>').appendTo($cell);
 	frappe.ui
-		.button({
-			icon: "ellipsis",
-			size: "xs",
-			variant: "ghost",
-			title: __("More actions"),
-			css_class: "dts-actions-btn",
-			attrs: {
-				"data-toggle": "dropdown",
-				"aria-haspopup": "menu",
-				"aria-expanded": "false",
+		.dropdown({
+			button: {
+				label: "",
+				icon: "ellipsis",
+				size: "xs",
+				variant: "ghost",
+				title: __("More actions"),
 			},
+			align: "end",
+			options: items.map((item) => ({
+				label: item.label,
+				icon: item.icon,
+				theme: item.danger ? "red" : undefined,
+				onclick: () => item.onclick(),
+			})),
 		})
-		.appendTo($wrap);
-	const $menu = $('<div class="dropdown-menu dropdown-menu-right" role="menu"></div>').appendTo(
-		$wrap
-	);
-
-	items.forEach((item) => {
-		const $a = $(
-			'<button type="button" class="dropdown-item dts-action-item" role="menuitem"></button>'
-		);
-		if (item.icon) $a.append(frappe.utils.icon(item.icon, "sm"));
-		$a.append($("<span></span>").text(item.label));
-		if (item.danger) $a.addClass("text-danger");
-		$a.on("click", () => item.onclick());
-		$menu.append($a);
-	});
+		.appendTo($cell);
 
 	return $cell;
+};
+
+// Shared loading placeholder: a few skeleton lines instead of bare "Loading" text.
+frappe.doctype_settings.render_loading = function ($container) {
+	const $wrap = $('<div class="dts-loading" aria-label="' + __("Loading") + '"></div>');
+	["40%", "70%", "55%"].forEach((width) => {
+		$wrap.append(frappe.ui.skeleton({ width, height: "14px" }));
+	});
+	return $wrap.appendTo($container);
 };
 
 /**
@@ -92,10 +96,31 @@ frappe.doctype_settings.empty_state = function ($container, opts) {
 	return $empty;
 };
 
-frappe.doctype_settings.render_error = function (panel, retry_fn) {
+frappe.doctype_settings.render_error = function (panel, retry_fn, err) {
+	if (frappe.doctype_settings.is_permission_error(err)) {
+		panel.body.empty();
+		frappe.doctype_settings.empty_state(panel.body, {
+			icon: "lock",
+			title: __("No access"),
+			description: __("You don't have permission to view this."),
+		});
+		return;
+	}
 	const $err = panel.body.empty();
-	$('<div class="text-muted small"></div>').text(__("Could not load this tab.")).appendTo($err);
+	$('<div class="text-muted text-p-sm"></div>')
+		.text(__("Could not load this tab."))
+		.appendTo($err);
 	frappe.ui.button({ label: __("Retry"), size: "xs", onclick: () => retry_fn() }).appendTo($err);
+};
+
+frappe.doctype_settings.is_permission_error = function (err) {
+	if (!err) return false;
+	return (
+		err.status === 403 ||
+		err.exc_type === "PermissionError" ||
+		(err.responseJSON || {}).exc_type === "PermissionError" ||
+		(typeof err === "string" && err.includes("PermissionError"))
+	);
 };
 
 // Shared helper: write a DocType-level Property Setter (same mechanism Customize Form uses).
@@ -113,12 +138,25 @@ frappe.doctype_settings.set_property = function (doctype, property, value) {
 		.then(() => frappe.show_alert({ message: __("Default updated"), indicator: "green" }));
 };
 
+// Each `condition` hides a tab the user could never load anyway (boot perms are a
+// client-side hint; the server still enforces). A tab that is guaranteed to 403
+// shouldn't be offered at all — see render_error for the residual failure path.
 frappe.doctype_settings.groups = [
 	{
 		group: __("Document"),
 		items: [
-			{ id: "naming", label: __("Naming"), icon: "tag" },
-			{ id: "workflow", label: __("Workflow"), icon: "workflow" },
+			{
+				id: "naming",
+				label: __("Naming"),
+				icon: "tag",
+				condition: () => frappe.model.can_read("Document Naming Rule"),
+			},
+			{
+				id: "workflow",
+				label: __("Workflow"),
+				icon: "workflow",
+				condition: () => frappe.model.can_read("Workflow"),
+			},
 			{
 				id: "permissions",
 				label: __("Permissions"),
@@ -126,19 +164,41 @@ frappe.doctype_settings.groups = [
 				// Role permission APIs are System-Manager-only; hide the tab otherwise.
 				condition: () => frappe.user.has_role("System Manager"),
 			},
-			{ id: "print-format", label: __("Print Formats"), icon: "printer" },
+			{
+				id: "print-format",
+				label: __("Print Formats"),
+				icon: "printer",
+				condition: () => frappe.model.can_read("Print Format"),
+			},
 		],
 	},
 	{
 		group: __("Communication"),
 		items: [
-			{ id: "notifications", label: __("Notifications"), icon: "bell" },
-			{ id: "email-template", label: __("Email Templates"), icon: "mail" },
+			{
+				id: "notifications",
+				label: __("Notifications"),
+				icon: "bell",
+				condition: () => frappe.model.can_read("Notification"),
+			},
+			{
+				id: "email-template",
+				label: __("Email Templates"),
+				icon: "mail",
+				condition: () => frappe.model.can_read("Email Template"),
+			},
 		],
 	},
 	{
 		group: __("Data"),
-		items: [{ id: "global-search", label: __("Global Search"), icon: "search" }],
+		items: [
+			{
+				id: "global-search",
+				label: __("Global Search"),
+				icon: "search",
+				condition: () => frappe.model.can_read("Global Search Settings"),
+			},
+		],
 	},
 ];
 

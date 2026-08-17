@@ -189,6 +189,7 @@ class RoleProfilesTab extends RoleTab {
 				filters: { role: this.role, parenttype: "Role Profile" },
 				fields: ["parent"],
 				limit: 0,
+				parent_doctype: "Role Profile",
 			})
 			.then((rows) => unique_parents(rows).map((parent) => ({ name: parent })));
 	}
@@ -237,6 +238,7 @@ class UsersTab extends RoleTab {
 				filters: { role: this.role, parenttype: "User" },
 				fields: ["parent"],
 				limit: 0,
+				parent_doctype: "User",
 			})
 			.then((rows) => this.fetch_users(unique_parents(rows)));
 	}
@@ -475,6 +477,7 @@ class RoleAccessTab extends RoleTab {
 				filters: { role: this.role, parenttype: this.access_doctype },
 				fields: ["parent"],
 				limit: 0,
+				parent_doctype: this.access_doctype,
 			})
 			.then((rows) => {
 				const names = unique_parents(rows);

@@ -1,7 +1,6 @@
 import "./assign_to";
 import "./attachments";
 import "./share";
-import "./document_follow";
 import "./user_image";
 import "./form_sidebar_users";
 import { get_user_link, get_user_message } from "../footer/version_timeline_content_builder";
@@ -88,29 +87,18 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	setup_print() {
-		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings");
-		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
-		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
-
-		if (
-			!frappe.model.is_submittable(this.frm.doc.doctype) ||
-			this.frm.doc.docstatus == 1 ||
-			(allow_print_for_cancelled && this.frm.doc.docstatus == 2) ||
-			(allow_print_for_draft && this.frm.doc.docstatus == 0)
-		) {
-			if (frappe.model.can_print(null, this.frm) && !this.frm.meta.issingle) {
-				let print_icon = this.page.add_action_icon(
-					"printer",
-					() => {
-						this.frm.print_doc();
-					},
-					"",
-					__("Print")
-				);
-				print_icon.css("background-color", "transparent");
-				print_icon.addClass("p-0");
-				this.sidebar.find(".form-print").append(print_icon);
-			}
+		if (frappe.model.can_print_doc(this.frm)) {
+			let print_icon = this.page.add_action_icon(
+				"printer",
+				() => {
+					this.frm.print_doc();
+				},
+				"",
+				__("Print")
+			);
+			print_icon.css("background-color", "transparent");
+			print_icon.addClass("p-0");
+			this.sidebar.find(".form-print").append(print_icon);
 		}
 	}
 
@@ -164,7 +152,7 @@ frappe.ui.form.Sidebar = class {
 				) +
 					" <br> " +
 					(cint(frappe.boot.user.show_absolute_datetime_in_timeline) ||
-					cint(frappe.boot.sysdefaults.show_absolute_datetime_in_timeline)
+					frappe.defaults.is_enabled("show_absolute_datetime_in_timeline")
 						? frappe.datetime.str_to_user(this.frm.doc.modified)
 						: comment_when(this.frm.doc.modified))
 			);
@@ -178,7 +166,7 @@ frappe.ui.form.Sidebar = class {
 				) +
 					" <br> " +
 					(cint(frappe.boot.user.show_absolute_datetime_in_timeline) ||
-					cint(frappe.boot.sysdefaults.show_absolute_datetime_in_timeline)
+					frappe.defaults.is_enabled("show_absolute_datetime_in_timeline")
 						? frappe.datetime.str_to_user(this.frm.doc.creation)
 						: comment_when(this.frm.doc.creation))
 			);

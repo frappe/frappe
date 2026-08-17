@@ -25,8 +25,7 @@
 .pfb-insp-section-label {
 	font-size: var(--text-tiny);
 	font-weight: var(--weight-bold);
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
+	letter-spacing: 0;
 	color: var(--text-muted);
 }
 .pfb-insp-chevron {
@@ -56,6 +55,14 @@
 .pfb-insp-row--col {
 	grid-template-columns: 1fr;
 	gap: 4px;
+}
+/* a standalone toggle reads as label-on-left, switch-on-right (settings style),
+   so the label gets the full width instead of an 80px column that wraps it */
+.pfb-insp-row--toggle {
+	grid-template-columns: 1fr auto;
+}
+.pfb-insp-row--toggle .switch-control {
+	justify-self: end;
 }
 .pfb-insp-label {
 	font-size: var(--text-sm);
@@ -167,8 +174,7 @@
 .pfb-html-split-label {
 	font-size: var(--text-tiny);
 	font-weight: var(--weight-bold);
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
+	letter-spacing: 0;
 	color: var(--text-muted);
 	padding: 10px 12px 8px;
 	border-bottom: 1px solid var(--border-color);
@@ -252,6 +258,12 @@
 	accent-color: var(--primary);
 }
 
+.pfb-table-note {
+	text-align: center;
+	font-size: 11px;
+	padding: 6px;
+}
+
 /* bare toggle inside an inspector row: neutralise label.switch-control's
    full-width/padding (it's built for full-row settings pages) */
 .pfb-insp-row .switch-control {
@@ -267,4 +279,83 @@
 	color: var(--text-color);
 	cursor: pointer;
 	margin: 0;
+}
+
+.pfb-drag-fallback {
+	opacity: 0.95 !important;
+	box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
+	border-radius: var(--radius);
+	cursor: grabbing !important;
+	pointer-events: none;
+}
+
+.pfb-drag-ghost {
+	height: 0 !important;
+	min-height: 0 !important;
+	margin: 4px 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: visible !important;
+	position: relative !important;
+	opacity: 1 !important;
+	box-shadow: none !important;
+}
+
+.pfb-drag-ghost > * {
+	visibility: hidden !important;
+}
+
+/* Builder-style drop indicator: a blue insertion line with round end caps */
+.pfb-drag-ghost::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: -1.5px;
+	height: 3px;
+	background: var(--blue-500);
+	border-radius: 2px;
+}
+
+.pfb-drag-ghost::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: -3px;
+	height: 6px;
+	background: radial-gradient(circle 3px at left center, var(--blue-500) 99%, transparent 100%)
+			no-repeat,
+		radial-gradient(circle 3px at right center, var(--blue-500) 99%, transparent 100%) no-repeat;
+}
+
+.pfb-field-row,
+.pfb-block-card,
+.drag-container .field,
+.sections-container .section-drag-handle {
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+body.pfb-dragging,
+body.pfb-dragging * {
+	user-select: none !important;
+	-webkit-user-select: none !important;
+}
+
+.pfb-typst-input {
+	font-family: monospace;
+	font-size: var(--text-xs);
+	line-height: 1.5;
+	resize: vertical;
+	min-height: 120px;
+	margin-bottom: 6px;
+}
+
+/* the canvas draws its own selection and hover rings — the browser's focus
+   ring on these tabbable nodes only duplicates them (any keypress shows it) */
+.print-format-container .print-format-section:focus,
+.print-format-container .field--chip:focus,
+.print-format-container .field--preview:focus {
+	outline: none;
 }

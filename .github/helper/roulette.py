@@ -136,7 +136,7 @@ def is_server_side_code(file):
 
 def is_ci(file):
 	"""Check if the file is related to CI configuration."""
-	return ".github" in file
+	return ".github" in file and "VOUCHED.td" not in file
 
 
 def is_frontend_code(file):

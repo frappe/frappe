@@ -72,7 +72,7 @@ function addStyles() {
 
 	.onb-panel {
 		position: fixed;
-		right: 20px;
+		inset-inline-end: 20px;
 		bottom: 24px;
 		width: 310px;
 		max-height: 80vh;
@@ -109,7 +109,7 @@ function addStyles() {
 		border: none;
 		background: transparent;
 		cursor: pointer;
-		margin-left: 2px;
+		margin-inline-start: 2px;
 	}
 
 	.onb-step-left {
@@ -139,7 +139,7 @@ function addStyles() {
 	.onb-step-text {
 		white-space: nowrap;
 		margin-top: 2px;
-		text-align: left;
+		text-align: start;
 		font-size: 14px;
 	}
 

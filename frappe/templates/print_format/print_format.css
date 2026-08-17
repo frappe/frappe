@@ -21,7 +21,7 @@
 }
 
 html, body {
-	font-size: {{ print_format.font_size }}px;
+	font-size: {{ print_format.font_size or 14 }}px;
 }
 
 body {

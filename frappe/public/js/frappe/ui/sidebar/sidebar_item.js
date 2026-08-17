@@ -54,7 +54,7 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false) {
 			);
 			for (const [key, value] of Object.entries(filters_json)) {
 				if (Array.isArray(value)) {
-					filters_json[key] = value[1];
+					filters_json[key] = value[0] === "=" ? value[1] : JSON.stringify(value);
 				}
 			}
 			if (item.link_type == "DocType") {
@@ -116,6 +116,16 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 			})
 		);
 		$(this.container).append(this.wrapper);
+		this.setup_click();
+	}
+
+	setup_click() {
+		if (!this.path) return;
+		this.wrapper.find(".item-anchor").on("click", () => {
+			if (frappe.is_mobile()) {
+				frappe.app.sidebar.close();
+			}
+		});
 	}
 	set_suffix() {
 		if (this.item.suffix) {
@@ -292,9 +302,9 @@ frappe.ui.sidebar_item.TypeSidebarItemGroup = class SpacerItem extends (
 	constructor(item, items) {
 		super(item);
 		this.title = frappe.app.sidebar.workspace_title;
-		this.setup_click();
 	}
 
+	// overrides TypeLink.setup_click(), invoked once via the base class's make()
 	setup_click() {
 		const me = this;
 		this.wrapper.on("click", function () {
@@ -344,9 +354,9 @@ frappe.ui.sidebar_item.TypeButton = class SidebarButton extends frappe.ui.sideba
 		this.item.id && this.wrapper.attr("id", this.item.id);
 		this.item.class && this.wrapper.attr("class", this.item.class);
 		this.wrapper.attr("title", this.item.label);
-		this.setup_click();
 	}
 
+	// overrides TypeLink.setup_click(), invoked once via the base class's make()
 	setup_click() {
 		const me = this;
 		if (this.item.onClick) {

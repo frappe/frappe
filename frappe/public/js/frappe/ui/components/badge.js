@@ -8,6 +8,7 @@ frappe.provide("frappe.ui");
  * @property {"gray"|"blue"|"green"|"amber"|"red"|"violet"|"orange"} [theme="gray"] "orange" means amber (same as frappe-ui). Old indicator colors (yellow, cyan, purple, pink, grey, darkgrey, light-blue) still work through badge-legacy-colors.css.
  * @property {string} [icon] Lucide icon name, shown before the label.
  * @property {string} [icon_left] Same as `icon`.
+ * @property {string} [icon_right] Lucide icon name, shown after the label inside an `.es-badge__affix` wrapper (the frappe-ui suffix-slot markup). Unlike direct icons, the affix accepts pointer events — bind to `.es-badge__affix` for a clickable suffix (dismissible tags).
  * @property {string} [title] Tooltip; doubles as aria-label when the badge has no visible label.
  * @property {"sm"|"md"|"lg"} [size="md"]
  * @property {"solid"|"subtle"|"outline"|"ghost"} [variant="subtle"]
@@ -40,6 +41,7 @@ function badge_html(opts = {}) {
 	const variant = validated(opts.variant, VARIANTS, "variant", "badge");
 
 	const icon_name = opts.icon_left || opts.icon;
+	const icon_right_name = opts.icon_right;
 
 	const attrs = [];
 	// leave out attributes that match the CSS defaults (gray / md / subtle)
@@ -49,14 +51,30 @@ function badge_html(opts = {}) {
 	if (opts.title) {
 		attrs.push(`title="${escape(opts.title)}"`);
 		// an icon-only badge has no text for screen readers — reuse the title
-		if (icon_name && !opts.label) attrs.push(`aria-label="${escape(opts.title)}"`);
+		if ((icon_name || icon_right_name) && !opts.label) {
+			attrs.push(`aria-label="${escape(opts.title)}"`);
+		}
 	}
 	attrs.push(...safe_attrs(opts.attrs, "badge"));
 
 	const classes = escape(["es-badge", opts.css_class].filter(Boolean).join(" "));
 	const attr_str = attrs.length ? " " + attrs.join(" ") : "";
 	const icon = icon_name ? frappe.utils.icon(icon_name, "sm", "", "", "", true) : "";
-	return `<span class="${classes}"${attr_str}>${icon}${escape(opts.label || "")}</span>`;
+	// suffix rides in the affix wrapper: direct svg children are
+	// pointer-events:none, the affix is the interactive-suffix channel
+	const icon_right = icon_right_name
+		? `<span class="es-badge__affix">${frappe.utils.icon(
+				icon_right_name,
+				"sm",
+				"",
+				"",
+				"",
+				true
+		  )}</span>`
+		: "";
+	return `<span class="${classes}"${attr_str}>${icon}${escape(
+		opts.label || ""
+	)}${icon_right}</span>`;
 }
 
 /**

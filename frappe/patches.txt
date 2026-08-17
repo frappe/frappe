@@ -269,3 +269,8 @@ frappe.patches.v16_0.populate_workspace_sidebar_from_shortcuts
 frappe.desk.doctype.workspace.patches.set_standard_flag
 frappe.patches.v16_0.clear_if_owner_above_permlevel_zero
 frappe.patches.v16_0.migrate_classic_print_formats
+frappe.patches.v16_0.rename_lucide_workspace_icons
+frappe.patches.v16_0.keep_existing_sites_on_desktop_icons
+frappe.patches.v16_0.repair_converted_print_formats
+frappe.patches.v16_0.repair_converted_print_formats #2026-08-02 section-spacing
+execute:frappe.db.set_single_value("Contact Us Settings", "send_acknowledgement_email", 1)

@@ -2,7 +2,6 @@
 	<div class="pfb-insp-row">
 		<span class="pfb-insp-label">{{ label }}</span>
 		<Stepper
-			:sm="sm"
 			:value="modelValue ?? ''"
 			:placeholder="placeholder"
 			:unit="unit"
@@ -25,7 +24,6 @@ const props = defineProps({
 	unit: { type: String, default: "" },
 	placeholder: { type: String, default: "" },
 	allowEmpty: { type: Boolean, default: false },
-	sm: { type: Boolean, default: false },
 });
 const emit = defineEmits(["update:modelValue"]);
 

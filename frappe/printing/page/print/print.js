@@ -106,7 +106,7 @@ frappe.ui.form.PrintView = class {
 	setup_sidebar() {
 		this.sidebar = this.page.sidebar.addClass("print-preview-sidebar");
 
-		this.print_format_selector = this.add_sidebar_item({
+		this.print_format_field = this.add_sidebar_item({
 			fieldtype: "Link",
 			fieldname: "print_format",
 			options: "Print Format",
@@ -120,7 +120,8 @@ frappe.ui.form.PrintView = class {
 				};
 			},
 			change: () => this.refresh_print_format(),
-		}).$input;
+		});
+		this.print_format_selector = this.print_format_field.$input;
 
 		this.language_selector = this.add_sidebar_item({
 			fieldtype: "Link",
@@ -266,7 +267,10 @@ frappe.ui.form.PrintView = class {
 			print_format.print_format_type === "Jinja";
 
 		if (is_standard_jinja_custom) {
-			let doc = frappe.get_doc("Print Format", print_format.name);
+			let doc = {
+				...frappe.get_doc(":Print Format", print_format.name),
+				doctype: "Print Format",
+			};
 			frappe.model.with_doctype("Print Format", () => {
 				let newdoc = frappe.model.copy_doc(doc);
 				frappe.set_route("Form", "Print Format", newdoc.name);
@@ -277,6 +281,7 @@ frappe.ui.form.PrintView = class {
 		let is_editable = print_format.name && print_format.custom_format;
 
 		if (is_editable) {
+			frappe.model.clear_doc("Print Format", print_format.name);
 			frappe.set_route("Form", "Print Format", print_format.name);
 			return;
 		}
@@ -312,7 +317,7 @@ frappe.ui.form.PrintView = class {
 					callback: (r) => {
 						if (r.message) {
 							frappe.set_route("print-format-builder", r.message.name);
-							this.print_format_selector.val(data.print_format_name);
+							this.set_print_format_value(data.print_format_name);
 						}
 					},
 				});
@@ -495,18 +500,21 @@ frappe.ui.form.PrintView = class {
 	}
 
 	preview_beta() {
-		let print_format = this.get_print_format();
 		const iframe = this.print_wrapper.find(".preview-beta-wrapper iframe");
 		let params = new URLSearchParams({
 			doctype: this.frm.doc.doctype,
 			name: this.frm.doc.name,
+			print_format: this.selected_format(),
 		});
-		if (print_format.name) {
-			params.append("print_format", print_format.name);
+		if (this.lang_code) {
+			params.append("_lang", this.lang_code);
 		}
 		let letterhead = this.get_letterhead();
 		if (letterhead) {
 			params.append("letterhead", letterhead);
+		}
+		if (this.additional_settings && Object.keys(this.additional_settings).length) {
+			params.append("settings", JSON.stringify(this.additional_settings));
 		}
 		iframe.prop("src", `/printpreview?${params.toString()}`);
 		iframe.css("height", "calc(100vh - var(--page-head-height) - var(--navbar-height))");
@@ -737,9 +745,12 @@ frappe.ui.form.PrintView = class {
 				doctype: this.frm.doc.doctype,
 				name: this.frm.doc.name,
 				letterhead: this.get_letterhead(),
+				// "Standard" when the selector is cleared: an omitted format means
+				// the doctype's default, the same as everywhere else in printing
+				print_format: this.selected_format(),
 			});
-			if (print_format.name) {
-				params.append("print_format", print_format.name);
+			if (this.additional_settings && Object.keys(this.additional_settings).length) {
+				params.append("settings", JSON.stringify(this.additional_settings));
 			}
 			let w = window.open(
 				`/api/method/frappe.utils.print_format_generator.download_pdf?${params}`
@@ -875,7 +886,17 @@ frappe.ui.form.PrintView = class {
 	set_default_print_format() {
 		const default_format =
 			this.frm._layout_print_format || this.frm.meta.default_print_format || "";
-		this.print_format_selector.val(default_format);
+		this.set_print_format_value(default_format);
+	}
+
+	// apps like Print Designer replace setup_sidebar and only provide
+	// print_format_selector, not the whole control
+	set_print_format_value(value) {
+		if (this.print_format_field) {
+			this.print_format_field.set_input(value);
+		} else {
+			this.print_format_selector.val(value);
+		}
 	}
 
 	selected_format() {
@@ -892,8 +913,8 @@ frappe.ui.form.PrintView = class {
 			format = this.selected_format();
 		}
 
-		if (locals["Print Format"] && locals["Print Format"][format]) {
-			print_format = locals["Print Format"][format];
+		if (locals[":Print Format"] && locals[":Print Format"][format]) {
+			print_format = locals[":Print Format"][format];
 		}
 
 		return print_format;

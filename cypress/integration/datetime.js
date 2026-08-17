@@ -122,5 +122,50 @@ context("Control Date, Time and DateTime", () => {
 				cy.window().its("cur_frm.doc.datetime").should("eq", d.doc_value);
 			});
 		});
+
+		it("synchronizes datepicker state when the control is reused", () => {
+			cy.window().then((win) => {
+				const dialog = new win.frappe.ui.Dialog({
+					fields: [
+						{
+							fieldname: "datetime",
+							fieldtype: "Datetime",
+							label: "Datetime",
+						},
+					],
+				});
+				dialog.show();
+
+				const control = dialog.get_field("datetime");
+				const refreshed_value = "2026-07-02 09:15:30";
+
+				// Form controls receive their new model value before set_input is called.
+				// Simulate two document refreshes on the same control instance.
+				control.value = "2026-07-01 11:30:00";
+				control.set_input(control.value);
+				control.value = refreshed_value;
+				control.set_input(control.value);
+
+				const expected_date = win.frappe.datetime.user_to_obj(
+					control.format_for_input(refreshed_value)
+				);
+				const expected_time = expected_date.getTime();
+
+				expect(control.datepicker.selectedDates[0].getTime()).to.equal(expected_time);
+				expect(control.datepicker.lastSelectedDate.getTime()).to.equal(expected_time);
+				expect(control.datepicker.date.getTime()).to.equal(expected_time);
+				expect(Number(control.datepicker.timepicker.hours)).to.equal(
+					expected_date.getHours()
+				);
+				expect(Number(control.datepicker.timepicker.minutes)).to.equal(
+					expected_date.getMinutes()
+				);
+				expect(Number(control.datepicker.timepicker.seconds)).to.equal(
+					expected_date.getSeconds()
+				);
+
+				dialog.hide();
+			});
+		});
 	});
 });

@@ -60,12 +60,8 @@ const props = defineProps({
 	fields: { type: Array, default: () => [] },
 });
 
-// Keep an editable text slot at the start, end, and between adjacent field
-// chips so literal text (e.g. " (", "%)") can always be typed inline. Pure —
-// does not mutate its input — so simply displaying an untouched template
-// (e.g. a freshly-added column's default `template: []`) never dirties the
-// print format on its own; only an actual edit (typing, add/remove) commits
-// the normalized shape back to modelValue.
+// Pure (never mutates src): pads empty text slots around and between field chips
+// so literal text stays typeable, so displaying an untouched template never dirties it.
 function build_normalized(src) {
 	const out = [];
 	if (!src.length || src[0].t !== "s") out.push({ t: "s", v: "" });

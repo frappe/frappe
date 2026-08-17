@@ -4,10 +4,15 @@
 import json
 
 import frappe
-from frappe.utils import cint
+from frappe.utils import cint, flt
 
 ASSUMED_BODY_WIDTH_PX = 750
 DEFAULT_COLUMN_WIDTH_PCT = 10
+# classic wrapped text and table blocks in `padding: 10px 0px`; the beta renderer
+# has no such default, so converted sections carry the gap explicitly
+CONVERTED_SECTION_GAP_PX = 10
+MARGIN_FIELDS = ("margin_top", "margin_bottom", "margin_left", "margin_right")
+NUMERIC_DEFAULT_FIELDS = ("font_size", *MARGIN_FIELDS)
 
 DEFAULT_PRINT_HEADING = (
 	'{%- set heading = doc.get("select_print_heading") or doc.get("print_heading") or doc.doctype -%}'
@@ -33,8 +38,14 @@ def uses_beta_renderer(print_format) -> bool:
 		return False
 	if print_format.get("custom_format") or print_format.get("raw_printing"):
 		return False
+	# Print Designer formats carry their own format_data schema and renderer;
+	# also covers rows whose beta flag was flipped wrongly on insert
+	if print_format.get("print_designer"):
+		return False
 	if print_format.get("print_format_builder_beta"):
-		return True
+		# a standard format with no layout is a file-based Jinja format whose
+		# flag was set wrongly on insert — the beta renderer has nothing to draw
+		return print_format.get("standard") != "Yes" or bool(print_format.get("format_data"))
 	return is_classic_layout(print_format.get("format_data"))
 
 
@@ -54,7 +65,7 @@ def convert_classic_to_beta(format_data, meta, print_format=None) -> tuple[dict,
 		"footer": {"columns": [{"label": "", "fields": []}]},
 	}
 
-	data = [frappe._dict(df) for df in (format_data or [])]
+	data = [frappe._dict(df) for df in (format_data or []) if isinstance(df, dict)]
 
 	if data and data[0].fieldname == "print_heading_template":
 		head = data.pop(0)
@@ -137,6 +148,9 @@ def convert_classic_to_beta(format_data, meta, print_format=None) -> tuple[dict,
 		section for section in layout["sections"] if any(column["fields"] for column in section["columns"])
 	]
 
+	for section in layout["sections"][1:]:
+		section["margin"] = {"top": CONVERTED_SECTION_GAP_PX, "right": 0, "bottom": 0, "left": 0}
+
 	if line_breaks:
 		for section in layout["sections"][1:]:
 			section["columns"][0]["fields"].insert(
@@ -154,7 +168,7 @@ def convert_table_columns(df, meta_df, dropped) -> list:
 			"fieldname": "idx",
 			"fieldtype": "Int",
 			"options": None,
-			"width": parse_print_width("40px"),
+			"width": DEFAULT_COLUMN_WIDTH_PCT,
 		}
 	]
 
@@ -208,6 +222,9 @@ def parse_print_width(print_width) -> float | None:
 
 
 def distribute_widths(columns) -> list:
+	for col in columns:
+		if (col.get("width") or 0) < 0:
+			col["width"] = None
 	unsized = [col for col in columns if not col["width"]]
 	assigned = sum(col["width"] for col in columns if col["width"])
 	if unsized:
@@ -219,6 +236,15 @@ def distribute_widths(columns) -> list:
 		for col in columns:
 			col["width"] = round(col["width"] / total * 100, 2)
 	return columns
+
+
+def missing_numeric_defaults(values) -> dict:
+	"""DocType defaults for numeric fields left unset. Margins only when all four are."""
+	meta = frappe.get_meta("Print Format")
+	fields = list(NUMERIC_DEFAULT_FIELDS)
+	if any(values.get(f) for f in MARGIN_FIELDS):
+		fields = [f for f in fields if f not in MARGIN_FIELDS]
+	return {f: flt(meta.get_field(f).default) for f in fields if not values.get(f)}
 
 
 def convert_print_format(doc):
@@ -243,6 +269,8 @@ def convert_print_format(doc):
 	doc.format_data = json.dumps(layout, indent=1)
 	doc.print_format_builder = 0
 	doc.print_format_builder_beta = 1
+	for fieldname, value in missing_numeric_defaults(doc).items():
+		doc.set(fieldname, value)
 	doc.pdf_generator = "chrome"
 	if not doc.page_number or doc.page_number == "Hide":
 		doc.page_number = "Bottom Center"
@@ -386,6 +414,7 @@ def migrate_all_classic_formats():
 						"print_format_builder_beta": 1,
 						"pdf_generator": doc.pdf_generator,
 						"page_number": doc.page_number,
+						**{f: doc.get(f) for f in NUMERIC_DEFAULT_FIELDS},
 					},
 					update_modified=False,
 				)

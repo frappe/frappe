@@ -40,6 +40,7 @@ frappe.Application = class Application {
 		this.load_user_permissions();
 		this.make_nav_bar();
 		this.make_sidebar();
+		this.set_desktop_page_class();
 		this.set_favicon();
 		this.set_fullwidth_if_enabled();
 		this.add_browser_class();
@@ -284,6 +285,7 @@ frappe.Application = class Application {
 	load_bootinfo() {
 		if (frappe.boot) {
 			this.setup_workspaces();
+			this.load_custom_icons();
 			frappe.model.sync(frappe.boot.docs);
 			this.check_metadata_cache_status();
 			this.set_globals();
@@ -300,6 +302,21 @@ frappe.Application = class Application {
 			this.set_as_guest();
 		}
 		frappe.ui.toolbar.fetch_session_defaults();
+	}
+
+	load_custom_icons() {
+		// Custom Icons join the sprite the bundled icon files are fetched into, so
+		// `frappe.utils.icon()` and the Icon field resolve them like any other icon.
+		let icons = frappe.boot.custom_icons || [];
+		if (!icons.length) return;
+
+		let symbols = icons.map((icon) => icon.symbol).join("");
+		document
+			.getElementById("all-symbols")
+			?.insertAdjacentHTML(
+				"beforeend",
+				`<svg xmlns="http://www.w3.org/2000/svg" style="display: none">${symbols}</svg>`
+			);
 	}
 
 	setup_workspaces() {
@@ -379,6 +396,7 @@ frappe.Application = class Application {
 				"body"
 			);
 			frappe.container = new frappe.views.Container();
+			frappe.ui.setup_site_banners();
 		}
 	}
 	make_nav_bar() {
@@ -404,7 +422,18 @@ frappe.Application = class Application {
 		});
 	}
 	handle_session_expired() {
-		frappe.app.redirect_to_login();
+		if (frappe.app.session_expired_dialog) {
+			return;
+		}
+		const dialog = new frappe.ui.Dialog({
+			title: __("Session Expired"),
+		});
+		dialog.onhide = () => frappe.app.redirect_to_login();
+		frappe.app.session_expired_dialog = dialog;
+		dialog.show();
+		dialog.set_message(
+			__("Your session has expired due to inactivity. Please log in again to continue.")
+		);
 	}
 	redirect_to_login() {
 		window.location.href = `/login?redirect-to=${encodeURIComponent(
@@ -450,7 +479,7 @@ frappe.Application = class Application {
 			!Array.isArray(change_log) ||
 			!change_log.length ||
 			window.Cypress ||
-			cint(frappe.boot.sysdefaults.disable_change_log_notification)
+			frappe.defaults.is_enabled("disable_change_log_notification")
 		) {
 			return;
 		}
@@ -477,6 +506,15 @@ frappe.Application = class Application {
 
 	add_browser_class() {
 		$("html").addClass(frappe.utils.get_browser().name.toLowerCase());
+	}
+
+	set_desktop_page_class() {
+		// The two /app/desktop pages share CSS class names (.desktop-wrapper, .desktop-icon),
+		// so desktop.css scopes each set to one of these body classes. Exactly one is present.
+		const desktop_icons = frappe.boot.desktop_page === "Desktop Icons";
+		$("body")
+			.toggleClass("desktop-icons-page", desktop_icons)
+			.toggleClass("apps-page", !desktop_icons);
 	}
 
 	set_fullwidth_if_enabled() {

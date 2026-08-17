@@ -314,7 +314,7 @@ def get_workflow_field_value(workflow_name, field):
 	return frappe.get_cached_value("Workflow", workflow_name, field)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def bulk_workflow_approval(docnames: str | list, doctype: str, action: str):
 	docnames = frappe.parse_json(docnames)
 	if len(docnames) < 20:
