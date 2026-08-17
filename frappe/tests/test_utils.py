@@ -590,6 +590,25 @@ class TestHTMLUtils(IntegrationTestCase):
 		self.assertIn("ordered", clean)
 		self.assertNotIn("xyz", clean)
 
+		# content that happens to parse as JSON is still sanitized when it carries tags
+		self.assertNotIn("<script>", sanitize_html('"<script>alert(1)</script>"'))
+		self.assertNotIn("<script>", sanitize_html('["<script>alert(1)</script>"]'))
+		self.assertNotIn("<script>", sanitize_html('{"x": "<script>alert(1)</script>"}'))
+
+		# tag-free content (including JSON) is returned unchanged
+		self.assertEqual(sanitize_html('[["name", "=", "x"]]'), '[["name", "=", "x"]]')
+		self.assertEqual(sanitize_html("plain text"), "plain text")
+
+	def test_sanitize_svg(self):
+		from frappe.utils.html_utils import sanitize_svg
+
+		clean = sanitize_svg('<svg onload="alert(1)"><script>alert(1)</script><circle r="4"/></svg>')
+		self.assertIn("<circle", clean)
+		self.assertNotIn("script", clean)
+		self.assertNotIn("onload", clean)
+
+		self.assertIsNone(sanitize_svg(None))
+
 
 class TestValidationUtils(IntegrationTestCase):
 	def test_valid_url(self):
