@@ -582,6 +582,85 @@ class TestTheAppLayer(DockTestCase):
 		save_site_dock(payload(ALPHA))
 		self.assertEqual(names(get_site_dock()), [ALPHA])
 
+	# -- the base may hide ---------------------------------------------------------------
+
+	def test_a_base_row_shipped_hidden_resolves_hidden(self):
+		"""The base hides on the same terms as every layer above it. It used to be the one layer
+		whose hiding was thrown away, which made "off by default" inexpressible."""
+		with shipped_dock({self.APP: [sidebar(ALPHA), sidebar(BETA, hidden=1)]}):
+			hidden = hidden_by_name(dock_for(self.USER))
+
+		self.assertEqual(hidden[ALPHA], 0)
+		self.assertEqual(hidden[BETA], 1)
+
+	def test_a_person_un_hides_what_the_app_ships_off(self):
+		"""Off by default is a default, not a decision the app made for everyone -- and one row
+		naming the entry with hiding off is the whole of bringing it back."""
+		with shipped_dock({self.APP: [sidebar(BETA, hidden=1)]}):
+			frappe.set_user(self.USER)
+			save_user_dock(payload(sidebar(BETA, hidden=0)))
+			frappe.set_user("Administrator")
+
+			self.assertEqual(hidden_by_name(dock_for(self.USER))[BETA], 0)
+
+	def test_a_hidden_entry_stays_in_the_payload_carrying_its_flag(self):
+		"""The dock keeps a hidden entry and the client drops it from the rail -- forced by the
+		manager's Hidden pane, which cannot render what the payload has already discarded."""
+		with shipped_dock({self.APP: [sidebar(BETA, hidden=1)]}):
+			self.assertEqual(dock_for(self.USER), [{"type": "Sidebar", "name": BETA, "hidden": 1}])
+
+	def test_a_base_entry_no_layer_names_trails_the_named_ones_in_base_order(self):
+		"""The class the two-class rule had no room for. An entry in the base that no layer
+		mentions is *present*, at its real index -- behind everything the layers named and ahead
+		of everything nothing names. It is what makes a shipped order apply to the entries nobody
+		rearranged.
+		"""
+		with shipped_dock({self.APP: [sidebar(GAMMA), sidebar(BETA), sidebar(ALPHA)]}):
+			save_site_dock(payload(ALPHA))
+
+			# ALPHA is named; GAMMA and BETA are in the base and named by nobody, so they trail
+			# it in the order the app shipped them
+			self.assertEqual(names(dock_for(self.USER)), [ALPHA, GAMMA, BETA])
+
+	def test_the_walked_case(self):
+		"""Ten shipped entries arriving beneath a site that reordered four and hid one."""
+		shipped = [f"Test Dock Walk {n}" for n in range(1, 11)]
+		with ExitStack() as modules:
+			for module in shipped:
+				modules.enter_context(sidebarless_module(module))
+
+			with shipped_dock({self.APP: [sidebar(module) for module in shipped]}):
+				save_site_dock(
+					payload(
+						shipped[3],
+						shipped[1],
+						sidebar(shipped[7], hidden=1),
+						shipped[0],
+					)
+				)
+				resolved = dock_for(self.USER, among=shipped)
+
+		self.assertEqual(
+			names(resolved),
+			# the site's four in the site's order, then the six it never named in base order
+			[shipped[3], shipped[1], shipped[7], shipped[0], *[shipped[i] for i in (2, 4, 5, 6, 8, 9)]],
+		)
+		self.assertEqual(hidden_by_name(resolved)[shipped[7]], 1)
+
+	def test_the_app_layer_read_carries_the_hidden_flag(self):
+		"""What the manager reads to say *who* hid a row. `declared_by` stays behind: which app
+		declared an entry is the projection Ship needs, not the editor."""
+		from frappe.desk.doctype.dock.dock import get_app_dock_layer
+
+		with shipped_dock({self.APP: [sidebar(ALPHA), sidebar(BETA, hidden=1)]}):
+			self.assertEqual(
+				get_app_dock_layer(),
+				[
+					{"type": "Sidebar", "name": ALPHA, "hidden": 0},
+					{"type": "Sidebar", "name": BETA, "hidden": 1},
+				],
+			)
+
 	def test_a_site_whose_apps_declare_nothing_resolves_an_empty_base(self):
 		"""Adopting the hook is a choice: an app that declares none leaves the site layer as the
 		first there is, exactly as it was before the base existed."""

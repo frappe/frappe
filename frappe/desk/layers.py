@@ -44,8 +44,7 @@ def resolve_layers(
 ) -> tuple[list[dict], dict[str, bool]]:
 	"""Fold each layer into the one below it. Later layers win, on order and on hiding alike.
 
-	`base` is the arrangement the layers are laid over -- what an app ships. The dock's is empty
-	today, because nothing ships one yet; its first layer is the site's.
+	`base` is the arrangement the layers are laid over -- what an app ships.
 
 	`key` identifies a row and a resolved entry alike, and has to answer the same for both: it
 	is what a layer row names when it names an entry, read off whichever side it is handed.
@@ -62,9 +61,20 @@ def resolve_layers(
 	is what makes un-hiding possible at all: a user's `hidden: 0` has to find the entry the site
 	hid still in the list to say anything about it. What to do with an entry that is left hidden
 	is then the surface's own question -- a sidebar drops it, a dock renders it as hidden.
+
+	**The map is seeded from the base**, so the base hides on the same terms as everything above
+	it: an app may ship an entry off by default, and one row above it naming that entry with
+	hiding off brings it back. The base used to be the one layer whose hiding was discarded --
+	seeding it removes a special case rather than adding a parameter, and leaves the two ends
+	with a clean symmetry: *the base adds, orders and hides; the layers above order and hide but
+	never add.*
+
+	The sidebar opts out by the shape of its own base rather than by a flag here: its rows are
+	shaped through a key whitelist (`filter_sidebar_items`) that omits `hidden`, so a sidebar
+	base dict never carries one and the seed is always false.
 	"""
 	resolved = [dict(item) for item in base]
-	hidden: dict[str, bool] = {}
+	hidden: dict[str, bool] = {key(item): bool(item.get("hidden")) for item in base}
 
 	for rows in layers:
 		resolved = apply_layer(resolved, rows, hidden, key=key, apply_row=apply_row)

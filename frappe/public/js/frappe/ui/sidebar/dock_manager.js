@@ -6,10 +6,14 @@
 // one a companion app pinned onto it) -- and both kinds are arranged the same way, because a pin
 // is an entry on the dock rather than a fixture on it.
 //
-// It edits one of the dock's two layers at a time. Everyone has their own; a Workspace Manager can
-// switch to the site's, which everyone sees and which each person's own is then applied on top of.
-// That is the only thing the scope switch changes -- both layers are the same rows, arranged the
-// same way, saved through endpoints that differ only in where they land.
+// It edits one of the dock's two stored layers at a time. Everyone has their own; a Workspace
+// Manager can switch to the site's, which everyone sees and which each person's own is then
+// applied on top of. That is the only thing the scope switch changes -- both layers are the same
+// rows, arranged the same way, saved through endpoints that differ only in where they land.
+//
+// The two panes mean one thing in every scope and under every button: on the dock, or hidden. An
+// untouched layer starts from the layer *below* it as that layer renders, so opening this and
+// saving without changing anything can never un-hide what somebody below deliberately hid.
 //
 // On a developer's site it also authors the layer *below* both of those: "Ship This Order" writes
 // the arrangement on screen into the app's own files, as the order it ships with. Not a third
@@ -116,7 +120,17 @@ frappe.ui.DockManager = class DockManager {
 		this.loaded = false;
 		this.$body.html(`<div class="text-muted">${__("Loading...")}</div>`);
 		this.load_entries();
-		this.layer = await frappe.xcall(this.layer_scope.read);
+		const [layer, base] = await Promise.all([
+			frappe.xcall(this.layer_scope.read),
+			frappe.xcall("frappe.desk.doctype.dock.dock.get_app_dock_layer"),
+		]);
+		this.layer = layer;
+		// What the apps ship, so a row the app itself hid can say so. "Hidden" is otherwise
+		// silent about who hid it, and un-hiding an app's deliberate default should be a choice
+		// rather than an accident.
+		this.base_hidden = new Set(
+			(base || []).filter((row) => row.hidden).map((row) => this.key(row))
+		);
 		this.selection = this.initial_selection();
 		this.loaded = true;
 		this.render();
@@ -164,16 +178,21 @@ frappe.ui.DockManager = class DockManager {
 
 	// Where an untouched layer starts, so the arrangement is a trim rather than a build from
 	// scratch. It has to start from what saving unchanged would produce, because a save writes
-	// the whole app slice: seeded with everything the app offers, a user who merely opens this
-	// and saves would write `hidden: 0` over every module the *site* hid, un-hiding it for
-	// themselves without ever asking to.
+	// the whole app slice: seeded with everything the app offers, whoever merely opens this and
+	// saves would write `hidden: 0` over what a layer below deliberately hid, un-hiding it
+	// without ever asking to.
 	//
-	//   - the user's layer starts from the dock as it currently renders -- the site's
-	//     arrangement, applied
-	//   - the site's starts from the app's own order, never from the dock this manager happens
-	//     to see, which carries their personal arrangement and is not theirs to publish
+	// Both scopes therefore start from the layer *below* them, as that layer renders:
+	//
+	//   - the user's starts from the dock on screen -- the app's order with the site's
+	//     arrangement applied
+	//   - the site's starts from the base as it renders -- the app's entries minus the ones the
+	//     app ships off. Never from the dock this manager happens to see, which carries their
+	//     personal arrangement and is not theirs to publish.
 	unarranged_selection() {
-		if (this.scope === "site") return this.app_keys();
+		if (this.scope === "site") {
+			return this.app_keys().filter((key) => !this.base_hidden.has(key));
+		}
 
 		const shown = frappe.app.sidebar
 			.collect_dock_entries(this.app)
@@ -193,8 +212,8 @@ frappe.ui.DockManager = class DockManager {
 					<div class="ws-list ws-selection"></div>
 				</div>
 				<div class="ws-pane ws-pane-pool">
-					<div class="ws-pane-head">${__("Not on the dock")}</div>
-					<div class="ws-pane-sub">${__("Drag one over to add it.")}</div>
+					<div class="ws-pane-head">${__("Hidden")}</div>
+					<div class="ws-pane-sub">${__("Drag one over to put it back on the dock.")}</div>
 					<div class="ws-list ws-pool"></div>
 				</div>
 			</div>
@@ -239,9 +258,7 @@ frappe.ui.DockManager = class DockManager {
 
 		this.$pool.empty();
 		if (!keys.length) {
-			this.$pool.append(
-				`<div class="ws-empty text-muted">${__("Everything is on the dock")}</div>`
-			);
+			this.$pool.append(`<div class="ws-empty text-muted">${__("Nothing is hidden")}</div>`);
 			return;
 		}
 		keys.forEach((key) => this.$pool.append(this.pool_item(key)));
@@ -253,10 +270,16 @@ frappe.ui.DockManager = class DockManager {
 		const icon = entry.icon
 			? frappe.utils.icon(entry.icon, "md")
 			: frappe.utils.desktop_icon(label, "gray", "sm", "Solid");
+		// A row the app itself ships off says so. Dragging it over is still all it takes to
+		// bring it back -- an off-by-default is a default, not a decision made for you.
+		const chip = this.base_hidden.has(key)
+			? `<span class="ws-item-chip">${__("app ships this off")}</span>`
+			: "";
 		return $(`
 			<div class="ws-item ${cls || ""}" data-key="${frappe.utils.escape_html(key)}">
 				<span class="ws-item-icon">${icon}</span>
 				<span class="ws-item-label">${frappe.utils.escape_html(label)}</span>
+				${chip}
 			</div>
 		`);
 	}

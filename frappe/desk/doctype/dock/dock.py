@@ -338,14 +338,25 @@ def resolve_dock() -> list[dict]:
 	One flat list across every app -- a dock renders per app, but an arrangement is stored
 	whole, so an app's slice can be replaced without disturbing the rest.
 
-	An entry no layer names is *absent from this list*, not appended to it: the client keeps it
-	in its app's default order, trailing the entries a layer did name. That is what makes
-	installing an app safe on a site that has already arranged its dock -- the new app's
-	modules appear at the end rather than vanishing for want of a row.
+	**Three classes of entry come out of this, not two.** The distinction is the whole of how a
+	shipped order and an arrangement live together, and this is the only place it is written
+	down:
 
-	Resolved through `frappe.desk.layers`, the merge the sidebar's layers run on. An entry left
-	hidden is *kept*, carrying its flag -- the dock renders a hidden entry rather than dropping
-	it, which is the one thing it does differently from a sidebar.
+	1. **Named by a layer.** At the front, in the order the layers left them.
+	2. **In the base but named by no layer.** Present, trailing the named ones, at their real
+	   index in base order. This is what makes an app's shipped order apply to the entries
+	   nobody rearranged -- without it, shipping an order would only ever reach a fresh install.
+	3. **In neither.** *Absent from this list*, not appended to it: the client keeps such an
+	   entry in its app's own order, behind both classes above (`MAX_SAFE_INTEGER` on the
+	   client). That is what makes installing an app safe on a site that has already arranged
+	   its dock -- the new app's modules appear at the end rather than vanishing for want of a
+	   row.
+
+	Resolved through `frappe.desk.layers`, the merge the sidebar's layers run on. **An entry left
+	hidden stays in this list, carrying its flag**, and the client drops it from the rail. That
+	is forced by the dock manager's Hidden pane, which cannot render what the payload has already
+	discarded -- and it is the one thing the dock does differently from a sidebar, which drops a
+	hidden item outright.
 
 	Every entry carries the typed pair it was stored as. The client keys on both halves, so a
 	`Sidebar` and a `Workspace` of one name stay two entries all the way to the rail.
@@ -415,8 +426,12 @@ def is_reachable(entry) -> bool:
 
 
 def permitted_workspaces() -> set[str]:
-	"""The workspaces this person may open. Only asked when a layer names one, which is never on
-	a dock of nothing but modules -- and request-cached when it is."""
+	"""The workspaces this person may open.
+
+	Asked on any site where a fragment or a layer names one, which is every site carrying a pin.
+	It costs nothing: it rides the request-cached workspace list the sidebar already computes on
+	every boot.
+	"""
 	from frappe.desk.desktop import get_workspaces
 
 	return {page.name for page in get_workspaces()["pages"]}
@@ -538,6 +553,24 @@ def get_user_dock_layer() -> list[dict]:
 def get_site_dock_layer() -> list[dict]:
 	check_workspace_manager(_("You need to be Workspace Manager to see the dock's site layer."))
 	return get_site_dock()
+
+
+@frappe.whitelist()
+def get_app_dock_layer() -> list[dict]:
+	"""What the apps ship, as the manager needs to read it: the typed pair and the hidden flag.
+
+	No gate, because it is a read of app content -- the same thing every boot already carries in
+	`app_data`, minus the reach filter the resolved dock applies.
+
+	This is what tells the manager *who* hid a row. "Hidden" is otherwise silent about it, and a
+	person un-hiding what an app deliberately shipped off should at least be told they are doing
+	that. It is a **call**, not a doctype: materialising the hook into records to answer this one
+	question is the mirror the app layer exists to avoid.
+
+	`declared_by` is dropped: which app declared a row is the projection Ship needs, not the
+	manager, and shipping it here would put an app name in every editor payload.
+	"""
+	return [{"type": row["type"], "name": row["name"], "hidden": row["hidden"]} for row in get_app_dock()]
 
 
 # ---------------------------------------------------------------------------------------

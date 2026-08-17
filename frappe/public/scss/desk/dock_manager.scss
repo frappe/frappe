@@ -99,6 +99,20 @@
 			text-overflow: ellipsis;
 		}
 
+		// Says who hid a row: the app itself, rather than this site or this person. "Hidden" is
+		// otherwise silent about it, and dragging the row back is still all it takes.
+		.ws-item-chip {
+			flex-shrink: 0;
+			padding: 0 var(--padding-xs);
+			font-size: var(--text-xs);
+			line-height: 1.6;
+			color: var(--text-muted);
+			background-color: var(--bg-color);
+			border: 1px solid var(--border-color);
+			border-radius: var(--border-radius-sm);
+			white-space: nowrap;
+		}
+
 		.ws-item-remove {
 			display: inline-flex;
 			align-items: center;
