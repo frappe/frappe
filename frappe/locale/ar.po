@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-11 18:25\n"
+"PO-Revision-Date: 2026-08-17 19:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Arabic\n"
 "MIME-Version: 1.0\n"
@@ -12165,7 +12165,7 @@ msgstr "خريطة الحرارة"
 
 #: frappe/templates/emails/new_user.html:2
 msgid "Hello"
-msgstr "مرحبًا"
+msgstr ""
 
 #: frappe/templates/emails/user_invitation.html:2
 #: frappe/templates/emails/user_invitation_cancelled.html:2
@@ -26705,7 +26705,7 @@ msgstr "شكراً لرسائلكم"
 
 #: frappe/templates/emails/new_user.html:16
 msgid "Thanks"
-msgstr "شكرًا"
+msgstr ""
 
 #: frappe/templates/emails/auto_repeat_fail.html:3
 msgid "The Auto Repeat for this document has been disabled."
