@@ -423,16 +423,6 @@
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
-<<<<<<< HEAD
-<<<<<<< HEAD
- "links": [],
-<<<<<<< HEAD
- "modified": "2024-12-30 17:00:05.944646",
-=======
- "modified": "2025-12-12 16:29:35.806107",
-=======
-=======
->>>>>>> 732eddd90a (chore: resolve conflicts)
  "links": [
   {
    "link_doctype": "Web Form Request",
@@ -440,11 +430,6 @@
   }
  ],
  "modified": "2026-06-18 15:58:18.453845",
-<<<<<<< HEAD
->>>>>>> 1904d0e6a3 (feat(Web Form): add request-key access for one-time links (#39194))
->>>>>>> d4f1028775 (feat(Web Form): add request-key access for one-time links (#39194))
-=======
->>>>>>> 732eddd90a (chore: resolve conflicts)
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

@@ -3,18 +3,6 @@
 
 import json
 import os
-<<<<<<< HEAD
-<<<<<<< HEAD
-from typing import Any
-=======
-<<<<<<< HEAD
-=======
-from typing import TYPE_CHECKING
->>>>>>> 1904d0e6a3 (feat(Web Form): add request-key access for one-time links (#39194))
->>>>>>> d4f1028775 (feat(Web Form): add request-key access for one-time links (#39194))
-=======
-from typing import TYPE_CHECKING
->>>>>>> 732eddd90a (chore: resolve conflicts)
 
 import frappe
 from frappe import _, scrub
@@ -29,14 +17,12 @@ from frappe.utils import cint, dict_with_keys, now_datetime, strip_html
 from frappe.utils.caching import redis_cache
 from frappe.utils.data import escape_html
 from frappe.website.doctype.web_form_request.web_form_request import (
+	WebFormRequest,
 	get_web_form_request,
 	get_web_form_request_query,
 )
 from frappe.website.utils import get_boot_data, get_comment_list, get_sidebar_items
 from frappe.website.website_generator import WebsiteGenerator
-
-if TYPE_CHECKING:
-	from frappe.website.doctype.web_form_request.web_form_request import WebFormRequest
 
 
 class WebForm(WebsiteGenerator):
@@ -712,19 +698,7 @@ def get_web_form_module(doc):
 
 @frappe.whitelist(methods=["POST", "PUT"], allow_guest=True)
 @rate_limit(key="web_form", limit=10, seconds=60)
-<<<<<<< HEAD
-<<<<<<< HEAD
-def accept(web_form: str, data: str):
-=======
-<<<<<<< HEAD
-def accept(web_form, data):
-=======
 def accept(web_form: str, data: str | dict, web_form_request_key: str | None = None):
->>>>>>> 1904d0e6a3 (feat(Web Form): add request-key access for one-time links (#39194))
->>>>>>> d4f1028775 (feat(Web Form): add request-key access for one-time links (#39194))
-=======
-def accept(web_form: str, data: str | dict, web_form_request_key: str | None = None):
->>>>>>> 732eddd90a (chore: resolve conflicts)
 	"""Save the web form"""
 	data = frappe._dict(json.loads(data))
 
@@ -860,17 +834,12 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 	return doc
 
 
-<<<<<<< HEAD
-@frappe.whitelist()
-def delete(web_form_name: str, docname: str | int):
-	web_form = frappe.get_doc("Web Form", web_form_name)
-	web_form.raise_if_unpublished()
-=======
 @frappe.whitelist(methods=["POST", "DELETE"], allow_guest=True)
 @rate_limit(key="web_form_name", limit=10, seconds=60)
 def delete(web_form_name: str, docname: str | int, web_form_request_key: str | None = None):
-	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
-	web_form_request: "WebFormRequest | None" = web_form.get_web_form_request(
+	web_form: WebForm = frappe.get_doc("Web Form", web_form_name)
+	web_form.raise_if_unpublished()
+	web_form_request: WebFormRequest | None = web_form.get_web_form_request(
 		web_form_request_key,
 		docname=docname,
 		for_update=True,
@@ -883,7 +852,6 @@ def delete(web_form_name: str, docname: str | int, web_form_request_key: str | N
 		or (frappe.session.user == "Guest" and not web_form_request)
 	):
 		frappe.throw(_("Not Allowed"), frappe.PermissionError)
->>>>>>> d4f1028775 (feat(Web Form): add request-key access for one-time links (#39194))
 
 	owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
 	if web_form_request or frappe.session.user == owner:
@@ -903,23 +871,11 @@ def delete(web_form_name: str, docname: str | int, web_form_request_key: str | N
 		frappe.throw(_("Not Allowed"), frappe.PermissionError)
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-@frappe.whitelist()
-<<<<<<< HEAD
-def delete_multiple(web_form_name: str, docnames: str):
-	web_form = frappe.get_doc("Web Form", web_form_name)
-	web_form.raise_if_unpublished()
-=======
-def delete_multiple(web_form_name: str, docnames):
-=======
-=======
->>>>>>> 732eddd90a (chore: resolve conflicts)
 @frappe.whitelist(methods=["POST", "DELETE"])
 @rate_limit(key="web_form_name", limit=10, seconds=60)
 def delete_multiple(web_form_name: str, docnames: str | list):
-	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
->>>>>>> d4f1028775 (feat(Web Form): add request-key access for one-time links (#39194))
+	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form.raise_if_unpublished()
 
 	docnames = json.loads(docnames)
 
@@ -982,7 +938,7 @@ def get_web_form_list(
 	if not web_form_doc.show_list:
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-	web_form_request: "WebFormRequest | None" = web_form_doc.get_web_form_request(
+	web_form_request: WebFormRequest | None = web_form_doc.get_web_form_request(
 		web_form_request_key,
 		allow_used=True,
 	)
@@ -1142,10 +1098,6 @@ def has_link_option(fields, doctype):
 	return False
 
 
-<<<<<<< HEAD
-def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=False):
-	web_form: WebForm = frappe.get_cached_doc("Web Form", web_form_name)
-=======
 def get_link_options(
 	web_form_name,
 	doctype,
@@ -1153,8 +1105,7 @@ def get_link_options(
 	web_form_request_key=None,
 	docname=None,
 ):
-	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
->>>>>>> d4f1028775 (feat(Web Form): add request-key access for one-time links (#39194))
+	web_form: WebForm = frappe.get_cached_doc("Web Form", web_form_name)
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)

@@ -3,14 +3,9 @@
 import json
 
 import frappe
-<<<<<<< HEAD
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import set_request
-from frappe.website.doctype.web_form.web_form import accept, get_link_options
-=======
 from frappe.core.doctype.doctype.doctype import clear_permissions_cache
 from frappe.permissions import add_permission, reset_perms
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_to_date, set_request
 from frappe.website.doctype.web_form.web_form import (
 	accept,
@@ -19,11 +14,6 @@ from frappe.website.doctype.web_form.web_form import (
 	get_link_options,
 	get_web_form_list,
 )
-<<<<<<< HEAD
->>>>>>> 1904d0e6a3 (feat(Web Form): add request-key access for one-time links (#39194))
->>>>>>> d4f1028775 (feat(Web Form): add request-key access for one-time links (#39194))
-=======
->>>>>>> 732eddd90a (chore: resolve conflicts)
 from frappe.website.serve import get_response_content
 
 test_dependencies = ["Web Form"]
@@ -97,7 +87,6 @@ class TestWebForm(FrappeTestCase):
 			content,
 		)
 
-<<<<<<< HEAD
 	def test_link_options_do_not_reload_web_form(self):
 		web_form = frappe.get_doc(
 			{
@@ -125,7 +114,7 @@ class TestWebForm(FrappeTestCase):
 		with self.assertQueryCount(6):
 			for _ in range(5):
 				get_link_options(web_form.name, "DocType")
-=======
+
 	def test_web_form_request_renders_prefilled_values_for_guest(self):
 		self.set_web_form_settings(key_required=1, login_required=0)
 		web_form_request = self.create_web_form_request(
@@ -1098,4 +1087,3 @@ class TestWebForm(FrappeTestCase):
 		self.addCleanup(restore_settings)
 		frappe.db.set_value("Web Form", "manage-events", settings, update_modified=False)
 		frappe.clear_document_cache("Web Form", "manage-events")
->>>>>>> d4f1028775 (feat(Web Form): add request-key access for one-time links (#39194))
