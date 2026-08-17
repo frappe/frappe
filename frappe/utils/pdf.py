@@ -107,7 +107,15 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
 	html = scrub_urls(html)
 	html, options = prepare_options(html, options)
 
-	options.update({"disable-javascript": "", "disable-local-file-access": ""})
+	options.update(
+		{
+			"disable-javascript": "",
+			"disable-local-file-access": "",
+			"proxy": "http://0.0.0.0:0",
+			"bypass-proxy-for": _pdf_bypass_proxy_hosts(),
+			"load-error-handling": "ignore",
+		}
+	)
 
 	filedata = ""
 	if Version(get_wkhtmltopdf_version()) > Version("0.12.3"):
@@ -149,6 +157,38 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
 	filedata = get_file_data_from_writer(writer)
 
 	return filedata
+
+
+def _pdf_bypass_proxy_hosts() -> list[str]:
+	"""Hosts wkhtmltopdf is allowed to fetch from while rendering a PDF.
+
+	PDF HTML can carry absolute asset URLs against whichever domain the user is
+	browsing, so wkhtmltopdf is pinned to a dead proxy and only bypasses it for
+	these hosts, so a site reached via a secondary domain would otherwise fail
+	every asset fetch with UnknownNetworkError.
+
+	Always allows the canonical host. Additional hosts (e.g. a site's alternate
+	domains) can be allowed via the `domains` site config key. The bypass list is
+	limited to these, so genuinely external resources - including internal/private
+	network addresses supplied via attacker-controlled HTML - stay blocked.
+	"""
+	hosts = {_hostname(get_url(allow_header_override=False))}
+	hosts.update(_hostname(domain) for domain in (frappe.conf.domains or []))
+	hosts.discard(None)
+	return sorted(hosts)
+
+
+def _hostname(value: str) -> str | None:
+	"""Bare hostname for a `--bypass-proxy-for` entry.
+
+	wkhtmltopdf wants a bare host, but config values may arrive as a full URL,
+	with a scheme, or with a port (e.g. "https://a.com", "a.com:443"). urlparse
+	only finds the host in the netloc, so give bare values one before parsing -
+	otherwise an un-normalized entry silently fails the bypass for that domain.
+	"""
+	if "://" not in value:
+		value = "//" + value
+	return urlparse(value).hostname
 
 
 def measure_time(func):
