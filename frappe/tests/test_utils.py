@@ -598,6 +598,19 @@ class TestHTMLUtils(IntegrationTestCase):
 		# tag-free content (including JSON) is returned unchanged
 		self.assertEqual(sanitize_html('[["name", "=", "x"]]'), '[["name", "=", "x"]]')
 		self.assertEqual(sanitize_html("plain text"), "plain text")
+<<<<<<< HEAD
+=======
+
+	def test_sanitize_svg(self):
+		from frappe.utils.html_utils import sanitize_svg
+
+		clean = sanitize_svg('<svg onload="alert(1)"><script>alert(1)</script><circle r="4"/></svg>')
+		self.assertIn("<circle", clean)
+		self.assertNotIn("script", clean)
+		self.assertNotIn("onload", clean)
+
+		self.assertIsNone(sanitize_svg(None))
+>>>>>>> 980d4fc (chore: apply pre-commit)
 
 
 class TestValidationUtils(IntegrationTestCase):
