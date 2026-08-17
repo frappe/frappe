@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-09 09:44+0000\n"
-"PO-Revision-Date: 2026-08-11 18:20\n"
+"PO-Revision-Date: 2026-08-16 19:25\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -17596,7 +17596,7 @@ msgstr "MyISAM"
 #: frappe/public/js/frappe/widgets/number_card_widget.js:235
 msgctxt "Number not available"
 msgid "N/A"
-msgstr ""
+msgstr "N/A"
 
 #. Option for the 'Delivery Status Notification Type' (Select) field in DocType
 #. 'Email Account'
