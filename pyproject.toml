@@ -75,8 +75,8 @@ dependencies = [
     "rsa~=4.9.1",
     "semantic-version~=2.10.0",
     "sentry-sdk~=1.45.1",
-    "sqlparse~=0.5.5",
-    "sql_metadata~=2.19.0",
+    "sqlparse~=0.6.0",
+    "sql_metadata~=3.0.1",
     "tenacity~=9.1.2",
     "terminaltables~=3.1.10",
     "traceback-with-variables~=2.2.1",
@@ -217,7 +217,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { pypdf = false }
+exclude-newer-package = { pypdf = false, sqlparse = false } # drop sqlparse after 2026-08-20
 
 [tool.mypy]
 strict = false
