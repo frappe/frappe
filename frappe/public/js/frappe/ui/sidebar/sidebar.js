@@ -773,17 +773,11 @@ frappe.ui.Sidebar = class Sidebar {
 		const is_rtl = frappe.utils.is_rtl();
 		if (this.sidebar_expanded) {
 			this.wrapper.addClass("expanded");
-			$('[data-toggle="tooltip"]').tooltip("dispose");
 			this.wrapper.find(".avatar-name-email").show();
 			this.wrapper.find(".onboarding-sidebar span").show();
 			this.wrapper.find(".promotional-banner-title").show();
 		} else {
 			this.wrapper.removeClass("expanded");
-			$('[data-toggle="tooltip"]').tooltip({
-				boundary: "window",
-				container: "body",
-				trigger: "hover",
-			});
 			this.wrapper.find(".avatar-name-email").hide();
 			this.wrapper.find(".onboarding-sidebar span").hide();
 			this.wrapper.find(".promotional-banner-title").hide();

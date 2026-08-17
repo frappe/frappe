@@ -258,7 +258,7 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		const me = this;
 		let current_sidebar_state = this.section_breaks_state[this.current_module];
 		for (const [element_name, collapsed] of Object.entries(current_sidebar_state)) {
-			if ($(this.wrapper).attr("title") == element_name) {
+			if (this.item.label == element_name) {
 				me.collapsed = collapsed;
 				me.toggle();
 			}
@@ -285,8 +285,7 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 			this.section_breaks_state[this.current_module] = {};
 		}
 
-		const title = this.wrapper.attr("title");
-		this.section_breaks_state[this.current_module][title] = this.collapsed;
+		this.section_breaks_state[this.current_module][this.item.label] = this.collapsed;
 
 		localStorage.setItem("section-breaks-state", JSON.stringify(this.section_breaks_state));
 	}
@@ -298,7 +297,6 @@ frappe.ui.sidebar_item.TypeButton = class SidebarButton extends frappe.ui.sideba
 		this.title = frappe.app.sidebar.current_module;
 		this.item.id && this.wrapper.attr("id", this.item.id);
 		this.item.class && this.wrapper.attr("class", this.item.class);
-		this.wrapper.attr("title", this.item.label);
 	}
 
 	// overrides TypeLink.setup_click(), invoked once via the base class's make()
