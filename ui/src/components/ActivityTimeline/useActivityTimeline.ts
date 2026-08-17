@@ -86,15 +86,6 @@ function getTimelineStore(
   return store;
 }
 
-/** Start (or reuse) the shared feed fetch without mounting anything; gate on `.fetched`. */
-export function prefetchActivityTimeline(
-  doctype: string,
-  docname: string,
-  visibleTypes?: VisibleTypes
-) {
-  return getTimelineStore(doctype, docname, visibleTypes).resource;
-}
-
 export function useActivityTimeline(
   doctype: string,
   docname: string,
