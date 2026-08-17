@@ -8,10 +8,12 @@ from werkzeug.test import TestResponse
 
 import frappe
 from frappe.mcp.protocol import (
+	HANDSHAKE_VERSION,
 	HEADER_MISMATCH,
 	META_PROTOCOL_VERSION,
 	METHOD_NOT_FOUND,
 	PROTOCOL_VERSION,
+	SUPPORTED_VERSIONS,
 	UNSUPPORTED_PROTOCOL_VERSION,
 )
 from frappe.tests.test_api import FrappeAPITestCase, make_request
@@ -161,7 +163,7 @@ class TestMCP(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 
 		result = response.json["result"]
-		self.assertEqual(result["supportedVersions"], [PROTOCOL_VERSION])
+		self.assertEqual(result["supportedVersions"], list(SUPPORTED_VERSIONS))
 		self.assertIn("tools", result["capabilities"])
 		self.assertEqual(result["serverInfo"]["name"], "frappe")
 		self.assertEqual(result["serverInfo"]["version"], frappe.__version__)
@@ -197,10 +199,73 @@ class TestMCP(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 404)
 		self.assertEqual(response.json["error"]["code"], METHOD_NOT_FOUND)
 
-	def test_missing_protocol_version_header(self):
-		response = self.rpc("server/discover", headers={"MCP-Protocol-Version": None})
+	# Protocol revisions
+
+	def handshake_rpc(
+		self, method: str, params: dict | None = None, id: int | None = 1, headers: dict | None = None
+	):
+		"""A request as the handshake revision sends it: no transport headers."""
+		bare = {"MCP-Protocol-Version": None, "Mcp-Method": None, "Mcp-Name": None}
+		return self.rpc(method, params, id=id, headers={**bare, **(headers or {})})
+
+	def test_initialize_negotiates_the_requested_version(self):
+		response = self.handshake_rpc(
+			"initialize",
+			{
+				"protocolVersion": HANDSHAKE_VERSION,
+				"capabilities": {},
+				"clientInfo": {"name": "test-client", "version": "1"},
+			},
+			id=0,
+		)
+		self.assertEqual(response.status_code, 200)
+
+		result = response.json["result"]
+		self.assertEqual(result["protocolVersion"], HANDSHAKE_VERSION)
+		self.assertIn("tools", result["capabilities"])
+		self.assertEqual(result["serverInfo"]["name"], "frappe")
+		self.assertIn("discover", result["instructions"])
+
+		# The handshake revision has neither of these, so they are not sent.
+		self.assertNotIn("resultType", result)
+		self.assertNotIn("_meta", result)
+
+	def test_initialize_offers_the_newest_version_it_knows(self):
+		response = self.handshake_rpc("initialize", {"protocolVersion": "1999-01-01"}, id=0)
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json["result"]["protocolVersion"], PROTOCOL_VERSION)
+
+	def test_handshake_revision_needs_no_transport_headers(self):
+		"""A client cannot send the version header until it knows the version."""
+		self.assertEqual(self.handshake_rpc("notifications/initialized", id=None).status_code, 202)
+		self.assertEqual(self.handshake_rpc("ping").status_code, 200)
+
+		response = self.handshake_rpc("tools/list", headers={"MCP-Protocol-Version": HANDSHAKE_VERSION})
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(
+			[tool["name"] for tool in response.json["result"]["tools"]],
+			["call_method", "discover", "get_documents", "write_document"],
+		)
+
+	def test_handshake_revision_can_call_a_tool(self):
+		response = self.rpc(
+			"tools/call",
+			{"name": "discover", "arguments": {"doctype": "ToDo"}},
+			headers={"MCP-Protocol-Version": HANDSHAKE_VERSION, "Mcp-Method": None, "Mcp-Name": None},
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json["result"]["structuredContent"]["doctype"], "ToDo")
+
+	def test_unknown_version_header_is_rejected_after_the_handshake(self):
+		response = self.rpc("tools/list", headers={"MCP-Protocol-Version": "1999-01-01"})
 		self.assertEqual(response.status_code, 400)
-		self.assertEqual(response.json["error"]["code"], HEADER_MISMATCH)
+		self.assertEqual(response.json["error"]["code"], UNSUPPORTED_PROTOCOL_VERSION)
+
+	def test_missing_protocol_version_header(self):
+		"""Without a header the request predates the header, so it is answered as such."""
+		response = self.rpc("server/discover", headers={"MCP-Protocol-Version": None, "Mcp-Method": None})
+		self.assertEqual(response.status_code, 200)
+		self.assertNotIn("resultType", response.json["result"])
 
 	def test_mismatched_method_header(self):
 		response = self.rpc("server/discover", headers={"Mcp-Method": "tools/list"})
@@ -227,7 +292,7 @@ class TestMCP(FrappeAPITestCase):
 
 		error = response.json["error"]
 		self.assertEqual(error["code"], UNSUPPORTED_PROTOCOL_VERSION)
-		self.assertEqual(error["data"]["supported"], [PROTOCOL_VERSION])
+		self.assertEqual(error["data"]["supported"], list(SUPPORTED_VERSIONS))
 		self.assertEqual(error["data"]["requested"], "2000-01-01")
 
 	def test_origin_is_rejected_when_not_allowed(self):

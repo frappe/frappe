@@ -11,23 +11,41 @@ claude mcp add --transport http frappe https://<site>/api/mcp
 
 ## Protocol
 
-The server implements the `2026-07-28` revision only. That revision has no
-`initialize` handshake and no protocol level session: every request carries its
-own protocol version, identity and capabilities. The endpoint is therefore a
-plain request/response HTTP workload, with no session store, no session
-affinity and no long-lived stream.
+The server speaks two revisions and lets the client choose. They differ in how
+a client announces the protocol version:
 
-| Area          | Support                                                    |
-| ------------- | ---------------------------------------------------------- |
-| Endpoint      | `POST /api/mcp`. `GET` and `DELETE` return `405`.           |
-| Response body | Always `application/json`. No SSE.                          |
-| Capabilities  | `tools` only.                                               |
-| RPC methods   | `server/discover`, `tools/list`, `tools/call`               |
-| Authorization | The site's OAuth 2.1 resource-server support, or a session. |
+| Revision     | Version announced by                                              |
+| ------------ | ----------------------------------------------------------------- |
+| `2026-07-28` | Every request, in transport headers and `params._meta`.           |
+| `2025-11-25` | Once, through the `initialize` handshake.                         |
 
-Both omissions are legal. A server chooses per request whether to answer with a
-single JSON object or a stream, and `subscriptions/listen` and MRTR are
-capability-gated.
+The newer revision has no handshake and no protocol level session, which makes
+the endpoint a plain request/response HTTP workload: no session store, no
+session affinity, no long-lived stream. Its transport headers let a proxy route
+and a gateway authorize a call without parsing the body, so the server requires
+them to agree with the body they describe.
+
+The older revision is what shipping clients speak today. A client on that
+revision cannot send the version header on its first request, because it does
+not yet know what the server supports, so the header is optional and the
+handshake carries the version instead.
+
+| Area          | Support                                                                        |
+| ------------- | ------------------------------------------------------------------------------ |
+| Endpoint      | `POST /api/mcp`. `GET` and `DELETE` return `405`.                              |
+| Response body | Always `application/json`. No SSE.                                             |
+| Capabilities  | `tools` only.                                                                  |
+| RPC methods   | `initialize`, `ping`, `server/discover`, `tools/list`, `tools/call`            |
+| Authorization | The site's OAuth 2.1 resource-server support, or a session.                    |
+
+Omitting SSE is legal: a server chooses per request whether to answer with a
+single JSON object or a stream. `subscriptions/listen` and MRTR are
+capability-gated, so omitting those is legal too.
+
+A request whose version header names a revision the server does not have gets
+`-32022` with the list it does have. An `initialize` asking for an unknown
+version gets the newest revision the server has, and the client decides whether
+it can continue.
 
 ## Tools
 

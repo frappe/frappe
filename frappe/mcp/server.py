@@ -17,6 +17,33 @@ def dispatch(method: str, params: dict[str, Any]) -> dict[str, Any]:
 	return handler(params)
 
 
+def initialize(params: dict[str, Any]) -> dict[str, Any]:
+	"""Negotiate the protocol version, for a client on the handshake revision.
+
+	The client names the version it wants. Answer with that version when the
+	server speaks it, otherwise with the newest one the server has; the client
+	then decides whether it can continue.
+	"""
+	requested = params.get("protocolVersion")
+	negotiated = requested if requested in protocol.SUPPORTED_VERSIONS else protocol.LATEST_VERSION
+
+	return {
+		"protocolVersion": negotiated,
+		"capabilities": {"tools": {"listChanged": False}},
+		"serverInfo": protocol.server_info(),
+		"instructions": instructions.render(),
+	}
+
+
+def initialized(params: dict[str, Any]) -> dict[str, Any]:
+	"""Acknowledge the end of the handshake. Normally sent as a notification."""
+	return {}
+
+
+def ping(params: dict[str, Any]) -> dict[str, Any]:
+	return {}
+
+
 def discover(params: dict[str, Any]) -> dict[str, Any]:
 	return {
 		"supportedVersions": list(protocol.SUPPORTED_VERSIONS),
@@ -50,7 +77,14 @@ def call_tool(params: dict[str, Any]) -> dict[str, Any]:
 
 
 RPC_METHODS = {
+	"initialize": initialize,
+	"notifications/initialized": initialized,
+	"ping": ping,
 	"server/discover": discover,
 	"tools/list": list_tools,
 	"tools/call": call_tool,
 }
+
+# Methods a client sends before it knows the negotiated version, so they carry
+# no `MCP-Protocol-Version` header and no transport headers to validate.
+HANDSHAKE_METHODS = ("initialize", "notifications/initialized", "ping")

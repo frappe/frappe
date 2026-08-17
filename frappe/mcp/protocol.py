@@ -2,17 +2,34 @@
 # License: MIT. See LICENSE
 """Constants and JSON-RPC envelope builders for the MCP endpoint.
 
-Only the `2026-07-28` revision is implemented. That revision has no `initialize`
-handshake and no protocol level session: every request carries its own protocol
-version, identity and capabilities.
+Two revisions are implemented, because they differ in how a client announces
+the protocol version:
+
+- `2026-07-28` removes the `initialize` handshake and the protocol level
+  session. Every request carries its own version, identity and capabilities, in
+  transport headers that a proxy can route on without parsing the body.
+- `2025-11-25` negotiates the version once, through `initialize`. The client
+  cannot send the version header on that first request, because it does not yet
+  know what the server supports.
+
+Shipping clients speak the second one, so the server answers both and lets the
+client choose.
 """
 
 from typing import Any
 
 import frappe
 
-PROTOCOL_VERSION = "2026-07-28"
-SUPPORTED_VERSIONS = (PROTOCOL_VERSION,)
+LATEST_VERSION = "2026-07-28"
+HANDSHAKE_VERSION = "2025-11-25"
+
+# Newest first: the version offered when a client asks for one we do not know.
+SUPPORTED_VERSIONS = (LATEST_VERSION, HANDSHAKE_VERSION)
+
+# Revisions that require the transport headers to agree with the body.
+STRICT_VERSIONS = (LATEST_VERSION,)
+
+PROTOCOL_VERSION = LATEST_VERSION
 
 SERVER_NAME = "frappe"
 
@@ -57,12 +74,17 @@ def server_info() -> dict[str, str]:
 	return {"name": SERVER_NAME, "version": frappe.__version__}
 
 
-def result_envelope(id: Any, result: dict[str, Any]) -> dict[str, Any]:
-	"""Wrap a result in a JSON-RPC response, with the fields every result carries."""
-	result = {"resultType": "complete", **result}
-	meta = dict(result.get("_meta") or {})
-	meta[META_SERVER_INFO] = server_info()
-	result["_meta"] = meta
+def result_envelope(id: Any, result: dict[str, Any], version: str = LATEST_VERSION) -> dict[str, Any]:
+	"""Wrap a result in a JSON-RPC response.
+
+	`resultType` and the `_meta` server info belong to the newer revision. An
+	older client would ignore them, but it never asked for them either.
+	"""
+	if version in STRICT_VERSIONS:
+		result = {"resultType": "complete", **result}
+		meta = dict(result.get("_meta") or {})
+		meta[META_SERVER_INFO] = server_info()
+		result["_meta"] = meta
 
 	return {"jsonrpc": "2.0", "id": id, "result": result}
 
