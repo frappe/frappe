@@ -53,3 +53,25 @@ class StudioComponent(Document):
 			component_path = os.path.join(app_path, f"{self.component_id}.json")
 			print("Deleting component file at:", component_path)
 			delete_file(component_path)
+
+
+COMPONENT_INPUT_FIELDS = ("input_name", "type", "description", "options", "required", "default")
+
+
+@frappe.whitelist(methods=["GET"])
+def get_component(component_name: str) -> dict:
+	"""Serve a component definition to the app renderer without a DocType permission
+	check — like page definitions (see get_page), a component is markup with no draft
+	state; the data it renders stays permission-checked by the endpoints serving it."""
+	component = frappe.get_cached_doc("Studio Component", component_name)
+	return {
+		"name": component.name,
+		"component_name": component.component_name,
+		"component_id": component.component_id,
+		"block": component.block,
+		"is_disabled": component.is_disabled,
+		"inputs": [
+			{"name": row.name, **{field: row.get(field) for field in COMPONENT_INPUT_FIELDS}}
+			for row in component.inputs
+		],
+	}
