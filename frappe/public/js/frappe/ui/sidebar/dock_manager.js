@@ -15,10 +15,11 @@
 // untouched layer starts from the layer *below* it as that layer renders, so opening this and
 // saving without changing anything can never un-hide what somebody below deliberately hid.
 //
-// On a developer's site it also authors the layer *below* both of those: "Ship This Order" writes
-// the arrangement on screen into the app's own files, as the order it ships with. Not a third
-// scope, because it is not a layer being edited -- the two layers rearrange the list an app ships,
-// and this is that list. Same arrangement on screen, different place for it to land.
+// On a developer's site it also authors the layer *below* both of those: "Ship This Order" hands
+// you the `add_to_dock` block for the arrangement on screen, to paste into the app's `hooks.py`.
+// It writes nothing -- the last inch is given up on purpose, because the target is hand-authored
+// Python and the drag-and-drop is where the value was. Not a third scope either: the two layers
+// rearrange the list an app ships, and this is that list.
 //
 // Scoped to one app on purpose -- a dock belongs to an app, so there's nothing to choose between
 // here and no app switcher. Modules in other apps are managed from those apps' docks.
@@ -53,9 +54,11 @@ frappe.ui.DockManager = class DockManager {
 		this.layer = [];
 		this.selection = [];
 		this.can_curate_site = frappe.user.has_role("Workspace Manager");
-		// Shipping writes files inside the app, so it is offered where app content is authored at
-		// all -- a developer's site -- and nowhere else. Not a role: the two layers above are what
-		// a site rearranges, and neither of them needs this.
+		this.base_hidden = new Set();
+		// Shipping hands you Python for an app's `hooks.py`, so it is offered where app content is
+		// authored at all -- a developer's site -- and nowhere else. Not a role: the two layers
+		// above are what a site rearranges, and neither of them needs this. The gate is kept for
+		// meaning rather than for safety, now that the call is a read.
 		this.can_ship = !!(frappe.boot.developer_mode && this.app);
 
 		this.dialog = new frappe.ui.Dialog({
@@ -384,57 +387,100 @@ frappe.ui.DockManager = class DockManager {
 		frappe.app.sidebar.refresh_dock();
 	}
 
-	// Publish the arrangement on screen as the app's own, by writing `sequence_id` into each
-	// module's `Sidebar` and exporting it. Not a third layer: the two layers rearrange the
-	// list the app ships, and this is that list, so the same dialog authors both.
+	// Hand the author the block for the arrangement on screen. No confirm: nothing is written,
+	// so there is nothing to agree to -- the old one described a write that no longer happens.
 	//
-	// Confirmed first because it is the one action here that leaves the site -- it writes JSON
-	// into the app's source tree, which is a commit somebody makes rather than a preference they
-	// set. Order only: what is left out of the selection is not hidden, it simply states no
-	// sequence and follows the ones that do.
-	ship() {
+	// Every entry the manager showed is named: the left pane as positions, the right pane as
+	// hidden. That is what makes ship round-trip -- paste, restart, and the dock renders the
+	// screen it was taken from -- and it is why the right pane is sent too rather than just the
+	// selection.
+	async ship() {
 		if (!this.loaded) return;
 		this.sync_order();
-		if (!this.selection.length) {
-			frappe.show_alert({ message: __("Nothing to ship"), indicator: "orange" });
-			return;
-		}
 
-		frappe.confirm(
-			__(
-				"Write this order into {0} as the order it ships with? This edits files in the app.",
-				[frappe.utils.bold(__(this.app.app_title))]
-			),
-			async () => {
-				// the app is derived server-side from the modules themselves -- `app_name` here is
-				// the apps-screen key, which is not always the app a module's files live in. Only
-				// the `Sidebar` entries: a pinned workspace is declared in the companion's own
-				// files and is not this app's to write.
-				const ordered = await frappe.xcall(
-					"frappe.desk.doctype.sidebar.sidebar.ship_dock_order",
-					{
-						modules: JSON.stringify(
-							this.selection
-								.map((key) => this.entries.get(key))
-								.filter((entry) => entry.type === "Sidebar")
-								.map((entry) => entry.name)
-						),
-					}
-				);
-				this.app.dock = [
-					...ordered.map((name) => ({ type: "Sidebar", name })),
-					...(this.app.dock || []).filter((row) => row.type !== "Sidebar"),
-				];
+		const shown = [
+			...this.selection.map((key) => this.stored_row(key, 0)),
+			...this.app_keys()
+				.filter((key) => !this.selection.includes(key))
+				.map((key) => this.stored_row(key, 1)),
+		];
 
-				this.dialog.hide();
-				frappe.show_alert({
-					message: __("Shipped. {0} now ships this dock order.", [
-						__(this.app.app_title),
-					]),
-					indicator: "green",
-				});
-				frappe.app.sidebar.refresh_dock();
-			}
-		);
+		const emitted = await frappe.xcall("frappe.desk.doctype.dock.dock.emit_dock_hook", {
+			app: this.app.app_name,
+			items: JSON.stringify(shown),
+		});
+
+		this.show_emitted(emitted);
+	}
+
+	// A handover, not a confirm and not an editor: one line of framing, the block in a code box
+	// under the path it belongs in, the rows the projection dropped and why, and a warning that
+	// the block is not live until the bench restarts *and* that the arrangement it was taken from
+	// is still sitting on top of it.
+	show_emitted(emitted) {
+		const dialog = new frappe.ui.Dialog({
+			title: __("Ship This Order"),
+			size: "large",
+			fields: [{ fieldtype: "HTML", fieldname: "handover" }],
+		});
+
+		const $body = $(dialog.fields_dict.handover.$wrapper);
+		$body.html(`
+			<div class="dock-ship">
+				<p class="dock-ship-lede">${__("Paste this into {0} to ship this order with the app.", [
+					`<code>${frappe.utils.escape_html(emitted.path)}</code>`,
+				])}</p>
+				<div class="dock-ship-code">
+					<button class="dock-ship-copy btn btn-default btn-xs">${__("Copy")}</button>
+					<pre>${frappe.utils.escape_html(emitted.code)}</pre>
+				</div>
+				${this.dropped_note(emitted.dropped)}
+				<div class="dock-ship-warning">
+					<p>${__(
+						"The block is not live until the bench restarts -- and your own arrangement is still sitting on top of it, so the dock will keep rendering that instead."
+					)}</p>
+					<button class="dock-ship-clear btn btn-default btn-xs" title="${__(
+						"Until the bench restarts this drops the dock back to the order the app ships today, not the block above."
+					)}">${
+			this.scope === "site" ? __("Clear the site's arrangement") : __("Clear my arrangement")
+		}</button>
+				</div>
+			</div>
+		`);
+
+		$body.find(".dock-ship-copy").on("click", () => {
+			frappe.utils.copy_to_clipboard(emitted.code);
+		});
+		// Offered *after* the paste and never fused to Ship: clearing at ship time would strand
+		// the author on the unshipped dock. Reuses the ordinary clear-and-save path -- Reset,
+		// then Save -- so there is no second way to empty a layer.
+		$body.find(".dock-ship-clear").on("click", async () => {
+			this.selection = [];
+			await this.save();
+			dialog.hide();
+		});
+
+		dialog.show();
+	}
+
+	// The projection, in one sentence carrying both halves of the rule. A dropped row is named
+	// with the app that declared it, because "some rows are missing" is not something an author
+	// should have to work out by diffing.
+	dropped_note(dropped) {
+		if (!dropped || !dropped.length) return "";
+
+		const named = dropped
+			.map((row) =>
+				__("{0} (from {1})", [
+					frappe.utils.escape_html(row.name),
+					frappe.utils.escape_html(row.declared_by || __("another app")),
+				])
+			)
+			.join(", ");
+
+		return `<p class="dock-ship-dropped text-muted">${__(
+			"Left out: {0}. A pinned workspace is already declared in the pinning app's own hooks.py, and a pin is appended rather than positioned -- where it sits on screen is the site's or your own arrangement, which no block can state.",
+			[named]
+		)}</p>`;
 	}
 };

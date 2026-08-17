@@ -141,3 +141,67 @@
 		opacity: 0.4;
 	}
 }
+
+// "Ship This Order" -- a handover, not a confirm and not an editor. One line of framing, the
+// block under the path it belongs in, what the projection dropped, and a warning that the block
+// is not live yet and that the author's own arrangement is still on top of it.
+.dock-ship {
+	display: flex;
+	flex-direction: column;
+	gap: var(--margin-md);
+
+	.dock-ship-lede code {
+		padding: 0 var(--padding-xs);
+		background-color: var(--bg-color);
+		border-radius: var(--border-radius-sm);
+	}
+
+	// Copy is the only affordance on the block: no download, no "open hooks.py", no write path.
+	.dock-ship-code {
+		position: relative;
+
+		pre {
+			margin: 0;
+			padding: var(--padding-sm);
+			max-height: 320px;
+			overflow: auto;
+			font-size: var(--text-sm);
+			background-color: var(--bg-color);
+			border: 1px solid var(--border-color);
+			border-radius: var(--border-radius-md);
+		}
+
+		.dock-ship-copy {
+			position: absolute;
+			top: var(--padding-xs);
+			right: var(--padding-xs);
+		}
+	}
+
+	.dock-ship-dropped {
+		margin: 0;
+		font-size: var(--text-sm);
+	}
+
+	.dock-ship-warning {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--margin-sm);
+		padding: var(--padding-sm);
+		font-size: var(--text-sm);
+		color: var(--text-color);
+		background-color: var(--yellow-50);
+		border: 1px solid var(--yellow-300);
+		border-radius: var(--border-radius-md);
+
+		p {
+			flex: 1;
+			margin: 0;
+		}
+
+		.dock-ship-clear {
+			flex-shrink: 0;
+			white-space: nowrap;
+		}
+	}
+}

@@ -574,6 +574,141 @@ def get_app_dock_layer() -> list[dict]:
 
 
 # ---------------------------------------------------------------------------------------
+# Ship: rendering an arrangement as the hook that would produce it
+# ---------------------------------------------------------------------------------------
+
+
+def owners_of(rows: list[dict]) -> list[str | None]:
+	"""Which app's files each row lives in, in the order they arrived.
+
+	The hook's own attribution first, because it is exact: `get_app_dock` walked the apps and
+	knows which one declared each row, so a pin resolves to the companion that pinned it rather
+	than to whoever owns the workspace. Everything else falls back to the module the entry is
+	rooted in, which is what "lives in" means for an entry no fragment names yet.
+	"""
+	declared = {dock_key(row): row["declared_by"] for row in get_app_dock()}
+
+	def owner(entry) -> str | None:
+		if app := declared.get(dock_key(entry)):
+			return app
+		if entry.get("type") == "Sidebar":
+			return frappe.db.get_value("Module Def", entry.get("name"), "app_name")
+		if entry.get("type") == "Workspace":
+			module = frappe.db.get_value("Workspace", entry.get("name"), "module")
+			return module and frappe.db.get_value("Module Def", module, "app_name")
+		return None
+
+	return [owner(row) for row in rows]
+
+
+def fragment_app(owners: list[str | None]) -> str | None:
+	"""Whose fragment an arrangement on screen is: the app most of its rows live in.
+
+	Resolved from the rows rather than taken from the client's app name, which is the apps-screen
+	title key from `add_to_apps_screen` and is not always the app whose files an entry lives in.
+	Reading it here means this cannot be talked into naming a different app's `hooks.py`.
+
+	The old "one app, else throw" guard is deliberately *not* carried over: a pin makes a
+	multi-app screen legal, and refusing one would refuse exactly the case the projection exists
+	for. Ties fall to first appearance, so a two-row screen still answers.
+	"""
+	tally: dict[str, int] = {}
+	for app in owners:
+		if app:
+			tally[app] = tally.get(app, 0) + 1
+
+	if not tally:
+		return None
+
+	first_seen = list(tally)
+	return max(tally, key=lambda app: (tally[app], -first_seen.index(app)))
+
+
+def hooks_path(app: str) -> str:
+	"""Where the block belongs, relative to the bench, because that is how a person says it."""
+	import os
+
+	from frappe.utils import get_bench_path
+
+	return os.path.relpath(frappe.get_app_path(app, "hooks.py"), get_bench_path())
+
+
+def render_dock_hook(rows: list[dict]) -> str:
+	"""The `add_to_dock = [...]` block for `rows`, as Python somebody pastes.
+
+	Hiding is emitted, order is the list's, and nothing else is: a row is the typed pair plus the
+	flag, which is the whole of what a fragment can say.
+	"""
+	import json
+
+	lines = ["add_to_dock = ["]
+	for row in rows:
+		parts = [f'"type": {json.dumps(row["type"])}', f'"name": {json.dumps(row["name"])}']
+		if row.get("hidden"):
+			parts.append('"hidden": 1')
+		lines.append("\t{" + ", ".join(parts) + "},")
+	lines.append("]")
+	return "\n".join(lines)
+
+
+@frappe.whitelist()
+def emit_dock_hook(app: str | None = None, items: list | str | None = None) -> dict:
+	"""The arrangement on screen, rendered as the `add_to_dock` block that would produce it.
+
+	**Nothing is written.** The target is `hooks.py` -- hand-authored Python with comments and
+	conditionals, which the framework writes exactly once, at `bench new-app`, from a template.
+	An AST-splicing emitter would be the first thing to ever edit one, for the least valuable
+	inch of the operation. The drag-and-drop is where the value was, and it survives intact.
+
+	Developer mode at both ends, and no role check. The gate is kept for meaning rather than for
+	safety now that this is read-only: the action is meaningless without a `hooks.py` to paste
+	into, and read-only is a property of today's implementation rather than a promise.
+
+	Reads the arrangement **on screen**, not the layer's stored rows. These differ, and the
+	difference is chosen: shipping from a user scope on a site whose site layer hid an entry
+	emits it hidden. What you see is what you ship.
+
+	Emit is a **projection**: the app's own rows in their relative order, foreign rows dropped
+	and named. A companion's pin is already declared in the companion's own `hooks.py`, and a pin
+	is appended rather than positioned, so where it sits on screen is layer business no block can
+	state.
+
+	It names **every entry the manager showed** -- the left pane as positions, the right pane as
+	`hidden: 1` -- so ship round-trips: paste, restart, and the dock renders the screen it was
+	taken from. "An unnamed entry trails" survives intact; unnamed now only ever means an entry
+	the manager never showed, i.e. one the app added after the block was authored.
+
+	`app` names the screen for the message below and decides nothing.
+	"""
+	from frappe.desk.doctype.sidebar.sidebar import check_developer_mode
+
+	check_developer_mode()
+
+	rows = shape_dock_rows(items or [], require_visible=False)
+	owners = owners_of(rows)
+	target = fragment_app(owners)
+	if not target:
+		frappe.throw(
+			_("There is no order to ship for {0}.").format(frappe.bold(app or _("this app"))),
+			title=_("Nothing to Ship"),
+		)
+
+	owned, dropped = [], []
+	for row, owner in zip(rows, owners, strict=True):
+		if owner == target:
+			owned.append(row)
+		else:
+			dropped.append({**points_at(row), "declared_by": owner})
+
+	return {
+		"app": target,
+		"code": render_dock_hook(owned),
+		"path": hooks_path(target),
+		"dropped": dropped,
+	}
+
+
+# ---------------------------------------------------------------------------------------
 # Who may touch which layer
 # ---------------------------------------------------------------------------------------
 

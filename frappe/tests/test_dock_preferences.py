@@ -11,6 +11,7 @@ from frappe.desk.doctype.dock.dock import (
 	get_site_dock_layer,
 	get_user_dock,
 	get_user_dock_layer,
+	render_dock_hook,
 	resolve_dock,
 	save_site_dock,
 	save_user_dock,
@@ -869,6 +870,117 @@ class TestThePin(DockTestCase):
 			pinned = [row["name"] for row in self.host_dock() if row["type"] == "Workspace"]
 
 		self.assertNotIn(workspace, pinned)
+
+
+class TestEmitDockHook(DockTestCase):
+	"""Ship: the arrangement on screen, rendered as the block that would produce it.
+
+	Nothing is written. The target is `hooks.py` -- hand-authored Python with comments and
+	conditionals, which the framework writes exactly once, at `bench new-app`.
+	"""
+
+	APP = "frappe"
+	COMPANION = "zz-dock-emit-companion"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		clear_arrangements()
+
+	def emit(self, *rows, app=None):
+		from frappe.desk.doctype.dock.dock import emit_dock_hook
+
+		return emit_dock_hook(app=app or self.APP, items=json.dumps(list(rows)))
+
+	def test_the_block_names_every_entry_the_manager_showed(self):
+		"""Left pane as positions, right pane as hidden -- which is what makes ship round-trip."""
+		emitted = self.emit(sidebar(BETA), sidebar(ALPHA), sidebar(GAMMA, hidden=1))
+
+		self.assertEqual(
+			emitted["code"],
+			"add_to_dock = [\n"
+			'\t{"type": "Sidebar", "name": "Test Dock Beta"},\n'
+			'\t{"type": "Sidebar", "name": "Test Dock Alpha"},\n'
+			'\t{"type": "Sidebar", "name": "Test Dock Gamma", "hidden": 1},\n'
+			"]",
+		)
+		self.assertEqual(emitted["path"], "apps/frappe/frappe/hooks.py")
+		self.assertEqual(emitted["dropped"], [])
+
+	def test_the_block_round_trips_through_the_hook(self):
+		"""Paste, restart, and the dock renders the screen it was taken from."""
+		emitted = self.emit(sidebar(GAMMA), sidebar(BETA), sidebar(ALPHA, hidden=1))
+
+		# what the author would have in `hooks.py` after pasting, read back as a fragment
+		fragment = [
+			{"type": "Sidebar", "name": GAMMA},
+			{"type": "Sidebar", "name": BETA},
+			{"type": "Sidebar", "name": ALPHA, "hidden": 1},
+		]
+		self.assertEqual(emitted["code"], render_dock_hook(fragment))
+
+		with shipped_dock({self.APP: fragment}):
+			resolved = dock_for(among=TRIO)
+
+		self.assertEqual(names(resolved), [GAMMA, BETA, ALPHA])
+		self.assertEqual(hidden_by_name(resolved)[ALPHA], 1)
+
+	def test_a_foreign_row_is_dropped_and_named(self):
+		"""A projection, not a refusal: the pin is already declared in the companion's own
+		`hooks.py`, and where it sits on screen is layer business no block can state."""
+		workspace = frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": "Test Dock Emit Pin",
+				"label": "Test Dock Emit Pin",
+				"module": ALPHA,
+				"public": 1,
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Workspace", workspace.name, force=True, ignore_missing=True)
+
+		pin = {"type": "Workspace", "name": workspace.name, "app": self.APP}
+		with shipped_dock({self.COMPANION: [pin], self.APP: [sidebar(BETA), sidebar(ALPHA)]}):
+			emitted = self.emit(sidebar(BETA), {"type": "Workspace", "name": workspace.name}, sidebar(ALPHA))
+
+		self.assertEqual(
+			emitted["code"],
+			"add_to_dock = [\n"
+			'\t{"type": "Sidebar", "name": "Test Dock Beta"},\n'
+			'\t{"type": "Sidebar", "name": "Test Dock Alpha"},\n'
+			"]",
+		)
+		self.assertEqual(
+			emitted["dropped"],
+			[{"type": "Workspace", "name": workspace.name, "declared_by": self.COMPANION}],
+		)
+
+	def test_a_multi_app_screen_is_legal(self):
+		"""The old "one app, else throw" guard is not carried over -- a pin makes a multi-app
+		screen legal, and refusing one would refuse exactly the case this exists for."""
+		emitted = self.emit(sidebar(ALPHA), sidebar(BETA), sidebar(GAMMA))
+		self.assertEqual(emitted["app"], "frappe")
+
+	def test_the_app_is_resolved_from_the_rows_not_the_client(self):
+		"""`app` names the screen and decides nothing: it is the apps-screen title key, which an
+		app may set to something other than the app its files live in."""
+		emitted = self.emit(sidebar(ALPHA), app="Not An App At All")
+		self.assertEqual(emitted["app"], "frappe")
+		self.assertEqual(emitted["path"], "apps/frappe/frappe/hooks.py")
+
+	def test_an_empty_screen_is_refused(self):
+		from frappe.desk.doctype.dock.dock import emit_dock_hook
+
+		self.assertRaises(frappe.ValidationError, emit_dock_hook, app=self.APP, items="[]")
+
+	def test_a_non_developer_site_is_refused(self):
+		from frappe.desk.doctype.dock.dock import emit_dock_hook
+
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			self.assertRaises(frappe.ValidationError, emit_dock_hook, app=self.APP, items=payload(ALPHA))
 
 
 class TestTheShippedModuleOrder(IntegrationTestCase):
