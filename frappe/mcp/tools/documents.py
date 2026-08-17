@@ -9,6 +9,7 @@ client see the same semantics, the same permission checks and the same hooks.
 from typing import Any
 
 import frappe
+import frappe.client
 from frappe.api import v2
 from frappe.mcp.tools import Tool, form_dict
 
@@ -87,6 +88,55 @@ def get_documents(arguments: dict[str, Any]) -> dict[str, Any]:
 	}
 
 
+WRITE_DESCRIPTION = """Create, update or delete one document on this Frappe site.
+
+- create: give 'doctype' and 'data'.
+- update: give 'doctype', 'name' and the 'data' to change.
+- delete: give 'doctype' and 'name'.
+
+Document lifecycle actions are not write actions. Submit, cancel and amend are
+DocType methods, so run them through call_method.
+
+Call discover first to learn which fields a DocType has and which are required."""
+
+WRITE_INPUT_SCHEMA = {
+	"type": "object",
+	"properties": {
+		"action": {"type": "string", "enum": ["create", "update", "delete"]},
+		"doctype": {"type": "string", "description": "A DocType name, such as 'ToDo'."},
+		"name": {"type": "string", "description": "The document to update or delete."},
+		"data": {
+			"type": "object",
+			"description": "Field values. For create, everything the DocType requires.",
+		},
+	},
+	"required": ["action", "doctype"],
+	"additionalProperties": False,
+}
+
+
+def write_document(arguments: dict[str, Any]) -> dict[str, Any]:
+	action = _required(arguments, "action")
+	doctype = _required(arguments, "doctype")
+	data = arguments.get("data") or {}
+
+	if action == "create":
+		with form_dict(data):
+			return {"action": action, "document": v2.create_doc(doctype)}
+
+	name = _required(arguments, "name")
+
+	if action == "update":
+		with form_dict(data):
+			return {"action": action, "document": v2.update_doc(doctype, name)}
+
+	if action == "delete":
+		frappe.client.delete_doc(doctype, name)
+		return {"action": action, "doctype": doctype, "name": name}
+
+	frappe.throw(f"Unknown action {action}. Use create, update or delete.", frappe.ValidationError)
+
+
 def _required(arguments: dict[str, Any], key: str) -> Any:
 	value = arguments.get(key)
 	if not value:
@@ -101,4 +151,13 @@ GET_DOCUMENTS = Tool(
 	input_schema=GET_INPUT_SCHEMA,
 	annotations={"readOnlyHint": True},
 	handler=get_documents,
+)
+
+WRITE_DOCUMENT = Tool(
+	name="write_document",
+	title="Create, update or delete a document",
+	description=WRITE_DESCRIPTION,
+	input_schema=WRITE_INPUT_SCHEMA,
+	annotations={"destructiveHint": True, "idempotentHint": False},
+	handler=write_document,
 )

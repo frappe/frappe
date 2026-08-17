@@ -51,9 +51,17 @@ def form_dict(arguments: dict[str, Any]):
 
 
 def registry() -> list[Tool]:
-	from frappe.mcp.tools import discover, documents
+	from frappe.mcp.tools import discover, documents, methods
 
-	return sorted([discover.TOOL, documents.GET_DOCUMENTS], key=lambda tool: tool.name)
+	return sorted(
+		[
+			discover.TOOL,
+			documents.GET_DOCUMENTS,
+			documents.WRITE_DOCUMENT,
+			methods.CALL_METHOD,
+		],
+		key=lambda tool: tool.name,
+	)
 
 
 def definitions() -> list[dict[str, Any]]:
