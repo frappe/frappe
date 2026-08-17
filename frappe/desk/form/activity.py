@@ -70,13 +70,14 @@ def parse_visible_types(visible_types) -> tuple[set[str] | None, list[str] | Non
 		return None, None
 	types: set[str] = set()
 	version_fields = None
+	# client-supplied: entries must be strings, field lists must be lists of strings
 	for entry in visible_types:
 		if isinstance(entry, dict):
 			for activity_type, fields in entry.items():
 				types.add(activity_type)
-				if activity_type == "version":
-					version_fields = fields
-		else:
+				if activity_type == "version" and isinstance(fields, list):
+					version_fields = [f for f in fields if isinstance(f, str)]
+		elif isinstance(entry, str):
 			types.add(entry)
 	return types, version_fields
 
@@ -515,9 +516,9 @@ def get_version_activities(
 		for fieldname, old, new in data.get("changed", []):
 			if fieldname == "docstatus":
 				if new == 1:
-					changes.append(format_docstatus_change(_("submitted this document")))
+					changes.append(format_phrase_change(_("submitted this document")))
 				elif new == 2:
-					changes.append(format_docstatus_change(_("cancelled this document")))
+					changes.append(format_phrase_change(_("cancelled this document")))
 				continue
 
 			df = is_field_visible(meta, permitted, fieldname)
@@ -577,7 +578,7 @@ def format_version_change(df, fieldname: str, old, new) -> dict:
 	}
 
 
-def format_docstatus_change(text: str, fieldname: str | None = None) -> dict:
+def format_phrase_change(text: str, fieldname: str | None = None) -> dict:
 	"""A finished phrase; child-table rows carry the table's fieldname, submit/cancel carry none."""
 	return {"fieldname": fieldname, "type": "phrase", "text": text}
 
@@ -605,7 +606,7 @@ def get_child_table_changes(
 			if not df:
 				continue
 			changes.append(
-				format_docstatus_change(
+				format_phrase_change(
 					template.format(count, _(df.label or table_fieldname)), fieldname=table_fieldname
 				)
 			)
@@ -628,7 +629,7 @@ def get_child_table_changes(
 			if not cdf:
 				continue
 			changes.append(
-				format_docstatus_change(
+				format_phrase_change(
 					_("set {0} to {1} in row #{2}").format(
 						_(cdf.label or cfield),
 						truncate_value(cnew),

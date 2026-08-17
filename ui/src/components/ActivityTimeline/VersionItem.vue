@@ -38,40 +38,17 @@
 							<span :class="{ 'cap-first': changes.length > 1 }">{{
 								change.prefix
 							}}</span>
-							<!-- from → to wraps as one unit; splits only when it alone can't fit -->
-							<span class="inline-flex max-w-full flex-wrap items-center gap-1.5">
-								<Tooltip
-									v-if="change.from != null"
-									:text="truncate(change.from).title"
+							<ValueChange :from="change.from" :to="change.to">
+								<button
+									v-if="hasHistory(change)"
+									type="button"
+									class="text-ink-gray-5 hover:text-ink-gray-7"
+									@click="toggle(change.name)"
 								>
-									<span
-										class="whitespace-nowrap font-semibold text-ink-gray-8"
-										>{{ truncate(change.from).text }}</span
-									>
-								</Tooltip>
-								<span class="inline-flex items-center gap-1.5 whitespace-nowrap">
-									<span v-if="change.from != null" class="text-ink-gray-5"
-										>→</span
-									>
-									<Tooltip :text="truncate(change.to).title">
-										<span class="font-semibold text-ink-gray-8">{{
-											truncate(change.to).text
-										}}</span>
-									</Tooltip>
-									<button
-										v-if="hasHistory(change)"
-										type="button"
-										class="text-ink-gray-5 hover:text-ink-gray-7"
-										@click="toggle(change.name)"
-									>
-										<LucideChevronUp
-											v-if="isOpen(change.name)"
-											class="size-3.5"
-										/>
-										<LucideChevronDown v-else class="size-3.5" />
-									</button>
-								</span>
-							</span>
+									<LucideChevronUp v-if="isOpen(change.name)" class="size-3.5" />
+									<LucideChevronDown v-else class="size-3.5" />
+								</button>
+							</ValueChange>
 						</template>
 						<!-- phrase: finished, value-less line -->
 						<template v-else>
@@ -103,25 +80,11 @@
 					>
 						<span class="font-medium text-ink-gray-8">{{ authorName }}</span>
 						<span>{{ prefixOf(change) }}</span>
-						<span class="inline-flex max-w-full flex-wrap items-center gap-1.5">
-							<Tooltip
-								v-if="historyEntry.from"
-								:text="truncate(historyEntry.from).title"
-							>
-								<span class="whitespace-nowrap font-semibold text-ink-gray-8">{{
-									truncate(historyEntry.from).text
-								}}</span>
-							</Tooltip>
-							<span v-else class="text-ink-gray-5">""</span>
-							<span class="inline-flex items-center gap-1.5 whitespace-nowrap">
-								<span>→</span>
-								<Tooltip :text="truncate(historyEntry.to).title">
-									<span class="font-semibold text-ink-gray-8">{{
-										truncate(historyEntry.to).text
-									}}</span>
-								</Tooltip>
-							</span>
-						</span>
+						<ValueChange
+							:from="historyEntry.from || null"
+							:to="historyEntry.to"
+							show-empty-from
+						/>
 						<span>·</span>
 						<TimeAgo :timestamp="historyEntry.timestamp" />
 					</div>
@@ -132,12 +95,11 @@
 </template>
 
 <script setup lang="ts">
-import { Tooltip } from "frappe-ui";
 import { computed, reactive, ref } from "vue";
+import ValueChange from "./ValueChange.vue";
 import { timeValue } from "./grouping";
 import TimeAgo from "./TimeAgo.vue";
 import type { FieldChange, VersionChange, VersionItemProps } from "./types";
-import { truncate } from "./utils";
 
 const props = defineProps<VersionItemProps>();
 
