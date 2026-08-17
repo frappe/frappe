@@ -17,7 +17,7 @@ from frappe.desk.doctype.dock.dock import (
 	save_site_dock,
 	save_user_dock,
 )
-from frappe.desk.doctype.sidebar.test_sidebar import make_sidebar, sidebarless_module
+from frappe.desk.doctype.sidebar.test_sidebar import developer_mode, make_sidebar, sidebarless_module
 from frappe.tests import IntegrationTestCase
 
 USER = "test-dock-prefs@example.com"
@@ -885,6 +885,9 @@ class TestEmitDockHook(DockTestCase):
 
 	def setUp(self):
 		frappe.set_user("Administrator")
+		# emit is gated on developer mode at both ends, and a test site is not a developer's
+		# site -- the one test that asserts the gate turns it back off for itself
+		self.enterContext(developer_mode())
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
