@@ -125,13 +125,26 @@ frappe.ui.DockManager = class DockManager {
 	}
 
 	// This layer's picks for this app, in their order. A layer is a single flat list across every
-	// app, so this app's picks are the ones naming its modules.
+	// app and across both kinds of entry, so this app's picks are the `Sidebar` rows naming its
+	// modules -- a `Workspace` row of the same name is a different entry and not one of them.
 	initial_selection() {
-		const app_modules = this.app_modules();
+		const app_modules = new Set(this.app_modules());
 		const arranged = (this.layer || [])
-			.filter((row) => !row.hidden && app_modules.includes(row.module))
-			.map((row) => row.module);
+			.filter((row) => !row.hidden && this.is_app_module(row, app_modules))
+			.map((row) => row.name);
 		return arranged.length ? arranged : this.unarranged_selection();
+	}
+
+	// Whether a layer row is one of this app's modules -- the pair, never the name alone. The
+	// set is passed in rather than rebuilt here, so scanning a layer costs one build of it.
+	is_app_module(row, app_modules) {
+		return row.type === "Sidebar" && app_modules.has(row.name);
+	}
+
+	// One row as a layer stores it: a module is named through its `Sidebar`, which is what the
+	// rail renders and what a module's name is a sidebar's name.
+	sidebar_row(name, hidden) {
+		return { type: "Sidebar", name, hidden };
 	}
 
 	// Where an untouched layer starts, so the arrangement is a trim rather than a build from
@@ -305,21 +318,24 @@ frappe.ui.DockManager = class DockManager {
 
 		// A layer is one flat list across every app, but a dock belongs to an app -- so replace
 		// only this app's entries and leave every other app's arrangement in this layer untouched.
-		const app_modules = new Set(this.app_modules());
-		const others = (this.layer || []).filter((row) => !app_modules.has(row.module));
+		// Rows are typed pairs, so an entry of another kind that happens to share a module's name
+		// is one of the ones left alone.
+		const app_modules = this.app_modules();
+		const in_app = new Set(app_modules);
+		const others = (this.layer || []).filter((row) => !this.is_app_module(row, in_app));
 		// A module this app offers that was left out is stored as an explicit `hidden` row, not
 		// simply omitted -- otherwise it would reappear the moment the app adds a module. Nothing
 		// selected at all is the exception: that is Reset, and it stores no row for this app so
 		// the layer below shows through instead of the app being hidden module by module.
 		const hidden = this.selection.length
-			? this.app_modules()
+			? app_modules
 					.filter((name) => !this.selection.includes(name))
-					.map((name) => ({ module: name, hidden: 1 }))
+					.map((name) => this.sidebar_row(name, 1))
 			: [];
 
 		const modules = [
 			...others,
-			...this.selection.map((name) => ({ module: name, hidden: 0 })),
+			...this.selection.map((name) => this.sidebar_row(name, 0)),
 			...hidden,
 		];
 

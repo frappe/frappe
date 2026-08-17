@@ -16,11 +16,11 @@ class DockItem(Document):
 		from frappe.types import DF
 
 		hidden: DF.Check
-		module: DF.Link | None
+		link_name: DF.DynamicLink | None
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
-		workspace: DF.Link | None
+		type: DF.Link | None
 	# end: auto-generated types
 
 	pass

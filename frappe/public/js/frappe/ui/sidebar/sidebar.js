@@ -960,28 +960,40 @@ frappe.ui.Sidebar = class Sidebar {
 	// the same rail on every app. An arrangement naming none of this app's modules leaves the
 	// app's own order alone rather than rendering an empty rail.
 	//
-	// Entries naming a workspace rather than a module are skipped: this is the module rail, and
-	// a pinned workspace reaches it through `app_data[].workspaces` instead.
+	// Entries are typed pairs, so the arrangement is keyed on both halves -- a `Workspace` and a
+	// `Sidebar` of one name are two entries and must not match each other. Only `Sidebar` entries
+	// are rendered: this is the module rail, and a pinned workspace has nowhere to appear on it
+	// yet.
 	apply_dock_arrangement(modules) {
-		const arrangement = (frappe.boot.dock || []).filter((p) => p.module);
+		const arrangement = (frappe.boot.dock || []).filter((p) => p.type === "Sidebar");
 		if (!arrangement.length) return modules;
 
-		const hidden = new Set(arrangement.filter((p) => p.hidden).map((p) => p.module));
-		const order = new Map(arrangement.map((p, idx) => [p.module, idx]));
+		const hidden = new Set(
+			arrangement.filter((p) => p.hidden).map((p) => this.dock_key(p.type, p.name))
+		);
+		const order = new Map(arrangement.map((p, idx) => [this.dock_key(p.type, p.name), idx]));
+		// a module's entry on the dock -- the sidebar the rail renders it as
+		const key = (m) => this.dock_key("Sidebar", m.module);
 
 		// An arrangement that names nothing in this app says nothing about it -- every module it
 		// does name belongs to some other app's dock. Hiding, though, is honoured even when it
 		// empties the rail: a site that hid an app's whole set meant to.
-		if (!modules.some((m) => order.has(m.module))) return modules;
+		if (!modules.some((m) => order.has(key(m)))) return modules;
 
 		// Modules the arrangement never names keep their app order and trail the ones it did, so
 		// installing an app still surfaces its modules on a dock that has already been arranged.
 		// `MAX_SAFE_INTEGER` rather than `Infinity`: two unnamed modules would subtract to `NaN`,
 		// and a comparator that returns `NaN` is only saved by sort stability.
-		const position = (m) => order.get(m.module) ?? Number.MAX_SAFE_INTEGER;
+		const position = (m) => order.get(key(m)) ?? Number.MAX_SAFE_INTEGER;
 		return modules
-			.filter((m) => !hidden.has(m.module))
+			.filter((m) => !hidden.has(key(m)))
 			.sort((a, b) => position(a) - position(b));
+	}
+
+	// What identifies a dock entry, client-side: the same pair, joined the same way, as
+	// `dock_key` on the server. Both halves, because the kinds do not share a namespace.
+	dock_key(type, name) {
+		return `${type}::${name}`;
 	}
 
 	// Where an app's icon leads. `app_route` covers apps that declare one; otherwise land on

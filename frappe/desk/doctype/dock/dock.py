@@ -16,6 +16,27 @@ DOCK_LAYERS_CACHE_KEY = "dock_layers"
 # a value rather than as two falsy strings.
 SITE_LAYER = ""
 
+# The kinds of thing a dock entry may name, and what proves the thing it names exists.
+#
+# `Dock Item.type` is an open Link to `DocType`, so the schema is no longer what closes the set --
+# this is, at both ends: a `Dock` refuses a row naming any other doctype, and a saved arrangement
+# drops one. Adding a third kind of entry is a row here rather than a column there.
+#
+# A `Sidebar` is proved by its `Module Def`, not by a `Sidebar` document. A sidebar's name *is*
+# its module's name (`autoname: field:module`), and most modules have a computed base with no
+# document at all -- so asking the `Sidebar` table would drop the common case.
+PROVED_BY = {
+	"Sidebar": "Module Def",
+	"Workspace": "Workspace",
+}
+DOCK_TYPES = frozenset(PROVED_BY)
+
+# `Dock Item` stores the second half of the pair as `link_name`, while every dict this module
+# hands out or takes in calls it `name`. The column cannot be called `name`: on a child row that
+# attribute is the row's own primary key, and autoname overwrites whatever is in it the moment the
+# row is inserted. The translation is confined to `dock_rows` on the way out and `_save_layer` on
+# the way in, so nothing above either has to know.
+
 
 class Dock(Document):
 	"""One layer of the dock: an app's fragment, the site's arrangement, or one person's own.
@@ -71,21 +92,30 @@ class Dock(Document):
 			)
 
 	def anchor_the_items(self):
-		"""Every entry points at exactly one thing, and that is its identity.
+		"""Every entry points at exactly one thing, and the typed pair is what says which.
 
-		Which column is filled *is* the kind of entry, so there is no `type` to declare and
-		nothing to keep in step with it. A row naming both is an authoring mistake with no
-		reading -- it would resolve to one of them by accident of which branch runs first -- so
-		it is refused. A row naming neither says nothing at all and is dropped rather than
-		refused, the way a `Custom Sidebar` reference anchored to nothing is.
+		A row missing either half says nothing at all -- half a pair names nothing -- and is
+		dropped rather than refused, the way a `Custom Sidebar` reference anchored to nothing is.
+		This is also what empties a row written before the pair existed rather than corrupting
+		it: its old columns are not read, so it reads as anchorless and falls out.
+
+		A whole row whose `type` is a doctype the dock does not have is different. It *does* say
+		something, and what it says is not storable, so it is refused rather than quietly kept
+		for a reader that will never know what to do with it.
+
+		The refusal runs first so the row number it quotes is the one the author is looking at:
+		re-setting the table renumbers `idx`, and a message pointing at a row that has already
+		moved is worse than no message.
 		"""
 		for row in self.items:
-			if row.module and row.workspace:
+			if row.type and row.link_name and row.type not in DOCK_TYPES:
 				frappe.throw(
-					_("Row #{0}: a dock entry names a module or a workspace, not both.").format(row.idx)
+					_("Row #{0}: a dock entry names a Sidebar or a Workspace, not a {1}.").format(
+						row.idx, row.type
+					)
 				)
 
-		self.set("items", [row for row in self.items if row.module or row.workspace])
+		self.set("items", [row for row in self.items if row.type and row.link_name])
 
 	def _validate_links(self):
 		"""A row *names* something to navigate to; it does not reference it.
@@ -93,7 +123,10 @@ class Dock(Document):
 		The same call `Custom Sidebar` makes, for the same reason: one deleted workspace would
 		otherwise turn every later write to this layer into an error. A row naming something
 		that is gone stops applying when the dock resolves, which is already what happens to a
-		row whose module the reader may not see.
+		row whose target the reader may not see.
+
+		It is also what lets a `Sidebar` row name a module whose sidebar is a computed base: the
+		`Sidebar` table holds no document for it, and a Dynamic Link would refuse it.
 		"""
 		return
 
@@ -149,18 +182,19 @@ def get_dock(app: str | None = None, user: str | None = None) -> "Dock | None":
 
 
 def dock_rows(dock: "Dock | None") -> list[dict]:
-	"""One layer's stored rows, in row order. Row order is the arrangement."""
+	"""One layer's stored rows, in row order. Row order is the arrangement.
+
+	Where the stored `link_name` column becomes the `name` half of the pair every reader above
+	here works in. Half-written rows are dropped again rather than trusted to `validate`, which
+	only ran on the layers this site has saved since the pair existed.
+	"""
 	if not dock:
 		return []
 
 	return [
-		{
-			"module": row.module or None,
-			"workspace": row.workspace or None,
-			"hidden": int(row.hidden or 0),
-		}
+		{"type": row.type, "name": row.link_name, "hidden": int(row.hidden or 0)}
 		for row in dock.items
-		if row.module or row.workspace
+		if row.type and row.link_name
 	]
 
 
@@ -172,7 +206,7 @@ def get_app_dock() -> list[dict]:
 	which fragment comes first, so the dock reads in the same order as the screen people reach
 	it from.
 
-	*Meant* not to overlap: a module belongs to one app, but nothing enforces that two fragments
+	*Meant* not to overlap: an entry belongs to one app, but nothing enforces that two fragments
 	name different ones, and a fragment left behind by an app that is gone is free to name
 	anything. Two rows under one key would render the entry twice -- the layers above dedupe
 	their own rows and would not catch it, because the base is copied in whole -- so the first
@@ -253,6 +287,9 @@ def resolve_dock() -> list[dict]:
 	Resolved through `frappe.desk.layers`, the merge the sidebar's layers run on. An entry left
 	hidden is *kept*, carrying its flag -- the dock renders a hidden entry rather than dropping
 	it, which is the one thing it does differently from a sidebar.
+
+	Every entry carries the typed pair it was stored as. The client keys on both halves, so a
+	`Sidebar` and a `Workspace` of one name stay two entries all the way to the rail.
 	"""
 	resolved, hidden = resolve_layers(
 		get_app_dock(),
@@ -270,15 +307,14 @@ def resolve_dock() -> list[dict]:
 
 
 def dock_key(entry) -> str:
-	"""What a dock entry is identified by: the thing it points at.
+	"""What a dock entry is identified by: the thing it points at, kind and name together.
 
 	The degenerate case of the sidebar's `item_key`. That one has two shapes because a sidebar
 	row may point nowhere and needs an identity anyway; a dock entry always points somewhere, so
-	nothing is stored. Qualified by which kind it is, because a module and a workspace are free
-	to share a name and are not the same entry.
+	nothing is stored. Both halves, because the two kinds do not share a namespace: a `Sidebar`
+	and a `Workspace` called "Stock" are two entries, not one.
 	"""
-	module = entry.get("module")
-	return f"Module::{module}" if module else f"Workspace::{entry.get('workspace')}"
+	return f"{entry.get('type')}::{entry.get('name')}"
 
 
 def apply_dock_row(row, entry: dict | None) -> dict:
@@ -293,25 +329,30 @@ def apply_dock_row(row, entry: dict | None) -> dict:
 
 
 def points_at(entry) -> dict:
-	"""The one column that says where an entry goes. The other is not carried: an entry is a
-	module or a workspace, and a `None` beside it would only invite a caller to read both."""
-	module = entry.get("module")
-	return {"module": module} if module else {"workspace": entry.get("workspace")}
+	"""The typed pair that says where an entry goes. Always both halves: the name on its own no
+	longer says what kind of thing it names, which is the point of typing the row."""
+	return {"type": entry.get("type"), "name": entry.get("name")}
 
 
 def is_reachable(entry) -> bool:
 	"""Whether the session user may go where the entry points.
 
 	Two gates because there are two kinds of entry, and each is the gate that already decides
-	the thing it points at: module visibility for a module, and the permitted workspace list for
-	a workspace. Neither is anything the dock decides for itself.
+	the thing it points at: module visibility for a sidebar -- whose name is its module's name --
+	and the permitted workspace list for a workspace. Neither is anything the dock decides for
+	itself, and a third kind would bring its own rather than reuse one of these.
 	"""
 	from frappe.utils.modules import is_module_visible
 
-	if entry.get("module"):
-		return is_module_visible(entry["module"])
+	if entry.get("type") == "Sidebar":
+		return is_module_visible(entry.get("name"))
 
-	return entry.get("workspace") in permitted_workspaces()
+	if entry.get("type") == "Workspace":
+		return entry.get("name") in permitted_workspaces()
+
+	# unreachable through the whitelist, and spelled out rather than left as a fallthrough: a
+	# third kind arriving here must bring its own gate rather than inherit the workspace one
+	return False
 
 
 def permitted_workspaces() -> set[str]:
@@ -326,12 +367,18 @@ def shape_dock_rows(items: list | str, require_visible: bool) -> list[dict]:
 	"""One saved arrangement, narrowed to rows that can be stored.
 
 	`items` is the whole ordered arrangement the client is showing -- the shape a Sortable
-	produces -- not a delta. A row may be `"Stock"`, `{"module": "Stock", "hidden": 1}` or
-	`{"workspace": "Payables", "hidden": 0}`.
+	produces -- not a delta. A row is a typed pair: `{"type": "Sidebar", "name": "Stock"}` or
+	`{"type": "Workspace", "name": "Payables", "hidden": 1}`. The bare-name shorthand went with
+	the untyped row, because a name on its own no longer says what it names.
+
+	A row missing either half, or naming a kind that is not on the whitelist, is dropped -- the
+	same treatment a row naming nothing has always had. The set is closed here as well as in
+	`Dock.validate` because these rows never pass through a document until after they are shaped.
 
 	Existence is checked separately from visibility because `is_module_visible` answers a
 	different question -- an unknown module is simply "not blocked", so it passes that check
-	and would then name nothing when the dock resolved.
+	and would then name nothing when the dock resolved. One lookup against the doctype the row's
+	kind is proved by, where there used to be a hand-written check per column.
 
 	`require_visible` is what the two writable layers disagree about. A person's own arrangement
 	is filtered by their reach, so it can never resurface something permissions hide. The
@@ -339,19 +386,21 @@ def shape_dock_rows(items: list | str, require_visible: bool) -> list[dict]:
 	see would let one Workspace Manager's blocked module quietly delete the site's intent for
 	it. Reach is applied to the *resolved* dock either way.
 	"""
-	known_modules = set(frappe.get_all("Module Def", pluck="name"))
 	shaped, seen = [], set()
 
 	for row in frappe.parse_json(items) or []:
-		entry = row if isinstance(row, dict) else {"module": row}
-		module, workspace = entry.get("module"), entry.get("workspace")
-		if module and workspace:
+		if not isinstance(row, dict):
 			continue
-		if module and module not in known_modules:
+
+		entry = points_at(row)
+		# Both halves have to be a non-empty string. These rows are client JSON, so this is also
+		# what keeps a dict out of the lookup below: `frappe.db.exists` reads one as *filters*
+		# rather than as a name, which would turn a saved arrangement into a query surface.
+		if not all(isinstance(half, str) and half for half in (entry["type"], entry["name"])):
 			continue
-		if workspace and not frappe.db.exists("Workspace", workspace):
+		if entry["type"] not in DOCK_TYPES:
 			continue
-		if not module and not workspace:
+		if not frappe.db.exists(PROVED_BY[entry["type"]], entry["name"]):
 			continue
 
 		key = dock_key(entry)
@@ -361,7 +410,7 @@ def shape_dock_rows(items: list | str, require_visible: bool) -> list[dict]:
 			continue
 
 		seen.add(key)
-		shaped.append({"module": module, "workspace": workspace, "hidden": int(entry.get("hidden") or 0)})
+		shaped.append({**entry, "hidden": int(row.get("hidden") or 0)})
 
 	return shaped
 
@@ -398,7 +447,9 @@ def _save_layer(items: list | str, user: str | None, require_visible: bool):
 
 	doc.set("items", [])
 	for row in shape_dock_rows(items, require_visible=require_visible):
-		doc.append("items", row)
+		# the shaped row's `name` lands in the `link_name` column -- see the note beside
+		# `PROVED_BY` for why the column cannot be called what the pair calls it
+		doc.append("items", {"type": row["type"], "link_name": row["name"], "hidden": row["hidden"]})
 
 	# ignore_permissions: a person arranging their own dock need not hold write access to this
 	# doctype, and the site layer's gate is the role check its endpoint already made. The
