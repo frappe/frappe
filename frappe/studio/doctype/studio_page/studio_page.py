@@ -19,6 +19,7 @@ from studio.export import (
 	write_document_file,
 )
 from studio.realtime import publish_doc_change
+from studio.studio.doctype.studio_component.studio_component import get_components_for_blocks
 from studio.utils import camel_case_to_kebab_case, has_page_write_perm
 
 # A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
@@ -410,7 +411,10 @@ def get_page(app_name: str, page_route: str, preview: bool = False) -> dict:
 	fetches stays permission-checked by the endpoints its resources call. Guests
 	only get pages that are published AND allow_guest; everything else 404s
 	identically so private routes can't be enumerated. Drafts and unpublished
-	pages are only served in preview, which requires read access on Studio Page."""
+	pages are only served in preview, which requires read access on Studio Page.
+
+	The served blocks' component definitions ship in the same payload, so what a
+	caller can see of components is exactly what the pages they can fetch use."""
 	page_name = find_page_with_route(app_name, page_route)
 	if not page_name:
 		frappe.throw(_("Page not found"), frappe.DoesNotExistError)
@@ -436,6 +440,7 @@ def get_page(app_name: str, page_route: str, preview: bool = False) -> dict:
 		"is_standard": page.is_standard,
 		"script": page.script,
 		"blocks": blocks,
+		"components": get_components_for_blocks(blocks),
 		"resources": [
 			{"resource_id": row.name, **{field: row.get(field) for field in PAGE_RESOURCE_FIELDS}}
 			for row in page.resources

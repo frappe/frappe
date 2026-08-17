@@ -14,6 +14,7 @@ import AppComponent from "@/components/AppComponent.vue"
 
 import useAppStore from "@/stores/appStore"
 import useCodeStore from "@/stores/codeStore"
+import useComponentStore from "@/stores/componentStore"
 
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import Block from "@/utils/block"
@@ -21,6 +22,7 @@ import Block from "@/utils/block"
 const store = useAppStore()
 const route = useRoute()
 const codeStore = useCodeStore()
+const componentStore = useComponentStore()
 const page = ref<StudioPage | null>(null)
 
 const rootBlock = ref<Block | null>(null)
@@ -47,6 +49,7 @@ async function loadPage() {
 
 	page.value = await findPageWithRoute(window.app_name, currentPath, Boolean(window.is_preview))
 	if (token !== loadToken || !page.value) return
+	componentStore.setComponents(page.value.components || [])
 	await store.setPageData(page.value)
 	await codeStore.setPageScript(page.value, Boolean(page.value.is_standard))
 	if (token !== loadToken) return
