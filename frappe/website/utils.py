@@ -117,7 +117,6 @@ def get_home_page():
 					if x is not None:
 						home_page = x
 						break
-			del all_roles, all_home_pages
 
 			# portal default
 			if not home_page:
