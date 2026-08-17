@@ -101,7 +101,7 @@ class SetFieldValue(AutomationAction):
 class CreateDocument(AutomationAction):
 	action_type = "CreateDocument"
 	label = "Create Document"
-	description = "Create a new document, optionally seeded from the triggering document."
+	description = "Create a new document."
 	requires_document = False
 	output_schema: ClassVar[dict] = {"destination_reference": {"doctype": "Dynamic", "cardinality": "one"}}
 	params_schema: ClassVar[list] = [
@@ -141,7 +141,7 @@ class CreateDocument(AutomationAction):
 class IncrementFieldValue(AutomationAction):
 	action_type = "IncrementFieldValue"
 	label = "Increment Field Value"
-	description = "Atomically add a number to a field on the target document."
+	description = "Add a number to a field on the target document."
 	params_schema: ClassVar[list] = [
 		{
 			"fieldname": "field",
@@ -189,7 +189,7 @@ class IncrementFieldValue(AutomationAction):
 class SendNotification(AutomationAction):
 	action_type = "SendNotification"
 	label = "Send Notification"
-	description = "Send an email or system notification, optionally from an Email Template."
+	description = "Send an email or system notification."
 	params_schema: ClassVar[list] = [
 		{
 			"fieldname": "channel",
@@ -268,7 +268,7 @@ class SendNotification(AutomationAction):
 class AssignToUser(AutomationAction):
 	action_type = "AssignToUser"
 	label = "Assign to User"
-	description = "Assign the triggering document to one or more users (wraps ToDo assignment)."
+	description = "Assign the triggering document to one or more users."
 	params_schema: ClassVar[list] = [
 		{
 			"fieldname": "assign_to",
