@@ -220,8 +220,8 @@ def remove_orphan_entities(entity_types=None):
 	entity_filter_map = {
 		# only a standard workspace is backed by a file in an app; a site's own public workspace
 		# is never an orphan. This used to read `app is set`, back when a workspace carried its
-		# app itself -- which also swept up site-created workspaces that the `update_app` patch
-		# had stamped an app onto, and deleted them.
+		# app itself -- which also swept up site-created workspaces that a migrate had stamped
+		# an app onto, and deleted them.
 		"Workspace": {"public": 1, "standard": 1},
 		"Page": {"standard": "Yes"},
 		"Report": {"is_standard": "Yes"},

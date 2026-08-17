@@ -6,8 +6,8 @@
 # deleted -- the backfill has to be exact, not a heuristic.
 #
 # Having a file *is* the definition, so that is what this asks. It used to ask whether the
-# workspace carried a `module` and an `app`, which the `update_app` patch had by then stamped
-# onto every workspace with a module, site-created ones included.
+# workspace carried a `module` and an `app`, back when a workspace carried its app itself and
+# a migrate stamped one onto every workspace with a module, site-created ones included.
 
 import frappe
 

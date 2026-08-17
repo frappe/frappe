@@ -907,6 +907,13 @@ def sync_module_defs() -> list[str]:
 	`rename_conflicting_custom_module` over each -- fine as a one-shot at install, but on a
 	migrate it would put a site's custom module through a rename check on every run.
 
+	An existing row is touched in one case only: an app's own module with no `app_name` is
+	given one. That is a row with no dock placement, which is a row nobody can reach, and this
+	loop is already holding the answer -- the same fill `ModuleDef.validate_placement` does on
+	save, for rows that are never saved. A row naming a *different* app is left alone: two apps
+	claiming one module name is a conflict to resolve deliberately, not by whichever app this
+	loop reaches last.
+
 	**Deliberately additive.** A module dropped from `modules.txt` keeps its row: deleting one
 	cascades through `DocType.module` and every link to it, and an app temporarily renaming a
 	module would take the site's data with it. Removal stays a decision an app makes explicitly,
@@ -925,6 +932,12 @@ def sync_module_defs() -> list[str]:
 			# an app's module already has its row; only a *custom* module holding the name is
 			# something to act on
 			if row and not row.custom:
+				# ...except a row with no placement at all, which is unreachable: `app_name` is
+				# what lists a module in an app's dock, and for an app's own module it is not a
+				# choice but a fact this loop already knows.
+				if not row.app_name:
+					frappe.db.set_value("Module Def", module, "app_name", app, update_modified=False)
+					row.app_name = app  # so a second app declaring the name does not take it
 				continue
 
 			rename_conflicting_custom_module(module, app)
