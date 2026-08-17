@@ -5,6 +5,11 @@ from frappe.utils import get_datetime, now_datetime
 
 QUEUE = "Automation Trigger Queue"
 
+# The RQ queue the drain job is enqueued on. Shared so that the job and the time budget it has
+# to finish inside are always read off the same queue: kick_drainer enqueues here, and the
+# drainer sizes its budget from this queue's configured timeout.
+DRAIN_QUEUE = "default"
+
 # Queue rows that still owe work. A row waiting on a future run_after sits in Scheduled so the list
 # view can tell "waiting for its time" apart from "waiting for a worker"; it moves to Pending once
 # it comes due. Both are claimable, so the drainer spans the pair.
