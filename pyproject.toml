@@ -33,7 +33,6 @@ dependencies = [
     "Werkzeug==3.1.6",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.13.5",
-    "bleach~=6.3.0",
     "bleach-allowlist~=1.0.3",
     "chardet~=5.2.0",
     "croniter~=6.0.0",
