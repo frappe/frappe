@@ -88,10 +88,14 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		this.item = opts.item;
 		this.container = opts.container;
 		this.nested_items = opts.item.nested_items || [];
-		this.current_module =
-			($(".body-sidebar").attr("data-title") &&
-				$(".body-sidebar").attr("data-title").toLowerCase()) ||
-			frappe.app.sidebar.sidebar_title;
+		// The module whose sidebar this item is in, read off the sidebar rather than out of the
+		// DOM. It keys the collapsed/expanded state of section breaks in localStorage.
+		//
+		// It used to read `data-title` and lowercase it, falling back to `sidebar.sidebar_title`
+		// -- a property that no longer exists, so the fallback was always undefined and every
+		// module would have shared one state. The lowercasing made it a fourth keyspace in a
+		// change whose whole point was to have one: the exact-case module name.
+		this.current_module = frappe.app.sidebar.current_module;
 		this.prepare(opts);
 		this.make();
 	}
@@ -294,7 +298,6 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 frappe.ui.sidebar_item.TypeButton = class SidebarButton extends frappe.ui.sidebar_item.TypeLink {
 	constructor(item) {
 		super(item);
-		this.title = frappe.app.sidebar.current_module;
 		this.item.id && this.wrapper.attr("id", this.item.id);
 		this.item.class && this.wrapper.attr("class", this.item.class);
 	}
