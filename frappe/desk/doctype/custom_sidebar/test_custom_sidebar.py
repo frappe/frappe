@@ -7,11 +7,14 @@ import frappe
 from frappe.desk.doctype.custom_sidebar.custom_sidebar import (
 	get_customization,
 	get_layers_for,
+	get_site_sidebar_layer,
+	get_user_sidebar_layer,
+	reset_site_sidebar,
 	reset_user_sidebar,
 	save_sidebar_customization,
 	save_site_sidebar,
 )
-from frappe.desk.doctype.sidebar.sidebar import resolve_sidebar
+from frappe.desk.doctype.sidebar.sidebar import item_key, resolve_sidebar
 from frappe.desk.doctype.sidebar.test_sidebar import (
 	delete_page,
 	make_page,
@@ -681,3 +684,210 @@ class TestCustomizationTarget(CustomizationTestCase):
 			save_sidebar_customization("Test No Such Module", json.dumps([]))
 
 		self.assertIn("is not a module", str(caught.exception))
+
+
+class TestWhatTheEditorOpensOn(CustomizationTestCase):
+	"""The read the editor opens a layer on.
+
+	It is neither of the two answers that already existed. The boot payload is the resolution
+	for the reader and drops a hidden item, which an editor has to be able to bring back; a
+	layer's stored rows are a delta, and this editor saves the whole arrangement.
+	"""
+
+	def setUp(self):
+		super().setUp()
+		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+
+	def tearDown(self):
+		super().tearDown()
+		frappe.delete_doc("User", MANAGER, force=True, ignore_missing=True)
+
+	def read(self, layer: str, module: str = MODULE):
+		endpoint = get_user_sidebar_layer if layer == "user" else get_site_sidebar_layer
+		return endpoint(module)
+
+	def arrange(self, layer: str, on_the_sidebar: list[str], module: str = MODULE):
+		"""The save the editor makes: the whole arrangement on screen, in order, the entries left
+		on the surface first and everything else flagged hidden. Each entry goes back as it came,
+		which is the client contract `drop_inherited_values` is written against."""
+		shown = {item["key"]: item for item in self.read(layer, module)}
+		return [{**shown[key], "hidden": 0} for key in on_the_sidebar] + [
+			{**item, "hidden": 1} for key, item in shown.items() if key not in on_the_sidebar
+		]
+
+	def test_an_unarranged_layer_reads_as_the_layer_below(self):
+		"""The starting point rule. Nothing is stored at either layer, so each reads as the one
+		below it: a person's own as the sidebar on their screen, the site's as what the apps
+		ship -- which is not narrowed to whoever is curating it, see the unfiltered read below.
+		"""
+		shipped = [item["key"] for item in self.base_items()]
+
+		self.as_user()
+		self.assertEqual(
+			[item["key"] for item in self.read("user")],
+			[item["key"] for item in self.items()],
+		)
+
+		frappe.set_user(MANAGER)
+		self.assertEqual([item["key"] for item in self.read("site")], shipped)
+
+	def test_a_hidden_item_is_kept_so_it_can_be_brought_back(self):
+		"""The one thing the boot payload cannot say. The site hides an item; the person's own
+		layer opens on it still there, flagged, ready to be dragged back."""
+		target = next(i for i in self.base_items() if i["type"] != "Section Break")
+		save_site_sidebar(MODULE, json.dumps([{"key": target["key"], "hidden": 1}]))
+
+		self.as_user()
+		self.assertNotIn(target["key"], self.keys())
+
+		read = {item["key"]: item for item in self.read("user")}
+		self.assertIn(target["key"], read)
+		self.assertEqual(read[target["key"]]["hidden"], 1)
+
+	def test_the_layer_being_edited_is_included(self):
+		"""The arrangement as it stands, not the one below it -- otherwise reopening the editor
+		would show none of the work the last save did."""
+		items = self.base_items()
+		target = next(i for i in items if i["type"] != "Section Break")
+
+		self.as_user()
+		save_sidebar_customization(MODULE, json.dumps([{"key": target["key"], "hidden": 1}]))
+
+		read = {item["key"]: item for item in self.read("user")}
+		self.assertEqual(read[target["key"]]["hidden"], 1)
+
+	def test_the_site_layer_reads_without_anybodys_own(self):
+		"""A curator arranges for everyone, so what they open on is the site's arrangement --
+		never the one their own preferences put on their screen."""
+		items = self.base_items()
+		target = next(i for i in items if i["type"] != "Section Break")
+
+		frappe.set_user(MANAGER)
+		save_sidebar_customization(MODULE, json.dumps([{"key": target["key"], "hidden": 1}]))
+
+		read = {item["key"]: item for item in self.read("site")}
+		self.assertEqual(read[target["key"]]["hidden"], 0)
+
+	def test_only_this_layers_own_added_rows_read_as_added(self):
+		"""An item a layer below added is a *reference* from here. Read back as added, one save
+		would copy its body into this layer and freeze what the layer below still owns."""
+		workspace = frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": "Test Editor Added Page",
+				"label": "Test Editor Added Page",
+				"module": MODULE,
+				"public": 1,
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Workspace", workspace.name, force=True, ignore_missing=True)
+
+		row = {
+			"added": 1,
+			"type": "Link",
+			"link_type": "Workspace",
+			"link_to": workspace.name,
+			"label": workspace.title,
+		}
+		save_site_sidebar(MODULE, json.dumps([*self.base_items(), row]))
+
+		frappe.set_user(MANAGER)
+		site = {item["key"]: item for item in self.read("site")}
+		self.assertEqual(site[item_key(row)]["added"], 1)
+
+		self.as_user()
+		mine = {item["key"]: item for item in self.read("user")}
+		self.assertEqual(mine[item_key(row)]["added"], 0)
+
+	def test_saving_the_read_straight_back_says_nothing(self):
+		"""The round trip the editor makes on every Save. Sending back what it was handed,
+		untouched, must leave the resolution exactly as it was -- and must store no opinion."""
+		before = self.keys()
+
+		self.as_user()
+		save_sidebar_customization(MODULE, json.dumps(self.read("user")))
+
+		self.assertEqual(self.keys(), before)
+		layer = get_customization(MODULE, USER)
+		self.assertTrue(all(not row.label and not row.icon for row in layer.sidebar_items))
+
+	def test_bringing_an_item_back_does_not_freeze_its_label(self):
+		"""The read hands out a hidden item with the label it inherits. A row un-hiding it is
+		naming an item that is really there, so that label is still inheritance -- storing it
+		would stop the site's next relabel ever reaching this person."""
+		target = next(i for i in self.base_items() if i["type"] != "Section Break")
+		save_site_sidebar(MODULE, json.dumps([{"key": target["key"], "hidden": 1}]))
+
+		self.as_user()
+		save_sidebar_customization(
+			MODULE,
+			json.dumps([{**item, "hidden": 0} for item in self.read("user")]),
+		)
+
+		self.assertIn(target["key"], self.keys())
+		layer = get_customization(MODULE, USER)
+		self.assertTrue(all(not row.label and not row.icon for row in layer.sidebar_items))
+
+	def test_the_site_layer_is_read_unfiltered_so_a_save_cannot_drop_what_it_hid(self):
+		"""Who may see an item is a fact about the reader, applied to what each person boots. A
+		curator handed their own filtered screen would write the whole arrangement back without
+		it, quietly deleting the site's intent for everything they personally cannot open."""
+		everything = {i["key"] for i in self.base_items()}
+
+		frappe.set_user(MANAGER)
+		mine = {i["key"] for i in self.read("user")}
+		self.assertLess(mine, everything, "sanity: this curator cannot see all of this module")
+
+		self.assertEqual({i["key"] for i in self.read("site")}, everything)
+
+	def test_the_site_layer_read_needs_the_shared_curation_right(self):
+		"""The switch is absent for a person without it, and the endpoint says so anyway."""
+		self.as_user()
+		self.assertNotIn("Workspace Manager", frappe.get_roles())
+
+		with self.assertRaises(frappe.PermissionError):
+			get_site_sidebar_layer(MODULE)
+
+	def test_a_module_that_does_not_exist_cannot_be_opened(self):
+		with self.assertRaises(frappe.ValidationError) as caught:
+			get_user_sidebar_layer("Test No Such Module")
+
+		self.assertIn("is not a module", str(caught.exception))
+
+	def test_the_editor_round_trips_a_reorder_a_hide_and_a_relabel(self):
+		"""One save carrying all three things the editor can do, in the shape it sends them."""
+		items = self.base_items()
+		dropped, renamed = [i for i in items if i["type"] != "Section Break"][:2]
+		keys = [i["key"] for i in items]
+		kept = [key for key in reversed(keys) if key != dropped["key"]]
+
+		self.as_user()
+		rows = self.arrange("user", kept)
+		for row in rows:
+			if row["key"] == renamed["key"]:
+				row["label"] = "Mine"
+		save_sidebar_customization(MODULE, json.dumps(rows))
+
+		resolved = self.items()
+		self.assertEqual([i["key"] for i in resolved], kept)
+		self.assertEqual(next(i for i in resolved if i["key"] == renamed["key"])["label"], "Mine")
+
+		# ... and the reorder said nothing about anything but the one label it meant
+		layer = get_customization(MODULE, USER)
+		self.assertEqual([row.label for row in layer.sidebar_items if row.label], ["Mine"])
+
+	def test_a_site_can_be_put_back_to_what_the_apps_ship(self):
+		"""The other reset. `reset_user_sidebar` has a test of its own; this one had no caller at
+		all until the editor's Reset button."""
+		items = self.base_items()
+		target = next(i for i in items if i["type"] != "Section Break")
+		keys = [i["key"] for i in items]
+
+		save_site_sidebar(MODULE, json.dumps(self.arrange("site", [k for k in keys if k != target["key"]])))
+		self.assertNotIn(target["key"], self.keys())
+
+		reset_site_sidebar(MODULE)
+
+		self.assertEqual(self.keys(), keys)
+		self.assertIsNone(get_customization(MODULE, None))

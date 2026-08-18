@@ -514,6 +514,19 @@ frappe.ui.Sidebar = class Sidebar {
 					},
 				},
 				{
+					name: "sidebar-manager",
+					label: __("Manage Sidebar"),
+					icon: "layout-panel-left",
+					// A Sidebar belongs to a module, so there is nothing to arrange until one is
+					// on screen -- and the module shown is the one this arranges, which is why
+					// there is no picker. Evaluated on every open, so it tracks the sidebar you
+					// are looking at rather than the one the menu was built in.
+					condition: () => !!me.current_module,
+					onClick: function () {
+						new frappe.ui.SidebarManager();
+					},
+				},
+				{
 					name: "reload",
 					label: __("Reload"),
 					icon: "rotate-ccw",

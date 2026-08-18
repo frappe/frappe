@@ -75,8 +75,7 @@ class CustomSidebar(Document):
 		"""A layer is anchored to a module, and this says so in the model rather than leaving it
 		to the endpoints -- `_validate_links` below no longer checks this document's own Link
 		fields either, so nothing else would."""
-		if not frappe.db.exists("Module Def", self.module):
-			frappe.throw(_("{0} is not a module.").format(self.module))
+		check_module(self.module)
 
 	def validate_unique(self):
 		existing = frappe.db.exists(
@@ -237,26 +236,49 @@ def get_layers(module: str, user: str | None) -> list["CustomSidebar"]:
 	return [layer for layer in layers if layer]
 
 
+def check_module(module: str) -> None:
+	"""A layer is anchored to a module, so nothing may name one that is not there.
+
+	The module, not its sidebar: most modules have no `Sidebar` document at all -- their base is
+	computed from their contents -- and those are customizable, readable and resettable on
+	exactly the same terms as a shipped one. What has to exist is the thing the layer is
+	anchored to.
+	"""
+	if not frappe.db.exists("Module Def", module):
+		frappe.throw(_("{0} is not a module.").format(module))
+
+
 # ---------------------------------------------------------------------------------------
 # The merge engine
 # ---------------------------------------------------------------------------------------
 
 
-def merge_layers(items: list[dict], layers: list["CustomSidebar"]) -> list[dict]:
-	"""Fold each layer into `items`, in order, and drop what is left hidden.
+def resolve_arrangement(
+	items: list[dict], layers: list["CustomSidebar"]
+) -> tuple[list[dict], dict[str, bool]]:
+	"""Fold each layer into `items`, in order, and hand back what came out and what is hidden.
 
 	The merge itself is `frappe.desk.layers`, which the dock resolves through too. What is the
-	sidebar's own is the two things it hands over -- how an item is identified (`item_key`) and
-	what a row does to the item it names (`apply_sidebar_row`) -- and this last line: an item
-	left hidden across all the layers is *removed* here, rather than rendered as hidden the way
-	the dock renders one.
+	sidebar's own is the two things handed over here -- how an item is identified (`item_key`)
+	and what a row does to the item it names (`apply_sidebar_row`).
+
+	What to do about a hidden item is left to the caller, because the sidebar has two callers
+	that answer it differently: what renders drops one (`merge_layers`), and what the editor
+	opens on keeps it (`layer_arrangement`), since an editor that cannot see a hidden item
+	cannot offer to bring it back.
 	"""
-	resolved, hidden = resolve_layers(
+	return resolve_layers(
 		items,
 		[layer.sidebar_items for layer in layers],
 		key=item_key,
 		apply_row=apply_sidebar_row,
 	)
+
+
+def merge_layers(items: list[dict], layers: list["CustomSidebar"]) -> list[dict]:
+	"""The arrangement as it renders: an item left hidden across all the layers is *removed*,
+	rather than rendered as hidden the way the dock renders one."""
+	resolved, hidden = resolve_arrangement(items, layers)
 
 	return [item for item in resolved if not hidden.get(item_key(item))]
 
@@ -296,6 +318,78 @@ def shape_added_item(row) -> dict:
 		}
 	)
 	return item
+
+
+# ---------------------------------------------------------------------------------------
+# Read API: what the editor opens on
+#
+# One endpoint per layer, each carrying its own gate, the way the dock's reads and this
+# module's saves and resets do -- a single endpoint taking "which layer" would carry the gate
+# in a branch instead.
+# ---------------------------------------------------------------------------------------
+
+
+def layer_arrangement(module: str, user: str | None) -> list[dict]:
+	"""`module`'s sidebar as one layer arranges it, with hidden items kept.
+
+	What the editor opens on, and neither of the two answers that already exist. The boot
+	payload is the resolution for the reader, which drops a hidden item -- and an editor that
+	cannot see one cannot offer to bring it back. A layer's stored rows are a delta, and this
+	editor saves the whole arrangement rather than a delta.
+
+	The layer being edited is included, so what comes back is the arrangement as it stands. An
+	*unarranged* layer therefore reads as **the layer below it, as that layer renders** -- the
+	rule the editor needs, got here rather than seeded in the client: a save writes the whole
+	arrangement, so starting from anything else would silently un-hide what a lower layer hid.
+
+	`added` names only this layer's own added rows. An item a layer below added is a *reference*
+	from here, and saying otherwise would copy its body into this layer and freeze the label,
+	icon and link the layer below still owns -- the same failure `REFERENCE_FIELDS` exists to
+	prevent.
+
+	The two layers disagree about the permission filter, the way the dock's two reads do. A
+	person's own arrangement is what is in front of *them*, so it is filtered. The site's is
+	not: who may see an item is a fact about the reader, applied to what each person boots, so
+	it is no part of what the site arranged -- and a curator handed a filtered screen would drop
+	the site's rows for everything they personally cannot see on the very next save, since this
+	editor writes the whole arrangement.
+
+	Private workspaces are absent, as they are from every stored arrangement: they are derived
+	after the merge, and `drop_private_workspaces` takes them back out of anything storing one.
+	"""
+	from frappe.desk.doctype.sidebar.sidebar import filter_sidebar_items, get_sidebar_bases
+
+	check_module(module)
+
+	base = get_sidebar_bases([module])[module]
+	# `is_item_allowed` is a method on `DeskViews`, so the check needs an instance to run on --
+	# one throwaway `Workspace`, exactly as `SidebarContext` builds for the boot.
+	items = filter_sidebar_items(base.rows, frappe.new_doc("Workspace"), check_permission=bool(user))
+	resolved, hidden = resolve_arrangement(items, get_layers(module, user))
+
+	own = get_customization(module, user)
+	own_added = {item_key(row) for row in own.sidebar_items if row.added} if own else set()
+
+	return [
+		{
+			**item,
+			"hidden": int(hidden.get(item_key(item), 0)),
+			"added": int(item_key(item) in own_added),
+		}
+		for item in resolved
+	]
+
+
+@frappe.whitelist()
+def get_user_sidebar_layer(module: str) -> list[dict]:
+	"""How this person has `module`'s sidebar arranged. No gate: it is theirs."""
+	return layer_arrangement(module, frappe.session.user)
+
+
+@frappe.whitelist()
+def get_site_sidebar_layer(module: str) -> list[dict]:
+	check_workspace_manager(_("You need to be Workspace Manager to see the sidebar's site layer."))
+	return layer_arrangement(module, None)
 
 
 # ---------------------------------------------------------------------------------------
@@ -384,11 +478,7 @@ def _save_customization(
 	label: str | None = None,
 	header_icon: str | None = None,
 ):
-	# The module, not its sidebar: most modules have no `Sidebar` document at all --
-	# their base is computed from their contents -- and those are customizable on exactly the
-	# same terms as a shipped one. What has to exist is the thing the layer is anchored to.
-	if not frappe.db.exists("Module Def", module):
-		frappe.throw(_("{0} is not a module.").format(module))
+	check_module(module)
 
 	doc = get_customization(module, user)
 	if doc:
@@ -454,12 +544,19 @@ def settle_references(module: str, rows: list[dict], user: str | None) -> None:
 
 	One base resolution for both, and none at all for an arrangement of nothing but added items
 	-- and it happens when a person clicks, not when the desk boots.
+
+	Hidden items are kept in that resolution rather than dropped. A save may name one: the
+	editor shows what a layer below hid so it can be brought back, and a row bringing one back
+	is naming an item that is really there -- so it deserves to be anchored by its columns, and
+	the label it echoed back deserves to be recognised as inherited rather than stored as this
+	person's opinion of it.
 	"""
 	references = [row for row in rows if not row["added"]]
 	if not references:
 		return
 
-	shown = {item_key(item): item for item in merge_layers(base_items(module), layers_below(module, user))}
+	resolved, _hidden = resolve_arrangement(base_items(module), layers_below(module, user))
+	shown = {item_key(item): item for item in resolved}
 	anchor_references(references, shown)
 	drop_inherited_values(references, shown)
 

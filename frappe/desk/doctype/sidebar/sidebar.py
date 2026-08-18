@@ -1214,7 +1214,7 @@ def get_private_workspaces(user: str) -> dict[str, list[frappe._dict]]:
 	return rows
 
 
-def filter_sidebar_items(items, perm_ctx):
+def filter_sidebar_items(items, perm_ctx, check_permission: bool = True):
 	"""Turn sidebar item rows into boot payload entries, dropping duplicates and anything this
 	user is not allowed to see.
 
@@ -1225,6 +1225,11 @@ def filter_sidebar_items(items, perm_ctx):
 
 	Two rows with the same identity are the same item -- there is nothing a customization could
 	say about one and not the other -- so the first one wins, which is what the desk drew before.
+
+	`check_permission` is off for exactly one caller: the editor reading the *site* layer. Who
+	may see an item is a fact about the reader, applied to what each person boots -- so it is
+	not part of what the site arranged, and a curator who filtered it out of their screen would
+	drop the site's rows for it on the next save. See `layer_arrangement`.
 	"""
 	filtered = []
 	seen = set()
@@ -1237,7 +1242,11 @@ def filter_sidebar_items(items, perm_ctx):
 		# Check permission first, so nothing below runs for an item that is about to be dropped
 		# anyway. This walks every module on every boot, so an item the reader cannot see should
 		# cost no queries at all.
-		if item.type != "Section Break" and not is_item_allowed(item.link_to, item.link_type, perm_ctx):
+		if (
+			check_permission
+			and item.type != "Section Break"
+			and not is_item_allowed(item.link_to, item.link_type, perm_ctx)
+		):
 			continue
 
 		entry = {
