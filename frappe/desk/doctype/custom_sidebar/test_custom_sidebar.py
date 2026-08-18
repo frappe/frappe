@@ -81,9 +81,16 @@ class CustomizationTestCase(IntegrationTestCase):
 
 class TestSidebarCustomization(CustomizationTestCase):
 	def test_uncustomized_module_costs_no_query(self):
-		"""The cost-control story: an uncustomized site pays one redis read, not a query per
-		module."""
-		self.assertEqual(get_customized_keys(), set())
+		"""The cost-control story: an uncustomized module pays one redis read, not a query.
+
+		Asked of `MODULE` rather than of the whole site. `get_customized_keys()` is site-wide
+		and a real site is never empty -- creating a workspace appends a row to the site layer
+		(`add_site_sidebar_item`) -- so asserting an empty set here was asserting the state of
+		whatever else had run on the bench, and only passed on a pristine one.
+		"""
+		keys = get_customized_keys()
+		self.assertNotIn((MODULE, ""), keys)
+		self.assertNotIn((MODULE, frappe.session.user), keys)
 		self.assertFalse(self.resolved().customized)
 
 	def test_hidden_item_disappears(self):
