@@ -289,6 +289,41 @@
 	pointer-events: none;
 }
 
+/* One header area: with a letterhead present, the empty header zone collapses
+   (no second "Drop fields here" box under the letterhead) and only surfaces as
+   a drop target while a drag is in progress. Fields dropped there render right
+   under the letterhead — same region. */
+.pfb-header-area:has(.letter-head) .pfb-header-fields .empty-drop-zone {
+	display: none;
+}
+.pfb-header-area:has(.letter-head) .pfb-header-fields .column:has(.empty-drop-zone),
+.pfb-header-area:has(.letter-head)
+	.pfb-header-fields
+	.column:has(.empty-drop-zone)
+	> .drag-container {
+	min-height: 0;
+}
+body.pfb-dragging .pfb-header-area .pfb-header-fields .empty-drop-zone {
+	display: flex;
+}
+body.pfb-dragging .pfb-header-area .pfb-header-fields .column:has(.empty-drop-zone),
+body.pfb-dragging .pfb-header-area .pfb-header-fields .column:has(.empty-drop-zone) > .drag-container {
+	min-height: 3rem;
+}
+
+/* panel rows dragged onto the canvas: the clone lives on <body>, outside the
+   panel's scoped styles, so restate the row's look as a proper card */
+.pfb-field-row.pfb-drag-fallback {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	height: auto !important;
+	padding: 8px 12px !important;
+	font-size: var(--text-sm);
+	background: var(--fg-color, #fff) !important;
+	border: 1px solid var(--gray-300) !important;
+}
+
 .pfb-drag-ghost {
 	height: 0 !important;
 	min-height: 0 !important;

@@ -15,12 +15,18 @@
 			{{ __("1 of 2") }}
 		</div>
 
-		<LetterHeadZoneEditor zone="header" />
+		<!-- One header area: the letterhead and the header fields zone read as a single
+		     region. The fields wrapper carries the body font (letterhead stays unstyled),
+		     and the empty header drop-zone only surfaces while a drag is in progress. -->
+		<div class="pfb-header-area">
+			<LetterHeadZoneEditor zone="header" />
+			<div class="pfb-header-fields" :style="bodyStyles">
+				<PrintFormatSection :section="layout.header" :is_header="true" zone="header" />
+			</div>
+		</div>
 
 		<!-- Body wrapper: font size/family applied here so letterhead zones are unaffected -->
 		<div class="pfb-body" :style="bodyStyles">
-			<PrintFormatSection :section="layout.header" :is_header="true" zone="header" />
-
 			<draggable
 				class="sections-container"
 				v-model="layout.sections"
