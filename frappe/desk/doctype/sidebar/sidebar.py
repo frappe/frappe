@@ -720,11 +720,12 @@ def clear_computed_base_for(doc: Document) -> None:
 class SidebarContext:
 	"""The site-wide reads a resolution needs, gathered once for a set of Scopes.
 
-	`resolve_sidebar` answers for one Scope, but three of the four things it reads --
-	the user's workspaces, their private pages, the onboardings their roles allow -- are
-	answered for the whole site in one go or not at all. Handing the resolver a context is
-	what keeps resolving 70 modules the same handful of queries as resolving one, without
-	the resolver itself having to know it is being called in a loop.
+	`resolve_sidebar` answers for one Scope, but four of the five things it reads -- the user's
+	workspaces, their private pages, the onboardings their roles allow, and the customization
+	layers that apply to them -- are answered for the whole site in one go or not at all.
+	Handing the resolver a context is what keeps resolving 70 modules the same handful of
+	queries as resolving one, without the resolver itself having to know it is being called in
+	a loop.
 
 	Built for exactly the modules *and the person* it will be asked about: `bases` is keyed by
 	module, so resolving a module the context was not built for is a caller error rather than
@@ -738,10 +739,12 @@ class SidebarContext:
 	workspaces: dict[str, list[str]] = field(default_factory=dict)
 	private_rows: dict[str, list[frappe._dict]] = field(default_factory=dict)
 	onboardings: dict[str, str] = field(default_factory=dict)
+	layers: dict[str, list] = field(default_factory=dict)
 	perm_ctx: DeskViews | None = None
 
 	@classmethod
 	def for_modules(cls, modules: list[str], user: str) -> "SidebarContext":
+		from frappe.desk.doctype.custom_sidebar.custom_sidebar import get_layers_for
 		from frappe.desk.doctype.module_onboarding.module_onboarding import get_permitted_onboardings
 
 		return cls(
@@ -750,6 +753,9 @@ class SidebarContext:
 			workspaces=get_module_workspaces(),
 			private_rows=get_private_workspaces(user),
 			onboardings=get_permitted_onboardings(),
+			# the reader's own layers and the site's, in one query for the whole set -- see
+			# `get_layers_for` for why this is a read about the reader rather than per module
+			layers=get_layers_for(user, modules),
 			# `is_item_allowed` lives on `DeskViews`; one throwaway instance is the shared context.
 			perm_ctx=frappe.new_doc("Workspace"),
 		)
@@ -811,10 +817,7 @@ def resolve_sidebar(module: str, user: str, context: SidebarContext | None = Non
 	`context` is a batching detail: pass one when resolving many Scopes, leave it out and the
 	Scope is resolved on its own. The answer is the same either way.
 	"""
-	from frappe.desk.doctype.custom_sidebar.custom_sidebar import (
-		apply_customizations,
-		get_customization,
-	)
+	from frappe.desk.doctype.custom_sidebar.custom_sidebar import merge_layers
 
 	if context is None:
 		context = SidebarContext.for_modules([module], user)
@@ -826,7 +829,9 @@ def resolve_sidebar(module: str, user: str, context: SidebarContext | None = Non
 
 	# Deltas are applied *after* the permission filter, so a customization can never
 	# resurface an item the user may not see, and an added item has already been checked.
-	filtered, customized = apply_customizations(module, filtered, user)
+	layers = context.layers.get(module, [])
+	if layers:
+		filtered = merge_layers(filtered, layers)
 
 	# ...and the user's own private pages after *that*, which is what keeps them out of
 	# every stored arrangement: a layer can only name what it was shown when it was saved,
@@ -841,12 +846,13 @@ def resolve_sidebar(module: str, user: str, context: SidebarContext | None = Non
 
 	label = base.title or module
 	header_icon = base.header_icon
-	if customized:
-		for layer in (get_customization(module, None), get_customization(module, user)):
-			if layer and layer.label:
-				label = layer.label
-			if layer and layer.header_icon:
-				header_icon = layer.header_icon
+	# The same layers the merge just used, in the same order, rather than two fresh lookups for
+	# them. Later layers win, so the last one holding an opinion is the one that stands.
+	for layer in layers:
+		if layer.label:
+			label = layer.label
+		if layer.header_icon:
+			header_icon = layer.header_icon
 
 	return ResolvedSidebar(
 		module=module,
@@ -865,7 +871,7 @@ def resolve_sidebar(module: str, user: str, context: SidebarContext | None = Non
 		# reason -- both used to be pointers on the base, and a pointer resolved before
 		# permission filtering can name something the reader cannot open.
 		module_onboarding=context.onboardings.get(module),
-		customized=customized,
+		customized=bool(layers),
 		workspaces=context.workspaces.get(module, []),
 		items=filtered,
 	)

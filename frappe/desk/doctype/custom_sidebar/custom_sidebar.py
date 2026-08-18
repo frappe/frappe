@@ -11,10 +11,6 @@ from frappe.desk.doctype.sidebar.sidebar import (
 from frappe.desk.layers import resolve_layers
 from frappe.model.document import Document
 
-# Cached set of `(module, user)` pairs that have a customization, so the boot path can skip a
-# DB hit for the overwhelming majority that have none. Same trick as Custom Workspace.
-CUSTOMIZED_KEYS_CACHE_KEY = "customized_module_sidebars"
-
 SITE_LAYER = ""
 
 # What a row carries when it *is* an item rather than a reference to one. The same fields a
@@ -172,7 +168,6 @@ class CustomSidebar(Document):
 		self.clear_customization_cache()
 
 	def clear_customization_cache(self):
-		frappe.cache.delete_value(CUSTOMIZED_KEYS_CACHE_KEY)
 		if self.user:
 			# a user-scoped arrangement only invalidates that user's boot
 			frappe.cache.hdel("bootinfo", self.user)
@@ -180,58 +175,70 @@ class CustomSidebar(Document):
 			frappe.cache.delete_key("bootinfo")
 
 
-def get_customized_keys() -> set[tuple[str, str]]:
-	"""Cached `(module, user)` pairs carrying a customization.
+def get_layers_for(user: str, modules: list[str] | None = None) -> dict[str, list["CustomSidebar"]]:
+	"""Every layer that applies to `user`, keyed by module and in the order they are applied.
 
-	This is the whole cost-control story: an uncustomized site pays one redis read on boot
-	instead of a query per module.
+	**Which layers apply is a question about the reader, not about a module** -- the site's, and
+	their own -- so it is answered once for however many modules are being resolved. That is the
+	same batching `SidebarContext` already does for the bases, the workspaces and the
+	onboardings, and this is the fourth of those reads rather than an exception to them.
+
+	One indexed query. It replaces a site-wide redis set of every `(module, user)` pair on the
+	site, read in full on every boot to gate a per-module `db.exists`. That set answered the
+	right question keyed by the wrong thing: it grew with users x modules, so a site with five
+	thousand people who had each arranged three modules deserialized fifteen thousand pairs to
+	decide something about one of them -- and it needed invalidating, which is a second way to
+	be wrong. What a reader's own layers cost is now a function of how much *they* have
+	customized, which is the dimension that belongs in the answer.
 	"""
-	keys = frappe.cache.get_value(CUSTOMIZED_KEYS_CACHE_KEY)
-	if keys is None:
-		keys = [
-			(row.module, row.user or SITE_LAYER)
-			for row in frappe.get_all("Custom Sidebar", fields=["module", "user"])
-		]
-		frappe.cache.set_value(CUSTOMIZED_KEYS_CACHE_KEY, keys)
-	return {tuple(k) for k in keys}
+	filters = {"user": ["in", [SITE_LAYER, user]]}
+	if modules is not None:
+		filters["module"] = ["in", modules]
+
+	rows = frappe.get_all("Custom Sidebar", filters=filters, fields=["name", "module", "user"])
+	# The site's layer first, then the reader's own. Stated here rather than left to the column's
+	# sort order: a blank `user` collating before an email address is a fact about the database,
+	# and the application order is not.
+	rows.sort(key=lambda row: bool(row.user))
+
+	layers: dict[str, list[CustomSidebar]] = {}
+	for row in rows:
+		layers.setdefault(row.module, []).append(frappe.get_cached_doc("Custom Sidebar", row.name))
+
+	return layers
 
 
 def get_customization(module: str, user: str | None) -> "CustomSidebar | None":
-	"""The customization for one layer, or None. Cheap when there is none."""
-	layer = user or SITE_LAYER
-	if (module, layer) not in get_customized_keys():
-		return None
+	"""The customization for one layer, or None.
 
-	name = frappe.db.exists("Custom Sidebar", {"module": module, "user": layer or ["in", ["", None]]})
+	For one module and one layer, which is what the write paths ask. A resolution covering many
+	modules asks `get_layers_for` once instead of asking this per module.
+	"""
+	name = frappe.db.exists("Custom Sidebar", {"module": module, "user": user or ["in", ["", None]]})
 	return frappe.get_cached_doc("Custom Sidebar", name) if name else None
 
 
 def get_layers(module: str, user: str | None) -> list["CustomSidebar"]:
-	"""The layers to apply, in order: the site's first, then the user's own.
+	"""The layers to apply to `module`, in order: the site's first, then the user's own.
 
 	Later layers win, so a user's `hidden: 0` un-hides something the site hid -- a preference
 	beating a preference, which is what a per-user layer is for.
+
+	`user` of `None` means the site's layer alone. It used to mean the site's layer *twice* --
+	`get_customization(module, None)` and `get_customization(module, user)` both resolve to it --
+	which the merge happened to survive, being idempotent, but which is not what any caller
+	asked for.
 	"""
-	return [layer for layer in (get_customization(module, None), get_customization(module, user)) if layer]
+	layers = [get_customization(module, None)]
+	if user:
+		layers.append(get_customization(module, user))
+
+	return [layer for layer in layers if layer]
 
 
 # ---------------------------------------------------------------------------------------
 # The merge engine
 # ---------------------------------------------------------------------------------------
-
-
-def apply_customizations(module: str, items: list[dict], user: str) -> tuple[list[dict], bool]:
-	"""Apply the site and user layers to a module's already-filtered item list.
-
-	Runs **after** permission filtering, deliberately: a layer can then never resurface an item
-	the user may not see, and an added item still has to pass the same check before it lands
-	here. Returns `(items, customized)`.
-	"""
-	layers = get_layers(module, user)
-	if not layers:
-		return items, False
-
-	return merge_layers(items, layers), True
 
 
 def merge_layers(items: list[dict], layers: list["CustomSidebar"]) -> list[dict]:

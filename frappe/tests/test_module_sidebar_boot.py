@@ -589,10 +589,7 @@ class TestPrivateWorkspacesAreDerived(IntegrationTestCase):
 	def test_a_row_stored_before_the_derivation_is_not_rendered_twice(self):
 		"""A site that stored these links keeps rendering one link, in the position its layer
 		put it -- the derived one is the duplicate, and it is the one that gives way."""
-		from frappe.desk.doctype.custom_sidebar.custom_sidebar import (
-			CUSTOMIZED_KEYS_CACHE_KEY,
-			add_site_sidebar_item,
-		)
+		from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item
 
 		workspace = self.make_private_workspace("Test Legacy Stored Page", self.OWNER)
 		# stored while it was still public, which is the only way such a row was ever written
@@ -602,7 +599,6 @@ class TestPrivateWorkspacesAreDerived(IntegrationTestCase):
 			{"type": "Link", "label": "Stored", "link_type": "Workspace", "link_to": workspace.name},
 		)
 		layer = frappe.db.get_value("Custom Sidebar", {"module": self.module})
-		self.addCleanup(frappe.cache.delete_value, CUSTOMIZED_KEYS_CACHE_KEY)
 		self.addCleanup(frappe.delete_doc, "Custom Sidebar", layer, force=True, ignore_permissions=True)
 		frappe.db.set_value("Workspace", workspace.name, {"public": 0, "for_user": self.OWNER})
 

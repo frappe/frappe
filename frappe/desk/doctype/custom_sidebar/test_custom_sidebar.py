@@ -5,9 +5,8 @@ import json
 
 import frappe
 from frappe.desk.doctype.custom_sidebar.custom_sidebar import (
-	CUSTOMIZED_KEYS_CACHE_KEY,
 	get_customization,
-	get_customized_keys,
+	get_layers_for,
 	reset_user_sidebar,
 	save_sidebar_customization,
 	save_site_sidebar,
@@ -58,7 +57,6 @@ class CustomizationTestCase(IntegrationTestCase):
 	def wipe(self, module: str = MODULE):
 		for name in frappe.get_all("Custom Sidebar", filters={"module": module}, pluck="name"):
 			frappe.delete_doc("Custom Sidebar", name, force=True, ignore_permissions=True)
-		frappe.cache.delete_value(CUSTOMIZED_KEYS_CACHE_KEY)
 		frappe.clear_cache(user=USER)
 
 	def resolved(self, module: str = MODULE):
@@ -80,18 +78,35 @@ class CustomizationTestCase(IntegrationTestCase):
 
 
 class TestSidebarCustomization(CustomizationTestCase):
-	def test_uncustomized_module_costs_no_query(self):
-		"""The cost-control story: an uncustomized module pays one redis read, not a query.
-
-		Asked of `MODULE` rather than of the whole site. `get_customized_keys()` is site-wide
-		and a real site is never empty -- creating a workspace appends a row to the site layer
-		(`add_site_sidebar_item`) -- so asserting an empty set here was asserting the state of
-		whatever else had run on the bench, and only passed on a pristine one.
-		"""
-		keys = get_customized_keys()
-		self.assertNotIn((MODULE, ""), keys)
-		self.assertNotIn((MODULE, frappe.session.user), keys)
+	def test_an_uncustomized_module_has_no_layers(self):
+		"""Nothing is stored for it at either level, so nothing is applied to it."""
+		self.assertEqual(get_layers_for(frappe.session.user, [MODULE]), {})
 		self.assertFalse(self.resolved().customized)
+
+	def test_the_layers_cost_one_query_however_many_modules(self):
+		"""The cost-control story, stated as the thing that is actually true: which layers apply
+		is a question about the reader, so it is asked once per resolution rather than once per
+		module. Asserted against a real set of modules, because the failure this guards against
+		is a lookup that quietly moved back inside the loop."""
+		from frappe.desk.doctype.sidebar.sidebar import get_navigable_modules
+
+		modules = get_navigable_modules()
+		self.assertGreater(len(modules), 1, "sanity: more than one module to batch")
+
+		with self.assertQueryCount(1):
+			get_layers_for(frappe.session.user, modules)
+
+	def test_a_layer_is_found_however_the_site_row_spells_unset(self):
+		"""A blank Link stores as `''` or as NULL depending on how the row was written, and both
+		spellings are the site layer."""
+		save_site_sidebar(MODULE, json.dumps([]), label="Site Says")
+		name = frappe.db.get_value("Custom Sidebar", {"module": MODULE})
+		frappe.db.set_value("Custom Sidebar", name, "user", None, update_modified=False)
+		frappe.clear_cache()
+
+		layers = get_layers_for(USER, [MODULE])
+
+		self.assertEqual([layer.name for layer in layers.get(MODULE, [])], [name])
 
 	def test_hidden_item_disappears(self):
 		items = self.base_items()
