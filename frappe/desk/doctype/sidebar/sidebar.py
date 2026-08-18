@@ -952,11 +952,15 @@ def resolve_sidebar(module: str, user: str, context: SidebarContext | None = Non
 	filtered = filter_sidebar_items(base.rows, context.perm_ctx)
 
 	# Customizations are applied after the permission filter, never before. That way a
-	# customization can never bring back an item the user is not allowed to see, and an item a
-	# customization added has already been checked.
+	# customization can never bring back an item the user is not allowed to see.
 	layers = context.layers.get(module, [])
 	if layers:
 		filtered = merge_layers(filtered, layers)
+		# An added row is the one kind that gets past that, because it brings an item the base
+		# never held and the filter above therefore never saw. So it is checked here, on its
+		# own, and the rule holds for the rows that bring their own item as well as for the ones
+		# that name an existing one.
+		filtered = [item for item in filtered if allowed_added_item(item, context.perm_ctx)]
 
 	# The user's own private pages come after that. This is what keeps them out of every stored
 	# customization: a customization can only name what it was shown when it was saved, and
@@ -1289,6 +1293,22 @@ def filter_sidebar_items(items, perm_ctx, check_permission: bool = True):
 		filtered.append(entry)
 
 	return filtered
+
+
+def allowed_added_item(item: dict, perm_ctx) -> bool:
+	"""Whether an item a layer *added* is one this reader may see.
+
+	Only added items are asked. Everything else came through `filter_sidebar_items` and has been
+	answered already, and asking twice would cost a permission check per item per module on
+	every boot.
+
+	A row leading nowhere -- a Section Break, a spacer -- is nobody's to block, which is the same
+	exception the filter makes for it.
+	"""
+	if not item.get("added") or not item.get("link_type"):
+		return True
+
+	return is_item_allowed(item.get("link_to"), item.get("link_type"), perm_ctx)
 
 
 def append_derived_items(items, rows, perm_ctx):

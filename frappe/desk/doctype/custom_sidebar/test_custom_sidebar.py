@@ -830,6 +830,30 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 		layer = get_customization(MODULE, USER)
 		self.assertTrue(all(not row.label and not row.icon for row in layer.sidebar_items))
 
+	def test_an_added_item_survives_the_editors_round_trip(self):
+		"""The editor sends the whole arrangement back, added rows included. An added row is the
+		item rather than a reference to one, so losing its body loses the entry itself."""
+		added = {
+			"added": 1,
+			"type": "Link",
+			"link_type": "URL",
+			"url": "https://example.com/handbook",
+			"label": "Handbook",
+			"icon": "book",
+		}
+
+		self.as_user()
+		save_sidebar_customization(MODULE, json.dumps([*self.read("user"), added]))
+
+		# it is on the sidebar, and reads back as this layer's own
+		entry = next(i for i in self.read("user") if i["key"] == item_key(added))
+		self.assertEqual((entry["added"], entry["label"], entry["icon"]), (1, "Handbook", "book"))
+
+		# ... and a save that merely echoes what was read keeps it, body and all
+		save_sidebar_customization(MODULE, json.dumps(self.read("user")))
+		kept = next(i for i in self.items() if i["key"] == item_key(added))
+		self.assertEqual(kept["url"], "https://example.com/handbook")
+
 	def test_the_site_layer_is_read_unfiltered_so_a_save_cannot_drop_what_it_hid(self):
 		"""Who may see an item is a fact about the reader, applied to what each person boots. A
 		curator handed their own filtered screen would write the whole arrangement back without
@@ -971,3 +995,45 @@ class TestResetToStandard(CustomizationTestCase):
 			reset_to_standard("Test No Such Module")
 
 		self.assertIn("is not a module", str(caught.exception))
+
+
+class TestAnAddedItemIsStillPermissionChecked(CustomizationTestCase):
+	"""A row that *adds* an item brings one the base never held, so the filter that runs before
+	the layers never saw it.
+
+	Every other row names an item that is already in the list, which is what makes "a layer can
+	never widen what somebody may reach" true for them. An added row has to be checked on its
+	own, or a curator adding a link for everyone hands it to the people who may not follow it.
+	"""
+
+	def setUp(self):
+		super().setUp()
+		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+
+	def tearDown(self):
+		super().tearDown()
+		frappe.delete_doc("User", MANAGER, force=True, ignore_missing=True)
+
+	def add_to_site_layer(self, **item):
+		save_site_sidebar(MODULE, json.dumps([*self.base_items(), {"added": 1, "type": "Link", **item}]))
+
+	def test_an_added_item_the_reader_may_not_open_is_dropped(self):
+		self.add_to_site_layer(link_type="DocType", link_to="Custom Field", label="Custom Field")
+
+		frappe.set_user(MANAGER)
+		self.assertNotIn("Custom Field", [item["link_to"] for item in self.items()])
+
+	def test_an_added_item_the_reader_may_open_is_kept(self):
+		"""The other half, so the check cannot pass by dropping everything."""
+		self.add_to_site_layer(link_type="DocType", link_to="Custom Field", label="Custom Field")
+
+		self.as_user()
+		self.assertIn("Custom Field", [item["link_to"] for item in self.items()])
+
+	def test_an_added_url_is_nobody_s_to_block(self):
+		"""A URL leads out of the site, so there is no permission on it to check -- the same
+		answer `is_item_allowed` has always given one."""
+		self.add_to_site_layer(link_type="URL", url="https://example.com", label="Somewhere Else")
+
+		frappe.set_user(MANAGER)
+		self.assertIn("https://example.com", [item["url"] for item in self.items()])

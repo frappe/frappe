@@ -41,6 +41,10 @@ const SIDEBAR_LAYERS = {
 // "where does the layer I am editing read, save and reset", and this one is not about a layer.
 const RESET_TO_STANDARD = "frappe.desk.doctype.custom_sidebar.custom_sidebar.reset_to_standard";
 
+// What an added entry may point at. The `Sidebar Item.link_type` set, in full and in its order --
+// an entry this offers that the column cannot hold would be offered and then dropped on save.
+const LINK_TYPES = ["DocType", "Page", "Report", "Workspace", "Dashboard", "URL"];
+
 frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEditor {
 	get layers() {
 		return SIDEBAR_LAYERS;
@@ -100,6 +104,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		const below = this.layer === "site" ? __("what the apps ship") : __("the site's");
 		return {
 			selection_head: __("On the sidebar"),
+			add_label: __("Add Item"),
 			selection_sub: __("Drag to reorder. Use the pencil to rename or re-icon an entry."),
 			reset_title: __("Drop this arrangement and go back to {0}.", [below]),
 			reset_confirm:
@@ -131,6 +136,131 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 
 		this.entries = new Map(items.map((item) => [item.key, item]));
 		this.selection = items.filter((item) => !item.hidden).map((item) => item.key);
+	}
+
+	// A `Custom Sidebar` row can carry an item of its own, so a sidebar layer adds as well as
+	// orders and hides. This is the only surface where that is true.
+	can_add() {
+		return true;
+	}
+
+	// The same identity the server works out (`item_key`): a row that leads somewhere is named
+	// by the columns it already has. Worked out here only so an entry has a key between being
+	// added and being saved -- everything read back carries the server's own.
+	item_key(item) {
+		return ["type", "link_type", "link_to", "url"].map((field) => item[field] || "").join("|");
+	}
+
+	add() {
+		if (!this.loaded) return;
+
+		const dialog = new frappe.ui.Dialog({
+			title: __("Add Item"),
+			fields: [
+				{
+					fieldtype: "Select",
+					fieldname: "link_type",
+					label: __("Links To"),
+					options: LINK_TYPES,
+					default: "DocType",
+					reqd: 1,
+				},
+				{
+					fieldtype: "Dynamic Link",
+					fieldname: "link_to",
+					label: __("Item"),
+					options: "link_type",
+					depends_on: 'eval:doc.link_type != "URL"',
+					mandatory_depends_on: 'eval:doc.link_type != "URL"',
+					// A private page's link is derived from the page itself and no layer may
+					// store one (`drop_private_workspaces`), so it is not offerable.
+					get_query: () =>
+						dialog.get_value("link_type") === "Workspace"
+							? { filters: { public: 1 } }
+							: {},
+					// The label is what the entry is called, not what it points at, but the two
+					// agree far more often than not -- so it is filled in and left editable.
+					change: () => {
+						if (!dialog.get_value("label")) {
+							dialog.set_value("label", dialog.get_value("link_to"));
+						}
+					},
+				},
+				{
+					fieldtype: "Data",
+					fieldname: "url",
+					label: __("URL"),
+					depends_on: 'eval:doc.link_type == "URL"',
+					mandatory_depends_on: 'eval:doc.link_type == "URL"',
+				},
+				{ fieldtype: "Data", fieldname: "label", label: __("Label"), reqd: 1 },
+				{ fieldtype: "Icon", fieldname: "icon", label: __("Icon") },
+			],
+			primary_action_label: __("Add"),
+			primary_action: (values) => {
+				if (this.place(values)) dialog.hide();
+			},
+		});
+
+		dialog.show();
+	}
+
+	// Put the entry on the sidebar, or say why it is already there. Answers whether the dialog
+	// is done with.
+	//
+	// An entry the arrangement already holds is not added twice: two rows sharing an identity
+	// *are* one item, and the merge would keep the first and drop the second -- so a second one
+	// is not a new entry, it is the one that is already there. If it is sitting in Hidden, this
+	// is almost certainly what the person meant, so it goes back on.
+	place(values) {
+		const entry = {
+			added: 1,
+			type: "Link",
+			link_type: values.link_type,
+			link_to: values.link_type === "URL" ? null : values.link_to,
+			url: values.link_type === "URL" ? values.url : null,
+			label: values.label,
+			icon: values.icon || null,
+		};
+		entry.key = this.item_key(entry);
+
+		if (this.entries.has(entry.key)) {
+			const shown = this.selection.includes(entry.key);
+			if (!shown) {
+				this.selection.push(entry.key);
+				this.render_panes();
+			}
+			frappe.show_alert({
+				message: shown
+					? __("{0} is already on the sidebar", [
+							frappe.utils.escape_html(this.entries.get(entry.key).label),
+					  ])
+					: __("{0} was hidden, and is back on the sidebar", [
+							frappe.utils.escape_html(this.entries.get(entry.key).label),
+					  ]),
+				indicator: "orange",
+			});
+			return shown ? false : true;
+		}
+
+		this.entries.set(entry.key, entry);
+		this.selection.push(entry.key);
+		this.render_panes();
+		return true;
+	}
+
+	// An entry *this* layer added comes off by being deleted, not hidden. Nothing below holds
+	// it, so a row saying "I add this, and I hide it" says nothing at all -- and somebody who
+	// adds an entry and changes their mind means gone. An entry a layer below added is a
+	// reference from here, so it hides like any other.
+	remove_from_selection(key) {
+		if (!this.entries.get(key)?.added) {
+			return super.remove_from_selection(key);
+		}
+
+		this.entries.delete(key);
+		this.selection = this.selection.filter((k) => k !== key);
+		this.render_panes();
 	}
 
 	// A section header is an entry like any other -- it is arranged, hidden and relabelled the

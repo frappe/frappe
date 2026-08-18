@@ -63,6 +63,18 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	// things by it, so neither inherits the other's.
 	reset() {}
 
+	// Whether this surface's layers may *add* an entry rather than only order and hide the ones
+	// the base gave them. `frappe.desk.layers` states the asymmetry the two ends live by -- the
+	// base adds, orders and hides; the layers above order and hide -- and a sidebar is the one
+	// exception, because a `Custom Sidebar` row can carry an item of its own. A dock row cannot;
+	// it names something the app already put on the fragment.
+	can_add() {
+		return false;
+	}
+
+	// Put a new entry on the arrangement. Only ever reached when `can_add()` says so.
+	add() {}
+
 	// The words, one place per surface, so the panes can say what they are actually arranging.
 	// The base reads `selection_head`, `selection_sub`, `reset_title`, `selection_empty`,
 	// `pool_head`, `pool_sub`, `pool_empty` and `load_error`; a surface may carry more for its
@@ -179,7 +191,10 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 				<div class="ws-pane ws-pane-selection">
 					<div class="ws-pane-head">
 						<span>${copy.selection_head}</span>
-						<button class="ws-reset btn btn-ghost" title="${copy.reset_title}">${__("Reset")}</button>
+						<span class="ws-pane-actions">
+							${this.can_add() ? `<button class="ws-add btn btn-ghost">${copy.add_label}</button>` : ""}
+							<button class="ws-reset btn btn-ghost" title="${copy.reset_title}">${__("Reset")}</button>
+						</span>
 					</div>
 					<div class="ws-pane-sub">${copy.selection_sub}</div>
 					<div class="ws-list ws-selection"></div>
@@ -195,6 +210,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		this.$selection = this.$body.find(".ws-selection");
 		this.$pool = this.$body.find(".ws-pool");
 
+		this.$body.find(".ws-add").on("click", () => this.add());
 		this.$body.find(".ws-reset").on("click", () => this.reset());
 
 		this.render_panes();
