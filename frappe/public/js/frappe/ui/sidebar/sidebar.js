@@ -270,7 +270,7 @@ frappe.ui.Sidebar = class Sidebar {
 
 		this.prepare();
 		this.$sidebar.attr("data-title", this.current_module);
-		this.sidebar_header = new frappe.ui.SidebarHeader(this);
+		this.refresh_header();
 		this.make_sidebar();
 		this.add_sidebar_cards();
 		this.setup_promotional_banners();
@@ -322,11 +322,19 @@ frappe.ui.Sidebar = class Sidebar {
 		});
 	}
 
-	// Re-render the header so it reflects the module currently shown even when the sidebar itself
-	// didn't change and setup() -- which builds the header -- wasn't re-run.
-	// SidebarHeader.make() removes the existing header first, so this is safe to repeat.
+	// Point the header at the module currently shown, even when the sidebar itself didn't change
+	// and setup() wasn't re-run.
+	//
+	// One header for the life of the desk, refreshed rather than rebuilt. Its menu is bound to
+	// the element it was given and `frappe.ui.create_menu` registers a document-level listener
+	// per call, so building a header per navigation would strand the menu on a detached node and
+	// leak a listener every time you moved.
 	refresh_header() {
-		if (this.current_module) {
+		if (!this.current_module) return;
+
+		if (this.sidebar_header) {
+			this.sidebar_header.refresh();
+		} else {
 			this.sidebar_header = new frappe.ui.SidebarHeader(this);
 		}
 	}
@@ -511,19 +519,6 @@ frappe.ui.Sidebar = class Sidebar {
 					condition: () => !!me.get_sidebar_app(),
 					onClick: function () {
 						new frappe.ui.DockManager();
-					},
-				},
-				{
-					name: "sidebar-manager",
-					label: __("Manage Sidebar"),
-					icon: "layout-panel-left",
-					// A Sidebar belongs to a module, so there is nothing to arrange until one is
-					// on screen -- and the module shown is the one this arranges, which is why
-					// there is no picker. Evaluated on every open, so it tracks the sidebar you
-					// are looking at rather than the one the menu was built in.
-					condition: () => !!me.current_module,
-					onClick: function () {
-						new frappe.ui.SidebarManager();
 					},
 				},
 				{

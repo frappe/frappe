@@ -2,8 +2,57 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	constructor(sidebar) {
 		this.sidebar = sidebar;
 		this.sidebar_wrapper = $(".body-sidebar");
-		this.title = this.get_display_title();
 		this.make();
+		this.setup_menu();
+	}
+
+	// The module on screen changed, so the header names a different one. The node itself stays
+	// put and only its text is rewritten -- `frappe.ui.create_menu` binds to the element it is
+	// given and registers a document-level listener per call, so a header rebuilt on every
+	// navigation would leave its menu pointing at a node that is no longer in the document and
+	// add a listener each time. `Sidebar.refresh_header` is what keeps one header for the life
+	// of the desk; this is the whole of what it has to say between modules.
+	refresh() {
+		this.title = this.get_display_title();
+		this.set_header_icon();
+		this.$header_title.text(__(this.title));
+	}
+
+	// What the header's own menu offers: things that are about the sidebar in front of you.
+	// Switching between sidebars is the dock's, and arranging the dock is the user menu's --
+	// this is neither, which is why it is not either of those menus.
+	menu_items() {
+		return [
+			{
+				name: "edit-sidebar",
+				label: __("Edit Sidebar"),
+				icon: "pencil",
+				// Re-run on every open, so it tracks the sidebar you are looking at rather than
+				// the one the menu was built in -- which is the whole reason the header keeps
+				// one menu instead of one per module.
+				condition: () => !!this.sidebar.current_module,
+				onClick: () => new frappe.ui.SidebarManager(),
+			},
+		];
+	}
+
+	setup_menu() {
+		frappe.ui.create_menu({
+			parent: this.wrapper,
+			menu_items: this.menu_items(),
+			onShow: this.toggle_active,
+			onHide: this.toggle_active,
+			onItemClick: this.toggle_active,
+		});
+	}
+
+	// The header wears the open state while its menu is up -- except when the sidebar is
+	// collapsed to icons, where there is no header to light up.
+	toggle_active(wrapper) {
+		$(wrapper).toggleClass("active-sidebar");
+		if (!frappe.app.sidebar.sidebar_expanded) {
+			$(wrapper).removeClass("active-sidebar");
+		}
 	}
 	get_help_siblings() {
 		const navbar_settings = frappe.boot.navbar_settings;
@@ -54,6 +103,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 
 	make() {
 		$(".sidebar-header").remove();
+		this.title = this.get_display_title();
 		this.set_header_icon();
 		$(
 			frappe.render_template("sidebar_header", {
