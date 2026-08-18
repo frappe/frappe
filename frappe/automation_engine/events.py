@@ -161,9 +161,7 @@ def _claim_subscription(name, payload) -> int:
 		update_modified=False,
 	)
 	# Bring the resume row forward - it was scheduled for the (now irrelevant) timeout.
-	frappe.db.set_value(
-		QUEUE, subscription.resume_queue, "run_after", now(), update_modified=False
-	)
+	frappe.db.set_value(QUEUE, subscription.resume_queue, "run_after", now(), update_modified=False)
 	return 1 if matched else 0
 
 
