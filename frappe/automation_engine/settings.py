@@ -12,6 +12,7 @@ DEFAULTS = frappe._dict(
 	max_depth=3,
 	failure_threshold=10,
 	stale_running_minutes=30,
+	max_attempts=3,
 	drain_seconds=0,
 	commit_every=50,
 	queue_retention_days=7,
