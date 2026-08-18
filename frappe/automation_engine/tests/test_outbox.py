@@ -39,6 +39,29 @@ class TestOutbox(IntegrationTestCase):
 		self.assertEqual(first, second)
 		self.assertEqual(len(rows(self.automation, status="Pending")), 1)
 
+	def test_dedup_carries_the_latest_trigger_context(self):
+		"""The surviving row stands in for the newest trigger, not the one that created it."""
+		queue_trigger(self.automation, "ToDo", "TODO-1", payload={"n": 1}, depth=2)
+		frappe.set_user("Guest")
+		try:
+			name = queue_trigger(self.automation, "ToDo", "TODO-1", payload={"n": 2}, depth=1)
+		finally:
+			frappe.set_user("Administrator")
+
+		row = frappe.db.get_value(
+			"Automation Trigger Queue", name, ["triggered_by", "event_payload", "depth"], as_dict=True
+		)
+		self.assertEqual(row.triggered_by, "Guest")
+		self.assertEqual(frappe.parse_json(row.event_payload)["n"], 2)
+		# Depth guards recursion, so the deepest of the collapsed triggers wins, not the newest.
+		self.assertEqual(row.depth, 2)
+
+	def test_dedup_keeps_a_payload_the_later_trigger_does_not_carry(self):
+		queue_trigger(self.automation, "ToDo", "TODO-2", payload={"n": 1})
+		name = queue_trigger(self.automation, "ToDo", "TODO-2")
+		payload = frappe.db.get_value("Automation Trigger Queue", name, "event_payload")
+		self.assertEqual(frappe.parse_json(payload)["n"], 1)
+
 	def test_running_row_does_not_block_new_pending(self):
 		name = queue_trigger(self.automation, "ToDo", "TODO-1")
 		frappe.db.set_value("Automation Trigger Queue", name, "status", "Running")
