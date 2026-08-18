@@ -128,9 +128,7 @@ class TestDispatch(IntegrationTestCase):
 			run_automations(frappe.get_doc("User", "Administrator"), "on_update")
 		finally:
 			frappe.flags.automation_depth = original_depth
-		self.assertFalse(
-			frappe.db.exists("Error Log", {"method": "Automation Flow depth limit reached"})
-		)
+		self.assertFalse(frappe.db.exists("Error Log", {"method": "Automation Flow depth limit reached"}))
 
 	def test_zero_overhead_for_unautomated_doctype(self):
 		# Warm the (empty) cache so the no-op path is a local dict hit.
