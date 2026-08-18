@@ -10,6 +10,7 @@ from frappe.desk.doctype.custom_sidebar.custom_sidebar import (
 	get_site_sidebar_layer,
 	get_user_sidebar_layer,
 	reset_site_sidebar,
+	reset_to_standard,
 	reset_user_sidebar,
 	save_sidebar_customization,
 	save_site_sidebar,
@@ -891,3 +892,82 @@ class TestWhatTheEditorOpensOn(CustomizationTestCase):
 
 		self.assertEqual(self.keys(), keys)
 		self.assertIsNone(get_customization(MODULE, None))
+
+
+class TestResetToStandard(CustomizationTestCase):
+	"""The third reset: not one layer down, but back to the module's `Sidebar`.
+
+	The other two each drop one layer and let the next show through. This one promises the
+	module is using what its app ships -- which is only true if nothing is laid over it, for
+	anybody.
+	"""
+
+	def setUp(self):
+		super().setUp()
+		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+
+	def tearDown(self):
+		super().tearDown()
+		frappe.delete_doc("User", MANAGER, force=True, ignore_missing=True)
+
+	def arrange_every_layer(self):
+		"""A site layer and two people's own, all hiding something."""
+		target = next(i for i in self.base_items() if i["type"] != "Section Break")
+		row = json.dumps([{"key": target["key"], "hidden": 1}])
+
+		save_site_sidebar(MODULE, row)
+		for user in (USER, MANAGER):
+			frappe.set_user(user)
+			save_sidebar_customization(MODULE, row)
+		frappe.set_user("Administrator")
+
+		return target
+
+	def test_it_takes_every_layer_off_the_module(self):
+		target = self.arrange_every_layer()
+		self.assertEqual(
+			{
+				row.user
+				for row in frappe.get_all("Custom Sidebar", filters={"module": MODULE}, fields=["user"])
+			},
+			{"", USER, MANAGER},
+		)
+
+		reset_to_standard(MODULE)
+
+		self.assertEqual(frappe.get_all("Custom Sidebar", filters={"module": MODULE}), [])
+		# ... and everybody is looking at the module's own sidebar again, not just the caller
+		for user in (USER, MANAGER):
+			frappe.set_user(user)
+			self.assertIn(target["key"], self.keys())
+
+	def test_it_leaves_other_modules_alone(self):
+		"""Anchored to one module, like every other write here."""
+		self.arrange_every_layer()
+		with sidebarless_module("Test Untouched By Reset") as other:
+			self.addCleanup(self.wipe, other)
+			make_report(other, "Test Untouched Report")
+			save_site_sidebar(other, json.dumps([]))
+
+			reset_to_standard(MODULE)
+
+			self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": other}))
+
+	def test_it_needs_the_shared_curation_right(self):
+		"""It discards other people's arrangements, so it is behind the right to act for
+		everyone -- the same gate `reset_site_sidebar` carries."""
+		self.arrange_every_layer()
+
+		self.as_user()
+		self.assertNotIn("Workspace Manager", frappe.get_roles())
+		with self.assertRaises(frappe.PermissionError):
+			reset_to_standard(MODULE)
+
+		frappe.set_user("Administrator")
+		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": MODULE}))
+
+	def test_a_module_that_does_not_exist_is_refused(self):
+		with self.assertRaises(frappe.ValidationError) as caught:
+			reset_to_standard("Test No Such Module")
+
+		self.assertIn("is not a module", str(caught.exception))

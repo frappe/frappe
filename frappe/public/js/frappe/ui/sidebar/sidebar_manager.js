@@ -36,6 +36,11 @@ const SIDEBAR_LAYERS = {
 	},
 };
 
+// The third reset, which belongs to no layer: it takes every layer off, so the module goes back
+// to using the `Sidebar` its app ships. Kept out of `SIDEBAR_LAYERS` because that map answers
+// "where does the layer I am editing read, save and reset", and this one is not about a layer.
+const RESET_TO_STANDARD = "frappe.desk.doctype.custom_sidebar.custom_sidebar.reset_to_standard";
+
 frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEditor {
 	get layers() {
 		return SIDEBAR_LAYERS;
@@ -48,8 +53,47 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	}
 
 	title() {
-		const sidebar = frappe.boot.module_sidebars[this.module] || {};
-		return __("Manage {0} Sidebar", [sidebar.label || this.module]);
+		return __("Manage {0} Sidebar", [this.title_of_module()]);
+	}
+
+	// What this module is called on screen -- its `Sidebar`'s title, which an app or a layer may
+	// have relabelled, falling back to the module's own name.
+	title_of_module() {
+		return (frappe.boot.module_sidebars[this.module] || {}).label || this.module;
+	}
+
+	// Offered to whoever may curate for everyone, and to nobody else: it discards the site's
+	// arrangement *and* every person's own. Placed on the dialog rather than beside the pane's
+	// Reset, because the two are not neighbours -- one drops the layer you are editing, this one
+	// ends every claim on the module.
+	extra_actions() {
+		return this.can_curate_site
+			? {
+					secondary_action_label: __("Reset to Standard"),
+					secondary_action: () => this.reset_to_standard(),
+			  }
+			: {};
+	}
+
+	reset_to_standard() {
+		if (!this.loaded) return;
+
+		frappe.confirm(
+			__(
+				"Put <b>{0}</b> back to the sidebar its app ships? This removes the site's arrangement and every person's own, so nobody keeps a customization of this module.",
+				[frappe.utils.escape_html(this.title_of_module())]
+			),
+			async () => {
+				this.apply(await frappe.xcall(RESET_TO_STANDARD, { module: this.module }));
+				this.dialog.hide();
+				frappe.show_alert({
+					message: __("{0} is back to standard", [
+						frappe.utils.escape_html(this.title_of_module()),
+					]),
+					indicator: "green",
+				});
+			}
+		);
 	}
 
 	copy() {

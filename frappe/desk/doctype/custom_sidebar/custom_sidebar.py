@@ -444,6 +444,35 @@ def reset_site_sidebar(module: str):
 	return _reset(module, None)
 
 
+@frappe.whitelist()
+def reset_to_standard(module: str):
+	"""Take every layer off `module`, so it goes back to using its `Sidebar`.
+
+	The other two resets each drop one layer and let the next one show through. This drops the
+	lot: after it there is no `Custom Sidebar` for the module at all, and what everybody sees is
+	the arrangement the app ships -- or, for a module no app shipped one for, its computed base.
+	That is what makes it "to Standard" rather than "one layer down". `Workspace` offers the
+	same action under the same name, for the same reason and behind the same right.
+
+	It reaches **everyone's** layer, not just the site's and the caller's. A person whose own
+	arrangement survived would not be using the module's `Sidebar`, which is the whole of what
+	this promises -- so the promise would only hold for whoever happened not to have customized
+	it. Discarding other people's work is the cost, and it is why this asks before it runs and
+	why it is behind the right to curate for everyone.
+
+	Deleted row by row rather than in one statement, so each layer's `on_trash` runs: a person's
+	own arrangement invalidates their boot cache and nobody else's, and only the document knows
+	whose.
+	"""
+	check_workspace_manager(_("You need to be Workspace Manager to reset this for everyone."))
+	check_module(module)
+
+	for name in frappe.get_all("Custom Sidebar", filters={"module": module}, pluck="name"):
+		frappe.delete_doc("Custom Sidebar", name, ignore_permissions=True, force=True)
+
+	return module_payload()
+
+
 def add_site_sidebar_item(module: str, item: dict) -> None:
 	"""Append one item to the site-wide layer, leaving the rest of it alone.
 
