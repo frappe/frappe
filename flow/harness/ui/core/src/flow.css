@@ -292,9 +292,13 @@
 .flow-md a:hover {
 	color: var(--ink-gray-9);
 }
+/* wrapper element from markdown.js — a wide table scrolls here, not the thread */
+.flow-md-table {
+	margin: 0.6em 0;
+	overflow-x: auto;
+}
 .flow-md table {
 	border-collapse: collapse;
-	margin: 0.6em 0;
 	font-size: 0.9em;
 }
 .flow-md th,
