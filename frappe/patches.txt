@@ -271,7 +271,6 @@ frappe.patches.v16_0.seed_sms_settings_allowed_roles
 <<<<<<< HEAD
 =======
 execute:frappe.db.set_single_value("Website Settings", "max_signups_per_minute", 500)
-frappe.patches.v16_0.add_automation_trigger_queue_dedup_key
 
 
 [post_fixture_sync]
