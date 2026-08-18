@@ -105,7 +105,7 @@ def queue_trigger(automation, doctype, docname, run_after=None, payload=None, de
 	"""
 	existing = _pending_row(automation, doctype, docname)
 	if existing:
-		return _touch_row(existing, run_after)
+		return _touch_row(existing, run_after, payload, depth)
 
 	row = frappe.new_doc(QUEUE)
 	row.update(
@@ -126,7 +126,7 @@ def queue_trigger(automation, doctype, docname, run_after=None, payload=None, de
 		return row.name
 	except (frappe.UniqueValidationError, frappe.DuplicateEntryError):
 		existing = _pending_row(automation, doctype, docname)
-		return _touch_row(existing, run_after) if existing else None
+		return _touch_row(existing, run_after, payload, depth) if existing else None
 
 
 def _pending_row(automation, doctype, docname):
@@ -139,22 +139,34 @@ def _pending_row(automation, doctype, docname):
 			"status": ("in", WAITING_STATES),
 			"resume_run": ("is", "not set"),
 		},
-		"name",
+		["name", "depth"],
+		as_dict=True,
 	)
 
 
-def _touch_row(name, run_after):
-	frappe.db.set_value(
-		QUEUE,
-		name,
-		{
-			"triggered_at": now(),
-			"run_after": run_after,
-			"status": queue_status(run_after),
-		},
-		update_modified=False,
-	)
-	return name
+def _touch_row(row, run_after, payload=None, depth=0):
+	"""Fold a repeat trigger into the waiting row.
+
+	One row stands in for every trigger that collapsed onto it, and the run it produces reads the
+	document as it is when the drainer gets there - so the row has to carry the newest trigger's
+	context, not the first one's. Keeping the original caller would run a later user's change under
+	an earlier user's identity.
+
+	Depth is the exception: it guards recursion, so the deepest of the collapsed triggers wins
+	rather than the newest. The payload is only replaced when the new trigger actually carries one,
+	so a plain doc event folding onto an emitted one cannot erase it.
+	"""
+	values = {
+		"triggered_at": now(),
+		"triggered_by": frappe.session.user,
+		"run_after": run_after,
+		"status": queue_status(run_after),
+		"depth": max(cint(row.depth), cint(depth)),
+	}
+	if payload:
+		values["event_payload"] = frappe.as_json(payload)
+	frappe.db.set_value(QUEUE, row.name, values, update_modified=False)
+	return row.name
 
 
 def kick_drainer():
