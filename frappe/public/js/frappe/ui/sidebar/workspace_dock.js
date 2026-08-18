@@ -181,8 +181,32 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 			return;
 		}
 		this.$dock.removeClass("hidden");
+
+		// One navigation calls this up to three times -- once from the router, and twice from
+		// Sidebar.refresh() (its own call, plus the one inside apply_page_visibility). Each call
+		// disposes every tooltip and rebuilds every button, so rendering unconditionally meant
+		// doing that two or three times over for a rail that had not changed.
+		//
+		// Everything the rail draws goes into this signature -- the labels and icons as well as
+		// the entries themselves, so that renaming a module's sidebar still redraws its tooltip.
+		// If the signature matches, there is nothing to redraw.
+		const entries = this.sidebar.collect_dock_entries(this.app);
+		const signature = JSON.stringify([
+			this.app ? this.app.app_name : null,
+			this.sidebar.current_module,
+			entries.map((entry) => [
+				entry.type,
+				entry.name,
+				entry.label,
+				entry.icon,
+				this.sidebar.is_active_entry(entry),
+			]),
+		]);
+		if (signature === this.rendered) return;
+		this.rendered = signature;
+
 		this.render_logo();
-		this.render_entries();
+		this.render_entries(entries);
 	}
 
 	// The rail's top slot: what you are inside, and the way out of it. The app's icon when the
@@ -245,12 +269,12 @@ frappe.ui.WorkspaceDock = class WorkspaceDock {
 	// Inside a standalone module this renders nothing: collect_dock_entries answers with no
 	// entries, and an empty items region is the right answer rather than a rail of one -- an item
 	// rendered permanently active with no alternatives is a switcher that cannot switch.
-	render_entries() {
+	render_entries(entries = this.sidebar.collect_dock_entries(this.app)) {
 		// dispose tooltips from the previous render before wiping their elements
 		this.$items.find('[data-toggle="tooltip"]').tooltip("dispose");
 		this.$items.empty();
 
-		this.sidebar.collect_dock_entries(this.app).forEach((entry) => {
+		entries.forEach((entry) => {
 			let $item = this.make_dock_item(entry);
 			if ($item) this.$items.append($item);
 		});
