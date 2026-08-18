@@ -158,6 +158,8 @@ function clear_selection() {
 	}
 	$store.value.selected_field.value = null;
 	$store.value.selected_section.value = null;
+	$store.value.selected_letterhead.value = false;
+	$store.value.selected_lh_footer.value = false;
 }
 
 // ── Marquee (rubber-band) selection ──────────────────────────
@@ -396,6 +398,11 @@ function handle_keydown(e) {
 	} else if (ss) {
 		// Navigate up: section → canvas (clear all)
 		$store.value.selected_section.value = null;
+		e.stopPropagation();
+	} else if ($store.value.selected_letterhead.value || $store.value.selected_lh_footer.value) {
+		// letter head zones have no parent — Escape just deselects them
+		$store.value.selected_letterhead.value = false;
+		$store.value.selected_lh_footer.value = false;
 		e.stopPropagation();
 	}
 }

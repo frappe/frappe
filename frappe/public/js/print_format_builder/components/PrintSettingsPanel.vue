@@ -24,6 +24,11 @@
 		</div>
 
 		<div class="form-group">
+			<label class="control-label">{{ __("Letter Head") }}</label>
+			<div ref="lh_host"></div>
+		</div>
+
+		<div class="form-group">
 			<label class="control-label">{{ __("Google Font") }}</label>
 			<Autocomplete
 				:options="font_options"
@@ -108,7 +113,7 @@ import { mountColorControl } from "./inspector/useColorControl";
 import { useStore } from "../stores";
 
 let store = inject("$store");
-let { print_format } = useStore();
+let { print_format, letterhead } = useStore();
 let { typst_blockers, has_typst_block } = store;
 
 // ── custom css ─────────────────────────────────────────────
@@ -203,8 +208,40 @@ function mount_color_controls() {
 	}
 }
 
+// ── letter head ────────────────────────────────────────────
+let lh_host = ref(null);
+let lh_ctrl = null;
+
+function mount_letterhead_control() {
+	if (!lh_host.value) return;
+	lh_ctrl = frappe.ui.form.make_control({
+		parent: lh_host.value,
+		df: {
+			fieldname: "letter_head",
+			fieldtype: "Link",
+			options: "Letter Head",
+			placeholder: __("No letter head"),
+			change: () => {
+				const name = lh_ctrl.get_value() || "";
+				if (name === (letterhead.value?.name || "")) return;
+				name ? store.change_letterhead(name) : store.remove_letterhead();
+			},
+		},
+		render_input: true,
+	});
+	lh_ctrl.set_value(letterhead.value?.name || "");
+	lh_host.value.querySelector(".control-label")?.remove();
+	lh_host.value.querySelector(".form-group")?.style.setProperty("margin", "0");
+}
+
+watch(
+	() => letterhead.value?.name,
+	(name) => lh_ctrl?.set_value(name || "")
+);
+
 onMounted(() => {
 	nextTick(mount_color_controls);
+	nextTick(mount_letterhead_control);
 	let method = "frappe.printing.page.print_format_builder.print_format_builder.get_google_fonts";
 	frappe.call(method).then((r) => {
 		google_fonts.value = r.message || [];
