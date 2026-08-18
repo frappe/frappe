@@ -413,15 +413,17 @@ def login():
 	# LDAP LOGIN LOGIC
 	args = frappe.form_dict
 
+	ldap: LDAPSettings = frappe.get_doc("LDAP Settings")
+
 	if args.get("otp") and args.get("tmp_id"):
-		cached_user, _cached_pwd = get_cached_user_pass()
-		if not cached_user:
+		cached_user, cached_pwd = get_cached_user_pass()
+		if not cached_user or not cached_pwd:
 			frappe.throw(_("Invalid or expired login attempt."), frappe.AuthenticationError)
-		frappe.local.login_manager.user = cached_user
+		user = ldap.authenticate(frappe.as_unicode(cached_user), frappe.as_unicode(cached_pwd))
 	else:
-		ldap: LDAPSettings = frappe.get_doc("LDAP Settings")
 		user = ldap.authenticate(frappe.as_unicode(args.usr), frappe.as_unicode(args.pwd))
-		frappe.local.login_manager.user = user.name
+
+	frappe.local.login_manager.user = user.name
 
 	if should_run_2fa(frappe.local.login_manager.user):
 		authenticate_for_2factor(frappe.local.login_manager.user)
