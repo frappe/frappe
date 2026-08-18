@@ -23,6 +23,7 @@ from frappe.tests import IntegrationTestCase
 
 BACKFILL = "frappe.patches.v16_0.backfill_workspace_module"
 PIN_DESKTOP = "frappe.patches.v16_0.keep_existing_sites_on_desktop_icons"
+TRUNCATE_ICONS = 'execute:frappe.db.truncate("Desktop Icon")'
 
 
 def post_model_sync_patches() -> list[str]:
@@ -33,6 +34,11 @@ def post_model_sync_patches() -> list[str]:
 	the same `split(maxsplit=1)` the patch handler itself does.
 	"""
 	return [p.split(maxsplit=1)[0] for p in get_patches_from_app("frappe", PatchType.post_model_sync)]
+
+
+def pre_model_sync_patches() -> list[str]:
+	"""`patches.txt`'s pre-sync section, verbatim -- an `execute:` line is the whole line."""
+	return get_patches_from_app("frappe", PatchType.pre_model_sync)
 
 
 def upgrade_sequence() -> list[str]:
@@ -308,6 +314,13 @@ class TestDesktopOnUpgrade(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.set_single_value("Desktop Settings", "desktop_page", self.original)
 		frappe.clear_cache()
+
+	def test_the_grid_is_emptied_before_the_pin_reads_it(self):
+		"""What makes holding icon rows mean the grid and not the v12-era desktop: the table is
+		truncated in `[pre_model_sync]`, so anything the pin finds was created after. The pin
+		has to stay on the far side of that line -- above it, every v12 site gets pinned."""
+		self.assertIn(TRUNCATE_ICONS, pre_model_sync_patches())
+		self.assertIn(PIN_DESKTOP, post_model_sync_patches())
 
 	def test_a_site_with_no_icon_rows_lands_on_apps(self):
 		"""A v15 site never saw a grid and has nothing to fill one with, so pinning it there

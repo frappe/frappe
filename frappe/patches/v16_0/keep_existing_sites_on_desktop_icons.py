@@ -23,12 +23,22 @@ def execute():
 	the table in `[pre_model_sync]` -- ahead of this -- which is the line that makes those
 	rows mean the grid and nothing else. Don't move this above it.
 
+	Nothing is seeded after the flip, and that is deliberate. The site already has its grid --
+	that is how this patch found it -- and this release's shipped icons were passed over by
+	`sync_all` before we got here, `import_desktop_icon_fixtures` carrying the same mode guard
+	and the mode still reading `Apps` at that point. They land on the next migrate. Writing the
+	value with `db.set_single_value` rather than saving the document is what keeps it that way:
+	`DesktopSettings.on_update` would enqueue a seed, which is not a thing to start from inside
+	a migrate's transaction.
+
+	The cache clear is not incidental. The desktop page is resolved once per boot and bootinfo
+	is cached per user, so without it anyone who booted before the migrate keeps the old
+	desktop -- `migrate`'s own teardown only clears when the site has a disabled app.
+
 	Fresh installs never run this: `frappe.installer.set_all_patches_as_completed` marks
 	every patch as done without executing it, so the `Apps` default stands there.
 	"""
-	frappe.reload_doc("desk", "doctype", "desktop_settings")
-
-	if not frappe.db.exists("Desktop Icon", {}):
+	if not frappe.db.get_all("Desktop Icon", limit=1):
 		return
 
 	frappe.db.set_single_value("Desktop Settings", "desktop_page", DESKTOP_ICONS)
