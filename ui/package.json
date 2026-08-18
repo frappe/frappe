@@ -33,6 +33,10 @@
       "import": "./src/components/Filter/index.ts",
       "types": "./src/components/Filter/index.ts"
     },
+    "./ConditionBuilder": {
+      "import": "./src/components/ConditionBuilder/index.ts",
+      "types": "./src/components/ConditionBuilder/index.ts"
+    },
     "./QuickFilter": {
       "import": "./src/components/QuickFilter/index.ts",
       "types": "./src/components/QuickFilter/index.ts"
