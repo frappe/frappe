@@ -65,7 +65,13 @@ class TestRelationships(IntegrationTestCase):
 			frappe.ValidationError,
 			"unknown target alias",
 			make_automation,
-			[{"action_type": "SetFieldValue", "target": "nope", "params": '{"field":"priority","value":"High"}'}],
+			[
+				{
+					"action_type": "SetFieldValue",
+					"target": "nope",
+					"params": '{"field":"priority","value":"High"}',
+				}
+			],
 		)
 
 	def test_many_relationship_cannot_be_a_single_record_alias(self):
