@@ -266,6 +266,27 @@ class TestSidebarBoot(IntegrationTestCase):
 			with self.assertQueryCount(2):
 				get_sidebar_bases([module])
 
+	def test_computing_every_base_costs_the_same_as_computing_one(self):
+		"""The whole point of the batch. A boot on a site where nothing ships a sidebar has to
+		compute a base per module, and the cost of that must not grow with the module count.
+
+		Five queries -- one per kind of thing a module can hold -- whether it is asked about one
+		module or all of them.
+		"""
+		from frappe.desk.doctype.sidebar.sidebar import get_module_contents
+
+		modules = get_navigable_modules()
+		self.assertGreater(len(modules), 5, "sanity: a real set of modules to batch")
+
+		# once first, so the counts below are the reads themselves and not a cold schema cache
+		get_module_contents(modules)
+
+		with self.assertQueryCount(5):
+			get_module_contents(modules[:1])
+
+		with self.assertQueryCount(5):
+			get_module_contents(modules)
+
 	def test_a_customization_reshapes_a_computed_base(self):
 		"""A delta reshapes a base; it is not one. With every module now given a base, a
 		customization whose `Sidebar` was deleted out from under it lands on the

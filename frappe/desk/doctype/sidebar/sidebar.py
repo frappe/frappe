@@ -547,87 +547,99 @@ def build_sidebar(module: str, workspaces: list[frappe._dict]) -> frappe._dict:
 # A module's own contents, which is what a computed base is built out of
 # ---------------------------------------------------------------------------------------
 
-# How many of a module's doctypes a computed base lists. More than the three the old
-# in-memory fallback showed, since this is the module's whole navigation rather than a
-# stopgap; per-user hide deltas trim it from there.
+# The doctypes a module contains, in the order a computed base lists them. `Workspace` leads
+# because a module that has one wants you to land there.
+MODULE_CONTENT_ENTITIES = ("Workspace", "Dashboard", "DocType", "Report", "Page")
+
+# How many of a module's doctypes a computed base lists.
+#
+# A display limit and nothing more. A module with sixty doctypes would otherwise render sixty
+# top-level links, which is not navigation.
 COMPUTED_DOCTYPE_LIMIT = 15
 
 # The icon a module that has said nothing about itself gets in the dock.
 DEFAULT_HEADER_ICON = "hammer"
 
 
-def get_module_info(module_name: str) -> dict:
-	entities = ["Workspace", "Dashboard", "DocType", "Report", "Page"]
-	module_info = {}
+def get_module_contents(modules: list[str]) -> dict[str, dict[str, list]]:
+	"""What each of `modules` holds, in five queries for the whole set -- one per kind of thing.
 
-	for entity in entities:
-		filters = [{"module": module_name}]
-		pluck = "name"
-		fieldnames = ["name"]
+	Five queries however many modules are asked about. Asked one module at a time it was five
+	queries each, and a boot that has to compute forty bases paid two hundred of them.
+	"""
+	contents = {module: {entity: [] for entity in MODULE_CONTENT_ENTITIES} for module in modules}
+
+	for entity in MODULE_CONTENT_ENTITIES:
+		filters = {"module": ["in", modules]}
+		fields = ["name", "module"]
+
 		if entity == "DocType":
-			filters.append({"istable": 0})
+			filters["istable"] = 0
 		if entity == "Workspace":
-			# only surface public workspaces; private ones belong to individual users
-			filters.append({"public": 1})
+			# public only; a private page belongs to the person who made it, and reaches their
+			# sidebar through `get_private_workspaces` instead
+			filters["public"] = 1
 		if entity == "Page":
-			fieldnames.append("title")
-			pluck = None
-		module_info[entity] = frappe.get_all(
-			entity, filters=filters, fields=fieldnames, pluck=pluck, order_by="creation asc"
-		)
+			fields.append("title")
 
-	module_info["DocType"] = (module_info.get("DocType") or [])[:COMPUTED_DOCTYPE_LIMIT]
+		for row in frappe.get_all(entity, filters=filters, fields=fields, order_by="creation asc"):
+			if bucket := contents.get(row.module):
+				bucket[entity].append(row)
 
-	# `generate_items` walks this in insertion order, so the order here *is* the sidebar's. With
-	# no workspace to lead with, the doctypes are the module's landing content and go first.
-	if not module_info["Workspace"]:
-		module_info = {"DocType": module_info["DocType"], **module_info}
+	for module, held in contents.items():
+		contents[module] = arrange_contents(held)
 
-	return module_info
+	return contents
 
 
-def generate_items(module_name: str) -> list[dict]:
-	"""Sidebar items built from what the module actually contains."""
-	module_info = get_module_info(module_name)
+def arrange_contents(held: dict[str, list]) -> dict[str, list]:
+	"""One module's contents, capped and put in the order its sidebar will list them.
+
+	`generate_items` walks this dict in order, so the order of the keys is the order of the
+	sidebar. A module with a workspace leads with it; a module without one leads with its
+	doctypes, since those are then the first thing there is to land on.
+	"""
+	held["DocType"] = held["DocType"][:COMPUTED_DOCTYPE_LIMIT]
+
+	if not held["Workspace"]:
+		held = {"DocType": held["DocType"], **held}
+
+	return held
+
+
+def generate_items(held: dict[str, list]) -> list[dict]:
+	"""Sidebar items for one module, built from what it holds.
+
+	Reports, dashboards and pages get a collapsible section to sit under; workspaces and
+	doctypes are listed flat, because they are what the module is mostly navigated by.
+	"""
 	items = []
-	section_entities = {"Report": "Reports", "Dashboard": "Dashboards", "Page": "Pages"}
+	sections = {"Report": "Reports", "Dashboard": "Dashboards", "Page": "Pages"}
+	icons = {"Report": "table", "Page": "panel-top", "Workspace": "wallpaper"}
 
-	for entity, entries in module_info.items():
-		entries = entries or []
-		sectioned = False
+	for entity, rows in held.items():
+		if not rows:
+			continue
 
-		if entity in section_entities and entries:
-			if entity == "Report" or len(entries) > 1:
-				items.append(
-					{
-						"type": "Section Break",
-						"label": section_entities[entity],
-						"collapsible": 1,
-					}
-				)
-				sectioned = entity != "Report"
+		# A single dashboard or page does not need a section of its own; a report always gets
+		# one, because reports come in numbers and read badly mixed in with everything else.
+		sectioned = entity in sections and (entity == "Report" or len(rows) > 1)
+		if sectioned:
+			items.append({"type": "Section Break", "label": sections[entity], "collapsible": 1})
 
-		for entry in entries:
+		for row in rows:
 			item = {
 				"type": "Link",
 				"link_type": entity,
-				"label": entry,
-				"link_to": entry,
+				"link_to": row.name,
+				"label": row.title if entity == "Page" else row.name,
+				"icon": icons.get(entity),
 			}
-
-			if entity == "Report":
-				item["child"] = 1
-				item["icon"] = "table"
-			elif entity == "Page":
-				item["label"] = entry.get("title")
-				item["link_to"] = entry.get("name")
-				item["icon"] = "panel-top"
-			elif entity == "Workspace":
-				item["icon"] = "wallpaper"
-			elif entity == "DocType" and "settings" in entry.lower():
+			if entity == "DocType" and "settings" in row.name.lower():
 				item["icon"] = "settings"
-
-			if sectioned:
+			# a report sits under its section; so does a dashboard or page, but only when
+			# there were enough of them to be given one
+			if entity == "Report" or sectioned:
 				item["child"] = 1
 
 			items.append(item)
@@ -636,42 +648,61 @@ def generate_items(module_name: str) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------------------
-# Computed bases -- the base a module gets when no app shipped one
+# Computed bases -- the base a module gets when no app shipped it one
 # ---------------------------------------------------------------------------------------
 
 COMPUTED_BASE_CACHE_KEY = "sidebar_computed_base"
 
-# Exactly what `get_module_info` reads, which is what a computed base's *items* are a
-# function of. Each of these clears this cache from its own `clear_cache`, the way
-# Assignment Rule and Milestone Tracker clear theirs; the two lists have to stay in step or
-# bases go quietly stale. The base's `app` comes from the `Module Def` instead, and needs
-# nothing: editing one calls `frappe.clear_cache()`, which drops every key this site holds.
-MODULE_CONTENT_DOCTYPES = ("DocType", "Report", "Page", "Workspace", "Dashboard")
+# Exactly what `get_module_contents` reads, which is what a computed base's items are built
+# from. Each of these clears this cache from its own `clear_cache`, the way Assignment Rule and
+# Milestone Tracker clear theirs; the two lists have to stay in step or bases go quietly stale.
+# The base's `app` comes from the `Module Def` instead, and needs nothing: editing one calls
+# `frappe.clear_cache()`, which drops every key this site holds.
+MODULE_CONTENT_DOCTYPES = MODULE_CONTENT_ENTITIES
 
 
-def get_computed_base(module: str) -> frappe._dict:
-	"""The base `module` gets when no app shipped it one, built from the module's contents.
+def get_computed_bases(modules: list[str]) -> dict[str, frappe._dict]:
+	"""A computed base for each of `modules`, built from what the module holds.
 
-	Per D4 a base has exactly two origins -- an app shipped it as JSON, or the system computed
-	it -- and only the shipped route persists a document. This is the other route, and it
-	deliberately returns a plain dict rather than inserting a row: with nothing persisted there
-	is nothing to orphan when a module or an app goes away, and an app that *stops* shipping a
-	sidebar falls back here in the same request instead of leaving its module un-navigable
-	until the next migrate.
+	A base has two origins and only two: an app shipped it as JSON, or the system computed it.
+	This is the second. It returns plain dicts rather than inserting rows, which is what makes
+	an app that *stops* shipping a sidebar fall back here in the same request instead of
+	leaving its module unnavigable until the next migrate -- and means there is nothing to
+	orphan when a module or an app goes away.
 
 	Shaped exactly like a row read by `get_sidebar_bases`, item rows included, so the
 	resolution cannot tell which route a base arrived by.
 
-	Site-cached, because it is a handful of queries per module and the contents change far
-	less often than the desk boots. See `on_module_content_changed` for what busts it.
+	Cached per module, and built in one batch for whatever the cache is missing. Both halves
+	matter: a module's contents change far less often than the desk boots, and a boot that has
+	to build forty bases should not pay per module for it.
 	"""
-	return frappe.cache.hget(COMPUTED_BASE_CACHE_KEY, module, generator=lambda: build_computed_base(module))
+	bases = {}
+	missing = []
+	for module in modules:
+		cached = frappe.cache.hget(COMPUTED_BASE_CACHE_KEY, module)
+		if cached is None:
+			missing.append(module)
+		else:
+			bases[module] = cached
+
+	if missing:
+		contents = get_module_contents(missing)
+		for module in missing:
+			base = build_computed_base(module, contents[module])
+			frappe.cache.hset(COMPUTED_BASE_CACHE_KEY, module, base)
+			bases[module] = base
+
+	return bases
 
 
-def build_computed_base(module: str) -> frappe._dict:
+def get_computed_base(module: str) -> frappe._dict:
+	"""One module's computed base. `get_computed_bases` for a whole set at once."""
+	return get_computed_bases([module])[module]
+
+
+def build_computed_base(module: str, held: dict[str, list]) -> frappe._dict:
 	"""`get_computed_base` without the cache -- the thing being cached."""
-	items = [frappe._dict(item) for item in generate_items(module)]
-
 	return frappe._dict(
 		{
 			# no `name`: there is no document. Whatever reads this must not need one.
@@ -680,7 +711,7 @@ def build_computed_base(module: str) -> frappe._dict:
 			"app": get_module_placement(module),
 			"header_icon": DEFAULT_HEADER_ICON,
 			# not `items`: `frappe._dict` inherits `dict.items()`, so that attribute is the method
-			"rows": items,
+			"rows": [frappe._dict(item) for item in generate_items(held)],
 		}
 	)
 
@@ -908,37 +939,30 @@ def get_navigable_modules() -> list[str]:
 
 
 def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:
-	"""The sidebar base for each of `modules`, keyed by module, its item rows included.
+	"""The sidebar base for each of `modules`, keyed by module, with its item rows.
 
-	Two origins and only two, per D4: an app shipped a `Sidebar` document, or the system
-	computed one from the module's own contents. A module with no document is therefore not
-	baseless -- it is computed and site-cached, in the same shape, so the resolution below
-	cannot tell which route a base arrived by.
+	A base comes from one of two places: an app shipped a `Sidebar` document, or the system
+	computed one from what the module holds. A module with no document is therefore not
+	baseless -- it gets a computed one, in the same shape, so nothing downstream can tell which
+	route a base arrived by.
 
-	**A document with no items falls back the same way**, because a sidebar with nothing in it
-	is not navigation -- the module would be dropped from the payload entirely, which is
-	indistinguishable from having no sidebar at all. Only its *rows* are computed: whatever the
-	document says about itself (title, icon, app) is authored content and stands, so a stub
+	**A document with no items falls back the same way.** A sidebar with nothing in it is not
+	navigation: the module would be dropped from the payload entirely, which is
+	indistinguishable from having no sidebar at all. Only its *rows* are computed -- whatever
+	the document says about itself (title, icon, app) is authored content and stands, so a stub
 	someone created to name a module keeps its name and gains contents.
 
-	Consequence worth knowing: emptying a sidebar's items is no longer a way to hide a module.
-	Hiding belongs to the customization layers and to `User.block_modules`, which run later and
-	are per-user; an empty base reads as unfinished, not as intent.
+	Worth knowing: emptying a sidebar's items is no longer a way to hide a module. Hiding
+	belongs to the customization layers and to `User.block_modules`, which run later and are
+	per user. An empty base reads as unfinished, not as intent.
 
-	The documents come back in one query for the whole set, and the computed route costs a site
-	whose modules all ship a populated document nothing at all: it runs only for the modules
-	that query did not return, and for the ones it returned empty.
+	One query for the documents, one for their items, and one batch for whatever is left --
+	whether that is one module or seventy.
 	"""
 	bases = frappe.get_all(
 		"Sidebar",
 		filters={"module": ["in", modules]},
-		fields=[
-			"name",
-			"module",
-			"title",
-			"app",
-			"header_icon",
-		],
+		fields=["name", "module", "title", "app", "header_icon"],
 	)
 
 	items_by_sidebar = get_sidebar_items([base.name for base in bases])
@@ -947,12 +971,17 @@ def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:
 		base.rows = items_by_sidebar.get(base.name, [])
 
 	resolved = {base.module: base for base in bases}
-	for module in modules:
-		base = resolved.get(module)
-		if base is None:
-			resolved[module] = get_computed_base(module)
-		elif not base.rows:
-			base.rows = get_computed_base(module).rows
+
+	# a module with no document at all, and a document whose items table is empty, need the
+	# same thing: rows built from the module's contents
+	needs_computing = [module for module in modules if not resolved.get(module, {}).get("rows")]
+	computed = get_computed_bases(needs_computing) if needs_computing else {}
+
+	for module in needs_computing:
+		if base := resolved.get(module):
+			base.rows = computed[module].rows
+		else:
+			resolved[module] = computed[module]
 
 	return resolved
 
