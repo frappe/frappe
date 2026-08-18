@@ -123,10 +123,23 @@ frappe.ui.DockManager = class DockManager {
 		this.loaded = false;
 		this.$body.html(`<div class="text-muted">${__("Loading...")}</div>`);
 		this.load_entries();
-		const [layer, base] = await Promise.all([
-			frappe.xcall(this.layer_scope.read),
-			frappe.xcall("frappe.desk.doctype.dock.dock.get_app_dock_layer"),
-		]);
+
+		let layer, base;
+		try {
+			[layer, base] = await Promise.all([
+				frappe.xcall(this.layer_scope.read),
+				frappe.xcall("frappe.desk.doctype.dock.dock.get_app_dock_layer"),
+			]);
+		} catch (e) {
+			// Say so rather than sit on "Loading..." forever. `loaded` stays false, so Save and
+			// Ship do nothing -- neither should act on an arrangement we never read.
+			console.error("Dock manager: could not read the dock", e);
+			this.$body.html(
+				`<div class="text-muted">${__("Could not load the dock. Please try again.")}</div>`
+			);
+			return;
+		}
+
 		this.layer = layer;
 		// What the apps ship, so a row the app itself hid can say so. "Hidden" is otherwise
 		// silent about who hid it, and un-hiding an app's deliberate default should be a choice
