@@ -573,7 +573,6 @@ default_log_clearing_doctypes = {
 	"API Request Log": 90,
 	"Email Queue Recipient": 30,  # this is added as a dummy placeholder and clearing is handled by Email Queue itself
 	"DuckDB Sync": 45,
-	"Automation Run": 30,
 }
 
 # These keys will not be erased when doing frappe.clear_cache()
