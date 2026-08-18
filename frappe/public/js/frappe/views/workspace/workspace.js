@@ -19,6 +19,19 @@ const ACCESS_PRIVATE = __("Only to you");
 const ACCESS_GROUP = __("To a group of users");
 const ACCESS_PUBLIC = __("To everyone");
 
+// `content` arrives as a JSON string on the boot payload. Parse it defensively: a single row
+// whose content was mangled (see the seeding comment in `initialize_new_page`) would otherwise
+// throw out of the constructor and take the whole desk down with it, leaving no way in to fix it.
+function parse_content(workspace) {
+	if (typeof workspace.content != "string") return;
+	try {
+		workspace.content = JSON.parse(workspace.content);
+	} catch (e) {
+		console.error(`Workspace "${workspace.name}" has unreadable content`, e);
+		workspace.content = [];
+	}
+}
+
 frappe.standard_pages["Workspaces"] = function () {
 	var wrapper = frappe.container.add_page("Workspaces");
 
@@ -63,14 +76,7 @@ frappe.views.Workspace = class Workspace {
 		const me = this;
 		this.workspaces.map((workspace) => {
 			workspace.is_editable = !workspace.public || me.has_access;
-			if (typeof workspace.content == "string") {
-				try {
-					workspace.content = JSON.parse(workspace.content);
-				} catch (e) {
-					console.log(`Failed to parse workspace content for ${workspace.name}:`, e);
-					workspace.content = [];
-				}
-			}
+			parse_content(workspace);
 		});
 	}
 
@@ -290,9 +296,7 @@ frappe.views.Workspace = class Workspace {
 					"frappe";
 			}
 
-			if (typeof current_page.content == "string") {
-				current_page.content = JSON.parse(current_page.content);
-			}
+			parse_content(current_page);
 
 			this.content = current_page.content;
 			this.content && this.add_custom_cards_in_content();
@@ -1164,7 +1168,10 @@ frappe.views.Workspace = class Workspace {
 					blocks.push({
 						type: "paragraph",
 						data: {
-							text: __("Click on {0} to edit", [frappe.utils.icon("ellipsis")]),
+							// plain text, never markup: `content` is a Long Text field, so a tag
+							// with an attribute in it is HTML-sanitized on save and comes back
+							// with the JSON's own quotes rewritten -- i.e. unparseable content.
+							text: __("Click on the {0} menu to edit", ["\u22ef"]),
 						},
 					});
 				}
@@ -1255,9 +1262,7 @@ frappe.views.Workspace = class Workspace {
 	setup_pages(all_pages) {
 		all_pages.forEach((page) => {
 			page.is_editable = !page.public || this.has_access;
-			if (typeof page.content == "string") {
-				page.content = JSON.parse(page.content);
-			}
+			parse_content(page);
 		});
 
 		if (all_pages) {
