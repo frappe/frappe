@@ -423,7 +423,7 @@ def partial_restore(context: CliCtxObj, sql_file_path, verbose, encryption_key=N
 		click.secho("Failed to detect type of backup file", fg="red")
 		sys.exit(1)
 
-	if "cipher" in out.decode().split(":")[-1].strip():
+	if "AES" in out.decode().split(":")[-1].strip():
 		key = _get_encryption_key(provided_key=encryption_key)
 
 		with decrypt_backup(sql_file_path, key):
