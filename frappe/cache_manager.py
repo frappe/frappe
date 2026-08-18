@@ -42,6 +42,13 @@ global_cache_keys = (
 	# hash of per-module sidebar bases; `on_module_content_changed` busts single fields, this
 	# is the escape hatch for anything that changed a module's contents behind doc_events' back
 	"sidebar_computed_base",
+	# Which layers the sidebar and the dock hold. Both are invalidated by the document's own
+	# `on_update`/`on_trash`, which is every ordinary write -- these are here for the writes
+	# that never reach a document (a bulk insert, a restore, an import). A stale entry only
+	# costs a lookup that finds nothing, but a *missing* one hides a layer somebody saved, so
+	# `bench clear-cache` has to be able to reach them.
+	"customized_module_sidebars",
+	"dock_layers",
 	"information_schema:counts",
 	"db_tables",
 	"server_script_autocompletion_items",
