@@ -521,7 +521,8 @@ class TestFile(IntegrationTestCase):
 			}
 		).insert()
 
-		self.assertEqual(file1.is_private, file2.is_private, 1)
+		self.assertEqual(file1.is_private, 1)
+		self.assertEqual(file2.is_private, 1)
 		self.assertEqual(file1.file_url, file2.file_url)
 		self.assertTrue(os.path.exists(file1.get_full_path()))
 
@@ -530,8 +531,17 @@ class TestFile(IntegrationTestCase):
 
 		file2 = frappe.get_doc("File", file2.name)
 
-		self.assertEqual(file1.is_private, file2.is_private, 0)
-		self.assertEqual(file1.file_url, file2.file_url)
+		# file1 flipped correctly.
+		self.assertEqual(file1.is_private, 0)
+		self.assertTrue(file1.file_url.startswith("/files/"))
+
+		# file2 must be untouched — this is the fix. Old behaviour propagated
+		# file1's is_private and file_url to file2 via update_existing_file_docs.
+		self.assertEqual(file2.is_private, 1)
+		self.assertTrue(file2.file_url.startswith("/private/files/"))
+
+		# Bytes readable at both paths after the flip.
+		self.assertTrue(os.path.exists(file1.get_full_path()))
 		self.assertTrue(os.path.exists(file2.get_full_path()))
 
 	def test_parent_directory_validation_in_file_url(self):
@@ -1458,6 +1468,81 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 		self.assertEqual(doc_pri.get_content(), content)
 		doc_pri.delete()
 		self.assertFalse(os.path.exists(doc_pri.get_full_path()))
+
+	def test_toggling_is_private_does_not_leak_shared_file(self):
+		"""Flipping is_private on one File must not silently change another
+		File row that happens to share the same content_hash."""
+		file_name = "shared" + frappe.generate_hash()
+		content = file_name.encode()
+
+		# Row A: private upload
+		doc_a: File = frappe.new_doc("File")  # type: ignore
+		doc_a.file_name = f"{file_name}.txt"
+		doc_a.is_private = 1
+		doc_a.content = content
+		doc_a.save()
+
+		# Row B: independent private upload of identical bytes.
+		doc_b: File = frappe.new_doc("File")  # type: ignore
+		doc_b.file_name = f"{file_name}.txt"
+		doc_b.is_private = 1
+		doc_b.content = content
+		doc_b.save()
+
+		doc_a.reload()
+		doc_b.reload()
+
+		# Precondition: dedup collapsed both rows onto the same file_url.
+		self.assertEqual(doc_a.content_hash, doc_b.content_hash)
+		self.assertEqual(doc_a.file_url, doc_b.file_url)
+		self.assertTrue(doc_a.file_url.startswith("/private/files/"))
+
+		private_path = doc_a.get_full_path()
+		self.assertTrue(os.path.exists(private_path))
+
+		# Flip A to public. B must NOT be affected.
+		doc_a.is_private = 0
+		doc_a.save()
+		doc_a.reload()
+		doc_b.reload()
+
+		# A's row: flipped correctly
+		self.assertEqual(doc_a.is_private, 0)
+		self.assertTrue(doc_a.file_url.startswith("/files/"))
+
+		# B's row: unchanged (the actual regression this test guards)
+		self.assertEqual(doc_b.is_private, 1, "B's is_private silently changed to public — data leak")
+		self.assertTrue(
+			doc_b.file_url.startswith("/private/files/"),
+			"B's file_url was rewritten to the public path — data leak",
+		)
+
+		self.assertTrue(os.path.exists(doc_a.get_full_path()))
+		self.assertTrue(os.path.exists(doc_b.get_full_path()))
+		self.assertEqual(doc_a.get_content(), content)
+		self.assertEqual(doc_b.get_content(), content)
+
+		# Cleanup: deleting A's row should remove ONLY the public copy;
+		# B's private copy must survive because B still references it.
+		doc_a_path = doc_a.get_full_path()
+		doc_a.delete()
+		self.assertFalse(
+			os.path.exists(doc_a_path),
+			"Public copy not cleaned up after A's deletion",
+		)
+		self.assertTrue(
+			os.path.exists(doc_b.get_full_path()),
+			"B's private copy was wrongly deleted when A's row was removed",
+		)
+		self.assertEqual(doc_b.get_content(), content)
+
+		# Deleting B removes the last reference to the private copy.
+		doc_b_path = doc_b.get_full_path()
+		doc_b.delete()
+		self.assertFalse(
+			os.path.exists(doc_b_path),
+			"Private copy not cleaned up after B's deletion",
+		)
 
 
 class TestPublicFileRestriction(IntegrationTestCase):
