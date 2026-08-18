@@ -292,7 +292,9 @@
 .pfb-drag-ghost {
 	height: 0 !important;
 	min-height: 0 !important;
-	margin: 4px 0 !important;
+	/* zero flow impact: any height the ghost adds moves the container boundary
+	   under a pointer resting near it, which re-targets the drop and oscillates */
+	margin: 0 !important;
 	padding: 0 !important;
 	border: none !important;
 	overflow: visible !important;
