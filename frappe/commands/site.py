@@ -464,9 +464,10 @@ def _get_encryption_key(provided_key: str | None = None) -> str:
 		click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
 		return site_config_key
 
-	click.secho("Encryption key is required to decrypt the backup file.", fg="yellow")
-	if prompted_key := getpass.getpass("Enter encryption key: "):
-		return prompted_key
+	if sys.__stdin__.isatty():
+		click.secho("Encryption key is required to decrypt the backup file.", fg="yellow")
+		if prompted_key := getpass.getpass("Enter encryption key: "):
+			return prompted_key
 
 	click.secho("Encryption key is required to decrypt the backup file.", fg="red")
 	sys.exit(1)
