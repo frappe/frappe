@@ -32,7 +32,10 @@ def settings():
 	"""
 	try:
 		return frappe.get_cached_doc(SETTINGS)
-	except (frappe.DoesNotExistError, frappe.db.TableMissingError):
+	except (frappe.DoesNotExistError, frappe.db.TableMissingError, ImportError):
+		# ImportError: before the DocType row exists its module cannot be resolved, so the
+		# controller import is attempted against the wrong path. Any boot order that reaches
+		# here early degrades to the defaults rather than taking the request down.
 		return DEFAULTS
 
 
