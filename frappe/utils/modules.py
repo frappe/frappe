@@ -16,8 +16,9 @@ def get_module_placement(module: str) -> str | None:
 	navigation question is what used to leave a freshly created custom module invisible --
 	the throw was swallowed and the module was skipped.
 	"""
+	# `cache=True`: the fallback is the custom-module path, and boot asks it once per module.
 	app = frappe.local.module_app.get(frappe.scrub(module))
-	return app or frappe.db.get_value("Module Def", module, "app_name") or None
+	return app or frappe.db.get_value("Module Def", module, "app_name", cache=True) or None
 
 
 def get_blocked_modules(user: str | None = None) -> list[str]:

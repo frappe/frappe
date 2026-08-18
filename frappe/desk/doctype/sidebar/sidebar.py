@@ -1078,6 +1078,12 @@ def filter_sidebar_items(items, perm_ctx):
 			continue
 		seen.add(key)
 
+		# The permission check comes first so that nothing below it runs for an item that is
+		# about to be dropped anyway. This walks every module on every boot, so an item the
+		# reader cannot see should cost no queries at all.
+		if item.type != "Section Break" and not is_item_allowed(item.link_to, item.link_type, perm_ctx):
+			continue
+
 		entry = {
 			"key": key,
 			"label": _(item.label),
@@ -1097,19 +1103,25 @@ def filter_sidebar_items(items, perm_ctx):
 			"open_in_new_tab": item.open_in_new_tab,
 			"is_default_module": item.is_default_module,
 		}
-		if (
-			item.link_type == "Report"
-			and item.link_to
-			and frappe.db.exists("Report", item.link_to)
-			and not frappe.db.get_value("Report", item.link_to, "disabled")
-		):
-			report_type, ref_doctype = frappe.db.get_value(
-				"Report", item.link_to, ["report_type", "ref_doctype"]
+		# One cached read instead of three uncached ones. A report that is missing and a report
+		# that is disabled answer the same way -- no `report` block -- so neither needs asking
+		# about separately, and `cache=True` is what keeps the same report on ten modules'
+		# sidebars from costing ten round trips.
+		if item.link_type == "Report" and item.link_to:
+			report = frappe.db.get_value(
+				"Report",
+				item.link_to,
+				["report_type", "ref_doctype", "disabled"],
+				as_dict=True,
+				cache=True,
 			)
-			entry["report"] = {"report_type": report_type, "ref_doctype": ref_doctype}
+			if report and not report.disabled:
+				entry["report"] = {
+					"report_type": report.report_type,
+					"ref_doctype": report.ref_doctype,
+				}
 
-		if item.type == "Section Break" or is_item_allowed(item.link_to, item.link_type, perm_ctx):
-			filtered.append(entry)
+		filtered.append(entry)
 
 	return filtered
 
