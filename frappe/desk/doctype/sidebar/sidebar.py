@@ -554,7 +554,8 @@ MODULE_CONTENT_ENTITIES = ("Workspace", "Dashboard", "DocType", "Report", "Page"
 # How many of a module's doctypes a computed base lists.
 #
 # A display limit and nothing more. A module with sixty doctypes would otherwise render sixty
-# top-level links, which is not navigation.
+# top-level links, which is not navigation. It must never decide anything else -- see the
+# `computed` flag on a resolved sidebar for how routing is kept away from it.
 COMPUTED_DOCTYPE_LIMIT = 15
 
 # The icon a module that has said nothing about itself gets in the dock.
@@ -808,6 +809,7 @@ class ResolvedSidebar:
 	header_icon: str | None
 	module_onboarding: str | None
 	customized: bool
+	computed: bool
 	workspaces: list[str]
 	items: list[dict]
 
@@ -831,6 +833,11 @@ class ResolvedSidebar:
 			"header_icon": self.header_icon,
 			"module_onboarding": self.module_onboarding,
 			"customized": 1 if self.customized else 0,
+			# Whether these items were built from the module's contents rather than shipped by
+			# an app. The desk reads it when deciding where a document opens: an entity missing
+			# from a shipped sidebar was left out deliberately, while one missing from a
+			# computed sidebar may just have fallen past the display limit.
+			"computed": 1 if self.computed else 0,
 			"workspaces": self.workspaces,
 			"items": self.items,
 		}
@@ -903,6 +910,7 @@ def resolve_sidebar(module: str, user: str, context: SidebarContext | None = Non
 		# permission filtering can name something the reader cannot open.
 		module_onboarding=context.onboardings.get(module),
 		customized=bool(layers),
+		computed=bool(base.get("computed")),
 		workspaces=context.workspaces.get(module, []),
 		items=filtered,
 	)
@@ -956,6 +964,12 @@ def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:
 	belongs to the customization layers and to `User.block_modules`, which run later and are
 	per user. An empty base reads as unfinished, not as intent.
 
+	Every base carries `computed`, which says whether its rows were built here or shipped. The
+	difference matters to the desk: an entity missing from a *shipped* sidebar was left out on
+	purpose, while an entity missing from a computed one may simply have fallen past
+	`COMPUTED_DOCTYPE_LIMIT`. Routing reads this so a display limit cannot decide where a
+	document opens.
+
 	One query for the documents, one for their items, and one batch for whatever is left --
 	whether that is one module or seventy.
 	"""
@@ -969,6 +983,7 @@ def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:
 	for base in bases:
 		# not `items`: `frappe._dict` inherits `dict.items()`, so that attribute is the method
 		base.rows = items_by_sidebar.get(base.name, [])
+		base.computed = 0
 
 	resolved = {base.module: base for base in bases}
 
@@ -980,8 +995,10 @@ def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:
 	for module in needs_computing:
 		if base := resolved.get(module):
 			base.rows = computed[module].rows
+			base.computed = 1
 		else:
 			resolved[module] = computed[module]
+			resolved[module].computed = 1
 
 	return resolved
 

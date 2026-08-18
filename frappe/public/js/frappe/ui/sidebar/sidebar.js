@@ -1190,11 +1190,20 @@ frappe.ui.Sidebar = class Sidebar {
 		//    function is also cold_entry_needs_recheck's trigger: gating it would stop the second
 		//    pass firing for exactly the entities whose module cannot show them, which are the ones
 		//    that need it. Trigger and resolver stay distinct.
+		//
+		//    "Cannot show the entity" only means something when somebody chose what the sidebar
+		//    shows. A computed sidebar lists what its module holds, capped at
+		//    COMPUTED_DOCTYPE_LIMIT — so an entity missing from one has not been left out, it has
+		//    just fallen past a display limit, and reading that as a decision hands the entity to
+		//    whichever foreign sidebar happens to link it. A module always contains its own
+		//    entities, so for a computed sidebar the module answers regardless.
 		const from_module = this.sidebar_from_module(entity, route, candidates);
-		if (from_module && candidates.includes(from_module)) {
+		if (from_module && (candidates.includes(from_module) || this.is_computed(from_module))) {
 			return {
 				sidebar: from_module,
-				reason: `derived from "${entity}"'s module — the shell the entity belongs to, and it lists the entity`,
+				reason: candidates.includes(from_module)
+					? `derived from "${entity}"'s module — the shell the entity belongs to, and it lists the entity`
+					: `derived from "${entity}"'s module — its sidebar is computed, so not listing the entity is a display limit rather than a decision`,
 				provisional: false,
 			};
 		}
@@ -1372,6 +1381,14 @@ frappe.ui.Sidebar = class Sidebar {
 		const links = linking || this.get_modules_linking(entity);
 
 		return heirs.find((heir) => links.includes(heir)) || heirs[0] || null;
+	}
+
+	// Whether a module's sidebar was built from what the module holds rather than shipped by an
+	// app. What it is for: an entity missing from a shipped sidebar was left out on purpose,
+	// while one missing from a computed sidebar may simply not have fitted. Only the first of
+	// those is a statement about where the entity belongs.
+	is_computed(module) {
+		return !!frappe.boot.module_sidebars?.[module]?.computed;
 	}
 
 	// The module that owns a workspace, from the module payload's `workspaces` list. A direct

@@ -287,6 +287,35 @@ class TestSidebarBoot(IntegrationTestCase):
 		with self.assertQueryCount(5):
 			get_module_contents(modules)
 
+	def test_a_computed_base_says_it_is_computed(self):
+		"""So the desk can tell "the app left this out" from "the display limit did". An entity
+		missing from a shipped sidebar was left out on purpose; one missing from a computed
+		sidebar may just have fallen past `COMPUTED_DOCTYPE_LIMIT`, and routing must not read
+		the two the same way."""
+		with sidebarless_module("Test Says Computed Module") as module:
+			self.assertEqual(get_sidebar_bases([module])[module].computed, 1)
+
+			with system_write():
+				shipped = frappe.get_doc({"doctype": "Sidebar", "module": module})
+				shipped.append("items", {"type": "Link", "link_type": "DocType", "link_to": "ToDo"})
+				shipped.insert(ignore_permissions=True)
+
+			self.assertEqual(get_sidebar_bases([module])[module].computed, 0)
+
+	def test_an_empty_document_is_computed_even_though_it_exists(self):
+		"""Its rows came from the module's contents, so its membership answers are the computed
+		kind however the document itself got there."""
+		with sidebarless_module("Test Empty Doc Computed Module") as module:
+			with system_write():
+				frappe.get_doc({"doctype": "Sidebar", "module": module, "title": "Named"}).insert(
+					ignore_permissions=True
+				)
+
+			base = get_sidebar_bases([module])[module]
+
+			self.assertEqual(base.title, "Named", "what the document says about itself stands")
+			self.assertEqual(base.computed, 1, "but its rows were computed")
+
 	def test_a_customization_reshapes_a_computed_base(self):
 		"""A delta reshapes a base; it is not one. With every module now given a base, a
 		customization whose `Sidebar` was deleted out from under it lands on the
