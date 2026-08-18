@@ -778,6 +778,7 @@ def update_workspace_settings(
 	if indicator_color is not None:
 		doc.indicator_color = indicator_color
 	if module:
+		validate_assignable_module(module)
 		doc.module = module
 	doc.set("roles", [{"role": r} for r in role_names])
 	if doc.public != make_public:
@@ -863,6 +864,22 @@ def get_assignable_modules():
 	return modules
 
 
+def validate_assignable_module(module: str) -> None:
+	"""Refuse a module a workspace may not be filed under.
+
+	Both endpoints that set `Workspace.module` have to make this check, and only one of them
+	did. `update_workspace_settings` took a `module` and wrote it straight through, so the same
+	operation was validated or not depending on which door it came in by.
+
+	A module that does not exist is already refused -- `Workspace.module` is a Link. What this
+	adds is the module the caller cannot *see*: a workspace filed under one is a workspace
+	nothing can navigate to, because `get_navigable_modules` drops the module before its
+	sidebar is ever built.
+	"""
+	if module not in {row["module"] for row in get_assignable_modules()}:
+		frappe.throw(_("{0} is not a module you can assign a workspace to.").format(frappe.bold(module)))
+
+
 @frappe.whitelist()
 def set_workspace_module(name: str, module: str):
 	"""Move a workspace to another module, which is also what moves it between docks."""
@@ -879,8 +896,7 @@ def set_workspace_module(name: str, module: str):
 			frappe.PermissionError,
 		)
 
-	if module not in [m["module"] for m in get_assignable_modules()]:
-		frappe.throw(_("{0} is not a module you can assign a workspace to.").format(frappe.bold(module)))
+	validate_assignable_module(module)
 
 	doc.module = module
 	doc.save(ignore_permissions=True)
