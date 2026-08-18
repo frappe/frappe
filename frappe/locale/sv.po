@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-16 09:39+0000\n"
-"PO-Revision-Date: 2026-08-17 19:36\n"
+"PO-Revision-Date: 2026-08-18 19:48\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -3796,7 +3796,7 @@ msgstr "Före Validering"
 
 #: frappe/public/js/frappe/ui/awesomplete.js:8
 msgid "Begin typing for results."
-msgstr ""
+msgstr "Börja skriva för resultat."
 
 #. Option for the 'Level' (Select) field in DocType 'Help Article'
 #: frappe/website/doctype/help_article/help_article.json
@@ -7408,7 +7408,7 @@ msgstr "Ta bort Anslagstavla"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:177
 msgid "Delete Row"
-msgstr ""
+msgstr "Ta bort Rad"
 
 #: frappe/public/js/form_builder/components/Section.vue:125
 msgctxt "Title of confirmation dialog"
@@ -7422,7 +7422,7 @@ msgstr "Ta bort Flik"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:179
 msgid "Delete Table"
-msgstr ""
+msgstr "Ta bort Tabell"
 
 #: frappe/public/js/frappe/form/grid.js:100
 msgid "Delete all"
@@ -12713,27 +12713,27 @@ msgstr "Huvud Rubrik"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:164
 msgid "Heading 1"
-msgstr ""
+msgstr "Rubrik 1"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:165
 msgid "Heading 2"
-msgstr ""
+msgstr "Rubrik 2"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:166
 msgid "Heading 3"
-msgstr ""
+msgstr "Rubrik 3"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:167
 msgid "Heading 4"
-msgstr ""
+msgstr "Rubrik 4"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:168
 msgid "Heading 5"
-msgstr ""
+msgstr "Rubrik 5"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:169
 msgid "Heading 6"
-msgstr ""
+msgstr "Rubrik 6"
 
 #. Description of the 'Notification Title' (Data) field in DocType
 #. 'Notification'
@@ -14109,11 +14109,11 @@ msgstr "Infoga Kolumn Före {0}"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:176
 msgid "Insert Column Left"
-msgstr ""
+msgstr "Infoga Kolumn till Vänster"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:175
 msgid "Insert Column Right"
-msgstr ""
+msgstr "Infoga Kolumn till Höger"
 
 #: frappe/public/js/frappe/form/controls/markdown_editor.js:82
 msgid "Insert Image in Markdown"
@@ -14126,11 +14126,11 @@ msgstr "Infoga Nya Poster"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:173
 msgid "Insert Row Above"
-msgstr ""
+msgstr "Infoga Rad Ovanför"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:174
 msgid "Insert Row Below"
-msgstr ""
+msgstr "Infoga Rad Nedanför"
 
 #. Label of the insert_style (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -14139,7 +14139,7 @@ msgstr "Infoga Stil"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:172
 msgid "Insert Table"
-msgstr ""
+msgstr "Infoga Tabell"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:685
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:686
@@ -29721,7 +29721,7 @@ msgstr "Skriv ditt svar här..."
 
 #: frappe/public/js/frappe/ui/awesomplete.js:7
 msgid "Type {0} or more characters for results."
-msgstr ""
+msgstr "Skriv {0} eller fler tecken för resultat."
 
 #: frappe/core/doctype/data_export/exporter.py:144
 msgid "Type:"
@@ -32559,7 +32559,7 @@ msgstr "Du ändrade detta"
 
 #: frappe/desk/form/activity.py:126
 msgid "You last edited this document"
-msgstr ""
+msgstr "Du har senast redigerat detta dokument"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:352
 msgid "You must add atleast one link."
@@ -34189,7 +34189,7 @@ msgstr "{0} redigerade detta"
 
 #: frappe/desk/form/activity.py:127
 msgid "{0} last edited this document"
-msgstr ""
+msgstr "{0} redigerade senast detta dokument"
 
 #: frappe/desk/form/activity.py:224
 msgid "{0} liked"
@@ -34336,7 +34336,7 @@ msgstr "{0} begränsade dokument"
 
 #: frappe/public/js/frappe/ui/awesomplete.js:14
 msgid "{0} results found"
-msgstr ""
+msgstr "{0} resultat hittades"
 
 #: frappe/public/js/frappe/roles_editor.js:90
 msgid "{0} role does not have permission on any doctype"
@@ -34491,7 +34491,7 @@ msgstr "{0}, Rad {1}"
 
 #: frappe/public/js/frappe/ui/awesomplete.js:22
 msgid "{0}, list item {1} of {2}"
-msgstr ""
+msgstr "{0}, lista {1} av {2}"
 
 #: frappe/utils/data.py:1582
 msgctxt "Money in words"
