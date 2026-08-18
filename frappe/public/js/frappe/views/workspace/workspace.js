@@ -87,7 +87,14 @@ frappe.views.Workspace = class Workspace {
 		if (!this._assignable_modules) {
 			this._assignable_modules = frappe
 				.xcall("frappe.desk.doctype.workspace.workspace.get_assignable_modules")
-				.then((modules) => modules || []);
+				.then((modules) => modules || [])
+				// Drop the memo on failure. A cached rejected promise would hand the same error
+				// to every later caller, so one dropped request would leave the New Workspace
+				// dialog and the Manage panel broken for the rest of the session.
+				.catch((e) => {
+					this._assignable_modules = null;
+					throw e;
+				});
 		}
 		return this._assignable_modules;
 	}
