@@ -88,6 +88,28 @@ def _execute_in_savepoint(executor, name, position):
 	except Exception:
 		frappe.db.rollback(save_point=savepoint)
 		frappe.log_error(title=f"Automation run failed: {name}", message=frappe.get_traceback())
+		_settle_escaped_row(name)
+
+
+def _settle_escaped_row(name):
+	"""Release a claimed row whose run escaped the runner's own error handling.
+
+	The runner settles its own failures, but not everything reaches it - a flow deleted mid-drain,
+	or a throw while recording the outcome. claim_batch has already committed the Running flip by
+	then, so the rollback above cannot undo it and the row would sit Running until
+	requeue_stale_running() releases it half an hour later.
+
+	Retried a few times because the usual causes are transient, then failed: a row that throws on
+	every claim would otherwise be reclaimed by every drain, forever.
+	"""
+	attempt = cint(frappe.db.get_value(QUEUE, name, "attempt")) + 1
+	exhausted = attempt >= cint(settings.get("max_attempts"))
+	frappe.db.set_value(
+		QUEUE,
+		name,
+		{"attempt": attempt, "status": "Failed" if exhausted else "Pending"},
+		update_modified=False,
+	)
 
 
 def _execute_serially(executor, names):
@@ -109,6 +131,8 @@ def execute_claimed(executor, name):
 	except Exception:
 		frappe.db.rollback()
 		frappe.log_error(title=f"Automation run failed: {name}", message=frappe.get_traceback())
+		_settle_escaped_row(name)
+		frappe.db.commit()
 
 
 def promote_due_scheduled():
