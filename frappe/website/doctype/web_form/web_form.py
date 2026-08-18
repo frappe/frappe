@@ -592,7 +592,10 @@ def get_context(context):
 				context.comment_list = get_comment_list(reference_doc.doctype, reference_doc.name)
 
 			doc_dict = reference_doc.as_dict(no_nulls=True)
-			if frappe.session.user == "Guest":
+			# A request key authorises access to the bound document without any
+			# document permission check, so its holder must only ever see the
+			# fields the Web Form itself exposes.
+			if frappe.session.user == "Guest" or web_form_request:
 				allowed_fields = {"name", "doctype", *(field.fieldname for field in self.web_form_fields)}
 				context.reference_doc = {
 					fieldname: doc_dict[fieldname] for fieldname in allowed_fields if fieldname in doc_dict

@@ -574,6 +574,45 @@ class TestWebForm(IntegrationTestCase):
 		self.assertNotIn("owner", reference_doc)
 		self.assertNotIn("creation", reference_doc)
 
+	def test_logged_in_key_holder_reference_doc_exposes_only_web_form_fields(self):
+		"""A logged-in key holder without document access is authorised by the key
+		alone, so reference_doc must be scoped the same way as it is for a Guest."""
+		self.set_web_form_settings(
+			key_required=1,
+			login_required=0,
+			allow_edit=1,
+			allow_multiple=0,
+		)
+		event = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "_Test Restricted Reference For User",
+				"starts_on": "2026-05-10",
+				"description": "_Test visible description",
+				"event_type": "Private",
+			}
+		).insert(ignore_permissions=True)
+		web_form_request = self.create_web_form_request(reference_docname=event.name)
+
+		frappe.set_user(self.create_website_user("_test_web_form_key_holder@example.com"))
+		frappe.local.path = f"manage-events/{event.name}/edit"
+		frappe.local.form_dict = frappe._dict(
+			name=event.name,
+			is_edit=1,
+			web_form_request_key=web_form_request.key,
+		)
+		context = frappe._dict()
+		frappe.get_doc("Web Form", "manage-events").get_context(context)
+
+		reference_doc = context.reference_doc
+		web_form = frappe.get_doc("Web Form", "manage-events")
+		allowed_fields = {"name", "doctype", *(f.fieldname for f in web_form.web_form_fields)}
+
+		self.assertEqual(set(reference_doc.keys()), allowed_fields)
+		self.assertEqual(reference_doc["subject"], "_Test Restricted Reference For User")
+		self.assertNotIn("event_type", reference_doc)
+		self.assertNotIn("owner", reference_doc)
+
 	def test_guest_with_valid_key_can_render_bound_document_page(self):
 		"""A Guest holding a valid request key bound to a document must be able
 		to render the view/edit page instead of being redirected to /new."""
@@ -1069,6 +1108,19 @@ class TestWebForm(IntegrationTestCase):
 		)
 		web_form.save(ignore_permissions=True)
 		frappe.clear_document_cache("Web Form", "manage-events")
+
+	def create_website_user(self, email):
+		if not frappe.db.exists("User", email):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": "Web Form Key Holder",
+					"user_type": "Website User",
+				}
+			).insert(ignore_permissions=True)
+
+		return email
 
 	def create_web_form_request(
 		self, web_form_values=None, doc_values=None, expires_on=None, reference_docname=None
