@@ -243,7 +243,7 @@ def get_filters_for(doctype):
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_open_count(doctype: str, name: str, items=None):
+def get_open_count(doctype: str, name: str | int, items: str | list[str] | None = None):
 	"""Get count for internal and external links for given transactions
 
 	:param doctype: Reference DocType
@@ -387,7 +387,12 @@ def get_dynamic_link_filters(doctype, links, fieldname):
 	return {doctype_fieldname: doctype_value}
 
 
-def notify_mentions(ref_doctype, ref_name, content):
+def notify_mentions(ref_doctype, ref_name, content, source_doctype=None, source_name=None):
+	"""Notify users mentioned in `content`.
+	`source_doctype` / `source_name` identify the record the mention was
+	written in (e.g. a Comment) when that is not the reference document
+	itself.
+	"""
 	if ref_doctype and ref_name and content:
 		mentions = extract_mentions(content)
 
@@ -414,6 +419,8 @@ def notify_mentions(ref_doctype, ref_name, content):
 			"type": "Mention",
 			"document_type": ref_doctype,
 			"document_name": ref_name,
+			"source_doctype": source_doctype,
+			"source_name": source_name,
 			"subject": notification_message,
 			"from_user": frappe.session.user,
 			"email_content": content,

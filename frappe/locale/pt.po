@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-05 21:52\n"
+"PO-Revision-Date: 2026-08-11 18:25\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese\n"
 "MIME-Version: 1.0\n"
@@ -4664,7 +4664,7 @@ msgstr "Alterar Palavra-passe"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:27
 msgid "Change Print Format"
-msgstr "Alterar Formato de Impressão"
+msgstr ""
 
 #: frappe/desk/page/user_profile/user_profile_controller.js:51
 #: frappe/desk/page/user_profile/user_profile_controller.js:59
@@ -4774,7 +4774,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:1
 msgid "Check columns to select, drag to set order."
-msgstr "Marque as colunas para selecionar, arraste para definir a ordem."
+msgstr ""
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:457
 msgid "Check the Error Log for more information: {0}"
@@ -4941,7 +4941,7 @@ msgstr "A limpar a data de fim, pois não pode estar no passado para páginas pu
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:195
 msgid "Click On Customize to add your first widget"
-msgstr "Clique em Personalizar para adicionar o seu primeiro widget"
+msgstr ""
 
 #: frappe/templates/emails/user_invitation.html:8
 msgid "Click below to get started:"
@@ -4969,7 +4969,7 @@ msgstr "Clique num ficheiro para o selecionar."
 
 #: frappe/templates/emails/login_with_email_link.html:19
 msgid "Click on the button to log in to {0}"
-msgstr "Clique no botão para iniciar sessão em {0}"
+msgstr ""
 
 #: frappe/templates/emails/data_deletion_approval.html:2
 msgid "Click on the link below to approve the request"
@@ -6096,7 +6096,7 @@ msgstr "Criar E-mail do Utilizador"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_start.html:16
 msgid "Create a New Format"
-msgstr "Criar um Novo Formato"
+msgstr ""
 
 #: frappe/public/js/frappe/form/reminders.js:9
 msgid "Create a Reminder"
@@ -6134,7 +6134,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:34
 msgid "Create or Edit Print Format"
-msgstr "Criar ou Editar Formato de Impressão"
+msgstr ""
 
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:34
 msgid "Create or Edit Workflow"
@@ -8520,7 +8520,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:3
 msgid "Drag elements from the sidebar to add. Drag them back to trash."
-msgstr "Arraste elementos da barra lateral para adicionar. Arraste-os de volta para o lixo."
+msgstr ""
 
 #: frappe/public/js/workflow_builder/WorkflowBuilder.vue:296
 msgid "Drag to add state"
@@ -10696,7 +10696,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_sidebar.html:3
 msgid "Filter..."
-msgstr "Filtrar..."
+msgstr ""
 
 #. Label of a Data field in DocType 'Personal Data Deletion Step'
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
@@ -10914,7 +10914,7 @@ msgstr "Seguir"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:124
 msgid "Followed by"
-msgstr "Seguido por"
+msgstr ""
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:132
 msgid "Following Report Filters have missing values:"
@@ -15458,7 +15458,7 @@ msgstr "DocType de registo"
 
 #: frappe/templates/emails/login_with_email_link.html:27
 msgid "Log In To {0}"
-msgstr "Entrar em {0}"
+msgstr ""
 
 #. Label of a Int field in DocType 'Data Import Log'
 #: frappe/core/doctype/data_import_log/data_import_log.json
@@ -16360,7 +16360,7 @@ msgstr "Permissão ausente"
 
 #: frappe/www/update-password.html:107 frappe/www/update-password.html:114
 msgid "Missing Value"
-msgstr "Valor ausente"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/field_group.js:164
 #: frappe/public/js/frappe/widgets/widget_dialog.js:349
@@ -17615,7 +17615,7 @@ msgstr "Número de Colunas"
 #. Label of a Int field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "No of Rows (Max 500)"
-msgstr "Número de Linhas (Máx. 500)"
+msgstr ""
 
 #: frappe/__init__.py:1072 frappe/client.py:126 frappe/client.py:168
 msgid "No permission for {0}"
@@ -17676,7 +17676,7 @@ msgstr "Nenhum {0} encontrado"
 
 #: frappe/public/js/frappe/list/list_view.js:504
 msgid "No {0} found with matching filters. Clear filters to see all {0}."
-msgstr "Nenhum {0} encontrado com os filtros aplicados. Limpe os filtros para ver todos os {0}."
+msgstr ""
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:171
 msgid "No {0} mail"
@@ -18581,7 +18581,7 @@ msgstr "Abrir um módulo ou ferramenta"
 
 #: frappe/public/js/print_format_builder/Preview.vue:17
 msgid "Open in a new tab"
-msgstr "Abrir num novo separador"
+msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:1242
 msgctxt "Description of a list view shortcut"
@@ -19234,7 +19234,7 @@ msgstr "Os requisitos da senha não foram cumpridos"
 
 #: frappe/www/update-password.html:164
 msgid "Password set"
-msgstr "Senha definida"
+msgstr ""
 
 #: frappe/auth.py:254
 msgid "Password size exceeded the maximum allowed size"
@@ -20269,7 +20269,7 @@ msgstr "Pré-visualização dos nomes gerados"
 
 #: frappe/public/js/print_format_builder/Preview.vue:103
 msgid "Preview type"
-msgstr "Tipo de pré-visualização"
+msgstr ""
 
 #: frappe/email/doctype/email_group/email_group.js:90
 msgid "Preview:"
@@ -24358,7 +24358,7 @@ msgstr "Definir permissões"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:473
 msgid "Set Properties"
-msgstr "Definir propriedades"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Notification'
 #. Label of a Select field in DocType 'Notification'
@@ -25250,7 +25250,7 @@ msgstr "Rejeição temporária"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:4
 msgid "Some columns might get cut off when printing to PDF. Try to keep number of columns under 10."
-msgstr "Algumas colunas podem ser cortadas ao imprimir em PDF. Tente manter o número de colunas abaixo de 10."
+msgstr ""
 
 #. Description of the 'Sent Folder Name' (Data) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_domain/email_domain.json
@@ -26813,7 +26813,7 @@ msgstr ""
 
 #: frappe/core/doctype/user_type/user_type.py:78
 msgid "The field {0} is mandatory"
-msgstr "O campo {0} é obrigatório"
+msgstr ""
 
 #: frappe/core/doctype/file/file.py:177
 msgid "The fieldname you've specified in Attached To Field is invalid"
@@ -26909,7 +26909,7 @@ msgstr "O recurso que procura não está disponível"
 
 #: frappe/core/doctype/user_type/user_type.py:82
 msgid "The role {0} should be a custom role."
-msgstr "A função {0} deve ser uma função personalizada."
+msgstr ""
 
 #: frappe/utils/response.py:331
 msgid "The system is being updated. Please refresh again after a few moments."
@@ -29516,7 +29516,7 @@ msgstr "Verificar senha"
 
 #: frappe/templates/includes/login/login.js:172
 msgid "Verifying..."
-msgstr "A verificar..."
+msgstr ""
 
 #. Name of a DocType
 #: frappe/core/doctype/version/version.json
@@ -30181,7 +30181,7 @@ msgstr "Largura"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:2
 msgid "Widths can be set in px or %."
-msgstr "As larguras podem ser definidas em px ou %."
+msgstr ""
 
 #. Label of a Check field in DocType 'Report Filter'
 #: frappe/core/doctype/report_filter/report_filter.json
@@ -30688,7 +30688,7 @@ msgstr "Também pode aceder às variáveis wkhtmltopdf (válidas apenas na impre
 
 #: frappe/templates/emails/new_user.html:22
 msgid "You can also copy-paste following link in your browser"
-msgstr "Também pode copiar e colar o seguinte link no seu navegador"
+msgstr ""
 
 #: frappe/templates/emails/download_data.html:9
 msgid "You can also copy-paste this "
@@ -30956,11 +30956,11 @@ msgstr "Tem {0} não vistos"
 
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:192
 msgid "You haven't added any Dashboard Charts or Number Cards yet."
-msgstr "Você ainda não adicionou nenhum Gráfico de Painel ou Cartão Numérico."
+msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:508
 msgid "You haven't created a {0} yet"
-msgstr "Você ainda não criou um {0}"
+msgstr ""
 
 #: frappe/rate_limiter.py:164
 msgid "You hit the rate limit because of too many requests. Please try after sometime."
@@ -31223,7 +31223,7 @@ msgstr ""
 
 #: frappe/templates/emails/verification_code.html:1
 msgid "Your verification code is {0}"
-msgstr "O seu código de verificação é {0}"
+msgstr ""
 
 #. Success message of the Module Onboarding 'Website'
 #: frappe/website/module_onboarding/website/website.json

@@ -5,6 +5,7 @@
 
 import json
 from functools import lru_cache
+from typing import Any
 
 from sql_metadata import Parser
 
@@ -291,7 +292,7 @@ def compress(data, args=None):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def save_report(name, doctype, report_settings):
+def save_report(name: str | int, doctype: str, report_settings: str):
 	"""Save reports of type Report Builder from Report View"""
 
 	if frappe.db.exists("Report", name):
@@ -328,7 +329,7 @@ def save_report(name, doctype, report_settings):
 
 
 @frappe.whitelist(methods=["POST", "DELETE"])
-def delete_report(name):
+def delete_report(name: str | int):
 	"""Delete reports of type Report Builder from Report View"""
 
 	report = frappe.get_doc("Report", name)
@@ -581,11 +582,13 @@ def delete_items():
 
 	if len(items) > 10:
 		frappe.enqueue("frappe.desk.reportview.delete_bulk", doctype=doctype, items=items)
-	else:
-		delete_bulk(doctype, items)
+		return None
+
+	return delete_bulk(doctype, items)
 
 
 def delete_bulk(doctype, items):
+	"""Delete documents one by one. Returns names that could not be deleted."""
 	undeleted_items = []
 	for i, d in enumerate(items):
 		try:
@@ -607,22 +610,26 @@ def delete_bulk(doctype, items):
 			frappe.db.rollback()
 	if undeleted_items and len(items) != len(undeleted_items):
 		frappe.clear_messages()
-		delete_bulk(doctype, undeleted_items)
+		return delete_bulk(doctype, undeleted_items)
 	elif undeleted_items:
 		frappe.msgprint(
 			_("Failed to delete {0} documents: {1}").format(len(undeleted_items), ", ".join(undeleted_items)),
 			realtime=True,
 			title=_("Bulk Operation Failed"),
 		)
-	else:
-		frappe.msgprint(
-			_("Deleted all documents successfully"), realtime=True, title=_("Bulk Operation Successful")
-		)
+		return undeleted_items
+
+	frappe.msgprint(
+		_("Deleted all documents successfully"), realtime=True, title=_("Bulk Operation Successful")
+	)
+	return []
 
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_sidebar_stats(stats, doctype, filters=None):
+def get_sidebar_stats(
+	stats: str | list[str], doctype: str, filters: str | list | dict[str, Any] | None = None
+):
 	if filters is None:
 		filters = []
 
@@ -638,7 +645,7 @@ def get_sidebar_stats(stats, doctype, filters=None):
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_stats(stats, doctype, filters=None):
+def get_stats(stats: str, doctype: str, filters: str | None = None):
 	"""get tag info"""
 	import json
 
@@ -696,7 +703,7 @@ def get_stats(stats, doctype, filters=None):
 
 
 @frappe.whitelist()
-def get_filter_dashboard_data(stats, doctype, filters=None):
+def get_filter_dashboard_data(stats: str, doctype: str, filters: str | None = None):
 	"""get tags info"""
 	import json
 

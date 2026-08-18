@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-24 20:33\n"
+"PO-Revision-Date: 2026-08-13 18:39\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -2651,7 +2651,7 @@ msgstr "确定生成新报表？"
 
 #: frappe/public/js/frappe/desk.js:372
 msgid "Are you sure you want to log out?"
-msgstr ""
+msgstr "您确定要退出登录吗？"
 
 #: frappe/public/js/frappe/form/toolbar.js:130
 msgid "Are you sure you want to merge {0} with {1}?"
@@ -8784,7 +8784,7 @@ msgstr "编辑现有项"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:400
 msgid "Edit Filter"
-msgstr ""
+msgstr "编辑筛选器"
 
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:60
 msgid "Edit Filters"

@@ -1,9 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import re
 from collections.abc import Iterable
 from datetime import timedelta
+from functools import cached_property, lru_cache
+from typing import Any
 
 import frappe
 import frappe.defaults
@@ -404,19 +405,13 @@ class User(Document):
 	def password_reset_mail(self, link):
 		reset_password_template = frappe.db.get_system_setting("reset_password_template")
 
-		q = self.send_login_mail(
+		self.send_login_mail(
 			_("Password Reset"),
 			"password_reset",
 			{"link": link},
 			now=True,
 			custom_template=reset_password_template,
 		)
-		if q:
-			raw_message = q.message
-			parts = re.split(r"(?i)Dear", raw_message, maxsplit=1)
-			if len(parts) > 1:
-				redacted_message = parts[0] + "[THE FOLLOWING CONTENT HAS BEEN REDACTED FOR SECURITY REASONS]"
-				frappe.db.set_value("Email Queue", q.name, "message", redacted_message, update_modified=False)
 
 	def send_welcome_mail_to_user(self):
 		from frappe.utils import get_url
@@ -435,7 +430,7 @@ class User(Document):
 
 		welcome_email_template = frappe.db.get_system_setting("welcome_email_template")
 
-		q = self.send_login_mail(
+		self.send_login_mail(
 			subject,
 			"new_user",
 			dict(
@@ -444,12 +439,6 @@ class User(Document):
 			),
 			custom_template=welcome_email_template,
 		)
-		if q:
-			raw_message = q.message
-			parts = re.split(r"(?i)Hello", raw_message, maxsplit=1)
-			if len(parts) > 1:
-				redacted_message = parts[0] + "[THE FOLLOWING CONTENT HAS BEEN REDACTED FOR SECURITY REASONS]"
-				frappe.db.set_value("Email Queue", q.name, "message", redacted_message, update_modified=False)
 
 	def send_login_mail(self, subject, template, add_args, now=None, custom_template=None):
 		"""send mail with login details"""
@@ -475,9 +464,7 @@ class User(Document):
 		) or None
 
 		if custom_template:
-			from frappe.email.doctype.email_template.email_template import get_email_template
-
-			email_template = get_email_template(custom_template, args)
+			email_template = frappe.get_doc("Email Template", custom_template).get_formatted_email(args)
 			subject = email_template.get("subject")
 			content = email_template.get("message")
 
@@ -491,6 +478,7 @@ class User(Document):
 			header=[subject, "green"],
 			delayed=(not now) if now is not None else self.flags.delay_emails,
 			retry=3,
+			redact_message_after_send=True,
 		)
 
 	def on_trash(self):
@@ -794,9 +782,14 @@ class User(Document):
 
 @frappe.whitelist()
 def get_timezones():
+	return {"timezones": _get_timezones()}
+
+
+@lru_cache(maxsize=1)
+def _get_timezones():
 	import pytz
 
-	return {"timezones": pytz.all_timezones}
+	return sorted(pytz.common_timezones)
 
 
 @frappe.whitelist()
@@ -818,13 +811,13 @@ def get_all_roles():
 
 
 @frappe.whitelist()
-def get_roles(arg=None):
+def get_roles(arg: None = None):
 	"""get roles for a user"""
 	return frappe.get_roles(frappe.form_dict["uid"])
 
 
 @frappe.whitelist()
-def get_perm_info(role):
+def get_perm_info(role: str):
 	"""get permission info"""
 	from frappe.permissions import get_all_perms
 
@@ -887,7 +880,9 @@ def update_password(
 
 
 @frappe.whitelist(allow_guest=True)
-def test_password_strength(new_password: str, key=None, old_password=None, user_data: tuple | None = None):
+def test_password_strength(
+	new_password: str, key: str | None = None, old_password: str | None = None, user_data: tuple | None = None
+):
 	from frappe.utils.deprecations import deprecation_warning
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
@@ -987,7 +982,7 @@ def reset_user_data(user):
 
 
 @frappe.whitelist(methods=["POST"])
-def verify_password(password):
+def verify_password(password: str):
 	frappe.local.login_manager.check_password(frappe.session.user, password)
 
 
@@ -1076,7 +1071,7 @@ def reset_password(user: str) -> None:
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def user_query(doctype, txt, searchfield, start, page_len, filters):
+def user_query(doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict[str, Any]):
 	doctype = "User"
 
 	list_filters = {
@@ -1349,7 +1344,7 @@ def generate_keys(user: str):
 
 
 @frappe.whitelist()
-def switch_theme(theme):
+def switch_theme(theme: str):
 	if theme in ["Dark", "Light", "Automatic"]:
 		frappe.db.set_value("User", frappe.session.user, "desk_theme", theme)
 

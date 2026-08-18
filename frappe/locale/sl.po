@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-06-24 20:33\n"
+"PO-Revision-Date: 2026-07-22 14:20\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Slovenian\n"
 "MIME-Version: 1.0\n"
@@ -12395,7 +12395,7 @@ msgstr "Skrij gumbe Prejšnji, Naslednji in Zapri v pogovornem oknu označevanja
 
 #: frappe/public/js/frappe/list/list_filter.js:87
 msgid "Hide Saved"
-msgstr ""
+msgstr "Skrij shranjeno"
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Check field in DocType 'Custom Field'
@@ -13234,19 +13234,19 @@ msgstr "v sekundah"
 
 #: frappe/public/js/frappe/form/save.js:223
 msgid "In {0}, {1} is required in every row."
-msgstr ""
+msgstr "V {0}je v vsaki vrstici obvezno navesti {1}."
 
 #: frappe/public/js/frappe/form/save.js:229
 msgid "In {0}, {1} is required in row {2}."
-msgstr ""
+msgstr "V {0}je {1} potrebno v vrstici {2}."
 
 #: frappe/public/js/frappe/form/save.js:238
 msgid "In {0}, {1} is required in rows {2}."
-msgstr ""
+msgstr "V {0}je {1} potrebno v vrsticah {2}."
 
 #: frappe/public/js/frappe/form/save.js:245
 msgid "In {0}, {1} is required in {2} rows."
-msgstr ""
+msgstr "V {0}je {1} obvezno v {2} vrsticah."
 
 #: frappe/core/doctype/recorder/recorder_list.js:209
 msgid "Inactive"
@@ -19041,7 +19041,7 @@ msgstr "Pot strani"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:1544
 msgid "Page Saved Successfully"
-msgstr ""
+msgstr "Stran je bila uspešno shranjena"
 
 #. Label of a Section Break field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -19831,7 +19831,7 @@ msgstr "Prosimo, vnesite svoje staro geslo."
 
 #: frappe/public/js/frappe/form/save.js:256
 msgid "Please fill the following mandatory fields before saving:"
-msgstr ""
+msgstr "Pred shranjevanjem prosimo, izpolnite naslednja obvezna polja:"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:416
 msgid "Please find attached {0}: {1}"
@@ -19863,7 +19863,7 @@ msgstr "Pred prilaganjem shranite."
 
 #: frappe/email/doctype/newsletter/newsletter.py:133
 msgid "Please save the Newsletter before sending"
-msgstr ""
+msgstr "Pred pošiljanjem glasila ga shranite"
 
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:51
 msgid "Please save the document before assignment"
@@ -23104,7 +23104,7 @@ msgstr "Shrani prilagoditve"
 
 #: frappe/public/js/frappe/list/list_sidebar.html:73
 msgid "Save Filter"
-msgstr ""
+msgstr "Shrani filter"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1960
 msgid "Save Report"
@@ -24875,7 +24875,7 @@ msgstr "Prikaži poročilo"
 #: frappe/public/js/frappe/list/list_filter.js:18
 #: frappe/public/js/frappe/list/list_filter.js:87
 msgid "Show Saved"
-msgstr ""
+msgstr "Prikaži shranjeno"
 
 #. Label of a Check field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json

@@ -246,16 +246,23 @@ class NotificationsView extends BaseNotificationsView {
 		let doc_link = this.get_item_link(notification_log);
 
 		let read_class = notification_log.read ? "" : "unread";
-		let message = notification_log.subject;
+		// Title/Description are the canonical fields; fall back to the legacy subject/content.
+		let message = notification_log.title || notification_log.subject || "";
 
 		let title = message.match(/<b class="subject-title">(.*?)<\/b>/);
 		message = title
 			? message.replace(title[1], frappe.ellipsis(strip_html(title[1]), 100))
 			: message;
 
+		let description = notification_log.description || "";
+		let description_html = description
+			? `<div class="notification-description text-muted">${description}</div>`
+			: "";
+
 		let timestamp = frappe.datetime.comment_when(notification_log.creation);
 		let message_html = `<div class="message">
 			<div>${message}</div>
+			${description_html}
 			<div class="notification-timestamp text-muted">
 				${timestamp}
 			</div>
@@ -341,7 +348,16 @@ class NotificationsView extends BaseNotificationsView {
 		const link_docname = notification_doc.document_name
 			? notification_doc.document_name
 			: notification_doc.name;
-		return frappe.utils.get_form_link(link_doctype, link_docname);
+		const form_link = frappe.utils.get_form_link(link_doctype, link_docname);
+		// the timeline renders each entry with `id="<doctype>-<name>"`, so the
+		// source record anchors the link to the exact spot in the document
+		if (notification_doc.source_doctype && notification_doc.source_name) {
+			const anchor = `${frappe.scrub(notification_doc.source_doctype)}-${
+				notification_doc.source_name
+			}`;
+			return `${form_link}#${anchor}`;
+		}
+		return form_link;
 	}
 
 	toggle_notification_icon(seen) {

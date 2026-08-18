@@ -2,7 +2,6 @@ import "./assign_to";
 import "./attachments";
 import "./share";
 import "./review";
-import "./document_follow";
 import "./user_image";
 import "./form_sidebar_users";
 import { get_user_link, get_user_message } from "../footer/version_timeline_content_builder";

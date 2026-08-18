@@ -12,7 +12,8 @@
 			</div>
 			<div class="web-list-actions">
 				{%- if allow_multiple -%}
-					<a class="btn btn-primary btn-sm button-new" href="/{{ route }}/new">{{ _("New") }}</a>
+					{% set request_query = "?web_form_request_key=" + web_form_request_key if web_form_request_key else "" %}
+					<a class="btn btn-primary btn-sm button-new" href="/{{ route }}/new{{ request_query }}">{{ _("New") }}</a>
 				{%- endif -%}
 			</div>
 		</div>

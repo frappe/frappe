@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-05 21:52\n"
+"PO-Revision-Date: 2026-08-04 17:32\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -18628,7 +18628,7 @@ msgstr "Modul oder Werkzeug öffnen"
 
 #: frappe/public/js/print_format_builder/Preview.vue:17
 msgid "Open in a new tab"
-msgstr "In einer neuen Registerkarte öffnen"
+msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:1242
 msgctxt "Description of a list view shortcut"
@@ -20316,7 +20316,7 @@ msgstr "Vorschau der generierten Namen"
 
 #: frappe/public/js/print_format_builder/Preview.vue:103
 msgid "Preview type"
-msgstr "Vorschautyp"
+msgstr ""
 
 #: frappe/email/doctype/email_group/email_group.js:90
 msgid "Preview:"

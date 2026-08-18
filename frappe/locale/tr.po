@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-07-05 21:52\n"
+"PO-Revision-Date: 2026-08-11 18:25\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -1777,7 +1777,7 @@ msgstr "Sağa Hizala"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:481
 msgid "Align Value"
-msgstr "Değer Hizala"
+msgstr ""
 
 #. Name of a role
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
@@ -3849,7 +3849,7 @@ msgstr "Bot"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:128
 msgid "Both DocType and Name required"
-msgstr "Hem DocType hem de Ad gereklidir"
+msgstr ""
 
 #: frappe/templates/includes/login/login.js:25
 #: frappe/templates/includes/login/login.js:97
@@ -4699,7 +4699,7 @@ msgstr "Şifreyi Değiştir"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:27
 msgid "Change Print Format"
-msgstr "Yazdırma Biçimini Değiştir"
+msgstr ""
 
 #: frappe/desk/page/user_profile/user_profile_controller.js:51
 #: frappe/desk/page/user_profile/user_profile_controller.js:59
@@ -4810,7 +4810,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:1
 msgid "Check columns to select, drag to set order."
-msgstr "Seçmek için sütunları işaretleyin, sıralamak için sürükleyin."
+msgstr ""
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:457
 msgid "Check the Error Log for more information: {0}"
@@ -5005,7 +5005,7 @@ msgstr "Seçmek için bir dosyaya tıklayın."
 
 #: frappe/templates/emails/login_with_email_link.html:19
 msgid "Click on the button to log in to {0}"
-msgstr "{0} adresinde oturum açmak için düğmeye tıklayın"
+msgstr ""
 
 #: frappe/templates/emails/data_deletion_approval.html:2
 msgid "Click on the link below to approve the request"
@@ -5013,7 +5013,7 @@ msgstr "Talebi onaylamak için aşağıdaki bağlantıya tıklayın"
 
 #: frappe/templates/emails/new_user.html:7
 msgid "Click on the link below to complete your registration and set a new password"
-msgstr "Kaydınızı tamamlamak ve yeni bir şifre belirlemek için aşağıdaki bağlantıya tıklayın"
+msgstr ""
 
 #: frappe/templates/emails/download_data.html:3
 msgid "Click on the link below to download your data"
@@ -8556,7 +8556,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:3
 msgid "Drag elements from the sidebar to add. Drag them back to trash."
-msgstr "Eklemek istediğiniz öğeleri kenar çubuğundan sürükleyin. Onları çöp kutusuna geri sürükleyin."
+msgstr ""
 
 #: frappe/public/js/workflow_builder/WorkflowBuilder.vue:296
 msgid "Drag to add state"
@@ -10951,7 +10951,7 @@ msgstr "Takip Et"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:124
 msgid "Followed by"
-msgstr "Takip Eden"
+msgstr ""
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:132
 msgid "Following Report Filters have missing values:"
@@ -11140,7 +11140,7 @@ msgstr "Örnek:"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:746
 msgid "For example: If you want to include the document ID, use {0}"
-msgstr "Örnek: Belge kimliğini eklemek istiyorsanız {0} kullanın"
+msgstr ""
 
 #. Description of the 'Format' (Data) field in DocType 'Workspace Shortcut'
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
@@ -15496,7 +15496,7 @@ msgstr "Günlük Kayıt için DocType"
 
 #: frappe/templates/emails/login_with_email_link.html:27
 msgid "Log In To {0}"
-msgstr "{0} Adresine Giriş Yapın"
+msgstr ""
 
 #. Label of a Int field in DocType 'Data Import Log'
 #: frappe/core/doctype/data_import_log/data_import_log.json
@@ -16399,7 +16399,7 @@ msgstr "Eksik İzin"
 
 #: frappe/www/update-password.html:107 frappe/www/update-password.html:114
 msgid "Missing Value"
-msgstr "Eksik Değer"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/field_group.js:164
 #: frappe/public/js/frappe/widgets/widget_dialog.js:349
@@ -17599,7 +17599,7 @@ msgstr "{0} ile etiketlenen belge bulunamadı"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:21
 msgid "No email account associated with the User. Please add an account under User > Email Inbox."
-msgstr "Kullanıcıyla ilişkilendirilmiş bir e-posta hesabı bulunmamaktadır. Lütfen bir hesap ekleyin: Kullanıcı > E-posta Gelen Kutusu."
+msgstr ""
 
 #: frappe/core/api/user_invitation.py:17
 msgid "No email addresses to invite"
@@ -17651,7 +17651,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:417
 msgid "No of Columns"
-msgstr "Sütun Sayısı"
+msgstr ""
 
 #. Label of a Int field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
@@ -18622,7 +18622,7 @@ msgstr ""
 
 #: frappe/public/js/print_format_builder/Preview.vue:17
 msgid "Open in a new tab"
-msgstr "Yeni sekmede aç"
+msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:1242
 msgctxt "Description of a list view shortcut"
@@ -19275,7 +19275,7 @@ msgstr "Şifre gereksinimleri karşılanmadı"
 
 #: frappe/www/update-password.html:164
 msgid "Password set"
-msgstr "Şifre ayarlandı"
+msgstr ""
 
 #: frappe/auth.py:254
 msgid "Password size exceeded the maximum allowed size"
@@ -19814,7 +19814,7 @@ msgstr "Size geri dönüş yapabilmemiz için lütfen hem e-postanızı hem de m
 
 #: frappe/www/update-password.html:232
 msgid "Please enter the password"
-msgstr "Lütfen şifrenizi girin"
+msgstr ""
 
 #: frappe/public/js/frappe/desk.js:211
 msgctxt "Email Account"
@@ -23493,7 +23493,7 @@ msgstr "Bölüm Başlığı"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:423
 msgid "Section Heading"
-msgstr "Bölüm Başlığı"
+msgstr ""
 
 #. Label of a Data field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
@@ -25562,7 +25562,7 @@ msgstr "Bu satırın altına veri girmeye başlayın"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:167
 msgid "Start new Format"
-msgstr "Yeni Format Başlat"
+msgstr ""
 
 #. Option for the 'SSL/TLS Mode' (Select) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -26854,7 +26854,7 @@ msgstr ""
 
 #: frappe/core/doctype/user_type/user_type.py:78
 msgid "The field {0} is mandatory"
-msgstr "{0} alanı zorunludur"
+msgstr ""
 
 #: frappe/core/doctype/file/file.py:177
 msgid "The fieldname you've specified in Attached To Field is invalid"
@@ -30224,7 +30224,7 @@ msgstr "Genişlik"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:2
 msgid "Widths can be set in px or %."
-msgstr "Genişlikler px veya % olarak ayarlanabilir."
+msgstr ""
 
 #. Label of a Check field in DocType 'Report Filter'
 #: frappe/core/doctype/report_filter/report_filter.json
@@ -30706,7 +30706,7 @@ msgstr "Bu kaynağa erişim izniniz yok. Erişmek için giriş yapın"
 
 #: frappe/public/js/frappe/form/sidebar/document_follow.js:131
 msgid "You are now following this document. You will receive daily updates via email. You can change this in User Settings."
-msgstr "Şu anda bu belgeyi takip ediyorsunuz. Günlük güncellemeleri e-posta yoluyla alacaksınız. Bunu Kullanıcı Ayarları'ndan değiştirebilirsiniz."
+msgstr ""
 
 #: frappe/core/doctype/installed_applications/installed_applications.py:125
 msgid "You are only allowed to update order, do not remove or add apps."
@@ -30731,7 +30731,7 @@ msgstr "wkhtmltopdf değişkenlerine de erişebilirsiniz (yalnızca PDF yazdırm
 
 #: frappe/templates/emails/new_user.html:22
 msgid "You can also copy-paste following link in your browser"
-msgstr "Aşağıdaki bağlantıyı tarayıcınıza kopyalayıp yapıştırabilirsiniz"
+msgstr ""
 
 #: frappe/templates/emails/download_data.html:9
 msgid "You can also copy-paste this "
@@ -31003,7 +31003,7 @@ msgstr "Henüz herhangi bir <b>Gösterge Tablosu</b> ve <b>Sayı Kartı</b> ekle
 
 #: frappe/public/js/frappe/list/list_view.js:508
 msgid "You haven't created a {0} yet"
-msgstr "Henüz bir {0} oluşturmadınız"
+msgstr ""
 
 #: frappe/rate_limiter.py:164
 msgid "You hit the rate limit because of too many requests. Please try after sometime."
@@ -31266,7 +31266,7 @@ msgstr ""
 
 #: frappe/templates/emails/verification_code.html:1
 msgid "Your verification code is {0}"
-msgstr "Doğrulama kodunuz {0}"
+msgstr ""
 
 #. Success message of the Module Onboarding 'Website'
 #: frappe/website/module_onboarding/website/website.json

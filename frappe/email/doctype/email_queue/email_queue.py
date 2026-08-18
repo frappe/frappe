@@ -40,6 +40,8 @@ from frappe.utils.verified_command import get_signed_params
 if TYPE_CHECKING:
 	from typing import Literal
 
+REDACTED_MESSAGE = "[THE FOLLOWING CONTENT HAS BEEN REDACTED FOR SECURITY REASONS]"
+
 
 class EmailQueue(Document):
 	# begin: auto-generated types
@@ -61,6 +63,7 @@ class EmailQueue(Document):
 		message_id: DF.SmallText | None
 		priority: DF.Int
 		recipients: DF.Table[EmailQueueRecipient]
+		redact_message_after_send: DF.Check
 		reference_doctype: DF.Link | None
 		reference_name: DF.Data | None
 		retry: DF.Int
@@ -127,6 +130,18 @@ class EmailQueue(Document):
 		if self.communication and frappe.db.exists("Communication", self.communication):
 			communication_doc = frappe.get_doc("Communication", self.communication)
 			communication_doc.set_delivery_status(commit=commit)
+
+	def redact_message(self):
+		"""Drop the message body, keeping the headers.
+
+		Only called once the email is out of the door, since the queued message is the only
+		copy the retrying sender has.
+		"""
+		message = Parser(policy=SMTP).parsestr(self.message)
+		message.clear_content()
+		message.set_content(REDACTED_MESSAGE)
+
+		self.update_db(message=message.as_string(), commit=True)
 
 	@property
 	def cc(self):
@@ -273,6 +288,16 @@ class SendMailContext:
 			update_fields = {"status": "Sent"}
 
 		self.queue_doc.update_status(**update_fields, commit=True)
+
+		if not exc_type and self.queue_doc.redact_message_after_send:
+			try:
+				self.queue_doc.redact_message()
+			except Exception:
+				frappe.log_error(
+					title="Failed to redact email message after send",
+					reference_doctype=self.queue_doc.doctype,
+					reference_name=self.queue_doc.name,
+				)
 
 	@savepoint(catch=Exception)
 	def notify_failed_email(self):
@@ -450,7 +475,7 @@ def bulk_retry(queues):
 
 
 @frappe.whitelist()
-def send_now(name, force_send: bool = False):
+def send_now(name: str | int, force_send: bool = False):
 	record = EmailQueue.find(name)
 	if record:
 		record.check_permission()
@@ -458,7 +483,7 @@ def send_now(name, force_send: bool = False):
 
 
 @frappe.whitelist()
-def toggle_sending(enable):
+def toggle_sending(enable: bool | int | str):
 	frappe.only_for("System Manager")
 	suspend_value = 0 if sbool(enable) else 1
 	frappe.db.set_default("suspend_email_queue", suspend_value)
@@ -521,6 +546,7 @@ class QueueBuilder:
 		email_read_tracker_url=None,
 		x_priority: Literal[1, 3, 5] = 3,
 		email_headers=None,
+		redact_message_after_send=False,
 	):
 		"""Add email to sending queue (Email Queue)
 
@@ -552,6 +578,7 @@ class QueueBuilder:
 		:param email_read_tracker_url: A URL for tracking whether an email is read by the recipient.
 		:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
 		:param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
+		:param redact_message_after_send: Replace the message body with a placeholder once sent, for emails carrying sensitive content.
 		"""
 
 		self._unsubscribe_method = unsubscribe_method
@@ -589,6 +616,7 @@ class QueueBuilder:
 		self.print_letterhead = print_letterhead
 		self.email_read_tracker_url = email_read_tracker_url
 		self.email_headers = email_headers
+		self.redact_message_after_send = redact_message_after_send
 
 	@property
 	def unsubscribe_method(self):
@@ -854,6 +882,7 @@ class QueueBuilder:
 			"show_as_bcc": ",".join(self.final_bcc()),
 			"email_account": email_account_name or None,
 			"email_read_tracker_url": self.email_read_tracker_url,
+			"redact_message_after_send": self.redact_message_after_send,
 		}
 
 		if include_recipients:

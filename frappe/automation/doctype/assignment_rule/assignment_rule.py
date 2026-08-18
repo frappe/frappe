@@ -229,7 +229,7 @@ def get_assignments(doc) -> list[dict]:
 
 
 @frappe.whitelist()
-def bulk_apply(doctype, docnames):
+def bulk_apply(doctype: str, docnames: str | list[str]):
 	docnames = frappe.parse_json(docnames)
 	background = len(docnames) > 5
 
@@ -279,6 +279,7 @@ def apply(doc=None, method=None, doctype=None, name=None):
 
 	if not doc and doctype and name:
 		doc = frappe.get_doc(doctype, name)
+		doc.check_permission()
 
 	assignment_rules = get_doctype_map(
 		"Assignment Rule",

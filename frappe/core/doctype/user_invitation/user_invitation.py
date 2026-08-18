@@ -36,7 +36,7 @@ class UserInvitation(Document):
 		self.status = "Pending"
 
 	def after_insert(self):
-		self._after_insert()
+		self.send_invitation_mail()
 
 	def accept(self, ignore_permissions: bool = False):
 		self._accept()
@@ -99,7 +99,7 @@ class UserInvitation(Document):
 		if user_enabled is not None and user_enabled == 0:
 			frappe.throw(title=_("Error"), msg=_("User is disabled"))
 
-	def _after_insert(self):
+	def send_invitation_mail(self):
 		key = frappe.generate_hash()
 		self.db_set("key", frappe.utils.sha256_hash(key))
 		invite_link = frappe.utils.get_url(

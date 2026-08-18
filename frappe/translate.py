@@ -625,7 +625,7 @@ def extract_messages_from_python_code(code: str) -> list[tuple[int, str, str | N
 
 	for message in extract_python(
 		io.BytesIO(code.encode()),
-		keywords=["_", "_lt"],
+		keywords=["_", "_lt", "N_"],
 		comment_tags=(),
 		options={},
 	):
@@ -889,7 +889,7 @@ def deduplicate_messages(messages):
 
 
 @frappe.whitelist()
-def update_translations_for_source(source=None, translation_dict=None):
+def update_translations_for_source(source: str | None = None, translation_dict: str | None = None):
 	if not (source and translation_dict):
 		return
 

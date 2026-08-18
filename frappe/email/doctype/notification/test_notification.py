@@ -222,6 +222,31 @@ class TestNotification(FrappeTestCase):
 			)
 		)
 
+	def test_system_notification_sets_app_from_module(self):
+		"""A System Notification rule records its owning app (from `module`) on the log."""
+		notification = {
+			"name": "Test App From Module",
+			"notification_title": "Test App From Module",
+			"document_type": "Event",
+			"module": "Core",  # owned by the frappe app
+			"event": "New",
+			"channel": "System Notification",
+			"notification_type": "Alert",
+			"recipients": [{"receiver_by_document_field": "owner"}],
+		}
+
+		with get_test_notification(notification) as n:
+			frappe.db.delete("Notification Log", {"title": n.notification_title})
+
+			event = frappe.new_doc("Event")
+			event.subject = "Test App From Module Event"
+			event.event_type = "Private"
+			event.starts_on = frappe.utils.add_to_date(frappe.utils.now_datetime(), minutes=14)
+			event.insert()
+
+			app = frappe.db.get_value("Notification Log", {"title": n.notification_title}, "app")
+			self.assertEqual(app, "frappe")
+
 	def test_alert_disabled_on_wrong_field(self):
 		frappe.set_user("Administrator")
 		notification = frappe.get_doc(

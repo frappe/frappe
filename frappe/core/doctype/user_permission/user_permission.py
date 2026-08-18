@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+from typing import Any
 
 import frappe
 from frappe import _
@@ -82,7 +83,7 @@ def send_user_permissions(bootinfo):
 
 
 @frappe.whitelist()
-def get_user_permissions(user=None):
+def get_user_permissions(user: str | None = None):
 	"""Get all users permissions for the user as a dict of doctype"""
 	# if this is called from client-side,
 	# user can access only his/her user permissions
@@ -157,7 +158,9 @@ def user_permission_exists(user, allow, for_value, applicable_for=None):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, filters):
+def get_applicable_for_doctype_list(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict[str, Any]
+):
 	linked_doctypes_map = get_linked_doctypes(doctype, True)
 
 	linked_doctypes = []
@@ -188,7 +191,7 @@ def get_permitted_documents(doctype):
 
 
 @frappe.whitelist()
-def check_applicable_doc_perm(user, doctype, docname):
+def check_applicable_doc_perm(user: str, doctype: str, docname: str | int):
 	frappe.only_for("System Manager")
 	applicable = []
 	doc_exists = frappe.get_all(
@@ -220,7 +223,7 @@ def check_applicable_doc_perm(user, doctype, docname):
 
 
 @frappe.whitelist()
-def clear_user_permissions(user, for_doctype):
+def clear_user_permissions(user: str, for_doctype: str):
 	frappe.only_for("System Manager")
 	total = frappe.db.count("User Permission", {"user": user, "allow": for_doctype})
 
@@ -238,7 +241,7 @@ def clear_user_permissions(user, for_doctype):
 
 
 @frappe.whitelist()
-def add_user_permissions(data):
+def add_user_permissions(data: str | dict[str, Any]):
 	"""Add and update the user permissions"""
 	frappe.only_for("System Manager")
 	if isinstance(data, str):

@@ -10,12 +10,14 @@
   "subscribed_documents",
   "column_break_3",
   "enable_email_notifications",
+  "email_notification_types",
+  "email_notification_types_html",
+  "enable_email_threads_on_assigned_document",
+  "enable_email_event_reminders",
   "enable_email_mention",
   "enable_email_assignment",
-  "enable_email_threads_on_assigned_document",
   "enable_email_energy_point",
   "enable_email_share",
-  "enable_email_event_reminders",
   "user",
   "seen",
   "system_notifications_section",
@@ -46,10 +48,26 @@
    "label": "Enable Email Notifications"
   },
   {
+   "depends_on": "enable_email_notifications",
+   "description": "Receive an email for notifications of these types. Remove a type to stop its emails (in-app notifications are unaffected).",
+   "fieldname": "email_notification_types",
+   "fieldtype": "Table MultiSelect",
+   "hidden": 1,
+   "label": "Email me for these notification types",
+   "options": "Notification Type Preference"
+  },
+  {
+   "depends_on": "enable_email_notifications",
+   "fieldname": "email_notification_types_html",
+   "fieldtype": "HTML",
+   "label": "Email me for these notification types"
+  },
+  {
    "default": "1",
    "depends_on": "enable_email_notifications",
    "fieldname": "enable_email_mention",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Mentions"
   },
   {
@@ -57,6 +75,7 @@
    "depends_on": "enable_email_notifications",
    "fieldname": "enable_email_assignment",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Assignments"
   },
   {
@@ -64,6 +83,7 @@
    "depends_on": "enable_email_notifications",
    "fieldname": "enable_email_energy_point",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Energy Points"
   },
   {
@@ -71,6 +91,7 @@
    "depends_on": "enable_email_notifications",
    "fieldname": "enable_email_share",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Document Share"
   },
   {
