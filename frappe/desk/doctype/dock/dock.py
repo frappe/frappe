@@ -411,11 +411,20 @@ def is_reachable(entry) -> bool:
 	the thing it points at: module visibility for a sidebar -- whose name is its module's name --
 	and the permitted workspace list for a workspace. Neither is anything the dock decides for
 	itself, and a third kind would bring its own rather than reuse one of these.
+
+	Existence is asked first, and only of the sidebar half. `is_module_visible` answers "not
+	blocked", which a module that does not exist answers just as happily as one that does -- so
+	on its own it lets a row naming a deleted or renamed module render an entry that leads
+	nowhere. `shape_dock_rows` already proves existence on the way in, but the two paths that
+	skip it are exactly the ones that go stale: a row stored before the module went away, and
+	an `add_to_dock` row from an app whose module has been renamed since. The workspace half
+	needs no equivalent -- `permitted_workspaces` is a membership test against real rows.
 	"""
 	from frappe.utils.modules import is_module_visible
 
 	if entry.get("type") == "Sidebar":
-		return is_module_visible(entry.get("name"))
+		module = entry.get("name")
+		return bool(frappe.db.exists("Module Def", module, cache=True)) and is_module_visible(module)
 
 	if entry.get("type") == "Workspace":
 		return entry.get("name") in permitted_workspaces()
