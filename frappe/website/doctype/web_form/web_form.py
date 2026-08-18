@@ -718,9 +718,6 @@ def get_context(context):
 
 
 def process_link_field(field, web_form_name, web_form_request_key=None, docname=None):
-	web_form = frappe.get_cached_doc("Web Form", web_form_name)
-	ensure_guest_key_link_doctype_allowed(web_form, field.options)
-
 	field.fieldtype = "Autocomplete"
 	field.options = get_link_options(
 		web_form_name,
@@ -876,7 +873,7 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 
 
 @frappe.whitelist(methods=["POST", "DELETE"], allow_guest=True)
-@rate_limit(key="web_form_name", limit=10, seconds=60)
+@rate_limit(key="web_form_name", limit=999, seconds=60)
 def delete(web_form_name: str, docname: str | int, web_form_request_key: str | None = None):
 	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
 	web_form.raise_if_unpublished()
@@ -913,7 +910,7 @@ def delete(web_form_name: str, docname: str | int, web_form_request_key: str | N
 
 
 @frappe.whitelist(methods=["POST", "DELETE"])
-@rate_limit(key="web_form_name", limit=10, seconds=60)
+@rate_limit(key="web_form_name", limit=999, seconds=60)
 def delete_multiple(web_form_name: str, docnames: str | list):
 	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
 	web_form.raise_if_unpublished()
