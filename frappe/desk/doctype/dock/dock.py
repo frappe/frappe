@@ -248,6 +248,68 @@ def dock_fragments() -> dict[str, list[dict]]:
 	return {app: own.get(app, []) + pinned.get(app, []) for app in own.keys() | pinned.keys()}
 
 
+def check_dock_hooks() -> list[str]:
+	"""Every `add_to_dock` row an app declared that the dock cannot use, described in words.
+
+	Nothing reads a dock hook except the boot, and the boot's answer to a row it does not
+	understand is to leave it out. That is the right answer at boot -- one bad row must not cost
+	an app its whole rail -- but it means an author who typed `"Sidbar"` or named a module that
+	has since been renamed sees no error at all, just a rail button that never appears. This is
+	where they are told.
+
+	Run at migrate, which is when an author has just edited `hooks.py`, and after the modules
+	have been synced -- so a row naming a module the app added in this very release is not
+	reported as naming a module that does not exist.
+
+	Returns descriptions rather than printing them, so the caller decides where they go and a
+	test can read them.
+	"""
+	problems = []
+	installed = frappe.get_active_apps()
+
+	for app in installed:
+		for raw in frappe.get_hooks(DOCK_HOOK, app_name=app) or []:
+			if not isinstance(raw, dict):
+				problems.append(f"{app}: {raw!r} is not a row -- a dock entry is a dict, not a bare name")
+				continue
+
+			entry = points_at(raw)
+			if entry["type"] not in DOCK_TYPES:
+				kinds = " or ".join(sorted(DOCK_TYPES))
+				problems.append(f"{app}: {raw!r} names a {entry['type']!r}, and a dock entry is a {kinds}")
+				continue
+
+			if not entry["name"]:
+				problems.append(f"{app}: {raw!r} names nothing")
+				continue
+
+			# A pin at an app that is not installed is silence by design, not a mistake: a
+			# companion may be installed before or without its host.
+			host = raw.get("app")
+			if host and host not in installed:
+				continue
+
+			if not frappe.db.exists(PROVED_BY[entry["type"]], entry["name"]):
+				proof = PROVED_BY[entry["type"]]
+				problems.append(f"{app}: {raw!r} names a {proof} that does not exist on this site")
+
+	return problems
+
+
+def report_dock_hook_problems() -> None:
+	"""Print what `check_dock_hooks` found. Nothing at all when there is nothing to say."""
+	problems = check_dock_hooks()
+	if not problems:
+		return
+
+	import click
+
+	click.secho("\nSome add_to_dock rows will not render:", fg="yellow", bold=True)
+	for problem in problems:
+		click.secho(f"  {problem}", fg="yellow")
+	click.secho("")
+
+
 def get_dock_workspaces() -> dict[str, list[str]]:
 	"""App -> the workspaces its fragment names, in fragment order.
 

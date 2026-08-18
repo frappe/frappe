@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.desk.doctype.dock.dock import (
+	check_dock_hooks,
 	get_site_dock,
 	get_site_dock_layer,
 	get_user_dock,
@@ -85,9 +86,9 @@ def dock_for(email=None, among=TRIO):
 def clear_arrangements():
 	"""The site's layer and every person's own, gone.
 
-	A layer outlives the person it belongs to -- `Dock` is in `ignore_links_on_delete`, so
-	deleting a User leaves theirs behind, the same way `Custom Sidebar` does -- and these suites
-	reuse the same addresses, so one left standing is the next test's mystery entry.
+	These suites reuse the same addresses, so a layer left standing is the next test's mystery
+	entry. Deleting the *user* is not enough on its own here, since these layers belong to
+	`Administrator`, who is never deleted.
 
 	Nothing an app ships is touched: an app's fragment is a hook, not a document, and a suite
 	that wants one declares it with `shipped_dock`.
@@ -1089,3 +1090,55 @@ class TestTheFrameworksTen(IntegrationTestCase):
 		unnamed = [name for name in entry_set if name in declared and name not in self.TEN]
 		self.assertEqual([name for name in resolved if name in unnamed], [])
 		self.assertEqual([name for name in unnamed if name not in get_code_only_modules()], ["Geo", "System"])
+
+
+class TestTheHookIsChecked(IntegrationTestCase):
+	"""What an app author is told when a row they wrote will never render.
+
+	The boot leaves out a row it does not understand, which is right at boot -- one bad row must
+	not cost an app its whole rail -- but on its own it means a typo produces no error and no
+	button. `check_dock_hooks` is the other half, run at migrate.
+	"""
+
+	def problems(self, rows) -> list[str]:
+		with shipped_dock({"frappe": rows}):
+			return check_dock_hooks()
+
+	def test_a_good_fragment_says_nothing(self):
+		with sidebarless_module("Test Checked Module") as module:
+			self.assertEqual(self.problems([sidebar(module)]), [])
+
+	def test_a_bare_name_is_not_a_row(self):
+		problems = self.problems(["Test Checked Module"])
+
+		self.assertEqual(len(problems), 1)
+		self.assertIn("not a row", problems[0])
+
+	def test_an_unknown_kind_is_named(self):
+		problems = self.problems([{"type": "Module", "name": "Users"}])
+
+		self.assertEqual(len(problems), 1)
+		self.assertIn("Module", problems[0])
+
+	def test_a_row_naming_nothing_is_reported(self):
+		problems = self.problems([{"type": "Sidebar"}])
+
+		self.assertEqual(len(problems), 1)
+		self.assertIn("names nothing", problems[0])
+
+	def test_a_module_that_does_not_exist_is_reported(self):
+		"""The typo an author is most likely to make, and the one the boot is quietest about:
+		the row is well formed, so it survives every shape check and then resolves to nothing."""
+		problems = self.problems([sidebar("Test Module That Is Not Here")])
+
+		self.assertEqual(len(problems), 1)
+		self.assertIn("Module Def that does not exist", problems[0])
+
+	def test_a_pin_at_an_app_that_is_not_installed_is_not_a_problem(self):
+		"""Silence by design: a companion may be installed before or without its host, and the
+		row is correct in both cases."""
+		self.assertEqual(self.problems([{"type": "Workspace", "name": "Anything", "app": "not-an-app"}]), [])
+
+	def test_the_frameworks_own_fragment_is_clean(self):
+		"""The check is only worth running if what we ship passes it."""
+		self.assertEqual(check_dock_hooks(), [])
