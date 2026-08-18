@@ -99,7 +99,9 @@ Object.assign(frappe.automation_flow, {
 					fieldtype: "Link",
 					options: frm.doc.document_type,
 					reqd: 1,
-					description: __("The flow runs for real against this document, then everything it did is rolled back."),
+					description: __(
+						"The flow runs for real against this document, then everything it did is rolled back."
+					),
 				},
 			],
 			primary_action_label: __("Run"),
@@ -145,7 +147,11 @@ Object.assign(frappe.automation_flow, {
 		const values = Object.entries(step.condition_values || {})
 			.map(([name, value]) => `${name} = ${JSON.stringify(value)}`)
 			.join(", ");
-		const read = values ? `<div class="text-muted small">${frappe.utils.escape_html(values)}</div>` : "";
-		return `<div class="text-muted small"><code>${frappe.utils.escape_html(step.condition)}</code></div>${read}`;
+		const read = values
+			? `<div class="text-muted small">${frappe.utils.escape_html(values)}</div>`
+			: "";
+		return `<div class="text-muted small"><code>${frappe.utils.escape_html(
+			step.condition
+		)}</code></div>${read}`;
 	},
 });
