@@ -153,7 +153,7 @@ frappe.ui.form.Sidebar = class {
 				) +
 					" <br> " +
 					(cint(frappe.boot.user.show_absolute_datetime_in_timeline) ||
-					cint(frappe.boot.sysdefaults.show_absolute_datetime_in_timeline)
+					frappe.defaults.is_enabled("show_absolute_datetime_in_timeline")
 						? frappe.datetime.str_to_user(this.frm.doc.modified)
 						: comment_when(this.frm.doc.modified))
 			);
@@ -167,7 +167,7 @@ frappe.ui.form.Sidebar = class {
 				) +
 					" <br> " +
 					(cint(frappe.boot.user.show_absolute_datetime_in_timeline) ||
-					cint(frappe.boot.sysdefaults.show_absolute_datetime_in_timeline)
+					frappe.defaults.is_enabled("show_absolute_datetime_in_timeline")
 						? frappe.datetime.str_to_user(this.frm.doc.creation)
 						: comment_when(this.frm.doc.creation))
 			);
