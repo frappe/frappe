@@ -404,12 +404,15 @@ class SQLiteSearch(ABC):
 					if documents:
 						self._index_documents(documents)
 
-						# Update progress with last processed document cursor
-						last_doc_modified = docs[-1].get(progress_field) or docs[-1].get("modified")
-						last_doc_name = docs[-1]["name"]
-						self._update_index_progress(doctype, last_doc_name, last_doc_modified, len(documents))
-						last_indexed_modified = last_doc_modified
-						last_indexed_name = last_doc_name
+					# Advance the cursor even when nothing in this batch was indexable: these
+					# rows have been consumed either way. Advancing only when `documents` was
+					# non-empty meant a batch whose documents all failed prepare_document()
+					# was fetched again forever, so build_index() never returned.
+					last_doc_modified = docs[-1].get(progress_field) or docs[-1].get("modified")
+					last_doc_name = docs[-1]["name"]
+					self._update_index_progress(doctype, last_doc_name, last_doc_modified, len(documents))
+					last_indexed_modified = last_doc_modified
+					last_indexed_name = last_doc_name
 
 					batch_count += 1
 

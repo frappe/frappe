@@ -334,6 +334,10 @@ body {
 			.password-field {
 				input {
 					padding-right: 38px;
+
+					&::-ms-reveal {
+						display: none; /* Hide Edge's native password reveal icon */
+					}
 				}
 
 				.toggle-password {

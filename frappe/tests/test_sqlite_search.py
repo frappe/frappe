@@ -569,3 +569,48 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 
 		finally:
 			test_note.delete()
+
+	def test_build_index_terminates_when_a_batch_has_no_indexable_documents(self):
+		"""build_index must advance its cursor even if nothing in a batch can be indexed.
+
+		prepare_document() may legitimately reject every document in a batch (missing text
+		fields, a subclass filtering by its own rules). The cursor used to advance only when
+		at least one document survived, so such a batch was re-fetched forever and
+		build_index() never returned - it spun at full CPU, opening a fresh SQLite connection
+		per iteration, until the process was killed.
+		"""
+		self.search.drop_index()
+
+		real_get_documents_paginated = self.search.get_documents_paginated
+		fetches = []
+
+		def counting_get_documents_paginated(*args, **kwargs):
+			fetches.append(kwargs.get("last_indexed_name"))
+			# Fail the test instead of hanging the suite if the cursor stops advancing.
+			if len(fetches) > 50:
+				raise AssertionError(
+					"build_index() re-fetched batches without advancing its cursor "
+					f"({len(fetches)} fetches for {len(self.search.doc_configs)} doctypes)"
+				)
+			return real_get_documents_paginated(*args, **kwargs)
+
+		with (
+			patch.object(TestSQLiteSearch, "prepare_document", return_value=None),
+			patch.object(self.search, "get_documents_paginated", counting_get_documents_paginated),
+		):
+			self.search.build_index()
+
+		# Every doctype is walked to exhaustion and marked complete, and nothing is indexed.
+		self.assertTrue(self.search.index_exists())
+
+		conn = sqlite3.connect(self.search.db_path)
+		try:
+			indexed_rows = conn.execute("SELECT COUNT(*) FROM search_fts").fetchone()[0]
+			incomplete = conn.execute(
+				"SELECT COUNT(*) FROM search_index_progress WHERE is_complete = 0"
+			).fetchone()[0]
+		finally:
+			conn.close()
+
+		self.assertEqual(indexed_rows, 0)
+		self.assertEqual(incomplete, 0, "every doctype should be marked complete")

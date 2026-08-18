@@ -8,12 +8,12 @@ import json
 import frappe
 from frappe import _
 from frappe.database.schema import add_column
-from frappe.desk.form.document_follow import follow_document
+from frappe.desk.form.document_follow import _follow_document
 from frappe.utils import get_link_to_form
 
 
 @frappe.whitelist()
-def toggle_like(doctype, name, add=False):
+def toggle_like(doctype: str, name: str, add: str | bool = False):
 	"""Adds / removes the current user in the `__liked_by` property of the given document.
 	If column does not exist, will add it in the database.
 
@@ -48,7 +48,7 @@ def _toggle_like(doctype, name, add, user=None):
 				liked_by.append(user)
 				add_comment(doctype, name)
 				if frappe.get_cached_value("User", user, "follow_liked_documents"):
-					follow_document(doctype, name, user)
+					_follow_document(doctype, name, user)
 		else:
 			if user in liked_by:
 				liked_by.remove(user)

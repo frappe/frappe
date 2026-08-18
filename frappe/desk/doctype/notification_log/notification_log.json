@@ -5,82 +5,149 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "subject",
-  "for_user",
+  "notification_section",
   "type",
-  "email_content",
+  "title",
+  "description",
+  "reference_section",
   "document_type",
-  "read",
   "document_name",
+  "source_doctype",
+  "source_name",
+  "app",
+  "column_break_ref",
+  "link",
+  "open_reference_document",
+  "recipient_section",
+  "for_user",
+  "from_user",
+  "column_break_rec",
+  "read",
+  "attachment_section",
   "attached_file",
   "attachment_link",
-  "open_reference_document",
-  "from_user",
-  "link",
+  "email_section",
+  "subject",
+  "email_content",
   "email_header"
  ],
  "fields": [
   {
-   "fieldname": "subject",
-   "fieldtype": "Text",
-   "in_list_view": 1,
-   "label": "Subject"
-  },
-  {
-   "fieldname": "for_user",
-   "fieldtype": "Link",
-   "hidden": 1,
-   "label": "For User",
-   "options": "User",
-   "search_index": 1
+   "fieldname": "notification_section",
+   "fieldtype": "Section Break",
+   "label": "Notification"
   },
   {
    "fieldname": "type",
-   "fieldtype": "Select",
-   "hidden": 1,
+   "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Type",
-   "options": "\nMention\nEnergy Point\nAssignment\nShare\nAlert"
+   "options": "Notification Type"
   },
   {
-   "fieldname": "email_content",
+   "fieldname": "title",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Title"
+  },
+  {
+   "fieldname": "description",
    "fieldtype": "Text Editor",
-   "label": "Message"
+   "label": "Description"
+  },
+  {
+   "fieldname": "reference_section",
+   "fieldtype": "Section Break",
+   "label": "Reference Document"
   },
   {
    "fieldname": "document_type",
    "fieldtype": "Link",
-   "hidden": 1,
    "label": "Document Type",
    "options": "DocType"
   },
   {
    "fieldname": "document_name",
    "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Document Link",
+   "label": "Document Name",
+   "search_index": 1
+  },
+  {
+   "fieldname": "source_doctype",
+   "fieldtype": "Link",
+   "label": "Source Document Type",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Source Document Name",
+   "options": "source_doctype",
+   "read_only": 1
+  },
+  {
+   "description": "App that produced this notification; used to scope app-specific panels. Derived from the reference document when not set explicitly.",
+   "fieldname": "app",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "App",
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_ref",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "link",
+   "fieldtype": "Small Text",
+   "label": "Link"
+  },
+  {
+   "depends_on": "eval: doc.link || (doc.document_type && doc.document_name)",
+   "fieldname": "open_reference_document",
+   "fieldtype": "Button",
+   "label": "Open Reference Document"
+  },
+  {
+   "fieldname": "recipient_section",
+   "fieldtype": "Section Break",
+   "label": "Recipient & Status"
+  },
+  {
+   "fieldname": "for_user",
+   "fieldtype": "Link",
+   "label": "For User",
+   "options": "User",
+   "read_only": 1,
    "search_index": 1
   },
   {
    "fieldname": "from_user",
    "fieldtype": "Link",
-   "hidden": 1,
    "label": "From User",
-   "options": "User"
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_rec",
+   "fieldtype": "Column Break"
   },
   {
    "default": "0",
    "fieldname": "read",
    "fieldtype": "Check",
-   "hidden": 1,
    "ignore_user_permissions": 1,
    "label": "Read"
   },
   {
-   "fieldname": "open_reference_document",
-   "fieldtype": "Button",
-   "label": "Open Reference Document"
+   "collapsible": 1,
+   "collapsible_depends_on": "attached_file",
+   "depends_on": "attached_file",
+   "fieldname": "attachment_section",
+   "fieldtype": "Section Break",
+   "label": "Attachment"
   },
   {
    "fieldname": "attached_file",
@@ -95,10 +162,21 @@
    "label": "Attachment Link"
   },
   {
-   "fieldname": "link",
-   "fieldtype": "Small Text",
-   "hidden": 1,
-   "label": "Link"
+   "collapsible": 1,
+   "description": "What the recipient receives by email when this notification fires. Mirrors Title/Description by default; set these to make the email differ from the in-app text.",
+   "fieldname": "email_section",
+   "fieldtype": "Section Break",
+   "label": "Email"
+  },
+  {
+   "fieldname": "subject",
+   "fieldtype": "Text",
+   "label": "Subject"
+  },
+  {
+   "fieldname": "email_content",
+   "fieldtype": "Text Editor",
+   "label": "Message"
   },
   {
    "fieldname": "email_header",
@@ -109,7 +187,7 @@
  "hide_toolbar": 1,
  "in_create": 1,
  "links": [],
- "modified": "2025-05-30 20:17:44.969738",
+ "modified": "2026-06-12 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Log",
@@ -129,6 +207,6 @@
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
- "title_field": "subject",
+ "title_field": "title",
  "track_seen": 1
 }

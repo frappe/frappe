@@ -23,6 +23,7 @@ class CustomField(Document):
 		from frappe.types import DF
 
 		alignment: DF.Literal["", "Left", "Center", "Right"]
+		allow_bulk_edit: DF.Check
 		allow_in_quick_entry: DF.Check
 		allow_on_submit: DF.Check
 		bold: DF.Check
@@ -272,7 +273,7 @@ class CustomField(Document):
 
 
 @frappe.whitelist()
-def get_fields_label(doctype=None):
+def get_fields_label(doctype: str | None = None):
 	meta = frappe.get_meta(doctype)
 
 	if doctype in core_doctypes_list:
@@ -398,7 +399,7 @@ def get_existing_custom_fields(custom_fields):
 	return {(field.dt, field.fieldname): field for field in existing_fields}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def rename_fieldname(custom_field: str, fieldname: str):
 	frappe.only_for("System Manager")
 

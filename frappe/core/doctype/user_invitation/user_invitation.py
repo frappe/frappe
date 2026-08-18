@@ -36,7 +36,7 @@ class UserInvitation(Document):
 		self.status = "Pending"
 
 	def after_insert(self):
-		self._after_insert()
+		self.send_invitation_mail()
 
 	def accept(self, ignore_permissions: bool = False):
 		self._accept()
@@ -57,6 +57,7 @@ class UserInvitation(Document):
 			subject=_("Invitation to join {0} cancelled").format(email_title),
 			template="user_invitation_cancelled",
 			args={"title": email_title},
+			with_container=True,
 			now=True,
 		)
 		return True
@@ -68,12 +69,12 @@ class UserInvitation(Document):
 		self.status = "Expired"
 		self.save()
 		email_title = self._get_email_title()
-		invited_by_user = frappe.get_doc("User", self.invited_by)
 		frappe.sendmail(
-			recipients=invited_by_user.email,
+			recipients=self.email,
 			subject=_("Invitation to join {0} expired").format(email_title),
 			template="user_invitation_expired",
 			args={"title": email_title},
+			with_container=True,
 			now=False,
 		)
 
@@ -99,7 +100,7 @@ class UserInvitation(Document):
 		if user_enabled is not None and user_enabled == 0:
 			frappe.throw(title=_("Error"), msg=_("User is disabled"))
 
-	def _after_insert(self):
+	def send_invitation_mail(self):
 		key = frappe.generate_hash()
 		self.db_set("key", frappe.utils.sha256_hash(key))
 		invite_link = frappe.utils.get_url(
@@ -111,6 +112,7 @@ class UserInvitation(Document):
 			subject=_("You've been invited to join {0}").format(email_title),
 			template="user_invitation",
 			args={"title": email_title, "invite_link": invite_link},
+			with_container=True,
 			now=True,
 		)
 		self.db_set("email_sent_at", frappe.utils.now())

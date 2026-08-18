@@ -933,6 +933,132 @@ class TestDBQuery(IntegrationTestCase):
 				limit=1,
 			)
 
+	def test_get_list_pluck_with_masked_fields(self):
+		"""Regression for the pluck-on-masked-doctype crash and mask handling.
+
+		For a non-admin user, a doctype with a masked field used to corrupt
+		``frappe.db.get_list(..., pluck=<name>)`` results: ``mask_list_results``
+		ran ``list(row)`` on each already-plucked scalar, so a string like
+		"P-1156" came back as the tuple ('P','-','1','1','5','6') and a non-
+		string value (int) raised ``TypeError`` on ``list(int)``.
+
+		Since eb9bf4428e made masking opt-in on ``apply_permissions``, only
+		permission-checking APIs (``frappe.db.get_list``) trigger masking.
+		``frappe.db.get_values`` and ``get_query(..., ignore_permissions=True)``
+		intentionally do not mask.
+		"""
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		frappe.delete_doc_if_exists("DocType", "Test Masked Pluck")
+		new_doctype(
+			"Test Masked Pluck",
+			fields=[
+				{"label": "Secret", "fieldname": "secret", "fieldtype": "Data", "mask": 1},
+				{"label": "Amount", "fieldname": "amount", "fieldtype": "Int"},
+			],
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "mask": 1},
+				{"role": "Blogger", "read": 1},
+			],
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc_if_exists, "DocType", "Test Masked Pluck")
+
+		record = frappe.get_doc({"doctype": "Test Masked Pluck", "secret": "P-1156", "amount": 42}).insert(
+			ignore_permissions=True
+		)
+
+		# Sanity: Administrator is never masked and gets the raw values.
+		self.assertEqual(
+			frappe.db.get_list("Test Masked Pluck", filters={"name": record.name}, pluck="name"),
+			[record.name],
+		)
+
+		with setup_test_user(set_user=True):
+			# `secret` is masked for this user, so the doctype has masked fields.
+			self.assertTrue(frappe.get_meta("Test Masked Pluck").get_masked_fields())
+
+			# Plucking a non-masked string field must return the scalar, not a
+			# char tuple.
+			self.assertEqual(
+				frappe.db.get_list("Test Masked Pluck", filters={"name": record.name}, pluck="name"),
+				[record.name],
+			)
+
+			# Plucking a non-masked int field must not raise (used to:
+			# list(int) -> TypeError).
+			self.assertEqual(
+				frappe.db.get_list("Test Masked Pluck", filters={"name": record.name}, pluck="amount"),
+				[42],
+			)
+
+			# Plucking the masked field itself returns the masked scalar value.
+			self.assertEqual(
+				frappe.db.get_list("Test Masked Pluck", filters={"name": record.name}, pluck="secret"),
+				["XXXXXXXX"],
+			)
+		frappe.set_user("Administrator")
+
+	def test_pluck_masks_field_wrapped_in_expression(self):
+		"""Regression for expression-tree bypass in mask_pluck_results.
+
+		Wrapping a masked field in a SQL function (Coalesce, Max, ...) or an
+		arithmetic expression must still mask the plucked result. The prior
+		check compared only ``fields[0].name`` — which returns the function
+		name ('COALESCE', 'MAX') for wrappers and is missing for arithmetic —
+		letting the raw value through.
+
+		Uses ``qb.get_query(..., ignore_permissions=False)`` since direct
+		``qb.from_(...).select(...).run()`` skips permission handling and
+		therefore skips masking (per eb9bf4428e).
+		"""
+		from pypika import functions as fn
+
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		frappe.delete_doc_if_exists("DocType", "Test Masked Pluck Wrapped")
+		new_doctype(
+			"Test Masked Pluck Wrapped",
+			fields=[
+				{"label": "Secret", "fieldname": "secret", "fieldtype": "Data", "mask": 1},
+				{"label": "Amount", "fieldname": "amount", "fieldtype": "Int"},
+			],
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "mask": 1},
+				{"role": "Blogger", "read": 1},
+			],
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc_if_exists, "DocType", "Test Masked Pluck Wrapped")
+
+		record = frappe.get_doc(
+			{"doctype": "Test Masked Pluck Wrapped", "secret": "P-1156", "amount": 42}
+		).insert(ignore_permissions=True)
+
+		def _pluck(field_expr):
+			return frappe.qb.get_query(
+				"Test Masked Pluck Wrapped",
+				fields=[field_expr],
+				filters={"name": record.name},
+				ignore_permissions=False,
+			).run(pluck=True)
+
+		with setup_test_user(set_user=True):
+			dt = frappe.qb.DocType("Test Masked Pluck Wrapped")
+
+			# Coalesce(secret, fallback) — Coalesce returns the raw secret when
+			# it is non-null, so the plucked result must be masked.
+			self.assertEqual(_pluck(fn.Coalesce(dt.secret, "fb")), ["XXXXXXXX"])
+
+			# Aggregation over the masked field — same principle.
+			self.assertEqual(_pluck(fn.Max(dt.secret)), ["XXXXXXXX"])
+
+			# Aliased wrapper — the alias must NOT hide the masked reference.
+			self.assertEqual(_pluck(fn.Coalesce(dt.secret, "fb").as_("s")), ["XXXXXXXX"])
+
+			# Non-masked field wrapped in a function — must NOT mask.
+			self.assertEqual(_pluck(fn.Max(dt.amount)), [42])
+
+		frappe.set_user("Administrator")
+
 	def test_cast_name(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 

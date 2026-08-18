@@ -1,7 +1,7 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from dateutil.relativedelta import relativedelta
 
@@ -556,7 +556,13 @@ def get_auto_repeat_entries(date=None):
 
 
 @frappe.whitelist()
-def make_auto_repeat(doctype, docname, frequency="Daily", start_date=None, end_date=None):
+def make_auto_repeat(
+	doctype: str,
+	docname: str | int,
+	frequency: str = "Daily",
+	start_date: str | datetime | None = None,
+	end_date: str | datetime | None = None,
+):
 	if not start_date:
 		start_date = getdate(today())
 	doc = frappe.new_doc("Auto Repeat")
@@ -573,7 +579,9 @@ def make_auto_repeat(doctype, docname, frequency="Daily", start_date=None, end_d
 # method for reference_doctype filter
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters):
+def get_auto_repeat_doctypes(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: str | dict | list
+):
 	res = frappe.get_all(
 		"Property Setter",
 		{

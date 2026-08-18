@@ -1,0 +1,103 @@
+{
+ "actions": [],
+ "creation": "2026-07-30 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "ref_doctype",
+  "ref_name",
+  "apps",
+  "queries",
+  "duration",
+  "method",
+  "depth",
+  "seq",
+  "handlers"
+ ],
+ "fields": [
+  {
+   "columns": 4,
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Method",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "ref_doctype",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ref_name",
+   "fieldtype": "Data",
+   "label": "Document",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "apps",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Apps",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "queries",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Queries",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "duration",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Duration (ms)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "method",
+   "fieldtype": "Data",
+   "label": "Raw Method",
+   "read_only": 1
+  },
+  {
+   "fieldname": "depth",
+   "fieldtype": "Int",
+   "label": "Depth",
+   "read_only": 1
+  },
+  {
+   "fieldname": "seq",
+   "fieldtype": "Int",
+   "label": "Sequence",
+   "read_only": 1
+  },
+  {
+   "fieldname": "handlers",
+   "fieldtype": "Small Text",
+   "label": "Handlers",
+   "read_only": 1
+  }
+ ],
+ "is_virtual": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-08-04 11:18:44.372615",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Recorder Event",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

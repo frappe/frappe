@@ -6,7 +6,7 @@ from frappe.www.printview import set_title_values_for_link_and_dynamic_link_fiel
 
 @frappe.whitelist()
 @http_cache(max_age=60 * 10)
-def get_preview_data(doctype, docname):
+def get_preview_data(doctype: str, docname: str | int):
 	preview_fields = []
 	meta = frappe.get_meta(doctype)
 	if not meta.show_preview_popup:

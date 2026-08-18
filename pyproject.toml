@@ -10,18 +10,19 @@ dynamic = ["version"]
 dependencies = [
     # core dependencies
     "Babel~=2.16.0",
-    "Click~=8.3.1",
+    "Click~=8.4.1",
     "filelock~=3.20.1",
     "filetype~=1.2.0",
     "GitPython~=3.1.45",
     "Jinja2~=3.1.6",
-    "Pillow~=12.2.0",
+    "Pillow~=12.3.0",
     "PyJWT~=2.13.0",
     "duckdb~=1.4.3",
+    "pyarrow~=25.0.0",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
-    "pypdf==6.13.3",
+    "pypdf==6.15.0",
     "PyPika @ git+https://github.com/frappe/pypika@2c50e6142b2d61d2d243e466fdd5dc03b3d918f2",
     "mysqlclient==2.2.7",
     "PyQRCode~=1.2.1",
@@ -32,11 +33,10 @@ dependencies = [
     "Werkzeug==3.1.6",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.13.5",
-    "bleach~=6.3.0",
     "bleach-allowlist~=1.0.3",
     "chardet~=5.2.0",
     "croniter~=6.0.0",
-    "cryptography~=46.0.3",
+    "cryptography~=50.0.0",
     "cssutils~=2.11.1",
     "distro~=1.9.0",
     "email-reply-parser~=0.5.12",
@@ -58,7 +58,7 @@ dependencies = [
     "premailer~=3.10.0",
     "psutil~=7.0.0",
     "psycopg2-binary~=2.9.11",
-    "pyOpenSSL~=26.0.0",
+    "pyOpenSSL~=26.4.0",
     "pydantic~=2.12.5",
     "pyotp~=2.9.0",
     "python-dateutil~=2.9.0.post0",
@@ -75,8 +75,8 @@ dependencies = [
     "rsa~=4.9.1",
     "semantic-version~=2.10.0",
     "sentry-sdk~=1.45.1",
-    "sqlparse~=0.5.5",
-    "sql_metadata~=2.19.0",
+    "sqlparse~=0.6.0",
+    "sql_metadata~=3.0.1",
     "tenacity~=9.1.2",
     "terminaltables~=3.1.10",
     "traceback-with-variables~=2.2.1",
@@ -217,6 +217,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
+exclude-newer-package = { pypdf = false, sqlparse = false } # drop sqlparse after 2026-08-20
 
 [tool.mypy]
 strict = false

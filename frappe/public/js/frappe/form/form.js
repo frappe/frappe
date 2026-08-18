@@ -537,6 +537,7 @@ frappe.ui.form.Form = class FrappeForm {
 			// reset page number to 1
 			grid_obj.grid.grid_pagination.go_to_page(1, true);
 		});
+		this.layout?.sections.forEach((section) => (section.expanded_by_user = false));
 		frappe.ui.form.close_grid_form();
 		this.viewers && this.viewers.parent.empty();
 		this.docname = docname;
@@ -947,7 +948,7 @@ frappe.ui.form.Form = class FrappeForm {
 				method: "frappe.desk.form.linked_with.get_submitted_linked_docs",
 				args: {
 					doctype: me.doc.doctype,
-					name: me.doc.name,
+					name: cstr(me.doc.name),
 					ignore_doctypes_on_cancel_all: me.ignore_doctypes_on_cancel_all,
 				},
 				freeze: true,

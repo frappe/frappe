@@ -75,6 +75,17 @@
 	opacity: 0;
 }
 
+.sidebar-notification-count {
+	min-width: 20px;
+	padding: 1px 7px;
+	background-color: var(--bg-gray-100);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+	line-height: 1.2;
+	text-align: center;
+	border-radius: 10px;
+}
+
 .sidebar-notification .standard-sidebar-item .item-anchor {
 	overflow: visible;
 }
