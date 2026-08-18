@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-06-24 16:55+0000\n"
-"PO-Revision-Date: 2026-08-13 18:39\n"
+"PO-Revision-Date: 2026-08-18 19:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Chinese Traditional\n"
 "MIME-Version: 1.0\n"
@@ -565,7 +565,7 @@ msgstr ""
 #: frappe/core/workspace/users/users.json
 #: frappe/integrations/workspace/integrations/integrations.json
 msgid "<span class=\"h4\"><b>Reports &amp; Masters</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>報表與&amp; 主檔</b></span>"
 
 #. Header text in the Tools Workspace
 #. Header text in the Users Workspace
@@ -574,7 +574,7 @@ msgstr ""
 #: frappe/core/workspace/users/users.json
 #: frappe/website/workspace/website/website.json
 msgid "<span class=\"h4\"><b>Your Shortcuts</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>您的捷徑</b></span>"
 
 #. Header text in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -1160,7 +1160,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/grid.js:101
 msgid "Add Multiple"
-msgstr ""
+msgstr "新增多筆"
 
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:32
 msgid "Add New"
@@ -1189,7 +1189,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/grid.js:98
 msgid "Add Row"
-msgstr ""
+msgstr "新增列"
 
 #. Label of a Check field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -2616,7 +2616,7 @@ msgstr ""
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Assignment"
-msgstr ""
+msgstr "指派"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
@@ -5286,7 +5286,7 @@ msgstr ""
 
 #: frappe/desk/page/leaderboard/leaderboard.js:112
 msgid "Company"
-msgstr ""
+msgstr "公司"
 
 #. Name of a DocType
 #: frappe/website/doctype/company_history/company_history.json
@@ -5854,7 +5854,7 @@ msgstr ""
 #: frappe/public/js/frappe/utils/number_systems.js:45
 msgctxt "Number system"
 msgid "Cr"
-msgstr ""
+msgstr "贷方"
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'
@@ -6795,7 +6795,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/controls/duration.js:20
 msgctxt "Duration"
 msgid "Days"
-msgstr ""
+msgstr "天"
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -7095,7 +7095,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/grid.js:94
 msgid "Delete All"
-msgstr ""
+msgstr "全部刪除"
 
 #. Label of a Int field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -7212,7 +7212,7 @@ msgstr ""
 #. Label of a Link in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
 msgid "Deleted Documents"
-msgstr ""
+msgstr "已刪除的文件"
 
 #. Label of a Data field in DocType 'Deleted Document'
 #: frappe/core/doctype/deleted_document/deleted_document.json
@@ -12350,7 +12350,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/controls/duration.js:22
 msgctxt "Duration"
 msgid "Hours"
-msgstr ""
+msgstr "小时"
 
 #. Description of the 'Number Format' (Select) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
@@ -12860,7 +12860,7 @@ msgstr ""
 #. Label of a shortcut in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
 msgid "Import Data"
-msgstr ""
+msgstr "匯入資料"
 
 #: frappe/email/doctype/email_group/email_group.js:14
 msgid "Import Email From"
@@ -15114,7 +15114,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Linked Documents"
-msgstr ""
+msgstr "关联单据"
 
 #: frappe/public/js/frappe/form/linked_with.js:23
 msgid "Linked With"
@@ -16171,7 +16171,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/controls/duration.js:23
 msgctxt "Duration"
 msgid "Minutes"
-msgstr ""
+msgstr "会议记录"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:103
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:108
@@ -16620,7 +16620,7 @@ msgstr ""
 #: frappe/public/js/frappe/widgets/number_card_widget.js:226
 msgctxt "Number not available"
 msgid "N/A"
-msgstr ""
+msgstr "不适用"
 
 #: frappe/workflow/doctype/workflow/workflow.js:19
 msgid "NOTE: If you add states or transitions in the table, it will be reflected in the Workflow Builder but you will have to position them manually. Also Workflow Builder is currently in <b>BETA</b>."
@@ -16991,7 +16991,7 @@ msgstr ""
 #: frappe/automation/workspace/tools/tools.json
 #: frappe/email/doctype/newsletter/newsletter.json
 msgid "Newsletter"
-msgstr ""
+msgstr "電子報"
 
 #. Name of a DocType
 #: frappe/email/doctype/newsletter_attachment/newsletter_attachment.json
@@ -19695,7 +19695,7 @@ msgstr ""
 
 #: frappe/desk/page/leaderboard/leaderboard.js:244
 msgid "Please select Company"
-msgstr ""
+msgstr "请选择公司"
 
 #: frappe/printing/doctype/print_format/print_format.js:31
 msgid "Please select DocType first"
@@ -22297,7 +22297,7 @@ msgstr ""
 #. Option for the 'Type' (Select) field in DocType 'Energy Point Log'
 #: frappe/social/doctype/energy_point_log/energy_point_log.json
 msgid "Review"
-msgstr ""
+msgstr "评审"
 
 #. Name of a DocType
 #: frappe/social/doctype/review_level/review_level.json
@@ -22317,7 +22317,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:87
 msgid "Reviews"
-msgstr ""
+msgstr "評論"
 
 #. Label of a Data field in DocType 'Connected App'
 #: frappe/integrations/doctype/connected_app/connected_app.json
@@ -22674,7 +22674,7 @@ msgstr ""
 #. Label of a Data field in DocType 'Energy Point Rule'
 #: frappe/social/doctype/energy_point_rule/energy_point_rule.json
 msgid "Rule Name"
-msgstr ""
+msgstr "規則名稱"
 
 #: frappe/permissions.py:663
 msgid "Rule for this doctype, role, permlevel and if-owner combination already exists."
@@ -24482,7 +24482,7 @@ msgstr ""
 #. Label of a Data field in DocType 'Blogger'
 #: frappe/website/doctype/blogger/blogger.json
 msgid "Short Name"
-msgstr ""
+msgstr "简称"
 
 #: frappe/utils/password_strength.py:85
 msgid "Short keyboard patterns are easy to guess"
@@ -27710,7 +27710,7 @@ msgstr ""
 #. Label of a Card Break in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
 msgid "Tools"
-msgstr ""
+msgstr "工具"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -27822,7 +27822,7 @@ msgstr ""
 #. Label of a Int field in DocType 'Newsletter'
 #: frappe/email/doctype/newsletter/newsletter.json
 msgid "Total Views"
-msgstr ""
+msgstr "总访问量"
 
 #. Label of a Duration field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
@@ -29524,7 +29524,7 @@ msgstr ""
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Watch Video"
-msgstr ""
+msgstr "觀看影片"
 
 #: frappe/desk/doctype/workspace/workspace.js:36
 msgid "We do not allow editing of this document. Simply click the Edit button on the workspace page to make your workspace editable and customize it as you wish"
@@ -30761,7 +30761,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:508
 msgid "You haven't created a {0} yet"
-msgstr ""
+msgstr "您尚未建立任何 {0}"
 
 #: frappe/rate_limiter.py:164
 msgid "You hit the rate limit because of too many requests. Please try after sometime."
@@ -30913,7 +30913,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:54
 msgid "YouTube"
-msgstr ""
+msgstr "YouTube"
 
 #: frappe/core/doctype/prepared_report/prepared_report.js:57
 msgid "Your CSV file is being generated and will appear in the Attachments section once ready. Additionally, you will get notified when the file is available for download."
@@ -33179,7 +33179,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/controls/date_range.js:64
 #: frappe/public/js/frappe/form/formatters.js:238
 msgid "{0} to {1}"
-msgstr ""
+msgstr "{0} 至 {1}"
 
 #: frappe/core/doctype/docshare/docshare.py:88
 msgid "{0} un-shared this document with {1}"
