@@ -218,17 +218,30 @@ const useCodeStore = defineStore("codeStore", () => {
 		const evaluatedFilters: Filters = {}
 
 		for (const key in filters) {
-			let value = Array.isArray(filters[key]) ? filters[key][1] : filters[key]
-
-			if (isDynamicValue(value)) {
-				// null ?? undefined → undefined, so nullish filters get dropped on serialization
-				evaluatedFilters[key] = getDynamicValue(value, {}) ?? undefined
+			const raw = filters[key]
+			if (Array.isArray(raw)) {
+				// A list filter is [operator, value] and Frappe unpacks exactly that pair —
+				// the operator must survive to the wire (stripping it turned "!=" and
+				// "not in" filters into equality/bare lists). A flat [op, v1, v2, ...] is
+				// a malformed multi-value filter from older saves — recover it.
+				const operator = raw[0]
+				const value = raw.length > 2 ? raw.slice(1) : raw[1]
+				const evaluated = evaluateFilterValue(value)
+				evaluatedFilters[key] = evaluated === undefined ? undefined : [operator, evaluated]
 			} else {
-				evaluatedFilters[key] = value
+				evaluatedFilters[key] = evaluateFilterValue(raw)
 			}
 		}
 
 		return evaluatedFilters
+	}
+
+	const evaluateFilterValue = (value: any) => {
+		if (isDynamicValue(value)) {
+			// null ?? undefined → undefined, so nullish filters get dropped on serialization
+			return getDynamicValue(value, {}) ?? undefined
+		}
+		return value
 	}
 
 	function getAPIParams(params: Record<string, any> | string | null = null) {
