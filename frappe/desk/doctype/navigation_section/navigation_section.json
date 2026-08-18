@@ -1,0 +1,126 @@
+{
+ "actions": [],
+ "creation": "2026-07-20 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "app",
+  "reference_doctype",
+  "column_break_navsec",
+  "user",
+  "overrides",
+  "sequence",
+  "hidden",
+  "items_section",
+  "items"
+ ],
+ "fields": [
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Label",
+   "reqd": 1
+  },
+  {
+   "description": "The app whose navigation this section is part of. Two apps on one site never see each other's sections. Required, and no framework patch backfills it: this DocType is unreleased and was renamed into place without one, so no site holds sections that predate the field. An app that seeded its own earlier backfills those itself.",
+   "fieldname": "app",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "App",
+   "reqd": 1
+  },
+  {
+   "description": "Empty means the section is app-level — navigation for the app itself rather than for one doctype's sidebar.",
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Reference Doctype",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "column_break_navsec",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Empty means the section is shared with everyone.",
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "User",
+   "options": "User"
+  },
+  {
+   "description": "The shared section this personal overlay reorders and hides views for.",
+   "fieldname": "overrides",
+   "fieldtype": "Link",
+   "label": "Overrides",
+   "options": "Navigation Section"
+  },
+  {
+   "description": "Where this section sits in the sidebar. Ties break on creation. On an overlay, where its owner moved the shared section — 0 means they never did and it follows the shared order.",
+   "fieldname": "sequence",
+   "fieldtype": "Int",
+   "label": "Sequence"
+  },
+  {
+   "description": "Whether the section's owner has hidden it from their own sidebar. Personal only: a shared section is hidden through its overlay, never on the shared record.",
+   "fieldname": "hidden",
+   "fieldtype": "Check",
+   "label": "Hidden"
+  },
+  {
+   "fieldname": "items_section",
+   "fieldtype": "Section Break",
+   "label": "Items"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Navigation Item"
+  }
+ ],
+ "links": [],
+ "modified": "2026-07-27 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Navigation Section",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Desk User"
+  },
+  {
+   "delete": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Desk User",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "label",
+ "track_changes": 1
+}

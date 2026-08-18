@@ -10,7 +10,18 @@ export type {
 } from "./components/FormLayout";
 export * from "./components/Composer";
 export { useDoctypeMeta } from "./composables/useDoctypeMeta";
-export type { UseDoctypeMeta, DoctypeMeta } from "./composables/useDoctypeMeta";
+export type {
+  UseDoctypeMeta,
+  DoctypeMeta,
+  DocPermRow,
+} from "./composables/useDoctypeMeta";
+export { useDocPermissions } from "./composables/useDocPermissions";
+export type {
+  UseDocPermissions,
+  FieldAccess,
+} from "./composables/useDocPermissions";
+export { useUserRoles, resetUserRoles } from "./composables/useUserRoles";
+export type { UseUserRoles } from "./composables/useUserRoles";
 export * from "./utils";
 export * from "./components/Grid";
 export * from "./components/Phone";

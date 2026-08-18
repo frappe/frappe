@@ -56,23 +56,3 @@ is what's used to manually test fieldtypes in a real consuming app — keep the 
 stories in sync. Note CRM's frontend uses **2-space** indentation (its own
 prettier/eslint config), not this repo's tabs; run `npx prettier --write` from
 `apps/crm/frontend` on the CRM file.
-
-## Subagents
-
-Offload exploration and side work to subagents to keep the main context lean.
-Use them by default (don't ask) for:
-
-- **Codebase exploration** — locating files, tracing a feature across the stack,
-  finding callers/usages, reading large files for one fact. Prefer the `Explore`
-  agent (read-only; returns conclusions, not file dumps).
-- **Independent parallel work** — unrelated lookups/edits with no data dependency:
-  launch in one message so they run concurrently.
-- **Verification side-quests** — test subsets, build checks, grep sweeps whose raw
-  output would flood the main context.
-
-Keep in the main context the synthesis, the decision, and the actual fix. Relay
-only what matters from a result — the user doesn't see subagent output.
-
-Exceptions: for a single known fact (you know the file/symbol), just read it —
-an agent only adds latency. Once you've delegated a search, don't also run it
-yourself; wait for the result.

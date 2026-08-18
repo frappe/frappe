@@ -105,7 +105,14 @@ pdf_generator = [
 	"frappe.utils.pdf.get_chrome_pdf",
 	"frappe.utils.print_format_generator.get_typst_pdf",
 ]
+# sidebar
+
+# Where the rows of an app-defined navigation item type lead, as `{item name: target}`.
+navigation_item_targets = []
+
 # permissions
+
+saved_view_manager_roles = []
 
 permission_query_conditions = {
 	"Report": [
@@ -153,6 +160,8 @@ permission_query_conditions = {
 	"Client Script": "frappe.app_state.get_module_permission_query_conditions",
 	"Server Script": "frappe.app_state.get_module_permission_query_conditions",
 	"Desktop Icon": "frappe.app_state.get_app_permission_query_conditions",
+	"Saved View": "frappe.desk.doctype.saved_view.saved_view.get_permission_query_conditions",
+	"Navigation Section": "frappe.desk.doctype.navigation_section.navigation_section.get_permission_query_conditions",
 }
 
 has_permission = {
@@ -160,6 +169,8 @@ has_permission = {
 	"Event": "frappe.desk.doctype.event.event.has_permission",
 	"ToDo": "frappe.desk.doctype.todo.todo.has_permission",
 	"Note": "frappe.desk.doctype.note.note.has_permission",
+	"Saved View": "frappe.desk.doctype.saved_view.saved_view.has_permission",
+	"Navigation Section": "frappe.desk.doctype.navigation_section.navigation_section.has_permission",
 	"User": "frappe.core.doctype.user.user.has_permission",
 	"Dashboard Chart": "frappe.desk.doctype.dashboard_chart.dashboard_chart.has_permission",
 	"Number Card": "frappe.desk.doctype.number_card.number_card.has_permission",

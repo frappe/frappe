@@ -1,0 +1,205 @@
+// Builds the curated `page` and the controller that fires events into it.
+// Handlers run serially in run order, each in its own try/catch: a thrower is
+// skipped half-applied, never taking the page or another source down with it.
+// The one exception is `before_save`, the veto point: its throw aborts the save.
+import { ref, type Ref } from "vue";
+import type { Router } from "vue-router";
+import { call, toast } from "frappe-ui";
+import { withRunningSource } from "./context";
+import { createPageDialogs, type PageDialogEntry } from "./dialog";
+import { withRemovals } from "./pageCompatibility";
+import { createPagePermissions } from "./pagePermissions";
+import { registrationsFor } from "./registry";
+import { reportCustomizationError } from "./reportError";
+import { Surface } from "./surface";
+import type {
+  HeaderAction,
+  PanelSectionItem,
+  QuickAction,
+  RecordPageApi,
+  TabItem,
+  TabsApi,
+} from "./types";
+
+/** The closed event vocabulary (wayfinder ticket 14); every other key is a fieldname. */
+export const RECORD_PAGE_EVENTS = [
+  "refresh",
+  "before_save",
+  "after_save",
+  "on_tab_change",
+];
+
+export interface RecordPageHost {
+  doctype: string;
+  docname: string;
+  doc: Ref<Record<string, any>>;
+  meta: Ref<any>;
+  /** `docinfo.permissions` as `getdoc` gave it; the engine curates it. */
+  perms: () => Record<string, any>;
+  isDirty: () => boolean;
+  /** The name of the tab the reader is on, as the host's strip resolves it. */
+  activeTab: () => string;
+  save: () => Promise<void>;
+  reload: () => Promise<void>;
+  router: Router;
+  /** Resolves when sources that register after mount (Page Scripts) are in. */
+  sourcesReady?: () => Promise<void>;
+}
+
+export interface RecordPageController {
+  page: RecordPageApi;
+  quickActions: Surface<QuickAction>;
+  headerActions: Surface<HeaderAction>;
+  tabs: Surface<TabItem>;
+  panelSections: Surface<PanelSectionItem>;
+  /** The replay: clears every surface, then runs every source's `refresh` in run order. */
+  refresh: () => Promise<void>;
+  fireEvent: (event: string) => Promise<void>;
+  /** True once the first replay has run — before it, surfaces are only built-ins. */
+  ready: Ref<boolean>;
+  /** The `open`/`form` dialogs on screen, for the host's `<PageDialogs>`. */
+  dialogs: Ref<PageDialogEntry[]>;
+  /** Closes them newest-first, each promise resolving `null`. */
+  closeDialogs: () => void;
+}
+
+export function createRecordPage(host: RecordPageHost): RecordPageController {
+  const quickActions = new Surface<QuickAction>();
+  const headerActions = new Surface<HeaderAction>();
+  const tabs = new Surface<TabItem>();
+  const panelSections = new Surface<PanelSectionItem>();
+  const surfaces = [quickActions, headerActions, tabs, panelSections];
+
+  Object.defineProperty(tabs, "active", { get: () => host.activeTab() });
+
+  const ready = ref(false);
+  let vocabularyChecked = false;
+  let replaying = 0;
+
+  const dialogs = createPageDialogs({ isReplaying: () => replaying > 0 });
+  const permissions = createPagePermissions(host);
+
+  const capabilities: RecordPageApi = {
+    doctype: host.doctype,
+    docname: host.docname,
+    get doc() {
+      return host.doc.value;
+    },
+    get meta() {
+      return host.meta.value;
+    },
+    get perms() {
+      return permissions.perms();
+    },
+    get roles() {
+      return permissions.roles();
+    },
+    fieldAccess: (fieldname) => permissions.fieldAccess(fieldname),
+    get isDirty() {
+      return host.isDirty();
+    },
+    quickActions,
+    headerActions,
+    tabs: tabs as unknown as TabsApi,
+    panelSections,
+    save: () => host.save(),
+    reload: () => host.reload(),
+    refresh: () => refresh(),
+    toast: {
+      success: (message) => toast.success(message),
+      error: (message) => toast.error(message),
+    },
+    dialog: dialogs.api,
+    call: (method, params) => call(method, params),
+    router: host.router,
+  };
+
+  // Nothing has been removed yet, so this hands the same object straight back:
+  // the guard, and its cost on every member read in every handler, exists only
+  // once the removals list has something to say (ticket 20 §4).
+  const page = withRemovals(capabilities);
+
+  async function refresh() {
+    await Promise.all([host.sourcesReady?.(), permissions.ready()]);
+    warnUnknownHandlers();
+    for (const surface of surfaces) surface.reset();
+    // Counted, not a boolean: a script's own `page.refresh()` re-enters this.
+    replaying += 1;
+    try {
+      await fireEvent("refresh");
+    } finally {
+      replaying -= 1;
+    }
+    ready.value = true;
+  }
+
+  async function fireEvent(event: string) {
+    for (const { source, handlers } of registrationsFor(host.doctype)) {
+      const handler = handlers[event];
+      if (!handler) continue;
+      await withRunningSource(source, async () => {
+        try {
+          await handler(page);
+        } catch (error) {
+          // `before_save` rethrows to abort the save, and is the one catch site
+          // that does not report: the user is looking straight at a failed save,
+          // so logging it would file a working veto as an error.
+          if (event === "before_save") throw error;
+          console.error(
+            `[record-page] ${source}.${event} on ${host.doctype} threw`,
+            error,
+          );
+          // No `route`: the reporter reads `location`, which is the URL an admin
+          // can paste. `router.fullPath` drops the app's base and would make this
+          // one site disagree with the other three.
+          reportCustomizationError(error, {
+            source,
+            event,
+            doctype: host.doctype,
+            record: host.docname,
+          });
+        }
+      });
+    }
+  }
+
+  // Meta can lag the first paint, so the check waits for a replay that has fields.
+  function warnUnknownHandlers() {
+    if (vocabularyChecked || !import.meta.env.DEV) return;
+    const fields = host.meta.value?.fields;
+    if (!fields) return;
+    vocabularyChecked = true;
+    const known = knownHandlerKeys(fields);
+    for (const { source, handlers } of registrationsFor(host.doctype))
+      for (const key of Object.keys(handlers))
+        if (!known.has(key))
+          console.warn(
+            `[record-page] ${source}.${key} on ${host.doctype} is neither an event nor a fieldname — it will never fire`,
+          );
+  }
+
+  return {
+    page,
+    quickActions,
+    headerActions,
+    tabs,
+    panelSections,
+    refresh,
+    fireEvent,
+    ready,
+    dialogs: dialogs.entries,
+    closeDialogs: dialogs.closeAll,
+  };
+}
+
+function knownHandlerKeys(fields: { fieldname: string; fieldtype: string }[]) {
+  const known = new Set(RECORD_PAGE_EVENTS);
+  for (const field of fields) {
+    known.add(field.fieldname);
+    if (field.fieldtype?.startsWith("Table")) {
+      known.add(`${field.fieldname}_add`);
+      known.add(`${field.fieldname}_remove`);
+    }
+  }
+  return known;
+}

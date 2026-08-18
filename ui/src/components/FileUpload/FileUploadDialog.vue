@@ -10,6 +10,20 @@
 			@dragleave="onDragLeave"
 			@drop.prevent="onDrop"
 		>
+			<!-- `bare` renders this slot straight into reka's `DialogContent` and no
+			     `DialogTitle` with it, while reka still points the content's
+			     `aria-labelledby`/`aria-describedby` at ids nothing owns — so the
+			     dialog computes to the empty name (ticket 38, the Page Script editor's
+			     defect in a second place). `title` is already what every caller passes
+			     for exactly this ("Attach files", "Attach image"); it was declared and
+			     then rendered nowhere, so it is the name, not a new prop. -->
+			<Dialog.Title as-child>
+				<h2 class="sr-only">{{ title }}</h2>
+			</Dialog.Title>
+			<Dialog.Description as-child>
+				<p class="sr-only">Choose files to upload, or drop them anywhere in this dialog.</p>
+			</Dialog.Description>
+
 			<!-- Staged files — held in a soft tray so "what I've added" reads as a
 			     distinct zone from the add-menu below (same row styling otherwise). -->
 			<div
@@ -223,10 +237,10 @@
 			<!-- Footer: one divider-topped bar carrying the drop affordance (left)
 			     and the Cancel / Upload actions (right), so the hint and the
 			     buttons read as a single footer instead of two stacked strips.
-			     Cancel gives an explicit dismiss this bare (title-less) popover
-			     otherwise lacks — it matters on partial failure, when the dialog
-			     stays open for retries. The dragover overlay still covers the whole
-			     panel during a drag. -->
+			     Cancel gives an explicit dismiss this bare (visually title-less)
+			     popover otherwise lacks — it matters on partial failure, when the
+			     dialog stays open for retries. The dragover overlay still covers the
+			     whole panel during a drag. -->
 			<div
 				v-if="!composing && (uploader.items.length || showDropHint)"
 				class="mt-1 flex items-center gap-2 border-t border-outline-gray-1 px-2 pb-1 pt-2"

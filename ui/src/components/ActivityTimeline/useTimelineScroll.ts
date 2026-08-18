@@ -5,11 +5,15 @@ import { nextTick, onMounted, ref, watch, type Ref } from "vue";
  * opens at the bottom (newest) once, and keeps the viewport fixed when older rows
  * prepend on Load More. `captureAnchor(key)` records the anchor offset before
  * fetching older rows so the next length change can restore it.
+ *
+ * `shouldOpenAtBottom` is separate from `isEnabled`: a host that restores its own
+ * scroll offset needs the anchor logic but must not be jumped to the newest row.
  */
 export function useTimelineScroll(
   rootEl: Ref<HTMLElement | null>,
   activityCount: Ref<number>,
-  isEnabled: () => boolean
+  isEnabled: () => boolean,
+  shouldOpenAtBottom: () => boolean = () => true
 ) {
   const scrollEl = ref<HTMLElement | null>(null);
 
@@ -47,6 +51,7 @@ export function useTimelineScroll(
 
   // oldest-first feed: open at the bottom (newest) on first render, once
   function scrollToBottomOnce() {
+    if (!shouldOpenAtBottom()) return;
     if (didInitialScroll || !activityCount.value) return;
     const container = scrollEl.value;
     if (!container) return;

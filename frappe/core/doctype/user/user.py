@@ -941,6 +941,12 @@ def get_all_roles():
 
 
 @frappe.whitelist()
+def get_current_user_roles() -> list[str]:
+	"""Return the session user's roles, for clients that boot without desk."""
+	return frappe.get_roles()
+
+
+@frappe.whitelist()
 def get_perm_info(role: str):
 	"""get permission info"""
 	from frappe.permissions import get_all_perms

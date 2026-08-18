@@ -56,18 +56,29 @@ loses the fixes upstream makes. See `CLAUDE.md` for the operational frappe-ui vs
 
 ---
 
-### FP2. List-view controls are controlled components — the host owns fetching and persistence
+### FP2. Core state is controlled; IO lives in opt-in sibling modules
 
 **Rule:** A control (SortBy, Filter, Column Settings, Quick Filter, …) owns exactly one
 slice of view state via `v-model` plus a `doctype`, emits changes, and **never** touches a
-data-fetching resource or a persistence layer. The host wires fetching, cross-control
-sync, and *when/where* to save. The library tops out at a serializable **View Snapshot**
-and never owns a saved View entity.
+data-fetching resource or a persistence layer. The same holds one level up: the composite
+`useListView` tops out at a serializable **View Snapshot** and owns no saving.
 
-**Why:** Keeping controls stateless-of-IO makes them reusable across apps with different
-data and persistence models, and keeps CRM's "Views" concept out of the shared library.
-See `CONTEXT.md` (**Controlled component**, **View Snapshot**) and
-[ADR-0007](docs/adr/0007-persistence-deferred-to-host-library-tops-out-at-view-snapshot.md).
+IO is not banned from the library — it is **quarantined into opt-in sibling modules**.
+`useListData` fetches; `useSavedViews` persists. Such a module is legitimate when it
+composes through the core's public seam (`snapshot` / `restore`, the wire projections)
+rather than its internals, and when a host that ignores it is wholly unaffected. What
+stays out is any **one app's** schema or endpoints; a *framework-wide* entity is fair
+game, on the same reasoning as FP3.
+
+**Why:** Keeping core state stateless-of-IO makes it reusable across apps with different
+data and persistence models. But the line that earns that reuse is *app-specific vs.
+universal*, not "no IO anywhere" — CRM's `CRM View Settings` must stay in CRM, while
+Frappe's `Saved View`, which every app already has, would otherwise be re-glued
+identically in each one. See `CONTEXT.md` (**Controlled component**, **View Snapshot**,
+**Saved View**),
+[ADR-0007](docs/adr/0007-persistence-deferred-to-host-library-tops-out-at-view-snapshot.md)
+and its partial supersession
+[ADR-0008](docs/adr/0008-saved-view-is-a-framework-entity-so-the-library-may-own-its-persistence.md).
 
 ---
 

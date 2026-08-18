@@ -1,0 +1,204 @@
+{
+ "actions": [],
+ "autoname": "autoincrement",
+ "creation": "2026-07-20 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "icon",
+  "reference_doctype",
+  "column_break_defn",
+  "type",
+  "user",
+  "is_default",
+  "source_view",
+  "filters_tab",
+  "filters",
+  "order_by_tab",
+  "order_by",
+  "list_tab",
+  "columns",
+  "rows",
+  "group_by_tab",
+  "group_by_field",
+  "kanban_tab",
+  "column_field",
+  "title_field",
+  "kanban_columns",
+  "kanban_fields"
+ ],
+ "fields": [
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Label",
+   "reqd": 1
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Reference Doctype",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_defn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "list",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Type",
+   "options": "list\ngroup_by\nkanban",
+   "reqd": 1
+  },
+  {
+   "description": "Empty means the view is shared with everyone.",
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "User",
+   "options": "User"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_default",
+   "fieldtype": "Check",
+   "label": "Is Default"
+  },
+  {
+   "description": "For a default record, the sidebar view it was set from — so the sidebar can mark and highlight it. Empty once the default is tweaked into a standalone scratchpad.",
+   "fieldname": "source_view",
+   "fieldtype": "Link",
+   "label": "Source View",
+   "options": "Saved View"
+  },
+  {
+   "fieldname": "filters_tab",
+   "fieldtype": "Tab Break",
+   "label": "Filters"
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "Code",
+   "label": "Filters",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "order_by_tab",
+   "fieldtype": "Tab Break",
+   "label": "Sort"
+  },
+  {
+   "fieldname": "order_by",
+   "fieldtype": "Code",
+   "label": "Order By"
+  },
+  {
+   "fieldname": "list_tab",
+   "fieldtype": "Tab Break",
+   "label": "List"
+  },
+  {
+   "fieldname": "columns",
+   "fieldtype": "Code",
+   "label": "Columns",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "rows",
+   "fieldtype": "Code",
+   "label": "Rows",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "group_by_tab",
+   "fieldtype": "Tab Break",
+   "label": "Group By"
+  },
+  {
+   "fieldname": "group_by_field",
+   "fieldtype": "Data",
+   "label": "Group By Field"
+  },
+  {
+   "fieldname": "kanban_tab",
+   "fieldtype": "Tab Break",
+   "label": "Kanban"
+  },
+  {
+   "fieldname": "column_field",
+   "fieldtype": "Data",
+   "label": "Column Field"
+  },
+  {
+   "fieldname": "title_field",
+   "fieldtype": "Data",
+   "label": "Title Field"
+  },
+  {
+   "fieldname": "kanban_columns",
+   "fieldtype": "Code",
+   "label": "Kanban Columns",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "kanban_fields",
+   "fieldtype": "Code",
+   "label": "Kanban Fields",
+   "options": "JSON"
+  }
+ ],
+ "links": [],
+ "modified": "2026-07-20 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Saved View",
+ "naming_rule": "Autoincrement",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Desk User"
+  },
+  {
+   "delete": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Desk User",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "label",
+ "track_changes": 1
+}
