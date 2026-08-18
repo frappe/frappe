@@ -647,10 +647,7 @@ def get_module_contents(modules: list[str]) -> dict[str, dict[str, list]]:
 			if bucket := contents.get(row.module):
 				bucket[entity].append(row)
 
-	for module, held in contents.items():
-		contents[module] = arrange_contents(held)
-
-	return contents
+	return {module: arrange_contents(held) for module, held in contents.items()}
 
 
 def arrange_contents(held: dict[str, list]) -> dict[str, list]:
@@ -750,16 +747,33 @@ def get_computed_bases(modules: list[str]) -> dict[str, frappe._dict]:
 		if cached is None:
 			missing.append(module)
 		else:
-			bases[module] = cached
+			bases[module] = copy_of(cached)
 
 	if missing:
 		contents = get_module_contents(missing)
 		for module in missing:
 			base = build_computed_base(module, contents[module])
 			frappe.cache.hset(COMPUTED_BASE_CACHE_KEY, module, base)
-			bases[module] = base
+			# `hset` puts this very object into `frappe.local.cache` too, so the freshly built
+			# one has to be copied on the way out for the same reason a cached one does
+			bases[module] = copy_of(base)
 
 	return bases
+
+
+def copy_of(base: frappe._dict) -> frappe._dict:
+	"""A caller's own copy of a cached sidebar.
+
+	`frappe.cache.hget` keeps a copy in `frappe.local.cache` and hands back *the same object*
+	every time it is asked within a request. So a caller that writes to what it got back is
+	writing into the cache -- and `get_sidebar_bases` does write to it, stamping `computed` on
+	every sidebar it returns.
+
+	The rows themselves are shared rather than copied. Nothing edits a row in place: the boot
+	path builds new dicts out of them, and `materialize_base` copies each one before appending
+	it to a document.
+	"""
+	return frappe._dict({**base, "rows": list(base.rows)})
 
 
 def get_computed_base(module: str) -> frappe._dict:

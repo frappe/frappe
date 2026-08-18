@@ -287,6 +287,19 @@ class TestSidebarBoot(IntegrationTestCase):
 		with self.assertQueryCount(5):
 			get_module_contents(modules)
 
+	def test_reading_a_sidebar_does_not_write_to_the_cache(self):
+		"""`frappe.cache.hget` keeps a copy in `frappe.local.cache` and hands back the same
+		object every time it is asked within a request. `get_sidebar_bases` stamps `computed`
+		on every sidebar it returns, so without a copy it would be stamping the cache."""
+		from frappe.desk.doctype.sidebar.sidebar import COMPUTED_BASE_CACHE_KEY
+
+		with sidebarless_module("Test Cache Isolation Module") as module:
+			base = get_sidebar_bases([module])[module]
+			self.assertEqual(base.computed, 1, "sanity: the caller was handed a stamped copy")
+
+			cached = frappe.cache.hget(COMPUTED_BASE_CACHE_KEY, module)
+			self.assertNotIn("computed", cached, "the cached sidebar must not carry the stamp")
+
 	def test_a_computed_base_says_it_is_computed(self):
 		"""So the desk can tell "the app left this out" from "the display limit did". An entity
 		missing from a shipped sidebar was left out on purpose; one missing from a computed
