@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-16 09:39+0000\n"
-"PO-Revision-Date: 2026-08-17 19:37\n"
+"PO-Revision-Date: 2026-08-18 19:49\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -3796,7 +3796,7 @@ msgstr "Prije Potvrde"
 
 #: frappe/public/js/frappe/ui/awesomplete.js:8
 msgid "Begin typing for results."
-msgstr ""
+msgstr "Počni tipkati za rezultate."
 
 #. Option for the 'Level' (Select) field in DocType 'Help Article'
 #: frappe/website/doctype/help_article/help_article.json
@@ -7407,7 +7407,7 @@ msgstr "Izbriši Natpisnu Tablu"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:177
 msgid "Delete Row"
-msgstr ""
+msgstr "Izbriši Red"
 
 #: frappe/public/js/form_builder/components/Section.vue:125
 msgctxt "Title of confirmation dialog"
@@ -7421,7 +7421,7 @@ msgstr "Izbriši Karticu"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:179
 msgid "Delete Table"
-msgstr ""
+msgstr "Izbriši Tabelu"
 
 #: frappe/public/js/frappe/form/grid.js:100
 msgid "Delete all"
@@ -12712,27 +12712,27 @@ msgstr "Naslov"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:164
 msgid "Heading 1"
-msgstr ""
+msgstr "Naslov 1"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:165
 msgid "Heading 2"
-msgstr ""
+msgstr "Naslov 2"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:166
 msgid "Heading 3"
-msgstr ""
+msgstr "Naslov 3"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:167
 msgid "Heading 4"
-msgstr ""
+msgstr "Naslov 4"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:168
 msgid "Heading 5"
-msgstr ""
+msgstr "Naslov 5"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:169
 msgid "Heading 6"
-msgstr ""
+msgstr "Naslov 6"
 
 #. Description of the 'Notification Title' (Data) field in DocType
 #. 'Notification'
@@ -14108,11 +14108,11 @@ msgstr "Umetni Kolonu Ispred {0}"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:176
 msgid "Insert Column Left"
-msgstr ""
+msgstr "Umetni Kolonu Lijevo"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:175
 msgid "Insert Column Right"
-msgstr ""
+msgstr "Umetni Kolonu Desno"
 
 #: frappe/public/js/frappe/form/controls/markdown_editor.js:82
 msgid "Insert Image in Markdown"
@@ -14125,11 +14125,11 @@ msgstr "Umetni Nove Zapise"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:173
 msgid "Insert Row Above"
-msgstr ""
+msgstr "Umetni Red Iznad"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:174
 msgid "Insert Row Below"
-msgstr ""
+msgstr "Umetni Red Ispod"
 
 #. Label of the insert_style (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -14138,7 +14138,7 @@ msgstr "Umetni Stil"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:172
 msgid "Insert Table"
-msgstr ""
+msgstr "Umetni Tabelu"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:685
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:686
@@ -17803,7 +17803,7 @@ msgstr "Vrijednosti Predloška Navigacijske Trake"
 #: frappe/public/js/frappe/list/list_view.js:1450
 msgctxt "Description of a list view shortcut"
 msgid "Navigate list down"
-msgstr "Kreći se po listi prema dolje"
+msgstr "Kreći se po listi prema niže"
 
 #: frappe/public/js/frappe/list/list_view.js:1457
 msgctxt "Description of a list view shortcut"
@@ -29726,7 +29726,7 @@ msgstr "Upiši svoj odgovor ovdje..."
 
 #: frappe/public/js/frappe/ui/awesomplete.js:7
 msgid "Type {0} or more characters for results."
-msgstr ""
+msgstr "Ukucaj {0} ili više znakova za rezultate."
 
 #: frappe/core/doctype/data_export/exporter.py:144
 msgid "Type:"
@@ -32564,7 +32564,7 @@ msgstr "Zadnji put ste uređivali ovo"
 
 #: frappe/desk/form/activity.py:126
 msgid "You last edited this document"
-msgstr ""
+msgstr "Posljednji put ste uređivali ovaj dokument"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:352
 msgid "You must add atleast one link."
@@ -34194,7 +34194,7 @@ msgstr "{0} je zadnji put uredio ovo"
 
 #: frappe/desk/form/activity.py:127
 msgid "{0} last edited this document"
-msgstr ""
+msgstr "{0} posljednji put uređivao/la ovaj dokument"
 
 #: frappe/desk/form/activity.py:224
 msgid "{0} liked"
@@ -34341,7 +34341,7 @@ msgstr "{0} ograničeni dokumenti"
 
 #: frappe/public/js/frappe/ui/awesomplete.js:14
 msgid "{0} results found"
-msgstr ""
+msgstr "{0} pronađenih rezultata"
 
 #: frappe/public/js/frappe/roles_editor.js:90
 msgid "{0} role does not have permission on any doctype"
@@ -34496,7 +34496,7 @@ msgstr "{0}, Red {1}"
 
 #: frappe/public/js/frappe/ui/awesomplete.js:22
 msgid "{0}, list item {1} of {2}"
-msgstr ""
+msgstr "{0}, lista {1} od {2}"
 
 #: frappe/utils/data.py:1582
 msgctxt "Money in words"
