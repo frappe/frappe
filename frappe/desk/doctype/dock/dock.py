@@ -75,12 +75,13 @@ class Dock(Document):
 		from frappe.types import DF
 
 		items: DF.Table[DockItem]
-		user: DF.Link | None
+		user: DF.Link
 	# end: auto-generated types
 
 	def validate(self):
-		# One spelling of "the site's layer", so the unique index below can see two of them. A
-		# `Link` left unset stores as `NULL`, and every NULL is distinct to an index -- which
+		# One spelling of "the site's layer", so the column's unique index can see two of them.
+		# The column is also declared not-nullable, which is what makes this stick: a blank
+		# `unique` column is written as `NULL`, and every NULL is distinct to an index -- which
 		# would let the site layer exist twice while reading as one address to `layer_filter`.
 		self.user = self.user or SITE_LAYER
 		self.anchor_the_items()
@@ -139,20 +140,20 @@ class Dock(Document):
 			frappe.cache.delete_key("bootinfo")
 
 
-def on_doctype_update():
-	"""One layer per address, enforced by the schema rather than by a `validate` hook.
-
-	A `validate` hook is bypassable -- `db_insert`, a bulk write, anything that skips the
-	document -- and two documents at one address would give the merge two answers for the same
-	layer. The same constraint `Custom Sidebar` keeps, in the same place.
-	"""
-	frappe.db.add_unique("Dock", ["user"], constraint_name="unique_dock_layer")
+# One layer per address is enforced by the schema -- `user` is `unique` and not-nullable in the
+# doctype -- rather than by a `validate` hook. A hook is bypassable (`db_insert`, a bulk write,
+# anything that skips the document), and two documents at one address would give the merge two
+# answers for the same layer.
+#
+# Declared on the field rather than added by an `on_doctype_update` hook because the two disagree:
+# a column the doctype does not call `unique` has its index dropped on every migrate, and the hook
+# would add it straight back, so each migrate would churn the table for nothing.
 
 
 def layer_filter(user: str | None) -> dict:
-	"""The filter naming one layer. A blank column is stored as `''` or `NULL` depending on how
-	the row was written, so both spellings of "unset" have to match."""
-	return {"user": user or ["in", ["", None]]}
+	"""The filter naming one layer. The column is not-nullable, so the site layer is stored as
+	`''` and there is only one spelling of "unset" to match."""
+	return {"user": user or SITE_LAYER}
 
 
 def get_dock_layers() -> set[str]:

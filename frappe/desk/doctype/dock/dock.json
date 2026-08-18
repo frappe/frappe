@@ -18,7 +18,9 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "User",
-   "options": "User"
+   "not_nullable": 1,
+   "options": "User",
+   "unique": 1
   },
   {
    "fieldname": "items_section",
@@ -36,7 +38,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-17 18:10:00.000000",
+ "modified": "2026-08-18 15:40:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dock",
