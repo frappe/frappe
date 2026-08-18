@@ -1,10 +1,20 @@
 {% if value %}
-<div class="field {{ df.section.field_orientation or '' }}" {{ field_attributes(df) }}>
+{%- set _show_label = df.show_label if df.show_label else 'show' -%}
+{%- set _align = df.align if df.align else '' -%}
+{%- set _orientation = df.section.field_orientation or '' -%}
+{%- set _inline = (_show_label == 'inline') or (_orientation == 'left-right') -%}
+{%- set _justify = df.label_justify if df.label_justify else '' -%}
+{%- set _fstyle = (('gap: ' + df.label_gap|int|string + 'px;') if (_inline and df.label_gap is defined and df.label_gap is not none) else '') + (df.custom_style or '') -%}
+{%- set _lbl_style = (('color:' + df.label_color + ';') if df.label_color else '') -%}
+{%- set _val_style = (('color:' + df.value_color + ';') if df.value_color else '') -%}
+<div class="field {{ _orientation }}{% if _inline and _orientation != 'left-right' %} field-inline{% endif %}{% if _align %} field-align-{{ _align }}{% endif %}{% if _justify and _orientation == 'left-right' and _align not in ('center', 'right') %} field-justify-{{ _justify }}{% endif %}{% if df.allow_page_break %} field--breakable{% endif %}" {% if _fstyle %}style="{{ _fstyle|e }}"{% endif %} {{ field_attributes(df) }}>
 	{%- block label -%}
-	<div class="label">{{ df.label }}</div>
+	{%- if _show_label != 'hide' -%}
+	<div class="label"{% if _lbl_style %} style="{{ _lbl_style|e }}"{% endif %}>{{ _(df.label)|e }}</div>
+	{%- endif -%}
 	{%- endblock -%}
 	{%- block value -%}
-	<div class="value">{{ doc.get_formatted(df.fieldname) }}</div>
+	<div class="value"{% if _val_style %} style="{{ _val_style|e }}"{% endif %}>{{ doc.get_formatted(df.fieldname) }}</div>
 	{%- endblock -%}
 </div>
 {% endif %}

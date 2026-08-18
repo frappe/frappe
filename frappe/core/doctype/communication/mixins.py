@@ -2,7 +2,7 @@ import frappe
 from frappe import _
 from frappe.core.utils import get_parent_doc
 from frappe.desk.doctype.notification_settings.notification_settings import (
-	is_email_notifications_enabled_for_type,
+	is_email_enabled_for_feature,
 )
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.email.doctype.email_account.email_account import EmailAccount
@@ -19,6 +19,22 @@ class CommunicationEmailMixin:
 		"""Get owner of the communication docs parent."""
 		parent_doc = get_parent_doc(self)
 		return parent_doc.owner if parent_doc else None
+
+	def get_notification_recipient(self):
+		"""Get notification recipient of the communication docs parent.
+
+		Calls `get_notification_email` on the parent if available; otherwise returns the owner.
+		This uses `run_method` so hooks can customize recipients per app/site.
+		"""
+		parent_doc = get_parent_doc(self)
+		if not parent_doc:
+			return None
+
+		notification_email = parent_doc.run_method("get_notification_email")
+		if notification_email:
+			return notification_email
+
+		return parent_doc.owner
 
 	def get_all_email_addresses(self, exclude_displayname=False):
 		"""Get all Email addresses mentioned in the doc along with display name."""
@@ -60,7 +76,7 @@ class CommunicationEmailMixin:
 		"""Build cc list to send an email.
 
 		* if email copy is requested by sender, then add sender to CC.
-		* If this doc is created through inbound mail, then add doc owner to cc list
+		* If this doc is created through inbound mail, then add the notification recipient to CC
 		* remove all the thread_notify disabled users.
 		* Remove standard users from email list
 		"""
@@ -77,14 +93,14 @@ class CommunicationEmailMixin:
 			cc.append(sender)
 
 		if is_inbound_mail_communcation:
-			# inform parent document owner incase communication is created through inbound mail
-			if doc_owner := self.get_owner():
-				cc.append(doc_owner)
+			# inform the configured notification recipient in case communication is created inbound
+			if notification_recipient := self.get_notification_recipient():
+				cc.append(notification_recipient)
 			cc = set(cc) - {self.sender_mailid}
 			assignees = set(self.get_assignees()) - {self.sender_mailid}
 			# Check and remove If user disabled notifications for incoming emails on assigned document.
 			for assignee in assignees.copy():
-				if not is_email_notifications_enabled_for_type(assignee, "threads_on_assigned_document"):
+				if not is_email_enabled_for_feature(assignee, "enable_email_threads_on_assigned_document"):
 					assignees.remove(assignee)
 			cc.update(assignees)
 
@@ -184,7 +200,7 @@ class CommunicationEmailMixin:
 			)
 		return self._incoming_email_account
 
-	def mail_attachments(self, print_format=None, print_html=None, print_language=None):
+	def mail_attachments(self, print_format=None, print_html=None, print_language=None, letterhead=None):
 		final_attachments = []
 
 		if print_format or print_html:
@@ -195,6 +211,7 @@ class CommunicationEmailMixin:
 				"doctype": self.reference_doctype,
 				"name": self.reference_name,
 				"lang": print_language or frappe.local.lang,
+				"letterhead": letterhead,
 			}
 			final_attachments.append(d)
 
@@ -256,6 +273,7 @@ class CommunicationEmailMixin:
 		print_format=None,
 		send_me_a_copy=None,
 		print_letterhead=None,
+		letterhead=None,
 		is_inbound_mail_communcation=None,
 		print_language=None,
 		raw_html=False,
@@ -277,7 +295,10 @@ class CommunicationEmailMixin:
 			return {}
 
 		final_attachments = self.mail_attachments(
-			print_format=print_format, print_html=print_html, print_language=print_language
+			print_format=print_format,
+			print_html=print_html,
+			print_language=print_language,
+			letterhead=letterhead,
 		)
 		incoming_email_account = self.get_incoming_email_account()
 
@@ -311,6 +332,7 @@ class CommunicationEmailMixin:
 			"send_after": self.send_after,
 			"raw_html": raw_html,
 			"add_css": add_css,
+			"in_reply_to": self.in_reply_to,
 		}
 
 	def send_email(
@@ -319,6 +341,7 @@ class CommunicationEmailMixin:
 		print_format=None,
 		send_me_a_copy=None,
 		print_letterhead=None,
+		letterhead=None,
 		is_inbound_mail_communcation=None,
 		print_language=None,
 		now=False,
@@ -330,6 +353,7 @@ class CommunicationEmailMixin:
 			print_format=print_format,
 			send_me_a_copy=send_me_a_copy,
 			print_letterhead=print_letterhead,
+			letterhead=letterhead,
 			is_inbound_mail_communcation=is_inbound_mail_communcation,
 			print_language=print_language,
 			raw_html=raw_html,

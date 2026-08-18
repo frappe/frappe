@@ -257,6 +257,35 @@ class TestNotification(IntegrationTestCase):
 			# Check if the notification was triggered
 			self.assertEqual(1, frappe.db.count("Notification Log", {"subject": n.subject}))
 
+	def test_system_notification_sets_app_from_module(self):
+		"""A System Notification rule records its owning app (from `module`) on the log."""
+		from frappe.utils import add_to_date, now_datetime
+
+		event = frappe.new_doc("Event")
+		event.subject = "Test App From Module Event"
+		event.event_type = "Private"
+		event.starts_on = add_to_date(now_datetime(), minutes=14)
+		event.insert()
+
+		notification = {
+			"name": "Test App From Module",
+			"notification_title": "Test App From Module",
+			"document_type": "Event",
+			"module": "Core",  # owned by the frappe app
+			"event": "Minutes Before",
+			"datetime_changed": "starts_on",
+			"minutes_offset": 15,
+			"channel": "System Notification",
+			"notification_type": "Alert",
+			"recipients": [{"receiver_by_document_field": "owner"}],
+		}
+
+		with get_test_notification(notification) as n:
+			frappe.db.delete("Notification Log", {"title": n.notification_title})
+			trigger_notifications(None, "offset")
+			app = frappe.db.get_value("Notification Log", {"title": n.notification_title}, "app")
+			self.assertEqual(app, "frappe")
+
 	def test_minutes_negative_offset(self):
 		from frappe.utils import add_to_date, now_datetime
 

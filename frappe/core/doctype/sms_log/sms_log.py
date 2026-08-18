@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class SMSLog(Document):
+	_DOCTYPE_NAME = "SMS Log"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -1,0 +1,42 @@
+/* Espresso components — aggregator for all .es-* component CSS.
+ *
+ * Each component is plain, framework-neutral CSS in css/espresso/components/,
+ * styled via its .es-<name> class + data-attributes, binding to the espresso
+ * tokens. Add new components here so bundles import a single file rather than
+ * each component individually. Unlayered (Frappe/Bootstrap is unlayered).
+ *
+ * Loaded by desk.bundle.scss (and other bundles that need the components). */
+
+@import "frappe/public/css/espresso/components/badge.css";
+/* Framework-only: legacy indicator color aliases for .es-badge (third-party-safe). */
+@import "frappe/public/css/espresso/components/badge-legacy-colors.css";
+
+@import "frappe/public/css/espresso/components/button.css";
+
+@import "frappe/public/css/espresso/components/spinner.css";
+
+@import "frappe/public/css/espresso/components/skeleton.css";
+
+@import "frappe/public/css/espresso/components/divider.css";
+
+@import "frappe/public/css/espresso/components/avatar.css";
+
+@import "frappe/public/css/espresso/components/alert.css";
+
+@import "frappe/public/css/espresso/components/breadcrumbs.css";
+
+@import "frappe/public/css/espresso/components/toast.css";
+
+@import "frappe/public/css/espresso/components/menu.css";
+
+@import "frappe/public/css/espresso/components/tooltip.css";
+
+@import "frappe/public/css/espresso/components/popover.css";
+/* Modifier on .es-popover — must load after it. */
+@import "frappe/public/css/espresso/components/hover_card.css";
+
+@import "frappe/public/css/espresso/components/tabs.css";
+
+@import "frappe/public/css/espresso/components/tab_buttons.css";
+
+@import "frappe/public/css/espresso/components/progress.css";

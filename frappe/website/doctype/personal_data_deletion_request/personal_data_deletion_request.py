@@ -9,12 +9,14 @@ from frappe import _
 from frappe.core.utils import find
 from frappe.desk.doctype.notification_settings.notification_settings import is_email_notifications_enabled
 from frappe.model.document import Document
-from frappe.utils import get_datetime, get_fullname, time_diff_in_hours
+from frappe.utils import add_days, get_datetime, get_fullname, now_datetime, time_diff_in_hours
 from frappe.utils.user import get_system_managers
 from frappe.utils.verified_command import get_signed_params, verify_request
 
 
 class PersonalDataDeletionRequest(Document):
+	_DOCTYPE_NAME = "Personal Data Deletion Request"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -241,9 +243,10 @@ class PersonalDataDeletionRequest(Document):
 		filter_by_meta = meta.get_field(filter_by)
 
 		if filter_by_meta and filter_by_meta.fieldtype != "Link":
-			if self.email in doc[filter_by]:
-				value = re.sub(self.full_name_regex, self.anonymization_value_map["Data"], doc[filter_by])
+			value = doc[filter_by]
+			if self.email in value:
 				value = re.sub(self.email_regex, self.anon, value)
+				value = re.sub(self.full_name_regex, self.anonymization_value_map["Data"], value)
 				self.anonymize_fields_dict[filter_by] = value
 
 		frappe.db.set_value(
@@ -376,12 +379,13 @@ def remove_unverified_record():
 		"""
 		DELETE FROM `tabPersonal Data Deletion Request`
 		WHERE `status` = 'Pending Verification'
-		AND `creation` < (NOW() - INTERVAL '7' DAY)"""
+		AND `creation` < %(cutoff)s""",
+		{"cutoff": add_days(now_datetime(), -7)},
 	)
 
 
 @frappe.whitelist(allow_guest=True)
-def confirm_deletion(email, name, host_name):
+def confirm_deletion(email: str, name: str, host_name: str):
 	if not verify_request():
 		return
 

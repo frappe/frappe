@@ -12,6 +12,8 @@ from .providers.nomatim import Nomatim
 
 
 class GeolocationSettings(Document):
+	_DOCTYPE_NAME = "Geolocation Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

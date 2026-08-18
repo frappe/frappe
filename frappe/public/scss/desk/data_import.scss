@@ -14,6 +14,13 @@
 
 .table-preview {
 	margin-top: 12px;
+	overflow-x: auto;
+	width: 100%;
+
+	.datatable {
+		width: max-content;
+		min-width: 100%;
+	}
 
 	.datatable .dt-scrollable .dt-row:last-child .dt-cell {
 		border-bottom: 1px solid var(--border-color);
@@ -25,5 +32,50 @@
 
 	.datatable .dt-header .dt-row-header {
 		background-color: unset;
+	}
+}
+
+.import-tree-status-alert {
+	margin-bottom: var(--margin-sm);
+}
+
+.import-tree-preview-panel {
+	.import-tree-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--margin-md);
+		margin-bottom: var(--margin-xs);
+	}
+
+	.import-tree-title {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--margin-sm);
+		min-width: 0;
+	}
+
+	.import-tree-doctype-label {
+		font-size: var(--text-lg);
+		font-weight: 600;
+		color: var(--text-color);
+		line-height: 1.4;
+	}
+
+	.import-tree-body {
+		max-height: 380px;
+		overflow: auto;
+
+		.tree {
+			padding: var(--padding-sm);
+		}
+	}
+
+	.import-tree-row-number {
+		font-weight: normal;
+	}
+
+	.import-tree-node-orphan > .tree-link .tree-label {
+		color: var(--orange-600);
 	}
 }

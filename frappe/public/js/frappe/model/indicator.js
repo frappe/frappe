@@ -25,7 +25,7 @@ frappe.has_indicator = function (doctype) {
 
 frappe.get_indicator = function (doc, doctype, show_workflow_state) {
 	if (doc.__unsaved) {
-		return [__("Not Saved", null, doctype), "orange"];
+		return [__("Not Saved", null, doctype), "amber"];
 	}
 
 	if (!doctype) doctype = doc.doctype;
@@ -109,14 +109,14 @@ frappe.get_indicator = function (doc, doctype, show_workflow_state) {
 		if (doc.enabled) {
 			return [__("Enabled", null, doctype), "blue", "enabled,=,1"];
 		} else {
-			return [__("Disabled", null, doctype), "grey", "enabled,=,0"];
+			return [__("Disabled", null, doctype), "gray", "enabled,=,0"];
 		}
 	}
 
 	// based on disabled
 	if (frappe.meta.has_field(doctype, "disabled")) {
 		if (doc.disabled) {
-			return [__("Disabled", null, doctype), "grey", "disabled,=,1"];
+			return [__("Disabled", null, doctype), "gray", "disabled,=,1"];
 		} else {
 			return [__("Enabled", null, doctype), "blue", "disabled,=,0"];
 		}

@@ -18,6 +18,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		this.make();
 
 		this.selected_fields = new Set();
+		this.selected_items = {};
 	}
 
 	get_fields() {
@@ -343,8 +344,11 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			let name = $(this).attr("data-item-name").trim();
 			if ($(this).find(":checkbox").is(":checked")) {
 				me.selected_fields.add(name);
+				const item = me.results.find((r) => r.name === name);
+				if (item) me.selected_items[name] = item;
 			} else {
 				me.selected_fields.delete(name);
+				delete me.selected_items[name];
 			}
 		});
 
@@ -355,11 +359,28 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				const name = $(this).closest(".list-item-container").attr("data-item-name").trim();
 				if (checked) {
 					me.selected_fields.add(name);
+					const item = me.results.find((r) => r.name === name);
+					if (item) me.selected_items[name] = item;
 				} else {
 					me.selected_fields.delete(name);
+					delete me.selected_items[name];
 				}
 			});
 		});
+
+		const refresh_results = frappe.utils.debounce(() => {
+			frappe.flags.auto_scroll = false;
+			if (me.is_child_selection_enabled()) {
+				me.show_child_results();
+			} else {
+				me.empty_list();
+				me.get_results();
+			}
+		}, 300);
+
+		this.$parent
+			.find(".input-with-feedback")
+			.on("awesomplete-selectcomplete", refresh_results);
 
 		this.$parent.find(".input-with-feedback").on("change", () => {
 			frappe.flags.auto_scroll = false;
@@ -458,30 +479,28 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 		let contents = ``;
 		this.get_datatable_columns().forEach(function (column) {
+			let column_label = frappe.utils.escape_html(__(frappe.model.unscrub(column)));
+			let value = frappe.utils.escape_html(__(result[column] || ""));
+			let id_href = frappe.utils.escape_html(
+				"/desk/" + frappe.router.slug(me.doctype) + "/" + (result[column] || "")
+			);
 			contents += `<div class="list-item__content ellipsis">
 				${
 					head
-						? `<span class="ellipsis text-muted" title="${__(
-								frappe.model.unscrub(column)
-						  )}">${__(frappe.model.unscrub(column))}</span>`
+						? `<span class="ellipsis text-muted" title="${column_label}">${column_label}</span>`
 						: column !== "name"
-						? `<span class="ellipsis result-row" title="${__(
-								result[column] || ""
-						  )}">${__(result[column] || "")}</span>`
-						: `<a href="${
-								"/desk/" + frappe.router.slug(me.doctype) + "/" + result[column] ||
-								""
-						  }" class="list-id ellipsis" title="${__(result[column] || "")}">
-							${__(result[column] || "")}</a>`
+						? `<span class="ellipsis result-row" title="${value}">${value}</span>`
+						: `<a href="${id_href}" class="list-id ellipsis" title="${value}">
+							${value}</a>`
 				}
 			</div>`;
 		});
 
 		let $row = $(`<div class="list-item py-2 px-2 border-bottom">
 			<div class="list-item__content" style="flex: 0 0 10px;">
-				<input type="checkbox" class="list-row-check" data-item-name="${result.name}" ${
-			result.checked ? "checked" : ""
-		}>
+				<input type="checkbox" class="list-row-check" data-item-name="${frappe.utils.escape_html(
+					result.name
+				)}" ${result.checked ? "checked" : ""}>
 			</div>
 			${contents}
 		</div>`);
@@ -489,7 +508,9 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		head
 			? $row.addClass("list-item--head")
 			: ($row = $(
-					`<div class="list-item-container m-0" data-item-name="${result.name}"></div>`
+					`<div class="list-item-container m-0" data-item-name="${frappe.utils.escape_html(
+						result.name
+					)}"></div>`
 			  ).append($row));
 
 		return $row;
@@ -525,13 +546,11 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	empty_list() {
-		// Store all checked items
-		let checked = this.results
-			.filter((result) => this.selected_fields.has(result.name))
-			.map((item) => ({
-				...item,
-				checked: true,
-			}));
+		// Store all checked items using selected_items map (persists across searches)
+		let checked = [...this.selected_fields].map((name) => ({
+			...(this.selected_items[name] || { name }),
+			checked: true,
+		}));
 
 		// Remove **all** items
 		this.$results.find(".list-item-container").remove();
@@ -542,45 +561,58 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 	get_filters_from_setters() {
 		let me = this;
-		let filters = (this.get_query ? this.get_query().filters : {}) || {};
+		let query_filters = (this.get_query ? this.get_query().filters : {}) || {};
+		let filters_list = Object.entries(query_filters).map(([key, value]) => {
+			if (Array.isArray(value)) {
+				return [me.doctype, key, value[0], value[1]];
+			}
+			return [me.doctype, key, "=", value];
+		});
 		let filter_fields = [];
 
 		if ($.isArray(this.setters)) {
 			for (let df of this.setters) {
-				filters[df.fieldname] =
-					me.dialog.fields_dict[df.fieldname].get_value() || undefined;
-				me.args[df.fieldname] = filters[df.fieldname];
+				let value =
+					me.dialog.fields_dict[df.fieldname].get_value() || df.default || undefined;
+				me.args[df.fieldname] = value;
 				filter_fields.push(df.fieldname);
+				if (value != null) {
+					filters_list.push([me.doctype, df.fieldname, "=", value]);
+				}
 			}
 		} else {
 			Object.keys(this.setters).forEach(function (setter) {
-				var value = me.dialog.fields_dict[setter].get_value();
+				let value = me.dialog.fields_dict[setter].get_value() || me.setters[setter];
 				if (me.dialog.fields_dict[setter].df.fieldtype == "Data" && value) {
-					filters[setter] = ["like", "%" + value + "%"];
+					filters_list.push([me.doctype, setter, "like", "%" + value + "%"]);
 				} else {
-					filters[setter] = value || undefined;
-					me.args[setter] = filters[setter];
+					value = value || undefined;
+					me.args[setter] = value;
 					filter_fields.push(setter);
+					if (value != null) {
+						filters_list.push([me.doctype, setter, "=", value]);
+					}
 				}
 			});
 		}
 
-		return [filters, filter_fields];
+		return [filters_list, filter_fields];
 	}
 
 	get_args_for_search() {
-		let [filters, filter_fields] = this.get_filters_from_setters();
+		let [filters_list, filter_fields] = this.get_filters_from_setters();
 
-		let custom_filters = this.get_custom_filters();
-		Object.assign(filters, custom_filters);
-
+		if (this.add_filters_group && this.filter_group) {
+			filters_list.push(...this.filter_group.get_filters());
+		}
 		return {
 			doctype: this.doctype,
 			txt: this.dialog.fields_dict["search_term"].get_value(),
-			filters: filters,
+			filters: filters_list,
 			filter_fields: filter_fields,
 			page_length: this.page_length + 5,
 			query: this.get_query ? this.get_query().query : "",
+			query_filters_as_dict: true,
 			as_dict: 1,
 		};
 	}

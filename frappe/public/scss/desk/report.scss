@@ -5,6 +5,9 @@
 	}
 
 	.page-form {
+		position: relative;
+		z-index: 5;
+
 		.form-group {
 			padding: 0px 16px 0px 0px;
 			margin: var(--margin-sm) 0px;
@@ -88,10 +91,47 @@
 	overflow: auto;
 	padding-left: 15px;
 	padding-right: 15px;
+	padding-bottom: 15px;
+
+	.datatable {
+		border-radius: var(--radius) var(--radius) 0 0;
+	}
 }
+
+.report-view {
+	.layout-main-section {
+		height: calc(100vh - var(--page-head-height));
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+
+		.page-form {
+			flex-shrink: 0;
+		}
+
+		.frappe-list {
+			flex-grow: 1;
+			display: flex;
+			flex-direction: column;
+			overflow: hidden;
+
+			.result,
+			.no-result {
+				flex-grow: 1;
+				overflow: auto;
+			}
+
+			.comparison-message {
+				display: none;
+			}
+		}
+	}
+}
+
 @include media-breakpoint-up(sm) {
 	.report-view {
 		width: calc(100% - 220px);
+
 		.result {
 			.dt-row:last-child:not(.dt-row-filter) {
 				.dt-cell {
@@ -99,6 +139,12 @@
 				}
 			}
 		}
+	}
+}
+
+@include media-breakpoint-down(sm) {
+	.datatable .dt-scrollable {
+		height: calc(100vh - 260px) !important;
 	}
 }
 
@@ -113,12 +159,43 @@
 		vertical-align: middle;
 	}
 }
+
 .group-by-icon.active {
 	--icon-stroke: var(--primary);
 }
+
 .comparison-message {
-	margin-left: var(--margin-sm);
 	@include get_textstyle("base", "regular");
+}
+
+.report-view {
+	.datatable .dt-row-filter .dt-cell__content {
+		position: relative;
+	}
+
+	.datatable .dt-row-filter .dt-filter.dt-input {
+		padding-inline-end: 0.5rem;
+	}
+
+	.datatable .dt-row-filter .comparison-help-icon {
+		position: absolute;
+		top: 50%;
+		right: 10px;
+		transform: translateY(-50%);
+		display: inline-flex;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.15s ease;
+
+		.icon {
+			stroke: currentColor;
+		}
+	}
+
+	.datatable .dt-row-filter .dt-filter.dt-input:focus + .comparison-help-icon {
+		opacity: 1;
+		pointer-events: auto;
+	}
 }
 
 .list-count {
@@ -151,7 +228,7 @@
 .report-summary {
 	// FORM
 	background-color: var(--bg-color);
-	border-radius: var(--border-radius-md, 8px);
+	border-radius: var(--radius-md, 8px);
 	border-bottom: 1px solid $border-color;
 
 	// SIZE & SPACING
@@ -198,9 +275,11 @@
 		&.green {
 			color: var(--green-500);
 		}
+
 		&.red {
 			color: var(--red-500);
 		}
+
 		&.blue {
 			color: var(--blue-500);
 		}
@@ -229,16 +308,18 @@
 		.summary-value {
 			// FORM
 			background: var(--card-bg);
-			border-radius: var(--border-radius-sm, 4px);
+			border-radius: var(--radius, 4px);
 			border: 1px solid var(--dark-border-color);
 			padding: 4px 6px;
 
 			&.green {
 				color: var(--green-500);
 			}
+
 			&.red {
 				color: var(--red-500);
 			}
+
 			&.blue {
 				color: var(--blue-500);
 			}
@@ -299,6 +380,7 @@
 .input-group > * {
 	margin-right: 10px;
 }
+
 .check-filter-area {
 	display: flex;
 	flex-wrap: wrap;

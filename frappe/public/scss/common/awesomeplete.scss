@@ -5,6 +5,7 @@
 	[hidden] {
 		display: none;
 	}
+
 	.visually-hidden {
 		position: absolute;
 		clip: rect(0, 0, 0, 0);
@@ -26,7 +27,7 @@
 		max-height: unquote("min(60vh, 300px)");
 		overflow-y: auto;
 		overflow-x: hidden;
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 		box-shadow: var(--shadow-md);
 		border: 1px solid var(--border-color);
 		left: 0;
@@ -35,26 +36,35 @@
 		z-index: 4;
 		min-width: 250px;
 
+		&.awesomplete-align-right {
+			left: auto;
+			right: 0;
+		}
+
 		& > li,
 		& > [role="option"] {
 			&:has(p[title="filter_description__link_option"]) {
 				cursor: default;
 			}
+
 			cursor: pointer;
 			@include get_textstyle("sm", "regular");
 			padding: var(--padding-sm);
 			color: var(--text-color);
-			border-radius: var(--border-radius);
+			border-radius: var(--radius);
 			white-space: unset;
 			@extend .ellipsis;
+
 			&:not(:last-child) {
 				margin-bottom: var(--margin-xs);
 			}
+
 			p {
 				margin-bottom: 0;
 				overflow-y: clip;
 				text-overflow: ellipsis;
 			}
+
 			strong {
 				@include get_textstyle("sm", "bold");
 			}

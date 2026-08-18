@@ -13,6 +13,8 @@ FIELDTYPES_TO_IGNORE = frozenset(fieldtype for fieldtype in no_value_fields if f
 
 
 class Version(Document):
+	_DOCTYPE_NAME = "Version"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

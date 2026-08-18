@@ -28,6 +28,10 @@ Define user invitation hooks in your app's `hooks.py` file. An example is shown 
 
   A map of `only_for` roles to a list of roles that are allowed to be invited to your app.
 
+- `extra_invite_params`
+
+  A list of additional parameters that can be passed when creating a user invitation. Optional parameter.
+
 - `after_accept`
 
   Dot path of the function to execute after the user accepts the invitation.
@@ -86,6 +90,12 @@ Get all of the pending invitations associated with an installed Framework applic
 Cancels a specific pending invitation associated with an installed Framework application.
 
 ![cancel invitation api example](./cancel_invitation_api_example.png)
+
+### `resend_invitation`
+Resends a specific pending invitation associated with an installed Framework application.
+
+Requires the `invitation name` and the `app name` as parameters.
+
 
 ## Normal flow
 

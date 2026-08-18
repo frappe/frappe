@@ -39,6 +39,8 @@ def check_permissions(method):
 
 
 class RQJob(Document):
+	_DOCTYPE_NAME = "RQ Job"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -94,7 +96,11 @@ class RQJob(Document):
 
 		matched_job_ids = []
 		for queue in get_queues():
-			if not queue.name.endswith(tuple(queues)):
+			# RQ keys are prefixed with the bench path (e.g. `...bench:long`);
+			# split on ":" and compare the short name exactly. `endswith` alone
+			# would false-match custom queues whose name is a suffix of a
+			# standard one (e.g. `schedulelong` under `queue=long`).
+			if queue.name.rsplit(":", 1)[-1] not in queues:
 				continue
 			for status in statuses:
 				matched_job_ids.extend(fetch_job_ids(queue, status))
@@ -241,7 +247,7 @@ def get_all_queued_jobs():
 
 
 @frappe.whitelist()
-def stop_job(job_id):
+def stop_job(job_id: str):
 	frappe.get_doc("RQ Job", job_id).stop_job()
 
 

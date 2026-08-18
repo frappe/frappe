@@ -5,6 +5,8 @@ from frappe.model.document import Document
 
 
 class SMSParameter(Document):
+	_DOCTYPE_NAME = "SMS Parameter"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

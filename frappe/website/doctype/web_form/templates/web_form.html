@@ -4,8 +4,17 @@
 	{% include "templates/includes/meta_block.html" %}
 {% endblock %}
 
-{% if hide_navbar %}{% block navbar %}{% endblock %}{% endif %}
-{% if hide_footer %}{% block footer %}{% endblock %}{% endif %}
+{% block navbar %}
+	{% if not hide_navbar %}
+        {% include "templates/includes/navbar/navbar.html" %}
+	{% endif %}
+{% endblock %}
+
+{% block footer %}
+	{% if not hide_footer %}
+        {% include "templates/includes/footer/footer.html" %}
+	{% endif %}
+{% endblock %}
 
 {% block breadcrumbs %}{% endblock %}
 
@@ -19,8 +28,9 @@
 {% macro header_buttons() %}
 	{% block header_buttons %}
 	{% if allow_edit and in_view_mode %}
+		{% set request_query = "?web_form_request_key=" + web_form_request_key if web_form_request_key else "" %}
 		<!-- edit button -->
-		<a href="/{{ route }}/{{ doc_name }}/edit" class="edit-button btn btn-default btn-sm">{{ _("Edit", context="Button in web form") }}</a>
+		<a href="/{{ route }}/{{ doc_name }}/edit{{ request_query }}" class="edit-button btn btn-default btn-sm">{{ _("Edit", context="Button in web form") }}</a>
 	{% endif %}
 
 	{% if allow_print and in_view_mode %}
@@ -61,7 +71,7 @@
 	<!-- web form container -->
 	<div class="web-form-container">
 		<!-- breadcrumb -->
-		{% if not webform_banner_image and has_header and login_required and show_list %}
+		{% if not webform_banner_image and has_header and show_list and not allows_public_access %}
 			{% include "templates/includes/breadcrumbs.html" %}
 			{% else %}
 				<div style="height: 3rem"></div>
@@ -69,7 +79,7 @@
 
 		<!-- header -->
 		<div class="web-form-header">
-			{% if webform_banner_image and has_header and login_required and show_list %}
+			{% if webform_banner_image and has_header and show_list and not allows_public_access %}
 				{% include "templates/includes/breadcrumbs.html" %}
 			{% endif %}
 			<div class="web-form-head">
@@ -82,7 +92,9 @@
 							<h1 class="ellipsis">{{ _(title) }}</h1>
 						{% endif %}
 					</div>
-					<span class="indicator-pill orange hide">{{ _("Not Saved") }}</span>
+					{% if is_new or in_edit_mode %}
+						<span class="es-badge hide" id="not-saved-badge" data-theme="amber">{{ _("Not Saved") }}</span>
+					{% endif %}
 					<div class="web-form-actions">
 						{{ header_buttons() }}
 					</div>
@@ -114,7 +126,7 @@
 				{% for attachment in attachments %}
 					<a class="attachment attachment-link" href="{{ attachment.file_url }}" target="blank">
 						<div class="file-name ellipsis">
-							<svg class="icon icon-sm"><use href="#icon-attachment"></use></svg>
+							<svg class="icon icon-sm"><use href="#icon-paperclip"></use></svg>
 							<span>{{ attachment.file_name }}</span>
 						</div>
 						<div class="file-size">{{ attachment.file_size }}</div>
@@ -136,9 +148,10 @@
 
 	<!-- success page -->
 	<div class="success-page hide">
+		{% set request_query = "?web_form_request_key=" + web_form_request_key if web_form_request_key else "" %}
 		<div class="success-header">
 			<svg class="success-icon icon">
-				<use href="#icon-solid-success"></use>
+				<use href="#icon-circle-check"></use>
 			</svg>
 			<h2 class="success-title">{{ _(success_title) or _("Submitted") }}</h2>
 		</div>
@@ -157,10 +170,10 @@
 				</div>
 			{% else %}
 				{% if show_list %}
-					<a href="/{{ route }}/list" class="show-list-button btn btn-default btn-md">{{ _("See previous responses", context="Button in web form") }}</a>
+					<a href="/{{ route }}/list{{ request_query }}" class="show-list-button btn btn-default btn-md">{{ _("See previous responses", context="Button in web form") }}</a>
 				{% endif %}
-				{% if not login_required or allow_multiple %}
-					<a href="/{{ route }}/new" class="new-btn btn btn-default btn-md">{{ _("Submit another response", context="Button in web form") }}</a>
+				{% if allows_public_access or allow_multiple %}
+					<a href="/{{ route }}/new{{ request_query }}" class="new-btn btn btn-default btn-md">{{ _("Submit another response", context="Button in web form") }}</a>
 				{% endif %}
 			{% endif %}
 		</div>
@@ -172,8 +185,8 @@
 	<script>
 		frappe.boot = {{ frappe.utils.orjson_dumps(boot, default=frappe.json_handler) }};
 		frappe._messages = {{ translated_messages }};
-		frappe.web_form_doc = {{ web_form_doc | json }};
-		frappe.reference_doc = {{ reference_doc | json }};
+		frappe.web_form_doc = {{ web_form_doc | json | replace("<", "\\u003c") | replace(">", "\\u003e") | replace("&", "\\u0026") }};
+		frappe.reference_doc = {{ reference_doc | json | replace("<", "\\u003c") | replace(">", "\\u003e") | replace("&", "\\u0026") }};
 		function in_iframe() {
 			try {
 				return window.self !== window.top;

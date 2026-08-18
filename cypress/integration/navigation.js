@@ -26,11 +26,11 @@ context("Navigation", () => {
 		cy.get(".page-head").findByTitle("To Do").should("be.visible");
 		cy.clear_filters();
 		cy.call("logout");
-		cy.reload().as("reload");
-		cy.get("@reload").get(".page-card .btn-primary").contains("Login").click();
+		cy.reload();
+		cy.findByRole("button", { name: "Continue" }).click();
 		cy.location("pathname").should("eq", "/login");
 		cy.login();
-		cy.reload().as("reload");
+		cy.visit("/desk/todo");
 		cy.location("pathname").should("eq", "/desk/todo");
 	});
 });

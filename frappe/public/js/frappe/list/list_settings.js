@@ -30,17 +30,51 @@ export default class ListSettings {
 		let list_view_settings = frappe.get_meta("List View Settings");
 
 		me.dialog = new frappe.ui.Dialog({
-			title: __("{0} List View Settings", [__(me.doctype)]),
+			title:
+				me.doctype === "List View Settings"
+					? __("List View Settings")
+					: __("{0} List View Settings", [__(me.doctype)]),
 			fields: list_view_settings.fields,
 		});
 		me.dialog.set_values(me.settings);
+
+		// Collapse the unlabelled section that wraps fields_html — it adds
+		// an empty section-head + default section-body margins with no content.
+		const $fields_section = me.dialog.$wrapper.find('[data-fieldname="section_break_evqq"]');
+		$fields_section.find(".section-head").hide();
+		$fields_section.find("> .section-body").css({ "margin-top": 0, "padding-top": 0 });
+
 		me.dialog.set_primary_action(__("Save"), () => {
+			me.update_fields();
 			let values = me.dialog.get_values();
+			// update_fields() populates me.fields synchronously but set_value() is async,
+			// so bypass the dialog model and use me.fields directly.
+			values.fields = JSON.stringify(me.fields);
 
 			frappe.show_alert({
 				message: __("Saving"),
 				indicator: "green",
 			});
+
+			if (
+				me.listview.list_filter?.active_layout_name &&
+				me.listview.list_filter.active_layout_name !== "default_layout"
+			) {
+				const layout = me.listview.list_filter.get_active_layout();
+				if (layout && me.listview.list_filter.can_edit_layout(layout)) {
+					me.listview.list_filter
+						.update_layout_columns(layout, me.fields, { debounce: false })
+						.then(async () => {
+							// setup_columns is async (may load linked doctype meta for
+							// link-title columns); wait before rendering the header.
+							await me.listview.setup_columns(me.fields);
+							me.listview.render_header(true);
+							me.listview.apply_column_widths?.();
+							me.dialog.hide();
+						});
+					return;
+				}
+			}
 
 			frappe.call({
 				method: "frappe.desk.doctype.list_view_settings.list_view_settings.save_listview_settings",
@@ -101,29 +135,55 @@ export default class ListSettings {
 		let wrapper = fields_html.$wrapper[0];
 		let fields = ``;
 
+		me.listview.columns = me.listview.columns.filter((col) => col.type !== "Tag");
+		const columnByFieldname = {};
+		me.listview.columns.forEach((col) => {
+			if (col.df?.fieldname) columnByFieldname[col.df.fieldname] = col;
+		});
+
 		for (let idx in me.fields) {
 			if (idx == parseInt(this.max_number_of_fields)) {
 				break;
 			}
 			let is_sortable = idx == 0 ? `` : `sortable`;
 			let show_sortable_handle = idx == 0 ? `hide` : ``;
-			let can_remove = idx == 0 || is_status_field(me.fields[idx]) ? `hide` : ``;
+			let can_remove = idx == 0 || is_status_field(me.fields[idx]) ? `hide` : `d-flex`;
 
 			fields += `
-				<div class="control-input flex align-center form-control fields_order ${is_sortable}"
-					style="display: block; margin-bottom: 5px;" data-fieldname="${me.fields[idx].fieldname}"
-					data-label="${me.fields[idx].label}" data-type="${me.fields[idx].type}">
+				<div class="control-input form-control fields_order ${is_sortable} flex"
+	 				style="margin-bottom: 5px; padding-bottom: 1.5px;"
+	 				data-fieldname="${me.fields[idx].fieldname}"
+	 				data-label="${me.fields[idx].label}"
+	 				data-type="${me.fields[idx].type}">
 
-					<div class="row">
-						<div class="col-1">
-							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle " + show_sortable_handle)}
+					<div class="row flex-fill align-items-center">
+						<div class="col-1 flex align-items-center justify-content-center px-1">
+							${frappe.utils.icon("grip", "xs", "", "", "sortable-handle " + show_sortable_handle)}
 						</div>
-						<div class="col-10" style="padding-left:0px;">
+
+						<div class="col flex align-items-center px-0">
 							${__(me.fields[idx].label, null, me.doctype)}
 						</div>
-						<div class="col-1 ${can_remove}">
-							<a class="text-muted remove-field" data-fieldname="${me.fields[idx].fieldname}">
-								${frappe.utils.icon("delete", "xs")}
+
+						<div class="col-2">
+							<input
+								inputmode="numeric"
+								autocomplete="number"
+								class="form-control text-right"
+								data-fieldname="${me.fields[idx].fieldname}"
+								style="background-color: var(--modal-bg); height: 22px;"
+								value="${
+									cint(me.fields[idx].width) ||
+									cint(columnByFieldname[me.fields[idx].fieldname]?.df?.width) ||
+									""
+								}"
+							>
+						</div>
+
+						<div class="col-1 flex align-items-center justify-content-center px-0">
+							<a class="text-muted remove-field align-items-center ${can_remove}"
+							   data-fieldname="${me.fields[idx].fieldname}">
+								${frappe.utils.icon("x", "xs")}
 							</a>
 						</div>
 					</div>
@@ -132,13 +192,27 @@ export default class ListSettings {
 
 		fields_html.html(`
 			<div class="form-group">
-				<div class="clearfix">
-					<label class="control-label" style="padding-right: 0px;">${__("Fields")}</label>
-					<label class="text-extra-muted float-right">
-						<a class="add-new-fields text-muted">
-							${__("+ Add / Remove Fields")}
-						</a>
-					</label>
+				<div class="text-right mb-1">
+					<a class="add-new-fields text-muted" style="font-size: var(--text-xs); white-space: nowrap;">
+						${__("+ Add / Remove Fields")}
+					</a>
+				</div>
+				<div class="row flex-fill px-1 mb-1" style="font-size: var(--text-xs); color: var(--text-muted);">
+					<div class="col-1"></div>
+					<div class="col px-0">
+						<label class="control-label mb-0" style="padding-right: 0; font-size: var(--text-xs);">${__(
+							"Fields"
+						)}</label>
+					</div>
+					<div class="col-2 text-right pr-2" style="white-space: nowrap;">
+						${__("Width (px)")}
+						<span
+							class="ml-1"
+							title="${__("You can also drag column borders directly in the list view to resize")}"
+							style="cursor: help;"
+						>${frappe.utils.icon("info", "xs")}</span>
+					</div>
+					<div class="col-1"></div>
 				</div>
 				<div class="control-input-wrapper">
 				${fields}
@@ -208,10 +282,18 @@ export default class ListSettings {
 		me.fields = [];
 
 		for (let idx = 0; idx < fields_order.length; idx++) {
-			me.fields.push({
-				fieldname: fields_order.item(idx).getAttribute("data-fieldname"),
-				label: __(fields_order.item(idx).getAttribute("data-label")),
-			});
+			let el = fields_order.item(idx);
+			let fieldname = el.getAttribute("data-fieldname");
+			let width_input = el.querySelector(
+				`input.form-control[data-fieldname="${fieldname}"]`
+			);
+			let width = width_input ? cint(width_input.value) : 0;
+			let field = {
+				fieldname: fieldname,
+				label: __(el.getAttribute("data-label")),
+			};
+			if (width) field.width = width;
+			me.fields.push(field);
 		}
 
 		me.dialog.set_value("fields", JSON.stringify(me.fields));

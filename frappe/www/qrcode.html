@@ -3,10 +3,48 @@
 {% block title %}{{ _("QR Code") }}{% endblock %}
 
 {% block page_content %}
+<style>
+	.otp-manual-section {
+		margin-top: 20px;
+	}
+
+	.otp-manual-section .manual-entry-title {
+		margin-bottom: 0px;
+	}
+
+	.otp-manual-section .manual-entry-hint {
+		font-size: 13px;
+		color: #636e72;
+		margin-bottom: 4px;
+	}
+
+	.otp-input-group {
+		display: flex;
+		gap: 8px;
+		margin-bottom: 20px;
+	}
+
+	.otp-secret-input {
+		flex: 1;
+		max-width: 40%;
+		font-family: monospace;
+		letter-spacing: 1px;
+		padding: 10px 12px;
+		font-size: 14px;
+		width: 35%;
+		height: 100%;
+	}
+
+	.copy-secret-btn {
+		padding: 6px 12px;
+		flex-shrink: 0;
+	}
+</style>
+
 <h1>{{ _("QR Code for Login Verification") }}</h1>
 <div class='row'>
 	<div class='col-sm-6'>
-		<p>{{ _("Hi {0}").format(qr_code_user.first_name) }},</p>
+		<p>{{ _("Hi {0}").format(qr_code_user.first_name | e) }},</p>
 
 		<p>{{ _("Steps to verify your login") }}:</p>
 			<ol>
@@ -22,6 +60,80 @@
 	</div>
 	<div class='col-sm-6' style='padding-top: 15px;'>
 		<img src="data:image/svg+xml;base64,{{qrcode_svg}}">
+
+		{% if otp_secret %}
+		<div class='otp-manual-section'>
+			<p class='manual-entry-title'><strong>{{ _("Can't scan the code?") }}</strong></p>
+			<p class='manual-entry-hint'>{{ _("Enter this setup key manually:") }}</p>
+
+			<div class='otp-input-group'>
+				<input
+					type='text'
+					id='otp-secret-input'
+					value='{{ otp_secret }}'
+					readonly
+					onclick='this.select()'
+					class='form-control otp-secret-input'
+				/>
+				<button
+					id='copy-secret-btn'
+					onclick='copySecret()'
+					class='btn btn-default btn-sm copy-secret-btn'
+					title='{{ _("Copy to clipboard") }}'
+				>
+					<svg id='copy-icon' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
+						<rect x='9' y='9' width='13' height='13' rx='2' ry='2'></rect>
+						<path d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'></path>
+					</svg>
+					<svg id='check-icon' style='display:none' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='#10b981' stroke-width='2.5'>
+						<polyline points='20 6 9 17 4 12'></polyline>
+					</svg>
+				</button>
+			</div>
+		</div>
+		{% endif %}
 	</div>
 </div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+function copySecret() {
+    const input = document.getElementById('otp-secret-input');
+    const copyIcon = document.getElementById('copy-icon');
+    const checkIcon = document.getElementById('check-icon');
+
+    input.select();
+    input.setSelectionRange(0, 99999);
+
+    function showCopied() {
+        copyIcon.style.display = 'none';
+        checkIcon.style.display = 'inline';
+        setTimeout(function() {
+            copyIcon.style.display = 'inline';
+            checkIcon.style.display = 'none';
+        }, 2000);
+    }
+
+    function cleanup() {
+        input.blur();
+        window.getSelection().removeAllRanges();
+    }
+
+    try {
+        navigator.clipboard.writeText(input.value).then(function() {
+            showCopied();
+            cleanup();
+        }).catch(function() {
+            document.execCommand('copy');
+            showCopied();
+            cleanup();
+        });
+    } catch (err) {
+        console.error('Copy failed:', err);
+        cleanup();
+    }
+}
+</script>
 {% endblock %}

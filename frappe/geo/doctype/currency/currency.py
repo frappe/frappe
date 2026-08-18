@@ -8,6 +8,8 @@ DEFAULT_ENABLED_CURRENCIES = ("INR", "USD", "GBP", "EUR", "AED", "AUD", "JPY", "
 
 
 class Currency(Document):
+	_DOCTYPE_NAME = "Currency"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

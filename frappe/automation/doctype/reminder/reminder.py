@@ -9,6 +9,8 @@ from frappe.utils.data import add_to_date, get_datetime, now_datetime
 
 
 class Reminder(Document):
+	_DOCTYPE_NAME = "Reminder"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

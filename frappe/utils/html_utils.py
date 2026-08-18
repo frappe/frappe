@@ -1,6 +1,7 @@
 import json
 import re
 
+import nh3
 from bleach_allowlist import bleach_allowlist
 
 import frappe
@@ -16,15 +17,16 @@ EMOJI_PATTERN = re.compile(
 	flags=re.UNICODE,
 )
 
+# tags for which content needs to be removed from output
+REMOVE_CONTENT_TAGS = {"script", "style"}
+
 
 def clean_html(html):
-	import bleach
-
 	if not isinstance(html, str):
 		return html
 
-	return bleach.clean(
-		clean_script_and_style(html),
+	return nh3.clean(
+		html,
 		tags={
 			"div",
 			"p",
@@ -42,58 +44,53 @@ def clean_html(html):
 			"tbody",
 			"td",
 			"tr",
+			"a",
 		},
-		attributes=[],
-		strip=True,
+		clean_content_tags=REMOVE_CONTENT_TAGS,
 		strip_comments=True,
 	)
 
 
 def clean_email_html(html):
-	import bleach
-	from bleach.css_sanitizer import CSSSanitizer
-
 	if not isinstance(html, str):
 		return html
 
-	css_sanitizer = CSSSanitizer(
-		allowed_css_properties=[
-			"color",
-			"border-color",
-			"width",
-			"height",
-			"max-width",
-			"background-color",
-			"border-collapse",
-			"border-radius",
-			"border",
-			"border-top",
-			"border-bottom",
-			"border-left",
-			"border-right",
-			"margin",
-			"margin-top",
-			"margin-bottom",
-			"margin-left",
-			"margin-right",
-			"padding",
-			"padding-top",
-			"padding-bottom",
-			"padding-left",
-			"padding-right",
-			"font-size",
-			"font-weight",
-			"font-family",
-			"text-decoration",
-			"line-height",
-			"text-align",
-			"vertical-align",
-			"display",
-		]
-	)
+	allowed_css_properties = {
+		"color",
+		"border-color",
+		"width",
+		"height",
+		"max-width",
+		"background-color",
+		"border-collapse",
+		"border-radius",
+		"border",
+		"border-top",
+		"border-bottom",
+		"border-left",
+		"border-right",
+		"margin",
+		"margin-top",
+		"margin-bottom",
+		"margin-left",
+		"margin-right",
+		"padding",
+		"padding-top",
+		"padding-bottom",
+		"padding-left",
+		"padding-right",
+		"font-size",
+		"font-weight",
+		"font-family",
+		"text-decoration",
+		"line-height",
+		"text-align",
+		"vertical-align",
+		"display",
+	}
 
-	return bleach.clean(
-		clean_script_and_style(html),
+	return nh3.clean(
+		html,
 		tags={
 			"div",
 			"p",
@@ -124,16 +121,20 @@ def clean_email_html(html):
 			"button",
 			"img",
 		},
-		attributes=["border", "colspan", "rowspan", "src", "href", "style", "id"],
-		css_sanitizer=css_sanitizer,
-		protocols=["cid", "http", "https", "mailto", "data", "tel"],
-		strip=True,
+		attributes={"*": {"border", "colspan", "rowspan", "src", "href", "style", "id"}},
+		clean_content_tags=REMOVE_CONTENT_TAGS,
+		filter_style_properties=allowed_css_properties,
 		strip_comments=True,
+		url_schemes=nh3.ALLOWED_URL_SCHEMES.union({"cid", "data"}),
 	)
 
 
 def clean_script_and_style(html):
-	# remove script and style
+	"""
+	Remove script and style tags.
+	DEPRECATED: prefer nh3.clean's clean_content_tags parameter.
+	"""
+
 	from bs4 import BeautifulSoup
 
 	soup = BeautifulSoup(html, "html5lib")
@@ -142,53 +143,66 @@ def clean_script_and_style(html):
 	return frappe.as_unicode(soup)
 
 
-def sanitize_html(html, linkify=False, always_sanitize=False):
+def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=None):
 	"""
 	Sanitize HTML tags, attributes and style to prevent XSS attacks
-	Based on bleach clean, bleach whitelist and html5lib's Sanitizer defaults
+	Based on nh3 clean, bleach whitelist and html5lib's Sanitizer defaults
 
-	Does not sanitize JSON unless explicitly specified, as it could lead to future problems
+	Content without any HTML tags is returned unchanged; everything else is sanitized.
 	"""
-	import bleach
-	from bleach.css_sanitizer import CSSSanitizer
 	from bs4 import BeautifulSoup
 
 	if not isinstance(html, str):
 		return html
 
 	if not always_sanitize:
-		if is_json(html):
-			return html
-
 		if not bool(BeautifulSoup(html, "html.parser").find()):
 			return html
 
 	tags = (
-		acceptable_elements
-		+ svg_elements
-		+ mathml_elements
-		+ ["html", "head", "meta", "link", "body", "style", "o:p"]
+		acceptable_elements.union(svg_elements)
+		.union(mathml_elements)
+		.union(["html", "head", "meta", "link", "body", "o:p"])
 	)
 
-	def attributes_filter(tag, name, value):
-		if name.startswith("data-"):
-			return True
-		return name in acceptable_attributes
+	# Allow caller to explicitly disallow some tags
+	if disallowed_tags:
+		if disallowed_tags == "*":
+			tags = set()
+		else:
+			tags.difference_update(disallowed_tags)
 
-	attributes = {"*": attributes_filter, "svg": svg_attributes}
-	css_sanitizer = CSSSanitizer(allowed_css_properties=bleach_allowlist.all_styles)
+	attributes = {"*": acceptable_attributes, "svg": svg_attributes}
 
-	# returns html with escaped tags, escaped orphan >, <, etc.
-	escaped_html = bleach.clean(
+	# returns sanitized HTML with unsafe tags and attributes removed
+	escaped_html = nh3.clean(
 		html,
 		tags=tags,
 		attributes=attributes,
-		css_sanitizer=css_sanitizer,
+		generic_attribute_prefixes={"data-"},
 		strip_comments=False,
-		protocols={"cid", "http", "https", "mailto", "tel"},
+		filter_style_properties=set(bleach_allowlist.all_styles),
+		url_schemes=nh3.ALLOWED_URL_SCHEMES.union({"cid"}),
 	)
 
 	return escaped_html
+
+
+def sanitize_svg(svg: str) -> str:
+	"""Sanitize standalone SVG markup for safe inline rendering (e.g. custom icons).
+
+	Stricter than sanitize_html: only SVG elements and attributes survive, so
+	scripts, event handlers, foreignObject and plain HTML are all stripped.
+	"""
+	if not isinstance(svg, str):
+		return svg
+
+	return nh3.clean(
+		svg,
+		tags=svg_elements,
+		attributes={"*": svg_attributes},
+		strip_comments=True,
+	)
 
 
 def is_json(text):
@@ -225,7 +239,7 @@ def unescape_html(value):
 
 
 # adapted from https://raw.githubusercontent.com/html5lib/html5lib-python/4aa79f113e7486c7ec5d15a6e1777bfe546d3259/html5lib/sanitizer.py
-acceptable_elements = [
+acceptable_elements = {
 	"a",
 	"abbr",
 	"acronym",
@@ -327,9 +341,9 @@ acceptable_elements = [
 	"ul",
 	"var",
 	"video",
-]
+}
 
-mathml_elements = [
+mathml_elements = {
 	"maction",
 	"math",
 	"merror",
@@ -357,9 +371,9 @@ mathml_elements = [
 	"munder",
 	"munderover",
 	"none",
-]
+}
 
-svg_elements = [
+svg_elements = {
 	"a",
 	"animate",
 	"animateColor",
@@ -395,9 +409,9 @@ svg_elements = [
 	"title",
 	"tspan",
 	"use",
-]
+}
 
-acceptable_attributes = [
+acceptable_attributes = {
 	"abbr",
 	"accept",
 	"accept-charset",
@@ -501,7 +515,6 @@ acceptable_attributes = [
 	"prompt",
 	"radiogroup",
 	"readonly",
-	"rel",
 	"repeat-max",
 	"repeat-min",
 	"replace",
@@ -559,15 +572,12 @@ acceptable_attributes = [
 	"itemtype",
 	"itemid",
 	"itemref",
-	"datetime",
 	"data-is-group",
-]
+}
 
-mathml_attributes = [
+mathml_attributes = {
 	"actiontype",
 	"align",
-	"columnalign",
-	"columnalign",
 	"columnalign",
 	"columnlines",
 	"columnspacing",
@@ -587,12 +597,9 @@ mathml_attributes = [
 	"mathbackground",
 	"mathcolor",
 	"mathvariant",
-	"mathvariant",
 	"maxsize",
 	"minsize",
 	"other",
-	"rowalign",
-	"rowalign",
 	"rowalign",
 	"rowlines",
 	"rowspacing",
@@ -603,15 +610,14 @@ mathml_attributes = [
 	"separator",
 	"stretchy",
 	"width",
-	"width",
 	"xlink:href",
 	"xlink:show",
 	"xlink:type",
 	"xmlns",
 	"xmlns:xlink",
-]
+}
 
-svg_attributes = [
+svg_attributes = {
 	"accent-height",
 	"accumulate",
 	"additive",
@@ -754,4 +760,10 @@ svg_attributes = [
 	"y1",
 	"y2",
 	"zoomAndPan",
-]
+}
+
+# Tags whose content is stripped must never also be present in any allow-list of
+# renderable tags, otherwise sanitization would keep dangerous content.
+assert REMOVE_CONTENT_TAGS.isdisjoint(acceptable_elements | mathml_elements | svg_elements), (
+	"content-removal tags must never appear in any allowed tag set"
+)

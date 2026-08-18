@@ -31,7 +31,8 @@
   "column_break_19",
   "share",
   "print",
-  "email"
+  "email",
+  "is_app_disabled"
  ],
  "fields": [
   {
@@ -223,11 +224,19 @@
    "fieldname": "select",
    "fieldtype": "Check",
    "label": "Select"
+  },
+  {
+   "default": "0",
+   "description": "Set while owner app is disabled.",
+   "fieldname": "is_app_disabled",
+   "fieldtype": "Check",
+   "label": "Is App Disabled",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2025-05-22 16:59:35.484376",
+ "modified": "2026-08-05 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Custom DocPerm",
@@ -239,6 +248,7 @@
    "delete": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,

@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class UserGroupMember(Document):
+	_DOCTYPE_NAME = "User Group Member"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

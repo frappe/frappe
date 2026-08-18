@@ -39,8 +39,17 @@ context("Query Report", () => {
 					.click({ force: true });
 				cy.get_open_dialog().get(".modal-title").should("contain", "Add Column");
 				cy.get('select[data-fieldname="doctype"]').select("Role (Name)", { force: true });
-				cy.get('select[data-fieldname="field"]').select("Role Name", { force: true });
-				cy.get('select[data-fieldname="insert_after"]').select("Name", { force: true });
+				cy.wait(500);
+				cy.get_open_dialog()
+					.find('.control-input > .awesomplete > input[data-fieldname="field"]')
+					.should("be.visible")
+					.clear({ force: true })
+					.type("Role Name{enter}", { delay: 150, force: true });
+				cy.get_open_dialog()
+					.find('.control-input > .awesomplete > input[data-fieldname="insert_after"]')
+					.should("be.visible")
+					.clear({ force: true })
+					.type("Name{enter}", { delay: 150, force: true });
 				cy.get_open_dialog()
 					.findByRole("button", { name: "Submit" })
 					.click({ force: true });

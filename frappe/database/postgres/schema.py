@@ -1,8 +1,69 @@
+import hashlib
+import re
+
 import frappe
 from frappe import _
-from frappe.database.schema import DBTable, get_definition
-from frappe.utils import cint, flt
+from frappe.database.schema import DbColumn, DBTable, get_definition
+from frappe.utils import cint, cstr, flt
 from frappe.utils.defaults import get_not_null_defaults
+
+# Separators *outside* quoted tokens, so `id  >  0` and `id > 0` hash alike while `x = 'a  b'`
+# and `x = 'a b'` stay distinct -- collapsing inside a quoted token would give two different
+# predicates one name, and the second index would then be silently skipped. A comment is
+# whitespace to SQL, so a whole run of the two collapses to one space: that keeps the newline
+# ending a line comment significant, since it decides whether what follows is code or comment.
+PREDICATE_SEPARATOR_PATTERN = re.compile(
+	r"""
+	  (?P<quoted>
+	      (?<!\w)[eE]'(?:[^'\\]|''|\\.)*'    # escape string: a \' does not end it
+	    | '(?:[^']|'')*'                     # string literal (only '' escapes a quote)
+	    | "(?:[^"]|"")*"                     # quoted identifier
+	    | \$(?P<tag>\w*)\$.*?\$(?P=tag)\$    # dollar-quoted string
+	  )
+	| (?: \s | --[^\n]* | /\*.*?\*/ )+       # whitespace and comments, in any mix
+	""",
+	re.DOTALL | re.VERBOSE,
+)
+
+
+def _normalise_predicate(where: str | None) -> str:
+	if not where:
+		return ""
+	return PREDICATE_SEPARATOR_PATTERN.sub(lambda match: match.group("quoted") or " ", where).strip()
+
+
+# PostgreSQL index names are unique per *schema*, not per table like MariaDB. Naming an index
+# after just its field(s) therefore collides across tables that share a field (item_code,
+# company, posting_date, lft/rgt, ...) and `CREATE INDEX IF NOT EXISTS` silently skips all but
+# the first -- so most tables never get that index. Qualify the name with the table so it is
+# schema-unique, hashing if it would exceed postgres's 63-byte identifier cap.
+def get_qualified_index_name(
+	table_name: str,
+	fields: list[str],
+	suffix: str | None = None,
+	*,
+	where: str | None = None,
+	include: list[str] | None = None,
+) -> str:
+	base = f"{table_name}_" + "_".join(fields)
+	if suffix:
+		base += f"_{suffix}"
+	if where or include:
+		variant = f"{_normalise_predicate(where)}|{','.join(include or ())}"
+		base += "_" + hashlib.md5(variant.encode()).hexdigest()[:10]
+	name = f"{base}_index"
+	if len(name.encode()) > 63:
+		digest = hashlib.md5(base.encode()).hexdigest()[:10]
+		name = f"{name[:52]}_{digest}"
+	return name
+
+
+def get_single_column_index_name(table_name: str, fieldname: str) -> str:
+	return get_qualified_index_name(table_name, [fieldname])
+
+
+def get_unique_index_name(table_name: str, fieldname: str) -> str:
+	return get_qualified_index_name(table_name, [fieldname], "unique")
 
 
 class PostgresTable(DBTable):
@@ -56,19 +117,31 @@ class PostgresTable(DBTable):
 		frappe.db.commit()
 
 	def create_indexes(self):
-		create_index_query = ""
-		for col in self.columns.values():
+		if self.meta.get("istable", default=0):
+			index_fields = ["parent"]
+		else:
+			index_fields = ["creation"]
+			if self.meta.sort_field == "modified":
+				index_fields.append("modified")
+
+		index_fields += [
+			col.fieldname
+			for col in self.columns.values()
 			if (
 				col.set_index
 				and col.fieldtype in frappe.db.type_map
 				and frappe.db.type_map.get(col.fieldtype)[0] not in ("text", "longtext")
-			):
-				create_index_query += (
-					f'CREATE INDEX IF NOT EXISTS "{col.fieldname}" ON `{self.table_name}`(`{col.fieldname}`);'
-				)
-		if create_index_query:
-			# nosemgrep
-			frappe.db.sql(create_index_query)
+			)
+		]
+
+		create_index_query = ""
+		for fieldname in index_fields:
+			index_name = get_single_column_index_name(self.table_name, fieldname)
+			create_index_query += (
+				f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`{fieldname}`);'
+			)
+		# nosemgrep
+		frappe.db.sql(create_index_query)
 
 	def alter(self):
 		for col in self.columns.values():
@@ -79,14 +152,40 @@ class PostgresTable(DBTable):
 		new_column_names = {col.fieldname for col in self.add_column}
 
 		for col in self.change_type:
+			# Postgres won't implicitly cast text/varchar to these types, so SET DATA TYPE
+			# needs an explicit USING expression. NOT NULL numerics coalesce blanks to 0;
+			# nullable types map blanks to NULL.
 			using_clause = ""
-			if col.fieldtype in ("Datetime"):
-				# The USING option of SET DATA TYPE can actually specify any expression
-				# involving the old values of the row
-				# read more https://www.postgresql.org/docs/9.1/sql-altertable.html
-				using_clause = f"USING {col.fieldname}::timestamp without time zone"
+			if col.fieldtype == "Datetime":
+				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::timestamp without time zone"
+			elif col.fieldtype == "Date":
+				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::date"
+			elif col.fieldtype == "Time":
+				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::time without time zone"
 			elif col.fieldtype == "Check":
-				using_clause = f"USING {col.fieldname}::smallint"
+				using_clause = f"USING COALESCE(NULLIF(`{col.fieldname}`::text, ''), '0')::smallint"
+			elif col.fieldtype in ("Currency", "Float", "Percent"):
+				using_clause = f"USING COALESCE(NULLIF(`{col.fieldname}`::text, ''), '0')::numeric"
+			elif col.fieldtype in ("Duration", "Rating"):
+				# Duration/Rating are nullable (not in NOT_NULL_TYPES), so keep blanks NULL.
+				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::numeric"
+			elif col.fieldtype == "Int":
+				# cast to the actual target type: Int with length > 11 is a bigint column
+				# (Long Int), so a plain ::int would overflow its legitimate values; a standard
+				# Int stays int and still errors on out-of-range values (use Long Int for those).
+				int_type = get_definition(col.fieldtype, length=col.length)
+				using_clause = (
+					f"USING COALESCE(NULLIF(`{col.fieldname}`::text, ''), '0')::numeric::{int_type}"
+				)
+			elif col.fieldtype == "JSON":
+				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::json"
+
+			if using_clause:
+				# the column's existing (string) DEFAULT can't be cast to the new type, so
+				# drop it and re-apply the proper default via the set_default pass below.
+				query.append(f"ALTER COLUMN `{col.fieldname}` DROP DEFAULT")
+				if col not in self.set_default:
+					self.set_default.append(col)
 
 			query.append(
 				"ALTER COLUMN `{}` TYPE {} {}".format(
@@ -110,6 +209,12 @@ class PostgresTable(DBTable):
 				col_default = flt(col.default)
 
 			elif not col.default:
+				# nullable types (e.g. Duration, Rating) keep their NULL default
+				col_default = "NULL"
+
+			elif col.default in frappe.db.DEFAULT_SHORTCUTS or cstr(col.default).startswith(":"):
+				# frappe resolves these per document (Today, Now, __user, :fieldname, ...). Emitting
+				# them as literals would make postgres freeze one value at migration time.
 				col_default = "NULL"
 
 			else:
@@ -120,29 +225,112 @@ class PostgresTable(DBTable):
 		create_contraint_query = ""
 		for col in self.add_index:
 			# if index key not exists
+			index_name = get_single_column_index_name(self.table_name, col.fieldname)
 			create_contraint_query += (
-				f'CREATE INDEX IF NOT EXISTS "{col.fieldname}" ON `{self.table_name}`(`{col.fieldname}`);'
+				f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`{col.fieldname}`);'
+			)
+
+		if self.meta.sort_field == "modified" and not frappe.db.get_column_index(
+			self.table_name, "modified", unique=False
+		):
+			index_name = get_single_column_index_name(self.table_name, "modified")
+			create_contraint_query += (
+				f'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`modified`);'
 			)
 
 		for col in self.add_unique:
 			# if index key not exists
 			if col.fieldname not in new_column_names:
-				create_contraint_query += 'CREATE UNIQUE INDEX IF NOT EXISTS "unique_{index_name}" ON `{table_name}`(`{field}`);'.format(
-					index_name=col.fieldname, table_name=self.table_name, field=col.fieldname
+				index_name = get_unique_index_name(self.table_name, col.fieldname)
+				create_contraint_query += f'CREATE UNIQUE INDEX IF NOT EXISTS "{index_name}" ON `{self.table_name}`(`{col.fieldname}`);'
+
+		# logic to drop unique constraint for fields deleted from a doctype
+		meta_columns = set(self.columns.keys())
+		db_columns = set(self.current_columns.keys())
+
+		for col in db_columns:
+			if (
+				col not in meta_columns
+				and col not in frappe.db.DEFAULT_COLUMNS
+				and col not in frappe.db.OPTIONAL_COLUMNS
+			):
+				has_unique_index = frappe.db.sql(
+					"""
+					SELECT 1
+					FROM pg_indexes
+					WHERE tablename = %s
+					AND indexname IN (%s, %s, %s)
+					LIMIT 1
+					""",
+					(
+						self.table_name,
+						f"{self.table_name}_{col}_key",
+						f"unique_{col}",
+						get_unique_index_name(self.table_name, col),
+					),
 				)
+
+				if not has_unique_index:
+					continue
+
+				current_col = self.current_columns.get(col)
+
+				deleted_col = DbColumn(
+					table=self,
+					fieldname=current_col.name,
+					fieldtype=current_col.type,
+					length=None,
+					default=None,
+					set_index=current_col.index,
+					options=None,
+					unique=False,
+					precision=None,
+					not_nullable=current_col.not_nullable,
+				)
+				self.drop_unique.append(deleted_col)
 
 		drop_contraint_query = ""
 		for col in self.drop_index:
 			# primary key
 			if col.fieldname != "name":
-				# if index key exists
-				drop_contraint_query += f'DROP INDEX IF EXISTS "{col.fieldname}" ;'
+				# if index key exists; use the schema-unique name (a bare-fieldname DROP would be
+				# schema-global on postgres and could drop another table's like-named index)
+				index_name = get_single_column_index_name(self.table_name, col.fieldname)
+				drop_contraint_query += f'DROP INDEX IF EXISTS "{index_name}" ;'
 
 		for col in self.drop_unique:
 			# primary key
 			if col.fieldname != "name":
-				# if index key exists
-				drop_contraint_query += f'DROP INDEX IF EXISTS "unique_{col.fieldname}" ;'
+				# drop unique constraint first if exists which automatically drops the underlying index also
+				unique_constraint_exists = frappe.db.sql(
+					"""
+					SELECT 1
+					FROM pg_constraint
+					WHERE conname = %s
+					""",
+					(f"{self.table_name}_{col.fieldname}_key",),
+				)
+
+				if unique_constraint_exists:
+					drop_contraint_query += f'ALTER TABLE "{self.table_name}" DROP CONSTRAINT IF EXISTS "{self.table_name}_{col.fieldname}_key" ;'
+
+				# drop the unique index backed by no constraint directly
+				for unique_index in (
+					get_unique_index_name(self.table_name, col.fieldname),
+					f"unique_{col.fieldname}",
+				):
+					unique_index_exists = frappe.db.sql(
+						"""
+						SELECT 1
+						FROM pg_indexes
+						WHERE tablename = %s
+						AND indexname = %s
+						""",
+						(self.table_name, unique_index),
+					)
+
+					if unique_index_exists:
+						drop_contraint_query += f'DROP INDEX IF EXISTS "{unique_index}" ;'
 
 		change_nullability = []
 		for col in self.change_nullability:
@@ -187,6 +375,13 @@ class PostgresTable(DBTable):
 					_(
 						"{0} field cannot be set as unique in {1}, as there are non-unique existing values"
 					).format(fieldname, self.table_name)
+				)
+			elif frappe.db.is_data_truncated(e):
+				frappe.throw(
+					_(
+						"Cannot change field type in {0}: some existing values cannot be converted to the new type"
+					).format(self.doctype),
+					title=_("Incompatible Values"),
 				)
 			else:
 				raise e

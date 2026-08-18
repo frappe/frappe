@@ -5,20 +5,20 @@
 	--dt-light-yellow: var(--yellow-50);
 	--dt-orange: var(--orange-500);
 	--dt-text-color: var(--text-muted);
-	--dt-text-light: var(--text-light);
+	--dt-text-light: var(--ink-base);
 	--dt-spacer-1: 0.25rem;
 	--dt-spacer-2: var(--padding-xs);
 	--dt-spacer-3: 1rem;
-	--dt-border-radius: var(--border-radius);
+	--dt-border-radius: var(--radius);
 	--dt-cell-bg: var(--fg-color);
 	--dt-border-color: var(--table-border-color);
-	--dt-border-radius: var(--border-radius);
 	--dt-header-cell-bg: var(--subtle-fg);
 	--dt-selection-highlight-color: var(--highlight-color);
+	--dt-no-data-message-width: max-content;
 
 	background-color: var(--bg-color);
-	margin-left: -1px;
 	margin-top: 0px;
+	border-radius: var(--dt-border-radius);
 	@include get_textstyle("base", "regular");
 
 	.dt-cell {
@@ -51,6 +51,7 @@
 		.dt-row[data-is-filter] {
 			display: flex !important;
 		}
+
 		.dt-row-header {
 			background-color: var(--subtle-fg);
 		}
@@ -122,7 +123,7 @@
 		}
 
 		.dt-filter.dt-input {
-			border-radius: var(--border-radius);
+			border-radius: var(--radius);
 			height: 100%;
 			background-color: var(--control-bg);
 			padding-left: 8px;
@@ -162,6 +163,11 @@
 	.dt-cell--focus .dt-cell__content {
 		border-color: var(--gray-200);
 	}
+
+	.dt-scrollable__no-data .no-data-message {
+		left: 50%;
+		transform: translateX(-50%);
+	}
 }
 
 table td.dt-cell {
@@ -185,6 +191,7 @@ table td.dt-cell {
 	0% {
 		background-color: transparent;
 	}
+
 	// 50% {
 	// 	background-color: $extra-light-yellow;
 	// }

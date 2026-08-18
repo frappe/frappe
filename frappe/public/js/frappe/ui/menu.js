@@ -7,6 +7,7 @@ frappe.ui.menu = class ContextMenu {
 		this.menu_items = opts.menu_items;
 		this.name = frappe.utils.get_random(5);
 		this.open_on_left = opts.open_on_left;
+		this.open_on_top = opts.open_on_top;
 		this.size = opts.size;
 		this.opts = opts;
 		Object.assign(this, opts);
@@ -29,8 +30,6 @@ frappe.ui.menu = class ContextMenu {
 			});
 		} else {
 			$(this.opts.parent).on("click", function (event) {
-				event.preventDefault();
-				event.stopPropagation();
 				if (!me.parent_menu) {
 					if (me.visible) {
 						me.hide();
@@ -46,21 +45,23 @@ frappe.ui.menu = class ContextMenu {
 	make() {
 		this.template.empty();
 		this.menu_items_to_show = [];
-		this.menu_items.forEach((f) => {
-			f.condition =
-				f.condition ||
+		this.menu_items.forEach((item) => {
+			item.condition =
+				item.condition ||
 				function () {
 					return true;
 				};
-			if (f.condition()) {
-				this.add_menu_item(f);
-				this.menu_items_to_show.push(f);
+			let render = false;
+			if (typeof item.condition == "function") {
+				render = item.condition();
+			} else {
+				render = frappe.utils.eval(item.condition);
+			}
+			if (render) {
+				this.add_menu_item(item);
+				this.menu_items_to_show.push(item);
 			}
 		});
-
-		// if (!$.contains(document.body, this.template[0])) {
-		// 	$(document.body).append(this.template);
-		// }
 
 		// only append if there are items to show
 		if (this.menu_items_to_show.length > 0) {
@@ -75,16 +76,22 @@ frappe.ui.menu = class ContextMenu {
 				width: this.size,
 			});
 		}
+		// `grid` renders the items as a grid of icon-over-label cells instead of a list.
+		this.template.toggleClass("grid-menu", !!this.grid);
 	}
 	add_menu_item(item) {
 		const me = this;
 		item.nested_menus = [];
-		let item_wrapper = $(
-			`<div class="dropdown-menu-item"><div class="dropdown-divider documentation-links"></div></div>`
-		);
+		let item_wrapper;
 		if (item?.is_divider) {
 			item_wrapper = $(
 				`<div class="dropdown-menu-item"><div class="dropdown-divider documentation-links"></div></div>`
+			);
+		} else if (item?.group) {
+			item_wrapper = $(
+				`<div class="dropdown-menu-item dropdown-menu-header"><span class="menu-group-heading">${__(
+					item.group
+				)}</span></div>`
 			);
 		} else {
 			const iconMarkup = item.icon_url
@@ -99,14 +106,24 @@ frappe.ui.menu = class ContextMenu {
 				item.action ? `return ${item.action}` : ""
 			}">
 				<a>
-					<div class="menu-item-icon" ${!(iconMarkup != "") ? "hidden" : ""}>
+					<div class="frappe-menu-item-icon" ${!(iconMarkup != "") ? "hidden" : ""}>
 						${iconMarkup}
 					</div>
 					<span class="menu-item-title">${__(item.label)}</span>
-					<div class="menu-item-icon" style="margin-left:auto">
-						${item.items && item.items.length ? frappe.utils.icon(`chevron-${chevron_direction}`) : ""}
-					</div>
-
+					${
+						item.shortcut
+							? `<span class="menu-item-shortcut">${frappe.ui.keys.get_shortcut_label(
+									item.shortcut
+							  )}</span>`
+							: ""
+					}
+					${
+						item.items && item.items.length
+							? `<div class="frappe-menu-item-icon" style="margin-left:auto">
+						${frappe.utils.icon(`chevron-${chevron_direction}`)}
+					</div>`
+							: ""
+					}
 				</a>
 			</div>`);
 			if (!item.url) {
@@ -130,7 +147,9 @@ frappe.ui.menu = class ContextMenu {
 								me.current_menu = null;
 							} else {
 								// this ensures the other nested item would close before opening the next one
+								me.current_menu.nested_menus.forEach((m) => m.hide());
 								me.current_menu.hide();
+								me.current_menu = null;
 								me.nested_menus.forEach((menu) => {
 									if (menu.parent.get(0) == this) {
 										me.current_menu = menu;
@@ -149,7 +168,8 @@ frappe.ui.menu = class ContextMenu {
 						menu.hide();
 					});
 					me.hide();
-					me.opts.onHide && me.opts.onHide(me);
+					me.opts.onHide && me.opts.onHide(me.parent);
+					item.onClick && item.onClick();
 					if (item.url.startsWith("/desk")) {
 						frappe.set_route(item.url);
 					} else if (item.url.startsWith("/")) {
@@ -164,7 +184,22 @@ frappe.ui.menu = class ContextMenu {
 		if (item.items) {
 			let nested_menu = this.handle_nested_menu(item_wrapper, item);
 			this.nested_menus.push(nested_menu);
+			me.handle_submenu_hover(item_wrapper);
 		}
+	}
+	handle_submenu_hover(item_wrapper) {
+		const me = this;
+
+		$(item_wrapper).on("mouseenter", function (event) {
+			me.nested_menus.forEach((menu) => {
+				if (menu.parent.get(0) === this) {
+					me.current_menu = menu;
+					menu.show(event);
+				} else {
+					menu.hide();
+				}
+			});
+		});
 	}
 
 	handle_nested_menu(item_wrapper, item) {
@@ -172,6 +207,8 @@ frappe.ui.menu = class ContextMenu {
 			parent: item_wrapper,
 			menu_items: item.items,
 			nested: true,
+			grid: item.grid,
+			scroll_after: item.scroll_after,
 			parent_data: item,
 			parent_menu: this.name,
 		});
@@ -179,55 +216,52 @@ frappe.ui.menu = class ContextMenu {
 
 	show(event) {
 		this.make();
-		const offset = $(this.parent).offset();
-		const height = $(this.parent).outerHeight();
-		this.left_offset = 0;
 		this.gap = 4;
-		if (this.opts.nested && this.opts.parent_menu) {
-			let top =
-				this.parent.get(0).getBoundingClientRect().bottom -
-				this.parent.get(0).getBoundingClientRect().height;
-			let dropdown = frappe.menu_map[this.opts.parent_menu].template;
-			let width = dropdown.outerWidth();
-			let offset = $(dropdown).offset();
-			let left = offset.left;
-			if (frappe.utils.is_rtl()) {
-				left = left - width - this.gap;
-			} else {
-				left = left + width + this.gap;
-			}
+
+		if (this.opts.right_click && event) {
 			this.template.css({
 				display: "block",
-				position: "absolute",
-				top: top + "px",
-				left: left + "px",
-			});
-		} else {
-			this.template.css({
-				display: "block",
-				position: "absolute",
-				top: offset.top + height + this.gap + "px",
-				left: offset.left,
-			});
-		}
-
-		if (this.open_on_left) {
-			this.left_offset = this.parent.get(0).getBoundingClientRect().width;
-			this.template.css({
-				left:
-					offset.left -
-					this.template.get(0).getBoundingClientRect().width +
-					this.left_offset +
-					"px",
-			});
-		}
-
-		if (this.opts.right_click) {
-			this.template.css({
+				position: "fixed",
 				left: `${event.clientX}px`,
 				top: `${event.clientY}px`,
 			});
+			this.visible = true;
+			frappe.visible_menus.push(this);
+			return;
 		}
+
+		const parent_rect = this.parent.get(0).getBoundingClientRect();
+		let top, left;
+
+		if (this.opts.nested && this.opts.parent_menu) {
+			let parent_menu_el = frappe.menu_map[this.opts.parent_menu].template;
+			let parent_menu_rect = parent_menu_el.get(0).getBoundingClientRect();
+			top = parent_rect.top;
+			if (frappe.utils.is_rtl()) {
+				left = parent_menu_rect.left - this.template.outerWidth() - this.gap;
+			} else {
+				left = parent_menu_rect.right + this.gap;
+			}
+		} else {
+			if (this.open_on_top) {
+				top = parent_rect.top - this.template.outerHeight() - this.gap;
+			} else {
+				top = parent_rect.bottom + this.gap;
+			}
+			left = parent_rect.left;
+			if (this.open_on_left || frappe.utils.is_rtl()) {
+				left = parent_rect.right - this.template.outerWidth();
+			}
+		}
+
+		if (left < 0) left = 10;
+
+		this.template.css({
+			display: this.grid ? "grid" : "block",
+			position: "fixed",
+			top: top + "px",
+			left: left + "px",
+		});
 
 		this.visible = true;
 		frappe.visible_menus.push(this);
@@ -238,6 +272,11 @@ frappe.ui.menu = class ContextMenu {
 	hide() {
 		this.template.css("display", "none");
 		this.visible = false;
+		if (this.nested_menus && this.nested_menus.length) {
+			this.nested_menus.forEach((menu) => {
+				menu.hide();
+			});
+		}
 	}
 	mouseX(evt) {
 		if (evt.pageX) {
@@ -279,12 +318,25 @@ frappe.ui.create_menu = function (opts) {
 
 	frappe.menu_map[context_menu.name] = context_menu;
 
-	$(document).on("click", function () {
-		if (frappe.menu_map[context_menu.name].visible) {
-			frappe.menu_map[context_menu.name].hide();
-			opts.onHide && opts.onHide(opts.parent);
-		}
-	});
+	document.addEventListener(
+		"click",
+		function (e) {
+			// Ignore clicks on the toggle parent (for non-right-click menus) so its own
+			// toggle handler can close the menu instead of this listener pre-emptively
+			// hiding it (which would let the parent handler immediately re-open it).
+			const parent_el = $(opts.parent)[0];
+			const clicked_parent = !opts.right_click && parent_el && parent_el.contains(e.target);
+			if (
+				frappe.menu_map[context_menu.name].visible &&
+				!context_menu.template[0].contains(e.target) &&
+				!clicked_parent
+			) {
+				frappe.menu_map[context_menu.name].hide();
+				opts.onHide && opts.onHide(opts.parent);
+			}
+		},
+		true
+	);
 
 	$(document).on("keydown", function (e) {
 		if (e.key === "Escape" && frappe.menu_map[context_menu.name].visible) {

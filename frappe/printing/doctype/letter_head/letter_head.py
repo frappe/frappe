@@ -4,10 +4,13 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.modules.utils import export_module_json
 from frappe.utils import flt, is_image
 
 
 class LetterHead(Document):
+	_DOCTYPE_NAME = "Letter Head"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -18,6 +21,7 @@ class LetterHead(Document):
 
 		align: DF.Literal["Left", "Right", "Center"]
 		content: DF.HTMLEditor | None
+		custom_css: DF.Code | None
 		disabled: DF.Check
 		footer: DF.HTMLEditor | None
 		footer_align: DF.Literal["Left", "Right", "Center"]
@@ -31,37 +35,44 @@ class LetterHead(Document):
 		image_height: DF.Float
 		image_width: DF.Float
 		is_default: DF.Check
+		letter_head_for: DF.Literal["DocType", "Report"]
 		letter_head_name: DF.Data
+		module: DF.Link | None
 		source: DF.Literal["Image", "HTML"]
+		standard: DF.Literal["No", "Yes"]
 	# end: auto-generated types
-
-	def before_insert(self):
-		# for better UX, let user set from attachment
-		if not frappe.flags.in_migrate and not frappe.flags.in_install:
-			self.source = "Image"
 
 	def on_trash(self):
 		from frappe.defaults import clear_default
 
 		clear_default("letter_head", self.name)
 		clear_default("default_letter_head_content", self.content)
+		clear_default("letter_head_report", self.name)
 		frappe.clear_cache()
 
 	def validate(self):
 		self.set_image()
 		self.validate_disabled_and_default()
+		self.validate_standard_letter_head()
 
 	def validate_disabled_and_default(self):
 		if self.disabled and self.is_default:
 			frappe.throw(_("Letter Head cannot be both disabled and default"))
 
 		if (
-			not self.is_default
+			self.is_new()
+			and not self.is_default
 			and not self.disabled
 			and not frappe.flags.in_migrate
 			and not frappe.flags.in_install
 		):
-			if not frappe.db.exists("Letter Head", dict(is_default=1)):
+			if not frappe.db.exists(
+				"Letter Head",
+				{
+					"is_default": 1,
+					"letter_head_for": self.letter_head_for,
+				},
+			):
 				self.is_default = 1
 
 	def set_image(self):
@@ -119,6 +130,7 @@ class LetterHead(Document):
 
 	def on_update(self):
 		self.set_as_default()
+		self.export_letter_head()
 
 		# clear the cache so that the new letter head is uploaded
 		frappe.clear_cache()
@@ -126,13 +138,40 @@ class LetterHead(Document):
 	def set_as_default(self):
 		from frappe.utils import set_default
 
-		if self.is_default:
-			frappe.db.set_value("Letter Head", {"name": ["!=", self.name]}, "is_default", 0)
+		if self.is_default and self.letter_head_for == "DocType":
+			frappe.db.set_value(
+				"Letter Head",
+				{"name": ["!=", self.name], "letter_head_for": self.letter_head_for},
+				"is_default",
+				0,
+			)
 
 			set_default("letter_head", self.name)
-
 			# update control panel - so it loads new letter directly
-			frappe.db.set_default("default_letter_head_content", self.content)
+			set_default("default_letter_head_content", self.content)
 		else:
 			frappe.defaults.clear_default("letter_head", self.name)
 			frappe.defaults.clear_default("default_letter_head_content", self.content)
+
+		if self.is_default and self.letter_head_for == "Report":
+			frappe.db.set_value(
+				"Letter Head",
+				{"name": ["!=", self.name], "letter_head_for": self.letter_head_for},
+				"is_default",
+				0,
+			)
+
+			set_default("letter_head_report", self.name)
+		else:
+			frappe.defaults.clear_default("letter_head_report", self.name)
+
+	def export_letter_head(self):
+		return export_module_json(self, self.standard == "Yes", self.module)
+
+	def validate_standard_letter_head(self):
+		if self.standard == "Yes":
+			if not frappe.conf.developer_mode and not self.is_new() and not frappe.flags.in_migrate:
+				frappe.throw(_("Standard Letter Head can be updated in Developer Mode only."))
+
+			if not self.module:
+				frappe.throw(_("Module is required when Standard is set to 'Yes'"))

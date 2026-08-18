@@ -2,8 +2,6 @@ name: UI
 
 on:
   pull_request:
-  repository_dispatch:
-    types: [frappe-framework-change]
   workflow_dispatch:
   schedule:
     # Run everday at midnight UTC / 5:30 IST
@@ -21,14 +19,11 @@ jobs:
   checkrun:
     name: Plan Tests
     runs-on: ubuntu-latest
-
     outputs:
       build: ${{ steps.check-build.outputs.build }}
-
     steps:
       - name: Clone
-        uses: actions/checkout@v6
-
+        uses: actions/checkout@v7
       - name: Check if build should be run
         id: check-build
         run: |
@@ -40,39 +35,120 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test:
-    name: Tests (Cypress)
-    uses: ./.github/workflows/_base-ui-tests.yml
-    with:
-      parallel-runs: 3
-      enable-coverage: ${{ github.event_name != 'pull_request' }}
-      fake-success: ${{ needs.checkrun.outputs.build != 'strawberry' }}
+    name: Integration
     needs: checkrun
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NODE_ENV: "production"
+      # noisy 3rd party library warnings
+      PYTHONWARNINGS: "ignore"
+      DB_ROOT_PASSWORD: db_root
 
-  coverage:
-    name: Coverage Wrap Up
-    needs: [test, checkrun]
-    if: ${{ github.event_name != 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        db: ["mariadb"]
+        index: [1, 2, 3, 4]
+    services:
+      mariadb:
+        image: mariadb:11.8
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3 --tmpfs=/var/lib/mysql:rw,noexec,nosuid,size=2g
+        env:
+          MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+        name: Environment Setup
+        with:
+          python-version: '3.14'
+          node-version: 24
+          build-assets: true
+          db-root-password: ${{ env.DB_ROOT_PASSWORD }}
+          db: ${{ matrix.db }}
+
+      - name: Verify yarn.lock
+        run: |
+          cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}
+          git diff --exit-code yarn.lock
+
+      - name: Cache cypress binary
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/Cypress
+          key: ${{ runner.os }}-cypress
+
+      - name: Site Setup
+        run: |
+          bench --site test_site execute frappe.utils.install.complete_setup_wizard
+          bench --site test_site execute frappe.tests.ui_test_helpers.create_test_user
+
+      - uses: browser-actions/setup-chrome@latest
+      - run: |
+          echo "BROWSER_PATH=$(which chrome)" >> $GITHUB_ENV
+
+      - name: Run Tests
+        id: ui-tests
+        run: |
+          bench --site test_site \
+            run-ui-tests ${{ github.event.repository.name }} \
+              --headless \
+              --browser ${{ env.BROWSER_PATH }} \
+              --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT \
+              --group ui-shard-${{ matrix.index }}
+        env:
+          CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
+          SPLIT: 4
+          SPLIT_INDEX: ${{ strategy.job-index }}
+
+      - name: Compress Cypress Videos
+        if: always() && steps.ui-tests.outcome == 'failure'
+        run: |
+            if find ./cypressVideos -mindepth 1 | read; then
+              zip -r cypress_recordings.zip ./cypressVideos
+            fi
+      - name: Upload Cypress Videos
+        if: always() && steps.ui-tests.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: Cypress CI Video Recordings
+          path: ./cypress_recordings.zip
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ failure() && contains( github.event.pull_request.labels.*.name, 'debug-gha') }}
+
+      - name: Show bench output
+        if: ${{ always() }}
+        run: |
+          cat bench_start.log || true
+          cd logs
+          for f in ${GITHUB_WORKSPACE}/*.log*; do
+            echo "Printing log: $f";
+            cat $f
+          done
+
+  # TIP: Require this single check in branch protection, e.g. UI / Success
+  success:
+    name: UI Success
+    needs: [test]
+    if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Clone
-        uses: actions/checkout@v6
-      - name: Download artifacts
-        uses: actions/download-artifact@v7.0.0
-      - name: Upload python coverage data
-        uses: codecov/codecov-action@v5
-        with:
-          name: UIBackend
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
-          verbose: true
-          exclude: coverage-js*
-          flags: server-ui
-      - name: Upload JS coverage data
-        uses: codecov/codecov-action@v5
-        with:
-          name: Cypress
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
-          exclude: coverage-py*
-          verbose: true
-          flags: ui-tests
+      - name: UI Test '${{ needs.test.result }}'
+        shell: python
+        run: |
+          stati = [
+            '${{ needs.test.result }}',
+          ]
+
+          nopass = ["failure", "cancelled"]
+          dopass = ["success", "skipped"]
+          if any(r in nopass for r in stati):
+            exit(1)
+          if all(r in dopass for r in stati):
+            exit(0)
+          exit(1)

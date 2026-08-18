@@ -119,15 +119,29 @@ export default class GridPagination {
 				<span class="total-page-number page-number"> ${__(this.total_pages)} </span>
 			</div>`;
 
-		return $(`<button class="btn btn-secondary btn-xs first-page"">
-				<span>${__("First")}</span>
-			</button>
-			<button class="btn btn-secondary btn-xs prev-page">${frappe.utils.icon("left", "xs")}</button>
+		return $(`${frappe.ui.button.html({
+			label: __("First"),
+			size: "sm",
+			css_class: "first-page",
+		})}
+			${frappe.ui.button.html({
+				icon: "chevron-left",
+				title: __("Previous page"),
+				size: "sm",
+				css_class: "prev-page",
+			})}
 			${page_text_html}
-			<button class="btn btn-secondary btn-xs next-page">${frappe.utils.icon("right", "xs")}</button>
-			<button class="btn btn-secondary btn-xs last-page">
-				<span>${__("Last")}</span>
-			</button>`);
+			${frappe.ui.button.html({
+				icon: "chevron-right",
+				title: __("Next page"),
+				size: "sm",
+				css_class: "next-page",
+			})}
+			${frappe.ui.button.html({
+				label: __("Last"),
+				size: "sm",
+				css_class: "last-page",
+			})}`);
 	}
 
 	render_next_page() {
@@ -150,8 +164,7 @@ export default class GridPagination {
 		} else {
 			this.page_index = index;
 		}
-		let $rows = $(this.grid.parent).find(".rows").empty();
-		this.grid.render_result_rows($rows, true);
+		this.grid.render_result_rows();
 		if (this.$page_number) {
 			this.$page_number.val(index);
 			this.$page_number.css("width", (index.toString().length + 1) * 8 + "px");
@@ -159,8 +172,19 @@ export default class GridPagination {
 
 		this.update_page_numbers();
 		if (!from_refresh) {
+			this.update_select_all_checkbox();
 			this.grid.scroll_to_top();
 		}
+	}
+
+	update_select_all_checkbox() {
+		const start_index = (this.page_index - 1) * this.page_length;
+		const result_length = this.get_result_length();
+		const all_selected =
+			result_length > 0 &&
+			this.grid.data.slice(start_index, result_length).every((row) => row.__checked);
+
+		this.wrapper.find(".grid-heading-row .grid-row-check").prop("checked", all_selected);
 	}
 
 	go_to_last_page_to_add_row() {

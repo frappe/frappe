@@ -10,6 +10,8 @@ from frappe.utils.verified_command import get_signed_params
 
 
 class PersonalDataDownloadRequest(Document):
+	_DOCTYPE_NAME = "Personal Data Download Request"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -22,6 +24,21 @@ class PersonalDataDownloadRequest(Document):
 		user: DF.Link
 		user_name: DF.Data | None
 	# end: auto-generated types
+
+	def as_dict(self, *args, **kwargs):
+		d = super().as_dict(*args, **kwargs)
+		d.pop("user_name", None)
+		return d
+
+	def insert(self, *args, **kwargs):
+		if not frappe.db.exists("User", self.user):
+			self.name = frappe.generate_hash(length=10)
+			self.set_user_and_timestamp()
+			self.user_name = ""
+			self.set("__islocal", False)
+			self.set("__unsaved", False)
+			return self
+		return super().insert(*args, **kwargs)
 
 	def after_insert(self):
 		personal_data = get_user_data(self.user)
@@ -48,7 +65,12 @@ class PersonalDataDownloadRequest(Document):
 				"is_private": 1,
 			}
 		)
+		f.flags.skip_file_size_check = True
 		f.save(ignore_permissions=True)
+
+		# Bind ownership
+		frappe.db.set_value("File", f.name, "owner", self.user)
+		self.db_set("owner", self.user)
 
 		file_link = (
 			frappe.utils.get_url("/api/method/frappe.utils.file_manager.download_file")

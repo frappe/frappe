@@ -33,13 +33,18 @@
   "column_break_11",
   "font_size",
   "font",
+  "label_color",
+  "value_color",
   "page_number",
+  "show_label_colon",
   "css_section",
   "css",
   "custom_html_help",
   "section_break_13",
   "print_format_help",
   "format_data",
+  "draft_data",
+  "classic_format_data",
   "print_format_builder",
   "print_format_builder_beta"
  ],
@@ -81,7 +86,6 @@
    "oldfieldname": "standard",
    "oldfieldtype": "Select",
    "options": "No\nYes",
-   "read_only_depends_on": "eval:doc.print_format_for === \"Report\";",
    "reqd": 1,
    "search_index": 1
   },
@@ -117,6 +121,7 @@
    "fieldname": "html",
    "fieldtype": "Code",
    "label": "HTML",
+   "mandatory_depends_on": "eval: doc.custom_format",
    "oldfieldname": "html",
    "oldfieldtype": "Text Editor",
    "options": "Jinja"
@@ -127,6 +132,7 @@
    "fieldname": "raw_commands",
    "fieldtype": "Code",
    "label": "Raw Commands",
+   "mandatory_depends_on": "raw_printing",
    "options": "Jinja"
   },
   {
@@ -170,6 +176,18 @@
    "label": "Google Font"
   },
   {
+   "depends_on": "eval:!doc.custom_format",
+   "fieldname": "label_color",
+   "fieldtype": "Color",
+   "label": "Label Color"
+  },
+  {
+   "depends_on": "eval:!doc.custom_format",
+   "fieldname": "value_color",
+   "fieldtype": "Color",
+   "label": "Value Color"
+  },
+  {
    "depends_on": "eval:!doc.raw_printing",
    "fieldname": "css_section",
    "fieldtype": "Section Break"
@@ -203,6 +221,14 @@
    "fieldtype": "Code",
    "hidden": 1,
    "label": "Format Data"
+  },
+  {
+   "fieldname": "classic_format_data",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Classic Format Data",
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "default": "0",
@@ -264,11 +290,18 @@
    "options": "Hide\nTop Left\nTop Center\nTop Right\nBottom Left\nBottom Center\nBottom Right"
   },
   {
+   "default": "0",
+   "description": "Show a colon after field labels (e.g. \"Name:\"), matching the older print style.",
+   "fieldname": "show_label_colon",
+   "fieldtype": "Check",
+   "label": "Show Colon After Field Labels"
+  },
+  {
    "default": "wkhtmltopdf",
    "fieldname": "pdf_generator",
    "fieldtype": "Select",
    "label": "PDF Generator",
-   "options": "wkhtmltopdf\nchrome"
+   "options": "wkhtmltopdf\nchrome\nTypst"
   },
   {
    "default": "DocType",
@@ -287,12 +320,20 @@
    "label": "Report",
    "mandatory_depends_on": "eval:doc.print_format_for == \"Report\"",
    "options": "Report"
+  },
+  {
+   "fieldname": "draft_data",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Draft Data",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2025-09-23 10:39:51.123539",
+ "modified": "2026-08-07 21:43:00.939226",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
@@ -318,6 +359,5 @@
  "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": [],
- "track_changes": 1
+ "states": []
 }

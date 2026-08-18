@@ -24,7 +24,7 @@ frappe.ui.form.ControlButton = class ControlButton extends frappe.ui.form.Contro
 		this.$input = $(
 			`<button
 				class="btn ${frappe.utils.escape_html(btn_size)} ${frappe.utils.escape_html(btn_type)}"
-				title="${frappe.utils.escape_html(this.df.label)}"
+				title="${this.df.title || frappe.utils.escape_html(this.df.label)}"
 			>`
 		)
 			.prependTo(me.input_area)

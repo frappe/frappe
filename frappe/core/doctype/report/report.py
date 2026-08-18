@@ -5,25 +5,29 @@ import json
 import threading
 
 import frappe
-import frappe.desk.query_report
 from frappe import _, scrub
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.core.doctype.page.page import delete_custom_role
-from frappe.desk.reportview import append_totals_row
+from frappe.desk.query_report import _run
+from frappe.desk.reportview import DEFAULT_AGGREGATE_FIELDNAME, append_totals_row, get_aggregate_field_info
 from frappe.model.document import Document
 from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
 from frappe.utils import cint, cstr
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
+from frappe.utils.xlsxutils import XLSXMetadata
 
 
 class Report(Document):
+	_DOCTYPE_NAME = "Report"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.doctype_to_sync.doctype_to_sync import DoctypeToSync
 		from frappe.core.doctype.has_role.has_role import HasRole
 		from frappe.core.doctype.report_column.report_column import ReportColumn
 		from frappe.core.doctype.report_filter.report_filter import ReportFilter
@@ -32,12 +36,17 @@ class Report(Document):
 		add_total_row: DF.Check
 		add_translate_data: DF.Check
 		columns: DF.Table[ReportColumn]
+		default_letter_head: DF.Link | None
+		default_print_format: DF.Link | None
+		disable_prepared_report_automation: DF.Check
 		disabled: DF.Check
+		doctype_to_sync: DF.Table[DoctypeToSync]
+		documentation_url: DF.Data | None
 		filters: DF.Table[ReportFilter]
+		generate_csv: DF.Check
 		is_standard: DF.Literal["No", "Yes"]
 		javascript: DF.Code | None
 		json: DF.Code | None
-		letter_head: DF.Link | None
 		module: DF.Link | None
 		prepared_report: DF.Check
 		query: DF.Code | None
@@ -47,6 +56,7 @@ class Report(Document):
 		report_script: DF.Code | None
 		report_type: DF.Literal["Report Builder", "Query Report", "Script Report", "Custom Report"]
 		roles: DF.Table[HasRole]
+		snapshot_report: DF.Check
 		timeout: DF.Int
 	# end: auto-generated types
 
@@ -72,15 +82,16 @@ class Report(Document):
 				frappe.throw(_("Cannot edit a standard report. Please duplicate and create a new report"))
 
 		if self.is_standard == "Yes":
-			if frappe.session.user != "Administrator":
-				frappe.throw(_("Only Administrator can save a standard report. Please rename and save."))
-
-			# Letter Head is visible only for non-standard reports.
-			# It should not remain set when it's invisible.
-			self.letter_head = None
+			self.validate_standard_report()
 
 		if self.report_type == "Report Builder":
 			self.update_report_json()
+
+		if self.default_print_format and self.has_value_changed("default_print_format"):
+			self.validate_default_print_format()
+
+		if self.default_letter_head and self.has_value_changed("letter_head"):
+			self.validate_default_letter_head()
 
 	def before_insert(self):
 		self.set_doctype_roles()
@@ -89,18 +100,33 @@ class Report(Document):
 		self.export_doc()
 
 	def before_export(self, doc):
-		doc.letter_head = None
 		doc.prepared_report = 0
 
 	def on_trash(self):
-		if (
-			self.is_standard == "Yes"
-			and not cint(getattr(frappe.local.conf, "developer_mode", 0))
-			and not frappe.flags.in_migrate
-			and not frappe.flags.in_patch
-		):
-			frappe.throw(_("You are not allowed to delete Standard Report"))
+		if self.is_standard == "Yes":
+			if (
+				not cint(getattr(frappe.local.conf, "developer_mode", 0))
+				and not frappe.flags.in_migrate
+				and not frappe.flags.in_patch
+			):
+				frappe.throw(_("You are not allowed to delete Standard Report"))
+
+			if frappe.conf.developer_mode and not frappe.flags.in_test:
+				frappe.db.after_commit(self.delete_report_folder)
+
 		delete_custom_role("report", self.name)
+
+	def clear_cache(self):
+		self.update_report_cache()
+		return super().clear_cache()
+
+	def update_report_cache(self):
+		frappe.cache.delete_key("bootinfo")
+
+	def delete_report_folder(self):
+		from frappe.modules.export_file import delete_folder
+
+		delete_folder(self.module, "Report", self.name)
 
 	def get_permission_log_options(self, event=None):
 		return {"fields": ["roles"]}
@@ -157,8 +183,10 @@ class Report(Document):
 
 		check_safe_sql_query(self.query)
 
+		frappe.db.begin(read_only=True)
 		result = [list(t) for t in frappe.db.sql(self.query, filters)]
 		columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
+		frappe.db.rollback()
 
 		return [columns, result]
 
@@ -168,7 +196,7 @@ class Report(Document):
 
 		start_time = datetime.datetime.now()
 		prepared_report_watcher = None
-		if not self.prepared_report:
+		if not self.prepared_report and not self.disable_prepared_report_automation:
 			prepared_report_watcher = threading.Timer(
 				interval=threshold,
 				function=enable_prepared_report,
@@ -179,7 +207,10 @@ class Report(Document):
 		# The JOB
 		try:
 			if self.is_standard == "Yes":
-				res = self.execute_module(filters)
+				if self.snapshot_report:
+					res = self.execute_snapshot_report(filters)
+				else:
+					res = self.execute_module(filters)
 			else:
 				res = self.execute_script(filters)
 		finally:
@@ -191,11 +222,17 @@ class Report(Document):
 
 		return res
 
+	def get_module_method(self, method):
+		if method not in ("execute", "execute_snapshot_report", "get_xlsx_styles"):
+			raise Exception("Unknown report method")
+
+		module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
+		method_path = get_report_module_dotted_path(module, self.name) + "." + method
+		return frappe.get_attr(method_path)
+
 	def execute_module(self, filters):
 		# report in python module
-		module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
-		method_name = get_report_module_dotted_path(module, self.name) + ".execute"
-		return frappe.get_attr(method_name)(frappe._dict(filters))
+		return self.get_module_method("execute")(frappe._dict(filters))
 
 	def execute_script(self, filters):
 		# server script
@@ -205,6 +242,13 @@ class Report(Document):
 			return loc["data"]
 		else:
 			return self.get_columns(), loc["result"]
+
+	def execute_snapshot_report(self, filters):
+		try:
+			execute_snapshot_report = self.get_module_method("execute_snapshot_report")
+		except AttributeError:
+			return [], []
+		return execute_snapshot_report(frappe._dict(filters))
 
 	def get_data(
 		self,
@@ -231,8 +275,8 @@ class Report(Document):
 		self, filters=None, user=None, ignore_prepared_report=False, are_default_filters=True
 	):
 		columns, result = [], []
-		data = frappe.desk.query_report.run(
-			self.name,
+		data = _run(
+			report_name=self.name,
 			filters=filters,
 			user=user,
 			ignore_prepared_report=ignore_prepared_report,
@@ -271,10 +315,10 @@ class Report(Document):
 		_result = frappe.get_list(
 			self.ref_doctype,
 			fields=[
-				get_group_by_field(group_by_args, c[1])
-				if c[0] == "_aggregate_column" and group_by_args
-				else Report._format([c[1], c[0]])
-				for c in columns
+				get_group_by_field(group_by_args)
+				if fieldname == DEFAULT_AGGREGATE_FIELDNAME and group_by_args
+				else Report._format([doctype, fieldname])
+				for fieldname, doctype in columns
 			],
 			filters=self.get_standard_report_filters(params, filters),
 			order_by=order_by,
@@ -298,13 +342,14 @@ class Report(Document):
 		# sort by is saved as DocType.fieldname, covert it to sql
 		return "`tab{}`.`{}`".format(*parts)
 
-	def get_standard_report_columns(self, params):
+	def get_standard_report_columns(self, params) -> list[list[str, str]]:
+		"""
+		Return [[fieldname, doctype], ...] for standard report based on the fields/columns.
+		"""
 		if params.get("fields"):
 			columns = params.get("fields")
 		elif params.get("columns"):
 			columns = params.get("columns")
-		elif params.get("fields"):
-			columns = params.get("fields")
 		else:
 			columns = [["name", self.ref_doctype]]
 			columns.extend(
@@ -348,33 +393,43 @@ class Report(Document):
 		if params.get("group_by"):
 			group_by_args = frappe._dict(params["group_by"])
 			group_by = group_by_args["group_by"]
-			order_by = "_aggregate_column desc"
+			order_by = f"{DEFAULT_AGGREGATE_FIELDNAME} desc"
 
 		return order_by, group_by, group_by_args
 
 	def build_standard_report_columns(self, columns, group_by_args):
-		_columns = []
+		from frappe.model.meta import get_default_df
+
+		report_columns = []
 
 		for fieldname, doctype in columns:
 			meta = frappe.get_meta(doctype)
 
-			if meta.get_field(fieldname):
-				field = meta.get_field(fieldname)
-			else:
-				if fieldname == "_aggregate_column":
-					label = get_group_by_column_label(group_by_args, meta)
-				else:
-					label = meta.get_label(fieldname)
+			if meta_df := meta.get_field(fieldname):
+				column = meta_df.as_dict()
+			elif default_df := get_default_df(fieldname):
+				column = default_df.copy()
 
-				field = frappe._dict(fieldname=fieldname, label=label)
+				if not column.get("label"):
+					column.label = meta.get_label(fieldname)
 
 				# since name is the primary key for a document, it will always be a Link datatype
 				if fieldname == "name":
-					field.fieldtype = "Link"
-					field.options = doctype
+					column.fieldtype = "Link"
+					column.options = doctype
+			else:
+				if fieldname == DEFAULT_AGGREGATE_FIELDNAME:
+					column = get_group_by_column_field(group_by_args, doctype)
+				else:
+					column = frappe._dict(
+						fieldname=fieldname,
+						label=_(frappe.unscrub(fieldname)),
+						fieldtype="Data",
+					)
 
-			_columns.append(field)
-		return _columns
+			report_columns.append(column)
+
+		return report_columns
 
 	def build_data_dict(self, result, columns):
 		data = []
@@ -390,12 +445,71 @@ class Report(Document):
 
 		return data
 
+	def validate_standard_report(self):
+		if frappe.session.user != "Administrator":
+			frappe.throw(_("Only Administrator can save a standard report. Please rename and save."))
+
+		if not cint(frappe.conf.developer_mode):
+			frappe.throw(_("Standard reports can only be created in developer mode."))
+
+	def validate_default_print_format(self):
+		pf = frappe.db.get_value(
+			"Print Format",
+			self.default_print_format,
+			["report", "print_format_for", "print_format_type", "disabled"],
+			as_dict=True,
+		)
+
+		if (
+			not pf
+			or pf.report != self.name
+			or pf.print_format_for != "Report"
+			or pf.print_format_type != "JS"
+			or pf.disabled
+		):
+			frappe.throw(_("Selected Print Format is invalid for this Report."))
+
+	def validate_default_letter_head(self):
+		if not self.default_letter_head:
+			return
+
+		letter_head = frappe.db.get_value(
+			"Letter Head",
+			self.default_letter_head,
+			["letter_head_for", "standard", "disabled"],
+			as_dict=True,
+		)
+
+		if (
+			not letter_head
+			or letter_head.letter_head_for != "Report"
+			or (self.is_standard == "Yes" and letter_head.standard != "Yes")
+			or letter_head.disabled
+		):
+			frappe.throw(
+				_("Selected Letter Head '{0}' is invalid for '{1}' Report.").format(
+					self.default_letter_head, self.name
+				)
+			)
+
 	@frappe.whitelist()
 	def toggle_disable(self, disable: bool):
 		if not self.has_permission("write"):
 			frappe.throw(_("You are not allowed to edit the report."))
 
 		self.db_set("disabled", cint(disable))
+
+	def get_xlsx_styles_from_module(self, metadata: XLSXMetadata) -> dict:
+		if self.is_standard != "Yes" or self.report_type not in ("Query Report", "Script Report"):
+			return
+
+		try:
+			method = self.get_module_method("get_xlsx_styles")
+		except AttributeError:
+			# Ignore if hook(method) is not defined
+			return
+
+		return method(metadata)
 
 
 def is_prepared_report_enabled(report):
@@ -414,23 +528,23 @@ def get_report_module_dotted_path(module, report_name):
 	)
 
 
-def get_group_by_field(args, doctype):
-	if args["aggregate_function"] == "count":
-		group_by_field = "count(*) as _aggregate_column"
-	else:
-		group_by_field = f"{args.aggregate_function}({args.aggregate_on}) as _aggregate_column"
+def get_group_by_field(group_by_args: dict) -> dict:
+	"""
+	Build the group by field based on the aggregate function and aggregate on field.
+	"""
+	func_name = group_by_args["aggregate_function"].upper()
+	aggregate_on = "*" if func_name == "COUNT" else group_by_args["aggregate_on"]
 
-	return group_by_field
+	return {func_name: aggregate_on, "as": DEFAULT_AGGREGATE_FIELDNAME}
 
 
-def get_group_by_column_label(args, meta):
-	if args["aggregate_function"] == "count":
-		label = "Count"
-	else:
-		sql_fn_map = {"avg": "Average", "sum": "Sum"}
-		aggregate_on_label = meta.get_label(args.aggregate_on)
-		label = _("{0} of {1}").format(_(sql_fn_map[args.aggregate_function]), _(aggregate_on_label))
-	return label
+def get_group_by_column_field(group_by_args: dict, parent_doctype: str) -> dict:
+	"""
+	Build full field info (fieldname, label, fieldtype, options) for the aggregate column.
+	"""
+	field = get_group_by_field(group_by_args)
+
+	return get_aggregate_field_info(field, parent_doctype)
 
 
 def enable_prepared_report(report: str, site: str):
@@ -439,3 +553,22 @@ def enable_prepared_report(report: str, site: str):
 	frappe.db.set_value("Report", report, "prepared_report", 1)
 	frappe.db.commit()
 	frappe.destroy()
+
+
+def get_permission_query_conditions(user=None):
+	"""Hide Postgres-only diagnostic reports (named with a "Postgres " prefix) from the report
+	list on other database backends, where they raise instead of running."""
+	if frappe.db.db_type == "postgres":
+		return None
+	# substr comparison, not LIKE 'Postgres %': a literal % in a permission condition is read as a
+	# printf placeholder when the list query is parameterized, raising "not enough arguments".
+	return "substr(`tabReport`.`name`, 1, 9) != 'Postgres '"
+
+
+def has_permission(doc, ptype=None, user=None, debug=False):
+	"""Deny document-level access to a Postgres-only report on other backends. Running the report
+	is separately guarded by its execute() raising on non-Postgres. Case-insensitive to match the
+	report list's SQL filter under MariaDB's case-insensitive collation."""
+	if frappe.db.db_type != "postgres" and doc.name and doc.name.lower().startswith("postgres "):
+		return False
+	return True

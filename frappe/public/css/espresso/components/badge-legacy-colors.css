@@ -1,0 +1,46 @@
+/* Frappe-only: legacy indicator color names → Espresso badge themes, so .es-badge
+ * is a drop-in for indicator-pill even when the color comes from arbitrary
+ * (incl. third-party) get_indicator defs. Kept OUT of the shared badge.css — that
+ * stays the clean 6 themes; these aliases are a Framework compat layer. Each just
+ * remaps the badge's local --c-* vars to the mapped theme's tokens.
+ *
+ *   orange / yellow      -> amber
+ *   purple / pink        -> violet
+ *   cyan / light-blue    -> blue
+ *   grey / darkgrey      -> gray  (badge default; here for completeness) */
+
+.es-badge[data-theme="orange"],
+.es-badge[data-theme="yellow"] {
+  --c-solid-bg: var(--surface-amber-7);
+  --c-solid-fg: var(--ink-amber-1);
+  --c-fill: var(--surface-amber-2);
+  --c-line: var(--outline-amber-3);
+  --c-fg: var(--ink-amber-8);
+}
+
+.es-badge[data-theme="purple"],
+.es-badge[data-theme="pink"] {
+  --c-solid-bg: var(--surface-violet-7);
+  --c-solid-fg: var(--ink-violet-1);
+  --c-fill: var(--surface-violet-2);
+  --c-line: var(--outline-violet-3);
+  --c-fg: var(--ink-violet-8);
+}
+
+.es-badge[data-theme="cyan"],
+.es-badge[data-theme="light-blue"] {
+  --c-solid-bg: var(--surface-blue-7);
+  --c-solid-fg: var(--ink-blue-1);
+  --c-fill: var(--surface-blue-2);
+  --c-line: var(--outline-blue-3);
+  --c-fg: var(--ink-blue-8);
+}
+
+.es-badge[data-theme="grey"],
+.es-badge[data-theme="darkgrey"] {
+  --c-solid-bg: var(--surface-gray-10);
+  --c-solid-fg: var(--ink-base);
+  --c-fill: var(--surface-gray-2);
+  --c-line: var(--outline-gray-2);
+  --c-fg: var(--ink-gray-6);
+}

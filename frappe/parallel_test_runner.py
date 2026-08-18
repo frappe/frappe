@@ -14,7 +14,6 @@ import requests
 import frappe
 from frappe.tests.utils import make_test_records, toggle_test_mode
 
-from .testing.environment import _decorate_all_methods_and_functions_with_type_checker
 from .testing.result import TestResult
 
 click_ctx = click.get_current_context(True)
@@ -29,13 +28,16 @@ TEST_WEIGHT_OVERRIDES = {
 
 
 class ParallelTestRunner:
-	def __init__(self, app, site, build_number=1, total_builds=1, dry_run=False, lightmode=False):
+	def __init__(
+		self, app, site, build_number=1, total_builds=1, dry_run=False, lightmode=False, failfast=False
+	):
 		self.app = app
 		self.site = site
 		self.build_number = frappe.utils.cint(build_number) or 1
 		self.total_builds = frappe.utils.cint(total_builds)
 		self.dry_run = dry_run
 		self.lightmode = lightmode
+		self.failfast = failfast
 		self.test_file_list = []
 		self.total_test_weight = 0
 		self.test_result = None
@@ -58,7 +60,6 @@ class ParallelTestRunner:
 		frappe.clear_cache()
 		frappe.utils.scheduler.disable_scheduler()
 		if not self.lightmode:
-			_decorate_all_methods_and_functions_with_type_checker()
 			self.before_test_setup()
 
 	def before_test_setup(self):
@@ -81,7 +82,9 @@ class ParallelTestRunner:
 		self.total_test_weight = sum(self.get_test_weight(test) for test in self.test_file_list)
 
 	def run_tests(self):
-		self.test_result = TestResult(stream=sys.stderr, descriptions=True, verbosity=2)
+		self.test_result = TestResult(
+			stream=sys.stderr, descriptions=True, verbosity=2, failfast=self.failfast
+		)
 
 		for test_file_info in self.test_file_list:
 			self.run_tests_for_file(test_file_info)

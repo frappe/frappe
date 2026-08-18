@@ -3,21 +3,25 @@
 
 import frappe
 from frappe import _
-from frappe.query_builder import Field, functions
+from frappe.query_builder import functions
 
 
 @frappe.whitelist()
-def get_all_nodes(doctype, label, parent, tree_method, **filters):
+def get_all_nodes(doctype: str, label: str, parent: str, tree_method: str | None, **filters):
 	"""Recursively gets all data from tree nodes"""
 
 	filters.pop("cmd", None)
 	filters.pop("data", None)
 
-	tree_method = frappe.get_attr(tree_method)
+	try:
+		tree_method = frappe.override_whitelisted_method(tree_method)
+		callable_tree_method = frappe.get_attr(tree_method)
+	except Exception as e:
+		frappe.throw(_("Failed to get method for command {0} with {1}").format(tree_method, str(e)))
 
-	frappe.is_whitelisted(tree_method)
+	frappe.is_whitelisted(callable_tree_method)
 
-	data = tree_method(doctype, parent, **filters)
+	data = callable_tree_method(doctype, parent, **filters)
 	out = [dict(parent=label, data=data)]
 
 	filters.pop("is_root", None)
@@ -25,7 +29,7 @@ def get_all_nodes(doctype, label, parent, tree_method, **filters):
 
 	while to_check:
 		parent = to_check.pop()
-		data = tree_method(doctype, parent, is_root=False, **filters)
+		data = callable_tree_method(doctype, parent, is_root=False, **filters)
 		out.append(dict(parent=parent, data=data))
 		for d in data:
 			if d.get("expandable"):
@@ -35,32 +39,35 @@ def get_all_nodes(doctype, label, parent, tree_method, **filters):
 
 
 @frappe.whitelist()
-def get_children(doctype, parent="", include_disabled=False, **filters):
+def get_children(doctype: str, parent: str = "", include_disabled: str | int | bool = False, **filters):
 	if isinstance(include_disabled, str):
 		include_disabled = frappe.sbool(include_disabled)
 	return _get_children(doctype, parent, include_disabled=include_disabled)
 
 
 def _get_children(doctype, parent="", ignore_permissions=False, include_disabled=False):
-	parent_field = "parent_" + frappe.scrub(doctype)
 	meta = frappe.get_meta(doctype)
+	table = frappe.qb.DocType(doctype)
+	parent_field = meta.get("nsm_parent_field") or "parent_" + frappe.scrub(doctype)
 
-	qb = (
-		frappe.qb.from_(doctype)
-		.select(
-			Field("name").as_("value"),
-			Field(meta.get("title_field") or "name").as_("title"),
-			Field("is_group").as_("expandable"),
-		)
-		.where(functions.IfNull(Field(parent_field), "").eq(parent))
-		.where(Field("docstatus") < 2)
-	)
-
+	filters = [["docstatus", "<", 2]]
 	if frappe.db.has_column(doctype, "disabled") and not include_disabled:
 		# used 0 instead of `false` since type of check in postgres is smallint
-		qb = qb.where(Field("disabled").eq(0))
-	# Order by name and execute
-	return qb.orderby("name").run(as_dict=True)
+		filters.append(["disabled", "=", 0])
+
+	qb = frappe.qb.get_query(
+		doctype,
+		fields=[
+			"name as value",
+			f"{meta.get('title_field') or 'name'} as title",
+			"is_group as expandable",
+		],
+		filters=filters,
+		order_by="name asc",
+		ignore_permissions=ignore_permissions,
+	).where(functions.IfNull(table[parent_field], "").eq(parent))
+
+	return qb.run(as_dict=True)
 
 
 @frappe.whitelist()

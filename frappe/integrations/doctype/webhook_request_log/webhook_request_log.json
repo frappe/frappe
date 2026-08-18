@@ -15,7 +15,10 @@
   "user",
   "url",
   "response",
-  "error"
+  "error",
+  "status",
+  "attempt",
+  "next_retry"
  ],
  "fields": [
   {
@@ -84,12 +87,34 @@
    "in_standard_filter": 1,
    "label": "Reference Doctype",
    "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "\nDelivered\nFailed\nExhausted",
+   "read_only": 1
+  },
+  {
+   "fieldname": "attempt",
+   "fieldtype": "Int",
+   "label": "Attempt",
+   "read_only": 1
+  },
+  {
+   "fieldname": "next_retry",
+   "fieldtype": "Datetime",
+   "label": "Next Retry",
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-25 15:16:24.028963",
+ "modified": "2026-07-11 19:04:55.894152",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook Request Log",

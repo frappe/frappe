@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class DocTypeAction(Document):
+	_DOCTYPE_NAME = "DocType Action"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

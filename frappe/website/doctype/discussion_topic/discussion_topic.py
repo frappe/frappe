@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class DiscussionTopic(Document):
+	_DOCTYPE_NAME = "Discussion Topic"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -23,9 +25,18 @@ class DiscussionTopic(Document):
 
 
 @frappe.whitelist()
-def submit_discussion(doctype, docname, reply, title, topic_name=None, reply_name=None):
+def submit_discussion(
+	doctype: str,
+	docname: str | int,
+	reply: str,
+	title: str,
+	topic_name: str | None = None,
+	reply_name: str | None = None,
+):
 	if reply_name:
 		doc = frappe.get_doc("Discussion Reply", reply_name)
+		if doc.owner != frappe.session.user:
+			frappe.throw(frappe._("You can only edit your own replies."), frappe.PermissionError)
 		doc.reply = reply
 		doc.save(ignore_permissions=True)
 		return

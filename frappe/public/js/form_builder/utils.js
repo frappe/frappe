@@ -214,9 +214,6 @@ export function evaluate_depends_on_value(expression, doc) {
 	} else if (expression.substr(0, 5) == "eval:") {
 		try {
 			out = frappe.utils.eval(expression.substr(5), { doc, parent });
-			if (parent && parent.istable && expression.includes("is_submittable")) {
-				out = true;
-			}
 		} catch (e) {
 			frappe.throw(__('Invalid "depends_on" expression'));
 		}

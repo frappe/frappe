@@ -25,14 +25,19 @@ context("Form Builder", () => {
 
 		// Save without change
 		cy.click_doc_primary_button("Save");
-		cy.get(".desk-alert.orange .alert-message").should("have.text", "No changes in document");
+		cy.get('.es-toast[data-type="warning"] .es-toast__message').should(
+			"have.text",
+			"No changes in document"
+		);
 
 		// Check form dirty
 		cy.get(".tab-content.active .section-columns-container:first .column:first .field:first")
 			.find("div[title='Double click to edit label']")
 			.dblclick()
 			.type("Dirty");
-		cy.get(".title-area .indicator-pill.orange").should("have.text", "Not Saved");
+		cy.get('[data-testid="page-status"]')
+			.should("be.visible")
+			.and("contain.text", "Not Saved");
 	});
 
 	it("Check if Filters are applied to the link field", () => {

@@ -51,3 +51,71 @@ class TestSubmissionQueue(IntegrationTestCase):
 		job = self.queue.fetch_job(submission_queue.job_id)
 		# Test completion
 		self.check_status(job, status="finished")
+
+	def test_cancel_operation(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+		from frappe.core.doctype.submission_queue.submission_queue import queue_submission
+
+		if not frappe.db.table_exists("Test Submission Queue", cached=False):
+			doc = new_doctype("Test Submission Queue", is_submittable=True, queue_in_background=True)
+			doc.insert()
+
+		d = frappe.new_doc("Test Submission Queue")
+		d.update({"some_fieldname": "Random"})
+		d.insert()
+		d.submit()
+		frappe.db.commit()
+
+		self.assertEqual(d.docstatus, 1)
+
+		queue_submission(d, "Cancel")
+		frappe.db.commit()
+
+		time.sleep(4)
+		submission_queue = frappe.get_last_doc("Submission Queue")
+
+		job = self.queue.fetch_job(submission_queue.job_id)
+		self.check_status(job, status="finished")
+
+		d.reload()
+		self.assertEqual(d.docstatus, 2)
+
+	def test_cancel_on_cancelled_doc(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+		from frappe.core.doctype.submission_queue.submission_queue import queue_submission
+
+		if not frappe.db.table_exists("Test Submission Queue", cached=False):
+			doc = new_doctype("Test Submission Queue", is_submittable=True, queue_in_background=True)
+			doc.insert()
+
+		d = frappe.new_doc("Test Submission Queue")
+		d.update({"some_fieldname": "Random"})
+		d.insert()
+		d.submit()
+		frappe.db.commit()
+
+		existing = frappe.get_doc(
+			{
+				"doctype": "Submission Queue",
+				"ref_doctype": d.doctype,
+				"ref_docname": d.name,
+				"status": "Queued",
+			}
+		)
+		existing.insert(d, "Cancel")
+		frappe.db.commit()
+
+		initial_count = frappe.db.count(
+			"Submission Queue", {"ref_doctype": d.doctype, "ref_docname": d.name, "status": "Queued"}
+		)
+
+		queue_submission(d, "Cancel")
+
+		final_count = frappe.db.count(
+			"Submission Queue", {"ref_doctype": d.doctype, "ref_docname": d.name, "status": "Queued"}
+		)
+
+		self.assertEqual(initial_count, final_count)
+
+		existing.delete(ignore_permissions=True)
+		frappe.db.commit()

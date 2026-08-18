@@ -50,6 +50,8 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 			case _:
 				df.fieldtype = "Data"
 
+		assert df.get("fieldtype"), "value type guessing must always resolve a fieldtype"
+
 	elif isinstance(df, dict):
 		# Convert dict to object if necessary
 		df = frappe._dict(df)
@@ -92,19 +94,15 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 		# I don't know why we support currency option for float
 		currency = currency or get_field_currency(df, doc)
 
-		# show 1.000000 as 1
-		# options should not specified
-		if not df.options and value is not None:
-			temp = cstr(value).split(".")
-			if len(temp) == 1 or cint(temp[1]) == 0:
-				precision = 0
-
 		return fmt_money(value, precision=precision, currency=currency)
+
+	elif df.get("fieldtype") == "Int":
+		return "" if value == "" else cstr(cint(value))
 
 	elif df.get("fieldtype") == "Percent":
 		return f"{flt(value, 2)}%"
 
-	elif df.get("fieldtype") in ("Text", "Small Text"):
+	elif df.get("fieldtype") in ("Text", "Small Text", "Long Text"):
 		if not BLOCK_TAGS_PATTERN.search(value):
 			return frappe.safe_decode(value).replace("\n", "<br>")
 
@@ -141,7 +139,6 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 			meta = frappe.get_meta(df.parent)
 			_field = meta.get_field(df.options)
 			doctype = _field.options
-
 		return doc.__link_titles.get(f"{doctype}::{value}", value)
 
 	elif df.get("fieldtype") == "Select":

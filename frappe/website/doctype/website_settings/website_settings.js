@@ -16,6 +16,10 @@ frappe.ui.form.on("Website Settings", {
 		frm.add_custom_button(__("View Website"), () => {
 			window.open("/", "_blank");
 		});
+
+		// Check if templates have fields and show/hide edit button
+		frm.events.check_template_has_fields(frm, "navbar_template");
+		frm.events.check_template_has_fields(frm, "footer_template");
 	},
 
 	set_banner_from_image: function (frm) {
@@ -100,10 +104,35 @@ frappe.ui.form.on("Website Settings", {
 			frappe.show_alert(__("Please select {0}", [frm.get_docfield(template_field).label]));
 			return;
 		}
+
 		let values = JSON.parse(frm.doc[values_field] || "{}");
 		open_web_template_values_editor(template, values).then((new_values) => {
 			frm.set_value(values_field, JSON.stringify(new_values));
 		});
+	},
+
+	check_template_has_fields(frm, template_field) {
+		let template = frm.doc[template_field];
+		let button_field = "edit_" + template_field + "_values";
+
+		if (!template || template === "Standard Navbar" || template === "Standard Footer") {
+			frm.toggle_display(button_field, false);
+			return;
+		}
+
+		frappe.model.with_doc("Web Template", template, () => {
+			let doc = frappe.model.get_doc("Web Template", template);
+			let has_fields = doc.fields && doc.fields.length > 0;
+			frm.toggle_display(button_field, has_fields);
+		});
+	},
+
+	navbar_template(frm) {
+		frm.events.check_template_has_fields(frm, "navbar_template");
+	},
+
+	footer_template(frm) {
+		frm.events.check_template_has_fields(frm, "footer_template");
 	},
 });
 

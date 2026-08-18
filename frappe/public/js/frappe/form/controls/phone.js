@@ -7,6 +7,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		super.make_input();
 		this.setup_country_code_picker();
 		this.input_events();
+		this.set_default_country();
 	}
 
 	async setup_country_codes() {
@@ -21,6 +22,15 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		}
 	}
 
+	set_default_country() {
+		if (!this.get_value()) {
+			const default_country = frappe.sys_defaults?.country || "India";
+			if (this.country_codes && this.country_codes[default_country]) {
+				this.country_code_picker.on_change(default_country, false);
+			}
+		}
+	}
+
 	input_events() {
 		this.$input.keydown((e) => {
 			const key_code = e.keyCode;
@@ -32,7 +42,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		});
 
 		// Replaces code when selected and removes previously selected.
-		this.country_code_picker.on_change = (country) => {
+		this.country_code_picker.on_change = (country, focus = true) => {
 			if (!country) {
 				return this.reset_input();
 			}
@@ -59,7 +69,9 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			this.update_padding();
 			// hide popover and focus input
 			this.$wrapper.popover("hide");
-			this.$input.focus();
+			if (focus) {
+				this.$input.focus();
+			}
 		};
 
 		this.$wrapper.find(".selected-phone").on("click", (e) => {
@@ -87,7 +99,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		this.$wrapper
 			.popover({
 				trigger: "manual",
-				offset: `${-this.$wrapper.width() / 4.5}, 5`,
+				offset: (offsets) => this.get_popover_offset(offsets),
 				boundary: "viewport",
 				placement: "bottom",
 				template: `
@@ -115,7 +127,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		let input_value = this.get_input_value();
 		if (!this.selected_icon.length) {
 			this.selected_icon = $(
-				`<div class="selected-phone">${frappe.utils.icon("down", "sm")}</div>`
+				`<div class="selected-phone">${frappe.utils.icon("chevron-down", "sm")}</div>`
 			);
 			this.selected_icon.insertAfter(this.$input);
 			this.selected_icon.append($(`<span class= "country"></span>`));
@@ -126,6 +138,17 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		}
 	}
 
+	get_popover_offset(offsets) {
+		const { reference: ref, popper: pop } = offsets;
+		return {
+			popper: {
+				...pop,
+				left: frappe.utils.is_rtl() ? ref.left + ref.width - pop.width : ref.left,
+				top: pop.top + 5,
+			},
+		};
+	}
+
 	refresh() {
 		super.refresh();
 		// Previously opened doc values showing up on a new doc
@@ -133,6 +156,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 
 		if (!this.get_value()) {
 			this.reset_input();
+			this.set_default_country();
 		}
 	}
 
@@ -215,10 +239,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 	update_padding() {
 		let len = this.$isd.text().length;
 		let diff = len - 2;
-		if (len > 2) {
-			this.$input.css("padding-left", 60 + diff * 7);
-		} else {
-			this.$input.css("padding-left", 60);
-		}
+		let prop = frappe.utils.is_rtl() ? "padding-right" : "padding-left";
+		this.$input.css(prop, len > 2 ? 60 + diff * 7 : 60);
 	}
 };

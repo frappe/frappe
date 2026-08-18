@@ -7,6 +7,8 @@ from frappe.realtime import get_website_room
 
 
 class DiscussionReply(Document):
+	_DOCTYPE_NAME = "Discussion Reply"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -20,10 +22,12 @@ class DiscussionReply(Document):
 	# end: auto-generated types
 
 	def on_update(self):
+		from frappe.utils.html_utils import sanitize_html
+
 		frappe.publish_realtime(
 			event="update_message",
 			room=get_website_room(),
-			message={"reply": frappe.utils.md_to_html(self.reply), "reply_name": self.name},
+			message={"reply": sanitize_html(frappe.utils.md_to_html(self.reply)), "reply_name": self.name},
 			after_commit=True,
 		)
 
@@ -76,7 +80,7 @@ class DiscussionReply(Document):
 
 
 @frappe.whitelist()
-def delete_message(reply_name):
+def delete_message(reply_name: str):
 	owner = frappe.db.get_value("Discussion Reply", reply_name, "owner")
 	if owner == frappe.session.user:
 		frappe.delete_doc("Discussion Reply", reply_name)

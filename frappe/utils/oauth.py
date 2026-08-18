@@ -1,7 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import base64
 import json
 from collections.abc import Callable
 from typing import TYPE_CHECKING
@@ -12,6 +11,7 @@ import frappe.utils
 from frappe import _
 from frappe.apps import get_default_path
 from frappe.utils.password import get_decrypted_password
+from frappe.website.utils import get_home_page
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.user.user import User
@@ -92,19 +92,40 @@ def get_oauth_keys(provider: str) -> dict[str, str]:
 	}
 
 
+OAUTH_LOGIN_FLOW_CACHE_PREFIX = "frappe_oauth_login"
+
+
+def create_oauth_state(redirect_to: str | None) -> str:
+	"""Create a single-use token referencing this login attempt's `redirect_to`.
+
+	The returned token is what gets sent to the OAuth provider as `state`.
+	"""
+	state = frappe.generate_hash(length=32)
+	frappe.cache.set_value(f"{OAUTH_LOGIN_FLOW_CACHE_PREFIX}:{state}", redirect_to or "", expires_in_sec=600)
+	return state
+
+
+def consume_oauth_state(state: str) -> str | None:
+	"""Look up and invalidate the redirect_to stored for this login attempt.
+
+	Returns None if `state` doesn't reference a known, unused login attempt.
+	"""
+	if not state:
+		return None
+	key = f"{OAUTH_LOGIN_FLOW_CACHE_PREFIX}:{state}"
+	redirect_to = frappe.cache.get_value(key)
+	frappe.cache.delete_value(key)
+	return redirect_to
+
+
 def get_oauth2_authorize_url(provider: str, redirect_to: str) -> str:
 	flow = get_oauth2_flow(provider)
 
-	state = {
-		"site": frappe.utils.get_url(),
-		"token": frappe.generate_hash(),
-		"redirect_to": redirect_to,
-	}
+	state = create_oauth_state(redirect_to)
 
-	# relative to absolute url
 	data = {
 		"redirect_uri": get_redirect_uri(provider),
-		"state": base64.b64encode(bytes(json.dumps(state).encode("utf-8"))),
+		"state": state,
 	}
 
 	oauth2_providers = get_oauth2_providers()
@@ -188,7 +209,7 @@ def get_info_via_oauth(provider: str, code: str, decoder: Callable | None = None
 			email_dict = next(filter(lambda x: x.get("primary"), emails))
 			info["email"] = email_dict.get("email")
 
-	if not (info.get("email_verified") or info.get("email")):
+	if not (info.get("email_verified") or get_email(info)):
 		frappe.throw(_("Email not verified with {0}").format(provider.title()))
 
 	return info
@@ -198,19 +219,19 @@ def login_oauth_user(
 	data: dict | str,
 	*,
 	provider: str | None = None,
-	state: dict | str,
+	state: str,
 	generate_login_token: bool = False,
 ):
-	# json.loads data and state
 	if isinstance(data, str):
 		data = json.loads(data)
 
-	if isinstance(state, str):
-		state = base64.b64decode(state)
-		state = json.loads(state.decode("utf-8"))
-
-	if not (state and state["token"]):
-		frappe.respond_as_web_page(_("Invalid Request"), _("Token is missing"), http_status_code=417)
+	redirect_to = consume_oauth_state(state)
+	if redirect_to is None:
+		frappe.respond_as_web_page(
+			_("Invalid Request"),
+			_("Your login attempt is invalid or has expired. Please try again."),
+			http_status_code=417,
+		)
 		return
 
 	# All user emails are stored as lowercase, but OAuth provider could have it in mixed case.
@@ -247,10 +268,9 @@ def login_oauth_user(
 		frappe.response["login_token"] = login_token
 
 	else:
-		redirect_to = state.get("redirect_to")
 		redirect_post_login(
 			desk_user=frappe.local.response.get("message") == "Logged In",
-			redirect_to=redirect_to,
+			redirect_to=redirect_to or None,
 			provider=provider,
 		)
 
@@ -331,7 +351,7 @@ def update_oauth_user(user: str, data: dict, provider: str):
 
 
 def get_first_name(data: dict) -> str:
-	return data.get("first_name") or data.get("given_name") or data.get("name")
+	return data.get("first_name") or data.get("given_name") or data.get("name") or data.get("login")
 
 
 def get_last_name(data: dict) -> str:
@@ -347,6 +367,7 @@ def redirect_post_login(desk_user: bool, redirect_to: str | None = None, provide
 
 	if not redirect_to:
 		desk_uri = "/desk/workspace" if provider == "facebook" else get_default_path()
-		redirect_to = frappe.utils.get_url(desk_uri if desk_user else "/me")
+		website_uri = get_default_path() or get_home_page() or "/me"
+		redirect_to = frappe.utils.get_url(desk_uri if desk_user else website_uri)
 
 	frappe.local.response["location"] = redirect_to

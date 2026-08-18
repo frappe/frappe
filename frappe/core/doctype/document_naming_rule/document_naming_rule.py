@@ -9,6 +9,8 @@ from frappe.utils.data import evaluate_filters
 
 
 class DocumentNamingRule(Document):
+	_DOCTYPE_NAME = "Document Naming Rule"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

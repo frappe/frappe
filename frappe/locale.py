@@ -46,7 +46,6 @@ def get_locale_value(key: str, language: str | None = None) -> str | None:
 	:param language: The language code to get the value for. Defaults to the current user's language.
 	"""
 	lang = language or frappe.local.lang
-	if lang:
-		value = frappe.client_cache.get_doc("Language", lang).get(key)
+	value = frappe.client_cache.get_doc("Language", lang).get(key) if lang else None
 
 	return value or frappe.db.get_default(key)

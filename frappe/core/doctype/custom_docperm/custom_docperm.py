@@ -3,9 +3,12 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.utils import cint
 
 
 class CustomDocPerm(Document):
+	_DOCTYPE_NAME = "Custom DocPerm"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -21,6 +24,7 @@ class CustomDocPerm(Document):
 		email: DF.Check
 		export: DF.Check
 		if_owner: DF.Check
+		is_app_disabled: DF.Check
 		mask: DF.Check
 		parent: DF.Data | None
 		permlevel: DF.Int
@@ -33,6 +37,11 @@ class CustomDocPerm(Document):
 		submit: DF.Check
 		write: DF.Check
 	# end: auto-generated types
+
+	def validate(self):
+		# `if_owner` is only honoured at permlevel 0; clear it at higher levels, where it is ignored.
+		if cint(self.permlevel) > 0 and self.if_owner:
+			self.if_owner = 0
 
 	def on_update(self):
 		frappe.clear_cache(doctype=self.parent)

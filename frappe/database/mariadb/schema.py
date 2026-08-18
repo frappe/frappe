@@ -1,8 +1,7 @@
-from pymysql.constants.ER import DUP_ENTRY
-
 import frappe
 from frappe import _
-from frappe.database.schema import DBTable
+from frappe.database.schema import DbColumn, DBTable
+from frappe.query_builder.functions import Trim
 from frappe.utils.defaults import get_not_null_defaults
 
 
@@ -96,6 +95,37 @@ class MariaDBTable(DBTable):
 		):
 			add_index_query.append("ADD INDEX `modified`(`modified`)")
 
+		# logic to drop unique constraint for fields deleted from a doctype
+		meta_columns = set(self.columns.keys())
+		db_columns = set(self.current_columns.keys())
+
+		for col in db_columns:
+			if (
+				col not in meta_columns
+				and col not in frappe.db.DEFAULT_COLUMNS
+				and col not in frappe.db.OPTIONAL_COLUMNS
+			):
+				has_unique = frappe.db.get_column_index(self.table_name, col, unique=True)
+
+				if not has_unique:
+					continue
+
+				current_col = self.current_columns.get(col)
+
+				deleted_col = DbColumn(
+					table=self,
+					fieldname=current_col.name,
+					fieldtype=current_col.type,
+					length=None,
+					default=None,
+					set_index=current_col.index,
+					options=None,
+					unique=False,
+					precision=None,
+					not_nullable=current_col.not_nullable,
+				)
+				self.drop_unique.append(deleted_col)
+
 		drop_index_query = []
 
 		for col in {*self.drop_index, *self.drop_unique}:
@@ -123,19 +153,26 @@ class MariaDBTable(DBTable):
 				except Exception:
 					print(f"Failed to update data in {self.table_name} for {col.fieldname}")
 					raise
+
+		self.run_alter(add_column_query)
+		self.run_alter(drop_index_query)
+		self.run_alter(modify_column_query)
+		self.run_alter(add_index_query)
+
+	def run_alter(self, query_parts: list[str], coerce_blanks: bool = True):
+		if not query_parts:
+			return
+
+		query = f"ALTER TABLE `{self.table_name}` {', '.join(query_parts)}"
+
 		try:
-			for query_parts in [add_column_query, modify_column_query, add_index_query, drop_index_query]:
-				if query_parts:
-					query_body = ", ".join(query_parts)
-					query = f"ALTER TABLE `{self.table_name}` {query_body}"
-					# nosemgrep
-					frappe.db.sql_ddl(query)
+			# nosemgrep
+			frappe.db.sql_ddl(query)
 
 		except Exception as e:
-			if query := locals().get("query"):  # this weirdness is to avoid potentially unbounded vars
-				print(f"Failed to alter schema using query: {query}")
+			print(f"Failed to alter schema using query: {query}")
 
-			if e.args[0] == DUP_ENTRY:
+			if frappe.db.is_duplicate_entry(e):
 				fieldname = str(e).split("'")[-2]
 				frappe.throw(
 					_(
@@ -143,7 +180,46 @@ class MariaDBTable(DBTable):
 					).format(fieldname, self.table_name)
 				)
 
+			if frappe.db.is_data_truncated(e):
+				if frappe.flags.in_migrate and coerce_blanks and self.set_blank_values_to_default():
+					self.run_alter(query_parts, coerce_blanks=False)
+					return
+
+				frappe.throw(
+					_(
+						"Cannot change field type in {0}: some existing values cannot be converted to the new type"
+					).format(self.doctype),
+					title=_("Incompatible Values"),
+				)
+
 			raise
+
+	def set_blank_values_to_default(self) -> bool:
+		"""Blank out values that only fail to cast because they are empty, so the conversion
+		can be retried. Returns whether any row was actually updated."""
+		updated = False
+
+		for col in self.change_type:
+			if col.fieldtype not in frappe.model.numeric_fieldtypes:
+				continue
+
+			current_column = self.current_columns.get(col.fieldname.lower())
+			if not current_column or not current_column.type.startswith(("varchar", "char", "text")):
+				continue
+
+			table = frappe.qb.DocType(self.doctype)
+			field = table[col.fieldname]
+			is_blank = Trim(field) == ""
+
+			if not frappe.qb.from_(table).select(field).where(is_blank).limit(1).run():
+				continue
+
+			frappe.qb.update(table).set(
+				col.fieldname, col.default or get_not_null_defaults(col.fieldtype)
+			).where(is_blank).run()
+			updated = True
+
+		return updated
 
 	def alter_primary_key(self) -> str | None:
 		# If there are no values in table allow migrating to UUID from varchar

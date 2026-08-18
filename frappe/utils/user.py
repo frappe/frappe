@@ -7,11 +7,13 @@ from typing import TYPE_CHECKING
 import frappe
 import frappe.share
 from frappe import _dict
-from frappe.boot import get_allowed_reports
+from frappe.app_state import get_disabled_modules
 from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
+from frappe.desk.desk_views import DeskViews
 from frappe.permissions import AUTOMATIC_ROLES, get_rights, get_roles, get_valid_perms
 from frappe.query_builder import DocType, Order
 from frappe.query_builder.functions import Concat_ws
+from frappe.utils.translations import _
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.user.user import User
@@ -42,6 +44,7 @@ class UserPermissions:
 		self.can_print = []
 		self.can_email = []
 		self.allow_modules = []
+		self.permitted_modules = []
 		self.in_create = []
 		self.setup_user()
 
@@ -75,6 +78,7 @@ class UserPermissions:
 		self.doctype_map = {}
 
 		active_domains = frappe.get_active_domains()
+		disabled_modules = get_disabled_modules()
 		all_doctypes = frappe.get_all(
 			"DocType",
 			fields=[
@@ -89,6 +93,9 @@ class UserPermissions:
 		)
 
 		for dt in all_doctypes:
+			if dt.module in disabled_modules:
+				continue
+
 			if not dt.restrict_to_domain or (dt.restrict_to_domain in active_domains):
 				self.doctype_map[dt["name"]] = dt
 
@@ -143,7 +150,8 @@ class UserPermissions:
 						no_list_view_link.append(dt)
 					else:
 						self.can_read.append(dt)
-
+						if dtp["module"] not in self.permitted_modules:
+							self.permitted_modules.append(dtp["module"])
 			if p.get("submit"):
 				self.can_submit.append(dt)
 
@@ -213,6 +221,27 @@ class UserPermissions:
 			self.build_permissions()
 		return self.can_read
 
+	def load_user_default_workspace(self):
+		"""
+		Note: ideally it should leverage existing `load_user` routine, through some specific flag aka `workspace_only` (aka ability to query only a specific attribute as required).
+		"""
+		user_data = frappe.db.get_value("User", self.name, ["default_workspace"], as_dict=True)
+		if user_data is None:
+			# NOTE: `user_data` shouldn't be None, as both "User" (as table) and "self.name" (as column) are expected to be Present always ??
+			return None
+
+		if user_data.get("default_workspace"):
+			try:
+				workspace = frappe.get_cached_doc("Workspace", user_data.default_workspace)
+				user_data.default_workspace = {
+					"name": workspace.name,
+					"public": workspace.public,
+					"title": workspace.title,
+				}
+			except frappe.DoesNotExistError:
+				user_data.default_workspace = None
+		return user_data.default_workspace
+
 	def load_user(self):
 		d = frappe.db.get_value(
 			"User",
@@ -241,12 +270,15 @@ class UserPermissions:
 			self.build_permissions()
 
 		if d.get("default_workspace"):
-			workspace = frappe.get_cached_doc("Workspace", d.default_workspace)
-			d.default_workspace = {
-				"name": workspace.name,
-				"public": workspace.public,
-				"title": workspace.title,
-			}
+			try:
+				workspace = frappe.get_cached_doc("Workspace", d.default_workspace)
+				d.default_workspace = {
+					"name": workspace.name,
+					"public": workspace.public,
+					"title": workspace.title,
+				}
+			except frappe.DoesNotExistError:
+				d.default_workspace = None
 
 		d.name = self.name
 		d.onboarding_status = frappe.parse_json(d.onboarding_status)
@@ -269,6 +301,7 @@ class UserPermissions:
 			"can_import",
 			"can_print",
 			"can_email",
+			"permitted_modules",
 		):
 			d[key] = list(set(getattr(self, key)))
 
@@ -276,7 +309,7 @@ class UserPermissions:
 		return d
 
 	def get_all_reports(self):
-		return get_allowed_reports()
+		return DeskViews.get_allowed_reports()
 
 
 def get_user_fullname(user: str) -> str:
@@ -292,9 +325,10 @@ def get_user_fullname(user: str) -> str:
 
 
 def get_fullname_and_avatar(user: str) -> _dict:
-	first_name, last_name, avatar, name = frappe.get_cached_value(
-		"User", user, ["first_name", "last_name", "user_image", "name"]
-	)
+	result = frappe.get_cached_value("User", user, ["first_name", "last_name", "user_image", "name"])
+	if result is None:
+		frappe.throw(_("User does not exist"), frappe.DoesNotExistError)
+	first_name, last_name, avatar, name = result
 	return _dict(
 		{
 			"fullname": " ".join(list(filter(None, [first_name, last_name]))),

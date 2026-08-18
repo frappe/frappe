@@ -1,5 +1,15 @@
 frappe.provide("frappe.views");
 
+const DEFAULT_FIELD_MAP = {
+	start: "start",
+	end: "end",
+	id: "name",
+	progress: "progress",
+	color: "color",
+	is_milestone: "is_milestone",
+	depends_on: "depends_on_tasks",
+};
+
 frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 	get view_name() {
 		return "Gantt";
@@ -9,6 +19,10 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		return super.setup_defaults().then(() => {
 			this.page_title = this.page_title + " " + __("Gantt");
 			this.calendar_settings = frappe.views.calendar[this.doctype] || {};
+			this.calendar_settings.field_map = {
+				...DEFAULT_FIELD_MAP,
+				...(this.calendar_settings.field_map || {}),
+			};
 
 			if (typeof this.calendar_settings.gantt == "object") {
 				Object.assign(this.calendar_settings, this.calendar_settings.gantt);
@@ -27,6 +41,34 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 
 	setup_view() {}
 
+	get_fields() {
+		// Add necessary fields for Gantt
+		let fields = super.get_fields();
+		const field_map = this.calendar_settings.field_map || DEFAULT_FIELD_MAP;
+		const meta = this.meta;
+
+		const gantt_fields = [
+			field_map.start,
+			field_map.end,
+			field_map.progress,
+			field_map.id,
+			field_map.title,
+			field_map.color,
+			field_map.is_milestone,
+			field_map.depends_on,
+		].filter((f) => typeof f === "string");
+		gantt_fields.forEach((fieldname) => {
+			let full_fieldname = frappe.model.get_full_column_name(fieldname, this.doctype);
+			if (
+				!fields.includes(full_fieldname) &&
+				meta.fields.find((f) => f.fieldname === fieldname)
+			) {
+				fields.push(full_fieldname);
+			}
+		});
+		return fields;
+	}
+
 	prepare_data(data) {
 		super.prepare_data(data);
 		this.prepare_tasks();
@@ -35,42 +77,63 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 	prepare_tasks() {
 		var me = this;
 		var meta = this.meta;
-		var field_map = this.calendar_settings.field_map;
+		let field_map = this.calendar_settings.field_map || DEFAULT_FIELD_MAP;
 
+		if (!this.data[0]?.[field_map.progress]) {
+			this.progress_disabled = true;
+		}
+
+		if (!this.meta.fields.find((k) => k.fieldname === field_map.start)) {
+			frappe.msgprint({
+				title: __("Incorrect configuration"),
+				message: __(
+					"Please configure the start field for this Doctype in the controller file."
+				),
+				indicator: "red",
+			});
+		}
 		this.tasks = this.data.map(function (item) {
 			// set progress
 			var progress = 0;
-			if (field_map.progress && $.isFunction(field_map.progress)) {
+			if (typeof field_map.progress === "function") {
 				progress = field_map.progress(item);
 			} else if (field_map.progress) {
 				progress = item[field_map.progress];
 			}
 
 			// title
-			var label;
-			if (meta.title_field) {
+			let label;
+			if (field_map.title) {
+				label = item[field_map.title];
+			} else if (meta.title_field) {
 				label = item.progress
 					? __("{0} ({1}) - {2}%", [item[meta.title_field], item.name, item.progress])
 					: __("{0} ({1})", [item[meta.title_field], item.name]);
 			} else {
-				label = item[field_map.title];
+				label = item["name"];
 			}
 
-			var r = {
+			const r = {
 				start: item[field_map.start],
-				end: item[field_map.end],
+				end: item[field_map.end] || item[field_map.start],
 				name: label,
-				id: item[field_map.id || "name"],
+				id: item[field_map.id],
 				doctype: me.doctype,
 				progress: progress,
-				dependencies: item.depends_on_tasks || "",
+				dependencies: "",
 			};
 
-			if (item.color && frappe.ui.color.validate_hex(item.color)) {
-				r["custom_class"] = "color-" + item.color.substr(1);
+			if (field_map.depends_on) {
+				r.dependencies = item[field_map.depends_on] || "";
 			}
-
-			if (item.is_milestone) {
+			if (
+				field_map.color &&
+				item[field_map.color] &&
+				frappe.ui.color.validate_hex(item[field_map.color])
+			) {
+				r["custom_class"] = "color-" + item[field_map.color].substr(1);
+			}
+			if (field_map.is_milestone && item[field_map.is_milestone]) {
 				r["custom_class"] = "bar-milestone";
 			}
 
@@ -93,19 +156,21 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		const date_format = "YYYY-MM-DD";
 
 		this.$result.empty();
-		this.$result.addClass("gantt-modern");
-
 		this.gantt = new Gantt(this.$result[0], this.tasks, {
 			bar_height: 35,
 			bar_corner_radius: 4,
-			resize_handle_width: 8,
-			resize_handle_height: 28,
-			resize_handle_corner_radius: 3,
-			resize_handle_offset: 4,
+			hover_on_date: true,
 			view_mode: gantt_view_mode,
 			date_format: "YYYY-MM-DD",
-			on_click: (task) => {
+			readonly: !me.can_write,
+			readonly_progress: this.progress_disabled,
+			fixed_duration: field_map.start === field_map.end,
+			on_double_click: (task) => {
 				frappe.set_route("Form", task.doctype, task.id);
+			},
+			on_date_click: (date) => {
+				console.log(date);
+				if (date) frappe.new_doc("ToDo", { date: new Date(date) });
 			},
 			on_date_change: (task, start, end) => {
 				if (!me.can_write) return;
@@ -116,11 +181,11 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			},
 			on_progress_change: (task, progress) => {
 				if (!me.can_write) return;
-				var progress_fieldname = "progress";
+				let progress_fieldname;
 
-				if ($.isFunction(field_map.progress)) {
+				if (typeof field_map.progress === "function") {
 					progress_fieldname = null;
-				} else if (field_map.progress) {
+				} else if (field_map.progress && task[field_map.progress]) {
 					progress_fieldname = field_map.progress;
 				}
 
@@ -133,14 +198,13 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			on_view_change: (mode) => {
 				// save view mode
 				me.save_view_user_settings({
-					gantt_view_mode: mode,
+					gantt_view_mode: mode.name,
 				});
 			},
-			custom_popup_html: (task) => {
+			popup: ({ task }) => {
 				var item = me.get_item(task.id);
-
 				var html = `<div class="title">${task.name}</div>
-					<div class="subtitle">${moment(task._start).format("MMM D")} - ${moment(task._end).format(
+					<div class="subtitle">${moment(task.start).format("MMM D")} - ${moment(task.end).format(
 					"MMM D"
 				)}</div>`;
 
@@ -161,37 +225,22 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		// view modes (for translation) __("Day"), __("Week"), __("Month"),
 		//__("Half Day"), __("Quarter Day")
 
-		let $btn_group = this.$paging_area.find(".gantt-view-mode");
-		if ($btn_group.length > 0) return;
+		if (this.$paging_area.find(".gantt-view-mode").length > 0) return;
 
 		const view_modes = this.gantt.options.view_modes || [];
-		const active_class = (view_mode) => (this.gantt.view_is(view_mode) ? "btn-info" : "");
-		const html = `<div class="btn-group gantt-view-mode">
-				${view_modes
-					.map(
-						(value) => `<button type="button"
-						class="btn btn-default btn-sm btn-view-mode ${active_class(value)}"
-						data-value="${value}">
-						${__(value)}
-					</button>`
-					)
-					.join("")}
-			</div>`;
-
-		this.$paging_area.find(".level-left").append(html);
-
-		// change view mode asynchronously
-		const change_view_mode = (value) =>
-			setTimeout(() => this.gantt.change_view_mode(value), 0);
-
-		this.$paging_area.on("click", ".btn-view-mode", (e) => {
-			const $btn = $(e.currentTarget);
-			this.$paging_area.find(".btn-view-mode").removeClass("btn-info");
-			$btn.addClass("btn-info");
-
-			const value = $btn.data().value;
-			change_view_mode(value);
+		const active = view_modes.find((mode) => this.gantt.view_is(mode.name));
+		const view_mode_group = new frappe.ui.TabButtons({
+			label: __("Gantt View Mode"),
+			css_class: "gantt-view-mode ms-2 me-2",
+			options: view_modes.map((mode) => ({
+				label: __(mode.name),
+				value: mode.name,
+			})),
+			value: active && active.name,
+			// change view mode asynchronously
+			on_change: (value) => setTimeout(() => this.gantt.change_view_mode(value), 0),
 		});
+		this.$paging_area.find(".level-left").append(view_mode_group.$el);
 	}
 
 	set_colors() {
@@ -226,7 +275,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 	get required_libs() {
 		return [
 			"assets/frappe/node_modules/frappe-gantt/dist/frappe-gantt.css",
-			"assets/frappe/node_modules/frappe-gantt/dist/frappe-gantt.min.js",
+			"assets/frappe/node_modules/frappe-gantt/dist/frappe-gantt.umd.js",
 		];
 	}
 };

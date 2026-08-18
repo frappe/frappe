@@ -10,6 +10,8 @@ from urllib.parse import parse_qs, urlparse
 
 import cssutils
 import pdfkit
+import pdfkit.api
+from pdfkit.pdfkit import PDFKit as OriginalPDFKit
 
 pdfkit.source.unicode = str  # NOTE: upstream bug; PYTHONOPTIMIZE=1 optimized this away
 from bs4 import BeautifulSoup
@@ -32,6 +34,23 @@ PDF_CONTENT_ERRORS = [
 	"UnknownContentError",
 	"RemoteHostClosedError",
 ]
+
+
+class FrappePDFKit(OriginalPDFKit):
+	def _find_options_in_meta(self, content):
+		"""Override to disable meta tag parsing.
+
+		Returns an empty dict to prevent any wkhtmltopdf options from being
+		extracted from HTML meta tags. Only options passed explicitly to the
+		function should be used.
+		"""
+		return {}
+
+
+# Replace PDFKit in all relevant modules
+pdfkit.PDFKit = FrappePDFKit
+pdfkit.pdfkit.PDFKit = FrappePDFKit
+pdfkit.api.PDFKit = FrappePDFKit
 
 
 def pdf_header_html(soup, head, content, styles, html_id, css, path=None):
@@ -58,7 +77,7 @@ def pdf_body_html(template, args, **kwargs):
 		# Guess line number ?
 		frappe.throw(
 			_("Error in print format on line {0}: {1}").format(
-				_guess_template_error_line_number(template), e
+				_guess_template_error_line_number(template), str(e)
 			),
 			exc=frappe.PrintFormatError,
 			title=_("Print Format Error"),
@@ -139,7 +158,8 @@ def measure_time(func):
 		start_time = time.time()
 		result = func(*args, **kwargs)
 		end_time = time.time()
-		print(f"Function {func.__name__} took {end_time - start_time:.4f} seconds")
+		if frappe.conf.developer_mode:
+			print(f"Function {func.__name__} took {end_time - start_time:.4f} seconds")
 		return result
 
 	return wrapper
@@ -147,8 +167,8 @@ def measure_time(func):
 
 @measure_time
 def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
+	from frappe.utils.chromium import ChromiumManager
 	from frappe.utils.pdf_generator.browser import Browser
-	from frappe.utils.pdf_generator.chrome_pdf_generator import ChromePDFGenerator
 	from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
 
 	if pdf_generator != "chrome":
@@ -156,11 +176,14 @@ def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
 		return
 	# scrubbing url to expand url is not required as we have set url.
 	# also, planning to remove network requests anyway 🤞
-	generator = ChromePDFGenerator()
-	browser = Browser(generator, print_format, html, options)
-	transformer = PDFTransformer(browser)
-	# transforms and merges header, footer into body pdf and returns merged pdf
-	return transformer.transform_pdf(output=output)
+	generator, token = ChromiumManager.acquire()
+	try:
+		browser = Browser(generator, print_format, html, options)
+		transformer = PDFTransformer(browser)
+		# transforms and merges header, footer into body pdf and returns merged pdf
+		return transformer.transform_pdf(output=output)
+	finally:
+		generator.release(token)
 
 
 def get_file_data_from_writer(writer_obj):

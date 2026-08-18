@@ -1,10 +1,13 @@
 {
  "actions": [],
- "creation": "2013-01-16 13:09:40",
+ "allow_bulk_edit": 1,
+ "creation": "2026-07-01 13:17:35.482256",
  "doctype": "DocType",
  "document_type": "System",
  "engine": "MyISAM",
  "field_order": [
+  "fingerprint_stats",
+  "section_break_ayos",
   "seen",
   "reference_doctype",
   "column_break_3",
@@ -13,6 +16,7 @@
   "method",
   "error",
   "trace_id",
+  "fingerprint",
   "metadata"
  ],
  "fields": [
@@ -22,6 +26,11 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Seen"
+  },
+  {
+   "fieldname": "fingerprint_stats",
+   "fieldtype": "HTML",
+   "label": "Fingerprint Stats"
   },
   {
    "fieldname": "method",
@@ -73,13 +82,24 @@
    "fieldtype": "Code",
    "label": "Metadata",
    "read_only": 1
+  },
+  {
+   "fieldname": "fingerprint",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Fingerprint",
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break_ayos",
+   "fieldtype": "Section Break"
   }
  ],
  "icon": "fa fa-warning-sign",
  "idx": 1,
  "in_create": 1,
  "links": [],
- "modified": "2025-11-27 18:04:21.399557",
+ "modified": "2026-07-01 13:39:45.955563",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Error Log",

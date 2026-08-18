@@ -17,6 +17,22 @@ frappe.ui.form.on("Workspace Sidebar", {
 					return;
 				}
 			});
+
+			frm.add_custom_button(__("Migrate to Workspace"), () => {
+				frappe.confirm(
+					__("Merge this sidebar's items into the matching Workspace?"),
+					() => {
+						frm.call("migrate_to_workspace").then((r) => {
+							if (r.message) {
+								frappe.show_alert({
+									message: __("Migrated to Workspace {0}", [r.message.name]),
+									indicator: "green",
+								});
+							}
+						});
+					}
+				);
+			});
 		}
 	},
 	link_type: function (frm) {

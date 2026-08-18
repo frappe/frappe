@@ -2,7 +2,7 @@ import Picker from "../../icon_picker/icon_picker";
 
 frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlData {
 	make_input() {
-		this.df.placeholder = this.df.placeholder || __("Choose an icon");
+		this.df.placeholder = __(this.df.placeholder) || __("Choose an icon");
 		super.make_input();
 		this.get_all_icons();
 		this.make_icon_input();
@@ -15,12 +15,30 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 		});
 	}
 
+	get_icon_sections() {
+		// Custom Icons live in the same sprite, so split them back out by name
+		let custom_names = new Set((frappe.boot.custom_icons || []).map((icon) => icon.name));
+		let custom = frappe.symbols.filter((icon) => custom_names.has(icon));
+		if (!custom.length) {
+			return [{ icons: frappe.symbols }];
+		}
+
+		return [
+			{ label: __("Custom"), icons: custom },
+			{
+				// the bundled set is named, not called "Icons", since every section holds icons
+				label: "Lucide",
+				icons: frappe.symbols.filter((icon) => !custom_names.has(icon)),
+			},
+		];
+	}
+
 	make_icon_input() {
 		let picker_wrapper = $("<div>");
 		this.picker = new Picker({
 			parent: picker_wrapper,
 			icon: this.get_icon(),
-			icons: frappe.symbols,
+			sections: this.get_icon_sections(),
 			include_emoji: this.df.options == "Emojis",
 		});
 
@@ -55,7 +73,7 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 
 		if (!this.selected_icon) {
 			this.selected_icon = $(
-				`<div class="selected-icon">${frappe.utils.icon("folder-normal", "md")}</div>`
+				`<div class="selected-icon">${frappe.utils.icon("folder", "sm")}</div>`
 			);
 			this.selected_icon.insertAfter(this.$input);
 		}
@@ -92,11 +110,11 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 	set_formatted_input(value) {
 		super.set_formatted_input(value);
 		this.$input.val(value);
-		this.selected_icon.find("use").attr("href", "#icon-" + (value || "folder-normal"));
+		this.selected_icon.find("use").attr("href", "#icon-" + (value || "folder"));
 		this.selected_icon.toggleClass("no-value", !value);
 	}
 
 	get_icon() {
-		return this.get_value() || "folder-normal";
+		return this.get_value() || "folder";
 	}
 };

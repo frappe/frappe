@@ -22,12 +22,6 @@ $threshold: 34;
 	position: relative;
 	padding-top: var(--padding-lg);
 
-	@include media-breakpoint-down(xs) {
-		padding-left: calc(var(--padding-sm) + var(--timeline-item-icon-size) / 2);
-		.timeline-dot {
-			margin-left: -2px;
-		}
-	}
 	&:before {
 		content: " ";
 		top: 90px; // TODO: get top and bottom programmatically
@@ -36,10 +30,12 @@ $threshold: 34;
 		border-left: 1px solid var(--dark-border-color);
 		bottom: calc(-1 * var(--timeline-item-bottom-margin) + 25px);
 	}
+
 	.timeline-dot {
 		@include timeline-badge(16px);
 		left: calc(-1.25 * var(--timeline-item-left-margin) / 2);
 		background: var(--bg-color);
+
 		&:before {
 			content: " ";
 			background: var(--timeline-badge-color);
@@ -48,22 +44,27 @@ $threshold: 34;
 			width: 4px;
 		}
 	}
+
 	.activity-title,
 	.timeline-actions {
 		margin-bottom: 0 !important;
 		display: flex;
 		align-items: center;
+
 		.show-all-activity,
 		.timeline-item {
 			margin-bottom: 0;
 		}
+
 		min-height: 60px;
 		margin-left: 0px !important;
 		background-color: var(--bg-color);
 		padding-left: 0px;
+
 		.timeline-content {
 			padding-left: var(--timeline-item-left-margin);
 		}
+
 		h4 {
 			flex: auto;
 			margin-bottom: 0;
@@ -71,37 +72,52 @@ $threshold: 34;
 			font-weight: 500;
 		}
 	}
+
 	.timeline-item {
 		@include get_textstyle("base", "regular");
 		position: relative;
 		margin-left: var(--timeline-item-left-margin);
 		margin-bottom: var(--timeline-item-bottom-margin);
+
 		b {
 			color: var(--text-color);
 			@include get_textstyle("base", "medium");
 		}
+
 		.action-buttons {
 			display: inline-flex;
 			white-space: nowrap;
 			overflow: auto;
+
 			.action-btn {
 				margin-left: var(--margin-md);
 				display: flex;
 				align-items: center;
 				line-height: var(--text-xl);
+
 				.icon {
 					margin-right: var(--margin-xs);
 				}
 			}
+
 			.action-btn:first-of-type {
 				margin-left: 0;
 			}
 		}
+
 		.timeline-content {
 			position: relative;
-			max-width: var(--timeline-content-max-width);
 			padding: var(--padding-sm);
 			margin-left: var(--margin-md);
+
+			body:not(.full-width) & {
+				max-width: var(--timeline-content-max-width);
+			}
+
+			> .ql-editor {
+				display: inline-flex;
+			}
+
 			&.frappe-card {
 				color: var(--text-neutral);
 				background-color: var(--bg-color);
@@ -116,6 +132,7 @@ $threshold: 34;
 
 				.content {
 					padding-left: 42px;
+
 					.mention {
 						background-color: transparent;
 						border: none;
@@ -125,20 +142,26 @@ $threshold: 34;
 				}
 			}
 		}
+
 		.timeline-badge {
 			@include timeline-badge(var(--timeline-item-icon-size));
 			left: calc(-1 * var(--timeline-item-left-margin));
 		}
+
 		.timeline-load-more {
 			margin-left: calc(var(--timeline-item-left-margin) + var(--padding-sm));
-			width: var(--timeline-content-max-width);
 			text-align: center;
+
+			body:not(.full-width) & {
+				width: var(--timeline-content-max-width);
+			}
 		}
 
 		.timeline-message-box {
 			.content {
 				overflow: auto;
 				max-height: 500px;
+
 				&::before {
 					content: "";
 					display: block;
@@ -152,6 +175,7 @@ $threshold: 34;
 
 			.actions {
 				display: flex;
+
 				> *:not(.indicator-pill) {
 					color: var(--text-muted);
 				}
@@ -164,6 +188,7 @@ $threshold: 34;
 				background-color: transparent;
 				--icon-stroke: var(--text-muted);
 			}
+
 			.action-btn,
 			.custom-actions {
 				@include get_textstyle("sm", "regular");
@@ -174,10 +199,11 @@ $threshold: 34;
 				--icon-stroke: var(--text-color);
 			}
 		}
+
 		.comment-edit-box {
 			background-color: var(--control-bg);
 			border: 1px solid var(--border-color);
-			border-radius: var(--border-radius-sm);
+			border-radius: var(--radius);
 			margin-top: var(--margin-sm);
 			--icon-stroke: var(--text-color);
 		}
@@ -185,11 +211,6 @@ $threshold: 34;
 }
 
 @include media-breakpoint-down(sm) {
-	.new-timeline {
-		.timeline-item {
-			margin-left: 0px;
-		}
-	}
 	.up {
 		position: relative;
 		bottom: 1px;

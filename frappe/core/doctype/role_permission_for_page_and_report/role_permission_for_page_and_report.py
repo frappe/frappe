@@ -8,6 +8,8 @@ from frappe.permissions import ALL_USER_ROLE
 
 
 class RolePermissionforPageandReport(Document):
+	_DOCTYPE_NAME = "Role Permission for Page and Report"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

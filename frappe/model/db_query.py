@@ -36,7 +36,9 @@ from frappe.utils import (
 	get_time,
 	get_timespan_date_range,
 )
-from frappe.utils.data import DateTimeLikeObject, get_datetime, getdate, sbool
+from frappe.utils.data import convert_type_for_between_filters, sbool
+
+_convert_type_for_between_filters = convert_type_for_between_filters  # bw compatibility
 
 
 @lru_cache(maxsize=128)
@@ -81,6 +83,10 @@ class DatabaseQuery:
 		self.conditions = []
 		self.or_conditions = []
 		self.fields = None
+		self.join = "left join"
+		self.order_by = None
+		self.group_by = None
+		self.with_childnames = False
 		self.user = user or frappe.session.user
 		self.ignore_ifnull = False
 		self.flags = frappe._dict()
@@ -88,6 +94,7 @@ class DatabaseQuery:
 		self.permission_map = {}
 		self.shared = []
 		self._fetch_shared_documents = False
+		self._child_filters_via_exists = False
 		self._metas = {}
 
 	@cached_property
@@ -240,7 +247,7 @@ class DatabaseQuery:
 		if pluck:
 			return [d[pluck] for d in result]
 
-		if self.doctype and result:
+		if self.doctype and result and not self.flags.ignore_permissions:
 			result = self.mask_fields(result)
 
 		return result
@@ -275,7 +282,38 @@ class DatabaseQuery:
 
 		meta = self.get_meta(self.doctype)
 
-		return meta.get_masked_fields()
+		return meta.get_masked_fields(parenttype=self.parent_doctype) + self.get_masked_joined_fields()
+
+	def get_masked_joined_fields(self):
+		"""Get masked fields of the doctypes joined in through dot notation (`items.rate`)."""
+		from frappe.database.query import CORE_DOCTYPES
+		from frappe.desk.reportview import extract_fieldnames
+		from frappe.model.utils.mask import as_aliased_field
+
+		masked_fields = []
+		lookups = {}
+
+		for field in self.fields or []:
+			columns = extract_fieldnames(field)
+			if not columns or "." not in columns[0]:
+				continue
+
+			table, fieldname = columns[0].split(".", 1)
+			doctype = self.linked_table_aliases.get(table, table).replace("`", "").removeprefix("tab")
+
+			if doctype == self.doctype or doctype in CORE_DOCTYPES:
+				continue
+
+			if doctype not in lookups:
+				meta = self.get_meta(doctype)
+				parenttype = self.doctype if meta.istable else None
+				lookups[doctype] = {df.fieldname: df for df in meta.get_masked_fields(parenttype=parenttype)}
+
+			if df := lookups[doctype].get(fieldname):
+				alias = field.split(" as ")[1].strip(" '`") if " as " in field.lower() else None
+				masked_fields.append(as_aliased_field(df, alias))
+
+		return masked_fields
 
 	def build_and_run(self):
 		args = self.prepare_args()
@@ -321,6 +359,8 @@ from {tables}
 		self.extract_tables()
 		self.set_optional_columns()
 		self.build_conditions()
+		# decided before cast_name_fields wraps name columns in cast() on postgres
+		drop_dedup_group_by = self._is_redundant_dedup_group_by()
 		self.apply_fieldlevel_read_permissions()
 
 		args = frappe._dict()
@@ -331,12 +371,12 @@ from {tables}
 					self.fields.append(f"{t}.name as '{t[4:-1]}:name'")
 
 		# query dict
+		assert self.tables, "extract_tables must have populated at least the primary table"
 		args.tables = self.tables[0]
 
 		# left join parent, child tables
 		for child in self.tables[1:]:
-			parent_name = cast_name(f"{self.tables[0]}.name")
-			args.tables += f" {self.join} {child} on ({child}.parenttype = {frappe.db.escape(self.doctype)} and {child}.parent = {parent_name})"
+			args.tables += f" {self.join} {child} on ({self._child_join_condition(child)})"
 
 		# left join link tables
 		for link in self.link_tables:
@@ -383,10 +423,40 @@ from {tables}
 		self.validate_order_by_and_group_by(args.order_by)
 		args.order_by = (args.order_by and (" order by " + args.order_by)) or ""
 
+		if drop_dedup_group_by:
+			# list views send group_by=parent primary key to dedup child-table join
+			# rows; once child filters use exists() nothing multiplies rows, and
+			# keeping it breaks postgres when fields include columns from joined
+			# link tables (show_title_field_in_link)
+			self.group_by = None
+
 		self.validate_order_by_and_group_by(self.group_by)
-		args.group_by = (self.group_by and (" group by " + self.group_by)) or ""
+		args.group_by = (self.group_by and (" group by " + self._group_by_with_link_table_pks())) or ""
 
 		return args
+
+	def _is_redundant_dedup_group_by(self) -> bool:
+		if not (self._child_filters_via_exists and len(self.tables) == 1):
+			return False
+		if any("(" in (field or "") for field in self.fields):
+			# aggregates change meaning without group by, keep it
+			return False
+		return self._is_dedup_group_by()
+
+	def _is_dedup_group_by(self) -> bool:
+		if not self.group_by:
+			return False
+		group_by = self.group_by.replace("`", "").replace('"', "").strip()
+		return group_by in (f"tab{self.doctype}.name", "name")
+
+	def _group_by_with_link_table_pks(self) -> str:
+		"""When a dedup group by survives (e.g. a child table stays joined), the
+		selected columns of 1:1 joined link tables are not functionally dependent
+		on the parent primary key for postgres; grouping additionally by each link
+		table's primary key covers them without changing partitions."""
+		if not (self.link_tables and frappe.db.db_type == "postgres" and self._is_dedup_group_by()):
+			return self.group_by
+		return ", ".join([self.group_by, *(f"{link.table_alias}.`name`" for link in self.link_tables)])
 
 	def prepare_select_args(self, args):
 		order_field = ORDER_BY_PATTERN.sub("", args.order_by)
@@ -499,9 +569,15 @@ from {tables}
 				if isinstance(token, Function):
 					if (name := (token.get_name())) and name.lower() in blacklisted_functions:
 						_raise_exception()
-				if token.ttype == tokens.Keyword:
-					if token.value.lower() in blacklisted_keywords:
+
+				if token.ttype in tokens.Keyword:
+					if any(re.search(rf"\b{kw}\b", token.value.lower()) for kw in blacklisted_keywords):
 						_raise_exception()
+
+				if token.ttype in tokens.Name and not re.match(r"^`\w.*`$", token.value.strip()):
+					if any(re.search(rf"\b{kw}\b", token.value.lower()) for kw in blacklisted_keywords):
+						_raise_exception()
+
 				if token.is_group:
 					_check_sql_token(token)
 
@@ -605,6 +681,8 @@ from {tables}
 		if self.flags.ignore_permissions:
 			return
 
+		self.join = "left join"
+
 		if doctype not in self.permission_map:
 			self._set_permission_map(doctype, parent_doctype)
 
@@ -659,14 +737,103 @@ from {tables}
 	def build_conditions(self):
 		self.conditions = []
 		self.grouped_or_conditions = []
-		self.build_filter_conditions(self.filters, self.conditions)
-		self.build_filter_conditions(self.or_filters, self.grouped_or_conditions)
+
+		filters, exists_groups = self._split_child_table_filters(self.filters)
+		or_filters, or_exists_groups = self._split_child_table_filters(self.or_filters)
+
+		# a child table filtered in both filters and or_filters keeps the legacy
+		# join: both groups must test the same joined child row
+		for doctype in exists_groups.keys() & or_exists_groups.keys():
+			filters.extend(exists_groups.pop(doctype))
+			or_filters.extend(or_exists_groups.pop(doctype))
+
+		self._child_filters_via_exists = bool(exists_groups or or_exists_groups)
+
+		for ft, parsed in filters:
+			self.conditions.append(self.prepare_filter_condition(ft, parsed=parsed))
+		for doctype, group in exists_groups.items():
+			self.conditions.append(self.prepare_exists_condition(doctype, group))
+
+		for ft, parsed in or_filters:
+			self.grouped_or_conditions.append(self.prepare_filter_condition(ft, parsed=parsed))
+		for doctype, group in or_exists_groups.items():
+			self.grouped_or_conditions.append(self.prepare_exists_condition(doctype, group, any_match=True))
 
 		# match conditions
 		if not self.flags.ignore_permissions:
 			match_conditions = self.build_match_conditions()
 			if match_conditions:
 				self.conditions.append(f"({match_conditions})")
+
+	def _split_child_table_filters(self, filters: Filters) -> tuple[list, dict[str, list]]:
+		"""Separate filters on child tables that are not part of the query itself.
+
+		These filter through an exists() subquery instead of a join, so the outer
+		query needs no `group by` to deduplicate parents. Return the remaining
+		filters and the exists candidates grouped by child doctype, both as
+		(filter, parsed filter) pairs so no filter is parsed twice.
+		"""
+		from frappe.boot import get_additional_filters_from_hooks
+
+		joined: list = []
+		exists_groups: dict[str, list] = {}
+		if not filters:
+			return joined, exists_groups
+		if not self._can_filter_via_exists():
+			return [(ft, None) for ft in filters], exists_groups
+
+		additional_filters_config = get_additional_filters_from_hooks()
+		# quotes are stripped so `tabX`.`col`, "tabX".col and tabX.col forms all match
+		sort_group_references = f"{self.group_by or ''} {self.order_by or ''}".replace("`", "").replace(
+			'"', ""
+		)
+		for ft in filters:
+			f = get_filter(self.doctype, ft, additional_filters_config)
+			if (
+				f.doctype
+				and f.doctype != self.doctype
+				and f"`tab{f.doctype}`" not in self.tables
+				and f"tab{f.doctype}" not in sort_group_references
+				and self.get_meta(f.doctype).istable
+			):
+				exists_groups.setdefault(f.doctype, []).append((ft, f))
+			else:
+				joined.append((ft, f))
+		return joined, exists_groups
+
+	def _can_filter_via_exists(self) -> bool:
+		if self.join != "left join" or self.with_childnames:
+			return False
+		if any("(" in (field or "") for field in self.fields or []):
+			return False
+		if self.order_by and self.order_by != DefaultOrderBy and "(" in self.order_by:
+			return False
+		if self.flags.ignore_permissions:
+			return True
+		return not get_server_script_map().get("permission_query", {}).get(self.doctype)
+
+	def prepare_exists_condition(self, child_doctype: str, filters: list, any_match=False) -> str:
+		"""Return an exists() condition that filters by a child table without joining it.
+
+		The child table is left joined to a one-row derived table, so a parent with
+		no child rows is tested against a single all-NULL child row — exactly like
+		the outer left join this replaces (filters like "is not set" must match
+		parents without child rows).
+		"""
+		self.check_read_permission(child_doctype, parent_doctype=self.doctype)
+		child_table = f"`tab{child_doctype}`"
+		joiner = " or " if any_match else " and "
+		conditions = joiner.join(
+			self.prepare_filter_condition(ft, skip_join=True, parsed=parsed) for ft, parsed in filters
+		)
+		return (
+			f"exists (select 1 from (select 1) as `_one_row` "
+			f"left join {child_table} on ({self._child_join_condition(child_table)}) where {conditions})"
+		)
+
+	def _child_join_condition(self, child_table: str) -> str:
+		parent_name = cast_name(f"`tab{self.doctype}`.name")
+		return f"{child_table}.parenttype = {frappe.db.escape(self.doctype)} and {child_table}.parent = {parent_name}"
 
 	def build_filter_conditions(self, filters: Filters, conditions: list, ignore_permissions=None):
 		"""build conditions from user filters"""
@@ -782,7 +949,7 @@ from {tables}
 			else:
 				self.remove_field(i)
 
-	def prepare_filter_condition(self, ft: FilterTuple) -> str:
+	def prepare_filter_condition(self, ft: FilterTuple, *, skip_join: bool = False, parsed=None) -> str:
 		"""Return a filter condition in the format:
 
 		ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
@@ -793,10 +960,12 @@ from {tables}
 		from frappe.boot import get_additional_filters_from_hooks
 
 		additional_filters_config = get_additional_filters_from_hooks()
-		f: FilterTuple = get_filter(self.doctype, ft, additional_filters_config)
+		f: FilterTuple = (
+			parsed if parsed is not None else get_filter(self.doctype, ft, additional_filters_config)
+		)
 
 		tname = "`tab" + f.doctype + "`"
-		if tname not in self.tables:
+		if not skip_join and tname not in self.tables:
 			self.append_table(tname)
 
 		column_name = cast_name(f.fieldname if "ifnull(" in f.fieldname else f"{tname}.`{f.fieldname}`")
@@ -807,6 +976,13 @@ from {tables}
 		meta = self.get_meta(f.doctype)
 		df = meta.get("fields", {"fieldname": f.fieldname})
 		df = df[0] if df else None
+
+		# _assign and _liked_by store a JSON array of user ids, so `=`/`!=` never match a
+		# single member; treat them as `like`/`not like` against the serialized value.
+		if f.fieldname in ("_assign", "_liked_by") and f.operator in ("=", "!="):
+			f.operator = "like" if f.operator == "=" else "not like"
+			if isinstance(f.value, str) and f.value:
+				f.value = f"%{f.value}%"
 
 		# primary key is never nullable, modified is usually indexed by default and always present
 		can_be_null = f.fieldname not in ("name", "modified", "creation")
@@ -868,10 +1044,23 @@ from {tables}
 			if f.operator.lower() == "in":
 				can_be_null &= not f.value or any(v is None or v == "" for v in f.value)
 
+			# Handle empty lists for IN/NOT IN operators before processing
+			# IN with empty list should return 0 results (always False: 1=0)
+			# NOT IN with empty list should return all results (always True: 1=1)
+			if isinstance(f.value, (list, tuple)) and len(f.value) == 0:
+				if f.operator.lower() == "in":
+					return "1=0"
+				else:  # not in
+					return "1=1"
+
 			if value is None:
 				values = f.value or ""
 				if isinstance(values, str):
-					values = values.split(",")
+					try:
+						parsed = json.loads(values)
+						values = parsed if isinstance(parsed, list) else [parsed]
+					except ValueError:
+						values = values.split(",")
 
 				fallback = "''"
 				value = [frappe.db.escape((cstr(v) or "").strip(), percent=False) for v in values]
@@ -1148,14 +1337,46 @@ from {tables}
 		condition_methods = hooks.get(self.doctype, []) + hooks.get("*", [])
 		for method in condition_methods:
 			if c := frappe.call(frappe.get_attr(method), self.user, doctype=self.doctype):
+				# Hooks may return a raw SQL string or a pypika term. This path builds a
+				# string WHERE clause, so render any term to namespaced SQL using the
+				# active dialect's identifier quote char.
+				if not isinstance(c, str):
+					c = self._render_permission_criterion(c)
 				conditions.append(c)
+
+		active_child_tables = []
+		if len(self.tables) > 1:  # only if query has multiple tables involved
+			main_table_name = f"tab{self.doctype}"
+			for table_name in self.tables:
+				clean_name = table_name.replace("`", "").replace('"', "")
+				if clean_name != main_table_name:
+					active_child_tables.append(clean_name)
 
 		if permission_script_name := get_server_script_map().get("permission_query", {}).get(self.doctype):
 			script = frappe.get_doc("Server Script", permission_script_name)
-			if condition := script.get_permission_query_conditions(self.user):
+			if condition := script.get_permission_query_conditions(
+				self.user, active_child_tables=active_child_tables
+			):
 				conditions.append(condition)
 
 		return " and ".join(conditions) if conditions else ""
+
+	def _render_permission_criterion(self, criterion) -> str:
+		"""Render a pypika permission criterion to a namespaced SQL string.
+
+		The legacy query path concatenates conditions into a single WHERE string, so any
+		embedded value must be inlined. We collect values via a parameter wrapper and inline
+		them with `frappe.db.escape` (the driver's escaping) rather than pypika's bare
+		quote-doubling, which is unsafe on MariaDB where backslash is an escape character.
+		"""
+		from frappe.query_builder.terms import NamedParameterWrapper
+
+		quote_char = "`" if frappe.db.db_type == "mariadb" else '"'
+		param_wrapper = NamedParameterWrapper()
+		sql = criterion.get_sql(with_namespace=True, quote_char=quote_char, param_wrapper=param_wrapper)
+		for key, value in param_wrapper.get_parameters().items():
+			sql = sql.replace(f"%({key})s", frappe.db.escape(value))
+		return sql
 
 	def set_order_by(self, args):
 		if self.order_by and self.order_by != "KEEP_DEFAULT_ORDERING":
@@ -1376,8 +1597,8 @@ def get_between_date_filter(value, df=None):
 
 	# if filter value is date but fieldtype is datetime:
 	if fieldtype == "Datetime":
-		from_date = _convert_type_for_between_filters(from_date, set_time=datetime.time())
-		to_date = _convert_type_for_between_filters(to_date, set_time=datetime.time(23, 59, 59, 999999))
+		from_date = convert_type_for_between_filters(from_date, set_time=datetime.time())
+		to_date = convert_type_for_between_filters(to_date, set_time=datetime.time(23, 59, 59, 999999))
 
 	# If filter value is already datetime, do nothing.
 	if fieldtype == "Datetime":
@@ -1386,23 +1607,6 @@ def get_between_date_filter(value, df=None):
 		cond = f"'{frappe.db.format_date(from_date)}' AND '{frappe.db.format_date(to_date)}'"
 
 	return cond
-
-
-def _convert_type_for_between_filters(
-	value: DateTimeLikeObject, set_time: datetime.time
-) -> datetime.datetime:
-	if isinstance(value, str):
-		if " " in value.strip():
-			value = get_datetime(value)
-		else:
-			value = getdate(value)
-
-	if isinstance(value, datetime.datetime):
-		return value
-	elif isinstance(value, datetime.date):
-		return datetime.datetime.combine(value, set_time)
-
-	return value
 
 
 def get_additional_filter_field(additional_filters_config, f, value):

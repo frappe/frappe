@@ -1,0 +1,62 @@
+:root {
+	--frappe-card-button-outline: var(--surface-blue-3);
+	--frappe-card-button-bg-color: var(--surface-blue-2);
+	--frappe-card-button-color: var(--ink-blue-6);
+}
+.frappe-card-title-container {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	color: var(--ink-gray-9);
+	.frappe-card-icon {
+		margin: 0;
+	}
+	.frappe-card-title {
+		@include get_textstyle("base", "medium");
+	}
+}
+.frappe-card-close-button {
+	align-items: normal;
+	.frappe-card-icon {
+		flex-shrink: 0;
+		margin-top: 2px;
+		margin-bottom: 2px;
+	}
+	.close-button {
+		align-self: flex-start;
+	}
+}
+.frappe-card {
+	width: 100%;
+	background-color: var(--surface-elevation-2);
+	box-shadow: var(--shadow-sm);
+	border-radius: 12px;
+	padding: 16px;
+}
+.frappe-card-description {
+	@include get_textstyle("sm", "regular");
+	white-space: wrap;
+}
+.frappe-card-header-slot {
+	align-items: flex-start;
+}
+.frappe-card-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: var(--frappe-card-button-bg-color);
+	color: var(--frappe-card-button-color);
+	gap: 4px;
+	svg {
+		stroke: var(--frappe-card-button-color);
+		margin: 0px;
+	}
+}
+
+.frappe-card-outline {
+	border: 1px solid;
+	box-shadow: none;
+	border-color: var(--outline-gray-2, #e2e2e2);
+	border-radius: var(--radius-lg);
+	padding: calc(var(--padding-md) - 3px);
+}

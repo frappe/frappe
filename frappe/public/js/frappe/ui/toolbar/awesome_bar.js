@@ -5,7 +5,7 @@ frappe.provide("frappe.tags");
 
 frappe.search.AwesomeBar = class AwesomeBar {
 	setup(element) {
-		$(".search-bar, .navbar-search-bar").removeClass("hidden");
+		$(".navbar-search-bar").removeClass("hidden");
 
 		this.options = [];
 		this.global_results = [];
@@ -13,22 +13,24 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		this.setup_search_modal(element);
 
 		frappe.search.utils.setup_recent();
+		this.setup_page_change_event();
 	}
 
 	setup_search_modal(element) {
-		let is_event_listeners_added = false;
 		let $search_element = $(element);
 
 		let search_modal = new frappe.get_modal("Search", "");
-
+		this.search_modal = search_modal;
 		search_modal.removeClass("fade");
 		search_modal.on("shown.bs.modal", () => {
 			const input = search_modal.find("#navbar-search").get(0);
 			setTimeout(() => input.focus(), 10);
 		});
+		search_modal.on("hide.bs.modal", () => {
+			this._hook_search_seq = (this._hook_search_seq || 0) + 1;
+		});
 
-		let search_modal_body = `<div class="align-baseline flex py-2 px-1 relative navbar-modal-wrapper">
-			<div class="modal-search-icon absolute pr-2 pl-2">${frappe.utils.icon("search")}</div>
+		let search_modal_body = `<div class="align-baseline flex p-2 relative navbar-modal-wrapper">
 			<input
 				id="navbar-search"
 				type="text"
@@ -41,18 +43,23 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		let search_modal_footer = `<div class="awesomebar-modal-footer flex justify-between w-100">
 			<div class="help-navigation">
 				<span class="help-item-navigate">
-					<span class="help-item">${frappe.utils.icon("arrow-up")}</span>
-					<span class="help-item">${frappe.utils.icon("arrow-down")}</span>
+					<span class="help-item">${frappe.utils.icon("arrow-up", "xs")}</span>
+					<span class="help-item">${frappe.utils.icon("arrow-down", "xs")}</span>
 					<span>${__("to navigate")}</span>
 				</span>
 				<span class="help-item-navigate">
-					<span class="help-item">${frappe.utils.icon("corner-down-left")}</span>
+					<span class="help-item">${frappe.utils.icon("corner-down-left", "xs")}</span>
 					<span>${__("to select")}</span>
 				</span>
-				<span class="help-item help-item-esc">${__("esc")}</span>
-				<span>${__("to close")}</span>
+				<span class="help-item-navigate">
+					<span class="help-item help-item-escape">${frappe.utils.is_mac() ? "⌘K" : "Ctrl+K"}</span>
+					<span>${__("to close")}</span>
+				</span>
+				<span class="help-item-navigate">
+					<span class="help-item help-item-escape">${frappe.utils.is_mac() ? "⌘G" : "Ctrl+G"}</span>
+					<span>${__("to open Global Search")}</span>
+				</span>
 			</div>
-			<div class="pointer">${frappe.utils.icon("circle-question-mark")}</div>
 		</div>`;
 
 		search_modal.find(".modal-body").css("padding", "0").html(search_modal_body);
@@ -62,21 +69,38 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			.removeClass("hide")
 			.addClass("cool-awesomebar-modal-footer")
 			.html(search_modal_footer);
-		search_modal.find(".pointer").on("click", () => {
-			this.show_help();
-		});
 
-		$search_element.on("click", () => {
+		$(document).on("click", element, () => {
+			if (this.is_open()) {
+				this.close();
+				return;
+			}
 			search_modal.modal("show");
-
-			if (is_event_listeners_added) return;
-			is_event_listeners_added = true;
-
 			this.setup_event_listeners(search_modal);
 		});
 	}
 
+	open(search_modal) {
+		const modal = search_modal || this.search_modal;
+		if (!modal) return;
+		modal.modal("show");
+		this.setup_event_listeners(modal);
+	}
+
+	close() {
+		if (!this.is_open()) return;
+		this.search_modal.modal("hide");
+	}
+
+	is_open() {
+		return Boolean(this.search_modal?.hasClass("show"));
+	}
+
 	setup_event_listeners(search_modal) {
+		// Listeners and the Awesomplete dropdown only need to be set up once.
+		// Re-running this on every open creates duplicate dropdowns and shows results twice.
+		if (this.awesomplete) return;
+
 		var me = this;
 		let $input = search_modal.find("#navbar-search");
 		let input = $input.get(0);
@@ -86,6 +110,21 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			maxItems: 99,
 			autoFirst: true,
 			list: [],
+			container: function (input) {
+				let container = document.createElement("div");
+				container.className = "awesomplete";
+				let input_row = document.createElement("div");
+				input_row.className = "awesomebar-input-row";
+				let icon = document.createElement("span");
+				icon.className = "awesomebar-search-icon";
+				icon.setAttribute("aria-hidden", "true");
+				icon.innerHTML = frappe.utils.icon("search", "sm");
+				input.parentNode.insertBefore(container, input);
+				input_row.appendChild(icon);
+				input_row.appendChild(input);
+				container.appendChild(input_row);
+				return container;
+			},
 			filter: function (text, term) {
 				return true;
 			},
@@ -98,7 +137,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			item: function (item, term) {
 				const d = this.get_item(item.value);
 				let target = "#";
-				if (d.route) {
+				if (is_external_url(d.route) || is_in_app_path(d.route)) {
+					target = first_route(d.route);
+				} else if (d.route) {
 					target = frappe.router.make_url(
 						frappe.router.convert_from_standard_route(
 							frappe.router.get_route_from_arguments(
@@ -106,13 +147,6 @@ frappe.search.AwesomeBar = class AwesomeBar {
 							)
 						)
 					);
-				}
-				if (d.type == "Desktop Icon") {
-					target = frappe.utils.get_route_for_icon(d.icon_data);
-					d.route = target;
-					d.route_options = {
-						sidebar: d.icon_data.label,
-					};
 				}
 				let html = `<span>${__(d.label || d.value)}</span>`;
 
@@ -143,6 +177,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				var txt = value.trim().replace(/\s\s+/g, " ");
 				var last_space = txt.lastIndexOf(" ");
 				me.global_results = [];
+				me._hook_search_seq = (me._hook_search_seq || 0) + 1;
 
 				me.options = [];
 
@@ -153,6 +188,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					me.add_defaults(txt);
 					me.options = me.options.concat(me.build_options(txt));
 					me.options = me.options.concat(me.global_results);
+					if (frappe.boot.has_awesomebar_search) {
+						me.fetch_hook_results(txt, me._hook_search_seq);
+					}
 				} else {
 					me.options = me.options.concat(
 						me.deduplicate(frappe.search.utils.get_recent_pages(txt || ""))
@@ -160,7 +198,16 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					me.options = me.options.concat(frappe.search.utils.get_frequent_links());
 				}
 
-				awesomplete.list = me.deduplicate(me.options);
+				// hide footer and remove spacing when there are no results
+				$(this.awesomplete.ul).toggleClass("p-0 m-0", cint(me.options?.length) == 0);
+				search_modal
+					.find(".cool-awesomebar-modal-footer")
+					.toggleClass("hide", cint(me.options?.length) == 0);
+
+				let options = me.deduplicate(me.options);
+				awesomplete.options_with_desc = me.create_options_with_descriptions(options);
+				Awesomplete.prototype._itemCursor = 0;
+				awesomplete.list = options;
 			}, 50)
 		);
 
@@ -191,14 +238,14 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 			if (item.onclick) {
 				item.onclick(item.match);
+			} else if (is_external_url(item.route)) {
+				window.open(first_route(item.route), "_blank");
+			} else if (is_in_app_path(item.route)) {
+				navigate_in_app_path(first_route(item.route), o.originalEvent);
 			} else {
 				let event = o.originalEvent;
 				if (event.ctrlKey || event.metaKey) {
 					frappe.open_in_new_tab = true;
-				}
-				if (item.route && item.route[0].startsWith("https://")) {
-					window.open(item.route[0], "_blank");
-					return;
 				}
 				frappe.set_route(item.route);
 			}
@@ -217,47 +264,17 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			}
 		});
 	}
-
-	show_help() {
-		const txt =
-			'<table class="table table-bordered">\
-			<tr><td style="width: 50%">' +
-			__("Create a new record") +
-			"</td><td>" +
-			__("new type of document") +
-			"</td></tr>\
-			<tr><td>" +
-			__("List a document type") +
-			"</td><td>" +
-			__("document type..., e.g. customer") +
-			"</td></tr>\
-			<tr><td>" +
-			__("Search in a document type") +
-			"</td><td>" +
-			__("text in document type") +
-			"</td></tr>\
-			<tr><td>" +
-			__("Tags") +
-			"</td><td>" +
-			__("tag name..., e.g. #tag") +
-			"</td></tr>\
-			<tr><td>" +
-			__("Open a module or tool") +
-			"</td><td>" +
-			__("module name...") +
-			"</td></tr>\
-			<tr><td>" +
-			__("Open in new tab") +
-			"</td><td>" +
-			(frappe.utils.is_mac() ? "⌘ + Enter" : "Ctrl + Enter") +
-			"</td></tr>\
-			<tr><td>" +
-			__("Calculate") +
-			"</td><td>" +
-			__("e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...") +
-			"</td></tr>\
-		</table>";
-		frappe.msgprint(txt, __("Search Help"));
+	create_options_with_descriptions(options) {
+		let options_with_desc = {};
+		options.forEach((opt) => {
+			if (opt.description) {
+				if (!options_with_desc[opt.value]) {
+					options_with_desc[opt.value] = [];
+				}
+				options_with_desc[opt.value].push(opt);
+			}
+		});
+		return options_with_desc;
 	}
 
 	set_specifics(txt, end_txt) {
@@ -283,13 +300,13 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			.concat(
 				frappe.search.utils.get_search_in_list(txt),
 				frappe.search.utils.get_doctypes(txt),
+				frappe.search.utils.get_doctype_layouts(txt),
 				frappe.search.utils.get_reports(txt),
 				frappe.search.utils.get_pages(txt),
-				frappe.search.utils.get_desktop_icons(txt),
+				frappe.search.utils.get_workspaces(txt),
 				frappe.search.utils.get_dashboards(txt),
 				frappe.search.utils.get_recent_pages(txt || ""),
-				frappe.search.utils.get_executables(txt),
-				frappe.search.utils.get_marketplace_apps(txt)
+				frappe.search.utils.get_executables(txt)
 			);
 		if (txt.charAt(0) === "#") {
 			options = frappe.tags.utils.get_tags(txt);
@@ -315,7 +332,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 				var str_route =
 					typeof option.route === "string" ? option.route : option.route.join("/");
-				if (routes.indexOf(str_route) === -1) {
+				if (option.description || routes.indexOf(str_route) === -1) {
 					out.push(option);
 					routes.push(str_route);
 				} else {
@@ -334,6 +351,26 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 	set_global_results(global_results, txt) {
 		this.global_results = this.global_results.concat(global_results);
+	}
+
+	fetch_hook_results(txt, seq) {
+		frappe.call({
+			method: "frappe.desk.search.awesomebar_search",
+			args: { txt },
+			callback: (r) => {
+				if (seq !== this._hook_search_seq || !r.message?.length) return;
+				this.options = this.deduplicate(this.options.concat(r.message));
+				this.options.sort((a, b) => b.index - a.index);
+				$(this.awesomplete.ul).toggleClass("p-0 m-0", cint(this.options?.length) == 0);
+				this.search_modal
+					.find(".cool-awesomebar-modal-footer")
+					.toggleClass("hide", cint(this.options?.length) == 0);
+				this.awesomplete.options_with_desc = this.create_options_with_descriptions(
+					this.options
+				);
+				this.awesomplete.list = this.options;
+			},
+		});
 	}
 
 	make_global_search(txt) {
@@ -413,44 +450,35 @@ frappe.search.AwesomeBar = class AwesomeBar {
 	}
 
 	make_calculator(txt) {
-		function getDecimalPlaces(num) {
-			if (Math.floor(num) === num) return 0;
-			return num.toString().split(".")[1].length || 0;
-		}
+		const decimalStr = get_number_format_info().decimal_str;
+		const first = txt.substr(0, 1);
 
-		var first = txt.substr(0, 1);
 		if (first == parseInt(first) || first === "(" || first === "=") {
 			if (first === "=") {
 				txt = txt.substr(1);
 			}
 			try {
-				var val = eval(txt);
-
 				// Split the input to find the numbers and their decimal places
-				var numbers = txt.match(/[+-]?([0-9]*[.])?[0-9]+/g);
-				var maxDecimalPlaces = 0;
+				const numbers = txt.match(/[+-]?([0-9]*[.,])?[0-9]+/g);
+
+				let maxDecimalPlaces = 0;
 				if (numbers) {
 					maxDecimalPlaces = Math.max(
-						...numbers.map((num) => getDecimalPlaces(parseFloat(num)))
+						...numbers.map((num) => num.split(decimalStr)[1]?.length || 0)
 					);
 				}
 
-				// Use a default precision of 2 decimal places if no decimal places are found
-				if (maxDecimalPlaces === 0) {
-					maxDecimalPlaces = 2;
-				}
-
-				// Adjust the result to the maximum number of decimal places found or default precision
-				var rounded_val = parseFloat(val.toFixed(maxDecimalPlaces));
-
-				var formatted_value = __("{0} = {1}", [
+				// Find the result to the appropriate number of decimal places
+				const val = frappe.utils.eval_expression(txt);
+				const result = format_number(val, null, maxDecimalPlaces);
+				const formatted_value = __("{0} = {1}", [
 					frappe.utils.xss_sanitise(txt),
-					(rounded_val + "").bold(),
+					result.bold(),
 				]);
 				this.options.push({
 					label: formatted_value,
-					value: __("{0} = {1}", [frappe.utils.xss_sanitise(txt), rounded_val]),
-					match: rounded_val,
+					value: __("{0} = {1}", [frappe.utils.xss_sanitise(txt), result]),
+					match: result,
 					index: 80,
 					default: "Calculator",
 					onclick: function () {
@@ -474,4 +502,65 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			});
 		}
 	}
+
+	setup_correct_button(wrapper) {
+		let small_button = $(wrapper).find("#small-search-button");
+		let full_button = $(wrapper).find("#full-search-button");
+		if (frappe.is_mobile()) {
+			small_button.removeClass("hidden");
+			full_button.addClass("hidden");
+			return;
+		}
+		small_button.addClass("hidden");
+		full_button.removeClass("hidden");
+	}
+	setup_page_change_event() {
+		const me = this;
+		$(document).on("page-change", function (event, data) {
+			me.setup_correct_button(data);
+		});
+
+		$(document).on("form-refresh", function (event, data) {
+			me.setup_correct_button(data.wrapper);
+		});
+	}
 };
+
+function first_route(route) {
+	return Array.isArray(route) ? route[0] : route;
+}
+
+function is_external_url(route) {
+	const first = first_route(route);
+	return (
+		typeof first === "string" && (first.startsWith("https://") || first.startsWith("http://"))
+	);
+}
+
+function is_in_app_path(route) {
+	const first = first_route(route);
+	return typeof first === "string" && first.startsWith("/") && !first.startsWith("//");
+}
+
+function is_desk_path(path) {
+	const pathname = path.split(/[?#]/)[0];
+	return (
+		pathname === "/desk" ||
+		pathname.startsWith("/desk/") ||
+		pathname === "/app" ||
+		pathname.startsWith("/app/")
+	);
+}
+
+function navigate_in_app_path(path, event) {
+	if (is_desk_path(path)) {
+		if (event.ctrlKey || event.metaKey) {
+			frappe.open_in_new_tab = true;
+		}
+		frappe.set_route(path);
+	} else if (event.ctrlKey || event.metaKey) {
+		window.open(path, "_blank");
+	} else {
+		window.location.href = path;
+	}
+}

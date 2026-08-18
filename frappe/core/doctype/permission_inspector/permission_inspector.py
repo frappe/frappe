@@ -7,6 +7,8 @@ from frappe.permissions import _pop_debug_log, has_permission
 
 
 class PermissionInspector(Document):
+	_DOCTYPE_NAME = "Permission Inspector"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

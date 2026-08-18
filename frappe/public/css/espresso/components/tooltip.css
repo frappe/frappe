@@ -1,0 +1,171 @@
+/* Espresso Tooltip — the small dark bubble that names a control on hover.
+ *
+ * Framework-neutral: the class + data-attribute contract below is everything.
+ * The attribute names (data-state, data-side, data-align) are the ones
+ * radix/reka emit, so React and Vue apps get this styling from their tooltip
+ * primitives as-is; classic frappe gets them from frappe.ui.tooltip().
+ *
+ *   <div class="es-tooltip" role="tooltip" data-state="open"
+ *        data-side="top" data-align="center">
+ *     Label text
+ *     <span class="es-tooltip__arrow"></span>
+ *   </div>
+ *
+ * Panel attributes:
+ *   data-state="open|closed"    drives enter/exit animation
+ *   data-side / data-align      which side of the trigger it landed on
+ *
+ * The owner sets top/left inline (fixed viewport coordinates, panel appended
+ * to <body> — same rules as .es-menu, see position.js). The arrow's position
+ * along the edge comes from --arrow-offset, which the owner sets so the
+ * arrow keeps pointing at the trigger even when the bubble was nudged to
+ * stay on screen.
+ *
+ * pointer-events: none on purpose — a tooltip must never catch the pointer,
+ * or it would flicker (bubble appears under the cursor, "hover leaves" the
+ * trigger, bubble hides, hover returns, ...). It's a label, not a surface. */
+
+.es-tooltip {
+    /* the owner (frappe.ui.tooltip / a portal) sets top/left inline */
+    position: fixed;
+    /* don't depend on the host page having a border-box reset */
+    box-sizing: border-box;
+    /* above menus (1060) — a row's tooltip must not hide under its own menu */
+    z-index: 1070;
+    max-width: calc(var(--spacing) * 60);
+    padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
+    background: var(--surface-gray-10);
+    color: var(--ink-base);
+    border-radius: var(--radius);
+    box-shadow: var(--elevation-xl);
+    font-size: var(--text-xs);
+    line-height: calc(var(--spacing) * 4);
+    text-align: center;
+    /* even out the lines when the text wraps */
+    text-wrap: balance;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* ---- keyboard hint: one <kbd> per key after the label ----
+   Bootstrap and desk/global.scss both style bare kbd (dark chip, padding,
+   box-shadow) and load after this file — the two-class selector
+   out-specifies them, same trick as the menu shortcuts. */
+.es-tooltip .es-tooltip__shortcut {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    margin-inline-start: calc(var(--spacing) * 1.5);
+    vertical-align: bottom;
+}
+
+.es-tooltip kbd {
+    padding: 0;
+    height: auto;
+    background: transparent;
+    border-radius: 0;
+    font-family: inherit;
+    font-size: var(--text-xs);
+    line-height: calc(var(--spacing) * 4);
+    letter-spacing: normal;
+    color: var(--ink-gray-4);
+    box-shadow: none;
+}
+
+/* ---- arrow: an 8x4 triangle on the edge facing the trigger ----
+   Made from borders: a 4px transparent frame where only the side facing
+   away from the bubble is filled, which reads as a triangle. --arrow-offset
+   is the distance from the panel's left (top/bottom sides) or top (left/
+   right sides) edge to the arrow's center. */
+.es-tooltip__arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border: 4px solid transparent;
+}
+
+.es-tooltip[data-side="top"] .es-tooltip__arrow {
+    top: 100%;
+    left: var(--arrow-offset, 50%);
+    margin-left: -4px;
+    border-top-color: var(--surface-gray-10);
+    border-bottom-width: 0;
+}
+
+.es-tooltip[data-side="bottom"] .es-tooltip__arrow {
+    bottom: 100%;
+    left: var(--arrow-offset, 50%);
+    margin-left: -4px;
+    border-bottom-color: var(--surface-gray-10);
+    border-top-width: 0;
+}
+
+.es-tooltip[data-side="left"] .es-tooltip__arrow {
+    left: 100%;
+    top: var(--arrow-offset, 50%);
+    margin-top: -4px;
+    border-left-color: var(--surface-gray-10);
+    border-right-width: 0;
+}
+
+.es-tooltip[data-side="right"] .es-tooltip__arrow {
+    right: 100%;
+    top: var(--arrow-offset, 50%);
+    margin-top: -4px;
+    border-right-color: var(--surface-gray-10);
+    border-left-width: 0;
+}
+
+/* ---- motion (enter = fade-in-0 zoom-in-95 +
+   slide-in-from-<trigger side>-2, i.e. the bubble starts near the trigger
+   at 95% scale and settles out; exit = fade-out-0 zoom-out-95, no slide).
+   The zoom grows out of the arrow, not the bubble's center — the arrow
+   marks where the trigger is, so that's where the bubble should come
+   from. --arrow-offset (set by the owner) doubles as the origin. ---- */
+.es-tooltip[data-state="open"] {
+    animation: es-tooltip-in 150ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.es-tooltip[data-state="closed"] {
+    animation: es-tooltip-out 100ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.es-tooltip[data-side="top"] {
+    --slide-from: translateY(8px);
+    transform-origin: var(--arrow-offset, 50%) 100%;
+}
+
+.es-tooltip[data-side="bottom"] {
+    --slide-from: translateY(-8px);
+    transform-origin: var(--arrow-offset, 50%) 0%;
+}
+
+.es-tooltip[data-side="left"] {
+    --slide-from: translateX(8px);
+    transform-origin: 100% var(--arrow-offset, 50%);
+}
+
+.es-tooltip[data-side="right"] {
+    --slide-from: translateX(-8px);
+    transform-origin: 0% var(--arrow-offset, 50%);
+}
+
+@keyframes es-tooltip-in {
+    from {
+        opacity: 0;
+        transform: var(--slide-from, none) scale(0.95);
+    }
+}
+
+@keyframes es-tooltip-out {
+    to {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .es-tooltip {
+        animation-duration: 0ms !important;
+    }
+}

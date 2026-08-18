@@ -62,7 +62,7 @@ watch(
 	position: relative;
 	background-color: var(--fg-color);
 	font-weight: 500;
-	border-radius: var(--border-radius-full);
+	border-radius: var(--radius-full);
 	padding: 15px 25px;
 	color: var(--gray-600);
 	border: 1px solid var(--gray-600);

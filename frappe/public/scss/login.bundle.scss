@@ -1,12 +1,18 @@
 @import "./desk/variables";
 
 body {
-	@include media-breakpoint-up(sm) {
-		background-color: var(--bg-light-gray);
-	}
+	background-color: var(--bg-color);
+
 	.page-content-wrapper {
 		min-height: calc(100vh - 220px);
+		padding-top: 60px;
+
+		@include media-breakpoint-down(xs) {
+			padding-top: 0;
+			min-height: 100svh;
+		}
 	}
+
 	.web-footer {
 		display: none;
 	}
@@ -23,200 +29,153 @@ body {
 .for-forgot,
 .for-login-with-email-link,
 .for-signup,
-.for-email-login {
+.for-email-login,
+.for-reset-password {
 	.page-card {
-		padding: 45px 10px;
-		background-color: #fff;
+		padding: 24px;
+		background-color: var(--bg-color);
 		max-width: 400px;
+		width: 100%;
 		margin: 0 auto;
-		border-radius: var(--border-radius-md);
-		border: 1px solid var(--border-color);
+		border-radius: var(--radius-lg);
 
-		form {
-			max-width: 320px;
-			margin: 0 auto;
+		@include media-breakpoint-down(xs) {
+			max-width: 100%;
+			min-height: 100svh;
+			border-radius: 0;
+			border: none;
+			padding: 60px 32px 32px;
+		}
 
-			.form-group {
-				margin-bottom: var(--margin-sm);
+		.social-logins {
+			.btn-salesforce i {
+				color: var(--blue-400);
+			}
+
+			.social-login-buttons {
+				margin-top: var(--margin-md);
+
+				.login-button-wrapper {
+					@include media-breakpoint-up(md) {
+						min-width: 33.33%;
+					}
+
+					min-width: 50%;
+					padding: 0 4px;
+					margin-bottom: var(--margin-md);
+
+					&:last-child {
+						margin-bottom: 0;
+					}
+				}
 			}
 		}
 
-		.page-card-actions {
-			margin-top: var(--margin-lg);
-		}
-
 		.page-card-body {
-			::placeholder, /* Chrome, Firefox, Opera, Safari 10.1+ */
+			::placeholder,
+			/* Chrome, Firefox, Opera, Safari 10.1+ */
 			::-ms-input-placeholder {
 				/* Microsoft Edge */
-				color: var(--text-light);
-				opacity: 1; /* Firefox */
+				color: var(--ink-gray-4);
+				opacity: 1;
+				/* Firefox */
 			}
 
 			input[type="text"],
 			input[type="email"],
 			input[type="password"] {
-				border: none;
+				border: 1px solid var(--outline-gray-2);
 				color: var(--text-color);
 				@include get_textstyle("base", "regular");
-				background-color: var(--control-bg);
-				margin-bottom: 1rem;
+				background-color: var(--surface-base);
+				height: 28px;
+				padding: 6px 8px;
+				border-radius: var(--radius);
 			}
 
 			&.invalid {
 				input[type="text"],
 				input[type="email"],
 				input[type="password"] {
-					border: 1px solid var(--red-500);
+					border: 1px solid var(--outline-red-3);
 				}
 			}
 
-			.form-label {
-				@include get_textstyle("base", "regular");
+			.field-error {
+				display: none;
 			}
 
-			.forgot-password-message {
-				text-align: right;
-				line-height: 1;
-
-				> * {
-					color: var(--text-light);
-					@include get_textstyle("sm", "regular");
+			.form-group.invalid {
+				input[type="text"],
+				input[type="email"],
+				input[type="password"] {
+					border: 1px solid var(--outline-red-3);
 				}
-			}
 
-			.field-icon {
-				left: 9px;
-				top: 50%;
-				transform: translateY(-50%);
-				position: absolute;
-				z-index: 2;
-				fill: var(--text-light);
+				.field-error {
+					display: block;
+				}
 			}
 
 			.email-field,
 			.password-field {
 				position: relative;
+				width: 100%;
+			}
 
+			.password-field {
 				input {
-					padding-left: 35px;
+					padding-right: 38px;
+
+					&::-ms-reveal {
+						display: none; /* Hide Edge's native password reveal icon */
+					}
 				}
 
 				.toggle-password {
 					right: 9px;
-					top: 5px;
+					top: 50%;
+					transform: translateY(-50%);
 					position: absolute;
 					z-index: 2;
 					cursor: pointer;
-					font-size: 12px;
+					stroke: var(--ink-gray-5);
 				}
 			}
-
-			.btn-login-option {
-				@include get_textstyle("base", "medium");
-				color: var(--text-gray-700);
-				background: var(--gray-100);
-				box-shadow: none;
-				border: none;
-				display: flex;
-				place-content: center;
-
-				&.btn-salesforce {
-					i {
-						color: var(--blue-400);
-					}
-				}
-
-				img {
-					margin-right: var(--padding-xs);
-				}
-
-				&:hover {
-					border: none;
-					background: var(--gray-300);
-				}
-			}
-
-			.social-logins {
-				margin-top: var(--margin-md);
-				@include get_textstyle("base", "regular");
-
-				.social-login-buttons {
-					margin-top: var(--margin-md);
-
-					.login-button-wrapper {
-						@include media-breakpoint-up(md) {
-							min-width: 33.33%;
-						}
-						min-width: 50%;
-						padding: 0 4px;
-						margin-bottom: var(--margin-md);
-
-						&:last-child {
-							margin-bottom: 0;
-						}
-					}
-				}
-			}
-
-			.login-divider {
-				margin: var(--margin-md) 0;
-			}
-		}
-	}
-
-	.sign-up-message {
-		margin-top: 1rem;
-		margin-bottom: 0;
-		color: var(--text-light);
-		@include get_textstyle("base", "regular");
-		a {
-			color: var(--primary);
 		}
 	}
 
 	.invalid-login {
-		-webkit-animation: wiggle 0.5s linear;
+		animation: wiggle 0.4s ease-in-out;
 	}
 
-	@-webkit-keyframes wiggle {
-		8%,
-		41% {
-			-webkit-transform: translateX(-10px);
-		}
-		25%,
-		58% {
-			-webkit-transform: translateX(10px);
-		}
-		75% {
-			-webkit-transform: translateX(-5px);
-		}
-		92% {
-			-webkit-transform: translateX(5px);
-		}
+	@keyframes wiggle {
 		0%,
 		100% {
-			-webkit-transform: translateX(0);
+			transform: translateX(0);
+		}
+
+		20% {
+			transform: translateX(-4px);
+		}
+
+		40% {
+			transform: translateX(4px);
+		}
+
+		60% {
+			transform: translateX(-3px);
+		}
+
+		80% {
+			transform: translateX(3px);
 		}
 	}
 }
 
 .page-card-head {
-	padding: max(5vh, 30px) 0 14px 0px;
-	margin: 0 auto;
-	text-align: center;
-	font-size: var(--text-xl);
-	font-weight: 600;
-
-	img {
-		max-height: 42px;
-	}
-
-	h4 {
-		margin-top: 1rem;
-		font-size: var(--text-xl);
-		font-weight: var(--weight-semibold);
-		letter-spacing: 0.01em;
-		color: var(--text-color);
+	img.app-logo {
+		max-height: 32px;
+		width: auto;
 	}
 }

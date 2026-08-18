@@ -1,6 +1,8 @@
-/*rtl:begin:ignore*/
+// The "datepicker" param keeps this comment textually unique: esbuild's
+// minifier dedupes identical legal comments, which would break begin/end pairing.
+/*!rtl:begin:ignore:datepicker*/
 @import "~air-datepicker/dist/css/datepicker.min";
-/*rtl:end:ignore*/
+/*!rtl:end:ignore:datepicker*/
 
 .datepicker {
 	direction: ltr;
@@ -8,7 +10,7 @@
 	z-index: 9999 !important;
 	background: var(--fg-color);
 	color: var(--text-color);
-	border-radius: var(--border-radius-lg);
+	border-radius: var(--radius-lg);
 	border: 1px solid var(--border-color);
 	box-shadow: var(--shadow-2xl);
 	position: fixed;
@@ -20,6 +22,7 @@
 	&--nav {
 		border-bottom: 1px solid var(--border-color);
 	}
+
 	&--nav-title:hover,
 	&--nav-action:hover {
 		background-color: var(--fg-hover-color);
@@ -29,6 +32,7 @@
 	&--time-current-minutes,
 	&--time-current-seconds {
 		font-family: inherit;
+
 		&:after {
 			color: var(--text-color);
 			background-color: var(--fg-hover-color);
@@ -42,6 +46,7 @@
 	&--cell {
 		&.-current- {
 			color: var(--text-color);
+
 			&:not(.-selected-):not(.-in-range-) {
 				font-weight: var(--weight-bold);
 			}
@@ -61,7 +66,7 @@
 		&.-current-.-selected- {
 			color: var(--date-active-text);
 			background: var(--date-active-bg);
-			border-radius: var(--border-radius-tiny);
+			border-radius: var(--radius-sm);
 		}
 
 		&.-in-range- {
@@ -109,6 +114,7 @@
 
 	&--button {
 		color: var(--text-color);
+
 		&:hover {
 			color: var(--text-color);
 			background-color: var(--fg-hover-color);

@@ -5,11 +5,12 @@ import datetime
 from math import ceil
 from random import choice
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 import frappe
 from frappe.core.utils import find
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-from frappe.database import savepoint
+from frappe.database import get_db, savepoint
 from frappe.database.database import get_query_execution_timeout
 from frappe.database.utils import FallBackDateTimeStr
 from frappe.query_builder import Field
@@ -35,6 +36,15 @@ class TestDB(IntegrationTestCase):
 
 	def test_get_database_size(self):
 		self.assertIsInstance(frappe.db.get_database_size(), (float, int))
+
+	def test_get_tables_cached(self):
+		frappe.client_cache.delete_keys("db_tables*")
+		tables = frappe.db.get_tables(cached=True)
+		self.assertIn("tabDocType", tables)
+		with self.assertQueryCount(0):
+			self.assertEqual(frappe.db.get_tables(cached=True), tables)
+		with self.assertQueryCount(1):
+			frappe.db.get_tables(cached=False)
 
 	def test_db_statement_execution_timeout(self):
 		frappe.db.set_execution_timeout(2)
@@ -137,6 +147,14 @@ class TestDB(IntegrationTestCase):
 			),
 			frappe.db.get_value("DocType", "DocField", order_by="creation desc, modified asc, name", run=0),
 		)
+
+		# Test with list of fields and cache=True
+		result = frappe.db.get_value("User", "Administrator", ["name", "email"], cache=True)
+		self.assertEqual(result, ("Administrator", "admin@example.com"))
+		# Verify cache hit - second call should not execute any queries
+		with self.assertQueryCount(0):
+			cached_result = frappe.db.get_value("User", "Administrator", ["name", "email"], cache=True)
+		self.assertEqual(result, cached_result)
 
 	def test_escape(self):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode())
@@ -242,10 +260,14 @@ class TestDB(IntegrationTestCase):
 
 		frappe.flags.touched_tables = set()
 		cf = create_custom_field("ToDo", {"label": "ToDo Custom Field"})
+		# deleting the Custom Field leaves its column on the table, so without dropping it the next
+		# run adds no column, logs no ALTER TABLE, and never sees tabToDo as touched
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.db.sql_ddl, "ALTER TABLE `tabToDo` DROP COLUMN IF EXISTS `todo_custom_field`")
+		if cf:
+			self.addCleanup(cf.delete)
 		self.assertIn("tabToDo", frappe.flags.touched_tables)
 		self.assertIn("tabCustom Field", frappe.flags.touched_tables)
-		if cf:
-			cf.delete()
 		frappe.db.commit()
 		frappe.flags.in_migrate = False
 		frappe.flags.touched_tables.clear()
@@ -415,6 +437,11 @@ class TestDB(IntegrationTestCase):
 		for doc in created_docs:
 			frappe.delete_doc(test_doctype, doc)
 		clear_custom_fields(test_doctype)
+
+	@unimplemented_for(db_type_is.POSTGRES)
+	def test_multi_statements(self):
+		with self.assertRaises(frappe.db.ProgrammingError):
+			frappe.db.sql("select 1; select 1")
 
 	def test_savepoints(self):
 		frappe.db.rollback()
@@ -694,6 +721,44 @@ class TestDB(IntegrationTestCase):
 		)
 
 	@run_only_if(db_type_is.POSTGRES)
+	def test_modify_query_rewrites_regexp_operator_only(self):
+		from frappe.database.postgres.database import modify_query
+
+		self.assertEqual("select 'a' ~* 'b'", modify_query("select 'a' REGEXP 'b'"))
+		self.assertEqual("select 'a' !~* 'b'", modify_query("select 'a' NOT REGEXP 'b'"))
+
+		# the operator only exists outside quoted tokens and comments
+		self.assertEqual("select 'A REGEXP B'", modify_query("select 'A REGEXP B'"))
+		self.assertEqual("select 1 -- a REGEXP here", modify_query("select 1 -- a REGEXP here"))
+		self.assertEqual("select 1 /* a REGEXP here */", modify_query("select 1 /* a REGEXP here */"))
+		self.assertEqual("select $$a REGEXP b$$", modify_query("select $$a REGEXP b$$"))
+		self.assertEqual("select $t$a REGEXP b$t$", modify_query("select $t$a REGEXP b$t$"))
+		# backticks become double quotes before this runs, so a doctype whose name contains the
+		# word must keep its table name intact
+		self.assertEqual(
+			'select 1 from "tabMy Regexp Rules"', modify_query("select 1 from `tabMy Regexp Rules`")
+		)
+		self.assertEqual('select "col REGEXP name"', modify_query('select "col REGEXP name"'))
+		self.assertEqual(r"select E'a\' REGEXP b'", modify_query(r"select E'a\' REGEXP b'"))
+		# an escape string must not desynchronise the scan: a real operator after one still converts
+		self.assertEqual(
+			r"select E'x\' REGEXP y' , 'z' ~* 'w'",
+			modify_query(r"select E'x\' REGEXP y' , 'z' REGEXP 'w'"),
+		)
+		# ... while a standard literal ends at its closing quote even with a trailing backslash
+		self.assertEqual(r"select 'a\' as c, 'b' ~* 'c'", modify_query(r"select 'a\' as c, 'b' REGEXP 'c'"))
+
+		# and the rewritten operators are valid SQL
+		self.assertEqual(frappe.db.sql("select 'abc' REGEXP 'B'")[0][0], True)
+		self.assertEqual(frappe.db.sql("select 'abc' NOT REGEXP 'z'")[0][0], True)
+		self.assertEqual(frappe.db.sql("select 'A REGEXP B'")[0][0], "A REGEXP B")
+
+	def test_regex_filter_operator(self):
+		# pypika's Term.regex renders " REGEX ", which is not an operator on either backend
+		matched = frappe.get_all("User", filters={"name": ["regex", "^Administrator$"]}, pluck="name")
+		self.assertEqual(matched, ["Administrator"])
+
+	@run_only_if(db_type_is.POSTGRES)
 	def test_modify_values(self):
 		from frappe.database.postgres.database import modify_values
 
@@ -739,6 +804,54 @@ class TestDB(IntegrationTestCase):
 
 	def test_db_explain(self):
 		frappe.db.sql("select 1", debug=1, explain=1)
+
+	@unimplemented_for(db_type_is.SQLITE)
+	def test_session_time_zone_follows_system_timezone(self):
+		with patch("frappe.database.database.get_system_timezone", return_value="America/New_York"):
+			db = get_db(
+				socket=frappe.db.socket,
+				host=frappe.db.host,
+				user=frappe.db.user,
+				password=frappe.db.password,
+				port=frappe.db.port,
+				cur_db_name=frappe.db.cur_db_name,
+			)
+			try:
+				db_now = db.sql("select LOCALTIMESTAMP")[0][0]
+			finally:
+				db.close()
+
+		expected = datetime.datetime.now(ZoneInfo("America/New_York")).replace(tzinfo=None)
+		self.assertLess(abs((expected - db_now).total_seconds()), 10)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_session_time_zone_falls_back_to_utc_offset(self):
+		from frappe.database.mariadb.database import MariaDBDatabase
+		from frappe.database.mariadb.mysqlclient import MariaDBDatabase as MySQLClientDatabase
+
+		for db_class in (MariaDBDatabase, MySQLClientDatabase):
+			with patch.object(db_class, "sql", side_effect=[db_class.OperationalError, None]) as mocked_sql:
+				db_class(cur_db_name=frappe.db.cur_db_name).set_session_time_zone("Asia/Kolkata")
+
+			mocked_sql.assert_called_with("set session time_zone = %s", "+05:30")
+
+	@unimplemented_for(db_type_is.SQLITE)
+	def test_connect_survives_session_time_zone_failure(self):
+		with patch(
+			"frappe.database.database.get_system_timezone", side_effect=Exception("timezone unavailable")
+		):
+			db = get_db(
+				socket=frappe.db.socket,
+				host=frappe.db.host,
+				user=frappe.db.user,
+				password=frappe.db.password,
+				port=frappe.db.port,
+				cur_db_name=frappe.db.cur_db_name,
+			)
+			try:
+				self.assertEqual(db.sql("select 1")[0][0], 1)
+			finally:
+				db.close()
 
 
 @run_only_if(db_type_is.MARIADB)
@@ -954,6 +1067,10 @@ class TestDDLCommandsPost(IntegrationTestCase):
 	test_table_name = "TestNotes"
 
 	def setUp(self) -> None:
+		# several tests here call APIs that commit (add_index, advisory_lock, ...), so this table
+		# outlives a rollback. Drop first, and unconditionally in tearDown, or one failing test
+		# leaves it behind and every later run dies in setUp with "relation already exists".
+		self._drop_test_tables()
 		frappe.db.sql(
 			f"""
 			CREATE TABLE "tab{self.test_table_name}" ("id" INT NULL, content text, PRIMARY KEY ("id"))
@@ -961,8 +1078,12 @@ class TestDDLCommandsPost(IntegrationTestCase):
 		)
 
 	def tearDown(self) -> None:
-		frappe.db.sql(f'DROP TABLE "tab{self.test_table_name}"')
 		self.test_table_name = "TestNotes"
+		self._drop_test_tables()
+
+	def _drop_test_tables(self) -> None:
+		for table in ("tabTestNotes", "tabTestNotes_new"):
+			frappe.db.sql_ddl(f'DROP TABLE IF EXISTS "{table}" CASCADE')
 
 	def test_rename(self) -> None:
 		new_table_name = f"{self.test_table_name}_new"
@@ -1026,10 +1147,243 @@ class TestDDLCommandsPost(IntegrationTestCase):
 		)
 		self.assertEqual(len(indexs_in_table), 1)
 
+	def test_advisory_lock(self) -> None:
+		def advisory_count():
+			return frappe.db.sql("SELECT count(*) FROM pg_locks WHERE locktype = 'advisory'")[0][0]
+
+		before = advisory_count()
+		with frappe.db.advisory_lock("frappe-test-lock"):
+			self.assertEqual(advisory_count(), before + 1)
+		self.assertEqual(advisory_count(), before)
+
+	def test_advisory_lock_released_after_query_error(self) -> None:
+		# A DB error inside the block aborts the transaction; the session-scoped lock must still be
+		# released on exit, not leaked. Regression: the unlock in `finally` runs on the aborted txn.
+		def advisory_count():
+			return frappe.db.sql("SELECT count(*) FROM pg_locks WHERE locktype = 'advisory'")[0][0]
+
+		before = advisory_count()
+		with self.assertRaises(Exception):
+			with frappe.db.advisory_lock("frappe-test-lock-error"):
+				frappe.db.sql("SELECT * FROM tab_does_not_exist")
+		frappe.db.rollback()
+		self.assertEqual(advisory_count(), before)
+
+	def _indexdef(self, field: str, using: str) -> str:
+		from frappe.database.postgres.schema import get_qualified_index_name
+
+		name = get_qualified_index_name(f"tab{self.test_table_name}", [field], using)
+		return frappe.db.sql("SELECT indexdef FROM pg_indexes WHERE indexname = %s", (name,))[0][0]
+
+	def test_add_index_trigram(self) -> None:
+		frappe.db.add_index(self.test_table_name, ["content"], using="gin_trgm")
+		indexdef = self._indexdef("content", "gin_trgm")
+		self.assertIn("USING gin", indexdef)
+		self.assertIn("gin_trgm_ops", indexdef)
+
+	def test_add_index_fulltext(self) -> None:
+		frappe.db.add_index(self.test_table_name, ["content"], using="gin_fulltext")
+		indexdef = self._indexdef("content", "gin_fulltext")
+		self.assertIn("USING gin", indexdef)
+		self.assertIn("to_tsvector", indexdef)
+
+	def test_add_index_partial(self) -> None:
+		frappe.db.add_index(self.test_table_name, ["id"], index_name="test_partial", where="id > 0")
+		indexdef = frappe.db.sql("SELECT indexdef FROM pg_indexes WHERE indexname = 'test_partial'")[0][0]
+		self.assertIn("WHERE", indexdef)
+
+	def test_covering_index(self) -> None:
+		frappe.db.add_index(self.test_table_name, ["id"], index_name="test_covering", include=["content"])
+		indexdef = frappe.db.sql("SELECT indexdef FROM pg_indexes WHERE indexname = 'test_covering'")[0][0]
+		self.assertIn("INCLUDE", indexdef)
+		self.assertIn("content", indexdef)
+
+	def test_bulk_insert_matches_insert_for_time_values(self) -> None:
+		import datetime
+
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		doctype = new_doctype(fields=[{"fieldname": "shift", "fieldtype": "Time"}]).insert()
+		table = f"tab{doctype.name}"
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.db.sql_ddl, f'DROP TABLE IF EXISTS "{table}" CASCADE')
+		self.addCleanup(doctype.delete)
+
+		# a Time field is a timedelta and MariaDB's TIME accepts well past 24h, so migrated data
+		# can carry one. COPY must not reject what the row-by-row INSERT path accepts.
+		for value in (
+			datetime.timedelta(hours=13, minutes=3, seconds=4),
+			datetime.timedelta(hours=25, minutes=3, seconds=4),
+			datetime.timedelta(hours=49),
+		):
+			frappe.db.sql(f'DELETE FROM "{table}"')
+			frappe.db.bulk_insert(doctype.name, ["name", "shift"], [["copied", value]])
+			frappe.db.sql(f'INSERT INTO "{table}" (name, shift) VALUES (%s, %s)', ("inserted", value))
+			rows = dict(frappe.db.sql(f'SELECT name, shift FROM "{table}"'))
+			self.assertEqual(rows["copied"], rows["inserted"], msg=f"COPY differs from INSERT for {value}")
+
+	def test_default_index_names_separate_plain_partial_and_covering(self) -> None:
+		frappe.db.add_index(self.test_table_name, ["id"])
+		frappe.db.add_index(self.test_table_name, ["id"], where="id > 0")
+		frappe.db.add_index(self.test_table_name, ["id"], where="id > 100")
+		frappe.db.add_index(self.test_table_name, ["id"], include=["content"])
+
+		defs = frappe.db.sql(
+			"""SELECT indexdef FROM pg_indexes
+			WHERE tablename = %s AND indexname LIKE %s""",
+			(f"tab{self.test_table_name}", f"tab{self.test_table_name}_id%_index"),
+			pluck=True,
+		)
+		self.assertEqual(len(defs), 4, msg=f"each definition needs its own index, got {defs}")
+		self.assertEqual(len([d for d in defs if "WHERE (id > 0)" in d]), 1)
+		self.assertEqual(len([d for d in defs if "WHERE (id > 100)" in d]), 1)
+		self.assertEqual(len([d for d in defs if "INCLUDE (content)" in d]), 1)
+
+	def test_default_index_name_is_stable_for_one_definition(self) -> None:
+		from frappe.database.postgres.schema import get_qualified_index_name
+
+		table = f"tab{self.test_table_name}"
+		# a comment is whitespace to SQL, so it does not change which index a predicate names
+		for formatted, plain in (
+			("id  >   0", "id > 0"),
+			("id > 0 /* why */ AND id < 9", "id > 0 AND id < 9"),
+			("id > 0 -- why\nAND id < 9", "id > 0 AND id < 9"),
+		):
+			self.assertEqual(
+				get_qualified_index_name(table, ["id"], where=formatted),
+				get_qualified_index_name(table, ["id"], where=plain),
+				msg=f"{formatted!r} and {plain!r} are the same predicate",
+			)
+
+		# ... but the newline ending a line comment decides what is code, so it stays significant
+		self.assertNotEqual(
+			get_qualified_index_name(table, ["id"], where="id > 0 -- why\nAND id < 9"),
+			get_qualified_index_name(table, ["id"], where="id > 0 -- why AND id < 9"),
+		)
+		# but whitespace inside a quoted token is part of the predicate, not formatting
+		for two_spaces, one_space in (
+			("content = 'a  b'", "content = 'a b'"),
+			('"a  b" > 0', '"a b" > 0'),
+			("content = $$a  b$$", "content = $$a b$$"),
+			("content = $t$a  b$t$", "content = $t$a b$t$"),
+			(r"content = E'a\'  b'", r"content = E'a\' b'"),
+		):
+			self.assertNotEqual(
+				get_qualified_index_name(table, ["id"], where=two_spaces),
+				get_qualified_index_name(table, ["id"], where=one_space),
+				msg=f"{two_spaces!r} and {one_space!r} must not share a name",
+			)
+		self.assertNotEqual(
+			get_qualified_index_name(table, ["id"]),
+			get_qualified_index_name(table, ["id"], where="id > 0"),
+		)
+		self.assertNotEqual(
+			get_qualified_index_name(table, ["id"], include=["content"]),
+			get_qualified_index_name(table, ["id"]),
+		)
+
+	def test_add_index_rejects_unknown_method(self) -> None:
+		# `using` reaches the DDL string verbatim, so an unknown method must be refused, not run.
+		with self.assertRaises(frappe.ValidationError):
+			frappe.db.add_index(self.test_table_name, ["content"], using="gin; DROP TABLE x")
+
+	def test_add_index_rejects_unsafe_columns(self) -> None:
+		# field and include column names are interpolated into the DDL, so reject non-identifiers.
+		with self.assertRaises(frappe.ValidationError):
+			frappe.db.add_index(self.test_table_name, ['id") ; DROP TABLE x --'])
+		with self.assertRaises(frappe.ValidationError):
+			frappe.db.add_index(self.test_table_name, ["id"], include=['content") ; DROP TABLE x --'])
+
+	def test_json_columns_return_strings(self) -> None:
+		# Regression: psycopg2 auto-parses json/jsonb into python objects, but frappe models JSON
+		# fields as strings (like MariaDB's longtext) and json.loads them on demand. A parsed value
+		# diverges from MariaDB and breaks re-saving a doc whose JSON field came back as a list.
+		row = frappe.db.sql("""SELECT '[1, 2]'::jsonb AS a, '{"k": 1}'::json AS b""", as_dict=True)[0]
+		self.assertIsInstance(row.a, str)
+		self.assertIsInstance(row.b, str)
+
+	def test_search_index_unique_across_tables(self) -> None:
+		# Regression: postgres index names are unique per schema (not per table like
+		# MariaDB), so two doctypes that share a search_index fieldname used to collide --
+		# `CREATE INDEX IF NOT EXISTS` skipped all but the first, leaving the other tables
+		# without their single-column index.
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		def _search_indexed_doctype():
+			return new_doctype(
+				fields=[
+					{
+						"label": "Shared",
+						"fieldname": "shared_field",
+						"fieldtype": "Data",
+						"search_index": 1,
+					}
+				]
+			).insert(ignore_permissions=True)
+
+		dt1 = _search_indexed_doctype()
+		dt2 = _search_indexed_doctype()
+		try:
+			self.assertTrue(
+				frappe.db.get_column_index(f"tab{dt1.name}", "shared_field", unique=False),
+				msg=f"{dt1.name} is missing its search index",
+			)
+			self.assertTrue(
+				frappe.db.get_column_index(f"tab{dt2.name}", "shared_field", unique=False),
+				msg=f"{dt2.name} is missing its search index (schema-global index name collision)",
+			)
+		finally:
+			dt1.delete(ignore_permissions=True)
+			dt2.delete(ignore_permissions=True)
+
+	def test_add_index_unique_across_tables(self) -> None:
+		# Regression: a manual frappe.db.add_index() with the default name used to produce an
+		# unqualified, schema-global name (`field1_field2_index`), so two tables requesting an
+		# index on the same fields collided -- the second `CREATE INDEX IF NOT EXISTS` was
+		# skipped and that table never got its composite index. The default name is now
+		# table-qualified, so each table gets its own.
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+		from frappe.database.postgres.schema import get_qualified_index_name
+
+		def _two_field_doctype():
+			return new_doctype(
+				fields=[
+					{"label": "Alpha", "fieldname": "alpha", "fieldtype": "Data"},
+					{"label": "Beta", "fieldname": "beta", "fieldtype": "Data"},
+				]
+			).insert(ignore_permissions=True)
+
+		dt1 = _two_field_doctype()
+		dt2 = _two_field_doctype()
+		try:
+			frappe.db.add_index(dt1.name, ["alpha", "beta"])
+			frappe.db.add_index(dt2.name, ["alpha", "beta"])
+			for dt in (dt1, dt2):
+				index_name = get_qualified_index_name(f"tab{dt.name}", ["alpha", "beta"])
+				self.assertTrue(
+					frappe.db.sql(
+						"""SELECT 1 FROM pg_indexes
+						WHERE schemaname = current_schema() AND tablename = %s AND indexname = %s""",
+						(f"tab{dt.name}", index_name),
+					),
+					msg=f"{dt.name} is missing its composite add_index (schema-global name collision)",
+				)
+		finally:
+			dt1.delete(ignore_permissions=True)
+			dt2.delete(ignore_permissions=True)
+
 	def test_sequence_table_creation(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
+		# fixed name: an earlier failed run would otherwise make every later one fail on insert
+		if frappe.db.exists("DocType", "autoinc_dt_seq_test"):
+			frappe.delete_doc("DocType", "autoinc_dt_seq_test", force=True, ignore_permissions=True)
+
 		dt = new_doctype("autoinc_dt_seq_test", autoname="autoincrement").insert(ignore_permissions=True)
+		self.addCleanup(
+			lambda: frappe.db.exists("DocType", "autoinc_dt_seq_test")
+			and frappe.delete_doc("DocType", "autoinc_dt_seq_test", force=True, ignore_permissions=True)
+		)
 
 		if frappe.db.db_type == "postgres":
 			self.assertTrue(
@@ -1072,6 +1426,17 @@ class TestTransactionManagement(IntegrationTestCase):
 
 		frappe.db.commit()
 		self.assertEqual(_get_transaction_id(), _get_transaction_id())
+
+	def test_transaction_advisory_lock(self):
+		def advisory_count():
+			return frappe.db.sql("SELECT count(*) FROM pg_locks WHERE locktype = 'advisory'")[0][0]
+
+		before = advisory_count()
+		frappe.db.transaction_advisory_lock("frappe-test-xact-lock")
+		self.assertEqual(advisory_count(), before + 1)
+		frappe.db.transaction_advisory_lock("frappe-test-xact-lock")  # re-entrant
+		frappe.db.rollback()
+		self.assertEqual(advisory_count(), before)
 
 
 # Treat same DB as replica for tests, a separate connection will be opened
@@ -1431,7 +1796,12 @@ class TestPostgresSchemaQueryIndependence(ExtIntegrationTestCase):
 
 
 class TestDbConnectWithEnvCredentials(IntegrationTestCase):
-	current_site = frappe.local.site
+	@classmethod
+	def setUpClass(cls):
+		# resolved here instead of the class body: at import time there may be
+		# no site context (depends on which test modules ran before this one)
+		super().setUpClass()
+		cls.current_site = frappe.local.site
 
 	def tearDown(self):
 		frappe.init(self.current_site, force=True)
@@ -1508,3 +1878,137 @@ class TestDbConnectWithEnvCredentials(IntegrationTestCase):
 		frappe.init(self.current_site, force=True)
 		frappe.connect()
 		frappe.db.connect()
+
+
+class TestMariaDBExceptionUtil(IntegrationTestCase):
+	@run_only_if(db_type_is.MARIADB)
+	def test_exception_utils_handle_empty_args(self):
+		"""Exception utility methods should not raise IndexError when e.args is empty."""
+		import pymysql
+
+		from frappe.database.mariadb.database import MariaDBExceptionUtil
+
+		e = pymysql.Error()  # no args
+
+		# None of these should raise; all should return False
+		self.assertFalse(MariaDBExceptionUtil.is_deadlocked(e))
+		self.assertFalse(MariaDBExceptionUtil.is_timedout(e))
+		self.assertFalse(MariaDBExceptionUtil.is_read_only_mode_error(e))
+		self.assertFalse(MariaDBExceptionUtil.is_table_missing(e))
+		self.assertFalse(MariaDBExceptionUtil.is_missing_column(e))
+		self.assertFalse(MariaDBExceptionUtil.is_duplicate_fieldname(e))
+		self.assertFalse(MariaDBExceptionUtil.is_duplicate_entry(e))
+		self.assertFalse(MariaDBExceptionUtil.is_access_denied(e))
+		self.assertFalse(MariaDBExceptionUtil.cant_drop_field_or_key(e))
+		self.assertFalse(MariaDBExceptionUtil.is_syntax_error(e))
+		self.assertFalse(MariaDBExceptionUtil.is_statement_timeout(e))
+		self.assertFalse(MariaDBExceptionUtil.is_data_too_long(e))
+		self.assertFalse(MariaDBExceptionUtil.is_db_table_size_limit(e))
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_serialization_failure_is_treated_as_deadlock(self):
+		"""Postgres serialization failures (REPEATABLE READ write conflicts) must be retriable like
+		deadlocks; otherwise they surface as unhandled query errors (e.g. on the per-request session
+		update under concurrency)."""
+		from psycopg2.errorcodes import DEADLOCK_DETECTED, SERIALIZATION_FAILURE
+
+		from frappe.database.postgres.database import PostgresExceptionUtil
+
+		class _E(Exception):
+			pass
+
+		for code in (SERIALIZATION_FAILURE, DEADLOCK_DETECTED):
+			e = _E()
+			e.pgcode = code
+			self.assertTrue(PostgresExceptionUtil.is_deadlocked(e))
+
+		unrelated = _E()
+		unrelated.pgcode = "12345"
+		self.assertFalse(PostgresExceptionUtil.is_deadlocked(unrelated))
+
+
+class TestAdvisoryLockMariaDB(IntegrationTestCase):
+	@run_only_if(db_type_is.MARIADB)
+	def test_advisory_lock_get_release(self):
+		# Exercises the MariaDB GET_LOCK / RELEASE_LOCK path (the Postgres test uses pg_locks).
+		import hashlib
+
+		name = hashlib.sha256(b"frappe-test-lock").hexdigest()
+
+		def held():
+			# IS_USED_LOCK returns the connection id holding the lock, or NULL when free.
+			return frappe.db.sql("SELECT IS_USED_LOCK(%s)", (name,))[0][0] is not None
+
+		self.assertFalse(held())
+		with frappe.db.advisory_lock("frappe-test-lock"):
+			self.assertTrue(held())
+		self.assertFalse(held())
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_advisory_lock_retries_on_transient_null(self):
+		# GET_LOCK returns NULL on a transient server error (e.g. a killed thread). The acquire loop
+		# must retry within the budget and self-heal, not fail the whole operation with a bare error.
+		from unittest.mock import patch
+
+		real_sql = frappe.db.sql
+		get_lock_calls = []
+
+		def fake_sql(query, values=(), **kwargs):
+			if isinstance(query, str) and "GET_LOCK" in query:
+				get_lock_calls.append(values)
+				return ((None,),) if len(get_lock_calls) < 3 else ((1,),)  # two blips, then acquire
+			return real_sql(query, values, **kwargs)
+
+		with patch.object(frappe.db, "sql", fake_sql):
+			with frappe.db.advisory_lock("frappe-test-null", timeout=5):
+				pass
+
+		self.assertGreaterEqual(len(get_lock_calls), 3)
+
+
+class TestBulkInsertCopy(IntegrationTestCase):
+	def test_bulk_insert_copy(self):
+		# postgres bulk_insert streams via COPY, other engines use multi-row INSERT; both must
+		# round-trip NULLs and tab/newline characters (the COPY text encoding escapes these).
+		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabBulkLoadTest`")
+		frappe.db.sql("CREATE TABLE `tabBulkLoadTest` (`name` varchar(140), `qty` int, `note` text)")
+		self.addCleanup(frappe.db.sql_ddl, "DROP TABLE IF EXISTS `tabBulkLoadTest`")
+
+		rows = [("a", 1, "x"), ("b", 2, None), ("c\twith\ttabs", 3, "line\nbreak")]
+		frappe.db.bulk_insert("BulkLoadTest", ["name", "qty", "note"], rows)
+		frappe.db.commit()  # nosemgrep
+
+		got = frappe.db.sql("SELECT `name`, `qty`, `note` FROM `tabBulkLoadTest` ORDER BY `qty`")
+		self.assertEqual(len(got), 3)
+		self.assertIsNone(got[1][2])
+		self.assertEqual(got[2][0], "c\twith\ttabs")
+		self.assertEqual(got[2][2], "line\nbreak")
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_bulk_insert_copy_time(self):
+		# COPY encodes Time (timedelta) values itself: a sub-24h value must round-trip rather than
+		# str()'s "H:MM:SS" formatting drifting or a days component becoming "1 day, ...".
+		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabBulkTimeTest`")
+		frappe.db.sql('CREATE TABLE "tabBulkTimeTest" ("name" varchar(140), "at" time)')
+		self.addCleanup(frappe.db.sql_ddl, "DROP TABLE IF EXISTS `tabBulkTimeTest`")
+
+		value = datetime.timedelta(hours=2, minutes=30, seconds=15)
+		frappe.db.bulk_insert("BulkTimeTest", ["name", "at"], [("a", value)])
+		frappe.db.commit()  # nosemgrep
+
+		self.assertEqual(frappe.db.sql('SELECT "at" FROM "tabBulkTimeTest"')[0][0], value)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_bulk_insert_copy_check_field(self):
+		# Check fields are smallint; COPY must encode Python True/False as 1/0 -- smallint_in("true")
+		# would raise "invalid input syntax for type smallint".
+		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabBulkFlagTest`")
+		frappe.db.sql('CREATE TABLE "tabBulkFlagTest" ("name" varchar(140), "flag" smallint)')
+		self.addCleanup(frappe.db.sql_ddl, "DROP TABLE IF EXISTS `tabBulkFlagTest`")
+
+		frappe.db.bulk_insert("BulkFlagTest", ["name", "flag"], [("a", True), ("b", False)])
+		frappe.db.commit()  # nosemgrep
+
+		got = dict(frappe.db.sql('SELECT "name", "flag" FROM "tabBulkFlagTest"'))
+		self.assertEqual(got["a"], 1)
+		self.assertEqual(got["b"], 0)

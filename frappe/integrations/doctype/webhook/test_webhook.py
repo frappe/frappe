@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import json
 from contextlib import contextmanager
+from unittest.mock import patch
 
 import responses
 from responses.matchers import json_params_matcher
@@ -9,12 +10,15 @@ from responses.matchers import json_params_matcher
 import frappe
 from frappe.integrations.doctype.webhook import flush_webhook_execution_queue
 from frappe.integrations.doctype.webhook.webhook import (
+	WEBHOOK_SECRET_HEADER,
 	enqueue_webhook,
 	get_webhook_data,
 	get_webhook_headers,
+	retry_failed_webhooks,
 )
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import timeout
+from frappe.utils import add_to_date, now_datetime
 
 
 @contextmanager
@@ -331,3 +335,210 @@ class TestWebhook(IntegrationTestCase):
 			doc = frappe.new_doc("Note")
 			doc.title = "Test Webhook Note"
 			enqueue_webhook(doc, wh)
+
+	def retry_webhook_config(self, url, max_retries=3, webhook_docevent="after_insert"):
+		return {
+			"doctype": "Webhook",
+			"webhook_doctype": "Note",
+			"webhook_docevent": webhook_docevent,
+			"enabled": 1,
+			"request_url": url,
+			"request_method": "POST",
+			"request_structure": "JSON",
+			"webhook_json": "{}",
+			"max_retries": max_retries,
+		}
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_webhook_failure_schedules_retry(self):
+		"""A failed delivery logs a single row awaiting a scheduled retry"""
+		url = "https://httpbin.org/retry-schedule"
+		self.responses.add(responses.POST, url, status=500)
+
+		with get_test_webhook(self.retry_webhook_config(url, max_retries=3)) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Retry Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			self.assertEqual(log.status, "Failed")
+			self.assertEqual(log.attempt, 1)
+			self.assertIsNotNone(log.next_retry)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_webhook_without_retries_is_exhausted(self):
+		"""With max_retries set to 0, a failed delivery is not retried"""
+		url = "https://httpbin.org/exhaust-now"
+		self.responses.add(responses.POST, url, status=500)
+
+		with get_test_webhook(self.retry_webhook_config(url, max_retries=0)) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "No Retry Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			self.assertEqual(log.status, "Exhausted")
+			self.assertIsNone(log.next_retry)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_sweeper_redelivers_due_webhook(self):
+		"""The sweeper re-sends a due delivery and marks it delivered on success"""
+		url = "https://httpbin.org/sweeper-success"
+		self.responses.add(responses.POST, url, status=500)
+		self.responses.add(responses.POST, url, status=200, json={})
+
+		with get_test_webhook(self.retry_webhook_config(url, max_retries=3)) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Sweeper Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			self.assertEqual(log.status, "Failed")
+
+			frappe.db.set_value(
+				"Webhook Request Log", log.name, "next_retry", add_to_date(now_datetime(), seconds=-1)
+			)
+			retry_failed_webhooks()
+
+			log.reload()
+			self.assertEqual(log.status, "Delivered")
+			self.assertEqual(log.attempt, 2)
+			self.assertIsNone(log.next_retry)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_sweeper_exhausts_after_max_retries(self):
+		"""The sweeper stops retrying once max_retries is reached"""
+		url = "https://httpbin.org/sweeper-exhaust"
+		self.responses.add(responses.POST, url, status=500)
+
+		with get_test_webhook(self.retry_webhook_config(url, max_retries=1)) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Exhaust Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			self.assertEqual(log.status, "Failed")
+
+			frappe.db.set_value(
+				"Webhook Request Log", log.name, "next_retry", add_to_date(now_datetime(), seconds=-1)
+			)
+			retry_failed_webhooks()
+
+			log.reload()
+			self.assertEqual(log.status, "Exhausted")
+			self.assertEqual(log.attempt, 2)
+			self.assertIsNone(log.next_retry)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_workflow_transition_failure_raises_without_scheduling(self):
+		"""A failed workflow_transition webhook raises instead of scheduling a retry"""
+		url = "https://httpbin.org/workflow-fail"
+		self.responses.add(responses.POST, url, status=500)
+
+		config = self.retry_webhook_config(url, max_retries=3, webhook_docevent="workflow_transition")
+		with get_test_webhook(config) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Workflow Note"
+			with self.assertRaises(Exception):
+				enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			self.assertEqual(log.status, "Exhausted")
+			self.assertIsNone(log.next_retry)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_sweeper_reschedules_when_retries_remain(self):
+		"""A retry that fails with attempts left stays Failed and is scheduled again"""
+		url = "https://httpbin.org/sweeper-reschedule"
+		self.responses.add(responses.POST, url, status=500)
+		self.responses.add(responses.POST, url, status=500)
+
+		with get_test_webhook(self.retry_webhook_config(url, max_retries=2)) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Reschedule Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			frappe.db.set_value(
+				"Webhook Request Log", log.name, "next_retry", add_to_date(now_datetime(), seconds=-1)
+			)
+			retry_failed_webhooks()
+
+			log.reload()
+			self.assertEqual(log.status, "Failed")
+			self.assertEqual(log.attempt, 2)
+			self.assertIsNotNone(log.next_retry)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_sweeper_skips_delivery_already_in_flight(self):
+		"""A due delivery whose retry job is still queued is not sent again"""
+		url = "https://httpbin.org/sweeper-in-flight"
+		self.responses.add(responses.POST, url, status=500)
+
+		with get_test_webhook(self.retry_webhook_config(url, max_retries=3)) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "In Flight Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			frappe.db.set_value(
+				"Webhook Request Log", log.name, "next_retry", add_to_date(now_datetime(), seconds=-1)
+			)
+
+			with patch("frappe.integrations.doctype.webhook.webhook.is_job_enqueued", return_value=True):
+				retry_failed_webhooks()
+
+			log.reload()
+			self.assertEqual(log.status, "Failed")
+			self.assertEqual(log.attempt, 1)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_retry_stops_when_webhook_disabled(self):
+		"""A retry is exhausted without resending when the webhook is disabled"""
+		url = "https://httpbin.org/sweeper-disabled"
+		self.responses.add(responses.POST, url, status=500)
+
+		with get_test_webhook(self.retry_webhook_config(url, max_retries=3)) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Disabled Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			frappe.db.set_value("Webhook", wh.name, "enabled", 0)
+			frappe.db.set_value(
+				"Webhook Request Log", log.name, "next_retry", add_to_date(now_datetime(), seconds=-1)
+			)
+			retry_failed_webhooks()
+
+			log.reload()
+			self.assertEqual(log.status, "Exhausted")
+			self.assertIsNone(log.next_retry)
+
+	def test_secured_webhook_signs_payload_with_string_header(self):
+		"""A secured webhook stores its signature as a string so it survives serialization and replay"""
+		config = self.retry_webhook_config("https://httpbin.org/secured")
+		config["enable_security"] = 1
+		config["webhook_secret"] = "super-secret"
+
+		with get_test_webhook(config) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Secured Note"
+			headers = get_webhook_headers(doc, wh, data=get_webhook_data(doc, wh))
+
+			self.assertIn(WEBHOOK_SECRET_HEADER, headers)
+			self.assertIsInstance(headers[WEBHOOK_SECRET_HEADER], str)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_unbuildable_request_is_exhausted(self):
+		"""A webhook whose dynamic URL fails to render is exhausted without a retry"""
+		config = self.retry_webhook_config("http://example.com/{{ doc.missing.attr }}")
+		config["is_dynamic_url"] = 1
+
+		with get_test_webhook(config) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Unbuildable Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			self.assertEqual(log.status, "Exhausted")
+			self.assertIsNone(log.next_retry)

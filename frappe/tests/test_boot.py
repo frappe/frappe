@@ -1,5 +1,5 @@
 import frappe
-from frappe.boot import get_user_pages_or_reports
+from frappe.desk.desk_views import DeskViews
 from frappe.desk.doctype.note.note import _get_unseen_notes, get_unseen_notes, mark_as_seen
 from frappe.tests import IntegrationTestCase
 
@@ -27,6 +27,48 @@ class TestBootData(IntegrationTestCase):
 		mark_as_seen(note.name)
 		unseen_notes = [d.title for d in get_unseen_notes()]
 		self.assertListEqual(unseen_notes, [])
+
+	def test_get_json_request_apps_includes_frappe(self):
+		from frappe.boot import get_json_request_apps
+
+		# frappe opts into native JSON request bodies via `use_json_request_body` in hooks.py
+		apps = get_json_request_apps()
+		self.assertIsInstance(apps, list)
+		self.assertIn("frappe", apps)
+
+	def test_setup_wizard_url_exposed_until_setup_complete(self):
+		from unittest.mock import patch
+
+		from frappe.boot import get_bootinfo
+
+		frappe.set_user("Administrator")
+		with (
+			patch.object(frappe, "is_setup_complete", return_value=False),
+			patch("frappe.boot.get_setup_wizard_url", return_value="/suite/setup") as resolve,
+		):
+			bootinfo = get_bootinfo()
+
+		resolve.assert_called_once()
+		self.assertEqual(bootinfo.setup_wizard_url, "/suite/setup")
+
+	def test_empty_allowed_views_are_served_from_cache(self):
+		from unittest.mock import patch
+
+		# An empty allowed-set is a valid result and must be a cache hit; otherwise the
+		# sidebar rebuilds it once per workspace on every desk/login load.
+		frappe.set_user("Administrator")
+		user = frappe.session.user
+		frappe.cache.delete_value("has_role:Report", user=user)
+
+		with patch.object(DeskViews, "_build_user_pages_or_reports", return_value={}) as build:
+			self.assertEqual(DeskViews.get_allowed_reports(cache=True), {})
+			self.assertEqual(build.call_count, 1)
+
+			# fresh request: process-local cache cleared, redis cache stays warm
+			frappe.local.cache.clear()
+
+			self.assertEqual(DeskViews.get_allowed_reports(cache=True), {})
+			self.assertEqual(build.call_count, 1)
 
 
 class TestPermissionQueries(IntegrationTestCase):
@@ -70,7 +112,7 @@ class TestPermissionQueries(IntegrationTestCase):
 			}
 		).insert(ignore_permissions=True)
 
-		get_user_pages_or_reports("Report")
+		DeskViews.get_user_pages_or_reports("Report")
 		allowed_reports = frappe.cache.get_value("has_role:Report", user=frappe.session.user)
 
 		# Test user must not see admin user's report

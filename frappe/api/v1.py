@@ -1,25 +1,29 @@
-import json
-
 from werkzeug.routing import Rule
 
 import frappe
+import frappe.client
 from frappe import _
+from frappe.database.utils import DefaultOrderBy
+from frappe.handler import is_valid_http_method
 from frappe.utils import attach_expanded_links
 from frappe.utils.data import sbool
 
 
 def document_list(doctype: str):
 	if frappe.form_dict.get("fields"):
-		frappe.form_dict["fields"] = json.loads(frappe.form_dict["fields"])
+		frappe.form_dict["fields"] = frappe.parse_json(frappe.form_dict["fields"])
 
 	if frappe.form_dict.get("expand"):
-		frappe.form_dict["expand"] = json.loads(frappe.form_dict["expand"])
+		frappe.form_dict["expand"] = frappe.parse_json(frappe.form_dict["expand"])
 
 	# set limit of records for frappe.get_list
 	frappe.form_dict.setdefault(
 		"limit_page_length",
 		frappe.form_dict.limit or frappe.form_dict.limit_page_length or 20,
 	)
+
+	# default to the doctype's configured sort order
+	frappe.form_dict.setdefault("order_by", DefaultOrderBy)
 
 	# convert strings to native types - only as_dict and debug accept bool
 	for param in ["as_dict", "debug"]:
@@ -97,7 +101,8 @@ def get_values_for_link_and_dynamic_link_fields(doc_dict):
 
 		doctype = field.options if field.fieldtype == "Link" else doc_dict.get(field.options)
 
-		link_doc = frappe.get_doc(doctype, doc_fieldvalue)
+		link_doc = frappe.get_doc(doctype, doc_fieldvalue, check_permission="read")
+		link_doc.apply_fieldlevel_read_permissions()
 		doc_dict.update({field.fieldname: link_doc})
 
 
@@ -114,14 +119,21 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	method = method or frappe.form_dict.pop("run_method")
 	doc = frappe.get_doc(doctype, name)
 	doc.is_whitelisted(method)
+	method_obj = getattr(doc, method)
+	fn = getattr(method_obj, "__func__", method_obj)
+	is_valid_http_method(fn)
 
-	if frappe.request.method == "GET":
-		doc.check_permission("read")
-		return doc.run_method(method, **frappe.form_dict)
-
-	elif frappe.request.method == "POST":
+	assert frappe.request.method in (
+		"GET",
+		"POST",
+		"QUERY",
+	), "execute_doc_method route is only mounted for GET/POST/QUERY"
+	if frappe.request.method == "POST":
 		doc.check_permission("write")
-		return doc.run_method(method, **frappe.form_dict)
+	else:
+		doc.check_permission("read")
+
+	return doc.run_method(method, **frappe.form_dict)
 
 
 def get_request_form_data():
@@ -138,10 +150,10 @@ def get_request_form_data():
 
 url_rules = [
 	Rule("/method/<path:method>", endpoint=handle_rpc_call),
-	Rule("/resource/<doctype>", methods=["GET"], endpoint=document_list),
+	Rule("/resource/<doctype>", methods=["GET", "QUERY"], endpoint=document_list),
 	Rule("/resource/<doctype>", methods=["POST"], endpoint=create_doc),
 	Rule("/resource/<doctype>/<path:name>/", methods=["GET"], endpoint=read_doc),
 	Rule("/resource/<doctype>/<path:name>/", methods=["PUT"], endpoint=update_doc),
 	Rule("/resource/<doctype>/<path:name>/", methods=["DELETE"], endpoint=delete_doc),
-	Rule("/resource/<doctype>/<path:name>/", methods=["POST"], endpoint=execute_doc_method),
+	Rule("/resource/<doctype>/<path:name>/", methods=["POST", "QUERY"], endpoint=execute_doc_method),
 ]

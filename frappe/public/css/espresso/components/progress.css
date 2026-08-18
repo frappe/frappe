@@ -1,0 +1,108 @@
+/* Espresso Progress — a linear progress bar (frappe-ui's Progress), for
+ * data imports, bulk actions, onboarding, backups.
+ *
+ *   <div class="es-progress">
+ *     <div class="es-progress__header">
+ *       <span class="es-progress__label">Importing</span>
+ *       <span class="es-progress__hint">30%</span>
+ *     </div>
+ *     <div class="es-progress__track" role="progressbar"
+ *          aria-valuemin="0" aria-valuemax="100" aria-valuenow="30">
+ *       <div class="es-progress__fill" style="width: 30%"></div>
+ *     </div>
+ *   </div>
+ *
+ * Interval form: the track gets data-intervals and holds equal segments
+ * instead of a fill; done ones carry data-filled.
+ *
+ *   <div class="es-progress__track" data-intervals role="progressbar" ...>
+ *     <div class="es-progress__segment" data-filled></div>
+ *     <div class="es-progress__segment"></div>
+ *   </div>
+ *
+ * Track attributes:
+ *   data-size="sm|md|lg|xl"    bar thickness, sm (2px) is the default
+ *   data-intervals             segmented instead of continuous */
+
+.es-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+/* ---- optional header: label on the left, hint on the right ---- */
+.es-progress__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: calc(var(--spacing) * 2);
+}
+
+.es-progress__label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--ink-gray-8);
+}
+
+.es-progress__hint {
+    margin-inline-start: auto;
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--ink-gray-4);
+}
+
+/* ---- the bar ---- */
+.es-progress__track {
+    height: 2px;
+    border-radius: var(--radius-lg);
+    background: var(--surface-gray-2);
+    overflow: hidden;
+}
+
+.es-progress__track[data-size="md"] {
+    height: calc(var(--spacing) * 1);
+}
+
+.es-progress__track[data-size="lg"] {
+    height: calc(var(--spacing) * 2);
+}
+
+.es-progress__track[data-size="xl"] {
+    height: calc(var(--spacing) * 3);
+}
+
+.es-progress__fill {
+    height: 100%;
+    background: var(--surface-gray-10);
+    /* set_value() calls glide instead of jumping — progress that arrives
+       in bursts (realtime events) still reads as one continuous motion */
+    transition: width 300ms ease;
+}
+
+/* ---- interval form: equal segments with gaps; the rounded track clips
+   the outer corners of the first and last segment ---- */
+.es-progress__track[data-intervals] {
+    display: flex;
+    gap: calc(var(--spacing) * 1);
+    background: transparent;
+}
+
+.es-progress__segment {
+    flex: 1 1 0;
+    height: 100%;
+    background: var(--surface-gray-2);
+    /* segments are discrete by nature — a short fade softens the flip */
+    transition: background-color 150ms ease-out;
+}
+
+.es-progress__segment[data-filled] {
+    background: var(--surface-gray-10);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .es-progress__fill,
+    .es-progress__segment {
+        transition: none;
+    }
+}

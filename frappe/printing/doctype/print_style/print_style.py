@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class PrintStyle(Document):
+	_DOCTYPE_NAME = "Print Style"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

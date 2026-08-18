@@ -3,6 +3,8 @@
 
 frappe.provide("frappe.perm");
 
+const boot_backed_rights = ["select", "write", "delete", "submit", "cancel"];
+
 // backward compatibilty
 Object.assign(window, {
 	READ: "read",
@@ -34,6 +36,17 @@ $.extend(frappe.perm, {
 
 	doctype_perm: {},
 
+	// Mirror of `frappe.permissions.get_rights()` on the server: the standard rights
+	// plus any custom permission types (Permission Type doctype) defined for `doctype`.
+	// Without this, custom ptypes — though enforced server-side — are silently dropped
+	// client-side. See https://github.com/frappe/frappe/issues/40233
+	get_rights: (doctype) => {
+		const custom_rights = (doctype && frappe.boot?.doctype_ptype_map?.[doctype]) || [];
+		return custom_rights.length
+			? [...frappe.perm.rights, ...custom_rights]
+			: frappe.perm.rights;
+	},
+
 	has_perm: (doctype, permlevel = 0, ptype = "read", doc) => {
 		const perms = frappe.perm.get_perm(doctype, doc);
 		return !!perms?.[permlevel]?.[ptype];
@@ -47,22 +60,49 @@ $.extend(frappe.perm, {
 			return frappe.perm._get_perm(doctype, doc);
 		}
 
-		return (frappe.perm.doctype_perm[doctype] ??= frappe.perm._get_perm(doctype));
+		if (frappe.perm.doctype_perm[doctype]) {
+			return frappe.perm.doctype_perm[doctype];
+		}
+
+		const perm = frappe.perm._get_perm(doctype);
+
+		// don't cache a perm computed before the meta loads; it's degraded (read only)
+		// and would stay pinned for the session
+		if (frappe.get_meta(doctype)) {
+			frappe.perm.doctype_perm[doctype] = perm;
+		}
+
+		return perm;
 	},
 
 	_get_perm: (doctype, doc) => {
-		let perm = [{ read: 0, permlevel: 0 }];
-
-		let meta = frappe.get_meta(doctype);
 		const user = frappe.session.user;
+		let meta = frappe.get_meta(doctype);
+
+		let perm = [{ read: 0, permlevel: 0, rights_without_if_owner: new Set() }];
 
 		if (user === "Administrator" || frappe.user_roles.includes("Administrator")) {
 			perm[0].read = 1;
 		}
 
 		if (!meta) {
-			if (frappe.boot.user.can_read.includes(doctype)) {
+			if (frappe.boot.user?.all_read?.includes(doctype)) {
 				perm[0].read = 1;
+			}
+
+			if (!doc) {
+				for (const right of boot_backed_rights) {
+					if (frappe.boot.user?.["can_" + right]?.includes(doctype)) {
+						perm[0][right] = 1;
+					}
+				}
+
+				if (
+					frappe.boot.user?.can_create?.includes(doctype) ||
+					frappe.boot.user?.in_create?.includes(doctype)
+				) {
+					perm[0].create = 1;
+				}
 			}
 			return perm;
 		}
@@ -80,7 +120,7 @@ $.extend(frappe.perm, {
 
 			// if owner
 			if (doc.owner !== user) {
-				for (const right of frappe.perm.rights) {
+				for (const right of frappe.perm.get_rights(doctype)) {
 					if (base_perm[right] && !base_perm.rights_without_if_owner.has(right)) {
 						base_perm[right] = 0;
 					}
@@ -125,7 +165,8 @@ $.extend(frappe.perm, {
 		}
 		*/
 
-		let perm = [{ read: 0, permlevel: 0 }];
+		let perm = [{ read: 0, permlevel: 0, rights_without_if_owner: new Set() }];
+		const rights = frappe.perm.get_rights(meta.name);
 
 		(meta.permissions || []).forEach((p) => {
 			const permlevel = cint(p.permlevel);
@@ -137,7 +178,7 @@ $.extend(frappe.perm, {
 
 			// if user has this role
 			if (frappe.user_roles.includes(p.role)) {
-				frappe.perm.rights.forEach((right) => {
+				rights.forEach((right) => {
 					if (!p[right]) return;
 
 					current_perm[right] = 1;

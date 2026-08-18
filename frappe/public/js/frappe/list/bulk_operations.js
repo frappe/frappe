@@ -207,8 +207,20 @@ export default class BulkOperations {
 				},
 			})
 			.then((r) => {
+				// delete_items returns the undeleted names, or null when the job was enqueued.
+				// Only trust an explicit list — otherwise we would clear meta locals for
+				// documents that still exist (failed deletes) or were not deleted yet (async).
 				let failed = r.message;
-				if (!failed) failed = [];
+				if (!Array.isArray(failed)) {
+					if (done) done();
+					return;
+				}
+
+				for (const name of docnames) {
+					if (!failed.includes(name)) {
+						frappe.model.delete_from_locals(this.doctype, name);
+					}
+				}
 
 				if (failed.length && !r._server_messages) {
 					frappe.throw(
@@ -308,21 +320,30 @@ export default class BulkOperations {
 	}
 
 	edit(docnames, field_mappings, done) {
-		let field_options = Object.keys(field_mappings).sort(function (a, b) {
+		const field_options = Object.keys(field_mappings).sort(function (a, b) {
 			return __(cstr(field_mappings[a].label)).localeCompare(
 				cstr(__(field_mappings[b].label))
 			);
 		});
+		// Same strings as legacy Select (`options`: sorted mapping keys)—parent `Label (Doctype)`,
+		// child `Child Label (Table column)`, so labels stay distinguishable after Autocomplete swap.
+		const field_autocomplete_options = field_options.map((key) => ({
+			label: __(cstr(key)),
+			value: key,
+		}));
 		const status_regex = /status/i;
 
-		const default_field = field_options.find((value) => status_regex.test(value));
+		const default_field =
+			field_options.find((value) => status_regex.test(value)) ||
+			field_options.find((value) => field_mappings[value]?.fieldtype === "Select");
 
 		const dialog = new frappe.ui.Dialog({
 			title: __("Bulk Edit"),
 			fields: [
 				{
-					fieldtype: "Select",
-					options: field_options,
+					fieldtype: "Autocomplete",
+					options: field_autocomplete_options,
+					max_items: Infinity,
 					default: default_field,
 					label: __("Field"),
 					fieldname: "field",
@@ -360,9 +381,9 @@ export default class BulkOperations {
 				frappe
 					.call({
 						method: "frappe.desk.doctype.bulk_update.bulk_update.submit_cancel_or_update_docs",
+						freeze: true,
 						args: {
 							doctype: this.doctype,
-							freeze: true,
 							docnames: docnames,
 							action: "update",
 							data: update_data,
@@ -391,12 +412,14 @@ export default class BulkOperations {
 		show_help_text();
 
 		function set_value_field(dialogObj) {
-			const new_df = Object.assign({}, field_mappings[dialogObj.get_value("field")]);
+			const field_value = dialogObj.get_value("field");
+			if (!field_value || !field_mappings[field_value]) return;
+			const new_df = Object.assign({}, field_mappings[field_value]);
 			/* if the field label has status in it and
 			if it has select fieldtype with no default value then
 			set a default value from the available option. */
 			if (
-				new_df.label.match(status_regex) &&
+				new_df.label?.match(status_regex) &&
 				new_df.fieldtype === "Select" &&
 				!new_df.default
 			) {
@@ -418,6 +441,8 @@ export default class BulkOperations {
 		}
 
 		function show_help_text() {
+			if (dialog.get_primary_btn().is(":focus, :active")) return;
+
 			let value = dialog.get_value("value");
 			if (value == null || value === "") {
 				dialog.set_df_property(
@@ -452,9 +477,7 @@ export default class BulkOperations {
 			primary_action: () => {
 				let args = dialog.get_values();
 				if (args && args.tags) {
-					dialog.set_message("Adding Tags...");
-
-					frappe.call({
+					return frappe.call({
 						method: "frappe.desk.doctype.tag.tag.add_tags",
 						args: {
 							tags: args.tags,
@@ -476,7 +499,9 @@ export default class BulkOperations {
 		frappe.require("data_import_tools.bundle.js", () => {
 			const data_exporter = new frappe.data_import.DataExporter(
 				doctype,
-				"Insert New Records"
+				"Insert New Records",
+				"CSV",
+				true
 			);
 			data_exporter.dialog.set_value("export_records", "by_filter");
 			data_exporter.filter_group.add_filters_to_filter_group([

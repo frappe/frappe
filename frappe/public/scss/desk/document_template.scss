@@ -1,0 +1,138 @@
+// Document Template Manager Styles
+// Styles for the manage templates dialog
+
+.dt-manage-list {
+	margin-top: calc(-1 * var(--padding-xs));
+
+	.text-center.text-muted {
+		padding: var(--padding-md) 0;
+	}
+}
+
+.dt-manage-row {
+	display: flex;
+	align-items: center;
+	padding: var(--padding-xs) var(--padding-xs);
+}
+
+.dt-manage-row-label-group {
+	display: flex;
+	align-items: center;
+	flex: 1;
+	min-width: 0;
+	border-radius: var(--radius);
+	padding: var(--padding-xs);
+	margin-right: var(--padding-xs);
+}
+
+.dt-row--active {
+	cursor: pointer;
+
+	.dt-manage-row-label-group {
+		transition: background-color 0.15s ease;
+	}
+
+	&:hover .dt-manage-row-label-group {
+		background-color: var(--bg-light-gray);
+	}
+}
+
+.dt-manage-row-label {
+	flex: 1;
+	min-width: 0;
+	font-weight: var(--weight-medium);
+	color: var(--text-color);
+
+	&.text-muted {
+		color: var(--text-muted) !important;
+	}
+}
+
+.dt-manage-row-lock {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	margin-left: var(--padding-xs);
+}
+
+.dt-manage-row-actions {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	gap: var(--padding-xs);
+
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.dt-action-edit,
+	.dt-action-delete {
+		padding: var(--padding-xs);
+		min-width: unset;
+		width: 24px;
+		height: 24px;
+	}
+}
+
+.dt-pagination {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--padding-sm);
+	padding: var(--padding-sm) 0;
+	margin-top: var(--margin-xs);
+}
+
+.dt-disabled-separator-hr {
+	border-top: 1px solid var(--border-color);
+	margin: var(--margin-xs) 0 0;
+	opacity: 1;
+}
+
+.dt-disabled-separator {
+	padding: var(--padding-xs) var(--padding-xs) 0;
+	margin-top: var(--margin-xs);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	font-size: var(--text-xs);
+}
+
+.dt-section-break {
+	margin-top: var(--margin-md);
+
+	hr {
+		border-top: 1px solid var(--border-color);
+		margin: var(--margin-sm) 0;
+		opacity: 1;
+	}
+
+	.dt-section-heading {
+		font-size: var(--text-base);
+		font-weight: var(--weight-semibold);
+		color: var(--heading-color);
+		padding-bottom: var(--padding-md);
+	}
+}
+
+.dt-save-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+
+	.frappe-control {
+		margin-bottom: 0;
+
+		.form-group {
+			margin-bottom: 0;
+		}
+	}
+}
+
+.dt-no-saved-templates {
+	padding-bottom: 10px;
+	margin: var(--margin-sm) 0;
+	text-align: center;
+	color: var(--text-muted);
+}

@@ -1,52 +1,74 @@
+{% from "templates/includes/login/macros.html" import alert_banner %}
 {% extends "templates/web.html" %}
-{% block navbar %}{% endblock %}
-
+{% block navbar %}
+{% if show_language_picker %}
+    {{ super() }}
+{% endif %}
+{% endblock %}
 {% macro email_login_body() -%}
 {% if not disable_user_pass_login or (ldap_settings and ldap_settings.enabled) %}
-<div class="page-card-body">
-	<div class="form-group">
-		<label class="form-label sr-only" for="login_email">{{ login_label or _("Email")}}</label>
+<div class="page-card-body flex flex-col gap-4">
+	{{ alert_banner("error") }}
+	<div class="form-group flex flex-col items-start gap-1.5 mb-0">
+		<label class="text-base text-ink-gray-5 w-full mb-0" for="login_email">{{ login_label or _("Email")}}</label>
 		<div class="email-field">
 			<input type="text" id="login_email" class="form-control"
 				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _('jane@example.com') }}{% endif %}"
 				required autofocus autocomplete="username">
-
-			<svg class="field-icon email-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
-				xmlns="http://www.w3.org/2000/svg">
-				<use class="es-lock" href="#es-line-email"></use>
-			</svg>
 		</div>
+		<p class="field-error text-base text-ink-red-8 mb-0"></p>
 	</div>
 
-	<div class="form-group">
-		<label class="form-label sr-only" for="login_password">{{ _("Password") }}</label>
-		<div class="password-field">
-			<input type="password" id="login_password" class="form-control" placeholder="•••••"
-				autocomplete="current-password" required>
+	<div class="form-group flex flex-col items-start gap-2 mb-0">
+		<div class="flex flex-col items-start gap-1.5 w-full">
+			<label class="text-base text-ink-gray-5 w-full mb-0" for="login_password">{{ _("Password") }}</label>
+			<div class="password-field">
+				<input type="password" id="login_password" class="form-control" placeholder="••••••••"
+					autocomplete="current-password" required>
 
-			<svg class="field-icon password-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
-				xmlns="http://www.w3.org/2000/svg">
-					<use class="es-lock" href="#es-line-lock"></use>
-			</svg>
-			<span toggle="#login_password" class="toggle-password text-muted">{{ _('Show') }}</span>
+				<svg toggle="#login_password" class="icon icon-sm toggle-password" xmlns="http://www.w3.org/2000/svg">
+						<use href="#icon-eye"></use>
+					</svg>
+			</div>
+			<p class="field-error text-base text-ink-red-8 mb-0"></p>
 		</div>
+		{% if not disable_user_pass_login %}
+		<p class="text-lg text-right w-full mb-0">
+			<a href="#forgot" class="text-base text-ink-gray-5">{{ _("Forgot password?") }}</a>
+		</p>
+		{% endif %}
 	</div>
-
-	{% if not disable_user_pass_login %}
-	<p class="forgot-password-message">
-		<a href="#forgot">{{ _("Forgot Password?") }}</a>
-	</p>
-	{% endif %}
 </div>
 {% endif %}
-<div class="page-card-actions">
+<div class="page-card-actions flex flex-col gap-3">
 	{% if not disable_user_pass_login %}
-	<button class="btn btn-sm btn-primary btn-block btn-login" type="submit">
-		{{ _("Login") }}</button>
+	<button class="es-button w-full" data-variant="solid" type="submit">
+		{{ _("Continue") }}</button>
 	{% endif %}
 	{% if ldap_settings and ldap_settings.enabled %}
-	<button class="btn btn-sm {{ "btn-primary" if disable_user_pass_login else "btn-default" }} btn-block btn-login btn-ldap-login">
+	<button class="es-button w-full btn-ldap-login" data-variant="solid">
 		{{ _("Login with LDAP") }}</button>
+	{% endif %}
+	{% if login_with_email_link %}
+	<a href="#login-with-email-link"
+		class="es-button w-full btn-login-option btn-login-with-email-link">
+		{{ _("Login with Email Link") }}</a>
+	{% endif %}
+	{% if social_login %}
+	<div class="social-logins text-center text-base">
+		<div class="social-login-buttons">
+			{% for provider in provider_logins %}
+			<div class="login-button-wrapper">
+				<a href="{{ provider.auth_url }}"
+					class="es-button w-full btn-login-option btn-{{ provider.name }}">
+					{% if provider.icon %}
+						{{ provider.icon }}
+					{% endif %}
+					{{ _("Login with {0}").format(provider.provider_name) }}</a>
+			</div>
+			{% endfor %}
+		</div>
+	</div>
 	{% endif %}
 </div>
 {% endmacro %}
@@ -55,18 +77,24 @@
 {{ include_style('login.bundle.css') }}
 {% endblock %}
 
-{% macro logo_section(title=null) %}
-<div class="page-card-head">
+{% macro logo_section(title=null, subtitle=null) %}
+<div class="page-card-head flex flex-col items-start gap-4 text-left">
 	<img class="app-logo" src="{{ logo }}">
-	{% if title %}
-	<h4>{{ _(title)}}</h4>
-	{% else %}
-	<h4>{{ _('Login to {0}').format(app_name or _("Frappe")) }}</h4>
-	{% endif %}
+	<div class="page-card-head-text flex flex-col gap-1.5 w-full">
+		{% if title %}
+		<h4 class="text-3xl-bold text-ink-gray-9 w-full mt-0 mb-0">{{ _(title) }}</h4>
+		{% else %}
+		<h4 class="text-3xl-bold text-ink-gray-9 w-full mt-0 mb-0">{{ _('Sign In') }}</h4>
+		{% endif %}
+		{% if subtitle %}
+		<p class="page-card-subtitle text-p-base text-ink-gray-6 mb-0">{{ _(subtitle) }}</p>
+		{% endif %}
+	</div>
 </div>
 {% endmacro %}
 
 {% block page_content %}
+
 <!-- {{ for_test }} -->
 <div>
 	<noscript>
@@ -77,152 +105,110 @@
 		</div>
 	</noscript>
 	<section class='for-login'>
-		{{ logo_section() }}
-		<div class="login-content page-card">
-			<form class="form-signin form-login" role="form">
-				{%- if social_login or login_with_email_link -%}
-				<div class="page-card-body">
-					<form class="form-signin form-login" role="form">
-						{{ email_login_body() }}
-					</form>
-					<div class="social-logins text-center">
-						{% if not disable_user_pass_login or (ldap_settings and ldap_settings.enabled) %}
-						<p class="text-muted login-divider">{{ _("or") }}</p>
-						{% endif %}
-						<div class="social-login-buttons">
-							{% for provider in provider_logins %}
-							<div class="login-button-wrapper">
-								<a href="{{ provider.auth_url }}"
-									class="btn btn-block btn-default btn-sm btn-login-option btn-{{ provider.name }}">
-									{% if provider.icon %}
-										{{ provider.icon }}
-									{% endif %}
-									{{ _("Login with {0}").format(provider.provider_name) }}</a>
-							</div>
-							{% endfor %}
-						</div>
-
-						{% if login_with_frappe_cloud_url %}
-						<div class="social-login-buttons">
-							<div class="login-button-wrapper">
-								<a href="{{ login_with_frappe_cloud_url }}"
-									class="btn btn-block btn-default btn-sm btn-login-option btn-login-with-frappe-cloud">
-									<svg class="mr-2" width="24" height="20" viewBox="0 5 23 23" fill="none"
-										xmlns="http://www.w3.org/2000/svg">
-										<path
-											d="M24.5011 14.1124C23.3954 12.4873 21.532 11.5477 19.594 11.6747C18.7616 10.1384 17.2211 9.12267 15.4198 9.0084C14.1651 8.93222 12.8979 9.3766 11.9165 10.24C11.2456 10.8367 10.7611 11.5223 10.463 12.2968C10.289 12.7539 9.89151 13.0459 9.46912 13.0459H6.5V15.5852H9.46912C10.9226 15.5852 12.2271 14.6584 12.7737 13.2237C12.9227 12.8301 13.1712 12.4873 13.5439 12.1571C14.0284 11.7255 14.662 11.4969 15.2583 11.535C16.1528 11.5985 16.7863 12.0175 17.1839 12.538C17.6063 13.0205 17.8423 13.7696 17.979 14.5187C18.774 14.2902 19.6437 14.0997 20.476 14.2394C21.1593 14.3536 21.7929 14.7218 22.2525 15.2678C22.327 15.3567 22.4016 15.4456 22.4637 15.5471C23.06 16.4232 23.1718 17.5024 22.7743 18.5689C22.414 19.5592 21.0847 20.4607 19.9791 20.4607H11.3326C10.1524 20.4607 9.18339 19.5592 9.03432 18.4038H6.54969C6.71119 20.9686 8.78585 23 11.3326 23H19.9915C22.1283 23 24.3769 21.451 25.1098 19.4704C25.7931 17.6167 25.5695 15.6614 24.5135 14.0997L24.5011 14.1124Z"
-											fill="currentColor" />
-									</svg>
-									{{ _("Login with Frappe Cloud") }}</a>
-							</div>
-						</div>
-						{% endif %}
-
-						{% if login_with_email_link %}
-						<div class="login-with-email-link social-login-buttons">
-							<div class="login-button-wrapper">
-								<a href="#login-with-email-link"
-									class="btn btn-block btn-default btn-sm btn-login-option btn-login-with-email-link">
-									{{ _("Login with Email Link") }}</a>
-							</div>
-						</div>
-						{% endif %}
-					</div>
-				</div>
-				{% else %}
-					{{ email_login_body() }}
-				{%- endif -%}
+		<div class="login-content page-card flex flex-col gap-5">
+			{{ logo_section(_('Sign In'), _('Welcome! Please sign in to continue.')) }}
+			<form class="form-signin form-login flex flex-col gap-8" role="form" novalidate>
+				{{ email_login_body() }}
 			</form>
+			{%- if not disable_signup and not disable_user_pass_login -%}
+			<div class="text-center sign-up-message text-p-sm text-ink-gray-6 mt-auto mb-0">
+				{{ _("Don't have an account?") }}
+				<a href="#signup" class="text-p-sm-semibold text-ink-gray-6">{{ _("Sign up") }}</a>
+			</div>
+			{%- endif -%}
 		</div>
-		{%- if not disable_signup and not disable_user_pass_login -%}
-		<div class="text-center sign-up-message">
-			{{ _("Don't have an account?") }}
-			<a href="#signup">{{ _("Sign up") }}</a>
-		</div>
-		{%- endif -%}
 	</section>
 
 	{%- if social_login -%}
 	<section class='for-email-login'>
-		{{ logo_section() }}
-		<div class="login-content page-card">
-			<form class="form-signin form-login" role="form">
+		<div class="login-content page-card flex flex-col gap-5">
+			{{ logo_section(_('Sign In'), _('Welcome! Please sign in to continue.')) }}
+			<form class="form-signin form-login flex flex-col gap-8" role="form" novalidate>
 			{{ email_login_body() }}
 			</form>
-		</div>
-		{%- if not disable_signup and not disable_user_pass_login -%}
-		<div class="text-center sign-up-message">
-			{{ _("Don't have an account?") }}
-			<a href="#signup">{{ _("Sign up") }}</a>
-		</div>
-		{%- endif -%}
-	</section>
-	{%- endif -%}
-	<section class='for-signup {{ "signup-disabled" if disable_signup else "" }}'>
-		{{ logo_section(_('Create a {0} Account').format(app_name or _("Frappe"))) }}
-		<div class="login-content page-card">
-			{%- if not disable_signup -%}
-			{{ signup_form_template }}
-			{%- else -%}
-			<div class='page-card-head mb-2'>
-				<span class='indicator gray'>{{_("Signup Disabled")}}</span>
-				<p class="text-muted text-normal sign-up-message mt-1 mb-8">{{_("Signups have been disabled for this website.")}}</p>
-				<div><a href='/' class='btn btn-primary btn-md'>{{ _("Home") }}</a></div>
+			{%- if not disable_signup and not disable_user_pass_login -%}
+			<div class="text-center sign-up-message text-p-sm text-ink-gray-6 mt-auto mb-0">
+				{{ _("Don't have an account?") }}
+				<a href="#signup" class="text-p-sm-semibold text-ink-gray-6">{{ _("Sign up") }}</a>
 			</div>
 			{%- endif -%}
 		</div>
-
+	</section>
+	{%- endif -%}
+	<section class='for-signup {{ "signup-disabled" if disable_signup else "" }}'>
+		<div class="login-content page-card flex flex-col gap-5">
+			{{ logo_section(_('Sign Up'), _("Let's setup your account.")) }}
+			{%- if not disable_signup -%}
+			{{ signup_form_template }}
+			{%- else -%}
+			<div class="signup-disabled-message">
+				<span class='indicator gray'>{{_("Signup Disabled")}}</span>
+				<p class="text-muted text-normal sign-up-message mt-1 mb-8">{{_("Signups have been disabled for this website.")}}</p>
+				<div><a href='/' class='es-button' data-variant="solid">{{ _("Home") }}</a></div>
+			</div>
+			{%- endif -%}
+		</div>
 	</section>
 
 	<section class='for-forgot'>
-		{{ logo_section('Forgot Password') }}
-		<div class="login-content page-card">
-			<form class="form-signin form-forgot hide" role="form">
-				<div class="page-card-body">
-					<div class="email-field">
-						<input type="email" id="forgot_email" class="form-control"
-							placeholder="{{ _('Email Address') }}" required autofocus autocomplete="username">
-						<svg class="field-icon email-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
-							xmlns="http://www.w3.org/2000/svg">
-							<use class="es-lock" href="#es-line-email"></use>
-						</svg>
-
+		<div class="login-content page-card flex flex-col gap-5">
+			{{ logo_section(_('Forgot Password?'), _("Please enter your email, we'll send you password reset link")) }}
+			<form class="form-signin form-forgot hide flex flex-col gap-8" role="form" novalidate>
+				<div class="page-card-body flex flex-col gap-4">
+					{{ alert_banner("success") }}
+					{{ alert_banner("error") }}
+					<div class="form-group flex flex-col items-start gap-1.5 mb-0">
+						<label class="text-base text-ink-gray-5 w-full mb-0" for="forgot_email">{{ _("Email") }}</label>
+						<div class="email-field">
+							<input type="email" id="forgot_email" class="form-control"
+								placeholder="{{ _('jane@example.com') }}" required autofocus autocomplete="username">
+						</div>
+						<p class="field-error text-base text-ink-red-8 mb-0"></p>
 					</div>
 				</div>
-				<div class="page-card-actions">
-					<button class="btn btn-sm btn-primary btn-block btn-forgot"
-						type="submit">{{ _("Reset Password") }}</button>
-					<p class="text-center sign-up-message">
-						<a href="#login">{{ _("Back to Login") }}</a>
-					</p>
+				<div class="page-card-actions flex flex-col gap-3">
+					<button class="es-button w-full btn-forgot" data-variant="solid"
+						type="submit" disabled>{{ _("Send Link") }}</button>
 				</div>
-
 			</form>
+			<div class="text-center sign-up-message text-p-sm text-ink-gray-6 mt-auto mb-0">
+				<a href="#login" class="text-p-sm-semibold text-ink-gray-6">{{ _("Back to sign in") }}</a>
+			</div>
 		</div>
 	</section>
 
 	<section class='for-login-with-email-link'>
-			{{ logo_section(_('Login with Email Link')) }}
-		<div class="login-content page-card">
-			<form class="form-signin form-login-with-email-link hide" role="form">
-				<div class="page-card-body">
-					<div class="email-field">
-						<input type="email" id="login_with_email_link_email" class="form-control"
-							placeholder="{{ _('Email Address') }}" required autofocus autocomplete="username">
-						<svg class="field-icon email-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
-							xmlns="http://www.w3.org/2000/svg">
-							<use class="es-lock" href="#es-line-email"></use>
-						</svg>
+		<div class="login-content page-card flex flex-col gap-5">
+			{{ logo_section(_('Sign In'), _('Welcome! Please sign in to continue.')) }}
+			<form class="form-signin form-login-with-email-link hide flex flex-col gap-8" role="form" novalidate>
+				<div class="page-card-body flex flex-col gap-4">
+					{{ alert_banner("success", _("Please check your email.")) }}
+					{{ alert_banner("error") }}
+					<div class="form-group flex flex-col items-start gap-1.5 mb-0">
+						<label class="text-base text-ink-gray-5 w-full mb-0" for="login_with_email_link_email">{{ _("Email") }}</label>
+						<div class="email-field">
+							<input type="email" id="login_with_email_link_email" class="form-control"
+								placeholder="{{ _('jane@example.com') }}" required autofocus autocomplete="username">
+						</div>
+						<p class="field-error text-base text-ink-red-8 mb-0"></p>
 					</div>
 				</div>
-				<div class="page-card-actions">
-					<button class="btn btn-sm btn-primary btn-block btn-login-with-email-link"
-						type="submit">{{ _("Send login link") }}</button>
-					<p class="text-center sign-up-message">
-						<a href="#login">{{ _("Back to Login") }}</a>
+				<div class="page-card-actions flex flex-col gap-3">
+					<p class="resend-link hidden flex items-center gap-2 w-full text-base text-ink-gray-6 mb-0">
+						{{ _("Didn't receive the link?") }} <a href="#" class="btn-resend-link text-base-semibold text-ink-gray-6">{{ _("Resend") }}</a>
 					</p>
+					<button class="es-button w-full btn-login-with-email-link" data-variant="solid"
+						type="submit">{{ _("Send login link") }}</button>
+					<a href="#login" class="es-button w-full btn-login-option">
+						{{ _("Login with password") }}</a>
 				</div>
 			</form>
+			{%- if not disable_signup -%}
+			<div class="text-center sign-up-message text-p-sm text-ink-gray-6 mt-auto mb-0">
+				{{ _("Don't have an account?") }}
+				<a href="#signup" class="text-p-sm-semibold text-ink-gray-6">{{ _("Sign up") }}</a>
+			</div>
+			{%- endif -%}
 		</div>
 	</section>
 </div>

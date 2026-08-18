@@ -12,6 +12,8 @@ from frappe.website.utils import clear_cache
 
 
 class Comment(Document):
+	_DOCTYPE_NAME = "Comment"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -56,13 +58,21 @@ class Comment(Document):
 	no_feed_on_delete = True
 
 	def after_insert(self):
-		notify_mentions(self.reference_doctype, self.reference_name, self.content)
+		notify_mentions(
+			self.reference_doctype,
+			self.reference_name,
+			self.content,
+			source_doctype=self.doctype,
+			source_name=self.name,
+		)
 		self.notify_change("add")
 
 	def validate(self):
 		if not self.comment_email:
 			self.comment_email = frappe.session.user
-		self.content = frappe.utils.sanitize_html(self.content, always_sanitize=True)
+		self.content = frappe.utils.sanitize_html(
+			self.content, always_sanitize=True, disallowed_tags=["form", "input", "button"]
+		)
 
 	def on_update(self):
 		update_comment_in_doc(self)
@@ -148,6 +158,28 @@ def update_comment_in_doc(doc):
 			)
 
 		update_comments_in_parent(doc.reference_doctype, doc.reference_name, _comments)
+
+
+def relink_comment_cache(doc, old_reference_doctype, old_reference_name):
+	"""Move `doc`'s cached entry out of the old parent's `_comments` and into the new one.
+
+	Used both by ``Communication.on_update`` (old reference read from
+	``get_doc_before_save()``) and by ``frappe.email.relink`` (old reference captured
+	before the raw SQL update), so the cache stays in sync whichever way the
+	reference is changed.
+	"""
+	if (
+		old_reference_doctype
+		and old_reference_name
+		and (old_reference_doctype, old_reference_name) != (doc.reference_doctype, doc.reference_name)
+	):
+		_comments = get_comments_from_parent(
+			frappe._dict(reference_doctype=old_reference_doctype, reference_name=old_reference_name)
+		)
+		_comments = [c for c in _comments if c.get("name") != doc.name]
+		update_comments_in_parent(old_reference_doctype, old_reference_name, _comments)
+
+	update_comment_in_doc(doc)
 
 
 def get_comments_from_parent(doc):

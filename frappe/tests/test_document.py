@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import inspect
+import pickle
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import timedelta
@@ -9,9 +10,11 @@ from unittest.mock import Mock, patch
 import frappe
 from frappe.app import make_form_dict
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.core.doctype.rq_job.test_rq_job import wait_for_completion
 from frappe.core.doctype.user.user import User
 from frappe.desk.doctype.note.note import Note
-from frappe.model.document import LazyChildTable
+from frappe.desk.doctype.todo.todo import ToDo
+from frappe.model.document import Document, LazyChildTable, LazyDocument
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
 from frappe.tests import IntegrationTestCase
 from frappe.utils import cint, now_datetime, set_request
@@ -49,6 +52,10 @@ class TestDocument(IntegrationTestCase):
 		self.assertEqual(d.doctype, "Website Settings")
 		self.assertTrue(d.disable_signup in (0, 1))
 
+		with patch.object(frappe.db, "get_singles_dict", return_value=frappe._dict({"disable_signup": 0})):
+			d = frappe.get_doc("Website Settings")
+			self.assertEqual(d.name, "Website Settings")
+
 	def test_insert(self):
 		d = frappe.get_doc(
 			{
@@ -64,6 +71,22 @@ class TestDocument(IntegrationTestCase):
 
 		# test if default values are added
 		self.assertEqual(d.send_reminder, 1)
+		return d
+
+	def test_submittable_insert(self):
+		dt = frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"module": "Core",
+				"name": "Test Submittable Doctype",
+				"custom": 1,
+				"is_submittable": 1,
+				"fields": [{"label": "Field", "fieldname": "test_field", "fieldtype": "Data"}],
+				"permissions": [{"role": "System Manager", "read": 1, "write": 1, "submit": 1, "cancel": 1}],
+			}
+		).insert(ignore_if_duplicate=True)
+
+		d = frappe.get_doc({"doctype": dt.name, "test_field": "test"}).insert()
 		return d
 
 	def test_website_route_default(self):
@@ -101,7 +124,7 @@ class TestDocument(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value(d.doctype, d.name, "subject"), "subject changed")
 
 	def test_discard_transitions(self):
-		d = self.test_insert()
+		d = self.test_submittable_insert()
 		self.assertEqual(d.docstatus, 0)
 
 		# invalid: Submit > Discard, Cancel > Discard
@@ -113,7 +136,7 @@ class TestDocument(IntegrationTestCase):
 		self.assertRaises(frappe.ValidationError, d.discard)
 
 		# valid: Draft > Discard
-		d2 = self.test_insert()
+		d2 = self.test_submittable_insert()
 		d2.discard()
 		self.assertEqual(d2.docstatus, 2)
 
@@ -262,16 +285,16 @@ class TestDocument(IntegrationTestCase):
 
 	def test_xss_filter(self):
 		d = self.test_insert()
+		subject = d.subject
 
 		# script
 		xss = '<script>alert("XSS")</script>'
-		escaped_xss = xss.replace("<", "&lt;").replace(">", "&gt;")
 		d.subject += xss
 		d.save()
 		d.reload()
 
 		self.assertTrue(xss not in d.subject)
-		self.assertTrue(escaped_xss in d.subject)
+		self.assertEqual(subject, d.subject)
 
 		# onload
 		xss = '<div onload="alert("XSS")">Test</div>'
@@ -325,6 +348,27 @@ class TestDocument(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Currency", d.name), d.name)
 
 		frappe.delete_doc_if_exists("Currency", "Frappe Coin", 1)
+
+	def test_min_max_value_check(self):
+		doctype = new_doctype(
+			fields=[
+				{
+					"fieldname": "qty",
+					"fieldtype": "Int",
+					"label": "Qty",
+					"min_value": 5,
+					"max_value": 10,
+				}
+			]
+		).insert()
+
+		try:
+			self.assertRaises(frappe.ValidationError, frappe.get_doc(doctype=doctype.name, qty=3).insert)
+			self.assertRaises(frappe.ValidationError, frappe.get_doc(doctype=doctype.name, qty=12).insert)
+			frappe.get_doc(doctype=doctype.name, qty=7).insert()
+			frappe.get_doc(doctype=doctype.name).insert()
+		finally:
+			doctype.delete(force=True)
 
 	def test_get_formatted(self):
 		frappe.get_doc(
@@ -538,6 +582,23 @@ class TestDocument(IntegrationTestCase):
 		changed_val = frappe.db.get_single_value(c.doctype, key)
 		self.assertEqual(val, changed_val)
 
+	def test_non_submittable_doctype_docstatus_transition(self):
+		doc = frappe.get_doc({"doctype": "ToDo", "description": "test submit guard"}).insert()
+		doc.docstatus = 1
+
+		self.assertRaises(frappe.DocstatusTransitionError, doc.save)
+
+	def test_skip_docstatus_validation_flag(self):
+		doc = frappe.get_doc({"doctype": "ToDo", "description": "test skip flag"}).insert()
+		doc.docstatus = 1
+		self.assertRaises(frappe.DocstatusTransitionError, doc.save)
+
+		doc.reload()
+		doc.docstatus = 1
+		doc.flags.skip_docstatus_validation = True
+		doc.save()
+		self.assertEqual(frappe.db.get_value("ToDo", doc.name, "docstatus"), 1)
+
 
 class TestDocumentWebView(IntegrationTestCase):
 	def get(self, path, user="Guest"):
@@ -707,14 +768,16 @@ class TestLazyDocument(IntegrationTestCase):
 		self.assertTrue(frappe.get_lazy_doc("User", "Guest").get("roles"))
 
 	def test_lazy_doc_efficient_saves(self):
-		# Only touched tables and self should be updated
+		# Only touched tables and self should be updated.
+		per_update = 1
+
 		guest = frappe.get_lazy_doc("User", "Guest")
-		with self.assertQueryCount(1):
+		with self.assertQueryCount(per_update):
 			guest.db_update_all()
 
 		guest = frappe.get_lazy_doc("User", "Guest")
 		_ = guest.roles
-		with self.assertQueryCount(1 + len(guest.roles)):
+		with self.assertQueryCount(per_update * (1 + len(guest.roles))):
 			guest.db_update_all()
 
 		# Save should works, it won't be efficient because internal code will just trigger fetching
@@ -782,3 +845,204 @@ class TestLazyDocument(IntegrationTestCase):
 	def test_for_update(self):
 		guest = frappe.get_lazy_doc("User", "Guest", for_update=True)
 		self.assertTrue(guest.flags.for_update)
+
+	def test_pickling(self):
+		guest = frappe.get_lazy_doc("User", "Guest")
+		unpickled = pickle.loads(pickle.dumps(guest))
+		self.assertIsInstance(unpickled, LazyDocument)
+		self.assertIs(type(unpickled), type(guest))
+		self.assertEqual(unpickled.name, "Guest")
+		# unloaded child tables stay lazy and still load after unpickling
+		self.assertNotIn("roles", unpickled.__dict__)
+		self.assertTrue(unpickled.get("roles"))
+
+		# loaded child tables survive the round trip without a refetch
+		guest = frappe.get_lazy_doc("User", "Guest")
+		roles = [r.role for r in guest.roles]
+		unpickled = pickle.loads(pickle.dumps(guest))
+		self.assertIn("roles", unpickled.__dict__)
+		self.assertEqual([r.role for r in unpickled.roles], roles)
+
+		# reconstruction works even when the lazy controller cache is cold,
+		# e.g. unpickling in a freshly started worker
+		data = pickle.dumps(frappe.get_lazy_doc("User", "Guest"))
+		frappe.lazy_controllers.pop(frappe.local.site, None)
+		unpickled = pickle.loads(data)
+		self.assertIsInstance(unpickled, LazyDocument)
+		self.assertTrue(unpickled.get("roles"))
+
+
+class TestGetDocs(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.child_dt = "Test Get Docs Child"
+		cls.parent_dt = "Test Get Docs Parent"
+
+		cls.child_dt = new_doctype(istable=1).insert().name
+		cls.parent_dt = (
+			new_doctype(
+				fields=[
+					{"fieldtype": "Data", "fieldname": "title", "label": "Title"},
+					{
+						"fieldtype": "Table",
+						"fieldname": "child_table",
+						"options": cls.child_dt,
+						"label": "Child Table",
+					},
+				],
+			)
+			.insert()
+			.name
+		)
+		for i in range(5):
+			frappe.get_doc(
+				{
+					"doctype": cls.parent_dt,
+					"title": f"Record {i}",
+					"child_table": [
+						{"some_fieldname": f"child_{i}_0"},
+						{"some_fieldname": f"child_{i}_1"},
+					],
+				}
+			).insert()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.delete(cls.child_dt)
+		frappe.db.delete(cls.parent_dt)
+		frappe.delete_doc("DocType", cls.parent_dt, force=True)
+		frappe.delete_doc("DocType", cls.child_dt, force=True)
+		super().tearDownClass()
+
+	def test_returns_document_instances(self):
+		docs = frappe.get_docs(self.parent_dt)
+		self.assertEqual(len(docs), 5)
+		self.assertIsInstance(docs[0], frappe.model.document.Document)
+		self.assertEqual(docs[0].doctype, self.parent_dt)
+
+	def test_child_tables_populated(self):
+		docs = frappe.get_docs(self.parent_dt)
+		for doc in docs:
+			self.assertEqual(len(doc.child_table), 2)
+			for child in doc.child_table:
+				self.assertIsInstance(child, frappe.model.document.Document)
+				self.assertEqual(child.doctype, self.child_dt)
+
+	def test_parity_with_get_doc(self):
+		docs = frappe.get_docs(self.parent_dt, limit=1)
+		doc_bulk = docs[0]
+		doc_single = frappe.get_doc(self.parent_dt, doc_bulk.name)
+
+		self.assertEqual(doc_bulk.as_dict(), doc_single.as_dict())
+
+	def test_filters(self):
+		docs = frappe.get_docs(self.parent_dt, filters={"title": "Record 0"})
+		self.assertEqual(len(docs), 1)
+		self.assertEqual(docs[0].title, "Record 0")
+
+	def test_limit(self):
+		docs = frappe.get_docs(self.parent_dt, limit=2)
+		self.assertEqual(len(docs), 2)
+
+	def test_limit_start(self):
+		all_docs = frappe.get_docs(self.parent_dt, order_by="creation asc")
+		offset_docs = frappe.get_docs(self.parent_dt, limit_start=2, limit=5, order_by="creation asc")
+		self.assertEqual(len(offset_docs), 3)
+		self.assertEqual(offset_docs[0].name, all_docs[2].name)
+
+	def test_order_by(self):
+		docs_asc = frappe.get_docs(self.parent_dt, order_by="creation asc")
+		docs_desc = frappe.get_docs(self.parent_dt, order_by="creation desc")
+		self.assertEqual(docs_asc[0].name, docs_desc[-1].name)
+
+	def test_generator_parity(self):
+		eager = frappe.get_docs(self.parent_dt, order_by="creation asc")
+		gen_docs = list(
+			frappe.get_docs(self.parent_dt, as_iterator=True, chunk_size=2, order_by="creation asc")
+		)
+		self.assertEqual([d.name for d in eager], [d.name for d in gen_docs])
+
+	def test_for_update_sets_flag(self):
+		docs = frappe.get_docs(self.parent_dt, limit=1, for_update=True)
+		self.assertTrue(docs[0].flags.for_update)
+
+
+class TestDocsCollection(IntegrationTestCase):
+	"""Tests for the `DocsCollection` descriptor on `Document` subclasses.
+
+	The descriptor exposes typed, doctype-scoped helpers (`.docs.get`,
+	`.docs.last`, `.docs.filter`, `.docs.new`, `.docs.delete`) on any
+	controller class that declares `_DOCTYPE_NAME`.
+	"""
+
+	def tearDown(self):
+		frappe.db.rollback()
+		return super().tearDown()
+
+	def test_doctype_resolved_from_controller(self):
+		self.assertEqual(ToDo.docs._doctype, "ToDo")
+
+	def test_get_returns_document(self):
+		todo = ToDo.docs.new(description="docs.get test").insert()
+		fetched = ToDo.docs.get(todo.name)
+		self.assertIsInstance(fetched, ToDo)
+		self.assertEqual(fetched.name, todo.name)
+		self.assertEqual(fetched.description, "docs.get test")
+
+	def test_get_cached(self):
+		todo = ToDo.docs.new(description="docs.get cached").insert()
+		cached = ToDo.docs.get(todo.name, cached=True)
+		self.assertEqual(cached.name, todo.name)
+		# Second call should return the same cached object.
+		cached2 = ToDo.docs.get(todo.name, cached=True)
+		self.assertIs(cached, cached2)
+
+	def test_get_lazy(self):
+		todo = ToDo.docs.new(description="docs.get lazy").insert()
+		lazy = ToDo.docs.get(todo.name, lazy=True)
+		self.assertEqual(lazy.name, todo.name)
+
+	def test_get_cached_and_lazy_are_exclusive(self):
+		with self.assertRaises(ValueError):
+			ToDo.docs.get("dummy", cached=True, lazy=True)
+
+	def test_new_creates_unsaved_document(self):
+		todo = ToDo.docs.new(description="docs.new test")
+		self.assertIsInstance(todo, ToDo)
+		self.assertEqual(todo.doctype, "ToDo")
+		self.assertEqual(todo.description, "docs.new test")
+		self.assertTrue(todo.get("__islocal"))
+
+	def test_last_returns_most_recent(self):
+		marker = f"docs.last marker {frappe.generate_hash(length=8)}"
+		_ = ToDo.docs.new(description=marker).insert()
+		second = ToDo.docs.new(description=marker).insert()
+		last = ToDo.docs.last({"description": marker})
+		self.assertEqual(last.name, second.name)
+
+	def test_filter_returns_matching_documents(self):
+		marker = f"docs.filter marker {frappe.generate_hash(length=8)}"
+		created = [ToDo.docs.new(description=marker).insert() for _ in range(3)]
+		docs = ToDo.docs.filter({"description": marker})
+		self.assertEqual(len(docs), 3)
+		names = {d.name for d in docs}
+		self.assertEqual(names, {d.name for d in created})
+		self.assertTrue(all(isinstance(d, ToDo) for d in docs))
+
+	def test_subclass_uses_its_own_doctype(self):
+		"""Subclasses with their own `_DOCTYPE_NAME` resolve independently."""
+		self.assertEqual(ToDo.docs._doctype, "ToDo")
+		self.assertEqual(Note.docs._doctype, "Note")
+
+	def test_missing_doctype_name_raises(self):
+		class Orphan(Document):
+			pass
+
+		with self.assertRaises(AttributeError):
+			Orphan.docs._doctype
+
+	def test_not_accessible_via_instances(self):
+		todo = ToDo.docs.new(description="docs instance access")
+		with self.assertRaises(AttributeError):
+			todo.docs

@@ -3,9 +3,8 @@
 
 from __future__ import annotations
 
-import json
 from collections import defaultdict
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import frappe
 from frappe import _
@@ -43,7 +42,7 @@ def get_workflow_name(doctype):
 
 @frappe.whitelist()
 def get_transitions(
-	doc: Document | str | dict, workflow: Workflow = None, raise_exception: bool = False
+	doc: Document | str | dict, workflow: Workflow | None = None, raise_exception: bool = False
 ) -> list[dict]:
 	"""Return list of possible transitions for the given doc"""
 	from frappe.model.document import Document
@@ -109,7 +108,7 @@ def evaluate_workflow_value(value, evaluate_as_expression, doc):
 			return frappe.safe_eval(value, get_workflow_safe_globals(), dict(doc=doc.as_dict()))
 		except Exception as e:
 			frappe.throw(
-				_("Invalid expression in Workflow Update Value: {0}").format(e),
+				_("Invalid expression in Workflow Update Value: {0}").format(str(e)),
 				title=_("Workflow Evaluation Error"),
 			)
 	else:
@@ -117,7 +116,7 @@ def evaluate_workflow_value(value, evaluate_as_expression, doc):
 
 
 @frappe.whitelist()
-def apply_workflow(doc, action):
+def apply_workflow(doc: Document | str | dict, action: str):
 	"""Allow workflow action on the current doc"""
 	doc = frappe.get_doc(frappe.parse_json(doc))
 	doc.load_from_db()
@@ -218,6 +217,10 @@ def apply_workflow(doc, action):
 	elif doc.docstatus.is_submitted() and new_docstatus.is_submitted():
 		doc.save()
 	elif doc.docstatus.is_submitted() and new_docstatus.is_cancelled():
+		if doc.meta.queue_in_background and not is_scheduler_inactive():
+			queue_submission(doc, "Cancel")
+			return
+
 		doc.cancel()
 	else:
 		frappe.throw(_("Illegal Document Status for {0}").format(next_state.state))
@@ -228,7 +231,7 @@ def apply_workflow(doc, action):
 
 
 @frappe.whitelist()
-def can_cancel_document(doctype):
+def can_cancel_document(doctype: str):
 	workflow = get_workflow(doctype)
 	cancelling_states = [s.state for s in workflow.states if s.doc_status == "2"]
 	if not cancelling_states:
@@ -311,9 +314,9 @@ def get_workflow_field_value(workflow_name, field):
 	return frappe.get_cached_value("Workflow", workflow_name, field)
 
 
-@frappe.whitelist()
-def bulk_workflow_approval(docnames, doctype, action):
-	docnames = json.loads(docnames)
+@frappe.whitelist(methods=["POST"])
+def bulk_workflow_approval(docnames: str | list, doctype: str, action: str):
+	docnames = frappe.parse_json(docnames)
 	if len(docnames) < 20:
 		_bulk_workflow_action(docnames, doctype, action)
 	elif len(docnames) <= 500:
@@ -373,6 +376,10 @@ def _bulk_workflow_action(docnames, doctype, action):
 				else:
 					successful_transactions[docname].append({"docname": docname, "message": None})
 
+	assert all(
+		docname in failed_transactions or docname in successful_transactions for docname in docnames
+	), "every docname must be recorded as either a failed or successful transaction"
+
 	if failed_transactions and successful_transactions:
 		indicator = "orange"
 	elif failed_transactions:
@@ -407,10 +414,9 @@ def print_workflow_log(messages, title, doctype, indicator):
 
 
 @frappe.whitelist()
-def get_common_transition_actions(docs, doctype):
+def get_common_transition_actions(docs: str | list[dict[str, Any]], doctype: str):
 	common_actions = []
-	if isinstance(docs, str):
-		docs = json.loads(docs)
+	docs = frappe.parse_json(docs)
 	try:
 		for i, doc in enumerate(docs, 1):
 			if not doc.get("doctype"):

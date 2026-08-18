@@ -31,6 +31,10 @@ Object.assign(frappe.model, {
 					frappe.meta.sync(d);
 				}
 
+				if (d.doctype === "Print Format") {
+					frappe.model.sync_print_format_for_meta(d);
+				}
+
 				if (d.localname) {
 					frappe.model.rename_after_save(d, i);
 				}
@@ -41,16 +45,60 @@ Object.assign(frappe.model, {
 		return r.docs;
 	},
 
+	sync_print_format_for_meta: function (doc) {
+		if (!locals[":Print Format"]) locals[":Print Format"] = {};
+
+		if (doc.docstatus < 2 && !cint(doc.disabled)) {
+			locals[":Print Format"][doc.name] = {
+				...doc,
+				doctype: ":Print Format",
+			};
+		} else {
+			delete locals[":Print Format"][doc.name];
+		}
+	},
+
 	rename_after_save: (d, i) => {
 		frappe.model.new_names[d.localname] = d.name;
+		frappe.model.rename_doc_in_locals(d.doctype, d.localname, d.name);
 		$(document).trigger("rename", [d.doctype, d.localname, d.name]);
-		delete locals[d.doctype][d.localname];
 
 		// update docinfo to new dict keys
 		if (i === 0) {
 			frappe.model.docinfo[d.doctype][d.name] = frappe.model.docinfo[d.doctype][d.localname];
 			frappe.model.docinfo[d.doctype][d.localname] = undefined;
 		}
+	},
+
+	delete_from_locals: (doctype, name) => {
+		frappe.model.clear_doc(doctype, name);
+		if (locals[":" + doctype]) {
+			delete locals[":" + doctype][name];
+		}
+	},
+
+	rename_doc_in_locals: (doctype, old_name, new_name, merge = false) => {
+		if (old_name === new_name) {
+			return;
+		}
+
+		if (locals[doctype]) {
+			delete locals[doctype][old_name];
+		}
+
+		const meta_doctype = ":" + doctype;
+		const doc = locals[meta_doctype]?.[old_name];
+		if (!doc) {
+			return;
+		}
+
+		// The target survives a merge; keep its cached values if present.
+		if (!merge) {
+			doc.name = new_name;
+			doc.doctype = meta_doctype;
+			locals[meta_doctype][new_name] = doc;
+		}
+		delete locals[meta_doctype][old_name];
 	},
 
 	sync_docinfo: (r) => {
@@ -89,6 +137,7 @@ Object.assign(frappe.model, {
 		// add child docs to locals
 		if (!is_table) {
 			for (var i in doc) {
+				if (i.startsWith("__")) continue;
 				var value = doc[i];
 
 				if ($.isArray(value)) {
@@ -104,81 +153,121 @@ Object.assign(frappe.model, {
 		}
 	},
 
-	update_in_locals: function (doc) {
+	update_in_locals: function (updated_doc) {
 		// update values in the existing local doc instead of replacing
-		let local_doc = locals[doc.doctype][doc.name];
+		let local_parent_doc = locals[updated_doc.doctype][updated_doc.name];
 		let clear_keys = function (source, target) {
 			Object.keys(target).map((key) => {
 				if (source[key] == undefined) delete target[key];
 			});
 		};
 
-		for (let fieldname in doc) {
-			let df = frappe.meta.get_field(doc.doctype, fieldname);
+		for (let fieldname in updated_doc) {
+			let df = frappe.meta.get_field(updated_doc.doctype, fieldname);
 			if (df && frappe.model.table_fields.includes(df.fieldtype)) {
 				// table
-				if (!(doc[fieldname] instanceof Array)) {
-					doc[fieldname] = [];
+				if (!(updated_doc[fieldname] instanceof Array)) {
+					updated_doc[fieldname] = [];
 				}
 
-				if (!(local_doc[fieldname] instanceof Array)) {
-					local_doc[fieldname] = [];
+				if (!(local_parent_doc[fieldname] instanceof Array)) {
+					local_parent_doc[fieldname] = [];
 				}
 
 				// child table, override each row and append new rows if required
-				for (let i = 0; i < doc[fieldname].length; i++) {
-					let d = doc[fieldname][i];
-					let local_d = local_doc[fieldname][i];
-					if (local_d) {
-						// deleted and added again
-						if (!locals[d.doctype]) locals[d.doctype] = {};
+				const incoming_names = new Set(updated_doc[fieldname].map((d) => d.name));
+				for (let i = 0; i < updated_doc[fieldname].length; i++) {
+					let updated_child_doc = updated_doc[fieldname][i];
+					let local_child_doc_in_parent = local_parent_doc[fieldname][i];
+					const local_child_doc = locals[updated_child_doc.doctype]
+						? locals[updated_child_doc.doctype][updated_child_doc.name]
+						: null;
+					if (local_child_doc) {
+						// update the existing child doc in locals
+						Object.assign(local_child_doc, updated_child_doc);
+						clear_keys(updated_child_doc, local_child_doc);
+						// update parent array reference if needed
+						if (local_child_doc_in_parent !== local_child_doc) {
+							local_parent_doc[fieldname][i] = local_child_doc;
+						}
+						continue;
+					}
+					if (
+						local_child_doc_in_parent &&
+						!incoming_names.has(local_child_doc_in_parent.name)
+					) {
+						// row at this position is truly deleted/replaced — safe to
+						// reuse the object for the incoming row
+						if (!locals[updated_child_doc.doctype])
+							locals[updated_child_doc.doctype] = {};
 
-						if (!d.name) {
+						if (!updated_child_doc.name) {
 							// incoming row is new, find a new name
-							d.name = frappe.model.get_new_name(doc.doctype);
+							updated_child_doc.name = frappe.model.get_new_name(
+								updated_doc.doctype
+							);
 						}
 
 						// if incoming row is not registered, register it
-						if (!locals[d.doctype][d.name]) {
+						if (!locals[updated_child_doc.doctype][updated_child_doc.name]) {
+							const old_name = local_child_doc_in_parent.name;
+
 							// detach old key
-							delete locals[d.doctype][local_d.name];
+							delete locals[updated_child_doc.doctype][old_name];
 
 							// re-attach with new name
-							locals[d.doctype][d.name] = local_d;
+							locals[updated_child_doc.doctype][updated_child_doc.name] =
+								local_child_doc_in_parent;
+
+							// migrate per-row docfield overrides to new name
+							const dc = frappe.meta.docfield_copy[updated_child_doc.doctype];
+							if (dc?.[old_name]) {
+								dc[updated_child_doc.name] = dc[old_name];
+								delete dc[old_name];
+							}
 						}
 
 						// row exists, just copy the values
-						Object.assign(local_d, d);
-						clear_keys(d, local_d);
+						Object.assign(local_child_doc_in_parent, updated_child_doc);
+						clear_keys(updated_child_doc, local_child_doc_in_parent);
 					} else {
-						local_doc[fieldname].push(d);
-						if (!d.parent) d.parent = doc.name;
-						frappe.model.add_to_locals(d);
+						// row at this position is needed at a different index
+						// (or no row here) — create a fresh local entry
+						local_parent_doc[fieldname][i] = updated_child_doc;
+						if (!updated_child_doc.parent) updated_child_doc.parent = updated_doc.name;
+						frappe.model.add_to_locals(updated_child_doc);
 					}
 				}
 
 				// remove extra rows
-				if (local_doc[fieldname].length > doc[fieldname].length) {
-					for (let i = doc[fieldname].length; i < local_doc[fieldname].length; i++) {
+				if (local_parent_doc[fieldname].length > updated_doc[fieldname].length) {
+					for (
+						let i = updated_doc[fieldname].length;
+						i < local_parent_doc[fieldname].length;
+						i++
+					) {
 						// clear from local
-						let d = local_doc[fieldname][i];
+						let d = local_parent_doc[fieldname][i];
 						if (locals[d.doctype] && locals[d.doctype][d.name]) {
 							delete locals[d.doctype][d.name];
 						}
 					}
-					local_doc[fieldname].length = doc[fieldname].length;
+					local_parent_doc[fieldname].length = updated_doc[fieldname].length;
 				}
 			} else {
 				// literal
-				local_doc[fieldname] = doc[fieldname];
+				local_parent_doc[fieldname] = updated_doc[fieldname];
 			}
 		}
 
-		if (local_doc?.on_paste_event && local_doc?.__newname) {
-			doc.__newname = local_doc.__newname;
+		if (
+			(local_parent_doc?.on_paste_event || updated_doc.__islocal) &&
+			local_parent_doc?.__newname
+		) {
+			updated_doc.__newname = local_parent_doc.__newname;
 		}
 
 		// clear keys on parent
-		clear_keys(doc, local_doc);
+		clear_keys(updated_doc, local_parent_doc);
 	},
 });

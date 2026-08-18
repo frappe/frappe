@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class NavbarItem(Document):
+	_DOCTYPE_NAME = "Navbar Item"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -17,6 +19,7 @@ class NavbarItem(Document):
 		action: DF.Data | None
 		condition: DF.Code | None
 		hidden: DF.Check
+		icon: DF.Icon | None
 		is_standard: DF.Check
 		item_label: DF.Data | None
 		item_type: DF.Literal["Route", "Action", "Separator"]

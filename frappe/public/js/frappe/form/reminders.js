@@ -48,8 +48,7 @@ export class ReminderManager {
 			],
 			primary_action_label: __("Create"),
 			primary_action: () => {
-				this.create_reminder();
-				this.dialog.hide();
+				return this.create_reminder().then(() => this.dialog.hide());
 			},
 			secondary_action_label: __("Cancel"),
 			secondary_action: () => {
@@ -84,7 +83,7 @@ export class ReminderManager {
 	}
 
 	create_reminder() {
-		frappe
+		return frappe
 			.xcall("frappe.automation.doctype.reminder.reminder.create_new_reminder", {
 				remind_at: this.dialog.get_value("remind_at"),
 				description: this.dialog.get_value("description"),

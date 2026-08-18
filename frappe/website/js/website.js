@@ -23,7 +23,7 @@ $.extend(frappe, {
 			if (path.endsWith(".css") && is_rtl) {
 				path = `rtl_${path}`;
 			}
-			path = frappe.boot.assets_json[path] || path;
+			path = frappe.boot?.assets_json?.[path] || path;
 			return path;
 		}
 		return path;
@@ -96,6 +96,18 @@ $.extend(frappe, {
 				403: function () {
 					frappe.msgprint(__("Not permitted"));
 				},
+				417: function (xhr) {
+					var data = xhr.responseJSON;
+					if (!data) {
+						try {
+							data = JSON.parse(xhr.responseText);
+						} catch (e) {
+							data = xhr.responseText;
+						}
+					}
+					if (opts.callback) opts.callback(data);
+					if (opts.error) opts.error(data);
+				},
 				200: function (data) {
 					if (opts.callback) opts.callback(data);
 					if (opts.success) opts.success(data);
@@ -152,19 +164,19 @@ $.extend(frappe, {
 
 		if (data._server_messages) {
 			var server_messages = JSON.parse(data._server_messages || "[]");
-			server_messages
-				.map((msg) => {
-					// temp fix for messages sent as dict
-					try {
-						return JSON.parse(msg);
-					} catch (e) {
-						return msg;
-					}
-				})
-				.join("<br>");
 
 			if (opts.error_msg) {
-				$(opts.error_msg).html(server_messages).toggle(true);
+				var message_html = server_messages
+					.map((msg) => {
+						try {
+							const parsed = JSON.parse(msg);
+							return parsed && typeof parsed === "object" ? parsed.message : parsed;
+						} catch (e) {
+							return msg;
+						}
+					})
+					.join("<br>");
+				$(opts.error_msg).html(message_html).toggle(true);
 			} else {
 				frappe.msgprint(server_messages);
 			}
@@ -199,16 +211,12 @@ $.extend(frappe, {
 		}
 	},
 	show_message: function (text, icon) {
-		if (!icon) icon = "fa fa-refresh fa-spin";
+		let icon_html = icon
+			? '<i class="' + icon + ' text-muted"></i>'
+			: frappe.utils.icon("refresh-cw", "lg");
 		frappe.hide_message();
 		$('<div class="message-overlay"></div>')
-			.html(
-				'<div class="content"><i class="' +
-					icon +
-					' text-muted"></i><br>' +
-					text +
-					"</div>"
-			)
+			.html('<div class="content">' + icon_html + "<br>" + text + "</div>")
 			.appendTo(document.body);
 	},
 	has_permission: function (doctype, docname, perm_type, callback) {
@@ -278,13 +286,17 @@ $.extend(frappe, {
 	},
 
 	trigger_ready: function () {
-		frappe.ready_events.forEach(function (fn) {
-			fn();
+		frappe.ready_events.forEach(function (fn, i) {
+			try {
+				fn();
+			} catch (e) {
+				console.error(`frappe.ready handler #${i} failed:`, fn, e);
+			}
 		});
 	},
 
 	highlight_code_blocks: function () {
-		hljs.initHighlighting();
+		hljs.highlightAll();
 	},
 	bind_filters: function () {
 		// set in select

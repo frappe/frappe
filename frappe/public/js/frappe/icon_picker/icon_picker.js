@@ -4,7 +4,8 @@ class Picker {
 		this.width = opts.width;
 		this.height = opts.height;
 		this.set_icon(opts.icon);
-		this.icons = opts.icons;
+		// [{ label, icons }] -- a section renders a heading only when it is labelled
+		this.sections = opts.sections;
 		this.include_emoji = opts.include_emoji;
 		this.setup_picker();
 	}
@@ -20,13 +21,11 @@ class Picker {
 					<input type="search" placeholder="${__("Search for icons...")}" class="form-control">
 					<span class="search-icon">${frappe.utils.icon("search", "sm")}</span>
 				</div>
-				<div class="icon-section" id='icon-section'>
-					<div class="icons"></div>
-				</div>
+				<div class="icon-section" id='icon-section'></div>
 			</div>
 		`);
 		this.parent.append(this.icon_picker_wrapper);
-		this.icon_wrapper = this.icon_picker_wrapper.find(".icons");
+		this.icon_section = this.icon_picker_wrapper.find(".icon-section");
 		this.search_input = this.icon_picker_wrapper.find(".search-icons > input");
 		this.refresh();
 		this.setup_icons();
@@ -35,64 +34,20 @@ class Picker {
 		}
 	}
 	setup_emojis() {
-		console.log("Making emojis");
-		// setup tab
 		this.setup_tab();
-		// setup emoji container
 		this.setup_emoji_container();
-		// emojis
 		this.emoji_wrapper = this.icon_picker_wrapper.find(".emojis");
-		gemoji.forEach((emoji, i) => {
-			let $icon = $(
-				`<div id="${gemoji[i].emoji}" class="emoji-wrapper">${gemoji[i].emoji}</div>`
-			);
+		frappe.utils.get_emojis().forEach((emoji) => {
+			const $icon = $(`<div id="${emoji}" class="emoji-wrapper">${emoji}</div>`);
 			this.emoji_wrapper.append($icon);
-			const set_values = () => {
-				this.set_icon(gemoji[i].emoji);
-				this.update_icon_selected();
-			};
 			$icon.on("click", () => {
-				set_values();
+				this.set_icon(emoji);
+				this.update_icon_selected();
 			});
-			// $icon.keydown((e) => {
-			// 	const key_code = e.keyCode;
-			// 	if ([13, 32].includes(key_code)) {
-			// 		e.preventDefault();
-			// 		set_values();
-			// 	}
-			// });
-		});
-		this.search_input.on("input", (e) => {
-			e.preventDefault();
-			this.filter_emojis();
 		});
 	}
 	filter_emojis() {
-		let value = this.search_input.val();
-		let filtered_emoji_names = [];
-		if (value) {
-			gemoji.forEach((g) => {
-				g.tags.forEach((t) => {
-					if (t.includes(value)) {
-						filtered_emoji_names.push(g);
-					}
-				});
-				g.names.forEach((t) => {
-					if (t.includes(value)) {
-						filtered_emoji_names.push(g);
-					}
-				});
-			});
-		}
-
-		if (filtered_emoji_names.length == 0) {
-			this.emoji_wrapper.find(".emoji-wrapper").removeClass("hidden");
-		} else {
-			this.emoji_wrapper.find(".emoji-wrapper").addClass("hidden");
-			filtered_emoji_names.forEach((g) => {
-				this.emoji_wrapper.find(`.emoji-wrapper[id*='${g.emoji}']`).removeClass("hidden");
-			});
-		}
+		this.emoji_wrapper.find(".emoji-wrapper").removeClass("hidden");
 	}
 	setup_emoji_container() {
 		this.icon_picker_wrapper.find(".icon-section")
@@ -131,11 +86,33 @@ class Picker {
 		});
 	}
 	setup_icons() {
-		this.icons.forEach((icon) => {
-			let $icon = $(
-				`<div id="${icon}" class="icon-wrapper">${frappe.utils.icon(icon, "md")}</div>`
-			);
-			this.icon_wrapper.append($icon);
+		this.sections.forEach((section) => {
+			this.setup_section(section);
+		});
+		this.search_input.keyup((e) => {
+			e.preventDefault();
+			this.filter_icons();
+		});
+
+		this.search_input.on("search", () => {
+			this.filter_icons();
+		});
+	}
+
+	setup_section({ label, icons }) {
+		let $group = $(`<div class="icon-group">
+				${label ? `<div class="icon-group-label">${label}</div>` : ""}
+				<div class="icons"></div>
+			</div>`);
+		this.icon_section.append($group);
+
+		let $icons = $group.find(".icons");
+		icons.forEach((icon) => {
+			// the name is set as an attribute, not parsed as markup, since custom icons name themselves
+			let $icon = $('<div class="icon-wrapper"></div>')
+				.attr("id", icon)
+				.html(frappe.utils.icon(icon, "md"));
+			$icons.append($icon);
 			const set_values = () => {
 				this.set_icon(icon);
 				this.update_icon_selected();
@@ -151,24 +128,21 @@ class Picker {
 				}
 			});
 		});
-		this.search_input.keyup((e) => {
-			e.preventDefault();
-			this.filter_icons();
-		});
-
-		this.search_input.on("search", () => {
-			this.filter_icons();
-		});
 	}
 
 	filter_icons() {
 		let value = this.search_input.val();
+		let $icons = this.icon_section.find(".icon-wrapper");
 		if (!value) {
-			this.icon_wrapper.find(".icon-wrapper").removeClass("hidden");
+			$icons.removeClass("hidden");
 		} else {
-			this.icon_wrapper.find(".icon-wrapper").addClass("hidden");
-			this.icon_wrapper.find(`.icon-wrapper[id*='${value}']`).removeClass("hidden");
+			$icons.addClass("hidden");
+			this.icon_section.find(`.icon-wrapper[id*='${value}']`).removeClass("hidden");
 		}
+		// a labelled section with nothing left to show would sit above an empty grid
+		this.icon_section.find(".icon-group").each(function () {
+			$(this).toggleClass("hidden", !$(this).find(".icon-wrapper:not(.hidden)").length);
+		});
 	}
 
 	update_icon_selected(silent) {

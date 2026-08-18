@@ -46,7 +46,10 @@ def new_language(context: CliCtxObj, lang_code, app):
 @click.command("get-untranslated")
 @click.option("--app", default="_ALL_APPS")
 @click.argument("lang")
-@click.argument("untranslated_file")
+@click.argument(
+	"untranslated_file",
+	type=click.Path(dir_okay=False, file_okay=True, resolve_path=True),
+)
 @click.option("--all", default=False, is_flag=True, help="Get all message strings")
 @pass_context
 def get_untranslated(context: CliCtxObj, lang, untranslated_file, app="_ALL_APPS", all=None):
@@ -65,8 +68,14 @@ def get_untranslated(context: CliCtxObj, lang, untranslated_file, app="_ALL_APPS
 @click.command("update-translations")
 @click.option("--app", default="_ALL_APPS")
 @click.argument("lang")
-@click.argument("untranslated_file")
-@click.argument("translated-file")
+@click.argument(
+	"untranslated_file",
+	type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+)
+@click.argument(
+	"translated-file",
+	type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+)
 @pass_context
 def update_translations(context: CliCtxObj, lang, untranslated_file, translated_file, app="_ALL_APPS"):
 	"Update translated strings"
@@ -83,7 +92,10 @@ def update_translations(context: CliCtxObj, lang, untranslated_file, translated_
 
 @click.command("import-translations")
 @click.argument("lang")
-@click.argument("path")
+@click.argument(
+	"path",
+	type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+)
 @pass_context
 def import_translations(context: CliCtxObj, lang, path):
 	"Update translated strings"

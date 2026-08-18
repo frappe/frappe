@@ -5,12 +5,11 @@ Sync's doctype and docfields from txt files to database
 perms will get synced only if none exist
 """
 
+import glob
 import os
 import re
 
 import frappe
-from frappe.cache_manager import clear_controller_cache
-from frappe.model.base_document import get_controller
 from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import _patch_mode
 from frappe.modules.utils import get_app_level_directory_path
@@ -41,6 +40,7 @@ IMPORTABLE_DOCTYPES = [
 	("core", "server_script"),
 	("custom", "custom_field"),
 	("custom", "property_setter"),
+	("printing", "letter_head"),
 ]
 
 
@@ -117,7 +117,7 @@ def sync_for(app_name, force=0, reset_permissions=False):
 		folder = os.path.dirname(frappe.get_module(app_name + "." + module_name).__file__)
 		files = get_doc_files(files=files, start_path=folder)
 
-	app_level_folders = ["desktop_icon", "workspace_sidebar", "sidebar_item_group"]
+	app_level_folders = ["desktop_icon", "workspace_sidebar"]
 	for folder_name in app_level_folders:
 		directory_path = get_app_level_directory_path(folder_name, app_name)
 		if os.path.exists(directory_path):
@@ -159,6 +159,16 @@ def get_doc_files(files, start_path):
 						if doc_path not in files:
 							files.append(doc_path)
 
+	# DocType Layouts: doctype/{document_type}/doctype_layout/{name}.json
+	for doc_path in glob.glob(os.path.join(start_path, "doctype", "*", "doctype_layout", "*.json")):
+		if doc_path not in files:
+			files.append(doc_path)
+
+	# DocType Settings Maps: doctype_settings_map/{name}.json
+	for doc_path in glob.glob(os.path.join(start_path, "doctype_settings_map", "*.json")):
+		if doc_path not in files:
+			files.append(doc_path)
+
 	return files
 
 
@@ -173,20 +183,11 @@ def remove_orphan_doctypes():
 	"""
 
 	doctype_names = frappe.get_all("DocType", {"custom": 0}, pluck="name")
-	orphan_doctypes = []
 
-	clear_controller_cache()
-	class_overrides = frappe.get_hooks("override_doctype_class", {})
-
-	for doctype in doctype_names:
-		if doctype in class_overrides:
-			continue
-		try:
-			get_controller(doctype=doctype)
-		except (ImportError, frappe.DoesNotExistError):
-			orphan_doctypes.append(doctype)
-		except Exception:
-			continue
+	# Existence of the schema file is enough, importing the controller just to check if the doctype
+	# exists is expensive and can fail for unrelated reasons.
+	known_doctypes = create_entity_file_map(["DocType"])["DocType"]
+	orphan_doctypes = [doctype for doctype in doctype_names if doctype not in known_doctypes]
 
 	if not orphan_doctypes:
 		return
@@ -199,20 +200,26 @@ def remove_orphan_doctypes():
 	print()
 
 
-def remove_orphan_entities():
-	entites = ["Workspace", "Dashboard", "Page", "Report"]
+def remove_orphan_entities(entity_types=None):
+	entities = ["Workspace", "Dashboard", "Page", "Report", "Notification"]
 	app_level_entities = ["Workspace Sidebar", "Desktop Icon"]
 	entity_filter_map = {
-		"Workspace": {"public": 1},
+		"Workspace": [{"public": 1, "module": ["is", "set"], "app": ["is", "set"]}],
 		"Page": {"standard": "Yes"},
 		"Report": {"is_standard": "Yes"},
 		"Dashboard": {"is_standard": True},
 		"Workspace Sidebar": {"standard": True},
 		"Desktop Icon": {"standard": True},
+		"Notification": {"is_standard": True},
 	}
-	entity_file_map = create_entity_file_map(entites)
+	entity_file_map = create_entity_file_map(entities)
+	if entity_types:
+		if isinstance(entity_types, list):
+			entities = entity_types
+		else:
+			entities = [entity_types]
 
-	for entity in entites:
+	for entity in entities:
 		print(f"Removing orphan {entity}s")
 		all_enitities = frappe.get_all(
 			entity, filters=entity_filter_map.get(entity), fields=["name", "module"]
@@ -233,30 +240,36 @@ def remove_orphan_entities():
 		# save the deleted icons
 		frappe.db.commit()  # nosemgrep
 	#  Remove app level entities
+	if entity_types and not set(entity_types).issubset(set(app_level_entities)):
+		return
 	for app_entity in app_level_entities:
 		print(f"Removing orphan {app_entity}s")
 		all_enitities = frappe.get_all(
 			app_entity, filters=entity_filter_map.get(app_entity), fields=["name", "app"]
 		)
-		for i, w in enumerate(all_enitities):
-			if w.app and not check_if_record_exists("app", frappe.get_app_path(w.app), app_entity, w.name):
-				try:
-					print(f"Deleting entity {app_entity} {w.name}")
-					frappe.delete_doc(app_entity, w.name, force=True, ignore_missing=True)
-					update_progress_bar(f"Deleting orphaned {app_entity}", i, len(all_enitities))
-					print()
-
-				except Exception as e:
-					print(f"Error occurred while deleting entity: {app_entity} {w.name}")
-					print(e)
+		for i, entity in enumerate(all_enitities):
+			try:
+				if entity.app:
+					app_path = frappe.get_app_path(entity.app)
+					if not check_if_record_exists("app", app_path, app_entity, entity.name):
+						try:
+							print(f"Deleting entity {app_entity} {entity.name}")
+							frappe.delete_doc(app_entity, entity.name, force=True, ignore_missing=True)
+							update_progress_bar(f"Deleting orphaned {app_entity}", i, len(all_enitities))
+							print()
+						except Exception as e:
+							print(f"Error occurred while deleting entity: {app_entity} {entity.name}")
+							print(e)
+			except ModuleNotFoundError as e:
+				print(e)
+				print(f"Deleting entity {app_entity} {entity.name}")
+				frappe.db.delete(app_entity, {"name": entity.name})
 
 	# save the deleted icons
 	frappe.db.commit()  # nosemgrep
 
 
 def create_entity_file_map(entities):
-	import glob
-
 	from frappe.modules.import_file import read_doc_from_file
 
 	entity_file_map = {}

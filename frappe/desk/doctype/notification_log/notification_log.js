@@ -8,6 +8,12 @@ frappe.ui.form.on("Notification Log", {
 		} else {
 			frm.get_field("attachment_link").$wrapper.empty();
 		}
+
+		// `app` is auto-derived on insert but editable; load the installed-app list at runtime
+		// (same pattern as Module Def.app_name) so the field and standard filter show app names.
+		frappe.xcall("frappe.core.doctype.module_def.module_def.get_installed_apps").then((r) => {
+			frm.set_df_property("app", "options", JSON.parse(r));
+		});
 	},
 
 	open_reference_document: function (frm) {
@@ -27,7 +33,7 @@ frappe.ui.form.on("Notification Log", {
 		$wrapper.html(`
 			<div class="attached-file text-medium">
 				<div class="ellipsis">
-					<i class="fa fa-paperclip"></i>
+					${frappe.utils.icon("paperclip", "sm")}
 					<a class="attached-file-link">${attachment.name}.pdf</a>
 				</div>
 			</div>

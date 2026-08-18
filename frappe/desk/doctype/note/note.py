@@ -8,6 +8,8 @@ UNSEEN_NOTES_KEY = "unseen_notes::"
 
 
 class Note(Document):
+	_DOCTYPE_NAME = "Note"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -36,6 +38,7 @@ class Note(Document):
 
 		if not self.content:
 			self.content = "<span></span>"
+		self.content = frappe.utils.sanitize_html(self.content, always_sanitize=True)
 
 	def before_print(self, settings=None):
 		self.print_heading = self.name
@@ -45,18 +48,29 @@ class Note(Document):
 		frappe.cache.delete_keys(UNSEEN_NOTES_KEY)
 		return super().clear_cache()
 
-	def mark_seen_by(self, user: str) -> None:
+	def mark_seen_by(self, user: str) -> bool:
 		if user in [d.user for d in self.seen_by]:
-			return
+			return False
 
 		self.append("seen_by", {"user": user})
+		return True
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def mark_as_seen(note: str):
 	note: Note = frappe.get_doc("Note", note)
-	note.mark_seen_by(frappe.session.user)
-	note.save(ignore_permissions=True, ignore_version=True)
+	note.check_permission("read")
+	current_user = frappe.session.user
+
+	# Save as Administrator so marking a public note as seen does not expose
+	# the viewing user through standard owner/modified_by metadata.
+	try:
+		frappe.set_user("Administrator")
+		added = note.mark_seen_by(current_user)
+		if added:
+			note.save(ignore_version=True)
+	finally:
+		frappe.set_user(current_user)
 
 
 def get_permission_query_conditions(user):

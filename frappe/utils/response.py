@@ -26,6 +26,7 @@ import frappe.sessions
 import frappe.utils
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.core.doctype.file.utils import check_path_safety
 from frappe.utils import format_timedelta, orjson_dumps
 
 if TYPE_CHECKING:
@@ -43,6 +44,8 @@ def report_error(status_code):
 
 	traceback = frappe.utils.get_traceback()
 	exc_type, exc_value, _ = sys.exc_info()
+
+	assert exc_type is not None, "report_error must be called while handling an active exception"
 
 	match get_api_version():
 		case ApiVersion.V1:
@@ -159,7 +162,7 @@ def as_pdf():
 	response = Response()
 	response.mimetype = "application/pdf"
 	filename = frappe.response["filename"].encode("utf-8").decode("unicode-escape", "ignore")
-	response.headers.add("Content-Disposition", None, filename=filename)
+	response.headers.add("Content-Disposition", "inline", filename=filename)
 	response.data = frappe.response["filecontent"]
 	return response
 
@@ -169,7 +172,7 @@ def as_binary():
 	response.mimetype = "application/octet-stream"
 	filename = frappe.response["filename"]
 	filename = filename.encode("utf-8").decode("unicode-escape", "ignore")
-	response.headers.add("Content-Disposition", None, filename=filename)
+	response.headers.add("Content-Disposition", "attachment", filename=filename)
 	response.data = frappe.response["filecontent"]
 	return response
 
@@ -280,6 +283,13 @@ def download_backup(path):
 			_("You need to be logged in and have System Manager Role to be able to access backups.")
 		)
 
+	filename = path.split("/backups/", 1)[1]
+	backup_path = frappe.get_site_path("private", "backups")
+	requested_path = frappe.get_site_path("private", "backups", filename)
+	is_safe = check_path_safety(base_path=backup_path, requested_path=requested_path)
+	if not is_safe:
+		frappe.throw(_("Invalid backup path"), frappe.PermissionError)
+
 	return send_private_file(path)
 
 
@@ -295,15 +305,30 @@ def download_private_file(path: str) -> Response:
 		raise Forbidden(_("You don't have permission to access this file"))
 
 	make_access_log(doctype="File", document=file.name, file_type=os.path.splitext(path)[-1][1:])
-	return send_private_file(path.split("/private", 1)[1])
+	return send_private_file(path.split("/private", 1)[1], filename=file.file_name)
 
 
-FORCE_DOWNLOAD_EXTENSIONS = (".svg", ".html", ".htm", ".xml")
+FORCE_DOWNLOAD_EXTENSIONS = (
+	".svg",
+	".svgz",
+	".html",
+	".htm",
+	".xhtml",
+	".xht",
+	".shtml",
+	".shtm",
+	".mhtml",
+	".mht",
+	".xml",
+	".xsl",
+	".xslt",
+	".swf",
+)
 
 
-def send_private_file(path: str) -> Response:
+def send_private_file(path: str, filename: str | None = None) -> Response:
 	path = os.path.join(frappe.local.conf.get("private_path", "private"), path.strip("/"))
-	filename = os.path.basename(path)
+	filename = filename or os.path.basename(path)
 
 	extension = os.path.splitext(path)[1]
 	as_attachment = extension.lower() in FORCE_DOWNLOAD_EXTENSIONS
@@ -329,7 +354,7 @@ def send_private_file(path: str) -> Response:
 			environ=frappe.local.request.environ,
 			conditional=True,
 			as_attachment=as_attachment,
-			download_name=filename if as_attachment else None,
+			download_name=filename,
 		)
 
 	return response
@@ -347,3 +372,68 @@ def handle_session_stopped():
 		primary_action=None,
 	)
 	return get_response("message", http_status_code=503)
+
+
+def respond_as_web_page(
+	title,
+	html,
+	success=None,
+	http_status_code=None,
+	context=None,
+	indicator_color=None,
+	primary_action="/",
+	primary_label=None,
+	fullpage=False,
+	width=None,
+	template="message",
+):
+	"""Send response as a web page with a message rather than JSON."""
+	frappe.local.message_title = title
+	frappe.local.message = html
+	frappe.local.response["type"] = "page"
+	frappe.local.response["route"] = template
+	frappe.local.no_cache = 1
+
+	if http_status_code:
+		frappe.local.response["http_status_code"] = http_status_code
+
+	if not context:
+		context = {}
+
+	if not indicator_color:
+		if success:
+			indicator_color = "green"
+		elif http_status_code and http_status_code > 300:
+			indicator_color = "red"
+		else:
+			indicator_color = "blue"
+
+	assert indicator_color is not None, "indicator_color must be resolved by the branches above"
+	context["indicator_color"] = indicator_color
+	context["primary_label"] = primary_label
+	context["primary_action"] = primary_action
+	context["error_code"] = http_status_code
+	context["fullpage"] = fullpage
+	if width:
+		context["card_width"] = width
+
+	frappe.local.response["context"] = context
+
+
+def redirect_to_message(title, html, http_status_code=None, context=None, indicator_color=None):
+	"""Redirect to /message?id=random and show a message page."""
+	message_id = frappe.generate_hash(length=8)
+	message = {"context": context or {}, "http_status_code": http_status_code or 200}
+	message["context"].update({"header": title, "title": title, "message": html})
+
+	if indicator_color:
+		message["context"].update({"indicator_color": indicator_color})
+
+	frappe.cache.set_value(f"message_id:{message_id}", message, expires_in_sec=60)
+	location = f"/message?id={message_id}"
+
+	if not getattr(frappe.local, "is_ajax", False):
+		frappe.local.response["type"] = "redirect"
+		frappe.local.response["location"] = location
+	else:
+		return location

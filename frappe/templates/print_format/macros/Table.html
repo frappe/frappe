@@ -1,30 +1,96 @@
-{% if doc.get(df.fieldname) %}
-<div class="child-table" {{ field_attributes(df) }}>
+{%- set _rows = df.get('_rows') if df.get('_rows') is not none else doc.get(df.fieldname) -%}
+{% if _rows and df.table_columns %}
+{% set _style = df.table_style or "lined" %}
+{% set _bordered = df.table_bordered != False %}
+{% set _plain_header = df.table_header == "plain" %}
+{% set _no_header = df.table_header == "none" %}
+{%- set _cell_pad = df.table_cell_padding if df.table_cell_padding is defined and df.table_cell_padding is not none else none -%}
+{%- set _cell_style = ('padding:' + _cell_pad|string + 'px') if _cell_pad is not none else '' -%}
+{%- set _border_color = df.table_border_color if df.table_border_color else none -%}
+{%- set _cell_style = ((_cell_style + ';') if _cell_style else '') + (('border-color:' + _border_color + ' !important') if _border_color else '') -%}
+{%- set _radius = df.table_radius if df.table_radius is defined and df.table_radius is not none else none -%}
+{%- set _frame_style = (('--pfb-radius:' + _radius|string + 'px;') if _radius is not none else '') + (('--pfb-header-bg:' + df.table_header_bg + ';') if df.table_header_bg and not _plain_header else '') -%}
+<div class="child-table child-table--{{ _style }}{% if _plain_header %} child-table--plain-header{% endif %}{% if _bordered %} child-table--bordered{% endif %}"{% if df.custom_style %} style="{{ df.custom_style|e }}"{% endif %} {{ field_attributes(df) }}>
+	{%- set _show_label = df.show_label if df.show_label else 'show' -%}
+	{% if df.label and _show_label != 'hide' %}
 	<div class="label">
-		{{ df.label }}
+		{{ _(df.label)|e }}
 	</div>
-	<table class="table table-bordered">
+	{% endif %}
+	<table class="table"{% if _frame_style %} style="{{ _frame_style|e }}"{% endif %}>
 		{% set columns = df.table_columns %}
+		{%- if not _no_header -%}
 		<thead>
 			<tr class="table-row">
 				{% for column in columns %}
-				<th class="column-header" width="{{ column.width }}%" {{ field_attributes(column) }}>
-					{{ column.label }}
+				{%- set _merged_col = column.merged_fields and column.merged_fields|length > 0 -%}
+				<th class="column-header{% if _merged_col %} column-value--merged{% endif %}" width="{{ column.width }}%"{% if _cell_style %} style="{{ _cell_style|e }}"{% endif %} {{ field_attributes(column) }}>
+					{{ _(column.label or column.fieldname)|e }}
 				</th>
 				{% endfor %}
 			</tr>
 		</thead>
+		{%- endif -%}
 		<tbody>
-			{% for row in doc.get(df.fieldname) %}
-			<tr class="table-row {{ loop.cycle('odd', 'even') }}" data-idx="{{ row.idx }}">
+			{% for row in _rows %}
+			<tr class="table-row {{ loop.cycle('odd', 'even') }}" data-idx="{{ row.idx }}"{% if row.get("page_break") and not loop.first %} style="page-break-before: always"{% endif %}>
 				{% for column in columns %}
-				<td class="column-value" width="{{ column.width }}%" {{ field_attributes(column) }}>
-					{{ row.get_formatted(column.fieldname) }}
+				{# Column's own field is always the implicit primary line; merged_fields holds the extra fields. #}
+				{%- set _merged = ([{"fieldname": column.fieldname, "fieldtype": column.fieldtype, "style": "primary"}] + column.merged_fields) if column.merged_fields else None -%}
+				<td class="column-value{% if _merged %} column-value--merged{% endif %}" width="{{ column.width }}%"{% if _cell_style %} style="{{ _cell_style|e }}"{% endif %} {{ field_attributes(column) }}>
+					{%- if _merged -%}
+						{# Merged cell: an image field (if any) floats left, the rest stack as text lines (first = primary). #}
+						{%- set ns = namespace(img_fn=None, first_txt="") -%}
+						{%- for mf in _merged -%}
+							{%- if mf.fieldtype in ("Attach Image", "Attach") -%}
+								{%- if ns.img_fn is none -%}{%- set ns.img_fn = mf.fieldname -%}{%- endif -%}
+							{%- elif mf.fieldname and not ns.first_txt -%}
+								{%- set ns.first_txt = row.get(mf.fieldname)|string -%}
+							{%- endif -%}
+						{%- endfor -%}
+						{%- set _size = (column.image_size or 40)|int -%}
+						<div class="cell-merged">
+							{%- if ns.img_fn -%}
+								{%- set _src = (row.get(ns.img_fn) or "")|string|trim -%}
+								{%- set _safe = _src.startswith("/") or _src.startswith("http://") or _src.startswith("https://") -%}
+								{%- if _safe -%}
+								<img class="cell-thumb-img" style="--thumb-size:{{ _size }}px" src="{{ frappe.utils.get_image_thumbnail_uri(_src)|e }}" alt="{{ _(column.label or '')|e }}" />
+								{%- else -%}
+								{# Fallback: initials, coloured to match the builder canvas (same hue formula, no shared palette table). #}
+								{%- set _abbr = frappe.utils.get_abbr(ns.first_txt) or "?" -%}
+								{%- set _fc = "abcdefghijklmnopqrstuvwxyz0123456789".find((_abbr[:1] or "a")|lower) -%}
+								{%- set _hue = ((_fc if _fc >= 0 else 0) * 37) % 360 -%}
+								<span class="cell-thumb" style="--thumb-size:{{ _size }}px;font-size:{{ (_size * 0.4)|int }}px;background:hsl({{ _hue }},65%,92%);color:hsl({{ _hue }},55%,35%)">{{ _abbr|e }}</span>
+								{%- endif -%}
+							{%- endif -%}
+							<div class="cell-lines{% if column.merge_direction == 'horizontal' %} cell-lines--horizontal{% endif %}">
+								{%- for mf in _merged -%}{%- if mf.fieldname and mf.fieldname != ns.img_fn -%}<div class="cell-line cell-line--{{ (mf.style or 'primary')|e }}">{{ row.get_formatted(mf.fieldname)|striptags|e }}</div>{%- endif -%}{%- endfor -%}
+							</div>
+						</div>
+					{%- else -%}
+						{# Image cells: validated URL + server-side thumbnail + escaped src. #}
+						{%- set _src = (row.get(column.options) if column.fieldtype == "Image" else row.get(column.fieldname)) or "" -%}
+						{%- set _src = _src|string|trim -%}
+						{%- set _is_image = column.fieldtype in ("Attach Image", "Image") or (column.fieldtype == "Attach" and frappe.utils.is_image(_src)) -%}
+						{%- set _safe = _src.startswith("/") or _src.startswith("http://") or _src.startswith("https://") -%}
+						{%- if _is_image and _safe -%}
+							<img src="{{ frappe.utils.get_image_thumbnail_uri(_src)|e }}" alt="{{ _(column.label or '')|e }}" style="max-width: 100%; max-height: 100px;" />
+						{%- else -%}
+							{{ row.get_formatted(column.fieldname) }}
+						{%- endif -%}
+					{%- endif -%}
 				</td>
 				{% endfor %}
 			</tr>
 			{% endfor %}
 		</tbody>
+		{# after tbody (HTML5 order): user styles that remap tfoot's display can
+		   no longer float the cap up under the header #}
+		{# one cap cell per column, not a single colspan: each carries the column
+		   divider so the verticals reach the closing line on every page #}
+		<tfoot>
+			<tr class="table-row">{% for _ in columns %}<td class="table-foot"></td>{% endfor %}</tr>
+		</tfoot>
 	</table>
 </div>
 {% endif %}

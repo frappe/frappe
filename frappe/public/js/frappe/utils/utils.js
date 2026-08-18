@@ -133,6 +133,39 @@ String.prototype.plural = function (revert) {
 };
 
 Object.assign(frappe.utils, {
+	/**
+	 * Translate a DocType Layout `condition` (a JavaScript expression evaluated
+	 * against `doc`) into list filter params, e.g. `doc.is_return == 1` becomes
+	 * `{ is_return: "1" }`. Only simple `doc.field <op> value` comparisons joined
+	 * by `&&` are supported; conditions using `||` cannot map to AND filters and
+	 * return an empty object. Output is shaped for `frappe.route_options`.
+	 */
+	parse_layout_condition_to_filters(condition) {
+		if (!condition || condition.includes("||")) return {};
+
+		const params = {};
+		// Match: doc.fieldname  ===|!==|>=|<=|>|<  "value" | 'value' | number
+		const re = /doc\.(\w+)\s*(===?|!==?|>=?|<=?)\s*(?:"([^"]*)"|'([^']*)'|(-?\d+(?:\.\d+)?))/g;
+		let match;
+
+		while ((match = re.exec(condition)) !== null) {
+			const fieldname = match[1];
+			const op = match[2];
+			const value = match[3] ?? match[4] ?? match[5];
+			if (value === undefined) continue;
+
+			const frappe_op =
+				op === "===" || op === "==" ? "=" : op === "!==" || op === "!=" ? "!=" : op;
+
+			if (frappe_op === "=") {
+				params[fieldname] = value;
+			} else {
+				params[fieldname] = JSON.stringify([frappe_op, value]);
+			}
+		}
+
+		return params;
+	},
 	get_random: function (len) {
 		var text = "";
 		var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -229,7 +262,7 @@ Object.assign(frappe.utils, {
 	},
 
 	escape_html: function (txt) {
-		if (!txt) return "";
+		if (txt == null) return ""; // null or undefined, but keep 0 / false
 		let escape_html_mapping = {
 			"&": "&amp;",
 			"<": "&lt;",
@@ -241,6 +274,12 @@ Object.assign(frappe.utils, {
 		};
 
 		return String(txt).replace(/[&<>"'`=]/g, (char) => escape_html_mapping[char] || char);
+	},
+
+	// Escape text and wrap in <strong> — use this instead of String.prototype.bold()
+	// so user-supplied values are safely escaped before being injected into HTML.
+	bold: function (txt) {
+		return `<strong>${frappe.utils.escape_html(cstr(txt))}</strong>`;
 	},
 
 	unescape_html: function (txt) {
@@ -297,7 +336,18 @@ Object.assign(frappe.utils, {
 		return content.html();
 	},
 	scroll_page_to_top() {
-		$(".main-section").scrollTop(0);
+		const $container = $(".main-section");
+		$container.animate(
+			{ scrollTop: 0 },
+			{
+				duration: 300,
+				easing: "swing",
+				complete: function () {
+					// Ensure we're at the top
+					$container.scrollTop(0);
+				},
+			}
+		);
 	},
 	scroll_to: function (
 		element,
@@ -317,7 +367,7 @@ Object.assign(frappe.utils, {
 			scroll_top =
 				typeof element == "number"
 					? element - cint(additional_offset)
-					: this.get_scroll_position(element, additional_offset);
+					: this.get_scroll_position(element, additional_offset, element_to_be_scrolled);
 		}
 
 		if (scroll_top < 0) {
@@ -355,10 +405,33 @@ Object.assign(frappe.utils, {
 			element_to_be_scrolled.scrollTop(scroll_top);
 		}
 	},
-	get_scroll_position: function (element, additional_offset) {
-		let header_offset =
-			$(".navbar").height() + $(".page-head:visible").height() || $(".navbar").height();
-		return $(element).offset().top - header_offset - cint(additional_offset);
+	get_scroll_position: function (element, additional_offset, element_to_be_scrolled) {
+		const get_offset_relative_to_container = () => {
+			let offset = 0;
+
+			let el = element instanceof HTMLElement ? element : element[0];
+			const container = element_to_be_scrolled ? element_to_be_scrolled[0] : null;
+
+			while (el && el !== container && el.offsetParent) {
+				offset += el.offsetTop;
+				el = el.offsetParent;
+			}
+
+			return offset;
+		};
+
+		const get_header_offset = () => {
+			const navbar_height = $(".navbar").height() || 0;
+			const page_head_height = $(".page-head:visible").height() || 0;
+			const tabs_container_height = $(".form-tabs-list:visible").height() || 0;
+
+			return navbar_height + page_head_height + tabs_container_height;
+		};
+
+		const element_offset_top = get_offset_relative_to_container();
+		const header_offset = get_header_offset();
+
+		return element_offset_top - header_offset - cint(additional_offset);
 	},
 	filter_dict: function (dict, filters) {
 		var ret = [];
@@ -483,7 +556,7 @@ Object.assign(frappe.utils, {
 			text = cstr(text);
 			if (has_words(["Pending", "Review", "Medium", "Not Approved"], text)) {
 				style = "warning";
-				colour = "orange";
+				colour = "amber";
 			} else if (
 				has_words(["Open", "Urgent", "High", "Failed", "Rejected", "Error"], text)
 			) {
@@ -533,7 +606,7 @@ Object.assign(frappe.utils, {
 				const style = state.style;
 				const colour_map = {
 					Success: "green",
-					Warning: "orange",
+					Warning: "amber",
 					Danger: "red",
 					Primary: "blue",
 				};
@@ -1098,7 +1171,13 @@ Object.assign(frappe.utils, {
 		}
 	},
 	is_rtl(lang = null) {
-		return ["ar", "he", "fa", "ps"].includes(lang || frappe.boot.lang);
+		// Keep this list in sync with rtl_languages in the Python twin at
+		// frappe/utils/jinja_globals.py:is_rtl.
+		const rtl_languages = ["ar", "fa", "he", "ku", "ps", "ur"];
+		const code = lang || frappe.boot.lang || "";
+
+		if (rtl_languages.includes(code)) return true;
+		return rtl_languages.includes(code.split(/[-_]/)[0]);
 	},
 	bind_actions_with_object($el, object) {
 		// remove previously bound event
@@ -1305,6 +1384,33 @@ Object.assign(frappe.utils, {
 		},
 		image_path: "/assets/frappe/images/leaflet/",
 	},
+	desktop_icon(label, color, size, style) {
+		let letter = frappe.utils.escape_html(label.charAt(0).toUpperCase());
+		let icon_size = size ? size : "md";
+		let opacity_hex = "1A";
+		let icon_html = $(`
+			<div class="icon-container">
+				<svg fill="currentColor" class="desktop-alphabet icon text-ink-gray-7 icon-${icon_size}" stroke=none style="" aria-hidden="true">
+				<use class="" href="#${letter}"></use>
+				</svg>
+			</div>
+		`);
+		let pallete_color = this.desktop_pallete[color || "blue"];
+		let bg_color = pallete_color + opacity_hex;
+		let stroke_color = pallete_color;
+		// `style` overrides the global desktop_icon_style for callers that always want a
+		// specific look (e.g. a solid letter icon regardless of the user's setting).
+		if ((style || frappe.boot.desktop_icon_style) == "Solid") {
+			bg_color = stroke_color;
+			stroke_color = "var(--white)";
+		}
+		icon_html.css("backgroundColor", bg_color);
+		icon_html.find("svg").css("color", stroke_color);
+		return icon_html.get(0).outerHTML;
+	},
+	// --- Desktop Icon grid -----------------------------------------------------------
+	// Used by the Desktop Icon grid (Desktop Settings -> Desktop Page = Desktop Icons).
+	// They read `frappe.boot.desktop_icons`, which only that mode puts in the boot payload.
 	get_route_for_icon(desktop_icon) {
 		let route;
 		if (!desktop_icon) return;
@@ -1322,7 +1428,9 @@ Object.assign(frappe.utils, {
 							name: first_link.link_to,
 						};
 
-						if (first_link.report || !frappe.app.sidebar.editor.edit_mode) {
+						// the body reads `first_link.report.*`, so a link whose report has been
+						// deleted (no `report` payload) has to skip it, not fall through to it
+						if (first_link.report) {
 							args.is_query_report =
 								first_link.report.report_type === "Query Report" ||
 								first_link.report.report_type == "Script Report";
@@ -1363,35 +1471,39 @@ Object.assign(frappe.utils, {
 		}
 		return route;
 	},
-	desktop_icon(label, color, size) {
-		let letter = label.charAt(0).toUpperCase();
-		let icon_size = size ? size : "md";
-		let opacity_hex = "1A";
-		let icon_html = $(`
-			<div class="icon-container">
-				<svg fill="currentColor" class="desktop-alphabet icon text-ink-gray-7 icon-${icon_size}" stroke=none style="" aria-hidden="true">
-				<use class="" href="#${letter}"></use>
-				</svg>
-			</div>
-		`);
-		let pallete_color = this.desktop_pallete[color || "blue"];
-		let bg_color = pallete_color + opacity_hex;
-		let stroke_color = pallete_color;
-		if (frappe.boot.desktop_icon_style == "Solid") {
-			bg_color = stroke_color;
-			stroke_color = "var(--white)";
+
+	get_desktop_icon(icon_name, variant) {
+		let exists = false;
+		let icon_data = this.get_desktop_icon_by_label(icon_name);
+		variant = variant.toLowerCase();
+		if (!icon_data?.app) return exists;
+		let app_name = icon_data.app;
+		let icon_url = `assets/${app_name}/icons/desktop_icons/${variant}/${frappe.scrub(
+			icon_name
+		)}.svg`;
+
+		if (frappe.boot.desktop_icon_urls[app_name]?.[variant]?.includes(icon_url)) {
+			return `/${icon_url}`;
 		}
-		icon_html.css("backgroundColor", bg_color);
-		icon_html.find("svg").css("color", stroke_color);
-		return icon_html.get(0).outerHTML;
+		return exists;
 	},
+
+	get_desktop_icon_by_label(title, filters) {
+		if (!filters) {
+			return frappe.boot.desktop_icons.find((f) => f.label === title);
+		} else {
+			return frappe.boot.desktop_icons.find((f) => {
+				return (
+					f.label === title &&
+					Object.keys(filters).every((key) => f[key] === filters[key])
+				);
+			});
+		}
+	},
+
 	desktop_pallete: {
-		blue: "#0981E3",
+		blue: "#0289F7",
 		gray: "#7B808A",
-	},
-	desktop_bg_color(color_name) {
-		let color_value = this.desktop_pallete[color_name];
-		color_value + "";
 	},
 	icon(
 		icon_name,
@@ -1406,21 +1518,14 @@ Object.assign(frappe.utils, {
 			return `<span>${icon_name}</span>`;
 		}
 		let size_class = "";
-		let is_espresso = icon_name.startsWith("es-");
 
-		icon_name = is_espresso ? `${"#" + icon_name}` : `${"#icon-" + icon_name}`;
+		icon_name = `${"#icon-" + icon_name}`;
 		if (typeof size == "object") {
 			icon_style += ` width: ${size.width}; height: ${size.height}`;
 		} else {
 			size_class = `icon-${size}`;
 		}
-		let $svg = `<svg class="${
-			is_espresso
-				? icon_name.startsWith("es-solid")
-					? "es-icon es-solid"
-					: "es-icon es-line"
-				: "icon"
-		} ${svg_class} ${size_class}"
+		let $svg = `<svg class="icon ${svg_class} ${size_class}"
 			${current_color ? 'stroke="currentColor"' : ""}
 			${stroke_color ? `stroke="${stroke_color}"` : ""}
 			style="${icon_style}" aria-hidden="true">
@@ -1437,46 +1542,30 @@ Object.assign(frappe.utils, {
 		return `<img loading="lazy" src="https://flagcdn.com/${country_code}.svg" width="20" height="15">`;
 	},
 
-	is_emoji(emoji_name) {
-		let emojiList = gemoji.map((emoji) => emoji.emoji);
-		return emojiList.includes(emoji_name);
+	is_emoji(str) {
+		return /^\p{Extended_Pictographic}(‍\p{Extended_Pictographic}|️|⃣)*$/u.test(str);
 	},
 
-	get_desktop_icon(icon_name, variant) {
-		let exists = false;
-		let icon_data = this.get_desktop_icon_by_label(icon_name);
-		variant = variant.toLowerCase();
-		if (!icon_data?.app) return exists;
-		let app_name = icon_data.app;
-		let icon_url = `assets/${app_name}/icons/desktop_icons/${variant}/${frappe.scrub(
-			icon_name
-		)}.svg`;
-
-		if (
-			frappe.boot.desktop_icon_urls[app_name] &&
-			frappe.boot.desktop_icon_urls[app_name][variant].includes(icon_url)
-		) {
-			return `/${icon_url}`;
-		}
-		return exists;
+	get_emojis() {
+		const ranges = [
+			[0x1f600, 0x1f64f], // Emoticons
+			[0x1f300, 0x1f5ff], // Misc Symbols and Pictographs
+			[0x1f680, 0x1f6ff], // Transport and Map
+			[0x1f900, 0x1f9ff], // Supplemental Symbols and Pictographs
+			[0x1fa00, 0x1fa6f], // Chess Symbols
+			[0x1fa70, 0x1faff], // Symbols and Pictographs Extended-A
+			[0x2600, 0x26ff], // Misc Symbols
+			[0x2700, 0x27bf], // Dingbats
+		];
+		return ranges.flatMap(([start, end]) =>
+			Array.from({ length: end - start + 1 }, (_, i) => String.fromCodePoint(start + i))
+		);
 	},
 
 	desktop_icon_exists(app_name, url) {
 		let exists = false;
 		if (frappe.boot.desktop_icon_urls[app_name].includes(url)) exists = true;
 		return exists;
-	},
-	get_desktop_icon_by_label(title, filters) {
-		if (!filters) {
-			return frappe.boot.desktop_icons.find((f) => f.label === title);
-		} else {
-			return frappe.boot.desktop_icons.find((f) => {
-				return (
-					f.label === title &&
-					Object.keys(filters).every((key) => f[key] === filters[key])
-				);
-			});
-		}
 	},
 
 	make_chart(wrapper, custom_options = {}) {
@@ -1577,6 +1666,12 @@ Object.assign(frappe.utils, {
 				route = item.name;
 			} else if (type === "dashboard") {
 				route = `dashboard-view/${item.name}`;
+			} else if (type == "workspace") {
+				if (item.public) {
+					route = frappe.router.slug(item.name);
+				} else {
+					route = "private/" + frappe.router.slug(item.name);
+				}
 			}
 		} else {
 			route = item.route;
@@ -1606,8 +1701,13 @@ Object.assign(frappe.utils, {
 		 *	max_no_of_decimals - max number of decimals of the shortened number
 		 */
 
+		// return empty for null, undefined, or empty string
+		if (!number || isNaN(number)) {
+			return "";
+		}
+
 		// return number if total digits is lesser than min_length
-		const len = String(number).match(/\d/g).length;
+		const len = String(number).match(/\d/g)?.length || 0;
 		if (len < min_length) {
 			return number.toString();
 		}
@@ -1738,7 +1838,7 @@ Object.assign(frappe.utils, {
 				</button>
 
 				<button type="button" class="btn ${btn_type} btn-sm dropdown-toggle dropdown-toggle-split" data-toggle="dropdown">
-					${frappe.utils.icon("down", "xs")}
+					${frappe.utils.icon("chevron-down", "xs")}
 				</button>
 
 				<ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>
@@ -1827,21 +1927,16 @@ Object.assign(frappe.utils, {
 		if (!doctype || !name) {
 			return;
 		}
-		try {
-			return frappe
-				.xcall("frappe.desk.search.get_link_title", {
-					doctype: doctype,
-					docname: name,
-				})
-				.then((title) => {
-					frappe.utils.add_link_title(doctype, name, title);
-					return title;
-				});
-		} catch (error) {
-			console.log("Error while fetching link title.");
-			console.log(error);
-			return Promise.resolve(name);
-		}
+		return frappe
+			.xcall("frappe.desk.search.get_link_title", {
+				doctype: doctype,
+				docname: name,
+			})
+			.then((title) => {
+				frappe.utils.add_link_title(doctype, name, title);
+				return title;
+			})
+			.catch(() => name);
 	},
 
 	only_allow_num_decimal(input) {
@@ -2131,10 +2226,7 @@ Object.assign(frappe.utils, {
 	 * @returns {boolean}
 	 */
 	can_upload_public_files() {
-		if (
-			Number(frappe.boot.sysdefaults?.only_allow_system_managers_to_upload_public_files) !==
-			1
-		) {
+		if (!frappe.defaults.is_enabled("only_allow_system_managers_to_upload_public_files")) {
 			return true;
 		}
 		return frappe.user.has_role(["System Manager", "Administrator"]);
@@ -2181,5 +2273,40 @@ Object.assign(frappe.utils, {
 			links.push({ is_divider: true });
 		}
 		return links;
+	},
+	eval_expression(value, number_format) {
+		if (typeof value === "string") {
+			const parsed_components = value.match(/[^\d.,]+|[\d.,]+/g);
+			var parsed_value = value;
+			if (parsed_components !== null) {
+				parsed_value = parsed_components
+					.map((v) => {
+						return isNaN(parseFloat(v)) ? v : flt(v, null, number_format);
+					})
+					.join("");
+			}
+			if (parsed_value.match(/^[0-9+\-/*.() ]+$/)) {
+				// If it is a string containing operators
+				try {
+					return (0, eval)(parsed_value);
+				} catch (e) {
+					// bad expression
+					return value;
+				}
+			}
+		}
+		return value;
+	},
+	get_installed_apps() {
+		return frappe.boot.app_data.map((app) => {
+			return app.app_name;
+		});
+	},
+	is_sub_array(big, small) {
+		let i = 0;
+		for (let num of big) {
+			if (num === small[i]) i++;
+		}
+		return i === small.length;
 	},
 });

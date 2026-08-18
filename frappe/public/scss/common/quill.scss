@@ -3,15 +3,18 @@
 
 .ql-toolbar.ql-snow,
 .ql-container.ql-snow {
-	border-color: var(--border-color);
+	border-color: var(--outline-gray-2);
 	font-family: inherit;
 }
 
-/*rtl:begin:ignore*/
+// The "quill" param keeps this comment textually unique: esbuild's minifier
+// dedupes identical legal comments, which would break begin/end pairing.
+/*!rtl:begin:ignore:quill*/
 .ql-editor {
 	font-family: var(--font-stack);
 	color: var(--text-color);
 	line-height: 1.6;
+
 	h1,
 	h2,
 	h3,
@@ -20,143 +23,199 @@
 		margin-top: 0.5em;
 		margin-bottom: 0.25em;
 	}
+
 	a[href]:not(.btn) {
 		text-decoration: underline;
 	}
+
 	.ql-direction-rtl {
 		direction: rtl;
+
 		+ .table {
 			direction: ltr;
 		}
 	}
 }
-/*rtl:end:ignore*/
 
-// Quill doesn't use variables for :(
-.ql-snow.ql-toolbar button:hover,
-.ql-snow .ql-toolbar button:hover,
-.ql-snow.ql-toolbar button:focus,
-.ql-snow .ql-toolbar button:focus,
-.ql-snow.ql-toolbar button.ql-active,
-.ql-snow .ql-toolbar button.ql-active,
-.ql-snow.ql-toolbar .ql-picker-label:hover,
-.ql-snow .ql-toolbar .ql-picker-label:hover,
-.ql-snow.ql-toolbar .ql-picker-label.ql-active,
-.ql-snow .ql-toolbar .ql-picker-label.ql-active,
-.ql-snow.ql-toolbar .ql-picker-item:hover,
-.ql-snow .ql-toolbar .ql-picker-item:hover,
-.ql-snow.ql-toolbar .ql-picker-item.ql-selected,
-.ql-snow .ql-toolbar .ql-picker-item.ql-selected {
-	color: var(--invert-neutral);
-}
-.ql-snow.ql-toolbar button:hover .ql-fill,
-.ql-snow .ql-toolbar button:hover .ql-fill,
-.ql-snow.ql-toolbar button:focus .ql-fill,
-.ql-snow .ql-toolbar button:focus .ql-fill,
-.ql-snow.ql-toolbar button.ql-active .ql-fill,
-.ql-snow .ql-toolbar button.ql-active .ql-fill,
-.ql-snow.ql-toolbar .ql-picker-label:hover .ql-fill,
-.ql-snow .ql-toolbar .ql-picker-label:hover .ql-fill,
-.ql-snow.ql-toolbar .ql-picker-label.ql-active .ql-fill,
-.ql-snow .ql-toolbar .ql-picker-label.ql-active .ql-fill,
-.ql-snow.ql-toolbar .ql-picker-item:hover .ql-fill,
-.ql-snow .ql-toolbar .ql-picker-item:hover .ql-fill,
-.ql-snow.ql-toolbar .ql-picker-item.ql-selected .ql-fill,
-.ql-snow .ql-toolbar .ql-picker-item.ql-selected .ql-fill,
-.ql-snow.ql-toolbar button:hover .ql-stroke.ql-fill,
-.ql-snow .ql-toolbar button:hover .ql-stroke.ql-fill,
-.ql-snow.ql-toolbar button:focus .ql-stroke.ql-fill,
-.ql-snow .ql-toolbar button:focus .ql-stroke.ql-fill,
-.ql-snow.ql-toolbar button.ql-active .ql-stroke.ql-fill,
-.ql-snow .ql-toolbar button.ql-active .ql-stroke.ql-fill,
-.ql-snow.ql-toolbar .ql-picker-label:hover .ql-stroke.ql-fill,
-.ql-snow .ql-toolbar .ql-picker-label:hover .ql-stroke.ql-fill,
-.ql-snow.ql-toolbar .ql-picker-label.ql-active .ql-stroke.ql-fill,
-.ql-snow .ql-toolbar .ql-picker-label.ql-active .ql-stroke.ql-fill,
-.ql-snow.ql-toolbar .ql-picker-item:hover .ql-stroke.ql-fill,
-.ql-snow .ql-toolbar .ql-picker-item:hover .ql-stroke.ql-fill,
-.ql-snow.ql-toolbar .ql-picker-item.ql-selected .ql-stroke.ql-fill,
-.ql-snow .ql-toolbar .ql-picker-item.ql-selected .ql-stroke.ql-fill {
-	fill: var(--invert-neutral);
-}
-.ql-snow.ql-toolbar button:hover .ql-stroke,
-.ql-snow .ql-toolbar button:hover .ql-stroke,
-.ql-snow.ql-toolbar button:focus .ql-stroke,
-.ql-snow .ql-toolbar button:focus .ql-stroke,
-.ql-snow.ql-toolbar button.ql-active .ql-stroke,
-.ql-snow .ql-toolbar button.ql-active .ql-stroke,
-.ql-snow.ql-toolbar .ql-picker-label:hover .ql-stroke,
-.ql-snow .ql-toolbar .ql-picker-label:hover .ql-stroke,
-.ql-snow.ql-toolbar .ql-picker-label.ql-active .ql-stroke,
-.ql-snow .ql-toolbar .ql-picker-label.ql-active .ql-stroke,
-.ql-snow.ql-toolbar .ql-picker-item:hover .ql-stroke,
-.ql-snow .ql-toolbar .ql-picker-item:hover .ql-stroke,
-.ql-snow.ql-toolbar .ql-picker-item.ql-selected .ql-stroke,
-.ql-snow .ql-toolbar .ql-picker-item.ql-selected .ql-stroke,
-.ql-snow.ql-toolbar button:hover .ql-stroke-miter,
-.ql-snow .ql-toolbar button:hover .ql-stroke-miter,
-.ql-snow.ql-toolbar button:focus .ql-stroke-miter,
-.ql-snow .ql-toolbar button:focus .ql-stroke-miter,
-.ql-snow.ql-toolbar button.ql-active .ql-stroke-miter,
-.ql-snow .ql-toolbar button.ql-active .ql-stroke-miter,
-.ql-snow.ql-toolbar .ql-picker-label:hover .ql-stroke-miter,
-.ql-snow .ql-toolbar .ql-picker-label:hover .ql-stroke-miter,
-.ql-snow.ql-toolbar .ql-picker-label.ql-active .ql-stroke-miter,
-.ql-snow .ql-toolbar .ql-picker-label.ql-active .ql-stroke-miter,
-.ql-snow.ql-toolbar .ql-picker-item:hover .ql-stroke-miter,
-.ql-snow .ql-toolbar .ql-picker-item:hover .ql-stroke-miter,
-.ql-snow.ql-toolbar .ql-picker-item.ql-selected .ql-stroke-miter,
-.ql-snow .ql-toolbar .ql-picker-item.ql-selected .ql-stroke-miter {
-	stroke: var(--invert-neutral);
-}
+/*!rtl:end:ignore:quill*/
 
+// Toolbar — espresso chrome on Quill's stock DOM. The icons are the app's
+// lucide sprite (swapped via the ui/icons registry in text_editor.js) and
+// follow currentColor, so state styling is a plain `color` per state — the
+// old .ql-stroke/.ql-fill override matrices are gone with Quill's own SVGs.
 .ql-toolbar.ql-snow {
-	border-top-left-radius: var(--border-radius);
-	border-top-right-radius: var(--border-radius);
-	background-color: var(--gray-50);
-	border-bottom: 1px solid var(--border-color);
-	padding: 0;
-	padding-top: 4px;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	row-gap: 2px;
+	padding: 4px;
+	background-color: var(--surface-gray-1);
+	border-top-left-radius: var(--radius);
+	border-top-right-radius: var(--radius);
+	border-bottom: 1px solid var(--outline-gray-1);
 
-	.ql-picker-label::before {
-		color: var(--text-color);
+	.ql-formats {
+		display: inline-flex;
+		align-items: center;
+		gap: 2px;
+		margin: 0;
+
+		// hairline between groups instead of Quill's margin gaps
+		&:not(:last-child)::after {
+			content: "";
+			width: 1px;
+			height: 16px;
+			background-color: var(--outline-gray-2);
+			margin-inline: 6px;
+		}
 	}
-}
-[data-theme="dark"] {
-	.ql-toolbar.ql-snow {
-		background-color: var(--gray-900);
+
+	button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 24px;
+		height: 24px;
+		padding: 4px;
+		border-radius: var(--radius);
+		color: var(--ink-gray-8);
+		transition: background-color 120ms ease, color 120ms ease;
+
+		// bare :focus too — snow paints focused buttons #06c, and focus
+		// lingers after a click
+		&:focus {
+			color: var(--ink-gray-8);
+		}
+
+		&:hover,
+		&:focus-visible {
+			background-color: var(--surface-gray-2);
+			color: var(--ink-gray-8);
+		}
+
+		&.ql-active {
+			background-color: var(--surface-gray-3);
+			color: var(--ink-gray-9);
+		}
+	}
+
+	.icon {
+		width: 16px;
+		height: 16px;
+		stroke: currentColor;
+		fill: none;
+	}
+
+	// the caret in picker labels is still Quill's stock svg
+	.ql-stroke {
+		stroke: currentColor;
+	}
+
+	.ql-fill {
+		fill: currentColor;
 	}
 }
 
 .ql-container.ql-snow {
-	background-color: var(--gray-100);
-	border-bottom-left-radius: var(--border-radius);
-	border-bottom-right-radius: var(--border-radius);
+	background-color: var(--surface-gray-1);
+	border-bottom-left-radius: var(--radius);
+	border-bottom-right-radius: var(--radius);
 }
 
 .ql-snow {
 	.ql-editor {
 		height: 300px;
-		border-bottom-left-radius: var(--border-radius);
-		border-bottom-right-radius: var(--border-radius);
+		border-bottom-left-radius: var(--radius);
+		border-bottom-right-radius: var(--radius);
 		resize: vertical;
 	}
-	.ql-stroke {
-		stroke: var(--icon-stroke);
-		stroke-width: 1.2px;
-	}
-	.ql-picker-options {
-		border-color: var(--border-color) !important;
-		background-color: var(--bg-color);
-		border-radius: var(--border-radius);
+
+	// placeholder: stock is italic near-black
+	.ql-editor.ql-blank::before {
+		color: var(--ink-gray-4);
+		font-style: normal;
 	}
 
+	// ---- link editor: the es-popover look on quill's stock DOM ----
+	// quill drives BOTH visibility (.ql-hidden) and the preview/edit mode
+	// switch (display on the input, preview and remove links) — so the flex
+	// layout is scoped to :not(.ql-hidden) and no child display is ever set
+	// here (the picker-options lesson)
 	.ql-tooltip {
-		background-color: var(--fg-color);
-		border-radius: var(--border-radius-sm);
+		background-color: var(--surface-elevation-2);
 		border: none;
-		color: var(--text-color);
-		box-shadow: var(--shadow-base);
+		border-radius: var(--radius-lg);
+		box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), var(--elevation-2xl);
+		color: var(--ink-gray-8);
+		padding: 8px;
+		z-index: 1;
+
+		&:not(.ql-hidden) {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		// "Visit URL:" / "Enter link:" — quill's mode caption
+		&::before {
+			@include get_textstyle("sm", "regular");
+			color: var(--ink-gray-5);
+			line-height: 1;
+			margin-right: 0; // the flex gap spaces it
+		}
+
+		input[type="text"] {
+			// display stays quill's (hidden until .ql-editing)
+			height: 28px;
+			width: 200px;
+			margin: 0;
+			padding: 4px 8px;
+			border: 1px solid var(--outline-gray-2);
+			border-radius: var(--radius);
+			background-color: var(--surface-base);
+			color: var(--ink-gray-8);
+			@include get_textstyle("sm", "regular");
+
+			&:focus {
+				outline: var(--focus-outline-default);
+				outline-offset: 0;
+			}
+		}
+
+		a.ql-preview {
+			@include get_textstyle("sm", "regular");
+			max-width: 240px;
+			line-height: 1;
+			color: var(--ink-blue-7);
+			text-decoration: none;
+
+			&:hover {
+				text-decoration: underline;
+			}
+		}
+
+		// Edit / Save / Remove — quill text buttons; the ::after/::before
+		// margins and the divider come from stock, zeroed for the flex gap
+		a.ql-action,
+		a.ql-remove {
+			@include get_textstyle("sm", "medium");
+			color: var(--ink-gray-7);
+			line-height: 1;
+
+			&:hover {
+				color: var(--ink-gray-9);
+			}
+		}
+
+		a.ql-action::after {
+			border-right: none;
+			margin-left: 0;
+			padding-right: 0;
+		}
+
+		a.ql-remove::before {
+			margin-left: 0;
+		}
 	}
 }
 
@@ -172,34 +231,289 @@
 
 .ql-snow .ql-picker {
 	@include get_textstyle("sm", "regular");
-	color: var(--text-light);
+	height: 24px;
+	color: var(--ink-gray-8);
 }
 
-// font-size dropdown
-.ql-snow .ql-picker.ql-size {
-	width: 58px;
+// COMPOUND .ql-toolbar.ql-snow — snow puts both classes on the same
+// element, so the descendant form (.ql-snow .ql-toolbar) matches nothing.
+// The compound also ties snow's stock #06c hover rules so ours win on
+// source order.
+.ql-toolbar.ql-snow .ql-picker-label {
+	display: inline-flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 4px;
+	width: 100%;
+	border: none;
+	border-radius: var(--radius);
+	padding-inline: 6px 4px;
+	outline: none;
 
+	&::before {
+		line-height: 1;
+		// the pickers have fixed widths so the toolbar doesn't shift when
+		// the selection changes — truncate instead of pushing the caret out
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	&:hover {
+		background-color: var(--surface-gray-2);
+		color: var(--ink-gray-8);
+	}
+
+	// quill marks the label ql-active when a non-default value applies at
+	// the cursor (snow paints it #06c) — same chip as an active button
+	&.ql-active {
+		background-color: var(--surface-gray-3);
+		color: var(--ink-gray-9);
+	}
+}
+
+// the swapped lucide caret (bare sprite svg, no global .icon class) sits in
+// flow at the label's end — the espresso dropdown-trigger chevron. Snow
+// absolutely-positions picker svgs for its own caret; svg.ql-picker-caret
+// ties that rule's specificity so source order undoes it.
+.ql-toolbar.ql-snow .ql-picker-label svg.ql-picker-caret {
+	position: static;
+	margin: 0;
+	top: auto;
+	right: auto;
+	width: 14px;
+	height: 14px;
+	flex-shrink: 0;
+	stroke: currentColor;
+	fill: none;
+}
+
+// uniform menu rows: stock previews each heading at its own size (up to
+// 2em), which fights the row rhythm — the label text already says which
+// level it is
+.ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-item::before {
+	font-size: var(--text-base);
+}
+
+// header rows carry a level icon; the text is the ::before pseudo (a flex
+// item), so order pulls the icon in front of it. position/top/right undo
+// snow's blanket absolute-positioning of text-picker svgs (its caret rule),
+// which otherwise piles every row icon onto one spot
+.ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-item {
+	gap: 8px;
+
+	svg {
+		order: -1;
+		position: static;
+		top: auto;
+		right: auto;
+		flex-shrink: 0;
+		width: 16px;
+		height: 16px;
+		margin: 0;
+		stroke: currentColor;
+		fill: none;
+		color: var(--ink-gray-6);
+	}
+}
+
+// hand-injected sprite icons (caret, row icons, label icons) skip the
+// global .icon class (its auto-margin breaks flex layouts) — so supply the
+// stroke geometry that class would have given them; the sprite symbols
+// carry only a viewBox, and the svg default (width 1, butt caps) reads
+// thin next to the real toolbar icons
+.ql-toolbar.ql-snow svg.ql-picker-caret,
+.ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-item svg,
+.ql-toolbar.ql-snow .ql-picker-label svg.ql-label-icon {
+	stroke-width: 1.5px;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+// icon labels (text style, font size): same svg pinning as above — snow's
+// caret rule and the global .icon auto-margin both reach for any svg here.
+// order: -1 puts the icon before the ::before text (the pseudo sorts as
+// the first order-0 flex item)
+.ql-toolbar.ql-snow .ql-picker-label svg.ql-label-icon {
+	order: -1;
+	position: static;
+	top: auto;
+	right: auto;
+	margin: 0;
+	flex-shrink: 0;
+	width: 16px;
+	height: 16px;
+	stroke: currentColor;
+	fill: none;
+}
+
+// the text-style label is icon-only: hide the stock 'Normal'/attr() text
+// (both stock content rules out-specified) and reveal only the icon
+// matching the label's data-value, which quill syncs on every selection
+.ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-label::before,
+.ql-toolbar.ql-snow
+	.ql-picker.ql-header
+	.ql-picker-label[data-label]:not([data-label=""])::before {
+	content: none;
+}
+
+// the size label shows icon + the current value (the "---" default
+// placeholder stays icon-only; snow's 'Normal' fallback is out-specified)
+.ql-toolbar.ql-snow .ql-picker.ql-size .ql-picker-label::before {
+	content: attr(data-value);
+}
+
+.ql-toolbar.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="---"]::before {
+	content: none;
+}
+
+.ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-label svg.ql-label-icon {
+	display: none;
+}
+
+.ql-toolbar.ql-snow
+	.ql-picker.ql-header
+	.ql-picker-label:not([data-value])
+	svg.ql-label-icon[data-level="p"] {
+	display: block;
+}
+
+@for $level from 1 through 6 {
+	.ql-toolbar.ql-snow
+		.ql-picker.ql-header
+		.ql-picker-label[data-value="#{$level}"]
+		svg.ql-label-icon[data-level="#{$level}"] {
+		display: block;
+	}
+}
+
+// icon-only labels don't need the text-sized boxes
+.ql-toolbar.ql-snow .ql-picker.ql-header,
+.ql-toolbar.ql-snow .ql-picker.ql-size {
+	width: auto;
+}
+
+.ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label {
+	background-color: var(--surface-gray-3);
+	color: var(--ink-gray-9);
+	border-color: transparent;
+}
+
+// snow also pokes #06c into svg strokes per state; the picker caret is the
+// only stock svg left — pin it to currentColor everywhere
+.ql-toolbar.ql-snow
+	:is(button, .ql-picker-label, .ql-picker-item):is(:hover, :focus, .ql-active, .ql-selected, .ql-expanded) {
+	.ql-stroke,
+	.ql-stroke-miter {
+		stroke: currentColor;
+	}
+
+	.ql-fill,
+	.ql-stroke.ql-fill {
+		fill: currentColor;
+	}
+}
+
+// dropdown panels, styled like the espresso menus
+.ql-snow .ql-picker-options {
+	padding: 6px;
+	background-color: var(--surface-elevation-2);
+	border: none !important;
+	border-radius: var(--radius-lg);
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), var(--elevation-2xl);
+}
+
+// menu-row look for text pickers; color pickers keep their swatch grid and
+// icon pickers get the chip strip below, so both are excluded here
+.ql-snow .ql-picker:not(.ql-color-picker):not(.ql-icon-picker) .ql-picker-item {
+	display: flex;
+	align-items: center;
+	min-height: 28px;
+	padding: 2px 8px;
+	border-radius: var(--radius);
+	color: var(--ink-gray-8);
+
+	&:hover {
+		background-color: var(--surface-alpha-gray-2);
+		color: var(--ink-gray-8);
+	}
+
+	&.ql-selected {
+		color: var(--ink-gray-9);
+	}
+}
+
+.ql-snow .ql-color-picker .ql-picker-item {
+	border-radius: var(--radius-sm);
+
+	&:hover,
+	&.ql-selected {
+		border-color: var(--ink-gray-9);
+	}
+}
+
+// swatch grid panel: same padding rhythm as the row panels
+// (8 swatches × 20px + padding)
+.ql-snow .ql-color-picker .ql-picker-options {
+	padding: 6px;
+	width: 172px;
+}
+
+// icon pickers (align): a horizontal strip of square chips, styled like
+// the toolbar buttons — 4 icons stacked as text rows read wrong.
+// ql-expanded scope is LOAD-BEARING: quill shows/hides the panel via
+// display, so an unconditional display:flex holds it open forever.
+// Padding here too — stock's `.ql-icon-picker .ql-picker-options`
+// (4px 0) out-specifies the generic 6px panel rule.
+.ql-toolbar.ql-snow .ql-icon-picker.ql-expanded .ql-picker-options {
+	display: flex;
+	gap: 2px;
+	padding: 6px;
+}
+
+.ql-toolbar.ql-snow .ql-icon-picker .ql-picker-item {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	padding: 4px;
+	border-radius: var(--radius);
+	color: var(--ink-gray-8);
+
+	svg {
+		// the global .icon class carries margin: 0 auto — pin it
+		margin: 0;
+		width: 16px;
+		height: 16px;
+	}
+
+	&:hover {
+		background-color: var(--surface-gray-2);
+		color: var(--ink-gray-8);
+	}
+
+	&.ql-selected {
+		background-color: var(--surface-gray-3);
+		color: var(--ink-gray-9);
+	}
+}
+
+// font-size dropdown — the label is the a-large-small icon; only the
+// dropdown rows show the px values
+.ql-snow .ql-picker.ql-size {
 	&.ql-expanded {
 		.ql-picker-options {
 			overflow-y: auto;
-			height: 200px;
+			max-height: 240px;
 		}
 	}
 
-	.ql-picker-label,
 	.ql-picker-item {
 		&:before {
 			content: attr(data-value) !important;
 		}
 	}
-}
-
-.ql-snow .ql-picker-label {
-	outline: none;
-}
-
-.ql-formats {
-	margin-bottom: 8px;
 }
 
 .ql-code-block-container {
@@ -208,22 +522,55 @@
 	padding: var(--padding-xs) var(--padding-sm) !important;
 	margin-bottom: var(--margin-xs) !important;
 	margin-top: var(--margin-xs) !important;
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 }
 
 .ql-bubble .ql-editor {
 	min-height: 100px;
 	max-height: 300px;
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
+
 	.ql-code-block-container {
 		@extend .ql-code-block-container;
+	}
+}
+
+// bubble toolbar (comment box): the lucide icons follow currentColor, so
+// mirror the theme's stock #ccc → #fff states as plain color
+.ql-bubble .ql-toolbar {
+	button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		color: #cccccc;
+
+		&:hover,
+		&:focus-visible,
+		&.ql-active {
+			color: #ffffff;
+		}
+	}
+
+	.icon {
+		width: 16px;
+		height: 16px;
+		stroke: currentColor;
+		fill: none;
+	}
+
+	.ql-stroke {
+		stroke: currentColor;
+	}
+
+	.ql-fill {
+		fill: currentColor;
 	}
 }
 
 .ql-mention-list-container {
 	width: 270px;
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	background-color: var(--fg-color);
 	box-shadow: var(--shadow-md);
 	z-index: 1;
@@ -245,11 +592,12 @@
 	display: inline-block;
 	height: auto;
 	width: auto;
-	border-radius: var(--border-radius-lg);
+	border-radius: var(--radius-lg);
 	border: 1px solid var(--border-color);
 	padding: 2px 5px;
 	@include get_textstyle("sm", "regular");
 	background-color: var(--user-mention-bg-color);
+
 	a[href] {
 		text-decoration: none;
 	}
@@ -261,33 +609,12 @@
 	width: 66px;
 
 	.ql-picker-label::before {
-		content: "Table";
+		content: attr(data-title);
 	}
 
 	.ql-picker-options {
-		[data-value="insert-table"]::before {
-			content: "Insert Table";
-		}
-		[data-value="insert-row-above"]::before {
-			content: "Insert Row Above";
-		}
-		[data-value="insert-row-below"]::before {
-			content: "Insert Row Below";
-		}
-		[data-value="insert-column-right"]::before {
-			content: "Insert Column Right";
-		}
-		[data-value="insert-column-left"]::before {
-			content: "Insert Column Left";
-		}
-		[data-value="delete-row"]::before {
-			content: "Delete Row";
-		}
-		[data-value="delete-column"]::before {
-			content: "Delete Column";
-		}
-		[data-value="delete-table"]::before {
-			content: "Delete Table";
+		.ql-picker-item[data-label]::before {
+			content: attr(data-label);
 		}
 	}
 }
@@ -307,9 +634,11 @@
 .ql-editor.read-mode {
 	height: unset;
 	padding: 0;
+
 	.mention {
 		--user-mention-bg-color: var(--control-bg);
 	}
+
 	p {
 		img {
 			max-width: 500px;
@@ -318,7 +647,7 @@
 }
 
 .ql-mention-list {
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	list-style: none;
 	margin: 0;
 	padding: 0;
@@ -345,4 +674,9 @@
 
 .ql-bubble .ql-editor img {
 	max-width: 500px !important;
+}
+
+.mention-link::after,
+.mention-link::before {
+	display: none;
 }

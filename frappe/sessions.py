@@ -8,19 +8,18 @@ permission, homepage, default variables, system defaults etc
 """
 
 import json
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 from urllib.parse import unquote
 
 import redis
 
 import frappe
-import frappe.defaults
-import frappe.model.meta
 import frappe.translate
 import frappe.utils
 from frappe import _
 from frappe.apps import get_apps, get_default_path, is_desk_apps
 from frappe.cache_manager import clear_user_cache, reset_metadata_version
+from frappe.database import savepoint
 from frappe.query_builder import Order
 from frappe.utils import cint, cstr, get_assets_json
 from frappe.utils.change_log import has_app_update_notifications
@@ -130,6 +129,9 @@ def get():
 	from frappe.boot import get_bootinfo
 	from frappe.desk.doctype.note.note import get_unseen_notes
 	from frappe.utils.change_log import get_change_log
+	from frappe.utils.legacy_gravatar_cleanup import (
+		should_show_gravatar_deletion_prompt,
+	)
 
 	bootinfo = None
 	if not getattr(frappe.conf, "disable_session_cache", None):
@@ -182,6 +184,7 @@ def get():
 	bootinfo["navbar_settings"] = frappe.client_cache.get_doc("Navbar Settings")
 	bootinfo.has_app_updates = has_app_update_notifications()
 	bootinfo.show_external_link_warning = frappe.get_system_settings("show_external_link_warning")
+	bootinfo.show_gravatar_deletion_prompt = should_show_gravatar_deletion_prompt()
 
 	return bootinfo
 
@@ -219,6 +222,7 @@ class Session:
 		self.sid = cstr(
 			frappe.form_dict.pop("sid", None) or unquote(frappe.request.cookies.get("sid", "Guest"))
 		)
+		assert isinstance(self.sid, str), "sid must be a string after cstr normalization"
 		self.user = user
 		self.user_type = user_type
 		self.full_name = full_name
@@ -281,20 +285,20 @@ class Session:
 		if self.user != "Guest":
 			self.insert_session_record()
 
-			# update user
-			user = frappe.get_lazy_doc("User", self.data["user"])
-			user_doctype = frappe.qb.DocType("User")
-			(
-				frappe.qb.update(user_doctype)
-				.set(user_doctype.last_login, frappe.utils.now())
-				.set(user_doctype.last_ip, frappe.local.request_ip)
-				.set(user_doctype.last_active, frappe.utils.now())
-				.where(user_doctype.name == self.data["user"])
-			).run()
-
-			user.run_notifications("before_change")
-			user.run_notifications("on_update")
+			# update user's login metadata
+			now = frappe.utils.now()
+			update_user_metadata(
+				self.data["user"],
+				run_notifications=True,
+				last_login=now,
+				last_ip=frappe.local.request_ip,
+				last_active=now,
+			)
 			frappe.db.commit()
+
+		assert (self.user == "Guest") == (sid == "Guest"), (
+			"Guest user must use the shared 'Guest' sid and vice versa"
+		)
 
 	def insert_session_record(self):
 		Sessions = frappe.qb.DocType("Sessions")
@@ -416,10 +420,12 @@ class Session:
 		last_updated = self.data.data.last_updated
 		time_diff = frappe.utils.time_diff_in_seconds(now, last_updated) if last_updated else None
 
+		threshold = min(get_expiry_in_seconds() / 2, 600) or 600
+
 		# database persistence is secondary, don't update it too often
 		updated_in_db = False
 		if (
-			force or (time_diff is None) or (time_diff > 600) or self._update_in_cache
+			force or (time_diff is None) or (time_diff > threshold) or self._update_in_cache
 		) and not frappe.flags.read_only:
 			self.data.data.last_updated = now
 			self.data.data.lang = str(frappe.lang)
@@ -437,7 +443,7 @@ class Session:
 				.set(Sessions.lastupdate, now)
 			).run()
 
-			frappe.db.set_value("User", frappe.session.user, "last_active", now, update_modified=False)
+			update_user_metadata(frappe.session.user, last_active=now, last_ip=frappe.local.request_ip)
 
 			frappe.db.commit(chain=True)
 			updated_in_db = True
@@ -449,6 +455,45 @@ class Session:
 		self.data.data.impersonated_by = original_user
 		# Forcefully flush session
 		self.update(force=True)
+
+
+def update_user_metadata(
+	user: str,
+	*,
+	last_login: str | None = None,
+	last_ip: str | None = None,
+	last_active: str | None = None,
+	run_notifications: bool = False,
+):
+	"""Best-effort update of a user's session metadata (``last_login``, ``last_ip``, ``last_active``).
+
+	A user can be logged in from many sessions/tabs at once, so these writes frequently
+	contend on the same User row and can deadlock. The data is non-critical -- the next
+	request refreshes it -- so the write is wrapped in a savepoint and any failure is
+	swallowed rather than aborting the surrounding transaction.
+	"""
+	values = {}
+	if last_login is not None:
+		values["last_login"] = last_login
+	if last_ip is not None:
+		values["last_ip"] = last_ip
+	if last_active is not None:
+		values["last_active"] = last_active
+
+	if user == "Guest" or not values:
+		return
+
+	with savepoint(frappe.QueryDeadlockError):
+		user_doctype = frappe.qb.DocType("User")
+		query = frappe.qb.update(user_doctype).where(user_doctype.name == user)
+		for field, value in values.items():
+			query = query.set(user_doctype[field], value)
+		query.run()
+
+		if run_notifications:
+			user_doc = frappe.get_lazy_doc("User", user)
+			user_doc.run_notifications("before_change")
+			user_doc.run_notifications("on_update")
 
 
 def get_expiry_period_for_query():
@@ -482,4 +527,5 @@ def get_expiry_period():
 	if len(exp_sec.split(":")) == 2:
 		exp_sec = exp_sec + ":00"
 
+	assert len(exp_sec.split(":")) == 3, "expiry period must be normalized to HH:MM:SS"
 	return exp_sec

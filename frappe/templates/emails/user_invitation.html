@@ -1,20 +1,12 @@
-<span style = "display: block; margin-bottom: 1.5rem;">
-  {{ _("Hello,") }}
-</span>
-<span style = "display: block; margin-bottom: 1rem;">
-  {{ _("You've been invited to join {0}.").format(title) }}
-</span>
-<span style = "display: block; margin-bottom: 0.5rem;">
-  {{ _("Click below to get started:") }}
-</span>
-<a
-  href = "{{ invite_link }}"
-  target = "_blank"
-  class = "btn btn-primary"
-  style = "display: block; margin-bottom: 1rem; width: fit-content"
->
-  {{ _("Accept Invitation") }}
-</a>
-<span>
-  {{ _("If you have any questions, reach out to your system administrator.") }}
-</span>
+<h1 class="email-title">{{ _("You're invited to join {0}").format(title) }}</h1>
+<div class="email-body">
+	<p>{{ _("{0} has invited you to join {1}.").format(invited_by | e, title) }}</p>
+	<p>{% if expiry_days == 1 %}{{ _("This invitation expires in 1 day.") }}{% else %}{{ _("This invitation expires in {0} days.").format(expiry_days) }}{% endif %} {{ _("If you weren't expecting this, you can safely ignore this email.") }}</p>
+	<div class="email-action">
+		<a class="email-btn email-btn-primary" href="{{ invite_link }}">{{ _("Accept Invitation") }}</a>
+	</div>
+	<div class="email-copy">
+		<p>{{ _("Or copy and paste:") }}</p>
+		<a href="{{ invite_link }}">{{ invite_link }}</a>
+	</div>
+</div>

@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class LogsToClear(Document):
+	_DOCTYPE_NAME = "Logs To Clear"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

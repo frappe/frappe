@@ -27,10 +27,12 @@ context("Web Form", () => {
 
 		cy.wait("@save_form");
 
+		cy.get('.frappe-control[data-fieldname="route"]').scrollIntoView();
 		cy.get_field("route").should("have.value", "note");
-		cy.get(".title-area .indicator-pill")
+
+		cy.get('[data-testid="page-status"]')
 			.should("contain.text", "Published")
-			.should("have.class", "green");
+			.should("have.attr", "data-theme", "green");
 	});
 
 	it("Open Web Form", () => {
@@ -72,10 +74,8 @@ context("Web Form", () => {
 
 		cy.call("logout");
 
-		cy.visit("/note");
-		cy.get_open_dialog()
-			.get(".modal-message")
-			.contains("You are not permitted to access this page without login.");
+		cy.visit("/note", { failOnStatusCode: false });
+		cy.contains("You must be logged in to use this form.");
 	});
 
 	it("Show List", () => {

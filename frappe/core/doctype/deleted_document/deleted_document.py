@@ -11,6 +11,8 @@ from frappe.model.workflow import get_workflow_name
 
 
 class DeletedDocument(Document):
+	_DOCTYPE_NAME = "Deleted Document"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -38,13 +40,28 @@ class DeletedDocument(Document):
 
 
 @frappe.whitelist()
-def restore(name, alert=True):
+def restore(name: str | int, alert: bool = True):
+	frappe.only_for("System Manager")
 	deleted = frappe.get_doc("Deleted Document", name)
 
 	if deleted.restored:
 		frappe.throw(_("Document {0} Already Restored").format(name), exc=frappe.DocumentAlreadyRestored)
 
 	doc = frappe.get_doc(json.loads(deleted.data))
+
+	if not frappe.has_permission(doc.doctype, "create"):
+		frappe.throw(
+			_("You do not have permission to create or restore documents of type {0}.").format(doc.doctype),
+			frappe.PermissionError,
+		)
+
+	if not frappe.has_permission(doc.doctype, "read", doc=doc):
+		frappe.throw(_("You do not have permission to restore this document."), frappe.PermissionError)
+
+	original_owner = doc.get("owner")
+	original_creation = doc.get("creation")
+	original_modified = doc.get("modified")
+	original_modified_by = doc.get("modified_by")
 	doc.flags.from_restore = True
 	try:
 		doc.insert()
@@ -58,6 +75,19 @@ def restore(name, alert=True):
 				doc.set(workflow_state_fieldname, None)
 		doc.insert()
 
+	# retain original metadata
+	frappe.db.set_value(
+		doc.doctype,
+		doc.name,
+		{
+			"owner": original_owner,
+			"creation": original_creation,
+			"modified": original_modified,
+			"modified_by": original_modified_by,
+		},
+		update_modified=False,
+	)
+
 	doc.add_comment("Edit", _("restored {0} as {1}").format(deleted.deleted_name, doc.name))
 
 	deleted.new_name = doc.name
@@ -69,7 +99,8 @@ def restore(name, alert=True):
 
 
 @frappe.whitelist()
-def bulk_restore(docnames):
+def bulk_restore(docnames: str | list[str]):
+	frappe.only_for("System Manager")
 	docnames = frappe.parse_json(docnames)
 	message = _("Restoring Deleted Document")
 	restored, invalid, failed = [], [], []

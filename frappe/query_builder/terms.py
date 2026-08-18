@@ -28,6 +28,7 @@ class NamedParameterWrapper:
 		        str: parameter used in the SQL query
 		"""
 		param_key = f"%(param{len(self.parameters) + 1})s"
+		assert param_key[2:-2] not in self.parameters, "generated parameter keys must be unique"
 		self.parameters[param_key[2:-2]] = param_value
 		return param_key
 

@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class WorkflowTransitionTask(Document):
+	_DOCTYPE_NAME = "Workflow Transition Task"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

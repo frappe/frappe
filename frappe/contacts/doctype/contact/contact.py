@@ -1,5 +1,7 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from typing import Any
+
 import frappe
 from frappe import _
 from frappe.contacts.address_and_contact import set_link_title
@@ -7,10 +9,13 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
-from frappe.utils import cstr, has_gravatar
+from frappe.query_builder.functions import Coalesce
+from frappe.utils import cstr
 
 
 class Contact(Document):
+	_DOCTYPE_NAME = "Contact"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -69,9 +74,6 @@ class Contact(Document):
 		self.set_user()
 
 		set_link_title(self)
-
-		if self.email_id and not self.image:
-			self.image = has_gravatar(self.email_id)
 
 		if self.get("sync_with_google_contacts") and not self.get("google_contacts"):
 			frappe.throw(_("Select Google Contacts to which contact should be synced."))
@@ -266,19 +268,22 @@ def download_vcards(contacts: str):
 
 def get_default_contact(doctype, name):
 	"""Return default contact for the given doctype, name."""
-	out = frappe.db.sql(
-		"""select parent,
-			IFNULL((select is_primary_contact from tabContact c where c.name = dl.parent), 0)
-				as is_primary_contact
-		from
-			`tabDynamic Link` dl
-		where
-			dl.link_doctype=%s and
-			dl.link_name=%s and
-			dl.parenttype = 'Contact' """,
-		(doctype, name),
-		as_dict=True,
+	Contact = frappe.qb.DocType("Contact")
+	DynamicLink = frappe.qb.DocType("Dynamic Link")
+
+	subquery = (
+		frappe.qb.from_(Contact).select(Contact.is_primary_contact).where(Contact.name == DynamicLink.parent)
 	)
+
+	query = (
+		frappe.qb.from_(DynamicLink)
+		.select(DynamicLink.parent, Coalesce(subquery, 0).as_("is_primary_contact"))
+		.where(DynamicLink.link_doctype == doctype)
+		.where(DynamicLink.link_name == name)
+		.where(DynamicLink.parenttype == "Contact")
+	)
+
+	out = query.run(as_dict=True)
 
 	if out:
 		for contact in out:
@@ -312,7 +317,7 @@ def invite_user(contact: str):
 
 
 @frappe.whitelist()
-def get_contact_details(contact):
+def get_contact_details(contact: str):
 	contact = frappe.get_doc("Contact", contact)
 	contact.check_permission()
 
@@ -341,15 +346,17 @@ def update_contact(doc, method):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def contact_query(doctype, txt, searchfield, start, page_len, filters):
+def contact_query(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict[str, Any]
+):
 	from frappe.desk.reportview import get_match_cond
 
 	doctype = "Contact"
 	if not frappe.get_meta(doctype).get_field(searchfield) and searchfield not in frappe.db.DEFAULT_COLUMNS:
 		return []
 
-	link_doctype = filters.pop("link_doctype")
-	link_name = filters.pop("link_name")
+	link_doctype = filters.pop("link_doctype", None)
+	link_name = filters.pop("link_name", None)
 
 	return frappe.db.sql(
 		f"""select
@@ -379,11 +386,10 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 
 
 @frappe.whitelist()
-def address_query(links):
-	import json
-
+def address_query(links: str | list):
 	links = [
-		{"link_doctype": d.get("link_doctype"), "link_name": d.get("link_name")} for d in json.loads(links)
+		{"link_doctype": d.get("link_doctype"), "link_name": d.get("link_name")}
+		for d in frappe.parse_json(links)
 	]
 	result = []
 
@@ -473,12 +479,10 @@ def get_full_name(
 
 
 def get_contact_display_list(doctype: str, name: str) -> list[dict]:
-	from frappe.contacts.doctype.address.address import get_condensed_address
-
 	if not frappe.has_permission("Contact", "read"):
 		return []
 
-	contact_list = frappe.get_list(
+	return frappe.get_list(
 		"Contact",
 		filters=[
 			["Dynamic Link", "link_doctype", "=", doctype],
@@ -488,27 +492,3 @@ def get_contact_display_list(doctype: str, name: str) -> list[dict]:
 		fields=["*"],
 		order_by="is_primary_contact DESC, creation ASC",
 	)
-
-	for contact in contact_list:
-		contact["email_ids"] = frappe.get_all(
-			"Contact Email",
-			filters={"parenttype": "Contact", "parent": contact.name, "is_primary": 0},
-			fields=["email_id"],
-		)
-
-		contact["phone_nos"] = frappe.get_all(
-			"Contact Phone",
-			filters={
-				"parenttype": "Contact",
-				"parent": contact.name,
-				"is_primary_phone": 0,
-				"is_primary_mobile_no": 0,
-			},
-			fields=["phone"],
-		)
-
-		if contact.address and frappe.has_permission("Address", "read"):
-			address = frappe.get_doc("Address", contact.address)
-			contact["address"] = get_condensed_address(address)
-
-	return contact_list

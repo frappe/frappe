@@ -1,3 +1,6 @@
+{%- if standalone -%}
+{{ body }}
+{%- else -%}
 <!DOCTYPE html>
 <html lang="{{ lang }}" dir="{{ layout_direction }}">
 <head>
@@ -6,6 +9,7 @@
 	<title>{{ title }}</title>
 	<meta name="generator" content="frappe">
 	{{ include_style('print.bundle.css') }}
+	{{ include_script('print.bundle.js') }}
 	{% if print_style %}
 		<style>
 		{{ print_style }}
@@ -13,15 +17,7 @@
 	{% endif %}
 </head>
 <body>
-	<div class="action-banner print-hide">
-		<a class="p-2" onclick="window.print();">
-			{{ _("Print") }}
-		</a>
-		<a class="p-2"
-			href="/api/method/frappe.utils.print_format.download_pdf?doctype={{doctype|e}}&name={{name|e}}&format={{print_format|e}}&letterhead={{letterhead|e}}&no_letterhead={{no_letterhead|e}}&_lang={{lang|e}}&key={{key|e}}">
-			{{ _('Get PDF') }}
-		</a>
-	</div>
+	{% if not no_action_banner %}{% include "templates/print_formats/print_action_banner.html" %}{% endif %}
 	<div class="print-format-gutter">
 		<div class="print-format">
 			{{ body }}
@@ -43,6 +39,7 @@
 				footer_html.style.order = 1;
 				footer_html.style.marginTop = '20px';
 			}
+			document.querySelectorAll("svg[data-barcode-value]").forEach(render_barcode)
 		});
 	</script>
 </body>
@@ -50,3 +47,4 @@
 <!-- {{ comment }} -->
 {%- endif -%}
 </html>
+{%- endif -%}

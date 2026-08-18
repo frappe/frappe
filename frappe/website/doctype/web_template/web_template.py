@@ -12,6 +12,8 @@ from frappe.website.utils import clear_cache
 
 
 class WebTemplate(Document):
+	_DOCTYPE_NAME = "Web Template"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

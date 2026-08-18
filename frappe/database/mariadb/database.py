@@ -7,7 +7,7 @@ from pymysql.converters import conversions, escape_string
 import frappe
 from frappe.database.database import Database
 from frappe.database.mariadb.schema import MariaDBTable
-from frappe.utils import UnicodeWithAttrs, cstr, get_datetime, get_table_name
+from frappe.utils import UnicodeWithAttrs, cstr, get_datetime, get_table_name, get_timezone_utc_offset
 
 
 class MariaDBExceptionUtil:
@@ -26,19 +26,19 @@ class MariaDBExceptionUtil:
 	@staticmethod
 	def is_deadlocked(e: pymysql.Error) -> bool:
 		# Snapshot isolation is also treated as deadlock from User POV
-		return e.args[0] in (ER.LOCK_DEADLOCK, ER.CHECKREAD)
+		return e.args and e.args[0] in (ER.LOCK_DEADLOCK, ER.CHECKREAD)
 
 	@staticmethod
 	def is_timedout(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.LOCK_WAIT_TIMEOUT
+		return e.args and e.args[0] == ER.LOCK_WAIT_TIMEOUT
 
 	@staticmethod
 	def is_read_only_mode_error(e: pymysql.Error) -> bool:
-		return e.args[0] == 1792
+		return e.args and e.args[0] == 1792
 
 	@staticmethod
 	def is_table_missing(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.NO_SUCH_TABLE
+		return e.args and e.args[0] == ER.NO_SUCH_TABLE
 
 	@staticmethod
 	def is_missing_table(e: pymysql.Error) -> bool:
@@ -46,39 +46,45 @@ class MariaDBExceptionUtil:
 
 	@staticmethod
 	def is_missing_column(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.BAD_FIELD_ERROR
+		return e.args and e.args[0] == ER.BAD_FIELD_ERROR
 
 	@staticmethod
 	def is_duplicate_fieldname(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.DUP_FIELDNAME
+		return e.args and e.args[0] == ER.DUP_FIELDNAME
 
 	@staticmethod
 	def is_duplicate_entry(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.DUP_ENTRY
+		return e.args and e.args[0] == ER.DUP_ENTRY
 
 	@staticmethod
 	def is_access_denied(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.ACCESS_DENIED_ERROR
+		return e.args and e.args[0] == ER.ACCESS_DENIED_ERROR
 
 	@staticmethod
 	def cant_drop_field_or_key(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.CANT_DROP_FIELD_OR_KEY
+		return e.args and e.args[0] == ER.CANT_DROP_FIELD_OR_KEY
 
 	@staticmethod
 	def is_syntax_error(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.PARSE_ERROR
+		return e.args and e.args[0] == ER.PARSE_ERROR
 
 	@staticmethod
 	def is_statement_timeout(e: pymysql.Error) -> bool:
-		return e.args[0] == 1969
+		return e.args and e.args[0] == 1969
 
 	@staticmethod
 	def is_data_too_long(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.DATA_TOO_LONG
+		return e.args and e.args[0] == ER.DATA_TOO_LONG
+
+	@staticmethod
+	def is_data_truncated(e: pymysql.Error) -> bool:
+		# WARN_DATA_OUT_OF_RANGE: a value that doesn't fit the column's new type on a type change,
+		# mirroring postgres's NUMERIC_VALUE_OUT_OF_RANGE so both engines raise the same error
+		return e.args and e.args[0] in (ER.TRUNCATED_WRONG_VALUE, ER.WARN_DATA_OUT_OF_RANGE)
 
 	@staticmethod
 	def is_db_table_size_limit(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.TOO_BIG_ROWSIZE
+		return e.args and e.args[0] == ER.TOO_BIG_ROWSIZE
 
 	@staticmethod
 	def is_primary_key_violation(e: pymysql.Error) -> bool:
@@ -117,6 +123,12 @@ class MariaDBConnectionUtil:
 	def set_execution_timeout(self, seconds: int):
 		self.sql("set session max_statement_time = %s", int(seconds))
 
+	def set_session_time_zone(self, timezone: str):
+		try:
+			self.sql("set session time_zone = %s", timezone)
+		except pymysql.OperationalError:
+			self.sql("set session time_zone = %s", get_timezone_utc_offset(timezone))
+
 	def get_connection_settings(self) -> dict:
 		conn_settings = {
 			"user": self.user,
@@ -124,6 +136,7 @@ class MariaDBConnectionUtil:
 			"charset": "utf8mb4",
 			"collation": "utf8mb4_unicode_ci",
 			"use_unicode": True,
+			"local_infile": False,
 		}
 
 		if self.cur_db_name:
@@ -138,9 +151,6 @@ class MariaDBConnectionUtil:
 
 		if self.password:
 			conn_settings["password"] = self.password
-
-		if frappe.conf.local_infile:
-			conn_settings["local_infile"] = frappe.conf.local_infile
 
 		# Configure SSL settings
 		if frappe.conf.db_ssl_ca:
@@ -339,24 +349,26 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	def get_table_columns_description(self, table_name):
 		"""Return list of columns with descriptions."""
 		return self.sql(
-			f"""select
+			"""select
 			column_name as 'name',
 			column_type as 'type',
 			column_default as 'default',
 			COALESCE(
 				(select 1
 				from information_schema.statistics
-				where table_name="{table_name}"
+				where table_name=%(table_name)s
 					and column_name=columns.column_name
 					and NON_UNIQUE=1
 					and Seq_in_index = 1
+					and table_schema = %(schema)s
 					limit 1
 			), 0) as 'index',
 			column_key = 'UNI' as 'unique',
 			(is_nullable = 'NO') AS 'not_nullable'
 			from information_schema.columns as columns
-			where table_name = '{table_name}'
-   			and table_schema = '{frappe.db.cur_db_name}' """,
+			where table_name = %(table_name)s
+   			and table_schema = %(schema)s """,
+			{"table_name": table_name, "schema": self.cur_db_name},
 			as_dict=1,
 		)
 
@@ -412,11 +424,17 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			if not clustered_index:
 				return index
 
-	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
+	def add_index(
+		self, doctype: str, fields: list, index_name: str | None = None, using=None, where=None, include=None
+	):
 		"""Creates an index with given fields if not already created.
-		Index name will be `fieldname1_fieldname2_index`"""
+		`using`/`where`/`include` are postgres-only (trigram/partial/covering) with no MariaDB
+		equivalent, so they are silently ignored: a `using` kind skips index creation, and
+		`where`/`include` fall back to a plain index over `fields`."""
 		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 
+		if using:
+			return
 		index_name = index_name or self.get_index_name(fields)
 		table_name = get_table_name(doctype)
 		if not self.has_index(table_name, index_name):
@@ -436,6 +454,36 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 					property_type="Check",
 					for_doctype=False,  # Applied on docfield
 				)
+
+	@contextmanager
+	def advisory_lock(self, key, *, timeout=10):
+		"""Hold a session-level named lock (GET_LOCK) for the duration of the `with` block -- the
+		MariaDB equivalent of pg_advisory_lock. Session-scoped, so it survives intermediate commits.
+		Waits up to `timeout` seconds, then raises QueryTimeoutError. The key is hashed to a fixed
+		64-char digest so long keys can't collide via GET_LOCK's silent name truncation."""
+		import hashlib
+		import time
+
+		from frappe.exceptions import QueryTimeoutError
+
+		name = hashlib.sha256(str(key).encode()).hexdigest()
+		deadline = time.monotonic() + timeout
+		while True:
+			remaining = deadline - time.monotonic()
+			result = self.sql("SELECT GET_LOCK(%s, %s)", (name, max(remaining, 0)))
+			value = result[0][0] if result else None
+			if value == 1:
+				break
+			# GET_LOCK returns 1 (acquired), 0 (waited out the remaining budget for the holder), or
+			# NULL (transient server error, e.g. killed thread). Retry NULL within the budget so a
+			# blip self-heals instead of failing the whole operation; give up once the budget is spent.
+			if value == 0 or remaining <= 0:
+				raise QueryTimeoutError(f"Could not acquire advisory lock {key!r} within {timeout}s")
+			time.sleep(0.1)
+		try:
+			yield
+		finally:
+			self.sql("SELECT RELEASE_LOCK(%s)", (name,))
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		if isinstance(fields, str):
@@ -564,11 +612,8 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			self._cursor = original_cursor
 			new_cursor.close()
 
-	def estimate_count(self, doctype: str):
-		"""Get estimated count of total rows in a table."""
+	def _estimate_count(self, table: str) -> int:
 		from frappe.utils.data import cint
-
-		table = get_table_name(doctype)
 
 		# Scope to current database to avoid cross-site estimates
 		count = self.sql(

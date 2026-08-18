@@ -5,6 +5,7 @@ import time
 import frappe
 from frappe.auth import CookieManager, LoginManager
 from frappe.tests import IntegrationTestCase
+from frappe.utils import set_request
 
 
 class TestActivityLog(IntegrationTestCase):
@@ -15,12 +16,12 @@ class TestActivityLog(IntegrationTestCase):
 		# test user login log
 		frappe.local.form_dict = frappe._dict(
 			{
-				"cmd": "login",
 				"sid": "Guest",
 				"pwd": self.ADMIN_PASSWORD or "admin",
 				"usr": "Administrator",
 			}
 		)
+		set_request(method="POST", path="/api/method/login")
 
 		frappe.local.request_ip = "127.0.0.1"
 		frappe.local.cookie_manager = CookieManager()
@@ -60,8 +61,9 @@ class TestActivityLog(IntegrationTestCase):
 		update_system_settings({"allow_consecutive_login_attempts": 3, "allow_login_after_fail": 5})
 
 		frappe.local.form_dict = frappe._dict(
-			{"cmd": "login", "sid": "Guest", "pwd": self.ADMIN_PASSWORD, "usr": "Administrator"}
+			{"sid": "Guest", "pwd": self.ADMIN_PASSWORD, "usr": "Administrator"}
 		)
+		set_request(method="POST", path="/api/method/login")
 
 		frappe.local.request_ip = "127.0.0.1"
 		frappe.local.cookie_manager = CookieManager()

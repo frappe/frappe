@@ -19,12 +19,17 @@ a {
 a,
 a:hover,
 a:active,
-a:focus,
 .btn,
 .btn:hover,
-.btn:active,
-.btn:focus {
+.btn:active {
 	outline: 0;
+}
+
+a:focus-visible,
+.btn:focus-visible,
+.btn-reset:focus-visible {
+	box-shadow: var(--focus-default);
+	outline: none;
 }
 
 a.grey,
@@ -94,36 +99,47 @@ pre {
 .col-xs-1 {
 	@extend .col-1;
 }
+
 .col-xs-2 {
 	@extend .col-2;
 }
+
 .col-xs-3 {
 	@extend .col-3;
 }
+
 .col-xs-4 {
 	@extend .col-4;
 }
+
 .col-xs-5 {
 	@extend .col-5;
 }
+
 .col-xs-6 {
 	@extend .col-6;
 }
+
 .col-xs-7 {
 	@extend .col-7;
 }
+
 .col-xs-8 {
 	@extend .col-8;
 }
+
 .col-xs-9 {
 	@extend .col-9;
 }
+
 .col-xs-10 {
 	@extend .col-10;
 }
+
 .col-xs-11 {
 	@extend .col-11;
 }
+
 .col-xs-12 {
 	@extend .col-12;
 }
@@ -178,7 +194,7 @@ footer {
 	text-align: center;
 	width: 140px;
 	height: 140px;
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 
 	&.small {
 		width: 20px;
@@ -209,6 +225,7 @@ h4 {
 	color: var(--text-color);
 	margin-bottom: var(--margin-md);
 }
+
 // override default gray-900 from bootstrap to support dark mode.
 h1,
 h2,
@@ -224,6 +241,7 @@ h6,
 .h6 {
 	color: var(--heading-color);
 }
+
 h1,
 h2,
 h3 {
@@ -248,6 +266,7 @@ h1 {
 		line-height: 2.5rem;
 		font-size: $font-size-4xl;
 	}
+
 	@include media-breakpoint-up(xl) {
 		line-height: 1;
 		font-size: $font-size-5xl;
@@ -261,6 +280,7 @@ h2 {
 	@include media-breakpoint-up(sm) {
 		font-size: $font-size-2xl;
 	}
+
 	@include media-breakpoint-up(md) {
 		font-size: $font-size-3xl;
 	}
@@ -275,6 +295,7 @@ h2 {
 .btn-group {
 	.btn {
 		box-shadow: none;
+
 		&:nth-child(2) {
 			border-left: 1px solid var(--btn-group-border-color);
 		}
@@ -362,11 +383,13 @@ select.input-xs {
 	a:not([href]):hover:active {
 		color: $component-active-color;
 	}
+
 	a {
 		transition: none;
 		cursor: pointer;
 		text-decoration: none;
 	}
+
 	a:active {
 		--icon-stroke: #{$component-active-color};
 	}
@@ -380,6 +403,7 @@ select.input-xs {
 		&.dropdown-divider {
 			display: none;
 		}
+
 		.divider,
 		.dropdown-divider {
 			display: none;
@@ -393,6 +417,7 @@ select.input-xs {
 
 	.custom-control-input ~ .custom-control-label {
 		cursor: pointer;
+
 		&:before {
 			background: var(--gray-500);
 			border: none;
@@ -427,6 +452,7 @@ kbd {
 
 .table {
 	color: var(--text-color);
+
 	th,
 	td {
 		padding: 0.5rem;
@@ -465,7 +491,7 @@ kbd {
 		@include get_textstyle("base", "regular");
 		padding: 8px 12px;
 		margin-bottom: 2px;
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 		overflow: hidden;
 		cursor: pointer;
 
@@ -540,10 +566,12 @@ kbd {
 
 .frappe-rtl {
 	text-align: right;
+
 	.modal-actions {
 		right: auto !important;
 		left: 5px;
 	}
+
 	input,
 	textarea {
 		direction: rtl !important;
@@ -580,6 +608,7 @@ body.no-sidebar {
 
 .app-logo {
 	width: 24px;
+
 	h4 {
 		margin-top: 0;
 	}
@@ -606,7 +635,7 @@ details > summary:focus {
 }
 
 .text-extra-muted {
-	color: var(--gray-500) !important;
+	color: var(--ink-gray-5) !important;
 }
 
 .grayscale {
@@ -653,6 +682,7 @@ details > summary:focus {
 
 .frappe-control.highlight {
 	--wrap-padding: calc(-1 * var(--padding-sm));
+
 	&::after {
 		content: " ";
 		border-radius: 5px;
@@ -669,6 +699,7 @@ details > summary:focus {
 .dropdown-menu.small {
 	@include get_textstyle("sm", "regular");
 	min-width: 140px;
+
 	.dropdown-item {
 		padding: var(--padding-xs);
 	}
@@ -708,13 +739,7 @@ details > summary:focus {
 // 	.img-background();
 // }
 
-// img.img-loading:after {
-// 	.img-foreground();
-// 	font-family: 'Octicons';
-// 	content: "\f00b";
-// }
-
-/*rtl:raw:
+/*!rtl:raw:
 .dropdown-menu {
 	right: auto;
 }
@@ -727,4 +752,10 @@ details > summary:focus {
 */
 .desktop-alphabet {
 	stroke: none;
+}
+
+#full-search-button {
+	svg {
+		margin: 0px;
+	}
 }

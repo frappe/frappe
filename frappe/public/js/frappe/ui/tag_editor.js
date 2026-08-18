@@ -18,6 +18,12 @@ frappe.ui.TagEditor = class TagEditor {
 		this.initialized = true;
 		this.refresh(this.user_tags);
 	}
+	update_user_tags(tags_string) {
+		this.user_tags = tags_string;
+		frappe.model.set_value(this.frm.doctype, this.frm.docname, "_user_tags", this.user_tags);
+		this.on_change && this.on_change(this.user_tags);
+		frappe.tags.utils.fetch_tags();
+	}
 	setup_tags() {
 		var me = this;
 
@@ -31,7 +37,7 @@ frappe.ui.TagEditor = class TagEditor {
 
 		this.tags = new frappe.ui.Tags({
 			parent: this.wrapper,
-			placeholder: '<svg class="es-icon icon-sm"><use href="#es-line-add"></use></svg>',
+			placeholder: frappe.utils.icon("plus", "sm"),
 			onTagAdd: (tag) => {
 				if (me.initialized && !me.refreshing) {
 					return frappe.call({
@@ -40,9 +46,7 @@ frappe.ui.TagEditor = class TagEditor {
 						callback: function (r) {
 							var user_tags = me.user_tags ? me.user_tags.split(",") : [];
 							user_tags.push(tag);
-							me.user_tags = user_tags.join(",");
-							me.on_change && me.on_change(me.user_tags);
-							frappe.tags.utils.fetch_tags();
+							me.update_user_tags(user_tags.join(","));
 						},
 					});
 				}
@@ -55,9 +59,7 @@ frappe.ui.TagEditor = class TagEditor {
 						callback: function (r) {
 							var user_tags = me.user_tags.split(",");
 							user_tags.splice(user_tags.indexOf(tag), 1);
-							me.user_tags = user_tags.join(",");
-							me.on_change && me.on_change(me.user_tags);
-							frappe.tags.utils.fetch_tags();
+							me.update_user_tags(user_tags.join(","));
 						},
 					});
 				}

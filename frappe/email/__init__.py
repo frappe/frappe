@@ -16,7 +16,7 @@ def sendmail_to_system_managers(subject, content):
 
 
 @frappe.whitelist()
-def get_contact_list(txt, page_length=20, extra_filters: str | None = None) -> list[dict]:
+def get_contact_list(txt: str, page_length: int = 20, extra_filters: str | None = None) -> list[dict]:
 	"""Return email ids for a multiselect field."""
 	if extra_filters:
 		extra_filters = frappe.parse_json(extra_filters)
@@ -60,7 +60,18 @@ def get_system_managers():
 
 
 @frappe.whitelist()
-def relink(name, reference_doctype=None, reference_name=None):
+def relink(name: str, reference_doctype: str | None = None, reference_name: str | None = None):
+	from frappe.core.doctype.comment.comment import relink_comment_cache
+
+	frappe.has_permission("Communication", "write", name, throw=True)
+
+	comm = frappe.get_doc("Communication", name)
+	if comm.communication_type != "Communication":
+		return
+
+	old_reference_doctype = comm.reference_doctype
+	old_reference_name = comm.reference_name
+
 	frappe.db.sql(
 		"""update
 			`tabCommunication`
@@ -69,43 +80,27 @@ def relink(name, reference_doctype=None, reference_name=None):
 			reference_name = %s,
 			status = "Linked"
 		where
-			communication_type = "Communication" and
 			name = %s""",
 		(reference_doctype, reference_name, name),
 	)
 
+	comm.reference_doctype = reference_doctype
+	comm.reference_name = reference_name
+	relink_comment_cache(comm, old_reference_doctype, old_reference_name)
+
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def get_communication_doctype(doctype, txt, searchfield, start, page_len, filters):
-	user_perms = frappe.utils.user.UserPermissions(frappe.session.user)
-	user_perms.build_permissions()
-	can_read = user_perms.can_read
-	from frappe import _
-	from frappe.modules import load_doctype_module
+def get_communication_doctype(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: str | list | dict
+):
+	can_read = frappe.get_user().get_can_read()
 
-	com_doctypes = []
-	if len(txt) < 2:
-		for name in frappe.get_hooks("communication_doctypes"):
-			try:
-				module = load_doctype_module(name, suffix="_dashboard")
-				if hasattr(module, "get_data"):
-					for i in module.get_data()["transactions"]:
-						com_doctypes += i["items"]
-			except ImportError:
-				pass
-	else:
-		com_doctypes = [
-			d[0] for d in frappe.db.get_values("DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0})
-		]
+	com_doctypes = frappe.db.get_values(
+		"DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0}, pluck="name"
+	)
 
-	results = []
-	txt_lower = txt.lower().replace("%", "")
-
-	for dt in list(set(com_doctypes)):
-		if dt in can_read:
-			if txt_lower in dt.lower() or txt_lower in _(dt).lower():
-				results.append([dt])
+	results = [[dt] for dt in list(set(com_doctypes)) if dt in can_read]
 
 	return results
 
@@ -152,37 +147,42 @@ def sendmail(
 	email_headers=None,
 	raw_html=False,
 	add_css=True,
+	redact_message_after_send=False,
+	wrapper=None,
 ) -> EmailQueue | None:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
-	:param recipients: List of recipients.
-	:param sender: Email sender. Default is current user or default outgoing account.
-	:param subject: Email Subject.
-	:param message: (or `content`) Email Content.
-	:param as_markdown: Convert content markdown to HTML.
-	:param delayed: Send via scheduled email sender **Email Queue**. Don't send immediately. Default is true
-	:param send_priority: Priority for Email Queue, default 1.
-	:param reference_doctype: (or `doctype`) Append as communication to this DocType.
-	:param reference_name: (or `name`) Append as communication to this document name.
-	:param unsubscribe_method: Unsubscribe url with options email, doctype, name. e.g. `/api/method/unsubscribe`
-	:param unsubscribe_params: Unsubscribe paramaters to be loaded on the unsubscribe_method [optional] (dict).
-	:param attachments: List of attachments.
-	:param reply_to: Reply-To Email Address.
-	:param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
-	:param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
-	:param send_after: Send after the given datetime.
-	:param expose_recipients: Display all recipients in the footer message - "This email was sent to"
-	:param communication: Communication link to be set in Email Queue record
-	:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
-	:param template: Name of html template from templates/emails folder
-	:param args: Arguments for rendering the template
-	:param header: Append header in email
-	:param with_container: Wraps email inside a styled container
-	:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
-	:param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
-	:param raw_html: Whether to treat email template as a complete HTML file
-	:param add_css: Whether to add CSS from hooks/email_css to the email template
+	    :param recipients: List of recipients.
+	    :param sender: Email sender. Default is current user or default outgoing account.
+	    :param subject: Email Subject.
+	    :param message: (or `content`) Email Content.
+	    :param as_markdown: Convert content markdown to HTML.
+	    :param delayed: Send via scheduled email sender **Email Queue**. Don't send immediately. Default is true
+	    :param send_priority: Priority for Email Queue, default 1.
+	    :param reference_doctype: (or `doctype`) Append as communication to this DocType.
+	    :param reference_name: (or `name`) Append as communication to this document name.
+	    :param unsubscribe_method: Unsubscribe url with options email, doctype, name. e.g. `/api/method/unsubscribe`
+	    :param unsubscribe_params: Unsubscribe paramaters to be loaded on the unsubscribe_method [optional] (dict).
+	    :param attachments: List of attachments.
+	    :param reply_to: Reply-To Email Address.
+	    :param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
+	    :param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
+	    :param send_after: Send after the given datetime.
+	    :param expose_recipients: Controls recipient visibility. "header" shows all TO recipients in the To header.
+	"footer" adds "This email was sent to..." text in footer. None (default) hides TO recipients from each other.
+	Note: CC header is always visible regardless of this setting (as per email semantics).
+	    :param communication: Communication link to be set in Email Queue record
+	    :param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
+	    :param template: Name of html template from templates/emails folder
+	    :param args: Arguments for rendering the template
+	    :param header: Append header in email
+	    :param with_container: Wraps email inside a styled container
+	    :param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
+	    :param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
+	    :param raw_html: Whether to treat email template as a complete HTML file
+	    :param add_css: Whether to add CSS from hooks/email_css to the email template
+	    :param redact_message_after_send: Replace the message body with a placeholder once sent, for emails carrying sensitive content.
 	"""
 
 	from frappe.utils.jinja import get_email_from_template
@@ -244,6 +244,8 @@ def sendmail(
 		email_headers=email_headers,
 		raw_html=raw_html,
 		add_css=add_css,
+		redact_message_after_send=redact_message_after_send,
+		wrapper=wrapper,
 	)
 
 	# build email queue and send the email if send_now is True.

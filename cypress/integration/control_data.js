@@ -65,7 +65,7 @@ context("Data Control", () => {
 			.should("have.class", "reqd");
 
 		//Checking if the status is "Not Saved" initially
-		cy.get(".page-head-content .indicator-pill").should("have.text", "Not Saved");
+		cy.get('[data-testid="page-status"]').should("contain.text", "Not Saved");
 
 		//Inputting data in the field
 		cy.fill_field("name1", "@@###", "Data");
@@ -144,8 +144,7 @@ context("Data Control", () => {
 		//Deleting the inserted document
 		cy.go_to_list("Test Data Control");
 		cy.get(".list-row-checkbox").eq(0).click({ force: true });
-		cy.get(".actions-btn-group > .btn").contains("Actions").click();
-		cy.get('.actions-btn-group > .dropdown-menu [data-label="Delete"]').click();
-		cy.click_modal_primary_button("Yes");
+		cy.click_action_button("Delete");
+		cy.click_modal_primary_button("Delete");
 	});
 });

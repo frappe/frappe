@@ -49,7 +49,7 @@ select.form-control {
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
-	padding-block: 0;
+	padding-block: 0px;
 }
 
 /* table multiselect */
@@ -61,6 +61,7 @@ select.form-control {
 	padding: 10px;
 	padding-bottom: 5px;
 	gap: 6px;
+
 	.link-field {
 		width: 100%;
 	}
@@ -99,6 +100,8 @@ select.form-control {
 	.status-text {
 		position: absolute;
 		top: 4px;
+		left: 8px;
+		right: 8px;
 	}
 
 	.dropdown-menu {
@@ -116,6 +119,7 @@ select.form-control {
 	.selectable-item {
 		cursor: pointer;
 		@include flex(flex, space-between, center, null);
+
 		.icon {
 			display: none;
 		}
@@ -146,38 +150,75 @@ select.form-control {
 
 .frappe-control {
 	@include get_textstyle("base", "regular");
+
 	.control-label.reqd:after {
 		content: " *";
 		color: var(--red-400);
 		white-space: nowrap;
 	}
+
 	.help:empty {
 		display: none;
 	}
+
 	.ql-editor:not(.read-mode) {
 		background-color: var(--control-bg);
 	}
-	.address-box {
-		background-color: var(--control-bg);
-		padding: var(--padding-sm);
+
+	.ql-container.ql-snow .ql-editor:not(.read-mode) {
+		background-color: var(--surface-base);
+	}
+
+	.card-list-actions {
+		margin-bottom: var(--margin-sm);
+	}
+
+	.address-box,
+	.contact-box {
+		background-color: var(--card-bg);
+		padding: var(--padding-md);
 		margin-bottom: var(--margin-sm);
 		border: 1px solid var(--border-color);
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 		word-wrap: break-word;
 		position: relative;
-		p:last-child {
+
+		> :last-child {
 			margin-bottom: 0;
 		}
-		.edit-btn {
+
+		.box-header {
+			padding-inline-end: 1.5rem;
+			margin-bottom: var(--margin-sm);
+		}
+
+		.box-subtitle,
+		.contact-line,
+		.address-display {
+			line-height: 1.4;
+		}
+
+		.box-subtitle {
+			margin-top: calc(-1 * var(--margin-xs));
+			margin-bottom: var(--margin-sm);
+		}
+
+		.card-menu-btn {
 			position: absolute;
-			top: 5px;
-			right: 5px;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			padding: var(--padding-sm);
+			top: var(--padding-sm);
+			inset-inline-end: var(--padding-sm);
 		}
 	}
+
+	.contact-box .contact-line {
+		margin-bottom: var(--margin-xs);
+
+		svg.icon {
+			flex-shrink: 0;
+			margin: 0;
+		}
+	}
+
 	.action-btn {
 		position: absolute;
 		top: 0px;
@@ -195,6 +236,22 @@ select.form-control {
 		@extend .action-btn;
 		background-color: var(--control-bg);
 		display: none;
+		border-radius: var(--radius);
+		height: 100%;
+		white-space: nowrap;
+
+		a {
+			display: inline-flex;
+			height: 100%;
+			align-items: center;
+			vertical-align: middle;
+		}
+
+		.btn-clear {
+			&:hover {
+				color: var(--error-color);
+			}
+		}
 	}
 }
 
@@ -215,7 +272,7 @@ select.form-control {
 	&.has-error {
 		.control-input {
 			border: 1px solid var(--error-border);
-			border-radius: var(--border-radius);
+			border-radius: var(--radius);
 		}
 	}
 }
@@ -224,20 +281,25 @@ select.form-control {
 	min-height: 48px;
 	background-color: var(--control-bg);
 	color: var(--text-color);
+
 	.ace_gutter {
 		z-index: auto;
 		background: var(--control-bg);
 		color: var(--text-light);
+
 		.ace_gutter-active-line {
 			background-color: var(--control-bg-on-gray);
 		}
 	}
+
 	.ace_marker-layer .ace_active-line {
 		background-color: var(--control-bg-on-gray);
 	}
+
 	.ace_print-margin {
 		background-color: var(--dark-border-color);
 	}
+
 	.ace_scrollbar {
 		z-index: 3;
 	}
@@ -249,12 +311,9 @@ select.form-control {
 		position: relative;
 		padding: 6px 10px;
 		background: var(--control-bg);
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 		@include get_textstyle("base", "regular");
 
-		.es-icon {
-			margin-right: 8px;
-		}
 		.btn {
 			padding: 0px 8px;
 		}
@@ -313,12 +372,13 @@ textarea.form-control {
 	margin-top: var(--margin-xs);
 	text-align: center;
 	background-color: var(--control-bg);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	padding: var(--padding-md);
 
 	svg > rect {
 		fill: var(--control-bg) !important;
 	}
+
 	svg > g {
 		fill: var(--text-color) !important;
 	}
@@ -338,9 +398,11 @@ textarea.form-control {
 .rating {
 	cursor: pointer;
 	--star-fill: var(--gray-300);
+
 	.star-hover {
 		--star-fill: var(--yellow-100);
 	}
+
 	.star-click {
 		--star-fill: var(--yellow-300);
 	}
@@ -356,9 +418,11 @@ textarea.form-control {
 		height: 25px;
 		margin: 4px 2px;
 	}
+
 	.rating-hover {
 		background-color: var(--yellow-100);
 	}
+
 	.rating-click {
 		background-color: var(--yellow-300);
 	}
@@ -366,6 +430,11 @@ textarea.form-control {
 
 .frappe-control .control-value {
 	overflow-wrap: break-word;
+}
+
+.frappe-control[data-fieldtype="Text Editor"] .control-value {
+	max-height: 300px;
+	overflow: auto;
 }
 
 .frappe-control[data-fieldtype="Data"] .control-input,
@@ -425,11 +494,12 @@ textarea.form-control {
 
 .duration-picker {
 	position: fixed;
-	z-index: 999;
-	border-radius: var(--border-radius);
+	z-index: 9999;
+	border-radius: var(--radius);
 	box-shadow: var(--shadow-sm);
 	background: var(--popover-bg);
 	width: max-content;
+
 	&:after,
 	&:before {
 		border: solid transparent;
@@ -455,12 +525,6 @@ textarea.form-control {
 		margin-left: -10px;
 	}
 
-	.row .col {
-		// for fixing layout in child table
-		padding-left: 0px !important;
-		padding-right: 0px !important;
-	}
-
 	.duration-row {
 		margin: 5px;
 		display: flex;
@@ -471,7 +535,7 @@ textarea.form-control {
 		border: none;
 		color: var(--text-color);
 		background-color: var(--bg-gray);
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 		padding: 4px 8px;
 	}
 
@@ -488,19 +552,8 @@ textarea.form-control {
 		margin: var(--margin-sm);
 
 		.col {
-			&:last-child {
-				.grid-row & {
-					// remove flex and justify content added by grid context
-					display: block;
-					justify-content: initial;
-				}
-			}
-
-			.grid-row & {
-				// remove border and padding added by grid context
-				border-right: none;
-				padding: unset;
-			}
+			padding-left: 0;
+			padding-right: 0;
 		}
 	}
 }
@@ -510,13 +563,14 @@ textarea.form-control {
 	min-height: 110px;
 	background: var(--control-bg);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	position: relative;
 }
 
 .signature-display {
 	background: var(--control-bg);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
+
 	.attach-missing-image,
 	.attach-image-display {
 		cursor: pointer;
@@ -548,14 +602,16 @@ button.data-pill {
 		margin-left: var(--margin-xs);
 		margin-right: 0;
 	}
+
 	display: flex;
 	height: var(--btn-height);
 	background-color: var(--fg-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	color: var(--text-color);
 	background-color: var(--subtle-fg);
 	justify-content: space-between;
 	align-items: center;
+
 	.pill-label {
 		color: var(--text-color);
 	}
@@ -566,4 +622,221 @@ button.data-pill {
 	top: 0;
 	right: 0;
 	cursor: pointer;
+}
+
+//switch
+label.switch-control {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 2rem; // gap-8
+	width: 100%;
+	margin-bottom: 0;
+	padding: 0.25rem 0;
+	cursor: pointer;
+}
+
+.switch-control {
+	// Left column: label + description.
+	.switch-text {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+
+	.label-area {
+		font-size: var(--text-base);
+		color: var(--ink-gray-7);
+	}
+
+	// Description sits under the label
+	.help-box {
+		margin: 2px 0 0;
+		font-size: var(--text-sm);
+		line-height: 1.4;
+		color: var(--ink-gray-5);
+	}
+
+	// Keep the checkbox accessible and label-clickable, but visually hidden
+	// (standard sr-only clip pattern — focus moves through it to drive the track).
+	.input-area {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		clip-path: inset(50%);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	.switch-visual {
+		display: inline-flex;
+		align-items: center;
+		flex-shrink: 0;
+		width: 26px;
+		height: 16px;
+		padding: 2px;
+		border-radius: var(--radius-full, 999px);
+		background-color: var(--ink-gray-2);
+		transition: background-color 0.15s ease-in-out;
+	}
+
+	.switch-thumb {
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+		background-color: var(--surface-base);
+		box-shadow: var(--shadow-sm);
+		transition: transform 0.15s ease-in-out;
+	}
+
+	// Checked: darken track, slide thumb (26 − 2·2 − 12 = 10px).
+	.input-area:has(input:checked) ~ .switch-visual {
+		background-color: var(--ink-gray-8);
+
+		.switch-thumb {
+			transform: translateX(10px);
+		}
+	}
+
+	// Hover states.
+	&:hover .input-area:not(:has(input:checked)) ~ .switch-visual {
+		background-color: var(--ink-gray-3);
+	}
+
+	&:hover .input-area:has(input:checked) ~ .switch-visual {
+		background-color: var(--ink-gray-7);
+	}
+
+	// The real input is visually hidden, so surface keyboard focus on the track.
+	.input-area:has(input:focus-visible) ~ .switch-visual {
+		box-shadow: 0 0 0 2px var(--outline-gray-3);
+	}
+
+	// Disabled.
+	&:has(input:disabled) {
+		cursor: not-allowed;
+
+		.switch-visual {
+			background-color: var(--ink-gray-1);
+		}
+	}
+}
+
+.frappe-control[data-fieldtype="Attachment Gallery"] {
+	.attachment-gallery {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+		gap: var(--margin-sm);
+		margin-bottom: var(--margin-md);
+	}
+
+	.attachment-gallery-item-wrapper {
+		position: relative;
+		min-width: 0;
+	}
+
+	.attachment-gallery-item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		min-height: 120px;
+		padding: var(--padding-xs);
+		overflow: hidden;
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius);
+		background: var(--fg-color);
+		color: inherit;
+		text-decoration: none;
+		cursor: pointer;
+
+		&:hover {
+			border-color: var(--primary);
+		}
+	}
+
+	.attachment-gallery-image img {
+		display: block;
+		width: 100%;
+		height: 120px;
+		object-fit: cover;
+		border-radius: var(--border-radius-sm);
+	}
+
+	.attachment-gallery-placeholder {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: var(--margin-xs);
+		width: 100%;
+		height: 120px;
+		color: var(--text-muted);
+		text-align: center;
+	}
+
+	.attachment-gallery-filename {
+		max-width: 100%;
+		font-size: var(--text-xs);
+		line-height: 1.3;
+		word-break: break-word;
+	}
+
+	.attachment-gallery-delete {
+		position: absolute;
+		top: 6px;
+		right: 6px;
+		z-index: 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 22px;
+		height: 22px;
+		padding: 0;
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius);
+		background: var(--fg-color);
+		color: var(--text-muted);
+		opacity: 0;
+		cursor: pointer;
+		transition: opacity 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+		&:hover {
+			border-color: var(--red-500);
+			color: var(--red-500);
+		}
+
+		&:focus-visible {
+			opacity: 1;
+		}
+	}
+
+	.attachment-gallery-item-wrapper:hover .attachment-gallery-delete {
+		opacity: 1;
+	}
+
+	.attachment-gallery-upload {
+		border-style: dashed;
+		color: var(--text-muted);
+
+		&:hover {
+			color: var(--primary);
+		}
+	}
+
+	.attachment-gallery-empty {
+		color: var(--text-muted);
+		font-size: var(--text-sm);
+	}
+
+	@media (hover: none) {
+		.attachment-gallery-delete {
+			opacity: 1;
+		}
+	}
 }

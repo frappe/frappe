@@ -5,6 +5,8 @@ from frappe.model.document import Document
 
 
 class WorkflowActionMaster(Document):
+	_DOCTYPE_NAME = "Workflow Action Master"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

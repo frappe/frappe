@@ -4,6 +4,7 @@
 frappe.ui.form.on("Recorder", {
 	onload: function (frm) {
 		frm.fields_dict.sql_queries.grid.only_sortable();
+		frm.fields_dict.timeline.grid.only_sortable();
 	},
 	refresh: function (frm) {
 		frm.disable_save();
@@ -11,6 +12,8 @@ frappe.ui.form.on("Recorder", {
 		frm.trigger("setup_sort");
 		frm.fields_dict.sql_queries.grid.grid_pagination.page_length = 500;
 		refresh_field("sql_queries");
+		frm.fields_dict.timeline.grid.grid_pagination.page_length = 500;
+		refresh_field("timeline");
 		frm.trigger("format_grid");
 		frm.add_custom_button(__("Suggest Optimizations"), () => {
 			frappe.xcall("frappe.core.doctype.recorder.recorder.optimize", {
@@ -24,7 +27,7 @@ frappe.ui.form.on("Recorder", {
 		});
 
 		let index_grid = frm.fields_dict.suggested_indexes.grid;
-		index_grid.wrapper.find(".grid-footer").toggle(true);
+		index_grid.wrapper.find(".grid-footer").toggleClass("hidden", false);
 		index_grid.toggle_checkboxes(true);
 		index_grid.df.cannot_delete_rows = true;
 		index_grid.add_custom_button(__("Add Indexes"), function () {
@@ -73,6 +76,13 @@ frappe.ui.form.on("Recorder", {
 			});
 		};
 		heatmap("sql_queries", "duration", max_duration);
+
+		if (frm.doc.timeline && frm.doc.timeline.length) {
+			const max_event = Math.max(20, ...frm.doc.timeline.map((d) => d.duration));
+			const max_queries = Math.max(1, ...frm.doc.timeline.map((d) => d.queries));
+			heatmap("timeline", "duration", max_event);
+			heatmap("timeline", "queries", max_queries);
+		}
 	},
 });
 

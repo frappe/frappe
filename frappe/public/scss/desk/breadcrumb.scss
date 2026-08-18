@@ -7,13 +7,14 @@
 .navbar-breadcrumbs {
 	flex-wrap: nowrap;
 	align-items: center;
-	line-height: 1;
 	a {
 		text-decoration: none;
 		color: var(--ink-gray-5);
 		font-weight: var(--weight-medium);
 		font-size: var(--text-lg);
 		letter-spacing: get_letterspacing("sm", "regular");
+		display: flex;
+		align-items: center;
 		&:hover {
 			color: var(--ink-gray-7);
 		}
@@ -29,6 +30,16 @@
 			letter-spacing: 0.02em;
 			font-weight: 420;
 		}
+	}
+
+	li {
+		min-width: 0;
+	}
+
+	li:last-child > a {
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	&.mobile-no-divider {

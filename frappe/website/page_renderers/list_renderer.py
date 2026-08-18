@@ -26,5 +26,6 @@ class ListPage(TemplatePage):
 
 	def render(self):
 		frappe.form_dict.doctype = self.path
+		frappe.local.no_cache = 1
 		self.set_standard_path("portal")
 		return super().render()

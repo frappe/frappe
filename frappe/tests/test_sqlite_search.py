@@ -5,7 +5,7 @@ from typing import ClassVar
 from unittest.mock import patch
 
 import frappe
-from frappe.search.sqlite_search import SQLiteSearch, SQLiteSearchIndexMissingError
+from frappe.search.sqlite_search import SQLiteSearch, SQLiteSearchIndexMissingError, index_docs_in_queue
 from frappe.tests import IntegrationTestCase
 
 
@@ -308,6 +308,91 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 		# Should return empty results or minimal results
 		self.assertLessEqual(len(results["results"]), 1)
 
+	def test_index_queue(self):
+		self.search.build_index()
+		new_note = frappe.get_doc(
+			{
+				"doctype": "Note",
+				"title": "Newly Added Document",
+				"content": "This document was added after initial indexing",
+			}
+		)
+		new_note.insert()
+
+		try:
+			self.search.index_doc("Note", new_note.name)
+			doc_id = f"Note:{new_note.name}"
+			conn = sqlite3.connect(self.search.db_path)
+			cursor = conn.cursor()
+			doc_id = f"Note:{new_note.name}"
+
+			# should be present in the queue
+			cursor.execute("SELECT COUNT(*) FROM search_index_queue WHERE doc_id = ?", (doc_id,))
+			queue_count = cursor.fetchone()[0]
+			self.assertEqual(
+				queue_count, 1, "Document should be present in the index queue after index_doc call"
+			)
+
+			# should not be indexed yet
+			cursor.execute("SELECT COUNT(*) FROM search_fts WHERE doc_id = ?", (doc_id,))
+			db_count = cursor.fetchone()[0]
+			self.assertEqual(
+				db_count,
+				0,
+				"Document should not be indexed immediately after index_doc call, should be in queue instead",
+			)
+
+			with patch("frappe.get_hooks") as mock_get_hooks:
+				mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+				index_docs_in_queue()
+
+			# after processing the queue, it should be indexed and removed from the queue
+			cursor.execute("SELECT COUNT(*) FROM search_index_queue WHERE doc_id = ?", (doc_id,))
+			queue_count_after = cursor.fetchone()[0]
+			self.assertEqual(
+				queue_count_after, 0, "Document should be removed from index queue after processing"
+			)
+
+			cursor.execute("SELECT COUNT(*) FROM search_fts WHERE doc_id = ?", (doc_id,))
+			db_count_after = cursor.fetchone()[0]
+			self.assertEqual(db_count_after, 1, "Document should be indexed after processing the queue")
+			conn.close()
+
+		finally:
+			new_note.delete()
+
+	def test_index_queue_deduplication(self):
+		self.search.build_index()
+		new_note = frappe.get_doc(
+			{
+				"doctype": "Note",
+				"title": "Newly Added Document",
+				"content": "This document was added after initial indexing",
+			}
+		)
+		new_note.insert()
+
+		try:
+			self.search.index_doc("Note", new_note.name)
+			new_note.reload()
+			new_note.content = "Updated content"
+			new_note.save()
+
+			doc_id = f"Note:{new_note.name}"
+			conn = sqlite3.connect(self.search.db_path)
+			cursor = conn.cursor()
+			cursor.execute("SELECT COUNT(*) FROM search_index_queue WHERE doc_id = ?", (doc_id,))
+			queue_count = cursor.fetchall()
+			self.assertEqual(
+				len(queue_count),
+				1,
+				"There should only be one entry in the index queue for the document, even after multiple index_doc calls",
+			)
+			conn.close()
+
+		finally:
+			new_note.delete()
+
 	def test_document_indexing_operations(self):
 		"""Test individual document indexing and removal operations."""
 		self.search.build_index()
@@ -329,6 +414,10 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 
 			# Index the new document
 			self.search.index_doc("Note", new_note.name)
+			# Need to process the queue to make it findable in search results
+			with patch("frappe.get_hooks") as mock_get_hooks:
+				mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+				index_docs_in_queue()
 
 			# Now it should be findable
 			results = self.search.search("Newly Added Document")
@@ -442,6 +531,10 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 			# Index the document
 			self.search.index_doc("Note", html_note.name)
 
+			with patch("frappe.get_hooks") as mock_get_hooks:
+				mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+				index_docs_in_queue()
+
 			# Search should find processed content
 			results = self.search.search("bold text links")
 
@@ -483,6 +576,29 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 		disabled_search.build_index()  # Should not raise error but do nothing
 		self.assertFalse(disabled_search.index_exists())
 
+	@patch("frappe.enqueue")
+	def test_background_operations(self, mock_enqueue):
+		"""Test background job integration and module-level functions."""
+		from frappe.search.sqlite_search import build_index_in_background, get_search_classes
+
+		# Test getting search classes
+		with patch("frappe.get_hooks") as mock_get_hooks:
+			mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+			classes = get_search_classes()
+			self.assertEqual(len(classes), 1)
+			self.assertEqual(classes[0], TestSQLiteSearch)
+
+		# Ensure index doesn't exist so build_index_in_background will enqueue a job
+		self.search.drop_index()
+
+		# Test background index building
+		with patch("frappe.get_hooks") as mock_get_hooks:
+			mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+			build_index_in_background()
+
+			# Should have enqueued a background job since index doesn't exist
+			self.assertTrue(mock_enqueue.called)
+
 	def test_deduplication_on_reindex(self):
 		"""Test that re-indexing the same document does not create duplicates."""
 		self.search.build_index()
@@ -501,6 +617,17 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 			# Index the document
 			self.search.index_doc("Note", test_note.name)
 
+			# search results should be 0 as the document is in the queue and not indexed yet
+			results = self.search.search("Deduplication Test")
+			initial_count = len([r for r in results["results"] if r["name"] == test_note.name])
+			self.assertEqual(
+				initial_count, 0, "Document should not be found in search results before processing the queue"
+			)
+
+			with patch("frappe.get_hooks") as mock_get_hooks:
+				mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+				index_docs_in_queue()
+
 			# Search for the document - should find exactly one result
 			results = self.search.search("Deduplication Test")
 			initial_count = len([r for r in results["results"] if r["name"] == test_note.name])
@@ -511,6 +638,10 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 			self.search.index_doc("Note", test_note.name)
 			self.search.index_doc("Note", test_note.name)
 
+			with patch("frappe.get_hooks") as mock_get_hooks:
+				mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+				index_docs_in_queue()
+
 			# Search again - should still find exactly one result
 			results = self.search.search("Deduplication Test")
 			final_count = len([r for r in results["results"] if r["name"] == test_note.name])
@@ -520,6 +651,9 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 			test_note.content = "Updated content for deduplication testing"
 			test_note.save()
 			self.search.index_doc("Note", test_note.name)
+			with patch("frappe.get_hooks") as mock_get_hooks:
+				mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+				index_docs_in_queue()
 
 			# Search with updated content - should find exactly one result with new content
 			results = self.search.search("Updated content deduplication")
@@ -531,6 +665,10 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 
 			# Rebuild entire index - should not create duplicates
 			self.search.build_index()
+			with patch("frappe.get_hooks") as mock_get_hooks:
+				mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+				index_docs_in_queue()
+
 			results = self.search.search("Deduplication Test")
 			rebuild_count = len([r for r in results["results"] if r["name"] == test_note.name])
 			self.assertEqual(rebuild_count, 1, "Should still find exactly one instance after full rebuild")
@@ -547,25 +685,101 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 		finally:
 			test_note.delete()
 
-	@patch("frappe.enqueue")
-	def test_background_operations(self, mock_enqueue):
-		"""Test background job integration and module-level functions."""
-		from frappe.search.sqlite_search import (
-			build_index_in_background,
-			get_search_classes,
-		)
+	def test_build_index_terminates_when_a_batch_has_no_indexable_documents(self):
+		"""build_index must advance its cursor even if nothing in a batch can be indexed.
 
-		# Test getting search classes
-		with patch("frappe.get_hooks") as mock_get_hooks:
-			mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
-			classes = get_search_classes()
-			self.assertEqual(len(classes), 1)
-			self.assertEqual(classes[0], TestSQLiteSearch)
+		prepare_document() may legitimately reject every document in a batch (missing text
+		fields, a subclass filtering by its own rules). The cursor used to advance only when
+		at least one document survived, so such a batch was re-fetched forever and
+		build_index() never returned - it spun at full CPU, opening a fresh SQLite connection
+		per iteration, until the process was killed.
+		"""
+		self.search.drop_index()
 
-		# Test background index building
-		with patch("frappe.get_hooks") as mock_get_hooks:
-			mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
-			build_index_in_background()
+		real_get_documents_paginated = self.search.get_documents_paginated
+		fetches = []
 
-			# Should have enqueued a background job
-			self.assertTrue(mock_enqueue.called)
+		def counting_get_documents_paginated(*args, **kwargs):
+			fetches.append(kwargs.get("last_indexed_name"))
+			# Fail the test instead of hanging the suite if the cursor stops advancing.
+			if len(fetches) > 50:
+				raise AssertionError(
+					"build_index() re-fetched batches without advancing its cursor "
+					f"({len(fetches)} fetches for {len(self.search.doc_configs)} doctypes)"
+				)
+			return real_get_documents_paginated(*args, **kwargs)
+
+		with (
+			patch.object(TestSQLiteSearch, "prepare_document", return_value=None),
+			patch.object(self.search, "get_documents_paginated", counting_get_documents_paginated),
+		):
+			self.search.build_index()
+
+		# Every doctype is walked to exhaustion and marked complete, and nothing is indexed.
+		self.assertTrue(self.search.index_exists())
+
+		conn = sqlite3.connect(self.search.db_path)
+		try:
+			indexed_rows = conn.execute("SELECT COUNT(*) FROM search_fts").fetchone()[0]
+			incomplete = conn.execute(
+				"SELECT COUNT(*) FROM search_index_progress WHERE is_complete = 0"
+			).fetchone()[0]
+		finally:
+			conn.close()
+
+		self.assertEqual(indexed_rows, 0)
+		self.assertEqual(incomplete, 0, "every doctype should be marked complete")
+
+
+class TestStripSurrogates(IntegrationTestCase):
+	"""Unit tests for the strip_surrogates helper.
+
+	Regression test for the poison-pill bug where a Communication with mis-encoded
+	UTF-16 surrogates (e.g., from Outlook/Exchange emojis) caused
+	cursor.executemany() to fail with UnicodeEncodeError, aborting the entire
+	indexing batch and blocking the source save (email pull, doc save, etc.).
+	"""
+
+	def test_clean_text_returns_unchanged(self):
+		from frappe.search.sqlite_search import strip_surrogates
+
+		self.assertEqual(strip_surrogates("Hello, world"), "Hello, world")
+		self.assertEqual(strip_surrogates("Hello, 世界 🎉"), "Hello, 世界 🎉")
+		self.assertEqual(strip_surrogates(""), "")
+
+	def test_paired_surrogates_recover_to_real_codepoint(self):
+		"""Outlook/Exchange emojis arriving as surrogate pairs get recombined."""
+		from frappe.search.sqlite_search import strip_surrogates
+
+		# 🎉 is the UTF-16 surrogate pair for U+1F389 (🎉)
+		poisoned = chr(0xD83C) + chr(0xDF89) + " Congrats"
+		self.assertEqual(strip_surrogates(poisoned), "🎉 Congrats")
+
+	def test_orphan_surrogates_are_dropped(self):
+		from frappe.search.sqlite_search import strip_surrogates
+
+		self.assertEqual(strip_surrogates("before" + chr(0xD83C) + "after"), "beforeafter")
+		self.assertEqual(strip_surrogates("before" + chr(0xDF89) + "after"), "beforeafter")
+
+	def test_non_string_values_pass_through(self):
+		from frappe.search.sqlite_search import strip_surrogates
+
+		self.assertIsNone(strip_surrogates(None))
+		self.assertEqual(strip_surrogates(42), 42)
+		self.assertEqual(strip_surrogates(""), "")
+
+	def test_output_is_always_utf8_encodable(self):
+		"""The sanitized string must be safe for sqlite3 parameter binding."""
+		from frappe.search.sqlite_search import strip_surrogates
+
+		# Every combination that previously caused UnicodeEncodeError
+		poisoned_inputs = [
+			chr(0xD83C) + chr(0xDF89) + " Congrats",  # paired
+			"before" + chr(0xD83C) + "after",  # orphan high
+			"before" + chr(0xDF89) + "after",  # orphan low
+			chr(0xD83C) + "X" + chr(0xDF89),  # invalid pairing
+		]
+		for value in poisoned_inputs:
+			with self.assertRaises(UnicodeEncodeError):
+				value.encode("utf-8")
+			strip_surrogates(value).encode("utf-8")  # must not raise

@@ -25,6 +25,8 @@ H_TAG_PATTERN = re.compile("<h.>")
 
 
 class WebPage(WebsiteGenerator):
+	_DOCTYPE_NAME = "Web Page"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

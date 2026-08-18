@@ -11,6 +11,8 @@ from frappe.utils.modules import get_modules_from_app
 
 
 class UserType(Document):
+	_DOCTYPE_NAME = "User Type"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -48,8 +50,6 @@ class UserType(Document):
 		if self.is_standard:
 			return
 
-		self.validate_document_type_limit()
-		self.validate_role()
 		self.add_role_permissions_for_user_doctypes()
 		self.add_role_permissions_for_select_doctypes()
 		self.add_role_permissions_for_file()
@@ -74,47 +74,6 @@ class UserType(Document):
 		self.set("user_type_modules", [])
 		for module in modules:
 			self.append("user_type_modules", {"module": module})
-
-	def validate_document_type_limit(self):
-		limit = frappe.conf.get("user_type_doctype_limit", {}).get(frappe.scrub(self.name))
-
-		if not limit and frappe.session.user != "Administrator":
-			frappe.throw(
-				_("User does not have permission to create the new {0}").format(frappe.bold(_("User Type"))),
-				title=_("Permission Error"),
-			)
-
-		if not limit:
-			frappe.throw(
-				_("The limit has not set for the user type {0} in the site config file.").format(
-					frappe.bold(self.name)
-				),
-				title=_("Set Limit"),
-			)
-
-		if self.user_doctypes and len(self.user_doctypes) > limit:
-			frappe.throw(
-				_("The total number of user document types limit has been crossed."),
-				title=_("User Document Types Limit Exceeded"),
-			)
-
-		custom_doctypes = [row.document_type for row in self.user_doctypes if row.is_custom]
-		if custom_doctypes and len(custom_doctypes) > 3:
-			frappe.throw(
-				_("You can only set the 3 custom doctypes in the Document Types table."),
-				title=_("Custom Document Types Limit Exceeded"),
-			)
-
-	def validate_role(self):
-		if not self.role:
-			frappe.throw(_("The field {0} is mandatory").format(frappe.bold(_("Role"))))
-
-		if not frappe.db.get_value("Role", self.role, "is_custom"):
-			frappe.throw(
-				_("The role {0} should be a custom role.").format(
-					frappe.bold(get_link_to_form("Role", self.role))
-				)
-			)
 
 	def update_users(self):
 		for row in frappe.get_all("User", filters={"user_type": self.name}):
@@ -218,7 +177,9 @@ def get_non_standard_user_types():
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def get_user_linked_doctypes(doctype, txt, searchfield, start, page_len, filters):
+def get_user_linked_doctypes(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict | list | str
+):
 	modules = [d.get("module_name") for d in get_modules_from_app("frappe")]
 
 	filters = [
@@ -254,7 +215,7 @@ def get_user_linked_doctypes(doctype, txt, searchfield, start, page_len, filters
 
 
 @frappe.whitelist()
-def get_user_id(parent):
+def get_user_id(parent: str):
 	data = (
 		frappe.get_all(
 			"DocField",

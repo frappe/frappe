@@ -15,11 +15,10 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		this.$value = $(
 			`<div class="attached-file flex justify-between align-center">
 				<div class="ellipsis">
-				${frappe.utils.icon("es-line-link", "sm")}
+				${frappe.utils.icon("link", "sm")}
 					<a class="attached-file-link" target="_blank"></a>
 				</div>
 				<div class="flex" style="align-items: center">
-					<a class="btn btn-xs btn-default" data-action="reload_attachment">${__("Reload File")}</a>
 					<a class="btn btn-xs btn-default" data-action="clear_attachment">${__("Clear")}</a>
 				</div>
 			</div>`
@@ -31,18 +30,22 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		this.has_input = true;
 
 		frappe.utils.bind_actions_with_object(this.$value, this);
-		this.toggle_reload_button();
 	}
 	clear_attachment() {
 		let me = this;
 		frappe.confirm(__("Are you sure you want to delete the attachment?"), function () {
 			if (me.frm) {
-				me.parse_validate_and_set_in_model(null);
-				me.refresh();
-				me.frm.attachments.remove_attachment_by_filename(me.value, async () => {
-					await me.parse_validate_and_set_in_model(null);
+				let file_url = me.value || me.get_model_value();
+				me.parse_validate_and_set_in_model(null).then(() => {
 					me.refresh();
-					me.frm.doc.docstatus == 1 ? me.frm.save("Update") : me.frm.save();
+					if (!me.frm.is_new()) {
+						let save_action = me.frm.doc.docstatus == 1 ? "Update" : "Save";
+						me.frm.save(save_action, () => {
+							if (!me.frm.is_dirty()) {
+								me.frm.attachments.remove_attachment_by_filename(file_url);
+							}
+						});
+					}
 				});
 			} else {
 				me.dataurl = null;
@@ -53,18 +56,22 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 			}
 		});
 	}
-	reload_attachment() {
-		if (this.file_uploader) {
-			this.file_uploader.uploader.upload_files();
-		}
-	}
 	on_attach_click() {
 		this.set_upload_options();
 		this.file_uploader = new frappe.ui.FileUploader(this.upload_options);
 	}
 	on_attach_doc_image() {
 		this.set_upload_options();
-		this.upload_options.restrictions.allowed_file_types = ["image/*"];
+		this.upload_options.restrictions.allowed_file_types = [
+			"image/jpeg",
+			"image/png",
+			"image/gif",
+			"image/webp",
+			"image/svg+xml",
+			"image/avif",
+			"image/bmp",
+			"image/x-icon",
+		];
 		this.file_uploader = new frappe.ui.FileUploader(this.upload_options);
 	}
 	set_upload_options() {
@@ -72,7 +79,6 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 			allow_multiple: false,
 			on_success: (file) => {
 				this.on_upload_complete(file);
-				this.toggle_reload_button();
 			},
 			restrictions: {},
 		};
@@ -125,8 +131,8 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 					.attr("href", dataurl || this.value);
 			}
 		} else {
-			this.$input.toggle(true);
-			this.$value.toggle(false);
+			this.$input?.toggle(true);
+			this.$value?.toggle(false);
 		}
 	}
 
@@ -138,14 +144,10 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		if (this.frm) {
 			await this.parse_validate_and_set_in_model(attachment.file_url);
 			this.frm.attachments.update_attachment(attachment);
-			this.frm.doc.docstatus == 1 ? this.frm.save("Update") : this.frm.save();
+			if (!this.frm.is_new()) {
+				this.frm.doc.docstatus == 1 ? this.frm.save("Update") : this.frm.save();
+			}
 		}
 		this.set_value(attachment.file_url);
-	}
-
-	toggle_reload_button() {
-		this.$value
-			.find('[data-action="reload_attachment"]')
-			.toggle(this.file_uploader && this.file_uploader.uploader.files.length > 0);
 	}
 };

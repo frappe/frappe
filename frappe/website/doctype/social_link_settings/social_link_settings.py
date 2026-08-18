@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class SocialLinkSettings(Document):
+	_DOCTYPE_NAME = "Social Link Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

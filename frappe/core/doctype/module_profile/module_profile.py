@@ -8,6 +8,8 @@ from frappe.model.document import Document
 
 
 class ModuleProfile(Document):
+	_DOCTYPE_NAME = "Module Profile"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -1,7 +1,7 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from dateutil.relativedelta import relativedelta
 
@@ -42,6 +42,8 @@ week_map = {
 
 
 class AutoRepeat(Document):
+	_DOCTYPE_NAME = "Auto Repeat"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -415,7 +417,7 @@ class AutoRepeat(Document):
 		if not self.subject:
 			subject = _("New {0}: {1}").format(new_doc.doctype, new_doc.name)
 		elif "{" in self.subject:
-			subject = frappe.render_template(self.subject, {"doc": new_doc})
+			subject = frappe.render_template(self.subject, {"doc": new_doc}, restrict_globals=True)
 
 		print_format = self.print_format or "Standard"
 		error_string = None
@@ -443,7 +445,7 @@ class AutoRepeat(Document):
 		elif not self.message:
 			message = _("Please find attached {0}: {1}").format(new_doc.doctype, new_doc.name)
 		elif "{" in self.message:
-			message = frappe.render_template(self.message, {"doc": new_doc})
+			message = frappe.render_template(self.message, {"doc": new_doc}, restrict_globals=True)
 
 		make(
 			doctype=new_doc.doctype,
@@ -556,7 +558,13 @@ def get_auto_repeat_entries(date=None):
 
 
 @frappe.whitelist()
-def make_auto_repeat(doctype, docname, frequency="Daily", start_date=None, end_date=None):
+def make_auto_repeat(
+	doctype: str,
+	docname: str | int,
+	frequency: str = "Daily",
+	start_date: str | datetime | None = None,
+	end_date: str | datetime | None = None,
+):
 	if not start_date:
 		start_date = getdate(today())
 	doc = frappe.new_doc("Auto Repeat")
@@ -573,7 +581,9 @@ def make_auto_repeat(doctype, docname, frequency="Daily", start_date=None, end_d
 # method for reference_doctype filter
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters):
+def get_auto_repeat_doctypes(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: str | dict | list
+):
 	res = frappe.get_all(
 		"Property Setter",
 		{
@@ -601,6 +611,7 @@ def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters
 def update_reference(docname: str, reference: str):
 	doc = frappe.get_doc("Auto Repeat", str(docname))
 	doc.check_permission("write")
+	frappe.has_permission(doc.reference_doctype, "read", str(reference), throw=True)
 	doc.db_set("reference_document", str(reference))
 	return "success"  # backward compatbility
 
@@ -612,8 +623,8 @@ def generate_message_preview(name: str):
 	doc = frappe.get_doc(auto_repeat.reference_doctype, auto_repeat.reference_document)
 	doc.check_permission()
 	subject_preview = _("Please add a subject to your email")
-	msg_preview = frappe.render_template(auto_repeat.message, {"doc": doc})
+	msg_preview = frappe.render_template(auto_repeat.message, {"doc": doc}, restrict_globals=True)
 	if auto_repeat.subject:
-		subject_preview = frappe.render_template(auto_repeat.subject, {"doc": doc})
+		subject_preview = frappe.render_template(auto_repeat.subject, {"doc": doc}, restrict_globals=True)
 
 	return {"message": msg_preview, "subject": subject_preview}

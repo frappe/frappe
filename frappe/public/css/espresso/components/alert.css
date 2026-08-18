@@ -1,0 +1,123 @@
+/* Espresso Alert — a static message banner with an optional icon,
+ * description and dismiss button.
+ *
+ * Markup:
+ *   <div class="es-alert" role="alert" data-theme="blue">
+ *     <svg>...</svg>                          (themed icon, optional)
+ *     <div class="es-alert__content">
+ *       <span class="es-alert__title">...</span>
+ *       <p class="es-alert__description">...</p>   (optional)
+ *     </div>
+ *     <button class="es-alert__dismiss">...</button>  (optional)
+ *   </div>
+ *
+ * Attributes (all optional):
+ *   data-theme     yellow | blue | red | green   (no theme = plain gray, no icon)
+ *   data-variant   subtle | outline              (default: subtle)
+ *
+ * "yellow" uses the amber tokens — the name comes from frappe-ui's Alert. */
+
+.es-alert {
+
+    /* default (no theme): plain gray */
+    --es-al-bg: var(--surface-gray-2);
+    --es-al-icon: var(--ink-gray-6);
+
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: start;
+    gap: calc(var(--spacing) * 3);
+    padding-inline: calc(var(--spacing) * 4);
+    padding-block: calc(var(--spacing) * 3.5);
+    border-radius: var(--radius-md);
+    font-size: var(--text-base);
+    background: var(--es-al-bg);
+}
+
+/* ---- themes ---- */
+.es-alert[data-theme="yellow"] {
+    --es-al-bg: var(--surface-amber-2);
+    --es-al-icon: var(--ink-amber-6);
+}
+
+.es-alert[data-theme="blue"] {
+    --es-al-bg: var(--surface-blue-2);
+    --es-al-icon: var(--ink-blue-6);
+}
+
+.es-alert[data-theme="red"] {
+    --es-al-bg: var(--surface-red-2);
+    --es-al-icon: var(--ink-red-6);
+}
+
+.es-alert[data-theme="green"] {
+    --es-al-bg: var(--surface-green-2);
+    --es-al-icon: var(--ink-green-6);
+}
+
+/* ---- outline variant: border instead of a filled background ---- */
+.es-alert[data-variant="outline"] {
+    background: transparent;
+    border: 1px solid var(--outline-gray-3);
+}
+
+/* ---- children ---- */
+.es-alert > svg {
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+    margin-top: 2px;
+    color: var(--es-al-icon);
+    flex-shrink: 0;
+}
+
+.es-alert__content {
+    display: grid;
+    gap: calc(var(--spacing) * 2);
+}
+
+/* no icon: let the content start in the first column */
+.es-alert__content:first-child {
+    grid-column: 1 / span 2;
+}
+
+.es-alert__title {
+    color: var(--ink-gray-9);
+}
+
+.es-alert__description {
+    margin: 0;
+    color: var(--ink-gray-6);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+}
+
+.es-alert__dismiss {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+    line-height: 0;
+    color: var(--ink-gray-6);
+}
+
+.es-alert__dismiss:focus-visible {
+    outline: var(--focus-outline-default);
+    border-radius: var(--radius-1);
+}
+
+.es-alert__dismiss > svg {
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+}
+
+/* ---- footer (element form): sits under the content, e.g. action buttons ---- */
+.es-alert__footer {
+    grid-column: 2;
+    display: flex;
+    gap: calc(var(--spacing) * 2);
+}
+
+/* no icon: line the footer up with the content, which starts in column 1 */
+.es-alert > .es-alert__content:first-child ~ .es-alert__footer {
+    grid-column: 1 / span 2;
+}

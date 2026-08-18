@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class WebPageBlock(Document):
+	_DOCTYPE_NAME = "Web Page Block"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

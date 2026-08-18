@@ -4,6 +4,7 @@
 frappe.provide("frappe.messages");
 
 import "./dialog";
+import { has_unsafe_scheme } from "./components/utils.js";
 
 frappe.messages.waiting = function (parent, msg) {
 	return $(frappe.messages.get_waiting_message(msg)).appendTo(parent);
@@ -26,15 +27,21 @@ frappe.throw = function (msg) {
 	throw new Error(msg.message);
 };
 
-frappe.confirm = function (message, confirm_action, reject_action) {
+frappe.confirm = function (
+	message,
+	confirm_action,
+	reject_action,
+	primary_label,
+	secondary_label
+) {
 	var d = new frappe.ui.Dialog({
 		title: __("Confirm", null, "Title of confirmation dialog"),
-		primary_action_label: __("Yes", null, "Approve confirmation dialog"),
+		primary_action_label: __(primary_label || "Yes", null, "Approve confirmation dialog"),
 		primary_action: () => {
 			confirm_action && confirm_action();
 			d.hide();
 		},
-		secondary_action_label: __("No", null, "Dismiss confirmation dialog"),
+		secondary_action_label: __(secondary_label || "No", null, "Dismiss confirmation dialog"),
 		secondary_action: () => d.hide(),
 	});
 
@@ -56,7 +63,14 @@ frappe.confirm = function (message, confirm_action, reject_action) {
 	return d;
 };
 
-frappe.warn = function (title, message_html, proceed_action, primary_label, is_minimizable) {
+frappe.warn = function (
+	title,
+	message_html,
+	proceed_action,
+	primary_label,
+	is_minimizable,
+	secondary_label
+) {
 	const d = new frappe.ui.Dialog({
 		title: title,
 		indicator: "red",
@@ -65,13 +79,18 @@ frappe.warn = function (title, message_html, proceed_action, primary_label, is_m
 			if (proceed_action) proceed_action();
 			d.hide();
 		},
-		secondary_action_label: __("Cancel", null, "Secondary button in warning dialog"),
+		// "Cancel" reads wrong when the ACTION is cancelling something —
+		// those callers pass "No" instead
+		secondary_action_label:
+			secondary_label || __("Cancel", null, "Secondary button in warning dialog"),
 		secondary_action: () => d.hide(),
 		minimizable: is_minimizable,
 	});
 
 	d.$body.append(`<div class="frappe-confirm-message">${message_html}</div>`);
-	d.standard_actions.find(".btn-primary").removeClass("btn-primary").addClass("btn-danger");
+	// destructive confirm: the es-button red theme replaces the old
+	// btn-primary → btn-danger class swap
+	d.get_primary_btn().attr("data-theme", "red");
 
 	d.show();
 	return d;
@@ -183,6 +202,7 @@ frappe.msgprint = function (msg, title, is_minimizable, re_route) {
 			onhide: function () {
 				if (frappe.msg_dialog.custom_onhide) {
 					frappe.msg_dialog.custom_onhide();
+					delete frappe.msg_dialog.custom_onhide;
 				}
 				frappe.msg_dialog.msg_area.empty();
 			},
@@ -206,7 +226,7 @@ frappe.msgprint = function (msg, title, is_minimizable, re_route) {
 			typeof data.primary_action.server_action === "string"
 		) {
 			data.primary_action.action = () => {
-				frappe.call({
+				return frappe.call({
 					method: data.primary_action.server_action,
 					args: data.primary_action.args,
 					callback() {
@@ -405,73 +425,78 @@ frappe.hide_progress = function () {
 
 // Floating Message
 frappe.show_alert = frappe.toast = function (message, seconds = 7, actions = {}) {
-	let indicator_icon_map = {
-		orange: "solid-warning",
-		yellow: "solid-warning",
-		blue: "solid-info",
-		green: "solid-success",
-		red: "solid-error",
-	};
-
 	if (typeof message === "string") {
-		message = {
-			message: message,
-		};
+		message = { message: message };
 	}
 
-	if (!$("#dialog-container").length) {
-		$('<div id="dialog-container"><div id="alert-container"></div></div>').appendTo("body");
-	}
+	const type_map = {
+		green: "success",
+		red: "error",
+		orange: "warning",
+		yellow: "warning",
+		blue: "info",
+	};
+	const indicator = (message.indicator || "blue").toLowerCase();
 
-	let icon;
-	if (message.indicator) {
-		icon = indicator_icon_map[message.indicator.toLowerCase()] || "solid-" + message.indicator;
-	} else {
-		icon = "solid-info";
-	}
-
-	const indicator = message.indicator || "blue";
-
-	const div = $(`
-		<div class="alert desk-alert ${indicator}" role="alert">
-			<div class="alert-message-container">
-				<div class="alert-title-container">
-					<div>${frappe.utils.icon(icon, "lg")}</div>
-					<div class="alert-message">${message.message}</div>
-				</div>
-				<div class="alert-subtitle">${message.subtitle || ""}</div>
-			</div>
-			<div class="alert-body" style="display: none"></div>
-			<a class="close">${frappe.utils.icon("close-alt")}</a>
-		</div>
-	`);
-
-	div.hide().appendTo("#alert-container").show();
-
-	if (message.body) {
-		div.find(".alert-body").show().html(message.body);
-	}
-
-	div.find(".close, button").click(function () {
-		div.addClass("out");
-		setTimeout(() => div.remove(), 800);
-		return false;
+	const handle = frappe.ui.toast({
+		type: type_map[indicator] || "info",
+		duration: seconds * 1000,
 	});
+
+	// legacy messages may contain html (e.g. an inline Undo link) — keep the
+	// tags, strip the script vectors
+	const sane = (html) => frappe.utils.xss_sanitise(String(html), { strategies: ["js"] });
+	// xss_sanitise doesn't remove on*-handler attributes or javascript: links
+	// (its own TODO says so) — strip those from the real DOM after inserting.
+	// has_unsafe_scheme normalizes the value the way the browser does before
+	// checking, so a scheme hidden behind "java&#9;script:" or a leading
+	// control char can't slip past (see components/utils.js).
+	const harden = ($root) => {
+		$root.find("*").each(function () {
+			for (const attr of Array.from(this.attributes)) {
+				if (/^on/i.test(attr.name)) this.removeAttribute(attr.name);
+				else if (
+					["href", "src", "action", "formaction"].includes(attr.name) &&
+					has_unsafe_scheme(attr.value)
+				) {
+					this.removeAttribute(attr.name);
+				}
+			}
+		});
+		return $root;
+	};
+	// legacy alerts could also pass a DOM element or jQuery for any of these
+	// channels (e.g. success_action's next-action buttons) — append those as
+	// they are, with their event bindings intact; stringifying them would
+	// print "[object Object]". Strings go through sanitise + harden as before.
+	const fill = ($target, content) => {
+		if (content && (content.jquery || content.nodeType)) {
+			return $target.append(content);
+		}
+		return harden($target.html(sane(content)));
+	};
+	fill(handle.$el.find(".es-toast__message"), message.message || "");
+	if (message.subtitle) {
+		fill(
+			$('<div class="es-toast__description"></div>').appendTo(
+				handle.$el.find(".es-toast__content")
+			),
+			message.subtitle
+		);
+	}
+	if (message.body) {
+		fill(
+			$('<div class="es-toast__body"></div>').appendTo(
+				handle.$el.find(".es-toast__content")
+			),
+			message.body
+		);
+	}
 
 	Object.keys(actions).map((key) => {
-		div.find(`[data-action=${key}]`).on("click", actions[key]);
+		handle.$el.find(`[data-action=${key}]`).on("click", actions[key]);
 	});
 
-	if (seconds > 2) {
-		// Delay for animation
-		seconds = seconds - 0.8;
-	}
-
-	setTimeout(() => {
-		div.addClass("out");
-		setTimeout(() => div.remove(), 800);
-		return false;
-	}, seconds * 1000);
-
-	return div;
+	// old callers hold the element to dismiss it later
+	return handle.$el;
 };

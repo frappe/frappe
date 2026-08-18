@@ -16,15 +16,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           path: 'frappe'
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.14'
       - name: Set up bench and build assets
@@ -62,4 +62,4 @@ jobs:
     - name: curl
       run: |
         apk add curl bash
-        curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer ${{ secrets.CI_PAT }}" https://api.github.com/repos/frappe/frappe_docker/actions/workflows/build_stable.yml/dispatches -d '{"ref":"main"}'
+        curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer ${{ secrets.CI_PAT }}" https://api.github.com/repos/frappe/frappe_docker/actions/workflows/core-build-stable.yml/dispatches -d '{"ref":"main"}'

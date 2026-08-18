@@ -34,7 +34,11 @@
 						v-html="frappe.utils.icon(collapsed ? 'down' : 'up-line', 'sm')"
 					></div>
 				</div>
-				<Dropdown v-if="!store.read_only" :options="options" @click.stop />
+				<Dropdown
+					v-if="!store.read_only && !store.is_layout_form"
+					:options="options"
+					@click.stop
+				/>
 			</div>
 			<div v-if="section.df.description" class="section-description">
 				{{ section.df.description }}
@@ -90,7 +94,7 @@ const store = useStore();
 // delete/backspace to delete the field
 const { Backspace } = useMagicKeys();
 whenever(Backspace, (value) => {
-	if (value && selected.value && store.not_using_input) {
+	if (value && selected.value && store.not_using_input && !store.is_layout_form) {
 		remove_section();
 	}
 });
@@ -313,13 +317,13 @@ const options = computed(() => {
 	.form-section {
 		background-color: inherit;
 		border: 1px solid transparent;
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 		padding: 1rem;
 		cursor: pointer;
 
 		&:last-child {
-			border-bottom-left-radius: var(--border-radius);
-			border-bottom-right-radius: var(--border-radius);
+			border-bottom-left-radius: var(--radius);
+			border-bottom-right-radius: var(--radius);
 		}
 
 		&.hovered,
@@ -383,7 +387,7 @@ const options = computed(() => {
 		.section-columns-container {
 			display: flex;
 			min-height: 2rem;
-			border-radius: var(--border-radius);
+			border-radius: var(--radius);
 		}
 	}
 }

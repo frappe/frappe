@@ -48,6 +48,20 @@ frappe.breadcrumbs = {
 		return frappe.get_route_str();
 	},
 
+	set_tree_breadcrumb(breadcrumbs) {
+		const doctype = breadcrumbs.doctype;
+		const tree_title = frappe.treeview_settings?.[doctype]?.title || doctype;
+
+		this.append_breadcrumb_element(
+			`/desk/${frappe.router.slug(doctype)}`,
+			__(tree_title),
+			"title-text"
+		);
+
+		let tree_crumb = this.$breadcrumbs.find("li a.title-text").last();
+		tree_crumb.parent().addClass("ellipsis");
+	},
+
 	update() {
 		var breadcrumbs = this.all[frappe.breadcrumbs.current_page()];
 
@@ -79,8 +93,22 @@ frappe.breadcrumbs = {
 			if (breadcrumbs.doctype && ["print", "form"].includes(view)) {
 				this.set_list_breadcrumb(breadcrumbs);
 				this.set_form_breadcrumb(breadcrumbs, view);
+			} else if (breadcrumbs.doctype && view === "tree") {
+				this.set_tree_breadcrumb(breadcrumbs);
 			} else if (breadcrumbs.doctype && view === "list") {
 				this.set_list_breadcrumb(breadcrumbs);
+				if (breadcrumbs.layout_name) {
+					const layout_info = (frappe.boot.doctype_layouts || []).find(
+						(l) => l.name === breadcrumbs.layout_name
+					);
+					const display_title = layout_info?.title || breadcrumbs.layout_name;
+					const $li = this.$breadcrumbs.find("li").last();
+					$li.after(
+						`<li class="disabled"><a>${frappe.utils.escape_html(
+							__(display_title)
+						)}</a></li>`
+					);
+				}
 			} else if (breadcrumbs.doctype && view == "dashboard-view") {
 				this.set_list_breadcrumb(breadcrumbs);
 				this.set_dashboard_breadcrumb(breadcrumbs);
@@ -132,13 +160,6 @@ frappe.breadcrumbs = {
 				!frappe.visible_modules.includes(breadcrumbs.module_info.module))
 		) {
 			return;
-		}
-		if (frappe.app.sidebar.sidebar_title) {
-			let icon = frappe.utils.get_desktop_icon_by_label(frappe.app.sidebar.sidebar_title);
-			let url = frappe.utils.get_route_for_icon(icon);
-			if (url) {
-				this.append_breadcrumb_element(url, __(icon.label), "worksapce-breadcrumb");
-			}
 		}
 
 		let worksapce_crumb = this.$breadcrumbs.find("li a.worksapce-breadcrumb");
@@ -206,14 +227,15 @@ frappe.breadcrumbs = {
 			// no user listview for non-system managers and single doctypes
 		} else {
 			let route;
-			const doctype_route = frappe.router.slug(frappe.router.doctype_layout || doctype);
+			const doctype_route = frappe.router.slug(doctype);
 			if (doctype_meta?.is_tree) {
 				let view = frappe.model.user_settings[doctype].last_view || "Tree";
 				route = `${doctype_route}/view/${view}`;
 			} else {
 				route = doctype_route;
 			}
-			this.append_breadcrumb_element(`/desk/${route}`, __(doctype), "title-text");
+			const reset = breadcrumbs.layout_name ? "?reset_filters=1" : "";
+			this.append_breadcrumb_element(`/desk/${route}${reset}`, __(doctype), "title-text");
 		}
 
 		let list_crumb = this.$breadcrumbs.find("li a.title-text");
@@ -233,11 +255,27 @@ frappe.breadcrumbs = {
 			is_new_doc = true;
 		} else {
 			let title = frappe.model.get_doc_title(doc);
-			docname_title = title || doc.name;
+			docname_title = __(title) || __(doc.name);
 			if (frappe.utils.is_html(docname_title)) {
 				docname_title = strip_html(docname_title);
 			}
 		}
+
+		if (breadcrumbs.layout_name) {
+			const layout_info = (frappe.boot.doctype_layouts || []).find(
+				(l) => l.name === breadcrumbs.layout_name
+			);
+			const display_title = layout_info?.title || breadcrumbs.layout_name;
+			const doctype_slug = frappe.router.slug(doctype);
+			const filter_params = frappe.utils.parse_layout_condition_to_filters(
+				layout_info?.condition
+			);
+			filter_params._layout = breadcrumbs.layout_name;
+			const query = new URLSearchParams(filter_params).toString();
+			const layout_route = `/desk/${doctype_slug}${query ? "?" + query : ""}`;
+			this.append_breadcrumb_element(layout_route, __(display_title));
+		}
+
 		this.append_breadcrumb_element(form_route, docname_title, "title-text-form");
 
 		if (view === "form") {
@@ -254,7 +292,11 @@ frappe.breadcrumbs = {
 		const doctype = breadcrumbs.doctype;
 		const docname = frappe.get_route()[1];
 		let dashboard_route = `/desk/${frappe.router.slug(doctype)}/${docname}`;
-		$(`<li><a href="${dashboard_route}">${__(docname)}</a></li>`).appendTo(this.$breadcrumbs);
+		$(
+			`<li><a href="${frappe.utils.escape_html(dashboard_route)}">${frappe.utils.escape_html(
+				__(docname)
+			)}</a></li>`
+		).appendTo(this.$breadcrumbs);
 	},
 
 	setup_modules() {
@@ -275,7 +317,6 @@ frappe.breadcrumbs = {
 
 	clear() {
 		this.$breadcrumbs = $(".navbar-breadcrumbs").empty();
-		this.append_breadcrumb_element("/desk", frappe.utils.icon("monitor"));
 	},
 
 	toggle(show) {
@@ -285,4 +326,10 @@ frappe.breadcrumbs = {
 			$("body").removeClass("no-breadcrumbs");
 		}
 	},
+
+	/**
+	 * Parse a layout condition string into URL query params for list filtering.
+	 * Handles AND-joined `doc.field OP value` comparisons.
+	 * Returns {} for conditions that contain || (OR) since those can't be expressed as simple filters.
+	 */
 };

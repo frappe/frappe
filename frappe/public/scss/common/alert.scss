@@ -1,4 +1,6 @@
 // Color overrides for https://getbootstrap.com/docs/4.0/components/alerts
+// TODO: delete this file (and the --alert-* variables in legacy.css) once
+// the ~19 .alert.alert-* call sites move to the es-alert component.
 $alert-types: info, success, warning, danger;
 
 .alert {

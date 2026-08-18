@@ -2,7 +2,11 @@
 // MIT License. See license.txt
 
 frappe.ui.form.save = function (frm, action, callback, btn) {
-	$(btn).prop("disabled", true);
+	// aria-busy is managed everywhere this file manages disabled: the save
+	// promise never settles on validation errors (missing mandatory fields,
+	// "no changes"), so the page header's promise-based busy state can't be
+	// trusted to clear itself — the button would stay stuck on "Saving...".
+	$(btn).prop("disabled", true).attr("aria-busy", "true");
 
 	// specified here because there are keyboard shortcuts to save
 	const working_label = {
@@ -19,7 +23,10 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 		$(frm.wrapper).addClass("validated-form");
 		if ((action !== "Save" || frm.is_dirty()) && frappe.ui.form.check_mandatory(frm)) {
 			_call({
-				method: "frappe.desk.form.save.savedocs",
+				method:
+					action === "Submit"
+						? "frappe.desk.form.save.submit"
+						: "frappe.desk.form.save.savedocs",
 				args: { doc: frm.doc, action: action },
 				callback: function (r) {
 					$(document).trigger("save", [frm.doc]);
@@ -34,7 +41,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 		} else {
 			!frm.is_dirty() &&
 				frappe.show_alert({ message: __("No changes in document"), indicator: "orange" });
-			$(btn).prop("disabled", false);
+			$(btn).prop("disabled", false).removeAttr("aria-busy");
 		}
 	};
 
@@ -97,7 +104,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 			},
 			error: opts.error,
 			always: function (r) {
-				$(btn).prop("disabled", false);
+				$(btn).prop("disabled", false).removeAttr("aria-busy");
 				frappe.ui.form.is_saving = false;
 
 				if (r) {
@@ -123,25 +130,27 @@ frappe.ui.form.check_mandatory = function (frm) {
 
 	if (frm.doc.docstatus == 2) return true; // don't check for cancel
 
+	const ROW_LIMIT = 10;
+	const parent_errors = [];
+	const table_errors = {};
+
 	$.each(frappe.model.get_all_docs(frm.doc), function (i, doc) {
 		var error_fields = [];
 		var folded = false;
+		const fields_dict = frappe.meta.get_docfield_copy(doc.doctype, doc.name) || {};
 
 		$.each(frappe.meta.docfield_list[doc.doctype] || [], function (i, docfield) {
 			if (docfield.fieldname) {
-				const df = frappe.meta.get_docfield(doc.doctype, docfield.fieldname, doc.name);
+				const df = fields_dict[docfield.fieldname];
+				if (!df) return;
 
-				// skip fields that don't hold data
-				if (
-					["Section Break", "Column Break", "Tab Break", "HTML", "Heading"].includes(
-						df.fieldtype
-					)
-				) {
+				if (!df.reqd && !df.mandatory_depends_on && df.fieldtype !== "Fold") {
 					return;
 				}
 
 				if (df.fieldtype === "Fold") {
 					folded = frm.layout.folded;
+					return;
 				}
 
 				if (
@@ -170,68 +179,132 @@ frappe.ui.form.check_mandatory = function (frm) {
 
 		if (error_fields.length) {
 			let meta = frappe.get_meta(doc.doctype);
-			let message;
 			if (meta.istable) {
-				const table_field = frappe.meta.docfield_map[doc.parenttype][doc.parentfield];
-
-				const table_label = __(
-					table_field.label || frappe.unscrub(table_field.fieldname)
-				).bold();
-
-				message = __("Mandatory fields required in table {0}, Row {1}", [
-					table_label,
-					doc.idx,
-				]);
+				const parentfield = doc.parentfield;
+				if (!table_errors[parentfield]) {
+					const table_field = frappe.meta.docfield_map[doc.parenttype][parentfield];
+					const table_label = __(
+						table_field.label || frappe.unscrub(table_field.fieldname)
+					).bold();
+					table_errors[parentfield] = {
+						label: table_label,
+						fields: {},
+						total_rows: (frm.doc[parentfield] || []).length,
+					};
+				}
+				error_fields.forEach(function (field_label) {
+					if (!table_errors[parentfield].fields[field_label]) {
+						table_errors[parentfield].fields[field_label] = [];
+					}
+					table_errors[parentfield].fields[field_label].push(doc.idx);
+				});
 			} else {
-				message = __("Mandatory fields required in {0}", [__(doc.doctype)]);
+				error_fields.forEach(function (field_label) {
+					parent_errors.push(__("{0} is required.", [field_label.bold()]));
+				});
 			}
-			message = message + "<br><br><ul><li>" + error_fields.join("</li><li>") + "</ul>";
-			frappe.msgprint({
-				message: message,
-				indicator: "red",
-				title: __("Missing Fields"),
-			});
-			frm.refresh();
 		}
 	});
+
+	const lines = [...parent_errors];
+	Object.values(table_errors).forEach(function (te) {
+		Object.entries(te.fields).forEach(function (entry) {
+			const field_label = entry[0];
+			const rows = entry[1].sort((a, b) => a - b);
+
+			const ranges = [];
+			let start = rows[0];
+			let prev = rows[0];
+			for (let i = 1; i < rows.length; i++) {
+				if (rows[i] === prev + 1) {
+					prev = rows[i];
+				} else {
+					ranges.push(start === prev ? `${start}` : `${start}-${prev}`);
+					start = prev = rows[i];
+				}
+			}
+			ranges.push(start === prev ? `${start}` : `${start}-${prev}`);
+
+			if (rows.length === te.total_rows) {
+				lines.push(
+					__("In {0}, {1} is required in every row.", [te.label, field_label.bold()])
+				);
+			} else if (rows.length === 1) {
+				lines.push(
+					__("In {0}, {1} is required in row {2}.", [
+						te.label,
+						field_label.bold(),
+						rows[0],
+					])
+				);
+			} else if (ranges.length <= ROW_LIMIT) {
+				lines.push(
+					__("In {0}, {1} is required in rows {2}.", [
+						te.label,
+						field_label.bold(),
+						frappe.utils.comma_and(ranges),
+					])
+				);
+			} else {
+				lines.push(
+					__("In {0}, {1} is required in {2} rows.", [
+						te.label,
+						field_label.bold(),
+						rows.length,
+					])
+				);
+			}
+		});
+	});
+
+	if (lines.length) {
+		frappe.msgprint({
+			message:
+				__("Please fill the following mandatory fields before saving:") +
+				"<br><br><ul><li>" +
+				lines.join("</li><li>") +
+				"</li></ul>",
+			indicator: "red",
+			title: __("Missing Fields"),
+		});
+		frm.refresh();
+	}
 
 	return !has_errors;
 
 	function is_docfield_mandatory(doc, df) {
-		if (df.reqd) return true;
-		if (!df.mandatory_depends_on || !doc) return;
+		if (df.mandatory_depends_on && doc) {
+			let out = null;
+			let expression = df.mandatory_depends_on;
+			let parent = frm.doc;
 
-		let out = null;
-		let expression = df.mandatory_depends_on;
-		let parent = frappe.get_meta(df.parent);
-
-		if (typeof expression === "boolean") {
-			out = expression;
-		} else if (typeof expression === "function") {
-			out = expression(doc);
-		} else if (expression.substr(0, 5) == "eval:") {
-			try {
-				out = frappe.utils.eval(expression.substr(5), { doc, parent });
-				if (parent && parent.istable && expression.includes("is_submittable")) {
-					out = true;
+			if (typeof expression === "boolean") {
+				out = expression;
+			} else if (typeof expression === "function") {
+				out = expression(doc);
+			} else if (expression.substr(0, 5) == "eval:") {
+				try {
+					out = frappe.utils.eval(expression.substr(5), { doc, parent });
+				} catch (e) {
+					frappe.throw(__('Invalid "mandatory_depends_on" expression'));
 				}
-			} catch (e) {
-				frappe.throw(__('Invalid "mandatory_depends_on" expression'));
-			}
-		} else {
-			var value = doc[expression];
-			if ($.isArray(value)) {
-				out = !!value.length;
 			} else {
-				out = !!value;
+				var value = doc[expression];
+				if ($.isArray(value)) {
+					out = !!value.length;
+				} else {
+					out = !!value;
+				}
 			}
+
+			return out;
 		}
 
-		return out;
+		return !!df.reqd;
 	}
 
 	function scroll_to(fieldname) {
-		if (frm.scroll_to_field(fieldname)) {
+		if (frm.scroll_to_field(fieldname, false)) {
 			frm.scroll_set = true;
 		}
 	}
@@ -282,17 +355,22 @@ frappe.ui.form.update_calling_link = async (newdoc) => {
 		frappe.utils.add_link_title(newdoc.doctype, newdoc.name, newdoc[meta.title_field]);
 	}
 
-	// set value
-	if (doc && doc.parentfield) {
-		const row_exists = field_obj.frm.fields_dict[doc.parentfield].grid.grid_rows.find(
-			(row) => row.doc.name === doc.name
-		);
-		if (row_exists) field_obj.set_value(newdoc.name);
-	} else {
-		// parsing is needed for table multiselect to convert string to array
-		field_obj.parse_validate_and_set_in_model(newdoc.name);
-	}
+	// parsing is needed for table multiselect to convert string to array
+	await field_obj.parse_validate_and_set_in_model(newdoc.name);
 
-	// refresh field
 	field_obj.refresh();
+
+	// only quick entry form should proceed from here on
+	if (field_obj.frm || !(field_obj.layout instanceof frappe.ui.form.QuickEntryForm)) return;
+
+	const quick_entry = field_obj.layout;
+
+	// quick entry form is still open (nested case), no need to redirect
+	if (quick_entry.wrapper[0].offsetParent !== null) return;
+
+	// redirect to the original doc's form
+	const { doc: original_doc } = quick_entry;
+	if (original_doc && original_doc.doctype && original_doc.name) {
+		frappe.set_route("Form", original_doc.doctype, original_doc.name);
+	}
 };

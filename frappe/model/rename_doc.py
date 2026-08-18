@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING
 
 import frappe
 import frappe.permissions
-from frappe import _, bold
+from frappe import _, bold, scrub
 from frappe.model.document import Document
 from frappe.model.dynamic_links import get_dynamic_link_map
-from frappe.model.naming import validate_name
+from frappe.model.naming import is_autoincremented, validate_name
 from frappe.model.utils.user_settings import sync_user_settings, update_user_settings_data
 from frappe.query_builder import Field
 from frappe.utils.data import cint, cstr, sbool
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 	from frappe.model.meta import Meta
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def update_document_title(
 	*,
 	doctype: str,
@@ -74,17 +74,6 @@ def update_document_title(
 			if isinstance(transformed_name, dict):
 				transformed_name = transformed_name.get("new")
 			transformed_name = transformed_name or updated_name
-
-			# run rename validations before queueing
-			# use savepoints to avoid partial renames / commits
-			validate_rename(
-				doctype=doctype,
-				old=current_name,
-				new=transformed_name,
-				meta=doc.meta,
-				merge=merge,
-				save_point=True,
-			)
 
 			doc.queue_action("rename", name=transformed_name, merge=merge, queue=queue, timeout=36000)
 		else:
@@ -153,6 +142,7 @@ def rename_doc(
 
 	old = old or doc.name
 	doctype = doctype or doc.doctype
+	assert doctype and old, "doctype and old name must be resolved from arguments or the passed doc"
 	force = sbool(force)
 	merge = sbool(merge)
 	meta = frappe.get_meta(doctype)
@@ -412,6 +402,11 @@ def rename_doctype(doctype: str, old: str, new: str) -> None:
 	# change parenttype for fieldtype Table
 	update_parenttype_values(old, new)
 
+	# if autoincrement is enabled, update sequence name
+	meta = frappe.get_meta(new)
+	if is_autoincremented(new, meta):
+		update_sequence_name(old, new)
+
 
 def update_child_docs(old: str, new: str, meta: "Meta") -> None:
 	# update "parent"
@@ -649,8 +644,20 @@ def update_parenttype_values(old: str, new: str):
 	child_doctypes = set(list(d["options"] for d in child_doctypes) + property_setter_child_doctypes)
 
 	for doctype in child_doctypes:
+		if frappe.get_meta(doctype).is_virtual:
+			continue
+
 		table = frappe.qb.DocType(doctype)
 		frappe.qb.update(table).set(table.parenttype, new).where(table.parenttype == old).run()
+
+
+def update_sequence_name(old: str, new: str, slug: str = "_id_seq"):
+	old_sequence_name = scrub(old + slug)
+	new_sequence_name = scrub(new + slug)
+	if frappe.db.db_type == "mariadb":
+		frappe.db.sql_ddl(f"RENAME TABLE `{old_sequence_name}` TO `{new_sequence_name}`")
+	else:
+		frappe.db.sql_ddl(f'ALTER SEQUENCE "{old_sequence_name}" RENAME TO "{new_sequence_name}"')
 
 
 def rename_dynamic_links(doctype: str, old: str, new: str):
@@ -692,7 +699,7 @@ def bulk_rename(doctype: str, rows: list[list] | None = None, via_console: bool 
 	for row in rows:
 		# if row has some content
 		if len(row) > 1 and row[0] and row[1]:
-			merge = len(row) > 2 and (row[2] == "1" or row[2].lower() == "true")
+			merge = len(row) > 2 and sbool(row[2]) is True
 			try:
 				if rename_doc(doctype, row[0], row[1], merge=merge, rebuild_search=False):
 					msg = _("Successful: {0} to {1}").format(row[0], row[1])

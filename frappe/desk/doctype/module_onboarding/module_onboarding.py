@@ -8,6 +8,8 @@ from frappe.modules.export_file import export_to_files
 
 
 class ModuleOnboarding(Document):
+	_DOCTYPE_NAME = "Module Onboarding"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -19,12 +21,9 @@ class ModuleOnboarding(Document):
 		from frappe.types import DF
 
 		allow_roles: DF.TableMultiSelect[OnboardingPermission]
-		documentation_url: DF.Data
 		is_complete: DF.Check
 		module: DF.Link
 		steps: DF.Table[OnboardingStepMap]
-		subtitle: DF.Data
-		success_message: DF.Data
 		title: DF.Data
 	# end: auto-generated types
 

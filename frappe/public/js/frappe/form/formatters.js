@@ -68,11 +68,8 @@ frappe.form.formatters = {
 			return frappe.form.formatters.Currency(value, docfield, options, doc);
 		} else {
 			// show 1.000000 as 1
-			if (!(options || {}).always_show_decimals && !is_null(value)) {
-				var temp = cstr(value).split(".");
-				if (temp[1] == undefined || cint(temp[1]) === 0) {
-					precision = 0;
-				}
+			if (!(options || {}).always_show_decimals && !is_null(value) && flt(value) % 1 === 0) {
+				precision = 0;
 			}
 
 			value = value == null || value === "" ? "" : value;
@@ -95,11 +92,17 @@ frappe.form.formatters = {
 			return "";
 		}
 
+		const [mantissa, exponent] = cstr(value).toLowerCase().split("e");
+		const valuePrecision = Math.max((mantissa.split(".")[1]?.length || 0) - cint(exponent), 0);
+
 		const precision =
 			docfield.precision ||
 			cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) ||
 			2;
-		return frappe.form.formatters._right(format_number(value, null, precision) + "%", options);
+		return frappe.form.formatters._right(
+			format_number(value, null, Math.min(precision, valuePrecision)) + "%",
+			options
+		);
 	},
 	Rating: function (value, docfield) {
 		let rating_html = "";
@@ -128,12 +131,10 @@ frappe.form.formatters = {
 		var currency = frappe.meta.get_field_currency(docfield, doc);
 
 		let precision;
-		if (typeof docfield.precision == "number") {
-			precision = docfield.precision;
+		if (typeof docfield.precision == "number" || docfield.precision) {
+			precision = cint(docfield.precision);
 		} else {
-			precision = cint(
-				docfield.precision || frappe.boot.sysdefaults.currency_precision || 2
-			);
+			precision = frappe.meta.get_field_precision(docfield, doc);
 		}
 
 		// If you change anything below, it's going to hurt a company in UAE, a bit.
@@ -162,8 +163,9 @@ frappe.form.formatters = {
 	},
 	Check: function (value) {
 		return `<input type="checkbox" disabled
-			class="disabled-${value ? "selected" : "deselected"}">`;
+			class="disabled-${cint(value) ? "selected" : "deselected"}">`;
 	},
+
 	Link: function (value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
 		var original_value = value;
@@ -178,7 +180,7 @@ frappe.form.formatters = {
 		}
 
 		if (options && (options.for_print || options.only_value)) {
-			return link_title || value;
+			return get_link_display_value(doctype, link_title, value);
 		}
 
 		if (frappe.form.link_formatters[doctype]) {
@@ -211,10 +213,10 @@ frappe.form.formatters = {
 				a.innerText = __((options && options.label) || link_title || value);
 				return a.outerHTML;
 			} else {
-				return link_title || value;
+				return get_link_display_value(doctype, link_title, value);
 			}
 		} else {
-			return link_title || value;
+			return get_link_display_value(doctype, link_title, value);
 		}
 	},
 	Date: function (value) {
@@ -296,14 +298,16 @@ frappe.form.formatters = {
 	Tag: function (value) {
 		var html = "";
 		$.each((value || "").split(","), function (i, v) {
-			if (v)
+			if (v) {
+				let ev = frappe.utils.escape_html(v);
 				html += `
 				<span
 					class="data-pill btn-xs align-center ellipsis"
 					style="background-color: var(--control-bg); box-shadow: none; margin-right: 4px;"
-					data-field="_user_tags" data-label="${v}'">
-					${v}
+					data-field="_user_tags" data-label="${ev}">
+					${ev}
 				</span>`;
+			}
 		});
 		return html;
 	},
@@ -313,13 +317,10 @@ frappe.form.formatters = {
 	Assign: function (value) {
 		var html = "";
 		$.each(JSON.parse(value || "[]"), function (i, v) {
-			if (v)
-				html +=
-					'<span class="label label-warning" \
-				style="margin-right: 7px;"\
-				data-field="_assign">' +
-					v +
-					"</span>";
+			if (v) {
+				let ev = frappe.utils.escape_html(v);
+				html += `<span class="label label-warning" style="margin-right: 7px;" data-field="_assign">${ev}</span>`;
+			}
 		});
 		return html;
 	},
@@ -352,11 +353,13 @@ frappe.form.formatters = {
 				"<span class='label label-%(style)s' \
 				data-workflow-state='%(value)s'\
 				style='padding-bottom: 4px; cursor: pointer;'>\
-				<i class='fa fa-small fa-white fa-%(icon)s'></i> %(value)s</span>",
+				%(icon)s %(value)s</span>",
 				{
 					value: value,
 					style: workflow_state.style.toLowerCase(),
-					icon: workflow_state.icon,
+					icon: workflow_state.icon
+						? frappe.utils.icon(workflow_state.icon, "xs", "", "", "", true)
+						: "",
 				}
 			);
 		} else {
@@ -388,27 +391,40 @@ frappe.form.formatters = {
 		return formatted_values.join(", ");
 	},
 	Color: (value) => {
-		return value
-			? `<div>
-			<div class="selected-color" style="background-color: ${value}"></div>
-			<span class="color-value">${value}</span>
-		</div>`
-			: "";
+		if (!value) return "";
+		let escaped_value = frappe.utils.escape_html(value);
+		return `<div>
+			<div class="selected-color" style="background-color: ${escaped_value}"></div>
+			<span class="color-value">${escaped_value}</span>
+		</div>`;
 	},
 	Icon: (value) => {
-		return value
-			? `<div class='flex' style='gap: 8px;'>
-			<div class="selected-icon">${frappe.utils.icon(value, "md")}</div>
-			<span class="icon-value">${value}</span>
-		</div>`
-			: "";
+		if (!value) return "";
+		let escaped_value = frappe.utils.escape_html(value);
+		if (frappe.utils.is_emoji(value)) {
+			return `<div class='flex' style='gap: 8px;'>
+				<span class="icon-value">${escaped_value}</span>
+			</div>`;
+		}
+		return `<div class='flex' style='gap: 8px;'>
+			<div class="selected-icon">${frappe.utils.icon(escaped_value, "md")}</div>
+			<span class="icon-value">${escaped_value}</span>
+		</div>`;
 	},
 	Attach: format_attachment_url,
 	AttachImage: format_attachment_url,
 };
 
+function get_link_display_value(doctype, link_title, value) {
+	let translated_doctypes = frappe.boot?.translated_doctypes || [];
+	if (translated_doctypes.includes(doctype)) {
+		return __(link_title || value);
+	}
+	return link_title || value;
+}
 function format_attachment_url(url) {
-	return url ? `<a href="${url}" target="_blank">${url}</a>` : "";
+	let escaped = frappe.utils.escape_html(url);
+	return url ? `<a href="${escaped}" target="_blank">${escaped}</a>` : "";
 }
 
 frappe.form.get_formatter = function (fieldtype) {

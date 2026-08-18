@@ -1,9 +1,12 @@
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from datetime import date, datetime
+from typing import Any
+
 import frappe
 from frappe import _
-from frappe.boot import get_allowed_report_names
+from frappe.desk.desk_views import DeskViews
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
@@ -15,6 +18,8 @@ from frappe.utils.modules import get_modules_from_all_apps_for_user
 
 
 class NumberCard(Document):
+	_DOCTYPE_NAME = "Number Card"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -79,49 +84,51 @@ class NumberCard(Document):
 
 
 def get_permission_query_conditions(user=None):
-	# The user param is ignored because `get_allowed_report_names` and `get_doctypes_with_read` don't support it.
-	if frappe.session.user == "Administrator":
+	if not user:
+		user = frappe.session.user
+
+	if user == "Administrator" or "System Manager" in frappe.get_roles(user):
 		return
 
-	if "System Manager" in frappe.get_roles():
-		return
-
-	allowed_reports = get_allowed_report_names()
-	allowed_doctypes = get_doctypes_with_read()
-	allowed_modules = [module.get("module_name") for module in get_modules_from_all_apps_for_user()]
+	allowed_reports = DeskViews.get_allowed_report_names(user=user)
+	allowed_doctypes = get_doctypes_with_read(user)
+	allowed_modules = [module.get("module_name") for module in get_modules_from_all_apps_for_user(user)]
 
 	nc = frappe.qb.DocType("Number Card")
 	conditions = (
 		((nc.type == "Report") & nc.report_name.isin(allowed_reports))
 		| ((nc.type == "Custom") & nc.document_type.isin(allowed_doctypes))
 		| ((nc.type == "Document Type") & nc.document_type.isin(allowed_doctypes))
-	) & (nc.module.isin(allowed_modules) | nc.module.isnull() | nc.module == "")
+	) & (nc.module.isin(allowed_modules) | nc.module.isnull() | (nc.module == ""))
 
 	return conditions.get_sql(quote_char="`")
 
 
 def has_permission(doc, ptype, user):
-	# The user param is ignored because `get_allowed_report_names` and `get_doctypes_with_read` don't support it.
-	if frappe.session.user == "Administrator":
+	if not user:
+		user = frappe.session.user
+
+	if user == "Administrator" or "System Manager" in frappe.get_roles(user):
 		return True
 
-	if "System Manager" in frappe.get_roles():
+	if doc.type == "Report" and doc.report_name in DeskViews.get_allowed_report_names(user=user):
 		return True
 
-	if doc.type == "Report" and doc.report_name in get_allowed_report_names():
+	if doc.type == "Custom" and doc.document_type in get_doctypes_with_read(user):
 		return True
 
-	if doc.type == "Custom" and doc.document_type in get_doctypes_with_read():
-		return True
-
-	if doc.type == "Document Type" and doc.document_type in get_doctypes_with_read():
+	if doc.type == "Document Type" and doc.document_type in get_doctypes_with_read(user):
 		return True
 
 	return False
 
 
 @frappe.whitelist()
-def get_result(doc, filters, to_date=None):
+def get_result(
+	doc: str | dict[str, Any] | Document,
+	filters: str | list | dict[str, Any],
+	to_date: str | datetime | date | None = None,
+):
 	doc = frappe.parse_json(doc)
 	fields = []
 	sql_function_map = {
@@ -150,7 +157,11 @@ def get_result(doc, filters, to_date=None):
 		filters.append([doc.document_type, "creation", "<", to_date])
 
 	res = frappe.get_list(
-		doc.document_type, fields=fields, filters=filters, parent_doctype=doc.parent_document_type
+		doc.document_type,
+		fields=fields,
+		filters=filters,
+		parent_doctype=doc.parent_document_type,
+		order_by=None,
 	)
 	number = res[0]["result"] if res else 0
 
@@ -158,7 +169,9 @@ def get_result(doc, filters, to_date=None):
 
 
 @frappe.whitelist()
-def get_percentage_difference(doc, filters, result):
+def get_percentage_difference(
+	doc: str | dict[str, Any], filters: str | list | dict[str, Any], result: float | int | str
+):
 	doc = frappe.parse_json(doc)
 	result = frappe.parse_json(result)
 
@@ -194,7 +207,7 @@ def calculate_previous_result(doc, filters):
 
 
 @frappe.whitelist()
-def create_number_card(args):
+def create_number_card(args: str | dict[str, Any]):
 	args = frappe.parse_json(args)
 	doc = frappe.new_doc("Number Card")
 
@@ -205,7 +218,9 @@ def create_number_card(args):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
+def get_cards_for_user(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: str | list | dict[str, Any]
+):
 	doctype = "Number Card"
 	meta = frappe.get_meta(doctype)
 	searchfields = meta.get_search_fields()
@@ -221,15 +236,20 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 		filters=filters,
 	)
 
+	allowed_modules = {module.get("module_name") for module in get_modules_from_all_apps_for_user()}
+
 	return (
 		condition_query.select(numberCard.name, numberCard.label, numberCard.document_type)
 		.where((numberCard.owner == frappe.session.user) | (numberCard.is_public == 1))
+		.where(
+			numberCard.module.isin(allowed_modules) | numberCard.module.isnull() | (numberCard.module == "")
+		)
 		.where(Criterion.any(search_conditions))
 	).run()
 
 
 @frappe.whitelist()
-def create_report_number_card(args):
+def create_report_number_card(args: str | dict[str, Any]):
 	card = create_number_card(args)
 	args = frappe.parse_json(args)
 	args.name = card.name
@@ -238,7 +258,7 @@ def create_report_number_card(args):
 
 
 @frappe.whitelist()
-def add_card_to_dashboard(args):
+def add_card_to_dashboard(args: str | dict[str, Any]):
 	args = frappe.parse_json(args)
 
 	dashboard = frappe.get_doc("Dashboard", args.dashboard)

@@ -19,7 +19,7 @@ class Mention {
 				return `${item.value}`;
 			},
 			mentionDenotationChars: ["@"],
-			allowedChars: /^[a-zA-Z0-9_]*$/,
+			allowedChars: /^[\p{L}0-9_]*$/u,
 			minChars: 0,
 			maxChars: 31,
 			offsetTop: 2,
@@ -158,7 +158,7 @@ class Mention {
 		return {
 			id: this.mentionList.childNodes[this.itemIndex].dataset.id,
 			value: itemLink
-				? `<a href="${itemLink}" target="_blank">${
+				? `<a class="mention-link" href="${itemLink}" target="_blank">${
 						this.mentionList.childNodes[this.itemIndex].dataset.value
 				  }`
 				: this.mentionList.childNodes[this.itemIndex].dataset.value,

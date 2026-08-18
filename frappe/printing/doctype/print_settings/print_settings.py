@@ -8,6 +8,8 @@ from frappe.utils import cint
 
 
 class PrintSettings(Document):
+	_DOCTYPE_NAME = "Print Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

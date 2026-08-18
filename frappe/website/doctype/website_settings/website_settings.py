@@ -11,6 +11,8 @@ from frappe.website.utils import get_boot_data
 
 
 class WebsiteSettings(Document):
+	_DOCTYPE_NAME = "Website Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -19,9 +21,7 @@ class WebsiteSettings(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 		from frappe.website.doctype.top_bar_item.top_bar_item import TopBarItem
-		from frappe.website.doctype.website_route_redirect.website_route_redirect import (
-			WebsiteRouteRedirect,
-		)
+		from frappe.website.doctype.website_route_redirect.website_route_redirect import WebsiteRouteRedirect
 
 		address: DF.SmallText | None
 		app_logo: DF.AttachImage | None

@@ -14,6 +14,8 @@ CUSTOM_FIELD_TARGET = ["Custom DocPerm", "DocPerm", "DocShare"]
 
 
 class PermissionType(Document):
+	_DOCTYPE_NAME = "Permission Type"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -68,6 +70,8 @@ class PermissionType(Document):
 		for target in CUSTOM_FIELD_TARGET:
 			self.create_custom_field(target)
 
+		get_doctype_ptype_map.clear_cache()
+
 		if self.should_export():
 			from frappe.modules.export_file import export_to_files
 
@@ -84,10 +88,19 @@ class PermissionType(Document):
 	def create_custom_field(self, target):
 		from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 
-		if not self.custom_field_exists(target):
-			field = "share_doctype" if target == "DocShare" else "parent"
-			depends_on = f"eval:doc.{field} == '{self.doc_type}'"
+		field = "share_doctype" if target == "DocShare" else "parent"
 
+		if existing := self.custom_field_exists(target):
+			all_doc_types = frappe.get_all(
+				"Permission Type",
+				filters={"perm_type": self.perm_type},
+				pluck="doc_type",
+				limit=0,
+			)
+			depends_on = f"eval:{frappe.as_json(all_doc_types)}.includes(doc.{field})"
+			frappe.db.set_value("Custom Field", existing, "depends_on", depends_on)
+		else:
+			depends_on = f"eval:{frappe.as_json([self.doc_type])}.includes(doc.{field})"
 			create_custom_field(
 				target,
 				{
@@ -106,13 +119,28 @@ class PermissionType(Document):
 		for target in CUSTOM_FIELD_TARGET:
 			self.delete_custom_field(target)
 
+		get_doctype_ptype_map.clear_cache()
+
 		if self.should_export():
 			module = frappe.db.get_value("DocType", self.doc_type, "module")
 			delete_folder(module, "Permission Type", self.name)
 
 	def delete_custom_field(self, target):
-		if name := self.custom_field_exists(target):
-			frappe.delete_doc("Custom Field", name)
+		if not (existing := self.custom_field_exists(target)):
+			return
+
+		siblings = frappe.get_all(
+			"Permission Type",
+			filters={"perm_type": self.perm_type, "name": ["!=", self.name]},
+			pluck="doc_type",
+			limit=0,
+		)
+		if not siblings:
+			frappe.delete_doc("Custom Field", existing)
+		else:
+			field = "share_doctype" if target == "DocShare" else "parent"
+			depends_on = f"eval:{frappe.as_json(siblings)}.includes(doc.{field})"
+			frappe.db.set_value("Custom Field", existing, "depends_on", depends_on)
 
 	def custom_field_exists(self, target):
 		return frappe.db.exists(
@@ -126,7 +154,9 @@ class PermissionType(Document):
 
 @site_cache
 def get_doctype_ptype_map():
-	ptypes = frappe.get_all("Permission Type", fields=["perm_type", "doc_type"], order_by="perm_type")
+	ptypes = frappe.get_all(
+		"Permission Type", fields=["perm_type", "doc_type"], order_by="perm_type", limit=0
+	)
 
 	doctype_ptype_map = defaultdict(list)
 	for pt in ptypes:

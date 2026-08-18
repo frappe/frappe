@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class WorkflowActionPermittedRole(Document):
+	_DOCTYPE_NAME = "Workflow Action Permitted Role"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

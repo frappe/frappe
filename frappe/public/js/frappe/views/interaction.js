@@ -17,7 +17,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 			fields: me.get_fields(),
 			primary_action_label: __("Create"),
 			primary_action: function () {
-				me.create_action();
+				return me.create_action();
 			},
 		});
 
@@ -151,15 +151,15 @@ frappe.views.InteractionComposer = class InteractionComposer {
 		}
 
 		$(
-			"<h6 class='text-muted add-attachment' style='margin-top: 12px; cursor:pointer;'>" +
+			"<h5 class='text-muted add-attachment' style='margin-top: 12px; cursor:pointer;'>" +
 				__("Select Attachments") +
-				"</h6><div class='attach-list'></div>\
-			<p class='add-more-attachments'>\
-			<a class='text-muted small'><i class='octicon octicon-plus' style='font-size: 12px'></i> " +
-				__("Add Attachment") +
-				"</a></p>"
+				`</h5><div class='attach-list'></div>\
+			<button class='btn btn-sm btn-default add-more-attachments'>
+				${frappe.utils.icon("plus", "sm")}
+				${__("Add Attachment")}
+			</button>`
 		).appendTo(attach.empty());
-		attach.find(".add-more-attachments a").on("click", () => new frappe.ui.FileUploader(args));
+		attach.find(".add-more-attachments").on("click", () => new frappe.ui.FileUploader(args));
 		this.render_attach();
 	}
 
@@ -186,7 +186,12 @@ frappe.views.InteractionComposer = class InteractionComposer {
 							'<label><span><input type="checkbox" data-file-name="%(name)s"></input></span>' +
 							'<span class="small">%(file_name)s</span>' +
 							' <a href="%(file_url)s" target="_blank" class="text-muted small">' +
-							'<i class="fa fa-share" style="vertical-align: middle; margin-left: 3px;"></i>' +
+							frappe.utils.icon(
+								"external-link",
+								"xs",
+								"",
+								"vertical-align: middle; margin-left: 3px;"
+							) +
 							"</label></p>",
 						f
 					)

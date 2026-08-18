@@ -2,11 +2,16 @@
 // MIT License. See license.txt
 import "./linked_with";
 import "./form_viewers";
+import "./template_manager";
 import { ReminderManager } from "./reminders";
 
 frappe.ui.form.Toolbar = class Toolbar {
 	constructor(opts) {
 		$.extend(this, opts);
+		this.template_manager = new frappe.ui.form.TemplateManager({
+			frm: this.frm,
+			page: this.page,
+		});
 		this.refresh();
 		this.add_update_button_on_dirty();
 	}
@@ -23,7 +28,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 		} else {
 			if (this.frm.doc.__islocal) {
 				this.page.hide_menu();
-				this.print_icon && this.print_icon.addClass("hide");
 			} else {
 				const is_children_visible =
 					this.page.menu.children().filter(function () {
@@ -37,7 +41,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 				} else {
 					this.page.hide_menu();
 				}
-				this.print_icon && this.print_icon.removeClass("hide");
 			}
 		}
 	}
@@ -66,7 +69,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 			title = this.frm.docname;
 		}
 
-		var me = this;
 		title = __(title);
 		this.page.set_title(title);
 		if (this.frm.meta.title_field) {
@@ -126,8 +128,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 		if (input_name) {
 			const warning = __("This cannot be undone");
 			const message = __("Are you sure you want to merge {0} with {1}?", [
-				docname.bold(),
-				input_name.bold(),
+				frappe.utils.bold(docname),
+				frappe.utils.bold(input_name),
 			]);
 			confirm_message = `${message}<br><b>${warning}<b>`;
 		}
@@ -135,22 +137,27 @@ frappe.ui.form.Toolbar = class Toolbar {
 		let rename_document = () => {
 			if (input_name != docname) frappe.realtime.doctype_subscribe(doctype, input_name);
 			return frappe
-				.xcall("frappe.model.rename_doc.update_document_title", {
-					doctype,
-					docname,
-					name: input_name,
-					title: input_title,
-					enqueue: true,
-					merge,
-					freeze: true,
-					freeze_message: __("Updating related fields..."),
-					queue,
-				})
+				.xcall(
+					"frappe.model.rename_doc.update_document_title",
+					{
+						doctype,
+						docname,
+						name: input_name,
+						title: input_title,
+						enqueue: true,
+						merge,
+						queue,
+					},
+					"POST",
+					{
+						freeze: true,
+						freeze_message: __("Updating related fields..."),
+					}
+				)
 				.then((new_docname) => {
 					const reload_form = (input_name) => {
+						frappe.model.rename_doc_in_locals(doctype, docname, input_name, merge);
 						$(document).trigger("rename", [doctype, docname, input_name]);
-						if (locals[doctype] && locals[doctype][docname])
-							delete locals[doctype][docname];
 						this.frm.reload_doc();
 					};
 
@@ -161,8 +168,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 								reload_form(input_name);
 								frappe.show_alert({
 									message: __("Document renamed from {0} to {1}", [
-										docname.bold(),
-										input_name.bold(),
+										frappe.utils.bold(docname),
+										frappe.utils.bold(input_name),
 									]),
 									indicator: "success",
 								});
@@ -170,8 +177,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 						});
 						frappe.show_alert(
 							__("Document renaming from {0} to {1} has been queued", [
-								docname.bold(),
-								input_name.bold(),
+								frappe.utils.bold(docname),
+								frappe.utils.bold(input_name),
 							])
 						);
 					}
@@ -204,7 +211,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	setup_editable_title(element) {
 		let me = this;
 
-		if (me.is_title_editable()) {
+		if (me.is_title_editable() || me.can_rename()) {
 			let edit_icon = this.page.add_action_icon(
 				"square-pen",
 				() => {
@@ -221,7 +228,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 
 	setup_editable_title_click_event(element) {
 		let me = this;
-		element.on("click", () => {
+		element.off("click").on("click", () => {
 			let fields = [];
 			let docname = me.frm.doc.name;
 			let title_field = me.frm.meta.title_field || "";
@@ -328,9 +335,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		this.page.clear_icons();
 		this.page.clear_menu();
 
-		if (frappe.boot.desk_settings.form_sidebar) {
-			this.make_menu_items();
-		}
+		this.make_menu_items();
 
 		if (frappe.boot.desk_settings.form_navigation_buttons) {
 			this.make_navigation();
@@ -341,7 +346,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		// Navigate
 		if (!this.frm.is_new() && !this.frm.meta.issingle) {
 			this.page.add_action_icon(
-				"es-line-left-chevron",
+				frappe.utils.is_rtl() ? "chevron-right" : "chevron-left",
 				() => {
 					this.frm.navigate_records(1);
 				},
@@ -349,7 +354,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				__("Previous Document")
 			);
 			this.page.add_action_icon(
-				"es-line-right-chevron",
+				frappe.utils.is_rtl() ? "chevron-left" : "chevron-right",
 				() => {
 					this.frm.navigate_records(0);
 				},
@@ -360,7 +365,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	make_menu_items() {
-		// Print
+		this.add_print();
 		this.add_discard();
 		this.add_open_sidebar();
 		this.add_email();
@@ -378,6 +383,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 		this.add_follow();
 		this.add_undo_redo();
 		this.add_auto_repeat();
+		this.page.add_divider();
+		this.template_manager.add_menu_item();
 		this.page.add_divider();
 		this.make_customize_buttons();
 	}
@@ -423,7 +430,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				this.show_jump_to_field_dialog();
 			},
 			true,
-			"Ctrl+J"
+			{ shortcut: "Ctrl+J", ignore_inputs: true }
 		);
 	}
 
@@ -464,12 +471,25 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 	}
 
+	add_print() {
+		if (frappe.model.can_print_doc(this.frm)) {
+			let menu_item = this.page.add_menu_item(
+				__("Print"),
+				() => {
+					this.frm.print_doc();
+				},
+				true
+			);
+			menu_item.parent().addClass("hidden-xl");
+		}
+	}
+
 	add_open_sidebar() {
-		if (this.page.hide_sidebar) {
+		if (this.page.hide_sidebar || !frappe.boot.desk_settings.form_sidebar) {
 			return;
 		}
 		this.page.add_menu_item(
-			__("Open Sidebar"),
+			__("Toggle Sidebar"),
 			() => {
 				this.setup_sidebar_toggle(this.frm.sidebar.sidebar.parent());
 			},
@@ -629,9 +649,20 @@ frappe.ui.form.Toolbar = class Toolbar {
 			frappe.model.can_create("Property Setter")
 		) {
 			let doctype = is_doctype_form ? this.frm.docname : this.frm.doctype;
-			let is_doctype_custom = is_doctype_form ? this.frm.doc.custom : false;
+			let is_core_doctype = frappe.model.core_doctypes_list.includes(doctype);
 
-			if (doctype != "DocType" && !is_doctype_custom && this.frm.meta.issingle === 0) {
+			if (!is_core_doctype && !frappe.model.is_single(doctype)) {
+				this.page.add_menu_item(
+					__("Settings"),
+					() => {
+						// The DocType Settings feature ships as its own on-demand bundle
+						// (kept out of desk.bundle.js), so load it before opening.
+						frappe.require("doctype_settings.bundle.js", () => {
+							frappe.doctype_settings.open(doctype);
+						});
+					},
+					true
+				);
 				this.page.add_menu_item(
 					__("Customize"),
 					() => {
@@ -670,6 +701,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 	can_submit() {
 		return (
+			frappe.model.is_submittable(this.frm.doc.doctype) &&
 			this.get_docstatus() === 0 &&
 			!this.frm.doc.__islocal &&
 			!this.frm.doc.__unsaved &&
@@ -734,6 +766,12 @@ frappe.ui.form.Toolbar = class Toolbar {
 					.then((is_amended) => {
 						if (is_amended) {
 							this.page.clear_actions();
+							let btn = this.page.set_secondary_action(__("Amend"), () => {});
+							btn.prop("disabled", true)
+								.wrap('<span style="display:inline-block"></span>')
+								.parent()
+								.attr("title", __("Already amended as {0}", [is_amended]))
+								.tooltip({ delay: { show: 400, hide: 100 }, trigger: "hover" });
 							return;
 						}
 						this.set_page_actions(status);
@@ -785,7 +823,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				function () {
 					me.frm.page.set_view("main");
 				},
-				"edit"
+				"pencil"
 			);
 		} else if (status === "Cancel") {
 			let add_cancel_button = () => {
@@ -823,12 +861,13 @@ frappe.ui.form.Toolbar = class Toolbar {
 			}[status];
 
 			var icon = {
-				Update: "edit",
+				Update: "pencil",
 			}[status];
 
 			this.page.set_primary_action(__(status), click, icon);
 		}
 
+		this.template_manager.setup_buttons();
 		this.current_status = status;
 	}
 	add_update_button_on_dirty() {
@@ -856,12 +895,26 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	show_jump_to_field_dialog() {
+		// Reuse the existing Jump to Field dialog if it's already open.
+		const existing_dialog = frappe.ui.open_dialogs.find(
+			(dialog) => dialog.dialog_type === "jump_to_field" && dialog.display
+		);
+
+		if (existing_dialog) {
+			existing_dialog.hide();
+			return;
+		}
+
 		let visible_fields_filter = (f) =>
 			!["Section Break", "Column Break", "Tab Break"].includes(f.df.fieldtype) &&
 			!f.df.hidden &&
 			f.disp_status !== "None";
 
-		let fields = this.frm.fields
+		// if a child table row is open in the detail editor, search its fields instead
+		let grid_row = this.frm.open_grid_row();
+		let grid_form = grid_row?.grid_form;
+
+		let fields = (grid_form ? grid_form.layout.fields_list : this.frm.fields)
 			.filter(visible_fields_filter)
 			.map((f) => ({ label: __(f.df.label), value: f.df.fieldname }));
 
@@ -876,19 +929,69 @@ frappe.ui.form.Toolbar = class Toolbar {
 					reqd: 1,
 				},
 			],
+			keep_grid_form_open: !!grid_form,
 			primary_action_label: __("Go"),
 			primary_action: ({ fieldname }) => {
 				dialog.hide();
-				this.frm.scroll_to_field(fieldname);
+				if (grid_form) {
+					this.scroll_to_grid_field(grid_form, fieldname);
+				} else {
+					this.frm.scroll_to_field(fieldname);
+				}
 			},
 			animate: false,
 		});
 
+		dialog.dialog_type = "jump_to_field";
+
 		dialog.show();
 	}
 
+	scroll_to_grid_field(grid_form, fieldname, focus = true) {
+		let field = grid_form.fields_dict[fieldname];
+		if (!field) return false;
+
+		let $el = field.$wrapper;
+		if (!$el || !$el.length) return false;
+
+		// set tab as active
+		if (field.tab && !field.tab.is_active()) {
+			field.tab.set_active();
+		}
+
+		// uncollapse section
+		if (field.section?.is_collapsed()) {
+			field.section.collapse(false);
+		}
+
+		// scroll to input
+		let scroll_container = grid_form.wrapper.find(".grid-form-body");
+		frappe.utils.scroll_to(
+			$el,
+			true,
+			15,
+			scroll_container.length ? scroll_container : $(".main-section")
+		);
+
+		// focus if text field
+		if (focus) {
+			setTimeout(() => {
+				$el.find("input, select, textarea").focus();
+			}, 500);
+		}
+
+		// highlight control inside field
+		let control_element = $el.closest(".frappe-control");
+		if (control_element.length) {
+			control_element.addClass("highlight");
+			setTimeout(() => {
+				control_element.removeClass("highlight");
+			}, 2000);
+		}
+		return true;
+	}
+
 	setup_sidebar_toggle(sidebar_wrapper) {
-		console.log(sidebar_wrapper);
 		if (frappe.utils.is_xs() || frappe.utils.is_sm()) {
 			this.setup_overlay_sidebar(sidebar_wrapper);
 		} else {
@@ -939,7 +1042,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	get_follow_text(follow) {
-		if (follow === null) {
+		if (follow == null) {
 			follow = this.frm.get_docinfo().is_document_followed;
 		}
 		return follow ? __("Unfollow") : __("Follow");

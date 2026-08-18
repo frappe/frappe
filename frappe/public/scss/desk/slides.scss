@@ -9,7 +9,7 @@
 
 		height: 18px;
 		width: 18px;
-		border-radius: var(--border-radius-full);
+		border-radius: var(--radius-full);
 		border: 1px solid var(--ink-gray-3);
 		margin: 0 var(--margin-xs);
 		background-color: var(--card-bg);
@@ -18,7 +18,7 @@
 			height: 6px;
 			width: 6px;
 			background-color: var(--ink-gray-3);
-			border-radius: var(--border-radius-full);
+			border-radius: var(--radius-full);
 			// display: none;
 		}
 
@@ -76,7 +76,7 @@
 	background: var(--card-bg);
 	padding: var(--padding-xl);
 	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius-md);
+	border-radius: var(--radius-md);
 
 	.slide-wrapper:focus {
 		outline: none;

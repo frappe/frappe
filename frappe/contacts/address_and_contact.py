@@ -1,6 +1,8 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from typing import Any
+
 import frappe
 from frappe import _
 
@@ -12,6 +14,58 @@ def load_address_and_contact(doc, key=None) -> None:
 
 	doc.set_onload("addr_list", get_address_display_list(doc.doctype, doc.name))
 	doc.set_onload("contact_list", get_contact_display_list(doc.doctype, doc.name))
+
+
+@frappe.whitelist()
+def remove_link(doctype: str, name: str, link_doctype: str, link_name: str) -> None:
+	"""Remove the link between an Address or Contact and the document it is linked to."""
+	if doctype not in ("Address", "Contact"):
+		frappe.throw(_("Can only unlink an Address or a Contact"))
+
+	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("write")
+
+	remaining = [
+		link for link in doc.links if not (link.link_doctype == link_doctype and link.link_name == link_name)
+	]
+	if len(remaining) == len(doc.links):
+		return
+
+	doc.links = remaining
+	doc.save()
+
+	clear_stale_primary_link(doctype, name, link_doctype, link_name)
+
+
+def clear_stale_primary_link(doctype: str, name: str, link_doctype: str, link_name: str) -> None:
+	"""Clear the document's primary Address/Contact field when it points at a record it no longer links to."""
+	meta = frappe.get_meta(link_doctype)
+	primary_fields = [df.fieldname for df in get_primary_link_fields(meta, doctype)]
+	if not primary_fields:
+		return
+
+	values = frappe.db.get_value(link_doctype, link_name, primary_fields, as_dict=True) or {}
+	stale_fields = [fieldname for fieldname in primary_fields if values.get(fieldname) == name]
+	if not stale_fields:
+		return
+
+	frappe.has_permission(link_doctype, "write", doc=link_name, throw=True)
+
+	updates = dict.fromkeys(stale_fields)
+	for df in meta.fields:
+		if df.fetch_from and df.fetch_from.split(".")[0] in stale_fields:
+			updates[df.fieldname] = None
+
+	frappe.db.set_value(link_doctype, link_name, updates)
+
+
+def get_primary_link_fields(meta, doctype: str) -> list:
+	"""Document fields that hold its primary Address or Contact, by the same name convention the form uses."""
+	return [
+		df
+		for df in meta.get("fields", {"fieldtype": "Link", "options": doctype})
+		if "primary" in df.fieldname.lower()
+	]
 
 
 def has_permission(doc, ptype, user):
@@ -110,7 +164,7 @@ def delete_contact_and_address(doctype: str, docname: str) -> None:
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def filter_dynamic_link_doctypes(
-	doctype, txt: str, searchfield, start, page_len, filters: dict
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict[str, Any]
 ) -> list[list[str]]:
 	from frappe.permissions import get_doctypes_with_read
 

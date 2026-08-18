@@ -1,0 +1,15 @@
+.profile-avatar-overlay {
+	background-color: var(--surface-alpha-gray-7);
+	color: var(--ink-base);
+	opacity: 0;
+	transition: opacity 0.2s ease-in-out;
+}
+
+[data-theme="dark"] .profile-avatar-overlay {
+	background-color: var(--surface-alpha-gray-4);
+	color: var(--ink-gray-9);
+}
+
+.profile-avatar-upload:hover .profile-avatar-overlay {
+	opacity: 1;
+}

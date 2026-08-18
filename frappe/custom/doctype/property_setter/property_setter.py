@@ -9,6 +9,8 @@ not_allowed_fieldtype_change = ["naming_series"]
 
 
 class PropertySetter(Document):
+	_DOCTYPE_NAME = "Property Setter"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -23,6 +25,7 @@ class PropertySetter(Document):
 			"", "DocField", "DocType", "DocType Link", "DocType Action", "DocType State"
 		]
 		field_name: DF.Data | None
+		is_app_disabled: DF.Check
 		is_system_generated: DF.Check
 		module: DF.Link | None
 		property: DF.Data
@@ -111,6 +114,60 @@ def delete_property_setter(doc_type, property=None, field_name=None, row_name=No
 	if row_name:
 		filters["row_name"] = row_name
 
-	property_setters = frappe.db.get_values("Property Setter", filters)
+	_delete_property_setters(filters)
+
+
+def bulk_delete_property_setters(property_setters: list[dict], bypass_hooks: bool = False):
+	"""
+	Delete property setters.
+
+	:param property_setters: List of filters for Property Setter rows.
+	:param bypass_hooks: If `True`, raw delete without doc hooks.
+
+	Example of `property_setters`:
+	```
+	[
+	    {"doctype": "ToDo", "fieldname": "status", "property": "hidden"},
+	    {"doctype": "ToDo", "fieldname": "status", "property": "read_only"},
+	]
+	```
+
+	---
+
+	Note: `doctype` and `fieldname` are mandatory.
+	"""
+	field_map = {
+		"doctype": "doc_type",
+		"fieldname": "field_name",
+	}
+
+	doctypes_to_clear = set()
+
+	for property_setter in property_setters:
+		filters = property_setter.copy()
+
+		for key, fieldname in field_map.items():
+			if key in filters:
+				filters[fieldname] = filters.pop(key)
+
+		if not filters:
+			continue
+
+		if not filters.get("doc_type") or not filters.get("field_name"):
+			frappe.throw(_("`doctype` and `fieldname` are required for deleting property setters."))
+
+		if bypass_hooks:
+			frappe.db.delete("Property Setter", filters)
+			doctypes_to_clear.add(filters["doc_type"])
+		else:
+			_delete_property_setters(filters)
+
+	for doctype in doctypes_to_clear:
+		frappe.clear_cache(doctype=doctype)
+
+
+def _delete_property_setters(filters: dict):
+	property_setters = frappe.get_all("Property Setter", filters=filters, pluck="name")
+
 	for ps in property_setters:
 		frappe.get_doc("Property Setter", ps).delete(ignore_permissions=True, force=True)

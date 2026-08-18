@@ -4,19 +4,66 @@
 			.result {
 				min-width: 100%;
 				width: auto;
+				display: table;
+
+				// Spacer rows reserve off-screen height in virtualized lists but should never intercept clicks.
+				.list-virtual-spacer {
+					width: 100%;
+					pointer-events: none;
+					position: relative;
+
+					// Fast flings outrun the rendered row window — paint the gap
+					// as breathing skeleton rows. The paint sits on a bounded
+					// pseudo-element because iOS won't rasterize an animated
+					// layer the size of the full spacer (~100k+px). The SVG is
+					// a mask so the color stays a theme token; surface-gray-3
+					// because the breathe animation would dim --skeleton-bg to
+					// invisibility in light mode. Cadence matches the row
+					// height estimates in list_view.js (44px rows, 72px cards).
+					&::before {
+						content: "";
+						position: absolute;
+						left: 0;
+						right: 0;
+						height: min(100%, 4096px);
+						background-color: var(--surface-gray-3);
+						-webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='1%25' y='16' width='24%25' height='12' rx='6' fill='black'/%3E%3Crect x='46%25' y='16' width='12%25' height='12' rx='6' fill='black'/%3E%3Crect x='63%25' y='16' width='9%25' height='12' rx='6' fill='black'/%3E%3Crect x='79%25' y='16' width='7%25' height='12' rx='6' fill='black'/%3E%3Crect x='95%25' y='16' width='4%25' height='12' rx='6' fill='black'/%3E%3C/svg%3E");
+						mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='1%25' y='16' width='24%25' height='12' rx='6' fill='black'/%3E%3Crect x='46%25' y='16' width='12%25' height='12' rx='6' fill='black'/%3E%3Crect x='63%25' y='16' width='9%25' height='12' rx='6' fill='black'/%3E%3Crect x='79%25' y='16' width='7%25' height='12' rx='6' fill='black'/%3E%3Crect x='95%25' y='16' width='4%25' height='12' rx='6' fill='black'/%3E%3C/svg%3E");
+						-webkit-mask-size: 100% 44px;
+						mask-size: 100% 44px;
+						-webkit-mask-repeat: repeat-y;
+						mask-repeat: repeat-y;
+						animation: 2s breathe infinite;
+
+						// mobile cards: a title line over a shorter meta line
+						@media (max-width: 767.98px) {
+							-webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='3%25' y='16' width='58%25' height='13' rx='6' fill='black'/%3E%3Crect x='3%25' y='42' width='34%25' height='11' rx='5' fill='black'/%3E%3C/svg%3E");
+							mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='3%25' y='16' width='58%25' height='13' rx='6' fill='black'/%3E%3Crect x='3%25' y='42' width='34%25' height='11' rx='5' fill='black'/%3E%3C/svg%3E");
+							-webkit-mask-size: 100% 72px;
+							mask-size: 100% 72px;
+						}
+					}
+
+					// the bottom spacer's gap appears at its top edge (just
+					// past the rendered rows); the top spacer's at its bottom
+					&:last-child::before {
+						top: 0;
+					}
+
+					&:not(:last-child)::before {
+						bottom: 0;
+					}
+				}
+
 				.list-row-container {
 					width: fit-content;
 					min-width: 100%;
 				}
-				.list-row-container:first-child {
-					position: sticky;
-					top: 0;
-					z-index: 2;
-				}
+
 				.list-row-container {
 					.level-left {
 						.list-row-col {
-							min-width: 150px;
+							min-width: 50px;
 							max-width: 400px;
 						}
 					}
@@ -61,7 +108,7 @@
 	.list-skeleton-box {
 		background-color: var(--skeleton-bg);
 		height: 100%;
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 	}
 }
 
@@ -83,7 +130,8 @@
 .list-row-container {
 	display: flex;
 	flex-direction: column;
-	border-bottom: 1px solid $border-color;
+	padding-inline: var(--padding-sm);
+	border-radius: var(--radius);
 
 	&:focus {
 		.list-row {
@@ -92,24 +140,37 @@
 	}
 
 	&:first-child {
-		padding-top: 0;
-		border-bottom: none;
+		padding: 0;
+		position: sticky;
+		top: 0;
+		z-index: 2;
+	}
+
+	&:hover {
+		background-color: var(--highlight-color);
+	}
+
+	&:hover .level-right {
+		background-color: var(--highlight-color);
 	}
 }
 
 .frappe-list {
 	margin: 0 var(--margin-md);
+
 	.result.has-assign-to {
 		.list-row .level-right {
 			flex: 0 0 180px;
 			width: 180px;
 		}
+
 		&.assign-to-length-1 {
 			.list-row .level-right {
 				flex: 0 0 165px;
 				width: 165px;
 			}
 		}
+
 		&.assign-to-length-3 {
 			.list-row .level-right {
 				flex: 0 0 200px;
@@ -127,26 +188,16 @@
 }
 
 .list-row {
-	border-radius: var(--border-radius);
+	border-bottom: 1px solid var(--border-color);
 	cursor: pointer;
 	transition: color 0.2s;
 	-webkit-transition: color 0.2s;
 	@include get_textstyle("base", "regular");
 
 	&:hover:not(.list-row-head) {
-		background-color: var(--highlight-color);
-		border-radius: unset;
 		.level-right {
 			box-shadow: -5px 0px 5px var(--highlight-color);
 		}
-	}
-
-	&:hover .level-right {
-		background-color: var(--highlight-color);
-	}
-
-	&:last-child {
-		border-bottom: 0px;
 	}
 
 	.level-left {
@@ -154,6 +205,7 @@
 		min-width: 80%;
 		padding: var(--padding-xs) 0;
 	}
+
 	.level-right {
 		position: sticky;
 		right: 0;
@@ -213,7 +265,7 @@
 	}
 
 	.file-select {
-		padding-left: 11px;
+		padding: 0 10px;
 	}
 }
 
@@ -222,12 +274,55 @@
 	cursor: default;
 }
 
+.list-col-resize-handle {
+	position: absolute;
+	inset-inline-end: -8px;
+	top: 0;
+	bottom: 0;
+	width: 16px;
+	cursor: col-resize;
+	user-select: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	&::before {
+		content: "";
+		width: 2px;
+		height: 14px; // fixed px — same on every column regardless of column height
+		border-radius: 2px;
+		background-color: var(--gray-500);
+		// Always show a faint resting separator so users can discover resize
+		opacity: 0.25;
+	}
+}
+
+body.list-col-resizing {
+	cursor: col-resize !important;
+	user-select: none;
+
+	* {
+		cursor: col-resize !important;
+	}
+}
+
 .list-row-head {
 	@extend .list-row;
 	cursor: default;
 	background-color: var(--subtle-fg);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	height: var(--list-row-height);
+	padding-inline: var(--padding-sm);
+
+	.list-row-col {
+		position: relative;
+	}
+
+	// Right-aligned columns have text flush against the right edge where the
+	// resize handle sits — add breathing room so they don't look glued together
+	.list-row-col.text-right > span {
+		padding-right: 14px;
+	}
 
 	.list-subject {
 		font-weight: normal;
@@ -236,15 +331,17 @@
 	.checkbox-actions {
 		display: none;
 	}
+
 	.level-right {
 		background-color: var(--subtle-fg);
-		border-radius: var(--border-radius);
 		height: var(--list-row-height);
 		border-left: none;
+
 		&:hover {
 			background-color: var(--subtle-fg);
 		}
 	}
+
 	&:hover .level-right {
 		background-color: var(--subtle-fg);
 	}
@@ -262,16 +359,20 @@
 		cursor: pointer;
 		text-decoration: underline;
 	}
-}
 
-.list-row-col .indicator-pill {
-	max-width: 150px;
+	.selected-color {
+		display: inline-block;
+		width: 12px;
+		height: 12px;
+		border-radius: 4px;
+		margin-right: 6px;
+		vertical-align: middle;
+	}
 }
 
 $level-margin-right: 8px;
 
 .list-subject {
-	flex: 2;
 	justify-content: start;
 
 	a {
@@ -283,31 +384,27 @@ $level-margin-right: 8px;
 	}
 }
 
+// On mobile the rows flow in the page scroll (see set_result_height), so
+// pin the paging controls to the bottom edge; opaque background because
+// rows pass underneath
+@media (max-width: 767.98px) {
+	.frappe-list .list-paging-area {
+		position: sticky;
+		bottom: 0;
+		background-color: var(--fg-color);
+		z-index: 3;
+	}
+}
+
 .list-paging-area,
 .footnote-area {
 	border-top: 1px solid var(--border-color);
-
-	.btn-group {
-		border: 1px solid var(--border-color);
-		border-radius: var(--border-radius);
-		.btn-paging.btn-info {
-			&:not(:first-child) {
-				border-left: 1px solid var(--border-color);
-			}
-			background-color: var(--bg-color);
-			color: var(--text-color);
-			font-weight: var(--weight-medium);
-		}
-	}
-	.btn-paging {
-		background-color: var(--control-bg);
-	}
 }
 
 .layout-main-list {
 	.list-paging-area,
 	.footnote-area {
-		padding: var(--padding-sm) var(--padding-md);
+		padding: var(--padding-sm) 0;
 	}
 }
 
@@ -348,7 +445,6 @@ input.list-header-checkbox {
 .modal-body {
 	.list-item--head {
 		position: sticky !important;
-		z-index: 500;
 		top: 0;
 	}
 
@@ -373,6 +469,27 @@ input.list-header-checkbox {
 .list-item-table {
 	border: 1px solid $border-color;
 	border-radius: 3px;
+
+	.list-row-head {
+		border-radius: unset;
+	}
+
+	.list-row-container {
+		border-bottom: 1px solid $border-color;
+		border-radius: unset;
+
+		&:last-child {
+			border-bottom: none;
+		}
+	}
+
+	.list-row-container:hover {
+		border-radius: unset;
+	}
+
+	.list-row-container .list-row {
+		border-bottom: none;
+	}
 }
 
 .list-item {
@@ -446,9 +563,6 @@ input.list-header-checkbox {
 		justify-content: flex-end;
 	}
 }
-// .like-action.octicon-heart {
-// 	color: $heart-color;
-// }
 
 .list-comment-count {
 	display: inline-block;
@@ -495,7 +609,9 @@ input.list-header-checkbox {
 
 	.filter-section {
 		display: flex;
-		padding: 0 var(--padding-xs);
+		padding: 0;
+		align-items: flex-start;
+		margin-top: 3px;
 	}
 
 	.filter-selector .btn-group {
@@ -519,20 +635,47 @@ input.list-header-checkbox {
 	.sort-selector {
 		.btn-group {
 			margin: var(--margin-xs) 0 var(--margin-xs) var(--margin-xs);
+
 			.btn:focus {
 				z-index: unset;
 			}
 		}
 	}
+
+	&.list-page-form {
+		@include media-breakpoint-between(xs, sm) {
+			flex-direction: column-reverse;
+			justify-content: flex-end;
+
+			.standard-filter-section {
+				display: none;
+			}
+
+			&.standard-filters-visible .standard-filter-section {
+				display: flex;
+			}
+		}
+	}
+}
+
+.filter-section {
+	@include media-breakpoint-between(xs, sm) {
+		justify-content: space-between;
+
+		.filter-selector {
+			margin: 0 0 0 auto;
+		}
+	}
 }
 
 .restricted-button {
-	margin-top: var(--margin-xs);
-	height: var(--margin-xl);
+	margin: var(--margin-xs) 0 0 var(--margin-sm);
+	height: 29px;
 
 	.icon {
 		width: 14px;
 		height: 14px;
+
 		use {
 			stroke: var(--yellow-800);
 		}
@@ -541,13 +684,6 @@ input.list-header-checkbox {
 	&.btn {
 		@include button-variant($background: $light-yellow, $border: darken($light-yellow, 5%));
 		box-shadow: none;
-	}
-}
-
-.frappe-rtl {
-	.restricted-button {
-		margin: auto auto auto 5px;
-		direction: ltr;
 	}
 }
 
@@ -581,8 +717,11 @@ input.list-header-checkbox {
 	.frappe-list {
 		.result-container {
 			overflow-x: auto;
+
 			.result {
 				overflow-y: hidden;
+				display: table;
+				width: 100%;
 			}
 		}
 	}
@@ -592,12 +731,15 @@ input.list-header-checkbox {
 	.frappe-list {
 		.list-row-container {
 			width: auto;
+
 			.level-left {
 				flex: 0;
+
 				.list-row-col {
 					min-width: auto;
 				}
 			}
+
 			.level-right {
 				border-left: none;
 			}
@@ -617,6 +759,7 @@ input.list-header-checkbox {
 	.layout-main-section-wrapper {
 		width: 100%;
 	}
+
 	.frappe-list {
 		.list-row {
 			.level-right {
@@ -629,36 +772,60 @@ input.list-header-checkbox {
 
 @media (max-width: map-get($grid-breakpoints, "sm")) {
 	.layout-main-section .frappe-list .result-container {
+		// rows are stacked cards at this width — nothing needs horizontal
+		// scroll, and iOS turns any transient overflow into a sideways wiggle
+		overflow-x: hidden;
+
 		.result {
 			overflow: hidden;
+			display: block;
+
 			input.list-row-checkbox,
 			input.list-header-checkbox {
 				width: 15px !important;
 				height: 15px;
 			}
 		}
+
+		// the desktop column split (level-left 80% + level-right 130px) sums
+		// past the card-width viewport and pushed the list count and the
+		// header's rounded corner over the clipped right edge
+		.list-row .level-right {
+			flex: 0 0 auto;
+			width: auto;
+		}
+
+		.list-row-head .level-left {
+			min-width: 0;
+		}
+
 		.list-row-container:not(:has(.list-row-head)) {
 			.list-row {
 				&.level {
 					align-items: flex-start;
 				}
+
 				.level-left {
 					min-width: auto;
 					display: block;
+
 					.mobile-layout {
 						display: inline-block;
 						z-index: 1;
 						position: relative;
 						padding-left: 10px;
+
 						.list-row-col {
 							margin-right: 0px;
 							min-width: auto;
 						}
+
 						&:has(.filterable:empty) {
 							display: none;
 							padding-left: 37px;
 						}
 					}
+
 					.mobile-layout-seperator:not(.mobile-layout-seperator
 							~ .mobile-layout-seperator) {
 						padding-left: 27px;
@@ -674,15 +841,29 @@ input.list-header-checkbox {
 						}
 					}
 				}
+
 				.level-right {
 					flex: 0 0 auto;
 					width: auto;
 					border-left: none;
+
 					.level-item.visible-xs {
-						margin-top: 5px;
+						margin-top: 1px;
 					}
 				}
 			}
 		}
+	}
+
+	.page-indicator-pill {
+		display: none;
+	}
+}
+
+@media screen and (max-width: 375px) {
+	.navbar-breadcrumbs li:last-child > a {
+		max-width: 105px;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 }

@@ -1,0 +1,59 @@
+name: Backport Reminder
+
+on:
+  schedule:
+    - cron: '30 1 * * *'
+  workflow_dispatch:
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            const labelName = 'defer backport';
+            const marker = '<!-- backport-reminder -->';
+            const waitDays = 14;
+            const maxDays = 30;
+            const now = new Date();
+
+            const query = `is:pr is:merged label:"${labelName}" repo:${context.repo.owner}/${context.repo.repo}`;
+            const searchResult = await github.rest.search.issuesAndPullRequests({ q: query });
+
+            for (const pr of searchResult.data.items) {
+              const { data: fullPr } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number
+              });
+              if (!fullPr.merged_at) continue;
+              const mergedAt = new Date(fullPr.merged_at);
+              
+              const diffInDays = (now - mergedAt) / (1000 * 60 * 60 * 24);
+
+              if (diffInDays >= waitDays && diffInDays <= maxDays) {
+                const comments = await github.paginate(github.rest.issues.listComments, {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.number,
+                  per_page: 100
+                });
+
+                const alreadyReminded = comments.some(c => c.body.includes(marker));
+
+                if (!alreadyReminded) {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: pr.number,
+                    body: `${marker}\n**Backport Reminder**: This PR was merged ${Math.floor(diffInDays)} days ago. Time to backport!`
+                  });
+                }
+              }
+            }

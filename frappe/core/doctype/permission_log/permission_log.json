@@ -118,7 +118,7 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Status",
-   "options": "Updated\nRemoved\nAdded"
+   "options": "Updated\nRemoved\nAdded\nReset"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -150,6 +150,10 @@
   {
    "color": "Green",
    "title": "Added"
+  },
+  {
+   "color": "Blue",
+   "title": "Reset"
   }
  ],
  "title_field": "changed_by"

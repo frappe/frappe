@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class LogSettingUser(Document):
+	_DOCTYPE_NAME = "Log Setting User"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

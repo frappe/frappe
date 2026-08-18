@@ -5,17 +5,18 @@
 			title="{{ sort_order==="desc" ? __("descending") : __("ascending") }}">
 			<span class="sort-order">
 				<svg class="icon icon-sm">
-					<use href="#icon-{{ sort_order==="desc" ? "sort-descending" : "sort-ascending" }}"></use>
+					<use href="#icon-{{ sort_order==="desc" ? "arrow-down-wide-narrow" : "arrow-up-narrow-wide" }}"></use>
 				</svg>
 			</span>
 		</button>
 		<button type="button" class="btn btn-default btn-sm sort-selector-button text-nowrap" data-toggle="dropdown">
-			<span class="dropdown-text">{{ __(sort_by_label) }}</span>
+			<span class="dropdown-text hidden-sm">{{ __(sort_by_label, null, doctype) }}</span>
+			<span>{{ frappe.utils.icon("chevron-down") }}</span>
 			<ul class="dropdown-menu dropdown-menu-right">
 				{% for value in options %}
 				<li>
 					<a class="dropdown-item option" data-value="{{ value.fieldname }}">
-						{{ __(value.label) }}
+						{{ __(value.label, null, doctype) }}
 					</a>
 				</li>
 				{% endfor %}

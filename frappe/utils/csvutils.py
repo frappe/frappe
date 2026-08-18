@@ -1,9 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import csv
-import json
 from csv import Sniffer
 from io import StringIO
+from typing import Any
 
 import requests
 
@@ -38,7 +38,7 @@ def read_csv_content_from_attached_file(doc):
 		)
 
 
-def read_csv_content(fcontent, use_sniffer: bool = False):
+def read_csv_content(fcontent, use_sniffer: bool = False, delimiter: str | None = None):
 	if not isinstance(fcontent, str):
 		decoded = False
 		for encoding in FILE_ENCODING_OPTIONS:
@@ -59,7 +59,10 @@ def read_csv_content(fcontent, use_sniffer: bool = False):
 	content = [frappe.safe_decode(line) for line in fcontent.splitlines(True)]
 	dialect = csv.get_dialect("excel")
 
-	if use_sniffer:
+	if delimiter:
+		dialect = csv.excel()
+		dialect.delimiter = delimiter
+	elif use_sniffer:
 		sniffer = Sniffer()
 		# Don't need to use whole csv, if more than 20 rows, use just first 20
 		sample_content = content[:20] if len(content) > 20 else content
@@ -96,6 +99,7 @@ def read_csv_content(fcontent, use_sniffer: bool = False):
 
 			rows.append(r)
 
+		assert len(rows) <= len(content), "parsing cannot produce more rows than input lines"
 		return rows
 
 	except Exception:
@@ -104,11 +108,8 @@ def read_csv_content(fcontent, use_sniffer: bool = False):
 
 
 @frappe.whitelist()
-def send_csv_to_client(args):
-	if isinstance(args, str):
-		args = json.loads(args)
-
-	args = frappe._dict(args)
+def send_csv_to_client(args: str | dict[str, Any]):
+	args = frappe._dict(frappe.parse_json(args))
 
 	frappe.response["result"] = cstr(to_csv(args.data))
 	frappe.response["doctype"] = args.filename

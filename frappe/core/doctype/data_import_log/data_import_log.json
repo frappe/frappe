@@ -8,6 +8,7 @@
   "data_import",
   "row_indexes",
   "success",
+  "import_action",
   "docname",
   "messages",
   "exception",
@@ -43,6 +44,12 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Success"
+  },
+  {
+   "fieldname": "import_action",
+   "fieldtype": "Select",
+   "label": "Import Action",
+   "options": "\nInsert\nUpdate"
   },
   {
    "fieldname": "log_index",

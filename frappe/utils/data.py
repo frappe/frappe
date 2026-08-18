@@ -390,6 +390,14 @@ def get_system_timezone() -> str:
 	return frappe.get_system_settings("time_zone") or "Asia/Kolkata"  # Default to India ?!
 
 
+def get_timezone_utc_offset(timezone: str) -> str:
+	"""Return the current UTC offset of the given timezone in ±HH:MM format."""
+	offset_seconds = int(datetime.datetime.now(ZoneInfo(timezone)).utcoffset().total_seconds())
+	sign = "+" if offset_seconds >= 0 else "-"
+	hours, minutes = divmod(abs(offset_seconds) // 60, 60)
+	return f"{sign}{hours:02d}:{minutes:02d}"
+
+
 def convert_utc_to_timezone(utc_timestamp: datetime.datetime, time_zone: str) -> datetime.datetime:
 	if utc_timestamp.tzinfo is None:
 		utc_timestamp = utc_timestamp.replace(tzinfo=ZoneInfo("UTC"))
@@ -478,6 +486,9 @@ def get_first_day(dt, d_years: int = 0, d_months: int = 0, as_str: bool = False)
 	overflow_years, month = divmod(dt.month + d_months - 1, 12)
 	year = dt.year + d_years + overflow_years
 
+	# divmod by 12 always yields a remainder in [0, 11]; month + 1 must be a valid 1..12 month
+	assert 0 <= month <= 11, "month index out of range after divmod by 12"
+
 	return (
 		datetime.date(year, month + 1, 1).strftime(DATE_FORMAT)
 		if as_str
@@ -502,6 +513,7 @@ def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: bool = False
 	"""
 	date = getdate(dt)
 	quarter = (date.month - 1) // 3 + 1
+	assert 1 <= quarter <= 4, "quarter must be in range 1..4 for a valid month"
 	first_date_of_quarter = datetime.date(date.year, ((quarter - 1) * 3) + 1, 1)
 	return first_date_of_quarter.strftime(DATE_FORMAT) if as_str else first_date_of_quarter
 
@@ -524,7 +536,7 @@ def get_first_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date
 	return date.strftime(DATE_FORMAT) if as_str else date
 
 
-def get_week_start_offset_days(dt):
+def get_week_start_offset_days(dt: datetime.date | datetime.datetime) -> int:
 	current_day_index = get_normalized_weekday_index(dt)
 	start_of_week_index = get_start_of_week_index()
 
@@ -534,7 +546,7 @@ def get_week_start_offset_days(dt):
 		return 7 - (start_of_week_index - current_day_index)
 
 
-def get_normalized_weekday_index(dt):
+def get_normalized_weekday_index(dt: datetime.date | datetime.datetime) -> int:
 	# starts Sunday with 0
 	return (dt.weekday() + 1) % 7
 
@@ -832,7 +844,7 @@ def format_duration(seconds: float | int, hide_days: bool = False) -> str:
 	return duration
 
 
-def duration_to_seconds(duration):
+def duration_to_seconds(duration: str) -> int:
 	"""Convert the given duration formatted value to duration value in seconds.
 
 	example: convert '3h 34m 45s' to 12885 (value in seconds)
@@ -862,7 +874,7 @@ def duration_to_seconds(duration):
 	return value
 
 
-def validate_duration_format(duration):
+def validate_duration_format(duration: str) -> None:
 	if not DURATION_PATTERN.match(duration):
 		frappe.throw(
 			frappe._("Value {0} must be in the valid duration format: d h m s").format(frappe.bold(duration))
@@ -1303,8 +1315,12 @@ def _round_away_from_zero(num, precision):
 
 
 def _bankers_rounding(num, precision):
+	if num == 0:
+		return 0.0
+
+	sign = -1 if num < 0 else 1
 	multiplier = 10**precision
-	num = round(num * multiplier, 12)
+	num = round(abs(num) * multiplier, 12)
 
 	if num == 0:
 		return 0.0
@@ -1312,13 +1328,13 @@ def _bankers_rounding(num, precision):
 	floor_num = math.floor(num)
 	decimal_part = num - floor_num
 
-	epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
+	epsilon = 2.0 ** (math.log(num, 2) - 52.0)
 	if abs(decimal_part - 0.5) < epsilon:
 		num = floor_num if (floor_num % 2 == 0) else floor_num + 1
 	else:
 		num = round(num)
 
-	return num / multiplier
+	return sign * num / multiplier
 
 
 def remainder(numerator: NumericType, denominator: NumericType, precision: int = 2) -> NumericType:
@@ -1466,7 +1482,7 @@ def fmt_money(
 	if amount != "0":
 		amount = minus + amount
 
-	if currency and frappe.defaults.get_global_default("hide_currency_symbol") != "Yes":
+	if currency and frappe.defaults.get_global_default("hide_currency_symbol") not in ("1", "Yes"):
 		symbol = frappe.db.get_value("Currency", currency, "symbol", cache=True) or currency
 		symbol_on_right = frappe.db.get_value("Currency", currency, "symbol_on_right", cache=True)
 
@@ -1556,12 +1572,26 @@ def money_in_words(
 	if main == "0" and fraction in ["0", "00", "000"]:
 		out = _(main_currency, context="Currency") + " " + _("Zero")
 	elif main == "0":
-		out = f"{fraction_in_words()} {fraction_currency}"
+		out = f"{fraction_in_words()} {_(fraction_currency, context='Currency')}"
 	else:
-		out = _(main_currency, context="Currency") + " " + in_words(main, in_million).title()
+		if main_currency == "DZD":
+			# Use Dinars for Algerian Compliance
+			out = in_words(main, in_million).title() + " " + _("Dinars", context="Currency")
+		else:
+			out = _(main_currency, context="Currency") + " " + in_words(main, in_million).title()
 		if cint(fraction):
-			out = out + " " + _("and") + " " + fraction_in_words() + " " + fraction_currency
+			out = (
+				out
+				+ " "
+				+ _("and")
+				+ " "
+				+ fraction_in_words()
+				+ " "
+				+ _(fraction_currency, context="Currency")
+			)
 
+	if main_currency == "DZD":
+		return _("{0}.", context="Money in words").format(out)
 	return _("{0} only.", context="Money in words").format(out)
 
 
@@ -1597,6 +1627,118 @@ def is_image(filepath: str) -> bool:
 	# filepath can be https://example.com/bed.jpg?v=129
 	filepath = (filepath or "").split("?", 1)[0]
 	return (guess_type(filepath)[0] or "").startswith("image/")
+
+
+def validate_egress_url(url: str) -> None:
+	"""Raise ValueError if url resolves to a private/internal address.
+
+	Guards server-side HTTP fetches against SSRF by resolving the hostname and
+	blocking loopback, link-local (including 169.254.169.254), private, and
+	reserved ranges regardless of the URL's textual representation.
+	"""
+	import ipaddress
+	import socket
+
+	parsed = urlparse(url)
+	if parsed.scheme not in ("http", "https"):
+		raise ValueError(f"Disallowed scheme: {parsed.scheme!r}")
+
+	hostname = parsed.hostname
+	if not hostname:
+		raise ValueError("URL has no hostname")
+
+	try:
+		addr_info = socket.getaddrinfo(hostname, None)
+	except socket.gaierror as exc:
+		raise ValueError(f"Cannot resolve host {hostname!r}") from exc
+
+	for record in addr_info:
+		try:
+			ip = ipaddress.ip_address(record[4][0])
+		except (ValueError, IndexError):
+			continue
+		if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+			raise ValueError(f"Requests to internal address {ip} are not permitted")
+
+
+def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> str:
+	"""Return a base64 data: URI thumbnail of `url`, or the original `url` on
+	any error. Used by print templates to keep generated PDFs small: Chrome's
+	`Page.printToPDF` embeds images at their natural resolution regardless of
+	the CSS display size, so a 5000x5000 stock photo bloats the PDF by several
+	MB even when the image is rendered at 100px.
+
+	Only http://, https:// and /-rooted URLs are processed; anything else is
+	returned unchanged so the caller's URL-scheme validation is preserved.
+	"""
+	import base64
+	import io
+	import os
+
+	if not url or not isinstance(url, str):
+		return url
+	if not (url.startswith("http://") or url.startswith("https://") or url.startswith("/")):
+		return url
+
+	# Per-request cache so repeated rows that share an image only resize once.
+	cache = getattr(frappe.local, "_print_thumbnail_cache", None)
+	if cache is None:
+		cache = frappe.local._print_thumbnail_cache = {}
+	key = (url, max_dim, quality)
+	if key in cache:
+		return cache[key]
+
+	if not url.startswith("/"):
+		try:
+			validate_egress_url(url)
+		except ValueError:
+			return url
+
+	try:
+		if url.startswith("/"):
+			path = None
+			for prefix in ("public", "private"):
+				candidate = frappe.get_site_path(prefix, url.lstrip("/"))
+				if os.path.exists(candidate):
+					path = candidate
+					break
+			if not path:
+				return url
+			with open(path, "rb") as f:
+				content = f.read()
+		else:
+			import requests
+
+			r = requests.get(url, timeout=5, stream=True, allow_redirects=False)
+			r.raise_for_status()
+			chunks, total = [], 0
+			for chunk in r.iter_content(8192):
+				chunks.append(chunk)
+				total += len(chunk)
+				if total > 20 * 1024 * 1024:
+					return url
+			content = b"".join(chunks)
+
+		from PIL import Image
+
+		img = Image.open(io.BytesIO(content))
+		img.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
+		fmt = "PNG" if img.mode in ("RGBA", "LA", "P") else "JPEG"
+		if fmt == "JPEG" and img.mode != "RGB":
+			img = img.convert("RGB")
+		buf = io.BytesIO()
+		save_kwargs = {"format": fmt, "optimize": True}
+		if fmt == "JPEG":
+			save_kwargs["quality"] = quality
+		img.save(buf, **save_kwargs)
+		encoded = base64.b64encode(buf.getvalue()).decode("ascii")
+		data_uri = f"data:image/{fmt.lower()};base64,{encoded}"
+		cache[key] = data_uri
+		return data_uri
+	except Exception:
+		# Network/decode failures fall back to the original URL so the cell
+		# still renders something. No per-row log to avoid error log spam.
+		return url
 
 
 def get_thumbnail_base64_for_image(src: str) -> dict[str, str] | None:
@@ -1914,6 +2056,13 @@ def get_link_to_form(doctype: str, name: str | None = None, label: str | None = 
 	return f"""<a href="{get_url_to_form(doctype, name)}">{label}</a>"""
 
 
+def get_url_to_workspace(workspace: str, is_public: bool):
+	from frappe.desk.utils import slug
+
+	url_prefix = "/desk/" if is_public else "/desk/private/"
+	return url_prefix + slug(workspace)
+
+
 def get_link_to_report(
 	name: str,
 	label: str | None = None,
@@ -2095,6 +2244,30 @@ def filter_operator_timespan(value: str, pattern: str) -> bool:
 	return date_range[0] <= getdate(value) <= date_range[1]
 
 
+def convert_type_for_between_filters(value: DateTimeLikeObject, set_time: datetime.time) -> datetime.datetime:
+	"""Expand a date-only bound to a datetime using set_time; leave datetimes as-is."""
+	if isinstance(value, str):
+		if " " in value.strip():
+			value = get_datetime(value)
+		else:
+			value = getdate(value)
+
+	if isinstance(value, datetime.datetime):
+		return value
+	elif isinstance(value, datetime.date):
+		return datetime.datetime.combine(value, set_time)
+
+	return value
+
+
+def filter_operator_between(value: Any, pattern: list | tuple) -> bool:
+	"""Return True if value is between pattern[0] and pattern[1] (inclusive)."""
+	if value is None:
+		return False
+
+	return pattern[0] <= value <= pattern[1]
+
+
 operator_map = {
 	# startswith
 	"^": lambda a, b: (a or "").startswith(b),
@@ -2114,6 +2287,8 @@ operator_map = {
 	"not like": lambda a, b: not sql_like(a, b),
 	"is": filter_operator_is,
 	"Timespan": filter_operator_timespan,
+	"between": filter_operator_between,
+	"Between": filter_operator_between,  # UI sends capitalized form
 }
 
 
@@ -2144,6 +2319,8 @@ def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None) 
 	Note:
 	- For "is" operator: No casting is performed to preserve None values
 	- For "in"/"not in" operators: Only val1 is cast (if not None), val2 remains unchanged
+	- For "between"/"Between" operators: Cast val1 and each bound in val2.
+	  For Datetime, date-only bounds expand to start/end of day (same as DB filters).
 	- For "Timespan" operator: No casting is performed
 	- For other operators: Both val1 and val2 are cast to the specified fieldtype
 	"""
@@ -2155,6 +2332,16 @@ def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None) 
 			# Cast only val1 (if not None), preserve val2 container
 			if val1 is not None:
 				val1 = cast(fieldtype, val1)
+		elif condition in {"between", "Between"}:
+			if val1 is not None:
+				val1 = cast(fieldtype, val1)
+			if fieldtype == "Datetime":
+				val2 = [
+					convert_type_for_between_filters(val2[0], set_time=datetime.time()),
+					convert_type_for_between_filters(val2[1], set_time=datetime.time(23, 59, 59, 999999)),
+				]
+			else:
+				val2 = [cast(fieldtype, v) for v in val2]
 		else:
 			# Cast both values for comparison operators (=, !=, >, <, >=, <=, like, etc.)
 			val1 = cast(fieldtype, val1)
@@ -2287,7 +2474,7 @@ def _sanitize_column(column_name: str, db_type: str) -> str:
 	def _raise_exception():
 		frappe.throw(_("Invalid field name {0}").format(column_name), frappe.DataError)
 
-	regex = re.compile("^.*[,'();\n].*")
+	regex = re.compile("^.*[,'();\n`].*")
 	if "ifnull" in column_name:
 		if regex.match(column_name):
 			# to avoid and, or
@@ -2461,6 +2648,11 @@ def dict_with_keys(dict, keys):
 def guess_date_format(date_string: str) -> str:
 	DATE_FORMATS = [
 		r"%d/%b/%y",
+		r"%d/%b/%Y",
+		r"%d %b %Y",
+		r"%d %B %Y",
+		r"%d-%b-%Y",
+		r"%d-%b-%y",
 		r"%d-%m-%Y",
 		r"%m-%d-%Y",
 		r"%Y-%m-%d",
@@ -2480,8 +2672,6 @@ def guess_date_format(date_string: str) -> str:
 		r"%d.%m.%y",
 		r"%m.%d.%y",
 		r"%y.%m.%d",
-		r"%d %b %Y",
-		r"%d %B %Y",
 	]
 
 	TIME_FORMATS = [
@@ -2546,7 +2736,7 @@ def validate_json_string(string: str) -> None:
 		raise frappe.ValidationError
 
 
-def parse_json(val: str):
+def parse_json(val: Any):
 	"""
 	Parses json if string else return
 	"""
@@ -2566,7 +2756,13 @@ def orjson_dumps(obj, default=None, option=None, decode=True):
 	else:
 		option = DEFAULT_ORJSON_OPTIONS
 
-	value = orjson.dumps(obj, default, option)
+	try:
+		value = orjson.dumps(obj, default, option)
+	except orjson.JSONEncodeError:
+		# fallback to json.dumps when orjson cannot handle payload
+		# https://github.com/ijl/orjson#json-encoding-error
+		return json.dumps(obj, default=default) if decode else json.dumps(obj, default=default).encode()
+
 	return value.decode() if decode else value
 
 
@@ -2924,3 +3120,13 @@ def attach_expanded_links(doctype: str, docs: list, fields_to_expand: list):
 			val_title = doctype_title_maps.get(link_doctype, {}).get(val)
 			if val and val_title:
 				li[fieldname] = val_title
+
+
+def scrub(txt: str) -> str:
+	"""Return sluggified string. e.g. `Sales Order` becomes `sales_order`."""
+	return cstr(txt).replace(" ", "_").replace("-", "_").lower()
+
+
+def unscrub(txt: str) -> str:
+	"""Return titlified string. e.g. `sales_order` becomes `Sales Order`."""
+	return txt.replace("_", " ").replace("-", " ").title()

@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class DashboardChartField(Document):
+	_DOCTYPE_NAME = "Dashboard Chart Field"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

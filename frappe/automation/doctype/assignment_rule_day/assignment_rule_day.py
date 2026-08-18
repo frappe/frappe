@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class AssignmentRuleDay(Document):
+	_DOCTYPE_NAME = "Assignment Rule Day"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

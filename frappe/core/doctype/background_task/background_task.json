@@ -1,0 +1,273 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:task_id",
+ "creation": "2026-03-11 14:38:25.226134",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "status_and_progress_section",
+  "task_id",
+  "job_id",
+  "task_name",
+  "user",
+  "column_break_ljxx",
+  "status",
+  "progress",
+  "stage",
+  "execution_details_section",
+  "method",
+  "queue",
+  "column_break_rnhf",
+  "started_at",
+  "ended_at",
+  "reference_section",
+  "ref_doctype",
+  "column_break_him1",
+  "ref_docname",
+  "arguments_section",
+  "arguments",
+  "on_success_callback",
+  "on_failure_callback",
+  "results__errors_section",
+  "result",
+  "exception",
+  "show_progress_bar"
+ ],
+ "fields": [
+  {
+   "fieldname": "task_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Task ID",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "job_id",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Job ID"
+  },
+  {
+   "fieldname": "task_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Task Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Queued\nRunning\nCompleted\nFailed\nCancelled",
+   "reqd": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "User",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "method",
+   "fieldtype": "Data",
+   "label": "Method",
+   "permlevel": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "arguments",
+   "fieldtype": "JSON",
+   "label": "Arguments",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "on_success_callback",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "On Success Callback",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "on_failure_callback",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "On Failure Callback",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "result",
+   "fieldtype": "Long Text",
+   "label": "Result"
+  },
+  {
+   "fieldname": "exception",
+   "fieldtype": "Long Text",
+   "label": "Exception",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "started_at",
+   "fieldtype": "Datetime",
+   "label": "Started At"
+  },
+  {
+   "fieldname": "ended_at",
+   "fieldtype": "Datetime",
+   "label": "Ended At"
+  },
+  {
+   "fieldname": "ref_doctype",
+   "fieldtype": "Link",
+   "label": "Reference DocType",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "ref_docname",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference DocName",
+   "options": "ref_doctype"
+  },
+  {
+   "fieldname": "queue",
+   "fieldtype": "Data",
+   "label": "Queue"
+  },
+  {
+   "fieldname": "progress",
+   "fieldtype": "Percent",
+   "label": "Progress"
+  },
+  {
+   "fieldname": "stage",
+   "fieldtype": "Data",
+   "label": "Stage"
+  },
+  {
+   "fieldname": "status_and_progress_section",
+   "fieldtype": "Section Break",
+   "label": "Status and Progress"
+  },
+  {
+   "default": "1",
+   "fieldname": "allow_user_cancellation",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Allow User Cancellation"
+  },
+  {
+   "default": "1",
+   "fieldname": "allow_user_retry",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Allow User Retry"
+  },
+  {
+   "fieldname": "column_break_ljxx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "execution_details_section",
+   "fieldtype": "Section Break",
+   "label": "Execution Details"
+  },
+  {
+   "fieldname": "column_break_rnhf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reference_section",
+   "fieldtype": "Section Break",
+   "label": "Reference"
+  },
+  {
+   "fieldname": "column_break_him1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "results__errors_section",
+   "fieldtype": "Section Break",
+   "label": "Results"
+  },
+  {
+   "fieldname": "arguments_section",
+   "fieldtype": "Section Break",
+   "label": "Arguments",
+   "permlevel": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "show_progress_bar",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Show Progress Bar"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-04-01 19:06:34.632943",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Background Task",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "if_owner": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Desk User",
+   "share": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "System Manager"
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Blue",
+   "title": "Queued"
+  },
+  {
+   "color": "Orange",
+   "title": "Running"
+  },
+  {
+   "color": "Green",
+   "title": "Completed"
+  },
+  {
+   "color": "Red",
+   "title": "Failed"
+  },
+  {
+   "color": "Gray",
+   "title": "Cancelled"
+  }
+ ]
+}

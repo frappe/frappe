@@ -1,8 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import json
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import frappe
 import frappe.model
@@ -25,18 +24,18 @@ Requests via FrappeClient are also handled here.
 
 @frappe.whitelist()
 def get_list(
-	doctype,
-	fields=None,
-	filters=None,
-	group_by=None,
-	order_by=None,
-	limit_start=None,
-	limit_page_length=20,
-	parent=None,
-	debug: bool = False,
-	as_dict: bool = True,
-	or_filters=None,
-	expand=None,
+	doctype: str,
+	fields: str | list[str | dict[str, Any]] | None = None,
+	filters: str | list | dict[str, Any] | None = None,
+	group_by: str | list[str] | None = None,
+	order_by: str | list[str] | None = None,
+	limit_start: int | str | None = None,
+	limit_page_length: int | str = 20,
+	parent: str | None = None,
+	debug: bool | int = False,
+	as_dict: bool | int = True,
+	or_filters: str | list[list] | dict[str, Any] | None = None,
+	expand: str | list[str] | None = None,
 ):
 	"""Return a list of records by filters, fields, ordering and limit.
 
@@ -76,7 +75,12 @@ def get_list(
 
 
 @frappe.whitelist()
-def get_count(doctype, filters=None, debug=False, cache=False):
+def get_count(
+	doctype: str,
+	filters: str | list | dict[str, Any] | None = None,
+	debug: int | bool = False,
+	cache: int | bool = False,
+):
 	from frappe.desk.reportview import get_count
 
 	frappe.form_dict.doctype = doctype
@@ -87,7 +91,12 @@ def get_count(doctype, filters=None, debug=False, cache=False):
 
 
 @frappe.whitelist()
-def get(doctype, name=None, filters=None, parent=None):
+def get(
+	doctype: str,
+	name: str | int | None = None,
+	filters: str | list | dict[str, Any] | None = None,
+	parent: str | None = None,
+):
 	"""Return a document by name or filters.
 
 	:param doctype: DocType of the document to be returned
@@ -104,11 +113,18 @@ def get(doctype, name=None, filters=None, parent=None):
 	doc.check_permission()
 	doc.apply_fieldlevel_read_permissions()
 
-	return doc.as_dict()
+	return doc.as_dict(no_nulls=True)
 
 
 @frappe.whitelist()
-def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, parent=None):
+def get_value(
+	doctype: str,
+	fieldname: str | list[str] | dict[str, Any],
+	filters: str | list | dict[str, Any] | None = None,
+	as_dict: int | bool = True,
+	debug: int | bool = False,
+	parent: str | None = None,
+):
 	"""Return a value from a document.
 
 	:param doctype: DocType to be queried
@@ -156,7 +172,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 
 
 @frappe.whitelist()
-def get_single_value(doctype, field):
+def get_single_value(doctype: str, field: str):
 	if not frappe.has_permission(doctype):
 		frappe.throw(_("No permission for {0}").format(_(doctype)), frappe.PermissionError)
 
@@ -164,7 +180,7 @@ def get_single_value(doctype, field):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def set_value(doctype, name, fieldname, value=None):
+def set_value(doctype: str, name: str | int, fieldname: str | dict[str, Any], value: Any | None = None):
 	"""Set a value using get_doc, group of values
 
 	:param doctype: DocType of the document
@@ -172,18 +188,27 @@ def set_value(doctype, name, fieldname, value=None):
 	:param fieldname: fieldname string or JSON / dict with key value pair
 	:param value: value if fieldname is JSON / dict"""
 
-	if fieldname in (frappe.model.default_fields + frappe.model.child_table_fields):
-		frappe.throw(_("Cannot edit standard fields"))
-
-	if not value:
+	values = {}
+	if value is None:
 		values = fieldname
 		if isinstance(fieldname, str):
 			try:
-				values = json.loads(fieldname)
+				values = frappe.parse_json(fieldname)
 			except ValueError:
 				values = {fieldname: ""}
 	else:
 		values = {fieldname: value}
+
+	forbidden = set(frappe.model.default_fields + frappe.model.child_table_fields)
+
+	# In whole-doc payloads, framework-managed fields are incidental (e.g. name,
+	# owner, creation, idx echoed back), so strip them instead of failing.
+	# throws if only editing framework-managed fields
+	editable = {field: val for field, val in values.items() if field not in forbidden}
+	if values and not editable:
+		frappe.throw(_("Cannot edit standard fields"))
+
+	values = editable
 
 	# check for child table doctype
 	if not frappe.get_meta(doctype).istable:
@@ -201,23 +226,21 @@ def set_value(doctype, name, fieldname, value=None):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def insert(doc=None):
+def insert(doc: str | dict[str, Any] | None = None):
 	"""Insert a document
 
 	:param doc: JSON or dict object to be inserted"""
-	if isinstance(doc, str):
-		doc = json.loads(doc)
+	doc = frappe.parse_json(doc)
 
 	return insert_doc(doc).as_dict()
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def insert_many(docs=None):
+def insert_many(docs: str | list[dict[str, Any]] | None = None):
 	"""Insert multiple documents
 
 	:param docs: JSON or list of dict objects to be inserted in one request"""
-	if isinstance(docs, str):
-		docs = json.loads(docs)
+	docs = frappe.parse_json(docs)
 
 	if len(docs) > 200:
 		frappe.throw(_("Only 200 inserts allowed in one request"))
@@ -226,12 +249,11 @@ def insert_many(docs=None):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def save(doc):
+def save(doc: str | dict[str, Any]):
 	"""Update (save) an existing document
 
 	:param doc: JSON or dict object with the properties of the document to be updated"""
-	if isinstance(doc, str):
-		doc = json.loads(doc)
+	doc = frappe.parse_json(doc)
 
 	doc = frappe.get_doc(doc)
 	doc.save()
@@ -240,7 +262,7 @@ def save(doc):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def rename_doc(doctype, old_name, new_name, merge=False):
+def rename_doc(doctype: str, old_name: str | int, new_name: str | int, merge: bool = False):
 	"""Rename document
 
 	:param doctype: DocType of the document to be renamed
@@ -251,12 +273,11 @@ def rename_doc(doctype, old_name, new_name, merge=False):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def submit(doc):
+def submit(doc: str | dict[str, Any]):
 	"""Submit a document
 
 	:param doc: JSON or dict object to be submitted remotely"""
-	if isinstance(doc, str):
-		doc = json.loads(doc)
+	doc = frappe.parse_json(doc)
 
 	doc = frappe.get_doc(doc)
 	doc.submit()
@@ -265,7 +286,7 @@ def submit(doc):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def cancel(doctype, name):
+def cancel(doctype: str, name: str | int):
 	"""Cancel a document
 
 	:param doctype: DocType of the document to be cancelled
@@ -277,7 +298,7 @@ def cancel(doctype, name):
 
 
 @frappe.whitelist(methods=["DELETE", "POST"])
-def delete(doctype, name):
+def delete(doctype: str, name: str | int):
 	"""Delete a remote document
 
 	:param doctype: DocType of the document to be deleted
@@ -286,11 +307,11 @@ def delete(doctype, name):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def bulk_update(docs):
+def bulk_update(docs: str | list):
 	"""Bulk update documents
 
 	:param docs: JSON list of documents to be updated remotely. Each document must have `docname` property"""
-	docs = json.loads(docs)
+	docs = frappe.parse_json(docs)
 	failed_docs = []
 	for doc in docs:
 		doc.pop("flags", None)
@@ -305,7 +326,7 @@ def bulk_update(docs):
 
 
 @frappe.whitelist()
-def has_permission(doctype: str, docname: str, perm_type: str = "read"):
+def has_permission(doctype: str, docname: str | int, perm_type: str = "read"):
 	"""Return a JSON with data whether the document has the requested permission.
 
 	:param doctype: DocType of the document to be checked
@@ -316,7 +337,7 @@ def has_permission(doctype: str, docname: str, perm_type: str = "read"):
 
 
 @frappe.whitelist()
-def get_doc_permissions(doctype: str, docname: str):
+def get_doc_permissions(doctype: str, docname: str | int):
 	"""Return an evaluated document permissions dict like `{"read":1, "write":1}`.
 
 	:param doctype: DocType of the document to be evaluated
@@ -327,7 +348,7 @@ def get_doc_permissions(doctype: str, docname: str):
 
 
 @frappe.whitelist()
-def get_password(doctype: str, name: str, fieldname: str):
+def get_password(doctype: str, name: str | int, fieldname: str):
 	"""Return a password type property. Only applicable for System Managers
 
 	:param doctype: DocType of the document that holds the password
@@ -335,7 +356,7 @@ def get_password(doctype: str, name: str, fieldname: str):
 	:param fieldname: `fieldname` of the password property
 	"""
 	frappe.only_for("System Manager")
-	return frappe.get_lazy_doc(doctype, name).get_password(fieldname)
+	return frappe.get_lazy_doc(doctype, name, check_permission="read").get_password(fieldname)
 
 
 from frappe.deprecation_dumpster import get_js as _get_js
@@ -351,14 +372,14 @@ def get_time_zone():
 
 @frappe.whitelist(methods=["POST", "PUT"])
 def attach_file(
-	filename=None,
-	filedata=None,
-	doctype=None,
-	docname=None,
-	folder=None,
-	decode_base64=False,
-	is_private=None,
-	docfield=None,
+	filename: str | None = None,
+	filedata: str | None = None,
+	doctype: str | None = None,
+	docname: str | int | None = None,
+	folder: str | None = None,
+	decode_base64: int | bool = False,
+	is_private: int | bool | None = 1,
+	docfield: str | None = None,
 ):
 	"""Attach a file to Document
 
@@ -368,10 +389,10 @@ def attach_file(
 	:param docname: Reference DocName to attach file to
 	:param folder: Folder to add File into
 	:param decode_base64: decode filedata from base64 encode, default is False
-	:param is_private: Attach file as private file (1 or 0)
+	:param is_private: Attach file as private file (1 or 0), default is 1
 	:param docfield: file to attach to (optional)"""
 
-	doc = frappe.get_lazy_doc(doctype, docname, check_permission=True)
+	doc = frappe.get_lazy_doc(doctype, docname, check_permission="write")
 
 	file = frappe.get_doc(
 		{
@@ -396,7 +417,7 @@ def attach_file(
 
 @frappe.whitelist()
 @http_cache(max_age=10 * 60)
-def is_document_amended(doctype: str, docname: str):
+def is_document_amended(doctype: str, docname: str | int):
 	if frappe.permissions.has_permission(doctype):
 		try:
 			return frappe.db.exists(doctype, {"amended_from": docname})
@@ -409,7 +430,7 @@ def is_document_amended(doctype: str, docname: str):
 @frappe.whitelist(methods=["GET", "POST"])
 def validate_link_and_fetch(
 	doctype: str,
-	docname: str,
+	docname: str | int,
 	fields_to_fetch: list[str] | str | None = None,
 	# search_widget parameters
 	query: str | None = None,
@@ -448,14 +469,14 @@ def validate_link_and_fetch(
 	)
 
 	if not search_result:
-		return {}  # does not exist or filtered out
+		return {}  # Either the record does not exist or was excluded by link_filters
 
 	values = None
 	is_virtual_dt = bool(meta.get("is_virtual"))
 	if is_virtual_dt:
 		try:
 			doc = frappe.get_doc(doctype, docname)
-			doc.check_permission("select" if frappe.only_has_select_perm(doctype) else "read")
+			doc.check_permission("select")
 			values = {"name": doc.name}
 
 		except frappe.DoesNotExistError:
@@ -538,6 +559,7 @@ def delete_doc(doctype, name):
 		if not values:
 			raise frappe.DoesNotExistError(doctype=doctype)
 
+		assert len(values) == 3, "expected parenttype, parent and parentfield for child table row"
 		parenttype, parent, parentfield = values
 		parent = frappe.get_doc(parenttype, parent)
 		if not parent.has_permission("write"):

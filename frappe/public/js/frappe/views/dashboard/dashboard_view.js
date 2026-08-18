@@ -189,27 +189,17 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	}
 
 	render_empty_state() {
-		const no_result_message_html = `<p>${__(
-			"You haven't added any Dashboard Charts or Number Cards yet."
-		)}
-			<br>${__("Click On Customize to add your first widget")}</p>`;
-
-		const customize_button = `<p><button class="btn btn-primary btn-sm" data-action="customize">
-				${__("Customize")}
-			</button></p>`;
-
-		const empty_state_html = `<div class="msg-box no-border empty-dashboard">
-			<div>
-				<svg class="icon icon-xl" style="stroke: var(--text-light);">
-					<use href="#icon-small-file"></use>
-				</svg>
-			</div>
-			${no_result_message_html}
-			${customize_button}
-		</div>`;
-
-		this.$dashboard_wrapper.append(empty_state_html);
-		this.$empty_state = this.$dashboard_wrapper.find(".empty-dashboard");
+		// element form (appended, not interpolated) so the button's onclick
+		// survives; $empty_state is the element itself for the later .remove()
+		this.$empty_state = frappe.ui.empty_state({
+			icon: "layout-dashboard",
+			title: __("No charts or cards yet"),
+			description: __("Click Customize to add your first widget."),
+			actions: [
+				{ label: __("Customize"), variant: "solid", onclick: () => this.customize() },
+			],
+		});
+		this.$dashboard_wrapper.append(this.$empty_state);
 	}
 
 	customize() {
@@ -358,9 +348,10 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 				{
 					label: "Value Based On",
 					fieldtype: "Select",
-					fieldname: "based_on",
+					fieldname: "value_based_on",
 					options: fields.value_fields,
-					depends_on: 'eval: doc.chart_function=="Sum"',
+					depends_on: 'eval: ["Sum", "Average"].includes(doc.chart_function)',
+					mandatory_depends_on: 'eval: ["Sum", "Average"].includes(doc.chart_function)',
 				},
 				{
 					label: "Time Series Based On",
@@ -449,7 +440,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 							: chart.chart_type;
 					chart.document_type = this.doctype;
 					chart.filters_json = "[]";
-					frappe
+					return frappe
 						.xcall(
 							"frappe.desk.doctype.dashboard_chart.dashboard_chart.create_dashboard_chart",
 							{ args: chart }
@@ -460,6 +451,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 								name: doc.chart_name,
 								label: chart.label,
 							});
+							dialog.hide();
 						});
 				} else {
 					this.chart_group.new_widget.on_create({
@@ -467,8 +459,8 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 						label: __(chart.chart),
 						name: chart.chart,
 					});
+					dialog.hide();
 				}
-				dialog.hide();
 			},
 		});
 		dialog.show();

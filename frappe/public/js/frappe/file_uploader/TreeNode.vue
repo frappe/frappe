@@ -67,8 +67,8 @@ let emit = defineEmits(["node-click", "load-more"]);
 let icon = computed(() => {
 	let icons = {
 		open: frappe.utils.icon("folder-open", "md"),
-		closed: frappe.utils.icon("folder-normal", "md"),
-		leaf: frappe.utils.icon("primitive-dot", "xs"),
+		closed: frappe.utils.icon("folder", "md"),
+		leaf: frappe.utils.icon("dot", "md"),
 		search: frappe.utils.icon("search"),
 	};
 

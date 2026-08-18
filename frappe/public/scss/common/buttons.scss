@@ -6,10 +6,12 @@
 
 .btn {
 	border: none;
+
 	&:not(.btn-md):not(.btn-lg):not(.btn-xs) {
 		padding: 4px 8px;
 	}
-	border-radius: var(--border-radius);
+
+	border-radius: var(--radius);
 	box-shadow: none;
 	@include get_textstyle("base", "regular");
 
@@ -22,8 +24,12 @@
 
 	&.icon-btn {
 		height: var(--btn-height);
-		padding: 0px;
+		width: var(--btn-height);
+		&:not(.btn-md):not(.btn-lg):not(.btn-xs) {
+			padding: 6px;
+		}
 		@extend .center-content;
+
 		&.btn-default,
 		&.btn-secondary {
 			min-width: 28px;
@@ -42,11 +48,13 @@
 	);
 
 	color: $white;
+
 	&:hover,
 	&:active,
 	&:focus {
 		color: $white;
 	}
+
 	.icon {
 		--icon-stroke: currentColor;
 	}
@@ -64,6 +72,7 @@
 	);
 
 	color: var(--primary);
+
 	&:hover,
 	&:active {
 		color: var(--primary);
@@ -77,11 +86,28 @@
 .btn.btn-secondary {
 	background-color: var(--control-bg);
 	color: var(--text-color);
+
 	&:hover,
 	&:active {
 		background-color: var(--btn-default-hover-bg);
 		color: var(--text-color);
 	}
+
+	&:focus-visible {
+		box-shadow: var(--focus-default) !important;
+	}
+}
+
+.btn.btn-ghost {
+	background-color: transparent;
+	color: var(--text-color);
+
+	&:hover,
+	&:active {
+		background-color: var(--btn-ghost-hover-bg);
+		color: var(--text-color);
+	}
+
 	&:focus-visible {
 		box-shadow: var(--focus-default) !important;
 	}
@@ -90,6 +116,7 @@
 .btn.btn-default {
 	background-color: var(--control-bg);
 	color: var(--text-color);
+
 	&:hover,
 	&:active {
 		background: var(--btn-default-hover-bg);
@@ -130,13 +157,15 @@
 		background-color: var(--bg-dark-gray);
 		box-shadow: none;
 	}
+
 	.btn-primary:active {
 		color: var(--gray-900) !important;
 		background-color: var(--invert-neutral) !important;
 	}
 }
+
 .btn-outline {
-	background-color: var(--surface-white);
+	background-color: var(--surface-base);
 	font-size: 14px;
 	line-height: 1.15;
 	letter-spacing: 0.02em;

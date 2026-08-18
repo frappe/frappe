@@ -1,7 +1,9 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.defaults = {
+import "./sys_defaults.js";
+
+Object.assign(frappe.defaults, {
 	get_user_default: function (key) {
 		let defaults = frappe.boot.user.defaults;
 		let d = defaults[key];
@@ -55,21 +57,7 @@ frappe.defaults = {
 		if (!$.isArray(d)) d = [d];
 
 		// filter out values which are not permitted to the user
-		d.filter((item) => {
-			if (frappe.defaults.in_user_permission(key, item)) {
-				return item;
-			}
-		});
-		return d;
-	},
-	get_global_default: function (key) {
-		var d = frappe.sys_defaults[key];
-		if ($.isArray(d)) d = d[0];
-		return d;
-	},
-	get_global_defaults: function (key) {
-		var d = frappe.sys_defaults[key];
-		if (!$.isArray(d)) d = [d];
+		d = d.filter((item) => frappe.defaults.in_user_permission(key, item));
 		return d;
 	},
 	set_user_default_local: function (key, value) {
@@ -122,7 +110,8 @@ frappe.defaults = {
 	},
 
 	update_user_permissions: function () {
-		const method = "frappe.core.doctype.user_permission.user_permission.get_user_permissions";
+		const method =
+			"frappe.core.doctype.user_permission.user_permission.get_current_user_permissions";
 		frappe.call(method).then((r) => {
 			if (r.message) {
 				this._user_permissions = Object.assign({}, r.message);
@@ -137,4 +126,4 @@ frappe.defaults = {
 			frappe.defaults.update_user_permissions();
 		}
 	},
-};
+});

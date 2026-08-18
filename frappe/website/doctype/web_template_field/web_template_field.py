@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class WebTemplateField(Document):
+	_DOCTYPE_NAME = "Web Template Field"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

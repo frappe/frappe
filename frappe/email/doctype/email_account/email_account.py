@@ -51,6 +51,8 @@ def cache_email_account(cache_name):
 
 
 class EmailAccount(Document):
+	_DOCTYPE_NAME = "Email Account"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -58,9 +60,12 @@ class EmailAccount(Document):
 
 	if TYPE_CHECKING:
 		from frappe.email.doctype.imap_folder.imap_folder import IMAPFolder
+		from frappe.email.doctype.reply_to_address.reply_to_address import ReplyToAddress
 		from frappe.types import DF
 
+		add_reply_to_header: DF.Check
 		add_signature: DF.Check
+		add_x_original_from: DF.Check
 		always_bcc: DF.Data | None
 		always_use_account_email_id_as_sender: DF.Check
 		always_use_account_name_as_sender_name: DF.Check
@@ -81,6 +86,9 @@ class EmailAccount(Document):
 		default_incoming: DF.Check
 		default_outgoing: DF.Check
 		domain: DF.Link | None
+		dsn_notify_type: DF.Literal[
+			"SUCCESS", "FAILURE", "DELAY", "SUCCESS,FAILURE", "SUCCESS,FAILURE,DELAY", "NEVER"
+		]
 		email_account_name: DF.Data | None
 		email_id: DF.Data
 		email_server: DF.Data | None
@@ -101,6 +109,7 @@ class EmailAccount(Document):
 		no_smtp_authentication: DF.Check
 		notify_if_unreplied: DF.Check
 		password: DF.Password | None
+		reply_to_addresses: DF.Table[ReplyToAddress]
 		send_notification_to: DF.SmallText | None
 		send_unsubscribe_message: DF.Check
 		sent_folder_name: DF.Data | None
@@ -155,9 +164,14 @@ class EmailAccount(Document):
 			if self.auth_method == "Basic" or self.get_oauth_token():
 				self.validate_frappe_mail_settings()
 
-		# validate the imap settings
-		if self.enable_incoming and self.use_imap and len(self.imap_folder) <= 0:
-			frappe.throw(_("You need to set one IMAP folder for {0}").format(frappe.bold(self.email_id)))
+		if self.enable_incoming:
+			if self.use_imap and not self.imap_folder:
+				frappe.throw(_("You need to set one IMAP folder for {0}").format(frappe.bold(self.email_id)))
+
+			valid_doctypes = {d[0] for d in get_append_to()}
+			for folder in self.imap_folder:
+				if folder.append_to and folder.append_to not in valid_doctypes:
+					frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
 
 		if frappe.local.flags.in_patch or frappe.in_test:
 			return
@@ -178,7 +192,16 @@ class EmailAccount(Document):
 		):
 			if validate_oauth or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
 				if self.enable_incoming:
-					self.get_incoming_server()
+					self.flags.validate_imap_pop_connection = True
+
+					server = self.get_incoming_server(in_receive=self.use_imap)
+					if self.use_imap:
+						try:
+							self.validate_imap_folders_exist(server)
+						finally:
+							if hasattr(server, "imap") and server.imap is not None:
+								server.logout()
+
 					self.no_failed = 0
 
 				if self.enable_outgoing:
@@ -190,16 +213,16 @@ class EmailAccount(Document):
 
 		if self.notify_if_unreplied:
 			if not self.send_notification_to:
-				frappe.throw(_("{0} is mandatory").format(self.meta.get_label("send_notification_to")))
+				frappe.throw(
+					_("{0} is mandatory").format(
+						_(self.meta.get_label("send_notification_to"), context=self.doctype)
+					)
+				)
 			for e in self.get_unreplied_notification_emails():
 				validate_email_address(e, True)
 
-		if self.enable_incoming:
-			for folder in self.imap_folder:
-				if folder.append_to:
-					valid_doctypes = [d[0] for d in get_append_to()]
-					if folder.append_to not in valid_doctypes:
-						frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
+		if self.enable_outgoing:
+			self.validate_reply_to_addresses()
 
 	@frappe.whitelist()
 	def validate_frappe_mail_settings(self):
@@ -207,12 +230,83 @@ class EmailAccount(Document):
 			frappe_mail_client = self.get_frappe_mail_client()
 			frappe_mail_client.validate()
 
+	def validate_imap_folders_exist(self, server: EmailServer) -> None:
+		"""Validate that each configured IMAP folder exists on the server by attempting to SELECT it directly."""
+
+		if not hasattr(server, "imap") or server.imap is None:
+			server.connect()
+
+		status, mailboxes = server.imap.list()
+		if status != "OK":
+			frappe.throw(
+				_(
+					"Failed to retrieve the list of IMAP folders from the server. Please ensure the mailbox is accessible and the account has permission to list folders."
+				),
+				title=_("IMAP Folder Validation Failed"),
+			)
+
+		if not mailboxes:
+			frappe.throw(
+				_(
+					"No IMAP folders were found on the server. Please verify the email account settings and ensure the mailbox contains folders."
+				),
+				title=_("IMAP Folder Validation Failed"),
+			)
+
+		missing_folders = []
+		for row in self.imap_folder:
+			folder = row.folder_name.strip()
+
+			if not folder:
+				frappe.throw(_("IMAP Folder name cannot be empty."))
+
+			status, _response = server.imap.select(f'"{folder}"', readonly=True)
+
+			if status != "OK":
+				missing_folders.append(folder)
+				continue
+
+		if missing_folders:
+			missing_list = "".join(
+				f"<li>{frappe.utils.escape_html(folder)}</li>" for folder in missing_folders
+			)
+			frappe.throw(
+				_(
+					"The following configured IMAP folder(s) were not found or "
+					"are not accessible on the server:<br>"
+					"<ul>{0}</ul>"
+					"Please verify the folder names exactly as they appear on the server "
+					"and ensure the account has access to them."
+				).format(missing_list),
+				title=_("IMAP Folder Not Found"),
+			)
+
 	def validate_smtp_conn(self):
 		if not self.smtp_server:
 			frappe.throw(_("SMTP Server is required"))
 
-		server = self.get_smtp_server()
-		return server.session
+		self.flags.validate_smtp_connection = True
+		session = self.get_smtp_server().session
+		self.validate_dsn(session)
+		del self._smtp_server_instance
+
+	def validate_reply_to_addresses(self) -> None:
+		for reply_to in self.reply_to_addresses:
+			if not reply_to.email:
+				frappe.throw(_("Reply To email is required"))
+			validate_email_address(reply_to.email, True)
+
+	def validate_dsn(self, smtp_session) -> None:
+		"""Validate if the configured SMTP server supports DSN (Delivery Status Notification)."""
+
+		if not self.dsn_notify_type:
+			return
+
+		if not smtp_session.has_extn("DSN"):
+			self.dsn_notify_type = None
+			frappe.msgprint(
+				_("The configured SMTP server does not support DSN (Delivery Status Notification).")
+			)
 
 	def before_save(self):
 		messages = []
@@ -303,6 +397,9 @@ class EmailAccount(Document):
 		if not args.get("host"):
 			frappe.throw(_("{0} is required").format("Email Server"))
 
+		if self.flags.validate_imap_pop_connection:
+			args.timeout = 30
+
 		email_server = EmailServer(frappe._dict(args))
 		self.check_email_server_connection(email_server, in_receive)
 
@@ -313,6 +410,9 @@ class EmailAccount(Document):
 
 	def check_email_server_connection(self, email_server, in_receive):
 		# tries to connect to email server and handles failure
+		# in_receive is also set during save validation; only a real background fetch
+		# should auto-disable the account, a failed save must surface the error
+		is_background_receive = in_receive and not bool(self.flags.validate_imap_pop_connection)
 		try:
 			email_server.connect()
 
@@ -333,7 +433,7 @@ class EmailAccount(Document):
 
 			all_error_codes = auth_error_codes + other_error_codes
 
-			if in_receive and any(map(lambda t: t in message, all_error_codes)):
+			if is_background_receive and any(t in message for t in all_error_codes):
 				# if called via self.receive and it leads to authentication error,
 				# disable incoming and send email to System Manager
 				error_message = _(
@@ -345,13 +445,13 @@ class EmailAccount(Document):
 				self.handle_incoming_connect_error(description=error_message)
 				return None
 
-			elif not in_receive and any(map(lambda t: t in message, auth_error_codes)):
+			elif not is_background_receive and any(t in message for t in auth_error_codes):
 				SMTPServer.throw_invalid_credentials_exception()
 			else:
 				frappe.throw(cstr(e))
 
 		except OSError:
-			if in_receive:
+			if is_background_receive:
 				# timeout while connecting, see receive.py connect method
 				description = frappe.message_log.pop() if frappe.message_log else "Socket Error"
 				self.db_set("no_failed", self.no_failed + 1)
@@ -401,7 +501,7 @@ class EmailAccount(Document):
 
 	@classmethod
 	def create_dummy(cls):
-		return cls.from_record({"sender": "notifications@example.com"})
+		return cls.from_record({"name": "Notifications", "email_id": "notifications@example.com"})
 
 	@classmethod
 	@cache_email_account("outgoing_email_account")
@@ -446,16 +546,16 @@ class EmailAccount(Document):
 		:param match_by_email: Find account using emailID
 		:param match_by_doctype: Find account by matching `Append To` doctype
 		"""
-		doc = cls.find_one_by_filters(enable_incoming=1, email_id=match_by_email)
-		if doc:
+		if doc := cls.find_default_incoming():
 			return doc
 
-		doc = cls.find_one_by_filters(enable_incoming=1, append_to=match_by_doctype)
-		if doc:
+		if match_by_email and (doc := cls.find_one_by_filters(enable_incoming=1, email_id=match_by_email)):
 			return doc
 
-		doc = cls.find_default_incoming()
-		return doc
+		if match_by_doctype and (
+			doc := cls.find_one_by_filters(enable_incoming=1, append_to=match_by_doctype)
+		):
+			return doc
 
 	@classmethod
 	def find_default_incoming(cls):
@@ -506,7 +606,7 @@ class EmailAccount(Document):
 		return oauth_token.get_password("access_token") if oauth_token else None
 
 	def sendmail_config(self):
-		return {
+		config = {
 			"email_account": self.name,
 			"server": self.smtp_server,
 			"port": cint(self.smtp_port),
@@ -517,6 +617,11 @@ class EmailAccount(Document):
 			"use_oauth": self.auth_method == "OAuth",
 			"access_token": self.get_access_token(),
 		}
+
+		if self.flags.validate_smtp_connection:
+			config["timeout"] = 15
+
+		return config
 
 	def get_smtp_server(self):
 		"""Get SMTPServer (wrapper around actual smtplib object) for this account.
@@ -724,7 +829,9 @@ class EmailAccount(Document):
 				sender=self.email_id,
 				reply_to=communication.incoming_email_account,
 				subject=" ".join([_("Re:"), communication.subject]),
-				content=render_template(self.auto_reply_message or "", communication.as_dict())
+				content=render_template(
+					self.auto_reply_message or "", communication.as_dict(), restrict_globals=True
+				)
 				or frappe.get_template("templates/emails/auto_reply.html").render(communication.as_dict()),
 				reference_doctype=communication.reference_doctype,
 				reference_name=communication.reference_name,
@@ -798,7 +905,14 @@ class EmailAccount(Document):
 
 
 @frappe.whitelist()
-def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
+def get_append_to(
+	doctype: str | None = None,
+	txt: str | None = None,
+	searchfield: str | None = None,
+	start: int | None = None,
+	page_len: int | None = None,
+	filters: list | dict | str | None = None,
+):
 	txt = txt if txt else ""
 
 	filters = {"istable": 0, "issingle": 0, "email_append_to": 1}
@@ -1031,7 +1145,8 @@ def remove_user_email_inbox(email_account):
 
 
 @frappe.whitelist()
-def set_email_password(email_account, password):
+def set_email_password(email_account: str, password: str):
+	frappe.has_permission("Email Account", "write", email_account, throw=True)
 	account = frappe.get_doc("Email Account", email_account)
 	if account.awaiting_password and account.auth_method != "OAuth":
 		account.awaiting_password = 0

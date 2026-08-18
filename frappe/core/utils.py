@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+
 from markdownify import markdownify as md
 
 import frappe
@@ -88,3 +89,42 @@ def html2text(html: str, strip_links=False, wrap=True) -> str:
 	"""Return the given `html` as markdown text."""
 	strip = ["a"] if strip_links else None
 	return md(html, heading_style="ATX", strip=strip, wrap=wrap)
+
+
+def html_to_plain_text(html: str) -> str:
+	"""Return the given `html` as plain text."""
+
+	if not html:
+		return ""
+
+	from bs4 import BeautifulSoup
+
+	soup = BeautifulSoup(html, "html.parser")
+
+	for element in soup(["script", "style"]):
+		element.decompose()
+
+	# Introduce explicit newlines for block-level elements while keeping inline content on the same line.
+	for br in soup.find_all("br"):
+		br.replace_with("\n")
+
+	for block in soup.find_all(["p", "div", "tr", "li", "h1", "h2", "h3", "h4", "h5", "h6"]):
+		block.append("\n")
+
+	# Use a space separator between text nodes so inline tags don't break lines
+	text = soup.get_text(separator=" ")
+
+	lines = [line.strip() for line in text.splitlines()]
+	cleaned = []
+	previous_blank = False
+
+	for line in lines:
+		if line:
+			cleaned.append(line)
+			previous_blank = False
+		else:
+			if not previous_blank:
+				cleaned.append("")
+			previous_blank = True
+
+	return "\n".join(cleaned).strip()

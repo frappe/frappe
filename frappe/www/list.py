@@ -24,6 +24,24 @@ def get_list_data(
 	**kwargs,
 ):
 	"""Return processed HTML page for a standard listing."""
+	return get_list_data_for_context(
+		None, doctype, txt, limit_start, limit=limit, web_form_name=web_form_name, **kwargs
+	)
+
+
+def get_list_data_for_context(
+	list_context,
+	/,
+	doctype: str,
+	txt: str | None = None,
+	limit_start: int = 0,
+	fields: list | None = None,
+	cmd: str | None = None,
+	limit: int = 20,
+	web_form_name: str | None = None,
+	**kwargs,
+):
+	"""Return rows for a standard listing, resolving the list context if one is not given."""
 	limit_start = cint(limit_start)
 
 	if frappe.is_table(doctype):
@@ -37,13 +55,20 @@ def get_list_data(
 	meta = frappe.get_meta(doctype)
 
 	filters = prepare_filters(doctype, controller, kwargs)
-	list_context = get_list_context(frappe._dict(), doctype, web_form_name)
+	if list_context is None:
+		list_context = get_list_context(frappe._dict(), doctype, web_form_name)
+
 	list_context.title_field = getattr(controller, "website", {}).get(
 		"page_title_field", meta.title_field or "name"
 	)
 
 	if list_context.filters:
 		filters.update(list_context.filters)
+
+	if web_form_name:
+		dynamic_filters = get_dynamic_filters(web_form_name)
+		if dynamic_filters:
+			filters.update(dynamic_filters)
 
 	_get_list = list_context.get_list or get_list
 
@@ -173,7 +198,9 @@ def get_list(
 			or_filters.extend(
 				[doctype, f, "like", "%" + txt + "%"]
 				for f in meta.get_search_fields()
-				if f == "name" or meta.get_field(f).fieldtype in ("Data", "Text", "Small Text", "Text Editor")
+				if f == "name"
+				or meta.get_field(f).fieldtype
+				in ("Autocomplete", "Data", "Text", "Small Text", "Text Editor")
 			)
 		else:
 			if isinstance(filters, dict):
@@ -192,3 +219,37 @@ def get_list(
 		order_by=order_by,
 		distinct=distinct,
 	)
+
+
+def get_dynamic_filters(web_form_name):
+	"""Evaluate dynamic filter expressions from Web Form.
+	Uses same safe_eval + get_workflow_safe_globals pattern as Workflow."""
+	from frappe.model.workflow import get_workflow_safe_globals
+
+	web_form = frappe.get_cached_doc("Web Form", web_form_name)
+
+	if not web_form.dynamic_filters_json:
+		return None
+
+	dynamic_filters = json.loads(web_form.dynamic_filters_json)
+	if not dynamic_filters:
+		return None
+
+	safe_globals = get_workflow_safe_globals()
+	safe_globals["frappe"]["defaults"] = frappe._dict(
+		get_user_default=frappe.defaults.get_user_default,
+		get_global_default=frappe.defaults.get_global_default,
+	)
+
+	evaluated = {}
+	for f in dynamic_filters:
+		try:
+			value = frappe.safe_eval(f[3], safe_globals)
+			evaluated[f[1]] = [f[2], value]
+		except Exception as e:
+			frappe.throw(
+				_("Invalid expression in Web Form Dynamic Filter for {0}: {1}").format(f[1], e),
+				title=_("Dynamic Filter Error"),
+			)
+
+	return evaluated

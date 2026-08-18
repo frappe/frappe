@@ -1,0 +1,6 @@
+{%- set src = df.image_url or value -%}
+{%- if src -%}
+<div class="field print-image{% if df.align %} field-align-{{ df.align }}{% endif %}"{% if df.custom_style %} style="{{ df.custom_style|e }}"{% endif %} {{ field_attributes(df) }}>
+	<img src="{{ src }}" alt="{{ (_(df.label) if df.label else '')|e }}" style="max-width: 100%;{% if df.width %} width: {{ df.width|e }};{% endif %}">
+</div>
+{%- endif -%}

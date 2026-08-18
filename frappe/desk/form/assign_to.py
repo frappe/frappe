@@ -3,7 +3,7 @@
 
 """assign/unassign to ToDo"""
 
-import json
+from typing import Any
 
 import frappe
 import frappe.share
@@ -14,7 +14,7 @@ from frappe.desk.doctype.notification_log.notification_log import (
 	get_title,
 	get_title_html,
 )
-from frappe.desk.form.document_follow import follow_document
+from frappe.desk.form.document_follow import _follow_document
 from frappe.utils.data import strip_html
 
 
@@ -40,7 +40,7 @@ def get(args=None):
 
 
 @frappe.whitelist()
-def add(args=None, *, ignore_permissions=False):
+def add(args: dict[str, Any] | None = None):
 	"""add in someone's to do list
 	args = {
 	        "assign_to": [],
@@ -51,6 +51,10 @@ def add(args=None, *, ignore_permissions=False):
 	}
 
 	"""
+	return _add(args, ignore_permissions=False)
+
+
+def _add(args: dict[str, Any] | None = None, *, ignore_permissions: bool | int = False):
 	if not args:
 		args = frappe.local.form_dict
 
@@ -109,12 +113,12 @@ def add(args=None, *, ignore_permissions=False):
 					)
 					frappe.throw(msg, title=_("Missing Permission"))
 				else:
-					frappe.share.add(doc.doctype, doc.name, assign_to)
+					frappe.share.add(doc.doctype, str(doc.name), assign_to)
 					shared_with_users.append(assign_to)
 
 			# make this document followed by assigned user
 			if frappe.get_cached_value("User", assign_to, "follow_assigned_documents"):
-				follow_document(args["doctype"], args["name"], assign_to)
+				_follow_document(args["doctype"], args["name"], assign_to)
 
 			# notify
 			notify_assignment(
@@ -140,11 +144,13 @@ def add(args=None, *, ignore_permissions=False):
 
 
 @frappe.whitelist()
-def add_multiple(args=None):
-	if not args:
-		args = frappe.local.form_dict
+def add_multiple() -> None:
+	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
+		frappe.throw(_("You are not allowed to perform bulk actions"), frappe.PermissionError)
 
-	docname_list = json.loads(args["name"])
+	args = frappe.local.form_dict
+
+	docname_list = frappe.parse_json(args["name"])
 
 	for docname in docname_list:
 		args.update({"name": docname})
@@ -174,13 +180,20 @@ def close_all_assignments(doctype, name, ignore_permissions=False):
 
 
 @frappe.whitelist()
-def remove(doctype, name, assign_to, ignore_permissions=False):
+def remove(doctype: str, name: str | int, assign_to: str):
+	return _remove(doctype, name, assign_to, ignore_permissions=False)
+
+
+def _remove(doctype: str, name: str | int, assign_to: str, ignore_permissions: bool | int = False):
 	return set_status(doctype, name, "", assign_to, status="Cancelled", ignore_permissions=ignore_permissions)
 
 
 @frappe.whitelist()
-def remove_multiple(doctype, names, ignore_permissions=False):
-	docname_list = json.loads(names)
+def remove_multiple(doctype: str, names: str | list):
+	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
+		frappe.throw(_("You are not allowed to perform bulk actions"), frappe.PermissionError)
+
+	docname_list = frappe.parse_json(names)
 
 	for name in docname_list:
 		assignments = get({"doctype": doctype, "name": name})
@@ -189,15 +202,15 @@ def remove_multiple(doctype, names, ignore_permissions=False):
 			continue
 
 		for assignment in assignments:
-			remove(doctype, name, assignment.get("owner"), ignore_permissions)
+			remove(doctype, name, assignment.get("owner"))
 
 
 @frappe.whitelist()
-def close(doctype: str, name: str, assign_to: str, ignore_permissions=False):
+def close(doctype: str, name: str, assign_to: str):
 	if assign_to != frappe.session.user:
 		frappe.throw(_("Only the assignee can complete this to-do."))
 
-	return set_status(doctype, name, "", assign_to, status="Closed", ignore_permissions=ignore_permissions)
+	return set_status(doctype, name, "", assign_to, status="Closed", ignore_permissions=False)
 
 
 def set_status(doctype, name, todo=None, assign_to=None, status="Cancelled", ignore_permissions=False):

@@ -7,13 +7,16 @@ from json import JSONDecodeError, dumps, loads
 
 import frappe
 from frappe import DoesNotExistError, ValidationError, _, _dict
-from frappe.boot import get_allowed_pages, get_allowed_reports
-from frappe.cache_manager import (
-	build_domain_restricted_doctype_cache,
-	build_domain_restricted_page_cache,
-	build_table_count_cache,
-)
+from frappe.app_state import get_disabled_modules
+from frappe.cache_manager import build_table_count_cache
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
+from frappe.desk.desk_views import DeskViews
+from frappe.desk.doctype.workspace_customization.workspace_customization import (
+	apply_customization,
+	get_customization,
+)
+from frappe.desk.utils import is_item_allowed
+from frappe.utils.caching import request_cache
 
 
 def handle_not_exist(fn):
@@ -28,7 +31,7 @@ def handle_not_exist(fn):
 	return wrapper
 
 
-class Workspace:
+class Workspace(DeskViews):
 	def __init__(self, page, minimal=False):
 		self.page_name = page.get("name")
 		self.page_title = page.get("title")
@@ -36,52 +39,51 @@ class Workspace:
 		self.workspace_manager = "Workspace Manager" in frappe.get_roles()
 
 		self.user = frappe.get_user()
-		self.allowed_modules = self.get_cached("user_allowed_modules", self.get_allowed_modules)
 
-		self.doc = frappe.get_cached_doc("Workspace", self.page_name)
-		if (
-			self.doc
-			and self.doc.module
-			and self.doc.module not in self.allowed_modules
-			and not self.workspace_manager
-		):
-			raise frappe.PermissionError
+		# A standard workspace stays the live, app-owned base; a site's customization is a
+		# separate delta merged on top here. Use a fresh (non-cached) doc on the merge path
+		# so we never mutate the shared cached document.
+		customization = get_customization(self.page_name)
+		if customization:
+			self.doc = frappe.get_doc("Workspace", self.page_name)
+			apply_customization(self.doc, customization)
+		else:
+			self.doc = frappe.get_cached_doc("Workspace", self.page_name)
 
 		self.can_read = self.get_cached("user_perm_can_read", self.get_can_read_items)
-
-		self.allowed_pages = get_allowed_pages(cache=True)
-		self.allowed_reports = get_allowed_reports(cache=True)
 
 		if not minimal:
 			if self.doc.content:
 				self.onboarding_list = [
 					x["data"]["onboarding_name"] for x in loads(self.doc.content) if x["type"] == "onboarding"
 				]
-			self.onboardings = []
 
 			self.table_counts = get_table_with_counts()
-		self.restricted_doctypes = (
-			frappe.cache.get_value("domain_restricted_doctypes") or build_domain_restricted_doctype_cache()
-		)
-		self.restricted_pages = (
-			frappe.cache.get_value("domain_restricted_pages") or build_domain_restricted_page_cache()
-		)
 
 	def is_permitted(self):
-		"""Return true if `Has Role` is not set or the user is allowed."""
+		"""Return true if the workspace is visible to the current user.
+
+		Visibility is gated purely by access (roles / blocked modules):
+
+		* If the workspace has `roles`, the user must have one of them.
+		* Otherwise visibility falls back to the user's blocked modules: the workspace is
+		  hidden when its `module` is blocked.
+
+		The user's personal selection (`User.workspaces`) is *not* an access filter -- it is a
+		per-user preference for the workspace selector, applied client-side from
+		`frappe.boot.user_workspaces`. Keeping it out of here ensures the full role-permitted
+		pool stays available (e.g. for the "My Workspaces" picker to choose from).
+		"""
 		from frappe.utils import has_common
 
 		allowed = [d.role for d in self.doc.roles]
-
-		custom_roles = get_custom_allowed_roles("page", self.doc.name)
-		allowed.extend(custom_roles)
+		allowed.extend(get_custom_allowed_roles("page", self.doc.name))
 
 		if not allowed:
-			return True
+			blocked_modules = frappe.get_cached_doc("User", frappe.session.user).get_blocked_modules()
+			return self.doc.module not in blocked_modules
 
-		roles = frappe.get_roles()
-
-		if has_common(roles, allowed):
+		if has_common(frappe.get_roles(), allowed):
 			return True
 
 	def get_cached(self, cache_key, fallback_fn):
@@ -132,32 +134,11 @@ class Workspace:
 
 		return doc
 
-	def is_item_allowed(self, name, item_type):
-		if frappe.session.user == "Administrator":
-			return True
-
-		item_type = item_type.lower()
-
-		if item_type == "doctype":
-			return name in (self.can_read or []) and name in (self.restricted_doctypes or [])
-		if item_type == "page":
-			return name in self.allowed_pages and name in self.restricted_pages
-		if item_type == "report":
-			return name in self.allowed_reports
-		if item_type == "help":
-			return True
-		if item_type == "dashboard":
-			return True
-		if item_type == "url":
-			return True
-
-		return False
-
 	def build_workspace(self):
 		self.cards = {"items": self.get_links()}
 		self.charts = {"items": self.get_charts()}
 		self.shortcuts = {"items": self.get_shortcuts()}
-		self.onboardings = {"items": self.get_onboardings()}
+		self.onboardings = {"items": []}
 		self.quick_lists = {"items": self.get_quick_lists()}
 		self.number_cards = {"items": self.get_number_cards()}
 		self.custom_blocks = {"items": self.get_custom_blocks()}
@@ -242,7 +223,7 @@ class Workspace:
 					continue
 
 				# Check if user is allowed to view
-				if self.is_item_allowed(item.link_to, item.link_type):
+				if is_item_allowed(item.link_to, item.link_type, self):
 					prepared_item = self._prepare_item(item)
 					new_items.append(prepared_item)
 
@@ -284,7 +265,7 @@ class Workspace:
 
 		for item in shortcuts:
 			new_item = item.as_dict().copy()
-			if self.is_item_allowed(item.link_to, item.type) and _in_active_domains(item):
+			if is_item_allowed(item.link_to, item.type, self) and _in_active_domains(item):
 				if item.type == "Report":
 					report = self.allowed_reports.get(item.link_to, {})
 					if report.get("report_type") in ["Query Report", "Script Report", "Custom Report"]:
@@ -305,7 +286,7 @@ class Workspace:
 		quick_lists = self.doc.quick_lists
 
 		for item in quick_lists:
-			if self.is_item_allowed(item.document_type, "doctype"):
+			if is_item_allowed(item.document_type, "doctype", self):
 				new_item = item.as_dict().copy()
 
 				# Translate label
@@ -314,38 +295,6 @@ class Workspace:
 				items.append(new_item)
 
 		return items
-
-	@handle_not_exist
-	def get_onboardings(self):
-		if self.onboarding_list:
-			for onboarding in self.onboarding_list:
-				onboarding_doc = self.get_onboarding_doc(onboarding)
-				if onboarding_doc:
-					item = {
-						"label": _(onboarding),
-						"title": _(onboarding_doc.title),
-						"subtitle": _(onboarding_doc.subtitle),
-						"success": _(onboarding_doc.success_message),
-						"docs_url": onboarding_doc.documentation_url,
-						"items": self.get_onboarding_steps(onboarding_doc),
-					}
-					self.onboardings.append(item)
-		return self.onboardings
-
-	@handle_not_exist
-	def get_onboarding_steps(self, onboarding_doc):
-		steps = []
-		for doc in onboarding_doc.get_steps():
-			step = doc.as_dict().copy()
-			step.label = _(doc.title)
-			step.description = _(doc.description)
-			if step.action == "Create Entry":
-				step.is_submittable = frappe.db.get_value(
-					"DocType", step.reference_document, "is_submittable", cache=True
-				)
-			steps.append(step)
-
-		return steps
 
 	@handle_not_exist
 	def get_number_cards(self):
@@ -384,7 +333,7 @@ class Workspace:
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_desktop_page(page):
+def get_desktop_page(page: str | dict):
 	"""Apply permissions, customizations and return the configuration for a page on desk.
 
 	Args:
@@ -394,7 +343,7 @@ def get_desktop_page(page):
 	        dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
 	try:
-		workspace = Workspace(loads(page))
+		workspace = Workspace(frappe.parse_json(page))
 		workspace.build_workspace()
 		return {
 			"charts": workspace.charts,
@@ -410,28 +359,114 @@ def get_desktop_page(page):
 		return {}
 
 
+def get_user_workspaces() -> list[str]:
+	"""Return the session user's personal workspace selection (`User.workspaces`), in row order.
+
+	This is the ordered list of public workspaces the user has chosen for their workspace
+	selector (via the "My Workspaces" picker). An empty list means the user has not curated a
+	selection, in which case the selector falls back to the current app's workspaces.
+	"""
+	user_doc = frappe.get_cached_doc("User", frappe.session.user)
+	return [d.workspace for d in user_doc.workspaces if d.workspace]
+
+
 @frappe.whitelist()
-def get_workspace_sidebar_items():
-	"""Get list of sidebar items for desk"""
+def save_workspace_preferences(workspaces: list | str):
+	"""Persist the "My Workspaces" picker selection into the user's `User.workspaces`.
+
+	`workspaces` is the ordered list of workspaces the user wants in their workspace selector.
+	The order is preserved (it also drives sidebar ordering in `get_workspaces()`). The picker
+	sources its pool of choices from data already on the client (`frappe.boot`), so this only
+	needs to validate the names and store the selection.
+
+	Valid choices are the public workspaces plus the user's own private (`for_user`) ones --
+	the same set the user can actually see.
+	"""
+	workspaces = frappe.parse_json(workspaces) or []
+	valid = set(frappe.get_all("Workspace", filters={"public": 1}, pluck="name"))
+	valid |= set(
+		frappe.get_all("Workspace", filters={"public": 0, "for_user": frappe.session.user}, pluck="name")
+	)
+
+	user_doc = frappe.get_doc("User", frappe.session.user)
+	user_doc.workspaces = []
+	for name in workspaces:
+		if name in valid:
+			user_doc.append("workspaces", {"workspace": name})
+	# ignore_permissions: a user curating their own workspace selector need not hold write
+	# access to the User doctype. We only ever touch the session user's own record, and only
+	# its `workspaces` child table, filtered to workspaces the user can already see (`valid`).
+	user_doc.save(ignore_permissions=True)
+
+	return True
+
+
+def _overlay_customization_properties(pages: list) -> bool:
+	"""Apply each site customization's property facet onto the listed page dict.
+
+	Returns whether any `sequence_id` was overridden (so the caller knows to re-sort).
+	"""
+	resequenced = False
+	for page in pages:
+		customization = get_customization(page.name)
+		if not customization:
+			continue
+		page["is_customized"] = True
+		# the frontend renders the editor.js layout from this `content`; show the site's
+		# saved snapshot verbatim (get_desktop_page applies the same on the doc).
+		if customization.content:
+			page["content"] = customization.content
+		if customization.visibility == "Hidden":
+			# Hidden for regular users; like the soft `is_hidden` flag, a Workspace Manager
+			# still sees it (the workspace shows an in-page "hidden" banner) so it stays
+			# discoverable and manageable.
+			page["is_hidden"] = 1
+		elif customization.visibility == "Visible":
+			page["is_hidden"] = 0
+		if customization.icon:
+			page["icon"] = customization.icon
+		if customization.indicator_color:
+			page["indicator_color"] = customization.indicator_color
+		if customization.override_sequence:
+			page["sequence_id"] = customization.sequence_id
+			resequenced = True
+	return resequenced
+
+
+@request_cache
+def get_workspaces():
+	"""Get list of sidebar items for desk.
+
+	Cached per-request: a single boot resolves the visible workspaces several times
+	(`DeskViews.build_entities`, `get_workspaces_with_sidebar`, and the lazy
+	`DeskViews.allowed_workspaces` permission context), and each pass runs a
+	`get_all("Workspace")` query plus a `Workspace()` build per page. Memoising for the
+	life of the request collapses those into one enumeration without leaking across
+	requests (the cache clears when the request ends).
+	"""
 
 	from frappe.modules.utils import get_module_app
 
 	has_access = "Workspace Manager" in frappe.get_roles()
 
-	# don't get domain restricted pages
-	blocked_modules = frappe.get_cached_doc("User", frappe.session.user).get_blocked_modules()
-	blocked_modules.append("Dummy Module")
+	# the user's curated selector order (ordered list of names); empty means "not customised"
+	user_workspaces = get_user_workspaces()
 
 	# adding None to allowed_domains to include pages without domain restriction
 	allowed_domains = [None, *frappe.get_active_domains()]
 
+	# a disabled app stays hidden even from Workspace Managers
+	disabled_modules = list(get_disabled_modules())
+
 	filters = {
 		"restrict_to_domain": ["in", allowed_domains],
-		"module": ["not in", blocked_modules],
 	}
 
 	if has_access:
-		filters = []
+		filters = {}
+
+	if disabled_modules:
+		filters["module"] = ["not in", disabled_modules]
 
 	# pages sorted based on sequence id
 	order_by = "sequence_id asc"
@@ -446,6 +481,8 @@ def get_workspace_sidebar_items():
 		"icon",
 		"indicator_color",
 		"is_hidden",
+		"sequence_id",
+		"standard",
 		"app",
 		"type",
 		"link_type",
@@ -455,16 +492,14 @@ def get_workspace_sidebar_items():
 	all_pages = frappe.get_all(
 		"Workspace", fields=fields, filters=filters, order_by=order_by, ignore_permissions=True
 	)
+
+	# overlay the property facet (visibility / icon / colour / position) of any site
+	# customization before filtering & sorting; roles & content are merged inside Workspace().
+	if _overlay_customization_properties(all_pages):
+		all_pages.sort(key=lambda page: page.get("sequence_id") or 0)
+
 	pages = []
 	private_pages = []
-
-	# get additional settings from Work Settings
-	try:
-		workspace_visibilty = loads(
-			frappe.db.get_single_value("Workspace Settings", "workspace_visibility_json") or "{}"
-		)
-	except JSONDecodeError:
-		workspace_visibilty = {}
 
 	# Filter Page based on Permission
 	for page in all_pages:
@@ -475,10 +510,9 @@ def get_workspace_sidebar_items():
 					pages.append(page)
 				elif page.for_user == frappe.session.user:
 					private_pages.append(page)
+				elif not page.public and not page.for_user:
+					pages.append(page)
 				page["label"] = _(page.get("name"))
-
-			if page["name"] in workspace_visibilty:
-				page["visibility"] = workspace_visibilty[page["name"]]
 
 			if not page["app"] and page["module"]:
 				page["app"] = frappe.db.get_value("Module Def", page["module"], "app_name") or get_module_app(
@@ -498,13 +532,18 @@ def get_workspace_sidebar_items():
 	if private_pages:
 		pages.extend(private_pages)
 
+	# respect the order of the user's curated selection; workspaces not in the
+	# selection (e.g. private pages) keep their sequence_id order at the end
+	if user_workspaces:
+		order = {name: idx for idx, name in enumerate(user_workspaces)}
+		pages.sort(key=lambda page: order.get(page["name"], len(order)))
+
 	if len(pages) == 0:
-		pages.append(next((x for x in all_pages if x["title"] == "Welcome Workspace"), None))
+		welcome_workspace = next((x for x in all_pages if x["title"] == "Welcome Workspace"), None)
+		if welcome_workspace:
+			pages.append(welcome_workspace)
 
 	return {
-		"workspace_setup_completed": frappe.db.get_single_value(
-			"Workspace Settings", "workspace_setup_completed"
-		),
 		"pages": pages,
 		"has_access": has_access,
 		"has_create_access": frappe.has_permission(doctype="Workspace", ptype="create"),
@@ -574,7 +613,7 @@ def get_custom_report_list(module):
 def save_new_widget(doc, page, blocks, new_widgets):
 	widgets = _dict()
 	if new_widgets:
-		widgets = _dict(loads(new_widgets))
+		widgets = _dict(frappe.parse_json(new_widgets))
 
 		if widgets.chart:
 			doc.charts.extend(new_widget(widgets.chart, "Workspace Chart", "charts"))
@@ -693,7 +732,7 @@ def prepare_widget(config, doctype, parentfield):
 
 
 @frappe.whitelist()
-def update_onboarding_step(name, field, value):
+def update_onboarding_step(name: str | int, field: str, value: int | str):
 	"""Update status of onboaridng step
 
 	Args:
@@ -704,6 +743,9 @@ def update_onboarding_step(name, field, value):
 	"""
 	from frappe.utils.telemetry import capture
 
+	allowed_fields = ["is_skipped", "is_complete"]
+	if field not in allowed_fields:
+		return
 	frappe.db.set_value("Onboarding Step", name, field, value)
 
 	capture(frappe.scrub(name), app="frappe_onboarding", properties={field: value})
@@ -711,4 +753,54 @@ def update_onboarding_step(name, field, value):
 
 @frappe.whitelist()
 def get_installed_apps():
-	return frappe.get_installed_apps()
+	return frappe.get_active_apps()
+
+
+@frappe.whitelist()
+@frappe.read_only()
+def get_onboarding_data(module: str):
+	"""Get onboarding data for a page
+
+	Args:
+	        page (string): page name
+
+	Return:
+	        dict: onboarding data
+	"""
+	if not frappe.get_system_settings("enable_onboarding"):
+		return []
+
+	onboardings = []
+	onboarding_doc = frappe.get_doc("Module Onboarding", module)
+	if onboarding_doc.is_complete:
+		return []
+
+	# Check if user is allowed
+	allowed_roles = set(onboarding_doc.get_allowed_roles())
+	user_roles = set(frappe.get_roles())
+	if not allowed_roles & user_roles:
+		return None
+
+	item = {
+		"label": _(module),
+		"title": _(onboarding_doc.title),
+		"items": [],
+	}
+
+	maps = get_onboarding_step_maps(onboarding_doc.name)
+	for step in maps:
+		steps = frappe.get_all("Onboarding Step", filters={"name": step}, order_by="idx", fields=["*"])
+
+		if steps:
+			item["items"].append(steps[0])
+
+	onboardings.append(item)
+
+	if all(step.get("is_complete") or step.get("is_skipped") for step in item["items"]):
+		return []
+
+	return onboardings
+
+
+def get_onboarding_step_maps(onboarding):
+	return frappe.get_all("Onboarding Step Map", filters={"parent": onboarding}, pluck="step", order_by="idx")

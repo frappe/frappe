@@ -79,7 +79,7 @@ frappe.ui.Capture = class {
 	show() {
 		this.build_dialog();
 
-		if (cint(frappe.boot.sysdefaults.force_web_capture_mode_for_uploads)) {
+		if (frappe.defaults.is_enabled("force_web_capture_mode_for_uploads")) {
 			this.show_for_desktop();
 		} else if (frappe.is_mobile()) {
 			this.show_for_mobile();
@@ -194,7 +194,7 @@ frappe.ui.Capture = class {
 			images += `
 				<div class="mt-1 p-1 rounded col-md-3 col-sm-4 col-xs-4" data-idx="${idx}">
 					<span class="capture-remove-btn" data-idx="${idx}">
-						${frappe.utils.icon("close", "lg")}
+						${frappe.utils.icon("x", "lg")}
 					</span>
 					<img class="rounded" src="${image}" data-idx="${idx}">
 				</div>

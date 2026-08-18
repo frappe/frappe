@@ -5,20 +5,23 @@ import FormBuilderComponent from "./FormBuilder.vue";
 import { registerGlobalComponents } from "./globals.js";
 
 class FormBuilder {
-	constructor({ wrapper, frm, doctype, customize }) {
+	constructor({ wrapper, frm, doctype, customize, is_layout }) {
 		this.$wrapper = $(wrapper);
 		this.frm = frm;
 		this.page = frm.page;
 		this.doctype = doctype;
 		this.customize = customize;
+		this.is_layout = is_layout || false;
 		this.read_only = false;
 
 		this.init();
 	}
 
 	init(refresh) {
-		// set page title
-		this.page.set_title(__(this.doctype));
+		// set page title (skip in layout mode — the frm already has the right title)
+		if (!this.is_layout) {
+			this.page.set_title(__(this.doctype));
+		}
 
 		this.setup_page_actions();
 		!refresh && this.setup_app();
@@ -67,6 +70,7 @@ class FormBuilder {
 	update_store() {
 		this.store.doctype = this.doctype;
 		this.store.is_customize_form = this.customize;
+		this.store.is_layout_form = this.is_layout;
 		this.store.page = this.page;
 		this.store.frm = this.frm;
 	}

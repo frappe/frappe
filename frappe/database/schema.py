@@ -5,7 +5,7 @@ from frappe import _
 from frappe.utils import cint, cstr, flt
 from frappe.utils.defaults import get_not_null_defaults
 
-# This matches anything that isn't [a-zA-Z0-9_]
+# This matches anything that isn't Unicode Word Characters, Numbers and Underscore.
 SPECIAL_CHAR_PATTERN = re.compile(r"[\W]", flags=re.UNICODE)
 
 VARCHAR_CAST_PATTERN = re.compile(r"varchar\(([\d]+)\)")
@@ -146,7 +146,7 @@ class DBTable:
 					# case when the field is no longer a varchar
 					continue
 				current_length = current_length[0]
-				if cint(current_length) != cint(new_length):
+				if cint(current_length) > cint(new_length):
 					try:
 						# check for truncation
 						max_length = frappe.db.sql(
@@ -180,6 +180,10 @@ class DBTable:
 
 
 NOT_NULL_TYPES = ("Check", "Int", "Currency", "Float", "Percent")
+
+assert set(CONFIGURABLE_DECIMAL_TYPES) <= set(NOT_NULL_TYPES), (
+	"configurable decimal types must be a subset of not-null types"
+)
 
 
 class DbColumn:
@@ -408,8 +412,13 @@ def validate_column_length(fieldname):
 		frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(fieldname))
 
 
-def get_definition(fieldtype, precision=None, length=None, *, options=None):
-	d = frappe.db.type_map.get(fieldtype)
+def get_definition(fieldtype, precision=None, length=None, *, options=None, duckdb=False):
+	if duckdb:
+		from frappe.database.duckdb.database import get_type_map
+
+		d = get_type_map().get(fieldtype)
+	else:
+		d = frappe.db.type_map.get(fieldtype)
 
 	if (
 		fieldtype == "Link"
@@ -439,6 +448,7 @@ def get_definition(fieldtype, precision=None, length=None, *, options=None):
 			precision = precision if precision_is_set else DEFAULT_DECIMAL_PRECISION
 			if cint(precision) > cint(width):
 				precision = width
+			assert cint(precision) <= cint(width), "decimal precision must not exceed width"
 			size = f"{cint(width)},{cint(precision)}"
 
 		if length:

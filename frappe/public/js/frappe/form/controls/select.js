@@ -13,7 +13,7 @@ frappe.ui.form.ControlSelect = class ControlSelect extends frappe.ui.form.Contro
 	}
 	set_icon(is_xs_input) {
 		const select_icon_html = `<div class="select-icon ${is_xs_input ? "xs" : ""}">
-				${frappe.utils.icon("select", is_xs_input ? "xs" : "sm")}
+				${frappe.utils.icon("chevrons-up-down", is_xs_input ? "xs" : "sm")}
 			</div>`;
 		if (this.only_input) {
 			this.$wrapper.append(select_icon_html);
@@ -28,7 +28,7 @@ frappe.ui.form.ControlSelect = class ControlSelect extends frappe.ui.form.Contro
 		const placeholder_html = `<div class="placeholder ellipsis text-extra-muted ${
 			is_xs_input ? "xs" : ""
 		}">
-				<span>${this.df.placeholder}</span>
+				<span>${__(this.df.placeholder)}</span>
 			</div>`;
 		if (this.only_input) {
 			this.$wrapper.append(placeholder_html);

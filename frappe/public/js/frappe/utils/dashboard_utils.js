@@ -17,7 +17,7 @@ frappe.dashboard_utils = {
 						<button class="btn btn-secondary btn-xs">
 							${icon_html}
 							<span class="filter-label">${__(filter.label)}</span>
-							${frappe.utils.icon("select", "xs")}
+							${frappe.utils.icon("chevrons-up-down", "xs")}
 						</button>
 				</a>`;
 			let options_html;
@@ -132,7 +132,7 @@ frappe.dashboard_utils = {
 
 	remove_common_static_filter_values(static_filters, dynamic_filters) {
 		if (dynamic_filters) {
-			if ($.isArray(static_filters)) {
+			if (Array.isArray(static_filters)) {
 				static_filters = static_filters.filter((static_filter) => {
 					for (let dynamic_filter of dynamic_filters) {
 						if (
@@ -207,38 +207,44 @@ frappe.dashboard_utils = {
 			? JSON.parse(doc.dynamic_filters_json)
 			: null;
 
-		if (!dynamic_filters || !Object.keys(dynamic_filters).length) {
-			return this.cleanup_filters(filters);
+		const has_dynamic_filters = Array.isArray(dynamic_filters)
+			? dynamic_filters.length
+			: dynamic_filters && Object.keys(dynamic_filters).length;
+
+		if (!has_dynamic_filters) {
+			return filters;
 		}
 
-		if (Array.isArray(dynamic_filters)) {
-			dynamic_filters.forEach((f) => {
+		if (!Array.isArray(dynamic_filters)) {
+			Object.keys(dynamic_filters).forEach((key) => {
 				try {
-					f[3] = eval(f[3]);
-				} catch (e) {
-					frappe.throw(__("Invalid expression set in filter {0} ({1})", [f[1], f[0]]));
-				}
-			});
-			filters = [...filters, ...dynamic_filters];
-		} else {
-			for (let key of Object.keys(dynamic_filters)) {
-				try {
-					const val = eval(dynamic_filters[key]);
-					dynamic_filters[key] = val;
+					dynamic_filters[key] = eval(dynamic_filters[key]);
 				} catch (e) {
 					frappe.throw(__("Invalid expression set in filter {0}", [key]));
 				}
-			}
-			Object.assign(filters, dynamic_filters);
+			});
+
+			return filters ? Object.assign(filters, dynamic_filters) : dynamic_filters;
 		}
 
-		return this.cleanup_filters(filters);
-	},
-	cleanup_filters(filters) {
-		if (filters.length && filters[0].length == 5) {
-			filters.pop();
-			return filters;
+		dynamic_filters.forEach((f) => {
+			try {
+				f[3] = eval(f[3]);
+			} catch (e) {
+				frappe.throw(__("Invalid expression set in filter {0} ({1})", [f[1], f[0]]));
+			}
+		});
+
+		if (!filters) {
+			filters = dynamic_filters;
+		} else if (Array.isArray(filters)) {
+			filters = [...filters, ...dynamic_filters];
+		} else {
+			dynamic_filters.forEach((f) => {
+				filters[f[1]] = f[3];
+			});
 		}
+
 		return filters;
 	},
 	get_dashboard_link_field() {
@@ -271,7 +277,7 @@ frappe.dashboard_utils = {
 			primary_action: (values) => {
 				values.name = docname;
 				values.set_standard = frappe.boot.developer_mode;
-				frappe.xcall(method, { args: values }).then(() => {
+				return frappe.xcall(method, { args: values }).then(() => {
 					let dashboard_route_html = `<a href = "/desk/dashboard/${values.dashboard}">${values.dashboard}</a>`;
 					let message = __("{0} {1} added to Dashboard {2}", [
 						doctype,
@@ -280,9 +286,8 @@ frappe.dashboard_utils = {
 					]);
 
 					frappe.msgprint(message);
+					dialog.hide();
 				});
-
-				dialog.hide();
 			},
 		});
 

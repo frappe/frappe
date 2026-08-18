@@ -3,6 +3,8 @@
 import getpass
 
 import frappe
+from frappe.desk.doctype.notification_type.notification_type import install_notification_types
+from frappe.email.doctype.notification.notification import install_notification_templates
 from frappe.geo.doctype.country.country import import_country_and_currency
 from frappe.utils import cint
 from frappe.utils.password import update_password
@@ -52,6 +54,13 @@ def after_install():
 	_clear_test_log()
 
 	add_standard_navbar_items()
+
+	# standard notification types (must precede templates: the Notification
+	# `notification_type` field defaults to "Alert", so templates link to it)
+	install_notification_types()
+
+	# default templates
+	install_notification_templates()
 
 	frappe.db.commit()
 
@@ -154,7 +163,7 @@ def complete_setup_wizard():
 			"country": "United States",
 			"timezone": "America/New_York",
 			"currency": "USD",
-			"enable_telemtry": 1,
+			"enable_telemetry": 1,
 		}
 	)
 
@@ -178,30 +187,44 @@ def add_standard_navbar_items():
 	navbar_settings.save()
 
 
-def auto_generate_icons_and_sidebar(app_name=None):
-	"""Auto Create desktop icons and workspace sidebars."""
+def create_desktop_icons_for_app(app_name=None):
+	"""Seed Desktop Icons after an app is installed.
+
+	Only the Desktop Icon grid reads these rows, so there's nothing to do unless
+	Desktop Settings -> Desktop Page is `Desktop Icons`. Regenerates all icons, which is
+	idempotent -- it only creates the ones that don't already exist.
+	"""
+	from frappe.desk.doctype.desktop_settings.desktop_settings import is_desktop_icons_page
+
+	if not is_desktop_icons_page():
+		return
+
 	from frappe.desk.doctype.desktop_icon.desktop_icon import create_desktop_icons
-	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import (
-		create_workspace_sidebar_for_workspaces,
-	)
 
 	try:
-		print("Creating Workspace Sidebars")
-		create_workspace_sidebar_for_workspaces()
-		print("Creating Desktop Icons")
 		create_desktop_icons()
-		# Save the generated icons
-		frappe.db.commit()  # nosemgrep
-		# Save the genreated sidebar links
 		frappe.db.commit()  # nosemgrep
 	except Exception as e:
-		print(f"Error creating icons {e}")
+		print(f"Error creating desktop icons: {e}")
 
 
-def delete_desktop_icon_and_sidebar(app_name, dry_run=False):
-	frappe.get_hooks(app_name=app_name)
-	app_title = frappe.get_hooks(app_name=app_name)["app_title"][0]
-	icons_to_be_deleted = frappe.get_all(
+def delete_desktop_icons_for_app(app_name, dry_run=False):
+	"""Remove an uninstalled app's Desktop Icons."""
+	# `remove_app` fires after_app_uninstall hooks even on a dry run, so respect dry_run
+	# ourselves: preview only, don't touch the database.
+	if dry_run:
+		return
+
+	# Icons are named/labelled by the app's title (Desktop Icon autoname is `field:label`,
+	# set to app_title in create_desktop_icons_from_installed_apps), not the package name --
+	# so match on the `app_title` hook, else the filters never hit and rows are orphaned.
+	# No hook means the seeding never created an icon for this app either, so there's
+	# nothing to clean up; indexing an empty list here would raise on uninstall instead.
+	app_title = (frappe.get_hooks("app_title", app_name=app_name) or [None])[0]
+	if not app_title:
+		return
+
+	icons_to_delete = frappe.get_all(
 		"Desktop Icon",
 		pluck="name",
 		or_filters=[
@@ -209,15 +232,8 @@ def delete_desktop_icon_and_sidebar(app_name, dry_run=False):
 			["Desktop Icon", "parent_icon", "=", app_title],
 		],
 	)
-	print("Deleting Desktop Icons")
-	for icon in icons_to_be_deleted:
+	for icon in icons_to_delete:
 		frappe.delete_doc_if_exists("Desktop Icon", icon)
-	# Delete icons
-	sidebar_to_be_deleted = frappe.get_all("Workspace Sidebar", pluck="name", filters={"app": app_name})
-	print("Deleting Workspace Sidebars")
-	for icon in sidebar_to_be_deleted:
-		frappe.delete_doc_if_exists("Workspace Sidebar", icon)
 
-	if dry_run:
-		# Delete icons and sidebars
-		frappe.db.commit()  # nosemgrep
+	# after_app_uninstall runs after remove_app's own commit, so persist the deletions here.
+	frappe.db.commit()  # nosemgrep

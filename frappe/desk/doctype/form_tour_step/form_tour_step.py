@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class FormTourStep(Document):
+	_DOCTYPE_NAME = "Form Tour Step"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

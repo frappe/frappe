@@ -5,6 +5,8 @@ from frappe.model.document import Document
 
 
 class CustomizeFormField(Document):
+	_DOCTYPE_NAME = "Customize Form Field"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -13,10 +15,10 @@ class CustomizeFormField(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		alignment: DF.Literal["", "Left", "Center", "Right"]
 		allow_bulk_edit: DF.Check
 		allow_in_quick_entry: DF.Check
 		allow_on_submit: DF.Check
-		alignment: DF.Literal["", "Left", "Center", "Right"]
 		bold: DF.Check
 		button_color: DF.Literal["", "Default", "Primary", "Info", "Success", "Warning", "Danger"]
 		collapsible: DF.Check
@@ -32,6 +34,7 @@ class CustomizeFormField(Document):
 			"Autocomplete",
 			"Attach",
 			"Attach Image",
+			"Attachment Gallery",
 			"Barcode",
 			"Button",
 			"Check",
@@ -81,6 +84,7 @@ class CustomizeFormField(Document):
 		ignore_xss_filter: DF.Check
 		in_filter: DF.Check
 		in_global_search: DF.Check
+		in_import_template: DF.Check
 		in_list_view: DF.Check
 		in_preview: DF.Check
 		in_standard_filter: DF.Check
@@ -92,6 +96,8 @@ class CustomizeFormField(Document):
 		link_filters: DF.JSON | None
 		mandatory_depends_on: DF.Code | None
 		mask: DF.Check
+		max_value: DF.Float
+		min_value: DF.Float
 		no_copy: DF.Check
 		non_negative: DF.Check
 		options: DF.SmallText | None
@@ -109,6 +115,7 @@ class CustomizeFormField(Document):
 		remember_last_selected_value: DF.Check
 		report_hide: DF.Check
 		reqd: DF.Check
+		set_only_once: DF.Check
 		show_dashboard: DF.Check
 		sort_options: DF.Check
 		translatable: DF.Check

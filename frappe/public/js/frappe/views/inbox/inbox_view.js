@@ -19,7 +19,7 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 		} else if (!route[3] || (route[3] !== "All Accounts" && !is_valid(route[3]))) {
 			frappe.throw(
 				__(
-					"No email account associated with the User. Please add an account under User > Email Inbox."
+					"No email account associated with the User. Please add an account under User > Settings > User Emails."
 				)
 			);
 		}
@@ -99,7 +99,10 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 
 	get_meta_html(email) {
 		const attachment = email.has_attachment
-			? `<span class="fa fa-paperclip fa-large" title="${__("Has Attachments")}"></span>`
+			? `<span title="${__("Has Attachments")}">${frappe.utils.icon(
+					"paperclip",
+					"sm"
+			  )}</span>`
 			: "";
 
 		let link = "";
@@ -107,16 +110,16 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 			link = `<a class="text-muted grey"
 				href="${frappe.utils.get_form_link(email.reference_doctype, email.reference_name)}"
 				title="${__("Linked with {0}", [email.reference_doctype])}">
-				<i class="fa fa-link fa-large"></i>
+				${frappe.utils.icon("link", "sm")}
 			</a>`;
 		}
 
 		const communication_date = comment_when(email.communication_date, true);
 		const status =
 			email.status == "Closed"
-				? `<span class="fa fa-check fa-large" title="${__(email.status)}"></span>`
+				? `<span title="${__(email.status)}">${frappe.utils.icon("check", "sm")}</span>`
 				: email.status == "Replied"
-				? `<span class="fa fa-mail-reply fa-large" title="${__(email.status)}"></span>`
+				? `<span title="${__(email.status)}">${frappe.utils.icon("reply", "sm")}</span>`
 				: "";
 
 		return `
@@ -165,41 +168,34 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 	}
 
 	get_no_result_message() {
-		var email_account = this.email_account;
-		var args;
+		const email_account = this.email_account;
 		if (["Spam", "Trash"].includes(email_account)) {
-			return __("No {0} mail", [email_account]);
-		} else if (!email_account && !frappe.boot.email_accounts.length) {
-			// email account is not configured
-			args = {
-				doctype: "Email Account",
-				msg: __("No Email Account"),
-				label: __("New Email Account"),
-			};
-		} else {
-			// no sent mail
-			args = {
-				doctype: "Communication",
-				msg: __("No Emails"),
-				label: __("Compose Email"),
-			};
+			return frappe.ui.empty_state({
+				icon: "mail",
+				title: __("No {0} mail", [email_account]),
+			})[0].outerHTML;
 		}
 
-		const html = frappe.model.can_create(args.doctype)
-			? `<p>${args.msg}</p>
-			<p>
-				<button class="btn btn-primary btn-sm btn-new-doc">
-					${args.label}
-				</button>
-			</p>
-			`
-			: `<p>${__("No Email Accounts Assigned")}</p>`;
+		const args =
+			!email_account && !frappe.boot.email_accounts.length
+				? // email account is not configured
+				  {
+						doctype: "Email Account",
+						msg: __("No Email Account"),
+						label: __("New Email Account"),
+				  }
+				: // no mail
+				  { doctype: "Communication", msg: __("No Emails"), label: __("Compose Email") };
 
-		return `
-			<div class="msg-box no-border">
-				${html}
-			</div>
-		`;
+		// the create button keeps .btn-new-doc so setup_new_doc_event() wires it
+		const can_create = frappe.model.can_create(args.doctype);
+		return frappe.ui.empty_state({
+			icon: "mail",
+			title: can_create ? args.msg : __("No Email Accounts Assigned"),
+			actions: can_create
+				? [{ label: args.label, icon: "plus", css_class: "btn-new-doc" }]
+				: [],
+		})[0].outerHTML;
 	}
 
 	make_new_doc() {

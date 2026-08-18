@@ -41,18 +41,30 @@ frappe.pages["setup-wizard"].on_page_load = function (wrapper) {
 			freeze: true,
 			callback: function (r) {
 				frappe.setup.data.lang = r.message;
+				frappe.call({
+					method: "frappe.desk.page.setup_wizard.setup_wizard.load_user_details",
+					freeze: true,
+					callback: function (r) {
+						frappe.setup.data.full_name = r.message.full_name;
+						frappe.setup.data.email = r.message.email;
 
-				frappe.setup.run_event("before_load");
-				var wizard_settings = {
-					parent: wrapper,
-					slides: frappe.setup.slides,
-					slide_class: frappe.setup.SetupWizardSlide,
-					unidirectional: 1,
-					done_state: 1,
-				};
-				frappe.wizard = new frappe.setup.SetupWizard(wizard_settings);
-				frappe.setup.run_event("after_load");
-				frappe.wizard.show_slide(cint(frappe.get_route()[1]));
+						if (r.message.full_name) {
+							frappe.setup.data.first_name = r.message.full_name.split(" ")[0];
+						}
+
+						frappe.setup.run_event("before_load");
+						var wizard_settings = {
+							parent: wrapper,
+							slides: frappe.setup.slides,
+							slide_class: frappe.setup.SetupWizardSlide,
+							unidirectional: 1,
+							done_state: 1,
+						};
+						frappe.wizard = new frappe.setup.SetupWizard(wizard_settings);
+						frappe.setup.run_event("after_load");
+						frappe.wizard.show_slide(cint(frappe.get_route()[1]));
+					},
+				});
 			},
 		});
 	});
@@ -136,6 +148,16 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		frappe.set_route(this.page_name, cstr(id));
 	}
 
+	sync_telemetry_preference() {
+		// Apply the opt-out from the final committed values, not on each checkbox
+		// change, so toggling within a slide stays reversible — disable() is one-way.
+		// Server-side the preference lands only at wizard completion, so setup
+		// events (funnel, persona) are captured regardless of the choice.
+		if (frappe.telemetry.enabled && !this.values.enable_telemetry) {
+			frappe.telemetry.disable();
+		}
+	}
+
 	show_hide_prev_next(id) {
 		super.show_hide_prev_next(id);
 		if (id + 1 === this.slides.length) {
@@ -158,6 +180,13 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.in_refresh_slides = true;
 
 		this.update_values();
+		const welcome_slide = frappe.setup.slides_settings.find((s) => s.name === "welcome");
+		if (welcome_slide && this.values.language) {
+			const lang_field = welcome_slide.fields.find((f) => f.fieldname === "language");
+			if (lang_field) {
+				lang_field.default = this.values.language;
+			}
+		}
 		frappe.setup.slides = [];
 		frappe.setup.run_event("before_load");
 
@@ -184,9 +213,9 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	action_on_complete() {
-		frappe.telemetry.capture("initated_client_side", "setup");
 		if (!this.current_slide.set_values()) return;
 		this.update_values();
+		this.sync_telemetry_preference();
 		this.show_working_state();
 		this.disable_keyboard_nav();
 		this.listen_for_setup_stages();
@@ -341,7 +370,6 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 	make() {
 		super.make();
 		this.set_init_values();
-		this.setup_telemetry_events();
 		this.reset_action_button_state();
 	}
 
@@ -357,22 +385,6 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 			});
 		}
 	}
-
-	setup_telemetry_events() {
-		let me = this;
-		this.fields.filter(frappe.model.is_value_type).forEach((field) => {
-			field.fieldname &&
-				me.get_input(field.fieldname)?.on?.("change", function () {
-					frappe.telemetry.capture(`${field.fieldname}_set`, "setup");
-					if (
-						field.fieldname == "enable_telemetry" &&
-						!me.get_value("enable_telemetry")
-					) {
-						frappe.telemetry.disable();
-					}
-				});
-		});
-	}
 };
 
 // Frappe slides settings
@@ -381,7 +393,7 @@ frappe.setup.slides_settings = [
 	{
 		// Welcome (language) slide
 		name: "welcome",
-		title: __("Welcome"),
+		title: () => __("Welcome") + " " + (frappe.setup.data.first_name || ""),
 
 		fields: [
 			{
@@ -400,9 +412,6 @@ frappe.setup.slides_settings = [
 				reqd: 1,
 			},
 			{
-				fieldtype: "Section Break",
-			},
-			{
 				fieldname: "timezone",
 				label: __("Time Zone"),
 				placeholder: __("Select Time Zone"),
@@ -417,20 +426,10 @@ frappe.setup.slides_settings = [
 				reqd: 1,
 			},
 			{
-				fieldtype: "Section Break",
-			},
-			{
 				fieldname: "enable_telemetry",
 				label: __("Allow sending usage data for improving applications"),
 				fieldtype: "Check",
 				default: cint(frappe.telemetry.can_enable()),
-				depends_on: "eval:frappe.telemetry.can_enable()",
-			},
-			{
-				fieldname: "allow_recording_first_session",
-				label: __("Allow recording my first session to improve user experience"),
-				fieldtype: "Check",
-				default: 0,
 				depends_on: "eval:frappe.telemetry.can_enable()",
 			},
 		],
@@ -450,14 +449,21 @@ frappe.setup.slides_settings = [
 			} else {
 				frappe.setup.utils.load_regional_data(slide, setup_fields);
 			}
+			let current_selection = frappe.wizard.values.language;
 			if (!slide.get_value("language")) {
 				let session_language =
+					current_selection ||
 					frappe.setup.utils.get_language_name_from_code(
 						frappe.boot.lang || navigator.language
-					) || "English";
+					) ||
+					"English";
 				let language_field = slide.get_field("language");
+				language_field.df.default = session_language;
 
 				language_field.set_input(session_language);
+				if (language_field.awesomplete) {
+					language_field.awesomplete.evaluate();
+				}
 				if (!frappe.setup._from_load_messages) {
 					language_field.$input.trigger("change");
 				}
@@ -472,7 +478,6 @@ frappe.setup.slides_settings = [
 		// Profile slide
 		name: "user",
 		title: __("Let's set up your account"),
-		icon: "fa fa-user",
 		fields: [
 			{
 				fieldname: "full_name",
@@ -499,6 +504,8 @@ frappe.setup.slides_settings = [
 		],
 
 		onload: function (slide) {
+			slide.form.fields_dict.password?.$input?.attr("autocomplete", "new-password");
+
 			if (frappe.session.user !== "Administrator") {
 				const { first_name, last_name, email } = frappe.boot.user;
 				if (first_name || last_name) {
@@ -510,22 +517,19 @@ frappe.setup.slides_settings = [
 				slide.form.fields_dict.email.df.read_only = 1;
 				slide.form.fields_dict.email.refresh();
 			} else {
-				slide.form.fields_dict.email.df.reqd = 1;
-				slide.form.fields_dict.email.refresh();
 				if (!frappe.boot.is_fc_site) slide.form.fields_dict.password.df.reqd = 1;
 				slide.form.fields_dict.password.refresh();
-
-				frappe.setup.utils.load_user_details(slide, this.setup_fields);
-			}
-		},
-
-		setup_fields: function (slide) {
-			if (frappe.setup.data.full_name) {
-				slide.form.fields_dict.full_name.set_input(frappe.setup.data.full_name);
-			}
-			if (frappe.setup.data.email) {
-				let email = frappe.setup.data.email;
-				slide.form.fields_dict.email.set_input(email);
+				if (frappe.setup.data.full_name) {
+					slide.form.fields_dict.full_name.set_input(frappe.setup.data.full_name);
+					slide.form.fields_dict.full_name.df.read_only = 1;
+					slide.form.fields_dict.full_name.refresh();
+				}
+				if (frappe.setup.data.email) {
+					slide.form.fields_dict.email.set_input(frappe.setup.data.email);
+					slide.form.fields_dict.email.df.read_only = 1;
+				}
+				slide.form.fields_dict.email.df.reqd = 1;
+				slide.form.fields_dict.email.refresh();
 			}
 		},
 	},
@@ -545,7 +549,8 @@ frappe.setup.utils = {
 					frappe.wizard.values.currency = r.message.currency;
 					frappe.wizard.values.country = r.message.country;
 					frappe.wizard.values.timezone = r.message.time_zone;
-					frappe.wizard.values.language = r.message.language;
+					frappe.wizard.values.language =
+						frappe.wizard.values.language || r.message.language;
 
 					frappe.db.get_value(
 						"User",
@@ -588,6 +593,9 @@ frappe.setup.utils = {
 	setup_language_field: function (slide) {
 		var language_field = slide.get_field("language");
 		language_field.df.options = frappe.setup.data.lang.languages;
+		if (frappe.wizard.values.language) {
+			language_field.df.default = frappe.wizard.values.language;
+		}
 		language_field.set_options();
 	},
 
@@ -653,6 +661,7 @@ frappe.setup.utils = {
 							language: lang,
 						},
 						callback: function () {
+							frappe.wizard.values.language = lang;
 							frappe.setup._from_load_messages = true;
 							frappe.wizard.refresh_slides();
 						},

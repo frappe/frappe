@@ -199,9 +199,27 @@ class TestGlobalSearch(IntegrationTestCase):
 		global_search.update_global_search_for_all_web_pages()
 		global_search.sync_global_search()
 		frappe.db.commit()
-		results = global_search.web_search("company")
-		self.assertTrue("About" in results[0].content)
+		results = global_search.web_search("login")
+		self.assertTrue("login" in results[0].content)
 		results = global_search.web_search(
 			text="company", scope='manufacturing" UNION ALL SELECT 1,2,3,4,doctype from __global_search'
 		)
 		self.assertTrue(results == [])
+
+	def test_settings_validate_rejects_core_doctype_row(self):
+		core_dt = "File"
+		self.assertEqual(frappe.get_meta(core_dt).module, "Core")
+
+		settings = frappe.get_single("Global Search Settings")
+		original_rows = [row.document_type for row in settings.allowed_in_global_search]
+
+		try:
+			settings.append("allowed_in_global_search", {"document_type": core_dt})
+			with self.assertRaises(frappe.ValidationError):
+				settings.save(ignore_permissions=True)
+		finally:
+			settings.reload()
+			settings.allowed_in_global_search = []
+			for dt in original_rows:
+				settings.append("allowed_in_global_search", {"document_type": dt})
+			settings.save(ignore_permissions=True)

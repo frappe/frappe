@@ -1,3 +1,4 @@
+import datetime
 import re
 from contextlib import contextmanager
 
@@ -6,9 +7,13 @@ import psycopg2.extensions
 from psycopg2 import sql
 from psycopg2.errorcodes import (
 	CLASS_INTEGRITY_CONSTRAINT_VIOLATION,
+	DATATYPE_MISMATCH,
 	DEADLOCK_DETECTED,
 	DUPLICATE_COLUMN,
 	INSUFFICIENT_PRIVILEGE,
+	INVALID_TEXT_REPRESENTATION,
+	NUMERIC_VALUE_OUT_OF_RANGE,
+	SERIALIZATION_FAILURE,
 	STRING_DATA_RIGHT_TRUNCATION,
 	UNDEFINED_COLUMN,
 	UNDEFINED_TABLE,
@@ -24,7 +29,7 @@ from psycopg2.errors import (
 from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 
 import frappe
-from frappe.database.database import Database
+from frappe.database.database import CREATE_OR_DROP, Database
 from frappe.database.postgres.schema import PostgresTable
 from frappe.database.utils import EmptyQueryValues, LazyDecode
 from frappe.utils import cstr, get_table_name
@@ -38,10 +43,68 @@ DEC2FLOAT = psycopg2.extensions.new_type(
 
 psycopg2.extensions.register_type(DEC2FLOAT)
 
+
+def _cast_time_as_timedelta(value, cursor):
+	"""Return TIME columns as ``timedelta`` to match MariaDB.
+
+	psycopg2 decodes a postgres ``time without time zone`` to ``datetime.time``, but frappe models
+	Time fields as ``timedelta`` everywhere (that is what MariaDB's driver returns). Returning
+	``datetime.time`` here makes the two backends diverge and breaks frappe's typed value handling.
+	"""
+	if value is None:
+		return None
+	hms, _, frac = value.partition(".")
+	microseconds = int(frac.ljust(6, "0")[:6]) if frac else 0
+	hours, minutes, seconds = (int(part) for part in hms.split(":"))
+	return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds, microseconds=microseconds)
+
+
+# OID 1083 == `time without time zone` (the type frappe uses for Time fields)
+TIME2TIMEDELTA = psycopg2.extensions.new_type((1083,), "TIME2TIMEDELTA", _cast_time_as_timedelta)
+psycopg2.extensions.register_type(TIME2TIMEDELTA)
+
+# OIDs 114 / 3802 == `json` / `jsonb`. psycopg2 auto-parses these into python dict/list, but frappe
+# models JSON fields as *strings* (the value MariaDB's longtext returns) and json.loads them on
+# demand. A parsed value diverges from MariaDB and breaks round-tripping -- e.g. re-saving a doc
+# whose JSON field came back as a list fails get_valid_dict's "cannot be a list" check. Return the
+# raw text instead so both backends behave identically.
+JSON2STR = psycopg2.extensions.new_type((114, 3802), "JSON2STR", lambda value, cursor: value)
+psycopg2.extensions.register_type(JSON2STR)
+
 LOCATE_SUB_PATTERN = re.compile(r"locate\(([^,]+),([^)]+)(\)?)\)", flags=re.IGNORECASE)
 LOCATE_QUERY_PATTERN = re.compile(r"locate\(", flags=re.IGNORECASE)
 PG_TRANSFORM_PATTERN = re.compile(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])")
 FROM_TAB_PATTERN = re.compile(r"from tab([\w-]*)", flags=re.IGNORECASE)
+# MySQL's REGEXP / NOT REGEXP -> postgres `~*` / `!~*` (case-insensitive, matching MySQL's default
+# collation). The `skip` branch swallows every token whose contents are data rather than code, so
+# the operator is only rewritten where it really is an operator: `SELECT 'a REGEXP b'` keeps its
+# text, and a doctype named "My Regexp Rules" keeps its table name (backticks are rewritten to
+# double quotes before this runs, so every frappe identifier arrives quoted).
+REGEXP_PATTERN = re.compile(
+	r"""
+	  (?P<skip>
+	      (?<!\w)[eE]'(?:[^'\\]|''|\\.)*'    # escape string: a \' does not end it
+	    | '(?:[^']|'')*'                     # string literal (only '' escapes a quote)
+	    | "(?:[^"]|"")*"                     # quoted identifier
+	    | \$(?P<tag>\w*)\$.*?\$(?P=tag)\$    # dollar-quoted string
+	    | --[^\n]*                           # line comment
+	    | /\*.*?\*/                          # block comment
+	  )
+	| \s(?P<negated>NOT\s+)?REGEXP\s
+	""",
+	flags=re.IGNORECASE | re.DOTALL | re.VERBOSE,
+)
+
+
+def _replace_regexp_operator(match: re.Match) -> str:
+	if (skipped := match.group("skip")) is not None:
+		return skipped
+	return " !~* " if match.group("negated") else " ~* "
+
+
+# Index methods accepted by add_index(using=...): the two custom GIN modes plus postgres'
+# native access methods. Anything else is rejected before it reaches the DDL string.
+INDEX_METHODS = frozenset({"gin_trgm", "gin_fulltext", "btree", "hash", "gist", "gin", "brin", "spgist"})
 
 
 class PostgresExceptionUtil:
@@ -56,7 +119,12 @@ class PostgresExceptionUtil:
 
 	@staticmethod
 	def is_deadlocked(e):
-		return getattr(e, "pgcode", None) == DEADLOCK_DETECTED
+		# Treat serialization failures like deadlocks: both are retriable transaction-rollback
+		# (class 40) errors. Under REPEATABLE READ, a write-write conflict makes MariaDB lock and
+		# wait, but postgres aborts the loser with SERIALIZATION_FAILURE ("could not serialize
+		# access due to concurrent update"). Classifying it here routes it through frappe's deadlock
+		# retry instead of surfacing as an unhandled query error.
+		return getattr(e, "pgcode", None) in (DEADLOCK_DETECTED, SERIALIZATION_FAILURE)
 
 	@staticmethod
 	def is_timedout(e):
@@ -101,7 +169,13 @@ class PostgresExceptionUtil:
 
 	@staticmethod
 	def is_unique_key_violation(e):
-		return getattr(e, "pgcode", None) == UNIQUE_VIOLATION and "_key" in cstr(e.args[0])
+		# Any unique-constraint violation that isn't the primary key (those are surfaced as
+		# DuplicateEntryError first). This mirrors MariaDB, whose duplicate-entry error covers every
+		# unique index regardless of name -- frappe's custom indexes (e.g. `unique_item_warehouse`)
+		# don't carry the `_key` suffix postgres auto-generates, so a name match alone misses them.
+		return PostgresExceptionUtil.is_duplicate_entry(
+			e
+		) and not PostgresExceptionUtil.is_primary_key_violation(e)
 
 	@staticmethod
 	def is_duplicate_fieldname(e):
@@ -114,6 +188,18 @@ class PostgresExceptionUtil:
 	@staticmethod
 	def is_data_too_long(e):
 		return getattr(e, "pgcode", None) == STRING_DATA_RIGHT_TRUNCATION
+
+	@staticmethod
+	def is_data_truncated(e):
+		# a value cannot be cast to the column's new type -- e.g. changing a field holding
+		# "not a number" to Int. MariaDB reports TRUNCATED_WRONG_VALUE; postgres is stricter and
+		# aborts the ALTER: it refuses to auto-cast the column (datatype mismatch) or a value fails
+		# the cast (invalid representation / numeric out of range).
+		return getattr(e, "pgcode", None) in (
+			DATATYPE_MISMATCH,
+			INVALID_TEXT_REPRESENTATION,
+			NUMERIC_VALUE_OUT_OF_RANGE,
+		)
 
 	@staticmethod
 	def is_db_table_size_limit(e) -> bool:
@@ -187,6 +273,15 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			# libpg defaults to default socket if not specified
 			"host": self.host or self.socket,
 		}
+		# libpq's GSSAPI (krb5) path is not fork-safe; with the default gssencmode=prefer RQ work
+		# horses segfault on fork ("work-horse terminated unexpectedly"). The option exists from
+		# libpq 12, so guard on the runtime version (an older client lib would reject it); validate
+		# any site-config override against libpq's modes so a bad value can't break every connection.
+		if psycopg2.extensions.libpq_version() >= 120000:
+			gssencmode = str(frappe.conf.get("db_gssencmode") or "disable")
+			if gssencmode not in ("disable", "allow", "prefer", "require"):
+				gssencmode = "disable"
+			conn_settings["gssencmode"] = gssencmode
 		if self.password:
 			conn_settings["password"] = self.password
 		if not self.socket and self.port:
@@ -200,6 +295,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def set_execution_timeout(self, seconds: int):
 		# Postgres expects milliseconds as input
 		self.sql("set local statement_timeout = %s", int(seconds) * 1000)
+
+	def set_session_time_zone(self, timezone: str):
+		self.sql("set time zone %s", timezone)
 
 	def escape(self, s, percent=True):
 		"""Escape quotes and percent in given string."""
@@ -237,17 +335,34 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return self.last_query
 
 	def get_tables(self, cached=True):
-		return [
-			d[0]
-			for d in self.sql(
-				"""select table_name
-			from information_schema.tables
-			where table_catalog=%s
-				and table_type = 'BASE TABLE'
-				and table_schema=%s""",
-				(self.cur_db_name, self.db_schema),
-			)
-		]
+		"""Return list of tables."""
+		cache_key = f"db_tables::{self.db_schema}"
+		to_query = not cached
+
+		if cached:
+			tables = frappe.client_cache.get_value(cache_key)
+			to_query = not tables
+
+		if to_query:
+			tables = [
+				d[0]
+				for d in self.sql(
+					"""select table_name
+				from information_schema.tables
+				where table_catalog=%s
+					and table_type = 'BASE TABLE'
+					and table_schema=%s""",
+					(self.cur_db_name, self.db_schema),
+				)
+			]
+			frappe.client_cache.set_value(cache_key, tables)
+
+		return tables
+
+	@staticmethod
+	def clear_db_table_cache(query_type: str):
+		if query_type in CREATE_OR_DROP:
+			frappe.client_cache.delete_keys("db_tables::*")
 
 	def get_db_table_columns(self, table) -> list[str]:
 		"""Returns list of column names from given table."""
@@ -346,6 +461,14 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				published int not null default 0,
 				unique (doctype, name))"""
 			)
+		# GIN index over the full-text vector so search()/web_search() do an index scan instead of
+		# recomputing to_tsvector for every row. Runs unconditionally (CREATE INDEX IF NOT EXISTS is
+		# idempotent) so an existing deployment that already has the table still gets it on upgrade.
+		# Expression must match the query's to_tsvector('english', content).
+		self.sql_ddl(
+			"""CREATE INDEX IF NOT EXISTS "__global_search_fts"
+			ON "__global_search" USING gin (to_tsvector('english', content))"""
+		)
 
 	def create_user_settings_table(self):
 		self.sql_ddl(
@@ -392,22 +515,121 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			(table_name, self.db_schema, index_name),
 		)
 
-	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
-		"""Creates an index with given fields if not already created.
-		Index name will be `fieldname1_fieldname2_index`"""
-		table_name = get_table_name(doctype)
-		index_name = index_name or self.get_index_name(fields)
-		fields_str = '", "'.join(re.sub(r"\(.*\)", "", field) for field in fields)
+	def get_column_index(self, table_name: str, fieldname: str, unique: bool = False) -> frappe._dict | None:
+		"""Check if a column is the leading column of a single-column index.
 
-		self.sql_ddl(
-			f'CREATE INDEX IF NOT EXISTS "{index_name}" ON "{self.db_schema}"."{table_name}" ("{fields_str}")'
+		Cross-db counterpart of the MariaDB implementation (which uses ``SHOW INDEX`` with
+		``Seq_in_index = 1`` and a single-column constraint). Uses the PostgreSQL system
+		catalogs so callers stay db-agnostic. Only full (non-partial) btree indexes count,
+		like the indexes SHOW INDEX reports on InnoDB -- a hash or partial index cannot
+		serve the ordering and unrestricted lookups callers are checking for.
+		"""
+		result = self.sql(
+			f"""
+			SELECT ic.relname AS "Key_name"
+			FROM pg_index i
+			JOIN pg_class tc ON tc.oid = i.indrelid
+			JOIN pg_class ic ON ic.oid = i.indexrelid
+			JOIN pg_am am ON am.oid = ic.relam
+			JOIN pg_namespace n ON n.oid = tc.relnamespace
+			JOIN pg_attribute a ON a.attrelid = tc.oid AND a.attnum = i.indkey[0]
+			WHERE tc.relname = %(table_name)s
+				AND n.nspname = %(schema)s
+				AND a.attname = %(fieldname)s
+				AND i.indisunique = {"true" if unique else "false"}
+				AND i.indnkeyatts = 1
+				AND i.indisvalid
+				AND i.indisready
+				AND i.indislive
+				AND am.amname = 'btree'
+				AND i.indpred IS NULL
+			LIMIT 1
+			""",
+			{"table_name": table_name, "schema": self.db_schema, "fieldname": fieldname},
+			as_dict=True,
+		)
+		return result[0] if result else None
+
+	def add_index(
+		self, doctype: str, fields: list, index_name: str | None = None, using=None, where=None, include=None
+	):
+		"""Creates an index with given fields if not already created.
+
+		Default index name is `<table>_<field1>_<field2>_index` (table-qualified so it is unique
+		per *schema*, as postgres requires). A non-default `using`, `where` or `include` adds a
+		digest of that definition to the name, so a partial or covering index never shares a name
+		with the plain index over the same key columns.
+
+		using: index kind beyond the default btree --
+			"gin_trgm"     GIN + gin_trgm_ops for fast LIKE/ILIKE substring search (needs pg_trgm)
+			"gin_fulltext" GIN over to_tsvector(...) for full-text search on text columns
+			or a bare access method ("btree", "hash", "gist", "gin", "brin", "spgist").
+		where: predicate for a partial index, e.g. "docstatus < 2". A trusted DDL fragment
+			interpolated verbatim -- callers MUST NOT pass user-supplied input.
+		include: non-key columns to carry in a covering (INCLUDE) btree index, so an index-only
+			scan answers the query without touching the heap.
+		"""
+		from frappe.database.postgres.schema import get_qualified_index_name
+
+		# `using` is interpolated into DDL, so reject anything outside the known-safe set.
+		if using and using not in INDEX_METHODS:
+			frappe.throw(f"Unsupported index method: {using}")
+
+		table_name = get_table_name(doctype)
+		clean_fields = [re.sub(r"\(.*\)", "", field) for field in fields]
+		# Column identifiers are interpolated into the DDL string, so reject anything that isn't a
+		# plain name -- a value like `id") ...; DROP TABLE ...` would otherwise inject into it.
+		for column in (*clean_fields, *(include or ())):
+			if not re.fullmatch(r"\w+", column):
+				frappe.throw(f"Invalid index column: {column}")
+		# postgres index names are per-schema, not per-table: an unqualified default name collides
+		# across tables sharing these fields and `CREATE INDEX IF NOT EXISTS` then silently skips
+		# all but the first, leaving the index missing. Qualify with the table and everything else
+		# that makes this index a distinct object -- `using`, the partial predicate and the
+		# INCLUDE list -- so no two differing definitions ever share a name.
+		index_name = index_name or get_qualified_index_name(
+			table_name, clean_fields, using, where=where, include=include
 		)
 
+		if using == "gin_trgm":
+			self.sql_ddl("CREATE EXTENSION IF NOT EXISTS pg_trgm")
+
+		method = f" USING {'gin' if using in ('gin_trgm', 'gin_fulltext') else using}" if using else ""
+		include_clause = f""" INCLUDE ("{'", "'.join(include)}")""" if include else ""
+		condition = f" WHERE {where}" if where else ""
+		self.sql_ddl(
+			f'CREATE INDEX IF NOT EXISTS "{index_name}" ON "{self.db_schema}"."{table_name}"'
+			f"{method} ({self._index_target(clean_fields, using)}){include_clause}{condition}"
+		)
+
+	def _index_target(self, fields: list[str], using: str | None) -> str:
+		"""The column list (or functional expression) an index is built over, per `using` mode."""
+		if using == "gin_trgm":
+			return ", ".join(f'"{field}" gin_trgm_ops' for field in fields)
+		if using == "gin_fulltext":
+			# 'english' regconfig keeps to_tsvector immutable so it can be indexed; the search query
+			# must use the same config. ponytail: hardcoded -- add a `config` arg if multilingual
+			# full-text is ever needed.
+			document = (
+				f'"{fields[0]}"'
+				if len(fields) == 1
+				else " || ' ' || ".join(f"coalesce(\"{field}\", '')" for field in fields)
+			)
+			return f"to_tsvector('english', {document})"
+		return '"' + '", "'.join(fields) + '"'
+
 	def add_unique(self, doctype, fields, constraint_name=None):
+		from frappe.database.postgres.schema import get_qualified_index_name
+
 		if isinstance(fields, str):
 			fields = [fields]
-		if not constraint_name:
-			constraint_name = "unique_" + "_".join(fields)
+		if constraint_name:
+			legacy_name = constraint_name
+		else:
+			constraint_name = get_qualified_index_name(get_table_name(doctype), fields, "unique")
+			# a table constrained before names were table-qualified still carries the legacy one;
+			# recognise it so we don't add a second constraint enforcing the same uniqueness
+			legacy_name = "unique_" + "_".join(fields)
 
 		if not self.sql(
 			"""
@@ -416,8 +638,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			WHERE table_name=%s
 			AND constraint_type='UNIQUE'
 			AND constraint_schema=%s
-			AND CONSTRAINT_NAME=%s""",
-			("tab" + doctype, self.db_schema, constraint_name),
+			AND CONSTRAINT_NAME IN (%s, %s)""",
+			("tab" + doctype, self.db_schema, constraint_name, legacy_name),
 		):
 			self.commit()
 
@@ -437,6 +659,15 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	def get_table_columns_description(self, table_name):
 		"""Return list of columns with description."""
+		# The `index`/`unique` flags say whether the column is the LEADING column of a
+		# (non-unique / unique-non-primary) index -- mirroring MariaDB's `Seq_in_index = 1`
+		# check. We resolve the leading column precisely from the catalogs (indkey[0]).
+		# A substring match on indexdef would false-positive any column whose name appears
+		# anywhere in a composite index's definition (e.g. `company` matching
+		# `posting_date_company_index`), which then wrongly suppresses creating its own index.
+		# Only plain btree indexes count: a partial, covering or non-btree index cannot be the
+		# framework-managed search index, so reporting it here would both suppress creating the
+		# real one and mark a hand-made index as framework-owned and droppable.
 		# pylint: disable=W1401
 		return self.sql(
 			f"""
@@ -444,25 +675,34 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			CASE LOWER(a.data_type)
 				WHEN 'character varying' THEN CONCAT('varchar(', a.character_maximum_length ,')')
 				WHEN 'timestamp without time zone' THEN 'timestamp'
+				WHEN 'time without time zone' THEN CONCAT('time(', a.datetime_precision, ')')
 				WHEN 'integer' THEN 'int'
 				WHEN 'numeric' THEN CONCAT('decimal(', a.numeric_precision, ',', a.numeric_scale, ')')
 				ELSE a.data_type
 			END AS type,
-			BOOL_OR(b.index) AS index,
+			COALESCE(BOOL_OR(NOT b.is_unique), false) AS index,
 			SPLIT_PART(COALESCE(a.column_default, NULL), '::', 1) AS default,
-			BOOL_OR(b.unique) AS unique,
+			COALESCE(BOOL_OR(b.is_unique AND NOT b.is_primary), false) AS unique,
 			COALESCE(a.is_nullable = 'NO', false) AS not_nullable
 			FROM information_schema.columns a
-			LEFT JOIN
-				(SELECT indexdef, tablename,
-					indexdef LIKE '%UNIQUE INDEX%' AS unique,
-					indexdef NOT LIKE '%UNIQUE INDEX%' AS index
-					FROM pg_indexes
-					WHERE tablename='{table_name}' AND schemaname='{self.db_schema}') b
-				ON SUBSTRING(b.indexdef, '(.*)') LIKE CONCAT('%', a.column_name, '%')
+			LEFT JOIN (
+				SELECT att.attname AS column_name,
+					i.indisunique AS is_unique,
+					i.indisprimary AS is_primary
+				FROM pg_index i
+				JOIN pg_class tc ON tc.oid = i.indrelid
+				JOIN pg_class ic ON ic.oid = i.indexrelid
+				JOIN pg_am am ON am.oid = ic.relam
+				JOIN pg_namespace n ON n.oid = tc.relnamespace
+				JOIN pg_attribute att ON att.attrelid = tc.oid AND att.attnum = i.indkey[0]
+				WHERE tc.relname = '{table_name}' AND n.nspname = '{self.db_schema}'
+					AND am.amname = 'btree'
+					AND i.indpred IS NULL
+					AND i.indnatts = i.indnkeyatts
+			) b ON b.column_name = a.column_name
 			WHERE a.table_name = '{table_name}'
 				AND a.table_schema = '{self.db_schema}'
-			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length, a.is_nullable, a.numeric_precision, a.numeric_scale;
+			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length, a.is_nullable, a.numeric_precision, a.numeric_scale, a.datetime_precision;
 		""",
 			as_dict=1,
 		)
@@ -486,13 +726,10 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def get_database_list(self):
 		return self.sql("SELECT datname FROM pg_database", pluck=True)
 
-	def estimate_count(self, doctype: str):
-		"""Get estimated count of total rows in a table."""
+	def _estimate_count(self, table: str) -> int:
 		from frappe.utils.data import cint
 
-		table = get_table_name(doctype)
-
-		# Scope to current database to avoid cross-site estimates
+		# Scope to current schema to avoid cross-site estimates
 		count = self.sql(
 			"select c.reltuples from pg_class c join pg_namespace n on n.oid = c.relnamespace where c.relname = %s and n.nspname = %s and c.relkind = 'r'",
 			(table, self.db_schema),
@@ -516,12 +753,137 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			self._cursor = original_cursor
 			new_cursor.close()
 
+	@staticmethod
+	def _advisory_lock_key(key) -> int:
+		import hashlib
+
+		return int.from_bytes(hashlib.sha256(str(key).encode()).digest()[:8], "big", signed=True)
+
+	def _poll_advisory_lock(self, try_function, key, timeout):
+		import time
+
+		from frappe.exceptions import QueryTimeoutError
+
+		lock_key = self._advisory_lock_key(key)
+		deadline = time.monotonic() + timeout
+		while not self.sql(f"SELECT {try_function}(%s)", (lock_key,))[0][0]:
+			if time.monotonic() >= deadline:
+				raise QueryTimeoutError(f"Could not acquire advisory lock {key!r} within {timeout}s")
+			time.sleep(0.1)
+		return lock_key
+
+	def transaction_advisory_lock(self, key, *, timeout=10):
+		"""Take an advisory lock that Postgres releases automatically when the current transaction
+		commits or rolls back (pg_advisory_xact_lock) -- no explicit unlock, participates in
+		deadlock detection alongside row locks, re-entrant within a transaction. Polls up to
+		`timeout` seconds, then raises QueryTimeoutError."""
+		self._poll_advisory_lock("pg_try_advisory_xact_lock", key, timeout)
+
+	@contextmanager
+	def advisory_lock(self, key, *, timeout=10):
+		"""Hold a session-level advisory lock for the duration of the `with` block. Session-scoped
+		(pg_advisory_lock) so it survives any intermediate commits the caller makes -- a txn-scoped
+		lock would release at the first commit. Polls pg_try_advisory_lock up to `timeout` seconds,
+		then raises QueryTimeoutError. `key` is hashed to the bigint the lock functions expect."""
+		lock_key = self._poll_advisory_lock("pg_try_advisory_lock", key, timeout)
+		try:
+			yield
+		finally:
+			try:
+				self.sql("SELECT pg_advisory_unlock(%s)", (lock_key,))
+			except Exception:
+				# A DB error inside the block leaves the transaction aborted, so the unlock above
+				# fails and the session-scoped lock would leak (ROLLBACK does not release it). Clear
+				# the aborted state and release. Guarded so a failed cleanup never masks the original
+				# error -- a dropped session releases the lock anyway.
+				try:
+					self.rollback()
+					self.sql("SELECT pg_advisory_unlock(%s)", (lock_key,))
+				except Exception:
+					pass
+
+	def bulk_insert(self, doctype, fields, values, ignore_duplicates=False, *, chunk_size=10_000):
+		"""Stream rows into the table with COPY -- far faster than multi-row INSERT. Falls back to
+		the parameterized INSERT path when `ignore_duplicates` is set (COPY has no ON CONFLICT).
+		Runs in the current transaction; the caller commits."""
+		if ignore_duplicates:
+			return super().bulk_insert(doctype, fields, values, ignore_duplicates=True, chunk_size=chunk_size)
+
+		import io
+
+		table_name = get_table_name(doctype)
+		# Compose identifiers with psycopg2.sql so a field/table name is always correctly quoted.
+		copy_statement = sql.SQL("COPY {}.{} ({}) FROM STDIN").format(
+			sql.Identifier(self.db_schema),
+			sql.Identifier(table_name),
+			sql.SQL(", ").join(sql.Identifier(field) for field in fields),
+		)
+		if not self._conn:
+			self.connect()
+		cursor = self._conn.cursor()
+		copy_sql = copy_statement.as_string(cursor)
+		buffer = io.StringIO()
+		try:
+			row_count = flushed = 0
+			for value in values:
+				buffer.write("\t".join(_copy_encode(column) for column in value) + "\n")
+				row_count += 1
+				if row_count % chunk_size == 0:
+					_copy_flush(cursor, copy_sql, buffer)
+					# COPY bypasses Database.execute, so keep transaction_writes in step with the
+					# rows sent -- else auto_commit_on_many_writes never sees a large load.
+					self.transaction_writes += row_count - flushed
+					flushed = row_count
+			_copy_flush(cursor, copy_sql, buffer)
+			self.transaction_writes += row_count - flushed
+		finally:
+			cursor.close()
+
+
+def _copy_encode(value):
+	"""Encode one value for postgres COPY text format (tab-delimited, ``\\N`` = NULL)."""
+	if value is None:
+		return r"\N"
+	if value is True:
+		# Frappe Check fields are smallint, not boolean; smallint_in("true") errors under COPY.
+		# "1"/"0" is accepted by both smallint and boolean input functions, matching INSERT.
+		return "1"
+	if value is False:
+		return "0"
+	if isinstance(value, datetime.timedelta):
+		# Frappe Time fields are timedelta; str() on a >=1 day delta is "1 day, H:MM:SS", which
+		# postgres cannot parse as time. Emit HH:MM:SS[.ffffff] so the COPY text is always valid.
+		# Wrap into a single day the way the INSERT path does: psycopg2 adapts a timedelta to an
+		# interval and postgres reduces it mod 24h on the way into a `time` column, so a 25:03:04
+		# duration stores as 01:03:04 there. A literal "25:03:04" is out of range for `time` and
+		# would make COPY fail where the row-by-row path succeeds.
+		microseconds = (
+			(value.days * 86_400 + value.seconds) * 1_000_000 + value.microseconds
+		) % 86_400_000_000
+		seconds, microseconds = divmod(microseconds, 1_000_000)
+		hours, remainder = divmod(seconds, 3600)
+		minutes, seconds = divmod(remainder, 60)
+		encoded = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+		return f"{encoded}.{microseconds:06d}" if microseconds else encoded
+	return str(value).replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n").replace("\r", "\\r")
+
+
+def _copy_flush(cursor, copy_sql, buffer):
+	if not buffer.tell():
+		return
+	buffer.seek(0)
+	cursor.copy_expert(copy_sql, buffer)
+	buffer.seek(0)
+	buffer.truncate(0)
+
 
 def modify_query(query):
 	""" "Modifies query according to the requirements of postgres"""
 	# replace ` with " for definitions
 	query = str(query).replace("`", '"')
 	query = replace_locate_with_strpos(query)
+	# MySQL REGEXP operator -> postgres case-insensitive regex match
+	query = REGEXP_PATTERN.sub(_replace_regexp_operator, query)
 	# select from requires ""
 	query = FROM_TAB_PATTERN.sub(r'from "tab\1"', query)
 
@@ -549,8 +911,12 @@ def modify_values(values):
 		return values
 
 	if isinstance(values, dict):
-		for k, v in values.items():
-			values[k] = modify_value(v)
+		# Build a new dict instead of mutating the caller's: callers frequently pass a
+		# shared/reused dict as query params (e.g. get_stock_ledger_entries passes the
+		# same args dict that the caller keeps reading afterwards). Mutating int values
+		# to str in place silently corrupts that dict on postgres only, diverging from
+		# mariadb (which has no such transform).
+		values = {k: modify_value(v) for k, v in values.items()}
 	elif isinstance(values, tuple | list):
 		new_values = []
 		for val in values:

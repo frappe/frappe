@@ -55,7 +55,6 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 				this.set_meta_and_mandatory_fields();
 
 				if (this.is_quick_entry() || this.force) {
-					this.setup_script_manager();
 					this.render_dialog();
 					resolve(this);
 				} else {
@@ -140,13 +139,6 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 		}
 	}
 
-	setup_script_manager() {
-		this.script_manager = new frappe.ui.form.ScriptManager({
-			frm: this,
-		});
-		this.script_manager.setup();
-	}
-
 	get mandatory() {
 		// Backwards compatibility
 		console.warn("QuickEntryForm: .mandatory is deprecated, use .docfields instead");
@@ -174,8 +166,6 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 		this.refresh_dependency();
 		this.set_defaults();
 
-		this.script_manager.trigger("refresh");
-
 		if (this.init_callback) {
 			this.init_callback(this);
 		}
@@ -201,39 +191,36 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 
 			if (data) {
 				me.dialog.working = true;
-				me.script_manager.trigger("validate").then(() => {
-					if (me.skip_insert) {
-						// Skip insert mode - just update the doc and trigger callbacks
-						me.update_doc();
+				if (me.skip_insert) {
+					// Skip insert mode - just update the doc and trigger callbacks
+					me.update_doc();
+					me.dialog.animation_speed = "slow";
+					me.dialog.hide();
+					me.handle_after_callbacks();
+				} else {
+					// Normal insert mode
+					me.insert().then(() => {
+						let messagetxt = __("{1} saved", [__(me.doctype), me.doc.name.bold()]);
 						me.dialog.animation_speed = "slow";
 						me.dialog.hide();
+						if (frappe.route_hooks.after_save) {
+							let route_callback = frappe.route_hooks.after_save;
+							delete frappe.route_hooks.after_save;
 
-						// Trigger after_save event
-						if (me.script_manager.has_handler("after_save")) {
-							me.script_manager.trigger("after_save").then(() => {
-								me.handle_after_callbacks();
-							});
-						} else {
-							me.handle_after_callbacks();
+							route_callback(me);
 						}
-					} else {
-						// Normal insert mode
-						me.insert().then(() => {
-							let messagetxt = __("{1} saved", [__(me.doctype), me.doc.name.bold()]);
-							me.dialog.animation_speed = "slow";
-							me.dialog.hide();
-							setTimeout(function () {
-								frappe.show_alert(
-									{
-										message: messagetxt,
-										indicator: "green",
-									},
-									3
-								);
-							}, 500);
-						});
-					}
-				});
+
+						setTimeout(function () {
+							frappe.show_alert(
+								{
+									message: messagetxt,
+									indicator: "green",
+								},
+								3
+							);
+						}, 500);
+					});
+				}
 			}
 		});
 	}
@@ -273,6 +260,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 					} else {
 						me.process_after_insert(r);
 					}
+					resolve(me.dialog.doc);
 				},
 				error: function () {
 					if (!me.skip_redirect_on_error) {
@@ -281,7 +269,6 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 				},
 				always: function () {
 					me.dialog.working = false;
-					resolve(me.dialog.doc);
 				},
 			});
 		});
@@ -305,10 +292,6 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 		// delete the old doc
 		frappe.model.clear_doc(this.doc.doctype, this.doc.name);
 		this.doc = r.message;
-
-		if (this.script_manager.has_handler("after_save")) {
-			this.script_manager.trigger("after_save");
-		}
 
 		if (frappe._from_link) {
 			frappe.ui.form.update_calling_link(this.doc);

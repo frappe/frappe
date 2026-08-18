@@ -2,6 +2,12 @@ h5.modal-title {
 	margin: 0px !important;
 }
 
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
 // Hack to fix incorrect padding applied by Bootstrap
 body.modal-open[style^="padding-right"] {
 	padding-right: 12px !important;
@@ -15,6 +21,7 @@ body.modal-open[style^="padding-right"] {
 .modal {
 	// Same scrollbar as body
 	scrollbar-width: auto;
+
 	&::-webkit-scrollbar {
 		width: 12px;
 		height: 12px;
@@ -23,6 +30,7 @@ body.modal-open[style^="padding-right"] {
 	// Hide scrollbar on touch devices
 	@media (max-width: 991px) {
 		scrollbar-width: none;
+
 		&::-webkit-scrollbar {
 			width: 0;
 			height: 0;
@@ -32,13 +40,15 @@ body.modal-open[style^="padding-right"] {
 	.modal-content {
 		border-color: var(--border-color);
 	}
+
 	.modal-header {
+		display: flex;
+		align-items: center;
 		position: sticky;
 		top: 0;
 		z-index: 3;
 		background: inherit;
-		padding: var(--padding-sm) var(--padding-lg);
-		// padding-bottom: 0;
+		padding: var(--padding-sm) var(--padding-md);
 		border-bottom: 1px solid var(--border-color);
 
 		.modal-title {
@@ -53,25 +63,24 @@ body.modal-open[style^="padding-right"] {
 		}
 
 		.modal-actions {
-			.btn-modal-minimize {
-				padding-right: 0;
+			margin-right: -6px;
 
+			.btn-modal-minimize {
 				.icon {
 					width: 14px;
 					height: 14px;
-					use {
-						stroke: var(--gray-500);
-					}
 				}
 			}
 		}
 	}
 
 	.modal-body {
-		padding: var(--padding-md) var(--padding-lg);
+		padding: var(--padding-md) var(--padding-md);
+
 		.form-layout:first-child > .form-page {
 			.visible-section:first-child {
 				padding-top: 0;
+
 				.section-body {
 					margin-top: 0;
 				}
@@ -95,7 +104,7 @@ body.modal-open[style^="padding-right"] {
 		bottom: 0;
 		z-index: 1;
 		background: inherit;
-		padding: var(--padding-md) var(--padding-lg);
+		padding: var(--padding-md);
 		justify-content: space-between;
 
 		button {
@@ -129,6 +138,7 @@ body.modal-open[style^="padding-right"] {
 			&:first-child {
 				padding-left: 0;
 			}
+
 			&:last-child {
 				padding-right: 0;
 			}
@@ -137,10 +147,6 @@ body.modal-open[style^="padding-right"] {
 		.section-head {
 			padding: 0;
 			font-size: var(--text-md);
-
-			&:not(.collapsed) {
-				padding-bottom: var(--padding-sm);
-			}
 		}
 	}
 
@@ -182,6 +188,7 @@ body.modal-open[style^="padding-right"] {
 		bottom: 0;
 		margin: 0;
 		min-width: 400px;
+
 		.modal-header {
 			padding-top: var(--padding-sm);
 			padding-bottom: var(--padding-xs);
@@ -189,7 +196,7 @@ body.modal-open[style^="padding-right"] {
 
 		.modal-content {
 			min-height: 0;
-			border-radius: var(--border-radius-md);
+			border-radius: var(--radius-md);
 			border-bottom-right-radius: 0;
 			border-bottom-left-radius: 0;
 			box-shadow: var(--shadow-lg);
@@ -240,16 +247,14 @@ body.modal-open[style^="padding-right"] {
 			}
 
 			flex: 1;
+
 			.control-input-wrapper {
 				width: 60%;
 			}
 		}
+
 		.frappe-control:last-child {
 			margin-left: 10px;
-			button {
-				// same as form-control input
-				height: calc(1.5em + 0.7rem);
-			}
 		}
 	}
 }
@@ -263,6 +268,7 @@ body.modal-open[style^="padding-right"] {
 			&[data-fieldname="email_template"] {
 				margin-right: 10px;
 			}
+
 			flex: 1;
 
 			.control-input-wrapper {
@@ -271,7 +277,20 @@ body.modal-open[style^="padding-right"] {
 		}
 
 		.frappe-control:last-child {
-			margin-top: -14px;
+			margin-top: 10px;
+		}
+	}
+}
+
+.modal .frappe-control[data-fieldname="option_toggle_button"] {
+	margin-top: 10px;
+
+	.form-group {
+		margin-bottom: 0;
+
+		button {
+			width: 28px;
+			height: 28px;
 		}
 	}
 }
@@ -285,12 +304,15 @@ body.modal-open[style^="padding-right"] {
 	display: flex;
 	align-items: center;
 	padding: 5px 15px;
-	border-radius: var(--border-radius-md);
+	border-radius: var(--radius-md);
 	color: var(--text-color);
+
 	&:not(:last-child) {
 		margin-bottom: 5px;
 	}
+
 	@extend .row;
+
 	.btn-group {
 		opacity: 0;
 		transition: opacity 0.3s ease-in-out;
@@ -300,17 +322,19 @@ body.modal-open[style^="padding-right"] {
 			align-items: center;
 		}
 	}
+
 	.assignee {
 		flex: 1;
+		display: flex;
+		gap: 8px;
+		align-items: center;
 	}
+
 	&:hover {
 		.btn-group {
 			opacity: 1;
 			transition: opacity 0.1s ease-in-out;
 		}
-	}
-	.avatar {
-		margin-right: var(--margin-md);
 	}
 }
 
@@ -321,16 +345,19 @@ body.modal-open[style^="padding-right"] {
 		--minimized-modal-index: #{$i};
 	}
 }
+
 .modal-minimize ~ .modal-minimize {
 	.modal-dialog {
 		bottom: calc(44px * (var(--minimized-modal-index) - 1));
 	}
+
 	.modal-header {
 		border-bottom: 0px;
 	}
+
 	.modal-content {
 		// Rounded chip style
-		border-radius: var(--border-radius-md);
+		border-radius: var(--radius-md);
 		overflow: hidden;
 	}
 }
@@ -345,11 +372,13 @@ body.modal-open[style^="padding-right"] {
 		}
 	}
 }
+
 .modal-dialog-centered {
 	display: flex;
 	align-items: center;
 	min-height: calc(100% - 1rem);
 }
+
 @media (min-width: 576px) {
 	.modal-dialog-centered {
 		min-height: calc(100% - 3.5rem);

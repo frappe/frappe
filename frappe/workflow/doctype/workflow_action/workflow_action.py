@@ -1,11 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from datetime import datetime
+
 import frappe
 from frappe import _
 from frappe.desk.form.utils import get_pdf_link
 from frappe.desk.notifications import clear_doctype_notifications
-from frappe.email.doctype.email_template.email_template import get_email_template
 from frappe.model.document import Document
 from frappe.model.workflow import (
 	apply_workflow,
@@ -24,6 +25,8 @@ from frappe.utils.verified_command import get_signed_params, verify_request
 
 
 class WorkflowAction(Document):
+	_DOCTYPE_NAME = "Workflow Action"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -127,7 +130,14 @@ def process_workflow_actions(doc, state):
 
 
 @frappe.whitelist(allow_guest=True)
-def apply_action(action, doctype, docname, current_state, user=None, last_modified=None):
+def apply_action(
+	action: str,
+	doctype: str,
+	docname: str | int,
+	current_state: str,
+	user: str | None = None,
+	last_modified: str | datetime | None = None,
+):
 	if not verify_request():
 		return
 
@@ -146,24 +156,15 @@ def apply_action(action, doctype, docname, current_state, user=None, last_modifi
 		return_link_expired_page(doc, doc_workflow_state)
 
 
-@frappe.whitelist(allow_guest=True)
-def confirm_action(doctype, docname, user, action):
+@frappe.whitelist()
+def confirm_action(doctype: str, docname: str | int, user: str, action: str):
 	if not verify_request():
 		return
-
-	logged_in_user = frappe.session.user
-	if logged_in_user == "Guest" and user:
-		# to allow user to apply action without login
-		frappe.set_user(user)
 
 	doc = frappe.get_doc(doctype, docname)
 	newdoc = apply_workflow(doc, action)
 	frappe.db.commit()
 	return_success_page(newdoc)
-
-	# reset session user
-	if logged_in_user == "Guest":
-		frappe.set_user(logged_in_user)
 
 
 def return_success_page(doc):
@@ -184,6 +185,7 @@ def return_action_confirmation_page(doc, action, action_link, alert_doc_change=F
 		"action": action,
 		"action_link": action_link,
 		"alert_doc_change": alert_doc_change,
+		"is_guest": frappe.session.user == "Guest",
 	}
 
 	template_params["pdf_link"] = get_pdf_link(doc.get("doctype"), doc.get("name"))
@@ -198,15 +200,59 @@ def return_action_confirmation_page(doc, action, action_link, alert_doc_change=F
 
 
 def return_link_expired_page(doc, doc_workflow_state):
+	user_full_name = get_user_who_set_workflow_state(doc, doc_workflow_state) or frappe.get_value(
+		"User", doc.get("modified_by"), "full_name"
+	)
 	frappe.respond_as_web_page(
 		_("Link Expired"),
 		_("Document {0} has been set to state {1} by {2}").format(
 			frappe.bold(doc.get("name")),
 			frappe.bold(doc_workflow_state),
-			frappe.bold(frappe.get_value("User", doc.get("modified_by"), "full_name")),
+			frappe.bold(
+				user_full_name
+				if user_full_name
+				else frappe.get_value("User", doc.get("modified_by"), "full_name")
+			),
 		),
 		indicator_color="blue",
 	)
+
+
+def get_user_who_set_workflow_state(doc, doc_workflow_state):
+	"""Get the full name of the user who triggered the workflow action that set the document to the given state.
+	Falls back to None if no completed Workflow Action is found (e.g. state was set without workflow).
+	"""
+	workflow_name = get_workflow_name(doc.get("doctype"))
+	if not workflow_name:
+		return None
+
+	# Get states that have a transition to the current workflow state
+	from_states = frappe.get_all(
+		"Workflow Transition",
+		filters={"parent": workflow_name, "next_state": doc_workflow_state},
+		pluck="state",
+	)
+	if not from_states:
+		return None
+
+	# Find the most recently completed Workflow Action that led to this state
+	WorkflowAction = DocType("Workflow Action")
+	completed_by = (
+		frappe.qb.from_(WorkflowAction)
+		.select(WorkflowAction.completed_by)
+		.where(
+			(WorkflowAction.reference_doctype == doc.get("doctype"))
+			& (WorkflowAction.reference_name == doc.get("name"))
+			& (WorkflowAction.status == "Completed")
+			& (WorkflowAction.workflow_state.isin(from_states))
+		)
+		.orderby(WorkflowAction.modified, order=frappe.qb.desc)
+		.limit(1)
+	).run()
+
+	if completed_by and completed_by[0][0]:
+		return frappe.get_value("User", completed_by[0][0], "full_name")
+	return None
 
 
 def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_state=None):
@@ -406,12 +452,15 @@ def get_confirm_workflow_action_url(doc, action, user):
 
 
 def is_workflow_action_already_created(doc):
+	# Only an open action means the current state is already being acted upon. Completed ones must not
+	# block, or a document re-entering a state it has left gets no new action and no notification.
 	return frappe.db.exists(
 		{
 			"doctype": "Workflow Action",
 			"reference_name": doc.get("name"),
 			"reference_doctype": doc.get("doctype"),
 			"workflow_state": get_doc_workflow_state(doc),
+			"status": "Open",
 		}
 	)
 
@@ -486,7 +535,7 @@ def get_email_template_from_workflow(doc):
 
 	if isinstance(doc, Document):
 		doc = doc.as_dict()
-	return get_email_template(template_name, doc)
+	return frappe.get_doc("Email Template", template_name).get_formatted_email(doc)
 
 
 def get_state_optional_field_value(workflow_name, state):

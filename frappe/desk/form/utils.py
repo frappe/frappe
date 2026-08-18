@@ -9,7 +9,8 @@ import frappe.desk.form.load
 import frappe.desk.form.meta
 from frappe import _
 from frappe.core.doctype.file.utils import extract_images_from_html
-from frappe.desk.form.document_follow import follow_document
+from frappe.desk.form.document_follow import _follow_document
+from frappe.query_builder.functions import IfNull
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.comment.comment import Comment
@@ -43,13 +44,13 @@ def add_comment(
 	comment.insert(ignore_permissions=True)
 
 	if frappe.get_cached_value("User", frappe.session.user, "follow_commented_documents"):
-		follow_document(comment.reference_doctype, comment.reference_name, frappe.session.user)
+		_follow_document(comment.reference_doctype, comment.reference_name, frappe.session.user)
 
 	return comment
 
 
 @frappe.whitelist()
-def update_comment(name, content):
+def update_comment(name: str | int, content: str):
 	"""allow only owner to update comment"""
 	doc = frappe.get_doc("Comment", name)
 
@@ -77,39 +78,73 @@ def update_comment_publicity(name: str, publish: bool):
 
 
 @frappe.whitelist()
-def get_next(doctype, value, prev, filters=None, sort_order="desc", sort_field="creation"):
+def get_next(
+	doctype: str,
+	value: str,
+	prev: str | int,
+	filters: dict | str | list | None = None,
+	sort_order: str = "desc",
+	sort_field: str = "creation",
+):
 	prev = int(prev)
 	if not filters:
 		filters = []
 	if isinstance(filters, str):
 		filters = json.loads(filters)
 
-	# # condition based on sort order
-	condition = ">" if sort_order.lower() == "asc" else "<"
+	table = frappe.qb.DocType(doctype)
+	name_column = table.name
+	current_sort_value = frappe.db.get_value(doctype, value, sort_field)
+	fallback = _sort_field_fallback(doctype, sort_field)
+	if fallback is not None:
+		sort_column = IfNull(table[sort_field], fallback)
+		if current_sort_value is None:
+			current_sort_value = fallback
+	else:
+		sort_column = table[sort_field]
 
-	# switch the condition
-	if prev:
-		sort_order = "asc" if sort_order.lower() == "desc" else "desc"
-		condition = "<" if condition == ">" else ">"
+	is_ascending = sort_order.lower() == "asc"
+	if prev == is_ascending:
+		composite_condition = (sort_column < current_sort_value) | (
+			(sort_column == current_sort_value) & (name_column < value)
+		)
+		order = frappe.qb.desc
+	else:
+		composite_condition = (sort_column > current_sort_value) | (
+			(sort_column == current_sort_value) & (name_column > value)
+		)
+		order = frappe.qb.asc
 
-	# # add condition for next or prev item
-	filters.append([doctype, sort_field, condition, frappe.get_value(doctype, value, sort_field)])
-
-	res = frappe.get_list(
-		doctype,
-		fields=["name"],
-		filters=filters,
-		order_by=f"{sort_field} {sort_order}",
-		limit_start=0,
-		limit_page_length=1,
-		as_list=True,
+	query = (
+		frappe.qb.get_query(doctype, filters=filters, fields=["name"], ignore_permissions=False)
+		.orderby(sort_column, order=order)
+		.orderby(name_column, order=order)
+		.where(composite_condition)
+		.limit(1)
 	)
 
-	if not res:
-		frappe.msgprint(_("No further records"))
-		return None
-	else:
+	if res := query.run(as_list=True):
 		return res[0][0]
+
+	frappe.msgprint(_("No further records"))
+	return None
+
+
+def _sort_field_fallback(doctype: str, fieldname: str):
+	if fieldname in ("name", "modified", "creation", "modified_by", "owner", "idx", "docstatus"):
+		return None
+	df = frappe.get_meta(doctype).get_field(fieldname)
+	if df is None:
+		return ""
+	if df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
+		return None
+	if getattr(df, "not_nullable", False):
+		return None
+	if df.fieldtype in ("Date", "Datetime"):
+		return "0001-01-01"
+	if df.fieldtype == "Time":
+		return "00:00:00"
+	return ""
 
 
 def get_pdf_link(doctype, docname, print_format="Standard", no_letterhead=0):

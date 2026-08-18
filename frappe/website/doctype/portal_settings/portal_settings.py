@@ -7,6 +7,8 @@ from frappe.website.path_resolver import validate_path
 
 
 class PortalSettings(Document):
+	_DOCTYPE_NAME = "Portal Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -23,9 +25,23 @@ class PortalSettings(Document):
 		menu: DF.Table[PortalMenuItem]
 	# end: auto-generated types
 
+	def get_all_menu_items(self):
+		"""Return standard + custom menu items, tolerating unset (None) tables."""
+		return (self.get("menu") or []) + (self.get("custom_menu") or [])
+
+	def init_menu_tables(self):
+		"""Coerce unset (None) menu tables to empty lists.
+
+		`save()` iterates child tables directly, so a None table blows up in
+		`update_child_table` before any of our own validation runs.
+		"""
+		for fieldname in ("menu", "custom_menu"):
+			if self.get(fieldname) is None:
+				self.set(fieldname, [])
+
 	def add_item(self, item):
 		"""insert new portal menu item if route is not set, or role is different"""
-		exists = [d for d in self.get("menu", []) if d.get("route") == item.get("route")]
+		exists = [d for d in (self.get("menu") or []) if d.get("route") == item.get("route")]
 		if exists and item.get("role"):
 			if exists[0].role != item.get("role"):
 				exists[0].role = item.get("role")
@@ -43,6 +59,7 @@ class PortalSettings(Document):
 
 	def sync_menu(self):
 		"""Sync portal menu items"""
+		self.init_menu_tables()
 		dirty = False
 		for item in frappe.get_hooks("standard_portal_menu_items"):
 			if item.get("role") and not frappe.db.exists("Role", item.get("role")):
@@ -71,7 +88,7 @@ class PortalSettings(Document):
 
 	def remove_deleted_doctype_items(self):
 		existing_doctypes = set(frappe.get_list("DocType", pluck="name"))
-		for menu_item in list(self.get("menu") + self.get("custom_menu")):
+		for menu_item in self.get_all_menu_items():
 			if menu_item.reference_doctype not in existing_doctypes:
 				self.remove(menu_item)
 

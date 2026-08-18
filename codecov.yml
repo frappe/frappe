@@ -20,18 +20,14 @@ coverage:
           - server
 
 comment:
-  layout: "diff, flags"
-  require_changes: true
-  show_critical_paths: true
+  layout: "condensed_header, condensed_files"
+  hide_project_coverage: true
+  require_changes: "coverage_drop OR uncovered_patch"
 
 flags:
   server:
     paths:
       - "**/*.py"
-    carryforward: true
-  ui-tests:
-    paths:
-      - "**/*.js"
     carryforward: true
   server-ui:
     paths:
@@ -40,7 +36,7 @@ flags:
 
 profiling:
    critical_files_paths:
-      - /frappe/api.py
+      - /frappe/api/*
       - /frappe/app.py
       - /frappe/auth.py
       - /frappe/boot.py

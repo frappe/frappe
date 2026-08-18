@@ -5,6 +5,8 @@ from frappe.model.document import Document
 
 
 class UserSocialLogin(Document):
+	_DOCTYPE_NAME = "User Social Login"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

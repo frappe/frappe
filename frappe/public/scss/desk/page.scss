@@ -1,18 +1,15 @@
-body:not([data-route^="Form"]) {
-	.layout-side-section {
-		display: none;
-	}
-}
-
 .page-title {
 	display: flex;
 	align-items: center;
 	padding: 0 15px;
+	min-width: 0;
+
 	.sidebar-toggle-btn {
 		display: flex;
 		margin-right: var(--margin-sm);
 		cursor: pointer;
 		--icon-stroke: var(--gray-700);
+
 		.sidebar-toggle-icon {
 			display: none;
 		}
@@ -26,6 +23,7 @@ body:not([data-route^="Form"]) {
 			.sidebar-toggle-icon {
 				display: block;
 			}
+
 			.sidebar-toggle-placeholder {
 				display: none;
 			}
@@ -41,9 +39,23 @@ body:not([data-route^="Form"]) {
 
 	.title-area {
 		display: inline-flex;
-		.indicator-pill {
+		align-items: center;
+
+		.deprecated-badge {
 			margin-left: var(--margin-sm);
+			flex-shrink: 0;
 		}
+
+		.page-indicator-pill {
+			margin-left: var(--margin-sm);
+
+			.indicator-doc-html {
+				height: 8px;
+				width: 8px;
+				border-radius: inherit;
+			}
+		}
+
 		.sub-heading {
 			@include get_textstyle("sm", "regular");
 		}
@@ -61,12 +73,19 @@ body:not([data-route^="Form"]) {
 
 .page-actions {
 	align-items: center;
+	padding-left: 0px;
+
+	.filters:not(:empty) {
+		margin-left: var(--margin-sm, 8px);
+	}
+
 	.btn {
 		height: var(--btn-height);
 		margin-left: var(--margin-sm, 8px);
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 		line-height: 1;
 		padding: 4px 8px;
+
 		&,
 		& .hidden-xs {
 			display: inline-flex;
@@ -74,13 +93,36 @@ body:not([data-route^="Form"]) {
 			gap: 6px;
 		}
 	}
+
 	.btn:not(.icon-btn) {
 		padding: 4px 8px;
 	}
+
+	// the header buttons are es-buttons now; they style themselves, but the
+	// spacing between siblings still comes from here (until the layout moves
+	// to gap in the header-skeleton PR)
+	.es-button {
+		margin-left: var(--margin-sm, 8px);
+	}
+
+	// below md, a button whose label is breakpoint-hidden (hidden-xs) with no
+	// short-label swap (hidden-lg) is icon-only — square it like an icon
+	// button instead of leaving a lone icon with text padding
+	@include media-breakpoint-down(sm) {
+		.es-button:has(> .es-button__label.hidden-xs):not(:has(> .es-button__label.hidden-lg)) {
+			padding-inline: 0;
+			width: var(--es-bt-h);
+			min-width: 0;
+		}
+	}
+
 	.btn-primary,
-	.btn-secondary {
+	.btn-secondary,
+	.primary-action,
+	.secondary-action {
 		min-width: 40px;
 	}
+
 	.custom-btn-group {
 		display: inline-flex;
 	}
@@ -117,9 +159,6 @@ body[data-route^="Form"] {
 	border-bottom: 1px solid var(--border-color);
 	transition: 0.5s top;
 	top: 0;
-	&.show-navbar {
-		top: var(--navbar-height);
-	}
 
 	.page-head-content {
 		height: var(--page-head-height);
@@ -139,6 +178,7 @@ body[data-route^="Form"] {
 		padding: 0 10px 0 0;
 		margin: 8px 0;
 	}
+
 	.checkbox {
 		margin-top: 4px;
 		margin-bottom: 4px;
@@ -156,30 +196,24 @@ body[data-route^="Form"] {
 .form-inner-toolbar {
 	.inner-group-button {
 		display: inline-flex;
+
 		.icon {
 			margin-right: -var(--margin-xs);
 		}
 	}
+
 	button {
 		margin-left: var(--margin-sm);
 	}
 }
 
+// these groups hold only the trigger button and a hidden item store now —
+// the visible menus are es-menu panels portaled to <body> (see page.js)
 .menu-btn-group,
 .custom-btn-group,
+.actions-btn-group,
 .page-icon-group {
 	display: flex;
-	.dropdown-menu {
-		width: max-content;
-	}
-
-	.menu-item-label {
-		margin-right: var(--margin-md);
-	}
-
-	.menu-item-icon {
-		margin-right: var(--margin-sm);
-	}
 }
 
 .layout-main {
@@ -208,10 +242,12 @@ body[data-route^="Form"] {
 			height: 60px;
 			width: auto;
 			margin-bottom: var(--margin-md);
+
 			img {
 				fill: var(--fg-color);
 			}
 		}
+
 		p {
 			@include get_textstyle("base", "regular");
 		}

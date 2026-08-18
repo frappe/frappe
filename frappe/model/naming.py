@@ -6,10 +6,8 @@ import datetime
 import re
 import time
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Optional
-from uuid import UUID
-
-import uuid_utils
+from typing import TYPE_CHECKING
+from uuid import UUID, uuid7
 
 import frappe
 from frappe import _
@@ -50,11 +48,14 @@ class NamingSeries:
 	__slots__ = ("series",)
 
 	def __init__(self, series: str):
+		assert isinstance(series, str), "naming series key must be a string"
 		self.series = series
 
 		# Add default number part if missing
 		if "#" not in self.series:
 			self.series += ".#####"
+
+		assert "#" in self.series, "naming series must contain a number placeholder after normalization"
 
 	def validate(self):
 		if "." not in self.series:
@@ -166,8 +167,8 @@ def set_new_name(doc):
 
 	if meta.autoname == "UUID":
 		if not doc.name:
-			doc.name = str(uuid_utils.uuid7())
-		elif isinstance(doc.name, UUID | uuid_utils.UUID):
+			doc.name = str(uuid7())
+		elif isinstance(doc.name, UUID):
 			doc.name = str(doc.name)
 		elif isinstance(doc.name, str):  # validate
 			try:
@@ -223,7 +224,7 @@ def set_name_from_naming_options(autoname, doc):
 		# notify
 		if not doc.name:
 			fieldname = autoname[6:]
-			frappe.throw(_("{0} is required").format(doc.meta.get_label(fieldname)))
+			frappe.throw(_("{0} is required").format(_(doc.meta.get_label(fieldname), context=doc.doctype)))
 
 	elif _autoname.startswith("naming_series:"):
 		set_name_by_naming_series(doc)
@@ -232,7 +233,22 @@ def set_name_from_naming_options(autoname, doc):
 	elif _autoname.startswith("format:"):
 		doc.name = _format_autoname(autoname, doc)
 	elif "#" in autoname:
-		doc.name = make_autoname(autoname, doc=doc)
+		# For Expression naming rule, first replace braced params, then normalize, then process series
+		# This handles patterns like {full_name}-{description}-.#####
+		def get_param_value_for_match(match):
+			param = match.group()
+			return parse_naming_series([param[1:-1]], doc=doc)
+
+		# Replace braced params first
+		name_with_params = BRACED_PARAMS_PATTERN.sub(get_param_value_for_match, autoname)
+
+		# Normalize pattern: convert '-.#####' to '.-.#####' to support both formats
+		# This handles cases like {fieldname}-.##### (without dot before dash)
+		# Pattern matches: dash followed by dot followed by one or more hashes, but only if not preceded by a dot
+		normalized_autoname = re.sub(r"(?<!\.)(-\.#+)", r".\1", name_with_params)
+
+		# Process the series
+		doc.name = make_autoname(normalized_autoname, doc=doc)
 
 
 def set_naming_from_document_naming_rule(doc):
@@ -289,7 +305,8 @@ def make_autoname(key="", doctype="", doc="", *, ignore_validate=False):
 	                DE/09/01/00001 where 09 is the year, 01 is the month and 00001 is the series
 	"""
 	if key == "hash":
-		return (_get_timestamp_prefix() + _generate_random_string(7))[:10]
+		hashed_name = (_get_timestamp_prefix() + _generate_random_string(7))[:10]
+		return hashed_name
 
 	series = NamingSeries(key)
 	return series.generate_next_name(doc, ignore_validate=ignore_validate)
@@ -306,6 +323,7 @@ def _get_timestamp_prefix():
 	# guarantees.
 	request_part = (get_trace_id() or "")[-1:]
 
+	assert len(ts_part) == 3, "timestamp part of hash prefix must be exactly 3 chars"
 	return request_part + ts_part
 
 
@@ -463,9 +481,16 @@ def revert_series_if_last(key, name, doc=None):
 		prefix = key
 
 	if "." in prefix:
-		prefix = parse_naming_series(prefix.split("."), doc=doc)
-
-	count = cint(name.replace(prefix, ""))
+		# Prefix has placeholders (e.g. date parts .YYYY./.MM./.DD.). Resolving them against
+		# the current date breaks reverts when a document is deleted on a different day than
+		# it was created. The resolved prefix length is date-independent (YYYY is always 4
+		# chars, MM 2, etc.), so resolve only to learn the length, then slice the prefix and
+		# counter from the document's own name.
+		boundary = len(parse_naming_series(prefix.split("."), doc=doc))
+		count = cint(name[boundary:])
+		prefix = name[:boundary]
+	else:
+		count = cint(name.replace(prefix, ""))
 	series = DocType("Series")
 	current = (frappe.qb.from_(series).where(series.name == prefix).for_update().select("current")).run()
 
@@ -586,10 +611,18 @@ def _format_autoname(autoname: str, doc):
 	Independent of remaining string or separators.
 
 	Example pattern: 'format:LOG-{MM}-{fieldname1}-{fieldname2}-{#####}'
+	Supports both patterns:
+	- {fieldname}.-.##### (with dot before dash)
+	- {fieldname}-.##### (without dot before dash)
 	"""
 
 	first_colon_index = autoname.find(":")
 	autoname_value = autoname[first_colon_index + 1 :]
+
+	# Normalize pattern: convert '-.#####' to '.-.#####' to support both formats
+	# This handles cases like {fieldname}-.##### (without dot before dash)
+	# Pattern matches: dash followed by dot followed by one or more hashes, but only if not preceded by a dot
+	autoname_value = re.sub(r"(?<!\.)(-\.#+)", r".\1", autoname_value)
 
 	def get_param_value_for_match(match):
 		param = match.group()
@@ -597,5 +630,9 @@ def _format_autoname(autoname: str, doc):
 
 	# Replace braced params with their parsed value
 	name = BRACED_PARAMS_PATTERN.sub(get_param_value_for_match, autoname_value)
+
+	# If the result still contains unbraced hash patterns (like .#####), process them as naming series
+	if "#" in name and "{" not in name:
+		name = make_autoname(name, doc=doc)
 
 	return name

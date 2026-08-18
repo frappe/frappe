@@ -1,0 +1,65 @@
+{% set error_lines = (doc.error or "").split('\n') %}
+{% set first_lines = 10 %}
+{% set last_lines = 15 %}
+{% set max_lines = first_lines + last_lines %}
+{% set total_lines = error_lines | length %}
+{% set needs_truncation = total_lines > max_lines %}
+
+<table class="email-header" border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td>
+            <h1 class="email-header-title">
+                Error Log
+            </h1>
+        </td>
+    </tr>
+</table>
+
+<table class="table table-bordered" width="100%">
+    <tr>
+        <td class="text-bold" style="background: #f8f8f8; width: 120px;">Site</td>
+        <td><a href="{{ frappe.utils.get_url() }}">{{ frappe.utils.get_url() }}</a></td>
+    </tr>
+    <tr>
+        <td class="text-bold" style="background: #f8f8f8;">Error ID</td>
+        <td>{{ frappe.utils.get_link_to_form("Error Log", doc.name, doc.name) }}</td>
+    </tr>
+    <tr>
+        <td class="text-bold" style="background: #f8f8f8;">Title</td>
+        <td>{{ doc.method or "N/A" }}</td>
+    </tr>
+    <tr>
+        <td class="text-bold" style="background: #f8f8f8;">Logged At</td>
+        <td>{{ frappe.utils.format_datetime(doc.creation) }}</td>
+    </tr>
+    {% if doc.reference_doctype and doc.reference_name %}
+    <tr>
+        <td class="text-bold" style="background: #f8f8f8;">Reference</td>
+        <td>{{ frappe.utils.get_link_to_form(doc.reference_doctype, doc.reference_name) }}</td>
+    </tr>
+    {% endif %}
+</table>
+
+<div style="margin-top: 20px;">
+    <div class="text-medium text-bold">
+        Error Details
+        {% if needs_truncation %}
+        <span class="text-muted" style="font-weight: normal;"> ({{ max_lines }} of {{ total_lines }} lines)</span>
+        {% endif %}
+    </div>
+    <div class="gray-container" style="margin-top: 8px;">
+        <pre class="text-small" style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">{% if needs_truncation %}{{ error_lines[:first_lines] | join('\n') }}
+
+<span class="text-muted" style="font-style: italic;">... {{ total_lines - max_lines }} lines omitted ...</span>
+
+{{ error_lines[-last_lines:] | join('\n') }}{% else %}{{ error_lines | join('\n') }}{% endif %}</pre>
+    </div>
+</div>
+
+<div class="more-info">
+    <a href="{{ frappe.utils.get_url_to_form('Error Log', doc.name) }}" class="btn btn-primary">View Error Log</a>
+</div>
+
+<p class="text-muted text-small" style="margin-top: 20px;">
+    This is an automated notification from {{ frappe.utils.get_host_name() }}.
+</p>

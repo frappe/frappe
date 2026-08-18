@@ -3,6 +3,7 @@
  "allow_rename": 1,
  "autoname": "field:title",
  "creation": "2025-08-12 12:06:45.016314",
+ "deprecated": 1,
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -13,6 +14,7 @@
   "column_break_pukb",
   "standard",
   "app",
+  "module_onboarding",
   "section_break_vdyo",
   "items"
  ],
@@ -67,12 +69,18 @@
   {
    "fieldname": "section_break_vdyo",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "module_onboarding",
+   "fieldtype": "Link",
+   "label": "Module Onboarding",
+   "options": "Module Onboarding"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-10 22:12:40.504715",
+ "modified": "2026-08-05 12:49:37.185845",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace Sidebar",
@@ -88,6 +96,18 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Desk User",
    "share": 1,
    "write": 1
   }

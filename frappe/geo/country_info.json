@@ -27,7 +27,7 @@
  "Algeria": {
   "code": "dz",
   "currency": "DZD",
-  "currency_fraction": "Santeem",
+  "currency_fraction": "Centime",
   "currency_fraction_units": 100,
   "currency_name": "Algerian Dinar",
   "currency_symbol": "\u062f.\u062c",
@@ -131,7 +131,12 @@
    "America/Argentina/San_Juan",
    "America/Argentina/San_Luis",
    "America/Argentina/Tucuman",
-   "America/Argentina/Ushuaia"
+   "America/Argentina/Ushuaia",
+   "America/Buenos_Aires",
+   "America/Catamarca",
+   "America/Cordoba",
+   "America/Jujuy",
+   "America/Mendoza"
   ],
   "isd": "+54"
  },
@@ -212,6 +217,8 @@
  "Bahamas": {
   "code": "bs",
   "currency": "BSD",
+  "currency_fraction": "Cent",
+  "currency_fraction_units": 100,
   "currency_name": "Bahamian Dollar",
   "number_format": "#,###.##",
   "timezones": [
@@ -338,13 +345,16 @@
  "Bolivia, Plurinational State of": {
   "code": "bo",
   "currency": "BOB",
+  "currency_fraction": "Centavo",
+  "currency_fraction_units": 100,
   "currency_name": "Boliviano",
   "number_format": "#,###.##",
   "isd": "+591"
  },
  "Bonaire, Sint Eustatius and Saba": {
   "code": "bq",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "isd": "+599"
  },
  "Bosnia and Herzegovina": {
   "code": "ba",
@@ -418,6 +428,8 @@
  "Brunei Darussalam": {
   "code": "bn",
   "currency": "BND",
+  "currency_fraction": "Sen",
+  "currency_fraction_units": 100,
   "currency_name": "Brunei Dollar",
   "number_format": "#,###.##",
   "timezones": [
@@ -527,7 +539,8 @@
    "America/Vancouver",
    "America/Whitehorse",
    "America/Winnipeg",
-   "America/Yellowknife"
+   "America/Yellowknife",
+   "America/Coral_Harbour"
   ],
   "isd": "+1"
  },
@@ -600,6 +613,7 @@
  "China": {
   "code": "cn",
   "currency": "CNY",
+  "currency_fraction": "Fen",
   "currency_name": "Yuan Renminbi",
   "currency_fraction_units": 100,
   "smallest_currency_fraction_value": 0.01,
@@ -734,7 +748,8 @@
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_symbol": "\u0192",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "isd": "+599"
  },
  "Cyprus": {
   "code": "cy",
@@ -876,7 +891,8 @@
   "currency_symbol": "Nfk",
   "number_format": "#,###.##",
   "timezones": [
-   "Africa/Asmara"
+   "Africa/Asmara",
+   "Africa/Asmera"
   ],
   "isd": "+291"
  },
@@ -909,6 +925,8 @@
  "Falkland Islands (Malvinas)": {
   "code": "fk",
   "currency": "FKP",
+  "currency_fraction": "Penny",
+  "currency_fraction_units": 100,
   "currency_name": "Falkland Islands Pound",
   "number_format": "#,###.##",
   "isd": "+500"
@@ -920,7 +938,8 @@
   "currency_symbol": "kr",
   "number_format": "#,###.##",
   "timezones": [
-   "Atlantic/Faroe"
+   "Atlantic/Faroe",
+   "Atlantic/Faeroe"
   ],
   "isd": "+298"
  },
@@ -1006,6 +1025,8 @@
  "Gambia": {
   "code": "gm",
   "currency": "GMD",
+  "currency_fraction": "Butut",
+  "currency_fraction_units": 100,
   "currency_name": "Dalasi",
   "number_format": "#,###.##",
   "timezones": [
@@ -1084,7 +1105,8 @@
    "America/Danmarkshavn",
    "America/Godthab",
    "America/Scoresbysund",
-   "America/Thule"
+   "America/Thule",
+   "America/Nuuk"
   ],
   "isd": "+299"
  },
@@ -1266,7 +1288,8 @@
   "currency_symbol": "\u20b9",
   "number_format": "#,##,###.##",
   "timezones": [
-   "Asia/Kolkata"
+   "Asia/Kolkata",
+   "Asia/Calcutta"
   ],
   "isd": "+91"
  },
@@ -1289,6 +1312,8 @@
  "Iran": {
   "code": "ir",
   "currency": "IRR",
+  "currency_fraction": "Dinar",
+  "currency_fraction_units": 100,
   "currency_name": "Iranian Rial",
   "currency_symbol": "\ufdfc",
   "number_format": "#,###.##",
@@ -1369,7 +1394,7 @@
   "currency_fraction": "Centime",
   "currency_fraction_units": 100,
   "number_format": "#,###.##",
-  "timeszones": [
+  "timezones": [
    "Africa/Abidjan"
   ],
   "isd": "+225"
@@ -1463,13 +1488,16 @@
   "timezones": [
    "Pacific/Enderbury",
    "Pacific/Kiritimati",
-   "Pacific/Tarawa"
+   "Pacific/Tarawa",
+   "Pacific/Kanton"
   ],
   "isd": "+686"
  },
  "Korea, Democratic Peoples Republic of": {
   "code": "kp",
   "currency": "KPW",
+  "currency_fraction": "Chon",
+  "currency_fraction_units": 100,
   "currency_name": "North Korean Won",
   "number_format": "#,###.##",
   "isd": "+850"
@@ -1477,6 +1505,8 @@
  "Korea, Republic of": {
   "code": "kr",
   "currency": "KRW",
+  "currency_fraction": "Jeon",
+  "currency_fraction_units": 100,
   "currency_name": "Won",
   "number_format": "#,###",
   "isd": "+82"
@@ -1510,6 +1540,8 @@
  "Lao Peoples Democratic Republic": {
   "code": "la",
   "currency": "LAK",
+  "currency_fraction": "Att",
+  "currency_fraction_units": 100,
   "currency_name": "Kip",
   "number_format": "#,###.##",
   "timezones": [
@@ -1623,6 +1655,8 @@
  "Macao": {
   "code": "mo",
   "currency": "MOP",
+  "currency_fraction": "Avo",
+  "currency_fraction_units": 100,
   "currency_name": "Pataca",
   "number_format": "#,###.##",
   "isd": "+853"
@@ -1801,6 +1835,8 @@
  "Moldova, Republic of": {
   "code": "md",
   "currency": "MDL",
+  "currency_fraction": "Ban",
+  "currency_fraction_units": 100,
   "currency_name": "Moldovan Leu",
   "number_format": "#,###.##",
   "isd": "+373"
@@ -1888,10 +1924,13 @@
  "Myanmar": {
   "code": "mm",
   "currency": "MMK",
+  "currency_fraction": "Pya",
+  "currency_fraction_units": 100,
   "currency_name": "Kyat",
   "number_format": "#,###.##",
   "timezones": [
-   "Asia/Rangoon"
+   "Asia/Rangoon",
+   "Asia/Yangon"
   ],
   "isd": "+95"
  },
@@ -1928,7 +1967,8 @@
   "currency_symbol": "\u20a8",
   "number_format": "#,##,###.##",
   "timezones": [
-   "Asia/Kathmandu"
+   "Asia/Kathmandu",
+   "Asia/Katmandu"
   ],
   "isd": "+977"
  },
@@ -2237,6 +2277,8 @@
  "Russian Federation": {
   "code": "ru",
   "currency": "RUB",
+  "currency_fraction": "Kopek",
+  "currency_fraction_units": 100,
   "currency_name": "Russian Ruble",
   "number_format": "#.###,##",
   "isd": "+7"
@@ -2267,6 +2309,8 @@
  "Saint Helena, Ascension and Tristan da Cunha": {
   "code": "sh",
   "currency": "SHP",
+  "currency_fraction": "Penny",
+  "currency_fraction_units": 100,
   "currency_name": "Saint Helena Pound",
   "number_format": "#,###.##",
   "isd": "+290"
@@ -2349,6 +2393,8 @@
  "Sao Tome and Principe": {
   "code": "st",
   "currency": "STD",
+  "currency_fraction": "Cêntimo",
+  "currency_fraction_units": 100,
   "currency_name": "Dobra",
   "number_format": "#,###.##",
   "isd": "+239"
@@ -2433,7 +2479,8 @@
  },
  "Sint Maarten (Dutch part)": {
   "code": "sx",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "isd": "+1721"
  },
  "Slovakia": {
   "code": "sk",
@@ -2623,6 +2670,8 @@
  "Syria": {
   "code": "sy",
   "currency": "SYP",
+  "currency_fraction": "Piastre",
+  "currency_fraction_units": 100,
   "currency_name": "Syrian Pound",
   "number_format": "#,###.##",
   "isd": "+963"
@@ -2630,6 +2679,8 @@
  "Taiwan": {
   "code": "tw",
   "currency": "TWD",
+  "currency_fraction": "Fen",
+  "currency_fraction_units": 100,
   "date_format": "yyyy-mm-dd",
   "number_format": "#,###.##",
   "isd": "+886"
@@ -2648,6 +2699,8 @@
  "Tanzania": {
   "code": "tz",
   "currency": "TZS",
+  "currency_fraction": "Senti",
+  "currency_fraction_units": 100,
   "currency_name": "Tanzanian Shilling",
   "number_format": "#,###.##",
   "timezones": [
@@ -2735,11 +2788,11 @@
  },
  "Turkmenistan": {
   "code": "tm",
-  "currency": "TMM",
-  "currency_fraction": "Tennesi",
+  "currency": "TMT",
+  "currency_fraction": "Tenge",
   "currency_fraction_units": 100,
   "currency_name": "Manat",
-  "currency_symbol": "m",
+  "currency_symbol": "TMT",
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Ashgabat"
@@ -2802,7 +2855,8 @@
    "Europe/Kiev",
    "Europe/Simferopol",
    "Europe/Uzhgorod",
-   "Europe/Zaporozhye"
+   "Europe/Zaporozhye",
+   "Europe/Kyiv"
   ],
   "isd": "+380"
  },
@@ -2872,7 +2926,9 @@
    "America/Denver",
    "America/Sitka",
    "America/Yakutat",
-   "Pacific/Honolulu"
+   "Pacific/Honolulu",
+   "America/Indianapolis",
+   "America/Louisville"
   ],
   "isd": "+1"
  },
@@ -2932,6 +2988,8 @@
  "Vietnam": {
   "code": "vn",
   "currency": "VND",
+  "currency_fraction": "Hào",
+  "currency_fraction_units": 10,
   "currency_name": "Dong",
   "number_format": "#.###",
   "isd": "+84"
@@ -2959,7 +3017,8 @@
   "number_format": "#,###.##",
   "timezones": [
    "Africa/El_Aaiun"
-  ]
+  ],
+  "isd": "+212"
  },
  "Yemen": {
   "code": "ye",

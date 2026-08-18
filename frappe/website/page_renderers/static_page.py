@@ -34,7 +34,7 @@ class StaticPage(BaseRenderer):
 		self.file_path = ""
 		if not self.is_valid_file_path():
 			return
-		for app in frappe.get_installed_apps():
+		for app in frappe.get_active_apps():
 			app_path = Path(frappe.get_app_path(app, "www"))
 			requested_path = (app_path / self.path).resolve()
 			if (

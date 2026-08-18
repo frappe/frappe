@@ -12,6 +12,8 @@ from frappe.utils.modules import get_modules_from_all_apps_for_user
 
 
 class Dashboard(Document):
+	_DOCTYPE_NAME = "Dashboard"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -64,7 +66,7 @@ class Dashboard(Document):
 			try:
 				json.loads(self.chart_options)
 			except ValueError as error:
-				frappe.throw(_("Invalid json added in the custom options: {0}").format(error))
+				frappe.throw(_("Invalid json added in the custom options: {0}").format(str(error)))
 
 
 def get_permission_query_conditions(user):
@@ -85,25 +87,37 @@ def get_permission_query_conditions(user):
 
 
 @frappe.whitelist()
-def get_permitted_charts(dashboard_name):
+def get_permitted_charts(dashboard_name: str):
 	permitted_charts = []
 	dashboard = frappe.get_doc("Dashboard", dashboard_name)
 	for chart in dashboard.charts:
-		if frappe.has_permission("Dashboard Chart", doc=chart.chart):
-			chart_dict = frappe._dict()
-			chart_dict.update(chart.as_dict())
+		try:
+			if frappe.has_permission("Dashboard Chart", doc=chart.chart):
+				chart_dict = frappe._dict()
+				chart_dict.update(chart.as_dict())
 
-			if dashboard.get("chart_options"):
-				chart_dict.custom_options = dashboard.get("chart_options")
-			permitted_charts.append(chart_dict)
+				if dashboard.get("chart_options"):
+					chart_dict.custom_options = dashboard.get("chart_options")
+				permitted_charts.append(chart_dict)
+		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
+			frappe.log_error(f"Dashboard Chart '{chart.chart}' not found or its source DocType is missing")
 
 	return permitted_charts
 
 
 @frappe.whitelist()
-def get_permitted_cards(dashboard_name):
+def get_permitted_cards(dashboard_name: str):
+	permitted_cards = []
 	dashboard = frappe.get_doc("Dashboard", dashboard_name)
-	return [card for card in dashboard.cards if frappe.has_permission("Number Card", doc=card.card)]
+	for card in dashboard.cards:
+		try:
+			if frappe.has_permission("Number Card", doc=card.card):
+				permitted_cards.append(card)
+		except frappe.DoesNotExistError:
+			frappe.log_error(f"Number Card '{card.card}' not found or its source DocType is missing")
+
+	return permitted_cards
 
 
 def get_non_standard_charts_in_dashboard(dashboard):

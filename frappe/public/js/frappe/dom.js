@@ -324,8 +324,8 @@ frappe.get_data_pill = (
 	`);
 	if (remove_action) {
 		let remove_btn = $(`
-			<span class="remove-btn cursor-pointer">
-				${frappe.utils.icon("close", "sm", "es-icon")}
+			<span class="remove-btn cursor-pointer flex align-items-center">
+				${frappe.utils.icon("x", "sm")}
 			</span>
 		`);
 		if (typeof remove_action === "function") {
@@ -347,24 +347,35 @@ frappe.get_modal = function (title, content) {
 						<span class="indicator hidden"></span>
 						<h4 class="modal-title">${title}</h4>
 					</div>
-					<div class="modal-actions">
-						<button class="btn btn-modal-minimize btn-link hide">
-							${frappe.utils.icon("collapse")}
-						</button>
-						<button class="btn btn-modal-close btn-link" data-dismiss="modal">
-							${frappe.utils.icon("close", "sm")}
-						</button>
+					<div class="modal-actions d-flex">
+						${frappe.ui.button.html({
+							icon: "minimize-2",
+							variant: "ghost",
+							title: __("Minimize"),
+							css_class: "btn-modal-minimize icon-btn hide",
+						})}
+						${frappe.ui.button.html({
+							icon: "x",
+							variant: "ghost",
+							title: __("Close"),
+							css_class: "btn-modal-close icon-btn",
+							attrs: { "data-dismiss": "modal" },
+						})}
 					</div>
 				</div>
 				<div class="modal-body ui-front">${content}</div>
 				<div class="modal-footer hide">
 					<div class="custom-actions"></div>
 					<div class="standard-actions">
-						<button type="button" class="btn btn-secondary btn-sm hide btn-modal-secondary">
-						</button>
-						<button type="button" class="btn btn-primary btn-sm hide btn-modal-primary">
-							${__("Confirm")}
-						</button>
+						${frappe.ui.button.html({
+							label: "",
+							css_class: "btn-modal-secondary hide",
+						})}
+						${frappe.ui.button.html({
+							label: __("Confirm"),
+							variant: "solid",
+							css_class: "btn-modal-primary hide",
+						})}
 					</div>
 				</div>
 			</div>
