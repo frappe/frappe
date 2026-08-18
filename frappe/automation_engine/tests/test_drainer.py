@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import frappe
 import frappe.automation_engine.drainer as drainer
+from frappe.automation_engine import settings
 from frappe.automation_engine.drainer import (
 	claim_batch,
 	drain,
@@ -129,23 +130,23 @@ class TestDrainer(IntegrationTestCase):
 		self.assertEqual(self.count("Running"), 0)
 
 	def test_one_failing_row_does_not_stop_the_batch(self):
-		for i in range(3):
-			self.add_row(f"T{i}")
+		names = [self.add_row(f"T{i}") for i in range(3)]
 
 		processed = []
 
 		def executor(name):
 			processed.append(name)
-			if len(processed) == 2:
+			if name == names[1]:
 				raise ValueError("boom")
 			frappe.db.set_value(QUEUE, name, "status", "Done")
 
 		drain(batch_size=3, executor=executor)
 
-		self.assertEqual(len(processed), 3)
 		self.assertEqual(self.count("Done"), 2)
-		# The failed row keeps its claim; requeue_stale_running() releases it.
-		self.assertEqual(self.count("Running"), 1)
+		# The failing row is retried to exhaustion and then failed, rather than holding its
+		# claim until the stale sweep. Nothing is left Running.
+		self.assertEqual(frappe.db.get_value(QUEUE, names[1], "status"), "Failed")
+		self.assertEqual(self.count("Running"), 0)
 
 	def test_a_failing_row_does_not_roll_back_the_rows_before_it(self):
 		names = [self.add_row(f"T{i}") for i in range(2)]
@@ -157,10 +158,32 @@ class TestDrainer(IntegrationTestCase):
 
 		drain(batch_size=2, executor=executor)
 
-		# Without a commit per row, the second row's rollback would take the first one's
+		# Without a savepoint per row, the second row's rollback would take the first one's
 		# write with it and both would sit Running until the stale sweep.
 		self.assertEqual(frappe.db.get_value(QUEUE, names[0], "status"), "Done")
-		self.assertEqual(frappe.db.get_value(QUEUE, names[1], "status"), "Running")
+		self.assertEqual(frappe.db.get_value(QUEUE, names[1], "status"), "Failed")
+
+	def test_escaped_row_is_released_instead_of_left_running(self):
+		"""A run that escapes the runner must not hold its claim until the stale sweep."""
+		name = self.add_row("escapes")
+		claimed = claim_batch(1)
+
+		drainer.execute_batch(lambda _name: 1 / 0, claimed)
+		frappe.db.commit()
+
+		row = frappe.db.get_value(QUEUE, name, ["status", "attempt"], as_dict=True)
+		self.assertEqual(row.status, "Pending")
+		self.assertEqual(row.attempt, 1)
+
+	def test_escaped_row_fails_once_attempts_are_exhausted(self):
+		"""A row that throws on every claim must stop being reclaimed - drain has to terminate."""
+		name = self.add_row("always_fails")
+
+		drain(executor=lambda _name: 1 / 0)
+
+		row = frappe.db.get_value(QUEUE, name, ["status", "attempt"], as_dict=True)
+		self.assertEqual(row.status, "Failed")
+		self.assertEqual(row.attempt, settings.get("max_attempts"))
 
 	def test_group_commit_failure_reruns_the_group_one_row_at_a_time(self):
 		names = [self.add_row(f"T{i}") for i in range(3)]
