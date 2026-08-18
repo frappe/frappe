@@ -393,6 +393,10 @@ def convert_sidebar_fixtures(context: CliCtxObj, app=None, dry_run=False):
 			frappe.init(site)
 			frappe.connect()
 
+			if app and app not in frappe.get_installed_apps():
+				click.secho(f"{app} is not installed on {site}.", fg="red")
+				continue
+
 			apps = [app] if app else sorted(apps_with_old_fixtures())
 			if not apps:
 				click.secho("No installed app still ships the old sidebar fixtures.", fg="green")

@@ -1740,9 +1740,10 @@ def sync_desktop_icons(context: CliCtxObj):
 	from frappe.desk.doctype.desktop_settings.desktop_settings import is_desktop_icons_page
 
 	for site in context.sites:
-		frappe.init(site)
-		frappe.connect()
 		try:
+			frappe.init(site)
+			frappe.connect()
+
 			# The import carries the desktop-mode guard, so say why nothing happened rather
 			# than reporting a sync that imported nothing.
 			if not is_desktop_icons_page():
